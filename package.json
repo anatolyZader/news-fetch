@@ -10,6 +10,7 @@
   "scripts": {
     "start": "node src/server.js",
     "test": "node --test tests/",
-    "articles-to-md": "node scripts/fetch-articles-to-md.js"
+    "articles-to-md": "node scripts/fetch-articles-to-md.js",
+    "homefront-to-md": "node scripts/extract-homefront-articles.js"
   }
 }

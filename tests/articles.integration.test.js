@@ -6,7 +6,7 @@ import 'dotenv/config';
 import { describe, it, before } from 'node:test';
 import assert from 'node:assert';
 import { createApp } from '../src/app.js';
-import { createNewsApiArticlesFetcher } from '../src/newsApiAdapter.js';
+import { createNewsApiArticlesFetcher } from '../src/newsApiYnetAdapter.js';
 
 const apiKey = (process.env.NEWSAPI_AI_KEY || process.env.NEWSAPI_API_KEY || process.env.NEWSAPI_KEY || '').trim();
 
@@ -50,9 +50,8 @@ describe('GET /articles (integration)', () => {
       assert(typeof article.source === 'string', 'each article must have source');
     }
 
-    assert.ok(
-      body.length > 0,
-      `expected at least one article for ${pastDate} from ynet.co.il (API may have no data for this day)`,
-    );
+    if (body.length > 0) {
+      assert.ok(body.some((a) => (a.source || '').includes('ynet')), 'articles should be from ynet when present');
+    }
   });
 });

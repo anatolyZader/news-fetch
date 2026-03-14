@@ -1,9 +1,10 @@
 /**
- * Fetches articles for a news site and writes them to a markdown file.
- * Usage: node scripts/fetch-articles-to-md.js [site] [date]
- *   site: ynet | haaretz | maariv | walla | mako | n12 | kan (default: ynet)
- *   date: YYYY-MM-DD (default: today)
- * Output: articles-<site>.md (or ARTICLES_MD env to override)
+ * Fetches main-news articles from all sites, keeps only those relevant to population
+ * behavior in emergency and Home Front Command (פיקוד העורף), and writes them to a
+ * single markdown file for analysis.
+ *
+ * Usage: node scripts/extract-homefront-articles.js [date YYYY-MM-DD]
+ * Output: articles-homefront.md (or HOMEFRONT_MD env)
  */
 import { config } from 'dotenv';
 import { fileURLToPath } from 'node:url';
@@ -14,6 +15,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 config({ path: join(__dirname, '..', '.env') });
 
 import { getTodayInTimezone } from '../src/dateUtils.js';
+import { isHomefrontRelevant } from './homefront-keywords.js';
 
 const SITE_ADAPTERS = {
   ynet: () => import('../src/newsApiYnetAdapter.js'),
@@ -35,32 +37,43 @@ const SITE_LABELS = {
   kan: 'KAN 11',
 };
 
+const SITE_KEYS = Object.keys(SITE_ADAPTERS);
+
 const apiKey = (process.env.NEWSAPI_AI_KEY || process.env.NEWSAPI_API_KEY || process.env.NEWSAPI_KEY || '').trim();
 const timezone = process.env.TZ_ARTICLES || 'Asia/Jerusalem';
+const outPath = process.env.HOMEFRONT_MD || 'articles-homefront.md';
 
 if (!apiKey) {
   console.error('Missing NEWSAPI_API_KEY (e.g. in .env).');
   process.exit(1);
 }
 
-const siteArg = (process.argv[2] || 'ynet').toLowerCase();
-const site = SITE_ADAPTERS[siteArg] ? siteArg : 'ynet';
-const dateArg = process.argv[3];
-const date = dateArg || getTodayInTimezone(timezone);
+const date = process.argv[2] || getTodayInTimezone(timezone);
 
-const outPath = process.env.ARTICLES_MD || `articles-${site}.md`;
+const allArticles = [];
+for (const site of SITE_KEYS) {
+  const adapterModule = await SITE_ADAPTERS[site]();
+  const createNewsApiArticlesFetcher = adapterModule.createNewsApiArticlesFetcher;
+  const fetchArticlesForDay = createNewsApiArticlesFetcher({ apiKey, timezone });
+  try {
+    const articles = await fetchArticlesForDay({ date });
+    const label = SITE_LABELS[site];
+    for (const a of articles) {
+      allArticles.push({ ...a, source: a.source || label });
+    }
+  } catch (err) {
+    console.error(`Failed to fetch ${site}:`, err.message);
+  }
+}
 
-const adapterModule = await SITE_ADAPTERS[site]();
-const createNewsApiArticlesFetcher = adapterModule.createNewsApiArticlesFetcher;
-const fetchArticlesForDay = createNewsApiArticlesFetcher({ apiKey, timezone });
+const articles = allArticles.filter((a) => isHomefrontRelevant(a.title, a.body));
 
-const articles = await fetchArticlesForDay({ date });
-
-const label = SITE_LABELS[site];
 const sections = [
-  `# ${label} articles (${date})`,
+  `# Home Front / population-in-emergency articles (${date})`,
   '',
-  `Total: ${articles.length} articles`,
+  `For Home Front Command (פיקוד העורף) and population-behavior analysis.`,
+  `Includes: psychoemotional state of the population; special/vulnerable populations.`,
+  `Filtered from ${allArticles.length} main-news articles (all sites) → ${articles.length} relevant.`,
   '',
 ];
 
@@ -83,4 +96,4 @@ function escapeMdHeading(s) {
 }
 
 writeFileSync(outPath, sections.join('\n'), 'utf8');
-console.log(`Wrote ${articles.length} articles to ${outPath}`);
+console.log(`Wrote ${articles.length} home-front–relevant articles to ${outPath} (from ${allArticles.length} total)`);
