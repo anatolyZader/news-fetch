@@ -1,0 +1,1441 @@
+{
+  "assessment": {
+    "date": "2026-03-14",
+    "total_events_analyzed": 101,
+    "overall_resilience_score": 7,
+    "incident_summary": "On the morning of 2026-03-14, two missile alert sirens were activated in rapid succession — the first at 06:00 and the second at 07:00 — triggering a prolonged emergency sheltering period lasting approximately 100 minutes. Interception explosions were heard and debris was observed falling at a distance, confirming the threat was real and proximate. Police secured suspected impact and debris zones. The municipality issued multiple rounds of communications including alert confirmations, shelter reminders, updated safety instructions, and two separate rumor denials. Residents engaged in immediate protective behavior, active information-seeking across official and informal channels, spontaneous and organized mutual aid for elderly residents and children, and gradual recovery of daily routines after each alert. However, a persistent minority engaged in risk behaviors (recording interceptions from balconies, premature shelter exits), and growing alert fatigue and frustration were evident by the second event cycle, particularly affecting children and parents.",
+    "cross_component_synthesis": "The event sequence reveals a community with strong foundational resilience infrastructure but emerging stress fractures under repeated threat exposure. The most robust dimensions are community capital and belonging/solidarity: neighbors and volunteers spontaneously and repeatedly assisted elderly residents to shelters, parents consistently protected and calmed children, and residents actively amplified official guidance through peer networks. These behaviors persisted across both alert cycles without degradation, suggesting deeply internalized mutual aid norms and well-functioning informal social networks.\n\nInformation and communication, leadership, and life-saving behavior formed a mutually reinforcing middle tier. The municipality demonstrated responsive, adaptive leadership — issuing timely confirmations, corrective reminders when premature shelter exits were observed, updated safety instructions, and prompt rumor denials. Residents generally engaged with official channels, cross-verified rumors, and shared authoritative guidance. However, a notable gap persisted around all-clear protocols: the absence of a definitive end-of-event signal created repeated confusion about when to leave shelters, driving speculative discussion and premature exits. Life-saving compliance was strong on initial response (rapid sheltering within one minute) but showed erosion with each passing cycle — premature exits escalated from isolated incidents in the first alert to a more pronounced pattern during the second.\n\nThe weaker components — narrative, functional continuity, and wellbeing — are interconnected and represent the community's vulnerability to sustained or escalating threat scenarios. The dominant narrative arc shifted from successful coping (interception success, community solidarity) toward fatigue, frustration, and anxiety, particularly after the second siren. This narrative degradation is a leading indicator of potential future compliance erosion. Functional continuity suffered significant disruption across work, education, commerce, and transportation, though active recovery efforts were underway by the end of the observation window. Wellbeing concerns centered on cumulative distress in children (heightened anxiety during the second alert) and widespread alert fatigue among adults.\n\nCross-cutting, the community's greatest asset is its social fabric — the speed and consistency of mutual aid, information relay, and family-level coping mechanisms. Its greatest vulnerability is the gap between official communication protocols and residents' real-time decision-making needs, particularly around event termination. If the alert-fatigue narrative consolidates further in subsequent events, it could undermine the currently strong compliance baseline and erode trust in official guidance.",
+    "analyst_caveats": "This assessment is based on a single morning's field observation data (approximately 100 minutes of event logging) covering two successive missile alert cycles. The observation window captures acute emergency response and early recovery but does not extend to full functional recovery, longer-term emotional processing, or community debriefing. The event log predominantly captures observable behaviors in residential settings and digital communication channels; institutional responses beyond the municipality and police (e.g., health services, education system decisions, welfare organizations) are largely absent, potentially underrepresenting organized response capacity.\n\nAdditionally, the log's behavioral observations skew toward active, visible behaviors — residents who remained quietly compliant in shelters throughout are likely underrepresented relative to those who engaged in risk behaviors, information-seeking, or emotional expression. This may introduce a negativity bias in components like life-saving behavior and wellbeing. The 101-event sample, while substantial for a single incident, provides only a snapshot; confidence levels reflect this limitation, and scores should be interpreted as point-in-time assessments rather than stable community characteristics. Population segments not visible in the log — people with disabilities, non-Hebrew speakers, isolated individuals without digital connectivity — represent critical blind spots for the wellbeing and information components.",
+    "components": [
+      {
+        "component_id": "narrative",
+        "score": 5,
+        "confidence": "medium",
+        "key_positive_behaviors": [
+          "Residents discussing interception success as evidence of effective defense",
+          "Expressing relief after confirmed interception reports",
+          "Community self-correction via sharing official rumor denials"
+        ],
+        "key_negative_behaviors": [
+          "Growing alert fatigue narrative consolidating across chat groups after second siren",
+          "Spreading unverified damage rumors that fuel panic narratives",
+          "Frustration narrative about repeated alerts intensifying over time",
+          "Speculation filling information vacuums around strike locations and event duration",
+          "Competing narratives about whether early shelter exit is acceptable"
+        ],
+        "temporal_trend": "degrading",
+        "missing_observations": "No data on media framing or national-level narrative influence; no observation of community leader or religious figure narrative-shaping; no post-event debrief or collective meaning-making observed beyond informal chat discussion.",
+        "narrative": "The narrative landscape during this event was contested and showed clear degradation over the observation period. An initial positive coping narrative emerged around successful missile interceptions — residents discussed defense effectiveness and expressed relief, which temporarily bolstered collective confidence. The municipality's prompt rumor denials further supported a managed, credible official narrative.\n\nHowever, this positive arc was progressively overtaken by a fatigue and frustration narrative that gained momentum after the second siren at 07:00. Multiple events document residents expressing weariness, frustration about repeated alerts, and anxiety about further incidents. The absence of a clear all-clear signal created narrative ambiguity about event boundaries — residents debated among themselves whether the threat had passed, whether early shelter exit was reasonable, and whether further alerts were coming. Unverified damage rumors circulated twice, requiring official denial each time, suggesting the community is susceptible to panic narratives when information gaps persist. The overall narrative environment is mixed: the ingredients for a successful coping story exist (effective defense, community solidarity) but are at risk of being subsumed by a fatigue-driven narrative that could erode future resilience."
+      },
+      {
+        "component_id": "information_communication",
+        "score": 7,
+        "confidence": "high",
+        "key_positive_behaviors": [
+          "Municipality issuing timely alert confirmations, shelter reminders, updated instructions, and rumor denials",
+          "Residents actively verifying rumors through official channels before accepting them",
+          "Community amplification of official guidance via chat group sharing",
+          "Multi-channel information seeking (smartphones, TV, alert apps, news websites)",
+          "Residents directly engaging municipality for clarification on unverified reports"
+        ],
+        "key_negative_behaviors": [
+          "Unverified damage rumors spreading through chat groups on two occasions",
+          "Persistent information gap around all-clear timing and shelter exit protocol",
+          "Speculation about strike locations filling information vacuum",
+          "Sharing of interception videos raising OPSEC concerns"
+        ],
+        "temporal_trend": "stable",
+        "missing_observations": "No data on information accessibility for non-digitally-connected populations, non-Hebrew speakers, or hearing-impaired residents; no assessment of whether dedicated community information mechanisms (e.g., loudspeaker systems, door-to-door notification) were activated; no data on information reaching populations in institutional settings.",
+        "narrative": "Information and communication was one of the stronger resilience components during this event. The municipality demonstrated a responsive communication cadence — publishing an initial alert confirmation within 14 minutes, issuing corrective messaging when premature shelter exits were observed, updating safety instructions as the situation evolved, and promptly denying damage rumors on two separate occasions. This official communication was effective partly because residents actively consumed and amplified it through peer networks, creating a virtuous cycle of official-to-informal information relay.\n\nResidents demonstrated healthy information behaviors overall: multi-channel monitoring, active verification-seeking, and critical evaluation of unverified claims. However, two significant weaknesses persisted throughout the event. First, the absence of a clear all-clear protocol created recurring confusion about when sheltering could end — this information gap was the single most referenced source of uncertainty across the log. Second, unverified damage rumors emerged twice and spread through chat groups before official denials could catch up, indicating that information vacuums are quickly filled by speculation in this community. The system worked well enough to correct these rumors, but the lag between rumor emergence and official denial represents a vulnerability that could be exploited in more complex or prolonged scenarios."
+      },
+      {
+        "component_id": "lifesaving_behavior",
+        "score": 7,
+        "confidence": "high",
+        "key_positive_behaviors": [
+          "Immediate sheltering within one minute of first siren — rapid protocol activation",
+          "Rapid re-sheltering during second alert despite recent exit and growing fatigue",
+          "Parents consistently gathering children into shelters across both alert cycles",
+          "Residents returning to shelters after official reminder messages",
+          "Drivers slowing vehicles during alert; secondary measures like closing windows observed"
+        ],
+        "key_negative_behaviors": [
+          "Residents recording interceptions from balconies during active threat — repeated pattern across both alerts",
+          "Premature shelter exit before official all-clear — escalating pattern during second alert",
+          "Approaching building entrances to look outside during active alert",
+          "Collective norm contestation around acceptable shelter duration"
+        ],
+        "temporal_trend": "degrading",
+        "missing_observations": "No data on shelter accessibility or condition (overcrowding, ventilation, supplies); no observation of compliance rates in public spaces vs. residential settings; no data on behavior of people caught in vehicles or outdoors; no information on compliance among specific demographic groups beyond families with children.",
+        "narrative": "Life-saving behavior demonstrated strong baseline compliance with notable erosion over time. The initial response to the 06:00 siren was exemplary — residents moved indoors within one minute, entered designated shelters, and activated family protection plans. Secondary measures like closing windows were also observed. Even after the second siren at 07:00, rapid re-sheltering occurred, indicating that core protective reflexes remain intact despite fatigue.\n\nHowever, a persistent minority engaged in risk behaviors that became more pronounced over the observation period. Recording interceptions from balconies was documented three separate times, suggesting this behavior is normalized among some residents. More concerning, premature shelter exits escalated from isolated incidents during the first alert (06:32, weight 3) to a more widespread pattern during the second (07:12, weight 3), accompanied by collective deliberation about whether early exit was acceptable. The municipality's reminder messages were effective at correcting some exits, but the underlying driver — unclear all-clear protocols and growing fatigue — was not resolved. The trajectory suggests that compliance will continue to erode in subsequent events unless the information gap around event termination is addressed and the fatigue narrative is countered."
+      },
+      {
+        "component_id": "functional_continuity",
+        "score": 5,
+        "confidence": "medium",
+        "key_positive_behaviors": [
+          "Gradual resumption of street movement after each alert cycle",
+          "Residents actively checking store opening status and workplace reopening",
+          "Proactive communication with employers about delays",
+          "Interest in transportation updates indicating recovery orientation"
+        ],
+        "key_negative_behaviors": [
+          "Work routine disrupted — residents messaging employers about delays",
+          "Education disrupted — parents informing schools of child absences, discussing closures",
+          "Commercial activity delayed — shop owners postponing store openings",
+          "Transportation and commute disruption noted",
+          "Second alert cycle reset recovery progress"
+        ],
+        "temporal_trend": "improving",
+        "missing_observations": "No data on essential service continuity (healthcare, utilities, public transport operations); no information on municipal or institutional continuity plans activation; no data on economic impact beyond individual store delays; no observation of remote work or educational alternatives being activated.",
+        "narrative": "Functional continuity was significantly disrupted by the dual-alert morning, affecting work, education, commerce, and transportation simultaneously. The two alerts — spanning the critical 06:00–07:40 morning commute and school-start window — created maximum disruption to daily routines. Parents reported children's absences, workers messaged employers about delays, traffic was disrupted, and shop owners delayed openings.\n\nHowever, the community showed clear recovery orientation even before the threat environment fully stabilized. Residents were checking store statuses, discussing workplace reopening, monitoring transportation updates, and gradually resuming street activity. This suggests an underlying drive toward functional normalcy that would likely accelerate given a clear all-clear signal. The second alert at 07:00 notably reset recovery progress that had begun after the first event, illustrating how repeated disruptions compound functional impact. The score reflects real disruption across multiple life domains balanced against active recovery behaviors, with an improving trend as the observation period ends — though this improvement is fragile and contingent on no further alerts."
+      },
+      {
+        "component_id": "community_capital",
+        "score": 8,
+        "confidence": "medium",
+        "key_positive_behaviors": [
+          "Neighbors spontaneously assisting elderly residents to shelters — repeated across both alert cycles",
+          "Organized volunteer welfare checks on elderly residents in buildings",
+          "Police rapid deployment to secure hazard zones and debris areas",
+          "Post-event assistance helping elderly residents return home safely",
+          "Community information networks functioning as force multiplier for official guidance"
+        ],
+        "key_negative_behaviors": [],
+        "temporal_trend": "stable",
+        "missing_observations": "No data on formal community organization activation (civil guard, community centers, religious institutions); no observation of resource coordination mechanisms beyond spontaneous mutual aid; no data on whether anchor organizations mobilized systematically; limited visibility into police/emergency service coordination structures.",
+        "narrative": "Community capital was one of the strongest components observed, with exclusively positive signals across the entire event timeline. The most striking feature was the spontaneous, repeated mobilization of neighbors and volunteers to assist elderly residents — this behavior was documented at 06:07, 06:28, 07:07, 07:10, and 07:32, spanning both alert cycles and the recovery period. This consistency suggests well-established social norms around mutual aid for vulnerable populations rather than one-off heroism.\n\nPolice response was professional and timely, with street access blocked near the suspected impact area at 06:24 and debris zones secured at 07:14. The community's informal information networks — WhatsApp groups, neighbor-to-neighbor communication — functioned as an effective coordination mechanism, amplifying official guidance and enabling collective sense-making. The confidence rating is medium rather than high because the observation log provides limited visibility into formal community organization structures; we see spontaneous mutual aid and professional emergency response but have no data on whether civil guard units, community centers, welfare organizations, or other anchor institutions were activated. The strong score reflects what was observed, but the full community capital picture may be either richer or more limited than what the log captures."
+      },
+      {
+        "component_id": "leadership",
+        "score": 7,
+        "confidence": "medium",
+        "key_positive_behaviors": [
+          "Municipality issuing timely alert confirmation within 14 minutes of first siren",
+          "Proactive corrective messaging when premature shelter exits observed",
+          "Prompt rumor denial on two separate occasions — consistent counter-messaging",
+          "Publication of updated safety instructions as situation evolved",
+          "Police providing visible professional emergency response at hazard zones"
+        ],
+        "key_negative_behaviors": [
+          "No clear all-clear protocol communicated — creating persistent confusion about shelter exit timing",
+          "No visible presence of local political leadership or personal example-setting"
+        ],
+        "temporal_trend": "stable",
+        "missing_observations": "No data on informal leadership (religious figures, community influencers, school principals) activation; no observation of leadership visibility or personal presence in community spaces; no data on coordination between municipal leadership and national authorities; no evidence of leadership communication tailored to specific population segments.",
+        "narrative": "Municipal leadership demonstrated competent, responsive crisis communication throughout the event. The municipality's communication cadence — confirmation, reminder, updated instructions, rumor denial, repeated rumor denial — showed an organization actively monitoring community behavior and adapting its messaging accordingly. The decision to issue a shelter reminder at 06:35 after observing premature exits at 06:32 demonstrates real-time situational awareness and willingness to intervene. Police leadership was visible through professional hazard containment at two separate locations.\n\nThe primary gap in leadership performance was the absence of a clear event termination protocol. Residents repeatedly discussed when it was safe to leave shelters, and this ambiguity drove both premature exits and unnecessary prolonged sheltering. This is a systemic protocol gap rather than a leadership failure per se, but it falls within leadership's responsibility to manage. Additionally, the observation log shows no evidence of informal leadership activation — no religious figures, community influencers, or locally prominent individuals were observed providing guidance, reassurance, or personal example. Whether this reflects their absence or simply a gap in observation coverage is unclear, but formal municipal communication alone, however competent, may be insufficient for populations that rely on trusted informal leaders."
+      },
+      {
+        "component_id": "belonging_solidarity",
+        "score": 8,
+        "confidence": "high",
+        "key_positive_behaviors": [
+          "Family members messaging each other to confirm safety immediately after siren",
+          "Neighbors repeatedly assisting elderly residents to and from shelters across both alerts",
+          "Parents providing sustained emotional support and reassurance to children",
+          "Community members sharing official guidance, safety instructions, and rumor denials through peer networks",
+          "Volunteers proactively conducting welfare checks on elderly in residential buildings"
+        ],
+        "key_negative_behaviors": [],
+        "temporal_trend": "stable",
+        "missing_observations": "No data on populations potentially 'outside the camp' — migrant workers, foreign residents, homeless individuals, estranged community members; no observation of inter-community tension or blame dynamics; no data on solidarity across demographic, ethnic, or socioeconomic lines.",
+        "narrative": "Belonging and solidarity was the strongest resilience component observed, with fifteen positive signals and no negative signals across the entire event timeline. The community demonstrated a robust sense of shared fate and mutual guarantee that manifested at multiple levels: family (safety confirmation messaging, child reassurance), neighbor (elderly assistance, information sharing), and community (volunteer welfare checks, collective amplification of official guidance).\n\nParticularly notable was the consistency of solidarity behaviors across both alert cycles. Neighbor assistance to elderly residents, parental calming of children, and peer-to-peer information sharing did not diminish during the second alert despite growing fatigue — suggesting these behaviors are deeply embedded social norms rather than initial adrenaline responses. The community's information-sharing behavior served a dual function: practical (spreading safety guidance) and solidarity-building (demonstrating collective care and shared vigilance). The score is limited from a 9 by the absence of data on potentially excluded populations — the log provides no visibility into whether migrant workers, foreign-language speakers, homeless individuals, or socially isolated residents were included in these solidarity networks or left outside them."
+      },
+      {
+        "component_id": "wellbeing_atrisk",
+        "score": 6,
+        "confidence": "medium",
+        "key_positive_behaviors": [
+          "Parents consistently gathering and sheltering children across both alert cycles",
+          "Sustained emotional support — parents calming and reassuring children in shelters",
+          "Neighbors and volunteers repeatedly assisting elderly residents to shelters",
+          "Post-event volunteer support helping elderly return home safely",
+          "Community expression of relief after interception reports — collective emotional regulation"
+        ],
+        "key_negative_behaviors": [
+          "Children expressing fear and heightened anxiety — escalating during second alert",
+          "Growing alert fatigue narrative among adult population",
+          "Frustration about repeated alerts accumulating as wellbeing stressor",
+          "Anticipatory anxiety about further alerts with no resolution mechanism observed"
+        ],
+        "temporal_trend": "degrading",
+        "missing_observations": "No data on professional mental health or psychosocial support activation; no observation of welfare services for people with disabilities, chronic illness, or mobility limitations beyond elderly; no data on identified needs of first-circle trauma populations (those near impact/debris zones); no information on post-event emotional support resources being communicated or deployed.",
+        "narrative": "The wellbeing and at-risk population component presents a bifurcated picture: strong community-level protective behaviors for identified vulnerable groups (children and elderly) coexisting with growing emotional strain that lacks professional response mechanisms. The community excelled at physical protection — parents consistently sheltered children across both alerts, neighbors and volunteers repeatedly assisted elderly residents, and post-event support included helping elderly return home. These behaviors demonstrate an internalized ethic of care for vulnerable members.\n\nHowever, the emotional wellbeing dimension showed clear degradation. Children's distress escalated from fear during the first alert (06:16) to heightened anxiety during the second (07:06), indicating cumulative trauma exposure without adequate professional support. Among adults, alert fatigue and frustration were documented repeatedly and intensified over time, forming a consolidating negative emotional narrative. Critically, no professional mental health or psychosocial support activation was observed at any point — no welfare service deployment, no emotional support hotline communication, no psychological first aid provision. The community is providing family-level and neighbor-level emotional support effectively, but this informal capacity may be insufficient if the threat environment persists or escalates. The gap between identified need (documented distress) and professional response (not observed) is the primary vulnerability in this component."
+      }
+    ]
+  },
+  "event_classifications": [
+    {
+      "time": "06:00",
+      "actor": "alert system",
+      "behavior": "missile alert siren activated",
+      "category": "alert activation",
+      "resilience_components": [
+        "lifesaving_behavior"
+      ],
+      "polarity": "neutral",
+      "weight": 3,
+      "note": "Trigger event activating citywide protective response"
+    },
+    {
+      "time": "06:01",
+      "actor": "residents",
+      "behavior": "stopping street activity and moving indoors",
+      "category": "protective behavior",
+      "resilience_components": [
+        "lifesaving_behavior"
+      ],
+      "polarity": "positive",
+      "weight": 3,
+      "note": "Immediate compliance with lifesaving protocol within 1 min of siren"
+    },
+    {
+      "time": "06:02",
+      "actor": "residents",
+      "behavior": "entering protected spaces",
+      "category": "protective behavior",
+      "resilience_components": [
+        "lifesaving_behavior"
+      ],
+      "polarity": "positive",
+      "weight": 3,
+      "note": "Correct protective action — entering designated shelters"
+    },
+    {
+      "time": "06:03",
+      "actor": "parents",
+      "behavior": "gathering children into shelters",
+      "category": "protective behavior",
+      "resilience_components": [
+        "lifesaving_behavior",
+        "wellbeing_atrisk"
+      ],
+      "polarity": "positive",
+      "weight": 3,
+      "note": "Protecting vulnerable population (children); family action plan activated"
+    },
+    {
+      "time": "06:04",
+      "actor": "residents",
+      "behavior": "closing apartment windows and shutters",
+      "category": "protective behavior",
+      "resilience_components": [
+        "lifesaving_behavior"
+      ],
+      "polarity": "positive",
+      "weight": 2,
+      "note": "Secondary protective measure per guidelines"
+    },
+    {
+      "time": "06:05",
+      "actor": "residents",
+      "behavior": "checking alert updates on smartphones",
+      "category": "information seeking",
+      "resilience_components": [
+        "information_communication"
+      ],
+      "polarity": "positive",
+      "weight": 2,
+      "note": "Active info-seeking behavior from shelter; indicates info need"
+    },
+    {
+      "time": "06:06",
+      "actor": "residents",
+      "behavior": "messaging family members to confirm safety",
+      "category": "information seeking",
+      "resilience_components": [
+        "information_communication",
+        "belonging_solidarity"
+      ],
+      "polarity": "positive",
+      "weight": 2,
+      "note": "Safety confirmation reflects family solidarity and info exchange"
+    },
+    {
+      "time": "06:07",
+      "actor": "neighbors",
+      "behavior": "assisting elderly resident to shelter",
+      "category": "community support",
+      "resilience_components": [
+        "community_capital",
+        "belonging_solidarity",
+        "wellbeing_atrisk"
+      ],
+      "polarity": "positive",
+      "weight": 3,
+      "note": "Spontaneous mutual aid for vulnerable population; strong solidarity signal"
+    },
+    {
+      "time": "06:08",
+      "actor": "residents",
+      "behavior": "discussing alert location in messaging groups",
+      "category": "information uncertainty",
+      "resilience_components": [
+        "information_communication",
+        "narrative"
+      ],
+      "polarity": "mixed",
+      "weight": 2,
+      "note": "Info gap on threat location drives speculation; possible misinformation risk"
+    },
+    {
+      "time": "06:09",
+      "actor": "residents",
+      "behavior": "remaining in shelter during alert",
+      "category": "protective compliance",
+      "resilience_components": [
+        "lifesaving_behavior"
+      ],
+      "polarity": "positive",
+      "weight": 2,
+      "note": "Sustained compliance with protective guidelines"
+    },
+    {
+      "time": "06:10",
+      "actor": "residents",
+      "behavior": "listening to interception explosions",
+      "category": "situational awareness",
+      "resilience_components": [
+        "information_communication",
+        "lifesaving_behavior"
+      ],
+      "polarity": "neutral",
+      "weight": 1,
+      "note": "Passive awareness while remaining in shelter"
+    },
+    {
+      "time": "06:11",
+      "actor": "residents",
+      "behavior": "checking news websites on smartphones",
+      "category": "information seeking",
+      "resilience_components": [
+        "information_communication"
+      ],
+      "polarity": "positive",
+      "weight": 1,
+      "note": "Routine info-seeking from multiple sources"
+    },
+    {
+      "time": "06:12",
+      "actor": "residents",
+      "behavior": "recording interception explosions",
+      "category": "risk behavior",
+      "resilience_components": [
+        "lifesaving_behavior"
+      ],
+      "polarity": "negative",
+      "weight": 2,
+      "note": "Exiting shelter to balcony during active threat; violates guidelines"
+    },
+    {
+      "time": "06:13",
+      "actor": "residents",
+      "behavior": "sharing interception videos online",
+      "category": "risk behavior",
+      "resilience_components": [
+        "lifesaving_behavior",
+        "information_communication"
+      ],
+      "polarity": "negative",
+      "weight": 2,
+      "note": "Encourages risk exposure; potential OPSEC concern"
+    },
+    {
+      "time": "06:14",
+      "actor": "municipality",
+      "behavior": "publishing alert confirmation",
+      "category": "official communication",
+      "resilience_components": [
+        "information_communication",
+        "leadership"
+      ],
+      "polarity": "positive",
+      "weight": 2,
+      "note": "Timely official confirmation reduces uncertainty"
+    },
+    {
+      "time": "06:15",
+      "actor": "residents",
+      "behavior": "reading municipal alert updates",
+      "category": "information consumption",
+      "resilience_components": [
+        "information_communication"
+      ],
+      "polarity": "positive",
+      "weight": 2,
+      "note": "Population engaging with official information channels"
+    },
+    {
+      "time": "06:16",
+      "actor": "children",
+      "behavior": "expressing fear during explosions",
+      "category": "emotional response",
+      "resilience_components": [
+        "wellbeing_atrisk"
+      ],
+      "polarity": "negative",
+      "weight": 2,
+      "note": "Distress in vulnerable population; indicates emotional support need"
+    },
+    {
+      "time": "06:17",
+      "actor": "parents",
+      "behavior": "calming children in shelter",
+      "category": "family coping",
+      "resilience_components": [
+        "wellbeing_atrisk",
+        "belonging_solidarity"
+      ],
+      "polarity": "positive",
+      "weight": 2,
+      "note": "Family-level coping mechanism activated for vulnerable members"
+    },
+    {
+      "time": "06:18",
+      "actor": "residents",
+      "behavior": "discussing possible strike locations",
+      "category": "information uncertainty",
+      "resilience_components": [
+        "information_communication",
+        "narrative"
+      ],
+      "polarity": "mixed",
+      "weight": 2,
+      "note": "Speculation filling info vacuum; risk of misinformation"
+    },
+    {
+      "time": "06:19",
+      "actor": "residents",
+      "behavior": "monitoring television news",
+      "category": "information consumption",
+      "resilience_components": [
+        "information_communication"
+      ],
+      "polarity": "positive",
+      "weight": 1,
+      "note": "Using broadcast media for situational updates"
+    },
+    {
+      "time": "06:20",
+      "actor": "residents",
+      "behavior": "checking additional alert notifications",
+      "category": "information seeking",
+      "resilience_components": [
+        "information_communication"
+      ],
+      "polarity": "positive",
+      "weight": 1,
+      "note": "Continuous monitoring of alert channels"
+    },
+    {
+      "time": "06:21",
+      "actor": "residents",
+      "behavior": "staying in shelter awaiting instructions",
+      "category": "protective compliance",
+      "resilience_components": [
+        "lifesaving_behavior"
+      ],
+      "polarity": "positive",
+      "weight": 2,
+      "note": "Sustained compliance; awaiting official guidance before exiting"
+    },
+    {
+      "time": "06:22",
+      "actor": "residents",
+      "behavior": "checking building damage outside windows",
+      "category": "situational awareness",
+      "resilience_components": [
+        "information_communication",
+        "lifesaving_behavior"
+      ],
+      "polarity": "mixed",
+      "weight": 1,
+      "note": "Awareness-seeking but partial exposure near windows"
+    },
+    {
+      "time": "06:23",
+      "actor": "residents",
+      "behavior": "sharing alert information with neighbors",
+      "category": "community support",
+      "resilience_components": [
+        "belonging_solidarity",
+        "information_communication"
+      ],
+      "polarity": "positive",
+      "weight": 2,
+      "note": "Peer-to-peer info sharing strengthens communal awareness"
+    },
+    {
+      "time": "06:24",
+      "actor": "police",
+      "behavior": "blocking street access near suspected impact area",
+      "category": "emergency response",
+      "resilience_components": [
+        "leadership",
+        "community_capital",
+        "lifesaving_behavior"
+      ],
+      "polarity": "positive",
+      "weight": 3,
+      "note": "Professional emergency response; protecting public from hazard zone"
+    },
+    {
+      "time": "06:25",
+      "actor": "residents",
+      "behavior": "asking neighbors about siren duration",
+      "category": "information uncertainty",
+      "resilience_components": [
+        "information_communication"
+      ],
+      "polarity": "mixed",
+      "weight": 1,
+      "note": "Info gap on protocol duration; relying on informal channels"
+    },
+    {
+      "time": "06:26",
+      "actor": "residents",
+      "behavior": "approaching building entrance to look outside",
+      "category": "risk behavior",
+      "resilience_components": [
+        "lifesaving_behavior"
+      ],
+      "polarity": "negative",
+      "weight": 2,
+      "note": "Leaving protected space prematurely; curiosity overrides compliance"
+    },
+    {
+      "time": "06:27",
+      "actor": "residents",
+      "behavior": "returning to shelters after reminder messages",
+      "category": "protective compliance",
+      "resilience_components": [
+        "lifesaving_behavior"
+      ],
+      "polarity": "positive",
+      "weight": 2,
+      "note": "Course correction after reminder; responsive to official guidance"
+    },
+    {
+      "time": "06:28",
+      "actor": "volunteers",
+      "behavior": "checking elderly residents in building",
+      "category": "community support",
+      "resilience_components": [
+        "community_capital",
+        "belonging_solidarity",
+        "wellbeing_atrisk"
+      ],
+      "polarity": "positive",
+      "weight": 3,
+      "note": "Proactive volunteer welfare check on vulnerable population"
+    },
+    {
+      "time": "06:29",
+      "actor": "residents",
+      "behavior": "monitoring neighborhood whatsapp updates",
+      "category": "information seeking",
+      "resilience_components": [
+        "information_communication"
+      ],
+      "polarity": "positive",
+      "weight": 1,
+      "note": "Community-level info monitoring via informal networks"
+    },
+    {
+      "time": "06:30",
+      "actor": "residents",
+      "behavior": "discussing whether to leave shelter",
+      "category": "compliance uncertainty",
+      "resilience_components": [
+        "lifesaving_behavior",
+        "narrative"
+      ],
+      "polarity": "mixed",
+      "weight": 2,
+      "note": "Ambiguity about when to exit; unclear end-of-event narrative"
+    },
+    {
+      "time": "06:31",
+      "actor": "residents",
+      "behavior": "checking official safety instructions",
+      "category": "information consumption",
+      "resilience_components": [
+        "information_communication"
+      ],
+      "polarity": "positive",
+      "weight": 2,
+      "note": "Turning to official channels for guidance before acting"
+    },
+    {
+      "time": "06:32",
+      "actor": "residents",
+      "behavior": "leaving shelters before official all clear",
+      "category": "risk behavior",
+      "resilience_components": [
+        "lifesaving_behavior"
+      ],
+      "polarity": "negative",
+      "weight": 3,
+      "note": "Premature shelter exit without official clearance; high risk"
+    },
+    {
+      "time": "06:33",
+      "actor": "residents",
+      "behavior": "returning to apartments after early exit",
+      "category": "post-alert movement",
+      "resilience_components": [
+        "functional_continuity",
+        "lifesaving_behavior"
+      ],
+      "polarity": "mixed",
+      "weight": 2,
+      "note": "Premature return to routine; still no all-clear issued"
+    },
+    {
+      "time": "06:34",
+      "actor": "residents",
+      "behavior": "discussing early shelter exit decision",
+      "category": "compliance reflection",
+      "resilience_components": [
+        "lifesaving_behavior",
+        "narrative"
+      ],
+      "polarity": "mixed",
+      "weight": 1,
+      "note": "Peer reflection on compliance norms; narrative shaping on behavior"
+    },
+    {
+      "time": "06:35",
+      "actor": "municipality",
+      "behavior": "reminding residents to stay in shelters",
+      "category": "official communication",
+      "resilience_components": [
+        "information_communication",
+        "leadership"
+      ],
+      "polarity": "positive",
+      "weight": 2,
+      "note": "Leadership corrective messaging in response to premature exits"
+    },
+    {
+      "time": "06:36",
+      "actor": "residents",
+      "behavior": "returning to shelter after reminder",
+      "category": "protective compliance",
+      "resilience_components": [
+        "lifesaving_behavior"
+      ],
+      "polarity": "positive",
+      "weight": 2,
+      "note": "Effective compliance response to official reminder"
+    },
+    {
+      "time": "06:37",
+      "actor": "residents",
+      "behavior": "checking air defense interception reports",
+      "category": "information seeking",
+      "resilience_components": [
+        "information_communication"
+      ],
+      "polarity": "positive",
+      "weight": 1,
+      "note": "Seeking confirmation of threat neutralization"
+    },
+    {
+      "time": "06:38",
+      "actor": "residents",
+      "behavior": "observing slowed traffic in nearby streets",
+      "category": "situational awareness",
+      "resilience_components": [
+        "information_communication"
+      ],
+      "polarity": "neutral",
+      "weight": 1,
+      "note": "Passive environmental observation from shelter"
+    },
+    {
+      "time": "06:39",
+      "actor": "drivers",
+      "behavior": "slowing vehicles after alert",
+      "category": "protective behavior",
+      "resilience_components": [
+        "lifesaving_behavior"
+      ],
+      "polarity": "positive",
+      "weight": 2,
+      "note": "Adaptive protective behavior by drivers during alert"
+    },
+    {
+      "time": "06:40",
+      "actor": "residents",
+      "behavior": "discussing alert fatigue in chat groups",
+      "category": "emotional response",
+      "resilience_components": [
+        "wellbeing_atrisk",
+        "narrative"
+      ],
+      "polarity": "negative",
+      "weight": 2,
+      "note": "Alert fatigue emerging; may erode future compliance"
+    },
+    {
+      "time": "06:41",
+      "actor": "residents",
+      "behavior": "checking damage rumors online",
+      "category": "information uncertainty",
+      "resilience_components": [
+        "information_communication",
+        "narrative"
+      ],
+      "polarity": "mixed",
+      "weight": 2,
+      "note": "Unverified info consumption; info gap fuels rumor engagement"
+    },
+    {
+      "time": "06:42",
+      "actor": "residents",
+      "behavior": "verifying information through official channels",
+      "category": "information verification",
+      "resilience_components": [
+        "information_communication"
+      ],
+      "polarity": "positive",
+      "weight": 2,
+      "note": "Critical thinking — cross-checking with authoritative sources"
+    },
+    {
+      "time": "06:43",
+      "actor": "residents",
+      "behavior": "sharing municipal instructions in chat groups",
+      "category": "information dissemination",
+      "resilience_components": [
+        "information_communication",
+        "belonging_solidarity"
+      ],
+      "polarity": "positive",
+      "weight": 2,
+      "note": "Community amplification of official guidance"
+    },
+    {
+      "time": "06:44",
+      "actor": "residents",
+      "behavior": "discussing possibility of further alerts",
+      "category": "anticipation behavior",
+      "resilience_components": [
+        "narrative",
+        "wellbeing_atrisk"
+      ],
+      "polarity": "mixed",
+      "weight": 1,
+      "note": "Anticipatory anxiety; shaping expectations about ongoing threat"
+    },
+    {
+      "time": "06:45",
+      "actor": "residents",
+      "behavior": "monitoring additional siren notifications",
+      "category": "information seeking",
+      "resilience_components": [
+        "information_communication"
+      ],
+      "polarity": "positive",
+      "weight": 1,
+      "note": "Continued alertness to warning channels"
+    },
+    {
+      "time": "06:46",
+      "actor": "parents",
+      "behavior": "reassuring children during shelter stay",
+      "category": "family coping",
+      "resilience_components": [
+        "wellbeing_atrisk",
+        "belonging_solidarity"
+      ],
+      "polarity": "positive",
+      "weight": 2,
+      "note": "Ongoing emotional support for vulnerable children"
+    },
+    {
+      "time": "06:47",
+      "actor": "residents",
+      "behavior": "discussing interception sounds",
+      "category": "situational awareness",
+      "resilience_components": [
+        "information_communication",
+        "lifesaving_behavior"
+      ],
+      "polarity": "neutral",
+      "weight": 1,
+      "note": "Collective sense-making of auditory cues in shelter"
+    },
+    {
+      "time": "06:48",
+      "actor": "residents",
+      "behavior": "recording additional interceptions",
+      "category": "risk behavior",
+      "resilience_components": [
+        "lifesaving_behavior"
+      ],
+      "polarity": "negative",
+      "weight": 2,
+      "note": "Repeated dangerous exposure on balcony during active threat"
+    },
+    {
+      "time": "06:49",
+      "actor": "residents",
+      "behavior": "observing debris falling in distance",
+      "category": "situational awareness",
+      "resilience_components": [
+        "information_communication",
+        "lifesaving_behavior"
+      ],
+      "polarity": "neutral",
+      "weight": 2,
+      "note": "Visual confirmation of threat proximity; heightens awareness"
+    },
+    {
+      "time": "06:50",
+      "actor": "residents",
+      "behavior": "spreading rumor about building damage",
+      "category": "rumor propagation",
+      "resilience_components": [
+        "narrative",
+        "information_communication"
+      ],
+      "polarity": "negative",
+      "weight": 2,
+      "note": "Unverified rumor spread; may cause panic and erode trust"
+    },
+    {
+      "time": "06:51",
+      "actor": "residents",
+      "behavior": "asking for confirmation of damage reports",
+      "category": "information verification",
+      "resilience_components": [
+        "information_communication"
+      ],
+      "polarity": "positive",
+      "weight": 2,
+      "note": "Healthy skepticism; seeking verification before accepting rumors"
+    },
+    {
+      "time": "06:52",
+      "actor": "municipality",
+      "behavior": "denying damage rumor",
+      "category": "official communication",
+      "resilience_components": [
+        "information_communication",
+        "leadership"
+      ],
+      "polarity": "positive",
+      "weight": 2,
+      "note": "Timely rumor denial; leadership countering misinformation"
+    },
+    {
+      "time": "06:53",
+      "actor": "residents",
+      "behavior": "sharing municipal rumor denial",
+      "category": "information dissemination",
+      "resilience_components": [
+        "information_communication",
+        "belonging_solidarity"
+      ],
+      "polarity": "positive",
+      "weight": 2,
+      "note": "Community amplifies official correction; counters misinformation"
+    },
+    {
+      "time": "06:54",
+      "actor": "residents",
+      "behavior": "expressing relief after interception reports",
+      "category": "emotional response",
+      "resilience_components": [
+        "wellbeing_atrisk",
+        "narrative"
+      ],
+      "polarity": "positive",
+      "weight": 2,
+      "note": "Positive emotional shift; interception success strengthens coping narrative"
+    },
+    {
+      "time": "06:55",
+      "actor": "residents",
+      "behavior": "waiting for official all clear message",
+      "category": "protective compliance",
+      "resilience_components": [
+        "lifesaving_behavior"
+      ],
+      "polarity": "positive",
+      "weight": 2,
+      "note": "Disciplined compliance awaiting official guidance"
+    },
+    {
+      "time": "06:56",
+      "actor": "residents",
+      "behavior": "slowly resuming movement in streets",
+      "category": "recovery behavior",
+      "resilience_components": [
+        "functional_continuity"
+      ],
+      "polarity": "positive",
+      "weight": 2,
+      "note": "Gradual return to routine; recovery phase initiated"
+    },
+    {
+      "time": "06:57",
+      "actor": "residents",
+      "behavior": "checking building stairwells",
+      "category": "situational awareness",
+      "resilience_components": [
+        "information_communication",
+        "lifesaving_behavior"
+      ],
+      "polarity": "neutral",
+      "weight": 1,
+      "note": "Post-event safety check of immediate environment"
+    },
+    {
+      "time": "06:58",
+      "actor": "residents",
+      "behavior": "discussing whether event has ended",
+      "category": "information uncertainty",
+      "resilience_components": [
+        "information_communication",
+        "narrative"
+      ],
+      "polarity": "mixed",
+      "weight": 1,
+      "note": "Lack of clear all-clear creates end-of-event ambiguity"
+    },
+    {
+      "time": "06:59",
+      "actor": "residents",
+      "behavior": "leaving shelters cautiously",
+      "category": "recovery behavior",
+      "resilience_components": [
+        "functional_continuity",
+        "lifesaving_behavior"
+      ],
+      "polarity": "mixed",
+      "weight": 2,
+      "note": "Cautious exit but without official all-clear; partial compliance"
+    },
+    {
+      "time": "07:00",
+      "actor": "alert system",
+      "behavior": "additional missile alert siren activated",
+      "category": "alert activation",
+      "resilience_components": [
+        "lifesaving_behavior"
+      ],
+      "polarity": "neutral",
+      "weight": 3,
+      "note": "Second siren event; tests sustained compliance under fatigue"
+    },
+    {
+      "time": "07:01",
+      "actor": "residents",
+      "behavior": "returning quickly to shelters",
+      "category": "protective behavior",
+      "resilience_components": [
+        "lifesaving_behavior"
+      ],
+      "polarity": "positive",
+      "weight": 3,
+      "note": "Rapid re-sheltering despite recent exit; strong compliance signal"
+    },
+    {
+      "time": "07:02",
+      "actor": "residents",
+      "behavior": "expressing alert fatigue",
+      "category": "emotional response",
+      "resilience_components": [
+        "wellbeing_atrisk",
+        "narrative"
+      ],
+      "polarity": "negative",
+      "weight": 2,
+      "note": "Fatigue narrative forming; risk of eroding future compliance"
+    },
+    {
+      "time": "07:03",
+      "actor": "parents",
+      "behavior": "gathering children again into shelters",
+      "category": "protective behavior",
+      "resilience_components": [
+        "lifesaving_behavior",
+        "wellbeing_atrisk"
+      ],
+      "polarity": "positive",
+      "weight": 3,
+      "note": "Repeated protective action for children despite fatigue"
+    },
+    {
+      "time": "07:04",
+      "actor": "residents",
+      "behavior": "checking smartphones for alert confirmation",
+      "category": "information seeking",
+      "resilience_components": [
+        "information_communication"
+      ],
+      "polarity": "positive",
+      "weight": 2,
+      "note": "Seeking official confirmation of second alert"
+    },
+    {
+      "time": "07:05",
+      "actor": "residents",
+      "behavior": "discussing repeated alerts in chat groups",
+      "category": "emotional response",
+      "resilience_components": [
+        "wellbeing_atrisk",
+        "narrative"
+      ],
+      "polarity": "negative",
+      "weight": 2,
+      "note": "Frustration narrative growing around repeated alerts"
+    },
+    {
+      "time": "07:06",
+      "actor": "children",
+      "behavior": "reacting anxiously to new sirens",
+      "category": "emotional response",
+      "resilience_components": [
+        "wellbeing_atrisk"
+      ],
+      "polarity": "negative",
+      "weight": 2,
+      "note": "Heightened anxiety in children from repeated exposure"
+    },
+    {
+      "time": "07:07",
+      "actor": "neighbors",
+      "behavior": "assisting elderly resident again to shelter",
+      "category": "community support",
+      "resilience_components": [
+        "community_capital",
+        "belonging_solidarity",
+        "wellbeing_atrisk"
+      ],
+      "polarity": "positive",
+      "weight": 3,
+      "note": "Sustained mutual aid for elderly; repeated solidarity behavior"
+    },
+    {
+      "time": "07:08",
+      "actor": "residents",
+      "behavior": "monitoring interception explosions",
+      "category": "situational awareness",
+      "resilience_components": [
+        "information_communication",
+        "lifesaving_behavior"
+      ],
+      "polarity": "neutral",
+      "weight": 1,
+      "note": "Passive awareness of interceptions from within shelter"
+    },
+    {
+      "time": "07:09",
+      "actor": "residents",
+      "behavior": "recording interceptions again",
+      "category": "risk behavior",
+      "resilience_components": [
+        "lifesaving_behavior"
+      ],
+      "polarity": "negative",
+      "weight": 2,
+      "note": "Repeated risk-taking on balconies; persistent non-compliance pattern"
+    },
+    {
+      "time": "07:10",
+      "actor": "volunteers",
+      "behavior": "helping elderly residents reach shelter",
+      "category": "community support",
+      "resilience_components": [
+        "community_capital",
+        "belonging_solidarity",
+        "wellbeing_atrisk"
+      ],
+      "polarity": "positive",
+      "weight": 3,
+      "note": "Organized volunteer response for vulnerable population"
+    },
+    {
+      "time": "07:11",
+      "actor": "residents",
+      "behavior": "sharing alert updates in messaging groups",
+      "category": "information dissemination",
+      "resilience_components": [
+        "information_communication",
+        "belonging_solidarity"
+      ],
+      "polarity": "positive",
+      "weight": 2,
+      "note": "Community info-sharing network active during second alert"
+    },
+    {
+      "time": "07:12",
+      "actor": "residents",
+      "behavior": "leaving shelter early again",
+      "category": "risk behavior",
+      "resilience_components": [
+        "lifesaving_behavior"
+      ],
+      "polarity": "negative",
+      "weight": 3,
+      "note": "Repeated early exit; pattern of non-compliance intensifying"
+    },
+    {
+      "time": "07:13",
+      "actor": "residents",
+      "behavior": "discussing early exit decisions",
+      "category": "compliance uncertainty",
+      "resilience_components": [
+        "lifesaving_behavior",
+        "narrative"
+      ],
+      "polarity": "mixed",
+      "weight": 2,
+      "note": "Collective doubt about shelter duration; compliance norm contested"
+    },
+    {
+      "time": "07:14",
+      "actor": "police",
+      "behavior": "securing suspected debris area",
+      "category": "emergency response",
+      "resilience_components": [
+        "leadership",
+        "community_capital",
+        "lifesaving_behavior"
+      ],
+      "polarity": "positive",
+      "weight": 3,
+      "note": "Professional hazard containment; public safety maintained"
+    },
+    {
+      "time": "07:15",
+      "actor": "residents",
+      "behavior": "checking official municipal messages",
+      "category": "information consumption",
+      "resilience_components": [
+        "information_communication"
+      ],
+      "polarity": "positive",
+      "weight": 2,
+      "note": "Continued reliance on official channels during second event"
+    },
+    {
+      "time": "07:16",
+      "actor": "residents",
+      "behavior": "discussing interception success",
+      "category": "narrative formation",
+      "resilience_components": [
+        "narrative"
+      ],
+      "polarity": "positive",
+      "weight": 2,
+      "note": "Successful coping narrative forming around defense effectiveness"
+    },
+    {
+      "time": "07:17",
+      "actor": "residents",
+      "behavior": "expressing frustration about repeated alerts",
+      "category": "emotional response",
+      "resilience_components": [
+        "wellbeing_atrisk",
+        "narrative"
+      ],
+      "polarity": "negative",
+      "weight": 2,
+      "note": "Frustration growing; potential threat to sustained compliance"
+    },
+    {
+      "time": "07:18",
+      "actor": "residents",
+      "behavior": "checking national news reports",
+      "category": "information seeking",
+      "resilience_components": [
+        "information_communication"
+      ],
+      "polarity": "positive",
+      "weight": 1,
+      "note": "Broadening info sources to national level"
+    },
+    {
+      "time": "07:19",
+      "actor": "residents",
+      "behavior": "sharing safety instructions in chat groups",
+      "category": "information dissemination",
+      "resilience_components": [
+        "information_communication",
+        "belonging_solidarity"
+      ],
+      "polarity": "positive",
+      "weight": 2,
+      "note": "Peer-to-peer safety instruction amplification"
+    },
+    {
+      "time": "07:20",
+      "actor": "residents",
+      "behavior": "monitoring alert application updates",
+      "category": "information seeking",
+      "resilience_components": [
+        "information_communication"
+      ],
+      "polarity": "positive",
+      "weight": 1,
+      "note": "Routine monitoring of dedicated alert application"
+    },
+    {
+      "time": "07:21",
+      "actor": "residents",
+      "behavior": "waiting in shelters despite fatigue",
+      "category": "protective compliance",
+      "resilience_components": [
+        "lifesaving_behavior"
+      ],
+      "polarity": "positive",
+      "weight": 3,
+      "note": "Strong resilience signal — compliance maintained despite fatigue"
+    },
+    {
+      "time": "07:22",
+      "actor": "residents",
+      "behavior": "discussing possibility of school closure",
+      "category": "functional disruption",
+      "resilience_components": [
+        "functional_continuity"
+      ],
+      "polarity": "negative",
+      "weight": 2,
+      "note": "Anticipated disruption to educational continuity"
+    },
+    {
+      "time": "07:23",
+      "actor": "residents",
+      "behavior": "messaging employers about delay",
+      "category": "functional disruption",
+      "resilience_components": [
+        "functional_continuity"
+      ],
+      "polarity": "negative",
+      "weight": 2,
+      "note": "Work routine disrupted by emergency events"
+    },
+    {
+      "time": "07:24",
+      "actor": "parents",
+      "behavior": "informing school groups about child absence",
+      "category": "functional disruption",
+      "resilience_components": [
+        "functional_continuity"
+      ],
+      "polarity": "negative",
+      "weight": 2,
+      "note": "Education disruption; school attendance affected"
+    },
+    {
+      "time": "07:25",
+      "actor": "residents",
+      "behavior": "discussing traffic delays after alerts",
+      "category": "functional disruption",
+      "resilience_components": [
+        "functional_continuity"
+      ],
+      "polarity": "negative",
+      "weight": 2,
+      "note": "Transportation and commute disruption noted"
+    },
+    {
+      "time": "07:26",
+      "actor": "municipality",
+      "behavior": "publishing updated safety instructions",
+      "category": "official communication",
+      "resilience_components": [
+        "information_communication",
+        "leadership"
+      ],
+      "polarity": "positive",
+      "weight": 2,
+      "note": "Adaptive leadership updating guidance as situation evolves"
+    },
+    {
+      "time": "07:27",
+      "actor": "residents",
+      "behavior": "reading updated safety instructions",
+      "category": "information consumption",
+      "resilience_components": [
+        "information_communication"
+      ],
+      "polarity": "positive",
+      "weight": 2,
+      "note": "Population engaging with updated official guidance"
+    },
+    {
+      "time": "07:28",
+      "actor": "residents",
+      "behavior": "sharing updated instructions with neighbors",
+      "category": "information dissemination",
+      "resilience_components": [
+        "information_communication",
+        "belonging_solidarity"
+      ],
+      "polarity": "positive",
+      "weight": 2,
+      "note": "Community relay of updated instructions"
+    },
+    {
+      "time": "07:29",
+      "actor": "residents",
+      "behavior": "discussing duration of shelter stay",
+      "category": "compliance uncertainty",
+      "resilience_components": [
+        "lifesaving_behavior",
+        "narrative"
+      ],
+      "polarity": "mixed",
+      "weight": 2,
+      "note": "Ongoing uncertainty about proper shelter duration protocol"
+    },
+    {
+      "time": "07:30",
+      "actor": "residents",
+      "behavior": "slowly resuming daily activities",
+      "category": "recovery behavior",
+      "resilience_components": [
+        "functional_continuity"
+      ],
+      "polarity": "positive",
+      "weight": 2,
+      "note": "Gradual recovery of daily routine after second event"
+    },
+    {
+      "time": "07:31",
+      "actor": "residents",
+      "behavior": "checking local store opening status",
+      "category": "functional continuity",
+      "resilience_components": [
+        "functional_continuity"
+      ],
+      "polarity": "positive",
+      "weight": 1,
+      "note": "Probing commercial continuity; interest in routine restoration"
+    },
+    {
+      "time": "07:32",
+      "actor": "neighbors",
+      "behavior": "helping elderly resident return home",
+      "category": "community support",
+      "resilience_components": [
+        "community_capital",
+        "belonging_solidarity",
+        "wellbeing_atrisk"
+      ],
+      "polarity": "positive",
+      "weight": 2,
+      "note": "Post-event support for vulnerable resident; sustained solidarity"
+    },
+    {
+      "time": "07:33",
+      "actor": "residents",
+      "behavior": "discussing reopening of workplaces",
+      "category": "functional continuity",
+      "resilience_components": [
+        "functional_continuity"
+      ],
+      "polarity": "positive",
+      "weight": 2,
+      "note": "Active interest in work routine recovery"
+    },
+    {
+      "time": "07:34",
+      "actor": "residents",
+      "behavior": "sharing additional damage rumors",
+      "category": "rumor propagation",
+      "resilience_components": [
+        "narrative",
+        "information_communication"
+      ],
+      "polarity": "negative",
+      "weight": 2,
+      "note": "Recurring rumor spread; persistent misinformation challenge"
+    },
+    {
+      "time": "07:35",
+      "actor": "residents",
+      "behavior": "asking municipality for clarification",
+      "category": "information verification",
+      "resilience_components": [
+        "information_communication"
+      ],
+      "polarity": "positive",
+      "weight": 2,
+      "note": "Directly engaging authority for verification; trust in official channel"
+    },
+    {
+      "time": "07:36",
+      "actor": "municipality",
+      "behavior": "denying additional damage rumors",
+      "category": "official communication",
+      "resilience_components": [
+        "information_communication",
+        "leadership"
+      ],
+      "polarity": "positive",
+      "weight": 2,
+      "note": "Repeated rumor management by leadership; consistent messaging"
+    },
+    {
+      "time": "07:37",
+      "actor": "residents",
+      "behavior": "forwarding rumor denial to chat groups",
+      "category": "information dissemination",
+      "resilience_components": [
+        "information_communication",
+        "belonging_solidarity"
+      ],
+      "polarity": "positive",
+      "weight": 2,
+      "note": "Community self-correction via official denial distribution"
+    },
+    {
+      "time": "07:38",
+      "actor": "residents",
+      "behavior": "discussing fatigue from alerts",
+      "category": "emotional response",
+      "resilience_components": [
+        "wellbeing_atrisk",
+        "narrative"
+      ],
+      "polarity": "negative",
+      "weight": 2,
+      "note": "Fatigue narrative consolidating; wellbeing concern escalating"
+    },
+    {
+      "time": "07:39",
+      "actor": "residents",
+      "behavior": "checking transportation updates",
+      "category": "information seeking",
+      "resilience_components": [
+        "information_communication",
+        "functional_continuity"
+      ],
+      "polarity": "neutral",
+      "weight": 1,
+      "note": "Seeking transport info for daily routine recovery"
+    },
+    {
+      "time": "07:40",
+      "actor": "shop owners",
+      "behavior": "delaying store opening",
+      "category": "functional disruption",
+      "resilience_components": [
+        "functional_continuity"
+      ],
+      "polarity": "negative",
+      "weight": 2,
+      "note": "Commercial activity disrupted; daily economic routine delayed"
+    }
+  ],
+  "source_file": "event-log-2026-03-14.txt",
+  "generated_at": "2026-03-15T16:18:28.260Z"
+}

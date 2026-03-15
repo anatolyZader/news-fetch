@@ -4,6 +4,7 @@
   "description": "Fastify app – Ynet.co.il articles (same day, Hebrew) via NewsAPI.ai",
   "type": "module",
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.78.0",
     "dotenv": "^16.4.5",
     "fastify": "^5.2.0"
   },
@@ -11,6 +12,8 @@
     "start": "node src/server.js",
     "test": "node --test tests/",
     "articles-to-md": "node scripts/fetch-articles-to-md.js",
-    "homefront-to-md": "node scripts/extract-homefront-articles.js"
+    "homefront-to-md": "node scripts/extract-homefront-articles.js",
+    "analyze-resilience": "node scripts/analyze-resilience.js",
+    "analyze-event-log": "node scripts/analyze-event-log.js"
   }
 }

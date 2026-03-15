@@ -1,0 +1,665 @@
+{
+  "assessment": {
+    "date": "2026-03-14",
+    "total_articles_analyzed": 175,
+    "overall_resilience_score": 4,
+    "cross_component_synthesis": "Israel's community resilience on March 14, 2026 presents a picture of a society under extreme and sustained multi-front pressure, with significant structural weaknesses offsetting pockets of impressive communal mobilization. The conflict with Iran and Lebanon has entered what leadership describes as a 'decisive stretch,' yet the civilian population faces cascading disruptions: schools are closed across most of the country, businesses in the north are collapsing, critical shelter infrastructure is inaccessible in major urban centers, and daily routines from showering to commuting are governed by unpredictable rocket fire. The gap between official declarations of progress and the lived reality of citizens sitting in shelters with unanswered questions represents the central tension across nearly all components.\n\nThe strongest dimension of resilience is community capital — the emergency response apparatus involving Home Front Command, MDA, local emergency organizations, and volunteer networks is functioning effectively at impact sites, and institutional coordination among municipal leaders is active. Emergency daycares for essential workers' children and spontaneous volunteerism demonstrate that bottom-up communal mechanisms remain robust. However, this operational capacity is undermined by leadership deficits at the national level, where the Prime Minister's avoidance of direct public communication creates an information vacuum that is being filled by misinformation, AI-generated deepfakes, and contradictory signals from allied governments.\n\nThe most alarming findings concern functional continuity and life-saving infrastructure. Northern commerce has suffered catastrophic revenue declines, with the 'return to routine' exposed as largely performative. In Tel Aviv and other central cities, locked shelters and the absence of safe rooms in most residential buildings represent a systemic failure in protective infrastructure that has been decades in the making. The education system remains largely shuttered, with no viable solution for the critical vulnerability of students in transit. These failures disproportionately affect already vulnerable populations — children injured by interception debris, anxiety casualties, special-needs children without services, and Arab communities facing a concurrent gun violence epidemic with 65 murdered since January.\n\nSocial cohesion shows troubling fractures beneath a surface-level narrative of national resilience. Viral incidents of shelter-blocking, threats against perceived dissenters, sectarian disputes over Shabbat observance, and criticism of wartime budget allocations favoring yeshiva students over northern residents all point to deepening internal divisions. While the shared experience of shelter life and mutual aid creates solidarity in some contexts, the same conditions also generate friction, conflict, and scapegoating — dynamics that could intensify if the conflict continues 'as long as needed.'",
+    "media_bias_caveats": "The extracted evidence skews heavily toward dramatic, conflict-laden, and negative events — locked shelters, injuries, business collapses, and social disputes — which are inherently more newsworthy than routine coping. Of the 175 articles analyzed, the extracted evidence may underrepresent quieter dimensions of resilience such as neighborhood mutual aid, effective local government service delivery, mental health hotline utilization, or communities that are managing well. The ideological diversity of sources (Haaretz, Ynet, Maariv, Mako, Walla) provides some balance, but each outlet carries its own editorial orientation: Haaretz tends to highlight civil liberties and government failures, Maariv features more security-establishment perspectives, and Ynet/Mako emphasize human-interest angles.\n\nAdditionally, the security-imposed 'social media blackout' referenced in one article means that the information environment itself is constrained, potentially suppressing both genuine citizen reports and organized disinformation. The predominance of Hebrew-language sources also means that the experiences of Arabic-speaking communities, foreign workers, and other minority populations may be underrepresented in the evidence base, despite their elevated vulnerability during this crisis.",
+    "components": [
+      {
+        "component_id": "narrative",
+        "score": 5,
+        "confidence": "medium",
+        "supporting_evidence": [
+          "IDF data showing fewer than 10 Iranian launches in 3 days supports narrative of successful military degradation of enemy capabilities.",
+          "Rafael chairman reinforces narrative that Iron Dome 'saved Israel' and prevented thousands of deaths and economic collapse.",
+          "Expert Prof. Uzi Rabi frames the '12-day war' as Iran's Stalingrad — an irreversible turning point strengthening national narrative of strategic victory.",
+          "Hundreds of people choosing to go out to Jaffa flea market despite security tensions reflects a grassroots coping narrative of resilience and normalcy.",
+          "Travel industry describes Israelis as 'optimistic, quick to forget' — public retains hope for post-war normalcy."
+        ],
+        "weakening_evidence": [
+          "Contradictory messages from US administration — Hegseth says war 'just starting' while Trump says it may end 'very soon' — create confusion about the conflict's trajectory.",
+          "Trump advisor spreads apocalyptic narrative that 'Israel could simply be destroyed' if war continues, undermining confidence.",
+          "Defense Minister's 'decisive stretch' framing is undercut by open-ended timeline ('as long as needed'), leaving no clear endpoint.",
+          "Call to Iranian people framed as 'trial balloon' by lower-level official reveals leadership uncertainty about war's endgame direction.",
+          "Northern residents and business owners describe the 'return to routine' narrative as a 'bluff,' contradicting official optimism."
+        ],
+        "missing_evidence": "Systematic polling on public confidence in the war's direction, civilian morale indicators over time, and assessment of whether different population segments (north vs. center vs. south, Jewish vs. Arab) share or diverge in their narratives of coping.",
+        "narrative": "The national narrative around the conflict contains a strong but contested core: Israel's military and defense systems are degrading Iranian capabilities, the enemy regime is weakening, and the population is demonstrating characteristic resilience by maintaining elements of daily life under fire. This narrative is reinforced by concrete data points (reduced Iranian launches) and authoritative voices (Rafael chairman, security experts) who frame the situation in historically resonant terms like 'Iran's Stalingrad.'\n\nHowever, this narrative is significantly undermined by three factors. First, contradictory signals from the US — Israel's essential ally — create cognitive dissonance about whether the war is escalating or concluding. Second, the gap between official optimism and ground-level reality is increasingly visible, particularly in the north where the 'return to routine' is openly described as a bluff. Third, the absence of direct communication from the Prime Minister leaves a narrative vacuum that adversarial and conspiratorial framings can fill.\n\nThe result is a bifurcated narrative landscape: a broadly shared story of national resilience and military achievement coexists with growing skepticism about timeline, endgame, and whether leadership has a coherent plan. The narrative holds for now, but its sustainability depends heavily on continued military progress and restoration of some functional normalcy."
+      },
+      {
+        "component_id": "information_communication",
+        "score": 4,
+        "confidence": "medium",
+        "supporting_evidence": [
+          "Nature and Parks Authority issues clear, proactive flood safety warnings directing public to official meteorological sources.",
+          "Health Ministry and Environmental Protection Ministry issue targeted air quality guidance for vulnerable populations including the elderly, children, and pregnant women.",
+          "Experts provide clear guidance that cluster munition lethality is significantly reduced when public follows shelter instructions.",
+          "Home Front Command provides differentiated, area-specific recommendations for school reopening, communicating clearly which zones are safer.",
+          "Police proactively investigated the shelter-blocking incident based on multiple 100-hotline calls, demonstrating responsive feedback mechanisms."
+        ],
+        "weakening_evidence": [
+          "PM Netanyahu avoids open press conferences during wartime; public 'sits in shelters with unanswered questions,' creating a critical information vacuum at the highest level.",
+          "AI-generated fake images of the PM injured reach millions on X; disinformation persists despite debunking, with users 'refusing to be convinced.'",
+          "Misleading captions deliberately attached to viral video to inflame internal divisions — 'left-wing activists erasing Israeli flag' — spreading wartime misinformation.",
+          "Dimona community conflict features misinformation linking Shabbat observance to missile protection, blending superstition with security anxiety.",
+          "Contradictory messaging from US officials (Hegseth vs. Trump on war timeline) adds to public confusion about the strategic situation."
+        ],
+        "missing_evidence": "Assessment of Home Front Command app effectiveness and reliability, analysis of information accessibility in Arabic and other minority languages, evaluation of whether emergency SMS/alert systems are reaching all populations, and data on public trust in official information sources versus social media.",
+        "narrative": "The information and communication landscape reveals a stark split between competent sectoral communication and a dysfunctional national-level information architecture. Government agencies — the Health Ministry, Nature and Parks Authority, Home Front Command — are issuing timely, specific, and actionable guidance on discrete hazards ranging from flood risks to air quality to school reopening zones. These represent well-functioning institutional communication channels that are meeting population needs in their specific domains.\n\nHowever, at the strategic level, the information ecosystem is severely compromised. The Prime Minister's refusal to hold open press conferences during an active multi-front war represents a critical leadership communication failure, leaving the public without authoritative answers to their most pressing questions about the war's direction and duration. This vacuum is being filled by AI-generated deepfakes that reach millions, deliberately misleading social media content designed to inflame internal divisions, and contradictory signals from allied governments.\n\nThe combination of competent tactical communication and failed strategic communication produces a net negative assessment. Citizens can learn when to avoid flood zones, but cannot get clear answers about when schools will reopen nationwide, what the war's endgame looks like, or whether viral images of their injured leader are real. The persistence of disinformation despite debunking efforts — users 'refuse to be convinced' — suggests that trust in institutional information has eroded to a point where corrective mechanisms are insufficient."
+      },
+      {
+        "component_id": "lifesaving_behavior",
+        "score": 4,
+        "confidence": "high",
+        "supporting_evidence": [
+          "Light rail underground stations opened as shelters even on Shabbat by government directive, maximizing infrastructure for public protection.",
+          "Police proactively detained a resident who blocked shelter access during an alarm, enforcing protective behavior norms.",
+          "Coordinated multi-agency emergency response across 10 impact sites in Eilat demonstrates effective post-impact life-saving operations.",
+          "Families with safe rooms (mamad) report significantly better wartime coping and reduced psychological distress.",
+          "Experts communicate that compliance with shelter guidelines substantially reduces cluster munition casualties."
+        ],
+        "weakening_evidence": [
+          "Locked shelters in Tel Aviv leave people 'helpless in the street' during alarms — fundamental infrastructure failure in Israel's largest metro area.",
+          "Most Tel Aviv apartments lack safe rooms (mamad) and even lack building shelters, despite highest housing costs in Israel.",
+          "No solution exists for protecting students in transit to school during alerts; 'no one wants to take responsibility' for this critical vulnerability.",
+          "Resident physically blocks civilians from entering shelter during alarm, even pushing a woman — severe breakdown in protective behavior norms.",
+          "Northern residents unable to establish any pattern in rocket fire to plan even basic activities like showering, making systematic protective behavior impossible."
+        ],
+        "missing_evidence": "Data on shelter compliance rates across different regions, statistics on casualties attributable to failure to reach shelter, assessment of mamad coverage nationwide, analysis of public shelter maintenance and accessibility audits, and evaluation of protective behavior among populations with mobility limitations.",
+        "narrative": "Life-saving behavior presents one of the most concerning pictures in this assessment, characterized by a fundamental gap between the population's willingness to follow protective guidelines and the physical infrastructure available to enable that behavior. The evidence reveals systemic shelter accessibility failures: in Tel Aviv, the country's most populous metropolitan area, most apartments lack safe rooms, building shelters are locked, and public shelters are inaccessible during alarms. This is not a behavioral failure but an infrastructure failure that has been decades in the making and is now being tested under the most severe conditions.\n\nWhere infrastructure exists, the evidence is more positive. Families with mamad report dramatically better coping. The government's decision to open light rail stations as shelters on Shabbat shows adaptive thinking, and police enforcement against shelter-blocking demonstrates institutional commitment to protective norms. Emergency response at impact sites — with coordinated HFC regular and reserve forces across 10 impact zones in Eilat — appears effective and professional.\n\nThe most alarming gap is the unresolved vulnerability of children in transit to educational institutions. Despite being identified as the critical weakness in school reopening, no authority has proposed a solution and 'no one wants to take responsibility.' This single gap effectively prevents the resumption of in-person education across most of the country, cascading into functional continuity and wellbeing impacts. The unpredictability of rocket fire patterns in the north further compounds the problem, making it impossible for residents to establish even basic routines around alerts."
+      },
+      {
+        "component_id": "functional_continuity",
+        "score": 3,
+        "confidence": "high",
+        "supporting_evidence": [
+          "Emergency daycares operated by health funds enable essential workers to continue serving their communities with 'peace of mind.'",
+          "Hundreds of people actively maintain normalcy at Jaffa flea market — 'tables full, music playing, beer and coffee flowing as if it's a normal day.'",
+          "Partial school reopening in safer zones (Jordan Valley, Arava, West Bank, Beit She'an Valley, Western Lachish, Gaza envelope) restores some educational continuity.",
+          "Home Front Command's differentiated zonal approach provides a framework for gradual restoration of services based on risk assessment."
+        ],
+        "weakening_evidence": [
+          "Northern businesses report revenue drops of 'dozens of percent'; stores open but empty; the 'return to routine' described as a 'bluff.'",
+          "Education Ministry confirms no return to in-person learning in central Israel including Jerusalem; most of the country remains on remote learning.",
+          "Airlines cancel flights then relist at double the price (590 euros vs. original), exploiting wartime conditions.",
+          "Power outages across Negev settlements due to weather damage on top of wartime disruptions compound essential service failures.",
+          "Dozens evacuated from homes in Shoham after cluster munition hit; daily life physically impossible in impact zones."
+        ],
+        "missing_evidence": "Comprehensive economic impact data (GDP, unemployment, business closures), supply chain status for essential goods (food, medicine, fuel), hospital capacity and healthcare system strain, status of water and sanitation infrastructure, and data on remote work adoption rates and productivity.",
+        "narrative": "Functional continuity is the weakest dimension of resilience in this assessment, reflecting the severe and pervasive disruption to daily life across nearly all of Israel. The education system — perhaps the most critical institution for family functioning — remains closed in most of the country, with remote learning producing uneven results ('Zoom doesn't work, crashes — there was so much time to prepare'). The economy in the north is described in near-catastrophic terms, with the official 'return to routine' exposed as hollow when malls stand empty, customers refuse to leave their homes, and fresh merchandise ends up in the trash. Airlines are exploiting the crisis with predatory pricing, and natural disasters (power outages, sandstorms) compound wartime disruptions.\n\nBright spots exist but are limited in scope. Emergency daycares for essential workers represent a thoughtful adaptation that enables critical services to continue. The vibrant scene at Jaffa flea market demonstrates that in areas with lower direct threat exposure, Israelis actively seek normalcy. The Home Front Command's differentiated zonal approach to school reopening shows institutional capacity for nuanced risk-based decision-making.\n\nHowever, the overall picture is one of an economy and social infrastructure under extreme strain. The combination of closed schools, decimated northern commerce, disrupted transportation, and unpredictable alerts has created a reality where routine functioning is impossible for a large proportion of the population. The open-ended nature of the conflict ('as long as needed') means there is no clear timeline for restoration, and prolonged disruption at this level risks permanent economic damage — particularly for small businesses in the north who describe themselves as 'keeping their heads above water almost alone.'"
+      },
+      {
+        "component_id": "community_capital",
+        "score": 6,
+        "confidence": "medium",
+        "supporting_evidence": [
+          "Home Front Command forces (regular and reserve) coordinating with all emergency organizations across 10 impact sites in Eilat demonstrates effective multi-agency response.",
+          "Forum of 16 major city mayors conducted joint situation assessment with HFC commander, making unified decisions about school reopening.",
+          "Health fund operates emergency daycares for essential workers' children, enabling continuity of medical and administrative services.",
+          "Beit Shemesh couple exemplifies community mobilization: wife manages clinic near fatal attack site, husband volunteers as MDA paramedic and ambulance driver.",
+          "Light rail infrastructure repurposed as public shelters by government directive, maximizing community physical assets for civilian protection."
+        ],
+        "weakening_evidence": [
+          "Northern business owners feel they are 'holding their heads above water almost alone' — nearly without adequate support from authorities or community resources.",
+          "Coalition budget allocations to yeshiva students during wartime criticized as diverting resources from northern residents who lack sheltering and economic support.",
+          "No entity willing to take responsibility for the student transit vulnerability gap, revealing coordination failure on a critical issue."
+        ],
+        "missing_evidence": "Comprehensive mapping of volunteer organizations and their wartime activation rates, data on local authority emergency budget utilization, assessment of coordination between national and local emergency frameworks, and information on private sector contributions to community resilience efforts.",
+        "narrative": "Community capital emerges as the relatively strongest resilience component, reflecting Israel's deep institutional capacity for emergency coordination and the society's well-established volunteer culture. The multi-agency emergency response system — combining Home Front Command regular and reserve forces with civilian emergency organizations — is operating effectively at impact sites, as demonstrated by the coordinated response across 10 zones in Eilat. The Forum of 16 mayors' joint coordination with the HFC commander represents important horizontal (inter-municipal) and vertical (local-national) coordination that enables coherent decision-making.\n\nGrassroots community capital is also evident in individual acts of service: the Beit Shemesh couple where both parents serve in essential roles (clinic management and MDA volunteering), the health fund's initiative to operate emergency daycares for essential workers' children, and the adaptive repurposing of transit infrastructure as shelters. These examples demonstrate that Israel's 'anchor organizations' — health funds, emergency services, municipal governments — are activating effectively.\n\nThe principal weakness is geographic inequality in resource deployment. Northern business owners express a profound sense of abandonment, feeling that they are coping 'almost alone' without adequate institutional support. The criticism of wartime budget allocations that favor non-essential recipients over besieged communities suggests that the coordination of national resources toward areas of greatest need is failing at the political level, even as operational coordination at the emergency-response level functions well."
+      },
+      {
+        "component_id": "leadership",
+        "score": 4,
+        "confidence": "medium",
+        "supporting_evidence": [
+          "Forum of 16 city mayors proactively coordinate with HFC commander, conducting joint situation assessments and making unified decisions about school closures.",
+          "Police proactively investigate and detain suspect who blocked shelter access, demonstrating enforcement of wartime protective norms.",
+          "Haifa municipality requests HFC approval for therapeutic centers for special-needs children, showing local leadership advocacy for vulnerable populations.",
+          "Transport Minister directs opening of light rail stations as shelters on Shabbat, demonstrating adaptive executive decision-making."
+        ],
+        "weakening_evidence": [
+          "PM Netanyahu avoids open press conferences; 'the public sits in shelters, lives between alarm and alarm, with questions that the state's leader is obligated to answer.'",
+          "No authority willing to take responsibility for the critical vulnerability of students in transit: 'no one wants, and rightly so, to take responsibility.'",
+          "Defense Minister's dramatic call to Iranian people described as a 'trial balloon' by lower-ranking official, suggesting leadership uncertainty about strategic direction.",
+          "Budget allocations during wartime funnel 'absurd coalition funds to yeshiva students' while northern residents fight for sheltering and economic aid.",
+          "Northern business owners feel 'forced to keep their heads above water almost alone' — leadership not perceived as a source of support."
+        ],
+        "missing_evidence": "Public trust polling on national vs. local leadership, assessment of military leadership communication with civilian population, evaluation of Knesset oversight activity during wartime, and data on emergency powers usage and accountability mechanisms.",
+        "narrative": "Leadership presents a sharply bifurcated picture between effective local leadership and dysfunctional national-level leadership. At the local level, municipal leaders are performing core functions: the Forum of 16 mayors is coordinating systematically with the military, Haifa's municipality is advocating for vulnerable populations, and police are enforcing protective norms. The Transport Minister's directive to open rail stations as shelters demonstrates that some cabinet-level decision-making is responsive and adaptive.\n\nAt the national level, however, the picture is deeply problematic. The Prime Minister's avoidance of direct public communication during an active multi-front war represents a fundamental leadership failure. A population living 'between alarm and alarm with an almost-closed economy' has urgent questions that only the head of state can answer. The use of 'trial balloons' through lower-ranking officials for major strategic messaging (the call to the Iranian people) signals that the senior leadership is uncertain about its own direction. Most damningly, the admission that 'no one wants to take responsibility' for the student transit vulnerability — framed as reasonable by the analyst — reveals a leadership culture that avoids accountability on life-and-death decisions.\n\nThe wartime budget controversy — coalition funds flowing to politically-favored constituencies while northern communities lack basic sheltering — further erodes leadership credibility. The result is a leadership landscape where local officials are trusted and active but constrained, while national leadership is perceived as absent, self-serving, and unaccountable."
+      },
+      {
+        "component_id": "belonging_solidarity",
+        "score": 4,
+        "confidence": "medium",
+        "supporting_evidence": [
+          "Tel Aviv residents express strong attachment to their city despite lack of safe rooms, demonstrating deep place-based solidarity even under threat.",
+          "Beit Shemesh couple exemplifies mutual aid — both serving community in essential roles near a site where nine were killed.",
+          "Emergency daycares for essential workers' children reflect organized community mutual support enabling collective functioning.",
+          "Public outcry and police action against shelter-blocker suggests strong societal norm that shelters must be shared — violation treated as serious."
+        ],
+        "weakening_evidence": [
+          "Resident physically blocks civilians from shelter shouting 'this is private property,' reflecting breakdown of solidarity under pressure; viral video sparks 'storm.'",
+          "Shared shelters become sites of neighbor conflict — 'every human torture exists in a shared shelter' — with self-appointed experts spreading panic.",
+          "Teacher suspended and receives 'dozens of threatening messages' including from strangers after friend's graffiti incident; prepares for extremist attacks on her home.",
+          "Dimona community splits over wartime Shabbat pharmacy opening; religious-secular tensions amplified during crisis.",
+          "Criticism of wartime budget prioritizing yeshiva students over northern residents fuels inter-sectoral resentment and sense of unequal sacrifice."
+        ],
+        "missing_evidence": "Survey data on inter-group trust and solidarity levels, assessment of solidarity between evacuated communities and host communities, analysis of social media discourse for solidarity vs. division indicators, and data on wartime charitable giving and volunteer rates.",
+        "narrative": "Belonging and solidarity present a complex and concerning picture of a society where deep reservoirs of mutual commitment coexist with intensifying fracture lines. Positive solidarity manifests in powerful individual examples — the couple serving their community near a mass-casualty site, essential workers relying on community daycares to continue their service, and Tel Aviv residents' fierce attachment to their city. The public outcry against the shelter-blocker, and swift police action, demonstrate that the social norm of shared protection during attacks remains strong.\n\nHowever, the evidence of social fracture is extensive and multi-dimensional. The shelter-blocking incident itself — a resident physically preventing strangers from entering 'his' building's shelter during an alarm — is a visceral symbol of solidarity breakdown under sustained pressure. Shared shelters, designed as spaces of collective protection, are instead becoming arenas of interpersonal conflict, with 'every human torture' playing out in confined spaces. Beyond the physical shelter, the social fabric is being strained by the targeting of perceived internal 'enemies' — a teacher receiving dozens of threats, her home under surveillance, her children prepared for extremist attacks — suggesting that wartime solidarity is being weaponized along political lines.\n\nThe structural dimension is equally troubling. The perception that wartime budget allocations favor politically-connected groups (yeshiva students) while besieged northern communities go unsupported creates a toxic sense of unequal sacrifice that corrodes the foundational 'shared fate' narrative. Religious-secular tensions in Dimona over Shabbat observance during wartime show how crisis can amplify rather than transcend pre-existing divisions. The overall trajectory suggests that solidarity is present but fragile, and that prolonged conflict may erode it further."
+      },
+      {
+        "component_id": "wellbeing_atrisk",
+        "score": 4,
+        "confidence": "medium",
+        "supporting_evidence": [
+          "Health Ministry and Environmental Protection Ministry issue targeted air quality guidance specifically for vulnerable populations — elderly, children, pregnant women, heart/lung patients.",
+          "Haifa municipality specifically requests HFC approval for therapeutic centers for special-needs children, demonstrating advocacy for the most vulnerable.",
+          "Emergency daycares specifically serve children of essential workers, recognizing this population's unique wartime childcare needs.",
+          "MDA first responder provides rapid on-scene treatment to injured 12-year-old in Eilat, demonstrating emergency medical capability for pediatric casualties."
+        ],
+        "weakening_evidence": [
+          "12-year-old child seriously injured by interception debris in Eilat; destruction, glass, and smoke at scene highlight children's vulnerability.",
+          "Four anxiety casualties evacuated alongside physically wounded in Eilat, indicating significant mental health toll on civilian population.",
+          "65 Arab citizens murdered by gun violence since start of year; 'violence threatens public order itself' — concurrent crisis for minority at-risk population.",
+          "Teacher and family receive dozens of threats, install security cameras, prepare children for extremist attacks — individuals targeted as wartime 'outsiders.'",
+          "Significant gap between families with and without mamad: those without experience 'collapses' in remote learning systems, greater psychological distress, and reduced physical protection."
+        ],
+        "missing_evidence": "Data on mental health service utilization and capacity, assessment of elderly population needs and outreach, information on evacuee welfare and housing conditions, data on domestic violence rates during shelter confinement, and evaluation of services for people with disabilities during wartime.",
+        "narrative": "The wellbeing of at-risk populations presents a deeply concerning picture of multiple overlapping vulnerabilities with insufficient systemic responses. The physical toll on children is starkly illustrated by the serious injury of a 12-year-old in Eilat from interception debris, while the simultaneous evacuation of four anxiety casualties from the same incident points to the broader mental health crisis rippling through civilian populations. The gap between families with safe rooms and those without creates a two-tier system of wartime wellbeing that maps onto socioeconomic inequality — those in older, less expensive housing face both greater physical danger and greater psychological distress.\n\nThe Arab community faces a compounding crisis: 65 murdered by gun violence since January in addition to the wartime threat, with violence so severe that elected officials are being targeted. This community's wellbeing needs extend far beyond rocket protection to fundamental public safety, yet the evidence suggests governance failure rather than responsive intervention. Meanwhile, individuals perceived as politically dissident face mob-like targeting — a teacher installing security cameras and preparing her children for extremist visitors represents a chilling failure to protect internal 'at-risk' populations from intra-community violence.\n\nSome positive responses exist at the institutional level: the Health Ministry's targeted guidance for medically vulnerable populations, Haifa's advocacy for special-needs therapeutic services, and the provision of emergency daycares. However, these responses appear insufficient relative to the scale of need, and critical gaps remain — particularly in mental health services for a population enduring sustained trauma, in services for the elderly and disabled during extended shelter periods, and in protection for communities facing concurrent non-military violence."
+      }
+    ]
+  },
+  "evidence_snippets": [
+    {
+      "article_title": "עקב מזג האוויר: הפרעות באספקת החשמל בנגב",
+      "source": "ynet.co.il",
+      "quoted_text": "פגעי מזג האוויר בדרום, והרוחות העזות במיוחד, גרמו לנזק בתשתיות ולקריעת חוטים. כתוצאה מכך יש כמה הפרעות באספקת החשמל בנגב, בין היתר ביישובים כפר מימון, בארי, זמרת, עזוז וניר משה. צוותי חברת החשמל יצאו לשטח ופועלים לטיפול בנזקים ולהשבת אספקת החשמל",
+      "resilience_components": [
+        "functional_continuity"
+      ],
+      "polarity": "negative",
+      "rationale": "Power outages in Negev settlements during wartime compound disruptions to daily life and essential services."
+    },
+    {
+      "article_title": "עקב חשש משיטפונות במדבר יהודה וים המלח: חל איסור להיכנס לאפיקי נחלים",
+      "source": "ynet.co.il",
+      "quoted_text": "רשות הטבע והגנים מסרה כי עקב חשש משיטפונות בנחלי מדבר יהודה וים המלח חל איסור מוחלט להיכנס ברגל וברכב לאפיקי נחלים בזרימה... בנושא מזג אוויר יש להתעדכן באתר האינטרנט של השירות המטאורולוגי ובמשדרי החדשות",
+      "resilience_components": [
+        "information_communication",
+        "lifesaving_behavior"
+      ],
+      "polarity": "positive",
+      "rationale": "Authorities proactively issue clear safety warnings and guidance to the public about flood risks, directing to official information sources."
+    },
+    {
+      "article_title": "כ\"ץ: \"המאבק מול איראן עולה מדרגה - נכנסים לישורת ההכרעה\"",
+      "source": "ynet.co.il",
+      "quoted_text": "המאבק מול איראן עולה מדרגה ואנחנו נכנסים לישורת ההכרעה שתימשך ככל שיידרש. רק העם האיראני יכול לשים לזה סוף במאבק נחוש - עד להפלת משטר הטרור",
+      "resilience_components": [
+        "narrative",
+        "leadership"
+      ],
+      "polarity": "mixed",
+      "rationale": "Defense Minister projects narrative of nearing decisive victory, but open-ended timeline ('as long as needed') may undermine public confidence."
+    },
+    {
+      "article_title": "למה הגברת הירי מלבנון לא הביאה לשינוי משמעותי במספר האזעקות? כל המספרים",
+      "source": "ynet.co.il",
+      "quoted_text": "בימים האחרונים הסתבך מאוד המאמץ של תושבי הצפון למצוא סדר או תבנית בשיגורים לארץ, שיעזרו להם להעריך מתי אפשר להתקלח או ללכת לקניות עם מינימום חשש מאזעקה",
+      "resilience_components": [
+        "functional_continuity",
+        "lifesaving_behavior"
+      ],
+      "polarity": "negative",
+      "rationale": "Northern residents unable to establish routine around rocket fire; daily life activities like showering and shopping disrupted by unpredictable alerts."
+    },
+    {
+      "article_title": "לקראת הכרעה: אלה האזורים שפיקוד העורף המליץ שיחזרו לבתי הספר",
+      "source": "ynet.co.il",
+      "quoted_text": "פיקוד העורף המליץ, באישור הרמטכ\"ל, כי באזור הבקעה, הערבה, יו\"ש, עמק בית שאן, מערב לכיש ועוטף עזה ניתן יהיה לחזור ללימודים פיזית בבתי הספר... בשאר האזורים המליץ פיקוד העורף להמשיך בלמידה מרחוק, כולל בירושלים",
+      "resilience_components": [
+        "functional_continuity",
+        "information_communication"
+      ],
+      "polarity": "mixed",
+      "rationale": "Differentiated reopening plan shows partial restoration of education in safer areas, but most of the country including Jerusalem remains on remote learning."
+    },
+    {
+      "article_title": "מטח משולב מאיראן ומלבנון: זוהתה נפילה באזור חצור הגלילית, אין נפגעים",
+      "source": "haaretz.co.il",
+      "quoted_text": "שריפה פרצה בבניין בשוהם בעקבות פגיעת פצצת מצרר, עשרות פונו מבתיהם ■ משרד החינוך: לא צפויה חזרה ללימודים בשבוע הבא במרכז",
+      "resilience_components": [
+        "functional_continuity"
+      ],
+      "polarity": "negative",
+      "rationale": "Dozens evacuated from homes in Shoham after cluster munition hit; Ministry of Education confirms no return to school in central Israel next week."
+    },
+    {
+      "article_title": "בן 12 נפצע בינוני־קשה מנפילת שברי יירוט באילת, פצוע נוסף באורח קל",
+      "source": "haaretz.co.il",
+      "quoted_text": "נער בן 12 נפצע באורח בינוני־קשה מנפילת שברי יירוט, וגבר בן 39 נפצע באורח קל... חובשת רפואת חירום במד\"א רותם בסודו שטיפלה בילד שנפצע, סיפרה כי \"במקום היה הרס, זכוכיות ועשן\"",
+      "resilience_components": [
+        "wellbeing_atrisk"
+      ],
+      "polarity": "negative",
+      "rationale": "Child seriously injured by interception debris in Eilat highlights vulnerability of children as at-risk population during missile attacks."
+    },
+    {
+      "article_title": "אזעקות ברחבי הארץ בגלל ירי מאיראן ומלבנון; בן 12 נפצע בינוני באילת",
+      "source": "haaretz.co.il",
+      "quoted_text": "פגיעת פצצות המצרר הקטנות קטלנית פחות מפגיעת טיל רגיל - כל עוד הציבור קשוב להנחיות ונכנס למרחב מוגן. מומחים אומרים כי שימוש בחימוש מתפזר לעבר אוכלוסייה אזרחית הוא הפרה חמורה של דיני הלחימה",
+      "resilience_components": [
+        "lifesaving_behavior",
+        "information_communication"
+      ],
+      "polarity": "mixed",
+      "rationale": "Experts stress that following shelter guidelines significantly reduces cluster munition lethality, reinforcing the importance of compliance with instructions."
+    },
+    {
+      "article_title": "\"בסכום שאנחנו משלמים נקבל דירה חדשה עם ממ\"ד, אבל קשה לעזוב את העיר\"",
+      "source": "haaretz.co.il",
+      "quoted_text": "במרבית הדירות בתל אביב אין ממ\"ד ואפילו אין מקלט בבניין, בעוד תושביה משלמים את מחירי הדיור הגבוהים בישראל... אך למרות החסרונות הקשים, ניכר בעיר קונצנזוס על כך שאין מקום עדיף בארץ... פסיכולוגית קלינית: \"מדובר בדיסוננס קוגניטיבי קלאסי\"",
+      "resilience_components": [
+        "lifesaving_behavior",
+        "belonging_solidarity"
+      ],
+      "polarity": "mixed",
+      "rationale": "Most Tel Aviv apartments lack safe rooms (negative for life-saving), yet residents show strong attachment and solidarity with the city despite dangers."
+    },
+    {
+      "article_title": "נתניהו וסמוטריץ' משדרים יציבות - אך בעלי העסקים עוד מחכים לפיצוי",
+      "source": "maariv.co.il",
+      "quoted_text": "כמה שעות אחרי הביטול נכנסתי שוב לאתר של ארקיע, ופתאום אני רואה שם שהטיסה ב־16 במרץ חזרה, רק בהפרש של חצי שעה, ובמחיר של 590 אירו, כפול מהמחיר ששילמנו",
+      "resilience_components": [
+        "functional_continuity"
+      ],
+      "polarity": "negative",
+      "rationale": "Airlines cancel flights then relist at double the price, exploiting wartime conditions and harming functional continuity for stranded citizens."
+    },
+    {
+      "article_title": "\"במונחים של ישראל, שבועיים וחצי זה נצח\": מה יעלה בגורל חופשות הפסח?",
+      "source": "maariv.co.il",
+      "quoted_text": "ישראלים הם קהל אופטימי, שוכח מהר, וברגע שיתאפשר - אנחנו בטוחים שיהיו המונים שישמחו להתאוורר ולצאת לחופשה... אנשים מתקשרים, רוצים לדעת מה יקרה עם החופשה שלהם... עדיין איכשהו תולים תקווה",
+      "resilience_components": [
+        "narrative",
+        "functional_continuity"
+      ],
+      "polarity": "mixed",
+      "rationale": "Public optimism about post-war normalcy coexists with massive disruption to tourism/travel; Israelis described as optimistic and quick to recover."
+    },
+    {
+      "article_title": "עוזי רבי מפרק את המשטר באיראן: \"היעלמותו מבמת ההיסטוריה וודאית\"",
+      "source": "maariv.co.il",
+      "quoted_text": "הם לא הקשיבו למשטר שאמר להם, תישארו בבית, זו רק תעמולה של הציונים. כשראיתי את זה, הבנתי שני דברים... שהמשטר איבד את ההילה הבלתי מנוצחת שהייתה לו",
+      "resilience_components": [
+        "narrative"
+      ],
+      "polarity": "positive",
+      "rationale": "Expert narrative frames Iran's regime as collapsing and irreversible, reinforcing a shared story of successful Israeli-US strategic coping."
+    },
+    {
+      "article_title": "\"הטיל שמתפרק ל-8\": השכן שחשב שהוא ניר דבורי והסיוט שגרם לי לברוח לממ\"ד",
+      "source": "maariv.co.il",
+      "quoted_text": "החיים עם ממ״ד שינו לנו את המציאות. פחות פסיכוזה... הילדות כבר הגיעו לגיל שבו שיעורים וחוגים אפשר לעשות בזמן מלחמה בזום. יחסית, אצלנו הבלגן במערכות סביר. אצל אחרים אני שומע על קריסות. זום לא עובד, נפילות. חבל. היה כל כך הרבה זמן להיערך",
+      "resilience_components": [
+        "lifesaving_behavior",
+        "functional_continuity",
+        "wellbeing_atrisk"
+      ],
+      "polarity": "mixed",
+      "rationale": "Family with safe room manages wartime routine better; highlights gap between those with/without mamad; remote learning works for some but crashes for others."
+    },
+    {
+      "article_title": "\"הטיל שמתפרק ל-8\": השכן שחשב שהוא ניר דבורי והסיוט שגרם לי לברוח לממ\"ד",
+      "source": "maariv.co.il",
+      "quoted_text": "הפרשן לא שותק כמובן, ונהיה חרבו דרבו בין השכנים. ויש גם כלבים, יש קטקטים... כל עינוי אנושי מתקיים במקלט משותף. ושלא אתחיל לחפור על נעילת הדלת",
+      "resilience_components": [
+        "belonging_solidarity",
+        "wellbeing_atrisk"
+      ],
+      "polarity": "negative",
+      "rationale": "Shared shelters become sites of conflict between neighbors; self-appointed 'experts' spread panic; communal friction undermines solidarity."
+    },
+    {
+      "article_title": "\"בנימין נתניהו בז לאנשי התקשורת\", ובצדק - הם מספקים לו את כל הסיבות",
+      "source": "maariv.co.il",
+      "quoted_text": "במיוחד בימים מתוחים אלה של מלחמה, כשהציבור הישראלי יושב במקלטים, חי בין אזעקה לאזעקה בלי מסגרות עם משק כמעט סגור ויש לו שאלות. שאלות שמנהיג המדינה מחויב לענות עליהן",
+      "resilience_components": [
+        "leadership",
+        "information_communication"
+      ],
+      "polarity": "negative",
+      "rationale": "PM Netanyahu avoids open press conferences and direct Q&A during war; public sits in shelters with unanswered questions, creating information vacuum."
+    },
+    {
+      "article_title": "המשק פתוח, הקניון ריק: הבלוף של \"החזרה לשגרה\" בצפון",
+      "source": "maariv.co.il",
+      "quoted_text": "בעלי עסקים רבים מדברים על ירידה של עשרות אחוזים בפדיון... האזעקות קוטעות כל ניסיון לשגרה, עובדים חוששים להגיע, לקוחות נמנעים מלצאת, וסחורה טרייה מוצאת את דרכה לפח",
+      "resilience_components": [
+        "functional_continuity"
+      ],
+      "polarity": "negative",
+      "rationale": "Northern businesses suffer massive revenue drops (50%+); stores open but empty; the 'return to routine' is described as a bluff."
+    },
+    {
+      "article_title": "המשק פתוח, הקניון ריק: הבלוף של \"החזרה לשגרה\" בצפון",
+      "source": "maariv.co.il",
+      "quoted_text": "\"היינו באמצע הנסיעה כשהתחילו השיגורים. עצרנו את האוטו בצד, ירדנו לשטח ושכבנו על האדמה. הדאגה הייתה שלא ייפול עלינו משהו. זה היה רגע מאוד מפחיד\"",
+      "resilience_components": [
+        "lifesaving_behavior",
+        "wellbeing_atrisk"
+      ],
+      "polarity": "negative",
+      "rationale": "Business owner caught during rocket barrage on commute, forced to lie on ground; illustrates life-threatening risk and psychological toll."
+    },
+    {
+      "article_title": "המשק פתוח, הקניון ריק: הבלוף של \"החזרה לשגרה\" בצפון",
+      "source": "maariv.co.il",
+      "quoted_text": "רבים מבעלי העסקים בצפון מרגישים שהם נאלצים להחזיק את הראש מעל המים כמעט לבדם - בתקווה שהמצב יירגע לפני שהעסק הבא ייאלץ להיסגר",
+      "resilience_components": [
+        "community_capital",
+        "leadership"
+      ],
+      "polarity": "negative",
+      "rationale": "Northern business owners feel abandoned, coping almost alone without adequate support from authorities or community resources."
+    },
+    {
+      "article_title": "המלחמה בחוץ - הירי ברחוב נמשך",
+      "source": "ynet.co.il",
+      "quoted_text": "נכון לרגע כתיבת שורות אלה, 65 אזרחים ערבים כבר נרצחו מאז תחילת השנה... כאשר ירי מתבצע לעבר נבחר ציבור בלב עיר, ברור שהבעיה איננה עוד פשיעה נקודתית - אלא מציאות שבה האלימות מאיימת על עצם הסדר הציבורי",
+      "resilience_components": [
+        "wellbeing_atrisk",
+        "leadership"
+      ],
+      "polarity": "negative",
+      "rationale": "Arab community faces ongoing gun violence crisis (65 murdered since start of year) alongside the war; elected officials targeted, signaling governance failure."
+    },
+    {
+      "article_title": "סיכום הלילה: מטחים משולבים מאיראן ולבנון, פגיעה ישירה בצפון - ללא נפגעים",
+      "source": "maariv.co.il",
+      "quoted_text": "כוחות חילוץ והצלה של פיקוד העורף בשילוב ארגוני החירום פועלים כעת בזירה בה התקבל דיווח על נפילה בצפון הארץ",
+      "resilience_components": [
+        "community_capital"
+      ],
+      "polarity": "positive",
+      "rationale": "Home Front Command and emergency organizations coordinating effectively at impact site in the north."
+    },
+    {
+      "article_title": "סערה בדימונה בגלל פתיחת סופר פארם בשבת: \"השבת מגינה עלינו מטילים\"",
+      "source": "maariv.co.il",
+      "quoted_text": "מי יודע אם לא השבת הקדושה, הנשמרת בדימונה בפרהסיה שנים רבות, מגינה עלינו מטילים. במקום להודות לאלוקים בסוף שבוע שלם ללא אזעקה אחת, בוחרים בכפיות טובה",
+      "resilience_components": [
+        "belonging_solidarity",
+        "information_communication"
+      ],
+      "polarity": "negative",
+      "rationale": "Wartime Shabbat pharmacy opening causes community rift in Dimona; misinformation linking Shabbat observance to missile protection spreads."
+    },
+    {
+      "article_title": "10 זירות יירוט באילת: ילד בן 12 מצב קשה, פצוע נוסף במצב קל",
+      "source": "maariv.co.il",
+      "quoted_text": "כוחות פיקוד העורף בסדיר ובמילואים פועלים כעת בשיתוף עם כלל ארגוני החירום בזירות הנפילה בדרום הארץ. הכוחות מבצעים הערכת מצב בשטח ומפעילים סורקים במטרה לזכות את הזירה ולוודא שאין סכנות נוספות לציבור",
+      "resilience_components": [
+        "community_capital",
+        "lifesaving_behavior"
+      ],
+      "polarity": "positive",
+      "rationale": "Coordinated multi-agency emergency response across 10 impact sites in Eilat, including regular and reserve HFC forces with all emergency organizations."
+    },
+    {
+      "article_title": "שליחות תחת אש: זוג ההורים מבית שמש שמתייצבים למען האחרים",
+      "source": "news.walla.co.il",
+      "quoted_text": "הילדים שלנו נמצאים לאורך היום במעונות החירום שמפעילה קופת החולים, לטובת ילדי הצוותים הרפואיים והמינהליים על מנת שנוכל להגיע לעבודה בראש שקט וזה עוזר לנו מאוד",
+      "resilience_components": [
+        "community_capital",
+        "functional_continuity",
+        "belonging_solidarity"
+      ],
+      "polarity": "positive",
+      "rationale": "Health fund operates emergency daycares for essential workers' children; couple exemplifies community volunteering and mutual aid during crisis."
+    },
+    {
+      "article_title": "שליחות תחת אש: זוג ההורים מבית שמש שמתייצבים למען האחרים",
+      "source": "news.walla.co.il",
+      "quoted_text": "איילת מנהלת את מרפאת מאוחדת בבית שמש, הממוקמת דקות נסיעה בודדות מזירת הפגיעה הקטלנית במקלט שגבתה את חייהם של תשעה בני אדם. בעלה, חנניה... מתנדב כחובש וכנהג אמבולנס במד\"א",
+      "resilience_components": [
+        "belonging_solidarity",
+        "community_capital"
+      ],
+      "polarity": "positive",
+      "rationale": "Essential workers continue serving community despite proximity to fatal attack site; husband also volunteers as MDA paramedic, exemplifying mutual aid."
+    },
+    {
+      "article_title": "\"מי נועל מקלט בזמן אזעקה?\": המבלים בשוק הפשפשים רצו לחפש מחסה - וגילו דלתות נעולות",
+      "source": "news.walla.co.il",
+      "quoted_text": "המבלים ניסו לשמור על שגרה, אך אזעקה שנשמעה בצוהרי היום הפכה את הרחבה לזירת בלבול וחיפוש מחסה. חלק רצו לבנייני מגורים סמוכים וגילו מקלטים נעולים, אחרים מצאו עצמם עומדים חסרי אונים ברחוב",
+      "resilience_components": [
+        "lifesaving_behavior",
+        "functional_continuity"
+      ],
+      "polarity": "negative",
+      "rationale": "Locked shelters in Tel Aviv leave people helpless during alarms; reveals infrastructure failure in enabling life-saving behavior in public spaces."
+    },
+    {
+      "article_title": "\"מי נועל מקלט בזמן אזעקה?\": המבלים בשוק הפשפשים רצו לחפש מחסה - וגילו דלתות נעולות",
+      "source": "news.walla.co.il",
+      "quoted_text": "השולחנות היו מלאים, המוזיקה המשיכה להתנגן, וכוסות הבירה והקפה זרמו כאילו מדובר בעוד יום רגיל. בשוק הפשפשים ביפו... מאות אנשים בחרו לצאת מהבית למרות המתיחות הביטחונית",
+      "resilience_components": [
+        "functional_continuity",
+        "narrative"
+      ],
+      "polarity": "positive",
+      "rationale": "Hundreds of people choosing to go out and maintain normalcy in Jaffa flea market despite security tensions; reflects a coping narrative of resilience."
+    },
+    {
+      "article_title": "\"זה שטח פרטי\": האיש שמנע כניסה למקלט בזמן אזעקה בת\"א עוכב לחקירה",
+      "source": "news.walla.co.il",
+      "quoted_text": "בזמן שאזרחים ניסו להיכנס למקלט בבניין כדי למצוא מחסה מהירי, החשוד סירב לאפשר להם להיכנס והחל להתעמת עם חלק מהנוכחים... \"זה הבניין הפרטי ואני שם עלייך\"",
+      "resilience_components": [
+        "lifesaving_behavior",
+        "belonging_solidarity"
+      ],
+      "polarity": "negative",
+      "rationale": "Resident blocks civilians from entering shelter during alarm, even assaulting a woman; severe breakdown of solidarity and obstruction of life-saving behavior."
+    },
+    {
+      "article_title": "\"זה שטח פרטי\": האיש שמנע כניסה למקלט בזמן אזעקה בת\"א עוכב לחקירה",
+      "source": "news.walla.co.il",
+      "quoted_text": "למרות שלא הוגשה תלונה רשמית, מספר קריאות שהתקבלו במוקד 100 של המשטרה הובילו לפתיחת בירור יזום של המקרה. שוטרים שהגיעו למקום גבו עדויות... בהמשך עוכב החשוד לחקירה",
+      "resilience_components": [
+        "lifesaving_behavior",
+        "leadership"
+      ],
+      "polarity": "positive",
+      "rationale": "Police proactively investigated shelter-blocking incident and detained the suspect, enforcing protective behavior norms."
+    },
+    {
+      "article_title": "פתיחת מערכת החינוך: הדילמה של פיקוד העורף וראשי הרשויות המקומיות",
+      "source": "maariv.co.il",
+      "quoted_text": "עיריית חיפה הגישה בקשה לפיקוד העורף לפתיחה מוגבלת של שני מרכזים טיפוליים לילדי החינוך המיוחד והוריהם, זאת לצד רשויות מקומיות נוספות בצפון שמעוניינות בפתיחה הדרגתית של המערכת ככלל בדגש על הגיל הרך והחינוך המיוחד",
+      "resilience_components": [
+        "wellbeing_atrisk",
+        "leadership",
+        "functional_continuity"
+      ],
+      "polarity": "mixed",
+      "rationale": "Local authorities push to open services for special-needs children (vulnerable population), but HFC constraints and transport risks limit implementation."
+    },
+    {
+      "article_title": "פתיחת מערכת החינוך: הדילמה של פיקוד העורף וראשי הרשויות המקומיות",
+      "source": "maariv.co.il",
+      "quoted_text": "נקודת התורפה של פתיחת מערכת החינוך היא לא זמינות המרחבים המוגנים בגנים ובתי הספר... אלא הדרך של תלמידים למסגרת החינוכית וממנה בחזרה. לנקודת התורפה הזאת אין לאיש פתרון ואיש לא רוצה, ובצדק, לקחת אחריות",
+      "resilience_components": [
+        "lifesaving_behavior",
+        "leadership"
+      ],
+      "polarity": "negative",
+      "rationale": "No solution exists for protecting students in transit to school during alerts; no authority willing to assume responsibility for this critical vulnerability."
+    },
+    {
+      "article_title": "פתיחת מערכת החינוך: הדילמה של פיקוד העורף וראשי הרשויות המקומיות",
+      "source": "maariv.co.il",
+      "quoted_text": "ראשי הערים של \"פורום ה-16\"... נפגשו להערכת מצב בבוקר שישי, שמעו סקירה בטחונית וקיבלו תמונת מצב ממפקד פיקוד העורף. הם הסכימו כי אל מול הערכת מצב הנוכחי, אין היתכנות לפתיחת הלימודים בשבוע הבא",
+      "resilience_components": [
+        "leadership",
+        "community_capital"
+      ],
+      "polarity": "positive",
+      "rationale": "Forum of 16 major city mayors coordinating with HFC commander, conducting joint situation assessments and making unified decisions."
+    },
+    {
+      "article_title": "הפנים של המלחמה: מדוע פיט הגסת' עלול להפוך לשעיר לעזאזל של טראמפ",
+      "source": "maariv.co.il",
+      "quoted_text": "בעוד הגסת' הכריז בראיון שהמלחמה \"רק מתחילה\", טראמפ הצהיר שעות ספורות לאחר מכן כי צבא איראן הושמד למעשה וכי המערכה עשויה להסתיים \"בקרוב מאוד\"",
+      "resilience_components": [
+        "narrative",
+        "information_communication"
+      ],
+      "polarity": "negative",
+      "rationale": "Contradictory messages from US administration (war just starting vs. nearly over) create confusion in the shared narrative about the conflict's trajectory."
+    },
+    {
+      "article_title": "תחנות הרכבת הקלה שפתוחות עבור מרחב מוגן - ואלה שלא",
+      "source": "mako.co.il",
+      "quoted_text": "התחנות התת-קרקעיות בקו האדום נפתחו לשימוש גם בשבת כמרחבים מוגנים... בהנחיית שרת התחבורה וגורמי הביטחון, כל התחנות משמשות כמרחבים מוגנים, למעט תחנת קרליבך",
+      "resilience_components": [
+        "lifesaving_behavior",
+        "community_capital"
+      ],
+      "polarity": "positive",
+      "rationale": "Light rail underground stations opened as shelters even on Shabbat by government directive, maximizing community infrastructure for public protection."
+    },
+    {
+      "article_title": "הפייק שחוזר בגדול: המוות של נתניהו - וה\"הוכחה\" המגוחכת",
+      "source": "mako.co.il",
+      "quoted_text": "תמונות AI של רה\"מ פצוע וקונספירציית \"שש האצבעות\" בנאום המוקלט הגיעו למיליוני חשיפות ב-X. למרות שההפרכות כבר כאן, המשתמשים מסרבים להשתכנע",
+      "resilience_components": [
+        "information_communication"
+      ],
+      "polarity": "negative",
+      "rationale": "AI-generated fake images of injured PM reach millions on social media; disinformation persists despite debunking, undermining information ecosystem."
+    },
+    {
+      "article_title": "נפילה באילת: בן 12 נפצע בינוני, שניים במצב קל",
+      "source": "mako.co.il",
+      "quoted_text": "הפצועים פונו לבית החולים יוספטל בעיר. מבית החולים נמסר כי הם מקבלים טיפול בחדר המיון. יחד עם הפצועים פונו לבית החולים גם ארבעה נפגעי חרדה",
+      "resilience_components": [
+        "wellbeing_atrisk"
+      ],
+      "polarity": "negative",
+      "rationale": "Four anxiety casualties evacuated alongside physically wounded in Eilat, indicating mental health toll on civilian population."
+    },
+    {
+      "article_title": "כ\"ץ בקריאה ראשונה לעם האיראני: צאו לרחובות וקצרו את המלחמה | פרשנות",
+      "source": "ynet.co.il",
+      "quoted_text": "העובדה שמישהו מדרג מדיני נמוך יותר הוסמך על ידי נתניהו (ואולי גם על ידי טראמפ) לפרסם את ההודעה הדרמטית הזו, מעידה שמדובר במהלך ראשוני או בלון ניסוי... שני הקברניטים הבכירים לא בטוחים מה תהיה התוצאה",
+      "resilience_components": [
+        "narrative",
+        "leadership"
+      ],
+      "polarity": "mixed",
+      "rationale": "Call to Iranian people framed as 'trial balloon' by lower-level official; reveals leadership uncertainty about war's endgame direction."
+    },
+    {
+      "article_title": "משרד החינוך השעה מורה משום שחברתה ריססה גרפיטי בצבעי דגל פלסטין",
+      "source": "haaretz.co.il",
+      "quoted_text": "בימים הראשונים קיבלתי עשרות הודעות מאיימות וקשות לוואטסאפ - חלקן מאנשים שאינני מכירה וחלקן מתלמידים לשעבר... קניתי מצלמות אבטחה שהתקנו בבית והכנתי את הילדים שלי לאפשרות שיגיעו אלינו פעילי ימין קיצוני",
+      "resilience_components": [
+        "belonging_solidarity",
+        "wellbeing_atrisk"
+      ],
+      "polarity": "negative",
+      "rationale": "Teacher receives dozens of threats; wartime atmosphere intensifies internal social divisions and mob-like targeting of individuals perceived as disloyal."
+    },
+    {
+      "article_title": "משרד החינוך השעה מורה משום שחברתה ריססה גרפיטי בצבעי דגל פלסטין",
+      "source": "haaretz.co.il",
+      "quoted_text": "הסרטון הופץ ברשתות על ידי פעילי ימין, בליווי כותרות מטעות כמו \"פעילות שמאל קיצוני מוחקות גרפיטי של דגל ישראל ומרססות במקומו צבעי דגל אש\"ף\"",
+      "resilience_components": [
+        "information_communication"
+      ],
+      "polarity": "negative",
+      "rationale": "Misleading captions deliberately attached to video spreading on social media, demonstrating wartime misinformation used to inflame internal divisions."
+    },
+    {
+      "article_title": "יותר זול מנקניקייה: יו\"ר רפאל הדהים את הגרמנים עם הנשק הישראלי החדש",
+      "source": "maariv.co.il",
+      "quoted_text": "בלי ההגנה האווירית שלנו, ובמיוחד בלי כיפת ברזל, היינו היום מדברים על מספר עצום של הרוגים בתל אביב, בחיפה ובירושלים. הכלכלה שלנו הייתה קורסת... כיפת ברזל הצילה את ישראל, הצילה אלפי חיים",
+      "resilience_components": [
+        "narrative",
+        "lifesaving_behavior"
+      ],
+      "polarity": "positive",
+      "rationale": "Rafael chairman reinforces narrative that Iron Dome saved thousands of lives and prevented economic collapse; frames defense systems as key to coping."
+    },
+    {
+      "article_title": "אובך כבד, סופות חול וניתוקי חשמל בדרום",
+      "source": "mako.co.il",
+      "quoted_text": "משרד הבריאות והמשרד להגנת הסביבה הודיעו על זיהום אוויר גבוה עד גבוה מאוד בכל חלקי הארץ... מומלץ לאוכלוסיות רגישות, ביניהם: חולי לב, חולי ריאות, קשישים, ילדים ונשים בהיריון, להימנע מפעילות גופנית מאומצת בחוץ",
+      "resilience_components": [
+        "information_communication",
+        "wellbeing_atrisk"
+      ],
+      "polarity": "positive",
+      "rationale": "Health Ministry proactively issues targeted guidance for vulnerable populations (elderly, children, pregnant women) regarding air quality hazards."
+    },
+    {
+      "article_title": "דדי שמחי רצה להתפוצץ על דן חלוץ - אבל דני קושמרו מנע זאת",
+      "source": "maariv.co.il",
+      "quoted_text": "כספים קואליציוניים מופרכים שמוזרמים ללומדי הישיבות, שנחיצותם מוטלת בספק, בזמן שתושבי הצפון עדיין נאבקים על מיגון ועל סיוע כלכלי",
+      "resilience_components": [
+        "leadership",
+        "belonging_solidarity"
+      ],
+      "polarity": "negative",
+      "rationale": "Criticism of wartime budget priorities funneling funds to yeshiva students while northern residents lack sheltering and economic support, fueling social rift."
+    },
+    {
+      "article_title": "חרדה בעולם: ישראל עלולה להשתמש בנשק יום הדין",
+      "source": "maariv.co.il",
+      "quoted_text": "קשה לדעת בדיוק כמה נזק ישראל סופגת כרגע בגלל 'האפלה ברשתות החברתיות'... אם המלחמה הזו תימשך שבועות או חודשים, ישראל עלולה פשוט להיחרב",
+      "resilience_components": [
+        "narrative",
+        "information_communication"
+      ],
+      "polarity": "negative",
+      "rationale": "Trump advisor spreads apocalyptic narrative about Israel being destroyed, citing social media blackout as evidence; undermines confidence and spreads fear."
+    },
+    {
+      "article_title": "לפי נתוני צה\"ל: בשלושת הימים האחרונים היו פחות מעשרה שיגורים מאיראן",
+      "source": "news.walla.co.il",
+      "quoted_text": "בשלושת הימים האחרונים היו פחות מעשרה שיגורים מאיראן. גורם ביטחוני אמר כי צה\"ל ממשיך להעמיק את ההישגים ברחבי איראן",
+      "resilience_components": [
+        "narrative"
+      ],
+      "polarity": "positive",
+      "rationale": "IDF data showing dramatic reduction in Iranian launches (under 10 in 3 days) supports narrative of successful military degradation of enemy capabilities."
+    },
+    {
+      "article_title": "פרופ' עוזי רבי קובע: \"מלחמת 12 הימים הייתה הסטלינגרד של משטר האייתוללות\"",
+      "source": "maariv.co.il",
+      "quoted_text": "אחרי עם כלביא הבנתי שאיראן נמצאת בדיוק בנקודה הזו... מלחמת 12 הימים הייתה הסטלינגרד שלה",
+      "resilience_components": [
+        "narrative"
+      ],
+      "polarity": "positive",
+      "rationale": "Expert frames current conflict as Iran's irreversible turning point, strengthening national narrative of strategic victory."
+    },
+    {
+      "article_title": "מנע בגופו כניסה למקלט ודחף אישה: \"הבליינים תופסים את המקום\"",
+      "source": "mako.co.il",
+      "quoted_text": "בתיעוד שמעורר סערה נראה אדם חוסם עוברי אורח מלהיכנס למקלט בבניין בו הוא גר ואף דוחף אחת מהן. שמו נחשף ומאז הוא מקבל תגובות קשות. ״אני לוקח אחריות. איבדתי את קור הרוח״",
+      "resilience_components": [
+        "belonging_solidarity",
+        "lifesaving_behavior"
+      ],
+      "polarity": "negative",
+      "rationale": "Viral video of resident blocking shelter access reveals wartime tensions between residents and 'outsiders'; man later admits losing composure."
+    }
+  ],
+  "source_files": [
+    "articles-homefront.md"
+  ],
+  "generated_at": "2026-03-15T15:17:35.769Z"
+}

@@ -1,0 +1,105 @@
+PBO INCIDENT EVENT LOG
+Format
+time | actor | behavior | category | context | source
+EVENT LIST
+06:00 | alert system | missile alert siren activated | alert activation | citywide | siren network
+06:01 | residents | stopping street activity and moving indoors | protective behavior | residential streets | field observation
+06:02 | residents | entering protected spaces | protective behavior | residential neighborhoods | field observation
+06:03 | parents | gathering children into shelters | protective behavior | residential apartments | field observation
+06:04 | residents | closing apartment windows and shutters | protective behavior | residential buildings | field observation
+06:05 | residents | checking alert updates on smartphones | information seeking | shelters | field observation
+06:06 | residents | messaging family members to confirm safety | information seeking | shelters | social monitoring
+06:07 | neighbors | assisting elderly resident to shelter | community support | apartment building | field observation
+06:08 | residents | discussing alert location in messaging groups | information uncertainty | whatsapp groups | social monitoring
+06:09 | residents | remaining in shelter during alert | protective compliance | residential shelters | field observation
+06:10 | residents | listening to interception explosions | situational awareness | shelters | field observation
+06:11 | residents | checking news websites on smartphones | information seeking | shelters | field observation
+06:12 | residents | recording interception explosions | risk behavior | balconies | field observation
+06:13 | residents | sharing interception videos online | risk behavior | social media | social monitoring
+06:14 | municipality | publishing alert confirmation | official communication | telegram channel | official channel
+06:15 | residents | reading municipal alert updates | information consumption | shelters | field observation
+06:16 | children | expressing fear during explosions | emotional response | shelters | field observation
+06:17 | parents | calming children in shelter | family coping | residential shelters | field observation
+06:18 | residents | discussing possible strike locations | information uncertainty | whatsapp groups | social monitoring
+06:19 | residents | monitoring television news | information consumption | living rooms | field observation
+06:20 | residents | checking additional alert notifications | information seeking | smartphones | field observation
+06:21 | residents | staying in shelter awaiting instructions | protective compliance | shelters | field observation
+06:22 | residents | checking building damage outside windows | situational awareness | apartments | field observation
+06:23 | residents | sharing alert information with neighbors | community support | apartment building | field observation
+06:24 | police | blocking street access near suspected impact area | emergency response | urban intersection | field observation
+06:25 | residents | asking neighbors about siren duration | information uncertainty | apartment building | field observation
+06:26 | residents | approaching building entrance to look outside | risk behavior | apartment entrance | field observation
+06:27 | residents | returning to shelters after reminder messages | protective compliance | residential shelters | field observation
+06:28 | volunteers | checking elderly residents in building | community support | residential building | field observation
+06:29 | residents | monitoring neighborhood whatsapp updates | information seeking | smartphones | social monitoring
+06:30 | residents | discussing whether to leave shelter | compliance uncertainty | residential shelters | field observation
+06:31 | residents | checking official safety instructions | information consumption | smartphones | field observation
+06:32 | residents | leaving shelters before official all clear | risk behavior | residential building | field observation
+06:33 | residents | returning to apartments after early exit | post-alert movement | residential buildings | field observation
+06:34 | residents | discussing early shelter exit decision | compliance reflection | whatsapp groups | social monitoring
+06:35 | municipality | reminding residents to stay in shelters | official communication | telegram channel | official channel
+06:36 | residents | returning to shelter after reminder | protective compliance | residential shelters | field observation
+06:37 | residents | checking air defense interception reports | information seeking | smartphones | field observation
+06:38 | residents | observing slowed traffic in nearby streets | situational awareness | residential roads | field observation
+06:39 | drivers | slowing vehicles after alert | protective behavior | city roads | traffic observation
+06:40 | residents | discussing alert fatigue in chat groups | emotional response | whatsapp groups | social monitoring
+06:41 | residents | checking damage rumors online | information uncertainty | smartphones | social monitoring
+06:42 | residents | verifying information through official channels | information verification | smartphones | field observation
+06:43 | residents | sharing municipal instructions in chat groups | information dissemination | whatsapp groups | social monitoring
+06:44 | residents | discussing possibility of further alerts | anticipation behavior | shelters | field observation
+06:45 | residents | monitoring additional siren notifications | information seeking | smartphones | field observation
+06:46 | parents | reassuring children during shelter stay | family coping | shelters | field observation
+06:47 | residents | discussing interception sounds | situational awareness | shelters | field observation
+06:48 | residents | recording additional interceptions | risk behavior | balconies | field observation
+06:49 | residents | observing debris falling in distance | situational awareness | residential streets | field observation
+06:50 | residents | spreading rumor about building damage | rumor propagation | whatsapp groups | social monitoring
+06:51 | residents | asking for confirmation of damage reports | information verification | whatsapp groups | social monitoring
+06:52 | municipality | denying damage rumor | official communication | telegram channel | official channel
+06:53 | residents | sharing municipal rumor denial | information dissemination | whatsapp groups | social monitoring
+06:54 | residents | expressing relief after interception reports | emotional response | shelters | field observation
+06:55 | residents | waiting for official all clear message | protective compliance | shelters | field observation
+06:56 | residents | slowly resuming movement in streets | recovery behavior | residential roads | field observation
+06:57 | residents | checking building stairwells | situational awareness | apartment building | field observation
+06:58 | residents | discussing whether event has ended | information uncertainty | whatsapp groups | social monitoring
+06:59 | residents | leaving shelters cautiously | recovery behavior | residential buildings | field observation
+07:00 | alert system | additional missile alert siren activated | alert activation | citywide | siren network
+07:01 | residents | returning quickly to shelters | protective behavior | residential neighborhoods | field observation
+07:02 | residents | expressing alert fatigue | emotional response | shelters | social monitoring
+07:03 | parents | gathering children again into shelters | protective behavior | residential apartments | field observation
+07:04 | residents | checking smartphones for alert confirmation | information seeking | shelters | field observation
+07:05 | residents | discussing repeated alerts in chat groups | emotional response | whatsapp groups | social monitoring
+07:06 | children | reacting anxiously to new sirens | emotional response | shelters | field observation
+07:07 | neighbors | assisting elderly resident again to shelter | community support | apartment building | field observation
+07:08 | residents | monitoring interception explosions | situational awareness | shelters | field observation
+07:09 | residents | recording interceptions again | risk behavior | balconies | field observation
+07:10 | volunteers | helping elderly residents reach shelter | community support | residential building | field observation
+07:11 | residents | sharing alert updates in messaging groups | information dissemination | whatsapp groups | social monitoring
+07:12 | residents | leaving shelter early again | risk behavior | apartment building | field observation
+07:13 | residents | discussing early exit decisions | compliance uncertainty | shelters | field observation
+07:14 | police | securing suspected debris area | emergency response | residential intersection | field observation
+07:15 | residents | checking official municipal messages | information consumption | smartphones | field observation
+07:16 | residents | discussing interception success | narrative formation | shelters | social monitoring
+07:17 | residents | expressing frustration about repeated alerts | emotional response | shelters | field observation
+07:18 | residents | checking national news reports | information seeking | smartphones | field observation
+07:19 | residents | sharing safety instructions in chat groups | information dissemination | whatsapp groups | social monitoring
+07:20 | residents | monitoring alert application updates | information seeking | smartphones | field observation
+07:21 | residents | waiting in shelters despite fatigue | protective compliance | shelters | field observation
+07:22 | residents | discussing possibility of school closure | functional disruption | whatsapp groups | social monitoring
+07:23 | residents | messaging employers about delay | functional disruption | smartphones | field observation
+07:24 | parents | informing school groups about child absence | functional disruption | whatsapp groups | social monitoring
+07:25 | residents | discussing traffic delays after alerts | functional disruption | social groups | social monitoring
+07:26 | municipality | publishing updated safety instructions | official communication | municipal website | official channel
+07:27 | residents | reading updated safety instructions | information consumption | smartphones | field observation
+07:28 | residents | sharing updated instructions with neighbors | information dissemination | whatsapp groups | social monitoring
+07:29 | residents | discussing duration of shelter stay | compliance uncertainty | shelters | field observation
+07:30 | residents | slowly resuming daily activities | recovery behavior | residential streets | field observation
+07:31 | residents | checking local store opening status | functional continuity | smartphones | field observation
+07:32 | neighbors | helping elderly resident return home | community support | apartment building | field observation
+07:33 | residents | discussing reopening of workplaces | functional continuity | whatsapp groups | social monitoring
+07:34 | residents | sharing additional damage rumors | rumor propagation | whatsapp groups | social monitoring
+07:35 | residents | asking municipality for clarification | information verification | municipal hotline | field observation
+07:36 | municipality | denying additional damage rumors | official communication | telegram channel | official channel
+07:37 | residents | forwarding rumor denial to chat groups | information dissemination | whatsapp groups | social monitoring
+07:38 | residents | discussing fatigue from alerts | emotional response | shelters | social monitoring
+07:39 | residents | checking transportation updates | information seeking | smartphones | field observation
+07:40 | shop owners | delaying store opening | functional disruption | commercial district | field observation
