@@ -2,9 +2,9 @@
  * Two-step LLM evaluation of a PBO event log against the 8 resilience components.
  *
  * Step 1 — Event classification: map each event to components + polarity.
+ *           Uses standard (non-thinking) mode — structured classification task.
  * Step 2 — Synthesis & scoring: produce per-component scores and narratives.
- *
- * Uses claude-opus-4-6 with adaptive thinking and streaming.
+ *           Uses adaptive thinking — complex temporal reasoning task.
  */
 
 import Anthropic from '@anthropic-ai/sdk';
@@ -16,12 +16,19 @@ const client = new Anthropic();
 // ─── Prompt helpers ───────────────────────────────────────────────────────────
 
 function formatComponentsForPrompt() {
-  return RESILIENCE_COMPONENTS.map(
-    (c) =>
-      `**${c.id}** — ${c.name_en} / ${c.name_he}\n` +
-      `${c.description}\n` +
-      `Guiding questions: ${c.guiding_questions.join(' | ')}`,
-  ).join('\n\n');
+  return RESILIENCE_COMPONENTS.map((c) => {
+    let text =
+      `**${c.id}** — ${c.name_en}\n` +
+      `${c.description}`;
+    if (c.key_elements?.length) {
+      text += `\nKey elements: ${c.key_elements.join(' | ')}`;
+    }
+    if (c.principle) {
+      text += `\nPrinciple: ${c.principle}`;
+    }
+    text += `\nGuiding questions: ${c.guiding_questions.join(' | ')}`;
+    return text;
+  }).join('\n\n');
 }
 
 function formatHints() {
@@ -125,9 +132,8 @@ export async function classifyEvents(parsedLog) {
     `Classify every event against the 8 resilience components.`;
 
   const stream = client.messages.stream({
-    model: 'claude-opus-4-6',
+    model: 'claude-haiku-4-5-20251001',
     max_tokens: 16000,
-    thinking: { type: 'adaptive' },
     system: systemPrompt,
     messages: [{ role: 'user', content: userContent }],
   });
@@ -190,7 +196,7 @@ export async function synthesizeFromEvents(parsedLog, classifications, date) {
     `Date: ${date}\n` +
     `Event log: ${parsedLog.title}\n` +
     `Total events: ${parsedLog.events.length}\n\n` +
-    `CLASSIFIED EVENTS:\n${JSON.stringify(classifications, null, 2)}\n\n` +
+    `CLASSIFIED EVENTS:\n${JSON.stringify(classifications)}\n\n` +
     `Produce a complete 8-component resilience assessment.`;
 
   const stream = client.messages.stream({

@@ -6,14 +6,6 @@ import { writeFileSync, mkdirSync } from 'fs';
 import { dirname } from 'path';
 import { RESILIENCE_COMPONENTS } from './resilienceComponents.js';
 
-const SCORE_LABEL = (s) => {
-  if (s <= 2) return '🔴 Critical';
-  if (s <= 4) return '🟠 Weak';
-  if (s <= 6) return '🟡 Moderate';
-  if (s <= 8) return '🟢 Good';
-  return '🟢 Strong';
-};
-
 const COMPONENT_MAP = Object.fromEntries(RESILIENCE_COMPONENTS.map((c) => [c.id, c]));
 
 function buildMarkdown(assessment, sourceFiles) {
@@ -28,7 +20,6 @@ function buildMarkdown(assessment, sourceFiles) {
     `| **Date** | ${assessment.date} |`,
     `| **Sources** | ${sourceFiles.join(', ')} |`,
     `| **Articles analyzed** | ${assessment.total_articles_analyzed} |`,
-    `| **Overall score** | **${assessment.overall_resilience_score}/10** — ${SCORE_LABEL(assessment.overall_resilience_score)} |`,
     ``,
     `---`,
     ``,
@@ -37,17 +28,17 @@ function buildMarkdown(assessment, sourceFiles) {
   // ── Executive summary ─────────────────────────────────────────────────────
   lines.push(`## Executive Summary`, ``, assessment.cross_component_synthesis, ``, `---`, ``);
 
-  // ── Score table ───────────────────────────────────────────────────────────
+  // ── Component overview table ───────────────────────────────────────────────
   lines.push(
-    `## Component Scores`,
+    `## Components`,
     ``,
-    `| # | Component | עברית | Score | Status | Confidence |`,
-    `|---|-----------|-------|-------|--------|------------|`,
+    `| # | Component | עברית | Confidence | Signals |`,
+    `|---|-----------|-------|------------|---------|`,
   );
   (assessment.components ?? []).forEach((comp, i) => {
     const def = COMPONENT_MAP[comp.component_id] ?? {};
     lines.push(
-      `| ${i + 1} | ${def.name_en ?? comp.component_id} | ${def.name_he ?? ''} | ${comp.score}/10 | ${SCORE_LABEL(comp.score)} | ${comp.confidence} |`,
+      `| ${i + 1} | ${def.name_en ?? comp.component_id} | ${def.name_he ?? ''} | ${comp.confidence} | ${comp.signal_count ?? 0} |`,
     );
   });
   lines.push(``, `---`, ``);
@@ -62,33 +53,22 @@ function buildMarkdown(assessment, sourceFiles) {
       `### ${i18n(comp.component_id)} ${def.name_en ?? comp.component_id}`,
       `*${def.name_he ?? ''}*`,
       ``,
-      `**Score:** ${comp.score}/10 — ${SCORE_LABEL(comp.score)} &nbsp;|&nbsp; **Confidence:** ${comp.confidence}`,
+      `**Confidence:** ${comp.confidence} &nbsp;|&nbsp; **Signals:** ${comp.signal_count ?? 0}`,
       ``,
       comp.narrative,
       ``,
     );
 
-    if (comp.supporting_evidence?.length) {
-      lines.push(`**Positive signals:**`);
-      comp.supporting_evidence.forEach((e) => lines.push(`- ${e}`));
+    if (comp.evidence?.length) {
+      comp.evidence.forEach((e) => lines.push(`- ${e}`));
       lines.push(``);
-    }
-
-    if (comp.weakening_evidence?.length) {
-      lines.push(`**Concerns:**`);
-      comp.weakening_evidence.forEach((e) => lines.push(`- ${e}`));
-      lines.push(``);
-    }
-
-    if (comp.missing_evidence) {
-      lines.push(`**Evidence gaps:** ${comp.missing_evidence}`, ``);
     }
 
     lines.push(`---`, ``);
   }
 
-  // ── Caveats ───────────────────────────────────────────────────────────────
-  lines.push(`## Methodological Caveats`, ``, assessment.media_bias_caveats, ``);
+  // ── Evidence Quality ──────────────────────────────────────────────────────
+  lines.push(`## Evidence Quality`, ``, assessment.evidence_quality_note ?? '', ``);
 
   return lines.join('\n');
 }
@@ -108,28 +88,58 @@ function i18n(componentId) {
 }
 
 /**
+ * Append a signal-level appendix with article links.
+ */
+function buildSignalAppendix(signals) {
+  if (!signals?.length) return '';
+
+  const lines = [``, `---`, ``, `## Signal Evidence (with article links)`, ``];
+
+  // Group by signal type for readability
+  const byType = {};
+  for (const s of signals) {
+    if (!byType[s.signal_type]) byType[s.signal_type] = [];
+    byType[s.signal_type].push(s);
+  }
+
+  for (const [type, items] of Object.entries(byType).sort()) {
+    lines.push(`### \`${type}\` (${items.length})`);
+    for (const s of items) {
+      const url = s.article_url && s.article_url !== '(no url)' && s.article_url !== 'null'
+        ? ` — [source](${s.article_url})`
+        : '';
+      lines.push(`- "${s.evidence}"${url}`);
+    }
+    lines.push(``);
+  }
+
+  return lines.join('\n');
+}
+
+/**
  * Write both .md and .json outputs.
  *
- * @param {Object} assessment        Output of synthesizeComponents()
- * @param {Array}  evidenceSnippets  Output of extractEvidence()
- * @param {Array}  sourceFiles       Array of source file basenames
- * @param {string} outputBase        Path without extension (e.g. "resilience/resilience-report-2026-03-14")
+ * @param {Object} assessment   Output of generateNarratives()
+ * @param {Array}  signals      Output of extractSignals()
+ * @param {Array}  sourceFiles  Array of source file basenames
+ * @param {string} outputBase   Path without extension
  * @returns {{ mdPath, jsonPath }}
  */
-export function writeReport(assessment, evidenceSnippets, sourceFiles, outputBase) {
+export function writeReport(assessment, signals, sourceFiles, outputBase) {
   mkdirSync(dirname(outputBase), { recursive: true });
 
   const mdPath = `${outputBase}.md`;
   const jsonPath = `${outputBase}.json`;
 
-  writeFileSync(mdPath, buildMarkdown(assessment, sourceFiles), 'utf-8');
+  const md = buildMarkdown(assessment, sourceFiles) + buildSignalAppendix(signals);
+  writeFileSync(mdPath, md, 'utf-8');
 
   writeFileSync(
     jsonPath,
     JSON.stringify(
       {
         assessment,
-        evidence_snippets: evidenceSnippets,
+        signals,
         source_files: sourceFiles,
         generated_at: new Date().toISOString(),
       },

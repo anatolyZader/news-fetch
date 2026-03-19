@@ -1,0 +1,127 @@
+{
+  "municipality_assessments": [
+    {
+      "name": "אבן מנחם",
+      "components": [
+        {
+          "component_id": "narrative",
+          "confidence": "high",
+          "strengths": [
+            "Strong attachment to land and settlement history provides foundational identity",
+            "Residents demonstrate personal resilience and determination ('we won't give up')",
+            "Deep community bonds among veteran families and long-term residents"
+          ],
+          "concerns": [
+            "Pervasive sense of abandonment and neglect by state and municipal authorities",
+            "Accumulated trauma and exhaustion from prolonged conflict affecting psychological wellbeing",
+            "Loss of hope regarding future viability, compounded by departure of young families"
+          ],
+          "narrative": "Residents of Aven Menachem are struggling with a contradictory narrative: deep love for place and personal determination coexist with profound despair about abandonment and lack of future prospects. The prolonged emergency has created a narrative of exhaustion and marginalization, where the community feels forgotten by state institutions despite demonstrated personal resilience and commitment to remain."
+        },
+        {
+          "component_id": "lifesaving_behavior",
+          "confidence": "high",
+          "strengths": [
+            "50% of homes have functional protected rooms (30% completed, 25% under construction)",
+            "Community is familiar with emergency procedures and sheltering protocols"
+          ],
+          "concerns": [
+            "Significant protection gaps: 50% of homes lack adequate protective infrastructure",
+            "Public shelters in severely deteriorated condition—unmaintained, no air conditioning, unsuitable for extended occupancy or children",
+            "Mapping of shelter deficiencies has occurred repeatedly but no remedial work implemented, creating false sense of action"
+          ],
+          "narrative": "Critical infrastructure gaps exist despite repeated surveys. While half the homes have some protection, the other half remain vulnerable. Public shelters—essential backups—are in poor condition and psychologically unsuitable for extended use, particularly for children who already show trauma responses. The pattern of mapping without implementation erodes community confidence."
+        },
+        {
+          "component_id": "lifesaving_behavior",
+          "confidence": "high",
+          "strengths": [
+            "50% of homes have functional protected rooms (30% completed, 25% under construction)",
+            "Community is familiar with emergency procedures and sheltering protocols"
+          ],
+          "concerns": [
+            "Significant protection gaps: 50% of homes lack adequate protective infrastructure",
+            "Public shelters in severely deteriorated condition—unmaintained, no air conditioning, unsuitable for extended occupancy or children",
+            "Mapping of shelter deficiencies has occurred repeatedly but no remedial work implemented, creating false sense of action"
+          ],
+          "narrative": "Critical infrastructure gaps exist despite repeated surveys. While half the homes have some protection, the other half remain vulnerable. Public shelters—essential backups—are in poor condition and psychologically unsuitable for extended use, particularly for children who already show trauma responses. The pattern of mapping without implementation erodes community confidence."
+        },
+        {
+          "component_id": "functional_continuity",
+          "confidence": "high",
+          "strengths": [
+            "Community maintains awareness of need for normalized activities and some informal initiatives to engage children",
+            "Existing agricultural economic base (cherries, peaches, poultry, agritourism) provides structured livelihood framework when safe to operate"
+          ],
+          "concerns": [
+            "Repeated alerts and prolonged shelter stays severely disrupt daily routines, particularly school attendance (no formal learning currently occurring)",
+            "Children exhibit significant trauma responses: persistent crying, fears, stammering, and anxiety requiring safe spaces for recovery",
+            "Lack of protected spaces for activities and inadequate warning time prevent outdoor activities; attempts to hold activities in poorly equipped shelters fail to meet basic standards (seating, climate control)"
+          ],
+          "narrative": "Normal life rhythms have been substantially fractured by ongoing alerts and the need for extended shelter occupancy. Educational continuity has ceased entirely, and children are trapped in a cycle where even post-alert recovery is compromised by inadequate spaces. Economic livelihoods remain theoretically intact but practically unviable given security conditions and displacement of young families who provided labor."
+        },
+        {
+          "component_id": "community_capital",
+          "confidence": "medium",
+          "strengths": [
+            "Active municipal emergency team (צח\"י) exists with engaged residents serving in standby rotation",
+            "Demonstrated mutual aid and informal peer support among existing residents",
+            "Young emergency responders drawn from community provide some capacity for crisis response"
+          ],
+          "concerns": [
+            "Emergency team relies on very small pool of young people, some continuing service years post-military, indicating unsustainable volunteer base",
+            "No formal volunteer infrastructure or organized community service framework established",
+            "Severe resource constraints: no cultural committee budget, insufficient funding for children's activities and community events"
+          ],
+          "narrative": "Community capital is fragile and narrowly distributed. While motivated individuals provide critical emergency response and mutual aid, the system is built on exhausted volunteers rather than institutional structures. The absence of organized volunteering and cultural programming, combined with resource scarcity, means the community is operating on personal commitment rather than sustainable systems."
+        },
+        {
+          "component_id": "leadership",
+          "confidence": "high",
+          "strengths": [
+            "Local leadership (represented in interviews) is present and actively engaged",
+            "Some internal capacity for local decision-making and coordination exists"
+          ],
+          "concerns": [
+            "Deep and substantive distrust of municipal authorities; residents report unresponsiveness to requests and unaddressed identified problems",
+            "Municipal allocation of shelter repair budgets has not translated to actual implementation, generating cynicism and accountability questions",
+            "Community lacks independent capacity and resources; heavily dependent on external services, resulting in learned helplessness regarding self-organization",
+            "No integrated crisis management coordinator appointed, leaving response fragmented across multiple informal actors"
+          ],
+          "narrative": "Local leadership operates with significant constraints and faces erosion of credibility due to perceived municipal abandonment. The community's historical dependence on external support systems means local leaders lack the autonomy or resources to mobilize independent solutions. Residents explicitly distrust regional authorities, compounding the legitimacy challenges for local governance structures."
+        },
+        {
+          "component_id": "belonging_solidarity",
+          "confidence": "medium",
+          "strengths": [
+            "Residents identify tangible needs and advocate collectively for children's activities and community programs",
+            "Informal peer support and mutual aid demonstrated during crisis"
+          ],
+          "concerns": [
+            "Informal activities are sporadic and insufficient; community identifies need for 2–3 daily children's activities but cannot sustain them",
+            "Severe constraints on formal programming: insufficient space, no budget, poor conditions (activities held on shelter floors without basic amenities)",
+            "No trained facilitators or staffing capacity; community identifies critical need for educators but cannot access or fund them"
+          ],
+          "narrative": "While community members recognize the need for cohesion-building activities and mutual support, the material and human resource constraints prevent regular programming. Solidarity is expressed as desire and informal gesture rather than sustained institutional practice, leaving the community fragmented and vulnerable to further dispersion."
+        },
+        {
+          "component_id": "wellbeing_atrisk",
+          "confidence": "high",
+          "strengths": [
+            "Community maintains awareness of vulnerable populations and documents specific cases (elderly residents, families in food insecurity)",
+            "Mutual aid systems provide some support for isolated vulnerable individuals"
+          ],
+          "concerns": [
+            "Population composition shifted dramatically: 20% of families departed (10 did not return from initial evacuation; 6 more left during recent escalation), predominantly young families with children",
+            "Remaining population heavily skewed toward elderly residents (including very elderly, e.g., 97-year-old) who are transport-dependent and socially isolated",
+            "Children showing clear trauma indicators: stammering, anxiety, behavioral withdrawal; no formal mental health services present",
+            "Families experiencing food insecurity (at least 2 confirmed on emergency assistance); economic vulnerability compounded by agricultural activity disruption",
+            "Extremely limited pediatric and geriatric care capacity; vulnerable populations lack sustained professional support"
+          ],
+          "narrative": "The community faces a demographic inversion: young families with economic capacity have departed, while elderly residents with high care needs remain. Children left behind exhibit trauma symptoms without access to professional mental health services. Food-insecure families exist alongside unmet medical and psychosocial needs, creating a vulnerable population with minimal institutional support."
+        }
+      ]
+    }
+  ],
+  "saved_at": "2026-03-17T00:47:39.212Z"
+}

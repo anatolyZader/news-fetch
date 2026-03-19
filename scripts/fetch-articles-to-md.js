@@ -54,7 +54,14 @@ const adapterModule = await SITE_ADAPTERS[site]();
 const createNewsApiArticlesFetcher = adapterModule.createNewsApiArticlesFetcher;
 const fetchArticlesForDay = createNewsApiArticlesFetcher({ apiKey, timezone });
 
-const articles = await fetchArticlesForDay({ date });
+const rawArticles = await fetchArticlesForDay({ date });
+const _seen = new Set();
+const articles = rawArticles.filter((a) => {
+  const key = a.title.replace(/[^\u0590-\u05FF\w]/g, '').slice(0, 40);
+  if (_seen.has(key)) return false;
+  _seen.add(key);
+  return true;
+});
 
 const label = SITE_LABELS[site];
 const sections = [

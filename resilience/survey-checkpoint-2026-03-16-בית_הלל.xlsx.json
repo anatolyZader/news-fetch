@@ -1,0 +1,114 @@
+{
+  "municipality_assessments": [
+    {
+      "name": "בית הלל",
+      "components": [
+        {
+          "component_id": "narrative",
+          "confidence": "high",
+          "strengths": [
+            "Strong established leadership with rapid full population contact (100% within 2 days of emergency onset)",
+            "Heterogeneous population with differentiated threat perception; veteran residents maintain emergency routine while newer residents show higher anxiety",
+            "Commitment to remain in settlement despite heightened threat; only student population inclined to leave"
+          ],
+          "concerns": [
+            "Population fragmentation between veteran residents and expansion area residents (including former Kiryat Shemona residents) creates divergent psychological responses",
+            "Significant student population (one-third of residents) with weak local attachment may limit long-term community stability",
+            "Prior evacuation created lasting psychological burden ('nightmare') among veteran population, complicating future emergency responses"
+          ],
+          "narrative": "Beit Hillel's population is divided between emotionally resilient veteran residents maintaining emergency protocols and more reactive newer residents from expansion areas. While leadership demonstrates strong institutional communication capacity, the presence of 290 transient students and uneven threat perception across cohorts creates psychological vulnerability. The community shows commitment to stay despite heightened threat intensity, though the legacy of previous evacuation trauma remains a latent stressor."
+        },
+        {
+          "component_id": "lifesaving_behavior",
+          "confidence": "medium",
+          "strengths": [
+            "Comprehensive shelter infrastructure (17 total shelters) with recent internet/WiFi connectivity improvements enabling communication during emergencies",
+            "Significant private protective construction initiative (PAKE\"R unauthorized shelter program) has substantially improved household-level protection capacity",
+            "Centralized public shelter (kindergarten-affiliated) with functioning sewage infrastructure management"
+          ],
+          "concerns": [
+            "Critical protection gaps at community facilities: seniors' club and youth club lack standard protected spaces; PAKE\"R mitigation insufficient for these congregate settings",
+            "Shelter infrastructure deficiencies: 5 lack ventilation systems, 4 have non-functional air conditioning, no seating; residents must transport personal furniture to shelters",
+            "Public shelter sewage infrastructure problems causing toilet flooding; 2 shelters without WiFi connectivity"
+          ],
+          "narrative": "Beit Hillel has achieved substantial improvements in household-level protection through grassroots PAKE\"R initiatives, yet critical vulnerabilities persist in community facilities serving at-risk populations. While shelter density is adequate and communication infrastructure recently upgraded, multiple shelters suffer from degraded life-support systems and the key youth and elderly facilities remain unprotected to standard specifications, creating acute risk during sustained emergencies."
+        },
+        {
+          "component_id": "functional_continuity",
+          "confidence": "medium",
+          "strengths": [
+            "Essential services maintained at roughly 60% operational capacity: sanitation and waste removal operate at full function; active clinic with resident physician providing continuous availability",
+            "Educational continuity through emergency protocols: kindergarten operates in capsules (1.5-2 hour activity breaks daily); formal institutions outside settlement pivot to online learning via Zoom",
+            "Partial work continuity: segment of population works from home; market operations continue via contractor management"
+          ],
+          "concerns": [
+            "Significant educational disruption: formal educational institutions (primary/secondary) remain closed with online alternatives; learning quality and engagement effects unmeasured",
+            "Administrative capacity severely constrained: municipal secretariat operates in minimal configuration; no regular programming for seniors (formal or informal)",
+            "Approximately 40% functional deficit across community services indicates substantial emergency operational stress; unknown employment impact for workers commuting outside settlement"
+          ],
+          "narrative": "Beit Hillel maintains emergency functional continuity at approximately 60% of normal capacity through essential service prioritization and emergency protocols. While core healthcare, sanitation, and partial educational services continue, the closure of formal educational institutions and elimination of senior programming represent significant quality-of-life degradation. The framework is sustainable for short-term emergencies but shows stress indicators suggesting capacity constraints for prolonged disruption."
+        },
+        {
+          "component_id": "community_capital",
+          "confidence": "low",
+          "strengths": [
+            "Professional mental health expertise embedded within community: 2 resident psychologists specializing in trauma provide clinical resilience capacity",
+            "Structured volunteer coordination framework organized by functional domains (welfare, health/resilience, education, logistics, communications)",
+            "Regular informal programming despite constraints: 1-2 senior activities weekly, 2-3 youth/children activities weekly maintained by 1-2 volunteers"
+          ],
+          "concerns": [
+            "Leadership vacuum in formal community coordination: no official TZCHI (Community Resilience Center) head; civilian population coordinator (former TZCHI head) managing emergency population duties within military emergency operation center creates role ambiguity",
+            "Severely depleted volunteer capacity: minimal volunteer base managing multiple domains with no dedicated full-time coordinator; logistics and coordination still in establishment phase",
+            "Structural underutilization of available resources: professional psychologists and volunteers not fully mobilized; informal programming insufficient to meet identified community wellbeing needs"
+          ],
+          "narrative": "Beit Hillel possesses quality human capital—resident mental health professionals and motivated volunteers—but lacks institutional scaffolding to scale or sustain their contributions. The absence of an active formal TZCHI head combined with minimal volunteer mobilization indicates significant untapped community resilience potential. Current informal activities continue at subsistence levels but cannot meet broader psychosocial needs across the population."
+        },
+        {
+          "component_id": "leadership",
+          "confidence": "high",
+          "strengths": [
+            "Multi-channel emergency communication system: dedicated 'Beit Hillel Emergency' WhatsApp group reaches all residents with life-saving directives from RHSA (Local Security Head); separate informational channel for program updates",
+            "Clear messaging framework: explicit articulation that emergency directives are not recommendations but life-saving imperatives; dual-track communication (compliance directives + programmatic updates)",
+            "Rapid implementation capacity: demonstrated by complete population contact within 48 hours of emergency onset; active civilian coordination with emergency operations center"
+          ],
+          "concerns": [
+            "Leadership concentration in small executive cohort: heavy reliance on RHSA and population coordinator with limited documented delegation of decision-making authority to functional domains",
+            "Communication channel fragmentation: multiple WhatsApp groups ('Emergency', 'Local', informational) may create message inconsistency or selective audience reach; effectiveness among non-smartphone users or digital literacy gaps unmeasured",
+            "Unclear escalation and decision-making protocols: no documented procedures for resolving inter-agency conflicts or adapting directives based on community feedback"
+          ],
+          "narrative": "Beit Hillel's leadership demonstrates effective emergency command-and-control through hierarchical directive channels and proven rapid population contact capacity. The RHSA and population coordinator maintain clear messaging discipline distinguishing emergency survival protocols from routine information. However, leadership appears concentrated in minimal personnel and relies heavily on digital communication channels without documented redundancy or inclusion mechanisms for vulnerable populations."
+        },
+        {
+          "component_id": "belonging_solidarity",
+          "confidence": "low",
+          "strengths": [
+            "Demonstrated cohesion among veteran residents maintaining emotional stability and emergency routine; shared evacuation trauma history may strengthen mutual support",
+            "Active volunteer base and community professional resources (psychologists, clinic physician) indicate social capital foundation for solidarity-building"
+          ],
+          "concerns": [
+            "Severely limited informal activity programming: only 1-2 senior activities and 2-3 youth activities weekly insufficient to sustain belonging across population segments",
+            "No documented celebration of identity, commemoration, or collective meaning-making activities; absence of cultural/spiritual congregation events (synagogue operates only Shabbat/holidays)",
+            "Social fragmentation risk: transient student population (33% of residents) and anxiety-prone expansion-area residents lack anchoring mechanisms to build solidarity; no designed spaces or activities for cross-cohort connection"
+          ],
+          "narrative": "Beit Hillel shows incipient solidarity among core veteran residents but lacks sufficient informal programming and cultural spaces to extend belonging to the broader population. The minimal activity framework (2-3 youth activities weekly, 1-2 senior activities weekly) is insufficient to sustain psychological cohesion across diverse residential cohorts, particularly the economically transient students and newer residents unfamiliar with community norms."
+        },
+        {
+          "component_id": "wellbeing_atrisk",
+          "confidence": "high",
+          "strengths": [
+            "Strong protective infrastructure for seniors with family support: 20 seniors have protected spaces at home or nearby; volunteer logistics support (medication/food delivery); most integrated into family networks",
+            "Comprehensive support for severely disabled residents (4 individuals): 24/7 personal care attendants providing continuous support and protected movement",
+            "Favorable population composition: secular settlement without sectarian tensions; no identified homeless, new immigrant, or child welfare populations requiring specialized protection; welfare department maintains continuity of care for known families"
+          ],
+          "concerns": [
+            "Senior mobility restrictions and psychological burden: seniors (75+) experience significant movement constraints; fear of missing alarm signals during emergency transitions creates psychological distress; restricted daily walking and aeration impacts physical/mental health",
+            "Mobility-dependent seniors (20 individuals) face compound vulnerability: dependent on family emergency response for shelter transit; unaddressed scenario planning for seniors with delayed mobility or cognitive/sensory impairments",
+            "Gap in informal social engagement: no senior programming (formal or informal) during emergency despite 20 seniors and documented psychological distress from confinement; 10 independently mobile disabled individuals receive no specialized support structure"
+          ],
+          "narrative": "Beit Hillel demonstrates strong protective systems for severely disabled residents and family-supported seniors, with welfare department maintaining service continuity for identified vulnerable cases. However, seniors experience psychological burden from movement restrictions and the absence of senior-specific programming during the emergency. The 10 independently mobile disabled residents and mobility-dependent seniors (75+) represent an underaddressed vulnerability requiring structured support and meaningful activity frameworks."
+        }
+      ]
+    }
+  ],
+  "saved_at": "2026-03-17T00:24:26.808Z"
+}

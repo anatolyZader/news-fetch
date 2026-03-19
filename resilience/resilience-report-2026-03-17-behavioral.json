@@ -1,0 +1,955 @@
+{
+  "assessment": {
+    "date": "2026-03-17",
+    "total_articles_analyzed": 372,
+    "overall_resilience_score": 3,
+    "cross_component_synthesis": "The behavioral evidence across all eight components paints a picture of a population under sustained and compounding strain. Residents are vocally expressing fatigue from repeated alerts, distrust in official narratives about safety, and frustration with leadership at both national and local levels. Concrete disruptions dominate: daycare facilities are closed while parents still pay, mammography screening has dropped 20%, welfare budgets have been slashed by 65%, municipal workers report unpaid wages, and a new category of 'war poor' has emerged. Life-saving behavior is undermined by inter-agency blame-shifting on shelter enforcement, residents being physically blocked from entering shelters, and smoking violations inside protective spaces. Psychological distress indicators are alarming—over 21,000 helpline contacts, 38% of drivers reporting excessive drowsiness with PTSD and anxiety symptoms, and at-risk adolescents discharged from psychiatric care deteriorating rapidly.\n\nThe sole area of relative strength is community capital, where several concrete organizational responses are observable: a college opening a peripheral branch, the Bank of Israel issuing emergency credit flexibility, a municipality partnering with the Technion to bring educational innovation to students near shelters, volunteers assisting with animal welfare during alerts, and a comedian converting shelter time into stress-relief performances. However, these positive efforts exist against a backdrop of deep institutional dysfunction, scapegoating behaviors (threats against business owners, group blame dynamics within the ultra-Orthodox community, shelter exclusion of fellow residents), and a widening gap between official narratives of coping and the lived reality reported by residents in their own words.",
+    "evidence_quality_note": "The evidence pool is notably strong in verbatim_quote and statistic types (comprising over two-thirds of extracted items), lending high credibility to the predominantly negative findings, while observable_fact evidence largely corroborates rather than contradicts the resident-voiced data.",
+    "components": [
+      {
+        "component_id": "narrative",
+        "score": 2,
+        "confidence": "high",
+        "manifestations_evidenced": [
+          "Residents express that the authority's narrative is credible and reflects their lived reality (NEGATIVE — multiple sources indicate narrative-reality gap)",
+          "Competing or contradictory narratives are explicitly voiced by residents or groups"
+        ],
+        "manifestations_absent": [
+          "A narrative of successful coping is visible and circulating (residents/officials describe coping as effective)",
+          "The coping story reflects the entire population, not just a subset"
+        ],
+        "supporting_evidence": [
+          "הבנתי שיש לנו איך להתגונן - ונרגעתי"
+        ],
+        "weakening_evidence": [
+          "אמרו לתושבים שחיזבאללה מורתע ושחוזרים לאזור בטוח - לא סיפרו לנו את האמת במלואה",
+          "אנחנו חווים עייפות כציבור. ממש מתישים אותנו עם ההתרעות, אזעקות, הנחיות",
+          "החוסן אינו מתאפיין רק בסימנים של צעירים בחנויות עם קפה, אלא מערכת מורכבת של אדם, משפחה, קהילה ומדינה"
+        ],
+        "narrative": "The dominant behavioral pattern is residents actively contradicting the official narrative of effective coping and safe return. A northern community leader states explicitly that residents were told Hezbollah was deterred and the area was safe, but 'they didn't tell us the full truth.' Residents describe themselves as experiencing 'public fatigue' from constant alerts and directives, directly undermining the coping narrative. An analyst publicly critiques the resilience narrative as oversimplified, arguing it cannot be reduced to images of young people in coffee shops. A survey of 17,000 parents shows 60% are uncertain about returning children to school, further eroding official safety messaging. One isolated positive quote—a young person calmed by understanding protective mechanisms—stands alone against five distinct pieces of evidence showing narrative failure and credibility collapse."
+      },
+      {
+        "component_id": "information_communication",
+        "score": 3,
+        "confidence": "medium",
+        "manifestations_evidenced": [
+          "Residents report information gaps, confusion, or spread of rumors/misinformation",
+          "Residents express trust in information received from the authority (NEGATIVE)"
+        ],
+        "manifestations_absent": [
+          "Residents state they receive the information they need to function during the emergency",
+          "Authority communication mechanisms are adapted to different resident groups (language, channel, format)",
+          "Population perceives national media information as relevant and addressing their needs"
+        ],
+        "supporting_evidence": [
+          "148 נפגעי חרדה מתחילת המלחמה, יותר מ-21 אלף פניות למוקדי הסיוע"
+        ],
+        "weakening_evidence": [
+          "אמרו לתושבים שחיזבאללה מורתע ושחוזרים לאזור בטוח - לא סיפרו לנו את האמת במלואה",
+          "אנחנו חווים עייפות כציבור. ממש מתישים אותנו עם ההתרעות, אזעקות, הנחיות"
+        ],
+        "narrative": "Residents are reporting that official information has been incomplete or misleading, with a local leader stating authorities did not share the full truth about the threat environment. The existence of over 21,000 helpline contacts indicates that communication channels for seeking help are accessible and being used, though this volume also signals that information alone is not resolving distress. Residents describe being worn down by the volume of alerts and directives, suggesting information overload rather than information quality. No evidence was found of communication adapted for different population segments—notably, foreign construction workers are described as being left without protective information due to inter-agency blame-shifting. No evidence addresses whether national media is perceived as relevant or helpful."
+      },
+      {
+        "component_id": "lifesaving_behavior",
+        "score": 3,
+        "confidence": "high",
+        "manifestations_evidenced": [
+          "Residents are observed or reported to actually follow Home Front Command protective guidelines (MIXED — some attempt compliance but are blocked)",
+          "Residents demonstrate knowledge and understanding of HFC guidelines",
+          "Residents or officials report non-compliance with protective guidelines",
+          "Residents express or demonstrate perception of the situation as genuinely life-threatening"
+        ],
+        "manifestations_absent": [
+          "Community teams or roles actively promote emergency preparedness among residents"
+        ],
+        "supporting_evidence": [
+          "הבנתי שיש לנו איך להתגונן - ונרגעתי"
+        ],
+        "weakening_evidence": [
+          "ישראלים ביקשו להיכנס למקלטים בעת אזעקה ונחסמו בידי דיירים, מה שיצר חוויה מפחידה",
+          "הפקרות מוחלטת",
+          "אנשים שמדליקים סיגריות בתוך המקלטים עצמם - ומסכנים את הילדים והמבוגרים בסביבתם"
+        ],
+        "narrative": "Life-saving behavior is severely compromised by multiple concurrent failures. Residents seeking shelter during alerts are being physically blocked by building occupants, creating a frightening experience of denied protection. Inside shelters, people are smoking—directly endangering children and elderly around them—demonstrating knowledge of rules but active non-compliance. Government bodies including the Home Front Command, Ministry of Labor, local authorities, and Housing Ministry are described as deflecting responsibility for enforcing shelter protections at construction sites, characterized by labor organizations as 'complete neglect.' Meanwhile, 38% of drivers report excessive drowsiness during the war period, with a quarter showing PTSD signs, indicating that threat perception is genuine but manifesting in dangerous physiological impairment rather than protective behavior. One positive data point shows a young person calmed by understanding defensive capabilities, but this is isolated against systemic enforcement breakdowns."
+      },
+      {
+        "component_id": "functional_continuity",
+        "score": 3,
+        "confidence": "high",
+        "manifestations_evidenced": [
+          "Schools and educational institutions are open and operating (NEGATIVE — closures and uncertainty reported)",
+          "Residents report that sufficient resources are available to maintain routine functioning (NEGATIVE — multiple resource gaps)",
+          "Essential services (healthcare, supply chains, municipal services) continue to operate (MIXED)",
+          "Specific disruptions to daily life are reported (closures, evacuations, inability to work)"
+        ],
+        "manifestations_absent": [
+          "Residents succeed in managing daily life (reported continuation of work, commerce, or social roles)"
+        ],
+        "supporting_evidence": [
+          "אושרה הרחבה משמעותית של מרכז רפואי צפון בהיערכות לחירום ולשיפור המענה הרפואי",
+          "בנק ישראל פרסם הוראת שעה: בנקים יוכלו להציע אשראי ללקוחות שסירבו לאחרונה וגמישות בהצעות כספיות"
+        ],
+        "weakening_evidence": [
+          "נסגרו כלל מעונות היום והגנים הפרטיים בהוראת פיקוד העורף, אבל תשלומי ההורים לא עצרו",
+          "בפסח הזה יש לנו עניים חדשים, 'עניי מלחמה' שהצטרפו למעגל הנתמכים",
+          "קיצוץ של 65% בתקציב לשיפור מעני הרווחה - נותרו 160 מיליון שקל מתוך כ-450 מיליון שקלים"
+        ],
+        "narrative": "Functional continuity is under severe stress across nearly every domain. All daycare centers and private preschools have been closed by Home Front Command order while parents continue to be charged, creating a double burden on working families. Parents explicitly state they 'cannot be left alone again between work, children, and the security situation.' Mammography screening has dropped 20% since the war began, indicating healthcare access disruption. Welfare budgets have been cut 65%, from approximately 450 million to 160 million shekels. A new socioeconomic category—'war poor'—has emerged, with aid organizations reporting increased requests. Displaced residents from a damaged Tel Aviv building report that the state stopped funding their relocation. Municipal workers in Al-Qasom report unpaid salaries. Two positive institutional responses are visible: approval of a significant expansion of a northern medical center and Bank of Israel emergency credit flexibility measures, but these do not offset the breadth of disruptions reported."
+      },
+      {
+        "component_id": "community_capital",
+        "score": 6,
+        "confidence": "medium",
+        "manifestations_evidenced": [
+          "Residents volunteer or express willingness to volunteer in formal or informal frameworks",
+          "Authority or organizations are observed to activate and coordinate community resources",
+          "Cross-sector cooperation (e.g., municipality + NGOs + businesses) is reported or observed"
+        ],
+        "manifestations_absent": [
+          "Mechanisms exist and operate to coordinate volunteers and community organizations"
+        ],
+        "supporting_evidence": [
+          "כלב רועים פרינאי משתתף בירידה למקלט יחד עם תושבים, וחברי כיתת הכוננות ומתנדבים משתמשים בעזר כדי להעלותו",
+          "עיריית רמת גן מביאה את ניידת החדשנות של הטכניון לתלמידים בסמוך למרחבים מוגנים",
+          "המכללה למינהל תפתח שלוחה בדימונה לתארים ראשונים בתחום המחשבים ומנהל עסקים"
+        ],
+        "weakening_evidence": [],
+        "narrative": "Community capital shows the strongest behavioral signals among all components, with several concrete examples of organizational activation and cross-sector coordination. Emergency response team members and volunteers are assisting residents by helping a shepherd dog access a shelter, demonstrating informal care beyond immediate human needs. The Ramat Gan municipality has partnered with the Technion to bring an innovation mobile unit to students near protected spaces, representing cross-sector cooperation between local government and academic institutions. A college is opening a new branch in the peripheral city of Dimona for computer science and business degrees, expanding opportunity in an underserved region. The Bank of Israel has issued emergency regulations enabling financial flexibility. A comedian is volunteering to perform in shelters during alerts in north Tel Aviv, converting emergency moments into communal stress relief. No evidence was found of formal volunteer coordination mechanisms operating at scale, and the evidence remains limited to discrete examples rather than systemic mobilization."
+      },
+      {
+        "component_id": "leadership",
+        "score": 3,
+        "confidence": "high",
+        "manifestations_evidenced": [
+          "Leadership is reported to function professionally and manage the situation competently (NEGATIVE — multiple failures reported)",
+          "Residents express distrust, criticism, or frustration with leadership"
+        ],
+        "manifestations_absent": [
+          "Residents express that formal or informal leadership is a source of support and security",
+          "Leadership actively encourages residents to follow HFC guidelines (statements, actions, public presence)"
+        ],
+        "supporting_evidence": [
+          "עיריית רמת גן מביאה את ניידת החדשנות של הטכניון לתלמידים בסמוך למרחבים מוגנים",
+          "אושרה הרחבה משמעותית של מרכז רפואי צפון בהיערכות לחירום ולשיפור המענה הרפואי"
+        ],
+        "weakening_evidence": [
+          "הירידה הניכרת ברמת החוסן של התושבים במרחב הצפון, כתוצאה של פגיעה באמון במערכות המדינה והשלטון",
+          "האוצר מערבב אותנו ולא נותן מענה לתושבים; ללא תקציבים נאלץ להמליץ על פינוי - מהלך שיעלה למדינה מיליארדים",
+          "עובדי מועצת אל קסום הקבילו על הודעת המועצה כי לא תשלם להם את משכורתם החודשית"
+        ],
+        "narrative": "Leadership behavior presents a predominantly negative picture with deep fractures between national and local levels. Northern residents' resilience decline is explicitly linked to 'damage to trust in state institutions and governance.' A municipal leader publicly accuses the Treasury of 'confusing us and not providing answers to residents,' threatening to recommend evacuation if budgets are not provided—a dramatic public breakdown in government coordination. The Al-Qasom municipal council has informed employees it will not pay their monthly salaries, prompting formal complaints and demonstrating local governance failure. Residents in Ramla demand state protection against internal terrorism after a synagogue arson, signaling perceived leadership failure on domestic security. Two positive examples exist at local level—Ramat Gan's educational initiative and the northern medical center expansion—but no evidence shows leadership actively encouraging protective behaviors or serving as a reassuring public presence. No residents are quoted expressing that leadership provides them support or security."
+      },
+      {
+        "component_id": "belonging_solidarity",
+        "score": 3,
+        "confidence": "medium",
+        "manifestations_evidenced": [
+          "Population groups are reported as scapegoated, blamed, or excluded due to the emergency (negative signal)",
+          "Concrete acts of mutual aid between residents are reported (limited positive examples)"
+        ],
+        "manifestations_absent": [
+          "Residents express a sense of solidarity or shared fate (in their own words)",
+          "Programs or events strengthening belonging are activated and attended"
+        ],
+        "supporting_evidence": [
+          "שיג הופך את האזעקות בצפון תל אביב למופע קורע מצחוק שמפיג את המתח"
+        ],
+        "weakening_evidence": [
+          "ישראלים ביקשו להיכנס למקלטים בעת אזעקה ונחסמו בידי דיירים, מה שיצר חוויה מפחידה",
+          "בעלת הרשת קיבלה איומים ממשמרות הצניעות בבני ברק, בדרישה להסיר את בובות הילדים מחלון הראווה",
+          "זאת כת שמשחירה את כל החרדים"
+        ],
+        "narrative": "Belonging and solidarity are undermined by multiple reported instances of exclusion and inter-group blame. In the most striking behavioral evidence, residents seeking shelter during active alerts were physically blocked by building occupants—a direct rejection of shared fate during life-threatening moments. A business owner in Bnei Brak received threats from 'modesty patrols' demanding removal of children's dolls from a shop window, with the owner then characterizing the aggressors as 'a cult that blackens all ultra-Orthodox.' This cycle of intra-community threats and counter-blame demonstrates fracturing rather than solidarity. A synagogue arson with nationalist motives in Ramla adds to the pattern of internal divisions during crisis. On the positive side, a comedian is performing in shelters to relieve tension, and volunteers assist with animal welfare—but no evidence shows residents expressing shared fate in their own words, and no formal belonging programs are reported as active."
+      },
+      {
+        "component_id": "wellbeing_atrisk",
+        "score": 3,
+        "confidence": "high",
+        "manifestations_evidenced": [
+          "Emotional support responses (psychological first aid, mental health services) are available and used by residents showing anxiety or trauma (MIXED — services exist but overwhelmed)",
+          "Reports of unmet mental health or physical wellbeing needs among residents",
+          "Specific responses for at-risk or special-needs populations are reported as active (NEGATIVE — budget cuts and service disruptions)"
+        ],
+        "manifestations_absent": [
+          "Residents in the second or third circle of vulnerability (indirectly affected) receive responses to their needs"
+        ],
+        "supporting_evidence": [
+          "148 נפגעי חרדה מתחילת המלחמה, יותר מ-21 אלף פניות למוקדי הסיוע"
+        ],
+        "weakening_evidence": [
+          "כשהתחילה המלחמה היא שוחררה מהמחלקה לטיפול בית. בימים הראשונים ההידרדרות הייתה מהירה. היא הרגישה שהיא נזרקה מהמסגרת שלה",
+          "קיצוץ של 65% בתקציב לשיפור מעני הרווחה - נותרו 160 מיליון שקל מתוך כ-450 מיליון שקלים",
+          "38% מהנהגים מדווחים על ישנוניות מופרזת בזמן מלחמה, כרבע מהם מציגים סימנים להפרעת דחק פוסט טראומטית ו-17% סובלים מחרדה"
+        ],
+        "narrative": "The wellbeing of at-risk populations shows alarming deterioration across multiple indicators. A parent describes their adolescent daughter being discharged from a psychiatric home-care unit when the war began, experiencing rapid deterioration and feeling 'thrown out of her framework'—a concrete case of an at-risk individual losing critical mental health support. Population-wide, 148 anxiety casualties have been recorded since the war's start with over 21,000 contacts to assistance hotlines, indicating that while services exist they face enormous demand. Among drivers specifically, 38% report excessive drowsiness, roughly 25% show PTSD indicators, and 17% suffer from anxiety—demonstrating widespread physiological and psychological impairment extending well beyond combat zones. The 65% budget cut for welfare services—from 450 million to 160 million shekels—directly undermines the capacity to serve children, elderly, and impoverished families. The emergence of 'war poor' adds a new at-risk category. No evidence was found of responses reaching second or third circles of vulnerability."
+      }
+    ]
+  },
+  "evidence_snippets": [
+    {
+      "article_index": 1,
+      "evidence_type": "statistic",
+      "quoted_text": "ירידה משמעותית של 20% בהיענות לביצוע בדיקות ממוגרפיה מאז שפרצה המלחמה",
+      "manifestation": "Residents report that sufficient resources are available to maintain routine functioning / Specific disruptions to daily life are reported",
+      "resilience_components": [
+        "functional_continuity"
+      ],
+      "polarity": "negative",
+      "rationale": "Healthcare screening disruption demonstrates breakdown in functional continuity of essential health services during emergency."
+    },
+    {
+      "article_index": 2,
+      "evidence_type": "verbatim_quote",
+      "quoted_text": "כשהתחילה המלחמה היא שוחררה מהמחלקה לטיפול בית. בימים הראשונים ההידרדרות הייתה מהירה. היא הרגישה שהיא נזרקה מהמסגרת שלה",
+      "manifestation": "Reports of unmet mental health or physical wellbeing needs among residents",
+      "resilience_components": [
+        "wellbeing_atrisk"
+      ],
+      "polarity": "negative",
+      "rationale": "Parent's account of adolescent's mental health deterioration following discharge from psychiatric care during emergency demonstrates unmet wellbeing needs in at-risk population."
+    },
+    {
+      "article_index": 4,
+      "evidence_type": "verbatim_quote",
+      "quoted_text": "קצב ההזמנות לליל הסדר ולחג הוא חסר תקדים, בדגש על משפחות מורחבות, המלאי הולך ואוזל",
+      "manifestation": "Residents succeed in managing daily life (reported continuation of work, commerce, or social roles)",
+      "resilience_components": [
+        "functional_continuity"
+      ],
+      "polarity": "positive",
+      "rationale": "High demand for holiday accommodations demonstrates residents' continued engagement in leisure and family activities despite ongoing security situation."
+    },
+    {
+      "article_index": 6,
+      "evidence_type": "observable_fact",
+      "quoted_text": "בתי הספר לא יורידו ציון על היעדרות מהזום בתקופת החירום שאגת הארי",
+      "manifestation": "Schools and educational institutions are open and operating (or explicitly closed/disrupted)",
+      "resilience_components": [
+        "functional_continuity"
+      ],
+      "polarity": "positive",
+      "rationale": "Policy adjustment to facilitate school attendance continuity while accommodating emergency absences demonstrates institutional adaptation to maintain functional continuity."
+    },
+    {
+      "article_index": 8,
+      "evidence_type": "statistic",
+      "quoted_text": "מחקר על חווית המלחמה בקרב הציבור בן היום השביעי לתשיעי למלחמת שאגת הארי מראה הבדלים משמעותיים בין הקהילות השונות ובין נשים לגברים",
+      "manifestation": "Residents express or demonstrate perception of the situation as genuinely life-threatening",
+      "resilience_components": [
+        "lifesaving_behavior"
+      ],
+      "polarity": "mixed",
+      "rationale": "Measurable differences in how populations experience and respond to emergency threat indicates varying levels of perceived danger and coping across demographic groups."
+    },
+    {
+      "article_index": 9,
+      "evidence_type": "observable_fact",
+      "quoted_text": "כלב רועים פרינאי משתתף בירידה למקלט יחד עם תושבים, וחברי כיתת הכוננות ומתנדבים משתמשים בעזר כדי להעלותו",
+      "manifestation": "Residents volunteer or express willingness to volunteer in formal or informal frameworks",
+      "resilience_components": [
+        "community_capital"
+      ],
+      "polarity": "positive",
+      "rationale": "Volunteers actively supporting animal welfare by assisting with accessibility to shelter demonstrates informal community care extending beyond immediate human needs."
+    },
+    {
+      "article_index": 10,
+      "evidence_type": "statistic",
+      "quoted_text": "קיצוץ של 65% בתקציב לשיפור מעני הרווחה - נותרו 160 מיליון שקל מתוך כ-450 מיליון שקלים",
+      "manifestation": "Residents report that sufficient resources are available to maintain routine functioning",
+      "resilience_components": [
+        "functional_continuity",
+        "wellbeing_atrisk"
+      ],
+      "polarity": "negative",
+      "rationale": "Severe budget reduction for welfare services to at-risk populations (children, elderly, poor families) demonstrates resource scarcity affecting vulnerable groups' access to basic support."
+    },
+    {
+      "article_index": 11,
+      "evidence_type": "statistic",
+      "quoted_text": "עלייה של כ-22% במספר העסקאות באתרי אונליין ישראליים, אך לא חזרו למצב שהיה לפני המלחמה",
+      "manifestation": "Residents succeed in managing daily life (reported continuation of work, commerce, or social roles)",
+      "resilience_components": [
+        "functional_continuity"
+      ],
+      "polarity": "positive",
+      "rationale": "Increased online commercial activity demonstrates adaptive economic behavior and business continuity despite 55% decline from pre-war baseline."
+    },
+    {
+      "article_index": 12,
+      "evidence_type": "verbatim_quote",
+      "quoted_text": "הירידה הניכרת ברמת החוסן של התושבים במרחב הצפון, כתוצאה של פגיעה באמון במערכות המדינה והשלטון",
+      "manifestation": "Residents express distrust, criticism, or frustration with leadership",
+      "resilience_components": [
+        "leadership",
+        "narrative"
+      ],
+      "polarity": "negative",
+      "rationale": "Documented decline in residents' resilience linked to loss of trust in state institutions and governance demonstrates failed leadership credibility and narrative."
+    },
+    {
+      "article_index": 14,
+      "evidence_type": "statistic",
+      "quoted_text": "148 נפגעי חרדה מתחילת המלחמה, יותר מ-21 אלף פניות למוקדי הסיוע",
+      "manifestation": "Residents state they receive the information they need to function during the emergency",
+      "resilience_components": [
+        "information_communication",
+        "wellbeing_atrisk"
+      ],
+      "polarity": "mixed",
+      "rationale": "High helpline usage indicates residents seek psychological support and have access to information channels, though volume suggests significant emotional distress in population."
+    },
+    {
+      "article_index": 15,
+      "evidence_type": "statistic",
+      "quoted_text": "38% מהנהגים מדווחים על ישנוניות מופרזת בזמן מלחמה, כרבע מהם מציגים סימנים להפרעת דחק פוסט טראומטית ו-17% סובלים מחרדה",
+      "manifestation": "Residents express or demonstrate perception of the situation as genuinely life-threatening",
+      "resilience_components": [
+        "lifesaving_behavior",
+        "wellbeing_atrisk"
+      ],
+      "polarity": "negative",
+      "rationale": "Widespread psychological and physiological stress symptoms in driving population indicate genuine threat perception and impaired wellbeing affecting critical transportation behavior."
+    },
+    {
+      "article_index": 16,
+      "evidence_type": "observable_fact",
+      "quoted_text": "דיירים בבניין שנפגע בתל אביב טוענים כי המדינה הפסיקה לממן פינוי לחלק מהדירות והם נאלצים לבחור בין מגורים באתר בנייה לבין מאבק משפטי",
+      "manifestation": "Specific disruptions to daily life are reported (closures, evacuations, inability to work)",
+      "resilience_components": [
+        "functional_continuity"
+      ],
+      "polarity": "negative",
+      "rationale": "Residents displaced from damaged homes without adequate state support face choice between unsafe housing or legal conflict, demonstrating functional continuity breakdown."
+    },
+    {
+      "article_index": 17,
+      "evidence_type": "observable_fact",
+      "quoted_text": "ביישובים שהוגדרו אזורים צהובים - ניתנה האפשרות לשוב לפעילויות חינוכיות, התקהלויות של עד 50 אנשים בשטח פתוח",
+      "manifestation": "Schools and educational institutions are open and operating (or explicitly closed/disrupted)",
+      "resilience_components": [
+        "functional_continuity"
+      ],
+      "polarity": "positive",
+      "rationale": "Partial reopening of educational activities in lower-risk areas demonstrates institutional adaptation and gradual restoration of functional continuity in designated zones."
+    },
+    {
+      "article_index": 18,
+      "evidence_type": "observable_fact",
+      "quoted_text": "נסגרו כלל מעונות היום והגנים הפרטיים בהוראת פיקוד העורף, אבל תשלומי ההורים לא עצרו",
+      "manifestation": "Specific disruptions to daily life are reported (closures, evacuations, inability to work)",
+      "resilience_components": [
+        "functional_continuity"
+      ],
+      "polarity": "negative",
+      "rationale": "Closure of childcare facilities with continued payment demands demonstrates functional disruption affecting working parents and creating economic hardship without service provision."
+    },
+    {
+      "article_index": 19,
+      "evidence_type": "observable_fact",
+      "quoted_text": "אושרה הרחבה משמעותית של מרכז רפואי צפון בהיערכות לחירום ולשיפור המענה הרפואי",
+      "manifestation": "Essential services (healthcare, supply chains, municipal services) continue to operate",
+      "resilience_components": [
+        "functional_continuity",
+        "leadership"
+      ],
+      "polarity": "positive",
+      "rationale": "Healthcare infrastructure expansion in response to security reality demonstrates leadership initiative to maintain and enhance essential medical service continuity."
+    },
+    {
+      "article_index": 21,
+      "evidence_type": "verbatim_quote",
+      "quoted_text": "בפסח הזה יש לנו עניים חדשים, 'עניי מלחמה' שהצטרפו למעגל הנתמכים",
+      "manifestation": "Residents report that sufficient resources are available to maintain routine functioning",
+      "resilience_components": [
+        "functional_continuity",
+        "wellbeing_atrisk"
+      ],
+      "polarity": "negative",
+      "rationale": "Emergence of new poverty category ('war poor') and increased aid requests demonstrate resource strain on social services and functional continuity challenges for vulnerable populations."
+    },
+    {
+      "article_index": 22,
+      "evidence_type": "verbatim_quote",
+      "quoted_text": "הבנתי שיש לנו איך להתגונן - ונרגעתי",
+      "manifestation": "Residents demonstrate knowledge and understanding of HFC guidelines",
+      "resilience_components": [
+        "lifesaving_behavior",
+        "narrative"
+      ],
+      "polarity": "positive",
+      "rationale": "Young visitor's statement demonstrates that understanding of protective systems reduces anxiety, indicating successful communication of life-saving mechanisms."
+    },
+    {
+      "article_index": 23,
+      "evidence_type": "observable_fact",
+      "quoted_text": "ישראלים ביקשו להיכנס למקלטים בעת אזעקה ונחסמו בידי דיירים, מה שיצר חוויה מפחידה",
+      "manifestation": "Residents are observed or reported to actually follow Home Front Command protective guidelines",
+      "resilience_components": [
+        "lifesaving_behavior"
+      ],
+      "polarity": "negative",
+      "rationale": "Residents attempting to follow HFC shelter directives but denied entry by building occupants demonstrates breakdown in community solidarity and life-saving behavior compliance."
+    },
+    {
+      "article_index": 26,
+      "evidence_type": "observable_fact",
+      "quoted_text": "עובדי מועצת אל קסום הקבילו על הודעת המועצה כי לא תשלם להם את משכורתם החודשית",
+      "manifestation": "Leadership is reported to function professionally and manage the situation competently",
+      "resilience_components": [
+        "leadership",
+        "functional_continuity"
+      ],
+      "polarity": "negative",
+      "rationale": "Municipal failure to pay wages during emergency demonstrates leadership dysfunction and breaks functional continuity of essential local government worker compensation."
+    },
+    {
+      "article_index": 27,
+      "evidence_type": "verbatim_quote",
+      "quoted_text": "אנחנו חווים עייפות כציבור. ממש מתישים אותנו עם ההתרעות, אזעקות, הנחיות",
+      "manifestation": "Residents express that the authority's narrative is credible and reflects their lived reality",
+      "resilience_components": [
+        "narrative",
+        "wellbeing_atrisk"
+      ],
+      "polarity": "negative",
+      "rationale": "Public acknowledgment of population fatigue from repeated alerts demonstrates misalignment between narrative of effective coping and residents' actual lived experience."
+    },
+    {
+      "article_index": 28,
+      "evidence_type": "observable_fact",
+      "quoted_text": "עובדים חיוניים ברחבי הארץ ממשיכים להפעיל נמלים, כבישים, מפעלים ותשתיות בזמן אזעקות",
+      "manifestation": "Essential services (healthcare, supply chains, municipal services) continue to operate",
+      "resilience_components": [
+        "functional_continuity"
+      ],
+      "polarity": "positive",
+      "rationale": "Critical infrastructure workers maintaining operations during ongoing alerts demonstrates functional continuity of essential services despite security threats."
+    },
+    {
+      "article_index": 29,
+      "evidence_type": "verbatim_quote",
+      "quoted_text": "הורים בישראל לא יכולים להישאר שוב לבד בין העבודה, הילדים והמצב הביטחוני",
+      "manifestation": "Residents report that sufficient resources are available to maintain routine functioning",
+      "resilience_components": [
+        "functional_continuity",
+        "wellbeing_atrisk"
+      ],
+      "polarity": "negative",
+      "rationale": "Parents express inability to manage competing demands of work, childcare, and security conditions, demonstrating functional continuity strain across household operations."
+    },
+    {
+      "article_index": 30,
+      "evidence_type": "observable_fact",
+      "quoted_text": "המכללה למינהל תפתח שלוחה בדימונה לתארים ראשונים בתחום המחשבים ומנהל עסקים",
+      "manifestation": "Authority or organizations are observed to activate and coordinate community resources",
+      "resilience_components": [
+        "community_capital",
+        "leadership"
+      ],
+      "polarity": "positive",
+      "rationale": "Educational expansion in peripheral region demonstrates institutional response to strengthen regional community capacity and economic opportunity during crisis period."
+    },
+    {
+      "article_index": 31,
+      "evidence_type": "observable_fact",
+      "quoted_text": "בית כנסת ברמלה הוצת ממניע לאומני, והתושבים דורשים מהמדינה הגנה מפני תופעות של טרור פנים",
+      "manifestation": "Leadership is reported to function professionally and manage the situation competently",
+      "resilience_components": [
+        "leadership"
+      ],
+      "polarity": "negative",
+      "rationale": "Residents expressing demand that state prevent internal terrorism demonstrates perceived failure of leadership to maintain public order and security during emergency."
+    },
+    {
+      "article_index": 32,
+      "evidence_type": "observable_fact",
+      "quoted_text": "בנק ישראל פרסם הוראת שעה: בנקים יוכלו להציע אשראי ללקוחות שסירבו לאחרונה וגמישות בהצעות כספיות",
+      "manifestation": "Authority or organizations are observed to activate and coordinate community resources",
+      "resilience_components": [
+        "functional_continuity",
+        "community_capital"
+      ],
+      "polarity": "positive",
+      "rationale": "Central bank policy adaptation providing financial flexibility for residents facing war-related hardship demonstrates institutional coordination to support functional continuity."
+    },
+    {
+      "article_index": 33,
+      "evidence_type": "observable_fact",
+      "quoted_text": "תחנת הרכבת צומת חולון נסגרה זמנית לשירות בעקבות פגיעת רסיסים, אין דיווחים על נפגעים",
+      "manifestation": "Essential services (healthcare, supply chains, municipal services) continue to operate",
+      "resilience_components": [
+        "functional_continuity"
+      ],
+      "polarity": "mixed",
+      "rationale": "Temporary closure of railway station following impact demonstrates service disruption, but rapid damage assessment and no casualties indicates functional continuity procedures in place."
+    },
+    {
+      "article_index": 34,
+      "evidence_type": "observable_fact",
+      "quoted_text": "עיריית רמת גן מביאה את ניידת החדשנות של הטכניון לתלמידים בסמוך למרחבים מוגנים",
+      "manifestation": "Authority or organizations are observed to activate and coordinate community resources",
+      "resilience_components": [
+        "community_capital",
+        "leadership"
+      ],
+      "polarity": "positive",
+      "rationale": "Municipality activating educational innovation programs for students near shelters demonstrates leadership initiative to maintain developmental continuity during emergency."
+    },
+    {
+      "article_index": 40,
+      "evidence_type": "observable_fact",
+      "quoted_text": "קבוצת יוסי אמבולנס פועלת מסביב לשעון כדי להבטיח הגעת חולי דיאליזה לטיפול מציל חיים",
+      "manifestation": "Essential services (healthcare, supply chains, municipal services) continue to operate",
+      "resilience_components": [
+        "functional_continuity"
+      ],
+      "polarity": "positive",
+      "rationale": "Ambulance service maintaining life-saving dialysis patient transport despite emergency conditions demonstrates critical healthcare continuity under pressure."
+    },
+    {
+      "article_index": 43,
+      "evidence_type": "verbatim_quote",
+      "quoted_text": "90 שנה שאני בתוך מלחמות. לא לומדים כלום מההיסטוריה הקטנה הזאת? חייבים לא רק לשמוע את הוראות פיקוד העורף, אלא גם לציית להן מתוך הבנה",
+      "manifestation": "Leadership actively encourages residents to follow HFC guidelines (statements, actions, public presence)",
+      "resilience_components": [
+        "leadership",
+        "lifesaving_behavior"
+      ],
+      "polarity": "positive",
+      "rationale": "Elderly public figure leveraging credibility to encourage informed compliance with protective guidelines demonstrates informal leadership promoting life-saving behavior."
+    },
+    {
+      "article_index": 45,
+      "evidence_type": "statistic",
+      "quoted_text": "ביממה האחרונה 48 בני אדם קיבלו טיפול רפואי, מתחילת המבצע 1,194 בני אדם - 1,017 נפגעי גוף ו-177 נפגעי חרדה",
+      "manifestation": "Emotional support responses (psychological first aid, mental health services) are available and used by residents showing anxiety or trauma",
+      "resilience_components": [
+        "wellbeing_atrisk"
+      ],
+      "polarity": "mixed",
+      "rationale": "Significant number of anxiety casualties (177) receiving treatment alongside physical injuries indicates widespread psychological distress and availability of emergency mental health response."
+    },
+    {
+      "article_index": 50,
+      "evidence_type": "verbatim_quote",
+      "quoted_text": "החוסן אינו מתאפיין רק בסימנים של צעירים בחנויות עם קפה, אלא מערכת מורכבת של אדם, משפחה, קהילה ומדינה",
+      "manifestation": "Residents express that the authority's narrative is credible and reflects their lived reality",
+      "resilience_components": [
+        "narrative"
+      ],
+      "polarity": "negative",
+      "rationale": "Analyst critiques oversimplified narrative of resilience, noting that actual resilience requires functioning systems across individual through state level—indicating narrative-reality gap."
+    },
+    {
+      "article_index": 52,
+      "evidence_type": "observable_fact",
+      "quoted_text": "מוסדות החינוך המיוחד בירושלים חוזרים מחר לפעילות אחרי שבועיים וחצי של השבתה",
+      "manifestation": "Schools and educational institutions are open and operating (or explicitly closed/disrupted)",
+      "resilience_components": [
+        "functional_continuity"
+      ],
+      "polarity": "positive",
+      "rationale": "Reopening of special education institutions after closure demonstrates restoration of educational services for vulnerable student populations."
+    },
+    {
+      "article_index": 53,
+      "evidence_type": "statistic",
+      "quoted_text": "סקר של 17 אלף הורים מראה 60% אינם בטוחים בחזרה לבתי הספר",
+      "manifestation": "Residents express that the authority's narrative is credible and reflects their lived reality",
+      "resilience_components": [
+        "narrative",
+        "functional_continuity"
+      ],
+      "polarity": "negative",
+      "rationale": "Majority parent uncertainty about school reopening indicates loss of narrative credibility around safety and functional continuity capacity for education sector."
+    },
+    {
+      "article_index": 55,
+      "evidence_type": "observable_fact",
+      "quoted_text": "התקבלה החלטה: נוכחות התלמידים לא תהווה מרכיב בהערכת הציון בתקופה מורכבת זו",
+      "manifestation": "Authority or organizations are observed to activate and coordinate community resources",
+      "resilience_components": [
+        "leadership",
+        "functional_continuity"
+      ],
+      "polarity": "positive",
+      "rationale": "Ministry of Education policy adjustment protecting student grades despite attendance disruptions demonstrates institutional adaptation supporting functional continuity of education."
+    },
+    {
+      "article_index": 60,
+      "evidence_type": "statistic",
+      "quoted_text": "כ-4,000 אזרחים פונו מבתיהם לבתי מלון בגלל פגיעות של טילים",
+      "manifestation": "Specific disruptions to daily life are reported (closures, evacuations, inability to work)",
+      "resilience_components": [
+        "functional_continuity"
+      ],
+      "polarity": "negative",
+      "rationale": "Mass displacement of residents from damaged homes demonstrates significant functional disruption requiring emergency evacuation coordination."
+    },
+    {
+      "article_index": 3,
+      "evidence_type": "verbatim_quote",
+      "quoted_text": "זה מקלט - לא פינת עישון",
+      "manifestation": "Residents express concern about non-compliance with protective guidelines in shared shelters",
+      "resilience_components": [
+        "lifesaving_behavior"
+      ],
+      "polarity": "negative",
+      "rationale": "Resident identifies unsafe behavior (smoking in shelters) that endangers others, demonstrating awareness of protective guidelines but non-compliance by some."
+    },
+    {
+      "article_index": 3,
+      "evidence_type": "observable_fact",
+      "quoted_text": "אנשים שמדליקים סיגריות בתוך המקלטים עצמם - ומסכנים את הילדים והמבוגרים בסביבתם",
+      "manifestation": "Residents are observed to not follow HFC protective guidelines",
+      "resilience_components": [
+        "lifesaving_behavior"
+      ],
+      "polarity": "negative",
+      "rationale": "Concrete violation of shelter safety protocols: smoking in protective spaces endangers others and violates basic emergency procedures."
+    },
+    {
+      "article_index": 4,
+      "evidence_type": "observable_fact",
+      "quoted_text": "מעיין אדם שיתפה בדרישת הגן הפרטי שתשלם או שהן 'עפות לאלתר'",
+      "manifestation": "Specific disruption to daily life and educational continuity during emergency",
+      "resilience_components": [
+        "functional_continuity"
+      ],
+      "polarity": "negative",
+      "rationale": "Schools/educational institutions remain closed; private institutions demand payment despite closure, disrupting child care and family functioning."
+    },
+    {
+      "article_index": 4,
+      "evidence_type": "verbatim_quote",
+      "quoted_text": "הורים רבים משתפים בכעס על ילדים שלא הולכים לגן בזמן שהם ממשיכים לשלם",
+      "manifestation": "Residents report inability to maintain routine functioning and resource gaps",
+      "resilience_components": [
+        "functional_continuity"
+      ],
+      "polarity": "negative",
+      "rationale": "Parents express frustration with inability to access educational services while continuing to pay, indicating disruption of normal daily functioning."
+    },
+    {
+      "article_index": 5,
+      "evidence_type": "observable_fact",
+      "quoted_text": "צוותי איחוד הצלה ליוו אישה כבת 30 בלידה שהתקדמה במהירות במרחב המוגן, שבו נולדה התינוקת",
+      "manifestation": "Essential healthcare services continue to operate during emergency",
+      "resilience_components": [
+        "functional_continuity"
+      ],
+      "polarity": "positive",
+      "rationale": "Medical emergency response teams successfully delivered emergency obstetric care during active threat, demonstrating continued healthcare functioning."
+    },
+    {
+      "article_index": 5,
+      "evidence_type": "verbatim_quote",
+      "quoted_text": "זו כבר הפעם השנייה שלי מתחילת מבצע 'שאגת הארי' שבה אני מיילדת אישה בממ\"ד",
+      "manifestation": "Essential healthcare services (obstetric emergency care) continue to operate in protected spaces",
+      "resilience_components": [
+        "functional_continuity"
+      ],
+      "polarity": "positive",
+      "rationale": "Paramedic reports repeated successful emergency deliveries in shelters, showing adaptation of critical services to emergency conditions."
+    },
+    {
+      "article_index": 6,
+      "evidence_type": "statistic",
+      "quoted_text": "67% מההורים השיבו שהם מעדיפים שבימים שנותרו עד חופשת החג, ילדיהם לא יחזרו לכיתות",
+      "manifestation": "Residents report preference for educational continuity in alternative form, reflecting concern about safety",
+      "resilience_components": [
+        "functional_continuity",
+        "lifesaving_behavior"
+      ],
+      "polarity": "mixed",
+      "rationale": "Majority of parents choose safety over in-person schooling, demonstrating prioritization of protective behavior but significant disruption to functional continuity."
+    },
+    {
+      "article_index": 6,
+      "evidence_type": "statistic",
+      "quoted_text": "כמעט מחצית מההורים שהשיבו אמרו שגם אם יתאפשר להם לשלוח את ילדיהם לבתי הספר, הם יימנעו מכך",
+      "manifestation": "Residents perceive the situation as life-threatening and prefer protective behavior over routine functioning",
+      "resilience_components": [
+        "lifesaving_behavior",
+        "functional_continuity"
+      ],
+      "polarity": "mixed",
+      "rationale": "Even if schools reopen, parents state they would avoid sending children, indicating perception of genuine threat and prioritization of safety over normal functions."
+    },
+    {
+      "article_index": 7,
+      "evidence_type": "observable_fact",
+      "quoted_text": "משרד החינוך הנחה את בתי הספר שלא להוריד ציונים לתלמידים שלא מתחברים ללמידה מרחוק",
+      "manifestation": "Authority adapts functional systems to accommodate emergency disruptions",
+      "resilience_components": [
+        "functional_continuity"
+      ],
+      "polarity": "positive",
+      "rationale": "Ministry removes attendance penalties to accommodate remote learning during emergency, enabling educational continuity adaptation."
+    },
+    {
+      "article_index": 8,
+      "evidence_type": "observable_fact",
+      "quoted_text": "פיקוד העורף, משרד העבודה, השלטון המקומי ומשרד השיכון מגלגלים זה על זה את האחריות לאכיפת מיגון באתרי בנייה",
+      "manifestation": "Authority failure to implement protective guidelines for vulnerable workers",
+      "resilience_components": [
+        "lifesaving_behavior"
+      ],
+      "polarity": "negative",
+      "rationale": "Multiple government bodies fail to enforce shelter requirements for foreign construction workers, leaving them without life-saving protections."
+    },
+    {
+      "article_index": 8,
+      "evidence_type": "verbatim_quote",
+      "quoted_text": "הפקרות מוחלטת",
+      "manifestation": "Residents/officials report non-compliance and enforcement failure with protective guidelines",
+      "resilience_components": [
+        "lifesaving_behavior"
+      ],
+      "polarity": "negative",
+      "rationale": "Labor organizations characterize government failure to enforce shelter protections for vulnerable workers as 'complete neglect.'"
+    },
+    {
+      "article_index": 9,
+      "evidence_type": "observable_fact",
+      "quoted_text": "נער כבן 17, שלא חוסן, נפטר הלילה מחצבת. הנער סבל ממחלות רקע, אושפז בבית החולים לפני שבועיים וחצי",
+      "manifestation": "Public health emergency: unvaccinated youth death during conflict",
+      "resilience_components": [
+        "lifesaving_behavior"
+      ],
+      "polarity": "negative",
+      "rationale": "Specific measles death in unvaccinated minor indicates failure of vaccination-based protective behavior during emergency period."
+    },
+    {
+      "article_index": 9,
+      "evidence_type": "statistic",
+      "quoted_text": "מדובר במקרה ה-17 מאז תחילת המלחמה",
+      "manifestation": "Multiple measles deaths among unvaccinated population during emergency period",
+      "resilience_components": [
+        "lifesaving_behavior"
+      ],
+      "polarity": "negative",
+      "rationale": "17 measles fatalities since conflict began, indicating widespread non-compliance with vaccination (protective behavior) among vulnerable population."
+    },
+    {
+      "article_index": 10,
+      "evidence_type": "verbatim_quote",
+      "quoted_text": "האוצר מערבב אותנו ולא נותן מענה לתושבים; ללא תקציבים נאלץ להמליץ על פינוי - מהלך שיעלה למדינה מיליארדים",
+      "manifestation": "Local leadership reports government failure to provide adequate resources and support",
+      "resilience_components": [
+        "leadership",
+        "functional_continuity"
+      ],
+      "polarity": "negative",
+      "rationale": "Municipal leader expresses lack of government support, indicating leadership perceives failure to manage situation and threatens evacuation due to resource gaps."
+    },
+    {
+      "article_index": 10,
+      "evidence_type": "observable_fact",
+      "quoted_text": "קבוצות מסודרות מתארגנות ליציאה ל'התאווררות' למרכז הארץ",
+      "manifestation": "Residents organize informal evacuation to safer areas due to threat perception",
+      "resilience_components": [
+        "lifesaving_behavior"
+      ],
+      "polarity": "mixed",
+      "rationale": "Organized groups forming to leave northern region indicates residents perceive ongoing threat and self-organize protective relocation."
+    },
+    {
+      "article_index": 11,
+      "evidence_type": "statistic",
+      "quoted_text": "כרבע מהעסקים בישראל סגורים או פועלים חלקית בלבד",
+      "manifestation": "Significant disruption to economic and functional continuity",
+      "resilience_components": [
+        "functional_continuity"
+      ],
+      "polarity": "negative",
+      "rationale": "Approximately 25% of Israeli businesses are closed or operating partially, indicating major disruption to economic functioning and daily life."
+    },
+    {
+      "article_index": 11,
+      "evidence_type": "observable_fact",
+      "quoted_text": "המסעדות והעסקים הקטנים סופגים את המכה הקשה ביותר",
+      "manifestation": "Specific sector disruptions to functional continuity",
+      "resilience_components": [
+        "functional_continuity"
+      ],
+      "polarity": "negative",
+      "rationale": "Small businesses and restaurants report heaviest economic impact, indicating uneven disruption to economic functioning across population sectors."
+    },
+    {
+      "article_index": 14,
+      "evidence_type": "verbatim_quote",
+      "quoted_text": "אמרו לתושבים שחיזבאללה מורתע ושחוזרים לאזור בטוח - לא סיפרו לנו את האמת במלואה",
+      "manifestation": "Residents express distrust in official narrative; competing narratives present",
+      "resilience_components": [
+        "narrative",
+        "information_communication"
+      ],
+      "polarity": "negative",
+      "rationale": "Local leader states residents received incomplete or misleading official narrative about threat level, indicating distrust and narrative credibility gap."
+    },
+    {
+      "article_index": 14,
+      "evidence_type": "observable_fact",
+      "quoted_text": "ההערכה ביישוב היא שהתמרון הקרקעי בלבנון יגרור תגובה חריפה יותר של חיזבאללה",
+      "manifestation": "Residents express perception of escalating genuine threat",
+      "resilience_components": [
+        "lifesaving_behavior"
+      ],
+      "polarity": "negative",
+      "rationale": "Community assessment indicates residents perceive military operations will trigger severe enemy response, demonstrating threat awareness."
+    },
+    {
+      "article_index": 15,
+      "evidence_type": "observable_fact",
+      "quoted_text": "בעלת הרשת קיבלה איומים ממשמרות הצניעות בבני ברק, בדרישה להסיר את בובות הילדים מחלון הראווה",
+      "manifestation": "Scapegoating and exclusion of specific groups due to emergency",
+      "resilience_components": [
+        "belonging_solidarity"
+      ],
+      "polarity": "negative",
+      "rationale": "Business owner receives threats for violating modesty standards during emergency, indicating scapegoating of business owner/sector."
+    },
+    {
+      "article_index": 15,
+      "evidence_type": "verbatim_quote",
+      "quoted_text": "זאת כת שמשחירה את כל החרדים",
+      "manifestation": "Scapegoating and group blame during emergency",
+      "resilience_components": [
+        "belonging_solidarity"
+      ],
+      "polarity": "negative",
+      "rationale": "Business owner reports being accused of damaging the entire ultra-Orthodox community, indicating scapegoating and group blame dynamics."
+    },
+    {
+      "article_index": 16,
+      "evidence_type": "observable_fact",
+      "quoted_text": "בחמישי שלפני המלחמה הופצו לבתי החולים הנחיות היערכות מוקדמות, ובשבת בשעה 8:30, עם תחילת האזעקות, עברה המערכת למתכונת חירום מלאה",
+      "manifestation": "Healthcare system successfully transitions to emergency operations",
+      "resilience_components": [
+        "functional_continuity"
+      ],
+      "polarity": "positive",
+      "rationale": "Healthcare ministry reports successful rapid transition to full emergency protocols within hours of conflict onset, showing operational continuity."
+    },
+    {
+      "article_index": 18,
+      "evidence_type": "observable_fact",
+      "quoted_text": "רשות החדשנות ומנהלת תקומה מקימות בשדרות מעבדת מחקר ופיתוח לאומית לחקר החוסן האנושי",
+      "manifestation": "Authority implements programs to support mental health and resilience in affected communities",
+      "resilience_components": [
+        "wellbeing_atrisk"
+      ],
+      "polarity": "positive",
+      "rationale": "Government establishes research laboratory to study human resilience in emergency-affected city, demonstrating institutional response to psychological wellbeing needs."
+    },
+    {
+      "article_index": 19,
+      "evidence_type": "observable_fact",
+      "quoted_text": "מאות אלפי דירות בישראל אינן ממוגנות. בזמן אזעקות, משפחות נאלצות לרדת לחדרי מדרגות או לחפש מקלטים ציבוריים",
+      "manifestation": "Inadequate protective infrastructure for significant population portion",
+      "resilience_components": [
+        "lifesaving_behavior"
+      ],
+      "polarity": "negative",
+      "rationale": "Hundreds of thousands of housing units lack shelters; families must use inadequate alternatives, leaving vulnerable populations at risk."
+    },
+    {
+      "article_index": 19,
+      "evidence_type": "observable_fact",
+      "quoted_text": "קשישים, נכים ומשפחות עם ילדים מוצאים עצמם בסיכון ממשי",
+      "manifestation": "At-risk populations lack adequate protective infrastructure",
+      "resilience_components": [
+        "lifesaving_behavior",
+        "wellbeing_atrisk"
+      ],
+      "polarity": "negative",
+      "rationale": "Elderly, disabled, and families with children face real danger due to inadequate shelter access, indicating unmet protection needs for vulnerable groups."
+    },
+    {
+      "article_index": 20,
+      "evidence_type": "verbatim_quote",
+      "quoted_text": "אתמול היה רצף של אזעקות, באזעקה הראשונה טסנו מיד לממ\"ד בתוך הדירה הספקנו לסגור את הדלת - ושמענו בום נוראי",
+      "manifestation": "Resident demonstrates active protective behavior and perception of genuine threat",
+      "resilience_components": [
+        "lifesaving_behavior"
+      ],
+      "polarity": "positive",
+      "rationale": "Resident reports rapid response to alert signals and use of home shelter, demonstrating knowledge and execution of HFC protective guidelines."
+    },
+    {
+      "article_index": 20,
+      "evidence_type": "verbatim_quote",
+      "quoted_text": "זה היה עוצמתי ברמות",
+      "manifestation": "Resident expresses emotional impact of direct attack",
+      "resilience_components": [
+        "wellbeing_atrisk"
+      ],
+      "polarity": "negative",
+      "rationale": "Direct missile strike victim describes psychological/emotional impact of violent direct attack, indicating trauma response."
+    },
+    {
+      "article_index": 21,
+      "evidence_type": "observable_fact",
+      "quoted_text": "שיג הופך את האזעקות בצפון תל אביב למופע קורע מצחוק שמפיג את המתח",
+      "manifestation": "Community members organize informal cultural programming to address psychological wellbeing during emergency",
+      "resilience_components": [
+        "wellbeing_atrisk",
+        "community_capital"
+      ],
+      "polarity": "positive",
+      "rationale": "Performer uses theater skills to create stress-relieving entertainment in shelters, demonstrating volunteer effort to support psychological wellbeing."
+    },
+    {
+      "article_index": 22,
+      "evidence_type": "verbatim_quote",
+      "quoted_text": "התקשרו אלינו כוחות הביטחון והקפיצו אותנו למרפאה, שנמצאת ממש לא רחוק ממקום הנפילה",
+      "manifestation": "Emergency response systems mobilize to provide medical care during direct threat",
+      "resilience_components": [
+        "functional_continuity"
+      ],
+      "polarity": "positive",
+      "rationale": "Veterinarians report rapid deployment during active missile impact to provide emergency medical treatment, showing continued response capability."
+    },
+    {
+      "article_index": 24,
+      "evidence_type": "observable_fact",
+      "quoted_text": "פעילות אסדות הגז שבים התיכון מושבתת בפעם השלישית מפרוץ מלחמת 7 באוקטובר",
+      "manifestation": "Critical energy infrastructure disrupted during conflict",
+      "resilience_components": [
+        "functional_continuity"
+      ],
+      "polarity": "negative",
+      "rationale": "Natural gas platforms shut down for third time since conflict began, disrupting essential energy supply and economic functioning."
+    },
+    {
+      "article_index": 24,
+      "evidence_type": "statistic",
+      "quoted_text": "נזק כבר 600 מיליון שקל",
+      "manifestation": "Quantified economic damage from infrastructure disruption",
+      "resilience_components": [
+        "functional_continuity"
+      ],
+      "polarity": "negative",
+      "rationale": "Energy sector reports 600 million shekel damage from gas platform shutdowns, indicating major economic disruption."
+    },
+    {
+      "article_index": 28,
+      "evidence_type": "verbatim_quote",
+      "quoted_text": "כשדביר הוקפץ למילואים נכנסתי להתקף חרדה",
+      "manifestation": "Resident reports anxiety response to mobilization and separation during emergency",
+      "resilience_components": [
+        "wellbeing_atrisk"
+      ],
+      "polarity": "negative",
+      "rationale": "Individual reports anxiety attack when partner mobilized to reserve duty, indicating unmet mental health needs during emergency."
+    }
+  ],
+  "source_files": [
+    "articles-homefront.md",
+    "articles-ynet.md"
+  ],
+  "generated_at": "2026-03-17T20:03:00.117Z"
+}

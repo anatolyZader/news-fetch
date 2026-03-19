@@ -1,0 +1,111 @@
+{
+  "municipality_assessments": [
+    {
+      "name": "יפתח, גליל עליון",
+      "components": [
+        {
+          "component_id": "narrative",
+          "confidence": "high",
+          "strengths": [
+            "Strong collective identity and cohesion following evacuation period last year; residents returned together rather than dispersing",
+            "No residents sought to leave despite ongoing emergency conditions, indicating deep community commitment",
+            "Implementation of 'Project Magen HaTzafon' demonstrating proactive infrastructure adaptation (private home shelters for multiple neighborhoods)"
+          ],
+          "concerns": [
+            "Community still operating under psychological strain ('on the edges of togetherness') one year after displacement",
+            "All daily activities constrained by need to remain within shelters, limiting normalcy and functional continuity"
+          ],
+          "narrative": "Yiftach demonstrates resilient post-displacement recovery with strong community bonds intact and zero out-migration. However, the population remains psychologically marked by the evacuation experience and continues operating under active defense constraints that fundamentally limit daily life patterns."
+        },
+        {
+          "component_id": "lifesaving_behavior",
+          "confidence": "medium",
+          "strengths": [
+            "Shelter infrastructure exists and is being utilized by majority of population",
+            "Coordinated shelter-based protective systems in place"
+          ],
+          "concerns": [
+            "Elderly neighborhood lacks adequate home shelters; residents cannot reach public shelters in time and some refuse to comply with protective measures",
+            "Shelter accessibility gap creates behavioral non-compliance among vulnerable elderly residents",
+            "One family sleeping in shelters due to lack of home protection options"
+          ],
+          "narrative": "Critical protection gaps exist for elderly residents who either cannot physically access public shelters during alerts or refuse to leave homes due to anxiety. This represents a significant life-safety vulnerability requiring urgent attention, particularly given the population's stated fear-based resistance to evacuation."
+        },
+        {
+          "component_id": "functional_continuity",
+          "confidence": "medium",
+          "strengths": [
+            "Kindergarten operations maintained with parent-accompanying shelter model and volunteer-led activities (1.5-hour daily sessions)",
+            "Multiple shelter-based programming: non-formal education activities and weekend 'Gimboree' workshops with structured content",
+            "Some residents successfully commuting to work despite shelter constraints; planned community learning center with military-teacher support model"
+          ],
+          "concerns": [
+            "Shelter-based kindergarten spaces described as too small for children; facility constraints limiting quality of early childhood programming",
+            "Youth (ages 13-18) unable to access appropriate activities; behavior problems emerging (nocturnal wakefulness, daytime sleep) due to activity deficit",
+            "Youth mentor in military service, reducing available guidance capacity during critical period"
+          ],
+          "narrative": "Early childhood and work activities show adaptation to shelter living, but adolescent programming has essentially failed, creating behavioral and developmental risks. The constraint of conducting all activities within protected spaces is fundamentally undermining functional continuity for teenagers."
+        },
+        {
+          "component_id": "community_capital",
+          "confidence": "high",
+          "strengths": [
+            "Four Takuma soldiers integrated into education system support",
+            "Active Community Psychosocial Support Team (TZACHI) meeting twice daily providing systematic mental health coordination",
+            "Diverse volunteer ecosystem: childcare providers (early childhood), rotating volunteers for youth/children activities, specialized elderly sports programming, and multiple informal volunteer initiatives",
+            "Kibbutz volunteers actively transferring structured activities to shelters"
+          ],
+          "concerns": [
+            "TZACHI team operates as 'dismantled' structure, indicating organizational fragility despite functional meetings",
+            "Volunteer rotation model may mask inconsistency and burnout risks in ongoing crisis"
+          ],
+          "narrative": "Community capital mobilization is robust across age groups with strong volunteer engagement and institutional support. The TZACHI psychosocial infrastructure is particularly notable for meeting frequency and systematic approach, though its organizational status remains fragile."
+        },
+        {
+          "component_id": "leadership",
+          "confidence": "medium",
+          "strengths": [
+            "Daily spokesperson briefings maintaining consistent public information flow",
+            "Leadership availability and accessibility to residents ('available to community')",
+            "Explicit alignment with national defense policy providing clear decision-making framework"
+          ],
+          "concerns": [
+            "Leadership messaging appears primarily focused on defense compliance rather than civilian wellbeing and normalcy restoration",
+            "Zoom-based community meetings may be insufficient engagement mechanism for addressing complex local needs"
+          ],
+          "narrative": "Municipal leadership demonstrates operational competence and regular communication, with clear policy alignment. However, the leadership narrative remains defense-centric rather than community-centered, potentially limiting creative problem-solving for quality-of-life restoration."
+        },
+        {
+          "component_id": "belonging_solidarity",
+          "confidence": "medium",
+          "strengths": [
+            "Age-stratified informal activities demonstrate intentional community-building across life stages",
+            "Kibbutz social infrastructure supporting cross-generational programming"
+          ],
+          "concerns": [
+            "Limited detail on non-formal activities suggests programming may be reactive to crisis rather than culturally rooted"
+          ],
+          "narrative": "Community solidarity appears maintained through structured informal programming by age cohort, leveraging kibbutz-based volunteer networks. However, documentation is sparse, suggesting these activities may lack strategic intentionality or sustainability planning."
+        },
+        {
+          "component_id": "wellbeing_atrisk",
+          "confidence": "medium",
+          "strengths": [
+            "Psychosocial support team actively mobilized and meeting regularly",
+            "Sports and activity programming specifically designed for elderly residents",
+            "Early identification of anxiety-related challenges in child population"
+          ],
+          "concerns": [
+            "Increased welfare referrals for children attributed to anxiety stemming from emergency conditions and lack of adequate programming",
+            "Elderly residents refusing evacuation due to anxiety and shelter-related psychological distress",
+            "Parental stress from inability to occupy children adequately, undermining adult coping capacity",
+            "TZACHI team arrived in 'dismantled' state after intensive displacement period, suggesting potential organizational trauma and capacity limitations",
+            "Mental health system appears reactive rather than preventive; crisis is driving referrals upward"
+          ],
+          "narrative": "At-risk populations show measurable psychological distress: children presenting anxiety, elderly refusing safety compliance due to fear, and parents experiencing parenting stress. The psychosocial support infrastructure exists but appears stretched and responding to cascading mental health impacts rather than preventing them. The particularly vulnerable elderly cohort lacks both physical safety infrastructure and psychological support."
+        }
+      ]
+    }
+  ],
+  "saved_at": "2026-03-17T00:41:47.332Z"
+}

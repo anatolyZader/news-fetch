@@ -1,0 +1,17 @@
+[
+  { "matches": "הלכי הרוח",                    "component": "narrative" },
+  { "matches": "שגרת היום",                     "component": "functional_continuity" },
+  { "matches": "מסרי הנהגת",                    "component": "leadership" },
+  { "matches": "פערי מיגון",                    "component": "lifesaving_behavior" },
+  { "matches": "משאבי קהילה",                   "component": "community_capital" },
+  { "matches": "פעילויות בלתי פורמליות",         "component": "belonging_solidarity" },
+  { "matches": "מאפייני אוכלוסייה",              "component": "wellbeing_atrisk" },
+  { "matches": "קשישים ואוכלוסיות עם מוגבלות",  "component": "wellbeing_atrisk" },
+  { "matches": "פניות למחלקת רווחה",             "component": "wellbeing_atrisk" },
+  { "matches": "נושאי הפניות",                   "component": "wellbeing_atrisk" },
+  { "matches": "בעלי התפקידים",                  "component": "context" },
+  { "matches": "תושבים המזדמנים",               "component": "context" },
+  { "matches": "נושאים נוספים",                  "component": "context" },
+  { "matches": "אתגרים/ פערים",                 "component": "context" },
+  { "matches": "המלצות",                         "component": "context" }
+]

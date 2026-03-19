@@ -1,0 +1,67 @@
+{
+  "municipality_assessments": [
+    {
+      "name": "ברעם",
+      "components": [
+        {
+          "component_id": "narrative",
+          "confidence": "medium",
+          "strengths": [
+            "Residents demonstrate strong psychological resilience and rejection of displacement, preferring to remain and shelter when necessary",
+            "Kibbutz maintains collective community life and shared rituals (dining hall gatherings) despite emergency conditions and some population dispersal",
+            "Population expresses high coping capacity and contextualizes their situation favorably compared to other affected communities (e.g., Kiryat Shmona)"
+          ],
+          "concerns": [
+            "Some families have not yet returned post-Iron Swords war, indicating incomplete demographic recovery",
+            "Informal support structures are concentrated in protected central spaces, potentially limiting reach to isolated residents",
+            "Narrative assessment is based on limited, chance encounters rather than systematic community engagement"
+          ],
+          "narrative": "ברעם exhibits a resilient community narrative centered on staying power and collective continuity. Residents demonstrate psychological strength and maintain kibbutz social structures despite emergency displacement cycles. However, population fragmentation from the previous war and incomplete return patterns suggest underlying vulnerabilities that require deeper assessment."
+        },
+        {
+          "component_id": "lifesaving_behavior",
+          "confidence": "low",
+          "strengths": [
+            "No obvious shelter or protection gaps were observed during emergency responses",
+            "Residents were observed responding to sirens and moving to protected spaces with children and elderly"
+          ],
+          "concerns": [
+            "No systematic assessment of shelter adequacy (safe rooms, public shelters, contingency spaces) was conducted",
+            "Gap protection evaluation was superficial and did not include verification of shelter capacity, accessibility, or compliance"
+          ],
+          "narrative": "Life-saving protective behavior appears functional in basic terms, but lacks depth of assessment. While residents respond to alarms and use protected spaces, no comprehensive evaluation of shelter infrastructure, distribution equity, or at-risk population access was performed."
+        },
+        {
+          "component_id": "functional_continuity",
+          "confidence": "medium",
+          "strengths": [
+            "Food supply chain is maintained with no identified gaps in nutrition provision",
+            "Kibbutz leadership has established informal educational and care structures for children within protected central spaces",
+            "Community maintains basic daily rhythms and routines despite suspension of formal schooling"
+          ],
+          "concerns": [
+            "Formal education systems remain non-functional with no indication of resumption timeline",
+            "Assessment of work continuity, economic function, and employment normalcy was not conducted",
+            "Informal arrangements for child care and education suggest ad-hoc rather than systematic continuity planning"
+          ],
+          "narrative": "Functional continuity is partially sustained through food security and informal community structures, particularly for childcare within protected areas. However, suspension of formal education and lack of assessment regarding economic and employment continuity suggest incomplete functional recovery."
+        },
+        {
+          "component_id": "wellbeing_atrisk",
+          "confidence": "medium",
+          "strengths": [
+            "Kibbutz population (approximately 650 residents) includes diverse age groups observed during survey, indicating intergenerational presence",
+            "New young families have relocated to the community post-evacuation, showing demographic renewal and confidence in settlement viability"
+          ],
+          "concerns": [
+            "Residual non-return population following Iron Swords evacuation indicates ongoing psychological or practical barriers to full repatriation for some families",
+            "Limited detail on presence and condition of elderly, individuals with disabilities, or families with specific vulnerabilities",
+            "No documentation of welfare service access, mental health support availability, or targeted at-risk population interventions"
+          ],
+          "narrative": "At-risk population assessment is incomplete. While demographic diversity is present and some family renewal is occurring, the survey did not systematically identify vulnerable subgroups (elderly, disabled, isolated families) or their access to wellbeing services. Persistent non-return of some families suggests unaddressed psychological or logistical barriers."
+        }
+      ]
+    }
+  ],
+  "saved_at": "2026-03-17T00:56:21.764Z"
+}

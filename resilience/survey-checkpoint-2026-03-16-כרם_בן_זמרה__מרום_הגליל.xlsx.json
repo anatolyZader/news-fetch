@@ -1,0 +1,109 @@
+{
+  "municipality_assessments": [
+    {
+      "name": "כרם בן זמרה, מרום הגליל",
+      "components": [
+        {
+          "component_id": "narrative",
+          "confidence": "high",
+          "strengths": [
+            "Community has developed emergency routines and adaptive daily patterns despite prolonged stress",
+            "Clear articulation of grievances and needs demonstrates active civic engagement"
+          ],
+          "concerns": [
+            "Profound breakdown of trust in state and military institutions, particularly following partial evacuation",
+            "Widespread perception of abandonment and discriminatory treatment compared to other municipalities",
+            "Severe emotional distress reported among parents and children with signs of psychological deterioration"
+          ],
+          "narrative": "The community is experiencing acute collective trauma marked by deep distrust of government institutions and a pervasive sense of abandonment. While some residents acknowledge emergency preparedness, the dominant narrative is one of isolation, unfair treatment, and existential fear about economic viability. Emotional and psychological support for residents, especially families with children, is critically inadequate."
+        },
+        {
+          "component_id": "lifesaving_behavior",
+          "confidence": "high",
+          "strengths": [
+            "15 public shelters operational within the community",
+            "Residents proactive in attempting to build private protection rooms (mamad)"
+          ],
+          "concerns": [
+            "Warning siren coverage does not extend across entire settlement area, creating blind zones",
+            "Insufficient public shelter capacity relative to population demand and presence of ~100 foreign workers",
+            "Significant homes lack protected rooms; Ministry of Defense unresponsive to construction requests"
+          ],
+          "narrative": "Critical protective infrastructure gaps exist with uneven siren coverage and inadequate shelter capacity for permanent occupancy. The community's attempts to increase protection through private construction are blocked by bureaucratic constraints, leaving vulnerable populations—particularly foreign workers and residents without home protection—inadequately safeguarded."
+        },
+        {
+          "component_id": "functional_continuity",
+          "confidence": "high",
+          "strengths": [
+            "Makeshift daytime routines established with children gathering indoors during afternoon alert periods",
+            "Limited afternoon youth programming coordinated through paid instructor"
+          ],
+          "concerns": [
+            "Complete cessation of community services; Clalit health clinic non-operational",
+            "Electricity company refusing to provide service during emergency; critical infrastructure at risk",
+            "No meaningful community programming or services; children spending significant time unsupervised outdoors",
+            "School continuity severely disrupted with students dispersed across 20 different educational frameworks"
+          ],
+          "narrative": "Functional continuity has largely collapsed. Essential services (healthcare, utilities) remain unavailable due to provider reluctance and security concerns. Daily life consists of informal coping—children cycling between outdoor activity and home shelter—with no organized community activity infrastructure or adequate educational continuity."
+        },
+        {
+          "component_id": "community_capital",
+          "confidence": "medium",
+          "strengths": [
+            "Community Emergency Authority (צח\"י) is fully staffed and operational",
+            "Defense department positioned under effective local coordination structure"
+          ],
+          "concerns": [
+            "Absence of informal community mobilization or civil society activity",
+            "No organized volunteer network or grassroots community initiatives",
+            "Minimal intergenerational programming, with only nascent third-age activity beginning"
+          ],
+          "narrative": "The formal emergency structure (צח\"י) is functional but operates in a vacuum of informal community resilience mechanisms. While institutional capacity exists, there is no vibrant civil society, volunteer network, or grassroots mutual aid activity to supplement official response and provide social cohesion."
+        },
+        {
+          "component_id": "leadership",
+          "confidence": "medium",
+          "strengths": [
+            "Local authority leadership has clearly defined operational principles aligned with military directives"
+          ],
+          "concerns": [
+            "Leadership messaging emphasizes isolation and abandonment rather than collective efficacy",
+            "Perception of municipal authority being overwhelmed and reactive rather than proactive",
+            "Coordination breakdown between military operational decisions and municipal response capacity"
+          ],
+          "narrative": "Municipal leadership is deferring to military direction but failing to project confidence, agency, or protective presence. The dominant leadership message reinforces community feelings of abandonment rather than mobilizing collective resilience. Residents perceive the municipality as executing decisions made elsewhere rather than advocating effectively for their needs."
+        },
+        {
+          "component_id": "belonging_solidarity",
+          "confidence": "low",
+          "strengths": [
+            "Small-scale structured youth activity (2-hour afternoon programs) providing minimal social continuity"
+          ],
+          "concerns": [
+            "Complete absence of informal social gathering, cultural activities, or peer support networks",
+            "No intergenerational solidarity mechanisms or community bonding activities",
+            "Fragmentation across 20 educational frameworks preventing peer cohesion among youth"
+          ],
+          "narrative": "Community solidarity and belonging mechanisms have largely disintegrated. With no organized informal activities, social fragmentation across dispersed educational settings, and absence of cultural or gathering spaces, residents face psychological isolation despite living in close proximity. The single paid youth program provides minimal social connective tissue."
+        },
+        {
+          "component_id": "wellbeing_atrisk",
+          "confidence": "high",
+          "strengths": [
+            "Mixed-age population with local capacity to identify vulnerable subgroups",
+            "10 elderly care workers (מטפלים סיעודיים) present to support dependent populations"
+          ],
+          "concerns": [
+            "680 residents including 2 ventilator-dependent individuals and several mobile ventilator users with inadequate shelter access",
+            "Mobility barriers for ventilator-dependent and bedridden residents prevent adequate protection space use",
+            "At-risk populations (special education students, elderly, foreign workers, people with disabilities) face differential access to protection and services",
+            "No functional generation center (מרכז גנרציה) for elderly programming or peer support",
+            "Absence of emotional/mental health support for families despite documented signs of psychological deterioration"
+          ],
+          "narrative": "At-risk populations face compounded vulnerability with inadequate protection infrastructure, fragmented services, and absent psychosocial support. Medically dependent residents lack accessible shelter; elderly have no community gathering or support spaces; foreign workers compete for scarce resources. The convergence of physical, infrastructural, and emotional support gaps creates severe risk for this subpopulation."
+        }
+      ]
+    }
+  ],
+  "saved_at": "2026-03-17T00:36:00.042Z"
+}

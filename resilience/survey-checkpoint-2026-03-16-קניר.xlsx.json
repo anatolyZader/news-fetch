@@ -1,0 +1,106 @@
+{
+  "municipality_assessments": [
+    {
+      "name": "קניר",
+      "components": [
+        {
+          "component_id": "narrative",
+          "confidence": "high",
+          "strengths": [
+            "Residents exhibit resilient mindset with no reported fears about the situation",
+            "Strong narrative of mutual aid and solidarity evident in community responses",
+            "High functional continuity reported despite emergency conditions"
+          ],
+          "concerns": [
+            "Educational services are explicitly excluded from continuity assessment",
+            "Narrative assessment based only on authority messaging rather than direct resident interviews"
+          ],
+          "narrative": "The municipality demonstrates a resilient narrative frame with residents showing confidence and mutual support. However, the assessment is limited by lack of direct resident engagement and exclusion of education sector, creating gaps in understanding true community sentiment across all population segments."
+        },
+        {
+          "component_id": "lifesaving_behavior",
+          "confidence": "low",
+          "strengths": [
+            "Community is actively moving and using designated shelter spaces despite constraints"
+          ],
+          "concerns": [
+            "30% of residents lack personal shelters (ממ\"ד) with zero warning time, creating critical protection gaps",
+            "Public shelters are undersized and unusable; residents cannot hear alarm sirens from expanded neighborhoods",
+            "Movement to shelters is hampered by small capacity, causing congestion and limiting protective effectiveness"
+          ],
+          "narrative": "Life-saving behavior is severely compromised by infrastructure inadequacy. Nearly a third of the population has no personal shelter access with instantaneous warning time, and public shelters are too small and poorly distributed to serve the population effectively. The siren warning system fails in peripheral areas, undermining behavioral response."
+        },
+        {
+          "component_id": "functional_continuity",
+          "confidence": "medium",
+          "strengths": [
+            "Daytime educational activities are organized in small groups within shelter spaces",
+            "Community maintains movement patterns including access to playgrounds and informal activity spaces",
+            "Children are accommodated within family shelters with sleeping arrangements"
+          ],
+          "concerns": [
+            "Continuity is partially maintained through mobility and congestion in public spaces rather than systematic planning",
+            "Shelter-based schooling is fragmented and depends on informal small-group structures"
+          ],
+          "narrative": "Functional continuity is partially sustained through adaptive informal arrangements, particularly for children's education via small-group activities in shelters. However, this is ad-hoc rather than systematic, and depends on shelter occupancy that creates movement and crowding."
+        },
+        {
+          "component_id": "community_capital",
+          "confidence": "medium",
+          "strengths": [
+            "Emergency readiness team (צחי) is operational and engaged",
+            "Formal community resource structures exist and are being mobilized"
+          ],
+          "concerns": [
+            "Critical gaps in specialized personnel: shortage of teachers and educational coordinators for working with children",
+            "Need identified for social services (ש\"ש) support, indicating resource constraints in social infrastructure"
+          ],
+          "narrative": "Community capital exists through formal emergency preparedness structures, but significant gaps remain in human resources, particularly educators and social service providers needed for comprehensive child welfare and continuity of specialized services."
+        },
+        {
+          "component_id": "leadership",
+          "confidence": "medium",
+          "strengths": [
+            "Municipal leadership is actively messaging reassurance to residents",
+            "Authority is conducting surveys to identify and close gaps",
+            "Leadership engagement extends to collective community structures (kibbutz)"
+          ],
+          "concerns": [
+            "Messaging approach is reassurance-focused rather than action-oriented toward concrete infrastructure gaps",
+            "No evidence of coordinated planning to address identified protection deficits"
+          ],
+          "narrative": "Leadership is visible and engaged in communication and gap assessment, but primary messaging is reassurance-based. There is limited evidence of concrete action plans to address major infrastructure deficits in shelter availability and warning systems."
+        },
+        {
+          "component_id": "belonging_solidarity",
+          "confidence": "medium",
+          "strengths": [
+            "Informal community activities are occurring despite constraints",
+            "Small-group activities in shelters suggest maintenance of social bonds"
+          ],
+          "concerns": [
+            "Informal activities are severely limited by small shelter sizes, restricting community gathering capacity",
+            "No evidence of larger communal solidarity expressions or inclusive community events"
+          ],
+          "narrative": "Belonging and solidarity are maintained at minimal levels through small informal gatherings constrained by shelter capacity limitations. The physical infrastructure prevents larger community assemblies that would reinforce collective identity and cohesion."
+        },
+        {
+          "component_id": "wellbeing_atrisk",
+          "confidence": "low",
+          "strengths": [
+            "Medical oxygen-dependent residents are identified and tracked (two individuals)",
+            "Elderly population (60-70 age group) and new residents in expansion area are identified"
+          ],
+          "concerns": [
+            "Elderly residents cannot access shelters due to zero warning time and sealed shelter entrances (שערים), creating acute protection vulnerability",
+            "Medical services are inadequate: physician rarely arrives when needed",
+            "Elderly and at-risk populations are isolated from protection infrastructure due to physical access barriers",
+            "New residents lack established community connections and integration into emergency support networks"
+          ],
+          "narrative": "At-risk populations face critical vulnerabilities. Elderly residents cannot reach shelters in time due to sealed entrances and zero warning systems, medical support is unreliable, and new residents lack integration into community resilience structures. Medical equipment-dependent residents are identified but protection is not assured."
+        }
+      ]
+    }
+  ],
+  "saved_at": "2026-03-17T00:21:43.946Z"
+}

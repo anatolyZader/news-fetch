@@ -1,0 +1,110 @@
+{
+  "municipality_assessments": [
+    {
+      "name": "מנות",
+      "components": [
+        {
+          "component_id": "narrative",
+          "confidence": "high",
+          "strengths": [
+            "Residents display elevated mood despite emergency circumstances",
+            "Lower street tension and reduced sense of oppression observed",
+            "Community members appear psychologically resilient"
+          ],
+          "concerns": [],
+          "narrative": "The municipality demonstrates a notably positive emotional tone among residents encountered. Despite reduced public presence, those interviewed exhibited elevated spirits and reduced psychological distress. The overall narrative reflects community psychological resilience during the emergency period."
+        },
+        {
+          "component_id": "lifesaving_behavior",
+          "confidence": "medium",
+          "strengths": [
+            "Widespread distribution of residential shelters (mamadim) among households",
+            "NGO support specifically targeting national-religious community for shelter construction funding",
+            "Infrastructure exists for protective shelter access"
+          ],
+          "concerns": [
+            "Significant safety non-compliance: residents removing standard shelter doors and windows to create additional rooms",
+            "Shelter modification practice undermines protective standards across the community",
+            "Pattern reflects broader behavioral compliance challenges despite availability of proper infrastructure"
+          ],
+          "narrative": "While physical shelter infrastructure is relatively accessible through household mamadim and organizational support, a troubling pattern of non-standard modifications compromises protective capacity. Residents systematically remove safety features to create additional living space, indicating a gap between available protection and actual safe behavior adoption."
+        },
+        {
+          "component_id": "functional_continuity",
+          "confidence": "medium",
+          "strengths": [
+            "Remote work being utilized where possible",
+            "Some attempt to maintain functional routines"
+          ],
+          "concerns": [
+            "Complete absence of formal educational frameworks and informal education options",
+            "Lack of kindergarten and elementary school facilities operational in the settlement",
+            "Significant portion of workforce mobilized for reserves, disrupting economic continuity",
+            "No structured daily/nightly routines for vulnerable populations (children)"
+          ],
+          "narrative": "The municipality faces substantial functional discontinuity, particularly in education. Formal schooling is unavailable and informal educational alternatives have not been established, creating developmental gaps for children. Combined with widespread reserve mobilization and remote-work-only employment, the settlement struggles to maintain normal life rhythms and community services."
+        },
+        {
+          "component_id": "community_capital",
+          "confidence": "medium",
+          "strengths": [
+            "Active community response committee (tzach\"i) operational",
+            "Informal supply network mobilized through WhatsApp for goods and services distribution",
+            "Community-driven resource coordination without formal government frameworks"
+          ],
+          "concerns": [
+            "Limited visibility into scope and reach of informal organizational efforts",
+            "Reliance on ad-hoc digital networks rather than structured community resource systems",
+            "Unclear sustainability of volunteer-driven initiatives"
+          ],
+          "narrative": "The community demonstrates adaptive social capital through informal organizational structures, particularly via digital coordination for resource distribution. A community response committee exists alongside grassroots WhatsApp-based supply networks, though the full extent and sustainability of these volunteer-led efforts remain underassessed."
+        },
+        {
+          "component_id": "leadership",
+          "confidence": "low",
+          "strengths": [
+            "Municipal leadership demonstrates caring and interest in community wellbeing",
+            "Telephone-based engagement with residents indicates accessibility"
+          ],
+          "concerns": [
+            "Leadership absence from the municipality is conspicuously noted by residents during current emergency cycle",
+            "Previous aid distributions (in other operational periods) are referenced positively but not evident in current context",
+            "Limited visible presence undermines community confidence in ongoing municipal support"
+          ],
+          "narrative": "Municipal leadership shows concern and telephone engagement but is notably absent from the settlement during this emergency period. While residents recall previous aid distributions positively, current leadership visibility is insufficient, creating a perception gap between stated commitment and on-ground presence."
+        },
+        {
+          "component_id": "belonging_solidarity",
+          "confidence": "low",
+          "strengths": [
+            "Informal social activities are occurring among community members",
+            "Community expresses desire for expanded social programming"
+          ],
+          "concerns": [
+            "Limited assessment of informal activity scope and participation breadth",
+            "Unclear whether solidarity mechanisms are inclusive across all community segments",
+            "Inadequate formal or informal programming to meet expressed community demands"
+          ],
+          "narrative": "While informal social activities exist and residents express appetite for community engagement, the assessment of belonging and solidarity mechanisms is limited. The community demonstrates latent social cohesion but appears to lack sufficient structured or unstructured opportunities for broad-based collective activities."
+        },
+        {
+          "component_id": "wellbeing_atrisk",
+          "confidence": "high",
+          "strengths": [
+            "No reported increase in welfare department contacts or crisis line calls",
+            "Elderly and disabled populations appear supported through family-based care structures",
+            "Vulnerable populations show no visible signs of acute distress",
+            "Family kinship networks provide primary safety net for at-risk groups"
+          ],
+          "concerns": [
+            "Limited formal assessment mechanisms for hidden vulnerabilities among at-risk populations",
+            "Reliance on informal family support without professional monitoring may mask emerging crises",
+            "No proactive welfare or mental health services engagement visible"
+          ],
+          "narrative": "At-risk populations (elderly, disabled, low-income) appear stable through family-based support systems, with no reported welfare service surge or crisis indicators. However, the absence of formal intervention should not be interpreted as absence of need; rather, it reflects informal coping mechanisms and potential underreporting of vulnerabilities in this national-religious community context."
+        }
+      ]
+    }
+  ],
+  "saved_at": "2026-03-17T00:58:19.298Z"
+}

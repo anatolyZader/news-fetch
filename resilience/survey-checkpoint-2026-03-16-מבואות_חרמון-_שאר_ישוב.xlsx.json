@@ -1,0 +1,104 @@
+{
+  "municipality_assessments": [
+    {
+      "name": "מבואות חרמון - שאר ישוב",
+      "components": [
+        {
+          "component_id": "narrative",
+          "confidence": "medium",
+          "strengths": [
+            "Majority of residents maintain positive morale and spirit despite emergency conditions",
+            "Community demonstrates adaptive capacity with continued economic activity (café reopened)"
+          ],
+          "concerns": [
+            "Student population has evacuated due to inadequate shelter protection",
+            "Morale appears segmented rather than unified across all demographic groups"
+          ],
+          "narrative": "The narrative in מבואות חרמון is predominantly positive among the resident population, though tempered by selective departure. Most residents demonstrate resilience and optimism, but the exodus of students—driven by genuine safety concerns regarding shelter infrastructure—indicates that narrative confidence is not equally distributed across all groups."
+        },
+        {
+          "component_id": "lifesaving_behavior",
+          "confidence": "low",
+          "strengths": [
+            "Community awareness of shelter gaps suggests residents understand protective behaviors"
+          ],
+          "concerns": [
+            "Significant shelter protection gaps exist throughout the municipality",
+            "Infrastructure is aging and inadequate for current threat environment",
+            "Vulnerable populations (elderly) struggle to access protected spaces consistently"
+          ],
+          "narrative": "Life-saving behavior is severely constrained by structural deficiencies. The settlement has identifiable gaps in protective infrastructure (public shelters, safe rooms, fortified spaces), with older buildings providing inadequate protection. This directly undermines the ability of residents—particularly at-risk groups—to implement effective protective behaviors."
+        },
+        {
+          "component_id": "functional_continuity",
+          "confidence": "high",
+          "strengths": [
+            "Daily routines (work, education, services) continue despite emergency conditions",
+            "Community economic activity has resumed (café operation)",
+            "Residents follow municipal guidance and maintain operational structures"
+          ],
+          "concerns": [
+            "Continuity may be contingent on active military presence in the area"
+          ],
+          "narrative": "The community has successfully maintained functional continuity across work, education, and service provision. Residents continue daily activities in accordance with municipal directives, and local entrepreneurship has adapted to emergency conditions, suggesting underlying community capability to sustain essential functions."
+        },
+        {
+          "component_id": "community_capital",
+          "confidence": "medium",
+          "strengths": [
+            "Volunteer base and community resources are mobilized",
+            "Assets exist for mutual aid and community response"
+          ],
+          "concerns": [
+            "Volunteer workforce is not well-matched to actual community needs",
+            "Mismatch between available human resources and appropriate skill deployment"
+          ],
+          "narrative": "Community capital exists in the form of volunteers and available resources, but their allocation appears suboptimal. The presence of organized volunteering is positive, though effectiveness is limited by poor matching between volunteer capabilities and community needs, suggesting a coordination or assessment challenge."
+        },
+        {
+          "component_id": "leadership",
+          "confidence": "high",
+          "strengths": [
+            "Municipal council demonstrates strong, visible leadership and projects cohesion/resilience messaging",
+            "Leaders maintain direct communication channels with residents during emergencies",
+            "Leadership articulates a consistent narrative of strength and demonstrates active support"
+          ],
+          "concerns": [
+            "Residents perceive military coordination as intransparent and experiencing 'promise fatigue'",
+            "Coordination between civilian leadership and military command lacks clarity for residents",
+            "Residents request greater transparency in military-civilian coordination"
+          ],
+          "narrative": "Municipal leadership is strong and actively engaged, maintaining community contact and promoting cohesion narratives. However, leadership effectiveness is partially undermined by perceived gaps in transparency regarding military-civilian coordination and military presence decisions, which residents experience as overwhelming and uncoordinated."
+        },
+        {
+          "component_id": "belonging_solidarity",
+          "confidence": "medium",
+          "strengths": [
+            "Informal activities continue for children and youth (garden activities, youth programs)",
+            "Community organizing around social cohesion demonstrates group identity persistence"
+          ],
+          "concerns": [
+            "Social activities are constrained to 'capsule' formats, limiting organic community gathering",
+            "Program scope appears limited and compartmentalized rather than integrated"
+          ],
+          "narrative": "Social solidarity mechanisms persist through informal programming, particularly for youth and children, demonstrating continued community identity. However, activities operate within constraints (compartmentalized/capsule formats), limiting the natural, spontaneous community gatherings that typically strengthen belonging and mutual support networks."
+        },
+        {
+          "component_id": "wellbeing_atrisk",
+          "confidence": "medium",
+          "strengths": [
+            "Welfare services are active and responsive to identified needs (mattresses, shelter gaps)",
+            "Small increases in service engagement suggest appropriate help-seeking behavior"
+          ],
+          "concerns": [
+            "Elderly and mobility-limited populations struggle to access protective spaces and ventilation",
+            "Shelter infrastructure gaps directly threaten physical wellbeing of at-risk groups",
+            "Student population has self-evacuated due to safety concerns regarding shelter adequacy"
+          ],
+          "narrative": "At-risk populations—particularly elderly residents and those with mobility limitations—face acute vulnerabilities due to infrastructure gaps and shelter accessibility challenges. While welfare services are mobilized and responding, the underlying structural deficiencies in protective infrastructure create persistent physical and psychological strain, particularly around sustained confinement affecting respiratory/ventilation needs."
+        }
+      ]
+    }
+  ],
+  "saved_at": "2026-03-17T00:37:08.583Z"
+}

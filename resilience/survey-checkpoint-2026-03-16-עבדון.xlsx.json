@@ -1,0 +1,107 @@
+{
+  "municipality_assessments": [
+    {
+      "name": "עבדון",
+      "components": [
+        {
+          "component_id": "narrative",
+          "confidence": "high",
+          "strengths": [
+            "Residents are attempting to maintain routine life and normalcy despite ongoing security threats",
+            "Unlike previous operations, residents are not evacuating and choosing to remain in the settlement",
+            "Community leadership is actively working to support continuity of daily activities"
+          ],
+          "concerns": [
+            "Underlying anxiety evident from fears of infiltration and distrust in official communications",
+            "Residents report hearing unexplained noises beneath homes, indicating ongoing security concerns",
+            "Perception gap between official messaging and resident confidence in information"
+          ],
+          "narrative": "Residents of Abdon are attempting to maintain routine life despite the emergency, choosing to remain in the settlement rather than evacuate. However, there is significant underlying anxiety driven by infiltration fears and a sense that they are not receiving truthful information from authorities. The gap between resilience-seeking behaviors and genuine psychological security remains a concern."
+        },
+        {
+          "component_id": "lifesaving_behavior",
+          "confidence": "high",
+          "strengths": [
+            "Public shelters exist in the community, providing some protective infrastructure",
+            "Post-Iron Swords operation, a minority of residents have constructed private protective spaces (makhzim)"
+          ],
+          "concerns": [
+            "Majority of residents lack private protective spaces (makhzim) in their homes",
+            "Public shelters are insufficient in number and accessibility for the population",
+            "At-risk populations (elderly, disabled) cannot reach public shelters in adequate time due to distance and mobility limitations"
+          ],
+          "narrative": "Protective infrastructure gaps are substantial and create significant vulnerability. While public shelters exist, they are limited and inadequate, and most residents lack private protective spaces. The situation is particularly acute for elderly and disabled populations who cannot reach available shelters in time, creating a serious life-safety vulnerability."
+        },
+        {
+          "component_id": "functional_continuity",
+          "confidence": "medium",
+          "strengths": [
+            "Daily life continues with residents visibly present throughout the settlement—both children and adults are outdoors and active",
+            "Community activities are functioning to maintain some sense of normalcy"
+          ],
+          "concerns": [
+            "Schools are not operational; education services have been suspended",
+            "Functional continuity is partial and fragile, with critical services like education offline"
+          ],
+          "narrative": "Despite the emergency, residents are attempting to maintain daily routines with visible activity in the settlement. However, functional continuity is compromised by the closure of schools, and the sustainability of this partial normalcy remains uncertain given the security environment."
+        },
+        {
+          "component_id": "community_capital",
+          "confidence": "high",
+          "strengths": [
+            "A dedicated community coordinator (retzet kehila) is actively recruiting and organizing volunteers",
+            "Structured informal programs are operating for multiple demographics: women's evenings, children's activities, and senior activities",
+            "Community resources are being mobilized specifically to provide time-occupying activities for children to help them process the emergency"
+          ],
+          "concerns": [
+            "Community capital mobilization is primarily focused on psychological coping rather than structural resilience",
+            "Volunteer capacity and sustainability during prolonged emergency is unclear"
+          ],
+          "narrative": "Community capital is being effectively mobilized through a community coordinator who is recruiting volunteers and organizing activities across demographic groups. These efforts are purposeful, aimed at helping residents—especially children—cope emotionally with the emergency through structured informal programming."
+        },
+        {
+          "component_id": "leadership",
+          "confidence": "medium",
+          "strengths": [
+            "Leadership has clear, concrete priorities focused on protective infrastructure improvements",
+            "Authority messaging emphasizes both immediate safety (enhanced protection) and accessibility improvements to public shelters"
+          ],
+          "concerns": [
+            "Leadership message may not address underlying distrust and perception of incomplete information among residents",
+            "The focus on infrastructure improvements may not fully address psychological security concerns and infiltration anxieties"
+          ],
+          "narrative": "Settlement leadership has articulated clear priorities: enhancing protective capacity and improving public shelter logistics and accessibility. However, leadership messaging appears to focus on structural solutions while not fully addressing the deeper psychological security concerns and information trust gaps evident among residents."
+        },
+        {
+          "component_id": "belonging_solidarity",
+          "confidence": "high",
+          "strengths": [
+            "Informal community activities are regularly occurring (women's evenings, children's programs, senior activities)",
+            "Structured social programming indicates ongoing community cohesion and mutual support mechanisms",
+            "Multiple demographic groups are engaged in community-building activities"
+          ],
+          "concerns": [
+            "Informal activities, while valuable for solidarity, may mask underlying fractures in trust and information sharing"
+          ],
+          "narrative": "Belonging and solidarity are actively being constructed through structured informal community activities spanning multiple demographics. Women's evenings, children's programs, and senior activities are creating spaces for social connection and mutual support, contributing positively to community cohesion."
+        },
+        {
+          "component_id": "wellbeing_atrisk",
+          "confidence": "high",
+          "strengths": [
+            "Community is engaged in targeted outreach to at-risk populations through dedicated programming for children and seniors",
+            "Diverse demographic representation (youth to elderly) is acknowledged and being addressed"
+          ],
+          "concerns": [
+            "Elderly and disabled residents face critical accessibility barriers—unable to reach public shelters in time due to distance and mobility limitations",
+            "Public shelters have poor sanitary conditions (dampness, odor) that are particularly problematic for at-risk populations with health sensitivities",
+            "No data available on welfare department referrals, indicating potential gaps in identifying or tracking at-risk individuals needing additional support",
+            "Majority of at-risk populations lack private protective spaces, creating disproportionate vulnerability"
+          ],
+          "narrative": "At-risk populations—elderly, disabled, and diverse family structures—face compounded vulnerabilities. While community programming targets these groups, critical gaps remain: inadequate shelter accessibility, poor shelter conditions, and lack of protective space in homes. The absence of welfare referral data suggests potential blind spots in identifying those needing specialized support. Physical and mental wellbeing of vulnerable populations is at significant risk."
+        }
+      ]
+    }
+  ],
+  "saved_at": "2026-03-17T00:27:33.613Z"
+}

@@ -1,0 +1,95 @@
+{
+  "municipality_assessments": [
+    {
+      "name": "מטה אשר/לימן",
+      "components": [
+        {
+          "component_id": "narrative",
+          "confidence": "high",
+          "strengths": [
+            "Community leadership articulated clear message of trust in security responsibility",
+            "Residents show awareness of threat reality and long-term commitment despite fatigue"
+          ],
+          "concerns": [
+            "Significant erosion of trust in political and military leadership due to unfulfilled 2025 security promises",
+            "Deep concerns about community capacity to sustain psychological resilience under prolonged tension",
+            "Skepticism about protracted conflict despite acknowledgment of necessity"
+          ],
+          "narrative": "The narrative in Matte Asher/Liman is marked by profound ambivalence: residents understand the security imperative but feel betrayed by leadership failures to deliver promised protection. While formal messaging from local authority emphasizes trust in security institutions, the actual sentiment reflects loss of confidence and worry about community psychological endurance through extended conflict."
+        },
+        {
+          "component_id": "lifesaving_behavior",
+          "confidence": "medium",
+          "strengths": [
+            "Municipal leadership actively engaged in shelter construction—ongoing contractor work building protected spaces",
+            "Basic supply chain remains intact: food and medication available, medical access preserved through coordination with neighboring towns",
+            "Proximity to border informs realistic protective behavior (residents prioritize shelters over public bunkers)"
+          ],
+          "concerns": [
+            "Acknowledged gaps in shelter coverage with uneven protection status for residents",
+            "Agricultural workers face disproportionate risk across large territory with sparse protective infrastructure",
+            "Work-related travel poses significant hazards; exit behavior carries substantial unmitigated risks"
+          ],
+          "narrative": "Life-saving infrastructure is partially adequate but fragmented. While construction addresses some needs and essential services persist, gaps remain especially for agricultural populations working exposed terrain. The community demonstrates practical adaptation to border proximity but faces unresolved vulnerabilities in worker protection."
+        },
+        {
+          "component_id": "functional_continuity",
+          "confidence": "medium",
+          "strengths": [
+            "Food security and medical availability sustained through local and regional networks",
+            "Community awareness of policy compliance regarding shelter use",
+            "Residents demonstrate adaptive daily routines adapted to security realities"
+          ],
+          "concerns": [
+            "Critical gap in children's psychosocial support—no available female soldier-teachers to deliver activities despite explicit community request",
+            "Shortage of qualified personnel (teachers) resident in community available for distraction activities",
+            "Farmers cannot maintain agricultural operations safely; economic continuity severely compromised by security constraints"
+          ],
+          "narrative": "Daily functional continuity is maintained at basic level (food, medical) but psychological and educational continuity shows strain. The absence of structured activities for children and the inability of agricultural workers to sustain livelihoods represent significant functional gaps that erode both immediate wellbeing and longer-term community stability."
+        },
+        {
+          "component_id": "community_capital",
+          "confidence": "medium",
+          "strengths": [
+            "Municipal emergency response system (TZAHI) functioning effectively overall",
+            "Community demonstrates capacity for autonomous organization and collective action"
+          ],
+          "concerns": [
+            "Critical friction between available community coordinators and professional specialists (doctors, teachers) who work outside municipality and are unavailable for local emergency support",
+            "Professional expertise deployed externally—creating coordination loss when emergency response requires them"
+          ],
+          "narrative": "Community capital exists and the formal municipal response structure operates adequately, but a structural mismatch between locally-available volunteers and the professional expertise needed for specialized functions (medical, educational) undermines full resource mobilization and creates dependency on external coordination."
+        },
+        {
+          "component_id": "leadership",
+          "confidence": "medium",
+          "strengths": [
+            "Municipal authority (Rav Beshatz) actively documents security gaps and formally escalates requests through proper channels",
+            "Leadership message emphasizing trust and avoiding inflammatory communication shows restraint and institutional orientation"
+          ],
+          "concerns": [
+            "Outstanding security requests (damaged fence systems, exposed perimeter sections) remain unaddressed for extended period despite formal documentation and military awareness",
+            "Disconnect between stated trust in security authorities and actual slow response to identified vulnerabilities erodes credibility of local leadership",
+            "Limited influence of local leadership to resolve critical infrastructure gaps creates perception of powerlessness"
+          ],
+          "narrative": "Local leadership is institutionally competent and formally engaged but faces credibility strain due to inability to secure timely responses to documented security gaps. The gap between leadership rhetoric of trust and operational reality of slow military response to requests creates tension that undermines authority effectiveness."
+        },
+        {
+          "component_id": "wellbeing_atrisk",
+          "confidence": "low",
+          "strengths": [
+            "Socioeconomically stable population with resources and capacity for autonomous organization",
+            "Community demonstrates collective problem-solving ability and resilience in daily adaptation"
+          ],
+          "concerns": [
+            "Incomplete assessment data on elderly and disabled populations—only fragmentary note ('amel') recorded",
+            "No specific protective measures identified for vulnerable demographic groups despite elevated risk in border community",
+            "Psychosocial support mechanisms not established for at-risk populations experiencing prolonged stress"
+          ],
+          "narrative": "While the general population appears socioeconomically resourced, the assessment of specific at-risk subpopulations (elderly, disabled, isolated households) is insufficient. Available data suggests vulnerability exists but protective infrastructure and specialized support services remain unspecified and likely inadequate."
+        }
+      ]
+    }
+  ],
+  "saved_at": "2026-03-17T00:40:04.798Z"
+}

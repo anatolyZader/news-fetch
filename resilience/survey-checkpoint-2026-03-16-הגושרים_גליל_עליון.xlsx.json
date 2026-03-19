@@ -1,0 +1,104 @@
+{
+  "municipality_assessments": [
+    {
+      "name": "הגושרים גליל עליון",
+      "components": [
+        {
+          "component_id": "narrative",
+          "confidence": "high",
+          "strengths": [
+            "Residents demonstrate calm, measured emotional demeanor",
+            "Community operating within established emergency protocols and routines",
+            "Collective sense of order and coordinated response to security situation"
+          ],
+          "concerns": [],
+          "narrative": "The municipality exhibits a calm, stabilized narrative with residents accepting emergency conditions as part of current life rhythm. The community is functioning within established emergency protocols, suggesting psychological adaptation rather than crisis panic. This measured response reflects both institutional preparedness and community maturity in managing prolonged security challenges."
+        },
+        {
+          "component_id": "lifesaving_behavior",
+          "confidence": "medium",
+          "strengths": [
+            "Kibutz actively completing shelter construction despite security constraints",
+            "Community awareness of protection gaps and their geographic distribution",
+            "Identification of vulnerable populations lacking shelter access"
+          ],
+          "concerns": [
+            "Significant protection gaps due to incomplete construction of protected spaces (mamad)",
+            "Two older residential neighborhoods have no shelter infrastructure or plans",
+            "Elderly and chronically ill populations particularly exposed to protection deficits"
+          ],
+          "narrative": "Critical shelter protection deficiencies exist, primarily affecting two older neighborhoods and the elderly/medically vulnerable population. Construction of new protected spaces (mamadim) has stalled due to security conditions, creating a persistent gap in life-saving infrastructure. While the kibbutz demonstrates commitment to remedying this through ongoing construction, current vulnerability remains substantial for at-risk groups."
+        },
+        {
+          "component_id": "functional_continuity",
+          "confidence": "high",
+          "strengths": [
+            "Deliberate effort to maintain normative daily routines (residents walking, social activities within guidelines)",
+            "Established community resilience team providing psychosocial and holistic care",
+            "Maintained access to essential services (food purchasing, community programs within operational constraints)"
+          ],
+          "concerns": [
+            "Educational continuity disrupted, particularly early childhood programs",
+            "Functional continuity requires constant effort and remains fragile"
+          ],
+          "narrative": "The community is actively attempting to preserve normalcy through daytime routines and social engagement, supported by a dedicated resilience team offering psychological care to trauma survivors, military families, and PTSD-affected residents. However, this functional continuity requires sustained effort and faces real constraints, particularly in educational programming which remains a significant gap."
+        },
+        {
+          "component_id": "community_capital",
+          "confidence": "high",
+          "strengths": [
+            "Multi-functional TSAHI team addressing diverse community needs",
+            "Dedicated volunteer workforce for elderly employment and early childhood activities",
+            "Organized professional volunteer corps drawing from therapeutic and care backgrounds"
+          ],
+          "concerns": [],
+          "narrative": "The municipality demonstrates robust community resource mobilization with functioning TSAHI (community resilience) teams and active volunteer networks focused on vulnerable populations. Professional volunteers provide specialized psychosocial support, and organized programs target both elderly and early childhood populations, indicating effective asset mapping and deployment within the community."
+        },
+        {
+          "component_id": "leadership",
+          "confidence": "high",
+          "strengths": [
+            "Leadership messaging emphasizes situational control and resource sufficiency",
+            "Transparent communication that kibbutz possesses capacity to meet member needs",
+            "Responsive institutional framework addressing targeted economic and social concerns"
+          ],
+          "concerns": [
+            "Identified need for improved communication coordination with military and regional authorities",
+            "Leadership support needed for addressing internal security infrastructure gaps"
+          ],
+          "narrative": "Municipal leadership projects confidence and control, consistently messaging that the situation is manageable and institutional resources are available to meet community needs. While this reassuring approach strengthens cohesion, leadership recognizes gaps in military-civilian communication coordination and has identified the need for external assistance with security infrastructure planning."
+        },
+        {
+          "component_id": "belonging_solidarity",
+          "confidence": "medium",
+          "strengths": [
+            "Informal activities maintained for children within operational guidelines",
+            "Close institutional connection between leadership and elderly/special needs populations"
+          ],
+          "concerns": [
+            "Limited data on broader informal community activities and social bonding mechanisms",
+            "Informal activities appear constrained by emergency guidelines"
+          ],
+          "narrative": "The community maintains connection through informal activities, particularly for children operating within security constraints. While specific data on broader solidarity mechanisms is limited, the kibbutz's demonstrated focus on elderly engagement and special needs populations suggests functional belonging structures, though their scope may be compressed by emergency conditions."
+        },
+        {
+          "component_id": "wellbeing_atrisk",
+          "confidence": "high",
+          "strengths": [
+            "Responsive welfare services with slight increase in engagement, indicating accessibility",
+            "Targeted support for military families and trauma-affected residents",
+            "Comprehensive psychosocial care addressing anxiety, PTSD, and childhood distress"
+          ],
+          "concerns": [
+            "High proportion of elderly population (70+) with limited shelter protection",
+            "Significant PTSD prevalence from previous incidents creating chronic vulnerability",
+            "Family isolation challenges affecting military wives and relatives",
+            "Early childhood education disruption limiting developmental support for young children"
+          ],
+          "narrative": "The at-risk population experiences multiple concurrent stressors: substantial elderly demographic (70+) facing shelter vulnerabilities, widespread PTSD from historical events, military family separations, and childhood anxiety related to conflict exposure. While welfare services and a dedicated resilience team provide responsive support, the structural challenges—particularly shelter gaps and educational discontinuity—remain unresolved, placing vulnerable populations in sustained precarity."
+        }
+      ]
+    }
+  ],
+  "saved_at": "2026-03-17T00:44:50.986Z"
+}

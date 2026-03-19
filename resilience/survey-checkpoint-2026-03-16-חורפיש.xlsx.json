@@ -1,0 +1,103 @@
+{
+  "municipality_assessments": [
+    {
+      "name": "חורפיש",
+      "components": [
+        {
+          "component_id": "narrative",
+          "confidence": "high",
+          "strengths": [
+            "Municipality conveys resilience and strong sense of control and functioning during emergency",
+            "Clear narrative of a strong settlement with institutional capacity to manage crisis",
+            "Leadership successfully transmitting messages of resilience and continuity to residents"
+          ],
+          "concerns": [],
+          "narrative": "Chorifesh demonstrates a resilient community narrative centered on institutional control and capacity. The municipality projects a strong, functioning settlement despite emergency conditions, with leadership actively communicating messages of perseverance and social support to residents."
+        },
+        {
+          "component_id": "lifesaving_behavior",
+          "confidence": "medium",
+          "strengths": [
+            "Shelter protection gap (30% without protection) is addressed through comprehensive protection in all public institutions and public spaces",
+            "Systematic approach to closing protection gaps across community infrastructure",
+            "Public facilities and spaces are secured against threats"
+          ],
+          "concerns": [
+            "Approximately 30% of the population lacks personal shelter protection",
+            "Gap between private and public shelter adequacy indicates uneven distribution of protective infrastructure"
+          ],
+          "narrative": "While a significant portion of the population (30%) lacks private shelter protection, the municipality has effectively mitigated this through comprehensive protection of all public institutions and shared spaces. The protection gap has been operationally closed through strategic deployment of public shelter infrastructure."
+        },
+        {
+          "component_id": "functional_continuity",
+          "confidence": "medium",
+          "strengths": [
+            "Private businesses are resuming operations, indicating economic recovery attempts",
+            "Municipality has established full emergency routines and procedures",
+            "Clear institutional governance structures remain operational"
+          ],
+          "concerns": [
+            "Municipal authority has significantly tightened policy, restricting normal activities and services",
+            "No activity in public shelters suggests underutilization of community gathering spaces",
+            "Schools and community services remain substantially disrupted from normal operations"
+          ],
+          "narrative": "Chorifesh is operating under full emergency procedures with mixed functionality. While private sector activity is resuming, municipal policy has become restrictive, limiting normal routines. Essential services remain constrained, and public shelter spaces are inactive, creating a cautious rather than normalized operational environment."
+        },
+        {
+          "component_id": "community_capital",
+          "confidence": "high",
+          "strengths": [
+            "Large and active volunteer network operating across multiple domains",
+            "Volunteer-operated emergency triage center demonstrates organized civic engagement and capacity",
+            "Community has identified resilience champions ('נאמני חוסן') mobilizing collective resources",
+            "Daily defense forum coordination shows sustained community organizing"
+          ],
+          "concerns": [],
+          "narrative": "Chorifesh possesses substantial community capital evidenced by a robust and well-organized volunteer network. The volunteer-operated triage center and active resilience champions demonstrate strong civic mobilization and effective resource pooling at the community level, indicating high social cohesion and collective problem-solving capacity."
+        },
+        {
+          "component_id": "leadership",
+          "confidence": "high",
+          "strengths": [
+            "Clear, consistent messaging from municipal leadership focused on resilience and continuity of struggle",
+            "Leadership actively listens to resident concerns and provides social support",
+            "Authority maintains strong institutional control with effective communication mechanisms",
+            "Daily defense forums indicate regular leadership-community engagement"
+          ],
+          "concerns": [],
+          "narrative": "Municipal leadership in Chorifesh demonstrates strong institutional capacity with clear messaging around resilience and perseverance. Leadership actively communicates directives, maintains social cohesion through support messaging, and engages regularly with residents through organized forums, creating confidence in institutional direction."
+        },
+        {
+          "component_id": "belonging_solidarity",
+          "confidence": "medium",
+          "strengths": [
+            "Informal communal activities continue through digital platforms (Zoom meetings)",
+            "Evidence of social bonding and mutual support among residents during constraints"
+          ],
+          "concerns": [
+            "Digital platform reliance excludes segments of population without adequate technology access",
+            "Limited in-person informal gatherings due to emergency conditions restricts full community solidarity expression"
+          ],
+          "narrative": "Community solidarity in Chorifesh persists through informal virtual activities, primarily via Zoom, maintaining social bonds during emergency constraints. However, digital dependency creates accessibility barriers for portions of the population, limiting the comprehensiveness of informal community engagement."
+        },
+        {
+          "component_id": "wellbeing_atrisk",
+          "confidence": "medium",
+          "strengths": [
+            "Welfare department actively engaged with vulnerable populations, handling economic support requests",
+            "Targeted assistance available for small business owners, families with children, and device acquisition",
+            "Community awareness and outreach to at-risk populations through welfare services"
+          ],
+          "concerns": [
+            "Significant isolation and loneliness among elderly and disabled populations",
+            "Suspension of specialized services for elderly and women, with limited Zoom-based alternatives",
+            "Economic vulnerability of small business owners, tourism-related entrepreneurs, and self-employed workers requiring ongoing support",
+            "Among 7,000 residents, 800 individuals are welfare-recognized as vulnerable, requiring sustained support"
+          ],
+          "narrative": "Chorifesh's at-risk populations face notable hardship despite welfare department engagement. Elderly and disabled residents experience acute isolation due to service closure, with digital alternatives reaching only a minority. Economic pressures on small business owners and families are evident, though welfare services are attempting targeted interventions including device provision and direct financial assistance."
+        }
+      ]
+    }
+  ],
+  "saved_at": "2026-03-17T00:54:07.460Z"
+}

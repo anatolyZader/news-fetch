@@ -1,0 +1,95 @@
+{
+  "municipality_assessments": [
+    {
+      "name": "סאסא (מועצה אזורית גליל עליון)",
+      "components": [
+        {
+          "component_id": "narrative",
+          "confidence": "high",
+          "strengths": [
+            "Kibbutz with demonstrated high resilience and institutional memory from previous evacuations",
+            "Established security infrastructure with fresh security team and 30 mobilized standby unit members",
+            "Strong messaging from leadership emphasizing steadfastness, with residents and even former members returning to the kibbutz during operations"
+          ],
+          "concerns": [
+            "Information dissemination gaps in western neighborhood creating confusion despite situation being under control"
+          ],
+          "narrative": "Sasa is a previously evacuated kibbutz demonstrating strong institutional resilience with high morale. Leadership conveys messages of steadfastness and continuity, actively reinforced by residents' commitment to remain and returnees showing solidarity. However, targeted communication efforts are needed in certain neighborhoods to prevent confusion and maintain unified narrative."
+        },
+        {
+          "component_id": "lifesaving_behavior",
+          "confidence": "high",
+          "strengths": [
+            "Complete shelter coverage across kibbutz with protected rooms in newer homes",
+            "Established protocol ensuring all residents without personal shelter access protected spaces in communal facilities",
+            "Shelter spaces actively utilized for informal community activities, normalizing protective behavior"
+          ],
+          "concerns": [],
+          "narrative": "Protective infrastructure is comprehensive and accessible to all residents. The kibbutz has effectively integrated shelter use into daily routines through informal activities, demonstrating normalized life-saving behavior without creating panic or isolation."
+        },
+        {
+          "component_id": "functional_continuity",
+          "confidence": "high",
+          "strengths": [
+            "Complete functional continuity maintained across essential services: dining hall, laundry, and local industrial facilities continue operations",
+            "Security protocols integrated into service delivery without disrupting essential functions",
+            "Informal activities maintained within shelters, preserving psychological continuity and routine"
+          ],
+          "concerns": [],
+          "narrative": "The kibbutz has achieved full functional continuity by adapting essential services to security guidelines. Dining, laundry, and industrial operations continue while accommodating protective measures, and informal activities within shelters maintain psychological and social continuity."
+        },
+        {
+          "component_id": "community_capital",
+          "confidence": "high",
+          "strengths": [
+            "High volunteer engagement including youth actively participating in community initiatives",
+            "Creative community-led morale initiatives including 'brunch kits' for every household and pizza distributions",
+            "Dining hall leadership organizing morale-boosting activities for residents demonstrating grassroots resourcefulness"
+          ],
+          "concerns": [],
+          "narrative": "Community resources are fully mobilized with strong volunteer participation across age groups. Residents are generating creative initiatives to maintain morale and cohesion, demonstrating high social capital and collective agency in managing the emergency."
+        },
+        {
+          "component_id": "leadership",
+          "confidence": "high",
+          "strengths": [
+            "Clear and consistent messaging about resilience, steadfastness, and commitment to remaining in place",
+            "Leadership actions reinforced by returnees—former kibbutz members choosing to return during operations, amplifying confidence",
+            "Visible coordination between security command and community leadership maintaining institutional stability"
+          ],
+          "concerns": [
+            "Need to address information dissemination coordination between education/information teams to eliminate neighborhood-level confusion"
+          ],
+          "narrative": "Leadership demonstrates strong resolve and clear communication about institutional continuity and collective commitment. The return of former members during the emergency validates leadership messaging and strengthens community confidence. Coordination gaps in information dissemination require attention."
+        },
+        {
+          "component_id": "belonging_solidarity",
+          "confidence": "high",
+          "strengths": [
+            "Informal activities conducted by kibbutz-trained facilitators maintaining social cohesion",
+            "Voluntary participation and community-led initiatives demonstrating organic solidarity",
+            "Shelter spaces repurposed for informal gathering, preserving community bonds during protective measures"
+          ],
+          "concerns": [],
+          "narrative": "Strong expressions of belonging and solidarity are evident through facilitator-led informal activities and resident-generated initiatives. The kibbutz community has successfully maintained social connection and mutual support within the constraints of security protocols."
+        },
+        {
+          "component_id": "wellbeing_atrisk",
+          "confidence": "medium",
+          "strengths": [
+            "Dedicated welfare and health focal point maintaining continuous contact with municipal welfare department",
+            "Residents expressing satisfaction with welfare coordination and support access",
+            "Proactive health and welfare positioning despite proximity to border tensions"
+          ],
+          "concerns": [
+            "No targeted assessment or concerns raised regarding challenges facing elderly residents and people with disabilities",
+            "Limited detail on specific interventions or support mechanisms for at-risk populations during emergency conditions",
+            "Potential gap in specialized support documentation for vulnerable groups"
+          ],
+          "narrative": "Welfare coordination is active with a designated focal point maintaining dialogue with municipal services and residents reporting satisfaction. However, specific needs and support mechanisms for elderly residents and people with disabilities remain undocumented, suggesting either effective informal support or potential blind spots requiring attention."
+        }
+      ]
+    }
+  ],
+  "saved_at": "2026-03-17T00:18:32.459Z"
+}

@@ -1,0 +1,531 @@
+# Population Resilience Assessment
+
+| Field | Value |
+|-------|-------|
+| **Date** | 2026-03-19 |
+| **Sources** | articles-homefront.md |
+| **Articles analyzed** | 991 |
+| **Overall score** | **3/10** — 🟠 Weak |
+
+---
+
+## Executive Summary
+
+On March 19, the dominant behavioral reality across all eight components is one of sustained functional strain under continued missile fire. Residents are navigating a daily cycle of nighttime alerts, repeated shelter runs, and fragmented access to basic services — while community capital and leadership structures remain relatively active. Scores for narrative, information_communication, lifesaving_behavior, functional_continuity, belonging_solidarity, and wellbeing_atrisk are all at 1/10, indicating that the population's protective behaviors, institutional communication channels, and social cohesion are failing to keep pace with the demands of the emergency. Hospitalization since the operation's start has reached 3,924 people, with 177 in a single 24-hour period; 825 were injured entering shelters and 3 killed in shelter-related incidents — figures that have held at crisis level across three consecutive days without meaningful improvement.
+
+The two components holding at high scores — community capital (10/10) and leadership (10/10) — reflect continued formal and informal mobilization: pharmacists delivering medications to homebound elderly residents via WhatsApp networks, structural engineers volunteering to assess missile-damaged buildings, a recruitment cycle for air defense nearly double normal size, and Home Front Command leadership issuing updated regional guidance and visiting incident sites. However, these strengths are operating in a context of widening gaps: Arab municipalities in the Galilee have no public shelters; 200 detained foreign workers at the Givon facility have no shelter access at all; hundreds of HMO clinics remain closed for lack of protective infrastructure; and a coordinated Iranian phishing campaign is actively degrading the information environment by impersonating Home Front Command SMS alerts. The behavioral picture is one in which organized response structures are functioning but are structurally unable to reach all populations, while the broader population shows increasing signs of cumulative fatigue, non-compliance, and internal civil tension.
+
+---
+
+## Component Scores
+
+| # | Component | עברית | Score | Status | Confidence |
+|---|-----------|-------|-------|--------|------------|
+| 1 | Narrative | נרטיב | 1/10 | 🔴 Critical | high |
+| 2 | Information, Communication, and Sharing | מידע, תקשורת ושיתוף | 1/10 | 🔴 Critical | high |
+| 3 | Effective Life-Saving Behavior | התנהגות אפקטיבית להצלת חיים | 1/10 | 🔴 Critical | high |
+| 4 | Functional Continuity | רציפות תפקודית | 1/10 | 🔴 Critical | high |
+| 5 | Community Capital and Resources | הון ומשאבי קהילה | 10/10 | 🟢 Strong | high |
+| 6 | Leadership | מנהיגות | 10/10 | 🟢 Strong | high |
+| 7 | Belonging and Solidarity | שייכות וסולידריות | 1/10 | 🔴 Critical | high |
+| 8 | Physical and Mental Wellbeing (At-Risk Populations) | דאגה לרווחה הפיזית והנפשית בדגש על אוכלוסיות סיכון | 1/10 | 🔴 Critical | high |
+
+---
+
+## Detailed Analysis
+
+### 📖 Narrative
+*נרטיב*
+
+**Score:** 1/10 — 🔴 Critical &nbsp;|&nbsp; **Confidence:** high &nbsp;|&nbsp; **Signals:** 70
+
+Two contradictory behavioral narratives coexist in the population on this date, but they are not equally distributed. A minority narrative of strategic resilience circulates among some institutional voices and specific individuals — new immigrants reframing wartime arrival as homecoming, a national survey characterizing the public as 'realistic and strategically hopeful,' Israel maintaining its global happiness ranking — while the dominant behavioral register is one of cumulative psychological erosion. Residents are asking publicly how to find the will to get out of bed; a Kiryat Shmona resident explicitly rejects normalization, describing conditions without functional sanitation in shelters; and released hostages report that sirens and explosions re-trigger captivity memories, making recovery narratives inaccessible to them ([source](https://news.walla.co.il/item/3824942)). A coordinated Iranian phishing campaign, distributing messages impersonating Home Front Command and claiming the Prime Minister's death, is actively competing with official communications in the population's information space. Multiple incidents of ethnically and religiously motivated violence on the same day — attacks on Arab residents, Haredi extremists injuring police, property destruction in a public shelter in Arad — indicate that the absence of a unifying coping narrative is creating space for fragmented and adversarial sub-narratives. This pattern has persisted across three consecutive reporting days without measurable improvement.
+
+**Positive behavioral signals:**
+- A national survey described the Israeli public as 'realistic, clear-eyed, and strategically hopeful' rather than either naive or cynical, suggesting a resilient orientation among some segments ([source](https://www.inn.co.il/news/692606))
+- Israel ranked 8th in the World Happiness Report 2026 despite ongoing multi-front war, maintaining the same position as the previous year ([source](https://www.timesofisrael.com/despite-war-israel-ranks-8th-in-global-happiness-survey-same-as-last-year/))
+- The Luzon family chose to rebuild their home after a direct hit, demonstrating a willingness to remain and reconstitute daily life ([source](https://www.inn.co.il/news/692622))
+- New immigrants Edna (73) and Thomas (81) framed their wartime arrival as a homecoming rather than an evacuation: 'We are not afraid, Israel is our homeland' ([source](https://www.ynet.co.il/judaism/article/yokra14713464))
+
+**Negative behavioral signals:**
+- Community health network Kamoni reports users asking: 'How do you find strength to get out of bed?', 'How do you find taste for life?' — reflecting a population in psychological crisis with no functional coping narrative ([source](https://www.ynet.co.il/health/medicalplus/article/sk11dedkqbl))
+- A Kiryat Shmona resident stated: 'The erosion has already crossed borders: it is no longer just another day' — explicitly rejecting normalization of the emergency ([source](https://www.maariv.co.il/news/israel/article-1298193))
+- Former IDF Home Front Command officer Dadi Shamhi voiced the population's perceived choice as: 'Run to shelters for a year or they will slaughter your children' — a framing of existential threat without viable resolution ([source](https://www.maariv.co.il/news/military/article-1298342))
+- A coordinated Iranian phishing campaign distributed SMS messages falsely claiming 'Netanyahu is dead. Death is approaching you' — actively injecting a hostile counter-narrative into the population's information environment ([source](https://www.mako.co.il/nexter-news/Article-8f838ecacc40d91026.htm))
+- Released hostage Luis Har stated: 'We will live with captivity for the rest of our lives' — indicating that even those who have returned from captivity cannot access a recovery narrative ([source](https://www.jpost.com/israel-news/article-890591))
+- Multiple episodes of intra-community violence — including an assault on an Arab bus driver by approximately 10 passengers ([source](https://cursorinfo.co.il/israel-news/napadenie-na-voditelya-iz-ierusalima-menya-izbivali-bolee-10-chelovek/)), violent ultra-Orthodox protests injuring police officers ([source](https://www.srugim.co.il/news/1300056)), and an attempted lynching of a Jewish shepherd ([source](https://www.israelnationalnews.com/news/424254)) — reflect a narrative environment in which shared fate is not translating into shared conduct
+
+---
+
+### 📡 Information, Communication, and Sharing
+*מידע, תקשורת ושיתוף*
+
+**Score:** 1/10 — 🔴 Critical &nbsp;|&nbsp; **Confidence:** high &nbsp;|&nbsp; **Signals:** 32
+
+The information environment on March 19 is defined by a functional split: official guidance channels are active and producing differentiated, region-specific content — Home Front Command leadership is present at incident sites, shelter lists are published with announced update times, and mapping applications have integrated real-time shelter data — while the population's ability to distinguish legitimate from fraudulent communications has been materially degraded. A coordinated Iranian phishing operation distributed SMS messages impersonating Home Front Command, using official language and inserted into existing authentic message threads, resulting in widespread confusion between genuine alerts and attack vectors. The National Cyber Directorate issued warnings, but the warnings themselves confirm the confusion is occurring at scale. Operational information gaps compound the problem: a delay between missile detection and alert activation leaves residents with less warning than the technology permits, and airline passengers missed evacuation flights due to unannounced schedule changes. Compared to the prior two days — when information_communication scored 6/10 and 7/10 respectively — today's score of 1/10 reflects a qualitative shift in which adversarial interference has effectively neutralized the trust dimension of official communication.
+
+**Positive behavioral signals:**
+- Home Front Command commander Shai Klapper arrived at incident sites and issued direct public guidance: 'Being under standard protective structure saves lives' ([source](https://news.walla.co.il/break/3824806))
+- The IDF spokesperson announced updated Home Front Command defense policy, providing regionally differentiated guidance effective from March 22 ([source](https://www.mako.co.il/pzm-soldiers/Article-04f9ff074f50d91026.htm))
+- Home Front Command formally published a detailed list of settlements authorized to resume studies, with an announced update time of 20:00 ([source](https://www.srugim.co.il/news/1300096))
+- Waze and Google Maps integrated real-time Home Front Command shelter-location data, providing residents with navigation to the nearest available shelter during alerts ([source](https://cursorinfo.co.il/israel-news/google-maps-i-waze-vnedrili-poleznuyu-funktsiyu-dlya-izrailtyan/))
+
+**Negative behavioral signals:**
+- A coordinated phishing campaign distributed SMS messages impersonating Home Front Command with the sender name 'oref,' official language, and a heart emoji, sometimes inserted into existing legitimate message threads — making identification as fraud difficult for recipients ([source](https://www.ynet.co.il/digital/technews/article/r1ufzxtqzx))
+- Iranian actors sent threatening messages in Hebrew stating 'Netanyahu is dead. Death is approaching you,' simultaneously degrading both trust in communications and psychological safety ([source](https://www.mako.co.il/nexter-news/Article-8f838ecacc40d91026.htm))
+- The National Cyber Directorate confirmed that residents are confusing fraudulent and official messages — the warning itself acknowledges a resolved channel of confusion ([source](https://0404.co.il/article/1131088))
+- Approximately 20 passengers, including one couple, missed an El Al rescue flight from Sofia because departure was moved up three hours without notification by email or message ([source](https://www.mako.co.il/travel-news/israel/Article-e1be7a5f1360d91026.htm))
+- Alert detection systems identify launches 15 seconds to 1.5 minutes before activation, but alerts are not activated immediately — meaning citizens receive less advance warning than available technology permits ([source](https://www.inn.co.il/news/692686))
+- A Knesset Education Committee hearing revealed that 450 of the 750 total attendance officers nationwide are missing, and only 350,000 shekels are allocated for dropout prevention for 100,000 Jerusalem students — indicating a structural information and monitoring gap in the education system ([source](https://www.calcalist.co.il/local_news/article/rk8q6wtcbe))
+
+---
+
+### 🛡️ Effective Life-Saving Behavior
+*התנהגות אפקטיבית להצלת חיים*
+
+**Score:** 1/10 — 🔴 Critical &nbsp;|&nbsp; **Confidence:** high &nbsp;|&nbsp; **Signals:** 53
+
+Compliance with shelter protocols is occurring and is demonstrably saving lives — the case of 24 of 25 workers surviving by sheltering while the one who did not was killed provides direct evidence of the behavioral protection differential. However, compliance is generating its own injury toll: 825 people have been injured reaching shelters since the operation began, 3 have been killed in shelter-related incidents, and a pedestrian was struck and killed during an alert. This pattern, consistent across all three reporting days, indicates that the physical and procedural conditions of compliance remain unsafe. A structural non-compliance gap — distinct from behavioral non-compliance — is present and widening: crane operators at height cannot descend in time, Arab municipalities have no shelters to comply with, 200 detained foreign workers have no shelter access at all, and buildings without protected spaces leave residents choosing between an internal room and exposure. Behavioral non-compliance is also evident, particularly among youth and in cases of shelter misuse, but this is secondary to the infrastructure failure that makes compliance impossible for identifiable population segments.
+
+**Positive behavioral signals:**
+- A station manager at Tel Aviv Central Station led passengers and staff into protected areas at 00:17; three minutes later, strong explosions were heard with shrapnel hitting the platform — demonstrating that compliance produced measurable protection ([source](https://www.ynet.co.il/wheels/article/sychfy00c11l))
+- A family member reported entering the safe room with children immediately upon the siren, before a cluster missile struck their home seconds after they departed — compliance described as a 'miracle' by the family ([source](https://www.ynetnews.com/article/bknvxdt5wg))
+- Of 25 workers present during a missile strike, 24 who sheltered in a protected space survived; the one Thai worker who did not was killed — directly confirming the life-saving effect of compliance ([source](https://www.bhol.co.il/news/1722264))
+- Residents of central Israel entered protected spaces during morning launches, and a training football match was interrupted to move players to shelter during an alert ([source](https://www.one.co.il/Article/517524.html))
+
+**Negative behavioral signals:**
+- 825 people have been injured entering protected spaces since the operation began, with 3 killed and 19 injured in road accidents during alerts (Magen David Adom data) — indicating that the act of compliance itself is generating casualties ([source](https://www.maariv.co.il/breaking-news/article-1298609))
+- A pedestrian was killed in a hit-and-run in Haifa during a missile alert, struck by a driver who fled the scene ([source](https://www.israelnationalnews.com/news/424256))
+- A crane operator working at 75 meters height stated: 'I have no way to take shelter where I am. Closing the crane takes at least 5 minutes and descending takes another 7' — describing an occupational category structurally excluded from compliance ([source](https://www.inn.co.il/news/692638))
+- Four people were injured in a direct hit on a building in Kiryat Shmona where there was no protected space — residents had no compliant option available ([source](https://www.mako.co.il/news-military/2026_q1/Article-e8c9c5693d60d91026.htm))
+- Arab municipalities in the Galilee have no public shelters and no protected rooms, leaving entire communities structurally unable to comply ([source](https://www.mako.co.il/finances-real-estate/Article-310dd69d6f60d91027.htm))
+- A teenager told a parent: 'I'm going out tonight, all my friends are meeting, and I'm tired of being stuck at home' despite ongoing alerts — reflecting fatigue-driven non-compliance among youth ([source](https://www.ynet.co.il/laisha/article/rjdja8ncbl))
+- Someone converted a public shelter into a sauna; an elderly woman blocked a shelter entrance with her body during an alert; a man with a dog was denied entry — all three cases illustrating shelter access failures at the point of use ([source](https://www.globes.co.il/news/article.aspx?did=1001537982))
+
+---
+
+### ⚙️ Functional Continuity
+*רציפות תפקודית*
+
+**Score:** 1/10 — 🔴 Critical &nbsp;|&nbsp; **Confidence:** high &nbsp;|&nbsp; **Signals:** 87
+
+Functional continuity on March 19 is characterized by a widening split between partial service restoration at the institutional level and ongoing collapse at the household and commercial level. Education authorities have authorized phased reopening in additional settlement clusters, the Gush Dan light rail is set to resume partial elevated service, and primary healthcare is reporting 90% in-person attendance — these are meaningful signals of institutional recovery effort. At the same time, hundreds of HMO clinics remain closed for lack of shelter infrastructure, all Israir flights are cancelled through March 31, commercial operations are described as entirely random by business owners, and a direct strike on Haifa's refinery complex produced widespread power outages across northern Israel. The cumulative hospital admission count of 3,924 since the operation's start, with 177 in the most recent 24 hours, reflects a medical system sustaining continuous high-volume emergency demand. Remote learning, where it operates at all, is functionally degraded: teachers report that most students do not activate cameras and do not respond. The functional continuity score of 1/10 is consistent with the two prior days, with no measurable improvement in the overall household-level experience despite incremental institutional actions.
+
+**Positive behavioral signals:**
+- Home Front Command authorized resumption of studies in multiple new settlement clusters — South Golan, Lower Galilee, Mount Carmel, Wadi Ara, Manashe, Judean Lowlands, Lachish — indicating a gradual, structured re-opening of education ([source](https://www.inn.co.il/news/692689))
+- The light rail in Gush Dan is set to resume partial operation on elevated sections starting Monday, after 24 days of full shutdown, with underground stations remaining available as shelters ([source](https://www.themarker.com/news/transport/2026-03-19/ty-article/0000019d-0743-df92-a9fd-efc3385f0000))
+- Maccabi HMO director reported that 90% of patients are arriving in person to clinics, indicating substantial continuity in primary healthcare access ([source](https://news.walla.co.il/break/3824967))
+- The settlement of Homesh was reconnected to the national electricity grid, completing infrastructure restoration work ([source](https://www.inn.co.il/news/692636))
+- Waze and Google Maps integrated real-time shelter navigation for drivers, providing a continuity-support tool for those who must remain on the road ([source](https://cursorinfo.co.il/israel-news/google-maps-i-waze-vnedrili-poleznuyu-funktsiyu-dlya-izrailtyan/))
+
+**Negative behavioral signals:**
+- Hundreds of HMO clinics have not operated since the operation began due to lack of protective shelters — a direct healthcare access gap at scale ([source](https://www.ynet.co.il/health/article/yokra14713258))
+- Israir cancelled all scheduled flights through March 31 and suspended ticket sales through April 30; El Al cancelled flights for another week and announced that Home Front Command restrictions will prevent 50% of US-bound passengers from departing ([source](https://www.timesofisrael.com/liveblog_entry/in-blow-to-passover-travel-israir-nixes-regularly-scheduled-flights-through-march-31/))
+- A business owner stated: 'Today there's a worker so we opened, tomorrow will be closed. Everything is random' — characterizing commercial operations as entirely contingency-dependent ([source](https://www.haaretz.co.il/tmr/career/2026-03-19/ty-article-magazine/.premium/0000019d-01f2-da5c-a3bd-0ff285de0000))
+- In a northern city, approximately 30% of residents have not returned and approximately 40% of small businesses have shut down permanently ([source](https://www.ynetnews.com/article/h1c74h00qzg))
+- A teacher described remote learning: 'It is very tough. The children are not concentrated. Maybe two turn on camera... there's no response from the other side' ([source](http://news.walla.co.il/item/3824934))
+- A direct missile strike on refinery facilities in Haifa Bay caused significant infrastructure disruption and widespread power outages across northern regions ([source](https://www.srugim.co.il/news/1300079))
+- 3,924 people have been hospitalized since the operation began, with 177 in the past 24 hours alone — indicating sustained medical system demand at levels requiring emergency protocols ([source](https://www.newsru.co.il/health/19mar2026/minzdrav501.html))
+
+---
+
+### 🤝 Community Capital and Resources
+*הון ומשאבי קהילה*
+
+**Score:** 10/10 — 🟢 Strong &nbsp;|&nbsp; **Confidence:** high &nbsp;|&nbsp; **Signals:** 28
+
+Community capital remains the highest-functioning component of the resilience system on March 19, maintaining its 10/10 score and continuing the pattern established across prior reporting days. Multiple concurrent mobilizations are documented: neighborhood-level WhatsApp coordination enabling pharmacists to reach homebound elderly residents; volunteer structural engineers responding to an exceptional government call; air defense recruitment at nearly double normal volume with 50% female participation; and a private-sector hotel initiative reaching approximately 100 properties. Cross-sector cooperation is evident in the coordination between municipal leaders, state ministries, and formal institutions. However, a differential reach problem persists and is becoming more explicitly documented: Arab municipalities in the Galilee have formally presented to the Interior Ministry evidence that their communities have no shelters and no protected rooms, placing them outside the reach of all community capital activity however well-organized. The 200 foreign nationals detained at Givon — documented by court supervision protocol to have no shelter access — represent an additional population entirely excluded from community mobilization networks. The score reflects the vitality of the mobilization where it is active, but the trend across three days is that structural exclusion of specific populations remains unaddressed.
+
+**Positive behavioral signals:**
+- Clalit pharmacists in the Petah Tikva district are identifying elderly and disabled residents through neighborhood WhatsApp groups and delivering medications to their doors — a community-embedded, volunteer-driven service model ([source](https://www.maariv.co.il/hamekomon/petah-tikva/article-1298382))
+- The Ministry of Construction and Housing issued an exceptional call for structural engineers to volunteer in assessing missile-damaged buildings, with reported uptake ([source](https://www.mako.co.il/finances-real-estate/Article-ee4ad69d6f60d91027.htm))
+- Air defense recruitment reached nearly double the normal cycle size, with 50% of recruits being women volunteers ([source](https://www.maariv.co.il/news/military/article-1298337))
+- KKL-JNF approved a 6 million NIS emergency assistance package for residents within 2 kilometers of the northern border ([source](https://www.jpost.com/israel-news/article-890504))
+- Government ministers presented a comprehensive 5 billion NIS development plan for frontier settlements plus 50 million NIS in immediate home front aid ([source](https://www.inn.co.il/flashes/1103196))
+- Dozens of volunteers, including Harley Davidson riders, organized independently to reopen the Ein Jones hot spring to the public after it was filled with gravel ([source](https://www.mako.co.il/travel-news/israel/Article-f969faec5000d91027.htm))
+- Approximately 100 hotels joined an initiative providing northern residents a free third night, representing private-sector cross-sectoral mobilization ([source](https://www.maariv.co.il/lifestyle/travel/article-1298062))
+
+**Negative behavioral signals:**
+- Arab municipalities in the Galilee Valleys cluster lack public shelters and protected rooms entirely, with 15+ municipal heads formally demanding emergency budget transfers — indicating that community capital mobilization has not reached structurally under-resourced communities ([source](https://www.mako.co.il/finances-real-estate/Article-310dd69d6f60d91027.htm))
+- 200 detained foreign workers at the Givon facility have no bomb shelter access according to court supervision records — a group entirely outside community capital networks ([source](https://www.vesty.co.il/main/article/rkvdtikqbe))
+- The state lacks an efficient compensation mechanism for self-employed workers despite nearly three years of conflict — indicating a structural gap in formal community capital infrastructure ([source](https://www.maariv.co.il/economy/israel/article-1298352))
+
+---
+
+### 👤 Leadership
+*מנהיגות*
+
+**Score:** 10/10 — 🟢 Strong &nbsp;|&nbsp; **Confidence:** high &nbsp;|&nbsp; **Signals:** 22
+
+Leadership maintained its 10/10 score on March 19, with formal leaders demonstrating visible presence and structured decision-making across multiple domains simultaneously. The Home Front Command commander was on-site at incident locations, the President toured emergency hospital infrastructure within 24 hours of its establishment, the Jerusalem district commander ordered same-day officer suspension following a publicized incident, and regional education reopening guidance was issued with structured update times. These behaviors reflect a leadership system that is active, visible, and producing outputs. However, two domains within leadership's scope are showing performance gaps that are not captured in presence or guidance activity: the IDF Chief of Staff's public acknowledgment of increasing nationalist crime reflects a law-and-order failure occurring under leadership's watch, and the Manufacturers Association's public demand for an economic compensation mechanism indicates that the economic dimension of the emergency has not received a functioning leadership response after nearly three years of conflict. The leadership score reflects the strong operational and communication posture while these functional gaps — in economic compensation and inter-communal security — are noted as areas where visible presence has not yet translated into behavioral change.
+
+**Positive behavioral signals:**
+- Home Front Command commander Shai Klapper arrived at incident sites and stated publicly: 'From here I emphasize the importance of heeding Home Front Command guidelines — being in standard protected areas saves lives' ([source](https://0404.co.il/article/1131061))
+- President Herzog visited the underground emergency hospital at Shaare Zedek, touring fortified floors established within 24 hours of the operation's start and speaking with patients and staff ([source](https://www.israelnationalnews.com/news/424202))
+- The Jerusalem district commander ordered immediate suspension of officers involved in a baby carriage incident and initiated investigation — demonstrating a rapid accountability response ([source](https://www.bhol.co.il/news/1722276))
+- Home Front Command issued regionally differentiated education reopening lists with announced update times, providing structured, predictable guidance ([source](https://www.srugim.co.il/news/1300098))
+- Ramat Gan Mayor Carmel Shama-Hacohen was present at the site of a deadly strike in his city and spoke with media ([source](https://www.israelnationalnews.com/news/424200))
+- Interior Ministry and IDF coordinated to reschedule Acre city council elections for March 24, with provisions for soldiers and residents to vote — maintaining democratic function under emergency conditions ([source](https://www.kipa.co.il/%D7%97%D7%93%D7%A9%D7%95%D7%AA/1221382-0/))
+
+**Negative behavioral signals:**
+- IDF Chief of Staff warned of a 'large increase in nationalist crime' including stone-throwing at Arab residents and IDF soldiers — a public safety failure occurring within the leadership's operational domain ([source](https://www.maariv.co.il/news/politics/article-1298430))
+- A Knesset Education Committee hearing revealed that 450 of 750 total attendance officers are absent nationwide, with only 350,000 shekels allocated for 100,000 Jerusalem students — an institutional oversight failure identified within formal leadership structures ([source](https://www.calcalist.co.il/local_news/article/rk8q6wtcbe))
+- The Manufacturers Association president stated publicly: 'I told the government: we need a compensation button that gets pressed when the economy shuts down' — framing the absence of economic leadership response as a structural failure ([source](https://www.globes.co.il/news/article.aspx?did=1001537824))
+- A phishing campaign successfully impersonated Home Front Command communications at scale, degrading trust in official channels — a cyber-security failure with direct implications for leadership communication authority
+
+---
+
+### 🔗 Belonging and Solidarity
+*שייכות וסולידריות*
+
+**Score:** 1/10 — 🔴 Critical &nbsp;|&nbsp; **Confidence:** high &nbsp;|&nbsp; **Signals:** 26
+
+Belonging and solidarity on March 19 present a marked split between localized mutual aid behaviors and documented intra-community exclusion and violence. At the household and neighborhood level, small-scale solidarity acts are occurring: pharmacists reaching the homebound, an elected official guiding a mother with infants to shelter during a siren, and residents organizing informally to restore a public recreational space. At the communal and inter-group level, however, the picture is one of fragmentation. An Arab bus driver was hospitalized after being attacked by approximately 10 passengers solely on the basis of his ethnicity; the IDF Chief of Staff publicly characterized the increase in nationalist crime as requiring command-level attention; ultra-Orthodox protesters engaged in violent clashes in Jerusalem that injured police officers and targeted construction workers; and an intra-community conflict in Arad escalated to vandalism of a shared public shelter. The belonging score of 1/10 — consistent with the prior day and a decline from 6/10 on March 17 — reflects this trajectory: the emergency is producing both small-scale solidarity and active inter-group hostility, and the latter is occurring at a scale and frequency that is displacing the former as the dominant behavioral pattern.
+
+**Positive behavioral signals:**
+- Pharmacists are identifying and reaching homebound elderly and disabled residents via neighborhood WhatsApp groups and delivering medications to their doors ([source](https://www.maariv.co.il/hamekomon/petah-tikva/article-1298382))
+- MK Osher Shkalim immediately assisted a woman with two babies during a siren, guiding them to a nearby protected space ([source](https://0404.co.il/article/1131157))
+- Dozens of volunteers, including Harley Davidson riders, organized independently to reopen a public recreational space, reflecting informal solidarity action ([source](https://www.mako.co.il/travel-news/israel/Article-f969faec5000d91027.htm))
+- A divorced couple and the husband's current partner are sharing a single safe room during alerts and maintaining cooperative relations — a small-scale solidarity behavior reported as positive by participants ([source](https://www.ynetnews.com/magazine/article/hynhblkc11l))
+
+**Negative behavioral signals:**
+- An East Jerusalem bus driver was beaten by approximately 10 passengers specifically because he is Arab; he stated: 'They beat me brutally. I woke up only in the hospital' ([source](https://cursorinfo.co.il/israel-news/napadenie-na-voditelya-iz-ierusalima-menya-izbivali-bolee-10-jelovek/))
+- The IDF Chief of Staff publicly warned of increasing nationalist crime, including stone attacks on Arab residents ([source](https://www.maariv.co.il/news/politics/article-1298430))
+- Hundreds of ultra-Orthodox protesters gathered in violent clashes in Jerusalem, injuring police officers, biting a police officer, and attacking construction workers — with police deploying dozens of stun grenades ([source](https://www.srugim.co.il/news/1300056))
+- A resident was arrested for incitement after hanging signs against security forces; supporters subsequently blocked access to an entire town ([source](https://www.maariv.co.il/news/law/article-1298474))
+- Tensions in Arad between secular residents and the Gur Hasidic community escalated to vandalism of a public shelter under renovation — a community conflict directly implicating shared emergency infrastructure ([source](https://www.inn.co.il/news/692681))
+- An elderly woman blocked a shelter entrance with her body during an alert, preventing others from sheltering — a direct exclusion act in a life-safety context ([source](https://www.globes.co.il/news/article.aspx?did=1001537212))
+- Tel Aviv residents are described as fleeing to parents' homes, with the city emptying and businesses unable to maintain operations — indicating social dispersal rather than solidarity consolidation ([source](https://www.haaretz.co.il/tmr/career/2026-03-19/ty-article-magazine/.premium/0000019d-01f2-da5c-a3bd-0ff285de0000))
+
+---
+
+### ❤️ Physical and Mental Wellbeing (At-Risk Populations)
+*דאגה לרווחה הפיזית והנפשית בדגש על אוכלוסיות סיכון*
+
+**Score:** 1/10 — 🔴 Critical &nbsp;|&nbsp; **Confidence:** high &nbsp;|&nbsp; **Signals:** 118
+
+The wellbeing response system on March 19 is characterized by targeted actions that do not constitute a comprehensive at-risk population framework. Specific measures are documented and operational: pharmacists reaching homebound elderly via neighborhood networks, vaccination services relocated to protected hospital facilities, geriatric patients evacuated via ambulance convoy to protected care. These responses demonstrate that the system retains capacity to act for identifiable populations when a direct mechanism is available. However, multiple at-risk groups remain without a documented response: 200 detained foreign workers have no shelter access and report active psychological distress; released hostages are being re-traumatized by sirens and explosions with no specific support system described; elderly residents in physically inaccessible buildings are sheltering in place by default rather than by plan; and children in crowded, poorly ventilated shelters are developing measurable physical illness. The psychological burden documented by the Kamoni community health network — users asking how to find the will to get out of bed — reflects a population-level mental health deterioration for which the visible system response is absent. The wellbeing_atrisk score of 1/10, consistent across all three reporting days, reflects not an absence of at-risk populations but an absence of a system capable of reaching them.
+
+**Positive behavioral signals:**
+- Clalit pharmacists are proactively identifying and reaching elderly and disabled residents through WhatsApp, delivering medications to their doors — a targeted response to a specific at-risk population ([source](https://www.maariv.co.il/hamekomon/petah-tikva/article-1298382))
+- The Ministry of Health advanced a student vaccination program for the first time in a protected underground facility at Assuta Ramat HaHayal hospital, maintaining a preventive health service under emergency conditions ([source](https://news.walla.co.il/item/3824835))
+- KKL-JNF approved a 6 million NIS emergency package specifically for residents within 2 kilometers of the northern border ([source](https://www.jpost.com/israel-news/article-890504))
+- Patients from rehabilitation and geriatric centers were evacuated via dozens of ambulances to protected hospital facilities — indicating the system is attempting to maintain continuity of care for the most vulnerable ([source](https://www.ynet.co.il/health/article/byf7y3f5wl))
+
+**Negative behavioral signals:**
+- The community health network Kamoni reports users asking: 'How do you find strength to get out of bed?', 'What do you do when your symptoms have gotten so much worse?' — reflecting unaddressed psychological crisis at scale ([source](https://www.ynet.co.il/health/medicalplus/article/sk11dedkqbl))
+- A detained foreign national described his conditions: 'I don't feel okay. There is no shelter here. I saw on the news that shrapnel fell in the area. I'm not sleeping well' — 200 detained foreign workers at the Givon facility have no shelter protection ([source](https://www.vesty.co.il/main/article/rkvdtikqbe))
+- Hundreds of HMO clinics remain closed due to lack of protective infrastructure — reducing access to primary care for populations with ongoing medical needs ([source](https://www.ynet.co.il/health/article/yokra14713258))
+- An 84-year-old woman is spending days in and out of shelter; elderly residents in one neglected building cannot reach the nearest shelter 700 meters away due to stairs, and stay home 'hoping for the best' ([source](https://www.ynet.co.il/economy/article/hjy0udkcwx))
+- Released hostages report that sirens and explosions trigger memories of captivity — a specific at-risk population for whom the current environment is re-traumatizing, with no specific response system described ([source](https://www.jpost.com/israel-news/article-890591))
+- Children in shelters are developing respiratory and flu-like symptoms from crowded, poorly ventilated conditions; pediatric wellbeing is deteriorating with kindergartens closed for weeks ([source](https://www.mako.co.il/health-news/Article-f80113d40850d91026.htm))
+- Tel Aviv University research confirms that public shelter use is associated with the poorest sleep quality — a measurable physical health impact on the largest shelter-using population ([source](https://www.globes.co.il/news/article.aspx?did=1001537980))
+- A professor of women's rights stated that war is increasing domestic violence risk, and uncontrolled weapons distribution is creating 'a very worrying risk factor for women' — identifying a population whose needs are not addressed in visible emergency response frameworks ([source](https://www.calcalist.co.il/local_news/article/sklyaro5ze))
+
+---
+
+## Evidence Quality
+
+Signal quality is high overall, with a substantial proportion of direct resident and official quotes — including named individuals, verbatim statements, and specific numerical data from Magen David Adom and Health Ministry — though a portion of Hebrew-language signals are paraphrased summaries rather than direct quotes.
+
+---
+
+## Signal Evidence (with article links)
+
+### `calm_confidence` (3)
+- "Edna, age 73, and Thomas, age 81, immigrated to Israel during wartime: 'From our perspective this wasn't an evacuation flight. We simply made aliyah. We are not afraid, Israel is our homeland'" — [source](https://www.ynet.co.il/judaism/article/yokra14713464)
+- "Team coach Ahuod Kahila reports high motivation despite military operation: 'We want to fulfill a dream'" — [source](https://www.one.co.il/Article/517515.html)
+- "Standup comedian Yochai Sponder described the Civil Defense siren as 'the roar of a wounded dragon' — residents gradually becoming accustomed to alerts, no longer jumping; fewer tears, less anger" — [source](https://www.globes.co.il/news/article.aspx?did=1001538058)
+
+### `community_volunteering` (6)
+- "Pharmacists from Clalit in the Petah Tikva district are going out to patients who cannot leave their homes, identifying elderly people and people with disabilities in neighborhood WhatsApp groups and bringing medicines to their door." — [source](https://www.maariv.co.il/hamekomon/petah-tikva/article-1298382)
+- "Many volunteers arrived at Ein Jones hot spring to reopen it to the public after it was filled with gravel for repairs. Among them were dozens of Harley Davidson riders who helped extract the gravel from the water" — [source](https://www.mako.co.il/travel-news/israel/Article-f969faec5000d91027.htm)
+- "משפחות גרעיני ההתיישבות ואנשי תנועת נחלה הודיעים על קיומו של ליל סדר חגיגי בגבול עזה בסימן הודיה על הניסים הגדולים במלחמה" — [source](https://www.inn.co.il/flashes/1103062)
+- "דניאלה וייס, יו"ר נחלה, הצהירה כי 'זוהי שעת רצון היסטורית לעם ישראל'. משפחות גרעיני ההתיישבות יחד עם פעילים הודיעו על ליל סדר בגבול עזה" — [source](https://www.inn.co.il/news/692616)
+- "אליענה פסנטין, אם לשמונה ילדים וסבתא לארבעה נכדים, מקבלת פניות רבות באופן יומיומי מארצות הברית לסייע בהסברה על חיי היום-יום בישראל בצל המלחמה" — [source](https://www.inn.co.il/news/692604)
+- "תושבים ערניים הזעיקו את המשטרה ועזרו לעצור חשוד בעקבות ערנות אזרחית וזיהוי משוער לפי ביגוד" — [source](https://www.bhol.co.il/news/1722247)
+
+### `compliance_enter_shelter` (11)
+- "Tali and Shai, divorced for 8 years, are now sheltering together in the family bomb shelter during alerts with Shai's current partner Sharon: 'They sit next to each other and laugh at me'" — [source](https://www.ynet.co.il/laisha/plus/article/s111zrgd9bl)
+- "During alert at 00:17, station manager Meni Netani quickly led passengers and staff into protected areas of Tel Aviv Central Station. Three minutes later at 00:20, strong explosion was heard with shrapnel hitting the platform area." — [source](https://www.ynet.co.il/wheels/article/sychfy00c11l)
+- "Family entered shelter with children during alert. Wife describes: 'Alert went off and husband was at prayer. I entered shelter with the kids and within two minutes we heard interception sounds I'm not used to. It sounded closer, and within moments there was a very loud boom, the house shook and there was a strong wind'" — [source](https://www.ynet.co.il/news/article/hj4sydk5bg)
+- "Reserve soldier A' stated: 'There was an alert and I entered the protected space with my wife and children'" — [source](https://news.walla.co.il/item/3824903)
+- "Four people injured in direct hit to building in Kiryat Shmona. They were injured after staying in internal room - no protected space in building. Alon, street resident said: 'There was no warning, nothing'" — [source](https://www.mako.co.il/news-military/2026_q1/Article-e8c9c5693d60d91026.htm)
+- "Residents of central Israel were awakened multiple times overnight by alerts due to missile launches from Iran. Residents were forced to enter protected spaces. At 6:55 AM Thursday, another missile was launched and residents had to open morning in protected spaces" — [source](https://www.srugim.co.il/news/1299980?di=1)
+- "הציבור מתבקש לגלות אחריות ולפעול על פי ההנחיות - הן מצילות חיים. יש להיכנס למרחבים המוגנים בעת אזעקה" — [source](https://www.srugim.co.il/news/1300009)
+- "פיקוד העורף עדכן על זיהוי שיגור מאיראן, התראות מקדימות על אזעקות ניתנו לתושבי הצפון - אזעקות הופעלו ביישובי קו העימות" — [source](https://www.srugim.co.il/news/1300090)
+- "Alert sounded during training match forced players to reach protected space and temporarily stopped the game" — [source](https://www.one.co.il/Article/517524.html)
+- "MK Osher Shkalim stopped his vehicle in accordance with Home Front Command guidelines during an alert" — [source](https://0404.co.il/article/1131157)
+- "Family member: 'There was a siren and my husband was at prayers. I went into the safe room with the children.'" — [source](https://www.ynetnews.com/article/bknvxdt5wg)
+
+### `compliance_follow_instructions` (2)
+- "El Al crew follows non-standard safety procedures including GPS interference protocols and missile absorption procedures during active operations under emergency conditions" — [source](https://www.mako.co.il/news-money/2026_q1/Article-e04843527340d91026.htm)
+- "פיקוד העורף מפרסם הנחיות מצילות חיים למי שנתפס מחוץ למבנה בעת קבלת התרעה, בליווי נתונים סטטיסטיים על חשיבות ההישמעות להוראות" — [source](https://www.srugim.co.il/news/1299987?di=1)
+
+### `conflict_or_tension` (14)
+- "IDF Chief of Staff Eyal Zamir warned of escalating nationalist crime. He stated: 'There is a large increase in nationalist crime. They threw stones at Arabs and a soldier was also injured by a stone thrown at him.' National Security Minister Itamar Ben-Gvir responded harshly." — [source](https://www.maariv.co.il/news/politics/article-1298430)
+- "Resident of Modiin Illit arrested for incitement with signs hung around his house inciting against security forces. Following his arrest, activists of the Haredi faction in Jerusalem opened a protest and blocked the entrance to Modiin Illit." — [source](https://www.maariv.co.il/news/law/article-1298474)
+- "Severe clashes erupted on Yechezkel Street in Jerusalem as hundreds of ultra-Orthodox protesters arrived to shut down light rail infrastructure work, with physical violence and disputed footage of police forcefully removing baby carriages with infants" — [source](https://news.walla.co.il/item/3824959)
+- "Police officers forcefully pulled a baby carriage containing an infant during a demonstration of extreme haredi groups in Jerusalem, confronting the father at the scene. Police issued a statement condemning the incident." — [source](https://www.kikar.co.il/news/tc5foz)
+- "Police opened investigation following complaints from Bnei Brak business owners of threats and extortion under claims of maintaining modesty. Store owner Noa Leviev reported: 'A woman identifying as modesty guard representative arrived and demanded removal of dolls from the window'" — [source](https://www.inn.co.il/news/692680)
+- "Sharp tensions in Arad between secular residents and Gur Hasidic community over renovations in community center and public shelter. Mayor Yair Maayan filed police complaint accusing 'a gang of hidden bullies and hatred-filled' of vandalizing renovations" — [source](https://www.inn.co.il/news/692681)
+- "מהומות אלימות בירושלים בהפגנת חרדים קיצונים נגד עבודות הרכבת הקלה - מאות מפגינים הפרו סדר ציבורי באלימות, שוטרים נפצעו" — [source](https://www.srugim.co.il/news/1300056)
+- "מהומות אלימות בירושלים - שוטר ננשך, עובדי אתר הבנייה הותקפו, מפגינים חרדים קיצונים גרמו נזק מכוון לרכוש" — [source](https://www.srugim.co.il/news/1300056?di=1&utm_source=mivzakimnet&utm_medium=rss&utm_campaign=mivzakimnet)
+- "משטרה דיווחה: מפרי סדר הביאו עגלות תינוק וישימוש ציני בפעוטות בעגלות תינוק כדי להפר סדר ציבורי ולגרום נזק לתשתיות" — [source](https://www.srugim.co.il/news/1300072)
+- "Players union explicitly opposes league management's decision to move season abroad, stating they will not abandon families: fundamental conflict between institutional directive and player resistance" — [source](https://www.one.co.il/Article/517549.html)
+- "Central Command officer Avi Blot wrote: 'When security forces are required to act to maintain order and enforce the law, that same group does not hesitate to direct violence also against IDF soldiers, police and commanders' and described 'a dangerous, serious and unthinkable phenomenon developing.'" — [source](https://www.kipa.co.il/%D7%97%D7%93%D7%A9%D7%95%D7%AA/1221344-0/)
+- "An elderly woman blocked shelter entrance with her body, preventing others from entering during an alert. A man with his dog was denied shelter entry." — [source](https://www.globes.co.il/news/article.aspx?did=1001537212)
+- "Ali Musa, an East Jerusalem bus driver, reported being severely beaten by approximately 10 passengers, stating 'They beat me brutally. I woke up only in the hospital', saying the attack occurred solely because he is Arab" — [source](https://cursorinfo.co.il/israel-news/napadenie-na-voditelya-iz-ierusalima-menya-izbivali-bolee-10-chelovek/)
+- "Dozens of rioters from the Palestinian Arab village of Khirbet Abu Falah attacked a Jewish shepherd on Thursday afternoon in the Binyamin region, resulting in a head injury. Locals classified it as an attempted lynching" — [source](https://www.israelnationalnews.com/news/424254)
+
+### `fear_expression` (25)
+- "Bus driver Eli Musa from East Jerusalem, attacked during work: 'I am afraid for my life'" — [source](https://www.ynet.co.il/news/article/b1ws2qfqbl)
+- "Detained foreign national describes daily fear under missile threat: 'I don't feel okay. There is no shelter here. I saw on the news that shrapnel fell in the area. I'm not sleeping well'" — [source](https://www.ynet.co.il/news/article/bjk42vtqwg)
+- "Community health network 'Kamoni' reports questions from users reflecting psychological burden: 'How do you find strength to get out of bed?', 'How do you find taste for life?', 'What do you do when your symptoms have gotten so much worse?' Users report developing a sense of psychological crisis during ongoing war." — [source](https://www.ynet.co.il/health/medicalplus/article/sk11dedkqbl)
+- "The article describes residents' daily challenge: 'How many hours of sleep can you get on a night full of alerts, full of runs to the protected space, and attempts to close your eyes before being jolted awake again.'" — [source](https://www.haaretz.co.il/news/magazine/2026-03-19/ty-article-magazine/.premium/0000019c-fbfa-d088-a5fc-fbfb85dc0000?utm_source=mivzakimnet&utm_medium=rss&utm_campaign=mivzakimnet)
+- "Northern resident: 'When Hezbollah attacked again now, in Operation Lion's Roar, I decided I couldn't take the risk. I'll return to Metula after seven...'" — [source](https://www.maariv.co.il/news/israel/article-1298246)
+- "Kiryat Shmona resident: 'There is a feeling that something could and should change, but in reality it is not happening.' Another resident described shelter conditions: 'There are no conditions. No shower, no normal bathrooms. We don't shower daily out of fear. My daughter washes her hair with a bottle, and I stand by the door on guard.'" — [source](https://www.maariv.co.il/news/israel/article-1298193)
+- "The tense security reality and incessant alerts in recent weeks have led to a sharp increase in demand for sleeping pills among the public." — [source](https://www.maariv.co.il/news/health/article-1298202)
+- "Former IDF Home Front Command officer Colonel (res.) Dadi Shamhi, discussing the strain civilians feel from repeated alerts since the war began: 'They say the choice is between running to shelters for a year or they will slaughter your children, behead them and burn them in the bomb shelter.'" — [source](https://www.maariv.co.il/news/military/article-1298342)
+- "Released hostage Lewis Har stated: 'We will stay with captivity all our lives. A fighter jet just passed over me and it startles emotions. I am aware of reality and tell myself this is not against us, these are our planes'" — [source](https://news.walla.co.il/item/3824942)
+- "Journalist describes residents running to shelters at night and difficulty sleeping continuously due to ongoing tension and frequent alerts" — [source](https://www.mako.co.il/health-wellness/diet/Article-de6359178600d91027.htm)
+- "Psychologist states: 'This is a direct result of fatigue, stress, broken routine and ongoing stress on the brain.' More and more Israelis report 'brain fog' sensation" — [source](https://www.mako.co.il/health-wellness/mental-health/Article-28ee8ec6fe00d91026.htm)
+- "Parents returning to homes in the north discover that sense of security did not return with them. Clinical psychologist discusses parents being required to be source of stability for their children while lacking their own anchor during ongoing emergency routine" — [source](https://www.mako.co.il/home-family-kids/Article-45d8ff4af650d91026.htm)
+- "Young children in emergency routine suffer from environmental changes, disruption of routine, and sense of uncertainty, with effects visible almost immediately after wartime displacement" — [source](https://www.mako.co.il/home-family-kids/Article-9e228f664450d91027.htm)
+- "A Kikar correspondent documented the holy night for Muslims (Laylat al-Qadr) in Jerusalem: residents reported the city was 'sad' with an absence of the usual festive atmosphere due to the war, and one moment of serious violence erupted in front of cameras." — [source](https://www.kikar.co.il/news/tc5967)
+- "A resident of the Palestinian village of Beit Awa, which was hit directly by an Iranian missile killing four women, said: 'A lot of our people are not aware of taking precautionary measures' and reported that the missile hit the heart of the residential area." — [source](https://www.kikar.co.il/israel-news/tc5j7k)
+- "אנו נמצאים קרוב לשלוש שנים במלחמה הארוכה ביותר בתולדותיה של מדינת ישראל. שגרת חירום כל כך ממושכת שוחקת את הכוחות שלנו. יותר ויותר קשה לקום מן המיטה" — [source](https://www.inn.co.il/news/692607)
+- "תא"ל דדי שמחי: 'אומרים שהבחירה היא בין אלטרנטיבות - לרוץ שנה למקלטים או שישחטו לך את הילדים, יערפו להם את הראש וישרפו אותם בממ"ד'" — [source](https://www.inn.co.il/news/692611)
+- "Noa Yaron-Dayan wrote: 'I pass through my mind the difficult minutes, the heartbeats, the night drive without knowing what exactly I will encounter' describing her son's injury during military operations" — [source](https://www.inn.co.il/news/692662)
+- "Oz Hadari describing near-miss with son during shrapnel fall: 'You're in a movie' - describing trauma of proximity to direct strike impact" — [source](https://www.one.co.il/Article/517512.html)
+- "Rina, a former Palmach member, suggested a coping mechanism: 'One thing I suggested is to scream. It's like a pressure cooker. I scream, enough, stop, shut up.' She added: 'You can get up and do exercises.'" — [source](https://www.kipa.co.il/%D7%97%D7%93%D7%A9%D7%95%D7%AA/1221371-0/)
+- "Prof. Ruth Halperin Kaddari stated: 'In the last two and a half years there has been a severe regression in women's status in Israel. This government declared war on women. The distribution of weapons in an uncontrolled manner creates a very worrying risk factor for women. War always increases domestic violence.'" — [source](https://www.calcalist.co.il/local_news/article/sklyaro5ze)
+- "JP Morgan analysis states: 'War duration will determine depth of damage to growth, inflation and deficit. Longer it lasts, economic price multiplies. Main risk factors: expanded war objectives, additional state entry, lack of trust between sides, Iran attempts to shift to attrition conflict.'" — [source](https://www.calcalist.co.il/local_news/article/h1gjtuyq11x)
+- "Former hostage Luis Har said: 'We will live with captivity for the rest of our lives.' Freed Gaza hostages report that sirens, explosions, and rush to shelters trigger memories of captivity, causing significant distress." — [source](https://www.jpost.com/israel-news/article-890591)
+- "Northern resident Ben Shitrit said: 'The dog is in anxiety, and we can't sleep with this noise. Last week I lay on the floor hugging the dog, and the whole house shook.'" — [source](https://www.ynetnews.com/article/h1c74h00qzg)
+- "A reader from Israel, the Rebbetzin, 84, has been spending her days in and out [of shelter during the war]" — [source](https://www.israelnationalnews.com/news/424214)
+
+### `information_clarity` (1)
+- "Captain Tim Hawkins, U.S. Central Command spokesman, stated: 'The combat aircraft conducted a combat mission over Iran and was forced to perform an emergency landing. The aircraft landed safely and the pilot is in stable condition'" — [source](https://news.walla.co.il/item/3824986)
+
+### `information_confusion` (7)
+- "Many Israelis received threatening and impersonating messages during alerts, creating confusion between legitimate and fraudulent communications from authorities" — [source](https://www.mako.co.il/nexter-news/Article-8f838ecacc40d91026.htm)
+- "Yaniv from Herzliya and girlfriend stuck in Sofia, Bulgaria. Scheduled to return via El Al rescue flight, but approximately 20 passengers including the couple did not board after departure time was moved up three hours without notification or email from company" — [source](https://www.mako.co.il/travel-news/israel/Article-e1be7a5f1360d91026.htm)
+- "Detection systems identify rocket launches 15 seconds to 1.5 minutes before activation, but alert is not activated immediately and citizens do not receive advance warning as in Iran" — [source](https://www.inn.co.il/news/692686)
+- "מערך הסייבר מדגיש כי פיקוד העורף אינו משדר הודעות כזו וכי תושבים מתבלבלים בין הודעות רשמיות לזדוניות" — [source](https://www.bhol.co.il/news/1722230?tg_rhash=7184d934830650)
+- "Knesset Education Committee hearing revealed severe neglect: 450 regular attendance officers (kab'sim) missing nationwide; only 750 exist total. Just 350,000 shekels allocated for dropout prevention for 100,000 Jerusalem students." — [source](https://www.calcalist.co.il/local_news/article/rk8q6wtcbe)
+- "Fraudulent SMS messages impersonating Home Front Command official notifications are distributing malicious links, creating confusion among residents about legitimate protective guidance" — [source](https://0404.co.il/article/1131088)
+- "National Cyber Directorate warns that SMS messages falsely appearing to be from Home Front Command are phishing attempts designed to steal personal information by tricking residents into downloading malicious apps" — [source](https://www.timesofisrael.com/liveblog_entry/cyber-directorate-warns-of-fake-home-front-message-that-links-to-app-in-phishing-attempt/)
+
+### `leadership_clear_guidance` (11)
+- "Commander of Home Front, Shai Klapper, arrived at incident site and stated: 'Being under standard protective structure saves lives' and emphasized importance of following Home Front Command instructions" — [source](https://news.walla.co.il/break/3824806)
+- "The IDF spokesperson announced changes to the Home Front Command's defense policy starting Sunday, March 22, 2026 at 06:00, expanding defense policy with differentiated activity levels for various regions." — [source](https://www.mako.co.il/pzm-soldiers/Article-04f9ff074f50d91026.htm)
+- "פיקוד העורף צפוי לעדכן את ההנחיות הרשמיות לציבור כבר הערב בשעה 20:00 בנוגע להרחבת פתיחת מערכת החינוך" — [source](https://www.srugim.co.il/news/1300096?di=1&utm_source=mivzakimnet&utm_medium=rss&utm_campaign=mivzakimnet)
+- "פיקוד העורף אישר רשמית את פתיחת הלימודים ביישובים ספציפיים עם הוצאת רשימה מפורטת של אזורים" — [source](https://www.srugim.co.il/news/1300098?di=1&utm_source=mivzakimnet&utm_medium=rss&utm_campaign=mivzakimnet)
+- "מפקד מחוז ירושלים הנחה להוציא שוטרים מהשטח באופן מיידי, בירור וחקירה של האירוע" — [source](https://www.bhol.co.il/news/1722276)
+- "המשטרה החליטה להשעות מפעילות מבצעית את השוטרים שהיו מעורבים באירוע האלימות" — [source](https://www.bhol.co.il/news/1722278)
+- "League management conducted intensive talks with IDF Home Front Command to resume second league matches next week with clear objective stated by all parties" — [source](https://www.one.co.il/Article/517502.html)
+- "Football Premier League management working toward April 4 restart. League chairman Erez Kalpone convening board meeting to advance the move. Target set at 4.4 with plans to transmit all security guidelines and procedures to clubs" — [source](https://www.one.co.il/Article/517526.html)
+- "The Interior Ministry and IDF announced that the re-run elections for Acre's city council will be held on Tuesday, March 24, subject to approval from the Home Front Command, with provisions for soldiers and residents to vote." — [source](https://www.kipa.co.il/%D7%97%D7%93%D7%A9%D7%95%D7%AA/1221382-0/)
+- "Ron Tomer, president of Manufacturers Association, stated: 'I told the government: we need a compensation button that gets pressed when the economy shuts down'" — [source](https://www.globes.co.il/news/article.aspx?did=1001537824)
+- "Shai Kalfar, commander of the Home Front: 'From here I emphasize the importance of heeding Home Front Command guidelines - being in standard protected areas saves lives'" — [source](https://0404.co.il/article/1131061)
+
+### `leadership_visible_presence` (4)
+- "Over 15 heads of Jewish and Arab municipalities in Galilee Valleys cluster met with Interior Ministry Director General and demanded emergency budgets. Meeting included State Service Commissioner Prof. Daniel Hershkowitz and the person in charge of compensation and support" — [source](https://www.mako.co.il/finances-real-estate/Article-310dd69d6f60d91027.htm)
+- "Dr. Rivka Ravitz (chief of staff of Beit Shemesh), Yoav Bakshi Yeivin (director of Makom network), and Moshiko Erez (founder of NexusCities.org) participated in podcast interview discussing their experiences managing emergencies." — [source](https://www.jpost.com/podcast/jpost-podcast/article-890562)
+- "Ramat Gan Mayor Carmel Shama-Hacohen spoke with media at the site of the deadly strike in his city where two residents were killed by an Iranian missile." — [source](https://www.israelnationalnews.com/news/424200)
+- "President Isaac Herzog and his wife visited the underground emergency hospital at Shaare Zedek Hospital, toured fortified floors established within 24 hours of Operation Roaring Lion start, and spoke with patients and staff." — [source](https://www.israelnationalnews.com/news/424202)
+
+### `non_compliance_exit_early` (2)
+- "סג״מ ממד״א לדברים על אזרח שלא היה במרחב מוגן בזמן פגיעה: מצא טלפונים פתוחים על התרעות, מעידים על אנשים שלא נכנסו למקלט" — [source](https://www.srugim.co.il/news/1300095)
+- "פועל בן 33 מתאילנד נהרג בפגיעת טיל כי לא שהה במרחב מוגן, בניגוד ל-24 פועלים נוספים שניצלו בשהייתם בממרחב המוגן" — [source](https://www.bhol.co.il/news/1722264)
+
+### `non_compliance_ignore_guidelines` (6)
+- "Teenager announces to parent: 'I'm going out tonight, all my friends are meeting, and I'm tired of being stuck at home' despite ongoing alerts, missiles, and no ceasefire announcement" — [source](https://www.ynet.co.il/laisha/article/rjdja8ncbl)
+- "Youth gangs exploiting store congestion and employing counter-surveillance techniques to commit theft during wartime, demonstrating deliberate disregard for law enforcement and emergency conditions" — [source](https://www.mako.co.il/men-men_news/Article-16d2ffe88150d91027.htm)
+- "Four people injured because they stayed in internal room without protected space despite direct hit to building - residents failed to take shelter or were unable to access protection" — [source](https://www.mako.co.il/news-military/2026_q1/Article-e8c9c5693d60d91026.htm)
+- "Players union opposes basketball league's emergency bubble protocol outside Israel during war: 'We do not intend to leave families behind and play abroad'" — [source](https://www.one.co.il/Article/517549.html)
+- "Someone converted a shelter into a sauna, forcing residents to find alternative refuge during alerts. Law forbids preventing shelter access with penalties of fines and imprisonment." — [source](https://www.globes.co.il/news/article.aspx?did=1001537982)
+- "Fox Group unilaterally froze rent payments to shopping malls. Other retailers threatening: 'On April 1 I am not paying anyone.' Reason: low revenues due to war, zero state compensation." — [source](https://www.calcalist.co.il/shopping/article/hjr3booqbg)
+
+### `panic_behavior` (8)
+- "33 people injured while entering protected spaces (Magen David Adom data) - all in light condition" — [source](https://www.maariv.co.il/breaking-news/article-1298609)
+- "Released hostages experience anxiety during war with Iran - alerts, explosions and running to protected spaces trigger memories of difficult moments from captivity" — [source](https://news.walla.co.il/item/3824942)
+- "Extreme Haredi protesters brought baby carriages with infants to prevent light rail construction work. Police threw dozens of stun grenades at protesters" — [source](https://www.inn.co.il/news/692666)
+- "During an alert in Haifa, a pedestrian was struck and killed by a hit-and-run vehicle. A senior Magen David Adom paramedic said 'We arrived at the scene and saw a 53-year-old man lying there'" — [source](https://www.inn.co.il/news/692687)
+- "אחרי אזעקות צבע אדום בקריית שמונה, דווח על פגיעה ישירה בבניין בן 5 קומות - 2 פצועים כולל גבר בן 60 במצב קשה" — [source](https://www.srugim.co.il/news/1300084)
+- "בהפגנה בירושלים התרחשה הפרת סדר אלימה, מפגינים עם עגלות תינוק, שוטרים השתמשו ברימוני הלם" — [source](https://www.bhol.co.il/news/1722269)
+- "Family member stated: 'There was a siren and my husband was at prayers. I went into the safe room with the children, and within two minutes we heard intense explosions.' Family described having 'a miracle' escaping seconds before Iranian cluster missile hit their home." — [source](https://www.ynetnews.com/article/bknvxdt5wg)
+- "A pedestrian was killed in a hit-and-run accident on Yigal Yadin Road in Haifa during a missile alert siren, when the victim was struck by a private vehicle that fled the scene" — [source](https://www.israelnationalnews.com/news/424256)
+
+### `resilience_narrative_negative` (1)
+- "Kiryat Shmona resident rejects normalization: 'The erosion has already crossed borders: it is no longer just another day, it is another...'" — [source](https://www.maariv.co.il/news/israel/article-1298193)
+
+### `resilience_narrative_positive` (6)
+- "סקר ארצי חדש מספק תמונת מצב של חברה הישראלית במרץ 2026. הממצאים חושפים ציבור שאינו נאיבי וגם לא ציני, אלא משהו עמיד הרבה יותר: מציאותי, מפוכח ובעל תקווה אסטרטגית" — [source](https://www.inn.co.il/news/692606)
+- "משפחת לוזון המשיכה לבנות את ביתה מחדש לאחר פגיעה ישירה, בחירה להמשיך ולהיאחז בארץ ישראל ולהקים מחדש את חייהם" — [source](https://www.inn.co.il/news/692622)
+- "אברהם, ילד שנטש והגיע לבית היתומים היהודי בן 11 יום, חגג את בר המצווה שלו באירוע שהפך למפגן עוצמתי של תקווה ואמונה" — [source](https://www.inn.co.il/news/692643)
+- "מארק לוי, ראש המועצה היהודית של מנצ'סטר, אמר: "הטרור ניסה לסגור את בית הכנסת שלנו, אבל במקום זאת הוא מילא אותו", וביותר מ-1,500 איש התקבצו בליל שבת" — [source](https://www.bhol.co.il/news/1722232)
+- "World Happiness Report 2026 ranks Israel 8th globally, maintaining the same position as the previous year despite ongoing war on multiple fronts and prolonged uncertainty" — [source](https://www.timesofisrael.com/despite-war-israel-ranks-8th-in-global-happiness-survey-same-as-last-year/)
+- "Israel remains near the top of the World Happiness Report and is ranked 8th in the world in the 2026 edition despite another year of war on multiple fronts, prolonged instability, and national trauma" — [source](https://www.israelnationalnews.com/news/424206)
+
+### `resource_mobilization` (15)
+- "Israel Hotel Association launches initiative offering third night free in hotels nationwide for northern residents seeking respite during security situation" — [source](https://www.ynet.co.il/vacation/flights/article/sjvntdu5bg)
+- "About 100 hotels joining an initiative to provide northern residents two nights free for every third night purchased, aimed at giving them relief from ongoing security pressure." — [source](https://www.maariv.co.il/lifestyle/travel/article-1298062)
+- "Networks report a notable increase in purchases of products like tents, mattresses, flashlights and equipment designated for shelters and safe rooms. Alongside this, an increase is also recorded in purchases of thermal clothing and jackets." — [source](https://www.maariv.co.il/economy/consumerism/article-1298363)
+- "Extensive recruitment for the air defense array: a recruitment cycle almost double the normal size with hundreds recruited, against the backdrop of interceptions against Iran and Hezbollah. Senior officer in the system emphasizes improvement, integration of new systems and 50% women participation." — [source](https://www.maariv.co.il/news/military/article-1298337)
+- "The Ministry of Construction and Housing published an exceptional call for structural engineers to volunteer and assist in assessing the stability of buildings damaged by missiles across the country." — [source](https://www.mako.co.il/finances-real-estate/Article-ee4ad69d6f60d91027.htm)
+- "Government ministers presented a comprehensive plan for developing frontier settlements with approximately 5 billion NIS, plus immediate aid of 50 million NIS to strengthen the home front, and bringing approximately 100,000 new residents in coming years" — [source](https://www.inn.co.il/flashes/1103196)
+- "אלוף משנה י' מדווח: 50% ממערך ההגנה האווירית הן נשים שהתנדבו לתפקיד, וחשיבות גבוהה בקרב המתגייסים" — [source](https://www.srugim.co.il/news/1300016)
+- "Basketball Premier League management is promoting emergency protocol to hold games outside Israel due to concern about renewed season at home amid Iran-Hezbollah conflict. Target is April 15-20 resumption abroad" — [source](https://www.one.co.il/Article/517513.html)
+- "Sports Ministry under Mickey Zohar published support framework to finance team accommodation in Netanya: 'We care that no team is harmed'" — [source](https://www.one.co.il/Article/517551.html)
+- "Planning committee approved plan to build 4,500 new apartments in Kiryat Shmona despite ongoing rocket fire from Lebanon" — [source](https://www.globes.co.il/news/article.aspx?did=1001537959)
+- "National Insurance data on reserve personnel: 33% are parents of children under 12, 55% earn above average salary, 20% are women, 78% are employed, 22% unemployed." — [source](https://www.calcalist.co.il/local_news/article/byl3jwk9bx)
+- "Temple Israel synagogue security guards were ready and engaged an armed attacker who rammed a truck into the building; the attacker died by suicide with no serious injuries to anyone else." — [source](https://www.timesofisrael.com/liveblog_entry/synagogue-targeted-in-michigan-attack-releases-photos-of-interior-devastation/)
+- "The Greek government organized a special evacuation flight from Abu Dhabi for Greek nationals with pets who were trapped by the war in the Middle East; dozens of dogs and cats arrived in Athens with their owners." — [source](https://www.timesofisrael.com/special-greek-flight-airlifts-pets-and-their-owners-from-war-hit-mideast/)
+- "NYC synagogues are boosting security as a response to attacks; Temple Israel in suburban Detroit had security guards ready who engaged an attacker with no serious injuries to congregation members." — [source](https://www.jpost.com/diaspora/antisemitism/article-890484)
+- "The Keren Kayemeth LeIsrael-Jewish National Fund (KKL-JNF) board approved a NIS 6 million emergency assistance package for residents living within 0-2 kilometers of Israel's northern border, including communities like Shlomi." — [source](https://www.jpost.com/israel-news/article-890504)
+
+### `resource_shortage` (4)
+- "Eliza, resident of neglected building awaiting demolition: 'There is a shelter about 700 meters from here, but the path is full of stairs. Elderly people cannot reach it during an alert. Those who can go, those who cannot stay home and hope for the best. We don't renovate because we tell ourselves - we'll be demolished soon. So everything stays neglected and crumbling'" — [source](https://www.ynet.co.il/economy/article/hjy0udkcwx)
+- "Despite the length of the war, the state still lacks an efficient mechanism to compensate self-employed workers, and delays are harming not only businesses but the entire economy. Economist Roni Harsh calls for fundamental change: moving to a permanent resilience model that would prevent repeated collapse." — [source](https://www.maariv.co.il/economy/israel/article-1298352)
+- "Over 15 municipality heads from Galilee Valleys cluster presented serious protection gaps in Arab municipalities - many settlements have no public shelters and no protected rooms. They demanded immediate financial assistance due to war costs" — [source](https://www.mako.co.il/finances-real-estate/Article-310dd69d6f60d91027.htm)
+- "200 detained illegal foreign workers held in the 'Givon' isolation facility lack any bomb shelter protection, according to a court supervision protocol" — [source](https://www.vesty.co.il/main/article/rkvdtikqbe)
+
+### `risk_exposure_behavior` (12)
+- "A man was struck by a vehicle during an alert in Haifa; the driver fled the scene." — [source](https://www.ynet.co.il/news/article/B1o6m3F911e)
+- "A foreign worker was arrested for filming a video during an alert, saying 'everyone is running like mice.' The video was distributed on social media." — [source](https://www.haaretz.co.il/news/politics/2026-03-19/ty-article/.premium/0000019d-026a-df92-a9df-ebea130c0000?utm_source=mivzakimnet&utm_medium=rss&utm_campaign=mivzakimnet)
+- "Reserve soldier A' was outside arranging something in his car when alert sounded, only then entered shelter" — [source](https://news.walla.co.il/item/3824903)
+- "Police arrested ten suspects including an organized gang from Zikhron Yaakov area on suspicion of a series of raids and thefts from pharmacy and kiosk branches across the center and Sharon. Groups use means to neutralize metal detectors to steal perfumes and cosmetics worth thousands of shekels, exploiting store congestion for quick escape" — [source](https://www.mako.co.il/men-men_news/Article-16d2ffe88150d91027.htm)
+- "Micha, 35, from center, describes to mako health beginning with days of weakness, slight nausea and fatigue, progressing from crowded shelter conditions" — [source](https://www.mako.co.il/health-news/Article-f80113d40850d91026.htm)
+- "Three civilians died in the past week from direct hits by Iranian cluster bomb missiles — a couple in their 70s killed in a direct hit on their home in Ramat Gan, and three women killed in the Hebron area from a fragmented missile hit." — [source](https://www.kikar.co.il/security-news/iran-cluster-bombs-three-casualties-israel-prepare)
+- "דוד משרקי על המנוף בגובה 75 מטרים: 'אין לי איך להתמגן במקום שאני נמצא בו. לסגור את המנוף לוקח לפחות 5 דקות ולרדת ממנו - שבע דקות נוספות'" — [source](https://www.inn.co.il/news/692638)
+- "A rocket from Lebanon hit a five-story building in Kiryat Shemona, injuring two people - a 60-year-old man with serious abdominal injuries and a 70-year-old woman with moderate injuries" — [source](https://www.inn.co.il/news/692674)
+- "A Jewish shepherd was attacked violently by dozens of rioters from the village Hirbet Abu-Falach in Benjamin. The shepherd said 'I survived by a miracle'" — [source](https://www.inn.co.il/news/692673)
+- "ניסיון לינץ' ברועה צאן יהודי סמוך ליישוב - עשרות פורעים התקרבו מאחור והחלו לתוקפו באלות ואבנים, הרועה הצליח לברוח" — [source](https://www.srugim.co.il/news/1300088)
+- "סג״מ בגדוד שחר דיווח: טלפונים פתוחים על התרעות של אזרחים, מעידים על חשיפה לסיכון במהלך התרעה" — [source](https://www.srugim.co.il/news/1300095)
+- "Oz Hadari was present with his son near stadium Shlomo Bituch when shrapnel fell from Iranian ballistic missile strike on central region: 'We ran from the vehicle and he was hit, you're in a movie'" — [source](https://www.one.co.il/Article/517512.html)
+
+### `routine_maintenance` (11)
+- "President Herzog conducted video call visits to classrooms (1st grade Ramat Gan, 2nd grade Ramot Gan, 4th grade Ramat HaGolan). He encouraged students to continue learning and maintain routine during alerts: 'When you learn from home and deal with a different routine, you give us all strength, hope and faith in a better future'" — [source](https://www.ynet.co.il/news/article/s1wjulfcwg)
+- "Approximately 20% increase in purchases of emergency equipment since the start of the operation: public preparing for extended stay in shelters with tents, mattresses, flashlights and thermal clothing - moving from momentary preparedness to advance planning." — [source](https://www.maariv.co.il/economy/consumerism/article-1298363)
+- "As Israelis spend more time at home due to the security situation, the home appliance market shows a sharp rise in online purchases of freezers, computers and screens, combined with a change in consumption habits due to extended home stay." — [source](https://www.maariv.co.il/economy/consumerism/article-1298368)
+- "90% of Maccabi HMO patients arriving in-person to clinics, indicating maintenance of normal daily routines despite emergency" — [source](https://news.walla.co.il/break/3824967)
+- "In Mitzpe Ramon: Airbnb apartments available, coffee shops full, shopping mall functioning with customers, restaurants operating - daily routines and services continue in southern location" — [source](https://www.mako.co.il/travel-news/Article-a64bb87ae160d91027.htm)
+- "המשפחה פנתה לסידור מועד ברית המילה כמה ימים קודם לכן. סידרנו את כל הפרטים" — [source](https://www.inn.co.il/news/692632)
+- "26,961 יהודים עלו להתפלל בהר הבית בחצי השנה הראשונה של תשפ"ו - זינוק של 11% לעומת התקופה המקבילה בשנה שעברה" — [source](https://www.srugim.co.il/news/1300047)
+- "בספארי רמת גן הושלמו עבודות שדרוג נרחבות במתחם הפילים בתקופת הסגירה, במטרה לשפר את רווחת בעלי החיים" — [source](https://www.bhol.co.il/news/1722252)
+- "M.K. Sderot, leading 4th league table with 16 wins, continues training as usual. Coach Ahuod Kahila: 'We want to fulfill a dream'" — [source](https://www.one.co.il/Article/517515.html)
+- "Hiba Benoutic, a Moroccan PhD candidate in anthropology and sociology at Ben-Gurion University, chose to remain in Beersheba to complete her dissertation despite the ongoing war, continuing her research activities." — [source](https://www.jpost.com/israel-news/culture/article-890518)
+- "Israelis have become experts at spending time in bomb shelters (mamad, miklat, public shelters) in the last three weeks." — [source](https://www.jpost.com/j-spot/article-890593)
+
+### `rumor_spread` (13)
+- "Fraudulent SMS messages impersonating Home Front Command are being distributed, directing recipients to download malicious applications. National Cyber Bureau warns not to click links or share details." — [source](https://www.ynet.co.il/news/article/bjn11211tcwl)
+- "Fraud campaign using SMS messages impersonating official Home Front Command notifications, claiming to direct to shelter apps. Messages appear authentic with official language, sometimes inserted into existing threads, making them harder to identify as fraud." — [source](https://www.ynet.co.il/digital/technews/article/r1ufzxtqzx)
+- "Israelis received threatening messages in Hebrew from Iranian actors stating 'Netanyahu is dead. Death is approaching you and soon the gates of hell will open before you', with malicious links. National Cyber Directorate warns of messages impersonating Home Front Command calling to download new app" — [source](https://www.mako.co.il/nexter-news/Article-8f838ecacc40d91026.htm)
+- "מערך הסייבר הלאומי מתריע כי בשעות האחרונות מופצות הודעות SMS המתחזות להודעות רשמיות של פיקוד העורף עם קישורים מזיקים" — [source](https://www.inn.co.il/flashes/1103025)
+- "אזרחים ישראלים רבים דיווחו הבוקר על קבלת הודעות 'פישינג' איראניות למכשיריהם הניידים, הודעות ההונאה שנשלחו תחת זהות בדויה של פיקוד העורף" — [source](https://www.inn.co.il/news/692605)
+- "National Cyber Authority warns that SMS messages impersonating official Home Front Command messages are being distributed. The messages contain malicious links for downloading an app 'to stay in shelters'. Authority emphasizes not to click links as they can be used to steal personal information or cause device damage" — [source](https://www.srugim.co.il/news/1299984)
+- "מערך הסייבר הלאומי מתריע על הודעות SMS המתחזות להודעות פיקוד העורף עם קישורים מזיקים וטענות כביכול על אפליקציה לשהייה במקלטים" — [source](https://www.bhol.co.il/news/1722230?tg_rhash=7184d934830650)
+- "The cyber array warned that in recent hours SMS messages impersonating official Home Front Command messages have been circulating, containing malicious links for downloading an app for 'staying in shelters'." — [source](https://www.kipa.co.il/%D7%97%D7%93%D7%A9%D7%95%D7%AA/%D7%9E%D7%91%D7%96%D7%A7%D7%99%D7%9D/1221343-0/)
+- "SMS messages impersonating the Home Front Command were sent to residents with the name 'oref' and text 'Our recommended app for staying in shelters' with a heart emoji, containing a link to a fake application." — [source](https://www.kipa.co.il/%D7%97%D7%93%D7%A9%D7%95%D7%AA/1221343-0/)
+- "The National Cyber Directorate warned that SMS messages falsely claiming to be from the Home Front Command with malicious links to download a fake app for 'staying in shelters' are circulating" — [source](https://0404.co.il/article/1131088)
+- "Phishing SMS messages impersonating Home Front Command are circulating, attempting to deceive residents about legitimate emergency applications" — [source](https://www.timesofisrael.com/liveblog_entry/cyber-directorate-warns-of-fake-home-front-message-that-links-to-app-in-phishing-attempt/)
+- "A phishing campaign spread panic Thursday morning with SMS messages impersonating official Home Front Command alerts. Messages included false claims like 'Netanyahu is dead' and fake shelter apps." — [source](https://www.ynetnews.com/tech-and-digital/article/sy4cleycwl)
+- "Many Israeli citizens reported receiving Iranian phishing messages on their mobile devices coinciding with missile barrages, with fraudulent messages claiming to be from Home Front Command urging citizens to download a malicious app" — [source](https://www.israelnationalnews.com/news/424210)
+
+### `self_organization` (1)
+- "Volunteers organized independently without external direction to reopen public recreational space, demonstrating community self-organization in response to perceived damage" — [source](https://www.mako.co.il/travel-news/israel/Article-f969faec5000d91027.htm)
+
+### `service_continuity` (34)
+- "Light rail in Gush Dan to return to operation; nine underground stations that served as public shelters show significant decline in nightly shelter use according to mapping by Nate organization." — [source](https://www.ynet.co.il/news/article/sks0j8y9bx)
+- "Two Israeli-owned airlines, Blue Bird Airways and TUS Airways, announce expansion of operations - with daily flight line from Taba to major European destinations during Passover vacation. Starting March 30, the two companies will operate daily flights to European destinations." — [source](https://www.maariv.co.il/lifestyle/travel/article-1298353)
+- "Evacuees were given the option to choose between hotel accommodation or community solutions, such as hosting by family members, receiving funding of 4,000 shekels per family head for a period of up to two weeks. According to data, 2,102 of the evacuees, approximately 60%, chose community solutions." — [source](https://www.maariv.co.il/economy/israel/article-1298524)
+- "Ministry of Health advanced student vaccination program for first time in protected underground facility at Assuta Ramat HaHayal hospital, ensuring continuity of health services during emergency" — [source](https://news.walla.co.il/item/3824835)
+- "Multiple local authorities preparing to resume in-person teaching next week, with Modi'in among first cities - kindergartens and special education to resume in accordance with Home Front Command guidelines" — [source](https://news.walla.co.il/break/3824923)
+- "Maccabi HMO director Sigal Dedon-Levy stated: '90% of patients are arriving in-person to HMO clinics. Even during emergencies, community medicine continues to be the anchor of the health system - alongside hospitals'" — [source](https://news.walla.co.il/break/3824967)
+- "Maya Shilo, VP Marketing and Sales, Fattal Hotels: 'We are open with hotels from north to south of the country, operating with continuous adaptation to the situation and guidelines. In Eilat, most hotels are open and we already have high occupancy rates'" — [source](https://www.mako.co.il/travel-news/israel/Article-cd780214a110d91026.htm)
+- "El Al flight crew conducting non-standard departure briefing at Ben Gurion Airport. Captain Shay Rubio explains protocols including GPS disruptions and 'absorption' procedures in case of missile fire, while a real alert sounds during the briefing. Flight operations continue despite active alerts" — [source](https://www.mako.co.il/news-money/2026_q1/Article-e04843527340d91026.htm)
+- "Several companies announced they will increase flights from Taba and Eilat to various European destinations to provide alternatives for Passover vacation travelers whose original flights were cancelled" — [source](https://www.mako.co.il/travel-news/israel/Article-f38d61a5b450d91027.htm)
+- "Dana Rubin, VP Customer Experience at Air Haifa: 'We are in a difficult period where many plans change and are cancelled on the spot. We are responsive to passengers, some of whom planned vacations that were cancelled or are forced to cancel. It's important for us to provide solutions and offer a horizon. Adding sought-after destinations like Mykonos, Crete and Karpathos, wanting to enable Israelis to replan and maybe even dream a bit ahead about the coming summer'" — [source](https://www.mako.co.il/travel-news/israel/Article-7946bc2e2f50d91027.htm)
+- "After nine days of shelter stay, Assi Gal packed his wife and two children and moved to Mitzpe Ramon, the place where only one alert has been heard since war started. Among deteriorating Airbnb apartments, full coffee shops and long lines at shopping mall, he found almost unperceivable quiet: peace contrasting everything experienced in past three weeks" — [source](https://www.mako.co.il/travel-news/Article-a64bb87ae160d91027.htm)
+- "Free lectures by the Cathedra at the Israel Museum launched with Operation 'Roar of Lions' offer daily broadcast strip on Zoom with speakers and intellectuals from history, culture, science and politics. Since launch, they have attracted tens of thousands of viewers from Israel and abroad" — [source](https://www.mako.co.il/special-senses/coltura/Article-e074c71b1560d91027.htm)
+- "The Ministry of Education announced the gradual opening of special education classes in regular schools in orange zones starting Sunday, following a joint situation assessment with the Home Front Command." — [source](https://www.mako.co.il/home-family-kids/Article-456ba7348270d91026.htm)
+- "היישוב חומש חובר מחדש לרשת החשמל הארצית של מדינת ישראל. צוותים של חברת החשמל השלימו את עבודות התשתית" — [source](https://www.inn.co.il/news/692636)
+- "National Security Committee approved extension of weapon license validity and training renewal periods due to emergency security situation and difficulty conducting training at this time" — [source](https://www.inn.co.il/flashes/1103177)
+- "Education Ministry announced expansion of special education activities including gradual opening of additional classes in orange-coded areas and renewal of transportation for eligible students" — [source](https://www.inn.co.il/flashes/1103201)
+- "Transportation Ministry announced gradual restart of light rail in Dan region. Starting Sunday, light rail will operate in elevated sections only, from 7:00 AM. Underground stations will remain closed for use as safe spaces" — [source](https://www.inn.co.il/news/692688)
+- "Home Front Command authorized resumption of studies in additional settlements starting Sunday, including South Golan (except Katzrin and Kadmat Tzvi), Lower Galilee, Carmel area (except Daliyat al-Carmel and Isfiya), and Wadi Ara and Menashe areas" — [source](https://www.inn.co.il/news/692689)
+- "El Al published flight schedule for next week (March 21-28) ahead of Passover. The company will operate flights to 12 central destinations to enable as many passengers as possible to leave Israel according to demand and operational capacity under restrictions" — [source](https://www.inn.co.il/flashes/1103137)
+- "שר החינוך יואב קיש וכוחות פיקוד העורף הודיעו על החזרה מדורגת של חינוך מיוחד באזורים כתומים החל מיום ראשון הקרוב" — [source](https://www.srugim.co.il/news/1300092)
+- "משרד התחבורה בניסיון להשיב את תחנות הרכבת הקלה בגוש דן לייעודן המקורי בצורה חלקית ומדורגת" — [source](https://www.bhol.co.il/news/1722268)
+- "מערכת החינוך צפויה להיפתח באזורים נוספים בשבוע הבא בכפוף לתנאי מיגון מתאימים, החזרה ללימודים תתמקד בילדי גנים בגילאי 3-6 וכיתות א' עד ג'" — [source](https://www.bhol.co.il/news/1722300?tg_rhash=7184d934830650)
+- "The red line of the light rail in Gush Dan will begin operating partially, only on the elevated route starting Monday next week between 19:00-7:00, after 24 days of shutdown due to the current war with Iran." — [source](https://www.themarker.com/news/transport/2026-03-19/ty-article/0000019d-0743-df92-a9df-efc3385f0000)
+- "The light rail in Gush Dan will resume partial operation starting Monday, with only the elevated line operating, as underground stations continue to serve as shelters." — [source](https://www.kipa.co.il/%D7%97%D7%93%D7%A9%D7%95%D7%AA/%D7%9E%D7%91%D7%96%D7%A7%D7%99%D7%9D/1221396-0/)
+- "Following a situation assessment by Education Minister Yoav Kisch and Home Front Command Chief Shai Kliper, it was decided to allow a phased opening of special education classes starting Sunday in regular schools in yellow zones where special education activity was previously suspended." — [source](https://www.kipa.co.il/%D7%97%D7%93%D7%A9%D7%95%D7%AA/%D7%97%D7%99%D7%A0%D7%95%D7%9A/1221401-0/)
+- "Home Front Command approved the return of studies in a series of new settlements starting Sunday in Golan South, Lower Galilee, Mount Carmel, Wadi Ara, Manashe, Judean Lowlands, and Lachish, with specific exclusions listed." — [source](https://www.kipa.co.il/%D7%97%D7%93%D7%A9%D7%95%D7%AA/%D7%9E%D7%91%D7%96%D7%A7%D7%99%D7%9D/1221405-0/)
+- "Education system required to function as emergency mechanism: provide stability anchor, routine, belonging for students, teachers, parents and maintain educational, emotional and social continuity during crisis" — [source](https://www.globes.co.il/news/article.aspx?did=1001538012)
+- "Light rail operator Netta planning partial resumption of service in coming days. Nine of ten underground stations were opened as shelters; plan would cancel overnight shelter use in some stations." — [source](https://www.calcalist.co.il/local_news/article/s1s0nqyq11e)
+- "Health Ministry instructed hospitals on emergency procedures. Hospital discharge protocols activated: non-critical patients sent home, maternity patients discharged early to free capacity." — [source](https://www.calcalist.co.il/magazine/article/t9at13wxs)
+- "The Ministry of Transport decided to resume light rail operations in the Gush Dan area starting Monday, operating in two separate segments during hours 07:00-19:00" — [source](https://www.calcalist.co.il/local_news/article/bk1wflhoy9bl)
+- "Waze and Google Maps integrated real-time Home Front Command data allowing drivers to quickly locate and navigate to nearest available shelters during alerts" — [source](https://cursorinfo.co.il/israel-news/google-maps-i-waze-vnedrili-poleznuyu-funktsiyu-dlya-izrailtyan/)
+- "Waze and Google Maps added functionality allowing users in real-time to quickly find and reach the nearest bomb shelter, understanding that many drivers are on the road during sirens" — [source](https://stmegi.com/posts/136512/waze-i-google-maps-dobavili-dlya-polzovateley-v-izraile-funktsiyu-ekstrennogo-poiska-blizhayshego-ub/)
+- "Immigrants and grassroots organizations are helping sustain both daily life and frontline response. Discussion participants noted 'a society under pressure, yet functioning with striking continuity.'" — [source](https://www.ynetnews.com/jewish-world/article/b1m00zdf911g)
+- "The Israeli Ministry of Education announced the expansion of special education activities, including the gradual opening of additional classes in orange zones and the resumption of transportation services for eligible students" — [source](https://www.israelnationalnews.com/flashes/680296)
+
+### `service_disruption` (20)
+- "Hundreds of HMO clinics across Israel have not been operating since Operation 'Roaring Lion' began because they lack protective shelters. State comptroller recently conducted inspection of clinic protection standards." — [source](https://www.ynet.co.il/health/article/yokra14713258)
+- "Family members reported: 'They moved patients quickly to a place not prepared to receive them.' Many patients are bedridden or have mobility difficulties and cannot reach a protected space during an alert." — [source](https://www.ynet.co.il/health/article/byf7y3f5wl)
+- "Business owner stated: 'Today there's a worker so we opened, tomorrow will be closed. Everything is random.' Shops are reducing operations and reporting sharp decline in revenue due to frequent alerts." — [source](https://www.haaretz.co.il/tmr/career/2026-03-19/ty-article-magazine/.premium/0000019d-01f2-da5c-a3bd-0ff285de0000)
+- "Following the strike, gas processing facilities in Haifa were shut down. Large forces of firefighting and Magen David Adom arrived at the location. As a result of the strike, damage was caused but there were no casualties." — [source](https://www.maariv.co.il/news/military/article-1298555)
+- "Israir announced it is canceling the original flight schedule planned before the war until March 31 (inclusive), and is closing the sale of that schedule until April 30. The company continues to operate special flights according to the Ministry of Transport route, but clarifies that seat availability is significantly lower than demand." — [source](https://www.maariv.co.il/lifestyle/travel/article-1298359)
+- "Teacher Shiran Peretz described remote learning reality: 'It is very tough. The children are not concentrated. Maybe two turn on camera. Even those who don't turn on camera, don't answer, don't respond, there's no response from the other side'" — [source](http://news.walla.co.il/item/3824934)
+- "Israir announced cancellation of all flights until March 31, suspension of ticket sales for original flight schedule planned until April 30. Full refunds or future credit offered to affected customers" — [source](https://www.mako.co.il/news-money/consumer/Article-8f8695d0cf40d91027.htm)
+- "Due to security situation and restrictions in airspace, Israir cancels original flight schedule until March 31, 2026, and closes ticket sales for original schedule until April 30, 2026" — [source](https://www.mako.co.il/travel-news/israel/Article-7086a75cd810d91026.htm)
+- "Kindergarten closed. Children adopted after difficult beginning in life need routine to grow, but after two and a half weeks at home with alerts and booms, effects visible almost immediately" — [source](https://www.mako.co.il/home-family-kids/Article-9e228f664450d91027.htm)
+- "גבר כבן 60 נפצע היום במצב קשה בקרית שמונה בעקבות פגיעת טיל ישירה בבניין מגורים. אישה כבת 70 נפצעה בינוני." — [source](https://www.kikar.co.il/israel-news/kiryat-shmona-rocket-impact-rescue)
+- "תנאי מזג האוויר הקשים הובילו לחסימת כבישים מרכזיים ברחבי הדרום. כביש 31, כביש 40, כביש 90, וכביש 206 נסגרו" — [source](https://www.inn.co.il/flashes/1103036)
+- "Operation 'Roar of the Lion' caused reservists to leave civilian lives within hours. 'Work is postponed, studies are frozen, and the state returns to the term emergency routine'" — [source](https://www.inn.co.il/news/692661)
+- "Many residents in Kiryat area report widespread power outages following Iranian missile strikes" — [source](https://www.inn.co.il/news/692670)
+- "הצנזורה הצבאית אישרה פגיעה ישירה במתחם בתי הזיקוק במפרץ חיפה, הובילה לשיבושים משמעותיים בתשתיות והפסקות חשמל בחלקים נרחבים בצפון" — [source](https://www.srugim.co.il/news/1300079)
+- "תשע התחנות התת-קרקעיות של הרכבת הקלה עדיין משמשות כמרחב מוגן, וירידה משמעותית במספר תושבים משתמשים בהן בלילה" — [source](https://www.bhol.co.il/news/1722268)
+- "Kiryat Shmona must complete season hosting home matches in Netanya, relocated more than 2 years due to ongoing security situation. Forced to train in Netanya facilities" — [source](https://www.one.co.il/Article/517551.html)
+- "Israeli carrier Israir cancels all regularly scheduled flights through March 31 due to wartime airspace restrictions and limited operations at Ben Gurion Airport" — [source](https://www.timesofisrael.com/liveblog_entry/in-blow-to-passover-travel-israir-nixes-regularly-scheduled-flights-through-march-31/)
+- "El Al announced that due to new Home Front Command restrictions, 50% of passengers will be unable to depart for the USA; passengers will receive refunds or vouchers until the situation normalizes" — [source](https://cursorinfo.co.il/israel-news/v-el-al-vystupili-s-dramaticheskim-zayavleniem-dlya-letyashhih-v-ssha/)
+- "In a northern city, approximately 30% of residents have not returned and approximately 40% of small businesses have shut down permanently." — [source](https://www.ynetnews.com/article/h1c74h00qzg)
+- "El Al announced cancellation of flights for another week due to restrictions on Ben Gurion Airport operations and Home Front Command guidelines." — [source](https://www.israelnationalnews.com/news/424203)
+
+### `social_isolation` (3)
+- "The high frequency of alerts in Tel Aviv has led to the city emptying out, with workers fleeing to parents' homes and businesses unable to maintain normal operations." — [source](https://www.haaretz.co.il/tmr/career/2026-03-19/ty-article-magazine/.premium/0000019d-01f2-da5c-a3bd-0ff285de0000)
+- "Northern residents who had returned home after evacuation are now leaving again. A resident stated: 'After the house was renovated, half a year ago, we returned to Metula, but we still had the feeling that Hezbollah was watching us.'" — [source](https://www.maariv.co.il/news/israel/article-1298246)
+- "Hundreds of residents with no available protected space continue sleeping in underground train stations as access to upper stations remains restricted" — [source](https://www.calcalist.co.il/local_news/article/bk1wflhoy9bl)
+
+### `solidarity_help_others` (2)
+- "MK Osher Shkalim immediately aided a woman with two babies, helping to lead them to a protected space nearby" — [source](https://0404.co.il/article/1131157)
+- "Ex-husband, ex-wife, and new partner share one safe room during war, maintaining good atmosphere and cooperation during emergencies." — [source](https://www.ynetnews.com/magazine/article/hynhblkc11l)
+
+### `system_overload` (18)
+- "Emergency paramedic Moran Abu Shakara: 'This is a building hit. We arrived with large forces of ambulances, intensive care vehicles and Magen David Adom motorcycles. At the scene was destruction and smoke. We extracted injured from the rubble and began immediately providing life-saving medical treatment. We are now conducting further searches and working to evacuate to hospitals'" — [source](https://www.ynet.co.il/news/article/ryo0aqk5bg)
+- "Emergency paramedic Moran Abu Shakara describes response to direct hit on building: 'This is a building hit. We arrived with large forces of ambulances, intensive care vehicles and Magen David Adom motorcycles. At the scene was destruction and smoke. We extracted injured from the rubble and began immediately providing life-saving medical treatment'" — [source](https://www.ynet.co.il/news/article/bkcjwktqzl)
+- "Family members of patients stated conditions in the new protected hospital are poor and unsuitable. Dozens of ambulances transported patients from rehabilitation and geriatric centers." — [source](https://www.ynet.co.il/health/article/byf7y3f5wl)
+- "Emergency personnel describe the current campaign as more intensive than previous operations. A responder stated: 'Compared to Iron Swords and With Lions, in Operation Lion's Roar the intensity is much greater. When missiles with fragmentation warheads are fired, you get many impact sites.'" — [source](https://www.maariv.co.il/news/israel/article-1298143)
+- "825 people injured entering protected spaces since Operation 'Lion's Roar' began; 3 killed, 19 in road accidents while pulling over during alerts (Magen David Adom data)" — [source](https://www.maariv.co.il/breaking-news/article-1298609)
+- "Parents report children with flu-like symptoms (sore throat, cough, runny nose, weakness, fever, sometimes red eyes or rashes). Community doctors estimate cases are related to prolonged stay in crowded, dusty, poorly ventilated shelters and protected spaces where many residents stay together for extended periods" — [source](https://www.mako.co.il/health-news/Article-f80113d40850d91026.htm)
+- "Since the start of Operation Lion's Roar, 3,924 casualties have been evacuated to hospitals across the country. Currently 79 people are hospitalized: 1 in critical condition, 6 in serious condition." — [source](https://www.kikar.co.il/israel-news/operation-lions-roar-casualties-hospitals)
+- "Health Ministry data updated to 7:00 AM: 3,924 injured people were hospitalized since start of operation. In just the last 24 hours (since yesterday morning), there was significant damage. Foreign worker from Thailand was killed from missile strike. Additionally, two residents in their 70s were killed from direct missile hit in Ramat Gan after failing to reach protected space in time" — [source](https://www.srugim.co.il/news/1299986)
+- "ראש השב"כ ודוברים צבאיים מדווחים: בחודש רמדאן לא היו נרצחים ישראלים בפיגועי טרור - הישג ביטחוני חסר תקדים מזה 13 שנים" — [source](https://www.srugim.co.il/news/1300021)
+- "צנזורה התירה לפרסום: מתחילת מבצע שוגרו 285 טילים לעבר ישראל, מערכות ההגנה רשמו 90% הצלחה" — [source](https://www.srugim.co.il/news/1300055)
+- "גורם ביטחוני דיווח על הסלמה בפעילות יחידת בסיג' האיראנית, הקמת מחסומים רבים ברחבי ערים כדי לפקח על תנועת אזרחים ולדיכוי מוקדי התנגדות" — [source](https://www.bhol.co.il/news/1722277)
+- "חובש מד״א סיפר: הגענו למקום בכוחות גדולים של אמבולנסים, ניידות טיפול נמרץ ואופנועים של מד״א בתגובה לנפילה אחת" — [source](https://www.bhol.co.il/news/1722296)
+- "Magen David Adom senior paramedic Assi Azulai reported: 'We arrived at the place and saw a 53-year-old man unconscious, without pulse and without breathing, suffering from severe head trauma after being hit by a vehicle.'" — [source](https://www.kipa.co.il/%D7%97%D7%93%D7%A9%D7%95%D7%AA/%D7%9E%D7%91%D7%96%D7%A7%D7%99%D7%9D/1221402-0/)
+- "According to Magen David Adom data, since the start of Operation 'Lion's Roar', 718 people have been injured on the way to shelters, 14 of them in traffic accidents when they stopped on the roadside during the siren." — [source](https://www.globes.co.il/news/article.aspx?did=1001537894)
+- "Tel Aviv University research published in International Journal of Clinical and Health Psychology shows direct correlation between shelter location and sleep quality. Public shelters associated with poorest sleep quality." — [source](https://www.globes.co.il/news/article.aspx?did=1001537980)
+- "Health Ministry: In the past 24 hours, 177 injured were taken to hospitals due to the Iran operation; since the start of Operation 'Roar of the Lion', 3,924 injured were evacuated to hospitals, with 79 currently hospitalized" — [source](https://www.newsru.co.il/health/19mar2026/minzdrav501.html)
+- "Health Ministry reports 177 injured people taken to hospitals in the past 24 hours as a result of the conflict with Iran; one person treated for anxiety" — [source](https://www.timesofisrael.com/liveblog_entry/177-people-taken-to-hospital-in-past-24-hours-as-result-of-iran-war-health-ministry-says/)
+- "A missile from Lebanon hit a five-story building in Kiryat Shmona, injuring two people: a man in his 60s with serious abdominal trauma and a woman in her 70s with moderate abdominal injuries, requiring evacuation for medical treatment" — [source](https://www.israelnationalnews.com/news/424249)
+
+### `unsafe_gathering` (4)
+- "Extreme Haredi protesters gathered with baby carriages containing infants at a construction site, creating unsafe conditions during confrontation with police" — [source](https://www.inn.co.il/news/692666)
+- "Police statement: 'Law-breakers are making cynical use of toddlers and baby carriages to violate public order and cause significant damage to infrastructure' following a protest in Mea Shearim with strollers and babies." — [source](https://www.kipa.co.il/%D7%97%D7%93%D7%A9%D7%95%D7%AA/1221385-0/)
+- "At an Al Quds Day protest in Times Square, a protest leader directed the crowd to chant 'Stop eating babies' toward Jewish counter-protesters, and the crowd took up the chant with no confusion or hesitancy." — [source](https://www.timesofisrael.com/old-fashioned-antisemitic-tropes-and-trendy-anti-zionism-converge-at-al-quds-day-rallies/)
+- "Haredi extremists attempted to prevent construction on the light rail in Jerusalem and gathered to protest with infants in strollers. Police threw dozens of stun grenades at the demonstrators" — [source](https://www.israelnationalnews.com/news/424250)

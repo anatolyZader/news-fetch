@@ -116,13 +116,109 @@ export const HOMEFRONT_KEYWORDS = [
   'קהילה',
 ];
 
+// ─── Arabic keywords ───────────────────────────────────────────────────────────
+export const HOMEFRONT_KEYWORDS_ARA = [
+  // Home Front Command & emergency behavior
+  'قيادة الجبهة الداخلية', 'الجبهة الداخلية', 'جبهة الداخل',
+  'صفارات الإنذار', 'صافرة الإنذار', 'إنذار جوي', 'إنذار',
+  'ملجأ', 'غرفة آمنة', 'ملاجئ', 'مامد',
+  'إخلاء', 'إجلاء', 'مهجرون', 'نازحون',
+  'طوارئ', 'حالة طوارئ',
+  'صواريخ', 'قذائف', 'قصف',
+  'سكان', 'مقيمون', 'مدنيون',
+  'مدارس', 'طلاب', 'تعليم',
+  'شمال إسرائيل', 'الجليل', 'مستوطنات',
+  // Psychoemotional
+  'خوف', 'قلق', 'توتر', 'ضغط نفسي',
+  'صدمة', 'صدمة نفسية', 'اضطراب ما بعد الصدمة',
+  'دعم نفسي', 'صحة نفسية', 'صمود',
+  // Vulnerable populations
+  'مسنون', 'أطفال', 'ذوو الاحتياجات الخاصة', 'نساء حوامل',
+  'مجتمع', 'قرية', 'بلدة',
+];
+
+// ─── Russian keywords ──────────────────────────────────────────────────────────
+export const HOMEFRONT_KEYWORDS_RUS = [
+  // Home Front Command & emergency behavior
+  'Командование тылом', 'командование тыла', 'Пикуд а-Орев', 'тыл',
+  'сирены', 'сирена', 'воздушная тревога', 'тревога',
+  'убежище', 'безопасная комната', 'мамад', 'укрытие',
+  'эвакуация', 'эвакуированные', 'переселенцы',
+  'чрезвычайная ситуация', 'режим ЧС',
+  'ракеты', 'обстрел', 'ракетный обстрел',
+  'жители', 'население', 'мирные жители',
+  'школы', 'дети', 'учащиеся', 'дистанционное обучение',
+  'север Израиля', 'Галилея', 'поселения',
+  // Psychoemotional
+  'страх', 'тревожность', 'стресс', 'психологическое давление',
+  'травма', 'ПТСР', 'посттравматическое', 'психологическая помощь',
+  'психолог', 'психическое здоровье', 'устойчивость',
+  // Vulnerable populations
+  'пожилые', 'дети', 'инвалиды', 'беременные',
+  'репатрианты', 'новые репатрианты', 'олим',
+  'сообщество', 'община',
+];
+
+// ─── English keywords ──────────────────────────────────────────────────────────
+export const HOMEFRONT_KEYWORDS_ENG = [
+  // Home Front Command & emergency behavior
+  'Home Front Command', 'civil defense', 'home front',
+  'sirens', 'siren', 'air raid', 'alert', 'alarm',
+  'bomb shelter', 'safe room', 'shelter',
+  'evacuation', 'evacuees', 'displaced residents',
+  'emergency', 'emergency situation',
+  'rocket fire', 'rocket attack', 'missiles', 'shelling',
+  'residents', 'civilians', 'population',
+  'schools', 'students', 'remote learning', 'distance learning',
+  'northern Israel', 'Galilee', 'communities',
+  // Psychoemotional
+  'anxiety', 'fear', 'stress', 'psychological',
+  'trauma', 'PTSD', 'post-traumatic',
+  'mental health', 'resilience', 'coping',
+  'psychologist', 'counseling', 'emotional support',
+  // Vulnerable populations
+  'elderly', 'children', 'disabled', 'pregnant',
+  'immigrants', 'new immigrants', 'special needs',
+  'community', 'settlement', 'town',
+];
+
+// ─── French keywords ───────────────────────────────────────────────────────────
+export const HOMEFRONT_KEYWORDS_FRA = [
+  // Home Front Command & emergency behavior
+  'commandement du front intérieur', 'défense civile', 'front intérieur',
+  'sirènes', 'sirène', 'alerte', 'alerte aérienne',
+  'abri', 'salle sécurisée', 'abris',
+  'évacuation', 'évacués', 'déplacés',
+  'urgence', 'situation d\'urgence',
+  'tirs de roquettes', 'roquettes', 'missiles', 'bombardement',
+  'résidents', 'civils', 'population',
+  'écoles', 'élèves', 'enseignement à distance',
+  'nord d\'Israël', 'Galilée', 'communautés',
+  // Psychoemotional
+  'anxiété', 'peur', 'stress', 'psychologique',
+  'traumatisme', 'PTSD', 'post-traumatique',
+  'santé mentale', 'résilience', 'faire face',
+  'psychologue', 'soutien émotionnel',
+  // Vulnerable populations
+  'personnes âgées', 'enfants', 'handicapés', 'femmes enceintes',
+  'immigrants', 'nouveaux immigrants', 'besoins spéciaux',
+  'communauté', 'ville',
+];
+
 /**
- * Returns true if text (title + body) contains any of the home front / population-behavior keywords.
+ * Returns true if text (title + body) contains any homefront-relevant keyword
+ * in any supported language (Hebrew, Arabic, Russian, English, French).
  * @param {string} title
  * @param {string} body
  * @returns {boolean}
  */
 export function isHomefrontRelevant(title, body) {
   const text = `${title || ''} ${body || ''}`;
-  return HOMEFRONT_KEYWORDS.some((kw) => text.includes(kw));
+  return (
+    HOMEFRONT_KEYWORDS.some((kw) => text.includes(kw)) ||
+    HOMEFRONT_KEYWORDS_ARA.some((kw) => text.includes(kw)) ||
+    HOMEFRONT_KEYWORDS_RUS.some((kw) => text.includes(kw)) ||
+    HOMEFRONT_KEYWORDS_ENG.some((kw) => text.includes(kw)) ||
+    HOMEFRONT_KEYWORDS_FRA.some((kw) => text.includes(kw))
+  );
 }

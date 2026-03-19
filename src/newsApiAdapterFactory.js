@@ -16,6 +16,7 @@ export function createNewsApiArticlesFetcher(options) {
   const sourceUris = options.sourceUris;
   const defaultSourceLabel = options.defaultSourceLabel ?? sourceUris[0] ?? '';
   const mainNewsOnly = options.mainNewsOnly !== false;
+  const lang = options.lang ?? 'heb';
 
   async function fetchArticlesForDay({ date }) {
     const all = [];
@@ -28,7 +29,7 @@ export function createNewsApiArticlesFetcher(options) {
         resultType: 'articles',
         apiKey,
         sourceUri: sourceUris,
-        lang: 'heb',
+        lang,
         dateStart: date,
         dateEnd: date,
         dataType: ['news', 'blog'],

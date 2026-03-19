@@ -88,13 +88,20 @@ export function formatEventsAsTable(parsedLog) {
 }
 
 /**
- * Derive a report date from the events (first time entry, if it looks like a date or time).
- * Falls back to today.
+ * Derive a report date from the events or source filename.
+ * Priority: events 'date' column → YYYY-MM-DD in filename → fallback (today).
  */
 export function inferDate(parsedLog, fallback) {
-  // If events have a 'date' column, use first non-empty value
+  // 1. If events have a 'date' column, use first non-empty value
   const first = parsedLog.events[0];
   if (first?.date && /\d{4}-\d{2}-\d{2}/.test(first.date)) return first.date;
+
+  // 2. Extract YYYY-MM-DD from the source filename (e.g. event-log-2026-03-14.txt)
+  if (parsedLog.sourceName) {
+    const m = parsedLog.sourceName.match(/(\d{4}-\d{2}-\d{2})/);
+    if (m) return m[1];
+  }
+
   return fallback ?? new Date().toISOString().slice(0, 10);
 }
 

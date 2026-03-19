@@ -5,8 +5,10 @@
   "type": "module",
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",
+    "@fastify/static": "^9.0.0",
     "dotenv": "^16.4.5",
-    "fastify": "^5.2.0"
+    "fastify": "^5.2.0",
+    "xlsx": "^0.18.5"
   },
   "scripts": {
     "start": "node src/server.js",
@@ -14,6 +16,11 @@
     "articles-to-md": "node scripts/fetch-articles-to-md.js",
     "homefront-to-md": "node scripts/extract-homefront-articles.js",
     "analyze-resilience": "node scripts/analyze-resilience.js",
-    "analyze-event-log": "node scripts/analyze-event-log.js"
+    "analyze-event-log": "node scripts/analyze-event-log.js",
+    "analyze-survey": "node scripts/analyze-survey.js",
+    "analyze-social": "node scripts/analyze-social.js",
+    "test-tokens": "node scripts/test-token-usage.js",
+    "client:dev": "cd client && npm run dev",
+    "client:build": "cd client && npm run build"
   }
 }
