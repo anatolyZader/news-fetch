@@ -21,12 +21,14 @@ function buildMarkdown(assessment, sourceFiles) {
   const lines = [];
 
   // ── Header ────────────────────────────────────────────────────────────────
+  const kind = assessment.content_kind ?? 'news';
   lines.push(
     `# Population Resilience Assessment`,
     ``,
     `| Field | Value |`,
     `|-------|-------|`,
     `| **Date** | ${assessment.date} |`,
+    `| **Content kind** | ${kind} |`,
     `| **Sources** | ${sourceFiles.join(', ')} |`,
     `| **Articles analyzed** | ${assessment.total_articles_analyzed} |`,
     ``,

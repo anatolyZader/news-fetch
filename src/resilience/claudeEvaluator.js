@@ -1,15 +1,20 @@
 /**
  * Two-step LLM evaluation using Claude API:
- *   Step 0 — Title pre-filter: Haiku quickly discards irrelevant articles.
  *   Step 1 — Signal extraction: Haiku extracts typed behavioral signals (closed vocabulary).
  *             Code deterministically maps signals → component scores (no LLM scoring).
- *   Step 2 — Narrative generation: Opus writes component narratives based on the signals.
- *             Opus does NOT score — scoring is handled by scoreComponents() in behaviorSignals.js.
+ *   Step 2 — Narrative generation: Sonnet writes component narratives based on the signals.
+ *             Scoring is handled by scoreComponents() in behaviorSignals.js.
  */
 
 import Anthropic from '@anthropic-ai/sdk';
 import { RESILIENCE_COMPONENTS } from './resilienceComponents.js';
-import { SIGNAL_CATALOG, SIGNAL_TYPES, summarizeConfidence } from './behaviorSignals.js';
+import {
+  SIGNAL_CATALOG,
+  SIGNAL_TYPES,
+  summarizeConfidence,
+  overallScore,
+  scoreComponents,
+} from './behaviorSignals.js';
 
 const client = new Anthropic(); // uses ANTHROPIC_API_KEY from env
 
@@ -164,6 +169,12 @@ function formatArticlesForPrompt(articles) {
     .join('\n\n---\n\n');
 }
 
+const RADIO_SIGNAL_EXTRACTION_PREFIX =
+  `━━━ SOURCE: RADIO TRANSCRIPTS ━━━\n` +
+  `Input is spoken Israeli radio (speech-to-text). Speaker labels may appear (e.g. SPEAKER_00, host/guest).\n` +
+  `Treat clearly attributed speech as quotable evidence when a person or role is identified.\n` +
+  `Skip music-only or ad segments with no behavioral content.\n\n`;
+
 const SIGNAL_EXTRACTION_SYSTEM_PROMPT =
   `You are a behavioral signal extractor for community resilience analysis in Israel.\n` +
   `Extract atomic behavioral signals from news articles using a closed vocabulary of signal types.\n\n` +
@@ -242,9 +253,26 @@ const SIGNAL_EXTRACTION_SYSTEM_PROMPT =
   `}\n\n` +
   `Return ONLY a valid JSON array. One article can yield multiple signals. Skip articles with no extractable behavioral evidence.`;
 
-async function extractSignalsBatch(articles, batchLabel, retries = 3, usageCallback = null) {
+function buildSignalExtractionSystemPrompt(contentKind) {
+  const base = SIGNAL_EXTRACTION_SYSTEM_PROMPT;
+  if (contentKind === 'radio') {
+    return RADIO_SIGNAL_EXTRACTION_PREFIX + base.replace(
+      'from news articles using',
+      'from radio broadcast transcripts (same rules as news text) using',
+    );
+  }
+  return base;
+}
+
+function extractUserLabelForSignals(contentKind) {
+  return contentKind === 'radio'
+    ? 'radio broadcast transcript segments'
+    : 'news articles';
+}
+
+async function extractSignalsBatch(articles, batchLabel, retries = 3, usageCallback = null, contentKind = 'news') {
   const userContent =
-    `Extract all behavioral signals from these Israeli news articles:\n\n` +
+    `Extract all behavioral signals from these Israeli ${extractUserLabelForSignals(contentKind)}:\n\n` +
     formatArticlesForPrompt(articles);
 
   for (let attempt = 1; attempt <= retries; attempt++) {
@@ -253,7 +281,7 @@ async function extractSignalsBatch(articles, batchLabel, retries = 3, usageCallb
         model: 'claude-haiku-4-5-20251001',
         max_tokens: 12000,
         temperature: 0,
-        system: SIGNAL_EXTRACTION_SYSTEM_PROMPT,
+        system: buildSignalExtractionSystemPrompt(contentKind),
         messages: [{ role: 'user', content: userContent }],
       });
 
@@ -325,10 +353,10 @@ async function extractSignalsBatch(articles, batchLabel, retries = 3, usageCallb
  * @param {Array} articles   Flat array from loadMdFiles()
  * @returns {Array}          Signal objects: { article_index, article_url, signal_type, evidence_class, scope_level, confidence, evidence }
  */
-export async function extractSignals(articles, { onUsage, onProgress } = {}) {
+export async function extractSignals(articles, { onUsage, onProgress, contentKind = 'news' } = {}) {
   if (articles.length <= EVIDENCE_BATCH_SIZE) {
     onProgress?.({ type: 'progress', step: 'extract', message: 'Extracting behavioral signals...' });
-    return extractSignalsBatch(articles, '[Step 1 — Signal extraction]', 3, onUsage);
+    return extractSignalsBatch(articles, '[Step 1 — Signal extraction]', 3, onUsage, contentKind);
   }
 
   const batches = [];
@@ -345,7 +373,7 @@ export async function extractSignals(articles, { onUsage, onProgress } = {}) {
     }
     onProgress?.({ type: 'progress', step: 'extract', message: `Extracting signals (batch ${i + 1}/${batches.length})...` });
     const label = `[Step 1 — batch ${i + 1}/${batches.length}]`;
-    const signals = await extractSignalsBatch(batches[i], label, 3, onUsage);
+    const signals = await extractSignalsBatch(batches[i], label, 3, onUsage, contentKind);
     console.error(`  → ${signals.length} signals from batch ${i + 1}`);
     allSignals = allSignals.concat(signals);
   }
@@ -408,12 +436,24 @@ function formatPriorReportsContext(priorReports) {
   );
 }
 
-export async function generateNarratives(scoredComponents, _allSignals, date, totalArticles, { onUsage, _onProgress, priorReports } = {}) {
+const RADIO_NARRATIVE_CONTEXT =
+  `━━━ SOURCE: RADIO ━━━\n` +
+  `Evidence comes from radio transcripts (not print news). Broadcast selection bias applies: hosts, guests, and call-ins are not a census of the population.\n` +
+  `When few signals have URLs, omit source links; do not fabricate URLs.\n\n`;
+
+export async function generateNarratives(
+  scoredComponents,
+  _allSignals,
+  date,
+  totalArticles,
+  { onUsage, _onProgress, priorReports, contentKind = 'news' } = {},
+) {
   const priorContext = formatPriorReportsContext(priorReports);
 
   const systemPrompt =
     `You are a community resilience analyst writing behavioral narratives for a structured report.\n` +
     `The component SCORES are already computed — do not re-score. Your job is to write clear, behavioral narratives.\n\n` +
+    (contentKind === 'radio' ? RADIO_NARRATIVE_CONTEXT : '') +
     (priorContext ? priorContext : '') +
 
     `━━━ NARRATIVE RULES ━━━\n` +
@@ -437,7 +477,7 @@ export async function generateNarratives(scoredComponents, _allSignals, date, to
     `  Step 3 — do not over-weight components that happen to have more signals. Signal count reflects reporting intensity, not necessarily prevalence of the phenomenon.\n` +
     `  List absent manifestations in the "manifestations_absent" array; include a parenthetical interpretation: (informative absence) or (likely reporting gap).\n` +
     `- SCOPE DISCIPLINE: Never use "the only", "the one exception", "uniquely", or similar exclusive claims.\n` +
-    `  The articles are a sample, not a census. Something appearing once in the data means it was reported once — not that it is the sole instance.\n` +
+    `  The inputs are a sample, not a census. Something appearing once in the data means it was reported once — not that it is the sole instance.\n` +
     `- LINKS: Each signal has a URL. When a signal has a URL, embed a markdown link for every significant claim:\n` +
     `    In narrative: append ([source](URL)) after the relevant sentence\n` +
     `    In evidence items: append ([source](URL)) at end of the item\n` +
@@ -521,6 +561,8 @@ export async function generateNarratives(scoredComponents, _allSignals, date, to
       return {
         date,
         total_articles_analyzed: totalArticles,
+        overall_resilience_score: overallScore(scoredComponents),
+        content_kind: contentKind,
         cross_component_synthesis: narratives.cross_component_synthesis ?? '',
         evidence_quality_note: narratives.evidence_quality_note ?? '',
         components,
@@ -535,9 +577,8 @@ export async function generateNarratives(scoredComponents, _allSignals, date, to
 
 // Backwards-compat: synthesizeComponents wraps the new two-step (score + narrate)
 // so that analysisService.js and test-token-usage.js continue to work.
-import { scoreComponents } from './behaviorSignals.js';
 
-export async function synthesizeComponents(signals, date, totalArticles, { onUsage, onProgress } = {}) {
-  const scored = scoreComponents(signals);
-  return generateNarratives(scored, signals, date, totalArticles, { onUsage, onProgress });
+export async function synthesizeComponents(signals, date, totalArticles, { onUsage, onProgress, contentKind } = {}) {
+  const scored = scoreComponents(signals, { totalArticles });
+  return generateNarratives(scored, signals, date, totalArticles, { onUsage, onProgress, contentKind });
 }

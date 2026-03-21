@@ -8,14 +8,17 @@
     "@fastify/static": "^9.0.0",
     "dotenv": "^16.4.5",
     "fastify": "^5.2.0",
+    "openai": "^4.104.0",
     "xlsx": "^0.18.5"
   },
   "scripts": {
     "start": "node src/server.js",
-    "test": "node --test tests/",
+    "test": "node --test tests/*.test.js tests/business_modules/**/*.test.js",
     "articles-to-md": "node scripts/fetch-articles-to-md.js",
     "homefront-to-md": "node scripts/extract-homefront-articles.js",
     "analyze-resilience": "node scripts/analyze-resilience.js",
+    "radio-audio-to-md": "node scripts/radio-audio-to-md.js",
+    "analyze-radio": "node scripts/analyze-resilience.js --content-kind radio --files articles-radio.md",
     "analyze-event-log": "node scripts/analyze-event-log.js",
     "analyze-survey": "node scripts/analyze-survey.js",
     "analyze-social": "node scripts/analyze-social.js",
