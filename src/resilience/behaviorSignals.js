@@ -98,14 +98,14 @@ export const SIGNAL_TO_COMPONENTS = {
 
   // Risk
   risk_exposure_behavior:            { lifesaving_behavior: -1.0 },
-  panic_behavior:                    { lifesaving_behavior: -0.7, wellbeing_atrisk: -0.8, narrative: -0.5 },
+  panic_behavior:                    { lifesaving_behavior: -0.7, wellbeing_atrisk: -0.8 },
   unsafe_gathering:                  { lifesaving_behavior: -0.9 },
 
   // Social Cohesion
   solidarity_help_others:            { belonging_solidarity: +1.0, wellbeing_atrisk: +0.7, community_capital: +0.6 },
   community_volunteering:            { community_capital: +1.0, belonging_solidarity: +0.7, wellbeing_atrisk: +0.5 },
   social_isolation:                  { belonging_solidarity: -1.0, wellbeing_atrisk: -0.8 },
-  conflict_or_tension:               { belonging_solidarity: -1.1, narrative: -0.5, wellbeing_atrisk: -0.4 },
+  conflict_or_tension:               { belonging_solidarity: -1.1, wellbeing_atrisk: -0.4 },
 
   // Leadership
   leadership_visible_presence:       { leadership: +1.0 },
@@ -126,7 +126,7 @@ export const SIGNAL_TO_COMPONENTS = {
   system_overload:                   { functional_continuity: -1.0, wellbeing_atrisk: -0.6 },
 
   // Narrative
-  fear_expression:                   { narrative: -0.8, wellbeing_atrisk: -0.7 },
+  fear_expression:                   { wellbeing_atrisk: -0.7 },
   calm_confidence:                   { narrative: +0.9, wellbeing_atrisk: +0.5 },
   resilience_narrative_positive:     { narrative: +1.0 },
   resilience_narrative_negative:     { narrative: -1.0 },

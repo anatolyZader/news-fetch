@@ -197,13 +197,29 @@ const SIGNAL_EXTRACTION_SYSTEM_PROMPT =
 
   `━━━ EXTRACTION RULES (apply to both classes) ━━━\n` +
   `1. ATOMIC: Each signal is one single behavioral fact — one verb, one meaning. Split compound behaviors.\n` +
+  `   A single quote may yield multiple signals if it contains multiple distinct facts. Extract each separately.\n` +
+  `   Example: "I rushed to find my children; on the way I saw injured neighbors" → two signals:\n` +
+  `     (a) evacuation/family reunification → compliance_enter_shelter or lifesaving_behavior domain\n` +
+  `     (b) witnessing injured population → wellbeing_atrisk domain\n` +
+  `   Do NOT collapse this into one solidarity signal just because neighbors are mentioned.\n` +
   `2. CLOSED VOCABULARY: You MUST choose signal type from the list below. Never invent new types.\n` +
   `3. DO NOT EXTRACT: political/military/diplomatic content — unless it contains a direct civilian behavioral response.\n` +
   `4. DO NOT EXTRACT: global indices, international rankings, or pre-crisis baseline surveys.\n\n` +
 
   `━━━ CLASSIFICATION BOUNDARIES (read before choosing signal type) ━━━\n` +
+  `- solidarity_help_others / community_volunteering: ONLY when an explicit act of helping, assisting, or supporting\n` +
+  `  another person is described. The act must be named — not inferred from proximity or mention of neighbors.\n` +
+  `  ACCEPT: "residents brought food to elderly neighbors who couldn't reach shelters"\n` +
+  `  REJECT: "I went to find my family; I saw my neighbors' children were injured" — no helping act present\n` +
+  `  REJECT: "a community gathered in a shelter" — co-location is not solidarity\n` +
+  `- Witnessing or hearing about harm to others (injured children, suffering neighbors) → wellbeing_atrisk, NOT solidarity\n` +
+  `- Emergency family reunification / finding family during evacuation → compliance_enter_shelter or lifesaving domain, NOT solidarity\n` +
   `- Education operating remotely / schools closed → service_disruption or service_continuity (functional_continuity domain), NOT information_*\n` +
   `- Businesses closed, clinics not operating, transport cancelled → service_disruption (functional_continuity domain)\n` +
+  `- system_overload vs resource_shortage: use system_overload when infrastructure is operating but at dangerous\n` +
+  `  capacity relative to demand (one ICU for 115,000 residents; ER wait times tripled; ambulances unavailable).\n` +
+  `  Use resource_shortage when material supplies or services are simply absent (no shelters in a neighbourhood,\n` +
+  `  no compensation payments issued, volunteers ran out of food packages).\n` +
   `- information_* types are ONLY for: residents receiving/missing/seeking safety or operational guidance, rumor spread, contradictory official messages\n\n` +
 
   `━━━ SIGNAL TYPES (closed vocabulary) ━━━\n` +
@@ -344,7 +360,7 @@ export { extractSignals as extractEvidence };
 /**
  * Format the pre-scored component data + its signals for the narrative prompt.
  */
-function formatScoredComponentsForNarrative(scoredComponents, signalCatalogMap, totalArticles) {
+function formatScoredComponentsForNarrative(scoredComponents, totalArticles) {
   return RESILIENCE_COMPONENTS.map((compDef) => {
     const scored = scoredComponents[compDef.id];
     const conf = summarizeConfidence(scored?.confidence);
@@ -392,9 +408,7 @@ function formatPriorReportsContext(priorReports) {
   );
 }
 
-export async function generateNarratives(scoredComponents, allSignals, date, totalArticles, { onUsage, onProgress, priorReports } = {}) {
-  const signalCatalogMap = Object.fromEntries(SIGNAL_CATALOG.map((s) => [s.type, s]));
-
+export async function generateNarratives(scoredComponents, _allSignals, date, totalArticles, { onUsage, _onProgress, priorReports } = {}) {
   const priorContext = formatPriorReportsContext(priorReports);
 
   const systemPrompt =
@@ -430,7 +444,7 @@ export async function generateNarratives(scoredComponents, allSignals, date, tot
     `    If a signal has no URL, omit the link — do not fabricate URLs\n\n` +
 
     `━━━ THE 8 COMPONENTS (with pre-computed scores and signals) ━━━\n\n` +
-    `${formatScoredComponentsForNarrative(scoredComponents, signalCatalogMap, totalArticles)}\n\n` +
+    `${formatScoredComponentsForNarrative(scoredComponents, totalArticles)}\n\n` +
 
     `━━━ OUTPUT FORMAT ━━━\n` +
     `Return ONLY valid JSON:\n` +
@@ -520,7 +534,7 @@ export async function generateNarratives(scoredComponents, allSignals, date, tot
 
 // Backwards-compat: synthesizeComponents wraps the new two-step (score + narrate)
 // so that analysisService.js and test-token-usage.js continue to work.
-import { scoreComponents, overallScore } from './behaviorSignals.js';
+import { scoreComponents } from './behaviorSignals.js';
 
 export async function synthesizeComponents(signals, date, totalArticles, { onUsage, onProgress } = {}) {
   const scored = scoreComponents(signals);

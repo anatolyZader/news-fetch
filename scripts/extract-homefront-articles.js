@@ -150,23 +150,21 @@ const FETCH_PREFILTER_SYSTEM_PROMPT =
   `Err on the side of inclusion: a false positive is filtered downstream; a false negative permanently loses behavioral evidence.\n\n` +
   `Return ONLY a JSON array of the article indices (the N from [N]): [1, 5, 12, ...]`;
 
-async function preFilterByLLM(articles) {
-  if (articles.length === 0) return articles;
+// ~400 articles × ~145 tokens/article ≈ 58k tokens, safely under the 200k limit.
+const PREFILTER_BATCH_SIZE = parseInt(process.env.PREFILTER_BATCH_SIZE || '400', 10);
 
-  const anthropic = new Anthropic(); // uses ANTHROPIC_API_KEY from env
-
-  const titleList = articles
+async function preFilterBatch(anthropic, batch, batchOffset, batchNum, totalBatches) {
+  const titleList = batch
     .map((a, i) => {
       const snippet = a.body?.trim().slice(0, 200);
       return snippet
-        ? `[${i + 1}] ${a.title}\n   ${snippet}`
-        : `[${i + 1}] ${a.title}`;
+        ? `[${batchOffset + i + 1}] ${a.title}\n   ${snippet}`
+        : `[${batchOffset + i + 1}] ${a.title}`;
     })
     .join('\n');
 
-  console.error(`  → LLM pre-filter: classifying ${articles.length} articles by title + snippet...`);
-
   const model = 'claude-haiku-4-5-20251001';
+  const label = totalBatches > 1 ? `[pre-filter batch ${batchNum}/${totalBatches}]` : '[pre-filter]';
   const retries = 3;
   let message;
   for (let attempt = 1; attempt <= retries; attempt++) {
@@ -176,35 +174,55 @@ async function preFilterByLLM(articles) {
         max_tokens: 8192,
         temperature: 0,
         system: FETCH_PREFILTER_SYSTEM_PROMPT,
-        messages: [{ role: 'user', content: `Classify these ${articles.length} article titles:\n\n${titleList}` }],
+        messages: [{ role: 'user', content: `Classify these ${batch.length} article titles:\n\n${titleList}` }],
       });
       break;
     } catch (err) {
       if (attempt === retries) throw err;
       const is429 = err.message?.includes('429') || err.status === 429;
       const wait = is429 ? 90000 : 5000 * attempt;
-      console.error(`  ⚠ pre-filter attempt ${attempt} failed (${err.message}) — retrying in ${wait / 1000}s...`);
+      console.error(`  ⚠ ${label} attempt ${attempt} failed (${err.message}) — retrying in ${wait / 1000}s...`);
       await new Promise((r) => setTimeout(r, wait));
     }
   }
 
   if (message.stop_reason === 'max_tokens') {
-    throw new Error('LLM pre-filter output truncated (max_tokens) — increase max_tokens');
+    throw new Error(`${label} output truncated (max_tokens) — increase max_tokens`);
   }
 
-  onUsage({ label: '[pre-filter]', model, usage: message.usage });
+  onUsage({ label, model, usage: message.usage });
 
   const text = message.content.find((b) => b.type === 'text')?.text ?? '';
-
-  // Extract JSON array from response
   const arrStart = text.indexOf('[');
   const arrEnd = text.lastIndexOf(']');
-  if (arrStart === -1 || arrEnd === -1) throw new Error('LLM pre-filter returned no JSON array');
+  if (arrStart === -1 || arrEnd === -1) throw new Error(`${label} returned no JSON array`);
   const indices = JSON.parse(text.slice(arrStart, arrEnd + 1));
-  if (!Array.isArray(indices)) throw new Error('LLM pre-filter: expected JSON array of indices');
+  if (!Array.isArray(indices)) throw new Error(`${label}: expected JSON array of indices`);
 
-  const indexSet = new Set(indices.map(Number));
-  const filtered = articles.filter((_, i) => indexSet.has(i + 1));
+  // indices are global (offset-based), convert to set of absolute positions
+  return new Set(indices.map(Number));
+}
+
+async function preFilterByLLM(articles) {
+  if (articles.length === 0) return articles;
+
+  const anthropic = new Anthropic();
+  const batches = [];
+  for (let i = 0; i < articles.length; i += PREFILTER_BATCH_SIZE) {
+    batches.push({ batch: articles.slice(i, i + PREFILTER_BATCH_SIZE), offset: i });
+  }
+
+  console.error(`  → LLM pre-filter: classifying ${articles.length} articles in ${batches.length} batch(es)...`);
+
+  const selectedSet = new Set();
+  for (let b = 0; b < batches.length; b++) {
+    if (b > 0) await new Promise((r) => setTimeout(r, 5000)); // brief pause between batches
+    const { batch, offset } = batches[b];
+    const batchSelected = await preFilterBatch(anthropic, batch, offset, b + 1, batches.length);
+    for (const idx of batchSelected) selectedSet.add(idx);
+  }
+
+  const filtered = articles.filter((_, i) => selectedSet.has(i + 1));
   console.error(`  → pre-filter: ${filtered.length}/${articles.length} articles selected as homefront-relevant`);
   return filtered;
 }
