@@ -152,7 +152,7 @@ try {
   console.error('');
 
   // Step 2 — narrative generation (Sonnet writes text, does not score)
-  const assessment = await generateNarratives(scoredComponents, signals, reportDate, totalCount, { onUsage, priorReports });
+  const assessment = await generateNarratives(scoredComponents, signals, reportDate, articles.length, { onUsage, priorReports });
 
   // Step 3 — write reports
   const { mdPath, jsonPath } = writeReport(assessment, signals, sourceFiles, outputBase);

@@ -41,15 +41,17 @@ function buildMarkdown(assessment, sourceFiles) {
   lines.push(
     `## Components`,
     ``,
-    `| # | Component | עברית | Confidence | Signals | Articles | Certainty | Score |`,
-    `|---|-----------|-------|------------|---------|----------|-----------|-------|`,
+    `*Assessment reliability = how much to trust the result | Evidence level = how much evidence exists | Article coverage = how widely it appears across the sample*`,
+    ``,
+    `| # | Component | עברית | Assessment reliability | Evidence level | Evidence base | Article coverage | Component score |`,
+    `|---|-----------|-------|------------------------|----------------|---------------|------------------|-----------------|`,
   );
   (assessment.components ?? []).forEach((comp, i) => {
     const def = COMPONENT_MAP[comp.component_id] ?? {};
     const coveragePct = comp.coverage_ratio != null ? `${(comp.coverage_ratio * 100).toFixed(0)}%` : '—';
     const certPct = comp.certainty != null ? `${(comp.certainty * 100).toFixed(0)}%` : '—';
     lines.push(
-      `| ${i + 1} | ${def.name_en ?? comp.component_id} | ${def.name_he ?? ''} | ${summarizeConfidence(comp.confidence)} | ${comp.signal_count ?? 0} | ${comp.distinct_article_count ?? '—'}/${assessment.total_articles_analyzed} (${coveragePct}) | ${certPct} | **${comp.score ?? '—'}/10** |`,
+      `| ${i + 1} | ${def.name_en ?? comp.component_id} | ${def.name_he ?? ''} | ${summarizeConfidence(comp.confidence)} | ${certPct} | ${comp.signal_count ?? 0} signals | ${comp.distinct_article_count ?? '—'}/${assessment.total_articles_analyzed} (${coveragePct}) | **${comp.score ?? '—'}/10** |`,
     );
   });
   lines.push(``, `---`, ``);

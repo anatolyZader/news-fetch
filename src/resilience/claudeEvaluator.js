@@ -496,6 +496,7 @@ export async function generateNarratives(scoredComponents, _allSignals, date, to
         const narr = componentMap[def.id] ?? {};
         return {
           component_id: def.id,
+          score: scored.score ?? null,
           confidence: scored.confidence ?? 'insufficient_data',
           signal_count: scored.signal_count ?? 0,
           distinct_article_count: scored.distinct_article_count ?? 0,
