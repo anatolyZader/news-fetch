@@ -9,7 +9,7 @@
 
 import Anthropic from '@anthropic-ai/sdk';
 import { RESILIENCE_COMPONENTS } from './resilienceComponents.js';
-import { SIGNAL_CATALOG, SIGNAL_TYPES } from './behaviorSignals.js';
+import { SIGNAL_CATALOG, SIGNAL_TYPES, summarizeConfidence } from './behaviorSignals.js';
 
 const client = new Anthropic(); // uses ANTHROPIC_API_KEY from env
 
@@ -110,8 +110,47 @@ const EVIDENCE_BATCH_SIZE = 60;
 // 20s gives a safe margin; the old 75s was calibrated for a now-removed pre-filter burst.
 const BATCH_DELAY_MS = 20_000;
 
-// Body sent to Haiku — first 400 chars capture the lead paragraph
-const STEP1_BODY_CHARS = 400;
+// Behavioral signal keywords — used to score paragraph relevance
+const BEHAVIORAL_KEYWORDS = [
+  // Hebrew
+  'מקלט', 'פינוי', 'חרדה', 'פחד', 'התנדבות', 'קהילה', 'סגירה', 'פתיחה', 'נפגע',
+  'טיפול', 'חולה', 'נפש', 'חוסן', 'תמיכה', 'עזרה', 'מנהיגות', 'ראש עיר', 'עיריה',
+  'תושב', 'אמר', 'סיפר', 'מספרת', 'מספר', 'ציין', 'הוסיף', 'הדגיש', 'ילד', 'קשיש',
+  'נכה', 'מפונה', 'שינה', 'לא ישן', 'פגיעה', 'ממ"ד', 'אזעקה', 'בית ספר', 'גן',
+  // English
+  'shelter', 'evacuee', 'evacuation', 'anxiety', 'fear', 'volunteer', 'community',
+  'closure', 'injured', 'trauma', 'mental', 'resilience', 'support', 'mayor', 'municipality',
+  'resident', 'said', 'told', 'described', 'children', 'elderly', 'disabled', 'sleep',
+  'school', 'kindergarten', 'siren', 'alert', 'damage', 'wounded',
+];
+
+/**
+ * Score a paragraph by how many behavioral keywords it contains.
+ */
+function scoreParagraph(text) {
+  const lower = text.toLowerCase();
+  return BEHAVIORAL_KEYWORDS.reduce((n, kw) => n + (lower.includes(kw) ? 1 : 0), 0);
+}
+
+/**
+ * Return the top-k most behaviorally relevant paragraphs from a body, preserving order.
+ * Falls back to first paragraph if none score above zero.
+ */
+function extractTopKParagraphsByRelevance(body, k = 3) {
+  if (!body) return '';
+  const paragraphs = body.split(/\n+/).map((p) => p.trim()).filter(Boolean);
+  if (paragraphs.length <= k) return paragraphs.join('\n\n');
+
+  const scored = paragraphs.map((p, idx) => ({ p, idx, score: scoreParagraph(p) }));
+  const topK = scored
+    .filter((x) => x.score > 0)
+    .sort((a, b) => b.score - a.score || a.idx - b.idx)
+    .slice(0, k)
+    .sort((a, b) => a.idx - b.idx); // restore original order
+
+  if (topK.length === 0) return paragraphs[0]; // fallback: lead paragraph
+  return topK.map((x) => x.p).join('\n\n');
+}
 
 function formatArticlesForPrompt(articles) {
   return articles
@@ -120,7 +159,7 @@ function formatArticlesForPrompt(articles) {
         `### [${i + 1}] ${a.title}\n` +
         `Source: ${a.source} | Published: ${a.publishedAt}\n` +
         `URL: ${a.url || '(no url)'}\n\n` +
-        (a.body?.slice(0, STEP1_BODY_CHARS) || '(no body text)'),
+        (extractTopKParagraphsByRelevance(a.body, 6) || '(no body text)'),
     )
     .join('\n\n---\n\n');
 }
@@ -129,35 +168,51 @@ const SIGNAL_EXTRACTION_SYSTEM_PROMPT =
   `You are a behavioral signal extractor for community resilience analysis in Israel.\n` +
   `Extract atomic behavioral signals from news articles using a closed vocabulary of signal types.\n\n` +
 
-  `━━━ EXTRACTION RULES ━━━\n` +
+  `━━━ EVIDENCE TYPE ━━━\n` +
+  `Every signal must be assigned one of these four evidence_type values (closed vocabulary).\n` +
+  `Choose the most specific type that applies. This determines scoring weight — be accurate.\n\n` +
+
+  `"direct_quote_named_person"   — a named individual is quoted directly. You can answer WHO said this.\n` +
+  `  ACCEPT: 'A resident of Kiryat Shmona said: "I haven't slept in three nights"'\n` +
+  `  ACCEPT: named official/role with a direct quote or attributed action\n` +
+  `  REJECT: paraphrase, journalist summary, vague attribution ("residents say")\n` +
+  `  ⚠ Emotional/narrative signals (fear_expression, calm_confidence, resilience_narrative_*): this type ONLY\n\n` +
+
+  `"named_survey_statistic"      — a named study, survey, or institution reports a measured finding.\n` +
+  `  ACCEPT: 'Bar-Ilan survey: 68% of northern residents report sleep disruption'\n` +
+  `  ACCEPT: 'Magen David Adom: 790 people injured reaching shelters'\n` +
+  `  REJECT: journalist estimates, vague statistics without a named source\n\n` +
+
+  `"named_institutional_fact"    — a named institution takes a concrete, datable action.\n` +
+  `  ACCEPT: municipality announced schools closed through Thursday\n` +
+  `  ACCEPT: hospital operating at emergency capacity from Sunday\n` +
+  `  REJECT: general descriptions of institutional state without a specific action\n\n` +
+
+  `"observational_reported_fact" — a verifiable structural condition or observable behavioral pattern\n` +
+  `  reported as fact, without a named speaker, grounded in a specific, dateable event.\n` +
+  `  ACCEPT: evacuation of a named community; shelter infrastructure absent in a named location\n` +
+  `  ACCEPT: school/clinic/business closed or opened in a named location\n` +
+  `  REJECT: journalist assessments of mood, atmosphere, or spirit without concrete facts\n` +
+  `  REJECT: "many residents feel..." / inferred emotion (missile struck → therefore people are scared)\n\n` +
+
+  `━━━ EXTRACTION RULES (apply to both classes) ━━━\n` +
   `1. ATOMIC: Each signal is one single behavioral fact — one verb, one meaning. Split compound behaviors.\n` +
   `2. CLOSED VOCABULARY: You MUST choose signal type from the list below. Never invent new types.\n` +
-  `3. EVIDENCE REQUIRED: Only extract when there is a concrete behavioral fact in the article:\n` +
-  `   - A verbatim or near-verbatim quote from an identified person\n` +
-  `   - A specific observable action or event (something that happened or was done)\n` +
-  `   - A statistic, count, or percentage from a named source\n` +
-  `4. SOURCE ATTRIBUTION IS MANDATORY — journalist voice is not evidence:\n` +
-  `   You must be able to answer: WHO said this or WHO did this?\n` +
-  `   REJECT — journalist describes population emotion:  "Residents are gripped by fear" / "The atmosphere is one of despair" / "Israelis showed remarkable resilience"\n` +
-  `   REJECT — editorial framing as fact:                "The battered community struggles to cope" / "A nation under siege finds its spirit"\n` +
-  `   REJECT — vague collective attribution:             "Many residents feel..." / "People are anxious..." (no named person or measured group)\n` +
-  `   REJECT — inferred emotion from events:             Missile struck → therefore residents are scared (inference, not reported behavior)\n` +
-  `   ACCEPT — named person or role quotes directly:     A resident of Kiryat Shmona said: "I haven't slept in three nights"\n` +
-  `   ACCEPT — identified group with measured behavior:  790 people were injured reaching shelters in a single 24-hour period (Magen David Adom data)\n` +
-  `   ACCEPT — institutional action with named actor:    The municipality announced schools will remain closed through Thursday\n` +
-  `   ACCEPT — survey or study with named source:        A Bar-Ilan University survey found 68% of northern residents report sleep disruption\n` +
-  `5. EMOTIONAL / NARRATIVE SIGNALS (fear_expression, calm_confidence, resilience_narrative_*) are especially prone to journalist contamination.\n` +
-  `   Extract these ONLY from direct first-person quotes or named survey data. Never from journalist description, even vivid or specific-sounding.\n` +
-  `6. DO NOT EXTRACT: political statements about the war, military operations, diplomatic developments, or national policy debates — unless they contain a direct, named behavioral response from the civilian population.\n` +
-  `7. DO NOT EXTRACT: global indices, international rankings, or surveys conducted before the current emergency. These measure long-term or pre-crisis baselines, not current population behavior under emergency conditions.\n\n` +
+  `3. DO NOT EXTRACT: political/military/diplomatic content — unless it contains a direct civilian behavioral response.\n` +
+  `4. DO NOT EXTRACT: global indices, international rankings, or pre-crisis baseline surveys.\n\n` +
 
   `━━━ CLASSIFICATION BOUNDARIES (read before choosing signal type) ━━━\n` +
-  `- Education operating remotely / Zoom school / schools closed → service_disruption or service_continuity (functional_continuity domain), NOT information_*\n` +
+  `- Education operating remotely / schools closed → service_disruption or service_continuity (functional_continuity domain), NOT information_*\n` +
   `- Businesses closed, clinics not operating, transport cancelled → service_disruption (functional_continuity domain)\n` +
-  `- information_* types are ONLY for: residents receiving/missing/seeking safety or operational guidance, rumor spread, confusing/contradictory official messages\n\n` +
+  `- information_* types are ONLY for: residents receiving/missing/seeking safety or operational guidance, rumor spread, contradictory official messages\n\n` +
 
   `━━━ SIGNAL TYPES (closed vocabulary) ━━━\n` +
   `${formatSignalCatalog()}\n\n` +
+
+  `━━━ SCOPE LEVEL (choose one — rates evidence breadth, not emotional vividness) ━━━\n` +
+  `"single_case"          — a single behavioral instance or quote from one actor\n` +
+  `"repeated_pattern"     — more than one instance, or article explicitly describes recurrence or a pattern\n` +
+  `"quantified_or_broad"  — a count, percentage, named survey result, or institutional action with system-wide scope\n\n` +
 
   `━━━ OUTPUT SCHEMA ━━━\n` +
   `For each behavioral signal found, output a JSON object:\n` +
@@ -165,11 +220,11 @@ const SIGNAL_EXTRACTION_SYSTEM_PROMPT =
   `  "article_index": <N from [N]>,\n` +
   `  "article_url": "<URL from the article header, or null>",\n` +
   `  "signal_type": "<one type from the closed vocabulary above>",\n` +
+  `  "evidence_type": "direct_quote_named_person" | "named_survey_statistic" | "named_institutional_fact" | "observational_reported_fact",\n` +
   `  "evidence": "<exact quote or bare factual description — no journalist adjectives, max 300 chars>",\n` +
-  `  "intensity": <0.0–1.0, how strong/clear this behavioral signal is>,\n` +
-  `  "confidence": <0.0–1.0 — set LOW (≤0.4) if the evidence comes from journalist description rather than a named source; set HIGH (≥0.8) only for direct quotes or named data>\n` +
+  `  "scope_level": "single_case" | "repeated_pattern" | "quantified_or_broad"\n` +
   `}\n\n` +
-  `Return ONLY a valid JSON array. One article can yield multiple signals. Skip articles with no direct behavioral evidence.`;
+  `Return ONLY a valid JSON array. One article can yield multiple signals. Skip articles with no extractable behavioral evidence.`;
 
 async function extractSignalsBatch(articles, batchLabel, retries = 3, usageCallback = null) {
   const userContent =
@@ -202,15 +257,39 @@ async function extractSignalsBatch(articles, batchLabel, retries = 3, usageCallb
       const signals = extractJsonArray(textBlock.text);
       if (!Array.isArray(signals)) throw new Error(`${batchLabel}: expected JSON array`);
 
-      // Validate & normalize signal types
+      // Validate signal types and evidence_type values
       const validTypes = new Set(SIGNAL_TYPES);
+      const validEvidenceTypes = new Set([
+        'direct_quote_named_person', 'named_survey_statistic',
+        'named_institutional_fact', 'observational_reported_fact',
+      ]);
+      const EMOTIONAL_SIGNAL_TYPES = new Set([
+        'fear_expression', 'calm_confidence',
+        'resilience_narrative_positive', 'resilience_narrative_negative',
+      ]);
       const valid = signals.filter((s) => {
         if (!validTypes.has(s.signal_type)) {
           console.error(`  ⚠ Dropped unknown signal type: "${s.signal_type}"`);
           return false;
         }
+        // Normalize unknown evidence_type to observational fallback
+        if (!validEvidenceTypes.has(s.evidence_type)) {
+          s.evidence_type = 'observational_reported_fact';
+        }
+        // Emotional signals require named person evidence
+        if (EMOTIONAL_SIGNAL_TYPES.has(s.signal_type) &&
+            s.evidence_type === 'observational_reported_fact') {
+          console.error(`  ⚠ Dropped emotional signal without named-person evidence: "${s.signal_type}"`);
+          return false;
+        }
         return true;
       });
+
+      // Enrich signals with source label for diversity tracking in scoreComponents
+      for (const s of valid) {
+        const art = articles[s.article_index - 1];
+        if (art) s.article_source = art.source;
+      }
 
       return valid;
     } catch (err) {
@@ -228,7 +307,7 @@ async function extractSignalsBatch(articles, batchLabel, retries = 3, usageCallb
  * Signals use a closed vocabulary; their mapping to components is done by code in behaviorSignals.js.
  *
  * @param {Array} articles   Flat array from loadMdFiles()
- * @returns {Array}          Signal objects: { article_index, article_url, signal_type, evidence, intensity, confidence }
+ * @returns {Array}          Signal objects: { article_index, article_url, signal_type, evidence_class, scope_level, confidence, evidence }
  */
 export async function extractSignals(articles, { onUsage, onProgress } = {}) {
   if (articles.length <= EVIDENCE_BATCH_SIZE) {
@@ -263,20 +342,23 @@ export { extractSignals as extractEvidence };
 // ─── Step 2: Narrative generation ─────────────────────────────────────────────
 
 /**
- * Format the pre-scored component data + its signals for the Opus narrative prompt.
+ * Format the pre-scored component data + its signals for the narrative prompt.
  */
-function formatScoredComponentsForNarrative(scoredComponents, signalCatalogMap) {
+function formatScoredComponentsForNarrative(scoredComponents, signalCatalogMap, totalArticles) {
   return RESILIENCE_COMPONENTS.map((compDef) => {
     const scored = scoredComponents[compDef.id];
-    const conf = scored?.confidence ?? 'insufficient_data';
+    const conf = summarizeConfidence(scored?.confidence);
     const signals = (scored?.signals ?? []).map((s) => {
-      const cat = signalCatalogMap[s.signal_type];
-      return `  [${s.signal_type}] (intensity:${s.intensity}, confidence:${s.confidence})\n  Evidence: "${s.evidence}"${s.article_url ? `\n  URL: ${s.article_url}` : ''}`;
+      return `  [${s.signal_type}] (scope:${s.scope_level ?? 'single_case'}, confidence:${s.confidence})\n  Evidence: "${s.evidence}"${s.article_url ? `\n  URL: ${s.article_url}` : ''}`;
     }).join('\n');
+
+    const scoresSummary = scored?.score != null
+      ? `Score: ${scored.score}/10  Certainty: ${(scored.certainty * 100).toFixed(0)}%  Direction: ${scored.strength >= 0 ? '+' : ''}${scored.strength.toFixed(2)}  (${scored.distinct_article_count}/${totalArticles} articles, ${(scored.coverage_ratio * 100).toFixed(1)}%, ${scored.dispersion} dispersion)  +ev:${scored.positive_evidence} −ev:${scored.negative_evidence}`
+      : 'Score: insufficient data';
 
     return (
       `**${compDef.id}** — ${compDef.name_en}\n` +
-      `Confidence: ${conf}\n` +
+      `Confidence: ${conf}  ${scoresSummary}\n` +
       `Behavioral manifestations:\n${compDef.behavioral_manifestations?.map((m, i) => `  ${i + 1}. ${m}`).join('\n') ?? '(none defined)'}\n` +
       `Signals extracted (${scored?.signal_count ?? 0}):\n${signals || '  (none)'}`
     );
@@ -333,6 +415,13 @@ export async function generateNarratives(scoredComponents, allSignals, date, tot
     `- DIFFERENTIAL FUNCTIONING: For each component, actively look for splits within it — one sub-domain working while another fails, one population reached while another isn't, one channel functional while another is absent.\n` +
     `  Name the split explicitly. Do not flatten it into a single verdict. This is the most actionable form of analysis.\n` +
     `  Example: "Shelter communication is structured and reaches residents — but operational guidance for economic and daily-life decisions is absent, leaving business owners making random choices with no state input."\n` +
+    `- ABSENCE OF EVIDENCE: Each component definition lists its expected behavioral manifestations. For every manifestation that has zero signals:\n` +
+    `  Step 1 — decide which interpretation applies:\n` +
+    `    (a) Informative absence: the behavior is expected under current conditions but did not appear in reporting. Name it: "No evidence of X was found in today's sample."\n` +
+    `    (b) Reporting gap: the absence likely reflects what journalists chose to cover, not what is actually happening.\n` +
+    `  Step 2 — never silently skip absent manifestations. A component with 1 signal and 4 unaddressed manifestations is analytically different from a component with 5 evidenced signals.\n` +
+    `  Step 3 — do not over-weight components that happen to have more signals. Signal count reflects reporting intensity, not necessarily prevalence of the phenomenon.\n` +
+    `  List absent manifestations in the "manifestations_absent" array; include a parenthetical interpretation: (informative absence) or (likely reporting gap).\n` +
     `- SCOPE DISCIPLINE: Never use "the only", "the one exception", "uniquely", or similar exclusive claims.\n` +
     `  The articles are a sample, not a census. Something appearing once in the data means it was reported once — not that it is the sole instance.\n` +
     `- LINKS: Each signal has a URL. When a signal has a URL, embed a markdown link for every significant claim:\n` +
@@ -341,7 +430,7 @@ export async function generateNarratives(scoredComponents, allSignals, date, tot
     `    If a signal has no URL, omit the link — do not fabricate URLs\n\n` +
 
     `━━━ THE 8 COMPONENTS (with pre-computed scores and signals) ━━━\n\n` +
-    `${formatScoredComponentsForNarrative(scoredComponents, signalCatalogMap)}\n\n` +
+    `${formatScoredComponentsForNarrative(scoredComponents, signalCatalogMap, totalArticles)}\n\n` +
 
     `━━━ OUTPUT FORMAT ━━━\n` +
     `Return ONLY valid JSON:\n` +
@@ -352,7 +441,7 @@ export async function generateNarratives(scoredComponents, allSignals, date, tot
     `    {\n` +
     `      "component_id": "<id>",\n` +
     `      "manifestations_evidenced": ["<manifestation string>", ...],\n` +
-    `      "manifestations_absent": ["<manifestation string>", ...],\n` +
+    `      "manifestations_absent": ["<manifestation string> (informative absence | likely reporting gap)", ...],\n` +
     `      "evidence": ["<all behavioral evidence items for this component, each with ([source](URL)) if a URL is available>", ...],\n` +
     `      "narrative": "<3–5 sentence behavioral narrative>"\n` +
     `    }, ...\n` +
@@ -395,6 +484,18 @@ export async function generateNarratives(scoredComponents, allSignals, date, tot
           component_id: def.id,
           confidence: scored.confidence ?? 'insufficient_data',
           signal_count: scored.signal_count ?? 0,
+          distinct_article_count: scored.distinct_article_count ?? 0,
+          source_diversity: scored.source_diversity ?? 0,
+          coverage_ratio: scored.coverage_ratio ?? 0,
+          dispersion: scored.dispersion ?? null,
+          coverage_adjustment: scored.coverage_adjustment ?? 0,
+          positive_evidence: scored.positive_evidence ?? 0,
+          negative_evidence: scored.negative_evidence ?? 0,
+          net_evidence: scored.net_evidence ?? 0,
+          evidence_mass: scored.evidence_mass ?? 0,
+          strength: scored.strength ?? 0,
+          adjusted_strength: scored.adjusted_strength ?? 0,
+          certainty: scored.certainty ?? 0,
           manifestations_evidenced: narr.manifestations_evidenced ?? [],
           manifestations_absent: narr.manifestations_absent ?? [],
           evidence: narr.evidence ?? [],

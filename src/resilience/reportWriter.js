@@ -4,7 +4,8 @@
 
 import { writeFileSync, mkdirSync } from 'fs';
 import { dirname } from 'path';
-import { RESILIENCE_COMPONENTS } from './resilienceComponents.js';
+import { RESILIENCE_COMPONENTS, } from './resilienceComponents.js';
+import { summarizeConfidence } from './behaviorSignals.js';
 
 const COMPONENT_MAP = Object.fromEntries(RESILIENCE_COMPONENTS.map((c) => [c.id, c]));
 
@@ -32,13 +33,15 @@ function buildMarkdown(assessment, sourceFiles) {
   lines.push(
     `## Components`,
     ``,
-    `| # | Component | עברית | Confidence | Signals |`,
-    `|---|-----------|-------|------------|---------|`,
+    `| # | Component | עברית | Confidence | Signals | Articles | Certainty | Score |`,
+    `|---|-----------|-------|------------|---------|----------|-----------|-------|`,
   );
   (assessment.components ?? []).forEach((comp, i) => {
     const def = COMPONENT_MAP[comp.component_id] ?? {};
+    const coveragePct = comp.coverage_ratio != null ? `${(comp.coverage_ratio * 100).toFixed(0)}%` : '—';
+    const certPct = comp.certainty != null ? `${(comp.certainty * 100).toFixed(0)}%` : '—';
     lines.push(
-      `| ${i + 1} | ${def.name_en ?? comp.component_id} | ${def.name_he ?? ''} | ${comp.confidence} | ${comp.signal_count ?? 0} |`,
+      `| ${i + 1} | ${def.name_en ?? comp.component_id} | ${def.name_he ?? ''} | ${summarizeConfidence(comp.confidence)} | ${comp.signal_count ?? 0} | ${comp.distinct_article_count ?? '—'}/${assessment.total_articles_analyzed} (${coveragePct}) | ${certPct} | **${comp.score ?? '—'}/10** |`,
     );
   });
   lines.push(``, `---`, ``);
@@ -49,11 +52,14 @@ function buildMarkdown(assessment, sourceFiles) {
   for (const comp of assessment.components ?? []) {
     const def = COMPONENT_MAP[comp.component_id] ?? {};
 
+    const coveragePct = comp.coverage_ratio != null ? `${(comp.coverage_ratio * 100).toFixed(1)}%` : '—';
+    const articleCoverage = `${comp.distinct_article_count ?? '—'} of ${assessment.total_articles_analyzed}`;
     lines.push(
       `### ${i18n(comp.component_id)} ${def.name_en ?? comp.component_id}`,
       `*${def.name_he ?? ''}*`,
       ``,
-      `**Confidence:** ${comp.confidence} &nbsp;|&nbsp; **Signals:** ${comp.signal_count ?? 0}`,
+      `**Confidence:** ${summarizeConfidence(comp.confidence)} &nbsp;|&nbsp; **Signals:** ${comp.signal_count ?? 0} &nbsp;|&nbsp; **Articles:** ${articleCoverage} (${coveragePct}, ${comp.dispersion ?? '—'} dispersion)`,
+      `**Score:** ${comp.score ?? '—'}/10 &nbsp;|&nbsp; **Certainty:** ${comp.certainty != null ? (comp.certainty * 100).toFixed(0) + '%' : '—'} &nbsp;|&nbsp; **Direction:** ${comp.strength != null ? (comp.strength >= 0 ? '+' : '') + comp.strength.toFixed(2) : '—'} &nbsp;|&nbsp; **Evidence:** +${comp.positive_evidence ?? 0} / −${comp.negative_evidence ?? 0}`,
       ``,
       comp.narrative,
       ``,

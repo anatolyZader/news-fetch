@@ -147,65 +147,154 @@ const COMPONENT_IDS = [
 ];
 
 /**
- * Score all 8 components from extracted signals.
+ * v2 scoring model.
  *
- * Algorithm:
- *   raw_score = Σ (base_weight × intensity × confidence) for all signals mapped to this component
- *   score (1–10) = sigmoid(raw_score) × 9 + 1    — maps (−∞,+∞) → (1,10)
- *   confidence = 'insufficient_data' | 'low' | 'medium' | 'high'  (by signal count)
+ * Per component:
+ *   contribution(signal, component) = |base_weight| × scope × reliability
+ *   positive / negative evidence accumulated separately
+ *   net_evidence  = positive - negative
+ *   evidence_mass = positive + negative
+ *   strength      = tanh(net_evidence / k)            ∈ [-1, +1]
+ *   coverage_adj  = 0.70 + 0.30 × √(coverage_ratio)  ∈ [0.70, 1.00]
+ *   certainty     = 1 - exp(-evidence_mass / m)       ∈ [0, 1)
+ *   score         = round(5.5 + 4.5 × strength × coverage_adj)  ∈ [1, 10]
+ *   confidence    = composite of certainty + breadth
  *
- * @param {Array} signals  Output of extractSignals() — each has { type, intensity, confidence, ... }
- * @returns {Object}       { component_id → { score, confidence, raw_score, signal_count, signals[] } }
+ * @param {Array}  signals
+ * @param {object} opts
+ * @param {number} opts.totalArticles
+ * @returns {Object}  component_id → { score, confidence, positive_evidence, negative_evidence,
+ *                      net_evidence, evidence_mass, strength, coverage_ratio, coverage_adjustment,
+ *                      adjusted_strength, certainty, distinct_article_count, dispersion,
+ *                      signal_count, source_diversity, signals[] }
  */
-export function scoreComponents(signals) {
-  const raw = Object.fromEntries(COMPONENT_IDS.map((id) => [id, 0]));
-  const byComponent = Object.fromEntries(COMPONENT_IDS.map((id) => [id, []]));
 
-  for (const signal of signals) {
-    const signalType = signal.signal_type ?? signal.type; // support both field names
-    const mapping = SIGNAL_TO_COMPONENTS[signalType];
-    if (!mapping) continue;
-    const intensity = signal.intensity ?? 0.5;
-    const conf = signal.confidence ?? 0.5;
-    for (const [component, baseWeight] of Object.entries(mapping)) {
-      if (!(component in raw)) continue;
-      raw[component] += baseWeight * intensity * conf;
-      byComponent[component].push(signal);
-    }
-  }
+const SCOPE_WEIGHT = {
+  single_case:         0.35,
+  repeated_pattern:    0.65,
+  quantified_or_broad: 1.00,
+};
 
+// Reliability by evidence_type (v2 schema). Falls back to evidence_class for older signals.
+export const RELIABILITY_WEIGHT = {
+  direct_quote_named_person:   1.00,
+  named_survey_statistic:      0.95,
+  named_institutional_fact:    0.90,
+  observational_reported_fact: 0.75,
+  // Legacy evidence_class fallbacks
+  direct_evidence:             0.90,
+  observational_evidence:      0.75,
+};
+
+const TANH_K = 2.5;   // scaling constant for tanh normalization
+const CERT_M = 2.0;   // saturation constant for certainty
+
+export function scoreComponents(signals, { totalArticles = 0 } = {}) {
   const results = {};
-  for (const id of COMPONENT_IDS) {
-    const count = byComponent[id].length;
-    const rawScore = raw[id];
 
-    let score, confidence;
-    if (count === 0) {
-      score = null;
-      confidence = 'insufficient_data';
-    } else {
-      const sigmoid = 1 / (1 + Math.exp(-rawScore));
-      score = Math.max(1, Math.min(10, Math.round(sigmoid * 9 + 1)));
-      confidence = count < 3 ? 'low' : count < 7 ? 'medium' : 'high';
+  for (const id of COMPONENT_IDS) {
+    let positive = 0;
+    let negative = 0;
+    const componentSignals = [];
+    const articleSet = new Set();
+    const sourceSet = new Set();
+
+    for (const signal of signals) {
+      const signalType = signal.signal_type ?? signal.type;
+      const mapping = SIGNAL_TO_COMPONENTS[signalType];
+      if (!mapping || !(id in mapping)) continue;
+
+      const baseWeight = mapping[id];
+      const scope = SCOPE_WEIGHT[signal.scope_level ?? 'single_case'] ?? SCOPE_WEIGHT.single_case;
+      const reliabilityKey = signal.evidence_type ?? signal.evidence_class ?? 'observational_reported_fact';
+      const reliability = RELIABILITY_WEIGHT[reliabilityKey] ?? RELIABILITY_WEIGHT.observational_reported_fact;
+
+      const contribution = Math.abs(baseWeight) * scope * reliability;
+      if (baseWeight >= 0) positive += contribution;
+      else negative += contribution;
+
+      componentSignals.push(signal);
+
+      const articleKey = signal.article_url || (signal.article_index ?? null);
+      if (articleKey != null) articleSet.add(articleKey);
+      if (signal.article_source) sourceSet.add(signal.article_source);
     }
+
+    const evidenceMass = positive + negative;
+    const netEvidence  = positive - negative;
+
+    if (evidenceMass === 0) {
+      results[id] = {
+        score: null, confidence: 'insufficient_data',
+        positive_evidence: 0, negative_evidence: 0, net_evidence: 0, evidence_mass: 0,
+        strength: 0, coverage_ratio: 0, dispersion: null, coverage_adjustment: 0,
+        adjusted_strength: 0, certainty: 0,
+        signal_count: 0, distinct_article_count: 0, source_diversity: 0,
+        signals: [],
+      };
+      continue;
+    }
+
+    const strength    = Math.tanh(netEvidence / TANH_K);
+    const certainty   = 1 - Math.exp(-evidenceMass / CERT_M);
+
+    const distinctArticleCount = articleSet.size;
+    const coverageRatio        = totalArticles > 0 ? distinctArticleCount / totalArticles : 0;
+    const dispersion           =
+      coverageRatio < 0.1 ? 'very_low' :
+      coverageRatio < 0.3 ? 'low' :
+      coverageRatio < 0.6 ? 'moderate' : 'high';
+
+    const coverageAdjustment  = 0.70 + 0.30 * Math.sqrt(coverageRatio);
+    const adjustedStrength    = strength * coverageAdjustment;
+    const score = Math.max(1, Math.min(10, Math.round(5.5 + 4.5 * adjustedStrength)));
+
+    let confidence;
+    if (certainty < 0.35 || distinctArticleCount === 1)  confidence = 'low';
+    else if (certainty < 0.70 || distinctArticleCount < 4) confidence = 'medium';
+    else confidence = 'high';
 
     results[id] = {
       score,
       confidence,
-      raw_score: rawScore,
-      signal_count: count,
-      signals: byComponent[id],
+      positive_evidence:    round3(positive),
+      negative_evidence:    round3(negative),
+      net_evidence:         round3(netEvidence),
+      evidence_mass:        round3(evidenceMass),
+      strength:             round3(strength),
+      coverage_ratio:       coverageRatio,
+      dispersion,
+      coverage_adjustment:  round3(coverageAdjustment),
+      adjusted_strength:    round3(adjustedStrength),
+      certainty:            round3(certainty),
+      signal_count:         componentSignals.length,
+      distinct_article_count: distinctArticleCount,
+      source_diversity:     sourceSet.size,
+      signals:              componentSignals,
     };
   }
 
   return results;
 }
 
+function round3(n) { return Math.round(n * 1000) / 1000; }
+
+/** Render confidence as a display string (simple passthrough for v2 string values). */
+export function summarizeConfidence(conf) {
+  if (!conf || conf === 'insufficient_data') return 'insufficient_data';
+  if (typeof conf === 'string') return conf;
+  // Legacy structured object from mid-refactor
+  return conf.signal_confidence ?? 'insufficient_data';
+}
+
 /**
- * Compute overall score as the mean of components that have data.
+ * Compute overall score as a certainty-weighted mean.
+ * Components with almost no evidence do not pull the overall score as much as
+ * components with broad, reliable evidence.
  */
 export function overallScore(componentScores) {
-  const scored = Object.values(componentScores).filter((c) => c.score !== null);
+  const scored = Object.values(componentScores).filter((c) => c.score !== null && c.certainty > 0);
   if (scored.length === 0) return null;
-  return Math.round(scored.reduce((s, c) => s + c.score, 0) / scored.length);
+  const totalCertainty = scored.reduce((s, c) => s + c.certainty, 0);
+  return Math.round(scored.reduce((s, c) => s + c.score * c.certainty, 0) / totalCertainty);
 }

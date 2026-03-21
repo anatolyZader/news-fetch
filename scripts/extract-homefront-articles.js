@@ -19,6 +19,7 @@ config({ path: join(__dirname, '..', '.env') });
 
 import Anthropic from '@anthropic-ai/sdk';
 import { getTodayInTimezone } from '../src/dateUtils.js';
+import { PRICING, createCostTracker, appendCostLog, checkDailyBudget } from '../src/costTracker.js';
 
 const SITE_ADAPTERS = {
   ynet:       () => import('../src/newsApiYnetAdapter.js'),
@@ -100,6 +101,10 @@ if (!apiKey) {
   process.exit(1);
 }
 
+checkDailyBudget();
+
+const { onUsage, getTotal } = createCostTracker({ maxCostUsd: parseFloat(process.env.MAX_COST_USD ?? '0.20'), label: 'extract-homefront' });
+
 const date = process.argv[2] || getTodayInTimezone(timezone);
 
 const allArticles = [];
@@ -140,7 +145,9 @@ const FETCH_PREFILTER_SYSTEM_PROMPT =
   `- Weather unless it involves active emergency response (flood sheltering, evacuation)\n` +
   `- Crime, courts, business news, technology, science — unless directly linked to emergency civilian response\n` +
   `- Opinion pieces, editorials, analysis without behavioral facts described\n\n` +
-  `When uncertain, INCLUDE. Aim to select roughly 15–20% of all articles.\n\n` +
+  `When uncertain, INCLUDE.\n` +
+  `Do NOT aim for any percentage target. Selection rate is irrelevant — only relevance matters.\n` +
+  `Err on the side of inclusion: a false positive is filtered downstream; a false negative permanently loses behavioral evidence.\n\n` +
   `Return ONLY a JSON array of the article indices (the N from [N]): [1, 5, 12, ...]`;
 
 async function preFilterByLLM(articles) {
@@ -149,27 +156,43 @@ async function preFilterByLLM(articles) {
   const anthropic = new Anthropic(); // uses ANTHROPIC_API_KEY from env
 
   const titleList = articles
-    .map((a, i) => `[${i + 1}] ${a.title}`)
+    .map((a, i) => {
+      const snippet = a.body?.trim().slice(0, 200);
+      return snippet
+        ? `[${i + 1}] ${a.title}\n   ${snippet}`
+        : `[${i + 1}] ${a.title}`;
+    })
     .join('\n');
 
-  console.error(`  → LLM pre-filter: classifying ${articles.length} articles by title...`);
+  console.error(`  → LLM pre-filter: classifying ${articles.length} articles by title + snippet...`);
 
-  const message = await anthropic.messages.create({
-    model: 'claude-haiku-4-5-20251001',
-    max_tokens: 8192,
-    temperature: 0,
-    system: FETCH_PREFILTER_SYSTEM_PROMPT,
-    messages: [{ role: 'user', content: `Classify these ${articles.length} article titles:\n\n${titleList}` }],
-  });
+  const model = 'claude-haiku-4-5-20251001';
+  const retries = 3;
+  let message;
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      message = await anthropic.messages.create({
+        model,
+        max_tokens: 8192,
+        temperature: 0,
+        system: FETCH_PREFILTER_SYSTEM_PROMPT,
+        messages: [{ role: 'user', content: `Classify these ${articles.length} article titles:\n\n${titleList}` }],
+      });
+      break;
+    } catch (err) {
+      if (attempt === retries) throw err;
+      const is429 = err.message?.includes('429') || err.status === 429;
+      const wait = is429 ? 90000 : 5000 * attempt;
+      console.error(`  ⚠ pre-filter attempt ${attempt} failed (${err.message}) — retrying in ${wait / 1000}s...`);
+      await new Promise((r) => setTimeout(r, wait));
+    }
+  }
 
   if (message.stop_reason === 'max_tokens') {
     throw new Error('LLM pre-filter output truncated (max_tokens) — increase max_tokens');
   }
 
-  const inputTokens = message.usage?.input_tokens ?? 0;
-  const outputTokens = message.usage?.output_tokens ?? 0;
-  const cost = (inputTokens / 1_000_000) * 0.80 + (outputTokens / 1_000_000) * 4.00;
-  console.error(`  → pre-filter tokens: in=${inputTokens} out=${outputTokens} ($${cost.toFixed(4)})`);
+  onUsage({ label: '[pre-filter]', model, usage: message.usage });
 
   const text = message.content.find((b) => b.type === 'text')?.text ?? '';
 
@@ -188,15 +211,22 @@ async function preFilterByLLM(articles) {
 
 // ─── Deduplicate and filter ────────────────────────────────────────────────────
 
+const MAX_ARTICLES = parseInt(process.env.HOMEFRONT_MAX_ARTICLES || '300', 10);
+
 const llmFiltered = await preFilterByLLM(allArticles);
 
 const _seen = new Set();
-const articles = llmFiltered.filter((a) => {
+const deduped = llmFiltered.filter((a) => {
   const key = a.title.replace(/[^\u0590-\u05FF\w]/g, '').slice(0, 40);
   if (_seen.has(key)) return false;
   _seen.add(key);
   return true;
 });
+
+const articles = deduped.length > MAX_ARTICLES ? deduped.slice(0, MAX_ARTICLES) : deduped;
+if (deduped.length > MAX_ARTICLES) {
+  console.error(`  → capped at ${MAX_ARTICLES} articles (${deduped.length} after dedup)`);
+}
 
 const sections = [
   `# Home Front / population-in-emergency articles (${date})`,
@@ -227,3 +257,6 @@ function escapeMdHeading(s) {
 
 writeFileSync(outPath, sections.join('\n'), 'utf8');
 console.log(`Wrote ${articles.length} home-front–relevant articles to ${outPath} (from ${allArticles.length} total)`);
+
+const { totalCostUsd, usageLog } = getTotal();
+appendCostLog({ script: 'extract-homefront', date, totalCostUsd, usageLog, articles: articles.length });

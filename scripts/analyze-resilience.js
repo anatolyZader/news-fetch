@@ -21,8 +21,9 @@ import { existsSync, readFileSync, readdirSync } from 'fs';
 
 import { loadMdFiles, findArticlesMdFiles } from '../src/resilience/mdReportsLoader.js';
 import { extractSignals, generateNarratives } from '../src/resilience/claudeEvaluator.js';
-import { scoreComponents } from '../src/resilience/behaviorSignals.js';
+import { scoreComponents, summarizeConfidence } from '../src/resilience/behaviorSignals.js';
 import { writeReport } from '../src/resilience/reportWriter.js';
+import { createCostTracker, appendCostLog, checkDailyBudget } from '../src/costTracker.js';
 
 // ─── Argument parsing ─────────────────────────────────────────────────────────
 
@@ -37,39 +38,11 @@ if (!process.env.ANTHROPIC_API_KEY) {
   process.exit(1);
 }
 
-// ─── Token cost tracking ──────────────────────────────────────────────────────
+// ─── Daily budget + per-run cost tracking ─────────────────────────────────────
 
-const PRICING = {
-  'claude-haiku-4-5-20251001': { input: 0.80,  output: 4.00  },
-  'claude-sonnet-4-6':         { input: 3.00,  output: 15.00 },
-  'claude-opus-4-6':           { input: 15.00, output: 75.00 },
-};
+checkDailyBudget();
 
-const usageLog = [];
-let totalCostUsd = 0;
-
-const MAX_COST_USD = 3.00;
-
-function onUsage({ label, model, usage }) {
-  const p = PRICING[model];
-  const cost = p
-    ? (usage.input_tokens / 1_000_000) * p.input + (usage.output_tokens / 1_000_000) * p.output
-    : 0;
-  totalCostUsd += cost;
-  usageLog.push({ label, model, usage, cost });
-  console.error(
-    `  💰 ${label.padEnd(38)} in: ${String(usage.input_tokens).padStart(6)}  out: ${String(usage.output_tokens).padStart(6)}  $${cost.toFixed(4)}`
-  );
-  if (totalCostUsd > MAX_COST_USD) {
-    console.error(`\n🛑  Cost cap $${MAX_COST_USD} exceeded (running total: $${totalCostUsd.toFixed(4)}) — terminating.`);
-    console.error('\nPartial token usage:');
-    for (const e of usageLog) {
-      console.error(`  ${e.label.padEnd(38)} $${e.cost.toFixed(4)}`);
-    }
-    console.error(`  ${'TOTAL'.padEnd(38)} $${totalCostUsd.toFixed(4)}`);
-    process.exit(1);
-  }
-}
+const { onUsage, getTotal, printSummary } = createCostTracker({ label: 'analyze-resilience' });
 
 // ─── Resolve input files ──────────────────────────────────────────────────────
 
@@ -171,9 +144,10 @@ try {
   console.error(`  → ${signals.length} total behavioral signals extracted\n`);
 
   // Step 1b — map signals to components (deterministic, no LLM)
-  const scoredComponents = scoreComponents(signals);
+  const scoredComponents = scoreComponents(signals, { totalArticles: articles.length });
   for (const [id, c] of Object.entries(scoredComponents)) {
-    console.error(`  → ${id.padEnd(28)} conf=${c.confidence} (${c.signal_count} signals)`);
+    const cert = c.certainty != null ? ` cert=${(c.certainty * 100).toFixed(0)}%` : '';
+    console.error(`  → ${id.padEnd(28)} score=${c.score ?? 'n/a'} conf=${c.confidence}${cert} (${c.signal_count} signals)`);
   }
   console.error('');
 
@@ -189,14 +163,14 @@ try {
     console.error(`  ${comp.component_id.padEnd(28)} (${comp.confidence}, ${comp.signal_count ?? 0} signals)`);
   }
   console.error('');
-  const haikuCost = usageLog.filter(e => e.model.includes('haiku')).reduce((s, e) => s + e.cost, 0);
-  const sonnetCost = usageLog.filter(e => e.model.includes('sonnet')).reduce((s, e) => s + e.cost, 0);
-  const opusCost = usageLog.filter(e => e.model.includes('opus')).reduce((s, e) => s + e.cost, 0);
-  console.error(`💰 Total cost: $${totalCostUsd.toFixed(4)}  (Haiku: $${haikuCost.toFixed(4)}  |  Sonnet: $${sonnetCost.toFixed(4)}  |  Opus: $${opusCost.toFixed(4)})`);
+  printSummary();
   console.error('');
   console.error('Reports written:');
   console.error(`  ${mdPath}`);
   console.error(`  ${jsonPath}`);
+
+  const { totalCostUsd, usageLog } = getTotal();
+  appendCostLog({ script: 'analyze-resilience', date: reportDate, totalCostUsd, usageLog, articles: articles.length });
 } catch (err) {
   console.error('\nAnalysis failed:', err.message);
   if (err.status) console.error('API status:', err.status);
