@@ -1,0 +1,202 @@
+{
+  "assessment": {
+    "date": "2026-03-21",
+    "total_articles_analyzed": 22,
+    "cross_component_synthesis": "On March 21, the behavioral picture is shaped by two geographically distinct clusters of experience. In the Galilee and northern communities, residents describe a sustained sense of governmental abandonment — local leaders have documented the absence of shelters in kindergartens and the lack of a medical center, framing these as unmet structural needs rather than temporary gaps ([source](https://www.maariv.co.il/news/israel/article-1298570)). In the Gush Dan and central region, physical damage to a Rishon Lezion kindergarten from intercepted missile shrapnel indicates that the conflict's material consequences are now reaching previously less-affected populations ([source](https://www.jpost.com/israel-news/article-890699)). The signal base for this date is thin, limiting confidence across most components.\n\nWhere evidence is available, the dominant behavioral pattern is one of unmet need rather than active coping. No signals of community mobilization, volunteer activity, or formal support activation were captured today, representing a decline from prior days when community capital and leadership scored at their maximum. The single inter-personal violence incident documented in a Petah Tikva shelter — a physical assault following a verbal exchange during an alert — is a discrete behavioral indicator of interpersonal tension under shelter conditions, and its presence in the data reflects reported social friction rather than a systemic pattern. Taken together, today's evidence suggests deterioration in the structural and social conditions supporting resilience, with functional gaps in physical infrastructure, medical access, and community cohesion all present in the available signals.",
+    "evidence_quality_note": "The majority of signals today consist of reported facts and official or resident statements attributed to named individuals, with limited direct quotation; confidence ratings are accordingly moderate and two components — information_communication, lifesaving_behavior, and leadership — have no signal coverage at all.",
+    "components": [
+      {
+        "component_id": "narrative",
+        "confidence": "low",
+        "signal_count": 2,
+        "manifestations_evidenced": [
+          "Competing or contradictory narratives are explicitly voiced by residents or groups"
+        ],
+        "manifestations_absent": [
+          "A narrative of successful coping is visible and circulating (residents/officials describe coping as effective)",
+          "The coping story reflects the entire population, not just a subset",
+          "Residents express that the authority's narrative is credible and reflects their lived reality"
+        ],
+        "evidence": [
+          "Residents of the Galilee describe a persistent sense of abandonment (tachshat mitmashechet) following renewed escalation with Hezbollah ([source](https://www.maariv.co.il/news/israel/article-1298570))",
+          "A Petah Tikva resident in his 20s was arrested on suspicion of attacking his neighbor in a shelter during an alert, following a verbal exchange, with the neighbor requiring medical treatment ([source](https://www.mako.co.il/men-men_news/Article-4efeb1817bd0d91026.htm))"
+        ],
+        "narrative": "Two contradictory behavioral narratives are visible in today's evidence. Northern residents articulate a narrative of abandonment, using the specific term 'tachshat mitmashechet,' which signals that this framing is not incidental but a settled and repeated description of their relationship to state authority ([source](https://www.maariv.co.il/news/israel/article-1298570)). No counter-narrative of effective official coping or credible governmental response appears in the available signals. The shelter assault in Petah Tikva further suggests that even in communities without a history of direct conflict exposure, the behavioral norms within emergency settings are under strain ([source](https://www.mako.co.il/men-men_news/Article-4efeb1817bd0d91026.htm)). No evidence emerged today of any official or community narrative that residents describe as reflecting their lived experience."
+      },
+      {
+        "component_id": "information_communication",
+        "confidence": "insufficient_data",
+        "signal_count": 0,
+        "manifestations_evidenced": [],
+        "manifestations_absent": [
+          "Residents state they receive the information they need to function during the emergency",
+          "Authority communication mechanisms are adapted to different resident groups (language, channel, format)",
+          "Residents express trust in information received from the authority",
+          "Population perceives national media information as relevant and addressing their needs",
+          "Residents report information gaps, confusion, or spread of rumors/misinformation"
+        ],
+        "evidence": [],
+        "narrative": "No signals relating to information or communication were captured in today's data. It is not possible to characterize whether residents are receiving actionable guidance, whether communication channels are functioning, or whether information gaps exist. This absence of evidence represents a continued data gap rather than a behavioral finding. The component cannot be assessed on March 21."
+      },
+      {
+        "component_id": "lifesaving_behavior",
+        "confidence": "insufficient_data",
+        "signal_count": 0,
+        "manifestations_evidenced": [],
+        "manifestations_absent": [
+          "Residents are observed or reported to actually follow Home Front Command (HFC) protective guidelines (sheltering, evacuating, etc.)",
+          "Residents demonstrate knowledge and understanding of HFC guidelines",
+          "Community teams or roles actively promote emergency preparedness among residents",
+          "Residents or officials report non-compliance with protective guidelines",
+          "Residents express or demonstrate perception of the situation as genuinely life-threatening"
+        ],
+        "evidence": [],
+        "narrative": "No signals bearing on life-saving behavior were present in today's evidence. Compliance with Home Front Command protective guidelines, preparedness promotion activity, and perception of threat level cannot be assessed from available material. This represents a continuation of an unobservable component on this date rather than an indicator of behavioral change. The component requires additional sourcing before any directional assessment can be offered."
+      },
+      {
+        "component_id": "functional_continuity",
+        "confidence": "medium",
+        "signal_count": 4,
+        "manifestations_evidenced": [
+          "Specific disruptions to daily life are reported (closures, evacuations, inability to work)"
+        ],
+        "manifestations_absent": [
+          "Residents succeed in managing daily life (reported continuation of work, commerce, or social roles)",
+          "Schools and educational institutions are open and operating (or explicitly closed/disrupted)",
+          "Residents report that sufficient resources are available to maintain routine functioning",
+          "Essential services (healthcare, supply chains, municipal services) continue to operate"
+        ],
+        "evidence": [
+          "Kindergartens in the Galilee region have no shelter structures (mamadim), a gap documented by local resident Anbor Bezek ([source](https://www.maariv.co.il/news/israel/article-1298570))",
+          "A medical center is identified as absent from the area, and the resident who documented this gap explicitly states she does not believe the government will provide one ([source](https://www.maariv.co.il/news/israel/article-1298570))",
+          "A kindergarten in Rishon Lezion was damaged by shrapnel from an intercepted missile, with no injuries reported ([source](https://bokra.net/Article-1590683))",
+          "A kindergarten in Rishon Lezion sustained significant structural damage after shrapnel from a suspected Iranian cluster missile struck the Gush Dan area ([source](https://www.jpost.com/israel-news/article-890699))"
+        ],
+        "narrative": "The functional continuity evidence today divides along a geographic split: northern communities face documented structural absences, while central communities are experiencing new physical damage to civilian infrastructure. In the Galilee, kindergartens are reported to lack shelter structures entirely, and no medical center is available — conditions that have persisted long enough for a resident to conclude that state provision is not forthcoming ([source](https://www.maariv.co.il/news/israel/article-1298570)). In Rishon Lezion, a kindergarten sustained structural damage from intercepted missile shrapnel, indicating that the physical risk to educational facilities is no longer confined to the north ([source](https://www.jpost.com/israel-news/article-890699)). No signals of continued or restored service operation were captured in either geography. The pattern across both regions is of infrastructure under pressure, with no evidence today of compensatory service continuity."
+      },
+      {
+        "component_id": "community_capital",
+        "confidence": "low",
+        "signal_count": 1,
+        "manifestations_evidenced": [],
+        "manifestations_absent": [
+          "Residents volunteer or express willingness to volunteer in formal or informal frameworks",
+          "Authority or organizations are observed to activate and coordinate community resources",
+          "Mechanisms exist and operate to coordinate volunteers and community organizations",
+          "Cross-sector cooperation (e.g., municipality + NGOs + businesses) is reported or observed"
+        ],
+        "evidence": [
+          "Anbor Bezek emphasizes the need for a medical center in the area and does not believe the government will provide it, indicating that community members are tracking unmet needs but no compensatory community resource is described ([source](https://www.maariv.co.il/news/israel/article-1298570))"
+        ],
+        "narrative": "Community capital is not evidenced as active on March 21. The single relevant signal is a community member's documentation of an unmet medical need — notable because she explicitly states she does not expect the state to address it, yet no community-organized alternative is described ([source](https://www.maariv.co.il/news/israel/article-1298570)). This contrasts with the score of 10/10 recorded on March 19, suggesting that either community mobilization activity has declined or that today's smaller article sample failed to capture it. No volunteer activity, cross-sector coordination, or organizational activation appears in today's evidence. The gap between the prior high score and today's absence of positive signals warrants monitoring in subsequent days."
+      },
+      {
+        "component_id": "leadership",
+        "confidence": "insufficient_data",
+        "signal_count": 0,
+        "manifestations_evidenced": [],
+        "manifestations_absent": [
+          "Residents express that formal or informal leadership is a source of support and security",
+          "Leadership actively encourages residents to follow HFC guidelines (statements, actions, public presence)",
+          "Leadership is reported to function professionally and manage the situation competently",
+          "Residents express distrust, criticism, or frustration with leadership"
+        ],
+        "evidence": [],
+        "narrative": "No leadership signals were captured in today's data, representing a marked absence relative to the score of 10/10 on March 19. It is not possible to assess whether local or national leadership is visible, trusted, or functioning in any observable way from the available evidence. The implicit distrust of government expressed by the Galilee resident regarding the medical center ([source](https://www.maariv.co.il/news/israel/article-1298570)) touches on leadership but is classified under community capital and wellbeing rather than formal leadership behavior. This component cannot be reliably characterized on March 21."
+      },
+      {
+        "component_id": "belonging_solidarity",
+        "confidence": "low",
+        "signal_count": 1,
+        "manifestations_evidenced": [
+          "Population groups are reported as scapegoated, blamed, or excluded due to the emergency (negative signal)"
+        ],
+        "manifestations_absent": [
+          "Residents express a sense of solidarity or shared fate (in their own words)",
+          "Concrete acts of mutual aid between residents are reported (helping neighbors, sharing resources, organizing support)",
+          "Programs or events strengthening belonging are activated and attended"
+        ],
+        "evidence": [
+          "A Petah Tikva resident in his 20s was arrested for assaulting his neighbor in a shelter following a verbal exchange during an alert; the neighbor required medical treatment ([source](https://www.mako.co.il/men-men_news/Article-4efeb1817bd0d91026.htm))"
+        ],
+        "narrative": "The sole belonging and solidarity signal today is a documented incident of interpersonal violence in a shared shelter in Petah Tikva ([source](https://www.mako.co.il/men-me_news/Article-4efeb1817bd0d91026.htm)). A verbal exchange during an alert escalated to a physical assault resulting in injury and arrest, indicating that communal shelter spaces — which are, by design, spaces of shared protective behavior — are also sites of social friction. No signals of mutual aid, solidarity expression, or community cohesion were captured. This represents a decline from March 19's score of 7/10, though the small sample size limits the degree to which this can be interpreted as a population-level trend rather than a reporting artifact."
+      },
+      {
+        "component_id": "wellbeing_atrisk",
+        "confidence": "medium",
+        "signal_count": 6,
+        "manifestations_evidenced": [
+          "Reports of unmet mental health or physical wellbeing needs among residents"
+        ],
+        "manifestations_absent": [
+          "Emotional support responses (psychological first aid, mental health services) are available and used by residents showing anxiety or trauma",
+          "Specific responses for at-risk or special-needs populations are reported as active (elderly, disabled, evacuees, etc.)",
+          "Residents in the second or third circle of vulnerability (indirectly affected) receive responses to their needs"
+        ],
+        "evidence": [
+          "Residents of the Galilee describe a persistent sense of abandonment following renewed Hezbollah escalation ([source](https://www.maariv.co.il/news/israel/article-1298570))",
+          "Kindergartens in the Galilee have no shelter structures, placing young children in documented physical risk ([source](https://www.maariv.co.il/news/israel/article-1298570))",
+          "A medical center is absent from the Galilee area, and a resident explicitly doubts governmental provision will occur ([source](https://www.maariv.co.il/news/israel/article-1298570))",
+          "A kindergarten in Rishon Lezion was damaged by missile shrapnel, with no injuries reported ([source](https://bokra.net/Article-1590683))",
+          "Significant structural damage was sustained by a Rishon Lezion kindergarten following a suspected Iranian cluster missile interception over Gush Dan ([source](https://www.jpost.com/israel-news/article-890699))",
+          "A physical assault in a Petah Tikva shelter during an alert resulted in injuries requiring medical treatment ([source](https://www.mako.co.il/men-men_news/Article-4efeb1817bd0d91026.htm))"
+        ],
+        "narrative": "Wellbeing risk is distributed across two population groups and two geographies in today's evidence. In the Galilee, children in kindergartens are without shelter infrastructure, and the broader community lacks access to a medical center — both conditions pointing to unaddressed physical vulnerability for populations ordinarily considered protected by basic municipal provision ([source](https://www.maariv.co.il/news/israel/article-1298570)). In Rishon Lezion, kindergarten-aged children are now also directly exposed to infrastructure damage, though no physical injuries were recorded ([source](https://www.jpost.com/israel-news/article-890699)). The shelter assault in Petah Tikva indicates a wellbeing risk of a different type: interpersonal harm within nominally protective communal spaces ([source](https://www.mako.co.il/men-men_news/Article-4efeb1817bd0d91026.htm)). No active mental health or support service responses for any of these populations appear in the available signals, continuing the pattern of unmet need documented in prior days."
+      }
+    ]
+  },
+  "signals": [
+    {
+      "article_index": 8,
+      "article_url": "https://www.maariv.co.il/news/israel/article-1298570",
+      "signal_type": "service_disruption",
+      "evidence": "Anbor Bezek discovered there are no shelters (mamadim) at all in kindergartens in the region",
+      "intensity": 0.85,
+      "confidence": 0.9
+    },
+    {
+      "article_index": 8,
+      "article_url": "https://www.maariv.co.il/news/israel/article-1298570",
+      "signal_type": "resource_shortage",
+      "evidence": "Anbor Bezek emphasizes the need for a medical center in the area and does not believe the government will provide it",
+      "intensity": 0.8,
+      "confidence": 0.85
+    },
+    {
+      "article_index": 8,
+      "article_url": "https://www.maariv.co.il/news/israel/article-1298570",
+      "signal_type": "fear_expression",
+      "evidence": "Residents of the Galilee describe a persistent sense of abandonment (tachshat mitmashechet) following renewed escalation with Hezbollah",
+      "intensity": 0.75,
+      "confidence": 0.7
+    },
+    {
+      "article_index": 9,
+      "article_url": "https://www.mako.co.il/men-men_news/Article-4efeb1817bd0d91026.htm",
+      "signal_type": "conflict_or_tension",
+      "evidence": "A Petah Tikva resident in his 20s was arrested on suspicion of attacking his neighbor in a shelter during an alert. The neighbor made a remark, and the suspect responded by headbutting him, causing injuries requiring medical treatment",
+      "intensity": 0.9,
+      "confidence": 0.95
+    },
+    {
+      "article_index": 10,
+      "article_url": "https://bokra.net/Article-1590683",
+      "signal_type": "service_disruption",
+      "evidence": "A kindergarten in Rishon Lezion was damaged by shrapnel from an intercepted missile, with no injuries reported",
+      "intensity": 0.7,
+      "confidence": 0.85
+    },
+    {
+      "article_index": 18,
+      "article_url": "https://www.jpost.com/israel-news/article-890699",
+      "signal_type": "service_disruption",
+      "evidence": "A kindergarten in Rishon Lezion was damaged after shrapnel from a suspected Iranian cluster missile struck the Gush Dan area, causing significant structural damage",
+      "intensity": 0.75,
+      "confidence": 0.9
+    }
+  ],
+  "source_files": [
+    "articles-homefront.md"
+  ],
+  "generated_at": "2026-03-21T07:21:50.736Z"
+}
