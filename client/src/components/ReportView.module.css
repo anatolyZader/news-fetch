@@ -1,0 +1,103 @@
+.root { display: flex; flex-direction: column; gap: 1.5rem; }
+
+.overallRow {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+}
+
+.overallScore { font-size: 2.5rem; font-weight: 800; line-height: 1; }
+.overallLabel { font-size: 1.1rem; font-weight: 600; }
+.meta { font-size: 0.85rem; color: var(--muted); margin-top: 0.2rem; }
+
+/* Score pills */
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.pill {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 0.3rem 0.75rem;
+  font-size: 0.82rem;
+}
+
+.pillName { text-transform: capitalize; color: var(--muted); }
+.pillScore { font-weight: 700; }
+
+/* Section */
+.section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+}
+
+.section h2 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.75rem;
+}
+
+/* Component card */
+.card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
+  overflow: hidden;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  list-style: none;
+  background: var(--bg);
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.cardHeader::-webkit-details-marker { display: none; }
+details[open] .cardHeader { background: var(--surface); }
+
+.icon { font-size: 1.1rem; }
+.compName { flex: 1; }
+.confidence { font-size: 0.78rem; color: var(--muted); }
+
+.badge {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #fff;
+  padding: 0.15rem 0.5rem;
+  border-radius: 20px;
+}
+
+.cardBody {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.evidence strong { display: block; margin-bottom: 0.3rem; font-size: 0.82rem; color: var(--muted); text-transform: uppercase; }
+.evidence ul { padding-left: 1.25rem; }
+.evidence li { margin-bottom: 0.2rem; }
+
+.gaps { color: var(--muted); font-size: 0.85rem; }
+.muted { color: var(--muted); font-size: 0.9rem; }

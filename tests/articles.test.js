@@ -4,7 +4,21 @@
  */
 import { describe, it, mock, beforeEach } from 'node:test';
 import assert from 'node:assert';
-import { createApp } from '../src/app.js';
+import { createApp } from '../app.js';
+
+describe('GET /api/auth/config', () => {
+  it('returns authRequired false by default (no AUTH_REQUIRED in test env)', async () => {
+    const app = await createApp({
+      apiKey: 'test-key',
+      fetchArticlesForDay: mock.fn(),
+      timezone: 'Asia/Jerusalem',
+    });
+    const res = await app.inject({ method: 'GET', url: '/api/auth/config' });
+    assert.strictEqual(res.statusCode, 200);
+    const body = JSON.parse(res.body);
+    assert.strictEqual(body.authRequired, false);
+  });
+});
 
 describe('GET /articles', () => {
   let fetchArticlesForDay;

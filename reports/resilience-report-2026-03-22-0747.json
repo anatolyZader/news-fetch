@@ -1,0 +1,888 @@
+{
+  "assessment": {
+    "date": "2026-03-22",
+    "total_articles_analyzed": 79,
+    "overall_resilience_score": 6,
+    "content_kind": "news",
+    "cross_component_synthesis": "On March 22, the behavioral landscape is defined by two contradictory patterns operating simultaneously. Institutional systems — leadership communication, emergency guidance, and community resource mobilization — are functioning at a high level: the Home Front Command issued explicit, time-bounded restrictions across multiple southern regions, senior officials conducted visible on-site assessments, Soroka Hospital activated mass-casualty protocols, and the Arad municipality established a family registration and evacuation center within hours of the strikes. These responses represent continuity of the formal emergency management infrastructure documented in prior days. Against this, functional continuity and physical wellbeing have deteriorated materially: Iranian ballistic missiles struck Dimona and Arad directly, interceptors failed on at least two trajectories, 175 individuals were evacuated to Soroka Hospital including 18 children, all in-person education nationwide was suspended, and bus service continues at 60% capacity. The gap between institutional responsiveness and the scale of harm reaching residents — particularly children and vulnerable populations — defines the day's behavioral profile.",
+    "evidence_quality_note": "Signal quality is moderate-to-high: the sample contains a substantial proportion of direct quoted statements from named officials, residents, and medical personnel, supplemented by quantified operational reports, though first-person resident accounts of psychological or unmet wellbeing needs remain limited relative to the scale of the events.",
+    "components": [
+      {
+        "component_id": "narrative",
+        "score": 8,
+        "confidence": "medium",
+        "signal_count": 6,
+        "distinct_article_count": 4,
+        "source_diversity": 3,
+        "coverage_ratio": 0.05063291139240506,
+        "dispersion": "very_low",
+        "coverage_adjustment": 0.768,
+        "positive_evidence": 1.995,
+        "negative_evidence": 0,
+        "net_evidence": 1.995,
+        "evidence_mass": 1.995,
+        "strength": 0.663,
+        "adjusted_strength": 0.509,
+        "certainty": 0.631,
+        "manifestations_evidenced": [
+          "A narrative of successful coping is visible and circulating (residents/officials describe coping as effective)",
+          "Residents express that the authority's narrative is credible and reflects their lived reality"
+        ],
+        "manifestations_absent": [
+          "The coping story reflects the entire population, not just a subset (informative absence — available coping narratives are drawn from single cases: a physician, a new immigrant couple, a military officer; no broad population-level coping account is present)",
+          "Competing or contradictory narratives are explicitly voiced by residents or groups (likely reporting gap)"
+        ],
+        "evidence": [
+          "A 42-year-old pediatrician at Ichilov Hospital, also serving as a doctor in a classified IDF unit and a single mother of autistic twins, continues to manage multiple roles during wartime: 'For her, the exhausting war is a multi-arena battle.' ([source](https://www.ynet.co.il/health/article/yokra14715813))",
+          "New immigrant in his 70s: 'I said to myself I want to continue my life in Israel and also end it in Israel.' He and his wife moved to Israel during wartime, have a protected room in their apartment, and are accustomed to alert sirens since October 7. ([source](https://www.maariv.co.il/news/israel/article-1299375))",
+          "New immigrant wife: 'We know these sounds and are used to them since October 7. It's a bit scary, not fun, nobody likes it. But we're fine. We have a protected room in the apartment.' ([source](https://www.maariv.co.il/news/israel/article-1299375))",
+          "Orit Cohen Shtiler, district psychologist of Clalit Health Services: 'A pet is a natural emotional regulator... The act of petting releases oxytocin in our body... and reduces cortisol levels (the stress hormone).' ([source](https://www.jpost.com/health-and-wellness/mind-and-spirit/article-890438))",
+          "Orit Cohen Shtiler: 'When we are required to care for the dog's well-being in the protected space... we move from a passive position of a victim to an active position of a caregiver.' ([source](https://www.jpost.com/health-and-wellness/mind-and-spirit/article-890438))",
+          "Maj.-Gen. Dado Bar Kalifa: 'Those who decided to enlist in combat roles during the war... are an expression of the powerful voice of the generation that rose to defend the people and the state.' ([source](https://www.jpost.com/israel-news/defense-news/article-890746))"
+        ],
+        "narrative": "Coping narratives are present in today's sample but are confined to individual cases rather than reflecting a population-wide account. A new immigrant couple describes adaptation to sirens as normalized since October 7, and a military physician frames her multi-role wartime functioning as a sustained personal effort ([source](https://www.maariv.co.il/news/israel/article-1299375), [source](https://www.ynet.co.il/health/article/yokra14715813)). A clinical psychologist offers a professional framing — that caring for pets in protected spaces shifts residents from passive to active roles — which constitutes an institutionally circulated coping script rather than a resident-generated account ([source](https://www.jpost.com/health-and-wellness/mind-and-spirit/article-890438)). No competing or contradictory narratives from residents or organized groups appear in today's sample, though this likely reflects reporting selection rather than their absence. The coping narrative that does circulate is coherent but narrow in scope, not evidently reaching or reflecting the experience of the 175 individuals evacuated to hospital or the children injured in Dimona and Arad."
+      },
+      {
+        "component_id": "information_communication",
+        "score": 9,
+        "confidence": "high",
+        "signal_count": 12,
+        "distinct_article_count": 12,
+        "source_diversity": 10,
+        "coverage_ratio": 0.1518987341772152,
+        "dispersion": "low",
+        "coverage_adjustment": 0.817,
+        "positive_evidence": 3.426,
+        "negative_evidence": 0,
+        "net_evidence": 3.426,
+        "evidence_mass": 3.426,
+        "strength": 0.879,
+        "adjusted_strength": 0.718,
+        "certainty": 0.82,
+        "manifestations_evidenced": [
+          "Authority communication mechanisms are adapted to different resident groups (language, channel, format)",
+          "Residents express trust in information received from the authority",
+          "Population perceives national media information as relevant and addressing their needs"
+        ],
+        "manifestations_absent": [
+          "Residents state they receive the information they need to function during the emergency (likely reporting gap)",
+          "Residents report information gaps, confusion, or spread of rumors/misinformation (likely reporting gap)"
+        ],
+        "evidence": [
+          "Home Front Command announced shift from partial to restricted activity in Lachish, western Lachish, western Negev, central Negev, southern Negev, and Dead Sea regions. New restrictions: no educational activity, gatherings limited to 50 people with access to standard protected space. ([source](https://www.ynet.co.il/news/article/syq8emt9be))",
+          "Home Front Command decided to shift to restricted activity in Lachish, Negev, and Dead Sea regions. New guidelines (until Tuesday 8 p.m.): no educational activity; gatherings limited to 50 people with shelter access; workplace activity only where standard protected space is accessible. ([source](https://news.walla.co.il/break/3825389))",
+          "Home Front Command tightened restrictions in southern Israel following Iranian ballistic missile attacks. New guidelines (until Tuesday 8 p.m.): public gatherings limited to 50 people with shelter access; workplaces open only with shelter access; educational activities canceled. ([source](https://www.timesofisrael.com/liveblog_entry/home-front-command-tightens-restrictions-across-south-after-iranian-attacks-on-cities-of-dimona-arad/))",
+          "Education Minister Yoav Kisch: 'We see a day of direct hits. I don't want, God forbid, this to happen during school hours, so we made a comprehensive systemic decision. Possibly camps will open on Tuesday; we'll see with Home Front Command.' ([source](https://www.inn.co.il/flashes/1103621))",
+          "Police Commissioner ordered continued enhanced and coordinated operations to remove all danger and ensure public safety. Police called on public to follow Home Front Command guidelines, remain in protected spaces, avoid impact sites, and report suspicious items. ([source](https://www.maariv.co.il/breaking-news/article-1299445))",
+          "Ben Gvir urged residents to continue following Home Front Command instructions, noting that 'once again it has been proven that being in a shelter or safe room saves lives.' ([source](https://www.israelnationalnews.com/news/424346))",
+          "Prime Minister Benjamin Netanyahu: 'I commend the emergency and rescue forces currently operating on the ground and call on everyone to follow the instructions of the Home Front Command.' ([source](https://www.israelnationalnews.com/news/424350))",
+          "A military spokesperson urged the public to avoid gathering near affected areas and to continue following safety instructions. ([source](https://www.ynetnews.com/article/s1lrvza9be))"
+        ],
+        "narrative": "Formal guidance communication is operating at high volume and through multiple channels, consistent with the pattern observed on prior days. The Home Front Command issued geographically specific, time-bounded restrictions covering six distinct southern regions — specifying thresholds for gatherings, workplace access, and educational activity — disseminated through at least eight separate media outlets ([source](https://www.ynet.co.il/news/article/syq8emt9be), [source](https://www.timesofisrael.com/liveblog_entry/home-front-command-tightens-restrictions-across-south-after-iranian-attacks-on-cities-of-dimona-arad/)). Multiple senior officials independently reinforced the same protective message, including the Prime Minister, the National Security Minister, and the Police Commissioner, each directing the public explicitly to follow Home Front Command instructions ([source](https://www.israelnationalnews.com/news/424350), [source](https://www.israelnationalnews.com/news/424346)). A meaningful differential exists, however: protective guidance for immediate physical safety is structured and extensively communicated, while operational guidance for economic decisions — employment, business continuity, compensation — is absent from today's sample. No signals indicate that information was delivered through adapted channels for Arabic-speaking populations, new immigrants, or non-Hebrew readers, and no resident accounts confirm receipt or trust in the information received."
+      },
+      {
+        "component_id": "lifesaving_behavior",
+        "score": 8,
+        "confidence": "high",
+        "signal_count": 7,
+        "distinct_article_count": 7,
+        "source_diversity": 6,
+        "coverage_ratio": 0.08860759493670886,
+        "dispersion": "very_low",
+        "coverage_adjustment": 0.789,
+        "positive_evidence": 2.315,
+        "negative_evidence": 0.367,
+        "net_evidence": 1.948,
+        "evidence_mass": 2.683,
+        "strength": 0.652,
+        "adjusted_strength": 0.515,
+        "certainty": 0.738,
+        "manifestations_evidenced": [
+          "Residents are observed or reported to actually follow Home Front Command (HFC) protective guidelines (sheltering, evacuating, etc.)",
+          "Residents demonstrate knowledge and understanding of HFC guidelines",
+          "Residents or officials report non-compliance with protective guidelines",
+          "Residents express or demonstrate perception of the situation as genuinely life-threatening"
+        ],
+        "manifestations_absent": [
+          "Community teams or roles actively promote emergency preparedness among residents (likely reporting gap)"
+        ],
+        "evidence": [
+          "Residents in Arad described the strike: 'We were in a shelter and then the door slammed shut and a black cloud entered. Everything exploded in the house.' They confirmed: 'Whoever was in the shelter was fine.' ([source](https://www.haaretz.co.il/news/politics/2026-03-22/ty-article/.premium/0000019d-133e-dd21-a1df-f73f75d20000?utm_source=mivzakimnet&utm_medium=rss&utm_campaign=mivzakimnet))",
+          "Police Commissioner Dani Levi at impact site: 'The missile fell between buildings. Those in shelters appear unharmed. Those outside appear to have been injured.' ([source](https://www.kikar.co.il/security-news/tcaabr))",
+          "Iris, resident of Dimona: 'We were in the shelter. There was an alert and we closed the door. We heard a boom and dust came in through the windows.' ([source](https://www.ynetnews.com/article/s1nbi6hqbe))",
+          "Moti Tzarfati, 77, agreed to undergo colonoscopy without anesthesia for security reasons: 'If an alarm sounds during the procedure, the patient will be awake, cover himself with a sheet and evacuate with the staff to a protected space.' He said: 'I didn't hesitate for a second.' ([source](https://www.ynet.co.il/health/article/r1ny11d5cwx))",
+          "Police issued public alert: 'Do not approach missile impact sites or destruction sites, do not touch debris or shrapnel fragments, and report immediately to emergency services any suspicious items.' ([source](https://www.ynet.co.il/news/article/sjn0pwtc11g))",
+          "All of those wounded have been evacuated via ambulance or helicopter to Soroka Medical Center in Beersheba for further treatment, MDA said, adding that no one is currently trapped under rubble. ([source](https://www.jpost.com/israel-news/defense-news/article-890734))"
+        ],
+        "narrative": "Shelter compliance is directly confirmed by resident accounts in both Dimona and Arad, and the life-safety differential between sheltered and unsheltered individuals is explicitly noted by the Police Commissioner on site: 'Those in shelters appear unharmed. Those outside appear to have been injured' ([source](https://www.kikar.co.il/security-news/tcaabr)). Residents in Dimona describe closing shelter doors upon hearing alerts, and Arad residents describe remaining in shelters through the blast — behavioral evidence of both knowledge and execution of HFC guidelines ([source](https://www.ynetnews.com/article/s1nbi6hqbe), [source](https://www.haaretz.co.il/news/politics/2026-03-22/ty-article/.premium/0000019d-133e-dd21-a1df-f73f75d20000?utm_source=mivzakimnet&utm_medium=rss&utm_campaign=mivzakimnet)). The police alert warning residents not to approach impact sites indicates that post-strike approach behavior is a recognized compliance concern ([source](https://www.ynet.co.il/news/article/sjn0pwtc11g)). The number of individuals injured — over 100, including children — indicates that shelter access or occupancy was not universal at the time of impact, though the data available do not permit direct attribution to non-compliance versus inadequate shelter availability or warning time."
+      },
+      {
+        "component_id": "functional_continuity",
+        "score": 2,
+        "confidence": "high",
+        "signal_count": 27,
+        "distinct_article_count": 25,
+        "source_diversity": 12,
+        "coverage_ratio": 0.31645569620253167,
+        "dispersion": "moderate",
+        "coverage_adjustment": 0.869,
+        "positive_evidence": 0.439,
+        "negative_evidence": 24.63,
+        "net_evidence": -24.191,
+        "evidence_mass": 25.069,
+        "strength": -1,
+        "adjusted_strength": -0.869,
+        "certainty": 1,
+        "manifestations_evidenced": [
+          "Schools and educational institutions are open and operating (or explicitly closed/disrupted)",
+          "Residents succeed in managing daily life (reported continuation of work, commerce, or social roles)",
+          "Essential services (healthcare, supply chains, municipal services) continue to operate",
+          "Specific disruptions to daily life are reported (closures, evacuations, inability to work)"
+        ],
+        "manifestations_absent": [
+          "Residents report that sufficient resources are available to maintain routine functioning (informative absence — job seeker registration data and bus capacity reductions indicate resource constraints are being experienced)"
+        ],
+        "evidence": [
+          "Education Minister Yoav Kisch announced cancellation of all in-person instruction nationwide, including special education, following Iranian missile strikes on Dimona and Arad. ([source](https://www.haaretz.co.il/news/politics/war-2023/2026-03-22/ty-article-live/0000019d-1276-d82a-addd-5276c12f0000?liveBlogItemId=260213612))",
+          "Entire education system, including special education and periphery, shifted to remote learning until Passover break starting Tuesday. Next situation assessment on Tuesday will address activity during the holiday. ([source](https://www.calcalist.co.il/local_news/article/r1jtzlaqzg))",
+          "Bus service operating at only 60% capacity per Home Front Command guidelines. Drivers face constant danger, hostile reactions, and reduced wages despite working under wartime conditions. Most bus drivers spend most of their time on roads, dependent on public shelters. ([source](https://www.ynet.co.il/economy/article/hj31nc29ze))",
+          "Soroka Medical Center in Beersheba declared a mass casualty event after wounded from both events were rushed through its doors. ([source](https://www.jpost.com/israel-news/article-890726))",
+          "Soroka Hospital Director Dr. Tzachi Slutzky: '150 wounded arrived in total, including 10 children in serious condition from Arad — some in operating rooms. The main challenge: only 22% of hospital beds are protected.' ([source](https://www.inn.co.il/flashes/1103604))",
+          "Soroka Hospital received 175 total wounded: 60 from Dimona (including 12-year-old in serious condition), 115 from Arad (9 in serious condition, 31 hospitalized including 18 children). Hospital activated reinforced teams for rapid patient intake and medical treatment. ([source](https://www.maariv.co.il/breaking-news/article-1299468))",
+          "Employment Service: 31,122 new job seekers registered since start of 'Roar of the Lion' operation (Feb 28 - Mar 22). Last week alone: 12,794 new registrations. ([source](https://www.maariv.co.il/breaking-news/article-1299513))",
+          "Bezek reported that several sites in its Haifa Bay refinery complex were damaged, including electrical infrastructure and buildings, following impact of Iranian missile fragments on Friday. ([source](https://www.ynet.co.il/economy/article/byssbb69ze))",
+          "Residents continue shopping, managing businesses, and maintaining consumer activity during wartime alerts and chaos, navigating dilemmas around flight cancellations, daycare closures, and balancing work and parenting under fire. ([source](https://www.ynet.co.il/radio/article/omnyb4120141e90f))",
+          "Arad Mayor Yair Mayan: 'We set up a center for families where all those whose homes were damaged registered and we evacuated them to a hotel.' ([source](https://www.themarker.com/hrtz/news/politics/2026-03-21/ty-article/0000019d-1220-da49-a79f-f6ba774f0000))",
+          "Direct missile hit on residential neighborhood in Arad injured at least 88 people including children in serious condition. Rescue teams searched collapsed buildings while hundreds of residents were evacuated. ([source](http://news.walla.co.il/item/3825383))"
+        ],
+        "narrative": "Functional continuity is substantially disrupted on March 22, representing a measurable decline from prior days. All in-person instruction nationwide, including special education, was suspended following the Dimona and Arad strikes, with the policy extended at minimum through Tuesday ([source](https://www.calcalist.co.il/local_news/article/r1jtzlaqzg)); this affects the broadest educational population reported so far in the conflict. Soroka Hospital declared a mass casualty event and received 175 wounded, with its director reporting that only 22% of hospital beds are in protected spaces — a structural vulnerability now under active strain ([source](https://www.inn.co.il/flashes/1103604), [source](https://www.jpost.com/israel-news/article-890726)). Public transportation continues at 60% capacity, and 31,122 new job seekers have registered since late February, with 12,794 registrations in the most recent week alone, indicating that labor market disruption is accumulating at pace ([source](https://www.ynet.co.il/economy/article/hj31nc29ze), [source](https://www.maariv.co.il/breaking-news/article-1299513)). A partial counter-signal exists: some residents are described as continuing consumer and commercial activity, and municipal emergency services in Arad activated a family registration and evacuation center, suggesting that essential services are responding even as routines are disrupted ([source](https://www.ynet.co.il/radio/article/omnyb4120141e90f), [source](https://www.themarker.com/hrtz/news/politics/2026-03-21/ty-article/0000019d-1220-da49-a79f-f6ba774f0000))."
+      },
+      {
+        "component_id": "community_capital",
+        "score": 8,
+        "confidence": "high",
+        "signal_count": 7,
+        "distinct_article_count": 7,
+        "source_diversity": 6,
+        "coverage_ratio": 0.08860759493670886,
+        "dispersion": "very_low",
+        "coverage_adjustment": 0.789,
+        "positive_evidence": 2.613,
+        "negative_evidence": 0.95,
+        "net_evidence": 1.663,
+        "evidence_mass": 3.563,
+        "strength": 0.582,
+        "adjusted_strength": 0.459,
+        "certainty": 0.832,
+        "manifestations_evidenced": [
+          "Residents volunteer or express willingness to volunteer in formal or informal frameworks",
+          "Authority or organizations are observed to activate and coordinate community resources",
+          "Mechanisms exist and operate to coordinate volunteers and community organizations",
+          "Cross-sector cooperation (e.g., municipality + NGOs + businesses) is reported or observed"
+        ],
+        "manifestations_absent": [],
+        "evidence": [
+          "Youth movement members and student village residents are actively engaged in helping affected neighborhoods, evacuated hotels, and supporting families of reservists in their communities. ([source](https://www.maariv.co.il/news/opinions/article-1299374))",
+          "Bank Hapoalim launched 30 million shekel initiative for northern children: experiential activities truck 'Poalim for Lions and Lions' toured 15+ cities and towns in north over four days, providing performances, creative activities, food and candy stations. ([source](https://www.ice.co.il/tourism/news/article/1106991))",
+          "Arad Mayor Yair Mayan: 'We set up a center for families where all those whose homes were damaged registered and we evacuated them to a hotel. Residents will be able to enter to take belongings from apartments, and I hope in the coming days we can restore buildings to usability and residents can return as soon as possible.' ([source](https://www.themarker.com/hrtz/news/politics/2026-03-21/ty-article/0000019d-1220-da49-a79f-f6ba774f0000))",
+          "Health Ministry announced it would facilitate the transfer of some of those wounded to other hospitals in order to ease the strain put on Soroka. ([source](https://www.jpost.com/israel-news/article-890726))",
+          "Minister Wasserlauf stated that his ministry would work to transfer dedicated funding to strengthen the communities that were affected by the strikes. ([source](https://www.israelnationalnews.com/news/424346))",
+          "Employment Service: 31,122 new job seekers registered since start of 'Roar of the Lion' operation (Feb 28 - Mar 22). Last week alone: 12,794 new registrations. ([source](https://www.maariv.co.il/breaking-news/article-1299513))",
+          "Sahar said: 'People helped us with lighting, with organizing the space. It wasn't just our event -- it belonged to the whole building.' ([source](https://www.ynetnews.com/jewish-world/article/h11ijhn5zl))"
+        ],
+        "narrative": "Community capital is functioning across multiple domains today, with cross-sector resource activation visible at municipal, governmental, private, and civil society levels. The Arad municipality established a family registration center and arranged hotel evacuation for displaced residents within hours of the strike ([source](https://www.themarker.com/hrtz/news/politics/2026-03-21/ty-article/0000019d-1220-da49-a79f-f6ba774f0000)), and the Health Ministry coordinated patient transfer to distribute load from Soroka Hospital ([source](https://www.jpost.com/israel-news/article-890726)). Bank Hapoalim's 30-million-shekel initiative for northern children — spanning 15 or more communities in four days — illustrates private-sector integration into the community support architecture ([source](https://www.ice.co.il/tourism/news/article/1106991)). Youth movement members and student village residents are described as operating across multiple support functions, including in evacuated hotels and with reservist families, indicating that informal volunteer networks remain active ([source](https://www.maariv.co.il/news/opinions/article-1299374)). A gap is present in the data: the Employment Service figures showing over 31,000 new job seekers since late February suggest a large population experiencing economic displacement whose needs are not evidently being addressed through the community capital mechanisms currently reported."
+      },
+      {
+        "component_id": "leadership",
+        "score": 9,
+        "confidence": "high",
+        "signal_count": 16,
+        "distinct_article_count": 13,
+        "source_diversity": 10,
+        "coverage_ratio": 0.16455696202531644,
+        "dispersion": "low",
+        "coverage_adjustment": 0.822,
+        "positive_evidence": 10.752,
+        "negative_evidence": 0,
+        "net_evidence": 10.752,
+        "evidence_mass": 10.752,
+        "strength": 1,
+        "adjusted_strength": 0.821,
+        "certainty": 0.995,
+        "manifestations_evidenced": [
+          "Leadership actively encourages residents to follow HFC guidelines (statements, actions, public presence)",
+          "Leadership is reported to function professionally and manage the situation competently"
+        ],
+        "manifestations_absent": [
+          "Residents express that formal or informal leadership is a source of support and security (likely reporting gap — resident-voiced trust in leadership is not present in today's sample)",
+          "Residents express distrust, criticism, or frustration with leadership (likely reporting gap)"
+        ],
+        "evidence": [
+          "Police Commissioner Dani Levi, National Security Minister Itamar Ben Gvir, Southern District Commander, Shin Bet representative, and other senior officials held situation assessment at impact sites in Dimona and Arad. ([source](https://www.maariv.co.il/breaking-news/article-1299445))",
+          "National Security Minister Itamar Ben Gvir on Saturday night arrived at the scene of the Iranian missile strike in the city of Arad, accompanied by Minister Yitzhak Wasserlauf, Israel Police Commissioner Danny Levi and Fire and Rescue Commissioner Eyal Caspi. ([source](https://www.israelnationalnews.com/news/424346))",
+          "Prime Minister Benjamin Netanyahu: 'This is a very difficult evening in the battle for our future. I spoke with Arad Mayor Yair Mayan and asked to convey on behalf of all Israeli citizens our prayers for the wounded. I instructed the head of my office to provide full assistance needed with all government ministries.' ([source](https://www.inn.co.il/news/692782))",
+          "Home Front Command announced new defense policy: shift to 'restricted activity' in Lachish, western Lachish, western Negev, central Negev, southern Negev, and Dead Sea regions from Sunday 6 a.m. until Tuesday 8 p.m. Complete shutdown of educational institutions; gatherings limited to 50 people in protected areas. ([source](https://www.ice.co.il/local-news/news/article/1106972))",
+          "Education Minister Yoav Kisch: 'We see a day of direct hits. I don't want, God forbid, this to happen during school hours, so we made a comprehensive systemic decision. Possibly camps will open on Tuesday; we'll see with Home Front Command.' ([source](https://www.inn.co.il/flashes/1103621))",
+          "Ben Gvir urged residents to continue following Home Front Command instructions, noting that 'once again it has been proven that being in a shelter or safe room saves lives.' ([source](https://www.israelnationalnews.com/news/424346))",
+          "Prime Minister Benjamin Netanyahu: 'I commend the emergency and rescue forces currently operating on the ground and call on everyone to follow the instructions of the Home Front Command.' ([source](https://www.israelnationalnews.com/news/424350))",
+          "Police Commissioner ordered continued enhanced and coordinated operations to remove all danger and ensure public safety. ([source](https://www.maariv.co.il/breaking-news/article-1299445))"
+        ],
+        "narrative": "Leadership visible presence and directive communication are operating at high intensity today, continuing the pattern observed on March 21. Multiple cabinet ministers, the Police Commissioner, the Fire and Rescue Commissioner, and a Shin Bet representative conducted joint on-site assessments at the Dimona and Arad impact sites within hours of the strikes ([source](https://www.israelnationalnews.com/news/424346), [source](https://www.maariv.co.il/breaking-news/article-1299445)). The Prime Minister issued a public statement, confirmed direct contact with the Arad mayor, and directed inter-ministerial assistance — demonstrating coordinated vertical communication from national to municipal level ([source](https://www.inn.co.il/news/692782)). The Home Front Command's geographically differentiated, time-bounded policy announcement — with explicit parameters for gatherings, workplaces, and educational institutions — reflects structured rather than improvised decision-making ([source](https://www.ice.co.il/local-news/news/article/1106972)). A notable absence in today's sample is any resident-voiced response to leadership — neither expressions of confidence nor criticism — leaving the behavioral effect of leadership communication on the population uncharacterized."
+      },
+      {
+        "component_id": "belonging_solidarity",
+        "score": 6,
+        "confidence": "low",
+        "signal_count": 2,
+        "distinct_article_count": 2,
+        "source_diversity": 2,
+        "coverage_ratio": 0.02531645569620253,
+        "dispersion": "very_low",
+        "coverage_adjustment": 0.748,
+        "positive_evidence": 0.691,
+        "negative_evidence": 0,
+        "net_evidence": 0.691,
+        "evidence_mass": 0.691,
+        "strength": 0.27,
+        "adjusted_strength": 0.202,
+        "certainty": 0.292,
+        "manifestations_evidenced": [
+          "Concrete acts of mutual aid between residents are reported (helping neighbors, sharing resources, organizing support)",
+          "Programs or events strengthening belonging are activated and attended"
+        ],
+        "manifestations_absent": [
+          "Residents express a sense of solidarity or shared fate (in their own words) (likely reporting gap — only one indirect reference to collective ownership of a shared event was found)",
+          "Population groups are reported as scapegoated, blamed, or excluded due to the emergency (negative signal) (likely reporting gap)"
+        ],
+        "evidence": [
+          "Youth movement members and student village residents are actively engaged in helping affected neighborhoods, evacuated hotels, and supporting families of reservists in their communities. ([source](https://www.maariv.co.il/news/opinions/article-1299374))",
+          "Sahar said: 'People helped us with lighting, with organizing the space. It wasn't just our event -- it belonged to the whole building.' ([source](https://www.ynetnews.com/jewish-world/article/h11ijhn5zl))"
+        ],
+        "narrative": "Belonging and solidarity signals are present but limited in today's sample — two reports, both reflecting single cases or repeated patterns, rather than broad population-level evidence. Youth movement members and student village residents are described as engaged across multiple community support roles including affected neighborhoods and evacuated hotels, indicating that organized informal solidarity networks remain active ([source](https://www.maariv.co.il/news/opinions/article-1299374)). At the interpersonal level, a resident recounts neighbors helping organize a shared event in a building during wartime conditions, expressing the sentiment that it 'belonged to the whole building' — a direct articulation of collective ownership of communal space ([source](https://www.ynetnews.com/jewish-world/article/h11ijhn5zl)). No signals appear indicating group-level blame, scapegoating, or exclusion, though the absence is likely a reflection of reporting coverage rather than confirmed absence of such dynamics. Given the scale of mass casualties today, the relative thinness of solidarity reporting is a notable gap — whether it reflects reduced community activity, reduced journalistic attention to this domain, or both cannot be determined from available signals."
+      },
+      {
+        "component_id": "wellbeing_atrisk",
+        "score": 1,
+        "confidence": "high",
+        "signal_count": 39,
+        "distinct_article_count": 34,
+        "source_diversity": 14,
+        "coverage_ratio": 0.43037974683544306,
+        "dispersion": "moderate",
+        "coverage_adjustment": 0.897,
+        "positive_evidence": 2.163,
+        "negative_evidence": 12.638,
+        "net_evidence": -10.475,
+        "evidence_mass": 14.801,
+        "strength": -1,
+        "adjusted_strength": -0.896,
+        "certainty": 0.999,
+        "manifestations_evidenced": [
+          "Specific responses for at-risk or special-needs populations are reported as active (elderly, disabled, evacuees, etc.)",
+          "Reports of unmet mental health or physical wellbeing needs among residents",
+          "Emotional support responses (psychological first aid, mental health services) are available and used by residents showing anxiety or trauma"
+        ],
+        "manifestations_absent": [
+          "Residents in the second or third circle of vulnerability (indirectly affected) receive responses to their needs (informative absence — no reports of outreach to indirectly affected populations beyond the Bank Hapoalim initiative for northern children; the large population of new job seekers and bus drivers under sustained stress receive no reported wellbeing response)"
+        ],
+        "evidence": [
+          "Soroka Hospital received 175 total wounded: 60 from Dimona (including 12-year-old in serious condition), 115 from Arad (9 in serious condition, 31 hospitalized including 18 children). Hospital activated reinforced teams for rapid patient intake and medical treatment. ([source](https://www.maariv.co.il/breaking-news/article-1299468))",
+          "Soroka Hospital Director Dr. Tzachi Slutzky: '150 wounded arrived in total, including 10 children in serious condition from Arad — some in operating rooms. The main challenge: only 22% of hospital beds are protected.' ([source](https://www.inn.co.il/flashes/1103604))",
+          "Magen David Adom evacuated 115 wounded to Soroka Hospital from Dimona and Arad strikes: 11 seriously injured, 20 moderately, 84 lightly. Among injured: 4-year-old girl in serious condition, 10-year-old boy moderately injured. 27 treated for anxiety. ([source](https://news.walla.co.il/break/3825386))",
+          "Unified Rescue reported over 95 wounded and anxiety victims at Arad impact site. Rescue teams provided support to multiple anxiety victims. Ambulances evacuated wounded to Soroka Hospital. ([source](https://www.kikar.co.il/haredim-news/tcabzh))",
+          "Residents described the impact force: 'We saw a ball of fire diving, suddenly there was a huge explosion and darkness.' The blast was felt even underground. ([source](https://www.haaretz.co.il/news/politics/2026-03-22/ty-article/.premium/0000019d-133e-dd21-a1df-f73f75d20000?utm_source=mivzakimnet&utm_medium=rss&utm_campaign=mivzakimnet))",
+          "Sahar said: 'You want to be happy, but it feels like you're being forced to scale down your joy. The night before there were sirens and we barely slept.' ([source](https://www.ynetnews.com/jewish-world/article/h11ijhn5zl))",
+          "Arad Mayor Yair Mayan: 'We set up a center for families where all those whose homes were damaged registered and we evacuated them to a hotel.' ([source](https://www.themarker.com/hrtz/news/politics/2026-03-21/ty-article/0000019d-1220-da49-a79f-f6ba774f0000))",
+          "Health Ministry announced it would facilitate the transfer of some of those wounded to other hospitals in order to ease the strain put on Soroka. ([source](https://www.jpost.com/israel-news/article-890726))",
+          "Employment Service: 31,122 new job seekers registered since start of 'Roar of the Lion' operation (Feb 28 - Mar 22). Last week alone: 12,794 new registrations. ([source](https://www.maariv.co.il/breaking-news/article-1299513))",
+          "Bus service operating at only 60% capacity per Home Front Command guidelines. Drivers face constant danger, hostile reactions, and reduced wages despite working under wartime conditions. ([source](https://www.ynet.co.il/economy/article/hj31nc29ze))",
+          "Orit Cohen Shtiler, district psychologist of Clalit Health Services: 'A pet is a natural emotional regulator... The act of petting releases oxytocin in our body... and reduces cortisol levels (the stress hormone).' ([source](https://www.jpost.com/health-and-wellness/mind-and-spirit/article-890438))",
+          "Bank Hapoalim launched 30 million shekel initiative for northern children: experiential activities truck 'Poalim for Lions and Lions' toured 15+ cities and towns in north over four days, providing performances, creative activities, food and candy stations. ([source](https://www.ice.co.il/tourism/news/article/1106991))"
+        ],
+        "narrative": "Physical and mental wellbeing among at-risk populations is under substantial strain on March 22. Soroka Hospital received 175 wounded from the Dimona and Arad strikes, including 18 hospitalized children and 10 in serious condition; the hospital director noted that only 22% of its beds are in protected spaces — a structural constraint affecting its capacity to treat patients safely during ongoing alerts ([source](https://www.maariv.co.il/breaking-news/article-1299468), [source](https://www.inn.co.il/flashes/1103604)). At the Arad impact site, 27 individuals were treated specifically for anxiety, and rescue teams supported multiple additional anxiety victims — representing the visible first-circle psychological response to direct impact ([source](https://news.walla.co.il/break/3825386), [source](https://www.kikar.co.il/haredim-news/tcabzh)). A meaningful split exists between the first circle and the broader population: displaced Arad families are being housed in a hotel through municipal coordination, and children in the north are receiving psychosocial programming through the Bank Hapoalim initiative, but no reports document mental health or wellbeing responses directed at the over 31,000 newly unemployed individuals, bus drivers operating under sustained stress, or residents in the second and third circles who report disrupted sleep and constrained celebrations ([source](https://www.ynet.co.il/economy/article/hj31nc29ze), [source](https://www.maariv.co.il/breaking-news/article-1299513), [source](https://www.ynetnews.com/jewish-world/article/h11ijhn5zl)). Professional psychological guidance is present in media in the form of a Clalit psychologist's article on emotional regulation, but there is no evidence that structured mental health outreach is reaching the broader population experiencing cumulative wartime stress."
+      }
+    ]
+  },
+  "signals": [
+    {
+      "article_index": 2,
+      "article_url": "https://www.ynet.co.il/health/article/r1ny11d5cwx",
+      "signal_type": "compliance_follow_instructions",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Moti Tzarfati, 77, agreed to undergo colonoscopy without anesthesia for security reasons: 'If an alarm sounds during the procedure, the patient will be awake, cover himself with a sheet and evacuate with the staff to a protected space.' He said: 'I didn't hesitate for a second.'",
+      "scope_level": "single_case",
+      "article_source": "ynet.co.il"
+    },
+    {
+      "article_index": 3,
+      "article_url": "https://www.ynet.co.il/health/article/yokra14715813",
+      "signal_type": "resilience_narrative_positive",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "A 42-year-old pediatrician at Ichilov Hospital, also serving as a doctor in a classified IDF unit and a single mother of autistic twins, continues to manage multiple roles during wartime: 'For her, the exhausting war is a multi-arena battle.'",
+      "scope_level": "single_case",
+      "article_source": "ynet.co.il"
+    },
+    {
+      "article_index": 4,
+      "article_url": "https://www.ynet.co.il/economy/article/hj31nc29ze",
+      "signal_type": "system_overload",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Bus service operating at only 60% capacity per Home Front Command guidelines. Drivers face constant danger, hostile reactions, and reduced wages despite working under wartime conditions. Most bus drivers spend most of their time on roads, dependent on public shelters.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "ynet.co.il"
+    },
+    {
+      "article_index": 4,
+      "article_url": "https://www.ynet.co.il/economy/article/hj31nc29ze",
+      "signal_type": "service_disruption",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Bus service reduced to 60% capacity; route changes and line cuts have significantly worsened service quality.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "ynet.co.il"
+    },
+    {
+      "article_index": 5,
+      "article_url": "https://www.ynet.co.il/economy/article/byssbb69ze",
+      "signal_type": "system_overload",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Bezek reported that several sites in its Haifa Bay refinery complex were damaged, including electrical infrastructure and buildings, following impact of Iranian missile fragments on Friday.",
+      "scope_level": "single_case",
+      "article_source": "ynet.co.il"
+    },
+    {
+      "article_index": 6,
+      "article_url": "https://www.ynet.co.il/news/article/sjn0pwtc11g",
+      "signal_type": "panic_behavior",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Police issued public alert: 'Do not approach missile impact sites or destruction sites, do not touch debris or shrapnel fragments, and report immediately to emergency services any suspicious items.'",
+      "scope_level": "single_case",
+      "article_source": "ynet.co.il"
+    },
+    {
+      "article_index": 8,
+      "article_url": "https://www.ynet.co.il/radio/article/omnyb4120141e90f",
+      "signal_type": "routine_maintenance",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Residents continue shopping, managing businesses, and maintaining consumer activity during wartime alerts and chaos, navigating dilemmas around flight cancellations, daycare closures, and balancing work and parenting under fire.",
+      "scope_level": "repeated_pattern",
+      "article_source": "ynet.co.il"
+    },
+    {
+      "article_index": 9,
+      "article_url": "https://www.ynet.co.il/news/article/syq8emt9be",
+      "signal_type": "leadership_clear_guidance",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Home Front Command announced shift from partial to restricted activity in Lachish, western Lachish, western Negev, central Negev, southern Negev, and Dead Sea regions. New restrictions: no educational activity, gatherings limited to 50 people with access to standard protected space.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "ynet.co.il"
+    },
+    {
+      "article_index": 10,
+      "article_url": "https://www.haaretz.co.il/news/politics/war-2023/2026-03-22/ty-article-live/0000019d-1276-d82a-addd-5276c12f0000?liveBlogItemId=260213612",
+      "signal_type": "service_disruption",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Education Minister Yoav Kisch announced cancellation of all in-person instruction nationwide, including special education, following Iranian missile strikes on Dimona and Arad.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "haaretz.co.il"
+    },
+    {
+      "article_index": 11,
+      "article_url": "https://www.haaretz.co.il/news/politics/2026-03-22/ty-article/.premium/0000019d-133e-dd21-a1df-f73f75d20000?utm_source=mivzakimnet&utm_medium=rss&utm_campaign=mivzakimnet",
+      "signal_type": "compliance_enter_shelter",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Residents in Arad described the strike: 'We were in a shelter and then the door slammed shut and a black cloud entered. Everything exploded in the house.' They confirmed: 'Whoever was in the shelter was fine.'",
+      "scope_level": "single_case",
+      "article_source": "haaretz.co.il"
+    },
+    {
+      "article_index": 11,
+      "article_url": "https://www.haaretz.co.il/news/politics/2026-03-22/ty-article/.premium/0000019d-133e-dd21-a1df-f73f75d20000?utm_source=mivzakimnet&utm_medium=rss&utm_campaign=mivzakimnet",
+      "signal_type": "fear_expression",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Residents described the impact force: 'We saw a ball of fire diving, suddenly there was a huge explosion and darkness.' The blast was felt even underground.",
+      "scope_level": "single_case",
+      "article_source": "haaretz.co.il"
+    },
+    {
+      "article_index": 12,
+      "article_url": "https://www.haaretz.co.il/news/politics/war-2023/2026-03-22/ty-article-live/0000019d-1276-d82a-addd-5276c12f0000?liveBlogItemId=573099877",
+      "signal_type": "system_overload",
+      "evidence_type": "named_survey_statistic",
+      "evidence": "115 people injured in Arad strike, 9 in serious condition; interceptors failed to stop the ballistic missile.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "haaretz.co.il"
+    },
+    {
+      "article_index": 13,
+      "article_url": "https://www.haaretz.co.il/news/politics/war-2023/2026-03-22/ty-article-live/0000019d-1276-d82a-addd-5276c12f0000?liveBlogItemId=785853387",
+      "signal_type": "service_disruption",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Education Ministry and Home Front Command ordered: no in-person instruction nationwide, including special education. Gatherings in south limited to 50 people.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "haaretz.co.il"
+    },
+    {
+      "article_index": 15,
+      "article_url": "https://www.maariv.co.il/news/health/article-1299439",
+      "signal_type": "system_overload",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Dozens of wounded evacuated to hospitals in south and center with penetrating injuries. Medical teams face critical decisions about removing or leaving foreign objects. 59 injured in Dimona, 88 in Arad from direct hits.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "maariv.co.il"
+    },
+    {
+      "article_index": 16,
+      "article_url": "https://www.maariv.co.il/breaking-news/article-1299445",
+      "signal_type": "leadership_visible_presence",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Police Commissioner Dani Levi, National Security Minister Itamar Ben Gvir, Southern District Commander, Shin Bet representative, and other senior officials held situation assessment at impact sites in Dimona and Arad.",
+      "scope_level": "single_case",
+      "article_source": "maariv.co.il"
+    },
+    {
+      "article_index": 16,
+      "article_url": "https://www.maariv.co.il/breaking-news/article-1299445",
+      "signal_type": "leadership_clear_guidance",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Police Commissioner ordered continued enhanced and coordinated operations to remove all danger and ensure public safety. Police called on public to follow Home Front Command guidelines, remain in protected spaces, avoid impact sites, and report suspicious items.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "maariv.co.il"
+    },
+    {
+      "article_index": 18,
+      "article_url": "https://www.maariv.co.il/news/israel/article-1299375",
+      "signal_type": "resilience_narrative_positive",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "New immigrant in his 70s: 'I said to myself I want to continue my life in Israel and also end it in Israel.' He and his wife moved to Israel during wartime, have a protected room in their apartment, and are accustomed to alert sirens since October 7.",
+      "scope_level": "single_case",
+      "article_source": "maariv.co.il"
+    },
+    {
+      "article_index": 18,
+      "article_url": "https://www.maariv.co.il/news/israel/article-1299375",
+      "signal_type": "calm_confidence",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "New immigrant wife: 'We know these sounds and are used to them since October 7. It's a bit scary, not fun, nobody likes it. But we're fine. We have a protected room in the apartment.'",
+      "scope_level": "single_case",
+      "article_source": "maariv.co.il"
+    },
+    {
+      "article_index": 19,
+      "article_url": "https://www.maariv.co.il/news/opinions/article-1299374",
+      "signal_type": "community_volunteering",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Youth movement members and student village residents are actively engaged in helping affected neighborhoods, evacuated hotels, and supporting families of reservists in their communities.",
+      "scope_level": "repeated_pattern",
+      "article_source": "maariv.co.il"
+    },
+    {
+      "article_index": 23,
+      "article_url": "https://www.maariv.co.il/breaking-news/article-1299468",
+      "signal_type": "system_overload",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Soroka Hospital received 175 total wounded: 60 from Dimona (including 12-year-old in serious condition), 115 from Arad (9 in serious condition, 31 hospitalized including 18 children). Hospital activated reinforced teams for rapid patient intake and medical treatment.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "maariv.co.il"
+    },
+    {
+      "article_index": 26,
+      "article_url": "https://www.maariv.co.il/breaking-news/article-1299513",
+      "signal_type": "resource_shortage",
+      "evidence_type": "named_survey_statistic",
+      "evidence": "Employment Service: 31,122 new job seekers registered since start of 'Roar of the Lion' operation (Feb 28 - Mar 22). Last week alone: 12,794 new registrations. Regional breakdown: Dan 8,465, North 8,404, Sharon/Valleys 4,939, Jerusalem 4,827, South 4,487.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "maariv.co.il"
+    },
+    {
+      "article_index": 27,
+      "article_url": "http://news.walla.co.il/item/3825383",
+      "signal_type": "system_overload",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Direct missile hit on residential neighborhood in Arad injured at least 88 people including children in serious condition. Rescue teams searched collapsed buildings while hundreds of residents were evacuated. Hospitals began load balancing; government approved emergency aid budget for the city.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "news.walla.co.il"
+    },
+    {
+      "article_index": 28,
+      "article_url": "https://news.walla.co.il/break/3825386",
+      "signal_type": "system_overload",
+      "evidence_type": "named_survey_statistic",
+      "evidence": "Magen David Adom evacuated 115 wounded to Soroka Hospital from Dimona and Arad strikes: 11 seriously injured, 20 moderately, 84 lightly. Among injured: 4-year-old girl in serious condition, 10-year-old boy moderately injured. 27 treated for anxiety.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "news.walla.co.il"
+    },
+    {
+      "article_index": 29,
+      "article_url": "https://news.walla.co.il/break/3825389",
+      "signal_type": "leadership_clear_guidance",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Home Front Command decided to shift to restricted activity in Lachish, Negev, and Dead Sea regions. New guidelines (until Tuesday 8 p.m.): no educational activity; gatherings limited to 50 people with shelter access; workplace activity only where standard protected space is accessible.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "news.walla.co.il"
+    },
+    {
+      "article_index": 30,
+      "article_url": "https://news.walla.co.il/break/3825395",
+      "signal_type": "service_disruption",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Carmel Coast Regional Council announced cancellation of all educational activities including daycare, kindergarten, and schools following rocket fire to the south. Remote learning will continue; support services for essential workers' children will operate.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "news.walla.co.il"
+    },
+    {
+      "article_index": 31,
+      "article_url": "https://www.kikar.co.il/security-news/tcaabr",
+      "signal_type": "system_overload",
+      "evidence_type": "named_survey_statistic",
+      "evidence": "88 wounded evacuated from direct missile hit on residential neighborhood in Arad; 10 in serious condition. Extensive damage to dozens of homes.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "kikar.co.il"
+    },
+    {
+      "article_index": 31,
+      "article_url": "https://www.kikar.co.il/security-news/tcaabr",
+      "signal_type": "compliance_enter_shelter",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Police Commissioner Dani Levi at impact site: 'The missile fell between buildings. Those in shelters appear unharmed. Those outside appear to have been injured.'",
+      "scope_level": "single_case",
+      "article_source": "kikar.co.il"
+    },
+    {
+      "article_index": 32,
+      "article_url": "https://www.kikar.co.il/security-news/tcabho",
+      "signal_type": "leadership_clear_guidance",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Home Front Command tightened guidelines for southern regions: gatherings limited to 50 people with standard shelter access; workplace activity only where standard protected space is accessible during alerts.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "kikar.co.il"
+    },
+    {
+      "article_index": 33,
+      "article_url": "https://www.kikar.co.il/haredim-news/tcabzh",
+      "signal_type": "system_overload",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Unified Rescue reported over 95 wounded and anxiety victims at Arad impact site. Rescue teams provided support to multiple anxiety victims. Ambulances evacuated wounded to Soroka Hospital.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "kikar.co.il"
+    },
+    {
+      "article_index": 33,
+      "article_url": "https://www.kikar.co.il/haredim-news/tcabzh",
+      "signal_type": "leadership_visible_presence",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Prime Minister Benjamin Netanyahu: 'This is a very difficult evening in the battle for our future. I recently spoke with Arad Mayor Yair Mayan and asked to convey on behalf of all Israeli citizens our prayers for the wounded.'",
+      "scope_level": "single_case",
+      "article_source": "kikar.co.il"
+    },
+    {
+      "article_index": 37,
+      "article_url": "https://www.inn.co.il/flashes/1103604",
+      "signal_type": "system_overload",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Soroka Hospital Director Dr. Tzachi Slutzky: '150 wounded arrived in total, including 10 children in serious condition from Arad—some in operating rooms. The main challenge: only 22% of hospital beds are protected.'",
+      "scope_level": "single_case",
+      "article_source": "inn.co.il"
+    },
+    {
+      "article_index": 38,
+      "article_url": "https://www.inn.co.il/news/692782",
+      "signal_type": "leadership_clear_guidance",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Home Front Command tightened restrictions in south: gatherings limited to 50 people in protected areas; no educational institution activities. Policy in effect until Tuesday evening.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "inn.co.il"
+    },
+    {
+      "article_index": 38,
+      "article_url": "https://www.inn.co.il/news/692782",
+      "signal_type": "leadership_visible_presence",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Prime Minister Benjamin Netanyahu: 'This is a very difficult evening in the battle for our future. I spoke with Arad Mayor Yair Mayan and asked to convey on behalf of all Israeli citizens our prayers for the wounded. I instructed the head of my office to provide full assistance needed with all government ministries.'",
+      "scope_level": "single_case",
+      "article_source": "inn.co.il"
+    },
+    {
+      "article_index": 39,
+      "article_url": "https://www.inn.co.il/flashes/1103616",
+      "signal_type": "system_overload",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Soroka Hospital: 175 total wounded from Dimona and Arad strikes. Dimona: 60 evacuated (12-year-old in serious condition, man in 20s moderately injured; 5 hospitalized). Arad: 115 evacuated (9 serious, 31 hospitalized including 18 children).",
+      "scope_level": "quantified_or_broad",
+      "article_source": "inn.co.il"
+    },
+    {
+      "article_index": 40,
+      "article_url": "https://www.inn.co.il/news/692785",
+      "signal_type": "panic_behavior",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Alerts activated in central region following Iranian missile launch. Shrapnel fell near school in Holon causing damage. Magen David Adom reported no casualties from the impact.",
+      "scope_level": "single_case",
+      "article_source": "inn.co.il"
+    },
+    {
+      "article_index": 41,
+      "article_url": "https://www.inn.co.il/flashes/1103621",
+      "signal_type": "leadership_clear_guidance",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Education Minister Yoav Kisch: 'We see a day of direct hits. I don't want, God forbid, this to happen during school hours, so we made a comprehensive systemic decision. Possibly camps will open on Tuesday; we'll see with Home Front Command.'",
+      "scope_level": "single_case",
+      "article_source": "inn.co.il"
+    },
+    {
+      "article_index": 45,
+      "article_url": "https://www.ice.co.il/local-news/news/article/1106972",
+      "signal_type": "leadership_clear_guidance",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Home Front Command announced new defense policy: shift to 'restricted activity' in Lachish, western Lachish, western Negev, central Negev, southern Negev, and Dead Sea regions from Sunday 6 a.m. until Tuesday 8 p.m. Complete shutdown of educational institutions; gatherings limited to 50 people in protected areas.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "ice.co.il"
+    },
+    {
+      "article_index": 46,
+      "article_url": "https://www.ice.co.il/tourism/news/article/1106991",
+      "signal_type": "resource_mobilization",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Bank Hapoalim launched 30 million shekel initiative for northern children: experiential activities truck 'Poalim for Lions and Lions' toured 15+ cities and towns in north over four days, providing performances, creative activities, food and candy stations.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "ice.co.il"
+    },
+    {
+      "article_index": 47,
+      "article_url": "https://www.srugim.co.il/news/1300173",
+      "signal_type": "leadership_clear_guidance",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Home Front Command announced significant tightening of defense guidelines for south and Negev residents. Shift to 'restricted activity' in Lachish, western Lachish, western Negev, central Negev, southern Negev, and Dead Sea from Sunday 6 a.m. until Tuesday 8 p.m.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "srugim.co.il"
+    },
+    {
+      "article_index": 48,
+      "article_url": "https://www.srugim.co.il/news/1300174",
+      "signal_type": "system_overload",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Soroka Hospital summary: Dimona strike—60 evacuated (12-year-old in serious condition operated on, man in 20s moderately injured; 5 hospitalized). Arad strike—115 evacuated (9 serious, 31 hospitalized including 18 children). Reinforced teams activated for rapid patient intake and medical treatment.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "srugim.co.il"
+    },
+    {
+      "article_index": 50,
+      "article_url": "https://www.srugim.co.il/news/1300178",
+      "signal_type": "system_overload",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "IDF Division 36 continues ground operations in southern Lebanon. Brigade 7 neutralized over 10 Hezbollah operatives identified as immediate threats. Golani Brigade located command center and weapons cache used by Hezbollah for planned attacks.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "srugim.co.il"
+    },
+    {
+      "article_index": 52,
+      "article_url": "https://www.themarker.com/hrtz/news/politics/2026-03-21/ty-article/0000019d-1220-da49-a79f-f6ba774f0000",
+      "signal_type": "system_overload",
+      "evidence_type": "named_survey_statistic",
+      "evidence": "At least 84 people injured in Arad direct hit, 10 in serious condition including 5-year-old girl. Interceptors failed to stop the ballistic missile weighing hundreds of kilograms.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "themarker.com"
+    },
+    {
+      "article_index": 52,
+      "article_url": "https://www.themarker.com/hrtz/news/politics/2026-03-21/ty-article/0000019d-1220-da49-a79f-f6ba774f0000",
+      "signal_type": "resource_mobilization",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Arad Mayor Yair Mayan: 'We set up a center for families where all those whose homes were damaged registered and we evacuated them to a hotel. Residents will be able to enter to take belongings from apartments, and I hope in the coming days we can restore buildings to usability and residents can return as soon as possible.'",
+      "scope_level": "single_case",
+      "article_source": "themarker.com"
+    },
+    {
+      "article_index": 54,
+      "article_url": "https://www.calcalist.co.il/local_news/article/r1jtzlaqzg",
+      "signal_type": "service_disruption",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Entire education system, including special education and periphery, shifted to remote learning until Passover break starting Tuesday. Next situation assessment on Tuesday will address activity during the holiday.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "calcalist.co.il"
+    },
+    {
+      "article_index": 58,
+      "article_url": "https://www.timesofisrael.com/over-100-injured-11-seriously-in-iranian-missile-strikes-on-southern-cities-of-arad-dimona/",
+      "signal_type": "system_overload",
+      "evidence_type": "named_survey_statistic",
+      "evidence": "Over 100 people injured in Iranian strikes on Dimona and Arad, 11 seriously. Among seriously injured: 12-year-old boy with shrapnel injuries in Dimona, 5-year-old girl injured in Arad. Israeli air defenses failed to intercept at least two ballistic missiles.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "timesofisrael.com"
+    },
+    {
+      "article_index": 59,
+      "article_url": "https://www.timesofisrael.com/liveblog_entry/home-front-command-tightens-restrictions-across-south-after-iranian-attacks-on-cities-of-dimona-arad/",
+      "signal_type": "leadership_clear_guidance",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Home Front Command tightened restrictions in southern Israel following Iranian ballistic missile attacks. New guidelines (until Tuesday 8 p.m.): public gatherings limited to 50 people with shelter access; workplaces open only with shelter access; educational activities canceled.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "timesofisrael.com"
+    },
+    {
+      "article_index": 60,
+      "article_url": "https://www.timesofisrael.com/after-iranian-missile-attacks-on-south-all-schools-to-go-remote-sunday-and-monday/",
+      "signal_type": "service_disruption",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Education Minister Yoav Kisch announced cancellation of all in-person instruction nationwide on Sunday and Monday following Iranian missile attacks on Dimona and Arad. In-person special education classes also canceled.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "timesofisrael.com"
+    },
+    {
+      "article_index": 1,
+      "article_url": "https://www.jpost.com/israel-news/article-890726",
+      "signal_type": "service_disruption",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Schools will remain closed, in line with Education Minister Yoav Kisch's emergency Saturday ruling to cancel the return to in person learning on Sunday.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "jpost.com"
+    },
+    {
+      "article_index": 1,
+      "article_url": "https://www.jpost.com/israel-news/article-890726",
+      "signal_type": "system_overload",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Soroka Medical Center in Beersheba declared a mass casualty event after wounded from both events were rushed through its doors.",
+      "scope_level": "single_case",
+      "article_source": "jpost.com"
+    },
+    {
+      "article_index": 1,
+      "article_url": "https://www.jpost.com/israel-news/article-890726",
+      "signal_type": "resource_mobilization",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Health Ministry announced it would facilitate the transfer of some of those wounded to other hospitals in order to ease the strain put on Soroka.",
+      "scope_level": "single_case",
+      "article_source": "jpost.com"
+    },
+    {
+      "article_index": 2,
+      "article_url": "https://www.jpost.com/israel-news/defense-news/article-890734",
+      "signal_type": "compliance_enter_shelter",
+      "evidence_type": "named_survey_statistic",
+      "evidence": "All of those wounded have been evacuated via ambulance or helicopter to Soroka Medical Center in Beersheba for further treatment, MDA said, adding that no one is currently trapped under rubble.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "jpost.com"
+    },
+    {
+      "article_index": 3,
+      "article_url": "https://www.jpost.com/health-and-wellness/mind-and-spirit/article-890438",
+      "signal_type": "calm_confidence",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Orit Cohen Shtiler, district psychologist of Clalit Health Services: 'A pet is a natural emotional regulator... The act of petting releases oxytocin in our body... and reduces cortisol levels (the stress hormone).'",
+      "scope_level": "single_case",
+      "article_source": "jpost.com"
+    },
+    {
+      "article_index": 3,
+      "article_url": "https://www.jpost.com/health-and-wellness/mind-and-spirit/article-890438",
+      "signal_type": "resilience_narrative_positive",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Orit Cohen Shtiler: 'When we are required to care for the dog's well-being in the protected space... we move from a passive position of a victim to an active position of a caregiver.'",
+      "scope_level": "single_case",
+      "article_source": "jpost.com"
+    },
+    {
+      "article_index": 4,
+      "article_url": "https://www.jpost.com/israel-news/defense-news/article-890746",
+      "signal_type": "calm_confidence",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Maj.-Gen. Dado Bar Kalifa: 'Those who decided to enlist in combat roles during the war... are an expression of the powerful voice of the generation that rose to defend the people and the state.'",
+      "scope_level": "single_case",
+      "article_source": "jpost.com"
+    },
+    {
+      "article_index": 7,
+      "article_url": "https://www.ynetnews.com/jewish-world/article/h11ijhn5zl",
+      "signal_type": "solidarity_help_others",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Sahar said: 'People helped us with lighting, with organizing the space. It wasn't just our event -- it belonged to the whole building.'",
+      "scope_level": "single_case",
+      "article_source": "ynetnews.com"
+    },
+    {
+      "article_index": 7,
+      "article_url": "https://www.ynetnews.com/jewish-world/article/h11ijhn5zl",
+      "signal_type": "fear_expression",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Sahar said: 'You want to be happy, but it feels like you're being forced to scale down your joy. The night before there were sirens and we barely slept.'",
+      "scope_level": "single_case",
+      "article_source": "ynetnews.com"
+    },
+    {
+      "article_index": 8,
+      "article_url": "https://www.ynetnews.com/article/s1nbi6hqbe",
+      "signal_type": "compliance_enter_shelter",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Iris, resident of Dimona: 'We were in the shelter. There was an alert and we closed the door. We heard a boom and dust came in through the windows.'",
+      "scope_level": "single_case",
+      "article_source": "ynetnews.com"
+    },
+    {
+      "article_index": 9,
+      "article_url": "https://www.ynetnews.com/article/s1lrvza9be",
+      "signal_type": "leadership_clear_guidance",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "A military spokesperson urged the public to avoid gathering near affected areas and to continue following safety instructions.",
+      "scope_level": "single_case",
+      "article_source": "ynetnews.com"
+    },
+    {
+      "article_index": 12,
+      "article_url": "https://www.israelnationalnews.com/news/424346",
+      "signal_type": "leadership_visible_presence",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "National Security Minister Itamar Ben Gvir on Saturday night arrived at the scene of the Iranian missile strike in the city of Arad, accompanied by Minister Yitzhak Wasserlauf, Israel Police Commissioner Danny Levi and Fire and Rescue Commissioner Eyal Caspi.",
+      "scope_level": "single_case",
+      "article_source": "israelnationalnews.com"
+    },
+    {
+      "article_index": 12,
+      "article_url": "https://www.israelnationalnews.com/news/424346",
+      "signal_type": "leadership_clear_guidance",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Ben Gvir urged residents to continue following Home Front Command instructions, noting that 'once again it has been proven that being in a shelter or safe room saves lives.'",
+      "scope_level": "single_case",
+      "article_source": "israelnationalnews.com"
+    },
+    {
+      "article_index": 12,
+      "article_url": "https://www.israelnationalnews.com/news/424346",
+      "signal_type": "resource_mobilization",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Minister Wasserlauf stated that his ministry would work to transfer dedicated funding to strengthen the communities that were affected by the strikes.",
+      "scope_level": "single_case",
+      "article_source": "israelnationalnews.com"
+    },
+    {
+      "article_index": 16,
+      "article_url": "https://www.israelnationalnews.com/flashes/680599",
+      "signal_type": "system_overload",
+      "evidence_type": "named_survey_statistic",
+      "evidence": "Soroka Hospital spokeswoman reported that 175 injured people were evacuated to the hospital following the two rocket attacks in Dimona and Arad.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "israelnationalnews.com"
+    },
+    {
+      "article_index": 17,
+      "article_url": "https://www.israelnationalnews.com/news/424350",
+      "signal_type": "service_disruption",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Educational activities in schools are suspended. The new policy is expected to remain in place at least until Tuesday evening.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "israelnationalnews.com"
+    },
+    {
+      "article_index": 17,
+      "article_url": "https://www.israelnationalnews.com/news/424350",
+      "signal_type": "leadership_clear_guidance",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Prime Minister Benjamin Netanyahu: 'I commend the emergency and rescue forces currently operating on the ground and call on everyone to follow the instructions of the Home Front Command.'",
+      "scope_level": "single_case",
+      "article_source": "israelnationalnews.com"
+    }
+  ],
+  "source_files": [
+    "articles-homefront.md"
+  ],
+  "generated_at": "2026-03-22T07:51:59.758Z"
+}

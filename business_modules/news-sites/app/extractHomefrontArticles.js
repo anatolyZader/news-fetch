@@ -12,8 +12,8 @@ import { dirname, join } from 'node:path';
 import { writeFileSync } from 'node:fs';
 
 import Anthropic from '@anthropic-ai/sdk';
-import { getTodayInTimezone } from '../../../src/dateUtils.js';
-import { createCostTracker, appendCostLog, checkDailyBudget } from '../../../src/costTracker.js';
+import { getTodayInTimezone } from '../../../utils/dateUtils.js';
+import { createCostTracker, appendCostLog, checkDailyBudget } from '../../../cross-cut-modules/budget/index.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(__dirname, '../../..');

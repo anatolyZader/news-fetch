@@ -32,7 +32,7 @@ npm run homefront-to-md
 
 ### What it does
 
-**Entry:** `scripts/extract-homefront-articles.js` → `business_modules/news-sites/app/extractHomefrontArticles.js`
+**Entry:** `business_modules/news-sites/input/extract-homefront-articles.js` → `app/extractHomefrontArticles.js`
 
 1. **Fetches** today's main-news articles from many Israeli outlets via the NewsAPI.ai API:
    - Each site has an adapter under `business_modules/news-sites/infrastructure/adapters/newsApi*Adapter.js`
@@ -70,7 +70,7 @@ npm run analyze-resilience -- --date YYYY-MM-DD
 
 Or via the `/analyze-news` slash command (which runs both stages).
 
-**Script:** `scripts/analyze-resilience.js`
+**Script:** `business_modules/resilience/input/analyze-resilience.js` (via `npm run analyze-resilience`)
 **Core module:** `src/resilience/claudeEvaluator.js`
 
 ---
@@ -243,7 +243,7 @@ Narratives explicitly note which manifestations are absent — a deliberate desi
 
 **Module:** `src/resilience/reportWriter.js`
 
-Two files are written to `resilience/`:
+Two files are written to `reports/`:
 
 ### Markdown report (`resilience-report-YYYY-MM-DD.md`)
 
@@ -312,7 +312,7 @@ npm run analyze-resilience -- --date 2026-03-17
 ```
 --files <f1.md,...>    Input file(s), comma-separated (default: articles-homefront.md)
 --date  <YYYY-MM-DD>   Report date (default: parsed from file header)
---output <path>        Output path without extension (default: resilience/resilience-report-<date>)
+--output <path>        Output path without extension (default: reports/resilience-report-<date>)
 ```
 
 ---
@@ -341,10 +341,24 @@ npm run analyze-resilience -- --date 2026-03-17
 ## File Map
 
 ```
-scripts/
-  extract-homefront-articles.js   Thin CLI → news-sites module (Stage 1)
-  fetch-articles-to-md.js         Thin CLI → single-site fetch
-  analyze-resilience.js           CLI entry point for Stages 2–5
+business_modules/news-sites/input/
+  extract-homefront-articles.js   Stage 1 CLI → extractHomefrontArticles
+  fetch-articles-to-md.js         Single-site fetch CLI
+  discover-source-uris.js         NewsAPI.ai source URI probe (dev)
+  debug-api.js                    Event Registry response debug (dev)
+
+business_modules/audio/input/
+  audio-to-md.js                  Transcribe audio → articles-audio.md
+
+business_modules/resilience/input/
+  analyze-resilience.js           News/audio-transcript markdown → 8-component report
+  analyze-survey.js               Municipality survey Excel → reports
+
+cross-cut-modules/budget/input/
+  test-token-usage.js             Token/cost audit vs resilience pipeline (dev)
+
+business_modules/pbo_report_muni/input/
+  analyze-event-log.js            PBO pipe-delimited log → event report
 
 business_modules/news-sites/
   app/extractHomefrontArticles.js  Fetch all sites + LLM pre-filter → articles-homefront.md
@@ -359,9 +373,9 @@ src/resilience/
   claudeEvaluator.js              LLM calls: signal extraction, narrative generation
   mdReportsLoader.js              Parse articles-*.md into article objects
   reportWriter.js                 Write .md and .json output files
-  runResilienceAnalysis.js        Shared orchestration (news + radio)
+  runResilienceAnalysis.js        Shared orchestration (news + audio)
 
-resilience/
+reports/
   resilience-report-YYYY-MM-DD.md    Daily markdown report (human-readable)
   resilience-report-YYYY-MM-DD.json  Daily JSON data file (machine-readable)
 

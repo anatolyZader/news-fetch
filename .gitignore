@@ -1,5 +1,9 @@
 node_modules/
 .env
+.env.local
+client/.env.local
+secrets/
 *.log
 .DS_Store
 cost-log.jsonl
+downloads/

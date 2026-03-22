@@ -1,6 +1,6 @@
 /**
  * KAN 11 (Israeli Public Broadcasting) – NewsAPI (Event Registry) adapter.
- * Source URIs: canonical and common variants (Event Registry may not index KAN yet – run scripts/discover-source-uris.js to verify).
+ * Source URIs: canonical and common variants (Event Registry may not index KAN yet – run business_modules/news-sites/input/discover-source-uris.js to verify).
  */
 import { createNewsApiArticlesFetcher as createFetcher } from './newsApiAdapterFactory.js';
 

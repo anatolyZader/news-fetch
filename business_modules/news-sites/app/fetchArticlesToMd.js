@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { writeFileSync } from 'node:fs';
 
-import { getTodayInTimezone } from '../../../src/dateUtils.js';
+import { getTodayInTimezone } from '../../../utils/dateUtils.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(__dirname, '../../..');

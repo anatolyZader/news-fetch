@@ -1,6 +1,6 @@
 /**
  * N12 (Channel 12 / Hevrat HaHadashot) – NewsAPI (Event Registry) adapter.
- * Source URIs: canonical and common variants (Event Registry may not index N12 yet – run scripts/discover-source-uris.js to verify).
+ * Source URIs: canonical and common variants (Event Registry may not index N12 yet – run business_modules/news-sites/input/discover-source-uris.js to verify).
  */
 import { createNewsApiArticlesFetcher as createFetcher } from './newsApiAdapterFactory.js';
 

@@ -8,22 +8,24 @@
     "@fastify/static": "^9.0.0",
     "dotenv": "^16.4.5",
     "fastify": "^5.2.0",
+    "firebase-admin": "^13.7.0",
     "openai": "^4.104.0",
     "xlsx": "^0.18.5"
   },
   "scripts": {
-    "start": "node src/server.js",
-    "test": "node --test tests/*.test.js tests/business_modules/**/*.test.js",
-    "articles-to-md": "node scripts/fetch-articles-to-md.js",
-    "homefront-to-md": "node scripts/extract-homefront-articles.js",
-    "analyze-resilience": "node scripts/analyze-resilience.js",
-    "radio-audio-to-md": "node scripts/radio-audio-to-md.js",
-    "analyze-radio": "node scripts/analyze-resilience.js --content-kind radio --files articles-radio.md",
-    "analyze-event-log": "node scripts/analyze-event-log.js",
-    "analyze-survey": "node scripts/analyze-survey.js",
-    "analyze-social": "node scripts/analyze-social.js",
-    "test-tokens": "node scripts/test-token-usage.js",
+    "start": "node server.js",
+    "test": "node --test $(find tests -name '*.test.js' -type f | sort)",
+    "articles-to-md": "node business_modules/news-sites/input/fetch-articles-to-md.js",
+    "homefront-to-md": "node business_modules/news-sites/input/extract-homefront-articles.js",
+    "analyze-resilience": "node business_modules/resilience/input/analyze-resilience.js",
+    "audio-to-md": "node business_modules/audio/input/audio-to-md.js",
+    "video-grab-url": "node business_modules/video/input/video-grab-url.js",
+    "analyze-audio": "node business_modules/resilience/input/analyze-resilience.js --content-kind audio --files articles-audio.md",
+    "analyze-event-log": "node business_modules/pbo_report_muni/input/analyze-event-log.js",
+    "analyze-survey": "node business_modules/resilience/input/analyze-survey.js",
+    "test-tokens": "node cross-cut-modules/budget/input/test-token-usage.js",
     "client:dev": "cd client && npm run dev",
-    "client:build": "cd client && npm run build"
+    "client:build": "cd client && npm run build",
+    "check-identity-env": "node utils/check-identity-env.js"
   }
 }
