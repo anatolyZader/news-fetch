@@ -1,4 +1,7 @@
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import styles from './ReportView.module.css';
+import { expandSourceCitationLinks } from './ReportMarkdownView.jsx';
 
 const ICONS = {
   narrative: '📖',
@@ -48,19 +51,35 @@ function ComponentCard({ comp }) {
         <span className={styles.confidence}>{comp.confidence}</span>
       </summary>
       <div className={styles.cardBody}>
-        <p>{comp.narrative}</p>
+        <div className={styles.proseMd}>
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+            {expandSourceCitationLinks(comp.narrative ?? '')}
+          </ReactMarkdown>
+        </div>
 
         {comp.supporting_evidence?.length > 0 && (
           <div className={styles.evidence}>
             <strong>Positive signals</strong>
-            <ul>{comp.supporting_evidence.map((e, i) => <li key={i}>{e}</li>)}</ul>
+            <ul>
+              {comp.supporting_evidence.map((e, i) => (
+                <li key={i} className={styles.proseMd}>
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{expandSourceCitationLinks(e)}</ReactMarkdown>
+                </li>
+              ))}
+            </ul>
           </div>
         )}
 
         {comp.weakening_evidence?.length > 0 && (
           <div className={styles.evidence}>
             <strong>Concerns</strong>
-            <ul>{comp.weakening_evidence.map((e, i) => <li key={i}>{e}</li>)}</ul>
+            <ul>
+              {comp.weakening_evidence.map((e, i) => (
+                <li key={i} className={styles.proseMd}>
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{expandSourceCitationLinks(e)}</ReactMarkdown>
+                </li>
+              ))}
+            </ul>
           </div>
         )}
 
@@ -72,11 +91,16 @@ function ComponentCard({ comp }) {
   );
 }
 
-export function ReportView({ assessment, costUsd }) {
+export function ReportView({ assessment, costUsd, readOnly }) {
   const overall = assessment.overall_resilience_score;
 
   return (
     <div className={styles.root}>
+      {readOnly && (
+        <p className={styles.readOnlyBanner} role="status">
+          Read-only — today&apos;s saved assessment (not editable here).
+        </p>
+      )}
       {/* ── Overall score ── */}
       <div className={styles.overallRow}>
         <div className={styles.overallScore} style={{ color: scoreColor(overall) }}>
@@ -107,7 +131,11 @@ export function ReportView({ assessment, costUsd }) {
       {/* ── Executive summary ── */}
       <section className={styles.section}>
         <h2>Executive Summary</h2>
-        <p>{assessment.cross_component_synthesis}</p>
+        <div className={styles.proseMd}>
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+            {expandSourceCitationLinks(assessment.cross_component_synthesis ?? '')}
+          </ReactMarkdown>
+        </div>
       </section>
 
       {/* ── Component cards ── */}
@@ -122,7 +150,11 @@ export function ReportView({ assessment, costUsd }) {
       {assessment.media_bias_caveats && (
         <section className={styles.section}>
           <h2>Methodological Caveats</h2>
-          <p className={styles.muted}>{assessment.media_bias_caveats}</p>
+          <div className={`${styles.muted} ${styles.proseMd}`}>
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              {expandSourceCitationLinks(assessment.media_bias_caveats)}
+            </ReactMarkdown>
+          </div>
         </section>
       )}
     </div>

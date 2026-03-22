@@ -7,3 +7,5 @@ secrets/
 .DS_Store
 cost-log.jsonl
 downloads/
+.local/
+data/

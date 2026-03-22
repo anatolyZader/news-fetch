@@ -12,8 +12,10 @@ import { dirname, join } from 'node:path';
 import { writeFileSync } from 'node:fs';
 
 import Anthropic from '@anthropic-ai/sdk';
+import { resolve } from 'node:path';
 import { getTodayInTimezone } from '../../../utils/dateUtils.js';
 import { createCostTracker, appendCostLog, checkDailyBudget } from '../../../cross-cut-modules/budget/index.js';
+import { createEvidenceStore } from '../../../cross-cut-modules/persistence/evidenceStore.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(__dirname, '../../..');
@@ -272,6 +274,24 @@ export async function runExtractHomefrontArticles(opts = {}) {
 
   writeFileSync(outPath, sections.join('\n'), 'utf8');
   console.log(`Wrote ${articles.length} home-front–relevant articles to ${outPath} (from ${allArticles.length} total)`);
+
+  // Persist to DB
+  const sqlitePath = process.env.SQLITE_PATH?.trim() || resolve(repoRoot, 'data', 'app.sqlite');
+  try {
+    const store = createEvidenceStore(sqlitePath);
+    const inserted = store.insertItems(articles.map((a) => ({
+      date,
+      source_type: 'news',
+      source_label: a.source,
+      source_url: a.url,
+      title: a.title,
+      body: a.body && a.body.trim() ? a.body.trim() : '',
+      published_at: a.publishedAt,
+    })));
+    console.log(`  → ${inserted} new item(s) written to DB (${sqlitePath})`);
+  } catch (err) {
+    console.error(`  ⚠ DB write failed (continuing): ${err.message}`);
+  }
 
   const { totalCostUsd, usageLog } = getTotal();
   appendCostLog({ script: 'extract-homefront', date, totalCostUsd, usageLog, articles: articles.length });

@@ -6,6 +6,10 @@ import { writeFileSync, mkdirSync } from 'fs';
 import { dirname } from 'path';
 import { RESILIENCE_COMPONENTS } from '../domain/resilienceComponents.js';
 import { summarizeConfidence } from '../domain/services/behaviorSignals.js';
+import {
+  COMPONENTS_TABLE_HELP_MARKDOWN,
+  EVIDENCE_LEVEL_INLINE_NOTE,
+} from '../../../shared/componentsTableGlossary.js';
 
 const COMPONENT_MAP = Object.fromEntries(RESILIENCE_COMPONENTS.map((c) => [c.id, c]));
 
@@ -40,12 +44,7 @@ function buildMarkdown(assessment, sourceFiles) {
   lines.push(`## Executive Summary`, ``, assessment.cross_component_synthesis, ``, `---`, ``);
 
   // ── Component overview table ───────────────────────────────────────────────
-  lines.push(
-    `## Components`,
-    ``,
-    `*Assessment reliability = how much to trust the result | Evidence level = how much evidence exists | Article coverage = how widely it appears across the sample*`,
-    ``,
-    `| # | Component | עברית | Assessment reliability | Evidence level | Evidence base | Article coverage | Component score |`,
+  lines.push(`## Components`, ``, COMPONENTS_TABLE_HELP_MARKDOWN, ``, `| # | Component | עברית | Assessment reliability | Evidence level | Evidence base | Article coverage | Component score |`,
     `|---|-----------|-------|------------------------|----------------|---------------|------------------|-----------------|`,
   );
   (assessment.components ?? []).forEach((comp, i) => {
@@ -72,7 +71,7 @@ function buildMarkdown(assessment, sourceFiles) {
       `### ${i18n(comp.component_id)} ${def.name_en ?? comp.component_id}`,
       `*${def.name_he ?? ''}*`,
       ``,
-      `**Component score:** ${comp.score ?? '—'}/10 *(1 = strongly negative, 10 = strongly positive)* | **Assessment reliability:** ${summarizeConfidence(comp.confidence)} *(based on how much evidence was found and how broadly it appears across the sample)* | **Evidence level:** ${certPct} *(amount of relevant evidence found for this component)*`,
+      `**Component score:** ${comp.score ?? '—'}/10 *(1 = strongly negative, 10 = strongly positive)* | **Assessment reliability:** ${summarizeConfidence(comp.confidence)} *(based on how much evidence was found and how broadly it appears across the sample)* | **Evidence level:** ${certPct} *(${EVIDENCE_LEVEL_INLINE_NOTE})*`,
       `**Evidence base:** ${comp.signal_count ?? 0} behavioral signals found in ${articleCoverage} articles *(${coveragePct} of today's sample, ${spreadLabel} spread across sources)* | **Evidence direction:** ${evidenceDirection(comp.positive_evidence, comp.negative_evidence)}`,
       ``,
       comp.narrative,

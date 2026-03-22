@@ -23,6 +23,7 @@ describe('GET /articles (integration)', () => {
       apiKey,
       fetchArticlesForDay,
       timezone: 'Asia/Jerusalem',
+      authRequired: false,
     });
   });
 

@@ -9,6 +9,7 @@
     "dotenv": "^16.4.5",
     "fastify": "^5.2.0",
     "firebase-admin": "^13.7.0",
+    "googleapis": "^144.0.0",
     "openai": "^4.104.0",
     "xlsx": "^0.18.5"
   },
@@ -20,6 +21,7 @@
     "analyze-resilience": "node business_modules/resilience/input/analyze-resilience.js",
     "audio-to-md": "node business_modules/audio/input/audio-to-md.js",
     "video-grab-url": "node business_modules/video/input/video-grab-url.js",
+    "youtube-to-md": "node business_modules/video/input/youtube-to-md.js",
     "analyze-audio": "node business_modules/resilience/input/analyze-resilience.js --content-kind audio --files articles-audio.md",
     "analyze-event-log": "node business_modules/pbo_report_muni/input/analyze-event-log.js",
     "analyze-survey": "node business_modules/resilience/input/analyze-survey.js",

@@ -264,29 +264,100 @@ export class AudioIngestService {
       throw new Error('No transcript segments produced. Check audio content and API response.');
     }
 
-    const lines = [
-      `# Audio recordings (${date})`,
-      '',
-      `For population-behavior / Home Front resilience analysis (transcribed spoken audio: broadcast, podcast, video, interview, voice memo, etc.).`,
-      `Source file: ${basename(filePath)}`,
-      '',
-    ];
-
-    grouped.forEach((a, i) => {
-      lines.push(`## ${i + 1}. ${escapeMdHeading(a.title)}`);
-      lines.push('');
-      lines.push(`- **URL:** (audio recording)`);
-      lines.push(`- **Published:** ${publishedAt}`);
-      lines.push(`- **Source:** ${station} — ${program}`);
-      lines.push('');
-      lines.push(a.body);
-      lines.push('');
-      lines.push('---');
-      lines.push('');
+    const md = buildAudioMarkdownDocument({
+      date,
+      station,
+      program,
+      publishedAt,
+      introLine:
+        'For population-behavior / Home Front resilience analysis (transcribed spoken audio: broadcast, podcast, video, interview, voice memo, etc.).',
+      sourceFileLine: `Source file: ${basename(filePath)}`,
+      urlLine: '- **URL:** (audio recording)',
+      grouped,
     });
 
-    const md = lines.join('\n');
     writeFileSync(outPath, md, 'utf8');
     return { outPath, segmentCount: allSegments.length, articleBlocks: grouped.length };
   }
+
+  /**
+   * Write markdown from precomputed segments (e.g. YouTube captions) without calling speech-to-text.
+   * @param {object} p
+   * @param {Array<{ speaker: string, text: string, start?: number, end?: number }>} p.segments
+   * @param {string} p.date
+   * @param {string} p.station
+   * @param {string} p.program
+   * @param {string} [p.publishedAt]
+   * @param {string} [p.outPath]
+   * @param {string} [p.sourceUrl]  Canonical page URL for the video (shown in markdown)
+   * @param {string} [p.transcriptSourceLabel]  e.g. "YouTube captions (yt-dlp)" or "YouTube captions (Data API)"
+   */
+  ingestTranscriptOnlyToMarkdown(p) {
+    const {
+      segments,
+      date,
+      station,
+      program,
+      publishedAt = date,
+      outPath = 'articles-audio.md',
+      sourceUrl,
+      transcriptSourceLabel = 'YouTube captions',
+    } = p;
+
+    const grouped = groupSegmentsIntoArticles(segments, { station, program });
+    if (grouped.length === 0) {
+      throw new Error('No transcript segments to write.');
+    }
+
+    const intro =
+      `For population-behavior / Home Front resilience analysis (${transcriptSourceLabel}; ` +
+      `use alongside speech-to-text when captions are unavailable or incomplete).`;
+
+    const md = buildAudioMarkdownDocument({
+      date,
+      station,
+      program,
+      publishedAt,
+      introLine: intro,
+      sourceFileLine: sourceUrl ? `Source: ${sourceUrl}` : 'Source: (video)',
+      urlLine: sourceUrl ? `- **URL:** ${sourceUrl}` : '- **URL:** (video)',
+      grouped,
+    });
+
+    writeFileSync(outPath, md, 'utf8');
+    return { outPath, segmentCount: segments.length, articleBlocks: grouped.length };
+  }
+}
+
+/**
+ * @param {object} opts
+ * @param {string} opts.date
+ * @param {string} opts.station
+ * @param {string} opts.program
+ * @param {string} opts.publishedAt
+ * @param {string} opts.introLine
+ * @param {string} opts.sourceFileLine
+ * @param {string} opts.urlLine
+ * @param {Array<{ title: string, body: string }>} opts.grouped
+ */
+export function buildAudioMarkdownDocument(opts) {
+  const { date, introLine, sourceFileLine, urlLine, publishedAt, station, program, grouped, perArticleUrl = false } = opts;
+
+  const lines = [`# Audio recordings (${date})`, '', introLine, sourceFileLine, ''];
+
+  grouped.forEach((a, i) => {
+    const articleUrl = perArticleUrl && a.url ? `- **URL:** ${a.url}` : urlLine;
+    lines.push(`## ${i + 1}. ${escapeMdHeading(a.title)}`);
+    lines.push('');
+    lines.push(articleUrl);
+    lines.push(`- **Published:** ${publishedAt}`);
+    lines.push(`- **Source:** ${station} — ${program}`);
+    lines.push('');
+    lines.push(a.body);
+    lines.push('');
+    lines.push('---');
+    lines.push('');
+  });
+
+  return lines.join('\n');
 }

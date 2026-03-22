@@ -11,8 +11,24 @@ import { createYtDlpYoutubeAdapter } from './business_modules/video/infrastructu
 import { createLocalVideoFileAdapter } from './business_modules/video/infrastructure/adapters/localVideoFileAdapter.js';
 import { initFirebaseAdminForAuth } from './auth/firebaseAdmin.js';
 import { requireAuthPreHandler } from './auth/requireAuthPreHandler.js';
+import { createEvidenceDraftStore } from './cross-cut-modules/persistence/evidenceDraftStore.js';
+import { createEvidenceStore } from './cross-cut-modules/persistence/evidenceStore.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+
+/** Max characters stored for evidence draft (SQLite TEXT + API body). */
+const MAX_EVIDENCE_DRAFT_CHARS = 500_000;
+
+const sqlitePath = process.env.SQLITE_PATH?.trim()
+  ? resolve(process.env.SQLITE_PATH.trim())
+  : resolve(__dirname, 'data', 'app.sqlite');
+
+const evidenceDraftStore = createEvidenceDraftStore(sqlitePath);
+const evidenceStore = createEvidenceStore(sqlitePath);
+
+function evidenceOwnerKey(request) {
+  return request.user?.uid ?? 'anonymous';
+}
 
 /**
  * @param {{ apiKey: string, fetchArticlesForDay: (opts: { date: string }) => Promise<Array>, timezone?: string, authRequired?: boolean }} options
@@ -40,7 +56,7 @@ export async function createApp(options) {
 
   const videoDownloadDir = process.env.VIDEO_DOWNLOAD_DIR?.trim()
     ? resolve(process.env.VIDEO_DOWNLOAD_DIR)
-    : resolve(__dirname, '..', 'downloads', 'video');
+    : resolve(__dirname, 'downloads', 'video');
 
   const videoGrabService = new VideoGrabService({
     remoteFetchPort: createYtDlpYoutubeAdapter(),
@@ -54,8 +70,28 @@ export async function createApp(options) {
 
   // ─── Protected API routes (when AUTH_REQUIRED=true) ───────────────────────
   app.get('/api/report/today', authHook, async (_req, reply) => {
-    const data = getCachedReport();
+    const data = getCachedReport(evidenceStore);
     return reply.send(data ? { found: true, ...data } : { found: false });
+  });
+
+  app.get('/api/evidence-draft', authHook, async (request, reply) => {
+    const row = evidenceDraftStore.get(evidenceOwnerKey(request));
+    return reply.send({ content: row.content, updatedAt: row.updatedAt });
+  });
+
+  app.put('/api/evidence-draft', authHook, async (request, reply) => {
+    const body = request.body ?? {};
+    const content = body.content;
+    if (typeof content !== 'string') {
+      return reply.code(400).send({ error: 'content must be a string' });
+    }
+    if (content.length > MAX_EVIDENCE_DRAFT_CHARS) {
+      return reply.code(400).send({
+        error: `content too long (max ${MAX_EVIDENCE_DRAFT_CHARS} characters)`,
+      });
+    }
+    const row = evidenceDraftStore.save(evidenceOwnerKey(request), content);
+    return reply.send({ content: row.content, updatedAt: row.updatedAt });
   });
 
   app.post('/api/analyze', authHook, async (_req, reply) => {
@@ -69,7 +105,7 @@ export async function createApp(options) {
     const send = (data) => reply.raw.write(`data: ${JSON.stringify(data)}\n\n`);
 
     try {
-      const { assessment, costUsd, date } = await runAnalysis({ onProgress: send });
+      const { assessment, costUsd, date } = await runAnalysis({ onProgress: send, store: evidenceStore });
       send({ type: 'done', assessment, costUsd, date });
     } catch (err) {
       send({ type: 'error', message: err.message });
@@ -147,7 +183,8 @@ export async function createApp(options) {
   });
 
   // ─── Static SPA (after API routes) ───────────────────────────────────────
-  const clientDist = resolve(__dirname, '..', 'client', 'dist');
+  // __dirname is the repo root (where app.js lives); serve Vite build at client/dist
+  const clientDist = resolve(__dirname, 'client', 'dist');
   await app.register(fastifyStatic, { root: clientDist, prefix: '/' });
 
   return app;
