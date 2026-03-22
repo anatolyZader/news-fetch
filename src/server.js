@@ -4,7 +4,7 @@
  */
 import 'dotenv/config';
 import { createApp } from './app.js';
-import { createNewsApiArticlesFetcher } from './newsApiYnetAdapter.js';
+import { createNewsApiArticlesFetcher } from '../business_modules/news-sites/infrastructure/adapters/newsApiYnetAdapter.js';
 
 const apiKey = (process.env.NEWSAPI_AI_KEY || process.env.NEWSAPI_API_KEY || process.env.NEWSAPI_KEY || '').trim();
 const timezone = process.env.TZ_ARTICLES || 'Asia/Jerusalem';

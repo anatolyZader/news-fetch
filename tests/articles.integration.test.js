@@ -6,7 +6,7 @@ import 'dotenv/config';
 import { describe, it, before } from 'node:test';
 import assert from 'node:assert';
 import { createApp } from '../src/app.js';
-import { createNewsApiArticlesFetcher } from '../src/newsApiYnetAdapter.js';
+import { createNewsApiArticlesFetcher } from '../business_modules/news-sites/infrastructure/adapters/newsApiYnetAdapter.js';
 
 const apiKey = (process.env.NEWSAPI_AI_KEY || process.env.NEWSAPI_API_KEY || process.env.NEWSAPI_KEY || '').trim();
 

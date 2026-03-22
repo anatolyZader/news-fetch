@@ -4,7 +4,7 @@
  * - Home Front Command (פיקוד העורף) analysis
  * - Psychoemotional state of the population
  * - Special / vulnerable populations
- * Used by extract-homefront-articles.js
+ * Used by social / resilience loaders; home-front article ingest uses LLM pre-filter.
  */
 export const HOMEFRONT_KEYWORDS = [
   // Home Front Command & emergency behavior

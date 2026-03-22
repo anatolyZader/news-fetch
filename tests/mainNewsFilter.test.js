@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { isMainNewsUrl, NON_NEWS_PATH_SEGMENTS } from '../src/mainNewsFilter.js';
+import { isMainNewsUrl, NON_NEWS_PATH_SEGMENTS } from '../business_modules/news-sites/domain/mainNewsFilter.js';
 
 describe('mainNewsFilter', () => {
   describe('isMainNewsUrl', () => {

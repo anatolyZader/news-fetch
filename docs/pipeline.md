@@ -2,7 +2,7 @@
 
 **System:** Population Resilience Monitor
 **Framework:** 8-Component Community Resilience (Pikud HaOref / פיקוד העורף)
-**Last updated:** 2026-03-17
+**Last updated:** 2026-03-22
 
 ---
 
@@ -32,17 +32,13 @@ npm run homefront-to-md
 
 ### What it does
 
-**Script:** `scripts/extract-homefront-articles.js`
+**Entry:** `scripts/extract-homefront-articles.js` → `business_modules/news-sites/app/extractHomefrontArticles.js`
 
-1. **Fetches** today's main-news articles from 7 sites via the NewsAPI.ai API:
-   - Ynet, Haaretz, Maariv, Walla, Mako, N12 (Channel 12), KAN 11
-   - Each site has its own adapter in `src/newsApi*.js` that handles site-specific API parameters
+1. **Fetches** today's main-news articles from many Israeli outlets via the NewsAPI.ai API:
+   - Each site has an adapter under `business_modules/news-sites/infrastructure/adapters/newsApi*Adapter.js`
    - The date used is today in `Asia/Jerusalem` timezone (configurable via `TZ_ARTICLES` env var)
 
-2. **Filters** articles using a Hebrew keyword list (`scripts/homefront-keywords.js`):
-   - Keywords cover: Home Front Command (פיקוד העורף), alerts (אזעקה), shelters (ממ"ד, מרחב מוגן), evacuations (פינוי), schools, psychological state, vulnerable populations, and more
-   - Both the title and body are checked
-   - Articles that do not match any keyword are discarded
+2. **Filters** with an LLM (Haiku) on title plus a short body snippet for population-behavior relevance (not the legacy keyword-only filter). A Hebrew keyword list still lives at `business_modules/news-sites/domain/homefrontKeywords.js` for other tools (e.g. social ingest).
 
 3. **Deduplicates** cross-site articles — same story published by multiple outlets is counted once (key = first 40 meaningful chars of title)
 
@@ -346,18 +342,24 @@ npm run analyze-resilience -- --date 2026-03-17
 
 ```
 scripts/
-  extract-homefront-articles.js   Stage 1: fetch + filter → articles-homefront.md
-  homefront-keywords.js           Hebrew keyword list for article filtering
+  extract-homefront-articles.js   Thin CLI → news-sites module (Stage 1)
+  fetch-articles-to-md.js         Thin CLI → single-site fetch
   analyze-resilience.js           CLI entry point for Stages 2–5
+
+business_modules/news-sites/
+  app/extractHomefrontArticles.js  Fetch all sites + LLM pre-filter → articles-homefront.md
+  app/fetchArticlesToMd.js         Single-site markdown export
+  domain/mainNewsFilter.js        Main-news URL filter (used by adapters)
+  domain/homefrontKeywords.js     Hebrew keywords (social / auxiliary)
+  infrastructure/adapters/        newsApiAdapterFactory + per-site NewsAPI.ai adapters
 
 src/resilience/
   resilienceComponents.js         8 component definitions + behavioral manifestations
   behaviorSignals.js              Signal taxonomy (32 types), mapping table, deterministic scoring
-  claudeEvaluator.js              LLM calls: pre-filter, signal extraction, narrative generation
-  mdReportsLoader.js              Parse articles-homefront.md into article objects
+  claudeEvaluator.js              LLM calls: signal extraction, narrative generation
+  mdReportsLoader.js              Parse articles-*.md into article objects
   reportWriter.js                 Write .md and .json output files
-
-src/newsApi*.js                   Per-site NewsAPI.ai adapters (ynet, haaretz, maariv, walla, mako, n12, kan)
+  runResilienceAnalysis.js        Shared orchestration (news + radio)
 
 resilience/
   resilience-report-YYYY-MM-DD.md    Daily markdown report (human-readable)

@@ -2,7 +2,7 @@
  * Shared factory for NewsAPI (Event Registry) article fetchers. Each site adapter
  * calls this with its sourceUris and defaultSourceLabel; filter is from mainNewsFilter.js.
  */
-import { isMainNewsUrl } from './mainNewsFilter.js';
+import { isMainNewsUrl } from '../../domain/mainNewsFilter.js';
 
 const BASE_URL = 'https://eventregistry.org/api/v1/article/getArticles';
 const PAGE_SIZE = 100;

@@ -20,7 +20,7 @@
  */
 
 import { readFileSync } from 'fs';
-import { isHomefrontRelevant } from '../../scripts/homefront-keywords.js';
+import { isHomefrontRelevant } from '../../business_modules/news-sites/domain/homefrontKeywords.js';
 
 const MAX_POST_CHARS = 800;
 
