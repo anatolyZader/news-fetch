@@ -239,9 +239,8 @@ export async function contextualizeTranscript(segments, { station, program, sour
     allScenes.push(...scenes);
   }
 
-  // Stage 3: filter low quality, format as articles
+  // Stage 3: format all scenes as articles — caller decides quality filtering
   const articles = allScenes
-    .filter((s) => s.quality !== 'low')
     .map((scene, i) => sceneToArticle(scene, i, station ?? 'Audio', program ?? 'Recording', sourceUrl));
 
   return articles;

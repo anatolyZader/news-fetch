@@ -1,14 +1,29 @@
+import { useState } from 'react';
 import { useTodayReport } from './hooks/useAnalysis.js';
+import { useTranslatedReport } from './hooks/useTranslatedReport.js';
 import { ReportView } from './components/ReportView.jsx';
 import { ReportMarkdownView } from './components/ReportMarkdownView.jsx';
 import { ChatPanel } from './components/ChatPanel.jsx';
 import { EvidenceInput } from './components/EvidenceInput.jsx';
+import { SubmissionsTab } from './components/SubmissionsTab.jsx';
+import { EducationTab } from './components/EducationTab.jsx';
+import { LanguageProvider, useLanguage } from './context/LanguageContext.jsx';
+import { LanguageSelector } from './components/LanguageSelector.jsx';
 import { useAuth } from './context/AuthContext.jsx';
 import styles from './App.module.css';
 
-export function MainApp() {
+function AppShell() {
   const { logout, authRequired } = useAuth();
   const { report, markdown, costUsd, initialReportLoadDone } = useTodayReport();
+  const [activeTab, setActiveTab] = useState('report');
+  const { t, lang } = useLanguage();
+  const { displayReport, translating, translateError } = useTranslatedReport(report, lang);
+
+  const TABS = [
+    { id: 'report',      label: t('tab.report') },
+    { id: 'submissions', label: t('tab.submissions') },
+    { id: 'education',   label: t('tab.education') },
+  ];
 
   return (
     <div className={styles.layout}>
@@ -17,44 +32,64 @@ export function MainApp() {
           <h1 className={styles.title}>Community Resilience</h1>
           <p className={styles.subtitle}>Home Front Command · Daily Assessment</p>
         </div>
-        {authRequired && (
-          <button type="button" className={styles.signOut} onClick={() => logout()}>
-            Sign out
-          </button>
-        )}
+        <div className={styles.headerActions}>
+          <LanguageSelector />
+          {authRequired && (
+            <button type="button" className={styles.signOut} onClick={() => logout()}>
+              Sign out
+            </button>
+          )}
+        </div>
       </header>
 
       <main className={styles.main}>
         <EvidenceInput />
 
-        <section className={styles.reportSection} aria-labelledby="today-report-heading">
-          <h2 id="today-report-heading" className={styles.reportSectionTitle}>
-            Today&apos;s report
-          </h2>
-          <p className={styles.reportSectionHint}>Read-only · Latest assessment available for today</p>
+        <nav className={styles.tabs} aria-label="Main sections">
+          {TABS.map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              className={`${styles.tab} ${activeTab === tab.id ? styles.tabActive : ''}`}
+              onClick={() => setActiveTab(tab.id)}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </nav>
 
-          {!initialReportLoadDone && <p className={styles.reportLoading}>Loading report…</p>}
+        {activeTab === 'report' && (
+          <section className={styles.reportSection} aria-labelledby="today-report-heading">
+{!initialReportLoadDone && <p className={styles.reportLoading}>Loading report…</p>}
 
-          {initialReportLoadDone && !report && (
-            <div className={styles.reportEmpty}>
-              No assessment is available yet for today. Generate one on the server (e.g. run the resilience analysis
-              pipeline) and refresh this page.
-            </div>
-          )}
+            {initialReportLoadDone && !report && (
+              <div className={styles.reportEmpty}>
+                No assessment is available yet for today. Generate one on the server and refresh this page.
+              </div>
+            )}
 
-          {initialReportLoadDone && report && (
-            <div className={styles.reportReadonlyFrame}>
-              {markdown?.trim() ? (
-                <ReportMarkdownView markdown={markdown} readOnly />
-              ) : (
-                <ReportView assessment={report} costUsd={costUsd} readOnly />
-              )}
-            </div>
-          )}
-        </section>
+            {initialReportLoadDone && report && (
+              <div className={styles.reportReadonlyFrame}>
+                <ReportView assessment={displayReport} costUsd={costUsd} readOnly translating={translating} translateError={translateError} />
+              </div>
+            )}
 
-        {report && <ChatPanel />}
+            {report && <ChatPanel />}
+          </section>
+        )}
+
+        {activeTab === 'submissions' && <SubmissionsTab />}
+
+        {activeTab === 'education' && <EducationTab />}
       </main>
     </div>
+  );
+}
+
+export function MainApp() {
+  return (
+    <LanguageProvider>
+      <AppShell />
+    </LanguageProvider>
   );
 }

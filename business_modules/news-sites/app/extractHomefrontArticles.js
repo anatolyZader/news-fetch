@@ -210,7 +210,7 @@ export async function runExtractHomefrontArticles(opts = {}) {
   checkDailyBudget();
 
   const { onUsage, getTotal } = createCostTracker({
-    maxCostUsd: parseFloat(process.env.MAX_COST_USD ?? '0.20'),
+    maxCostUsd: parseFloat(process.env.MAX_COST_USD ?? '1.00'),
     label: 'extract-homefront',
   });
 
@@ -273,7 +273,9 @@ export async function runExtractHomefrontArticles(opts = {}) {
   }
 
   writeFileSync(outPath, sections.join('\n'), 'utf8');
-  console.log(`Wrote ${articles.length} home-front–relevant articles to ${outPath} (from ${allArticles.length} total)`);
+  const datedOutPath = outPath.replace(/\.md$/, '') + `-${date}.md`;
+  writeFileSync(datedOutPath, sections.join('\n'), 'utf8');
+  console.log(`Wrote ${articles.length} home-front–relevant articles to ${outPath} and ${datedOutPath} (from ${allArticles.length} total)`);
 
   // Persist to DB
   const sqlitePath = process.env.SQLITE_PATH?.trim() || resolve(repoRoot, 'data', 'app.sqlite');

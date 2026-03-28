@@ -11,6 +11,7 @@ import styles from './ReportMarkdownView.module.css';
  * saved reports where citations read like `'…quote.' ((https://…))` instead of `(source)`.
  */
 export function expandSourceCitationLinks(markdown) {
+  if (typeof markdown !== 'string') return '';
   if (!markdown) return markdown;
   return markdown.replace(/\[source\]\((https?:[^)\s]+)\)/gi, (_, url) => `[${url}](${url})`);
 }

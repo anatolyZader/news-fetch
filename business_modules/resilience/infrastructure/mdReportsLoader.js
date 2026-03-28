@@ -63,20 +63,29 @@ export function loadMdFile(filePath) {
   return parseMdFile(content, filePath);
 }
 
+const TEMPORAL_WEIGHTS = { 0: 1.00, 1: 0.85, 2: 0.70 };
+
 /**
  * Load multiple MD files and merge all articles into one array.
+ * @param {string[]} filePaths
+ * @param {{ dayOffsets?: number[] }} [opts]  dayOffsets[i] = days before today for filePaths[i] (0=today, 1=yesterday, 2=day-before)
  * Returns { articles, date, totalCount, siteNames }.
  */
-export function loadMdFiles(filePaths) {
+export function loadMdFiles(filePaths, { dayOffsets = [] } = {}) {
   const allArticles = [];
   const dates = new Set();
   const siteNames = [];
 
-  for (const fp of filePaths) {
+  for (let i = 0; i < filePaths.length; i++) {
+    const fp = filePaths[i];
+    const dayOffset = dayOffsets[i] ?? 0;
+    const temporalWeight = TEMPORAL_WEIGHTS[dayOffset] ?? 1.00;
     const { siteName, date, articles } = loadMdFile(fp);
     if (date) dates.add(date);
     siteNames.push(siteName);
-    allArticles.push(...articles);
+    for (const a of articles) {
+      allArticles.push({ ...a, temporal_weight: temporalWeight });
+    }
   }
 
   return {

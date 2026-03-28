@@ -209,7 +209,8 @@ export function scoreComponents(signals, { totalArticles = 0 } = {}) {
       const reliabilityKey = signal.evidence_type ?? signal.evidence_class ?? 'observational_reported_fact';
       const reliability = RELIABILITY_WEIGHT[reliabilityKey] ?? RELIABILITY_WEIGHT.observational_reported_fact;
 
-      const contribution = Math.abs(baseWeight) * scope * reliability;
+      const temporalWeight = signal.temporal_weight ?? 1.0;
+      const contribution = Math.abs(baseWeight) * scope * reliability * temporalWeight;
       if (baseWeight >= 0) positive += contribution;
       else negative += contribution;
 

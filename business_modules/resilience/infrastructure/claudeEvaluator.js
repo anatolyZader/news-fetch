@@ -7,6 +7,7 @@
  */
 
 import Anthropic from '@anthropic-ai/sdk';
+import { jsonrepair } from 'jsonrepair';
 import { RESILIENCE_COMPONENTS } from '../domain/resilienceComponents.js';
 import {
   SIGNAL_CATALOG,
@@ -72,23 +73,29 @@ function extractJsonArray(text) {
 
 function extractJson(text) {
   const fenced = text.match(/^```(?:json)?\s*\n([\s\S]+?)\n```\s*$/m);
-  if (fenced) return JSON.parse(fenced[1].trim());
+  const raw = fenced ? fenced[1].trim() : (() => {
+    const arrIdx = text.indexOf('[');
+    const objIdx = text.indexOf('{');
+    const start =
+      arrIdx === -1 ? objIdx
+      : objIdx === -1 ? arrIdx
+      : Math.min(arrIdx, objIdx);
+    if (start !== -1) {
+      const lastArr = text.lastIndexOf(']');
+      const lastObj = text.lastIndexOf('}');
+      const end = Math.max(lastArr, lastObj);
+      if (end > start) return text.slice(start, end + 1);
+    }
+    return text.trim();
+  })();
 
-  const arrIdx = text.indexOf('[');
-  const objIdx = text.indexOf('{');
-  const start =
-    arrIdx === -1 ? objIdx
-    : objIdx === -1 ? arrIdx
-    : Math.min(arrIdx, objIdx);
-
-  if (start !== -1) {
-    const lastArr = text.lastIndexOf(']');
-    const lastObj = text.lastIndexOf('}');
-    const end = Math.max(lastArr, lastObj);
-    if (end > start) return JSON.parse(text.slice(start, end + 1));
+  try {
+    return JSON.parse(raw);
+  } catch {
+    // Attempt repair for malformed JSON (unescaped chars, truncated arrays, etc.)
+    console.error('  ⚠ JSON.parse failed — attempting jsonrepair');
+    return JSON.parse(jsonrepair(raw));
   }
-
-  return JSON.parse(text.trim());
 }
 
 // ─── Progress indicator ───────────────────────────────────────────────────────
@@ -231,7 +238,8 @@ const SIGNAL_EXTRACTION_SYSTEM_PROMPT =
   `  capacity relative to demand (one ICU for 115,000 residents; ER wait times tripled; ambulances unavailable).\n` +
   `  Use resource_shortage when material supplies or services are simply absent (no shelters in a neighbourhood,\n` +
   `  no compensation payments issued, volunteers ran out of food packages).\n` +
-  `- information_* types are ONLY for: residents receiving/missing/seeking safety or operational guidance, rumor spread, contradictory official messages\n\n` +
+  `- information_* types are ONLY for: residents receiving/missing/seeking safety or operational guidance, rumor spread, contradictory official messages\n` +
+  `- Emergency response to a harm event (ambulance to cardiac arrest, hospital treating injury): classify the harm as wellbeing_atrisk. Do NOT emit service_continuity — a service doing its normal job is not evidence of elevated functioning.\n\n` +
 
   `━━━ SIGNAL TYPES (closed vocabulary) ━━━\n` +
   `${formatSignalCatalog()}\n\n` +
@@ -329,10 +337,13 @@ async function extractSignalsBatch(articles, batchLabel, retries = 3, usageCallb
         return true;
       });
 
-      // Enrich signals with source label for diversity tracking in scoreComponents
+      // Enrich signals with source label and temporal weight for scoring
       for (const s of valid) {
         const art = articles[s.article_index - 1];
-        if (art) s.article_source = art.source;
+        if (art) {
+          s.article_source = art.source;
+          s.temporal_weight = art.temporal_weight ?? 1.0;
+        }
       }
 
       return valid;
@@ -476,6 +487,7 @@ export async function generateNarratives(
     `  Step 2 — never silently skip absent manifestations. A component with 1 signal and 4 unaddressed manifestations is analytically different from a component with 5 evidenced signals.\n` +
     `  Step 3 — do not over-weight components that happen to have more signals. Signal count reflects reporting intensity, not necessarily prevalence of the phenomenon.\n` +
     `  List absent manifestations in the "manifestations_absent" array; include a parenthetical interpretation: (informative absence) or (likely reporting gap).\n` +
+    `- BASELINE VS ELEVATED SERVICE FUNCTIONING: Baseline service operation (ambulance responded, hospital treated) is neutral, not positive evidence. Only cite service functioning as strong when it demonstrably performed despite disruption or elevated demand.\n` +
     `- SCOPE DISCIPLINE: Never use "the only", "the one exception", "uniquely", or similar exclusive claims.\n` +
     `  The inputs are a sample, not a census. Something appearing once in the data means it was reported once — not that it is the sole instance.\n` +
     `- LINKS: Each signal has a URL. When a signal has a URL, embed a markdown link for every significant claim:\n` +

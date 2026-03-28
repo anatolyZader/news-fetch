@@ -18,6 +18,7 @@ function batchItemsToArticles(batch) {
     source: item.sourceLabel ?? 'batch',
     body: item.body.slice(0, MAX_BODY_CHARS),
     sourceFile,
+    temporal_weight: item.temporal_weight ?? 1.0,
   }));
 }
 

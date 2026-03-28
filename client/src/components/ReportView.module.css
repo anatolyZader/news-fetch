@@ -85,6 +85,16 @@
 .cardHeader::-webkit-details-marker { display: none; }
 details[open] .cardHeader { background: var(--surface); }
 
+.chevron {
+  font-size: 1.1rem;
+  line-height: 1;
+  color: var(--muted);
+  transition: transform 0.2s ease;
+  display: inline-block;
+  transform: rotate(0deg);
+}
+details[open] .chevron { transform: rotate(90deg); }
+
 .icon { font-size: 1.1rem; }
 .compName { flex: 1; }
 .confidence { font-size: 0.78rem; color: var(--muted); }
@@ -105,9 +115,62 @@ details[open] .cardHeader { background: var(--surface); }
   font-size: 0.9rem;
 }
 
+/* Evidence toggle bar */
+.evidenceDetails { border-radius: 6px; overflow: hidden; }
+
+.evidenceToggle {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.6rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  list-style: none;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--muted);
+  user-select: none;
+}
+.evidenceToggle::-webkit-details-marker { display: none; }
+details[open] > .evidenceToggle {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  border-bottom-color: transparent;
+}
+
+.evidenceChevron {
+  font-size: 1rem;
+  line-height: 1;
+  transition: transform 0.2s ease;
+  display: inline-block;
+  transform: rotate(0deg);
+}
+details[open] > .evidenceToggle .evidenceChevron { transform: rotate(90deg); }
+
+.evidenceCount {
+  margin-left: auto;
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+.evidenceBody {
+  border: 1px solid var(--border);
+  border-top: none;
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
 .evidence strong { display: block; margin-bottom: 0.3rem; font-size: 0.82rem; color: var(--muted); text-transform: uppercase; }
 .evidence ul { padding-left: 1.25rem; }
 .evidence li { margin-bottom: 0.2rem; }
+.evidenceList { padding-left: 1.25rem; margin: 0; font-size: 0.88rem; }
+.evidenceList li { margin-bottom: 0.5rem; }
 
 .gaps { color: var(--muted); font-size: 0.85rem; }
 .muted { color: var(--muted); font-size: 0.9rem; }

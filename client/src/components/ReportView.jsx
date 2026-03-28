@@ -2,6 +2,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import styles from './ReportView.module.css';
 import { expandSourceCitationLinks } from './ReportMarkdownView.jsx';
+import { useLanguage } from '../context/LanguageContext.jsx';
 
 const ICONS = {
   narrative: '📖',
@@ -22,33 +23,26 @@ function scoreColor(s) {
   return 'var(--score-strong)';
 }
 
-function scoreLabel(s) {
-  if (s <= 2) return 'Critical';
-  if (s <= 4) return 'Weak';
-  if (s <= 6) return 'Moderate';
-  if (s <= 8) return 'Good';
-  return 'Strong';
+function scoreLabel(s, t) {
+  if (s <= 2) return t('score.critical');
+  if (s <= 4) return t('score.weak');
+  if (s <= 6) return t('score.moderate');
+  if (s <= 8) return t('score.good');
+  return t('score.strong');
 }
 
-function ScoreBadge({ score }) {
-  return (
-    <span className={styles.badge} style={{ background: scoreColor(score) }}>
-      {score}/10
-    </span>
-  );
-}
-
-function ComponentCard({ comp }) {
+function ComponentCard({ comp, t }) {
   const icon = ICONS[comp.component_id] ?? '•';
-  const label = comp.component_id.replace(/_/g, ' ');
+  const label = t(`comp.${comp.component_id}`) ?? comp.component_id.replace(/_/g, ' ');
+  const confidenceLabel = t(`confidence.${comp.confidence}`) ?? comp.confidence;
 
   return (
     <details className={styles.card}>
       <summary className={styles.cardHeader}>
+        <span className={styles.chevron}>›</span>
         <span className={styles.icon}>{icon}</span>
         <span className={styles.compName}>{label}</span>
-        <ScoreBadge score={comp.score} />
-        <span className={styles.confidence}>{comp.confidence}</span>
+        <span className={styles.confidence}>{confidenceLabel}</span>
       </summary>
       <div className={styles.cardBody}>
         <div className={styles.proseMd}>
@@ -57,72 +51,68 @@ function ComponentCard({ comp }) {
           </ReactMarkdown>
         </div>
 
-        {comp.supporting_evidence?.length > 0 && (
-          <div className={styles.evidence}>
-            <strong>Positive signals</strong>
-            <ul>
-              {comp.supporting_evidence.map((e, i) => (
-                <li key={i} className={styles.proseMd}>
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{expandSourceCitationLinks(e)}</ReactMarkdown>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {comp.weakening_evidence?.length > 0 && (
-          <div className={styles.evidence}>
-            <strong>Concerns</strong>
-            <ul>
-              {comp.weakening_evidence.map((e, i) => (
-                <li key={i} className={styles.proseMd}>
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{expandSourceCitationLinks(e)}</ReactMarkdown>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {comp.missing_evidence && (
-          <p className={styles.gaps}><em>Gaps: {comp.missing_evidence}</em></p>
+        {comp.evidence?.length > 0 && (
+          <details className={styles.evidenceDetails}>
+            <summary className={styles.evidenceToggle}>
+              <span className={styles.evidenceChevron}>›</span>
+              <span>{t('report.evidence')}</span>
+              <span className={styles.evidenceCount}>{comp.evidence.length} {t('report.items')}</span>
+            </summary>
+            <div className={styles.evidenceBody}>
+              <ul className={styles.evidenceList}>
+                {comp.evidence.map((e, i) => (
+                  <li key={i} className={styles.proseMd}>
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{expandSourceCitationLinks(e)}</ReactMarkdown>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </details>
         )}
       </div>
     </details>
   );
 }
 
-export function ReportView({ assessment, costUsd, readOnly }) {
+export function ReportView({ assessment, costUsd, readOnly, translating, translateError }) {
+  const { t } = useLanguage();
   const overall = assessment.overall_resilience_score;
 
   return (
     <div className={styles.root}>
-      {readOnly && (
-        <p className={styles.readOnlyBanner} role="status">
-          Read-only — today&apos;s saved assessment (not editable here).
+      {translating && (
+        <p className={styles.readOnlyBanner} role="status">{t('report.translating')}</p>
+      )}
+      {translateError && (
+        <p className={styles.readOnlyBanner} role="alert" style={{ color: 'var(--score-critical)' }}>
+          Translation error: {translateError}
         </p>
       )}
-      {/* ── Overall score ── */}
+
+      {/* ── Overall header ── */}
       <div className={styles.overallRow}>
         <div className={styles.overallScore} style={{ color: scoreColor(overall) }}>
-          {overall}/10
+          {scoreLabel(overall, t)}
         </div>
         <div>
-          <div className={styles.overallLabel}>Overall Resilience — {scoreLabel(overall)}</div>
+          <div className={styles.overallLabel}>{t('report.overallLabel')}</div>
           <div className={styles.meta}>
-            {assessment.date} · {assessment.total_articles_analyzed} articles
+            {assessment.date} · {assessment.total_articles_analyzed} {t('report.articles')}
             {costUsd != null && ` · $${costUsd.toFixed(4)}`}
           </div>
         </div>
       </div>
 
-      {/* ── Component score pills ── */}
+      {/* ── Component pills ── */}
       <div className={styles.pills}>
         {(assessment.components ?? []).map((c) => (
           <div key={c.component_id} className={styles.pill}>
             <span>{ICONS[c.component_id]}</span>
-            <span className={styles.pillName}>{c.component_id.replace(/_/g, ' ')}</span>
+            <span className={styles.pillName}>
+              {t(`comp.${c.component_id}`) ?? c.component_id.replace(/_/g, ' ')}
+            </span>
             <span className={styles.pillScore} style={{ color: scoreColor(c.score) }}>
-              {c.score}/10
+              {scoreLabel(c.score, t)}
             </span>
           </div>
         ))}
@@ -130,7 +120,7 @@ export function ReportView({ assessment, costUsd, readOnly }) {
 
       {/* ── Executive summary ── */}
       <section className={styles.section}>
-        <h2>Executive Summary</h2>
+        <h2>{t('report.executiveSummary')}</h2>
         <div className={styles.proseMd}>
           <ReactMarkdown remarkPlugins={[remarkGfm]}>
             {expandSourceCitationLinks(assessment.cross_component_synthesis ?? '')}
@@ -140,16 +130,16 @@ export function ReportView({ assessment, costUsd, readOnly }) {
 
       {/* ── Component cards ── */}
       <section className={styles.section}>
-        <h2>Components</h2>
+        <h2>{t('report.components')}</h2>
         {(assessment.components ?? []).map((c) => (
-          <ComponentCard key={c.component_id} comp={c} />
+          <ComponentCard key={c.component_id} comp={c} t={t} />
         ))}
       </section>
 
       {/* ── Caveats ── */}
       {assessment.media_bias_caveats && (
         <section className={styles.section}>
-          <h2>Methodological Caveats</h2>
+          <h2>{t('report.caveats')}</h2>
           <div className={`${styles.muted} ${styles.proseMd}`}>
             <ReactMarkdown remarkPlugins={[remarkGfm]}>
               {expandSourceCitationLinks(assessment.media_bias_caveats)}

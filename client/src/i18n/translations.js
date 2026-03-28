@@ -1,0 +1,440 @@
+export const translations = {
+  en: {
+    // Tabs
+    'tab.report':      'Report',
+    'tab.submissions': 'Submissions',
+    'tab.education':   'Education',
+
+    // Language names
+    'lang.en': 'EN',
+    'lang.he': 'HE',
+    'lang.ru': 'RU',
+
+    // Education dashboard
+    'edu.title':          'Education Resilience Dashboard',
+    'edu.subtitle':       'Bi-weekly field sessions',
+    'edu.loading':        'Loading data…',
+    'edu.error':          'Failed to load data',
+    'edu.noData':         'No session data yet. Check back after the first form responses come in.',
+    'edu.refresh':        'Refresh',
+    'edu.kpi.total':      'Total Responses',
+    'edu.kpi.dateRange':  'Date Range',
+    'edu.kpi.latest':     'Latest Session',
+    'edu.kpi.settlements':'Settlements',
+
+    // Section headings
+    'edu.sec.trends':        'Temporal Trends',
+    'edu.sec.distributions': 'Response Distributions',
+    'edu.sec.indicators':    'Field Indicators',
+    'edu.sec.comments':      'Open Responses',
+
+    // Chart titles
+    'edu.chart.children':     'Avg. Children per Session',
+    'edu.chart.coping':       'Coping Level Over Time',
+    'edu.chart.ageRanges':    'Age Ranges',
+    'edu.chart.activityType': 'Activity Types',
+    'edu.chart.activityHours':'Activity Hours',
+    'edu.chart.expression':   'Coping Expression',
+    'edu.chart.street':       'Street Movement',
+    'edu.chart.contact':      'Informal Contact with Children',
+    'edu.chart.interruptions':'Activity Interruptions',
+    'edu.chart.trends':       'Concerning Trends',
+
+    // Axis / legend labels
+    'edu.axis.date':        'Date',
+    'edu.axis.children':    'Children',
+    'edu.axis.count':       'Count',
+    'edu.axis.respondents': 'Respondents',
+
+    // Coping levels
+    'coping.indifferent':         'Indifferent',
+    'coping.coping_easily':       'Coping Easily',
+    'coping.struggling_somewhat': 'Struggling Somewhat',
+    'coping.struggling_greatly':  'Struggling Greatly',
+    'coping.other':               'Other',
+
+    // Frequency
+    'freq.high':   'High',
+    'freq.low':    'Low',
+    'freq.rarely': 'Rarely',
+    'freq.unknown':'Unknown',
+
+    // Age ranges
+    'age.nursery':     'Nursery (3–6)',
+    'age.elementary':  'Elementary (6–12)',
+    'age.highschool':  'High School (12–18)',
+
+    // Activity types
+    'activity.educational': 'Educational',
+    'activity.relief':      'Relief / Fun',
+
+    // Coping expression
+    'expression.behavior':    'Behavior',
+    'expression.discourse':   'Discourse',
+    'expression.cooperation': 'Cooperation',
+
+    // Concerning trends
+    'trend.drugs':    'Drugs',
+    'trend.alcohol':  'Alcohol',
+    'trend.violence': 'Violence',
+    'trend.screens':  'Screens',
+
+    // Comments table
+    'edu.col.date':          'Date',
+    'edu.col.settlement':    'Settlement',
+    'edu.col.comment':       'Comment',
+    'edu.comments.empty':    'No open responses yet.',
+    'edu.sec.bySettlement':  'Per-Settlement Analysis',
+    'edu.sec.secondary':     'Programme metrics (coverage & operations)',
+    'edu.kpi.sessions':      'Sessions',
+    'edu.filter.age':        'Age group',
+    'edu.filter.settlement': 'Settlement',
+    'edu.filter.showing':    'Showing {n} of {total} responses',
+    'edu.filter.clear':      'Clear filters',
+
+    // Report view
+    'report.overallLabel':    'Overall Resilience',
+    'report.articles':        'articles',
+    'report.executiveSummary':'Executive Summary',
+    'report.components':      'Components',
+    'report.caveats':         'Methodological Caveats',
+    'report.evidence':        'Evidence',
+    'report.items':           'items',
+    'report.translating':     'Translating…',
+
+    // Score labels
+    'score.critical': 'Critical',
+    'score.weak':     'Weak',
+    'score.moderate': 'Moderate',
+    'score.good':     'Good',
+    'score.strong':   'Strong',
+
+    // Confidence
+    'confidence.low':    'low',
+    'confidence.medium': 'medium',
+    'confidence.high':   'high',
+
+    // Component names
+    'comp.narrative':                'narrative',
+    'comp.information_communication':'information communication',
+    'comp.lifesaving_behavior':      'lifesaving behavior',
+    'comp.functional_continuity':    'functional continuity',
+    'comp.community_capital':        'community capital',
+    'comp.leadership':               'leadership',
+    'comp.belonging_solidarity':     'belonging solidarity',
+    'comp.wellbeing_atrisk':         'wellbeing at risk',
+
+    // Evidence input
+    'evidence.heading':   'Report evidence',
+    'evidence.intro':     'Add notes, observations, or paste links to articles, videos, or other sources you want on the record.',
+    'evidence.placeholder':'Example: Saw a report about shelter behavior in… https://…',
+    'evidence.send':      'Send',
+    'evidence.saving':    'Saving…',
+    'evidence.savedOk':   'Saved ✓',
+    'evidence.savedAt':   'Saved to server at {time}',
+    'evidence.loading':   'Loading draft…',
+    'evidence.unsynced':  'Unsynced changes: retrying server save…',
+
+    // Chat panel
+    'chat.header':       'Ask about this report',
+    'chat.placeholder':  'Ask anything about today\'s resilience assessment…',
+    'chat.input':        'Ask a question…',
+    'chat.send':         'Send',
+
+    // Submissions tab
+    'sub.loading':    'Loading…',
+    'sub.empty':      'No submissions yet. Paste a link or text in the evidence box and click Send.',
+    'sub.processing': 'processing…',
+    'sub.failed':     'failed',
+    'sub.stored':     'stored as evidence',
+    'sub.analysed':   'analysed',
+    'sub.video':      'Video content review',
+    'sub.scenes':     'scenes',
+    'sub.analysis':   'Resilience analysis',
+    'sub.synthesis':  'Synthesis',
+  },
+
+  he: {
+    'tab.report':      'דוח',
+    'tab.submissions': 'הגשות',
+    'tab.education':   'חינוך',
+
+    'lang.en': 'EN',
+    'lang.he': 'עב',
+    'lang.ru': 'RU',
+
+    'edu.title':          'לוח חוסן – מערך חינוך',
+    'edu.subtitle':       'סשנים דו-שבועיים בשטח',
+    'edu.loading':        'טוען נתונים…',
+    'edu.error':          'שגיאה בטעינת הנתונים',
+    'edu.noData':         'אין עדיין נתוני סשן. יש לבדוק לאחר קבלת תגובות ראשונות.',
+    'edu.refresh':        'רענן',
+    'edu.kpi.total':      'סך תגובות',
+    'edu.kpi.dateRange':  'טווח תאריכים',
+    'edu.kpi.latest':     'סשן אחרון',
+    'edu.kpi.settlements':'יישובים',
+
+    'edu.sec.trends':        'מגמות לאורך זמן',
+    'edu.sec.distributions': 'התפלגות תשובות',
+    'edu.sec.indicators':    'מדדי שטח',
+    'edu.sec.comments':      'תגובות פתוחות',
+
+    'edu.chart.children':     'ממוצע ילדים לסשן',
+    'edu.chart.coping':       'רמת התמודדות לאורך זמן',
+    'edu.chart.ageRanges':    'טווחי גיל',
+    'edu.chart.activityType': 'סוגי פעילות',
+    'edu.chart.activityHours':'שעות פעילות',
+    'edu.chart.expression':   'ביטוי ההתמודדות',
+    'edu.chart.street':       'תנועה ברחובות',
+    'edu.chart.contact':      'קשר לא-פורמלי עם ילדים',
+    'edu.chart.interruptions':'הפסקות פעילות',
+    'edu.chart.trends':       'מגמות מדאיגות',
+
+    'edu.axis.date':        'תאריך',
+    'edu.axis.children':    'ילדים',
+    'edu.axis.count':       'כמות',
+    'edu.axis.respondents': 'משיבים',
+
+    'coping.indifferent':         'אדישים',
+    'coping.coping_easily':       'מתמודדים בקלות',
+    'coping.struggling_somewhat': 'קצת מתקשים',
+    'coping.struggling_greatly':  'מתקשים מאוד',
+    'coping.other':               'אחר',
+
+    'freq.high':   'תדירות גבוהה',
+    'freq.low':    'תדירות נמוכה',
+    'freq.rarely': 'כמעט ולא',
+    'freq.unknown':'לא ידוע',
+
+    'age.nursery':     'גן (3–6)',
+    'age.elementary':  'יסודי (6–12)',
+    'age.highschool':  'תיכון (12–18)',
+
+    'activity.educational': 'חינוכית',
+    'activity.relief':      'הפגה',
+
+    'expression.behavior':    'התנהגות',
+    'expression.discourse':   'שיח',
+    'expression.cooperation': 'שיתוף פעולה',
+
+    'trend.drugs':    'סמים',
+    'trend.alcohol':  'אלכוהול',
+    'trend.violence': 'אלימות',
+    'trend.screens':  'מסכים',
+
+    'edu.col.date':          'תאריך',
+    'edu.col.settlement':    'יישוב',
+    'edu.col.comment':       'תגובה',
+    'edu.comments.empty':    'אין תגובות פתוחות עדיין.',
+    'edu.sec.bySettlement':  'ניתוח לפי יישוב',
+    'edu.sec.secondary':     'מדדי תוכנית (כיסוי ותפעול)',
+    'edu.kpi.sessions':      'סשנים',
+    'edu.filter.age':        'קבוצת גיל',
+    'edu.filter.settlement': 'יישוב',
+    'edu.filter.showing':    'מציג {n} מתוך {total} תגובות',
+    'edu.filter.clear':      'נקה סינון',
+
+    // Report view
+    'report.overallLabel':    'חוסן כללי',
+    'report.articles':        'כתבות',
+    'report.executiveSummary':'סיכום מנהלים',
+    'report.components':      'מרכיבים',
+    'report.caveats':         'הסתייגויות מתודולוגיות',
+    'report.evidence':        'עדויות',
+    'report.items':           'פריטים',
+    'report.translating':     'מתרגם…',
+
+    // Score labels
+    'score.critical': 'קריטי',
+    'score.weak':     'חלש',
+    'score.moderate': 'בינוני',
+    'score.good':     'טוב',
+    'score.strong':   'חזק',
+
+    // Confidence
+    'confidence.low':    'נמוכה',
+    'confidence.medium': 'בינונית',
+    'confidence.high':   'גבוהה',
+
+    // Component names
+    'comp.narrative':                'נרטיב',
+    'comp.information_communication':'מידע ותקשורת',
+    'comp.lifesaving_behavior':      'התנהגות הצלת חיים',
+    'comp.functional_continuity':    'המשכיות תפקודית',
+    'comp.community_capital':        'הון קהילתי',
+    'comp.leadership':               'מנהיגות',
+    'comp.belonging_solidarity':     'שייכות וסולידריות',
+    'comp.wellbeing_atrisk':         'רווחה בסיכון',
+
+    // Evidence input
+    'evidence.heading':    'עדויות לדוח',
+    'evidence.intro':      'הוסף הערות, תצפיות, או הדבק קישורים למאמרים, סרטונים, או מקורות אחרים שברצונך לתעד.',
+    'evidence.placeholder':'דוגמה: ראיתי דיווח על התנהגות מקלט ב… https://…',
+    'evidence.send':       'שלח',
+    'evidence.saving':     'שומר…',
+    'evidence.savedOk':    'נשמר ✓',
+    'evidence.savedAt':    'נשמר בשרת ב-{time}',
+    'evidence.loading':    'טוען טיוטה…',
+    'evidence.unsynced':   'שינויים לא מסונכרנים: מנסה לשמור בשרת…',
+
+    // Chat panel
+    'chat.header':      'שאל על הדוח',
+    'chat.placeholder': 'שאל כל שאלה על הערכת החוסן של היום…',
+    'chat.input':       'שאל שאלה…',
+    'chat.send':        'שלח',
+
+    // Submissions tab
+    'sub.loading':    'טוען…',
+    'sub.empty':      'אין הגשות עדיין. הדבק קישור או טקסט בתיבת העדויות ולחץ שלח.',
+    'sub.processing': 'מעבד…',
+    'sub.failed':     'נכשל',
+    'sub.stored':     'נשמר כעדות',
+    'sub.analysed':   'נותח',
+    'sub.video':      'סקירת תוכן וידאו',
+    'sub.scenes':     'סצנות',
+    'sub.analysis':   'ניתוח חוסן',
+    'sub.synthesis':  'סינתזה',
+  },
+
+  ru: {
+    'tab.report':      'Отчёт',
+    'tab.submissions': 'Записи',
+    'tab.education':   'Образование',
+
+    'lang.en': 'EN',
+    'lang.he': 'ИВ',
+    'lang.ru': 'RU',
+
+    'edu.title':          'Дашборд устойчивости в образовании',
+    'edu.subtitle':       'Двухнедельные полевые сессии',
+    'edu.loading':        'Загрузка данных…',
+    'edu.error':          'Ошибка загрузки данных',
+    'edu.noData':         'Данных о сессиях пока нет. Проверьте после получения первых ответов.',
+    'edu.refresh':        'Обновить',
+    'edu.kpi.total':      'Всего ответов',
+    'edu.kpi.dateRange':  'Период',
+    'edu.kpi.latest':     'Последняя сессия',
+    'edu.kpi.settlements':'Населённые пункты',
+
+    'edu.sec.trends':        'Динамика показателей',
+    'edu.sec.distributions': 'Распределение ответов',
+    'edu.sec.indicators':    'Полевые показатели',
+    'edu.sec.comments':      'Открытые ответы',
+
+    'edu.chart.children':     'Ср. детей на сессию',
+    'edu.chart.coping':       'Уровень адаптации во времени',
+    'edu.chart.ageRanges':    'Возрастные группы',
+    'edu.chart.activityType': 'Типы активности',
+    'edu.chart.activityHours':'Часы активности',
+    'edu.chart.expression':   'Проявление адаптации',
+    'edu.chart.street':       'Активность на улицах',
+    'edu.chart.contact':      'Неформальный контакт с детьми',
+    'edu.chart.interruptions':'Прерывания занятий',
+    'edu.chart.trends':       'Тревожные тенденции',
+
+    'edu.axis.date':        'Дата',
+    'edu.axis.children':    'Дети',
+    'edu.axis.count':       'Кол-во',
+    'edu.axis.respondents': 'Респондентов',
+
+    'coping.indifferent':         'Безразличие',
+    'coping.coping_easily':       'Справляются легко',
+    'coping.struggling_somewhat': 'Немного трудно',
+    'coping.struggling_greatly':  'Очень трудно',
+    'coping.other':               'Другое',
+
+    'freq.high':   'Часто',
+    'freq.low':    'Редко',
+    'freq.rarely': 'Почти никогда',
+    'freq.unknown':'Неизвестно',
+
+    'age.nursery':     'Детсад (3–6)',
+    'age.elementary':  'Нач. школа (6–12)',
+    'age.highschool':  'Ст. школа (12–18)',
+
+    'activity.educational': 'Учебная',
+    'activity.relief':      'Развлекательная',
+
+    'expression.behavior':    'Поведение',
+    'expression.discourse':   'Разговор',
+    'expression.cooperation': 'Сотрудничество',
+
+    'trend.drugs':    'Наркотики',
+    'trend.alcohol':  'Алкоголь',
+    'trend.violence': 'Агрессия',
+    'trend.screens':  'Гаджеты',
+
+    'edu.col.date':          'Дата',
+    'edu.col.settlement':    'Нас. пункт',
+    'edu.col.comment':       'Комментарий',
+    'edu.comments.empty':    'Открытых ответов пока нет.',
+    'edu.sec.bySettlement':  'Анализ по населённым пунктам',
+    'edu.sec.secondary':     'Операционные показатели (охват и программа)',
+    'edu.kpi.sessions':      'Сессий',
+    'edu.filter.age':        'Возрастная группа',
+    'edu.filter.settlement': 'Нас. пункт',
+    'edu.filter.showing':    'Показано {n} из {total} ответов',
+    'edu.filter.clear':      'Сбросить фильтры',
+
+    // Report view
+    'report.overallLabel':    'Общая устойчивость',
+    'report.articles':        'статей',
+    'report.executiveSummary':'Краткое резюме',
+    'report.components':      'Компоненты',
+    'report.caveats':         'Методологические оговорки',
+    'report.evidence':        'Доказательства',
+    'report.items':           'элементов',
+    'report.translating':     'Перевод…',
+
+    // Score labels
+    'score.critical': 'Критический',
+    'score.weak':     'Слабый',
+    'score.moderate': 'Умеренный',
+    'score.good':     'Хороший',
+    'score.strong':   'Высокий',
+
+    // Confidence
+    'confidence.low':    'низкая',
+    'confidence.medium': 'средняя',
+    'confidence.high':   'высокая',
+
+    // Component names
+    'comp.narrative':                'нарратив',
+    'comp.information_communication':'информация и коммуникация',
+    'comp.lifesaving_behavior':      'жизнеспасающее поведение',
+    'comp.functional_continuity':    'функциональная непрерывность',
+    'comp.community_capital':        'общественный капитал',
+    'comp.leadership':               'лидерство',
+    'comp.belonging_solidarity':     'принадлежность и солидарность',
+    'comp.wellbeing_atrisk':         'благополучие в группе риска',
+
+    // Evidence input
+    'evidence.heading':    'Доказательства для отчёта',
+    'evidence.intro':      'Добавьте заметки, наблюдения или вставьте ссылки на статьи, видео и другие источники.',
+    'evidence.placeholder':'Пример: Видел репортаж о поведении в укрытии… https://…',
+    'evidence.send':       'Отправить',
+    'evidence.saving':     'Сохранение…',
+    'evidence.savedOk':    'Сохранено ✓',
+    'evidence.savedAt':    'Сохранено на сервере в {time}',
+    'evidence.loading':    'Загрузка черновика…',
+    'evidence.unsynced':   'Несинхронизированные изменения: повторная попытка сохранения…',
+
+    // Chat panel
+    'chat.header':      'Задайте вопрос об отчёте',
+    'chat.placeholder': 'Задайте любой вопрос об оценке устойчивости сегодня…',
+    'chat.input':       'Задайте вопрос…',
+    'chat.send':        'Отправить',
+
+    // Submissions tab
+    'sub.loading':    'Загрузка…',
+    'sub.empty':      'Записей нет. Вставьте ссылку или текст в поле доказательств и нажмите Отправить.',
+    'sub.processing': 'обработка…',
+    'sub.failed':     'ошибка',
+    'sub.stored':     'сохранено как доказательство',
+    'sub.analysed':   'проанализировано',
+    'sub.video':      'Анализ видеоконтента',
+    'sub.scenes':     'сцен',
+    'sub.analysis':   'Анализ устойчивости',
+    'sub.synthesis':  'Синтез',
+  },
+};

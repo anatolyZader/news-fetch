@@ -10,6 +10,7 @@
     "fastify": "^5.2.0",
     "firebase-admin": "^13.7.0",
     "googleapis": "^144.0.0",
+    "jsonrepair": "^3.13.3",
     "openai": "^4.104.0",
     "xlsx": "^0.18.5"
   },
@@ -28,6 +29,9 @@
     "test-tokens": "node cross-cut-modules/budget/input/test-token-usage.js",
     "client:dev": "cd client && npm run dev",
     "client:build": "cd client && npm run build",
-    "check-identity-env": "node utils/check-identity-env.js"
+    "check-identity-env": "node utils/check-identity-env.js",
+    "record:test": "node business_modules/recording/input/test-stream.js",
+    "record:jobs": "node business_modules/recording/input/manage-jobs.js",
+    "record:start": "node business_modules/recording/input/start-scheduler.js"
   }
 }

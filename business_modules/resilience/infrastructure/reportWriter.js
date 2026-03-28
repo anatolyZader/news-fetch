@@ -44,15 +44,15 @@ function buildMarkdown(assessment, sourceFiles) {
   lines.push(`## Executive Summary`, ``, assessment.cross_component_synthesis, ``, `---`, ``);
 
   // ── Component overview table ───────────────────────────────────────────────
-  lines.push(`## Components`, ``, COMPONENTS_TABLE_HELP_MARKDOWN, ``, `| # | Component | עברית | Assessment reliability | Evidence level | Evidence base | Article coverage | Component score |`,
-    `|---|-----------|-------|------------------------|----------------|---------------|------------------|-----------------|`,
+  lines.push(`## Components`, ``, COMPONENTS_TABLE_HELP_MARKDOWN, ``, `| # | Component | עברית | Assessment reliability | Evidence level | Evidence base | Article coverage |`,
+    `|---|-----------|-------|------------------------|----------------|---------------|------------------|`,
   );
   (assessment.components ?? []).forEach((comp, i) => {
     const def = COMPONENT_MAP[comp.component_id] ?? {};
     const coveragePct = comp.coverage_ratio != null ? `${(comp.coverage_ratio * 100).toFixed(0)}%` : '—';
     const certPct = comp.certainty != null ? `${(comp.certainty * 100).toFixed(0)}%` : '—';
     lines.push(
-      `| ${i + 1} | ${def.name_en ?? comp.component_id} | ${def.name_he ?? ''} | ${summarizeConfidence(comp.confidence)} | ${certPct} | ${comp.signal_count ?? 0} signals | ${comp.distinct_article_count ?? '—'}/${assessment.total_articles_analyzed} (${coveragePct}) | **${comp.score ?? '—'}/10** |`,
+      `| ${i + 1} | ${def.name_en ?? comp.component_id} | ${def.name_he ?? ''} | ${summarizeConfidence(comp.confidence)} | ${certPct} | ${comp.signal_count ?? 0} signals | ${comp.distinct_article_count ?? '—'}/${assessment.total_articles_analyzed} (${coveragePct}) |`,
     );
   });
   lines.push(``, `---`, ``);
@@ -71,7 +71,7 @@ function buildMarkdown(assessment, sourceFiles) {
       `### ${i18n(comp.component_id)} ${def.name_en ?? comp.component_id}`,
       `*${def.name_he ?? ''}*`,
       ``,
-      `**Component score:** ${comp.score ?? '—'}/10 *(1 = strongly negative, 10 = strongly positive)* | **Assessment reliability:** ${summarizeConfidence(comp.confidence)} *(based on how much evidence was found and how broadly it appears across the sample)* | **Evidence level:** ${certPct} *(${EVIDENCE_LEVEL_INLINE_NOTE})*`,
+      `**Assessment reliability:** ${summarizeConfidence(comp.confidence)} *(based on how much evidence was found and how broadly it appears across the sample)* | **Evidence level:** ${certPct} *(${EVIDENCE_LEVEL_INLINE_NOTE})*`,
       `**Evidence base:** ${comp.signal_count ?? 0} behavioral signals found in ${articleCoverage} articles *(${coveragePct} of today's sample, ${spreadLabel} spread across sources)* | **Evidence direction:** ${evidenceDirection(comp.positive_evidence, comp.negative_evidence)}`,
       ``,
       comp.narrative,

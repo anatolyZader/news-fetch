@@ -39,11 +39,27 @@ export async function runAnalyzeResilienceCli() {
   const { onUsage, getTotal, printSummary } = createCostTracker({ label: 'analyze-resilience' });
 
   let filePaths;
+  let dayOffsets;
   const filesArg = getArg('--files');
   if (filesArg) {
     filePaths = filesArg.split(',').map((f) => resolve(f.trim()));
+    dayOffsets = filePaths.map(() => 0);
   } else {
-    filePaths = [resolve('articles-homefront.md')];
+    const baseFile = resolve('articles-homefront.md');
+    filePaths = [baseFile];
+    dayOffsets = [0];
+    // Auto-include prior days' dated article files if they exist
+    const baseDate = getArg('--date') ?? new Date().toISOString().slice(0, 10);
+    for (let offset = 1; offset <= 2; offset++) {
+      const d = new Date(baseDate);
+      d.setDate(d.getDate() - offset);
+      const priorDate = d.toISOString().slice(0, 10);
+      const priorFile = resolve(`articles-homefront-${priorDate}.md`);
+      if (existsSync(priorFile)) {
+        filePaths.push(priorFile);
+        dayOffsets.push(offset);
+      }
+    }
   }
 
   for (const fp of filePaths) {
@@ -58,7 +74,7 @@ export async function runAnalyzeResilienceCli() {
   const dedupeTitles = explicitNoDedupe ? false : contentKind !== 'audio';
 
   const reportDateArg = getArg('--date');
-  const { articles: rawArticles, totalCount, date: parsedDate } = loadMdFiles(filePaths);
+  const { articles: rawArticles, totalCount, date: parsedDate } = loadMdFiles(filePaths, { dayOffsets });
   const reportDateForPrior = reportDateArg ?? parsedDate;
 
   function loadPriorReports(date, n = 2) {
@@ -95,7 +111,7 @@ export async function runAnalyzeResilienceCli() {
 
   console.error(`\nResilience Analysis (${contentKind})`);
   console.error(`===================`);
-  console.error(`Sources:  ${sourceFiles.join(', ')}`);
+  console.error(`Sources:  ${sourceFiles.map((f, i) => (dayOffsets[i] ? `${f} (T-${dayOffsets[i]}, w=${[1.00, 0.85, 0.70][dayOffsets[i]] ?? '?'})` : f)).join(', ')}`);
   if (priorReports.length > 0) {
     console.error(`Prior context: ${priorReports.map((r) => r.date).join(', ')}\n`);
   } else {

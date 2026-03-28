@@ -40,8 +40,15 @@
   gap: 0.25rem;
 }
 
-.signOut {
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
   margin-left: auto;
+  flex-shrink: 0;
+}
+
+.signOut {
   padding: 0.35rem 0.75rem;
   font-size: 0.8rem;
   border-radius: 6px;
@@ -78,6 +85,27 @@
   flex-direction: column;
   gap: 2rem;
 }
+
+.tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid var(--border);
+}
+
+.tab {
+  padding: 0.5rem 1.1rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--muted);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+.tab:hover { color: var(--text); }
+.tabActive { color: var(--text); border-bottom-color: var(--accent); }
 
 .reportSection {
   display: flex;
