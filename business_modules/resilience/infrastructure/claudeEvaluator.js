@@ -261,6 +261,9 @@ const SIGNAL_EXTRACTION_SYSTEM_PROMPT =
   `  Use resource_shortage when material supplies or services are simply absent (no shelters in a neighbourhood,\n` +
   `  no compensation payments issued, volunteers ran out of food packages).\n` +
   `- information_* types are ONLY for: residents receiving/missing/seeking safety or operational guidance, rumor spread, contradictory official messages\n` +
+  `- active_information_seeking: ONLY when a resident or group explicitly seeks emergency or protective guidance — e.g. calling an HFC hotline, checking alert apps, asking where the nearest shelter is, seeking evacuation instructions.\n` +
+  `  REJECT: consulting a lawyer about a will or inheritance; asking about financial relief; seeking religious guidance; any general wartime planning unrelated to immediate safety.\n` +
+  `  A surge in will-writing, legal consultations, or financial inquiries during wartime → fear_expression (if named quote) or omit. It is NOT active_information_seeking.\n` +
   `  information_actionable_effective: guidance was specific and situation-matched — people could follow it given actual constraints (accessible shelter, legally permitted to stop work, covers the scenario they faced). Use when evidence shows the instruction worked in practice.\n` +
   `  information_effectiveness_gap: guidance existed and was distributed, but failed to help because it did not match reality — instructions people physically or legally could not follow, scenarios left uncovered (mass casualties, no nearby shelter, workers with no legal protection to stop), or contradictions between official sources that left people unable to act. Do NOT use for mere absence of information — use information_confusion for that.\n` +
   `- Emergency response to a harm event (ambulance to cardiac arrest, hospital treating injury): classify the harm as wellbeing_atrisk. Do NOT emit service_continuity — a service doing its normal job is not evidence of elevated functioning.\n\n` +
@@ -545,7 +548,7 @@ export async function generateNarratives(
     `━━━ OUTPUT FORMAT ━━━\n` +
     `Return ONLY valid JSON:\n` +
     `{\n` +
-    `  "cross_component_synthesis": "<2 paragraphs — behavioral summary across all 8 components>",\n` +
+    `  "cross_component_synthesis": "<2 paragraphs — behavioral summary across all 8 components. When choosing illustrative examples, select only those that are analytically distinctive: they represent a different population type, behavior mode, or structural condition not already covered by another example. Do not include examples that are emotionally striking but analytically equivalent to many other signals (e.g., a single shelter-compliance instance when dozens exist). Prefer examples that illuminate a structural split, a failure mode, or a population otherwise absent from reporting.>",\n` +
     `  "evidence_quality_note": "<1 sentence on signal quality today: proportion of direct quotes vs reported facts>",\n` +
     `  "components": [\n` +
     `    {\n` +

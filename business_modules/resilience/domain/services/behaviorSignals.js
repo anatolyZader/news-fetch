@@ -58,7 +58,7 @@ export const SIGNAL_CATALOG = [
   { type: 'information_clarity',              domain: 'information', label: 'Residents report receiving clear, useful information', defaultPolarity: 'positive' },
   { type: 'information_confusion',            domain: 'information', label: 'Residents report confusion, contradictory, or missing information', defaultPolarity: 'negative' },
   { type: 'rumor_spread',                     domain: 'information', label: 'Rumors or misinformation are circulating',          defaultPolarity: 'negative' },
-  { type: 'active_information_seeking',       domain: 'information', label: 'Residents actively seek out official information',  defaultPolarity: 'positive' },
+  { type: 'active_information_seeking',       domain: 'information', label: 'Residents actively seek out emergency or protective guidance — shelter locations, HFC instructions, evacuation routes, operational alerts. NOT: legal, financial, religious, or personal planning information.',  defaultPolarity: 'positive' },
   { type: 'information_actionable_effective', domain: 'information', label: 'Guidance is specific, situation-matched, and demonstrably leads to correct protective behavior', defaultPolarity: 'positive' },
   { type: 'information_effectiveness_gap',    domain: 'information', label: 'Guidance exists but fails to help — does not match real constraints, too vague to act on, or leaves critical scenarios uncovered', defaultPolarity: 'negative' },
 
