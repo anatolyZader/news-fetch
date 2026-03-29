@@ -13,7 +13,7 @@ import 'dotenv/config';
 import { resolve, basename } from 'path';
 import { existsSync, readFileSync, readdirSync } from 'fs';
 
-import { loadMdFiles } from '../infrastructure/mdReportsLoader.js';
+import { loadMdFiles, loadMdFile } from '../infrastructure/mdReportsLoader.js';
 import { scoreComponents } from '../domain/services/behaviorSignals.js';
 import { createCostTracker, appendCostLog, checkDailyBudget } from '../../../cross-cut-modules/budget/index.js';
 
@@ -73,6 +73,25 @@ export async function runAnalyzeResilienceCli() {
   const explicitNoDedupe = args.includes('--no-dedupe');
   const dedupeTitles = explicitNoDedupe ? false : contentKind !== 'audio';
 
+  // Optional field reports file — extracted separately with content_kind='field_report', fixed weight 0.75.
+  // If --field-reports is not given explicitly, auto-detect the most recent articles-field-reports-*.md file.
+  const fieldReportsArg = getArg('--field-reports') ?? (() => {
+    const files = existsSync(resolve('.'))
+      ? readdirSync(resolve('.')).filter((f) => /^articles-field-reports-\d{4}-\d{2}-\d{2}\.md$/.test(f)).sort()
+      : [];
+    return files.length > 0 ? files.at(-1) : null;
+  })();
+  let supplementaryArticles = [];
+  if (fieldReportsArg) {
+    const frPath = resolve(fieldReportsArg);
+    if (!existsSync(frPath)) {
+      console.error(`Field reports file not found: ${frPath}`);
+      process.exit(1);
+    }
+    const { articles: frArticles } = loadMdFile(frPath);
+    supplementaryArticles = frArticles.map((a) => ({ ...a, temporal_weight: 0.75 }));
+  }
+
   const reportDateArg = getArg('--date');
   const { articles: rawArticles, totalCount, date: parsedDate } = loadMdFiles(filePaths, { dayOffsets });
   const reportDateForPrior = reportDateArg ?? parsedDate;
@@ -109,9 +128,12 @@ export async function runAnalyzeResilienceCli() {
 
   const sourceFiles = filePaths.map((f) => basename(f));
 
-  console.error(`\nResilience Analysis (${contentKind})`);
+  console.error(`\nResilience Analysis (${contentKind}${supplementaryArticles.length > 0 ? ' + field_report' : ''})`);
   console.error(`===================`);
   console.error(`Sources:  ${sourceFiles.map((f, i) => (dayOffsets[i] ? `${f} (T-${dayOffsets[i]}, w=${[1.00, 0.85, 0.70][dayOffsets[i]] ?? '?'})` : f)).join(', ')}`);
+  if (supplementaryArticles.length > 0) {
+    console.error(`Field reports: ${basename(fieldReportsArg)} (${supplementaryArticles.length} visits, w=0.75 fixed)`);
+  }
   if (priorReports.length > 0) {
     console.error(`Prior context: ${priorReports.map((r) => r.date).join(', ')}\n`);
   } else {
@@ -142,6 +164,8 @@ export async function runAnalyzeResilienceCli() {
       outputBase,
       reportSourceFiles: sourceFiles,
       onUsage,
+      supplementaryArticles,
+      supplementaryContentKind: 'field_report',
     });
 
     const analyzedCount = provenance.itemCount;

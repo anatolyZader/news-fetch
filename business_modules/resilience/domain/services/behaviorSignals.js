@@ -59,6 +59,8 @@ export const SIGNAL_CATALOG = [
   { type: 'information_confusion',            domain: 'information', label: 'Residents report confusion, contradictory, or missing information', defaultPolarity: 'negative' },
   { type: 'rumor_spread',                     domain: 'information', label: 'Rumors or misinformation are circulating',          defaultPolarity: 'negative' },
   { type: 'active_information_seeking',       domain: 'information', label: 'Residents actively seek out official information',  defaultPolarity: 'positive' },
+  { type: 'information_actionable_effective', domain: 'information', label: 'Guidance is specific, situation-matched, and demonstrably leads to correct protective behavior', defaultPolarity: 'positive' },
+  { type: 'information_effectiveness_gap',    domain: 'information', label: 'Guidance exists but fails to help — does not match real constraints, too vague to act on, or leaves critical scenarios uncovered', defaultPolarity: 'negative' },
 
   // F. Functional Continuity
   { type: 'service_continuity',               domain: 'continuity',  label: 'Essential services or institutions are operating',  defaultPolarity: 'positive' },
@@ -118,6 +120,8 @@ export const SIGNAL_TO_COMPONENTS = {
   information_confusion:             { information_communication: -1.0, leadership: -0.4, lifesaving_behavior: -0.3 },
   rumor_spread:                      { information_communication: -1.2, narrative: -0.5 },
   active_information_seeking:        { information_communication: +0.7 },
+  information_actionable_effective:  { information_communication: +1.0, lifesaving_behavior: +0.6 },
+  information_effectiveness_gap:     { information_communication: -1.0, lifesaving_behavior: -0.5 },
 
   // Continuity
   service_continuity:                { functional_continuity: +1.0 },

@@ -52,6 +52,7 @@ export const RESILIENCE_COMPONENTS = [
       'To what extent do information and messaging mechanisms adapted to different community sectors exist?',
       'To what extent do information gaps remain, or is misinformation (fake news) being spread?',
       'To what extent is information accessible and available to all population segments, including vulnerable groups?',
+      'To what extent does the guidance match the actual situation people face — is it actionable given real constraints (workers who cannot stop, shelters not accessible, no legal framework to comply), and does it cover edge cases (mass casualties, no nearby shelter, economic decisions under fire)?',
     ],
     behavioral_manifestations: [
       'Residents state they receive the information they need to function during the emergency',
@@ -59,6 +60,8 @@ export const RESILIENCE_COMPONENTS = [
       'Residents express trust in information received from the authority',
       'Population perceives national media information as relevant and addressing their needs',
       'Residents report information gaps, confusion, or spread of rumors/misinformation',
+      'Guidance is reported as situation-matched and actionable — residents could follow it given real-world constraints',
+      'Guidance is reported as mismatched, impractical, or failing to cover critical scenarios (workers with no legal protection to stop, no shelter access, mass-casualty situations)',
     ],
   },
   {

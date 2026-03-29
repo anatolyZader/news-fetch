@@ -58,6 +58,9 @@ export async function runResilienceAssessment(batch, options = {}) {
     persist = false,
     outputBase = null,
     reportSourceFiles = null,
+    // Optional supplementary articles (e.g. field reports) extracted with a different content kind
+    supplementaryArticles = [],
+    supplementaryContentKind = 'field_report',
   } = options;
 
   assertValidResilienceContentBatch(batch);
@@ -71,25 +74,38 @@ export async function runResilienceAssessment(batch, options = {}) {
   }
 
   const llmOpts = { onUsage, onProgress, contentKind: batch.contentKind };
-  const signals = await llmPort.extractSignals(articles, llmOpts);
-  const scoredComponents = scoreComponents(signals, { totalArticles: articles.length });
+  let allSignals = await llmPort.extractSignals(articles, llmOpts);
+
+  // Extract signals from supplementary batch (field reports) separately using their own prompt
+  if (supplementaryArticles.length > 0) {
+    const suppOpts = { onUsage, onProgress, contentKind: supplementaryContentKind };
+    const suppSignals = await llmPort.extractSignals(supplementaryArticles, suppOpts);
+    allSignals = [...allSignals, ...suppSignals];
+  }
+
+  const totalArticles = articles.length + supplementaryArticles.length;
+  // When sources are mixed, use 'mixed' as the narrative content kind to trigger combined context
+  const narrativeContentKind = supplementaryArticles.length > 0 ? 'mixed' : batch.contentKind;
+
+  const scoredComponents = scoreComponents(allSignals, { totalArticles });
   const assessment = await llmPort.generateNarratives(
     scoredComponents,
-    signals,
+    allSignals,
     batch.reportDate,
-    articles.length,
+    totalArticles,
     {
       onUsage,
       onProgress,
       priorReports: batch.priorAssessments ?? [],
-      contentKind: batch.contentKind,
+      contentKind: narrativeContentKind,
     },
   );
 
+  const allArticles = [...articles, ...supplementaryArticles];
   const sourceFilesForReport =
     Array.isArray(reportSourceFiles) && reportSourceFiles.length > 0
       ? reportSourceFiles
-      : [...new Set(articles.map((a) => a.sourceFile))];
+      : [...new Set(allArticles.map((a) => a.sourceFile))];
 
   if (persist) {
     if (!reportWriterPort) {
@@ -100,7 +116,7 @@ export async function runResilienceAssessment(batch, options = {}) {
     }
     reportWriterPort.writeReport({
       assessment,
-      signals,
+      signals: allSignals,
       sourceFiles: sourceFilesForReport,
       outputBase,
     });
@@ -108,12 +124,12 @@ export async function runResilienceAssessment(batch, options = {}) {
 
   return {
     assessment,
-    signals,
+    signals: allSignals,
     provenance: {
       contentKind: batch.contentKind,
-      itemCount: articles.length,
+      itemCount: totalArticles,
       sourceRunId: batch.sourceRunId,
-      sourceLabels: uniqueSourceLabels(articles),
+      sourceLabels: uniqueSourceLabels(allArticles),
     },
   };
 }

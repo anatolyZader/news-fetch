@@ -182,6 +182,28 @@ const AUDIO_SIGNAL_EXTRACTION_PREFIX =
   `Treat clearly attributed speech as quotable evidence when a person or role is identified.\n` +
   `Skip music-only or ad segments with no behavioral content.\n\n`;
 
+const FIELD_REPORT_SIGNAL_EXTRACTION_PREFIX =
+  `━━━ SOURCE: EXPERT FIELD REPORTS (POPULATION BEHAVIOR OFFICER VISITS) ━━━\n` +
+  `Input is Hebrew expert field notes written by trained resilience professionals after face-to-face visits to northern border communities.\n` +
+  `Each document = one community visit. Notes are shorthand bullets, not journalism prose — read them as synthesis of observed conditions and stakeholder interviews.\n\n` +
+  `Domain vocabulary (always translate these into English in the evidence field):\n` +
+  `  ממ"ד = individual safe room (in-home shelter); מקלט = public shelter; מיגונית = armored field protection booth (for farmers in open fields)\n` +
+  `  צח"י / צח"י = Home Front Command volunteer corps (civilian emergency unit); כיתת כוננות = community readiness unit\n` +
+  `  גרעין נחל / גרעין נח"ל = army education core embedded in a community; מורות חיילות = soldier-teachers deployed to communities\n` +
+  `  פיקוד העורף = Home Front Command (HFC/Pikud HaOref); רכזת/רכז קהילה = community coordinator\n` +
+  `  שחיקה = burnout / cumulative erosion; הפגה = relief/decompression activity; אתרעה / אזעקה = alert siren\n` +
+  `  גיל שלישי / קשישים = elderly population; אוכלוסיה עם מוגבלויות = people with disabilities\n\n` +
+  `Evidence type rules:\n` +
+  `  "observational_reported_fact" — expert team's direct community-level observation (most common; the expert visit IS the named institutional observation)\n` +
+  `  "named_institutional_fact" — a named local body (council, HFC unit, welfare dept.) takes a concrete named action\n` +
+  `  "direct_quote_named_person" — only when a named individual is explicitly quoted\n` +
+  `  Never use "named_survey_statistic" for field reports.\n\n` +
+  `Scope rules:\n` +
+  `  Each document = one community. Default to "repeated_pattern" (community-wide observation).\n` +
+  `  Use "quantified_or_broad" only when explicit counts or percentages appear (e.g. "30 homes without safe room", "60% functional continuity").\n` +
+  `  Use "single_case" only for a clearly isolated individual incident.\n\n` +
+  `Always include municipality name in the evidence text so the signal is geographically traceable.\n\n`;
+
 const SIGNAL_EXTRACTION_SYSTEM_PROMPT =
   `You are a behavioral signal extractor for community resilience analysis in Israel.\n` +
   `Extract atomic behavioral signals from news articles using a closed vocabulary of signal types.\n\n` +
@@ -239,6 +261,8 @@ const SIGNAL_EXTRACTION_SYSTEM_PROMPT =
   `  Use resource_shortage when material supplies or services are simply absent (no shelters in a neighbourhood,\n` +
   `  no compensation payments issued, volunteers ran out of food packages).\n` +
   `- information_* types are ONLY for: residents receiving/missing/seeking safety or operational guidance, rumor spread, contradictory official messages\n` +
+  `  information_actionable_effective: guidance was specific and situation-matched — people could follow it given actual constraints (accessible shelter, legally permitted to stop work, covers the scenario they faced). Use when evidence shows the instruction worked in practice.\n` +
+  `  information_effectiveness_gap: guidance existed and was distributed, but failed to help because it did not match reality — instructions people physically or legally could not follow, scenarios left uncovered (mass casualties, no nearby shelter, workers with no legal protection to stop), or contradictions between official sources that left people unable to act. Do NOT use for mere absence of information — use information_confusion for that.\n` +
   `- Emergency response to a harm event (ambulance to cardiac arrest, hospital treating injury): classify the harm as wellbeing_atrisk. Do NOT emit service_continuity — a service doing its normal job is not evidence of elevated functioning.\n\n` +
 
   `━━━ SIGNAL TYPES (closed vocabulary) ━━━\n` +
@@ -269,13 +293,19 @@ function buildSignalExtractionSystemPrompt(contentKind) {
       'from spoken-audio transcripts (same rules as news text) using',
     );
   }
+  if (contentKind === 'field_report') {
+    return FIELD_REPORT_SIGNAL_EXTRACTION_PREFIX + base.replace(
+      'from news articles using',
+      'from expert field report documents (same signal vocabulary) using',
+    );
+  }
   return base;
 }
 
 function extractUserLabelForSignals(contentKind) {
-  return contentKind === 'audio'
-    ? 'spoken-audio transcript segments'
-    : 'news articles';
+  if (contentKind === 'audio') return 'spoken-audio transcript segments';
+  if (contentKind === 'field_report') return 'expert field report documents';
+  return 'news articles';
 }
 
 async function extractSignalsBatch(articles, batchLabel, retries = 3, usageCallback = null, contentKind = 'news') {
@@ -452,6 +482,14 @@ const AUDIO_NARRATIVE_CONTEXT =
   `Evidence comes from audio transcripts (not print news). Selection bias applies: hosts, guests, and call-ins are not a census of the population.\n` +
   `When few signals have URLs, omit source links; do not fabricate URLs.\n\n`;
 
+const FIELD_REPORT_NARRATIVE_CONTEXT =
+  `━━━ ADDITIONAL SOURCE: EXPERT FIELD REPORTS ━━━\n` +
+  `Some signals originate from structured visits by trained resilience professionals to northern border communities.\n` +
+  `These are primary observations — higher evidence quality than journalism, geographically specific to visited communities.\n` +
+  `Field report signals cover populations often absent from news: elderly, Arab villages, small kibbutzim, special-needs individuals.\n` +
+  `When field report signals appear alongside news signals for the same component, name both source types explicitly.\n` +
+  `Field report signals have no URL — do not fabricate links for them.\n\n`;
+
 export async function generateNarratives(
   scoredComponents,
   _allSignals,
@@ -465,6 +503,7 @@ export async function generateNarratives(
     `You are a community resilience analyst writing behavioral narratives for a structured report.\n` +
     `The component SCORES are already computed — do not re-score. Your job is to write clear, behavioral narratives.\n\n` +
     (contentKind === 'audio' ? AUDIO_NARRATIVE_CONTEXT : '') +
+    (contentKind === 'mixed' ? FIELD_REPORT_NARRATIVE_CONTEXT : '') +
     (priorContext ? priorContext : '') +
 
     `━━━ NARRATIVE RULES ━━━\n` +
@@ -487,6 +526,11 @@ export async function generateNarratives(
     `  Step 2 — never silently skip absent manifestations. A component with 1 signal and 4 unaddressed manifestations is analytically different from a component with 5 evidenced signals.\n` +
     `  Step 3 — do not over-weight components that happen to have more signals. Signal count reflects reporting intensity, not necessarily prevalence of the phenomenon.\n` +
     `  List absent manifestations in the "manifestations_absent" array; include a parenthetical interpretation: (informative absence) or (likely reporting gap).\n` +
+    `- INFORMATION EFFECTIVENESS (information_communication component): Distinguish between information presence and information effectiveness. Clarity of delivery is not the same as fitness for purpose.\n` +
+    `  Ask: could people actually follow the guidance given their real constraints? Did it cover the scenario they faced?\n` +
+    `  A component may show: clear wide-distribution of shelter guidance (presence) alongside complete absence of guidance on economic decisions or mass-casualty scenarios (effectiveness gap).\n` +
+    `  Name this split explicitly. E.g.: "Shelter instructions reached residents through multiple channels — but no guidance was issued for workers without legal protection to stop, and mass-casualty scenarios were not addressed in official messaging."\n` +
+    `  Use information_actionable_effective signals to evidence the presence-effectiveness link; use information_effectiveness_gap signals to evidence the gap.\n` +
     `- BASELINE VS ELEVATED SERVICE FUNCTIONING: Baseline service operation (ambulance responded, hospital treated) is neutral, not positive evidence. Only cite service functioning as strong when it demonstrably performed despite disruption or elevated demand.\n` +
     `- SCOPE DISCIPLINE: Never use "the only", "the one exception", "uniquely", or similar exclusive claims.\n` +
     `  The inputs are a sample, not a census. Something appearing once in the data means it was reported once — not that it is the sole instance.\n` +
