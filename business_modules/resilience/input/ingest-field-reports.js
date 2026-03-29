@@ -30,7 +30,13 @@ if (!fileArg) {
 const filePath = resolve(fileArg);
 const wb = read(readFileSync(filePath));
 const ws = wb.Sheets[wb.SheetNames[0]];
-const rows = utils.sheet_to_json(ws, { defval: '' });
+let rows = utils.sheet_to_json(ws, { defval: '' });
+
+// If the first row's values look like column names (all __EMPTY_* keys), the real
+// header row is row 2 — re-parse starting from that row.
+if (rows.length > 0 && Object.keys(rows[0]).every((k) => /^__EMPTY/.test(k))) {
+  rows = utils.sheet_to_json(ws, { defval: '', range: 1 });
+}
 
 if (rows.length === 0) {
   console.error('No rows found in spreadsheet.');
@@ -80,7 +86,7 @@ for (const row of rows) {
   const region       = col(row, 'region ', 'region');
   const team         = col(row, 'team');
   const stakeholders = col(row, 'stkeholders', 'stakeholders');
-  const analysis     = col(row, 'expert analysis', 'expert_analysis');
+  const analysis     = col(row, 'expert analysis', 'expert_analysis', 'expert anlysis');
   const visitDate    = parseDate(row['date'])?.toISOString().slice(0, 10) ?? latestDate;
 
   if (!analysis) continue;

@@ -1,109 +1,168 @@
-# Audio recordings (2026-03-22)
+# Audio recordings (2026-03-24)
 
-For population-behavior / Home Front resilience analysis (scene-contextualized audio transcript, English).
-Source: https://www.youtube.com/watch?v=g4qYIE7Br50
+For population-behavior / Home Front resilience analysis (transcribed spoken audio: broadcast, podcast, video, interview, voice memo, etc.).
+Source file: news12.wav
 
-## 1. Kan 11 — News — scene 1: Family sheltering in stairwell due to safety fears and distant shelter
+## 1. News12 — Morning — [00:12–02:25] — block 1
 
-- **URL:** https://www.youtube.com/watch?v=g4qYIE7Br50&t=0
-- **Published:** 2026-03-22
-- **Source:** Kan 11 — News
+- **URL:** (audio recording)
+- **Published:** 2026-03-24
+- **Source:** News12 — Morning
 
-[Scene type: civilian_testimony | Speakers: interviewer, female civilian (mother), male civilian (family member), field reporter]
+A: דמר דחם ערב טוב,
 
-A family with young children has chosen to shelter in their building's stairwell rather than use a designated public shelter, citing distance and the mobility challenges of an elderly family member. The mother explains they work from the second floor and remain there during alerts. The family experiences constant anxiety but feels trapped between inadequate shelter options.
+A: היריון חי 24 למלחמה עם איראן מסמן אולי תפנית במהלך הדברים.
 
-Key quotes:
-- "Since the war we haven't left the house—we work from here, second floor, and the children sit there"
-- "The shelter is far and I can't [reach it]... he can't, the poor man can't"
-- "We need to go down three floors and cross dozens of meters behind the building—he's afraid he won't make it"
-- "We're sitting here in the stairwell, we haven't left the whole war"
+A: ברגעים הללו היינו אמורים להיות לקראת כיעת האולטימטום של 48 שעות שהציב טראמפ ולפיו אם האיראנים לא יפתחו את מטה ההורמוז ארצות הברית תפקוד תחנות הכוח באיראן. אלא שהיום הנשיא הספיע ויפס את השעון.
 
----
+A: בצהריים הודיע כי החל להפסיכות החיוביות לדבריו עם תהרן הוא הורה להשהות למשך חמישה ימים את התקיפות האמריקאית.
 
-## 2. Kan 11 — News — scene 2: Community leader documents infrastructure failures in neighborhood shelters
+A: אתה אמריקניות עדשתיות העניין.
 
-- **URL:** https://www.youtube.com/watch?v=g4qYIE7Br50&t=153
-- **Published:** 2026-03-22
-- **Source:** Kan 11 — News
+A: האיראני בגובה מתגרים ומודיעים שכלל אוניה לא תיכנס למפרץ הפרסי ושהיא תתקפל בעיקבות האיומים של טהרן. ועכשיו השאלה היא לא רק מי יפתח באש ראשון, אלא בעיקר האם הערב עלינו יהיה הסכם שיסיים את המלחמה,
 
-[Scene type: field_report | Speakers: field reporter, community activist (Eliron Levy), civilian resident]
+A: או בדיוק להפך, להגברת האש עוד יותר.
 
-A field reporter tours shelters with a community leader in Lod, documenting that of multiple shelters in a 500-resident neighborhood, only one is functional. Many are inaccessible, locked, or flooded with water. Residents point out that the city has had time since previous conflicts to repair infrastructure but has failed to do so.
+A: מיד כל הכותרות שלכם, פרשננו וכתבנו, מתחילים איתך ברקווית.
 
-Key quotes:
-- "Out of all the shelters here, only one is functional—a neighborhood of five hundred residents has no shelters"
-- "The city has already been through one war—there was enough time for whoever manages this city to come and fix these shelters"
-- "Look at how the shelter looks—it's simply damp, flooded with water"
+B: קניונית מיד עשו פרטים חדשים על המגעים מאחורי הקלעים שהובילו להודעה הדרמטית של טראמפ היום ועל הניסיונות לכנס עוד השבוע פסגה בין ארצות הברית לאיראן
 
----
+A: הנבאי הספרות שניתן מדינית שלולמאי ידו ביסר על המגעים והכביסתים פה על ההסכם שוליים מגביש.
 
-## 3. Kan 11 — News — scene 3: Residents explain why they avoid dysfunctional shelters and remain home
+B: ובישראל אומרים נתניהו הותקן בפרטי המשא ומתן ביממה האחרונה. גם עכשיו אומרים טראמפ לא יפתיע אותנו ואם יהיה הסכם הוא יעמוד בידי המחנה של ישראל.
 
-- **URL:** https://www.youtube.com/watch?v=g4qYIE7Br50&t=238
-- **Published:** 2026-03-22
-- **Source:** Kan 11 — News
+A: אהוד יערי על הצד האיראני שבינתיים לא חסך קומפיט את הקלפים, אהוד.
 
-[Scene type: civilian_testimony | Speakers: civilian resident (Dani), civilian resident (female), interviewer, field reporter]
+B: איראן מוכנה לויתורים משמעותיים לא מספיקים למען סיום המלחמה
 
-Residents describe the shelter infrastructure as unusable—one shelter has electrical problems and water damage; another is only 3x3 meters shared with neighbors, making it inaccessible during alerts. They express frustration that they are forced to shelter in place at home despite danger, and demand accountability from municipal leadership to repair existing shelters.
+A: עוד עשור לזה בהמשך ראש הממשלה פרסם אולפחות כלפי חוץ איראן מצרבת בינתיים להודות בכלל מתקיים הסאו מתן
 
-Key quotes:
-- "It's a dysfunctional shelter—it had an electrical short, it's full of moisture, in winter it's flooded with water"
-- "We have a small shelter, 3 by 3 meters, and it's with the neighbors—we can't even run there; we have nowhere to go"
-- "Until they build a proper shelter, how many souls do you have here in the neighborhood, Dani? There are so many souls here"
-- "If they don't fix it in this period, when will they fix it? Ask the Lod municipality"
+B: נכון כל הסימנים אתה איראני זה לא יוצא מהכלל מכחישה את קיומה
+
+A: השיחות נולפת
+
+B: וטוענת הכל ניסיון של טראמפ להוריד את מחירי האנרגיה לא נפתחת מיצר הורמוז אם כיונית לפני עשר דקות בחיר איראני מודל הראשונה יש חילופי מסרים
+
+A: בנאום זועם התאשימה את צבאי היא מה צפוי לקרות בעירן,
+
+A: בכמה שעותיהם הם הקרובים מבחינת תקיפות שלהם שם ותקיפות שלהם כאן.
+
+B: נציגת ישראל אנחנו צפויים לראות דווקא הגבוהה של התקיפות באיראן מיד כל הפרטים על איך תראה המערכה ומה הייתה הערכה של ראש המוסד על הפעלת המשטר האיראני ערב המלחמה.
 
 ---
 
-## 4. Kan 11 — News — scene 4: Family shelters elderly dementia patient nightly in underground parking lot
+## 2. News12 — Morning — [02:25–04:08] — block 2
 
-- **URL:** https://www.youtube.com/watch?v=g4qYIE7Br50&t=412
-- **Published:** 2026-03-22
-- **Source:** Kan 11 — News
+- **URL:** (audio recording)
+- **Published:** 2026-03-24
+- **Source:** News12 — Morning
 
-[Scene type: civilian_testimony | Speakers: female civilian (daughter), male family member, field reporter]
+A: תודה רבה לכולכם כאמור אנחנו נרחיב בכל זה בהמשך נהיה גם איתכם בקריית שמונה כתבנו גיא ורון ואל מוג בוקר.
 
-A family whose elderly father has dementia has been sheltering him nightly in an underground parking lot beneath a shopping center in Haifa for weeks. Adult daughters take shifts staying with him, carefully transporting him to manage his hygiene and wellbeing. The family made a deliberate choice to keep him in the basement rather than risk his condition or sense of security worsening.
+A: אותו זיק שנדיסון שפירה והדרגי טסיסים הדקות שלנו יגול הצפון.
 
-Key quotes:
-- "My father is here, he's Saudi-disabled—he's with us all the time; we take turns, my mother, my sister, we don't leave him alone"
-- "We transport him like on a wheelchair to the shower and back, but..."
-- "My father has dementia and he doesn't know anything"
-- "We decided my husband and I that he'd be healthy—it's really better than anywhere else, better than anywhere else"
+A: עכשיו למה שאנחנו יודעים על המסע ומתן שהתנהל בחושיות בין ארצות הברית לאיראן ונחשף היום לפי נסי ארצות הברית בהודעה עולם ממתין לפקיעת האולטימטום לאיראן עם לפקיחת מצהר ומוז טראמפ התחייב לספר שהוא מנהל עם האיראנים שיחות טובות ופוריות מה הביא את טראמפ לשינוי מסלול או החלטת חוצה רדיו.
+
+B: Does something sound remotely adult to you or to me?
+
+B: It is always crazy. Does that catch you by surprise?
+
+C: Absolutely.
+
+C: This is a major development.
+
+C: President Trump taking to true social not only to say there are very good and productive conversations taking place between the United States and Iran,
+
+C: but he goes on to say he's ordered the Department of War to postpone for at least five days strikes against Iran's energy and power infrastructure.
+
+B: We are making a next kill me, you know.
+
+D: Macron optimistic.
+
+A: The price of oil, which is around $114 a barrel,
+
+A: has now gone down to $97 a barrel.
+
+D: I'm sure that Michael Killeen aims to the new McDonald's product.
+
+B: The pre-social posts that people haven't seen it is written entirely in capital letters.
+
+B: The main reaction to this when I read it is that Donald Trump has blamed first.
+
+D: Tell me honestly whether it is a horn in global marathon.
+
+D: Ah,
+
+D: le froid,
+
+D: tu n'as qu'à le
+
+C: faire. Merci.
+
+B: Et maintenant,
+
+B: il y a un deuxième appareil de Trump,
+
+B: qui est presque transformé en un chien de chien.
+
+D: Et là, je serais prêt à tirer un photocopie, c'est à dire à m'adresser directement au chauffeur de voiture.
+
+D: Ah, réellement,
+
+D: il est très bon.
+
+D: Nous allons nous débrouiller, et nous allons nous débrouiller, et nous allons nous débrouiller, et nous allons nous débrouiller.
 
 ---
 
-## 5. Kan 11 — News — scene 5: Family adapts routines and sleeping arrangements in public shelter nightly
+## 3. News12 — Morning — [04:08–05:06] — block 3
 
-- **URL:** https://www.youtube.com/watch?v=g4qYIE7Br50&t=488
-- **Published:** 2026-03-22
-- **Source:** Kan 11 — News
+- **URL:** (audio recording)
+- **Published:** 2026-03-24
+- **Source:** News12 — Morning
 
-[Scene type: civilian_testimony | Speakers: female civilian (wife), male family member, field reporter]
+B: We were expected to blow up their largest electric generating plants that cost over $10 billion to build.
 
-A family in Beit Shemesh has established a new routine of descending to a public shelter each night to sleep, with carefully organized sleeping positions for multiple family members. The wife describes how they prepare the mattresses and manage logistics, though sleeping in the shelter remains emotionally taxing rather than restorative.
+B: So they called.
 
-Key quotes:
-- "For them, sleeping here is calm, and if not—this every moment, this is not sleeping, it's just sitting"
-- "I changed all our bedding today—I went down with a bunch of bedding so the neighbors wouldn't understand what was happening"
-- "Here my mother sleeps, here me and my sister, here my father, here my grandfather and my brother"
+B: I didn't call. They called.
 
----
+B: They want to make a deal.
 
-## 6. Kan 11 — News — scene 6: Reporter summary: nationwide shelter deficit and infrastructure decay
+D: We will not see you again.
 
-- **URL:** https://www.youtube.com/watch?v=g4qYIE7Br50&t=376
-- **Published:** 2026-03-22
-- **Source:** Kan 11 — News
+D: I will tell you all about it.
 
-[Scene type: anchor_report | Speakers: field reporter]
+D: You will meet
 
-The reporter synthesizes findings that more than half of Israeli residents lack safe spaces within their homes, and many lack shelters within their buildings. Thousands are forced to spend nights in public shelters or underground parking lots. The reporter notes the state was unprepared for prolonged conflict and calls for the government to prioritize upgrading neighborhood infrastructure before the next emergency.
+B: Perhaps
 
-Key quotes:
-- "More than half of Israeli residents have no protected space within their home, and in many cases not even in the building"
-- "Thousands are forced to sleep at night in public shelters or in underground parking lots"
-- "Perhaps after the barrage of missiles, the state should begin promoting reinforcement of these crumbling neighborhoods—and preferably before the next war"
+D: me there.
+
+B: that hasn't been conveyed.
+
+B: The communication, as you know, has been blown to pieces.
+
+B: They're unable to talk to each other.
+
+D: The majority of the people are like me. I'm a Muslim and you're a Christian.
+
+B: We're dealing with the man who I believe is the most respected and the leader.
+
+B: You know, it's a little tough.
+
+B: They've wiped out.
+
+B: It would wipe out everybody.
+
+D: مش هنا في إسرائيل كي يموت سامي هاجس كي ما بتقابلكم
+
+B: We just spoke to Israel a little while ago.
+
+B: I think they'll be very happy.
+
+B: This will be peace for Israel, long-term peace.
+
+D: الرئيس الأمريكي دونالد هارين مثل في اللي عايم توفيهم لكرشة خالقية بيديان وهو مش بالك الكلية خالية
 
 ---

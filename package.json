@@ -33,6 +33,9 @@
     "check-identity-env": "node utils/check-identity-env.js",
     "record:test": "node business_modules/recording/input/test-stream.js",
     "record:jobs": "node business_modules/recording/input/manage-jobs.js",
-    "record:start": "node business_modules/recording/input/start-scheduler.js"
+    "record:start": "node business_modules/recording/input/start-scheduler.js",
+    "radio:setup": "node business_modules/radio/input/setup-tzafon.js",
+    "radio:test": "node business_modules/recording/input/test-stream.js --url https://radio.streamgates.net/stream/1045fm",
+    "radio:jobs": "node business_modules/recording/input/manage-jobs.js"
   }
 }

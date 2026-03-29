@@ -1,0 +1,1477 @@
+{
+  "assessment": {
+    "date": "2026-03-23",
+    "total_articles_analyzed": 139,
+    "overall_resilience_score": 5,
+    "content_kind": "news",
+    "cross_component_synthesis": "On March 23, the dominant behavioral pattern is a widening gap between physical protective compliance — which remains relatively high — and the functional systems that sustain daily life, which are under pronounced strain. Residents across the country are entering shelters, following Home Front Command instructions, and in many cases actively improvising protective arrangements; however, the infrastructure supporting normal life has fractured across multiple domains simultaneously. Schools remain closed or open only partially and inconsistently, with approximately 170,000 workers absent from employment for economic reasons in February alone and 31,122 new job seekers registered since the start of Operation Lion's Roar. Aviation has effectively contracted to a fraction of normal capacity, with departing passengers from Ben Gurion down 85% since March 5, disrupting Passover travel for tens of thousands. The cumulative weight of these disruptions is registering in mental health indicators: crisis line calls to Natal increased 620% within 48 hours of the operation's start, and individual testimony describes sustained psychological deterioration over months rather than a single acute episode.",
+    "evidence_quality_note": "Today's signal base is broad (139 articles) and includes a high proportion of direct quotes from named individuals — residents, officials, and institutional representatives — alongside quantified data from government agencies and health authorities, yielding high overall evidentiary quality.",
+    "components": [
+      {
+        "component_id": "narrative",
+        "score": 8,
+        "confidence": "high",
+        "signal_count": 10,
+        "distinct_article_count": 8,
+        "source_diversity": 5,
+        "coverage_ratio": 0.05755395683453238,
+        "dispersion": "very_low",
+        "coverage_adjustment": 0.772,
+        "positive_evidence": 3.295,
+        "negative_evidence": 0.594,
+        "net_evidence": 2.701,
+        "evidence_mass": 3.889,
+        "strength": 0.793,
+        "adjusted_strength": 0.612,
+        "certainty": 0.857,
+        "manifestations_evidenced": [
+          "A narrative of successful coping is visible and circulating (residents/officials describe coping as effective)",
+          "Competing or contradictory narratives are explicitly voiced by residents or groups"
+        ],
+        "manifestations_absent": [
+          "The coping story reflects the entire population, not just a subset (informative absence)",
+          "Residents express that the authority's narrative is credible and reflects their lived reality (likely reporting gap)"
+        ],
+        "evidence": [
+          "Bar-Ilan policy researcher Anath Panti: 'Social cohesion, community, faith among certain populations and sense of meaning explain Israel's high ranking. We are very high in generosity and social support - this is the most fundamental distinction between us and other wealthy nations.' ([source](https://www.ynet.co.il/news/theheadline/article/fcpbrey81))",
+          "From October 2023 to end of 2024, approximately 217 suspected suicide cases recorded, while pre-war annual average was about 242 cases — a pattern attributed in international research to temporary reduction in suicidal behavior during war due to social cohesion and shared purpose. ([source](https://www.maariv.co.il/news/israel/article-1299724))",
+          "Miriam Peretz: 'We are in Nisan - month of miracles. There is difficulty, but we are a people that does not lose hope. It is in our DNA, and a person who loses hope has no strength to get up and run.' ([source](https://www.inn.co.il/news/692889))",
+          "Miriam Peretz on Passover Seder: 'There may be an alert - we will get up and return to the table. We will sing, dance and say: In every generation they rise against us to destroy us. It will be a beautiful Seder. Maybe crowded, maybe with alerts - but full of life.' ([source](https://www.inn.co.il/news/692889))",
+          "A zimmer owner in the north articulates a contradictory narrative: 'Woe to decision-makers in Israel if there is another round against Hezbollah. Because if that happens, we simply gave up the north. People won't return here anymore. Can't live like this, can't plan anything.' ([source](https://www.maariv.co.il/lifestyle/travel/article-1299841))",
+          "Social media described as creating a 'contagion chain' where edited or AI-modified videos circulate and may be interpreted as truth within minutes of exposure, producing a competing information environment. ([source](https://www.ynet.co.il/digital/internet/article/b11kw9c511e))",
+          "Nursing director at Shaare Zedek obstetric department: 'When an alert sounds, mothers and staff stay in place. No one needs to run anywhere. Even if we're in the middle of a cesarean, the service continues as usual and the alerts just pass over us.' ([source](https://www.kikar.co.il/kikarfm/shaare-zedek-wartime-births-1))"
+        ],
+        "narrative": "Two contradictory behavioral narratives are simultaneously active in the public sphere. A resilience-oriented narrative — voiced by public figures such as Miriam Peretz, cited researchers, and institutional representatives — frames the current period as consistent with historical Jewish endurance and emphasizes social cohesion, shared meaning, and continued functioning. This narrative is supported by the observed temporary decline in suspected suicide cases during wartime, a pattern attributed to collective mobilization. However, a competing narrative of exhaustion and abandonment is also articulated, most directly by northern business owners and long-displaced residents who describe the cumulative effect of repeated rounds of conflict as incompatible with sustainable life: 'Can't live like this, can't plan anything.' ([source](https://www.maariv.co.il/lifestyle/travel/article-1299841)) The resilience narrative appears to be concentrated among nationally prominent voices and certain community institutions, while the counter-narrative is most pronounced among economically affected and geographically peripheral populations. No evidence was found of residents explicitly evaluating the credibility of official authority narratives against their own lived experience, which likely reflects a reporting gap rather than the absence of such assessments."
+      },
+      {
+        "component_id": "information_communication",
+        "score": 5,
+        "confidence": "high",
+        "signal_count": 16,
+        "distinct_article_count": 12,
+        "source_diversity": 7,
+        "coverage_ratio": 0.08633093525179857,
+        "dispersion": "very_low",
+        "coverage_adjustment": 0.788,
+        "positive_evidence": 2.3,
+        "negative_evidence": 2.735,
+        "net_evidence": -0.435,
+        "evidence_mass": 5.035,
+        "strength": -0.172,
+        "adjusted_strength": -0.136,
+        "certainty": 0.919,
+        "manifestations_evidenced": [
+          "Residents report information gaps, confusion, or spread of rumors/misinformation",
+          "Authority communication mechanisms are adapted to different resident groups (language, channel, format)"
+        ],
+        "manifestations_absent": [
+          "Residents state they receive the information they need to function during the emergency (informative absence)",
+          "Residents express trust in information received from the authority (likely reporting gap)",
+          "Population perceives national media information as relevant and addressing their needs (likely reporting gap)"
+        ],
+        "evidence": [
+          "Since war start, the Education Ministry has 'zigzagged between guidelines for schools and municipalities, sending contradictory messages to public... changed them quickly due to missile hits in various settlements.' About 90 municipalities involved in the latest decision on Passover camps. ([source](https://www.haaretz.co.il/news/education/2026-03-23/ty-article/.premium/0000019d-16e5-de86-abff-97fd13bb0000))",
+          "Sirens in central Israel (Bat Yam, Holon, Rishon Lezion) activated without prior alerts in Home Front Command apps; initial warnings issued only for Lachish and Judean Lowlands. ([source](https://www.israelnationalnews.com/news/424419))",
+          "Bat Yam Mayor Tzvika Brot explained post-hoc: 'The last siren was activated without prior warning due to concern about interceptor debris falling in our area.' ([source](https://www.israelnationalnews.com/news/424419))",
+          "Education Minister Kisch provided rationale for closure decisions: 'Decision not to open in routine is not to allow release of large masses of children at once on way to and from frameworks. In non-formal activity like camps there are fewer children.' ([source](https://www.maariv.co.il/news/education/article-1299847))",
+          "IDF officer communicated directly to residents: 'We can look residents in the eye and say that this threat, in a tangible sense, does not exist. There is no raid threat.' ([source](https://www.ynetnews.com/article/hjyoi00rqbe))",
+          "Social media creates 'contagion chain' where shares, reactions and engagement echo same content repeatedly; many videos circulating are edited and sometimes include AI elements; people may interpret as truth in first minutes of exposure. ([source](https://www.ynet.co.il/digital/internet/article/b11kw9c511e))",
+          "US Embassy organized assisted overland departures for US citizens through Jordan, providing bus transport and clear guidance on border fees and onward travel arrangements. ([source](https://www.jpost.com/israel-news/article-890962))",
+          "Nesim Emanuel provided public guidance on recognizing suicidal distress: 'Possible signs include withdrawal, sharp mood change, statements of despair. Don't need to be professionals to help.' ([source](https://www.maariv.co.il/news/israel/article-1299724))"
+        ],
+        "narrative": "Information communication on March 23 is split between domains: operational military communication (shelter instructions, IDF directives, municipal alerts) is reaching residents through multiple channels, while guidance on civilian daily-life decisions — school attendance, childcare, economic planning — is characterized by repeated revision and internal contradiction. The Education Ministry's sustained pattern of changing directives, described explicitly as 'zigzagging' since the war's start ([source](https://www.haaretz.co.il/news/education/2026-03-23/ty-article/.premium/0000019d-16e5-de86-abff-97fd13bb0000)), has left parents unable to plan: one parent from Ramat Gan describes receiving no usable framework information and proposes her own solutions involving split classes and temporary staff. ([source](http://news.walla.co.il/item/3825700)) Siren activation in central Israeli cities without prior app alerts represents a separate failure of warning synchronization, explained only retroactively by the Bat Yam mayor. ([source](https://www.israelnationalnews.com/news/424419)) The parallel circulation of AI-modified and edited social media video creates an uncontrolled information environment that competes with official channels in the first minutes of any event. No evidence was found of residents positively affirming that official information meets their needs, which given the volume of reported confusion is assessed as an informative absence."
+      },
+      {
+        "component_id": "lifesaving_behavior",
+        "score": 8,
+        "confidence": "high",
+        "signal_count": 22,
+        "distinct_article_count": 22,
+        "source_diversity": 12,
+        "coverage_ratio": 0.15827338129496402,
+        "dispersion": "low",
+        "coverage_adjustment": 0.819,
+        "positive_evidence": 5.155,
+        "negative_evidence": 2.917,
+        "net_evidence": 2.238,
+        "evidence_mass": 8.073,
+        "strength": 0.714,
+        "adjusted_strength": 0.585,
+        "certainty": 0.982,
+        "manifestations_evidenced": [
+          "Residents are observed or reported to actually follow Home Front Command (HFC) protective guidelines (sheltering, evacuating, etc.)",
+          "Residents demonstrate knowledge and understanding of HFC guidelines",
+          "Residents or officials report non-compliance with protective guidelines",
+          "Residents express or demonstrate perception of the situation as genuinely life-threatening"
+        ],
+        "manifestations_absent": [
+          "Community teams or roles actively promote emergency preparedness among residents (likely reporting gap)"
+        ],
+        "evidence": [
+          "IDF stressed that nearly all those who took shelter in building bomb shelters in Dimona were not hurt; majority of injured in Arad were outside protected areas at time of impact. ([source](https://www.israelnationalnews.com/news/424444))",
+          "Home Front Command instructed residents along northern confrontation line to remain in close proximity to protected spaces, minimize movement, avoid gatherings, and enter protected spaces upon alert. ([source](https://www.israelnationalnews.com/flashes/680787))",
+          "IDF: residents of Lebanon border communities instructed to remain near shelters until further notice; minimize movement, avoid gatherings, enter protected space immediately upon alert. ([source](https://www.timesofisrael.com/liveblog_entry/idf-tells-northern-border-residents-to-stay-near-shelters-due-to-expected-hezbollah-rockets/))",
+          "A map documents how many times alerts were activated, size of settlements where alerts sounded, and how many Israelis entered protected spaces during each alert over five years from 'Guardian of the Walls' to 'Lion's Roar.' ([source](https://www.mako.co.il/news-military/Israel_iran_war/Article-3f2ec38e98b1d91027.htm))",
+          "In past 24 hours: 19 casualties treated; 14 physical injuries, 5 anxiety casualties; 12 people injured running to shelters in a single day. ([source](https://www.kikar.co.il/arab-news/mda-casualties-operation-lions-roar-summary))",
+          "Non-compliance documented: passengers descended to shelter during alert — bus drove away before Home Front Command release message received, leaving passengers stranded without alternative transport. ([source](https://www.maariv.co.il/news/israel/article-1300127))",
+          "Non-compliance documented: during a prayer service, adults and children were forced to run to distant locations and risk themselves because the shelter was locked; residents' attempts to get a response became 'exhausting journey between authorities.' ([source](https://www.maariv.co.il/news/israel/article-1300045))",
+          "Israeli police arrested 9 foreign workers in Yavne, suspected of singing and dancing during alerts while other residents ran to protected rooms and shelters. ([source](http://news.walla.co.il/item/3825672))",
+          "Large missile fragment fell in schoolyard of Faduel elementary school at night; no casualties because building was empty due to nationwide school closure decision. ([source](https://www.inn.co.il/news/692893))",
+          "Tel Aviv small claims court awarded 7,000 shekel compensation to a couple prevented from entering a shelter with their dogs. ([source](https://www.globes.co.il/news/article.aspx?did=1001538220))",
+          "Most evacuees from impact sites were pulled from beds during alerts and left homes damaged by Iranian missile, arriving at the David hotel by the Dead Sea in pajamas, having left with nothing. ([source](https://www.haaretz.co.il/news/politics/2026-03-23/ty-article-magazine/.premium/0000019d-168f-de86-abff-979f5ec60000))"
+        ],
+        "narrative": "Protective compliance with sheltering instructions remains the behavioral norm across the country, with IDF data confirming that shelter use during the Dimona attack was directly associated with reduced casualties. ([source](https://www.israelnationalnews.com/news/424444)) Residents throughout the northern border region and central Israel are entering protected spaces upon alert, and military follow-on instructions to minimize movement and avoid gatherings are reaching populations through multiple channels. However, the evidence also documents structural failures that force residents into non-compliance despite intent to comply: a locked shelter during a prayer service left congregants exposed ([source](https://www.maariv.co.il/news/israel/article-1300045)), and a bus driver departing before the all-clear message was received stranded passengers who had correctly followed instructions. ([source](https://www.maariv.co.il/news/israel/article-1300127)) Separately, twelve people were physically injured running to shelters in a single 24-hour period, indicating that the act of compliance itself carries injury risk under current conditions. ([source](https://www.kikar.co.il/arab-news/mda-casualties-operation-lions-roar-summary)) Willful non-compliance appears in isolated cases — nine foreign workers were arrested in Yavne for alleged disregard of alerts — but the dominant compliance failure pattern is structural rather than volitional."
+      },
+      {
+        "component_id": "functional_continuity",
+        "score": 2,
+        "confidence": "high",
+        "signal_count": 48,
+        "distinct_article_count": 43,
+        "source_diversity": 17,
+        "coverage_ratio": 0.30935251798561153,
+        "dispersion": "moderate",
+        "coverage_adjustment": 0.867,
+        "positive_evidence": 7.051,
+        "negative_evidence": 25.923,
+        "net_evidence": -18.871,
+        "evidence_mass": 32.974,
+        "strength": -1,
+        "adjusted_strength": -0.867,
+        "certainty": 1,
+        "manifestations_evidenced": [
+          "Schools and educational institutions are open and operating (or explicitly closed/disrupted)",
+          "Essential services (healthcare, supply chains, municipal services) continue to operate",
+          "Specific disruptions to daily life are reported (closures, evacuations, inability to work)",
+          "Residents report that sufficient resources are available to maintain routine functioning"
+        ],
+        "manifestations_absent": [
+          "Residents succeed in managing daily life (reported continuation of work, commerce, or social roles) (informative absence)"
+        ],
+        "evidence": [
+          "Central Bureau of Statistics: 170,000 workers absent from work for economic reasons in February 2026 due to workplace closures; numbers expected to rise further in March. ([source](https://www.themarker.com/news/macroeconomics/2026-03-23/ty-article/.premium/0000019d-1afd-d8da-a7dd-fffd6cd90000))",
+          "Israeli Employment Service: 31,122 new job seekers registered since start of 'Lion's Roar' operation; 12,794 in the week of March 15–21; 61.5% women. ([source](https://bokra.net/Article-1590748))",
+          "Daily departing passengers from Ben-Gurion Airport dropped 85% since March 5; restrictions allow only 1–2 flights per hour with maximum 100 passengers per flight. ([source](https://www.haaretz.com/israel-news/travel/2026-03-23/ty-article/tel-avivs-airport-restrictions-push-israelis-to-fly-via-sinai-and-jordan/0000019d-15b4-db4d-a5fd-5fb70f1e0000))",
+          "Lufthansa Group announces it will not return to operate routes to Israel until at least May 31. ([source](https://www.maariv.co.il/lifestyle/travel/article-1300253))",
+          "Arkia Airlines: 'the current framework does not allow for normal aviation activity and effectively constitutes a closure of Israel's skies.' ([source](https://www.ynetnews.com/travel/article/bymghoc511x))",
+          "Classes cancelled nationwide following Saturday night missile strikes in Arad and Dimona; school in Peduel closed when missile fragment fell in schoolyard. ([source](https://www.israelnationalnews.com/news/424414))",
+          "Passover camps opening this week in limited manner; northern front line banned; most central cities not opening; country divided into yellow and orange zones by Home Front Command criteria. ([source](https://www.maariv.co.il/news/education/article-1300210))",
+          "Bnei Brak: Ministry of Education closed schools contrary to Home Front Command guidelines; thousands of parents and children left at locked gates. ([source](https://www.kikar.co.il/israel-news/tcb1fa))",
+          "Shaare Zedek Medical Center: entire obstetric department moved to protected underground facility; delivery rooms, maternity ward, and triage relocated to bunker; operations continue uninterrupted during alerts. ([source](https://www.kikar.co.il/kikarfm/shaare-zedek-wartime-births-1))",
+          "Jerusalem municipality: 'Nitzanim' Passover camps for kindergarten and grades 1–3 opening March 24 in coordination with Home Front Command; no transportation provided. ([source](https://www.srugim.co.il/news/1300349))",
+          "Golan Regional Council: in-person morning activities for kindergarten and grades 1–3; afternoon Zoom classes for grades 1–3; coordination with Education Ministry to use flexible budget (150,000 shekels) for emergency education. ([source](https://www.globes.co.il/news/article.aspx?did=1001538231))",
+          "Bezek reported damage from Iranian missile attack last week is negligible, and return to full production capacity expected within days. ([source](https://www.ynet.co.il/economy/article/sykmbvc9be))",
+          "Bazan oil refinery in Haifa: operations disrupted by Thursday Iranian missile attack; all activities expected to resume in coming days. ([source](https://www.timesofisrael.com/liveblog_entry/bazan-oil-refinery-says-all-activities-to-resume-in-haifa-in-coming-days-after-missile-attack-damage/))",
+          "Health Ministry: 153 injured people hospitalized in past 24 hours from Iran-Hezbollah conflict; 2 serious, 2 moderate, 140 in good condition. ([source](https://www.timesofisrael.com/liveblog_entry/hospital-says-condition-of-child-wounded-in-saturday-missile-attack-has-improved-5-children-1-adult-still-serious/))",
+          "March of the Living delegations cancelled; organizers concluded participants could not be transported safely under current conditions. ([source](https://www.ynetnews.com/jewish-world/article/byhpxgks11l))",
+          "Shahar Sarusi from Afula: 'Since Operation Roar of the Lion, events at Shisu and Rejoice hall collapsed in terms of activity volume. Events dropped 90%.' ([source](https://www.ynet.co.il/economy/article/yokra14716620))"
+        ],
+        "narrative": "Functional continuity is the component under the most documented pressure on this date. The education system's disruption is widespread: schools are closed nationwide following Saturday's strikes, Passover camps are opening in a patchwork of local authority decisions organized by color-coded zones, and in Bnei Brak schools were closed in direct contradiction to Home Front Command approvals, leaving parents and children at locked gates. ([source](https://www.kikar.co.il/israel-news/tcb1fa)) Aviation has contracted to a degree that major domestic carriers describe as equivalent to closing Israeli skies, with Ben Gurion Airport passenger departures down 85% and multiple Lufthansa group airlines suspending service through at least May 31. ([source](https://www.maariv.co.il/lifestyle/travel/article-1300253)) Economic disruption is quantified: 170,000 workers were absent for economic reasons in February, with numbers projected to rise in March, and 31,122 new job seekers have registered since the operation began. ([source](https://bokra.net/Article-1590748)) Against this, essential infrastructure shows partial recovery: telecommunications provider Bezek reports near-full restoration ([source](https://www.ynet.co.il/economy/article/sykmbvc9be)), Shaare Zedek's obstetric department continues uninterrupted in a relocated underground facility ([source](https://www.kikar.co.il/kikarfm/shaare-zedek-wartime-births-1)), and a number of municipalities have organized partial educational frameworks — but the split between restored infrastructure and disrupted civilian daily life is pronounced and deteriorating from prior days."
+      },
+      {
+        "component_id": "community_capital",
+        "score": 8,
+        "confidence": "high",
+        "signal_count": 23,
+        "distinct_article_count": 20,
+        "source_diversity": 10,
+        "coverage_ratio": 0.14388489208633093,
+        "dispersion": "low",
+        "coverage_adjustment": 0.814,
+        "positive_evidence": 7.72,
+        "negative_evidence": 5.213,
+        "net_evidence": 2.508,
+        "evidence_mass": 12.933,
+        "strength": 0.763,
+        "adjusted_strength": 0.621,
+        "certainty": 0.998,
+        "manifestations_evidenced": [
+          "Residents volunteer or express willingness to volunteer in formal or informal frameworks",
+          "Authority or organizations are observed to activate and coordinate community resources",
+          "Mechanisms exist and operate to coordinate volunteers and community organizations",
+          "Cross-sector cooperation (e.g., municipality + NGOs + businesses) is reported or observed"
+        ],
+        "manifestations_absent": [],
+        "evidence": [
+          "Golan Regional Council organized 170 volunteers — 60 kindergarten teachers, 40 teachers, and others from pre-military programs — into an emergency education system combining formal and informal education for ages birth to 9. ([source](https://www.globes.co.il/news/article.aspx?did=1001538231))",
+          "Yavne municipality distributed hundreds of street signs reading 'Welcome to enter protected room in this house,' inviting any passerby during an alert to enter residential protected rooms. ([source](https://www.maariv.co.il/breaking-news/article-1300203))",
+          "Arad municipality operated an enhanced aid center employing hundreds of volunteers receiving many donations; 291 evacuees placed in Dead Sea hotels, with 4 apartment buildings assessed as uninhabitable. ([source](https://www.maariv.co.il/news/israel/article-1300131))",
+          "Dimona authority found 'unique solution for two families with special needs' and placed 273 residents in a Dead Sea hotel and 23 in a local nursing home. ([source](https://www.maariv.co.il/news/israel/article-1300131))",
+          "Finance Ministry and Labor Ministry agreed on a special aid framework: 85% refund to parents for closure days, advances to caregivers, and guaranteed quick return of daycare centers to full activity. ([source](https://www.maariv.co.il/news/politics/article-1299975))",
+          "116 hotels across the country joined the initiative 'To the North with a Benefit,' offering a third night free to northern residents through end of March. ([source](https://www.jpost.com/consumerism/article-890750))",
+          "Hashomer Hachadash began placing 60 bomb shelters in agricultural fields and ranches, with a near-term goal of 100–120 shelters. ([source](https://www.jpost.com/israel-news/article-890925))",
+          "Elderly residents at Mediterranean Towers in Jerusalem continue volunteering activities to support soldiers during wartime, maintaining a sense of purpose and community contribution. ([source](https://www.kipa.co.il/%D7%94%D7%95%D7%A8%D7%99%D7%9D-%D7%95%D7%99%D7%9C%D7%93%D7%99%D7%9D/1221541-0/))",
+          "Compensation framework for supervised daycare centers excluded family daycare centers and private kindergartens, with Knesset members warning of collapse and demanding direct compensation to parents. ([source](https://www.maariv.co.il/news/education/article-1300250))",
+          "Coordination failure documented: home care migrant workers left without state protection arrangements; when contacting National Insurance or Labor Ministry, referred to Home Front Command, which avoided giving specific answers. ([source](https://www.maariv.co.il/news/opinions/article-1300135))"
+        ],
+        "narrative": "Community capital is active across multiple sectors and scales on this date. Cross-sector mobilization is documented in the Golan Regional Council's emergency education system (170 volunteers organized by the council), the Yavne open-shelter initiative (hundreds of residential signs distributed by the municipality), and the hotel industry's 'To the North with a Benefit' campaign (116 hotels participating). ([source](https://www.jpost.com/consumerism/article-890750)) Government-level resource coordination is visible in the Finance and Labor Ministry framework providing 85% refunds to daycare parents and caregiver advances ([source](https://www.maariv.co.il/news/politics/article-1299975)), and Hashomer Hachadash's NGO-led shelter placement program for agricultural workers represents cross-sector gap-filling. ([source](https://www.jpost.com/israel-news/article-890925)) However, a notable coordination gap persists: the compensation framework explicitly excludes family daycare centers and private kindergartens, leaving a substantial segment of caregivers and parents without access to the announced support ([source](https://www.maariv.co.il/news/education/article-1300250)), and migrant home care workers — numbering in the tens of thousands by CBS data — remain without any state protection arrangement, bounced between agencies with no actionable guidance. ([source](https://www.maariv.co.il/news/opinions/article-1300135)) The community capital system is thus expansive but uneven: well-organized for populations within formal institutional frameworks, and absent for those outside them."
+      },
+      {
+        "component_id": "leadership",
+        "score": 6,
+        "confidence": "high",
+        "signal_count": 18,
+        "distinct_article_count": 15,
+        "source_diversity": 7,
+        "coverage_ratio": 0.1079136690647482,
+        "dispersion": "low",
+        "coverage_adjustment": 0.799,
+        "positive_evidence": 2.59,
+        "negative_evidence": 2.585,
+        "net_evidence": 0.005,
+        "evidence_mass": 5.175,
+        "strength": 0.002,
+        "adjusted_strength": 0.002,
+        "certainty": 0.925,
+        "manifestations_evidenced": [
+          "Leadership actively encourages residents to follow HFC guidelines (statements, actions, public presence)",
+          "Leadership is reported to function professionally and manage the situation competently",
+          "Residents express distrust, criticism, or frustration with leadership"
+        ],
+        "manifestations_absent": [
+          "Residents express that formal or informal leadership is a source of support and security (likely reporting gap)"
+        ],
+        "evidence": [
+          "Education Minister Kisch: 'I understand there is uncertainty and need to prepare for situation where war continues after Passover. If war continues weeks after Passover, right to extend vacation, propose doing so, operate Passover camps even if vacation extends, meanwhile shorten summer vacation.' ([source](https://www.maariv.co.il/news/education/article-1299847))",
+          "Since war start, the Education Ministry 'zigzagged between guidelines for schools and municipalities, sending contradictory messages to public.' ([source](https://www.haaretz.co.il/news/education/2026-03-23/ty-article/.premium/0000019d-16e5-de86-abff-97fd13bb0000))",
+          "Bnei Brak: Ministry of Education closed schools contrary to Home Front Command guidelines; thousands of parents and children left at locked gates; contradictory instructions between Home Front Command and Education Ministry. ([source](https://www.kikar.co.il/israel-news/tcb1fa))",
+          "Yavne Mayor Roy Gavai: 'Initiative enables every resident to take active part in protecting human life. It illustrates strong community spirit characterizing Yavne. This is a city where people care for each other even in most challenging moments.' ([source](https://www.maariv.co.il/breaking-news/article-1300203))",
+          "IDF officer: 'We can look residents in the eye and say that this threat, in a tangible sense, does not exist. There is no raid threat.' ([source](https://www.ynetnews.com/article/hjyoi00rqbe))",
+          "President Isaac Herzog visited Kiryat Shmona and Galilee area, descended into a shelter, received overview of challenges facing residents, and met with local officials. ([source](https://www.israelnationalnews.com/news/424442))",
+          "Eitz Efraim council closed protected room in community center due to vandalism; residents angry: 'Abandoning us because of graffiti.' Proposed solution was a 'responsible adult' with a key. ([source](https://www.maariv.co.il/news/israel/article-1300045))",
+          "Bat Yam Mayor Tzvika Brot explained post-hoc why sirens were activated without prior warning in his city. ([source](https://www.israelnationalnews.com/news/424419))",
+          "Attorney Hagar Gerty Zada: 'There are no frameworks. Simply none. We are dealing with children at home for long days, without any real response from system.' ([source](http://news.walla.co.il/item/3825700))"
+        ],
+        "narrative": "Leadership performance on March 23 is split between the local and national levels. Municipal leaders are visible, communicative, and in several cases demonstrably active: Yavne's mayor publicly launched a community shelter initiative ([source](https://www.maariv.co.il/breaking-news/article-1300203)), Bat Yam's mayor explained siren activation retroactively, and President Herzog conducted an in-person visit to Kiryat Shmona and descended into a shelter. ([source](https://www.israelnationalnews.com/news/424442)) National-level education leadership, however, is characterized by sustained contradiction: the Education Ministry issued directives that directly conflicted with Home Front Command guidelines in Bnei Brak, leaving thousands of parents at locked school gates ([source](https://www.kikar.co.il/israel-news/tcb1fa)), while the Education Minister simultaneously acknowledged uncertainty and outlined contingency planning on radio. ([source](https://www.maariv.co.il/news/education/article-1299847)) Resident frustration is explicit in multiple accounts: one parent describes being 'alone in battle' with no usable system response, and residents in Eitz Efraim describe their council's shelter closure decision as abandonment. ([source](https://www.maariv.co.il/news/israel/article-1300045)) The leadership score reflects this split — local leadership functioning adequately, national coordination mechanisms producing confusion that residents experience directly."
+      },
+      {
+        "component_id": "belonging_solidarity",
+        "score": 3,
+        "confidence": "high",
+        "signal_count": 11,
+        "distinct_article_count": 10,
+        "source_diversity": 6,
+        "coverage_ratio": 0.07194244604316546,
+        "dispersion": "very_low",
+        "coverage_adjustment": 0.78,
+        "positive_evidence": 1.279,
+        "negative_evidence": 3.731,
+        "net_evidence": -2.452,
+        "evidence_mass": 5.009,
+        "strength": -0.753,
+        "adjusted_strength": -0.588,
+        "certainty": 0.918,
+        "manifestations_evidenced": [
+          "Concrete acts of mutual aid between residents are reported (helping neighbors, sharing resources, organizing support)",
+          "Population groups are reported as scapegoated, blamed, or excluded due to the emergency (negative signal)",
+          "Programs or events strengthening belonging are activated and attended"
+        ],
+        "manifestations_absent": [
+          "Residents express a sense of solidarity or shared fate (in their own words) (likely reporting gap)"
+        ],
+        "evidence": [
+          "Yavne municipality distributed hundreds of signs reading 'Welcome to enter protected room in this house,' enabling any resident or passerby during an alert to enter a nearby home's protected room. ([source](https://www.maariv.co.il/breaking-news/article-1300203))",
+          "Golan Regional Council: 170 volunteers organized emergency education system combining formal and informal education for ages birth to 9. ([source](https://www.globes.co.il/news/article.aspx?did=1001538231))",
+          "Elderly residents at Mediterranean Towers continue volunteering activities to support soldiers during wartime, maintaining sense of purpose and community contribution. ([source](https://www.kipa.co.il/%D7%94%D7%95%D7%A8%D7%99%D7%9D-%D7%95%D7%99%D7%9C%D7%93%D7%99%D7%9D/1221541-0/))",
+          "War described as creating a new social structure: 'protected room-ness' — neighbors previously distant now share intimate moments of anxiety in shared shelters, in pajamas with crying babies and mattresses on the floor. ([source](https://www.ynet.co.il/laisha/article/byuhlhy911e))",
+          "Elderly residents in Jerusalem: prolonged shelter stays, fear of leaving home, forced social disconnection causing anxiety and psychological distress during 'Lion's Roar' operation. ([source](https://www.kipa.co.il/%D7%94%D7%95%D7%A8%D7%99%D7%9D-%D7%95%D7%99%D7%9C%D7%93%D7%99%D7%9D/1221541-0/))",
+          "Palestinian reports: settlers set fire to a vehicle in Burka village and attempted to set fire to a clinic; several Palestinians needed medical treatment after violent attacks; Border Police officer lightly injured after settlers attacked security forces. ([source](https://www.haaretz.co.il/news/politics/war-2023/2026-03-23/ty-article-live/0000019d-17a3-d362-a7fd-1fa3e0870000?liveBlogItemId=2015219512))",
+          "IDF and Israel Police reported violent assaults, arson, and public disturbances by Israeli civilians in Judea and Samaria; five civilians apprehended. ([source](https://www.israelnationalnews.com/flashes/680705))",
+          "Nine foreign workers from Samaria arrested in Yavne for allegedly celebrating during sirens while residents rushed to protected areas. ([source](https://www.israelnationalnews.com/news/424415))",
+          "Teachers' union announced it 'will not allow any harm to teachers' conditions and will fight the Finance Ministry's intention by all available means, including legal.' ([source](https://www.ynet.co.il/news/article/bjhsjv0czg))",
+          "Compensation framework for supervised daycare centers excluding family daycare centers and private kindergartens, generating institutional conflict. ([source](https://www.maariv.co.il/news/education/article-1300250))"
+        ],
+        "narrative": "Belonging and solidarity on March 23 are present in localized acts of community organization and informal mutual aid but are counterbalanced by multiple active lines of social tension. Concrete solidarity is documented in the Yavne open-shelter initiative, the Golan volunteer education network, and elderly residents continuing to contribute to community life despite physical confinement. ([source](https://www.kipa.co.il/%D7%94%D7%95%D7%A8%D7%99%D7%9D-%D7%95%D7%99%D7%9C%D7%93%D7%99%D7%9D/1221541-0/)) Shelter proximity is simultaneously producing new forms of enforced social contact between previously distant neighbors — described as 'protected room-ness' — which may generate solidarity but also reflects a disruption of normal social boundaries rather than chosen community engagement. ([source](https://www.ynet.co.il/laisha/article/byuhlhy911e)) Against this, multiple conflict streams are active: settler violence against Palestinian civilians in the West Bank resulting in injuries and security force intervention ([source](https://www.haaretz.co.il/news/politics/war-2023/2026-03-23/ty-article-live/0000019d-17a3-d362-a7fd-1fa3e0870000?liveBlogItemId=2015219512)), the arrest of foreign workers in Yavne amid community reports of fear about their presence ([source](https://www.israelnationalnews.com/news/424415)), and institutional conflict between teachers' unions and the Finance Ministry over wartime working conditions. ([source](https://www.ynet.co.il/news/article/bjhsjv0czg)) Elderly residents in Jerusalem are experiencing forced social disconnection through prolonged shelter stays, indicating that for this population the emergency is reducing rather than strengthening social belonging. ([source](https://www.kipa.co.il/%D7%94%D7%95%D7%A8%D7%99%D7%9D-%D7%95%D7%99%D7%9C%D7%93%D7%99%D7%9D/1221541-0/))"
+      },
+      {
+        "component_id": "wellbeing_atrisk",
+        "score": 2,
+        "confidence": "high",
+        "signal_count": 63,
+        "distinct_article_count": 50,
+        "source_diversity": 16,
+        "coverage_ratio": 0.3597122302158273,
+        "dispersion": "moderate",
+        "coverage_adjustment": 0.88,
+        "positive_evidence": 4.869,
+        "negative_evidence": 15.701,
+        "net_evidence": -10.831,
+        "evidence_mass": 20.569,
+        "strength": -1,
+        "adjusted_strength": -0.88,
+        "certainty": 1,
+        "manifestations_evidenced": [
+          "Emotional support responses (psychological first aid, mental health services) are available and used by residents showing anxiety or trauma",
+          "Specific responses for at-risk or special-needs populations are reported as active (elderly, disabled, evacuees, etc.)",
+          "Reports of unmet mental health or physical wellbeing needs among residents"
+        ],
+        "manifestations_absent": [
+          "Residents in the second or third circle of vulnerability (indirectly affected) receive responses to their needs (informative absence)"
+        ],
+        "evidence": [
+          "Within 48 hours of the start of Operation 'Roar of the Lion,' calls to the Natal crisis line increased by 620%. ([source](http://news.walla.co.il/item/3825795))",
+          "Ido, age 34 from Tel Aviv: 'I haven't been in my routine for two and a half years and I'm not the same person. I'm treated with Cipralex to reduce anxiety and depression, and I know I'm dependent on it. Once I was a person of big dreams, today all that interests me is how I finish the day.' ([source](http://news.walla.co.il/item/3825795))",
+          "Health Ministry: 153 injured people hospitalized in past 24 hours; 2 serious, 2 moderate, 140 in good condition, 8 treated for anxiety. ([source](https://www.timesofisrael.com/liveblog_entry/hospital-says-condition-of-child-wounded-in-saturday-missile-attack-has-improved-5-children-1-adult-still-serious/))",
+          "In past 24 hours: 12 people injured running to shelters in a single day; 5 anxiety casualties treated. ([source](https://www.kikar.co.il/arab-news/mda-casualties-operation-lions-roar-summary))",
+          "Orna, resident of damaged building in Arad: 'I felt the floor shaking, and a second later I caught glass on my head. I covered my head with my hands. In first minutes I was afraid to lift my head because I didn't want to see.' ([source](https://www.maariv.co.il/news/israel/article-1299843))",
+          "Evacuee from Arad: 'We came out of the shelter and saw everything destroyed, like we do in Lebanon.' Liam, age 15: 'We have nothing - we came out like this.' ([source](https://www.haaretz.co.il/news/politics/2026-03-23/ty-article-magazine/.premium/0000019d-168f-de86-abff-979f5ec60000))",
+          "From Arad, 291 evacuees placed in Dead Sea hotels; Dimona authority placed 273 residents in a hotel and 23 in a nursing home; unique solution found for two families with special needs. ([source](https://www.maariv.co.il/news/israel/article-1300131))",
+          "Elderly residents in Jerusalem: prolonged shelter stays, fear of leaving home, forced social disconnection causing anxiety and psychological distress. ([source](https://www.kipa.co.il/%D7%94%D7%95%D7%A8%D7%99%D7%9D-%D7%95%D7%99%D7%9C%D7%93%D7%99%D7%9D/1221541-0/))",
+          "Noa Bardogo-Pasternak, director of Mediterranean Towers: 'In moments of emergency, loneliness intensifies, and precisely then the importance of community sharpens. Our role is to enable residents to continue living and creating, even when reality outside shakes.' ([source](https://www.kipa.co.il/%D7%94%D7%95%D7%A8%D7%99%D7%9D-%D7%95%D7%99%D7%9C%D7%93%D7%99%D7%9D/1221541-0/))",
+          "Migrant home care workers left without protection arrangements; described as facing danger while state agencies refer them between bodies with no actionable answer. ([source](https://www.maariv.co.il/news/opinions/article-1300135))",
+          "Adi Zibli (36) from Ramat Gan: 'Every boom I just say it won't be my home again.' Living in temporary solutions without a real sense of security, in an apartment without a protected room. ([source](https://www.ynet.co.il/economy/article/yokra14717010))",
+          "Social worker Shira Elias Rotter: 'We are all under existential threat experience, our nervous systems are activated. Fear doesn't always look like fear - sometimes expressed as nervousness, anger or tension.' ([source](https://www.ynet.co.il/laisha/article/byuhlhy911e))",
+          "From October 2023 to end of 2024, approximately 217 suspected suicide cases recorded, while pre-war annual average was about 242 cases; attributed to temporary wartime social cohesion. ([source](https://www.maariv.co.il/news/israel/article-1299724))",
+          "Nesim Emanuel: 'Possible signs of suicidal distress include withdrawal, sharp mood change, statements of despair. Don't need to be professionals to help. Knowing someone sees and hears can be very meaningful.' ([source](https://www.maariv.co.il/news/israel/article-1299724))"
+        ],
+        "narrative": "The wellbeing of at-risk populations is under documented and sustained strain. The 620% increase in calls to the Natal crisis line within 48 hours of the operation's start ([source](http://news.walla.co.il/item/3825795)) reflects a crisis response demand that substantially exceeds routine levels, with individual testimonies indicating this is not an acute episode but the continuation of deterioration dating from October 7, 2023. Acute physical and psychological casualties are being treated — 153 hospitalized in 24 hours, 8 for anxiety, 12 injured running to shelters ([source](https://www.kikar.co.il/arab-news/mda-casualties-operation-lions-roar-summary)) — and evacuation responses for directly affected populations in Arad and Dimona are active, with 291 and 273 residents respectively placed in hotels. ([source](https://www.maariv.co.il/news/israel/article-1300131)) However, two population groups are documented as receiving no state protection response: migrant home care workers, who are explicitly told by each agency to contact another ([source](https://www.maariv.co.il/news/opinions/article-1300135)), and elderly residents in Jerusalem experiencing forced social isolation and anxiety without documented outreach beyond institutional facility management. ([source](https://www.kipa.co.il/%D7%94%D7%95%D7%A8%D7%99%D7%9D-%D7%95%D7%99%D7%9C%D7%93%D7%99%D7%9D/1221541-0/)) The data on suicide rates showing a temporary wartime decline is a positive countervailing signal, but the pattern of cumulative psychological burden visible in individual testimony — one person describing sustained antidepressant dependency and loss of personal identity over two and a half years ([source](http://news.walla.co.il/item/3825795)) — suggests the wartime cohesion effect may not persist at current operational tempo."
+      }
+    ]
+  },
+  "signals": [
+    {
+      "article_index": 1,
+      "article_url": "https://www.ynet.co.il/news/theheadline/article/fcpbrey81",
+      "signal_type": "resilience_narrative_positive",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Anath Panti, Bar-Ilan policy researcher: 'Social cohesion, community, faith among certain populations and sense of meaning explain Israel's high ranking. We are very high in generosity and social support - this is the most fundamental distinction between us and other wealthy nations.'",
+      "scope_level": "single_case",
+      "article_source": "ynet.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 2,
+      "article_url": "https://www.ynet.co.il/economy/article/yokra14717010",
+      "signal_type": "fear_expression",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Adi Zibli (36), resident of Ramat Gan: 'Every boom I just say it won't be my home again.' Living in temporary solutions without real sense of security, in apartment without protected room.",
+      "scope_level": "single_case",
+      "article_source": "ynet.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 2,
+      "article_url": "https://www.ynet.co.il/economy/article/yokra14717010",
+      "signal_type": "resource_shortage",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Resident living in apartment without protected room, only partial shelter in building. Must search for proper protection during alerts at workplace in Givatayim.",
+      "scope_level": "single_case",
+      "article_source": "ynet.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 3,
+      "article_url": "https://www.ynet.co.il/economy/article/yokra14716620",
+      "signal_type": "service_disruption",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Shahar Sarusi (29) from Afula: 'Since Operation 'Roar of the Lion' events at 'Shisu and Rejoice' hall collapsed in terms of activity volume. Events dropped 90%, while I am constantly in reserves on Lebanon border.'",
+      "scope_level": "single_case",
+      "article_source": "ynet.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 3,
+      "article_url": "https://www.ynet.co.il/economy/article/yokra14716620",
+      "signal_type": "resource_mobilization",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Shahar Sarusi calling public to visit: 'I call on all Israeli public to come to us, we are improvising here and there, all small and subject to Home Front Command guidelines. I expect all of Israel to come to us in masses after victory and fill our businesses.'",
+      "scope_level": "single_case",
+      "article_source": "ynet.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 4,
+      "article_url": "https://www.ynet.co.il/environment-science/article/yokra14717577",
+      "signal_type": "routine_maintenance",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "After Ofer Moskowitz was killed, his friends moved tractors and went to the fields. War does not stop tree and fruit growth in orchards; stopping work means impact on full fruit harvest year.",
+      "scope_level": "single_case",
+      "article_source": "ynet.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 5,
+      "article_url": "https://www.ynet.co.il/news/article/bjhsjv0czg",
+      "signal_type": "conflict_or_tension",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Teachers' organizations responded sharply to Finance Minister Smotrich's proposal to stop remote learning during Iran war and make up lost days during summer vacation. Teachers' union announced it 'will not allow any harm to teachers' conditions and will fight the Finance Ministry's intention by all available means, including legal.'",
+      "scope_level": "single_case",
+      "article_source": "ynet.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 6,
+      "article_url": "https://www.ynet.co.il/economy/article/sykmbvc9be",
+      "signal_type": "service_continuity",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Bezek reported to stock exchange that damage from Iranian missile attack last week is negligible, and return to full production capacity expected within days. External infrastructure damaged in attack was restored to operation yesterday after company coordination with electric company.",
+      "scope_level": "single_case",
+      "article_source": "ynet.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 7,
+      "article_url": "https://www.ynet.co.il/laisha/article/byuhlhy911e",
+      "signal_type": "social_isolation",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "War created new social structure: 'protected room-ness' - neighbors who were previously distant now share intimate moments of anxiety in shared shelters, in pajamas with crying babies and mattresses opened on floor.",
+      "scope_level": "repeated_pattern",
+      "article_source": "ynet.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 7,
+      "article_url": "https://www.ynet.co.il/laisha/article/byuhlhy911e",
+      "signal_type": "fear_expression",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Social worker Shira Elias Rotter: 'We are all under existential threat experience, our nervous systems are activated. Fear doesn't always look like fear - sometimes expressed as nervousness, anger or tension.'",
+      "scope_level": "single_case",
+      "article_source": "ynet.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 8,
+      "article_url": "https://www.ynet.co.il/news/article/r1n4yo0911x",
+      "signal_type": "system_overload",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "El Al called for opening Ramon Airport as alternative to Ben Gurion, after Transport Ministry decision to limit passengers from Ben Gurion to 50 per flight. El Al stated current framework 'means effectively closing Israeli skies.'",
+      "scope_level": "single_case",
+      "article_source": "ynet.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 9,
+      "article_url": "https://www.ynet.co.il/digital/internet/article/b11kw9c511e",
+      "signal_type": "rumor_spread",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Social media creates 'contagion chain' where shares, reactions and engagement echo same content repeatedly, creating spiral hard to exit. Many videos circulating are edited and sometimes include AI elements; people may interpret as truth in first minutes of exposure.",
+      "scope_level": "repeated_pattern",
+      "article_source": "ynet.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 10,
+      "article_url": "https://www.ynet.co.il/economy/article/bype5occ11x",
+      "signal_type": "resilience_narrative_positive",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "David Azulai, head of Metula council: 'Even in the midst of difficult war days, I am happy about such news.' Data shows peak demand for housing in northern settlement where over half of residents before October 7 did not return.",
+      "scope_level": "single_case",
+      "article_source": "ynet.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 10,
+      "article_url": "https://www.ynet.co.il/economy/article/bype5occ11x",
+      "signal_type": "resource_mobilization",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Azulai: 'Already last week I received development costs for 18 additional plots and immediately after war ends we will launch their marketing. Must remember that contractor in new neighborhood returned to work only in January and unfortunately there is temporary halt due to war, but I have no doubt that after this war Metula will flourish and grow.'",
+      "scope_level": "single_case",
+      "article_source": "ynet.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 12,
+      "article_url": "https://www.ynet.co.il/news/article/b1qtkcc911e",
+      "signal_type": "service_disruption",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "After fourth week of Iran war and direct hits causing many casualties and widespread destruction, decision made to tighten Home Front Command guidelines for education system and cancel in-person learning nationwide. Education Minister Yoav Kisch announced Passover 'school of vacation' camps will open Tuesday in municipalities requesting them.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "ynet.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 12,
+      "article_url": "https://www.ynet.co.il/news/article/b1qtkcc911e",
+      "signal_type": "information_confusion",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Raises question: what is difference between camps and other education frameworks that remain closed before Passover? Contradictory guidance on opening criteria.",
+      "scope_level": "single_case",
+      "article_source": "ynet.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 13,
+      "article_url": "https://www.haaretz.co.il/news/politics/2026-03-23/ty-article-magazine/.premium/0000019d-168f-de86-abff-979f5ec60000?utm_source=mivzakimnet&utm_medium=rss&utm_campaign=mivzakimnet",
+      "signal_type": "fear_expression",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Evacuee from Arad: 'We came out of the shelter and saw everything destroyed, like we do in Lebanon.' Liam, age 15: 'We have nothing - we came out like this.' Still trying to process what happened while younger brother plays soccer in parking lot.",
+      "scope_level": "single_case",
+      "article_source": "haaretz.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 13,
+      "article_url": "https://www.haaretz.co.il/news/politics/2026-03-23/ty-article-magazine/.premium/0000019d-168f-de86-abff-979f5ec60000?utm_source=mivzakimnet&utm_medium=rss&utm_campaign=mivzakimnet",
+      "signal_type": "non_compliance_exit_early",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Most evacuees from impact sites pulled from beds with alerts yesterday, unable to return to homes damaged by Iranian missile. Evacuees in pajamas at David hotel by Dead Sea, having left with nothing.",
+      "scope_level": "repeated_pattern",
+      "article_source": "haaretz.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 14,
+      "article_url": "https://www.haaretz.co.il/news/education/2026-03-23/ty-article/.premium/0000019d-16e5-de86-abff-97fd13bb0000",
+      "signal_type": "information_confusion",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Since war start, Education Ministry zigzagged between guidelines for schools and municipalities, sending contradictory messages to public. Recently announced different decisions for limited opening of some education institutions, but changed them quickly due to missile hits in various settlements. Yesterday received latest decision to allow Passover camps subject to Home Front Command defense policy and local authority decisions. About 90 municipalities involved.",
+      "scope_level": "repeated_pattern",
+      "article_source": "haaretz.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 15,
+      "article_url": "https://www.haaretz.co.il/tmr/news/aviation/2026-03-23/ty-article/0000019d-1983-da49-a79f-ffbbed190000",
+      "signal_type": "system_overload",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Arkia airline announces transfer of 'main activity to Eilat and Taba airports' due to decision to reduce flights and passengers from Ben Gurion to 50 per flight instead of 120. CEO Oz Berlovitz: 'In current framework cannot maintain regular aviation activity, effectively means closing Israeli skies. Company cannot choose between passengers who already bought tickets, so preparing to transfer main activity to Eilat and Taba airports.'",
+      "scope_level": "single_case",
+      "article_source": "haaretz.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 16,
+      "article_url": "https://www.haaretz.co.il/news/politics/war-2023/2026-03-23/ty-article-live/0000019d-17a3-d362-a7fd-1fa3e0870000?liveBlogItemId=2015219512",
+      "signal_type": "conflict_or_tension",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Palestinian reports: settlers set fire to vehicle in Burka village and attempted to set fire to clinic. Security forces reported several Palestinians needed medical treatment after violent attacks, arson and disorder violations by settlers in various West Bank locations. In Yitzhar settlement, Border Police officer lightly injured after settlers attacked security forces; damage to security forces vehicles.",
+      "scope_level": "repeated_pattern",
+      "article_source": "haaretz.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 17,
+      "article_url": "https://www.haaretz.co.il/news/world/europe/2026-03-23/ty-article/.premium/0000019d-19bf-d82a-addd-59ff3baf0000",
+      "signal_type": "conflict_or_tension",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "British police investigating suspected antisemitic hate crime after four ambulances belonging to Jewish rescue organization were set on fire last night in north London. CNN reported fire occurred outside synagogue. No arrests made yet.",
+      "scope_level": "single_case",
+      "article_source": "haaretz.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 22,
+      "article_url": "https://www.maariv.co.il/news/education/article-1299847",
+      "signal_type": "service_disruption",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Education Minister Kisch decided not to allow in-person learning today, and to open special education at start of Passover vacation. Decision made after meeting with local authority heads following Saturday events in Arad and Dimona.",
+      "scope_level": "single_case",
+      "article_source": "maariv.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 22,
+      "article_url": "https://www.maariv.co.il/news/education/article-1299847",
+      "signal_type": "information_clarity",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Kisch clarifying rationale: 'Decision not to open in routine is not to allow release of large masses of children at once on way to and from frameworks. In non-formal activity like camps there are fewer children.'",
+      "scope_level": "single_case",
+      "article_source": "maariv.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 22,
+      "article_url": "https://www.maariv.co.il/news/education/article-1299847",
+      "signal_type": "leadership_clear_guidance",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Kisch: 'If war continues after Passover, can think about models of extending Passover vacation on one hand and shortening summer vacation on other. I see this as realistic possibility, preparing for it. If war continues weeks after Passover, right to extend vacation, propose doing so, operate Passover camps even if vacation extends, meanwhile shorten summer vacation.'",
+      "scope_level": "single_case",
+      "article_source": "maariv.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 23,
+      "article_url": "https://www.maariv.co.il/lifestyle/travel/article-1299841",
+      "signal_type": "service_disruption",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Zimmer owners in north, who suffered heavy revenue loss during Iron Swords, built hopes on approaching Passover for recovery. Current operation brought cancellation of all bookings, great frustration and worsening economic crisis.",
+      "scope_level": "repeated_pattern",
+      "article_source": "maariv.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 23,
+      "article_url": "https://www.maariv.co.il/lifestyle/travel/article-1299841",
+      "signal_type": "fear_expression",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Zimmer owner: 'During Iron Swords we were evacuated, so complex barely worked almost two years. We returned in February last year. Last Passover we didn't host because needed to renovate. Had plan to host this Passover, but someone messed it up.'",
+      "scope_level": "single_case",
+      "article_source": "maariv.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 23,
+      "article_url": "https://www.maariv.co.il/lifestyle/travel/article-1299841",
+      "signal_type": "resilience_narrative_negative",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Zimmer owner: 'Woe to decision-makers in Israel if there is another round against Hezbollah. Because if that happens, we simply gave up the north. People won't return here anymore. Can't live like this, can't plan anything. No more option for fighting rounds. Must cut this story once and for all.'",
+      "scope_level": "single_case",
+      "article_source": "maariv.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 24,
+      "article_url": "https://www.maariv.co.il/news/israel/article-1299843",
+      "signal_type": "fear_expression",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Orna, resident of damaged building in Arad: 'I felt the floor shaking, and a second later I caught glass on my head. I covered my head with my hands. In first minutes I was afraid to lift my head because didn't want to see, but when I gathered courage I saw that I and the dogs weren't injured.'",
+      "scope_level": "single_case",
+      "article_source": "maariv.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 24,
+      "article_url": "https://www.maariv.co.il/news/israel/article-1299843",
+      "signal_type": "resource_shortage",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Orna: 'I hope I will receive money from the state to rent apartment, and hope landlord will approve me bringing dogs because I'm not willing to leave them. Now waiting for assessors and engineers who are supposed to check if building can be repaired or will be demolished.'",
+      "scope_level": "single_case",
+      "article_source": "maariv.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 25,
+      "article_url": "https://www.maariv.co.il/news/israel/article-1299724",
+      "signal_type": "resilience_narrative_positive",
+      "evidence_type": "named_survey_statistic",
+      "evidence": "From October 2023 to end of 2024, approximately 217 suspected suicide cases recorded, while pre-war annual average was about 242 cases. Phenomenon known from international research: during war and national crisis, temporary decrease in suicidal behavior sometimes recorded due to sense of social cohesion, joint mobilization and sense of meaning in shared struggle.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "maariv.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 25,
+      "article_url": "https://www.maariv.co.il/news/israel/article-1299724",
+      "signal_type": "information_clarity",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Nesim Emanuel: 'Possible signs of suicidal distress include withdrawal and distance from surroundings, sharp mood change, statements of despair or feeling there is no way out. Don't need to be professionals to help. If we identify distress - important to be there, listen without judgment and encourage seeking help. Knowing someone sees and hears can be very meaningful.'",
+      "scope_level": "single_case",
+      "article_source": "maariv.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 27,
+      "article_url": "https://www.maariv.co.il/news/politics/article-1299975",
+      "signal_type": "resource_mobilization",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Finance Ministry and Labor Ministry agreed on special aid framework for war period: significant refund to parents for days without activity, advances to caregivers and guarantee of quick return of daycare centers to full activity. Finance Minister Smotrich: 'Reached important agreements for aid to supervised symbol daycare centers to ensure functional continuity, ease burden on parents with refunds, and ensure caregivers receive appropriate response including advance payments.'",
+      "scope_level": "single_case",
+      "article_source": "maariv.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 28,
+      "article_url": "https://www.maariv.co.il/lifestyle/travel/article-1300012",
+      "signal_type": "system_overload",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Arkia clarifies regarding 50-passenger limit per flight: 'Company operates according to Transport Ministry guidelines, but emphasizes: this is effectively 'closing Israeli skies.' Current framework - dramatic reduction in passenger numbers - creates heavy operational difficulty for Israeli airlines.",
+      "scope_level": "single_case",
+      "article_source": "maariv.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 29,
+      "article_url": "https://www.maariv.co.il/news/israel/article-1300003",
+      "signal_type": "leadership_clear_guidance",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Education Minister Kisch: 'Education system's role is to build people who care about the state, about each other, to build identity - this is perhaps the most important thing in education system. What happens? We are in war, difficult war. Here I say education system cannot work normally, cannot return to workplaces for many reasons.'",
+      "scope_level": "single_case",
+      "article_source": "maariv.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 29,
+      "article_url": "https://www.maariv.co.il/news/israel/article-1300003",
+      "signal_type": "information_confusion",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Model under discussion addresses shortening summer vacation without harming teachers' conditions. Remote learning and what was - this is hard work of educators, teachers, kindergarten teachers, it is not event that will be possible to reverse the work.",
+      "scope_level": "single_case",
+      "article_source": "maariv.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 30,
+      "article_url": "https://www.maariv.co.il/news/israel/article-1300045",
+      "signal_type": "coordination_failure",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Eitz Efraim council closed protected room in community center due to vandalism. Residents angry: 'Abandoning us because of graffiti.' Protected room located strategically near playground where dozens of children daily, near synagogue complex. Closest shelter for residents with disabilities living nearby. Proposed solution: 'responsible adult' with key.",
+      "scope_level": "single_case",
+      "article_source": "maariv.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 30,
+      "article_url": "https://www.maariv.co.il/news/israel/article-1300045",
+      "signal_type": "risk_exposure_behavior",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Last Saturday alert during prayer: adults and children forced to run to distant locations and risk themselves because shelter was locked. Residents' attempt to get response became exhausting journey between authorities. Council head referred to CEO, Home Front Command claimed not enforcement body and referred to police, police said not their authority and returned ball to municipality.",
+      "scope_level": "single_case",
+      "article_source": "maariv.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 31,
+      "article_url": "https://www.maariv.co.il/news/israel/article-1300131",
+      "signal_type": "resource_shortage",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "From Arad, 291 evacuees went to Dead Sea hotels. Gur community members, many living in damaged apartments, evacuated independently to arranged hotel in Jerusalem. Municipality says no residents without solution. Arad began operating enhanced aid center employing hundreds of volunteers receiving many donations. After initial engineering checks on damaged buildings, currently 4 apartment buildings not suitable for living. Upcoming period will conduct mapping and comprehensive building survey.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "maariv.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 31,
+      "article_url": "https://www.maariv.co.il/news/israel/article-1300131",
+      "signal_type": "resource_mobilization",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "In Dimona, residential buildings in areas hit by missile bombs became unsuitable for living. Initial checks showed buildings in areas where bombs exploded suffered major damage. Alongside residential buildings, public buildings like education institutions and various clubs damaged, some unsuitable for use. Some buildings remain suitable for living but due to dangers from surrounding destruction, not possible. From Dimona, 273 residents evacuated to Dead Sea hotel and 23 to nursing home in city. Authority also found unique solution for two families with special needs.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "maariv.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 32,
+      "article_url": "https://www.maariv.co.il/news/opinions/article-1300135",
+      "signal_type": "resource_shortage",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Home care nursing relies on migrant workers. According to CBS 2024 data, over one-third (38.8%) of licensed foreign workers are in nursing, mostly women. Yet despite care for nursing patients resting on migrant workers, in emergency state ignores them almost entirely, leaving their safety to private agreements with employers, patients and families - unequal agreements reaching danger to their lives.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "maariv.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 32,
+      "article_url": "https://www.maariv.co.il/news/opinions/article-1300135",
+      "signal_type": "coordination_failure",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Paradox: 'employer' is often elderly or disabled person unable to create protection or evacuate independently, and state produces no mandatory protection arrangement. Home care workers remain without answer - when contacting National Insurance or Labor Ministry, referred to Home Front Command, which avoids giving specific and relevant answer to dilemma: stay with nursing patient and risk lives, or shelter and risk workplace and patient.",
+      "scope_level": "repeated_pattern",
+      "article_source": "maariv.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 33,
+      "article_url": "https://www.maariv.co.il/news/israel/article-1300127",
+      "signal_type": "non_compliance_exit_early",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Dangerous phenomenon: passengers run to take shelter during alert - and bus leaves. Passengers descended to shelter - bus drove away before Home Front Command release message received. Driver left behind significant number of passengers without alternative public transport.",
+      "scope_level": "repeated_pattern",
+      "article_source": "maariv.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 33,
+      "article_url": "https://www.maariv.co.il/news/israel/article-1300127",
+      "signal_type": "coordination_failure",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Electra Egged response: 'Company sees passenger safety as supreme value both in routine and certainly in emergency. According to company procedures and Home Front Command guidelines, driver must stop safely, open doors and wait until event completion message received before continuing journey. Due to security situation, conducting daily briefings and refreshing emergency procedures for all company drivers to ensure strict adherence to these guidelines. Described cases will be thoroughly investigated and lessons drawn.'",
+      "scope_level": "repeated_pattern",
+      "article_source": "maariv.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 36,
+      "article_url": "https://www.maariv.co.il/breaking-news/article-1300203",
+      "signal_type": "solidarity_help_others",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "'Welcome to enter protected room in this house' - written on hundreds of street signs distributed to homes and residential buildings in Yavne. In days when every second determines injury risk, Yavne municipality decided to raise initiative allowing anyone on street during alert to enter nearby residential protected rooms.",
+      "scope_level": "repeated_pattern",
+      "article_source": "maariv.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 36,
+      "article_url": "https://www.maariv.co.il/breaking-news/article-1300203",
+      "signal_type": "leadership_visible_presence",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Yavne Mayor Roy Gavai: 'Initiative enables every resident to take active part in protecting human life. It illustrates strong community spirit characterizing Yavne. This is city where people care for each other even in most challenging moments. Here we see true strength of our residents. There is warm community here. Municipal initiative expresses mutual responsibility and I call on everyone who can open door in emergency to help us expand city security network.'",
+      "scope_level": "single_case",
+      "article_source": "maariv.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 37,
+      "article_url": "https://www.maariv.co.il/news/education/article-1300210",
+      "signal_type": "service_disruption",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Passover camps 'School of Holidays' opening this week nationwide in limited manner and in some places only for kindergarten children, except northern front line where activity banned and most central cities decided not to take risk at all. Country divided into yellow zone allowing activity near protected room (mainly Arava, Arabah, west and south Negev) and 'orange' zones where other municipalities, except northern front line, defined as allowing camps only in protected spaces.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "maariv.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 37,
+      "article_url": "https://www.maariv.co.il/news/education/article-1300210",
+      "signal_type": "system_overload",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Local authority official: 'Even if we want to open camp for grades 1-2, guidelines require keeping up to 30 children in each protected space but groups often larger and splitting requires more staff not available in some places and more protected spaces not available in other places or located far away and not nearby.'",
+      "scope_level": "single_case",
+      "article_source": "maariv.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 39,
+      "article_url": "https://www.maariv.co.il/news/education/article-1300250",
+      "signal_type": "conflict_or_tension",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Compensation framework for supervised daycare centers causing uproar: family daycare centers and private kindergartens excluded, Knesset members warning of collapse and harm to thousands of parents and caregivers, demanding direct compensation to parents.",
+      "scope_level": "repeated_pattern",
+      "article_source": "maariv.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 39,
+      "article_url": "https://www.maariv.co.il/news/education/article-1300250",
+      "signal_type": "resource_shortage",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Knesset member Shitrit: 'Before war, revealed shortage of about 3,000 caregivers in economy. Since October 7, estimate 600 early childhood frameworks closed. In Corona 1,600 frameworks closed, in second wave 1,100 closed. With Iron Swords outbreak, by end 2023 about 700 additional frameworks closed. This is direct result every time you bring bad framework.'",
+      "scope_level": "quantified_or_broad",
+      "article_source": "maariv.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 40,
+      "article_url": "https://www.maariv.co.il/lifestyle/travel/article-1300253",
+      "signal_type": "service_disruption",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Lufthansa Group announces will not return to operate routes to Israel until at least May 31. Lufthansa, SWISS, Austrian Airlines and Brussels Airlines will not return to Israel routes and from Israel at least until May 31. Meanwhile Eurowings and Lufthansa Cargo suspended flights until April 30.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "maariv.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 42,
+      "article_url": "http://news.walla.co.il/item/3825666",
+      "signal_type": "leadership_clear_guidance",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Education Minister Kisch on 103fm: 'We are going to Passover vacation and in this period need to build framework. If war continues after Passover, can think about models of extending vacation at expense of shortening summer vacation. I understand there is uncertainty and need to prepare for situation where war continues after Passover.'",
+      "scope_level": "single_case",
+      "article_source": "news.walla.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 42,
+      "article_url": "http://news.walla.co.il/item/3825666",
+      "signal_type": "information_confusion",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Meanwhile, Israeli children learning remotely and parents and students criticizing temporary solution: 'If compare to in-person learning, it is disabled tool and less effective. What does it give? In young ages, when kindergarten teacher and educator connect, has great importance for resilience. With us average entries stand at 1.1 million children reporting as participants - about 65%-70% of children.'",
+      "scope_level": "single_case",
+      "article_source": "news.walla.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 43,
+      "article_url": "http://news.walla.co.il/item/3825672",
+      "signal_type": "non_compliance_ignore_guidelines",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Israeli police arrested 9 foreign workers at construction site in Yavne today, suspected of singing and dancing during alerts in city - while other residents ran to protected rooms and shelters. 'Will continue to act decisively to locate illegal residents, and take action against anyone who violates public order or expresses support for enemy during war,' police stated.",
+      "scope_level": "single_case",
+      "article_source": "news.walla.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 43,
+      "article_url": "http://news.walla.co.il/item/3825672",
+      "signal_type": "fear_expression",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Yavne resident: 'It's really scary, these foreign workers sleeping here. When there are alerts they sing and dance here, it's really scary.' Called police reporting 'different sounds' from construction sites in city.",
+      "scope_level": "single_case",
+      "article_source": "news.walla.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 44,
+      "article_url": "http://news.walla.co.il/item/3825700",
+      "signal_type": "service_disruption",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "While education system struggles to function under complex security reality since war start, with almost daily different decision about closing and opening education institutions, many parents in central Israel find themselves alone in battle: without frameworks for children, without Passover camps and without adequate alternative solutions, alongside security complexities and sometimes severe economic harm.",
+      "scope_level": "repeated_pattern",
+      "article_source": "news.walla.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 44,
+      "article_url": "http://news.walla.co.il/item/3825700",
+      "signal_type": "information_confusion",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Attorney Hagar Gerty Zada, mother of four from Ramat Gan: 'There are no frameworks. Simply none. We are dealing with children at home for long days, without any real response from system. True, Zoom is not ideal, but at least it gave children some framework, social meeting, something holding them. Today there is not even that. There are enough protected buildings in Ramat Gan, there are schools that can hold small groups. Could split classes, work in groups of 10 to 15 children, bring temporary staff. Hundreds of people at home on unpaid leave. Why not integrate them?'",
+      "scope_level": "single_case",
+      "article_source": "news.walla.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 48,
+      "article_url": "http://news.walla.co.il/item/3825795",
+      "signal_type": "fear_expression",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Ido, age 34 from Tel Aviv: 'I haven't been in my routine for two and a half years and I'm not the same person. I'm treated with Cipralex to reduce anxiety and depression, and I know I'm dependent on it. Once I was person of big dreams, today all that interests me is how I finish the day.'",
+      "scope_level": "single_case",
+      "article_source": "news.walla.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 48,
+      "article_url": "http://news.walla.co.il/item/3825795",
+      "signal_type": "system_overload",
+      "evidence_type": "named_survey_statistic",
+      "evidence": "Within 48 hours only from start of Operation 'Roar of the Lion,' recorded 620% increase in calls to Natal crisis line. Extraordinary number indicating widespread distress. But when listening to testimonies themselves, real story began much earlier, already October 7, and has only deepened since.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "news.walla.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 49,
+      "article_url": "http://news.walla.co.il/item/3825811",
+      "signal_type": "service_disruption",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "'With heavy but whole heart, and thinking of dear Holocaust survivors, their families and teams, forced to announce cancellation of delegations leaving Israel for March of the Living,' said Roytel Yakin Karkowski, CEO of March of the Living in Israel. 'Security situation and Israel's policy of opening and closing skies do not currently allow safe departure. Israeli delegation will return to March next year with head held high and rejoin tens of thousands of participants worldwide.'",
+      "scope_level": "single_case",
+      "article_source": "news.walla.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 50,
+      "article_url": "http://news.walla.co.il/item/3825830",
+      "signal_type": "service_continuity",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Many municipalities in Israel decided to open Passover camps starting tomorrow (Tuesday), amid Operation 'Roar of the Lion' and despite tensions. Municipalities announcing opening of frameworks: Jerusalem, Sderot, Afula, Ginat Tiqva, Beit Shemesh, Modiin, Givat Shmuel, Tel Mond, Even Yehuda, Kfar Yona, Lod, Ariel. Passover camps will also be held in regional councils: Hevel Eilot, Emek Hefer, Shafir, Karni Shomron, Gush Etzion, Gan Rawa, Har Hevron, Hevel Modiin, Lev HaSharon, Tamar, Carmel Coast, Yoav, Nahal Sorek, Jordan Valley, Binyamin, Ashkelon, Bni Shimon.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "news.walla.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 1,
+      "article_url": "https://www.mako.co.il/news-military/Israel_iran_war/Article-3f2ec38e98b1d91027.htm",
+      "signal_type": "compliance_enter_shelter",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Map shows how many times alerts were activated, size of settlements where alerts sounded, and how many Israelis entered protected spaces during each alert over 5 years from 'Guardian of the Walls' to 'Lion's Roar'",
+      "scope_level": "quantified_or_broad",
+      "article_source": "mako.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 7,
+      "article_url": "https://www.kikar.co.il/kikarfm/shaare-zedek-wartime-births-1",
+      "signal_type": "service_continuity",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Shaare Zedek Medical Center: entire obstetric department moved to protected underground facility; delivery rooms, maternity ward, and triage relocated to bunker; operations continue uninterrupted during alerts",
+      "scope_level": "quantified_or_broad",
+      "article_source": "kikar.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 7,
+      "article_url": "https://www.kikar.co.il/kikarfm/shaare-zedek-wartime-births-1",
+      "signal_type": "calm_confidence",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Bat Ami Israel, nursing director at Shaare Zedek obstetric department: 'When an alert sounds, mothers and staff stay in place. No one needs to run anywhere. Even if we're in the middle of a cesarean, the service continues as usual and the alerts just pass over us.'",
+      "scope_level": "single_case",
+      "article_source": "kikar.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 9,
+      "article_url": "https://www.kikar.co.il/arab-news/mda-casualties-operation-lions-roar-summary",
+      "signal_type": "system_overload",
+      "evidence_type": "named_survey_statistic",
+      "evidence": "In past 24 hours: 19 casualties treated; 14 physical injuries, 5 anxiety casualties; 12 people injured running to shelters in single day",
+      "scope_level": "quantified_or_broad",
+      "article_source": "kikar.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 6,
+      "article_url": "https://www.kikar.co.il/israel-news/tcb1fa",
+      "signal_type": "coordination_failure",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Bnei Brak: Ministry of Education closed schools contrary to Home Front Command guidelines; thousands of parents and children left at locked gates; contradictory instructions between Home Front Command and Education Ministry",
+      "scope_level": "repeated_pattern",
+      "article_source": "kikar.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 6,
+      "article_url": "https://www.kikar.co.il/israel-news/tcb1fa",
+      "signal_type": "service_disruption",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Education institutions in Bnei Brak closed despite Home Front Command approval to operate; daycare centers and schools with standard protected spaces shut down",
+      "scope_level": "repeated_pattern",
+      "article_source": "kikar.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 14,
+      "article_url": "https://www.inn.co.il/news/692889",
+      "signal_type": "resilience_narrative_positive",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Miriam Peretz: 'We are in Nisan - month of miracles. There is difficulty, but we are a people that does not lose hope. It is in our DNA, and a person who loses hope has no strength to get up and run.'",
+      "scope_level": "single_case",
+      "article_source": "inn.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 14,
+      "article_url": "https://www.inn.co.il/news/692889",
+      "signal_type": "resilience_narrative_positive",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Miriam Peretz: 'Look at the big picture - it is a great miracle. Yes, there are casualties, but also great salvation. You must follow the instructions and believe it will be good.'",
+      "scope_level": "single_case",
+      "article_source": "inn.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 14,
+      "article_url": "https://www.inn.co.il/news/692889",
+      "signal_type": "calm_confidence",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Miriam Peretz on Passover Seder: 'There may be an alert - we will get up and return to the table. We will sing, dance and say: In every generation they rise against us to destroy us. It will be a beautiful Seder. Maybe crowded, maybe with alerts - but full of life.'",
+      "scope_level": "single_case",
+      "article_source": "inn.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 15,
+      "article_url": "https://www.inn.co.il/news/692893",
+      "signal_type": "risk_exposure_behavior",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Large missile fragment fell in schoolyard of Faduel elementary school at night; no casualties because building was empty due to nationwide school closure decision",
+      "scope_level": "single_case",
+      "article_source": "inn.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 16,
+      "article_url": "https://www.inn.co.il/news/692924",
+      "signal_type": "service_continuity",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Jerusalem municipality: special education institutions and 'Nitzanim' kindergarten camps resume operations from Tuesday, March 24, in coordination with Home Front Command; participation voluntary; full adherence to defense guidelines",
+      "scope_level": "quantified_or_broad",
+      "article_source": "inn.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 22,
+      "article_url": "https://www.srugim.co.il/news/1300349",
+      "signal_type": "service_continuity",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Jerusalem municipality: 'Nitzanim' Passover camps for kindergarten and grades 1-3 opening tomorrow (March 24) in coordination with Home Front Command; no transportation provided",
+      "scope_level": "quantified_or_broad",
+      "article_source": "srugim.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 26,
+      "article_url": "https://www.srugim.co.il/news/1300391",
+      "signal_type": "compliance_follow_instructions",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "IDF spokesman: residents of northern border and Golan Heights instructed to remain near protected spaces until further notice; minimize movement, avoid gatherings, enter shelter immediately upon alert",
+      "scope_level": "quantified_or_broad",
+      "article_source": "srugim.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 33,
+      "article_url": "https://www.kipa.co.il/%D7%94%D7%95%D7%A8%D7%99%D7%9D-%D7%95%D7%99%D7%9C%D7%93%D7%99%D7%9D/1221541-0/",
+      "signal_type": "social_isolation",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Elderly residents in Jerusalem: prolonged shelter stays, fear of leaving home, forced social disconnection causing anxiety and psychological distress during 'Lion's Roar' operation",
+      "scope_level": "repeated_pattern",
+      "article_source": "kipa.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 33,
+      "article_url": "https://www.kipa.co.il/%D7%94%D7%95%D7%A8%D7%99%D7%9D-%D7%95%D7%99%D7%9C%D7%93%D7%99%D7%9D/1221541-0/",
+      "signal_type": "service_continuity",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Mediterranean Towers senior residence in Jerusalem: routine activities (lectures, clubs, sports training) relocated to protected spaces; residents continue normal schedule despite external threats",
+      "scope_level": "quantified_or_broad",
+      "article_source": "kipa.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 33,
+      "article_url": "https://www.kipa.co.il/%D7%94%D7%95%D7%A8%D7%99%D7%9D-%D7%95%D7%99%D7%9C%D7%93%D7%99%D7%9D/1221541-0/",
+      "signal_type": "community_volunteering",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Elderly residents at Mediterranean Towers continue volunteering activities to support soldiers during wartime, maintaining sense of purpose and community contribution",
+      "scope_level": "repeated_pattern",
+      "article_source": "kipa.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 33,
+      "article_url": "https://www.kipa.co.il/%D7%94%D7%95%D7%A8%D7%99%D7%9D-%D7%95%D7%99%D7%9C%D7%93%D7%99%D7%9D/1221541-0/",
+      "signal_type": "calm_confidence",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Noa Bardogo-Pasternak, director of Mediterranean Towers: 'In moments of emergency, loneliness intensifies, and precisely then the importance of community sharpens. Our role is to enable residents to continue living and creating, even when reality outside shakes.'",
+      "scope_level": "single_case",
+      "article_source": "kipa.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 37,
+      "article_url": "https://www.globes.co.il/news/article.aspx?did=1001538231",
+      "signal_type": "self_organization",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Golan Regional Council: 170 volunteers (60 kindergarten teachers, 40 teachers, others from pre-military programs) organized emergency education system combining formal and informal education for ages birth-9",
+      "scope_level": "quantified_or_broad",
+      "article_source": "globes.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 37,
+      "article_url": "https://www.globes.co.il/news/article.aspx?did=1001538231",
+      "signal_type": "service_continuity",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Golan Regional Council: in-person morning activities for kindergarten and grades 1-3; afternoon Zoom classes for grades 1-3; coordination with Education Ministry to use flexible budget (150,000 shekels) for emergency education",
+      "scope_level": "quantified_or_broad",
+      "article_source": "globes.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 36,
+      "article_url": "https://www.globes.co.il/news/article.aspx?did=1001538220",
+      "signal_type": "non_compliance_exit_early",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Tel Aviv small claims court: couple prevented from entering shelter with two dogs; court ruled 7,000 shekel compensation; incident from previous Iran operation (June 2025)",
+      "scope_level": "single_case",
+      "article_source": "globes.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 50,
+      "article_url": "https://www.timesofisrael.com/liveblog_entry/hospital-says-condition-of-child-wounded-in-saturday-missile-attack-has-improved-5-children-1-adult-still-serious/",
+      "signal_type": "system_overload",
+      "evidence_type": "named_survey_statistic",
+      "evidence": "Health Ministry: 153 injured people hospitalized in past 24 hours from Iran-Hezbollah conflict; 2 serious, 2 moderate, 140 good condition, 8 treated for anxiety",
+      "scope_level": "quantified_or_broad",
+      "article_source": "timesofisrael.com",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 51,
+      "article_url": "https://www.timesofisrael.com/liveblog_entry/bazan-oil-refinery-says-all-activities-to-resume-in-haifa-in-coming-days-after-missile-attack-damage/",
+      "signal_type": "service_disruption",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Bazan oil refinery in Haifa: operations disrupted by Thursday Iranian missile attack; external infrastructure company hit by interception fragments; all activities expected to resume in coming days",
+      "scope_level": "quantified_or_broad",
+      "article_source": "timesofisrael.com",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 52,
+      "article_url": "https://www.timesofisrael.com/liveblog_entry/emergency-services-at-2-sites-of-impacts-after-iranian-missile-attack-no-immediate-reports-of-injuries/",
+      "signal_type": "compliance_enter_shelter",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Sirens sounded across Jerusalem area and parts of southern and central Israel during Iranian ballistic missile attack; emergency services responded to impact sites",
+      "scope_level": "quantified_or_broad",
+      "article_source": "timesofisrael.com",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 54,
+      "article_url": "https://www.timesofisrael.com/liveblog_entry/idf-tells-northern-border-residents-to-stay-near-shelters-due-to-expected-hezbollah-rockets/",
+      "signal_type": "compliance_follow_instructions",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "IDF: residents of Lebanon border communities instructed to remain near shelters until further notice; minimize movement, avoid gatherings, enter protected space immediately upon alert",
+      "scope_level": "quantified_or_broad",
+      "article_source": "timesofisrael.com",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 55,
+      "article_url": "https://www.timesofisrael.com/liveblog_entry/jerusalem-to-open-pre-passover-camps-in-kindergartens-across-the-city/",
+      "signal_type": "service_continuity",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Jerusalem municipality: pre-Passover camps opening in kindergartens across city for ages 3-6; obtained Home Front Command permission; camps operate 8:00-16:00 in sheltered locations",
+      "scope_level": "quantified_or_broad",
+      "article_source": "timesofisrael.com",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 56,
+      "article_url": "https://www.timesofisrael.com/liveblog_entry/fresh-flight-restrictions-thwart-israelis-passover-plans-send-carriers-scrambling/",
+      "signal_type": "service_disruption",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Transportation Ministry: sharp reduction in Ben Gurion Airport takeoffs and landings due to Iranian missile threat; El Al and Arkia reviewing operations; Arkia shifting operations to Egypt and Jordan",
+      "scope_level": "quantified_or_broad",
+      "article_source": "timesofisrael.com",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 56,
+      "article_url": "https://www.timesofisrael.com/liveblog_entry/fresh-flight-restrictions-thwart-israelis-passover-plans-send-carriers-scrambling/",
+      "signal_type": "resource_shortage",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Flight restrictions upend Passover travel plans for tens of thousands of Israelis; carriers unable to operate regular schedules",
+      "scope_level": "quantified_or_broad",
+      "article_source": "timesofisrael.com",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 58,
+      "article_url": "https://www.timesofisrael.com/liveblog_entry/israir-says-it-will-limit-flights-to-5-destinations-due-to-wartime-restrictions/",
+      "signal_type": "service_disruption",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Israir: limited to 5 destinations (Athens, Larnaca, Rome, Tbilisi, Addis Ababa) from 5 p.m. today; only 50% of recent flight numbers allowed; maximum 50 passengers per flight from Israel",
+      "scope_level": "quantified_or_broad",
+      "article_source": "timesofisrael.com",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 32,
+      "article_url": "https://www.themarker.com/news/macroeconomics/2026-03-23/ty-article/.premium/0000019d-1afd-d8da-a7dd-fffd6cd90000",
+      "signal_type": "system_overload",
+      "evidence_type": "named_survey_statistic",
+      "evidence": "Central Bureau of Statistics: 170,000 workers absent from work for economic reasons in February 2026 due to workplace closures; numbers expected to rise further in March",
+      "scope_level": "quantified_or_broad",
+      "article_source": "themarker.com",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 46,
+      "article_url": "https://bokra.net/Article-1590748",
+      "signal_type": "system_overload",
+      "evidence_type": "named_survey_statistic",
+      "evidence": "Israeli Employment Service: 31,122 new job seekers registered since start of 'Lion's Roar' operation; 12,794 registered in week of March 15-21; 61.5% women (19,127), 38.5% men (11,995)",
+      "scope_level": "quantified_or_broad",
+      "article_source": "bokra.net",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 45,
+      "article_url": "https://bokra.net/Article-1590825",
+      "signal_type": "resource_mobilization",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Finance and Labor Ministries: agreement with daycare operators to return 85% of parent payments for days facilities were closed; government financial support for war period; caregiver payments via unpaid leave mechanism",
+      "scope_level": "quantified_or_broad",
+      "article_source": "bokra.net",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 47,
+      "article_url": "https://www.newsru.co.il/finance/23mar2026/naamat303.html",
+      "signal_type": "resource_mobilization",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Russian: Finance and Labor Ministries agreement with state-supervised daycare organizations (VICO, NAAMAT): parents receive 85% refund for closure days; caregivers paid via unpaid leave mechanism; subsidies continue for operational flexibility",
+      "scope_level": "quantified_or_broad",
+      "article_source": "newsru.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 48,
+      "article_url": "https://www.newsru.co.il/health/23mar2026/minzdrav501.html",
+      "signal_type": "system_overload",
+      "evidence_type": "named_survey_statistic",
+      "evidence": "Russian: Health Ministry military report: 153 injured admitted to hospitals in 24 hours",
+      "scope_level": "quantified_or_broad",
+      "article_source": "newsru.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 49,
+      "article_url": "https://www.9tv.co.il/item/211119",
+      "signal_type": "resource_mobilization",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Russian: Knesset Finance Committee approved 2026 state budget; Defense Ministry budget increased by 30 billion shekels to 142 billion shekels; total budget 850.6 billion shekels with 3% cuts across most ministries",
+      "scope_level": "quantified_or_broad",
+      "article_source": "9tv.co.il",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 1,
+      "article_url": "https://www.jpost.com/consumerism/article-890750",
+      "signal_type": "resource_mobilization",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "116 hotels across the country join initiative 'To the North with a Benefit' offering third night free to northern residents through end of March",
+      "scope_level": "quantified_or_broad",
+      "article_source": "jpost.com",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 2,
+      "article_url": "https://www.jpost.com/israel-news/article-890925",
+      "signal_type": "resource_mobilization",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Hashomer Hachadash begins placing 60 bomb shelters in agricultural fields and ranches; aims to fund 100-120 shelters in near term",
+      "scope_level": "quantified_or_broad",
+      "article_source": "jpost.com",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 2,
+      "article_url": "https://www.jpost.com/israel-news/article-890925",
+      "signal_type": "resource_shortage",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Hashomer Hachadash described ongoing shortage of protected spaces in agricultural areas",
+      "scope_level": "single_case",
+      "article_source": "jpost.com",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 2,
+      "article_url": "https://www.jpost.com/israel-news/article-890925",
+      "signal_type": "service_continuity",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Onn Rifman: 'shelters would be delivered to dozens of farmers from Thursday onward so they could continue agricultural work even during Operation Roaring Lion'",
+      "scope_level": "single_case",
+      "article_source": "jpost.com",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 4,
+      "article_url": "https://www.jpost.com/israel-news/article-890962",
+      "signal_type": "information_clarity",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "US Embassy organized assisted overland departures for US citizens through Jordan, providing bus transport and clear guidance on border fees and onward travel arrangements",
+      "scope_level": "quantified_or_broad",
+      "article_source": "jpost.com",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 5,
+      "article_url": "https://www.haaretz.com/israel-news/travel/2026-03-23/ty-article/tel-avivs-airport-restrictions-push-israelis-to-fly-via-sinai-and-jordan/0000019d-15b4-db4d-a5fd-5fb70f1e0000",
+      "signal_type": "system_overload",
+      "evidence_type": "named_survey_statistic",
+      "evidence": "Daily departing passengers from Ben-Gurion Airport dropped 85% since March 5; restrictions allow only 1-2 flights per hour with maximum 100 passengers per flight",
+      "scope_level": "quantified_or_broad",
+      "article_source": "haaretz.com",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 7,
+      "article_url": "https://www.ynetnews.com/article/bj2gkuccbx",
+      "signal_type": "information_confusion",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Sirens activated in parts of central Israel without advance warning; initial indications suggested cluster-type munition but not officially confirmed",
+      "scope_level": "single_case",
+      "article_source": "ynetnews.com",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 8,
+      "article_url": "https://www.ynetnews.com/article/hjyoi00rqbe",
+      "signal_type": "leadership_clear_guidance",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "IDF officer: 'We can look residents in the eye and say that this threat, in a tangible sense, does not exist. There is no raid threat.'",
+      "scope_level": "single_case",
+      "article_source": "ynetnews.com",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 9,
+      "article_url": "https://www.ynetnews.com/travel/article/bymghoc511x",
+      "signal_type": "service_disruption",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Arkia Airlines: 'the current framework does not allow for normal aviation activity and effectively constitutes a closure of Israel's skies'",
+      "scope_level": "single_case",
+      "article_source": "ynetnews.com",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 10,
+      "article_url": "https://www.ynetnews.com/jewish-world/article/byhpxgks11l",
+      "signal_type": "service_disruption",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Israeli March of the Living organization cancelled delegations; organizers concluded participants could not be transported safely under current conditions with limits on passenger numbers and reduced daily air traffic",
+      "scope_level": "quantified_or_broad",
+      "article_source": "ynetnews.com",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 11,
+      "article_url": "https://www.israelnationalnews.com/flashes/680705",
+      "signal_type": "conflict_or_tension",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "IDF and Israel Police reported violent assaults, arson, and public disturbances by Israeli civilians in Judea and Samaria; five civilians apprehended; Israel Border Police soldier injured",
+      "scope_level": "repeated_pattern",
+      "article_source": "israelnationalnews.com",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 12,
+      "article_url": "https://www.israelnationalnews.com/news/424415",
+      "signal_type": "conflict_or_tension",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Nine illegal residents from Samaria arrested in Yavne for allegedly celebrating and cheering during sirens while residents rushed to protected areas",
+      "scope_level": "single_case",
+      "article_source": "israelnationalnews.com",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 13,
+      "article_url": "https://www.israelnationalnews.com/news/424414",
+      "signal_type": "service_disruption",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Classes cancelled nationwide following Saturday night missile strikes in Arad and Dimona; school in Peduel closed when missile fragment fell in schoolyard",
+      "scope_level": "quantified_or_broad",
+      "article_source": "israelnationalnews.com",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 14,
+      "article_url": "https://www.israelnationalnews.com/news/424421",
+      "signal_type": "system_overload",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Arkia Airlines: 'regular aviation activity is no longer feasible under the current rules' with 50 passengers per flight and one departure per hour limit",
+      "scope_level": "single_case",
+      "article_source": "israelnationalnews.com",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 15,
+      "article_url": "https://www.israelnationalnews.com/news/424419",
+      "signal_type": "information_confusion",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Sirens in central Israel (Bat Yam, Holon, Rishon Lezion) activated without prior alerts in Home Front Command apps; initial warnings issued only for Lachish and Judean Lowlands",
+      "scope_level": "single_case",
+      "article_source": "israelnationalnews.com",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 15,
+      "article_url": "https://www.israelnationalnews.com/news/424419",
+      "signal_type": "leadership_clear_guidance",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Bat Yam Mayor Tzvika Brot: 'The last siren was activated without prior warning due to concern about interceptor debris falling in our area'",
+      "scope_level": "single_case",
+      "article_source": "israelnationalnews.com",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 16,
+      "article_url": "https://www.israelnationalnews.com/flashes/680787",
+      "signal_type": "compliance_follow_instructions",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Home Front Command instructed residents along northern confrontation line to remain in close proximity to protected spaces, minimize movement, avoid gatherings, and enter protected spaces upon alert",
+      "scope_level": "quantified_or_broad",
+      "article_source": "israelnationalnews.com",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 17,
+      "article_url": "https://www.israelnationalnews.com/news/424442",
+      "signal_type": "leadership_visible_presence",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "President Isaac Herzog visited Kiryat Shmona and Galilee area, descended into shelter, received overview of challenges facing residents, and met with local officials",
+      "scope_level": "single_case",
+      "article_source": "israelnationalnews.com",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 18,
+      "article_url": "https://www.israelnationalnews.com/news/424444",
+      "signal_type": "compliance_enter_shelter",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "IDF stressed that nearly all those who took shelter in building bomb shelters in Dimona were not hurt; majority of injured in Arad were outside protected areas at time of impact",
+      "scope_level": "repeated_pattern",
+      "article_source": "israelnationalnews.com",
+      "temporal_weight": 1
+    }
+  ],
+  "source_files": [
+    "articles-homefront.md"
+  ],
+  "generated_at": "2026-03-23T18:35:38.371Z"
+}
