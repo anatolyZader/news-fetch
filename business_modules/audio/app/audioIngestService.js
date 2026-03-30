@@ -12,11 +12,16 @@ import {
   OPENAI_TRANSCRIBE_DIARIZE_MODEL,
   OPENAI_WHISPER_MODEL,
 } from '../infrastructure/adapters/openaiTranscriptionAdapter.js';
+import { contextualizeTranscript } from './audioTranscriptContextualizer.js';
+
+const NON_NEWS_SCENE_TYPES = new Set(['advertisement', 'music', 'station_promo']);
 
 /** OpenAI transcription upload limit */
 export const MAX_UPLOAD_BYTES = 25 * 1024 * 1024;
 /** Stay under API limit */
 export const SAFE_MAX_BYTES = 24 * 1024 * 1024;
+/** OpenAI transcription model max duration per chunk (seconds) */
+export const MAX_CHUNK_DURATION_SEC = 600; // 10-min chunks: small uploads, less exposure to connectivity drops
 
 /** Match mdReportsLoader body cap */
 export const TARGET_CHUNK_CHARS = 1900;
@@ -53,14 +58,19 @@ export function ffprobeDuration(filePath) {
 }
 
 /**
- * Split audio into parts each under SAFE_MAX_BYTES (best effort using duration-based slicing).
+ * Split audio into parts satisfying both size and duration constraints.
+ * Splits whenever a chunk would exceed SAFE_MAX_BYTES OR MAX_CHUNK_DURATION_SEC.
  * @returns {string[]} list of file paths (original, or temp parts)
  */
-export function splitAudioFileIfNeeded(inputPath, safeMaxBytes = SAFE_MAX_BYTES) {
+export function splitAudioFileIfNeeded(inputPath, safeMaxBytes = SAFE_MAX_BYTES, maxDurationSec = MAX_CHUNK_DURATION_SEC) {
   const size = statSync(inputPath).size;
-  if (size <= safeMaxBytes) return [inputPath];
-
   const duration = ffprobeDuration(inputPath);
+
+  const needsSizeSplit = size > safeMaxBytes;
+  const needsDurationSplit = duration != null && duration > maxDurationSec;
+
+  if (!needsSizeSplit && !needsDurationSplit) return [inputPath];
+
   if (duration == null || duration <= 0) {
     throw new Error(
       `Audio file is ${(size / 1024 / 1024).toFixed(1)}MB (over ${safeMaxBytes / 1024 / 1024}MB safe limit). ` +
@@ -68,17 +78,16 @@ export function splitAudioFileIfNeeded(inputPath, safeMaxBytes = SAFE_MAX_BYTES)
     );
   }
 
+  // Number of parts required by each constraint; take the larger
+  const partsBySize = Math.ceil(size / safeMaxBytes);
+  const partsByDuration = Math.ceil(duration / maxDurationSec);
   const tmp = mkdtempSync(join(tmpdir(), 'audio-ingest-'));
-  let numParts = Math.max(2, Math.ceil(size / safeMaxBytes));
+  let numParts = Math.max(2, partsBySize, partsByDuration);
   let parts = [];
 
   for (let attempt = 0; attempt < 5; attempt++) {
     for (const p of parts) {
-      try {
-        if (p.startsWith(tmp)) unlinkSync(p);
-      } catch {
-        /* ignore */
-      }
+      try { if (p.startsWith(tmp)) unlinkSync(p); } catch { /* ignore */ }
     }
     parts = [];
     const partDur = duration / numParts;
@@ -95,7 +104,9 @@ export function splitAudioFileIfNeeded(inputPath, safeMaxBytes = SAFE_MAX_BYTES)
       }
       parts.push(out);
     }
-    if (parts.every((p) => statSync(p).size <= safeMaxBytes)) break;
+    const sizeOk = parts.every((p) => statSync(p).size <= safeMaxBytes);
+    const durOk  = parts.every((p) => (ffprobeDuration(p) ?? 0) <= maxDurationSec);
+    if (sizeOk && durOk) break;
     numParts *= 2;
   }
 
@@ -192,6 +203,7 @@ export class AudioIngestService {
    * @param {string[]} [p.knownSpeakerNames]
    * @param {string[]} [p.knownSpeakerReferences]  data URLs or paths handled by caller
    * @param {(e: { label: string, model: string, costUsd: number }) => void} [p.onUsage]  Budget meter (audio duration estimate)
+   * @param {boolean} [p.contextualize]  If true, run LLM scene segmentation and strip ads/music/promos.
    */
   async ingestToMarkdown(p) {
     const {
@@ -205,6 +217,7 @@ export class AudioIngestService {
       knownSpeakerNames,
       knownSpeakerReferences,
       onUsage,
+      contextualize = false,
     } = p;
 
     const parts = splitAudioFileIfNeeded(filePath);
@@ -259,7 +272,18 @@ export class AudioIngestService {
       }
     }
 
-    const grouped = groupSegmentsIntoArticles(allSegments, { station, program });
+    let grouped;
+    if (contextualize) {
+      const scenes = await contextualizeTranscript(allSegments, { station, program, onUsage });
+      grouped = scenes.filter(
+        (s) => !NON_NEWS_SCENE_TYPES.has(s.scene_type) && s.quality !== 'low',
+      );
+      console.log(
+        `[audio] contextualize: ${scenes.length} scene(s) total, ${grouped.length} kept after filtering non-news/low-quality`,
+      );
+    } else {
+      grouped = groupSegmentsIntoArticles(allSegments, { station, program });
+    }
     if (grouped.length === 0) {
       throw new Error('No transcript segments produced. Check audio content and API response.');
     }

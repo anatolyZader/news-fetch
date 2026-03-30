@@ -24,7 +24,7 @@ const hasFlag = (flag) => args.includes(flag);
 
 function usage() {
   console.error(
-    'Usage: node business_modules/audio/input/audio-to-md.js --input <audio> --date YYYY-MM-DD --station <name> --program <name> [--out articles-audio.md] [--whisper]',
+    'Usage: node business_modules/audio/input/audio-to-md.js --input <audio> --date YYYY-MM-DD --station <name> --program <name> [--out articles-audio.md] [--whisper] [--contextualize]',
   );
   process.exit(1);
 }
@@ -41,6 +41,7 @@ const { onUsage, getTotal, printSummary } = createCostTracker({ label: 'audio-to
 const publishedAt = getArg('--published', date);
 const outPath = resolve(getArg('--out', 'articles-audio.md'));
 const useWhisper = hasFlag('--whisper');
+const contextualize = hasFlag('--contextualize');
 
 const adapter = new OpenaiTranscriptionAdapter();
 const service = new AudioIngestService({ adapter });
@@ -54,6 +55,7 @@ try {
     publishedAt,
     outPath,
     useWhisper,
+    contextualize,
     onUsage,
   });
   console.error(`Wrote ${result.articleBlocks} transcript block(s) (${result.segmentCount} segments) → ${result.outPath}`);

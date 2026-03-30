@@ -51,6 +51,32 @@ function mergeHomefrontAndDbEvidence(fileArticles, dbArticles) {
   return out;
 }
 
+/**
+ * Read cost-log.jsonl and return per-script totals for the given date.
+ * Returns null if no entries found.
+ * @param {string} date YYYY-MM-DD
+ * @returns {Record<string, number> | null}
+ */
+function readCostBreakdownForDate(date) {
+  const logPath = resolve(ROOT, 'cost-log.jsonl');
+  if (!existsSync(logPath)) return null;
+  try {
+    const lines = readFileSync(logPath, 'utf8').trim().split('\n').filter(Boolean);
+    const byScript = {};
+    for (const line of lines) {
+      try {
+        const entry = JSON.parse(line);
+        if (entry.date === date) {
+          byScript[entry.script] = (byScript[entry.script] ?? 0) + (entry.totalCostUsd ?? 0);
+        }
+      } catch { /* skip malformed */ }
+    }
+    return Object.keys(byScript).length > 0 ? byScript : null;
+  } catch {
+    return null;
+  }
+}
+
 function countUniqueByTitle(articles) {
   const seen = new Set();
   return articles.filter((a) => {
@@ -156,15 +182,18 @@ export function getCachedReport(store) {
         /* ignore */
       }
     }
-    return { ...parsed, markdown };
+    const costBreakdown = readCostBreakdownForDate(date);
+    return { ...parsed, markdown, ...(costBreakdown ? { costBreakdown } : {}) };
   }
 
   if (store) {
     const run = store.getLatestRunForDate(date);
     if (run) {
+      const costBreakdown = readCostBreakdownForDate(date);
       return {
         assessment: run.reportJson,
         markdown: run.reportMd ?? null,
+        ...(costBreakdown ? { costBreakdown } : {}),
       };
     }
   }

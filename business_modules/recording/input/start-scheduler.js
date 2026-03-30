@@ -66,6 +66,7 @@ async function onRecordingComplete({ job, runId, outputPath, date, scheduledStar
       station: job.station,
       program: job.program,
       outPath: mdPath,
+      contextualize: true,
     });
     console.log(
       `[recording] Transcription done run=${runId}  blocks=${result.articleBlocks}  segments=${result.segmentCount}  → ${mdPath}`,

@@ -6,6 +6,33 @@
 import { createReadStream } from 'fs';
 import OpenAI from 'openai';
 
+const RETRY_DELAYS_MS = [10_000, 30_000, 60_000]; // 3 attempts after first failure
+
+async function withRetry(fn, label) {
+  let lastErr;
+  for (let attempt = 0; attempt <= RETRY_DELAYS_MS.length; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      lastErr = err;
+      const isTransient = err.code === 'ECONNRESET' ||
+        err.message?.includes('ECONNRESET') ||
+        err.message?.includes('Premature close') ||
+        err.message?.includes('ETIMEDOUT') ||
+        err.message?.includes('Connection error') ||
+        err.message?.includes('connection') ||
+        err.message?.includes('network') ||
+        err.status === 429 ||
+        err.status >= 500;
+      if (!isTransient || attempt === RETRY_DELAYS_MS.length) throw err;
+      const delay = RETRY_DELAYS_MS[attempt];
+      console.error(`  ⚠ ${label} attempt ${attempt + 1} failed (${err.message}); retrying in ${delay / 1000}s…`);
+      await new Promise((r) => setTimeout(r, delay));
+    }
+  }
+  throw lastErr;
+}
+
 /** @public — must match keys in cross-cut-modules/budget TRANSCRIPTION_USD_PER_MINUTE */
 export const OPENAI_TRANSCRIBE_DIARIZE_MODEL = 'gpt-4o-transcribe-diarize';
 export const OPENAI_WHISPER_MODEL = 'whisper-1';
@@ -64,7 +91,7 @@ export class OpenaiTranscriptionAdapter {
         known_speaker_references: knownSpeakerReferences,
       };
     }
-    const raw = await this.client.audio.transcriptions.create(body);
+    const raw = await withRetry(() => this.client.audio.transcriptions.create(body), `transcribeDiarized ${filePath}`);
     return normalizeDiarizedResponse(raw);
   }
 
@@ -75,11 +102,11 @@ export class OpenaiTranscriptionAdapter {
    */
   async transcribeWhisperPlain(opts) {
     const { filePath } = opts;
-    const raw = await this.client.audio.transcriptions.create({
+    const raw = await withRetry(() => this.client.audio.transcriptions.create({
       file: createReadStream(filePath),
       model: OPENAI_WHISPER_MODEL,
       response_format: 'json',
-    });
+    }), `transcribeWhisperPlain ${filePath}`);
     const text = (raw.text ?? '').trim();
     return {
       segments: text ? [{ speaker: 'TRANSCRIPT', text, start: undefined, end: undefined }] : [],

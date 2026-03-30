@@ -78,7 +78,8 @@ Each turn in the transcript is prefixed with a timestamp like [02:14]. Use the t
 
 For each scene output a JSON object with these fields:
 - "headline": short English headline (max 12 words) describing the behavioral situation
-- "scene_type": one of: civilian_testimony | field_report | anchor_report | expert_interview | official_statement | discussion
+- "scene_type": one of: civilian_testimony | field_report | anchor_report | expert_interview | official_statement | discussion | advertisement | music | station_promo
+  Advertisements, commercial breaks, background music segments, and station IDs/promos must be tagged as advertisement/music/station_promo with quality "low".
 - "speakers": array of speaker descriptions, e.g. ["interviewer", "elderly female civilian", "official (mayor)"]
 - "narrative": 2-4 English sentences written in third person describing what people ARE DOING, FEELING, and DECIDING — not just what they say. Focus on behavioral evidence: coping, compliance, avoidance, community action, institutional response, etc.
 - "key_quotes": array of up to 4 verbatim quotes translated to English, preserving the speaker's register
@@ -198,6 +199,7 @@ function sceneToArticle(scene, index, station, program, sourceUrl) {
     title: `${station} — ${program} — scene ${index + 1}: ${scene.headline ?? 'untitled'}`,
     body: lines.join('\n'),
     quality: scene.quality ?? 'medium',
+    scene_type: scene.scene_type ?? 'unknown',
     url,
   };
 }
