@@ -79,7 +79,7 @@ Style requirements:
 - Preserve all proper nouns (place names, organization names) as they appear
 
 ${GLOSSARY.he}
-Return ONLY valid JSON with the exact same structure as the input. Do NOT translate field names or component_id values. Do NOT translate or alter URLs. Do NOT translate markdown link text — keep `([source](url))` exactly as `([source](url))`.`,
+Return ONLY valid JSON with the exact same structure as the input. Do NOT translate field names or component_id values. Do NOT translate or alter URLs. Do NOT translate markdown link text — keep ([source](url)) patterns exactly as ([source](url)).`,
 
   ru: `You are a professional translator specializing in civil defense and emergency management. You are translating an Israeli Home Front Command community resilience assessment report from English into formal Russian.
 
@@ -90,7 +90,7 @@ Style requirements:
 - Transliterate Israeli place names phonetically where no established Russian form exists
 
 ${GLOSSARY.ru}
-Return ONLY valid JSON with the exact same structure as the input. Do NOT translate field names or component_id values. Do NOT translate or alter URLs. Do NOT translate markdown link text — keep `([source](url))` exactly as `([source](url))`.`,
+Return ONLY valid JSON with the exact same structure as the input. Do NOT translate field names or component_id values. Do NOT translate or alter URLs. Do NOT translate markdown link text — keep ([source](url)) patterns exactly as ([source](url)).`,
 };
 
 function cacheKey(report, lang) {
