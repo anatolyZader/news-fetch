@@ -1,0 +1,868 @@
+{
+  "assessment": {
+    "date": "2026-03-31",
+    "total_articles_analyzed": 71,
+    "overall_resilience_score": 3,
+    "content_kind": "mixed",
+    "cross_component_synthesis": "The dominant pattern emerging from field reports across more than twenty northern border communities is one of structural protection deficit compounded by fragmented coordination. Across settlements including Psuta, Horfish, Granot HaGalil, Kfar Giladi, and Ramot Naftali, between 30% and 55% of homes lack individual safe rooms, public shelters are in poor condition or inaccessible to elderly and mobility-limited residents, and Home Front Command cells are either unstaffed, missing a chair, or operating with a single trained volunteer. This is not a reporting artifact: the breadth and consistency of these findings across field visits constitutes a structural pattern. A secondary split runs through nearly every community between the socially integrated majority — who have some form of informal support, volunteer contact, or community activity — and isolated vulnerable populations (elderly living alone, special-needs individuals, women with partners in reserve service, bedridden patients) who are systematically not reached by welfare services, not mapped by HFC, and not covered by existing volunteer networks.",
+    "evidence_quality_note": "The signal base today is composed almost entirely of primary field report observations from trained resilience professionals visiting named communities, with two direct resident quotes and minimal journalism-derived signals; this constitutes high-quality, geographically specific evidence with limited generalizability to communities not visited.",
+    "components": [
+      {
+        "component_id": "narrative",
+        "score": null,
+        "confidence": "insufficient_data",
+        "signal_count": 0,
+        "distinct_article_count": 0,
+        "source_diversity": 0,
+        "coverage_ratio": 0,
+        "dispersion": null,
+        "coverage_adjustment": 0,
+        "positive_evidence": 0,
+        "negative_evidence": 0,
+        "net_evidence": 0,
+        "evidence_mass": 0,
+        "strength": 0,
+        "adjusted_strength": 0,
+        "certainty": 0,
+        "manifestations_evidenced": [],
+        "manifestations_absent": [
+          "A narrative of successful coping is visible and circulating (likely reporting gap — field reports focus on gaps and needs rather than narrative framing)",
+          "The coping story reflects the entire population, not just a subset (likely reporting gap)",
+          "Residents express that the authority's narrative is credible and reflects their lived reality (informative absence — one direct quote from community leaders explicitly contradicts official narrative credibility)",
+          "Competing or contradictory narratives are explicitly voiced by residents or groups (informative absence — one quote present but insufficient for pattern-level assessment)"
+        ],
+        "evidence": [
+          "Community leaders reported distrust in politicians and military: 'They told an unrealistic story, promised a quiet and safe border - it didn't happen in reality'",
+          "Aven Menachem/Ma'ale Yosef resident stated: 'We are mentally ill people living here' — indicating a self-deprecating, fatalistic framing of the decision to remain"
+        ],
+        "narrative": "Insufficient signal data exists today to construct a reliable narrative assessment for this component. Two direct resident or community leader quotes are present, both expressing versions of disillusionment — one directed at political and military authorities for promising safety that did not materialize, and one reflecting a darkly self-aware acknowledgment of the psychological cost of remaining. These quotes suggest that, at minimum among some residents who chose to stay, the official coping narrative is not experienced as credible or affirming. No positive coping narrative was documented in today's field reports, though this likely reflects the structured focus of the field visits on identifying deficits rather than on narrative circulation."
+      },
+      {
+        "component_id": "information_communication",
+        "score": 6,
+        "confidence": "low",
+        "signal_count": 1,
+        "distinct_article_count": 1,
+        "source_diversity": 1,
+        "coverage_ratio": 0.014084507042253521,
+        "dispersion": "very_low",
+        "coverage_adjustment": 0.736,
+        "positive_evidence": 0.197,
+        "negative_evidence": 0,
+        "net_evidence": 0.197,
+        "evidence_mass": 0.197,
+        "strength": 0.079,
+        "adjusted_strength": 0.058,
+        "certainty": 0.094,
+        "manifestations_evidenced": [
+          "Authority communication mechanisms are adapted to different resident groups (language, channel, format) — partially, with soldier-teachers identified as a required channel"
+        ],
+        "manifestations_absent": [
+          "Residents state they receive the information they need to function during the emergency (informative absence — no such statement found across any visited community)",
+          "Residents express trust in information received from the authority (informative absence — community leader quote suggests the opposite)",
+          "Population perceives national media information as relevant and addressing their needs (likely reporting gap)",
+          "Residents report information gaps, confusion, or spread of rumors/misinformation (informative absence — no explicit reports of misinformation, though this may reflect reporting focus)",
+          "Guidance is reported as situation-matched and actionable — residents could follow it given real-world constraints (informative absence)",
+          "Guidance is reported as mismatched, impractical, or failing to cover critical scenarios (informative absence — essential workers at Kibbutz Eilon report having no guidance for child-care during emergency duty, which constitutes an effectiveness gap)"
+        ],
+        "evidence": [
+          "Goren/Ma'ale Yosef (field report): Need for public messaging — presence of military personnel (soldier-teachers) identified as required for effective public communication",
+          "Kibbutz Eilon/Matte Asher (field report): Many essential workers report a sense of uncertainty due to lack of answers and no solutions for children of essential workers; currently no guidance or solution for this issue"
+        ],
+        "narrative": "Today's field report signals provide limited but analytically meaningful evidence on information and communication. A split is evident between the presence of some communication infrastructure — soldier-teachers serving as messengers in at least one community — and a documented absence of actionable guidance for specific constrained populations. Essential workers at Kibbutz Eilon report receiving no guidance or practical solution for childcare during emergency duty, representing a direct effectiveness gap: even workers who want to comply with their essential roles cannot do so without information on how to manage dependent children. No evidence was found that residents across visited communities affirm receiving sufficient information to function, and the broader community leader distrust in official messaging noted under the narrative component further undermines confidence in information credibility. The single field report signal on communication suggests the channel infrastructure is partial and dependent on the physical presence of military personnel rather than on scalable, community-embedded systems."
+      },
+      {
+        "component_id": "lifesaving_behavior",
+        "score": 6,
+        "confidence": "medium",
+        "signal_count": 4,
+        "distinct_article_count": 4,
+        "source_diversity": 2,
+        "coverage_ratio": 0.056338028169014086,
+        "dispersion": "very_low",
+        "coverage_adjustment": 0.771,
+        "positive_evidence": 0.81,
+        "negative_evidence": 0.197,
+        "net_evidence": 0.613,
+        "evidence_mass": 1.007,
+        "strength": 0.24,
+        "adjusted_strength": 0.185,
+        "certainty": 0.396,
+        "manifestations_evidenced": [
+          "Residents are observed or reported to actually follow Home Front Command (HFC) protective guidelines (sheltering, evacuating, etc.)",
+          "Residents demonstrate knowledge and understanding of HFC guidelines",
+          "Residents express or demonstrate perception of the situation as genuinely life-threatening",
+          "Residents or officials report non-compliance with protective guidelines"
+        ],
+        "manifestations_absent": [
+          "Community teams or roles actively promote emergency preparedness among residents (informative absence — HFC cells in multiple communities are understaffed or missing chairs, limiting preparedness promotion capacity)"
+        ],
+        "evidence": [
+          "Abdon/Ma'ale Yosef (field report): Residents not leaving the settlement; additional armored field protection booths (מיגוניות) have been provided, indicating residents are sheltering in place",
+          "Netu'a/Ma'ale Yosef (field report): Throughout the settlement almost no resident movement; residents remain in their homes; minimal movement of agricultural vehicles; due to short warning time there is concern and residents stay near protected spaces; established residents want to stay in their homes; residents not interested in evacuation except parents with children where parents want to leave and children refuse",
+          "Ara'ara al-Aramsha/Matte Asher (field report): Residents observed filming during alerts (אזעקות) — documenting rather than sheltering — indicating a non-compliant behavioral pattern during alert events",
+          "Goren/Ma'ale Yosef (field report): Presence of military personnel (soldier-teachers) identified as required for effective public communication on protective behavior"
+        ],
+        "narrative": "Field report evidence from visited communities documents two contradictory behavioral patterns within the lifesaving component. In Netu'a and Abdon, residents demonstrate consistent shelter-in-place behavior, including near-total cessation of outdoor movement and positioning near protected spaces in anticipation of short warning times — behavior that reflects both compliance and internalized threat perception. Against this, residents in Ara'ara al-Aramsha were observed filming during alerts rather than sheltering, indicating a segment of the population that is not translating alert awareness into protective action. A structural constraint on compliance is also present: in multiple communities, elderly residents are physically unable to reach shelters in time due to distance or mobility limitations, meaning non-compliance in those cases reflects infrastructure failure rather than behavioral choice. No evidence was found of systematic community-level preparedness promotion, as HFC cells across numerous communities lack the staffing to perform this function."
+      },
+      {
+        "component_id": "functional_continuity",
+        "score": 2,
+        "confidence": "high",
+        "signal_count": 38,
+        "distinct_article_count": 26,
+        "source_diversity": 18,
+        "coverage_ratio": 0.36619718309859156,
+        "dispersion": "moderate",
+        "coverage_adjustment": 0.882,
+        "positive_evidence": 1.463,
+        "negative_evidence": 9.042,
+        "net_evidence": -7.58,
+        "evidence_mass": 10.505,
+        "strength": -0.995,
+        "adjusted_strength": -0.877,
+        "certainty": 0.995,
+        "manifestations_evidenced": [
+          "Specific disruptions to daily life are reported (closures, evacuations, inability to work)",
+          "Schools and educational institutions are open and operating (or explicitly closed/disrupted)",
+          "Essential services (healthcare, supply chains, municipal services) continue to operate — partially and unevenly"
+        ],
+        "manifestations_absent": [
+          "Residents succeed in managing daily life (reported continuation of work, commerce, or social roles) — informative absence across the majority of visited communities; exceptions are narrow",
+          "Residents report that sufficient resources are available to maintain routine functioning (informative absence — resource shortage is the dominant signal across all 20+ visited communities)"
+        ],
+        "evidence": [
+          "Bre'em/Braam (field report): Continuous shelter stays due to absence of individual safe rooms; farmers report limited armored field protection booths relative to land area; request for regular food supply; concern about business collapse (pizzeria); gap in education personnel",
+          "Batzet/Matte Asher (field report): Beginning to enter emergency routine; activities for young ages; work in cycles due to lack of suitable shelters; farmers working and people going to work; HFC active with volunteers; soldier-teachers present — but education frameworks difficult to operate; workers not arriving; children and youth at home using Zoom with limited success",
+          "Psuta (field report): 55% of homes without protection; one shelter unsuitable for use; clubs for elderly and special needs closed and difficult to visit",
+          "Horfish (field report): 30% without protection; no activity even in public shelters; frameworks for elderly, women, and special populations cancelled; requests for social services including economic support for small business owners",
+          "Granot HaGalil/Ma'ale Yosef (field report): HFC not operating at full capacity; no designated person responsible for mapping elderly and people with disabilities; welfare services not connected to this population",
+          "Alkosh/Ma'ale Yosef (field report): Approximately 70% have individual safe rooms; 10% with underground shelter; 3 of 8 community shelters require repair; HFC includes only chair with no additional functionaries",
+          "Kibbutz Eilon/Matte Asher (field report): No protection in local clinic; informal education activity relatively limited; essential workers without solutions for children",
+          "Ya'ara/Ma'ale Yosef (field report): HFC population survey reached only 5 out of over 250 families; loneliness and fatalism reported among residents",
+          "Kfar Giladi/Upper Galilee (field report): Lack of ability to provide response for ages 0–6; shelters do not contain all residents; challenge with bedridden patients without protection ability",
+          "Yir'on/Upper Galilee (field report): Very active HFC received donation; informal activity ongoing for children and youth; calls to social services department regarding economic problems and rent payment delays",
+          "Aven Menachem/Ma'ale Yosef (field report): No spaces for social activities under protection; tourism inactive; agriculture significantly damaged",
+          "Kibbutz Snir/Upper Galilee (field report): No siren coverage in expansion neighborhood; elderly difficulty reaching shelters due to zero warning time; doctor almost never comes",
+          "Manara/Upper Galilee (field report): Significant protection gaps; welfare cell not staffed; elderly unable to meet due to lack of public space",
+          "Ramot Naftali/Mevuot Hermon (field report): 30 homes without individual safe rooms; gap in volunteers; lack of generator for settlement center while surrounding settlements received generators",
+          "Malkhiya (field report): Shortage of protection creating frustration and disappointment"
+        ],
+        "narrative": "Functional continuity is deeply compromised across the full range of visited northern border communities, with field reports from more than twenty settlements consistently documenting the same structural pattern: inadequate physical protection infrastructure, collapsed educational and social frameworks, and absent or understaffed HFC coordination. The split that best characterizes today's data is between communities where partial emergency routines have been established — such as Batzet, where some agricultural work and youth activities continue in cycles — and the majority of communities where no functioning routine has been achieved and daily life has effectively stopped for vulnerable populations. Education represents a particular failure mode: formal schooling is closed in multiple locations, Zoom substitutes are described as having limited success, and informal activities are either absent or operating under constraints that exclude populations without shelter access. Economic functioning is similarly disrupted, with small businesses at risk of collapse, tourism halted, and agriculture damaged — but no evidence of state guidance or support mechanisms reaching affected business owners was found in today's sample."
+      },
+      {
+        "component_id": "community_capital",
+        "score": 2,
+        "confidence": "high",
+        "signal_count": 32,
+        "distinct_article_count": 25,
+        "source_diversity": 17,
+        "coverage_ratio": 0.352112676056338,
+        "dispersion": "moderate",
+        "coverage_adjustment": 0.878,
+        "positive_evidence": 1.682,
+        "negative_evidence": 10.547,
+        "net_evidence": -8.865,
+        "evidence_mass": 12.229,
+        "strength": -0.998,
+        "adjusted_strength": -0.877,
+        "certainty": 0.998,
+        "manifestations_evidenced": [
+          "Residents volunteer or express willingness to volunteer in formal or informal frameworks — in a minority of communities",
+          "Authority or organizations are observed to activate and coordinate community resources — partially in a small number of communities"
+        ],
+        "manifestations_absent": [
+          "Mechanisms exist and operate to coordinate volunteers and community organizations (informative absence — the dominant pattern is the absence of coordination infrastructure; multiple communities have no HFC chair, no volunteer roster, or a single trained volunteer)",
+          "Cross-sector cooperation (e.g., municipality + NGOs + businesses) is reported or observed (informative absence — requests for such cooperation are documented but actual cross-sector functioning is not)"
+        ],
+        "evidence": [
+          "Shetula/Ma'ale Yosef (field report): Volunteers from outside coming to help; HFC team contacting all vulnerable populations with emphasis on widows and elderly singles; coordinated purchases between residents and volunteers for medicines and food; 50% of residents surveyed want to refresh rather than evacuate",
+          "Abdon/Ma'ale Yosef (field report): HFC community coordinator recruiting volunteers; women's evening and activities for adults held",
+          "Aven Menachem/Ma'ale Yosef (field report): Community involvement and assistance when needed exists — but HFC not fully operational and volunteer numbers limited",
+          "Batzet/Matte Asher (field report): Light shelter renovation to serve educational activity; assistance with transportation for army education core to function",
+          "Bre'em (field report): Informal activity began; request for HFC volunteer corps training and reinforcement; elderly receiving community support",
+          "Granot HaGalil/Ma'ale Yosef (field report): No designated person responsible for mapping elderly and people with disabilities; welfare services not connected to vulnerable populations; HFC not fully activated",
+          "Alkosh/Ma'ale Yosef (field report): HFC includes only chair with no additional functionaries; community lacks community backbone — recommendation for welfare department intervention on leadership and joint activity dimensions",
+          "Psuta (field report): Weak volunteer array with only one trained volunteer",
+          "Beit Hillel/Mevuot Hermon (field report): HFC has no chair; volunteer array limited but operating by sub-teams",
+          "Ya'ara/Ma'ale Yosef (field report): HFC population survey reached only 5 of over 250 families",
+          "Ramot Naftali/Mevuot Hermon (field report): Gap in number of volunteers; lack of generator for settlement center while surrounding settlements received generators",
+          "Horfish (field report): 30% without protection; no activity even in public shelters; all frameworks cancelled",
+          "Malkhiya (field report): Shortage of protection creating frustration and disappointment"
+        ],
+        "narrative": "Community capital presents a pronounced split between a small number of communities with functioning volunteer networks and the majority where capital has been substantially depleted or was never adequately structured. In Shetula, an HFC team is actively contacting vulnerable populations, coordinating medicine and food purchases, and receiving external volunteers — representing functional community capital under pressure. In contrast, Psuta operates with a single trained volunteer, Ya'ara's HFC has surveyed only 5 of over 250 families, Alkosh's HFC consists of a single chair with no additional functionaries, and Beit Hillel has no HFC chair at all. The coordination failure is not a matter of community unwillingness — informal mutual aid and community involvement are noted in several settlements — but of structural absence: no mapping of vulnerable populations, no coordination mechanisms, and no designated roles. Cross-sector cooperation between municipal welfare departments, NGOs, and community organizations is explicitly requested across multiple visited communities but is not documented as currently functioning in today's field reports."
+      },
+      {
+        "component_id": "leadership",
+        "score": 6,
+        "confidence": "medium",
+        "signal_count": 4,
+        "distinct_article_count": 4,
+        "source_diversity": 3,
+        "coverage_ratio": 0.056338028169014086,
+        "dispersion": "very_low",
+        "coverage_adjustment": 0.771,
+        "positive_evidence": 0.731,
+        "negative_evidence": 0.563,
+        "net_evidence": 0.169,
+        "evidence_mass": 1.294,
+        "strength": 0.067,
+        "adjusted_strength": 0.052,
+        "certainty": 0.476,
+        "manifestations_evidenced": [
+          "Leadership is reported to function professionally and manage the situation competently — in a minority of communities",
+          "Residents express distrust, criticism, or frustration with leadership"
+        ],
+        "manifestations_absent": [
+          "Residents express that formal or informal leadership is a source of support and security (informative absence — the dominant signal is leadership absence or inadequacy, not presence as a support source)",
+          "Leadership actively encourages residents to follow HFC guidelines (likely reporting gap — field reports do not address this behavior explicitly)"
+        ],
+        "evidence": [
+          "Batzet/Matte Asher (field report): Settlement coping with strong leadership and cooperation among different role holders",
+          "Horfish (field report): Authority broadcasting resilience with high control in settlement; strong settlement; full emergency routine; private businesses opening; council-related matters showing policy hardening",
+          "Granot HaGalil/Ma'ale Yosef (field report): Lack of connection between welfare services and vulnerable populations; no 'parent figure' within community for elderly and special needs; HFC not fully activated for complete population mapping",
+          "Alkosh/Ma'ale Yosef (field report): Community lacks community backbone — recommendation for welfare department intervention on leadership and joint activity dimensions",
+          "Aven Menachem/Ma'ale Yosef (field report): Significant criticism toward council",
+          "Adamit/Matte Asher (field report): Frustrations and distrust toward army",
+          "Community leaders (field report): 'They told an unrealistic story, promised a quiet and safe border — it didn't happen in reality'"
+        ],
+        "narrative": "Leadership functioning is distributed unevenly across visited communities, with field reports identifying both functional and absent leadership within the same regional frame. Batzet and Horfish are noted as communities where leadership is coherent, cooperative, and actively projecting a resilience posture — with Horfish described as operating a full emergency routine with policy hardening at the council level. Against this, Granot HaGalil and Alkosh are characterized by absent leadership infrastructure: no designated welfare coordinator for vulnerable populations, no community backbone, and HFC cells reduced to a single role-holder. Resident and community leader expressions of frustration are present at multiple levels — criticism toward local councils in Aven Menachem, distrust toward the military in Adamit, and a direct statement from community leaders that national-level leadership communicated an inaccurate picture of border security. No evidence was found of leadership actively communicating protective guidance in public settings, though this may reflect the focus of field visit documentation rather than an actual behavioral absence."
+      },
+      {
+        "component_id": "belonging_solidarity",
+        "score": 5,
+        "confidence": "high",
+        "signal_count": 7,
+        "distinct_article_count": 6,
+        "source_diversity": 4,
+        "coverage_ratio": 0.08450704225352113,
+        "dispersion": "very_low",
+        "coverage_adjustment": 0.787,
+        "positive_evidence": 0.878,
+        "negative_evidence": 1.536,
+        "net_evidence": -0.658,
+        "evidence_mass": 2.413,
+        "strength": -0.257,
+        "adjusted_strength": -0.203,
+        "certainty": 0.701,
+        "manifestations_evidenced": [
+          "Concrete acts of mutual aid between residents are reported (helping neighbors, sharing resources, organizing support)",
+          "Programs or events strengthening belonging are activated and attended — in a minority of communities",
+          "Population groups are reported as scapegoated, blamed, or excluded due to the emergency (negative signal) — not present, but inter-group tensions exist"
+        ],
+        "manifestations_absent": [
+          "Residents express a sense of solidarity or shared fate in their own words (informative absence — no direct resident quote articulating solidarity was found; mutual aid behaviors are reported but not narrated as solidarity by residents themselves)",
+          "Population groups are reported as scapegoated or excluded (informative absence — no such signal found today)"
+        ],
+        "evidence": [
+          "Shetula/Ma'ale Yosef (field report): Volunteers from outside coming to help; HFC team contacting vulnerable populations including widows and elderly singles; coordinated food and medicine purchasing between residents and volunteers",
+          "Abdon/Ma'ale Yosef (field report): HFC community coordinator recruiting volunteers; women's evening and activities for adults held",
+          "Aven Menachem/Ma'ale Yosef (field report): Community involvement and assistance when needed exists; but significant criticism toward council",
+          "Goren/Ma'ale Yosef (field report): Young people fled; residents aged 40+ remained; some known to welfare services — indicating population fragmentation along age lines",
+          "Adamit/Matte Asher (field report): Frustrations and distrust toward army",
+          "Mevuot Hermon - Shar Yishuv (field report): Rest of population in positive spirit; discourse of resilience; volunteer network present but not always staffed with right people; feeling flooded with military personnel without coverage"
+        ],
+        "narrative": "Belonging and solidarity show a downward directional trend from prior days, with the evidence base reflecting a community landscape increasingly fragmented along demographic and generational lines. In Goren, younger residents have departed, leaving a population concentrated among those aged 40 and above, some of whom are already known to welfare services — a composition that reduces the peer-solidarity networks available within the community. Mutual aid behaviors are documented in Shetula and Abdon, where volunteer teams are actively reaching isolated residents and coordinating basic supply logistics, but these are localized instances rather than a systemic pattern. Expressions of frustration and distrust — directed at local councils in Aven Menachem and at the military in Adamit — indicate that institutional relationships that might otherwise anchor belonging are under strain. No resident was documented expressing solidarity or shared fate in their own words today, which represents an informative absence given the conditions described."
+      },
+      {
+        "component_id": "wellbeing_atrisk",
+        "score": 2,
+        "confidence": "high",
+        "signal_count": 43,
+        "distinct_article_count": 27,
+        "source_diversity": 18,
+        "coverage_ratio": 0.38028169014084506,
+        "dispersion": "moderate",
+        "coverage_adjustment": 0.885,
+        "positive_evidence": 1.06,
+        "negative_evidence": 10.509,
+        "net_evidence": -9.449,
+        "evidence_mass": 11.57,
+        "strength": -0.999,
+        "adjusted_strength": -0.884,
+        "certainty": 0.997,
+        "manifestations_evidenced": [
+          "Reports of unmet mental health or physical wellbeing needs among residents — extensively documented across all visited communities",
+          "Specific responses for at-risk or special-needs populations are reported as active — in a small number of communities only"
+        ],
+        "manifestations_absent": [
+          "Emotional support responses (psychological first aid, mental health services) are available and used by residents showing anxiety or trauma (informative absence — Beit Hillel recommends reinforcement of psychologists, implying current provision is insufficient; no community reports active mental health uptake)",
+          "Residents in the second or third circle of vulnerability (indirectly affected) receive responses to their needs (informative absence — reserve families' logistical needs are noted in Kibbutz Snir but no response is documented)"
+        ],
+        "evidence": [
+          "Goren/Ma'ale Yosef (field report): Increase in calls to emergency hotline 106; distress among elderly — difficulty reaching safe rooms, sometimes resulting in injuries",
+          "Psuta (field report): 55% of homes without protection; clubs for elderly and special needs closed; loneliness and difficulty experienced",
+          "Horfish (field report): 30% without protection; all frameworks for elderly, women, and special populations cancelled; loneliness reported; requests for social services including economic support and computer assistance",
+          "Ya'ara/Ma'ale Yosef (field report): Residents express loneliness and fatalism — 'no one will help evacuate them to safe room when needed'; HFC survey reached only 5 of 250+ families",
+          "Granot HaGalil/Ma'ale Yosef (field report): No designated person responsible for mapping elderly and people with disabilities; welfare services not connected to this population; gap in coverage for women whose families are in military service",
+          "Kfar Giladi/Upper Galilee (field report): No capacity to provide response for ages 0–6; bedridden patients without protection ability",
+          "Kibbutz Snir/Upper Galilee (field report): Elderly difficulty reaching shelters due to zero warning time; doctor almost never comes; welfare logistical aspects for reserve families unaddressed",
+          "Shetula/Ma'ale Yosef (field report): Elderly unable to leave home; need for medicines and food; HFC team contacting vulnerable populations including widows and elderly singles",
+          "Beit Hillel/Mevuot Hermon (field report): Recommendations include reinforcement of psychologists — implying current mental health provision is insufficient",
+          "Mevuot Hermon - Shar Yishuv (field report): Need for airing especially of elderly; feeling flooded with military personnel without corresponding civilian welfare coverage",
+          "Dafna/Upper Galilee (field report): Elderly — loneliness problem",
+          "Aven Menachem/Ma'ale Yosef (field report) resident: 'We are mentally ill people living here'",
+          "Manara/Upper Galilee (field report): Welfare cell not staffed; elderly unable to meet due to lack of public space; difficulty descending stairs",
+          "Ramot Naftali/Mevuot Hermon (field report): 30 homes without safe rooms; gap in volunteers; generator absent from settlement center"
+        ],
+        "narrative": "Wellbeing at-risk presents the most consistently documented failure condition in today's field reports, with unmet needs among elderly, special-needs, young children, and isolated adults reported across virtually every visited community. The dominant pattern is one of double exposure: vulnerable populations face both elevated physical risk — from inability to reach shelters due to distance, mobility limitations, or zero warning time — and social isolation, as the frameworks that would ordinarily provide contact (elderly clubs, special-needs programs, public social spaces) have been closed or cancelled. Loneliness is named explicitly in Psuta, Horfish, Ya'ara, Dafna, and Shetula, and is implied by structural descriptions in several additional communities. Mental health provision is absent as an operational reality in today's data: Beit Hillel's recommendation to reinforce psychologists indicates current provision is insufficient, and no community reports residents actively accessing psychological support services. A partial exception is found in Shetula, where HFC volunteers are conducting outreach to widows and elderly singles — but this represents individual community initiative rather than a systemic response, and even there the primary unmet need (inability to leave home) remains unresolved."
+      }
+    ]
+  },
+  "signals": [
+    {
+      "article_index": 1,
+      "article_url": null,
+      "signal_type": "fear_expression",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Community leaders reported distrust in politicians and military: 'They told an unrealistic story, promised a quiet and safe border - it didn't happen in reality'",
+      "scope_level": "single_case",
+      "article_source": "פרופ' משה פרחי ורינת לוי",
+      "temporal_weight": 0.75
+    },
+    {
+      "article_index": 1,
+      "article_url": null,
+      "signal_type": "resource_shortage",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Bre'em (Braam): Continuous shelter stays due to absence of individual safe rooms (ממ\"דים); farmers report limited armored field protection booths (מיגוניות) relative to land area; request for regular food supply",
+      "scope_level": "repeated_pattern",
+      "article_source": "פרופ' משה פרחי ורינת לוי",
+      "temporal_weight": 0.75
+    },
+    {
+      "article_index": 1,
+      "article_url": null,
+      "signal_type": "service_disruption",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Bre'em: Lack of protected spaces for educational and social activities; no suitable public space available",
+      "scope_level": "repeated_pattern",
+      "article_source": "פרופ' משה פרחי ורינת לוי",
+      "temporal_weight": 0.75
+    },
+    {
+      "article_index": 1,
+      "article_url": null,
+      "signal_type": "resource_mobilization",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Bre'em: Informal activity began; request for HFC volunteer corps training and reinforcement; elderly receiving community support",
+      "scope_level": "repeated_pattern",
+      "article_source": "פרופ' משה פרחי ורינת לוי",
+      "temporal_weight": 0.75
+    },
+    {
+      "article_index": 1,
+      "article_url": null,
+      "signal_type": "resource_shortage",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Bre'em: Concern about business collapse (pizzeria); gap in education personnel; proposal to fill gap using reserve soldiers",
+      "scope_level": "single_case",
+      "article_source": "פרופ' משה פרחי ורינת לוי",
+      "temporal_weight": 0.75
+    },
+    {
+      "article_index": 2,
+      "article_url": null,
+      "signal_type": "social_isolation",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Goren/Ma'ale Yosef (Bre'em): Young people fled; residents aged 40+ remained; some known to welfare services",
+      "scope_level": "repeated_pattern",
+      "article_source": "איתמר שפר ולדי ליצ'אק",
+      "temporal_weight": 0.75
+    },
+    {
+      "article_index": 2,
+      "article_url": null,
+      "signal_type": "resource_shortage",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Goren/Ma'ale Yosef: Many residents without individual safe rooms (ממ\"דים); shelters not in optimal condition; some residents have distant shelters",
+      "scope_level": "quantified_or_broad",
+      "article_source": "איתמר שפר ולדי ליצ'אק",
+      "temporal_weight": 0.75
+    },
+    {
+      "article_index": 2,
+      "article_url": null,
+      "signal_type": "system_overload",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Goren/Ma'ale Yosef: Increase in calls to emergency hotline 106; distress among elderly - difficulty reaching safe rooms, sometimes injured",
+      "scope_level": "repeated_pattern",
+      "article_source": "איתמר שפר ולדי ליצ'אק",
+      "temporal_weight": 0.75
+    },
+    {
+      "article_index": 2,
+      "article_url": null,
+      "signal_type": "information_clarity",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Goren/Ma'ale Yosef: Need for public messaging - presence of military personnel (soldier-teachers) required for public communication",
+      "scope_level": "single_case",
+      "article_source": "איתמר שפר ולדי ליצ'אק",
+      "temporal_weight": 0.75
+    },
+    {
+      "article_index": 3,
+      "article_url": null,
+      "signal_type": "compliance_enter_shelter",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Abdon/Ma'ale Yosef (Bre'em): Residents not leaving; additional armored field protection booths (מיגוניות) provided",
+      "scope_level": "repeated_pattern",
+      "article_source": "איתמר שפר ולדי ליצ'אק",
+      "temporal_weight": 0.75
+    },
+    {
+      "article_index": 3,
+      "article_url": null,
+      "signal_type": "community_volunteering",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Abdon/Ma'ale Yosef: HFC community coordinator recruiting volunteers; women's evening and activities for adults held",
+      "scope_level": "repeated_pattern",
+      "article_source": "איתמר שפר ולדי ליצ'אק",
+      "temporal_weight": 0.75
+    },
+    {
+      "article_index": 3,
+      "article_url": null,
+      "signal_type": "resource_shortage",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Abdon/Ma'ale Yosef: Elderly - not all have individual safe rooms (ממ\"דים); public shelters distant; unable to reach shelters in time",
+      "scope_level": "repeated_pattern",
+      "article_source": "איתמר שפר ולדי ליצ'אק",
+      "temporal_weight": 0.75
+    },
+    {
+      "article_index": 3,
+      "article_url": null,
+      "signal_type": "service_continuity",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Abdon/Ma'ale Yosef: Informal activity ongoing; expansion of children's activities; shelter maintenance underway",
+      "scope_level": "repeated_pattern",
+      "article_source": "איתמר שפר ולדי ליצ'אק",
+      "temporal_weight": 0.75
+    },
+    {
+      "article_index": 4,
+      "article_url": null,
+      "signal_type": "resource_shortage",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Liman/Matte Asher: Central distress - lack of children's activities; farmers' security difficult to maintain; known protection gaps in process of being addressed",
+      "scope_level": "repeated_pattern",
+      "article_source": "פרופ' משה פרחי ורינת לוי",
+      "temporal_weight": 0.75
+    },
+    {
+      "article_index": 4,
+      "article_url": null,
+      "signal_type": "service_continuity",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Liman/Matte Asher: HFC overall functioning well; request for soldier-teachers",
+      "scope_level": "repeated_pattern",
+      "article_source": "פרופ' משה פרחי ורינת לוי",
+      "temporal_weight": 0.75
+    },
+    {
+      "article_index": 5,
+      "article_url": null,
+      "signal_type": "resource_shortage",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Granot HaGalil/Ma'ale Yosef: Protection gaps; elderly without protection; HFC not operating at full capacity; no designated person responsible for mapping elderly and people with disabilities; welfare services not connected to this population; gap in coverage for elderly, urban residents, families with special needs children, and women whose families are in military service",
+      "scope_level": "quantified_or_broad",
+      "article_source": "ציפי כהן סוקולר וצפואת שחאדה",
+      "temporal_weight": 0.75
+    },
+    {
+      "article_index": 5,
+      "article_url": null,
+      "signal_type": "coordination_failure",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Granot HaGalil/Ma'ale Yosef: Lack of connection between welfare services and vulnerable populations; no 'parent figure' within community for elderly and special needs; HFC not fully activated for complete population mapping",
+      "scope_level": "repeated_pattern",
+      "article_source": "ציפי כהן סוקולר וצפואת שחאדה",
+      "temporal_weight": 0.75
+    },
+    {
+      "article_index": 6,
+      "article_url": null,
+      "signal_type": "fear_expression",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Aven Menachem/Ma'ale Yosef (Bre'em) resident: 'We are mentally ill people living here'",
+      "scope_level": "single_case",
+      "article_source": "ציפי כהן סוקולר וצפונאת שחאדה",
+      "temporal_weight": 0.75
+    },
+    {
+      "article_index": 6,
+      "article_url": null,
+      "signal_type": "service_disruption",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Aven Menachem/Ma'ale Yosef: No spaces for social activities under protection; tourism inactive; agriculture significantly damaged",
+      "scope_level": "repeated_pattern",
+      "article_source": "ציפי כהן סוקולר וצפונאת שחאדה",
+      "temporal_weight": 0.75
+    },
+    {
+      "article_index": 6,
+      "article_url": null,
+      "signal_type": "conflict_or_tension",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Aven Menachem/Ma'ale Yosef: Significant criticism toward council",
+      "scope_level": "repeated_pattern",
+      "article_source": "ציפי כהן סוקולר וצפונאת שחאדה",
+      "temporal_weight": 0.75
+    },
+    {
+      "article_index": 6,
+      "article_url": null,
+      "signal_type": "resource_shortage",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Aven Menachem/Ma'ale Yosef: Serious problem with individual safe rooms (ממ\"דים); public shelters in poor maintenance condition; HFC not fully operational; limited number of volunteers; no structured infrastructure for mapping needs and difficulties; urgent need for short-term resilience strengthening and long-term solutions",
+      "scope_level": "quantified_or_broad",
+      "article_source": "ציפי כהן סוקולר וצפונאת שחאדה",
+      "temporal_weight": 0.75
+    },
+    {
+      "article_index": 6,
+      "article_url": null,
+      "signal_type": "solidarity_help_others",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Aven Menachem/Ma'ale Yosef: Community involvement and assistance when needed exists",
+      "scope_level": "repeated_pattern",
+      "article_source": "ציפי כהן סוקולר וצפונאת שחאדה",
+      "temporal_weight": 0.75
+    },
+    {
+      "article_index": 7,
+      "article_url": null,
+      "signal_type": "resource_shortage",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Matta/Ma'ale Yosef: Families without individual safe rooms (ממ\"ד); need for sewage infrastructure repair; need for decompression activities for children and families",
+      "scope_level": "repeated_pattern",
+      "article_source": "גלי מליק",
+      "temporal_weight": 0.75
+    },
+    {
+      "article_index": 8,
+      "article_url": null,
+      "signal_type": "leadership_visible_presence",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Batzet/Matte Asher (Bre'em): Settlement coping with strong leadership and cooperation among different role holders",
+      "scope_level": "repeated_pattern",
+      "article_source": "יואב בן בסט ואילת יוסף",
+      "temporal_weight": 0.75
+    },
+    {
+      "article_index": 8,
+      "article_url": null,
+      "signal_type": "service_continuity",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Batzet/Matte Asher: Beginning to enter emergency routine; activities for young ages; work in cycles due to lack of suitable shelters; farmers working and people going to work; HFC active with volunteers; soldier-teachers; army education core (גרעין נח\"ל) present",
+      "scope_level": "repeated_pattern",
+      "article_source": "יואב בן בסט ואילת יוסף",
+      "temporal_weight": 0.75
+    },
+    {
+      "article_index": 8,
+      "article_url": null,
+      "signal_type": "service_disruption",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Batzet/Matte Asher: Difficult to operate education frameworks; workers not arriving; children and youth at home using Zoom with limited success",
+      "scope_level": "repeated_pattern",
+      "article_source": "יואב בן בסט ואילת יוסף",
+      "temporal_weight": 0.75
+    },
+    {
+      "article_index": 8,
+      "article_url": null,
+      "signal_type": "resource_mobilization",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Batzet/Matte Asher: Light shelter renovation to serve educational activity; assistance with transportation for army education core to function",
+      "scope_level": "repeated_pattern",
+      "article_source": "יואב בן בסט ואילת יוסף",
+      "temporal_weight": 0.75
+    },
+    {
+      "article_index": 9,
+      "article_url": null,
+      "signal_type": "resource_shortage",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Psuta: 55% of homes without protection (מיגון); one shelter unsuitable for use; weak volunteer array with only one trained; clubs for elderly and special needs closed and difficult to visit; loneliness and difficulty experienced",
+      "scope_level": "quantified_or_broad",
+      "article_source": "יואב בן בסט ואילת יוסף",
+      "temporal_weight": 0.75
+    },
+    {
+      "article_index": 9,
+      "article_url": null,
+      "signal_type": "service_disruption",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Psuta: Welfare difficult to reach all residents for visits; informal activities ongoing through education department",
+      "scope_level": "repeated_pattern",
+      "article_source": "יואב בן בסט ואילת יוסף",
+      "temporal_weight": 0.75
+    },
+    {
+      "article_index": 10,
+      "article_url": null,
+      "signal_type": "resource_shortage",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Alkosh/Ma'ale Yosef: Approximately 70% have individual safe rooms (ממ\"ד) at home; 10% with underground shelter at home; others use 8 community shelters; 3 shelters with problems requiring repair; HFC includes only HFC chair with no additional functionaries; limited enrichment activities for children; main recommendations - repair sirens and address protection and security gaps",
+      "scope_level": "quantified_or_broad",
+      "article_source": "משה פרחי ורינת לוי",
+      "temporal_weight": 0.75
+    },
+    {
+      "article_index": 10,
+      "article_url": null,
+      "signal_type": "coordination_failure",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Alkosh/Ma'ale Yosef: Community lacks community backbone - recommendation for welfare department intervention on leadership and joint activity dimensions",
+      "scope_level": "single_case",
+      "article_source": "משה פרחי ורינת לוי",
+      "temporal_weight": 0.75
+    },
+    {
+      "article_index": 11,
+      "article_url": null,
+      "signal_type": "leadership_visible_presence",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Horfish (Bre'em): Authority broadcasting resilience with high control in settlement; strong settlement; full emergency routine; private businesses opening; council-related matters showing policy hardening",
+      "scope_level": "repeated_pattern",
+      "article_source": "יואב בן בסט ואילת יוסף",
+      "temporal_weight": 0.75
+    },
+    {
+      "article_index": 11,
+      "article_url": null,
+      "signal_type": "resource_shortage",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Horfish: 30% without protection (מיגון); no activity even in public shelters; loneliness; frameworks not working for elderly, women, and special populations - all cancelled with only minimal activity via Zoom; requests for social services - assistance with economic support for small business owners, parents with children, computer assistance for emergency routine continuation",
+      "scope_level": "quantified_or_broad",
+      "article_source": "יואב בן בסט ואילת יוסף",
+      "temporal_weight": 0.75
+    },
+    {
+      "article_index": 11,
+      "article_url": null,
+      "signal_type": "service_disruption",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Horfish: No activity in public shelters; frameworks for elderly, women, and special populations cancelled",
+      "scope_level": "repeated_pattern",
+      "article_source": "יואב בן בסט ואילת יוסף",
+      "temporal_weight": 0.75
+    },
+    {
+      "article_index": 12,
+      "article_url": null,
+      "signal_type": "resource_shortage",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Kibbutz Eilon/Matte Asher: Shelter level low - old systems, stuffy; no protection in local clinic - need to restore medical/clinic response; many essential workers with sense of uncertainty due to lack of answers and no solutions for children of essential workers; currently no guidance or solution for this issue",
+      "scope_level": "repeated_pattern",
+      "article_source": "משה פרחי ורינת לוי",
+      "temporal_weight": 0.75
+    },
+    {
+      "article_index": 12,
+      "article_url": null,
+      "signal_type": "service_disruption",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Kibbutz Eilon/Matte Asher: Informal education - activity exists but relatively limited because instructors partly not kibbutz residents and did not return",
+      "scope_level": "repeated_pattern",
+      "article_source": "משה פרחי ורינת לוי",
+      "temporal_weight": 0.75
+    },
+    {
+      "article_index": 13,
+      "article_url": null,
+      "signal_type": "resource_shortage",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Ya'ara/Ma'ale Yosef: HFC attempting population survey but only 5 out of over 250 families; loneliness, fatalistic because no one will help evacuate them to safe room when needed (moving slowly); requests to social services department - assistance for elderly, relief on number allowed in shelter, light-medium shelter repairs, connection of religious-national public organizations to secular settlement, local government representative needed to assist with anchor lists",
+      "scope_level": "quantified_or_broad",
+      "article_source": "עומרי אפרת צפואת שחאדה",
+      "temporal_weight": 0.75
+    },
+    {
+      "article_index": 15,
+      "article_url": null,
+      "signal_type": "compliance_enter_shelter",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Netu'a/Ma'ale Yosef (Bre'em): Throughout settlement almost no resident movement; residents in their homes; minimal movement of agricultural vehicles and almost no residents in space; due to short warning time there is concern and people near protected space; residents not interested in evacuation except parents with children where parents want and children refuse; established residents want to stay in home",
+      "scope_level": "repeated_pattern",
+      "article_source": "יואב בן בסט",
+      "temporal_weight": 0.75
+    },
+    {
+      "article_index": 15,
+      "article_url": null,
+      "signal_type": "resource_shortage",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Netu'a/Ma'ale Yosef: Economic uncertainty; settlement in coping and growth processes; need to use shelter for sleep without endangering people going out at night without sufficient warning",
+      "scope_level": "repeated_pattern",
+      "article_source": "יואב בן בסט",
+      "temporal_weight": 0.75
+    },
+    {
+      "article_index": 16,
+      "article_url": null,
+      "signal_type": "community_volunteering",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Shetula/Ma'ale Yosef: Volunteers from outside coming to help; HFC team contacting all vulnerable populations with emphasis on widows and elderly singles; help bringing medicines and food through coordinated purchases between residents or volunteers; HFC in contact and handling needs of adults; difficulty of adults is loneliness; survey in community - 50% of residents want to refresh not evacuate",
+      "scope_level": "repeated_pattern",
+      "article_source": "יואב בן בסט",
+      "temporal_weight": 0.75
+    },
+    {
+      "article_index": 16,
+      "article_url": null,
+      "signal_type": "resource_shortage",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Shetula/Ma'ale Yosef: Elderly - inability to leave home; need for supplies of medicines and food; informal education - little activity with desire to increase responses",
+      "scope_level": "repeated_pattern",
+      "article_source": "יואב בן בסט",
+      "temporal_weight": 0.75
+    },
+    {
+      "article_index": 17,
+      "article_url": null,
+      "signal_type": "risk_exposure_behavior",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Ara'ara al-Aramsha/Matte Asher: Residents filming during alerts (אזעקות)",
+      "scope_level": "single_case",
+      "article_source": "יואב בן בסט",
+      "temporal_weight": 0.75
+    },
+    {
+      "article_index": 18,
+      "article_url": null,
+      "signal_type": "conflict_or_tension",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Adamit/Matte Asher: Frustrations and distrust toward army",
+      "scope_level": "repeated_pattern",
+      "article_source": "יואב בן בסט",
+      "temporal_weight": 0.75
+    },
+    {
+      "article_index": 19,
+      "article_url": null,
+      "signal_type": "resource_shortage",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Kibbutz Snir/Upper Galilee: Lack of armored field protection booth (מיגונית) - expansion neighborhood; no siren coverage; need for soldier-teachers and teacher-soldiers; elderly - difficulty reaching shelters due to 0 warning time and doctor almost never comes; welfare - logistical aspects among reserve families; problem - military and civilian joint command; need separation",
+      "scope_level": "repeated_pattern",
+      "article_source": "עלי נוגידת ויניב מרדלר",
+      "temporal_weight": 0.75
+    },
+    {
+      "article_index": 20,
+      "article_url": null,
+      "signal_type": "resource_shortage",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Beit Hillel/Mevuot Hermon: Protection gaps in elderly club; youth club - without standard protection; children's shelter - infrastructure problem; individual safe rooms (ממ\"דים) issue significantly improved; HFC - no chair; volunteer array limited but operating by sub-teams; recommendations - reinforcement of psychologists",
+      "scope_level": "repeated_pattern",
+      "article_source": "גיל נחמני וגלעד לביא",
+      "temporal_weight": 0.75
+    },
+    {
+      "article_index": 21,
+      "article_url": null,
+      "signal_type": "resource_shortage",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Dafna/Upper Galilee: Elderly - loneliness problem",
+      "scope_level": "single_case",
+      "article_source": "עלי נוג'ידת ויניב מרדלר",
+      "temporal_weight": 0.75
+    },
+    {
+      "article_index": 22,
+      "article_url": null,
+      "signal_type": "resource_shortage",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Ma'ayan Baruch/Upper Galilee: Lack of armored field protection booths (מיגוניות) at bus station and two at playgrounds; lack of standard protection in informal education array",
+      "scope_level": "repeated_pattern",
+      "article_source": "יואב בן בסט ואילת יוסף",
+      "temporal_weight": 0.75
+    },
+    {
+      "article_index": 23,
+      "article_url": null,
+      "signal_type": "resource_shortage",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Kibbutz Dan/Upper Galilee: No protection in community buildings",
+      "scope_level": "single_case",
+      "article_source": "יואב בן בסט ואילת יוסף",
+      "temporal_weight": 0.75
+    },
+    {
+      "article_index": 25,
+      "article_url": null,
+      "signal_type": "resource_shortage",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Manara/Upper Galilee: Significant protection gaps; lack of welfare cell - not staffed; elderly - no meetings due to lack of public space; difficulty descending stairs",
+      "scope_level": "repeated_pattern",
+      "article_source": "גל+ליאור+אמל",
+      "temporal_weight": 0.75
+    },
+    {
+      "article_index": 26,
+      "article_url": null,
+      "signal_type": "resource_shortage",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Tzivon/Upper Galilee: Agriculture - missing armored field protection booth (מיגונית); old neighborhood - no individual safe rooms (ממ\"דים); only one shelter for entire neighborhood; need for protection reinforcement",
+      "scope_level": "repeated_pattern",
+      "article_source": "נאג' מנסור+רז הימן",
+      "temporal_weight": 0.75
+    },
+    {
+      "article_index": 28,
+      "article_url": null,
+      "signal_type": "resource_shortage",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Kfar Giladi/Upper Galilee: Lack of ability to provide response for ages 0-6; significant protection gaps; shelters do not contain all residents without protection; challenge with bedridden patients without protection ability",
+      "scope_level": "repeated_pattern",
+      "article_source": "ליאת מזר ומרואן פאלח",
+      "temporal_weight": 0.75
+    },
+    {
+      "article_index": 29,
+      "article_url": null,
+      "signal_type": "social_isolation",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Mevuot Hermon - Shar Yishuv (Hiram): Student departure; rest in positive spirit; discourse of resilience; protection gaps; have resources and volunteer network - not always right people; elderly - shelter gaps, unable to always reach protected space; need for airing especially of elderly; activity for children, kindergarten, informal, youth within capsules; feeling flooded with military personnel without coverage",
+      "scope_level": "repeated_pattern",
+      "article_source": "אבי גרשון ואיציק בן נאור",
+      "temporal_weight": 0.75
+    },
+    {
+      "article_index": 30,
+      "article_url": null,
+      "signal_type": "resource_shortage",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Ramot Naftali/Mevuot Hermon: 30 homes without individual safe rooms (ממ\"ד); gap in number of volunteers; lack of generator for settlement center; surrounding settlements received generators",
+      "scope_level": "quantified_or_broad",
+      "article_source": "מירי בן עמי ואסי כהן",
+      "temporal_weight": 0.75
+    },
+    {
+      "article_index": 32,
+      "article_url": null,
+      "signal_type": "service_continuity",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Yir'on/Upper Galilee: Very active HFC - received donation; informal activity - ongoing for children and youth; call to social services department - economic problems, rent payment delays",
+      "scope_level": "repeated_pattern",
+      "article_source": "עלי סרחאן+ חנן ממן",
+      "temporal_weight": 0.75
+    },
+    {
+      "article_index": 34,
+      "article_url": null,
+      "signal_type": "resource_shortage",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Malkhiya: Shortage of protection creating frustration and disappointment",
+      "scope_level": "repeated_pattern",
+      "article_source": "חנן ממן ,עלי סרחאן(לשאלות -דוח זה מולא ע\"י חנן ממן)",
+      "temporal_weight": 0.75
+    }
+  ],
+  "source_files": [
+    "articles-audio-tzafon-1045-2026-03-31T08-00.md"
+  ],
+  "generated_at": "2026-03-31T12:14:39.539Z"
+}
