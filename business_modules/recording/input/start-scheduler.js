@@ -22,11 +22,15 @@
 import 'dotenv/config';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { execFile } from 'child_process';
+import { promisify } from 'util';
 import { createRecordingJobStore } from '../infrastructure/recordingJobStore.js';
 import { createFfmpegDirectStreamAdapter } from '../infrastructure/adapters/ffmpegDirectStreamAdapter.js';
 import { createRecordingScheduler } from '../app/recordingScheduler.js';
 import { OpenaiTranscriptionAdapter } from '../../audio/infrastructure/adapters/openaiTranscriptionAdapter.js';
 import { AudioIngestService } from '../../audio/app/audioIngestService.js';
+
+const execFileAsync = promisify(execFile);
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -71,6 +75,17 @@ async function onRecordingComplete({ job, runId, outputPath, date, scheduledStar
     console.log(
       `[recording] Transcription done run=${runId}  blocks=${result.articleBlocks}  segments=${result.segmentCount}  → ${mdPath}`,
     );
+
+    // Auto-commit and push the transcript to the repo
+    const repoRoot = resolve(__dirname, '..', '..', '..');
+    try {
+      await execFileAsync('git', ['add', mdPath], { cwd: repoRoot });
+      await execFileAsync('git', ['commit', '-m', `data: auto-transcribe ${job.station} ${scheduledStart}`], { cwd: repoRoot });
+      await execFileAsync('git', ['push', 'origin', 'HEAD'], { cwd: repoRoot });
+      console.log(`[recording] Pushed transcript to repo  run=${runId}`);
+    } catch (gitErr) {
+      console.error(`[recording] Git push failed run=${runId}:`, gitErr.message);
+    }
   } catch (err) {
     console.error(`[recording] Transcription failed run=${runId}:`, err.message);
   }
