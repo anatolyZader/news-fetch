@@ -15,10 +15,6 @@ const memCache = new Map();
 
 const LANG_NAMES = { he: 'Hebrew', ru: 'Russian' };
 
-/**
- * Fixed glossary for the 8 resilience components and core domain terms.
- * Ensures consistency across all translated reports.
- */
 const GLOSSARY = {
   he: `
 Component name glossary (use these exact translations — do not paraphrase):
@@ -44,8 +40,6 @@ Key term glossary:
 - evacuation → פינוי
 - displaced residents → תושבים מפונים
 - local authority → רשות מקומית
-- cross_component_synthesis → סינתזה בין-מרכיבית
-- media_bias_caveats → הסתייגויות הטיית מדיה
 `,
   ru: `
 Глоссарий названий компонентов (используйте эти точные переводы — без перефразировок):
@@ -85,7 +79,7 @@ Style requirements:
 - Preserve all proper nouns (place names, organization names) as they appear
 
 ${GLOSSARY.he}
-Return ONLY valid JSON with the exact same structure as the input. Do NOT translate component_id values. Do NOT translate or alter URLs.`,
+Return ONLY valid JSON with the exact same structure as the input. Do NOT translate field names or component_id values. Do NOT translate or alter URLs.`,
 
   ru: `You are a professional translator specializing in civil defense and emergency management. You are translating an Israeli Home Front Command community resilience assessment report from English into formal Russian.
 
@@ -96,13 +90,9 @@ Style requirements:
 - Transliterate Israeli place names phonetically where no established Russian form exists
 
 ${GLOSSARY.ru}
-Return ONLY valid JSON with the exact same structure as the input. Do NOT translate component_id values. Do NOT translate or alter URLs.`,
+Return ONLY valid JSON with the exact same structure as the input. Do NOT translate field names or component_id values. Do NOT translate or alter URLs.`,
 };
 
-/**
- * Cache key includes total_articles_analyzed so a new run today (different article count)
- * naturally invalidates the previous translation.
- */
 function cacheKey(report, lang) {
   return `${report.date}_${report.total_articles_analyzed ?? 0}_${lang}`;
 }
@@ -128,25 +118,58 @@ async function writeDiskCache(report, lang, translatedReport) {
       'utf8',
     );
   } catch {
-    /* non-fatal — translation still works, just won't persist */
+    /* non-fatal */
   }
 }
 
 /**
- * Translate LLM-generated narrative and evidence fields in a report to the target language.
- * Translations are cached to disk in the reports/ directory and shared across
- * all users and server restarts. The cache key includes total_articles_analyzed so
- * a new analysis run today naturally invalidates the previous translation.
+ * Send one small JSON payload to Claude and return the parsed result + usage.
+ */
+async function translateChunk(payload, lang, langName) {
+  const message = await client.messages.create({
+    model: 'claude-sonnet-4-6',
+    max_tokens: 8000,
+    system: SYSTEM_PROMPT[lang],
+    messages: [{
+      role: 'user',
+      content: `Translate the following JSON into ${langName}. Return ONLY valid JSON with the exact same structure.\n\n${JSON.stringify(payload)}`,
+    }],
+  });
+
+  if (message.stop_reason === 'max_tokens') {
+    throw new Error(`Translation chunk truncated (max_tokens). Payload keys: ${Object.keys(payload).join(', ')}`);
+  }
+
+  const raw = message.content[0].text;
+  const match = raw.match(/\{[\s\S]*\}/);
+  if (!match) throw new Error('Translation response contained no JSON');
+
+  let result;
+  try {
+    result = JSON.parse(match[0]);
+  } catch {
+    result = JSON.parse(jsonrepair(match[0]));
+  }
+
+  return { result, usage: message.usage };
+}
+
+/**
+ * Translate the narrative and evidence fields of a report into the target language.
+ * All components are translated in parallel (one API call each) plus one call for
+ * the executive synthesis and caveats.
  *
- * @param {object} report  – full assessment object
- * @param {string} lang    – 'he' | 'ru' (never 'en')
- * @returns {object} report with translated text fields
+ * Results are cached to disk so subsequent requests (and server restarts) are free.
+ * Cache key includes total_articles_analyzed so a new analysis run invalidates it.
+ *
+ * @param {object} report – assessment object (report.components, report.cross_component_synthesis, …)
+ * @param {string} lang   – 'he' | 'ru'  (never 'en')
+ * @returns {object} report with translated text fields merged in
  */
 export async function getTranslatedReport(report, lang) {
   if (!report || lang === 'en') return report;
 
   const key = cacheKey(report, lang);
-
   if (memCache.has(key)) return memCache.get(key);
 
   const fromDisk = await readDiskCache(report, lang);
@@ -156,60 +179,47 @@ export async function getTranslatedReport(report, lang) {
   }
 
   const langName = LANG_NAMES[lang] ?? lang;
+  const components = report.components ?? [];
 
-  const payload = {
-    cross_component_synthesis: report.cross_component_synthesis ?? '',
-    media_bias_caveats: report.media_bias_caveats ?? '',
-    components: (report.components ?? []).map((c) => ({
-      component_id: c.component_id,
+  // One call for synthesis + caveats, one call per component — all in parallel.
+  const [synthesisChunk, ...componentChunks] = await Promise.all([
+    translateChunk({
+      cross_component_synthesis: report.cross_component_synthesis ?? '',
+      media_bias_caveats: report.media_bias_caveats ?? '',
+    }, lang, langName),
+    ...components.map((c) => translateChunk({
       narrative: c.narrative ?? '',
       evidence: c.evidence ?? [],
-    })),
-  };
+    }, lang, langName)),
+  ]);
 
-  const message = await client.messages.create({
-    model: 'claude-sonnet-4-6',
-    max_tokens: 16000,
-    system: SYSTEM_PROMPT[lang],
-    messages: [
-      {
-        role: 'user',
-        content: `Translate the following JSON into ${langName}. Return ONLY valid JSON with the exact same structure. Translate all narrative, synthesis, caveats, and evidence text fields.
-
-${JSON.stringify(payload, null, 2)}`,
-      },
-    ],
-  });
+  // Aggregate token usage across all parallel calls for cost tracking.
+  const allChunks = [synthesisChunk, ...componentChunks];
+  const totalUsage = allChunks.reduce(
+    (acc, { usage }) => ({
+      input_tokens:  acc.input_tokens  + (usage.input_tokens  ?? 0),
+      output_tokens: acc.output_tokens + (usage.output_tokens ?? 0),
+    }),
+    { input_tokens: 0, output_tokens: 0 },
+  );
 
   const translationModel = 'claude-sonnet-4-6';
-  const costUsd = calcInvocationCostUsd(translationModel, message.usage);
+  const costUsd = calcInvocationCostUsd(translationModel, totalUsage);
   appendCostLog({
     script: `translation-${lang}`,
     date: report.date,
     totalCostUsd: costUsd,
-    usageLog: [{ label: `translate-${lang}`, model: translationModel, usage: message.usage, cost: costUsd }],
+    usageLog: [{ label: `translate-${lang}`, model: translationModel, usage: totalUsage, cost: costUsd }],
   });
-
-  const raw = message.content[0].text;
-  const jsonMatch = raw.match(/\{[\s\S]*\}/);
-  if (!jsonMatch) throw new Error('Translation response did not contain JSON');
-
-  let translated;
-  try {
-    translated = JSON.parse(jsonMatch[0]);
-  } catch {
-    translated = JSON.parse(jsonrepair(jsonMatch[0]));
-  }
 
   const translatedReport = {
     ...report,
-    cross_component_synthesis:
-      translated.cross_component_synthesis ?? report.cross_component_synthesis,
-    media_bias_caveats: translated.media_bias_caveats ?? report.media_bias_caveats,
-    components: (report.components ?? []).map((c, i) => ({
+    cross_component_synthesis: synthesisChunk.result.cross_component_synthesis ?? report.cross_component_synthesis,
+    media_bias_caveats:        synthesisChunk.result.media_bias_caveats        ?? report.media_bias_caveats,
+    components: components.map((c, i) => ({
       ...c,
-      narrative: translated.components?.[i]?.narrative ?? c.narrative,
-      evidence: translated.components?.[i]?.evidence ?? c.evidence,
+      narrative: componentChunks[i].result.narrative ?? c.narrative,
+      evidence:  componentChunks[i].result.evidence  ?? c.evidence,
     })),
   };
 

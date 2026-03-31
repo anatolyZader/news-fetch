@@ -74,12 +74,17 @@ export async function runAnalyzeResilienceCli() {
   const dedupeTitles = explicitNoDedupe ? false : contentKind !== 'audio';
 
   // Optional field reports file — extracted separately with content_kind='field_report', fixed weight 0.75.
-  // If --field-reports is not given explicitly, auto-detect the most recent articles-field-reports-*.md file.
+  // If --field-reports is not given explicitly, auto-detect the most recent articles-field-reports-*.md file
+  // that contains at least one article (skips empty stub files).
   const fieldReportsArg = getArg('--field-reports') ?? (() => {
     const files = existsSync(resolve('.'))
-      ? readdirSync(resolve('.')).filter((f) => /^articles-field-reports-\d{4}-\d{2}-\d{2}\.md$/.test(f)).sort()
+      ? readdirSync(resolve('.')).filter((f) => /^articles-field-reports-\d{4}-\d{2}-\d{2}\.md$/.test(f)).sort().reverse()
       : [];
-    return files.length > 0 ? files.at(-1) : null;
+    for (const f of files) {
+      const { articles } = loadMdFile(resolve(f));
+      if (articles.length > 0) return f;
+    }
+    return null;
   })();
   let supplementaryArticles = [];
   if (fieldReportsArg) {
