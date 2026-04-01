@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import styles from './ReportView.module.css';
@@ -31,10 +32,18 @@ function scoreLabel(s, t) {
   return t('score.strong');
 }
 
-function ComponentCard({ comp, t }) {
+function ComponentCard({ comp, t, sourceSignals }) {
   const icon = ICONS[comp.component_id] ?? '•';
   const label = t(`comp.${comp.component_id}`) ?? comp.component_id.replace(/_/g, ' ');
   const confidenceLabel = t(`confidence.${comp.confidence}`) ?? comp.confidence;
+
+  // When a source filter is active, show that source's raw signals as evidence.
+  // When full, show the LLM-curated evidence strings.
+  const isFiltered = sourceSignals !== null && sourceSignals !== undefined;
+  const signals = isFiltered ? (sourceSignals ?? []) : null;
+  const curatedEvidence = isFiltered ? null : (comp.evidence ?? []);
+
+  const evidenceCount = isFiltered ? signals.length : curatedEvidence.length;
 
   return (
     <details className={styles.card}>
@@ -51,23 +60,36 @@ function ComponentCard({ comp, t }) {
           </ReactMarkdown>
         </div>
 
-        {comp.evidence?.length > 0 && (
+        {evidenceCount > 0 && (
           <details className={styles.evidenceDetails}>
             <summary className={styles.evidenceToggle}>
               <span className={styles.evidenceChevron}>›</span>
               <span>{t('report.evidence')}</span>
-              <span className={styles.evidenceCount}>{comp.evidence.length} {t('report.items')}</span>
+              <span className={styles.evidenceCount}>{evidenceCount} {t('report.items')}</span>
             </summary>
             <div className={styles.evidenceBody}>
               <ul className={styles.evidenceList}>
-                {comp.evidence.map((e, i) => (
-                  <li key={i} className={styles.proseMd}>
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{expandSourceCitationLinks(e)}</ReactMarkdown>
-                  </li>
-                ))}
+                {isFiltered
+                  ? signals.map((s, i) => (
+                      <li key={i} className={styles.signalItem}>
+                        <span className={styles.signalType}>{s.signal_type.replace(/_/g, ' ')}</span>
+                        <span className={styles.signalSource}>{s.article_source}</span>
+                        <span className={styles.proseMd}>{s.evidence}</span>
+                      </li>
+                    ))
+                  : curatedEvidence.map((e, i) => (
+                      <li key={i} className={styles.proseMd}>
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{expandSourceCitationLinks(e)}</ReactMarkdown>
+                      </li>
+                    ))
+                }
               </ul>
             </div>
           </details>
+        )}
+
+        {isFiltered && signals.length === 0 && (
+          <p className={styles.noSourceEvidence}>{t('report.noSourceEvidence') ?? 'No signals from this source for this component.'}</p>
         )}
       </div>
     </details>
@@ -105,9 +127,38 @@ function CostBreakdown({ breakdown, fallback }) {
   return null;
 }
 
-export function ReportView({ assessment, costUsd, costBreakdown, readOnly, translating, translateError }) {
+const SOURCE_LABELS = { full: 'Full', news: 'News', radio: 'Radio', field: 'Field' };
+
+export function ReportView({ assessment, costUsd, costBreakdown, scoreBySource, readOnly, translating, translateError }) {
   const { t } = useLanguage();
   const overall = assessment.overall_resilience_score;
+  const [activeSource, setActiveSource] = useState('full');
+
+  // When scoreBySource changes (e.g. new report loaded), reset to full
+  const availableSources = scoreBySource ? Object.keys(scoreBySource) : [];
+
+  // Resolve component scores and per-source signals for the active source filter
+  const components = assessment.components ?? [];
+  const activeSourceData = (activeSource !== 'full') ? scoreBySource?.[activeSource] : null;
+
+  function getScore(comp) {
+    if (!activeSourceData) return comp;
+    const src = activeSourceData[comp.component_id];
+    if (!src) return comp;
+    return { ...comp, score: src.score, confidence: src.confidence };
+  }
+
+  function getSourceSignals(compId) {
+    if (activeSourceData) return activeSourceData[compId]?.signals ?? [];
+    // Full view: aggregate signals from all sources so every extracted signal is shown
+    if (!scoreBySource) return null;
+    const all = [];
+    for (const srcData of Object.values(scoreBySource)) {
+      const compData = srcData[compId];
+      if (compData?.signals) all.push(...compData.signals);
+    }
+    return all.length > 0 ? all : null;
+  }
 
   return (
     <div className={styles.root}>
@@ -134,19 +185,38 @@ export function ReportView({ assessment, costUsd, costBreakdown, readOnly, trans
         </div>
       </div>
 
+      {/* ── Source filter pills (only shown when score_by_source is present) ── */}
+      {availableSources.length > 0 && (
+        <div className={styles.sourceFilter}>
+          {['full', ...availableSources].map((src) => (
+            <button
+              key={src}
+              type="button"
+              className={`${styles.sourceBtn} ${activeSource === src ? styles.sourceBtnActive : ''}`}
+              onClick={() => setActiveSource(src)}
+            >
+              {SOURCE_LABELS[src] ?? src}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* ── Component pills ── */}
       <div className={styles.pills}>
-        {(assessment.components ?? []).map((c) => (
-          <div key={c.component_id} className={styles.pill}>
-            <span>{ICONS[c.component_id]}</span>
-            <span className={styles.pillName}>
-              {t(`comp.${c.component_id}`) ?? c.component_id.replace(/_/g, ' ')}
-            </span>
-            <span className={styles.pillScore} style={{ color: scoreColor(c.score) }}>
-              {scoreLabel(c.score, t)}
-            </span>
-          </div>
-        ))}
+        {components.map((c) => {
+          const resolved = getScore(c);
+          return (
+            <div key={c.component_id} className={styles.pill}>
+              <span>{ICONS[c.component_id]}</span>
+              <span className={styles.pillName}>
+                {t(`comp.${c.component_id}`) ?? c.component_id.replace(/_/g, ' ')}
+              </span>
+              <span className={styles.pillScore} style={{ color: scoreColor(resolved.score) }}>
+                {scoreLabel(resolved.score, t)}
+              </span>
+            </div>
+          );
+        })}
       </div>
 
       {/* ── Executive summary ── */}
@@ -163,7 +233,7 @@ export function ReportView({ assessment, costUsd, costBreakdown, readOnly, trans
       <section className={styles.section}>
         <h2>{t('report.components')}</h2>
         {(assessment.components ?? []).map((c) => (
-          <ComponentCard key={c.component_id} comp={c} t={t} />
+          <ComponentCard key={c.component_id} comp={c} t={t} sourceSignals={getSourceSignals(c.component_id)} />
         ))}
       </section>
 
