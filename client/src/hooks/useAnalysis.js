@@ -10,6 +10,7 @@ export function useTodayReport() {
   const [markdown, setMarkdown] = useState(null);
   const [costUsd, setCostUsd] = useState(null);
   const [costBreakdown, setCostBreakdown] = useState(null);
+  const [scoreBySource, setScoreBySource] = useState(null);
   /** False until the first GET /api/report/today attempt finishes (success or failure). */
   const [initialReportLoadDone, setInitialReportLoadDone] = useState(false);
 
@@ -28,6 +29,7 @@ export function useTodayReport() {
           setCostUsd(typeof data.costUsd === 'number' ? data.costUsd : null);
           setCostBreakdown(data.costBreakdown && typeof data.costBreakdown === 'object' ? data.costBreakdown : null);
           setMarkdown(typeof data.markdown === 'string' && data.markdown.trim() ? data.markdown : null);
+          setScoreBySource(data.score_by_source && typeof data.score_by_source === 'object' ? data.score_by_source : null);
         }
       } catch {
         /* offline / error — empty state below */
@@ -37,5 +39,5 @@ export function useTodayReport() {
     })();
   }, [apiReady, getIdToken]);
 
-  return { report, markdown, costUsd, costBreakdown, initialReportLoadDone };
+  return { report, markdown, costUsd, costBreakdown, scoreBySource, initialReportLoadDone };
 }

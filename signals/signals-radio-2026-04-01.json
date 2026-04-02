@@ -1,0 +1,244 @@
+{
+  "source_type": "radio",
+  "content_kind": "audio",
+  "date": "2026-04-01",
+  "extracted_at": "2026-04-02T11:27:53.335Z",
+  "source_files": [
+    "articles-audio-ashams-2026-04-01T09-00.md",
+    "articles-audio-tzafon-1045-2026-04-01T09-00.md"
+  ],
+  "total_articles": 23,
+  "signals": [
+    {
+      "article_index": 1,
+      "article_url": null,
+      "signal_type": "harm_to_population",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "An 11-year-old girl was reported seriously wounded in Bnei Brak, and thirteen others suffered moderate to light injuries from the barrage toward Tel Aviv",
+      "scope_level": "single_case",
+      "article_source": "ashams — משדרי הבוקר אשמס 09:00–11:00",
+      "temporal_weight": 1,
+      "source_type": "radio"
+    },
+    {
+      "article_index": 3,
+      "article_url": null,
+      "signal_type": "resource_shortage",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "When there is an alarm siren, people have no shelters to go to—we have a serious shortage of these shelters",
+      "scope_level": "repeated_pattern",
+      "article_source": "ashams — משדרי הבוקר אשמס 09:00–11:00",
+      "temporal_weight": 1,
+      "source_type": "radio"
+    },
+    {
+      "article_index": 3,
+      "article_url": null,
+      "signal_type": "resource_shortage",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Most houses are not new, and even new houses don't have safe rooms. The state of Israel did nothing about this",
+      "scope_level": "repeated_pattern",
+      "article_source": "ashams — משדרי הבוקר אשמס 09:00–11:00",
+      "temporal_weight": 1,
+      "source_type": "radio"
+    },
+    {
+      "article_index": 3,
+      "article_url": null,
+      "signal_type": "harm_to_population",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Casualties in Arab towns are always higher than in Jewish towns, even when the number of missiles is sometimes greater in Jewish areas",
+      "scope_level": "repeated_pattern",
+      "article_source": "ashams — משדרי הבוקר אשמס 09:00–11:00",
+      "temporal_weight": 1,
+      "source_type": "radio"
+    },
+    {
+      "article_index": 6,
+      "article_url": null,
+      "signal_type": "harm_to_population",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "We have seen approximately 181 attacks—whether simple assault, trespassing on land, and other incidents—and this repeats and increases every year",
+      "scope_level": "quantified_or_broad",
+      "article_source": "ashams — משדרי הבוקר אשמס 09:00–11:00",
+      "temporal_weight": 1,
+      "source_type": "radio"
+    },
+    {
+      "article_index": 6,
+      "article_url": null,
+      "signal_type": "social_isolation",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "In Gaza, half the Christian population is gone; in Bethlehem, over 40 families emigrated in the last two years",
+      "scope_level": "repeated_pattern",
+      "article_source": "ashams — משדרי הבוקר אשמס 09:00–11:00",
+      "temporal_weight": 1,
+      "source_type": "radio"
+    },
+    {
+      "article_index": 6,
+      "article_url": null,
+      "signal_type": "fear_expression",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "The Christian entity is under serious threat—people see themselves as endangered in this land",
+      "scope_level": "repeated_pattern",
+      "article_source": "ashams — משדרי הבוקר אשמס 09:00–11:00",
+      "temporal_weight": 1,
+      "source_type": "radio"
+    },
+    {
+      "article_index": 8,
+      "article_url": null,
+      "signal_type": "resource_shortage",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "The Israeli clearance—tax revenues—they hold them, creating financial pressure on us",
+      "scope_level": "repeated_pattern",
+      "article_source": "ashams — משדרי הבוקר אשמס 09:00–11:00",
+      "temporal_weight": 1,
+      "source_type": "radio"
+    },
+    {
+      "article_index": 8,
+      "article_url": null,
+      "signal_type": "resource_shortage",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Today diesel costs 8.40 per liter, up 2.40 shekels, now more expensive than gasoline",
+      "scope_level": "single_case",
+      "article_source": "ashams — משדרי הבוקר אשמס 09:00–11:00",
+      "temporal_weight": 1,
+      "source_type": "radio"
+    },
+    {
+      "article_index": 8,
+      "article_url": null,
+      "signal_type": "resource_shortage",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Citizens must wait over two hours looking for a station, and often find no fuel—people are being humiliated",
+      "scope_level": "repeated_pattern",
+      "article_source": "ashams — משדרי הבוקר אשמס 09:00–11:00",
+      "temporal_weight": 1,
+      "source_type": "radio"
+    },
+    {
+      "article_index": 9,
+      "article_url": null,
+      "signal_type": "conflict_or_tension",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "I don't understand how a 12-person committee in a room decides the fate of a team that worked all year",
+      "scope_level": "single_case",
+      "article_source": "ashams — משדרי הבוקר אשמס 09:00–11:00",
+      "temporal_weight": 1,
+      "source_type": "radio"
+    },
+    {
+      "article_index": 9,
+      "article_url": null,
+      "signal_type": "conflict_or_tension",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "We have 18 wins and 4 draws, they have 18 draws and 2 losses—how is this fair?",
+      "scope_level": "single_case",
+      "article_source": "ashams — משדרי הבוקר אשמס 09:00–11:00",
+      "temporal_weight": 1,
+      "source_type": "radio"
+    },
+    {
+      "article_index": 10,
+      "article_url": null,
+      "signal_type": "conflict_or_tension",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "This isn't just about us—it's a pattern: Arab teams are treated differently",
+      "scope_level": "repeated_pattern",
+      "article_source": "ashams — משדרי הבוקר אשמס 09:00–11:00",
+      "temporal_weight": 1,
+      "source_type": "radio"
+    },
+    {
+      "article_index": 13,
+      "article_url": null,
+      "signal_type": "harm_to_population",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "A girl of about 11 years was seriously wounded in Bnei Brak. From Magen David Adom it was reported that in total 14 wounded from the scene were evacuated to receive medical treatment in hospitals",
+      "scope_level": "single_case",
+      "article_source": "tzafon-1045 — משדרי הבוקר רדיו צפון 09:00–11:00",
+      "temporal_weight": 1,
+      "source_type": "radio"
+    },
+    {
+      "article_index": 13,
+      "article_url": null,
+      "signal_type": "compliance_enter_shelter",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "A few minutes ago the sirens were activated in the south, in the center and in the north, following rocket fire from Iran. No casualties were reported, the incident has ended and you can exit the protected areas throughout the country",
+      "scope_level": "single_case",
+      "article_source": "tzafon-1045 — משדרי הבוקר רדיו צפון 09:00–11:00",
+      "temporal_weight": 1,
+      "source_type": "radio"
+    },
+    {
+      "article_index": 17,
+      "article_url": null,
+      "signal_type": "wellbeing_support_accessed",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "The recent events and approaching holidays can create tension and emotional difficulty, and I'm here to tell you, you will not remain alone with this. A mental health hotline is available for you, IDF wounded, IDF women, security personnel struggling emotionally and also for your families all day, all year",
+      "scope_level": "quantified_or_broad",
+      "article_source": "tzafon-1045 — משדרי הבוקר רדיו צפון 09:00–11:00",
+      "temporal_weight": 1,
+      "source_type": "radio"
+    },
+    {
+      "article_index": 18,
+      "article_url": null,
+      "signal_type": "wellbeing_support_accessed",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "For information about government emergency services such as rights utilization and assistance, essential services, property compensation and claims, and emotional and psychological response, search the government emergency portal now",
+      "scope_level": "quantified_or_broad",
+      "article_source": "tzafon-1045 — משדרי הבוקר רדיו צפון 09:00–11:00",
+      "temporal_weight": 1,
+      "source_type": "radio"
+    },
+    {
+      "article_index": 19,
+      "article_url": null,
+      "signal_type": "harm_to_population",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "For the fourth time this morning, missiles from Iran. Sirens were heard a short time ago in the center and Sharon regions. A total of 14 wounded from the scene were evacuated to hospitals for medical treatment",
+      "scope_level": "single_case",
+      "article_source": "tzafon-1045 — משדרי הבוקר רדיו צפון 09:00–11:00",
+      "temporal_weight": 1,
+      "source_type": "radio"
+    },
+    {
+      "article_index": 21,
+      "article_url": null,
+      "signal_type": "wellbeing_support_accessed",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "For information on government services in emergency, such as rights maximization and assistance, vital services, compensation and property claims, and psychological and emotional support, search the emergency government portal on the internet",
+      "scope_level": "quantified_or_broad",
+      "article_source": "tzafon-1045 — משדרי הבוקר רדיו צפון 09:00–11:00",
+      "temporal_weight": 1,
+      "source_type": "radio"
+    },
+    {
+      "article_index": 22,
+      "article_url": null,
+      "signal_type": "wellbeing_support_accessed",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "The recent events and approaching holidays can flood tensions and emotional difficulty, and I am here to tell you do not stay with this alone. The Nefesh Achat support center is available for you, IDF casualties and security personnel dealing with psychological challenges, and also for your families. All day, all night. All year on the phone",
+      "scope_level": "quantified_or_broad",
+      "article_source": "tzafon-1045 — משדרי הבוקר רדיו צפון 09:00–11:00",
+      "temporal_weight": 1,
+      "source_type": "radio"
+    },
+    {
+      "article_index": 23,
+      "article_url": null,
+      "signal_type": "compliance_enter_shelter",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Emergency alert broadcasts announce hostile aircraft incursions and direct residents in specific northern Israeli communities to enter protected spaces",
+      "scope_level": "repeated_pattern",
+      "article_source": "tzafon-1045 — משדרי הבוקר רדיו צפון 09:00–11:00",
+      "temporal_weight": 1,
+      "source_type": "radio"
+    }
+  ]
+}

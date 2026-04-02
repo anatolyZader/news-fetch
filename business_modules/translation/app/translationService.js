@@ -98,7 +98,7 @@ function cacheKey(report, lang) {
 }
 
 function cacheFilePath(date, articlesCount, lang) {
-  return resolve(REPORTS_DIR, `translation-${date}-${articlesCount}-${lang}.json`);
+  return resolve(REPORTS_DIR, `translation-v2-${date}-${articlesCount}-${lang}.json`);
 }
 
 async function readDiskCache(report, lang) {
@@ -181,20 +181,71 @@ export async function getTranslatedReport(report, lang) {
   const langName = LANG_NAMES[lang] ?? lang;
   const components = report.components ?? [];
 
-  // One call for synthesis + caveats, one call per component — all in parallel.
-  const [synthesisChunk, ...componentChunks] = await Promise.all([
+  // Collect unique signal evidence strings from score_by_source for translation.
+  const scoreBySource = report.score_by_source ?? {};
+  const allEvidenceStrings = new Set();
+  for (const sourceData of Object.values(scoreBySource)) {
+    for (const compData of Object.values(sourceData)) {
+      for (const sig of (compData.signals ?? [])) {
+        if (sig.evidence) allEvidenceStrings.add(sig.evidence);
+      }
+    }
+  }
+  const evidenceList = [...allEvidenceStrings];
+
+  // Split evidence strings into batches of ≤50 to stay within max_tokens.
+  const EVIDENCE_BATCH_SIZE = 50;
+  const evidenceBatches = [];
+  for (let i = 0; i < evidenceList.length; i += EVIDENCE_BATCH_SIZE) {
+    evidenceBatches.push(evidenceList.slice(i, i + EVIDENCE_BATCH_SIZE));
+  }
+
+  // One call for synthesis + caveats, one call per component, batched calls for
+  // signal evidence strings — all in parallel.
+  const [synthesisChunk, ...rest] = await Promise.all([
     translateChunk({
       cross_component_synthesis: report.cross_component_synthesis ?? '',
       media_bias_caveats: report.media_bias_caveats ?? '',
     }, lang, langName),
+    ...evidenceBatches.map((batch) =>
+      translateChunk({ evidence_strings: batch }, lang, langName),
+    ),
     ...components.map((c) => translateChunk({
       narrative: c.narrative ?? '',
       evidence: c.evidence ?? [],
     }, lang, langName)),
   ]);
 
+  const evidenceChunks = rest.slice(0, evidenceBatches.length);
+  const componentChunks = rest.slice(evidenceBatches.length);
+
+  // Build lookup map: original evidence string → translated.
+  const evidenceMap = {};
+  let evidenceIdx = 0;
+  for (const chunk of evidenceChunks) {
+    (chunk.result.evidence_strings ?? []).forEach((translated) => {
+      if (evidenceList[evidenceIdx]) evidenceMap[evidenceList[evidenceIdx]] = translated;
+      evidenceIdx++;
+    });
+  }
+
+  // Rebuild score_by_source with translated signal evidence strings.
+  const translatedScoreBySource = {};
+  for (const [source, sourceData] of Object.entries(scoreBySource)) {
+    translatedScoreBySource[source] = {};
+    for (const [compId, compData] of Object.entries(sourceData)) {
+      translatedScoreBySource[source][compId] = {
+        ...compData,
+        signals: (compData.signals ?? []).map((sig) => ({
+          ...sig,
+          evidence: evidenceMap[sig.evidence] ?? sig.evidence,
+        })),
+      };
+    }
+  }
+
   // Aggregate token usage across all parallel calls for cost tracking.
-  const allChunks = [synthesisChunk, ...componentChunks];
+  const allChunks = [synthesisChunk, ...evidenceChunks, ...componentChunks];
   const totalUsage = allChunks.reduce(
     (acc, { usage }) => ({
       input_tokens:  acc.input_tokens  + (usage.input_tokens  ?? 0),
@@ -221,6 +272,7 @@ export async function getTranslatedReport(report, lang) {
       narrative: componentChunks[i].result.narrative ?? c.narrative,
       evidence:  componentChunks[i].result.evidence  ?? c.evidence,
     })),
+    score_by_source: Object.keys(translatedScoreBySource).length > 0 ? translatedScoreBySource : report.score_by_source,
   };
 
   memCache.set(key, translatedReport);

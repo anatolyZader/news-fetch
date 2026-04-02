@@ -216,7 +216,10 @@ const SIGNAL_EXTRACTION_SYSTEM_PROMPT =
   `  ACCEPT: 'A resident of Kiryat Shmona said: "I haven't slept in three nights"'\n` +
   `  ACCEPT: named official/role with a direct quote or attributed action\n` +
   `  REJECT: paraphrase, journalist summary, vague attribution ("residents say")\n` +
-  `  ⚠ Emotional/narrative signals (fear_expression, calm_confidence, resilience_narrative_*): this type ONLY\n\n` +
+  `  ⚠ fear_expression / calm_confidence: this type ONLY — individual emotions require a named subject.\n` +
+  `  ⚠ resilience_narrative_positive / resilience_narrative_negative: also accept "observational_reported_fact"\n` +
+  `     when a host, reporter, or caller characterises collective mood or community-wide narrative\n` +
+  `     (e.g. "people in our region say they won't leave", "the spirit in the north has broken down").\n\n` +
 
   `"named_survey_statistic"      — a named study, survey, or institution reports a measured finding.\n` +
   `  ACCEPT: 'Bar-Ilan survey: 68% of northern residents report sleep disruption'\n` +
@@ -240,7 +243,7 @@ const SIGNAL_EXTRACTION_SYSTEM_PROMPT =
   `   A single quote may yield multiple signals if it contains multiple distinct facts. Extract each separately.\n` +
   `   Example: "I rushed to find my children; on the way I saw injured neighbors" → two signals:\n` +
   `     (a) evacuation/family reunification → compliance_enter_shelter or lifesaving_behavior domain\n` +
-  `     (b) witnessing injured population → wellbeing_atrisk domain\n` +
+  `     (b) witnessing injured population → harm_to_population\n` +
   `   Do NOT collapse this into one solidarity signal just because neighbors are mentioned.\n` +
   `2. CLOSED VOCABULARY: You MUST choose signal type from the list below. Never invent new types.\n` +
   `3. DO NOT EXTRACT: political/military/diplomatic content — unless it contains a direct civilian behavioral response.\n` +
@@ -252,7 +255,9 @@ const SIGNAL_EXTRACTION_SYSTEM_PROMPT =
   `  ACCEPT: "residents brought food to elderly neighbors who couldn't reach shelters"\n` +
   `  REJECT: "I went to find my family; I saw my neighbors' children were injured" — no helping act present\n` +
   `  REJECT: "a community gathered in a shelter" — co-location is not solidarity\n` +
-  `- Witnessing or hearing about harm to others (injured children, suffering neighbors) → wellbeing_atrisk, NOT solidarity\n` +
+  `- Witnessing or hearing about harm to others (injured children, suffering neighbors, casualties) → harm_to_population, NOT solidarity\n` +
+  `- Accumulated trauma, PTSD, chronic sleep disruption, grief (reported in named quote or survey) → psychological_distress (NOT fear_expression, which is situational/in-the-moment)\n` +
+  `- People accessing therapy, trauma hotlines, mental health programs, or community wellbeing services → wellbeing_support_accessed\n` +
   `- Emergency family reunification / finding family during evacuation → compliance_enter_shelter or lifesaving domain, NOT solidarity\n` +
   `- Education operating remotely / schools closed → service_disruption or service_continuity (functional_continuity domain), NOT information_*\n` +
   `- Businesses closed, clinics not operating, transport cancelled → service_disruption (functional_continuity domain)\n` +
@@ -266,7 +271,7 @@ const SIGNAL_EXTRACTION_SYSTEM_PROMPT =
   `  A surge in will-writing, legal consultations, or financial inquiries during wartime → fear_expression (if named quote) or omit. It is NOT active_information_seeking.\n` +
   `  information_actionable_effective: guidance was specific and situation-matched — people could follow it given actual constraints (accessible shelter, legally permitted to stop work, covers the scenario they faced). Use when evidence shows the instruction worked in practice.\n` +
   `  information_effectiveness_gap: guidance existed and was distributed, but failed to help because it did not match reality — instructions people physically or legally could not follow, scenarios left uncovered (mass casualties, no nearby shelter, workers with no legal protection to stop), or contradictions between official sources that left people unable to act. Do NOT use for mere absence of information — use information_confusion for that.\n` +
-  `- Emergency response to a harm event (ambulance to cardiac arrest, hospital treating injury): classify the harm as wellbeing_atrisk. Do NOT emit service_continuity — a service doing its normal job is not evidence of elevated functioning.\n\n` +
+  `- Emergency response to a harm event (ambulance to cardiac arrest, hospital treating injury): classify the harm itself as harm_to_population. Do NOT emit service_continuity — a service doing its normal job is not evidence of elevated functioning.\n\n` +
 
   `━━━ SIGNAL TYPES (closed vocabulary) ━━━\n` +
   `${formatSignalCatalog()}\n\n` +
@@ -348,9 +353,12 @@ async function extractSignalsBatch(articles, batchLabel, retries = 3, usageCallb
         'direct_quote_named_person', 'named_survey_statistic',
         'named_institutional_fact', 'observational_reported_fact',
       ]);
-      const EMOTIONAL_SIGNAL_TYPES = new Set([
+      // Individual emotions require a named person (can't attribute fear/confidence without a subject).
+      // Community narratives (resilience_narrative_*) also accept observational_reported_fact — a host
+      // or caller characterising collective mood ("people here won't leave", "the spirit in the north
+      // has broken") is a valid narrative signal without naming an individual.
+      const INDIVIDUAL_EMOTIONAL_SIGNAL_TYPES = new Set([
         'fear_expression', 'calm_confidence',
-        'resilience_narrative_positive', 'resilience_narrative_negative',
       ]);
       const valid = signals.filter((s) => {
         if (!validTypes.has(s.signal_type)) {
@@ -361,8 +369,8 @@ async function extractSignalsBatch(articles, batchLabel, retries = 3, usageCallb
         if (!validEvidenceTypes.has(s.evidence_type)) {
           s.evidence_type = 'observational_reported_fact';
         }
-        // Emotional signals require named person evidence
-        if (EMOTIONAL_SIGNAL_TYPES.has(s.signal_type) &&
+        // Individual emotional signals require named person evidence
+        if (INDIVIDUAL_EMOTIONAL_SIGNAL_TYPES.has(s.signal_type) &&
             s.evidence_type === 'observational_reported_fact') {
           console.error(`  ⚠ Dropped emotional signal without named-person evidence: "${s.signal_type}"`);
           return false;

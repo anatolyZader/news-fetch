@@ -24,6 +24,36 @@
 .overallLabel { font-size: 1.1rem; font-weight: 600; }
 .meta { font-size: 0.85rem; color: var(--muted); margin-top: 0.2rem; }
 
+/* Source filter */
+.sourceFilter {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.sourceBtn {
+  font-size: 0.8rem;
+  font-weight: 500;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--muted);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.sourceBtn:hover {
+  background: var(--surface);
+  color: var(--text);
+}
+
+.sourceBtnActive {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
 /* Score pills */
 .pills {
   display: flex;
@@ -174,6 +204,12 @@ details[open] > .evidenceToggle .evidenceChevron { transform: rotate(90deg); }
 
 .gaps { color: var(--muted); font-size: 0.85rem; }
 .muted { color: var(--muted); font-size: 0.9rem; }
+.noSourceEvidence { color: var(--muted); font-size: 0.85rem; font-style: italic; margin: 0.5rem 0 0; }
+
+/* Filtered (per-source) signal evidence items */
+.signalItem { display: flex; flex-direction: column; gap: 0.15rem; margin-bottom: 0.6rem; font-size: 0.88rem; }
+.signalType { font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--accent); }
+.signalSource { font-size: 0.75rem; color: var(--muted); }
 
 /* Markdown snippets (narratives with [url](url) citations) */
 .proseMd :global(p) {

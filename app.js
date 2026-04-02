@@ -22,6 +22,10 @@ import { contentBatchFromMdArticles } from './business_modules/resilience/app/co
 import { createAnthropicResilienceLlmAdapter } from './business_modules/resilience/infrastructure/adapters/anthropicResilienceLlmAdapter.js';
 import { getEducationDashboard } from './business_modules/education/app/educationSessionsService.js';
 import { getTranslatedReport } from './business_modules/translation/app/translationService.js';
+import { createWhatsAppMessageStore } from './business_modules/whatsapp/infrastructure/whatsappMessageStore.js';
+import { createMetaCloudApiAdapter } from './business_modules/whatsapp/infrastructure/adapters/metaCloudApiAdapter.js';
+import { createWhatsAppIngestService } from './business_modules/whatsapp/app/whatsappIngestService.js';
+import { whatsappWebhookPlugin } from './business_modules/whatsapp/input/webhook-routes.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -581,6 +585,12 @@ export async function createApp(options) {
     const { report, lang } = request.body ?? {};
     if (!report || !lang || lang === 'en') return reply.send({ report: report ?? null });
     try {
+      // Attach score_by_source from the cached report so signal evidence gets translated.
+      // The client sends only the assessment object (too large to include signals in POST body).
+      if (!report.score_by_source) {
+        const cached = getCachedReport(evidenceStore);
+        if (cached?.score_by_source) report.score_by_source = cached.score_by_source;
+      }
       const translated = await getTranslatedReport(report, lang);
       return reply.send({ report: translated });
     } catch (err) {
@@ -622,6 +632,26 @@ export async function createApp(options) {
       return reply.code(502).send({ error: 'Upstream unavailable' });
     }
   });
+
+  // ─── WhatsApp webhook (no auth — Meta verifies via verify token) ─────────
+  if (process.env.WHATSAPP_VERIFY_TOKEN) {
+    const whatsappMessageStore = createWhatsAppMessageStore(sqlitePath);
+    const whatsappApiAdapter = createMetaCloudApiAdapter({
+      accessToken: process.env.WHATSAPP_ACCESS_TOKEN,
+      phoneNumberId: process.env.WHATSAPP_PHONE_NUMBER_ID,
+    });
+    const whatsappIngestService = createWhatsAppIngestService({
+      messageStore: whatsappMessageStore,
+      apiAdapter: whatsappApiAdapter,
+      evidenceStore,
+      allowedGroupIds: (process.env.WHATSAPP_ALLOWED_GROUP_IDS ?? '').split(',').map(s => s.trim()).filter(Boolean),
+    });
+    await app.register(whatsappWebhookPlugin, {
+      ingestService: whatsappIngestService,
+      apiAdapter: whatsappApiAdapter,
+      verifyToken: process.env.WHATSAPP_VERIFY_TOKEN,
+    });
+  }
 
   // ─── Static SPA (after API routes) ───────────────────────────────────────
   // __dirname is the repo root (where app.js lives); serve Vite build at client/dist

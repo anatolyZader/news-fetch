@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS recording_jobs (
   schedule_json TEXT NOT NULL,
   duration_sec INTEGER NOT NULL,
   enabled      INTEGER NOT NULL DEFAULT 1,
+  language     TEXT NOT NULL DEFAULT 'he',
   created_at   TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
@@ -51,18 +52,23 @@ export function createRecordingJobStore(dbPath) {
   mkdirSync(dirname(dbPath), { recursive: true });
   const db = new DatabaseSync(dbPath);
   db.exec(DDL);
+  // Migrate: add language column if it doesn't exist yet
+  const cols = db.prepare(`PRAGMA table_info(recording_jobs)`).all().map((c) => c.name);
+  if (!cols.includes('language')) {
+    db.exec(`ALTER TABLE recording_jobs ADD COLUMN language TEXT NOT NULL DEFAULT 'he'`);
+  }
 
   return {
     /**
      * @param {{ station: string, streamUrl: string, program: string, schedule: object[], durationSec: number }} p
      * @returns {string} new job id
      */
-    addJob({ station, streamUrl, program, schedule, durationSec }) {
+    addJob({ station, streamUrl, program, schedule, durationSec, language = 'he' }) {
       const id = randomUUID();
       db.prepare(
-        `INSERT INTO recording_jobs (id, station, stream_url, program, schedule_json, duration_sec)
-         VALUES (?, ?, ?, ?, ?, ?)`,
-      ).run(id, station, streamUrl, program, JSON.stringify(schedule), durationSec);
+        `INSERT INTO recording_jobs (id, station, stream_url, program, schedule_json, duration_sec, language)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      ).run(id, station, streamUrl, program, JSON.stringify(schedule), durationSec, language);
       return id;
     },
 

@@ -1,0 +1,427 @@
+{
+  "assessment": {
+    "date": "2026-04-01",
+    "total_articles_analyzed": 36,
+    "overall_resilience_score": 4,
+    "content_kind": "audio",
+    "cross_component_synthesis": "The April 1 signal sample presents two structurally distinct behavioral contexts that share little analytical overlap. The first concerns residents in northern Israeli communities responding to active aerial incursion alerts: protective shelter behavior is documented as functioning at a population-wide level, with official all-clear messaging following the incident, and government service infrastructure — mental health hotlines, emergency portals, compensation mechanisms — operating in baseline fashion. The second context concerns Arab, Palestinian, and Christian minority populations whose reported experiences cluster around resource deprivation, institutional exclusion, and demographic erosion: attorney Hassan Jabbarin describes communities with no accessible shelters and structurally inadequate housing stock; fuel official Samer Abu Hadid documents two-hour waits and price spikes making diesel unaffordable in the West Bank; and Christian affairs official Youssef Tayir describes 181 documented attacks, sustained population emigration from Bethlehem, and a community that perceives itself as existentially endangered. These two behavioral contexts are largely not in contact with each other in the reporting sample.",
+    "evidence_quality_note": "The majority of signals today are direct quotes from named individuals in professional or representative roles, which increases attribution clarity but also reflects the selective availability of articulate spokespersons rather than a representative population sample.",
+    "components": [
+      {
+        "component_id": "narrative",
+        "score": null,
+        "confidence": "insufficient_data",
+        "signal_count": 0,
+        "distinct_article_count": 0,
+        "source_diversity": 0,
+        "coverage_ratio": 0,
+        "dispersion": null,
+        "coverage_adjustment": 0,
+        "positive_evidence": 0,
+        "negative_evidence": 0,
+        "net_evidence": 0,
+        "evidence_mass": 0,
+        "strength": 0,
+        "adjusted_strength": 0,
+        "certainty": 0,
+        "manifestations_evidenced": [],
+        "manifestations_absent": [
+          "A narrative of successful coping is visible and circulating (likely reporting gap)",
+          "The coping story reflects the entire population, not just a subset (likely reporting gap)",
+          "Residents express that the authority's narrative is credible and reflects their lived reality (likely reporting gap)",
+          "Competing or contradictory narratives are explicitly voiced by residents or groups (likely reporting gap)"
+        ],
+        "evidence": [],
+        "narrative": "No signals bearing on the narrative component were present in today's sample. Given the structural nature of the two behavioral contexts documented — active alert response in the north and chronic resource deprivation among minority populations — competing narratives about how the state is managing the emergency are plausibly in circulation, but no direct evidence of this appears. The absence of explicit narrative framing from either officials or residents is most likely a reporting gap given the audio coverage profile, not evidence that coherent coping narratives are absent."
+      },
+      {
+        "component_id": "information_communication",
+        "score": null,
+        "confidence": "insufficient_data",
+        "signal_count": 0,
+        "distinct_article_count": 0,
+        "source_diversity": 0,
+        "coverage_ratio": 0,
+        "dispersion": null,
+        "coverage_adjustment": 0,
+        "positive_evidence": 0,
+        "negative_evidence": 0,
+        "net_evidence": 0,
+        "evidence_mass": 0,
+        "strength": 0,
+        "adjusted_strength": 0,
+        "certainty": 0,
+        "manifestations_evidenced": [],
+        "manifestations_absent": [
+          "Residents state they receive the information they need to function during the emergency (informative absence — attorney Jabbarin's account implies residents receive alerts but cannot act on them due to absent shelter infrastructure)",
+          "Authority communication mechanisms are adapted to different resident groups (language, channel, format) (likely reporting gap)",
+          "Residents express trust in information received from the authority (likely reporting gap)",
+          "Population perceives national media information as relevant and addressing their needs (likely reporting gap)",
+          "Residents report information gaps, confusion, or spread of rumors/misinformation (likely reporting gap)",
+          "Guidance is reported as situation-matched and actionable — residents could follow it given real-world constraints (informative absence — shelter entry guidance is not actionable for communities with documented shelter shortages)",
+          "Guidance is reported as mismatched, impractical, or failing to cover critical scenarios (likely reporting gap)"
+        ],
+        "evidence": [],
+        "narrative": "No signals were coded directly to the information and communication component in today's sample. However, a meaningful effectiveness gap is implied by evidence elsewhere: the emergency alert system directed residents in northern communities to enter protected spaces, but attorney Jabbarin explicitly states that Arab communities have a documented shortage of accessible shelters and that most housing stock lacks safe rooms. This creates a structural mismatch between the information that was distributed and the physical conditions required to act on it. No evidence addresses whether alert content was adapted for Arabic-speaking communities, whether alternative guidance was issued for populations without shelter access, or whether residents in affected minority communities regarded official messaging as credible or relevant."
+      },
+      {
+        "component_id": "lifesaving_behavior",
+        "score": 7,
+        "confidence": "medium",
+        "signal_count": 2,
+        "distinct_article_count": 2,
+        "source_diversity": 1,
+        "coverage_ratio": 0.05555555555555555,
+        "dispersion": "very_low",
+        "coverage_adjustment": 0.771,
+        "positive_evidence": 1.238,
+        "negative_evidence": 0,
+        "net_evidence": 1.238,
+        "evidence_mass": 1.238,
+        "strength": 0.458,
+        "adjusted_strength": 0.353,
+        "certainty": 0.461,
+        "manifestations_evidenced": [
+          "Residents are observed or reported to actually follow Home Front Command (HFC) protective guidelines (sheltering, evacuating, etc.)",
+          "Residents demonstrate knowledge and understanding of HFC guidelines"
+        ],
+        "manifestations_absent": [
+          "Community teams or roles actively promote emergency preparedness among residents (likely reporting gap)",
+          "Residents or officials report non-compliance with protective guidelines (likely reporting gap)",
+          "Residents express or demonstrate perception of the situation as genuinely life-threatening (likely reporting gap)"
+        ],
+        "evidence": [
+          "Emergency alert system directs residents in northern Israeli communities (Bethel, Naftali district, Malkhiya, Yiftach) to enter protected spaces following hostile aircraft incursion",
+          "News anchor: 'the incident has ended and you can exit the protected areas throughout the country' — indicating a population-wide shelter-entry cycle was completed and officially concluded"
+        ],
+        "narrative": "The available signals indicate that residents in named northern communities entered protected spaces in response to an aerial incursion alert, and that the event concluded with an official broadcast all-clear. This represents the basic alert-response cycle functioning at a population level. No evidence of non-compliance is present, though this is most likely a reporting gap rather than evidence of universal compliance. A structural qualification applies: the shelter-entry behavior documented here concerns communities with adequate shelter infrastructure; the same behavioral expectation cannot be applied to Arab communities where shelter access is documented as insufficient. The compliance signals and the shelter-shortage signals, taken together, describe two populations experiencing the same alert system under materially different physical conditions."
+      },
+      {
+        "component_id": "functional_continuity",
+        "score": 8,
+        "confidence": "high",
+        "signal_count": 7,
+        "distinct_article_count": 5,
+        "source_diversity": 2,
+        "coverage_ratio": 0.1388888888888889,
+        "dispersion": "low",
+        "coverage_adjustment": 0.812,
+        "positive_evidence": 2.7,
+        "negative_evidence": 1.15,
+        "net_evidence": 1.55,
+        "evidence_mass": 3.85,
+        "strength": 0.551,
+        "adjusted_strength": 0.447,
+        "certainty": 0.854,
+        "manifestations_evidenced": [
+          "Essential services (healthcare, supply chains, municipal services) continue to operate",
+          "Specific disruptions to daily life are reported (closures, evacuations, inability to work)"
+        ],
+        "manifestations_absent": [
+          "Residents succeed in managing daily life (reported continuation of work, commerce, or social roles) (informative absence — West Bank fuel shortages and shelter absence suggest meaningful disruption to daily functioning)",
+          "Schools and educational institutions are open and operating (likely reporting gap)",
+          "Residents report that sufficient resources are available to maintain routine functioning (informative absence — multiple signals document resource insufficiency)"
+        ],
+        "evidence": [
+          "Ministry of Defense provides mental health hotline available for IDF soldiers, security personnel, their families, and civilians all day, all year",
+          "Government emergency portal provides information about property compensation, financial assistance, essential services access, and psychological support",
+          "Ministry of Defense provides 24/7 mental health support hotline (Nefesh Achat) for IDF casualties, security personnel, and families",
+          "Attorney Hassan Jabbarin: 'When there is an alarm siren, people have no shelters to go to—we have a serious shortage of these shelters'",
+          "Attorney Hassan Jabbarin: 'Most houses are not new, and even new houses don't have safe rooms. The state of Israel did nothing about this'",
+          "Samer Abu Hadid (fuel official, West Bank): 'Today diesel costs 8.40 per liter, up 2.40 shekels, now more expensive than gasoline'",
+          "Samer Abu Hadid: 'Citizens must wait over two hours looking for a station, and often find no fuel—people are being humiliated'"
+        ],
+        "narrative": "A differential exists in today's signals between the continuity of centrally provided state services and the continuity of daily functioning for specific populations. Government-operated mental health hotlines and emergency information portals are documented as available and accessible. However, for West Bank residents, fuel access has deteriorated to a degree where obtaining diesel requires waits exceeding two hours and often yields no result at a cost more than 40% above prior levels — conditions that directly impair economic activity, transport, and basic service operation. For Arab communities in Israel, the absence of shelter infrastructure means that the safety system underlying functional continuity during alerts is structurally unavailable. The service-continuity signals document baseline operation of centrally administered systems; they do not address the daily functioning of populations for whom those systems are inaccessible or absent."
+      },
+      {
+        "component_id": "community_capital",
+        "score": 3,
+        "confidence": "medium",
+        "signal_count": 4,
+        "distinct_article_count": 2,
+        "source_diversity": 1,
+        "coverage_ratio": 0.05555555555555555,
+        "dispersion": "very_low",
+        "coverage_adjustment": 0.771,
+        "positive_evidence": 0,
+        "negative_evidence": 2.3,
+        "net_evidence": -2.3,
+        "evidence_mass": 2.3,
+        "strength": -0.726,
+        "adjusted_strength": -0.559,
+        "certainty": 0.683,
+        "manifestations_evidenced": [],
+        "manifestations_absent": [
+          "Residents volunteer or express willingness to volunteer in formal or informal frameworks (likely reporting gap)",
+          "Authority or organizations are observed to activate and coordinate community resources (informative absence — attorney Jabbarin's account implies no state activation of resources to address shelter shortages)",
+          "Mechanisms exist and operate to coordinate volunteers and community organizations (likely reporting gap)",
+          "Cross-sector cooperation (e.g., municipality + NGOs + businesses) is reported or observed (likely reporting gap)"
+        ],
+        "evidence": [
+          "Attorney Hassan Jabbarin: 'When there is an alarm siren, people have no shelters to go to—we have a serious shortage of these shelters'",
+          "Attorney Hassan Jabbarin: 'Most houses are not new, and even new houses don't have safe rooms. The state of Israel did nothing about this'",
+          "Samer Abu Hadid (fuel official, West Bank): 'Today diesel costs 8.40 per liter, up 2.40 shekels, now more expensive than gasoline'",
+          "Samer Abu Hadid: 'Citizens must wait over two hours looking for a station, and often find no fuel—people are being humiliated'"
+        ],
+        "narrative": "All signals assigned to this component are negative — they document resource deficits rather than community resource activation. Attorney Jabbarin's statement that the state 'did nothing' about safe room deficiencies over an extended period implies an absence of coordinated institutional response to a documented structural vulnerability. No evidence of volunteer mobilization, cross-sector cooperation, or community organization activation appears in today's sample for any population. The resource-shortage signals are consistent with a pattern of underinvestment in the physical and institutional infrastructure that would normally constitute community capital, rather than with a temporary gap in an otherwise functioning system. This pattern is directionally consistent with the low community capital score recorded on March 31."
+      },
+      {
+        "component_id": "leadership",
+        "score": null,
+        "confidence": "insufficient_data",
+        "signal_count": 0,
+        "distinct_article_count": 0,
+        "source_diversity": 0,
+        "coverage_ratio": 0,
+        "dispersion": null,
+        "coverage_adjustment": 0,
+        "positive_evidence": 0,
+        "negative_evidence": 0,
+        "net_evidence": 0,
+        "evidence_mass": 0,
+        "strength": 0,
+        "adjusted_strength": 0,
+        "certainty": 0,
+        "manifestations_evidenced": [],
+        "manifestations_absent": [
+          "Residents express that formal or informal leadership is a source of support and security (likely reporting gap)",
+          "Leadership actively encourages residents to follow HFC guidelines (statements, actions, public presence) (likely reporting gap)",
+          "Leadership is reported to function professionally and manage the situation competently (likely reporting gap)",
+          "Residents express distrust, criticism, or frustration with leadership (informative absence — attorney Jabbarin's framing implies institutional neglect but does not directly address leadership performance as a category)"
+        ],
+        "evidence": [],
+        "narrative": "No signals were coded to the leadership component in today's sample. The prior day's score of 6/10 was driven by evidence of field coordination and professional emergency management in northern border communities; today's signals do not address those same leadership behaviors, nor do they introduce new ones. Attorney Jabbarin's characterization of state inaction on shelter infrastructure implies a leadership accountability dimension, but this is an inference from policy critique rather than direct evidence of leadership behavior during the current emergency. The absence of leadership signals today most likely reflects reporting focus rather than a change in leadership functioning."
+      },
+      {
+        "component_id": "belonging_solidarity",
+        "score": 3,
+        "confidence": "medium",
+        "signal_count": 5,
+        "distinct_article_count": 3,
+        "source_diversity": 1,
+        "coverage_ratio": 0.08333333333333333,
+        "dispersion": "very_low",
+        "coverage_adjustment": 0.787,
+        "positive_evidence": 0,
+        "negative_evidence": 2.785,
+        "net_evidence": -2.785,
+        "evidence_mass": 2.785,
+        "strength": -0.805,
+        "adjusted_strength": -0.634,
+        "certainty": 0.752,
+        "manifestations_evidenced": [
+          "Population groups are reported as scapegoated, blamed, or excluded due to the emergency (negative signal)"
+        ],
+        "manifestations_absent": [
+          "Residents express a sense of solidarity or shared fate (in their own words) (informative absence — signals from minority populations reflect exclusion rather than shared fate)",
+          "Concrete acts of mutual aid between residents are reported (likely reporting gap)",
+          "Programs or events strengthening belonging are activated and attended (likely reporting gap)"
+        ],
+        "evidence": [
+          "Youssef Tayir (Christian affairs official): 'We have seen approximately 181 attacks—whether simple assault, trespassing on land, and other incidents—and this repeats and increases every year'",
+          "Youssef Tayir: 'In Gaza, half the Christian population is gone; in Bethlehem, over 40 families emigrated in the last two years'",
+          "Team official Mahdi: 'I don't understand how a 12-person committee in a room decides the fate of a team that worked all year'",
+          "Team official Mahdi: 'Players left higher divisions, some paid their own way to play for us because we promised promotion—now that's erased'",
+          "Team official Mahdi: 'This isn't just about us—it's a pattern: Arab teams are treated differently'"
+        ],
+        "narrative": "The signals present two separate accounts of experienced institutional exclusion among Arab and Christian minority populations. Youssef Tayir documents 181 incidents of physical attack or land trespass against Christian communities over a recurrent period, combined with sustained emigration from Bethlehem, framing the situation as an existential threat to communal presence in the region. A separate voice — a football club official identified as Mahdi — describes a league committee decision that erased a promised promotion, characterizing it as part of a broader pattern of differential treatment toward Arab teams. Neither account involves shared-fate solidarity; both describe experiences of exclusion from institutional fairness and physical security. No evidence of mutual aid, solidarity programs, or expressions of belonging appeared in today's sample."
+      },
+      {
+        "component_id": "wellbeing_atrisk",
+        "score": 2,
+        "confidence": "high",
+        "signal_count": 10,
+        "distinct_article_count": 5,
+        "source_diversity": 1,
+        "coverage_ratio": 0.1388888888888889,
+        "dispersion": "low",
+        "coverage_adjustment": 0.812,
+        "positive_evidence": 0,
+        "negative_evidence": 3.875,
+        "net_evidence": -3.875,
+        "evidence_mass": 3.875,
+        "strength": -0.914,
+        "adjusted_strength": -0.742,
+        "certainty": 0.856,
+        "manifestations_evidenced": [
+          "Reports of unmet mental health or physical wellbeing needs among residents"
+        ],
+        "manifestations_absent": [
+          "Emotional support responses (psychological first aid, mental health services) are available and used by residents showing anxiety or trauma (informative absence — mental health hotlines exist at the national level but no evidence documents their reach to minority or at-risk populations in today's signals)",
+          "Specific responses for at-risk or special-needs populations are reported as active (elderly, disabled, evacuees, etc.) (informative absence — Christian and Arab community accounts describe no protective responses directed at their populations)",
+          "Residents in the second or third circle of vulnerability (indirectly affected) receive responses to their needs (informative absence)"
+        ],
+        "evidence": [
+          "Attorney Hassan Jabbarin: 'When there is an alarm siren, people have no shelters to go to—we have a serious shortage of these shelters'",
+          "Attorney Hassan Jabbarin: 'Most houses are not new, and even new houses don't have safe rooms. The state of Israel did nothing about this'",
+          "Youssef Tayir: 'The Christian entity is under serious threat—people see themselves as endangered in this land'",
+          "Youssef Tayir: 'We have seen approximately 181 attacks—whether simple assault, trespassing on land, and other incidents—and this repeats and increases every year'",
+          "Youssef Tayir: 'In Gaza, half the Christian population is gone; in Bethlehem, over 40 families emigrated in the last two years'",
+          "Samer Abu Hadid: 'Citizens must wait over two hours looking for a station, and often find no fuel—people are being humiliated'",
+          "Team official Mahdi: 'Players left higher divisions, some paid their own way to play for us because we promised promotion—now that's erased'",
+          "Team official Mahdi: 'This isn't just about us—it's a pattern: Arab teams are treated differently'"
+        ],
+        "narrative": "The wellbeing signals today cluster around three distinct at-risk populations whose needs are documented as unmet. Arab communities in Israel face the immediate physical vulnerability of sheltering in place during alerts without accessible protected spaces. The Christian community in the West Bank and Gaza, as described by Tayir, is experiencing not a temporary crisis but a cumulative loss — emigration, physical attacks, and a self-described sense of endangerment that has persisted and intensified over years. West Bank residents face a material wellbeing impact through fuel inaccessibility that affects movement, economic functioning, and basic dignity. Government mental health services documented in today's signals are framed as available to IDF personnel, security families, and civilians in general terms; no evidence documents those services reaching any of the three at-risk populations named above. This gap between service availability and population reach is the structural condition defining this component today."
+      }
+    ]
+  },
+  "signals": [
+    {
+      "article_index": 3,
+      "article_url": null,
+      "signal_type": "resource_shortage",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Attorney Hassan Jabbarin: 'When there is an alarm siren, people have no shelters to go to—we have a serious shortage of these shelters'",
+      "scope_level": "repeated_pattern",
+      "article_source": "ashams — משדרי הבוקר אשמס 09:00–11:00",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 3,
+      "article_url": null,
+      "signal_type": "resource_shortage",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Attorney Hassan Jabbarin: 'Most houses are not new, and even new houses don't have safe rooms. The state of Israel did nothing about this'",
+      "scope_level": "repeated_pattern",
+      "article_source": "ashams — משדרי הבוקר אשמס 09:00–11:00",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 6,
+      "article_url": null,
+      "signal_type": "social_isolation",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Youssef Tayir (Christian affairs official): 'We have seen approximately 181 attacks—whether simple assault, trespassing on land, and other incidents—and this repeats and increases every year'",
+      "scope_level": "repeated_pattern",
+      "article_source": "ashams — משדרי הבוקר אשמס 09:00–11:00",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 6,
+      "article_url": null,
+      "signal_type": "social_isolation",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Youssef Tayir: 'In Gaza, half the Christian population is gone; in Bethlehem, over 40 families emigrated in the last two years'",
+      "scope_level": "repeated_pattern",
+      "article_source": "ashams — משדרי הבוקר אשמס 09:00–11:00",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 6,
+      "article_url": null,
+      "signal_type": "fear_expression",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Youssef Tayir: 'The Christian entity is under serious threat—people see themselves as endangered in this land'",
+      "scope_level": "repeated_pattern",
+      "article_source": "ashams — משדרי הבוקר אשמס 09:00–11:00",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 8,
+      "article_url": null,
+      "signal_type": "resource_shortage",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Samer Abu Hadid (fuel official, West Bank): 'Today diesel costs 8.40 per liter, up 2.40 shekels, now more expensive than gasoline'",
+      "scope_level": "single_case",
+      "article_source": "ashams — משדרי הבוקר אשמס 09:00–11:00",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 8,
+      "article_url": null,
+      "signal_type": "resource_shortage",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Samer Abu Hadid: 'Citizens must wait over two hours looking for a station, and often find no fuel—people are being humiliated'",
+      "scope_level": "repeated_pattern",
+      "article_source": "ashams — משדרי הבוקר אשמס 09:00–11:00",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 9,
+      "article_url": null,
+      "signal_type": "conflict_or_tension",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Team official Mahdi: 'I don't understand how a 12-person committee in a room decides the fate of a team that worked all year'",
+      "scope_level": "single_case",
+      "article_source": "ashams — משדרי הבוקר אשמס 09:00–11:00",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 9,
+      "article_url": null,
+      "signal_type": "conflict_or_tension",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Team official Mahdi: 'Players left higher divisions, some paid their own way to play for us because we promised promotion—now that's erased'",
+      "scope_level": "single_case",
+      "article_source": "ashams — משדרי הבוקר אשמס 09:00–11:00",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 10,
+      "article_url": null,
+      "signal_type": "conflict_or_tension",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Team official Mahdi: 'This isn't just about us—it's a pattern: Arab teams are treated differently'",
+      "scope_level": "repeated_pattern",
+      "article_source": "ashams — משדרי הבוקר אשמס 09:00–11:00",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 26,
+      "article_url": null,
+      "signal_type": "compliance_enter_shelter",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "News anchor: 'the incident has ended and you can exit the protected areas throughout the country'",
+      "scope_level": "quantified_or_broad",
+      "article_source": "tzafon-1045 — משדרי הבוקר רדיו צפון 09:00–11:00",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 30,
+      "article_url": null,
+      "signal_type": "service_continuity",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Ministry of Defense provides mental health hotline available for IDF soldiers, security personnel, their families, and civilians all day, all year",
+      "scope_level": "quantified_or_broad",
+      "article_source": "tzafon-1045 — משדרי הבוקר רדיו צפון 09:00–11:00",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 31,
+      "article_url": null,
+      "signal_type": "service_continuity",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Government emergency portal provides information about property compensation, financial assistance, essential services access, and psychological support",
+      "scope_level": "quantified_or_broad",
+      "article_source": "tzafon-1045 — משדרי הבוקר רדיו צפון 09:00–11:00",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 35,
+      "article_url": null,
+      "signal_type": "service_continuity",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Ministry of Defense provides 24/7 mental health support hotline (Nefesh Achat) for IDF casualties, security personnel, and families",
+      "scope_level": "quantified_or_broad",
+      "article_source": "tzafon-1045 — משדרי הבוקר רדיו צפון 09:00–11:00",
+      "temporal_weight": 1
+    },
+    {
+      "article_index": 36,
+      "article_url": null,
+      "signal_type": "compliance_enter_shelter",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Emergency alert system directs residents in northern Israeli communities (Bethel, Naftali district, Malkhiya, Yiftach) to enter protected spaces following hostile aircraft incursion",
+      "scope_level": "repeated_pattern",
+      "article_source": "tzafon-1045 — משדרי הבוקר רדיו צפון 09:00–11:00",
+      "temporal_weight": 1
+    }
+  ],
+  "source_files": [
+    "articles-audio-ashams-2026-04-01T09-00.md",
+    "articles-audio-tzafon-1045-2026-03-31T08-00.md",
+    "articles-audio-tzafon-1045-2026-03-31T15-10.md",
+    "articles-audio-tzafon-1045-2026-04-01T09-00.md"
+  ],
+  "generated_at": "2026-04-01T10:07:16.467Z"
+}

@@ -96,7 +96,8 @@ export function splitAudioFileIfNeeded(inputPath, safeMaxBytes = SAFE_MAX_BYTES,
       const ss = i * partDur;
       execFileSync(
         'ffmpeg',
-        ['-y', '-ss', String(ss), '-i', inputPath, '-t', String(partDur), '-vn', '-acodec', 'libmp3lame', '-q:a', '4', out],
+        // -ss after -i for accurate (decoded) seek — avoids corrupt frame boundaries in VBR MP3
+        ['-y', '-i', inputPath, '-ss', String(ss), '-t', String(partDur), '-vn', '-acodec', 'libmp3lame', '-q:a', '4', out],
         { stdio: 'ignore' },
       );
       if (!statSync(out).size) {
@@ -214,6 +215,7 @@ export class AudioIngestService {
       publishedAt = date,
       outPath = 'articles-audio.md',
       useWhisper = false,
+      language,
       knownSpeakerNames,
       knownSpeakerReferences,
       onUsage,
@@ -227,16 +229,38 @@ export class AudioIngestService {
 
     try {
       for (const part of parts) {
-        const result = useWhisper
-          ? await this.adapter.transcribeWhisperPlain({ filePath: part })
-          : await this.adapter.transcribeDiarized({
-              filePath: part,
-              knownSpeakerNames,
-              knownSpeakerReferences,
-            });
-
         const dur = ffprobeDuration(part) ?? 0;
-        const modelId = useWhisper ? OPENAI_WHISPER_MODEL : OPENAI_TRANSCRIBE_DIARIZE_MODEL;
+        let result;
+        let modelId;
+        try {
+          if (useWhisper) {
+            result = await this.adapter.transcribeWhisperPlain({ filePath: part, language });
+            modelId = OPENAI_WHISPER_MODEL;
+          } else {
+            try {
+              result = await this.adapter.transcribeDiarized({ filePath: part, language, knownSpeakerNames, knownSpeakerReferences });
+              modelId = OPENAI_TRANSCRIBE_DIARIZE_MODEL;
+            } catch (err) {
+              if (err.status === 400) {
+                // Diarize model rejected this chunk; fall back to whisper-1
+                console.warn(`[audio] Diarize failed on ${basename(part)} (${err.message}); retrying with whisper-1`);
+                result = await this.adapter.transcribeWhisperPlain({ filePath: part, language });
+                modelId = OPENAI_WHISPER_MODEL;
+              } else {
+                throw err;
+              }
+            }
+          }
+        } catch (err) {
+          if (err.status === 400) {
+            // Chunk is genuinely corrupted (source recording dropout) — skip and continue
+            console.warn(`[audio] Skipping corrupted chunk ${basename(part)} at offset ${timeOffset}s (${err.message})`);
+            timeOffset += dur;
+            continue;
+          }
+          throw err;
+        }
+
         if (onUsage) {
           onUsage({
             label: `Audio ${useWhisper ? 'whisper' : 'diarize'} ${basename(part)}`,

@@ -77,7 +77,7 @@ export class OpenaiTranscriptionAdapter {
    * @returns {Promise<TranscriptionResult>}
    */
   async transcribeDiarized(opts) {
-    const { filePath, knownSpeakerNames, knownSpeakerReferences } = opts;
+    const { filePath, knownSpeakerNames, knownSpeakerReferences, language } = opts;
     /** @type {Record<string, unknown>} */
     const body = {
       file: createReadStream(filePath),
@@ -85,6 +85,7 @@ export class OpenaiTranscriptionAdapter {
       response_format: 'diarized_json',
       chunking_strategy: 'auto',
     };
+    if (language) body.language = language;
     if (knownSpeakerNames?.length && knownSpeakerReferences?.length) {
       body.extra_body = {
         known_speaker_names: knownSpeakerNames,
@@ -101,12 +102,14 @@ export class OpenaiTranscriptionAdapter {
    * @returns {Promise<TranscriptionResult>}
    */
   async transcribeWhisperPlain(opts) {
-    const { filePath } = opts;
-    const raw = await withRetry(() => this.client.audio.transcriptions.create({
+    const { filePath, language } = opts;
+    const body = {
       file: createReadStream(filePath),
       model: OPENAI_WHISPER_MODEL,
       response_format: 'json',
-    }), `transcribeWhisperPlain ${filePath}`);
+    };
+    if (language) body.language = language;
+    const raw = await withRetry(() => this.client.audio.transcriptions.create(body), `transcribeWhisperPlain ${filePath}`);
     const text = (raw.text ?? '').trim();
     return {
       segments: text ? [{ speaker: 'TRANSCRIPT', text, start: undefined, end: undefined }] : [],

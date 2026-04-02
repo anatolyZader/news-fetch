@@ -24,6 +24,7 @@ export const SIGNAL_DOMAINS = {
   continuity:    'Functional Continuity',
   narrative:     'Emotional / Narrative',
   resources:     'Community Resources',
+  wellbeing:     'Population Wellbeing',
 };
 
 /**
@@ -79,6 +80,11 @@ export const SIGNAL_CATALOG = [
   { type: 'resource_shortage',                domain: 'resources',   label: 'Community reports shortage of resources, services, or support', defaultPolarity: 'negative' },
   { type: 'self_organization',                domain: 'resources',   label: 'Community organizes itself without external direction', defaultPolarity: 'positive' },
   { type: 'dependency_on_external_aid',       domain: 'resources',   label: 'Community depends heavily on external aid due to local capacity gaps', defaultPolarity: 'negative' },
+
+  // I. Population Wellbeing
+  { type: 'harm_to_population',              domain: 'wellbeing',   label: 'Physical harm occurred in the community: casualties, injuries, civilians wounded or killed', defaultPolarity: 'negative' },
+  { type: 'psychological_distress',          domain: 'wellbeing',   label: 'Named individual or survey reports accumulated trauma, PTSD, grief, or chronic sleep disruption — distinct from situational fear', defaultPolarity: 'negative' },
+  { type: 'wellbeing_support_accessed',      domain: 'wellbeing',   label: 'Individuals or groups access psychological support, trauma care, or community wellbeing programs', defaultPolarity: 'positive' },
 ];
 
 export const SIGNAL_TYPES = SIGNAL_CATALOG.map((s) => s.type);
@@ -140,6 +146,11 @@ export const SIGNAL_TO_COMPONENTS = {
   resource_shortage:                 { community_capital: -1.0, wellbeing_atrisk: -0.8, functional_continuity: -0.5 },
   self_organization:                 { community_capital: +0.9, belonging_solidarity: +0.6 },
   dependency_on_external_aid:        { community_capital: -0.5, functional_continuity: -0.3 },
+
+  // Wellbeing
+  harm_to_population:                { wellbeing_atrisk: -1.2, narrative: -0.5 },
+  psychological_distress:            { wellbeing_atrisk: -1.0, narrative: -0.6 },
+  wellbeing_support_accessed:        { wellbeing_atrisk: +0.7, community_capital: +0.4 },
 };
 
 // ─── Deterministic scoring ────────────────────────────────────────────────────

@@ -138,13 +138,15 @@ function buildSignalAppendix(signals) {
 /**
  * Write both .md and .json outputs.
  *
- * @param {Object} assessment   Output of generateNarratives()
- * @param {Array}  signals      Output of extractSignals()
- * @param {Array}  sourceFiles  Array of source file basenames
- * @param {string} outputBase   Path without extension
+ * @param {Object} assessment    Output of generateNarratives()
+ * @param {Array}  signals       Output of extractSignals()
+ * @param {Array}  sourceFiles   Array of source file basenames
+ * @param {string} outputBase    Path without extension
+ * @param {Object} [extras]
+ * @param {Object} [extras.scoreBySource]  Per-source component scores: { news: {...}, radio: {...}, field: {...} }
  * @returns {{ mdPath, jsonPath }}
  */
-export function writeReport(assessment, signals, sourceFiles, outputBase) {
+export function writeReport(assessment, signals, sourceFiles, outputBase, { scoreBySource } = {}) {
   mkdirSync(dirname(outputBase), { recursive: true });
 
   const mdPath = `${outputBase}.md`;
@@ -153,20 +155,16 @@ export function writeReport(assessment, signals, sourceFiles, outputBase) {
   const md = buildMarkdown(assessment, sourceFiles) + buildSignalAppendix(signals);
   writeFileSync(mdPath, md, 'utf-8');
 
-  writeFileSync(
-    jsonPath,
-    JSON.stringify(
-      {
-        assessment,
-        signals,
-        source_files: sourceFiles,
-        generated_at: new Date().toISOString(),
-      },
-      null,
-      2,
-    ),
-    'utf-8',
-  );
+  const jsonPayload = {
+    assessment,
+    signals,
+    source_files: sourceFiles,
+    generated_at: new Date().toISOString(),
+  };
+  if (scoreBySource && Object.keys(scoreBySource).length > 0) {
+    jsonPayload.score_by_source = scoreBySource;
+  }
+  writeFileSync(jsonPath, JSON.stringify(jsonPayload, null, 2), 'utf-8');
 
   return { mdPath, jsonPath };
 }

@@ -20,6 +20,8 @@
     "articles-to-md": "node business_modules/news-sites/input/fetch-articles-to-md.js",
     "homefront-to-md": "node business_modules/news-sites/input/extract-homefront-articles.js",
     "analyze-resilience": "node business_modules/resilience/input/analyze-resilience.js",
+    "extract-signals": "node business_modules/resilience/input/extract-signals.js",
+    "assess-signals": "node business_modules/resilience/input/assess-signals.js",
     "ingest-field-reports": "node business_modules/resilience/input/ingest-field-reports.js",
     "audio-to-md": "node business_modules/audio/input/audio-to-md.js",
     "video-grab-url": "node business_modules/video/input/video-grab-url.js",
@@ -36,6 +38,7 @@
     "record:start": "node business_modules/recording/input/start-scheduler.js",
     "radio:setup": "node business_modules/radio/input/setup-tzafon.js",
     "radio:test": "node business_modules/recording/input/test-stream.js --url https://radio.streamgates.net/stream/1045fm",
-    "radio:jobs": "node business_modules/recording/input/manage-jobs.js"
+    "radio:jobs": "node business_modules/recording/input/manage-jobs.js",
+    "whatsapp-to-md": "node business_modules/whatsapp/input/whatsapp-to-md.js"
   }
 }

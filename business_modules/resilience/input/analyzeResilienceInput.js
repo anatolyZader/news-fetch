@@ -75,8 +75,8 @@ export async function runAnalyzeResilienceCli() {
 
   // Optional field reports file — extracted separately with content_kind='field_report', fixed weight 0.75.
   // If --field-reports is not given explicitly, auto-detect the most recent articles-field-reports-*.md file
-  // that contains at least one article (skips empty stub files).
-  const fieldReportsArg = getArg('--field-reports') ?? (() => {
+  // that contains at least one article (skips empty stub files). Pass --no-field-reports to suppress.
+  const fieldReportsArg = args.includes('--no-field-reports') ? null : (getArg('--field-reports') ?? (() => {
     const files = existsSync(resolve('.'))
       ? readdirSync(resolve('.')).filter((f) => /^articles-field-reports-\d{4}-\d{2}-\d{2}\.md$/.test(f)).sort().reverse()
       : [];
@@ -85,7 +85,7 @@ export async function runAnalyzeResilienceCli() {
       if (articles.length > 0) return f;
     }
     return null;
-  })();
+  })());
   let supplementaryArticles = [];
   if (fieldReportsArg) {
     const frPath = resolve(fieldReportsArg);

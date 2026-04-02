@@ -63,6 +63,8 @@ async function onRecordingComplete({ job, runId, outputPath, date, scheduledStar
   // This avoids overwrites when multiple programs run on the same day.
   const safeSlot = scheduledStart.replace(/:/g, '-'); // "2026-03-24T18-00"
   const mdPath = resolve(__dirname, '..', '..', '..', `articles-audio-${job.station}-${safeSlot}.md`);
+  // gpt-4o-transcribe-diarize only supports Hebrew; use whisper-1 for other languages
+  const useWhisper = job.language !== 'he';
   try {
     const result = await audioIngestService.ingestToMarkdown({
       filePath: outputPath,
@@ -71,6 +73,8 @@ async function onRecordingComplete({ job, runId, outputPath, date, scheduledStar
       program: job.program,
       outPath: mdPath,
       contextualize: true,
+      useWhisper,
+      language: job.language,
     });
     console.log(
       `[recording] Transcription done run=${runId}  blocks=${result.articleBlocks}  segments=${result.segmentCount}  → ${mdPath}`,
