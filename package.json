@@ -12,6 +12,7 @@
     "googleapis": "^144.0.0",
     "jsonrepair": "^3.13.3",
     "openai": "^4.104.0",
+    "pptxgenjs": "^4.0.1",
     "xlsx": "^0.18.5"
   },
   "scripts": {

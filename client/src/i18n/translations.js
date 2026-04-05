@@ -1,9 +1,10 @@
 export const translations = {
   en: {
     // Tabs
-    'tab.report':      'Report',
-    'tab.submissions': 'Submissions',
-    'tab.education':   'Education',
+    'tab.report':         'Report',
+    'tab.submissions':    'Submissions',
+    'tab.education':      'Education',
+    'tab.municipalities': 'Municipalities',
 
     // Language names
     'lang.en': 'EN',
@@ -155,9 +156,10 @@ export const translations = {
   },
 
   he: {
-    'tab.report':      'דוח',
-    'tab.submissions': 'הגשות',
-    'tab.education':   'חינוך',
+    'tab.report':         'דוח',
+    'tab.submissions':    'הגשות',
+    'tab.education':      'חינוך',
+    'tab.municipalities': 'רשויות',
 
     'lang.en': 'EN',
     'lang.he': 'עב',
@@ -297,9 +299,10 @@ export const translations = {
   },
 
   ru: {
-    'tab.report':      'Отчёт',
-    'tab.submissions': 'Записи',
-    'tab.education':   'Образование',
+    'tab.report':         'Отчёт',
+    'tab.submissions':    'Записи',
+    'tab.education':      'Образование',
+    'tab.municipalities': 'Муниципалитеты',
 
     'lang.en': 'EN',
     'lang.he': 'ИВ',

@@ -11,7 +11,7 @@ Run the 8-component resilience analysis combining all radio transcript files fro
 
 List all available radio transcript files:
 ```
-ls articles-audio-ashams-*.md articles-audio-tzafon-1045-*.md 2>/dev/null
+ls articles-audio-*.md 2>/dev/null
 ```
 
 From the results, select files dated within the last 3 days (today, yesterday, 2 days ago) relative to today's date from the context above. Collect them into a comma-separated list.

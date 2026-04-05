@@ -1,0 +1,342 @@
+{
+  "source_type": "news",
+  "content_kind": "news",
+  "date": "2026-04-04",
+  "extracted_at": "2026-04-05T09:43:30.367Z",
+  "source_files": [
+    "articles-homefront-2026-04-04.md"
+  ],
+  "total_articles": 46,
+  "signals": [
+    {
+      "article_index": 1,
+      "article_url": "https://www.ynet.co.il/news/article/sjdyua6izl",
+      "signal_type": "service_disruption",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Widespread power outages recorded in Rosh Ha'ayin following Iranian missile strike; electricity expected to return around 5:00 AM",
+      "scope_level": "quantified_or_broad",
+      "article_source": "ynet.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 1,
+      "article_url": "https://www.ynet.co.il/news/article/sjdyua6izl",
+      "signal_type": "harm_to_population",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Building collapsed in Ramat Gan; apartment burned in Rosh Ha'ayin; vehicles burned in Bnei Brak; road damage in Givatayim and Tel Aviv",
+      "scope_level": "quantified_or_broad",
+      "article_source": "ynet.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 2,
+      "article_url": "https://www.ynet.co.il/news/article/r1jpd1cibg",
+      "signal_type": "compliance_enter_shelter",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "At 2:00 AM, millions of residents entered protected spaces following alert sirens",
+      "scope_level": "quantified_or_broad",
+      "article_source": "ynet.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 2,
+      "article_url": "https://www.ynet.co.il/news/article/r1jpd1cibg",
+      "signal_type": "harm_to_population",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "45-year-old man lightly wounded by glass shrapnel in Bnei Brak; infant extracted from impact site in Petah Tikva; heavy building damage in Ramat Gan; apartment fire in Rosh Ha'ayin; widespread power outages",
+      "scope_level": "quantified_or_broad",
+      "article_source": "ynet.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 3,
+      "article_url": "https://www.ynet.co.il/news/article/yokra14728828",
+      "signal_type": "calm_confidence",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Elderly resident: 'All that is happening to us now is deluxe Messiah pangs' — noting availability of heated home, supermarkets, medical services, pension payments, Torah classes, and ability to travel for family events during wartime",
+      "scope_level": "single_case",
+      "article_source": "ynet.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 3,
+      "article_url": "https://www.ynet.co.il/news/article/yokra14728828",
+      "signal_type": "routine_maintenance",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Supermarkets, shops, medical services, Torah classes, and family celebrations continue operating normally during wartime",
+      "scope_level": "repeated_pattern",
+      "article_source": "ynet.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 6,
+      "article_url": "https://www.haaretz.co.il/news/politics/2026-04-04/ty-article/0000019d-55c0-da4e-a5df-5fde4f310000?utm_source=mivzakimnet&utm_medium=rss&utm_campaign=mivzakimnet",
+      "signal_type": "harm_to_population",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "45-year-old man lightly wounded by glass shrapnel in Bnei Brak; three vehicles burned; building damaged in Givatayim; cluster bomb damage in Petah Tikva; heavy damage to building in Rosh Ha'ayin; fire in open area; debris impact in Tel Aviv",
+      "scope_level": "quantified_or_broad",
+      "article_source": "haaretz.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 7,
+      "article_url": "https://www.haaretz.co.il/tmr/weekend/2026-04-03/ty-article-magazine/.premium/0000019d-441c-d9ad-adbf-7e9f17430000",
+      "signal_type": "information_effectiveness_gap",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "600,000 Haredi residents use outdated kosher phones that fail to receive Home Front Command early warnings of missile attacks, preventing access to critical safety information",
+      "scope_level": "quantified_or_broad",
+      "article_source": "haaretz.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 10,
+      "article_url": "https://www.maariv.co.il/breaking-news/article-1304805",
+      "signal_type": "service_continuity",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "8 fire and rescue teams controlled fire at Neot Hovav industrial zone; no casualties; dangerous materials ruled out; incident concluded without injuries",
+      "scope_level": "single_case",
+      "article_source": "maariv.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 12,
+      "article_url": "https://www.maariv.co.il/breaking-news/article-1304854",
+      "signal_type": "resource_mobilization",
+      "evidence_type": "named_survey_statistic",
+      "evidence": "Population and Immigration Authority: 213,159 Israelis returned to Israel since Operation Roaring Lion began Feb 28 through April 4 — 83,738 via land crossings, 128,901 via air, 520 via sea",
+      "scope_level": "quantified_or_broad",
+      "article_source": "maariv.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 13,
+      "article_url": "https://www.maariv.co.il/breaking-news/article-1304857",
+      "signal_type": "information_confusion",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Rocket struck Kiryat Shmona without alert siren activation; residents unwarned of impact until after explosion occurred",
+      "scope_level": "single_case",
+      "article_source": "maariv.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 14,
+      "article_url": "https://www.maariv.co.il/breaking-news/article-1304917",
+      "signal_type": "harm_to_population",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "24-year-old lightly wounded by smoke inhalation in Bnei Brak; elderly resident evacuated from destroyed apartment in Ramat Gan; multiple trauma victims receiving medical care",
+      "scope_level": "repeated_pattern",
+      "article_source": "maariv.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 16,
+      "article_url": "http://news.walla.co.il/item/3828311",
+      "signal_type": "fear_expression",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Miriam, mother of three: 'I fled north to here, and now it hit me here too, there's nowhere to escape. A cluster bomb hit right where I brought my children — it's terrifying. We're outside now with a power outage, we heard a crazy boom and immediately knew it hit us. My children are in severe distress and I can't function'",
+      "scope_level": "single_case",
+      "article_source": "news.walla.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 16,
+      "article_url": "http://news.walla.co.il/item/3828311",
+      "signal_type": "service_disruption",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Power outage in impact area; family displaced and seeking shelter for the night",
+      "scope_level": "single_case",
+      "article_source": "news.walla.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 17,
+      "article_url": "http://news.walla.co.il/item/3828313",
+      "signal_type": "system_overload",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Neot Hovav industrial zone struck twice in one week; hazmat teams, monitoring units, and fire crews deployed; workers sheltered in protected areas; Highway 40 closed in both directions; specialized hazmat teams conducting decontamination operations",
+      "scope_level": "single_case",
+      "article_source": "news.walla.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 18,
+      "article_url": "https://news.walla.co.il/break/3828339",
+      "signal_type": "information_confusion",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "IDF investigating why alert siren was not activated before rocket struck Kiryat Shmona; residents received no warning",
+      "scope_level": "single_case",
+      "article_source": "news.walla.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 19,
+      "article_url": "http://news.walla.co.il/item/3828349",
+      "signal_type": "solidarity_help_others",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Gabriel Shadi, 18-year-old Magen David Adom volunteer from Beit Shemesh: 'I heard a very loud explosion and understood there was an impact right next to the house... I decided to get out as fast as possible and try to rescue as many people as I could' — rushed to assist rescue forces at deadly impact site",
+      "scope_level": "single_case",
+      "article_source": "news.walla.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 19,
+      "article_url": "http://news.walla.co.il/item/3828349",
+      "signal_type": "community_volunteering",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "18-year-old MDA volunteer left shelter to assist rescue forces at impact site despite security situation",
+      "scope_level": "single_case",
+      "article_source": "news.walla.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 20,
+      "article_url": "http://news.walla.co.il/break/3828354",
+      "signal_type": "service_disruption",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "United Airlines announced suspension of flights to Israel through at least September 7, 2026, due to Operation Roaring Lion and regional tensions",
+      "scope_level": "quantified_or_broad",
+      "article_source": "news.walla.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 21,
+      "article_url": "http://news.walla.co.il/item/3828358",
+      "signal_type": "service_disruption",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "United Airlines suspended flights to Israel through September 7, 2026; passengers allowed to reschedule without change fees within 7 days before/after original date or receive full refund",
+      "scope_level": "quantified_or_broad",
+      "article_source": "news.walla.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 22,
+      "article_url": "http://news.walla.co.il/item/3828361",
+      "signal_type": "leadership_clear_guidance",
+      "evidence_type": "named_institutional_fact",
+      "speech": "Home Front Command authorized maximum 150 protesters in Tel Aviv's Habima Square and 50 in other cities during wartime",
+      "scope_level": "quantified_or_broad",
+      "article_source": "news.walla.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 22,
+      "article_url": "http://news.walla.co.il/item/3828361",
+      "signal_type": "conflict_or_tension",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Peace Coalition statement: '150 protesters is not a right to protest — it's a cap to silence dissent. The public will come tonight in its masses to over 20 locations across the country because you cannot limit public protest against war through administrative restrictions'",
+      "scope_level": "single_case",
+      "article_source": "news.walla.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 28,
+      "article_url": "https://www.themarker.com/career/2026-04-04/ty-article/.premium/0000019d-5491-df19-a9bf-fc97866d0000",
+      "signal_type": "resource_shortage",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "IDF extended reserve duty cycles from 6 to 9 weeks due to operational needs in Iran and north; employers warn of business impact and reduced motivation to hire reservists",
+      "scope_level": "quantified_or_broad",
+      "article_source": "themarker.com",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 31,
+      "article_url": "https://www.globes.co.il/news/article.aspx?did=1001538937",
+      "signal_type": "self_organization",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "7-year-old girl organized spontaneous Purim celebration in building lobby during wartime; ~20 residents including children and elderly participated; parents brought bubbles, drawing supplies, and snacks; community gathered until sunset",
+      "scope_level": "single_case",
+      "article_source": "globes.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 31,
+      "article_url": "https://www.globes.co.il/news/article.aspx?did=1001538937",
+      "signal_type": "resilience_narrative_positive",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Tel Aviv municipality implementing health-promoting architecture (salutogenic design) to create public spaces that enable spontaneous community gatherings and resilience-building during wartime",
+      "scope_level": "repeated_pattern",
+      "article_source": "globes.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 32,
+      "article_url": "https://www.globes.co.il/news/article.aspx?did=1001539420",
+      "signal_type": "service_disruption",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "United Airlines, Delta Airlines, and Air Canada suspended flights to Israel through September; American Airlines suspended through July; only Israeli carriers operating with severe restrictions (one flight per hour, max 50 passengers per flight)",
+      "scope_level": "quantified_or_broad",
+      "article_source": "globes.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 37,
+      "article_url": "https://www.timesofisrael.com/liveblog_entry/iranian-cluster-bomb-attack-fells-ramat-gan-building-causes-power-outage-in-rosh-haayin/",
+      "signal_type": "harm_to_population",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Building collapsed in Ramat Gan; high-voltage electricity line damaged in Rosh Ha'ayin causing power outage; fire at Neot Hovav industrial zone brought under control",
+      "scope_level": "quantified_or_broad",
+      "article_source": "timesofisrael.com",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 39,
+      "article_url": "https://www.timesofisrael.com/idf-extends-time-reservists-must-serve-this-year-amid-iran-and-hezbollah-wars/",
+      "signal_type": "resource_mobilization",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "IDF extended reserve duty service time and distributed updated 'combat chart' to all units; military urgently needs 12,000 recruits, mostly combat troops, due to strain from recent conflicts",
+      "scope_level": "quantified_or_broad",
+      "article_source": "timesofisrael.com",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 41,
+      "article_url": "https://www.jpost.com/israel-news/article-892023",
+      "signal_type": "service_continuity",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Health system in Dead Sea and Eilat areas continues routine care for evacuees while preparing for casualty scenarios; specialized vehicles and trauma teams added to ensure rapid response",
+      "scope_level": "repeated_pattern",
+      "article_source": "jpost.com",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 46,
+      "article_url": "https://www.ynetnews.com/article/hjdx8irsbe",
+      "signal_type": "harm_to_population",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Multiple impact sites in Tel Aviv metropolitan area; residential building in Bnei Brak sustained heavy damage from direct hit; vehicle overturned in Tel Aviv; buildings damaged in Ramat Gan",
+      "scope_level": "quantified_or_broad",
+      "article_source": "ynetnews.com",
+      "temporal_weight": 1,
+      "source_type": "news"
+    }
+  ]
+}

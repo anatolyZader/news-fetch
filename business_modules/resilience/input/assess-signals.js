@@ -88,6 +88,17 @@ async function run() {
       .slice(-3),
   );
 
+  // Collect the 3 most recent PBO signal files (municipality reports may not align with date window).
+  const recentPboFiles = new Set(
+    allFiles
+      .filter((f) => /^signals-pbo-\d{4}-\d{2}-\d{2}\.json$/.test(f))
+      .sort()
+      .slice(-3),
+  );
+
+  // Source types that use recency-based inclusion (not date-windowed)
+  const RECENCY_SOURCES = { field: recentFieldFiles, pbo: recentPboFiles };
+
   // Load matching signal files
   const loadedFiles = [];
   for (const file of allFiles.sort()) {
@@ -95,10 +106,12 @@ async function run() {
     const m = file.match(/^signals-(\w+)-(\d{4}-\d{2}-\d{2})\.json$/);
     if (!m) continue;
     const [, sourceType, fileDate] = m;
-    // Field: include the 3 most recent files regardless of date.
-    // News and radio: date-windowed.
-    if (sourceType !== 'field' && !targetDates.has(fileDate)) continue;
-    if (sourceType === 'field' && !recentFieldFiles.has(file)) continue;
+    const recencySet = RECENCY_SOURCES[sourceType];
+    // Recency-based sources (field, pbo): include recent files regardless of date.
+    // All others (news, radio, whatsapp): date-windowed.
+    if (recencySet) {
+      if (!recencySet.has(file)) continue;
+    } else if (!targetDates.has(fileDate)) continue;
     try {
       const data = JSON.parse(readFileSync(resolve(signalsDir, file), 'utf8'));
       const offset = dateOffset(fileDate, targetDate);

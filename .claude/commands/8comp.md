@@ -1,6 +1,5 @@
 ---
-allowed-tools: Bash(npm run homefront-to-md), Bash(node business_modules/resilience/input/extract-signals.js*), Bash(node business_modules/resilience/input/assess-signals.js*), Bash(ls articles-audio-* articles-field-reports-*), Bash(node business_modules/whatsapp/input/whatsapp-to-md.js*), Bash(ls articles-whatsapp-*)
-description: Full daily pipeline — fetch news, extract signals from all sources, run combined 8-component assessment
+allowed-tools: Bash(npm run homefront-to-md), Bash(node business_modules/resilience/input/extract-signals.js*), Bash(node business_modules/resilience/input/assess-signals.js*), Bash(ls articles-audio-* articles-field-reports-*), Bash(node business_modules/whatsapp/input/whatsapp-to-md.js*), Bash(ls articles-whatsapp-*), Bash(node business_modules/pbo_report_muni/input/extract-pbo-signals.js*)description: Full daily pipeline — fetch news, extract signals from all sources, run combined 8-component assessment
 ---
 
 ## Your task
@@ -68,13 +67,22 @@ node business_modules/resilience/input/extract-signals.js --source-type field --
 
 If no field reports exist, skip this step and continue.
 
-**Step 6 — Run combined assessment**
+**Step 6 — Extract PBO municipality signals**
+
+Convert PBO municipality Excel reports into signals:
+```
+node business_modules/pbo_report_muni/input/extract-pbo-signals.js
+```
+
+This processes all available Excel files in `business_modules/pbo_report_muni/`. If none exist, skip this step.
+
+**Step 7 — Run combined assessment**
 
 ```
 node business_modules/resilience/input/assess-signals.js --date <today's date> --days 1
 ```
 
 After completion, report:
-- Which sources were included (news / radio / whatsapp / field) and which were skipped
+- Which sources were included (news / radio / whatsapp / field / pbo) and which were skipped
 - The per-component scores and confidence levels
 - The path of the written report file

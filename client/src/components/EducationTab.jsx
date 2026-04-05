@@ -196,7 +196,6 @@ export function EducationTab() {
     { label: t('edu.kpi.total'),       value: summary.totalResponses },
     { label: t('edu.kpi.latest'),      value: formatDate(summary.latestDate, lang) },
     { label: t('edu.kpi.dateRange'),   value: `${formatDate(summary.dateRange.from, lang)} – ${formatDate(summary.dateRange.to, lang)}` },
-    { label: t('edu.kpi.settlements'), value: summary.settlements.join(', ') || '—' },
   ];
 
   // ── Chart data from filtered trends ───────────────────────────────────────

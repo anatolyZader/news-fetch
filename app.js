@@ -21,6 +21,7 @@ import { runResilienceAssessment } from './business_modules/resilience/app/resil
 import { contentBatchFromMdArticles } from './business_modules/resilience/app/contentBatchFromMdArticles.js';
 import { createAnthropicResilienceLlmAdapter } from './business_modules/resilience/infrastructure/adapters/anthropicResilienceLlmAdapter.js';
 import { getEducationDashboard } from './business_modules/education/app/educationSessionsService.js';
+import { getMunicipalityDashboard } from './business_modules/pbo_report_muni/app/pboMunicipalityService.js';
 import { getTranslatedReport } from './business_modules/translation/app/translationService.js';
 import { createWhatsAppMessageStore } from './business_modules/whatsapp/infrastructure/whatsappMessageStore.js';
 import { createMetaCloudApiAdapter } from './business_modules/whatsapp/infrastructure/adapters/metaCloudApiAdapter.js';
@@ -578,6 +579,15 @@ export async function createApp(options) {
       return reply.send(data);
     } catch (err) {
       return reply.code(502).send({ error: err?.message ?? 'Failed to load education data' });
+    }
+  });
+
+  app.get('/api/municipalities', authHook, async (request, reply) => {
+    try {
+      const data = getMunicipalityDashboard();
+      return reply.send(data);
+    } catch (err) {
+      return reply.code(502).send({ error: err?.message ?? 'Failed to load municipality data' });
     }
   });
 

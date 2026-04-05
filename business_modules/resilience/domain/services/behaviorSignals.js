@@ -148,8 +148,8 @@ export const SIGNAL_TO_COMPONENTS = {
   dependency_on_external_aid:        { community_capital: -0.5, functional_continuity: -0.3 },
 
   // Wellbeing
-  harm_to_population:                { wellbeing_atrisk: -1.2, narrative: -0.5 },
-  psychological_distress:            { wellbeing_atrisk: -1.0, narrative: -0.6 },
+  harm_to_population:                { wellbeing_atrisk: -1.2 },
+  psychological_distress:            { wellbeing_atrisk: -1.0 },
   wellbeing_support_accessed:        { wellbeing_atrisk: +0.7, community_capital: +0.4 },
 };
 

@@ -7,6 +7,7 @@ import { ChatPanel } from './components/ChatPanel.jsx';
 import { EvidenceInput } from './components/EvidenceInput.jsx';
 import { SubmissionsTab } from './components/SubmissionsTab.jsx';
 import { EducationTab } from './components/EducationTab.jsx';
+import { MunicipalitiesTab } from './components/MunicipalitiesTab.jsx';
 import { LanguageProvider, useLanguage } from './context/LanguageContext.jsx';
 import { LanguageSelector } from './components/LanguageSelector.jsx';
 import { useAuth } from './context/AuthContext.jsx';
@@ -22,7 +23,8 @@ function AppShell() {
   const TABS = [
     { id: 'report',      label: t('tab.report') },
     { id: 'submissions', label: t('tab.submissions') },
-    { id: 'education',   label: t('tab.education') },
+    { id: 'education',      label: t('tab.education') },
+    { id: 'municipalities', label: t('tab.municipalities') },
   ];
 
   return (
@@ -81,6 +83,8 @@ function AppShell() {
         {activeTab === 'submissions' && <SubmissionsTab />}
 
         {activeTab === 'education' && <EducationTab />}
+
+        {activeTab === 'municipalities' && <MunicipalitiesTab />}
       </main>
     </div>
   );

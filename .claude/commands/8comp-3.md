@@ -1,6 +1,5 @@
 ---
-allowed-tools: Bash(npm run homefront-to-md*), Bash(node business_modules/resilience/input/extract-signals.js*), Bash(node business_modules/resilience/input/assess-signals.js*), Bash(ls articles-audio-* articles-field-reports-* articles-homefront-*), Bash(node business_modules/whatsapp/input/whatsapp-to-md.js*), Bash(ls articles-whatsapp-*)
-description: Full 3-day pipeline — fetch news, extract signals from all sources for the last 3 days, run combined assessment
+allowed-tools: Bash(npm run homefront-to-md*), Bash(node business_modules/resilience/input/extract-signals.js*), Bash(node business_modules/resilience/input/assess-signals.js*), Bash(ls articles-audio-* articles-field-reports-* articles-homefront-*), Bash(node business_modules/whatsapp/input/whatsapp-to-md.js*), Bash(ls articles-whatsapp-*), Bash(node business_modules/pbo_report_muni/input/extract-pbo-signals.js*)description: Full 3-day pipeline — fetch news, extract signals from all sources for the last 3 days, run combined assessment
 ---
 
 ## Your task
@@ -36,7 +35,7 @@ Run once per date. Skip a date if its file is missing or empty.
 
 List all available radio transcript files:
 ```
-ls articles-audio-ashams-*.md articles-audio-tzafon-1045-*.md 2>/dev/null | sort
+ls articles-audio-*.md 2>/dev/null | sort
 ```
 
 From the results, select files dated within the last 3 days. Group files by date. For each date that has transcripts, run:
@@ -78,7 +77,16 @@ node business_modules/resilience/input/extract-signals.js --source-type field --
 
 Run sequentially, one file at a time. Field visits are infrequent so dates may be older than 3 days — extract them regardless of date.
 
-**Step 6 — Run combined 3-day assessment**
+**Step 6 — Extract PBO municipality signals**
+
+Convert PBO municipality Excel reports into signals:
+```
+node business_modules/pbo_report_muni/input/extract-pbo-signals.js
+```
+
+This processes all available Excel files in `business_modules/pbo_report_muni/`. If none exist, skip this step.
+
+**Step 7 — Run combined 3-day assessment**
 
 Temporal weights are applied automatically for news and radio (today=1.0, yesterday=0.85, 2 days ago=0.70). Field signal files are included regardless of their date since visits are infrequent.
 
@@ -87,6 +95,6 @@ node business_modules/resilience/input/assess-signals.js --date <today's date> -
 ```
 
 After completion, report:
-- Which sources and dates were included (news / radio / whatsapp / field) and which were skipped
+- Which sources and dates were included (news / radio / whatsapp / field / pbo) and which were skipped
 - The per-component scores and confidence levels
 - The path of the written report file

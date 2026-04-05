@@ -1,0 +1,351 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding-bottom: 2rem;
+}
+
+/* ── Header ──────────────────────────────────────────────────────────────── */
+.dashHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.dashTitle {
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+
+.dashSubtitle {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-top: 0.15rem;
+}
+
+/* ── Date selector ───────────────────────────────────────────────────────── */
+.datePills {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.datePill {
+  padding: 0.3rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+
+.datePill:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.datePillActive {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+/* ── KPI strip ───────────────────────────────────────────────────────────── */
+.kpiStrip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 0.75rem;
+}
+
+.kpiCard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.7rem 0.85rem;
+}
+
+.kpiLabel {
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  margin-bottom: 0.2rem;
+}
+
+.kpiValue {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* ── Heatmap table ──────────���────────────────────────────────────────────── */
+.heatmapWrap {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+}
+
+.heatmap {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+}
+
+.heatmap th {
+  padding: 0.5rem 0.5rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+  position: sticky;
+  top: 0;
+  background: var(--surface);
+  z-index: 1;
+}
+
+.heatmap th:first-child {
+  text-align: start;
+  padding-inline-start: 0.85rem;
+  min-width: 130px;
+  position: sticky;
+  left: 0;
+  z-index: 2;
+}
+
+.heatmap td {
+  padding: 0.35rem 0.5rem;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.heatmap td:first-child {
+  text-align: start;
+  padding-inline-start: 0.85rem;
+  font-weight: 500;
+  color: var(--text);
+  position: sticky;
+  left: 0;
+  background: var(--surface);
+}
+
+.heatmap tbody tr {
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.heatmap tbody tr:hover {
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+}
+
+.heatmap tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.rowSelected td {
+  background: color-mix(in srgb, var(--accent) 10%, transparent) !important;
+}
+
+/* Score cell color coding (set via inline style) */
+.scoreCell {
+  border-radius: 4px;
+  min-width: 48px;
+}
+
+/* ── District average row ────────────────────────────────────────────────── */
+.heatmap tfoot td {
+  font-weight: 700;
+  border-top: 2px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+}
+
+.heatmap tfoot td:first-child {
+  background: var(--bg);
+}
+
+/* ── Municipality detail ─────────────────────────────────────────────────── */
+.detail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.detailHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.detailName {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.detailClose {
+  font-size: 0.78rem;
+  color: var(--muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.compCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  border-inline-start-width: 4px;
+}
+
+.compHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.compName {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.compScore {
+  font-size: 0.85rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  padding: 0.15rem 0.55rem;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+.compText {
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: var(--text);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.compNoText {
+  font-size: 0.8rem;
+  color: var(--muted);
+  font-style: italic;
+}
+
+.compScores {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  margin-top: 0.25rem;
+}
+
+.compScoreItem {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.72rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+
+.scoreLabel {
+  color: var(--muted);
+  font-size: 0.7rem;
+  line-height: 1.35;
+}
+
+.scoreValue {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── Multi-day comparison (collapsible) ──────────────────────────────────── */
+.trendDetails {
+  margin-top: 0.35rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.trendSummary {
+  padding: 0.45rem 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  user-select: none;
+  background: var(--bg);
+  list-style: none;
+}
+
+.trendSummary::-webkit-details-marker { display: none; }
+.trendSummary::before { content: '▸ '; font-size: 0.7rem; }
+details[open] > .trendSummary::before { content: '▾ '; }
+
+.trendDayBlock {
+  padding: 0.5rem 0.75rem;
+  border-top: 1px solid var(--border);
+}
+
+.trendDayHeader {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.trendDate {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.trendVal {
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Loading / Error ─────────────────────────────────────────────────────── */
+.hint {
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.error {
+  font-size: 0.9rem;
+  color: var(--score-critical);
+}

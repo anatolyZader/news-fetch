@@ -247,6 +247,7 @@ const SIGNAL_EXTRACTION_SYSTEM_PROMPT =
   `   Do NOT collapse this into one solidarity signal just because neighbors are mentioned.\n` +
   `2. CLOSED VOCABULARY: You MUST choose signal type from the list below. Never invent new types.\n` +
   `3. DO NOT EXTRACT: political/military/diplomatic content — unless it contains a direct civilian behavioral response.\n` +
+  `   SCOPE: We measure resilience of the Israeli civilian population ONLY. Do NOT extract signals about enemy combatants, foreign populations, or military personnel morale/behavior in operational theatres.\n` +
   `4. DO NOT EXTRACT: global indices, international rankings, or pre-crisis baseline surveys.\n\n` +
 
   `━━━ CLASSIFICATION BOUNDARIES (read before choosing signal type) ━━━\n` +
