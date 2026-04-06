@@ -22,6 +22,7 @@ import { contentBatchFromMdArticles } from './business_modules/resilience/app/co
 import { createAnthropicResilienceLlmAdapter } from './business_modules/resilience/infrastructure/adapters/anthropicResilienceLlmAdapter.js';
 import { getEducationDashboard } from './business_modules/education/app/educationSessionsService.js';
 import { getMunicipalityDashboard } from './business_modules/pbo_report_muni/app/pboMunicipalityService.js';
+import { getNaftaliDashboard } from './business_modules/naftali/app/naftaliService.js';
 import { getTranslatedReport } from './business_modules/translation/app/translationService.js';
 import { createWhatsAppMessageStore } from './business_modules/whatsapp/infrastructure/whatsappMessageStore.js';
 import { createMetaCloudApiAdapter } from './business_modules/whatsapp/infrastructure/adapters/metaCloudApiAdapter.js';
@@ -588,6 +589,16 @@ export async function createApp(options) {
       return reply.send(data);
     } catch (err) {
       return reply.code(502).send({ error: err?.message ?? 'Failed to load municipality data' });
+    }
+  });
+
+  app.get('/api/naftali', authHook, async (request, reply) => {
+    const forceRefresh = request.query?.refresh === '1';
+    try {
+      const data = await getNaftaliDashboard({ forceRefresh });
+      return reply.send(data);
+    } catch (err) {
+      return reply.code(502).send({ error: err?.message ?? 'Failed to load Naftali data' });
     }
   });
 

@@ -1,5 +1,6 @@
 ---
-allowed-tools: Bash(npm run homefront-to-md*), Bash(node business_modules/resilience/input/extract-signals.js*), Bash(node business_modules/resilience/input/assess-signals.js*), Bash(ls articles-audio-* articles-field-reports-* articles-homefront-*), Bash(node business_modules/whatsapp/input/whatsapp-to-md.js*), Bash(ls articles-whatsapp-*), Bash(node business_modules/pbo_report_muni/input/extract-pbo-signals.js*)description: Full 3-day pipeline — fetch news, extract signals from all sources for the last 3 days, run combined assessment
+allowed-tools: Bash(npm run homefront-to-md*), Bash(node business_modules/resilience/input/extract-signals.js*), Bash(node business_modules/resilience/input/assess-signals.js*), Bash(ls articles-audio-* articles-field-reports-* articles-homefront-*), Bash(node business_modules/whatsapp/input/whatsapp-to-md.js*), Bash(ls articles-whatsapp-*), Bash(node business_modules/pbo_report_muni/input/extract-pbo-signals.js*), Bash(node business_modules/naftali/input/extract-naftali-signals.js*)
+description: Full 3-day pipeline — fetch news, extract signals from all sources for the last 3 days, run combined assessment
 ---
 
 ## Your task
@@ -86,7 +87,16 @@ node business_modules/pbo_report_muni/input/extract-pbo-signals.js
 
 This processes all available Excel files in `business_modules/pbo_report_muni/`. If none exist, skip this step.
 
-**Step 7 — Run combined 3-day assessment**
+**Step 7 — Extract Naftali questionnaire signals**
+
+Convert Naftali weekly questionnaire responses into signals:
+```
+node business_modules/naftali/input/extract-naftali-signals.js
+```
+
+This processes all available Excel files in `business_modules/naftali/`. If none exist, skip this step.
+
+**Step 8 — Run combined 3-day assessment**
 
 Temporal weights are applied automatically for news and radio (today=1.0, yesterday=0.85, 2 days ago=0.70). Field signal files are included regardless of their date since visits are infrequent.
 
@@ -95,6 +105,6 @@ node business_modules/resilience/input/assess-signals.js --date <today's date> -
 ```
 
 After completion, report:
-- Which sources and dates were included (news / radio / whatsapp / field / pbo) and which were skipped
+- Which sources and dates were included (news / radio / whatsapp / field / pbo / naftali) and which were skipped
 - The per-component scores and confidence levels
 - The path of the written report file

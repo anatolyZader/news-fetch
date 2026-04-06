@@ -97,9 +97,25 @@ function buildColumnIndex(headers) {
 }
 
 /**
- * Extract date from the filter row at end of sheet (SlicerDate הוא DD/MM/YYYY).
+ * Extract date from filename pattern "north {day}-{month}.xlsx".
+ * Falls back to the SlicerDate row inside the sheet if filename doesn't match.
  */
-function extractDate(rows) {
+function extractDate(rows, fileName) {
+  // Primary: derive from filename (e.g. "north 5-4.xlsx" → 2026-04-05)
+  const fnMatch = fileName?.match(/(\d{1,2})-(\d{1,2})\.xlsx$/);
+  if (fnMatch) {
+    // Need the year — grab it from the SlicerDate row
+    let year = new Date().getFullYear();
+    for (let i = rows.length - 1; i >= Math.max(0, rows.length - 5); i--) {
+      const cell = String(rows[i]?.[0] ?? '');
+      const sm = cell.match(/SlicerDate\s+הוא\s+\d{2}\/\d{2}\/(\d{4})/);
+      if (sm) { year = sm[1]; break; }
+    }
+    const day = fnMatch[1].padStart(2, '0');
+    const month = fnMatch[2].padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+  // Fallback: SlicerDate inside the sheet
   for (let i = rows.length - 1; i >= Math.max(0, rows.length - 5); i--) {
     const cell = String(rows[i]?.[0] ?? '');
     const m = cell.match(/SlicerDate\s+הוא\s+(\d{2})\/(\d{2})\/(\d{4})/);
@@ -120,7 +136,7 @@ function parseOneFile(filePath) {
 
   const headers = rows[0];
   const colMap = buildColumnIndex(headers);
-  const date = extractDate(rows);
+  const date = extractDate(rows, basename(filePath));
 
   const municipalities = [];
 

@@ -96,8 +96,16 @@ async function run() {
       .slice(-3),
   );
 
+  // Collect the most recent Naftali signal file (weekly questionnaire).
+  const recentNaftaliFiles = new Set(
+    allFiles
+      .filter((f) => /^signals-naftali-\d{4}-\d{2}-\d{2}\.json$/.test(f))
+      .sort()
+      .slice(-1),
+  );
+
   // Source types that use recency-based inclusion (not date-windowed)
-  const RECENCY_SOURCES = { field: recentFieldFiles, pbo: recentPboFiles };
+  const RECENCY_SOURCES = { field: recentFieldFiles, pbo: recentPboFiles, naftali: recentNaftaliFiles };
 
   // Load matching signal files
   const loadedFiles = [];

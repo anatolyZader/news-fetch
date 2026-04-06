@@ -1,10 +1,10 @@
 {
   "source_type": "pbo",
   "content_kind": "pbo_municipality",
-  "date": "2026-04-03",
-  "extracted_at": "2026-04-06T10:42:27.688Z",
+  "date": "2026-04-05",
+  "extracted_at": "2026-04-06T10:42:27.695Z",
   "source_files": [
-    "north 3-4.xlsx"
+    "north 5-4.xlsx"
   ],
   "total_articles": 49,
   "signals": [

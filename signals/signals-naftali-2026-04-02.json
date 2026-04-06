@@ -1,0 +1,693 @@
+{
+  "source_type": "naftali",
+  "content_kind": "naftali_questionnaire",
+  "date": "2026-04-02",
+  "week": 13,
+  "extracted_at": "2026-04-06T12:29:28.579Z",
+  "source_files": [
+    "Google Sheets"
+  ],
+  "total_articles": 6,
+  "signals": [
+    {
+      "article_index": 1,
+      "article_url": null,
+      "signal_type": "service_continuity",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[גליל תחתון] Economic hardship requests: Qualitative",
+      "scope_level": "single_case",
+      "article_source": "naftali-גליל תחתון",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 1,
+      "article_url": null,
+      "signal_type": "wellbeing_support_accessed",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[גליל תחתון] Community mental health referrals: Low",
+      "scope_level": "single_case",
+      "article_source": "naftali-גליל תחתון",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 1,
+      "article_url": null,
+      "signal_type": "wellbeing_support_accessed",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[גליל תחתון] Parental stress referrals: Qualitative",
+      "scope_level": "single_case",
+      "article_source": "naftali-גליל תחתון",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 1,
+      "article_url": null,
+      "signal_type": "solidarity_help_others",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[גליל תחתון] Couple conflict referrals: Qualitative",
+      "scope_level": "single_case",
+      "article_source": "naftali-גליל תחתון",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 1,
+      "article_url": null,
+      "signal_type": "solidarity_help_others",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[גליל תחתון] Parent-child conflict referrals: Qualitative",
+      "scope_level": "single_case",
+      "article_source": "naftali-גליל תחתון",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 1,
+      "article_url": null,
+      "signal_type": "psychological_distress",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[גליל תחתון] Vulnerable populations: Physical disability: 173, Mental disability: 1, Special education: 197, Domestic violence: 10, Severe financial hardship: 47, Single parent: 1 (total: 429)",
+      "scope_level": "quantified_or_broad",
+      "article_source": "naftali-גליל תחתון",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 1,
+      "article_url": null,
+      "signal_type": "community_volunteering",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[גליל תחתון] עזרה לותיקים ולהורים לילדים, מתנות לחג, סלי מזון,  הפגת מתחים על ידי פעילויות לילדים, יוזמות מקומיות של הורים, פעילויות של תנועות נוער ועוד",
+      "scope_level": "single_case",
+      "article_source": "naftali-גליל תחתון",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 1,
+      "article_url": null,
+      "signal_type": "dependency_on_external_aid",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[גליל תחתון] עזרה עם הילדים לנשות מילואים, וכן ביקורים אצל המבוגרים שרק לאחרונה התחילו לצאת למרכז לקשיש, וגם זה בקפסולות",
+      "scope_level": "single_case",
+      "article_source": "naftali-גליל תחתון",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 1,
+      "article_url": null,
+      "signal_type": "community_volunteering",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[גליל תחתון] המתנדבים מחולקים לשניים, מתנדבים על ידי היישוב שמתבססים בעיקר על נוער היישוב, ומתנדבים דרך הרשות, ישנם פעמים של חיבור כמו פעילויות משותפות, וישנם פעמים שהיישוב מתבסס על עצמו",
+      "scope_level": "single_case",
+      "article_source": "naftali-גליל תחתון",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 1,
+      "article_url": null,
+      "signal_type": "service_disruption",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[גליל תחתון] קיים חוסר בעקבות סגירת מערכות החינוך, מה שגרם להרבה עובדות לעבוד מהבית ובכך השירות שנתנו היה חלקי ביחס לשוטף",
+      "scope_level": "single_case",
+      "article_source": "naftali-גליל תחתון",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 1,
+      "article_url": null,
+      "signal_type": "resilience_narrative_negative",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[גליל תחתון] התושבים מתארגנים לחופשות הפסח, למרות כל הפעילויות, עדיין צריך להעסיק את הילדים, \nיחד עם זאת, ניכר כי קיימת שיגרה שבהם הילדים נמצאים ברחובות ובגני המשחקים, אם המתח של האזעקות והמלחמה עדיין מטריד ומעסיק את התושבים",
+      "scope_level": "single_case",
+      "article_source": "naftali-גליל תחתון",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 1,
+      "article_url": null,
+      "signal_type": "service_disruption",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[גליל תחתון] בעיקר הקשיים עם ילדי החינוך המיוחד, למשפחות שחייבות איוורור בעקבות אירועים פנים משפחתיים כגון אלימות במשפחה ומתחים בין ההורים לילדים",
+      "scope_level": "single_case",
+      "article_source": "naftali-גליל תחתון",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 2,
+      "article_url": null,
+      "signal_type": "service_disruption",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[דיר חנא] Economic hardship requests: High",
+      "scope_level": "single_case",
+      "article_source": "naftali-דיר חנא",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 2,
+      "article_url": null,
+      "signal_type": "wellbeing_support_accessed",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[דיר חנא] Community mental health referrals: None",
+      "scope_level": "single_case",
+      "article_source": "naftali-דיר חנא",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 2,
+      "article_url": null,
+      "signal_type": "psychological_distress",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[דיר חנא] Parental stress referrals: Medium",
+      "scope_level": "single_case",
+      "article_source": "naftali-דיר חנא",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 2,
+      "article_url": null,
+      "signal_type": "psychological_distress",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[דיר חנא] Parent-child conflict referrals: Medium",
+      "scope_level": "single_case",
+      "article_source": "naftali-דיר חנא",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 2,
+      "article_url": null,
+      "signal_type": "psychological_distress",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[דיר חנא] Vulnerable populations: Physical disability: 840, Special education: 9, Domestic violence: 12, Severe financial hardship: 250, Single parent: 60 (total: 1171)",
+      "scope_level": "quantified_or_broad",
+      "article_source": "naftali-דיר חנא",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 2,
+      "article_url": null,
+      "signal_type": "community_volunteering",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[דיר חנא] התנדבות כללית ופניה למועצה",
+      "scope_level": "single_case",
+      "article_source": "naftali-דיר חנא",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 2,
+      "article_url": null,
+      "signal_type": "dependency_on_external_aid",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[דיר חנא] ביקורי זקנים",
+      "scope_level": "single_case",
+      "article_source": "naftali-דיר חנא",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 2,
+      "article_url": null,
+      "signal_type": "community_volunteering",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[דיר חנא] יש תיאום מלא ויש רוח התנדבות בעת הצורך",
+      "scope_level": "single_case",
+      "article_source": "naftali-דיר חנא",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 2,
+      "article_url": null,
+      "signal_type": "service_disruption",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[דיר חנא] ף",
+      "scope_level": "single_case",
+      "article_source": "naftali-דיר חנא",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 2,
+      "article_url": null,
+      "signal_type": "resilience_narrative_negative",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[דיר חנא] אי ודאות . ארועים שמתקרבים איך להתנהג כמו חתונות וחשש כללי",
+      "scope_level": "single_case",
+      "article_source": "naftali-דיר חנא",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 2,
+      "article_url": null,
+      "signal_type": "service_disruption",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[דיר חנא] טיפול בילדים מבחינה רגשית .יהיה גל בקשות כספיות",
+      "scope_level": "single_case",
+      "article_source": "naftali-דיר חנא",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 3,
+      "article_url": null,
+      "signal_type": "service_disruption",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[יבנאל] Economic hardship requests: High",
+      "scope_level": "single_case",
+      "article_source": "naftali-יבנאל",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 3,
+      "article_url": null,
+      "signal_type": "wellbeing_support_accessed",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[יבנאל] School mental health referrals: Low",
+      "scope_level": "single_case",
+      "article_source": "naftali-יבנאל",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 3,
+      "article_url": null,
+      "signal_type": "wellbeing_support_accessed",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[יבנאל] Community mental health referrals: Qualitative",
+      "scope_level": "single_case",
+      "article_source": "naftali-יבנאל",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 3,
+      "article_url": null,
+      "signal_type": "social_exclusion",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[יבנאל] Couple conflict referrals: Medium",
+      "scope_level": "single_case",
+      "article_source": "naftali-יבנאל",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 3,
+      "article_url": null,
+      "signal_type": "psychological_distress",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[יבנאל] Vulnerable populations: Physical disability: 90, Mental disability: 60, Special education: 20, Domestic violence: 22, Severe financial hardship: 280, Single parent: 300 (total: 772)",
+      "scope_level": "quantified_or_broad",
+      "article_source": "naftali-יבנאל",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 3,
+      "article_url": null,
+      "signal_type": "community_volunteering",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[יבנאל] ביקור קשישים, ביקור בעלי מוגבלויות, קשר עם מוסדות חינוך, חלוקה של עזרה חומרית (תלושים וכדו)",
+      "scope_level": "single_case",
+      "article_source": "naftali-יבנאל",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 3,
+      "article_url": null,
+      "signal_type": "dependency_on_external_aid",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[יבנאל] ביקור בקשישים ומוגבלויות וכל החצרמים",
+      "scope_level": "single_case",
+      "article_source": "naftali-יבנאל",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 3,
+      "article_url": null,
+      "signal_type": "community_volunteering",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[יבנאל] אין קבוצה מסודרת של מתנדבים אבל יש שיתוף פעולה עם החינוך ואגף שפ\"ע ועם הרשות בכללי",
+      "scope_level": "single_case",
+      "article_source": "naftali-יבנאל",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 3,
+      "article_url": null,
+      "signal_type": "service_disruption",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[יבנאל] אין חוסר",
+      "scope_level": "single_case",
+      "article_source": "naftali-יבנאל",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 3,
+      "article_url": null,
+      "signal_type": "resilience_narrative_negative",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[יבנאל] מרחב מוגן תעסוקה לילדים",
+      "scope_level": "single_case",
+      "article_source": "naftali-יבנאל",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 3,
+      "article_url": null,
+      "signal_type": "service_disruption",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[יבנאל] שגרה",
+      "scope_level": "single_case",
+      "article_source": "naftali-יבנאל",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 4,
+      "article_url": null,
+      "signal_type": "service_disruption",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[מועצה מקומית נחף] Economic hardship requests: High",
+      "scope_level": "single_case",
+      "article_source": "naftali-מועצה מקומית נחף",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 4,
+      "article_url": null,
+      "signal_type": "wellbeing_support_accessed",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[מועצה מקומית נחף] School mental health referrals: Qualitative",
+      "scope_level": "single_case",
+      "article_source": "naftali-מועצה מקומית נחף",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 4,
+      "article_url": null,
+      "signal_type": "wellbeing_support_accessed",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[מועצה מקומית נחף] Community mental health referrals: Qualitative",
+      "scope_level": "single_case",
+      "article_source": "naftali-מועצה מקומית נחף",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 4,
+      "article_url": null,
+      "signal_type": "wellbeing_support_accessed",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[מועצה מקומית נחף] Parental stress referrals: Qualitative",
+      "scope_level": "single_case",
+      "article_source": "naftali-מועצה מקומית נחף",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 4,
+      "article_url": null,
+      "signal_type": "solidarity_help_others",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[מועצה מקומית נחף] Couple conflict referrals: Qualitative",
+      "scope_level": "single_case",
+      "article_source": "naftali-מועצה מקומית נחף",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 4,
+      "article_url": null,
+      "signal_type": "solidarity_help_others",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[מועצה מקומית נחף] Parent-child conflict referrals: Qualitative",
+      "scope_level": "single_case",
+      "article_source": "naftali-מועצה מקומית נחף",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 4,
+      "article_url": null,
+      "signal_type": "psychological_distress",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[מועצה מקומית נחף] Vulnerable populations: Physical disability: 100, Mental disability: 20, Special education: 155, Domestic violence: 15, Severe financial hardship: 225, Single parent: 61 (total: 576)",
+      "scope_level": "quantified_or_broad",
+      "article_source": "naftali-מועצה מקומית נחף",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 4,
+      "article_url": null,
+      "signal_type": "community_volunteering",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[מועצה מקומית נחף] היוזמות ההתנדבותיות ברשות מתמקדות במענה לצרכים שיעלו בתקופה האחרונה, וכוללות סיוע למשפחות במידת הצורך",
+      "scope_level": "single_case",
+      "article_source": "naftali-מועצה מקומית נחף",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 4,
+      "article_url": null,
+      "signal_type": "dependency_on_external_aid",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[מועצה מקומית נחף] סיוע למשפחות במצוקה, סיוע לקשישים ובעלי צרכים מיוחדים, חיזוק החוסן הקהילתי",
+      "scope_level": "single_case",
+      "article_source": "naftali-מועצה מקומית נחף",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 4,
+      "article_url": null,
+      "signal_type": "community_volunteering",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[מועצה מקומית נחף] התיאום מתבצע בין מחלקת הרווחה, ואכזת ההתנדבות ביישוב  באמצעות חלוקת תפקידים, פגישות סדירות ושיתוף מידע על הצרכים הקהילתיים",
+      "scope_level": "single_case",
+      "article_source": "naftali-מועצה מקומית נחף",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 4,
+      "article_url": null,
+      "signal_type": "service_disruption",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[מועצה מקומית נחף] לא",
+      "scope_level": "single_case",
+      "article_source": "naftali-מועצה מקומית נחף",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 4,
+      "article_url": null,
+      "signal_type": "resilience_narrative_negative",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[מועצה מקומית נחף] התמודדות עם לחץ ושחיקה כתוצאה ממצבי חירום והשפעתיהם על המשפחה והקהילה",
+      "scope_level": "single_case",
+      "article_source": "naftali-מועצה מקומית נחף",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 4,
+      "article_url": null,
+      "signal_type": "service_disruption",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[מועצה מקומית נחף] קיימת ברשות צרכים כלכליים דחופים. משפחות רבות מתמודדות עם קושי במימון צורכי בסיס, כגון מזון, ציוד לבית והוצאות יום‑יום, בנוסף לכך צרכים הרגשיים והחברתיים",
+      "scope_level": "single_case",
+      "article_source": "naftali-מועצה מקומית נחף",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 5,
+      "article_url": null,
+      "signal_type": "service_continuity",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[כפר קמא] Economic hardship requests: None",
+      "scope_level": "single_case",
+      "article_source": "naftali-כפר קמא",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 5,
+      "article_url": null,
+      "signal_type": "psychological_distress",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[כפר קמא] Vulnerable populations: Physical disability: 95, Mental disability: 27, Special education: 30, Domestic violence: 1, Severe financial hardship: 32, Single parent: 27 (total: 212)",
+      "scope_level": "quantified_or_broad",
+      "article_source": "naftali-כפר קמא",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 5,
+      "article_url": null,
+      "signal_type": "community_volunteering",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[כפר קמא] מחלקת חינוך יוזמת תגבורים לבגרויות במהלך החופשה",
+      "scope_level": "single_case",
+      "article_source": "naftali-כפר קמא",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 5,
+      "article_url": null,
+      "signal_type": "dependency_on_external_aid",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[כפר קמא] אין",
+      "scope_level": "single_case",
+      "article_source": "naftali-כפר קמא",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 5,
+      "article_url": null,
+      "signal_type": "community_volunteering",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[כפר קמא] התיאום בין גורמי ההתנדבות מתבצע באמצעות שיתוף מידע רציף, חלוקת משימות לפי תחומי מומחיות, ופעולה תחת פיקוד ושליטה אחודים של הרשות.",
+      "scope_level": "single_case",
+      "article_source": "naftali-כפר קמא",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 5,
+      "article_url": null,
+      "signal_type": "service_disruption",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[כפר קמא] אין מחסור בכ״א או עומס חריג במחלקה",
+      "scope_level": "single_case",
+      "article_source": "naftali-כפר קמא",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 5,
+      "article_url": null,
+      "signal_type": "resilience_narrative_negative",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[כפר קמא] האתגר המרכזי שמעסיק כיום את תושבי הרשות הוא שמירה על שגרת חיים תקינה לצד תחושת ביטחון, במיוחד לנוכח איומי חירום ואירועים ביטחוניים. התושבים מתמודדים עם צורך במידע אמין, זמינות שירותים חיוניים ויכולת להיערך במהירות למצבי חירום.",
+      "scope_level": "single_case",
+      "article_source": "naftali-כפר קמא",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 5,
+      "article_url": null,
+      "signal_type": "service_disruption",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[כפר קמא] אין",
+      "scope_level": "single_case",
+      "article_source": "naftali-כפר קמא",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 6,
+      "article_url": null,
+      "signal_type": "service_disruption",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[סכנין] Economic hardship requests: High",
+      "scope_level": "single_case",
+      "article_source": "naftali-סכנין",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 6,
+      "article_url": null,
+      "signal_type": "psychological_distress",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[סכנין] School mental health referrals: High",
+      "scope_level": "single_case",
+      "article_source": "naftali-סכנין",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 6,
+      "article_url": null,
+      "signal_type": "wellbeing_support_accessed",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[סכנין] Community mental health referrals: Low",
+      "scope_level": "single_case",
+      "article_source": "naftali-סכנין",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 6,
+      "article_url": null,
+      "signal_type": "wellbeing_support_accessed",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[סכנין] Parental stress referrals: Low",
+      "scope_level": "single_case",
+      "article_source": "naftali-סכנין",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 6,
+      "article_url": null,
+      "signal_type": "social_exclusion",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[סכנין] Couple conflict referrals: Medium",
+      "scope_level": "single_case",
+      "article_source": "naftali-סכנין",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 6,
+      "article_url": null,
+      "signal_type": "psychological_distress",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[סכנין] Parent-child conflict referrals: High",
+      "scope_level": "single_case",
+      "article_source": "naftali-סכנין",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 6,
+      "article_url": null,
+      "signal_type": "psychological_distress",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[סכנין] Vulnerable populations: Physical disability: 716, Mental disability: 139, Domestic violence: 45, Severe financial hardship: 486, Single parent: 140 (total: 1526)",
+      "scope_level": "quantified_or_broad",
+      "article_source": "naftali-סכנין",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 6,
+      "article_url": null,
+      "signal_type": "community_volunteering",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[סכנין] ברשות מובליות יוזמות התנדבות מגוונות המתמקדות בחיזוק החוסן הקהילתי והערבות ההדדית, כגון: מערך מתנדבים לשעת חירום , סיוע לאוכלוסיות מוחלשות וקשישים, פעילויות חינוכיות וערכיות עם בני נוער, יוזמות קהילתיות כמו שבוע המעשים הטובים, ותכניות שכונתיות המעודדות מעורבות אזרחית ושייכות.",
+      "scope_level": "single_case",
+      "article_source": "naftali-סכנין",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 6,
+      "article_url": null,
+      "signal_type": "dependency_on_external_aid",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[סכנין] קיים צורך משמעותי בהתנדבות בתחומים של סיוע לאוכלוסיות מוחלשות (קשישים, משפחות במצוקה), תמיכה רגשית-חברתית במיוחד בתקופות חירום, סיוע לוגיסטי וחלוקת משאבים, חינוך והכוונה לבני נוער, והנגשת מידע וזכויות לתושבים. בנוסף, יש צורך בחיזוק מערך ההתנדבות לשעת חירום והכשרת פעילים",
+      "scope_level": "single_case",
+      "article_source": "naftali-סכנין",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 6,
+      "article_url": null,
+      "signal_type": "community_volunteering",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[סכנין] התיאום בין גורמי ההתנדבות מתבצע באמצעות שיתופי פעולה בין מחלקות הרשות, מוסדות חינוך, עמותות וגורמים קהילתיים. העבודה מבוססת על תקשורת שוטפת, חלוקת תפקידים ברורה, תיאום פעילויות משותפות ומיפוי צרכים קהילתיים, במטרה ליצור מענה אפקטיבי ומותאם לאוכלוסייה.",
+      "scope_level": "single_case",
+      "article_source": "naftali-סכנין",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 6,
+      "article_url": null,
+      "signal_type": "service_disruption",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[סכנין] לא",
+      "scope_level": "single_case",
+      "article_source": "naftali-סכנין",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 6,
+      "article_url": null,
+      "signal_type": "resilience_narrative_negative",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[סכנין] מדניות ההתגוננות והתגברות השיגורים לעבר הצפון דבר שמהווה חשש",
+      "scope_level": "single_case",
+      "article_source": "naftali-סכנין",
+      "source_type": "naftali"
+    },
+    {
+      "article_index": 6,
+      "article_url": null,
+      "signal_type": "service_disruption",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[סכנין] מתן מענה לציוד חסר במסר ,  לסער . המשך טיפול בסגירת הקצצות של חוזה נצור מול ההנדסה אל מול קבלן הצמ״ה",
+      "scope_level": "single_case",
+      "article_source": "naftali-סכנין",
+      "source_type": "naftali"
+    }
+  ]
+}

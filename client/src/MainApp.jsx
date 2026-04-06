@@ -8,6 +8,7 @@ import { EvidenceInput } from './components/EvidenceInput.jsx';
 import { SubmissionsTab } from './components/SubmissionsTab.jsx';
 import { EducationTab } from './components/EducationTab.jsx';
 import { MunicipalitiesTab } from './components/MunicipalitiesTab.jsx';
+import { NaftaliTab } from './components/NaftaliTab.jsx';
 import { LanguageProvider, useLanguage } from './context/LanguageContext.jsx';
 import { LanguageSelector } from './components/LanguageSelector.jsx';
 import { useAuth } from './context/AuthContext.jsx';
@@ -25,6 +26,7 @@ function AppShell() {
     { id: 'submissions', label: t('tab.submissions') },
     { id: 'education',      label: t('tab.education') },
     { id: 'municipalities', label: t('tab.municipalities') },
+    { id: 'naftali',        label: t('tab.naftali') },
   ];
 
   return (
@@ -85,6 +87,8 @@ function AppShell() {
         {activeTab === 'education' && <EducationTab />}
 
         {activeTab === 'municipalities' && <MunicipalitiesTab />}
+
+        {activeTab === 'naftali' && <NaftaliTab />}
       </main>
     </div>
   );
