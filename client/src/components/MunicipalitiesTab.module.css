@@ -315,10 +315,15 @@
 .trendSummary::before { content: '▸ '; font-size: 0.7rem; }
 details[open] > .trendSummary::before { content: '▾ '; }
 
+.trendNoChange { font-weight: 400; font-style: italic; }
+
 .trendDayBlock {
   padding: 0.5rem 0.75rem;
   border-top: 1px solid var(--border);
 }
+
+.trendDayUnchanged { opacity: 0.5; padding: 0.3rem 0.75rem; }
+.trendUnchangedBadge { font-size: 0.7rem; color: var(--muted); font-style: italic; }
 
 .trendDayHeader {
   display: flex;

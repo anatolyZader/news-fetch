@@ -243,42 +243,64 @@ export function MunicipalitiesTab() {
                   </div>
                 )}
 
-                {/* Multi-day text comparison */}
-                {muniAllDays.length > 1 && (
-                  <details className={styles.trendDetails}>
-                    <summary className={styles.trendSummary}>
-                      {isHe ? 'השוואה בין ימים' : 'Compare across days'}
-                    </summary>
-                    {muniAllDays.map((md) => {
-                      const mc = md.components[cid];
-                      const mdTexts = mc.texts.filter((t) => t.length > 0);
-                      return (
-                        <div key={md.date} className={styles.trendDayBlock}>
-                          <div className={styles.trendDayHeader}>
-                            <span className={styles.trendDate}>{formatDate(md.date, lang)}</span>
-                            <span className={styles.trendVal} style={{ color: scoreColor(mc.avg) }}>{pct(mc.avg)}</span>
-                          </div>
-                          {mdTexts.length > 0
-                            ? mdTexts.map((txt, i) => <p key={i} className={styles.compText}>{txt}</p>)
-                            : <p className={styles.compNoText}>{isHe ? 'אין התייחסות' : 'No text'}</p>
-                          }
-                          {mc.scores.length > 0 && (
-                            <div className={styles.compScores}>
-                              {mc.scores.map((s, i) => (
-                                <div key={i} className={styles.compScoreItem}>
-                                  <span className={styles.scoreLabel}>{s.label}</span>
-                                  <span className={styles.scoreValue} style={{ color: scoreColor(s.value) }}>
-                                    {pct(s.value)}
-                                  </span>
-                                </div>
-                              ))}
+                {/* Multi-day text comparison — only show days where something changed */}
+                {muniAllDays.length > 1 && (() => {
+                  // Build list with change detection
+                  const daysWithChange = muniAllDays.map((md, idx) => {
+                    const mc = md.components[cid];
+                    const prev = idx > 0 ? muniAllDays[idx - 1].components[cid] : null;
+                    const changed = !prev
+                      || mc.avg !== prev.avg
+                      || mc.texts.join('|') !== prev.texts.join('|');
+                    return { ...md, mc, changed };
+                  });
+                  const anyChange = daysWithChange.some((d, i) => i > 0 && d.changed);
+                  return (
+                    <details className={styles.trendDetails}>
+                      <summary className={styles.trendSummary}>
+                        {isHe ? 'השוואה בין ימים' : 'Compare across days'}
+                        {!anyChange && (
+                          <span className={styles.trendNoChange}>
+                            {isHe ? ' — ללא שינוי' : ' — no change'}
+                          </span>
+                        )}
+                      </summary>
+                      {daysWithChange.map((md) => {
+                        const { mc, changed } = md;
+                        const mdTexts = mc.texts.filter((t) => t.length > 0);
+                        return (
+                          <div key={md.date} className={`${styles.trendDayBlock} ${!changed ? styles.trendDayUnchanged : ''}`}>
+                            <div className={styles.trendDayHeader}>
+                              <span className={styles.trendDate}>{formatDate(md.date, lang)}</span>
+                              <span className={styles.trendVal} style={{ color: scoreColor(mc.avg) }}>{pct(mc.avg)}</span>
+                              {!changed && <span className={styles.trendUnchangedBadge}>{isHe ? 'ללא שינוי' : 'unchanged'}</span>}
                             </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </details>
-                )}
+                            {changed && (
+                              <>
+                                {mdTexts.length > 0
+                                  ? mdTexts.map((txt, i) => <p key={i} className={styles.compText}>{txt}</p>)
+                                  : <p className={styles.compNoText}>{isHe ? 'אין התייחסות' : 'No text'}</p>
+                                }
+                                {mc.scores.length > 0 && (
+                                  <div className={styles.compScores}>
+                                    {mc.scores.map((s, i) => (
+                                      <div key={i} className={styles.compScoreItem}>
+                                        <span className={styles.scoreLabel}>{s.label}</span>
+                                        <span className={styles.scoreValue} style={{ color: scoreColor(s.value) }}>
+                                          {pct(s.value)}
+                                        </span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </details>
+                  );
+                })()}
               </div>
             );
           })}

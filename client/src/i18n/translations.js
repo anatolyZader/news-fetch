@@ -7,6 +7,9 @@ export const translations = {
     'tab.municipalities': 'Municipalities',
     'tab.naftali':        'Naftali',
 
+    // Report staleness
+    'report.outdated':    'This report is from {date} and may be outdated.',
+
     // Language names
     'lang.en': 'EN',
     'lang.he': 'HE',
@@ -144,6 +147,7 @@ export const translations = {
     'report.caveats':         'Methodological Caveats',
     'report.evidence':        'Evidence',
     'report.items':           'items',
+    'report.pboChatHint':     'Ask the chat below for PBO details per municipality',
     'report.translating':     'Translating…',
 
     // Score labels
@@ -204,6 +208,8 @@ export const translations = {
     'tab.education':      'חינוך',
     'tab.municipalities': 'רשויות',
     'tab.naftali':        'נפתלי',
+
+    'report.outdated':    'דוח זה מתאריך {date} וייתכן שאינו עדכני.',
 
     'lang.en': 'EN',
     'lang.he': 'עב',
@@ -330,6 +336,7 @@ export const translations = {
     'report.caveats':         'הסתייגויות מתודולוגיות',
     'report.evidence':        'עדויות',
     'report.items':           'פריטים',
+    'report.pboChatHint':     'שאלו בצ׳אט למטה לפרטי קב"ט לפי יישוב',
     'report.translating':     'מתרגם…',
 
     // Score labels
@@ -390,6 +397,8 @@ export const translations = {
     'tab.education':      'Образование',
     'tab.municipalities': 'Муниципалитеты',
     'tab.naftali':        'Нафтали',
+
+    'report.outdated':    'Этот отчёт от {date} и может быть устаревшим.',
 
     'lang.en': 'EN',
     'lang.he': 'ИВ',
@@ -516,6 +525,7 @@ export const translations = {
     'report.caveats':         'Методологические оговорки',
     'report.evidence':        'Доказательства',
     'report.items':           'элементов',
+    'report.pboChatHint':     'Спросите в чате ниже подробности ПБО по муниципалитету',
     'report.translating':     'Перевод…',
 
     // Score labels

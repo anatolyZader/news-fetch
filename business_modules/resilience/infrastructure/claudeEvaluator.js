@@ -202,7 +202,14 @@ const FIELD_REPORT_SIGNAL_EXTRACTION_PREFIX =
   `  Each document = one community. Default to "repeated_pattern" (community-wide observation).\n` +
   `  Use "quantified_or_broad" only when explicit counts or percentages appear (e.g. "30 homes without safe room", "60% functional continuity").\n` +
   `  Use "single_case" only for a clearly isolated individual incident.\n\n` +
-  `Always include municipality name in the evidence text so the signal is geographically traceable.\n\n`;
+  `Always include municipality name in the evidence text so the signal is geographically traceable.\n\n` +
+  `⚠ Field reports are dense — each community paragraph often contains 5-15 distinct facts spanning multiple\n` +
+  `  resilience domains (leadership, services, protection, wellbeing, community capital, etc.).\n` +
+  `  You MUST split every distinct fact into its own signal. Do NOT collapse a paragraph into one or two\n` +
+  `  summary signals. Walk through each clause/phrase and ask: what signal type does THIS fact belong to?\n` +
+  `  Example: "צח״י active; donation received; informal activity for children; call to social services"\n` +
+  `  → 4 separate signals: leadership_visible_presence + community_volunteering, resource_mobilization,\n` +
+  `    service_continuity, wellbeing_support_accessed.\n\n`;
 
 const SIGNAL_EXTRACTION_SYSTEM_PROMPT =
   `You are a behavioral signal extractor for community resilience analysis in Israel.\n` +
@@ -219,7 +226,10 @@ const SIGNAL_EXTRACTION_SYSTEM_PROMPT =
   `  ⚠ fear_expression / calm_confidence: this type ONLY — individual emotions require a named subject.\n` +
   `  ⚠ resilience_narrative_positive / resilience_narrative_negative: also accept "observational_reported_fact"\n` +
   `     when a host, reporter, or caller characterises collective mood or community-wide narrative\n` +
-  `     (e.g. "people in our region say they won't leave", "the spirit in the north has broken down").\n\n` +
+  `     (e.g. "people in our region say they won't leave", "the spirit in the north has broken down").\n` +
+  `     REJECT: field-observer summaries like "population coping" or lists of conditions (empty streets,\n` +
+  `     closed businesses, frameworks operating). These are factual observations — use the matching factual\n` +
+  `     signal type (service_continuity, service_disruption, routine_disruption, etc.).\n\n` +
 
   `"named_survey_statistic"      — a named study, survey, or institution reports a measured finding.\n` +
   `  ACCEPT: 'Bar-Ilan survey: 68% of northern residents report sleep disruption'\n` +
@@ -262,11 +272,23 @@ const SIGNAL_EXTRACTION_SYSTEM_PROMPT =
   `- Emergency family reunification / finding family during evacuation → compliance_enter_shelter or lifesaving domain, NOT solidarity\n` +
   `- Education operating remotely / schools closed → service_disruption or service_continuity (functional_continuity domain), NOT information_*\n` +
   `- Businesses closed, clinics not operating, transport cancelled → service_disruption (functional_continuity domain)\n` +
+  `- צח"י (צוות חוסן יישובי — community resilience team): a volunteer-based local emergency leadership body\n` +
+  `  that coordinates with council, MDA, fire, police, and IDF. Extract TWO signals when צח"י is mentioned:\n` +
+  `  (1) leadership_visible_presence (active) or leadership_absence (missing/needed)\n` +
+  `  (2) community_volunteering (active) or resource_shortage (missing/needed)\n` +
+  `  צח"י is both a leadership structure and a community capital asset.\n` +
   `- system_overload vs resource_shortage: use system_overload when infrastructure is operating but at dangerous\n` +
   `  capacity relative to demand (one ICU for 115,000 residents; ER wait times tripled; ambulances unavailable).\n` +
   `  Use resource_shortage when material supplies or services are simply absent (no shelters in a neighbourhood,\n` +
   `  no compensation payments issued, volunteers ran out of food packages).\n` +
-  `- information_* types are ONLY for: residents receiving/missing/seeking safety or operational guidance, rumor spread, contradictory official messages\n` +
+  `- resilience_narrative_positive / resilience_narrative_negative: ONLY when someone explicitly characterises
+  how the community is coping — a subjective judgement about the collective story, mood, or spirit.
+  ACCEPT: "people here say we're managing fine", "the spirit in the north has broken", "residents feel abandoned by the state"
+  REJECT: a list of observable conditions (empty streets, closed businesses, no frameworks, self-evacuation).
+  Observable conditions are FACTS — classify them under the appropriate factual signal type
+  (service_disruption, evacuation_displacement, routine_disruption, resource_shortage, etc.).
+  A community with empty streets is not necessarily rejecting a narrative — it may simply be describing its situation.
+- information_* types are ONLY for: residents receiving/missing/seeking safety or operational guidance, rumor spread, contradictory official messages\n` +
   `- active_information_seeking: ONLY when a resident or group explicitly seeks emergency or protective guidance — e.g. calling an HFC hotline, checking alert apps, asking where the nearest shelter is, seeking evacuation instructions.\n` +
   `  REJECT: consulting a lawyer about a will or inheritance; asking about financial relief; seeking religious guidance; any general wartime planning unrelated to immediate safety.\n` +
   `  A surge in will-writing, legal consultations, or financial inquiries during wartime → fear_expression (if named quote) or omit. It is NOT active_information_seeking.\n` +
