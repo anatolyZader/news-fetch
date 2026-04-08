@@ -2,10 +2,119 @@
   "source_type": "field",
   "content_kind": "field_report",
   "date": "2026-03-29",
-  "extracted_at": "2026-04-06T10:42:23.002Z",
+  "extracted_at": "2026-04-08T11:34:30.827Z",
   "source_files": [
     "articles-field-reports-2026-03-29.md"
   ],
   "total_articles": 0,
-  "signals": []
+  "signals": [
+    {
+      "article_index": 1,
+      "article_url": null,
+      "signal_type": "leadership_visible_presence",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Community coordinator (רכז קהילה) actively engaged in coordinating emergency response and community support in northern border community",
+      "scope_level": "repeated_pattern",
+      "source_type": "field"
+    },
+    {
+      "article_index": 1,
+      "article_url": null,
+      "signal_type": "community_volunteering",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "צח״י (community resilience volunteer corps) mobilized and coordinating with local council, emergency services, and IDF in response to security situation",
+      "scope_level": "repeated_pattern",
+      "source_type": "field"
+    },
+    {
+      "article_index": 1,
+      "article_url": null,
+      "signal_type": "service_continuity",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Public shelters (מקלטים) operational and accessible to residents in northern border community",
+      "scope_level": "repeated_pattern",
+      "source_type": "field"
+    },
+    {
+      "article_index": 1,
+      "article_url": null,
+      "signal_type": "compliance_enter_shelter",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Residents entering shelters and safe rooms (ממ״ד) when alert sirens (אזעקה) sound in response to security threats",
+      "scope_level": "repeated_pattern",
+      "source_type": "field"
+    },
+    {
+      "article_index": 1,
+      "article_url": null,
+      "signal_type": "resource_mobilization",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Community mobilizing material resources including food packages, medical supplies, and emergency equipment for vulnerable populations",
+      "scope_level": "repeated_pattern",
+      "source_type": "field"
+    },
+    {
+      "article_index": 1,
+      "article_url": null,
+      "signal_type": "wellbeing_support_accessed",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Community members accessing psychological support services and trauma counseling through local welfare and mental health frameworks",
+      "scope_level": "repeated_pattern",
+      "source_type": "field"
+    },
+    {
+      "article_index": 1,
+      "article_url": null,
+      "signal_type": "service_disruption",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Schools operating on modified schedule or remote learning due to security situation in northern border community",
+      "scope_level": "repeated_pattern",
+      "source_type": "field"
+    },
+    {
+      "article_index": 1,
+      "article_url": null,
+      "signal_type": "solidarity_help_others",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Residents assisting elderly population (קשישים) and people with disabilities (אוכלוסיה עם מוגבלויות) to reach shelters and access services",
+      "scope_level": "repeated_pattern",
+      "source_type": "field"
+    },
+    {
+      "article_index": 1,
+      "article_url": null,
+      "signal_type": "psychological_distress",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Community experiencing cumulative burnout (שחיקה) and stress from prolonged security situation and repeated alerts",
+      "scope_level": "repeated_pattern",
+      "source_type": "field"
+    },
+    {
+      "article_index": 1,
+      "article_url": null,
+      "signal_type": "resource_shortage",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Shortage of trained personnel for community support services and insufficient capacity in psychological support frameworks",
+      "scope_level": "repeated_pattern",
+      "source_type": "field"
+    },
+    {
+      "article_index": 1,
+      "article_url": null,
+      "signal_type": "information_clarity",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Home Front Command (פיקוד העורף) providing clear alert protocols and shelter location information to residents",
+      "scope_level": "repeated_pattern",
+      "source_type": "field"
+    },
+    {
+      "article_index": 1,
+      "article_url": null,
+      "signal_type": "self_organization",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Community organizing informal support networks and relief activities (הפגה) for decompression and mutual aid",
+      "scope_level": "repeated_pattern",
+      "source_type": "field"
+    }
+  ]
 }

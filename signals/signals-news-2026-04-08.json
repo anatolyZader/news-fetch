@@ -1,0 +1,221 @@
+{
+  "source_type": "news",
+  "content_kind": "news",
+  "date": "2026-04-08",
+  "extracted_at": "2026-04-08T11:21:51.523Z",
+  "source_files": [
+    "articles-homefront-2026-04-08.md"
+  ],
+  "total_articles": 55,
+  "signals": [
+    {
+      "article_index": 3,
+      "article_url": "https://www.ynet.co.il/news/article/sj5647m211x",
+      "signal_type": "harm_to_population",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Three teenagers lightly injured in Tel Sheva; damage caused in several communities across the country",
+      "scope_level": "quantified_or_broad",
+      "article_source": "ynet.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 4,
+      "article_url": "https://www.ynet.co.il/news/article/skgpoomhbl",
+      "signal_type": "resilience_narrative_negative",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Asaf Langlebben, head of Upper Galilee Regional Council: 'We will not agree to continue living under the threat of missiles over our heads'",
+      "scope_level": "single_case",
+      "article_source": "ynet.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 6,
+      "article_url": "https://www.ynet.co.il/vacation/flights/article/hj8gogvkq211x",
+      "signal_type": "service_continuity",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Israel Airports Authority announced it is examining expansion of flight operations at its facilities in accordance with security directives",
+      "scope_level": "quantified_or_broad",
+      "article_source": "ynet.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 6,
+      "article_url": "https://www.ynet.co.il/vacation/flights/article/hj8gogvkq211x",
+      "signal_type": "resource_mobilization",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Arkia airline announced preparation to operate full flight schedule starting May 3, expanding passenger capacity and flight frequencies",
+      "scope_level": "quantified_or_broad",
+      "article_source": "ynet.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 8,
+      "article_url": "https://www.ynet.co.il/news/article/bywiy5mnwl",
+      "signal_type": "leadership_visible_presence",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Ramat Gan Mayor Carmel Shama Hacohen announced: 'Home Front Command informed me that as of this evening Ramat Gan returns to green status - full routine including Mimuna celebrations'",
+      "scope_level": "single_case",
+      "article_source": "ynet.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 8,
+      "article_url": "https://www.ynet.co.il/news/article/bywiy5mnwl",
+      "signal_type": "information_confusion",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Mayor later clarified: 'There is no ceasefire with Lebanon yet, and Home Front Command has not announced easing of emergency status'",
+      "scope_level": "single_case",
+      "article_source": "ynet.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 11,
+      "article_url": "https://www.ynet.co.il/news/article/rj0kscq211l",
+      "signal_type": "leadership_visible_presence",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Kfar Saba Mayor Rafi Saer announced: 'Tomorrow morning the education system in Kfar Saba returns to full activity'",
+      "scope_level": "single_case",
+      "article_source": "ynet.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 13,
+      "article_url": "https://www.haaretz.co.il/news/politics/war-2023/2026-04-08/ty-article-live/0000019d-69c9-d68a-a39d-69fb95c80000?liveBlogItemId=1678095821",
+      "signal_type": "information_confusion",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "MK Meirav Ben Ari: 'It's 7:40 in the morning and not a single official is speaking to Israeli citizens and explaining the ceasefire to them'",
+      "scope_level": "single_case",
+      "article_source": "haaretz.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 14,
+      "article_url": "https://www.haaretz.co.il/news/politics/2026-04-08/ty-article/0000019d-6be7-d759-ab9d-7bfffd490000",
+      "signal_type": "resilience_narrative_negative",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Moshe Davidowitz, head of Matte Asher Regional Council: 'If the war against Hezbollah stops, this is a first-class moral, ethical and security failure'",
+      "scope_level": "single_case",
+      "article_source": "haaretz.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 14,
+      "article_url": "https://www.haaretz.co.il/news/politics/2026-04-08/ty-article/0000019d-6be7-d759-ab9d-7bfffd490000",
+      "signal_type": "resilience_narrative_negative",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Asaf Langlebben, head of Upper Galilee Regional Council: 'We are not interested in American ceasefires or opening the Strait of Hormuz. We are interested in one thing - dismantling the threat to Israel from Lebanon and rehabilitating the north'",
+      "scope_level": "single_case",
+      "article_source": "haaretz.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 14,
+      "article_url": "https://www.haaretz.co.il/news/politics/2026-04-08/ty-article/0000019d-6be7-d759-ab9d-7bfffd490000",
+      "signal_type": "resilience_narrative_negative",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Ayal Shmuli, head of Kfar Vardim Council: 'We, the heads of authorities on the line of confrontation, are in a fog regarding the Lebanese front'",
+      "scope_level": "single_case",
+      "article_source": "haaretz.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 14,
+      "article_url": "https://www.haaretz.co.il/news/politics/2026-04-08/ty-article/0000019d-6be7-d759-ab9d-7bfffd490000",
+      "signal_type": "resilience_narrative_negative",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Avihai Stern, mayor of Kiryat Shmona: 'Lebanon is now the main arena and all resources must be directed there'",
+      "scope_level": "single_case",
+      "article_source": "haaretz.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 42,
+      "article_url": "https://www.jpost.com/israel-news/defense-news/article-892350",
+      "signal_type": "harm_to_population",
+      "evidence_type": "named_survey_statistic",
+      "evidence": "MDA: Four people lightly injured in Tel Sheva; 15 people reported suffering from anxiety",
+      "scope_level": "quantified_or_broad",
+      "article_source": "jpost.com",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 48,
+      "article_url": "https://www.haaretz.com/israel-news/2026-04-08/ty-article-magazine/.premium/lacking-shelters-tel-avivs-residents-cling-to-the-city-at-all-cost/0000019d-45a2-d759-ab9d-7dbb5a5f0000",
+      "signal_type": "resource_shortage",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Most apartments in Tel Aviv lack a safe room or building shelter despite high rents and repeated Iranian missile bombardments",
+      "scope_level": "repeated_pattern",
+      "article_source": "haaretz.com",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 49,
+      "article_url": "https://www.haaretz.com/israel-news/israel-security/2026-04-08/ty-article-live/mda-three-children-lightly-injured-in-negev-following-iranian-rocket-fire/0000019d-6ad1-d940-a5bd-fedf1e030000?liveBlogItemId=1387156135",
+      "signal_type": "resilience_narrative_negative",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Opposition leader Yair Lapid: 'There has never been such a diplomatic disaster in all of our history. Israel wasn't even at the table when decisions were made concerning the core of our national security'",
+      "scope_level": "single_case",
+      "article_source": "haaretz.com",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 50,
+      "article_url": "https://www.haaretz.com/israel-news/israel-security/2026-04-08/ty-article-live/mda-three-children-lightly-injured-in-negev-following-iranian-rocket-fire/0000019d-6ad1-d940-a5bd-fedf1e030000?liveBlogItemId=71258004",
+      "signal_type": "harm_to_population",
+      "evidence_type": "named_survey_statistic",
+      "evidence": "Lebanese Health Ministry: Eight people killed and 28 wounded in Israeli strike on a cafe in Sidon; two people killed in strike on car in Ras el-Ayn area",
+      "scope_level": "quantified_or_broad",
+      "article_source": "haaretz.com",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 51,
+      "article_url": "https://www.haaretz.com/israel-news/israel-security/2026-04-08/ty-article/israeli-airlines-to-expand-flights-expect-easing-of-restrictions-after-truce/0000019d-6c48-d8d9-a1bf-fddb869c0000",
+      "signal_type": "resource_mobilization",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Arkia airline preparing to expand flight schedule with full schedule starting May 3, operating flights to Athens, Larnaca, Rome, Vienna, London, Amsterdam, Paris, Bangkok, New York, and Budapest",
+      "scope_level": "quantified_or_broad",
+      "article_source": "haaretz.com",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 52,
+      "article_url": "https://www.haaretz.com/israel-news/israel-security/2026-04-08/ty-article-live/mda-three-children-lightly-injured-in-negev-following-iranian-rocket-fire/0000019d-6ad1-d940-a5bd-fedf1e030000?liveBlogItemId=517266334",
+      "signal_type": "information_confusion",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Ten hours after U.S.-Iran ceasefire announcement, Israeli government had not issued Hebrew statement to Israeli citizens on the deal",
+      "scope_level": "quantified_or_broad",
+      "article_source": "haaretz.com",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 55,
+      "article_url": "https://www.ynetnews.com/magazine/article/hj00rliqh11g",
+      "signal_type": "fear_expression",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Designer Geller: 'With the way the country has been run over the past three years, I immediately knew that if I didn't take care of myself, I wouldn't have a safety net from any official body'",
+      "scope_level": "single_case",
+      "article_source": "ynetnews.com",
+      "temporal_weight": 1,
+      "source_type": "news"
+    }
+  ]
+}
