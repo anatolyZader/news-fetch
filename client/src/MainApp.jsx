@@ -16,10 +16,13 @@ import styles from './App.module.css';
 
 function AppShell() {
   const { logout, authRequired } = useAuth();
-  const { report, markdown, costUsd, costBreakdown, scoreBySource, initialReportLoadDone } = useTodayReport();
+  const { report, markdown, costUsd, costBreakdown, scoreBySource, reportDate, initialReportLoadDone } = useTodayReport();
   const [activeTab, setActiveTab] = useState('report');
   const { t, lang } = useLanguage();
   const { displayReport, translating, translateError } = useTranslatedReport(report, lang);
+
+  const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jerusalem' }); // YYYY-MM-DD
+  const isOutdated = reportDate && reportDate !== todayStr;
 
   const TABS = [
     { id: 'report',      label: t('tab.report') },
@@ -68,14 +71,21 @@ function AppShell() {
 
             {initialReportLoadDone && !report && (
               <div className={styles.reportEmpty}>
-                No assessment is available yet for today. Generate one on the server and refresh this page.
+                No assessment is available yet. Generate one on the server and refresh this page.
               </div>
             )}
 
             {initialReportLoadDone && report && (
-              <div className={styles.reportReadonlyFrame}>
-                <ReportView assessment={displayReport} costUsd={costUsd} costBreakdown={costBreakdown} scoreBySource={displayReport?.score_by_source ?? scoreBySource} readOnly translating={translating} translateError={translateError} />
-              </div>
+              <>
+                {isOutdated && (
+                  <div className={styles.reportOutdated}>
+                    {t('report.outdated').replace('{date}', reportDate.split('-').reverse().join('-'))}
+                  </div>
+                )}
+                <div className={styles.reportReadonlyFrame}>
+                  <ReportView assessment={displayReport} costUsd={costUsd} costBreakdown={costBreakdown} scoreBySource={displayReport?.score_by_source ?? scoreBySource} readOnly translating={translating} translateError={translateError} />
+                </div>
+              </>
             )}
 
             {report && <ChatPanel />}

@@ -4,7 +4,7 @@ import { useLanguage } from '../context/LanguageContext.jsx';
 import styles from './ChatPanel.module.css';
 
 export function ChatPanel() {
-  const { history, streaming, draft, send } = useChat();
+  const { history, streaming, draft, send, stop } = useChat();
   const { t } = useLanguage();
   const [input, setInput] = useState('');
   const bottomRef = useRef(null);
@@ -34,7 +34,7 @@ export function ChatPanel() {
         )}
         {history.map((msg, i) => (
           <div key={i} className={`${styles.msg} ${styles[msg.role]}`}>
-            <div className={styles.bubble}>{msg.content}</div>
+            <div className={`${styles.bubble} ${msg.error ? styles.error : ''}`}>{msg.content}</div>
           </div>
         ))}
         {streaming && draft && (
@@ -53,9 +53,15 @@ export function ChatPanel() {
           placeholder={t('chat.input')}
           disabled={streaming}
         />
-        <button className={styles.sendBtn} type="submit" disabled={streaming || !input.trim()}>
-          {t('chat.send')}
-        </button>
+        {streaming ? (
+          <button className={styles.stopBtn} type="button" onClick={stop}>
+            {t('chat.stop') ?? 'Stop'}
+          </button>
+        ) : (
+          <button className={styles.sendBtn} type="submit" disabled={!input.trim()}>
+            {t('chat.send')}
+          </button>
+        )}
       </form>
     </div>
   );

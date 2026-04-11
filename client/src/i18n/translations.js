@@ -149,6 +149,11 @@ export const translations = {
     'report.items':           'items',
     'report.pboChatHint':     'Ask the chat below for PBO details per municipality',
     'report.translating':     'Translating…',
+    'report.badge.field':    'Field team',
+    'report.badge.press':    'Press',
+    'report.badge.radio':    'Radio',
+    'report.badge.naftali':  'Naftali',
+    'report.badge.pbo':      'PBO',
 
     // Score labels
     'score.critical': 'Critical',
@@ -338,6 +343,11 @@ export const translations = {
     'report.items':           'פריטים',
     'report.pboChatHint':     'שאלו בצ׳אט למטה לפרטי קב"ט לפי יישוב',
     'report.translating':     'מתרגם…',
+    'report.badge.field':     'חוליית קה״א',
+    'report.badge.press':     'עיתונות',
+    'report.badge.radio':     'רדיו',
+    'report.badge.naftali':   'נפתלי',
+    'report.badge.pbo':       'פקע״ר',
 
     // Score labels
     'score.critical': 'קריטי',
@@ -527,6 +537,11 @@ export const translations = {
     'report.items':           'элементов',
     'report.pboChatHint':     'Спросите в чате ниже подробности ПБО по муниципалитету',
     'report.translating':     'Перевод…',
+    'report.badge.field':     'Полевые',
+    'report.badge.press':     'Пресса',
+    'report.badge.radio':     'Радио',
+    'report.badge.naftali':   'Нафтали',
+    'report.badge.pbo':       'ПБО',
 
     // Score labels
     'score.critical': 'Критический',

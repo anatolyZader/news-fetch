@@ -53,7 +53,7 @@ function formatSignalCatalog() {
 
 // ─── JSON extraction helpers ──────────────────────────────────────────────────
 
-function extractJsonArray(text) {
+export function extractJsonArray(text) {
   try {
     return extractJson(text);
   } catch {
@@ -316,7 +316,24 @@ const SIGNAL_EXTRACTION_SYSTEM_PROMPT =
   `}\n\n` +
   `Return ONLY a valid JSON array. One article can yield multiple signals. Skip articles with no extractable behavioral evidence.`;
 
-function buildSignalExtractionSystemPrompt(contentKind) {
+const WHATSAPP_REALTIME_SIGNAL_EXTRACTION_PREFIX =
+  `━━━ SOURCE: WHATSAPP FIELD REPORT (SINGLE MESSAGE, REAL-TIME) ━━━\n` +
+  `Input is a single short WhatsApp message from an Israeli field worker reporting conditions\n` +
+  `in a northern border community. Messages may be very brief (1-2 sentences).\n\n` +
+  `IMPORTANT DIFFERENCES FROM BATCH ANALYSIS:\n` +
+  `- You are analyzing ONE message, not a batch. article_index is always 1.\n` +
+  `- Short status reports ("שקט בקריית שמונה", "בתי ספר פתוחים בנהריה") ARE valid —\n` +
+  `  extract what you can, even if only one signal.\n` +
+  `- Default evidence type is "observational_reported_fact" — field workers report what they observe.\n` +
+  `  Use "direct_quote_named_person" only when the message explicitly quotes someone by name.\n` +
+  `  Use "named_institutional_fact" when a named institution's action is reported.\n` +
+  `- After the signal array, add a JSON object on a NEW line:\n` +
+  `  {"_assessment": {"sufficient": true, "missing": []}}\n` +
+  `  "sufficient" = true if the message contains at least one concrete, extractable behavioral fact.\n` +
+  `  "missing" = list of what would strengthen the report. Values: "location", "named_person", "scope", "specific_details".\n` +
+  `  Set "missing" to [] if sufficient. If not sufficient, include the most important missing element(s).\n\n`;
+
+export function buildSignalExtractionSystemPrompt(contentKind) {
   const base = SIGNAL_EXTRACTION_SYSTEM_PROMPT;
   if (contentKind === 'audio') {
     return AUDIO_SIGNAL_EXTRACTION_PREFIX + base.replace(
@@ -328,6 +345,12 @@ function buildSignalExtractionSystemPrompt(contentKind) {
     return FIELD_REPORT_SIGNAL_EXTRACTION_PREFIX + base.replace(
       'from news articles using',
       'from expert field report documents (same signal vocabulary) using',
+    );
+  }
+  if (contentKind === 'whatsapp_realtime') {
+    return WHATSAPP_REALTIME_SIGNAL_EXTRACTION_PREFIX + base.replace(
+      'from news articles using',
+      'from a single WhatsApp field report using',
     );
   }
   return base;

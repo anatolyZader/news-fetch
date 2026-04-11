@@ -80,3 +80,20 @@
   cursor: pointer;
 }
 .sendBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.stopBtn {
+  padding: 0.5rem 1rem;
+  background: var(--muted);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.error {
+  background: #fee2e2 !important;
+  border-color: #fca5a5 !important;
+  color: #991b1b;
+}

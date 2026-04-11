@@ -140,6 +140,17 @@
   line-height: 1.5;
 }
 
+.reportOutdated {
+  font-size: 0.85rem;
+  color: #856404;
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 8px;
+  padding: 0.6rem 1rem;
+  margin-bottom: 0.75rem;
+  line-height: 1.4;
+}
+
 .reportReadonlyFrame {
   border: 1px solid var(--border);
   border-radius: 12px;

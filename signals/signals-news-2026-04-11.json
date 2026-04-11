@@ -1,0 +1,254 @@
+{
+  "source_type": "news",
+  "content_kind": "news",
+  "date": "2026-04-11",
+  "extracted_at": "2026-04-11T12:39:16.635Z",
+  "source_files": [
+    "articles-homefront-2026-04-11.md"
+  ],
+  "total_articles": 33,
+  "signals": [
+    {
+      "article_index": 1,
+      "article_url": "https://www.maariv.co.il/breaking-news/article-1307367",
+      "signal_type": "harm_to_population",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Paramedics Natan Haron and Betzalel Ben Chamo: 'We saw 2 vehicles completely crushed that caught fire, during firefighting operations we identified five unconscious men, without pulse and without breathing with significant injuries in their bodies. 4 of the victims were in their 20s and one approximately 50. We performed medical tests but had no choice but to determine their death.'",
+      "scope_level": "single_case",
+      "article_source": "maariv.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 2,
+      "article_url": "https://www.maariv.co.il/news/israel/article-1307368",
+      "signal_type": "harm_to_population",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Paramedics Natan Haron and Betzalel Ben Chamo: 'We saw 2 vehicles completely crushed that caught fire... five unconscious men, without pulse and without breathing with significant injuries. 4 of the victims were in their 20s and one approximately 50.'",
+      "scope_level": "single_case",
+      "article_source": "maariv.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 2,
+      "article_url": "https://www.maariv.co.il/news/israel/article-1307368",
+      "signal_type": "harm_to_population",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Paramedic Husam Amasha: 'We saw 2 crushed vehicles with significant metal damage and several injured people who were conscious and suffered serious injuries in their bodies. Among the injured were 2 men aged 22 who were seriously injured.'",
+      "scope_level": "single_case",
+      "article_source": "maariv.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 2,
+      "article_url": "https://www.maariv.co.il/news/israel/article-1307368",
+      "signal_type": "service_continuity",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Paramedic Husam Amasha: 'In cooperation with IDF medical forces, we provided all injured life-saving medical treatment and evacuated them to hospitals by IDF helicopter, intensive care vehicles and MDA ambulances.'",
+      "scope_level": "single_case",
+      "article_source": "maariv.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 3,
+      "article_url": "https://news.walla.co.il/break/3829650",
+      "signal_type": "harm_to_population",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Seven injured in road accident on Highway 98 near Braun junction in northern Golan Heights: two seriously injured, two moderately injured, three lightly injured. Two seriously injured are men aged 22, one with limb injury and one with head injury.",
+      "scope_level": "single_case",
+      "article_source": "news.walla.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 3,
+      "article_url": "https://news.walla.co.il/break/3829650",
+      "signal_type": "service_continuity",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Paramedic Husam Amasha: 'We saw 2 crushed vehicles with significant metal damage, and several injured people who were conscious and suffered serious injuries in their bodies.'",
+      "scope_level": "single_case",
+      "article_source": "news.walla.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 3,
+      "article_url": "https://news.walla.co.il/break/3829650",
+      "signal_type": "service_continuity",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "MDA paramedics and IDF medical team provided medical treatment to all conscious injured and evacuated them to Rambam and Ziv hospitals.",
+      "scope_level": "single_case",
+      "article_source": "news.walla.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 4,
+      "article_url": "https://news.walla.co.il/break/3829654",
+      "signal_type": "harm_to_population",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Paramedics Natan Haron and Betzalel Ben Chamo: 'We saw 2 vehicles completely crushed that caught fire, and during firefighting operations we identified five unconscious men - without pulse and without breathing, with significant injuries in their bodies. 4 of the victims were in their 20s, and one approximately 50. We performed medical tests, but had no choice but to determine their death.'",
+      "scope_level": "single_case",
+      "article_source": "news.walla.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 5,
+      "article_url": "http://news.walla.co.il/item/3829649",
+      "signal_type": "resilience_narrative_negative",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Mayan Sherman, mother of Ron Sherman who was held captive and killed by IDF airstrikes: 'Ron was abducted alive, survived 34 days in captivity - and then was killed by airstrikes, together with the senior terrorist he was taken to.'",
+      "scope_level": "single_case",
+      "article_source": "news.walla.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 6,
+      "article_url": "https://news.walla.co.il/break/3829665",
+      "signal_type": "service_continuity",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Fire and rescue teams began extensive search operations on Saturday at Tzanz beach in Netanya for a missing teenager, using boats, sonar systems, drones, and later divers to locate the missing person.",
+      "scope_level": "single_case",
+      "article_source": "news.walla.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 7,
+      "article_url": "https://www.mako.co.il/news-israel/2026_q2/Article-3c481e33eb97d91027.htm",
+      "signal_type": "resilience_narrative_positive",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Iris Haim, mother of Yotam Haim who was abducted and killed: 'He very much wanted to be a father' and regarding the court approval process: 'The State of Israel has undergone a change for the better.'",
+      "scope_level": "single_case",
+      "article_source": "mako.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 8,
+      "article_url": "https://www.one.co.il/Article/519430.html",
+      "signal_type": "service_disruption",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "If fighting in northern sector against Lebanon continues, return to normal training schedule and hosting matches will not be possible, and travel to distant away games is not straightforward due to security concerns and parental opposition.",
+      "scope_level": "repeated_pattern",
+      "article_source": "one.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 13,
+      "article_url": "https://www.newsru.co.il/israel/11apr2026/mada804.html",
+      "signal_type": "harm_to_population",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Road accident on Highway 89 involving two private vehicles resulted in seven injured: two in serious condition, two in moderate condition, three in light condition. All victims aged 20-30.",
+      "scope_level": "single_case",
+      "article_source": "newsru.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 13,
+      "article_url": "https://www.newsru.co.il/israel/11apr2026/mada804.html",
+      "signal_type": "service_continuity",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "MDA ambulance brigades transported injured to Ziv Hospital in Tzfat and Rambam Hospital in Haifa.",
+      "scope_level": "single_case",
+      "article_source": "newsru.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 14,
+      "article_url": "https://www.newsru.co.il/israel/11apr2026/dtp805.html",
+      "signal_type": "harm_to_population",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Five Palestinians killed in road accident involving two vehicles on Highway 60 near Rahelim settlement in Samaria. MDA paramedics determined death at scene.",
+      "scope_level": "single_case",
+      "article_source": "newsru.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 15,
+      "article_url": "https://www.timesofisrael.com/amid-echoes-of-war-these-survivors-will-light-yom-hashoah-torches-in-pre-recorded-ceremony/",
+      "signal_type": "resilience_narrative_positive",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Holocaust Memorial Day ceremony will feature six Holocaust survivors lighting torches and two more giving speeches and reciting El Maleh Rahamim prayer, with short film portraits capturing personal testimonies of survival and resilience.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "timesofisrael.com",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 23,
+      "article_url": "https://www.jpost.com/israel-news/article-892615",
+      "signal_type": "service_continuity",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Several airlines planning to reinstate flights to Israel in coming weeks, with authorities focusing on increasing passenger capacity per flight: narrow-body aircraft to accommodate up to 120 passengers and wide-body aircraft up to 150, with changes potentially coming into effect next week.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "jpost.com",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 24,
+      "article_url": "https://www.jpost.com/israel-news/article-892616",
+      "signal_type": "resilience_narrative_positive",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Yotam Haim expressed to his parents and friends his strong desire to become a father and bring children into the world. In a message to a friend he wrote: 'You'll be the cool aunt of my children, whether you like it or not, dear.'",
+      "scope_level": "single_case",
+      "article_source": "jpost.com",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 27,
+      "article_url": "https://www.jpost.com/health-and-wellness/article-892518",
+      "signal_type": "wellbeing_support_accessed",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Pasternak Magnezi, senior facilitator at Mahut Israel and resilience commander for IDF Armored Corps, describes her trauma recovery strategy: 'If I don't move my body now, the trauma will freeze inside me' and her philosophy: 'Emotion needs motion.'",
+      "scope_level": "single_case",
+      "article_source": "jpost.com",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 27,
+      "article_url": "https://www.jpost.com/health-and-wellness/article-892518",
+      "signal_type": "psychological_distress",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Pasternak Magnezi describes her experience: 'Trauma does not begin in language; it begins in the body. If it remains there, unprocessed, it hardens into something immovable.' She lost her two brothers in a plane crash 17 years ago and was transformed overnight from a sister into a bereaved guardian of three young children.",
+      "scope_level": "single_case",
+      "article_source": "jpost.com",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 29,
+      "article_url": "https://www.haaretz.com/israel-news/israel-security/2026-04-11/ty-article/court-allows-parents-of-gaza-hostage-killed-by-idf-fire-to-use-sons-sperm/0000019d-7901-d54f-a9fd-fb97fee20000",
+      "signal_type": "resilience_narrative_positive",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Judge Ariel Maman ruled that 'Yotam's presumed wish was for his sperm to be used to bring children into the world, even after his death' and noted 'Yotam's unequivocal desire for continuity ... expressed his altruistic and existential desire for creating life and continuity.'",
+      "scope_level": "single_case",
+      "article_source": "haaretz.com",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 33,
+      "article_url": "https://www.ynetnews.com/culture/article/hje11sov2zl",
+      "signal_type": "routine_maintenance",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Life under the shadow of sirens migrated underground in Tel Aviv, where tent cities sprang up in central bus station, Dizengoff Center and Habima Theater. Stages were set up in underground levels for music performances, and Tel Aviv Museum unveiled works from protected basements and displayed selected pieces from exhibitions in rehearsal rooms.",
+      "scope_level": "repeated_pattern",
+      "article_source": "ynetnews.com",
+      "temporal_weight": 1,
+      "source_type": "news"
+    }
+  ]
+}

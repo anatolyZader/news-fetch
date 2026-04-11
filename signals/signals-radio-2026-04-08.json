@@ -1,0 +1,188 @@
+{
+  "source_type": "radio",
+  "content_kind": "audio",
+  "date": "2026-04-08",
+  "extracted_at": "2026-04-10T09:00:20.245Z",
+  "source_files": [
+    "articles-audio-ashams-2026-04-08T16-00.md"
+  ],
+  "total_articles": 18,
+  "signals": [
+    {
+      "article_index": 6,
+      "article_url": null,
+      "signal_type": "leadership_absence",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Citizen: 'I called the municipality about street safety for children with no substantive response, only bureaucratic delays and disconnected calls.' Radio host acknowledges 'pattern of citizen complaints being dismissed.'",
+      "scope_level": "repeated_pattern",
+      "article_source": "ashams — كلام مباشر 16:00-17:00",
+      "temporal_weight": 1,
+      "source_type": "radio"
+    },
+    {
+      "article_index": 6,
+      "article_url": null,
+      "signal_type": "information_confusion",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Citizen describes 'repeatedly calling the municipality about street safety for children with no substantive response, only bureaucratic delays and disconnected calls.'",
+      "scope_level": "repeated_pattern",
+      "article_source": "ashams — كلام مباشر 16:00-17:00",
+      "temporal_weight": 1,
+      "source_type": "radio"
+    },
+    {
+      "article_index": 8,
+      "article_url": null,
+      "signal_type": "coordination_failure",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Citizen: 'I don't know what to do—I came this month and they told me I must return the license, but no one gave me an answer.' Lawyer: 'There is a lack of coordination between different departments and offices in the transportation ministry.'",
+      "scope_level": "repeated_pattern",
+      "article_source": "ashams — كلام مباشر 16:00-17:00",
+      "temporal_weight": 1,
+      "source_type": "radio"
+    },
+    {
+      "article_index": 8,
+      "article_url": null,
+      "signal_type": "information_confusion",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Citizen: 'I don't know what to do—I came this month and they told me I must return the license, but no one gave me an answer.' Received conflicting instructions from multiple government offices.",
+      "scope_level": "repeated_pattern",
+      "article_source": "ashams — كلام مباشر 16:00-17:00",
+      "temporal_weight": 1,
+      "source_type": "radio"
+    },
+    {
+      "article_index": 9,
+      "article_url": null,
+      "signal_type": "coordination_failure",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Lawyer: 'There is persistent lack of coordination between departments and offices in the transportation ministry.' 'Why is there no representative, no field officer who can mediate and explain the procedures?'",
+      "scope_level": "repeated_pattern",
+      "article_source": "ashams — كلام مباشر 16:00-17:00",
+      "temporal_weight": 1,
+      "source_type": "radio"
+    },
+    {
+      "article_index": 10,
+      "article_url": null,
+      "signal_type": "fear_expression",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Father of three: 'Without a license I have not worked in ten years—the license is a heavy burden and I am a father of three children. Many days I cannot start work because of the license problem.'",
+      "scope_level": "single_case",
+      "article_source": "ashams — كلام مباشر 16:00-17:00",
+      "temporal_weight": 1,
+      "source_type": "radio"
+    },
+    {
+      "article_index": 10,
+      "article_url": null,
+      "signal_type": "information_confusion",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Citizen: 'I don't know what to do. Received contradictory advice from different government offices about the license status.'",
+      "scope_level": "single_case",
+      "article_source": "ashams — كلام مباشر 16:00-17:00",
+      "temporal_weight": 1,
+      "source_type": "radio"
+    },
+    {
+      "article_index": 11,
+      "article_url": null,
+      "signal_type": "leadership_clear_guidance",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Program anchor: 'We will coordinate this meeting' and 'We will not settle for anything less than an official response from the transportation ministry about this general chaos.'",
+      "scope_level": "single_case",
+      "article_source": "ashams — كلام مباشر 16:00-17:00",
+      "temporal_weight": 1,
+      "source_type": "radio"
+    },
+    {
+      "article_index": 12,
+      "article_url": null,
+      "signal_type": "information_confusion",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Anchor: 'This issue has become widespread recently and has destroyed the peace of mind and tranquility of people who do not know or understand if they have a valid license or not.'",
+      "scope_level": "repeated_pattern",
+      "article_source": "ashams — كلام مباشر 16:00-17:00",
+      "temporal_weight": 1,
+      "source_type": "radio"
+    },
+    {
+      "article_index": 13,
+      "article_url": null,
+      "signal_type": "service_disruption",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Caller: 'I have suffered for ten or fifteen years from flooding behind my house. They dug and found the sewage, put a sewage pit in front of my house, near the kitchen pillar. They said they would come back and move it, and they never came back.'",
+      "scope_level": "repeated_pattern",
+      "article_source": "ashams — كلام مباشر 16:00-17:00",
+      "temporal_weight": 1,
+      "source_type": "radio"
+    },
+    {
+      "article_index": 13,
+      "article_url": null,
+      "signal_type": "leadership_absence",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Caller describes three years of promised municipal action on sewage relocation with no follow-up: 'They said they would come back and move it, and they never came back.'",
+      "scope_level": "repeated_pattern",
+      "article_source": "ashams — كلام مباشر 16:00-17:00",
+      "temporal_weight": 1,
+      "source_type": "radio"
+    },
+    {
+      "article_index": 15,
+      "article_url": null,
+      "signal_type": "service_disruption",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Resident: 'This sewage issue has been going on for three or four years, the water flooded the house... There is no proper sewage system and no drainage.'",
+      "scope_level": "repeated_pattern",
+      "article_source": "ashams — كلام مباشر 16:00-17:00",
+      "temporal_weight": 1,
+      "source_type": "radio"
+    },
+    {
+      "article_index": 15,
+      "article_url": null,
+      "signal_type": "leadership_absence",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Resident: 'They tell me we haven't dealt with you - there should be a street with sewage pipes in front of my house but they eliminated it.' Multiple complaints to local council without resolution.",
+      "scope_level": "repeated_pattern",
+      "article_source": "ashams — كلام مباشر 16:00-17:00",
+      "temporal_weight": 1,
+      "source_type": "radio"
+    },
+    {
+      "article_index": 16,
+      "article_url": null,
+      "signal_type": "service_disruption",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Resident: 'This work is not right - the sewage pipes shouldn't run from the street directly into someone's home entrance and kitchen.' Infrastructure problems creating hazardous conditions.",
+      "scope_level": "single_case",
+      "article_source": "ashams — كلام مباشر 16:00-17:00",
+      "temporal_weight": 1,
+      "source_type": "radio"
+    },
+    {
+      "article_index": 16,
+      "article_url": null,
+      "signal_type": "leadership_absence",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Resident: 'The new official - through written complaint - they say they will look into it but nothing happens.' Multiple formal complaints and letters without response.",
+      "scope_level": "repeated_pattern",
+      "article_source": "ashams — كلام مباشر 16:00-17:00",
+      "temporal_weight": 1,
+      "source_type": "radio"
+    },
+    {
+      "article_index": 18,
+      "article_url": null,
+      "signal_type": "information_clarity",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Emergency services announcement: 'In case of internet outages during conflict, information shouldn't be cut off - make sure you have a battery-operated radio in safe rooms. True, reliable news through Sun FM platforms during emergencies.'",
+      "scope_level": "single_case",
+      "article_source": "ashams — كلام مباشر 16:00-17:00",
+      "temporal_weight": 1,
+      "source_type": "radio"
+    }
+  ]
+}

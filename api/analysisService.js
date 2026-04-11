@@ -168,8 +168,20 @@ export function resolveReportJsonPathForDate(date, opts = {}) {
  */
 export function getCachedReport(store) {
   const timezone = process.env.TZ_ARTICLES || 'Asia/Jerusalem';
-  const date = getTodayInTimezone(timezone);
+  const today = getTodayInTimezone(timezone);
 
+  const todayResult = _loadReportForDate(today, store);
+  if (todayResult) return { ...todayResult, reportDate: today };
+
+  // Fallback: find the most recent report from any previous date
+  const fallback = _findLatestAvailableReport(today, store);
+  if (fallback) return fallback;
+
+  return null;
+}
+
+/** Load a report for a specific date from filesystem or store. Returns payload or null. */
+function _loadReportForDate(date, store) {
   const jsonPath = resolveReportJsonPathForDate(date);
   if (jsonPath && existsSync(jsonPath)) {
     const parsed = JSON.parse(readFileSync(jsonPath, 'utf-8'));
@@ -196,6 +208,36 @@ export function getCachedReport(store) {
         ...(costBreakdown ? { costBreakdown } : {}),
       };
     }
+  }
+
+  return null;
+}
+
+/** Scan the reports directory for the most recent report before `today`. */
+function _findLatestAvailableReport(today, store) {
+  const reportsDir = resolve(ROOT, 'reports');
+  if (!existsSync(reportsDir)) return null;
+
+  let names;
+  try {
+    names = readdirSync(reportsDir);
+  } catch {
+    return null;
+  }
+
+  // Extract unique dates from report filenames, pick the latest one before today
+  const datePattern = /^resilience-report-(\d{4}-\d{2}-\d{2})/;
+  const dates = [...new Set(
+    names
+      .map((f) => datePattern.exec(f)?.[1])
+      .filter((d) => d && d < today),
+  )].sort();
+
+  // Try dates in reverse chronological order
+  for (let i = dates.length - 1; i >= 0; i--) {
+    const date = dates[i];
+    const result = _loadReportForDate(date, store);
+    if (result) return { ...result, reportDate: date };
   }
 
   return null;

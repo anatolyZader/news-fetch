@@ -5,7 +5,7 @@ import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { getTodayInTimezone, validateDate } from './utils/dateUtils.js';
 import { getCachedReport, runAnalysis } from './api/analysisService.js';
-import { streamChat } from './api/chatService.js';
+import { streamChat } from './business_modules/chat/app/chatService.js';
 import { VideoGrabService } from './business_modules/video/app/videoGrabService.js';
 import { createYtDlpYoutubeAdapter } from './business_modules/video/infrastructure/adapters/ytDlpYoutubeAdapter.js';
 import { createLocalVideoFileAdapter } from './business_modules/video/infrastructure/adapters/localVideoFileAdapter.js';
@@ -25,8 +25,10 @@ import { getMunicipalityDashboard } from './business_modules/pbo_report_muni/app
 import { getNaftaliDashboard } from './business_modules/naftali/app/naftaliService.js';
 import { getTranslatedReport } from './business_modules/translation/app/translationService.js';
 import { createWhatsAppMessageStore } from './business_modules/whatsapp/infrastructure/whatsappMessageStore.js';
+import { createWhatsAppSignalStore } from './business_modules/whatsapp/infrastructure/whatsappSignalStore.js';
 import { createMetaCloudApiAdapter } from './business_modules/whatsapp/infrastructure/adapters/metaCloudApiAdapter.js';
 import { createWhatsAppIngestService } from './business_modules/whatsapp/app/whatsappIngestService.js';
+import { createWhatsAppResilienceAnalyzer } from './business_modules/whatsapp/app/whatsappResilienceAnalyzer.js';
 import { whatsappWebhookPlugin } from './business_modules/whatsapp/input/webhook-routes.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -436,6 +438,7 @@ export async function createApp(options) {
   app.get('/api/report/today', authHook, async (_req, reply) => {
     const data = getCachedReport(evidenceStore);
     return reply.send(data ? { found: true, ...data } : { found: false });
+    // Note: data.reportDate is included via spread — client uses it for staleness banner
   });
 
   app.get('/api/evidence-draft', authHook, async (request, reply) => {
@@ -605,6 +608,7 @@ export async function createApp(options) {
   app.post('/api/translate', authHook, async (request, reply) => {
     const { report, lang } = request.body ?? {};
     if (!report || !lang || lang === 'en') return reply.send({ report: report ?? null });
+    if (process.env.TRANSLATION_ENABLED !== 'true') return reply.send({ report });
     try {
       // Attach score_by_source from the cached report so signal evidence gets translated.
       // The client sends only the assessment object (too large to include signals in POST body).
@@ -630,7 +634,7 @@ export async function createApp(options) {
       'Connection': 'keep-alive',
     });
 
-    await streamChat(message, history, reply.raw);
+    await streamChat(message, history, reply.raw, getCachedReport);
     reply.raw.end();
   });
 
@@ -657,14 +661,20 @@ export async function createApp(options) {
   // ─── WhatsApp webhook (no auth — Meta verifies via verify token) ─────────
   if (process.env.WHATSAPP_VERIFY_TOKEN) {
     const whatsappMessageStore = createWhatsAppMessageStore(sqlitePath);
+    const whatsappSignalStore = createWhatsAppSignalStore(sqlitePath);
     const whatsappApiAdapter = createMetaCloudApiAdapter({
       accessToken: process.env.WHATSAPP_ACCESS_TOKEN,
       phoneNumberId: process.env.WHATSAPP_PHONE_NUMBER_ID,
     });
+    const whatsappResilienceAnalyzer = process.env.ANTHROPIC_API_KEY?.trim()
+      ? createWhatsAppResilienceAnalyzer({ anthropicApiKey: process.env.ANTHROPIC_API_KEY.trim() })
+      : null;
     const whatsappIngestService = createWhatsAppIngestService({
       messageStore: whatsappMessageStore,
       apiAdapter: whatsappApiAdapter,
       evidenceStore,
+      signalStore: whatsappSignalStore,
+      resilienceAnalyzer: whatsappResilienceAnalyzer,
       allowedGroupIds: (process.env.WHATSAPP_ALLOWED_GROUP_IDS ?? '').split(',').map(s => s.trim()).filter(Boolean),
     });
     await app.register(whatsappWebhookPlugin, {

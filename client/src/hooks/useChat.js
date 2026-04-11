@@ -1,11 +1,12 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
 
 export function useChat() {
   const { getIdToken } = useAuth();
-  const [history, setHistory] = useState([]); // [{ role, content }]
+  const [history, setHistory] = useState([]); // [{ role, content, error? }]
   const [streaming, setStreaming] = useState(false);
   const [draft, setDraft] = useState(''); // assistant reply being streamed
+  const abortRef = useRef(null);
 
   async function send(message) {
     if (streaming || !message.trim()) return;
@@ -15,6 +16,8 @@ export function useChat() {
     setStreaming(true);
     setDraft('');
 
+    const controller = new AbortController();
+    abortRef.current = controller;
     let accumulated = '';
 
     try {
@@ -26,7 +29,15 @@ export function useChat() {
         method: 'POST',
         headers,
         body: JSON.stringify({ message, history }),
+        signal: controller.signal,
       });
+
+      if (!res.ok) {
+        const errText = await res.text().catch(() => res.statusText);
+        setHistory((h) => [...h, { role: 'assistant', content: errText || 'Request failed', error: true }]);
+        setStreaming(false);
+        return;
+      }
 
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
@@ -51,17 +62,41 @@ export function useChat() {
               setHistory((h) => [...h, { role: 'assistant', content: accumulated }]);
               setDraft('');
               setStreaming(false);
+              return;
+            } else if (event.type === 'error') {
+              setHistory((h) => [...h, { role: 'assistant', content: event.message || 'An error occurred', error: true }]);
+              setDraft('');
+              setStreaming(false);
+              return;
             }
           } catch {
-            /* skip */
+            /* skip malformed SSE line */
           }
         }
       }
-    } catch {
-      setStreaming(false);
+
+      // Stream ended without a done/error event — treat accumulated text as final
+      if (accumulated) {
+        setHistory((h) => [...h, { role: 'assistant', content: accumulated }]);
+      }
       setDraft('');
+      setStreaming(false);
+    } catch (err) {
+      if (err.name === 'AbortError') {
+        if (accumulated) {
+          setHistory((h) => [...h, { role: 'assistant', content: accumulated + ' [stopped]' }]);
+        }
+      } else {
+        setHistory((h) => [...h, { role: 'assistant', content: 'Connection error — please try again.', error: true }]);
+      }
+      setDraft('');
+      setStreaming(false);
     }
   }
 
-  return { history, streaming, draft, send };
+  function stop() {
+    abortRef.current?.abort();
+  }
+
+  return { history, streaming, draft, send, stop };
 }

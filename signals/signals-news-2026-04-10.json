@@ -1,0 +1,287 @@
+{
+  "source_type": "news",
+  "content_kind": "news",
+  "date": "2026-04-10",
+  "extracted_at": "2026-04-11T12:39:52.067Z",
+  "source_files": [
+    "articles-homefront-2026-04-10.md"
+  ],
+  "total_articles": 48,
+  "signals": [
+    {
+      "article_index": 1,
+      "article_url": "https://www.ynet.co.il/news/article/yokra14734928",
+      "signal_type": "leadership_visible_presence",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Avram Pechima, CEO of Eilat Hashchar kibbutz hotel, coordinates reception of displaced residents from rocket attacks; municipality representative Liat Chen manages support center for children whose homes were destroyed",
+      "scope_level": "single_case",
+      "article_source": "ynet.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 1,
+      "article_url": "https://www.ynet.co.il/news/article/yokra14734928",
+      "signal_type": "community_volunteering",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Hotel staff receive displaced residents arriving at all hours, provide emotional support and ensure care for those whose homes were damaged by Hezbollah fire",
+      "scope_level": "single_case",
+      "article_source": "ynet.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 1,
+      "article_url": "https://www.ynet.co.il/news/article/yokra14734928",
+      "signal_type": "service_continuity",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Hotel operating as shelter for displaced residents; municipality support center functioning for children without homes",
+      "scope_level": "single_case",
+      "article_source": "ynet.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 2,
+      "article_url": "https://www.ynet.co.il/economy/article/sjt7arn3we",
+      "signal_type": "resilience_narrative_positive",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Nizari opened a coffee shop named 'Friendship' to commemorate fallen friends and honor the value of camaraderie that the state is built upon",
+      "scope_level": "single_case",
+      "article_source": "ynet.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 3,
+      "article_url": "https://www.ynet.co.il/judaism/article/yokra14732893",
+      "signal_type": "resilience_narrative_positive",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Holocaust survivor Raya: 'I was at the bottom, I fought, I survived, I came to Israel and built a wonderful family, so there is hope to emerge from a very difficult period. I hope this will inspire them and give them hope'",
+      "scope_level": "single_case",
+      "article_source": "ynet.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 4,
+      "article_url": "https://www.ynet.co.il/laisha/article/bkvymi5obe",
+      "signal_type": "harm_to_population",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Mother of fallen daughter: 'I see the capabilities of the Air Force in Iran and I think they could have saved my daughter. Where were these capabilities when my daughter was still alive?'",
+      "scope_level": "single_case",
+      "article_source": "ynet.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 4,
+      "article_url": "https://www.ynet.co.il/laisha/article/bkvymi5obe",
+      "signal_type": "fear_expression",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Mother: 'War with Iran causes pressure and distress. Every time I go down to the shelter during an alert, I call the children to see where they are and my heart shrinks: where is Osher? Osher is not here. Every alert I think about October 7'",
+      "scope_level": "single_case",
+      "article_source": "ynet.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 4,
+      "article_url": "https://www.ynet.co.il/laisha/article/bkvymi5obe",
+      "signal_type": "psychological_distress",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Mother experiencing ongoing trauma and anxiety related to daughter's death and current war, triggered by alerts and reminders of October 7",
+      "scope_level": "single_case",
+      "article_source": "ynet.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 6,
+      "article_url": "https://www.haaretz.co.il/news/politics/2026-04-10/ty-article-magazine/.premium/0000019d-739f-db3c-a3df-fb9fd3e50000",
+      "signal_type": "community_volunteering",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Ella Yafrah, 19, pre-military program participant: 'I volunteer here every day. I help the shop owner pack shipments and run the business. When we saw the situation in the north, we came right away'",
+      "scope_level": "single_case",
+      "article_source": "haaretz.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 6,
+      "article_url": "https://www.haaretz.co.il/news/politics/2026-04-10/ty-article-magazine/.premium/0000019d-739f-db3c-a3df-fb9fd3e50000",
+      "signal_type": "service_continuity",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Shop in Kibbutz Amir operating with volunteer support despite ongoing war conditions",
+      "scope_level": "single_case",
+      "article_source": "haaretz.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 6,
+      "article_url": "https://www.haaretz.co.il/news/politics/2026-04-10/ty-article-magazine/.premium/0000019d-739f-db3c-a3df-fb9fd3e50000",
+      "signal_type": "resilience_narrative_positive",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Pre-military program teaches: 'If we need a wheel, then I am a wheel. We help wherever needed. When we saw the situation in the north, we came right away'",
+      "scope_level": "single_case",
+      "article_source": "haaretz.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 12,
+      "article_url": "https://www.maariv.co.il/breaking-news/article-1307124",
+      "signal_type": "service_disruption",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Ramat Hasharon municipality decided not to open educational institutions today due to security alerts; will convene with education officials to develop safe plan for return to studies next week",
+      "scope_level": "single_case",
+      "article_source": "maariv.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 13,
+      "article_url": "https://www.maariv.co.il/news/israel/article-1307127",
+      "signal_type": "harm_to_population",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Fallen munitions in Finger of Galilee caused damage to building in Mishgav Am; one person reported frightened",
+      "scope_level": "single_case",
+      "article_source": "maariv.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 14,
+      "article_url": "https://www.maariv.co.il/news/education/article-1307137",
+      "signal_type": "service_disruption",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Ramat Hasharon closed educational institutions; Herzliya kept schools open under 'green' defense policy",
+      "scope_level": "repeated_pattern",
+      "article_source": "maariv.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 23,
+      "article_url": "https://www.mako.co.il/health-magazine/Article-d91c1160b924d91027.htm",
+      "signal_type": "fear_expression",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Noa'a, 30, from Jerusalem: 'I felt I was dying of fear that an alert would catch me. Every such sound put me in terrible stress. I haven't left the house because I felt I was dying of fear'",
+      "scope_level": "single_case",
+      "article_source": "mako.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 23,
+      "article_url": "https://www.mako.co.il/health-magazine/Article-d91c1160b924d91027.htm",
+      "signal_type": "psychological_distress",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Noa'a: 'Since October 7 I understood the world is a wild and dangerous place, surrounded by cruel enemies who want to destroy us. I have been in therapy since October 7, and during the war sessions were remote. I haven't left the house because I felt I was dying of fear'",
+      "scope_level": "single_case",
+      "article_source": "mako.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 23,
+      "article_url": "https://www.mako.co.il/health-magazine/Article-d91c1160b924d91027.htm",
+      "signal_type": "non_compliance_exit_early",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Orit (pseudonym), mother of three from Tel Aviv area: 'I can count on one hand the number of times I left the house in the last month. The farthest I went was to the nearby shopping center because it has a protected space'",
+      "scope_level": "single_case",
+      "article_source": "mako.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 23,
+      "article_url": "https://www.mako.co.il/health-magazine/Article-d91c1160b924d91027.htm",
+      "signal_type": "fear_expression",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Orit: 'I understand war is dangerous and bad things can happen anywhere. But in the current situation where I have no control, I feel I can at least control staying close to the protected room. Fortunately, my workplace accepted that I work only remotely'",
+      "scope_level": "single_case",
+      "article_source": "mako.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 25,
+      "article_url": "https://www.mako.co.il/news-israel/2026_q2/Article-cece4b29a047d91026.htm",
+      "signal_type": "resource_shortage",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Wisam Saliman, tour guide from Galilee: 'War started on February 28, I had bookings for those dates - everything was cancelled. This is a loss of tens of thousands of shekels. I'm still paying loans from Corona. After October 7 I broke the rest of my savings. I took more loans, interest is choking me, and I'm delaying the end'",
+      "scope_level": "single_case",
+      "article_source": "mako.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 25,
+      "article_url": "https://www.mako.co.il/news-israel/2026_q2/Article-cece4b29a047d91026.htm",
+      "signal_type": "service_disruption",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Tourism sites in Jaffa empty; fish market abandoned; restaurants empty; only shop owners with no work remain",
+      "scope_level": "quantified_or_broad",
+      "article_source": "mako.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 25,
+      "article_url": "https://www.mako.co.il/news-israel/2026_q2/Article-cece4b29a047d91026.htm",
+      "signal_type": "resource_shortage",
+      "evidence_type": "named_survey_statistic",
+      "evidence": "Central Bureau of Statistics survey: 31% of small businesses in Israel had minimal employment or temporary closure during the war; approximately 220,000 small businesses closed since start of war",
+      "scope_level": "quantified_or_broad",
+      "article_source": "mako.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 36,
+      "article_url": "https://www.srugim.co.il/1301680-הצעד-הדרמטי-של-פיקוד-העורף-אשדוד",
+      "signal_type": "information_actionable_effective",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Home Front Command implemented early warning system for fire from north toward Ashdod; residents received advance warning 2.5 minutes before regular alert, providing total 3.25 minutes to reach protected spaces before missile impact",
+      "scope_level": "single_case",
+      "article_source": "srugim.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 45,
+      "article_url": "https://www.newsru.co.il/finance/10apr2026/mamad305.html",
+      "signal_type": "risk_exposure_behavior",
+      "evidence_type": "named_survey_statistic",
+      "evidence": "Yad2 platform data: demand for apartments with protected room (MAMAD) increased 3% since war start; demand for apartments without MAMAD fell 18%. In north, demand for non-MAMAD apartments fell 21.6%; in center 22%; in Jerusalem 19.5%",
+      "scope_level": "quantified_or_broad",
+      "article_source": "newsru.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 46,
+      "article_url": "https://www.timesofisrael.com/liveblog_entry/health-ministry-7527-people-admitted-to-hospital-with-war-related-injuries-since-february-28/",
+      "signal_type": "harm_to_population",
+      "evidence_type": "named_survey_statistic",
+      "evidence": "Health Ministry: 7,527 people admitted to hospitals with war-related injuries since February 28; 108 currently hospitalized (2 critical, 13 serious, 27 moderate, 66 good condition)",
+      "scope_level": "quantified_or_broad",
+      "article_source": "timesofisrael.com",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 47,
+      "article_url": "https://www.jpost.com/business-and-innovation/article-892574",
+      "signal_type": "service_continuity",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Energean resumed production at Karish gas field following Ministry of Energy decision to restore normal operations",
+      "scope_level": "single_case",
+      "article_source": "jpost.com",
+      "temporal_weight": 1,
+      "source_type": "news"
+    }
+  ]
+}

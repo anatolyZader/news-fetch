@@ -17,7 +17,7 @@ export async function whatsappWebhookPlugin(fastify, { ingestService, apiAdapter
 
     const result = apiAdapter.verifyWebhook(mode, token, challenge, verifyToken);
     if (result.ok) {
-      return reply.code(200).send(result.challenge);
+      return reply.type('text/plain').code(200).send(result.challenge);
     }
     return reply.code(403).send('Forbidden');
   });

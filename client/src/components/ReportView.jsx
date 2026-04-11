@@ -32,50 +32,6 @@ function scoreLabel(s, t) {
   return t('score.strong');
 }
 
-/** Separate PBO signals from the rest and build a one-line aggregate summary. */
-function splitPboSignals(signals) {
-  if (!signals || signals.length === 0) return { other: signals ?? [], pboSummary: null };
-  const pbo = [];
-  const other = [];
-  for (const s of signals) {
-    if (s.source_type === 'pbo') pbo.push(s);
-    else other.push(s);
-  }
-  if (pbo.length === 0) return { other, pboSummary: null };
-
-  const municipalities = new Set(pbo.map((s) => s.article_source?.replace(/^pbo-/, '') ?? ''));
-  const positive = pbo.filter((s) => !s.signal_type.includes('negative')).length;
-  const negative = pbo.filter((s) => s.signal_type.includes('negative')).length;
-
-  // Extract top/bottom outliers by municipality avg score from evidence text
-  const muniScores = {};
-  for (const s of pbo) {
-    const name = s.article_source?.replace(/^pbo-/, '') ?? '';
-    const m = s.evidence?.match(/avg=(\d+)%/);
-    if (m) {
-      if (!muniScores[name]) muniScores[name] = [];
-      muniScores[name].push(parseInt(m[1], 10));
-    }
-  }
-  const muniAvgs = Object.entries(muniScores)
-    .map(([name, scores]) => ({ name, avg: Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) }))
-    .sort((a, b) => a.avg - b.avg);
-
-  const bottom = muniAvgs.slice(0, 3).filter((m) => m.avg < 50);
-  const top = muniAvgs.slice(-3).filter((m) => m.avg >= 70);
-
-  return {
-    other,
-    pboSummary: {
-      total: pbo.length,
-      municipalityCount: municipalities.size,
-      positive,
-      negative,
-      bottom,
-      top,
-    },
-  };
-}
 
 function ComponentCard({ comp, t, sourceSignals }) {
   const icon = ICONS[comp.component_id] ?? '•';
@@ -88,12 +44,8 @@ function ComponentCard({ comp, t, sourceSignals }) {
   const signals = isFiltered ? (sourceSignals ?? []) : null;
   const curatedEvidence = isFiltered ? null : (comp.evidence ?? []);
 
-  const { other: nonPboSignals, pboSummary } = isFiltered
-    ? splitPboSignals(signals)
-    : { other: null, pboSummary: null };
-
   const evidenceCount = isFiltered
-    ? nonPboSignals.length + (pboSummary ? 1 : 0)
+    ? signals.length
     : curatedEvidence.length;
 
   return (
@@ -119,31 +71,29 @@ function ComponentCard({ comp, t, sourceSignals }) {
               <span className={styles.evidenceCount}>{evidenceCount} {t('report.items')}</span>
             </summary>
             <div className={styles.evidenceBody}>
-              {/* PBO aggregate summary */}
-              {pboSummary && (
-                <div className={styles.pboSummary}>
-                  <span className={styles.pboLabel}>PBO</span>
-                  <span>{pboSummary.municipalityCount} municipalities · {pboSummary.positive} positive · {pboSummary.negative} negative</span>
-                  {pboSummary.bottom.length > 0 && (
-                    <span className={styles.pboOutliers}>
-                      ▼ {pboSummary.bottom.map((m) => `${m.name} ${m.avg}%`).join(', ')}
-                    </span>
-                  )}
-                  {pboSummary.top.length > 0 && (
-                    <span className={styles.pboOutliers}>
-                      ▲ {pboSummary.top.map((m) => `${m.name} ${m.avg}%`).join(', ')}
-                    </span>
-                  )}
-                  <span className={styles.pboChatHint}>{t('report.pboChatHint')}</span>
-                </div>
-              )}
               <ul className={styles.evidenceList}>
                 {isFiltered
-                  ? nonPboSignals.map((s, i) => (
+                  ? signals.map((s, i) => (
                       <li key={i} className={styles.signalItem}>
-                        <span className={styles.signalType}>{s.signal_type.replace(/_/g, ' ')}</span>
-                        <span className={styles.signalSource}>{s.article_source}</span>
-                        <span className={styles.proseMd}>{s.evidence}</span>
+                        <span className={styles.signalSource}>
+                          {s.source_type === 'field' && (
+                            <span className={styles.fieldBadge}>{t('report.badge.field')}</span>
+                          )}
+                          {s.source_type === 'radio' && (
+                            <span className={styles.radioBadge}>{t('report.badge.radio')}</span>
+                          )}
+                          {s.source_type === 'naftali' && (
+                            <span className={styles.naftaliBadge}>{t('report.badge.naftali')}</span>
+                          )}
+                          {(s.source_type === 'news' || s.source_type === 'press') && (
+                            <span className={styles.pressBadge}>{t('report.badge.press')}</span>
+                          )}
+                          {s.source_type === 'pbo' && (
+                            <span className={styles.pboBadge}>{t('report.badge.pbo')}</span>
+                          )}
+                          {s.source_type === 'pbo' ? s.article_source?.replace(/^pbo-/, '') : s.article_source}
+                        </span>
+                        <span className={styles.signalEvidence}>{s.evidence}</span>
                       </li>
                     ))
                   : curatedEvidence.map((e, i) => (
@@ -157,7 +107,7 @@ function ComponentCard({ comp, t, sourceSignals }) {
           </details>
         )}
 
-        {isFiltered && nonPboSignals.length === 0 && !pboSummary && (
+        {isFiltered && signals.length === 0 && (
           <p className={styles.noSourceEvidence}>{t('report.noSourceEvidence') ?? 'No signals from this source for this component.'}</p>
         )}
       </div>

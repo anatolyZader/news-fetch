@@ -5,11 +5,12 @@
 import { writeFileSync } from 'fs';
 import { resolve } from 'path';
 import { isAllowedGroup, parseWebhookEntry } from '../domain/services/whatsappMessageFilter.js';
+import { buildAnalysisReply } from '../domain/services/hebrewResponseBuilder.js';
 
 /**
- * @param {{ messageStore, apiAdapter, evidenceStore, allowedGroupIds: string[] }} deps
+ * @param {{ messageStore, apiAdapter, evidenceStore, signalStore?, resilienceAnalyzer?, allowedGroupIds: string[] }} deps
  */
-export function createWhatsAppIngestService({ messageStore, apiAdapter, evidenceStore, allowedGroupIds }) {
+export function createWhatsAppIngestService({ messageStore, apiAdapter, evidenceStore, signalStore, resilienceAnalyzer, allowedGroupIds }) {
   return {
     /**
      * Process a single Meta webhook entry: parse messages, filter, store, and confirm.
@@ -60,11 +61,31 @@ export function createWhatsAppIngestService({ messageStore, apiAdapter, evidence
           if (!err.message?.includes('UNIQUE constraint')) throw err;
         }
 
-        // Send confirmation reply to the sender
-        try {
-          await apiAdapter.sendTextMessage(msg.senderPhone, 'התקבל, תודה');
-        } catch (err) {
-          console.error(`WhatsApp reply failed for ${msg.senderPhone}:`, err.message);
+        // Analyze for resilience signals and send smart reply
+        if (resilienceAnalyzer && signalStore) {
+          try {
+            const analysis = await resilienceAnalyzer.analyzeMessage(msg.text, msg.senderName);
+            if (analysis.signals.length > 0) {
+              signalStore.insertSignals(msg.metaMsgId, date, analysis.signals, msg.senderPhone);
+              console.error(`WhatsApp signals extracted: ${analysis.signals.length} from ${msg.metaMsgId}`);
+            }
+            const reply = buildAnalysisReply(analysis);
+            await apiAdapter.sendTextMessage(msg.senderPhone, reply);
+          } catch (analysisErr) {
+            console.error(`Resilience analysis failed for ${msg.metaMsgId}:`, analysisErr.message);
+            try {
+              await apiAdapter.sendTextMessage(msg.senderPhone, 'התקבל, תודה');
+            } catch (replyErr) {
+              console.error(`WhatsApp fallback reply failed:`, replyErr.message);
+            }
+          }
+        } else {
+          // No analyzer configured — generic confirmation
+          try {
+            await apiAdapter.sendTextMessage(msg.senderPhone, 'התקבל, תודה');
+          } catch (err) {
+            console.error(`WhatsApp reply failed for ${msg.senderPhone}:`, err.message);
+          }
         }
 
         console.error(`WhatsApp message ingested: ${msg.metaMsgId} from ${msg.senderName || msg.senderPhone}`);

@@ -50,7 +50,7 @@ export function createWhatsAppMessageStore(dbPath) {
      * @returns {boolean} true if inserted, false if duplicate
      */
     insert({ metaMsgId, groupJid, senderPhone, senderName, messageText, timestampUtc, date }) {
-      const result = insertStmt.run(metaMsgId, groupJid, senderPhone, senderName, messageText, timestampUtc, date);
+      const result = insertStmt.run(metaMsgId, groupJid ?? null, senderPhone, senderName ?? null, messageText, timestampUtc, date);
       return result.changes > 0;
     },
 
