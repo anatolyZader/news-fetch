@@ -180,7 +180,26 @@ const AUDIO_SIGNAL_EXTRACTION_PREFIX =
   `━━━ SOURCE: SPOKEN AUDIO (TRANSCRIPTS) ━━━\n` +
   `Input is speech-to-text from Israeli audio (broadcast, podcast, video rip, interview, voice memo, etc.). Speaker labels may appear (e.g. SPEAKER_00, host/guest).\n` +
   `Treat clearly attributed speech as quotable evidence when a person or role is identified.\n` +
-  `Skip music-only or ad segments with no behavioral content.\n\n`;
+  `Skip music-only or ad segments with no behavioral content.\n\n` +
+  `⚠ CRITICAL — RADIO TALK SHOWS MIX RELEVANT AND IRRELEVANT CONTENT.\n` +
+  `Israeli radio broadcasts contain hours of general political, geopolitical, and social commentary\n` +
+  `alongside emergency-relevant civilian resilience content. You MUST be highly selective.\n` +
+  `ONLY extract signals when the content directly describes:\n` +
+  `  - Israeli civilians coping with the emergency (shelter behavior, evacuation, daily life disruption)\n` +
+  `  - Services operating or failing during the emergency (schools, hospitals, transport, welfare)\n` +
+  `  - Community-level emergency response (volunteers, mutual aid, leadership actions for emergency)\n` +
+  `  - Economic hardship directly caused by the emergency (business closure, compensation gaps, job loss)\n` +
+  `  - Psychological impact of the emergency on civilians (fear, trauma, distress, coping)\n` +
+  `DO NOT EXTRACT from radio:\n` +
+  `  - Geopolitical analysis or strategy discussions (Iran, diplomacy, regime change, international relations)\n` +
+  `  - Military/intelligence organizational debates (army appointments, personnel decisions, institutional law)\n` +
+  `  - Domestic political punditry (coalition politics, Haredi-state relations, media framing of political leaks)\n` +
+  `  - Israeli-Palestinian political commentary (annexation policy, displacement policy, peace process)\n` +
+  `  - Criminal/accident investigations with no emergency resilience relevance\n` +
+  `  - Expert/pundit opinions on strategy, even if they use words like "guidance" or "clarity"\n` +
+  `An expert explaining Iranian strategy is NOT "information_clarity".\n` +
+  `A pundit criticizing army personnel decisions is NOT "leadership_clear_guidance".\n` +
+  `A civilian complaining about economic aid delays is "resource_shortage", NOT "information_effectiveness_gap".\n\n`;
 
 const FIELD_REPORT_SIGNAL_EXTRACTION_PREFIX =
   `━━━ SOURCE: EXPERT FIELD REPORTS (POPULATION BEHAVIOR OFFICER VISITS) ━━━\n` +
@@ -227,9 +246,11 @@ const SIGNAL_EXTRACTION_SYSTEM_PROMPT =
   `  ⚠ resilience_narrative_positive / resilience_narrative_negative: also accept "observational_reported_fact"\n` +
   `     when a host, reporter, or caller characterises collective mood or community-wide narrative\n` +
   `     (e.g. "people in our region say they won't leave", "the spirit in the north has broken down").\n` +
-  `     REJECT: field-observer summaries like "population coping" or lists of conditions (empty streets,\n` +
-  `     closed businesses, frameworks operating). These are factual observations — use the matching factual\n` +
-  `     signal type (service_continuity, service_disruption, routine_disruption, etc.).\n\n` +
+  `     The evidence text MUST contain mood/spirit/coping-identity language — not just condition descriptions.\n` +
+  `     REJECT: field-observer summaries or abstract labels ("overall resilience present", "strong settlement",\n` +
+  `     "population coping", "community functioning"). Split into specific factual signal types or discard.\n` +
+  `     REJECT: descriptions of services or frameworks ("protected space for children", "employment program").\n` +
+  `     These are service_continuity or service_disruption, not narrative signals.\n\n` +
 
   `"named_survey_statistic"      — a named study, survey, or institution reports a measured finding.\n` +
   `  ACCEPT: 'Bar-Ilan survey: 68% of northern residents report sleep disruption'\n` +
@@ -257,7 +278,14 @@ const SIGNAL_EXTRACTION_SYSTEM_PROMPT =
   `   Do NOT collapse this into one solidarity signal just because neighbors are mentioned.\n` +
   `2. CLOSED VOCABULARY: You MUST choose signal type from the list below. Never invent new types.\n` +
   `3. DO NOT EXTRACT: political/military/diplomatic content — unless it contains a direct civilian behavioral response.\n` +
-  `   SCOPE: We measure resilience of the Israeli civilian population ONLY. Do NOT extract signals about enemy combatants, foreign populations, or military personnel morale/behavior in operational theatres.\n` +
+  `   This includes: political punditry, ideological debates, democratic discourse, comparisons to other countries'\n` +
+  `   political systems (e.g. Hungary, Poland), coalition politics, constitutional debates, party strategy analysis.\n` +
+  `   These are NOT resilience signals even if they mention "anxiety" or "concern" — general political worry is\n` +
+  `   not crisis-coping behavior. Only extract when civilians describe how the emergency/war directly affects\n` +
+  `   their daily life, safety, services, or ability to cope.\n` +
+  `   SCOPE: We measure resilience of the Israeli civilian population in the context of EMERGENCY/WAR ONLY.\n` +
+  `   Do NOT extract signals about: enemy combatants, foreign populations, military personnel morale/behavior\n` +
+  `   in operational theatres, or general peacetime political/social discourse unrelated to the crisis.\n` +
   `4. DO NOT EXTRACT: global indices, international rankings, or pre-crisis baseline surveys.\n\n` +
 
   `━━━ CLASSIFICATION BOUNDARIES (read before choosing signal type) ━━━\n` +
@@ -282,18 +310,66 @@ const SIGNAL_EXTRACTION_SYSTEM_PROMPT =
   `  Use resource_shortage when material supplies or services are simply absent (no shelters in a neighbourhood,\n` +
   `  no compensation payments issued, volunteers ran out of food packages).\n` +
   `- resilience_narrative_positive / resilience_narrative_negative: ONLY when someone explicitly characterises
-  how the community is coping — a subjective judgement about the collective story, mood, or spirit.
+  how the community is coping — a subjective judgement about the collective story, mood, or spirit,
+  using WORDS ABOUT MOOD, SPIRIT, or COPING IDENTITY (not descriptions of conditions or services).
   ACCEPT: "people here say we're managing fine", "the spirit in the north has broken", "residents feel abandoned by the state"
+  ACCEPT: "the community sees itself as holding the line", "morale is high despite the situation"
   REJECT: a list of observable conditions (empty streets, closed businesses, no frameworks, self-evacuation).
+  REJECT: field-observer summary labels: "overall resilience present", "strong settlement", "population coping",
+    "community functioning well". These are abstract assessments, not expressed narratives — either split into
+    the specific factual signals that underlie the assessment, or discard if too vague.
+  REJECT: descriptions of services, programs, or frameworks (e.g. "protected space for children", "employment
+    program operating"). These are service_continuity or service_disruption signals, not narratives.
+  REJECT: political instability, governance issues, or institutional trust problems — use political_trust signal types.
   Observable conditions are FACTS — classify them under the appropriate factual signal type
   (service_disruption, evacuation_displacement, routine_disruption, resource_shortage, etc.).
   A community with empty streets is not necessarily rejecting a narrative — it may simply be describing its situation.
-- information_* types are ONLY for: residents receiving/missing/seeking safety or operational guidance, rumor spread, contradictory official messages\n` +
+  ⚠ FIELD REPORTS: field observer summaries are almost never narrative signals. Field teams report observable
+  conditions — classify each concrete observation under its factual signal type. Only use resilience_narrative_*
+  for field data when the observer quotes residents characterising their own collective story.
+- leadership_clear_guidance: ONLY when an authority provides specific, actionable EMERGENCY directions to civilians\n` +
+  `  (e.g. "HFC approved easing of restrictions", "municipality announced shelter hours").\n` +
+  `  The authority must be giving directions that civilians can ACT ON for their safety or daily emergency routine.\n` +
+  `  REJECT: pundits/experts discussing strategy, institutional appointments, military personnel decisions,\n` +
+  `    geopolitical analysis, or any commentary that uses words like "guidance" or "clear" but is not\n` +
+  `    an authority directing civilians. A civilian DEMANDING guidance is NOT leadership_clear_guidance —\n` +
+  `    it is resource_shortage (if demanding aid) or political_trust (if demanding accountability).\n` +
+  `  leadership_clear_guidance vs information_* types: An authority publishing or updating guidelines is a\n` +
+  `  LEADERSHIP action → leadership_clear_guidance. It tells us the authority acted, NOT that people received,\n` +
+  `  understood, or were influenced by the information. Only use information_* types when the evidence describes\n` +
+  `  the RECEPTION side: did people get the info? Was it clear or confusing? Did it match reality?\n` +
+  `- information_* types are ONLY for: residents receiving/missing/seeking EMERGENCY SAFETY or OPERATIONAL guidance\n` +
+  `  about immediate protective actions (shelters, alerts, evacuation routes, HFC restrictions),\n` +
+  `  rumor spread, or contradictory official emergency messages.\n` +
+  `  REJECT from ALL information_* types:\n` +
+  `  - Education policy disputes (exam frameworks, matriculation relief, school schedules) → service_disruption\n` +
+  `  - Demands for policy clarification from politicians (mayors demanding PM clarify policy) → political_trust\n` +
+  `  - Ministerial PR statements about recovery (aviation, tourism, economy) → routine_maintenance\n` +
+  `  - Descriptions of existing laws or legal rights → DO NOT EXTRACT (background legal fact, not behavioral evidence)\n` +
+  `  - Academic/international research papers → DO NOT EXTRACT (research ≠ actionable guidance that reached people)\n` +
+  `  - Service adequacy complaints ("exam framework not adapted") → service_disruption, NOT information_effectiveness_gap\n` +
+  `  KEY TEST: does the evidence show people RECEIVING or FAILING TO RECEIVE emergency safety guidance?\n` +
+  `  If it describes a service not meeting needs → service_disruption. Political demands → political_trust.\n` +
   `- active_information_seeking: ONLY when a resident or group explicitly seeks emergency or protective guidance — e.g. calling an HFC hotline, checking alert apps, asking where the nearest shelter is, seeking evacuation instructions.\n` +
   `  REJECT: consulting a lawyer about a will or inheritance; asking about financial relief; seeking religious guidance; any general wartime planning unrelated to immediate safety.\n` +
   `  A surge in will-writing, legal consultations, or financial inquiries during wartime → fear_expression (if named quote) or omit. It is NOT active_information_seeking.\n` +
-  `  information_actionable_effective: guidance was specific and situation-matched — people could follow it given actual constraints (accessible shelter, legally permitted to stop work, covers the scenario they faced). Use when evidence shows the instruction worked in practice.\n` +
-  `  information_effectiveness_gap: guidance existed and was distributed, but failed to help because it did not match reality — instructions people physically or legally could not follow, scenarios left uncovered (mass casualties, no nearby shelter, workers with no legal protection to stop), or contradictions between official sources that left people unable to act. Do NOT use for mere absence of information — use information_confusion for that.\n` +
+  `  information_actionable_effective: EMERGENCY guidance was specific and situation-matched — people could follow it\n` +
+  `  given actual constraints (accessible shelter, legally permitted to stop work, covers the scenario they faced).\n` +
+  `  Use ONLY when evidence shows emergency/safety guidance worked in practice.\n` +
+  `  NOT for: academic studies, legal descriptions, policy announcements, or ministerial statements.\n` +
+  `  information_effectiveness_gap: EMERGENCY guidance existed and was distributed, but failed to help because it\n` +
+  `  did not match reality — instructions people physically or legally could not follow, scenarios left uncovered\n` +
+  `  (mass casualties, no nearby shelter, workers with no legal protection to stop), or contradictions between\n` +
+  `  official sources that left people unable to act. Do NOT use for mere absence of information — use information_confusion.\n` +
+  `  Do NOT use for education/service adequacy complaints — those are service_disruption.\n` +
+  `  Do NOT use for economic relief/compensation gaps — those are resource_shortage.\n` +
+  `- rumor_spread: ONLY for false or unverified claims about EMERGENCY SAFETY conditions spreading among civilians\n` +
+  `  (e.g. "residents sharing false reports of chemical attack", "WhatsApp groups spreading unverified casualty numbers").\n` +
+  `  REJECT: political media framing (Haredi media framing a leak as conspiracy), partisan spin, or editorial bias.\n` +
+  `  Media framing of political events is political discourse, not emergency rumor spread.\n` +
+  `- information_confusion: ONLY for contradictory or unclear EMERGENCY SAFETY messages from authorities that leave\n` +
+  `  civilians unable to act (e.g. "one authority says shelter-in-place, another says evacuate").\n` +
+  `  REJECT: police/security investigation updates, criminal investigations, or any non-emergency operational status.\n` +
   `- Emergency response to a harm event (ambulance to cardiac arrest, hospital treating injury): classify the harm itself as harm_to_population. Do NOT emit service_continuity — a service doing its normal job is not evidence of elevated functioning.\n\n` +
 
   `━━━ SIGNAL TYPES (closed vocabulary) ━━━\n` +

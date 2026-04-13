@@ -150,6 +150,26 @@ async function run() {
     sourceTypesSeen.add(sourceType);
   }
 
+  // Deduplicate near-identical signals across files (same source team may report
+  // the same observation in consecutive weekly reports). Keep the one with highest
+  // temporal_weight (most recent). Key on: signal_type + source + normalised evidence.
+  {
+    const seen = new Map();
+    for (const s of allSignals) {
+      const normEvidence = (s.evidence ?? '').replace(/[^\w\u0590-\u05FF]/g, '').toLowerCase().slice(0, 80);
+      const key = `${s.signal_type}|${s.article_source ?? ''}|${normEvidence}`;
+      const existing = seen.get(key);
+      if (!existing || (s.temporal_weight ?? 1) > (existing.temporal_weight ?? 1)) {
+        seen.set(key, s);
+      }
+    }
+    const beforeCount = allSignals.length;
+    allSignals = [...seen.values()];
+    if (allSignals.length < beforeCount) {
+      console.error(`  Deduped: ${beforeCount} → ${allSignals.length} signals (${beforeCount - allSignals.length} duplicates removed)`);
+    }
+  }
+
   const contentKind = sourceTypesSeen.size > 1 ? 'mixed'
     : sourceTypesSeen.has('radio') ? 'audio'
     : 'news';

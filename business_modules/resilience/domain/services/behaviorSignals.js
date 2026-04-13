@@ -117,7 +117,7 @@ export const SIGNAL_TO_COMPONENTS = {
 
   // Leadership
   leadership_visible_presence:       { leadership: +1.0 },
-  leadership_clear_guidance:         { leadership: +1.1, information_communication: +0.4 },
+  leadership_clear_guidance:         { leadership: +1.1 },
   leadership_absence:                { leadership: -1.3, lifesaving_behavior: -0.4 },
   coordination_failure:              { leadership: -1.0, community_capital: -0.6, functional_continuity: -0.5 },
 
