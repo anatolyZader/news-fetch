@@ -14,25 +14,28 @@ const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 const COL_MATCHERS = {
   timestamp:           ['timestamp', 'חותמת'],
   settlement:          ['יישוב'],
-  childrenCount:       ['מספר הילדים'],
+  activityCount:       ['מספר הפעילויות', 'הסדנאות'],
+  childrenCount:       ['סך כל הילדים', 'מספר הילדים'],
   ageRanges:           ['טווח גילאי'],
   activityType:        ['סוג הפעילות'],
   activityHours:       ['שעות הפעילות'],
   copingLevel:         ['מתמודדים עם מצב החירום'],
-  copingExpression:    ['ביטוי', 'התמודדות קיבלה'],
   streetMovement:      ['תנועה של אנשים'],
-  residentRelationship:['קשר שלך עם התושבים'],
   informalContactFreq: ['מחוץ לשעות הפעילות הפורמלית'],
-  interruptionFreq:    ['הופסקה בעקבות'],
-  concerningTrends:    ['עלייה באחת'],
+  communityActivities: ['פעילויות קהילתיות או חינוכיות', 'מלבד הפעילות שאתה מעביר'],
+  concerningTrends:    ['הבחנת בקרב הילדים והנוער', 'מהתופעות הבאות'],
+  exposureMethod:      ['איך נחשפת', 'נחשפת אליהן'],
+  interventionNeeded:  ['צריך להתערב'],
   openComment:         ['עוד משהו'],
 };
 
 // Normalize Hebrew answer values to stable English keys
 function normalizeAgeRange(v) {
-  if (v.includes('שמרטפ'))                       return 'nursery';
-  if (v.includes('יסודי'))                        return 'elementary';
-  if (v.includes('חטיבה') || v.includes('עליונה')) return 'highschool';
+  if (v.includes('פעוטות') || v.includes('1-3'))   return 'toddlers';
+  if (v.includes('גיל גן') || v.includes('גן') && v.includes('3-6')) return 'kindergarten';
+  if (v.includes('שמרטפ'))                         return 'kindergarten';
+  if (v.includes('יסודי'))                          return 'elementary';
+  if (v.includes('חטיבה') || v.includes('עליונה'))   return 'highschool';
   return v.trim();
 }
 
@@ -46,18 +49,31 @@ function extractActivityTypes(val) {
   return types;
 }
 
-function normalizeExpression(v) {
-  if (v.includes('התנהגות'))  return 'behavior';
-  if (v.includes('שיח'))      return 'discourse';
-  if (v.includes('שיתוף'))    return 'cooperation';
+function normalizeTrend(v) {
+  if (v.includes('סמים'))                              return 'drugs';
+  if (v.includes('אלכוהול'))                           return 'alcohol';
+  if (v.includes('אלימות פיזית'))                      return 'physical_violence';
+  if (v.includes('אלימות מילולית'))                    return 'verbal_violence';
+  if (v.includes('אלימות'))                            return 'physical_violence';
+  if (v.includes('מסכים'))                             return 'screens';
+  if (v.includes('בדידות') || v.includes('הימנעות'))   return 'loneliness';
+  if (v.includes('לא הבחנתי'))                         return 'none_observed';
   return v.trim();
 }
 
-function normalizeTrend(v) {
-  if (v.includes('סמים'))    return 'drugs';
-  if (v.includes('אלכוהול')) return 'alcohol';
-  if (v.includes('אלימות'))  return 'violence';
-  if (v.includes('מסכים'))   return 'screens';
+function normalizeExposure(v) {
+  if (v.includes('במו עיניי'))       return 'witnessed';
+  if (v.includes('קבוצת ילדים'))     return 'group_shared';
+  if (v.includes('הילד') || v.includes('הנער')) return 'child_shared';
+  if (v.includes('מבוגר') || v.includes('הורה')) return 'adult_shared';
+  return 'other';
+}
+
+function normalizeIntervention(v) {
+  if (!v) return 'unknown';
+  if (v.includes('כן'))    return 'yes';
+  if (v.includes('לא'))    return 'no';
+  if (v.includes('אולי'))  return 'maybe';
   return v.trim();
 }
 
@@ -109,17 +125,18 @@ function parseRow(row, colMap) {
     timestamp,
     date,
     settlement:           get('settlement').trim(),
+    activityCount:        parseInt(get('activityCount'), 10) || 0,
     childrenCount:        parseInt(get('childrenCount'), 10) || 0,
     ageRanges:            splitMulti(get('ageRanges')).map(normalizeAgeRange),
     activityType:         extractActivityTypes(get('activityType')),
     activityHours:        splitMulti(get('activityHours')),
     copingLevel:          normalizeCoping(get('copingLevel')),
-    copingExpression:     splitMulti(get('copingExpression')).map(normalizeExpression),
     streetMovement:       normalizeFreq(get('streetMovement')),
-    residentRelationship: get('residentRelationship').trim(),
     informalContactFreq:  normalizeFreq(get('informalContactFreq')),
-    interruptionFreq:     normalizeFreq(get('interruptionFreq')),
+    communityActivities:  get('communityActivities').trim(),
     concerningTrends:     splitMulti(get('concerningTrends')).map(normalizeTrend),
+    exposureMethod:       splitMulti(get('exposureMethod')).map(normalizeExposure),
+    interventionNeeded:   normalizeIntervention(get('interventionNeeded')),
     openComment:          get('openComment').trim(),
   };
 }

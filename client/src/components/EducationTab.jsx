@@ -3,6 +3,7 @@ import {
   ResponsiveContainer,
   LineChart, Line,
   BarChart, Bar,
+  PieChart, Pie, Cell,
   XAxis, YAxis,
   CartesianGrid, Tooltip, Legend,
 } from 'recharts';
@@ -26,8 +27,25 @@ const FREQ_COLORS = {
   unknown: '#9ca3af',
 };
 
+const INTERVENTION_COLORS = {
+  yes:     '#dc2626',
+  no:      '#16a34a',
+  maybe:   '#ca8a04',
+  unknown: '#9ca3af',
+};
+
+const TREND_COLORS = {
+  drugs:             '#7c3aed',
+  alcohol:           '#dc2626',
+  physical_violence: '#ea580c',
+  verbal_violence:   '#f59e0b',
+  screens:           '#2563eb',
+  loneliness:        '#6b7280',
+  none_observed:     '#16a34a',
+};
+
 const BAR_COLOR = '#2563eb';
-const AGE_KEYS = ['nursery', 'elementary', 'highschool'];
+const AGE_KEYS = ['toddlers', 'kindergarten', 'elementary', 'highschool'];
 
 // ─── Pure helpers ─────────────────────────────────────────────────────────────
 function countValues(arr) {
@@ -66,21 +84,22 @@ function aggregateSessions(sessions) {
     return {
       date,
       respondents: rows.length,
-      copingDist:          countValues(rows.map(r => r.copingLevel)),
-      interruptionDist:    countValues(rows.map(r => r.interruptionFreq)),
-      streetMovementDist:  countValues(rows.map(r => r.streetMovement)),
-      informalContactDist: countValues(rows.map(r => r.informalContactFreq)),
+      copingDist:           countValues(rows.map(r => r.copingLevel)),
+      streetMovementDist:   countValues(rows.map(r => r.streetMovement)),
+      informalContactDist:  countValues(rows.map(r => r.informalContactFreq)),
+      concerningTrendsDist: countValues(rows.flatMap(r => r.concerningTrends)),
+      interventionDist:     countValues(rows.map(r => r.interventionNeeded)),
     };
   });
   const dist = {
     ageRanges:           countValues(sorted.flatMap(r => r.ageRanges)),
     activityType:        countValues(sorted.flatMap(r => r.activityType)),
     activityHours:       countValues(sorted.flatMap(r => r.activityHours)),
-    copingExpression:    countValues(sorted.flatMap(r => r.copingExpression)),
     streetMovement:      countValues(sorted.map(r => r.streetMovement)),
     informalContactFreq: countValues(sorted.map(r => r.informalContactFreq)),
-    interruptionFreq:    countValues(sorted.map(r => r.interruptionFreq)),
     concerningTrends:    countValues(sorted.flatMap(r => r.concerningTrends)),
+    exposureMethod:      countValues(sorted.flatMap(r => r.exposureMethod)),
+    interventionNeeded:  countValues(sorted.map(r => r.interventionNeeded)),
     copingLevel:         countValues(sorted.map(r => r.copingLevel)),
   };
   return { trends, dist };
@@ -101,16 +120,41 @@ function ChartCard({ title, children }) {
 }
 
 function SimpleBarChart({ data, color = BAR_COLOR, yKey = 'value', label }) {
+  const chartHeight = Math.max(180, data.length * 36 + 20);
   return (
-    <ResponsiveContainer width="100%" height={180}>
-      <BarChart data={data} margin={{ top: 4, right: 8, left: -20, bottom: 30 }}>
-        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
-        <XAxis dataKey="name" tick={{ fontSize: 11, fill: 'var(--muted)' }} angle={-35} textAnchor="end" interval={0} />
-        <YAxis tick={{ fontSize: 11, fill: 'var(--muted)' }} allowDecimals={false} />
+    <ResponsiveContainer width="100%" height={chartHeight}>
+      <BarChart data={data} layout="vertical" margin={{ top: 4, right: 16, left: 8, bottom: 4 }}>
+        <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="var(--border)" />
+        <YAxis dataKey="name" type="category" tick={{ fontSize: 12, fill: 'var(--fg, #1f2937)' }} width={120} interval={0} />
+        <XAxis type="number" tick={{ fontSize: 11, fill: 'var(--muted)' }} allowDecimals={false} />
         <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid var(--border)' }} cursor={{ fill: 'var(--bg)' }} />
-        <Bar dataKey={yKey} fill={color} radius={[4, 4, 0, 0]} name={label} />
+        <Bar dataKey={yKey} fill={color} radius={[0, 4, 4, 0]} name={label} barSize={20} />
       </BarChart>
     </ResponsiveContainer>
+  );
+}
+
+function CommentsTable({ comments, t, lang, showSettlement = true }) {
+  if (!comments || comments.length === 0) {
+    return <p className={styles.hint}>{t('edu.comments.empty')}</p>;
+  }
+  const headerClass = showSettlement ? styles.commentHeader : `${styles.commentHeader} ${styles.commentHeaderSettlement}`;
+  const rowClass = showSettlement ? styles.commentRow : `${styles.commentRow} ${styles.commentRowSettlement}`;
+  return (
+    <div className={styles.commentsTable}>
+      <div className={headerClass}>
+        <span>{t('edu.col.date')}</span>
+        {showSettlement && <span>{t('edu.col.settlement')}</span>}
+        <span>{t('edu.col.comment')}</span>
+      </div>
+      {comments.map((c, i) => (
+        <div key={i} className={rowClass}>
+          <span className={styles.commentDate}>{formatDate(c.date, lang)}</span>
+          {showSettlement && <span className={styles.commentSettlement}>{c.settlement || '—'}</span>}
+          <span className={styles.commentText}>{c.comment}</span>
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -131,11 +175,18 @@ export function EducationTab() {
     const MAP = {
       indifferent: t('coping.indifferent'),    coping_easily: t('coping.coping_easily'),
       struggling_somewhat: t('coping.struggling_somewhat'), struggling_greatly: t('coping.struggling_greatly'),
+      other: t('coping.other'),
       high: t('freq.high'), low: t('freq.low'), rarely: t('freq.rarely'), unknown: t('freq.unknown'),
-      nursery: t('age.nursery'), elementary: t('age.elementary'), highschool: t('age.highschool'),
+      toddlers: t('age.toddlers'), kindergarten: t('age.kindergarten'),
+      nursery: t('age.kindergarten'),
+      elementary: t('age.elementary'), highschool: t('age.highschool'),
       educational: t('activity.educational'), relief: t('activity.relief'),
-      behavior: t('expression.behavior'), discourse: t('expression.discourse'), cooperation: t('expression.cooperation'),
-      drugs: t('trend.drugs'), alcohol: t('trend.alcohol'), violence: t('trend.violence'), screens: t('trend.screens'),
+      drugs: t('trend.drugs'), alcohol: t('trend.alcohol'),
+      physical_violence: t('trend.physical_violence'), verbal_violence: t('trend.verbal_violence'),
+      screens: t('trend.screens'), loneliness: t('trend.loneliness'), none_observed: t('trend.none_observed'),
+      witnessed: t('exposure.witnessed'), child_shared: t('exposure.child_shared'),
+      group_shared: t('exposure.group_shared'), adult_shared: t('exposure.adult_shared'),
+      yes: t('intervention.yes'), no: t('intervention.no'), maybe: t('intervention.maybe'),
     };
     return MAP[key] ?? key;
   }, [t]);
@@ -188,7 +239,7 @@ export function EducationTab() {
   if (error)   return <p className={styles.error}>{t('edu.error')}: {error}</p>;
   if (!data?.summary) return <div className={styles.empty}><p>{t('edu.noData')}</p></div>;
 
-  const { summary, recentComments, bySettlement = {} } = data;
+  const { summary, recentComments, communityActivitiesComments = [], bySettlement = {} } = data;
   const settlementNames = Object.keys(bySettlement).sort();
 
   // ── KPIs ──────────────────────────────────────────────────────────────────
@@ -226,6 +277,12 @@ export function EducationTab() {
     }));
     return { copingTrend, childrenTrend, freqTrend };
   }
+
+  // Intervention pie data
+  const interventionData = toChartData(dist.interventionNeeded ?? {}).map(item => {
+    const keyMap = { [tKey('yes')]: INTERVENTION_COLORS.yes, [tKey('no')]: INTERVENTION_COLORS.no, [tKey('maybe')]: INTERVENTION_COLORS.maybe };
+    return { ...item, color: keyMap[item.name] || INTERVENTION_COLORS.unknown };
+  });
 
   return (
     <div className={styles.container} dir={lang === 'he' ? 'rtl' : 'ltr'}>
@@ -315,9 +372,8 @@ export function EducationTab() {
       {/* ── Supporting trend charts ──────────────────────────────────────── */}
       <div className={styles.chartGrid2}>
         {[
-          { title: t('edu.chart.street'),        distKey: 'streetMovementDist',  stackId: 'street'  },
-          { title: t('edu.chart.contact'),       distKey: 'informalContactDist', stackId: 'contact' },
-          { title: t('edu.chart.interruptions'), distKey: 'interruptionDist',    stackId: 'int'     },
+          { title: t('edu.chart.street'),  distKey: 'streetMovementDist',  stackId: 'street'  },
+          { title: t('edu.chart.contact'), distKey: 'informalContactDist', stackId: 'contact' },
         ].map(({ title, distKey, stackId }) => {
           const trendData = trends.map(d => ({
             date: formatDate(d.date, lang),
@@ -344,6 +400,31 @@ export function EducationTab() {
         })}
       </div>
 
+      {/* ── Concerning Trends + Exposure + Intervention ─────────────────── */}
+      <SectionHeading>{t('edu.chart.trends')}</SectionHeading>
+      <div className={styles.chartGrid2}>
+        <ChartCard title={t('edu.chart.trends')}>
+          <SimpleBarChart data={toChartData(dist.concerningTrends ?? {})} color="#ea580c" label={t('edu.axis.count')} />
+        </ChartCard>
+        <ChartCard title={t('edu.chart.exposure')}>
+          <SimpleBarChart data={toChartData(dist.exposureMethod ?? {})} color="#7c3aed" label={t('edu.axis.count')} />
+        </ChartCard>
+      </div>
+      <div className={styles.chartGrid2}>
+        <ChartCard title={t('edu.chart.intervention')}>
+          <ResponsiveContainer width="100%" height={200}>
+            <PieChart>
+              <Pie data={interventionData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} label={({ name, percent }) => `${name} ${Math.round(percent * 100)}%`}>
+                {interventionData.map((entry, i) => (
+                  <Cell key={i} fill={entry.color} />
+                ))}
+              </Pie>
+              <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid var(--border)' }} />
+            </PieChart>
+          </ResponsiveContainer>
+        </ChartCard>
+      </div>
+
       {/* ── Secondary metrics (collapsible) ─────────────────────────────── */}
       <details className={styles.secondaryDetails}>
         <summary className={styles.secondarySummary}>{t('edu.sec.secondary')}</summary>
@@ -352,8 +433,6 @@ export function EducationTab() {
             { label: t('edu.chart.ageRanges'),    dist: dist.ageRanges },
             { label: t('edu.chart.activityType'), dist: dist.activityType },
             { label: t('edu.chart.activityHours'),dist: dist.activityHours },
-            { label: t('edu.chart.expression'),   dist: dist.copingExpression },
-            { label: t('edu.chart.trends'),        dist: dist.concerningTrends },
           ].map(({ label, dist: d }) => {
             const total = Object.values(d ?? {}).reduce((s, v) => s + v, 0) || 1;
             const sorted = Object.entries(d ?? {}).sort(([, a], [, b]) => b - a);
@@ -373,26 +452,13 @@ export function EducationTab() {
         </div>
       </details>
 
+      {/* ── Community Activities (free text) ───────────────────────────── */}
+      <SectionHeading>{t('edu.sec.communityActivities')}</SectionHeading>
+      <CommentsTable comments={communityActivitiesComments} t={t} lang={lang} />
+
       {/* ── Open Responses ──────────────────────────────────────────────── */}
       <SectionHeading>{t('edu.sec.comments')}</SectionHeading>
-      {recentComments.length === 0 ? (
-        <p className={styles.hint}>{t('edu.comments.empty')}</p>
-      ) : (
-        <div className={styles.commentsTable}>
-          <div className={styles.commentHeader}>
-            <span>{t('edu.col.date')}</span>
-            <span>{t('edu.col.settlement')}</span>
-            <span>{t('edu.col.comment')}</span>
-          </div>
-          {recentComments.map((c, i) => (
-            <div key={i} className={styles.commentRow}>
-              <span className={styles.commentDate}>{formatDate(c.date, lang)}</span>
-              <span className={styles.commentSettlement}>{c.settlement || '—'}</span>
-              <span className={styles.commentText}>{c.comment}</span>
-            </div>
-          ))}
-        </div>
-      )}
+      <CommentsTable comments={recentComments} t={t} lang={lang} />
 
       {/* ── Per-Settlement Analysis ────────────────────────────────────── */}
       {settlementNames.length > 0 && (
@@ -452,9 +518,8 @@ export function EducationTab() {
                   </ChartCard>
 
                   {[
-                    { title: t('edu.chart.interruptions'), distKey: 'interruptionDist',    stackId: 'int'     },
-                    { title: t('edu.chart.street'),        distKey: 'streetMovementDist',  stackId: 'street'  },
-                    { title: t('edu.chart.contact'),       distKey: 'informalContactDist', stackId: 'contact' },
+                    { title: t('edu.chart.street'),  distKey: 'streetMovementDist',  stackId: 'street'  },
+                    { title: t('edu.chart.contact'), distKey: 'informalContactDist', stackId: 'contact' },
                   ].map(({ title, distKey, stackId }) => (
                     <ChartCard key={title} title={title}>
                       <ResponsiveContainer width="100%" height={200}>
@@ -485,19 +550,19 @@ export function EducationTab() {
                   </ChartCard>
                 </div>
 
+                {/* Per-settlement community activities */}
+                {s.communityComments && s.communityComments.length > 0 && (
+                  <>
+                    <p className={styles.chartTitle}>{t('edu.sec.communityActivities')}</p>
+                    <CommentsTable comments={s.communityComments} t={t} lang={lang} showSettlement={false} />
+                  </>
+                )}
+
                 {s.comments.length > 0 && (
-                  <div className={styles.commentsTable}>
-                    <div className={`${styles.commentHeader} ${styles.commentHeaderSettlement}`}>
-                      <span>{t('edu.col.date')}</span>
-                      <span>{t('edu.col.comment')}</span>
-                    </div>
-                    {s.comments.map((c, i) => (
-                      <div key={i} className={`${styles.commentRow} ${styles.commentRowSettlement}`}>
-                        <span className={styles.commentDate}>{formatDate(c.date, lang)}</span>
-                        <span className={styles.commentText}>{c.comment}</span>
-                      </div>
-                    ))}
-                  </div>
+                  <>
+                    <p className={styles.chartTitle}>{t('edu.sec.comments')}</p>
+                    <CommentsTable comments={s.comments} t={t} lang={lang} showSettlement={false} />
+                  </>
                 )}
               </div>
             );

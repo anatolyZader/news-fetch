@@ -33,14 +33,18 @@ export async function getEducationDashboard({ forceRefresh = false } = {}) {
   const trends = dates.map(date => {
     const rows = byDate[date];
     const avgChildren = Math.round(rows.reduce((s, r) => s + r.childrenCount, 0) / rows.length);
+    const totalActivities = rows.reduce((s, r) => s + r.activityCount, 0);
     return {
       date,
       respondents: rows.length,
       avgChildren,
+      totalActivities,
       copingDist:          countValues(rows.map(r => r.copingLevel)),
-      interruptionDist:    countValues(rows.map(r => r.interruptionFreq)),
       streetMovementDist:  countValues(rows.map(r => r.streetMovement)),
       informalContactDist: countValues(rows.map(r => r.informalContactFreq)),
+      concerningTrendsDist:countValues(rows.flatMap(r => r.concerningTrends)),
+      exposureMethodDist:  countValues(rows.flatMap(r => r.exposureMethod)),
+      interventionDist:    countValues(rows.map(r => r.interventionNeeded)),
     };
   });
 
@@ -50,11 +54,11 @@ export async function getEducationDashboard({ forceRefresh = false } = {}) {
     ageRanges:           countValues(all.flatMap(r => r.ageRanges)),
     activityType:        countValues(all.flatMap(r => r.activityType)),
     activityHours:       countValues(all.flatMap(r => r.activityHours)),
-    copingExpression:    countValues(all.flatMap(r => r.copingExpression)),
     streetMovement:      countValues(all.map(r => r.streetMovement)),
     informalContactFreq: countValues(all.map(r => r.informalContactFreq)),
-    interruptionFreq:    countValues(all.map(r => r.interruptionFreq)),
     concerningTrends:    countValues(all.flatMap(r => r.concerningTrends)),
+    exposureMethod:      countValues(all.flatMap(r => r.exposureMethod)),
+    interventionNeeded:  countValues(all.map(r => r.interventionNeeded)),
     copingLevel:         countValues(all.map(r => r.copingLevel)),
   };
 
@@ -70,6 +74,12 @@ export async function getEducationDashboard({ forceRefresh = false } = {}) {
     .slice(-10)
     .reverse()
     .map(r => ({ date: r.date, settlement: r.settlement, comment: r.openComment }));
+
+  const communityActivitiesComments = sorted
+    .filter(r => r.communityActivities)
+    .slice(-15)
+    .reverse()
+    .map(r => ({ date: r.date, settlement: r.settlement, comment: r.communityActivities }));
 
   // Per-settlement breakdown
   const settlementNames = [...new Set(all.map(r => r.settlement).filter(Boolean))].sort();
@@ -91,18 +101,24 @@ export async function getEducationDashboard({ forceRefresh = false } = {}) {
           avgChildren: nonZeroChildren.length
             ? Math.round(nonZeroChildren.reduce((s, r) => s + r.childrenCount, 0) / nonZeroChildren.length)
             : 0,
-          copingDist:          countValues(dr.map(r => r.copingLevel)),
-          interruptionDist:    countValues(dr.map(r => r.interruptionFreq)),
-          streetMovementDist:  countValues(dr.map(r => r.streetMovement)),
-          informalContactDist: countValues(dr.map(r => r.informalContactFreq)),
+          totalActivities: dr.reduce((s, r) => s + r.activityCount, 0),
+          copingDist:           countValues(dr.map(r => r.copingLevel)),
+          streetMovementDist:   countValues(dr.map(r => r.streetMovement)),
+          informalContactDist:  countValues(dr.map(r => r.informalContactFreq)),
+          concerningTrendsDist: countValues(dr.flatMap(r => r.concerningTrends)),
+          interventionDist:     countValues(dr.map(r => r.interventionNeeded)),
         };
       }),
       comments: rows
         .filter(r => r.openComment)
         .map(r => ({ date: r.date, comment: r.openComment }))
         .reverse(),
+      communityComments: rows
+        .filter(r => r.communityActivities)
+        .map(r => ({ date: r.date, comment: r.communityActivities }))
+        .reverse(),
     };
   }
 
-  return { sessions: sorted, trends, distributions, summary, recentComments, bySettlement };
+  return { sessions: sorted, trends, distributions, summary, recentComments, communityActivitiesComments, bySettlement };
 }
