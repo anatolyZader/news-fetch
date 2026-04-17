@@ -32,6 +32,7 @@ export const translations = {
     'edu.sec.distributions': 'Response Distributions',
     'edu.sec.indicators':    'Field Indicators',
     'edu.sec.comments':      'Open Responses',
+    'edu.sec.communityActivities': 'Community & Educational Activities (Free Text)',
 
     // Chart titles
     'edu.chart.children':     'Avg. Children per Session',
@@ -39,11 +40,11 @@ export const translations = {
     'edu.chart.ageRanges':    'Age Ranges',
     'edu.chart.activityType': 'Activity Types',
     'edu.chart.activityHours':'Activity Hours',
-    'edu.chart.expression':   'Coping Expression',
     'edu.chart.street':       'Street Movement',
     'edu.chart.contact':      'Informal Contact with Children',
-    'edu.chart.interruptions':'Activity Interruptions',
     'edu.chart.trends':       'Concerning Trends',
+    'edu.chart.exposure':     'How Trends Were Observed',
+    'edu.chart.intervention': 'Intervention Needed?',
 
     // Axis / legend labels
     'edu.axis.date':        'Date',
@@ -65,24 +66,36 @@ export const translations = {
     'freq.unknown':'Unknown',
 
     // Age ranges
-    'age.nursery':     'Nursery (3–6)',
+    'age.toddlers':    'Toddlers (1–3)',
+    'age.kindergarten':'Kindergarten (3–6)',
     'age.elementary':  'Elementary (6–12)',
     'age.highschool':  'High School (12–18)',
 
     // Activity types
-    'activity.educational': 'Educational',
+    'activity.educational': 'Formal Teaching',
     'activity.relief':      'Relief / Fun',
 
-    // Coping expression
-    'expression.behavior':    'Behavior',
-    'expression.discourse':   'Discourse',
-    'expression.cooperation': 'Cooperation',
-
     // Concerning trends
-    'trend.drugs':    'Drugs',
-    'trend.alcohol':  'Alcohol',
-    'trend.violence': 'Violence',
-    'trend.screens':  'Screens',
+    'trend.drugs':             'Drugs',
+    'trend.alcohol':           'Alcohol',
+    'trend.physical_violence': 'Physical Violence',
+    'trend.verbal_violence':   'Verbal Violence',
+    'trend.screens':           'Screens',
+    'trend.loneliness':        'Loneliness / Isolation',
+    'trend.none_observed':     'None Observed',
+
+    // Exposure method
+    'exposure.witnessed':     'Witnessed Directly',
+    'exposure.child_shared':  'Child Shared',
+    'exposure.group_shared':  'Group of Children Shared',
+    'exposure.adult_shared':  'Adult / Parent Shared',
+    'exposure.other':         'Other',
+
+    // Intervention
+    'intervention.yes':     'Yes',
+    'intervention.no':      'No',
+    'intervention.maybe':   'Maybe',
+    'intervention.unknown': 'Unknown',
 
     // Comments table
     'edu.col.date':          'Date',
@@ -235,17 +248,18 @@ export const translations = {
     'edu.sec.distributions': 'התפלגות תשובות',
     'edu.sec.indicators':    'מדדי שטח',
     'edu.sec.comments':      'תגובות פתוחות',
+    'edu.sec.communityActivities': 'פעילויות קהילתיות וחינוכיות (טקסט חופשי)',
 
     'edu.chart.children':     'ממוצע ילדים לסשן',
     'edu.chart.coping':       'רמת התמודדות לאורך זמן',
     'edu.chart.ageRanges':    'טווחי גיל',
     'edu.chart.activityType': 'סוגי פעילות',
     'edu.chart.activityHours':'שעות פעילות',
-    'edu.chart.expression':   'ביטוי ההתמודדות',
     'edu.chart.street':       'תנועה ברחובות',
     'edu.chart.contact':      'קשר לא-פורמלי עם ילדים',
-    'edu.chart.interruptions':'הפסקות פעילות',
     'edu.chart.trends':       'מגמות מדאיגות',
+    'edu.chart.exposure':     'אופן החשיפה לתופעות',
+    'edu.chart.intervention': 'האם נדרשת התערבות?',
 
     'edu.axis.date':        'תאריך',
     'edu.axis.children':    'ילדים',
@@ -263,21 +277,32 @@ export const translations = {
     'freq.rarely': 'כמעט ולא',
     'freq.unknown':'לא ידוע',
 
-    'age.nursery':     'גן (3–6)',
+    'age.toddlers':    'פעוטות (1–3)',
+    'age.kindergarten':'גן (3–6)',
     'age.elementary':  'יסודי (6–12)',
     'age.highschool':  'תיכון (12–18)',
 
-    'activity.educational': 'חינוכית',
+    'activity.educational': 'הוראה פורמלית',
     'activity.relief':      'הפגה',
 
-    'expression.behavior':    'התנהגות',
-    'expression.discourse':   'שיח',
-    'expression.cooperation': 'שיתוף פעולה',
+    'trend.drugs':             'סמים',
+    'trend.alcohol':           'אלכוהול',
+    'trend.physical_violence': 'אלימות פיזית',
+    'trend.verbal_violence':   'אלימות מילולית',
+    'trend.screens':           'מסכים',
+    'trend.loneliness':        'בדידות / הימנעות',
+    'trend.none_observed':     'לא הבחנתי',
 
-    'trend.drugs':    'סמים',
-    'trend.alcohol':  'אלכוהול',
-    'trend.violence': 'אלימות',
-    'trend.screens':  'מסכים',
+    'exposure.witnessed':     'ראיתי במו עיניי',
+    'exposure.child_shared':  'ילד/נער שיתף',
+    'exposure.group_shared':  'קבוצת ילדים שיתפה',
+    'exposure.adult_shared':  'מבוגר/הורה שיתף',
+    'exposure.other':         'אחר',
+
+    'intervention.yes':     'כן',
+    'intervention.no':      'לא',
+    'intervention.maybe':   'אולי',
+    'intervention.unknown': 'לא ידוע',
 
     'edu.col.date':          'תאריך',
     'edu.col.settlement':    'יישוב',
@@ -347,7 +372,7 @@ export const translations = {
     'report.badge.press':     'עיתונות',
     'report.badge.radio':     'רדיו',
     'report.badge.naftali':   'נפתלי',
-    'report.badge.pbo':       'פקע״ר',
+    'report.badge.pbo':       'קה"א',
 
     // Score labels
     'score.critical': 'קריטי',
@@ -429,17 +454,18 @@ export const translations = {
     'edu.sec.distributions': 'Распределение ответов',
     'edu.sec.indicators':    'Полевые показатели',
     'edu.sec.comments':      'Открытые ответы',
+    'edu.sec.communityActivities': 'Общественные и образовательные мероприятия (свободный текст)',
 
     'edu.chart.children':     'Ср. детей на сессию',
     'edu.chart.coping':       'Уровень адаптации во времени',
     'edu.chart.ageRanges':    'Возрастные группы',
     'edu.chart.activityType': 'Типы активности',
     'edu.chart.activityHours':'Часы активности',
-    'edu.chart.expression':   'Проявление адаптации',
     'edu.chart.street':       'Активность на улицах',
     'edu.chart.contact':      'Неформальный контакт с детьми',
-    'edu.chart.interruptions':'Прерывания занятий',
     'edu.chart.trends':       'Тревожные тенденции',
+    'edu.chart.exposure':     'Как наблюдались тенденции',
+    'edu.chart.intervention': 'Нужно ли вмешательство?',
 
     'edu.axis.date':        'Дата',
     'edu.axis.children':    'Дети',
@@ -457,21 +483,32 @@ export const translations = {
     'freq.rarely': 'Почти никогда',
     'freq.unknown':'Неизвестно',
 
-    'age.nursery':     'Детсад (3–6)',
+    'age.toddlers':    'Ясли (1–3)',
+    'age.kindergarten':'Детсад (3–6)',
     'age.elementary':  'Нач. школа (6–12)',
     'age.highschool':  'Ст. школа (12–18)',
 
-    'activity.educational': 'Учебная',
+    'activity.educational': 'Формальное обучение',
     'activity.relief':      'Развлекательная',
 
-    'expression.behavior':    'Поведение',
-    'expression.discourse':   'Разговор',
-    'expression.cooperation': 'Сотрудничество',
+    'trend.drugs':             'Наркотики',
+    'trend.alcohol':           'Алкоголь',
+    'trend.physical_violence': 'Физическое насилие',
+    'trend.verbal_violence':   'Словесное насилие',
+    'trend.screens':           'Гаджеты',
+    'trend.loneliness':        'Одиночество / изоляция',
+    'trend.none_observed':     'Не наблюдалось',
 
-    'trend.drugs':    'Наркотики',
-    'trend.alcohol':  'Алкоголь',
-    'trend.violence': 'Агрессия',
-    'trend.screens':  'Гаджеты',
+    'exposure.witnessed':     'Видел лично',
+    'exposure.child_shared':  'Ребёнок рассказал',
+    'exposure.group_shared':  'Группа детей рассказала',
+    'exposure.adult_shared':  'Взрослый / родитель рассказал',
+    'exposure.other':         'Другое',
+
+    'intervention.yes':     'Да',
+    'intervention.no':      'Нет',
+    'intervention.maybe':   'Возможно',
+    'intervention.unknown': 'Неизвестно',
 
     'edu.col.date':          'Дата',
     'edu.col.settlement':    'Нас. пункт',

@@ -108,7 +108,7 @@ export function MunicipalitiesTab() {
       {/* Header + date selector */}
       <div className={styles.dashHeader}>
         <div>
-          <h2 className={styles.dashTitle}>{isHe ? 'דוחות רשויות — קב"ם' : 'Municipality PBO Reports'}</h2>
+          <h2 className={styles.dashTitle}>{isHe ? 'דוחות רשויות — קה"א' : 'Municipality PBO Reports'}</h2>
           <p className={styles.dashSubtitle}>{isHe ? 'דיווחי קציני התנהגות אוכלוסייה' : 'Population Behavior Officer reports'}</p>
         </div>
         <div className={styles.datePills}>
