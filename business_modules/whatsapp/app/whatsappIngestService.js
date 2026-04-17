@@ -1,94 +1,61 @@
 /**
- * Orchestrates WhatsApp message ingestion: filter, store, confirm, export.
+ * Orchestrates WhatsApp message ingestion.
+ *
+ * DM flow: adaptive elicitation loop —
+ *   idle → collecting (LLM extractor + gap engine, N turns)
+ *        → drafting  (LLM draft generator)
+ *        → confirming (approve / edit / add example)
+ *        → idle (on submit)
+ *
+ * Group flow: store + single-shot LLM extraction + Hebrew follow-up reply.
+ *   Preserved unchanged from the pre-adaptive implementation.
  */
 
 import { writeFileSync } from 'fs';
 import { resolve } from 'path';
-import { isAllowedGroup, parseWebhookEntry } from '../domain/services/whatsappMessageFilter.js';
+import { isAllowedGroup, isDmMessage, parseWebhookEntry } from '../domain/services/whatsappMessageFilter.js';
 import { buildAnalysisReply } from '../domain/services/hebrewResponseBuilder.js';
+import { normalizeInboundMessage } from '../domain/conversation/inboundMessageNormalizer.js';
+import { transition } from '../domain/conversation/conversationStateMachine.js';
+import {
+  buildExpiredSession, buildWelcomeMenu, buildFollowupQuestions, buildDraftPreview,
+} from '../domain/conversation/outboundMessageFactory.js';
+import { computeGaps, mergeStructured } from '../domain/conversation/gapEngine.js';
+import { EVIDENCE_REQUIREMENTS } from '../domain/evidenceRequirements.js';
+
+const CONVERSATION_TTL_MINUTES = 60;
+
+// Prevent infinite follow-up loops — force a draft after this many officer turns.
+const MAX_COLLECTING_TURNS = 6;
 
 /**
- * @param {{ messageStore, apiAdapter, evidenceStore, signalStore?, resilienceAnalyzer?, allowedGroupIds: string[] }} deps
+ * @param {{
+ *   messageStore, apiAdapter, evidenceStore,
+ *   signalStore?, resilienceAnalyzer?,
+ *   draftGenerator?,
+ *   conversationStore, draftStore,
+ *   allowedGroupIds: string[]
+ * }} deps
  */
-export function createWhatsAppIngestService({ messageStore, apiAdapter, evidenceStore, signalStore, resilienceAnalyzer, allowedGroupIds }) {
+export function createWhatsAppIngestService({
+  messageStore, apiAdapter, evidenceStore, signalStore,
+  resilienceAnalyzer, draftGenerator,
+  conversationStore, draftStore, allowedGroupIds,
+}) {
   return {
     /**
-     * Process a single Meta webhook entry: parse messages, filter, store, and confirm.
+     * Process a single Meta webhook entry: parse messages, route DM vs group.
      * @param {object} entry  One element from request.body.entry[]
      */
     async handleIncomingMessage(entry) {
       const messages = parseWebhookEntry(entry);
 
       for (const msg of messages) {
-        // Filter: only approved groups
-        if (!isAllowedGroup(msg.groupJid, allowedGroupIds)) continue;
-
-        // Dedup: skip if already seen
-        if (messageStore.hasMsgId(msg.metaMsgId)) continue;
-
-        // Derive date from Unix timestamp (Israel timezone)
-        const msgDate = new Date(Number(msg.timestamp) * 1000);
-        const date = msgDate.toLocaleDateString('en-CA', { timeZone: 'Asia/Jerusalem' }); // YYYY-MM-DD
-
-        const timestampUtc = msgDate.toISOString();
-
-        // Store in whatsapp_messages table
-        const inserted = messageStore.insert({
-          metaMsgId: msg.metaMsgId,
-          groupJid: msg.groupJid,
-          senderPhone: msg.senderPhone,
-          senderName: msg.senderName,
-          messageText: msg.text,
-          timestampUtc,
-          date,
-        });
-
-        if (!inserted) continue;
-
-        // Also store in evidence_items for cross-module queries
-        try {
-          evidenceStore.insertItems([{
-            date,
-            source_type: 'whatsapp',
-            source_label: `whatsapp-group`,
-            source_url: '',
-            title: `WhatsApp: ${msg.senderName || msg.senderPhone} — ${msg.text.slice(0, 60)}`,
-            body: msg.text,
-            published_at: timestampUtc,
-          }]);
-        } catch (err) {
-          // Dedup index may reject — that's fine
-          if (!err.message?.includes('UNIQUE constraint')) throw err;
+        if (isDmMessage(msg.groupJid)) {
+          await handleDmMessage(msg);
+        } else if (isAllowedGroup(msg.groupJid, allowedGroupIds)) {
+          await handleGroupMessage(msg);
         }
-
-        // Analyze for resilience signals and send smart reply
-        if (resilienceAnalyzer && signalStore) {
-          try {
-            const analysis = await resilienceAnalyzer.analyzeMessage(msg.text, msg.senderName);
-            if (analysis.signals.length > 0) {
-              signalStore.insertSignals(msg.metaMsgId, date, analysis.signals, msg.senderPhone);
-              console.error(`WhatsApp signals extracted: ${analysis.signals.length} from ${msg.metaMsgId}`);
-            }
-            const reply = buildAnalysisReply(analysis);
-            await apiAdapter.sendTextMessage(msg.senderPhone, reply);
-          } catch (analysisErr) {
-            console.error(`Resilience analysis failed for ${msg.metaMsgId}:`, analysisErr.message);
-            try {
-              await apiAdapter.sendTextMessage(msg.senderPhone, 'התקבל, תודה');
-            } catch (replyErr) {
-              console.error(`WhatsApp fallback reply failed:`, replyErr.message);
-            }
-          }
-        } else {
-          // No analyzer configured — generic confirmation
-          try {
-            await apiAdapter.sendTextMessage(msg.senderPhone, 'התקבל, תודה');
-          } catch (err) {
-            console.error(`WhatsApp reply failed for ${msg.senderPhone}:`, err.message);
-          }
-        }
-
-        console.error(`WhatsApp message ingested: ${msg.metaMsgId} from ${msg.senderName || msg.senderPhone}`);
       }
     },
 
@@ -132,4 +99,391 @@ export function createWhatsAppIngestService({ messageStore, apiAdapter, evidence
       return outPath;
     },
   };
+
+  // ── DM flow (adaptive chatbot) ─────────────────────────────────────────
+
+  async function handleDmMessage(msg) {
+    const normalized = normalizeInboundMessage(msg, msg.rawMessage);
+
+    if (messageStore.hasMsgId(msg.metaMsgId)) return;
+
+    const msgDate = new Date(Number(msg.timestamp) * 1000);
+    const date = msgDate.toLocaleDateString('en-CA', { timeZone: 'Asia/Jerusalem' });
+    const timestampUtc = msgDate.toISOString();
+
+    messageStore.insert({
+      metaMsgId: msg.metaMsgId,
+      groupJid: null,
+      senderPhone: msg.senderPhone,
+      senderName: msg.senderName,
+      messageText: normalized.text ?? '',
+      timestampUtc,
+      date,
+    });
+
+    // Load conversation + expiry handling
+    let conv = conversationStore.get(normalized.phoneNumber);
+    let currentState = conv?.state ?? 'idle';
+
+    if (conv && isExpired(conv.updated_at)) {
+      if (conv.draft_id) {
+        try { draftStore.deleteById(conv.draft_id); } catch { /* ok */ }
+      }
+      conversationStore.reset(normalized.phoneNumber);
+      await sendReply(normalized.phoneNumber, buildExpiredSession());
+      await sendReply(normalized.phoneNumber, buildWelcomeMenu());
+      return;
+    }
+
+    let activeDraftId = conv?.draft_id ?? null;
+    let draft = activeDraftId ? draftStore.get(activeDraftId) : null;
+
+    // ── Step 1: run the pure state machine to route the message ─────────
+    const result = transition(currentState, normalized, draft);
+
+    // ── Step 2: apply side effects ──────────────────────────────────────
+    let nextState = result.nextState;
+    let forceSubmit = false;
+
+    for (const effect of result.sideEffects) {
+      switch (effect.type) {
+        case 'create_draft': {
+          activeDraftId = draftStore.create(normalized.phoneNumber);
+          draft = draftStore.get(activeDraftId);
+          break;
+        }
+        case 'append_turn_officer': {
+          if (activeDraftId) {
+            draftStore.appendTurn(activeDraftId, {
+              role: 'officer', text: effect.text, ts: timestampUtc,
+            });
+            draft = draftStore.get(activeDraftId);
+          }
+          break;
+        }
+        case 'append_turn_bot': {
+          if (activeDraftId) {
+            draftStore.appendTurn(activeDraftId, {
+              role: 'bot', text: effect.text, ts: new Date().toISOString(),
+            });
+            draft = draftStore.get(activeDraftId);
+          }
+          break;
+        }
+        case 'run_extractor_loop': {
+          const outcome = await runExtractorLoop({
+            draftId: activeDraftId, normalized, timestampUtc,
+          });
+          nextState = outcome.nextState;
+          for (const reply of outcome.replies) result.replies.push(reply);
+          draft = activeDraftId ? draftStore.get(activeDraftId) : null;
+          if (outcome.askDraftGenerator) {
+            const generated = await runDraftGenerator({ draftId: activeDraftId });
+            for (const reply of generated.replies) result.replies.push(reply);
+            nextState = generated.nextState;
+            draft = activeDraftId ? draftStore.get(activeDraftId) : null;
+          }
+          break;
+        }
+        case 'submit_draft': {
+          if (activeDraftId) {
+            await submitDraft(activeDraftId, normalized, date, timestampUtc);
+            forceSubmit = true;
+          }
+          activeDraftId = null;
+          break;
+        }
+        case 'delete_draft': {
+          if (activeDraftId) {
+            try { draftStore.deleteById(activeDraftId); } catch { /* ok */ }
+          }
+          activeDraftId = null;
+          break;
+        }
+      }
+    }
+
+    // ── Step 3: persist conversation state ──────────────────────────────
+    if (nextState === 'idle' || forceSubmit) {
+      conversationStore.reset(normalized.phoneNumber);
+    } else {
+      conversationStore.upsert(normalized.phoneNumber, nextState, activeDraftId);
+    }
+
+    // ── Step 4: send replies (and record bot turns) ─────────────────────
+    for (const reply of result.replies) {
+      await sendReply(normalized.phoneNumber, reply);
+      if (activeDraftId && reply?.body) {
+        try {
+          draftStore.appendTurn(activeDraftId, {
+            role: 'bot', text: summarizeOutboundForTurn(reply), ts: new Date().toISOString(),
+          });
+        } catch { /* ok */ }
+      }
+    }
+
+    console.error(
+      `WhatsApp DM processed: ${msg.metaMsgId} from ${msg.senderPhone} [${currentState} → ${nextState}]`,
+    );
+  }
+
+  // ── Extractor loop ─────────────────────────────────────────────────────
+  //
+  // Runs the interactive analyzer on the full turn history, merges the new
+  // structured state into the draft, and decides whether to keep collecting
+  // or to hand off to the draft generator.
+  async function runExtractorLoop({ draftId, normalized }) {
+    if (!draftId || !resilienceAnalyzer) {
+      return { nextState: 'collecting', replies: [buildFollowupQuestions([], 'תודה.')], askDraftGenerator: false };
+    }
+    const currentDraft = draftStore.get(draftId);
+    if (!currentDraft) {
+      return { nextState: 'collecting', replies: [], askDraftGenerator: false };
+    }
+
+    const turnHistory = Array.isArray(currentDraft.turn_history) ? currentDraft.turn_history : [];
+    const officerTurnCount = turnHistory.filter((t) => t.role === 'officer').length;
+
+    let analysis;
+    try {
+      analysis = await resilienceAnalyzer.analyzeTurnHistory(turnHistory, normalized.displayName);
+    } catch (err) {
+      console.error(`WhatsApp analyzer failed for draft ${draftId}:`, err.message);
+      return {
+        nextState: 'collecting',
+        replies: [buildFollowupQuestions([], 'תודה. ספר עוד פרטים על מה שראית.')],
+        askDraftGenerator: false,
+      };
+    }
+
+    // Merge newly-extracted structured state into the accumulated draft state.
+    const merged = mergeStructured(currentDraft.structured_state ?? {}, analysis.structured ?? {});
+    draftStore.updateStructured(draftId, merged);
+
+    // Code-owned sufficiency decision.
+    const { sufficient, rankedGaps } = computeGaps(merged);
+    const shouldForceDraft = officerTurnCount >= MAX_COLLECTING_TURNS;
+
+    if (sufficient || shouldForceDraft) {
+      return { nextState: 'drafting', replies: [], askDraftGenerator: true };
+    }
+
+    // Prefer the LLM's Hebrew questions; fall back to evidenceRequirements defaults.
+    const questions = analysis.assessment?.topQuestions?.length
+      ? analysis.assessment.topQuestions
+      : fallbackQuestionsFromGaps(rankedGaps);
+
+    return {
+      nextState: 'collecting',
+      replies: [buildFollowupQuestions(questions, 'תודה.')],
+      askDraftGenerator: false,
+    };
+  }
+
+  // ── Draft generator ───────────────────────────────────────────────────
+  async function runDraftGenerator({ draftId }) {
+    if (!draftId || !draftGenerator) {
+      return { nextState: 'collecting', replies: [buildFollowupQuestions([], 'אני צריך עוד פרטים לפני שאני יכול להכין טיוטה.')] };
+    }
+    const currentDraft = draftStore.get(draftId);
+    if (!currentDraft) return { nextState: 'idle', replies: [] };
+
+    let draftText;
+    try {
+      draftText = await draftGenerator.generate(
+        currentDraft.structured_state ?? {},
+        currentDraft.turn_history ?? [],
+      );
+    } catch (err) {
+      console.error(`Draft generator failed for draft ${draftId}:`, err.message);
+      return {
+        nextState: 'collecting',
+        replies: [buildFollowupQuestions([], 'ספר עוד פרט אחד ואני אכין טיוטה.')],
+      };
+    }
+
+    if (!draftText) {
+      return {
+        nextState: 'collecting',
+        replies: [buildFollowupQuestions([], 'עוד פרט אחד ואני אכין טיוטה.')],
+      };
+    }
+
+    draftStore.setApprovedDraft(draftId, draftText);
+    return { nextState: 'confirming', replies: [buildDraftPreview(draftText)] };
+  }
+
+  // ── Submit path (unchanged contract to downstream) ────────────────────
+  async function submitDraft(draftId, normalized, date, timestampUtc) {
+    const draft = draftStore.get(draftId);
+    if (!draft) return;
+
+    const approved = draft.approved_draft ?? composeFallbackNarrative(draft);
+
+    try {
+      evidenceStore.insertItems([{
+        date,
+        source_type: 'whatsapp_dm',
+        source_label: 'whatsapp-dm',
+        source_url: '',
+        title: `WhatsApp DM: ${normalized.displayName || normalized.phoneNumber} — ${approved.slice(0, 60)}`,
+        body: approved,
+        published_at: timestampUtc,
+      }]);
+    } catch (err) {
+      if (!err.message?.includes('UNIQUE constraint')) throw err;
+    }
+
+    // Run one more extraction on the approved narrative so the downstream
+    // signals table reflects the final reviewed text (not an intermediate turn).
+    if (resilienceAnalyzer && signalStore) {
+      try {
+        const analysis = await resilienceAnalyzer.analyzeMessage(approved, normalized.displayName);
+        if (analysis.signals.length > 0) {
+          signalStore.insertSignals(normalized.metaMsgId, date, analysis.signals, normalized.phoneNumber);
+          console.error(`WhatsApp DM signals extracted: ${analysis.signals.length} from draft ${draftId}`);
+        }
+      } catch (err) {
+        console.error(`Resilience analysis failed for draft ${draftId}:`, err.message);
+      }
+    }
+
+    draftStore.markSubmitted(draftId);
+  }
+
+  // ── Group flow (existing behavior, preserved verbatim) ────────────────
+  async function handleGroupMessage(msg) {
+    if (messageStore.hasMsgId(msg.metaMsgId)) return;
+
+    const msgDate = new Date(Number(msg.timestamp) * 1000);
+    const date = msgDate.toLocaleDateString('en-CA', { timeZone: 'Asia/Jerusalem' });
+    const timestampUtc = msgDate.toISOString();
+
+    const inserted = messageStore.insert({
+      metaMsgId: msg.metaMsgId,
+      groupJid: msg.groupJid,
+      senderPhone: msg.senderPhone,
+      senderName: msg.senderName,
+      messageText: msg.text,
+      timestampUtc,
+      date,
+    });
+
+    if (!inserted) return;
+
+    try {
+      evidenceStore.insertItems([{
+        date,
+        source_type: 'whatsapp',
+        source_label: 'whatsapp-group',
+        source_url: '',
+        title: `WhatsApp: ${msg.senderName || msg.senderPhone} — ${msg.text.slice(0, 60)}`,
+        body: msg.text,
+        published_at: timestampUtc,
+      }]);
+    } catch (err) {
+      if (!err.message?.includes('UNIQUE constraint')) throw err;
+    }
+
+    if (resilienceAnalyzer && signalStore) {
+      try {
+        const analysis = await resilienceAnalyzer.analyzeMessage(msg.text, msg.senderName);
+        if (analysis.signals.length > 0) {
+          signalStore.insertSignals(msg.metaMsgId, date, analysis.signals, msg.senderPhone);
+          console.error(`WhatsApp signals extracted: ${analysis.signals.length} from ${msg.metaMsgId}`);
+        }
+        const reply = buildAnalysisReply(analysis);
+        await apiAdapter.sendTextMessage(msg.senderPhone, reply);
+      } catch (err) {
+        console.error(`Resilience analysis failed for ${msg.metaMsgId}:`, err.message);
+        try {
+          await apiAdapter.sendTextMessage(msg.senderPhone, 'התקבל, תודה');
+        } catch (replyErr) {
+          console.error(`WhatsApp fallback reply failed:`, replyErr.message);
+        }
+      }
+    } else {
+      try {
+        await apiAdapter.sendTextMessage(msg.senderPhone, 'התקבל, תודה');
+      } catch (err) {
+        console.error(`WhatsApp reply failed for ${msg.senderPhone}:`, err.message);
+      }
+    }
+
+    console.error(`WhatsApp message ingested: ${msg.metaMsgId} from ${msg.senderName || msg.senderPhone}`);
+  }
+
+  // ── Helpers ────────────────────────────────────────────────────────────
+
+  function isExpired(updatedAt) {
+    if (!updatedAt) return true;
+    const updated = new Date(updatedAt + 'Z'); // SQLite datetime is UTC
+    const now = new Date();
+    return (now - updated) > CONVERSATION_TTL_MINUTES * 60 * 1000;
+  }
+
+  async function sendReply(phoneNumber, outboundMsg) {
+    try {
+      await apiAdapter.sendMessage(phoneNumber, outboundMsg);
+    } catch (err) {
+      console.error(`WhatsApp reply failed for ${phoneNumber}:`, err.message);
+    }
+  }
+}
+
+// ── Module-scope helpers ────────────────────────────────────────────────
+
+function fallbackQuestionsFromGaps(rankedGaps) {
+  if (!rankedGaps?.length) return [];
+  const seen = new Set();
+  const result = [];
+  for (const gap of rankedGaps) {
+    if (result.length >= 3) break;
+    if (gap.componentId) {
+      const req = EVIDENCE_REQUIREMENTS[gap.componentId];
+      if (req?.fallbackQuestions?.length) {
+        for (const q of req.fallbackQuestions) {
+          if (seen.has(q)) continue;
+          seen.add(q);
+          result.push(q);
+          if (result.length >= 3) break;
+        }
+      }
+    } else if (gap.field === 'locality') {
+      if (!seen.has('locality')) { seen.add('locality'); result.push('באיזה יישוב או אזור מדובר?'); }
+    } else if (gap.field === 'sourceBasis') {
+      if (!seen.has('sourceBasis')) { seen.add('sourceBasis'); result.push('האם זו תצפית ישירה שלך, דיווח מצוות מקומי, או מה שתושבים סיפרו?'); }
+    } else if (gap.field === 'spread') {
+      if (!seen.has('spread')) { seen.add('spread'); result.push('זה מקרה בודד, תופעה באזור מוגדר, או רחבה יותר?'); }
+    } else if (gap.field === 'observedBehavior') {
+      if (!seen.has('observedBehavior')) { seen.add('observedBehavior'); result.push('מה בדיוק ראית או שמעת? כמה דוגמאות קונקרטיות.'); }
+    }
+  }
+  return result;
+}
+
+function summarizeOutboundForTurn(reply) {
+  // Short textual representation of the bot's outbound message for turn history.
+  if (reply?.type === 'text') return (reply.body ?? '').slice(0, 300);
+  if (reply?.type === 'buttons' || reply?.type === 'list') {
+    return (reply.body ?? '').slice(0, 300);
+  }
+  return '';
+}
+
+function composeFallbackNarrative(draft) {
+  const obs = draft?.structured_state?.observation ?? {};
+  const parts = [];
+  if (obs.behavior) parts.push(obs.behavior);
+  if (obs.locality) parts.push(`מיקום: ${obs.locality}.`);
+  if (obs.spread) parts.push(`היקף: ${obs.spread}.`);
+  if (obs.sourceBasis) parts.push(`מקור: ${obs.sourceBasis}.`);
+  if (parts.length === 0) {
+    const officerLines = (draft?.turn_history ?? [])
+      .filter((t) => t.role === 'officer')
+      .map((t) => t.text)
+      .filter(Boolean);
+    return officerLines.join('\n') || 'דיווח ללא פרטים מוגדרים.';
+  }
+  return parts.join(' ');
 }

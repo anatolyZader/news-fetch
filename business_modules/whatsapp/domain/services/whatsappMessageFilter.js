@@ -15,10 +15,19 @@ export function isAllowedGroup(groupJid, allowedGroupIds) {
 }
 
 /**
+ * Check if a message is a direct message (not from a group).
+ * @param {string|undefined} groupJid
+ * @returns {boolean}
+ */
+export function isDmMessage(groupJid) {
+  return !groupJid;
+}
+
+/**
  * Extract text content from a Meta Cloud API webhook message object.
- * Handles text messages and media captions.
+ * Handles text messages, media captions, and interactive replies.
  * @param {object} message  The message object from entry.changes[].value.messages[]
- * @returns {{ text: string, type: string } | null}
+ * @returns {{ text: string, type: string, replyId?: string } | null}
  */
 export function extractTextContent(message) {
   if (!message) return null;
@@ -27,12 +36,33 @@ export function extractTextContent(message) {
     return { text: message.text.body, type: 'text' };
   }
 
+  // Interactive button reply
+  if (message.type === 'interactive' && message.interactive?.type === 'button_reply') {
+    return {
+      text: message.interactive.button_reply?.title ?? '',
+      type: 'button_reply',
+      replyId: message.interactive.button_reply?.id,
+    };
+  }
+
+  // Interactive list reply
+  if (message.type === 'interactive' && message.interactive?.type === 'list_reply') {
+    return {
+      text: message.interactive.list_reply?.title ?? '',
+      type: 'list_reply',
+      replyId: message.interactive.list_reply?.id,
+    };
+  }
+
   // Media messages may have captions
   for (const mediaType of ['image', 'video', 'document']) {
     if (message.type === mediaType && message[mediaType]?.caption) {
       return { text: message[mediaType].caption, type: `${mediaType}_caption` };
     }
   }
+
+  // Media without caption — return null text but still parseable by normalizer
+  // (the normalizer uses rawMessage for these cases)
 
   return null;
 }
@@ -54,7 +84,6 @@ export function parseWebhookEntry(entry) {
 
     for (const msg of value.messages ?? []) {
       const extracted = extractTextContent(msg);
-      if (!extracted) continue;
 
       // Group context: msg.context or the metadata indicates group
       // In WhatsApp Cloud API, group messages have msg.from as sender
@@ -62,14 +91,20 @@ export function parseWebhookEntry(entry) {
       // For group messages via Cloud API, we check value.metadata or msg fields
       const groupJid = msg.group_id ?? value.metadata?.group_id ?? undefined;
 
+      // For DM flow: even messages without extracted text (e.g. media without caption,
+      // or interactive replies) need to be passed through for the normalizer to handle.
+      // For group flow: keep the old behavior of skipping non-text messages.
+      if (!extracted && groupJid) continue;
+
       results.push({
         metaMsgId: msg.id,
         groupJid,
         senderPhone: msg.from,
         senderName: contactMap[msg.from] ?? '',
-        text: extracted.text,
-        type: extracted.type,
+        text: extracted?.text ?? '',
+        type: extracted?.type ?? msg.type ?? 'unknown',
         timestamp: msg.timestamp,
+        rawMessage: msg,
       });
     }
   }

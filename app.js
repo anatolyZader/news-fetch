@@ -26,9 +26,12 @@ import { getNaftaliDashboard } from './business_modules/naftali/app/naftaliServi
 import { getTranslatedReport } from './business_modules/translation/app/translationService.js';
 import { createWhatsAppMessageStore } from './business_modules/whatsapp/infrastructure/whatsappMessageStore.js';
 import { createWhatsAppSignalStore } from './business_modules/whatsapp/infrastructure/whatsappSignalStore.js';
+import { createWhatsAppConversationStore } from './business_modules/whatsapp/infrastructure/whatsappConversationStore.js';
+import { createWhatsAppReportDraftStore } from './business_modules/whatsapp/infrastructure/whatsappReportDraftStore.js';
 import { createMetaCloudApiAdapter } from './business_modules/whatsapp/infrastructure/adapters/metaCloudApiAdapter.js';
 import { createWhatsAppIngestService } from './business_modules/whatsapp/app/whatsappIngestService.js';
 import { createWhatsAppResilienceAnalyzer } from './business_modules/whatsapp/app/whatsappResilienceAnalyzer.js';
+import { createDraftGenerator } from './business_modules/whatsapp/app/draftGenerator.js';
 import { whatsappWebhookPlugin } from './business_modules/whatsapp/input/webhook-routes.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -662,6 +665,8 @@ export async function createApp(options) {
   if (process.env.WHATSAPP_VERIFY_TOKEN) {
     const whatsappMessageStore = createWhatsAppMessageStore(sqlitePath);
     const whatsappSignalStore = createWhatsAppSignalStore(sqlitePath);
+    const whatsappConversationStore = createWhatsAppConversationStore(sqlitePath);
+    const whatsappDraftStore = createWhatsAppReportDraftStore(sqlitePath);
     const whatsappApiAdapter = createMetaCloudApiAdapter({
       accessToken: process.env.WHATSAPP_ACCESS_TOKEN,
       phoneNumberId: process.env.WHATSAPP_PHONE_NUMBER_ID,
@@ -669,12 +674,18 @@ export async function createApp(options) {
     const whatsappResilienceAnalyzer = process.env.ANTHROPIC_API_KEY?.trim()
       ? createWhatsAppResilienceAnalyzer({ anthropicApiKey: process.env.ANTHROPIC_API_KEY.trim() })
       : null;
+    const whatsappDraftGenerator = process.env.ANTHROPIC_API_KEY?.trim()
+      ? createDraftGenerator({ anthropicApiKey: process.env.ANTHROPIC_API_KEY.trim() })
+      : null;
     const whatsappIngestService = createWhatsAppIngestService({
       messageStore: whatsappMessageStore,
       apiAdapter: whatsappApiAdapter,
       evidenceStore,
       signalStore: whatsappSignalStore,
       resilienceAnalyzer: whatsappResilienceAnalyzer,
+      draftGenerator: whatsappDraftGenerator,
+      conversationStore: whatsappConversationStore,
+      draftStore: whatsappDraftStore,
       allowedGroupIds: (process.env.WHATSAPP_ALLOWED_GROUP_IDS ?? '').split(',').map(s => s.trim()).filter(Boolean),
     });
     await app.register(whatsappWebhookPlugin, {
