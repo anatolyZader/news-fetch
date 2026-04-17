@@ -8,19 +8,25 @@ Run the full daily resilience pipeline for today: fetch news, extract signals fr
 
 ---
 
-**Step 1 — Fetch today's news articles**
+**Step 0 — Read pipeline config**
+
+Read `pipeline-config.json` in the project root. It contains a `sources` object with toggles for each data source (`news`, `radio`, `whatsapp`, `field`, `pbo`, `naftali`). **Skip all extraction steps for sources where `enabled` is `false`.** If the file is missing, treat all sources as enabled.
+
+---
+
+**Step 1 — Fetch today's news articles** *(skip if `news` is disabled)*
 
 ```
 npm run homefront-to-md
 ```
 
-**Step 2 — Extract news signals**
+**Step 2 — Extract news signals** *(skip if `news` is disabled)*
 
 ```
 node business_modules/resilience/input/extract-signals.js --source-type news --files articles-homefront.md --date <today's date>
 ```
 
-**Step 3 — Extract radio signals (if transcripts exist for today)**
+**Step 3 — Extract radio signals (if transcripts exist for today)** *(skip if `radio` is disabled)*
 
 List today's radio transcripts:
 ```
@@ -34,7 +40,7 @@ node business_modules/resilience/input/extract-signals.js --source-type radio --
 
 If no radio transcripts exist for today, skip this step and continue.
 
-**Step 4 — Export WhatsApp messages and extract signals**
+**Step 4 — Export WhatsApp messages and extract signals** *(skip if `whatsapp` is disabled)*
 
 Export today's WhatsApp messages to markdown:
 ```
@@ -53,7 +59,7 @@ node business_modules/resilience/input/extract-signals.js --source-type whatsapp
 
 If no WhatsApp messages exist for today, skip this step.
 
-**Step 5 — Extract field signals (most recent field report)**
+**Step 5 — Extract field signals (most recent field report)** *(skip if `field` is disabled)*
 
 Find the most recent field reports file:
 ```
@@ -67,7 +73,7 @@ node business_modules/resilience/input/extract-signals.js --source-type field --
 
 If no field reports exist, skip this step and continue.
 
-**Step 6 — Extract PBO municipality signals**
+**Step 6 — Extract PBO municipality signals** *(skip if `pbo` is disabled)*
 
 Convert PBO municipality Excel reports into signals:
 ```

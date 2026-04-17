@@ -11,7 +11,13 @@ Today's date is the date from context above. The 3 dates to cover are: today, ye
 
 ---
 
-**Step 1 — Fetch news articles for the last 3 days**
+**Step 0 — Read pipeline config**
+
+Read `pipeline-config.json` in the project root. It contains a `sources` object with toggles for each data source (`news`, `radio`, `whatsapp`, `field`, `pbo`, `naftali`). **Skip all extraction steps for sources where `enabled` is `false`.** If the file is missing, treat all sources as enabled.
+
+---
+
+**Step 1 — Fetch news articles for the last 3 days** *(skip if `news` is disabled)*
 
 Run once for each of the 3 dates: today, yesterday, and 2 days ago.
 
@@ -23,7 +29,7 @@ npm run homefront-to-md -- <2-days-ago date>
 
 Each run writes `articles-homefront-<date>.md` (date-stamped) and overwrites `articles-homefront.md` with that day's articles. Run sequentially.
 
-**Step 2 — Extract news signals for each day**
+**Step 2 — Extract news signals for each day** *(skip if `news` is disabled)*
 
 For each of the 3 dates, extract signals from its date-stamped file:
 ```
@@ -32,7 +38,7 @@ node business_modules/resilience/input/extract-signals.js --source-type news --f
 
 Run once per date. Skip a date if its file is missing or empty.
 
-**Step 3 — Extract radio signals for each day that has transcripts**
+**Step 3 — Extract radio signals for each day that has transcripts** *(skip if `radio` is disabled)*
 
 List all available radio transcript files:
 ```
@@ -46,7 +52,7 @@ node business_modules/resilience/input/extract-signals.js --source-type radio --
 
 Run once per date. Skip dates with no transcripts.
 
-**Step 4 — Export WhatsApp messages and extract signals for each day**
+**Step 4 — Export WhatsApp messages and extract signals for each day** *(skip if `whatsapp` is disabled)*
 
 For each of the 3 dates, export WhatsApp messages to markdown:
 ```
@@ -65,7 +71,7 @@ node business_modules/resilience/input/extract-signals.js --source-type whatsapp
 
 Run once per date. Skip dates with no WhatsApp messages.
 
-**Step 5 — Extract field signals from the last 3 available field report files**
+**Step 5 — Extract field signals from the last 3 available field report files** *(skip if `field` is disabled)*
 
 ```
 ls articles-field-reports-*.md 2>/dev/null | sort | tail -3
@@ -78,7 +84,7 @@ node business_modules/resilience/input/extract-signals.js --source-type field --
 
 Run sequentially, one file at a time. Field visits are infrequent so dates may be older than 3 days — extract them regardless of date.
 
-**Step 6 — Extract PBO municipality signals**
+**Step 6 — Extract PBO municipality signals** *(skip if `pbo` is disabled)*
 
 Convert PBO municipality Excel reports into signals:
 ```
@@ -87,7 +93,7 @@ node business_modules/pbo_report_muni/input/extract-pbo-signals.js
 
 This processes all available Excel files in `business_modules/pbo_report_muni/`. If none exist, skip this step.
 
-**Step 7 — Extract Naftali questionnaire signals**
+**Step 7 — Extract Naftali questionnaire signals** *(skip if `naftali` is disabled)*
 
 Convert Naftali weekly questionnaire responses into signals:
 ```
