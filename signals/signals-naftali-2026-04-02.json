@@ -1,9 +1,10 @@
 {
   "source_type": "naftali",
   "content_kind": "naftali_questionnaire",
+  "geographic_scope": "Naftali sub-region only (1 of 5 northern Israel sub-regions)",
   "date": "2026-04-02",
   "week": 13,
-  "extracted_at": "2026-04-11T12:49:47.050Z",
+  "extracted_at": "2026-04-16T09:18:26.666Z",
   "source_files": [
     "Google Sheets"
   ],

@@ -1,6 +1,6 @@
 # WhatsApp group articles (2026-04-11)
 
-Total: 3 articles
+Total: 4 articles
 
 ## 1. Anatoly Zader: hi!
 
@@ -29,5 +29,15 @@ hi!
 - **Source:** WhatsApp
 
 המצב משתנה
+
+---
+
+## 4. Anatoly Zader: מה חסר לך ?
+
+- **URL:** whatsapp://msg/wamid.HBgMOTcyNTQ1MjcyMTEwFQIAEhgUM0E4MDMwNUU3MUJBRTRFRjNBOEEA
+- **Published:** 2026-04-11T12:53:18.000Z
+- **Source:** WhatsApp
+
+מה חסר לך ?
 
 ---

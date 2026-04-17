@@ -1,0 +1,342 @@
+{
+  "source_type": "news",
+  "content_kind": "news",
+  "date": "2026-04-17",
+  "extracted_at": "2026-04-17T10:37:16.785Z",
+  "source_files": [
+    "articles-homefront-2026-04-17.md"
+  ],
+  "total_articles": 62,
+  "signals": [
+    {
+      "article_index": 2,
+      "article_url": "https://www.ynet.co.il/news/article/s18woi0hze",
+      "signal_type": "risk_exposure_behavior",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Zavik Gelidai (78) was teaching online when a drone battery from Lebanon fell in his garden. He went outside and approached the debris to inspect it, discovering explosive material nearby.",
+      "scope_level": "single_case",
+      "article_source": "ynet.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 2,
+      "article_url": "https://www.ynet.co.il/news/article/s18woi0hze",
+      "signal_type": "calm_confidence",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Zavik Gelidai: 'To my joy, nothing happened except a hole in the trampoline.' He expressed relief that the drone debris caused minimal damage despite containing explosive material.",
+      "scope_level": "single_case",
+      "article_source": "ynet.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 4,
+      "article_url": "https://www.haaretz.co.il/news/magazine/2026-04-17/ty-article-magazine/.premium/0000019d-90fc-d834-abbd-f9fc4df20000?utm_source=mivzakimnet&utm_medium=rss&utm_campaign=mivzakimnet",
+      "signal_type": "resource_shortage",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Bedouin residents of Wadi al-Naam living adjacent to the Naot Hovav petrochemical industrial zone have no way to defend themselves against missile attacks or dangerous chemical leaks from factories. High-voltage lines and underground gas pipelines run through the area with minimal safety infrastructure.",
+      "scope_level": "repeated_pattern",
+      "article_source": "haaretz.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 5,
+      "article_url": "https://www.haaretz.co.il/news/dailynews/2026-04-17/ty-article-live/0000019d-9848-df26-a1bf-b9cac4130000?liveBlogItemId=740614060",
+      "signal_type": "non_compliance_ignore_guidelines",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Despite IDF warnings not to return south of the Litani River until further notice, Lebanese residents began driving back toward their homes in southern Lebanon when the ceasefire took effect, creating traffic jams on roads between Beirut and Sidon.",
+      "scope_level": "repeated_pattern",
+      "article_source": "haaretz.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 6,
+      "article_url": "https://www.haaretz.co.il/news/politics/2026-04-17/ty-article/.premium/0000019d-99a5-d834-abbd-f9e570900000?utm_source=mivzakimnet&utm_medium=rss&utm_campaign=mivzakimnet",
+      "signal_type": "non_compliance_ignore_guidelines",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Lebanese residents celebrated the ceasefire by taking to streets in Beirut and driving convoys toward southern Lebanon despite warnings from both IDF and Lebanese Army not to return to the area.",
+      "scope_level": "repeated_pattern",
+      "article_source": "haaretz.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 7,
+      "article_url": "https://www.haaretz.co.il/news/politics/war-2023/2026-04-17/ty-article-live/0000019d-9845-de40-ad9f-9c4502290000?liveBlogItemId=2116721340",
+      "signal_type": "non_compliance_ignore_guidelines",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Displaced residents from southern Lebanon began driving back toward their homes despite IDF warnings not to move south of the Litani River until further notice, creating traffic congestion on roads between Beirut and Sidon.",
+      "scope_level": "repeated_pattern",
+      "article_source": "haaretz.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 12,
+      "article_url": "https://www.maariv.co.il/breaking-news/article-1310983",
+      "signal_type": "leadership_clear_guidance",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Head of Akko municipality Ohad Shagiv directed the Education Department to prepare for full reopening of schools starting Sunday, pending Home Front Command approval and assessment of the situation.",
+      "scope_level": "single_case",
+      "article_source": "maariv.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 15,
+      "article_url": "https://www.maariv.co.il/breaking-news/article-1311028",
+      "signal_type": "service_continuity",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Akko municipality announced full reopening of all educational institutions starting Sunday, following a situation assessment by the Home Front Command in the Western Galilee district.",
+      "scope_level": "single_case",
+      "article_source": "maariv.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 16,
+      "article_url": "https://www.maariv.co.il/breaking-news/article-1311050",
+      "signal_type": "routine_maintenance",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Ramat Hasharon beach parking lots filled to capacity due to surge in visitors following ceasefire, with municipality requesting public to use public transportation or nearby parking instead.",
+      "scope_level": "single_case",
+      "article_source": "maariv.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 19,
+      "article_url": "https://news.walla.co.il/break/3831334",
+      "signal_type": "non_compliance_ignore_guidelines",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Lebanese civilians broke through earthen barriers placed on the Al-Qasmiya Bridge over the Litani River and crossed south despite IDF warnings, using the central bridge that was not destroyed by Israel.",
+      "scope_level": "repeated_pattern",
+      "article_source": "news.walla.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 23,
+      "article_url": "https://news.walla.co.il/break/3831377",
+      "signal_type": "harm_to_population",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Three people seriously wounded by missile fire on Nahariya: a 42-year-old man who underwent emergency surgery to remove shrapnel from his eyes, a 17-year-old girl who underwent multiple surgeries, and a 30-year-old man who underwent combined surgery. Twenty additional light casualties and trauma victims were treated and released.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "news.walla.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 25,
+      "article_url": "https://news.walla.co.il/item/3831384",
+      "signal_type": "resilience_narrative_positive",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Mateh Asher Regional Council announced full resumption of education system activities starting Sunday, acknowledging that return to routine 'evokes mixed emotions' and emphasizing they are 'here to accompany the children and educational teams in the process.'",
+      "scope_level": "single_case",
+      "article_source": "news.walla.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 30,
+      "article_url": "https://www.kikar.co.il/israel-news/israel-hezbollah-ceasefire-first-night",
+      "signal_type": "harm_to_population",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "During final barrages before ceasefire took effect, sirens sounded across Nahariya, Evron, Liman, Shlomi and Gesher HaZiv. In Nahariya one person was moderately wounded and vehicles caught fire. In Karmiel area, a man in his mid-20s and 17-year-old girl were seriously wounded.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "kikar.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 30,
+      "article_url": "https://www.kikar.co.il/israel-news/israel-hezbollah-ceasefire-first-night",
+      "signal_type": "information_confusion",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "An alert sounded in Natufa in Western Galilee about 2 hours after ceasefire took effect, but Home Front Command clarified it was a false alarm with no actual rocket fire from Lebanon.",
+      "scope_level": "single_case",
+      "article_source": "kikar.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 31,
+      "article_url": "https://www.kikar.co.il/israel-news/fatal-road-accidents-night-yavne-yokneam",
+      "signal_type": "harm_to_population",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Paramedics Offer Vinik and Tal Shagai described finding a 42-year-old woman in a vehicle after it hit a safety barrier, suffering injuries throughout her body. Rescuer Sherga Rosenthal described a 42-year-old truck driver unconscious without pulse after hitting a safety barrier.",
+      "scope_level": "single_case",
+      "article_source": "kikar.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 35,
+      "article_url": "https://www.inn.co.il/flashes/1108776",
+      "signal_type": "harm_to_population",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Magen David Adom reported 12 participants evacuated from Jerusalem Marathon 2026: an 18-year-old in serious condition suffering heat stroke, and 11 others in light condition after dehydration and weakness.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "inn.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 41,
+      "article_url": "https://www.bhol.co.il/news/1724815",
+      "signal_type": "harm_to_population",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Paramedics Yoni Elzare and James Zev Klein reported a collision between two buses on Vitzhak Rabin Boulevard at Jerusalem's entrance, with a 55-year-old woman injured moderately and 16 additional victims with light injuries. Four wounded were evacuated to hospital.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "bhol.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 43,
+      "article_url": "https://www.kipa.co.il/%D7%97%D7%93%D7%A9%D7%95%D7%AA/1222869-0/",
+      "signal_type": "harm_to_population",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "During final barrages before ceasefire, 8 people were wounded in northern Israel: 2 seriously (a 25-year-old motorcyclist with leg and head injuries, a 17-year-old girl with shrapnel leg injury), 1 moderately (40-year-old man with facial injury), and 5 trauma casualties.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "kipa.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 43,
+      "article_url": "https://www.kipa.co.il/%D7%97%D7%93%D7%A9%D7%95%D7%AA/1222869-0/",
+      "signal_type": "resilience_narrative_negative",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Mrom HaGalil Regional Council head Amit Sofer stated: 'It is not reasonable that Trump will tie the Lebanese arena to the Iranian arena... he is condemning the residents of the north to years of ongoing threat.' He expressed preference for continued military operations over a ceasefire that leaves Hezbollah intact.",
+      "scope_level": "single_case",
+      "article_source": "kipa.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 50,
+      "article_url": "https://www.timesofisrael.com/liveblog_entry/thousands-including-ex-hostage-compete-in-jerusalem-marathon-full-race-nixed-due-to-heat-wave/",
+      "signal_type": "routine_maintenance",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Thousands of runners competed in a half-marathon and shorter races in Jerusalem after the full marathon was canceled due to heat wave. Race times were moved up to mitigate heat risks. Former hostage Rom Braslavski kicked off the 10K race.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "timesofisrael.com",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 51,
+      "article_url": "https://www.timesofisrael.com/a-week-into-iran-ceasefire-israelis-try-to-snap-back-as-expected-but-fear-return-to-war/",
+      "signal_type": "service_continuity",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Children were sent back to school just hours after ceasefire began, after weeks of canceled classes and scattered online learning. Cafes and beaches filled with Israelis as restrictions on gatherings were lifted.",
+      "scope_level": "repeated_pattern",
+      "article_source": "timesofisrael.com",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 52,
+      "article_url": "https://www.timesofisrael.com/liveblog_entry/18-year-old-suffers-heat-stroke-at-jerusalem-marathon-is-in-serious-condition/",
+      "signal_type": "harm_to_population",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Magen David Adom reported an 18-year-old competitor suffered heat stroke at Jerusalem Marathon and is in serious condition. Eleven others lightly injured from dehydration and fatigue, all brought to Shaare Zedek Medical Center.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "timesofisrael.com",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 55,
+      "article_url": "https://www.timesofisrael.com/as-ceasefire-holds-displaced-lebanese-trickle-home-to-find-out-what-remains/",
+      "signal_type": "harm_to_population",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "In southern village of Jibsheet, displaced residents returned to find flattened apartment blocks, streets littered with concrete chunks, twisted aluminum shutters and dangling electrical wires.",
+      "scope_level": "repeated_pattern",
+      "article_source": "timesofisrael.com",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 55,
+      "article_url": "https://www.timesofisrael.com/as-ceasefire-holds-displaced-lebanese-trickle-home-to-find-out-what-remains/",
+      "signal_type": "resilience_narrative_negative",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "23-year-old Zainab Fahas said: 'I feel free being back. But look, they destroyed everything: the square, the houses, the shops, everything.' Ali Hamza said: 'People are scared to come and live, and it is impossible to live in these circumstances, and with these smells. A full return is difficult now, despite the hardship of displacement.'",
+      "scope_level": "repeated_pattern",
+      "article_source": "timesofisrael.com",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 56,
+      "article_url": "https://www.jpost.com/middle-east/article-893332",
+      "signal_type": "non_compliance_ignore_guidelines",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Lebanese civilians forced their way past barriers placed on the Al-Qasmiya Bridge over the Litani River, ignoring IDF warnings to refrain from returning south of the river until further notice. Videos show civilians who fled north at war's start making their way back via the central bridge not destroyed by IDF.",
+      "scope_level": "repeated_pattern",
+      "article_source": "jpost.com",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 58,
+      "article_url": "https://www.ynetnews.com/article/hkannbypbg",
+      "signal_type": "harm_to_population",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Sirens sounded across Nahariya, Evron, Liman, Shlomi and Gesher HaZiv as barrages were launched toward Western Galilee. In Nahariya, one person moderately wounded and vehicles caught fire. In Karmiel area, a man in his mid-20s and 17-year-old girl seriously wounded, the man believed to be on a motorcycle.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "ynetnews.com",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 2,
+      "article_url": "https://www.israelnationalnews.com/news/425647",
+      "signal_type": "service_continuity",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Magen David Adom established an emergency primary response clinic inside a shelter in Kibbutz Misgav Am",
+      "scope_level": "single_case",
+      "article_source": "israelnationalnews.com",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 2,
+      "article_url": "https://www.israelnationalnews.com/news/425647",
+      "signal_type": "resource_mobilization",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "MDA undertook establishment of clinic with assistance of MDA Chief Paramedic Dr. Shafir Botner and Head of Immediate Response Department Yossi Halabi; residents received training and refreshers in first aid",
+      "scope_level": "single_case",
+      "article_source": "israelnationalnews.com",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 2,
+      "article_url": "https://www.israelnationalnews.com/news/425647",
+      "signal_type": "calm_confidence",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "MDA paramedic Igor Krasni: 'This clinic is going to change the situation on the ground for us'",
+      "scope_level": "single_case",
+      "article_source": "israelnationalnews.com",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 2,
+      "article_url": "https://www.israelnationalnews.com/news/425647",
+      "signal_type": "leadership_visible_presence",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Kibbutz secretary Erez Bergman: 'We appreciate tremendously the establishment of this clinic. We are right on the border and have basic needs that must be met'",
+      "scope_level": "single_case",
+      "article_source": "israelnationalnews.com",
+      "temporal_weight": 1,
+      "source_type": "news"
+    }
+  ]
+}
