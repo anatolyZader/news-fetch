@@ -107,6 +107,26 @@ async function run() {
   // Source types that use recency-based inclusion (not date-windowed)
   const RECENCY_SOURCES = { field: recentFieldFiles, pbo: recentPboFiles, naftali: recentNaftaliFiles };
 
+  // Load pipeline config to check which sources are enabled
+  const pipelineConfigPath = resolve('pipeline-config.json');
+  let enabledSources = null; // null = all enabled (no config file)
+  if (existsSync(pipelineConfigPath)) {
+    try {
+      const cfg = JSON.parse(readFileSync(pipelineConfigPath, 'utf8'));
+      enabledSources = new Set(
+        Object.entries(cfg.sources || {})
+          .filter(([, v]) => v.enabled !== false)
+          .map(([k]) => k),
+      );
+      const disabled = Object.entries(cfg.sources || {})
+        .filter(([, v]) => v.enabled === false)
+        .map(([k]) => k);
+      if (disabled.length) console.log(`  ℹ Disabled sources (pipeline-config.json): ${disabled.join(', ')}`);
+    } catch (e) {
+      console.error(`  ⚠ Could not read pipeline-config.json: ${e.message}`);
+    }
+  }
+
   // Load matching signal files
   const loadedFiles = [];
   for (const file of allFiles.sort()) {
@@ -114,6 +134,8 @@ async function run() {
     const m = file.match(/^signals-(\w+)-(\d{4}-\d{2}-\d{2})\.json$/);
     if (!m) continue;
     const [, sourceType, fileDate] = m;
+    // Skip sources disabled in pipeline-config.json
+    if (enabledSources && !enabledSources.has(sourceType)) continue;
     const recencySet = RECENCY_SOURCES[sourceType];
     // Recency-based sources (field, pbo): include recent files regardless of date.
     // All others (news, radio, whatsapp): date-windowed.
@@ -213,6 +235,7 @@ async function run() {
     onUsage,
     priorReports,
     contentKind,
+    sourceTypes: sourceTypesSeen,
   });
 
   // Write extended report

@@ -12,7 +12,7 @@
  */
 
 import { resolve } from 'path';
-import { writeFileSync, mkdirSync } from 'fs';
+import { writeFileSync, mkdirSync, existsSync } from 'fs';
 import { getNaftaliDashboardSync } from '../app/naftaliService.js';
 
 // Map severity dimensions → resilience signal types
@@ -50,6 +50,13 @@ function run() {
     let articleIdx = 0;
     const weekDate = week.dateTo ?? week.dateFrom;
     if (!weekDate) continue;
+
+    const outPath = resolve(outDir, `signals-naftali-${weekDate}.json`);
+    if (existsSync(outPath)) {
+      console.error(`signals-naftali-${weekDate}.json  →  already exists, skipping`);
+      filesWritten++;
+      continue;
+    }
 
     for (const resp of week.responses) {
       articleIdx++;
@@ -132,10 +139,10 @@ function run() {
       }
     }
 
-    const outPath = resolve(outDir, `signals-naftali-${weekDate}.json`);
     writeFileSync(outPath, JSON.stringify({
       source_type: 'naftali',
       content_kind: 'naftali_questionnaire',
+      geographic_scope: 'Naftali sub-region only (1 of 5 northern Israel sub-regions)',
       date: weekDate,
       week: week.week,
       extracted_at: new Date().toISOString(),

@@ -15,7 +15,7 @@
  */
 
 import { resolve } from 'path';
-import { writeFileSync, mkdirSync } from 'fs';
+import { writeFileSync, mkdirSync, existsSync } from 'fs';
 import { getMunicipalityDashboard } from '../app/pboMunicipalityService.js';
 
 const COMPONENT_TO_SIGNAL_TYPE = {
@@ -54,6 +54,13 @@ function run() {
   for (const day of data.days) {
     if (filterDate && day.date !== filterDate) continue;
 
+    const outPath = resolve(outDir, `signals-pbo-${day.date}.json`);
+    if (existsSync(outPath)) {
+      console.error(`signals-pbo-${day.date}.json  →  already exists, skipping`);
+      filesWritten++;
+      continue;
+    }
+
     const signals = [];
     let articleIdx = 0;
 
@@ -88,7 +95,6 @@ function run() {
       }
     }
 
-    const outPath = resolve(outDir, `signals-pbo-${day.date}.json`);
     writeFileSync(outPath, JSON.stringify({
       source_type: 'pbo',
       content_kind: 'pbo_municipality',

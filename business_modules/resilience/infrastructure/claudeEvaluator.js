@@ -286,7 +286,44 @@ const SIGNAL_EXTRACTION_SYSTEM_PROMPT =
   `   SCOPE: We measure resilience of the Israeli civilian population in the context of EMERGENCY/WAR ONLY.\n` +
   `   Do NOT extract signals about: enemy combatants, foreign populations, military personnel morale/behavior\n` +
   `   in operational theatres, or general peacetime political/social discourse unrelated to the crisis.\n` +
-  `4. DO NOT EXTRACT: global indices, international rankings, or pre-crisis baseline surveys.\n\n` +
+  `   ⚠ MILITARY EVENTS & PERSONNEL IN OPERATIONAL THEATRES — DO NOT EXTRACT:\n` +
+  `     ALL of the following are OUT OF SCOPE and must NOT produce any signal:\n` +
+  `     • IDF soldiers wounded, injured, or killed in operational/combat theatres (Lebanon, Gaza, Syria, etc.)\n` +
+  `       — including named fallen soldiers, Paratroopers/reserve casualties, drone/rocket wounds to troops,\n` +
+  `       battalion commander injuries during combat.\n` +
+  `     • Comrade eulogies / testimonials by fellow soldiers about a fallen soldier ("he was the spirit of\n` +
+  `       our company", "he always volunteered first") — this is intra-military remembrance, not civilian\n` +
+  `       resilience. Do NOT classify as solidarity_help_others or resilience_narrative_*.\n` +
+  `     • Soldier reflections, philosophical statements, or mutual-support quotes from within operational\n` +
+  `       units ("we must watch over each other", "who is protecting whom") — military personnel morale is\n` +
+  `       out of scope regardless of sentiment.\n` +
+  `     • Military unit activities, operational briefings, personnel decisions, appointments, internal\n` +
+  `       military debates about strategy or organization.\n` +
+  `     EXCEPTION: extract ONLY when the article reports a direct CIVILIAN reaction INSIDE ISRAEL — e.g. a\n` +
+  `     named bereaved family member (mother, sibling, spouse — not fellow soldiers) expressing grief/coping,\n` +
+  `     a community's solidarity response to a fallen soldier from their town, civilians attending a funeral.\n` +
+  `     Even then, classify the signal by the civilian behavior (solidarity_help_others, psychological_distress,\n` +
+  `     resilience_narrative_*) — not by the military event itself. A quote from a comrade is NOT a civilian reaction.\n` +
+  `   GEOGRAPHIC SCOPE: Only extract signals about people INSIDE ISRAEL. Skip diaspora events, antisemitism\n` +
+  `   abroad, Jewish community life in other countries, and solidarity visits from foreign delegations —\n` +
+  `   unless the article describes the direct impact on Israeli civilians (e.g. returning evacuees).\n` +
+  `   Diaspora Ministry reports about antisemitism in Australia, Europe, US, etc. → DO NOT EXTRACT.\n` +
+  `   Holocaust-survivor speeches at state ceremonies → extract only if they characterise current Israeli\n` +
+  `   community coping (resilience_narrative_*); not for historical references.\n` +
+  `4. DO NOT EXTRACT: global indices, international rankings, or pre-crisis baseline surveys.\n` +
+  `5. NON-EMERGENCY CIVILIAN HARM — DO NOT EXTRACT as harm_to_population:\n` +
+  `   harm_to_population is for CIVILIAN harm CAUSED BY THE WAR/EMERGENCY (rocket/missile/drone strikes on\n` +
+  `   civilian areas, terror attacks on civilians, shrapnel injuries from Hezbollah/Hamas/Iranian fire).\n` +
+  `   DO NOT EXTRACT the following as harm_to_population or any resilience signal:\n` +
+  `     • Traffic accidents (car crashes, motorcyclist killed by stolen car, multi-vehicle collisions)\n` +
+  `     • Hiking/nature accidents (cliff falls, drowning, lost hikers, rescue of yeshiva students)\n` +
+  `     • Medical incidents unrelated to attack (brain hemorrhage on vacation, food poisoning, routine births)\n` +
+  `     • Off-duty domestic crime/violence (off-duty soldier fare dispute, civilian assaults, burglary)\n` +
+  `     • Ordinary hospital operations (births, non-emergency admissions) unless hospital was struck or overloaded\n` +
+  `     These are not war-caused civilian harm and do not measure community resilience to the emergency.\n` +
+  `   ACCEPT as harm_to_population: "61-year-old injured by shrapnel in Tamra from Hezbollah rocket barrage";\n` +
+  `     "civilian in his 80s rescued from rubble after Iranian missile strike on Haifa"; "Gershowitz family\n` +
+  `     members killed in missile strike". These are direct war-caused civilian harm.\n\n` +
 
   `━━━ CLASSIFICATION BOUNDARIES (read before choosing signal type) ━━━\n` +
   `- solidarity_help_others / community_volunteering: ONLY when an explicit act of helping, assisting, or supporting\n` +
@@ -299,7 +336,29 @@ const SIGNAL_EXTRACTION_SYSTEM_PROMPT =
   `- People accessing therapy, trauma hotlines, mental health programs, or community wellbeing services → wellbeing_support_accessed\n` +
   `- Emergency family reunification / finding family during evacuation → compliance_enter_shelter or lifesaving domain, NOT solidarity\n` +
   `- Education operating remotely / schools closed → service_disruption or service_continuity (functional_continuity domain), NOT information_*\n` +
-  `- Businesses closed, clinics not operating, transport cancelled → service_disruption (functional_continuity domain)\n` +
+  `- Businesses closed, clinics not operating, transport cancelled, business operations impaired by war, livelihoods disrupted, income lost → service_disruption (functional_continuity domain)\n` +
+  `- LIVELIHOOD DISTRESS vs FEAR vs AID GAP — disambiguation:\n` +
+  `  (a) A business owner describing their business being damaged/threatened/on-the-edge by the war, even with emotional language ("brought us to the edge", "my baby", "never thought the business would be harmed")\n` +
+  `      → service_disruption. The behavioral fact is the business/livelihood being disrupted; emotional framing does not move it to wellbeing.\n` +
+  `  (b) Self-employed/workers reportedly forced to change budgets, seek financial adjustments, or manage reduced income due to war\n` +
+  `      → service_disruption (their functional/economic routine is disrupted). Not resource_shortage unless a specific state aid/support gap is named.\n` +
+  `  (c) resource_shortage for livelihoods: use ONLY when a named aid/support/compensation gap is described ("not a single shekel of compensation has reached business owners", "hundreds of thousands await promised grants"). The signal is the missing institutional response, not the livelihood hardship itself.\n` +
+  `  (d) fear_expression: reserve for personal safety/trauma fear (sirens, shelters, physical threat) by a named individual. Do NOT use for distress about business viability — that is functional, not safety, and belongs under service_disruption.\n` +
+  `- STATE ADMINISTRATIVE CONTINUITY vs RESOURCE MOBILIZATION — disambiguation:\n` +
+  `  (a) Government agency adapting administrative schedules to the emergency (National Insurance / Bituach Leumi\n` +
+  `      paying allowances early, Tax Authority extending filing deadlines, Ministry rescheduling services,\n` +
+  `      Home Front Command easing restrictions) → service_continuity (functional_continuity only).\n` +
+  `      These are institutional adjustments to keep the system operating — NOT targeted aid mobilization.\n` +
+  `      Do NOT use resource_mobilization (which routes weight into wellbeing_atrisk); use service_continuity.\n` +
+  `  (b) resource_mobilization: reserve for ACTIVE mobilization of material/human aid to SPECIFIC at-risk\n` +
+  `      populations ("municipality dispatched food packages to 900 elderly households", "NGO mobilized 200\n` +
+  `      volunteers to staff shelters for Arab-community evacuees"). Not for blanket administrative adaptations.\n` +
+  `  (c) If the state agency is merely announcing/directing (without executing the service change) → leadership_clear_guidance.\n` +
+  `- COMMERCIAL TRANSPORT & FOREIGN CARRIER SUSPENSIONS:\n` +
+  `  Wizz Air, El Al, Ryanair, cruise lines, or any commercial transport operator suspending/resuming service\n` +
+  `  to/from Israel → service_disruption (if suspended) or service_continuity (if resumed).\n` +
+  `  This is functional_continuity of civilian transport; do NOT classify as fear_expression, harm_to_population,\n` +
+  `  or any wellbeing signal. Foreign carrier decisions are a civilian-mobility functional signal.\n` +
   `- צח"י (צוות חוסן יישובי — community resilience team): a volunteer-based local emergency leadership body\n` +
   `  that coordinates with council, MDA, fire, police, and IDF. Extract TWO signals when צח"י is mentioned:\n` +
   `  (1) leadership_visible_presence (active) or leadership_absence (missing/needed)\n` +
@@ -309,11 +368,19 @@ const SIGNAL_EXTRACTION_SYSTEM_PROMPT =
   `  capacity relative to demand (one ICU for 115,000 residents; ER wait times tripled; ambulances unavailable).\n` +
   `  Use resource_shortage when material supplies or services are simply absent (no shelters in a neighbourhood,\n` +
   `  no compensation payments issued, volunteers ran out of food packages).\n` +
-  `- resilience_narrative_positive / resilience_narrative_negative: ONLY when someone explicitly characterises
-  how the community is coping — a subjective judgement about the collective story, mood, or spirit,
-  using WORDS ABOUT MOOD, SPIRIT, or COPING IDENTITY (not descriptions of conditions or services).
+  `- resilience_narrative_positive / resilience_narrative_negative: ONLY when RESIDENTS or AFFECTED CIVILIANS
+  explicitly characterise how their community is coping — a subjective judgement about the collective story,
+  mood, or spirit, using WORDS ABOUT MOOD, SPIRIT, or COPING IDENTITY (not descriptions of conditions or services).
+  The speaker MUST be a resident, evacuee, or person directly affected by the situation — someone describing
+  their OWN community's experience from the inside.
   ACCEPT: "people here say we're managing fine", "the spirit in the north has broken", "residents feel abandoned by the state"
   ACCEPT: "the community sees itself as holding the line", "morale is high despite the situation"
+  ACCEPT: a named resident of an affected area describing how their community feels or copes
+  REJECT: politicians, ministers, mayors, or officials making rhetorical speeches about national resilience or spirit.
+    Officials declaring "we are strong" or "the spirit of Israel" are performing leadership, not reporting community mood.
+    If they give actionable guidance, use leadership_clear_guidance instead.
+  REJECT: diaspora voices, events outside Israel, or statements about antisemitism abroad — these are outside scope.
+  REJECT: celebrities, public figures, or inspirational speakers offering general coping wisdom.
   REJECT: a list of observable conditions (empty streets, closed businesses, no frameworks, self-evacuation).
   REJECT: field-observer summary labels: "overall resilience present", "strong settlement", "population coping",
     "community functioning well". These are abstract assessments, not expressed narratives — either split into
@@ -348,14 +415,21 @@ const SIGNAL_EXTRACTION_SYSTEM_PROMPT =
   `  - Descriptions of existing laws or legal rights → DO NOT EXTRACT (background legal fact, not behavioral evidence)\n` +
   `  - Academic/international research papers → DO NOT EXTRACT (research ≠ actionable guidance that reached people)\n` +
   `  - Service adequacy complaints ("exam framework not adapted") → service_disruption, NOT information_effectiveness_gap\n` +
-  `  KEY TEST: does the evidence show people RECEIVING or FAILING TO RECEIVE emergency safety guidance?\n` +
+  `  KEY TEST: does the evidence show the HUMAN SIDE of information — people receiving, understanding,\n` +
+  `  acting on, or failing to receive/understand/act on emergency safety guidance?\n` +
+  `  Mere issuance of alerts or warnings (without evidence of reception or failure) → DO NOT EXTRACT.\n` +
   `  If it describes a service not meeting needs → service_disruption. Political demands → political_trust.\n` +
   `- active_information_seeking: ONLY when a resident or group explicitly seeks emergency or protective guidance — e.g. calling an HFC hotline, checking alert apps, asking where the nearest shelter is, seeking evacuation instructions.\n` +
   `  REJECT: consulting a lawyer about a will or inheritance; asking about financial relief; seeking religious guidance; any general wartime planning unrelated to immediate safety.\n` +
   `  A surge in will-writing, legal consultations, or financial inquiries during wartime → fear_expression (if named quote) or omit. It is NOT active_information_seeking.\n` +
   `  information_actionable_effective: EMERGENCY guidance was specific and situation-matched — people could follow it\n` +
   `  given actual constraints (accessible shelter, legally permitted to stop work, covers the scenario they faced).\n` +
-  `  Use ONLY when evidence shows emergency/safety guidance worked in practice.\n` +
+  `  Use ONLY when evidence shows emergency/safety guidance worked in practice — i.e. people RECEIVED it AND could act on it.\n` +
+  `  REJECT: routine alert issuance ("council issued alert to stay near shelters", "ministry warned public").\n` +
+  `  Alerts being sent is the baseline — it happens dozens of times daily and tells us nothing about whether\n` +
+  `  information actually reached people or improved their coping. Only extract when there is evidence of\n` +
+  `  RECEPTION, COMPREHENSION, or BEHAVIORAL RESPONSE to the information (e.g. "residents reported the new\n` +
+  `  app delivered alerts faster", "instructions were clear enough that people knew which shelter to use").\n` +
   `  NOT for: academic studies, legal descriptions, policy announcements, or ministerial statements.\n` +
   `  information_effectiveness_gap: EMERGENCY guidance existed and was distributed, but failed to help because it\n` +
   `  did not match reality — instructions people physically or legally could not follow, scenarios left uncovered\n` +
@@ -409,6 +483,64 @@ const WHATSAPP_REALTIME_SIGNAL_EXTRACTION_PREFIX =
   `  "missing" = list of what would strengthen the report. Values: "location", "named_person", "scope", "specific_details".\n` +
   `  Set "missing" to [] if sufficient. If not sufficient, include the most important missing element(s).\n\n`;
 
+const WHATSAPP_INTERACTIVE_SIGNAL_EXTRACTION_PREFIX =
+  `━━━ SOURCE: WHATSAPP INTERACTIVE FIELD DIALOGUE (MULTI-TURN) ━━━\n` +
+  `Input is an ongoing WhatsApp conversation between a field officer and an elicitation bot.\n` +
+  `Each turn is tagged [officer] or [bot]. Interpret the CUMULATIVE content across all turns —\n` +
+  `facts from earlier turns remain valid unless the officer explicitly revises them.\n\n` +
+  `YOUR JOB IS THREEFOLD:\n` +
+  `1) Extract behavioral signals using the same closed vocabulary as batch analysis.\n` +
+  `2) Emit a _structured summary of what the officer has conveyed so far.\n` +
+  `3) Emit an _assessment that lists missing evidence per component and 2–3 concise Hebrew\n` +
+  `   follow-up questions aimed at the highest-value gaps.\n\n` +
+  `CRITICAL RULES:\n` +
+  `- article_index is always 1.\n` +
+  `- Default evidence type is "observational_reported_fact". Upgrade to\n` +
+  `  "direct_quote_named_person" / "named_institutional_fact" only if the officer wrote so.\n` +
+  `- DO NOT INVENT facts. If the officer did not state a field, leave it null.\n` +
+  `- DO NOT SCORE components or declare resilience levels. Only link components with\n` +
+  `  direction ∈ {positive, negative, mixed} and a short rationale.\n` +
+  `- Use only these closed-vocabulary values:\n` +
+  `    spread: "isolated" | "noticeable" | "widespread"\n` +
+  `    sourceBasis: "direct" | "staff" | "residents" | "mixed"\n` +
+  `    comparisonToPrior: "new" | "stable" | "worsening" | "improving"\n` +
+  `    direction: "positive" | "negative" | "mixed"\n` +
+  `    confidence.level: "low" | "medium" | "high"\n` +
+  `    componentId ∈ ["narrative","information_communication","lifesaving_behavior",\n` +
+  `                   "functional_continuity","community_capital","leadership",\n` +
+  `                   "belonging_solidarity","wellbeing_atrisk"]\n\n` +
+  `OUTPUT FORMAT (three JSON fragments, in order, each on its own line):\n` +
+  `1) JSON array of signal objects (same schema as batch).\n` +
+  `2) Then a single-line JSON object:\n` +
+  `   {"_structured": {\n` +
+  `     "observation": {\n` +
+  `       "locality": <string|null>,\n` +
+  `       "timeframe": <string|null>,\n` +
+  `       "behavior": <string|null>,\n` +
+  `       "affectedPopulation": <string|null>,\n` +
+  `       "spread": <one of allowed values or null>,\n` +
+  `       "sourceBasis": <one of allowed values or null>,\n` +
+  `       "comparisonToPrior": <one of allowed values or null>\n` +
+  `     },\n` +
+  `     "interpretation": { "possibleDrivers": [<string>], "alternatives": [<string>] },\n` +
+  `     "componentLinks": [ {"componentId": <id>, "direction": <dir>, "rationale": <short Hebrew>} ],\n` +
+  `     "confidence": { "level": <level>, "basis": <short Hebrew> }\n` +
+  `   }}\n` +
+  `3) Then a single-line JSON object:\n` +
+  `   {"_assessment": {\n` +
+  `     "sufficient": <bool>,\n` +
+  `     "missing": [<legacy field keys — keep for back-compat: "location"|"named_person"|"scope"|"specific_details">],\n` +
+  `     "missingByComponent": [ {"componentId": <id>, "requiredFields": [<field>], "disambiguation": [<dimension>]} ],\n` +
+  `     "topQuestions": [<up to 3 short Hebrew questions — each aimed at a specific gap, and briefly explaining WHY>]\n` +
+  `   }}\n\n` +
+  `QUESTION QUALITY RULES:\n` +
+  `- Do not suggest interpretations in the question ("האם זה חוסר אמון?"). Instead, offer the officer a\n` +
+  `  constrained menu ("האם הגורם הדומיננטי הוא עייפות, חוסר אמון באיום, קושי גישה, או אחר?").\n` +
+  `- Prefer questions that distinguish among resilience components (fatigue vs. distrust vs. access,\n` +
+  `  compliance erosion vs. trust erosion, continuity disruption cause).\n` +
+  `- Never ask something the officer already answered across prior turns.\n` +
+  `- Keep each question to one sentence.\n\n`;
+
 export function buildSignalExtractionSystemPrompt(contentKind) {
   const base = SIGNAL_EXTRACTION_SYSTEM_PROMPT;
   if (contentKind === 'audio') {
@@ -427,6 +559,12 @@ export function buildSignalExtractionSystemPrompt(contentKind) {
     return WHATSAPP_REALTIME_SIGNAL_EXTRACTION_PREFIX + base.replace(
       'from news articles using',
       'from a single WhatsApp field report using',
+    );
+  }
+  if (contentKind === 'whatsapp_interactive') {
+    return WHATSAPP_INTERACTIVE_SIGNAL_EXTRACTION_PREFIX + base.replace(
+      'from news articles using',
+      'from a multi-turn WhatsApp officer dialogue using',
     );
   }
   return base;
@@ -623,12 +761,22 @@ const FIELD_REPORT_NARRATIVE_CONTEXT =
   `When field report signals appear alongside news signals for the same component, name both source types explicitly.\n` +
   `Field report signals have no URL — do not fabricate links for them.\n\n`;
 
+const NAFTALI_NARRATIVE_CONTEXT =
+  `━━━ ADDITIONAL SOURCE: NAFTALI WEEKLY QUESTIONNAIRE ━━━\n` +
+  `Some signals originate from Naftali weekly questionnaire responses filled by municipal welfare departments.\n` +
+  `CRITICAL SCOPE LIMITATION: Naftali data covers ONE sub-region out of five in northern Israel. ` +
+  `It does NOT represent the entire northern population. Any findings based on Naftali signals ` +
+  `MUST explicitly state they are specific to the Naftali sub-region and cannot be generalized to the broader north.\n` +
+  `When citing Naftali evidence in narratives, always qualify: "In the Naftali sub-region, ..." or "Naftali-region municipalities report..."\n` +
+  `Do not blend Naftali findings into general population statements without marking the geographic scope.\n` +
+  `Naftali signals have no URL — do not fabricate links for them.\n\n`;
+
 export async function generateNarratives(
   scoredComponents,
   _allSignals,
   date,
   totalArticles,
-  { onUsage, _onProgress, priorReports, contentKind = 'news' } = {},
+  { onUsage, _onProgress, priorReports, contentKind = 'news', sourceTypes = new Set() } = {},
 ) {
   const priorContext = formatPriorReportsContext(priorReports);
 
@@ -636,7 +784,8 @@ export async function generateNarratives(
     `You are a community resilience analyst writing behavioral narratives for a structured report.\n` +
     `The component SCORES are already computed — do not re-score. Your job is to write clear, behavioral narratives.\n\n` +
     (contentKind === 'audio' ? AUDIO_NARRATIVE_CONTEXT : '') +
-    (contentKind === 'mixed' ? FIELD_REPORT_NARRATIVE_CONTEXT : '') +
+    (sourceTypes.has('field') ? FIELD_REPORT_NARRATIVE_CONTEXT : '') +
+    (sourceTypes.has('naftali') ? NAFTALI_NARRATIVE_CONTEXT : '') +
     (priorContext ? priorContext : '') +
 
     `━━━ NARRATIVE RULES ━━━\n` +
