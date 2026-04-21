@@ -15,6 +15,48 @@ const memCache = new Map();
 
 const LANG_NAMES = { he: 'Hebrew', ru: 'Russian' };
 
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function getErrStatus(err) {
+  return err?.status ?? err?.statusCode ?? err?.response?.status ?? err?.cause?.status;
+}
+
+function isTransientTranslateError(err) {
+  const status = getErrStatus(err);
+  if (status === 429 || status === 500 || status === 502 || status === 503 || status === 504 || status === 524) return true;
+  const msg = String(err?.message ?? '');
+  return (
+    /\b524\b/.test(msg) ||
+    /\b502\b/.test(msg) ||
+    /\b503\b/.test(msg) ||
+    /\b504\b/.test(msg) ||
+    /\btimeout\b/i.test(msg) ||
+    /\betimedout\b/i.test(msg) ||
+    /\beconnreset\b/i.test(msg)
+  );
+}
+
+async function runWithConcurrencyLimit(taskFns, limit) {
+  const n = taskFns.length;
+  if (n === 0) return [];
+  const results = new Array(n);
+  let nextIdx = 0;
+
+  const workers = new Array(Math.min(limit, n)).fill(0).map(async () => {
+    while (true) {
+      const idx = nextIdx;
+      nextIdx += 1;
+      if (idx >= n) break;
+      results[idx] = await taskFns[idx]();
+    }
+  });
+
+  await Promise.all(workers);
+  return results;
+}
+
 const GLOSSARY = {
   he: `
 Component name glossary (use these exact translations — do not paraphrase):
@@ -98,6 +140,7 @@ function cacheKey(report, lang) {
 }
 
 function cacheFilePath(date, articlesCount, lang) {
+  // Keep legacy v2 filename so existing caches are reused.
   return resolve(REPORTS_DIR, `translation-v2-${date}-${articlesCount}-${lang}.json`);
 }
 
@@ -112,9 +155,23 @@ async function readDiskCache(report, lang) {
 
 async function writeDiskCache(report, lang, translatedReport) {
   try {
+    const withMeta = {
+      ...translatedReport,
+      _translation_meta: {
+        schema: 'v2',
+        model: 'claude-sonnet-4-6',
+        fields: {
+          cross_component_synthesis: true,
+          components_narrative: true,
+          evidence: false,
+          score_by_source_signals_evidence: false,
+        },
+        updatedAt: new Date().toISOString(),
+      },
+    };
     await writeFile(
       cacheFilePath(report.date, report.total_articles_analyzed ?? 0, lang),
-      JSON.stringify(translatedReport),
+      JSON.stringify(withMeta),
       'utf8',
     );
   } catch {
@@ -154,6 +211,27 @@ async function translateChunk(payload, lang, langName) {
   return { result, usage: message.usage };
 }
 
+async function translateChunkWithRetry(payload, lang, langName) {
+  const MAX_ATTEMPTS = 3;
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    try {
+      return await translateChunk(payload, lang, langName);
+    } catch (err) {
+      const status = getErrStatus(err);
+      const transient = isTransientTranslateError(err);
+      if (!transient || attempt === MAX_ATTEMPTS) {
+        const detail = status ? `HTTP ${status}` : (err?.message ?? 'unknown error');
+        throw new Error(`Translation provider error (${detail})`);
+      }
+      // Exponential backoff with small jitter to avoid stampeding.
+      const base = 750 * (2 ** (attempt - 1));
+      const jitter = Math.floor(Math.random() * 250);
+      await sleep(base + jitter);
+    }
+  }
+  throw new Error('Translation provider error (exhausted retries)');
+}
+
 /**
  * Translate the narrative and evidence fields of a report into the target language.
  * All components are translated in parallel (one API call each) plus one call for
@@ -170,10 +248,33 @@ export async function getTranslatedReport(report, lang) {
   if (!report || lang === 'en') return report;
 
   const key = cacheKey(report, lang);
-  if (memCache.has(key)) return memCache.get(key);
+  if (memCache.has(key)) {
+    return memCache.get(key);
+  }
 
   const fromDisk = await readDiskCache(report, lang);
   if (fromDisk) {
+    // If this is an older cached translation that lacks executive summary translation,
+    // upgrade it by translating ONLY the missing summary and writing back.
+    const meta = fromDisk?._translation_meta;
+    const metaSaysSynthesisTranslated = meta?.fields?.cross_component_synthesis === true;
+    const looksLikeEnglish = /^[\x00-\x7F]/.test(String(fromDisk?.cross_component_synthesis ?? '').trim());
+    const needsSynthesisUpgrade = !metaSaysSynthesisTranslated && looksLikeEnglish && (lang === 'he' || lang === 'ru');
+
+    if (needsSynthesisUpgrade) {
+      const langName = LANG_NAMES[lang] ?? lang;
+      const upgradedSynthesis = await translateChunkWithRetry({
+        cross_component_synthesis: report.cross_component_synthesis ?? fromDisk.cross_component_synthesis ?? '',
+      }, lang, langName);
+      const upgraded = {
+        ...fromDisk,
+        cross_component_synthesis: upgradedSynthesis.result.cross_component_synthesis ?? fromDisk.cross_component_synthesis,
+      };
+      memCache.set(key, upgraded);
+      await writeDiskCache(report, lang, upgraded);
+      return upgraded;
+    }
+
     memCache.set(key, fromDisk);
     return fromDisk;
   }
@@ -181,71 +282,24 @@ export async function getTranslatedReport(report, lang) {
   const langName = LANG_NAMES[lang] ?? lang;
   const components = report.components ?? [];
 
-  // Collect unique signal evidence strings from score_by_source for translation.
-  const scoreBySource = report.score_by_source ?? {};
-  const allEvidenceStrings = new Set();
-  for (const sourceData of Object.values(scoreBySource)) {
-    for (const compData of Object.values(sourceData)) {
-      for (const sig of (compData.signals ?? [])) {
-        if (sig.evidence) allEvidenceStrings.add(sig.evidence);
-      }
-    }
-  }
-  const evidenceList = [...allEvidenceStrings];
+  // Many parallel translation calls can trigger upstream gateway timeouts.
+  // Keep concurrency modest and retry transient failures (524/5xx/429).
+  const CONCURRENCY_COMPONENTS = 3;
 
-  // Split evidence strings into batches of ≤50 to stay within max_tokens.
-  const EVIDENCE_BATCH_SIZE = 50;
-  const evidenceBatches = [];
-  for (let i = 0; i < evidenceList.length; i += EVIDENCE_BATCH_SIZE) {
-    evidenceBatches.push(evidenceList.slice(i, i + EVIDENCE_BATCH_SIZE));
-  }
+  // Translate the executive summary (general resume) as well.
+  const synthesisChunk = await translateChunkWithRetry({
+    cross_component_synthesis: report.cross_component_synthesis ?? '',
+  }, lang, langName);
 
-  // One call for synthesis + caveats, one call per component, batched calls for
-  // signal evidence strings — all in parallel.
-  const [synthesisChunk, ...rest] = await Promise.all([
-    translateChunk({
-      cross_component_synthesis: report.cross_component_synthesis ?? '',
-      media_bias_caveats: report.media_bias_caveats ?? '',
-    }, lang, langName),
-    ...evidenceBatches.map((batch) =>
-      translateChunk({ evidence_strings: batch }, lang, langName),
-    ),
-    ...components.map((c) => translateChunk({
+  const componentChunks = await runWithConcurrencyLimit(
+    components.map((c) => () => translateChunkWithRetry({
       narrative: c.narrative ?? '',
-      evidence: c.evidence ?? [],
     }, lang, langName)),
-  ]);
-
-  const evidenceChunks = rest.slice(0, evidenceBatches.length);
-  const componentChunks = rest.slice(evidenceBatches.length);
-
-  // Build lookup map: original evidence string → translated.
-  const evidenceMap = {};
-  let evidenceIdx = 0;
-  for (const chunk of evidenceChunks) {
-    (chunk.result.evidence_strings ?? []).forEach((translated) => {
-      if (evidenceList[evidenceIdx]) evidenceMap[evidenceList[evidenceIdx]] = translated;
-      evidenceIdx++;
-    });
-  }
-
-  // Rebuild score_by_source with translated signal evidence strings.
-  const translatedScoreBySource = {};
-  for (const [source, sourceData] of Object.entries(scoreBySource)) {
-    translatedScoreBySource[source] = {};
-    for (const [compId, compData] of Object.entries(sourceData)) {
-      translatedScoreBySource[source][compId] = {
-        ...compData,
-        signals: (compData.signals ?? []).map((sig) => ({
-          ...sig,
-          evidence: evidenceMap[sig.evidence] ?? sig.evidence,
-        })),
-      };
-    }
-  }
+    CONCURRENCY_COMPONENTS,
+  );
 
   // Aggregate token usage across all parallel calls for cost tracking.
-  const allChunks = [synthesisChunk, ...evidenceChunks, ...componentChunks];
+  const allChunks = [synthesisChunk, ...componentChunks];
   const totalUsage = allChunks.reduce(
     (acc, { usage }) => ({
       input_tokens:  acc.input_tokens  + (usage.input_tokens  ?? 0),
@@ -266,13 +320,10 @@ export async function getTranslatedReport(report, lang) {
   const translatedReport = {
     ...report,
     cross_component_synthesis: synthesisChunk.result.cross_component_synthesis ?? report.cross_component_synthesis,
-    media_bias_caveats:        synthesisChunk.result.media_bias_caveats        ?? report.media_bias_caveats,
     components: components.map((c, i) => ({
       ...c,
       narrative: componentChunks[i].result.narrative ?? c.narrative,
-      evidence:  componentChunks[i].result.evidence  ?? c.evidence,
     })),
-    score_by_source: Object.keys(translatedScoreBySource).length > 0 ? translatedScoreBySource : report.score_by_source,
   };
 
   memCache.set(key, translatedReport);

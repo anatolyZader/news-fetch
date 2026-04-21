@@ -14,7 +14,7 @@
 module.exports = {
   apps: [
     {
-      name:         'app-server',
+      name:         'news',
       script:       'server.js',
       cwd:          __dirname,
       interpreter:  'node',
@@ -22,6 +22,7 @@ module.exports = {
       max_restarts:  10,
       env: {
         NODE_ENV: 'production',
+        TRANSLATION_ENABLED: 'true',
       },
     },
     {
