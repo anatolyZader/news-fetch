@@ -180,9 +180,14 @@ export function ReportView({ assessment, costUsd, costBreakdown, scoreBySource, 
   }
 
   return (
-    <div className={styles.root}>
+    <div className={styles.root} aria-busy={translating ? 'true' : 'false'}>
       {translating && (
-        <p className={styles.readOnlyBanner} role="status">{t('report.translating')}</p>
+        <div className={styles.translateOverlay} role="status" aria-live="polite">
+          <div className={styles.translateOverlayInner}>
+            <div className={styles.spinner} aria-hidden="true" />
+            <div className={styles.translateText}>{t('report.translating')}</div>
+          </div>
+        </div>
       )}
       {translateError && (
         <p className={styles.readOnlyBanner} role="alert" style={{ color: 'var(--score-critical)' }}>

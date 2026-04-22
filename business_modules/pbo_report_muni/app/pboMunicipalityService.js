@@ -97,12 +97,12 @@ function buildColumnIndex(headers) {
 }
 
 /**
- * Extract date from filename pattern "north {day}-{month}.xlsx".
+ * Extract date from filename pattern "north_{day}_{month}.xlsx".
  * Falls back to the SlicerDate row inside the sheet if filename doesn't match.
  */
 function extractDate(rows, fileName) {
-  // Primary: derive from filename (e.g. "north 5-4.xlsx" → 2026-04-05)
-  const fnMatch = fileName?.match(/(\d{1,2})-(\d{1,2})\.xlsx$/);
+  // Primary: derive from filename (e.g. "north_5_4.xlsx" → 2026-04-05)
+  const fnMatch = fileName?.match(/_(\d{1,2})_(\d{1,2})\.xlsx$/);
   if (fnMatch) {
     // Need the year — grab it from the SlicerDate row
     let year = new Date().getFullYear();

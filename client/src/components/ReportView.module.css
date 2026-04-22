@@ -8,7 +8,53 @@
   border: 1px solid var(--border);
 }
 
-.root { display: flex; flex-direction: column; gap: 1.5rem; }
+.root { display: flex; flex-direction: column; gap: 1.5rem; position: relative; }
+
+.translateOverlay {
+  position: absolute;
+  inset: 0;
+  background: transparent;
+  border-radius: 12px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.translateOverlayInner {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.65rem 0.9rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid var(--border);
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.10);
+}
+
+.translateText {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid rgba(0, 0, 0, 0.12);
+  border-top-color: var(--accent);
+  animation: reportSpin 0.85s linear infinite;
+}
+
+@keyframes reportSpin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner { animation: none; }
+}
 
 .overallRow {
   display: flex;

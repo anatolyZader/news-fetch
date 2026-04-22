@@ -66,6 +66,13 @@ export function createEvidenceStore(dbPath) {
     ORDER BY id ASC
   `);
 
+  const selectById = db.prepare(`
+    SELECT id, date, source_type, source_label, source_url, title, body, published_at
+    FROM evidence_items
+    WHERE id = ?
+    LIMIT 1
+  `);
+
   const countByDate = db.prepare(`
     SELECT COUNT(*) as n FROM evidence_items WHERE date = ?
   `);
@@ -113,6 +120,15 @@ export function createEvidenceStore(dbPath) {
      */
     getByDate(date) {
       return selectByDate.all(date);
+    },
+
+    /**
+     * Return a single evidence item by DB id, or null.
+     * @param {number} id
+     */
+    getById(id) {
+      const row = selectById.get(id);
+      return row ?? null;
     },
 
     /**

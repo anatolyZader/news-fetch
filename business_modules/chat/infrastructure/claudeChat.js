@@ -3,6 +3,7 @@
  */
 import Anthropic from '@anthropic-ai/sdk';
 import { loadSignals, searchSignals, formatSignals, compareReports, loadReport, listReportDates } from '../domain/signalLookup.js';
+import { lookupEvidenceText, searchEvidenceCandidates } from '../domain/evidenceLookup.js';
 
 const client = new Anthropic();
 
@@ -116,7 +117,103 @@ const GENERATE_BRIEF_TOOL = {
   },
 };
 
-const ALL_TOOLS = [LOOKUP_PBO_TOOL, LOOKUP_SIGNALS_TOOL, COMPARE_DATES_TOOL, GENERATE_BRIEF_TOOL];
+const LOOKUP_EVIDENCE_TOOL = {
+  name: 'lookup_evidence',
+  description:
+    'Retrieve full stored evidence/article text on demand (not in the main prompt). ' +
+    'Searches the SQLite evidence store for a given date and/or the homefront markdown export for that date. ' +
+    'Use when you need the full original text to answer precisely or quote. ' +
+    'If date is omitted, it will default to the current assessment date.',
+  input_schema: {
+    type: 'object',
+    properties: {
+      date: {
+        type: 'string',
+        description: 'Date YYYY-MM-DD to search (usually the current report date).',
+      },
+      evidence_id: {
+        type: 'string',
+        description: 'Exact evidence identifier returned by search_evidence (preferred).',
+      },
+      query: {
+        type: 'string',
+        description: 'Free-text search term (matches title/url/body). Optional if url/title is provided.',
+      },
+      url: {
+        type: 'string',
+        description: 'Exact URL to retrieve (preferred when available).',
+      },
+      title: {
+        type: 'string',
+        description: 'Title substring to match.',
+      },
+      source_type: {
+        type: 'string',
+        enum: ['news', 'radio', 'field', 'pbo', 'naftali', 'whatsapp', 'audio', 'manual'],
+        description: 'Optional filter for DB evidence_items source_type.',
+      },
+      limit: {
+        type: 'number',
+        description: 'Max items to return (default 3, max 10).',
+      },
+      max_chars: {
+        type: 'number',
+        description: 'Max characters of body per item (default 8000, max 25000).',
+      },
+    },
+  },
+};
+
+const SEARCH_EVIDENCE_TOOL = {
+  name: 'search_evidence',
+  description:
+    'Find the right evidence/article source before retrieving full text. ' +
+    'Returns candidate evidence items (evidence_id, title, url, source, snippet). ' +
+    'Then use lookup_evidence with evidence_id to retrieve the full text for quoting.',
+  input_schema: {
+    type: 'object',
+    properties: {
+      date: {
+        type: 'string',
+        description: 'Date YYYY-MM-DD to search (defaults to the current assessment date when omitted).',
+      },
+      query: {
+        type: 'string',
+        description: 'Free-text search term (matches title/url/body). Optional if url/title is provided.',
+      },
+      url: {
+        type: 'string',
+        description: 'Exact URL to match (preferred when available).',
+      },
+      title: {
+        type: 'string',
+        description: 'Title substring to match.',
+      },
+      source_type: {
+        type: 'string',
+        enum: ['news', 'radio', 'field', 'pbo', 'naftali', 'whatsapp', 'audio', 'manual'],
+        description: 'Optional filter for DB evidence_items source_type.',
+      },
+      limit: {
+        type: 'number',
+        description: 'Max candidates (default 7, max 25).',
+      },
+      snippet_chars: {
+        type: 'number',
+        description: 'Max snippet characters (default 350, max 1200).',
+      },
+    },
+  },
+};
+
+const ALL_TOOLS = [
+  LOOKUP_PBO_TOOL,
+  LOOKUP_SIGNALS_TOOL,
+  COMPARE_DATES_TOOL,
+  GENERATE_BRIEF_TOOL,
+  SEARCH_EVIDENCE_TOOL,
+  LOOKUP_EVIDENCE_TOOL,
+];
 
 const SYSTEM_TEMPLATE =
   `You are an expert in Israeli community resilience (Home Front Command / פיקוד העורף framework). ` +
@@ -125,9 +222,14 @@ const SYSTEM_TEMPLATE =
   `- lookup_pbo: detailed PBO municipality data (per-component scores + observer notes)\n` +
   `- lookup_signals: search raw behavioral signals by component, source, municipality, date, or keyword\n` +
   `- compare_dates: compare two assessment dates (score deltas + narrative shifts)\n` +
-  `- generate_brief: produce a formatted brief for a specific audience (commander/analyst/public)\n\n` +
+  `- generate_brief: produce a formatted brief for a specific audience (commander/analyst/public)\n` +
+  `- search_evidence: find candidate evidence items (returns evidence_id)\n` +
+  `- lookup_evidence: retrieve full stored article/evidence text on demand\n\n` +
   `GUIDELINES:\n` +
   `- When citing findings, use the lookup_signals tool to back claims with specific evidence.\n` +
+  `- Default to evidence-first answers: when making factual claims, include a short quote and a source (url + evidence_id when available).\n` +
+  `- If the user provides a snippet or mentions a site/source but you cannot locate the exact item, use search_evidence first, then lookup_evidence by evidence_id.\n` +
+  `- When a question requires details that are only in the original article/evidence text (quotes, exact wording, who said what, specific instructions), use lookup_evidence before answering.\n` +
   `- When the user asks "what changed" or "why did X drop/rise", use compare_dates.\n` +
   `- When the user asks for a summary, brief, or output for someone else, use generate_brief.\n` +
   `- Be specific — cite municipality names, scores, dates, and observer notes.\n` +
@@ -137,7 +239,7 @@ const SYSTEM_TEMPLATE =
 /**
  * Handle a tool call and return the result string.
  */
-async function handleToolCall(toolName, input, pboLookup, reportData) {
+async function handleToolCall(toolName, input, pboLookup, reportData, evidenceStore) {
   if (toolName === 'lookup_pbo') {
     const muniName = input?.municipality ?? '';
     let result = pboLookup[muniName];
@@ -171,6 +273,24 @@ async function handleToolCall(toolName, input, pboLookup, reportData) {
 
   if (toolName === 'generate_brief') {
     return await generateBrief(input, reportData, pboLookup);
+  }
+
+  if (toolName === 'lookup_evidence') {
+    const inferredDate =
+      input?.date ??
+      reportData?.assessment?.date ??
+      reportData?.reportDate ??
+      null;
+    return lookupEvidenceText({ ...(input ?? {}), date: inferredDate }, evidenceStore);
+  }
+
+  if (toolName === 'search_evidence') {
+    const inferredDate =
+      input?.date ??
+      reportData?.assessment?.date ??
+      reportData?.reportDate ??
+      null;
+    return searchEvidenceCandidates({ ...(input ?? {}), date: inferredDate }, evidenceStore);
   }
 
   return 'Unknown tool';
@@ -245,11 +365,13 @@ async function generateBrief(input, reportData, pboLookup) {
  * @param {Array} messages - conversation messages
  * @param {function} send - callback for SSE events: send({ type, ... })
  * @param {object} reportData - raw report data for brief generation
+ * @param {{ evidenceStore?: object|null }} [opts]
  */
-export async function streamChatResponse(systemContext, pboLookup, messages, send, reportData) {
+export async function streamChatResponse(systemContext, pboLookup, messages, send, reportData, opts = {}) {
   const system = SYSTEM_TEMPLATE + systemContext;
   const MAX_TOOL_ROUNDS = 5;
   let currentMessages = messages;
+  const evidenceStore = opts.evidenceStore ?? null;
 
   for (let round = 0; round <= MAX_TOOL_ROUNDS; round++) {
     const response = await client.messages.create({
@@ -273,7 +395,7 @@ export async function streamChatResponse(systemContext, pboLookup, messages, sen
 
     const toolResults = [];
     for (const tu of toolUseBlocks) {
-      const result = await handleToolCall(tu.name, tu.input, pboLookup, reportData);
+      const result = await handleToolCall(tu.name, tu.input, pboLookup, reportData, evidenceStore);
       toolResults.push({
         type: 'tool_result',
         tool_use_id: tu.id,

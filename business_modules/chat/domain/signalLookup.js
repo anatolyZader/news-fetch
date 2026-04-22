@@ -32,8 +32,12 @@ export function loadSignals({ date, sourceType } = {}) {
     try {
       const raw = JSON.parse(readFileSync(join(SIGNALS_DIR, f), 'utf-8'));
       const meta = { source_type: raw.source_type, date: raw.date, file: f };
-      for (const sig of raw.signals ?? []) {
-        results.push({ ...meta, ...sig });
+      const sigs = raw.signals ?? [];
+      for (let i = 0; i < sigs.length; i++) {
+        const sig = sigs[i];
+        // Stable per-signal ID so the chat can reference/cite a specific signal.
+        const signal_id = `${f}#${i + 1}`;
+        results.push({ ...meta, signal_id, ...sig });
       }
     } catch { /* skip corrupt files */ }
   }
@@ -97,7 +101,7 @@ export function searchSignals(signals, { query, component, sourceType, municipal
 export function formatSignals(signals) {
   if (signals.length === 0) return 'No matching signals found.';
   return signals.map((s, i) =>
-    `[${i + 1}] ${s.signal_type} (${s.source_type}, ${s.date})` +
+    `[${i + 1}] id=${s.signal_id ?? 'unknown'} — ${s.signal_type} (${s.source_type}, ${s.date})` +
     `${s.article_source ? ' — ' + s.article_source : ''}` +
     `\n    ${s.evidence?.slice(0, 300)}` +
     (s.article_url ? `\n    ${s.article_url}` : ''),
