@@ -4,19 +4,19 @@ const sidebar: SidebarsConfig = {
   apisidebar: [
     {
       type: "doc",
-      id: "vibeswitch-api",
+      id: "api/generated/vibeswitch-api",
     },
     {
       type: "category",
       label: "Auth",
       link: {
         type: "doc",
-        id: "auth",
+        id: "api/generated/auth",
       },
       items: [
         {
           type: "doc",
-          id: "discover-auth-requirements-for-this-deployment",
+          id: "api/generated/discover-auth-requirements-for-this-deployment",
           label: "Discover auth requirements for this deployment.",
           className: "api-method get",
         },
@@ -27,12 +27,12 @@ const sidebar: SidebarsConfig = {
       label: "Reports",
       link: {
         type: "doc",
-        id: "reports",
+        id: "api/generated/reports",
       },
       items: [
         {
           type: "doc",
-          id: "fetch-todays-cached-report-if-any",
+          id: "api/generated/fetch-todays-cached-report-if-any",
           label: "Fetch today's cached report (if any).",
           className: "api-method get",
         },
@@ -43,42 +43,42 @@ const sidebar: SidebarsConfig = {
       label: "Evidence",
       link: {
         type: "doc",
-        id: "evidence",
+        id: "api/generated/evidence",
       },
       items: [
         {
           type: "doc",
-          id: "get-the-current-evidence-draft",
+          id: "api/generated/get-the-current-evidence-draft",
           label: "Get the current evidence draft.",
           className: "api-method get",
         },
         {
           type: "doc",
-          id: "update-the-current-evidence-draft",
+          id: "api/generated/update-the-current-evidence-draft",
           label: "Update the current evidence draft.",
           className: "api-method put",
         },
         {
           type: "doc",
-          id: "submit-evidence-for-ingestion-analysis",
+          id: "api/generated/submit-evidence-for-ingestion-analysis",
           label: "Submit evidence for ingestion/analysis.",
           className: "api-method post",
         },
         {
           type: "doc",
-          id: "list-recent-evidence-submissions",
+          id: "api/generated/list-recent-evidence-submissions",
           label: "List recent evidence submissions.",
           className: "api-method get",
         },
         {
           type: "doc",
-          id: "get-the-latest-submission-if-any",
+          id: "api/generated/get-the-latest-submission-if-any",
           label: "Get the latest submission (if any).",
           className: "api-method get",
         },
         {
           type: "doc",
-          id: "get-a-submission-by-id",
+          id: "api/generated/get-a-submission-by-id",
           label: "Get a submission by id.",
           className: "api-method get",
         },
@@ -89,12 +89,12 @@ const sidebar: SidebarsConfig = {
       label: "Analysis",
       link: {
         type: "doc",
-        id: "analysis",
+        id: "api/generated/analysis",
       },
       items: [
         {
           type: "doc",
-          id: "run-analysis-server-sent-events",
+          id: "api/generated/run-analysis-server-sent-events",
           label: "Run analysis (Server-Sent Events).",
           className: "api-method post",
         },
@@ -105,18 +105,18 @@ const sidebar: SidebarsConfig = {
       label: "Video",
       link: {
         type: "doc",
-        id: "video",
+        id: "api/generated/video",
       },
       items: [
         {
           type: "doc",
-          id: "download-a-video-from-a-url-and-return-its-local-path",
+          id: "api/generated/download-a-video-from-a-url-and-return-its-local-path",
           label: "Download a video from a URL and return its local path.",
           className: "api-method post",
         },
         {
           type: "doc",
-          id: "resolve-a-local-video-file-path",
+          id: "api/generated/resolve-a-local-video-file-path",
           label: "Resolve a local video file path.",
           className: "api-method post",
         },
@@ -127,12 +127,12 @@ const sidebar: SidebarsConfig = {
       label: "Education",
       link: {
         type: "doc",
-        id: "education",
+        id: "api/generated/education",
       },
       items: [
         {
           type: "doc",
-          id: "get-education-sessions-dashboard",
+          id: "api/generated/get-education-sessions-dashboard",
           label: "Get education sessions dashboard.",
           className: "api-method get",
         },
@@ -143,12 +143,12 @@ const sidebar: SidebarsConfig = {
       label: "Municipalities",
       link: {
         type: "doc",
-        id: "municipalities",
+        id: "api/generated/municipalities",
       },
       items: [
         {
           type: "doc",
-          id: "get-municipality-dashboard",
+          id: "api/generated/get-municipality-dashboard",
           label: "Get municipality dashboard.",
           className: "api-method get",
         },
@@ -159,12 +159,12 @@ const sidebar: SidebarsConfig = {
       label: "Naftali",
       link: {
         type: "doc",
-        id: "naftali",
+        id: "api/generated/naftali",
       },
       items: [
         {
           type: "doc",
-          id: "get-naftali-dashboard",
+          id: "api/generated/get-naftali-dashboard",
           label: "Get Naftali dashboard.",
           className: "api-method get",
         },
@@ -175,12 +175,12 @@ const sidebar: SidebarsConfig = {
       label: "Translation",
       link: {
         type: "doc",
-        id: "translation",
+        id: "api/generated/translation",
       },
       items: [
         {
           type: "doc",
-          id: "translate-an-assessment-to-a-target-language-when-enabled",
+          id: "api/generated/translate-an-assessment-to-a-target-language-when-enabled",
           label: "Translate an assessment to a target language (when enabled).",
           className: "api-method post",
         },
@@ -191,12 +191,12 @@ const sidebar: SidebarsConfig = {
       label: "Chat",
       link: {
         type: "doc",
-        id: "chat",
+        id: "api/generated/chat",
       },
       items: [
         {
           type: "doc",
-          id: "chat-with-the-system-server-sent-events",
+          id: "api/generated/chat-with-the-system-server-sent-events",
           label: "Chat with the system (Server-Sent Events).",
           className: "api-method post",
         },

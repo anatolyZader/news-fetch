@@ -1,6 +1,6 @@
 // @ts-check
 
-import { themes as prismThemes } from 'prism-react-renderer';
+const { themes: prismThemes } = require('prism-react-renderer');
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
@@ -54,7 +54,7 @@ const config = {
         config: {
           vibeswitch: {
             specPath: '../openapi/openapi.yaml',
-            outputDir: 'api',
+            outputDir: '../product_docs/api/generated',
             sidebarOptions: {
               groupPathsBy: 'tag',
               categoryLinkSource: 'tag',
@@ -87,5 +87,5 @@ const config = {
     }),
 };
 
-export default config;
+module.exports = config;
 
