@@ -3,7 +3,7 @@ import { resolve, relative, sep } from 'path';
 import Ajv from 'ajv/dist/2020.js';
 import YAML from 'yaml';
 
-const REQUIRED_SECTIONS = [
+const ENGINEERING_SKELETON_SECTIONS = [
   '## Purpose',
   '## Prerequisites',
   '## Inputs',
@@ -12,6 +12,9 @@ const REQUIRED_SECTIONS = [
   '## Examples',
   '## Troubleshooting',
 ];
+
+const WORKFLOW_INTENTS = new Set(['getting-started', 'guides', 'operations']);
+const ENGINEERING_INTENTS = new Set(['concepts', 'architecture', 'api', 'playbooks']);
 
 function toPosixPath(p) {
   return p.split(sep).join('/');
@@ -69,6 +72,20 @@ function extractRelativeMarkdownLinks(markdown) {
   return links;
 }
 
+function hasRunnableSnippet(body) {
+  return /```[a-zA-Z0-9_-]+\s+runnable[\s\S]*?```/g.test(body);
+}
+
+function isUserOrientedPage(meta) {
+  const tags = Array.isArray(meta?.tags) ? meta.tags.map(String) : [];
+  return tags.includes('user');
+}
+
+function hasAtLeastNh2Headings(body, n) {
+  const matches = body.match(/^##\s+/gm);
+  return (matches?.length ?? 0) >= n;
+}
+
 async function main() {
   const repoRoot = resolve(process.cwd());
   const docsRoot = resolve(repoRoot, 'product_docs');
@@ -101,9 +118,40 @@ async function main() {
       errors.push(`${rel}: frontmatter schema invalid: ${ajv.errorsText(validate.errors)}`);
     }
 
-    for (const section of REQUIRED_SECTIONS) {
-      if (!body.includes(section)) {
-        errors.push(`${rel}: missing required section heading: ${section}`);
+    const intent = String(meta?.intent ?? '');
+    const isEngineering = ENGINEERING_INTENTS.has(intent) && !isUserOrientedPage(meta);
+    const isUserPage = isUserOrientedPage(meta);
+
+    if (isEngineering) {
+      for (const section of ENGINEERING_SKELETON_SECTIONS) {
+        if (!body.includes(section)) {
+          errors.push(`${rel}: missing required section heading: ${section}`);
+        }
+      }
+    } else if (isUserPage) {
+      // User docs should read naturally (not as a filled template) but still be actionable.
+      if (!body.includes('## Troubleshooting')) {
+        errors.push(`${rel}: user doc must include a '## Troubleshooting' section`);
+      }
+      if (!hasAtLeastNh2Headings(body, 3)) {
+        errors.push(`${rel}: user doc must include at least 3 H2 sections (## ...) for readability`);
+      }
+    } else {
+      // Default: keep the full skeleton for non-user docs unless they are explicitly user-tagged.
+      for (const section of ENGINEERING_SKELETON_SECTIONS) {
+        if (!body.includes(section)) {
+          errors.push(`${rel}: missing required section heading: ${section}`);
+        }
+      }
+    }
+
+    // Workflow pages must include at least one runnable snippet and expected output.
+    if (WORKFLOW_INTENTS.has(intent) && !isUserPage) {
+      if (!hasRunnableSnippet(body)) {
+        errors.push(`${rel}: workflow page missing a runnable code block (add \`\`\`bash runnable\` etc.)`);
+      }
+      if (hasRunnableSnippet(body) && !body.includes('Expected:')) {
+        errors.push(`${rel}: runnable code block present but no 'Expected:' output described`);
       }
     }
 
@@ -121,12 +169,12 @@ async function main() {
 
   // Runnable snippets (lightweight contract):
   // - Any fenced block annotated with "runnable" must be followed somewhere by "Expected:".
+  // (Handled above for workflow pages; still enforce for any page that contains runnable snippets.)
   for (const abs of mdFiles) {
     const rel = toPosixPath(relative(docsRoot, abs));
     const raw = await readFile(abs, 'utf8');
     const body = parseFrontmatter(raw).body;
-    const runnable = /```[a-zA-Z0-9_-]+\s+runnable[\s\S]*?```/g;
-    if (runnable.test(body) && !body.includes('Expected:')) {
+    if (hasRunnableSnippet(body) && !body.includes('Expected:')) {
       errors.push(`${rel}: runnable code block present but no 'Expected:' output described`);
     }
   }

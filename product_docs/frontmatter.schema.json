@@ -9,7 +9,7 @@
     "description": { "type": "string" },
     "intent": {
       "type": "string",
-      "enum": ["getting-started", "concepts", "guides", "api", "architecture", "playbooks"]
+      "enum": ["getting-started", "concepts", "guides", "api", "architecture", "operations", "playbooks"]
     },
     "audience": {
       "type": "array",

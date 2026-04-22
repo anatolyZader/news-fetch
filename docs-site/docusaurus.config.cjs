@@ -79,7 +79,10 @@ const config = {
         title: 'VibeSwitch',
         items: [
           { to: '/getting-started/quickstart', label: 'Getting Started', position: 'left' },
+          { to: '/concepts/system-dataflow', label: 'Concepts', position: 'left' },
+          { to: '/guides/news-ingestion', label: 'Guides', position: 'left' },
           { to: '/api', label: 'API', position: 'left' },
+          { to: '/operations/common-failures', label: 'Operations', position: 'left' },
           { href: 'https://vibeswitch.ai', label: 'Product', position: 'right' },
         ],
       },

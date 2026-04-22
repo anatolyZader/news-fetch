@@ -43,6 +43,8 @@ async function walkDir(dir) {
   const entries = await readdir(dir, { withFileTypes: true });
   const out = [];
   for (const entry of entries) {
+    if (entry.name.startsWith('_')) continue;
+    if (entry.name === 'README.md') continue;
     const full = resolve(dir, entry.name);
     if (entry.isDirectory()) {
       out.push(...(await walkDir(full)));

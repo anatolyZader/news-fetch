@@ -28,16 +28,19 @@
   border-bottom: 1px solid var(--border);
   padding: 1.25rem 2rem;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  direction: ltr;
 }
 
 .headerBrand {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+  align-items: flex-start;
+  text-align: left;
 }
 
 .headerActions {
@@ -74,6 +77,19 @@
 
 .signOut:hover {
   color: var(--fg, inherit);
+}
+
+@media (max-width: 600px) {
+  .header {
+    padding: 1rem 1rem;
+    flex-wrap: wrap;
+  }
+}
+
+:global(html[dir='rtl']) .headerBrand {
+  direction: rtl;
+  text-align: right;
+  align-items: flex-end;
 }
 
 .title {

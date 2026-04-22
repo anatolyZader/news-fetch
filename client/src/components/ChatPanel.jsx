@@ -24,7 +24,10 @@ export function ChatPanel() {
 
   return (
     <div className={styles.panel}>
-      <div className={styles.header}>{t('chat.header')}</div>
+      <div className={styles.header}>
+        <span className={styles.headerDot} aria-hidden="true" />
+        <span className={styles.headerTitle}>{t('chat.header')}</span>
+      </div>
 
       <div className={styles.messages}>
         {history.length === 0 && (

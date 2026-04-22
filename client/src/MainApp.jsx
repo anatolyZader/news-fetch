@@ -38,7 +38,7 @@ function AppShell() {
     <div className={styles.layout}>
       <header className={styles.header}>
         <div className={styles.headerBrand}>
-          <h1 className={styles.title}>Community Resilience</h1>
+          <h1 className={styles.title}>Vibes Witch</h1>
           <p className={styles.subtitle}>Home Front Command · Daily Assessment</p>
         </div>
         <div className={styles.headerActions}>
