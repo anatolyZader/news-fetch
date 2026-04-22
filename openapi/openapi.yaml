@@ -1,0 +1,468 @@
+openapi: 3.1.0
+info:
+  title: VibeSwitch API
+  version: 0.1.0
+  description: >
+    HTTP API for the VibeSwitch backend. This spec is the single source of truth for
+    the generated API reference.
+servers:
+  - url: /
+tags:
+  - name: Auth
+  - name: Reports
+  - name: Evidence
+  - name: Analysis
+  - name: Video
+  - name: Education
+  - name: Municipalities
+  - name: Naftali
+  - name: Translation
+  - name: Chat
+security:
+  - bearerAuth: []
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Error:
+      type: object
+      additionalProperties: true
+      properties:
+        error: { type: string }
+        code: { type: string }
+    AuthConfig:
+      type: object
+      required: [authRequired]
+      properties:
+        authRequired: { type: boolean }
+    EvidenceDraft:
+      type: object
+      required: [content, updatedAt]
+      properties:
+        content: { type: string }
+        updatedAt: { type: string, nullable: true, description: "ISO timestamp" }
+    EvidenceDraftUpdate:
+      type: object
+      required: [content]
+      properties:
+        content: { type: string }
+    EvidenceSubmitRequest:
+      type: object
+      required: [content]
+      properties:
+        content: { type: string }
+    EvidenceSubmitResponse:
+      type: object
+      additionalProperties: true
+    ReportTodayResponse:
+      type: object
+      additionalProperties: true
+    TranslateRequest:
+      type: object
+      required: [report, lang]
+      properties:
+        report: { type: object, additionalProperties: true }
+        lang: { type: string, description: "Target language code" }
+    TranslateResponse:
+      type: object
+      required: [report]
+      properties:
+        report: { type: object, nullable: true, additionalProperties: true }
+    VideoDownloadUrlRequest:
+      type: object
+      required: [url]
+      properties:
+        url: { type: string }
+    VideoLocalFileRequest:
+      type: object
+      required: [relativePath]
+      properties:
+        relativePath: { type: string }
+    ChatRequest:
+      type: object
+      required: [message]
+      properties:
+        message: { type: string }
+        history:
+          type: array
+          items: { type: object, additionalProperties: true }
+paths:
+  /api/auth/config:
+    get:
+      tags: [Auth]
+      security: []
+      summary: Discover auth requirements for this deployment.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AuthConfig" }
+
+  /api/report/today:
+    get:
+      tags: [Reports]
+      summary: Fetch today's cached report (if any).
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ReportTodayResponse" }
+        "401":
+          description: Unauthorized (when auth is required)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /api/evidence-draft:
+    get:
+      tags: [Evidence]
+      summary: Get the current evidence draft.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [content, updatedAt]
+                properties:
+                  content: { type: string }
+                  updatedAt: { type: string, nullable: true }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+    put:
+      tags: [Evidence]
+      summary: Update the current evidence draft.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/EvidenceDraftUpdate" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/EvidenceDraft" }
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /api/evidence-submit:
+    post:
+      tags: [Evidence]
+      summary: Submit evidence for ingestion/analysis.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/EvidenceSubmitRequest" }
+      responses:
+        "202":
+          description: Accepted (queued)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/EvidenceSubmitResponse" }
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /api/evidence-submissions:
+    get:
+      tags: [Evidence]
+      summary: List recent evidence submissions.
+      parameters:
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 50, default: 10 }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /api/evidence-submissions/latest:
+    get:
+      tags: [Evidence]
+      summary: Get the latest submission (if any).
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /api/evidence-submissions/{id}:
+    get:
+      tags: [Evidence]
+      summary: Get a submission by id.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer, minimum: 1 }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        "400":
+          description: Invalid id
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /api/analyze:
+    post:
+      tags: [Analysis]
+      summary: Run analysis (Server-Sent Events).
+      description: Returns `text/event-stream` events, ending with a `done` or `error` event.
+      responses:
+        "200":
+          description: SSE stream
+          content:
+            text/event-stream:
+              schema:
+                type: string
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /api/video/download-url:
+    post:
+      tags: [Video]
+      summary: Download a video from a URL and return its local path.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/VideoDownloadUrlRequest" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "502":
+          description: Upstream failure
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /api/video/local-file:
+    post:
+      tags: [Video]
+      summary: Resolve a local video file path.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/VideoLocalFileRequest" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /api/education-sessions:
+    get:
+      tags: [Education]
+      summary: Get education sessions dashboard.
+      parameters:
+        - in: query
+          name: refresh
+          schema: { type: string, enum: ["0", "1"] }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        "502":
+          description: Upstream failure
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /api/municipalities:
+    get:
+      tags: [Municipalities]
+      summary: Get municipality dashboard.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        "502":
+          description: Upstream failure
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /api/naftali:
+    get:
+      tags: [Naftali]
+      summary: Get Naftali dashboard.
+      parameters:
+        - in: query
+          name: refresh
+          schema: { type: string, enum: ["0", "1"] }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        "502":
+          description: Upstream failure
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /api/translate:
+    post:
+      tags: [Translation]
+      summary: Translate an assessment to a target language (when enabled).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/TranslateRequest" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TranslateResponse" }
+        "502":
+          description: Translation failed
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /api/chat:
+    post:
+      tags: [Chat]
+      summary: Chat with the system (Server-Sent Events).
+      description: Returns `text/event-stream` events.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ChatRequest" }
+      responses:
+        "200":
+          description: SSE stream
+          content:
+            text/event-stream:
+              schema:
+                type: string
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+

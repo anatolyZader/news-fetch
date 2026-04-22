@@ -45,7 +45,7 @@ echo ""
 # ── Step 3: Extract news signals ──────────────────────────────────────────
 echo "── Step 3: Extract news signals ──"
 for dt in "${DATES[@]}"; do
-  news_file="articles-homefront-${dt}.md"
+  news_file="business_modules/news-sites/articles_extracted/articles-homefront-${dt}.md"
   if [[ -f "$news_file" && -s "$news_file" ]]; then
     echo "  Extracting signals from $news_file..."
     node business_modules/resilience/input/extract-signals.js \
@@ -76,7 +76,7 @@ echo ""
 echo "── Step 5: WhatsApp signals ──"
 for dt in "${DATES[@]}"; do
   node business_modules/whatsapp/input/whatsapp-to-md.js --date "$dt" 2>/dev/null || true
-  wa_file="articles-whatsapp-${dt}.md"
+  wa_file="business_modules/whatsapp/reports/whatsapp_reports-${dt}.md"
   if [[ -f "$wa_file" && -s "$wa_file" ]]; then
     echo "  Extracting signals from $wa_file..."
     node business_modules/resilience/input/extract-signals.js \

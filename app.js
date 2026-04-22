@@ -1,8 +1,11 @@
 import Fastify from 'fastify';
 import fastifyStatic from '@fastify/static';
-import { mkdir } from 'fs/promises';
+import { mkdir, readFile } from 'fs/promises';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import fastifySwagger from '@fastify/swagger';
+import fastifySwaggerUi from '@fastify/swagger-ui';
+import YAML from 'yaml';
 import { getTodayInTimezone, validateDate } from './utils/dateUtils.js';
 import { getCachedReport, runAnalysis } from './api/analysisService.js';
 import { streamChat } from './business_modules/chat/app/chatService.js';
@@ -11,6 +14,7 @@ import { createYtDlpYoutubeAdapter } from './business_modules/video/infrastructu
 import { createLocalVideoFileAdapter } from './business_modules/video/infrastructure/adapters/localVideoFileAdapter.js';
 import { initFirebaseAdminForAuth } from './auth/firebaseAdmin.js';
 import { requireAuthPreHandler } from './auth/requireAuthPreHandler.js';
+import { tryAuthPreHandler } from './auth/tryAuthPreHandler.js';
 import { createEvidenceDraftStore } from './cross-cut-modules/persistence/evidenceDraftStore.js';
 import { createEvidenceStore } from './cross-cut-modules/persistence/evidenceStore.js';
 import { classifyEvidenceInput } from './cross-cut-modules/evidence/evidenceInputClassifier.js';
@@ -33,6 +37,7 @@ import { createWhatsAppIngestService } from './business_modules/whatsapp/app/wha
 import { createWhatsAppResilienceAnalyzer } from './business_modules/whatsapp/app/whatsappResilienceAnalyzer.js';
 import { createDraftGenerator } from './business_modules/whatsapp/app/draftGenerator.js';
 import { whatsappWebhookPlugin } from './business_modules/whatsapp/input/webhook-routes.js';
+import { buildProductDocsIndex, loadProductDocPage } from './utils/productDocs.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -250,8 +255,26 @@ export async function createApp(options) {
   }
 
   const authHook = authRequired ? { preHandler: requireAuthPreHandler } : {};
+  const tryAuthHook = authRequired ? { preHandler: tryAuthPreHandler } : {};
 
   const app = Fastify({ logger: false, bodyLimit: 10 * 1024 * 1024 /* 10 MB */ });
+
+  // ─── OpenAPI + Swagger UI (source of truth: openapi/openapi.yaml) ─────────
+  const openapiPath = resolve(__dirname, 'openapi', 'openapi.yaml');
+  let openapiDocument = null;
+  try {
+    openapiDocument = YAML.parse(await readFile(openapiPath, 'utf8'));
+  } catch {
+    openapiDocument = null;
+  }
+
+  if (openapiDocument) {
+    await app.register(fastifySwagger, { openapi: openapiDocument });
+    await app.register(fastifySwaggerUi, {
+      routePrefix: '/api/swagger',
+      uiConfig: { docExpansion: 'list' },
+    });
+  }
 
   const videoDownloadDir = process.env.VIDEO_DOWNLOAD_DIR?.trim()
     ? resolve(process.env.VIDEO_DOWNLOAD_DIR)
@@ -435,6 +458,35 @@ export async function createApp(options) {
   // ─── Public: client discovers whether JWT is required (no auth) ────────────
   app.get('/api/auth/config', async (_req, reply) => {
     return reply.send({ authRequired });
+  });
+
+  // ─── Product docs content API (single source: product_docs/) ──────────────
+  const productDocsRoot = resolve(__dirname, 'product_docs');
+
+  app.get('/api/docs/index', tryAuthHook, async (request, reply) => {
+    const index = await buildProductDocsIndex({ docsRootDir: productDocsRoot });
+    const isAuthed = !authRequired || !!request.user;
+    const pages = index.pages.map((p) => ({
+      ...p,
+      locked: p.gated && !isAuthed,
+    }));
+    return reply.send({ pages });
+  });
+
+  app.get('/api/docs/page/:slug', tryAuthHook, async (request, reply) => {
+    const slug = request.params?.slug;
+    const page = await loadProductDocPage({ docsRootDir: productDocsRoot, slug });
+    if (!page.ok) return reply.code(page.code).send({ error: page.error });
+    if (authRequired && page.gated && !request.user) {
+      return reply.code(401).send({ error: 'Unauthorized', code: 'docs_page_locked' });
+    }
+    return reply.send({ meta: page.meta ?? {}, markdown: page.markdown ?? '' });
+  });
+
+  // Serve the OpenAPI document as JSON for generators.
+  app.get('/api/openapi.json', async (_req, reply) => {
+    if (!openapiDocument) return reply.code(404).send({ error: 'OpenAPI document not configured' });
+    return reply.send(openapiDocument);
   });
 
   // ─── Protected API routes (when AUTH_REQUIRED=true) ───────────────────────

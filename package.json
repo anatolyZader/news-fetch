@@ -6,6 +6,9 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",
     "@fastify/static": "^9.0.0",
+    "@fastify/swagger": "^9.7.0",
+    "@fastify/swagger-ui": "^5.2.6",
+    "ajv": "^8.18.0",
     "dotenv": "^16.4.5",
     "fastify": "^5.2.0",
     "firebase-admin": "^13.7.0",
@@ -13,11 +16,13 @@
     "jsonrepair": "^3.13.3",
     "openai": "^4.104.0",
     "pptxgenjs": "^4.0.1",
-    "xlsx": "^0.18.5"
+    "xlsx": "^0.18.5",
+    "yaml": "^2.8.3"
   },
   "scripts": {
     "start": "node server.js",
     "test": "node --test $(find tests -name '*.test.js' -type f | sort)",
+    "docs:check": "node scripts/docs/validate-docs.js",
     "articles-to-md": "node business_modules/news-sites/input/fetch-articles-to-md.js",
     "homefront-to-md": "node business_modules/news-sites/input/extract-homefront-articles.js",
     "analyze-resilience": "node business_modules/resilience/input/analyze-resilience.js",

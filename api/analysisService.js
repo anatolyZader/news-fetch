@@ -14,10 +14,11 @@ import { getTodayInTimezone } from '../utils/dateUtils.js';
 import { loadMdFiles } from '../business_modules/resilience/infrastructure/mdReportsLoader.js';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const DEFAULT_HOMEFRONT_MD = 'business_modules/news-sites/articles_extracted/articles-homefront.md';
 
 /** Same default as extractHomefrontArticles — single merged input for resilience. */
 function resolveHomefrontMdPath() {
-  const raw = (process.env.HOMEFRONT_MD || 'articles-homefront.md').trim();
+  const raw = (process.env.HOMEFRONT_MD || DEFAULT_HOMEFRONT_MD).trim();
   return isAbsolute(raw) ? raw : resolve(ROOT, raw);
 }
 

@@ -1,0 +1,1 @@
+{"title":"Body","body":{"required":true,"content":{"application/json":{"schema":{"type":"object","required":["report","lang"],"properties":{"report":{"type":"object","additionalProperties":true},"lang":{"type":"string","description":"Target language code"}},"title":"TranslateRequest"}}}}}

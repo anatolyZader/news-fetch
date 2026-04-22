@@ -1,0 +1,32 @@
+{
+  "name": "vibeswitch-docs",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "engines": {
+    "node": ">=20 <24"
+  },
+  "scripts": {
+    "start": "docusaurus start",
+    "build": "docusaurus build",
+    "serve": "docusaurus serve",
+    "clear": "docusaurus clear",
+    "gen:api": "docusaurus gen-api-docs vibeswitch",
+    "gen:api:all": "docusaurus gen-api-docs all"
+  },
+  "dependencies": {
+    "@docusaurus/core": "^3.10.0",
+    "@docusaurus/preset-classic": "^3.10.0",
+    "@mdx-js/react": "^3.1.0",
+    "clsx": "^2.1.1",
+    "docusaurus-plugin-openapi-docs": "^5.0.0",
+    "docusaurus-theme-openapi-docs": "^5.0.0",
+    "prism-react-renderer": "^2.4.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "overrides": {
+    "webpack": "5.95.0"
+  }
+}
+

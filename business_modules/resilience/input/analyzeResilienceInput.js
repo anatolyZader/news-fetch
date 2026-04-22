@@ -45,7 +45,7 @@ export async function runAnalyzeResilienceCli() {
     filePaths = filesArg.split(',').map((f) => resolve(f.trim()));
     dayOffsets = filePaths.map(() => 0);
   } else {
-    const baseFile = resolve('articles-homefront.md');
+    const baseFile = resolve('business_modules/news-sites/articles_extracted/articles-homefront.md');
     filePaths = [baseFile];
     dayOffsets = [0];
     // Auto-include prior days' dated article files if they exist
@@ -54,7 +54,7 @@ export async function runAnalyzeResilienceCli() {
       const d = new Date(baseDate);
       d.setDate(d.getDate() - offset);
       const priorDate = d.toISOString().slice(0, 10);
-      const priorFile = resolve(`articles-homefront-${priorDate}.md`);
+      const priorFile = resolve(`business_modules/news-sites/articles_extracted/articles-homefront-${priorDate}.md`);
       if (existsSync(priorFile)) {
         filePaths.push(priorFile);
         dayOffsets.push(offset);

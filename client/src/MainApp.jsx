@@ -4,6 +4,7 @@ import { useTranslatedReport } from './hooks/useTranslatedReport.js';
 import { ReportView } from './components/ReportView.jsx';
 import { ReportMarkdownView } from './components/ReportMarkdownView.jsx';
 import { ChatPanel } from './components/ChatPanel.jsx';
+import { DocsPanel } from './components/DocsPanel.jsx';
 import { EvidenceInput } from './components/EvidenceInput.jsx';
 import { SubmissionsTab } from './components/SubmissionsTab.jsx';
 import { EducationTab } from './components/EducationTab.jsx';
@@ -18,6 +19,7 @@ function AppShell() {
   const { logout, authRequired } = useAuth();
   const { report, markdown, costUsd, costBreakdown, scoreBySource, reportDate, initialReportLoadDone } = useTodayReport();
   const [activeTab, setActiveTab] = useState('report');
+  const [docsOpen, setDocsOpen] = useState(false);
   const { t, lang } = useLanguage();
   const { displayReport, translating, translateError } = useTranslatedReport(report, lang);
 
@@ -40,6 +42,9 @@ function AppShell() {
           <p className={styles.subtitle}>Home Front Command · Daily Assessment</p>
         </div>
         <div className={styles.headerActions}>
+          <button type="button" className={styles.docsButton} onClick={() => setDocsOpen(true)}>
+            Docs
+          </button>
           <LanguageSelector />
           {authRequired && (
             <button type="button" className={styles.signOut} onClick={() => logout()}>
@@ -100,6 +105,8 @@ function AppShell() {
 
         {activeTab === 'naftali' && <NaftaliTab />}
       </main>
+
+      <DocsPanel open={docsOpen} onClose={() => setDocsOpen(false)} />
     </div>
   );
 }

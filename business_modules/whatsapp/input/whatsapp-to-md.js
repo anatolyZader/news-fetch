@@ -7,7 +7,7 @@
  *   node whatsapp-to-md.js --date YYYY-MM-DD
  *
  * Output:
- *   articles-whatsapp-{date}.md
+ *   business_modules/whatsapp/reports/whatsapp_reports-{date}.md
  */
 
 import 'dotenv/config';

@@ -11,7 +11,7 @@
  *   Preserved unchanged from the pre-adaptive implementation.
  */
 
-import { writeFileSync } from 'fs';
+import { mkdirSync, writeFileSync } from 'fs';
 import { resolve } from 'path';
 import { isAllowedGroup, isDmMessage, parseWebhookEntry } from '../domain/services/whatsappMessageFilter.js';
 import { buildAnalysisReply } from '../domain/services/hebrewResponseBuilder.js';
@@ -27,6 +27,9 @@ const CONVERSATION_TTL_MINUTES = 60;
 
 // Prevent infinite follow-up loops — force a draft after this many officer turns.
 const MAX_COLLECTING_TURNS = 6;
+
+const DEFAULT_WHATSAPP_REPORT_DIR = 'business_modules/whatsapp/reports';
+const DEFAULT_WHATSAPP_REPORT_BASENAME = 'whatsapp_reports';
 
 /**
  * @param {{
@@ -93,7 +96,11 @@ export function createWhatsAppIngestService({
         lines.push('');
       });
 
-      const outPath = resolve(`articles-whatsapp-${date}.md`);
+      mkdirSync(resolve(DEFAULT_WHATSAPP_REPORT_DIR), { recursive: true });
+      const outPath = resolve(
+        DEFAULT_WHATSAPP_REPORT_DIR,
+        `${DEFAULT_WHATSAPP_REPORT_BASENAME}-${date}.md`,
+      );
       writeFileSync(outPath, lines.join('\n'), 'utf-8');
       console.error(`Wrote ${messages.length} WhatsApp messages to ${outPath}`);
       return outPath;

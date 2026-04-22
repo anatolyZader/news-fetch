@@ -58,6 +58,20 @@
   cursor: pointer;
 }
 
+.docsButton {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.docsButton:hover {
+  color: var(--fg, inherit);
+}
+
 .signOut:hover {
   color: var(--fg, inherit);
 }

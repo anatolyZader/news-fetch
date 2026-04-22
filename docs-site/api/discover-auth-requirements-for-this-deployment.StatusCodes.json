@@ -1,0 +1,1 @@
+{"responses":{"200":{"description":"OK","content":{"application/json":{"schema":{"type":"object","required":["authRequired"],"properties":{"authRequired":{"type":"boolean"}},"title":"AuthConfig"}}}}}}

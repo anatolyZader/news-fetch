@@ -1,0 +1,13 @@
+:root {
+  --ifm-color-primary: #7c5cff;
+  --ifm-color-primary-dark: #6c4af5;
+  --ifm-color-primary-darker: #6341f0;
+  --ifm-color-primary-light: #8b73ff;
+  --ifm-color-primary-lighter: #9a85ff;
+}
+
+/* Keep docs readable and “product-like”. */
+.markdown {
+  --ifm-leading: 1.75;
+}
+

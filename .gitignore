@@ -1,12 +1,50 @@
 node_modules/
+client/node_modules/
+
+# Build outputs
+dist/
 client/dist/
+docs-site/node_modules/
+docs-site/build/
+docs-site/.docusaurus/
+docs-site/.cache/
+
+# Env / secrets
 .env
 .env.local
 client/.env.local
 secrets/
-*.log
-.DS_Store
-cost-log.jsonl
-downloads/
 .local/
+
+# Logs / cost
+*.log
+cost-log.jsonl
+
+# Data + downloads + recordings + reports (runtime/generated)
 data/
+downloads/
+recordings/
+reports/
+logs/
+
+# Local DB files
+*.sqlite
+*.sqlite-journal
+*.sqlite-shm
+*.sqlite-wal
+
+# OS
+.DS_Store
+
+# Large binaries (keep out of git)
+*.xlsx
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.mp4
+*.mp3
+*.wav
+*.m4a
+*.webm
+

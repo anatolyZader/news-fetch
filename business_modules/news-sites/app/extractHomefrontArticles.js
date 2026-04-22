@@ -8,8 +8,8 @@
  */
 import { config } from 'dotenv';
 import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
-import { writeFileSync } from 'node:fs';
+import { dirname, join, resolve as resolvePath } from 'node:path';
+import { mkdirSync, writeFileSync } from 'node:fs';
 
 import Anthropic from '@anthropic-ai/sdk';
 import { resolve } from 'node:path';
@@ -20,6 +20,8 @@ import { createEvidenceStore } from '../../../cross-cut-modules/persistence/evid
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(__dirname, '../../..');
 config({ path: join(repoRoot, '.env') });
+
+const DEFAULT_HOMEFRONT_MD = 'business_modules/news-sites/articles_extracted/articles-homefront.md';
 
 const SITE_ADAPTERS = {
   ynet:       () => import('../infrastructure/adapters/newsApiYnetAdapter.js'),
@@ -209,7 +211,7 @@ export async function runExtractHomefrontArticles(opts = {}) {
   const argv = opts.argv ?? process.argv;
   const apiKey = (process.env.NEWSAPI_AI_KEY || process.env.NEWSAPI_API_KEY || process.env.NEWSAPI_KEY || '').trim();
   const timezone = process.env.TZ_ARTICLES || 'Asia/Jerusalem';
-  const outPath = process.env.HOMEFRONT_MD || 'articles-homefront.md';
+  const outPath = (process.env.HOMEFRONT_MD || DEFAULT_HOMEFRONT_MD).trim() || DEFAULT_HOMEFRONT_MD;
 
   if (!apiKey) {
     console.error('Missing NEWSAPI_API_KEY (e.g. in .env).');
@@ -280,6 +282,9 @@ export async function runExtractHomefrontArticles(opts = {}) {
     sections.push('---');
     sections.push('');
   }
+
+  // Ensure the output directory exists (especially when using the default under business_modules/).
+  mkdirSync(dirname(resolvePath(repoRoot, outPath)), { recursive: true });
 
   writeFileSync(outPath, sections.join('\n'), 'utf8');
   const datedOutPath = outPath.replace(/\.md$/, '') + `-${date}.md`;
