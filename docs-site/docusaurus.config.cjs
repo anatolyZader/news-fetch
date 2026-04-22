@@ -30,6 +30,13 @@ const config = {
           path: '../product_docs',
           routeBasePath: '/',
           sidebarPath: './sidebars.js',
+          exclude: [
+            '**/_*.{md,mdx}',
+            '**/_*/**',
+            '**/README.md',
+            '**/_template.page.md',
+            '**/frontmatter.schema.json',
+          ],
           editUrl: 'https://github.com/<ORG>/<REPO>/tree/main/product_docs/',
           showLastUpdateTime: true,
           showLastUpdateAuthor: false,
