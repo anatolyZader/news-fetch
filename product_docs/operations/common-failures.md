@@ -2,7 +2,7 @@
 title: "Common failures"
 description: "Symptoms → checks → fixes for the most common operational failures."
 intent: operations
-audience: ["public", "customer"]
+audience: ["internal"]
 stability: beta
 canonical: "https://docs.vibeswitch.ai/operations/common-failures"
 version: "current"

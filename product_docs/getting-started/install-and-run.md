@@ -2,7 +2,7 @@
 title: "Install & run (local)"
 description: "Run the API + UI locally and verify the system end-to-end."
 intent: getting-started
-audience: ["public", "customer"]
+audience: ["internal"]
 stability: beta
 canonical: "https://docs.vibeswitch.ai/getting-started/install-and-run"
 version: "current"

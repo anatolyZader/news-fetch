@@ -82,6 +82,8 @@ export async function buildProductDocsIndex({ docsRootDir }) {
     const content = await readFile(absPath, 'utf8');
     const { meta } = parseFrontmatter(content);
     const gated = isGatedDocPage(meta, rel);
+    const audience = Array.isArray(meta?.audience) ? meta.audience.map(String) : [];
+    if (audience.includes('internal')) continue;
 
     const st = await stat(absPath);
     pages.push({

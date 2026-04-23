@@ -6,11 +6,7 @@ const sidebars = {
       label: 'Getting Started',
       link: { type: 'generated-index', title: 'Getting Started' },
       items: [
-        { type: 'doc', id: 'getting-started/quickstart' },
         { type: 'doc', id: 'getting-started/using-the-app' },
-        { type: 'doc', id: 'getting-started/install-and-run' },
-        { type: 'doc', id: 'getting-started/deploy' },
-        { type: 'doc', id: 'getting-started/auth-setup' },
       ],
     },
     {
@@ -33,7 +29,6 @@ const sidebars = {
         { type: 'doc', id: 'guides/news-ingestion' },
         { type: 'doc', id: 'guides/whatsapp-integration' },
         { type: 'doc', id: 'guides/audio-ingestion' },
-        { type: 'doc', id: 'guides/operating-daily-pipeline' },
       ],
     },
     {
@@ -44,16 +39,6 @@ const sidebars = {
         { type: 'doc', id: 'architecture/system-overview' },
         { type: 'doc', id: 'architecture/module-map' },
         { type: 'doc', id: 'architecture/storage' },
-      ],
-    },
-    {
-      type: 'category',
-      label: 'Operations',
-      link: { type: 'generated-index', title: 'Operations' },
-      items: [
-        { type: 'doc', id: 'operations/common-failures' },
-        { type: 'doc', id: 'operations/observability' },
-        { type: 'doc', id: 'operations/cost-controls' },
       ],
     },
     {

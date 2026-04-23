@@ -14,18 +14,15 @@ llm:
 ## What you get when WhatsApp is connected
 When WhatsApp is connected, messages from approved groups become part of the evidence used in the daily assessment. That means:
 - you can see WhatsApp-driven evidence behind a score
-- you can export a day’s messages to a readable markdown file
-- (optionally) you can extract signals from those messages and update the assessment
+- the assessment can reflect community sentiment and on-the-ground reports faster than news
+- operators can audit what was ingested for a given day (for privacy and accuracy)
 
 WhatsApp is sensitive. Treat message content as private by default.
 
-## The one command you’ll use most (export a day)
-
-```bash runnable
-node business_modules/whatsapp/input/whatsapp-to-md.js --date 2026-04-21
-```
-
-Expected: a file is printed and created under `business_modules/whatsapp/reports/whatsapp_reports-2026-04-21.md`. Each message appears with timestamp, sender (anonymized if configured), and body text.
+## What you will see in the app
+- In the **Report** tab, some evidence items will cite WhatsApp as a source.
+- If your deployment shows source breakdowns, WhatsApp will appear as one of the inputs for the day.
+- You may be able to drill into evidence excerpts (depending on your privacy settings).
 
 ## Operator setup (one-time)
 If you’re not the operator: you can stop here and send this page to the person who manages the deployment.

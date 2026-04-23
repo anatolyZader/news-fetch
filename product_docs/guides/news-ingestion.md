@@ -14,29 +14,13 @@ This step pulls today’s news, keeps only the items that look **homefront-relev
 
 If your report is empty or stale, this is usually the first thing an operator reruns.
 
-## Run it
-
-### Fetch and write today’s export
-
-```bash runnable
-npm run homefront-to-md
-```
-
-Expected: a dated file appears under `business_modules/news-sites/articles_extracted/` (and logs show how many articles were kept).
-
-### Backfill a specific date
-
-```bash runnable
-npm run homefront-to-md -- 2026-04-18
-```
-
-Expected: `articles-homefront-2026-04-18.md` appears in `business_modules/news-sites/articles_extracted/`.
+## What you will see in the app
+- The **Report** tab will cite news articles as evidence.
+- If ingestion ran successfully for today, the report will reference fresh articles and today’s date.
+- If ingestion did not run, the report may look stale or empty for today.
 
 ## What it produces
-- A “latest” file (overwritten each run): `business_modules/news-sites/articles_extracted/articles-homefront.md`
-- A dated archive: `business_modules/news-sites/articles_extracted/articles-homefront-YYYY-MM-DD.md`
-
-Open the dated file to confirm it doesn’t look obviously wrong (0 articles, wrong topic, etc.).
+Operators maintain an internal, auditable export for each day (so they can validate what was kept and why). End users don’t need to run anything manually.
 
 ## Troubleshooting
 - **The export is empty**

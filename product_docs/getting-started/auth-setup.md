@@ -2,7 +2,7 @@
 title: "Auth setup (Identity Platform / Firebase)"
 description: "Enable sign-in and protect the API with Firebase ID tokens."
 intent: getting-started
-audience: ["public", "customer"]
+audience: ["internal"]
 stability: beta
 canonical: "https://docs.vibeswitch.ai/getting-started/auth-setup"
 version: "current"

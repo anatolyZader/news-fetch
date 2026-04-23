@@ -2,7 +2,7 @@
 title: "Deploy (production)"
 description: "Deploy VibeSwitch safely with correct env, auth, and build outputs."
 intent: getting-started
-audience: ["public", "customer"]
+audience: ["internal"]
 stability: beta
 canonical: "https://docs.vibeswitch.ai/getting-started/deploy"
 version: "current"

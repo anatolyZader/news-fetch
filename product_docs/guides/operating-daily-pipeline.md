@@ -2,7 +2,7 @@
 title: "Operate the daily pipeline"
 description: "Day-to-day workflow for ingesting sources, extracting signals, and producing reports."
 intent: guides
-audience: ["public", "customer"]
+audience: ["internal"]
 stability: beta
 canonical: "https://docs.vibeswitch.ai/guides/operating-daily-pipeline"
 version: "current"

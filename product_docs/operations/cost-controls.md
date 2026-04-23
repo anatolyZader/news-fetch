@@ -2,7 +2,7 @@
 title: "Cost controls"
 description: "How budgets, retries, and caps keep automated runs safe."
 intent: operations
-audience: ["public", "customer"]
+audience: ["internal"]
 stability: beta
 canonical: "https://docs.vibeswitch.ai/operations/cost-controls"
 version: "current"

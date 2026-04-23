@@ -2,7 +2,7 @@
 title: "Observability"
 description: "Where to look when things fail: logs, endpoints, and debug flow."
 intent: operations
-audience: ["public", "customer"]
+audience: ["internal"]
 stability: beta
 canonical: "https://docs.vibeswitch.ai/operations/observability"
 version: "current"

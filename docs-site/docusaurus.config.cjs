@@ -36,6 +36,13 @@ const config = {
             '**/README.md',
             '**/_template.page.md',
             '**/frontmatter.schema.json',
+            // Internal-only: deploy/operator/dev runbooks should not be public.
+            'getting-started/quickstart.md',
+            'getting-started/install-and-run.md',
+            'getting-started/deploy.md',
+            'getting-started/auth-setup.md',
+            'guides/operating-daily-pipeline.md',
+            'operations/**',
           ],
           editUrl: 'https://github.com/<ORG>/<REPO>/tree/main/product_docs/',
           showLastUpdateTime: true,
@@ -78,11 +85,10 @@ const config = {
       navbar: {
         title: 'VibeSwitch',
         items: [
-          { to: '/getting-started/quickstart', label: 'Getting Started', position: 'left' },
+          { to: '/getting-started/using-the-app', label: 'Getting Started', position: 'left' },
           { to: '/concepts/system-dataflow', label: 'Concepts', position: 'left' },
           { to: '/guides/news-ingestion', label: 'Guides', position: 'left' },
           { to: '/api', label: 'API', position: 'left' },
-          { to: '/operations/common-failures', label: 'Operations', position: 'left' },
           { href: 'https://vibeswitch.ai', label: 'Product', position: 'right' },
         ],
       },

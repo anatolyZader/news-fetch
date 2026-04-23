@@ -1,0 +1,287 @@
+{
+  "source_type": "news",
+  "content_kind": "news",
+  "date": "2026-04-16",
+  "extracted_at": "2026-04-16T10:28:29.317Z",
+  "source_files": [
+    "articles-homefront-2026-04-16.md"
+  ],
+  "total_articles": 80,
+  "signals": [
+    {
+      "article_index": 1,
+      "article_url": "https://www.ynet.co.il/news/article/yokra14741517",
+      "signal_type": "resource_shortage",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "11,000 residents of Kiryat Shmona requested a four-night break from alerts and shelters; more than half remained behind due to budget shortage. 6,000+ requests from city residents were rejected.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "ynet.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 5,
+      "article_url": "https://www.ynet.co.il/health/article/h1y70rd3bl",
+      "signal_type": "wellbeing_support_accessed",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Esti received physiotherapy, occupational therapy, and psychological support. She states: 'The emotional treatment gave me confidence and the desire to strengthen myself. It helped me greatly with self-image, helped me feel I am useful, that I can still do things for my children, for my family and for myself.'",
+      "scope_level": "single_case",
+      "article_source": "ynet.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 6,
+      "article_url": "https://www.ynet.co.il/economy/article/sj11j4z0nbg",
+      "signal_type": "service_continuity",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Emek Medical Center built and trained significant protected infrastructure in the past three years, including underground protected complexes housing ~300 hospital beds and 10 operating rooms. Hospital director Dr. Maor Maman states: 'The extensive protected infrastructure allows us to function flexibly and efficiently even under fire, and thus continue to provide full medical services in emergency to all northern residents.'",
+      "scope_level": "quantified_or_broad",
+      "article_source": "ynet.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 8,
+      "article_url": "https://www.ynet.co.il/economy/article/hj7bbmcn11x",
+      "signal_type": "community_volunteering",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Yigal Aliyahu and Alon Weizberg, founders of a real estate group, mobilized hundreds of days of service during Operation Iron Swords. Weizberg volunteered in community associations; Aliyahu serves as a reserve captain in a combat unit. Both managed their company remotely while serving.",
+      "scope_level": "repeated_pattern",
+      "article_source": "ynet.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 12,
+      "article_url": "https://www.maariv.co.il/news/israel/article-1310413",
+      "signal_type": "community_volunteering",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Alon, mother of Tomer (killed in combat), states: 'Tomer's unwritten will is to do good for others, and that is what I do.' She continues his work through the initiative 'Tomer's Roar of the Lion,' collecting supplies for soldiers fighting in Lebanon with volunteers from the Scouts.",
+      "scope_level": "single_case",
+      "article_source": "maariv.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 15,
+      "article_url": "https://www.maariv.co.il/news/israel/article-1310320",
+      "signal_type": "psychological_distress",
+      "evidence_type": "named_survey_statistic",
+      "evidence": "Many wounded soldiers from Operation Iron Swords experienced additional injury during the 40-day war with Iran. According to Netzl organization and IDF disabled veterans organization: security uncertainty brings many wounded back to a sense of threat. Isolation intensifies: 'From the Warrior's House I hear mainly about feelings of loneliness that intensify. The social circle is real oxygen for them, and when it is damaged the difficulty grows.'",
+      "scope_level": "repeated_pattern",
+      "article_source": "maariv.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 16,
+      "article_url": "https://www.maariv.co.il/news/military/article-1310308",
+      "signal_type": "calm_confidence",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Gilad, diagnosed as autistic and serving in Iron Dome, states: 'In a year and ten months in the army, I was surprised by the significant personal and professional support I received from the team and commanders. I am amazed to see every day the effort of everyone around me working nights and days barely sleeping, for the chance to increase interception percentages, save human lives and maintain rear security. I am proud to be part of a team of people working tirelessly so my family and all our families can feel secure even in these days.'",
+      "scope_level": "single_case",
+      "article_source": "maariv.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 17,
+      "article_url": "https://www.maariv.co.il/news/israel/article-1310330",
+      "signal_type": "community_volunteering",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Rines describes 'Amit's Friends Cafe,' a community initiative honoring a fallen soldier: 'This is not just a coffee cart, it is a whole community that gathers around one memory. Every Friday we bake, arrive, give of ourselves, and on Memorial Day it takes on even deeper meaning. It is a moment when everyone stops, sits together, and continues to tell Amit's story through our connection.'",
+      "scope_level": "repeated_pattern",
+      "article_source": "maariv.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 19,
+      "article_url": "https://www.maariv.co.il/breaking-news/article-1310517",
+      "signal_type": "compliance_enter_shelter",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Following Hezbollah missile fire, sirens sounded in Kiryat Shmona and Kfar Giladi. Municipality message to residents: 'Alert activated in Kiryat Shmona. Due to missile fire, residents are requested to enter shelters and protected spaces and remain there until receiving further notice from the Home Front Command.'",
+      "scope_level": "single_case",
+      "article_source": "maariv.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 26,
+      "article_url": "https://www.maariv.co.il/breaking-news/article-1310558",
+      "signal_type": "service_continuity",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Pelephone donated dozens of SIM cards and mobile devices to social workers and security personnel in Kiryat Shmona to enable continuous communication for aid workers. Yes company connected dozens of public shelters throughout the city to yes+ service at no cost to ease prolonged shelter stays by providing diverse content for all ages.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "maariv.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 32,
+      "article_url": "https://www.maariv.co.il/breaking-news/article-1310595",
+      "signal_type": "calm_confidence",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "R., 24, immigrant from Chicago, states: 'Despite being entitled to shortened service as a volunteer, I chose to continue to officer rank and contribute beyond what was required, leading my soldiers with a command approach that dedicates investment in the individual as the basis for state security.'",
+      "scope_level": "single_case",
+      "article_source": "maariv.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 46,
+      "article_url": "https://www.mako.co.il/special-keren_poalim_tkuma/Article-0090ffadd159d91026.htm",
+      "signal_type": "wellbeing_support_accessed",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Gaia, wounded in Operation Iron Swords, describes her rehabilitation journey: 'They came and talked to me about what interests me. They asked me where do I want to reach in the future? The limitation will not limit me.' She accessed physiotherapy, occupational therapy, climbing training, and employment support through the 'For Success' program.",
+      "scope_level": "single_case",
+      "article_source": "mako.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 47,
+      "article_url": "https://www.mako.co.il/news-law_guide/2026_q2/Article-65a6f63a9129d91027.htm",
+      "signal_type": "resource_shortage",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Thousands of families still live in old buildings without protected rooms (mamad), sometimes with only deteriorating shelters. Urban renewal projects are stalled in planning committees for years. Millions of Israelis still lack adequate protection. Elderly, families with small children, and residents of old buildings are forced to run to shelters in the middle of the night during alerts.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "mako.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 49,
+      "article_url": "https://www.ice.co.il/research/news/article/1109788",
+      "signal_type": "compliance_enter_shelter",
+      "evidence_type": "named_survey_statistic",
+      "evidence": "New research at Ashkelon Academic College examined shelter-seeking behavior during Operation Swords of Iron. Study of 121 representative sample of men and women conducted by Prof. Yuval Wolf, Victor Samuel, and others found that not all residents shelter when alerted.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "ice.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 60,
+      "article_url": "https://www.timesofisrael.com/liveblog_entry/nearly-7800-admitted-to-hospitals-due-to-iran-war-since-fighting-began-health-ministry/",
+      "signal_type": "harm_to_population",
+      "evidence_type": "named_survey_statistic",
+      "evidence": "Health Ministry reports 7,791 people admitted to hospitals due to fighting with Iran and Hezbollah since February 28. Currently 83 hospitalized: 1 critical, 15 serious, 26 moderate, 41 good condition. Includes soldiers and civilians; some injuries indirect (e.g., while reaching shelters).",
+      "scope_level": "quantified_or_broad",
+      "article_source": "timesofisrael.com",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 1,
+      "article_url": "https://www.timesofisrael.com/liveblog_entry/memorial-day-events-may-be-prerecorded-due-to-home-front-command-restrictions-defense-ministry/",
+      "signal_type": "leadership_clear_guidance",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Defense Ministry announces Memorial Day ceremonies will be held in accordance with Home Front Command wartime restrictions; state ceremonies will be prerecorded and broadcast if in-person events cannot take place. Gatherings restricted to 5,000 attendees in some areas, 1,000 in others.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "timesofisrael.com",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 3,
+      "article_url": "https://www.jpost.com/podcast/jpost-podcast/article-893102",
+      "signal_type": "service_continuity",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Schools reopening and air raid sirens becoming less frequent after weeks of conflict; Israel returning to normal after ceasefire.",
+      "scope_level": "repeated_pattern",
+      "article_source": "jpost.com",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 6,
+      "article_url": "https://www.haaretz.com/israel-news/israel-security/2026-04-16/ty-article-live/report-lebanese-officials-say-cease-fire-with-israel-expected-soon/0000019d-9419-df26-a1bf-b5dbfb980000?liveBlogItemId=1227330704",
+      "signal_type": "leadership_clear_guidance",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Military stated: 'Out of concern for your safety, we once again urge you to evacuate your homes immediately and prepare immediately for the northern part of Nahal Al-Zahrani.'",
+      "scope_level": "single_case",
+      "article_source": "haaretz.com",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 10,
+      "article_url": "https://www.ynetnews.com/health_science/article/sy1evxc2zg",
+      "signal_type": "wellbeing_support_accessed",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "'Step by Step' program under Belev Echad helps 18 wounded soldiers rebuild routine and purpose through intensive physical training, supporting recovery from injury and PTSD.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "ynetnews.com",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 10,
+      "article_url": "https://www.ynetnews.com/health_science/article/sy1evxc2zg",
+      "signal_type": "psychological_distress",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Program founder Tom Marmarelli: 'In many cases, that means starting from nothing -- no routine, no sleep, no physical baseline.' Participants include soldiers coping with PTSD and physical injuries including amputations.",
+      "scope_level": "repeated_pattern",
+      "article_source": "ynetnews.com",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 11,
+      "article_url": "https://www.ynetnews.com/article/rk11nme0nwx",
+      "signal_type": "community_volunteering",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Bereaved parents and grieving citizens spontaneously set up memorial at Dizengoff Square with 1,391 torches days after October 7 massacre; over two and a half years became grassroots place of remembrance with photos, stickers, and names of victims and fallen soldiers.",
+      "scope_level": "repeated_pattern",
+      "article_source": "ynetnews.com",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 12,
+      "article_url": "https://www.ynetnews.com/article/rjrixmahbe",
+      "signal_type": "leadership_clear_guidance",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Israeli military issued renewed evacuation warning to residents in parts of southern Lebanon south of the Zahrani River, citing ongoing Hezbollah activity and continued Israeli airstrikes.",
+      "scope_level": "single_case",
+      "article_source": "ynetnews.com",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 14,
+      "article_url": "https://www.israelnationalnews.com/news/425575",
+      "signal_type": "leadership_clear_guidance",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "IDF Chief of Staff Eyal Zamir told leaders of frontline communities: 'We will serve as a buffer before the communities and act to ensure long-term security.'",
+      "scope_level": "single_case",
+      "article_source": "israelnationalnews.com",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 17,
+      "article_url": "https://www.israelnationalnews.com/news/425586",
+      "signal_type": "harm_to_population",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "MDA emergency medic Yosef Chaim Ha'ozi: 'This was a serious accident. The child was lying on the road next to the vehicle unconscious, without a pulse and not breathing, with multiple system trauma after being struck by the car.' A 5-year-old child died from injuries sustained in traffic accident in Beit Shemesh.",
+      "scope_level": "single_case",
+      "article_source": "israelnationalnews.com",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 20,
+      "article_url": "https://www.israelnationalnews.com/news/425592",
+      "signal_type": "resource_mobilization",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Arad municipality began demolishing heavily damaged buildings and reinforcing partially damaged structures. About half of evacuees housed in hotels funded by authorities; rest arranged temporary accommodations with relatives or within community.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "israelnationalnews.com",
+      "temporal_weight": 1,
+      "source_type": "news"
+    }
+  ]
+}

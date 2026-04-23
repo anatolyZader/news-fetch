@@ -2,7 +2,7 @@
 title: "Quickstart"
 description: "Get to first success in under 10 minutes."
 intent: getting-started
-audience: ["public", "customer"]
+audience: ["internal"]
 stability: beta
 canonical: "https://docs.vibeswitch.ai/getting-started/quickstart"
 version: "current"

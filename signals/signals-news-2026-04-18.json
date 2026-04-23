@@ -1,0 +1,111 @@
+{
+  "source_type": "news",
+  "content_kind": "news",
+  "date": "2026-04-18",
+  "extracted_at": "2026-04-18T09:44:30.394Z",
+  "source_files": [
+    "articles-homefront-2026-04-18.md"
+  ],
+  "total_articles": 12,
+  "signals": [
+    {
+      "article_index": 1,
+      "article_url": "https://www.ynet.co.il/news/article/b1ngkngawx",
+      "signal_type": "conflict_or_tension",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Senior officer at base humiliated newly discharged female soldiers with derogatory and discriminatory remarks, brought them to show trial for wearing jeans and jacket",
+      "scope_level": "single_case",
+      "article_source": "ynet.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 4,
+      "article_url": "https://www.maariv.co.il/economy/israel/article-1310770",
+      "signal_type": "resilience_narrative_positive",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Family member describing deceased: 'Noa was a child of light, of love, of joy, of giving. Always saw the weak, always sought to contribute without expecting anything in return.' Family reopened cafe in her memory as positive commemoration and continued giving.",
+      "scope_level": "single_case",
+      "article_source": "maariv.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 4,
+      "article_url": "https://www.maariv.co.il/economy/israel/article-1310770",
+      "signal_type": "community_volunteering",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Family reopened cafe 'Chatzer shel Noni' after year of mourning, renovated space with father and deceased's father, established agricultural shop with Israeli products only",
+      "scope_level": "single_case",
+      "article_source": "maariv.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 5,
+      "article_url": "https://www.maariv.co.il/news/military/article-1311258",
+      "signal_type": "compliance_follow_instructions",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Settlement patrol officer immediately responded to infiltration alert at 6:07, jumped to gate area, confronted armed attacker with knife, neutralized threat within minutes",
+      "scope_level": "single_case",
+      "article_source": "maariv.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 6,
+      "article_url": "https://news.walla.co.il/break/3831475",
+      "signal_type": "compliance_follow_instructions",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Settlement defense systems detected infiltration, alert activated, patrol officer neutralized armed knife-wielding attacker, no casualties, IDF conducted area sweeps",
+      "scope_level": "single_case",
+      "article_source": "news.walla.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 9,
+      "article_url": "http://news.walla.co.il/item/3831499",
+      "signal_type": "leadership_visible_presence",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Kiryat Shmona municipality announced general strike in education and city services (except emergency), organized bus convoy for protest actions across country",
+      "scope_level": "single_case",
+      "article_source": "news.walla.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 10,
+      "article_url": "https://news.walla.co.il/break/3831501",
+      "signal_type": "leadership_visible_presence",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Kiryat Shmona municipality announced general strike in education and city services (except emergency), organized bus convoy for protest actions",
+      "scope_level": "single_case",
+      "article_source": "news.walla.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 11,
+      "article_url": "https://www.mako.co.il/special-mako-news/Article-ad0ba0e9e9d8d91026.htm",
+      "signal_type": "resilience_narrative_negative",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Council head: 'We won every battle against Hezbollah, but it does not translate to a decision that ends this story once and for all. That is what saddens me. We fell into the trap in a sense.'",
+      "scope_level": "single_case",
+      "article_source": "mako.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    },
+    {
+      "article_index": 11,
+      "article_url": "https://www.mako.co.il/special-mako-news/Article-ad0ba0e9e9d8d91026.htm",
+      "signal_type": "leadership_clear_guidance",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "Council head requests residents remain in homes and minimize movement due to ongoing security risks from rocket fire",
+      "scope_level": "single_case",
+      "article_source": "mako.co.il",
+      "temporal_weight": 1,
+      "source_type": "news"
+    }
+  ]
+}

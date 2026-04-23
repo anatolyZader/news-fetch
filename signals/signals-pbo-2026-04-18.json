@@ -1,0 +1,1532 @@
+{
+  "source_type": "pbo",
+  "content_kind": "pbo_municipality",
+  "date": "2026-04-18",
+  "extracted_at": "2026-04-18T09:44:45.861Z",
+  "source_files": [
+    "north_18_4.xlsx"
+  ],
+  "total_articles": 20,
+  "signals": [
+    {
+      "article_index": 1,
+      "article_url": null,
+      "signal_type": "resilience_narrative_positive",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[אעבלין] נרטיב: avg=81% (100%, 75%, 75%, 75%) — מתמודדים , ברובם נשמעים",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-אעבלין",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 1,
+      "article_url": null,
+      "signal_type": "information_actionable_effective",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[אעבלין] מידע, תקשורת ושיתוף: avg=100% (100%, 100%, 100%, 100%) — פקער,רשות,תקשורת",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-אעבלין",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 1,
+      "article_url": null,
+      "signal_type": "compliance_enter_shelter",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[אעבלין] התנהגות אפקטיבית להצלת חיים: avg=83% (100%, 75%, 75%) — מפורסמים סרטונים שמראים כי קיום ההנחיות מציל חיים",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-אעבלין",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 1,
+      "article_url": null,
+      "signal_type": "service_continuity",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[אעבלין] רציפות תפקודית: avg=50% (0%, 100%) — רשות בתפקוד מלא",
+      "scope_level": "single_case",
+      "article_source": "pbo-אעבלין",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 1,
+      "article_url": null,
+      "signal_type": "community_volunteering",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[אעבלין] הון ומשאבי קהילה: avg=75% (75%, 75%, 75%) — אין",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-אעבלין",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 1,
+      "article_url": null,
+      "signal_type": "leadership_visible_present",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[אעבלין] מנהיגות: avg=100% (100%, 100%) — נתפסים אמינים",
+      "scope_level": "single_case",
+      "article_source": "pbo-אעבלין",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 1,
+      "article_url": null,
+      "signal_type": "solidarity_help_others",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[אעבלין] שייכות וסולידריות: avg=83% (75%, 100%, 75%) — אין",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-אעבלין",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 1,
+      "article_url": null,
+      "signal_type": "wellbeing_support_accessed",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[אעבלין] דאגה לרווחה: avg=100% (100%, 100%, 100%) — מכלול אוכלוסיה בתפקוד מלא",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-אעבלין",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 2,
+      "article_url": null,
+      "signal_type": "resilience_narrative_positive",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[ג'דיידה מכר] נרטיב: avg=88% (100%, 100%, 75%, 75%) — דיבורים סביב עניין הפסקת האש והחזרת מערכת החינוך ובעיקר על הפסקת האש בלבנון",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-ג'דיידה מכר",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 2,
+      "article_url": null,
+      "signal_type": "information_actionable_effective",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[ג'דיידה מכר] מידע, תקשורת ושיתוף: avg=100% (100%, 100%, 100%, 100%) — מדיה חברתית",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-ג'דיידה מכר",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 2,
+      "article_url": null,
+      "signal_type": "compliance_enter_shelter",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[ג'דיידה מכר] התנהגות אפקטיבית להצלת חיים: avg=100% (100%, 100%, 100%) — אותו הדבר,מורגש שהתושבים נשמעים להנחיות נוכח האירועים שקרו",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-ג'דיידה מכר",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 2,
+      "article_url": null,
+      "signal_type": "service_continuity",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[ג'דיידה מכר] רציפות תפקודית: avg=50% (25%, 75%) — ללא שינוי",
+      "scope_level": "single_case",
+      "article_source": "pbo-ג'דיידה מכר",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 2,
+      "article_url": null,
+      "signal_type": "community_volunteering",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[ג'דיידה מכר] הון ומשאבי קהילה: avg=67% (75%, 75%, 50%) — ללא שינוי",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-ג'דיידה מכר",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 2,
+      "article_url": null,
+      "signal_type": "leadership_visible_present",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[ג'דיידה מכר] מנהיגות: avg=88% (100%, 75%) — אנשי דת ומשפעי דעת קהל מעלים מעת לעת סרטונים בהם מסבירים את החשיבות להנחיות פיקוד העורף",
+      "scope_level": "single_case",
+      "article_source": "pbo-ג'דיידה מכר",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 2,
+      "article_url": null,
+      "signal_type": "solidarity_help_others",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[ג'דיידה מכר] שייכות וסולידריות: avg=75% (50%, 100%, 75%) — ללא שינוי",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-ג'דיידה מכר",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 2,
+      "article_url": null,
+      "signal_type": "wellbeing_support_accessed",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[ג'דיידה מכר] דאגה לרווחה: avg=100% (100%, 100%, 100%) — מכלול רווחה עובד לאיתור בעיות בקרב הציבור",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-ג'דיידה מכר",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 3,
+      "article_url": null,
+      "signal_type": "resilience_narrative_negative",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[ג'וליס] נרטיב: avg=31% (50%, 25%, 25%, 25%) — עדיין במלחמה למרות הפסקת האש - דריכות וחוסר אימון במערכת",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-ג'וליס",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 3,
+      "article_url": null,
+      "signal_type": "information_actionable_effective",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[ג'וליס] מידע, תקשורת ושיתוף: avg=69% (50%, 75%, 75%, 75%) — תקשורת ורשתות חברתיות ווטסאפ",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-ג'וליס",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 3,
+      "article_url": null,
+      "signal_type": "compliance_enter_shelter",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[ג'וליס] התנהגות אפקטיבית להצלת חיים: avg=50% (75%, 25%, 50%) — הפסקת האש נתנה נשימה לאנשים לצאת קצת משגרת המלחמה יחד עם אצבע על הדופק",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-ג'וליס",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 3,
+      "article_url": null,
+      "signal_type": "service_continuity",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[ג'וליס] רציפות תפקודית: avg=50% (50%, 50%) — שלשום הוחלט להחזיר את הלימודים בקפסולות בהתאם למדיניות ההתגוננות אך  ההורים עדיין מבולבלים אם כן להחזיר אותם או לא למרות החזרה היא בהתאם לפניות המרחב המוגן וזמן ההגעה אליו",
+      "scope_level": "single_case",
+      "article_source": "pbo-ג'וליס",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 3,
+      "article_url": null,
+      "signal_type": "community_volunteering",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[ג'וליס] הון ומשאבי קהילה: avg=50% (50%, 50%, 50%) — אין",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-ג'וליס",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 3,
+      "article_url": null,
+      "signal_type": "leadership_visible_present",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[ג'וליס] מנהיגות: avg=63% (50%, 75%) — דרך סרטוני הסברה מפשטים את ההנחיות בשפה עממית ושזה בא \"מהבית\" קליט יותר בתחושה",
+      "scope_level": "single_case",
+      "article_source": "pbo-ג'וליס",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 3,
+      "article_url": null,
+      "signal_type": "solidarity_help_others",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[ג'וליס] שייכות וסולידריות: avg=67% (50%, 100%, 50%) — אין מחוץ למחנה או ממודרות",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-ג'וליס",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 3,
+      "article_url": null,
+      "signal_type": "wellbeing_support_accessed",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[ג'וליס] דאגה לרווחה: avg=50% (50%, 50%, 50%) — הרווחה בקשר תמידי עם האוכלוסיות המיוחדות והמשפחות",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-ג'וליס",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 4,
+      "article_url": null,
+      "signal_type": "resilience_narrative_positive",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[דיר חנא] נרטיב: avg=100% (100%, 100%, 100%, 100%) — הסכם הפסקת האש",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-דיר חנא",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 4,
+      "article_url": null,
+      "signal_type": "information_actionable_effective",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[דיר חנא] מידע, תקשורת ושיתוף: avg=100% (100%, 100%, 100%, 100%) — טליויזיה . דפי פיסבוק מקומיים",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-דיר חנא",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 4,
+      "article_url": null,
+      "signal_type": "compliance_enter_shelter",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[דיר חנא] התנהגות אפקטיבית להצלת חיים: avg=100% (100%, 100%, 100%) — כל פעם שהם רואים תחקירים על אירועים אז משתכנעים יותר שהנחיות פקע\"ר מצילות חיים",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-דיר חנא",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 4,
+      "article_url": null,
+      "signal_type": "service_continuity",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[דיר חנא] רציפות תפקודית: avg=100% (100%, 100%) — התושבים מתחילים לנסות לחזור לשגרה אבל מרגישים באופק פחדים ואי אמונה בהפסקת אש . אבל מצד אחר הם מתנהגים כמו בשגרה רגילה",
+      "scope_level": "single_case",
+      "article_source": "pbo-דיר חנא",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 4,
+      "article_url": null,
+      "signal_type": "community_volunteering",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[דיר חנא] הון ומשאבי קהילה: avg=100% (100%, 100%, 100%) — אין פערים",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-דיר חנא",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 4,
+      "article_url": null,
+      "signal_type": "leadership_visible_present",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[דיר חנא] מנהיגות: avg=100% (100%, 100%) — ראש רשות היום בבוקר הפית שמיום ראשון חזרה לשגרה מלאה אז האנשים נשמעים לו",
+      "scope_level": "single_case",
+      "article_source": "pbo-דיר חנא",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 4,
+      "article_url": null,
+      "signal_type": "solidarity_help_others",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[דיר חנא] שייכות וסולידריות: avg=67% (100%, 0%, 100%) — יש הדדיות",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-דיר חנא",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 4,
+      "article_url": null,
+      "signal_type": "wellbeing_support_accessed",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[דיר חנא] דאגה לרווחה: avg=67% (100%, 0%, 100%) — לא קיימים מעגל שלישי",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-דיר חנא",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 5,
+      "article_url": null,
+      "signal_type": "resilience_narrative_positive",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[חורפיש] נרטיב: avg=100% (100%, 100%, 100%, 100%) — נרטיב אחיד וברור המשקף תפקוד מקצועי מענה מותאם לתושבים ושמירה על רציפות תפקודית בחירום",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-חורפיש",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 5,
+      "article_url": null,
+      "signal_type": "information_actionable_effective",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[חורפיש] מידע, תקשורת ושיתוף: avg=100% (100%, 100%, 100%, 100%) — שיפור בהנגשת  המידע והתקשורת לצד צורך בהגברת בהירות ואחידות במסרים",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-חורפיש",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 5,
+      "article_url": null,
+      "signal_type": "compliance_enter_shelter",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[חורפיש] התנהגות אפקטיבית להצלת חיים: avg=100% (100%, 100%, 100%) — התנהגות אפקטיבית פעולה מדויקת שקולה ומכוונת להשגת תוצאות מיטביות",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-חורפיש",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 5,
+      "article_url": null,
+      "signal_type": "service_continuity",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[חורפיש] רציפות תפקודית: avg=100% (100%, 100%) — רציפות תפקודית נשמרת באמצעות תיאום בין הגורמים מענה שוטף ושמירה על שירותים חיוניים בכל מצב",
+      "scope_level": "single_case",
+      "article_source": "pbo-חורפיש",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 5,
+      "article_url": null,
+      "signal_type": "community_volunteering",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[חורפיש] הון ומשאבי קהילה: avg=100% (100%, 100%, 100%) — מיצוי משאבי קהילה -חיבור חכם בין אנשים ,משאבים ושותפים ליצירת השפעה קהילתית מיטבית",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-חורפיש",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 5,
+      "article_url": null,
+      "signal_type": "leadership_visible_present",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[חורפיש] מנהיגות: avg=100% (100%, 100%) — מנהיגות -היכולת להוביל אנשים מתוך חזון ,ערכים והשראה ,וליצור השפעה חיובית ומתמשכת",
+      "scope_level": "single_case",
+      "article_source": "pbo-חורפיש",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 5,
+      "article_url": null,
+      "signal_type": "solidarity_help_others",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[חורפיש] שייכות וסולידריות: avg=67% (100%, 0%, 100%) — קיימת לכידות קהילתית ושיתופית גבוהה בין התושבים גם בשגרה וגם בחירום",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-חורפיש",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 5,
+      "article_url": null,
+      "signal_type": "wellbeing_support_accessed",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[חורפיש] דאגה לרווחה: avg=100% (100%, 100%, 100%) — המענה לצרכים ניתן באופן מיטבי ללא פערים",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-חורפיש",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 6,
+      "article_url": null,
+      "signal_type": "resilience_narrative_positive",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[כפר כמא] נרטיב: avg=100% (100%, 100%, 100%, 100%) — חשש מחזרה של המלחמה, נהנים מהשגרה היחסית",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-כפר כמא",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 6,
+      "article_url": null,
+      "signal_type": "information_actionable_effective",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[כפר כמא] מידע, תקשורת ושיתוף: avg=100% (100%, 100%, 100%, 100%) — לל\"ש",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-כפר כמא",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 6,
+      "article_url": null,
+      "signal_type": "compliance_enter_shelter",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[כפר כמא] התנהגות אפקטיבית להצלת חיים: avg=100% (100%, 100%, 100%) — חזרה לשגרה מלאה",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-כפר כמא",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 6,
+      "article_url": null,
+      "signal_type": "service_continuity",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[כפר כמא] רציפות תפקודית: avg=100% (100%, 100%) — חזל\"ש מהיר",
+      "scope_level": "single_case",
+      "article_source": "pbo-כפר כמא",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 6,
+      "article_url": null,
+      "signal_type": "community_volunteering",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[כפר כמא] הון ומשאבי קהילה: avg=100% (100%, 100%, 100%) — לל\"ש",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-כפר כמא",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 6,
+      "article_url": null,
+      "signal_type": "leadership_visible_present",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[כפר כמא] מנהיגות: avg=100% (100%, 100%) — לל\"ש",
+      "scope_level": "single_case",
+      "article_source": "pbo-כפר כמא",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 6,
+      "article_url": null,
+      "signal_type": "solidarity_help_others",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[כפר כמא] שייכות וסולידריות: avg=100% (100%, 100%, 100%) — לל\"ש",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-כפר כמא",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 6,
+      "article_url": null,
+      "signal_type": "wellbeing_support_accessed",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[כפר כמא] דאגה לרווחה: avg=100% (100%, 100%, 100%) — חזרה לשגרה מלאה",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-כפר כמא",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 7,
+      "article_url": null,
+      "signal_type": "resilience_narrative_positive",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[כפר מנדא] נרטיב: avg=75% (75%, 75%, 75%, 75%) — חזרה לשגרה ללא שינוי",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-כפר מנדא",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 7,
+      "article_url": null,
+      "signal_type": "information_actionable_effective",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[כפר מנדא] מידע, תקשורת ושיתוף: avg=75% (75%, 75%, 75%, 75%) — חזרה לשגרה ללא שינוי",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-כפר מנדא",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 7,
+      "article_url": null,
+      "signal_type": "compliance_enter_shelter",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[כפר מנדא] התנהגות אפקטיבית להצלת חיים: avg=75% (75%, 75%, 75%) — חזרה לשגרה ללא שינוי",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-כפר מנדא",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 7,
+      "article_url": null,
+      "signal_type": "service_continuity",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[כפר מנדא] רציפות תפקודית: avg=75% (75%, 75%) — חזרה לשגרה ללא שינוי",
+      "scope_level": "single_case",
+      "article_source": "pbo-כפר מנדא",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 7,
+      "article_url": null,
+      "signal_type": "community_volunteering",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[כפר מנדא] הון ומשאבי קהילה: avg=75% (75%, 75%, 75%) — חזרה לשגרה ללא שינוי",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-כפר מנדא",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 7,
+      "article_url": null,
+      "signal_type": "leadership_visible_present",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[כפר מנדא] מנהיגות: avg=75% (75%, 75%) — חזרה לשגרה ללא שינוי",
+      "scope_level": "single_case",
+      "article_source": "pbo-כפר מנדא",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 7,
+      "article_url": null,
+      "signal_type": "solidarity_help_others",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[כפר מנדא] שייכות וסולידריות: avg=58% (75%, 25%, 75%) — חזרה לשגרה ללא שינוי",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-כפר מנדא",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 7,
+      "article_url": null,
+      "signal_type": "wellbeing_support_accessed",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[כפר מנדא] דאגה לרווחה: avg=75% (75%, 75%, 75%) — חזרה לשגרה ללא שינוי",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-כפר מנדא",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 8,
+      "article_url": null,
+      "signal_type": "resilience_narrative_positive",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[כרמיאל] נרטיב: avg=100% (100%, 100%, 100%, 100%) — היערכות לחזרה לשגרה לאחר הפסקת האש",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-כרמיאל",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 8,
+      "article_url": null,
+      "signal_type": "information_actionable_effective",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[כרמיאל] מידע, תקשורת ושיתוף: avg=100% (100%, 100%, 100%, 100%) — ללש",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-כרמיאל",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 8,
+      "article_url": null,
+      "signal_type": "compliance_enter_shelter",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[כרמיאל] התנהגות אפקטיבית להצלת חיים: avg=92% (100%, 75%, 100%) — קיימת ירידה במשמעת בהמתנה לאחר אזעקה עד שחרור, הרשות הוציאה הסברה ממוקדת בנושא - התנועה בעיר נראית רגילה לימים לפני המלחמה",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-כרמיאל",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 8,
+      "article_url": null,
+      "signal_type": "service_continuity",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[כרמיאל] רציפות תפקודית: avg=100% (100%, 100%) — החל מיום ראשון חזרה מלאה ללימודים בהתאם להנחיות פקער (לא יצאה הודעה עד לקבלת מדיניות רשמית)",
+      "scope_level": "single_case",
+      "article_source": "pbo-כרמיאל",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 8,
+      "article_url": null,
+      "signal_type": "community_volunteering",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[כרמיאל] הון ומשאבי קהילה: avg=100% (100%, 100%, 100%) — ללש",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-כרמיאל",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 8,
+      "article_url": null,
+      "signal_type": "leadership_visible_present",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[כרמיאל] מנהיגות: avg=100% (100%, 100%) — ללש",
+      "scope_level": "single_case",
+      "article_source": "pbo-כרמיאל",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 8,
+      "article_url": null,
+      "signal_type": "solidarity_help_others",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[כרמיאל] שייכות וסולידריות: avg=92% (100%, 75%, 100%) — לל\"ש",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-כרמיאל",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 8,
+      "article_url": null,
+      "signal_type": "wellbeing_support_accessed",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[כרמיאל] דאגה לרווחה: avg=100% (100%, 100%, 100%) — ללש",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-כרמיאל",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 9,
+      "article_url": null,
+      "signal_type": "resilience_narrative_positive",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[מג'ד אל-כרום] נרטיב: avg=75% (75%, 75%, 75%, 75%) — הרשות המקומית של מג'ד אל-כרום ערוכה ומוכנה לכל תרחיש בזמן מלחמה. צוותי החירום של הרשות פועלים בשיתוף פעולה עם גורמי הביטחון ופיקוד העורף, כדי להבטיח את ביטחון התושבים והמשך מתן השירותים החיוניים. הרשות קוראת לתושבים להישמע להוראות פיקוד העורף ולהקפיד על הנחיות הבטיחות בזמן חירום, על מנת לשמור על שלומם וביטחונם של כלל התושבים.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-מג'ד אל-כרום",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 9,
+      "article_url": null,
+      "signal_type": "information_actionable_effective",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[מג'ד אל-כרום] מידע, תקשורת ושיתוף: avg=75% (75%, 75%, 75%, 75%) — במצב חירום התושבים מקבלים מידע ממספר מקורות מרכזיים. אחד המקורות החשובים ביותר הוא ההודעות וההנחיות של פיקוד העורף, אשר מספק עדכונים רשמיים והנחיות בטיחות לתושבים. בנוסף, התושבים מקבלים מידע מהרשות המקומית באמצעות הודעות רשמיות, קבוצות וואטסאפ קהילתיות, רשתות חברתיות ואתרי אינטרנט של הרשות. גם כלי תקשורת כמו חדשות בטלוויזיה וברדיו משמשים מקור מידע חשוב להבנת המצב הביטחוני.\r\nפערי מידע:\r\nלעיתים קיימים פערי מידע בין מקורות שונים או עיכוב בהגעת מידע לחלק מהתושבים. לדוגמה, לא כל התושבים משתמשים ברשתות חברתיות או בקבוצות וואטסאפ, ולכן ייתכן שחלק מהאוכלוסייה מקבל את המידע באיחור. בנוסף, במצבי חירום המידע משתנה במהירות ולעיתים קשה לכל התושבים להתעדכן מיד בכל ההנחיות החדשות",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-מג'ד אל-כרום",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 9,
+      "article_url": null,
+      "signal_type": "compliance_enter_shelter",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[מג'ד אל-כרום] התנהגות אפקטיבית להצלת חיים: avg=75% (75%, 75%, 75%) — רוב התושבים מאמינים כי מילוי ההנחיות של פיקוד העורף מסייע לשמור על חייהם ועל ביטחונם בזמן מלחמה. כאשר התושבים נשמעים להנחיות כמו כניסה למרחבים מוגנים בזמן אזעקה, הישארות בקרבת מקלטים ומעקב אחר הודעות רשמיות, הם מרגישים בטוחים יותר ויודעים שהם פועלים בהתאם להנחיות שנועדו להגן עליהם.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-מג'ד אל-כרום",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 9,
+      "article_url": null,
+      "signal_type": "service_continuity",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[מג'ד אל-כרום] רציפות תפקודית: avg=50% (50%, 50%) — מצב החירום משפיע במידה רבה על תפיסת הרציפות התפקודית של התושבים, משום שבזמן מלחמה יש שינויים בשגרת החיים. למרות זאת, כאשר כולם ערוכים ומוכנים לכל תרחיש ונשמעים להוראות פיקוד העורף, ניתן לשמור במידה מסוימת על המשך תפקוד ושגרה ככל האפשר",
+      "scope_level": "single_case",
+      "article_source": "pbo-מג'ד אל-כרום",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 9,
+      "article_url": null,
+      "signal_type": "community_volunteering",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[מג'ד אל-כרום] הון ומשאבי קהילה: avg=75% (75%, 75%, 75%) — במצבי חירום קיים צורך משמעותי במיצוי משאבי הקהילה כדי לסייע לאוכלוסיות פגיעות, במיוחד קשישים ואנשים עם מוגבלויות. אחד האתגרים המרכזיים הוא מחסור בכוח אדם זמין שיכול לספק סיוע אישי ומהיר לאוכלוסיות אלו. לעיתים מספר המתנדבים או העובדים הסוציאליים אינו מספיק כדי לתת מענה לכל מי שזקוק לעזרה.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-מג'ד אל-כרום",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 9,
+      "article_url": null,
+      "signal_type": "leadership_visible_present",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[מג'ד אל-כרום] מנהיגות: avg=75% (75%, 75%) — למנהיגות המקומית יש תפקיד חשוב בהתמודדות של התושבים עם מצב חירום. כאשר הנהגת היישוב מעבירה מידע ברור, מרגיעה את הציבור ומנחה את התושבים לפעול לפי הוראות פיקוד העורף, הדבר מחזק את תחושת הביטחון והאמון בקרב התושבים. מנהיגות אחראית מסייעת לשמור על סדר, למנוע פאניקה ולחזק את החוסן הקהילתי בזמן מלחמה.",
+      "scope_level": "single_case",
+      "article_source": "pbo-מג'ד אל-כרום",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 9,
+      "article_url": null,
+      "signal_type": "solidarity_help_others",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[מג'ד אל-כרום] שייכות וסולידריות: avg=58% (75%, 25%, 75%) — רמת השייכות והסולידריות בקרב התושבים גבוהה יחסית בזמן מצב חירום. התושבים מגלים תחושת אחריות משותפת, עוזרים זה לזה ופועלים יחד כדי להתמודד עם המצב הביטחוני. למרות האתגרים שמביא עמו מצב החירום, קיימת תחושת גיבוש קהילתי שמחזקת את החוסן של התושבים ואת היכולת להתמודד עם המציאות המורכבת.\r\nבקהילה אין קבוצות ממודרות, ורוב התושבים משתתפים במאמץ המשותף לשמור על הביטחון והסדר. רבים מהתושבים מגלים ערבות הדדית ומוכנות לעזור לשכנים ולקרובי משפחה, במיוחד כאשר מדובר באוכלוסיות שזקוקות לעזרה כמו קשישים או אנשים שמתקשים להגיע למרחבים מוגנים בזמן אזעקות.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-מג'ד אל-כרום",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 9,
+      "article_url": null,
+      "signal_type": "wellbeing_support_accessed",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[מג'ד אל-כרום] דאגה לרווחה: avg=75% (75%, 75%, 75%) — במצב חירום, אוכלוסיות פגיעות כמו קשישים, אנשים עם מוגבלויות ואנשים הזקוקים לסיוע מיוחד זקוקים למענה מותאם ומהיר יותר משאר האוכלוסייה. אחת הבעיות המרכזיות היא שלמרות שקיימת מודעות לצרכים שלהם ואף קיימות רשימות של אנשים הזקוקים לסיוע, בפועל יש פער בין הצרכים לבין היכולת לתת מענה מלא בזמן אמת.\r\nהצרכים המרכזיים של אוכלוסיות אלו כוללים סיוע פיזי בהגעה למרחבים מוגנים בזמן אזעקות, עזרה בתנועה בתוך הבית או מחוצה לו, וכן תמיכה במקרים שבהם הם חיים לבד ואין מי שיעזור להם. רבים מהקשישים מתקשים לרדת במהירות למקלטים או להגיע למרחב מוגן ללא עזרה, במיוחד אם יש להם מגבלות תנועה או בעיות בריאות.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-מג'ד אל-כרום",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 10,
+      "article_url": null,
+      "signal_type": "resilience_narrative_positive",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[מגדל] נרטיב: avg=88% (75%, 75%, 100%, 100%) — נראטיב ל חזרה לרציפות",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-מגדל",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 10,
+      "article_url": null,
+      "signal_type": "information_actionable_effective",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[מגדל] מידע, תקשורת ושיתוף: avg=88% (75%, 100%, 100%, 75%) — ווטסאפ בתפוצה לתושבים ואתר פייסבוק רשותי",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-מגדל",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 10,
+      "article_url": null,
+      "signal_type": "compliance_enter_shelter",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[מגדל] התנהגות אפקטיבית להצלת חיים: avg=100% (100%, 100%, 100%) — תושבים נשמעים מאוד, מאמינים בקשר בין הישמעות להישמרות",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-מגדל",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 10,
+      "article_url": null,
+      "signal_type": "service_continuity",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[מגדל] רציפות תפקודית: avg=75% (75%, 75%) — כרגע ללא פערים. החזרת רציפויות",
+      "scope_level": "single_case",
+      "article_source": "pbo-מגדל",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 10,
+      "article_url": null,
+      "signal_type": "dependency_on_external_aid",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[מגדל] הון ומשאבי קהילה: avg=42% (50%, 50%, 25%) — מיעוט מתנדבים",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-מגדל",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 10,
+      "article_url": null,
+      "signal_type": "leadership_visible_present",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[מגדל] מנהיגות: avg=75% (75%, 75%) — מנהיגות משחררת מסרים בוני חוסן ומחזקים לתושבים",
+      "scope_level": "single_case",
+      "article_source": "pbo-מגדל",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 10,
+      "article_url": null,
+      "signal_type": "solidarity_help_others",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[מגדל] שייכות וסולידריות: avg=67% (25%, 100%, 75%) — תחושת סולידריות גבוהה אך מיעוט יוזמות",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-מגדל",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 10,
+      "article_url": null,
+      "signal_type": "wellbeing_support_accessed",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[מגדל] דאגה לרווחה: avg=75% (75%, 75%, 75%) — תא רווחה מטפל באופן מיטבי באוכלוסייה חסרת עורף",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-מגדל",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 11,
+      "article_url": null,
+      "signal_type": "resilience_narrative_positive",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[מגדל תפן] נרטיב: avg=100% (100%, 100%, 100%, 100%) — כמו מתחילת המלחמה. שומרים על נרטיב עקבי",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-מגדל תפן",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 11,
+      "article_url": null,
+      "signal_type": "information_actionable_effective",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[מגדל תפן] מידע, תקשורת ושיתוף: avg=94% (100%, 100%, 100%, 75%) — מקורות המידע כוללים גם המידע המתקבל מהרשויות בהם גרים העובדים. \r\n\r\nמקורות המידע ברשות הם קבוצות וואטסאפ יעודיות למנכלים וקבטים. במסגרת ההדרכות אנחנו מגיעים לעובדים, מדריכים על ההנחיות ועונים לשאלות פרטניות במידה וישנן כך שגם חברי היקל\"ר נתפסים כמקור מידע אמין ועקבי",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-מגדל תפן",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 11,
+      "article_url": null,
+      "signal_type": "compliance_enter_shelter",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[מגדל תפן] התנהגות אפקטיבית להצלת חיים: avg=100% (100%, 100%, 100%) — רוב המפעלים והעסקים מכירים בחשיבות של שמירה על ההנחיות ומקפידים עליהן",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-מגדל תפן",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 11,
+      "article_url": null,
+      "signal_type": "service_continuity",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[מגדל תפן] רציפות תפקודית: avg=100% (100%, 100%) — בדומה לסופי שבוע קודמים בשיגרת החירום",
+      "scope_level": "single_case",
+      "article_source": "pbo-מגדל תפן",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 11,
+      "article_url": null,
+      "signal_type": "community_volunteering",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[מגדל תפן] הון ומשאבי קהילה: avg=100% (100%, 100%, 100%) — לא רלוונטי",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-מגדל תפן",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 11,
+      "article_url": null,
+      "signal_type": "leadership_visible_present",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[מגדל תפן] מנהיגות: avg=100% (100%, 100%) — הרשות עצמה נשארת עוגן יציב ומעבירה בקביעות את הנחיות הפיקוד",
+      "scope_level": "single_case",
+      "article_source": "pbo-מגדל תפן",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 11,
+      "article_url": null,
+      "signal_type": "solidarity_help_others",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[מגדל תפן] שייכות וסולידריות: avg=67% (100%, 0%, 100%) — לא רלוונטי",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-מגדל תפן",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 11,
+      "article_url": null,
+      "signal_type": "wellbeing_support_accessed",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[מגדל תפן] דאגה לרווחה: avg=100% (100%, 100%, 100%) — לא רלוונטי",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-מגדל תפן",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 12,
+      "article_url": null,
+      "signal_type": "resilience_narrative_positive",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[מעיליא] נרטיב: avg=88% (75%, 100%, 75%, 100%) — אוכלוסייה ממושמעת ונצמדת להנחיות ההתגוננות, אין כמעט תנועה ברחובות",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-מעיליא",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 12,
+      "article_url": null,
+      "signal_type": "information_actionable_effective",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[מעיליא] מידע, תקשורת ושיתוף: avg=100% (100%, 100%, 100%, 100%) — קבוצות פייסבוק של הרשות  , קבוצות ואצאף של הרשות וקבוצות מקומיות של היישוב",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-מעיליא",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 12,
+      "article_url": null,
+      "signal_type": "compliance_enter_shelter",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[מעיליא] התנהגות אפקטיבית להצלת חיים: avg=92% (100%, 100%, 75%) — האוכלוסייה ממושמעת להנחיות פקע\"ר , ולא מורגש זלזול מבחינת התושבים . עכשיו אחרי שרוב המדינה עברה לירוק ובמעיליא עדיין לא חלק מהתושבים מרשים לעצמם קצת יותר מבחינת יציאה מהבית וכו יש הרגשה של סוף המערכה",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-מעיליא",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 12,
+      "article_url": null,
+      "signal_type": "service_continuity",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[מעיליא] רציפות תפקודית: avg=63% (50%, 75%) — קיימת רציפות תפקודית ביישוב לפי הנחיות פקע\"ר , העסקים החיוניים פתוחים , וכל המכלולים פעילים",
+      "scope_level": "single_case",
+      "article_source": "pbo-מעיליא",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 12,
+      "article_url": null,
+      "signal_type": "community_volunteering",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[מעיליא] הון ומשאבי קהילה: avg=75% (75%, 75%, 75%) — קיים ביישוב תוכנית מתנדבים שמפעילה את הסער וקבוצת מתנדבים נוספים לפי מכלולים וכמו כן קיים כוח רפואי רופאים ואחיות בעת הצורך",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-מעיליא",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 12,
+      "article_url": null,
+      "signal_type": "leadership_visible_present",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[מעיליא] מנהיגות: avg=100% (100%, 100%) — ראש הרשות , ההנהגה הדתית והחברתית משפיעים מאוד על המשמעת של התושבים בקיום הנחיות ההתגוננות",
+      "scope_level": "single_case",
+      "article_source": "pbo-מעיליא",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 12,
+      "article_url": null,
+      "signal_type": "solidarity_help_others",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[מעיליא] שייכות וסולידריות: avg=100% (100%, 100%, 100%) — קיימת סולידריות בקרב התושבים ותחושה של עזרה הדדית ועזרה לזולת",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-מעיליא",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 12,
+      "article_url": null,
+      "signal_type": "wellbeing_support_accessed",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[מעיליא] דאגה לרווחה: avg=92% (75%, 100%, 100%) — מכלול רווחה אוכלוסייה מספק מענה מלא במעטפת שלמה לכלל האוכלוסיות הנזקקות. בוצעו ביקורי בית והסבר לתושבים וזה העלה את תחושת הביטחון",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-מעיליא",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 13,
+      "article_url": null,
+      "signal_type": "resilience_narrative_positive",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[משגב] נרטיב: avg=81% (100%, 75%, 75%, 75%) — בעקבות הפסקת האש הנוכחית המועצה בצבע ירוק. נכון להיום פעילות מלאה בכל משגב עד ליום חמישי, 23 באפריל 2026, בשעה 20:00. חזרה מלאה לשגרה. יום שבת: מועדון כפרי פעיל ויער שגב מכיל במטיילים ורוכבי אופנים.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-משגב",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 13,
+      "article_url": null,
+      "signal_type": "information_actionable_effective",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[משגב] מידע, תקשורת ושיתוף: avg=81% (75%, 100%, 75%, 75%) — המועצה דואגת להעביר הודעות לתושבים באופן תכוף אבל כמובן שיש הרבה שמקשיבים בשוטף למדיה ולתקשורת הארצית. יחד עם זאת, בזמן אמת התושבים מסתמכים בעיקר על הודעות המועצה והצח\"י. הפער המרכזי הוא שמועות לא מבוססות ברשתות, שדוברות המועצה מצליחה להפריך מהר.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-משגב",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 13,
+      "article_url": null,
+      "signal_type": "compliance_enter_shelter",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[משגב] התנהגות אפקטיבית להצלת חיים: avg=92% (100%, 75%, 100%) — התושבים ממושמעים מאוד וסומכים על הנחיות פיקוד העורף. בעקבות הפסקת האש הנוכחית המועצה בצבע ירוק. נכון להיום פעילות מלאה בכל משגב עד ליום חמישי, 23 באפריל 2026, בשעה 20:00.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-משגב",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 13,
+      "article_url": null,
+      "signal_type": "service_continuity",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[משגב] רציפות תפקודית: avg=75% (75%, 75%) — סטטוס שירותים ופעילות המועצה:\r\nהמועצה שומרת על רציפות תפקודית ומעניקה מענה מלא בשירותים השוטפים. במערכת החינוך מתקיימת שגרת למידה בהתאם להנחיות פיקוד העורף: המועצה ירוקה הלמידה מתבצעת באופן מלא.\r\nתמונת מצב בקרב התושבים: מורגשת מגמה של חזרה מדורגת ומבורכת לשגרה, המלווה בחששות טבעיים .",
+      "scope_level": "single_case",
+      "article_source": "pbo-משגב",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 13,
+      "article_url": null,
+      "signal_type": "community_volunteering",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[משגב] הון ומשאבי קהילה: avg=92% (100%, 75%, 100%) — באופן כללי, יש התגייסות יפה של מתנדבים ביישובים. האתגר הוא לנהל את המשאב הזה נכון כדי למנוע שחיקה של האנשים לאורך זמן.  הכבישים הבוקר היו מלאים ברחבי המועצה, ובדרכים אל מוסדות החינוך .מתקיימת שגרה אבל מתוחה מעט",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-משגב",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 13,
+      "article_url": null,
+      "signal_type": "leadership_visible_present",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[משגב] מנהיגות: avg=100% (100%, 100%) — הנהגת המועצה והיישובים נתפסים כגורם אחראי ומנהל. העדכונים הרציפים והנוכחות בשטח מחזקים את תחושת הביטחון של הקהילה. \r\nבנוסף נעשות הכשרות, הדרכות והעשרה לצוותי הצח\"י והחוסן הישוביים לשיפור מתמיד של היכולות.",
+      "scope_level": "single_case",
+      "article_source": "pbo-משגב",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 13,
+      "article_url": null,
+      "signal_type": "solidarity_help_others",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[משגב] שייכות וסולידריות: avg=92% (100%, 75%, 100%) — הסולידריות במשגב חזקה מאוד ונותנת כוח לתושבים. חשוב להמשיך ולוודא שכלל הקבוצות והיישובים מרגישים חלק מהמענה המועצתי",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-משגב",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 13,
+      "article_url": null,
+      "signal_type": "wellbeing_support_accessed",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[משגב] דאגה לרווחה: avg=100% (100%, 100%, 100%) — יש מענה טוב לאנשים שצריכים עזרה רגשית. בנוסף מנסים כל הזמן לאתר תושבים מתקשים שלא מתקשרים עם המועצה והסובבים",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-משגב",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 14,
+      "article_url": null,
+      "signal_type": "resilience_narrative_positive",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[סאג'ור] נרטיב: avg=75% (75%, 75%, 75%, 75%) — הרגשה טובה בעקבות הפסקת האש",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-סאג'ור",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 14,
+      "article_url": null,
+      "signal_type": "information_actionable_effective",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[סאג'ור] מידע, תקשורת ושיתוף: avg=75% (75%, 75%, 75%, 75%) — רשתות חברתיות של המעוצה  וכריזה של המעוצה וקפוצות ואטצפ של ההורים",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-סאג'ור",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 14,
+      "article_url": null,
+      "signal_type": "compliance_enter_shelter",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[סאג'ור] התנהגות אפקטיבית להצלת חיים: avg=67% (75%, 50%, 75%) — בכל בית יש איש מערכות הביטחון בעבר או בהווה לכן ההנחיות מובנות יותר ! אולם התארכות המלחמה משפיעה באופן שלילי על קיום ההנחיות בקרב חלק מהתושבים וזאת המציאות וחלק כבר התחיל להתקהל ולעשות אירועים משמחים כהכנה לחתונות",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-סאג'ור",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 14,
+      "article_url": null,
+      "signal_type": "service_continuity",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[סאג'ור] רציפות תפקודית: avg=88% (100%, 75%) — שגרה מאתגרת אולם עם חזרת מערך החינוך ללמידה פיזית החל מיום רביעי וחזרה לחיים טבעיים אבל מתוחה",
+      "scope_level": "single_case",
+      "article_source": "pbo-סאג'ור",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 14,
+      "article_url": null,
+      "signal_type": "community_volunteering",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[סאג'ור] הון ומשאבי קהילה: avg=75% (75%, 75%, 75%) — תמיד יש חשש מריבוי התקהלות ומתנדבים במידה ויהיה אירוע וזה מה שקרה למרות שתמיד אנחנו מחדדים את הנקודה הזאת בקרב התושבים",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-סאג'ור",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 14,
+      "article_url": null,
+      "signal_type": "leadership_visible_present",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[סאג'ור] מנהיגות: avg=75% (75%, 75%) — האימון והקשר הרציף והשייח היומי בין המנהיגות לאוכלוסייה עוזר מאוד בחירום",
+      "scope_level": "single_case",
+      "article_source": "pbo-סאג'ור",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 14,
+      "article_url": null,
+      "signal_type": "solidarity_help_others",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[סאג'ור] שייכות וסולידריות: avg=75% (75%, 75%, 75%) — כפר קטן המתנהג כמשפחה אחת גדולה שערבים אחד לשני",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-סאג'ור",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 14,
+      "article_url": null,
+      "signal_type": "wellbeing_support_accessed",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[סאג'ור] דאגה לרווחה: avg=75% (75%, 75%, 75%) — עובדות הרווחה והפסיכולוגים של הרשות בקשר יומי ורציף עם האוכלוסייה  כולל ביקורי בית",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-סאג'ור",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 15,
+      "article_url": null,
+      "signal_type": "resilience_narrative_positive",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[סח'נין] נרטיב: avg=75% (75%, 75%, 75%, 75%) — חזרה לשגרה בצורה מלאה, קיימת תחושת מיצוי ועיפות מהמלחמה, האכלוסיה מגלה חוסן וחזרה לשגרה במהרה",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-סח'נין",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 15,
+      "article_url": null,
+      "signal_type": "information_actionable_effective",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[סח'נין] מידע, תקשורת ושיתוף: avg=75% (75%, 75%, 75%, 75%) — קיים מגוון ערוצי מדיה שדרכן ניתן להעביר מידע כגון ערוץ ואצפ לעיריה ודפים ברשתות החברתיות",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-סח'נין",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 15,
+      "article_url": null,
+      "signal_type": "compliance_enter_shelter",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[סח'נין] התנהגות אפקטיבית להצלת חיים: avg=58% (75%, 50%, 50%) — על אף הבנת ההנחיות  חלק לא מבוטל מהאוכלוסיה לא התנהל על פיהן ועכשיו בכלל אי אפשר להחזיר את התושבים למקלטים",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-סח'נין",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 15,
+      "article_url": null,
+      "signal_type": "service_continuity",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[סח'נין] רציפות תפקודית: avg=63% (50%, 75%) — חזרה מלאה לשגרה , מצב החירום אינו משפיע על רציפות התפקודית, האתגר הוא לזהות את האכלוסיה שנפגעה והרציפות התפקודית שלה נפגעה במיוחד כאשר אין מוקד עירוני והמנטליות של התושבים היא לא להיפתח בקלות",
+      "scope_level": "single_case",
+      "article_source": "pbo-סח'נין",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 15,
+      "article_url": null,
+      "signal_type": "community_volunteering",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[סח'נין] הון ומשאבי קהילה: avg=67% (75%, 50%, 75%) — חזרה מלאה לשגרה",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-סח'נין",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 15,
+      "article_url": null,
+      "signal_type": "leadership_visible_present",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[סח'נין] מנהיגות: avg=75% (75%, 75%) — ההנגה המקומית מעודדת את האוכלוסיה להישמעות להנחיות פיקוד העורף דרך העברת הודעות והסברה אודות הנחיות מצילות חיים",
+      "scope_level": "single_case",
+      "article_source": "pbo-סח'נין",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 15,
+      "article_url": null,
+      "signal_type": "solidarity_help_others",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[סח'נין] שייכות וסולידריות: avg=83% (75%, 100%, 75%) — ברשות מובילים יוזמות התנדבות מגוונות המתמקדות בחיזוק החוסן הקהילתי והערבות ההדדית, כגון: מערך מתנדבים לשעת חירום , סיוע לאוכלוסיות מוחלשות וקשישים, פעילויות חינוכיות וערכיות עם בני נוער, ותכניות שכונתיות המעודדות מעורבות אזרחית ושייכות.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-סח'נין",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 15,
+      "article_url": null,
+      "signal_type": "wellbeing_support_accessed",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[סח'נין] דאגה לרווחה: avg=67% (75%, 75%, 50%) — חזרה מלאה לשגרה",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-סח'נין",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 16,
+      "article_url": null,
+      "signal_type": "resilience_narrative_positive",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[קצרין] נרטיב: avg=94% (100%, 100%, 100%, 75%) — אתמול נחתם הסכם הפסקת אש למשך 10 ימים בין ישראל ללבנון. העיר קצרין, החל מהשעה 16:00 אתמול, במדרג ירוק. \r\nמחר עתידים להיפתח כלל מסגרות החינוך בעיר, טרם ידוע על פערים או קשיים ספציפיים.\r\n \r\n הרשות ממשיכה לפעול בדריכות ובמוכנות מלאה, תוך שמירה על רציפות תפקודית בכלל המכלולים ומתן\r\nשירות מלא ורציף לתושבי קצרין,",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-קצרין",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 16,
+      "article_url": null,
+      "signal_type": "information_actionable_effective",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[קצרין] מידע, תקשורת ושיתוף: avg=88% (75%, 100%, 100%, 75%) — קבוצות ואטסאפ מקומיות לשעת חירום, פייסבוק, אתר המועצה",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-קצרין",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 16,
+      "article_url": null,
+      "signal_type": "compliance_enter_shelter",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[קצרין] התנהגות אפקטיבית להצלת חיים: avg=92% (100%, 75%, 100%) — התושבים אכן מבינים שמילוי ההנחיות של פקער מצילות חיים. כמו כן גם ההסברה ברשות המקומית גורמת לתושבים להאמין בזה ולפעול בהתאם להנחיות. לפני כשבוע השתנה זמן ההגעה למרחב מוגן מ 30 שניות ל 45 שניות. טרם ידועה ההשפעה על המרחב האזרחי.. נשלח לפני מספר ימים סקר מדגמי לתושבי העיר. טרם התקבלו תוצאותיו.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-קצרין",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 16,
+      "article_url": null,
+      "signal_type": "service_continuity",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[קצרין] רציפות תפקודית: avg=88% (100%, 75%) — החל ממחר צפויה לניפתח מערכת החינוך על כלל המסגרות בה. \r\n\r\n בנושא עובדי הרשות חזרה לפעילות מלאה של עובדי המועצה המקומית.",
+      "scope_level": "single_case",
+      "article_source": "pbo-קצרין",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 16,
+      "article_url": null,
+      "signal_type": "community_volunteering",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[קצרין] הון ומשאבי קהילה: avg=83% (75%, 100%, 75%) — אין אתגרים או פערים שידועים לי, יחד עם זאת המתנדבים פועלים במספר ערוצים-\r\n1. עזרה למשפחות המילואים- ביביסיטר, ניקיון, בישול\r\n2. חלוקת מזון לנזקקים\r\n3. ביקורים אצל וותיקים להפגת בדידות",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-קצרין",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 16,
+      "article_url": null,
+      "signal_type": "leadership_visible_present",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[קצרין] מנהיגות: avg=100% (100%, 100%) — המנהיגות של העיר הנה מנהיגות חזקה וחיובית. התושבים רואים במנהיגות עוגן. מנהלי הרשות, נמצאים בקשר ישיר עם תושבים ובעלי תפקידים ונותנים מענה לכל דבר ועניין.\r\nאתמול  הוציאה הרשות הודעה לתושבים לאחר הכרזת הפסקת האש. בתוכן ההודעה הרשות מודה לתושבים שיתוף הפעולה, הקשב ויישום ההנחיות. כמו כן מודה הרשות לעובדי הרשות, כוחות הביטחון וההצלה.",
+      "scope_level": "single_case",
+      "article_source": "pbo-קצרין",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 16,
+      "article_url": null,
+      "signal_type": "solidarity_help_others",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[קצרין] שייכות וסולידריות: avg=83% (75%, 100%, 75%) — ישנם תושבים טובי לב שמפרסמים בקבוצת הפייסבוק המקומית רצון לסייע לבתים בהם יש מגוייסים למילואים במגוון מטלות- ביביסיטר, בישול, ניקיון, עזרה במטלות הבית כגון קניות, ניקיון וכו...\r\nמתשאולי השטח, ניתן לחוות תושבים שמרגישים טוב בהתחשב בנסיבות התקופה, מודים על כל המענים הניתנים מטעם הרשות, יש בקצרין מעין גאוות יחידה שראוייה לציון וכל זאת לא היה נראה כך ללא העבודה הקשה של הרשות והמתנס.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-קצרין",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 16,
+      "article_url": null,
+      "signal_type": "wellbeing_support_accessed",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[קצרין] דאגה לרווחה: avg=83% (100%, 75%, 75%) — קיים קשר רציף ויומיומי עם אוכלוסיית הגיל השלישי ועם משפחות רווחה. כל פנייה שנעשית באופן יזום לרווחה מטופלת במלוא הרגישות ותשומת הלב.\r\nבתשאולי אזרחים מהימים האחרונים, עלו מספר פניות לגבי חרדה או בקשת תשומת לב נוספת, המידע הועבר למנהלת הרווחה ונמצא בטיפול.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-קצרין",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 17,
+      "article_url": null,
+      "signal_type": "resilience_narrative_positive",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[ראמה] נרטיב: avg=100% (100%, 100%, 100%, 100%) — משדרת נרטיב התמודדות מוצלח יותר ככל והזמן עובר והרגיעה נמשכת הנרטיב מתחזק, כעת לאחר ההכרז על הפסקת אש עם לבנון בולט נרטיב חזק יותר.הנרטיב המוצג ע\"י הרשות נתפס כאמין מאוד וזאת לאור הפעילות הרבה והעשירה של הרשות בזמן חירום בכל הנוגע למוכנות והקשר של מערך החירום עם האוכלוסייה. הרגעיה בימים האחרונים מאוד חיזקה את האוכלוסייה ונותנת חוזק נוסף לנרטיב.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-ראמה",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 17,
+      "article_url": null,
+      "signal_type": "information_actionable_effective",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[ראמה] מידע, תקשורת ושיתוף: avg=100% (100%, 100%, 100%, 100%) — האוכלוסיה תופסת את המידע בכלי התקשורת כמהימן ואמין ועל כן פועלת לפי הנחיות פקע\"ר בכל המשתמע, כמוכן במועצה קיים מוקד מידע, ומערך הסברה ודוברות הנמצא בקשר ישיר עם האוכלוסיה בערוץ ישיר באמצעי המדיה והרשתות החברתיות,  ומעביר את כל מידע רלוונטי (בנוסף לאמצעי התקשורת הרשמיים הארציים). מוקד הדוברות מעביר כמוכן הסברה לאחר כל אזעקה, נמצא בקשר ישיר עם האוכלוסיה ומעדכן און ליין על על אזעקה, ומדי שבוע יוצאים סרטוני המחשה מתוך זירות אירוע ע\"י צוות הדוברות, סרטונים אלה מועברים לאוכלוסייה כדי להמחיש שוב את גודל האיום וחשיבות הציות להנחיות. כמוכן מועברים הנחיות וסרטונים לגבי התקהלויות, או לפני כל אירוע כמו חגים, חתונות, וכו.. כל זאת כדי לוודא שהאוכלוסייה מבינה ופועלת לפי ההנחיות",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-ראמה",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 17,
+      "article_url": null,
+      "signal_type": "compliance_enter_shelter",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[ראמה] התנהגות אפקטיבית להצלת חיים: avg=100% (100%, 100%, 100%) — אין פערים בהבנה של ההנחיות. עד כה התושבם ברובם המוחלט פעלו לפי ההנחיות. בנוסף להחיות המועברות דרך אמצעי התקשורת הרשמיים, הרשות מעבירה הנחיות בכפל, בהסבר גדול יותר ומופשט יותר, ומלווה בסרטונים וכתוביות. כל זאת כדי לוודא שכל אזרח מקבל ומבין היטב את ההנחיות. רוב התושבים פועלים לפי ההנחיות",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-ראמה",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 17,
+      "article_url": null,
+      "signal_type": "service_continuity",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[ראמה] רציפות תפקודית: avg=100% (100%, 100%) — החינוך חזר היום לשגרה בכל התחומים, בתי ספר נפתחו והאוכלוסייה חוזרת לשגרה. הרציפות התפקודית תחזור היום למצבה הטבעי.",
+      "scope_level": "single_case",
+      "article_source": "pbo-ראמה",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 17,
+      "article_url": null,
+      "signal_type": "community_volunteering",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[ראמה] הון ומשאבי קהילה: avg=100% (100%, 100%, 100%) — אין שינוי, לרשות עומדים מספר מקורות מתנדבים, הראשון זה יחידת סע\"ר הכוללת כ- 50 מתנדבים פעילים ומתורגלים היטב, נוסף על זאת קיים מערך מתנדבים ש לבעלי מקצועות חופשיים ובעלי הכשרות רפואיות כמו חובשים, ו בנות שרות לאומי וכו.. מערך הרווחה בנוסף קיים וערוך לכל פניה, עד כה לא נצפו אתגרים או פערים משמעותיים בנושא מיצוי המשאבים.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-ראמה",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 17,
+      "article_url": null,
+      "signal_type": "leadership_visible_present",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[ראמה] מנהיגות: avg=100% (100%, 100%) — אין שינוי, המנהיגות הפורמלית וגם הבלתי פורמלית בכל התחומים, נמצאת בקשר ישיר עם האוכלוסייה באמצעות ערוצי תקשורת פנימיים כמו קבוצות whatsup ואמצעי תקשורת במדיה ורשתות חברתיות, במוקד קיים מערך הסברה ודוברות הנמצא בקשר מתמיד עם האוכלוסיה, מעביר הנחיות בזמן אמת על כל תרחיש לרבות הודעות על אזעקות. כעת לאחר ההכרזה על הפסקת אש עם איראן ולבנון יש פחות צורך במעורבות ועם שינוי ההנחיות שצפויו לנו לא יהיה צורך לקיים שיחות בתדירות שהייתה עד כה.",
+      "scope_level": "single_case",
+      "article_source": "pbo-ראמה",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 17,
+      "article_url": null,
+      "signal_type": "solidarity_help_others",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[ראמה] שייכות וסולידריות: avg=100% (100%, 100%, 100%) — אין שינוי, מרקם היישוב מאוד ייחודי (יישוב קטן כולם מכירים את כולם) האוכלוסייה מאוד סולודרית ומגובשת, אין אנשים שנחשבים מחוץ למחנה, אין קבוצות ממודרות, כל אחד מהאוכלוסייה מוקף בקרובי משפחה מדרגה ראשונה ושנייה, שכנים, חברים וכו.. הקשר בין כל רבדי האוכלוסייה מאוד חזק ומגביר את תחושת השייכות. תופעת ה(מחוץ למחנה) אינה קיית בשגרה, על אחת כמה וכמה בזמן מלחמה.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-ראמה",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 17,
+      "article_url": null,
+      "signal_type": "wellbeing_support_accessed",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[ראמה] דאגה לרווחה: avg=100% (100%, 100%, 100%) — אין שינוי, המערך הפסיכולוגי ומערך הרווחה הם חלק מצוות המשלט במצב חירום, נמצאים בהערכת מצב וערוכים לקבל פניות, מתקיימות בשוטף פעולות של המערך לחיזוק החוסן וטיפול באוכלוסיות מוחלשות, למשל חולקו בעבר תווי מזון, נערכים ביקרי בית היכן שיש צורך יחד עם זאת בגלל מרקם היישוב והאוכלוסייה (קרובי משפחה, חברים, בנים שכנים) של אוכלוסיות בסיכון נמצאים איתם בבתים מסביב לשעון, המוקד של הרשות זמין לקבלת כל פניה מסוג זה. הצורך פוחת ככל שעוברים הימים במיוחד אחרי ההכרזה על הפסקת האש",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-ראמה",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 18,
+      "article_url": null,
+      "signal_type": "resilience_narrative_positive",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[שעב] נרטיב: avg=88% (100%, 100%, 75%, 75%) — למרות הפניקה ולמרות שאנשים נכנסו לשגרת חירום מורגש קצת שאננות בין התושבים",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-שעב",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 18,
+      "article_url": null,
+      "signal_type": "information_actionable_effective",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[שעב] מידע, תקשורת ושיתוף: avg=94% (75%, 100%, 100%, 100%) — מכלול מידע לציבור והסברה של הרשות כמעט ואין פייק ניוז",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-שעב",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 18,
+      "article_url": null,
+      "signal_type": "compliance_enter_shelter",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[שעב] התנהגות אפקטיבית להצלת חיים: avg=92% (75%, 100%, 100%) — עצם שכל פעם שיש אירוע שלא מובן בדיוק איך להתנהג אנשים פונים לרשות או יקל\"ר לקבל הסבר והנחיות",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-שעב",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 18,
+      "article_url": null,
+      "signal_type": "service_continuity",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[שעב] רציפות תפקודית: avg=88% (75%, 100%) — הפערים רק בנושא התקהליות במסגד בהלוויות",
+      "scope_level": "single_case",
+      "article_source": "pbo-שעב",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 18,
+      "article_url": null,
+      "signal_type": "community_volunteering",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[שעב] הון ומשאבי קהילה: avg=75% (75%, 75%, 75%) — אין מספיק מקלטים ומקומות לקיום פעילות הסברה גם לעמותות וגם אין מספיק ציוד אישי למתנדבים",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-שעב",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 18,
+      "article_url": null,
+      "signal_type": "leadership_visible_present",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[שעב] מנהיגות: avg=100% (100%, 100%) — ראש הרשות ואנשי דעת קהל ואנשי חינוך ורפואה מגיעים להערכות מצב ברשות וגם הם כל אחד בחלקו מסביר לתושבים עד כמה זה הכרחי  ויש משמעת אצל התושבים",
+      "scope_level": "single_case",
+      "article_source": "pbo-שעב",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 18,
+      "article_url": null,
+      "signal_type": "solidarity_help_others",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[שעב] שייכות וסולידריות: avg=100% (100%, 100%, 100%) — הישוב קטן ומתנהג כ משפחה גדולה וכמעט אין חוץ למחנה",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-שעב",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 18,
+      "article_url": null,
+      "signal_type": "wellbeing_support_accessed",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[שעב] דאגה לרווחה: avg=100% (100%, 100%, 100%) — מכלול אוכלוסיה בקשר מתמיד עם האוכלוסייה המוחלשת ובעלי צרכים מיוחדים כולל שפ\"י עובדים בתיאום מלא",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-שעב",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 19,
+      "article_url": null,
+      "signal_type": "resilience_narrative_positive",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[שפרעם] נרטיב: avg=100% (100%, 100%, 100%, 100%) — הנרטיב היא חזרה לפעילות מלאה היום יום של חצי יום עבודה ברשות  אחרי הכרזת הפסקת האש גם צךבנון יש נרטיב של הרגשת רווחה",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-שפרעם",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 19,
+      "article_url": null,
+      "signal_type": "information_actionable_effective",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[שפרעם] מידע, תקשורת ושיתוף: avg=100% (100%, 100%, 100%, 100%) — אין פייק ניוז. הדוברות מעבירה מסרים רגילים.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-שפרעם",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 19,
+      "article_url": null,
+      "signal_type": "compliance_enter_shelter",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[שפרעם] התנהגות אפקטיבית להצלת חיים: avg=100% (100%, 100%, 100%) — מאז ההכרזה על הפסקת האש לא היו אזעקות בישוב גם לא מלבנון ולכן יש התנהגות שגרתית רגילה. אין התנהגויות חריגות. אחרי הכרזת הפסקת אש גם מלבנון התושבים מתנהגים בחופשיות",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-שפרעם",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 19,
+      "article_url": null,
+      "signal_type": "service_continuity",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[שפרעם] רציפות תפקודית: avg=100% (100%, 100%) — חצי יופ עבודה. שירותים ועסקים פתוחים חצי יום",
+      "scope_level": "single_case",
+      "article_source": "pbo-שפרעם",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 19,
+      "article_url": null,
+      "signal_type": "community_volunteering",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[שפרעם] הון ומשאבי קהילה: avg=58% (75%, 25%, 75%) — אין רכז מתנדבים. למעשה כל קהילה למען עצמה. חוץ מקבוצת סע\"ר שכוללת מתנדבים מכל העדות.",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-שפרעם",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 19,
+      "article_url": null,
+      "signal_type": "leadership_visible_present",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[שפרעם] מנהיגות: avg=100% (100%, 100%) — לא היו סרטונים או מסרים מראש העיר בימים האחרונים אבל המסר הכללי שמועבר הוא שגרת חירום",
+      "scope_level": "single_case",
+      "article_source": "pbo-שפרעם",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 19,
+      "article_url": null,
+      "signal_type": "solidarity_help_others",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[שפרעם] שייכות וסולידריות: avg=75% (75%, 75%, 75%) — תושבי שפרעם בעלי נרטיב של התמודדות טובה הפעם ומרגישים תחושת שייכות לעיר . עדיין כל קהילה למען עצמה",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-שפרעם",
+      "source_type": "pbo"
+    },
+    {
+      "article_index": 19,
+      "article_url": null,
+      "signal_type": "wellbeing_support_accessed",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "[שפרעם] דאגה לרווחה: avg=100% (100%, 100%, 100%) — צחלקת הרווחה פתוחה עובדת חצי יום. פועלת כשגרה",
+      "scope_level": "quantified_or_broad",
+      "article_source": "pbo-שפרעם",
+      "source_type": "pbo"
+    }
+  ]
+}
