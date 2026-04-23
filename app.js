@@ -37,6 +37,12 @@ import { createWhatsAppIngestService } from './business_modules/whatsapp/app/wha
 import { createWhatsAppResilienceAnalyzer } from './business_modules/whatsapp/app/whatsappResilienceAnalyzer.js';
 import { createDraftGenerator } from './business_modules/whatsapp/app/draftGenerator.js';
 import { whatsappWebhookPlugin } from './business_modules/whatsapp/input/webhook-routes.js';
+import { createReportBuildService } from './business_modules/report_build/app/reportBuildService.js';
+import { createAnthropicReportBuildAnalyzerAdapter } from './business_modules/report_build/infrastructure/adapters/anthropicReportBuildAnalyzerAdapter.js';
+import { createAnthropicReportBuildDraftGeneratorAdapter } from './business_modules/report_build/infrastructure/adapters/anthropicReportBuildDraftGeneratorAdapter.js';
+import { createReportBuildConversationStore } from './business_modules/report_build/infrastructure/reportBuildConversationStore.js';
+import { createReportBuildDraftStore } from './business_modules/report_build/infrastructure/reportBuildDraftStore.js';
+import { reportBuildRoutes } from './business_modules/report_build/input/reportBuildRoutes.js';
 import { buildProductDocsIndex, loadProductDocPage } from './utils/productDocs.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -287,6 +293,20 @@ export async function createApp(options) {
 
   const submissionQueue = [];
   let processingSubmissionQueue = false;
+
+  // ─── Report-build (shared interactive report writing) ──────────────────
+  const reportBuildService = process.env.ANTHROPIC_API_KEY?.trim()
+    ? createReportBuildService({
+        analyzerPort: createAnthropicReportBuildAnalyzerAdapter({
+          anthropicApiKey: process.env.ANTHROPIC_API_KEY.trim(),
+        }),
+        draftGeneratorPort: createAnthropicReportBuildDraftGeneratorAdapter({
+          anthropicApiKey: process.env.ANTHROPIC_API_KEY.trim(),
+        }),
+        conversationStore: createReportBuildConversationStore(sqlitePath),
+        draftStore: createReportBuildDraftStore(sqlitePath),
+      })
+    : null;
 
   async function processSubmissionJob({ submissionId, ownerKey, content }) {
     let autoIngest = { attempted: false, insertedItems: 0, errors: [], kinds: [] };
@@ -693,6 +713,12 @@ export async function createApp(options) {
     reply.raw.end();
   });
 
+  // ─── Interactive report building (web UI) ─────────────────────────────
+  await app.register(reportBuildRoutes, {
+    reportBuildService,
+    authPreHandler: authHook?.preHandler,
+  });
+
   app.get('/articles', authHook, async (request, reply) => {
     const dateParam = request.query?.date;
     const date =
@@ -736,6 +762,14 @@ export async function createApp(options) {
       signalStore: whatsappSignalStore,
       resilienceAnalyzer: whatsappResilienceAnalyzer,
       draftGenerator: whatsappDraftGenerator,
+      reportBuildService: reportBuildService
+        ? createReportBuildService({
+            analyzerPort: whatsappResilienceAnalyzer,
+            draftGeneratorPort: whatsappDraftGenerator,
+            conversationStore: whatsappConversationStore,
+            draftStore: whatsappDraftStore,
+          })
+        : null,
       conversationStore: whatsappConversationStore,
       draftStore: whatsappDraftStore,
       allowedGroupIds: (process.env.WHATSAPP_ALLOWED_GROUP_IDS ?? '').split(',').map(s => s.trim()).filter(Boolean),
@@ -751,6 +785,24 @@ export async function createApp(options) {
   // __dirname is the repo root (where app.js lives); serve Vite build at client/dist
   const clientDist = resolve(__dirname, 'client', 'dist');
   await app.register(fastifyStatic, { root: clientDist, prefix: '/' });
+
+  // Root: serve SPA when built; otherwise return a small JSON health payload.
+  app.get('/', async (_req, reply) => {
+    try {
+      const html = await readFile(resolve(clientDist, 'index.html'), 'utf8');
+      return reply.type('text/html; charset=utf-8').send(html);
+    } catch {
+      return reply.send({
+        ok: true,
+        service: 'news',
+        endpoints: {
+          swagger: '/api/swagger',
+          openapi: '/api/openapi.json',
+          docsIndex: '/api/docs/index',
+        },
+      });
+    }
+  });
 
   return app;
 }

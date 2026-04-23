@@ -5,7 +5,7 @@ import { ReportView } from './components/ReportView.jsx';
 import { ReportMarkdownView } from './components/ReportMarkdownView.jsx';
 import { ChatPanel } from './components/ChatPanel.jsx';
 import { DocsPanel } from './components/DocsPanel.jsx';
-import { EvidenceInput } from './components/EvidenceInput.jsx';
+import { ReportBuildPanel } from './components/ReportBuildPanel.jsx';
 import { SubmissionsTab } from './components/SubmissionsTab.jsx';
 import { EducationTab } from './components/EducationTab.jsx';
 import { MunicipalitiesTab } from './components/MunicipalitiesTab.jsx';
@@ -20,6 +20,7 @@ function AppShell() {
   const { report, markdown, costUsd, costBreakdown, scoreBySource, reportDate, initialReportLoadDone } = useTodayReport();
   const [activeTab, setActiveTab] = useState('report');
   const [docsOpen, setDocsOpen] = useState(false);
+  const [reportBuildOpen, setReportBuildOpen] = useState(false);
   const { t, lang } = useLanguage();
   const { displayReport, translating, translateError } = useTranslatedReport(report, lang);
 
@@ -42,6 +43,9 @@ function AppShell() {
           <p className={styles.subtitle}>Home Front Command · Daily Assessment</p>
         </div>
         <div className={styles.headerActions}>
+          <button type="button" className={styles.docsButton} onClick={() => setReportBuildOpen(true)}>
+            Write report
+          </button>
           <button type="button" className={styles.docsButton} onClick={() => setDocsOpen(true)}>
             Docs
           </button>
@@ -55,8 +59,6 @@ function AppShell() {
       </header>
 
       <main className={styles.main}>
-        <EvidenceInput />
-
         <nav className={styles.tabs} aria-label="Main sections">
           {TABS.map((tab) => (
             <button
@@ -107,6 +109,7 @@ function AppShell() {
       </main>
 
       <DocsPanel open={docsOpen} onClose={() => setDocsOpen(false)} />
+      <ReportBuildPanel open={reportBuildOpen} onClose={() => setReportBuildOpen(false)} />
     </div>
   );
 }

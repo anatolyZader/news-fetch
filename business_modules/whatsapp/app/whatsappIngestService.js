@@ -20,13 +20,8 @@ import { transition } from '../domain/conversation/conversationStateMachine.js';
 import {
   buildExpiredSession, buildWelcomeMenu, buildFollowupQuestions, buildDraftPreview,
 } from '../domain/conversation/outboundMessageFactory.js';
-import { computeGaps, mergeStructured } from '../domain/conversation/gapEngine.js';
-import { EVIDENCE_REQUIREMENTS } from '../domain/evidenceRequirements.js';
 
 const CONVERSATION_TTL_MINUTES = 60;
-
-// Prevent infinite follow-up loops — force a draft after this many officer turns.
-const MAX_COLLECTING_TURNS = 6;
 
 const DEFAULT_WHATSAPP_REPORT_DIR = 'business_modules/whatsapp/reports';
 const DEFAULT_WHATSAPP_REPORT_BASENAME = 'whatsapp_reports';
@@ -36,6 +31,7 @@ const DEFAULT_WHATSAPP_REPORT_BASENAME = 'whatsapp_reports';
  *   messageStore, apiAdapter, evidenceStore,
  *   signalStore?, resilienceAnalyzer?,
  *   draftGenerator?,
+ *   reportBuildService?,
  *   conversationStore, draftStore,
  *   allowedGroupIds: string[]
  * }} deps
@@ -43,6 +39,7 @@ const DEFAULT_WHATSAPP_REPORT_BASENAME = 'whatsapp_reports';
 export function createWhatsAppIngestService({
   messageStore, apiAdapter, evidenceStore, signalStore,
   resilienceAnalyzer, draftGenerator,
+  reportBuildService,
   conversationStore, draftStore, allowedGroupIds,
 }) {
   return {
@@ -240,80 +237,71 @@ export function createWhatsAppIngestService({
   // structured state into the draft, and decides whether to keep collecting
   // or to hand off to the draft generator.
   async function runExtractorLoop({ draftId, normalized }) {
-    if (!draftId || !resilienceAnalyzer) {
+    if (!draftId) {
       return { nextState: 'collecting', replies: [buildFollowupQuestions([], 'תודה.')], askDraftGenerator: false };
     }
-    const currentDraft = draftStore.get(draftId);
-    if (!currentDraft) {
-      return { nextState: 'collecting', replies: [], askDraftGenerator: false };
+
+    // Preferred: shared report_build orchestrator (recompute on stored turns).
+    if (reportBuildService?.recompute) {
+      try {
+        const out = await reportBuildService.recompute({
+          ownerKey: normalized.phoneNumber,
+          displayName: normalized.displayName,
+        });
+        if (out?.state === 'confirming' && out.draftPreview) {
+          return {
+            nextState: 'confirming',
+            replies: [buildDraftPreview(out.draftPreview)],
+            askDraftGenerator: false,
+          };
+        }
+        const qs = Array.isArray(out?.followupQuestions) ? out.followupQuestions : [];
+        return {
+          nextState: 'collecting',
+          replies: [buildFollowupQuestions(qs, 'תודה.')],
+          askDraftGenerator: false,
+        };
+      } catch (err) {
+        console.error(`reportBuildService recompute failed for draft ${draftId}:`, err.message);
+        return {
+          nextState: 'collecting',
+          replies: [buildFollowupQuestions([], 'תודה. ספר עוד פרטים על מה שראית.')],
+          askDraftGenerator: false,
+        };
+      }
     }
 
-    const turnHistory = Array.isArray(currentDraft.turn_history) ? currentDraft.turn_history : [];
-    const officerTurnCount = turnHistory.filter((t) => t.role === 'officer').length;
-
-    let analysis;
-    try {
-      analysis = await resilienceAnalyzer.analyzeTurnHistory(turnHistory, normalized.displayName);
-    } catch (err) {
-      console.error(`WhatsApp analyzer failed for draft ${draftId}:`, err.message);
-      return {
-        nextState: 'collecting',
-        replies: [buildFollowupQuestions([], 'תודה. ספר עוד פרטים על מה שראית.')],
-        askDraftGenerator: false,
-      };
+    // Fallback: legacy behavior (requires injected WhatsApp analyzer).
+    if (!resilienceAnalyzer) {
+      return { nextState: 'collecting', replies: [buildFollowupQuestions([], 'תודה.')], askDraftGenerator: false };
     }
 
-    // Merge newly-extracted structured state into the accumulated draft state.
-    const merged = mergeStructured(currentDraft.structured_state ?? {}, analysis.structured ?? {});
-    draftStore.updateStructured(draftId, merged);
-
-    // Code-owned sufficiency decision.
-    const { sufficient, rankedGaps } = computeGaps(merged);
-    const shouldForceDraft = officerTurnCount >= MAX_COLLECTING_TURNS;
-
-    if (sufficient || shouldForceDraft) {
-      return { nextState: 'drafting', replies: [], askDraftGenerator: true };
-    }
-
-    // Prefer the LLM's Hebrew questions; fall back to evidenceRequirements defaults.
-    const questions = analysis.assessment?.topQuestions?.length
-      ? analysis.assessment.topQuestions
-      : fallbackQuestionsFromGaps(rankedGaps);
-
-    return {
-      nextState: 'collecting',
-      replies: [buildFollowupQuestions(questions, 'תודה.')],
-      askDraftGenerator: false,
-    };
+    return { nextState: 'collecting', replies: [buildFollowupQuestions([], 'תודה.')], askDraftGenerator: false };
   }
 
   // ── Draft generator ───────────────────────────────────────────────────
   async function runDraftGenerator({ draftId }) {
+    // With reportBuildService enabled, drafting happens inside runExtractorLoop via recompute().
+    // Keep legacy fallback for safety when service isn't injected.
     if (!draftId || !draftGenerator) {
-      return { nextState: 'collecting', replies: [buildFollowupQuestions([], 'אני צריך עוד פרטים לפני שאני יכול להכין טיוטה.')] };
+      return {
+        nextState: 'collecting',
+        replies: [buildFollowupQuestions([], 'אני צריך עוד פרטים לפני שאני יכול להכין טיוטה.')],
+      };
     }
     const currentDraft = draftStore.get(draftId);
     if (!currentDraft) return { nextState: 'idle', replies: [] };
 
     let draftText;
     try {
-      draftText = await draftGenerator.generate(
-        currentDraft.structured_state ?? {},
-        currentDraft.turn_history ?? [],
-      );
+      draftText = await draftGenerator.generate(currentDraft.structured_state ?? {}, currentDraft.turn_history ?? []);
     } catch (err) {
       console.error(`Draft generator failed for draft ${draftId}:`, err.message);
-      return {
-        nextState: 'collecting',
-        replies: [buildFollowupQuestions([], 'ספר עוד פרט אחד ואני אכין טיוטה.')],
-      };
+      return { nextState: 'collecting', replies: [buildFollowupQuestions([], 'ספר עוד פרט אחד ואני אכין טיוטה.')] };
     }
 
     if (!draftText) {
-      return {
-        nextState: 'collecting',
-        replies: [buildFollowupQuestions([], 'עוד פרט אחד ואני אכין טיוטה.')],
-      };
+      return { nextState: 'collecting', replies: [buildFollowupQuestions([], 'עוד פרט אחד ואני אכין טיוטה.')] };
     }
 
     draftStore.setApprovedDraft(draftId, draftText);
@@ -436,37 +424,6 @@ export function createWhatsAppIngestService({
       console.error(`WhatsApp reply failed for ${phoneNumber}:`, err.message);
     }
   }
-}
-
-// ── Module-scope helpers ────────────────────────────────────────────────
-
-function fallbackQuestionsFromGaps(rankedGaps) {
-  if (!rankedGaps?.length) return [];
-  const seen = new Set();
-  const result = [];
-  for (const gap of rankedGaps) {
-    if (result.length >= 3) break;
-    if (gap.componentId) {
-      const req = EVIDENCE_REQUIREMENTS[gap.componentId];
-      if (req?.fallbackQuestions?.length) {
-        for (const q of req.fallbackQuestions) {
-          if (seen.has(q)) continue;
-          seen.add(q);
-          result.push(q);
-          if (result.length >= 3) break;
-        }
-      }
-    } else if (gap.field === 'locality') {
-      if (!seen.has('locality')) { seen.add('locality'); result.push('באיזה יישוב או אזור מדובר?'); }
-    } else if (gap.field === 'sourceBasis') {
-      if (!seen.has('sourceBasis')) { seen.add('sourceBasis'); result.push('האם זו תצפית ישירה שלך, דיווח מצוות מקומי, או מה שתושבים סיפרו?'); }
-    } else if (gap.field === 'spread') {
-      if (!seen.has('spread')) { seen.add('spread'); result.push('זה מקרה בודד, תופעה באזור מוגדר, או רחבה יותר?'); }
-    } else if (gap.field === 'observedBehavior') {
-      if (!seen.has('observedBehavior')) { seen.add('observedBehavior'); result.push('מה בדיוק ראית או שמעת? כמה דוגמאות קונקרטיות.'); }
-    }
-  }
-  return result;
 }
 
 function summarizeOutboundForTurn(reply) {

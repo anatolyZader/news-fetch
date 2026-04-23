@@ -82,9 +82,15 @@ describe('recordAndTranscribe', { timeout: 1_800_000 }, () => {
     try { if (existsSync(testRecDir)) rmSync(testRecDir, { recursive: true }); } catch { /* ignore */ }
   });
 
-  it(`records ${CLIP_DURATION_SEC}s from ${stationStreams.size} stations and transcribes each`, async () => {
-    assert.ok(process.env.OPENAI_API_KEY, 'OPENAI_API_KEY must be set');
-    assert.ok(stationStreams.size > 0, 'should have stations in production DB');
+  it(`records ${CLIP_DURATION_SEC}s from ${stationStreams.size} stations and transcribes each`, async (t) => {
+    if (!process.env.OPENAI_API_KEY) {
+      t.skip('OPENAI_API_KEY not set (skipping record+transcribe integration test)');
+      return;
+    }
+    if (stationStreams.size === 0) {
+      t.skip('No stations found in production DB (skipping record+transcribe integration test)');
+      return;
+    }
 
     // --- Phase 1: Record all stations in parallel ---
     console.log(`\n  Phase 1: Recording ${CLIP_DURATION_SEC}s from ${stationStreams.size} stations in parallel...`);
