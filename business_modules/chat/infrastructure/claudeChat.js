@@ -410,3 +410,30 @@ export async function streamChatResponse(systemContext, pboLookup, messages, sen
     ];
   }
 }
+
+/**
+ * Generate a short session title from the first user message.
+ * Uses the same cheap model as chat (Haiku).
+ * @param {string} seedText
+ * @returns {Promise<string|null>} title or null if empty
+ */
+export async function generateChatTitle(seedText) {
+  const text = String(seedText ?? '').trim();
+  if (!text) return null;
+  const response = await client.messages.create({
+    model: 'claude-haiku-4-5-20251001',
+    max_tokens: 24,
+    system:
+      'You create short chat titles. ' +
+      'Return ONLY a concise title (2–5 words). No quotes. No punctuation at end.',
+    messages: [{
+      role: 'user',
+      content:
+        'Create a short title for this chat based on the first message.\n\n' +
+        `MESSAGE:\n${text.slice(0, 500)}`,
+    }],
+  });
+  const out = response.content.filter((b) => b.type === 'text').map((b) => b.text).join('').trim();
+  if (!out) return null;
+  return out.replace(/["'`]/g, '').replace(/[.。!！?？:：]+$/g, '').slice(0, 60).trim() || null;
+}

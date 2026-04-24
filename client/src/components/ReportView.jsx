@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import styles from './ReportView.module.css';
@@ -33,7 +33,16 @@ function scoreLabel(s, t) {
 }
 
 
-function ComponentCard({ comp, t, sourceSignals }) {
+function ComponentCard({
+  comp,
+  t,
+  sourceSignals,
+  open,
+  evidenceOpen,
+  onToggle,
+  onEvidenceToggle,
+  cardRef,
+}) {
   const icon = ICONS[comp.component_id] ?? '•';
   const label = t(`comp.${comp.component_id}`) ?? comp.component_id.replace(/_/g, ' ');
   const confidenceLabel = t(`confidence.${comp.confidence}`) ?? comp.confidence;
@@ -49,7 +58,7 @@ function ComponentCard({ comp, t, sourceSignals }) {
     : curatedEvidence.length;
 
   return (
-    <details className={styles.card}>
+    <details ref={cardRef} className={styles.card} open={open} onToggle={onToggle}>
       <summary className={styles.cardHeader}>
         <span className={styles.chevron}>›</span>
         <span className={styles.icon}>{icon}</span>
@@ -64,7 +73,7 @@ function ComponentCard({ comp, t, sourceSignals }) {
         </div>
 
         {evidenceCount > 0 && (
-          <details className={styles.evidenceDetails}>
+          <details className={styles.evidenceDetails} open={evidenceOpen} onToggle={onEvidenceToggle}>
             <summary className={styles.evidenceToggle}>
               <span className={styles.evidenceChevron}>›</span>
               <span>{t('report.evidence')}</span>
@@ -148,13 +157,35 @@ function CostBreakdown({ breakdown, fallback }) {
 
 const SOURCE_LABELS = { full: 'Full', news: 'News', radio: 'Radio', field: 'Field' };
 
-export function ReportView({ assessment, costUsd, costBreakdown, scoreBySource, readOnly, translating, translateError }) {
+export function ReportView({
+  assessment,
+  costUsd,
+  costBreakdown,
+  scoreBySource,
+  readOnly,
+  translating,
+  translateError,
+  openCompId: openCompIdProp,
+  setOpenCompId: setOpenCompIdProp,
+  openEvidenceCompId: openEvidenceCompIdProp,
+  setOpenEvidenceCompId: setOpenEvidenceCompIdProp,
+}) {
   const { t } = useLanguage();
   const overall = assessment.overall_resilience_score;
   const [activeSource, setActiveSource] = useState('full');
+  const [openCompIdInternal, setOpenCompIdInternal] = useState(null);
+  const [openEvidenceCompIdInternal, setOpenEvidenceCompIdInternal] = useState(null);
+  const compRefs = useRef({});
+
+  const openCompId = openCompIdProp ?? openCompIdInternal;
+  const setOpenCompId = setOpenCompIdProp ?? setOpenCompIdInternal;
+  const openEvidenceCompId = openEvidenceCompIdProp ?? openEvidenceCompIdInternal;
+  const setOpenEvidenceCompId = setOpenEvidenceCompIdProp ?? setOpenEvidenceCompIdInternal;
 
   // When scoreBySource changes (e.g. new report loaded), reset to full
+  // UI only supports a small curated set of source filters.
   const availableSources = scoreBySource ? Object.keys(scoreBySource) : [];
+  const visibleSources = availableSources.filter((src) => src in SOURCE_LABELS && src !== 'full');
 
   // Resolve component scores and per-source signals for the active source filter
   const components = assessment.components ?? [];
@@ -178,6 +209,13 @@ export function ReportView({ assessment, costUsd, costBreakdown, scoreBySource, 
     }
     return all.length > 0 ? all : null;
   }
+
+  useEffect(() => {
+    if (!openCompId) return;
+    const el = compRefs.current?.[openCompId];
+    if (!el) return;
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [openCompId]);
 
   return (
     <div className={styles.root} aria-busy={translating ? 'true' : 'false'}>
@@ -210,9 +248,9 @@ export function ReportView({ assessment, costUsd, costBreakdown, scoreBySource, 
       </div>
 
       {/* ── Source filter pills (only shown when score_by_source is present) ── */}
-      {availableSources.length > 0 && (
+      {visibleSources.length > 0 && (
         <div className={styles.sourceFilter}>
-          {['full', ...availableSources].map((src) => (
+          {['full', ...visibleSources].map((src) => (
             <button
               key={src}
               type="button"
@@ -257,7 +295,26 @@ export function ReportView({ assessment, costUsd, costBreakdown, scoreBySource, 
       <section className={styles.section}>
         <h2>{t('report.components')}</h2>
         {(assessment.components ?? []).map((c) => (
-          <ComponentCard key={c.component_id} comp={c} t={t} sourceSignals={getSourceSignals(c.component_id)} />
+          <ComponentCard
+            key={c.component_id}
+            comp={c}
+            t={t}
+            sourceSignals={getSourceSignals(c.component_id)}
+            open={openCompId === c.component_id}
+            evidenceOpen={openEvidenceCompId === c.component_id}
+            onToggle={(e) => {
+              const isOpen = e.currentTarget.open;
+              setOpenCompId(isOpen ? c.component_id : null);
+              if (!isOpen) setOpenEvidenceCompId((prev) => (prev === c.component_id ? null : prev));
+            }}
+            onEvidenceToggle={(e) => {
+              const isOpen = e.currentTarget.open;
+              setOpenEvidenceCompId(isOpen ? c.component_id : null);
+            }}
+            cardRef={(el) => {
+              if (el) compRefs.current[c.component_id] = el;
+            }}
+          />
         ))}
       </section>
 

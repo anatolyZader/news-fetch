@@ -1,11 +1,12 @@
 export const translations = {
   en: {
     // Tabs
-    'tab.report':         'Report',
+    'tab.report':         '8 components',
     'tab.submissions':    'Submissions',
     'tab.education':      'Education',
-    'tab.municipalities': 'Municipalities',
+    'tab.municipalities': 'PBO reports',
     'tab.naftali':        'Naftali',
+    'tab.pools':          'Pools',
 
     // Report staleness
     'report.outdated':    'This report is from {date} and may be outdated.',
@@ -221,11 +222,12 @@ export const translations = {
   },
 
   he: {
-    'tab.report':         'דוח',
+    'tab.report':         '8 רכיבים',
     'tab.submissions':    'הגשות',
     'tab.education':      'חינוך',
-    'tab.municipalities': 'רשויות',
+    'tab.municipalities': 'דוחות קה״א',
     'tab.naftali':        'נפתלי',
+    'tab.pools':          'בריכות',
 
     'report.outdated':    'דוח זה מתאריך {date} וייתכן שאינו עדכני.',
 
@@ -427,11 +429,12 @@ export const translations = {
   },
 
   ru: {
-    'tab.report':         'Отчёт',
+    'tab.report':         '8 компонентов',
     'tab.submissions':    'Записи',
     'tab.education':      'Образование',
-    'tab.municipalities': 'Муниципалитеты',
+    'tab.municipalities': 'Отчёты PBO',
     'tab.naftali':        'Нафтали',
+    'tab.pools':          'Пулы',
 
     'report.outdated':    'Этот отчёт от {date} и может быть устаревшим.',
 

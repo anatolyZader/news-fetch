@@ -14,10 +14,13 @@ const MAX_HISTORY_MESSAGES = 20;
  * @param {function} getReportData - returns cached report data
  * @param {object} [opts]
  * @param {object} [opts.evidenceStore] - SQLite evidence store (createEvidenceStore return)
+ * @param {(event: any) => void} [opts.onSend] - called for each streamed SSE event object
+ * @param {string} [opts.systemHint] - appended to the system context (Anthropic requires system to be top-level)
  */
 export async function streamChat(message, history, rawReply, getReportData, opts = {}) {
   const reportData = getReportData();
-  const { context, pboLookup } = buildReportContext(reportData);
+  const { context: baseContext, pboLookup } = buildReportContext(reportData);
+  const context = String(baseContext ?? '') + (opts.systemHint ? `\n\n${opts.systemHint}` : '');
 
   // Cap history to prevent context overflow
   const trimmedHistory = history.length > MAX_HISTORY_MESSAGES
@@ -29,7 +32,10 @@ export async function streamChat(message, history, rawReply, getReportData, opts
     { role: 'user', content: message },
   ];
 
-  const send = (data) => rawReply.write(`data: ${JSON.stringify(data)}\n\n`);
+  const send = (data) => {
+    try { opts.onSend?.(data); } catch { /* ignore */ }
+    rawReply.write(`data: ${JSON.stringify(data)}\n\n`);
+  };
 
   try {
     await streamChatResponse(context, pboLookup, messages, send, reportData, {
