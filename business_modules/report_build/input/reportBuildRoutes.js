@@ -39,6 +39,19 @@ export async function reportBuildRoutes(app, opts) {
     return reply.send(out);
   });
 
+  app.post('/api/report-build/suggest', preHandler, async (request, reply) => {
+    if (!requireService(reply)) return;
+    const ownerKey = request.user?.uid;
+    if (!ownerKey) return reply.code(401).send({ error: 'Unauthorized' });
+    const { text } = request.body ?? {};
+    if (typeof text !== 'string' || !text.trim()) {
+      return reply.code(400).send({ error: 'text is required' });
+    }
+    const displayName = request.user?.name ?? request.user?.email ?? '';
+    const out = await reportBuildService.suggestFromText({ ownerKey, text, displayName });
+    return reply.send(out);
+  });
+
   app.post('/api/report-build/confirm', preHandler, async (request, reply) => {
     if (!requireService(reply)) return;
     const ownerKey = request.user?.uid;

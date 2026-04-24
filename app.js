@@ -41,6 +41,7 @@ import { createDraftGenerator } from './business_modules/whatsapp/app/draftGener
 import { whatsappWebhookPlugin } from './business_modules/whatsapp/input/webhook-routes.js';
 import { createReportBuildService } from './business_modules/report_build/app/reportBuildService.js';
 import { createAnthropicReportBuildAnalyzerAdapter } from './business_modules/report_build/infrastructure/adapters/anthropicReportBuildAnalyzerAdapter.js';
+import { createAnthropicReportBuildSuggestAdapter } from './business_modules/report_build/infrastructure/adapters/anthropicReportBuildSuggestAdapter.js';
 import { createAnthropicReportBuildDraftGeneratorAdapter } from './business_modules/report_build/infrastructure/adapters/anthropicReportBuildDraftGeneratorAdapter.js';
 import { createReportBuildConversationStore } from './business_modules/report_build/infrastructure/reportBuildConversationStore.js';
 import { createReportBuildDraftStore } from './business_modules/report_build/infrastructure/reportBuildDraftStore.js';
@@ -305,6 +306,9 @@ export async function createApp(options) {
   const reportBuildService = process.env.ANTHROPIC_API_KEY?.trim()
     ? createReportBuildService({
         analyzerPort: createAnthropicReportBuildAnalyzerAdapter({
+          anthropicApiKey: process.env.ANTHROPIC_API_KEY.trim(),
+        }),
+        suggestAnalyzerPort: createAnthropicReportBuildSuggestAdapter({
           anthropicApiKey: process.env.ANTHROPIC_API_KEY.trim(),
         }),
         draftGeneratorPort: createAnthropicReportBuildDraftGeneratorAdapter({

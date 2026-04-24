@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 import { initializeApp, getApps } from 'firebase/app';
@@ -32,6 +33,7 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [authError, setAuthError] = useState(null);
+  const tokenCacheRef = useRef({ token: null, expiresAt: 0, inflight: null });
 
   useEffect(() => {
     let cancelled = false;
@@ -75,14 +77,32 @@ export function AuthProvider({ children }) {
     return () => unsub();
   }, [configLoaded, authRequired]);
 
-  const getIdToken = useCallback(async () => {
+  const getIdToken = useCallback(async (opts = {}) => {
+    const forceRefresh = Boolean(opts?.forceRefresh);
     if (!authRequired) return null;
     if (!isFirebaseClientConfigured()) return null;
     getOrInitApp();
     const auth = getAuth();
     const u = auth.currentUser;
     if (!u) return null;
-    return u.getIdToken();
+    const now = Date.now();
+    if (!forceRefresh && tokenCacheRef.current.token && tokenCacheRef.current.expiresAt > now) {
+      return tokenCacheRef.current.token;
+    }
+    if (!forceRefresh && tokenCacheRef.current.inflight) {
+      return tokenCacheRef.current.inflight;
+    }
+    const p = u.getIdToken(forceRefresh).then((tok) => {
+      tokenCacheRef.current.token = tok ?? null;
+      tokenCacheRef.current.expiresAt = Date.now() + 60_000;
+      tokenCacheRef.current.inflight = null;
+      return tok ?? null;
+    }).catch(() => {
+      tokenCacheRef.current.inflight = null;
+      return null;
+    });
+    if (!forceRefresh) tokenCacheRef.current.inflight = p;
+    return p;
   }, [authRequired]);
 
   /** Ready to call protected APIs: server open, or user signed in */

@@ -105,6 +105,78 @@ describe('reportBuildService', () => {
     assert.ok(second.draftPreview.includes('טיוטה'));
   });
 
+  it('suggestFromText returns questions without persisting turns or conversation', async () => {
+    const { draftStore, conversationStore } = createMemoryStores();
+
+    const analyzerPort = {
+      async analyzeTurnHistory() {
+        return {
+          structured: {
+            observation: { locality: 'אשקלון', behavior: null, spread: null, sourceBasis: null },
+            componentLinks: [],
+          },
+          assessment: { topQuestions: ['מה בדיוק ראית?', 'זה מקרה בודד או רחב?'] },
+        };
+      },
+    };
+    const draftGeneratorPort = { async generate() { return 'טיוטה'; } };
+    const svc = createReportBuildService({ analyzerPort, draftGeneratorPort, conversationStore, draftStore });
+
+    const out = await svc.suggestFromText({ ownerKey: 'u3', text: 'ראיתי משהו', displayName: 'User' });
+    assert.strictEqual(out.sufficient, false);
+    assert.ok(Array.isArray(out.followupQuestions));
+    assert.ok(out.followupQuestions.length > 0);
+
+    assert.strictEqual(conversationStore.get('u3'), null);
+    assert.strictEqual(draftStore.get('d1'), null);
+  });
+
+  it('suggestFromText returns generic questions when analyzer provides no hints', async () => {
+    const { draftStore, conversationStore } = createMemoryStores();
+
+    const analyzerPort = {
+      async analyzeTurnHistory() {
+        return {
+          structured: {
+            observation: { locality: 'my region', behavior: 'decline in protection seeking', spread: 'noticeable', sourceBasis: 'direct' },
+            componentLinks: [],
+          },
+          assessment: { topQuestions: [] },
+        };
+      },
+    };
+    const draftGeneratorPort = { async generate() { return 'טיוטה'; } };
+    const svc = createReportBuildService({ analyzerPort, draftGeneratorPort, conversationStore, draftStore });
+
+    const out = await svc.suggestFromText({ ownerKey: 'u4', text: 'text', displayName: '' });
+    assert.strictEqual(out.sufficient, false);
+    assert.ok(Array.isArray(out.followupQuestions));
+    assert.ok(out.followupQuestions.length > 0);
+  });
+
+  it('suggestFromText is conservative about inferred spread/sourceBasis', async () => {
+    const { draftStore, conversationStore } = createMemoryStores();
+
+    const analyzerPort = {
+      async analyzeTurnHistory() {
+        return {
+          structured: {
+            observation: { locality: 'Hadera', behavior: 'decline in adherence', spread: 'noticeable', sourceBasis: 'direct' },
+            componentLinks: [{ componentId: 'lifesaving_behavior', direction: 'negative', rationale: 'x' }],
+          },
+          assessment: { topQuestions: [] },
+        };
+      },
+    };
+    const draftGeneratorPort = { async generate() { return 'טיוטה'; } };
+    const svc = createReportBuildService({ analyzerPort, draftGeneratorPort, conversationStore, draftStore });
+
+    // No explicit spread/source cues → should still ask questions (sufficient should be false)
+    const out = await svc.suggestFromText({ ownerKey: 'u5', text: 'decline in adherence in Hadera', displayName: '' });
+    assert.strictEqual(out.sufficient, false);
+    assert.ok(out.followupQuestions.length > 0);
+  });
+
   it('confirmAndClose clears conversation and returns draftText', async () => {
     const { draftStore, conversationStore } = createMemoryStores();
 

@@ -1,7 +1,9 @@
 import { computeGaps, mergeStructured } from '../domain/gapEngine.js';
 import { EVIDENCE_REQUIREMENTS } from '../domain/evidenceRequirements.js';
+import { createHash } from 'node:crypto';
 
 const MAX_COLLECTING_TURNS = 6;
+const SUGGEST_CACHE_TTL_MS = 90_000;
 
 function fallbackQuestionsFromGaps(rankedGaps) {
   if (!rankedGaps?.length) return [];
@@ -53,6 +55,69 @@ function safeText(x) {
   return t;
 }
 
+function hasSourceBasisCue(text) {
+  const t = String(text ?? '').toLowerCase();
+  // direct observation cues
+  if (/\b(i saw|i see|i observed|i witnessed)\b/.test(t)) return true;
+  if (/[א-ת]ראיתי|תצפית|תצפיתי/.test(t)) return true;
+  // staff cues
+  if (/\b(staff|team|guard|security|municipality|welfare)\b/.test(t)) return true;
+  if (/צוות|מאבטח|אבטחה|עירייה|רווחה|שוטר/.test(t)) return true;
+  // residents cues
+  if (/\b(residents|people told|they told me|locals said)\b/.test(t)) return true;
+  if (/תושבים|אמרו לי|סיפרו לי|לדבריהם/.test(t)) return true;
+  return false;
+}
+
+function hasSpreadCue(text) {
+  const t = String(text ?? '').toLowerCase();
+  // explicit quantification or common spread words
+  if (/\b(\d+|dozens|hundreds|many|most|few)\b/.test(t)) return true;
+  if (/[0-9]+|עשרות|מאות|רבים|מרבית|מעטים|המון/.test(t)) return true;
+  if (/\b(isolated|widespread|across|throughout)\b/.test(t)) return true;
+  if (/בודד|נקודתי|נרחב|בכל|ברחבי/.test(t)) return true;
+  return false;
+}
+
+function conservativeStructuredForSuggest(cleanText, structured) {
+  const out = structured && typeof structured === 'object' ? structured : {};
+  const obs = out.observation && typeof out.observation === 'object' ? out.observation : {};
+
+  // If the model filled these without any cues in the text, treat as unknown to keep questions useful.
+  if (obs.sourceBasis && !hasSourceBasisCue(cleanText)) obs.sourceBasis = null;
+  if (obs.spread && !hasSpreadCue(cleanText)) obs.spread = null;
+
+  out.observation = obs;
+  return out;
+}
+
+function normalizeSuggestText(text) {
+  return String(text ?? '')
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, ' ');
+}
+
+function sha1Hex(s) {
+  return createHash('sha1').update(s).digest('hex');
+}
+
+function pickQuestionsFromAnalysisOrGaps(analysis, rankedGaps) {
+  const qs =
+    Array.isArray(analysis?.assessment?.topQuestions) && analysis.assessment.topQuestions.length
+      ? analysis.assessment.topQuestions
+      : fallbackQuestionsFromGaps(rankedGaps);
+  if (qs.length) return qs.slice(0, 3);
+
+  // Edge case: report is insufficient but gap ranking yields no actionable
+  // fields (e.g., missing componentLinks). Provide a small generic set.
+  return [
+    'מה בדיוק ראית או שמעת? כמה דוגמאות קונקרטיות.',
+    'באיזה יישוב או אזור מדובר?',
+    'האם זו תצפית ישירה שלך, דיווח מצוות מקומי, או מה שתושבים סיפרו?',
+  ];
+}
+
 /**
  * Shared orchestrator for interactive report-building (WhatsApp + Web).
  *
@@ -69,6 +134,7 @@ function safeText(x) {
  */
 export function createReportBuildService({
   analyzerPort,
+  suggestAnalyzerPort = null,
   draftGeneratorPort,
   conversationStore,
   draftStore,
@@ -78,6 +144,8 @@ export function createReportBuildService({
   if (!draftGeneratorPort) throw new Error('reportBuildService: draftGeneratorPort is required');
   if (!conversationStore) throw new Error('reportBuildService: conversationStore is required');
   if (!draftStore) throw new Error('reportBuildService: draftStore is required');
+
+  const suggestCache = new Map();
 
   return {
     /**
@@ -140,6 +208,46 @@ export function createReportBuildService({
     },
 
     /**
+     * Suggest follow-up questions from the current free-typed text, without
+     * persisting a turn or advancing the conversation state.
+     *
+     * @param {{ ownerKey: string, text: string, displayName?: string }} params
+     */
+    async suggestFromText({ ownerKey, text, displayName = '' }) {
+      if (!ownerKey) throw new Error('ownerKey required');
+      const clean = safeText(text);
+      if (!clean) return { sufficient: false, followupQuestions: [] };
+
+      const norm = normalizeSuggestText(clean);
+      const key = `${ownerKey}:${sha1Hex(norm)}`;
+      const now = Date.now();
+      const cached = suggestCache.get(key);
+      if (cached && cached.expiresAt > now) return cached.value;
+      if (cached) suggestCache.delete(key);
+
+      const scratchTurns = [{ role: 'officer', text: clean, ts: nowIso() }];
+      const analyzer = suggestAnalyzerPort ?? analyzerPort;
+      const analysis = await analyzer.analyzeTurnHistory(scratchTurns, displayName);
+      const structured = conservativeStructuredForSuggest(clean, analysis?.structured ?? {});
+      const { sufficient, rankedGaps } = computeGaps(structured);
+
+      const value = sufficient
+        ? { sufficient: true, followupQuestions: [] }
+        : { sufficient: false, followupQuestions: pickQuestionsFromAnalysisOrGaps(analysis, rankedGaps) };
+
+      suggestCache.set(key, { expiresAt: now + SUGGEST_CACHE_TTL_MS, value });
+      // Best-effort pruning (keep memory bounded).
+      if (suggestCache.size > 500) {
+        for (const [k, v] of suggestCache) {
+          if (v.expiresAt <= now) suggestCache.delete(k);
+          if (suggestCache.size <= 400) break;
+        }
+      }
+
+      return value;
+    },
+
+    /**
      * Finalize and clear the session; returns the final draft text.
      * @param {{ ownerKey: string }} params
      */
@@ -192,14 +300,10 @@ export function createReportBuildService({
     const shouldForceDraft = officerTurnCount >= maxCollectingTurns;
 
     if (!sufficient && !shouldForceDraft) {
-      const qs =
-        Array.isArray(analysis?.assessment?.topQuestions) && analysis.assessment.topQuestions.length
-          ? analysis.assessment.topQuestions
-          : fallbackQuestionsFromGaps(rankedGaps);
       conversationStore.upsert(ownerKey, 'collecting', draftId);
       return {
         state: 'collecting',
-        followupQuestions: qs.slice(0, 3),
+        followupQuestions: pickQuestionsFromAnalysisOrGaps(analysis, rankedGaps),
         structuredState: merged,
       };
     }
