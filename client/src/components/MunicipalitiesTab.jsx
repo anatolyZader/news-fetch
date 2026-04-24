@@ -96,6 +96,17 @@ export function MunicipalitiesTab() {
     return data.districtTrend.find((d) => d.date === selectedDate)?.avgByComponent ?? null;
   }, [data, selectedDate]);
 
+  const visibleMunicipalities = useMemo(() => {
+    const list = day?.municipalities ?? [];
+    // Guardrail: occasionally upstream exports include a footer row like "Applied filters: ..."
+    // which is not a municipality and should never render in the heatmap.
+    return list.filter((m) => {
+      const name = String(m?.name ?? '').trim();
+      if (!name) return false;
+      return !/^\s*applied\s+filters\b/i.test(name);
+    });
+  }, [day]);
+
   if (loading) return <p className={styles.hint}>{isHe ? 'טוען נתונים...' : 'Loading data...'}</p>;
   if (error) return <p className={styles.error}>{isHe ? 'שגיאה' : 'Error'}: {error}</p>;
   if (!data?.days?.length) return <p className={styles.hint}>{isHe ? 'אין נתוני רשויות' : 'No municipality data available.'}</p>;
@@ -158,7 +169,7 @@ export function MunicipalitiesTab() {
               </tr>
             </thead>
             <tbody>
-              {day.municipalities.map((m) => (
+              {visibleMunicipalities.map((m) => (
                 <tr
                   key={m.name}
                   onClick={() => setSelectedMuni(selectedMuni === m.name ? null : m.name)}

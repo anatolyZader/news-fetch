@@ -155,8 +155,6 @@ function CostBreakdown({ breakdown, fallback }) {
   return null;
 }
 
-const SOURCE_LABELS = { full: 'Full', news: 'News', radio: 'Radio', field: 'Field' };
-
 export function ReportView({
   assessment,
   costUsd,
@@ -172,7 +170,6 @@ export function ReportView({
 }) {
   const { t } = useLanguage();
   const overall = assessment.overall_resilience_score;
-  const [activeSource, setActiveSource] = useState('full');
   const [openCompIdInternal, setOpenCompIdInternal] = useState(null);
   const [openEvidenceCompIdInternal, setOpenEvidenceCompIdInternal] = useState(null);
   const compRefs = useRef({});
@@ -182,24 +179,14 @@ export function ReportView({
   const openEvidenceCompId = openEvidenceCompIdProp ?? openEvidenceCompIdInternal;
   const setOpenEvidenceCompId = setOpenEvidenceCompIdProp ?? setOpenEvidenceCompIdInternal;
 
-  // When scoreBySource changes (e.g. new report loaded), reset to full
-  // UI only supports a small curated set of source filters.
-  const availableSources = scoreBySource ? Object.keys(scoreBySource) : [];
-  const visibleSources = availableSources.filter((src) => src in SOURCE_LABELS && src !== 'full');
-
-  // Resolve component scores and per-source signals for the active source filter
+  // We intentionally keep the report view in "full" mode (no source toggles).
   const components = assessment.components ?? [];
-  const activeSourceData = (activeSource !== 'full') ? scoreBySource?.[activeSource] : null;
 
   function getScore(comp) {
-    if (!activeSourceData) return comp;
-    const src = activeSourceData[comp.component_id];
-    if (!src) return comp;
-    return { ...comp, score: src.score, confidence: src.confidence };
+    return comp;
   }
 
   function getSourceSignals(compId) {
-    if (activeSourceData) return activeSourceData[compId]?.signals ?? [];
     // Full view: aggregate signals from all sources so every extracted signal is shown
     if (!scoreBySource) return null;
     const all = [];
@@ -246,22 +233,6 @@ export function ReportView({
           </div>
         </div>
       </div>
-
-      {/* ── Source filter pills (only shown when score_by_source is present) ── */}
-      {visibleSources.length > 0 && (
-        <div className={styles.sourceFilter}>
-          {['full', ...visibleSources].map((src) => (
-            <button
-              key={src}
-              type="button"
-              className={`${styles.sourceBtn} ${activeSource === src ? styles.sourceBtnActive : ''}`}
-              onClick={() => setActiveSource(src)}
-            >
-              {SOURCE_LABELS[src] ?? src}
-            </button>
-          ))}
-        </div>
-      )}
 
       {/* ── Component pills ── */}
       <div className={styles.pills}>
