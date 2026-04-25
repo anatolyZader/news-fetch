@@ -8,8 +8,6 @@ export function useTodayReport() {
   const { getIdToken, apiReady } = useAuth();
   const [report, setReport] = useState(null);
   const [markdown, setMarkdown] = useState(null);
-  const [costUsd, setCostUsd] = useState(null);
-  const [costBreakdown, setCostBreakdown] = useState(null);
   const [scoreBySource, setScoreBySource] = useState(null);
   const [reportDate, setReportDate] = useState(null);
   /** False until the first GET /api/report/today attempt finishes (success or failure). */
@@ -27,8 +25,6 @@ export function useTodayReport() {
         const data = await r.json();
         if (data.found && data.assessment) {
           setReport(data.assessment);
-          setCostUsd(typeof data.costUsd === 'number' ? data.costUsd : null);
-          setCostBreakdown(data.costBreakdown && typeof data.costBreakdown === 'object' ? data.costBreakdown : null);
           setMarkdown(typeof data.markdown === 'string' && data.markdown.trim() ? data.markdown : null);
           setScoreBySource(data.score_by_source && typeof data.score_by_source === 'object' ? data.score_by_source : null);
           setReportDate(typeof data.reportDate === 'string' ? data.reportDate : null);
@@ -41,5 +37,5 @@ export function useTodayReport() {
     })();
   }, [apiReady, getIdToken]);
 
-  return { report, markdown, costUsd, costBreakdown, scoreBySource, reportDate, initialReportLoadDone };
+  return { report, markdown, scoreBySource, reportDate, initialReportLoadDone };
 }

@@ -17,7 +17,7 @@ import styles from './App.module.css';
 
 function AppShell() {
   const { logout, authRequired } = useAuth();
-  const { report, markdown, costUsd, costBreakdown, scoreBySource, reportDate, initialReportLoadDone } = useTodayReport();
+  const { report, markdown, scoreBySource, reportDate, initialReportLoadDone } = useTodayReport();
   const [activeTab, setActiveTab] = useState('report');
   const [activePoolTab, setActivePoolTab] = useState('naftali');
   const reportTopRef = useRef(null);
@@ -138,8 +138,6 @@ function AppShell() {
                     <div className={styles.reportReadonlyFrame}>
                       <ReportView
                         assessment={displayReport}
-                        costUsd={costUsd}
-                        costBreakdown={costBreakdown}
                         scoreBySource={displayReport?.score_by_source ?? scoreBySource}
                         readOnly
                         translating={translating}

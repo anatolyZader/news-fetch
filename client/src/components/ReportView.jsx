@@ -124,41 +124,8 @@ function ComponentCard({
   );
 }
 
-const SCRIPT_LABELS = {
-  'analyze-resilience':  'analysis',
-  'extract-homefront':   'extraction',
-  'translation-he':      'transl. HE',
-  'translation-ru':      'transl. RU',
-  'audio-to-md':         'transcription',
-};
-
-function CostBreakdown({ breakdown, fallback }) {
-  if (breakdown) {
-    const entries = Object.entries(breakdown)
-      .filter(([, v]) => v > 0)
-      .sort(([a], [b]) => (SCRIPT_LABELS[a] ?? a).localeCompare(SCRIPT_LABELS[b] ?? b));
-    if (entries.length > 0) {
-      return (
-        <span>
-          {' · '}
-          {entries.map(([script, cost], i) => (
-            <span key={script}>
-              {i > 0 && ' · '}
-              {SCRIPT_LABELS[script] ?? script} ${cost.toFixed(4)}
-            </span>
-          ))}
-        </span>
-      );
-    }
-  }
-  if (fallback != null) return <span>{` · $${fallback.toFixed(4)}`}</span>;
-  return null;
-}
-
 export function ReportView({
   assessment,
-  costUsd,
-  costBreakdown,
   scoreBySource,
   readOnly,
   translating,
@@ -227,10 +194,6 @@ export function ReportView({
         </div>
         <div>
           <div className={styles.overallLabel}>{t('report.overallLabel')}</div>
-          <div className={styles.meta}>
-            {assessment.date} · {assessment.total_articles_analyzed} {t('report.articles')}
-            <CostBreakdown breakdown={costBreakdown} fallback={costUsd} />
-          </div>
         </div>
       </div>
 
