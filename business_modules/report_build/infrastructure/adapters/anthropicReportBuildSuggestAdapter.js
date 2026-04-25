@@ -7,9 +7,21 @@ const SYSTEM_PROMPT =
   `  - "_assessment": up to 3 concise Hebrew follow-up questions (no parentheses)\n\n` +
   `STRICT RULES:\n` +
   `- Do NOT invent facts. If the officer didn't state something, use null.\n` +
+  `- Prefer making questions SPECIFIC to the likely resilience component.\n` +
+  `- If the text implies a component, you MUST include at least one componentLinks entry.\n` +
+  `- topQuestions MUST be non-empty unless the draft already clearly states locality + concrete observed behavior + spread + sourceBasis.\n` +
   `- Keep questions short (one sentence each) and aimed at missing evidence.\n` +
   `- Do NOT include any explanations in parentheses.\n` +
   `- Output MUST be valid JSON, nothing else.\n\n` +
+  `Allowed componentId values:\n` +
+  `- "narrative"\n` +
+  `- "information_communication"\n` +
+  `- "lifesaving_behavior"\n` +
+  `- "functional_continuity"\n` +
+  `- "community_capital"\n` +
+  `- "leadership"\n` +
+  `- "belonging_solidarity"\n` +
+  `- "wellbeing_atrisk"\n\n` +
   `Allowed values:\n` +
   `- spread: "isolated" | "noticeable" | "widespread" | null\n` +
   `- sourceBasis: "direct" | "staff" | "residents" | "mixed" | null\n`;
@@ -94,7 +106,7 @@ export function createAnthropicReportBuildSuggestAdapter({ anthropicApiKey }) {
 
       const response = await client.messages.create({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 450,
+        max_tokens: 650,
         temperature: 0,
         system: SYSTEM_PROMPT,
         messages: [
@@ -103,7 +115,8 @@ export function createAnthropicReportBuildSuggestAdapter({ anthropicApiKey }) {
             content:
               `Draft text:\n` +
               `${text}\n\n` +
-              `Return JSON with keys "_structured" and "_assessment".`,
+              `Return JSON with keys "_structured" and "_assessment".\n` +
+              `In _assessment.topQuestions: ask about missing details the officer can answer now.`,
           },
         ],
       });
