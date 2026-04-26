@@ -25,6 +25,7 @@ import {
   SectionHeading,
   SummaryStack,
 } from '../ui/index.js';
+import { formatDate } from '../lib/date.js';
 
 function buildSeverityColors(chart) {
   return {
@@ -50,21 +51,10 @@ const SEVERITY_KEYS = [
   'parentalStress', 'coupleConflicts', 'parentChildConflicts',
 ];
 
-function formatWeekLabel(trend, lang) {
+function formatWeekLabel(trend) {
   if (trend.week != null) return `W${trend.week}`;
-  if (trend.dateFrom) {
-    const d = new Date(trend.dateFrom + 'T00:00:00');
-    if (lang === 'he' || lang === 'ru') return d.toLocaleDateString('he-IL', { day: '2-digit', month: '2-digit' });
-    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  }
+  if (trend.dateFrom) return formatDate(trend.dateFrom);
   return '?';
-}
-
-function formatDate(dateStr, lang) {
-  if (!dateStr) return '—';
-  const d = new Date(dateStr + 'T00:00:00');
-  if (lang === 'he' || lang === 'ru') return d.toLocaleDateString('he-IL', { day: '2-digit', month: '2-digit' });
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
 export function NaftaliTab() {
@@ -178,7 +168,7 @@ export function NaftaliTab() {
     { label: t('naf.kpi.totalResponses'), value: summary.totalResponses },
     { label: t('naf.kpi.weeks'),          value: summary.totalWeeks },
     { label: t('naf.kpi.municipalities'), value: muniNames.length },
-    { label: t('naf.kpi.dateRange'),      value: summary.dateRange ? `${formatDate(summary.dateRange.from, lang)} – ${formatDate(summary.dateRange.to, lang)}` : '—' },
+    { label: t('naf.kpi.dateRange'),      value: summary.dateRange ? `${formatDate(summary.dateRange.from)} – ${formatDate(summary.dateRange.to)}` : '—' },
   ];
 
   const severityChartData = SEVERITY_KEYS.map(dimKey => ({
@@ -186,7 +176,7 @@ export function NaftaliTab() {
     data: filteredTrends.map(tr => {
       const d = tr.severityDist?.[dimKey] ?? {};
       return {
-        label: formatWeekLabel(tr, lang),
+        label: formatWeekLabel(tr),
         [tSev('high')]:    d.high    ?? 0,
         [tSev('medium')]:  d.medium  ?? 0,
         [tSev('low')]:     d.low     ?? 0,
@@ -196,7 +186,7 @@ export function NaftaliTab() {
   }));
 
   const vulnChartData = filteredTrends.map(tr => {
-    const row = { label: formatWeekLabel(tr, lang) };
+    const row = { label: formatWeekLabel(tr) };
     for (const key of VULN_KEYS) row[tVuln(key)] = tr.vulnTotals?.[key] ?? 0;
     return row;
   });
@@ -211,7 +201,7 @@ export function NaftaliTab() {
   );
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, pb: 2 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, pb: 2 }}>
       <PageHeader
         title={t('naf.title')}
         subtitle={t('naf.subtitle')}
@@ -313,7 +303,7 @@ export function NaftaliTab() {
             const muniSevData = SEVERITY_KEYS.map(dimKey => ({
               dimKey,
               data: m.weeks.map(w => ({
-                label: w.week != null ? `W${w.week}` : formatDate(w.dateFrom, lang),
+                label: w.week != null ? `W${w.week}` : formatDate(w.dateFrom),
                 [tSev('high')]:   w.severity[dimKey] === 'high'   ? 1 : 0,
                 [tSev('medium')]: w.severity[dimKey] === 'medium' ? 1 : 0,
                 [tSev('low')]:    w.severity[dimKey] === 'low'    ? 1 : 0,
@@ -343,7 +333,7 @@ export function NaftaliTab() {
                         label: t('naf.col.week'),
                         render: (w) => (
                           <Box sx={{ color: 'text.secondary', whiteSpace: 'nowrap' }}>
-                            {w.week != null ? `W${w.week}` : formatDate(w.dateFrom, lang)}
+                            {w.week != null ? `W${w.week}` : formatDate(w.dateFrom)}
                           </Box>
                         ),
                       },

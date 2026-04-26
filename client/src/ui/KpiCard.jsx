@@ -13,6 +13,7 @@ export function KpiCard({
   helper,
   tone = 'default',
   density = 'comfortable',
+  span,
 }) {
   const padding = DENSITY[density] ?? DENSITY.comfortable;
   return (
@@ -24,6 +25,7 @@ export function KpiCard({
         paddingBottom: theme.spacing(padding.py),
         flex: '1 1 140px',
         minWidth: theme.spacing(15),
+        ...(span ? { gridColumn: `span ${span}` } : {}),
       })}
     >
       <Typography variant="eyebrow" component="p" color="text.secondary">
@@ -53,12 +55,14 @@ export function KpiCard({
   );
 }
 
-export function KpiStrip({ children, minColumnWidth = 140 }) {
+export function KpiStrip({ children, minColumnWidth = 140, columns }) {
   return (
     <Box
       sx={(theme) => ({
         display: 'grid',
-        gridTemplateColumns: `repeat(auto-fit, minmax(${minColumnWidth}px, 1fr))`,
+        gridTemplateColumns: columns
+          ? `repeat(${columns}, minmax(0, 1fr))`
+          : `repeat(auto-fit, minmax(${minColumnWidth}px, 1fr))`,
         gap: theme.spacing(1),
       })}
     >

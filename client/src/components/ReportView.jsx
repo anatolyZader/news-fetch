@@ -8,21 +8,34 @@ import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import Alert from '@mui/material/Alert';
 import { useTheme } from '@mui/material/styles';
+import MenuBookOutlinedIcon from '@mui/icons-material/MenuBookOutlined';
+import CellTowerOutlinedIcon from '@mui/icons-material/CellTowerOutlined';
+import HealthAndSafetyOutlinedIcon from '@mui/icons-material/HealthAndSafetyOutlined';
+import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
+import HandshakeOutlinedIcon from '@mui/icons-material/HandshakeOutlined';
+import SupervisorAccountOutlinedIcon from '@mui/icons-material/SupervisorAccountOutlined';
+import Diversity3OutlinedIcon from '@mui/icons-material/Diversity3Outlined';
+import MonitorHeartOutlinedIcon from '@mui/icons-material/MonitorHeartOutlined';
+import HelpOutlineOutlinedIcon from '@mui/icons-material/HelpOutlineOutlined';
 import { expandSourceCitationLinks } from './ReportMarkdownView.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { scoreColor10, scoreLabel10, scoreVariant10 } from '../lib/score.js';
 import { ResilienceSummaryCard, StatusTag, MarkdownArticle } from '../ui/index.js';
 
-const ICONS = {
-  narrative: '📖',
-  information_communication: '📡',
-  lifesaving_behavior: '🛡️',
-  functional_continuity: '⚙️',
-  community_capital: '🤝',
-  leadership: '👤',
-  belonging_solidarity: '🔗',
-  wellbeing_atrisk: '❤️',
+const COMPONENT_ICONS = {
+  narrative:                 MenuBookOutlinedIcon,
+  information_communication: CellTowerOutlinedIcon,
+  lifesaving_behavior:       HealthAndSafetyOutlinedIcon,
+  functional_continuity:     SettingsOutlinedIcon,
+  community_capital:         HandshakeOutlinedIcon,
+  leadership:                SupervisorAccountOutlinedIcon,
+  belonging_solidarity:      Diversity3OutlinedIcon,
+  wellbeing_atrisk:          MonitorHeartOutlinedIcon,
 };
+
+function getComponentIcon(componentId) {
+  return COMPONENT_ICONS[componentId] ?? HelpOutlineOutlinedIcon;
+}
 
 const SOURCE_KINDS = ['field', 'radio', 'naftali', 'press', 'pbo'];
 
@@ -97,12 +110,12 @@ function ReportSection({ title, children, ...props }) {
   );
 }
 
-function ComponentChip({ icon, label, variant, value, t }) {
+function ComponentChip({ label, variant, value, t }) {
   return (
     <Stack
       direction="row"
       alignItems="center"
-      spacing={0.4}
+      spacing={0.6}
       sx={(theme) => ({
         background: theme.palette.background.paper,
         border: theme.custom.border.hairline,
@@ -116,7 +129,6 @@ function ComponentChip({ icon, label, variant, value, t }) {
         flexShrink: 0,
       })}
     >
-      <Box component="span">{icon}</Box>
       <Box component="span" sx={{ textTransform: 'capitalize', color: 'text.secondary' }}>
         {label}
       </Box>
@@ -134,7 +146,7 @@ function ComponentCard({
   onToggle,
   onEvidenceToggle,
 }) {
-  const icon = ICONS[comp.component_id] ?? '•';
+  const Icon = getComponentIcon(comp.component_id);
   const label = t(`comp.${comp.component_id}`) ?? comp.component_id.replace(/_/g, ' ');
   const confidenceLabel = t(`confidence.${comp.confidence}`) ?? comp.confidence;
 
@@ -150,9 +162,13 @@ function ComponentCard({
       sx={(theme) => ({ marginBottom: theme.spacing(1) })}
     >
       <AccordionSummary>
-        <Box component="span" sx={(theme) => ({ fontSize: theme.typography.h2.fontSize })}>
-          {icon}
-        </Box>
+        <Icon
+          sx={(theme) => ({
+            fontSize: theme.typography.sectionTitle.fontSize,
+            color: theme.palette.text.secondary,
+            marginRight: theme.spacing(1),
+          })}
+        />
         <Typography sx={{ flex: 1, fontWeight: 500, textTransform: 'capitalize' }}>
           {label}
         </Typography>
@@ -269,12 +285,19 @@ export function ReportView({
     return all.length > 0 ? all : null;
   }
 
+  const accordionTransitionMs = theme.transitions.duration.standard;
+
   useEffect(() => {
     if (!openCompId) return;
     const el = compRefs.current?.[openCompId];
     if (!el) return;
     el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }, [openCompId]);
+    const correctionTimer = setTimeout(() => {
+      const settled = compRefs.current?.[openCompId];
+      if (settled) settled.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, accordionTransitionMs + 60);
+    return () => clearTimeout(correctionTimer);
+  }, [openCompId, accordionTransitionMs]);
 
   return (
     <Stack
@@ -327,7 +350,6 @@ export function ReportView({
         statusText={scoreLabel(overall, t)}
         statusColor={scoreColor10(overall, theme)}
         title={t('report.overallLabel')}
-        tagVariant={scoreVariant10(overall)}
       />
 
       <Box
@@ -342,7 +364,6 @@ export function ReportView({
         {components.map((c) => (
           <ComponentChip
             key={c.component_id}
-            icon={ICONS[c.component_id]}
             label={t(`comp.${c.component_id}`) ?? c.component_id.replace(/_/g, ' ')}
             value={c.score}
             variant={scoreVariant10(c.score)}

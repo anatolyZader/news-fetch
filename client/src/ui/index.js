@@ -22,6 +22,7 @@ export { MetricItem, SummaryStack } from './MetricItem.jsx';
 export { ModalPanel } from './ModalPanel.jsx';
 export { PageHeader } from './PageHeader.jsx';
 export { PrimaryTab } from './PrimaryTab.jsx';
+export { ResizableFrame } from './ResizableFrame.jsx';
 export { ResilienceSummaryCard } from './ResilienceSummaryCard.jsx';
 export { SectionHeading } from './SectionHeading.jsx';
 export { SidebarItem } from './SidebarItem.jsx';

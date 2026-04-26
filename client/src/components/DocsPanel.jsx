@@ -154,7 +154,8 @@ export function DocsPanel({ open, onClose }) {
       onClose={onClose}
       title="Docs"
       ariaLabel="Documentation"
-      width="min(1100px, 96vw)"
+      initialWidth={1100}
+      initialHeight={720}
       zIndex={60}
       headerRight={(
         <>

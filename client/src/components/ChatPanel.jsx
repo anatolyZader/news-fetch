@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import Box from '@mui/material/Box';
+import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
@@ -10,11 +11,13 @@ import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import Divider from '@mui/material/Divider';
 import Typography from '@mui/material/Typography';
+import ClickAwayListener from '@mui/material/ClickAwayListener';
+import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import { alpha } from '@mui/material/styles';
 import { useChat } from '../hooks/useChat.js';
 import { useLanguage } from '../context/LanguageContext.jsx';
 
-export function ChatPanel({ reportScope }) {
+export function ChatPanel({ reportScope, onClose }) {
   const {
     sessions,
     activeSessionId,
@@ -36,7 +39,9 @@ export function ChatPanel({ reportScope }) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [menuAnchor, setMenuAnchor] = useState(null);
   const [historyAnchor, setHistoryAnchor] = useState(null);
+  const [closeConfirmOpen, setCloseConfirmOpen] = useState(false);
   const bottomRef = useRef(null);
+  const closeChatButtonRef = useRef(null);
 
   useEffect(() => {
     if (history.length > 0 || draft) {
@@ -46,11 +51,17 @@ export function ChatPanel({ reportScope }) {
 
   useEffect(() => {
     function onKey(e) {
-      if (e.key === 'Escape' && searchOpen) setSearchOpen(false);
+      if (e.key === 'Escape') {
+        if (closeConfirmOpen) {
+          setCloseConfirmOpen(false);
+          return;
+        }
+        if (searchOpen) setSearchOpen(false);
+      }
     }
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-  }, [searchOpen]);
+  }, [searchOpen, closeConfirmOpen]);
 
   const visibleHistory = useMemo(() => {
     const q = String(search ?? '').trim().toLowerCase();
@@ -78,13 +89,15 @@ export function ChatPanel({ reportScope }) {
   return (
     <Box
       sx={(theme) => ({
+        position: 'relative',
         background: theme.palette.background.paper,
         border: theme.custom.border.hairline,
         boxShadow: theme.custom.elevation.chat,
         borderRadius: theme.custom.radius.xl,
         display: 'flex',
         flexDirection: 'column',
-        height: 420,
+        height: '100%',
+        minHeight: 0,
         overflow: 'hidden',
       })}
     >
@@ -101,6 +114,18 @@ export function ChatPanel({ reportScope }) {
           background: theme.custom.surface.chatHeader,
         })}
       >
+        <IconButton
+          size="small"
+          onClick={(e) => setMenuAnchor(e.currentTarget)}
+          aria-label="Menu"
+          title="Menu"
+          sx={(theme) => ({
+            border: theme.custom.border.hairline,
+            color: theme.palette.text.secondary,
+          })}
+        >
+          ⋯
+        </IconButton>
         <Button
           variant="outlined"
           size="small"
@@ -114,18 +139,101 @@ export function ChatPanel({ reportScope }) {
         </Button>
         <Box sx={{ flex: 1 }} />
         <IconButton
+          ref={closeChatButtonRef}
           size="small"
-          onClick={(e) => setMenuAnchor(e.currentTarget)}
-          aria-label="Menu"
-          title="Menu"
+          aria-label="Close chat"
+          title="Close chat"
+          onClick={() => {
+            if (closeConfirmOpen) {
+              setCloseConfirmOpen(false);
+              return;
+            }
+            setMenuAnchor(null);
+            setHistoryAnchor(null);
+            setCloseConfirmOpen(true);
+          }}
           sx={(theme) => ({
-            border: theme.custom.border.hairline,
             color: theme.palette.text.secondary,
+            '&:hover': { color: theme.palette.text.primary },
           })}
         >
-          ⋯
+          <CancelOutlinedIcon fontSize="small" />
         </IconButton>
       </Stack>
+
+      {closeConfirmOpen && (
+        <ClickAwayListener
+          onClickAway={(e) => {
+            const t = e?.target;
+            if (t instanceof Node && closeChatButtonRef.current?.contains(t)) return;
+            setCloseConfirmOpen(false);
+          }}
+          touchEvent="onTouchEnd"
+        >
+          <Paper
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="chat-exit-confirm-title"
+            variant="outlined"
+            tabIndex={-1}
+            sx={(theme) => ({
+              position: 'absolute',
+              zIndex: 2,
+              left: theme.spacing(1.25),
+              right: theme.spacing(1.25),
+              top: theme.spacing(6.5),
+              maxWidth: 360,
+              borderRadius: theme.custom.radius.lg,
+              boxShadow: theme.custom.elevation.modal,
+              background: theme.palette.background.paper,
+              border: theme.custom.border.hairline,
+            })}
+          >
+            <Box
+              sx={(theme) => ({
+                padding: theme.spacing(2.5),
+                display: 'flex',
+                flexDirection: 'column',
+                gap: theme.spacing(1.5),
+              })}
+            >
+              <Typography
+                id="chat-exit-confirm-title"
+                variant="h2"
+                component="h2"
+                sx={(theme) => ({ fontSize: theme.typography.h2.fontSize, fontWeight: 600 })}
+              >
+                {t('chat.closeTitle')}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.55 }}>
+                {t('chat.closeBody')}
+              </Typography>
+              <Stack direction="row" spacing={1} justifyContent="flex-end" flexWrap="wrap" useFlexGap>
+                <Button
+                  type="button"
+                  variant="outlined"
+                  size="small"
+                  onClick={() => setCloseConfirmOpen(false)}
+                  autoFocus
+                >
+                  {t('chat.closeStay')}
+                </Button>
+                <Button
+                  type="button"
+                  variant="contained"
+                  size="small"
+                  onClick={() => {
+                    setCloseConfirmOpen(false);
+                    onClose?.();
+                  }}
+                >
+                  {t('chat.closeExit')}
+                </Button>
+              </Stack>
+            </Box>
+          </Paper>
+        </ClickAwayListener>
+      )}
 
       <Menu
         anchorEl={historyAnchor}

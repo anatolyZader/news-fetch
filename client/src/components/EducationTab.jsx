@@ -33,6 +33,7 @@ import {
   SectionHeading,
   SummaryStack,
 } from '../ui/index.js';
+import { formatDate } from '../lib/date.js';
 
 const AGE_KEYS = ['toddlers', 'kindergarten', 'elementary', 'highschool'];
 
@@ -65,14 +66,6 @@ function countValues(arr) {
   const out = {};
   for (const v of arr) { if (v) out[v] = (out[v] || 0) + 1; }
   return out;
-}
-
-function formatDate(dateStr, lang) {
-  const d = new Date(dateStr + 'T00:00:00');
-  if (lang === 'he' || lang === 'ru') {
-    return d.toLocaleDateString('he-IL', { day: '2-digit', month: '2-digit' });
-  }
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
 function distToChartData(dist, tLabel) {
@@ -127,7 +120,7 @@ function CommentsTable({ comments, t, lang, showSettlement = true }) {
       label: t('edu.col.date'),
       render: (c) => (
         <Box sx={{ color: 'text.secondary', whiteSpace: 'nowrap' }}>
-          {formatDate(c.date, lang)}
+          {formatDate(c.date)}
         </Box>
       ),
     },
@@ -231,12 +224,12 @@ export function EducationTab() {
 
   const kpis = [
     { label: t('edu.kpi.total'),       value: summary.totalResponses },
-    { label: t('edu.kpi.latest'),      value: formatDate(summary.latestDate, lang) },
-    { label: t('edu.kpi.dateRange'),   value: `${formatDate(summary.dateRange.from, lang)} – ${formatDate(summary.dateRange.to, lang)}` },
+    { label: t('edu.kpi.latest'),      value: formatDate(summary.latestDate) },
+    { label: t('edu.kpi.dateRange'),   value: `${formatDate(summary.dateRange.from)} – ${formatDate(summary.dateRange.to)}` },
   ];
 
   const copingTrend = trends.map(d => {
-    const row = { date: formatDate(d.date, lang) };
+    const row = { date: formatDate(d.date) };
     for (const k of Object.keys(PALETTES.coping)) row[tKey(k)] = d.copingDist[k] ?? 0;
     return row;
   });
@@ -245,16 +238,16 @@ export function EducationTab() {
 
   function settlementCharts(s) {
     const copingTrend = s.trends.map(d => {
-      const row = { date: formatDate(d.date, lang) };
+      const row = { date: formatDate(d.date) };
       for (const k of Object.keys(PALETTES.coping)) row[tKey(k)] = d.copingDist[k] ?? 0;
       return row;
     });
     const childrenTrend = s.trends.map(d => ({
-      date: formatDate(d.date, lang),
+      date: formatDate(d.date),
       [t('edu.axis.children')]: d.avgChildren,
     }));
     const freqTrend = (distKey) => s.trends.map(d => ({
-      date: formatDate(d.date, lang),
+      date: formatDate(d.date),
       [tKey('high')]:   d[distKey]?.high   ?? 0,
       [tKey('low')]:    d[distKey]?.low    ?? 0,
       [tKey('rarely')]: d[distKey]?.rarely ?? 0,
@@ -289,7 +282,7 @@ export function EducationTab() {
   ];
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, pb: 2 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, pb: 2 }}>
       <PageHeader
         title={t('edu.title')}
         subtitle={t('edu.subtitle')}
@@ -346,7 +339,7 @@ export function EducationTab() {
       <ChartGrid>
         {FREQ_CHARTS.map(({ title, distKey, stackId }) => {
           const trendData = trends.map(d => ({
-            date: formatDate(d.date, lang),
+            date: formatDate(d.date),
             [tKey('high')]:   d[distKey]?.high   ?? 0,
             [tKey('low')]:    d[distKey]?.low    ?? 0,
             [tKey('rarely')]: d[distKey]?.rarely ?? 0,
@@ -490,8 +483,8 @@ export function EducationTab() {
               {
                 label: t('edu.kpi.dateRange'),
                 value: s.sessionDates.length > 1
-                  ? `${formatDate(s.sessionDates[0], lang)} – ${formatDate(s.sessionDates[s.sessionDates.length - 1], lang)}`
-                  : formatDate(s.sessionDates[0], lang),
+                  ? `${formatDate(s.sessionDates[0])} – ${formatDate(s.sessionDates[s.sessionDates.length - 1])}`
+                  : formatDate(s.sessionDates[0]),
               },
               { label: t('edu.kpi.sessions'), value: s.sessionDates.length },
             ];

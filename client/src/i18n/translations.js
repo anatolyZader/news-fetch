@@ -183,12 +183,12 @@ export const translations = {
 
     // Component names
     'comp.narrative':                'narrative',
-    'comp.information_communication':'information communication',
+    'comp.information_communication':'information & communication',
     'comp.lifesaving_behavior':      'lifesaving behavior',
     'comp.functional_continuity':    'functional continuity',
     'comp.community_capital':        'community capital',
     'comp.leadership':               'leadership',
-    'comp.belonging_solidarity':     'belonging solidarity',
+    'comp.belonging_solidarity':     'belonging & solidarity',
     'comp.wellbeing_atrisk':         'wellbeing at risk',
 
     // Evidence input
@@ -207,6 +207,10 @@ export const translations = {
     'chat.placeholder':  'Ask anything about today\'s resilience assessment…',
     'chat.input':        'Ask a question…',
     'chat.send':         'Send',
+    'chat.closeTitle':   'Close chat?',
+    'chat.closeBody':    'You can open chat again from the launcher. Your sessions stay in History.',
+    'chat.closeStay':    'Keep chatting',
+    'chat.closeExit':    'Close',
 
     // Submissions tab
     'sub.loading':    'Loading…',
@@ -414,6 +418,10 @@ export const translations = {
     'chat.placeholder': 'שאל כל שאלה על הערכת החוסן של היום…',
     'chat.input':       'שאל שאלה…',
     'chat.send':        'שלח',
+    'chat.closeTitle':  'לסגור את הצ׳אט?',
+    'chat.closeBody':   'אפשר לפתוח שוב מכפתור הצ׳אט. השיחות נשמרות תחת היסטוריה.',
+    'chat.closeStay':   'המשך כאן',
+    'chat.closeExit':   'סגור',
 
     // Submissions tab
     'sub.loading':    'טוען…',
@@ -621,6 +629,10 @@ export const translations = {
     'chat.placeholder': 'Задайте любой вопрос об оценке устойчивости сегодня…',
     'chat.input':       'Задайте вопрос…',
     'chat.send':        'Отправить',
+    'chat.closeTitle':  'Закрыть чат?',
+    'chat.closeBody':   'Можно снова открыть с кнопки чата. Сессии остаются в «Истории».',
+    'chat.closeStay':   'Остаться',
+    'chat.closeExit':   'Закрыть',
 
     // Submissions tab
     'sub.loading':    'Загрузка…',

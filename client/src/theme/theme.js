@@ -10,8 +10,8 @@ const NEUTRAL = {
 };
 
 const BRAND = {
-  primary:     '#2563eb',
-  primaryDark: '#1d4ed8',
+  primary:     '#5b7d9c',
+  primaryDark: '#465f80',
 };
 
 const SCORE = {
@@ -115,8 +115,8 @@ export function buildTheme(direction = 'ltr') {
       xs:   base.shape.borderRadius * 0.25,
       sm:   base.shape.borderRadius * 0.5,
       md:   base.shape.borderRadius,
-      lg:   base.shape.borderRadius * 0.5,
-      xl:   base.shape.borderRadius * 0.5,
+      lg:   base.shape.borderRadius * 0.25,
+      xl:   base.shape.borderRadius * 0.25,
       pill: 999,
     },
     elevation: {
@@ -264,9 +264,13 @@ export function buildTheme(direction = 'ltr') {
             color: base.palette.text.secondary,
             borderColor: base.palette.divider,
             '&.Mui-selected': {
-              color: base.palette.primary.main,
-              backgroundColor: 'transparent',
-              fontWeight: 600,
+              color: base.palette.text.primary,
+              backgroundColor: alpha(BRAND.primary, 0.14),
+              fontWeight: 700,
+              borderColor: alpha(BRAND.primary, 0.35),
+              '&:hover': {
+                backgroundColor: alpha(BRAND.primary, 0.2),
+              },
             },
           },
         },

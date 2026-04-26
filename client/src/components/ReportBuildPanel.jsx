@@ -341,7 +341,8 @@ export function ReportBuildPanel({ open, onClose }) {
       onClose={onClose}
       title="Write report"
       ariaLabel="Write report"
-      width="min(900px, 96vw)"
+      initialWidth={900}
+      initialHeight={640}
       zIndex={65}
       headerRight={(
         <>
@@ -354,7 +355,7 @@ export function ReportBuildPanel({ open, onClose }) {
         </>
       )}
     >
-      <Stack spacing={1.4} sx={{ padding: '1rem 1.1rem 1.25rem', overflow: 'auto' }}>
+      <Stack spacing={1.4} sx={{ padding: '1rem 1.1rem 1.25rem' }}>
         <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.55 }}>
           Write freely. The assistant will ask for missing details and then generate a concise draft for approval.
         </Typography>

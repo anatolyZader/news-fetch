@@ -7,8 +7,8 @@ export function SidebarItem({ active = false, className = '', children, ...props
       className={className}
       sx={(theme) => ({
         width: '100%',
-        textAlign: 'left',
-        justifyContent: 'flex-start',
+        textAlign: 'center',
+        justifyContent: 'center',
         paddingTop: theme.spacing(0.75),
         paddingBottom: theme.spacing(0.75),
         paddingLeft: theme.spacing(1),

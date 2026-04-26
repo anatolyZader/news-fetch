@@ -19,19 +19,13 @@ import AccordionDetails from '@mui/material/AccordionDetails';
 import { alpha, useTheme } from '@mui/material/styles';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
-import { EmptyState, ErrorState, KpiCard, LoadingState, PageHeader } from '../ui/index.js';
+import { EmptyState, ErrorState, KpiCard, KpiStrip, LoadingState, PageHeader } from '../ui/index.js';
 import { scoreBg01, scoreColor01 } from '../lib/score.js';
+import { formatDate } from '../lib/date.js';
 import { useMunicipalitiesData } from '../hooks/useMunicipalitiesData.js';
 
 function pct(v) {
   return v != null ? Math.round(v * 100) + '%' : '—';
-}
-
-function formatDate(dateStr, lang) {
-  if (!dateStr) return '—';
-  const d = new Date(dateStr + 'T00:00:00');
-  if (lang === 'he') return d.toLocaleDateString('he-IL', { day: '2-digit', month: '2-digit' });
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
 function ScoreBadge({ value, theme }) {
@@ -113,10 +107,9 @@ export function MunicipalitiesTab() {
   const comps = data.componentsOrder;
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
       <PageHeader
-        title={isHe ? 'דוחות רשויות — קה"א' : 'Municipality PBO Reports'}
-        subtitle={isHe ? 'דיווחי קציני התנהגות אוכלוסייה' : 'Population Behavior Officer reports'}
+        title={isHe ? ' דוחות קה"א יקל"ר' : 'Municipality PBO Reports'}
         action={(
           <ToggleButtonGroup
             value={selectedDate}
@@ -141,7 +134,7 @@ export function MunicipalitiesTab() {
                   },
                 })}
               >
-                {formatDate(d.date, lang)} ({d.municipalities.length})
+                {formatDate(d.date)} ({d.municipalities.length})
               </ToggleButton>
             ))}
           </ToggleButtonGroup>
@@ -149,9 +142,9 @@ export function MunicipalitiesTab() {
       />
 
       {day && (
-        <Stack direction="row" useFlexGap flexWrap="wrap" spacing={1}>
-          <KpiCard density="dense" label={isHe ? 'תאריך' : 'Date'} value={day.date} />
-          <KpiCard density="dense" label={isHe ? 'רשויות' : 'Municipalities'} value={day.municipalities.length} />
+        <KpiStrip columns={8}>
+          <KpiCard density="dense" span={4} label={isHe ? 'תאריך' : 'Date'} value={formatDate(day.date)} />
+          <KpiCard density="dense" span={4} label={isHe ? 'רשויות' : 'Municipalities'} value={day.municipalities.length} />
           {comps.map((cid) => (
             <KpiCard
               key={cid}
@@ -161,7 +154,7 @@ export function MunicipalitiesTab() {
               tone={scoreColor01(districtAvg?.[cid], theme)}
             />
           ))}
-        </Stack>
+        </KpiStrip>
       )}
 
       {day && (
@@ -221,7 +214,7 @@ export function MunicipalitiesTab() {
       {selectedMuni && muniDay && (
         <Stack spacing={1.2}>
           <PageHeader
-            title={`${selectedMuni} — ${formatDate(selectedDate, lang)}`}
+            title={`${selectedMuni} — ${formatDate(selectedDate)}`}
             action={(
               <Button variant="outlined" size="small" onClick={() => setSelectedMuni(null)}>
                 {isHe ? 'סגור' : 'Close'}
@@ -315,7 +308,7 @@ export function MunicipalitiesTab() {
                             >
                               <Stack direction="row" alignItems="center" spacing={1}>
                                 <Typography variant="caption" color="text.secondary">
-                                  {formatDate(md.date, lang)}
+                                  {formatDate(md.date)}
                                 </Typography>
                                 <Typography
                                   variant="cardTitle"

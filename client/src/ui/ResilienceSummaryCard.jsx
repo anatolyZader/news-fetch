@@ -1,10 +1,7 @@
 import Card from '@mui/material/Card';
-import Stack from '@mui/material/Stack';
-import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
-import { StatusTag } from './StatusTag.jsx';
 
-export function ResilienceSummaryCard({ statusText, statusColor, title, tagVariant = 'neutral' }) {
+export function ResilienceSummaryCard({ statusText, statusColor, title }) {
   return (
     <Card
       sx={(theme) => ({
@@ -20,12 +17,7 @@ export function ResilienceSummaryCard({ statusText, statusColor, title, tagVaria
       <Typography variant="display" component="span" sx={{ color: statusColor }}>
         {statusText}
       </Typography>
-      <Stack spacing={0.5}>
-        <Typography variant="h2" component="span">{title}</Typography>
-        <Box>
-          <StatusTag variant={tagVariant}>{statusText}</StatusTag>
-        </Box>
-      </Stack>
+      <Typography variant="h2" component="span">{title}</Typography>
     </Card>
   );
 }

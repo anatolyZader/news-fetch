@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
@@ -23,8 +23,10 @@ import {
   BrandHeader,
   ChatLauncher,
   PrimaryTab,
+  ResizableFrame,
   SidebarItem,
 } from './ui/index.js';
+import { formatDate } from './lib/date.js';
 
 function AppShell() {
   const { logout, authRequired } = useAuth();
@@ -35,6 +37,20 @@ function AppShell() {
   const [openReportCompId, setOpenReportCompId] = useState(null);
   const [openReportEvidenceCompId, setOpenReportEvidenceCompId] = useState(null);
   const [chatOpen, setChatOpen] = useState(false);
+  const [chatSize, setChatSize] = useState(() => {
+    if (typeof window === 'undefined') return { w: 420, h: 420 };
+    return { w: Math.min(420, window.innerWidth - 32), h: 420 };
+  });
+  const onChatSize = useCallback((next) => {
+    if (typeof window === 'undefined') return;
+    const maxW = window.innerWidth - 16;
+    const maxH = window.innerHeight - 24;
+    setChatSize({
+      w: Math.max(280, Math.min(maxW, next.width)),
+      h: Math.max(200, Math.min(maxH, next.height)),
+    });
+  }, []);
+
   const [docsOpen, setDocsOpen] = useState(false);
   const [reportBuildOpen, setReportBuildOpen] = useState(false);
   const { t, lang } = useLanguage();
@@ -54,6 +70,10 @@ function AppShell() {
   useEffect(() => {
     if (activeTab !== 'report') setChatOpen(false);
   }, [activeTab]);
+
+  const handleChatPanelClose = useCallback(() => {
+    setChatOpen(false);
+  }, []);
 
   function jumpToReportComponent(compId) {
     setOpenReportCompId((prev) => {
@@ -92,7 +112,7 @@ function AppShell() {
 
   const header = (
     <>
-      <BrandHeader title="Vibes Witch" subtitle="Home Front Command · Daily Assessment" />
+      <BrandHeader title="Vibes Witch" subtitle="Community resilience · Daily Assessment" />
       <Stack direction="row" alignItems="center" spacing={0.75} sx={{ ml: 'auto', flexShrink: 0 }}>
         <Button variant="outlined" type="button" onClick={() => setReportBuildOpen(true)} sx={headerButtonSx}>
           Write report
@@ -200,7 +220,7 @@ function AppShell() {
                       variant="outlined"
                       sx={(theme) => ({ marginBottom: theme.spacing(1) })}
                     >
-                      {t('report.outdated').replace('{date}', reportDate.split('-').reverse().join('-'))}
+                      {t('report.outdated').replace('{date}', formatDate(reportDate))}
                     </Alert>
                   )}
                   <Box
@@ -249,27 +269,41 @@ function AppShell() {
                       position: 'fixed',
                       right: theme.spacing(3),
                       bottom: theme.spacing(9.5),
-                      width: 'min(420px, calc(100vw - 32px))',
-                      height: 420,
+                      width: chatSize.w,
+                      height: chatSize.h,
                       zIndex: theme.zIndex.tooltip + 5,
                       borderRadius: theme.custom.radius.xl,
                       boxShadow: theme.custom.elevation.chat,
                       overflow: 'hidden',
                       pointerEvents: 'auto',
+                      display: 'flex',
+                      flexDirection: 'column',
                       [theme.breakpoints.down('sm')]: {
                         right: theme.spacing(2),
                         bottom: theme.spacing(8),
-                        height: 'min(420px, calc(100vh - 96px))',
                       },
                     })}
                   >
-                    <ChatPanel
-                      reportScope={
-                        openReportCompId
-                          ? { type: 'component', id: openReportCompId, label: reportContents.find((c) => c.id === openReportCompId)?.label ?? openReportCompId }
-                          : { type: 'all' }
-                      }
+                    <ResizableFrame
+                      width={chatSize.w}
+                      height={chatSize.h}
+                      onSize={onChatSize}
+                      minWidth={280}
+                      minHeight={200}
+                      maxWidth={typeof window !== 'undefined' ? window.innerWidth - 16 : 2000}
+                      maxHeight={typeof window !== 'undefined' ? window.innerHeight - 24 : 2000}
+                      zIndex={2}
                     />
+                    <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+                      <ChatPanel
+                        reportScope={
+                          openReportCompId
+                            ? { type: 'component', id: openReportCompId, label: reportContents.find((c) => c.id === openReportCompId)?.label ?? openReportCompId }
+                            : { type: 'all' }
+                        }
+                        onClose={handleChatPanelClose}
+                      />
+                    </Box>
                   </Paper>
                 </Slide>
               </>
