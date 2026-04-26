@@ -1,0 +1,68 @@
+import Box from '@mui/material/Box';
+import Card from '@mui/material/Card';
+import Typography from '@mui/material/Typography';
+
+const DENSITY = {
+  comfortable: { px: 2, py: 1.5 },
+  dense:       { px: 1.5, py: 1 },
+};
+
+export function KpiCard({
+  label,
+  value,
+  helper,
+  tone = 'default',
+  density = 'comfortable',
+}) {
+  const padding = DENSITY[density] ?? DENSITY.comfortable;
+  return (
+    <Card
+      sx={(theme) => ({
+        paddingLeft: theme.spacing(padding.px),
+        paddingRight: theme.spacing(padding.px),
+        paddingTop: theme.spacing(padding.py),
+        paddingBottom: theme.spacing(padding.py),
+        flex: '1 1 140px',
+        minWidth: theme.spacing(15),
+      })}
+    >
+      <Typography variant="eyebrow" component="p" color="text.secondary">
+        {label}
+      </Typography>
+      <Typography
+        variant="kpiValue"
+        component="p"
+        sx={(theme) => ({
+          marginTop: theme.spacing(0.5),
+          color: tone === 'default' ? theme.palette.text.primary : tone,
+          wordBreak: 'break-word',
+        })}
+      >
+        {value}
+      </Typography>
+      {helper && (
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          sx={(theme) => ({ display: 'block', marginTop: theme.spacing(0.5) })}
+        >
+          {helper}
+        </Typography>
+      )}
+    </Card>
+  );
+}
+
+export function KpiStrip({ children, minColumnWidth = 140 }) {
+  return (
+    <Box
+      sx={(theme) => ({
+        display: 'grid',
+        gridTemplateColumns: `repeat(auto-fit, minmax(${minColumnWidth}px, 1fr))`,
+        gap: theme.spacing(1),
+      })}
+    >
+      {children}
+    </Box>
+  );
+}

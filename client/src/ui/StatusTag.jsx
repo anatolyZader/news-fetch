@@ -1,0 +1,31 @@
+import Chip from '@mui/material/Chip';
+import { alpha } from '@mui/material/styles';
+
+const VALID = new Set(['critical', 'weak', 'moderate', 'good', 'strong', 'alert', 'neutral']);
+
+export function StatusTag({ variant = 'neutral', children, className = '' }) {
+  const key = VALID.has(variant) ? variant : 'neutral';
+  return (
+    <Chip
+      label={children}
+      size="small"
+      className={className}
+      sx={(theme) => {
+        const tone = theme.palette.score?.[key] ?? theme.palette.score.neutral;
+        return {
+          height: theme.spacing(2.75),
+          borderRadius: theme.custom.radius.pill,
+          fontWeight: 700,
+          fontSize: theme.typography.caption.fontSize,
+          color: tone.main,
+          backgroundColor: tone.soft,
+          border: `1px solid ${alpha(tone.main, 0.3)}`,
+          '& .MuiChip-label': {
+            paddingLeft: theme.spacing(0.75),
+            paddingRight: theme.spacing(0.75),
+          },
+        };
+      }}
+    />
+  );
+}

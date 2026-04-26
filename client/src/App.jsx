@@ -1,13 +1,37 @@
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import Alert from '@mui/material/Alert';
 import { AuthProvider, useAuth } from './context/AuthContext.jsx';
+import { LanguageProvider } from './context/LanguageContext.jsx';
 import { LoginScreen } from './components/LoginScreen.jsx';
 import { MainApp } from './MainApp.jsx';
-import styles from './App.module.css';
+import { AppProviders } from './theme/AppProviders.jsx';
 
 export default function App() {
   return (
     <AuthProvider>
-      <AuthGate />
+      <LanguageProvider>
+        <AppProviders>
+          <AuthGate />
+        </AppProviders>
+      </LanguageProvider>
     </AuthProvider>
+  );
+}
+
+function CenteredWrap({ children }) {
+  return (
+    <Box
+      sx={(theme) => ({
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: theme.spacing(4),
+      })}
+    >
+      {children}
+    </Box>
   );
 }
 
@@ -22,22 +46,25 @@ function AuthGate() {
 
   if (!configLoaded || (authRequired && firebaseConfigured && authLoading)) {
     return (
-      <div className={styles.loadingWrap}>
-        <p className={styles.loadingText}>Loading…</p>
-      </div>
+      <CenteredWrap>
+        <Typography variant="body2" color="text.secondary" sx={{ maxWidth: '36rem' }}>
+          Loading…
+        </Typography>
+      </CenteredWrap>
     );
   }
 
   if (authRequired && !firebaseConfigured) {
     return (
-      <div className={styles.loadingWrap}>
-        <p className={styles.configError}>
+      <CenteredWrap>
+        <Alert severity="warning" variant="outlined" sx={{ maxWidth: '36rem' }}>
           This server requires signed-in users, but the client is missing Firebase web config. Set{' '}
-          <code>VITE_FIREBASE_API_KEY</code>, <code>VITE_FIREBASE_AUTH_DOMAIN</code>, and{' '}
-          <code>VITE_FIREBASE_PROJECT_ID</code> when building the client, and enable Email/Password and Google in
+          <Box component="code" sx={{ fontSize: '0.85em' }}>VITE_FIREBASE_API_KEY</Box>,{' '}
+          <Box component="code" sx={{ fontSize: '0.85em' }}>VITE_FIREBASE_AUTH_DOMAIN</Box>, and{' '}
+          <Box component="code" sx={{ fontSize: '0.85em' }}>VITE_FIREBASE_PROJECT_ID</Box> when building the client, and enable Email/Password and Google in
           Firebase Console → Authentication.
-        </p>
-      </div>
+        </Alert>
+      </CenteredWrap>
     );
   }
 

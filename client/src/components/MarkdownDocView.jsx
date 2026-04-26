@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import styles from './MarkdownDocView.module.css';
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import { MarkdownArticle } from '../ui/MarkdownArticle.jsx';
 
 function CopyablePre({ children }) {
   const [copied, setCopied] = useState(false);
@@ -23,46 +23,50 @@ function CopyablePre({ children }) {
   }, [text]);
 
   return (
-    <div>
-      <div className={styles.copyRow}>
-        <button type="button" className={styles.copyBtn} onClick={onCopy} disabled={!text}>
+    <Box>
+      <Box
+        sx={(theme) => ({
+          display: 'flex',
+          justifyContent: 'flex-end',
+          marginTop: theme.spacing(-0.75),
+          marginBottom: theme.spacing(0.5),
+        })}
+      >
+        <Button
+          type="button"
+          onClick={onCopy}
+          disabled={!text}
+          variant="outlined"
+          size="small"
+          sx={{ color: 'text.secondary', '&:hover': { color: 'text.primary' } }}
+        >
           {copied ? 'Copied' : 'Copy'}
-        </button>
-      </div>
+        </Button>
+      </Box>
       <pre>{children}</pre>
-    </div>
+    </Box>
   );
 }
 
 export function MarkdownDocView({ markdown, banner }) {
   if (!markdown?.trim()) {
     return (
-      <div className={styles.wrap}>
-        <p className={styles.banner} role="status">
-          No content to display.
-        </p>
-      </div>
+      <MarkdownArticle
+        markdown=""
+        banner="No content to display."
+        bannerSeverity="info"
+        variant="doc"
+      />
     );
   }
 
   return (
-    <div className={styles.wrap}>
-      {banner && (
-        <p className={styles.banner} role="status">
-          {banner}
-        </p>
-      )}
-      <article className={styles.article}>
-        <ReactMarkdown
-          remarkPlugins={[remarkGfm]}
-          components={{
-            pre: CopyablePre,
-          }}
-        >
-          {markdown}
-        </ReactMarkdown>
-      </article>
-    </div>
+    <MarkdownArticle
+      markdown={markdown}
+      banner={banner}
+      bannerSeverity="info"
+      variant="doc"
+      components={{ pre: CopyablePre }}
+    />
   );
 }
-

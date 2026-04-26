@@ -1,53 +1,66 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  ResponsiveContainer,
-  LineChart, Line,
-  BarChart, Bar,
-  PieChart, Pie, Cell,
-  XAxis, YAxis,
-  CartesianGrid, Tooltip, Legend,
-} from 'recharts';
+import { Bar, Cell, Line, Pie } from 'recharts';
+import Box from '@mui/material/Box';
+import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+import Chip from '@mui/material/Chip';
+import Accordion from '@mui/material/Accordion';
+import AccordionSummary from '@mui/material/AccordionSummary';
+import AccordionDetails from '@mui/material/AccordionDetails';
+import { useTheme } from '@mui/material/styles';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
-import styles from './EducationTab.module.css';
+import {
+  BarChartFrame,
+  ChartCard,
+  ChartGrid,
+  DetailPanel,
+  EmptyState,
+  ErrorState,
+  FilterBar,
+  FilterPill,
+  FilterPillGroup,
+  FilterRow,
+  GridTable,
+  HorizontalBarChartFrame,
+  KpiCard,
+  KpiStrip,
+  LineChartFrame,
+  LoadingState,
+  PageHeader,
+  PieChartFrame,
+  SectionHeading,
+  SummaryStack,
+} from '../ui/index.js';
 
-// ─── Colour palette ──────────────────────────────────────────────────────────
-const COPING_COLORS = {
-  indifferent:         '#6b7280',
-  coping_easily:       '#16a34a',
-  struggling_somewhat: '#ca8a04',
-  struggling_greatly:  '#dc2626',
-  other:               '#9ca3af',
-};
-
-const FREQ_COLORS = {
-  high:    '#dc2626',
-  low:     '#ca8a04',
-  rarely:  '#16a34a',
-  unknown: '#9ca3af',
-};
-
-const INTERVENTION_COLORS = {
-  yes:     '#dc2626',
-  no:      '#16a34a',
-  maybe:   '#ca8a04',
-  unknown: '#9ca3af',
-};
-
-const TREND_COLORS = {
-  drugs:             '#7c3aed',
-  alcohol:           '#dc2626',
-  physical_violence: '#ea580c',
-  verbal_violence:   '#f59e0b',
-  screens:           '#2563eb',
-  loneliness:        '#6b7280',
-  none_observed:     '#16a34a',
-};
-
-const BAR_COLOR = '#2563eb';
 const AGE_KEYS = ['toddlers', 'kindergarten', 'elementary', 'highschool'];
 
-// ─── Pure helpers ─────────────────────────────────────────────────────────────
+function buildPalettes(chart) {
+  return {
+    coping: {
+      indifferent:         chart.gray,
+      coping_easily:       chart.green,
+      struggling_somewhat: chart.amber,
+      struggling_greatly:  chart.red,
+      other:               chart.grayLight,
+    },
+    freq: {
+      high:    chart.red,
+      low:     chart.amber,
+      rarely:  chart.green,
+      unknown: chart.grayLight,
+    },
+    intervention: {
+      yes:     chart.red,
+      no:      chart.green,
+      maybe:   chart.amber,
+      unknown: chart.grayLight,
+    },
+    bar: chart.blue,
+  };
+}
+
 function countValues(arr) {
   const out = {};
   for (const v of arr) { if (v) out[v] = (out[v] || 0) + 1; }
@@ -69,7 +82,6 @@ function distToChartData(dist, tLabel) {
     .map(([k, v]) => ({ name: tLabel(k), value: v }));
 }
 
-/** Recompute trends + distributions from an arbitrary filtered sessions array */
 function aggregateSessions(sessions) {
   if (!sessions.length) return { trends: [], dist: {} };
   const sorted = [...sessions].sort((a, b) => a.timestamp.localeCompare(b.timestamp));
@@ -105,69 +117,47 @@ function aggregateSessions(sessions) {
   return { trends, dist };
 }
 
-// ─── Sub-components ───────────────────────────────────────────────────────────
-function SectionHeading({ children }) {
-  return <h3 className={styles.sectionHeading}>{children}</h3>;
-}
-
-function ChartCard({ title, children }) {
-  return (
-    <div className={styles.chartCard}>
-      <p className={styles.chartTitle}>{title}</p>
-      {children}
-    </div>
-  );
-}
-
-function SimpleBarChart({ data, color = BAR_COLOR, yKey = 'value', label }) {
-  const chartHeight = Math.max(180, data.length * 36 + 20);
-  return (
-    <ResponsiveContainer width="100%" height={chartHeight}>
-      <BarChart data={data} layout="vertical" margin={{ top: 4, right: 16, left: 8, bottom: 4 }}>
-        <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="var(--border)" />
-        <YAxis dataKey="name" type="category" tick={{ fontSize: 12, fill: 'var(--fg, #1f2937)' }} width={120} interval={0} />
-        <XAxis type="number" tick={{ fontSize: 11, fill: 'var(--muted)' }} allowDecimals={false} />
-        <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid var(--border)' }} cursor={{ fill: 'var(--bg)' }} />
-        <Bar dataKey={yKey} fill={color} radius={[0, 4, 4, 0]} name={label} barSize={20} />
-      </BarChart>
-    </ResponsiveContainer>
-  );
-}
-
 function CommentsTable({ comments, t, lang, showSettlement = true }) {
   if (!comments || comments.length === 0) {
-    return <p className={styles.hint}>{t('edu.comments.empty')}</p>;
+    return <Typography variant="body2" color="text.secondary">{t('edu.comments.empty')}</Typography>;
   }
-  const headerClass = showSettlement ? styles.commentHeader : `${styles.commentHeader} ${styles.commentHeaderSettlement}`;
-  const rowClass = showSettlement ? styles.commentRow : `${styles.commentRow} ${styles.commentRowSettlement}`;
+  const columns = [
+    {
+      key: 'date',
+      label: t('edu.col.date'),
+      render: (c) => (
+        <Box sx={{ color: 'text.secondary', whiteSpace: 'nowrap' }}>
+          {formatDate(c.date, lang)}
+        </Box>
+      ),
+    },
+    showSettlement && {
+      key: 'settlement',
+      label: t('edu.col.settlement'),
+      render: (c) => <Box sx={{ fontWeight: 500 }}>{c.settlement || '—'}</Box>,
+    },
+    {
+      key: 'comment',
+      label: t('edu.col.comment'),
+      render: (c) => c.comment,
+    },
+  ].filter(Boolean);
+  const gridTemplateColumns = showSettlement ? '80px 120px 1fr' : '80px 1fr';
   return (
-    <div className={styles.commentsTable}>
-      <div className={headerClass}>
-        <span>{t('edu.col.date')}</span>
-        {showSettlement && <span>{t('edu.col.settlement')}</span>}
-        <span>{t('edu.col.comment')}</span>
-      </div>
-      {comments.map((c, i) => (
-        <div key={i} className={rowClass}>
-          <span className={styles.commentDate}>{formatDate(c.date, lang)}</span>
-          {showSettlement && <span className={styles.commentSettlement}>{c.settlement || '—'}</span>}
-          <span className={styles.commentText}>{c.comment}</span>
-        </div>
-      ))}
-    </div>
+    <GridTable columns={columns} rows={comments} gridTemplateColumns={gridTemplateColumns} />
   );
 }
 
-// ─── Main component ───────────────────────────────────────────────────────────
 export function EducationTab() {
   const { getIdToken, apiReady } = useAuth();
   const { lang, t } = useLanguage();
+  const theme = useTheme();
+  const PALETTES = useMemo(() => buildPalettes(theme.palette.chart), [theme]);
 
-  // All hooks before any early return
-  const [data, setData]                         = useState(null);
-  const [loading, setLoading]                   = useState(true);
-  const [error, setError]                       = useState(null);
-  const [ageFilter, setAgeFilter]               = useState(new Set());
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [ageFilter, setAgeFilter] = useState(new Set());
   const [settlementFilter, setSettlementFilter] = useState(new Set());
   const [selectedSettlement, setSelectedSettlement] = useState(null);
 
@@ -210,7 +200,6 @@ export function EducationTab() {
 
   useEffect(() => { if (apiReady) load(); }, [apiReady, load]);
 
-  // Filter + re-aggregate whenever filter state or raw data changes
   const { trends, dist, filteredCount } = useMemo(() => {
     if (!data?.sessions) return { trends: [], dist: {}, filteredCount: 0 };
     let sessions = data.sessions;
@@ -220,7 +209,6 @@ export function EducationTab() {
     return { trends, dist, filteredCount: sessions.length };
   }, [data, settlementFilter, ageFilter]);
 
-  // Filter toggle helpers
   function toggleSet(setter, key) {
     setter(prev => {
       const next = new Set(prev);
@@ -234,35 +222,31 @@ export function EducationTab() {
   }
   const isFiltered = ageFilter.size > 0 || settlementFilter.size > 0;
 
-  // ── Early returns ─────────────────────────────────────────────────────────
-  if (loading) return <p className={styles.hint}>{t('edu.loading')}</p>;
-  if (error)   return <p className={styles.error}>{t('edu.error')}: {error}</p>;
-  if (!data?.summary) return <div className={styles.empty}><p>{t('edu.noData')}</p></div>;
+  if (loading) return <LoadingState>{t('edu.loading')}</LoadingState>;
+  if (error) return <ErrorState>{`${t('edu.error')}: ${error}`}</ErrorState>;
+  if (!data?.summary) return <EmptyState>{t('edu.noData')}</EmptyState>;
 
   const { summary, recentComments, communityActivitiesComments = [], bySettlement = {} } = data;
   const settlementNames = Object.keys(bySettlement).sort();
 
-  // ── KPIs ──────────────────────────────────────────────────────────────────
   const kpis = [
     { label: t('edu.kpi.total'),       value: summary.totalResponses },
     { label: t('edu.kpi.latest'),      value: formatDate(summary.latestDate, lang) },
     { label: t('edu.kpi.dateRange'),   value: `${formatDate(summary.dateRange.from, lang)} – ${formatDate(summary.dateRange.to, lang)}` },
   ];
 
-  // ── Chart data from filtered trends ───────────────────────────────────────
   const copingTrend = trends.map(d => {
     const row = { date: formatDate(d.date, lang) };
-    for (const k of Object.keys(COPING_COLORS)) row[tKey(k)] = d.copingDist[k] ?? 0;
+    for (const k of Object.keys(PALETTES.coping)) row[tKey(k)] = d.copingDist[k] ?? 0;
     return row;
   });
 
   const toChartData = (obj) => distToChartData(obj, tKey);
 
-  // ── Per-settlement chart data ─────────────────────────────────────────────
   function settlementCharts(s) {
     const copingTrend = s.trends.map(d => {
       const row = { date: formatDate(d.date, lang) };
-      for (const k of Object.keys(COPING_COLORS)) row[tKey(k)] = d.copingDist[k] ?? 0;
+      for (const k of Object.keys(PALETTES.coping)) row[tKey(k)] = d.copingDist[k] ?? 0;
       return row;
     });
     const childrenTrend = s.trends.map(d => ({
@@ -278,103 +262,89 @@ export function EducationTab() {
     return { copingTrend, childrenTrend, freqTrend };
   }
 
-  // Intervention pie data
   const interventionData = toChartData(dist.interventionNeeded ?? {}).map(item => {
-    const keyMap = { [tKey('yes')]: INTERVENTION_COLORS.yes, [tKey('no')]: INTERVENTION_COLORS.no, [tKey('maybe')]: INTERVENTION_COLORS.maybe };
-    return { ...item, color: keyMap[item.name] || INTERVENTION_COLORS.unknown };
+    const keyMap = {
+      [tKey('yes')]: PALETTES.intervention.yes,
+      [tKey('no')]: PALETTES.intervention.no,
+      [tKey('maybe')]: PALETTES.intervention.maybe,
+    };
+    return { ...item, color: keyMap[item.name] || PALETTES.intervention.unknown };
   });
 
+  const copingBars = Object.entries(PALETTES.coping).map(([k, color]) => (
+    <Bar key={k} dataKey={tKey(k)} stackId="coping" fill={color} />
+  ));
+
+  const freqBars = (stackId) => (
+    <>
+      <Bar dataKey={tKey('high')}   stackId={stackId} fill={PALETTES.freq.high}   />
+      <Bar dataKey={tKey('low')}    stackId={stackId} fill={PALETTES.freq.low}    />
+      <Bar dataKey={tKey('rarely')} stackId={stackId} fill={PALETTES.freq.rarely} />
+    </>
+  );
+
+  const FREQ_CHARTS = [
+    { title: t('edu.chart.street'),  distKey: 'streetMovementDist',  stackId: 'street'  },
+    { title: t('edu.chart.contact'), distKey: 'informalContactDist', stackId: 'contact' },
+  ];
+
   return (
-    <div className={styles.container} dir={lang === 'he' ? 'rtl' : 'ltr'}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, pb: 2 }}>
+      <PageHeader
+        title={t('edu.title')}
+        subtitle={t('edu.subtitle')}
+        action={(
+          <Button variant="outlined" size="small" onClick={() => load(true)}>
+            {t('edu.refresh')}
+          </Button>
+        )}
+      />
 
-      {/* Header */}
-      <div className={styles.dashHeader}>
-        <div>
-          <h2 className={styles.dashTitle}>{t('edu.title')}</h2>
-          <p className={styles.dashSubtitle}>{t('edu.subtitle')}</p>
-        </div>
-        <button type="button" className={styles.refreshBtn} onClick={() => load(true)}>
-          {t('edu.refresh')}
-        </button>
-      </div>
+      <KpiStrip>
+        {kpis.map((k) => <KpiCard key={k.label} label={k.label} value={k.value} />)}
+      </KpiStrip>
 
-      {/* KPI strip */}
-      <div className={styles.kpiStrip}>
-        {kpis.map(k => (
-          <div key={k.label} className={styles.kpiCard}>
-            <p className={styles.kpiLabel}>{k.label}</p>
-            <p className={styles.kpiValue}>{k.value}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* ── Filters ─────────────────────────────────────────────────────────── */}
-      <div className={styles.filterBar}>
-        <div className={styles.filterGroup}>
-          <span className={styles.filterGroupLabel}>{t('edu.filter.age')}</span>
-          <div className={styles.filterPills}>
-            {AGE_KEYS.map(k => (
-              <button
-                key={k}
-                type="button"
-                className={`${styles.filterPill} ${ageFilter.has(k) ? styles.filterPillActive : ''}`}
-                onClick={() => toggleSet(setAgeFilter, k)}
-              >
+      <FilterBar
+        footer={isFiltered ? {
+          message: t('edu.filter.showing').replace('{n}', filteredCount).replace('{total}', summary.totalResponses),
+          onClear: clearFilters,
+          clearLabel: t('edu.filter.clear'),
+        } : null}
+      >
+        <FilterRow label={t('edu.filter.age')}>
+          <FilterPillGroup label={t('edu.filter.age')}>
+            {AGE_KEYS.map((k) => (
+              <FilterPill key={k} active={ageFilter.has(k)} onClick={() => toggleSet(setAgeFilter, k)}>
                 {tKey(k)}
-              </button>
+              </FilterPill>
             ))}
-          </div>
-        </div>
+          </FilterPillGroup>
+        </FilterRow>
 
-        <div className={styles.filterGroup}>
-          <span className={styles.filterGroupLabel}>{t('edu.filter.settlement')}</span>
-          <div className={styles.filterPills}>
-            {settlementNames.map(name => (
-              <button
+        <FilterRow label={t('edu.filter.settlement')}>
+          <FilterPillGroup label={t('edu.filter.settlement')}>
+            {settlementNames.map((name) => (
+              <FilterPill
                 key={name}
-                type="button"
-                className={`${styles.filterPill} ${settlementFilter.has(name) ? styles.filterPillActive : ''}`}
+                active={settlementFilter.has(name)}
                 onClick={() => toggleSet(setSettlementFilter, name)}
               >
                 {name}
-              </button>
+              </FilterPill>
             ))}
-          </div>
-        </div>
+          </FilterPillGroup>
+        </FilterRow>
+      </FilterBar>
 
-        {isFiltered && (
-          <div className={styles.filterStatus}>
-            <span className={styles.filterCount}>{t('edu.filter.showing').replace('{n}', filteredCount).replace('{total}', summary.totalResponses)}</span>
-            <button type="button" className={styles.filterClear} onClick={clearFilters}>
-              {t('edu.filter.clear')}
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* ── Coping chart — full width primary ───────────────────────────── */}
       <SectionHeading>{t('edu.sec.trends')}</SectionHeading>
       <ChartCard title={t('edu.chart.coping')}>
-        <ResponsiveContainer width="100%" height={220}>
-          <BarChart data={copingTrend} barSize={18} margin={{ top: 4, right: 16, left: -20, bottom: 4 }}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
-            <XAxis dataKey="date" tick={{ fontSize: 11, fill: 'var(--muted)' }} />
-            <YAxis tick={{ fontSize: 11, fill: 'var(--muted)' }} allowDecimals={false} />
-            <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid var(--border)' }} />
-            <Legend wrapperStyle={{ fontSize: 11 }} />
-            {Object.entries(COPING_COLORS).map(([k, color]) => (
-              <Bar key={k} dataKey={tKey(k)} stackId="coping" fill={color} />
-            ))}
-          </BarChart>
-        </ResponsiveContainer>
+        <BarChartFrame data={copingTrend} xKey="date" height={220} margin={{ top: 4, right: 16, left: -20, bottom: 4 }}>
+          {copingBars}
+        </BarChartFrame>
       </ChartCard>
 
-      {/* ── Supporting trend charts ──────────────────────────────────────── */}
-      <div className={styles.chartGrid2}>
-        {[
-          { title: t('edu.chart.street'),  distKey: 'streetMovementDist',  stackId: 'street'  },
-          { title: t('edu.chart.contact'), distKey: 'informalContactDist', stackId: 'contact' },
-        ].map(({ title, distKey, stackId }) => {
+      <ChartGrid>
+        {FREQ_CHARTS.map(({ title, distKey, stackId }) => {
           const trendData = trends.map(d => ({
             date: formatDate(d.date, lang),
             [tKey('high')]:   d[distKey]?.high   ?? 0,
@@ -383,52 +353,54 @@ export function EducationTab() {
           }));
           return (
             <ChartCard key={title} title={title}>
-              <ResponsiveContainer width="100%" height={200}>
-                <BarChart data={trendData} barSize={18} margin={{ top: 4, right: 8, left: -20, bottom: 4 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
-                  <XAxis dataKey="date" tick={{ fontSize: 11, fill: 'var(--muted)' }} />
-                  <YAxis tick={{ fontSize: 11, fill: 'var(--muted)' }} allowDecimals={false} />
-                  <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid var(--border)' }} />
-                  <Legend wrapperStyle={{ fontSize: 11 }} />
-                  <Bar dataKey={tKey('high')}   stackId={stackId} fill={FREQ_COLORS.high}   />
-                  <Bar dataKey={tKey('low')}    stackId={stackId} fill={FREQ_COLORS.low}    />
-                  <Bar dataKey={tKey('rarely')} stackId={stackId} fill={FREQ_COLORS.rarely} />
-                </BarChart>
-              </ResponsiveContainer>
+              <BarChartFrame data={trendData} xKey="date">{freqBars(stackId)}</BarChartFrame>
             </ChartCard>
           );
         })}
-      </div>
+      </ChartGrid>
 
-      {/* ── Concerning Trends + Exposure + Intervention ─────────────────── */}
       <SectionHeading>{t('edu.chart.trends')}</SectionHeading>
-      <div className={styles.chartGrid2}>
+      <ChartGrid>
         <ChartCard title={t('edu.chart.trends')}>
-          <SimpleBarChart data={toChartData(dist.concerningTrends ?? {})} color="#ea580c" label={t('edu.axis.count')} />
+          <HorizontalBarChartFrame data={toChartData(dist.concerningTrends ?? {})}>
+            <Bar dataKey="value" fill={theme.palette.chart.orange} radius={[0, 4, 4, 0]} name={t('edu.axis.count')} barSize={20} />
+          </HorizontalBarChartFrame>
         </ChartCard>
         <ChartCard title={t('edu.chart.exposure')}>
-          <SimpleBarChart data={toChartData(dist.exposureMethod ?? {})} color="#7c3aed" label={t('edu.axis.count')} />
+          <HorizontalBarChartFrame data={toChartData(dist.exposureMethod ?? {})}>
+            <Bar dataKey="value" fill={theme.palette.chart.purple} radius={[0, 4, 4, 0]} name={t('edu.axis.count')} barSize={20} />
+          </HorizontalBarChartFrame>
         </ChartCard>
-      </div>
-      <div className={styles.chartGrid2}>
+      </ChartGrid>
+      <ChartGrid>
         <ChartCard title={t('edu.chart.intervention')}>
-          <ResponsiveContainer width="100%" height={200}>
-            <PieChart>
-              <Pie data={interventionData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} label={({ name, percent }) => `${name} ${Math.round(percent * 100)}%`}>
-                {interventionData.map((entry, i) => (
-                  <Cell key={i} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid var(--border)' }} />
-            </PieChart>
-          </ResponsiveContainer>
+          <PieChartFrame>
+            <Pie data={interventionData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} label={({ name, percent }) => `${name} ${Math.round(percent * 100)}%`}>
+              {interventionData.map((entry, i) => (
+                <Cell key={i} fill={entry.color} />
+              ))}
+            </Pie>
+          </PieChartFrame>
         </ChartCard>
-      </div>
+      </ChartGrid>
 
-      {/* ── Secondary metrics (collapsible) ─────────────────────────────── */}
-      <details className={styles.secondaryDetails}>
-        <summary className={styles.secondarySummary}>{t('edu.sec.secondary')}</summary>
-        <div className={styles.secondaryTable}>
+      <Accordion>
+        <AccordionSummary
+          sx={(th) => ({
+            paddingLeft: th.spacing(1.5),
+            paddingRight: th.spacing(1.5),
+            color: th.palette.text.secondary,
+            ...th.typography.meta,
+          })}
+        >
+          {t('edu.sec.secondary')}
+        </AccordionSummary>
+        <AccordionDetails
+          sx={(th) => ({
+            padding: 0,
+            borderTop: th.custom.border.hairline,
+          })}
+        >
           {[
             { label: t('edu.chart.ageRanges'),    dist: dist.ageRanges },
             { label: t('edu.chart.activityType'), dist: dist.activityType },
@@ -437,138 +409,129 @@ export function EducationTab() {
             const total = Object.values(d ?? {}).reduce((s, v) => s + v, 0) || 1;
             const sorted = Object.entries(d ?? {}).sort(([, a], [, b]) => b - a);
             return (
-              <div key={label} className={styles.secondaryRow}>
-                <span className={styles.secondaryLabel}>{label}</span>
-                <div className={styles.secondaryPills}>
+              <Stack
+                key={label}
+                direction="row"
+                alignItems="flex-start"
+                useFlexGap
+                flexWrap="wrap"
+                spacing={1.5}
+                sx={(th) => ({
+                  paddingTop: th.spacing(0.75),
+                  paddingBottom: th.spacing(0.75),
+                  paddingLeft: th.spacing(1.5),
+                  paddingRight: th.spacing(1.5),
+                  borderBottom: th.custom.border.hairline,
+                  '&:last-of-type': { borderBottom: 'none' },
+                })}
+              >
+                <Typography
+                  variant="meta"
+                  color="text.secondary"
+                  sx={(th) => ({ minWidth: 140, paddingTop: th.spacing(0.25) })}
+                >
+                  {label}
+                </Typography>
+                <Stack direction="row" useFlexGap flexWrap="wrap" spacing={0.5}>
                   {sorted.map(([k, v]) => (
-                    <span key={k} className={styles.pill}>
-                      {tKey(k)} <strong>{Math.round(v / total * 100)}%</strong>
-                    </span>
+                    <Chip
+                      key={k}
+                      size="small"
+                      variant="outlined"
+                      label={
+                        <span>
+                          {tKey(k)}{' '}
+                          <Box
+                            component="strong"
+                            sx={(th) => ({
+                              color: th.palette.primary.main,
+                              marginInlineStart: th.spacing(0.5),
+                            })}
+                          >
+                            {Math.round(v / total * 100)}%
+                          </Box>
+                        </span>
+                      }
+                    />
                   ))}
-                </div>
-              </div>
+                </Stack>
+              </Stack>
             );
           })}
-        </div>
-      </details>
+        </AccordionDetails>
+      </Accordion>
 
-      {/* ── Community Activities (free text) ───────────────────────────── */}
       <SectionHeading>{t('edu.sec.communityActivities')}</SectionHeading>
       <CommentsTable comments={communityActivitiesComments} t={t} lang={lang} />
 
-      {/* ── Open Responses ──────────────────────────────────────────────── */}
       <SectionHeading>{t('edu.sec.comments')}</SectionHeading>
       <CommentsTable comments={recentComments} t={t} lang={lang} />
 
-      {/* ── Per-Settlement Analysis ────────────────────────────────────── */}
       {settlementNames.length > 0 && (
         <>
           <SectionHeading>{t('edu.sec.bySettlement')}</SectionHeading>
-          <div className={styles.settlementSelector}>
-            {settlementNames.map(name => (
-              <button
+          <FilterPillGroup label={t('edu.sec.bySettlement')} spacing={0.7}>
+            {settlementNames.map((name) => (
+              <FilterPill
                 key={name}
-                type="button"
-                className={`${styles.settlementBtn} ${selectedSettlement === name ? styles.settlementBtnActive : ''}`}
-                onClick={() => setSelectedSettlement(s => s === name ? null : name)}
+                active={selectedSettlement === name}
+                onClick={() => setSelectedSettlement((s) => s === name ? null : name)}
               >
                 {name}
-              </button>
+              </FilterPill>
             ))}
-          </div>
+          </FilterPillGroup>
 
           {selectedSettlement && bySettlement[selectedSettlement] && (() => {
             const s = bySettlement[selectedSettlement];
             const { copingTrend: sc, childrenTrend: ch, freqTrend } = settlementCharts(s);
+            const summaryItems = [
+              { label: t('edu.kpi.total'), value: s.totalResponses },
+              {
+                label: t('edu.kpi.dateRange'),
+                value: s.sessionDates.length > 1
+                  ? `${formatDate(s.sessionDates[0], lang)} – ${formatDate(s.sessionDates[s.sessionDates.length - 1], lang)}`
+                  : formatDate(s.sessionDates[0], lang),
+              },
+              { label: t('edu.kpi.sessions'), value: s.sessionDates.length },
+            ];
             return (
-              <div className={styles.settlementDetail}>
-                <div className={styles.settlementKpis}>
-                  <div className={styles.skpi}>
-                    <p className={styles.skpiLabel}>{t('edu.kpi.total')}</p>
-                    <p className={styles.skpiValue}>{s.totalResponses}</p>
-                  </div>
-                  <div className={styles.skpi}>
-                    <p className={styles.skpiLabel}>{t('edu.kpi.dateRange')}</p>
-                    <p className={styles.skpiValue}>
-                      {s.sessionDates.length > 1
-                        ? `${formatDate(s.sessionDates[0], lang)} – ${formatDate(s.sessionDates[s.sessionDates.length - 1], lang)}`
-                        : formatDate(s.sessionDates[0], lang)}
-                    </p>
-                  </div>
-                  <div className={styles.skpi}>
-                    <p className={styles.skpiLabel}>{t('edu.kpi.sessions')}</p>
-                    <p className={styles.skpiValue}>{s.sessionDates.length}</p>
-                  </div>
-                </div>
-
-                <div className={styles.chartGrid2}>
+              <DetailPanel>
+                <SummaryStack items={summaryItems} />
+                <ChartGrid>
                   <ChartCard title={t('edu.chart.coping')}>
-                    <ResponsiveContainer width="100%" height={200}>
-                      <BarChart data={sc} barSize={18} margin={{ top: 4, right: 8, left: -20, bottom: 4 }}>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
-                        <XAxis dataKey="date" tick={{ fontSize: 11, fill: 'var(--muted)' }} />
-                        <YAxis tick={{ fontSize: 11, fill: 'var(--muted)' }} allowDecimals={false} />
-                        <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid var(--border)' }} />
-                        <Legend wrapperStyle={{ fontSize: 11 }} />
-                        {Object.entries(COPING_COLORS).map(([k, color]) => (
-                          <Bar key={k} dataKey={tKey(k)} stackId="coping" fill={color} />
-                        ))}
-                      </BarChart>
-                    </ResponsiveContainer>
+                    <BarChartFrame data={sc} xKey="date">{copingBars}</BarChartFrame>
                   </ChartCard>
-
-                  {[
-                    { title: t('edu.chart.street'),  distKey: 'streetMovementDist',  stackId: 'street'  },
-                    { title: t('edu.chart.contact'), distKey: 'informalContactDist', stackId: 'contact' },
-                  ].map(({ title, distKey, stackId }) => (
+                  {FREQ_CHARTS.map(({ title, distKey, stackId }) => (
                     <ChartCard key={title} title={title}>
-                      <ResponsiveContainer width="100%" height={200}>
-                        <BarChart data={freqTrend(distKey)} barSize={18} margin={{ top: 4, right: 8, left: -20, bottom: 4 }}>
-                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
-                          <XAxis dataKey="date" tick={{ fontSize: 11, fill: 'var(--muted)' }} />
-                          <YAxis tick={{ fontSize: 11, fill: 'var(--muted)' }} allowDecimals={false} />
-                          <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid var(--border)' }} />
-                          <Legend wrapperStyle={{ fontSize: 11 }} />
-                          <Bar dataKey={tKey('high')}   stackId={stackId} fill={FREQ_COLORS.high}   />
-                          <Bar dataKey={tKey('low')}    stackId={stackId} fill={FREQ_COLORS.low}    />
-                          <Bar dataKey={tKey('rarely')} stackId={stackId} fill={FREQ_COLORS.rarely} />
-                        </BarChart>
-                      </ResponsiveContainer>
+                      <BarChartFrame data={freqTrend(distKey)} xKey="date">{freqBars(stackId)}</BarChartFrame>
                     </ChartCard>
                   ))}
-
                   <ChartCard title={t('edu.chart.children')}>
-                    <ResponsiveContainer width="100%" height={200}>
-                      <LineChart data={ch} margin={{ top: 4, right: 8, left: -20, bottom: 4 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                        <XAxis dataKey="date" tick={{ fontSize: 11, fill: 'var(--muted)' }} />
-                        <YAxis tick={{ fontSize: 11, fill: 'var(--muted)' }} allowDecimals={false} />
-                        <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid var(--border)' }} />
-                        <Line type="monotone" dataKey={t('edu.axis.children')} stroke={BAR_COLOR} strokeWidth={2} dot={{ r: 4 }} />
-                      </LineChart>
-                    </ResponsiveContainer>
+                    <LineChartFrame data={ch}>
+                      <Line type="monotone" dataKey={t('edu.axis.children')} stroke={PALETTES.bar} strokeWidth={2} dot={{ r: 4 }} />
+                    </LineChartFrame>
                   </ChartCard>
-                </div>
+                </ChartGrid>
 
-                {/* Per-settlement community activities */}
                 {s.communityComments && s.communityComments.length > 0 && (
                   <>
-                    <p className={styles.chartTitle}>{t('edu.sec.communityActivities')}</p>
+                    <Typography variant="cardTitle" component="h4">{t('edu.sec.communityActivities')}</Typography>
                     <CommentsTable comments={s.communityComments} t={t} lang={lang} showSettlement={false} />
                   </>
                 )}
 
                 {s.comments.length > 0 && (
                   <>
-                    <p className={styles.chartTitle}>{t('edu.sec.comments')}</p>
+                    <Typography variant="cardTitle" component="h4">{t('edu.sec.comments')}</Typography>
                     <CommentsTable comments={s.comments} t={t} lang={lang} showSettlement={false} />
                   </>
                 )}
-              </div>
+              </DetailPanel>
             );
           })()}
         </>
       )}
-    </div>
+    </Box>
   );
 }

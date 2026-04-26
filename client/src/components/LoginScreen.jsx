@@ -1,6 +1,14 @@
 import { useState } from 'react';
+import Box from '@mui/material/Box';
+import Container from '@mui/material/Container';
+import Paper from '@mui/material/Paper';
+import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+import Divider from '@mui/material/Divider';
+import Alert from '@mui/material/Alert';
 import { useAuth } from '../context/AuthContext.jsx';
-import styles from './LoginScreen.module.css';
 
 export function LoginScreen() {
   const { signInEmail, signUpEmail, signInGoogle, resetPassword, authError, setAuthError } = useAuth();
@@ -57,76 +65,122 @@ export function LoginScreen() {
   }
 
   return (
-    <div className={styles.wrap}>
-      <div className={styles.card}>
-        <h1 className={styles.title}>Sign in</h1>
-        <p className={styles.hint}>
-          Uses Google <strong>Identity Platform</strong> (Firebase Auth): email/password and Google account.
-        </p>
+    <Box
+      sx={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        py: 4,
+        backgroundColor: 'background.default',
+      }}
+    >
+      <Container maxWidth="xs">
+        <Paper
+          variant="outlined"
+          sx={(theme) => ({ p: { xs: 3, sm: 4 }, borderRadius: theme.custom.radius.xl })}
+        >
+          <Stack spacing={2.25}>
+            <Typography variant="h1" sx={{ textAlign: 'center' }}>Sign in</Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
+              Uses Google <strong>Identity Platform</strong> (Firebase Auth): email/password and Google account.
+            </Typography>
 
-        <button type="button" className={styles.primary} onClick={onGoogle} disabled={busy}>
-          Continue with Google
-        </button>
+            <Button
+              type="button"
+              variant="contained"
+              onClick={onGoogle}
+              disabled={busy}
+              fullWidth
+            >
+              Continue with Google
+            </Button>
 
-        <div className={styles.divider}>or</div>
+            <Divider>or</Divider>
 
-        <form className={styles.form} onSubmit={onSubmit}>
-          <label className={styles.label}>
-            Email
-            <input
-              type="email"
-              autoComplete="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className={styles.input}
-            />
-          </label>
-          <label className={styles.label}>
-            Password
-            <input
-              type="password"
-              autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={6}
-              className={styles.input}
-            />
-          </label>
+            <Box component="form" onSubmit={onSubmit}>
+              <Stack spacing={2}>
+                <TextField
+                  label="Email"
+                  type="email"
+                  autoComplete="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  fullWidth
+                  size="small"
+                />
+                <TextField
+                  label="Password"
+                  type="password"
+                  autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  inputProps={{ minLength: 6 }}
+                  fullWidth
+                  size="small"
+                />
 
-          {authError && <div className={styles.error}>{authError}</div>}
-          {resetSent && <div className={styles.success}>Reset email sent — check your inbox.</div>}
+                {authError && <Alert severity="error">{authError}</Alert>}
+                {resetSent && <Alert severity="success">Reset email sent — check your inbox.</Alert>}
 
-          <button type="submit" className={styles.primary} disabled={busy}>
-            {mode === 'signin' ? 'Sign in' : 'Create account'}
-          </button>
+                <Button
+                  type="submit"
+                  variant="contained"
+                  disabled={busy}
+                  fullWidth
+                >
+                  {mode === 'signin' ? 'Sign in' : 'Create account'}
+                </Button>
 
-          {mode === 'signin' && (
-            <button type="button" className={styles.link} onClick={onResetPassword} disabled={busy}>
-              Forgot password?
-            </button>
-          )}
-        </form>
+                {mode === 'signin' && (
+                  <Button
+                    type="button"
+                    variant="text"
+                    size="small"
+                    onClick={onResetPassword}
+                    disabled={busy}
+                    sx={{ alignSelf: 'flex-start' }}
+                  >
+                    Forgot password?
+                  </Button>
+                )}
+              </Stack>
+            </Box>
 
-        <p className={styles.toggle}>
-          {mode === 'signin' ? (
-            <>
-              No account?{' '}
-              <button type="button" className={styles.link} onClick={() => setMode('signup')}>
-                Register
-              </button>
-            </>
-          ) : (
-            <>
-              Already registered?{' '}
-              <button type="button" className={styles.link} onClick={() => setMode('signin')}>
-                Sign in
-              </button>
-            </>
-          )}
-        </p>
-      </div>
-    </div>
+            <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
+              {mode === 'signin' ? (
+                <>
+                  No account?{' '}
+                  <Button
+                    type="button"
+                    variant="text"
+                    size="small"
+                    onClick={() => setMode('signup')}
+                    sx={{ p: 0, minWidth: 0, verticalAlign: 'baseline' }}
+                  >
+                    Register
+                  </Button>
+                </>
+              ) : (
+                <>
+                  Already registered?{' '}
+                  <Button
+                    type="button"
+                    variant="text"
+                    size="small"
+                    onClick={() => setMode('signin')}
+                    sx={{ p: 0, minWidth: 0, verticalAlign: 'baseline' }}
+                  >
+                    Sign in
+                  </Button>
+                </>
+              )}
+            </Typography>
+          </Stack>
+        </Paper>
+      </Container>
+    </Box>
   );
 }

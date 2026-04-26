@@ -1,9 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import styles from './ReportView.module.css';
+import Box from '@mui/material/Box';
+import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
+import CircularProgress from '@mui/material/CircularProgress';
+import Accordion from '@mui/material/Accordion';
+import AccordionSummary from '@mui/material/AccordionSummary';
+import AccordionDetails from '@mui/material/AccordionDetails';
+import Alert from '@mui/material/Alert';
+import { useTheme } from '@mui/material/styles';
 import { expandSourceCitationLinks } from './ReportMarkdownView.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
+import { scoreColor10, scoreLabel10, scoreVariant10 } from '../lib/score.js';
+import { ResilienceSummaryCard, StatusTag, MarkdownArticle } from '../ui/index.js';
 
 const ICONS = {
   narrative: '📖',
@@ -16,22 +24,106 @@ const ICONS = {
   wellbeing_atrisk: '❤️',
 };
 
-function scoreColor(s) {
-  if (s <= 2) return 'var(--score-critical)';
-  if (s <= 4) return 'var(--score-weak)';
-  if (s <= 6) return 'var(--score-moderate)';
-  if (s <= 8) return 'var(--score-good)';
-  return 'var(--score-strong)';
+const SOURCE_KINDS = ['field', 'radio', 'naftali', 'press', 'pbo'];
+
+function SourceBadge({ kind, children }) {
+  const safeKind = SOURCE_KINDS.includes(kind) ? kind : 'field';
+  return (
+    <Box
+      component="span"
+      sx={(theme) => {
+        const palette = theme.palette.source[safeKind];
+        return {
+          display: 'inline-flex',
+          alignItems: 'center',
+          fontSize: theme.typography.eyebrow.fontSize,
+          fontWeight: theme.typography.eyebrow.fontWeight,
+          letterSpacing: '0.02em',
+          borderRadius: theme.custom.radius.xs,
+          lineHeight: 1.3,
+          paddingTop: theme.spacing(0.25),
+          paddingBottom: theme.spacing(0.25),
+          paddingLeft: theme.spacing(0.5),
+          paddingRight: theme.spacing(0.5),
+          marginInlineEnd: theme.spacing(0.5),
+          verticalAlign: 'middle',
+          whiteSpace: 'nowrap',
+          border: `1px solid ${palette.border}`,
+          background: palette.bg,
+          color: palette.fg,
+        };
+      }}
+    >
+      {children}
+    </Box>
+  );
 }
 
 function scoreLabel(s, t) {
-  if (s <= 2) return t('score.critical');
-  if (s <= 4) return t('score.weak');
-  if (s <= 6) return t('score.moderate');
-  if (s <= 8) return t('score.good');
-  return t('score.strong');
+  return scoreLabel10(s, {
+    critical: t('score.critical'),
+    weak: t('score.weak'),
+    moderate: t('score.moderate'),
+    good: t('score.good'),
+    strong: t('score.strong'),
+  });
 }
 
+function ReportSection({ title, children, ...props }) {
+  return (
+    <Box
+      component="section"
+      sx={(theme) => ({
+        background: theme.palette.background.paper,
+        border: theme.custom.border.hairline,
+        borderRadius: theme.custom.radius.lg,
+        paddingTop: theme.spacing(2.5),
+        paddingBottom: theme.spacing(2.5),
+        paddingLeft: theme.spacing(3),
+        paddingRight: theme.spacing(3),
+      })}
+      {...props}
+    >
+      <Typography
+        variant="panelTitle"
+        component="h2"
+        color="text.secondary"
+        sx={(theme) => ({ marginBottom: theme.spacing(1.5) })}
+      >
+        {title}
+      </Typography>
+      {children}
+    </Box>
+  );
+}
+
+function ComponentChip({ icon, label, variant, value, t }) {
+  return (
+    <Stack
+      direction="row"
+      alignItems="center"
+      spacing={0.4}
+      sx={(theme) => ({
+        background: theme.palette.background.paper,
+        border: theme.custom.border.hairline,
+        borderRadius: theme.custom.radius.pill,
+        paddingTop: theme.spacing(0.4),
+        paddingBottom: theme.spacing(0.4),
+        paddingLeft: theme.spacing(1),
+        paddingRight: theme.spacing(1),
+        fontSize: theme.typography.cardTitle.fontSize,
+        whiteSpace: 'nowrap',
+        flexShrink: 0,
+      })}
+    >
+      <Box component="span">{icon}</Box>
+      <Box component="span" sx={{ textTransform: 'capitalize', color: 'text.secondary' }}>
+        {label}
+      </Box>
+      <StatusTag variant={variant}>{scoreLabel(value, t)}</StatusTag>
+    </Stack>
+  );
+}
 
 function ComponentCard({
   comp,
@@ -41,93 +133,111 @@ function ComponentCard({
   evidenceOpen,
   onToggle,
   onEvidenceToggle,
-  cardRef,
 }) {
   const icon = ICONS[comp.component_id] ?? '•';
   const label = t(`comp.${comp.component_id}`) ?? comp.component_id.replace(/_/g, ' ');
   const confidenceLabel = t(`confidence.${comp.confidence}`) ?? comp.confidence;
 
-  // When a source filter is active, show that source's raw signals as evidence.
-  // When full, show the LLM-curated evidence strings.
   const isFiltered = sourceSignals !== null && sourceSignals !== undefined;
   const signals = isFiltered ? (sourceSignals ?? []) : null;
   const curatedEvidence = isFiltered ? null : (comp.evidence ?? []);
-
-  const evidenceCount = isFiltered
-    ? signals.length
-    : curatedEvidence.length;
+  const evidenceCount = isFiltered ? signals.length : curatedEvidence.length;
 
   return (
-    <details ref={cardRef} className={styles.card} open={open} onToggle={onToggle}>
-      <summary className={styles.cardHeader}>
-        <span className={styles.chevron}>›</span>
-        <span className={styles.icon}>{icon}</span>
-        <span className={styles.compName}>{label}</span>
-        <span className={styles.confidence}>{confidenceLabel}</span>
-      </summary>
-      <div className={styles.cardBody}>
-        <div className={styles.proseMd}>
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>
-            {expandSourceCitationLinks(comp.narrative ?? '')}
-          </ReactMarkdown>
-        </div>
+    <Accordion
+      expanded={open}
+      onChange={(_, expanded) => onToggle(expanded)}
+      sx={(theme) => ({ marginBottom: theme.spacing(1) })}
+    >
+      <AccordionSummary>
+        <Box component="span" sx={(theme) => ({ fontSize: theme.typography.h2.fontSize })}>
+          {icon}
+        </Box>
+        <Typography sx={{ flex: 1, fontWeight: 500, textTransform: 'capitalize' }}>
+          {label}
+        </Typography>
+        <Typography variant="caption" color="text.secondary">
+          {confidenceLabel}
+        </Typography>
+      </AccordionSummary>
+      <AccordionDetails>
+        <MarkdownArticle variant="report" markdown={expandSourceCitationLinks(comp.narrative ?? '')} />
 
         {evidenceCount > 0 && (
-          <details className={styles.evidenceDetails} open={evidenceOpen} onToggle={onEvidenceToggle}>
-            <summary className={styles.evidenceToggle}>
-              <span className={styles.evidenceChevron}>›</span>
-              <span>{t('report.evidence')}</span>
-              <span className={styles.evidenceCount}>{evidenceCount} {t('report.items')}</span>
-            </summary>
-            <div className={styles.evidenceBody}>
-              <ul className={styles.evidenceList}>
+          <Accordion
+            expanded={evidenceOpen}
+            onChange={(_, expanded) => onEvidenceToggle(expanded)}
+            sx={(theme) => ({ borderRadius: `${theme.custom.radius.sm}px !important` })}
+          >
+            <AccordionSummary sx={(theme) => ({
+              color: theme.palette.text.secondary,
+              fontSize: theme.typography.meta.fontSize,
+              fontWeight: 500,
+            })}>
+              <Typography variant="meta" component="span">{t('report.evidence')}</Typography>
+              <Typography variant="caption" component="span" sx={{ marginLeft: 'auto', opacity: 0.7 }}>
+                {evidenceCount} {t('report.items')}
+              </Typography>
+            </AccordionSummary>
+            <AccordionDetails sx={(theme) => ({
+              gap: theme.spacing(1),
+              fontSize: theme.typography.body2.fontSize,
+            })}>
+              <Box component="ul" sx={(theme) => ({ paddingLeft: theme.spacing(2.5), margin: 0 })}>
                 {isFiltered
                   ? signals.map((s, i) => (
-                      <li key={i} className={styles.signalItem}>
-                        <span className={styles.signalSource}>
-                          {s.source_type === 'field' && (
-                            <span className={styles.fieldBadge}>{t('report.badge.field')}</span>
-                          )}
-                          {s.source_type === 'radio' && (
-                            <span className={styles.radioBadge}>{t('report.badge.radio')}</span>
-                          )}
-                          {s.source_type === 'naftali' && (
-                            <span className={styles.naftaliBadge}>{t('report.badge.naftali')}</span>
-                          )}
-                          {(s.source_type === 'news' || s.source_type === 'press') && (
-                            <span className={styles.pressBadge}>{t('report.badge.press')}</span>
-                          )}
-                          {s.source_type === 'pbo' && (
-                            <span className={styles.pboBadge}>{t('report.badge.pbo')}</span>
-                          )}
-                          {s.source_type === 'pbo' ? s.article_source?.replace(/^pbo-/, '') : s.article_source}
-                        </span>
-                        <span className={styles.signalEvidence}>{s.evidence}</span>
-                      </li>
-                    ))
+                    <Box
+                      component="li"
+                      key={i}
+                      sx={(theme) => ({
+                        display: 'block',
+                        marginBottom: theme.spacing(1),
+                        lineHeight: theme.typography.body2.lineHeight,
+                      })}
+                    >
+                      <Box
+                        component="span"
+                        sx={(theme) => ({
+                          fontWeight: 600,
+                          color: theme.palette.text.secondary,
+                          display: 'inline-block',
+                          marginBottom: theme.spacing(0.25),
+                        })}
+                      >
+                        {s.source_type === 'field' && <SourceBadge kind="field">{t('report.badge.field')}</SourceBadge>}
+                        {s.source_type === 'radio' && <SourceBadge kind="radio">{t('report.badge.radio')}</SourceBadge>}
+                        {s.source_type === 'naftali' && <SourceBadge kind="naftali">{t('report.badge.naftali')}</SourceBadge>}
+                        {(s.source_type === 'news' || s.source_type === 'press') && <SourceBadge kind="press">{t('report.badge.press')}</SourceBadge>}
+                        {s.source_type === 'pbo' && <SourceBadge kind="pbo">{t('report.badge.pbo')}</SourceBadge>}
+                        {s.source_type === 'pbo' ? s.article_source?.replace(/^pbo-/, '') : s.article_source}
+                      </Box>
+                      <Box component="span" sx={{ display: 'block' }}>{s.evidence}</Box>
+                    </Box>
+                  ))
                   : curatedEvidence.map((e, i) => (
-                      <li key={i} className={styles.proseMd}>
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{expandSourceCitationLinks(e)}</ReactMarkdown>
-                      </li>
-                    ))
-                }
-              </ul>
-            </div>
-          </details>
+                    <Box component="li" key={i} sx={(theme) => ({ marginBottom: theme.spacing(0.75) })}>
+                      <MarkdownArticle variant="report" markdown={expandSourceCitationLinks(e)} />
+                    </Box>
+                  ))}
+              </Box>
+            </AccordionDetails>
+          </Accordion>
         )}
 
         {isFiltered && signals.length === 0 && (
-          <p className={styles.noSourceEvidence}>{t('report.noSourceEvidence') ?? 'No signals from this source for this component.'}</p>
+          <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+            {t('report.noSourceEvidence') ?? 'No signals from this source for this component.'}
+          </Typography>
         )}
-      </div>
-    </details>
+      </AccordionDetails>
+    </Accordion>
   );
 }
 
 export function ReportView({
   assessment,
   scoreBySource,
-  readOnly,
+  readOnly: _readOnly,
   translating,
   translateError,
   openCompId: openCompIdProp,
@@ -136,6 +246,7 @@ export function ReportView({
   setOpenEvidenceCompId: setOpenEvidenceCompIdProp,
 }) {
   const { t } = useLanguage();
+  const theme = useTheme();
   const overall = assessment.overall_resilience_score;
   const [openCompIdInternal, setOpenCompIdInternal] = useState(null);
   const [openEvidenceCompIdInternal, setOpenEvidenceCompIdInternal] = useState(null);
@@ -146,15 +257,9 @@ export function ReportView({
   const openEvidenceCompId = openEvidenceCompIdProp ?? openEvidenceCompIdInternal;
   const setOpenEvidenceCompId = setOpenEvidenceCompIdProp ?? setOpenEvidenceCompIdInternal;
 
-  // We intentionally keep the report view in "full" mode (no source toggles).
   const components = assessment.components ?? [];
 
-  function getScore(comp) {
-    return comp;
-  }
-
   function getSourceSignals(compId) {
-    // Full view: aggregate signals from all sources so every extracted signal is shown
     if (!scoreBySource) return null;
     const all = [];
     for (const srcData of Object.values(scoreBySource)) {
@@ -172,97 +277,125 @@ export function ReportView({
   }, [openCompId]);
 
   return (
-    <div className={styles.root} aria-busy={translating ? 'true' : 'false'}>
+    <Stack
+      spacing={4}
+      sx={{ position: 'relative' }}
+      aria-busy={translating ? 'true' : 'false'}
+    >
       {translating && (
-        <div className={styles.translateOverlay} role="status" aria-live="polite">
-          <div className={styles.translateOverlayInner}>
-            <div className={styles.spinner} aria-hidden="true" />
-            <div className={styles.translateText}>{t('report.translating')}</div>
-          </div>
-        </div>
+        <Box
+          role="status"
+          aria-live="polite"
+          sx={(theme) => ({
+            position: 'absolute',
+            inset: 0,
+            borderRadius: theme.custom.radius.lg,
+            zIndex: 10,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            pointerEvents: 'none',
+          })}
+        >
+          <Stack
+            direction="row"
+            alignItems="center"
+            spacing={1}
+            sx={(theme) => ({
+              paddingTop: theme.spacing(1),
+              paddingBottom: theme.spacing(1),
+              paddingLeft: theme.spacing(1.5),
+              paddingRight: theme.spacing(1.5),
+              borderRadius: theme.custom.radius.pill,
+              background: theme.palette.background.paper,
+              border: theme.custom.border.hairline,
+              boxShadow: theme.custom.elevation.hover,
+            })}
+          >
+            <CircularProgress size={20} thickness={4} />
+            <Typography variant="cardTitle">{t('report.translating')}</Typography>
+          </Stack>
+        </Box>
       )}
       {translateError && (
-        <p className={styles.readOnlyBanner} role="alert" style={{ color: 'var(--score-critical)' }}>
+        <Alert severity="error" variant="outlined">
           Translation error: {translateError}
-        </p>
+        </Alert>
       )}
 
-      {/* ── Overall header ── */}
-      <div className={styles.overallRow}>
-        <div className={styles.overallScore} style={{ color: scoreColor(overall) }}>
-          {scoreLabel(overall, t)}
-        </div>
-        <div>
-          <div className={styles.overallLabel}>{t('report.overallLabel')}</div>
-        </div>
-      </div>
+      <ResilienceSummaryCard
+        statusText={scoreLabel(overall, t)}
+        statusColor={scoreColor10(overall, theme)}
+        title={t('report.overallLabel')}
+        tagVariant={scoreVariant10(overall)}
+      />
 
-      {/* ── Component pills ── */}
-      <div className={styles.pills}>
-        {components.map((c) => {
-          const resolved = getScore(c);
-          return (
-            <div key={c.component_id} className={styles.pill}>
-              <span>{ICONS[c.component_id]}</span>
-              <span className={styles.pillName}>
-                {t(`comp.${c.component_id}`) ?? c.component_id.replace(/_/g, ' ')}
-              </span>
-              <span className={styles.pillScore} style={{ color: scoreColor(resolved.score) }}>
-                {scoreLabel(resolved.score, t)}
-              </span>
-            </div>
-          );
+      <Box
+        sx={(theme) => ({
+          display: 'flex',
+          flexDirection: 'row',
+          flexWrap: 'wrap',
+          gap: theme.spacing(0.5),
+          minWidth: 0,
         })}
-      </div>
-
-      {/* ── Executive summary ── */}
-      <section className={styles.section}>
-        <h2>{t('report.executiveSummary')}</h2>
-        <div className={styles.proseMd}>
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>
-            {expandSourceCitationLinks(assessment.cross_component_synthesis ?? '')}
-          </ReactMarkdown>
-        </div>
-      </section>
-
-      {/* ── Component cards ── */}
-      <section className={styles.section}>
-        <h2>{t('report.components')}</h2>
-        {(assessment.components ?? []).map((c) => (
-          <ComponentCard
+      >
+        {components.map((c) => (
+          <ComponentChip
             key={c.component_id}
-            comp={c}
+            icon={ICONS[c.component_id]}
+            label={t(`comp.${c.component_id}`) ?? c.component_id.replace(/_/g, ' ')}
+            value={c.score}
+            variant={scoreVariant10(c.score)}
             t={t}
-            sourceSignals={getSourceSignals(c.component_id)}
-            open={openCompId === c.component_id}
-            evidenceOpen={openEvidenceCompId === c.component_id}
-            onToggle={(e) => {
-              const isOpen = e.currentTarget.open;
-              setOpenCompId(isOpen ? c.component_id : null);
-              if (!isOpen) setOpenEvidenceCompId((prev) => (prev === c.component_id ? null : prev));
-            }}
-            onEvidenceToggle={(e) => {
-              const isOpen = e.currentTarget.open;
-              setOpenEvidenceCompId(isOpen ? c.component_id : null);
-            }}
-            cardRef={(el) => {
-              if (el) compRefs.current[c.component_id] = el;
-            }}
           />
         ))}
-      </section>
+      </Box>
 
-      {/* ── Caveats ── */}
+      <ReportSection title={t('report.executiveSummary')}>
+        <MarkdownArticle
+          variant="report"
+          markdown={expandSourceCitationLinks(assessment.cross_component_synthesis ?? '')}
+        />
+      </ReportSection>
+
+      <ReportSection title={t('report.components')}>
+        {(assessment.components ?? []).map((c) => (
+          <Box
+            key={c.component_id}
+            ref={(el) => {
+              if (el) compRefs.current[c.component_id] = el;
+            }}
+          >
+            <ComponentCard
+              comp={c}
+              t={t}
+              sourceSignals={getSourceSignals(c.component_id)}
+              open={openCompId === c.component_id}
+              evidenceOpen={openEvidenceCompId === c.component_id}
+              onToggle={(isOpen) => {
+                setOpenCompId(isOpen ? c.component_id : null);
+                if (!isOpen) {
+                  setOpenEvidenceCompId((prev) => (prev === c.component_id ? null : prev));
+                }
+              }}
+              onEvidenceToggle={(isOpen) => {
+                setOpenEvidenceCompId(isOpen ? c.component_id : null);
+              }}
+            />
+          </Box>
+        ))}
+      </ReportSection>
+
       {assessment.media_bias_caveats && (
-        <section className={styles.section}>
-          <h2>{t('report.caveats')}</h2>
-          <div className={`${styles.muted} ${styles.proseMd}`}>
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-              {expandSourceCitationLinks(assessment.media_bias_caveats)}
-            </ReactMarkdown>
-          </div>
-        </section>
+        <ReportSection title={t('report.caveats')}>
+          <Box sx={{ color: 'text.secondary' }}>
+            <MarkdownArticle
+              variant="report"
+              markdown={expandSourceCitationLinks(assessment.media_bias_caveats)}
+            />
+          </Box>
+        </ReportSection>
       )}
-    </div>
+    </Stack>
   );
 }

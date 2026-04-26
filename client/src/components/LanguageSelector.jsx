@@ -1,5 +1,6 @@
+import ToggleButton from '@mui/material/ToggleButton';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import { useLanguage } from '../context/LanguageContext.jsx';
-import styles from './LanguageSelector.module.css';
 
 const LANGS = ['en', 'he', 'ru'];
 
@@ -7,17 +8,19 @@ export function LanguageSelector() {
   const { lang, setLang, t } = useLanguage();
 
   return (
-    <div className={styles.selector}>
+    <ToggleButtonGroup
+      value={lang}
+      exclusive
+      size="small"
+      onChange={(_, next) => {
+        if (next) setLang(next);
+      }}
+    >
       {LANGS.map((l) => (
-        <button
-          key={l}
-          type="button"
-          className={`${styles.btn} ${lang === l ? styles.active : ''}`}
-          onClick={() => setLang(l)}
-        >
+        <ToggleButton key={l} value={l}>
           {t(`lang.${l}`)}
-        </button>
+        </ToggleButton>
       ))}
-    </div>
+    </ToggleButtonGroup>
   );
 }

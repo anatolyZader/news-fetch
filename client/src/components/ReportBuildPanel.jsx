@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import Box from '@mui/material/Box';
+import Stack from '@mui/material/Stack';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+import Alert from '@mui/material/Alert';
+import Typography from '@mui/material/Typography';
 import { useAuth } from '../context/AuthContext.jsx';
-import styles from './ReportBuildPanel.module.css';
+import { ModalPanel } from '../ui/ModalPanel.jsx';
 
 function hasSourceBasisCue(text) {
   const t = String(text ?? '').toLowerCase();
@@ -71,7 +77,6 @@ async function postJson(url, body, { token } = {}) {
 
 export function ReportBuildPanel({ open, onClose }) {
   const { getIdToken } = useAuth();
-  const overlayRef = useRef(null);
 
   const [input, setInput] = useState('');
   const [state, setState] = useState('collecting');
@@ -270,15 +275,6 @@ export function ReportBuildPanel({ open, onClose }) {
     void start();
   }, [open, resetUi, start]);
 
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e) => {
-      if (e.key === 'Escape') onClose?.();
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [open, onClose]);
-
   // Typewriter effect for follow-up questions (fast).
   useEffect(() => {
     if (!open) return;
@@ -339,81 +335,124 @@ export function ReportBuildPanel({ open, onClose }) {
     };
   }, [open, preview, displayQuestionsKey]);
 
-  if (!open) return null;
-
   return (
-    <div
-      className={styles.overlay}
-      role="dialog"
-      aria-modal="true"
-      aria-label="Write report"
-      ref={overlayRef}
-      onMouseDown={(e) => {
-        if (e.target === overlayRef.current) onClose?.();
-      }}
+    <ModalPanel
+      open={open}
+      onClose={onClose}
+      title="Write report"
+      ariaLabel="Write report"
+      width="min(900px, 96vw)"
+      zIndex={65}
+      headerRight={(
+        <>
+          <Button variant="outlined" size="small" onClick={() => void start()} disabled={busy}>
+            Restart
+          </Button>
+          <Button variant="outlined" size="small" onClick={cancel} disabled={busy}>
+            Close
+          </Button>
+        </>
+      )}
     >
-      <div className={styles.panel}>
-        <div className={styles.header}>
-          <div className={styles.title}>Write report</div>
-          <div className={styles.headerRight}>
-            <button type="button" className={styles.secondary} onClick={() => void start()} disabled={busy}>
-              Restart
-            </button>
-            <button type="button" className={styles.close} onClick={cancel} disabled={busy}>
-              Close
-            </button>
-          </div>
-        </div>
+      <Stack spacing={1.4} sx={{ padding: '1rem 1.1rem 1.25rem', overflow: 'auto' }}>
+        <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.55 }}>
+          Write freely. The assistant will ask for missing details and then generate a concise draft for approval.
+        </Typography>
 
-        <div className={styles.body}>
-          <div className={styles.hint}>
-            Write freely. The assistant will ask for missing details and then generate a concise draft for approval.
-          </div>
+        {error && <Alert severity="error">{error}</Alert>}
+        {success && <Alert severity="success">{success}</Alert>}
 
-          {error && <div className={styles.error}>{error}</div>}
-          {success && <div className={styles.success}>{success}</div>}
+        <TextField
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder={state === 'confirming' ? 'Add an edit or extra detail…' : 'Describe what you saw / heard…'}
+          disabled={busy}
+          multiline
+          minRows={6}
+          fullWidth
+        />
 
-          <textarea
-            className={styles.textarea}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder={state === 'confirming' ? 'Add an edit or extra detail…' : 'Describe what you saw / heard…'}
-            disabled={busy}
-          />
+        {displayQuestions.length > 0 && !preview && (
+          <Box
+            dir="rtl"
+            sx={(theme) => ({
+              border: theme.custom.border.hairline,
+              borderRadius: theme.custom.radius.lg,
+              paddingTop: theme.spacing(1),
+              paddingBottom: theme.spacing(1),
+              paddingLeft: theme.spacing(1.25),
+              paddingRight: theme.spacing(1.25),
+              backgroundColor: theme.palette.background.paper,
+            })}
+          >
+            <Typography
+              variant="cardTitle"
+              color="text.secondary"
+              sx={(theme) => ({ marginBottom: theme.spacing(0.5) })}
+            >
+              Follow-up questions
+            </Typography>
+            <Box
+              component="ul"
+              sx={(theme) => ({ margin: 0, paddingLeft: theme.spacing(2) })}
+            >
+              {typedQuestions.map((q, i) => (
+                <Box
+                  component="li"
+                  key={`${i}-${displayQuestions[i] ?? ''}`}
+                  sx={(theme) => ({
+                    margin: `${theme.spacing(0.25)} 0`,
+                    fontSize: theme.typography.body1.fontSize,
+                    lineHeight: theme.typography.body1.lineHeight,
+                  })}
+                >
+                  {q}
+                </Box>
+              ))}
+            </Box>
+          </Box>
+        )}
 
-          {displayQuestions.length > 0 && !preview && (
-            <div className={styles.questions} dir="rtl">
-              <div className={styles.questionsTitle}>Follow-up questions</div>
-              <ul className={styles.questionsList}>
-                {typedQuestions.map((q, i) => (
-                  <li key={`${i}-${displayQuestions[i] ?? ''}`} className={styles.questionItem}>
-                    {q}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          <div className={styles.row}>
-            <button type="button" className={styles.primary} onClick={sendTurn} disabled={busy || !input.trim()}>
-              {state === 'confirming' ? 'Update draft' : 'Next'}
-            </button>
-            {preview && (
-              <button type="button" className={styles.primary} onClick={confirmAndSubmit} disabled={busy}>
-                Confirm & submit
-              </button>
-            )}
-          </div>
-
+        <Stack direction="row" alignItems="center" spacing={1.2} useFlexGap flexWrap="wrap">
+          <Button
+            variant="contained"
+            onClick={sendTurn}
+            disabled={busy || !input.trim()}
+          >
+            {state === 'confirming' ? 'Update draft' : 'Next'}
+          </Button>
           {preview && (
-            <>
-              <div className={styles.questionsTitle}>Draft preview</div>
-              <div className={styles.preview}>{preview}</div>
-            </>
+            <Button variant="contained" onClick={confirmAndSubmit} disabled={busy}>
+              Confirm & submit
+            </Button>
           )}
-        </div>
-      </div>
-    </div>
+        </Stack>
+
+        {preview && (
+          <>
+            <Typography variant="cardTitle" color="text.secondary">
+              Draft preview
+            </Typography>
+            <Box
+              sx={(theme) => ({
+                border: theme.custom.border.hairline,
+                borderRadius: theme.custom.radius.lg,
+                paddingTop: theme.spacing(1.25),
+                paddingBottom: theme.spacing(1.25),
+                paddingLeft: theme.spacing(1.5),
+                paddingRight: theme.spacing(1.5),
+                whiteSpace: 'pre-wrap',
+                fontSize: theme.typography.body1.fontSize,
+                lineHeight: theme.typography.body1.lineHeight,
+                backgroundColor: theme.palette.background.paper,
+              })}
+            >
+              {preview}
+            </Box>
+          </>
+        )}
+      </Stack>
+    </ModalPanel>
   );
 }
 

@@ -1,7 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import Box from '@mui/material/Box';
+import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
+import TextField from '@mui/material/TextField';
+import Button from '@mui/material/Button';
+import Alert from '@mui/material/Alert';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
-import styles from './EvidenceInput.module.css';
 
 const STORAGE_KEY = 'communityResilienceEvidenceDraft';
 const SAVE_DEBOUNCE_MS = 400;
@@ -358,58 +363,86 @@ export function EvidenceInput() {
 
 
   return (
-    <section className={styles.section} aria-labelledby="evidence-heading">
-      <h2 id="evidence-heading" className={styles.heading}>
+    <Stack
+      component="section"
+      aria-labelledby="evidence-heading"
+      spacing={1.25}
+    >
+      <Typography id="evidence-heading" variant="h2">
         {t('evidence.heading')}
-      </h2>
-      <p className={styles.intro}>
+      </Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ maxWidth: '52ch' }}>
         {t('evidence.intro')}
-      </p>
-      {syncError && (
-        <p className={styles.syncError} role="alert">
-          {syncError}
-        </p>
-      )}
-      <label htmlFor="evidence-textarea" className={styles.visuallyHidden}>
-        {t('evidence.heading')}
-      </label>
-      <textarea
+      </Typography>
+      {syncError && <Alert severity="error">{syncError}</Alert>}
+
+      <TextField
         id="evidence-textarea"
-        className={styles.textarea}
         value={value}
         onChange={(e) => setValue(e.target.value.slice(0, MAX_CHARS))}
         placeholder={t('evidence.placeholder')}
-        rows={6}
+        multiline
+        minRows={6}
         spellCheck
-        maxLength={MAX_CHARS}
+        inputProps={{ maxLength: MAX_CHARS, 'aria-label': t('evidence.heading') }}
         disabled={!hydrated}
+        fullWidth
       />
-      {!hydrated && <p className={styles.syncHint}>{t('evidence.loading')}</p>}
-      <div className={styles.footer}>
-        {savedOk && <span className={styles.savedOk}>{t('evidence.savedOk')}</span>}
-        {lastServerSavedAt && (
-          <span className={styles.serverSaved}>
-            {t('evidence.savedAt').replace('{time}', formatSavedTime(lastServerSavedAt))}
-          </span>
+      {!hydrated && (
+        <Typography variant="caption" color="text.secondary">
+          {t('evidence.loading')}
+        </Typography>
+      )}
+      <Box
+        sx={(theme) => ({
+          display: 'flex',
+          flexWrap: 'wrap',
+          alignItems: 'center',
+          justifyContent: 'flex-end',
+          gap: theme.spacing(1),
+        })}
+      >
+        {savedOk && (
+          <Typography variant="caption" sx={{ color: 'score.good.main', fontWeight: 500 }}>
+            {t('evidence.savedOk')}
+          </Typography>
         )}
-        {isUnsyncedStale && <span className={styles.syncStale}>{t('evidence.unsynced')}</span>}
+        {lastServerSavedAt && (
+          <Typography variant="caption" color="text.secondary">
+            {t('evidence.savedAt').replace('{time}', formatSavedTime(lastServerSavedAt))}
+          </Typography>
+        )}
+        {isUnsyncedStale && (
+          <Typography variant="caption" sx={{ color: 'score.weak.main', fontWeight: 500 }}>
+            {t('evidence.unsynced')}
+          </Typography>
+        )}
         {savedOk && lastCategory === 'url_to_important_evidence' && (
-          <span className={styles.savedOk}>Categorized: important evidence URL</span>
+          <Typography variant="caption" sx={{ color: 'score.good.main', fontWeight: 500 }}>
+            Categorized: important evidence URL
+          </Typography>
         )}
         {savedOk && lastCategory === 'single_evidence_piece' && (
-          <span className={styles.savedOk}>Categorized: single evidence piece</span>
+          <Typography variant="caption" sx={{ color: 'score.good.main', fontWeight: 500 }}>
+            Categorized: single evidence piece
+          </Typography>
         )}
-        {ingestNote && <span className={styles.savedOk}>{ingestNote}</span>}
-        {analysisNote && <span className={styles.serverSaved}>{analysisNote}</span>}
-        <button
-          className={styles.sendBtn}
+        {ingestNote && (
+          <Typography variant="caption" sx={{ color: 'score.good.main', fontWeight: 500 }}>
+            {ingestNote}
+          </Typography>
+        )}
+        {analysisNote && (
+          <Typography variant="caption" color="text.secondary">{analysisNote}</Typography>
+        )}
+        <Button
+          variant="contained"
           onClick={handleSend}
           disabled={!hydrated || sending}
         >
           {sending ? t('evidence.saving') : t('evidence.send')}
-        </button>
-      </div>
-
-    </section>
+        </Button>
+      </Box>
+    </Stack>
   );
 }

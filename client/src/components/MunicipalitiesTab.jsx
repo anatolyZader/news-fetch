@@ -1,26 +1,27 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
+import Box from '@mui/material/Box';
+import Stack from '@mui/material/Stack';
+import Card from '@mui/material/Card';
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+import ToggleButton from '@mui/material/ToggleButton';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+import Table from '@mui/material/Table';
+import TableHead from '@mui/material/TableHead';
+import TableBody from '@mui/material/TableBody';
+import TableFooter from '@mui/material/TableFooter';
+import TableRow from '@mui/material/TableRow';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import Accordion from '@mui/material/Accordion';
+import AccordionSummary from '@mui/material/AccordionSummary';
+import AccordionDetails from '@mui/material/AccordionDetails';
+import { alpha, useTheme } from '@mui/material/styles';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
-import styles from './MunicipalitiesTab.module.css';
-
-// ─── Score → color helpers ───────────────────────────────────────────────────
-function scoreColor(avg) {
-  if (avg == null) return 'var(--muted)';
-  if (avg >= 0.8) return '#16a34a';
-  if (avg >= 0.6) return '#65a30d';
-  if (avg >= 0.4) return '#ca8a04';
-  if (avg >= 0.2) return '#ea580c';
-  return '#dc2626';
-}
-
-function scoreBg(avg) {
-  if (avg == null) return 'transparent';
-  if (avg >= 0.8) return 'rgba(22,163,74,0.12)';
-  if (avg >= 0.6) return 'rgba(101,163,13,0.12)';
-  if (avg >= 0.4) return 'rgba(202,138,4,0.12)';
-  if (avg >= 0.2) return 'rgba(234,88,12,0.12)';
-  return 'rgba(220,38,38,0.12)';
-}
+import { EmptyState, ErrorState, KpiCard, LoadingState, PageHeader } from '../ui/index.js';
+import { scoreBg01, scoreColor01 } from '../lib/score.js';
+import { useMunicipalitiesData } from '../hooks/useMunicipalitiesData.js';
 
 function pct(v) {
   return v != null ? Math.round(v * 100) + '%' : '—';
@@ -33,230 +34,245 @@ function formatDate(dateStr, lang) {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-// ─── Component ──���────────────────────────────────────────────────────────────
+function ScoreBadge({ value, theme }) {
+  return (
+    <Box
+      sx={(t) => ({
+        fontWeight: 700,
+        color: scoreColor01(value, theme),
+        background: scoreBg01(value, theme),
+        paddingTop: t.spacing(0.25),
+        paddingBottom: t.spacing(0.25),
+        paddingLeft: t.spacing(0.75),
+        paddingRight: t.spacing(0.75),
+        borderRadius: t.custom.radius.pill,
+        fontSize: t.typography.body2.fontSize,
+      })}
+    >
+      {pct(value)}
+    </Box>
+  );
+}
+
+function ScoreLabelPill({ label, value, surface = 'muted', theme }) {
+  return (
+    <Stack
+      direction="row"
+      spacing={0.6}
+      alignItems="center"
+      sx={(t) => ({
+        background: surface === 'muted' ? t.palette.background.default : t.palette.background.paper,
+        border: t.custom.border.hairline,
+        borderRadius: t.custom.radius.pill,
+        paddingTop: t.spacing(0.25),
+        paddingBottom: t.spacing(0.25),
+        paddingLeft: t.spacing(0.75),
+        paddingRight: t.spacing(0.75),
+        fontSize: t.typography.pill.fontSize,
+      })}
+    >
+      <Typography variant="caption" color="text.secondary" sx={{ fontSize: 'inherit' }}>
+        {label}
+      </Typography>
+      <Typography sx={{ fontWeight: 700, color: scoreColor01(value, theme), fontSize: 'inherit' }}>
+        {pct(value)}
+      </Typography>
+    </Stack>
+  );
+}
+
 export function MunicipalitiesTab() {
   const { getIdToken, apiReady } = useAuth();
   const { lang } = useLanguage();
+  const theme = useTheme();
   const isHe = lang === 'he';
-
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [selectedDate, setSelectedDate] = useState(null);
-  const [selectedMuni, setSelectedMuni] = useState(null);
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const headers = new Headers();
-      const token = await getIdToken();
-      if (token) headers.set('Authorization', `Bearer ${token}`);
-      const r = await fetch('/api/municipalities', { headers });
-      if (!r.ok) throw new Error(`HTTP ${r.status}`);
-      const json = await r.json();
-      setData(json);
-      if (json.days?.length) setSelectedDate(json.days[json.days.length - 1].date);
-    } catch (e) {
-      setError(e?.message ?? 'Failed to load');
-    } finally {
-      setLoading(false);
-    }
-  }, [getIdToken]);
-
-  useEffect(() => { if (apiReady) load(); }, [apiReady, load]);
-
-  const day = useMemo(() => {
-    if (!data?.days || !selectedDate) return null;
-    return data.days.find((d) => d.date === selectedDate) ?? null;
-  }, [data, selectedDate]);
+  const {
+    data,
+    loading,
+    error,
+    selectedDate,
+    setSelectedDate,
+    selectedMuni,
+    setSelectedMuni,
+    day,
+    muniAllDays,
+    muniDay,
+    districtAvg,
+    visibleMunicipalities,
+  } = useMunicipalitiesData({ getIdToken, apiReady });
 
   const compNames = useMemo(() => {
     if (!data) return {};
     return isHe ? data.componentNames.he : data.componentNames.en;
   }, [data, isHe]);
 
-  // Find selected municipality data across all days (for trend)
-  const muniAllDays = useMemo(() => {
-    if (!data?.days || !selectedMuni) return [];
-    return data.days.map((d) => {
-      const m = d.municipalities.find((m) => m.name === selectedMuni);
-      return m ? { date: d.date, ...m } : null;
-    }).filter(Boolean);
-  }, [data, selectedMuni]);
-
-  const muniDay = useMemo(() => {
-    if (!day || !selectedMuni) return null;
-    return day.municipalities.find((m) => m.name === selectedMuni) ?? null;
-  }, [day, selectedMuni]);
-
-  // District averages for the selected day
-  const districtAvg = useMemo(() => {
-    if (!data?.districtTrend || !selectedDate) return null;
-    return data.districtTrend.find((d) => d.date === selectedDate)?.avgByComponent ?? null;
-  }, [data, selectedDate]);
-
-  const visibleMunicipalities = useMemo(() => {
-    const list = day?.municipalities ?? [];
-    // Guardrail: occasionally upstream exports include a footer row like "Applied filters: ..."
-    // which is not a municipality and should never render in the heatmap.
-    return list.filter((m) => {
-      const name = String(m?.name ?? '').trim();
-      if (!name) return false;
-      return !/^\s*applied\s+filters\b/i.test(name);
-    });
-  }, [day]);
-
-  if (loading) return <p className={styles.hint}>{isHe ? 'טוען נתונים...' : 'Loading data...'}</p>;
-  if (error) return <p className={styles.error}>{isHe ? 'שגיאה' : 'Error'}: {error}</p>;
-  if (!data?.days?.length) return <p className={styles.hint}>{isHe ? 'אין נתוני רשויות' : 'No municipality data available.'}</p>;
+  if (loading) return <LoadingState>{isHe ? 'טוען נתונים...' : 'Loading data...'}</LoadingState>;
+  if (error) return <ErrorState>{`${isHe ? 'שגיאה' : 'Error'}: ${error}`}</ErrorState>;
+  if (!data?.days?.length) return <EmptyState>{isHe ? 'אין נתוני רשויות' : 'No municipality data available.'}</EmptyState>;
 
   const comps = data.componentsOrder;
 
   return (
-    <div className={styles.container} dir={isHe ? 'rtl' : 'ltr'}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+      <PageHeader
+        title={isHe ? 'דוחות רשויות — קה"א' : 'Municipality PBO Reports'}
+        subtitle={isHe ? 'דיווחי קציני התנהגות אוכלוסייה' : 'Population Behavior Officer reports'}
+        action={(
+          <ToggleButtonGroup
+            value={selectedDate}
+            exclusive
+            size="small"
+            onChange={(_, next) => { if (next) setSelectedDate(next); }}
+            sx={{ flexWrap: 'wrap' }}
+          >
+            {data.days.map((d) => (
+              <ToggleButton
+                key={d.date}
+                value={d.date}
+                sx={(t) => ({
+                  borderRadius: `${t.custom.radius.pill}px !important`,
+                  border: `1px solid ${t.palette.divider} !important`,
+                  marginRight: t.spacing(0.25),
+                  marginBottom: t.spacing(0.25),
+                  '&.Mui-selected': {
+                    color: t.palette.primary.main,
+                    borderColor: `${t.palette.primary.main} !important`,
+                    backgroundColor: alpha(t.palette.primary.main, 0.06),
+                  },
+                })}
+              >
+                {formatDate(d.date, lang)} ({d.municipalities.length})
+              </ToggleButton>
+            ))}
+          </ToggleButtonGroup>
+        )}
+      />
 
-      {/* Header + date selector */}
-      <div className={styles.dashHeader}>
-        <div>
-          <h2 className={styles.dashTitle}>{isHe ? 'דוחות רשויות — קה"א' : 'Municipality PBO Reports'}</h2>
-          <p className={styles.dashSubtitle}>{isHe ? 'דיווחי קציני התנהגות אוכלוסייה' : 'Population Behavior Officer reports'}</p>
-        </div>
-        <div className={styles.datePills}>
-          {data.days.map((d) => (
-            <button
-              key={d.date}
-              type="button"
-              className={`${styles.datePill} ${selectedDate === d.date ? styles.datePillActive : ''}`}
-              onClick={() => { setSelectedDate(d.date); setSelectedMuni(null); }}
-            >
-              {formatDate(d.date, lang)} ({d.municipalities.length})
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* KPI strip */}
       {day && (
-        <div className={styles.kpiStrip}>
-          <div className={styles.kpiCard}>
-            <p className={styles.kpiLabel}>{isHe ? 'תאריך' : 'Date'}</p>
-            <p className={styles.kpiValue}>{day.date}</p>
-          </div>
-          <div className={styles.kpiCard}>
-            <p className={styles.kpiLabel}>{isHe ? 'רשויות' : 'Municipalities'}</p>
-            <p className={styles.kpiValue}>{day.municipalities.length}</p>
-          </div>
+        <Stack direction="row" useFlexGap flexWrap="wrap" spacing={1}>
+          <KpiCard density="dense" label={isHe ? 'תאריך' : 'Date'} value={day.date} />
+          <KpiCard density="dense" label={isHe ? 'רשויות' : 'Municipalities'} value={day.municipalities.length} />
           {comps.map((cid) => (
-            <div key={cid} className={styles.kpiCard}>
-              <p className={styles.kpiLabel}>{compNames[cid]}</p>
-              <p className={styles.kpiValue} style={{ color: scoreColor(districtAvg?.[cid]) }}>
-                {pct(districtAvg?.[cid])}
-              </p>
-            </div>
+            <KpiCard
+              key={cid}
+              density="dense"
+              label={compNames[cid]}
+              value={pct(districtAvg?.[cid])}
+              tone={scoreColor01(districtAvg?.[cid], theme)}
+            />
           ))}
-        </div>
+        </Stack>
       )}
 
-      {/* Heatmap table */}
       {day && (
-        <div className={styles.heatmapWrap}>
-          <table className={styles.heatmap}>
-            <thead>
-              <tr>
-                <th>{isHe ? 'רשות' : 'Municipality'}</th>
-                {comps.map((cid) => <th key={cid}>{compNames[cid]}</th>)}
-              </tr>
-            </thead>
-            <tbody>
+        <TableContainer component={Card}>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell sx={{ fontWeight: 600 }}>{isHe ? 'רשות' : 'Municipality'}</TableCell>
+                {comps.map((cid) => (
+                  <TableCell key={cid} sx={{ fontWeight: 600 }}>{compNames[cid]}</TableCell>
+                ))}
+              </TableRow>
+            </TableHead>
+            <TableBody>
               {visibleMunicipalities.map((m) => (
-                <tr
+                <TableRow
                   key={m.name}
+                  hover
+                  selected={selectedMuni === m.name}
                   onClick={() => setSelectedMuni(selectedMuni === m.name ? null : m.name)}
-                  className={selectedMuni === m.name ? styles.rowSelected : ''}
+                  sx={{ cursor: 'pointer' }}
                 >
-                  <td>{m.name}</td>
+                  <TableCell>{m.name}</TableCell>
                   {comps.map((cid) => (
-                    <td
+                    <TableCell
                       key={cid}
-                      className={styles.scoreCell}
-                      style={{ color: scoreColor(m.components[cid].avg), background: scoreBg(m.components[cid].avg) }}
+                      sx={{
+                        fontWeight: 600,
+                        color: scoreColor01(m.components[cid].avg, theme),
+                        background: scoreBg01(m.components[cid].avg, theme),
+                      }}
                     >
                       {pct(m.components[cid].avg)}
-                    </td>
+                    </TableCell>
                   ))}
-                </tr>
+                </TableRow>
               ))}
-            </tbody>
+            </TableBody>
             {districtAvg && (
-              <tfoot>
-                <tr>
-                  <td>{isHe ? 'ממוצע מחוזי' : 'District avg'}</td>
+              <TableFooter>
+                <TableRow>
+                  <TableCell sx={{ fontWeight: 600, color: 'text.primary' }}>
+                    {isHe ? 'ממוצע מחוזי' : 'District avg'}
+                  </TableCell>
                   {comps.map((cid) => (
-                    <td key={cid} style={{ color: scoreColor(districtAvg[cid]) }}>
+                    <TableCell key={cid} sx={{ fontWeight: 700, color: scoreColor01(districtAvg[cid], theme) }}>
                       {pct(districtAvg[cid])}
-                    </td>
+                    </TableCell>
                   ))}
-                </tr>
-              </tfoot>
+                </TableRow>
+              </TableFooter>
             )}
-          </table>
-        </div>
+          </Table>
+        </TableContainer>
       )}
 
-      {/* Municipality detail panel */}
       {selectedMuni && muniDay && (
-        <div className={styles.detail}>
-          <div className={styles.detailHeader}>
-            <span className={styles.detailName}>{selectedMuni} — {formatDate(selectedDate, lang)}</span>
-            <button type="button" className={styles.detailClose} onClick={() => setSelectedMuni(null)}>
-              {isHe ? 'סגור' : 'Close'}
-            </button>
-          </div>
+        <Stack spacing={1.2}>
+          <PageHeader
+            title={`${selectedMuni} — ${formatDate(selectedDate, lang)}`}
+            action={(
+              <Button variant="outlined" size="small" onClick={() => setSelectedMuni(null)}>
+                {isHe ? 'סגור' : 'Close'}
+              </Button>
+            )}
+          />
 
           {comps.map((cid) => {
             const c = muniDay.components[cid];
             const avg = c.avg;
             const hasText = c.texts.some((t) => t.length > 0);
             return (
-              <div
+              <Card
                 key={cid}
-                className={styles.compCard}
-                style={{ borderInlineStartColor: scoreColor(avg) }}
+                sx={(t) => ({
+                  borderInlineStartWidth: 4,
+                  borderInlineStartStyle: 'solid',
+                  borderInlineStartColor: scoreColor01(avg, theme),
+                  paddingTop: t.spacing(1),
+                  paddingBottom: t.spacing(1),
+                  paddingLeft: t.spacing(1.5),
+                  paddingRight: t.spacing(1.5),
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: t.spacing(0.75),
+                })}
               >
-                <div className={styles.compHeader}>
-                  <span className={styles.compName}>{compNames[cid]}</span>
-                  <span
-                    className={styles.compScore}
-                    style={{ color: scoreColor(avg), background: scoreBg(avg) }}
-                  >
-                    {pct(avg)}
-                  </span>
-                </div>
+                <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
+                  <Typography variant="cardTitle" component="h3">{compNames[cid]}</Typography>
+                  <ScoreBadge value={avg} theme={theme} />
+                </Stack>
 
-                {/* Free text — primary content */}
                 {hasText
-                  ? c.texts.map((txt, i) => <p key={i} className={styles.compText}>{txt}</p>)
-                  : <p className={styles.compNoText}>{isHe ? 'אין התייחסות מילולית' : 'No verbal reference provided'}</p>
-                }
+                  ? c.texts.map((txt, i) => (
+                    <Typography key={i} variant="body2">{txt}</Typography>
+                  ))
+                  : (
+                    <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                      {isHe ? 'אין התייחסות מילולית' : 'No verbal reference provided'}
+                    </Typography>
+                  )}
 
-                {/* Individual question scores */}
                 {c.scores.length > 0 && (
-                  <div className={styles.compScores}>
+                  <Stack direction="row" useFlexGap flexWrap="wrap" spacing={1}>
                     {c.scores.map((s, i) => (
-                      <div key={i} className={styles.compScoreItem}>
-                        <span className={styles.scoreLabel}>{s.label}</span>
-                        <span className={styles.scoreValue} style={{ color: scoreColor(s.value) }}>
-                          {pct(s.value)}
-                        </span>
-                      </div>
+                      <ScoreLabelPill key={i} label={s.label} value={s.value} theme={theme} />
                     ))}
-                  </div>
+                  </Stack>
                 )}
 
-                {/* Multi-day text comparison — only show days where something changed */}
                 {muniAllDays.length > 1 && (() => {
-                  // Build list with change detection
                   const daysWithChange = muniAllDays.map((md, idx) => {
                     const mc = md.components[cid];
                     const prev = idx > 0 ? muniAllDays[idx - 1].components[cid] : null;
@@ -267,56 +283,106 @@ export function MunicipalitiesTab() {
                   });
                   const anyChange = daysWithChange.some((d, i) => i > 0 && d.changed);
                   return (
-                    <details className={styles.trendDetails}>
-                      <summary className={styles.trendSummary}>
-                        {isHe ? 'השוואה בין ימים' : 'Compare across days'}
+                    <Accordion>
+                      <AccordionSummary>
+                        <Typography variant="cardTitle" component="span">
+                          {isHe ? 'השוואה בין ימים' : 'Compare across days'}
+                        </Typography>
                         {!anyChange && (
-                          <span className={styles.trendNoChange}>
-                            {isHe ? ' — ללא שינוי' : ' — no change'}
-                          </span>
+                          <Typography
+                            component="span"
+                            color="text.secondary"
+                            sx={(t) => ({ marginInlineStart: t.spacing(0.5), fontWeight: 400 })}
+                          >
+                            {isHe ? '— ללא שינוי' : '— no change'}
+                          </Typography>
                         )}
-                      </summary>
-                      {daysWithChange.map((md) => {
-                        const { mc, changed } = md;
-                        const mdTexts = mc.texts.filter((t) => t.length > 0);
-                        return (
-                          <div key={md.date} className={`${styles.trendDayBlock} ${!changed ? styles.trendDayUnchanged : ''}`}>
-                            <div className={styles.trendDayHeader}>
-                              <span className={styles.trendDate}>{formatDate(md.date, lang)}</span>
-                              <span className={styles.trendVal} style={{ color: scoreColor(mc.avg) }}>{pct(mc.avg)}</span>
-                              {!changed && <span className={styles.trendUnchangedBadge}>{isHe ? 'ללא שינוי' : 'unchanged'}</span>}
-                            </div>
-                            {changed && (
-                              <>
-                                {mdTexts.length > 0
-                                  ? mdTexts.map((txt, i) => <p key={i} className={styles.compText}>{txt}</p>)
-                                  : <p className={styles.compNoText}>{isHe ? 'אין התייחסות' : 'No text'}</p>
-                                }
-                                {mc.scores.length > 0 && (
-                                  <div className={styles.compScores}>
-                                    {mc.scores.map((s, i) => (
-                                      <div key={i} className={styles.compScoreItem}>
-                                        <span className={styles.scoreLabel}>{s.label}</span>
-                                        <span className={styles.scoreValue} style={{ color: scoreColor(s.value) }}>
-                                          {pct(s.value)}
-                                        </span>
-                                      </div>
-                                    ))}
-                                  </div>
+                      </AccordionSummary>
+                      <AccordionDetails>
+                        {daysWithChange.map((md) => {
+                          const { mc, changed } = md;
+                          const mdTexts = mc.texts.filter((t) => t.length > 0);
+                          return (
+                            <Box
+                              key={md.date}
+                              sx={(t) => ({
+                                paddingTop: t.spacing(0.75),
+                                borderTop: `1px dashed ${t.palette.divider}`,
+                                opacity: changed ? 1 : 0.7,
+                                marginTop: t.spacing(0.5),
+                                '&:first-of-type': { borderTop: 'none', marginTop: 0, paddingTop: 0 },
+                              })}
+                            >
+                              <Stack direction="row" alignItems="center" spacing={1}>
+                                <Typography variant="caption" color="text.secondary">
+                                  {formatDate(md.date, lang)}
+                                </Typography>
+                                <Typography
+                                  variant="cardTitle"
+                                  sx={{ color: scoreColor01(mc.avg, theme) }}
+                                >
+                                  {pct(mc.avg)}
+                                </Typography>
+                                {!changed && (
+                                  <Typography variant="caption" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                                    {isHe ? 'ללא שינוי' : 'unchanged'}
+                                  </Typography>
                                 )}
-                              </>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </details>
+                              </Stack>
+                              {changed && (
+                                <>
+                                  {mdTexts.length > 0
+                                    ? mdTexts.map((txt, i) => (
+                                      <Typography
+                                        key={i}
+                                        variant="body2"
+                                        sx={(t) => ({ marginTop: t.spacing(0.5) })}
+                                      >
+                                        {txt}
+                                      </Typography>
+                                    ))
+                                    : (
+                                      <Typography
+                                        variant="body2"
+                                        color="text.secondary"
+                                        sx={(t) => ({ fontStyle: 'italic', marginTop: t.spacing(0.5) })}
+                                      >
+                                        {isHe ? 'אין התייחסות' : 'No text'}
+                                      </Typography>
+                                    )}
+                                  {mc.scores.length > 0 && (
+                                    <Stack
+                                      direction="row"
+                                      useFlexGap
+                                      flexWrap="wrap"
+                                      spacing={0.7}
+                                      sx={(t) => ({ marginTop: t.spacing(0.5) })}
+                                    >
+                                      {mc.scores.map((s, i) => (
+                                        <ScoreLabelPill
+                                          key={i}
+                                          label={s.label}
+                                          value={s.value}
+                                          surface="raised"
+                                          theme={theme}
+                                        />
+                                      ))}
+                                    </Stack>
+                                  )}
+                                </>
+                              )}
+                            </Box>
+                          );
+                        })}
+                      </AccordionDetails>
+                    </Accordion>
                   );
                 })()}
-              </div>
+              </Card>
             );
           })}
-        </div>
+        </Stack>
       )}
-    </div>
+    </Box>
   );
 }

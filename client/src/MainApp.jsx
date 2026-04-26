@@ -1,23 +1,34 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import Box from '@mui/material/Box';
+import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+import Paper from '@mui/material/Paper';
+import Slide from '@mui/material/Slide';
+import Alert from '@mui/material/Alert';
 import { useTodayReport } from './hooks/useAnalysis.js';
 import { useTranslatedReport } from './hooks/useTranslatedReport.js';
 import { ReportView } from './components/ReportView.jsx';
-import { ReportMarkdownView } from './components/ReportMarkdownView.jsx';
 import { ChatPanel } from './components/ChatPanel.jsx';
 import { DocsPanel } from './components/DocsPanel.jsx';
 import { ReportBuildPanel } from './components/ReportBuildPanel.jsx';
-import { SubmissionsTab } from './components/SubmissionsTab.jsx';
 import { EducationTab } from './components/EducationTab.jsx';
 import { MunicipalitiesTab } from './components/MunicipalitiesTab.jsx';
 import { NaftaliTab } from './components/NaftaliTab.jsx';
-import { LanguageProvider, useLanguage } from './context/LanguageContext.jsx';
+import { useLanguage } from './context/LanguageContext.jsx';
 import { LanguageSelector } from './components/LanguageSelector.jsx';
 import { useAuth } from './context/AuthContext.jsx';
-import styles from './App.module.css';
+import {
+  AppLayout,
+  BrandHeader,
+  ChatLauncher,
+  PrimaryTab,
+  SidebarItem,
+} from './ui/index.js';
 
 function AppShell() {
   const { logout, authRequired } = useAuth();
-  const { report, markdown, scoreBySource, reportDate, initialReportLoadDone } = useTodayReport();
+  const { report, scoreBySource, reportDate, initialReportLoadDone } = useTodayReport();
   const [activeTab, setActiveTab] = useState('report');
   const [activePoolTab, setActivePoolTab] = useState('naftali');
   const reportTopRef = useRef(null);
@@ -29,7 +40,7 @@ function AppShell() {
   const { t, lang } = useLanguage();
   const { displayReport, translating, translateError } = useTranslatedReport(report, lang);
 
-  const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jerusalem' }); // YYYY-MM-DD
+  const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jerusalem' });
   const isOutdated = reportDate && reportDate !== todayStr;
 
   const reportContents = useMemo(() => {
@@ -53,9 +64,9 @@ function AppShell() {
   }
 
   const TABS = [
-    { id: 'report',      label: t('tab.report') },
+    { id: 'report',         label: t('tab.report') },
     { id: 'municipalities', label: t('tab.municipalities') },
-    { id: 'pools',       label: t('tab.pools') },
+    { id: 'pools',          label: t('tab.pools') },
   ];
 
   const POOL_TABS = [
@@ -63,110 +74,195 @@ function AppShell() {
     { id: 'education', label: t('tab.education') },
   ];
 
-  return (
-    <div className={styles.layout}>
-      <header className={styles.header}>
-        <div className={styles.headerBrand}>
-          <h1 className={styles.title}>Vibes Witch</h1>
-          <p className={styles.subtitle}>Home Front Command · Daily Assessment</p>
-        </div>
-        <div className={styles.headerActions}>
-          <button type="button" className={styles.docsButton} onClick={() => setReportBuildOpen(true)}>
-            Write report
-          </button>
-          <button type="button" className={styles.docsButton} onClick={() => setDocsOpen(true)}>
-            Docs
-          </button>
-          <LanguageSelector />
-          {authRequired && (
-            <button type="button" className={styles.signOut} onClick={() => logout()}>
-              Sign out
-            </button>
-          )}
-        </div>
-      </header>
+  const headerButtonSx = (theme) => ({
+    paddingTop: theme.spacing(0.5),
+    paddingBottom: theme.spacing(0.5),
+    paddingLeft: theme.spacing(1),
+    paddingRight: theme.spacing(1),
+    fontSize: theme.typography.pill.fontSize,
+    borderRadius: theme.custom.radius.sm,
+    color: theme.palette.text.secondary,
+    borderColor: theme.palette.divider,
+    '&:hover': {
+      color: theme.palette.text.primary,
+      borderColor: theme.palette.divider,
+      background: 'transparent',
+    },
+  });
 
-      <main className={styles.main}>
-        <nav className={styles.tabs} aria-label="Main sections">
+  const header = (
+    <>
+      <BrandHeader title="Vibes Witch" subtitle="Home Front Command · Daily Assessment" />
+      <Stack direction="row" alignItems="center" spacing={0.75} sx={{ ml: 'auto', flexShrink: 0 }}>
+        <Button variant="outlined" type="button" onClick={() => setReportBuildOpen(true)} sx={headerButtonSx}>
+          Write report
+        </Button>
+        <Button variant="outlined" type="button" onClick={() => setDocsOpen(true)} sx={headerButtonSx}>
+          Docs
+        </Button>
+        <LanguageSelector />
+        {authRequired && (
+          <Button variant="outlined" type="button" onClick={() => logout()} sx={headerButtonSx}>
+            Sign out
+          </Button>
+        )}
+      </Stack>
+    </>
+  );
+
+  return (
+    <AppLayout header={header}>
+        <Stack
+          component="nav"
+          aria-label="Main sections"
+          direction="row"
+          sx={(theme) => ({ borderBottom: theme.custom.border.hairline })}
+        >
           {TABS.map((tab) => (
-            <button
+            <PrimaryTab
               key={tab.id}
-              type="button"
-              className={`${styles.tab} ${activeTab === tab.id ? styles.tabActive : ''}`}
+              active={activeTab === tab.id}
               onClick={() => setActiveTab(tab.id)}
             >
               {tab.label}
-            </button>
+            </PrimaryTab>
           ))}
-        </nav>
+        </Stack>
 
         {activeTab === 'report' && (
-          <section className={styles.reportSection} aria-labelledby="today-report-heading">
+          <Stack
+            component="section"
+            aria-labelledby="today-report-heading"
+            spacing={2}
+          >
             <div ref={reportTopRef} />
-{!initialReportLoadDone && <p className={styles.reportLoading}>Loading report…</p>}
+            {!initialReportLoadDone && (
+              <Typography variant="body2" color="text.secondary">
+                Loading report…
+              </Typography>
+            )}
 
             {initialReportLoadDone && !report && (
-              <div className={styles.reportEmpty}>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={(theme) => ({
+                  paddingTop: theme.spacing(2),
+                  paddingBottom: theme.spacing(2),
+                  paddingLeft: theme.spacing(2.5),
+                  paddingRight: theme.spacing(2.5),
+                  background: theme.palette.background.paper,
+                  border: `1px dashed ${theme.palette.divider}`,
+                  borderRadius: theme.custom.radius.lg,
+                })}
+              >
                 No assessment is available yet. Generate one on the server and refresh this page.
-              </div>
+              </Typography>
             )}
 
             {initialReportLoadDone && report && (
-              <>
-                <div className={styles.reportGrid}>
-                  <aside className={styles.reportSidebar} aria-label="Report contents">
-                    <div className={styles.reportSidebarList}>
-                      {reportContents.map((c) => (
-                        <button
-                          key={c.id}
-                          type="button"
-                          className={`${styles.reportSidebarItem} ${openReportCompId === c.id ? styles.reportSidebarItemActive : ''}`}
-                          onClick={() => jumpToReportComponent(c.id)}
-                        >
-                          {c.label}
-                        </button>
-                      ))}
-                    </div>
-                  </aside>
+              <Box
+                sx={(theme) => ({
+                  display: 'grid',
+                  gridTemplateColumns: '220px minmax(0, 1fr)',
+                  gap: theme.spacing(2),
+                  alignItems: 'start',
+                  [theme.breakpoints.down('md')]: { gridTemplateColumns: 'minmax(0, 1fr)' },
+                })}
+              >
+                <Box
+                  component="aside"
+                  aria-label="Report contents"
+                  sx={(theme) => ({
+                    position: 'sticky',
+                    top: theme.spacing(1.5),
+                    alignSelf: 'start',
+                    [theme.breakpoints.down('md')]: { display: 'none' },
+                  })}
+                >
+                  <Stack spacing={0.5}>
+                    {reportContents.map((c) => (
+                      <SidebarItem
+                        key={c.id}
+                        active={openReportCompId === c.id}
+                        onClick={() => jumpToReportComponent(c.id)}
+                      >
+                        {c.label}
+                      </SidebarItem>
+                    ))}
+                  </Stack>
+                </Box>
 
-                  <div className={styles.reportMainCol}>
-                    {isOutdated && (
-                      <div className={styles.reportOutdated}>
-                        {t('report.outdated').replace('{date}', reportDate.split('-').reverse().join('-'))}
-                      </div>
-                    )}
-                    <div className={styles.reportReadonlyFrame}>
-                      <ReportView
-                        assessment={displayReport}
-                        scoreBySource={displayReport?.score_by_source ?? scoreBySource}
-                        readOnly
-                        translating={translating}
-                        translateError={translateError}
-                        openCompId={openReportCompId}
-                        setOpenCompId={setOpenReportCompId}
-                        openEvidenceCompId={openReportEvidenceCompId}
-                        setOpenEvidenceCompId={setOpenReportEvidenceCompId}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </>
+                <Box sx={{ minWidth: 0 }}>
+                  {isOutdated && (
+                    <Alert
+                      severity="warning"
+                      variant="outlined"
+                      sx={(theme) => ({ marginBottom: theme.spacing(1) })}
+                    >
+                      {t('report.outdated').replace('{date}', reportDate.split('-').reverse().join('-'))}
+                    </Alert>
+                  )}
+                  <Box
+                    sx={(theme) => ({
+                      border: theme.custom.border.hairline,
+                      borderRadius: theme.custom.radius.lg,
+                      paddingTop: theme.spacing(3),
+                      paddingBottom: theme.spacing(3),
+                      paddingLeft: theme.spacing(3),
+                      paddingRight: theme.spacing(3),
+                      background: theme.palette.background.paper,
+                      boxShadow: theme.custom.elevation.subtle,
+                    })}
+                  >
+                    <ReportView
+                      assessment={displayReport}
+                      scoreBySource={displayReport?.score_by_source ?? scoreBySource}
+                      readOnly
+                      translating={translating}
+                      translateError={translateError}
+                      openCompId={openReportCompId}
+                      setOpenCompId={setOpenReportCompId}
+                      openEvidenceCompId={openReportEvidenceCompId}
+                      setOpenEvidenceCompId={setOpenReportEvidenceCompId}
+                    />
+                  </Box>
+                </Box>
+              </Box>
             )}
 
             {report && (
               <>
-                <button
-                  type="button"
-                  className={styles.chatToggle}
+                <ChatLauncher
+                  open={chatOpen}
                   onClick={() => setChatOpen((v) => !v)}
-                  aria-label={chatOpen ? 'Close chat' : 'Open chat'}
-                  title={chatOpen ? 'Close chat' : 'Open chat'}
-                >
-                  {chatOpen ? 'Close chat' : 'Chat'}
-                </button>
+                  openLabel="Close chat"
+                  closedLabel="Chat"
+                />
 
-                {chatOpen && (
-                  <div className={styles.chatOverlay} role="dialog" aria-label="Chat">
+                <Slide direction="up" in={chatOpen} mountOnEnter unmountOnExit>
+                  <Paper
+                    role="dialog"
+                    aria-label="Chat"
+                    elevation={6}
+                    sx={(theme) => ({
+                      position: 'fixed',
+                      right: theme.spacing(3),
+                      bottom: theme.spacing(9.5),
+                      width: 'min(420px, calc(100vw - 32px))',
+                      height: 420,
+                      zIndex: theme.zIndex.tooltip + 5,
+                      borderRadius: theme.custom.radius.xl,
+                      boxShadow: theme.custom.elevation.chat,
+                      overflow: 'hidden',
+                      pointerEvents: 'auto',
+                      [theme.breakpoints.down('sm')]: {
+                        right: theme.spacing(2),
+                        bottom: theme.spacing(8),
+                        height: 'min(420px, calc(100vh - 96px))',
+                      },
+                    })}
+                  >
                     <ChatPanel
                       reportScope={
                         openReportCompId
@@ -174,46 +270,49 @@ function AppShell() {
                           : { type: 'all' }
                       }
                     />
-                  </div>
-                )}
+                  </Paper>
+                </Slide>
               </>
             )}
-          </section>
+          </Stack>
         )}
 
         {activeTab === 'municipalities' && <MunicipalitiesTab />}
 
         {activeTab === 'pools' && (
           <>
-            <nav className={styles.subTabs} aria-label="Pools">
+            <Stack
+              component="nav"
+              direction="row"
+              aria-label="Pools"
+              sx={(theme) => ({
+                borderBottom: theme.custom.border.hairline,
+                marginTop: theme.spacing(-1.5),
+              })}
+            >
               {POOL_TABS.map((tab) => (
-                <button
+                <PrimaryTab
                   key={tab.id}
-                  type="button"
-                  className={`${styles.tab} ${styles.subTab} ${activePoolTab === tab.id ? styles.tabActive : ''}`}
+                  compact
+                  active={activePoolTab === tab.id}
                   onClick={() => setActivePoolTab(tab.id)}
                 >
                   {tab.label}
-                </button>
+                </PrimaryTab>
               ))}
-            </nav>
+            </Stack>
 
             {activePoolTab === 'naftali' && <NaftaliTab />}
             {activePoolTab === 'education' && <EducationTab />}
           </>
         )}
-      </main>
 
       <DocsPanel open={docsOpen} onClose={() => setDocsOpen(false)} />
       <ReportBuildPanel open={reportBuildOpen} onClose={() => setReportBuildOpen(false)} />
-    </div>
+    </AppLayout>
   );
 }
 
 export function MainApp() {
-  return (
-    <LanguageProvider>
-      <AppShell />
-    </LanguageProvider>
-  );
+  return <AppShell />;
 }

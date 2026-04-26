@@ -1,10 +1,8 @@
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 import {
   COMPONENTS_TABLE_HELP_MARKDOWN,
   EVIDENCE_LEVEL_INLINE_NOTE,
 } from '../../../shared/componentsTableGlossary.js';
-import styles from './ReportMarkdownView.module.css';
+import { MarkdownArticle } from '../ui/MarkdownArticle.jsx';
 
 /**
  * LLM output uses `[source](url)`; show the actual URL as link text so the browser matches
@@ -47,15 +45,15 @@ export function ReportMarkdownView({ markdown, readOnly }) {
   );
 
   return (
-    <div className={styles.wrap}>
-      {readOnly && (
-        <p className={styles.banner} role="status">
-          Read-only — full assessment document (same as saved <code className={styles.code}>.md</code> report).
-        </p>
-      )}
-      <article className={styles.article}>
-        <ReactMarkdown remarkPlugins={[remarkGfm]}>{body}</ReactMarkdown>
-      </article>
-    </div>
+    <MarkdownArticle
+      markdown={body}
+      variant="report"
+      banner={
+        readOnly
+          ? 'Read-only — full assessment document (same as saved .md report).'
+          : null
+      }
+      bannerSeverity="info"
+    />
   );
 }

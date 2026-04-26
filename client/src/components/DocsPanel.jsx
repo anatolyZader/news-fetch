@@ -1,7 +1,15 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import Box from '@mui/material/Box';
+import Stack from '@mui/material/Stack';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+import Link from '@mui/material/Link';
+import Chip from '@mui/material/Chip';
+import Alert from '@mui/material/Alert';
+import Typography from '@mui/material/Typography';
 import { useAuth } from '../context/AuthContext.jsx';
 import { MarkdownDocView } from './MarkdownDocView.jsx';
-import styles from './DocsPanel.module.css';
+import { ModalPanel } from '../ui/ModalPanel.jsx';
 
 async function fetchJson(url, { token } = {}) {
   const headers = {};
@@ -34,7 +42,6 @@ function getDocsBaseUrl() {
 
 export function DocsPanel({ open, onClose }) {
   const { getIdToken, authRequired, user } = useAuth();
-  const overlayRef = useRef(null);
   const [index, setIndex] = useState([]);
   const [selectedSlug, setSelectedSlug] = useState('getting-started/using-the-app');
   const [query, setQuery] = useState('');
@@ -91,15 +98,6 @@ export function DocsPanel({ open, onClose }) {
     void loadPage(selectedSlug);
   }, [open, selectedSlug, loadPage]);
 
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e) => {
-      if (e.key === 'Escape') onClose?.();
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [open, onClose]);
-
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     const base = q
@@ -109,8 +107,6 @@ export function DocsPanel({ open, onClose }) {
         })
       : index;
 
-    // In-app UX: default to a user-oriented view. Advanced pages are still searchable
-    // and can be revealed via toggle.
     const inUserMode = !showAdvanced && !q;
     const visible = inUserMode
       ? base.filter((p) => {
@@ -123,7 +119,6 @@ export function DocsPanel({ open, onClose }) {
         })
       : base;
 
-    // Keep a stable, user-first ordering when not searching.
     if (!q) {
       const priority = new Map([
         ['getting-started/using-the-app', 0],
@@ -153,90 +148,175 @@ export function DocsPanel({ open, onClose }) {
     return slugPath ? `${docsBaseUrl}/${slugPath}` : docsBaseUrl;
   }, [page?.meta, index, selectedSlug]);
 
-  if (!open) return null;
-
   return (
-    <div
-      className={styles.overlay}
-      role="dialog"
-      aria-modal="true"
-      aria-label="Documentation"
-      ref={overlayRef}
-      onMouseDown={(e) => {
-        if (e.target === overlayRef.current) onClose?.();
-      }}
+    <ModalPanel
+      open={open}
+      onClose={onClose}
+      title="Docs"
+      ariaLabel="Documentation"
+      width="min(1100px, 96vw)"
+      zIndex={60}
+      headerRight={(
+        <>
+          <Link
+            href={fullDocsUrl}
+            target="_blank"
+            rel="noreferrer"
+            underline="none"
+            sx={(theme) => ({
+              fontSize: theme.typography.body2.fontSize,
+              color: 'text.secondary',
+              border: theme.custom.border.hairline,
+              paddingTop: theme.spacing(0.5),
+              paddingBottom: theme.spacing(0.5),
+              paddingLeft: theme.spacing(0.75),
+              paddingRight: theme.spacing(0.75),
+              borderRadius: theme.custom.radius.md,
+              '&:hover': { color: 'text.primary' },
+            })}
+          >
+            Open full docs
+          </Link>
+          <Button variant="outlined" size="small" onClick={onClose}>
+            Close
+          </Button>
+        </>
+      )}
     >
-      <div className={styles.panel}>
-        <div className={styles.header}>
-          <div className={styles.title}>Docs</div>
-          <div className={styles.headerRight}>
-            <a className={styles.headerLink} href={fullDocsUrl} target="_blank" rel="noreferrer">
-              Open full docs
-            </a>
-            <button type="button" className={styles.close} onClick={onClose}>
-              Close
-            </button>
-          </div>
-        </div>
+      <Box
+        sx={{
+          flex: 1,
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', md: '280px 1fr' },
+          minHeight: 0,
+        }}
+      >
+        <Stack
+          component="aside"
+          spacing={1}
+          sx={(theme) => ({
+            borderRight: { md: theme.custom.border.hairline },
+            borderBottom: { xs: theme.custom.border.hairline, md: 'none' },
+            padding: theme.spacing(1),
+            minHeight: 0,
+          })}
+        >
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <TextField
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={loadingIndex ? 'Loading…' : 'Search docs…'}
+              inputProps={{ 'aria-label': 'Search docs' }}
+              size="small"
+              fullWidth
+            />
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={() => setShowAdvanced((v) => !v)}
+              aria-pressed={showAdvanced}
+              title={showAdvanced ? 'Hide advanced docs' : 'Show advanced docs'}
+              sx={(theme) => ({ borderRadius: theme.custom.radius.pill, flexShrink: 0 })}
+            >
+              {showAdvanced ? 'Adv: on' : 'Adv: off'}
+            </Button>
+          </Stack>
 
-        <div className={styles.body}>
-          <aside className={styles.sidebar}>
-            <div className={styles.sidebarTopRow}>
-              <input
-                className={styles.search}
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder={loadingIndex ? 'Loading…' : 'Search docs…'}
-                aria-label="Search docs"
-              />
-              <button
-                type="button"
-                className={styles.modeToggle}
-                onClick={() => setShowAdvanced((v) => !v)}
-                aria-pressed={showAdvanced}
-                title={showAdvanced ? 'Hide advanced docs' : 'Show advanced docs'}
+          <Stack
+            component="nav"
+            aria-label="Docs navigation"
+            spacing={0.5}
+            sx={(theme) => ({ overflow: 'auto', paddingRight: theme.spacing(0.25) })}
+          >
+            {!query.trim() && !showAdvanced && (
+              <Typography
+                variant="eyebrow"
+                color="text.secondary"
+                sx={(theme) => ({
+                  marginTop: theme.spacing(0.5),
+                  marginBottom: theme.spacing(0.25),
+                  paddingLeft: theme.spacing(0.25),
+                })}
               >
-                {showAdvanced ? 'Advanced: on' : 'Advanced: off'}
-              </button>
-            </div>
-            <nav className={styles.nav} aria-label="Docs navigation">
-              {!query.trim() && !showAdvanced && (
-                <div className={styles.sectionLabel}>User guide</div>
-              )}
-              {filtered.map((p) => (
-                <button
-                  key={p.slug}
-                  type="button"
-                  className={`${styles.navItem} ${selectedSlug === p.slug ? styles.navItemActive : ''}`}
-                  onClick={() => setSelectedSlug(p.slug)}
-                >
-                  <span>{p.title ?? p.slug}</span>
-                  {p.locked && <span className={styles.lockedTag}>Locked</span>}
-                </button>
-              ))}
-              {filtered.length === 0 && (
-                <div className={styles.empty}>No matches.</div>
-              )}
-            </nav>
-          </aside>
-
-          <section className={styles.content} aria-label="Docs content">
-            {error && <div className={styles.error}>{error}</div>}
-            {!error && loadingPage && <div className={styles.empty}>Loading…</div>}
-            {!error && !loadingPage && (
-              <MarkdownDocView
-                markdown={page?.markdown ?? ''}
-                banner={
-                  page?.meta?.stability
-                    ? `Stability: ${page.meta.stability}`
-                    : null
-                }
-              />
+                User guide
+              </Typography>
             )}
-          </section>
-        </div>
-      </div>
-    </div>
+            {filtered.map((p) => (
+              <Box
+                key={p.slug}
+                component="button"
+                type="button"
+                onClick={() => setSelectedSlug(p.slug)}
+                sx={(theme) => ({
+                  textAlign: 'left',
+                  width: '100%',
+                  border: `1px solid ${selectedSlug === p.slug ? theme.palette.primary.main : 'transparent'}`,
+                  background: 'transparent',
+                  color: selectedSlug === p.slug ? theme.palette.text.primary : theme.palette.text.secondary,
+                  borderRadius: theme.custom.radius.lg,
+                  paddingTop: theme.spacing(0.6),
+                  paddingBottom: theme.spacing(0.6),
+                  paddingLeft: theme.spacing(0.75),
+                  paddingRight: theme.spacing(0.75),
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: theme.spacing(0.75),
+                  font: 'inherit',
+                  '&:hover': { borderColor: theme.palette.divider, color: theme.palette.text.primary },
+                })}
+              >
+                <span>{p.title ?? p.slug}</span>
+                {p.locked && (
+                  <Chip label="Locked" size="small" variant="outlined" />
+                )}
+              </Box>
+            ))}
+            {filtered.length === 0 && (
+              <Typography variant="body2" color="text.secondary">No matches.</Typography>
+            )}
+          </Stack>
+        </Stack>
+
+        <Box
+          component="section"
+          aria-label="Docs content"
+          sx={(theme) => ({
+            paddingTop: theme.spacing(2),
+            paddingBottom: theme.spacing(2.5),
+            paddingLeft: theme.spacing(2),
+            paddingRight: theme.spacing(2),
+            overflow: 'auto',
+          })}
+        >
+          {error && (
+            <Alert
+              severity="info"
+              variant="outlined"
+              sx={(theme) => ({
+                color: 'text.secondary',
+                border: `1px dashed ${theme.palette.divider}`,
+                paddingTop: theme.spacing(1.25),
+                paddingBottom: theme.spacing(1.25),
+                paddingLeft: theme.spacing(1.5),
+                paddingRight: theme.spacing(1.5),
+              })}
+            >
+              {error}
+            </Alert>
+          )}
+          {!error && loadingPage && (
+            <Typography variant="body2" color="text.secondary">Loading…</Typography>
+          )}
+          {!error && !loadingPage && (
+            <MarkdownDocView
+              markdown={page?.markdown ?? ''}
+              banner={page?.meta?.stability ? `Stability: ${page.meta.stability}` : null}
+            />
+          )}
+        </Box>
+      </Box>
+    </ModalPanel>
   );
 }
-

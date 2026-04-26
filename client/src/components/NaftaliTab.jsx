@@ -1,26 +1,44 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  ResponsiveContainer,
-  BarChart, Bar,
-  XAxis, YAxis,
-  CartesianGrid, Tooltip, Legend,
-} from 'recharts';
+import { Bar } from 'recharts';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+import { useTheme } from '@mui/material/styles';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
-import styles from './EducationTab.module.css';
+import {
+  BarChartFrame,
+  ChartCard,
+  ChartGrid,
+  DetailPanel,
+  EmptyState,
+  ErrorState,
+  FilterBar,
+  FilterPill,
+  FilterPillGroup,
+  FilterRow,
+  GridTable,
+  KpiCard,
+  KpiStrip,
+  LoadingState,
+  PageHeader,
+  SectionHeading,
+  SummaryStack,
+} from '../ui/index.js';
 
-// ─── Colour palette ──────────────────────────────────────────────────────────
-const SEVERITY_COLORS = {
-  high:    '#dc2626',
-  medium:  '#ca8a04',
-  low:     '#16a34a',
-  none:    '#6b7280',
-  unknown: '#9ca3af',
-};
+function buildSeverityColors(chart) {
+  return {
+    high:    chart.red,
+    medium:  chart.amber,
+    low:     chart.green,
+    none:    chart.gray,
+    unknown: chart.grayLight,
+  };
+}
 
-const VULN_COLORS = [
-  '#dc2626', '#ca8a04', '#2563eb', '#7c3aed', '#059669', '#d97706',
-];
+function buildVulnColors(chart) {
+  return [chart.red, chart.amber, chart.blue, chart.purple, chart.teal, chart.amberDark];
+}
 
 const VULN_KEYS = [
   'physicalDisability', 'mentalDisability', 'specialEducation',
@@ -32,7 +50,6 @@ const SEVERITY_KEYS = [
   'parentalStress', 'coupleConflicts', 'parentChildConflicts',
 ];
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
 function formatWeekLabel(trend, lang) {
   if (trend.week != null) return `W${trend.week}`;
   if (trend.dateFrom) {
@@ -50,28 +67,16 @@ function formatDate(dateStr, lang) {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-// ─── Sub-components ──────────────────────────────────────────────────────────
-function SectionHeading({ children }) {
-  return <h3 className={styles.sectionHeading}>{children}</h3>;
-}
-
-function ChartCard({ title, children }) {
-  return (
-    <div className={styles.chartCard}>
-      <p className={styles.chartTitle}>{title}</p>
-      {children}
-    </div>
-  );
-}
-
-// ─── Main component ──────────────────────────────────────────────────────────
 export function NaftaliTab() {
   const { getIdToken, apiReady } = useAuth();
   const { lang, t } = useLanguage();
+  const theme = useTheme();
+  const SEVERITY_COLORS = useMemo(() => buildSeverityColors(theme.palette.chart), [theme]);
+  const VULN_COLORS = useMemo(() => buildVulnColors(theme.palette.chart), [theme]);
 
-  const [data, setData]     = useState(null);
+  const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError]   = useState(null);
+  const [error, setError] = useState(null);
   const [selectedMuni, setSelectedMuni] = useState(null);
   const [muniFilter, setMuniFilter] = useState(new Set());
 
@@ -126,10 +131,8 @@ export function NaftaliTab() {
 
   useEffect(() => { if (apiReady) load(); }, [apiReady, load]);
 
-  // Filter trends by selected municipalities
   const filteredTrends = useMemo(() => {
     if (!data?.weeks || muniFilter.size === 0) return data?.trends ?? [];
-    // Recompute trends from filtered responses
     return data.weeks.map(week => {
       const rs = week.responses.filter(r => muniFilter.has(r.municipality));
       const severityDist = {};
@@ -164,10 +167,9 @@ export function NaftaliTab() {
     });
   }
 
-  // ── Early returns ──────────────────────────────────────────────────────────
-  if (loading) return <p className={styles.hint}>{t('naf.loading')}</p>;
-  if (error)   return <p className={styles.error}>{t('naf.error')}: {error}</p>;
-  if (!data?.summary) return <div className={styles.empty}><p>{t('naf.noData')}</p></div>;
+  if (loading) return <LoadingState>{t('naf.loading')}</LoadingState>;
+  if (error)   return <ErrorState>{`${t('naf.error')}: ${error}`}</ErrorState>;
+  if (!data?.summary) return <EmptyState>{t('naf.noData')}</EmptyState>;
 
   const { summary, recentComments = [], byMunicipality = {} } = data;
   const muniNames = data.municipalities ?? [];
@@ -179,7 +181,6 @@ export function NaftaliTab() {
     { label: t('naf.kpi.dateRange'),      value: summary.dateRange ? `${formatDate(summary.dateRange.from, lang)} – ${formatDate(summary.dateRange.to, lang)}` : '—' },
   ];
 
-  // ── Chart data: severity over time ─────────────────────────────────────────
   const severityChartData = SEVERITY_KEYS.map(dimKey => ({
     dimKey,
     data: filteredTrends.map(tr => {
@@ -194,140 +195,118 @@ export function NaftaliTab() {
     }),
   }));
 
-  // ── Chart data: vulnerable populations over time ───────────────────────────
   const vulnChartData = filteredTrends.map(tr => {
     const row = { label: formatWeekLabel(tr, lang) };
     for (const key of VULN_KEYS) row[tVuln(key)] = tr.vulnTotals?.[key] ?? 0;
     return row;
   });
 
+  const severityBars = (
+    <>
+      <Bar dataKey={tSev('high')}   stackId="s" fill={SEVERITY_COLORS.high}   />
+      <Bar dataKey={tSev('medium')} stackId="s" fill={SEVERITY_COLORS.medium} />
+      <Bar dataKey={tSev('low')}    stackId="s" fill={SEVERITY_COLORS.low}    />
+      <Bar dataKey={tSev('none')}   stackId="s" fill={SEVERITY_COLORS.none}   />
+    </>
+  );
+
   return (
-    <div className={styles.container} dir={lang === 'he' ? 'rtl' : 'ltr'}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, pb: 2 }}>
+      <PageHeader
+        title={t('naf.title')}
+        subtitle={t('naf.subtitle')}
+        action={(
+          <Button variant="outlined" size="small" onClick={() => load()}>
+            {t('naf.refresh')}
+          </Button>
+        )}
+      />
 
-      {/* Header */}
-      <div className={styles.dashHeader}>
-        <div>
-          <h2 className={styles.dashTitle}>{t('naf.title')}</h2>
-          <p className={styles.dashSubtitle}>{t('naf.subtitle')}</p>
-        </div>
-        <button type="button" className={styles.refreshBtn} onClick={() => load()}>
-          {t('naf.refresh')}
-        </button>
-      </div>
+      <KpiStrip>
+        {kpis.map((k) => <KpiCard key={k.label} label={k.label} value={k.value} />)}
+      </KpiStrip>
 
-      {/* KPI strip */}
-      <div className={styles.kpiStrip}>
-        {kpis.map(k => (
-          <div key={k.label} className={styles.kpiCard}>
-            <p className={styles.kpiLabel}>{k.label}</p>
-            <p className={styles.kpiValue}>{k.value}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Municipality filter */}
-      <div className={styles.filterBar}>
-        <div className={styles.filterGroup}>
-          <span className={styles.filterGroupLabel}>{t('naf.filter.municipality')}</span>
-          <div className={styles.filterPills}>
-            {muniNames.map(name => (
-              <button
+      <FilterBar
+        footer={muniFilter.size > 0 ? {
+          message: t('naf.filter.showing').replace('{n}', muniFilter.size).replace('{total}', muniNames.length),
+          onClear: () => setMuniFilter(new Set()),
+          clearLabel: t('naf.filter.clear'),
+        } : null}
+      >
+        <FilterRow label={t('naf.filter.municipality')}>
+          <FilterPillGroup label={t('naf.filter.municipality')}>
+            {muniNames.map((name) => (
+              <FilterPill
                 key={name}
-                type="button"
-                className={`${styles.filterPill} ${muniFilter.has(name) ? styles.filterPillActive : ''}`}
+                active={muniFilter.has(name)}
                 onClick={() => toggleSet(setMuniFilter, name)}
               >
                 {name}
-              </button>
+              </FilterPill>
             ))}
-          </div>
-        </div>
-        {muniFilter.size > 0 && (
-          <div className={styles.filterStatus}>
-            <span className={styles.filterCount}>{t('naf.filter.showing').replace('{n}', muniFilter.size).replace('{total}', muniNames.length)}</span>
-            <button type="button" className={styles.filterClear} onClick={() => setMuniFilter(new Set())}>
-              {t('naf.filter.clear')}
-            </button>
-          </div>
-        )}
-      </div>
+          </FilterPillGroup>
+        </FilterRow>
+      </FilterBar>
 
-      {/* ── Severity trend charts ──────────────────────────────────────────── */}
       <SectionHeading>{t('naf.sec.severity')}</SectionHeading>
-      <div className={styles.chartGrid2}>
+      <ChartGrid>
         {severityChartData.map(({ dimKey, data: chartData }) => (
           <ChartCard key={dimKey} title={tDim(dimKey)}>
-            <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={chartData} barSize={18} margin={{ top: 4, right: 8, left: -20, bottom: 4 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
-                <XAxis dataKey="label" tick={{ fontSize: 11, fill: 'var(--muted)' }} />
-                <YAxis tick={{ fontSize: 11, fill: 'var(--muted)' }} allowDecimals={false} />
-                <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid var(--border)' }} />
-                <Legend wrapperStyle={{ fontSize: 11 }} />
-                <Bar dataKey={tSev('high')}   stackId="s" fill={SEVERITY_COLORS.high}   />
-                <Bar dataKey={tSev('medium')} stackId="s" fill={SEVERITY_COLORS.medium} />
-                <Bar dataKey={tSev('low')}    stackId="s" fill={SEVERITY_COLORS.low}    />
-                <Bar dataKey={tSev('none')}   stackId="s" fill={SEVERITY_COLORS.none}   />
-              </BarChart>
-            </ResponsiveContainer>
+            <BarChartFrame data={chartData}>{severityBars}</BarChartFrame>
           </ChartCard>
         ))}
-      </div>
+      </ChartGrid>
 
-      {/* ── Vulnerable populations chart ───────────────────────────────────── */}
       <SectionHeading>{t('naf.sec.vulnerable')}</SectionHeading>
       <ChartCard title={t('naf.chart.vulnOverTime')}>
-        <ResponsiveContainer width="100%" height={260}>
-          <BarChart data={vulnChartData} barSize={18} margin={{ top: 4, right: 16, left: -20, bottom: 4 }}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
-            <XAxis dataKey="label" tick={{ fontSize: 11, fill: 'var(--muted)' }} />
-            <YAxis tick={{ fontSize: 11, fill: 'var(--muted)' }} allowDecimals={false} />
-            <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid var(--border)' }} />
-            <Legend wrapperStyle={{ fontSize: 11 }} />
-            {VULN_KEYS.map((key, i) => (
-              <Bar key={key} dataKey={tVuln(key)} fill={VULN_COLORS[i]} />
-            ))}
-          </BarChart>
-        </ResponsiveContainer>
+        <BarChartFrame data={vulnChartData} height={260} margin={{ top: 4, right: 16, left: -20, bottom: 4 }}>
+          {VULN_KEYS.map((key, i) => (
+            <Bar key={key} dataKey={tVuln(key)} fill={VULN_COLORS[i]} />
+          ))}
+        </BarChartFrame>
       </ChartCard>
 
-      {/* ── Recent comments ────────────────────────────────────────────────── */}
       <SectionHeading>{t('naf.sec.comments')}</SectionHeading>
       {recentComments.length === 0 ? (
-        <p className={styles.hint}>{t('naf.comments.empty')}</p>
+        <Typography variant="body2" color="text.secondary">{t('naf.comments.empty')}</Typography>
       ) : (
-        <div className={styles.commentsTable}>
-          <div className={styles.commentHeader}>
-            <span>{t('naf.col.municipality')}</span>
-            <span>{t('naf.col.challenge')}</span>
-            <span>{t('naf.col.urgentNeeds')}</span>
-          </div>
-          {recentComments.map((c, i) => (
-            <div key={i} className={styles.commentRow}>
-              <span className={styles.commentSettlement}>{c.municipality}</span>
-              <span className={styles.commentText}>{c.mainChallenge || '—'}</span>
-              <span className={styles.commentText}>{c.urgentNeeds || '—'}</span>
-            </div>
-          ))}
-        </div>
+        <GridTable
+          gridTemplateColumns="120px 1fr 1fr"
+          columns={[
+            {
+              key: 'municipality',
+              label: t('naf.col.municipality'),
+              render: (c) => <Box sx={{ fontWeight: 500 }}>{c.municipality}</Box>,
+            },
+            {
+              key: 'mainChallenge',
+              label: t('naf.col.challenge'),
+              render: (c) => c.mainChallenge || '—',
+            },
+            {
+              key: 'urgentNeeds',
+              label: t('naf.col.urgentNeeds'),
+              render: (c) => c.urgentNeeds || '—',
+            },
+          ]}
+          rows={recentComments}
+        />
       )}
 
-      {/* ── Per-Municipality Analysis ──────────────────────────────────────── */}
       {muniNames.length > 0 && (
         <>
           <SectionHeading>{t('naf.sec.byMunicipality')}</SectionHeading>
-          <div className={styles.settlementSelector}>
-            {muniNames.map(name => (
-              <button
+          <FilterPillGroup label={t('naf.sec.byMunicipality')} spacing={0.7}>
+            {muniNames.map((name) => (
+              <FilterPill
                 key={name}
-                type="button"
-                className={`${styles.settlementBtn} ${selectedMuni === name ? styles.settlementBtnActive : ''}`}
-                onClick={() => setSelectedMuni(s => s === name ? null : name)}
+                active={selectedMuni === name}
+                onClick={() => setSelectedMuni((s) => s === name ? null : name)}
               >
                 {name}
-              </button>
+              </FilterPill>
             ))}
-          </div>
+          </FilterPillGroup>
 
           {selectedMuni && byMunicipality[selectedMuni] && (() => {
             const m = byMunicipality[selectedMuni];
@@ -342,54 +321,46 @@ export function NaftaliTab() {
               })),
             }));
 
+            const challengeWeeks = m.weeks.filter((w) => w.freeText?.mainChallenge);
             return (
-              <div className={styles.settlementDetail}>
-                <div className={styles.settlementKpis}>
-                  <div className={styles.skpi}>
-                    <p className={styles.skpiLabel}>{t('naf.kpi.weeks')}</p>
-                    <p className={styles.skpiValue}>{m.weeks.length}</p>
-                  </div>
-                </div>
-
-                <div className={styles.chartGrid2}>
+              <DetailPanel>
+                <SummaryStack items={[{ label: t('naf.kpi.weeks'), value: m.weeks.length }]} />
+                <ChartGrid>
                   {muniSevData.map(({ dimKey, data: chartData }) => (
                     <ChartCard key={dimKey} title={tDim(dimKey)}>
-                      <ResponsiveContainer width="100%" height={180}>
-                        <BarChart data={chartData} barSize={18} margin={{ top: 4, right: 8, left: -20, bottom: 4 }}>
-                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
-                          <XAxis dataKey="label" tick={{ fontSize: 11, fill: 'var(--muted)' }} />
-                          <YAxis tick={{ fontSize: 11, fill: 'var(--muted)' }} allowDecimals={false} domain={[0, 1]} />
-                          <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid var(--border)' }} />
-                          <Bar dataKey={tSev('high')}   stackId="s" fill={SEVERITY_COLORS.high}   />
-                          <Bar dataKey={tSev('medium')} stackId="s" fill={SEVERITY_COLORS.medium} />
-                          <Bar dataKey={tSev('low')}    stackId="s" fill={SEVERITY_COLORS.low}    />
-                          <Bar dataKey={tSev('none')}   stackId="s" fill={SEVERITY_COLORS.none}   />
-                        </BarChart>
-                      </ResponsiveContainer>
+                      <BarChartFrame data={chartData} height={180} legend={false} yDomain={[0, 1]}>
+                        {severityBars}
+                      </BarChartFrame>
                     </ChartCard>
                   ))}
-                </div>
-
-                {/* Municipality free-text */}
-                {m.weeks.filter(w => w.freeText?.mainChallenge).length > 0 && (
-                  <div className={styles.commentsTable}>
-                    <div className={`${styles.commentHeader} ${styles.commentHeaderSettlement}`}>
-                      <span>{t('naf.col.week')}</span>
-                      <span>{t('naf.col.challenge')}</span>
-                    </div>
-                    {m.weeks.filter(w => w.freeText?.mainChallenge).map((w, i) => (
-                      <div key={i} className={`${styles.commentRow} ${styles.commentRowSettlement}`}>
-                        <span className={styles.commentDate}>{w.week != null ? `W${w.week}` : formatDate(w.dateFrom, lang)}</span>
-                        <span className={styles.commentText}>{w.freeText.mainChallenge}</span>
-                      </div>
-                    ))}
-                  </div>
+                </ChartGrid>
+                {challengeWeeks.length > 0 && (
+                  <GridTable
+                    gridTemplateColumns="80px 1fr"
+                    columns={[
+                      {
+                        key: 'week',
+                        label: t('naf.col.week'),
+                        render: (w) => (
+                          <Box sx={{ color: 'text.secondary', whiteSpace: 'nowrap' }}>
+                            {w.week != null ? `W${w.week}` : formatDate(w.dateFrom, lang)}
+                          </Box>
+                        ),
+                      },
+                      {
+                        key: 'challenge',
+                        label: t('naf.col.challenge'),
+                        render: (w) => w.freeText.mainChallenge,
+                      },
+                    ]}
+                    rows={challengeWeeks}
+                  />
                 )}
-              </div>
+              </DetailPanel>
             );
           })()}
         </>
       )}
-    </div>
+    </Box>
   );
 }
