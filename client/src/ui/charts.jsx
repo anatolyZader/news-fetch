@@ -90,12 +90,18 @@ export function HorizontalBarChartFrame({
 
 /**
  * Line chart frame for trends. Pass `<Line>` children for the series.
+ * Optional yDomain, e.g. [0, 100] for percentages; optional tooltipFormatter for Recharts Tooltip.
+ * Set legend for multi-line charts (legends at bottom).
  */
 export function LineChartFrame({
   data,
   xKey = 'date',
   height = 200,
   margin = { top: 4, right: 8, left: -20, bottom: 4 },
+  yDomain,
+  yTicks,
+  tooltipFormatter,
+  legend = false,
   children,
 }) {
   const theme = useTheme();
@@ -103,9 +109,34 @@ export function LineChartFrame({
     <ResponsiveContainer width="100%" height={height}>
       <LineChart data={data} margin={margin}>
         <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
-        <XAxis dataKey={xKey} tick={axisTick(theme)} />
-        <YAxis tick={axisTick(theme)} allowDecimals={false} />
-        <Tooltip contentStyle={tooltipContentStyle(theme)} />
+        <XAxis
+          dataKey={xKey}
+          tick={axisTick(theme)}
+          interval="preserveStartEnd"
+        />
+        <YAxis
+          tick={axisTick(theme)}
+          allowDecimals={false}
+          domain={yDomain}
+          ticks={yTicks}
+        />
+        <Tooltip
+          contentStyle={tooltipContentStyle(theme)}
+          {...(typeof tooltipFormatter === 'function' ? { formatter: tooltipFormatter } : {})}
+        />
+        {legend && (
+          <Legend
+            verticalAlign="bottom"
+            align="center"
+            iconType="line"
+            wrapperStyle={{
+              fontSize: LEGEND_FONT_SIZE,
+              lineHeight: 1.35,
+              width: '100%',
+              paddingTop: 4,
+            }}
+          />
+        )}
         {children}
       </LineChart>
     </ResponsiveContainer>

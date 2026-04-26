@@ -1,7 +1,11 @@
 import Fastify from 'fastify';
 import fastifyStatic from '@fastify/static';
+import multipart from '@fastify/multipart';
+import { createWriteStream } from 'fs';
 import { mkdir, readFile } from 'fs/promises';
-import { resolve, dirname } from 'path';
+import { resolve, dirname, join, basename, extname, sep } from 'path';
+import { pipeline } from 'stream/promises';
+import { randomBytes } from 'crypto';
 import { fileURLToPath } from 'url';
 import fastifySwagger from '@fastify/swagger';
 import fastifySwaggerUi from '@fastify/swagger-ui';
@@ -106,6 +110,26 @@ function isYoutubeUrl(url) {
   } catch {
     return false;
   }
+}
+
+const LOCAL_VIDEO_EXT = new Set(['.mp4', '.mov', '.mkv', '.avi', '.m4v', '.webm']);
+const LOCAL_AUDIO_EXT = new Set(['.mp3', '.m4a', '.aac', '.wav', '.ogg', '.flac', '.opus']);
+
+/**
+ * @param {string} filePath
+ * @returns {'audio'|'video'|'unsupported'}
+ */
+function classifyLocalEvidenceFile(filePath) {
+  const ext = extname(filePath).toLowerCase();
+  if (LOCAL_VIDEO_EXT.has(ext)) return 'video';
+  if (LOCAL_AUDIO_EXT.has(ext)) return 'audio';
+  return 'unsupported';
+}
+
+function isPathUnderUploadRoot(filePath, rootDir) {
+  const file = resolve(filePath);
+  const root = resolve(rootDir);
+  return file === root || file.startsWith(root + sep);
 }
 
 function normalizeWhitespace(text) {
@@ -273,6 +297,13 @@ export async function createApp(options) {
 
   const app = Fastify({ logger: false, bodyLimit: 10 * 1024 * 1024 /* 10 MB */ });
 
+  await app.register(multipart, {
+    limits: {
+      fileSize: Number(process.env.EVIDENCE_MAX_FILE_BYTES) || 100 * 1024 * 1024,
+      files: 25,
+    },
+  });
+
   // ─── OpenAPI + Swagger UI (source of truth: openapi/openapi.yaml) ─────────
   const openapiPath = resolve(__dirname, 'openapi', 'openapi.yaml');
   let openapiDocument = null;
@@ -293,6 +324,8 @@ export async function createApp(options) {
   const videoDownloadDir = process.env.VIDEO_DOWNLOAD_DIR?.trim()
     ? resolve(process.env.VIDEO_DOWNLOAD_DIR)
     : resolve(__dirname, 'downloads', 'video');
+
+  const evidenceUserUploadsRoot = resolve(__dirname, 'data', 'evidence-uploads');
 
   const videoGrabService = new VideoGrabService({
     remoteFetchPort: createYtDlpYoutubeAdapter(),
@@ -319,15 +352,16 @@ export async function createApp(options) {
       })
     : null;
 
-  async function processSubmissionJob({ submissionId, ownerKey, content }) {
+  async function processSubmissionJob({ submissionId, ownerKey, content, localFilePaths = [] }) {
     let autoIngest = { attempted: false, insertedItems: 0, errors: [], kinds: [] };
     const analysisEvidenceItems = [];
     const urls = extractUrls(content);
+    const safeLocalPaths = Array.isArray(localFilePaths) ? localFilePaths : [];
+    const reportDate = getTodayInTimezone(process.env.TZ_ARTICLES || 'Asia/Jerusalem');
+    const ingestService = getAudioEvidenceIngestService();
 
     if (urls.length > 0) {
       autoIngest.attempted = true;
-      const reportDate = getTodayInTimezone(process.env.TZ_ARTICLES || 'Asia/Jerusalem');
-      const ingestService = getAudioEvidenceIngestService();
       for (const url of urls) {
         const kind = classifyUrlKind(url);
         autoIngest.kinds.push({ url, kind });
@@ -365,10 +399,43 @@ export async function createApp(options) {
       }
     }
 
+    for (const filePath of safeLocalPaths) {
+      if (!isPathUnderUploadRoot(filePath, evidenceUserUploadsRoot)) {
+        autoIngest.errors.push(`${filePath}: invalid storage path`);
+        continue;
+      }
+      const kind = classifyLocalEvidenceFile(filePath);
+      if (kind === 'unsupported') {
+        autoIngest.errors.push(
+          `${basename(filePath)}: unsupported type (upload .mp3/.m4a/.wav… or .mp4/.webm/… video)`,
+        );
+        continue;
+      }
+      autoIngest.attempted = true;
+      try {
+        const label = kind === 'video' ? 'user-upload-video' : 'user-upload-audio';
+        const items = await ingestService.ingestAudioFileToEvidenceItems({
+          filePath,
+          date: reportDate,
+          sourceUrl: '',
+          sourceLabel: label,
+        });
+        if (items.length > 0) {
+          autoIngest.insertedItems += evidenceStore.insertItems(items);
+          analysisEvidenceItems.push(...items);
+        }
+      } catch (err) {
+        autoIngest.errors.push(`${basename(filePath)}: ${err?.message ?? 'ingest failed'}`);
+      }
+    }
+
+    const sourceCount = urls.length + safeLocalPaths.length;
+    const ingestFailed = sourceCount > 0 && autoIngest.insertedItems === 0;
+
     evidenceDraftStore.setSubmissionIngestStatus({
       submissionId,
       ownerKey,
-      status: urls.length > 0 && autoIngest.errors.length === urls.length ? 'failed' : 'processed',
+      status: ingestFailed ? 'failed' : 'processed',
       details:
         autoIngest.errors.length > 0
           ? autoIngest.errors.join(' | ').slice(0, 4000)
@@ -571,7 +638,68 @@ export async function createApp(options) {
       classification.category,
       classification.detectedUrl,
     );
-    enqueueSubmissionJob({ submissionId: submission.id, ownerKey, content });
+    enqueueSubmissionJob({ submissionId: submission.id, ownerKey, content, localFilePaths: [] });
+
+    return reply.code(202).send({
+      submission,
+      draft: { content: savedDraft.content, updatedAt: savedDraft.updatedAt },
+      queued: true,
+    });
+  });
+
+  app.post('/api/evidence-upload', authHook, async (request, reply) => {
+    if (!request.isMultipart()) {
+      return reply.code(400).send({ error: 'use multipart/form-data with field "content" and optional file fields "files"' });
+    }
+    const ownerKey = evidenceOwnerKey(request);
+    let textContent = '';
+    const savedPaths = [];
+    const batchId = randomBytes(12).toString('hex');
+    const batchDir = join(evidenceUserUploadsRoot, ownerKey, batchId);
+    await mkdir(batchDir, { recursive: true });
+
+    try {
+      for await (const part of request.parts()) {
+        if (part.type === 'file' && (part.fieldname === 'files' || part.fieldname === 'file')) {
+          const rawName = part.filename || 'upload.bin';
+          const safe = basename(rawName).replace(/[^a-zA-Z0-9._-]/g, '_') || 'file';
+          const dest = join(batchDir, `${savedPaths.length}-${safe}`);
+          await pipeline(part.file, createWriteStream(dest));
+          savedPaths.push(dest);
+        } else if (part.type === 'field' && part.fieldname === 'content') {
+          textContent = String(part.value ?? '');
+        }
+      }
+    } catch (err) {
+      return reply.code(400).send({ error: (err && err.message) || 'upload failed' });
+    }
+
+    if (!textContent.trim() && savedPaths.length === 0) {
+      return reply.code(400).send({ error: 'Add text/URLs and/or at least one file' });
+    }
+
+    const contentForStore =
+      textContent.trim() ||
+      (savedPaths.length ? `[File upload: ${savedPaths.length} file(s)]` : '');
+    if (contentForStore.length > MAX_EVIDENCE_DRAFT_CHARS) {
+      return reply.code(400).send({ error: `content too long (max ${MAX_EVIDENCE_DRAFT_CHARS} characters)` });
+    }
+
+    const classification = classifyEvidenceInput(textContent.trim() || 'upload');
+    const savedDraft = evidenceDraftStore.save(ownerKey, textContent.trim() || contentForStore);
+    const submission = evidenceDraftStore.submit(
+      ownerKey,
+      contentForStore,
+      classification.category,
+      classification.detectedUrl,
+    );
+    const jobText = textContent.trim() || (savedPaths.length ? `[File upload: ${savedPaths.length} file(s)]` : ' ');
+    enqueueSubmissionJob({
+      submissionId: submission.id,
+      ownerKey,
+      content: jobText,
+      localFilePaths: savedPaths,
+    });
 
     return reply.code(202).send({
       submission,

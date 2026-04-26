@@ -6,6 +6,7 @@ import TextField from '@mui/material/TextField';
 import Alert from '@mui/material/Alert';
 import Typography from '@mui/material/Typography';
 import { useAuth } from '../context/AuthContext.jsx';
+import { useLanguage } from '../context/LanguageContext.jsx';
 import { ModalPanel } from '../ui/ModalPanel.jsx';
 
 function hasSourceBasisCue(text) {
@@ -77,6 +78,9 @@ async function postJson(url, body, { token } = {}) {
 
 export function ReportBuildPanel({ open, onClose }) {
   const { getIdToken } = useAuth();
+  const { t } = useLanguage();
+  const tRef = useRef(t);
+  tRef.current = t;
 
   const [input, setInput] = useState('');
   const [state, setState] = useState('collecting');
@@ -126,7 +130,7 @@ export function ReportBuildPanel({ open, onClose }) {
       setQuestions([]);
       setPreview('');
     } catch (e) {
-      setError(e?.message ?? 'Failed to start report builder');
+      setError(e?.message ?? tRef.current('reportBuild.errorStart'));
     } finally {
       setBusy(false);
     }
@@ -141,7 +145,7 @@ export function ReportBuildPanel({ open, onClose }) {
       resetUi();
       onClose?.();
     } catch (e) {
-      setError(e?.message ?? 'Failed to cancel');
+      setError(e?.message ?? tRef.current('reportBuild.errorCancel'));
     } finally {
       setBusy(false);
     }
@@ -162,7 +166,7 @@ export function ReportBuildPanel({ open, onClose }) {
       setLiveQuestions([]);
       setPreview(typeof out?.draftPreview === 'string' ? out.draftPreview : '');
     } catch (e) {
-      setError(e?.message ?? 'Failed to send');
+      setError(e?.message ?? tRef.current('reportBuild.errorSend'));
     } finally {
       setBusy(false);
     }
@@ -254,16 +258,16 @@ export function ReportBuildPanel({ open, onClose }) {
       const token = await getIdToken();
       const confirmed = await postJson('/api/report-build/confirm', {}, { token });
       const draftText = String(confirmed?.draftText ?? '').trim();
-      if (!draftText) throw new Error('No draft available to submit');
+      if (!draftText) throw new Error(tRef.current('reportBuild.errorNoDraft'));
 
       await postJson('/api/evidence-submit', { content: draftText }, { token });
 
-      setSuccess('Report submitted as evidence.');
+      setSuccess(tRef.current('reportBuild.successSubmitted'));
       setQuestions([]);
       setPreview('');
       setState('collecting');
     } catch (e) {
-      setError(e?.message ?? 'Failed to submit');
+      setError(e?.message ?? tRef.current('reportBuild.errorSubmit'));
     } finally {
       setBusy(false);
     }
@@ -339,25 +343,25 @@ export function ReportBuildPanel({ open, onClose }) {
     <ModalPanel
       open={open}
       onClose={onClose}
-      title="Write report"
-      ariaLabel="Write report"
+      title={t('app.writeReport')}
+      ariaLabel={t('app.writeReport')}
       initialWidth={900}
       initialHeight={640}
       zIndex={65}
       headerRight={(
         <>
           <Button variant="outlined" size="small" onClick={() => void start()} disabled={busy}>
-            Restart
+            {t('app.restart')}
           </Button>
           <Button variant="outlined" size="small" onClick={cancel} disabled={busy}>
-            Close
+            {t('app.close')}
           </Button>
         </>
       )}
     >
       <Stack spacing={1.4} sx={{ padding: '1rem 1.1rem 1.25rem' }}>
         <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.55 }}>
-          Write freely. The assistant will ask for missing details and then generate a concise draft for approval.
+          {t('reportBuild.intro')}
         </Typography>
 
         {error && <Alert severity="error">{error}</Alert>}
@@ -366,7 +370,7 @@ export function ReportBuildPanel({ open, onClose }) {
         <TextField
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder={state === 'confirming' ? 'Add an edit or extra detail…' : 'Describe what you saw / heard…'}
+          placeholder={state === 'confirming' ? t('reportBuild.placeholderConfirming') : t('reportBuild.placeholderCollecting')}
           disabled={busy}
           multiline
           minRows={6}
@@ -391,7 +395,7 @@ export function ReportBuildPanel({ open, onClose }) {
               color="text.secondary"
               sx={(theme) => ({ marginBottom: theme.spacing(0.5) })}
             >
-              Follow-up questions
+              {t('reportBuild.followupTitle')}
             </Typography>
             <Box
               component="ul"
@@ -420,11 +424,11 @@ export function ReportBuildPanel({ open, onClose }) {
             onClick={sendTurn}
             disabled={busy || !input.trim()}
           >
-            {state === 'confirming' ? 'Update draft' : 'Next'}
+            {state === 'confirming' ? t('reportBuild.updateDraft') : t('reportBuild.next')}
           </Button>
           {preview && (
             <Button variant="contained" onClick={confirmAndSubmit} disabled={busy}>
-              Confirm & submit
+              {t('reportBuild.confirmSubmit')}
             </Button>
           )}
         </Stack>
@@ -432,7 +436,7 @@ export function ReportBuildPanel({ open, onClose }) {
         {preview && (
           <>
             <Typography variant="cardTitle" color="text.secondary">
-              Draft preview
+              {t('reportBuild.draftPreview')}
             </Typography>
             <Box
               sx={(theme) => ({

@@ -8,25 +8,9 @@ import Chip from '@mui/material/Chip';
 import Alert from '@mui/material/Alert';
 import Typography from '@mui/material/Typography';
 import { useAuth } from '../context/AuthContext.jsx';
+import { useLanguage } from '../context/LanguageContext.jsx';
 import { MarkdownDocView } from './MarkdownDocView.jsx';
 import { ModalPanel } from '../ui/ModalPanel.jsx';
-
-async function fetchJson(url, { token } = {}) {
-  const headers = {};
-  if (token) headers.Authorization = `Bearer ${token}`;
-  const res = await fetch(url, { headers });
-  const contentType = res.headers.get('content-type') ?? '';
-  const isJson = contentType.includes('application/json');
-  const data = isJson ? await res.json() : null;
-  if (!res.ok) {
-    const message = data?.error || `Request failed (${res.status})`;
-    const err = new Error(message);
-    err.status = res.status;
-    err.code = data?.code;
-    throw err;
-  }
-  return data;
-}
 
 function canonicalFromMeta(meta) {
   const raw = meta?.canonical;
@@ -42,6 +26,7 @@ function getDocsBaseUrl() {
 
 export function DocsPanel({ open, onClose }) {
   const { getIdToken, authRequired, user } = useAuth();
+  const { t } = useLanguage();
   const [index, setIndex] = useState([]);
   const [selectedSlug, setSelectedSlug] = useState('getting-started/using-the-app');
   const [query, setQuery] = useState('');
@@ -51,6 +36,27 @@ export function DocsPanel({ open, onClose }) {
   const [error, setError] = useState(null);
   const [page, setPage] = useState(null);
 
+  const fetchJson = useCallback(
+    async (url, { token } = {}) => {
+      const headers = {};
+      if (token) headers.Authorization = `Bearer ${token}`;
+      const res = await fetch(url, { headers });
+      const contentType = res.headers.get('content-type') ?? '';
+      const isJson = contentType.includes('application/json');
+      const data = isJson ? await res.json() : null;
+      if (!res.ok) {
+        const message =
+          data?.error || t('docsPanel.requestFailed').replace('{status}', String(res.status));
+        const err = new Error(message);
+        err.status = res.status;
+        err.code = data?.code;
+        throw err;
+      }
+      return data;
+    },
+    [t],
+  );
+
   const loadIndex = useCallback(async () => {
     setLoadingIndex(true);
     setError(null);
@@ -59,11 +65,11 @@ export function DocsPanel({ open, onClose }) {
       const data = await fetchJson('/api/docs/index', { token });
       setIndex(Array.isArray(data.pages) ? data.pages : []);
     } catch (err) {
-      setError(err?.message ?? 'Failed to load docs index');
+      setError(err?.message ?? t('docsPanel.errorIndex'));
     } finally {
       setLoadingIndex(false);
     }
-  }, [getIdToken]);
+  }, [getIdToken, fetchJson, t]);
 
   const loadPage = useCallback(
     async (slug) => {
@@ -77,15 +83,15 @@ export function DocsPanel({ open, onClose }) {
       } catch (err) {
         setPage(null);
         if (err?.status === 401 && authRequired && !user) {
-          setError('This page is locked. Sign in to access playbooks.');
+          setError(t('docsPanel.errorLocked'));
         } else {
-          setError(err?.message ?? 'Failed to load page');
+          setError(err?.message ?? t('docsPanel.errorPage'));
         }
       } finally {
         setLoadingPage(false);
       }
     },
-    [getIdToken, authRequired, user],
+    [getIdToken, authRequired, user, t, fetchJson],
   );
 
   useEffect(() => {
@@ -152,8 +158,8 @@ export function DocsPanel({ open, onClose }) {
     <ModalPanel
       open={open}
       onClose={onClose}
-      title="Docs"
-      ariaLabel="Documentation"
+      title={t('app.docs')}
+      ariaLabel={t('app.documentation')}
       initialWidth={1100}
       initialHeight={720}
       zIndex={60}
@@ -176,10 +182,10 @@ export function DocsPanel({ open, onClose }) {
               '&:hover': { color: 'text.primary' },
             })}
           >
-            Open full docs
+            {t('app.openFullDocs')}
           </Link>
           <Button variant="outlined" size="small" onClick={onClose}>
-            Close
+            {t('app.close')}
           </Button>
         </>
       )}
@@ -206,8 +212,8 @@ export function DocsPanel({ open, onClose }) {
             <TextField
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder={loadingIndex ? 'Loading…' : 'Search docs…'}
-              inputProps={{ 'aria-label': 'Search docs' }}
+              placeholder={loadingIndex ? t('sub.loading') : t('docsPanel.searchPlaceholder')}
+              inputProps={{ 'aria-label': t('docsPanel.searchAria') }}
               size="small"
               fullWidth
             />
@@ -216,16 +222,16 @@ export function DocsPanel({ open, onClose }) {
               size="small"
               onClick={() => setShowAdvanced((v) => !v)}
               aria-pressed={showAdvanced}
-              title={showAdvanced ? 'Hide advanced docs' : 'Show advanced docs'}
+              title={showAdvanced ? t('docsPanel.advHideTitle') : t('docsPanel.advShowTitle')}
               sx={(theme) => ({ borderRadius: theme.custom.radius.pill, flexShrink: 0 })}
             >
-              {showAdvanced ? 'Adv: on' : 'Adv: off'}
+              {showAdvanced ? t('docsPanel.advOn') : t('docsPanel.advOff')}
             </Button>
           </Stack>
 
           <Stack
             component="nav"
-            aria-label="Docs navigation"
+            aria-label={t('docsPanel.navAria')}
             spacing={0.5}
             sx={(theme) => ({ overflow: 'auto', paddingRight: theme.spacing(0.25) })}
           >
@@ -239,7 +245,7 @@ export function DocsPanel({ open, onClose }) {
                   paddingLeft: theme.spacing(0.25),
                 })}
               >
-                User guide
+                {t('docsPanel.userGuide')}
               </Typography>
             )}
             {filtered.map((p) => (
@@ -270,19 +276,21 @@ export function DocsPanel({ open, onClose }) {
               >
                 <span>{p.title ?? p.slug}</span>
                 {p.locked && (
-                  <Chip label="Locked" size="small" variant="outlined" />
+                  <Chip label={t('docsPanel.locked')} size="small" variant="outlined" />
                 )}
               </Box>
             ))}
             {filtered.length === 0 && (
-              <Typography variant="body2" color="text.secondary">No matches.</Typography>
+              <Typography variant="body2" color="text.secondary">
+                {t('docsPanel.noMatches')}
+              </Typography>
             )}
           </Stack>
         </Stack>
 
         <Box
           component="section"
-          aria-label="Docs content"
+          aria-label={t('docsPanel.contentAria')}
           sx={(theme) => ({
             paddingTop: theme.spacing(2),
             paddingBottom: theme.spacing(2.5),
@@ -308,12 +316,18 @@ export function DocsPanel({ open, onClose }) {
             </Alert>
           )}
           {!error && loadingPage && (
-            <Typography variant="body2" color="text.secondary">Loading…</Typography>
+            <Typography variant="body2" color="text.secondary">
+              {t('sub.loading')}
+            </Typography>
           )}
           {!error && !loadingPage && (
             <MarkdownDocView
               markdown={page?.markdown ?? ''}
-              banner={page?.meta?.stability ? `Stability: ${page.meta.stability}` : null}
+              banner={
+                page?.meta?.stability
+                  ? t('docsPanel.stability').replace('{stability}', String(page.meta.stability))
+                  : null
+              }
             />
           )}
         </Box>

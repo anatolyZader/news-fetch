@@ -3,15 +3,23 @@ import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
+import IconButton from '@mui/material/IconButton';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
 import Paper from '@mui/material/Paper';
 import Slide from '@mui/material/Slide';
 import Alert from '@mui/material/Alert';
+import { useTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { useTodayReport } from './hooks/useAnalysis.js';
 import { useTranslatedReport } from './hooks/useTranslatedReport.js';
 import { ReportView } from './components/ReportView.jsx';
 import { ChatPanel } from './components/ChatPanel.jsx';
 import { DocsPanel } from './components/DocsPanel.jsx';
 import { ReportBuildPanel } from './components/ReportBuildPanel.jsx';
+import { SendEvidencePanel } from './components/SendEvidencePanel.jsx';
+import { SettingsPanel } from './components/SettingsPanel.jsx';
 import { EducationTab } from './components/EducationTab.jsx';
 import { MunicipalitiesTab } from './components/MunicipalitiesTab.jsx';
 import { NaftaliTab } from './components/NaftaliTab.jsx';
@@ -88,6 +96,12 @@ function AppShell() {
 
   const [docsOpen, setDocsOpen] = useState(false);
   const [reportBuildOpen, setReportBuildOpen] = useState(false);
+  const [sendEvidenceOpen, setSendEvidenceOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [moreMenuAnchor, setMoreMenuAnchor] = useState(null);
+  const theme = useTheme();
+  const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
+  const closeMoreMenu = useCallback(() => setMoreMenuAnchor(null), []);
   const { t, lang } = useLanguage();
   const { displayReport, translating, translateError } = useTranslatedReport(report, lang);
 
@@ -134,18 +148,30 @@ function AppShell() {
     { id: 'education', label: t('tab.education') },
   ];
 
-  const headerButtonSx = (theme) => ({
-    paddingTop: theme.spacing(0.5),
-    paddingBottom: theme.spacing(0.5),
-    paddingLeft: theme.spacing(1),
-    paddingRight: theme.spacing(1),
-    fontSize: theme.typography.pill.fontSize,
-    borderRadius: theme.custom.radius.sm,
-    color: theme.palette.text.secondary,
-    borderColor: theme.palette.divider,
+  const headerButtonSx = (th) => ({
+    paddingTop: th.spacing(0.5),
+    paddingBottom: th.spacing(0.5),
+    paddingLeft: th.spacing(1),
+    paddingRight: th.spacing(1),
+    fontSize: th.typography.pill.fontSize,
+    borderRadius: th.custom.radius.sm,
+    color: th.palette.text.secondary,
+    borderColor: th.palette.divider,
     '&:hover': {
-      color: theme.palette.text.primary,
-      borderColor: theme.palette.divider,
+      color: th.palette.text.primary,
+      borderColor: th.palette.divider,
+      background: 'transparent',
+    },
+  });
+
+  const moreIconButtonSx = (th) => ({
+    border: `1px solid ${th.palette.divider}`,
+    borderRadius: th.custom.radius.sm,
+    color: th.palette.text.secondary,
+    padding: th.spacing(0.5),
+    '&:hover': {
+      color: th.palette.text.primary,
+      borderColor: th.palette.divider,
       background: 'transparent',
     },
   });
@@ -153,19 +179,90 @@ function AppShell() {
   const header = (
     <>
       <BrandHeader title="Vibes Witch" subtitle="Community resilience · Daily Assessment" />
-      <Stack direction="row" alignItems="center" spacing={0.75} sx={{ ml: 'auto', flexShrink: 0 }}>
-        <Button variant="outlined" type="button" onClick={() => setReportBuildOpen(true)} sx={headerButtonSx}>
-          Write report
+      <Stack
+        direction="row"
+        alignItems="center"
+        spacing={0.75}
+        sx={{ ml: 'auto', flexShrink: 0, flexWrap: { xs: 'wrap', md: 'nowrap' } }}
+      >
+        <Button
+          variant="outlined"
+          type="button"
+          onClick={() => setReportBuildOpen(true)}
+          sx={headerButtonSx}
+        >
+          {t('app.writeReport')}
         </Button>
-        <Button variant="outlined" type="button" onClick={() => setDocsOpen(true)} sx={headerButtonSx}>
-          Docs
-        </Button>
-        <LanguageSelector />
-        {authRequired && (
-          <Button variant="outlined" type="button" onClick={() => logout()} sx={headerButtonSx}>
-            Sign out
+        {isDesktop && (
+          <Button
+            variant="outlined"
+            type="button"
+            onClick={() => setSendEvidenceOpen(true)}
+            sx={headerButtonSx}
+          >
+            {t('app.sendEvidence')}
           </Button>
         )}
+        <IconButton
+          id="header-more-button"
+          type="button"
+          size="small"
+          onClick={(e) => setMoreMenuAnchor(e.currentTarget)}
+          aria-label={t('app.moreMenu')}
+          aria-controls={moreMenuAnchor ? 'header-more-menu' : undefined}
+          aria-haspopup="true"
+          aria-expanded={moreMenuAnchor ? 'true' : 'false'}
+          sx={moreIconButtonSx}
+        >
+          <MoreVertIcon fontSize="small" />
+        </IconButton>
+        <Menu
+          id="header-more-menu"
+          anchorEl={moreMenuAnchor}
+          open={Boolean(moreMenuAnchor)}
+          onClose={closeMoreMenu}
+          slotProps={{ list: { 'aria-labelledby': 'header-more-button' } }}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+          transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+        >
+          {!isDesktop && (
+            <MenuItem
+              onClick={() => {
+                setSendEvidenceOpen(true);
+                closeMoreMenu();
+              }}
+            >
+              {t('app.sendEvidence')}
+            </MenuItem>
+          )}
+          <MenuItem
+            onClick={() => {
+              setDocsOpen(true);
+              closeMoreMenu();
+            }}
+          >
+            {t('app.docs')}
+          </MenuItem>
+          <MenuItem
+            onClick={() => {
+              setSettingsOpen(true);
+              closeMoreMenu();
+            }}
+          >
+            {t('app.settings')}
+          </MenuItem>
+          {authRequired && (
+            <MenuItem
+              onClick={() => {
+                logout();
+                closeMoreMenu();
+              }}
+            >
+              {t('settings.signOut')}
+            </MenuItem>
+          )}
+        </Menu>
+        <LanguageSelector />
       </Stack>
     </>
   );
@@ -174,7 +271,7 @@ function AppShell() {
     <AppLayout header={header}>
         <Stack
           component="nav"
-          aria-label="Main sections"
+          aria-label={t('app.ariaMainSections')}
           direction="row"
           sx={(theme) => ({ borderBottom: theme.custom.border.hairline })}
         >
@@ -198,7 +295,7 @@ function AppShell() {
             <div ref={reportTopRef} />
             {!initialReportLoadDone && (
               <Typography variant="body2" color="text.secondary">
-                Loading report…
+                {t('app.reportLoading')}
               </Typography>
             )}
 
@@ -216,7 +313,7 @@ function AppShell() {
                   borderRadius: theme.custom.radius.lg,
                 })}
               >
-                No assessment is available yet. Generate one on the server and refresh this page.
+                {t('app.noReportYet')}
               </Typography>
             )}
 
@@ -232,7 +329,7 @@ function AppShell() {
               >
                 <Box
                   component="aside"
-                  aria-label="Report contents"
+                  aria-label={t('app.ariaReportContents')}
                   sx={(theme) => ({
                     position: 'sticky',
                     top: theme.spacing(1.5),
@@ -300,7 +397,7 @@ function AppShell() {
             <Stack
               component="nav"
               direction="row"
-              aria-label="Pools"
+              aria-label={t('tab.pools')}
               sx={(theme) => ({
                 borderBottom: theme.custom.border.hairline,
                 marginTop: theme.spacing(-1.5),
@@ -326,14 +423,14 @@ function AppShell() {
       <ChatLauncher
         open={chatOpen}
         onClick={() => setChatOpen((v) => !v)}
-        openLabel="Close chat"
-        closedLabel="Chat"
+        openLabel={t('chat.launcherWhenOpen')}
+        closedLabel={t('chat.launcherWhenClosed')}
       />
 
       <Slide direction="up" in={chatOpen} mountOnEnter unmountOnExit>
         <Paper
           role="dialog"
-          aria-label="Chat"
+          aria-label={t('chat.ariaDialog')}
           elevation={6}
           sx={(theme) => ({
             position: 'fixed',
@@ -372,6 +469,15 @@ function AppShell() {
 
       <DocsPanel open={docsOpen} onClose={() => setDocsOpen(false)} />
       <ReportBuildPanel open={reportBuildOpen} onClose={() => setReportBuildOpen(false)} />
+      <SendEvidencePanel open={sendEvidenceOpen} onClose={() => setSendEvidenceOpen(false)} />
+      <SettingsPanel
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        onOpenDocs={() => {
+          setSettingsOpen(false);
+          setDocsOpen(true);
+        }}
+      />
     </AppLayout>
   );
 }

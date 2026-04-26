@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { Line } from 'recharts';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Card from '@mui/material/Card';
@@ -19,7 +20,15 @@ import AccordionDetails from '@mui/material/AccordionDetails';
 import { alpha, useTheme } from '@mui/material/styles';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
-import { EmptyState, ErrorState, KpiCard, KpiStrip, LoadingState, PageHeader } from '../ui/index.js';
+import {
+  EmptyState,
+  ErrorState,
+  KpiCard,
+  KpiStrip,
+  LineChartFrame,
+  LoadingState,
+  PageHeader,
+} from '../ui/index.js';
 import { scoreBg01, scoreColor01 } from '../lib/score.js';
 import { formatDate } from '../lib/date.js';
 import { useMunicipalitiesData } from '../hooks/useMunicipalitiesData.js';
@@ -75,9 +84,98 @@ function ScoreLabelPill({ label, value, surface = 'muted', theme }) {
   );
 }
 
+function normalizeScoreLabel(l) {
+  return String(l ?? '').trim();
+}
+
+/** Sub-question labels: current day order first, then labels only seen on other days. */
+function collectSubquestionLabelOrder(muniAllDays, cid, currentScores) {
+  const out = [];
+  const seen = new Set();
+  const add = (raw) => {
+    const s = normalizeScoreLabel(raw);
+    if (!s || seen.has(s)) return;
+    seen.add(s);
+    out.push(s);
+  };
+  (currentScores ?? []).forEach((s) => add(s.label));
+  for (const md of muniAllDays) {
+    (md.components?.[cid]?.scores ?? []).forEach((s) => add(s.label));
+  }
+  return out;
+}
+
+function buildAvgTrendData(muniAllDays, cid) {
+  return muniAllDays
+    .map((md) => {
+      const comp = md.components?.[cid];
+      if (!comp || comp.avg == null) return null;
+      return { day: formatDate(md.date), iso: md.date, pct: Math.round(comp.avg * 100) };
+    })
+    .filter(Boolean)
+    .sort((a, b) => a.iso.localeCompare(b.iso));
+}
+
+function buildSubquestionTrendData(muniAllDays, cid, labels) {
+  return muniAllDays
+    .map((md) => {
+      const comp = md.components?.[cid];
+      if (!comp) return null;
+      const row = { day: formatDate(md.date), iso: md.date };
+      labels.forEach((label, i) => {
+        const sc = (comp.scores ?? []).find((s) => normalizeScoreLabel(s.label) === label);
+        row[`q${i}`] = sc?.value != null ? Math.round(sc.value * 100) : null;
+      });
+      return row;
+    })
+    .filter(Boolean)
+    .sort((a, b) => a.iso.localeCompare(b.iso));
+}
+
+/** Spread overlapping series on the Y axis for display; keep raw % in `qN_raw` for tooltips. */
+const SUB_TREND_NUDGE_PCT = 0.55;
+
+function nudgeSubquestionRowsForDisplay(rows, nLabels) {
+  const n = nLabels.length;
+  if (n <= 1) return { rows, nudged: false };
+  return {
+    rows: rows.map((row) => {
+      const out = { day: row.day, iso: row.iso };
+      for (let i = 0; i < n; i++) {
+        const k = `q${i}`;
+        const raw = row[k];
+        out[`${k}_raw`] = raw;
+        if (raw == null) {
+          out[k] = null;
+          continue;
+        }
+        const offset = (i - (n - 1) / 2) * SUB_TREND_NUDGE_PCT;
+        // Do not clamp: small values may sit just outside 0–100 so all lines stay separated.
+        out[k] = raw + offset;
+      }
+      return out;
+    }),
+    nudged: true,
+  };
+}
+
+function muniTrendStrokes(th) {
+  const p = th.palette;
+  const raw = [
+    p.primary.main,
+    p.info?.main,
+    p.success?.main,
+    p.warning?.main,
+    p.secondary?.main,
+    p.error?.main,
+    p.text.secondary,
+  ];
+  return raw.map((c) => c || p.primary.main);
+}
+
 export function MunicipalitiesTab() {
   const { getIdToken, apiReady } = useAuth();
-  const { lang } = useLanguage();
+  const { lang, t } = useLanguage();
   const theme = useTheme();
   const isHe = lang === 'he';
   const {
@@ -275,6 +373,18 @@ export function MunicipalitiesTab() {
                     return { ...md, mc, changed };
                   });
                   const anyChange = daysWithChange.some((d, i) => i > 0 && d.changed);
+                  const subLabels = collectSubquestionLabelOrder(muniAllDays, cid, c.scores);
+                  const useSubTrend = subLabels.length > 0;
+                  const rawTrendRows = useSubTrend
+                    ? buildSubquestionTrendData(muniAllDays, cid, subLabels)
+                    : buildAvgTrendData(muniAllDays, cid);
+                  const nudgeResult = useSubTrend
+                    ? nudgeSubquestionRowsForDisplay(rawTrendRows, subLabels)
+                    : { rows: rawTrendRows, nudged: false };
+                  const trendData = nudgeResult.rows;
+                  const subTrendNudged = nudgeResult.nudged;
+                  const hasMultiSub = subLabels.length > 1;
+                  const trendStrokes = muniTrendStrokes(theme);
                   return (
                     <Accordion>
                       <AccordionSummary>
@@ -285,13 +395,93 @@ export function MunicipalitiesTab() {
                           <Typography
                             component="span"
                             color="text.secondary"
-                            sx={(t) => ({ marginInlineStart: t.spacing(0.5), fontWeight: 400 })}
+                            sx={(th) => ({ marginInlineStart: th.spacing(0.5), fontWeight: 400 })}
                           >
                             {isHe ? '— ללא שינוי' : '— no change'}
                           </Typography>
                         )}
                       </AccordionSummary>
                       <AccordionDetails>
+                        {trendData.length > 0 && (
+                          <Box
+                            component="section"
+                            aria-label={t('muni.trendTitle')}
+                            sx={(th) => ({ width: '100%', marginBottom: th.spacing(2) })}
+                          >
+                            <Typography
+                              variant="eyebrow"
+                              color="text.secondary"
+                              sx={(th) => ({ marginBottom: th.spacing(1) })}
+                            >
+                              {t('muni.trendTitle')}
+                            </Typography>
+                            {useSubTrend ? (
+                              <LineChartFrame
+                                data={trendData}
+                                xKey="day"
+                                yDomain={hasMultiSub && subTrendNudged ? [-1.2, 101.2] : [0, 100]}
+                                yTicks={hasMultiSub && subTrendNudged ? [0, 25, 50, 75, 100] : undefined}
+                                height={subLabels.length > 2 ? 300 : 260}
+                                margin={{ top: 8, right: 12, left: 4, bottom: 4 }}
+                                legend
+                                tooltipFormatter={(value, name, item) => {
+                                  const row = item?.payload;
+                                  const idx = subLabels.findIndex((l) => l === name);
+                                  if (row && idx >= 0 && row[`q${idx}_raw`] != null) {
+                                    return [`${row[`q${idx}_raw`]}%`, name];
+                                  }
+                                  const v = value == null || Number.isNaN(Number(value))
+                                    ? null
+                                    : Math.round(Number(value));
+                                  return [v == null ? '—' : `${v}%`, name];
+                                }}
+                              >
+                                {subLabels.map((label, i) => (
+                                  <Line
+                                    key={`${cid}-q${i}`}
+                                    type="monotone"
+                                    dataKey={`q${i}`}
+                                    name={label}
+                                    stroke={trendStrokes[i % trendStrokes.length]}
+                                    strokeWidth={2 + (i % 2) * 0.35}
+                                    strokeLinecap="round"
+                                    dot={{
+                                      r: 2.4 + (i % 3) * 0.4,
+                                      strokeWidth: 1,
+                                      fill: theme.palette.background.paper,
+                                    }}
+                                    activeDot={{ r: 3.5 }}
+                                    connectNulls
+                                  />
+                                ))}
+                              </LineChartFrame>
+                            ) : (
+                              <LineChartFrame
+                                data={trendData}
+                                xKey="day"
+                                yDomain={[0, 100]}
+                                height={200}
+                                margin={{ top: 8, right: 12, left: 4, bottom: 8 }}
+                                tooltipFormatter={(value) => [`${value}%`, compNames[cid]]}
+                              >
+                                <Line
+                                  type="monotone"
+                                  dataKey="pct"
+                                  name={compNames[cid]}
+                                  stroke={theme.palette.primary.main}
+                                  strokeWidth={2}
+                                  dot={{
+                                    r: 3,
+                                    strokeWidth: 1,
+                                    fill: theme.palette.background.paper,
+                                  }}
+                                  activeDot={{ r: 4 }}
+                                  connectNulls
+                                />
+                              </LineChartFrame>
+                            )}
+                          </Box>
+                        )}
                         {daysWithChange.map((md) => {
                           const { mc, changed } = md;
                           const mdTexts = mc.texts.filter((t) => t.length > 0);
