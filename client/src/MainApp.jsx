@@ -28,11 +28,34 @@ import {
 } from './ui/index.js';
 import { formatDate } from './lib/date.js';
 
+const LS_MAIN_TAB = 'vibes-witch:mainTab';
+const LS_POOL_TAB = 'vibes-witch:poolTab';
+const MAIN_TAB_IDS = new Set(['report', 'municipalities', 'pools']);
+const POOL_TAB_IDS = new Set(['naftali', 'education']);
+
+function readMainTab() {
+  if (typeof localStorage === 'undefined') return 'report';
+  try {
+    const v = localStorage.getItem(LS_MAIN_TAB);
+    if (v && MAIN_TAB_IDS.has(v)) return v;
+  } catch { /* private mode or quota */ }
+  return 'report';
+}
+
+function readPoolTab() {
+  if (typeof localStorage === 'undefined') return 'naftali';
+  try {
+    const v = localStorage.getItem(LS_POOL_TAB);
+    if (v && POOL_TAB_IDS.has(v)) return v;
+  } catch { /* */ }
+  return 'naftali';
+}
+
 function AppShell() {
   const { logout, authRequired } = useAuth();
   const { report, scoreBySource, reportDate, initialReportLoadDone } = useTodayReport();
-  const [activeTab, setActiveTab] = useState('report');
-  const [activePoolTab, setActivePoolTab] = useState('naftali');
+  const [activeTab, setActiveTab] = useState(() => readMainTab());
+  const [activePoolTab, setActivePoolTab] = useState(() => readPoolTab());
   const reportTopRef = useRef(null);
   const [openReportCompId, setOpenReportCompId] = useState(null);
   const [openReportEvidenceCompId, setOpenReportEvidenceCompId] = useState(null);
@@ -51,6 +74,18 @@ function AppShell() {
     });
   }, []);
 
+  useEffect(() => {
+    try {
+      localStorage.setItem(LS_MAIN_TAB, activeTab);
+    } catch { /* */ }
+  }, [activeTab]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(LS_POOL_TAB, activePoolTab);
+    } catch { /* */ }
+  }, [activePoolTab]);
+
   const [docsOpen, setDocsOpen] = useState(false);
   const [reportBuildOpen, setReportBuildOpen] = useState(false);
   const { t, lang } = useLanguage();
@@ -67,20 +102,25 @@ function AppShell() {
     }));
   }, [displayReport, t]);
 
-  useEffect(() => {
-    if (activeTab !== 'report') setChatOpen(false);
-  }, [activeTab]);
+  const chatReportScope = useMemo(() => {
+    if (activeTab === 'report' && openReportCompId) {
+      return {
+        type: 'component',
+        id: openReportCompId,
+        label: reportContents.find((c) => c.id === openReportCompId)?.label ?? openReportCompId,
+      };
+    }
+    return { type: 'all' };
+  }, [activeTab, openReportCompId, reportContents]);
 
   const handleChatPanelClose = useCallback(() => {
     setChatOpen(false);
   }, []);
 
   function jumpToReportComponent(compId) {
-    setOpenReportCompId((prev) => {
-      const next = prev === compId ? null : compId;
-      setOpenReportEvidenceCompId(next);
-      return next;
-    });
+    setOpenReportCompId((prev) => (prev === compId ? null : compId));
+    // Sidebar jump should show narrative + top of the card, not the nested evidence list.
+    setOpenReportEvidenceCompId(null);
   }
 
   const TABS = [
@@ -250,64 +290,6 @@ function AppShell() {
                 </Box>
               </Box>
             )}
-
-            {report && (
-              <>
-                <ChatLauncher
-                  open={chatOpen}
-                  onClick={() => setChatOpen((v) => !v)}
-                  openLabel="Close chat"
-                  closedLabel="Chat"
-                />
-
-                <Slide direction="up" in={chatOpen} mountOnEnter unmountOnExit>
-                  <Paper
-                    role="dialog"
-                    aria-label="Chat"
-                    elevation={6}
-                    sx={(theme) => ({
-                      position: 'fixed',
-                      right: theme.spacing(3),
-                      bottom: theme.spacing(9.5),
-                      width: chatSize.w,
-                      height: chatSize.h,
-                      zIndex: theme.zIndex.tooltip + 5,
-                      borderRadius: theme.custom.radius.xl,
-                      boxShadow: theme.custom.elevation.chat,
-                      overflow: 'hidden',
-                      pointerEvents: 'auto',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      [theme.breakpoints.down('sm')]: {
-                        right: theme.spacing(2),
-                        bottom: theme.spacing(8),
-                      },
-                    })}
-                  >
-                    <ResizableFrame
-                      width={chatSize.w}
-                      height={chatSize.h}
-                      onSize={onChatSize}
-                      minWidth={280}
-                      minHeight={200}
-                      maxWidth={typeof window !== 'undefined' ? window.innerWidth - 16 : 2000}
-                      maxHeight={typeof window !== 'undefined' ? window.innerHeight - 24 : 2000}
-                      zIndex={2}
-                    />
-                    <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-                      <ChatPanel
-                        reportScope={
-                          openReportCompId
-                            ? { type: 'component', id: openReportCompId, label: reportContents.find((c) => c.id === openReportCompId)?.label ?? openReportCompId }
-                            : { type: 'all' }
-                        }
-                        onClose={handleChatPanelClose}
-                      />
-                    </Box>
-                  </Paper>
-                </Slide>
-              </>
-            )}
           </Stack>
         )}
 
@@ -340,6 +322,53 @@ function AppShell() {
             {activePoolTab === 'education' && <EducationTab />}
           </>
         )}
+
+      <ChatLauncher
+        open={chatOpen}
+        onClick={() => setChatOpen((v) => !v)}
+        openLabel="Close chat"
+        closedLabel="Chat"
+      />
+
+      <Slide direction="up" in={chatOpen} mountOnEnter unmountOnExit>
+        <Paper
+          role="dialog"
+          aria-label="Chat"
+          elevation={6}
+          sx={(theme) => ({
+            position: 'fixed',
+            right: theme.spacing(3),
+            bottom: theme.spacing(9.5),
+            width: chatSize.w,
+            height: chatSize.h,
+            zIndex: theme.zIndex.tooltip + 5,
+            borderRadius: theme.custom.radius.xl,
+            boxShadow: theme.custom.elevation.chat,
+            overflow: 'hidden',
+            pointerEvents: 'auto',
+            display: 'flex',
+            flexDirection: 'column',
+            [theme.breakpoints.down('sm')]: {
+              right: theme.spacing(2),
+              bottom: theme.spacing(8),
+            },
+          })}
+        >
+          <ResizableFrame
+            width={chatSize.w}
+            height={chatSize.h}
+            onSize={onChatSize}
+            minWidth={280}
+            minHeight={200}
+            maxWidth={typeof window !== 'undefined' ? window.innerWidth - 16 : 2000}
+            maxHeight={typeof window !== 'undefined' ? window.innerHeight - 24 : 2000}
+            zIndex={2}
+          />
+          <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+            <ChatPanel reportScope={chatReportScope} onClose={handleChatPanelClose} />
+          </Box>
+        </Paper>
+      </Slide>
 
       <DocsPanel open={docsOpen} onClose={() => setDocsOpen(false)} />
       <ReportBuildPanel open={reportBuildOpen} onClose={() => setReportBuildOpen(false)} />
