@@ -20,6 +20,8 @@ module.exports = {
       interpreter:  'node',
       restart_delay: 3000,
       max_restarts:  10,
+      // Report LLM translation: set here for PM2. For `npm start` / `node server.js` without PM2, add
+      // TRANSLATION_ENABLED=true to .env on that machine instead (dotenv does not read this file).
       env: {
         NODE_ENV: 'production',
         TRANSLATION_ENABLED: 'true',

@@ -9,6 +9,7 @@ import MenuItem from '@mui/material/MenuItem';
 import Paper from '@mui/material/Paper';
 import Slide from '@mui/material/Slide';
 import Alert from '@mui/material/Alert';
+import CircularProgress from '@mui/material/CircularProgress';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
@@ -262,6 +263,30 @@ function AppShell() {
             </MenuItem>
           )}
         </Menu>
+        {translating && (
+          <Stack
+            direction="row"
+            alignItems="center"
+            spacing={1}
+            role="status"
+            aria-live="polite"
+            sx={(theme) => ({
+              paddingTop: theme.spacing(0.5),
+              paddingBottom: theme.spacing(0.5),
+              paddingLeft: theme.spacing(1),
+              paddingRight: theme.spacing(1),
+              borderRadius: theme.custom.radius.pill,
+              background: theme.palette.background.paper,
+              border: theme.custom.border.hairline,
+              boxShadow: theme.custom.elevation.hover,
+            })}
+          >
+            <CircularProgress size={20} thickness={4} />
+            <Typography variant="cardTitle" sx={{ lineHeight: 1.2 }}>
+              {t('report.translating')}
+            </Typography>
+          </Stack>
+        )}
         <LanguageSelector />
       </Stack>
     </>
@@ -329,6 +354,7 @@ function AppShell() {
               >
                 <Box
                   component="aside"
+                  dir={lang === 'he' ? 'rtl' : 'ltr'}
                   aria-label={t('app.ariaReportContents')}
                   sx={(theme) => ({
                     position: 'sticky',

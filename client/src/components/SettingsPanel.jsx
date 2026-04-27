@@ -40,14 +40,6 @@ function readBool(key, defaultValue) {
   return defaultValue;
 }
 
-function writeBool(key, value) {
-  try {
-    localStorage.setItem(key, value ? 'true' : 'false');
-  } catch {
-    /* ignore */
-  }
-}
-
 function readString(key) {
   if (typeof localStorage === 'undefined') return '';
   try {
@@ -65,12 +57,27 @@ function writeString(key, value) {
   }
 }
 
+function writeBool(key, value) {
+  try {
+    localStorage.setItem(key, value ? 'true' : 'false');
+  } catch {
+    /* ignore */
+  }
+}
+
 function loadProductsFromStorage() {
   const out = {};
   for (const p of PRODUCT_DEFS) {
     out[p.id] = readBool(productStorageKey(p.storageSuffix), p.defaultValue);
   }
   return out;
+}
+
+function mirrorMailingToLocalStorage(email, products) {
+  writeString(LS_MAIL_EMAIL, email ?? '');
+  for (const p of PRODUCT_DEFS) {
+    writeBool(productStorageKey(p.storageSuffix), Boolean(products?.[p.id]));
+  }
 }
 
 function Section({ title, children }) {
@@ -86,33 +93,162 @@ function Section({ title, children }) {
 
 export function SettingsPanel({ open, onClose, onOpenDocs }) {
   const { t } = useLanguage();
-  const { user, authRequired, logout } = useAuth();
+  const { user, authRequired, logout, apiReady, getIdToken } = useAuth();
   const [mailingEmail, setMailingEmail] = useState('');
   const [products, setProducts] = useState(() => loadProductsFromStorage());
+  const [mailServerEnabled, setMailServerEnabled] = useState(false);
+  const [mailPrefsLoading, setMailPrefsLoading] = useState(false);
+  const [saveBusy, setSaveBusy] = useState(false);
+  const [sendBusy, setSendBusy] = useState(false);
+  const [mailFeedback, setMailFeedback] = useState(null);
 
   useEffect(() => {
     if (!open) return;
-    setMailingEmail(readString(LS_MAIL_EMAIL));
-    setProducts(loadProductsFromStorage());
-  }, [open]);
+    setMailFeedback(null);
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const cfgR = await fetch('/api/mail/config');
+        const cfg = await cfgR.json().catch(() => ({}));
+        if (!cancelled) setMailServerEnabled(Boolean(cfg.enabled));
+      } catch {
+        if (!cancelled) setMailServerEnabled(false);
+      }
+
+      if (!user || !apiReady) {
+        if (!cancelled) {
+          setMailingEmail(readString(LS_MAIL_EMAIL));
+          setProducts(loadProductsFromStorage());
+        }
+        return;
+      }
+
+      setMailPrefsLoading(true);
+      try {
+        const headers = new Headers();
+        const tok = await getIdToken();
+        if (tok) headers.set('Authorization', `Bearer ${tok}`);
+        const r = await fetch('/api/mail/preferences', { headers });
+        if (!r.ok) {
+          if (!cancelled) {
+            setMailingEmail(readString(LS_MAIL_EMAIL));
+            setProducts(loadProductsFromStorage());
+          }
+          return;
+        }
+        const data = await r.json();
+        const localEmail = readString(LS_MAIL_EMAIL);
+        const localProducts = loadProductsFromStorage();
+        let email = typeof data.email === 'string' ? data.email : '';
+        let pro = {
+          report: Boolean(data.products?.report),
+          naftali: Boolean(data.products?.naftali),
+          education: Boolean(data.products?.education),
+          platform: Boolean(data.products?.platform),
+        };
+
+        if (!email && localEmail.trim() && tok) {
+          const putR = await fetch('/api/mail/preferences', {
+            method: 'PUT',
+            headers: new Headers({
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${tok}`,
+            }),
+            body: JSON.stringify({ email: localEmail.trim(), products: localProducts }),
+          });
+          if (putR.ok) {
+            const migrated = await putR.json();
+            email = migrated.email ?? localEmail.trim();
+            pro = {
+              report: Boolean(migrated.products?.report),
+              naftali: Boolean(migrated.products?.naftali),
+              education: Boolean(migrated.products?.education),
+              platform: Boolean(migrated.products?.platform),
+            };
+          }
+        }
+
+        if (!cancelled) {
+          setMailingEmail(email);
+          setProducts(pro);
+          mirrorMailingToLocalStorage(email, pro);
+        }
+      } finally {
+        if (!cancelled) setMailPrefsLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [open, user, apiReady, getIdToken]);
 
   const onMailingEmailChange = useCallback((e) => {
-    const v = e.target.value;
-    setMailingEmail(v);
-    writeString(LS_MAIL_EMAIL, v);
+    setMailingEmail(e.target.value);
   }, []);
 
   const toggleProduct = useCallback((id) => {
-    const def = PRODUCT_DEFS.find((p) => p.id === id);
-    if (!def) return;
-    setProducts((prev) => {
-      const next = { ...prev, [id]: !prev[id] };
-      writeBool(productStorageKey(def.storageSuffix), next[id]);
-      return next;
-    });
+    setProducts((prev) => ({ ...prev, [id]: !prev[id] }));
   }, []);
 
+  const handleSaveMailing = useCallback(async () => {
+    if (!user) return;
+    setSaveBusy(true);
+    setMailFeedback(null);
+    try {
+      const tok = await getIdToken();
+      if (!tok) throw new Error('no token');
+      const r = await fetch('/api/mail/preferences', {
+        method: 'PUT',
+        headers: new Headers({
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${tok}`,
+        }),
+        body: JSON.stringify({
+          email: mailingEmail.trim(),
+          products,
+        }),
+      });
+      const errBody = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(errBody.error ?? `HTTP ${r.status}`);
+      mirrorMailingToLocalStorage(mailingEmail.trim(), products);
+      setMailFeedback({ severity: 'success', message: t('settings.mailingSaveOk') });
+    } catch (e) {
+      setMailFeedback({ severity: 'error', message: e?.message ?? t('settings.mailingSaveError') });
+    } finally {
+      setSaveBusy(false);
+    }
+  }, [user, getIdToken, mailingEmail, products, t]);
+
+  const handleSendDigest = useCallback(async () => {
+    if (!user) return;
+    setSendBusy(true);
+    setMailFeedback(null);
+    try {
+      const tok = await getIdToken();
+      if (!tok) throw new Error('no token');
+      const r = await fetch('/api/mail/send-digest', {
+        method: 'POST',
+        headers: new Headers({
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${tok}`,
+        }),
+        body: JSON.stringify({}),
+      });
+      const errBody = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(errBody.error ?? `HTTP ${r.status}`);
+      setMailFeedback({ severity: 'success', message: t('settings.mailingSendOk') });
+    } catch (e) {
+      setMailFeedback({ severity: 'error', message: e?.message ?? t('settings.mailingSendError') });
+    } finally {
+      setSendBusy(false);
+    }
+  }, [user, getIdToken, t]);
+
   const accountEmail = user?.email ?? '';
+  const showLocalOnlyNote = !mailServerEnabled;
+  const mailingActionsDisabled = !user || mailPrefsLoading || saveBusy || sendBusy;
 
   return (
     <ModalPanel
@@ -125,9 +261,11 @@ export function SettingsPanel({ open, onClose, onOpenDocs }) {
       zIndex={64}
     >
       <Stack spacing={2.5} sx={{ padding: '1rem 1.1rem 1.25rem' }}>
-        <Alert severity="info" variant="outlined" sx={{ alignItems: 'flex-start' }}>
-          {t('settings.localOnly')}
-        </Alert>
+        {showLocalOnlyNote && (
+          <Alert severity="info" variant="outlined" sx={{ alignItems: 'flex-start' }}>
+            {t('settings.localOnly')}
+          </Alert>
+        )}
 
         <Section title={t('settings.section.general')}>
           <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.55 }}>
@@ -148,6 +286,24 @@ export function SettingsPanel({ open, onClose, onOpenDocs }) {
             {t('settings.mailingIntro')}
           </Typography>
 
+          {!mailServerEnabled && (
+            <Alert severity="warning" variant="outlined" sx={{ marginBottom: 1.5 }}>
+              {t('settings.mailingNotConfigured')}
+            </Alert>
+          )}
+
+          {!user && (
+            <Alert severity="info" variant="outlined" sx={{ marginBottom: 1.5 }}>
+              {t('settings.mailingNeedSignIn')}
+            </Alert>
+          )}
+
+          {mailFeedback && (
+            <Alert severity={mailFeedback.severity} variant="outlined" sx={{ marginBottom: 1.5 }}>
+              {mailFeedback.message}
+            </Alert>
+          )}
+
           <TextField
             size="small"
             fullWidth
@@ -158,6 +314,7 @@ export function SettingsPanel({ open, onClose, onOpenDocs }) {
             onChange={onMailingEmailChange}
             placeholder={accountEmail || t('settings.mailingEmailPlaceholder')}
             helperText={t('settings.mailingDestinationHelp').replace('{accountEmail}', accountEmail || '—')}
+            disabled={!user || mailPrefsLoading}
             sx={{ marginBottom: 2 }}
           />
 
@@ -176,6 +333,7 @@ export function SettingsPanel({ open, onClose, onOpenDocs }) {
                   <Checkbox
                     checked={Boolean(products[p.id])}
                     onChange={() => toggleProduct(p.id)}
+                    disabled={!user || mailPrefsLoading}
                     inputProps={{ 'aria-label': t(`settings.mailProduct.${p.id}`) }}
                   />
                 )}
@@ -183,6 +341,25 @@ export function SettingsPanel({ open, onClose, onOpenDocs }) {
               />
             ))}
           </FormGroup>
+
+          <Stack direction="row" spacing={1} sx={{ marginTop: 2, flexWrap: 'wrap' }}>
+            <Button
+              variant="contained"
+              size="small"
+              disabled={mailingActionsDisabled || !mailServerEnabled}
+              onClick={() => void handleSaveMailing()}
+            >
+              {saveBusy ? t('settings.mailingSaving') : t('settings.mailingSave')}
+            </Button>
+            <Button
+              variant="outlined"
+              size="small"
+              disabled={mailingActionsDisabled || !mailServerEnabled}
+              onClick={() => void handleSendDigest()}
+            >
+              {sendBusy ? t('settings.mailingSending') : t('settings.mailingSendNow')}
+            </Button>
+          </Stack>
         </Section>
 
         <Divider />

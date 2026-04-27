@@ -18,6 +18,7 @@ tags:
   - name: Naftali
   - name: Translation
   - name: Chat
+  - name: Mailing
 security:
   - bearerAuth: []
 components:
@@ -89,6 +90,44 @@ components:
         history:
           type: array
           items: { type: object, additionalProperties: true }
+    MailConfigResponse:
+      type: object
+      required: [enabled]
+      properties:
+        enabled: { type: boolean, description: "True when RESEND_API_KEY and MAIL_FROM are set and mailing is not disabled" }
+    MailProductFlags:
+      type: object
+      required: [report, naftali, education, platform]
+      properties:
+        report: { type: boolean }
+        naftali: { type: boolean }
+        education: { type: boolean }
+        platform: { type: boolean }
+    MailPreferences:
+      type: object
+      required: [email, products]
+      properties:
+        email: { type: string }
+        products: { $ref: "#/components/schemas/MailProductFlags" }
+    MailPreferencesUpdate:
+      type: object
+      properties:
+        email: { type: string }
+        products:
+          type: object
+          additionalProperties: true
+    MailSendDigestRequest:
+      type: object
+      properties:
+        to:
+          type: string
+          description: "Optional; must match JWT email or saved mailing address"
+    MailSendDigestResponse:
+      type: object
+      required: [ok]
+      properties:
+        ok: { type: boolean }
+        id: { type: string, nullable: true, description: "Resend message id when returned" }
 paths:
   /api/auth/config:
     get:
@@ -434,6 +473,94 @@ paths:
               schema: { $ref: "#/components/schemas/Error" }
         "401":
           description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /api/mail/config:
+    get:
+      tags: [Mailing]
+      summary: Mailing feature availability
+      security: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MailConfigResponse" }
+
+  /api/mail/preferences:
+    get:
+      tags: [Mailing]
+      summary: Get saved mailing preferences for the signed-in user
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MailPreferences" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+    put:
+      tags: [Mailing]
+      summary: Update mailing preferences
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/MailPreferencesUpdate" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MailPreferences" }
+        "400":
+          description: Invalid email
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /api/mail/send-digest:
+    post:
+      tags: [Mailing]
+      summary: Send one digest email now (Resend)
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/MailSendDigestRequest" }
+      responses:
+        "200":
+          description: Sent
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MailSendDigestResponse" }
+        "400":
+          description: Bad request (no destination or invalid to)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "502":
+          description: Provider error
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "503":
+          description: Mailing not configured
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }

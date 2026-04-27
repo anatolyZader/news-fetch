@@ -26,6 +26,7 @@ Stand up VibeSwitch on a developer workstation and confirm every major surface w
   - `OPENAI_API_KEY` (required only for audio transcription)
   - `AUTH_REQUIRED=false` (recommended for local dev unless you're testing auth)
   - `SQLITE_PATH` (optional — defaults to a path under the repo)
+  - **Mailing (Resend)**: `RESEND_API_KEY` and `MAIL_FROM` (e.g. `Vibes Witch <reports@yourdomain.com>`) — enables `/api/mail/*` send path and Settings UI; optional `MAILING_ENABLED=false` to disable; `npm run mail:digest` for cron-based daily sends
 - **`client/.env.local`** (only if you're enabling auth):
   - `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAIN`, `VITE_FIREBASE_PROJECT_ID`
 

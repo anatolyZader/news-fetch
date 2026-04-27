@@ -50,6 +50,10 @@ import { createAnthropicReportBuildDraftGeneratorAdapter } from './business_modu
 import { createReportBuildConversationStore } from './business_modules/report_build/infrastructure/reportBuildConversationStore.js';
 import { createReportBuildDraftStore } from './business_modules/report_build/infrastructure/reportBuildDraftStore.js';
 import { reportBuildRoutes } from './business_modules/report_build/input/reportBuildRoutes.js';
+import { createMailingPreferencesStore } from './business_modules/mailing/infrastructure/mailingPreferencesStore.js';
+import { createMailingResendAdapter } from './business_modules/mailing/infrastructure/adapters/mailingResendAdapter.js';
+import { createMailingService } from './business_modules/mailing/app/mailingService.js';
+import { mailingRoutes } from './business_modules/mailing/input/mailingRoutes.js';
 import { buildProductDocsIndex, loadProductDocPage } from './utils/productDocs.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -64,6 +68,22 @@ const sqlitePath = process.env.SQLITE_PATH?.trim()
 const evidenceDraftStore = createEvidenceDraftStore(sqlitePath);
 const evidenceStore = createEvidenceStore(sqlitePath);
 const chatStore = createChatStore(sqlitePath);
+const mailingPrefsStore = createMailingPreferencesStore(sqlitePath);
+
+function isMailingConfigured() {
+  if (process.env.MAILING_ENABLED === 'false') return false;
+  const key = process.env.RESEND_API_KEY?.trim();
+  const from = process.env.MAIL_FROM?.trim();
+  return Boolean(key && from);
+}
+
+const mailingService = isMailingConfigured()
+  ? createMailingService({
+    deliveryPort: createMailingResendAdapter({ apiKey: process.env.RESEND_API_KEY.trim() }),
+    mailFrom: process.env.MAIL_FROM.trim(),
+    getCachedReport: () => getCachedReport(evidenceStore),
+  })
+  : null;
 let audioEvidenceIngestService = null;
 
 function evidenceOwnerKey(request) {
@@ -964,6 +984,13 @@ export async function createApp(options) {
   await app.register(reportBuildRoutes, {
     reportBuildService,
     authPreHandler: authHook?.preHandler,
+  });
+
+  await app.register(mailingRoutes, {
+    prefsStore: mailingPrefsStore,
+    mailingService,
+    tryAuthPreHandler,
+    isMailingConfigured,
   });
 
   app.get('/articles', authHook, async (request, reply) => {

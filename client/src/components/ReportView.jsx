@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import CircularProgress from '@mui/material/CircularProgress';
 import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
@@ -302,44 +301,8 @@ export function ReportView({
   return (
     <Stack
       spacing={4}
-      sx={{ position: 'relative' }}
       aria-busy={translating ? 'true' : 'false'}
     >
-      {translating && (
-        <Box
-          role="status"
-          aria-live="polite"
-          sx={(theme) => ({
-            position: 'absolute',
-            inset: 0,
-            borderRadius: theme.custom.radius.lg,
-            zIndex: 10,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            pointerEvents: 'none',
-          })}
-        >
-          <Stack
-            direction="row"
-            alignItems="center"
-            spacing={1}
-            sx={(theme) => ({
-              paddingTop: theme.spacing(1),
-              paddingBottom: theme.spacing(1),
-              paddingLeft: theme.spacing(1.5),
-              paddingRight: theme.spacing(1.5),
-              borderRadius: theme.custom.radius.pill,
-              background: theme.palette.background.paper,
-              border: theme.custom.border.hairline,
-              boxShadow: theme.custom.elevation.hover,
-            })}
-          >
-            <CircularProgress size={20} thickness={4} />
-            <Typography variant="cardTitle">{t('report.translating')}</Typography>
-          </Stack>
-        </Box>
-      )}
       {translateError && (
         <Alert severity="error" variant="outlined">
           Translation error: {translateError}
