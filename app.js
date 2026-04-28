@@ -82,6 +82,7 @@ const mailingService = isMailingConfigured()
     deliveryPort: createMailingResendAdapter({ apiKey: process.env.RESEND_API_KEY.trim() }),
     mailFrom: process.env.MAIL_FROM.trim(),
     getCachedReport: () => getCachedReport(evidenceStore),
+    translateReport: getTranslatedReport,
   })
   : null;
 let audioEvidenceIngestService = null;
@@ -991,6 +992,7 @@ export async function createApp(options) {
     mailingService,
     tryAuthPreHandler,
     isMailingConfigured,
+    allowAnonymous: !authRequired,
   });
 
   app.get('/articles', authHook, async (request, reply) => {

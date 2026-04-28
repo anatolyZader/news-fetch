@@ -7,6 +7,7 @@
  *   mailingService: ReturnType<import('../app/mailingService.js').createMailingService>,
  *   tryAuthPreHandler: (req: any, reply: any) => Promise<void>,
  *   isMailingConfigured: () => boolean,
+ *   allowAnonymous?: boolean,
  * }} opts
  */
 export async function mailingRoutes(app, opts) {
@@ -15,20 +16,25 @@ export async function mailingRoutes(app, opts) {
     mailingService,
     tryAuthPreHandler,
     isMailingConfigured,
+    allowAnonymous = false,
   } = opts;
 
   if (!prefsStore || !tryAuthPreHandler || !isMailingConfigured) {
     throw new Error('mailingRoutes: missing required opts');
   }
 
-  async function requireUser(request, reply) {
+  async function requireUserOrAllowedAnonymous(request, reply) {
     await tryAuthPreHandler(request, reply);
     if (!request.user) {
+      if (allowAnonymous) {
+        request.user = { uid: 'anonymous', email: null, anonymous: true };
+        return;
+      }
       return reply.code(401).send({ error: 'Unauthorized' });
     }
   }
 
-  const pre = { preHandler: requireUser };
+  const pre = { preHandler: requireUserOrAllowedAnonymous };
 
   app.get('/api/mail/config', async (_request, reply) => {
     return reply.send({ enabled: Boolean(isMailingConfigured?.()) });
@@ -40,10 +46,11 @@ export async function mailingRoutes(app, opts) {
     if (!row) {
       return reply.send({
         email: '',
+        language: 'en',
         products: { report: true, naftali: true, education: true, platform: false },
       });
     }
-    return reply.send({ email: row.email, products: row.products });
+    return reply.send({ email: row.email, language: row.language, products: row.products });
   });
 
   app.put('/api/mail/preferences', pre, async (request, reply) => {
@@ -58,13 +65,22 @@ export async function mailingRoutes(app, opts) {
       emailArg = raw;
     }
     const products = body.products && typeof body.products === 'object' ? body.products : undefined;
+    let languageArg;
+    if (Object.prototype.hasOwnProperty.call(body, 'language')) {
+      const rawLang = String(body.language ?? '').trim().toLowerCase();
+      if (!['en', 'he', 'ru'].includes(rawLang)) {
+        return reply.code(400).send({ error: 'Invalid digest language' });
+      }
+      languageArg = rawLang;
+    }
 
     const saved = prefsStore.upsert({
       userUid: uid,
       email: emailArg,
+      language: languageArg,
       products,
     });
-    return reply.send({ email: saved.email, products: saved.products });
+    return reply.send({ email: saved.email, language: saved.language, products: saved.products });
   });
 
   app.post('/api/mail/send-digest', pre, async (request, reply) => {
@@ -86,7 +102,9 @@ export async function mailingRoutes(app, opts) {
     if (bodyTo) {
       if (bodyTo !== jwtEmail && bodyTo !== savedEmail) {
         return reply.code(400).send({
-          error: 'Recipient must match your account email or saved mailing address',
+          error: request.user.anonymous
+            ? 'Recipient must match the saved mailing address'
+            : 'Recipient must match your account email or saved mailing address',
         });
       }
       to = bodyTo;
@@ -106,9 +124,10 @@ export async function mailingRoutes(app, opts) {
       education: true,
       platform: false,
     };
+    const language = prefs?.language ?? 'en';
 
     try {
-      const result = await mailingService.sendDigest({ to, products });
+      const result = await mailingService.sendDigest({ to, products, language });
       return reply.send({ ok: true, id: result.id ?? null });
     } catch (err) {
       const status = err?.status >= 400 && err?.status < 600 ? err.status : 502;

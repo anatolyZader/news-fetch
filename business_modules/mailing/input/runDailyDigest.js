@@ -22,6 +22,7 @@ import { createMailingResendAdapter } from '../infrastructure/adapters/mailingRe
 import { createMailingService } from '../app/mailingService.js';
 import { getCachedReport } from '../../../api/analysisService.js';
 import { createEvidenceStore } from '../../../cross-cut-modules/persistence/evidenceStore.js';
+import { getTranslatedReport } from '../../translation/app/translationService.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, '../../..');
@@ -48,6 +49,7 @@ async function main() {
     deliveryPort: createMailingResendAdapter({ apiKey: process.env.RESEND_API_KEY.trim() }),
     mailFrom: process.env.MAIL_FROM.trim(),
     getCachedReport: () => getCachedReport(evidenceStore),
+    translateReport: getTranslatedReport,
   });
 
   const subs = prefsStore.listDigestSubscribers();
@@ -58,10 +60,10 @@ async function main() {
 
   let failures = 0;
   for (const sub of subs) {
-    const { userUid, email, products } = sub;
+    const { userUid, email, products, language } = sub;
     try {
-      await mailingService.sendDigest({ to: email, products });
-      console.log(`[mail-digest] Sent ok uid=${userUid} to=${email}`);
+      await mailingService.sendDigest({ to: email, products, language });
+      console.log(`[mail-digest] Sent ok uid=${userUid} to=${email} lang=${language}`);
     } catch (e) {
       failures += 1;
       console.error(`[mail-digest] Failed uid=${userUid} to=${email}: ${e?.message ?? e}`);

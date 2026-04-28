@@ -15,17 +15,20 @@ test('mailingPreferencesStore upsert and listDigestSubscribers', () => {
     store.upsert({
       userUid: 'u1',
       email: 'a@example.com',
+      language: 'he',
       products: { report: true, naftali: false, education: false, platform: false },
     });
 
     const row = store.getByUid('u1');
     assert.equal(row.email, 'a@example.com');
+    assert.equal(row.language, 'he');
     assert.equal(row.products.report, true);
     assert.equal(row.products.naftali, false);
 
     const subs = store.listDigestSubscribers();
     assert.equal(subs.length, 1);
     assert.equal(subs[0].userUid, 'u1');
+    assert.equal(subs[0].language, 'he');
 
     store.upsert({
       userUid: 'u1',

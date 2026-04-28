@@ -1,8 +1,10 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
+import IconButton from '@mui/material/IconButton';
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import { ResizableFrame } from './ResizableFrame.jsx';
 
 function getInitialSize(initialWidth, initialHeight) {
@@ -26,9 +28,15 @@ export function ModalPanel({
   initialHeight,
   zIndex,
   headerRight = null,
+  showCloseButton = false,
+  closeLabel = 'Close',
+  modeless = false,
+  minimizeOnOutsideClick = false,
+  disableBackdropClose = false,
   children,
 }) {
   const [size, setSize] = useState(() => getInitialSize(initialWidth, initialHeight));
+  const paperRef = useRef(null);
 
   const clampSize = useCallback((next) => {
     if (typeof window === 'undefined') {
@@ -43,16 +51,43 @@ export function ModalPanel({
     });
   }, []);
 
+  const handleClose = useCallback((event, reason) => {
+    if (disableBackdropClose && reason === 'backdropClick') return;
+    onClose?.(event, reason);
+  }, [disableBackdropClose, onClose]);
+
+  useEffect(() => {
+    if (!open || !modeless || !minimizeOnOutsideClick) return undefined;
+
+    const handlePointerDown = (event) => {
+      const paper = paperRef.current;
+      const isInside = Boolean(paper && event.target instanceof Node && paper.contains(event.target));
+      if (isInside) return;
+      handleClose(event, 'outsidePointerDown');
+    };
+
+    document.addEventListener('pointerdown', handlePointerDown, true);
+    return () => document.removeEventListener('pointerdown', handlePointerDown, true);
+  }, [handleClose, minimizeOnOutsideClick, modeless, open]);
+
   return (
     <Dialog
       open={Boolean(open)}
-      onClose={onClose}
+      onClose={handleClose}
       aria-label={ariaLabel ?? (typeof title === 'string' ? title : undefined)}
       maxWidth={false}
       scroll="paper"
-      sx={(theme) => ({ zIndex: zIndex ?? theme.zIndex.modal })}
+      hideBackdrop={modeless && !minimizeOnOutsideClick}
+      disableAutoFocus={modeless}
+      disableEnforceFocus={modeless}
+      disableRestoreFocus={modeless}
+      sx={(theme) => ({
+        zIndex: zIndex ?? theme.zIndex.modal,
+        pointerEvents: modeless && !minimizeOnOutsideClick ? 'none' : 'auto',
+      })}
       slotProps={{
         paper: {
+          ref: paperRef,
           sx: (theme) => ({
             width: size.w,
             height: size.h,
@@ -71,10 +106,15 @@ export function ModalPanel({
             flexDirection: 'column',
             position: 'relative',
             alignSelf: 'flex-start',
+            pointerEvents: 'auto',
           }),
         },
         backdrop: {
-          sx: (theme) => ({ backgroundColor: theme.custom.surface.backdrop }),
+          sx: (theme) => ({
+            backgroundColor: modeless && minimizeOnOutsideClick
+              ? 'transparent'
+              : theme.custom.surface.backdrop,
+          }),
         },
       }}
     >
@@ -106,6 +146,29 @@ export function ModalPanel({
             <Box sx={{ flex: '1 1 auto', minWidth: 0 }}>{title}</Box>
             <Stack direction="row" alignItems="center" spacing={0.5}>
               {headerRight}
+              {showCloseButton && (
+                <IconButton
+                  type="button"
+                  aria-label={closeLabel}
+                  title={closeLabel}
+                  size="small"
+                  onClick={(event) => handleClose(event, 'closeButtonClick')}
+                  sx={(theme) => ({
+                    width: 32,
+                    height: 32,
+                    borderRadius: '50%',
+                    border: theme.custom.border.hairline,
+                    color: theme.palette.text.secondary,
+                    backgroundColor: theme.palette.background.paper,
+                    '&:hover': {
+                      color: theme.palette.text.primary,
+                      backgroundColor: theme.palette.action.hover,
+                    },
+                  })}
+                >
+                  <CloseRoundedIcon fontSize="small" />
+                </IconButton>
+              )}
             </Stack>
           </Stack>
         </DialogTitle>

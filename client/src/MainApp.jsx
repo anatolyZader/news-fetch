@@ -99,6 +99,7 @@ function AppShell() {
   const [reportBuildOpen, setReportBuildOpen] = useState(false);
   const [sendEvidenceOpen, setSendEvidenceOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [settingsMinimized, setSettingsMinimized] = useState(false);
   const [moreMenuAnchor, setMoreMenuAnchor] = useState(null);
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
@@ -246,6 +247,7 @@ function AppShell() {
           </MenuItem>
           <MenuItem
             onClick={() => {
+              setSettingsMinimized(false);
               setSettingsOpen(true);
               closeMoreMenu();
             }}
@@ -446,12 +448,13 @@ function AppShell() {
           </>
         )}
 
-      <ChatLauncher
-        open={chatOpen}
-        onClick={() => setChatOpen((v) => !v)}
-        openLabel={t('chat.launcherWhenOpen')}
-        closedLabel={t('chat.launcherWhenClosed')}
-      />
+      {!chatOpen && (
+        <ChatLauncher
+          open={false}
+          onClick={() => setChatOpen(true)}
+          closedLabel={t('chat.launcherWhenClosed')}
+        />
+      )}
 
       <Slide direction="up" in={chatOpen} mountOnEnter unmountOnExit>
         <Paper
@@ -498,12 +501,42 @@ function AppShell() {
       <SendEvidencePanel open={sendEvidenceOpen} onClose={() => setSendEvidenceOpen(false)} />
       <SettingsPanel
         open={settingsOpen}
-        onClose={() => setSettingsOpen(false)}
+        onClose={(event, reason) => {
+          const shouldMinimize = reason === 'outsidePointerDown';
+          if (shouldMinimize) {
+            setSettingsMinimized(true);
+          } else {
+            setSettingsMinimized(false);
+          }
+          setSettingsOpen(false);
+        }}
         onOpenDocs={() => {
+          setSettingsMinimized(false);
           setSettingsOpen(false);
           setDocsOpen(true);
         }}
       />
+      {settingsMinimized && !settingsOpen && (
+        <Button
+          type="button"
+          variant="contained"
+          size="small"
+          onClick={() => {
+            setSettingsMinimized(false);
+            setSettingsOpen(true);
+          }}
+          sx={(theme) => ({
+            position: 'fixed',
+            right: theme.spacing(3),
+            bottom: theme.spacing(3),
+            zIndex: theme.zIndex.tooltip + 20,
+            borderRadius: theme.custom.radius.pill,
+            boxShadow: theme.custom.elevation.hover,
+          })}
+        >
+          {t('settings.title')}
+        </Button>
+      )}
     </AppLayout>
   );
 }

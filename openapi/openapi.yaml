@@ -105,14 +105,16 @@ components:
         platform: { type: boolean }
     MailPreferences:
       type: object
-      required: [email, products]
+      required: [email, language, products]
       properties:
         email: { type: string }
+        language: { type: string, enum: [en, he, ru] }
         products: { $ref: "#/components/schemas/MailProductFlags" }
     MailPreferencesUpdate:
       type: object
       properties:
         email: { type: string }
+        language: { type: string, enum: [en, he, ru] }
         products:
           type: object
           additionalProperties: true

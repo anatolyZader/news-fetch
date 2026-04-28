@@ -4,6 +4,7 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
+import MenuItem from '@mui/material/MenuItem';
 import Checkbox from '@mui/material/Checkbox';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import FormGroup from '@mui/material/FormGroup';
@@ -92,15 +93,19 @@ function Section({ title, children }) {
 }
 
 export function SettingsPanel({ open, onClose, onOpenDocs }) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const { user, authRequired, logout, apiReady, getIdToken } = useAuth();
   const [mailingEmail, setMailingEmail] = useState('');
+  const [savedMailingEmail, setSavedMailingEmail] = useState('');
+  const [mailingLanguage, setMailingLanguage] = useState(lang);
   const [products, setProducts] = useState(() => loadProductsFromStorage());
   const [mailServerEnabled, setMailServerEnabled] = useState(false);
   const [mailPrefsLoading, setMailPrefsLoading] = useState(false);
   const [saveBusy, setSaveBusy] = useState(false);
   const [sendBusy, setSendBusy] = useState(false);
   const [mailFeedback, setMailFeedback] = useState(null);
+  const accountEmail = user?.email ?? '';
+  const canUseMailing = Boolean(user) || !authRequired;
 
   useEffect(() => {
     if (!open) return;
@@ -116,9 +121,12 @@ export function SettingsPanel({ open, onClose, onOpenDocs }) {
         if (!cancelled) setMailServerEnabled(false);
       }
 
-      if (!user || !apiReady) {
+      const canLoadServerPrefs = Boolean(user) || !authRequired;
+      if (!canLoadServerPrefs || !apiReady) {
         if (!cancelled) {
-          setMailingEmail(readString(LS_MAIL_EMAIL));
+            setSavedMailingEmail(readString(LS_MAIL_EMAIL));
+            setMailingEmail('');
+            setMailingLanguage(lang);
           setProducts(loadProductsFromStorage());
         }
         return;
@@ -132,7 +140,9 @@ export function SettingsPanel({ open, onClose, onOpenDocs }) {
         const r = await fetch('/api/mail/preferences', { headers });
         if (!r.ok) {
           if (!cancelled) {
-            setMailingEmail(readString(LS_MAIL_EMAIL));
+            setSavedMailingEmail(readString(LS_MAIL_EMAIL));
+            setMailingEmail('');
+            setMailingLanguage(lang);
             setProducts(loadProductsFromStorage());
           }
           return;
@@ -141,6 +151,7 @@ export function SettingsPanel({ open, onClose, onOpenDocs }) {
         const localEmail = readString(LS_MAIL_EMAIL);
         const localProducts = loadProductsFromStorage();
         let email = typeof data.email === 'string' ? data.email : '';
+        let digestLang = ['en', 'he', 'ru'].includes(data.language) ? data.language : lang;
         let pro = {
           report: Boolean(data.products?.report),
           naftali: Boolean(data.products?.naftali),
@@ -155,11 +166,12 @@ export function SettingsPanel({ open, onClose, onOpenDocs }) {
               'Content-Type': 'application/json',
               Authorization: `Bearer ${tok}`,
             }),
-            body: JSON.stringify({ email: localEmail.trim(), products: localProducts }),
+            body: JSON.stringify({ email: localEmail.trim(), language: digestLang, products: localProducts }),
           });
           if (putR.ok) {
             const migrated = await putR.json();
             email = migrated.email ?? localEmail.trim();
+            digestLang = ['en', 'he', 'ru'].includes(migrated.language) ? migrated.language : digestLang;
             pro = {
               report: Boolean(migrated.products?.report),
               naftali: Boolean(migrated.products?.naftali),
@@ -170,7 +182,9 @@ export function SettingsPanel({ open, onClose, onOpenDocs }) {
         }
 
         if (!cancelled) {
-          setMailingEmail(email);
+          setSavedMailingEmail(email);
+          setMailingEmail('');
+          setMailingLanguage(digestLang);
           setProducts(pro);
           mirrorMailingToLocalStorage(email, pro);
         }
@@ -182,7 +196,7 @@ export function SettingsPanel({ open, onClose, onOpenDocs }) {
     return () => {
       cancelled = true;
     };
-  }, [open, user, apiReady, getIdToken]);
+  }, [open, user, authRequired, apiReady, getIdToken, lang]);
 
   const onMailingEmailChange = useCallback((e) => {
     setMailingEmail(e.target.value);
@@ -192,48 +206,70 @@ export function SettingsPanel({ open, onClose, onOpenDocs }) {
     setProducts((prev) => ({ ...prev, [id]: !prev[id] }));
   }, []);
 
+  const saveMailingPreferences = useCallback(async () => {
+    if (!canUseMailing) return;
+    const nextEmail = mailingEmail.trim();
+    const tok = await getIdToken();
+    const headers = new Headers({ 'Content-Type': 'application/json' });
+    if (tok) headers.set('Authorization', `Bearer ${tok}`);
+    const body = { products, language: mailingLanguage };
+    if (nextEmail) {
+      body.email = nextEmail;
+    } else if (!savedMailingEmail && accountEmail) {
+      body.email = accountEmail;
+    }
+
+    const r = await fetch('/api/mail/preferences', {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify(body),
+    });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(data.error ?? `HTTP ${r.status}`);
+    const savedEmail = typeof data.email === 'string' ? data.email : (nextEmail || savedMailingEmail);
+    const savedLanguage = ['en', 'he', 'ru'].includes(data.language) ? data.language : mailingLanguage;
+    const savedProducts = data.products && typeof data.products === 'object' ? data.products : products;
+    setSavedMailingEmail(savedEmail);
+    setMailingEmail('');
+    setMailingLanguage(savedLanguage);
+    setProducts({
+      report: Boolean(savedProducts.report),
+      naftali: Boolean(savedProducts.naftali),
+      education: Boolean(savedProducts.education),
+      platform: Boolean(savedProducts.platform),
+    });
+    mirrorMailingToLocalStorage(savedEmail, savedProducts);
+    return { email: savedEmail, language: savedLanguage, products: savedProducts };
+  }, [accountEmail, canUseMailing, getIdToken, mailingEmail, mailingLanguage, products, savedMailingEmail]);
+
   const handleSaveMailing = useCallback(async () => {
-    if (!user) return;
+    if (!canUseMailing) return;
     setSaveBusy(true);
     setMailFeedback(null);
     try {
-      const tok = await getIdToken();
-      if (!tok) throw new Error('no token');
-      const r = await fetch('/api/mail/preferences', {
-        method: 'PUT',
-        headers: new Headers({
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${tok}`,
-        }),
-        body: JSON.stringify({
-          email: mailingEmail.trim(),
-          products,
-        }),
-      });
-      const errBody = await r.json().catch(() => ({}));
-      if (!r.ok) throw new Error(errBody.error ?? `HTTP ${r.status}`);
-      mirrorMailingToLocalStorage(mailingEmail.trim(), products);
+      await saveMailingPreferences();
       setMailFeedback({ severity: 'success', message: t('settings.mailingSaveOk') });
     } catch (e) {
       setMailFeedback({ severity: 'error', message: e?.message ?? t('settings.mailingSaveError') });
     } finally {
       setSaveBusy(false);
     }
-  }, [user, getIdToken, mailingEmail, products, t]);
+  }, [canUseMailing, saveMailingPreferences, t]);
 
   const handleSendDigest = useCallback(async () => {
-    if (!user) return;
+    if (!canUseMailing) return;
     setSendBusy(true);
     setMailFeedback(null);
     try {
+      if (mailingEmail.trim()) {
+        await saveMailingPreferences();
+      }
       const tok = await getIdToken();
-      if (!tok) throw new Error('no token');
+      const headers = new Headers({ 'Content-Type': 'application/json' });
+      if (tok) headers.set('Authorization', `Bearer ${tok}`);
       const r = await fetch('/api/mail/send-digest', {
         method: 'POST',
-        headers: new Headers({
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${tok}`,
-        }),
+        headers,
         body: JSON.stringify({}),
       });
       const errBody = await r.json().catch(() => ({}));
@@ -244,11 +280,10 @@ export function SettingsPanel({ open, onClose, onOpenDocs }) {
     } finally {
       setSendBusy(false);
     }
-  }, [user, getIdToken, t]);
+  }, [canUseMailing, getIdToken, mailingEmail, saveMailingPreferences, t]);
 
-  const accountEmail = user?.email ?? '';
   const showLocalOnlyNote = !mailServerEnabled;
-  const mailingActionsDisabled = !user || mailPrefsLoading || saveBusy || sendBusy;
+  const mailingActionsDisabled = !canUseMailing || mailPrefsLoading || saveBusy || sendBusy;
 
   return (
     <ModalPanel
@@ -259,6 +294,11 @@ export function SettingsPanel({ open, onClose, onOpenDocs }) {
       initialWidth={560}
       initialHeight={720}
       zIndex={64}
+      showCloseButton
+      closeLabel={t('app.close')}
+      modeless
+      minimizeOnOutsideClick
+      disableBackdropClose
     >
       <Stack spacing={2.5} sx={{ padding: '1rem 1.1rem 1.25rem' }}>
         {showLocalOnlyNote && (
@@ -276,7 +316,9 @@ export function SettingsPanel({ open, onClose, onOpenDocs }) {
         <Divider />
 
         <Section title={t('settings.section.language')}>
-          <LanguageSelector />
+          <Box component="span" sx={{ marginInlineStart: 2 }}>
+            <LanguageSelector />
+          </Box>
         </Section>
 
         <Divider />
@@ -292,7 +334,7 @@ export function SettingsPanel({ open, onClose, onOpenDocs }) {
             </Alert>
           )}
 
-          {!user && (
+          {!canUseMailing && (
             <Alert severity="info" variant="outlined" sx={{ marginBottom: 1.5 }}>
               {t('settings.mailingNeedSignIn')}
             </Alert>
@@ -312,37 +354,38 @@ export function SettingsPanel({ open, onClose, onOpenDocs }) {
             label={t('settings.mailingDestinationEmail')}
             value={mailingEmail}
             onChange={onMailingEmailChange}
-            placeholder={accountEmail || t('settings.mailingEmailPlaceholder')}
+            placeholder={savedMailingEmail || accountEmail || t('settings.mailingEmailPlaceholder')}
             helperText={t('settings.mailingDestinationHelp').replace('{accountEmail}', accountEmail || '—')}
-            disabled={!user || mailPrefsLoading}
-            sx={{ marginBottom: 2 }}
+            disabled={!canUseMailing || mailPrefsLoading}
+            sx={{ marginBottom: 1 }}
           />
 
-          <Typography variant="body2" color="text.secondary" sx={{ marginBottom: 1, fontWeight: 600 }}>
-            {t('settings.mailingProductsHeading')}
-          </Typography>
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', marginBottom: 1.5 }}>
-            {t('settings.mailingProductsSub')}
-          </Typography>
+          {(savedMailingEmail || accountEmail) && (
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', marginBottom: 2 }}>
+              {t('settings.mailingSavedDestination')
+                .replace('{email}', savedMailingEmail || accountEmail)}
+            </Typography>
+          )}
 
-          <FormGroup>
-            {PRODUCT_DEFS.map((p) => (
-              <FormControlLabel
-                key={p.id}
-                control={(
-                  <Checkbox
-                    checked={Boolean(products[p.id])}
-                    onChange={() => toggleProduct(p.id)}
-                    disabled={!user || mailPrefsLoading}
-                    inputProps={{ 'aria-label': t(`settings.mailProduct.${p.id}`) }}
-                  />
-                )}
-                label={t(`settings.mailProduct.${p.id}`)}
-              />
+          <TextField
+            select
+            size="small"
+            fullWidth
+            label={t('settings.mailingLanguage')}
+            value={mailingLanguage}
+            onChange={(e) => setMailingLanguage(e.target.value)}
+            helperText={t('settings.mailingLanguageHelp')}
+            disabled={!canUseMailing || mailPrefsLoading}
+            sx={{ marginBottom: 2 }}
+          >
+            {['en', 'he', 'ru'].map((l) => (
+              <MenuItem key={l} value={l}>
+                {t(`settings.mailingLanguage.${l}`)}
+              </MenuItem>
             ))}
-          </FormGroup>
+          </TextField>
 
-          <Stack direction="row" spacing={1} sx={{ marginTop: 2, flexWrap: 'wrap' }}>
+          <Stack direction="row" spacing={1} sx={{ marginBottom: 2, flexWrap: 'wrap' }}>
             <Button
               variant="contained"
               size="small"
@@ -360,6 +403,31 @@ export function SettingsPanel({ open, onClose, onOpenDocs }) {
               {sendBusy ? t('settings.mailingSending') : t('settings.mailingSendNow')}
             </Button>
           </Stack>
+
+          <Typography variant="body2" color="text.secondary" sx={{ marginBottom: 1, fontWeight: 600 }}>
+            {t('settings.mailingProductsHeading')}
+          </Typography>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', marginBottom: 1.5 }}>
+            {t('settings.mailingProductsSub')}
+          </Typography>
+
+          <FormGroup>
+            {PRODUCT_DEFS.map((p) => (
+              <FormControlLabel
+                key={p.id}
+                control={(
+                  <Checkbox
+                    checked={Boolean(products[p.id])}
+                    onChange={() => toggleProduct(p.id)}
+                    disabled={!canUseMailing || mailPrefsLoading}
+                    inputProps={{ 'aria-label': t(`settings.mailProduct.${p.id}`) }}
+                  />
+                )}
+                label={t(`settings.mailProduct.${p.id}`)}
+              />
+            ))}
+          </FormGroup>
+
         </Section>
 
         <Divider />
