@@ -9,6 +9,7 @@ import MenuItem from '@mui/material/MenuItem';
 import Paper from '@mui/material/Paper';
 import Slide from '@mui/material/Slide';
 import Alert from '@mui/material/Alert';
+import Snackbar from '@mui/material/Snackbar';
 import CircularProgress from '@mui/material/CircularProgress';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
@@ -42,7 +43,22 @@ const LS_POOL_TAB = 'vibes-witch:poolTab';
 const MAIN_TAB_IDS = new Set(['report', 'municipalities', 'pools']);
 const POOL_TAB_IDS = new Set(['naftali', 'education']);
 
+function readDeepLink() {
+  if (typeof window === 'undefined') return {};
+  const params = new URLSearchParams(window.location.search);
+  const hash = window.location.hash.replace(/^#/, '');
+  const section = params.get('section') || hash.split('-')[0] || '';
+  const pool = params.get('pool') || (hash.startsWith('pools-') ? hash.replace('pools-', '') : '');
+  return {
+    section,
+    pool,
+    component: params.get('component') || '',
+  };
+}
+
 function readMainTab() {
+  const { section } = readDeepLink();
+  if (MAIN_TAB_IDS.has(section)) return section;
   if (typeof localStorage === 'undefined') return 'report';
   try {
     const v = localStorage.getItem(LS_MAIN_TAB);
@@ -52,6 +68,8 @@ function readMainTab() {
 }
 
 function readPoolTab() {
+  const { section, pool } = readDeepLink();
+  if (section === 'pools' && POOL_TAB_IDS.has(pool)) return pool;
   if (typeof localStorage === 'undefined') return 'naftali';
   try {
     const v = localStorage.getItem(LS_POOL_TAB);
@@ -66,7 +84,7 @@ function AppShell() {
   const [activeTab, setActiveTab] = useState(() => readMainTab());
   const [activePoolTab, setActivePoolTab] = useState(() => readPoolTab());
   const reportTopRef = useRef(null);
-  const [openReportCompId, setOpenReportCompId] = useState(null);
+  const [openReportCompId, setOpenReportCompId] = useState(() => readDeepLink().component || null);
   const [openReportEvidenceCompId, setOpenReportEvidenceCompId] = useState(null);
   const [chatOpen, setChatOpen] = useState(false);
   const [chatSize, setChatSize] = useState(() => {
@@ -98,6 +116,7 @@ function AppShell() {
   const [docsOpen, setDocsOpen] = useState(false);
   const [reportBuildOpen, setReportBuildOpen] = useState(false);
   const [sendEvidenceOpen, setSendEvidenceOpen] = useState(false);
+  const [evidenceNotice, setEvidenceNotice] = useState(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [settingsMinimized, setSettingsMinimized] = useState(false);
   const [moreMenuAnchor, setMoreMenuAnchor] = useState(null);
@@ -106,6 +125,21 @@ function AppShell() {
   const closeMoreMenu = useCallback(() => setMoreMenuAnchor(null), []);
   const { t, lang } = useLanguage();
   const { displayReport, translating, translateError } = useTranslatedReport(report, lang);
+
+  useEffect(() => {
+    const applyDeepLink = () => {
+      const { section, pool, component } = readDeepLink();
+      if (MAIN_TAB_IDS.has(section)) setActiveTab(section);
+      if (section === 'pools' && POOL_TAB_IDS.has(pool)) setActivePoolTab(pool);
+      if (section === 'report' && component) {
+        setOpenReportCompId(component);
+        setOpenReportEvidenceCompId(null);
+      }
+    };
+    applyDeepLink();
+    window.addEventListener('popstate', applyDeepLink);
+    return () => window.removeEventListener('popstate', applyDeepLink);
+  }, []);
 
   const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jerusalem' });
   const isOutdated = reportDate && reportDate !== todayStr;
@@ -498,7 +532,25 @@ function AppShell() {
 
       <DocsPanel open={docsOpen} onClose={() => setDocsOpen(false)} />
       <ReportBuildPanel open={reportBuildOpen} onClose={() => setReportBuildOpen(false)} />
-      <SendEvidencePanel open={sendEvidenceOpen} onClose={() => setSendEvidenceOpen(false)} />
+      <SendEvidencePanel
+        open={sendEvidenceOpen}
+        onClose={() => setSendEvidenceOpen(false)}
+        onSubmissionComplete={(notice) => setEvidenceNotice({ ...notice, open: true })}
+      />
+      <Snackbar
+        open={Boolean(evidenceNotice?.open)}
+        autoHideDuration={8000}
+        onClose={() => setEvidenceNotice((current) => (current ? { ...current, open: false } : current))}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          severity={evidenceNotice?.severity ?? 'info'}
+          variant="filled"
+          onClose={() => setEvidenceNotice((current) => (current ? { ...current, open: false } : current))}
+        >
+          {evidenceNotice?.message ?? ''}
+        </Alert>
+      </Snackbar>
       <SettingsPanel
         open={settingsOpen}
         onClose={(event, reason) => {

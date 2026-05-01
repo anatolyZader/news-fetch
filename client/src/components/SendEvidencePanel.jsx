@@ -48,7 +48,7 @@ function formatSavedTime(isoLike) {
   return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 }
 
-export function SendEvidencePanel({ open, onClose }) {
+export function SendEvidencePanel({ open, onClose, onSubmissionComplete }) {
   const { getIdToken, apiReady } = useAuth();
   const { t } = useLanguage();
   const [value, setValue] = useState(readDraft);
@@ -63,6 +63,7 @@ export function SendEvidencePanel({ open, onClose }) {
   const [lastServerSavedAt, setLastServerSavedAt] = useState('');
   const lastSyncedRef = useRef(null);
   const saveInFlightRef = useRef(false);
+  const draftGenerationRef = useRef(0);
   const submissionPollRef = useRef({ timerId: null });
 
   const fetchEvidence = useCallback(async () => {
@@ -74,7 +75,8 @@ export function SendEvidencePanel({ open, onClose }) {
       const err = await r.json().catch(() => ({}));
       throw new Error(err.error || `HTTP ${r.status}`);
     }
-    return r.json();
+    const data = await r.json();
+    return data;
   }, [getIdToken]);
 
   const putEvidence = useCallback(
@@ -94,6 +96,39 @@ export function SendEvidencePanel({ open, onClose }) {
       return r.json();
     },
     [getIdToken],
+  );
+
+  const clearInputAndDraft = useCallback(() => {
+    draftGenerationRef.current += 1;
+    const clearGeneration = draftGenerationRef.current;
+    setValue('');
+    setPendingFiles([]);
+    setSyncError(null);
+    setSavedOk(false);
+    setIngestNote('');
+    setAnalysisNote('');
+    setLastServerSavedAt('');
+    lastSyncedRef.current = '';
+    clearDraftCache();
+    if (apiReady) {
+      void putEvidence('')
+        .then((saved) => {
+          if (draftGenerationRef.current !== clearGeneration) return;
+          lastSyncedRef.current = '';
+          setLastServerSavedAt(saved?.updatedAt ?? '');
+        })
+        .catch(() => {
+          // Closing the panel should still clear the visible draft even if server sync retries later.
+        });
+    }
+  }, [apiReady, hydrated, putEvidence]);
+
+  const handleClose = useCallback(
+    (...args) => {
+      clearInputAndDraft();
+      onClose?.(...args);
+    },
+    [clearInputAndDraft, onClose],
   );
 
   const cancelSubmissionPoll = useCallback(() => {
@@ -125,20 +160,27 @@ export function SendEvidencePanel({ open, onClose }) {
         const submission = data?.submission;
         if (!submission) throw new Error('Missing submission status payload');
         if (submission.ingestStatus === 'failed') {
-          setIngestNote(`Ingest failed: ${submission.ingestDetails ?? 'unknown reason'}`);
+          const message = `Ingest failed: ${submission.ingestDetails ?? 'unknown reason'}`;
+          setIngestNote(message);
         } else if (submission.ingestStatus === 'processed') {
           setIngestNote('Ingest complete.');
         } else {
           setIngestNote('Ingest in progress…');
         }
         if (submission.analysisStatus === 'failed') {
-          setAnalysisNote(`8-component analysis failed: ${submission.analysisDetails ?? 'unknown reason'}`);
+          const message = `8-component analysis failed: ${submission.analysisDetails ?? 'unknown reason'}`;
+          setAnalysisNote(message);
+          onSubmissionComplete?.({ severity: 'error', message });
           cancelSubmissionPoll();
           return;
         }
         if (submission.analysisStatus === 'processed') {
           const isTextOnly = !submission.extractedContentJson;
-          setAnalysisNote(isTextOnly ? 'Stored as evidence.' : '8-component analysis complete — view in Submissions tab.');
+          const message = isTextOnly
+            ? 'Evidence stored.'
+            : '8-component analysis complete — view in Submissions tab.';
+          setAnalysisNote(message);
+          onSubmissionComplete?.({ severity: 'success', message });
           cancelSubmissionPoll();
           return;
         }
@@ -153,7 +195,7 @@ export function SendEvidencePanel({ open, onClose }) {
         }, 3000);
       }
     },
-    [cancelSubmissionPoll, fetchSubmissionStatus],
+    [cancelSubmissionPoll, fetchSubmissionStatus, onSubmissionComplete],
   );
 
   useEffect(() => {
@@ -182,7 +224,9 @@ export function SendEvidencePanel({ open, onClose }) {
       } catch (e) {
         if (!cancelled) setSyncError(e?.message ?? 'Could not load draft from server');
       } finally {
-        if (!cancelled) setHydrated(true);
+        if (!cancelled) {
+          setHydrated(true);
+        }
       }
     })();
     return () => {
@@ -200,6 +244,7 @@ export function SendEvidencePanel({ open, onClose }) {
   useEffect(() => {
     if (!apiReady || !hydrated) return;
     if (value.length > MAX_CHARS) return;
+    const generation = draftGenerationRef.current;
     const id = setTimeout(() => {
       if (value === lastSyncedRef.current) return;
       void (async () => {
@@ -208,6 +253,7 @@ export function SendEvidencePanel({ open, onClose }) {
         try {
           setSyncError(null);
           const saved = await putEvidence(value);
+          if (draftGenerationRef.current !== generation) return;
           lastSyncedRef.current = value;
           setLastServerSavedAt(saved?.updatedAt ?? new Date().toISOString());
           clearDraftCache();
@@ -268,7 +314,6 @@ export function SendEvidencePanel({ open, onClose }) {
     const submittedContent = value;
     const filesSnapshot = [...pendingFiles];
     if (!submittedContent.trim() && filesSnapshot.length === 0) return;
-    const hasUrl = /\bhttps?:\/\//i.test(submittedContent);
     setSending(true);
     setSyncError(null);
     setSavedOk(false);
@@ -302,6 +347,7 @@ export function SendEvidencePanel({ open, onClose }) {
           setIngestNote(`Submission #${submissionId} queued for ingest.`);
           setAnalysisNote('8-component analysis queued…');
           cancelSubmissionPoll();
+          handleClose();
           void pollSubmissionUntilDone(submissionId);
         }
       } else {
@@ -321,11 +367,12 @@ export function SendEvidencePanel({ open, onClose }) {
           lastSyncedRef.current = '';
           setLastServerSavedAt(data?.draft?.updatedAt ?? new Date().toISOString());
         }
-        if (hasUrl && data?.queued && Number.isFinite(Number(data?.submission?.id))) {
+        if (data?.queued && Number.isFinite(Number(data?.submission?.id))) {
           const submissionId = Number(data.submission.id);
           setIngestNote(`Submission #${submissionId} queued for ingest.`);
           setAnalysisNote('8-component analysis queued…');
           cancelSubmissionPoll();
+          handleClose();
           void pollSubmissionUntilDone(submissionId);
         }
       }
@@ -348,12 +395,13 @@ export function SendEvidencePanel({ open, onClose }) {
     getIdToken,
     cancelSubmissionPoll,
     pollSubmissionUntilDone,
+    handleClose,
   ]);
 
   return (
     <ModalPanel
       open={open}
-      onClose={onClose}
+      onClose={handleClose}
       title={t('app.sendEvidence')}
       ariaLabel={t('app.sendEvidence')}
       initialWidth={920}

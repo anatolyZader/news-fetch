@@ -1,5 +1,7 @@
-import { basename } from 'path';
+import { basename, join } from 'path';
 import { unlinkSync, rmdirSync } from 'fs';
+import { mkdtemp, readFile, rm } from 'fs/promises';
+import { tmpdir } from 'os';
 import { AudioIngestService } from './audioIngestService.js';
 import { contextualizeTranscript as defaultContextualizer } from './audioTranscriptContextualizer.js';
 
@@ -28,6 +30,30 @@ function sourceLabelFromUrl(url) {
   }
 }
 
+function parseAudioMarkdownEvidenceItems(markdown, { date, sourceUrl, sourceLabel }) {
+  const sections = String(markdown ?? '').split(/\n##\s+\d+\.\s+/).slice(1);
+  return sections
+    .map((section) => {
+      const [rawTitle = '', ...rest] = section.split('\n');
+      const body = rest
+        .join('\n')
+        .replace(/^- \*\*(URL|Published|Source):\*\*.*$/gm, '')
+        .replace(/^---$/gm, '')
+        .trim();
+      return {
+        date,
+        source_type: 'audio',
+        source_label: sourceLabel,
+        source_url: sourceUrl,
+        title: rawTitle.trim() || `Submitted audio (${sourceLabel})`,
+        body,
+        quality: 'medium',
+        published_at: date,
+      };
+    })
+    .filter((item) => item.body.length > 0);
+}
+
 /**
  * App service: URL -> audio file -> transcript blocks -> evidence_items rows.
  */
@@ -49,7 +75,7 @@ export class AudioEvidenceIngestService {
     const download = await this.audioDownloadPort.downloadToTempFile({ url });
     const filePath = download.filePath;
     try {
-      return this.ingestAudioFileToEvidenceItems({
+      return await this.ingestAudioFileToEvidenceItems({
         filePath,
         date,
         sourceUrl: url,
@@ -64,24 +90,23 @@ export class AudioEvidenceIngestService {
    * @param {{ filePath: string, date: string, sourceUrl?: string, sourceLabel?: string }} p
    */
   async ingestAudioFileToEvidenceItems({ filePath, date, sourceUrl = '', sourceLabel = 'audio-upload' }) {
-    const result = await this.audioIngestService.adapter.transcribeDiarized({ filePath });
-    const scenes = await this.contextualizer(result.segments, {
-      station: sourceLabel,
-      program: `Submitted audio (${basename(filePath)})`,
-      sourceUrl,
-    });
-    if (scenes.length === 0) return [];
-    // All scenes go into evidence items so the video review is complete.
-    // Low-quality scenes carry a flag so resilience analysis can skip or down-weight them.
-    return scenes.map((scene) => ({
-      date,
-      source_type: 'audio',
-      source_label: sourceLabel,
-      source_url: scene.url || sourceUrl,
-      title: scene.title,
-      body: scene.body,
-      quality: scene.quality ?? 'medium',
-      published_at: date,
-    }));
+    const tmp = await mkdtemp(join(tmpdir(), 'audio-evidence-'));
+    const outPath = join(tmp, 'articles-audio.md');
+    try {
+      await this.audioIngestService.ingestToMarkdown({
+        filePath,
+        date,
+        station: sourceLabel,
+        program: `Submitted audio (${basename(filePath)})`,
+        publishedAt: date,
+        outPath,
+      });
+      const markdown = await readFile(outPath, 'utf8');
+      const items = parseAudioMarkdownEvidenceItems(markdown, { date, sourceUrl, sourceLabel });
+      if (items.length > 0) return items;
+      throw new Error('No evidence items produced from audio transcript markdown');
+    } finally {
+      await rm(tmp, { recursive: true, force: true }).catch(() => {});
+    }
   }
 }

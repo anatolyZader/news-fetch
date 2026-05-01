@@ -7,6 +7,7 @@ import { createReadStream } from 'fs';
 import OpenAI from 'openai';
 
 const RETRY_DELAYS_MS = [10_000, 30_000, 60_000]; // 3 attempts after first failure
+const DEFAULT_TRANSCRIPTION_TIMEOUT_MS = 180_000;
 
 async function withRetry(fn, label) {
   let lastErr;
@@ -68,7 +69,8 @@ export class OpenaiTranscriptionAdapter {
     if (!key) {
       throw new Error('OPENAI_API_KEY is required for OpenaiTranscriptionAdapter');
     }
-    this.client = deps.client ?? new OpenAI({ apiKey: key });
+    this.timeoutMs = Number(process.env.OPENAI_TRANSCRIPTION_TIMEOUT_MS) || DEFAULT_TRANSCRIPTION_TIMEOUT_MS;
+    this.client = deps.client ?? new OpenAI({ apiKey: key, timeout: this.timeoutMs });
   }
 
   /**

@@ -15,7 +15,10 @@ import { getCachedReport, runAnalysis } from './api/analysisService.js';
 import { streamChat } from './business_modules/chat/app/chatService.js';
 import { generateChatTitle } from './business_modules/chat/infrastructure/claudeChat.js';
 import { VideoGrabService } from './business_modules/video/app/videoGrabService.js';
+import { YoutubeTranscriptService } from './business_modules/video/app/youtubeTranscriptService.js';
+import { YoutubeEvidenceIngestService } from './business_modules/video/app/youtubeEvidenceIngestService.js';
 import { createYtDlpYoutubeAdapter } from './business_modules/video/infrastructure/adapters/ytDlpYoutubeAdapter.js';
+import { createYoutubeDataApiCaptionsAdapter } from './business_modules/video/infrastructure/adapters/youtubeDataApiCaptionsAdapter.js';
 import { createLocalVideoFileAdapter } from './business_modules/video/infrastructure/adapters/localVideoFileAdapter.js';
 import { initFirebaseAdminForAuth } from './auth/firebaseAdmin.js';
 import { requireAuthPreHandler } from './auth/requireAuthPreHandler.js';
@@ -25,6 +28,7 @@ import { createEvidenceStore } from './cross-cut-modules/persistence/evidenceSto
 import { createChatStore } from './business_modules/chat/infrastructure/chatStore.js';
 import { classifyEvidenceInput } from './cross-cut-modules/evidence/evidenceInputClassifier.js';
 import { AudioEvidenceIngestService } from './business_modules/audio/app/audioEvidenceIngestService.js';
+import { contextualizeTranscript } from './business_modules/audio/app/audioTranscriptContextualizer.js';
 import { OpenaiTranscriptionAdapter } from './business_modules/audio/infrastructure/adapters/openaiTranscriptionAdapter.js';
 import { createHttpAudioDownloadAdapter } from './business_modules/audio/infrastructure/adapters/httpAudioDownloadAdapter.js';
 import { runResilienceAssessment } from './business_modules/resilience/app/resilienceAnalysisService.js';
@@ -348,9 +352,21 @@ export async function createApp(options) {
 
   const evidenceUserUploadsRoot = resolve(__dirname, 'data', 'evidence-uploads');
 
+  const ytDlpAdapter = createYtDlpYoutubeAdapter();
   const videoGrabService = new VideoGrabService({
-    remoteFetchPort: createYtDlpYoutubeAdapter(),
+    remoteFetchPort: ytDlpAdapter,
     localFilePort: createLocalVideoFileAdapter(),
+  });
+  const youtubeEvidenceIngestService = new YoutubeEvidenceIngestService({
+    transcriptService: new YoutubeTranscriptService({
+      remoteFetchPort: ytDlpAdapter,
+      dataApiCaptions: createYoutubeDataApiCaptionsAdapter(),
+    }),
+    videoGrabService,
+    audioEvidenceIngestService: {
+      ingestAudioFileToEvidenceItems: (...args) => getAudioEvidenceIngestService().ingestAudioFileToEvidenceItems(...args),
+    },
+    contextualizeTranscript,
   });
 
   const submissionQueue = [];
@@ -393,7 +409,20 @@ export async function createApp(options) {
               autoIngest.insertedItems += evidenceStore.insertItems(items);
               analysisEvidenceItems.push(...items);
             }
-          } else if (kind === 'video_download_url' || kind === 'youtube_url') {
+          } else if (kind === 'youtube_url') {
+            await mkdir(videoDownloadDir, { recursive: true });
+            const result = await youtubeEvidenceIngestService.ingestYoutubeUrlToEvidenceItems({
+              url,
+              date: reportDate,
+              outputDir: videoDownloadDir,
+              onUsage: undefined,
+            });
+            const items = result.items;
+            if (items.length > 0) {
+              autoIngest.insertedItems += evidenceStore.insertItems(items);
+              analysisEvidenceItems.push(...items);
+            }
+          } else if (kind === 'video_download_url') {
             await mkdir(videoDownloadDir, { recursive: true });
             const dl = await videoGrabService.downloadFromUrl(url, videoDownloadDir);
             if (!dl?.ok || !dl?.outputPath) {
@@ -403,7 +432,7 @@ export async function createApp(options) {
               filePath: dl.outputPath,
               date: reportDate,
               sourceUrl: url,
-              sourceLabel: kind === 'youtube_url' ? 'youtube' : 'video-download-url',
+              sourceLabel: 'video-download-url',
             });
             if (items.length > 0) {
               autoIngest.insertedItems += evidenceStore.insertItems(items);
