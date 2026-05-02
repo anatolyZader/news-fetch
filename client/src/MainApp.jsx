@@ -11,6 +11,8 @@ import Slide from '@mui/material/Slide';
 import Alert from '@mui/material/Alert';
 import Snackbar from '@mui/material/Snackbar';
 import CircularProgress from '@mui/material/CircularProgress';
+import ToggleButton from '@mui/material/ToggleButton';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
@@ -24,7 +26,10 @@ import { SendEvidencePanel } from './components/SendEvidencePanel.jsx';
 import { SettingsPanel } from './components/SettingsPanel.jsx';
 import { EducationTab } from './components/EducationTab.jsx';
 import { MunicipalitiesTab } from './components/MunicipalitiesTab.jsx';
+import { PboPlaceholderTab } from './components/PboPlaceholderTab.jsx';
+import { PboRegionalDailyReports } from './components/PboRegionalDailyReports.jsx';
 import { NaftaliTab } from './components/NaftaliTab.jsx';
+import { ChatbotManualReportsTab } from './components/ChatbotManualReportsTab.jsx';
 import { useLanguage } from './context/LanguageContext.jsx';
 import { LanguageSelector } from './components/LanguageSelector.jsx';
 import { useAuth } from './context/AuthContext.jsx';
@@ -40,29 +45,101 @@ import { formatDate } from './lib/date.js';
 
 const LS_MAIN_TAB = 'vibes-witch:mainTab';
 const LS_POOL_TAB = 'vibes-witch:poolTab';
-const MAIN_TAB_IDS = new Set(['report', 'municipalities', 'pools']);
+const LS_PBO_TAB = 'vibes-witch:pboTab';
+const LS_PBO_REGION = 'vibes-witch:pboRegion';
+const LS_REPORT_SCOPE = 'vibes-witch:reportScope';
+const MAIN_TAB_IDS = new Set(['report', 'pbo-reports', 'chatbot', 'visits', 'pools']);
+const PBO_TAB_IDS = new Set(['local', 'regional', 'district']);
+/** Northern PBO sub-regions (maps to divisions in regions.json; Galma ≈ Western Galilee / גלמ״ע). */
+const PBO_REGION_IDS_ORDER = ['naftali', 'golan', 'baram', 'hiram', 'galma'];
+const PBO_REGION_IDS = new Set(PBO_REGION_IDS_ORDER);
+
+function normalizeNorthPboRegionFromUrl(raw) {
+  const s = String(raw ?? '').trim().toLowerCase();
+  return PBO_REGION_IDS.has(s) ? s : '';
+}
+
+function normalizeMainTabSection(section) {
+  if (
+    section === 'municipalities' ||
+    section === 'pbo-municipal' ||
+    section === 'pbo-regional' ||
+    section === 'pbo-district' ||
+    section === 'pbo-reports'
+  ) {
+    return 'pbo-reports';
+  }
+  return section;
+}
+
+function normalizePboSubFromSection(section, pboQuery) {
+  if (pboQuery && PBO_TAB_IDS.has(pboQuery)) return pboQuery;
+  if (section === 'pbo-municipal' || section === 'municipalities') return 'local';
+  if (section === 'pbo-regional') return 'regional';
+  if (section === 'pbo-district') return 'district';
+  return '';
+}
 const POOL_TAB_IDS = new Set(['naftali', 'education']);
+const REPORT_SCOPES = new Set(['national', 'north']);
 
 function readDeepLink() {
-  if (typeof window === 'undefined') return {};
+  if (typeof window === 'undefined') {
+    return { section: '', pool: '', component: '', pboSub: '', pboRegion: '' };
+  }
   const params = new URLSearchParams(window.location.search);
   const hash = window.location.hash.replace(/^#/, '');
-  const section = params.get('section') || hash.split('-')[0] || '';
-  const pool = params.get('pool') || (hash.startsWith('pools-') ? hash.replace('pools-', '') : '');
+  let section = params.get('section') || '';
+  const rawPbo = params.get('pbo');
+  let pboSub =
+    rawPbo && PBO_TAB_IDS.has(String(rawPbo).trim().toLowerCase())
+      ? String(rawPbo).trim().toLowerCase()
+      : '';
+  let pboRegion = normalizeNorthPboRegionFromUrl(params.get('pbo_region') || '');
+  if (!section && hash) {
+    if (hash.startsWith('pools-')) {
+      section = 'pools';
+    } else if (hash.startsWith('pbo-reports-')) {
+      section = 'pbo-reports';
+      const rest = hash.slice('pbo-reports-'.length);
+      const mh = rest.match(/^(local|regional|district)(?:-([\w-]+))?$/i);
+      if (mh && !pboSub) {
+        const sub = String(mh[1] ?? '').trim().toLowerCase();
+        if (PBO_TAB_IDS.has(sub)) pboSub = sub;
+      }
+      if (mh?.[2]) {
+        const r = normalizeNorthPboRegionFromUrl(mh[2]);
+        if (r) pboRegion = r;
+      }
+      else if (!mh && !pboSub) {
+        const restTab = String(rest).trim().toLowerCase();
+        if (PBO_TAB_IDS.has(restTab)) pboSub = restTab;
+      }
+    } else if (hash === 'chatbot') {
+      section = 'chatbot';
+    } else {
+      section = hash.split('-')[0] || '';
+    }
+  }
+  const pool =
+    params.get('pool') || (hash.startsWith('pools-') ? hash.replace('pools-', '') : '');
   return {
     section,
     pool,
     component: params.get('component') || '',
+    pboSub,
+    pboRegion,
   };
 }
 
 function readMainTab() {
   const { section } = readDeepLink();
-  if (MAIN_TAB_IDS.has(section)) return section;
+  const fromLink = normalizeMainTabSection(section);
+  if (MAIN_TAB_IDS.has(fromLink)) return fromLink;
   if (typeof localStorage === 'undefined') return 'report';
   try {
     const v = localStorage.getItem(LS_MAIN_TAB);
-    if (v && MAIN_TAB_IDS.has(v)) return v;
+    const fromStore = normalizeMainTabSection(v ?? '');
+    if (fromStore && MAIN_TAB_IDS.has(fromStore)) return fromStore;
   } catch { /* private mode or quota */ }
   return 'report';
 }
@@ -78,11 +155,50 @@ function readPoolTab() {
   return 'naftali';
 }
 
+function readPboTab() {
+  const { section, pboSub } = readDeepLink();
+  const fromUrl = normalizePboSubFromSection(section, pboSub);
+  if (fromUrl) return fromUrl;
+  if (typeof localStorage === 'undefined') return 'local';
+  try {
+    const v = localStorage.getItem(LS_PBO_TAB);
+    if (v && PBO_TAB_IDS.has(v)) return v;
+    const legacyMain = localStorage.getItem(LS_MAIN_TAB);
+    if (legacyMain === 'pbo-regional') return 'regional';
+    if (legacyMain === 'pbo-district') return 'district';
+    if (legacyMain === 'pbo-municipal') return 'local';
+  } catch { /* */ }
+  return 'local';
+}
+
+function readPboRegionTab() {
+  const { pboRegion } = readDeepLink();
+  if (pboRegion) return pboRegion;
+  if (typeof localStorage === 'undefined') return PBO_REGION_IDS_ORDER[0];
+  try {
+    const v = normalizeNorthPboRegionFromUrl(localStorage.getItem(LS_PBO_REGION));
+    if (v) return v;
+  } catch { /* */ }
+  return PBO_REGION_IDS_ORDER[0];
+}
+
+function readReportScope() {
+  if (typeof localStorage === 'undefined') return 'national';
+  try {
+    const v = localStorage.getItem(LS_REPORT_SCOPE);
+    if (v && REPORT_SCOPES.has(v)) return v;
+  } catch { /* */ }
+  return 'national';
+}
+
 function AppShell() {
   const { logout, authRequired } = useAuth();
-  const { report, scoreBySource, reportDate, initialReportLoadDone } = useTodayReport();
+  const [reportScope, setReportScope] = useState(() => readReportScope());
+  const { report, scoreBySource, reportDate, initialReportLoadDone } = useTodayReport(reportScope);
   const [activeTab, setActiveTab] = useState(() => readMainTab());
   const [activePoolTab, setActivePoolTab] = useState(() => readPoolTab());
+  const [activePboTab, setActivePboTab] = useState(() => readPboTab());
+  const [activePboRegionTab, setActivePboRegionTab] = useState(() => readPboRegionTab());
   const reportTopRef = useRef(null);
   const [openReportCompId, setOpenReportCompId] = useState(() => readDeepLink().component || null);
   const [openReportEvidenceCompId, setOpenReportEvidenceCompId] = useState(null);
@@ -113,6 +229,26 @@ function AppShell() {
     } catch { /* */ }
   }, [activePoolTab]);
 
+  useEffect(() => {
+    try {
+      localStorage.setItem(LS_PBO_TAB, activePboTab);
+    } catch { /* */ }
+  }, [activePboTab]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(LS_PBO_REGION, activePboRegionTab);
+    } catch { /* */ }
+  }, [activePboRegionTab]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(LS_REPORT_SCOPE, reportScope);
+    } catch { /* */ }
+    setOpenReportCompId(null);
+    setOpenReportEvidenceCompId(null);
+  }, [reportScope]);
+
   const [docsOpen, setDocsOpen] = useState(false);
   const [reportBuildOpen, setReportBuildOpen] = useState(false);
   const [sendEvidenceOpen, setSendEvidenceOpen] = useState(false);
@@ -128,9 +264,15 @@ function AppShell() {
 
   useEffect(() => {
     const applyDeepLink = () => {
-      const { section, pool, component } = readDeepLink();
-      if (MAIN_TAB_IDS.has(section)) setActiveTab(section);
+      const { section, pool, component, pboSub, pboRegion } = readDeepLink();
+      const mainSection = normalizeMainTabSection(section);
+      if (MAIN_TAB_IDS.has(mainSection)) setActiveTab(mainSection);
       if (section === 'pools' && POOL_TAB_IDS.has(pool)) setActivePoolTab(pool);
+      const pboFromUrl = normalizePboSubFromSection(section, pboSub);
+      if (mainSection === 'pbo-reports' && pboFromUrl) setActivePboTab(pboFromUrl);
+      if (mainSection === 'pbo-reports' && pboRegion && PBO_REGION_IDS.has(pboRegion)) {
+        setActivePboRegionTab(pboRegion);
+      }
       if (section === 'report' && component) {
         setOpenReportCompId(component);
         setOpenReportEvidenceCompId(null);
@@ -174,10 +316,23 @@ function AppShell() {
   }
 
   const TABS = [
-    { id: 'report',         label: t('tab.report') },
-    { id: 'municipalities', label: t('tab.municipalities') },
-    { id: 'pools',          label: t('tab.pools') },
+    { id: 'report', label: t('tab.report') },
+    { id: 'pbo-reports', label: t('tab.pboReports') },
+    { id: 'chatbot', label: t('tab.chatbot') },
+    { id: 'visits', label: t('tab.visits') },
+    { id: 'pools', label: t('tab.pools') },
   ];
+
+  const PBO_TABS = [
+    { id: 'local',    label: t('tab.pboLocal') },
+    { id: 'regional', label: t('tab.pboRegional') },
+    { id: 'district', label: t('tab.pboDistrict') },
+  ];
+
+  const PBO_REGION_TABS = PBO_REGION_IDS_ORDER.map((id) => ({
+    id,
+    label: t(`pbo.region.${id}`),
+  }));
 
   const POOL_TABS = [
     { id: 'naftali',   label: t('tab.naftali') },
@@ -354,6 +509,35 @@ function AppShell() {
             spacing={2}
           >
             <div ref={reportTopRef} />
+            <Box
+              sx={(theme) => ({
+                position: 'relative',
+                width: '100%',
+                minHeight: 48,
+                marginTop: theme.spacing(1.5),
+                marginBottom: theme.spacing(2),
+              })}
+            >
+              <ToggleButtonGroup
+                exclusive
+                size="small"
+                value={reportScope}
+                sx={{
+                  position: 'absolute',
+                  right: 0,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                }}
+                onChange={(_, next) => {
+                  if (next) setReportScope(next);
+                }}
+                aria-label={t('report.scope.label')}
+              >
+                <ToggleButton value="national">{t('report.scope.national')}</ToggleButton>
+                <ToggleButton value="north">{t('report.scope.north')}</ToggleButton>
+              </ToggleButtonGroup>
+            </Box>
+
             {!initialReportLoadDone && (
               <Typography variant="body2" color="text.secondary">
                 {t('app.reportLoading')}
@@ -452,7 +636,65 @@ function AppShell() {
           </Stack>
         )}
 
-        {activeTab === 'municipalities' && <MunicipalitiesTab />}
+        {activeTab === 'pbo-reports' && (
+          <>
+            <Stack
+              component="nav"
+              direction="row"
+              aria-label={t('tab.pboReports')}
+              sx={(theme) => ({
+                borderBottom: theme.custom.border.hairline,
+                marginTop: theme.spacing(-1.5),
+              })}
+            >
+              {PBO_TABS.map((tab) => (
+                <PrimaryTab
+                  key={tab.id}
+                  compact
+                  active={activePboTab === tab.id}
+                  onClick={() => setActivePboTab(tab.id)}
+                >
+                  {tab.label}
+                </PrimaryTab>
+              ))}
+            </Stack>
+
+            {activePboTab === 'local' && <MunicipalitiesTab />}
+            {activePboTab === 'regional' && (
+              <>
+                <Stack
+                  component="nav"
+                  direction="row"
+                  aria-label={t('app.ariaPboNorthRegions')}
+                  sx={(theme) => ({
+                    borderBottom: theme.custom.border.hairline,
+                    flexWrap: 'wrap',
+                    marginTop: theme.spacing(-0.5),
+                  })}
+                >
+                  {PBO_REGION_TABS.map((tab) => (
+                    <PrimaryTab
+                      key={tab.id}
+                      compact
+                      active={activePboRegionTab === tab.id}
+                      onClick={() => setActivePboRegionTab(tab.id)}
+                    >
+                      {tab.label}
+                    </PrimaryTab>
+                  ))}
+                </Stack>
+                <PboRegionalDailyReports regionId={activePboRegionTab} />
+              </>
+            )}
+            {activePboTab === 'district' && (
+              <PboPlaceholderTab messageKey="pbo.placeholder.district" />
+            )}
+          </>
+        )}
+
+        {activeTab === 'chatbot' && <ChatbotManualReportsTab />}
+
+        {activeTab === 'visits' && <VisitsTab />}
 
         {activeTab === 'pools' && (
           <>

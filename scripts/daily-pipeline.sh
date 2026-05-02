@@ -90,7 +90,7 @@ echo ""
 
 # ── Step 6: Extract field report signals (last 3 available files) ─────────
 echo "── Step 6: Field report signals ──"
-field_files=$(ls articles-field-reports-*.md 2>/dev/null | sort | tail -3)
+field_files=$(ls business_modules/visits/data/articles-field-reports-*.md 2>/dev/null | sort | tail -3)
 if [[ -n "$field_files" ]]; then
   for ff in $field_files; do
     field_date=$(echo "$ff" | grep -oP '\d{4}-\d{2}-\d{2}')

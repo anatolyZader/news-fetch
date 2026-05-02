@@ -45,6 +45,14 @@ export function FilterPillGroup({ children, label, spacing = 0.5, wrap = true })
       spacing={spacing}
       role="group"
       aria-label={label}
+      sx={{
+        minWidth: 0,
+        maxWidth: '100%',
+        flex: '1 1 0',
+        overflow: 'hidden',
+        '& .MuiChip-root': { flexShrink: 0 },
+        '& .MuiChip-label': { whiteSpace: 'nowrap' },
+      }}
     >
       {children}
     </Stack>

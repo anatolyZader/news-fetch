@@ -137,7 +137,7 @@ function CommentsTable({ comments, t, lang, showSettlement = true }) {
   ].filter(Boolean);
   const gridTemplateColumns = showSettlement ? '80px 120px 1fr' : '80px 1fr';
   return (
-    <GridTable columns={columns} rows={comments} gridTemplateColumns={gridTemplateColumns} />
+    <GridTable columns={columns} rows={comments} gridTemplateColumns={gridTemplateColumns} textAlign="right" />
   );
 }
 

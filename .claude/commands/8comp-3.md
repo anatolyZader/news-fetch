@@ -129,11 +129,11 @@ If the DB has no messages for that date, the export produces nothing — skip si
 
 ---
 
-**Step 5 — Field signals** *(skip if `field` is disabled; **SKIP ENTIRELY in replay mode** — existing `signals-field-*.json` are picked up automatically by assess)*
+**Step 5 — Field signals** *(skip if `field` is disabled; **SKIP ENTIRELY in replay mode** — existing `business_modules/visits/data/signals/signals-field-*.json` are picked up automatically by assess)*
 
 Today mode:
 ```
-ls articles-field-reports-*.md 2>/dev/null | sort | tail -3
+ls business_modules/visits/data/articles-field-reports-*.md 2>/dev/null | sort | tail -3
 ```
 
 For each file, extract the date from the filename and run:

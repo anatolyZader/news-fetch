@@ -3,7 +3,7 @@
     "news":     { "enabled": true, "description": "Homefront news articles" },
     "radio":    { "enabled": false, "description": "Radio broadcast transcripts (ashams, tzafon, kan-bet, etc.)" },
     "whatsapp": { "enabled": true, "description": "WhatsApp reports" },
-    "field":    { "enabled": false, "description": "Professional squad field visit reports" },
+    "field":    { "enabled": true, "description": "Professional squad field visit reports" },
     "pbo":      { "enabled": true, "description": "PBO municipality daily reports" },
     "naftali":  { "enabled": false, "description": "Naftali weekly questionnaire" }
   }

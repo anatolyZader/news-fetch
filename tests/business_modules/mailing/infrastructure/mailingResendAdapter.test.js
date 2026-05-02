@@ -22,6 +22,7 @@ test('sendTransactional posts JSON and returns id on success', async () => {
     to: 'u@example.com',
     subject: 'Hi',
     text: 'Body',
+    headers: { 'X-Entity-Ref-ID': 'digest-1' },
   });
   assert.equal(out.id, 're_123');
   assert.equal(calls.length, 1);
@@ -30,6 +31,7 @@ test('sendTransactional posts JSON and returns id on success', async () => {
   const body = JSON.parse(calls[0].init.body);
   assert.deepEqual(body.to, ['u@example.com']);
   assert.equal(body.subject, 'Hi');
+  assert.deepEqual(body.headers, { 'X-Entity-Ref-ID': 'digest-1' });
 });
 
 test('sendTransactional throws with Resend error message on 422', async () => {

@@ -29,7 +29,7 @@
     "analyze-resilience": "node business_modules/resilience/input/analyze-resilience.js",
     "extract-signals": "node business_modules/resilience/input/extract-signals.js",
     "assess-signals": "node business_modules/resilience/input/assess-signals.js",
-    "ingest-field-reports": "node business_modules/resilience/input/ingest-field-reports.js",
+    "ingest-field-reports": "node business_modules/visits/input/visitsInput.js",
     "audio-to-md": "node business_modules/audio/input/audio-to-md.js",
     "video-grab-url": "node business_modules/video/input/video-grab-url.js",
     "youtube-to-md": "node business_modules/video/input/youtube-to-md.js",

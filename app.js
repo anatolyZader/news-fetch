@@ -36,7 +36,14 @@ import { contentBatchFromMdArticles } from './business_modules/resilience/app/co
 import { createAnthropicResilienceLlmAdapter } from './business_modules/resilience/infrastructure/adapters/anthropicResilienceLlmAdapter.js';
 import { getEducationDashboard } from './business_modules/education/app/educationSessionsService.js';
 import { getMunicipalityDashboard } from './business_modules/pbo_report_muni/app/pboMunicipalityService.js';
+import { getRegionalPboReportDays } from './business_modules/pbo_report_regional/app/pboRegionalDailyService.js';
 import { getNaftaliDashboard } from './business_modules/naftali/app/naftaliService.js';
+import { createVisitsFsAdapter, createVisitsService, visitsRoutes } from './business_modules/visits/index.js';
+import {
+  chatbotManualReportsRoutes,
+  createChatbotManualReportsFsAdapter,
+  createChatbotManualReportsService,
+} from './business_modules/chatbot/index.js';
 import { getTranslatedReport } from './business_modules/translation/app/translationService.js';
 import { createWhatsAppMessageStore } from './business_modules/whatsapp/infrastructure/whatsappMessageStore.js';
 import { createWhatsAppSignalStore } from './business_modules/whatsapp/infrastructure/whatsappSignalStore.js';
@@ -73,6 +80,17 @@ const evidenceDraftStore = createEvidenceDraftStore(sqlitePath);
 const evidenceStore = createEvidenceStore(sqlitePath);
 const chatStore = createChatStore(sqlitePath);
 const mailingPrefsStore = createMailingPreferencesStore(sqlitePath);
+const visitsService = createVisitsService({
+  visitsRepository: createVisitsFsAdapter({
+    rootDir: __dirname,
+    reportsDir: resolve(__dirname, 'business_modules', 'visits', 'data'),
+    signalsDir: resolve(__dirname, 'business_modules', 'visits', 'data', 'signals'),
+  }),
+});
+
+const chatbotManualReportsService = createChatbotManualReportsService({
+  repository: createChatbotManualReportsFsAdapter({ rootDir: __dirname }),
+});
 
 function isMailingConfigured() {
   if (process.env.MAILING_ENABLED === 'false') return false;
@@ -638,8 +656,9 @@ export async function createApp(options) {
   });
 
   // ─── Protected API routes (when AUTH_REQUIRED=true) ───────────────────────
-  app.get('/api/report/today', authHook, async (_req, reply) => {
-    const data = getCachedReport(evidenceStore);
+  app.get('/api/report/today', authHook, async (request, reply) => {
+    const scope = request.query?.scope === 'north' ? 'north' : 'national';
+    const data = getCachedReport(evidenceStore, { scope });
     return reply.send(data ? { found: true, ...data } : { found: false });
     // Note: data.reportDate is included via spread — client uses it for staleness banner
   });
@@ -859,6 +878,19 @@ export async function createApp(options) {
     }
   });
 
+  app.get('/api/pbo/regional-report-days/:regionId', authHook, async (request, reply) => {
+    const { regionId } = request.params ?? {};
+    try {
+      const data = getRegionalPboReportDays(String(regionId ?? ''));
+      return reply.send(data);
+    } catch (err) {
+      if (err?.code === 'UNKNOWN_REGION') {
+        return reply.code(400).send({ error: err.message, code: 'UNKNOWN_REGION' });
+      }
+      return reply.code(502).send({ error: err?.message ?? 'Failed to load regional PBO reports' });
+    }
+  });
+
   app.get('/api/naftali', authHook, async (request, reply) => {
     const forceRefresh = request.query?.refresh === '1';
     try {
@@ -877,7 +909,8 @@ export async function createApp(options) {
       // Attach score_by_source from the cached report so signal evidence gets translated.
       // The client sends only the assessment object (too large to include signals in POST body).
       if (!report.score_by_source) {
-        const cached = getCachedReport(evidenceStore);
+        const scope = report.report_scope?.id === 'north' ? 'north' : 'national';
+        const cached = getCachedReport(evidenceStore, { scope });
         if (cached?.score_by_source) report.score_by_source = cached.score_by_source;
       }
       const translated = await getTranslatedReport(report, lang);
@@ -1022,6 +1055,16 @@ export async function createApp(options) {
     tryAuthPreHandler,
     isMailingConfigured,
     allowAnonymous: !authRequired,
+  });
+
+  await app.register(visitsRoutes, {
+    visitsService,
+    authPreHandler: authHook?.preHandler,
+  });
+
+  await app.register(chatbotManualReportsRoutes, {
+    service: chatbotManualReportsService,
+    authPreHandler: authHook?.preHandler,
   });
 
   app.get('/articles', authHook, async (request, reply) => {

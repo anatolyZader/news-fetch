@@ -8,11 +8,12 @@ import Card from '@mui/material/Card';
  * - columns: Array<{ key: string; label: string; render?: (row) => ReactNode }>
  * - rows: Array<object>
  * - gridTemplateColumns: CSS grid-template-columns string
+ * - textAlign: optional CSS text-align value for header and body cells
  *
  * Styling is sourced entirely from theme tokens (spacing, typography,
  * border, surface). No inline literals.
  */
-export function GridTable({ columns, rows, gridTemplateColumns }) {
+export function GridTable({ columns, rows, gridTemplateColumns, textAlign = 'inherit' }) {
   return (
     <Card sx={{ overflow: 'hidden' }}>
       <Box
@@ -20,6 +21,7 @@ export function GridTable({ columns, rows, gridTemplateColumns }) {
           display: 'grid',
           gridTemplateColumns,
           gap: theme.spacing(1),
+          textAlign,
           paddingTop: theme.spacing(0.75),
           paddingBottom: theme.spacing(0.75),
           paddingLeft: theme.spacing(1.5),
@@ -42,6 +44,7 @@ export function GridTable({ columns, rows, gridTemplateColumns }) {
             display: 'grid',
             gridTemplateColumns,
             gap: theme.spacing(1),
+            textAlign,
             paddingTop: theme.spacing(0.75),
             paddingBottom: theme.spacing(0.75),
             paddingLeft: theme.spacing(1.5),

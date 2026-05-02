@@ -32,6 +32,7 @@ function buildMarkdown(assessment, sourceFiles) {
     `| Field | Value |`,
     `|-------|-------|`,
     `| **Date** | ${assessment.date} |`,
+    `| **Scope** | ${assessment.report_scope?.label ?? 'National'} |`,
     `| **Content kind** | ${kind} |`,
     `| **Sources** | ${sourceFiles.join(', ')} |`,
     `| **Articles analyzed** | ${assessment.total_articles_analyzed} |`,

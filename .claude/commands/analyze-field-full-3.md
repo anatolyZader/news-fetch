@@ -1,6 +1,6 @@
 ---
 allowed-tools: Bash(node business_modules/resilience/input/extract-signals.js*), Bash(ls articles-field-reports-*)
-description: Extract resilience signals from the last 3 available field reports files and save to signals/
+description: Extract resilience signals from the last 3 available field reports files and save under business_modules/visits/data/signals/
 ---
 
 ## Your task
@@ -10,7 +10,7 @@ Extract behavioral signals from the last 3 available field reports files (field 
 **Step 1 — Find available field reports files**
 
 ```
-ls articles-field-reports-*.md 2>/dev/null | sort | tail -3
+ls business_modules/visits/data/articles-field-reports-*.md 2>/dev/null | sort | tail -3
 ```
 
 If no files are found, report that no field reports are available and stop.

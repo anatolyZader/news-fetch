@@ -74,14 +74,19 @@ export async function runAnalyzeResilienceCli() {
   const dedupeTitles = explicitNoDedupe ? false : contentKind !== 'audio';
 
   // Optional field reports file — extracted separately with content_kind='field_report', fixed weight 0.75.
-  // If --field-reports is not given explicitly, auto-detect the most recent articles-field-reports-*.md file
-  // that contains at least one article (skips empty stub files). Pass --no-field-reports to suppress.
+  // If --field-reports is not given explicitly, auto-detect the most recent visit source file
+  // owned by the visits module (skips empty stub files). Pass --no-field-reports to suppress.
   const fieldReportsArg = args.includes('--no-field-reports') ? null : (getArg('--field-reports') ?? (() => {
-    const files = existsSync(resolve('.'))
-      ? readdirSync(resolve('.')).filter((f) => /^articles-field-reports-\d{4}-\d{2}-\d{2}\.md$/.test(f)).sort().reverse()
+    const dir = resolve('business_modules', 'visits', 'data');
+    const files = existsSync(dir)
+      ? readdirSync(dir)
+        .filter((f) => /^articles-field-reports-\d{4}-\d{2}-\d{2}\.md$/.test(f))
+        .map((f) => resolve(dir, f))
+        .sort()
+        .reverse()
       : [];
     for (const f of files) {
-      const { articles } = loadMdFile(resolve(f));
+      const { articles } = loadMdFile(f);
       if (articles.length > 0) return f;
     }
     return null;

@@ -22,6 +22,8 @@ export function useTranslatedReport(report, lang) {
   const [translateError, setTranslateError] = useState(null);
 
   const reportDate = report?.date ?? null;
+  const reportScope = report?.report_scope?.id ?? 'national';
+  const articleCount = report?.total_articles_analyzed ?? 0;
 
   useEffect(() => {
     if (!reportDate || lang === 'en') {
@@ -70,7 +72,7 @@ export function useTranslatedReport(report, lang) {
 
     return () => { cancelled = true; };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reportDate, lang]);
+  }, [reportDate, reportScope, articleCount, lang]);
 
   return { displayReport: translated ?? report, translating, translateError };
 }

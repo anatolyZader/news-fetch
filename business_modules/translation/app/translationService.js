@@ -136,7 +136,7 @@ Return ONLY valid JSON with the exact same structure as the input. Do NOT transl
 };
 
 function cacheKey(report, lang) {
-  return `${report.date}_${report.total_articles_analyzed ?? 0}_${lang}`;
+  return `${report.date}_${report.report_scope?.id ?? 'national'}_${report.total_articles_analyzed ?? 0}_${lang}`;
 }
 
 function cacheFilePath(date, articlesCount, lang) {
@@ -144,9 +144,15 @@ function cacheFilePath(date, articlesCount, lang) {
   return resolve(REPORTS_DIR, `translation-v2-${date}-${articlesCount}-${lang}.json`);
 }
 
+function scopedCacheFilePath(report, lang) {
+  const scope = report.report_scope?.id ?? 'national';
+  if (scope === 'national') return cacheFilePath(report.date, report.total_articles_analyzed ?? 0, lang);
+  return resolve(REPORTS_DIR, `translation-v2-${scope}-${report.date}-${report.total_articles_analyzed ?? 0}-${lang}.json`);
+}
+
 async function readDiskCache(report, lang) {
   try {
-    const raw = await readFile(cacheFilePath(report.date, report.total_articles_analyzed ?? 0, lang), 'utf8');
+    const raw = await readFile(scopedCacheFilePath(report, lang), 'utf8');
     return JSON.parse(raw);
   } catch {
     return null;
@@ -170,7 +176,7 @@ async function writeDiskCache(report, lang, translatedReport) {
       },
     };
     await writeFile(
-      cacheFilePath(report.date, report.total_articles_analyzed ?? 0, lang),
+      scopedCacheFilePath(report, lang),
       JSON.stringify(withMeta),
       'utf8',
     );

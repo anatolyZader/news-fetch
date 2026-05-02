@@ -15,6 +15,7 @@ tags:
   - name: Video
   - name: Education
   - name: Municipalities
+  - name: Visits
   - name: Naftali
   - name: Translation
   - name: Chat
@@ -147,6 +148,14 @@ paths:
     get:
       tags: [Reports]
       summary: Fetch today's cached report (if any).
+      parameters:
+        - in: query
+          name: scope
+          required: false
+          schema:
+            type: string
+            enum: [national, north]
+          description: Report scope to fetch. Defaults to national.
       responses:
         "200":
           description: OK
@@ -411,6 +420,27 @@ paths:
     get:
       tags: [Municipalities]
       summary: Get municipality dashboard.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        "502":
+          description: Upstream failure
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /api/visits:
+    get:
+      tags: [Visits]
+      summary: Get professional squad visits dashboard.
       responses:
         "200":
           description: OK

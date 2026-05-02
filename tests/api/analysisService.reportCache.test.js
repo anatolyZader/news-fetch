@@ -44,4 +44,14 @@ describe('resolveReportJsonPathForDate', () => {
     const picked = resolveReportJsonPathForDate('2026-01-02', { reportsDir: dir });
     assert.strictEqual(picked, b);
   });
+
+  it('resolves north-scoped report files separately from national reports', () => {
+    const national = join(dir, 'resilience-report-2026-01-03-1000.json');
+    const north = join(dir, 'resilience-report-north-2026-01-03-0900.json');
+    writeFileSync(national, miniReport(50));
+    writeFileSync(north, miniReport(12));
+
+    assert.strictEqual(resolveReportJsonPathForDate('2026-01-03', { reportsDir: dir }), national);
+    assert.strictEqual(resolveReportJsonPathForDate('2026-01-03', { reportsDir: dir, scope: 'north' }), north);
+  });
 });

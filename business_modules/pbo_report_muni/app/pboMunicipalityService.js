@@ -6,7 +6,7 @@
  * to the 8 resilience components using header text matching.
  */
 
-import { readFileSync, readdirSync } from 'fs';
+import { readdirSync } from 'fs';
 import { resolve, basename } from 'path';
 import XLSX from 'xlsx';
 
@@ -50,13 +50,13 @@ const COLUMN_MAP = [
   { pattern: 'התייחסות מילולית שייכות וסולידריות',       component: 'belonging_solidarity',       kind: 'text' },
 ];
 
-const COMPONENTS_ORDER = [
+export const COMPONENTS_ORDER = [
   'narrative', 'information_communication', 'lifesaving_behavior',
   'functional_continuity', 'community_capital', 'leadership',
   'belonging_solidarity', 'wellbeing_atrisk',
 ];
 
-const COMPONENT_NAMES_HE = {
+export const COMPONENT_NAMES_HE = {
   narrative:                 'נרטיב',
   information_communication: 'מידע, תקשורת ושיתוף',
   lifesaving_behavior:       'התנהגות אפקטיבית להצלת חיים',
@@ -67,7 +67,7 @@ const COMPONENT_NAMES_HE = {
   wellbeing_atrisk:          'דאגה לרווחה',
 };
 
-const COMPONENT_NAMES_EN = {
+export const COMPONENT_NAMES_EN = {
   narrative:                 'Narrative',
   information_communication: 'Information & Communication',
   lifesaving_behavior:       'Lifesaving Behavior',
@@ -178,6 +178,11 @@ function parseOneFile(filePath) {
   }
 
   return { date, file: basename(filePath), municipalities };
+}
+
+/** Parse northern PBO Excel (municipality table or compatible regional workbook). Exported for regional PBO inboxes. */
+export function parsePboNorthExcelFile(filePath) {
+  return parseOneFile(filePath);
 }
 
 /**

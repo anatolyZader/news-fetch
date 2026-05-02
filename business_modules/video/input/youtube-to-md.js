@@ -19,10 +19,12 @@ import { createEvidenceStore } from '../../../cross-cut-modules/persistence/evid
 
 import { createCostTracker, appendCostLog, checkDailyBudget } from '../../../cross-cut-modules/budget/index.js';
 import { OpenaiTranscriptionAdapter } from '../../audio/infrastructure/adapters/openaiTranscriptionAdapter.js';
-import { AudioIngestService, groupSegmentsIntoArticles, buildAudioMarkdownDocument } from '../../audio/app/audioIngestService.js';
+import { AudioEvidenceIngestService } from '../../audio/app/audioEvidenceIngestService.js';
+import { AudioIngestService, buildAudioMarkdownDocument } from '../../audio/app/audioIngestService.js';
 import { contextualizeTranscript } from '../../audio/app/audioTranscriptContextualizer.js';
 import { createYtDlpYoutubeAdapter } from '../infrastructure/adapters/ytDlpYoutubeAdapter.js';
 import { createYoutubeDataApiCaptionsAdapter } from '../infrastructure/adapters/youtubeDataApiCaptionsAdapter.js';
+import { YoutubeEvidenceIngestService } from '../app/youtubeEvidenceIngestService.js';
 import { YoutubeTranscriptService } from '../app/youtubeTranscriptService.js';
 import { VideoGrabService } from '../app/videoGrabService.js';
 import { createLocalVideoFileAdapter } from '../infrastructure/adapters/localVideoFileAdapter.js';
@@ -92,9 +94,24 @@ try {
 
   const adapter = new OpenaiTranscriptionAdapter();
   const audioIngest = new AudioIngestService({ adapter });
+  const audioEvidenceIngest = new AudioEvidenceIngestService({
+    audioDownloadPort: {
+      async downloadToTempFile() {
+        throw new Error('youtube-to-md downloads YouTube audio through the video module');
+      },
+    },
+    transcriptionPort: adapter,
+    contextualizer: contextualizeTranscript,
+  });
   const videoGrab = new VideoGrabService({
     remoteFetchPort: ytDlp,
     localFilePort: createLocalVideoFileAdapter(),
+  });
+  const youtubeEvidenceIngest = new YoutubeEvidenceIngestService({
+    transcriptService: transcriptSvc,
+    videoGrabService: videoGrab,
+    audioEvidenceIngestService: audioEvidenceIngest,
+    contextualizeTranscript,
   });
 
   let captionMd = '';
@@ -123,41 +140,32 @@ try {
 
   // ── Contextualize path: get raw segments → scene articles ──────────────────
   if (contextualize) {
-    let rawSegments = tr.segments;
-
-    if (rawSegments.length === 0) {
-      // Need audio for transcription
-      const dl = await videoGrab.downloadFromUrl(url, tmpSubs);
-      if (!dl.ok) {
-        console.error('Audio download failed:', dl.error);
-        if (dl.stderr) console.error(dl.stderr.slice(0, 2000));
-        process.exit(1);
-      }
-      const adapter = new OpenaiTranscriptionAdapter();
-      const result = await adapter.transcribeDiarized({ filePath: dl.outputPath });
-      rawSegments = result.segments ?? [];
-      console.error(`Speech-to-text: ${rawSegments.length} segment(s) (OpenAI)`);
-      if (onUsage) {
-        const { calcTranscriptionCostUsd } = await import('../../../cross-cut-modules/budget/app/budgetCostTracker.js');
-        const { OPENAI_TRANSCRIBE_DIARIZE_MODEL } = await import('../../audio/infrastructure/adapters/openaiTranscriptionAdapter.js');
-        const { ffprobeDuration } = await import('../../audio/app/audioIngestService.js');
-        const dur = ffprobeDuration(dl.outputPath) ?? 0;
-        onUsage({ label: `Audio diarize ${dl.outputPath.split('/').pop()}`, model: OPENAI_TRANSCRIBE_DIARIZE_MODEL, costUsd: calcTranscriptionCostUsd(OPENAI_TRANSCRIBE_DIARIZE_MODEL, dur) });
-      }
-    }
-
-    if (rawSegments.length === 0) {
-      console.error('No segments to contextualize.');
-      process.exit(1);
-    }
-
-    console.error(`  → contextualizing ${rawSegments.length} segment(s)...`);
-    const articles = await contextualizeTranscript(rawSegments, { station, program, sourceUrl: url.trim(), onUsage });
+    const result = await youtubeEvidenceIngest.ingestYoutubeUrlToEvidenceItems({
+      url: url.trim(),
+      date,
+      outputDir: tmpSubs,
+      station,
+      program,
+      sourceLabel: `${station} — ${program}`,
+      publishedAt,
+      transcriptResult: tr,
+      onUsage,
+    });
+    const articles = result.items.map((item) => ({
+      title: item.title,
+      body: item.body,
+      url: item.source_url,
+    }));
 
     if (articles.length === 0) {
       console.error('Contextualization produced no usable scenes.');
       process.exit(1);
     }
+    console.error(
+      `YouTube contextualized ${articles.length} scene(s) via ${result.source}${
+        result.transcriptSource ? ` (${result.transcriptSource})` : ''
+      }`,
+    );
 
     const md = buildAudioMarkdownDocument({
       date,
@@ -179,15 +187,7 @@ try {
     const sqlitePath = process.env.SQLITE_PATH?.trim() || resolve(outPath, '../../data/app.sqlite');
     try {
       const store = createEvidenceStore(resolve(process.cwd(), process.env.SQLITE_PATH?.trim() || 'data/app.sqlite'));
-      const inserted = store.insertItems(articles.map((a) => ({
-        date,
-        source_type: 'audio',
-        source_label: `${station} — ${program}`,
-        source_url: a.url ?? url.trim(),
-        title: a.title,
-        body: a.body,
-        published_at: publishedAt,
-      })));
+      const inserted = store.insertItems(result.items);
       console.error(`  → ${inserted} new scene(s) written to DB`);
     } catch (err) {
       console.error(`  ⚠ DB write failed (continuing): ${err.message}`);

@@ -1,13 +1,15 @@
 #!/usr/bin/env node
 /**
- * Stage-1 CLI: extract behavioral signals from one source type and persist to signals/ directory.
+ * Stage-1 CLI: extract behavioral signals from one source type and persist JSON artifacts
+ * (root `signals/` for most sources; visits module for `field`).
  * Run this separately for each source type; then run assess-signals.js to combine and assess.
  *
  * Usage:
  *   node extract-signals.js --source-type news|radio|field --files <f1.md,f2.md,...> --date YYYY-MM-DD
  *
  * Output:
- *   signals/signals-{source-type}-{date}.json
+ *   signals/signals-{source-type}-{date}.json  (news, radio, whatsapp, …)
+ *   business_modules/visits/data/signals/signals-field-{date}.json  (field)
  */
 
 import 'dotenv/config';
@@ -68,7 +70,10 @@ async function run() {
 
   console.error(`\n→ ${signals.length} signals extracted`);
 
-  const outDir = resolve('signals');
+  const outDir =
+    sourceType === 'field'
+      ? resolve('business_modules', 'visits', 'data', 'signals')
+      : resolve('signals');
   mkdirSync(outDir, { recursive: true });
   const outPath = resolve(outDir, `signals-${sourceType}-${date}.json`);
 

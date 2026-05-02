@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * Convert a field-report .xlsx (population behavior officer visits to municipalities)
- * to the markdown format consumed by the resilience analysis pipeline.
+ * Convert a field-report .xlsx (professional squad visits to municipalities)
+ * to the markdown source format consumed by the resilience analysis pipeline.
  *
  * Usage:
  *   npm run ingest-field-reports -- --file north_muni_data_1.xlsx
@@ -11,11 +11,11 @@
  *   id | date | team | municipality | region | stakeholders | expert analysis
  *
  * Output: articles-field-reports-<latest-visit-date>.md
- * Each row becomes one "article" (community visit document).
+ * Each row becomes one source document for one municipal visit.
  */
 
-import { readFileSync, writeFileSync } from 'fs';
-import { resolve, basename } from 'path';
+import { mkdirSync, readFileSync, writeFileSync } from 'fs';
+import { basename, dirname, resolve } from 'path';
 import { read, utils } from 'xlsx';
 
 const args = process.argv.slice(2);
@@ -43,11 +43,10 @@ if (rows.length === 0) {
   process.exit(1);
 }
 
-// Determine latest visit date for default output filename
 function parseDate(val) {
   if (!val) return null;
   if (val instanceof Date) return isNaN(val) ? null : val;
-  // Excel stores dates as numeric serial numbers (days since 1899-12-30)
+  // Excel stores dates as numeric serial numbers (days since 1899-12-30).
   if (typeof val === 'number' && val > 1000) {
     return new Date((val - 25569) * 86400 * 1000);
   }
@@ -55,14 +54,14 @@ function parseDate(val) {
   return isNaN(d) ? null : d;
 }
 
-const allDates = rows.map((r) => parseDate(r['date'])).filter(Boolean);
+const allDates = rows.map((r) => parseDate(r.date)).filter(Boolean);
 const latestDate = allDates.length
   ? new Date(Math.max(...allDates.map((d) => d.getTime()))).toISOString().slice(0, 10)
   : new Date().toISOString().slice(0, 10);
 
-const outputPath = getArg('--output') ?? resolve(`articles-field-reports-${latestDate}.md`);
+const defaultOutputDir = resolve('business_modules', 'visits', 'data');
+const outputPath = getArg('--output') ?? resolve(defaultOutputDir, `articles-field-reports-${latestDate}.md`);
 
-// Column name aliases (the xlsx may have trailing spaces)
 function col(row, ...keys) {
   for (const k of keys) {
     const val = row[k] ?? row[k.trim()] ?? row[`${k} `] ?? row[` ${k}`];
@@ -74,7 +73,7 @@ function col(row, ...keys) {
 const lines = [
   `# Field-reports articles (${latestDate})`,
   ``,
-  `Population behavior officer visits to northern border communities (${basename(filePath)}).`,
+  `Professional squad visits to municipalities (${basename(filePath)}).`,
   `Each entry is one expert team visit to one municipality — direct stakeholder interviews and field observation.`,
   ``,
 ];
@@ -87,31 +86,29 @@ for (const row of rows) {
   const team         = col(row, 'team');
   const stakeholders = col(row, 'stkeholders', 'stakeholders');
   const analysis     = col(row, 'expert analysis', 'expert_analysis', 'expert anlysis');
-  const visitDate    = parseDate(row['date'])?.toISOString().slice(0, 10) ?? latestDate;
+  const visitDate    = parseDate(row.date)?.toISOString().slice(0, 10) ?? latestDate;
 
   if (!analysis) continue;
 
   const title = `${municipality}${region ? ` — ${region}` : ''} (ביקור שטח)`;
   const source = team || 'field-team';
-
-  // Body: stakeholders context + expert notes
   const bodyParts = [];
   if (stakeholders) bodyParts.push(`גורמים שנפגשו: ${stakeholders}`);
   bodyParts.push(analysis);
-  const body = bodyParts.join('\n\n');
 
   lines.push(`## ${count + 1}. ${title}`);
   lines.push(``);
   lines.push(`- **Published:** ${visitDate}T12:00:00Z`);
   lines.push(`- **Source:** ${source}`);
   lines.push(``);
-  lines.push(body);
+  lines.push(bodyParts.join('\n\n'));
   lines.push(``);
   lines.push(`---`);
   lines.push(``);
   count++;
 }
 
+mkdirSync(dirname(outputPath), { recursive: true });
 writeFileSync(outputPath, lines.join('\n'), 'utf-8');
 console.error(`Wrote ${count} field-report visits to ${outputPath}`);
 console.error(`  Latest visit date: ${latestDate}`);

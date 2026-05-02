@@ -93,8 +93,12 @@ const PRICING = {
   'claude-opus-4-6':           { input: 15.00, output: 75.00 },
 };
 
-function reportPaths(date) {
-  const base = resolve(ROOT, 'reports', `resilience-report-${date}`);
+function reportPrefixForScope(scope = 'national') {
+  return scope === 'north' ? 'resilience-report-north' : 'resilience-report';
+}
+
+function reportPaths(date, { scope = 'national' } = {}) {
+  const base = resolve(ROOT, 'reports', `${reportPrefixForScope(scope)}-${date}`);
   return { base, json: `${base}.json`, md: `${base}.md` };
 }
 
@@ -114,17 +118,18 @@ function readAssessmentTotalArticles(jsonPath) {
  * When several timestamped files exist for the same day, prefer the one with the largest
  * `assessment.total_articles_analyzed` (full merge beats a later slim/audio-only run); tie-break on newest mtime.
  * @param {string} date YYYY-MM-DD
- * @param {{ reportsDir?: string }} [opts] `reportsDir` overrides the default `reports/` (for tests).
+ * @param {{ reportsDir?: string, scope?: 'national'|'north' }} [opts] `reportsDir` overrides the default `reports/` (for tests).
  * @returns {string | null} absolute path
  */
 export function resolveReportJsonPathForDate(date, opts = {}) {
   const reportsDir = opts.reportsDir ?? resolve(ROOT, 'reports');
+  const prefixBase = reportPrefixForScope(opts.scope);
   if (!existsSync(reportsDir)) return null;
 
-  const exact = resolve(reportsDir, `resilience-report-${date}.json`);
+  const exact = resolve(reportsDir, `${prefixBase}-${date}.json`);
   if (existsSync(exact)) return exact;
 
-  const prefix = `resilience-report-${date}-`;
+  const prefix = `${prefixBase}-${date}-`;
   let names;
   try {
     names = readdirSync(reportsDir);
@@ -166,24 +171,26 @@ export function resolveReportJsonPathForDate(date, opts = {}) {
  * SQLite is used only when no JSON exists for that date.
  *
  * @param {import('../cross-cut-modules/persistence/evidenceStore.js').ReturnType<createEvidenceStore>} [store]
+ * @param {{ scope?: 'national'|'north' }} [opts]
  */
-export function getCachedReport(store) {
+export function getCachedReport(store, opts = {}) {
   const timezone = process.env.TZ_ARTICLES || 'Asia/Jerusalem';
   const today = getTodayInTimezone(timezone);
+  const scope = opts.scope === 'north' ? 'north' : 'national';
 
-  const todayResult = _loadReportForDate(today, store);
+  const todayResult = _loadReportForDate(today, store, { scope });
   if (todayResult) return { ...todayResult, reportDate: today };
 
   // Fallback: find the most recent report from any previous date
-  const fallback = _findLatestAvailableReport(today, store);
+  const fallback = _findLatestAvailableReport(today, store, { scope });
   if (fallback) return fallback;
 
   return null;
 }
 
 /** Load a report for a specific date from filesystem or store. Returns payload or null. */
-function _loadReportForDate(date, store) {
-  const jsonPath = resolveReportJsonPathForDate(date);
+function _loadReportForDate(date, store, { scope = 'national' } = {}) {
+  const jsonPath = resolveReportJsonPathForDate(date, { scope });
   if (jsonPath && existsSync(jsonPath)) {
     const parsed = JSON.parse(readFileSync(jsonPath, 'utf-8'));
     const mdPath = jsonPath.replace(/\.json$/i, '.md');
@@ -199,7 +206,7 @@ function _loadReportForDate(date, store) {
     return { ...parsed, markdown, ...(costBreakdown ? { costBreakdown } : {}) };
   }
 
-  if (store) {
+  if (scope === 'national' && store) {
     const run = store.getLatestRunForDate(date);
     if (run) {
       const costBreakdown = readCostBreakdownForDate(date);
@@ -215,7 +222,7 @@ function _loadReportForDate(date, store) {
 }
 
 /** Scan the reports directory for the most recent report before `today`. */
-function _findLatestAvailableReport(today, store) {
+function _findLatestAvailableReport(today, store, { scope = 'national' } = {}) {
   const reportsDir = resolve(ROOT, 'reports');
   if (!existsSync(reportsDir)) return null;
 
@@ -227,7 +234,8 @@ function _findLatestAvailableReport(today, store) {
   }
 
   // Extract unique dates from report filenames, pick the latest one before today
-  const datePattern = /^resilience-report-(\d{4}-\d{2}-\d{2})/;
+  const escapedPrefix = reportPrefixForScope(scope).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const datePattern = new RegExp(`^${escapedPrefix}-(\\d{4}-\\d{2}-\\d{2})`);
   const dates = [...new Set(
     names
       .map((f) => datePattern.exec(f)?.[1])
@@ -237,7 +245,7 @@ function _findLatestAvailableReport(today, store) {
   // Try dates in reverse chronological order
   for (let i = dates.length - 1; i >= 0; i--) {
     const date = dates[i];
-    const result = _loadReportForDate(date, store);
+    const result = _loadReportForDate(date, store, { scope });
     if (result) return { ...result, reportDate: date };
   }
 

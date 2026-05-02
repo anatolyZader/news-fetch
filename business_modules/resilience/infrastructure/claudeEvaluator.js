@@ -705,7 +705,11 @@ function formatScoredComponentsForNarrative(scoredComponents, totalArticles) {
     const scored = scoredComponents[compDef.id];
     const conf = summarizeConfidence(scored?.confidence);
     const signals = (scored?.signals ?? []).map((s) => {
-      return `  [${s.signal_type}] (scope:${s.scope_level ?? 'single_case'}, confidence:${s.confidence})\n  Evidence: "${s.evidence}"${s.article_url ? `\n  URL: ${s.article_url}` : ''}`;
+      const fd = s.signal_file_date ? `  Source bundle date: ${s.signal_file_date}\n` : '';
+      return (
+        `  [${s.signal_type}] (scope:${s.scope_level ?? 'single_case'}, confidence:${s.confidence})\n` +
+        `${fd}  Evidence: "${s.evidence}"${s.article_url ? `\n  URL: ${s.article_url}` : ''}`
+      );
     }).join('\n');
 
     const scoresSummary = scored?.score != null
@@ -737,14 +741,28 @@ function formatPriorReportsContext(priorReports) {
     const compScores = (r.components ?? [])
       .map((c) => `    ${c.component_id.padEnd(28)} ${c.score ?? 'N/A'}/10`)
       .join('\n');
-    const synthesis = (r.cross_component_synthesis ?? '').slice(0, 600);
-    return `[${r.date}] Overall: ${r.overall_resilience_score}/10\n${compScores}\n  Summary: ${synthesis}${synthesis.length === 600 ? '…' : ''}`;
+    return `[${r.date}] Overall: ${r.overall_resilience_score}/10\n${compScores}`;
   });
   return (
-    `━━━ PRIOR DAYS' CONTEXT (for trend analysis) ━━━\n` +
-    `Use this to identify directional trends: is each component improving, declining, or stable?\n` +
-    `Reference trends in your narratives where meaningful. Do not repeat prior text verbatim.\n\n` +
-    sections.join('\n\n') + '\n\n'
+    `━━━ PRIOR DAYS' CONTEXT (SCORE TRAJECTORY ONLY) ━━━\n` +
+    `Shows component scores only for earlier report dates. Use ONLY for trend wording (improving / declining / stable vs prior days).\n` +
+    `Do NOT reuse factual geopolitical situations, timelines, treaty/ceasefire claims, battles, diplomacy, etc. from those days unless the SAME fact appears in TODAY's Evidence lines below.\n` +
+    `Do not summarize or import earlier executive summaries.\n\n` +
+    `${sections.join('\n\n')}\n\n`
+  );
+}
+
+function formatComparisonScoresContext(scopeLabel, scoredComponents) {
+  if (!scopeLabel || !scoredComponents) return '';
+  const compScores = RESILIENCE_COMPONENTS.map((def) => {
+    const c = scoredComponents[def.id] ?? {};
+    return `- ${def.id}: ${c.score ?? 'n/a'}/10, confidence=${c.confidence ?? 'n/a'}, signals=${c.signal_count ?? 0}`;
+  }).join('\n');
+  return (
+    `━━━ COMPARISON CONTEXT: ${scopeLabel.toUpperCase()} ━━━\n` +
+    `Use these pre-computed comparison scores as context only. The report you are writing is for the requested scope; ` +
+    `do not average these scores into the scoped scores. Mention differences only when analytically meaningful.\n` +
+    `${compScores}\n\n`
   );
 }
 
@@ -776,17 +794,45 @@ export async function generateNarratives(
   _allSignals,
   date,
   totalArticles,
-  { onUsage, _onProgress, priorReports, contentKind = 'news', sourceTypes = new Set() } = {},
+  {
+    onUsage,
+    _onProgress,
+    priorReports,
+    contentKind = 'news',
+    sourceTypes = new Set(),
+    reportScope = null,
+    comparisonScores = null,
+    comparisonLabel = null,
+  } = {},
 ) {
   const priorContext = formatPriorReportsContext(priorReports);
+  const comparisonContext = formatComparisonScoresContext(comparisonLabel, comparisonScores);
+  const scopeContext = reportScope?.id === 'north'
+    ? `━━━ REPORT SCOPE: NORTHERN ISRAEL ━━━\n` +
+      `Write this assessment as a northern-region report, focused on civilians and communities in northern Israel. ` +
+      `Use national context only as comparison. Be explicit when evidence is from a sub-region such as Naftali and avoid generalizing it to the whole north.\n\n`
+    : '';
+
+  const groundingContext =
+    `━━━ GROUND TRUTH & DATE DISCIPLINE ━━━\n` +
+    `Assessment anchor date for this JSON output: ${date}.\n` +
+    `- The \"Signals extracted\" Evidence blocks ARE the allowable facts for TODAY's behavior picture. Treat each bundle-date line (when shown) as the dated provenance for that excerpt.\n` +
+    `- cross_component_synthesis and every component narrative must only assert situations that fair readers could trace back to TODAY's Evidence text. You may add trend phrases using PRIOR DAYS' CONTEXT only when explicitly comparing score trajectories—never as a source of new factual events.\n` +
+    `- Do not use independent world knowledge of Israel/Lebanon, military operations, treaties, diplomacy, or ceasefires—even if widely known or plausible.\n` +
+    `- Do not state timelines (e.g. \"at midnight\", \"entered into force\", \"day N of truce\") unless that exact timetable or factual claim appears inside the Evidence strings you rely on.\n` +
+    `- If evidence records expectations, rumours, or reported statements, phrase them strictly as attributed communications or observed reporting—never as externally verified geopolitical facts.\n` +
+    `- When evidence conflicts, surface the conflict; do not resolve it from outside facts.\n\n`;
 
   const systemPrompt =
     `You are a community resilience analyst writing behavioral narratives for a structured report.\n` +
     `The component SCORES are already computed — do not re-score. Your job is to write clear, behavioral narratives.\n\n` +
+    scopeContext +
     (contentKind === 'audio' ? AUDIO_NARRATIVE_CONTEXT : '') +
     (sourceTypes.has('field') ? FIELD_REPORT_NARRATIVE_CONTEXT : '') +
     (sourceTypes.has('naftali') ? NAFTALI_NARRATIVE_CONTEXT : '') +
     (priorContext ? priorContext : '') +
+    (comparisonContext ? comparisonContext : '') +
+    groundingContext +
 
     `━━━ NARRATIVE RULES ━━━\n` +
     `- Describe what people ARE DOING, SAYING, or EXPERIENCING — not abstract assessments\n` +
@@ -827,7 +873,7 @@ export async function generateNarratives(
     `━━━ OUTPUT FORMAT ━━━\n` +
     `Return ONLY valid JSON:\n` +
     `{\n` +
-    `  "cross_component_synthesis": "<2 paragraphs — behavioral summary across all 8 components. When choosing illustrative examples, select only those that are analytically distinctive: they represent a different population type, behavior mode, or structural condition not already covered by another example. Do not include examples that are emotionally striking but analytically equivalent to many other signals (e.g., a single shelter-compliance instance when dozens exist). Prefer examples that illuminate a structural split, a failure mode, or a population otherwise absent from reporting.>",\n` +
+    `  "cross_component_synthesis": "<2 paragraphs — behavioral summary across all 8 components. Must satisfy GROUND TRUTH & DATE DISCIPLINE: only facts supported by Evidence lines in this run; no outside knowledge. When choosing illustrative examples, select only those that are analytically distinctive: they represent a different population type, behavior mode, or structural condition not already covered by another example. Do not include examples that are emotionally striking but analytically equivalent to many other signals (e.g., a single shelter-compliance instance when dozens exist). Prefer examples that illuminate a structural split, a failure mode, or a population otherwise absent from reporting.>",\n` +
     `  "evidence_quality_note": "<1 sentence on signal quality today: proportion of direct quotes vs reported facts>",\n` +
     `  "components": [\n` +
     `    {\n` +
@@ -841,8 +887,8 @@ export async function generateNarratives(
     `}`;
 
   const userContent =
-    `Date: ${date}\nTotal articles: ${totalArticles}\n\n` +
-    `Write behavioral narratives for all 8 components based on the signals above.`;
+    `Assessment anchor date: ${date}\nTotal articles counted for coverage: ${totalArticles}\n\n` +
+    `Write behavioral narratives for all 8 components based on the signals above. Facts must trace to Evidence text in this payload only.\n`;
 
   const MAX_RETRIES = 3;
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
@@ -898,6 +944,7 @@ export async function generateNarratives(
 
       return {
         date,
+        ...(reportScope ? { report_scope: reportScope } : {}),
         total_articles_analyzed: totalArticles,
         overall_resilience_score: overallScore(scoredComponents),
         content_kind: contentKind,

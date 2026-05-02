@@ -63,7 +63,7 @@ If no WhatsApp messages exist for today, skip this step.
 
 Find the most recent field reports file:
 ```
-ls articles-field-reports-*.md 2>/dev/null | sort | tail -1
+ls business_modules/visits/data/articles-field-reports-*.md 2>/dev/null | sort | tail -1
 ```
 
 If found, extract the date from the filename (e.g. `articles-field-reports-2026-03-31.md` → `2026-03-31`) and run:
