@@ -19,6 +19,7 @@ import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { useTodayReport } from './hooks/useAnalysis.js';
 import { useTranslatedReport } from './hooks/useTranslatedReport.js';
 import { ReportView } from './components/ReportView.jsx';
+import { ResilienceDriftPanel } from './components/ResilienceDriftPanel.jsx';
 import { ChatPanel } from './components/ChatPanel.jsx';
 import { DocsPanel } from './components/DocsPanel.jsx';
 import { ReportBuildPanel } from './components/ReportBuildPanel.jsx';
@@ -47,7 +48,7 @@ const LS_POOL_TAB = 'vibes-witch:poolTab';
 const LS_PBO_TAB = 'vibes-witch:pboTab';
 const LS_PBO_REGION = 'vibes-witch:pboRegion';
 const LS_REPORT_SCOPE = 'vibes-witch:reportScope';
-const MAIN_TAB_IDS = new Set(['report', 'pbo-reports', 'chatbot', 'visits', 'pools']);
+const MAIN_TAB_IDS = new Set(['report', 'drift', 'pbo-reports', 'chatbot', 'visits', 'pools']);
 const PBO_TAB_IDS = new Set(['local', 'regional']);
 /** Northern PBO sub-regions (maps to divisions in regions.json; Galma ≈ Western Galilee / גלמ״ע). */
 const PBO_REGION_IDS_ORDER = ['naftali', 'golan', 'baram', 'hiram', 'galma'];
@@ -192,7 +193,7 @@ function readReportScope() {
 function AppShell() {
   const { logout, authRequired } = useAuth();
   const [reportScope, setReportScope] = useState(() => readReportScope());
-  const { report, scoreBySource, reportDate, initialReportLoadDone } = useTodayReport(reportScope);
+  const { report, scoreBySource, reportDate, overridesCount, refreshOverrides, initialReportLoadDone } = useTodayReport(reportScope);
   const [activeTab, setActiveTab] = useState(() => readMainTab());
   const [activePoolTab, setActivePoolTab] = useState(() => readPoolTab());
   const [activePboTab, setActivePboTab] = useState(() => readPboTab());
@@ -315,6 +316,7 @@ function AppShell() {
 
   const TABS = [
     { id: 'report', label: t('tab.report') },
+    { id: 'drift', label: t('tab.drift') },
     { id: 'pbo-reports', label: t('tab.pboReports') },
     { id: 'chatbot', label: t('tab.chatbot') },
     { id: 'visits', label: t('tab.visits') },
@@ -621,6 +623,10 @@ function AppShell() {
                       readOnly
                       translating={translating}
                       translateError={translateError}
+                      reportDate={reportDate}
+                      reportScope={reportScope}
+                      overridesCount={overridesCount}
+                      onOverridesChanged={refreshOverrides}
                       openCompId={openReportCompId}
                       setOpenCompId={setOpenReportCompId}
                       openEvidenceCompId={openReportEvidenceCompId}
@@ -685,6 +691,8 @@ function AppShell() {
             )}
           </>
         )}
+
+        {activeTab === 'drift' && <ResilienceDriftPanel scope={reportScope} />}
 
         {activeTab === 'chatbot' && <ChatbotManualReportsTab />}
 

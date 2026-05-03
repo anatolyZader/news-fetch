@@ -16,6 +16,16 @@ import {
   overallScore,
   scoreComponents,
 } from '../domain/services/behaviorSignals.js';
+import {
+  DOMAIN_GROUPS,
+  isMultipassEnabled,
+  buildDomainScopeSuffix,
+  buildSelfCheckPrompt,
+} from './extractionPasses.js';
+import {
+  verifyEvidenceAgainstArticle,
+  dedupeSignalsWithinBatch,
+} from './signalVerification.js';
 
 const client = new Anthropic(); // uses ANTHROPIC_API_KEY from env
 
@@ -444,7 +454,36 @@ const SIGNAL_EXTRACTION_SYSTEM_PROMPT =
   `- information_confusion: ONLY for contradictory or unclear EMERGENCY SAFETY messages from authorities that leave\n` +
   `  civilians unable to act (e.g. "one authority says shelter-in-place, another says evacuate").\n` +
   `  REJECT: police/security investigation updates, criminal investigations, or any non-emergency operational status.\n` +
-  `- Emergency response to a harm event (ambulance to cardiac arrest, hospital treating injury): classify the harm itself as harm_to_population. Do NOT emit service_continuity — a service doing its normal job is not evidence of elevated functioning.\n\n` +
+  `- Emergency response to a harm event (ambulance to cardiac arrest, hospital treating injury): classify the harm itself as harm_to_population. Do NOT emit service_continuity — a service doing its normal job is not evidence of elevated functioning.\n` +
+  `- coordination_success: the positive counterpart to coordination_failure. Use when two or more named agencies, services,\n` +
+  `  or organizations visibly coordinate on the SAME emergency response (HFC + municipality + MDA jointly running a drill;\n` +
+  `  council + welfare dept. + IDF unit jointly evacuating a neighbourhood). REJECT generic statements about cooperation\n` +
+  `  intent, photo-ops, or solo institutional action — coordination requires multiple named bodies acting together on a\n` +
+  `  shared concrete task.\n` +
+  `- feedback_loop_closure: an authority visibly ACTS on community input — fixes a complaint that was raised, opens a\n` +
+  `  shelter that residents demanded, modifies a guideline because of feedback. The fact must show BOTH the input AND the\n` +
+  `  responsive action. Mere "we listened" speeches do not qualify.\n` +
+  `- rumor_correction: the positive counterpart to rumor_spread. An authority, expert, or community member publicly debunks\n` +
+  `  or corrects a circulating false report about emergency conditions (chemical-attack hoax corrected; casualty-number\n` +
+  `  rumor refuted). REJECT generic "fake news" complaints with no specific claim+correction.\n` +
+  `- system_resilience_under_load: a named system continues operating effectively under DOCUMENTED elevated demand or\n` +
+  `  damage (hospital triaged 200 patients in 4 hours; one dispatch centre handled 3× normal call volume). REJECT routine\n` +
+  `  service operation — the elevated load must be named.\n` +
+  `- post_event_recovery_indicator: a community visibly recovers after a hit — re-opens businesses, returns evacuees, restarts\n` +
+  `  services after a strike/closure. The "after" is essential; first-day-back stories qualify, ongoing-normal stories do not.\n` +
+  `- local_capacity_demonstrated: positive counterpart to dependency_on_external_aid. The community uses its OWN resources\n` +
+  `  (own funds, own labour, own infrastructure) to meet emergency needs without leaning on outside aid. Use when the\n` +
+  `  evidence explicitly contrasts with external dependency or names the local provider.\n` +
+  `- information_inclusivity_present / information_inclusivity_gap: emergency information adapted (or not) for at-risk\n` +
+  `  populations — Arabic translations, sign language, accessible formats, elder outreach. Use ONLY when a specific group\n` +
+  `  is named (Arab residents, deaf community, elderly without smartphones, visually impaired). Generic "everyone got the\n` +
+  `  message" is not inclusivity evidence.\n` +
+  `- economic_continuity / economic_disruption: distinct from generic service_disruption. Use when the evidence is about\n` +
+  `  EMPLOYMENT, BUSINESS OPERATIONS, or COMMERCE specifically (factory still running; restaurant closed; tourism collapsed;\n` +
+  `  workers laid off). For non-economic services (schools, clinics, transport) keep using service_continuity / service_disruption.\n` +
+  `- cultural_continuity: identity-bearing rituals, ceremonies, holidays, religious observance, or cultural events that took\n` +
+  `  place during the emergency (Passover seder held under fire; memorial ceremony despite siren; community Iftar). Distinct\n` +
+  `  from service_continuity (a cultural event is not a service).\n\n` +
 
   `━━━ SIGNAL TYPES (closed vocabulary) ━━━\n` +
   `${formatSignalCatalog()}\n\n` +
@@ -454,6 +493,14 @@ const SIGNAL_EXTRACTION_SYSTEM_PROMPT =
   `"repeated_pattern"     — more than one instance, or article explicitly describes recurrence or a pattern\n` +
   `"quantified_or_broad"  — a count, percentage, named survey result, or institutional action with system-wide scope\n\n` +
 
+  `━━━ INFORMATIVE ABSENCE (rare; cap 3 per batch) ━━━\n` +
+  `Most signals must come from explicit text. EXCEPTION: when an article reports a routine state\n` +
+  `that, given the emergency context, is itself a behavioral fact (e.g. "school year started normally\n` +
+  `in Kiryat Shmona this morning" → routine_maintenance / service_continuity). In that case, set\n` +
+  `evidence_basis = "inferred_absence" so the evidence verifier knows not to expect a direct quote.\n` +
+  `Limit yourself to at most 3 inferred-absence signals across the entire batch — they are weak\n` +
+  `evidence and should not dominate.\n\n` +
+
   `━━━ OUTPUT SCHEMA ━━━\n` +
   `For each behavioral signal found, output a JSON object:\n` +
   `{\n` +
@@ -462,7 +509,9 @@ const SIGNAL_EXTRACTION_SYSTEM_PROMPT =
   `  "signal_type": "<one type from the closed vocabulary above>",\n` +
   `  "evidence_type": "direct_quote_named_person" | "named_survey_statistic" | "named_institutional_fact" | "observational_reported_fact",\n` +
   `  "evidence": "<exact quote or bare factual description — no journalist adjectives, max 300 chars>",\n` +
-  `  "scope_level": "single_case" | "repeated_pattern" | "quantified_or_broad"\n` +
+  `  "scope_level": "single_case" | "repeated_pattern" | "quantified_or_broad",\n` +
+  `  "evidence_basis": "present_in_text" | "paraphrased" | "inferred_absence",\n` +
+  `  "extraction_confidence": <number 0.0-1.0 — your self-rated confidence that this signal is correctly classified and faithfully grounded in the article>\n` +
   `}\n\n` +
   `Return ONLY a valid JSON array. One article can yield multiple signals. Skip articles with no extractable behavioral evidence.`;
 
@@ -576,7 +625,91 @@ function extractUserLabelForSignals(contentKind) {
   return 'news articles';
 }
 
-async function extractSignalsBatch(articles, batchLabel, retries = 3, usageCallback = null, contentKind = 'news') {
+/**
+ * Validates and normalises the signals array returned by a single Haiku call.
+ * Drops unknown signal types, normalises evidence_type, drops named-emotional
+ * signals without a named person, and clamps extraction_confidence into [0,1].
+ */
+function validateSignalsFromCall(signals, articles, sourceLabel) {
+  const validTypes = new Set(SIGNAL_TYPES);
+  const validEvidenceTypes = new Set([
+    'direct_quote_named_person', 'named_survey_statistic',
+    'named_institutional_fact', 'observational_reported_fact',
+  ]);
+  const validBasis = new Set(['present_in_text', 'paraphrased', 'inferred_absence']);
+  const INDIVIDUAL_EMOTIONAL_SIGNAL_TYPES = new Set(['fear_expression', 'calm_confidence']);
+
+  const valid = signals.filter((s) => {
+    if (!s || typeof s !== 'object') return false;
+    if (!validTypes.has(s.signal_type)) {
+      console.error(`  ⚠ [${sourceLabel}] Dropped unknown signal type: "${s.signal_type}"`);
+      return false;
+    }
+    if (!validEvidenceTypes.has(s.evidence_type)) {
+      s.evidence_type = 'observational_reported_fact';
+    }
+    if (!validBasis.has(s.evidence_basis)) {
+      s.evidence_basis = 'present_in_text';
+    }
+    if (INDIVIDUAL_EMOTIONAL_SIGNAL_TYPES.has(s.signal_type) &&
+        s.evidence_type === 'observational_reported_fact') {
+      console.error(`  ⚠ [${sourceLabel}] Dropped emotional signal without named-person evidence: "${s.signal_type}"`);
+      return false;
+    }
+    if (typeof s.extraction_confidence !== 'number' ||
+        Number.isNaN(s.extraction_confidence)) {
+      s.extraction_confidence = 0.85;
+    } else {
+      s.extraction_confidence = Math.min(1, Math.max(0, s.extraction_confidence));
+    }
+    return true;
+  });
+
+  for (const s of valid) {
+    const art = articles[s.article_index - 1];
+    if (art) {
+      s.article_source = art.source;
+      s.temporal_weight = art.temporal_weight ?? 1.0;
+    }
+  }
+
+  return valid;
+}
+
+/**
+ * Verifies each signal's evidence against its source article body using
+ * Jaccard shingle similarity. Drops signals that fail the type-specific
+ * threshold. Logs the drop reason for auditability.
+ */
+function applyEvidenceVerifier(signals, articles, sourceLabel) {
+  const verified = [];
+  let dropped = 0;
+  for (const s of signals) {
+    const art = articles[s.article_index - 1];
+    const result = verifyEvidenceAgainstArticle(s, art?.body);
+    if (result.ok) {
+      verified.push(s);
+      continue;
+    }
+    dropped++;
+    const evPreview = (s.evidence ?? '').slice(0, 80).replace(/\s+/g, ' ');
+    console.error(
+      `  ⚠ [${sourceLabel}] Dropped unverifiable evidence ` +
+      `(${result.reason}${result.sim != null ? `, sim=${result.sim.toFixed(2)}` : ''}): ` +
+      `[${s.signal_type}] "${evPreview}…"`,
+    );
+  }
+  if (dropped > 0) {
+    console.error(`  → [${sourceLabel}] verifier dropped ${dropped}/${signals.length} signal(s)`);
+  }
+  return verified;
+}
+
+async function callHaikuExtraction(articles, batchLabel, retries, usageCallback, contentKind, domainGroupKey) {
+  const baseSystem = buildSignalExtractionSystemPrompt(contentKind);
+  const system = domainGroupKey
+    ? `${baseSystem}\n\n${buildDomainScopeSuffix(domainGroupKey)}`
+    : baseSystem;
   const userContent =
     `Extract all behavioral signals from these Israeli ${extractUserLabelForSignals(contentKind)}:\n\n` +
     formatArticlesForPrompt(articles);
@@ -587,7 +720,7 @@ async function extractSignalsBatch(articles, batchLabel, retries = 3, usageCallb
         model: 'claude-haiku-4-5-20251001',
         max_tokens: 12000,
         temperature: 0,
-        system: buildSignalExtractionSystemPrompt(contentKind),
+        system,
         messages: [{ role: 'user', content: userContent }],
       });
 
@@ -603,51 +736,9 @@ async function extractSignalsBatch(articles, batchLabel, retries = 3, usageCallb
 
       const textBlock = message.content.find((b) => b.type === 'text');
       if (!textBlock) throw new Error(`${batchLabel}: no text block`);
-
       const signals = extractJsonArray(textBlock.text);
       if (!Array.isArray(signals)) throw new Error(`${batchLabel}: expected JSON array`);
-
-      // Validate signal types and evidence_type values
-      const validTypes = new Set(SIGNAL_TYPES);
-      const validEvidenceTypes = new Set([
-        'direct_quote_named_person', 'named_survey_statistic',
-        'named_institutional_fact', 'observational_reported_fact',
-      ]);
-      // Individual emotions require a named person (can't attribute fear/confidence without a subject).
-      // Community narratives (resilience_narrative_*) also accept observational_reported_fact — a host
-      // or caller characterising collective mood ("people here won't leave", "the spirit in the north
-      // has broken") is a valid narrative signal without naming an individual.
-      const INDIVIDUAL_EMOTIONAL_SIGNAL_TYPES = new Set([
-        'fear_expression', 'calm_confidence',
-      ]);
-      const valid = signals.filter((s) => {
-        if (!validTypes.has(s.signal_type)) {
-          console.error(`  ⚠ Dropped unknown signal type: "${s.signal_type}"`);
-          return false;
-        }
-        // Normalize unknown evidence_type to observational fallback
-        if (!validEvidenceTypes.has(s.evidence_type)) {
-          s.evidence_type = 'observational_reported_fact';
-        }
-        // Individual emotional signals require named person evidence
-        if (INDIVIDUAL_EMOTIONAL_SIGNAL_TYPES.has(s.signal_type) &&
-            s.evidence_type === 'observational_reported_fact') {
-          console.error(`  ⚠ Dropped emotional signal without named-person evidence: "${s.signal_type}"`);
-          return false;
-        }
-        return true;
-      });
-
-      // Enrich signals with source label and temporal weight for scoring
-      for (const s of valid) {
-        const art = articles[s.article_index - 1];
-        if (art) {
-          s.article_source = art.source;
-          s.temporal_weight = art.temporal_weight ?? 1.0;
-        }
-      }
-
-      return valid;
+      return signals;
     } catch (err) {
       if (attempt === retries) throw err;
       const is429 = err.message?.includes('429') || err.status === 429;
@@ -656,6 +747,81 @@ async function extractSignalsBatch(articles, batchLabel, retries = 3, usageCallb
       await new Promise((r) => setTimeout(r, wait));
     }
   }
+  return [];
+}
+
+/**
+ * Closed-vocab self-check (E5): asks Haiku whether each candidate signal is a
+ * correct instance of its declared signal_type. Drops verdict==="no".
+ * Returns the surviving signals (uncertain & yes are kept).
+ */
+async function runSelfCheck(signals, batchLabel, usageCallback) {
+  if (!signals.length) return signals;
+  const { system, user, indices } = buildSelfCheckPrompt(signals);
+
+  try {
+    const stream = client.messages.stream({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: Math.min(4000, 60 + indices.length * 30),
+      temperature: 0,
+      system,
+      messages: [{ role: 'user', content: user }],
+    });
+    const selfLabel = `${batchLabel} self-check`;
+    await streamWithProgress(stream, selfLabel);
+    const message = await stream.finalMessage();
+    if (usageCallback) usageCallback({ label: selfLabel, model: 'claude-haiku-4-5-20251001', usage: message.usage });
+    const textBlock = message.content.find((b) => b.type === 'text');
+    if (!textBlock) return signals;
+    const verdicts = extractJsonArray(textBlock.text);
+    if (!Array.isArray(verdicts)) return signals;
+    const noSet = new Set();
+    for (const v of verdicts) {
+      if (v && (v.verdict === 'no' || v.verdict === 'No' || v.verdict === 'NO')) {
+        const idx = Number(v.index);
+        if (Number.isInteger(idx)) noSet.add(idx);
+      }
+    }
+    if (noSet.size === 0) return signals;
+    const survivors = signals.filter((_, i) => !noSet.has(i));
+    console.error(`  → [${batchLabel}] self-check dropped ${noSet.size}/${signals.length} signal(s)`);
+    return survivors;
+  } catch (err) {
+    console.error(`  ⚠ ${batchLabel} self-check failed (${err.message}) — keeping all signals`);
+    return signals;
+  }
+}
+
+async function extractSignalsBatch(articles, batchLabel, retries = 3, usageCallback = null, contentKind = 'news') {
+  const useMultipass = isMultipassEnabled() &&
+    contentKind !== 'whatsapp_realtime' &&
+    contentKind !== 'whatsapp_interactive';
+
+  let raw = [];
+  if (useMultipass) {
+    const groupKeys = Object.keys(DOMAIN_GROUPS);
+    for (const key of groupKeys) {
+      const passLabel = `${batchLabel} pass-${key}`;
+      const passSignals = await callHaikuExtraction(
+        articles, passLabel, retries, usageCallback, contentKind, key,
+      );
+      console.error(`  → ${passLabel}: ${passSignals.length} candidate(s)`);
+      raw = raw.concat(passSignals);
+    }
+  } else {
+    raw = await callHaikuExtraction(articles, batchLabel, retries, usageCallback, contentKind, null);
+  }
+
+  const beforeDedup = raw.length;
+  raw = dedupeSignalsWithinBatch(raw);
+  if (raw.length < beforeDedup) {
+    console.error(`  → [${batchLabel}] in-batch dedup: ${beforeDedup} → ${raw.length}`);
+  }
+
+  let valid = validateSignalsFromCall(raw, articles, batchLabel);
+  valid = applyEvidenceVerifier(valid, articles, batchLabel);
+  valid = await runSelfCheck(valid, batchLabel, usageCallback);
+  return valid;
 }
 
 /**
@@ -712,8 +878,17 @@ function formatScoredComponentsForNarrative(scoredComponents, totalArticles) {
       );
     }).join('\n');
 
+    const ciTag = scored?.score_low != null && scored?.score_high != null
+      ? `  CI: ${scored.score_low}-${scored.score_high}` : '';
+    const polTag = scored?.polarization != null && scored.polarization > 0.5 && scored.evidence_mass > 4
+      ? `  ⚠ contested (pol=${scored.polarization.toFixed(2)})` : '';
+    const deltaTag = scored?.delta_score != null
+      ? `  Δvs prev: ${scored.delta_score >= 0 ? '+' : ''}${scored.delta_score}` +
+        (scored.delta_significance != null ? ` (z=${scored.delta_significance.toFixed(1)})` : '') +
+        (scored.delta_flag === 'significant' ? ' SIGNIFICANT' : '')
+      : '';
     const scoresSummary = scored?.score != null
-      ? `Score: ${scored.score}/10  Certainty: ${(scored.certainty * 100).toFixed(0)}%  Direction: ${scored.strength >= 0 ? '+' : ''}${scored.strength.toFixed(2)}  (${scored.distinct_article_count}/${totalArticles} articles, ${(scored.coverage_ratio * 100).toFixed(1)}%, ${scored.dispersion} dispersion)  +ev:${scored.positive_evidence} −ev:${scored.negative_evidence}`
+      ? `Score: ${scored.score}/10  Certainty: ${(scored.certainty * 100).toFixed(0)}%  Direction: ${scored.strength >= 0 ? '+' : ''}${scored.strength.toFixed(2)}  (${scored.distinct_article_count}/${totalArticles} articles, ${(scored.coverage_ratio * 100).toFixed(1)}%, ${scored.dispersion} dispersion)  +ev:${scored.positive_evidence} −ev:${scored.negative_evidence}${ciTag}${polTag}${deltaTag}`
       : 'Score: insufficient data';
 
     return (
@@ -860,6 +1035,7 @@ export async function generateNarratives(
     `  Name this split explicitly. E.g.: "Shelter instructions reached residents through multiple channels — but no guidance was issued for workers without legal protection to stop, and mass-casualty scenarios were not addressed in official messaging."\n` +
     `  Use information_actionable_effective signals to evidence the presence-effectiveness link; use information_effectiveness_gap signals to evidence the gap.\n` +
     `- BASELINE VS ELEVATED SERVICE FUNCTIONING: Baseline service operation (ambulance responded, hospital treated) is neutral, not positive evidence. Only cite service functioning as strong when it demonstrably performed despite disruption or elevated demand.\n` +
+    `- DELTA + CONTESTED EVIDENCE TAGS: When a component's pre-computed line shows "SIGNIFICANT" (|z|>2 vs 14-day baseline), include a brief trend phrase ("a notable shift vs the 14-day baseline"). When it shows "contested", note that the evidence is split between supporting and opposing observations rather than collapsing to a single verdict. Do not invent direction or magnitude beyond what the score+delta numbers say.\n` +
     `- SCOPE DISCIPLINE: Never use "the only", "the one exception", "uniquely", or similar exclusive claims.\n` +
     `  The inputs are a sample, not a census. Something appearing once in the data means it was reported once — not that it is the sole instance.\n` +
     `- LINKS: Each signal has a URL. When a signal has a URL, embed a markdown link for every significant claim:\n` +
@@ -928,6 +1104,9 @@ export async function generateNarratives(
           coverage_ratio: scored.coverage_ratio ?? 0,
           dispersion: scored.dispersion ?? null,
           coverage_adjustment: scored.coverage_adjustment ?? 0,
+          source_diversity_factor: scored.source_diversity_factor ?? 0,
+          type_diversity_factor:   scored.type_diversity_factor ?? 0,
+          signal_type_entropy:     scored.signal_type_entropy ?? 0,
           positive_evidence: scored.positive_evidence ?? 0,
           negative_evidence: scored.negative_evidence ?? 0,
           net_evidence: scored.net_evidence ?? 0,
@@ -935,6 +1114,33 @@ export async function generateNarratives(
           strength: scored.strength ?? 0,
           adjusted_strength: scored.adjusted_strength ?? 0,
           certainty: scored.certainty ?? 0,
+          polarization: scored.polarization ?? 0,
+          score_low:    scored.score_low ?? null,
+          score_high:   scored.score_high ?? null,
+          counterfactual_article_key: scored.counterfactual_article_key ?? null,
+          counterfactual_delta:       scored.counterfactual_delta ?? null,
+          score_smoothed:     scored.score_smoothed ?? null,
+          delta_score:        scored.delta_score ?? null,
+          delta_significance: scored.delta_significance ?? null,
+          delta_flag:         scored.delta_flag ?? null,
+          facets:             scored.facets ?? null,
+          // N9 explainability: bounded top contributors (by |_contribution|), enriched with
+          // _contribution / _weight / _polarity by behaviorSignals.scoreComponents. Capped at
+          // 10 to keep JSON payload size reasonable; UI takes top 3 from this list.
+          top_contributors: ((scored.signals ?? [])
+            .filter((s) => typeof s._contribution === 'number')
+            .sort((a, b) => Math.abs(b._contribution) - Math.abs(a._contribution))
+            .slice(0, 10)
+            .map((s) => ({
+              signal_type:    s.signal_type ?? s.type ?? null,
+              source_type:    s.source_type ?? null,
+              article_source: s.article_source ?? null,
+              article_url:    s.article_url ?? null,
+              evidence:       s.evidence ?? null,
+              _contribution:  s._contribution,
+              _weight:        s._weight,
+              _polarity:      s._polarity,
+            }))),
           manifestations_evidenced: narr.manifestations_evidenced ?? [],
           manifestations_absent: narr.manifestations_absent ?? [],
           evidence: narr.evidence ?? [],

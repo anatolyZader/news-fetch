@@ -6,7 +6,18 @@ import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import Alert from '@mui/material/Alert';
+import LinearProgress from '@mui/material/LinearProgress';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import TextField from '@mui/material/TextField';
+import MenuItem from '@mui/material/MenuItem';
+import Button from '@mui/material/Button';
+import IconButton from '@mui/material/IconButton';
+import Tooltip from '@mui/material/Tooltip';
 import { useTheme } from '@mui/material/styles';
+import EditNoteOutlinedIcon from '@mui/icons-material/EditNoteOutlined';
 import MenuBookOutlinedIcon from '@mui/icons-material/MenuBookOutlined';
 import CellTowerOutlinedIcon from '@mui/icons-material/CellTowerOutlined';
 import HealthAndSafetyOutlinedIcon from '@mui/icons-material/HealthAndSafetyOutlined';
@@ -18,6 +29,7 @@ import MonitorHeartOutlinedIcon from '@mui/icons-material/MonitorHeartOutlined';
 import HelpOutlineOutlinedIcon from '@mui/icons-material/HelpOutlineOutlined';
 import { expandSourceCitationLinks } from './ReportMarkdownView.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
 import { scoreColor10, scoreLabel10, scoreVariant10 } from '../lib/score.js';
 import { ResilienceSummaryCard, StatusTag, MarkdownArticle } from '../ui/index.js';
 
@@ -109,7 +121,35 @@ function ReportSection({ title, children, ...props }) {
   );
 }
 
-function ComponentChip({ label, variant, value, t }) {
+function DeltaAdornment({ delta, significant, t }) {
+  if (delta == null || delta === 0) return null;
+  const tpl = delta > 0 ? t('report.delta.up') : t('report.delta.down');
+  const text = tpl.replace('{delta}', String(delta));
+  return (
+    <Box
+      component="span"
+      title={significant ? t('report.delta.significant') : undefined}
+      sx={(theme) => ({
+        marginInlineStart: theme.spacing(0.5),
+        paddingInline: theme.spacing(0.6),
+        paddingBlock: '1px',
+        borderRadius: theme.custom.radius.xs,
+        fontSize: theme.typography.eyebrow.fontSize,
+        fontWeight: 600,
+        lineHeight: 1.2,
+        color: delta > 0 ? theme.palette.success.main : theme.palette.error.main,
+        border: significant
+          ? `1.5px solid ${delta > 0 ? theme.palette.success.main : theme.palette.error.main}`
+          : `1px solid ${theme.palette.divider}`,
+        background: theme.palette.background.paper,
+      })}
+    >
+      {text}
+    </Box>
+  );
+}
+
+function ComponentChip({ label, variant, value, t, comp }) {
   return (
     <Stack
       direction="row"
@@ -132,7 +172,397 @@ function ComponentChip({ label, variant, value, t }) {
         {label}
       </Box>
       <StatusTag variant={variant}>{scoreLabel(value, t)}</StatusTag>
+      {comp && (
+        <DeltaAdornment
+          delta={comp.delta_score}
+          significant={comp.delta_flag === 'significant'}
+          t={t}
+        />
+      )}
     </Stack>
+  );
+}
+
+function OverrideBadge({ count, t }) {
+  if (!count || count <= 0) return null;
+  const text = t('report.overrides.badge').replace('{n}', String(count));
+  return (
+    <Tooltip title={t('report.overrides.badge.tooltip')}>
+      <Box
+        component="span"
+        sx={(theme) => ({
+          marginInlineStart: theme.spacing(0.5),
+          paddingInline: theme.spacing(0.6),
+          paddingBlock: '1px',
+          borderRadius: theme.custom.radius.xs,
+          fontSize: theme.typography.eyebrow.fontSize,
+          fontWeight: 600,
+          color: theme.palette.info.main,
+          border: `1px solid ${theme.palette.info.main}`,
+          background: theme.palette.background.paper,
+          whiteSpace: 'nowrap',
+        })}
+      >
+        {text}
+      </Box>
+    </Tooltip>
+  );
+}
+
+function ChallengeDialog({
+  open, onClose, comp, reportDate, reportScope, onSuccess, t,
+}) {
+  const { getIdToken } = useAuth();
+  const [proposedScore, setProposedScore] = useState(comp?.score ?? '');
+  const [note, setNote] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (open) {
+      setProposedScore(comp?.score ?? '');
+      setNote('');
+      setError(null);
+      setSubmitting(false);
+    }
+  }, [open, comp]);
+
+  async function handleSubmit() {
+    if (!comp || !reportDate) return;
+    const score = Number.parseInt(proposedScore, 10);
+    if (!Number.isInteger(score) || score < 1 || score > 10) {
+      setError(t('report.overrides.dialog.error.score'));
+      return;
+    }
+    setSubmitting(true);
+    setError(null);
+    try {
+      const headers = new Headers({ 'Content-Type': 'application/json' });
+      const token = await getIdToken();
+      if (token) headers.set('Authorization', `Bearer ${token}`);
+      const res = await fetch('/api/resilience/overrides', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          report_date: reportDate,
+          scope: reportScope ?? 'national',
+          component_id: comp.component_id,
+          kind: 'challenge_score',
+          original: comp.score != null ? { score: comp.score } : null,
+          proposed: { score },
+          note: note?.trim() ? note.trim() : null,
+        }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body?.error ?? `HTTP ${res.status}`);
+      }
+      if (onSuccess) onSuccess();
+      onClose();
+    } catch (err) {
+      setError(err?.message ?? t('report.overrides.dialog.error.submit'));
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  if (!comp) return null;
+  return (
+    <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
+      <DialogTitle>
+        {t('report.overrides.dialog.title').replace('{component}', comp.component_id.replace(/_/g, ' '))}
+      </DialogTitle>
+      <DialogContent>
+        <Stack spacing={2} sx={{ marginTop: 1 }}>
+          {comp.score != null && (
+            <Typography variant="caption" color="text.secondary">
+              {t('report.overrides.dialog.original').replace('{score}', String(comp.score))}
+            </Typography>
+          )}
+          <TextField
+            select
+            label={t('report.overrides.dialog.proposedScore')}
+            value={proposedScore}
+            onChange={(e) => setProposedScore(e.target.value)}
+            fullWidth
+            disabled={submitting}
+          >
+            {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
+              <MenuItem key={n} value={n}>{n}/10</MenuItem>
+            ))}
+          </TextField>
+          <TextField
+            label={t('report.overrides.dialog.note')}
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            multiline
+            rows={3}
+            fullWidth
+            disabled={submitting}
+            inputProps={{ maxLength: 500 }}
+            helperText={`${note.length}/500`}
+          />
+          {error && <Alert severity="error">{error}</Alert>}
+        </Stack>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose} disabled={submitting}>
+          {t('report.overrides.dialog.cancel')}
+        </Button>
+        <Button
+          onClick={handleSubmit}
+          variant="contained"
+          disabled={submitting || !reportDate}
+        >
+          {t('report.overrides.dialog.submit')}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
+
+function ContestedBadge({ t }) {
+  return (
+    <Box
+      component="span"
+      sx={(theme) => ({
+        marginInlineStart: theme.spacing(1),
+        fontSize: theme.typography.eyebrow.fontSize,
+        fontWeight: 600,
+        color: theme.palette.warning.main,
+        border: `1px solid ${theme.palette.warning.main}`,
+        borderRadius: theme.custom.radius.xs,
+        paddingInline: theme.spacing(0.6),
+        paddingBlock: '1px',
+        textTransform: 'lowercase',
+      })}
+    >
+      {t('report.polarization.contested')}
+    </Box>
+  );
+}
+
+function ScoreWithInterval({ comp, t }) {
+  if (comp.score == null) {
+    return (
+      <Typography variant="caption" color="text.disabled" sx={{ fontStyle: 'italic' }}>
+        {t('report.insufficientData')}
+      </Typography>
+    );
+  }
+  const hasCi = comp.score_low != null && comp.score_high != null
+    && (comp.score_low !== comp.score || comp.score_high !== comp.score);
+  if (!hasCi) {
+    return (
+      <Typography component="span" variant="caption" color="text.secondary">
+        {comp.score}/10
+      </Typography>
+    );
+  }
+  return (
+    <Typography component="span" variant="caption" color="text.secondary">
+      {t('report.scoreInterval')
+        .replace('{score}', String(comp.score))
+        .replace('{low}', String(comp.score_low))
+        .replace('{high}', String(comp.score_high))}
+    </Typography>
+  );
+}
+
+function DecompositionRow({ comp, t }) {
+  if (comp.score == null) return null;
+  const items = [
+    { label: t('report.decomposition.positive'), value: comp.positive_evidence },
+    { label: t('report.decomposition.negative'), value: comp.negative_evidence },
+    { label: t('report.decomposition.sources'),  value: comp.source_diversity },
+    {
+      label: t('report.decomposition.entropy'),
+      value: comp.signal_type_entropy != null ? comp.signal_type_entropy.toFixed(2) : '—',
+    },
+  ];
+  return (
+    <Stack
+      direction="row"
+      flexWrap="wrap"
+      spacing={1.5}
+      useFlexGap
+      sx={(theme) => ({
+        marginTop: theme.spacing(0.75),
+        marginBottom: theme.spacing(0.75),
+        color: 'text.secondary',
+        fontSize: theme.typography.eyebrow.fontSize,
+        opacity: 0.85,
+      })}
+    >
+      <Typography variant="eyebrow" component="span" sx={{ opacity: 0.7 }}>
+        {t('report.decomposition.label')}:
+      </Typography>
+      {items.map((it) => (
+        <Box component="span" key={it.label}>
+          <strong>{it.label}</strong> {it.value ?? '—'}
+        </Box>
+      ))}
+    </Stack>
+  );
+}
+
+function WhyThisScore({ comp, t }) {
+  const contributors = comp.top_contributors;
+  if (!Array.isArray(contributors) || contributors.length === 0) return null;
+  const top = contributors.slice(0, 3);
+
+  return (
+    <Box sx={(theme) => ({
+      marginTop: theme.spacing(0.75),
+      marginBottom: theme.spacing(0.75),
+      paddingTop: theme.spacing(0.75),
+      paddingBottom: theme.spacing(0.75),
+      paddingLeft: theme.spacing(1),
+      paddingRight: theme.spacing(1),
+      borderRadius: theme.custom.radius.sm,
+      background: theme.palette.action.hover,
+    })}>
+      <Typography
+        variant="eyebrow"
+        component="div"
+        sx={(theme) => ({ marginBottom: theme.spacing(0.25), color: 'text.secondary' })}
+      >
+        {t('report.whyThisScore.label')}
+      </Typography>
+      <Stack spacing={0.25}>
+        {top.map((s, i) => {
+          const sign = s._polarity === '-' ? '−' : '+';
+          const signColor = s._polarity === '-' ? 'error.main' : 'success.main';
+          const signalLabel = (s.signal_type ?? '').replace(/_/g, ' ');
+          return (
+            <Stack
+              key={i}
+              direction="row"
+              alignItems="baseline"
+              spacing={0.75}
+              sx={{ minWidth: 0 }}
+            >
+              <Typography variant="caption" sx={{ color: signColor, fontWeight: 700, width: '1em' }}>
+                {sign}
+              </Typography>
+              <Typography
+                variant="caption"
+                sx={{
+                  fontWeight: 600,
+                  color: 'text.secondary',
+                  textTransform: 'lowercase',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {signalLabel}
+              </Typography>
+              {s.source_type && (
+                <Typography variant="caption" sx={{ color: 'text.disabled' }}>
+                  · {s.source_type}{s.article_source ? ` · ${s.article_source.replace(/^pbo-/, '')}` : ''}
+                </Typography>
+              )}
+              <Typography
+                variant="caption"
+                sx={{ color: 'text.secondary', marginInlineStart: 'auto', whiteSpace: 'nowrap' }}
+              >
+                {t('report.whyThisScore.contribution')
+                  .replace('{value}', s._contribution.toFixed(2))}
+              </Typography>
+            </Stack>
+          );
+        })}
+      </Stack>
+    </Box>
+  );
+}
+
+function CounterfactualHint({ comp, t }) {
+  if (comp.counterfactual_delta == null) return null;
+  if (Math.abs(comp.counterfactual_delta) < 1) return null;
+  const sign = comp.counterfactual_delta > 0 ? '+' : '';
+  const text = t('report.counterfactual')
+    .replace('{delta}', `${sign}${comp.counterfactual_delta}`);
+  return (
+    <Typography
+      variant="caption"
+      sx={(theme) => ({
+        display: 'block',
+        marginTop: theme.spacing(0.5),
+        marginBottom: theme.spacing(0.75),
+        color: 'text.secondary',
+        fontStyle: 'italic',
+      })}
+    >
+      {text}
+    </Typography>
+  );
+}
+
+function FacetBars({ facets, t }) {
+  if (!facets) return null;
+  const entries = Object.entries(facets);
+  if (entries.length === 0) return null;
+  return (
+    <Box sx={(theme) => ({ marginTop: theme.spacing(1.5) })}>
+      <Typography
+        variant="eyebrow"
+        component="div"
+        sx={(theme) => ({ marginBottom: theme.spacing(0.5), color: 'text.secondary' })}
+      >
+        {t('report.facets.label')}
+      </Typography>
+      <Stack spacing={0.5}>
+        {entries.map(([name, f]) => {
+          const labelKey = `report.facet.${name}`;
+          const facetLabel = t(labelKey) === labelKey ? name : t(labelKey);
+          const pct = f.score != null ? (f.score / 10) * 100 : 0;
+          return (
+            <Box key={name}>
+              <Stack direction="row" justifyContent="space-between" alignItems="center">
+                <Typography variant="caption" sx={{ textTransform: 'capitalize' }}>
+                  {facetLabel}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  {f.score != null ? `${f.score}/10` : '—'}
+                  {' · '}
+                  {f.signal_count ?? 0}
+                </Typography>
+              </Stack>
+              <LinearProgress
+                variant="determinate"
+                value={pct}
+                color={f.score == null ? 'inherit' : (f.score <= 4 ? 'error' : f.score <= 6 ? 'warning' : 'success')}
+                sx={{ height: 6, borderRadius: 3, opacity: f.score == null ? 0.3 : 1 }}
+              />
+            </Box>
+          );
+        })}
+      </Stack>
+    </Box>
+  );
+}
+
+function DeltaLine({ comp, t }) {
+  if (comp.delta_score == null) return null;
+  const sign = comp.delta_score > 0 ? '+' : '';
+  const sigText = comp.delta_significance != null
+    ? ` (z=${comp.delta_significance.toFixed(2)})`
+    : '';
+  return (
+    <Typography
+      variant="caption"
+      sx={(theme) => ({
+        display: 'block',
+        marginTop: theme.spacing(0.25),
+        color: comp.delta_flag === 'significant'
+          ? (comp.delta_score > 0 ? theme.palette.success.main : theme.palette.error.main)
+          : 'text.secondary',
+        fontWeight: comp.delta_flag === 'significant' ? 600 : 400,
+      })}
+    >
+      {t('report.delta.label')}: {sign}{comp.delta_score}{sigText}
+      {comp.delta_flag === 'significant' && ` — ${t('report.delta.significant')}`}
+    </Typography>
   );
 }
 
@@ -140,6 +570,8 @@ function ComponentCard({
   comp,
   t,
   sourceSignals,
+  overrideCount,
+  onChallengeClick,
   open,
   evidenceOpen,
   onToggle,
@@ -153,12 +585,22 @@ function ComponentCard({
   const signals = isFiltered ? (sourceSignals ?? []) : null;
   const curatedEvidence = isFiltered ? null : (comp.evidence ?? []);
   const evidenceCount = isFiltered ? signals.length : curatedEvidence.length;
+  const isInsufficient = comp.confidence === 'insufficient_data' || comp.score == null;
+  const isContested = comp.polarization != null && comp.polarization > 0.5
+    && (comp.evidence_mass ?? 0) > 4;
 
   return (
     <Accordion
       expanded={open}
       onChange={(_, expanded) => onToggle(expanded)}
-      sx={(theme) => ({ marginBottom: theme.spacing(1) })}
+      sx={(theme) => ({
+        marginBottom: theme.spacing(1),
+        ...(isInsufficient ? {
+          borderStyle: 'dashed',
+          opacity: 0.85,
+          backgroundColor: theme.palette.action.hover,
+        } : null),
+      })}
     >
       <AccordionSummary>
         <Icon
@@ -168,15 +610,53 @@ function ComponentCard({
             marginRight: theme.spacing(1),
           })}
         />
-        <Typography sx={{ flex: 1, fontWeight: 500, textTransform: 'capitalize' }}>
-          {label}
-        </Typography>
+        <Stack direction="column" sx={{ flex: 1, minWidth: 0 }}>
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <Typography sx={{ fontWeight: 500, textTransform: 'capitalize' }}>
+              {label}
+            </Typography>
+            {isContested && <ContestedBadge t={t} />}
+            <OverrideBadge count={overrideCount} t={t} />
+          </Stack>
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <ScoreWithInterval comp={comp} t={t} />
+            <DeltaAdornment
+              delta={comp.delta_score}
+              significant={comp.delta_flag === 'significant'}
+              t={t}
+            />
+          </Stack>
+        </Stack>
         <Typography variant="caption" color="text.secondary">
           {confidenceLabel}
         </Typography>
       </AccordionSummary>
       <AccordionDetails>
+        {onChallengeClick && (
+          <Box sx={(theme) => ({
+            display: 'flex', justifyContent: 'flex-end',
+            marginBottom: theme.spacing(0.5),
+          })}>
+            <Tooltip title={t('report.overrides.challenge')}>
+              <IconButton
+                size="small"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onChallengeClick(comp);
+                }}
+                aria-label={t('report.overrides.challenge')}
+              >
+                <EditNoteOutlinedIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          </Box>
+        )}
+        <DecompositionRow comp={comp} t={t} />
+        <WhyThisScore comp={comp} t={t} />
+        <DeltaLine comp={comp} t={t} />
+        <CounterfactualHint comp={comp} t={t} />
         <MarkdownArticle variant="report" markdown={expandSourceCitationLinks(comp.narrative ?? '')} />
+        <FacetBars facets={comp.facets} t={t} />
 
         {evidenceCount > 0 && (
           <Accordion
@@ -255,6 +735,10 @@ export function ReportView({
   readOnly: _readOnly,
   translating,
   translateError,
+  reportDate,
+  reportScope,
+  overridesCount,
+  onOverridesChanged,
   openCompId: openCompIdProp,
   setOpenCompId: setOpenCompIdProp,
   openEvidenceCompId: openEvidenceCompIdProp,
@@ -265,6 +749,7 @@ export function ReportView({
   const overall = assessment.overall_resilience_score;
   const [openCompIdInternal, setOpenCompIdInternal] = useState(null);
   const [openEvidenceCompIdInternal, setOpenEvidenceCompIdInternal] = useState(null);
+  const [challengeComp, setChallengeComp] = useState(null);
   const compRefs = useRef({});
 
   const openCompId = openCompIdProp ?? openCompIdInternal;
@@ -331,6 +816,7 @@ export function ReportView({
             value={c.score}
             variant={scoreVariant10(c.score)}
             t={t}
+            comp={c}
           />
         ))}
       </Box>
@@ -354,6 +840,8 @@ export function ReportView({
               comp={c}
               t={t}
               sourceSignals={getSourceSignals(c.component_id)}
+              overrideCount={overridesCount?.[c.component_id] ?? 0}
+              onChallengeClick={reportDate ? setChallengeComp : null}
               open={openCompId === c.component_id}
               evidenceOpen={openEvidenceCompId === c.component_id}
               onToggle={(isOpen) => {
@@ -380,6 +868,16 @@ export function ReportView({
           </Box>
         </ReportSection>
       )}
+
+      <ChallengeDialog
+        open={Boolean(challengeComp)}
+        onClose={() => setChallengeComp(null)}
+        comp={challengeComp}
+        reportDate={reportDate}
+        reportScope={reportScope}
+        onSuccess={onOverridesChanged}
+        t={t}
+      />
     </Stack>
   );
 }

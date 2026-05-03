@@ -68,16 +68,53 @@ function buildMarkdown(assessment, sourceFiles) {
     const articleCoverage = `${comp.distinct_article_count ?? '—'} of ${assessment.total_articles_analyzed}`;
     const certPct = comp.certainty != null ? `${(comp.certainty * 100).toFixed(0)}%` : '—';
     const spreadLabel = (comp.dispersion ?? '—').replace(/_/g, ' ');
+
+    const scoreCi = comp.score != null && comp.score_low != null && comp.score_high != null
+      ? `**Score:** ${comp.score}/10  *(90% CI: ${comp.score_low}–${comp.score_high})*`
+      : (comp.score != null ? `**Score:** ${comp.score}/10` : '');
+
     lines.push(
       `### ${i18n(comp.component_id)} ${def.name_en ?? comp.component_id}`,
       `*${def.name_he ?? ''}*`,
       ``,
+    );
+    if (scoreCi) lines.push(scoreCi, ``);
+
+    lines.push(
       `**Assessment reliability:** ${summarizeConfidence(comp.confidence)} *(based on how much evidence was found and how broadly it appears across the sample)* | **Evidence level:** ${certPct} *(${EVIDENCE_LEVEL_INLINE_NOTE})*`,
       `**Evidence base:** ${comp.signal_count ?? 0} behavioral signals found in ${articleCoverage} articles *(${coveragePct} of today's sample, ${spreadLabel} spread across sources)* | **Evidence direction:** ${evidenceDirection(comp.positive_evidence, comp.negative_evidence)}`,
-      ``,
-      comp.narrative,
-      ``,
     );
+
+    if (comp.polarization != null && comp.polarization > 0.5 && (comp.evidence_mass ?? 0) > 4) {
+      lines.push(
+        `> **Note — contested evidence:** positive and negative observations are split (polarization ${comp.polarization.toFixed(2)}); this score reflects an unresolved disagreement, not a single direction.`,
+      );
+    }
+
+    if (comp.delta_score != null) {
+      const sign = comp.delta_score > 0 ? '+' : '';
+      const z = comp.delta_significance != null ? `, z=${comp.delta_significance.toFixed(2)}` : '';
+      const flag = comp.delta_flag === 'significant' ? '  **(significant vs 14-day baseline)**' : '';
+      lines.push(`**Δ vs prior day:** ${sign}${comp.delta_score}${z}${flag}`);
+    }
+
+    if (comp.counterfactual_delta != null && Math.abs(comp.counterfactual_delta) >= 1) {
+      const cfSign = comp.counterfactual_delta > 0 ? '+' : '';
+      lines.push(
+        `**Sensitivity:** removing the dominant article would change this score by ${cfSign}${comp.counterfactual_delta} ` +
+        `*(article: ${comp.counterfactual_article_key ?? 'n/a'})*`,
+      );
+    }
+
+    if (comp.facets) {
+      const facetLines = Object.entries(comp.facets)
+        .map(([name, f]) => `- *${name}:* ${f.score != null ? `${f.score}/10` : '—'} (${f.signal_count ?? 0} signals)`);
+      if (facetLines.length > 0) {
+        lines.push(``, `**Facets:**`, ...facetLines);
+      }
+    }
+
+    lines.push(``, comp.narrative, ``);
 
     if (comp.evidence?.length) {
       comp.evidence.forEach((e) => lines.push(`- ${e}`));

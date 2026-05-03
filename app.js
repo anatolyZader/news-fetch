@@ -34,6 +34,11 @@ import { createHttpAudioDownloadAdapter } from './business_modules/audio/infrast
 import { runResilienceAssessment } from './business_modules/resilience/app/resilienceAnalysisService.js';
 import { contentBatchFromMdArticles } from './business_modules/resilience/app/contentBatchFromMdArticles.js';
 import { createAnthropicResilienceLlmAdapter } from './business_modules/resilience/infrastructure/adapters/anthropicResilienceLlmAdapter.js';
+import { createOverridesStore } from './business_modules/resilience/infrastructure/overridesStore.js';
+import { createOverridesService } from './business_modules/resilience/app/overridesService.js';
+import { registerOverridesRoutes } from './business_modules/resilience/input/overridesRoutes.js';
+import { createDriftService } from './business_modules/resilience/app/driftService.js';
+import { registerDriftRoutes } from './business_modules/resilience/input/driftRoutes.js';
 import { getEducationDashboard } from './business_modules/education/app/educationSessionsService.js';
 import { getMunicipalityDashboard } from './business_modules/pbo_report_muni/app/pboMunicipalityService.js';
 import {
@@ -665,11 +670,33 @@ export async function createApp(options) {
   });
 
   // ─── Protected API routes (when AUTH_REQUIRED=true) ───────────────────────
+  const overridesStore = createOverridesStore();
+  const overridesService = createOverridesService({ store: overridesStore });
+
   app.get('/api/report/today', authHook, async (request, reply) => {
     const scope = request.query?.scope === 'north' ? 'north' : 'national';
     const data = getCachedReport(evidenceStore, { scope });
-    return reply.send(data ? { found: true, ...data } : { found: false });
-    // Note: data.reportDate is included via spread — client uses it for staleness banner
+    if (!data) return reply.send({ found: false });
+    let overrides_count = {};
+    try {
+      if (typeof data.reportDate === 'string') {
+        overrides_count = overridesService.countByComponent({ date: data.reportDate, scope });
+      }
+    } catch {
+      /* non-fatal: overrides are optional metadata */
+    }
+    return reply.send({ found: true, ...data, overrides_count });
+  });
+
+  await registerOverridesRoutes(app, {
+    service: overridesService,
+    authPreHandler: authHook?.preHandler,
+  });
+
+  const driftService = createDriftService({ overridesService });
+  await registerDriftRoutes(app, {
+    driftService,
+    authPreHandler: authHook?.preHandler,
   });
 
   app.get('/api/evidence-draft', authHook, async (request, reply) => {

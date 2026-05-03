@@ -29,6 +29,11 @@ import {
 import { generateNarratives } from '../infrastructure/claudeEvaluator.js';
 import { writeReport } from '../infrastructure/reportWriter.js';
 import { createCostTracker, appendCostLog, checkDailyBudget } from '../../../cross-cut-modules/budget/index.js';
+import {
+  crossSourceDedup,
+  loadHistoricalScores,
+  enrichWithDeltaChannel,
+} from './assessSignalsHelpers.js';
 
 const TEMPORAL_WEIGHTS = { 0: 1.00, 1: 0.85, 2: 0.70 };
 
@@ -240,9 +245,8 @@ async function run() {
     sourceTypesSeen.add(sourceType);
   }
 
-  // Deduplicate near-identical signals across files (same source team may report
-  // the same observation in consecutive weekly reports). Keep the one with highest
-  // temporal_weight (most recent). Key on: signal_type + source + normalised evidence.
+  // Within-source dedup: same source team reporting the same observation across
+  // consecutive bundles. Keep highest temporal_weight (most recent).
   {
     const seen = new Map();
     for (const s of allSignals) {
@@ -256,7 +260,17 @@ async function run() {
     const beforeCount = allSignals.length;
     allSignals = [...seen.values()];
     if (allSignals.length < beforeCount) {
-      console.error(`  Deduped: ${beforeCount} → ${allSignals.length} signals (${beforeCount - allSignals.length} duplicates removed)`);
+      console.error(`  Within-source dedup: ${beforeCount} → ${allSignals.length} (${beforeCount - allSignals.length} duplicates removed)`);
+    }
+  }
+
+  // Cross-source dedup (E7): collapse the same primary quote republished by
+  // multiple outlets into one signal so coverage_ratio doesn't inflate.
+  {
+    const beforeCount = allSignals.length;
+    allSignals = crossSourceDedup(allSignals);
+    if (allSignals.length < beforeCount) {
+      console.error(`  Cross-source merged: ${beforeCount} → ${allSignals.length} (${beforeCount - allSignals.length} cross-outlet duplicates collapsed)`);
     }
   }
 
@@ -276,6 +290,12 @@ async function run() {
   const nationalSignals = allSignals;
   const nationalTotalArticles = totalArticles;
   const nationalScored = scoreComponents(nationalSignals, { totalArticles: nationalTotalArticles });
+
+  // Load 14-day per-component score history once for delta-channel enrichment.
+  const historicalScores = loadHistoricalScores(targetDate, 'reports', 14);
+  if (Object.keys(historicalScores).length > 0) {
+    console.error(`  Loaded historical score series for ${Object.keys(historicalScores).length} components`);
+  }
 
   allSignals = filterSignalsForScope(allSignals, reportScopeId);
   if (reportScopeId !== 'national') {
@@ -298,7 +318,8 @@ async function run() {
   const scopedSourceTypesSeen = new Set(allSignals.map((s) => s.source_type).filter(Boolean));
 
   // Score full (all signals combined for the selected scope)
-  const scoredFull = scoreComponents(allSignals, { totalArticles: scopedTotalArticles });
+  let scoredFull = scoreComponents(allSignals, { totalArticles: scopedTotalArticles });
+  scoredFull = enrichWithDeltaChannel(scoredFull, historicalScores);
 
   // Score per source type
   const scoreBySource = {};

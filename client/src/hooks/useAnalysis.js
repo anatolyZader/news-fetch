@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
 
 /**
@@ -10,6 +10,8 @@ export function useTodayReport(scope = 'national') {
   const [markdown, setMarkdown] = useState(null);
   const [scoreBySource, setScoreBySource] = useState(null);
   const [reportDate, setReportDate] = useState(null);
+  const [overridesCount, setOverridesCount] = useState({});
+  const [refreshTick, setRefreshTick] = useState(0);
   /** False until the first GET /api/report/today attempt finishes (success or failure). */
   const [initialReportLoadDone, setInitialReportLoadDone] = useState(false);
 
@@ -21,6 +23,7 @@ export function useTodayReport(scope = 'national') {
     setMarkdown(null);
     setScoreBySource(null);
     setReportDate(null);
+    setOverridesCount({});
     setInitialReportLoadDone(false);
 
     (async () => {
@@ -38,6 +41,7 @@ export function useTodayReport(scope = 'national') {
           setMarkdown(typeof data.markdown === 'string' && data.markdown.trim() ? data.markdown : null);
           setScoreBySource(data.score_by_source && typeof data.score_by_source === 'object' ? data.score_by_source : null);
           setReportDate(typeof data.reportDate === 'string' ? data.reportDate : null);
+          setOverridesCount(data.overrides_count && typeof data.overrides_count === 'object' ? data.overrides_count : {});
         }
       } catch {
         /* offline / error — empty state below */
@@ -49,7 +53,23 @@ export function useTodayReport(scope = 'national') {
     return () => {
       cancelled = true;
     };
-  }, [apiReady, getIdToken, scope]);
+  }, [apiReady, getIdToken, scope, refreshTick]);
 
-  return { report, markdown, scoreBySource, reportDate, initialReportLoadDone };
+  /**
+   * Re-fetches the report (used after submitting a reviewer override so the
+   * overrides_count badge reflects the new total without a full page reload).
+   */
+  const refreshOverrides = useCallback(() => {
+    setRefreshTick((t) => t + 1);
+  }, []);
+
+  return {
+    report,
+    markdown,
+    scoreBySource,
+    reportDate,
+    overridesCount,
+    refreshOverrides,
+    initialReportLoadDone,
+  };
 }
