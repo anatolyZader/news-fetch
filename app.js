@@ -36,7 +36,10 @@ import { contentBatchFromMdArticles } from './business_modules/resilience/app/co
 import { createAnthropicResilienceLlmAdapter } from './business_modules/resilience/infrastructure/adapters/anthropicResilienceLlmAdapter.js';
 import { getEducationDashboard } from './business_modules/education/app/educationSessionsService.js';
 import { getMunicipalityDashboard } from './business_modules/pbo_report_muni/app/pboMunicipalityService.js';
-import { getRegionalPboReportDays } from './business_modules/pbo_report_regional/app/pboRegionalDailyService.js';
+import {
+  createPboRegionalDailyService,
+  createPboReportRegionalFsAdapter,
+} from './business_modules/pbo_report_regional/index.js';
 import { getNaftaliDashboard } from './business_modules/naftali/app/naftaliService.js';
 import { createVisitsFsAdapter, createVisitsService, visitsRoutes } from './business_modules/visits/index.js';
 import {
@@ -90,6 +93,12 @@ const visitsService = createVisitsService({
 
 const chatbotManualReportsService = createChatbotManualReportsService({
   repository: createChatbotManualReportsFsAdapter({ rootDir: __dirname }),
+});
+
+const pboRegionalDailyService = createPboRegionalDailyService({
+  repository: createPboReportRegionalFsAdapter({
+    dataDir: resolve(__dirname, 'business_modules', 'pbo_report_regional', 'data'),
+  }),
 });
 
 function isMailingConfigured() {
@@ -881,7 +890,7 @@ export async function createApp(options) {
   app.get('/api/pbo/regional-report-days/:regionId', authHook, async (request, reply) => {
     const { regionId } = request.params ?? {};
     try {
-      const data = getRegionalPboReportDays(String(regionId ?? ''));
+      const data = pboRegionalDailyService.getRegionalPboReportDays(String(regionId ?? ''));
       return reply.send(data);
     } catch (err) {
       if (err?.code === 'UNKNOWN_REGION') {

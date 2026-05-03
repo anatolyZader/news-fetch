@@ -137,6 +137,14 @@ async function run() {
     3,
   );
 
+  const recentPboRegionalFiles = signalBundlesInAssessmentWindow(
+    rootFiles.sort(),
+    /^signals-pbo_regional-(\d{4}-\d{2}-\d{2})\.json$/,
+    targetDate,
+    targetDates,
+    3,
+  );
+
   const recentNaftaliFiles = signalBundlesInAssessmentWindow(
     rootFiles.sort(),
     /^signals-naftali-(\d{4}-\d{2}-\d{2})\.json$/,
@@ -145,8 +153,13 @@ async function run() {
     1,
   );
 
-  // Field / PBO / Naftali: same calendar window + no dates after `--date` as news/radio/etc.
-  const RECENCY_SOURCES = { field: recentFieldFiles, pbo: recentPboFiles, naftali: recentNaftaliFiles };
+  // Field / PBO / regional PBO / Naftali: same calendar window + no dates after `--date` as news/radio/etc.
+  const RECENCY_SOURCES = {
+    field: recentFieldFiles,
+    pbo: recentPboFiles,
+    pbo_regional: recentPboRegionalFiles,
+    naftali: recentNaftaliFiles,
+  };
 
   // Load pipeline config to check which sources are enabled
   const pipelineConfigPath = resolve('pipeline-config.json');

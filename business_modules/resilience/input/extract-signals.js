@@ -5,7 +5,7 @@
  * Run this separately for each source type; then run assess-signals.js to combine and assess.
  *
  * Usage:
- *   node extract-signals.js --source-type news|radio|field --files <f1.md,f2.md,...> --date YYYY-MM-DD
+ *   node extract-signals.js --source-type news|radio|field|whatsapp --files <f1.md,f2.md,...> --date YYYY-MM-DD
  *
  * Output:
  *   signals/signals-{source-type}-{date}.json  (news, radio, whatsapp, …)

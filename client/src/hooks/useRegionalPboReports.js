@@ -31,7 +31,7 @@ async function readFetchErrorMessage(res) {
   return `HTTP ${res.status}`;
 }
 
-/** Load daily regional PBO workbooks (`/api/pbo/regional-report-days/:regionId`). */
+/** Load daily regional PBO markdown reports (`/api/pbo/regional-report-days/:regionId`). */
 export function useRegionalPboReports({ regionId, getIdToken, apiReady }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);

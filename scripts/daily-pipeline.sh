@@ -111,15 +111,30 @@ node business_modules/pbo_report_muni/input/extract-pbo-signals.js 2>/dev/null \
   || echo "  SKIP (no PBO files or extraction failed)"
 echo ""
 
-# ── Step 8: Extract Naftali questionnaire signals ─────────────────────────
-echo "── Step 8: Naftali questionnaire signals ──"
+# ── Step 8: Extract regional PBO markdown signals ───────────────────────
+echo "── Step 8: Regional PBO markdown signals ──"
+for dt in "${DATES[@]}"; do
+  regional_pbo_files=$( (ls business_modules/pbo_report_regional/data/*"${dt}"*.md business_modules/pbo_report_regional/data/*"${dt}"*.markdown 2>/dev/null || true) | sort | tr '\n' ',' | sed 's/,$//')
+  if [[ -n "$regional_pbo_files" ]]; then
+    echo "  Extracting signals from regional PBO markdown reports for $dt..."
+    node business_modules/pbo_report_regional/input/extract-regional-pbo-signals.js \
+      --files "$regional_pbo_files" --date "$dt" \
+      || echo "  WARNING: regional PBO signal extraction failed for $dt"
+  else
+    echo "  SKIP $dt (no regional PBO markdown files)"
+  fi
+done
+echo ""
+
+# ── Step 9: Extract Naftali questionnaire signals ─────────────────────────
+echo "── Step 9: Naftali questionnaire signals ──"
 node business_modules/naftali/input/extract-naftali-signals.js 2>/dev/null \
   && echo "  Done" \
   || echo "  SKIP (no Naftali files or extraction failed)"
 echo ""
 
-# ── Step 9: Run combined 3-day assessment ─────────────────────────────────
-echo "── Step 9: Run 3-day resilience assessment ──"
+# ── Step 10: Run combined 3-day assessment ────────────────────────────────
+echo "── Step 10: Run 3-day resilience assessment ──"
 node business_modules/resilience/input/assess-signals.js --date "$TODAY" --days 3
 echo ""
 

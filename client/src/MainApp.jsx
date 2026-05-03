@@ -26,7 +26,6 @@ import { SendEvidencePanel } from './components/SendEvidencePanel.jsx';
 import { SettingsPanel } from './components/SettingsPanel.jsx';
 import { EducationTab } from './components/EducationTab.jsx';
 import { MunicipalitiesTab } from './components/MunicipalitiesTab.jsx';
-import { PboPlaceholderTab } from './components/PboPlaceholderTab.jsx';
 import { PboRegionalDailyReports } from './components/PboRegionalDailyReports.jsx';
 import { NaftaliTab } from './components/NaftaliTab.jsx';
 import { ChatbotManualReportsTab } from './components/ChatbotManualReportsTab.jsx';
@@ -49,7 +48,7 @@ const LS_PBO_TAB = 'vibes-witch:pboTab';
 const LS_PBO_REGION = 'vibes-witch:pboRegion';
 const LS_REPORT_SCOPE = 'vibes-witch:reportScope';
 const MAIN_TAB_IDS = new Set(['report', 'pbo-reports', 'chatbot', 'visits', 'pools']);
-const PBO_TAB_IDS = new Set(['local', 'regional', 'district']);
+const PBO_TAB_IDS = new Set(['local', 'regional']);
 /** Northern PBO sub-regions (maps to divisions in regions.json; Galma ≈ Western Galilee / גלמ״ע). */
 const PBO_REGION_IDS_ORDER = ['naftali', 'golan', 'baram', 'hiram', 'galma'];
 const PBO_REGION_IDS = new Set(PBO_REGION_IDS_ORDER);
@@ -76,7 +75,7 @@ function normalizePboSubFromSection(section, pboQuery) {
   if (pboQuery && PBO_TAB_IDS.has(pboQuery)) return pboQuery;
   if (section === 'pbo-municipal' || section === 'municipalities') return 'local';
   if (section === 'pbo-regional') return 'regional';
-  if (section === 'pbo-district') return 'district';
+  if (section === 'pbo-district') return 'local';
   return '';
 }
 const POOL_TAB_IDS = new Set(['naftali', 'education']);
@@ -101,7 +100,7 @@ function readDeepLink() {
     } else if (hash.startsWith('pbo-reports-')) {
       section = 'pbo-reports';
       const rest = hash.slice('pbo-reports-'.length);
-      const mh = rest.match(/^(local|regional|district)(?:-([\w-]+))?$/i);
+      const mh = rest.match(/^(local|regional)(?:-([\w-]+))?$/i);
       if (mh && !pboSub) {
         const sub = String(mh[1] ?? '').trim().toLowerCase();
         if (PBO_TAB_IDS.has(sub)) pboSub = sub;
@@ -165,7 +164,6 @@ function readPboTab() {
     if (v && PBO_TAB_IDS.has(v)) return v;
     const legacyMain = localStorage.getItem(LS_MAIN_TAB);
     if (legacyMain === 'pbo-regional') return 'regional';
-    if (legacyMain === 'pbo-district') return 'district';
     if (legacyMain === 'pbo-municipal') return 'local';
   } catch { /* */ }
   return 'local';
@@ -326,7 +324,6 @@ function AppShell() {
   const PBO_TABS = [
     { id: 'local',    label: t('tab.pboLocal') },
     { id: 'regional', label: t('tab.pboRegional') },
-    { id: 'district', label: t('tab.pboDistrict') },
   ];
 
   const PBO_REGION_TABS = PBO_REGION_IDS_ORDER.map((id) => ({
@@ -685,9 +682,6 @@ function AppShell() {
                 </Stack>
                 <PboRegionalDailyReports regionId={activePboRegionTab} />
               </>
-            )}
-            {activePboTab === 'district' && (
-              <PboPlaceholderTab messageKey="pbo.placeholder.district" />
             )}
           </>
         )}

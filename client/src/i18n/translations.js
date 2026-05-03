@@ -7,7 +7,6 @@ export const translations = {
     'tab.pboReports': 'PBO reports',
     'tab.pboLocal': 'Local',
     'tab.pboRegional': 'Regional',
-    'tab.pboDistrict': 'District',
     'app.ariaPboNorthRegions': 'Northern PBO sub-regions',
     'pbo.region.naftali': 'Naftali',
     'pbo.region.golan': 'Golan',
@@ -16,19 +15,12 @@ export const translations = {
     'pbo.region.galma': 'Galma',
     'pbo.regionDaily.loading': 'Loading regional PBO data…',
     'pbo.regionDaily.empty':
-      'No workbook files yet. Drop daily .xlsx reports from this regional PBO into pbo_report_regional/<region> on the server.',
+      'No markdown reports yet. Save daily .md reports in business_modules/pbo_report_regional/data.',
     'pbo.regionDaily.subtitle':
-      'Daily files from this regional Population Behavior Officer inbox (not derived from municipal reports).',
+      'Daily markdown reports saved manually by the regional Population Behavior Officer before analysis.',
     'pbo.regionDaily.listAria': 'Regional daily PBO reports',
-    'pbo.regionDay.municipalitiesCount': '{n} rows in workbook',
     'pbo.regionDay.sourceFile': 'Source file:',
     'pbo.regionDay.inboxLocation': 'Inbox',
-    'pbo.regionDay.perMunicipality': 'Row breakdown',
-    'pbo.regionDay.parseEmpty':
-      'This file was not read as a standard PBO Excel export (no data rows or unknown layout).',
-    'pbo.regionDay.parseIssue': 'Could not read file: {detail}',
-    'pbo.placeholder.district':
-      'District-level PBO dashboards are not wired up yet.',
     'tab.chatbot': 'Chatbot',
     'chatbotManual.subtitle':
       'Manual reports from the WhatsApp chatbot or vibeswitch.ai “send report”; files live in the server chatbot inbox.',
@@ -406,7 +398,6 @@ export const translations = {
     'tab.pboReports': 'דוחות קה״א',
     'tab.pboLocal': 'מקומי',
     'tab.pboRegional': 'אזורי',
-    'tab.pboDistrict': 'מחוזי',
     'app.ariaPboNorthRegions': 'אזורי צפון — דוחות קה״א',
     'pbo.region.naftali': 'נפתלי',
     'pbo.region.golan': 'גולן',
@@ -415,17 +406,12 @@ export const translations = {
     'pbo.region.galma': 'גלמ״ע',
     'pbo.regionDaily.loading': 'טוען נתוני אזור…',
     'pbo.regionDaily.empty':
-      'אין עדיין קבצי Excel. יש להניח דוחות יומיים של קב״א אזורי בתיקייה pbo_report_regional/<אזור> בשרת.',
+      'אין עדיין דוחות Markdown. יש לשמור דוחות יומיים בתיקייה business_modules/pbo_report_regional/data.',
     'pbo.regionDaily.subtitle':
-      'קבצים יומיים מהיקל״א האזורי (לא מסוננים מדוחות רשויות).',
+      'דוחות Markdown יומיים שנשמרו ידנית על ידי קה״א אזורי לפני הניתוח.',
     'pbo.regionDaily.listAria': 'דוחות קה״א יומיים לפי תאריך',
-    'pbo.regionDay.municipalitiesCount': '{n} שורות בקובץ',
     'pbo.regionDay.sourceFile': 'קובץ מקור:',
     'pbo.regionDay.inboxLocation': 'תיקיית קליטה',
-    'pbo.regionDay.perMunicipality': 'פירוט שורות',
-    'pbo.regionDay.parseEmpty':
-      'הקובץ לא זוהה כייצוא Excel תקני של קה״א (אין שורות נתונים או מבנה לא מוכר).',
-    'pbo.regionDay.parseIssue': 'שגיאת קריאה: {detail}',
     'tab.chatbot': 'צ׳טבוט',
     'chatbotManual.subtitle':
       'דוחות ידניות מבוט הווטסאפ או מהאתר (שליחת דוח); הקבצים נמצאים בתיקיית chatbot בשרת.',
@@ -789,7 +775,6 @@ export const translations = {
     'tab.pboReports': 'Отчёты PBO',
     'tab.pboLocal': 'Местный',
     'tab.pboRegional': 'Региональный',
-    'tab.pboDistrict': 'Окружной',
     'app.ariaPboNorthRegions': 'Подрегионы севера для ПБО',
     'pbo.region.naftali': 'Нафтали',
     'pbo.region.golan': 'Голан',
@@ -798,17 +783,12 @@ export const translations = {
     'pbo.region.galma': 'Галма',
     'pbo.regionDaily.loading': 'Загрузка региональных данных ПБО…',
     'pbo.regionDaily.empty':
-      'Пока нет файлов .xlsx. Сохраняйте ежедневные отчёты регионального ПБО в pbo_report_regional/<регион> на сервере.',
+      'Пока нет markdown-отчётов. Сохраняйте ежедневные .md отчёты в business_modules/pbo_report_regional/data.',
     'pbo.regionDaily.subtitle':
-      'Ежедневные файлы от регионального ПБО (не фильтр по муниципальным отчётам).',
+      'Ежедневные markdown-отчёты, вручную сохранённые региональным ПБО перед анализом.',
     'pbo.regionDaily.listAria': 'Региональные ежедневные отчёты ПБО',
-    'pbo.regionDay.municipalitiesCount': '{n} строк в книге',
     'pbo.regionDay.sourceFile': 'Источник:',
     'pbo.regionDay.inboxLocation': 'Папка',
-    'pbo.regionDay.perMunicipality': 'Разбор по строкам',
-    'pbo.regionDay.parseEmpty':
-      'Файл не распознан как стандартный Excel ПБО (нет строк данных или неизвестный формат).',
-    'pbo.regionDay.parseIssue': 'Ошибка чтения: {detail}',
     'tab.chatbot': 'Чатбот',
     'chatbotManual.subtitle':
       'Ручные отчёты из WhatsApp-бота или с сайта (отправка отчёта); файлы лежат в папке chatbot на сервере.',
