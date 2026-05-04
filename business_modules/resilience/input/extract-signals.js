@@ -14,13 +14,32 @@
 
 import 'dotenv/config';
 import { resolve, basename } from 'path';
-import { existsSync, writeFileSync, mkdirSync } from 'fs';
+import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
 
 import { loadMdFiles } from '../infrastructure/mdReportsLoader.js';
 import { extractSignals } from '../infrastructure/claudeEvaluator.js';
 import { createCostTracker, appendCostLog, checkDailyBudget } from '../../../cross-cut-modules/budget/index.js';
 
 const CONTENT_KIND = { news: 'news', radio: 'audio', field: 'field_report', whatsapp: 'whatsapp' };
+
+/**
+ * C1 — honour `pipeline-config.json` at extract-time.
+ * `assess-signals.js` already skips disabled sources at assessment time, but
+ * extraction itself (which is where the LLM cost is incurred) ignored the
+ * config and would gladly burn tokens for sources the operator turned off.
+ * Returns true when `sourceType` is enabled (or no config file is present).
+ */
+function isSourceEnabled(sourceType) {
+  const cfgPath = resolve('pipeline-config.json');
+  if (!existsSync(cfgPath)) return true;
+  try {
+    const cfg = JSON.parse(readFileSync(cfgPath, 'utf8'));
+    const entry = cfg?.sources?.[sourceType];
+    return !entry || entry.enabled !== false;
+  } catch {
+    return true;
+  }
+}
 
 async function run() {
   const args = process.argv.slice(2);
@@ -37,6 +56,10 @@ async function run() {
   if (!filesArg) {
     console.error('Error: --files is required');
     process.exit(1);
+  }
+  if (!isSourceEnabled(sourceType)) {
+    console.log(`  ℹ Source "${sourceType}" is disabled in pipeline-config.json — skipping extraction.`);
+    process.exit(0);
   }
   if (!process.env.ANTHROPIC_API_KEY) {
     console.error('Error: ANTHROPIC_API_KEY is not set');
@@ -97,8 +120,8 @@ async function run() {
 
   console.error(`\nSignal file written: ${outPath}`);
 
-  const { totalCostUsd, usageLog } = getTotal();
-  appendCostLog({ script: 'extract-signals', date, totalCostUsd, usageLog, articles: articles.length });
+  const { totalCostUsd, usageLog, stageEvents } = getTotal();
+  appendCostLog({ script: 'extract-signals', date, totalCostUsd, usageLog, stageEvents, articles: articles.length });
 }
 
 run().catch((err) => {

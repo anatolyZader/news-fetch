@@ -10,7 +10,7 @@ import { randomUUID } from 'node:crypto';
  *     id, uid, email,
  *     report_date, scope,
  *     component_id,
- *     kind: 'challenge_score' | 'flag_signal' | 'dispute_evidence',
+ *     kind: 'challenge_score' | 'dispute_evidence',
  *     original: { score? },
  *     proposed: { score? },
  *     note,

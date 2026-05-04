@@ -29,6 +29,13 @@ describe('regionSignalFilter', () => {
     assert.equal(isNorthSignal({ source_type: 'pbo', evidence: '[כרמיאל] רציפות תפקודית' }), true);
   });
 
+  it('treats pbo_regional signals as northern even without geography in evidence (A3)', () => {
+    assert.equal(
+      isNorthSignal({ source_type: 'pbo_regional', evidence: 'volunteers reported steady attendance' }),
+      true,
+    );
+  });
+
   it('filters out non-northern signals for north scope', () => {
     const signals = [
       { source_type: 'news', evidence: 'Tel Aviv municipality published instructions.' },

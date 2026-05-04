@@ -120,6 +120,20 @@ function daysAgoIsoFromAnchor(anchorIso, days) {
   return dt.toISOString().slice(0, 10);
 }
 
+/** Numeric certainty for drift aggregation: prefer JSON float; else bucket proxy. */
+export function certaintyNumericFromComponent(c) {
+  if (c == null) return null;
+  if (typeof c.certainty === 'number' && !Number.isNaN(c.certainty)) {
+    return Math.min(1, Math.max(0, c.certainty));
+  }
+  const bucket = c.confidence;
+  if (bucket === 'high') return 0.85;
+  if (bucket === 'medium') return 0.55;
+  if (bucket === 'low') return 0.35;
+  if (bucket === 'insufficient_data') return null;
+  return null;
+}
+
 function summarizeReport(date, scope, parsed) {
   const a = parsed.assessment;
   const components = Array.isArray(a.components)
@@ -127,6 +141,7 @@ function summarizeReport(date, scope, parsed) {
         component_id:  c.component_id,
         score:         c.score ?? null,
         confidence:    c.confidence ?? null,
+        certainty:     certaintyNumericFromComponent(c),
         polarization:  c.polarization ?? null,
         evidence_mass: c.evidence_mass ?? null,
         signal_count:  c.signal_count ?? null,

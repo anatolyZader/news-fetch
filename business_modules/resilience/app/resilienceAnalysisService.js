@@ -4,6 +4,7 @@
  */
 import { assertValidResilienceContentBatch } from '../domain/services/resilienceBatchValidation.js';
 import { scoreComponents } from '../domain/services/resilienceScoring.js';
+import { mergeDualExtractionSignals } from '../infrastructure/dualModelExtract.js';
 
 /** Aligned with infrastructure/mdReportsLoader.js body cap */
 export const MAX_BODY_CHARS = 2000;
@@ -75,6 +76,16 @@ export async function runResilienceAssessment(batch, options = {}) {
 
   const llmOpts = { onUsage, onProgress, contentKind: batch.contentKind };
   let allSignals = await llmPort.extractSignals(articles, llmOpts);
+  if (process.env.RESILIENCE_SECOND_EXTRACT === '1') {
+    const secondModel = process.env.RESILIENCE_SECOND_EXTRACT_MODEL
+      ?? process.env.RESILIENCE_SECOND_MODEL
+      ?? undefined;
+    const pass2 = await llmPort.extractSignals(articles, {
+      ...llmOpts,
+      extractModel: secondModel,
+    });
+    allSignals = mergeDualExtractionSignals(allSignals, pass2);
+  }
 
   // Extract signals from supplementary batch (field reports) separately using their own prompt
   if (supplementaryArticles.length > 0) {

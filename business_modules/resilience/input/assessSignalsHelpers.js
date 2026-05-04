@@ -33,28 +33,36 @@ function reliabilityRank(s) {
 
 /**
  * Cross-source dedup: collapses the SAME primary quote reported by multiple
- * outlets into a single signal so coverage / mass aren't inflated by re-publication.
- * Key is `signal_type|normalised_evidence` (no source). Among colliding signals,
- * keep the one with the highest (temporal_weight, reliability) tuple.
+ * outlets WITHIN the same `source_type` into a single signal so coverage / mass
+ * aren't inflated by re-publication. The dedup key is now
+ * `source_type|signal_type|normalised_evidence` (A4) so that a press quote and
+ * a field-team observation describing the same fact are NO LONGER collapsed —
+ * the diversity layer (source_diversity_factor + source-type cap) needs both
+ * channels to remain visible. Among colliding signals (same key), keep the one
+ * with the highest (temporal_weight, reliability) tuple.
+ *
+ * Signals with empty evidence are passed through unchanged; the verifier is
+ * expected to drop them upstream, but as defence-in-depth we keep them keyed
+ * by article identity so they cannot collide with substantive signals.
  */
 export function crossSourceDedup(signals) {
   const seen = new Map();
   for (const s of signals) {
-    const key = `${s.signal_type ?? '_'}|${normalisedEvidence(s)}`;
-    if (!key.endsWith('|')) {
-      const existing = seen.get(key);
-      if (!existing) {
-        seen.set(key, s);
-        continue;
-      }
-      const sw = (s.temporal_weight ?? 1) + reliabilityRank(s) * 0.01;
-      const ew = (existing.temporal_weight ?? 1) + reliabilityRank(existing) * 0.01;
-      if (sw > ew) seen.set(key, s);
-    } else {
-      // Empty evidence — skip dedup (let downstream filtering deal with it).
-      const fallback = `${key}::${s.article_source ?? ''}::${s.article_url ?? ''}`;
+    const evidenceKey = normalisedEvidence(s);
+    if (evidenceKey === '') {
+      const fallback = `_empty|${s.signal_type ?? '_'}|${s.article_source ?? ''}|${s.article_url ?? s.article_index ?? ''}`;
       seen.set(fallback, s);
+      continue;
     }
+    const key = `${s.source_type ?? '_unknown'}|${s.signal_type ?? '_'}|${evidenceKey}`;
+    const existing = seen.get(key);
+    if (!existing) {
+      seen.set(key, s);
+      continue;
+    }
+    const sw = (s.temporal_weight ?? 1) + reliabilityRank(s) * 0.01;
+    const ew = (existing.temporal_weight ?? 1) + reliabilityRank(existing) * 0.01;
+    if (sw > ew) seen.set(key, s);
   }
   return [...seen.values()];
 }
@@ -63,9 +71,14 @@ export function crossSourceDedup(signals) {
  * Walk reports dir and return per-component score history for the trailing
  * `days` days BEFORE `targetDate` (i.e. excluding `targetDate` itself).
  *
+ * A6 — calendar-aligned: the returned series has length === `days` for every
+ * known component, with `null` at positions where the report is missing OR the
+ * component had insufficient_data on that day. Index 0 is calendar yesterday,
+ * index 1 is two days ago, etc. Calendar alignment ensures `series[0]` always
+ * means "yesterday" rather than "the most recent non-null prior day", which is
+ * what EWMA / delta-vs-yesterday semantics require.
+ *
  * Returns: { component_id: [score_d-1, score_d-2, ..., score_d-N] }
- *   — where the most recent prior day's score is at index 0.
- *   — `null` slots are dropped (insufficient_data days don't pollute the series).
  */
 export function loadHistoricalScores(targetDate, reportsDir = 'reports', days = 14) {
   const dir = resolve(reportsDir);
@@ -75,7 +88,12 @@ export function loadHistoricalScores(targetDate, reportsDir = 'reports', days = 
   if (Number.isNaN(targetTime)) return {};
 
   const seriesByComponent = {};
+  const knownComponents = new Set();
 
+  // First pass: collect the union of component_ids that appear anywhere in the
+  // window so we can pad missing days with `null` for every component, not just
+  // the ones that happened to score yesterday.
+  const dailyPayload = new Array(days).fill(null);
   for (let i = 1; i <= days; i++) {
     const d = new Date(targetTime);
     d.setUTCDate(d.getUTCDate() - i);
@@ -85,18 +103,26 @@ export function loadHistoricalScores(targetDate, reportsDir = 'reports', days = 
       .sort()
       .at(-1);
     if (!match) continue;
-
-    let json;
     try {
-      json = JSON.parse(readFileSync(resolve(dir, match), 'utf8'));
+      const json = JSON.parse(readFileSync(resolve(dir, match), 'utf8'));
+      const components = json.assessment?.components ?? [];
+      const byId = {};
+      for (const c of components) {
+        knownComponents.add(c.component_id);
+        byId[c.component_id] = c.score ?? null;
+      }
+      dailyPayload[i - 1] = byId;
     } catch {
-      continue;
+      // leave dailyPayload[i-1] as null
     }
-    const components = json.assessment?.components ?? [];
-    for (const c of components) {
-      if (c.score == null) continue;
-      if (!seriesByComponent[c.component_id]) seriesByComponent[c.component_id] = [];
-      seriesByComponent[c.component_id].push(c.score);
+  }
+
+  for (const id of knownComponents) seriesByComponent[id] = [];
+  for (let i = 0; i < days; i++) {
+    const payload = dailyPayload[i];
+    for (const id of knownComponents) {
+      const v = payload && id in payload ? payload[id] : null;
+      seriesByComponent[id].push(v);
     }
   }
   return seriesByComponent;
@@ -124,14 +150,28 @@ function stddev(arr) {
 }
 
 /**
- * z-score of `today` against `history`. Returns null when fewer than 2 points
- * are available or the series is degenerate (zero variance).
+ * Minimum non-null history points required before we trust a delta z-score.
+ * Two-point std-dev was producing spurious "significant" flags on sparse
+ * components — we now require a meaningful baseline. Configurable so the
+ * threshold can be tuned without a code change.
+ */
+const DELTA_MIN_HISTORY = (() => {
+  const raw = Number.parseInt(process.env.RESILIENCE_DELTA_MIN_HISTORY ?? '5', 10);
+  return Number.isFinite(raw) && raw >= 2 ? raw : 5;
+})();
+
+/**
+ * z-score of `today` against `history`. Returns null when fewer than the
+ * configured minimum non-null history points are available or the series is
+ * degenerate (zero variance). Null entries in `history` are filtered out.
  */
 export function deltaSignificance(today, history) {
-  if (today == null || !Array.isArray(history) || history.length < 2) return null;
-  const sd = stddev(history);
+  if (today == null || !Array.isArray(history)) return null;
+  const clean = history.filter((v) => v != null && Number.isFinite(v));
+  if (clean.length < DELTA_MIN_HISTORY) return null;
+  const sd = stddev(clean);
   if (sd === 0) return null;
-  return (today - mean(history)) / sd;
+  return (today - mean(clean)) / sd;
 }
 
 /**
@@ -145,6 +185,10 @@ export function enrichWithDeltaChannel(scoredComponents, history = {}) {
   const out = {};
   for (const [id, c] of Object.entries(scoredComponents)) {
     const series = history[id] ?? [];
+    // A6 (calendar-aligned): series[0] is calendar yesterday and may be null. When yesterday
+    // is null the EWMA falls back to today (no smoothing nudge) and delta_score is null —
+    // both via the existing ewmaScore() / null-guard semantics. Baseline filters nulls before
+    // computing stats; deltaSignificance enforces the min-history threshold.
     const yesterday = series[0] ?? null;
     const baseline = series.slice(0, 14);
     const alpha = 0.3 + 0.5 * (c.certainty ?? 0);

@@ -65,10 +65,47 @@ describe('SIGNAL_CATALOG / SIGNAL_TO_COMPONENTS — T1 + T2 additions', () => {
     assert.ok(m.functional_continuity > 0);
   });
 
-  it('T3 spillover: harm_to_population now touches narrative + belonging', () => {
+  it('T3 spillover: harm_to_population touches narrative negatively and no longer spills into belonging (B1)', () => {
     const m = SIGNAL_TO_COMPONENTS.harm_to_population;
     assert.ok(m.narrative < 0);
-    assert.ok(m.belonging_solidarity > 0);
+    assert.equal(m.belonging_solidarity, undefined,
+      'B1: harm should not auto-boost belonging — solidarity must be evidenced via solidarity_help_others');
+  });
+
+  it('B1: harm-only batch must NOT lift belonging_solidarity', () => {
+    // 5 harm signals, zero solidarity signals — under the old +0.2 spillover this would
+    // bump belonging_solidarity above its insufficient_data floor.
+    const sigs = repeat(5, (i) => makeSignal({
+      article_url: `https://x.com/h${i}`,
+      article_index: i + 1,
+      source_type: ['news', 'radio'][i % 2],
+      signal_type: 'harm_to_population',
+      evidence_type: 'named_institutional_fact',
+      scope_level: 'quantified_or_broad',
+    }));
+    const scored = scoreComponents(sigs, { totalArticles: 5 });
+    assert.equal(scored.belonging_solidarity.score, null,
+      'B1: harm alone should not produce a belonging score; it must remain insufficient_data');
+    assert.equal(scored.belonging_solidarity.confidence, 'insufficient_data');
+    assert.ok(scored.wellbeing_atrisk.score != null,
+      'wellbeing_atrisk should still register the harm signal');
+  });
+
+  it('A1: 4 phantom-prompt signal types now exist in the catalog', () => {
+    const types = SIGNAL_CATALOG.map((s) => s.type);
+    for (const t of [
+      'political_distrust',
+      'leadership_credibility_loss',
+      'evacuation_displacement',
+      'routine_disruption',
+    ]) {
+      assert.ok(types.includes(t), `missing A1 signal type: ${t}`);
+      assert.ok(SIGNAL_TO_COMPONENTS[t], `missing routing for A1 signal: ${t}`);
+    }
+    assert.ok(SIGNAL_TO_COMPONENTS.political_distrust.leadership < 0);
+    assert.ok(SIGNAL_TO_COMPONENTS.leadership_credibility_loss.leadership < 0);
+    assert.ok(SIGNAL_TO_COMPONENTS.evacuation_displacement.functional_continuity < 0);
+    assert.ok(SIGNAL_TO_COMPONENTS.routine_disruption.functional_continuity < 0);
   });
 
   it('T3 spillover: fear_expression touches narrative negatively', () => {
@@ -238,6 +275,107 @@ describe('scoreComponents — minimum-mass floor (4f)', () => {
     assert.ok(scored.narrative.score >= 3 && scored.narrative.score <= 8,
       `expected score in [3,8], got ${scored.narrative.score}`);
   });
+
+  it('C7: surfaces floor_clamped when the floor actually constrains the score', () => {
+    const single = [
+      makeSignal({
+        signal_type: 'resilience_narrative_negative',
+        scope_level: 'single_case',
+        evidence_type: 'observational_reported_fact',
+      }),
+    ];
+    const scored = scoreComponents(single, { totalArticles: 1 });
+    assert.ok(scored.narrative.evidence_mass < 1.5);
+    assert.equal(typeof scored.narrative.floor_clamped, 'boolean');
+  });
+
+  it('C7: floor_clamped is false when the score sits inside the [3,8] band naturally', () => {
+    const sigs = repeat(8, (i) => makeSignal({
+      article_url: `https://x.com/fc/${i}`,
+      article_index: i + 1,
+      source_type: ['news', 'radio'][i % 2],
+      signal_type: 'resilience_narrative_positive',
+    }));
+    const scored = scoreComponents(sigs, { totalArticles: 8 });
+    assert.equal(scored.narrative.floor_clamped, false);
+  });
+});
+
+describe('scoreComponents — B2 field-report scope default', () => {
+  it('field signal without scope_level is treated as repeated_pattern (not single_case)', () => {
+    const fieldNoScope = makeSignal({
+      source_type: 'field',
+      signal_type: 'service_continuity',
+      scope_level: undefined,
+    });
+    const fieldRepeated = makeSignal({
+      source_type: 'field',
+      signal_type: 'service_continuity',
+      scope_level: 'repeated_pattern',
+    });
+    const fieldSingle = makeSignal({
+      source_type: 'field',
+      signal_type: 'service_continuity',
+      scope_level: 'single_case',
+    });
+
+    const a = scoreComponents([fieldNoScope], { totalArticles: 1 });
+    const b = scoreComponents([fieldRepeated], { totalArticles: 1 });
+    const c = scoreComponents([fieldSingle], { totalArticles: 1 });
+
+    assert.equal(
+      a.functional_continuity.evidence_mass,
+      b.functional_continuity.evidence_mass,
+      'field signal without scope_level should match repeated_pattern by default',
+    );
+    assert.ok(
+      a.functional_continuity.evidence_mass > c.functional_continuity.evidence_mass,
+      'field default should be heavier than single_case (B2 fix)',
+    );
+  });
+
+  it('non-field signal without scope_level still defaults to single_case', () => {
+    const newsNoScope = makeSignal({
+      source_type: 'news',
+      signal_type: 'service_continuity',
+      scope_level: undefined,
+    });
+    const newsSingle = makeSignal({
+      source_type: 'news',
+      signal_type: 'service_continuity',
+      scope_level: 'single_case',
+    });
+    const a = scoreComponents([newsNoScope], { totalArticles: 1 });
+    const b = scoreComponents([newsSingle], { totalArticles: 1 });
+    assert.equal(a.functional_continuity.evidence_mass, b.functional_continuity.evidence_mass);
+  });
+});
+
+describe('scoreComponents — A5 pre-cap explainability', () => {
+  it('attaches _contribution_raw alongside post-cap _contribution', () => {
+    const sigs = [
+      ...repeat(8, (i) => makeSignal({
+        article_url: `https://ynet.co.il/${i}`,
+        article_index: i + 1,
+        source_type: 'news',
+        article_source: 'ynet.co.il',
+        signal_type: 'resilience_narrative_positive',
+      })),
+      makeSignal({
+        article_url: 'https://kan.org.il/a',
+        article_index: 100,
+        source_type: 'radio',
+        article_source: 'kan.org.il',
+        signal_type: 'resilience_narrative_positive',
+      }),
+    ];
+    const scored = scoreComponents(sigs, { totalArticles: 9 });
+    const yneSignal = scored.narrative.signals.find((s) => s.article_source === 'ynet.co.il');
+    assert.ok(typeof yneSignal._contribution_raw === 'number');
+    assert.ok(typeof yneSignal._contribution === 'number');
+    assert.ok(yneSignal._contribution_raw >= yneSignal._contribution,
+      'pre-cap contribution should be >= post-cap (cap can only shrink)');
+  });
 });
 
 describe('scoreComponents — bootstrap CI (4d)', () => {
@@ -254,6 +392,17 @@ describe('scoreComponents — bootstrap CI (4d)', () => {
     assert.equal(a.narrative.score_high, b.narrative.score_high, 'CI high should be deterministic');
     assert.ok(a.narrative.score_low <= a.narrative.score, 'CI low ≤ headline score');
     assert.ok(a.narrative.score_high >= a.narrative.score, 'CI high ≥ headline score');
+  });
+
+  it('B6: stable CI on a well-supported component does NOT flag ci_unstable', () => {
+    const sigs = repeat(10, (i) => makeSignal({
+      article_url: `https://x.com/stable/${i}`,
+      article_index: i + 1,
+      source_type: ['news', 'radio'][i % 2],
+      signal_type: 'resilience_narrative_positive',
+    }));
+    const scored = scoreComponents(sigs, { totalArticles: 10 });
+    assert.equal(scored.narrative.ci_unstable, false);
   });
 });
 

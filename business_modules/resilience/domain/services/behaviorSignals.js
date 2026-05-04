@@ -14,6 +14,7 @@
  */
 
 import { COMPONENT_FACETS } from './componentFacets.js';
+import { getOutletReliabilityMultiplier } from './outletReliabilityPriors.js';
 
 // ─── Signal taxonomy ──────────────────────────────────────────────────────────
 
@@ -55,6 +56,8 @@ export const SIGNAL_CATALOG = [
   { type: 'leadership_visible_presence',      domain: 'leadership',  label: 'Leadership is publicly visible and active',        defaultPolarity: 'positive' },
   { type: 'leadership_clear_guidance',        domain: 'leadership',  label: 'Leadership provides clear, specific directions',   defaultPolarity: 'positive' },
   { type: 'leadership_absence',               domain: 'leadership',  label: 'Leadership is absent, unavailable, or unresponsive', defaultPolarity: 'negative' },
+  { type: 'leadership_credibility_loss',      domain: 'leadership',  label: 'Residents or affected groups voice concrete loss of trust in named leadership (broken promises, false reassurances, perceived dishonesty about emergency conditions)', defaultPolarity: 'negative' },
+  { type: 'political_distrust',               domain: 'leadership',  label: 'Residents or named civic figures publicly demand accountability or express distrust of the political/governmental handling of the emergency (specific policy demands, not general partisan opinion)', defaultPolarity: 'negative' },
   { type: 'coordination_failure',             domain: 'leadership',  label: 'Inter-agency or inter-organization coordination breaks down', defaultPolarity: 'negative' },
   { type: 'coordination_success',             domain: 'leadership',  label: 'Multiple agencies, services, or organizations coordinate effectively in response', defaultPolarity: 'positive' },
   { type: 'feedback_loop_closure',            domain: 'leadership',  label: 'Authorities visibly act on community input, complaints, or requests', defaultPolarity: 'positive' },
@@ -74,6 +77,8 @@ export const SIGNAL_CATALOG = [
   { type: 'service_continuity',               domain: 'continuity',  label: 'Essential services or institutions are operating',  defaultPolarity: 'positive' },
   { type: 'service_disruption',               domain: 'continuity',  label: 'Essential services, schools, or businesses are closed/disrupted', defaultPolarity: 'negative' },
   { type: 'routine_maintenance',              domain: 'continuity',  label: 'Residents maintain normal daily routines',          defaultPolarity: 'positive' },
+  { type: 'routine_disruption',               domain: 'continuity',  label: 'Civilian daily routines (commuting, shopping, leisure, social rhythms) are visibly disrupted by the emergency — distinct from named-institution closures, which are service_disruption', defaultPolarity: 'negative' },
+  { type: 'evacuation_displacement',          domain: 'continuity',  label: 'Residents are evacuated, displaced, or unable to return home because of the emergency (named community, hotel/relative housing, prolonged absence)', defaultPolarity: 'negative' },
   { type: 'system_overload',                  domain: 'continuity',  label: 'Systems (healthcare, emergency, infrastructure) are overwhelmed', defaultPolarity: 'negative' },
   { type: 'system_resilience_under_load',     domain: 'continuity',  label: 'A named system continues operating effectively despite documented elevated demand or disruption', defaultPolarity: 'positive' },
   { type: 'economic_continuity',              domain: 'continuity',  label: 'Local economic activity (employment, business, commerce) sustains during the emergency', defaultPolarity: 'positive' },
@@ -132,6 +137,8 @@ export const SIGNAL_TO_COMPONENTS = {
   leadership_visible_presence:       { leadership: +1.0 },
   leadership_clear_guidance:         { leadership: +1.1 },
   leadership_absence:                { leadership: -1.3, lifesaving_behavior: -0.4 },
+  leadership_credibility_loss:       { leadership: -1.1, narrative: -0.3 },
+  political_distrust:                { leadership: -1.0, narrative: -0.4, information_communication: -0.3 },
   coordination_failure:              { leadership: -1.0, community_capital: -0.6, functional_continuity: -0.5 },
   coordination_success:              { leadership: +1.0, community_capital: +0.6, functional_continuity: +0.4 },
   feedback_loop_closure:             { leadership: +0.7, information_communication: +0.5 },
@@ -151,6 +158,8 @@ export const SIGNAL_TO_COMPONENTS = {
   service_continuity:                { functional_continuity: +1.0 },
   service_disruption:                { functional_continuity: -1.5, wellbeing_atrisk: -0.4 },
   routine_maintenance:               { functional_continuity: +0.9 },
+  routine_disruption:                { functional_continuity: -0.7, wellbeing_atrisk: -0.3 },
+  evacuation_displacement:           { functional_continuity: -1.0, wellbeing_atrisk: -0.6, belonging_solidarity: -0.3 },
   system_overload:                   { functional_continuity: -1.0, wellbeing_atrisk: -0.6 },
   system_resilience_under_load:      { functional_continuity: +1.0, wellbeing_atrisk: +0.4 },
   economic_continuity:               { functional_continuity: +0.8, wellbeing_atrisk: +0.4 },
@@ -171,8 +180,9 @@ export const SIGNAL_TO_COMPONENTS = {
   dependency_on_external_aid:        { community_capital: -0.5, functional_continuity: -0.3 },
   local_capacity_demonstrated:       { community_capital: +0.9, functional_continuity: +0.4 },
 
-  // Wellbeing (with T3 spillover for harm -> narrative + belonging)
-  harm_to_population:                { wellbeing_atrisk: -1.2, narrative: -0.4, belonging_solidarity: +0.2 },
+  // Wellbeing (with T3 spillover for harm -> narrative; B1: belonging spillover dropped —
+  // mutual-aid response should be evidenced via solidarity_help_others, not inferred from harm)
+  harm_to_population:                { wellbeing_atrisk: -1.2, narrative: -0.4 },
   psychological_distress:            { wellbeing_atrisk: -1.0 },
   wellbeing_support_accessed:        { wellbeing_atrisk: +0.7, community_capital: +0.4, belonging_solidarity: +0.3 },
 };
@@ -244,14 +254,36 @@ function createSeededRng(seed) {
   };
 }
 
+// Outlet posture compounds bias for reported facts and institutional summaries; a
+// direct quote from a named person is sourced to the speaker, not the outlet, so
+// outlet priors are NOT applied there.
+const OUTLET_PRIOR_APPLIES_TO = new Set([
+  'observational_reported_fact',
+  'named_institutional_fact',
+]);
+
 /** Per-signal contribution before per-source capping. */
 function contributionForSignal(signal, baseWeight) {
-  const scope = SCOPE_WEIGHT[signal.scope_level ?? 'single_case'] ?? SCOPE_WEIGHT.single_case;
+  // B2: field reports default to repeated_pattern when scope_level is missing. The doc and
+  // prompt have always treated field observations as covering >1 instance / a recurrence
+  // (a field worker writes "shelters busy this morning" knowing the pattern, not a single
+  // anecdote), but the LLM occasionally omits scope_level. Defaulting to single_case in
+  // that case under-weighted every otherwise-valid field signal by ~50%.
+  const isField = signal.source_type === 'field';
+  const defaultScope = isField ? 'repeated_pattern' : 'single_case';
+  const scope = SCOPE_WEIGHT[signal.scope_level ?? defaultScope] ?? SCOPE_WEIGHT[defaultScope];
   const reliabilityKey = signal.evidence_type ?? signal.evidence_class ?? 'observational_reported_fact';
   const reliability = RELIABILITY_WEIGHT[reliabilityKey] ?? RELIABILITY_WEIGHT.observational_reported_fact;
+  const outletPrior = OUTLET_PRIOR_APPLIES_TO.has(reliabilityKey)
+    ? getOutletReliabilityMultiplier(signal.article_source)
+    : 1;
+  const dualBoostRaw = signal._dual_pass_agreement
+    ? Number.parseFloat(process.env.RESILIENCE_DUAL_AGREEMENT_BOOST ?? '1.05')
+    : 1;
+  const dualBoost = Number.isFinite(dualBoostRaw) ? Math.min(1.2, Math.max(1, dualBoostRaw)) : 1;
   const temporal = signal.temporal_weight ?? 1.0;
   const extractionConfidence = Math.min(1, Math.max(0, signal.extraction_confidence ?? 1.0));
-  return Math.abs(baseWeight) * scope * reliability * temporal * extractionConfidence;
+  return Math.abs(baseWeight) * scope * reliability * outletPrior * dualBoost * temporal * extractionConfidence;
 }
 
 /**
@@ -381,9 +413,14 @@ function scoreFromItems(items, componentId, totalArticles, articleSet, sourceSet
   const rawScore = Math.round(5.5 + 4.5 * adjustedStrength);
   let score = Math.max(1, Math.min(10, rawScore));
 
-  // Min-mass floor (4f): single thin signal cannot push score outside [3, 8]
+  // Min-mass floor (4f): single thin signal cannot push score outside [3, 8].
+  // C7: surface a `floorClamped` flag whenever the floor actually constrains the score so the
+  // UI can annotate "thin evidence" rather than silently letting the headline drift toward 5.
+  let floorClamped = false;
   if (evidenceMass < 1.5) {
-    score = Math.max(3, Math.min(8, score));
+    const clamped = Math.max(3, Math.min(8, score));
+    if (clamped !== score) floorClamped = true;
+    score = clamped;
   }
 
   return {
@@ -399,6 +436,7 @@ function scoreFromItems(items, componentId, totalArticles, articleSet, sourceSet
     typeDiversityFactor,
     signalTypeEntropy: Hmax > 0 ? H / Hmax : 0,
     adjustedStrength,
+    floorClamped,
   };
 }
 
@@ -406,12 +444,25 @@ function scoreFromItems(items, componentId, totalArticles, articleSet, sourceSet
  * Bootstrap a 90% confidence interval on the score by resampling contribution
  * items with replacement N times. Per-source cap and floors are applied to each
  * resample so the CI reflects the same model the headline score uses.
+ *
+ * B6 — CI stability: thin components produce many resamples whose evidence_mass
+ * happens to be zero; in that regime the surviving samples bunch tightly and
+ * the CI looks artificially tight. We track the fraction of degenerate samples
+ * and, when it exceeds 20%, return a widened fallback CI ([score-2, score+2]
+ * clamped to [1,10]) plus a `ci_unstable: true` flag so the UI can warn.
+ *
+ * `currentScore` is the headline score of the component; used as the centre of
+ * the fallback CI. When omitted the function falls back to the median of the
+ * non-null bootstrap samples.
  */
-function bootstrapScoreCI(items, componentId, totalArticles) {
-  if (items.length === 0) return { score_low: null, score_high: null };
+const CI_UNSTABLE_THRESHOLD = 0.20;
+
+function bootstrapScoreCI(items, componentId, totalArticles, currentScore = null) {
+  if (items.length === 0) return { score_low: null, score_high: null, ci_unstable: false };
   const rng = createSeededRng(BOOTSTRAP_SEED ^ items.length);
   const n = items.length;
   const scores = [];
+  let nullSamples = 0;
   for (let r = 0; r < BOOTSTRAP_SAMPLES; r++) {
     const sample = new Array(n);
     for (let i = 0; i < n; i++) {
@@ -427,11 +478,25 @@ function bootstrapScoreCI(items, componentId, totalArticles) {
     const capped = applySourceCap(sample);
     const sc = scoreFromItems(capped, componentId, totalArticles, articleSet, sourceSet);
     if (sc) scores.push(sc.score);
+    else nullSamples += 1;
   }
-  if (scores.length === 0) return { score_low: null, score_high: null };
+  if (scores.length === 0) return { score_low: null, score_high: null, ci_unstable: false };
+
   scores.sort((a, b) => a - b);
   const pct = (p) => scores[Math.min(scores.length - 1, Math.floor(p * scores.length))];
-  return { score_low: pct(0.05), score_high: pct(0.95) };
+  const naiveLow = pct(0.05);
+  const naiveHigh = pct(0.95);
+  const nullFraction = nullSamples / BOOTSTRAP_SAMPLES;
+
+  if (nullFraction > CI_UNSTABLE_THRESHOLD) {
+    const centre = currentScore != null ? currentScore : scores[Math.floor(scores.length / 2)];
+    return {
+      score_low: Math.max(1, centre - 2),
+      score_high: Math.min(10, centre + 2),
+      ci_unstable: true,
+    };
+  }
+  return { score_low: naiveLow, score_high: naiveHigh, ci_unstable: false };
 }
 
 /**
@@ -570,7 +635,7 @@ export function scoreComponents(signals, { totalArticles = 0 } = {}) {
         strength: 0, coverage_ratio: 0, dispersion: null, coverage_adjustment: 0,
         source_diversity_factor: 0, type_diversity_factor: 0, signal_type_entropy: 0,
         adjusted_strength: 0, certainty: 0, polarization: 0,
-        score_low: null, score_high: null,
+        score_low: null, score_high: null, ci_unstable: false, floor_clamped: false,
         counterfactual_article_key: null, counterfactual_delta: null,
         signal_count: 0, distinct_article_count: 0, source_diversity: 0,
         signals: [], facets: computeFacets(id, [], totalArticles),
@@ -579,15 +644,18 @@ export function scoreComponents(signals, { totalArticles = 0 } = {}) {
     }
 
     const cappedItems = applySourceCap(items);
-    // Enriched signal copies for downstream UI explainability (N9): each signal carries its
-    // FINAL post-cap contribution to this component, the static signal→component weight, and
-    // the polarity. We emit copies so the same underlying signal can be enriched differently
-    // across the multiple components it routes into without cross-contamination.
-    const enrichedSignals = cappedItems.map((it) => ({
-      ...it.signal,
-      _contribution: round3(it.contribution),
-      _weight: SIGNAL_TO_COMPONENTS[it.signal.signal_type ?? it.signal.type]?.[id] ?? 0,
-      _polarity: it.polarity,
+    // Enriched signal copies for downstream UI explainability (N9 + A5): each signal carries
+    // BOTH its pre-cap raw contribution (_contribution_raw, used by reviewers to see "what
+    // evidence really mattered") and its post-cap final contribution (_contribution, what the
+    // math actually used). applySourceCap preserves order, so items[i] zips with cappedItems[i].
+    // We emit copies so the same underlying signal can be enriched differently across the
+    // multiple components it routes into without cross-contamination.
+    const enrichedSignals = cappedItems.map((cappedIt, idx) => ({
+      ...cappedIt.signal,
+      _contribution: round3(cappedIt.contribution),
+      _contribution_raw: round3(items[idx]?.contribution ?? cappedIt.contribution),
+      _weight: SIGNAL_TO_COMPONENTS[cappedIt.signal.signal_type ?? cappedIt.signal.type]?.[id] ?? 0,
+      _polarity: cappedIt.polarity,
     }));
     const sc = scoreFromItems(cappedItems, id, totalArticles, articleSet, sourceSet);
     if (!sc) {
@@ -597,7 +665,7 @@ export function scoreComponents(signals, { totalArticles = 0 } = {}) {
         strength: 0, coverage_ratio: 0, dispersion: null, coverage_adjustment: 0,
         source_diversity_factor: 0, type_diversity_factor: 0, signal_type_entropy: 0,
         adjusted_strength: 0, certainty: 0, polarization: 0,
-        score_low: null, score_high: null,
+        score_low: null, score_high: null, ci_unstable: false, floor_clamped: false,
         counterfactual_article_key: null, counterfactual_delta: null,
         signal_count: 0, distinct_article_count: 0, source_diversity: 0,
         signals: [], facets: computeFacets(id, [], totalArticles),
@@ -622,8 +690,12 @@ export function scoreComponents(signals, { totalArticles = 0 } = {}) {
     else if (certainty < 0.70 || distinctArticleCount < 4) confidence = 'medium';
     else confidence = 'high';
 
-    const ci = bootstrapScoreCI(items, id, totalArticles);
-    const cf = counterfactualLargestArticle(cappedItems, id, totalArticles, sc.score);
+    const ci = bootstrapScoreCI(items, id, totalArticles, sc.score);
+    // A5: counterfactual identifies the dominant article from PRE-cap masses (so the picked
+    // article is the one whose evidence really matters), then recomputes the score with the
+    // cap reapplied on remaining items inside the helper. This keeps the math cap-bounded
+    // while making the explainer faithful to the underlying evidence distribution.
+    const cf = counterfactualLargestArticle(items, id, totalArticles, sc.score);
 
     results[id] = {
       score: sc.score,
@@ -644,6 +716,8 @@ export function scoreComponents(signals, { totalArticles = 0 } = {}) {
       polarization:            round3(polarization),
       score_low:               ci.score_low,
       score_high:              ci.score_high,
+      ci_unstable:             ci.ci_unstable === true,
+      floor_clamped:           sc.floorClamped === true,
       counterfactual_article_key: cf.counterfactual_article_key,
       counterfactual_delta:    cf.counterfactual_delta,
       signal_count:            enrichedSignals.length,

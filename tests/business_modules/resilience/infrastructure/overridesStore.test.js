@@ -50,7 +50,7 @@ describe('overridesStore', () => {
       component_id: 'narrative', kind: 'challenge_score',
       proposed: { score: 3 }, original: { score: 7 } });
     store.append({ uid: 'u2', report_date: '2026-05-03', scope: 'national',
-      component_id: 'leadership', kind: 'flag_signal' });
+      component_id: 'leadership', kind: 'dispute_evidence' });
     store.append({ uid: 'u3', report_date: '2026-05-03', scope: 'north',
       component_id: 'narrative', kind: 'challenge_score', proposed: { score: 6 } });
 
@@ -69,9 +69,9 @@ describe('overridesStore', () => {
     store.append({ uid: 'u1', report_date: '2026-05-03', scope: 'national',
       component_id: 'narrative', kind: 'challenge_score', proposed: { score: 5 } });
     store.append({ uid: 'u2', report_date: '2026-05-03', scope: 'national',
-      component_id: 'narrative', kind: 'flag_signal' });
+      component_id: 'narrative', kind: 'dispute_evidence' });
     store.append({ uid: 'u3', report_date: '2026-05-03', scope: 'national',
-      component_id: 'leadership', kind: 'flag_signal' });
+      component_id: 'leadership', kind: 'dispute_evidence' });
 
     const counts = store.countByComponent('2026-05-03');
     assert.equal(counts.narrative, 2);

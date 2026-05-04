@@ -224,4 +224,40 @@ describe('runResilienceAssessment', () => {
     assert.ok(Array.isArray(arg.signals));
     assert.deepStrictEqual(arg.sourceFiles, ['articles-homefront.md']);
   });
+
+  it('merges two extraction passes when RESILIENCE_SECOND_EXTRACT=1', async () => {
+    const prev = process.env.RESILIENCE_SECOND_EXTRACT;
+    process.env.RESILIENCE_SECOND_EXTRACT = '1';
+    let calls = 0;
+    const s2 = {
+      ...validSignal,
+      signal_type: 'fear_expression',
+      evidence: 'Second pass only unique evidence for merge test.',
+    };
+    const llmPort = {
+      extractSignals: async () => {
+        calls += 1;
+        if (calls === 1) return [validSignal];
+        return [s2];
+      },
+      generateNarratives: async (_sc, signals, date, total, opts) => {
+        assert.equal(signals.length, 2);
+        return minimalAssessment(date, total, opts.contentKind);
+      },
+    };
+    try {
+      await runResilienceAssessment(
+        {
+          reportDate: '2026-03-22',
+          contentKind: 'news',
+          items: [{ id: '1', title: 'T', body: 'b' }],
+        },
+        { llmPort },
+      );
+      assert.equal(calls, 2);
+    } finally {
+      if (prev === undefined) delete process.env.RESILIENCE_SECOND_EXTRACT;
+      else process.env.RESILIENCE_SECOND_EXTRACT = prev;
+    }
+  });
 });

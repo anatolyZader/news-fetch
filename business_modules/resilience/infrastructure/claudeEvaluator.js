@@ -26,8 +26,17 @@ import {
   verifyEvidenceAgainstArticle,
   dedupeSignalsWithinBatch,
 } from './signalVerification.js';
+import { maybeRescueEvidenceWithEmbedding } from './embeddingEvidenceVerifier.js';
+import { applyReviewerScoreAdjustmentsToScoredMap } from '../domain/services/reviewerScoreAdjustments.js';
 
 const client = new Anthropic(); // uses ANTHROPIC_API_KEY from env
+
+// Model IDs are env-overridable so deprecations can be rolled out without code edits.
+// Defaults match the launched models as of writing; override with
+// RESILIENCE_EXTRACT_MODEL / RESILIENCE_SELF_CHECK_MODEL / RESILIENCE_NARRATIVE_MODEL.
+const DEFAULT_EXTRACT_MODEL = process.env.RESILIENCE_EXTRACT_MODEL ?? 'claude-haiku-4-5-20251001';
+const DEFAULT_SELF_CHECK_MODEL = process.env.RESILIENCE_SELF_CHECK_MODEL ?? 'claude-haiku-4-5-20251001';
+const DEFAULT_NARRATIVE_MODEL = process.env.RESILIENCE_NARRATIVE_MODEL ?? 'claude-sonnet-4-6';
 
 // ─── Component formatters ─────────────────────────────────────────────────────
 
@@ -397,7 +406,9 @@ const SIGNAL_EXTRACTION_SYSTEM_PROMPT =
     the specific factual signals that underlie the assessment, or discard if too vague.
   REJECT: descriptions of services, programs, or frameworks (e.g. "protected space for children", "employment
     program operating"). These are service_continuity or service_disruption signals, not narratives.
-  REJECT: political instability, governance issues, or institutional trust problems — use political_trust signal types.
+  REJECT: political instability, governance issues, or institutional trust problems — use political_distrust
+    (named accountability demands / loss of trust in the political handling of the emergency) or
+    leadership_credibility_loss (loss of trust in named leadership: broken promises, false reassurances).
   Observable conditions are FACTS — classify them under the appropriate factual signal type
   (service_disruption, evacuation_displacement, routine_disruption, resource_shortage, etc.).
   A community with empty streets is not necessarily rejecting a narrative — it may simply be describing its situation.
@@ -410,7 +421,9 @@ const SIGNAL_EXTRACTION_SYSTEM_PROMPT =
   `  REJECT: pundits/experts discussing strategy, institutional appointments, military personnel decisions,\n` +
   `    geopolitical analysis, or any commentary that uses words like "guidance" or "clear" but is not\n` +
   `    an authority directing civilians. A civilian DEMANDING guidance is NOT leadership_clear_guidance —\n` +
-  `    it is resource_shortage (if demanding aid) or political_trust (if demanding accountability).\n` +
+  `    it is resource_shortage (if demanding aid) or political_distrust (if demanding accountability or naming\n` +
+  `    a specific policy failure tied to the emergency), or leadership_credibility_loss (if naming a specific\n` +
+  `    leader/institution whose trustworthiness has eroded — broken promises, false reassurances).\n` +
   `  leadership_clear_guidance vs information_* types: An authority publishing or updating guidelines is a\n` +
   `  LEADERSHIP action → leadership_clear_guidance. It tells us the authority acted, NOT that people received,\n` +
   `  understood, or were influenced by the information. Only use information_* types when the evidence describes\n` +
@@ -420,7 +433,7 @@ const SIGNAL_EXTRACTION_SYSTEM_PROMPT =
   `  rumor spread, or contradictory official emergency messages.\n` +
   `  REJECT from ALL information_* types:\n` +
   `  - Education policy disputes (exam frameworks, matriculation relief, school schedules) → service_disruption\n` +
-  `  - Demands for policy clarification from politicians (mayors demanding PM clarify policy) → political_trust\n` +
+  `  - Demands for policy clarification from politicians (mayors demanding PM clarify policy) → political_distrust\n` +
   `  - Ministerial PR statements about recovery (aviation, tourism, economy) → routine_maintenance\n` +
   `  - Descriptions of existing laws or legal rights → DO NOT EXTRACT (background legal fact, not behavioral evidence)\n` +
   `  - Academic/international research papers → DO NOT EXTRACT (research ≠ actionable guidance that reached people)\n` +
@@ -428,7 +441,7 @@ const SIGNAL_EXTRACTION_SYSTEM_PROMPT =
   `  KEY TEST: does the evidence show the HUMAN SIDE of information — people receiving, understanding,\n` +
   `  acting on, or failing to receive/understand/act on emergency safety guidance?\n` +
   `  Mere issuance of alerts or warnings (without evidence of reception or failure) → DO NOT EXTRACT.\n` +
-  `  If it describes a service not meeting needs → service_disruption. Political demands → political_trust.\n` +
+  `  If it describes a service not meeting needs → service_disruption. Political demands → political_distrust.\n` +
   `- active_information_seeking: ONLY when a resident or group explicitly seeks emergency or protective guidance — e.g. calling an HFC hotline, checking alert apps, asking where the nearest shelter is, seeking evacuation instructions.\n` +
   `  REJECT: consulting a lawyer about a will or inheritance; asking about financial relief; seeking religious guidance; any general wartime planning unrelated to immediate safety.\n` +
   `  A surge in will-writing, legal consultations, or financial inquiries during wartime → fear_expression (if named quote) or omit. It is NOT active_information_seeking.\n` +
@@ -483,7 +496,22 @@ const SIGNAL_EXTRACTION_SYSTEM_PROMPT =
   `  workers laid off). For non-economic services (schools, clinics, transport) keep using service_continuity / service_disruption.\n` +
   `- cultural_continuity: identity-bearing rituals, ceremonies, holidays, religious observance, or cultural events that took\n` +
   `  place during the emergency (Passover seder held under fire; memorial ceremony despite siren; community Iftar). Distinct\n` +
-  `  from service_continuity (a cultural event is not a service).\n\n` +
+  `  from service_continuity (a cultural event is not a service).\n` +
+  `- political_distrust: residents or named civic figures publicly demand accountability or voice distrust of the political\n` +
+  `  handling of the emergency (mayor demanding the PM clarify a policy; a named MK calling for resignation over a war\n` +
+  `  decision; residents naming a specific governmental failure tied to the emergency). REJECT generic partisan opinion,\n` +
+  `  pre-existing political grievances unrelated to the emergency, or media commentary about coalition politics.\n` +
+  `- leadership_credibility_loss: residents or affected groups voice CONCRETE loss of trust in NAMED leadership tied to the\n` +
+  `  emergency — broken promises ("they promised a quiet border"), false reassurances, leaders perceived as dishonest about\n` +
+  `  on-the-ground conditions. The named leader/institution is required. Distinct from political_distrust (which is about\n` +
+  `  political/policy demands) and from leadership_absence (which is about non-presence, not credibility).\n` +
+  `- evacuation_displacement: residents are evacuated, displaced, or unable to return home because of the emergency — named\n` +
+  `  community, hotel/relative housing, prolonged absence, or "hundreds still away from home". Distinct from\n` +
+  `  service_disruption (which is about institutions). Distinct from harm_to_population (which is about physical harm).\n` +
+  `- routine_disruption: civilian DAILY ROUTINES (commuting, shopping, leisure, social rhythms, weddings postponed, parks\n` +
+  `  empty) are visibly disrupted by the emergency. Distinct from service_disruption (closures of named institutions like\n` +
+  `  schools, clinics, businesses) and economic_disruption (employment / business operations). Use when the evidence is about\n` +
+  `  the texture of everyday life rather than a specific institutional closure.\n\n` +
 
   `━━━ SIGNAL TYPES (closed vocabulary) ━━━\n` +
   `${formatSignalCatalog()}\n\n` +
@@ -681,9 +709,13 @@ function validateSignalsFromCall(signals, articles, sourceLabel) {
  * Jaccard shingle similarity. Drops signals that fail the type-specific
  * threshold. Logs the drop reason for auditability.
  */
-function applyEvidenceVerifier(signals, articles, sourceLabel) {
+async function applyEvidenceVerifier(signals, articles, sourceLabel, usageCallback = null) {
   const verified = [];
   let dropped = 0;
+  // C9: track per-reason kill counts so the cost log can show whether the
+  // verifier earns its complexity. Reasons come from verifyEvidenceAgainstArticle
+  // (e.g. "low_jaccard", "no_overlap"); embedding-rescue success is implicit.
+  const reasonCounts = {};
   for (const s of signals) {
     const art = articles[s.article_index - 1];
     const result = verifyEvidenceAgainstArticle(s, art?.body);
@@ -691,7 +723,13 @@ function applyEvidenceVerifier(signals, articles, sourceLabel) {
       verified.push(s);
       continue;
     }
+    const emb = await maybeRescueEvidenceWithEmbedding(s, art?.body, result);
+    if (emb.ok) {
+      verified.push(s);
+      continue;
+    }
     dropped++;
+    reasonCounts[result.reason] = (reasonCounts[result.reason] || 0) + 1;
     const evPreview = (s.evidence ?? '').slice(0, 80).replace(/\s+/g, ' ');
     console.error(
       `  ⚠ [${sourceLabel}] Dropped unverifiable evidence ` +
@@ -702,10 +740,22 @@ function applyEvidenceVerifier(signals, articles, sourceLabel) {
   if (dropped > 0) {
     console.error(`  → [${sourceLabel}] verifier dropped ${dropped}/${signals.length} signal(s)`);
   }
+  if (usageCallback) {
+    usageCallback({
+      label: `${sourceLabel} verifier`,
+      stage: 'evidence_verifier',
+      stats: {
+        kept: verified.length,
+        dropped,
+        input: signals.length,
+        reason_counts: reasonCounts,
+      },
+    });
+  }
   return verified;
 }
 
-async function callHaikuExtraction(articles, batchLabel, retries, usageCallback, contentKind, domainGroupKey) {
+async function callHaikuExtraction(articles, batchLabel, retries, usageCallback, contentKind, domainGroupKey, extractModel) {
   const baseSystem = buildSignalExtractionSystemPrompt(contentKind);
   const system = domainGroupKey
     ? `${baseSystem}\n\n${buildDomainScopeSuffix(domainGroupKey)}`
@@ -714,10 +764,12 @@ async function callHaikuExtraction(articles, batchLabel, retries, usageCallback,
     `Extract all behavioral signals from these Israeli ${extractUserLabelForSignals(contentKind)}:\n\n` +
     formatArticlesForPrompt(articles);
 
+  const modelId = extractModel ?? DEFAULT_EXTRACT_MODEL;
+
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
       const stream = client.messages.stream({
-        model: 'claude-haiku-4-5-20251001',
+        model: modelId,
         max_tokens: 12000,
         temperature: 0,
         system,
@@ -732,7 +784,7 @@ async function callHaikuExtraction(articles, batchLabel, retries, usageCallback,
         console.error('  ⚠ batch hit max_tokens — attempting partial recovery');
       }
       console.error(`  → stop_reason: ${message.stop_reason}`);
-      if (usageCallback) usageCallback({ label: batchLabel, model: 'claude-haiku-4-5-20251001', usage: message.usage });
+      if (usageCallback) usageCallback({ label: batchLabel, model: modelId, usage: message.usage });
 
       const textBlock = message.content.find((b) => b.type === 'text');
       if (!textBlock) throw new Error(`${batchLabel}: no text block`);
@@ -761,7 +813,7 @@ async function runSelfCheck(signals, batchLabel, usageCallback) {
 
   try {
     const stream = client.messages.stream({
-      model: 'claude-haiku-4-5-20251001',
+      model: DEFAULT_SELF_CHECK_MODEL,
       max_tokens: Math.min(4000, 60 + indices.length * 30),
       temperature: 0,
       system,
@@ -770,21 +822,46 @@ async function runSelfCheck(signals, batchLabel, usageCallback) {
     const selfLabel = `${batchLabel} self-check`;
     await streamWithProgress(stream, selfLabel);
     const message = await stream.finalMessage();
-    if (usageCallback) usageCallback({ label: selfLabel, model: 'claude-haiku-4-5-20251001', usage: message.usage });
+    if (usageCallback) usageCallback({ label: selfLabel, model: DEFAULT_SELF_CHECK_MODEL, usage: message.usage });
     const textBlock = message.content.find((b) => b.type === 'text');
     if (!textBlock) return signals;
     const verdicts = extractJsonArray(textBlock.text);
     if (!Array.isArray(verdicts)) return signals;
     const noSet = new Set();
+    const reasonCounts = {};
     for (const v of verdicts) {
       if (v && (v.verdict === 'no' || v.verdict === 'No' || v.verdict === 'NO')) {
         const idx = Number(v.index);
         if (Number.isInteger(idx)) noSet.add(idx);
+        const reason = typeof v.reason === 'string' && v.reason ? v.reason : 'unspecified';
+        reasonCounts[reason] = (reasonCounts[reason] || 0) + 1;
       }
     }
-    if (noSet.size === 0) return signals;
+    if (noSet.size === 0) {
+      // C9: still emit a stats event so we know the self-check ran but kept all.
+      if (usageCallback) {
+        usageCallback({
+          label: `${batchLabel} self-check`,
+          stage: 'self_check',
+          stats: { kept: signals.length, dropped: 0, input: signals.length, reason_counts: {} },
+        });
+      }
+      return signals;
+    }
     const survivors = signals.filter((_, i) => !noSet.has(i));
     console.error(`  → [${batchLabel}] self-check dropped ${noSet.size}/${signals.length} signal(s)`);
+    if (usageCallback) {
+      usageCallback({
+        label: `${batchLabel} self-check`,
+        stage: 'self_check',
+        stats: {
+          kept: survivors.length,
+          dropped: noSet.size,
+          input: signals.length,
+          reason_counts: reasonCounts,
+        },
+      });
+    }
     return survivors;
   } catch (err) {
     console.error(`  ⚠ ${batchLabel} self-check failed (${err.message}) — keeping all signals`);
@@ -792,7 +869,7 @@ async function runSelfCheck(signals, batchLabel, usageCallback) {
   }
 }
 
-async function extractSignalsBatch(articles, batchLabel, retries = 3, usageCallback = null, contentKind = 'news') {
+async function extractSignalsBatch(articles, batchLabel, retries = 3, usageCallback = null, contentKind = 'news', extractModel = null) {
   const useMultipass = isMultipassEnabled() &&
     contentKind !== 'whatsapp_realtime' &&
     contentKind !== 'whatsapp_interactive';
@@ -803,13 +880,13 @@ async function extractSignalsBatch(articles, batchLabel, retries = 3, usageCallb
     for (const key of groupKeys) {
       const passLabel = `${batchLabel} pass-${key}`;
       const passSignals = await callHaikuExtraction(
-        articles, passLabel, retries, usageCallback, contentKind, key,
+        articles, passLabel, retries, usageCallback, contentKind, key, extractModel,
       );
       console.error(`  → ${passLabel}: ${passSignals.length} candidate(s)`);
       raw = raw.concat(passSignals);
     }
   } else {
-    raw = await callHaikuExtraction(articles, batchLabel, retries, usageCallback, contentKind, null);
+    raw = await callHaikuExtraction(articles, batchLabel, retries, usageCallback, contentKind, null, extractModel);
   }
 
   const beforeDedup = raw.length;
@@ -819,7 +896,7 @@ async function extractSignalsBatch(articles, batchLabel, retries = 3, usageCallb
   }
 
   let valid = validateSignalsFromCall(raw, articles, batchLabel);
-  valid = applyEvidenceVerifier(valid, articles, batchLabel);
+  valid = await applyEvidenceVerifier(valid, articles, batchLabel, usageCallback);
   valid = await runSelfCheck(valid, batchLabel, usageCallback);
   return valid;
 }
@@ -831,10 +908,10 @@ async function extractSignalsBatch(articles, batchLabel, retries = 3, usageCallb
  * @param {Array} articles   Flat array from loadMdFiles()
  * @returns {Array}          Signal objects: { article_index, article_url, signal_type, evidence_class, scope_level, confidence, evidence }
  */
-export async function extractSignals(articles, { onUsage, onProgress, contentKind = 'news' } = {}) {
+export async function extractSignals(articles, { onUsage, onProgress, contentKind = 'news', extractModel = null } = {}) {
   if (articles.length <= EVIDENCE_BATCH_SIZE) {
     onProgress?.({ type: 'progress', step: 'extract', message: 'Extracting behavioral signals...' });
-    return extractSignalsBatch(articles, '[Step 1 — Signal extraction]', 3, onUsage, contentKind);
+    return extractSignalsBatch(articles, '[Step 1 — Signal extraction]', 3, onUsage, contentKind, extractModel);
   }
 
   const batches = [];
@@ -851,7 +928,7 @@ export async function extractSignals(articles, { onUsage, onProgress, contentKin
     }
     onProgress?.({ type: 'progress', step: 'extract', message: `Extracting signals (batch ${i + 1}/${batches.length})...` });
     const label = `[Step 1 — batch ${i + 1}/${batches.length}]`;
-    const signals = await extractSignalsBatch(batches[i], label, 3, onUsage, contentKind);
+    const signals = await extractSignalsBatch(batches[i], label, 3, onUsage, contentKind, extractModel);
     console.error(`  → ${signals.length} signals from batch ${i + 1}`);
     allSignals = allSignals.concat(signals);
   }
@@ -866,14 +943,14 @@ export { extractSignals as extractEvidence };
 /**
  * Format the pre-scored component data + its signals for the narrative prompt.
  */
-function formatScoredComponentsForNarrative(scoredComponents, totalArticles) {
+export function formatScoredComponentsForNarrative(scoredComponents, totalArticles) {
   return RESILIENCE_COMPONENTS.map((compDef) => {
     const scored = scoredComponents[compDef.id];
     const conf = summarizeConfidence(scored?.confidence);
     const signals = (scored?.signals ?? []).map((s) => {
       const fd = s.signal_file_date ? `  Source bundle date: ${s.signal_file_date}\n` : '';
       return (
-        `  [${s.signal_type}] (scope:${s.scope_level ?? 'single_case'}, confidence:${s.confidence})\n` +
+        `  [${s.signal_type}] (scope:${s.scope_level ?? 'single_case'}, ev:${s.evidence_type ?? 'unknown'}, conf:${(s.extraction_confidence ?? 1).toFixed(2)})\n` +
         `${fd}  Evidence: "${s.evidence}"${s.article_url ? `\n  URL: ${s.article_url}` : ''}`
       );
     }).join('\n');
@@ -978,8 +1055,21 @@ export async function generateNarratives(
     reportScope = null,
     comparisonScores = null,
     comparisonLabel = null,
+    overridesService = null,
+    overrideScope = null,
   } = {},
 ) {
+  const listScope = overrideScope ?? reportScope?.id ?? 'national';
+  let scoredForNarrative = scoredComponents;
+  if (overridesService && date) {
+    try {
+      const olist = overridesService.list({ date, scope: listScope });
+      scoredForNarrative = applyReviewerScoreAdjustmentsToScoredMap(scoredComponents, olist);
+    } catch (err) {
+      console.error(`  ⚠ reviewer overrides not applied (${err.message})`);
+    }
+  }
+
   const priorContext = formatPriorReportsContext(priorReports);
   const comparisonContext = formatComparisonScoresContext(comparisonLabel, comparisonScores);
   const scopeContext = reportScope?.id === 'north'
@@ -1044,7 +1134,7 @@ export async function generateNarratives(
     `    If a signal has no URL, omit the link — do not fabricate URLs\n\n` +
 
     `━━━ THE 8 COMPONENTS (with pre-computed scores and signals) ━━━\n\n` +
-    `${formatScoredComponentsForNarrative(scoredComponents, totalArticles)}\n\n` +
+    `${formatScoredComponentsForNarrative(scoredForNarrative, totalArticles)}\n\n` +
 
     `━━━ OUTPUT FORMAT ━━━\n` +
     `Return ONLY valid JSON:\n` +
@@ -1071,7 +1161,7 @@ export async function generateNarratives(
     try {
       const label = attempt > 1 ? `[Step 2 — Narratives] (retry ${attempt})` : '[Step 2 — Narratives]';
       const stream = client.messages.stream({
-        model: 'claude-sonnet-4-6',
+        model: DEFAULT_NARRATIVE_MODEL,
         max_tokens: 16000,
         system: systemPrompt,
         messages: [{ role: 'user', content: userContent }],
@@ -1079,7 +1169,7 @@ export async function generateNarratives(
 
       await streamWithProgress(stream, label);
       const message = await stream.finalMessage();
-      if (onUsage) onUsage({ label: '[Step 2 — Narratives]', model: 'claude-sonnet-4-6', usage: message.usage });
+      if (onUsage) onUsage({ label: '[Step 2 — Narratives]', model: DEFAULT_NARRATIVE_MODEL, usage: message.usage });
 
       const textBlock = message.content.find((b) => b.type === 'text');
       if (!textBlock) throw new Error('Step 2: no text block');
@@ -1093,10 +1183,12 @@ export async function generateNarratives(
 
       const components = RESILIENCE_COMPONENTS.map((def) => {
         const scored = scoredComponents[def.id] ?? {};
+        const display = scoredForNarrative[def.id] ?? scored;
         const narr = componentMap[def.id] ?? {};
         return {
           component_id: def.id,
-          score: scored.score ?? null,
+          score: display.score ?? scored.score ?? null,
+          score_deterministic: scored.score ?? null,
           confidence: scored.confidence ?? 'insufficient_data',
           signal_count: scored.signal_count ?? 0,
           distinct_article_count: scored.distinct_article_count ?? 0,
@@ -1145,6 +1237,7 @@ export async function generateNarratives(
           manifestations_absent: narr.manifestations_absent ?? [],
           evidence: narr.evidence ?? [],
           narrative: narr.narrative ?? '',
+          reviewer_score_adjusted: Boolean(display.reviewer_score_adjusted),
         };
       });
 
@@ -1152,7 +1245,7 @@ export async function generateNarratives(
         date,
         ...(reportScope ? { report_scope: reportScope } : {}),
         total_articles_analyzed: totalArticles,
-        overall_resilience_score: overallScore(scoredComponents),
+        overall_resilience_score: overallScore(scoredForNarrative),
         content_kind: contentKind,
         cross_component_synthesis: narratives.cross_component_synthesis ?? '',
         evidence_quality_note: narratives.evidence_quality_note ?? '',

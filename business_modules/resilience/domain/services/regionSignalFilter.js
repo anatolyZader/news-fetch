@@ -1,4 +1,4 @@
-const ALWAYS_NORTH_SOURCE_TYPES = new Set(['field', 'pbo', 'naftali', 'whatsapp']);
+const ALWAYS_NORTH_SOURCE_TYPES = new Set(['field', 'pbo', 'pbo_regional', 'naftali', 'whatsapp']);
 
 const NORTH_TERMS = [
   // English

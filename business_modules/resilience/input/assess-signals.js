@@ -28,6 +28,8 @@ import {
 } from '../domain/services/regionSignalFilter.js';
 import { generateNarratives } from '../infrastructure/claudeEvaluator.js';
 import { writeReport } from '../infrastructure/reportWriter.js';
+import { createOverridesStore } from '../infrastructure/overridesStore.js';
+import { createOverridesService } from '../app/overridesService.js';
 import { createCostTracker, appendCostLog, checkDailyBudget } from '../../../cross-cut-modules/budget/index.js';
 import {
   crossSourceDedup,
@@ -158,12 +160,41 @@ async function run() {
     1,
   );
 
-  // Field / PBO / regional PBO / Naftali: same calendar window + no dates after `--date` as news/radio/etc.
+  // C4 — symmetric recency cap: previously only field/pbo/pbo_regional/naftali were capped at
+  // their bundle counts, while news/radio/whatsapp could pile up unconstrained. We now cap
+  // every channel at 3 bundles per assessment window so no single source can dominate by
+  // accumulation alone. Plain symmetry with §5 of the doc.
+  const recentNewsFiles = signalBundlesInAssessmentWindow(
+    rootFiles.sort(),
+    /^signals-news-(\d{4}-\d{2}-\d{2})\.json$/,
+    targetDate,
+    targetDates,
+    3,
+  );
+  const recentRadioFiles = signalBundlesInAssessmentWindow(
+    rootFiles.sort(),
+    /^signals-radio-(\d{4}-\d{2}-\d{2})\.json$/,
+    targetDate,
+    targetDates,
+    3,
+  );
+  const recentWhatsappFiles = signalBundlesInAssessmentWindow(
+    rootFiles.sort(),
+    /^signals-whatsapp-(\d{4}-\d{2}-\d{2})\.json$/,
+    targetDate,
+    targetDates,
+    3,
+  );
+
+  // Same calendar window + bundle-count cap for every source.
   const RECENCY_SOURCES = {
     field: recentFieldFiles,
     pbo: recentPboFiles,
     pbo_regional: recentPboRegionalFiles,
     naftali: recentNaftaliFiles,
+    news: recentNewsFiles,
+    radio: recentRadioFiles,
+    whatsapp: recentWhatsappFiles,
   };
 
   // Load pipeline config to check which sources are enabled
@@ -346,6 +377,9 @@ async function run() {
     console.error(`\nPrior context: ${priorReports.map((r) => r.date).join(', ')}`);
   }
 
+  const overridesStore = createOverridesStore();
+  const overridesSvc = createOverridesService({ store: overridesStore });
+
   // Narrate once (full combined)
   const assessment = await generateNarratives(scoredFull, allSignals, targetDate, scopedTotalArticles, {
     onUsage,
@@ -355,6 +389,8 @@ async function run() {
     reportScope,
     comparisonScores: reportScopeId === 'north' ? nationalScored : null,
     comparisonLabel: reportScopeId === 'north' ? 'national' : null,
+    overridesService: overridesSvc,
+    overrideScope: reportScopeId,
   });
 
   // Write extended report
@@ -383,8 +419,8 @@ async function run() {
   console.error(`  ${outputBase}.md`);
   console.error(`  ${outputBase}.json`);
 
-  const { totalCostUsd, usageLog } = getTotal();
-  appendCostLog({ script: 'assess-signals', date: targetDate, totalCostUsd, usageLog, articles: totalArticles });
+  const { totalCostUsd, usageLog, stageEvents } = getTotal();
+  appendCostLog({ script: 'assess-signals', date: targetDate, totalCostUsd, usageLog, stageEvents, articles: totalArticles });
 }
 
 run().catch((err) => {

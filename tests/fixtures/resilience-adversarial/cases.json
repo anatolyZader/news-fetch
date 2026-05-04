@@ -263,6 +263,136 @@
         "forbidden_evidence_types": ["named_institutional_fact", "named_survey_statistic"],
         "comment": "First-person opinion is not an institutional fact or a survey statistic."
       }
+    },
+
+    {
+      "id": "wire_copy_geo_cluster_cross_outlet",
+      "category": "geo_duplication",
+      "scenario": "Four outlets publish the same observational wire line about Tel Aviv transit; cross-source dedup should collapse to one behavioral fact.",
+      "mock_extraction": [
+        {"article_index": 1, "article_url": "https://ynet.co.il/w1", "article_source": "ynet.co.il", "source_type": "news",
+         "signal_type": "routine_maintenance", "evidence_type": "observational_reported_fact",
+         "scope_level": "single_case",
+         "evidence": "Municipal authorities announced that Tel Aviv light rail service will resume normal weekend frequency after overnight maintenance on the Red Line.",
+         "extraction_confidence": 0.9, "temporal_weight": 1.0},
+        {"article_index": 2, "article_url": "https://maariv.co.il/w2", "article_source": "maariv.co.il", "source_type": "news",
+         "signal_type": "routine_maintenance", "evidence_type": "observational_reported_fact",
+         "scope_level": "single_case",
+         "evidence": "Municipal authorities announced that Tel Aviv light rail service will resume normal weekend frequency after overnight maintenance on the Red Line.",
+         "extraction_confidence": 0.88, "temporal_weight": 1.0},
+        {"article_index": 3, "article_url": "https://haaretz.co.il/w3", "article_source": "haaretz.co.il", "source_type": "news",
+         "signal_type": "routine_maintenance", "evidence_type": "observational_reported_fact",
+         "scope_level": "single_case",
+         "evidence": "Municipal authorities announced that Tel Aviv light rail service will resume normal weekend frequency after overnight maintenance on the Red Line.",
+         "extraction_confidence": 0.87, "temporal_weight": 1.0},
+        {"article_index": 4, "article_url": "https://channel14.co.il/w4", "article_source": "channel14.co.il", "source_type": "news",
+         "signal_type": "routine_maintenance", "evidence_type": "observational_reported_fact",
+         "scope_level": "single_case",
+         "evidence": "Municipal authorities announced that Tel Aviv light rail service will resume normal weekend frequency after overnight maintenance on the Red Line.",
+         "extraction_confidence": 0.86, "temporal_weight": 1.0}
+      ],
+      "expectations": {
+        "after_cross_source_dedup_count": 1
+      }
+    },
+
+    {
+      "id": "military_ops_headline_echo_chamber",
+      "category": "military_framing",
+      "scenario": "Repeated military-operations framing with identical evidence text across desks; dedup + scoring should stay bounded.",
+      "mock_extraction": [
+        {"article_index": 1, "article_url": "https://ynet.co.il/m1", "article_source": "ynet.co.il", "source_type": "news",
+         "signal_type": "rumor_spread", "evidence_type": "observational_reported_fact",
+         "scope_level": "single_case",
+         "evidence": "Unverified social posts claimed Iron Dome batteries were repositioned near Tel Aviv ahead of a diplomatic visit; no official confirmation was quoted.",
+         "extraction_confidence": 0.75, "temporal_weight": 1.0},
+        {"article_index": 2, "article_url": "https://maariv.co.il/m2", "article_source": "maariv.co.il", "source_type": "news",
+         "signal_type": "rumor_spread", "evidence_type": "observational_reported_fact",
+         "scope_level": "single_case",
+         "evidence": "Unverified social posts claimed Iron Dome batteries were repositioned near Tel Aviv ahead of a diplomatic visit; no official confirmation was quoted.",
+         "extraction_confidence": 0.74, "temporal_weight": 1.0},
+        {"article_index": 3, "article_url": "https://kan.org.il/m3", "article_source": "kan.org.il", "source_type": "news",
+         "signal_type": "rumor_spread", "evidence_type": "observational_reported_fact",
+         "scope_level": "single_case",
+         "evidence": "Unverified social posts claimed Iron Dome batteries were repositioned near Tel Aviv ahead of a diplomatic visit; no official confirmation was quoted.",
+         "extraction_confidence": 0.73, "temporal_weight": 1.0}
+      ],
+      "expectations": {
+        "after_cross_source_dedup_count": 1,
+        "score_range": {"information_communication": [3, 9]}
+      }
+    },
+
+    {
+      "id": "repeated_headline_near_duplicate_evidence",
+      "category": "headline_echo",
+      "scenario": "Two outlets run the same headline lede with only punctuation drift; normalized cross-source dedup should still collapse.",
+      "mock_extraction": [
+        {"article_index": 10, "article_url": "https://ynet.co.il/h1", "article_source": "ynet.co.il", "source_type": "news",
+         "signal_type": "information_effectiveness_gap", "evidence_type": "observational_reported_fact",
+         "scope_level": "single_case",
+         "evidence": "Residents in northern towns reported they still had no clear instructions on school reopenings after the overnight alert sequence ended.",
+         "extraction_confidence": 0.85, "temporal_weight": 1.0},
+        {"article_index": 11, "article_url": "https://maariv.co.il/h2", "article_source": "maariv.co.il", "source_type": "news",
+         "signal_type": "information_effectiveness_gap", "evidence_type": "observational_reported_fact",
+         "scope_level": "single_case",
+         "evidence": "Residents in northern towns reported they still had no clear instructions on school reopenings after the overnight alert sequence ended",
+         "extraction_confidence": 0.84, "temporal_weight": 1.0}
+      ],
+      "expectations": {
+        "after_cross_source_dedup_count": 1
+      }
+    },
+
+    {
+      "id": "military_framing_news_floods_radio_balanced",
+      "category": "source_type_cap",
+      "_generator": "military_news_flood_with_one_radio",
+      "scenario": "Eight news outlets push positive narrative on military framing; one radio piece balances. Layer-1 source_type cap (≤50%) keeps narrative within a moderate band.",
+      "expectations": {
+        "score_range": {"narrative": [4, 9]},
+        "comment": "Without Layer-1 cap, news mass dominates and the score saturates near 10."
+      }
+    },
+
+    {
+      "id": "geo_listing_two_outlets_each_negative",
+      "category": "article_source_cap",
+      "_generator": "ynet_geo_negatives_with_one_maariv",
+      "scenario": "Six ynet pieces pile a negative wellbeing narrative; one maariv piece balances. Layer-2 article_source cap (≤35%) keeps source_diversity_factor low and bounds the score.",
+      "expectations": {
+        "score_range": {"wellbeing_atrisk": [1, 9]},
+        "max_source_diversity_factor": {"wellbeing_atrisk": 0.95},
+        "comment": "Layer-2 cap keeps single outlet from dominating the negative case."
+      }
+    },
+
+    {
+      "id": "border_town_listing_geo_ish_duplication",
+      "category": "geo_listing",
+      "scenario": "Multiple articles list the same border-adjacent municipalities as 'under alert'; identical observational strings should dedupe.",
+      "mock_extraction": [
+        {"article_index": 5, "article_url": "https://ynet.co.il/g1", "article_source": "ynet.co.il", "source_type": "news",
+         "signal_type": "fear_expression", "evidence_type": "observational_reported_fact",
+         "scope_level": "quantified_or_broad",
+         "evidence": "Local councils for Metula, Kiryat Shmona, and Margaliot published identical shelter-timing notices citing the same northern sector map grid reference.",
+         "extraction_confidence": 0.8, "temporal_weight": 1.0},
+        {"article_index": 6, "article_url": "https://haaretz.co.il/g2", "article_source": "haaretz.co.il", "source_type": "news",
+         "signal_type": "fear_expression", "evidence_type": "observational_reported_fact",
+         "scope_level": "quantified_or_broad",
+         "evidence": "Local councils for Metula, Kiryat Shmona, and Margaliot published identical shelter-timing notices citing the same northern sector map grid reference.",
+         "extraction_confidence": 0.79, "temporal_weight": 1.0},
+        {"article_index": 7, "article_url": "https://channel14.co.il/g3", "article_source": "channel14.co.il", "source_type": "news",
+         "signal_type": "fear_expression", "evidence_type": "observational_reported_fact",
+         "scope_level": "quantified_or_broad",
+         "evidence": "Local councils for Metula, Kiryat Shmona, and Margaliot published identical shelter-timing notices citing the same northern sector map grid reference.",
+         "extraction_confidence": 0.78, "temporal_weight": 1.0}
+      ],
+      "expectations": {
+        "after_cross_source_dedup_count": 1,
+        "score_range": {"wellbeing_atrisk": [3, 10]}
+      }
     }
   ]
 }
+

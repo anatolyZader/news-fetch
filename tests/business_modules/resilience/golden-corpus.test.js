@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { spawnSync } from 'node:child_process';
 
 import {
   precisionRecallF1,
@@ -12,10 +13,22 @@ import {
 const __dirname = resolve(fileURLToPath(import.meta.url), '..');
 const CORPUS_PATH   = resolve(__dirname, '../../fixtures/resilience-golden/corpus.jsonl');
 const SNAPSHOT_PATH = resolve(__dirname, '../../fixtures/resilience-golden/extraction-snapshot.jsonl');
+const BUILD_SCRIPT  = resolve(__dirname, '../../fixtures/resilience-golden/build-corpus.mjs');
+const REPO_ROOT     = resolve(__dirname, '../../..');
 
-const F1_THRESHOLD = 0.55;          // micro-F1 ≥ this; below = regression
-const MACRO_KAPPA_THRESHOLD = 0.40; // macro Cohen's κ across signal types
-const MIN_CORPUS_SIZE = 20;         // soft floor: skip thresholds when corpus is too small
+const F1_THRESHOLD = 0.55;
+const MACRO_KAPPA_THRESHOLD = 0.40;
+const MIN_CORPUS_SIZE = 20;
+
+function maybeRefreshGoldenCorpus() {
+  if (process.env.RESILIENCE_REFRESH_GOLDEN !== '1') return;
+  const r = spawnSync(process.execPath, [BUILD_SCRIPT], {
+    cwd: REPO_ROOT,
+    stdio: 'inherit',
+    encoding: 'utf8',
+  });
+  assert.equal(r.status, 0, `build-corpus.mjs failed with exit ${r.status}`);
+}
 
 function loadJsonl(path) {
   if (!existsSync(path)) return null;
@@ -24,10 +37,11 @@ function loadJsonl(path) {
   return text.split('\n').filter(Boolean).map((l) => JSON.parse(l));
 }
 
-const corpus   = loadJsonl(CORPUS_PATH);
-const snapshot = loadJsonl(SNAPSHOT_PATH);
-
 describe('Golden corpus regression (N1)', () => {
+  maybeRefreshGoldenCorpus();
+  const corpus   = loadJsonl(CORPUS_PATH);
+  const snapshot = loadJsonl(SNAPSHOT_PATH);
+
   if (!corpus || corpus.length === 0) {
     it.skip('corpus.jsonl missing or empty — see tests/fixtures/resilience-golden/build-corpus.mjs', () => {});
     return;

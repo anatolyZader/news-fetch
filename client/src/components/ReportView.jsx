@@ -149,7 +149,33 @@ function DeltaAdornment({ delta, significant, t }) {
   );
 }
 
+function ReviewerAdjustmentMark({ deterministic, t }) {
+  if (deterministic == null) return null;
+  return (
+    <Tooltip title={t('report.reviewerAdjustmentCaption').replace('{n}', String(deterministic))}>
+      <Box
+        component="span"
+        aria-label={t('report.reviewerAdjustmentCaption').replace('{n}', String(deterministic))}
+        sx={(theme) => ({
+          marginInlineStart: theme.spacing(0.25),
+          fontSize: theme.typography.eyebrow.fontSize,
+          fontWeight: 700,
+          color: theme.palette.info.main,
+          lineHeight: 1,
+        })}
+      >
+        *
+      </Box>
+    </Tooltip>
+  );
+}
+
 function ComponentChip({ label, variant, value, t, comp }) {
+  const reviewerAdjusted =
+    comp != null
+    && comp.score_deterministic != null
+    && comp.score != null
+    && comp.score_deterministic !== comp.score;
   return (
     <Stack
       direction="row"
@@ -172,6 +198,9 @@ function ComponentChip({ label, variant, value, t, comp }) {
         {label}
       </Box>
       <StatusTag variant={variant}>{scoreLabel(value, t)}</StatusTag>
+      {reviewerAdjusted && (
+        <ReviewerAdjustmentMark deterministic={comp.score_deterministic} t={t} />
+      )}
       {comp && (
         <DeltaAdornment
           delta={comp.delta_score}
@@ -352,20 +381,57 @@ function ScoreWithInterval({ comp, t }) {
   }
   const hasCi = comp.score_low != null && comp.score_high != null
     && (comp.score_low !== comp.score || comp.score_high !== comp.score);
+  const det = comp.score_deterministic;
+  const showAdj = det != null && comp.score != null && det !== comp.score;
+  const showSmoothed = comp.score_smoothed != null && comp.score_smoothed !== comp.score;
+  const floorClamped = comp.floor_clamped === true;
+  const ciUnstable = comp.ci_unstable === true;
+
+  const annotations = (
+    <>
+      {showSmoothed && (
+        <Typography component="span" variant="caption" color="text.disabled" sx={{ fontStyle: 'italic' }}>
+          {t('report.scoreInterval.smoothed').replace('{n}', String(comp.score_smoothed))}
+        </Typography>
+      )}
+      {floorClamped && (
+        <Typography component="span" variant="caption" color="warning.main" sx={{ fontStyle: 'italic' }}>
+          {t('report.scoreInterval.thinEvidence')}
+        </Typography>
+      )}
+      {ciUnstable && (
+        <Typography component="span" variant="caption" color="warning.main" sx={{ fontStyle: 'italic' }}>
+          {t('report.scoreInterval.ciUnstable')}
+        </Typography>
+      )}
+      {showAdj && (
+        <Typography component="span" variant="caption" color="text.disabled" sx={{ fontStyle: 'italic' }}>
+          {t('report.reviewerAdjustmentCaption').replace('{n}', String(det))}
+        </Typography>
+      )}
+    </>
+  );
+
   if (!hasCi) {
     return (
-      <Typography component="span" variant="caption" color="text.secondary">
-        {comp.score}/10
-      </Typography>
+      <Stack component="span" spacing={0.25}>
+        <Typography component="span" variant="caption" color="text.secondary">
+          {comp.score}/10
+        </Typography>
+        {annotations}
+      </Stack>
     );
   }
   return (
-    <Typography component="span" variant="caption" color="text.secondary">
-      {t('report.scoreInterval')
-        .replace('{score}', String(comp.score))
-        .replace('{low}', String(comp.score_low))
-        .replace('{high}', String(comp.score_high))}
-    </Typography>
+    <Stack component="span" spacing={0.25}>
+      <Typography component="span" variant="caption" color="text.secondary">
+        {t('report.scoreInterval')
+          .replace('{score}', String(comp.score))
+          .replace('{low}', String(comp.score_low))
+          .replace('{high}', String(comp.score_high))}
+      </Typography>
+      {annotations}
+    </Stack>
   );
 }
 

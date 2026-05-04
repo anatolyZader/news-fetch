@@ -85,12 +85,34 @@ export function calcInvocationCostUsd(model, usage) {
 export function createCostTracker({ maxCostUsd, label = 'run' } = {}) {
   const cap = maxCostUsd ?? parseFloat(process.env.MAX_COST_USD ?? '3.00');
   const usageLog = [];
+  // C9 — stage instrumentation: stage events (verifier kills, self-check
+  // verdicts) carry no LLM cost but are aggregated into the persistent log so
+  // we can later answer "is the self-check earning its tokens?" without needing
+  // to re-derive it from raw transcripts.
+  const stageEvents = [];
   let totalCostUsd = 0;
 
   /**
-   * @param {{ label: string, model: string, usage?: { input_tokens?: number, output_tokens?: number }, costUsd?: number }} payload
+   * @param {{
+   *   label: string,
+   *   model?: string,
+   *   usage?: { input_tokens?: number, output_tokens?: number },
+   *   costUsd?: number,
+   *   stage?: string,
+   *   stats?: { kept?: number, dropped?: number, input?: number, reason_counts?: Record<string, number> }
+   * }} payload
    */
-  function onUsage({ label: callLabel, model, usage, costUsd }) {
+  function onUsage(payload) {
+    const { label: callLabel, model, usage, costUsd, stage, stats } = payload;
+
+    if (stage) {
+      stageEvents.push({ label: callLabel, stage, stats: stats ?? {} });
+      const dropped = stats?.dropped ?? 0;
+      const input = stats?.input ?? 0;
+      console.error(`  🔎 ${callLabel.padEnd(38)} stage=${stage}  dropped: ${dropped}/${input}`);
+      return;
+    }
+
     let cost;
     if (typeof costUsd === 'number' && Number.isFinite(costUsd)) {
       cost = Math.max(0, costUsd);
@@ -119,8 +141,12 @@ export function createCostTracker({ maxCostUsd, label = 'run' } = {}) {
     }
   }
 
+  function getStageEvents() {
+    return stageEvents;
+  }
+
   function getTotal() {
-    return { totalCostUsd, usageLog };
+    return { totalCostUsd, usageLog, stageEvents };
   }
 
   function printSummary() {
@@ -130,13 +156,43 @@ export function createCostTracker({ maxCostUsd, label = 'run' } = {}) {
     );
   }
 
-  return { onUsage, getTotal, printSummary };
+  return { onUsage, getTotal, getStageEvents, printSummary };
 }
 
 // ─── Persistent cost log ───────────────────────────────────────────────────
 
 function costLogPath() {
   return resolve(process.env.COST_LOG_PATH ?? 'cost-log.jsonl');
+}
+
+/**
+ * Aggregate C9 stage events (verifier / self-check / etc.) into a compact
+ * per-stage summary suitable for the persistent log. Returns { perStage,
+ * totals } shaped like:
+ *   { perStage: { evidence_verifier: { kept, dropped, input, reason_counts } },
+ *     totals:   { kept, dropped, input } }
+ */
+function summariseStageEvents(stageEvents = []) {
+  const perStage = {};
+  const totals = { kept: 0, dropped: 0, input: 0 };
+  for (const ev of stageEvents) {
+    const stage = ev.stage ?? 'unknown';
+    const stats = ev.stats ?? {};
+    if (!perStage[stage]) {
+      perStage[stage] = { kept: 0, dropped: 0, input: 0, reason_counts: {} };
+    }
+    const bucket = perStage[stage];
+    bucket.kept += stats.kept ?? 0;
+    bucket.dropped += stats.dropped ?? 0;
+    bucket.input += stats.input ?? 0;
+    for (const [reason, count] of Object.entries(stats.reason_counts ?? {})) {
+      bucket.reason_counts[reason] = (bucket.reason_counts[reason] || 0) + count;
+    }
+    totals.kept += stats.kept ?? 0;
+    totals.dropped += stats.dropped ?? 0;
+    totals.input += stats.input ?? 0;
+  }
+  return { perStage, totals };
 }
 
 /**
@@ -147,9 +203,10 @@ function costLogPath() {
  * @param {string} entry.date          Report/article date (YYYY-MM-DD)
  * @param {number} entry.totalCostUsd
  * @param {Array}  entry.usageLog      Raw usage entries from createCostTracker
+ * @param {Array}  [entry.stageEvents] C9 stage events from createCostTracker
  * @param {number} [entry.articles]    Article count processed
  */
-export function appendCostLog({ script, date, totalCostUsd, usageLog, articles }) {
+export function appendCostLog({ script, date, totalCostUsd, usageLog, stageEvents, articles }) {
   const { haiku: haikuCost, sonnet: sonnetCost, opus: opusCost, other: otherCost } = breakdownFromUsageLog(usageLog);
 
   const record = {
@@ -160,6 +217,10 @@ export function appendCostLog({ script, date, totalCostUsd, usageLog, articles }
     breakdown: { haiku: haikuCost, sonnet: sonnetCost, opus: opusCost, other: otherCost },
     ...(articles != null ? { articles } : {}),
   };
+
+  if (Array.isArray(stageEvents) && stageEvents.length > 0) {
+    record.stages = summariseStageEvents(stageEvents);
+  }
 
   try {
     appendFileSync(costLogPath(), JSON.stringify(record) + '\n', 'utf8');

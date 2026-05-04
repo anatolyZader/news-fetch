@@ -4,7 +4,10 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 
-import { readResilienceHistory } from '../../../../business_modules/resilience/infrastructure/reportHistoryReader.js';
+import {
+  readResilienceHistory,
+  certaintyNumericFromComponent,
+} from '../../../../business_modules/resilience/infrastructure/reportHistoryReader.js';
 
 let tmp;
 
@@ -43,7 +46,7 @@ describe('readResilienceHistory', () => {
       totalArticles: 12,
       overall: 7,
       components: [
-        { component_id: 'narrative', score: 8, confidence: 'high', polarization: 0.1, evidence_mass: 12, signal_count: 5 },
+        { component_id: 'narrative', score: 8, confidence: 'high', certainty: 0.77, polarization: 0.1, evidence_mass: 12, signal_count: 5 },
         { component_id: 'leadership', score: 5, confidence: 'medium', polarization: 0.3, evidence_mass: 4, signal_count: 2 },
       ],
       signals: [
@@ -65,6 +68,14 @@ describe('readResilienceHistory', () => {
     assert.equal(r.signal_counts.leadership_visible_presence, 1);
     assert.equal(r.source_type_mass.news, 2);
     assert.equal(r.source_type_mass.radio, 1);
+    assert.equal(r.components[0].certainty, 0.77);
+    assert.equal(r.components[1].certainty, 0.55);
+  });
+
+  it('certaintyNumericFromComponent prefers float then bucket proxy', () => {
+    assert.equal(certaintyNumericFromComponent({ certainty: 0.42 }), 0.42);
+    assert.equal(certaintyNumericFromComponent({ confidence: 'high' }), 0.85);
+    assert.equal(certaintyNumericFromComponent({ confidence: 'insufficient_data' }), null);
   });
 
   it('picks canonical report per date by total_articles_analyzed (then mtime)', () => {

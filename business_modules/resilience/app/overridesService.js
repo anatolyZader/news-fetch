@@ -1,6 +1,12 @@
 import { COMPONENT_IDS } from '../domain/services/behaviorSignals.js';
 
-const VALID_KINDS = new Set(['challenge_score', 'flag_signal', 'dispute_evidence']);
+// A8: `flag_signal` is intentionally not part of the live override surface.
+// It was historically accepted but had no consumer in the pipeline (it never
+// reached scoring, narrative, or UI), so leaving it in the API surface only
+// gave reviewers a button that did nothing visible. Override kinds today:
+//   - challenge_score: live, affects displayed score via reviewerScoreAdjustments.
+//   - dispute_evidence: offline tooling input for outlet priors / future audit.
+const VALID_KINDS = new Set(['challenge_score', 'dispute_evidence']);
 const VALID_SCOPES = new Set(['national', 'north']);
 const MAX_NOTE_CHARS = 500;
 

@@ -13,11 +13,11 @@ import {
 } from '../../../../business_modules/resilience/input/assessSignalsHelpers.js';
 
 describe('crossSourceDedup', () => {
-  it('collapses identical evidence republished by multiple outlets', () => {
+  it('collapses identical evidence republished by multiple outlets within the same source_type', () => {
     const sigs = [
-      { signal_type: 'compliance_enter_shelter', evidence: 'residents went to shelter', article_source: 'ynet', temporal_weight: 1.0, evidence_type: 'observational_reported_fact' },
-      { signal_type: 'compliance_enter_shelter', evidence: 'Residents went to shelter.', article_source: 'maariv', temporal_weight: 0.85, evidence_type: 'observational_reported_fact' },
-      { signal_type: 'compliance_enter_shelter', evidence: 'Different evidence here', article_source: 'kan', temporal_weight: 0.7, evidence_type: 'observational_reported_fact' },
+      { signal_type: 'compliance_enter_shelter', source_type: 'news', evidence: 'residents went to shelter', article_source: 'ynet', temporal_weight: 1.0, evidence_type: 'observational_reported_fact' },
+      { signal_type: 'compliance_enter_shelter', source_type: 'news', evidence: 'Residents went to shelter.', article_source: 'maariv', temporal_weight: 0.85, evidence_type: 'observational_reported_fact' },
+      { signal_type: 'compliance_enter_shelter', source_type: 'news', evidence: 'Different evidence here', article_source: 'kan', temporal_weight: 0.7, evidence_type: 'observational_reported_fact' },
     ];
     const out = crossSourceDedup(sigs);
     assert.equal(out.length, 2);
@@ -26,18 +26,29 @@ describe('crossSourceDedup', () => {
     assert.equal(collapsed.article_source, 'ynet');
   });
 
+  it('does NOT collapse identical evidence across different source_types (A4)', () => {
+    const sigs = [
+      { signal_type: 'compliance_enter_shelter', source_type: 'news', evidence: 'residents entered shelters', article_source: 'ynet', temporal_weight: 1.0, evidence_type: 'observational_reported_fact' },
+      { signal_type: 'compliance_enter_shelter', source_type: 'field', evidence: 'Residents entered shelters.', article_source: 'field-team-2', temporal_weight: 1.0, evidence_type: 'observational_reported_fact' },
+    ];
+    const out = crossSourceDedup(sigs);
+    assert.equal(out.length, 2, 'press quote and field observation must both survive');
+    const types = new Set(out.map((s) => s.source_type));
+    assert.ok(types.has('news') && types.has('field'));
+  });
+
   it('does not collapse different signal_types even with same evidence', () => {
     const sigs = [
-      { signal_type: 'service_continuity', evidence: 'same wording', article_source: 'a', temporal_weight: 1.0, evidence_type: 'observational_reported_fact' },
-      { signal_type: 'service_disruption', evidence: 'same wording', article_source: 'b', temporal_weight: 1.0, evidence_type: 'observational_reported_fact' },
+      { signal_type: 'service_continuity', source_type: 'news', evidence: 'same wording', article_source: 'a', temporal_weight: 1.0, evidence_type: 'observational_reported_fact' },
+      { signal_type: 'service_disruption', source_type: 'news', evidence: 'same wording', article_source: 'b', temporal_weight: 1.0, evidence_type: 'observational_reported_fact' },
     ];
     assert.equal(crossSourceDedup(sigs).length, 2);
   });
 
   it('keeps higher reliability when temporal_weights tie', () => {
     const sigs = [
-      { signal_type: 'leadership_clear_guidance', evidence: 'mayor announced shelter hours', article_source: 'ynet', temporal_weight: 0.85, evidence_type: 'observational_reported_fact' },
-      { signal_type: 'leadership_clear_guidance', evidence: 'Mayor announced shelter hours.', article_source: 'kan',  temporal_weight: 0.85, evidence_type: 'direct_quote_named_person' },
+      { signal_type: 'leadership_clear_guidance', source_type: 'news', evidence: 'mayor announced shelter hours', article_source: 'ynet', temporal_weight: 0.85, evidence_type: 'observational_reported_fact' },
+      { signal_type: 'leadership_clear_guidance', source_type: 'news', evidence: 'Mayor announced shelter hours.', article_source: 'kan',  temporal_weight: 0.85, evidence_type: 'direct_quote_named_person' },
     ];
     const out = crossSourceDedup(sigs);
     assert.equal(out.length, 1);
@@ -67,13 +78,20 @@ describe('ewmaScore', () => {
 });
 
 describe('deltaSignificance', () => {
-  it('returns null with fewer than 2 history points', () => {
+  it('A6: returns null with fewer than the min-history threshold (default 5) non-null points', () => {
     assert.equal(deltaSignificance(7, []), null);
     assert.equal(deltaSignificance(7, [5]), null);
+    assert.equal(deltaSignificance(7, [5, 6, 5, 6]), null, '4 points still below default min-history');
+  });
+
+  it('A6: filters null entries when counting and when computing stats', () => {
+    // 5 non-null points buried in calendar-aligned nulls — should still compute.
+    const z = deltaSignificance(7, [null, 4, null, 5, 6, 5, 4, null, 5, 6, null, null]);
+    assert.ok(z !== null);
   });
 
   it('returns null when history is degenerate (zero variance)', () => {
-    assert.equal(deltaSignificance(7, [5, 5, 5]), null);
+    assert.equal(deltaSignificance(7, [5, 5, 5, 5, 5, 5]), null);
   });
 
   it('computes z-score correctly for a known series', () => {
@@ -118,6 +136,17 @@ describe('enrichWithDeltaChannel', () => {
     assert.equal(out.narrative.score_smoothed, 7);
   });
 
+  it('A6: yesterday=null in calendar-aligned series falls back to today for EWMA / delta', () => {
+    const scored = { narrative: { score: 7, certainty: 0.5 } };
+    // Calendar-aligned: yesterday is missing (null), but earlier days are present.
+    const history = { narrative: [null, 6, 5, 5, 6, 5, 5, 6, 5, 5] };
+    const out = enrichWithDeltaChannel(scored, history);
+    assert.equal(out.narrative.delta_score, null, 'no yesterday → no delta');
+    assert.equal(out.narrative.score_smoothed, 7, 'EWMA defaults to today when yesterday null');
+    assert.ok(out.narrative.delta_significance != null,
+      'significance still computed against >=5 non-null prior days in baseline');
+  });
+
   it('preserves untouched fields on the component', () => {
     const scored = { narrative: { score: 7, certainty: 0.5, signals: [{ x: 1 }], polarization: 0.3 } };
     const out = enrichWithDeltaChannel(scored, {});
@@ -145,33 +174,48 @@ describe('loadHistoricalScores', () => {
     assert.deepEqual(out, {});
   });
 
-  it('loads scores for the trailing N days, most-recent-first', () => {
+  it('A6: returns calendar-aligned series of length=days with null for missing days', () => {
     writeReport('2026-05-02', [{ component_id: 'narrative', score: 6 }]);
     writeReport('2026-05-01', [{ component_id: 'narrative', score: 5 }]);
     writeReport('2026-04-30', [{ component_id: 'narrative', score: 4 }]);
     const out = loadHistoricalScores('2026-05-03', dir, 14);
-    assert.deepEqual(out.narrative, [6, 5, 4]);
+    assert.equal(out.narrative.length, 14);
+    assert.deepEqual(out.narrative.slice(0, 3), [6, 5, 4]);
+    assert.ok(out.narrative.slice(3).every((v) => v === null),
+      'positions older than the available reports must be null, not absent');
   });
 
-  it('skips insufficient_data days (score is null)', () => {
+  it('A6: insufficient_data day appears as null at its calendar position', () => {
     writeReport('2026-05-02', [{ component_id: 'narrative', score: null }]);
     writeReport('2026-05-01', [{ component_id: 'narrative', score: 5 }]);
     const out = loadHistoricalScores('2026-05-03', dir, 14);
-    assert.deepEqual(out.narrative, [5]);
+    assert.equal(out.narrative.length, 14);
+    assert.equal(out.narrative[0], null, 'yesterday (insufficient_data) should be null at index 0');
+    assert.equal(out.narrative[1], 5, 'two days ago should still be at index 1');
+  });
+
+  it('A6: a calendar gap day between reports is filled with null', () => {
+    writeReport('2026-05-02', [{ component_id: 'narrative', score: 6 }]);
+    // skip 2026-05-01 entirely
+    writeReport('2026-04-30', [{ component_id: 'narrative', score: 4 }]);
+    const out = loadHistoricalScores('2026-05-03', dir, 14);
+    assert.equal(out.narrative[0], 6);
+    assert.equal(out.narrative[1], null, 'gap day must be null, not collapsed away');
+    assert.equal(out.narrative[2], 4);
   });
 
   it('does not include the targetDate itself', () => {
     writeReport('2026-05-03', [{ component_id: 'narrative', score: 9 }]);
     writeReport('2026-05-02', [{ component_id: 'narrative', score: 6 }]);
     const out = loadHistoricalScores('2026-05-03', dir, 14);
-    assert.deepEqual(out.narrative, [6]);
+    assert.equal(out.narrative[0], 6);
   });
 
   it('picks the latest run when multiple times exist for one date', () => {
     writeReport('2026-05-02', [{ component_id: 'narrative', score: 4 }], '0830');
     writeReport('2026-05-02', [{ component_id: 'narrative', score: 8 }], '1900');
     const out = loadHistoricalScores('2026-05-03', dir, 14);
-    assert.deepEqual(out.narrative, [8]);
+    assert.equal(out.narrative[0], 8);
   });
 
   it('respects the days window', () => {

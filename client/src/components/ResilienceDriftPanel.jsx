@@ -18,15 +18,15 @@ const COMPONENT_IDS = [
   'belonging_solidarity', 'wellbeing_atrisk',
 ];
 
-function Sparkline({ series, t }) {
+function Sparkline({ series, t, valueKey = 'score', variant = 'score10' }) {
   const theme = useTheme();
   const W = 240;
   const H = 60;
   const padX = 4;
   const padY = 6;
   const points = series
-    .map((p, i) => ({ x: i, y: p.score, date: p.date }))
-    .filter((p) => p.y != null);
+    .map((p, i) => ({ x: i, y: p[valueKey], date: p.date }))
+    .filter((p) => p.y != null && !Number.isNaN(p.y));
 
   if (points.length === 0) {
     return (
@@ -37,9 +37,8 @@ function Sparkline({ series, t }) {
   }
 
   const xMax = Math.max(1, series.length - 1);
-  // Scores are 1..10; pad the y-domain slightly.
-  const yMin = 1;
-  const yMax = 10;
+  const yMin = variant === 'unit01' ? 0 : 1;
+  const yMax = variant === 'unit01' ? 1 : 10;
 
   function sx(x) { return padX + (x / xMax) * (W - 2 * padX); }
   function sy(y) { return H - padY - ((y - yMin) / (yMax - yMin)) * (H - 2 * padY); }
@@ -47,7 +46,9 @@ function Sparkline({ series, t }) {
   const polyline = points.map((p) => `${sx(p.x).toFixed(1)},${sy(p.y).toFixed(1)}`).join(' ');
   const last = points[points.length - 1];
   const first = points[0];
-  const lastColor = scoreColor10(last.y, theme);
+  const lastColor = variant === 'unit01'
+    ? theme.palette.primary.main
+    : scoreColor10(last.y, theme);
 
   return (
     <Box sx={{ position: 'relative', width: W, height: H }}>
@@ -65,7 +66,7 @@ function Sparkline({ series, t }) {
             key={i}
             cx={sx(p.x)} cy={sy(p.y)}
             r={2.5}
-            fill={scoreColor10(p.y, theme)}
+            fill={variant === 'unit01' ? theme.palette.text.secondary : scoreColor10(p.y, theme)}
           />
         ))}
         <circle cx={sx(last.x)} cy={sy(last.y)} r={4} fill={lastColor} />
@@ -256,6 +257,72 @@ export function ResilienceDriftPanel({ scope = 'national' }) {
               <OverridesBar overrides={data.overrides} t={t} />
             </Box>
           </Stack>
+
+          <Stack
+            direction={{ xs: 'column', md: 'row' }}
+            spacing={2}
+            sx={(theme) => ({ marginTop: theme.spacing(0.5) })}
+          >
+            <Box sx={(theme) => ({
+              flex: 1,
+              padding: theme.spacing(2),
+              border: theme.custom.border.hairline,
+              borderRadius: theme.custom.radius.sm,
+              background: theme.palette.background.paper,
+            })}>
+              <Typography variant="cardTitle" sx={{ marginBottom: 1 }}>
+                {t('drift.meanPolarization')}
+              </Typography>
+              <Sparkline
+                variant="unit01"
+                valueKey="mean"
+                series={data.daily_mean_polarization ?? []}
+                t={t}
+              />
+            </Box>
+            <Box sx={(theme) => ({
+              flex: 1,
+              padding: theme.spacing(2),
+              border: theme.custom.border.hairline,
+              borderRadius: theme.custom.radius.sm,
+              background: theme.palette.background.paper,
+            })}>
+              <Typography variant="cardTitle" sx={{ marginBottom: 1 }}>
+                {t('drift.meanCertainty')}
+              </Typography>
+              <Sparkline
+                variant="unit01"
+                valueKey="mean"
+                series={data.daily_mean_certainty ?? []}
+                t={t}
+              />
+            </Box>
+          </Stack>
+
+          {Array.isArray(data.alerts) && data.alerts.length > 0 && (
+            <Box>
+              <Typography variant="cardTitle" sx={{ marginBottom: 1 }}>
+                {t('drift.alertsTitle')}
+              </Typography>
+              <Stack spacing={1}>
+                {data.alerts.map((a, i) => (
+                  <Alert key={i} severity={a.level === 'error' ? 'error' : 'warning'}>
+                    {a.message}
+                  </Alert>
+                ))}
+              </Stack>
+              <Typography
+                variant="eyebrow"
+                component="div"
+                sx={(theme) => ({
+                  marginTop: theme.spacing(1),
+                  color: 'text.disabled',
+                })}
+              >
+                <strong>{t('drift.alerts.helpHeader')}:</strong> {t('drift.alerts.helpBody')}
+              </Typography>
+            </Box>
+          )}
         </>
       )}
 

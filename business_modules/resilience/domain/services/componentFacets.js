@@ -18,7 +18,8 @@ export const COMPONENT_FACETS = {
     visibility:   ['leadership_visible_presence', 'leadership_absence'],
     // Note: rumor_spread/correction were dropped here in N6 — they don't route to leadership;
     // their effect on leadership-perceived credibility is captured indirectly via narrative.
-    credibility:  ['leadership_clear_guidance', 'information_confusion', 'feedback_loop_closure'],
+    credibility:  ['leadership_clear_guidance', 'information_confusion', 'feedback_loop_closure',
+                   'leadership_credibility_loss', 'political_distrust'],
     coordination: ['coordination_failure', 'coordination_success'],
   },
 
@@ -45,10 +46,12 @@ export const COMPONENT_FACETS = {
   },
 
   functional_continuity: {
-    essential_services: ['service_continuity', 'service_disruption', 'routine_maintenance'],
+    essential_services: ['service_continuity', 'service_disruption', 'routine_maintenance',
+                         'routine_disruption'],
     system_load:        ['system_overload', 'system_resilience_under_load'],
     economic:           ['economic_continuity', 'economic_disruption'],
     recovery:           ['post_event_recovery_indicator', 'cultural_continuity'],
+    displacement:       ['evacuation_displacement'],
   },
 
   community_capital: {

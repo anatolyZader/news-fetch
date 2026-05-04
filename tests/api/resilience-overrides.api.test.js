@@ -111,7 +111,7 @@ describe('GET /api/resilience/overrides', () => {
       method: 'POST',
       url: '/api/resilience/overrides',
       payload: { uid: 'u1', report_date: '2026-05-03', scope: 'national',
-        component_id: 'leadership', kind: 'flag_signal', note: 'satirical' },
+        component_id: 'leadership', kind: 'dispute_evidence', note: 'satirical' },
     });
     const res = await app.inject({
       method: 'GET',

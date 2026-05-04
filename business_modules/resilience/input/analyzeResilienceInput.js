@@ -209,12 +209,13 @@ export async function runAnalyzeResilienceCli() {
     console.error(`  ${mdPath}`);
     console.error(`  ${jsonPath}`);
 
-    const { totalCostUsd, usageLog } = getTotal();
+    const { totalCostUsd, usageLog, stageEvents } = getTotal();
     appendCostLog({
       script: contentKind === 'audio' ? 'analyze-audio' : 'analyze-resilience',
       date: reportDate,
       totalCostUsd,
       usageLog,
+      stageEvents,
       articles: analyzedCount,
     });
   } catch (err) {

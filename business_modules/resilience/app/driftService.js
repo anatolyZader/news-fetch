@@ -37,11 +37,28 @@ export function createDriftService({ overridesService, reportsDir, historyReader
           date: r.date,
           score: c?.score ?? null,
           confidence: c?.confidence ?? null,
+          certainty: c?.certainty ?? null,
           polarization: c?.polarization ?? null,
         };
       });
       per_component[id] = { series };
     }
+
+    const daily_mean_polarization = history.map((r) => {
+      const vals = r.components
+        .map((c) => c.polarization)
+        .filter((v) => typeof v === 'number' && !Number.isNaN(v));
+      const mean = vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
+      return { date: r.date, mean };
+    });
+
+    const daily_mean_certainty = history.map((r) => {
+      const vals = r.components
+        .map((c) => c.certainty)
+        .filter((v) => typeof v === 'number' && !Number.isNaN(v));
+      const mean = vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
+      return { date: r.date, mean };
+    });
 
     const signal_volume_per_day = history.map((r) => {
       const total = Object.values(r.signal_counts).reduce((s, n) => s + n, 0);
@@ -81,6 +98,36 @@ export function createDriftService({ overridesService, reportsDir, historyReader
     }
     const rate = totalComponentsWithData > 0 ? totalOverrides / totalComponentsWithData : 0;
 
+    const overrideAlertTh = Number.parseFloat(process.env.RESILIENCE_DRIFT_ALERT_OVERRIDE_RATE ?? '0.15');
+    const polAlertTh = Number.parseFloat(process.env.RESILIENCE_DRIFT_ALERT_POLARIZATION ?? '0.7');
+    const polWindowRaw = Number.parseInt(process.env.RESILIENCE_DRIFT_POLARIZATION_WINDOW ?? '3', 10);
+    const polWindow = Number.isFinite(polWindowRaw)
+      ? Math.min(14, Math.max(1, polWindowRaw))
+      : 3;
+    const alerts = [];
+    if (Number.isFinite(overrideAlertTh) && rate > overrideAlertTh) {
+      alerts.push({
+        level: 'warning',
+        code: 'high_override_rate',
+        message: `Reviewer override rate ${(rate * 100).toFixed(1)}% exceeds ${(overrideAlertTh * 100).toFixed(0)}% threshold.`,
+      });
+    }
+    const tailPolValues = daily_mean_polarization
+      .slice(-polWindow)
+      .map((d) => d.mean)
+      .filter((v) => typeof v === 'number' && !Number.isNaN(v));
+    const recentMeanPol = tailPolValues.length
+      ? tailPolValues.reduce((a, b) => a + b, 0) / tailPolValues.length
+      : null;
+    if (typeof recentMeanPol === 'number' && !Number.isNaN(recentMeanPol) && recentMeanPol > polAlertTh) {
+      alerts.push({
+        level: 'warning',
+        code: 'high_mean_polarization',
+        polarization_window_days: polWindow,
+        message: `${polWindow}-day mean polarization ${recentMeanPol.toFixed(2)} exceeds ${polAlertTh}.`,
+      });
+    }
+
     return {
       scope,
       days,
@@ -88,6 +135,9 @@ export function createDriftService({ overridesService, reportsDir, historyReader
       dates,
       overall_series,
       per_component,
+      daily_mean_polarization,
+      daily_mean_certainty,
+      alerts,
       signal_volume_per_day,
       source_share_per_day,
       overrides: {

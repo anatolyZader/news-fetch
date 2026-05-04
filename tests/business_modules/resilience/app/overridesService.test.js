@@ -62,12 +62,20 @@ describe('overridesService.validate', () => {
     assert.deepEqual(errs, []);
   });
 
-  it('accepts a flag_signal override (no proposed score required)', () => {
+  it('accepts a dispute_evidence override (no proposed score required)', () => {
     const errs = service.validate({
-      uid: 'u', report_date: '2026-05-03', component_id: 'leadership', kind: 'flag_signal',
-      note: 'signal looks like satire',
+      uid: 'u', report_date: '2026-05-03', component_id: 'leadership', kind: 'dispute_evidence',
+      note: 'evidence looks like satire',
     });
     assert.deepEqual(errs, []);
+  });
+
+  it('A8: rejects the deprecated flag_signal kind', () => {
+    const errs = service.validate({
+      uid: 'u', report_date: '2026-05-03', component_id: 'leadership', kind: 'flag_signal',
+      note: 'should be rejected now',
+    });
+    assert.ok(errs.includes('kind_invalid'));
   });
 });
 
@@ -79,7 +87,7 @@ describe('overridesService.create + list + countByComponent', () => {
     });
     const b = service.create({
       uid: 'u2', email: 'b@x', report_date: '2026-05-03', scope: 'national',
-      component_id: 'narrative', kind: 'flag_signal',
+      component_id: 'narrative', kind: 'dispute_evidence',
     });
     assert.ok(a.id && b.id);
 

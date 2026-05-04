@@ -1,0 +1,43 @@
+# Optional weekly / manual run of adversarial cases that call the real Anthropic API.
+# Skips the test step when ANTHROPIC_API_KEY is not configured for the repository.
+# Note: GitHub Actions does not expose `secrets.*` in job-level `if:` reliably,
+# so we gate per-step on a `steps.gate.outputs.has_key` flag instead.
+name: Resilience live LLM
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 6 * * 1'
+
+jobs:
+  adversarial-live:
+    runs-on: ubuntu-latest
+    env:
+      RESILIENCE_LIVE_LLM: '1'
+    steps:
+      - name: Detect ANTHROPIC_API_KEY presence
+        id: gate
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -n "${ANTHROPIC_API_KEY}" ]; then
+            echo "has_key=1" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_key=0" >> "$GITHUB_OUTPUT"
+            echo "::notice::ANTHROPIC_API_KEY is not set; skipping live-LLM adversarial run."
+          fi
+      - uses: actions/checkout@v4
+        if: steps.gate.outputs.has_key == '1'
+      - uses: actions/setup-node@v4
+        if: steps.gate.outputs.has_key == '1'
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - name: Install dependencies
+        if: steps.gate.outputs.has_key == '1'
+        run: npm ci
+      - name: Adversarial suite (live LLM cases)
+        if: steps.gate.outputs.has_key == '1'
+        run: npm test -- tests/business_modules/resilience/adversarial.test.js
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}

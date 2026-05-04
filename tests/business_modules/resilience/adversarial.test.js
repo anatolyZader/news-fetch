@@ -95,6 +95,72 @@ function makeMockExtraction(spec) {
         }
         return out;
       },
+      military_news_flood_with_one_radio: () => {
+        // Layer 1 (source_type) cap @ 50%: 8 news + 1 radio for the SAME positive
+        // narrative. With a single source_type the cap would be a no-op; introducing
+        // a 2nd source_type forces the cap to scale news contributions down.
+        const newsOutlets = ['ynet.co.il', 'maariv.co.il', 'kan.org.il', 'haaretz.co.il'];
+        const out = [];
+        for (let i = 0; i < 8; i++) {
+          out.push({
+            article_index: i + 1,
+            article_url: `https://${newsOutlets[i % newsOutlets.length]}/military${i}`,
+            article_source: newsOutlets[i % newsOutlets.length],
+            source_type: 'news',
+            signal_type: 'resilience_narrative_positive',
+            evidence_type: 'observational_reported_fact',
+            scope_level: 'repeated_pattern',
+            evidence: `news framing positive ${i}`,
+            extraction_confidence: 0.9,
+            temporal_weight: 1.0,
+          });
+        }
+        out.push({
+          article_index: 100,
+          article_url: 'https://kan.org.il/radio-positive',
+          article_source: 'kan.org.il',
+          source_type: 'radio',
+          signal_type: 'resilience_narrative_positive',
+          evidence_type: 'observational_reported_fact',
+          scope_level: 'repeated_pattern',
+          evidence: 'radio framing positive once',
+          extraction_confidence: 0.9,
+          temporal_weight: 1.0,
+        });
+        return out;
+      },
+      ynet_geo_negatives_with_one_maariv: () => {
+        // Layer 2 (article_source) cap @ 35%: 6 ynet negatives + 1 maariv negative
+        // on wellbeing_atrisk. Two outlets present -> Layer 2 must scale ynet down.
+        const out = [];
+        for (let i = 0; i < 6; i++) {
+          out.push({
+            article_index: i + 1,
+            article_url: `https://ynet.co.il/geo-neg${i}`,
+            article_source: 'ynet.co.il',
+            source_type: 'news',
+            signal_type: 'fear_expression',
+            evidence_type: 'observational_reported_fact',
+            scope_level: 'quantified_or_broad',
+            evidence: `Residents reported sustained fear in border towns ${i}`,
+            extraction_confidence: 0.9,
+            temporal_weight: 1.0,
+          });
+        }
+        out.push({
+          article_index: 100,
+          article_url: 'https://maariv.co.il/balance-neg',
+          article_source: 'maariv.co.il',
+          source_type: 'news',
+          signal_type: 'fear_expression',
+          evidence_type: 'observational_reported_fact',
+          scope_level: 'quantified_or_broad',
+          evidence: 'Different reporter logged similar fear elsewhere',
+          extraction_confidence: 0.9,
+          temporal_weight: 1.0,
+        });
+        return out;
+      },
     };
     if (!generators[spec]) {
       throw new Error(`unknown extraction generator: ${spec}`);

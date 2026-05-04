@@ -80,6 +80,16 @@ function buildMarkdown(assessment, sourceFiles) {
     );
     if (scoreCi) lines.push(scoreCi, ``);
 
+    if (comp.score_smoothed != null && comp.score_smoothed !== comp.score) {
+      lines.push(`**Smoothed score (EWMA):** ${comp.score_smoothed}/10`, ``);
+    }
+    if (comp.floor_clamped === true) {
+      lines.push(`> **Note — thin evidence:** the score is constrained to [3, 8] because total evidence mass for this component was below the floor threshold. Treat the headline cautiously.`);
+    }
+    if (comp.ci_unstable === true) {
+      lines.push(`> **Note — CI unstable:** more than 20% of bootstrap resamples produced no score; the displayed CI is a widened fallback.`);
+    }
+
     lines.push(
       `**Assessment reliability:** ${summarizeConfidence(comp.confidence)} *(based on how much evidence was found and how broadly it appears across the sample)* | **Evidence level:** ${certPct} *(${EVIDENCE_LEVEL_INLINE_NOTE})*`,
       `**Evidence base:** ${comp.signal_count ?? 0} behavioral signals found in ${articleCoverage} articles *(${coveragePct} of today's sample, ${spreadLabel} spread across sources)* | **Evidence direction:** ${evidenceDirection(comp.positive_evidence, comp.negative_evidence)}`,
