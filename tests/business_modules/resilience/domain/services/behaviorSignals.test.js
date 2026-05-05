@@ -112,6 +112,48 @@ describe('SIGNAL_CATALOG / SIGNAL_TO_COMPONENTS — T1 + T2 additions', () => {
     const m = SIGNAL_TO_COMPONENTS.fear_expression;
     assert.ok(m.narrative < 0);
   });
+
+  it('Norris: new signal types exist and route to intended components', () => {
+    const types = SIGNAL_CATALOG.map((s) => s.type);
+    for (const t of [
+      // Information & communication
+      'trusted_information_source',
+      'mistrusted_information_source',
+      'feedback_channel_open',
+      'feedback_channel_blocked',
+      // Community competence
+      'consensus_on_priorities',
+      'dissensus_blocks_action',
+      'conflict_resolution',
+      // Rapidity
+      'rapid_mobilization',
+      'delayed_mobilization',
+      // Equity
+      'inequitable_resource_access',
+      'equitable_resource_distribution',
+    ]) {
+      assert.ok(types.includes(t), `missing Norris signal type: ${t}`);
+      assert.ok(SIGNAL_TO_COMPONENTS[t], `missing mapping for Norris signal: ${t}`);
+    }
+
+    assert.ok(SIGNAL_TO_COMPONENTS.trusted_information_source.information_communication > 0);
+    assert.ok(SIGNAL_TO_COMPONENTS.mistrusted_information_source.information_communication < 0);
+
+    assert.ok(SIGNAL_TO_COMPONENTS.feedback_channel_open.information_communication > 0);
+    assert.ok(SIGNAL_TO_COMPONENTS.feedback_channel_open.leadership > 0);
+
+    assert.ok(SIGNAL_TO_COMPONENTS.consensus_on_priorities.leadership > 0);
+    assert.ok(SIGNAL_TO_COMPONENTS.dissensus_blocks_action.leadership < 0);
+
+    assert.ok(SIGNAL_TO_COMPONENTS.conflict_resolution.community_capital > 0);
+    assert.ok(SIGNAL_TO_COMPONENTS.conflict_resolution.belonging_solidarity > 0);
+
+    assert.ok(SIGNAL_TO_COMPONENTS.rapid_mobilization.functional_continuity > 0);
+    assert.ok(SIGNAL_TO_COMPONENTS.delayed_mobilization.functional_continuity < 0);
+
+    assert.ok(SIGNAL_TO_COMPONENTS.inequitable_resource_access.wellbeing_atrisk < 0);
+    assert.ok(SIGNAL_TO_COMPONENTS.equitable_resource_distribution.community_capital > 0);
+  });
 });
 
 describe('scoreComponents — diversity factors (4a)', () => {

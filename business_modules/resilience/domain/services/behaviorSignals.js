@@ -51,6 +51,7 @@ export const SIGNAL_CATALOG = [
   { type: 'community_volunteering',           domain: 'social',      label: 'Organized or spontaneous volunteering',            defaultPolarity: 'positive' },
   { type: 'social_isolation',                 domain: 'social',      label: 'Residents withdraw, are isolated, or excluded',    defaultPolarity: 'negative' },
   { type: 'conflict_or_tension',              domain: 'social',      label: 'Reported conflicts, scapegoating, or inter-group tension', defaultPolarity: 'negative' },
+  { type: 'conflict_resolution',              domain: 'social',      label: 'Community actors resolve conflicts constructively, enabling cooperation (mediation, compromise, de-escalation)', defaultPolarity: 'positive' },
 
   // D. Leadership & Governance
   { type: 'leadership_visible_presence',      domain: 'leadership',  label: 'Leadership is publicly visible and active',        defaultPolarity: 'positive' },
@@ -58,6 +59,8 @@ export const SIGNAL_CATALOG = [
   { type: 'leadership_absence',               domain: 'leadership',  label: 'Leadership is absent, unavailable, or unresponsive', defaultPolarity: 'negative' },
   { type: 'leadership_credibility_loss',      domain: 'leadership',  label: 'Residents or affected groups voice concrete loss of trust in named leadership (broken promises, false reassurances, perceived dishonesty about emergency conditions)', defaultPolarity: 'negative' },
   { type: 'political_distrust',               domain: 'leadership',  label: 'Residents or named civic figures publicly demand accountability or express distrust of the political/governmental handling of the emergency (specific policy demands, not general partisan opinion)', defaultPolarity: 'negative' },
+  { type: 'consensus_on_priorities',          domain: 'leadership',  label: 'Community actors reach working consensus on goals/priorities and a plan for action (collaboration, agreement on what to do next)', defaultPolarity: 'positive' },
+  { type: 'dissensus_blocks_action',          domain: 'leadership',  label: 'Mistrust/conflict prevents working consensus or blocks collective action (dissensus, infighting, inability to agree on priorities)', defaultPolarity: 'negative' },
   { type: 'coordination_failure',             domain: 'leadership',  label: 'Inter-agency or inter-organization coordination breaks down', defaultPolarity: 'negative' },
   { type: 'coordination_success',             domain: 'leadership',  label: 'Multiple agencies, services, or organizations coordinate effectively in response', defaultPolarity: 'positive' },
   { type: 'feedback_loop_closure',            domain: 'leadership',  label: 'Authorities visibly act on community input, complaints, or requests', defaultPolarity: 'positive' },
@@ -67,6 +70,10 @@ export const SIGNAL_CATALOG = [
   { type: 'information_confusion',            domain: 'information', label: 'Residents report confusion, contradictory, or missing information', defaultPolarity: 'negative' },
   { type: 'rumor_spread',                     domain: 'information', label: 'Rumors or misinformation are circulating',          defaultPolarity: 'negative' },
   { type: 'rumor_correction',                 domain: 'information', label: 'Authorities, experts, or community members visibly correct circulating rumors or misinformation', defaultPolarity: 'positive' },
+  { type: 'trusted_information_source',       domain: 'information', label: 'Residents rely on or explicitly trust a specific local/official source for emergency information (trusted hotline, known local authority, trusted broadcaster)', defaultPolarity: 'positive' },
+  { type: 'mistrusted_information_source',    domain: 'information', label: 'Residents explicitly distrust or disregard an emergency information source (source seen as unreliable/lying/ignored), reducing adherence', defaultPolarity: 'negative' },
+  { type: 'feedback_channel_open',            domain: 'information', label: 'A working channel exists for the public to ask questions / articulate needs and receive responses (hotline, municipal desk, two-way messaging)', defaultPolarity: 'positive' },
+  { type: 'feedback_channel_blocked',         domain: 'information', label: 'Public feedback/inquiry channels are absent, unreachable, or ignored (hotline down, no response, no way to ask/clarify)', defaultPolarity: 'negative' },
   { type: 'active_information_seeking',       domain: 'information', label: 'Residents actively seek out emergency or protective guidance — shelter locations, HFC instructions, evacuation routes, operational alerts. NOT: legal, financial, religious, or personal planning information.',  defaultPolarity: 'positive' },
   { type: 'information_actionable_effective', domain: 'information', label: 'Guidance is specific, situation-matched, and demonstrably leads to correct protective behavior', defaultPolarity: 'positive' },
   { type: 'information_effectiveness_gap',    domain: 'information', label: 'Guidance exists but fails to help — does not match real constraints, too vague to act on, or leaves critical scenarios uncovered', defaultPolarity: 'negative' },
@@ -85,6 +92,8 @@ export const SIGNAL_CATALOG = [
   { type: 'economic_disruption',              domain: 'continuity',  label: 'Local economic activity is disrupted: business closures, lost income, employment freeze due to the emergency', defaultPolarity: 'negative' },
   { type: 'post_event_recovery_indicator',    domain: 'continuity',  label: 'Communities visibly recover after a hit: re-opening, return of evacuees, resumed routines', defaultPolarity: 'positive' },
   { type: 'cultural_continuity',              domain: 'continuity',  label: 'Identity-bearing rituals, ceremonies, holidays, or cultural events take place during the emergency', defaultPolarity: 'positive' },
+  { type: 'rapid_mobilization',               domain: 'continuity',  label: 'Resources/services are mobilized quickly to meet needs (rapid access, timely restoration, fast deployment)', defaultPolarity: 'positive' },
+  { type: 'delayed_mobilization',             domain: 'continuity',  label: 'Resources/services are mobilized too slowly, increasing disruption (slow response, delays in opening/repairing/deploying)', defaultPolarity: 'negative' },
 
   // G. Emotional / Narrative
   { type: 'fear_expression',                  domain: 'narrative',   label: 'Residents express fear, anxiety, or trauma',       defaultPolarity: 'negative' },
@@ -103,6 +112,8 @@ export const SIGNAL_CATALOG = [
   { type: 'harm_to_population',              domain: 'wellbeing',   label: 'Physical harm occurred in the community: casualties, injuries, civilians wounded or killed', defaultPolarity: 'negative' },
   { type: 'psychological_distress',          domain: 'wellbeing',   label: 'Named individual or survey reports accumulated trauma, PTSD, grief, or chronic sleep disruption — distinct from situational fear', defaultPolarity: 'negative' },
   { type: 'wellbeing_support_accessed',      domain: 'wellbeing',   label: 'Individuals or groups access psychological support, trauma care, or community wellbeing programs', defaultPolarity: 'positive' },
+  { type: 'inequitable_resource_access',     domain: 'wellbeing',   label: 'Unequal access to safety/resources/services across subgroups (disparities, exclusion of vulnerable populations)', defaultPolarity: 'negative' },
+  { type: 'equitable_resource_distribution', domain: 'wellbeing',   label: 'Resources/support are distributed fairly based on needs (equity-aware allocation, non-disparate access)', defaultPolarity: 'positive' },
 ];
 
 export const SIGNAL_TYPES = SIGNAL_CATALOG.map((s) => s.type);
@@ -132,6 +143,7 @@ export const SIGNAL_TO_COMPONENTS = {
   community_volunteering:            { community_capital: +1.0, belonging_solidarity: +0.7, wellbeing_atrisk: +0.5 },
   social_isolation:                  { belonging_solidarity: -1.0, wellbeing_atrisk: -0.8 },
   conflict_or_tension:               { belonging_solidarity: -1.1, wellbeing_atrisk: -0.4 },
+  conflict_resolution:               { community_capital: +0.6, belonging_solidarity: +0.6, leadership: +0.3 },
 
   // Leadership
   leadership_visible_presence:       { leadership: +1.0 },
@@ -139,6 +151,8 @@ export const SIGNAL_TO_COMPONENTS = {
   leadership_absence:                { leadership: -1.3, lifesaving_behavior: -0.4 },
   leadership_credibility_loss:       { leadership: -1.1, narrative: -0.3 },
   political_distrust:                { leadership: -1.0, narrative: -0.4, information_communication: -0.3 },
+  consensus_on_priorities:           { leadership: +0.5, community_capital: +0.6, narrative: +0.2 },
+  dissensus_blocks_action:           { leadership: -0.6, community_capital: -0.7, narrative: -0.3 },
   coordination_failure:              { leadership: -1.0, community_capital: -0.6, functional_continuity: -0.5 },
   coordination_success:              { leadership: +1.0, community_capital: +0.6, functional_continuity: +0.4 },
   feedback_loop_closure:             { leadership: +0.7, information_communication: +0.5 },
@@ -148,6 +162,10 @@ export const SIGNAL_TO_COMPONENTS = {
   information_confusion:             { information_communication: -1.0, leadership: -0.4, lifesaving_behavior: -0.3 },
   rumor_spread:                      { information_communication: -1.2, narrative: -0.5 },
   rumor_correction:                  { information_communication: +1.0, narrative: +0.4 },
+  trusted_information_source:        { information_communication: +0.9, leadership: +0.4, narrative: +0.3 },
+  mistrusted_information_source:     { information_communication: -0.9, leadership: -0.4, narrative: -0.3 },
+  feedback_channel_open:             { information_communication: +0.7, leadership: +0.4, community_capital: +0.3 },
+  feedback_channel_blocked:          { information_communication: -0.7, leadership: -0.4, community_capital: -0.3 },
   active_information_seeking:        { information_communication: +0.7 },
   information_actionable_effective:  { information_communication: +1.0, lifesaving_behavior: +0.6 },
   information_effectiveness_gap:     { information_communication: -1.0, lifesaving_behavior: -0.5 },
@@ -166,6 +184,8 @@ export const SIGNAL_TO_COMPONENTS = {
   economic_disruption:               { functional_continuity: -0.8, wellbeing_atrisk: -0.4 },
   post_event_recovery_indicator:     { functional_continuity: +0.7, community_capital: +0.4, narrative: +0.4 },
   cultural_continuity:               { narrative: +0.6, belonging_solidarity: +0.6, functional_continuity: +0.4 },
+  rapid_mobilization:                { functional_continuity: +0.6, community_capital: +0.6, leadership: +0.4 },
+  delayed_mobilization:              { functional_continuity: -0.6, community_capital: -0.5, leadership: -0.4 },
 
   // Narrative (with T3 spillover for fear -> narrative)
   fear_expression:                   { wellbeing_atrisk: -0.7, narrative: -0.3 },
@@ -185,6 +205,8 @@ export const SIGNAL_TO_COMPONENTS = {
   harm_to_population:                { wellbeing_atrisk: -1.2, narrative: -0.4 },
   psychological_distress:            { wellbeing_atrisk: -1.0 },
   wellbeing_support_accessed:        { wellbeing_atrisk: +0.7, community_capital: +0.4, belonging_solidarity: +0.3 },
+  inequitable_resource_access:       { wellbeing_atrisk: -0.8, community_capital: -0.5, belonging_solidarity: -0.4 },
+  equitable_resource_distribution:   { wellbeing_atrisk: +0.3, community_capital: +0.4, belonging_solidarity: +0.4 },
 };
 
 // ─── Deterministic scoring ────────────────────────────────────────────────────

@@ -16,6 +16,7 @@ import {
   overallScore,
   scoreComponents,
 } from '../domain/services/behaviorSignals.js';
+import { computeNorrisCapacities } from '../domain/services/norrisCapacities.js';
 import {
   DOMAIN_GROUPS,
   isMultipassEnabled,
@@ -428,6 +429,14 @@ const SIGNAL_EXTRACTION_SYSTEM_PROMPT =
   `  LEADERSHIP action → leadership_clear_guidance. It tells us the authority acted, NOT that people received,\n` +
   `  understood, or were influenced by the information. Only use information_* types when the evidence describes\n` +
   `  the RECEPTION side: did people get the info? Was it clear or confusing? Did it match reality?\n` +
+  `- consensus_on_priorities / dissensus_blocks_action: ONLY when the evidence describes community-level decision-making\n` +
+  `  capacity for emergency response — agreement on priorities and plan (consensus) or inability to act due to internal\n` +
+  `  dispute (dissensus). This is about COLLECTIVE ACTION capacity, not partisan debate.\n` +
+  `  REJECT: political opinion, coalition/party infighting, pundit arguments, or ideological disagreement.\n` +
+  `  Acceptable examples: "local council + residents agreed to prioritize elderly evacuation"; "internal disputes between\n` +
+  `  community bodies blocked opening a shelter / delayed an emergency initiative".\n` +
+  `- conflict_resolution: ONLY when a conflict is described AND the parties resolved it constructively, enabling cooperation\n` +
+  `  (mediation, compromise, de-escalation). REJECT: conflict existing with no resolution → conflict_or_tension.\n` +
   `- information_* types are ONLY for: residents receiving/missing/seeking EMERGENCY SAFETY or OPERATIONAL guidance\n` +
   `  about immediate protective actions (shelters, alerts, evacuation routes, HFC restrictions),\n` +
   `  rumor spread, or contradictory official emergency messages.\n` +
@@ -442,6 +451,13 @@ const SIGNAL_EXTRACTION_SYSTEM_PROMPT =
   `  acting on, or failing to receive/understand/act on emergency safety guidance?\n` +
   `  Mere issuance of alerts or warnings (without evidence of reception or failure) → DO NOT EXTRACT.\n` +
   `  If it describes a service not meeting needs → service_disruption. Political demands → political_distrust.\n` +
+  `- trusted_information_source / mistrusted_information_source: ONLY when the evidence explicitly states that civilians\n` +
+  `  TRUST (or DISTRUST) a specific information source for emergency guidance (e.g. HFC hotline, municipality hotline,\n` +
+  `  named local authority, trusted broadcaster, official alert app, trusted WhatsApp admin channel).\n` +
+  `  REJECT: generic "people got info from the media" with no trust framing; expert analysis; political media bias claims.\n` +
+  `- feedback_channel_open / feedback_channel_blocked: ONLY when the evidence describes a TWO-WAY channel for questions/needs\n` +
+  `  (hotline, municipal desk, live Q&A, two-way messaging) working (open) or failing/ignored/unreachable (blocked).\n` +
+  `  REJECT: one-way announcements or press statements — those are not feedback channels.\n` +
   `- active_information_seeking: ONLY when a resident or group explicitly seeks emergency or protective guidance — e.g. calling an HFC hotline, checking alert apps, asking where the nearest shelter is, seeking evacuation instructions.\n` +
   `  REJECT: consulting a lawyer about a will or inheritance; asking about financial relief; seeking religious guidance; any general wartime planning unrelated to immediate safety.\n` +
   `  A surge in will-writing, legal consultations, or financial inquiries during wartime → fear_expression (if named quote) or omit. It is NOT active_information_seeking.\n` +
@@ -491,6 +507,12 @@ const SIGNAL_EXTRACTION_SYSTEM_PROMPT =
   `  populations — Arabic translations, sign language, accessible formats, elder outreach. Use ONLY when a specific group\n` +
   `  is named (Arab residents, deaf community, elderly without smartphones, visually impaired). Generic "everyone got the\n` +
   `  message" is not inclusivity evidence.\n` +
+  `- rapid_mobilization / delayed_mobilization: ONLY when the evidence makes timing salient — fast deployment/restoration\n` +
+  `  (rapid) or delays/slow response that worsened disruption (delayed). Must be tied to emergency response or service/resource\n` +
+  `  access. REJECT: long-term recovery planning with no timing evidence.\n` +
+  `- inequitable_resource_access / equitable_resource_distribution: ONLY when the evidence explicitly compares access across\n` +
+  `  subgroups (by locality, disability, age, ethnicity, income, evacuee status, etc.) or explicitly describes equity-aware\n` +
+  `  distribution based on needs. REJECT: generic "shortage" complaints without disparity framing → resource_shortage.\n` +
   `- economic_continuity / economic_disruption: distinct from generic service_disruption. Use when the evidence is about\n` +
   `  EMPLOYMENT, BUSINESS OPERATIONS, or COMMERCE specifically (factory still running; restaurant closed; tourism collapsed;\n` +
   `  workers laid off). For non-economic services (schools, clinics, transport) keep using service_continuity / service_disruption.\n` +
@@ -1249,6 +1271,7 @@ export async function generateNarratives(
         content_kind: contentKind,
         cross_component_synthesis: narratives.cross_component_synthesis ?? '',
         evidence_quality_note: narratives.evidence_quality_note ?? '',
+        norris_capacities: computeNorrisCapacities(scoredComponents, scoredForNarrative),
         components,
       };
     } catch (err) {

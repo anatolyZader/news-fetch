@@ -20,11 +20,14 @@ export const COMPONENT_FACETS = {
     // their effect on leadership-perceived credibility is captured indirectly via narrative.
     credibility:  ['leadership_clear_guidance', 'information_confusion', 'feedback_loop_closure',
                    'leadership_credibility_loss', 'political_distrust'],
+    competence:   ['consensus_on_priorities', 'dissensus_blocks_action', 'conflict_resolution'],
     coordination: ['coordination_failure', 'coordination_success'],
   },
 
   information_communication: {
     clarity:       ['information_clarity', 'information_confusion', 'rumor_spread', 'rumor_correction'],
+    trust:         ['trusted_information_source', 'mistrusted_information_source',
+                    'feedback_channel_open', 'feedback_channel_blocked'],
     accessibility: ['information_inclusivity_present', 'information_inclusivity_gap', 'active_information_seeking'],
     actionability: ['information_actionable_effective', 'information_effectiveness_gap'],
   },
@@ -58,6 +61,7 @@ export const COMPONENT_FACETS = {
     mobilization:        ['resource_mobilization', 'community_volunteering', 'self_organization'],
     local_capacity:      ['local_capacity_demonstrated', 'resource_shortage'],
     external_dependency: ['dependency_on_external_aid', 'coordination_success', 'coordination_failure'],
+    collective_action:   ['rapid_mobilization', 'delayed_mobilization', 'conflict_resolution', 'feedback_channel_open'],
   },
 
   belonging_solidarity: {
@@ -71,5 +75,6 @@ export const COMPONENT_FACETS = {
     psychological_distress: ['psychological_distress', 'fear_expression', 'calm_confidence'],
     care_access:            ['wellbeing_support_accessed', 'information_inclusivity_present',
                              'information_inclusivity_gap'],
+    equity:                 ['inequitable_resource_access', 'equitable_resource_distribution'],
   },
 };

@@ -44,6 +44,47 @@ function buildMarkdown(assessment, sourceFiles) {
   // ── Executive summary ─────────────────────────────────────────────────────
   lines.push(`## Executive Summary`, ``, assessment.cross_component_synthesis, ``, `---`, ``);
 
+  // ── Norris capacities (additive layer) ────────────────────────────────────
+  if (Array.isArray(assessment.norris_capacities) && assessment.norris_capacities.length > 0) {
+    lines.push(
+      `## Norris capacities`,
+      ``,
+      `This section is an additive Norris et al. (2008) lens. It does not replace the 8-component scores.`,
+      ``,
+    );
+
+    for (const cap of assessment.norris_capacities) {
+      const scoreStr = cap.score != null ? `${cap.score.toFixed(1)}/10` : '—';
+      const certStr = cap.certainty != null ? `${Math.round(cap.certainty * 100)}%` : '—';
+      const massStr = cap.evidence_mass != null ? `${Math.round(cap.evidence_mass * 10) / 10}` : '—';
+
+      const diag = cap.diagnostics ?? {};
+      const robustness = diag.robustness != null ? diag.robustness.toFixed(2) : '—';
+      const redundancy = diag.redundancy != null ? diag.redundancy.toFixed(2) : '—';
+      const rapidity = diag.rapidity != null ? diag.rapidity.toFixed(2) : '—';
+
+      lines.push(
+        `### ${cap.label_en ?? cap.capacity_id}`,
+        `*${cap.label_he ?? ''}*`,
+        ``,
+        `**Score:** ${scoreStr}  |  **Evidence level:** ${certStr}  |  **Evidence mass:** ${massStr}`,
+        `**Diagnostics:** robustness ${robustness}, redundancy ${redundancy}, rapidity ${rapidity}`,
+      );
+
+      if (cap.top_contributors?.length) {
+        lines.push(``, `**Top contributors:**`);
+        for (const t of cap.top_contributors.slice(0, 3)) {
+          const url = t.article_url ? ` ([source](${t.article_url}))` : '';
+          const c = t._contribution_raw != null ? `${t._contribution_raw.toFixed(2)}` : '—';
+          const comp = t.component_id ? ` (${t.component_id})` : '';
+          lines.push(`- \`${t.signal_type ?? 'unknown'}\`${comp}: "${t.evidence ?? ''}" — contribution ${c}${url}`);
+        }
+      }
+
+      lines.push(``, `---`, ``);
+    }
+  }
+
   // ── Component overview table ───────────────────────────────────────────────
   lines.push(`## Components`, ``, COMPONENTS_TABLE_HELP_MARKDOWN, ``, `| # | Component | עברית | Assessment reliability | Evidence level | Evidence base | Article coverage |`,
     `|---|-----------|-------|------------------------|----------------|---------------|------------------|`,

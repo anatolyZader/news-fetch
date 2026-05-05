@@ -93,6 +93,11 @@ function scoreLabel(s, t) {
   });
 }
 
+function fmt01(x) {
+  if (x == null || Number.isNaN(x)) return '—';
+  return `${Math.round(x * 100)}%`;
+}
+
 function ReportSection({ title, children, ...props }) {
   return (
     <Box
@@ -824,6 +829,7 @@ export function ReportView({
   const setOpenEvidenceCompId = setOpenEvidenceCompIdProp ?? setOpenEvidenceCompIdInternal;
 
   const components = assessment.components ?? [];
+  const norrisCaps = assessment.norris_capacities ?? [];
 
   function getSourceSignals(compId) {
     if (!scoreBySource) return null;
@@ -886,6 +892,84 @@ export function ReportView({
           />
         ))}
       </Box>
+
+      {Array.isArray(norrisCaps) && norrisCaps.length > 0 && (
+        <ReportSection title={t('report.norris.title') ?? 'Norris capacities'}>
+          <Stack spacing={1.5}>
+            {norrisCaps.map((cap) => (
+              <Box
+                key={cap.capacity_id}
+                sx={(theme) => ({
+                  border: theme.custom.border.hairline,
+                  borderRadius: theme.custom.radius.md,
+                  padding: theme.spacing(1.5),
+                  background: theme.palette.background.default,
+                })}
+              >
+                <Stack
+                  direction={{ xs: 'column', sm: 'row' }}
+                  spacing={1}
+                  alignItems={{ xs: 'flex-start', sm: 'center' }}
+                  justifyContent="space-between"
+                >
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography variant="cardTitle" sx={{ marginBottom: 0.25 }}>
+                      {t(`norris.capacity.${cap.capacity_id}`) ?? cap.label_en ?? cap.capacity_id}
+                    </Typography>
+                    {cap.label_he && (
+                      <Typography variant="body2" color="text.secondary">
+                        {cap.label_he}
+                      </Typography>
+                    )}
+                  </Box>
+
+                  <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
+                    <StatusTag variant={scoreVariant10(cap.score)}>
+                      {cap.score != null ? `${cap.score.toFixed(1)}/10` : '—'}
+                    </StatusTag>
+                    <Typography variant="body2" color="text.secondary">
+                      {t('norris.evidenceLevel') ?? 'Evidence level'}: {cap.certainty != null ? `${Math.round(cap.certainty * 100)}%` : '—'}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {t('norris.evidenceMass') ?? 'Evidence mass'}: {cap.evidence_mass != null ? (Math.round(cap.evidence_mass * 10) / 10) : '—'}
+                    </Typography>
+                  </Stack>
+                </Stack>
+
+                <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ marginTop: 1 }}>
+                  <StatusTag variant="neutral">
+                    {t('norris.diag.robustness') ?? 'robustness'} {fmt01(cap.diagnostics?.robustness)}
+                  </StatusTag>
+                  <StatusTag variant="neutral">
+                    {t('norris.diag.redundancy') ?? 'redundancy'} {fmt01(cap.diagnostics?.redundancy)}
+                  </StatusTag>
+                  <StatusTag variant="neutral">
+                    {t('norris.diag.rapidity') ?? 'rapidity'} {cap.diagnostics?.rapidity == null ? '—' : fmt01(cap.diagnostics?.rapidity)}
+                  </StatusTag>
+                </Stack>
+
+                {cap.top_contributors?.length > 0 && (
+                  <Box sx={{ marginTop: 1 }}>
+                    <Typography variant="eyebrow" color="text.secondary" sx={{ marginBottom: 0.5 }}>
+                      {t('norris.topContributors') ?? 'Top contributors'}
+                    </Typography>
+                    <Stack spacing={0.5}>
+                      {cap.top_contributors.slice(0, 3).map((tc, idx) => (
+                        <Typography key={`${cap.capacity_id}-${idx}`} variant="body2">
+                          <Box component="span" sx={{ fontFamily: 'monospace' }}>
+                            {tc.signal_type}
+                          </Box>
+                          {tc.evidence ? ` — ${tc.evidence}` : ''}
+                        </Typography>
+                      ))}
+                    </Stack>
+                  </Box>
+                )}
+              </Box>
+            ))}
+          </Stack>
+        </ReportSection>
+      )}
 
       <ReportSection title={t('report.executiveSummary')}>
         <MarkdownArticle
