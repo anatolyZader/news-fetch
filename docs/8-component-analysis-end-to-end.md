@@ -756,7 +756,8 @@ These five numbers are computed alongside the headline score and surfaced both i
 
 ### 9.2 Counterfactual leverage (`counterfactual_article_key`, `counterfactual_delta`, C3)
 
-- Group contribution items by `article_url || article_index`, find the article with the largest `|mass|`, recompute the score without those signals.
+- Group contribution items by `article_url || article_index`, find the article with the largest **pre-cap** `|mass|`, and recompute the score without those signals.
+  - This keeps the *picked dominant article* faithful to the underlying evidence distribution (before source/outlet caps), while the recomputed score still re-applies the cap after removal — so the math remains cap-bounded (A5).
 - The UI surfaces this when `|delta| ≥ 1` as: *"removing the dominant article would change this score by ±N"*.
 - Direct lever for "how leveraged is this score off one source?".
 
@@ -791,7 +792,7 @@ Operationally: a flat headline often hides a clear sub-facet drift. Facets expos
 
 ## 10) Stage 6 — Narrative generation (LLM, no re-scoring)
 
-`generateNarratives()` in `claudeEvaluator.js`, model `claude-sonnet-4-6`. Sonnet receives:
+`generateNarratives()` in `claudeEvaluator.js`, model `RESILIENCE_NARRATIVE_MODEL` (default `claude-sonnet-4-6`). The narrator LLM receives:
 
 - The **fixed scores and metadata** for all 8 components (including positive/negative mass, polarization, delta-significance, top-3 contributors, facets).
 - All extracted signals bucketed by component.
