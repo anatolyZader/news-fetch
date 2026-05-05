@@ -1,0 +1,2437 @@
+oyu cmunity Psychol (2008) 41:127–150
+DOI 10.1007/s10464-007-9156-6
+
+ORIGINAL PAPER
+
+Community Resilience as a Metaphor, Theory, Set of Capacities,
+and Strategy for Disaster Readiness
+Fran H. Norris Æ Susan P. Stevens Æ
+Betty Pfefferbaum Æ Karen F. Wyche Æ
+Rose L. Pfefferbaum
+
+Published online: 22 December 2007
+ Springer Science+Business Media, LLC 2007
+
+Abstract Communities have the potential to function
+effectively and adapt successfully in the aftermath of
+disasters. Drawing upon literatures in several disciplines,
+we present a theory of resilience that encompasses contemporary understandings of stress, adaptation, wellness,
+and resource dynamics. Community resilience is a process
+linking a network of adaptive capacities (resources with
+dynamic attributes) to adaptation after a disturbance or
+adversity. Community adaptation is manifest in population
+wellness, defined as high and non-disparate levels of
+mental and behavioral health, functioning, and quality of
+life. Community resilience emerges from four primary sets
+of adaptive capacities—Economic Development, Social
+Capital, Information and Communication, and Community
+F. H. Norris  S. P. Stevens
+Dartmouth Medical School, Hanover, NH, USA
+F. H. Norris (&)  S. P. Stevens
+Department of Veterans Affairs National Center for PTSD
+(NCPTSD), VA Medical Center (116D), 215 North Main Street,
+White River Junction, VT 05009, USA
+e-mail: fran.norris@dartmouth.edu
+F. H. Norris  S. P. Stevens  B. Pfefferbaum 
+K. F. Wyche  R. L. Pfefferbaum
+National Consortium for the Study of Terrorism and Responses
+to Terrorism, College Park, MD, USA
+B. Pfefferbaum  K. F. Wyche
+University of Oklahoma Health Sciences Center, Oklahoma
+City, USA
+B. Pfefferbaum  K. F. Wyche  R. L. Pfefferbaum
+Terrorism and Disaster Center, National Child Traumatic Stress
+Network, Oklahoma City, USA
+R. L. Pfefferbaum
+Phoenix College, Phoenix, USA
+
+Competence—that together provide a strategy for disaster
+readiness. To build collective resilience, communities must
+reduce risk and resource inequities, engage local people in
+mitigation, create organizational linkages, boost and protect social supports, and plan for not having a plan, which
+requires flexibility, decision-making skills, and trusted
+sources of information that function in the face of
+unknowns.
+Keywords Resilience  Community resilience 
+Disaster  Preparedness
+
+Resilience as a Metaphor
+When applied to people and their environments, ‘‘resilience’’ is fundamentally a metaphor. With roots in the
+sciences of physics and mathematics, the term originally
+was used to describe the capacity of a material or system to
+return to equilibrium after a displacement. A resilient
+material, for example, bends and bounces back, rather than
+breaks, when stressed (Bodin and Wiman 2004; Gordon
+1978). In physics, resilience is not a matter of how large the
+initial displacement is or even how severe the oscillations
+are but is more precisely the speed with which homeostasis
+is achieved. The image is a compelling one, capable of
+sparking human imagination, as it clearly did for Holling
+(1973) in his original and influential thesis about ‘‘ecological resilience.’’ The concept of resilience has since
+been applied to describe the adaptive capacities of individuals (e.g., Bonanno 2004; Butler et al. 2007; Rutter
+1993; Werner and Smith 1982), human communities (e.g.,
+Brown and Kulig 1996/97; Sonn and Fisher 1998), and
+larger societies (e.g., Adger 2000; Godschalk 2003). As
+references to resilience have continued to increase, so too
+
+123
+
+128
+
+have criticisms that the concept may be inappropriate,
+imprecise, or ‘‘glittery’’ (e.g., Bodin and Winman 2004;
+Carpenter et al. 2001; Cowen 2001; Klein et al. 2003).
+Looking back, one wonders if perhaps the social and psychological sciences should have created their own
+language, free from inherited meanings, but the term is
+probably here to stay. Its metaphorical origins notwithstanding, human resilience, we believe, must now be
+studied on its own terms without undue concern with how
+those meanings correspond to known physical properties or
+laws. We return to the question of the meaning and definitions of resilience and related concepts in the next section
+of this paper.
+The concept of ‘‘community resilience’’ raises the same
+concerns as the concept of resilience per se, but is further
+complicated by variation in the meaning of community.
+Not always, but typically, a community is an entity that has
+geographic boundaries and shared fate. Communities are
+composed of built, natural, social, and economic environments that influence one another in complex ways. Past
+writings on community resilience have described everything from grass-roots groups and neighborhoods to
+complex amalgams of formal institutions and sectors in
+larger geo-political units. This is not inappropriate, as
+resilience can be understood and addressed at different
+levels of analysis. Discussions of community resilience
+often note that the ‘‘whole is more than the sum of its
+parts,’’ meaning that a collection of resilient individuals
+does not guarantee a resilient community (e.g., Pfefferbaum et al. 2005; Rose 2004). As Brown and Kulig (1996/
+97, p. 43) observed, ‘‘People in communities are resilient
+together, not merely in similar ways.’’
+The primary focus of this paper is community resilience
+as it applies to disasters. We adopted McFarlane and
+Norris’ (2006, p. 4) definition of disaster as ‘‘a potentially
+traumatic event that is collectively experienced, has an
+acute onset, and is time delimited; disasters may be
+attributed to natural, technological, or human causes.’’ This
+definition includes acts of nature, such as hurricanes,
+floods, and earthquakes; large industrial, transportation,
+and nuclear accidents; and episodes of mass violence, such
+as terrorist attacks and shooting sprees. It excludes chronic
+environmental hazards, ongoing community and political
+violence, war, and epidemics, not because they are less
+important but because the dynamics of how such stressors
+unfold over time are different enough to warrant boundaries of the potential applicability of theory and research.
+Still, much of what is known or proposed here about
+community resilience was gleaned from or applies equally
+well to other types of collective stressors and adversities.
+Several other papers on this topic have appeared in
+recent years, and two pathways to the present state of
+knowledge are discernible. One path has been relatively
+
+123
+
+Am J Community Psychol (2008) 41:127–150
+
+more concerned with community resilience as it prevents
+disaster-related health or mental health problems of community members. The other path has been relatively more
+concerned with community resilience as it describes
+effective organizational behavior and disaster management.
+These two paths have sometimes, but not always, informed
+each other. Although our work primarily follows the first
+path, our goal was to integrate the various ways past writers
+have conceptualized (and occasionally researched) resilience and related terms. After all, postdisaster community
+health depends in part on the effectiveness of organizational responses, and ultimately the purpose of disaster
+management is to ensure the safety and well-being of the
+public. In addition to these two literatures on community
+resilience, we drew upon resilience literature in the fields
+of psychology, sociology, geography, anthropology, public
+health, ecology, technology, and communications1 and
+upon past stress theory and disaster research. In this paper,
+we begin by discussing resilience as a theory. We present a
+model that integrates various conceptualizations and define
+each of the model’s components. We next discuss community resilience as a set of capacities and review themes
+in past work that inform hypotheses about these capacities,
+such as social capital. We then discuss community resilience as a strategy for promoting effective disaster
+readiness and response. We conclude with several caveats
+or complexities that must be recognized and addressed in
+future resilience theory, research, and application.
+1
+
+We used a wide array of search techniques in the literature review
+including controlled vocabulary (for example, in the PsycINFO
+database, using the term ‘‘resilience’’ which is included in the
+PsycINFO thesaurus) and free text searching (for example, using the
+term ‘‘community resilience,’’ which is not a term in the PsycINFO
+thesaurus but would cue the database to identify papers with
+community resilience in their titles or abstracts). Because one of
+the goals of this project was to discover what had been written about
+community resilience and how resilience was already conceptualized
+in the literature, the initial search strategy was to cast as wide a net as
+possible. In this way, free text searches using the terms ‘‘resilience’’
+and ‘‘community resilience’’ were conducted in a variety of databases
+(i.e., PsychINFO, PubMed, ERIC, PILOTS, Academic Search
+Premier) to capture as many articles as possible that used the term.
+As one might imagine, this broad search strategy yielded a diverse (an
+oftentimes irrelevant) combination of articles from disciplines as
+disparate as economics and food processing. The broad search
+illustrated, if nothing else, the popularity of the term and the infinite
+ways resilience is used to describe varying concepts across disciplines. Free text searches can also be helpful when the term is new
+and perhaps has not yet been added to a thesaurus. Since community
+resilience is a relatively new term, efforts were made to find articles
+that might discuss the spirit of community resilience without using the
+term community resilience. Examples of terms used to ferret out such
+papers (used individually and in combination) included: cohesion,
+adaptability, empowerment, mobilization, collective capacity, and
+collective healing. In a more disciplined and focused search,
+controlled vocabulary strategies were used to adhere to the search
+terms used by specifics databases.
+
+Am J Community Psychol (2008) 41:127–150
+
+Resilience as a Theory
+Resilience has been defined in a variety of ways (see
+Table 1). Most definitions emphasize a capacity for successful adaptation in the face of disturbance, stress, or
+
+129
+
+adversity. Although there are exceptions, most discussions,
+if not the definitions themselves, distinguish resilience
+from ‘‘resistance.’’ In mathematics and technology, resistance refers to the force required to displace the system
+from equilibrium, whereas resilience refers to the time
+
+Table 1 Representative definitions of resilience
+Citation first
+author, year
+
+Level of
+analysis
+
+Definition
+
+Gordon, 1978
+
+Physical
+
+The ability to store strain energy and deflect elastically under a load without breaking or being deformed
+
+Bodin, 2004
+
+Physical
+
+The speed with which a system returns to equilibrium after displacement, irrespective of how many
+oscillations are required
+
+Holling, 1973
+
+Ecological
+system
+
+The persistence of relationships within a system; a measure of the ability of systems to absorb changes of
+state variables, driving variables, and parameters, and still persist
+
+Waller, 2001
+
+Ecological
+system
+
+Positive adaptation in response to adversity; it is not the absence of vulnerability, not an inherent
+characteristic, and not static
+
+Klein, 2003
+
+Ecological
+system
+
+Longstaff, 2005
+
+Ecological
+system
+
+The ability of a system that has undergone stress to recover and return to its original state; more precisely
+(i) the amount of disturbance a system can absorb and still remain within the same state or domain of
+attraction and (ii) the degree to which the system is capable of self-organization (see also Carpenter
+et al. 2001)
+The ability by an individual, group, or organization to continue its existence (or remain more or less
+stable) in the face of some sort of surprise….Resilience is found in systems that are highly adaptable
+(not locked into specific strategies) and have diverse resources
+
+Resilience Alliance,
+2006
+
+Ecological
+system
+
+The capacity of a system to absorb disturbance and reorganize while undergoing change so as to still
+retain essentially the same function, structure and feedbacks—and therefore the same identity.
+(Retrieved 10/16/2006 from http://www.resalliance.org/564.php)
+
+Adger, 2000
+
+Social
+
+The ability of communities to withstand external shocks to their social infrastructure
+
+Bruneau, 2003
+
+Social
+
+The ability of social units to mitigate hazards, contain the effects of disasters when they occur, and carry
+out recovery activities in ways that minimize social disruption and mitigate the effects of future
+earthquakes
+
+Godschalk, 2003
+
+City
+
+A sustainable network of physical systems and human communities, capable of managing extreme
+events; during disaster, both must be able to survive and function under extreme stress
+
+Brown, 1996
+
+Community
+
+The ability to recover from or adjust easily to misfortune or sustained life stress
+
+Sonn, 1998
+
+Community
+
+The process through which mediating structures (schools, peer groups, family) and activity settings
+moderate the impact of oppressive systems
+
+Paton, 2000
+
+Community
+
+The capability to bounce back and to use physical and economic resources effectively to aid recovery
+following exposure to hazards
+
+Ganor, 2003
+
+Community
+
+The ability of individuals and communities to deal with a state of continuous, long term stress; the ability
+to find unknown inner strengths and resources in order to cope effectively; the measure of adaptation
+and flexibility
+
+Ahmed, 2004
+
+Community
+
+The development of material, physical, socio-political, socio-cultural, and psychological resources that
+promote safety of residents and buffer adversity
+
+Kimhi, 2004
+
+Community
+
+Individuals’ sense of the ability of their own community to deal successfully with the ongoing political
+violence
+
+Coles, 2004
+
+Community
+
+A community’s capacities, skills, and knowledge that allow it to participate fully in recovery from
+disasters
+
+Pfefferbaum, 2005
+
+Community
+
+The ability of community members to take meaningful, deliberate, collective action to remedy the impact
+of a problem, including the ability to interpret the environment, intervene, and move on
+
+Masten, 1990
+
+Individual
+
+The process of, capacity for, or outcome of successful adaptation despite challenging or threatening
+circumstances
+
+Egeland, 1993
+
+Individual
+
+The capacity for successful adaptation, positive functioning, or competence…despite high-risk status,
+chronic stress, or following prolonged or severe trauma
+
+Butler, 2007
+
+Individual
+
+Good adaptation under extenuating circumstances; a recovery trajectory that returns to baseline
+functioning following a challenge
+
+Note. Because of our focus, definitions of community resilience are presented here in disproportionate frequency. Definitions describing larger
+(ecological) and smaller (individual) levels of analysis were representative of others in the literature
+
+123
+
+130
+
+Am J Community Psychol (2008) 41:127–150
+
+required for the system to return to equilibrium once displaced (Bodin and Wiman 2004). Across these definitions,
+there is general consensus on two important points: first,
+resilience is better conceptualized as an ability or process
+than as an outcome (Brown and Kulig 1996/97; Pfefferbaum et al. 2005); and second, resilience is better
+conceptualized as adaptability than as stability (e.g.,
+Handmer and Dovers 1996; Waller 2001). In fact, in some
+circumstances, stability (or failure to change) could point
+to lack of resilience. The resilience of systems, for example, depends upon one component of the system being able
+to change or adapt in response to changes in other components; and thus the system would fail to function if that
+component remained stable (Adger 2000; Klein et al.
+2003). Adaptability also takes different forms. ‘‘Engineering resilience’’ makes a system return to one pre-designed
+state or function after a disturbance, whereas ‘‘ecological
+resilience’’ allows for many possible desirable states that
+match the environment (Gunderson 2000). The second type
+of resilience is probably the relevant one for human communities, organizations, and societies.
+With these past definitions in mind, we define resilience
+as: a process linking a set of adaptive capacities to a
+positive trajectory of functioning and adaptation after a
+
+disturbance. Adaptive capacities are resources with
+dynamic attributes, a point to which we will return
+momentarily. The specific elements of the definition would
+be operationalized differently depending upon the level of
+analysis, be it an individual, grass-roots group, larger
+human community, or entire ecology, but our basic definition aims to apply across levels. In our definition, we
+carefully did not equate resilience with the outcome, but
+rather with the process linking resources (adaptive capacities) to outcomes (adaptation).
+Figure 1 introduces a variety of concepts that we elaborate upon in the discussion to follow. Table 2 provides a
+summary of definitions of key terms in the model.
+Although the notion of positive trajectories occurs in recent
+writings (Butler et al. 2007), our model of resilience owes
+its fundamental structure to Dohrenwend’s (1978) model of
+psychosocial stress, presented as part of her presidential
+address to Division 27 (Community Psychology) of the
+American Psychological Association. Our model has been
+updated, however, to encompass contemporary theories of
+stress, to use the nomenclature common in discussions of
+resilience, and to apply across multiple levels of analysis
+(e.g., persistent dysfunction has replaced psychopathology
+as the adverse outcome).
+
+Fig. 1 Model of stress resistance and resilience over time: Resistance
+occurs when resources are sufficiently robust, redundant, or rapid to
+buffer or counteract the immediate effects of the stressor such that no
+dysfunction occurs. Total resistance is hypothesized to be rare in the
+case of severe, enduring, or highly surprising events, making transient
+situational dysfunction the more likely and normative result in the
+immediate aftermath of disasters. Resilience occurs when resources
+are sufficiently robust, redundant, or rapid to buffer or counteract the
+
+effects of the stressor such that a return to functioning, adapted to the
+altered environment, occurs. For human individuals and communities,
+this adaptation is manifest in wellness. Vulnerability occurs when
+resources were not sufficiently robust, redundant, or rapid to create
+resistance or resilience, resulting in persistent dysfunction. The more
+severe, enduring, and surprising the stressor, the stronger the
+resources must be to create resistance or resilience
+
+123
+
+Am J Community Psychol (2008) 41:127–150
+
+131
+
+Table 2 Key terms in the theoretical model
+Concept
+
+Definition
+
+Resilience
+
+A process linking a set of adaptive capacities to a positive trajectory of functioning and adaptation after a disturbance
+
+Community
+resilience
+
+A process linking a set of networked adaptive capacities to a positive trajectory of functioning and adaptation in constituent
+populations after a disturbance
+
+Resilient (adj.)
+
+Having shown, currently showing, or eventually showing a positive trajectory of functioning and adaptation after an initial
+disturbance as a result of adequate adaptive capacities
+Adaptive capacities Resources with dynamic attributes, i.e., resources that are robust, redundant, or rapidly accessible
+Resources
+
+Objects, conditions, characteristics, and energies that people value
+
+Robustness
+
+One of three dynamic attributes of resources; resource strength, in combination with a low probability of resource
+deterioration
+
+Redundancy
+
+One of three dynamic attributes of resources; the extent to which elements are substitutable in the event of disruption or
+degradation
+
+Rapidity
+
+One of three dynamic attributes of resources; how quickly the resource can be accessed and used (mobilized)
+
+Resilienceresources
+
+Synonymous with adaptive capacities
+
+Resilienceoutcomes
+
+The end result of resilience, characterized here as wellness for individuals and populations
+
+Psychological
+wellness
+
+An individual-level outcome indicative of successful adaptation defined according to four criteria: (1) absence of stressrelated psychological disorders; (2) healthy patterns of behavior; (3) adequate role functioning at home, school, and/or
+work; and (4) high quality of life
+
+Population
+wellness
+
+A community-level outcome indicative of successful adaptation, defined as high and non-disparate levels of mental and
+behavioral health, role functioning, and quality of life in constituent populations
+
+Quality of life
+
+One component of wellness that captures how people generally feel about their lives as a whole and in domains of work or
+school, family, health, leisure, and neighborhood.
+
+Stress and Stress Resistance
+Our model begins when a stressor, such as a disaster,
+occurs. Stressors are aversive circumstances that threaten
+the well-being or functioning of the individual, organization, neighborhood, community, or society. Models of the
+stress process typically consider (a) characteristics of the
+stressor, (b) appraisals of the stressor, (c) the response to or
+effects of the stressor, and (d) various conditions that
+influence the relations between the stressor, stress appraisal, and stress response. In stress-diathesis theory, level of
+exposure is proposed to interact with pre-existing vulnerabilities to influence the stress response. The influence of
+this theory is evident in some of the earliest published
+frameworks for disaster research (see Benight et al. 2006,
+for further discussion of these points).
+Stressors vary on a number of dimensions. Important
+dimensions for characterizing disasters include severity,
+duration, and surprise. Severity of exposure is a consistent
+risk factor for adverse psychosocial consequences in the
+aftermath of disasters (Norris et al. 2002a, b). Specific
+stressors that have been found to affect postdisaster mental
+health include bereavement, injury to self or family
+member, life threat, property damage, financial loss, community destruction, and displacement. Disasters are
+stressful not only for individuals experiencing personal loss
+but also for the community-at-large (e.g., Norris et al.
+
+1994). Communities share damages and disruptions to the
+various environments of which they are composed.
+Destruction of a ‘‘keystone’’ neighborhood, such as a
+central business district, may challenge an entire city or
+region (Fullilove and Saul 2006). And, in extreme cases,
+such as the September 11th terrorist attacks, the stress may
+be felt by an the entire nation (Silver et al. 2002).
+Although disasters are rarely anticipated for more than a
+few days in advance, if at all, they vary in duration of
+environmental disruption. For example, after Hurricane
+Katrina in August 2005, the most badly affected neighborhoods in New Orleans remained uninhabitable for years
+after the levee breech. The stressors were of long duration
+even though the floodwaters receded within weeks. Certain
+technological disasters may initiate long periods of threat
+related to contamination; they essentially evolve into
+chronic hazards, such as happened in the case of the
+Chernobyl nuclear disaster (Bromet et al. 2000).
+Longstaff (2005) provided a particularly thought-provoking treatment of the nature of the stressors confronted
+by systems and communities. She heavily emphasized the
+unpredictable nature of the dangers confronting contemporary planners. Our world is increasingly interconnected
+and complex, with systems in constant flux in reaction to
+changes in other systems, making surprise more common
+than predictability. Some dangers are familiar but unpredictable as to where or when they will happen (known
+
+123
+
+132
+
+unknowns), but some dangers are new: ‘‘We don’t know
+about and won’t know about these until they happen’’
+(unknown unknowns). Longstaff used the concept of
+‘‘surprise’’ to capture this discrepancy between what is
+expected and what is experienced. These surprises are
+nearly impossible to predict or prepare for, and thus call for
+broad resilience strategies (Allenby and Fink 2005).
+The ‘‘crisis’’ in Fig. 1 symbolizes a hypothetical balancing act between stressors and resources. Do demands
+outweigh resources? The implied interaction has a long
+history in resilience theory (Rutter 1987) and is extremely
+important in disaster theory. In fact, Quarantelli (1986)
+defined disaster as a consensus-type crisis occasion where
+demands exceed capabilities. Quarantelli sought to remind
+us that the consequences of disasters follow not only from
+the needs of the community but from the community’s
+capacity to meet those needs. Longstaff (2005, p. 16)
+described a crisis as ‘‘what happens when a surprise reveals
+a failure of the rules, norms, behavior or infrastructure used
+to handle that type of surprise.’’ It has become almost a
+cliché to note that crises bring opportunities for growth as
+well as risk for harm, as this idea has been with us for a
+long time (Caplan 1964).
+The ideal outcome after the crisis is resistance, meaning
+that the resources have effectively blocked the stressor and,
+accordingly, there is virtually no dysfunction, no mater
+how temporary. Individuals benefit from resistance strategies on a daily basis, in that the human immune system is
+one of the most effective resistance strategies known to
+exist. Resistance strategies are appropriate for dangers that
+are likely to happen with some frequency and can be
+planned for, such as fires, but they are not likely to be fully
+effective against surprises (Longstaff 2005). Nonetheless,
+there are critical systems that aspire for resistance in the
+aftermath of disaster. Earthquake- and fire-resistant buildings, redundant power sources, and terrorist surveillance
+and detection systems are but a few examples of actions
+that help communities to prevent or resist disaster.
+
+Resilience and Adaptation
+Resistance is an unlikely course for individuals and communities (and actually even for emergency systems) in the
+aftermath of disasters, which brings us to the notion of
+transient dysfunction, similar to Dohrenwend’s (1978)
+concept of the transient stress reaction (see Fig. 1).
+Disaster research indicates that the most typical pattern is
+for distress to be nearly universal in the first weeks or
+months postdisaster, even though only a minority of participants experience criterion-level psychopathology
+(Norris et al. 2002a, b). Most longitudinal disaster studies
+find that an event’s adverse effects dissipate over time,
+
+123
+
+Am J Community Psychol (2008) 41:127–150
+
+leaving only a minority of communities and a minority of
+individuals within those communities chronically impaired.
+Most of the time—especially if the severity of the stressor
+has lessened and resources have been replenished—transient dysfunction is followed by a return to predisaster
+levels of functioning.
+The process that produces adapted outcomes is resilience; the more rapid the return to pre-event functioning,
+the greater the resilience. In his influential paper on psychological resilience, Bonanno (2004) differentiated
+between recovery and resilience trajectories. The former he
+characterized as involving a period of dysfunction lasting
+several months or more, followed by a gradual return to
+pre-event functioning. A trajectory of resilience, on the
+other hand, may involve transient perturbations, lasting as
+long as several weeks, but it generally involves a stable
+trajectory of healthy functioning. Most research does not
+clearly distinguish between these two trajectories.
+Our primary point here is that resilience does not preclude dysfunction or distress. It is now commonly accepted
+in the disaster field that some distress is a normal reaction
+to an abnormal event (e.g., Flynn 1994). However, the
+dysfunction or distress is transient, followed by a return to
+functioning. Postevent functioning may not be the qualitative equivalent of pre-event functioning when there is a
+need to adapt to an altered environment. The phrase ‘‘new
+normal’’ was heard often in the aftermath of the September
+11th terrorist attacks, as people speculated on America’s
+capacity to adapt to the ongoing threat of terrorism and the
+demands and inconveniences of heightened security
+(Redlener and Morse 2006). We do not characterize this
+adaptive trajectory as ‘‘growth,’’ although others might
+legitimately dispute this choice (Brown and Kulig 1996/97;
+Linley and Joseph 2005). Adapted functioning is not necessarily superior in level or character or effectiveness to
+pre-event functioning; it is simply different.
+The alternative outcome to renewed and adapted functioning is persistent dysfunction. It results from
+‘‘vulnerability,’’ defined roughly as the antonym of stress
+resistance or resilience. We say little about vulnerability in
+this paper, but it has been and should remain an important
+concept in hazard management (e.g., Cutter et al. 2003,
+2006).
+
+Wellness as the Manifestation of Adaptation
+What is the end result of this process? Adaptation is the
+theoretical result, but how is it manifest? This has been
+debated. In the mental health arena, for example,
+researchers have proposed that the appropriate individual
+outcome is minimal impairment of functioning despite
+distress, rapid recovery from distress, no distress at all, and
+
+Am J Community Psychol (2008) 41:127–150
+
+adversarial growth (Bonanno 2005; Linley and Joseph
+2005; Litz 2005). In practice, resilience often has been
+operationalized as the absence of psychopathology, which
+is highly inadequate (Rutter 1993). A strict focus on
+prevalence of disorders may cause us to erroneously or
+prematurely conclude that a community has recovered
+from the event when there is still considerable distress,
+dysfunction, or dissatisfaction present, and it dismisses the
+adverse consequences of suffering that does not qualify for
+strict definitions of pathology. Here, we first discuss individual resilience-outcomes and then turn our attention to
+community resilience-outcomes.
+
+Psychological Wellness
+We suggest that ‘‘wellness’’ is a viable indicator that
+adaptation has occurred on the individual level. We base
+this conclusion largely on the writings of Cowen (1983,
+1994, 2000), who contended that psychological wellness
+provides a broad and integrative frame for psychological
+questions and activities, including those related to primary
+prevention, empowerment, and resilience. By arguing that
+‘‘wellness must be a matter of prime concern at all times,
+not just when it fails,’’ Cowen (2000, p. 80) aimed to move
+psychology beyond a focus on repairing dysfunction
+(including efforts to increase the reach of services) to a
+prime focus on promoting wellness. According to Cowen,
+one advantage of this emphasis on wellness, as opposed to
+some competing frames, was that it retained continuity
+with the traditions and past developments in the field of
+mental health. This is cogent advice for applying our work
+to disaster readiness and recovery: a connection to wellness
+places community resilience solidly within the domains of
+concern for local, state, and federal policy-makers charged
+with protecting health and behavioral health in the aftermath of major disasters and terrorist attacks.
+As a manifestation of adaptation, we define psychological wellness according to four criteria: (1) absence of
+psychopathology; (2) healthy patterns of behavior; (3)
+adequate role functioning at home, school, and/or work; and
+(4) high quality of life. Quality of life captures how people
+generally feel about their lives as a whole and in domains of
+work, family life, health, leisure, and neighborhood (e.g.,
+Zautra and Bachrach 2000). Our definition of wellness is
+not identical to Cowen’s (2000, p. 83) but consistent with it,
+as well as with areas of concern for public health and
+behavioral health policies and programs. A criterion of
+wellness serves to remind us that we must attend to disaster
+victims’ abundant problems in living that may interfere with
+their quality of life (Norris et al. 2002a, b).
+Importantly, this definition retains the criterion of being
+free of psychological disorder even though wellness is
+
+133
+
+more than this. Stress-related disorders remain a relevant
+area for postdisaster research and intervention. It would be
+unfortunate if a focus on resilience and wellness caused us
+to neglect those persons who fare most poorly in disasters.
+A growing body of research shows that posttraumatic stress
+disorder, major depressive disorder, and other mental illnesses strongly and adversely influence functioning and
+quality of life (Kessler 2000; Thorp and Stein 2005).
+Mental health, healthy behavior, adequate functioning, and
+quality of life are interrelated but conceptually distinct.
+Wellness might actually be a ‘‘higher bar’’ than has been
+used in resilience research, but it is an appropriate standard
+for concluding that adaptation to an altered environment
+has occurred. As Cowen (2000) also noted, wellness is a
+continuum. Individuals (and communities) show varying
+degrees of wellness before as well as after disasters, and
+this context must be taken into account in assessing postdisaster adaptation.
+
+Population Wellness
+But what about community resilience? By what standard
+do we conclude that a community has adapted? Although
+we recognize that a community is not merely the sum total
+(or average) of its members, we recommend that community-level adaptation be understood as ‘‘population
+wellness,’’ a high prevalence of wellness in the community,
+defined as high and non-disparate levels of mental and
+behavioral health, role functioning, and quality of life in
+constituent populations. There are three reasons for this
+choice: first, although emergency management systems are
+not directly responsible for health, if they function effectively to protect lives, reduce injuries, minimize damage to
+public utilities, and connect community members to necessary services, it is reasonable to expect the population to
+remain well. Wellness is one criterion that should apply in
+most circumstances. Second, wellness levels in the community can be monitored in postdisaster needs assessment
+and surveillance initiatives to guide resource allocation
+(Galea and Norris 2006). Third, this definition keeps the
+outcome conceptually distinct from the community
+resources that promote resilience (and wellness, in turn).
+Although much of the research on disasters has focused
+on individual-level outcomes (Norris et al. 2002a, b),
+effects can be observed at the community or population
+level (Galea and Resnick 2005). In a prospective study of a
+flood in eastern Kentucky (Appalachia), Norris et al. (1994)
+differentiated between primary victims (those with personal
+losses), secondary victims (others living in the flooded
+counties), and non-victims (persons living in neighboring,
+non-flooded counties). They documented community-wide
+tendencies for residents to feel less positive about their
+
+123
+
+134
+
+social networks and surroundings, less enthusiastic and
+energetic, and less able to enjoy life after the flood. No one
+would suggest that such consequences constitute psychopathology, but they do indicate that disasters sometimes
+impair the quality of life in the community for quite some
+time. It is important to note that population wellness is not
+captured fully by average behavioral health or quality of
+life. Abnormal variability might be of greater concern,
+suggesting that disparities in mental and behavioral health
+within the population have been created or exacerbated by
+the disaster or stressor (Galea et al. 2005).
+Determinants of population wellness cannot be identified in studies of individuals within a single population.
+This may sound blatantly obvious, but many examples to
+the contrary exist in the literature, compelling us to
+underscore this point. Within a population, the distribution
+of illness is determined by individual susceptibility. Rose
+(2001) shared several excellent examples from public
+health research. One example concerned blood pressure in
+Kenya and London. In both populations, blood pressure
+varies. Through traditional risk factor research, we could
+determine why some Kenyans have higher blood pressure
+than others and why some Londoners have higher blood
+pressure than others, but we would fail to observe that the
+London setting shifted the entire distribution upward. Thus
+to find the determinants of prevalence and incidence rates
+we need to study characteristics of populations rather than
+the characteristics of individuals.
+These two approaches to etiology (individual and population) have their counterparts in prevention. The
+population strategy attempts to control mean level of risk
+factors, to shift the whole distribution in a favorable
+direction. This shift may bring much benefit to the population by reducing the incidence or prevalence of a
+problem, but it offers only a small benefit to each individual. This is the ‘‘prevention paradox’’ (Rose 1981).
+Effects that seem small in analyses of individuals may be
+quite large when extrapolated to entire populations.
+
+Dynamic Attributes of Resilience-Resources
+What determines which process (and consequent outcome)
+occurs? We believe this depends on a host of objects,
+conditions, characteristics, and energies that people
+value—that is, resources (Hobfoll 1988, 2006). Later, we
+review the specific resources that have been shown or
+theorized to influence community resilience but here our
+primary goal is to identify the attributes of resources that
+make them available and accessible for buffering or
+counteracting stress.
+We found the discussion of Bruneau et al. (2003)
+especially enlightening for thinking about the dynamic
+
+123
+
+Am J Community Psychol (2008) 41:127–150
+
+attributes that resources must have to engender resilience.
+Bruneau et al. theorized that resilient systems have four
+key properties. With unusual specificity for discussions of
+resilience, Bruneau and colleagues provided numerous
+examples of how their four properties could be operationalized for monitoring the performance of the technical,
+organizational, social, and economic systems that compose
+a community.
+‘‘Robustness’’ is the ability to withstand stress without
+suffering degradation. A resistance strategy is robust if it
+keeps out or counteracts a wide variety of dangers, but it is
+fragile if it works only under a small number of possible
+scenarios (Longstaff 2005). Because of the importance of
+resource loss in stress theory (more discussion to follow),
+we characterize robustness as resource strength, in combination with a low probability of resource deterioration.
+‘‘Redundancy’’ is the extent to which elements are
+substitutable in the event of disruption or degradation.
+Many technological systems (airplanes, power grids) have
+extensive redundancy built into them. People build in
+redundancy too by having larger social networks or by
+having more than one way to solve a problem or even by
+having more than one lung or kidney. A condition related
+to redundancy is ‘‘resource diversity.’’ Communities that
+are dependent on a narrow range of resources are less able
+to cope with change that involves the depletion of that
+resource, a state that is sometimes referred to as ‘‘resource
+dependency’’ (Adger 2000). For example, some ecologists
+(Adger 2000; Klein et al. 2003) have argued that coastal
+economies are more resilient than inland economies
+because they have many different functions, linkages, and
+niches. Resource dependency is somewhat the opposite of
+redundancy.
+The remaining two properties in Bruneau et al.’s
+scheme were ‘‘rapidity,’’ the capacity to achieve goals in a
+timely manner to contain losses and avoid disruption, and
+‘‘resourcefulness,’’ the capacity to identify problems and
+mobilize resources when conditions threaten the system.
+The ‘‘4Rs’’ almost work for our purposes (i.e., as attributes
+of resources rather than as properties of systems) but not
+quite. Resourcefulness as a property of resources is
+semantically problematic, and we view critical thinking as
+a specific resource, rather than as a dynamic attribute that
+resources share. Thus, we revised this framework slightly
+by incorporating mobilization into rapidity, redefined to
+reflect how quickly the resource can be accessed and used.
+Thus, in summary, we propose that resilience-resources
+have three dynamic properties: robustness, redundancy,
+and rapidity. We speculate that a resource need have only
+one of these attributes to engender resilience, but this is an
+empirical question. In a case study of the Emergency
+Operations Center (EOC) after the 2001 World Trade
+Center Disaster, Kendra and Wachtendork (2003) showed
+
+Am J Community Psychol (2008) 41:127–150
+
+how the EOC’s ability to rapidly access other resources
+substituted for lack of redundancy of personnel, equipment,
+and space when the EOC was destroyed in the attack.
+
+Resource Mobilization and Deterioration
+Resilience can fail when resilience-resources are themselves damaged or disrupted by the stressor. Kimhi and
+Shamai (2004) examined perceptions of community resilience across four communities that varied in their
+proximity to the Israel–Lebanon border and thus varied
+with respect to threat of political violence. Individuals
+living in the community that had experienced the highest
+level of threat for the longest period of time perceived their
+community as less resilient than did individuals in the other
+communities. If these perceptions are accurate, this
+example suggests that the community’s abilities to cope
+with the threat were themselves harmed by the threat and
+thus illustrates the importance of robustness as an essential
+quality of resilience-resources, as discussed above. Disasters and other stressors cause both resource mobilization
+and resource deterioration. Ideally, the emergent resources
+are sufficient to protect or replenish the vulnerable
+resources, but this not always the case.
+The concept of resource loss has become central in
+stress theory, primarily because of the influence of Hobfoll’s (1988, 1998, 2006) theory of ‘‘conservation of
+resources’’ (COR). The basic tenet of COR theory is that
+‘‘individuals strive to obtain, retain, protect, and foster
+those things that they value,’’ which are termed resources
+(Hobfoll 2006, p. 217). In Hobfoll’s theory, stress occurs
+when resources are threatened, when resources are lost, or
+when individuals fail to gain resources following a significant investment of other resources. In COR theory,
+people must invest resources in order to protect against
+resource loss, recover from losses, and gain resources; this
+serves to make those with greater resources less vulnerable
+to resource loss and more capable of resource gain (the rich
+get richer, so to speak).
+COR theory has become highly influential in disaster
+research because disasters and terrorism threaten a host of
+object resources (housing), personal resources (e.g., optimism, safety), social resources (companionship), and
+energies (money, free time). This phenomenon wherein
+resources are themselves harmed by the stressors they are
+presumed to buffer severely limits the protection resources
+can afford. Scored simply as a count of losses tallied from
+an inventory, resource loss has correlated highly with
+symptom severity in several disaster studies (Norris et al.
+2002b).
+Recognition that the loss of resources is shared by
+members of a highly traumatized community was most
+
+135
+
+eloquently described by Erikson (1976), in his ethnography
+of the Buffalo Creek, West Virginia dam collapse that
+caused heavy loss of life and massive displacement in a
+small mining town. Loss of social connections was severe,
+leaving survivors feeling isolated and alone (see also Abramowitz 2005). Some years later, Kaniasty and Norris
+(1993) proposed and validated a more specific ‘‘social
+support deterioration model,’’ which posited that the
+impact of disasters on mental health is both direct and
+indirect, through disruptions of social networks and
+declines in perceptions of support availability. Loss of
+social supports may be especially severe and long-lasting
+in the context of displacement, especially for women
+(Norris et al. 2005a). Many things can lead to postdisaster
+declines in social support, including not only severe
+stressors, such as displacement and death of significant
+others, but also loss of routine opportunities for companionship and leisure, community conflicts about the causes
+of the disaster and appropriate responses, and violated
+expectations of aid (Edelstein and Wandersman 1987;
+Kaniasty and Norris 2004; Tobin and Whiteford 2002).
+Fortunately we can say that postdisaster deterioration of
+social resources is not inevitable. Using longitudinal data
+collected after Hurricanes Hugo (1989) and Andrew
+(1992), Norris and Kaniasty (1996) proposed and validated
+a model of ‘‘social support deterioration deterrence’’ in
+which the positive relation between severity of exposure
+and received support (resource mobilization) to a greater or
+lesser extent offset or counteracted the negative relation
+between severity of exposure and perceived support
+(resource deterioration). Victims who received high levels
+of help following the disasters were thus protected against
+salient erosion in their perceptions of belonging and
+expectations of support.
+
+Resilience as a Set of Capacities
+In our framework, resilience emerges from a set of adaptive
+capacities—community resilience from a set of networked
+adaptive capacities. This is an important point: resilience
+rests on both the resources themselves and the dynamic
+attributes of those resources (robustness, redundancy,
+rapidity); we use the term ‘‘adaptive capacities’’ to capture
+this combination. This view is generally consistent with
+Gunderson’s (2000) definition of adaptive capacity as the
+property of the ecosystem that describes changes in stability
+landscapes and resilience. Its transformational characteristics are what distinguish ‘‘community resilience’’ from
+other ways of characterizing community strengths, such as
+‘‘community competence’’ or ‘‘social capital’’ (Brown and
+Kulig 1996/97; Pfefferbaum et al. 2005), both of which are
+viewed as resources, more properly as sets of resources,
+
+123
+
+136
+
+here. However, our definition comes very close to the
+meaning of ‘‘community capacity,’’ a term that has been
+used for some years in public health, usually as it relates to
+the implementation of a public health program or practice.
+Goodman et al. (1998, p. 259) defined community capacity
+in two ways: ‘‘(1) the characteristics of communities that
+affect their ability to identify, mobilize, and address social
+and public health problems and (2) the cultivation and use
+of transferable knowledge, skills, systems, and resources
+that affect community- and individual-level changes consistent with public health-related goals and objectives.’’ We
+might say that capacities become adaptive capacities when
+they are robust, redundant, or rapidly accessible and thus
+able to offset a new stressor, danger, or surprise. Goodman
+et al. identified several dimensions of community capacity.
+We include most of their dimensions within the sets
+described subsequently.
+On the basis of our review of the literature, we identified
+four primary sets of networked resources: Economic
+Development, Social Capital, Information and Communication, and Community Competence (see Fig. 2). These
+sets are far from orthogonal, but they are also far from
+synonymous. Much has been written about these concepts
+that are introduced here only briefly. Our purpose was not
+to provide a comprehensive, nuanced summary of what is
+
+Fig. 2 Community resilience as a set of networked adaptive capacities
+
+123
+
+Am J Community Psychol (2008) 41:127–150
+
+known about each capacity but rather to draw conclusions
+about the set of capacities that should become the focus of
+our attention in community resilience theory, research, and
+application.
+
+Economic Development
+Resource Volume and Diversity
+Communities are subject to larger sociological and economic forces. Adger (2000) developed a set of key
+parameters for observing ‘‘social resilience’’ (see Table 1).
+The first parameter encompassed economic growth, stability of livelihoods, and equitable distribution of income
+and assets within populations. Land and raw materials,
+physical capital, accessible housing, health services,
+schools, and employment opportunities create the essential
+resource base of a resilient community (Godschalk 2003;
+Pfefferbaum et al. 2005). Because of extensive interdependencies at the macroeconomic level, economic
+resilience depends not only on the capacities of individual
+businesses but on the capacities of all the entities that
+depend on them and on which they depend (Rose 2004,
+2005).
+
+Am J Community Psychol (2008) 41:127–150
+
+The case for a link between economic resources and
+postdisaster wellness is most evident in research on social
+class as a buffer of disaster stress. Past disaster research has
+shown that participants of lower socio-economic status
+(SES) often experience more adverse psychological consequences than do participants of higher SES (Norris et al.
+2002a, b). Recent evidence (Ahern and Galea 2006) suggests that the adverse psychosocial effects of low income
+(an individual-level variable) after disasters are especially
+strong in the context of income inequities (a neighborhoodlevel variable). By taking a global perspective, we can
+make this case all the more strongly because previous
+research suggests that natural disasters are especially likely
+to engender severe psychological distress when they occur
+in the developing world. In fact, disaster location (United
+States, other developed country, developing country) was a
+stronger predictor of sample-level effects than either
+disaster type (mass violence, natural, technological) or
+sample type (child, adult, rescue/recovery) in Norris et al.’s
+(2002a, b) empirical review.
+Community resilience depends not only on the volume
+of economic resources but also on their diversity. Using
+mangrove agriculture in Southeast Asia as an example,
+Adger (2000) showed how dependency on a narrow range
+of natural resources can increase variance in income and
+decrease social resilience. Extreme events, such as
+droughts, floods, or infestations, increase the risk of being
+dependent on particular resources and therefore decrease
+resilience. Cutter et al. (2006) described one community
+that was especially devastated by Hurricane Katrina in
+August 2005 because residents were almost totally reliant
+on the shrimping industry, on which the storm’s impact
+was tremendous.
+
+Resource Equity and Social Vulnerability
+Societies do not allocate environmental risk equally, often
+making the poorest communities the weakest links in hazard
+mitigation (Cutter et al. 2003; Godschalk 2003; Tobin and
+Whiteford 2002). Differential risk is all the more striking
+from a global perspective because disasters are disproportionately likely to strike economically developing or poor
+countries (De Girolamo and McFarlane 1996). Wisner
+(2001) argued that mitigation plans in developing countries
+often fail to address the ‘‘root causes of disaster vulnerability,
+namely, the economic and political marginality of much of
+the population and environmental degradation (pp. 251).’’
+Quarantelli (1994) argued compellingly that increasing
+industrialization, expanding urbanization, and decaying
+infrastructures will lead to an escalation in the numbers of
+disasters worldwide and that developing countries will bear
+the brunt of this trend. In developing countries, housing
+
+137
+
+quality is poor relative to that found in developed countries,
+so houses are less capable of withstanding severe force.
+Lacking means for obtaining other property, families often
+invade flood plains and other undesirable locations. Loss of
+life often numbers in the thousands or tens of thousands when
+major hurricanes or earthquakes strike poor countries. The
+southeast Asian tsunami of December 26, 2004 caused an
+unfathomable 276,000 deaths, according to a U.S. Geological Survey (retrieved October 21, 2006 from http://
+www.msnbc.msn.com/id/6948775).
+Poor communities not only are at greater risk for death
+and severe damage, but they often are less successful in
+mobilizing support after disasters. In fact, disaster-stricken
+communities are not ruled in the most egalitarian way
+(Bolin and Bolton 1986; Beggs and Haines 1996; Kaniasty
+and Norris 1995; Tobin and Whiteford 2002). Ideally, the
+distribution or mobilization of support follows the ‘‘rule of
+relative needs.’’ Simply put, the most support goes to those
+who need it the most. Often, however, the distribution of
+support follows the ‘‘rule of relative advantage’’ because
+one’s embeddedness in the community, political connections, and social class determine the availability and
+accessibility of resources (Kaniasty and Norris 1995,
+2004). While these rules typically describe the distribution
+of postdisaster support within communities, they also
+describe the distribution of support across communities
+(Norris et al. 2001). The capacity to distribute postdisaster
+resources to those who most need them seems vitally
+important for community resilience.
+
+Social Capital
+For developing a theory of community resilience, a highly
+relevant theme is social capital. Like resilience, social
+capital is a concept transferred from one discipline (in this
+case, economics) to another (Bourdieu 1985). Also like
+resilience, a variety of definitions and criticisms of those
+definitions have appeared, which Kadushin (2004) nicely
+summarized in his review of the concept. The basic idea of
+social capital is that individuals invest, access, and use
+resources embedded in social networks to gain returns (Lin
+2001). It can also be defined as the aggregate of the actual
+or potential resources that are linked to possession of a
+durable network of relationships (Bourdieu 1985). Social
+capital theorists debate the roles of self-interest and status
+attainment and whether social capital should be conceived
+as an individual, collective, or multi-level asset (Wellman
+and Frank 2001). Theorists have also debated the extent to
+which people actively aim to increase their social capital
+(through investment) or whether, conversely, it arises from
+structural positions, families, and friendships (Kadushin
+2004).
+
+123
+
+138
+
+Network Structures and Linkages
+Quite a bit has been written about network structures,
+which we group here under the umbrella of social capital.
+One dimension of community capacity, according to
+Goodman et al. (1998), is the presence of inter-organizational networks that are characterized by reciprocal links,
+frequent supportive interactions, overlap with other networks, the ability to form new associations, and
+cooperative decision-making processes. Comfort (2005)
+noted that uncertainty often leads to efforts to broaden the
+‘‘scope of actors, agents, and knowledge that can be marshaled’’ (p. 347). More generally, this trend necessitates
+networked as opposed to hierarchical systems for disaster
+response. Longstaff (2005) highlighted the importance of
+‘‘keystones’’ or ‘‘hubs,’’—‘‘super-connected’’ network
+members who link one network to another (see also
+Fullilove and Saul 2006). Despite the many values of dense
+networks, they are also more complex and therefore more
+uncertain. The efficiency of hubs may actually decrease
+resilience because if the hub is compromised, the entire
+system fails (Allenby and Fink 2005). Frequent flyers can
+probably appreciate this point. Systems will be highly
+vulnerable if there is little redundancy for these connective
+functions.
+Longstaff also noted the tendency to want individuals,
+groups, and organizations to come together tightly to resist
+danger. ‘‘Tight coupling’’ occurs when change in one
+component engenders a response from other components.
+This is not always bad, but tight coupling can also increase
+danger in some circumstances and can lead to premature
+convergence on solutions. ‘‘Loosely coupled’’ systems may
+be better at responding to local changes since any change
+they make does not require the whole system to respond
+(Longstaff 2005).
+The happy medium may be loosely coupled organizations (to better respond to local needs) that are able to
+coordinate or collaborate (to facilitate access to their
+resources). Gillespie and Murty (1994) noted that the
+failure of relief organizations to work together results in
+‘‘cracks’’ in the postdisaster service delivery network,
+whereas an effective service delivery system provides a
+complete set of services and linkages in which such cracks
+do not appear. Gillespie and Murty distinguished between
+two types of linkage cracks: ‘‘Isolates’’ are organizations
+with essential services that do not interact with the rest of
+the network. They impair service delivery because their
+services are inaccessible to potential consumers who enter
+the network elsewhere. ‘‘Peripherals’’ are organizations
+that are connected to the network only by means of a long
+and indirect series of links. They create inefficiency as a
+great deal of time and effort may be required to access the
+services they provide, and they are at risk of becoming
+
+123
+
+Am J Community Psychol (2008) 41:127–150
+
+isolates if any one link is impaired. Gillespie and Murty
+studied a disaster response network in a Midwestern setting
+and identified both isolates and peripherals among the
+organizations that had capacities and experience that were
+essential for the functioning of the network as a whole.
+
+Social Support
+Social support refers to social interactions that provide
+individuals with actual assistance and embed them into a
+web of social relationships perceived to be loving, caring,
+and readily available in times of need (Barrera 1986).
+Research on social support (see Kaniasty and Norris 2004)
+has long distinguished between ‘‘received support’’ (actual
+receipt of help) and ‘‘perceived support’’ (the belief that
+help would be available if needed). Social support, whether
+received (enacted) or perceived (expected), varies on two
+critical dimensions (Kaniasty and Norris 2000). The first
+dimension, source, is reflected in the overall pattern of help
+utilization. This pattern resembles a pyramid with its broad
+foundation being the family, followed by other primary
+support groups, such as friends, neighbors, and co-workers,
+followed by formal agencies and other persons outside of
+the victim’s immediate circle. The second dimension, type,
+differentiates between emotional, informational, and tangible support.
+Received support typically shows a mobilization pattern
+by increasing in the aftermath of disasters and correlating
+positively with severity of exposure. It protects against
+erosion of perceived support, which in turn is a powerful
+protective factor for mental health (Norris and Kaniasty
+1996). Received support is most helpful when it is reciprocal, meaning that there is a balance between receiving
+and providing support (Hogan et al. 2002; Maton 1988;
+Rook 1992). Being constantly on the receiving end of
+support exchanges can threaten self-esteem (DunkellSchetter and Bennett 1990), whereas being constantly on
+the providing end creates stress and burden (Solomon et al.
+1993).
+Another critical function of social support is social
+influence. In emergencies, people look to similar others to
+help them make decisions about appropriate behaviors.
+This idea, often characterized as ‘‘emergent norms,’’ is
+among the oldest to be found in the sociology of disasters
+(Fritz and Williams 1957). For example, the greater one’s
+social ties, the more likely one is to receive information
+about recommendations to evacuate. Evacuation is often
+the only available strategy to save lives and reduce personal injuries. In an analysis of evacuation decisions before
+Hurricanes Hugo and Andrew, Riad et al. (1999) found that
+residents with stronger social support were twice as likely
+to evacuate as were residents with weaker social support.
+
+Am J Community Psychol (2008) 41:127–150
+
+The important dimension was perceived support (e.g.,
+ability to borrow money, get a ride, have a place to stay),
+not merely the number of ties.
+Previous discussions have likewise emphasized the
+importance of social support for community resilience. One
+of Pfefferbaum et al.’s (2005) factors of community resilience was Support and Nurturance, referring to the
+community’s care about the needs and well-being of
+members. Tse and Liew (2004) and Ganor and Ben-Lavy
+(2003) emphasized self-help and mutual support (‘‘cohesion’’) as components. Goodman et al. (1998) similarly
+proposed that social relationships, including both the frequency and intensity of interactions (social embeddedness)
+and the benefits members receive from their social ties
+(received and perceived support), were dimensions of
+community capacity.
+
+Community Bonds, Roots, and Commitments
+For the most part, social support captures helping behaviors
+within family and friendship networks, but social capital
+also encompasses relationships between individuals and
+their larger neighborhoods and communities (Perkins et al.
+2002; Perkins and Long 2002; Saegert and Winkel 2004).
+Three key social psychological dimensions of social capital
+are thus sense of community, place attachment, and citizen
+participation.
+‘‘Sense of community’’ is an attitude of bonding (trust
+and belonging) with other members of one’s group or
+locale (Perkins et al. 2002, p. 37), including mutual concerns and shared values. Sense of community,
+characterized by high concern for community issues,
+respect for and service to others, sense of connection, and
+needs fulfillment, is assumed to be a dimension of community capacity (Goodman et al. 1998, p. 261). It is also
+believed to be an attribute of resilient communities (Ahmed
+et al. 2004; Landau and Saul 2004; Pfefferbaum et al.
+2005; Tse and Liew 2004). As noted earlier, disasters often
+disrupt sense of community (e.g., Abramowitz 2005;
+Erikson 1976; Kaniasty and Norris 2004). However, in
+some circumstances, environmental threats can enhance
+survivors’ sense of similarly and interdependence, leading
+to increased sense of community (Edelstein 1988).
+‘‘Place attachment’’ is closely related to one’s sense of
+community (Tartaglia 2006). It implies an emotional connection to one’s neighborhood or city, somewhat apart
+from connections to the specific people who live there
+(Altman and Low 1992; Manzo and Perkins 2006). Brown
+and Perkins (1992) argued that place attachments are
+integral to self-definitions; these attachments are holistic
+and multi-faceted and provide stability. Place attachment
+often underlies citizens’ efforts to revitalize a community
+
+139
+
+(Perkins et al. 2002) and thus may be essential for community resilience.
+Place attachment may be of special note for disaster
+recovery, as these events have spatial parameters and harm
+built and natural environments. In the worst of cases,
+people are displaced from neighborhoods and communities
+in which they are deeply rooted. As Brown and Perkins
+discussed (1992), disruptions in place attachments threaten
+both individual and communal aspects of self-definitions,
+and stronger attachments make such disruptions more
+devastating. The impact of displacement after disasters has
+often been profoundly adverse (e.g., Erikson 1976; Norris
+et al. 2005b; Oliver-Smith 1986), and similar findings are
+highly likely to emerge in research on Hurricane Katrina
+(e.g., VanLandingham et al. 2007). These findings raise the
+possibility that place attachment could, in some circumstances, impair rather than facilitate resilience. However, it
+is simultaneously plausible that place attachments promote
+healing (Cox and Holmes 2000) and increase the likelihood
+that the community as a whole has the will to rebuild
+(Manzo and Perkins 2006).
+‘‘Citizen participation’’ is the engagement of community
+members in formal organizations, including religious
+congregations, school and resident associations, neighborhood watches, and self-help groups (Perkins et al. 2002;
+Wandersman 2000). Empowering community settings are
+characterized by inspired, committed leadership and by
+opportunities for members to play meaningful roles (Maton
+and Salem 1995). Wandsmerman and Florin (2000) summarized three primary areas of research on citizen
+participation—who participates and why, how organizational characteristics influence participation, and the effects
+of participation on community conditions and participants’
+own feelings of efficacy—that provide a sound framework
+for examining grass-roots participation in disaster readiness
+and recovery efforts. Quarantelli (1989) summarized the
+results of a series of observational studies of citizen groups
+that emerge with respect to hazardous waste sites, noting
+that they tend to have a small active core, a larger supporting circle that can be mobilized for specific tasks, and a
+greater number of nominal members. Most groups exist in
+conflict. Their goals are often vague and lofty at the outset
+but become more specific and achievable over time. These
+findings relate to the broader aim of understanding the ‘‘life
+cycle’’ of community organizations that form to address
+environmental threats (Edelstein and Wandersman 1987).
+Edelstein (1988) observed that leaders of citizen groups are
+usually those who have strongest attachments to place.
+Citizen participation is widely believed to be a fundamental element for community resilience. Two of the
+factors hypothesized by Pfefferbaum et al. (2005) fall into
+this set of capacities: Participation, referring to member
+involvement and engagement and opportunities for such
+
+123
+
+140
+
+that are sensitive to the diversity, ability, and interests of
+members; and Structures, Roles, and Responsibilities,
+referring to leadership, teamwork, clear organizational
+structures, well-defined roles, and management of relationships with other communities. Similarly, Ganor and
+Ben-Lavy (2003) argued that community resilience
+requires authentic, grass-roots leadership, which they
+labeled ‘‘credibility’’ in their scheme. Participation and
+Leadership were also two of the dimensions of community
+capacity described by Goodman et al. (1998).
+
+Information and Communication
+Information may be the primary resource in technical and
+organizational systems that enables adaptive performance
+(Comfort 2005). By communication, we refer to the creation of common meanings and understandings and the
+provision of opportunities for members to articulate needs,
+views, and attitudes. Pfefferbaum et al. (2005), Goodman
+et al. (1998), and Ganor and Ben-Lavy (2003) have all
+argued that good communication is essential for community resilience or capacity.
+
+Systems and Infrastructure for Informing the Public
+Information and communication become vital in emergencies. People need accurate information about the danger and
+behavioral options, and they need it quickly. Public adherence to recommendations cannot be taken for granted,
+particularly when there is marked uncertainty about exposure, consequences of exposure, or the risks involved with
+following the recommendations (Reissman et al. 2005).
+After an anthrax attack (to use Reissman et al.’s example),
+people are neither certain they have been exposed nor certain
+that prophylactic use of antibiotics can help them. How to
+communicate risks and recommendations most effectively to
+the public has been the focus of much past research, but ‘‘the
+link between information provision and preparedness
+remains tenuous’’ (Paton and Johnston 2001, p. 271).
+On the basis of her review, Longstaff (2005, p. 55)
+argued that information increases survival only if is ‘‘correct and correctly transmitted.’’ In emergencies, when there
+is little time to check information, it is also important that
+the sender of the information be trusted. Closer, local
+sources of information are more likely to be relied upon
+than unfamiliar, distant sources. In fact, Longstaff concluded, ‘‘A trusted source of information is the most
+important resilience asset that any individual or group can
+have’’ (emphasis in original, p. 62). Similarly, the Working
+Group on Governance Dilemmas (2004) concluded that
+trusted communication treats the public as a capable ally,
+
+123
+
+Am J Community Psychol (2008) 41:127–150
+
+invests in public outreach, and reflects the values and priorities of local populations.
+Communication infrastructure is also a valuable
+resource. On the basis of their experiences in New York
+City after the September 11th terrorist attacks, Draper et al.
+(2006) maintained that it is advantageous for a life-line (or
+hotline) system to be in place beforehand. These communication systems can be ramped up after the disaster to
+coordinate and deploy volunteers, and later they provide a
+central means for the pubic to learn about and access services (see also Norris et al. 2006). Media also can be
+engaged to publicize available services and educate the
+public about typical reactions to disaster (e.g., Gist and
+Stolz 1982; Norris et al. 2006).
+
+Communication and Narrative
+The remaining element in this set, less structural than the
+others, is the presence of communal narratives that give the
+experience shared meaning and purpose. As noted by Sonn
+and Fisher (1998), who examined community resilience to
+oppression, narratives provide insight into how communities see themselves and others (see also Harvey et al. 1995;
+Rappaport 1995; Waller 2001). Members’ shared understandings of reality contribute to a sense of place and
+connectedness, that in turn affect resilience (Alkon 2004).
+Couto (1989) described how ‘‘group formulations’’ (narratives and symbols) became a mechanism for
+empowerment in Aberfan, South Wales, after a horrific
+environmental disaster took the lives of 104 school-children and 20 adults. Writing about their own experiences in
+the aftermath of the September 11th terrorist attacks in
+lower Manhattan, Landau and Saul (2004) concluded that
+community recovery depends partly on collectively telling
+the story of the community’s experience and response.
+The media shape how a disaster is framed in ways that
+influence survivors’ and others’ understanding of the event,
+including emergency managers. In a fascinating analysis of
+disaster metaphors and myths, Tierney et al. (2006) traced
+the impact of exaggerated and extreme portrayals of looting and lawlessness to critical policy decisions. Three days
+after the New Orleans levee breach, leadership’s decision
+to re-direct police officers to attend to lawbreakers rather
+than to life-saving activities lessened the survival chances
+of stranded residents. The authors also noted that stories
+like these lead many policy-makers to believe that the
+military should play a larger role in disaster response
+despite 50 years of sociological research showing that the
+emergency behavior of most disaster victims is orderly and
+prosocial.
+Abramowitz (2005) conducted an extraordinary anthropological study of six Guinean communities attacked by
+
+Am J Community Psychol (2008) 41:127–150
+
+Sierra Leonean and Liberian forces in 2000–2001. The
+author collected narratives from study participants as well
+as measures of psychological distress. Symptoms of posttraumatic stress were nearly universal but much higher in
+three of the communities than in the others. Narratives
+revealed that in those three communities, respondents
+shared the feeling that government and non-governmental
+organizations had neglected them. They mourned the loss
+of their homes and markets. Social rituals and practices,
+including reciprocity and charity, were abandoned. There
+were widespread beliefs that some community members
+had prospered at the expense of others. Distress was
+present in the other communities, but less so. They had
+managed to maintain many social rituals, and residents
+shared a belief that customs and social practices would
+return to normal as soon as economic conditions improved.
+Most importantly, they had created a collective story that
+emphasized their resistance to the violence.
+
+Community Competence
+Endangered communities must be able to learn about their
+risks and options and work together flexibly and creatively
+to solve problems. Longstaff (2005) argued that the
+capacity to acquire trusted and accurate information, to
+reflect on that information critically, and to solve emerging
+problems is far more important for community resilience
+than is a detailed security plan that rarely foresees all
+contingencies (see also Comfort 2005; Handmer and
+Dovers 1996). This point brings us to Community Competence, which we view as the networked equivalent of
+human agency, a term that is more broadly applicable
+across levels of analysis. Community competence has to do
+with collective action and decision-making, capacities that
+may stem from collective efficacy and empowerment.
+
+Collective Action and Decision-making
+Cottrell (1976, p. 197) described a competent community
+as one in which ‘‘the various component parts of the
+community: (1) are able to collaborate effectively in
+identifying the problems and needs of the community; (2)
+can achieve a working consensus on goals and priorities;
+(3) can agree on ways and means to implement the agreed
+upon goals; and (4) can collaborate effectively in the
+required actions.’’ Cottrell proposed that these competencies arose from commitment to the community as a
+relationship worthy of substantial effort, articulateness,
+communication, participation, and means for debate, discussion, and decision-making. Many of these conditions
+were previously considered as aspects of Social Capital or
+
+141
+
+Information and Communication, so it might be said that
+social capital and communication are prerequisites for
+community competence (see Fig. 2).
+Drawing heavily upon earlier writings about community
+competence, Brown and Kulig (1996/97, p. 30) argued
+effectively that ‘‘the concept of resiliency in the context of
+communities needs to be grounded in a notion of human
+agency, understood in the sense of the capacity for meaningful, intentional action. Individuals and collectives are
+resilient in the first sense insofar as they act in such a way
+as to recover from what they define as negative physical or
+social events. Individuals and collectives are resilient in a
+second sense insofar as they act to transform their physical
+and social environments to mitigate against such events in
+the future.’’ Brown and Kulig were making the point that
+resilience is not simply a passive ‘‘bouncing back’’ (as
+implied by the original metaphor) because people can
+imagine how things might be and do things to bring those
+conditions about. Perez-Sales et al. (2005) made similar
+points from having observed the capacity of shelter residents to control their own lives after a severe earthquake in
+El Salvador in 2001.
+The skills identified by Goodman et al. (1998) included
+several that are essential elements of community competence: abilities to engage constructively in group process,
+resolve conflicts, collect and analyze data, and resist
+opposing or undesirable influences (p. 261). There appears
+to be high consensus that critical reflection and problem
+solving are fundamental capacities for community competence and resilience (Bruneau et al. 2003; Goodman
+et al. 1998; Klein et al. 2003; Pfefferbaum et al. 2005).
+Ganor and Ben-Lavy (2003) emphasized the importance of
+the community’s ability to take action, which they called
+‘‘coping.’’
+Collective action is complex and challenging in the face
+of environmental threats. Such threats, and concomitant
+disappointment in political leaders, often lead to creation of
+grass roots groups that represent affected families (Edelstein 1988; Oliver-Smith 1986). Sometimes, these groups
+are effective in building consensus and mobilizing political
+action and legislation, but other times, action is impeded by
+mistrust, conflict, or ‘‘dissensus’’ (Edelstein and Wandersman 1987; Kaniasty and Norris 2004). Which outcome
+occurs is not necessarily predictable but may depend on the
+extent of collective efficacy, the process of empowerment
+(vs. disempowerment), and the nature of political interaction (adversarial versus collaborative).
+
+Collective Efficacy and Empowerment
+‘‘Collective efficacy’’ reflects trust in the effectiveness of
+organized community action (Perkins and Long 2002).
+
+123
+
+142
+
+Sampson et al. (1997) defined collective efficacy as a
+composite of mutual trust and shared willingness to work
+for the common good of a neighborhood. In our model of
+community resilience, collective efficacy bridges the
+domains of Social Capital and Community Competence,
+but is placed under the latter because of its fundamental
+role in facilitating community action. A related concept is
+communal mastery, defined as the sense that individuals
+can overcome life challenges and obstacles through and
+because of their being interwoven in a close social network
+(Hobfoll et al. 2002). As one of their ‘‘six Cs’’ of community resilience, Ganor and Ben-Lavy (2003, p. 106)
+included ‘‘credo,’’ ‘‘the vision of a community, one that
+depicts a better future, a horizon of hope.’’ This idea is
+similar to that of community hope (Ahmed et al. 2004).
+Paton and Johnston (2001) proposed that an initial focus on
+promoting collective efficacy would increase the likelihood
+of achieving success in working with a community to adopt
+mitigation strategies.
+Benight (2004) offered a slightly different definition of
+collective efficacy as the shared belief that a group can
+effectively meet environmental demands and improve their
+lives through concerted effort. In this study, collective
+efficacy (as perceived by the individual) interacted with
+resource loss after a flood to predict recovery from symptoms of posttraumatic stress. Persons with high collective
+efficacy were less adversely affected by their losses than
+were persons with low collective efficacy. In discussing his
+findings, Benight noted that the people he studied had
+responded successfully to a variety of problems after the
+floods by creating an organized crisis committee to speak,
+decide, and act on behalf of their small rural community.
+Collective efficacy is highly related to empowerment
+(Perkins et al. 2002), a process through which people
+lacking an equal share of valued resources gain greater
+access to and control over those resources (Rappaport
+1995). A particular relevant discussion of empowerment
+for our purposes was presented by Rich et al. (1995), who
+examined the dynamics of community empowerment after
+discovery of environmental hazards. Rich et al. reasoned
+that meaningful participation in environmental action
+groups can be empowering and, conversely, that lack of
+opportunity for such participation can be disempowering.
+The effectiveness of a community’s response to a hazard is
+shaped by a combination of resources (such as sufficient
+education to understand the technical issues, money to hire
+lawyers or scientific advisors), a culture that permits
+challenges to authority, institutions that provide a basis for
+coordinating a response, and political mechanisms that
+involve citizens in decision-making. In their model,
+empowerment progresses through a sequence of formal
+empowerment (mechanisms for citizen input), intrapersonal empowerment (feelings of personal competence and
+
+123
+
+Am J Community Psychol (2008) 41:127–150
+
+confidence), instrumental empowerment (ability to participate in and influence decision, as determined by
+knowledge, material resources, and persuasiveness), and
+substantive empowerment (ability to reach decisions that
+solve problems). The last of these stages is virtually synonymous with our broader meaning of Community
+Competence.
+Rich et al. (1995) furthermore noted that some political
+approaches to citizen involvement in decisions are more
+empowering than others. Whereas adversarial models grant
+persons the right to express concerns and advocate for their
+interests, they generally put citizens in the position of
+reacting to proposals and may require legal action that
+community groups can rarely afford. The adversarial model
+may work against efforts to create consensus. The suggested alternative is a partnership approach that ‘‘invites
+proactive, not just reactive, thought that may produce
+creative alternatives…and allows communities to move
+toward sustainable environmental decisions (pp. 671).’’
+
+The Network of Adaptive Capacities
+Figure 2 summarizes this section by showing the four
+primary sets of networked resources that generate community resilience. There are innumerable possible linkages
+between elements in these sets (and between these elements and population wellness) that could be researched
+empirically across communities, a point to which we return
+in the final section of this paper. The utility of the framework could also be examined by means of qualitative case
+studies of a particular community and particular response.
+To recap, these resources qualify as resilience-resources
+(adaptive capacities) to the extent they are robust, redundant, or rapidly accessible.
+
+Resilience as a Strategy for Disaster Readiness
+Fueled by incomprehensible disasters, such as the September 11, 2001 terrorist attacks, the southeast Asian
+tsunami of December 26, 2004, and Hurricane Katrina on
+August 29, 2005, efforts to improve disaster preparedness
+and response have increased dramatically since the turn of
+the century. However, the trend toward greater preparedness in the United States was already in play. The Disaster
+Mitigation Act of 2000 gave new emphasis to proactive
+mitigation and local all-hazards plans. Discussions of the
+challenges and complexities of disaster management frequently allude to community resilience as an important
+ingredient. Some authors have speculated about the role of
+community resilience in local preparedness; others have
+advised how emergency management infrastructure can be
+
+Am J Community Psychol (2008) 41:127–150
+
+made more resilient; and others have illustrated how an
+understanding and appreciation of community resilience
+can guide the design of postdisaster psychosocial interventions. Community resilience may have particular value
+in countering the impact of terrorism (Reissman et al.
+2005).
+The adaptive capacities illustrated in Fig. 2 provide a
+roadmap for enhancing community resilience to disasters.
+This is perhaps more like a rotary than a highway, as one
+can enter and exit anywhere. Nonetheless, we describe five
+stops along this road that are likely to be necessary for most
+travelers, although other stops undoubtedly could be made
+as well.
+First, to increase their resilience to disaster, communities must develop economic resources, reduce risk and
+resource inequities, and attend to their areas of greatest
+social vulnerability. Hazard risk is neither randomly nor
+evenly distributed (Cutter et al. 2003). To mitigate social
+vulnerability to urban hazards, Godschalk (2003) recommended that cities set aside resources to make poor
+neighborhoods safer. To accomplish this, city staff need to
+work together with each neighborhood to identify its needs
+and an appropriate mitigation approach. Godschalk (p. 140)
+also recommended that urban hazard mitigation activities
+be integrated with activities related to economic development and social justice, thereby ‘‘achieving the multiple
+objectives needed for a resilient system.’’ Efforts to create
+economic diversity increase the probability that the community can withstand adversity or surprise. After a disaster,
+residents and grass-roots leaders should be vigilant to the
+equity of resource distribution. Those who need support the
+most may have the least access to it, and there is extensive
+evidence that many persons are excluded from emergent
+‘‘altruistic communities’’ (Kaniasty and Norris 1995, 2004).
+Competent communities may influence these dynamics
+through creative problem-solving and political action.
+Second, to access social capital, one of the primary
+resources of any community, local people must be engaged
+meaningfully in every step of the mitigation process.
+Enabled by professional practitioners, as necessary, community members must assess and address their own
+vulnerabilities to hazards, identify and invest in their own
+networks of assistance and information, and enhance their
+own capacities to solve problems created by known or
+unknown unknowns (e.g., Brown and Kulig 1996/97; Coles
+and Buckle 2004; Longstaff 2005; Pfefferbaum et al.
+2005). Non-indigenous practitioners best foster recovery
+by providing settings and resources that allow the community to take charge of the direction of change (Fullilove
+and Saul 2006; Landau and Saul 2004; Perez-Sales et al.
+2005; van den Eynde and Veno 1999). Because trauma
+emanates from profound powerlessness, interventions
+should emphasize empowerment, meaning they need to
+
+143
+
+emphasize strengths, mobilize the community’s capabilities, and help the community to become self-sufficient
+(Harvey 1996). It is critical to make use of existing
+resources that can be affirmed and integrated into the
+response plan.
+Third, pre-existing organizational networks and relationships are the key to rapidly mobilizing emergency and
+ongoing support services for disaster survivors. Loosely
+coupled but cooperative systems appear to provide the best
+combination of linkages and flexibility (Gillespie and
+Murty 1994; Longstaff 2005). A series of case studies of
+mental health system responses to major disasters,
+including the Oklahoma City bombing (Norris et al.
+2005b), the September 11th terrorist attacks (Norris et al.
+2006), and many others (Elrod et al. 2006) repeatedly
+revealed that developing organizational networks, coalitions, and cooperative agreements ahead of time is crucial,
+and that organizational plans should indicate how key
+constituencies will be involved. Program directors relied
+upon pre-existing relationships perhaps more than any
+other single resource to implement programs quickly. To
+work together after a disaster, systems must understand and
+trust each other, which is challenging if they have not
+worked together before. For example, organizations
+mounting community outreach programs almost inevitably
+experience difficulty in entering school systems if they
+have not conducted programs with schools previously. This
+barrier may greatly interfere with programs’ abilities to
+reach children in the community, who appear to be a group
+in need of additional support in the aftermath of major
+disasters (Norris et al. 2002a, b).
+Fourth, interventions are needed that boost and protect
+naturally-occurring social supports in the aftermath of
+disasters. Fostering natural supports helps to ensure that
+communities and families retain the capacity to exchange
+emotional and instrumental support (Landau and Saul
+2004). Furthermore, well-functioning social networks keep
+members informed about one another’s relative needs and
+may improve equity of resource distribution. Although
+helping behavior and cohesion are abundant initially, they
+do not last, and certain social resources are not robust to the
+impact of disasters (Kaniasty and Norris 2004). Social
+support interventions are most effective when they build
+social skills and mutual support (Hogan et al. 2002). Ideally, postdisaster support interventions furnish participants
+with knowledge, attitudes, and skills that can be used to
+recruit their own supports (Gottlieb 1996; Layne et al.
+2001).
+Fifth, communities must plan, but they must also plan
+for not having a plan; this means that communities must
+exercise flexibility and focus on building effective and
+trusted information and communication resources that
+function in the face of unknowns. Uncertainty is almost
+
+123
+
+144
+
+certain to exist after disasters. The most adaptive disaster
+management strategy is one that acknowledges complexity
+and uncertainty and relies on timely and trusted sources of
+information for rapid decision-making as opposed to rigid
+plans and command-and-control strategies (Longstaff
+2005). In contrast to command and control styles, problemsolving approaches allow for innovation and localized
+variations in response. Similarly, Godschalk (2003) envisioned that ‘‘the public and private organization of a
+resilient city would both plan ahead and act spontaneously...They would eschew simple command and control
+leadership, preferring to develop networks of leadership
+and initiative. They would set goals and objectives, but be
+prepared to adapt these in light of new information and
+learning’’ (p. 139). In our age of advanced technology,
+flexibility remains a simple but nonetheless essential
+resource for managing a disaster response (Coles and
+Buckle 2004; Handmer and Dovers 1996; Klein et al.
+2003; Norris et al. 2005b).
+
+Summary, Conclusions, Caveats, and One More
+Metaphor
+We have argued, as have others, that resilience is a process
+that leads to adaptation, not an outcome, not stability. We
+emphasized the likelihood that stress and crisis induce
+transient periods of dysfunction, but adopted wellness as
+the eventual outcome of interest, the manifestation of
+adaptation to an altered environment. This choice ties the
+concept of resilience to the traditional concerns of the
+public health and mental health fields. Wellness, as defined
+for individuals, incorporates the criterion of being free of
+psychological disorder but is explicitly more than this. Far
+too often, psychology papers begin by saying that we know
+a lot about psychopathology but little about resilience and
+then operationalize resilience as the lack of psychopathology. To say, ‘‘social support promotes resilience’’ is not
+very different from saying ‘‘social support prevents psychopathology’’ if resilience is merely the lack of
+psychopathology. An individual’s successful adaptation,
+we believe, must be reflected also in healthy patterns of
+behavior, adequate role functioning, and satisfactory
+quality of life. Well communities show not only high
+average levels of these conditions but limited disparities in
+mental and behavioral health between rich and poor, young
+and old, White and not, men and women, and so forth.
+We furthermore proposed that resilience and wellness
+emerge from a variety of adaptive capacities, which we
+defined as resources with dynamic attributes, specifically
+robustness, redundancy, and rapidity. By posing this definition, we aimed to integrate resilience perspectives with
+evidence showing that resources are not static—they
+
+123
+
+Am J Community Psychol (2008) 41:127–150
+
+evolve, strengthen, weaken, and rebound—and these trajectories are of interest in their own right. Reaching a better
+understanding of the impact of disasters on community
+resources may be the most critical and complex challenge
+for future research. It should be readily apparent from
+Fig. 2 that the network of adaptive capacities that yields
+community resilience is not a singular condition that can be
+measured or monitored simply. It is a set of sets with many
+dynamic attributes and transactional linkages and relationships, far more than are shown in our diagram.
+Moreover, political, economic, and natural forces operating
+at larger ecological levels undoubtedly influence these
+capacities that operate at the community level. That said,
+the capacities identified here are all potentially observable
+by using a mixture of quantitative and qualitative methodologies, and recent work is advancing our ability to
+assess various factors that influence or reflect community
+resilience (Bruneau et al. 2003; Centre for Community
+Enterprise 2000; Gibbon et al. 2002; Pfefferbaum et al.
+2005; Rose 2004).
+Our primary hope is to foster creative thinking about how
+various pathways between Economic Development, Social
+Capital, Information and Communication, and Community
+Competence shape disaster readiness and recovery: Which
+of these resources are most likely to be robust, meaning they
+are strong and able to withstand the impact of a major
+disaster? Which may be substitutable for others, thereby
+building redundancy? Which resources can be mobilized
+rapidly in the aftermath of disaster if they are not present or
+strong in advance? Does diversity of economic resources
+make equity of resource distribution more likely or maybe
+less necessary? When social capital via informal ties is
+strong, is social capital via formal ties less important? Is
+there any resource that, taken alone, is necessary (likely) or
+sufficient (unlikely) for resilience? Can disasters create new
+roles and leaders and galvanize community competence?
+Can community competence then foster equity of resource
+distribution that in turn boosts social support? Can communities work with trusted sources of information and
+media to control discourse, counteract myths, and create
+hopeful narratives about the event? How do these psychosocial dimensions relate to social vulnerability, as it has
+been measured objectively by geographers and social scientists, or to demographic change in disaster-stricken areas?
+Of course, there is then the question of how strongly the
+various adaptive capacities in this network contribute to the
+wellness of constituent populations. To date research on the
+outcomes of community resilience is meager. Some studies
+have examined how individual-level perceptions of community resilience (Kimhi and Shamai 2004; Pooley et al.
+2006), sense of community (Paton et al. 2001), or collective efficacy (Benight 2004) correlate with individual-level
+outcomes, but no study, to our knowledge, has truly
+
+Am J Community Psychol (2008) 41:127–150
+
+examined how independently assessed community resources influence the postdisaster wellness of constituent
+populations. This is not a simple matter, but methods exist
+that can facilitate multi-level epidemiologic research
+(Kawachi and Subramanian 2006; Perkins and Taylor
+1996).
+The ‘‘prevention paradox’’ (Rose 1981, 2001) is extremely important for future judgments regarding the relative
+influence (and significance for policy) of individual and
+community resilience-resources. As we noted earlier,
+effects that seem small in analyses of individuals may be
+quite large when extrapolated to populations. Traditional
+risk (or protective) factor research is almost assured to find
+that individual-level resilience-resources (e.g., self-efficacy) have stronger effects within a study population than
+do community-level resilience-resources (e.g., collectiveefficacy). This makes perfect sense from an ecological
+perspective that distinguishes between proximal and distal
+influences on individual resilience and wellness, in turn.
+But proximal determinants protect only certain individuals,
+whereas distal effects protect everyone. If the underlying
+cause of an illness can be removed from the population,
+susceptibility of individuals within the population ceases to
+matter (Rose 2001).
+It follows from this argument that community resilience
+has extraordinary value as a strategy for disaster readiness.
+Unlike many stressors, disasters happen to entire communities. Members are exposed together and must recover
+together. At minimum, if their aim is to build collective
+resilience, communities must develop economic resources,
+reduce risk and resource inequities, and attend conscientiously to their areas of greatest social vulnerability. They
+must engage local people in every step of the mitigation
+process, create organizational linkages and relationships in
+advance of disasters, and boost and protect naturally
+occurring social supports. They must plan—but also plan
+for not having a plan, which means that community organizations must appreciate flexibility, develop decisionmaking skills, and cultivate trusted sources of information
+(Longstaff 2005). In a nutshell, disaster readiness is about
+social change.
+Turning to caveats, we note several complications. First,
+the benefits of particular resources may vary across levels
+of analysis. Place attachment is a good example. As noted
+earlier, for the individual, it is plausible that a strong
+attachment to the place of origin could decrease resilience
+if a disaster forces relocation. It is simultaneously plausible
+that those same attachments increase the likelihood that the
+community as a whole has the will to rebuild (Manzo and
+Perkins 2006). This example also highlights the shift in our
+thinking that a community perspective requires. The benefits of living in a community characterized by strong place
+attachments do not accrue only, or even necessarily, to
+
+145
+
+those individuals who feel the attachments most strongly.
+Rather the attachments create a better environment for all
+who live in that place. A related complication is that the
+benefits of particular resources compete with their costs.
+For example, it is possible that a strong sense of community could expand the adverse effects of a terrorist attack by
+increasing residents’ identification with those individuals
+who were most directly harmed (Maguen 2005). Close
+communities may also generate ‘‘insider-outsider’’
+dynamics that limit receptivity to external sources of
+disaster assistance (Edelstein and Wandersman 1987;
+Norris et al. 2005b). It is our belief that, in the long-run, the
+benefits of community bonds will outweigh these costs, but
+this is ultimately an empirical question. Rutter (1993, p.
+627) similarly concluded, ‘‘We must get away from
+thinking in terms of characteristics that are always risky or
+always protective in their effects and, instead, focus on the
+specific processes that operate in particular circumstances
+for particular outcomes.’’
+Second, we have said nothing about culture here. The
+theory, adaptive capacities, and strategies that we have
+described in this paper have nothing and everything to do
+with culture. On the one hand, the work on community
+resilience cited in this paper spanned the continents of
+Asia, Africa, Australia, and South, Central, and North
+America. We cannot envision a human culture or society in
+which the basic concepts of stress and disaster, resources,
+crisis, adaptation, and wellness do not apply. We cannot
+imagine a human culture or society in which economic
+development, social capital, communication, and competence are irrelevant. We would be surprised to find a human
+culture or society whose disaster readiness was not
+enhanced by reducing risk and resource inequities,
+engaging local people, creating linkages, boosting supports, and planning for not having a plan. On the other
+hand, the manifestations and collaterals of these constructs
+are undoubtedly culture-specific. Mechanisms for assuring
+economic and social security are often based on long-held
+traditions, such as the relative degree of filial responsibility
+(de Vries 1995). Social support is universally relevant, but
+facets such as reciprocity norms, relative comfort with kin
+and non-kin, and modes of expressing emotional support
+vary substantially across cultures (de Vries 1995; Kaniasty
+and Norris 2000; Oliver-Smith 1986). Local meanings of
+community strongly influence openness to change and
+acceptability of resettlement (Oliver-Smith 1986). Grassroots action is facilitated by cultures that permit challenges
+to authority (Rich et al. 1995). Any earnest attempt to
+explore resilience in a particular community will feature
+local culture and mores prominently (Oliver-Smith 1986;
+Rich et al. 1995; Vega 1992).
+Third, there is one discomforting issue that must be
+addressed. If resilience serves mainly as an inspirational
+
+123
+
+146
+
+concept (perhaps as a narrative in and of itself), there is
+something to be said for viewing it as an inevitable,
+inherent, universal quality of the human spirit. If resilience
+has utility as a scientific or strategic concept, this cannot be
+the case. Communities with high rates of posttraumatic
+stress disorder or substance abuse or domestic violence or
+child maltreatment cannot be said to be well. If these or
+similarly severe problems emerge and persist in the aftermath of a disaster, the community has not exhibited
+resilience. This unpleasant conclusion is more palatable if
+one remembers that resilience is not an immutable characteristic that a community has or does not have but is
+instead a process that emerges from malleable resources. If
+resilience is not evident, we are directed to formulate
+hypotheses about why the process has stalled and how it
+might be ignited once again. Our proposed network of
+adaptive capacities provides a strategic map for making
+decisions about where on this road (or rotary) to begin.
+Our fourth and final caveat, somewhat related to the
+previous one, is to caution against potential unwanted
+consequences of a resilience frame for research and practice in disaster mental health. It would not be too difficult
+for the concept of resilience to erode into one more way of
+stigmatizing suffering individuals and communities.
+Although the contribution of resilience theory is its greater
+emphasis on adaptive capacities, we should not loose sight
+of the fundamental role of the stressor. There are horrendous disasters from which even the most resourceful
+individuals or communities would struggle mightily to
+recover. No community is always vulnerable, for how
+would it survive, and no community is always resilient.
+(For similar perspectives see Rutter 1993; Waller 2001).
+Likewise, we hope that the concept of resilience does not
+erode into a justification for denying help to individuals or
+communities in crisis. Like social capital (Perkins et al.
+2002), resilience is an easy concept to co-opt as a basis for
+arguing that community-based interventions are unnecessary when, quite the contrary, disasters are times when
+community resources may require the greatest boost.
+In conclusion, as a framework for understanding and
+building strong communities, resilience’s scientific value
+lies not in whether it can be easily captured and quantified
+but in whether it leads to novel hypotheses about the
+characteristics of—and relations between—stressors, various adaptive capacities, and wellness over time. Its
+strategic value lies not, or not only, in its inspirational
+message but in whether it leads to effective interventions
+and policies that increase the probability of adaptation by
+enhancing adaptive capacities. Resilience is only an
+abstraction and maybe only a metaphor. Dangerously
+ending this paper where we began by using one last metaphor from physics, we note that there is no variable called
+‘‘relativity’’ in the Theory of Relativity. Nonetheless, the
+
+123
+
+Am J Community Psychol (2008) 41:127–150
+
+theory led to revolutionary hypotheses about the relations
+between energy, mass, and the speed of light.
+Acknowledgements This research was supported by the United
+States Department of Homeland Security through the National Consortium for the Study of Terrorism and Responses to Terrorism
+(START), Grant number N00140510629. However, any opinions,
+findings, and conclusions or recommendations in this document are
+those of the authors and do not necessarily reflect views of the U.S.
+Department of Homeland Security.
+
+References
+Abramowitz, S. (2005). The poor have become rich, and the rich have
+become poor: Collective trauma in the Guinean Languette.
+Social Science and Medicine, 61, 2106–2118.
+Adger, W. (2000). Social and ecological resilience: Are they related?
+Progress in Human Geography, 24, 347–364.
+Ahern, J., & Galea, S. (2006). Social context and depression after a
+disaster: The role of income inequality. Journal of Epidemiology
+and Community Health, 60, 766–770.
+Ahmed, R., Seedat, M., van Niekerk, A., & Bulbulia, S. (2004).
+Discerning community resilience in disadvantaged communities
+in the context of violence and injury prevention. South African
+Journal of Psychology, 34, 386–408.
+Alkon, A. (2004). Place, stories, and consequences. Organization &
+Environment, 17, 145–169.
+Allenby, B., & Fink, J. (2005). Toward inherently secure and resilient
+societies. Science, 309, 1034–1036.
+Altman, I., & Low, S. (Eds.). (1992). Place attachment. New York:
+Plenum Press.
+Barrera, M. (1986). Distinctions between social support concepts,
+measures, and models. American Journal of Community Psychology, 14, 413–445.
+Beggs, J., & Haines, V. (1996). Situation contingencies surrounding
+the receipt of informal support. Social Forces, 75, 201–223.
+Benight, C. (2004). Collective efficacy following a series of natural
+disasters. Anxiety, Stress, and Coping, 17, 401–420.
+Benight, C., McFarlane, A., & Norris, F. (2006). Formulating
+questions about postdisaster mental health. In F. Norris, S.
+Galea, M. Friedman, & P. Watson (Eds.), Methods for disaster
+mental health research (pp. 62–77). New York: Guilford
+Press.
+Bodin, P., & Wiman, B. (2004). Resilience and other stability
+concepts in ecology: Notes on their origin, validity, and
+usefulness. ESS Bulletin, 2, 33–43.
+Bolin, R., & Bolton, P. (1986). Race, religion, and ethnicity in
+disaster recovery. Boulder, CO: University of Colorado.
+Bonanno, G. (2004). Loss, trauma, and human resilience: Have we
+underestimated the human capacity to thrive after extremely
+aversive events? American Psychologist, 59, 20–28.
+Bonanno, G. (2005). Clarifying and extending the construct of adult
+resilience. American Psychologist, 60, 265–267.
+Bourdieu, P. (1985). The forms of capital. In J. Richardson (Ed.),
+Handbook of theory and research for the sociology of education
+(p. 248). New York: Greenwood.
+Bromet, E., Goldgaber, D., Carlson, G., Panina, N., Golovakha, E.,
+Gluzman, S., et al. (2000). Children’s well-being 11 years after
+the Chornobyl catastrophe. Archives of General Psychiatry, 57,
+563–571.
+Brown, D., & Kulig, J. (1996/97). The concept of resiliency:
+Theoretical lessons from community research. Health and
+Canadian Society, 4, 29–52.
+
+Am J Community Psychol (2008) 41:127–150
+Brown, B., & Perkins, D. (1992). Disruptions in place attachments. In
+I. Altman & S. Low (Eds.), Place attachment (pp. 279–304).
+New York: Plenum Press.
+Bruneau, M., Chang, S., Eguchi, R., Lee, G., O’Rourke, T., Reinhorn,
+A., et al. (2003). A framework to quantitatively assess and
+enhance the seismic resilience of communities. Earthquake
+Spectra, 19, 733–752.
+Butler L., Morland L., & Leskin, G. (2007). Psychological resilience
+in the face of terrorism. In B. Bongar, L. Brown, L. Beutler, J.
+Breckenridge, & P. Zimbardo (Eds.), Psychology of terrorism
+(pp. 400–417). NY: Oxford University Press.
+Caplan, G. (1964). Principles of preventive psychiatry. New York:
+Basic Books.
+Carpenter, S., Walker, B., Anderies, J., & Abel, N. (2001). From
+metaphor to measurement: Resilience of what to what? Ecosystems, 4, 765–781.
+Centre for Community Enterprise. (2000). The community resilience
+manual. Port Alberni, BC: CCE Publications.
+Coles, E., & Buckle, P. (2004). Developing community resilience as a
+foundation for effective disaster recovery. The Australian
+Journal of Emergency Management, 19, 6–15.
+Comfort, L. (2005). Risk, security, and disaster management. Annual
+Review of Political Science, 8, 335–356.
+Cottrell, L., Jr. (1976). The competent community. In B. Kaplan, R.
+Wilson, & A. Leighton (Eds.), Further explorations in social
+psychiatry (pp. 195–209). New York: Basic Books, Inc.
+Couto, R. (1989). Catastrophe and community empowerment: The
+group formulations of Aberfan’s survivors. Journal of Community Psychology, 17, 236–248.
+Cowen, E. (1983). Primary prevention in mental health: Past, present,
+future. In R. Felner, L. Jason, J. Moritsugu, & S. Farber (Eds.),
+Preventive psychology: Theory, research, and practice in
+community intervention (pp. 11–25). New York: Pergamon
+Press.
+Cowen, E. (1994). The enhancement of psychological wellness:
+Challenges and opportunities. American Journal of Community
+Psychology, 22, 149–179.
+Cowen, E. (2000). Community psychology and routes to psychological wellness. In J. Rappaport & E. Seidman (Eds.), Handbook of
+community psychology (pp. 79–99). Dordrecht, Netherlands:
+Kluwer Academic Publishers.
+Cowen, E. (2001). Ethics in community mental health care: The use
+and misuse of some positively valenced community concepts.
+Community Mental Health Journal, 37, 3–13.
+Cox, H., & Holmes, C. (2000). Loss, healing, and the power of place.
+Human Studies, 23, 63–78.
+Cutter, S., Boruff, B., & Shirley, W. L. (2003). Social vulnerability to
+environmental hazards. Social Science Quarterly, 84, 242–261.
+Cutter, S., Emrich, C., Mitchell, J., Boruff, B., Gall, M., Schmidtlein,
+M., et al. (2006). The long road home: Race, class, and recovery
+from Hurricane Katrina. Environment, 48, 10–20.
+De Girolamo, G., & McFarlane, A. (1996). The epidemiology of
+PTSD: A comprehensive review of the international literature. In
+A. Marsella, M. Friedman, E. Gerrity, & R. Surfield (Eds.),
+Ethnocultural aspects of posttraumatic stress disorder: Issues,
+research, and clinical applications (pp. 33–85). Washington,
+DC: APA.
+de Vries, M. (1995). Culture, community and catastrophe. Issues in
+understanding communities under difficult conditions. In S.
+Hobfoll & M. de Vries (Eds.), Extreme stress and communities:
+Impact and intervention (pp. 375–393). Dordrecht, The Netherlands: Kluwer.
+Dohrenwend, B. S. (1978). Social stress and community psychology.
+American Journal of Community Psychology, 6, 1–14.
+Draper, J., McCleery, G., & Schaedle, R. (2006). Mental health
+services support in response to September 11: The central role of
+
+147
+the Mental Health Association of New York City. In Y. Neria, R.
+Gross, R. Marshall, & E. Susser (Eds.), 9/11: Mental health in
+the wake of terrorist attacks (pp. 282–310). New York:
+Cambridge.
+Dunkel-Schetter, C., & Bennett, T. L. (1990). Differentiating the
+cognitive and behavioral aspects of social support. In B. Sarason,
+I. Sarason, & G. Pierce (Eds.), Social support: An interactional
+view (pp. 267–296). New York: Wiley.
+Edelstein, M. (1988). Contaminated communities: The social and
+psychological impacts of residential toxic exposure. Boulder,
+CO: Westview Press.
+Edelstein, M., & Wandersman, A. (1987). Community dynamics in
+coping with toxic contaminants. In I. Altman & A. Wandersman
+(Eds.), Neighborhood and community environments (pp. 69–
+112). New York: Plenum Press.
+Egeland, B., Carlson, E., & Sroufe, L. (1993). Resilience as process.
+Development and Psychopathology, 5, 517–528.
+Elrod, C., Hamblen, J., & Norris, F. (2006). Challenges in
+implementing disaster mental health programs: State program
+directors’ perspectives. Annals of the American Academy of
+Political and Social Science, 604, 152–170.
+Erikson, K. (1976). Loss of communality at Buffalo Creek. American
+Journal of Psychiatry, 133, 302–305.
+Flynn, B. (1994). Mental health services in large scale disasters: An
+overview of the Crisis Counseling Program. NCPTSD Clinical
+Quarterly, 4, 11–12.
+Fritz, C., & Williams, H. (1957). The human being in disasters: A
+research perspective. Annals of the American Academy of
+Political and Social Science, 309, 42–51.
+Fullilove, M., & Saul, J. (2006). Rebuilding communities postdisaster in New York. In Y. Neria, R. Gross, R. Marshall, & E.
+Susser (Eds.), 9/11: Mental health in the wake of terrorist attacks
+(pp. 164–177). New York: Cambridge.
+Galea, S., Ahern, J., & Karpati, A. (2005). A model of underlying
+socioeconomic vulnerability in human populations: Evidence
+from variability in population health and implications for public
+health. Social Science & Medicine, 60, 2417–2430.
+Galea, S., & Norris, F. (2006). Public mental health surveillance and
+monitoring. In F. Norris, S. Galea, M. Friedman, & P. Watson
+(Eds.), Methods for disaster mental health research (pp. 177–
+193). New York: Guilford Press.
+Galea, S., & Resnick, H. (2005). Psychological consequences of mass
+trauma in the general population. CNS Spectrums, 10, 107–115.
+Ganor, M., & Ben-Lavy, Y. (2003). Community resilience: Lessons
+derived from Gilo under fire. Journal of Jewish Communal
+Service, Winter/Spring, 105–108.
+Gibbon, M., Labonte, R., & Laverack, G. (2002). Evaluating
+community capacity. Health and Social Care in the Community,
+10, 485–491.
+Gillespie, D., & Murty, S. (1994). Cracks in a postdisaster service
+delivery network. American Journal of Community Psychology,
+22, 639–660.
+Gist, R., & Stolz, S. (1982). Mental health promotion and the media:
+Community response to the Kansas City hotel disaster. American
+Psychologist, 37, 1136–1139.
+Godschalk, D. (2003). Urban hazard mitigation: Creating resilient
+cities. Natural Hazards Review, 4, 136–143.
+Goodman, R., Speers, M., McLeroy, K., Fawcett, S., Kegler, M.,
+Parker, E., et al. (1998). Identifying and defining the dimensions
+of community capacity to provide a basis for measurement.
+Health Education & Behavior, 25, 258–278.
+Gordon, J. (1978). Structures. Harmondsworth, UK: Penguin Books.
+Gottlieb, B. (1996). Theories and practices of mobilizing support in
+stressful circumstances. In C. L. Cooper (Ed.), Handbook of
+stress, medicine, and health (pp. 339–356). Boca Raton, FL:
+CRC Press.
+
+123
+
+148
+Gunderson, L. (2000). Ecological resilience—in theory and application. Annual Review of Ecology and Systematics, 31, 425–429.
+Handmer, J., & Dovers, S. (1996). A typology of resilience:
+Rethinking institutions for sustainable development. Industrial
+and Environmental Crisis Quarterly, 9, 482–511.
+Harvey, J., Stein, S., Olsen, N., Roberts, R., Lutgendorf, S., & Ho, J.
+(1995). Narrative of loss and recovery from a natural disaster.
+Journal of Social Behavior and Personality, 10, 313–330.
+Harvey, M. (1996). An ecological view of psychological trauma and
+trauma recovery. Journal of Traumatic Stress, 9, 3–23.
+Hobfoll, S. (1988). The ecology of stress. New York: Hemisphere.
+Hobfoll, S. (1998). Stress, culture, and community: The psychology
+and philosophy of stress. New York: Plenum.
+Hobfoll, S. (2006). Guiding community intervention following
+terrorist attack. In Y. Neria, R. Gross, R. Marshall, & E. Susser
+(Eds.), 9/11: Mental health in the wake of terrorist attacks (pp.
+215–228). New York: Cambridge.
+Hobfoll, S., Jackson, A., Hobfoll, I., Pierce, C., & Young, S. (2002).
+The impact of communal-mastery versus self-mastery on
+emotional outcomes during stressful conditions: A prospective
+study of Native American women. American Journal of Community Psychology, 30, 853–871.
+Hogan, B., Linden, W., & Najarian, B. (2002). Social support
+interventions: Do they work? Clinical Psychology Review, 22,
+381–440.
+Holling, C. (1973). Resilience and stability of ecological systems.
+Annual Review of Ecology and Systematics, 4, 1–23.
+Kadushin, C. (2004). Too much investment in social capital? Social
+Networks, 26, 75–90.
+Kaniasty, K., & Norris, F. (1993). A test of the social support
+deterioration model in the context of natural disaster. Journal of
+Personality and Social Psychology, 64, 395–408.
+Kaniasty, K., & Norris, F. (1995). In search of altruistic community:
+Patterns of social support mobilization following Hurricane
+Hugo. American Journal of Community Psychology, 23, 447–
+477.
+Kaniasty, K., & Norris, F. (2000). Help-seeking comfort and
+receiving social support: The role of ethnicity and context of
+need. American Journal of Community Psychology, 28, 545–582.
+Kaniasty, K., & Norris, F. (2004). Social support in the aftermath of
+disasters, catastrophes, acts of terrorism: Altruistic, overwhelmed, uncertain, antagonistic, and patriotic communities. In
+R. Ursano, A. Norwood, & C. Fullerton (Eds.), Bioterrorism:
+Psychological and public health interventions (pp. 200–229).
+New York: Cambridge University Press.
+Kawachi, I., & Subramanian, S. (2006). Measuring and modeling the
+social and geographic context of trauma: A multi-level modeling
+approach. Journal of Traumatic Stress, 19, 195–203.
+Kendra, J., & Wachtendorf, T. (2003). Elements of resilience after the
+World Trade Center disaster: Reconstituting New York City’s
+Emergency Operations Centre. Disasters, 27, 37–53.
+Kessler, R. (2000). Posttraumatic stress disorder: The burden to
+the individual and to society. Journal of Clinical Psychiatry, 61,
+4–14.
+Kimhi, S., & Shamai, M. (2004). Community resilience and the
+impact of stress: Adult response to Israel’s withdrawal from
+Lebanon. Journal of Community Psychology, 32, 439–451.
+Klein, R., Nicholls, R., & Thomalla, F. (2003). Resilience to natural
+hazards: How useful is this concept? Environmental Hazards, 5,
+35–45.
+Landau, J., & Saul, J. (2004). Facilitating family and community
+resilience in response to major disaster. In F. Walsh & M.
+McGoldrick (Eds.), Living beyond loss: Death in the family (pp.
+285–309). New York: Norton.
+Layne, C., Pynoos, R., Saltzman, W., Arslanagic, B., Black, M.,
+Savjak, N., et al. (2001). Trauma/grief-focused group
+
+123
+
+Am J Community Psychol (2008) 41:127–150
+psychotherapy: School-based postwar intervention with traumatized Bosnian adolescents. Group Dynamics: Theory, Research,
+and Practice, 5, 277–290.
+Lin, N. (2001). Social capital: A theory of social structure and action.
+New York: Cambridge University Press.
+Linley, P., & Joseph, S. (2005). The human capacity for growth
+through adversity. American Psychologist, 60, 262–264.
+Litz, B. (2005). Has resilience to severe trauma been underestimated?
+American Psychologist, 60, 262.
+Longstaff, P. (2005). Security, resilience, and communication in
+unpredictable environments such as terrorism, natural disasters,
+and complex technology. Syracuse, New York: Author.
+Maguen, S. (November, 2005). The effects of perceived community
+cohesion on stress symptoms following a terrorist attack. Paper
+presented at the annual meeting of the International Society of
+Traumatic Stress Studies, Toronto, Ontario.
+McFarlane, A. C., & Norris, F. (2006). Definitions and concepts in
+disaster research. In F. Norris, S. Galea, M. Friedman, & P.
+Watson (Eds.), Methods for disaster mental health research (pp.
+3–19). New York: Guilford Press.
+Manzo, L., & Perkins, D. (2006). Finding common ground: The
+importance of place attachment to community participation and
+planning. Journal of Planning Literature, 20, 335–350.
+Masten, A., Best, K., & Garmezy, N. (1990). Resilience and development: Contributions from the study of children who overcome
+adversity. Development & Psychopathology, 2, 425–444.
+Maton, K. (1988). Social support, organizational characteristics,
+psychological well-being, and group appraisal in three self-help
+group populations. American Journal of Community Psychology,
+16, 53–77.
+Maton, K., & Salem, D. (1995). Organizational characteristics of
+empowering community settings: A multiple case study
+approach. American Journal of Community Psychology, 23,
+631–656.
+Norris, F., Baker, C., Murphy, A., & Kaniasty, K. (2005a). Social
+support mobilization and deterioration after Mexico’s 1999
+flood: Effects of context, gender, and time. American Journal of
+Community Psychology, 36, 15–28.
+Norris, F., Friedman, M., & Watson, P. (2002a). 60,000 Disaster
+victims speak: Part II, summary and implications of the disaster
+mental health research. Psychiatry, 65, 240–260.
+Norris, F., Friedman, M., Watson, P., Byrne, C., Diaz, E., & Kaniasty,
+K. (2002b). 60,000 Disaster victims speak: Part I, an empirical
+review of the empirical literature, 1981–2001. Psychiatry, 65,
+207–239.
+Norris, F., Hamblen J., Watson P., Ruzek J., Gibson L., Pfefferbaum
+B., et al. (2006). Toward understanding and creating systems of
+postdisaster care: A case study of New York’s response to the
+World Trade Center disaster. In E.C. Ritchie, P. Watson, & M.
+Friedman (Eds.), Interventions following mass violence and
+disasters: Strategies for mental health practices (pp. 343–364).
+New York: Guilford Press.
+Norris, F., & Kaniasty, K. (1996). Received and pereived social
+support in times of stress: A test of the social support
+deterioration deterrence model. Journal of Personality and
+Social Psychology, 71, 498–511.
+Norris, F., Kaniasty, K., Murphy, A., Coronel-Ortis, D., & Perilla, J.
+(2001). Postdisaster social support in the United States and
+Mexico: Conceptual and contextual considerations. Hispanic
+Journal of Behavioral Science, 23, 469–497.
+Norris, F., Phifer, J., & Kaniasty, K. (1994). Individual and
+community reactions to the Kentucky floods: Findings from a
+longitudinal study of older adults. In R. Ursano, B. McCaughey,
+& C. Fullerton (Eds.), Individual and community responses to
+trauma and disaster: The structure of human chaos (pp. 378–
+400). Cambridge: Cambridge University Press.
+
+Am J Community Psychol (2008) 41:127–150
+Norris, F., Watson, P., Hamblen, J., & Pfefferbaum, B. (2005b).
+Provider perspectives on disaster mental health services in
+Oklahoma City. Journal of Aggression, Maltreatment, and
+Trauma, 10, 649–661.
+Oliver-Smith, A. (1986). The martyred city. Albuquerque, NM:
+University of New Mexico Press.
+Paton, D., & Johnston, D. (2001). Disasters and communities:
+Vulnerability, resilience, and preparedness. Disaster Prevention
+and Management, 10, 270–277.
+Paton, D., Millar, M., & Johnston, D. (2001). Community resilience
+to volcanic hazard consequences. Natural Hazards, 24, 157–169.
+Perez-Sales, P., Cervellon, P., Vazquez, C., Vidales, D., & Gaborit,
+M. (2005). Post-traumatic factors and resilience: The role of
+shelter management and survivours’ attitudes after the earthquakes in El Salvador (2001). Journal of Community and
+Applied Social Psychology, 15, 368–382.
+Perkins, D., Hughey, J., & Speer, P. (2002). Community psychology
+perspectives on social capital theory and community development practice. Journal of the Community Development Society,
+33, 33–52.
+Perkins, D., & Long, D. (2002). Neighborhood sense of community
+and social capital: A multi-level analysis. In A. Fisher, C. Sonn,
+& B. Bishop (Eds.), Psychological sense of community:
+Research, applications, and implications (pp. 291–318). New
+York: Plenum.
+Perkins, D., & Taylor, R. (1996). Ecological assessments of
+community disorder: Their relationship to fear of crime and
+theoretical implications. American Journal of Community Psychology, 24, 63–107.
+Pfefferbaum, B., Reissman, D., Pfefferbaum, R., Klomp, R., &
+Gurwitch, R. (2005). Building resilience to mass trauma events.
+In L. Doll, S. Bonzo, J. Mercy, & D. Sleet (Eds.), Handbook on
+injury and violence prevention interventions. New York: Kluwer
+Academic Publishers.
+Pooley, J., Cohen, L., & O’Connor, M. (2006). Community resilience
+and its link to individual resilience in the disaster experience of
+cyclone communities in northwest Australia. In D. Paton & D.
+Johnston (Eds.), Disaster resilience: An integrated approach
+(pp.161–170). Springfield, IL: Charles C Thomas Publishers.
+Quarantelli, E. (1986). What is disaster? The need for clarification in
+definition, conceptualization in research. In B. Sowder & M.
+Lystad (Eds.), Disasters and mental health: Selected contemporary perspectives (pp. 49–81). Rockville, MD: National Institute
+of Mental Health.
+Quarantelli, E. (1989). Characteristics of citizen groups which emerge
+with respect to hazardous waste sites. In D. Peck (Ed.), Psychosocial effects of hazardous toxic waste disposal on communities
+(pp. 177–195). Springfield, IL: Charles C Thomas Publisher.
+Quarantelli, E. (1994). Future disaster trends and policy implications
+for developing countries. Newark, DE: Disaster Research Center.
+Rappaport, J. (1995). Empowerment meets narrative: Listening to
+stories and creating settings. American Journal of Community
+Psychology, 23, 795–807.
+Redlener, I., & Morse, S. (2006). Life under the ‘‘new normal’’: Notes
+on the future of preparedness. In Y. Neria, R. Gross, R. Marshall,
+& E. Susser (Eds.), 9/11: Mental health in the wake of terrorist
+attacks (pp. 592–604). New York: Cambridge.
+Reissman, D., Spencer, S., Tanielian, T., & Stein, B. (2005).
+Integrating behavioral aspects into community preparedness
+and response systems. In Y. Danieli, D. Brom, & J. Sills (Eds.),
+The trauma of terror: Sharing knowledge and shared care (pp.
+707–720). Binghamton, NY: Haworth Press.
+Riad, J., Norris, F., & Ruback, R. B. (1999). Predicting evacuation in
+two major disasters: Risk perceptions, social influence, and
+access to resources. Journal of Applied Social Psychology, 29,
+918–934.
+
+149
+Rich, R., Edelstein, M., Hallman, W., & Wandersman, A. (1995).
+Citizen participation and empowerment: The case of local
+environmental hazards. American Journal of Community Psychology, 23, 657–676.
+Rook, K. (1992). Detrimental aspects of social relationships: Taking
+stock of an emerging literature. In H. Veiel & U. Baumann
+(Eds.), The meaning and measurement of social support (pp.
+157–169). Washington, DC: Hemisphere Publishing.
+Rose, G. (1981). Strategy of prevention: Lessons from cardiovascular
+disease. British Medical Journal, 282, 1847–1951.
+Rose, G. (2001) Sick individuals and sick populations. International
+Journal of Epidemiology, 30, 427–432.
+Rose, A. (2004). Defining and measuring economic resilience to
+disasters. Disaster Prevention and Management, 13, 307–314.
+Rose, A. (2005). Analyzing terrorist threats to the economy: A
+computable general equilibrium approach. In P. Gordon, J.
+Moore, & H. Richardson (Eds.), Economic impacts of terrorist
+attacks (pp. 196–217). Cheltenham, UK: Edward Elgar.
+Rutter, M. (1987). Psychosocial resilience and protective mechanisms. American Journal of Orthopsychiatry, 57, 316–331.
+Rutter, M. (1993). Resilience: Some conceptual considerations.
+Journal of Adolescent Health, 14, 626–631.
+Saegert, S., & Winkel, G. (2004). Crime, social capital, and
+community participation. American Journal of Community
+Psychology, 34, 219–233.
+Sampson, R., Raudenbush, S., & Earls, F. (1997). Neighborhoods and
+violent crime: A multilevel study of collective efficacy. Science,
+277, 918–924.
+Silver, R. C., Holman, E. A., McIntosh, D., Poulin, M., & Gil-Rivas,
+V. (2002). Nationwide longitudinal study of psychological
+responses to September 11. Journal of the American Medical
+Association, 288, 1235–1244.
+Solomon, S., Bravo, M., Rubio-Stipec, M., & Canino, G. (1993)
+Effect of family role on response to disaster. Journal of
+Traumatic Stress, 6, 255–269.
+Sonn, C., & Fisher, A. (1998). Sense of community: Community
+resilient responses to oppression and change. Journal of
+Community Psychology, 26, 457–472.
+Tartaglia, S. (2006). A preliminary study for a new model of sense of
+community. Journal of Community Psychology, 34, 25–36.
+Thorp, S., & Stein, M. (2005). Posttraumatic stress disorder and
+functioning. PTSD Research Quarterly, 16, 1–7.
+Tierney, K., Bevc, C., & Kuligowski, E. (2006). Metaphors matter:
+Disaster myths, media frames, and their consequences in
+Hurricane Katrina. Annals of the American Academy of Political
+and Social Science, 604, 57–81.
+Tse, S., & Liew, T. (2004). New Zealand experiences: How is
+community resilience manifested in Asian communities? International Journal of Mental Health and Addiction, 2, 1–8.
+Tobin, G., & Whiteford, L. (2002). Community resilience and
+volcano hazard: The eruption of Tungurahua and evacuation of
+the Faldas in Ecuador. Disasters, 26, 28–48.
+Van den Eynde, J., & Veno, A. (1999). Coping with disastrous events:
+An empowerment model of community healing. In R. Gist & B.
+Lubin (Eds.), Response to disaster: Psychosocial, community,
+and ecological approaches (pp. 167–192). Philadelphia, PA:
+Bruner/Mazel.
+VanLandingham, M., Norris, F., Vu, L., & Fu, H. (2007). Katrinarelated health impacts on Vietnamese New Orleanians: A
+longitudinal analysis. Paper presented at the annual meeting of
+the Population Association of America, New York (March).
+Vega, W. (1992). Theoretical and pragmatic implications of cultural
+diversity for community research. American Journal of Community Psychology, 20, 375–391.
+Waller, M. (2001). Resilience in ecosystemic context: Evolution of
+the concept. American Journal of Orthopsychiatry, 71, 290–297.
+
+123
+
+150
+Wandserman, A. (2000). Citizen participation. In A. Kazdin (Ed.),
+Encyclopedia of psychology (Vol. 2, pp. 87–90). Washington,
+DC: American Psychological Association.
+Wandersman, A., & Florin, P. (2000). Citizen participation and
+community organizations. In J. Rappaport & E. Seidman (Eds.),
+Handbook of community psychology (pp. 247–272). Dordrecht,
+Netherlands: Kluwer Academic Publishers.
+Wellman, B., & Frank, K. (2001). Network capital in a multilevel
+world: Getting support from personal communities. In N. Lin, K.
+Cook, & R. Burt (Eds.), Social capital: Theory and research (pp.
+233–273). New York: Aldine de Gruyter.
+Werner, E. E., & Smith, R. S. (1982). Vulnerable but invincible: A
+longitudinal study of resilient children and youth. New York:
+McGraw-Hill.
+
+123
+
+Am J Community Psychol (2008) 41:127–150
+Wisner, B. (2001). Risk and the neoliberal state: Why post-Mitch
+lessons didn’t reduce El Salvador’s earthquake losses. Disasters,
+25, 251–268.
+Working Group on Governance Dilemmas in Bioterrorism Response.
+(2004). Leading during bioattacks and epidemics with the
+public’s trust and help. Biosecurity and Bioterrorism: Biodefense
+Stategy, Practice, and Science, 2, 25–39.
+Zautra, A., & Bachrach, K. (2000). Psychological dysfunction and
+well-being: Public health and social indicator approaches. In J.
+Rappaport & E. Seidman (Eds.), Handbook of community
+psychology (pp. 165–186). Dordrecht, Netherlands: Kluwer
+Academic Publishers.
+
+
