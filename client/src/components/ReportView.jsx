@@ -31,7 +31,7 @@ import { expandSourceCitationLinks } from './ReportMarkdownView.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { scoreColor10, scoreLabel10, scoreVariant10 } from '../lib/score.js';
-import { ResilienceSummaryCard, StatusTag, MarkdownArticle } from '../ui/index.js';
+import { DriftSparkline, ResilienceSummaryCard, StatusTag, MarkdownArticle } from '../ui/index.js';
 
 const COMPONENT_ICONS = {
   narrative:                 MenuBookOutlinedIcon,
@@ -641,6 +641,8 @@ function ComponentCard({
   comp,
   t,
   sourceSignals,
+  driftSeries,
+  driftLoading,
   overrideCount,
   onChallengeClick,
   open,
@@ -689,18 +691,25 @@ function ComponentCard({
             {isContested && <ContestedBadge t={t} />}
             <OverrideBadge count={overrideCount} t={t} />
           </Stack>
-          <Stack direction="row" alignItems="center" spacing={1}>
-            <ScoreWithInterval comp={comp} t={t} />
-            <DeltaAdornment
-              delta={comp.delta_score}
-              significant={comp.delta_flag === 'significant'}
-              t={t}
-            />
-          </Stack>
         </Stack>
-        <Typography variant="caption" color="text.secondary">
-          {confidenceLabel}
-        </Typography>
+        <Stack
+          direction="row"
+          alignItems="center"
+          spacing={1}
+          sx={{ flexShrink: 0, marginLeft: 'auto', textAlign: 'right' }}
+        >
+          <ScoreWithInterval comp={comp} t={t} />
+          <DeltaAdornment
+            delta={comp.delta_score}
+            significant={comp.delta_flag === 'significant'}
+            t={t}
+          />
+          <Tooltip title="Confidence level">
+            <Typography variant="caption" color="text.secondary">
+              Confidence: {confidenceLabel}
+            </Typography>
+          </Tooltip>
+        </Stack>
       </AccordionSummary>
       <AccordionDetails>
         {onChallengeClick && (
@@ -722,7 +731,14 @@ function ComponentCard({
             </Tooltip>
           </Box>
         )}
-        <DecompositionRow comp={comp} t={t} />
+        <Box sx={(theme) => ({ marginTop: theme.spacing(0.5), marginBottom: theme.spacing(0.75) })}>
+          {driftLoading && (
+            <Typography variant="caption" color="text.disabled" sx={{ fontStyle: 'italic', display: 'block', marginBottom: 0.5 }}>
+              {t('app.reportLoading')}
+            </Typography>
+          )}
+          <DriftSparkline series={driftSeries ?? []} t={t} height={78} />
+        </Box>
         <WhyThisScore comp={comp} t={t} />
         <DeltaLine comp={comp} t={t} />
         <CounterfactualHint comp={comp} t={t} />
@@ -808,6 +824,8 @@ export function ReportView({
   translateError,
   reportDate,
   reportScope,
+  driftByComponent,
+  driftLoading,
   overridesCount,
   onOverridesChanged,
   openCompId: openCompIdProp,
@@ -830,6 +848,7 @@ export function ReportView({
 
   const components = assessment.components ?? [];
   const norrisCaps = assessment.norris_capacities ?? [];
+  const driftMap = driftByComponent ?? {};
 
   function getSourceSignals(compId) {
     if (!scoreBySource) return null;
@@ -972,10 +991,18 @@ export function ReportView({
       )}
 
       <ReportSection title={t('report.executiveSummary')}>
-        <MarkdownArticle
-          variant="report"
-          markdown={expandSourceCitationLinks(assessment.cross_component_synthesis ?? '')}
-        />
+        <Box
+          sx={{
+            maxWidth: 960,
+            marginLeft: 'auto',
+            marginRight: 'auto',
+          }}
+        >
+          <MarkdownArticle
+            variant="report"
+            markdown={expandSourceCitationLinks(assessment.cross_component_synthesis ?? '')}
+          />
+        </Box>
       </ReportSection>
 
       <ReportSection title={t('report.components')}>
@@ -990,6 +1017,8 @@ export function ReportView({
               comp={c}
               t={t}
               sourceSignals={getSourceSignals(c.component_id)}
+              driftSeries={driftMap?.[c.component_id]?.series ?? []}
+              driftLoading={driftLoading}
               overrideCount={overridesCount?.[c.component_id] ?? 0}
               onChallengeClick={reportDate ? setChallengeComp : null}
               open={openCompId === c.component_id}

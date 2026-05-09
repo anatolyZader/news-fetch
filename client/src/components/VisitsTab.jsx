@@ -3,12 +3,11 @@ import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Chip from '@mui/material/Chip';
-import Divider from '@mui/material/Divider';
 import Stack from '@mui/material/Stack';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import Typography from '@mui/material/Typography';
-import { useTheme } from '@mui/material/styles';
+import { alpha, useTheme } from '@mui/material/styles';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import {
@@ -16,7 +15,6 @@ import {
   ErrorState,
   FilterBar,
   FilterPill,
-  GridTable,
   KpiCard,
   KpiStrip,
   LoadingState,
@@ -34,6 +32,20 @@ function typeLabel(type) {
   return String(type ?? 'unknown').replace(/_/g, ' ');
 }
 
+/** Use only the part after the first colon (trimmed); otherwise the whole string. */
+function valueAfterFirstColon(s) {
+  const t = String(s ?? '').trim();
+  const i = t.indexOf(':');
+  if (i === -1) return t;
+  return t.slice(i + 1).trim();
+}
+
+/** Text after first `: ` in evidence (location line stripped); whole string if no colon. */
+function signalEvidenceExplanation(evidence) {
+  if (evidence == null || String(evidence).trim() === '') return '';
+  return valueAfterFirstColon(evidence);
+}
+
 function formatPublished(ts, formatDateFn) {
   if (!ts || typeof ts !== 'string') return null;
   const datePart = ts.slice(0, 10);
@@ -41,34 +53,83 @@ function formatPublished(ts, formatDateFn) {
   return ts;
 }
 
-function VisitMetaItem({ label, value }) {
+/** Inset panel: white panels on the content well; border + shadow so they read clearly above the tray. */
+function visitInsetPanelSx(theme, accent) {
+  return {
+    borderRadius: theme.custom.radius.sm,
+    bgcolor: 'background.paper',
+    border: `1px solid ${alpha(accent, 0.3)}`,
+    boxShadow: `0 1px 2px ${alpha(theme.palette.common.black, 0.06)}, 0 2px 8px ${alpha(theme.palette.common.black, 0.05)}`,
+  };
+}
+
+function VisitMetaRow({ label, value }) {
   if (value === null || value === undefined || String(value).trim() === '') return null;
   return (
-    <Stack spacing={0.35}>
-      <Typography variant="caption" color="text.secondary" fontWeight={700} sx={{ letterSpacing: '0.02em' }}>
+    <Box
+      role="listitem"
+      sx={(theme) => ({
+        display: 'grid',
+        gridTemplateColumns: { xs: '1fr', sm: 'minmax(140px, 0.36fr) minmax(0, 1fr)' },
+        columnGap: theme.spacing(2),
+        rowGap: { xs: theme.spacing(0.35), sm: 0 },
+        alignItems: 'baseline',
+        py: 1.35,
+        borderBottom: `1px solid ${alpha(theme.palette.text.primary, 0.1)}`,
+        '&:last-of-type': {
+          borderBottom: 'none',
+          pb: 0,
+        },
+        '&:first-of-type': { pt: 0 },
+      })}
+    >
+      <Typography
+        component="div"
+        variant="caption"
+        color="text.secondary"
+        fontWeight={700}
+        sx={{ letterSpacing: '0.02em' }}
+      >
         {label}
       </Typography>
-      <Typography variant="body2" dir="auto" sx={{ lineHeight: 1.55 }}>
+      <Typography
+        component="div"
+        variant="body2"
+        dir="auto"
+        sx={{
+          lineHeight: 1.6,
+          wordBreak: 'break-word',
+          minWidth: 0,
+          textAlign: 'end',
+          justifySelf: 'end',
+          width: '100%',
+        }}
+      >
         {value}
       </Typography>
-    </Stack>
+    </Box>
   );
 }
 
 function VisitSubsection({ title, children, theme }) {
+  const accent = theme.palette.primary.main;
   return (
-    <Stack spacing={1.25}>
-      <Typography
-        component="h4"
-        sx={{
-          ...theme.typography.eyebrow,
-          color: 'text.secondary',
-          m: 0,
-        }}
-      >
-        {title}
-      </Typography>
-      {children}
+    <Stack spacing={1.5}>
+      {title ? (
+        <Typography
+          component="h4"
+          sx={{
+            ...theme.typography.eyebrow,
+            color: accent,
+            m: 0,
+            paddingBottom: 0.5,
+            borderBottom: `1px solid ${alpha(accent, 0.18)}`,
+          }}
+        >
+          {title}
+        </Typography>
+      ) : null}
+      <Box sx={{ minWidth: 0 }}>{children}</Box>
     </Stack>
   );
 }
@@ -95,14 +156,19 @@ function VisitMunicipalityCard({
   const noteBody = String(visit.notes ?? '').trim();
   const hasSignals = (visit.signalCount ?? 0) > 0;
 
+  const accent = theme.palette.primary.main;
+  const ink = theme.palette.text.primary;
   return (
     <Card
       elevation={0}
       sx={{
-        border: theme.custom.border.hairline,
-        borderRadius: theme.shape.borderRadius * 1.25,
+        bgcolor: 'background.paper',
+        borderColor: alpha(accent, 0.35),
+        borderWidth: 1,
+        borderStyle: 'solid',
+        borderRadius: theme.custom.radius.md,
         overflow: 'hidden',
-        boxShadow: theme.custom.elevation.subtle,
+        boxShadow: `0 2px 6px ${alpha(ink, 0.06)}, 0 8px 24px ${alpha(ink, 0.07)}`,
       }}
     >
       <Box
@@ -110,7 +176,9 @@ function VisitMunicipalityCard({
           px: { xs: 2, sm: 2.5 },
           py: 2,
           background: theme.custom.surface.bannerSubtle,
-          borderBottom: theme.custom.border.hairline,
+          borderBottom: `1px solid ${alpha(accent, 0.12)}`,
+          borderInlineStart: '3px solid',
+          borderInlineStartColor: 'primary.main',
         }}
       >
         <Stack direction="row" alignItems="flex-start" justifyContent="space-between" spacing={2} useFlexGap flexWrap="wrap">
@@ -136,34 +204,47 @@ function VisitMunicipalityCard({
         </Stack>
       </Box>
 
-      <CardContent sx={{ p: { xs: 2, sm: 2.5 }, '&:last-child': { pb: { xs: 2, sm: 2.5 } } }}>
-        <Stack spacing={2.75} divider={<Divider flexItem sx={{ borderStyle: 'dashed' }} />}>
+      <CardContent
+        sx={{
+          p: { xs: 2, sm: 2.5 },
+          bgcolor: alpha(accent, 0.1),
+          '&:last-child': { pb: { xs: 2, sm: 2.5 } },
+        }}
+      >
+        <Stack spacing={2.75}>
           <VisitSubsection title={t('visit.card.overview')} theme={theme}>
             <Box
+              component="section"
+              role="list"
+              aria-label={t('visit.card.overview')}
               sx={{
-                display: 'grid',
-                gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, minmax(0, 1fr))' },
-                gap: 2,
-                p: 1.75,
-                borderRadius: theme.shape.borderRadius,
-                bgcolor: theme.custom.surface.muted,
-                border: theme.custom.border.hairline,
+                m: 0,
+                p: { xs: 1.5, sm: 2 },
+                ...visitInsetPanelSx(theme, accent),
               }}
             >
-              <VisitMetaItem label={t('visit.card.recordIndex')} value={visit.articleIndex != null ? `#${visit.articleIndex}` : null} />
-              <VisitMetaItem label={t('visit.card.municipality')} value={visit.municipality} />
-              <VisitMetaItem label={t('visit.card.region')} value={visit.region} />
-              <VisitMetaItem label={t('visit.card.visitDate')} value={visitDateLabel} />
-              <VisitMetaItem label={t('visit.card.squad')} value={visit.source} />
-              <VisitMetaItem label={t('visit.card.published')} value={publishedLabel} />
+              <VisitMetaRow label={t('visit.card.recordIndex')} value={visit.articleIndex != null ? `#${visit.articleIndex}` : null} />
+              <VisitMetaRow label={t('visit.card.municipality')} value={visit.municipality} />
+              <VisitMetaRow label={t('visit.card.region')} value={visit.region} />
+              <VisitMetaRow label={t('visit.card.visitDate')} value={visitDateLabel} />
+              <VisitMetaRow label={t('visit.card.squad')} value={visit.source} />
+              <VisitMetaRow label={t('visit.card.published')} value={publishedLabel} />
             </Box>
           </VisitSubsection>
 
           {visit.stakeholders ? (
             <VisitSubsection title={t('visit.card.stakeholders')} theme={theme}>
-              <Typography variant="body2" dir="auto" sx={{ lineHeight: 1.65 }}>
-                {visit.stakeholders}
-              </Typography>
+              <Box
+                dir="auto"
+                sx={{
+                  p: 1.75,
+                  ...visitInsetPanelSx(theme, accent),
+                }}
+              >
+                <Typography variant="body2" sx={{ lineHeight: 1.65 }}>
+                  {visit.stakeholders}
+                </Typography>
+              </Box>
             </VisitSubsection>
           ) : null}
 
@@ -173,9 +254,7 @@ function VisitMunicipalityCard({
                 dir="auto"
                 sx={{
                   p: 1.75,
-                  borderRadius: theme.shape.borderRadius,
-                  bgcolor: theme.custom.surface.code,
-                  border: theme.custom.border.hairline,
+                  ...visitInsetPanelSx(theme, accent),
                   whiteSpace: 'pre-wrap',
                   typography: 'body2',
                   lineHeight: 1.65,
@@ -196,7 +275,7 @@ function VisitMunicipalityCard({
                   dir="auto"
                   sx={{
                     m: 0,
-                    pl: 2.25,
+                    paddingInlineStart: theme.spacing(2.5),
                     display: 'flex',
                     flexDirection: 'column',
                     gap: 0.75,
@@ -233,54 +312,50 @@ function VisitMunicipalityCard({
             </VisitSubsection>
           ) : null}
 
-          <VisitSubsection title={t('visit.card.signalsTitle')} theme={theme}>
+          <VisitSubsection theme={theme}>
             {signalsSorted.length > 0 ? (
-              <Stack spacing={1.25}>
-                {signalsSorted.map((sig, idx) => (
-                  <Box
-                    key={`${sig.signal_type}-${idx}-${String(sig.evidence).slice(0, 24)}`}
-                    sx={{
-                      p: 1.5,
-                      borderRadius: theme.shape.borderRadius,
-                      bgcolor: 'background.paper',
-                      border: theme.custom.border.hairline,
-                      borderLeftWidth: 4,
-                      borderLeftColor: 'primary.main',
-                      boxShadow: theme.custom.elevation.subtle,
-                    }}
-                  >
-                    <Stack spacing={1}>
-                      <Chip size="small" label={typeLabel(sig.signal_type)} color="primary" variant="outlined" sx={{ alignSelf: 'flex-start' }} />
-                      {sig.evidence ? (
-                        <Typography variant="body2" dir="auto" sx={{ lineHeight: 1.65 }}>
-                          {sig.evidence}
-                        </Typography>
-                      ) : null}
-                      {sig.evidence_type || sig.scope_level || sig.article_source ? (
-                        <Box component="ul" sx={{ m: 0, pl: 2.25, listStyle: 'disc', '& li': { display: 'list-item' } }}>
-                          {sig.evidence_type ? (
-                            <Typography component="li" variant="caption" color="text.secondary">
-                              <Box component="span" fontWeight={700}>{t('visit.card.evidenceType')}: </Box>
-                              {sig.evidence_type}
-                            </Typography>
-                          ) : null}
-                          {sig.scope_level ? (
-                            <Typography component="li" variant="caption" color="text.secondary">
-                              <Box component="span" fontWeight={700}>{t('visit.card.scope')}: </Box>
-                              {sig.scope_level}
-                            </Typography>
-                          ) : null}
-                          {sig.article_source ? (
-                            <Typography component="li" variant="caption" color="text.secondary" dir="auto">
-                              <Box component="span" fontWeight={700}>{t('visit.card.signalSource')}: </Box>
-                              {sig.article_source}
-                            </Typography>
-                          ) : null}
+              <Stack component="ul" spacing={1.25} sx={{ m: 0, p: 0, listStyle: 'none' }}>
+                {signalsSorted.map((sig, idx) => {
+                  const label = typeLabel(sig.signal_type);
+                  const explanation = signalEvidenceExplanation(sig.evidence);
+                  return (
+                    <Box
+                      component="li"
+                      key={`${sig.signal_type}-${idx}-${String(sig.evidence).slice(0, 24)}`}
+                      sx={{
+                        listStyle: 'none',
+                        p: 1.5,
+                        ...visitInsetPanelSx(theme, accent),
+                        borderInlineStartWidth: 4,
+                        borderInlineStartColor: 'primary.main',
+                      }}
+                    >
+                      <Typography variant="body2" dir="auto" sx={{ lineHeight: 1.65 }}>
+                        <Box component="span" sx={{ color: 'primary.main', fontWeight: 700 }}>
+                          {'\u2022 '}
+                          {label}
                         </Box>
-                      ) : null}
-                    </Stack>
-                  </Box>
-                ))}
+                      </Typography>
+                      {explanation ? (
+                        <Typography
+                          variant="body2"
+                          dir="auto"
+                          sx={{
+                            lineHeight: 1.65,
+                            mt: 0.5,
+                            paddingInlineStart: 2,
+                          }}
+                        >
+                          {explanation}
+                        </Typography>
+                      ) : (
+                        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, paddingInlineStart: 2 }}>
+                          —
+                        </Typography>
+                      )}
+                    </Box>
+                  );
+                })}
               </Stack>
             ) : (
               <Typography variant="body2" color="text.secondary">
@@ -366,7 +441,6 @@ export function VisitsTab() {
     { label: t('visit.kpi.signals'), value: summary.totalSignals ?? 0 },
     { label: t('visit.kpi.dateRange'), value: dateRangeLabel(summary.dateRange) },
   ];
-  const topSignalTypes = (data.signalTypes ?? []).slice(0, 8);
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, pb: 2 }}>
@@ -378,23 +452,6 @@ export function VisitsTab() {
       <KpiStrip>
         {kpis.map((kpi) => <KpiCard key={kpi.label} label={kpi.label} value={kpi.value} />)}
       </KpiStrip>
-
-      <Stack spacing={0.5}>
-        <SectionHeading>{t('visit.sec.signalTypes')}</SectionHeading>
-        <Typography variant="body2" color="text.secondary">
-          {topSignalTypes.length ? t('visit.sec.signalTypesSub') : t('visit.noSignals')}
-        </Typography>
-      </Stack>
-      {topSignalTypes.length > 0 && (
-        <GridTable
-          rows={topSignalTypes}
-          gridTemplateColumns="minmax(0, 1fr) 100px"
-          columns={[
-            { key: 'type', label: t('visit.col.signalType'), render: (row) => typeLabel(row.type) },
-            { key: 'count', label: t('visit.col.count') },
-          ]}
-        />
-      )}
 
       <FilterBar
         footer={muniFilter.size > 0 ? {

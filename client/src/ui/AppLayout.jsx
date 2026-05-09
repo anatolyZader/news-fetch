@@ -6,7 +6,7 @@ import Container from '@mui/material/Container';
 export function AppLayout({
   header,
   children,
-  maxWidth = 1180,
+  maxWidth = 1280,
   contentSpacing = 4,
 }) {
   return (

@@ -18,8 +18,8 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { useTodayReport } from './hooks/useAnalysis.js';
 import { useTranslatedReport } from './hooks/useTranslatedReport.js';
+import { useResilienceDrift } from './hooks/useResilienceDrift.js';
 import { ReportView } from './components/ReportView.jsx';
-import { ResilienceDriftPanel } from './components/ResilienceDriftPanel.jsx';
 import { ChatPanel } from './components/ChatPanel.jsx';
 import { DocsPanel } from './components/DocsPanel.jsx';
 import { ReportBuildPanel } from './components/ReportBuildPanel.jsx';
@@ -30,6 +30,7 @@ import { MunicipalitiesTab } from './components/MunicipalitiesTab.jsx';
 import { PboRegionalDailyReports } from './components/PboRegionalDailyReports.jsx';
 import { NaftaliTab } from './components/NaftaliTab.jsx';
 import { ChatbotManualReportsTab } from './components/ChatbotManualReportsTab.jsx';
+import { VisitsTab } from './components/VisitsTab.jsx';
 import { useLanguage } from './context/LanguageContext.jsx';
 import { LanguageSelector } from './components/LanguageSelector.jsx';
 import { useAuth } from './context/AuthContext.jsx';
@@ -48,7 +49,7 @@ const LS_POOL_TAB = 'vibes-witch:poolTab';
 const LS_PBO_TAB = 'vibes-witch:pboTab';
 const LS_PBO_REGION = 'vibes-witch:pboRegion';
 const LS_REPORT_SCOPE = 'vibes-witch:reportScope';
-const MAIN_TAB_IDS = new Set(['report', 'drift', 'pbo-reports', 'chatbot', 'visits', 'pools']);
+const MAIN_TAB_IDS = new Set(['report', 'pbo-reports', 'chatbot', 'visits', 'pools']);
 const PBO_TAB_IDS = new Set(['local', 'regional']);
 /** Northern PBO sub-regions (maps to divisions in regions.json; Galma ≈ Western Galilee / גלמ״ע). */
 const PBO_REGION_IDS_ORDER = ['naftali', 'golan', 'baram', 'hiram', 'galma'];
@@ -69,6 +70,7 @@ function normalizeMainTabSection(section) {
   ) {
     return 'pbo-reports';
   }
+  if (section === 'drift') return 'report';
   return section;
 }
 
@@ -260,6 +262,12 @@ function AppShell() {
   const closeMoreMenu = useCallback(() => setMoreMenuAnchor(null), []);
   const { t, lang } = useLanguage();
   const { displayReport, translating, translateError } = useTranslatedReport(report, lang);
+  const driftDays = 7;
+  const { data: driftData, loading: driftLoading } = useResilienceDrift({
+    scope: reportScope,
+    days: driftDays,
+    endDate: reportDate || '',
+  });
 
   useEffect(() => {
     const applyDeepLink = () => {
@@ -316,7 +324,6 @@ function AppShell() {
 
   const TABS = [
     { id: 'report', label: t('tab.report') },
-    { id: 'drift', label: t('tab.drift') },
     { id: 'pbo-reports', label: t('tab.pboReports') },
     { id: 'chatbot', label: t('tab.chatbot') },
     { id: 'visits', label: t('tab.visits') },
@@ -510,7 +517,9 @@ function AppShell() {
             <div ref={reportTopRef} />
             <Box
               sx={(theme) => ({
-                position: 'relative',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'flex-end',
                 width: '100%',
                 minHeight: 48,
                 marginTop: theme.spacing(1.5),
@@ -521,12 +530,6 @@ function AppShell() {
                 exclusive
                 size="small"
                 value={reportScope}
-                sx={{
-                  position: 'absolute',
-                  right: 0,
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                }}
                 onChange={(_, next) => {
                   if (next) setReportScope(next);
                 }}
@@ -565,7 +568,7 @@ function AppShell() {
               <Box
                 sx={(theme) => ({
                   display: 'grid',
-                  gridTemplateColumns: '220px minmax(0, 1fr)',
+                  gridTemplateColumns: 'clamp(240px, 18vw, 280px) minmax(0, 1fr)',
                   gap: theme.spacing(2),
                   alignItems: 'start',
                   [theme.breakpoints.down('md')]: { gridTemplateColumns: 'minmax(0, 1fr)' },
@@ -625,6 +628,8 @@ function AppShell() {
                       translateError={translateError}
                       reportDate={reportDate}
                       reportScope={reportScope}
+                      driftByComponent={driftData?.per_component ?? null}
+                      driftLoading={driftLoading}
                       overridesCount={overridesCount}
                       onOverridesChanged={refreshOverrides}
                       openCompId={openReportCompId}
@@ -691,8 +696,6 @@ function AppShell() {
             )}
           </>
         )}
-
-        {activeTab === 'drift' && <ResilienceDriftPanel scope={reportScope} />}
 
         {activeTab === 'chatbot' && <ChatbotManualReportsTab />}
 

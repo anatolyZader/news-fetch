@@ -37,7 +37,7 @@ describe('driftService.compute', () => {
     const svc = createDriftService({
       historyReader: () => fakeHistory,
     });
-    const result = svc.compute({ scope: 'national', days: 30 });
+    const result = svc.compute({ scope: 'national', days: 2, endDate: '2026-05-02' });
 
     assert.equal(result.scope, 'national');
     assert.deepEqual(result.dates, ['2026-05-01', '2026-05-02']);
@@ -54,7 +54,7 @@ describe('driftService.compute', () => {
 
   it('builds overall_series', () => {
     const svc = createDriftService({ historyReader: () => buildHistory() });
-    const result = svc.compute({ scope: 'national', days: 30 });
+    const result = svc.compute({ scope: 'national', days: 2, endDate: '2026-05-02' });
     assert.deepEqual(result.overall_series, [
       { date: '2026-05-01', score: 6 },
       { date: '2026-05-02', score: 7 },
@@ -63,7 +63,7 @@ describe('driftService.compute', () => {
 
   it('aggregates signal_volume_per_day with per-type counts and totals', () => {
     const svc = createDriftService({ historyReader: () => buildHistory() });
-    const result = svc.compute({ scope: 'national', days: 30 });
+    const result = svc.compute({ scope: 'national', days: 2, endDate: '2026-05-02' });
     assert.equal(result.signal_volume_per_day.length, 2);
     assert.equal(result.signal_volume_per_day[0].total, 3);
     assert.equal(result.signal_volume_per_day[0].by_type.fear_expression, 2);
@@ -73,7 +73,7 @@ describe('driftService.compute', () => {
 
   it('builds source_share_per_day', () => {
     const svc = createDriftService({ historyReader: () => buildHistory() });
-    const result = svc.compute({ scope: 'national', days: 30 });
+    const result = svc.compute({ scope: 'national', days: 2, endDate: '2026-05-02' });
     assert.equal(result.source_share_per_day[0].total, 3);
     assert.equal(result.source_share_per_day[0].by_source_type.news, 2);
     assert.equal(result.source_share_per_day[1].by_source_type.field, 1);
@@ -92,7 +92,7 @@ describe('driftService.compute', () => {
       historyReader: () => fakeHistory,
       overridesService,
     });
-    const result = svc.compute({ scope: 'national', days: 30 });
+    const result = svc.compute({ scope: 'national', days: 2, endDate: '2026-05-02' });
 
     assert.equal(result.overrides.total, 4);
     assert.equal(result.overrides.by_component.narrative, 3);
@@ -105,7 +105,7 @@ describe('driftService.compute', () => {
 
   it('produces zero overrides when no overridesService is provided', () => {
     const svc = createDriftService({ historyReader: () => buildHistory() });
-    const result = svc.compute({ scope: 'national', days: 30 });
+    const result = svc.compute({ scope: 'national', days: 2, endDate: '2026-05-02' });
     assert.equal(result.overrides.total, 0);
     assert.equal(result.overrides.rate, 0);
     assert.deepEqual(result.overrides.per_day.map((d) => d.count), [0, 0]);
@@ -113,7 +113,7 @@ describe('driftService.compute', () => {
 
   it('includes daily mean polarization and certainty series', () => {
     const svc = createDriftService({ historyReader: () => buildHistory() });
-    const result = svc.compute({ scope: 'national', days: 30 });
+    const result = svc.compute({ scope: 'national', days: 2, endDate: '2026-05-02' });
     assert.equal(result.daily_mean_polarization.length, 2);
     assert.ok(typeof result.daily_mean_polarization[0].mean === 'number');
     assert.equal(result.daily_mean_certainty.length, 2);
@@ -157,7 +157,7 @@ describe('driftService.compute', () => {
     process.env.RESILIENCE_DRIFT_ALERT_POLARIZATION = '0.7';
     try {
       const svc = createDriftService({ historyReader: () => fakeHistory, overridesService });
-      const result = svc.compute({ scope: 'national', days: 30 });
+      const result = svc.compute({ scope: 'national', days: 3, endDate: '2026-05-01' });
       const codes = result.alerts.map((a) => a.code);
       assert.ok(codes.includes('high_override_rate'));
       const polAlert = result.alerts.find((a) => a.code === 'high_mean_polarization');
@@ -202,7 +202,7 @@ describe('driftService.compute', () => {
     process.env.RESILIENCE_DRIFT_ALERT_POLARIZATION = '0.7';
     try {
       const svc = createDriftService({ historyReader: () => fakeHistory });
-      const result = svc.compute({ scope: 'national', days: 30 });
+      const result = svc.compute({ scope: 'national', days: 3, endDate: '2026-05-01' });
       const polAlert = result.alerts.find((a) => a.code === 'high_mean_polarization');
       assert.equal(polAlert, undefined,
         'mean(0.20, 0.30, 0.95) ~ 0.483 must not exceed 0.7 threshold');
@@ -210,6 +210,39 @@ describe('driftService.compute', () => {
       if (prevP === undefined) delete process.env.RESILIENCE_DRIFT_ALERT_POLARIZATION;
       else process.env.RESILIENCE_DRIFT_ALERT_POLARIZATION = prevP;
     }
+  });
+
+  it('interpolates missing scores linearly between two known days (one gap = midpoint)', () => {
+    const fakeHistory = [
+      {
+        date: '2026-05-01',
+        scope: 'national',
+        total_articles_analyzed: 10,
+        overall_score: 6,
+        components: [
+          { component_id: 'narrative', score: 8, confidence: 'high', certainty: 0.8, polarization: 0.1, evidence_mass: 5, signal_count: 3 },
+        ],
+        signal_counts: {}, source_type_mass: {},
+      },
+      {
+        date: '2026-05-03',
+        scope: 'national',
+        total_articles_analyzed: 10,
+        overall_score: 7,
+        components: [
+          { component_id: 'narrative', score: 6, confidence: 'high', certainty: 0.8, polarization: 0.1, evidence_mass: 5, signal_count: 3 },
+        ],
+        signal_counts: {}, source_type_mass: {},
+      },
+    ];
+    const svc = createDriftService({ historyReader: () => fakeHistory });
+    const result = svc.compute({ scope: 'national', days: 3, endDate: '2026-05-03' });
+    const narrative = result.per_component.narrative.series;
+    assert.equal(narrative.length, 3);
+    assert.equal(narrative[0].score, 8);
+    assert.equal(narrative[2].score, 6);
+    assert.equal(narrative[1].score, 7);
+    assert.equal(narrative[1].score_interpolated, true);
   });
 
   it('respects RESILIENCE_DRIFT_POLARIZATION_WINDOW', () => {
@@ -229,7 +262,7 @@ describe('driftService.compute', () => {
     process.env.RESILIENCE_DRIFT_POLARIZATION_WINDOW = '1';
     try {
       const svc = createDriftService({ historyReader: () => fakeHistory });
-      const result = svc.compute({ scope: 'national', days: 30 });
+      const result = svc.compute({ scope: 'national', days: 1, endDate: '2026-05-01' });
       const polAlert = result.alerts.find((a) => a.code === 'high_mean_polarization');
       assert.ok(polAlert, 'expected window=1 alert');
       assert.equal(polAlert.polarization_window_days, 1);

@@ -1,6 +1,7 @@
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Typography from '@mui/material/Typography';
+import { alpha } from '@mui/material/styles';
 
 const DENSITY = {
   comfortable: { px: 2, py: 1.5 },
@@ -18,6 +19,7 @@ export function KpiCard({
   const padding = DENSITY[density] ?? DENSITY.comfortable;
   return (
     <Card
+      elevation={0}
       sx={(theme) => ({
         paddingLeft: theme.spacing(padding.px),
         paddingRight: theme.spacing(padding.px),
@@ -25,6 +27,10 @@ export function KpiCard({
         paddingBottom: theme.spacing(padding.py),
         flex: '1 1 140px',
         minWidth: theme.spacing(15),
+        borderRadius: theme.custom.radius.md,
+        bgcolor: 'background.paper',
+        border: `1px solid ${alpha(theme.palette.primary.main, 0.22)}`,
+        boxShadow: theme.custom.elevation.subtle,
         ...(span ? { gridColumn: `span ${span}` } : {}),
       })}
     >
