@@ -26,9 +26,12 @@ import {
 import {
   verifyEvidenceAgainstArticle,
   dedupeSignalsWithinBatch,
+  tokenize,
 } from './signalVerification.js';
 import { maybeRescueEvidenceWithEmbedding } from './embeddingEvidenceVerifier.js';
 import { applyReviewerScoreAdjustmentsToScoredMap } from '../domain/services/reviewerScoreAdjustments.js';
+import { embedText, embeddingsEnabled, embeddingModelId } from '../../../cross-cut-modules/vector_index/index.js';
+import { createHash } from 'node:crypto';
 
 const client = new Anthropic(); // uses ANTHROPIC_API_KEY from env
 
@@ -184,16 +187,125 @@ function extractTopKParagraphsByRelevance(body, k = 3) {
   return topK.map((x) => x.p).join('\n\n');
 }
 
-function formatArticlesForPrompt(articles) {
-  return articles
+function formatArticlesForPrompt(preparedArticles) {
+  return preparedArticles
     .map(
       (a, i) =>
         `### [${i + 1}] ${a.title}\n` +
         `Source: ${a.source} | Published: ${a.publishedAt}\n` +
         `URL: ${a.url || '(no url)'}\n\n` +
-        (extractTopKParagraphsByRelevance(a.body, 6) || '(no body text)'),
+        (a.promptBody || extractTopKParagraphsByRelevance(a.body, 6) || '(no body text)'),
     )
     .join('\n\n---\n\n');
+}
+
+const DOMAIN_INTENT_QUERIES = Object.freeze({
+  // Keep these short and behavior-focused; they’re only used to retrieve relevant spans.
+  A: 'civilian protective behavior: shelter use, compliance with instructions, evacuation, injuries, risk, alerts',
+  B: 'institutional response: guidance and communication, service continuity/disruption (schools, hospitals, transport), leadership actions',
+  C: 'social fabric & wellbeing: volunteering, mutual aid, solidarity, morale/narratives, resources/shortages, mental health, vulnerable groups',
+});
+
+const SEMANTIC_SELECT_CACHE = new Map(); // key -> Float32Array
+
+function sha256Hex(s) {
+  return createHash('sha256').update(String(s ?? '')).digest('hex');
+}
+
+function semanticSelectionEnabled() {
+  if (process.env.RESILIENCE_SEMANTIC_SPAN_SELECTION === '0') return false;
+  return embeddingsEnabled();
+}
+
+function splitParagraphs(body) {
+  const raw = String(body ?? '');
+  const paras = raw.split(/\n+/).map((p) => p.trim()).filter(Boolean);
+  // Merge tiny paragraphs so we don’t embed 100 one-liners.
+  const merged = [];
+  let buf = '';
+  for (const p of paras) {
+    if (!buf) {
+      buf = p;
+      continue;
+    }
+    if (buf.length < 180) {
+      buf += ' ' + p;
+    } else {
+      merged.push(buf);
+      buf = p;
+    }
+  }
+  if (buf) merged.push(buf);
+  return merged;
+}
+
+async function embedCached(text, model) {
+  const clean = String(text ?? '').trim();
+  const key = `${model}:${sha256Hex(clean)}`;
+  const cached = SEMANTIC_SELECT_CACHE.get(key);
+  if (cached) return cached;
+  const emb = await embedText(clean, { model });
+  SEMANTIC_SELECT_CACHE.set(key, emb.vector);
+  return emb.vector;
+}
+
+function dot(a, b) {
+  const n = Math.min(a.length, b.length);
+  let s = 0;
+  for (let i = 0; i < n; i++) s += a[i] * b[i];
+  return s;
+}
+
+function norm(a) {
+  return Math.sqrt(dot(a, a)) || 1;
+}
+
+function cosine(a, b) {
+  return dot(a, b) / (norm(a) * norm(b));
+}
+
+async function extractTopKParagraphsBySemanticRelevance(body, domainGroupKey, k = 6) {
+  const paragraphs = splitParagraphs(body);
+  if (paragraphs.length === 0) return '';
+  if (paragraphs.length <= k) return paragraphs.join('\n\n');
+
+  const model = embeddingModelId();
+  const query = DOMAIN_INTENT_QUERIES[domainGroupKey] ?? DOMAIN_INTENT_QUERIES.B;
+  const qv = await embedCached(query, model);
+
+  // Hard cap: don’t embed too many paragraphs per article.
+  const capped = paragraphs.slice(0, 36);
+  const vecs = await Promise.all(capped.map((p) => embedCached(p, model)));
+
+  const scored = capped.map((p, idx) => ({
+    p,
+    idx,
+    score: cosine(qv, vecs[idx]),
+  }));
+
+  const topK = scored
+    .sort((a, b) => b.score - a.score || a.idx - b.idx)
+    .slice(0, k)
+    .sort((a, b) => a.idx - b.idx);
+
+  return topK.map((x) => x.p).join('\n\n');
+}
+
+async function prepareArticlesForPrompt(articles, { contentKind = 'news', domainGroupKey = null } = {}) {
+  const useSemantic = semanticSelectionEnabled() && contentKind !== 'whatsapp_realtime' && contentKind !== 'whatsapp_interactive';
+  const out = [];
+  for (const a of articles) {
+    let promptBody = '';
+    if (useSemantic) {
+      try {
+        promptBody = await extractTopKParagraphsBySemanticRelevance(a.body, domainGroupKey, 6);
+      } catch {
+        promptBody = '';
+      }
+    }
+    out.push({ ...a, promptBody });
+  }
+  return out;
 }
 
 const AUDIO_SIGNAL_EXTRACTION_PREFIX =
@@ -733,6 +845,7 @@ function validateSignalsFromCall(signals, articles, sourceLabel) {
  */
 async function applyEvidenceVerifier(signals, articles, sourceLabel, usageCallback = null) {
   const verified = [];
+  const borderline = [];
   let dropped = 0;
   // C9: track per-reason kill counts so the cost log can show whether the
   // verifier earns its complexity. Reasons come from verifyEvidenceAgainstArticle
@@ -750,6 +863,10 @@ async function applyEvidenceVerifier(signals, articles, sourceLabel, usageCallba
       verified.push(s);
       continue;
     }
+    if (shouldQueueEntailmentCheck(s, result, art?.body)) {
+      borderline.push({ s, artBody: art?.body ?? '', primary: result });
+      continue;
+    }
     dropped++;
     reasonCounts[result.reason] = (reasonCounts[result.reason] || 0) + 1;
     const evPreview = (s.evidence ?? '').slice(0, 80).replace(/\s+/g, ' ');
@@ -759,6 +876,18 @@ async function applyEvidenceVerifier(signals, articles, sourceLabel, usageCallba
       `[${s.signal_type}] "${evPreview}…"`,
     );
   }
+
+  if (borderline.length > 0) {
+    const kept = await runEntailmentVerifier(borderline, sourceLabel, usageCallback);
+    for (const item of kept) verified.push(item);
+    // Count the remaining borderline as dropped (for auditability).
+    const droppedByEntailment = borderline.length - kept.length;
+    if (droppedByEntailment > 0) {
+      dropped += droppedByEntailment;
+      reasonCounts.entailment_reject = (reasonCounts.entailment_reject || 0) + droppedByEntailment;
+    }
+  }
+
   if (dropped > 0) {
     console.error(`  → [${sourceLabel}] verifier dropped ${dropped}/${signals.length} signal(s)`);
   }
@@ -777,14 +906,128 @@ async function applyEvidenceVerifier(signals, articles, sourceLabel, usageCallba
   return verified;
 }
 
+function shouldQueueEntailmentCheck(signal, primaryResult, articleBody) {
+  if (process.env.RESILIENCE_NLI_VERIFY === '0') return false;
+  if (!articleBody || typeof articleBody !== 'string' || articleBody.trim().length < 80) return false;
+  if (primaryResult?.reason !== 'low_similarity') return false;
+  const sim = primaryResult?.sim;
+  if (typeof sim !== 'number' || Number.isNaN(sim)) return false;
+  // Only run NLI on borderline cases; very low similarity is likely hallucinated or off-topic.
+  const evidenceType = signal?.evidence_type ?? 'observational_reported_fact';
+  const thresholds = {
+    direct_quote_named_person: 0.70,
+    named_survey_statistic: 0.50,
+    named_institutional_fact: 0.50,
+    observational_reported_fact: 0.40,
+  };
+  const t = thresholds[evidenceType] ?? 0.40;
+  const low = Number.parseFloat(process.env.RESILIENCE_NLI_BORDERLINE_LOW ?? String(t * 0.65));
+  const borderlineLow = Number.isFinite(low) ? Math.max(0.05, Math.min(t - 0.01, low)) : t * 0.65;
+  return sim >= borderlineLow && sim < t;
+}
+
+function bestMatchingSnippet(evidence, body, maxChars = 1400) {
+  const evTokens = tokenize(evidence);
+  if (!evTokens.length) return body.slice(0, maxChars);
+  const evSet = new Set(evTokens);
+  const paragraphs = splitParagraphs(body);
+  if (!paragraphs.length) return body.slice(0, maxChars);
+  let best = { score: -1, text: paragraphs[0] };
+  for (const p of paragraphs.slice(0, 36)) {
+    const toks = tokenize(p);
+    if (!toks.length) continue;
+    let hits = 0;
+    for (const t of toks) if (evSet.has(t)) hits++;
+    const score = hits / Math.sqrt(toks.length);
+    if (score > best.score) best = { score, text: p };
+  }
+  const snippet = best.text.trim();
+  return snippet.length > maxChars ? `${snippet.slice(0, maxChars)}...` : snippet;
+}
+
+async function runEntailmentVerifier(borderlineItems, sourceLabel, usageCallback) {
+  if (process.env.RESILIENCE_NLI_VERIFY === '0') return [];
+  if (!borderlineItems.length) return [];
+
+  const maxItems = Math.max(0, Math.min(30, Number.parseInt(process.env.RESILIENCE_NLI_MAX_ITEMS ?? '18', 10) || 18));
+  const items = borderlineItems.slice(0, maxItems);
+
+  const model = process.env.RESILIENCE_NLI_MODEL ?? DEFAULT_SELF_CHECK_MODEL;
+  const system =
+    `You are an entailment verifier.\n` +
+    `Given a PREMISE excerpt and a HYPOTHESIS statement, decide whether the premise entails the hypothesis.\n` +
+    `Output JSON array of {"i":N,"verdict":"entails"|"neutral"|"contradicts"}.\n` +
+    `Be conservative: if the premise does not clearly support the hypothesis, choose "neutral".\n` +
+    `Do not use outside knowledge.\n`;
+
+  const lines = items.map((it, i) => {
+    const ev = String(it.s?.evidence ?? '').trim().slice(0, 320);
+    const premise = bestMatchingSnippet(ev, it.artBody, 1400);
+    return (
+      `CASE ${i}\n` +
+      `signal_type: ${it.s?.signal_type ?? 'unknown'}\n` +
+      `evidence_type: ${it.s?.evidence_type ?? 'unknown'}\n` +
+      `PREMISE:\n${premise}\n\n` +
+      `HYPOTHESIS:\n${ev}\n`
+    );
+  }).join('\n\n---\n\n');
+
+  const user =
+    `Evaluate these cases:\n\n${lines}\n\n` +
+    `Return only the JSON array.`;
+
+  try {
+    const response = await client.messages.create({
+      model,
+      max_tokens: Math.min(2500, 200 + items.length * 60),
+      temperature: 0,
+      system,
+      messages: [{ role: 'user', content: user }],
+    });
+    const textBlock = response.content.find((b) => b.type === 'text');
+    const text = textBlock ? textBlock.text : '';
+    const verdicts = extractJsonArray(text);
+    const keep = new Set();
+    if (Array.isArray(verdicts)) {
+      for (const v of verdicts) {
+        const idx = Number(v?.i);
+        const verdict = String(v?.verdict ?? '').toLowerCase();
+        if (!Number.isInteger(idx) || idx < 0 || idx >= items.length) continue;
+        if (verdict === 'entails') keep.add(idx);
+      }
+    }
+    const kept = [];
+    for (let i = 0; i < items.length; i++) {
+      if (keep.has(i)) kept.push(items[i].s);
+      else {
+        const evPreview = String(items[i].s?.evidence ?? '').slice(0, 80).replace(/\s+/g, ' ');
+        console.error(`  ⚠ [${sourceLabel}] Dropped by entailment gate: [${items[i].s?.signal_type}] "${evPreview}…"`);
+      }
+    }
+    if (usageCallback) {
+      usageCallback({
+        label: `${sourceLabel} entailment`,
+        stage: 'entailment_verifier',
+        model,
+        stats: { kept: kept.length, dropped: items.length - kept.length, input: items.length },
+      });
+    }
+    return kept;
+  } catch (err) {
+    console.error(`  ⚠ [${sourceLabel}] entailment verifier failed (${err.message}) — keeping borderline signals`);
+    return items.map((x) => x.s);
+  }
+}
+
 async function callHaikuExtraction(articles, batchLabel, retries, usageCallback, contentKind, domainGroupKey, extractModel) {
   const baseSystem = buildSignalExtractionSystemPrompt(contentKind);
   const system = domainGroupKey
     ? `${baseSystem}\n\n${buildDomainScopeSuffix(domainGroupKey)}`
     : baseSystem;
+  const prepared = await prepareArticlesForPrompt(articles, { contentKind, domainGroupKey });
   const userContent =
     `Extract all behavioral signals from these Israeli ${extractUserLabelForSignals(contentKind)}:\n\n` +
-    formatArticlesForPrompt(articles);
+    formatArticlesForPrompt(prepared);
 
   const modelId = extractModel ?? DEFAULT_EXTRACT_MODEL;
 
@@ -917,10 +1160,82 @@ async function extractSignalsBatch(articles, batchLabel, retries = 3, usageCallb
     console.error(`  → [${batchLabel}] in-batch dedup: ${beforeDedup} → ${raw.length}`);
   }
 
+  const beforeSemantic = raw.length;
+  raw = await dedupeSignalsBySemanticEvidence(raw, { contentKind });
+  if (raw.length < beforeSemantic) {
+    console.error(`  → [${batchLabel}] semantic dedup: ${beforeSemantic} → ${raw.length}`);
+  }
+
   let valid = validateSignalsFromCall(raw, articles, batchLabel);
   valid = await applyEvidenceVerifier(valid, articles, batchLabel, usageCallback);
   valid = await runSelfCheck(valid, batchLabel, usageCallback);
   return valid;
+}
+
+async function dedupeSignalsBySemanticEvidence(signals, { contentKind = 'news' } = {}) {
+  if (process.env.RESILIENCE_SEMANTIC_DEDUP === '0') return signals;
+  if (!embeddingsEnabled()) return signals;
+  // WhatsApp messages are already tiny; don’t spend embeddings here.
+  if (contentKind === 'whatsapp_realtime' || contentKind === 'whatsapp_interactive') return signals;
+  if (!Array.isArray(signals) || signals.length < 2) return signals;
+
+  const thr = Number.parseFloat(process.env.RESILIENCE_SEMANTIC_DEDUP_THRESHOLD ?? '0.92');
+  const threshold = Number.isFinite(thr) ? Math.min(0.999, Math.max(0.5, thr)) : 0.92;
+  const model = embeddingModelId();
+
+  const byType = new Map();
+  for (const s of signals) {
+    const t = String(s?.signal_type ?? '').trim() || '_';
+    if (!byType.has(t)) byType.set(t, []);
+    byType.get(t).push(s);
+  }
+
+  const survivors = [];
+  for (const [type, list] of byType.entries()) {
+    if (list.length === 1) {
+      survivors.push(list[0]);
+      continue;
+    }
+    const kept = [];
+    const keepVecs = [];
+
+    for (const s of list) {
+      const ev = String(s?.evidence ?? '').trim();
+      if (!ev) {
+        kept.push(s);
+        keepVecs.push(null);
+        continue;
+      }
+      const v = await embedCached(ev, model);
+      let merged = false;
+      for (let i = 0; i < kept.length; i++) {
+        if (!keepVecs[i]) continue;
+        const sim = cosine(v, keepVecs[i]);
+        if (sim >= threshold) {
+          // Keep the higher-confidence representative; preserve a small provenance hint.
+          const a = kept[i];
+          const aConf = typeof a.extraction_confidence === 'number' ? a.extraction_confidence : 0.85;
+          const bConf = typeof s.extraction_confidence === 'number' ? s.extraction_confidence : 0.85;
+          if (bConf > aConf) {
+            s._semantic_dedup_count = (a._semantic_dedup_count ?? 1) + 1;
+            kept[i] = s;
+            keepVecs[i] = v;
+          } else {
+            a._semantic_dedup_count = (a._semantic_dedup_count ?? 1) + 1;
+          }
+          merged = true;
+          break;
+        }
+      }
+      if (!merged) {
+        kept.push(s);
+        keepVecs.push(v);
+      }
+    }
+
+    survivors.push(...kept);
+  }
+  return survivors;
 }
 
 /**

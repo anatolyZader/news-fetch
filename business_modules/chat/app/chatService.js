@@ -3,8 +3,10 @@
  */
 import { buildReportContext } from '../domain/reportContext.js';
 import { streamChatResponse } from '../infrastructure/claudeChat.js';
+import { embeddingsEnabled } from '../../../cross-cut-modules/vector_index/index.js';
 
 const MAX_HISTORY_MESSAGES = 20;
+const INDEXED_NAMESPACES = new Map(); // namespace -> fingerprint string
 
 /**
  * Stream a chat response about the current resilience report.
@@ -14,13 +16,18 @@ const MAX_HISTORY_MESSAGES = 20;
  * @param {function} getReportData - returns cached report data
  * @param {object} [opts]
  * @param {object} [opts.evidenceStore] - SQLite evidence store (createEvidenceStore return)
+ * @param {object} [opts.vectorIndexStore] - createVectorIndexStore(sqlitePath) return (optional)
  * @param {(event: any) => void} [opts.onSend] - called for each streamed SSE event object
  * @param {string} [opts.systemHint] - appended to the system context (Anthropic requires system to be top-level)
  */
 export async function streamChat(message, history, rawReply, getReportData, opts = {}) {
   const reportData = getReportData();
   const { context: baseContext, pboLookup } = buildReportContext(reportData);
-  const context = String(baseContext ?? '') + (opts.systemHint ? `\n\n${opts.systemHint}` : '');
+  const retrievalHint = await buildRetrievalHint(message, reportData, opts.vectorIndexStore ?? null);
+  const context =
+    String(baseContext ?? '') +
+    (opts.systemHint ? `\n\n${opts.systemHint}` : '') +
+    (retrievalHint ? `\n\n${retrievalHint}` : '');
 
   // Cap history to prevent context overflow
   const trimmedHistory = history.length > MAX_HISTORY_MESSAGES
@@ -45,4 +52,133 @@ export async function streamChat(message, history, rawReply, getReportData, opts
   } catch (err) {
     send({ type: 'error', message: err.message });
   }
+}
+
+function reportNamespace(reportData) {
+  const date =
+    reportData?.assessment?.date ??
+    reportData?.reportDate ??
+    'unknown-date';
+  const scope = reportData?.assessment?.report_scope?.id ?? 'national';
+  return `chat:${date}:${scope}`;
+}
+
+function fingerprintReport(reportData) {
+  const a = reportData?.assessment ?? {};
+  const sigCount =
+    Array.isArray(reportData?.signals) ? reportData.signals.length
+      : Array.isArray(a?.signals) ? a.signals.length
+      : 0;
+  const overall = a?.overall_resilience_score ?? 'n/a';
+  const createdAt = reportData?.created_at ?? reportData?.createdAt ?? '';
+  return `${a?.date ?? ''}|overall=${overall}|signals=${sigCount}|created=${createdAt}`;
+}
+
+function signalToDoc(signal, idx) {
+  const ev = String(signal?.evidence ?? '').trim();
+  const type = String(signal?.signal_type ?? '').trim();
+  const url = signal?.article_url ?? null;
+  const src = signal?.article_source ?? null;
+  const st = signal?.source_type ?? null;
+  const d = signal?.signal_file_date ?? signal?.date ?? null;
+  const docId = signal?.signal_id ? String(signal.signal_id) : `signal:${idx + 1}`;
+  const text = `${type}\n${ev}`;
+  return {
+    docId,
+    kind: 'signal',
+    text,
+    meta: { type, url, article_source: src, source_type: st, date: d },
+  };
+}
+
+function componentToDoc(component) {
+  const id = String(component?.component_id ?? '').trim();
+  if (!id) return null;
+  const narrative = String(component?.narrative ?? '').trim();
+  const evidence = Array.isArray(component?.evidence) ? component.evidence.join('\n') : '';
+  const text = `${id}\nScore: ${component?.score ?? 'n/a'}/10 (${component?.confidence ?? 'n/a'})\n\n${narrative}\n\nEvidence:\n${evidence}`;
+  return {
+    docId: `component:${id}`,
+    kind: 'component',
+    text,
+    meta: { component_id: id, score: component?.score ?? null },
+  };
+}
+
+async function ensureIndexed(reportData, vectorIndexStore) {
+  if (!vectorIndexStore || typeof vectorIndexStore.upsertDocuments !== 'function') return;
+  if (!embeddingsEnabled()) return;
+  if (!reportData?.assessment) return;
+
+  const ns = reportNamespace(reportData);
+  const fp = fingerprintReport(reportData);
+  const prev = INDEXED_NAMESPACES.get(ns);
+  if (prev === fp) return;
+
+  const a = reportData.assessment;
+  const docs = [];
+
+  docs.push({
+    docId: 'assessment:summary',
+    kind: 'assessment',
+    text:
+      `Assessment date: ${a.date}\n` +
+      `Overall: ${a.overall_resilience_score}/10\n\n` +
+      `${String(a.cross_component_synthesis ?? '').trim()}\n\n` +
+      `Evidence quality: ${String(a.evidence_quality_note ?? '').trim()}`,
+    meta: { date: a.date, scope: a?.report_scope?.id ?? 'national' },
+  });
+
+  for (const c of a.components ?? []) {
+    const d = componentToDoc(c);
+    if (d) docs.push(d);
+  }
+
+  const signals =
+    Array.isArray(reportData.signals) ? reportData.signals
+      : Array.isArray(a.signals) ? a.signals
+      : [];
+  for (let i = 0; i < signals.length; i++) {
+    docs.push(signalToDoc(signals[i], i));
+  }
+
+  await vectorIndexStore.upsertDocuments({ namespace: ns, documents: docs });
+  INDEXED_NAMESPACES.set(ns, fp);
+}
+
+async function buildRetrievalHint(userMessage, reportData, vectorIndexStore) {
+  if (process.env.CHAT_RAG_ENABLED === '0') return '';
+  if (!vectorIndexStore || typeof vectorIndexStore.querySimilar !== 'function') return '';
+  if (!embeddingsEnabled()) return '';
+  if (!reportData?.assessment) return '';
+
+  try {
+    await ensureIndexed(reportData, vectorIndexStore);
+  } catch {
+    return '';
+  }
+
+  const ns = reportNamespace(reportData);
+  const topK = Math.max(4, Math.min(14, Number.parseInt(process.env.CHAT_RAG_TOPK ?? '10', 10) || 10));
+  const minSim = Number.parseFloat(process.env.CHAT_RAG_MIN_SIM ?? '0.25');
+  const hits = await vectorIndexStore.querySimilar({
+    namespace: ns,
+    queryText: userMessage,
+    topK,
+    minSim: Number.isFinite(minSim) ? minSim : 0.25,
+  });
+  if (!hits?.length) return '';
+
+  const lines = hits.map((h, i) => {
+    const meta = h.meta ?? {};
+    const url = meta.url ? `\n    source: ${meta.url}` : '';
+    const snippet = String(h.text ?? '').replace(/\s+/g, ' ').trim().slice(0, 260);
+    return `[${i + 1}] (${h.kind}, sim=${h.sim.toFixed(2)}) ${snippet}${url}`;
+  }).join('\n');
+
+  return (
+    `RETRIEVED EVIDENCE (semantic search; cite these when relevant):\n` +
+    `${lines}\n\n` +
+    `If you need more detail or exact quotes, use the tools (lookup_signals / search_evidence / lookup_evidence).`
+  );
 }

@@ -188,6 +188,54 @@ function formatTurnHistory(turnHistory, senderName) {
   return `${header}\n${lines.join('\n')}`;
 }
 
+function normalizeLocalityName(raw) {
+  const s = String(raw ?? '').trim();
+  if (!s) return null;
+  return s
+    .replace(/[()\[\]{}<>]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 80) || null;
+}
+
+function inferLocalityFromText(text) {
+  const t = String(text ?? '').trim();
+  if (!t) return null;
+  // Hebrew locality cue patterns (best-effort): "בקריית שמונה", "בקיבוץ X", "במושב Y", "ביישוב Z"
+  const m = t.match(/(?:\bביישוב\b|\bבקיבוץ\b|\bבמושב\b|\bבעיר\b|\bבכפר\b|\bבקריית\b|\bב)\s*([א-ת"׳'\- ]{2,28})/);
+  if (!m) return null;
+  const cand = normalizeLocalityName(m[1]);
+  if (!cand) return null;
+  // Avoid capturing generic words.
+  if (/^(האזור|האזור הזה|הצפון|דרום|מרכז|המרכז|הצפון)$/i.test(cand)) return null;
+  return cand;
+}
+
+function inferTimeframeFromText(text) {
+  const t = String(text ?? '').toLowerCase();
+  if (!t) return null;
+  // Hebrew + English coarse cues only; keep simple so we don’t hallucinate precision.
+  if (/(היום|מהבוקר|הבוקר|בבוקר|הערב|בלילה|כרגע|עכשיו)/.test(t)) return 'היום';
+  if (/(אתמול|אמש)/.test(t)) return 'אתמול';
+  if (/(שלשום)/.test(t)) return 'שלשום';
+  if (/\b(today|this morning|tonight|right now|currently)\b/.test(t)) return 'today';
+  if (/\b(yesterday|last night)\b/.test(t)) return 'yesterday';
+  return null;
+}
+
+function postNormalizeStructured(structured, rawText) {
+  const out = structured && typeof structured === 'object' ? structured : EMPTY_STRUCTURED();
+  const obs = out.observation && typeof out.observation === 'object' ? out.observation : {};
+
+  obs.locality = normalizeLocalityName(obs.locality) ?? inferLocalityFromText(rawText);
+  obs.timeframe =
+    (typeof obs.timeframe === 'string' && obs.timeframe.trim() ? obs.timeframe.trim().slice(0, 80) : null) ??
+    inferTimeframeFromText(rawText);
+
+  out.observation = obs;
+  return out;
+}
+
 // ── Public factory ─────────────────────────────────────────────────────────
 
 /**
@@ -263,7 +311,9 @@ export function createWhatsAppResilienceAnalyzer({ anthropicApiKey }) {
           }
         : { sufficient: false, missing: ['specific_details'] };
 
-      return { signals: validateSignals(signals), assessment };
+      // Realtime flow has no _structured output; still infer locality/timeframe heuristically for downstream UI.
+      const structured = postNormalizeStructured(EMPTY_STRUCTURED(), messageText);
+      return { signals: validateSignals(signals), assessment, structured };
     },
 
     /**
@@ -302,8 +352,11 @@ export function createWhatsAppResilienceAnalyzer({ anthropicApiKey }) {
       const trailingStructured = parseEmbeddedJsonObject(responseText, '_structured');
       const trailingAssessment = parseEmbeddedJsonObject(responseText, '_assessment');
 
-      const structured = normalizeStructured(inlineStructured ?? trailingStructured);
+      const structuredRaw = normalizeStructured(inlineStructured ?? trailingStructured);
       const assessment = normalizeAssessment(inlineAssessment ?? trailingAssessment);
+      const lastOfficerText =
+        [...turnHistory].reverse().find((t) => t.role !== 'bot' && typeof t.text === 'string')?.text ?? '';
+      const structured = postNormalizeStructured(structuredRaw, lastOfficerText);
 
       return { signals: validateSignals(signals), structured, assessment };
     },

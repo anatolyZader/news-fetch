@@ -74,6 +74,7 @@ import { createMailingResendAdapter } from './business_modules/mailing/infrastru
 import { createMailingService } from './business_modules/mailing/app/mailingService.js';
 import { mailingRoutes } from './business_modules/mailing/input/mailingRoutes.js';
 import { buildProductDocsIndex, loadProductDocPage } from './utils/productDocs.js';
+import { createVectorIndexStore } from './cross-cut-modules/vector_index/index.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -87,6 +88,7 @@ const sqlitePath = process.env.SQLITE_PATH?.trim()
 const evidenceDraftStore = createEvidenceDraftStore(sqlitePath);
 const evidenceStore = createEvidenceStore(sqlitePath);
 const chatStore = createChatStore(sqlitePath);
+const vectorIndexStore = createVectorIndexStore(sqlitePath);
 const mailingPrefsStore = createMailingPreferencesStore(sqlitePath);
 const visitsService = createVisitsService({
   visitsRepository: createVisitsFsAdapter({
@@ -1055,6 +1057,7 @@ export async function createApp(options) {
     let assistantText = '';
     await streamChat(userMessage, history, reply.raw, getCachedReport, {
       evidenceStore,
+      vectorIndexStore,
       systemHint,
       onSend: (event) => {
         if (event?.type === 'text' && typeof event.text === 'string') assistantText += event.text;

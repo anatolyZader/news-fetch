@@ -12,6 +12,8 @@
 
 import { existsSync, readdirSync, readFileSync } from 'fs';
 import { resolve } from 'path';
+import { createHash } from 'node:crypto';
+import { embedText, embeddingsEnabled, embeddingModelId } from '../../../cross-cut-modules/vector_index/index.js';
 
 /** Lower-cased, punctuation-free first 120 chars of evidence — stable for keying. */
 function normalisedEvidence(s) {
@@ -19,6 +21,37 @@ function normalisedEvidence(s) {
     .toLowerCase()
     .replace(/[^\w\u0590-\u05FF]/g, '')
     .slice(0, 120);
+}
+
+function sha256Hex(s) {
+  return createHash('sha256').update(String(s ?? '')).digest('hex');
+}
+
+const EMBED_CACHE = new Map();
+
+async function embedCached(text, model) {
+  const clean = String(text ?? '').trim();
+  const key = `${model}:${sha256Hex(clean)}`;
+  const cached = EMBED_CACHE.get(key);
+  if (cached) return cached;
+  const emb = await embedText(clean, { model });
+  EMBED_CACHE.set(key, emb.vector);
+  return emb.vector;
+}
+
+function dot(a, b) {
+  const n = Math.min(a.length, b.length);
+  let s = 0;
+  for (let i = 0; i < n; i++) s += a[i] * b[i];
+  return s;
+}
+
+function norm(a) {
+  return Math.sqrt(dot(a, a)) || 1;
+}
+
+function cosine(a, b) {
+  return dot(a, b) / (norm(a) * norm(b));
 }
 
 function reliabilityRank(s) {
@@ -65,6 +98,81 @@ export function crossSourceDedup(signals) {
     if (sw > ew) seen.set(key, s);
   }
   return [...seen.values()];
+}
+
+function semanticDedupEnabled() {
+  if (process.env.RESILIENCE_SEMANTIC_DEDUP === '0') return false;
+  return embeddingsEnabled();
+}
+
+/**
+ * Optional semantic dedup: collapses paraphrased duplicates that slip past the
+ * `normalisedEvidence` keying. Only dedups within the same (source_type, signal_type).
+ *
+ * Keeps the highest (temporal_weight, reliability) tuple, matching the intent
+ * of crossSourceDedup. Marks the kept item with `_semantic_dedup_count`.
+ */
+export async function crossSourceDedupSemantic(signals) {
+  // First run the deterministic dedup.
+  const base = crossSourceDedup(signals);
+  if (!semanticDedupEnabled()) return base;
+  if (!Array.isArray(base) || base.length < 2) return base;
+
+  const thr = Number.parseFloat(process.env.RESILIENCE_SEMANTIC_DEDUP_THRESHOLD ?? '0.93');
+  const threshold = Number.isFinite(thr) ? Math.min(0.999, Math.max(0.5, thr)) : 0.93;
+  const model = embeddingModelId();
+
+  const groups = new Map();
+  for (const s of base) {
+    const key = `${s.source_type ?? '_unknown'}|${s.signal_type ?? '_'}`;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(s);
+  }
+
+  const out = [];
+  for (const list of groups.values()) {
+    if (list.length === 1) {
+      out.push(list[0]);
+      continue;
+    }
+    const kept = [];
+    const keptVecs = [];
+    for (const s of list) {
+      const ev = String(s?.evidence ?? '').trim();
+      if (!ev) {
+        kept.push(s);
+        keptVecs.push(null);
+        continue;
+      }
+      const v = await embedCached(ev, model);
+      let merged = false;
+      for (let i = 0; i < kept.length; i++) {
+        if (!keptVecs[i]) continue;
+        const sim = cosine(v, keptVecs[i]);
+        if (sim >= threshold) {
+          const existing = kept[i];
+          const sw = (s.temporal_weight ?? 1) + reliabilityRank(s) * 0.01;
+          const ew = (existing.temporal_weight ?? 1) + reliabilityRank(existing) * 0.01;
+          if (sw > ew) {
+            s._semantic_dedup_count = (existing._semantic_dedup_count ?? 1) + 1;
+            kept[i] = s;
+            keptVecs[i] = v;
+          } else {
+            existing._semantic_dedup_count = (existing._semantic_dedup_count ?? 1) + 1;
+          }
+          merged = true;
+          break;
+        }
+      }
+      if (!merged) {
+        kept.push(s);
+        keptVecs.push(v);
+      }
+    }
+    out.push(...kept);
+  }
+
+  return out;
 }
 
 /**

@@ -80,7 +80,7 @@ For each scene output a JSON object with these fields:
 - "headline": short English headline (max 12 words) describing the behavioral situation
 - "scene_type": one of: civilian_testimony | field_report | anchor_report | expert_interview | official_statement | discussion | advertisement | music | station_promo
   Advertisements, commercial breaks, background music segments, and station IDs/promos must be tagged as advertisement/music/station_promo with quality "low".
-- "speakers": array of speaker descriptions, e.g. ["interviewer", "elderly female civilian", "official (mayor)"]
+- "speakers": array of speaker descriptions WITH ROLES, e.g. ["host/interviewer", "civilian (elderly female resident)", "official (mayor)", "expert (psychologist)"]
 - "narrative": 2-4 English sentences written in third person describing what people ARE DOING, FEELING, and DECIDING — not just what they say. Focus on behavioral evidence: coping, compliance, avoidance, community action, institutional response, etc.
 - "key_quotes": array of up to 4 verbatim quotes translated to English, preserving the speaker's register
 - "quality": "high" if the scene contains clear behavioral evidence; "medium" if partial; "low" if mostly noise/logistics/unclear
@@ -241,8 +241,17 @@ export async function contextualizeTranscript(segments, { station, program, sour
     allScenes.push(...scenes);
   }
 
-  // Stage 3: format all scenes as articles — caller decides quality filtering
-  const articles = allScenes
+  // Stage 3: filter noise + format all scenes as articles
+  const DROP_TYPES = new Set(['advertisement', 'music', 'station_promo']);
+  const filteredScenes = allScenes.filter((s) => {
+    const t = String(s?.scene_type ?? '').trim();
+    const q = String(s?.quality ?? '').trim();
+    if (DROP_TYPES.has(t)) return false;
+    if (q === 'low') return false;
+    return true;
+  });
+
+  const articles = filteredScenes
     .map((scene, i) => sceneToArticle(scene, i, station ?? 'Audio', program ?? 'Recording', sourceUrl));
 
   return articles;

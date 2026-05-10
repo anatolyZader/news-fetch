@@ -32,7 +32,7 @@ import { createOverridesStore } from '../infrastructure/overridesStore.js';
 import { createOverridesService } from '../app/overridesService.js';
 import { createCostTracker, appendCostLog, checkDailyBudget } from '../../../cross-cut-modules/budget/index.js';
 import {
-  crossSourceDedup,
+  crossSourceDedupSemantic,
   loadHistoricalScores,
   enrichWithDeltaChannel,
 } from './assessSignalsHelpers.js';
@@ -299,7 +299,7 @@ async function run() {
   // multiple outlets into one signal so coverage_ratio doesn't inflate.
   {
     const beforeCount = allSignals.length;
-    allSignals = crossSourceDedup(allSignals);
+    allSignals = await crossSourceDedupSemantic(allSignals);
     if (allSignals.length < beforeCount) {
       console.error(`  Cross-source merged: ${beforeCount} → ${allSignals.length} (${beforeCount - allSignals.length} cross-outlet duplicates collapsed)`);
     }
