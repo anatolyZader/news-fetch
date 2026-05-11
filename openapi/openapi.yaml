@@ -483,6 +483,41 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
 
+  /api/geo/resolve:
+    get:
+      tags: [Geo]
+      summary: Resolve a locality name to deterministic geo envelope (internal).
+      parameters:
+        - in: query
+          name: name
+          schema: { type: string }
+          description: Locality name (Hebrew or English). Alias query param `q`.
+        - in: query
+          name: q
+          schema: { type: string }
+          description: Same as `name` when preferred.
+      responses:
+        "200":
+          description: Geo envelope (resolved or unknown)
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        "400":
+          description: Missing name
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "503":
+          description: Geo service unavailable
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
   /api/translate:
     post:
       tags: [Translation]

@@ -15,7 +15,8 @@ function parseMarkdownVisits(fileName, content) {
     if (!heading) continue;
 
     const articleIndex = Number(heading[1]);
-    const title = heading[2].trim();
+    const rawTitle = heading[2].trim();
+    const title = rawTitle.replace(/\s*\(ביקור שטח\)\s*$/u, '').trim();
     const published = block.match(/^- \*\*Published:\*\*\s*(.+)$/m)?.[1]?.trim() ?? null;
     const source = block.match(/^- \*\*Source:\*\*\s*(.+)$/m)?.[1]?.trim() ?? null;
     const bodyStart = block.search(/^- \*\*Source:\*\*.*$/m);
@@ -24,7 +25,7 @@ function parseMarkdownVisits(fileName, content) {
       : '';
     const stakeholdersMatch = body.match(/^גורמים שנפגשו:\s*(.+)$/m);
     const notes = body.replace(/^גורמים שנפגשו:\s*.+\n*/m, '').trim();
-    const [municipalityPart, regionPart] = title.replace(/\s*\(ביקור שטח\)\s*$/, '').split(/\s+—\s+/);
+    const [municipalityPart, regionPart] = title.split(/\s+—\s+/);
 
     visits.push({
       id: `${fileName}#${articleIndex}`,

@@ -92,6 +92,18 @@ const NORTH_TERMS = [
   'אעבלין',
 ];
 
+function isNorthFromResolvedGeo(signal) {
+  const g = signal?.geo;
+  if (!g || g.kind !== 'resolved') return false;
+  // Explicit low-confidence / non-metrics geo must not count as verified north from geo alone.
+  if (Object.prototype.hasOwnProperty.call(g, 'usableForMetrics') && g.usableForMetrics === false) {
+    return false;
+  }
+  if (Array.isArray(g.geoAreaTags) && g.geoAreaTags.includes('north')) return true;
+  const id = String(g.pboSubregionId ?? g.subregionId ?? '').trim().toLowerCase();
+  return ['naftali', 'golan', 'baram', 'hiram', 'galma'].includes(id);
+}
+
 function haystackForSignal(signal) {
   return [
     signal?.evidence,
@@ -109,6 +121,7 @@ function haystackForSignal(signal) {
 
 export function isNorthSignal(signal) {
   if (ALWAYS_NORTH_SOURCE_TYPES.has(signal?.source_type)) return true;
+  if (isNorthFromResolvedGeo(signal)) return true;
   const haystack = haystackForSignal(signal);
   return NORTH_TERMS.some((term) => haystack.includes(term.toLowerCase()));
 }

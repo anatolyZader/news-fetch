@@ -1,8 +1,15 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import MenuIcon from '@mui/icons-material/Menu';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Chip from '@mui/material/Chip';
+import Collapse from '@mui/material/Collapse';
+import IconButton from '@mui/material/IconButton';
+import List from '@mui/material/List';
+import ListItemButton from '@mui/material/ListItemButton';
+import ListItemText from '@mui/material/ListItemText';
+import Popover from '@mui/material/Popover';
 import Stack from '@mui/material/Stack';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
@@ -14,7 +21,6 @@ import {
   EmptyState,
   ErrorState,
   FilterBar,
-  FilterPill,
   KpiCard,
   KpiStrip,
   LoadingState,
@@ -22,15 +28,6 @@ import {
   SectionHeading,
 } from '../ui/index.js';
 import { formatDate } from '../lib/date.js';
-
-function dateRangeLabel(range) {
-  if (!range) return '—';
-  return `${formatDate(range.from)} – ${formatDate(range.to)}`;
-}
-
-function typeLabel(type) {
-  return String(type ?? 'unknown').replace(/_/g, ' ');
-}
 
 /** Use only the part after the first colon (trimmed); otherwise the whole string. */
 function valueAfterFirstColon(s) {
@@ -44,6 +41,13 @@ function valueAfterFirstColon(s) {
 function signalEvidenceExplanation(evidence) {
   if (evidence == null || String(evidence).trim() === '') return '';
   return valueAfterFirstColon(evidence);
+}
+
+/** Text shown for a signal row: explanation after first colon, or full evidence if that is empty. */
+function signalEvidenceDisplay(evidence) {
+  const fromColon = signalEvidenceExplanation(evidence);
+  if (fromColon) return fromColon;
+  return String(evidence ?? '').trim();
 }
 
 function formatPublished(ts, formatDateFn) {
@@ -69,11 +73,12 @@ function VisitMetaRow({ label, value }) {
     <Box
       role="listitem"
       sx={(theme) => ({
-        display: 'grid',
-        gridTemplateColumns: { xs: '1fr', sm: 'minmax(140px, 0.36fr) minmax(0, 1fr)' },
-        columnGap: theme.spacing(2),
+        display: 'flex',
+        flexDirection: { xs: 'column', sm: 'row' },
+        flexWrap: 'wrap',
+        alignItems: { xs: 'flex-start', sm: 'baseline' },
+        columnGap: theme.spacing(1.75),
         rowGap: { xs: theme.spacing(0.35), sm: 0 },
-        alignItems: 'baseline',
         py: 1.35,
         borderBottom: `1px solid ${alpha(theme.palette.text.primary, 0.1)}`,
         '&:last-of-type': {
@@ -88,21 +93,17 @@ function VisitMetaRow({ label, value }) {
         variant="caption"
         color="text.secondary"
         fontWeight={700}
-        sx={{ letterSpacing: '0.02em' }}
+        sx={{ letterSpacing: '0.02em', flexShrink: 0 }}
       >
         {label}
       </Typography>
       <Typography
         component="div"
         variant="body2"
-        dir="auto"
         sx={{
           lineHeight: 1.6,
           wordBreak: 'break-word',
           minWidth: 0,
-          textAlign: 'end',
-          justifySelf: 'end',
-          width: '100%',
         }}
       >
         {value}
@@ -111,10 +112,11 @@ function VisitMetaRow({ label, value }) {
   );
 }
 
-function VisitSubsection({ title, children, theme }) {
+function VisitSubsection({ title, children, theme, dense = false }) {
   const accent = theme.palette.primary.main;
+  const sp = dense ? 1 : 1.5;
   return (
-    <Stack spacing={1.5}>
+    <Stack spacing={sp}>
       {title ? (
         <Typography
           component="h4"
@@ -122,7 +124,9 @@ function VisitSubsection({ title, children, theme }) {
             ...theme.typography.eyebrow,
             color: accent,
             m: 0,
-            paddingBottom: 0.5,
+            fontSize: dense ? '0.68rem' : undefined,
+            letterSpacing: dense ? '0.06em' : undefined,
+            paddingBottom: dense ? 0.25 : 0.5,
             borderBottom: `1px solid ${alpha(accent, 0.18)}`,
           }}
         >
@@ -141,6 +145,11 @@ function VisitMunicipalityCard({
   formatDate,
 }) {
   const theme = useTheme();
+  const { lang } = useLanguage();
+  /** Text direction for the whole card follows the app language switcher (not first-strong from content). */
+  const presentationDir = lang === 'he' ? 'rtl' : 'ltr';
+  const [bodyExpanded, setBodyExpanded] = useState(true);
+  const visitBodyId = `visit-card-body-${visit.id.replace(/[^a-zA-Z0-9_-]/g, '-')}`;
   const visitDateLabel = formatDate(visit.visitDate || batchDate);
   const publishedLabel = formatPublished(visit.published, formatDate);
   const signalsSorted = useMemo(() => {
@@ -153,8 +162,27 @@ function VisitMunicipalityCard({
     });
   }, [visit.signals]);
 
-  const noteBody = String(visit.notes ?? '').trim();
+  const parsedHighlightItems = useMemo(() => {
+    const items = [];
+    let key = 0;
+    for (const p of visit.notePoints ?? []) {
+      const text = String(p ?? '').trim();
+      if (!text) continue;
+      items.push({ kind: 'note', key: `n-${key++}`, text });
+    }
+    for (const sig of signalsSorted) {
+      const text = signalEvidenceDisplay(sig.evidence);
+      items.push({
+        kind: 'signal',
+        key: `s-${sig.signal_type}-${key++}-${String(sig.evidence ?? '').slice(0, 24)}`,
+        text,
+      });
+    }
+    return items;
+  }, [visit.notePoints, signalsSorted]);
+
   const hasSignals = (visit.signalCount ?? 0) > 0;
+  const hasStakeholders = Boolean(visit.stakeholders && String(visit.stakeholders).trim());
 
   const accent = theme.palette.primary.main;
   const ink = theme.palette.text.primary;
@@ -169,8 +197,22 @@ function VisitMunicipalityCard({
         borderRadius: theme.custom.radius.md,
         overflow: 'hidden',
         boxShadow: `0 2px 6px ${alpha(ink, 0.06)}, 0 8px 24px ${alpha(ink, 0.07)}`,
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
       }}
     >
+      <Box
+        dir={presentationDir}
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          flex: '1 1 auto',
+          minHeight: 0,
+          minWidth: 0,
+          height: '100%',
+        }}
+      >
       <Box
         sx={{
           px: { xs: 2, sm: 2.5 },
@@ -181,190 +223,193 @@ function VisitMunicipalityCard({
           borderInlineStartColor: 'primary.main',
         }}
       >
-        <Stack direction="row" alignItems="flex-start" justifyContent="space-between" spacing={2} useFlexGap flexWrap="wrap">
-          <Stack spacing={0.75} sx={{ minWidth: 0, flex: '1 1 200px' }}>
-            <Typography variant="h3" component="h3" dir="auto" sx={{ wordBreak: 'break-word', lineHeight: 1.35 }}>
-              {visit.title}
-            </Typography>
-            <Typography variant="body2" color="text.secondary" dir="auto">
-              {visitDateLabel}
-              <Box component="span" sx={{ mx: 0.75, opacity: 0.45 }}>
-                ·
-              </Box>
-              {visit.source || t('visit.unknownSource')}
-            </Typography>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2} useFlexGap flexWrap="wrap">
+          <Typography
+            variant="subtitle1"
+            component="h3"
+            sx={{ wordBreak: 'break-word', lineHeight: 1.35, minWidth: 0, flex: '1 1 120px', fontWeight: 700 }}
+          >
+            {visit.title}
+          </Typography>
+          <Stack direction="row" alignItems="center" spacing={0.5} sx={{ flexShrink: 0 }}>
+            <IconButton
+              size="small"
+              aria-label={t('visit.card.toggleVisitDetails')}
+              aria-expanded={bodyExpanded}
+              aria-controls={visitBodyId}
+              onClick={() => setBodyExpanded((v) => !v)}
+              sx={{
+                color: 'primary.main',
+                border: `1px solid ${alpha(accent, 0.35)}`,
+                borderRadius: 1,
+              }}
+            >
+              <MenuIcon fontSize="small" />
+            </IconButton>
+            <Chip
+              size="small"
+              color={hasSignals ? 'primary' : 'default'}
+              variant={hasSignals ? 'filled' : 'outlined'}
+              label={`${visit.signalCount ?? 0} ${t('visit.signals')}`}
+              sx={{ fontWeight: 600 }}
+            />
           </Stack>
-          <Chip
-            size="small"
-            color={hasSignals ? 'primary' : 'default'}
-            variant={hasSignals ? 'filled' : 'outlined'}
-            label={`${visit.signalCount ?? 0} ${t('visit.signals')}`}
-            sx={{ fontWeight: 600, flexShrink: 0 }}
-          />
         </Stack>
       </Box>
 
-      <CardContent
-        sx={{
-          p: { xs: 2, sm: 2.5 },
-          bgcolor: alpha(accent, 0.1),
-          '&:last-child': { pb: { xs: 2, sm: 2.5 } },
-        }}
-      >
-        <Stack spacing={2.75}>
-          <VisitSubsection title={t('visit.card.overview')} theme={theme}>
+      <Collapse in={bodyExpanded} timeout="auto" id={visitBodyId} sx={{ flex: '1 1 auto', minWidth: 0 }}>
+        <CardContent
+          sx={{
+            p: { xs: 1.5, sm: 2 },
+            bgcolor: alpha(accent, 0.1),
+            flex: '1 1 auto',
+            '&:last-child': { pb: { xs: 1.5, sm: 2 } },
+          }}
+        >
+          <Box
+            sx={{
+              containerType: 'inline-size',
+              containerName: 'visit',
+              display: 'grid',
+              gap: 1.25,
+              alignItems: 'stretch',
+              gridTemplateColumns: 'minmax(0, 1fr)',
+              '@container visit (min-width: 400px)': {
+                gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)',
+                gridTemplateRows: hasStakeholders ? 'auto minmax(0, 1fr)' : 'minmax(0, 1fr)',
+              },
+            }}
+          >
             <Box
-              component="section"
-              role="list"
-              aria-label={t('visit.card.overview')}
               sx={{
-                m: 0,
-                p: { xs: 1.5, sm: 2 },
-                ...visitInsetPanelSx(theme, accent),
+                minWidth: 0,
+                '@container visit (min-width: 400px)': {
+                  gridColumn: 1,
+                  gridRow: '1 / -1',
+                },
               }}
             >
-              <VisitMetaRow label={t('visit.card.recordIndex')} value={visit.articleIndex != null ? `#${visit.articleIndex}` : null} />
-              <VisitMetaRow label={t('visit.card.municipality')} value={visit.municipality} />
-              <VisitMetaRow label={t('visit.card.region')} value={visit.region} />
-              <VisitMetaRow label={t('visit.card.visitDate')} value={visitDateLabel} />
-              <VisitMetaRow label={t('visit.card.squad')} value={visit.source} />
-              <VisitMetaRow label={t('visit.card.published')} value={publishedLabel} />
-            </Box>
-          </VisitSubsection>
-
-          {visit.stakeholders ? (
-            <VisitSubsection title={t('visit.card.stakeholders')} theme={theme}>
-              <Box
-                dir="auto"
-                sx={{
-                  p: 1.75,
-                  ...visitInsetPanelSx(theme, accent),
-                }}
-              >
-                <Typography variant="body2" sx={{ lineHeight: 1.65 }}>
-                  {visit.stakeholders}
-                </Typography>
-              </Box>
-            </VisitSubsection>
-          ) : null}
-
-          <VisitSubsection title={t('visit.card.fieldNotes')} theme={theme}>
-            {noteBody ? (
-              <Box
-                dir="auto"
-                sx={{
-                  p: 1.75,
-                  ...visitInsetPanelSx(theme, accent),
-                  whiteSpace: 'pre-wrap',
-                  typography: 'body2',
-                  lineHeight: 1.65,
-                }}
-              >
-                {noteBody}
-              </Box>
-            ) : null}
-            {visit.notePoints?.length > 0 ? (
-              <Stack spacing={1}>
-                {noteBody ? (
-                  <Typography variant="caption" color="text.secondary" fontWeight={600}>
-                    {t('visit.card.noteHighlights')}
-                  </Typography>
-                ) : null}
-                <Box
-                  component="ul"
-                  dir="auto"
-                  sx={{
-                    m: 0,
-                    paddingInlineStart: theme.spacing(2.5),
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 0.75,
-                  }}
-                >
-                  {visit.notePoints.map((point, idx) => (
-                    <Typography key={idx} component="li" variant="body2" sx={{ lineHeight: 1.55 }}>
-                      {point}
-                    </Typography>
-                  ))}
-                </Box>
-              </Stack>
-            ) : null}
-            {!noteBody && !(visit.notePoints?.length > 0) ? (
-              <Typography variant="body2" color="text.secondary">
-                —
-              </Typography>
-            ) : null}
-          </VisitSubsection>
-
-          {visit.signalTypes?.length > 0 ? (
-            <VisitSubsection title={t('visit.card.signalTypes')} theme={theme}>
-              <Stack direction="row" useFlexGap flexWrap="wrap" gap={0.75}>
-                {visit.signalTypes.map((st) => (
-                  <Chip
-                    key={st.type}
-                    size="small"
-                    variant="outlined"
-                    color="primary"
-                    label={`${typeLabel(st.type)} (${st.count})`}
-                  />
-                ))}
-              </Stack>
-            </VisitSubsection>
-          ) : null}
-
-          <VisitSubsection theme={theme}>
-            {signalsSorted.length > 0 ? (
-              <Stack component="ul" spacing={1.25} sx={{ m: 0, p: 0, listStyle: 'none' }}>
-                {signalsSorted.map((sig, idx) => {
-                  const label = typeLabel(sig.signal_type);
-                  const explanation = signalEvidenceExplanation(sig.evidence);
-                  return (
+              <VisitSubsection title={t('visit.card.overview')} theme={theme} dense>
+                <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+                  <Box sx={{ width: 'fit-content', maxWidth: '100%', minWidth: 0 }}>
                     <Box
-                      component="li"
-                      key={`${sig.signal_type}-${idx}-${String(sig.evidence).slice(0, 24)}`}
+                      component="section"
+                      role="list"
+                      aria-label={t('visit.card.overview')}
                       sx={{
-                        listStyle: 'none',
-                        p: 1.5,
+                        m: 0,
+                        p: { xs: 1.25, sm: 1.5 },
                         ...visitInsetPanelSx(theme, accent),
-                        borderInlineStartWidth: 4,
-                        borderInlineStartColor: 'primary.main',
                       }}
                     >
-                      <Typography variant="body2" dir="auto" sx={{ lineHeight: 1.65 }}>
-                        <Box component="span" sx={{ color: 'primary.main', fontWeight: 700 }}>
-                          {'\u2022 '}
-                          {label}
-                        </Box>
-                      </Typography>
-                      {explanation ? (
-                        <Typography
-                          variant="body2"
-                          dir="auto"
+                      <VisitMetaRow label={t('visit.card.recordIndex')} value={visit.articleIndex != null ? `#${visit.articleIndex}` : null} />
+                      <VisitMetaRow label={t('visit.card.municipality')} value={visit.municipality} />
+                      <VisitMetaRow label={t('visit.card.region')} value={visit.region} />
+                      <VisitMetaRow label={t('visit.card.visitDate')} value={visitDateLabel} />
+                      <VisitMetaRow label={t('visit.card.squad')} value={visit.source} />
+                      <VisitMetaRow label={t('visit.card.published')} value={publishedLabel} />
+                    </Box>
+                  </Box>
+                </Box>
+              </VisitSubsection>
+            </Box>
+
+            {hasStakeholders ? (
+              <Box
+                sx={{
+                  minWidth: 0,
+                  '@container visit (min-width: 400px)': { gridColumn: 2, gridRow: 1 },
+                }}
+              >
+                <VisitSubsection title={t('visit.card.stakeholders')} theme={theme} dense>
+                  <Box
+                    sx={{
+                      p: 1.25,
+                      ...visitInsetPanelSx(theme, accent),
+                    }}
+                  >
+                    <Typography variant="body2" sx={{ lineHeight: 1.55, fontSize: '0.8125rem' }}>
+                      {visit.stakeholders}
+                    </Typography>
+                  </Box>
+                </VisitSubsection>
+              </Box>
+            ) : null}
+
+            <Box
+              sx={{
+                minWidth: 0,
+                minHeight: 0,
+                '@container visit (min-width: 400px)': {
+                  gridColumn: 2,
+                  gridRow: hasStakeholders ? 2 : '1 / -1',
+                  maxHeight: hasStakeholders ? 320 : 'none',
+                  overflowY: hasStakeholders ? 'auto' : 'visible',
+                },
+              }}
+            >
+              <VisitSubsection title={t('visit.card.noteHighlights')} theme={theme} dense>
+                {parsedHighlightItems.length > 0 ? (
+                  <Box
+                    component="section"
+                    sx={{
+                      p: 1.25,
+                      ...visitInsetPanelSx(theme, accent),
+                    }}
+                  >
+                    <Stack
+                      component="div"
+                      role="list"
+                      spacing={0.75}
+                      sx={{ m: 0, p: 0, listStyle: 'none' }}
+                    >
+                      {parsedHighlightItems.map((item) => (
+                        <Box
+                          key={item.key}
+                          role="listitem"
                           sx={{
-                            lineHeight: 1.65,
-                            mt: 0.5,
-                            paddingInlineStart: 2,
+                            display: 'flex',
+                            flexDirection: 'row',
+                            alignItems: 'flex-start',
+                            gap: 1,
+                            minWidth: 0,
                           }}
                         >
-                          {explanation}
-                        </Typography>
-                      ) : (
-                        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, paddingInlineStart: 2 }}>
-                          —
-                        </Typography>
-                      )}
-                    </Box>
-                  );
-                })}
-              </Stack>
-            ) : (
-              <Typography variant="body2" color="text.secondary">
-                {t('visit.card.noSignalsBody')}
-              </Typography>
-            )}
-          </VisitSubsection>
-        </Stack>
-      </CardContent>
+                          <Typography
+                            component="span"
+                            aria-hidden
+                            variant="body2"
+                            sx={{
+                              lineHeight: 1.55,
+                              flexShrink: 0,
+                              color: 'text.secondary',
+                              userSelect: 'none',
+                            }}
+                          >
+                            {'\u2022'}
+                          </Typography>
+                          <Typography
+                            component="span"
+                            variant="body2"
+                            sx={{ lineHeight: 1.55, fontSize: '0.8125rem', minWidth: 0, flex: '1 1 auto' }}
+                          >
+                            {item.kind === 'note' ? item.text : (item.text || '—')}
+                          </Typography>
+                        </Box>
+                      ))}
+                    </Stack>
+                  </Box>
+                ) : (
+                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8125rem' }}>
+                    —
+                  </Typography>
+                )}
+              </VisitSubsection>
+            </Box>
+          </Box>
+        </CardContent>
+      </Collapse>
+      </Box>
     </Card>
   );
 }
@@ -383,6 +428,7 @@ export function VisitsTab() {
   const [error, setError] = useState(null);
   const [selectedDate, setSelectedDate] = useState(null);
   const [muniFilter, setMuniFilter] = useState(new Set());
+  const [muniMenuAnchor, setMuniMenuAnchor] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -439,7 +485,6 @@ export function VisitsTab() {
     { label: t('visit.kpi.totalVisits'), value: summary.totalVisits ?? 0 },
     { label: t('visit.kpi.municipalities'), value: summary.totalMunicipalities ?? 0 },
     { label: t('visit.kpi.signals'), value: summary.totalSignals ?? 0 },
-    { label: t('visit.kpi.dateRange'), value: dateRangeLabel(summary.dateRange) },
   ];
 
   return (
@@ -479,36 +524,53 @@ export function VisitsTab() {
             ))}
           </ToggleButtonGroup>
 
-          <Box
-            sx={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              alignItems: 'center',
-              gap: 0.75,
-              minWidth: 0,
-              width: '100%',
-              maxWidth: '100%',
-              overflow: 'hidden',
-              '& .MuiChip-root': {
-                flexShrink: 0,
-              },
-              '& .MuiChip-label': {
-                whiteSpace: 'nowrap',
-              },
-            }}
-            role="group"
-            aria-label={t('visit.filter.municipality')}
-          >
-            {(selectedDay?.municipalities ?? []).map((municipality) => (
-              <FilterPill
-                key={municipality}
-                active={muniFilter.has(municipality)}
-                onClick={() => toggleMuni(municipality)}
+          {(selectedDay?.municipalities ?? []).length > 0 ? (
+            <Stack direction="row" alignItems="center" spacing={1.25} flexWrap="wrap" useFlexGap>
+              <IconButton
+                size="small"
+                aria-label={t('visit.filter.municipalitiesMenu')}
+                aria-haspopup="true"
+                aria-expanded={Boolean(muniMenuAnchor)}
+                onClick={(e) => setMuniMenuAnchor((prev) => (prev ? null : e.currentTarget))}
+                sx={(theme) => ({
+                  color: 'primary.main',
+                  border: `1px solid ${alpha(theme.palette.primary.main, 0.35)}`,
+                  borderRadius: 1,
+                })}
               >
-                {municipality}
-              </FilterPill>
-            ))}
-          </Box>
+                <MenuIcon fontSize="small" />
+              </IconButton>
+              <Typography variant="body2" color="text.secondary" sx={{ minWidth: 0 }}>
+                {muniFilter.size === 0
+                  ? t('visit.filter.allMunicipalitiesSelected')
+                  : t('visit.filter.nMunicipalitiesSelected').replace('{n}', String(muniFilter.size))}
+              </Typography>
+              <Popover
+                open={Boolean(muniMenuAnchor)}
+                anchorEl={muniMenuAnchor}
+                onClose={() => setMuniMenuAnchor(null)}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+                transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+                slotProps={{
+                  paper: {
+                    sx: { mt: 0.75, maxHeight: 360, overflow: 'auto' },
+                  },
+                }}
+              >
+                <List dense role="listbox" aria-label={t('visit.filter.municipality')} sx={{ minWidth: 240, py: 0 }}>
+                  {(selectedDay?.municipalities ?? []).map((municipality) => (
+                    <ListItemButton
+                      key={municipality}
+                      selected={muniFilter.has(municipality)}
+                      onClick={() => toggleMuni(municipality)}
+                    >
+                      <ListItemText primary={municipality} primaryTypographyProps={{ dir: 'auto', variant: 'body2' }} />
+                    </ListItemButton>
+                  ))}
+                </List>
+              </Popover>
+            </Stack>
+          ) : null}
         </Stack>
       </FilterBar>
 
@@ -521,17 +583,28 @@ export function VisitsTab() {
         </Typography>
       </Stack>
 
-      <Stack spacing={2}>
+      <Box
+        component="section"
+        aria-label={t('visit.sec.visits')}
+        sx={{
+          display: 'grid',
+          width: '100%',
+          gap: 2,
+          alignItems: 'stretch',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 280px), 1fr))',
+        }}
+      >
         {visibleVisits.map((visit) => (
-          <VisitMunicipalityCard
-            key={visit.id}
-            visit={visit}
-            batchDate={selectedDay.date}
-            t={t}
-            formatDate={formatDate}
-          />
+          <Box key={visit.id} sx={{ minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+            <VisitMunicipalityCard
+              visit={visit}
+              batchDate={selectedDay.date}
+              t={t}
+              formatDate={formatDate}
+            />
+          </Box>
         ))}
-      </Stack>
+      </Box>
     </Box>
   );
 }

@@ -1,0 +1,11 @@
+{
+  "version": "north-border-2026-05-10",
+  "description": "Simplified open polyline (WGS84, lat/lon in degrees) along a short segment of the Israel–Lebanon boundary area. Used only for approximate distance-to-border analytics in resilience tooling; not a legal or operational boundary.",
+  "coordinates": [
+    { "lat": 33.286, "lon": 35.395 },
+    { "lat": 33.248, "lon": 35.408 },
+    { "lat": 33.198, "lon": 35.418 },
+    { "lat": 33.124, "lon": 35.432 },
+    { "lat": 33.096, "lon": 35.105 }
+  ]
+}

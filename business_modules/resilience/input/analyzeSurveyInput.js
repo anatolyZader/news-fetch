@@ -11,7 +11,11 @@ import { analyzeSurvey } from '../../survey/app/surveyEvaluator.js';
 import { writeMunicipalityReports } from '../../survey/app/surveyReportWriter.js';
 import { createCostTracker, appendCostLog, checkDailyBudget } from '../../../cross-cut-modules/budget/index.js';
 
-export async function runAnalyzeSurveyCli() {
+/**
+ * @param {{ geoEnrichmentPort?: { resolveLocalityName: (name: string|null|undefined) => object } }} [options]
+ */
+export async function runAnalyzeSurveyCli(options = {}) {
+  const { geoEnrichmentPort } = options;
   if (!process.env.ANTHROPIC_API_KEY) {
     console.error('Error: ANTHROPIC_API_KEY is not set.');
     process.exit(1);
@@ -28,7 +32,7 @@ export async function runAnalyzeSurveyCli() {
   const listMode       = hasFlag('--list');
 
   if (!responsesArg) {
-    console.error('Usage: node business_modules/resilience/input/analyze-survey.js --responses <path.xlsx> [--municipality <name>] [--date YYYY-MM-DD]');
+    console.error('Usage: npm run analyze-survey -- --responses <path.xlsx> [--municipality <name>] [--date YYYY-MM-DD]');
     process.exit(1);
   }
 
@@ -90,6 +94,20 @@ export async function runAnalyzeSurveyCli() {
 
     try {
       const assessment = await analyzeSurvey([mun], date, `${slug}.xlsx`, { onUsage });
+
+      if (geoEnrichmentPort) {
+        for (const m of assessment.municipalities) {
+          m.geo = geoEnrichmentPort.resolveLocalityName(m.name);
+        }
+        const g = assessment.municipalities[0]?.geo;
+        if (g?.kind === 'resolved') {
+          console.error(
+            `  Geo: entity=${g.geoEntityType} scope=${g.scopeConfidence} subregion=${g.pboSubregionId} band=${g.distanceBand} (~${g.distanceKmToNorthBorder.toFixed(1)} km) ref=${g.geoReferenceVersion} quality=${g.quality} metrics=${g.usableForMetrics} golan=${g.isGolan}`,
+          );
+        } else if (g) {
+          console.error(`  Geo: unknown (${g.reason ?? '?'}) raw=${JSON.stringify(g.rawName ?? '')}`);
+        }
+      }
 
       writeMunicipalityReports(assessment.municipalities, date, sourceFile, 'reports', assessment.regional);
 

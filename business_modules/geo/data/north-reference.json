@@ -1,0 +1,48 @@
+{
+  "version": "north-geo-2026-05-10",
+  "source": "north-localities-v1",
+  "description": "Northern locality reference for PBO-aligned subregions and distance-to-border analytics. Expand names/aliases for production coverage.",
+  "localities": [
+    {
+      "canonicalKey": "kiryat_shmona",
+      "officialHebrewName": "קריית שמונה",
+      "names": ["קריית שמונה", "Kiryat Shmona", "Qiryat Shemona"],
+      "aliases": ["ק שמונה"],
+      "lat": 33.2079,
+      "lon": 35.5721,
+      "subregionId": "naftali",
+      "municipalityType": "city",
+      "parentCouncilKey": null
+    },
+    {
+      "canonicalKey": "metula",
+      "officialHebrewName": "מטולה",
+      "names": ["מטולה", "Metula"],
+      "lat": 33.2772,
+      "lon": 35.5784,
+      "subregionId": "naftali",
+      "municipalityType": "town",
+      "parentCouncilKey": null
+    },
+    {
+      "canonicalKey": "katzrin",
+      "officialHebrewName": "קצרין",
+      "names": ["קצרין", "Katzrin"],
+      "lat": 32.995,
+      "lon": 35.689,
+      "subregionId": "golan",
+      "municipalityType": "town",
+      "parentCouncilKey": null
+    },
+    {
+      "canonicalKey": "safed",
+      "officialHebrewName": "צפת",
+      "names": ["צפת", "Safed", "Tzfat"],
+      "lat": 32.9646,
+      "lon": 35.496,
+      "subregionId": "hiram",
+      "municipalityType": "city",
+      "parentCouncilKey": null
+    }
+  ]
+}

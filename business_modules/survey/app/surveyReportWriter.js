@@ -180,6 +180,18 @@ function buildMunicipalityMarkdown(mun, date, sourceFile) {
     ``,
   );
 
+  if (mun.geo && typeof mun.geo === 'object') {
+    lines.push(`## Geo enrichment`, ``);
+    if (mun.geo.kind === 'resolved') {
+      const br = mun.geo.borderReferenceVersion ?? 'n/a';
+      lines.push(
+        `*Reference version:* \`${String(mun.geo.geoReferenceVersion)}\` · *Border version:* \`${String(br)}\` · *Entity type:* \`${String(mun.geo.geoEntityType)}\` · *Scope confidence:* \`${String(mun.geo.scopeConfidence)}\` · *Quality:* \`${mun.geo.quality}\` · *Usable for metrics:* ${mun.geo.usableForMetrics} · *Requires review:* ${mun.geo.requiresReview}`,
+        ``,
+      );
+    }
+    lines.push('```json', JSON.stringify(mun.geo, null, 2), '```', ``, `---`, ``);
+  }
+
   // Component summary table
   lines.push(
     `## Component Overview`,

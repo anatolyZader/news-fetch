@@ -10,6 +10,7 @@ import {
   COMPONENTS_TABLE_HELP_MARKDOWN,
   EVIDENCE_LEVEL_INLINE_NOTE,
 } from '../../../shared/componentsTableGlossary.js';
+import { collectGeoVersionsFromSignals } from '../../../cross-cut-modules/geo/signalGeoSummary.js';
 
 const COMPONENT_MAP = Object.fromEntries(RESILIENCE_COMPONENTS.map((c) => [c.id, c]));
 
@@ -249,6 +250,7 @@ export function writeReport(assessment, signals, sourceFiles, outputBase, { scor
     signals,
     source_files: sourceFiles,
     generated_at: new Date().toISOString(),
+    ...collectGeoVersionsFromSignals(signals),
   };
   if (scoreBySource && Object.keys(scoreBySource).length > 0) {
     jsonPayload.score_by_source = scoreBySource;

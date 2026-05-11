@@ -116,6 +116,9 @@ export const translations = {
     'visit.filter.municipality':'Municipality',
     'visit.filter.clear':       'Clear municipality filter',
     'visit.filter.showing':     'Showing {n} of {total} visits',
+    'visit.filter.municipalitiesMenu': 'Municipality filter',
+    'visit.filter.allMunicipalitiesSelected': 'All municipalities',
+    'visit.filter.nMunicipalitiesSelected': '{n} selected',
     'visit.sec.signalTypes':    'Extracted Signal Types',
     'visit.sec.signalTypesSub': 'Most frequent signal types across all visits',
     'visit.sec.visits':         'Visit Notes',
@@ -142,6 +145,7 @@ export const translations = {
     'visit.card.signalSource':  'Attributed source',
     'visit.card.noSignalsBody': 'No structured signals linked to this visit yet.',
     'visit.card.noteHighlights': 'Parsed highlights',
+    'visit.card.toggleVisitDetails': 'Show or hide visit details',
 
     // Education dashboard
     'edu.title':          'Education Resilience Dashboard',
@@ -577,6 +581,9 @@ export const translations = {
     'visit.filter.municipality':'רשות',
     'visit.filter.clear':       'נקה סינון רשות',
     'visit.filter.showing':     'מוצגים {n} מתוך {total} ביקורים',
+    'visit.filter.municipalitiesMenu': 'סינון לפי רשות',
+    'visit.filter.allMunicipalitiesSelected': 'כל הרשויות',
+    'visit.filter.nMunicipalitiesSelected': '{n} נבחרו',
     'visit.sec.signalTypes':    'סוגי סיגנלים שחולצו',
     'visit.sec.signalTypesSub': 'סוגי הסיגנלים השכיחים בכל הביקורים',
     'visit.sec.visits':         'הערות ביקור',
@@ -603,6 +610,7 @@ export const translations = {
     'visit.card.signalSource':  'מקור בציטוט',
     'visit.card.noSignalsBody': 'אין סיגנלים מובנים שמקושרים לביקור זה.',
     'visit.card.noteHighlights': 'נקודות עיקריות',
+    'visit.card.toggleVisitDetails': 'הצגה או הסתרה של פרטי הביקור',
 
     'report.outdated':    'דוח זה מתאריך {date} וייתכן שאינו עדכני.',
     'report.scope.label': 'היקף הדוח',
@@ -1035,6 +1043,9 @@ export const translations = {
     'visit.filter.municipality':'Муниципалитет',
     'visit.filter.clear':       'Сбросить фильтр муниципалитета',
     'visit.filter.showing':     'Показано {n} из {total} визитов',
+    'visit.filter.municipalitiesMenu': 'Фильтр по муниципалитету',
+    'visit.filter.allMunicipalitiesSelected': 'Все муниципалитеты',
+    'visit.filter.nMunicipalitiesSelected': 'Выбрано: {n}',
     'visit.sec.signalTypes':    'Типы извлечённых сигналов',
     'visit.sec.signalTypesSub': 'Самые частые типы сигналов по всем визитам',
     'visit.sec.visits':         'Заметки визитов',
@@ -1061,6 +1072,7 @@ export const translations = {
     'visit.card.signalSource':  'Источник в данных',
     'visit.card.noSignalsBody': 'К этому визиту пока не привязаны структурированные сигналы.',
     'visit.card.noteHighlights': 'Краткие выдержки',
+    'visit.card.toggleVisitDetails': 'Показать или скрыть детали визита',
 
     'report.outdated':    'Этот отчёт от {date} и может быть устаревшим.',
     'report.scope.label': 'Охват отчёта',

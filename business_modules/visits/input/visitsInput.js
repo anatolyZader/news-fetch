@@ -90,7 +90,7 @@ for (const row of rows) {
 
   if (!analysis) continue;
 
-  const title = `${municipality}${region ? ` — ${region}` : ''} (ביקור שטח)`;
+  const title = `${municipality}${region ? ` — ${region}` : ''}`;
   const source = team || 'field-team';
   const bodyParts = [];
   if (stakeholders) bodyParts.push(`גורמים שנפגשו: ${stakeholders}`);

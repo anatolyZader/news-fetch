@@ -21,7 +21,8 @@ secrets/
 cost-log.jsonl
 
 # Data + downloads + recordings + reports (runtime/generated)
-data/
+# Root-only: do not ignore e.g. business_modules/geo/data/ (versioned reference JSON).
+/data/
 downloads/
 recordings/
 reports/

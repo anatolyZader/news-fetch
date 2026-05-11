@@ -44,6 +44,7 @@ test('visits fs adapter parses raw field reports and attaches signals', () => {
     assert.equal(days[0].visitCount, 1);
     assert.equal(days[0].signalCount, 2);
     assert.deepEqual(days[0].municipalities, ['מטה אשר/איילון']);
+    assert.equal(days[0].visits[0].title, 'מטה אשר/איילון — ברעם');
     assert.equal(days[0].visits[0].stakeholders, 'manager');
     assert.deepEqual(days[0].visits[0].notePoints, [
       'First finding',

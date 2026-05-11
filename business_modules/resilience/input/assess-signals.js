@@ -36,6 +36,7 @@ import {
   loadHistoricalScores,
   enrichWithDeltaChannel,
 } from './assessSignalsHelpers.js';
+import { summarizeGeoCoverage } from '../../../cross-cut-modules/geo/signalGeoSummary.js';
 
 const TEMPORAL_WEIGHTS = { 0: 1.00, 1: 0.85, 2: 0.70 };
 
@@ -366,6 +367,12 @@ async function run() {
 
   // Print per-component scores
   console.error(`  → ${allSignals.length} total behavioral signals\n`);
+  if (allSignals.some((s) => s && 'geo' in s)) {
+    const geoCov = summarizeGeoCoverage(allSignals);
+    console.error(
+      `  → Geo on signals: ${geoCov.resolved} resolved, ${geoCov.unknown} unknown (${geoCov.pctResolved}% of ${geoCov.withGeoField} geo-tagged)\n`,
+    );
+  }
   for (const [id, c] of Object.entries(scoredFull)) {
     const cert = c.certainty != null ? ` cert=${(c.certainty * 100).toFixed(0)}%` : '';
     console.error(`  → ${id.padEnd(28)} score=${c.score ?? 'n/a'} conf=${c.confidence}${cert} (${c.signal_count} signals)`);

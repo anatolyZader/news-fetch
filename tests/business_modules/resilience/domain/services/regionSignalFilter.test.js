@@ -36,6 +36,33 @@ describe('regionSignalFilter', () => {
     );
   });
 
+  it('treats resolved geo envelope as north without keyword haystack', () => {
+    assert.equal(
+      isNorthSignal({
+        source_type: 'news',
+        evidence: 'general municipal update',
+        geo: { kind: 'resolved', pboSubregionId: 'golan', geoAreaTags: ['north', 'golan_heights'] },
+      }),
+      true,
+    );
+  });
+
+  it('does not treat resolved geo as verified north when usableForMetrics is false', () => {
+    assert.equal(
+      isNorthSignal({
+        source_type: 'news',
+        evidence: 'general municipal update',
+        geo: {
+          kind: 'resolved',
+          pboSubregionId: 'golan',
+          geoAreaTags: ['north', 'golan_heights'],
+          usableForMetrics: false,
+        },
+      }),
+      false,
+    );
+  });
+
   it('filters out non-northern signals for north scope', () => {
     const signals = [
       { source_type: 'news', evidence: 'Tel Aviv municipality published instructions.' },

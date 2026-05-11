@@ -13,7 +13,9 @@
  */
 
 import Anthropic from '@anthropic-ai/sdk';
+import { validateGeoEnvelope } from '../../../cross-cut-modules/geo/signalGeoSummary.js';
 import { buildSignalExtractionSystemPrompt, extractJsonArray } from '../../resilience/infrastructure/claudeEvaluator.js';
+import { createNoOpGeoEnrichmentPort } from '../../resilience/infrastructure/adapters/geoEnrichmentAdapter.js';
 import { SIGNAL_TYPES } from '../../resilience/domain/services/behaviorSignals.js';
 import { COMPONENT_IDS, SPREAD_VALUES, SOURCE_BASIS_VALUES, COMPARISON_VALUES, DIRECTION_VALUES, CONFIDENCE_LEVELS } from '../domain/evidenceRequirements.js';
 
@@ -236,12 +238,35 @@ function postNormalizeStructured(structured, rawText) {
   return out;
 }
 
+/**
+ * @param {Array<object>} signals
+ * @param {object} structured
+ * @param {{ resolveLocalityName: (raw: string|null|undefined) => object }} geoEnrichmentPort
+ */
+function attachGeoToSignalsAndStructured(signals, structured, geoEnrichmentPort) {
+  const locality = structured?.observation?.locality ?? null;
+  const geo = geoEnrichmentPort.resolveLocalityName(locality);
+  if (process.env.GEO_ASSERT_ENVELOPE === '1') {
+    const v = validateGeoEnvelope(geo);
+    if (!v.ok) {
+      throw new Error(`Invalid geo envelope after resolve: ${v.errors.join('; ')}`);
+    }
+  }
+  const withGeo = (Array.isArray(signals) ? signals : []).map((s) => ({ ...s, geo }));
+  const observation = { ...structured.observation, geo };
+  return {
+    signals: withGeo,
+    structured: { ...structured, observation },
+  };
+}
+
 // ── Public factory ─────────────────────────────────────────────────────────
 
 /**
- * @param {{ anthropicApiKey: string }} deps
+ * @param {{ anthropicApiKey: string, geoEnrichmentPort?: { resolveLocalityName: (raw: string|null|undefined) => object } }} deps
  */
-export function createWhatsAppResilienceAnalyzer({ anthropicApiKey }) {
+export function createWhatsAppResilienceAnalyzer({ anthropicApiKey, geoEnrichmentPort }) {
+  const geoPort = geoEnrichmentPort ?? createNoOpGeoEnrichmentPort();
   const client = new Anthropic({ apiKey: anthropicApiKey });
   const realtimeSystemPrompt = buildSignalExtractionSystemPrompt('whatsapp_realtime');
   const interactiveSystemPrompt = buildSignalExtractionSystemPrompt('whatsapp_interactive');
@@ -312,8 +337,10 @@ export function createWhatsAppResilienceAnalyzer({ anthropicApiKey }) {
         : { sufficient: false, missing: ['specific_details'] };
 
       // Realtime flow has no _structured output; still infer locality/timeframe heuristically for downstream UI.
-      const structured = postNormalizeStructured(EMPTY_STRUCTURED(), messageText);
-      return { signals: validateSignals(signals), assessment, structured };
+      const structuredRaw = postNormalizeStructured(EMPTY_STRUCTURED(), messageText);
+      const validated = validateSignals(signals);
+      const { signals: sigGeo, structured } = attachGeoToSignalsAndStructured(validated, structuredRaw, geoPort);
+      return { signals: sigGeo, assessment, structured };
     },
 
     /**
@@ -356,9 +383,15 @@ export function createWhatsAppResilienceAnalyzer({ anthropicApiKey }) {
       const assessment = normalizeAssessment(inlineAssessment ?? trailingAssessment);
       const lastOfficerText =
         [...turnHistory].reverse().find((t) => t.role !== 'bot' && typeof t.text === 'string')?.text ?? '';
-      const structured = postNormalizeStructured(structuredRaw, lastOfficerText);
+      const structuredNorm = postNormalizeStructured(structuredRaw, lastOfficerText);
+      const validated = validateSignals(signals);
+      const { signals: sigGeo, structured } = attachGeoToSignalsAndStructured(
+        validated,
+        structuredNorm,
+        geoPort,
+      );
 
-      return { signals: validateSignals(signals), structured, assessment };
+      return { signals: sigGeo, structured, assessment };
     },
   };
 }

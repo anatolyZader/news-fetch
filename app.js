@@ -45,6 +45,10 @@ import {
   createPboRegionalDailyService,
   createPboReportRegionalFsAdapter,
 } from './business_modules/pbo_report_regional/index.js';
+import { createGeoNorthReferenceJsonAdapter, createGeoService } from './business_modules/geo/index.js';
+import { createGeoUnknownJsonlSinkAdapter } from './business_modules/geo/infrastructure/adapters/geoUnknownJsonlSinkAdapter.js';
+import { registerGeoRoutes } from './business_modules/geo/input/geoRoutes.js';
+import { createGeoEnrichmentAdapter } from './business_modules/resilience/infrastructure/adapters/geoEnrichmentAdapter.js';
 import { getNaftaliDashboard } from './business_modules/naftali/app/naftaliService.js';
 import { createVisitsFsAdapter, createVisitsService, visitsRoutes } from './business_modules/visits/index.js';
 import {
@@ -106,6 +110,24 @@ const pboRegionalDailyService = createPboRegionalDailyService({
   repository: createPboReportRegionalFsAdapter({
     dataDir: resolve(__dirname, 'business_modules', 'pbo_report_regional', 'data'),
   }),
+});
+
+const geoService = createGeoService({
+  northReferencePort: createGeoNorthReferenceJsonAdapter({
+    dataDir: resolve(__dirname, 'business_modules', 'geo', 'data'),
+  }),
+});
+
+const geoUnknownReviewSink =
+  process.env.GEO_UNKNOWN_REVIEW_JSONL === '1'
+    ? createGeoUnknownJsonlSinkAdapter({
+        filePath: resolve(__dirname, 'business_modules', 'geo', 'data', 'review', 'unknown-localities.jsonl'),
+      })
+    : null;
+
+const geoEnrichmentPort = createGeoEnrichmentAdapter({
+  geoService,
+  unknownSink: geoUnknownReviewSink,
 });
 
 function isMailingConfigured() {
@@ -355,6 +377,8 @@ export async function createApp(options) {
   const tryAuthHook = authRequired ? { preHandler: tryAuthPreHandler } : {};
 
   const app = Fastify({ logger: false, bodyLimit: 10 * 1024 * 1024 /* 10 MB */ });
+
+  app.decorate('geoService', geoService);
 
   await app.register(multipart, {
     limits: {
@@ -698,6 +722,10 @@ export async function createApp(options) {
   const driftService = createDriftService({ overridesService });
   await registerDriftRoutes(app, {
     driftService,
+    authPreHandler: authHook?.preHandler,
+  });
+
+  await registerGeoRoutes(app, {
     authPreHandler: authHook?.preHandler,
   });
 
@@ -1137,7 +1165,10 @@ export async function createApp(options) {
       phoneNumberId: process.env.WHATSAPP_PHONE_NUMBER_ID,
     });
     const whatsappResilienceAnalyzer = process.env.ANTHROPIC_API_KEY?.trim()
-      ? createWhatsAppResilienceAnalyzer({ anthropicApiKey: process.env.ANTHROPIC_API_KEY.trim() })
+      ? createWhatsAppResilienceAnalyzer({
+          anthropicApiKey: process.env.ANTHROPIC_API_KEY.trim(),
+          geoEnrichmentPort,
+        })
       : null;
     const whatsappDraftGenerator = process.env.ANTHROPIC_API_KEY?.trim()
       ? createDraftGenerator({ anthropicApiKey: process.env.ANTHROPIC_API_KEY.trim() })
