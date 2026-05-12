@@ -20,9 +20,10 @@ export class IGeoNorthReferencePort {
    *     lon: number,
    *     subregionId: string,
    *     officialHebrewName?: string,
-   *     municipalityType?: string,
-   *     parentCouncilKey?: string | null,
-   *   }>,
+ *     municipalityType?: string,
+ *     parentCouncilKey?: string | null,
+ *     geoEntityType?: string,
+ *   }>,
    *   border: Array<{ lat: number, lon: number }>,
    * }}
    */

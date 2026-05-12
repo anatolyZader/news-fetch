@@ -28,8 +28,8 @@ export function KpiCard({
         flex: '1 1 140px',
         minWidth: theme.spacing(15),
         borderRadius: theme.custom.radius.md,
-        bgcolor: 'background.paper',
-        border: `1px solid ${alpha(theme.palette.primary.main, 0.22)}`,
+        bgcolor: alpha(theme.palette.primary.main, 0.06),
+        border: `1px solid ${alpha(theme.palette.primary.main, 0.28)}`,
         boxShadow: theme.custom.elevation.subtle,
         ...(span ? { gridColumn: `span ${span}` } : {}),
       })}

@@ -21,7 +21,10 @@ export { validateGeoEnvelope } from './domain/value_objects/geoEnrichmentSchema.
 export {
   deriveGeoQualityFields,
   deriveScopeConfidence,
+  GEO_POLICY_VERSION,
   FUZZY_METRICS_MIN_CONFIDENCE,
 } from './domain/services/geoQualityPolicy.js';
 export { collectGeoVersionsFromSignals } from './domain/services/geoReportDiagnostics.js';
 export { createGeoUnknownJsonlSinkAdapter } from './infrastructure/adapters/geoUnknownJsonlSinkAdapter.js';
+export { createGeoLocalityOverridesSqliteAdapter } from './infrastructure/adapters/geoLocalityOverridesSqliteAdapter.js';
+export { createGeoUnknownSqliteQueueAdapter } from './infrastructure/adapters/geoUnknownSqliteQueueAdapter.js';

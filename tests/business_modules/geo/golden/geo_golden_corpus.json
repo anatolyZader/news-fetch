@@ -1,0 +1,44 @@
+[
+  {
+    "name": "exact_hebrew_locality",
+    "input": "קריית שמונה",
+    "expect": {
+      "kind": "resolved",
+      "canonicalKey": "kiryat_shmona",
+      "geoEntityType": "locality",
+      "usableForMetrics": true
+    }
+  },
+  {
+    "name": "non_locality_area_term",
+    "input": "צפון",
+    "expect": {
+      "kind": "unknown",
+      "reason": "NON_LOCALITY_AREA_TERM"
+    }
+  },
+  {
+    "name": "golan_regional_council_reference",
+    "input": "גולן",
+    "expect": {
+      "kind": "resolved",
+      "canonicalKey": "golan_rc",
+      "geoEntityType": "regional_council",
+      "usableForMetrics": false,
+      "distanceSemantics": "representative_centroid_to_polyline"
+    }
+  },
+  {
+    "name": "manual_override_variant",
+    "input": "קרית שמונה",
+    "overrides": {
+      "קרית שמונה": { "canonicalKey": "kiryat_shmona", "geoEntityType": "locality" }
+    },
+    "expect": {
+      "kind": "resolved",
+      "canonicalKey": "kiryat_shmona",
+      "matchMethod": "manual_override"
+    }
+  }
+]
+

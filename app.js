@@ -39,23 +39,27 @@ import { createOverridesService } from './business_modules/resilience/app/overri
 import { registerOverridesRoutes } from './business_modules/resilience/input/overridesRoutes.js';
 import { createDriftService } from './business_modules/resilience/app/driftService.js';
 import { registerDriftRoutes } from './business_modules/resilience/input/driftRoutes.js';
-import { getEducationDashboard } from './business_modules/education/app/educationSessionsService.js';
+import { createDefaultPoolService, registerPoolRoutes } from './business_modules/pool/index.js';
 import { getMunicipalityDashboard } from './business_modules/pbo_report_muni/app/pboMunicipalityService.js';
 import {
   createPboRegionalDailyService,
   createPboReportRegionalFsAdapter,
 } from './business_modules/pbo_report_regional/index.js';
-import { createGeoNorthReferenceJsonAdapter, createGeoService } from './business_modules/geo/index.js';
+import {
+  createGeoLocalityOverridesSqliteAdapter,
+  createGeoNorthReferenceJsonAdapter,
+  createGeoUnknownSqliteQueueAdapter,
+  createGeoService,
+} from './business_modules/geo/index.js';
 import { createGeoUnknownJsonlSinkAdapter } from './business_modules/geo/infrastructure/adapters/geoUnknownJsonlSinkAdapter.js';
 import { registerGeoRoutes } from './business_modules/geo/input/geoRoutes.js';
 import { createGeoEnrichmentAdapter } from './business_modules/resilience/infrastructure/adapters/geoEnrichmentAdapter.js';
-import { getNaftaliDashboard } from './business_modules/naftali/app/naftaliService.js';
 import { createVisitsFsAdapter, createVisitsService, visitsRoutes } from './business_modules/visits/index.js';
 import {
-  chatbotManualReportsRoutes,
-  createChatbotManualReportsFsAdapter,
-  createChatbotManualReportsService,
-} from './business_modules/chatbot/index.js';
+  reportBotManualReportsRoutes,
+  createReportBotManualReportsFsAdapter,
+  createReportBotManualReportsService,
+} from './business_modules/report_bot/index.js';
 import { getTranslatedReport } from './business_modules/translation/app/translationService.js';
 import { createWhatsAppMessageStore } from './business_modules/whatsapp/infrastructure/whatsappMessageStore.js';
 import { createWhatsAppSignalStore } from './business_modules/whatsapp/infrastructure/whatsappSignalStore.js';
@@ -102,8 +106,8 @@ const visitsService = createVisitsService({
   }),
 });
 
-const chatbotManualReportsService = createChatbotManualReportsService({
-  repository: createChatbotManualReportsFsAdapter({ rootDir: __dirname }),
+const reportBotManualReportsService = createReportBotManualReportsService({
+  repository: createReportBotManualReportsFsAdapter({ rootDir: __dirname }),
 });
 
 const pboRegionalDailyService = createPboRegionalDailyService({
@@ -112,10 +116,18 @@ const pboRegionalDailyService = createPboRegionalDailyService({
   }),
 });
 
+const geoOverridesPort =
+  process.env.GEO_OVERRIDES_SQLITE === '1'
+    ? createGeoLocalityOverridesSqliteAdapter({ dbPath: sqlitePath })
+    : null;
+
+const poolService = createDefaultPoolService();
+
 const geoService = createGeoService({
   northReferencePort: createGeoNorthReferenceJsonAdapter({
     dataDir: resolve(__dirname, 'business_modules', 'geo', 'data'),
   }),
+  overridesPort: geoOverridesPort,
 });
 
 const geoUnknownReviewSink =
@@ -125,9 +137,19 @@ const geoUnknownReviewSink =
       })
     : null;
 
+const geoUnknownReviewQueue =
+  process.env.GEO_UNKNOWN_REVIEW_SQLITE === '1'
+    ? createGeoUnknownSqliteQueueAdapter({ dbPath: sqlitePath, sourceType: 'whatsapp' })
+    : null;
+
+const geoUnknownSink =
+  geoUnknownReviewSink && geoUnknownReviewQueue
+    ? { recordUnknown: (e) => { geoUnknownReviewSink.recordUnknown(e); geoUnknownReviewQueue.recordUnknown(e); } }
+    : (geoUnknownReviewSink ?? geoUnknownReviewQueue);
+
 const geoEnrichmentPort = createGeoEnrichmentAdapter({
   geoService,
-  unknownSink: geoUnknownReviewSink,
+  unknownSink: geoUnknownSink,
 });
 
 function isMailingConfigured() {
@@ -143,6 +165,7 @@ const mailingService = isMailingConfigured()
     mailFrom: process.env.MAIL_FROM.trim(),
     getCachedReport: () => getCachedReport(evidenceStore),
     translateReport: getTranslatedReport,
+    poolService,
   })
   : null;
 let audioEvidenceIngestService = null;
@@ -379,6 +402,7 @@ export async function createApp(options) {
   const app = Fastify({ logger: false, bodyLimit: 10 * 1024 * 1024 /* 10 MB */ });
 
   app.decorate('geoService', geoService);
+  app.decorate('poolService', poolService);
 
   await app.register(multipart, {
     limits: {
@@ -729,6 +753,11 @@ export async function createApp(options) {
     authPreHandler: authHook?.preHandler,
   });
 
+  await registerPoolRoutes(app, {
+    authPreHandler: authHook?.preHandler,
+    poolService,
+  });
+
   app.get('/api/evidence-draft', authHook, async (request, reply) => {
     const row = evidenceDraftStore.get(evidenceOwnerKey(request));
     return reply.send({ content: row.content, updatedAt: row.updatedAt });
@@ -925,16 +954,6 @@ export async function createApp(options) {
     return reply.send({ success: true, outputPath: result.outputPath });
   });
 
-  app.get('/api/education-sessions', authHook, async (request, reply) => {
-    const forceRefresh = request.query?.refresh === '1';
-    try {
-      const data = await getEducationDashboard({ forceRefresh });
-      return reply.send(data);
-    } catch (err) {
-      return reply.code(502).send({ error: err?.message ?? 'Failed to load education data' });
-    }
-  });
-
   app.get('/api/municipalities', authHook, async (request, reply) => {
     try {
       const data = getMunicipalityDashboard();
@@ -954,16 +973,6 @@ export async function createApp(options) {
         return reply.code(400).send({ error: err.message, code: 'UNKNOWN_REGION' });
       }
       return reply.code(502).send({ error: err?.message ?? 'Failed to load regional PBO reports' });
-    }
-  });
-
-  app.get('/api/naftali', authHook, async (request, reply) => {
-    const forceRefresh = request.query?.refresh === '1';
-    try {
-      const data = await getNaftaliDashboard({ forceRefresh });
-      return reply.send(data);
-    } catch (err) {
-      return reply.code(502).send({ error: err?.message ?? 'Failed to load Naftali data' });
     }
   });
 
@@ -1129,8 +1138,8 @@ export async function createApp(options) {
     authPreHandler: authHook?.preHandler,
   });
 
-  await app.register(chatbotManualReportsRoutes, {
-    service: chatbotManualReportsService,
+  await app.register(reportBotManualReportsRoutes, {
+    service: reportBotManualReportsService,
     authPreHandler: authHook?.preHandler,
   });
 

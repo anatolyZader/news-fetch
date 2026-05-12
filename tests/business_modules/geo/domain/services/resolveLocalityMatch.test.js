@@ -32,5 +32,7 @@ test('resolveByFuzzyBest includes candidateCount on clear fuzzy win', () => {
     assert.equal(r.row.canonicalKey, 'kiryat_shmona');
     assert.ok(Number.isInteger(r.candidateCount));
     assert.ok(r.candidateCount >= 1);
+    assert.ok(Array.isArray(r.topCandidates));
+    assert.ok(r.topCandidates.length >= 1);
   }
 });

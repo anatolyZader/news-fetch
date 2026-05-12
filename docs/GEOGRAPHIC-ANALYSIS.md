@@ -20,7 +20,7 @@ The **`geo`** business module turns a **free-text locality name** (Hebrew or Eng
 | **`NoOpGeoEnrichmentPort`** | Same port shape; always returns `kind: 'unknown', reason: 'GEO_DISABLED'` (e.g. tests or missing wiring) |
 | **Composition** | [`app.js`](../app.js): `geoService` + `geoEnrichmentPort` + `app.decorate('geoService', geoService)` + `registerGeoRoutes`; WhatsApp analyzer receives `geoEnrichmentPort` |
 
-**Boundary rule:** resilience/survey/whatsapp **must not** import `business_modules/geo` for enrichment. Use the port; build the adapter at the app or script entrypoint.
+**Boundary rule:** resilience/whatsapp **must not** import `business_modules/geo` for enrichment. Use the port; build the adapter at the app or script entrypoint.
 
 ---
 
@@ -33,6 +33,46 @@ Every consumer should treat **`geo`** as an optional field. Shape is always eith
 ```json
 {
   "kind": "resolved",
+  "resolution": {
+    "rawInput": "קריית שמונה",
+    "normalizedInput": "קריית שמונה",
+    "canonicalKey": "kiryat_shmona",
+    "matchedName": "קריית שמונה",
+    "matchedVariant": "קריית שמונה",
+    "matchMethod": "exact",
+    "matchConfidence": 1,
+    "candidateCount": 1,
+    "geoEntityType": "locality"
+  },
+  "classification": {
+    "pboSubregionId": "naftali",
+    "geoAreaTags": ["north", "upper_galilee_adjacent"],
+    "isGolan": false,
+    "distanceKmToNorthBorder": 12.4,
+    "distanceBand": "10-25",
+    "distanceSemantics": "point_to_polyline"
+  },
+  "policy": {
+    "geoPolicyVersion": "geo-policy-2026-05-v2",
+    "quality": "high",
+    "usableForMetrics": true,
+    "requiresReview": false,
+    "scopeConfidence": "high",
+    "decisionReasons": ["deterministic_match"]
+  },
+  "audit": {
+    "geoReferenceVersion": "north-geo-2026-05-10",
+    "borderReferenceVersion": "north-border-2026-05-10",
+    "source": "north-localities-v1",
+    "resolvedAt": "2026-05-12T00:00:00.000Z"
+  },
+  "scopeDecision": {
+    "isNorthRelevant": true,
+    "source": "geo_tags",
+    "confidence": "high",
+    "usableForMetrics": true,
+    "reasons": ["geoAreaTags includes north"]
+  },
   "geoEntityType": "locality",
   "matchEvidence": {
     "rawInput": "קריית שמונה",
@@ -41,6 +81,7 @@ Every consumer should treat **`geo`** as an optional field. Shape is always eith
     "candidateCount": 1
   },
   "scopeConfidence": "high",
+  "geoPolicyVersion": "geo-policy-2026-05-v2",
   "geoReferenceVersion": "north-geo-2026-05-10",
   "borderReferenceVersion": "north-border-2026-05-10",
   "source": "north-localities-v1",
@@ -62,7 +103,25 @@ Every consumer should treat **`geo`** as an optional field. Shape is always eith
 
 (**`subregionId`** is omitted from JSON when **`GEO_LEGACY_SUBREGION_ID`** is **`0`** or **`false`** — see below.)
 
-- **`geoEntityType`** — what the input string is being treated as today. The north table is locality-centric, so resolves emit **`locality`** until regional councils, macro areas, and mixed inputs are modeled (`municipality`, `regional_council`, `area`, `subregion`, `unknown`).
+- **Nested contract (`resolution` / `classification` / `policy` / `audit` / `scopeDecision`)** — the app **dual-writes** grouped sub-objects while keeping flat fields for backward compatibility.
+  - **Nested fields are canonical.** Flat fields are **deprecated compatibility aliases** — do not read them in new code; do not add new consumers that depend on flat keys.
+  - **Migration (read path):**
+
+```js
+// Preferred — nested only
+const pbo = geo?.classification?.pboSubregionId;
+const metricsOk = geo?.policy?.usableForMetrics;
+const refVer = geo?.audit?.geoReferenceVersion;
+const northFromGeo = geo?.scopeDecision;
+
+// Legacy only — do not copy this pattern into new modules
+const pboLegacy = geo?.pboSubregionId;
+```
+
+- **Full `geoEntityType` enum** (validated in [`geoEnrichmentSchema.js`](../business_modules/geo/domain/value_objects/geoEnrichmentSchema.js)): `locality`, `municipality`, `regional_council`, `pbo_subregion`, `district`, `area`, `subregion`, `border_zone`, `facility`, `unknown`. Most resolves use **`locality`**; reference rows may set **`regional_council`** / **`municipality`**; macro unmatched strings may yield **`area`** in unknown resolution hints.
+- **Macro vs table** — broad area strings (e.g. **צפון**) become **`NON_LOCALITY_AREA_TERM`** only **after** there is no reference row match, so names present in **`north-reference.json`** (e.g. **גולן**) still resolve as reference rows.
+- **`classification.distanceSemantics`** (optional on envelope, always set for **resolved** today) — documents how **`distanceKmToNorthBorder`** was derived: **`point_to_polyline`** (locality pin) vs **`representative_centroid_to_polyline`** (administrative / area proxy pin). Distances remain numeric; semantics are for audit and downstream policy.
+- **`geoPolicyVersion`** — version string for *policy* (distinct from reference/border data versions). **`geo-policy-2026-05-v2`** tightens **`usableForMetrics`** / **`quality`** for **`regional_council`** (and related centroid-only entity types): deterministic matches to those types are capped at **`medium`** quality, **`usableForMetrics: false`**, **`requiresReview: true`**, and **`policy.decisionReasons`** includes **`centroid_geometry_only`** when applicable (see [`geoQualityPolicy.js`](../business_modules/geo/domain/services/geoQualityPolicy.js)).
 - **`matchEvidence`** — deterministic audit for matching: **`rawInput`**, NFKC-normalized lookup key (**`normalizedInput`**), display **`matchedVariant`**, and **`candidateCount`** (for fuzzy wins: count of reference rows scoring above the fuzzy floor; **`1`** for exact / punctuation / Hebrew-final paths).
 - **`scopeConfidence`** — **`high`** | **`medium`** | **`low`**: trust for **north-scoped analytics**, separate from string **`matchConfidence`**. v1 is derived from **`usableForMetrics`** / **`requiresReview`** via [`deriveScopeConfidence`](../business_modules/geo/domain/services/geoQualityPolicy.js); later it may incorporate **`sourceType`** or reporter hints without overloading **`usableForMetrics`**.
 - **`pboSubregionId`** — administrative bucket aligned with PBO north regions (`naftali`, `golan`, `baram`, `hiram`, `galma`). Same values as [`regionalPboRegions.js`](../business_modules/pbo_report_regional/domain/value_objects/regionalPboRegions.js); parity is tested under `tests/business_modules/geo/`.
@@ -151,7 +210,9 @@ All files live under [`business_modules/geo/data/`](../business_modules/geo/data
 | `version` | Copied to **`geoReferenceVersion`** on every resolve |
 | `source` | Logical dataset id (e.g. `north-localities-v1`), copied to **`source`** on the envelope |
 | `description` | Human notes for maintainers |
-| `localities` | Array of locality rows |
+| `schema` | Optional; e.g. `north-reference-subregions-v1` when rows are grouped under **`subregions.<pboId>.localities`** |
+| `subregions` | Preferred: map of PBO ids → **`{ localities: [...] }`** (each row omits redundant **`subregionId`**; parent key is authoritative) |
+| `localities` | Legacy flat array of locality rows (still supported) |
 
 Each **locality** row supports:
 
@@ -161,8 +222,9 @@ Each **locality** row supports:
 | `names` | yes | Lookup strings (Hebrew / English) |
 | `aliases` | no | Merged into the internal name list at load time (same as extra `names`) |
 | `lat`, `lon` | yes | WGS84 degrees |
-| `subregionId` | yes | One of the five PBO north ids |
+| `subregionId` | yes | One of the five PBO north ids (omitted when nested under **`subregions.*`** — injected at load) |
 | `officialHebrewName`, `municipalityType`, `parentCouncilKey` | no | Metadata for reports / future UI |
+| `geoEntityType` | no | `locality` (default), `municipality`, or `regional_council`; drives resolve **`geoEntityType`**, **`classification.distanceSemantics`**, and metrics policy for centroid-only types |
 
 **Legacy:** If **`north-reference.json`** is missing but **`north-localities.json`** exists as a **flat JSON array**, the adapter loads it with `referenceVersion: 'legacy-array'`.
 
@@ -185,7 +247,9 @@ Order of attempts ([`resolveLocalityMatch.js`](../business_modules/geo/domain/se
 1. **Exact** — NFKC, trim, lower case, collapsed whitespace.
 2. **Punctuation** — strip quotes and common punctuation, then lookup again.
 3. **Hebrew final letters** — map final forms (e.g. ם → מ) with/without step 2.
-4. **Fuzzy** — Dice bigram similarity over all names; accept only if score ≥ **0.88** and the best score beats the runner-up by at least **0.02**; otherwise **`NO_CONFIDENT_MATCH`** with **`candidates`**.
+4. **Manual override** — SQLite-backed **`lookupOverride`** (if configured), before fuzzy.
+5. **Fuzzy** — Dice bigram similarity over all names; accept only if score ≥ **0.88** and the best score beats the runner-up by at least **0.02**; otherwise **`NO_CONFIDENT_MATCH`** with **`candidates`**.
+6. **Macro area terms** — only if steps 1–5 produced no match: conservative **`NON_LOCALITY_AREA_TERM`** for strings like **צפון** / **הגליל** (see [`geoService.js`](../business_modules/geo/app/geoService.js)).
 
 **`matchMethod`** on resolved values reflects the winning stage (`exact`, `punctuation`, `hebrew_final`, or `fuzzy`). Aliases from JSON are merged into the name list at load time, so they typically resolve as **`exact`**, not a separate `alias` method. **`matchConfidence`** is `1` for the deterministic stages, or the fuzzy score when fuzzy wins.
 
@@ -213,7 +277,7 @@ Persisted WhatsApp JSON on disk will include **`geo`** on each signal object whe
 
 1. **`npm run analyze-survey`** runs [`scripts/analyze-survey.mjs`](../scripts/analyze-survey.mjs), which builds `geoService` + **`createGeoEnrichmentAdapter`** and calls **`runAnalyzeSurveyCli({ geoEnrichmentPort })`**.
 2. [`analyzeSurveyInput.js`](../business_modules/resilience/input/analyzeSurveyInput.js) attaches **`m.geo`** to each municipality in **`assessment.municipalities`** after the LLM run, logs a one-line summary to stderr, then writes reports.
-3. [`surveyReportWriter.js`](../business_modules/survey/app/surveyReportWriter.js) adds a **“Geo enrichment”** section when **`mun.geo`** is present. For **`kind: 'resolved'`**, it first emits a short **Markdown summary line** (italic) with **`geoReferenceVersion`**, **`borderReferenceVersion`** (or `n/a`), **`quality`**, **`usableForMetrics`**, and **`requiresReview`** — same audit dimensions as resilience report JSON (see below), optimized for a quick human skim. It then prints a fenced **`json`** block with the **full envelope**. For **`kind: 'unknown'`**, only the **`json`** block is printed (no summary line).
+3. [`surveyReportWriter.js`](../business_modules/resilience/app/surveyReportWriter.js) adds a **“Geo enrichment”** section when **`mun.geo`** is present. For **`kind: 'resolved'`**, it first emits a short **Markdown summary line** (italic) with **`geoReferenceVersion`**, **`borderReferenceVersion`** (or `n/a`), **`quality`**, **`usableForMetrics`**, and **`requiresReview`** — same audit dimensions as resilience report JSON (see below), optimized for a quick human skim. It then prints a fenced **`json`** block with the **full envelope**. For **`kind: 'unknown'`**, only the **`json`** block is printed (no summary line).
 
 Running **`node business_modules/resilience/input/analyze-survey.js`** directly does **not** inject the port (no geo in output unless you add a composition script).
 
@@ -243,6 +307,20 @@ Use this for debugging, admin tools, or future UI — not as a public geocoder.
 
 **Legacy keyword list:** substring matching on evidence remains a **best-effort** path for older payloads; prefer resolved **`geo`** with **`usableForMetrics: true`** when present.
 
+### `scopeDecision`: geo envelope vs signal
+
+- **`geo.scopeDecision`** (resolved envelopes only) — built by [`buildGeoScopeDecision`](../business_modules/geo/domain/services/geoScopeDecisionFromResolved.js) inside `geoService`. Explains north relevance **from tags + PBO id + `usableForMetrics` only** (`source`: `geo` | `geo_tags` | `pbo_subregion` | `unknown`). Persisted on `signal.geo` so a stored geo blob answers “was this geo, on its own, allowed to count as north-from-geo?”
+- **`signal.scopeDecision`** — attached by [`filterSignalsForScope`](../business_modules/resilience/domain/services/regionSignalFilter.js): full north filter including **`source_type`**, resolved geo (with the same metrics gate), and **`keyword_fallback`**. Use this for “why did this signal enter north-scoped analysis?”
+
+`filterSignalsForScope()` maps each signal to include **`signal.scopeDecision`**:
+
+- `isNorthRelevant`
+- `source`: `source_type` | `geo_tags` | `pbo_subregion` | `geo` | `keyword_fallback` | `unknown`
+- `confidence`: `high` | `medium` | `low`
+- `reasons`: short list of strings describing the decision
+
+This makes north scoping explainable in dashboards and during audits.
+
 ---
 
 ## Aggregations and CLI summaries
@@ -271,6 +349,14 @@ Use these when a report mixes evidence from different ingest runs or after bumpi
 ## Unknown locality review sink (optional)
 
 When **`GEO_UNKNOWN_REVIEW_JSONL=1`**, [`app.js`](../app.js) and [`scripts/analyze-survey.mjs`](../scripts/analyze-survey.mjs) wire a JSONL sink ([`geoUnknownJsonlSinkAdapter.js`](../business_modules/geo/infrastructure/adapters/geoUnknownJsonlSinkAdapter.js)) into **`GeoEnrichmentAdapter`**. Each **`NO_MATCH`** / **`NO_CONFIDENT_MATCH`** resolution appends one JSON line under **`business_modules/geo/data/review/unknown-localities.jsonl`** (directory created on first write). Implement **`IGeoUnknownSinkPort`** for other backends (e.g. SQLite) if you need dashboards.
+
+### SQLite review queue (recommended for ops)
+
+When **`GEO_UNKNOWN_REVIEW_SQLITE=1`**, composition wires a SQLite-backed queue ([`geoUnknownSqliteQueueAdapter.js`](../business_modules/geo/infrastructure/adapters/geoUnknownSqliteQueueAdapter.js)). Each unknown resolution increments an `occurrence_count` keyed by normalized raw name + reason + source type, and tracks first/last seen timestamps and last candidates JSON. This is the preferred backend for operational review workflows; JSONL remains useful for lightweight grepping.
+
+### Manual overrides (approved aliases)
+
+When **`GEO_OVERRIDES_SQLITE=1`**, composition wires a SQLite-backed overrides adapter ([`geoLocalityOverridesSqliteAdapter.js`](../business_modules/geo/infrastructure/adapters/geoLocalityOverridesSqliteAdapter.js)). Overrides are applied **after deterministic exact stages** and **before fuzzy**, producing a resolved envelope with `matchMethod: "manual_override"`. Use this to turn recurring officer spellings into deterministic matches without loosening fuzzy rules.
 
 ---
 
@@ -365,3 +451,4 @@ The current **flat resolved envelope** is intentional for shipping speed. The fo
 | 2026-05 | Initial canonical enrichment: versioned `north-reference.json` / `north-border.json`, `IGeoEnrichmentPort`, WhatsApp + survey attachment, fuzzy stages, aggregations, `regionSignalFilter` geo branch, `/api/geo/resolve`, signals-first evidence strategy. |
 | 2026-05 | Quality fields (`quality`, `usableForMetrics`, `requiresReview`), `validateGeoEnvelope`, report `geo_reference_versions_used` / `border_reference_versions_used`, deprecate **`subregionId`** for new consumers, optional JSONL unknown sink, `GEO_ASSERT_ENVELOPE` on WhatsApp attach, `usableForMetrics` gate in north-from-geo. |
 | 2026-05 | **`geoEntityType`**, **`matchEvidence`**, **`scopeConfidence`**; fuzzy **`candidateCount`**; **`GEO_LEGACY_SUBREGION_ID`** to omit deprecated **`subregionId`**; roadmap table for split envelope, SQLite columns, overrides, distance policy versioning, KPIs, and source-aware resolve. |
+| 2026-05 | **`geo.scopeDecision`** on resolved envelopes (geo-only north hint audit); stricter doc rule: nested fields canonical, flat deprecated; full **`geoEntityType`** enum called out in guide. |

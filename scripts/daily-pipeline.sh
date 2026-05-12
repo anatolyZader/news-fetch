@@ -128,7 +128,7 @@ echo ""
 
 # ── Step 9: Extract Naftali questionnaire signals ─────────────────────────
 echo "── Step 9: Naftali questionnaire signals ──"
-node business_modules/naftali/input/extract-naftali-signals.js 2>/dev/null \
+node business_modules/pool/input/extract-naftali-signals.js 2>/dev/null \
   && echo "  Done" \
   || echo "  SKIP (no Naftali files or extraction failed)"
 echo ""

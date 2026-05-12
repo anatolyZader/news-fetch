@@ -3,8 +3,7 @@
  */
 import { existsSync, readFileSync, readdirSync } from 'fs';
 import { resolve } from 'path';
-import { getNaftaliDashboard } from '../../naftali/app/naftaliService.js';
-import { getEducationDashboard } from '../../education/app/educationSessionsService.js';
+import { createDefaultPoolService } from '../../pool/index.js';
 import { getMunicipalityDashboard } from '../../pbo_report_muni/app/pboMunicipalityService.js';
 
 const DEFAULT_MAX_MARKDOWN = 100_000;
@@ -981,6 +980,7 @@ function getAssessmentFromCache(cached) {
  * @param {() => any} opts.getCachedReport
  * @param {(report: object, lang: string) => Promise<object>} [opts.translateReport]
  * @param {number} [opts.maxMarkdownChars]
+ * @param {{ getNaftaliDashboard: (opts?: { forceRefresh?: boolean }) => Promise<unknown>, getEducationDashboard: (opts?: { forceRefresh?: boolean }) => Promise<unknown> }} [opts.poolService]
  */
 export function createMailingService({
   deliveryPort,
@@ -988,10 +988,13 @@ export function createMailingService({
   getCachedReport,
   translateReport,
   maxMarkdownChars = Number(process.env.MAIL_DIGEST_MAX_MARKDOWN_CHARS) || DEFAULT_MAX_MARKDOWN,
+  poolService: poolServiceArg,
 }) {
   if (!deliveryPort || !mailFrom) {
     throw new Error('mailingService requires deliveryPort and mailFrom');
   }
+
+  const poolService = poolServiceArg ?? createDefaultPoolService();
 
   /**
    * @param {{ report?: boolean, naftali?: boolean, education?: boolean, platform?: boolean }} products
@@ -1026,7 +1029,7 @@ export function createMailingService({
 
     if (products.naftali) {
       try {
-        const dash = await getNaftaliDashboard({ forceRefresh: false });
+        const dash = await poolService.getNaftaliDashboard({ forceRefresh: false });
         partsText.push(buildNaftaliText(dash, labels, lang));
         partsHtml.push(buildNaftaliHtml(dash, labels, lang, dir));
       } catch (e) {
@@ -1038,7 +1041,7 @@ export function createMailingService({
 
     if (products.education) {
       try {
-        const dash = await getEducationDashboard({ forceRefresh: false });
+        const dash = await poolService.getEducationDashboard({ forceRefresh: false });
         partsText.push(buildEducationText(dash, labels, lang));
         partsHtml.push(buildEducationHtml(dash, labels, lang, dir));
       } catch (e) {

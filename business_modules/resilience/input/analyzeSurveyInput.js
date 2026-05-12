@@ -6,9 +6,9 @@ import 'dotenv/config';
 import { existsSync } from 'fs';
 import { resolve, basename } from 'path';
 
-import { parseSurveyExcel } from '../../survey/infrastructure/adapters/surveyExcelLoader.js';
-import { analyzeSurvey } from '../../survey/app/surveyEvaluator.js';
-import { writeMunicipalityReports } from '../../survey/app/surveyReportWriter.js';
+import { parseSurveyExcel } from '../infrastructure/adapters/surveyExcelLoader.js';
+import { analyzeSurvey } from '../app/surveyEvaluator.js';
+import { writeMunicipalityReports } from '../app/surveyReportWriter.js';
 import { createCostTracker, appendCostLog, checkDailyBudget } from '../../../cross-cut-modules/budget/index.js';
 
 /**

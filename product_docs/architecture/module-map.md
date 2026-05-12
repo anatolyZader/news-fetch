@@ -49,13 +49,12 @@ Orient an integrator or developer to the repo's top-level layout so they can ans
 │   ├── video/                 # YouTube / video ingest
 │   ├── recording/             # Scheduled stream recorders
 │   ├── radio/                 # Radio station specifics
-│   ├── resilience/            # Signal extraction + assessment
+│   ├── resilience/            # Signal extraction + assessment; field survey Excel → reports (app/survey*.js, infrastructure/adapters/surveyExcelLoader.js)
 │   ├── translation/           # On-demand report translation
 │   ├── chat/                  # Follow-up chat grounded in reports
 │   ├── edu, education/        # Education ministry data
 │   ├── pbo_report_muni/       # Municipality data
 │   ├── naftali/               # Political figure activity
-│   ├── survey/                # Survey analysis
 │   └── docs/                  # In-app docs surface helpers (if present)
 ├── cross-cut-modules/
 │   ├── budget/                # Cost accounting, caps, cost-log

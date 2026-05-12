@@ -3,7 +3,6 @@ import MenuIcon from '@mui/icons-material/Menu';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
-import Chip from '@mui/material/Chip';
 import Collapse from '@mui/material/Collapse';
 import IconButton from '@mui/material/IconButton';
 import List from '@mui/material/List';
@@ -28,6 +27,21 @@ import {
   SectionHeading,
 } from '../ui/index.js';
 import { formatDate } from '../lib/date.js';
+
+function stableHue(input) {
+  const s = String(input ?? '');
+  let h = 0;
+  for (let i = 0; i < s.length; i += 1) {
+    h = (h * 31 + s.charCodeAt(i)) >>> 0;
+  }
+  return h % 360;
+}
+
+function accentFromKey(key) {
+  const hue = stableHue(key);
+  // Saturated enough to read as "color", still professional.
+  return `hsl(${hue} 72% 44%)`;
+}
 
 /** Use only the part after the first colon (trimmed); otherwise the whole string. */
 function valueAfterFirstColon(s) {
@@ -57,13 +71,13 @@ function formatPublished(ts, formatDateFn) {
   return ts;
 }
 
-/** Inset panel: white panels on the content well; border + shadow so they read clearly above the tray. */
+/** Inset panel: clean, subtle surface inside a card. */
 function visitInsetPanelSx(theme, accent) {
   return {
-    borderRadius: theme.custom.radius.sm,
-    bgcolor: 'background.paper',
-    border: `1px solid ${alpha(accent, 0.3)}`,
-    boxShadow: `0 1px 2px ${alpha(theme.palette.common.black, 0.06)}, 0 2px 8px ${alpha(theme.palette.common.black, 0.05)}`,
+    borderRadius: 8,
+    bgcolor: theme.palette.background.paper,
+    border: `1px solid ${alpha(accent, 0.28)}`,
+    boxShadow: `0 1px 0 ${alpha(theme.palette.common.black, 0.03)}`,
   };
 }
 
@@ -112,8 +126,8 @@ function VisitMetaRow({ label, value }) {
   );
 }
 
-function VisitSubsection({ title, children, theme, dense = false }) {
-  const accent = theme.palette.primary.main;
+function VisitSubsection({ title, children, theme, dense = false, accent = null }) {
+  const a = accent ?? theme.palette.primary.main;
   const sp = dense ? 1 : 1.5;
   return (
     <Stack spacing={sp}>
@@ -122,12 +136,12 @@ function VisitSubsection({ title, children, theme, dense = false }) {
           component="h4"
           sx={{
             ...theme.typography.eyebrow,
-            color: accent,
+            color: a,
             m: 0,
             fontSize: dense ? '0.68rem' : undefined,
             letterSpacing: dense ? '0.06em' : undefined,
             paddingBottom: dense ? 0.25 : 0.5,
-            borderBottom: `1px solid ${alpha(accent, 0.18)}`,
+            borderBottom: `1px solid ${alpha(a, 0.32)}`,
           }}
         >
           {title}
@@ -181,25 +195,27 @@ function VisitMunicipalityCard({
     return items;
   }, [visit.notePoints, signalsSorted]);
 
-  const hasSignals = (visit.signalCount ?? 0) > 0;
   const hasStakeholders = Boolean(visit.stakeholders && String(visit.stakeholders).trim());
 
-  const accent = theme.palette.primary.main;
+  const accent = accentFromKey(visit.municipality || visit.title || visit.id);
   const ink = theme.palette.text.primary;
   return (
     <Card
       elevation={0}
       sx={{
         bgcolor: 'background.paper',
-        borderColor: alpha(accent, 0.35),
-        borderWidth: 1,
-        borderStyle: 'solid',
-        borderRadius: theme.custom.radius.md,
+        border: `1px solid ${alpha(theme.palette.divider, 0.95)}`,
+        borderRadius: 10,
         overflow: 'hidden',
-        boxShadow: `0 2px 6px ${alpha(ink, 0.06)}, 0 8px 24px ${alpha(ink, 0.07)}`,
+        boxShadow: `0 1px 2px ${alpha(ink, 0.06)}, 0 10px 24px ${alpha(ink, 0.05)}`,
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
+        transition: 'box-shadow 160ms ease, transform 160ms ease',
+        '&:hover': {
+          boxShadow: `0 2px 6px ${alpha(ink, 0.08)}, 0 14px 30px ${alpha(ink, 0.07)}`,
+          transform: 'translateY(-1px)',
+        },
       }}
     >
       <Box
@@ -216,18 +232,28 @@ function VisitMunicipalityCard({
       <Box
         sx={{
           px: { xs: 2, sm: 2.5 },
-          py: 2,
-          background: theme.custom.surface.bannerSubtle,
-          borderBottom: `1px solid ${alpha(accent, 0.12)}`,
-          borderInlineStart: '3px solid',
-          borderInlineStartColor: 'primary.main',
+          py: 1.5,
+          background: `linear-gradient(180deg, ${alpha(accent, 0.22)} 0%, ${alpha(accent, 0.08)} 100%)`,
+          borderBottom: `1px solid ${alpha(theme.palette.divider, 0.9)}`,
+          borderInlineStart: '4px solid',
+          borderInlineStartColor: alpha(accent, 0.95),
         }}
       >
         <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2} useFlexGap flexWrap="wrap">
           <Typography
             variant="subtitle1"
             component="h3"
-            sx={{ wordBreak: 'break-word', lineHeight: 1.35, minWidth: 0, flex: '1 1 120px', fontWeight: 700 }}
+            title={visit.title}
+            sx={{
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              lineHeight: 1.25,
+              minWidth: 0,
+              flex: '1 1 120px',
+              fontWeight: 700,
+              letterSpacing: '-0.01em',
+            }}
           >
             {visit.title}
           </Typography>
@@ -239,20 +265,18 @@ function VisitMunicipalityCard({
               aria-controls={visitBodyId}
               onClick={() => setBodyExpanded((v) => !v)}
               sx={{
-                color: 'primary.main',
-                border: `1px solid ${alpha(accent, 0.35)}`,
-                borderRadius: 1,
+                color: alpha(theme.palette.text.primary, 0.72),
+                bgcolor: alpha(theme.palette.common.white, 0.65),
+                border: `1px solid ${alpha(theme.palette.divider, 0.9)}`,
+                borderRadius: 1.25,
+                '&:hover': {
+                  bgcolor: alpha(theme.palette.common.white, 0.9),
+                  color: alpha(theme.palette.text.primary, 0.9),
+                },
               }}
             >
               <MenuIcon fontSize="small" />
             </IconButton>
-            <Chip
-              size="small"
-              color={hasSignals ? 'primary' : 'default'}
-              variant={hasSignals ? 'filled' : 'outlined'}
-              label={`${visit.signalCount ?? 0} ${t('visit.signals')}`}
-              sx={{ fontWeight: 600 }}
-            />
           </Stack>
         </Stack>
       </Box>
@@ -289,7 +313,7 @@ function VisitMunicipalityCard({
                 },
               }}
             >
-              <VisitSubsection title={t('visit.card.overview')} theme={theme} dense>
+              <VisitSubsection title={t('visit.card.overview')} theme={theme} dense accent={accent}>
                 <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
                   <Box sx={{ width: 'fit-content', maxWidth: '100%', minWidth: 0 }}>
                     <Box
@@ -321,7 +345,7 @@ function VisitMunicipalityCard({
                   '@container visit (min-width: 400px)': { gridColumn: 2, gridRow: 1 },
                 }}
               >
-                <VisitSubsection title={t('visit.card.stakeholders')} theme={theme} dense>
+                <VisitSubsection title={t('visit.card.stakeholders')} theme={theme} dense accent={accent}>
                   <Box
                     sx={{
                       p: 1.25,
@@ -348,7 +372,7 @@ function VisitMunicipalityCard({
                 },
               }}
             >
-              <VisitSubsection title={t('visit.card.noteHighlights')} theme={theme} dense>
+              <VisitSubsection title={t('visit.card.noteHighlights')} theme={theme} dense accent={accent}>
                 {parsedHighlightItems.length > 0 ? (
                   <Box
                     component="section"
@@ -391,7 +415,13 @@ function VisitMunicipalityCard({
                           <Typography
                             component="span"
                             variant="body2"
-                            sx={{ lineHeight: 1.55, fontSize: '0.8125rem', minWidth: 0, flex: '1 1 auto' }}
+                            sx={{
+                              lineHeight: 1.55,
+                              fontSize: '0.8125rem',
+                              minWidth: 0,
+                              flex: '1 1 auto',
+                              textAlign: presentationDir === 'rtl' ? 'right' : 'left',
+                            }}
                           >
                             {item.kind === 'note' ? item.text : (item.text || '—')}
                           </Typography>
@@ -505,72 +535,84 @@ export function VisitsTab() {
         } : null}
       >
         <Stack spacing={1}>
-          <ToggleButtonGroup
-            value={selectedDate}
-            exclusive
-            size="small"
-            onChange={(_, next) => {
-              if (next) {
-                setSelectedDate(next);
-                setMuniFilter(new Set());
-              }
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 1.5,
+              flexWrap: 'wrap',
             }}
-            sx={{ flexWrap: 'wrap' }}
           >
-            {data.days.map((day) => (
-              <ToggleButton key={day.date} value={day.date}>
-                {formatDate(day.date)} ({day.visitCount})
-              </ToggleButton>
-            ))}
-          </ToggleButtonGroup>
+            {(selectedDay?.municipalities ?? []).length > 0 ? (
+              <Stack direction="row" alignItems="center" spacing={1.25} flexWrap="wrap" useFlexGap>
+                <IconButton
+                  size="small"
+                  aria-label={t('visit.filter.municipalitiesMenu')}
+                  aria-haspopup="true"
+                  aria-expanded={Boolean(muniMenuAnchor)}
+                  onClick={(e) => setMuniMenuAnchor((prev) => (prev ? null : e.currentTarget))}
+                  sx={(theme) => ({
+                    color: 'primary.main',
+                    border: `1px solid ${alpha(theme.palette.primary.main, 0.35)}`,
+                    borderRadius: 1,
+                  })}
+                >
+                  <MenuIcon fontSize="small" />
+                </IconButton>
+                <Typography variant="body2" color="text.secondary" sx={{ minWidth: 0 }}>
+                  {muniFilter.size === 0
+                    ? t('visit.filter.allMunicipalitiesSelected')
+                    : t('visit.filter.nMunicipalitiesSelected').replace('{n}', String(muniFilter.size))}
+                </Typography>
+                <Popover
+                  open={Boolean(muniMenuAnchor)}
+                  anchorEl={muniMenuAnchor}
+                  onClose={() => setMuniMenuAnchor(null)}
+                  anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+                  transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+                  slotProps={{
+                    paper: {
+                      sx: { mt: 0.75, maxHeight: 360, overflow: 'auto' },
+                    },
+                  }}
+                >
+                  <List dense role="listbox" aria-label={t('visit.filter.municipality')} sx={{ minWidth: 240, py: 0 }}>
+                    {(selectedDay?.municipalities ?? []).map((municipality) => (
+                      <ListItemButton
+                        key={municipality}
+                        selected={muniFilter.has(municipality)}
+                        onClick={() => toggleMuni(municipality)}
+                      >
+                        <ListItemText primary={municipality} primaryTypographyProps={{ dir: 'auto', variant: 'body2' }} />
+                      </ListItemButton>
+                    ))}
+                  </List>
+                </Popover>
+              </Stack>
+            ) : (
+              <span />
+            )}
 
-          {(selectedDay?.municipalities ?? []).length > 0 ? (
-            <Stack direction="row" alignItems="center" spacing={1.25} flexWrap="wrap" useFlexGap>
-              <IconButton
-                size="small"
-                aria-label={t('visit.filter.municipalitiesMenu')}
-                aria-haspopup="true"
-                aria-expanded={Boolean(muniMenuAnchor)}
-                onClick={(e) => setMuniMenuAnchor((prev) => (prev ? null : e.currentTarget))}
-                sx={(theme) => ({
-                  color: 'primary.main',
-                  border: `1px solid ${alpha(theme.palette.primary.main, 0.35)}`,
-                  borderRadius: 1,
-                })}
-              >
-                <MenuIcon fontSize="small" />
-              </IconButton>
-              <Typography variant="body2" color="text.secondary" sx={{ minWidth: 0 }}>
-                {muniFilter.size === 0
-                  ? t('visit.filter.allMunicipalitiesSelected')
-                  : t('visit.filter.nMunicipalitiesSelected').replace('{n}', String(muniFilter.size))}
-              </Typography>
-              <Popover
-                open={Boolean(muniMenuAnchor)}
-                anchorEl={muniMenuAnchor}
-                onClose={() => setMuniMenuAnchor(null)}
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-                transformOrigin={{ vertical: 'top', horizontal: 'left' }}
-                slotProps={{
-                  paper: {
-                    sx: { mt: 0.75, maxHeight: 360, overflow: 'auto' },
-                  },
-                }}
-              >
-                <List dense role="listbox" aria-label={t('visit.filter.municipality')} sx={{ minWidth: 240, py: 0 }}>
-                  {(selectedDay?.municipalities ?? []).map((municipality) => (
-                    <ListItemButton
-                      key={municipality}
-                      selected={muniFilter.has(municipality)}
-                      onClick={() => toggleMuni(municipality)}
-                    >
-                      <ListItemText primary={municipality} primaryTypographyProps={{ dir: 'auto', variant: 'body2' }} />
-                    </ListItemButton>
-                  ))}
-                </List>
-              </Popover>
-            </Stack>
-          ) : null}
+            <ToggleButtonGroup
+              value={selectedDate}
+              exclusive
+              size="small"
+              onChange={(_, next) => {
+                if (next) {
+                  setSelectedDate(next);
+                  setMuniFilter(new Set());
+                }
+              }}
+              sx={{ flexWrap: 'wrap', justifyContent: 'flex-end' }}
+            >
+              {data.days.map((day) => (
+                <ToggleButton key={day.date} value={day.date}>
+                  {formatDate(day.date)} ({day.visitCount})
+                </ToggleButton>
+              ))}
+            </ToggleButtonGroup>
+          </Box>
         </Stack>
       </FilterBar>
 

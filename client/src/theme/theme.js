@@ -5,13 +5,16 @@ const NEUTRAL = {
   inkSubtle:  '#6b7280',
   inkSoft:    '#9ca3af',
   paper:      '#ffffff',
-  background: '#f5f6fa',
-  divider:    '#e2e5ed',
+  // Slightly tinted background so the app doesn't feel washed out.
+  background: '#eef3f9',
+  // Darker divider for better separation.
+  divider:    '#cfd7e6',
 };
 
 const BRAND = {
-  primary:     '#5b7d9c',
-  primaryDark: '#465f80',
+  // Stronger, clearer brand blue (still not neon).
+  primary:     '#2563eb',
+  primaryDark: '#1d4ed8',
 };
 
 const SCORE = {
@@ -95,7 +98,8 @@ export function buildTheme(direction = 'ltr') {
   const base = createTheme({
     direction,
     spacing: 8,
-    shape: { borderRadius: 8 },
+    // Keep corners almost square across the app.
+    shape: { borderRadius: 2 },
     palette: {
       mode: 'light',
       primary:    { main: BRAND.primary, dark: BRAND.primaryDark, contrastText: NEUTRAL.paper },
@@ -112,11 +116,11 @@ export function buildTheme(direction = 'ltr') {
 
   base.custom = {
     radius: {
-      xs:   base.shape.borderRadius * 0.25,
-      sm:   base.shape.borderRadius * 0.5,
-      md:   base.shape.borderRadius,
-      lg:   base.shape.borderRadius * 0.25,
-      xl:   base.shape.borderRadius * 0.25,
+      xs:   1,
+      sm:   2,
+      md:   2,
+      lg:   2,
+      xl:   2,
       pill: 999,
     },
     elevation: {
@@ -155,6 +159,7 @@ export function buildTheme(direction = 'ltr') {
           body: {
             lineHeight: 1.6,
             backgroundColor: base.palette.background.default,
+            backgroundImage: `radial-gradient(900px 320px at 20% 0%, ${alpha(BRAND.primary, 0.12)} 0%, transparent 55%), radial-gradient(700px 260px at 95% 10%, ${alpha(CHART.purple, 0.10)} 0%, transparent 60%)`,
             color: base.palette.text.primary,
           },
         },
@@ -191,7 +196,11 @@ export function buildTheme(direction = 'ltr') {
       MuiCard: {
         defaultProps: { variant: 'outlined' },
         styleOverrides: {
-          root: { borderRadius: custom.radius.lg },
+          root: {
+            borderRadius: custom.radius.lg,
+            borderColor: alpha(BRAND.primary, 0.18),
+            backgroundImage: `linear-gradient(180deg, ${alpha(BRAND.primary, 0.03)} 0%, transparent 55%)`,
+          },
         },
       },
       MuiDialog: {
@@ -248,7 +257,16 @@ export function buildTheme(direction = 'ltr') {
       },
       MuiTabs: {
         styleOverrides: {
-          indicator: { backgroundColor: base.palette.primary.main },
+          indicator: { backgroundColor: base.palette.primary.main, height: 3 },
+        },
+      },
+      MuiTab: {
+        styleOverrides: {
+          root: {
+            textTransform: 'none',
+            fontWeight: 600,
+            '&.Mui-selected': { color: base.palette.primary.main },
+          },
         },
       },
       MuiToggleButton: {
@@ -264,12 +282,12 @@ export function buildTheme(direction = 'ltr') {
             color: base.palette.text.secondary,
             borderColor: base.palette.divider,
             '&.Mui-selected': {
-              color: base.palette.text.primary,
-              backgroundColor: alpha(BRAND.primary, 0.14),
+              color: base.palette.primary.contrastText,
+              backgroundColor: base.palette.primary.main,
               fontWeight: 700,
-              borderColor: alpha(BRAND.primary, 0.35),
+              borderColor: alpha(BRAND.primary, 0.55),
               '&:hover': {
-                backgroundColor: alpha(BRAND.primary, 0.2),
+                backgroundColor: base.palette.primary.dark,
               },
             },
           },

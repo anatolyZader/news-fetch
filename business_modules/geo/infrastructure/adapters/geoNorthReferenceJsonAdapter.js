@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 
 import { IGeoNorthReferencePort } from '../../domain/ports/IGeoNorthReferencePort.js';
+import { collectRawLocalitiesFromNorthReferenceDoc } from '../../domain/services/northReferenceDocShape.js';
 import { isNorthSubregionId } from '../../domain/value_objects/northSubregionId.js';
 
 /**
@@ -32,9 +33,9 @@ class GeoNorthReferenceJsonAdapter extends IGeoNorthReferencePort {
       const doc = JSON.parse(readFileSync(refPath, 'utf8'));
       referenceVersion = String(doc?.version ?? 'unknown').trim() || 'unknown';
       referenceSource = String(doc?.source ?? referenceSource).trim() || referenceSource;
-      rawLocalities = Array.isArray(doc?.localities) ? doc.localities : [];
+      rawLocalities = collectRawLocalitiesFromNorthReferenceDoc(doc);
       if (rawLocalities.length === 0) {
-        throw new Error('north-reference.json must include a non-empty localities array');
+        throw new Error('north-reference.json must include localities (subregions.*.localities or top-level localities)');
       }
     } else if (existsSync(legacyPath)) {
       const legacy = JSON.parse(readFileSync(legacyPath, 'utf8'));
@@ -91,6 +92,7 @@ class GeoNorthReferenceJsonAdapter extends IGeoNorthReferencePort {
         subregionId,
         officialHebrewName: row.officialHebrewName != null ? String(row.officialHebrewName).trim() : undefined,
         municipalityType: row.municipalityType != null ? String(row.municipalityType).trim() : undefined,
+        geoEntityType: row.geoEntityType != null && String(row.geoEntityType).trim() ? String(row.geoEntityType).trim() : undefined,
         parentCouncilKey:
           row.parentCouncilKey != null && String(row.parentCouncilKey).trim()
             ? String(row.parentCouncilKey).trim()

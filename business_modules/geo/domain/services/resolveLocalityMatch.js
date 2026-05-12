@@ -93,7 +93,13 @@ export function resolveByExactStages(index, rawName) {
 /**
  * @param {import('../value_objects/geoEnrichment.js').NorthLocalityRow[]} localities
  * @param {string} rawName
- * @returns {{ row: import('../value_objects/geoEnrichment.js').NorthLocalityRow, matchMethod: string, matchConfidence: number, candidateCount: number } | { kind: 'fuzzy_ambiguous', candidates: { canonicalKey: string, score: number }[] }}
+ * @returns {{
+ *   row: import('../value_objects/geoEnrichment.js').NorthLocalityRow,
+ *   matchMethod: string,
+ *   matchConfidence: number,
+ *   candidateCount: number,
+ *   topCandidates: { canonicalKey: string, score: number }[],
+ * } | { kind: 'fuzzy_ambiguous', candidates: { canonicalKey: string, score: number }[] }}
  */
 export function resolveByFuzzyBest(localities, rawName) {
   const q = normalizeLocalityLookupKey(rawName);
@@ -114,12 +120,15 @@ export function resolveByFuzzyBest(localities, rawName) {
   }
   scored.sort((a, b) => b.score - a.score);
   if (scored.length === 0) return { kind: 'fuzzy_ambiguous', candidates: [] };
+  const topCandidates = scored
+    .slice(0, 5)
+    .map((s) => ({ canonicalKey: s.row.canonicalKey, score: Math.round(s.score * 1000) / 1000 }));
   const top = scored[0];
   const second = scored[1];
   if (second && top.score - second.score < FUZZY_AMBIGUITY_GAP) {
     return {
       kind: 'fuzzy_ambiguous',
-      candidates: scored.slice(0, 5).map((s) => ({ canonicalKey: s.row.canonicalKey, score: Math.round(s.score * 1000) / 1000 })),
+      candidates: topCandidates,
     };
   }
   return {
@@ -127,5 +136,6 @@ export function resolveByFuzzyBest(localities, rawName) {
     matchMethod: 'fuzzy',
     matchConfidence: Math.round(top.score * 1000) / 1000,
     candidateCount: scored.length,
+    topCandidates,
   };
 }

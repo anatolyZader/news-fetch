@@ -22,16 +22,16 @@ export const translations = {
     'pbo.regionDaily.listAria': 'Regional daily PBO reports',
     'pbo.regionDay.sourceFile': 'Source file:',
     'pbo.regionDay.inboxLocation': 'Inbox',
-    'tab.chatbot': 'Chatbot',
-    'chatbotManual.subtitle':
-      'Manual reports from the WhatsApp chatbot or vibeswitch.ai “send report”; files live in the server chatbot inbox.',
-    'chatbotManual.loading': 'Loading chatbot reports…',
-    'chatbotManual.empty':
+    'tab.reportBot': 'Report bot',
+    'reportBotManual.subtitle':
+      'Manual reports from the WhatsApp bot or vibeswitch.ai “send report”; files live in the server `report_bot` inbox.',
+    'reportBotManual.loading': 'Loading manual reports…',
+    'reportBotManual.empty':
       'No matching files yet. Add .md, .txt, .json, or .html reports under `{path}` on the server.',
-    'chatbotManual.inboxHint': 'Inbox folder (repo root): `{path}`',
-    'chatbotManual.listAria': 'Chatbot manual reports',
-    'chatbotManual.updated': 'Modified',
-    'chatbotManual.loadFailed': 'Could not load the full file.',
+    'reportBotManual.inboxHint': 'Inbox folder (repo root): `{path}`',
+    'reportBotManual.listAria': 'Report bot manual reports',
+    'reportBotManual.updated': 'Modified',
+    'reportBotManual.loadFailed': 'Could not load the full file.',
     'tab.visits':         'Visits',
     'tab.naftali':        'Naftali',
     'tab.pools':          'Pools',
@@ -498,16 +498,16 @@ export const translations = {
     'pbo.regionDaily.listAria': 'דוחות קה״א יומיים לפי תאריך',
     'pbo.regionDay.sourceFile': 'קובץ מקור:',
     'pbo.regionDay.inboxLocation': 'תיקיית קליטה',
-    'tab.chatbot': 'צ׳טבוט',
-    'chatbotManual.subtitle':
-      'דוחות ידניות מבוט הווטסאפ או מהאתר (שליחת דוח); הקבצים נמצאים בתיקיית chatbot בשרת.',
-    'chatbotManual.loading': 'טוען דוחות צ׳טבוט…',
-    'chatbotManual.empty':
+    'tab.reportBot': 'בוט דוחות',
+    'reportBotManual.subtitle':
+      'דוחות ידניות מבוט הווטסאפ או מהאתר (שליחת דוח); הקבצים נמצאים בתיקיית report_bot בשרת.',
+    'reportBotManual.loading': 'טוען דוחות ידניים…',
+    'reportBotManual.empty':
       'אין עדיין קבצים מתאימים. יש למקם דוחות ‎.md‎ / ‎.txt‎ / ‎.json‎ / ‎.html‎ תחת `{path}` בשרת.',
-    'chatbotManual.inboxHint': 'תיקייה בשרת (שורש הפרויקט): `{path}`',
-    'chatbotManual.listAria': 'דוחות ידניים מצ׳טבוט',
-    'chatbotManual.updated': 'עודכן',
-    'chatbotManual.loadFailed': 'לא ניתן לטעון את הקובץ במלואו.',
+    'reportBotManual.inboxHint': 'תיקייה בשרת (שורש הפרויקט): `{path}`',
+    'reportBotManual.listAria': 'דוחות ידניים מבוט הדוחות',
+    'reportBotManual.updated': 'עודכן',
+    'reportBotManual.loadFailed': 'לא ניתן לטעון את הקובץ במלואו.',
     'tab.visits':         'ביקורים',
     'tab.naftali':        'נפתלי',
     'tab.pools':          'בריכות',
@@ -960,16 +960,16 @@ export const translations = {
     'pbo.regionDaily.listAria': 'Региональные ежедневные отчёты ПБО',
     'pbo.regionDay.sourceFile': 'Источник:',
     'pbo.regionDay.inboxLocation': 'Папка',
-    'tab.chatbot': 'Чатбот',
-    'chatbotManual.subtitle':
-      'Ручные отчёты из WhatsApp-бота или с сайта (отправка отчёта); файлы лежат в папке chatbot на сервере.',
-    'chatbotManual.loading': 'Загрузка отчётов чатбота…',
-    'chatbotManual.empty':
+    'tab.reportBot': 'Бот отчётов',
+    'reportBotManual.subtitle':
+      'Ручные отчёты из WhatsApp-бота или с сайта (отправка отчёта); файлы лежат в папке report_bot на сервере.',
+    'reportBotManual.loading': 'Загрузка ручных отчётов…',
+    'reportBotManual.empty':
       'Подходящих файлов пока нет. Поместите отчёты .md / .txt / .json / .html в `{path}` на сервере.',
-    'chatbotManual.inboxHint': 'Каталог на сервере (корень репозитория): `{path}`',
-    'chatbotManual.listAria': 'Ручные отчёты чатбота',
-    'chatbotManual.updated': 'Изменён',
-    'chatbotManual.loadFailed': 'Не удалось загрузить файл полностью.',
+    'reportBotManual.inboxHint': 'Каталог на сервере (корень репозитория): `{path}`',
+    'reportBotManual.listAria': 'Ручные отчёты бота',
+    'reportBotManual.updated': 'Изменён',
+    'reportBotManual.loadFailed': 'Не удалось загрузить файл полностью.',
     'tab.visits':         'Визиты',
     'tab.naftali':        'Нафтали',
     'tab.pools':          'Пулы',

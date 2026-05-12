@@ -96,11 +96,16 @@ function isNorthFromResolvedGeo(signal) {
   const g = signal?.geo;
   if (!g || g.kind !== 'resolved') return false;
   // Explicit low-confidence / non-metrics geo must not count as verified north from geo alone.
-  if (Object.prototype.hasOwnProperty.call(g, 'usableForMetrics') && g.usableForMetrics === false) {
+  const usable =
+    g?.policy && typeof g.policy === 'object' && Object.prototype.hasOwnProperty.call(g.policy, 'usableForMetrics')
+      ? g.policy.usableForMetrics
+      : g.usableForMetrics;
+  if (usable === false) {
     return false;
   }
-  if (Array.isArray(g.geoAreaTags) && g.geoAreaTags.includes('north')) return true;
-  const id = String(g.pboSubregionId ?? g.subregionId ?? '').trim().toLowerCase();
+  const tags = g?.classification?.geoAreaTags ?? g.geoAreaTags;
+  if (Array.isArray(tags) && tags.includes('north')) return true;
+  const id = String(g?.classification?.pboSubregionId ?? g.pboSubregionId ?? g.subregionId ?? '').trim().toLowerCase();
   return ['naftali', 'golan', 'baram', 'hiram', 'galma'].includes(id);
 }
 
@@ -119,16 +124,59 @@ function haystackForSignal(signal) {
     .toLowerCase();
 }
 
-export function isNorthSignal(signal) {
-  if (ALWAYS_NORTH_SOURCE_TYPES.has(signal?.source_type)) return true;
-  if (isNorthFromResolvedGeo(signal)) return true;
+/**
+ * Explainable north-relevance decision trace.
+ * @param {object} signal
+ * @returns {{ isNorthRelevant: boolean, source: string, confidence: 'high'|'medium'|'low', reasons: string[] }}
+ */
+export function scopeDecisionForSignal(signal) {
+  const reasons = [];
+  if (ALWAYS_NORTH_SOURCE_TYPES.has(signal?.source_type)) {
+    reasons.push(`source_type=${signal?.source_type}`);
+    return { isNorthRelevant: true, source: 'source_type', confidence: 'high', reasons };
+  }
+  const g = signal?.geo;
+  if (g?.kind === 'resolved') {
+    const usable =
+      g?.policy && typeof g.policy === 'object' && Object.prototype.hasOwnProperty.call(g.policy, 'usableForMetrics')
+        ? g.policy.usableForMetrics
+        : g.usableForMetrics;
+    if (usable === false) {
+      reasons.push('geo.usableForMetrics=false');
+      return { isNorthRelevant: false, source: 'geo', confidence: 'low', reasons };
+    }
+    const tags = g?.classification?.geoAreaTags ?? g.geoAreaTags;
+    if (Array.isArray(tags) && tags.includes('north')) {
+      reasons.push('geoAreaTags includes north');
+      const conf = g?.policy?.scopeConfidence ?? g.scopeConfidence ?? 'medium';
+      return { isNorthRelevant: true, source: 'geo_tags', confidence: conf, reasons };
+    }
+    const id = String(g?.classification?.pboSubregionId ?? g.pboSubregionId ?? g.subregionId ?? '').trim().toLowerCase();
+    if (['naftali', 'golan', 'baram', 'hiram', 'galma'].includes(id)) {
+      reasons.push(`pboSubregionId=${id}`);
+      const conf = g?.policy?.scopeConfidence ?? g.scopeConfidence ?? 'medium';
+      return { isNorthRelevant: true, source: 'pbo_subregion', confidence: conf, reasons };
+    }
+  }
   const haystack = haystackForSignal(signal);
-  return NORTH_TERMS.some((term) => haystack.includes(term.toLowerCase()));
+  if (NORTH_TERMS.some((term) => haystack.includes(term.toLowerCase()))) {
+    reasons.push('keyword_fallback');
+    return { isNorthRelevant: true, source: 'keyword_fallback', confidence: 'low', reasons };
+  }
+  return { isNorthRelevant: false, source: 'unknown', confidence: 'low', reasons };
+}
+
+export function isNorthSignal(signal) {
+  return scopeDecisionForSignal(signal).isNorthRelevant;
 }
 
 export function filterSignalsForScope(signals, scope) {
-  if (scope === 'north') return signals.filter(isNorthSignal);
-  return signals;
+  const out = (signals ?? []).map((s) => {
+    const d = scopeDecisionForSignal(s);
+    return s && typeof s === 'object' ? { ...s, scopeDecision: d } : s;
+  });
+  if (scope === 'north') return out.filter((s) => s?.scopeDecision?.isNorthRelevant);
+  return out;
 }
 
 export function normalizeReportScope(scope) {

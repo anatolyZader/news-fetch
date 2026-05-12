@@ -4,6 +4,7 @@ import test from 'node:test';
 import {
   deriveGeoQualityFields,
   deriveScopeConfidence,
+  GEO_POLICY_VERSION,
   FUZZY_METRICS_MIN_CONFIDENCE,
 } from '../../../../../business_modules/geo/domain/services/geoQualityPolicy.js';
 
@@ -21,9 +22,9 @@ test('deriveGeoQualityFields: fuzzy at threshold is medium and metrics-safe', ()
   assert.equal(r.requiresReview, true);
 });
 
-test('deriveGeoQualityFields: fuzzy below threshold is low', () => {
-  const r = deriveGeoQualityFields({ matchMethod: 'fuzzy', matchConfidence: 0.87 });
-  assert.equal(r.quality, 'low');
+test('deriveGeoQualityFields: regional_council caps quality and disables metrics', () => {
+  const r = deriveGeoQualityFields({ matchMethod: 'exact', matchConfidence: 1, geoEntityType: 'regional_council' });
+  assert.equal(r.quality, 'medium');
   assert.equal(r.usableForMetrics, false);
   assert.equal(r.requiresReview, true);
 });
@@ -38,4 +39,8 @@ test('deriveScopeConfidence: fuzzy metrics-safe with review is medium', () => {
 
 test('deriveScopeConfidence: not metrics-safe is low', () => {
   assert.equal(deriveScopeConfidence({ usableForMetrics: false, requiresReview: true }), 'low');
+});
+
+test('GEO_POLICY_VERSION is v2', () => {
+  assert.equal(GEO_POLICY_VERSION, 'geo-policy-2026-05-v2');
 });

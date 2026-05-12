@@ -15,12 +15,48 @@ CREATE TABLE IF NOT EXISTS whatsapp_signals (
   evidence      TEXT    NOT NULL DEFAULT '',
   scope_level   TEXT    NOT NULL DEFAULT 'single_case',
   sender_phone  TEXT,
+  geo_json      TEXT,
+  geo_kind      TEXT,
+  geo_canonical_key TEXT,
+  geo_entity_type TEXT,
+  geo_pbo_subregion_id TEXT,
+  geo_distance_band TEXT,
+  geo_quality TEXT,
+  geo_usable_for_metrics INTEGER,
+  geo_requires_review INTEGER,
+  geo_scope_confidence TEXT,
+  geo_reference_version TEXT,
+  geo_border_reference_version TEXT,
+  geo_policy_version TEXT,
   extracted_at  TEXT    NOT NULL DEFAULT (datetime('now'))
 );
 
 CREATE INDEX IF NOT EXISTS idx_wa_signals_date ON whatsapp_signals(date);
 CREATE INDEX IF NOT EXISTS idx_wa_signals_msg ON whatsapp_signals(meta_msg_id);
 `;
+
+function ensureColumns(db) {
+  const cols = db.prepare(`PRAGMA table_info(whatsapp_signals)`).all().map((r) => r.name);
+  const has = new Set(cols);
+  const add = (name, type) => {
+    if (has.has(name)) return;
+    db.exec(`ALTER TABLE whatsapp_signals ADD COLUMN ${name} ${type};`);
+    has.add(name);
+  };
+  add('geo_json', 'TEXT');
+  add('geo_kind', 'TEXT');
+  add('geo_canonical_key', 'TEXT');
+  add('geo_entity_type', 'TEXT');
+  add('geo_pbo_subregion_id', 'TEXT');
+  add('geo_distance_band', 'TEXT');
+  add('geo_quality', 'TEXT');
+  add('geo_usable_for_metrics', 'INTEGER');
+  add('geo_requires_review', 'INTEGER');
+  add('geo_scope_confidence', 'TEXT');
+  add('geo_reference_version', 'TEXT');
+  add('geo_border_reference_version', 'TEXT');
+  add('geo_policy_version', 'TEXT');
+}
 
 /**
  * @param {string} dbPath  Absolute path to SQLite file
@@ -29,11 +65,18 @@ export function createWhatsAppSignalStore(dbPath) {
   mkdirSync(dirname(dbPath), { recursive: true });
   const db = new DatabaseSync(dbPath);
   db.exec(DDL);
+  ensureColumns(db);
 
   const insertStmt = db.prepare(`
     INSERT INTO whatsapp_signals
-      (meta_msg_id, date, signal_type, evidence_type, evidence, scope_level, sender_phone)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
+      (meta_msg_id, date, signal_type, evidence_type, evidence, scope_level, sender_phone,
+       geo_json, geo_kind, geo_canonical_key, geo_entity_type, geo_pbo_subregion_id, geo_distance_band,
+       geo_quality, geo_usable_for_metrics, geo_requires_review, geo_scope_confidence,
+       geo_reference_version, geo_border_reference_version, geo_policy_version)
+    VALUES (?, ?, ?, ?, ?, ?, ?,
+            ?, ?, ?, ?, ?, ?,
+            ?, ?, ?, ?,
+            ?, ?, ?)
   `);
 
   const getByDateStmt = db.prepare(
@@ -54,6 +97,20 @@ export function createWhatsAppSignalStore(dbPath) {
      */
     insertSignals(metaMsgId, date, signals, senderPhone) {
       for (const s of signals) {
+        const g = s?.geo;
+        const geoJson = g && typeof g === 'object' ? JSON.stringify(g) : null;
+        const kind = g?.kind ?? null;
+        const canonicalKey = g?.kind === 'resolved' ? (g.canonicalKey ?? null) : null;
+        const entityType = g?.kind === 'resolved' ? (g.geoEntityType ?? null) : null;
+        const pboSubregionId = g?.kind === 'resolved' ? (g.pboSubregionId ?? null) : null;
+        const distanceBand = g?.kind === 'resolved' ? (g.distanceBand ?? null) : null;
+        const quality = g?.kind === 'resolved' ? (g.quality ?? null) : null;
+        const usable = g?.kind === 'resolved' ? (g.usableForMetrics ? 1 : 0) : null;
+        const review = g?.kind === 'resolved' ? (g.requiresReview ? 1 : 0) : null;
+        const scope = g?.kind === 'resolved' ? (g.scopeConfidence ?? null) : null;
+        const refVer = g?.kind === 'resolved' ? (g.geoReferenceVersion ?? null) : (g?.geoReferenceVersion ?? null);
+        const borderVer = g?.kind === 'resolved' ? (g.borderReferenceVersion ?? null) : null;
+        const policyVer = g?.kind === 'resolved' ? (g.geoPolicyVersion ?? null) : null;
         insertStmt.run(
           metaMsgId,
           date,
@@ -62,6 +119,19 @@ export function createWhatsAppSignalStore(dbPath) {
           s.evidence ?? '',
           s.scope_level ?? 'single_case',
           senderPhone ?? null,
+          geoJson,
+          kind,
+          canonicalKey,
+          entityType,
+          pboSubregionId,
+          distanceBand,
+          quality,
+          usable,
+          review,
+          scope,
+          refVer,
+          borderVer,
+          policyVer,
         );
       }
     },

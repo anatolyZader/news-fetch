@@ -36,6 +36,7 @@
     "analyze-audio": "node business_modules/resilience/input/analyze-resilience.js --content-kind audio --files articles-audio.md",
     "analyze-event-log": "node business_modules/pbo_report_muni/input/analyze-event-log.js",
     "analyze-survey": "node scripts/analyze-survey.mjs",
+    "build:north-reference": "node scripts/build-north-reference-from-regions.mjs",
     "test-tokens": "node cross-cut-modules/budget/input/test-token-usage.js",
     "client:dev": "cd client && npm run dev",
     "client:build": "cd client && npm run build",

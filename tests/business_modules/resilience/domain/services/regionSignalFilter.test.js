@@ -14,7 +14,9 @@ describe('regionSignalFilter', () => {
       { source_type: 'news', evidence: 'Residents in Kiryat Shmona entered shelters.' },
     ];
 
-    assert.equal(filterSignalsForScope(signals, 'national').length, 2);
+    const out = filterSignalsForScope(signals, 'national');
+    assert.equal(out.length, 2);
+    assert.ok(out[0].scopeDecision);
   });
 
   it('matches northern geography in news evidence', () => {
@@ -41,7 +43,12 @@ describe('regionSignalFilter', () => {
       isNorthSignal({
         source_type: 'news',
         evidence: 'general municipal update',
-        geo: { kind: 'resolved', pboSubregionId: 'golan', geoAreaTags: ['north', 'golan_heights'] },
+        geo: {
+          kind: 'resolved',
+          pboSubregionId: 'golan',
+          geoAreaTags: ['north', 'golan_heights'],
+          policy: { usableForMetrics: true, scopeConfidence: 'high' },
+        },
       }),
       true,
     );
@@ -56,7 +63,7 @@ describe('regionSignalFilter', () => {
           kind: 'resolved',
           pboSubregionId: 'golan',
           geoAreaTags: ['north', 'golan_heights'],
-          usableForMetrics: false,
+          policy: { usableForMetrics: false, scopeConfidence: 'low' },
         },
       }),
       false,
@@ -70,7 +77,9 @@ describe('regionSignalFilter', () => {
       { source_type: 'naftali', evidence: 'Weekly municipality report.' },
     ];
 
-    assert.deepEqual(filterSignalsForScope(signals, 'north'), [signals[1], signals[2]]);
+    const out = filterSignalsForScope(signals, 'north');
+    assert.deepEqual(out.map((s) => s.evidence), [signals[1].evidence, signals[2].evidence]);
+    assert.equal(out[0].scopeDecision.isNorthRelevant, true);
   });
 
   it('normalizes unknown scopes to national', () => {

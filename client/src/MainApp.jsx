@@ -29,7 +29,7 @@ import { EducationTab } from './components/EducationTab.jsx';
 import { MunicipalitiesTab } from './components/MunicipalitiesTab.jsx';
 import { PboRegionalDailyReports } from './components/PboRegionalDailyReports.jsx';
 import { NaftaliTab } from './components/NaftaliTab.jsx';
-import { ChatbotManualReportsTab } from './components/ChatbotManualReportsTab.jsx';
+import { ReportBotManualReportsTab } from './components/ReportBotManualReportsTab.jsx';
 import { VisitsTab } from './components/VisitsTab.jsx';
 import { useLanguage } from './context/LanguageContext.jsx';
 import { LanguageSelector } from './components/LanguageSelector.jsx';
@@ -49,7 +49,7 @@ const LS_POOL_TAB = 'vibes-witch:poolTab';
 const LS_PBO_TAB = 'vibes-witch:pboTab';
 const LS_PBO_REGION = 'vibes-witch:pboRegion';
 const LS_REPORT_SCOPE = 'vibes-witch:reportScope';
-const MAIN_TAB_IDS = new Set(['report', 'pbo-reports', 'chatbot', 'visits', 'pools']);
+const MAIN_TAB_IDS = new Set(['report', 'pbo-reports', 'report-bot', 'visits', 'pools']);
 const PBO_TAB_IDS = new Set(['local', 'regional']);
 /** Northern PBO sub-regions (maps to divisions in regions.json; Galma ≈ Western Galilee / גלמ״ע). */
 const PBO_REGION_IDS_ORDER = ['naftali', 'golan', 'baram', 'hiram', 'galma'];
@@ -71,6 +71,7 @@ function normalizeMainTabSection(section) {
     return 'pbo-reports';
   }
   if (section === 'drift') return 'report';
+  if (section === 'chatbot') return 'report-bot';
   return section;
 }
 
@@ -116,8 +117,8 @@ function readDeepLink() {
         const restTab = String(rest).trim().toLowerCase();
         if (PBO_TAB_IDS.has(restTab)) pboSub = restTab;
       }
-    } else if (hash === 'chatbot') {
-      section = 'chatbot';
+    } else if (hash === 'report-bot' || hash === 'chatbot') {
+      section = 'report-bot';
     } else {
       section = hash.split('-')[0] || '';
     }
@@ -325,7 +326,7 @@ function AppShell() {
   const TABS = [
     { id: 'report', label: t('tab.report') },
     { id: 'pbo-reports', label: t('tab.pboReports') },
-    { id: 'chatbot', label: t('tab.chatbot') },
+    { id: 'report-bot', label: t('tab.reportBot') },
     { id: 'visits', label: t('tab.visits') },
     { id: 'pools', label: t('tab.pools') },
   ];
@@ -697,7 +698,7 @@ function AppShell() {
           </>
         )}
 
-        {activeTab === 'chatbot' && <ChatbotManualReportsTab />}
+        {activeTab === 'report-bot' && <ReportBotManualReportsTab />}
 
         {activeTab === 'visits' && <VisitsTab />}
 

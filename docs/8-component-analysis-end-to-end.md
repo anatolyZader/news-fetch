@@ -373,7 +373,7 @@ Each source produces a `signals/signals-{source}-{YYYY-MM-DD}.json` file (field 
 | **PBO municipality** | `pbo` | `business_modules/pbo_report_muni` | Excel `north_<day>_4.xlsx` (structured per-component scores per municipality) | `extract-pbo-signals.js` directly emits `signals-pbo-{date}.json` (no LLM extraction — structured input is converted by polarity around 0.5) | Always `north` |
 | **PBO regional** | `pbo_regional` | `business_modules/pbo_report_regional` | Excel per regional cluster (`baram`, `galma`, `golan`, `hiram`, `naftali`) | Similar conversion path | Always `north` |
 | **Naftali** | `naftali` | `business_modules/naftali` | Weekly municipal questionnaire | `extract-naftali-signals.js` maps severity dimensions and free-text fields → signals | Always `north` |
-| **Survey** (optional) | (varies) | `business_modules/survey` | Municipality survey Excel | `analyze-survey.js` (one-off analysis path) | Configurable |
+| **Survey** (optional) | (varies) | `business_modules/resilience` (survey Excel + writers under `app/` / `infrastructure/adapters/`) | Municipality survey Excel | `analyze-survey.js` (one-off analysis path) | Configurable |
 
 Two tags — `field`, `pbo`, `pbo_regional`, `naftali`, `whatsapp` — are also marked `ALWAYS_NORTH_SOURCE_TYPES` in `regionSignalFilter.js`, meaning their signals are *always* counted toward the north scope regardless of geographic terms in the evidence text. News and radio signals are scope-filtered by Hebrew/English north terminology (Galilee, Golan, Kiryat Shmona, Metula, חורפיש, מטולה, רמת הגולן, …).
 
@@ -494,7 +494,7 @@ The signal-extraction prompt then explicitly instructs the LLM to be **highly se
 
 ### 5.8 Survey (one-off path)
 
-`business_modules/survey/` and `business_modules/resilience/input/analyze-survey.js` cover a separate, ad-hoc municipality-survey analysis flow that produces its own report alongside the daily one.
+Field survey analysis lives under **`business_modules/resilience`** (`surveyExcelLoader`, `surveyEvaluator`, `surveyReportWriter`, and `resilience/input/analyze-survey.js`) and covers a separate, ad-hoc municipality-survey analysis flow that produces its own report alongside the daily one.
 
 ---
 
@@ -1228,10 +1228,7 @@ business_modules/
 │   ├── input/extract-naftali-signals.js           # Excel → signals
 │   ├── app/naftaliService.js
 │
-├── survey/                                        # Source 8 — Ad-hoc municipality survey
-│   └── ...
-│
-└── resilience/                                    # The brain
+├── resilience/                                    # The brain (+ field survey Excel → MD/JSON under app/survey*.js, input/analyze-survey.js)
     ├── domain/
     │   ├── resilienceComponents.js                # 8 component definitions, principles, manifestations
     │   ├── ports/IResilienceLlmPort.js
@@ -1247,6 +1244,8 @@ business_modules/
     │       ├── reviewerScoreAdjustments.js        # Override blend/replace logic
     │       └── signalWeightsFit.js                # T5 placeholder for ridge regression
     ├── app/
+    │   ├── surveyEvaluator.js                     # Field survey — Haiku qualitative pass
+    │   ├── surveyReportWriter.js                  # Field survey — MD/JSON output
     │   ├── contentBatchFromMdArticles.js
     │   ├── driftService.js                        # /api/resilience/drift aggregation
     │   ├── overridesService.js                    # Override CRUD + validation
@@ -1264,7 +1263,7 @@ business_modules/
     │   ├── signalVerification.js                  # n-gram containment + within-batch dedup
     │   └── adapters/
     │       ├── anthropicResilienceLlmAdapter.js
-    │       └── resilienceReportFsAdapter.js
+    │       └── surveyExcelLoader.js               # Field survey — Google Forms Excel → grouped answers
     └── input/
         ├── analyze-resilience.js                  # All-in-one: news/radio MD → report
         ├── analyze-survey.js                      # Survey path

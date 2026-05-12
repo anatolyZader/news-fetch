@@ -1,48 +1,633 @@
 {
   "version": "north-geo-2026-05-10",
   "source": "north-localities-v1",
-  "description": "Northern locality reference for PBO-aligned subregions and distance-to-border analytics. Expand names/aliases for production coverage.",
-  "localities": [
-    {
-      "canonicalKey": "kiryat_shmona",
-      "officialHebrewName": "קריית שמונה",
-      "names": ["קריית שמונה", "Kiryat Shmona", "Qiryat Shemona"],
-      "aliases": ["ק שמונה"],
-      "lat": 33.2079,
-      "lon": 35.5721,
-      "subregionId": "naftali",
-      "municipalityType": "city",
-      "parentCouncilKey": null
+  "description": "Northern locality reference: municipalities from regions.json, geocoded via Nominatim. Bump version when editing rows.",
+  "schema": "north-reference-subregions-v1",
+  "_meta": {
+    "generated_from": "regions.json",
+    "nominatim": "https://nominatim.openstreetmap.org",
+    "generated_at": "2026-05-12T10:31:28.987Z"
+  },
+  "subregions": {
+    "naftali": {
+      "localities": [
+        {
+          "canonicalKey": "he_d792d79cd799d79c20d7aad7",
+          "officialHebrewName": "גליל תחתון",
+          "names": [
+            "גליל תחתון"
+          ],
+          "lat": 32.82766,
+          "lon": 35.492708,
+          "municipalityType": "municipality",
+          "parentCouncilKey": null
+        },
+        {
+          "canonicalKey": "he_d793d799d7a820d797d7a0d7",
+          "officialHebrewName": "דיר חנא",
+          "names": [
+            "דיר חנא"
+          ],
+          "lat": 32.862504,
+          "lon": 35.366661,
+          "municipalityType": "municipality",
+          "parentCouncilKey": null
+        },
+        {
+          "canonicalKey": "he_d798d791d7a8d799d794",
+          "officialHebrewName": "טבריה",
+          "names": [
+            "טבריה"
+          ],
+          "lat": 32.793852,
+          "lon": 35.532857,
+          "municipalityType": "municipality",
+          "parentCouncilKey": null
+        },
+        {
+          "canonicalKey": "he_d798d795d791d7902dd796d7",
+          "officialHebrewName": "טובא-זנגריה",
+          "names": [
+            "טובא-זנגריה"
+          ],
+          "lat": 32.96632,
+          "lon": 35.594424,
+          "municipalityType": "municipality",
+          "parentCouncilKey": null
+        },
+        {
+          "canonicalKey": "he_d799d791d7a0d790d79c",
+          "officialHebrewName": "יבנאל",
+          "names": [
+            "יבנאל"
+          ],
+          "lat": 32.705456,
+          "lon": 35.505262,
+          "municipalityType": "municipality",
+          "parentCouncilKey": null
+        },
+        {
+          "canonicalKey": "he_d799d7a1d795d79320d794d7",
+          "officialHebrewName": "יסוד המעלה",
+          "names": [
+            "יסוד המעלה"
+          ],
+          "lat": 33.057381,
+          "lon": 35.603016,
+          "municipalityType": "municipality",
+          "parentCouncilKey": null
+        },
+        {
+          "canonicalKey": "he_d79bd7a4d7a820d79bd79ed7",
+          "officialHebrewName": "כפר כמא",
+          "names": [
+            "כפר כמא"
+          ],
+          "lat": 32.721053,
+          "lon": 35.440771,
+          "municipalityType": "municipality",
+          "parentCouncilKey": null
+        },
+        {
+          "canonicalKey": "he_d79ed792d793d79c",
+          "officialHebrewName": "מגדל",
+          "names": [
+            "מגדל"
+          ],
+          "lat": 32.838715,
+          "lon": 35.499363,
+          "municipalityType": "municipality",
+          "parentCouncilKey": null
+        },
+        {
+          "canonicalKey": "he_d79ed7a2d79cd79420d799d7",
+          "officialHebrewName": "מעלה יוסף",
+          "names": [
+            "מעלה יוסף"
+          ],
+          "lat": 33.047167,
+          "lon": 35.258548,
+          "municipalityType": "municipality",
+          "parentCouncilKey": null
+        },
+        {
+          "canonicalKey": "he_d7a1d790d79227d795d7a8",
+          "officialHebrewName": "סאג'ור",
+          "names": [
+            "סאג'ור"
+          ],
+          "lat": 32.941989,
+          "lon": 35.342198,
+          "municipalityType": "municipality",
+          "parentCouncilKey": null
+        },
+        {
+          "canonicalKey": "he_d7a2d799d79cd791d795d79f",
+          "officialHebrewName": "עילבון",
+          "names": [
+            "עילבון"
+          ],
+          "lat": 32.834923,
+          "lon": 35.401105,
+          "municipalityType": "municipality",
+          "parentCouncilKey": null
+        },
+        {
+          "canonicalKey": "kiryat_shmona",
+          "officialHebrewName": "קריית שמונה",
+          "names": [
+            "קריית שמונה",
+            "קרית שמונה",
+            "Kiryat Shmona",
+            "Qiryat Shemona"
+          ],
+          "aliases": [
+            "ק שמונה"
+          ],
+          "lat": 33.2079,
+          "lon": 35.5721,
+          "municipalityType": "city",
+          "parentCouncilKey": null
+        },
+        {
+          "canonicalKey": "metula",
+          "officialHebrewName": "מטולה",
+          "names": [
+            "מטולה",
+            "Metula"
+          ],
+          "lat": 33.2772,
+          "lon": 35.5784,
+          "municipalityType": "town",
+          "parentCouncilKey": null
+        },
+        {
+          "canonicalKey": "safed",
+          "officialHebrewName": "צפת",
+          "names": [
+            "צפת",
+            "Safed",
+            "Tzfat"
+          ],
+          "lat": 32.96463,
+          "lon": 35.502451,
+          "municipalityType": "city",
+          "parentCouncilKey": null,
+          "note": "PBO subregion per regions.json (נפתלי); geographic 'Safed' area spans multiple admin groupings."
+        }
+      ]
     },
-    {
-      "canonicalKey": "metula",
-      "officialHebrewName": "מטולה",
-      "names": ["מטולה", "Metula"],
-      "lat": 33.2772,
-      "lon": 35.5784,
-      "subregionId": "naftali",
-      "municipalityType": "town",
-      "parentCouncilKey": null
+    "golan": {
+      "localities": [
+        {
+          "canonicalKey": "he_d791d795d7a7d7a2d790d7aa",
+          "officialHebrewName": "בוקעאתא",
+          "names": [
+            "בוקעאתא"
+          ],
+          "lat": 33.20076,
+          "lon": 35.777989,
+          "municipalityType": "municipality",
+          "parentCouncilKey": null
+        },
+        {
+          "canonicalKey": "he_d792d795d79cd79f",
+          "officialHebrewName": "גולן",
+          "names": [
+            "גולן",
+            "מועצה אזורית גולן",
+            "Golan Regional Council"
+          ],
+          "lat": 32.994,
+          "lon": 35.688,
+          "note": "Representative point near Katzrin; 'גולן' in regions.json is the regional council area, not a street named Golan.",
+          "municipalityType": "municipality",
+          "geoEntityType": "regional_council",
+          "parentCouncilKey": null
+        },
+        {
+          "canonicalKey": "he_d79ed79227d793d79c20d7a9",
+          "officialHebrewName": "מג'דל שמס",
+          "names": [
+            "מג'דל שמס"
+          ],
+          "lat": 33.268429,
+          "lon": 35.769371,
+          "municipalityType": "municipality",
+          "parentCouncilKey": null
+        },
+        {
+          "canonicalKey": "he_d79ed7a1d7a2d793d794",
+          "officialHebrewName": "מסעדה",
+          "names": [
+            "מסעדה"
+          ],
+          "lat": 33.231214,
+          "lon": 35.757483,
+          "municipalityType": "municipality",
+          "parentCouncilKey": null
+        },
+        {
+          "canonicalKey": "he_d7a227d79227d7a8",
+          "officialHebrewName": "ע'ג'ר",
+          "names": [
+            "ע'ג'ר"
+          ],
+          "lat": 33.272173,
+          "lon": 35.623911,
+          "municipalityType": "municipality",
+          "parentCouncilKey": null
+        },
+        {
+          "canonicalKey": "he_d7a2d799d79f20d7a7d7a0d7",
+          "officialHebrewName": "עין קנייא",
+          "names": [
+            "עין קנייא"
+          ],
+          "lat": 33.236028,
+          "lon": 35.731055,
+          "municipalityType": "municipality",
+          "parentCouncilKey": null
+        },
+        {
+          "canonicalKey": "katzrin",
+          "officialHebrewName": "קצרין",
+          "names": [
+            "קצרין",
+            "Katzrin"
+          ],
+          "lat": 32.992026,
+          "lon": 35.6877,
+          "municipalityType": "town",
+          "parentCouncilKey": null
+        }
+      ]
     },
-    {
-      "canonicalKey": "katzrin",
-      "officialHebrewName": "קצרין",
-      "names": ["קצרין", "Katzrin"],
-      "lat": 32.995,
-      "lon": 35.689,
-      "subregionId": "golan",
-      "municipalityType": "town",
-      "parentCouncilKey": null
+    "baram": {
+      "localities": [
+        {
+          "canonicalKey": "he_d791d799d7aa20d79227d79f",
+          "officialHebrewName": "בית ג'ן",
+          "names": [
+            "בית ג'ן"
+          ],
+          "lat": 32.964474,
+          "lon": 35.378143,
+          "municipalityType": "municipality",
+          "parentCouncilKey": null
+        },
+        {
+          "canonicalKey": "he_d79227d7a92028d792d795d7",
+          "officialHebrewName": "ג'ש (גוש חלב)",
+          "names": [
+            "ג'ש (גוש חלב)"
+          ],
+          "lat": 33.016635,
+          "lon": 35.445524,
+          "municipalityType": "municipality",
+          "parentCouncilKey": null
+        },
+        {
+          "canonicalKey": "he_d797d795d7a8d7a4d799d7a9",
+          "officialHebrewName": "חורפיש",
+          "names": [
+            "חורפיש"
+          ],
+          "lat": 33.01737,
+          "lon": 35.346955,
+          "municipalityType": "municipality",
+          "parentCouncilKey": null
+        },
+        {
+          "canonicalKey": "he_d799d790d7a0d795d7972dd7",
+          "officialHebrewName": "יאנוח-ג'ת",
+          "names": [
+            "יאנוח-ג'ת"
+          ],
+          "lat": 32.973664,
+          "lon": 35.23285,
+          "municipalityType": "municipality",
+          "parentCouncilKey": null
+        },
+        {
+          "canonicalKey": "he_d79bd7a1d7a8d79020d7a1d7",
+          "officialHebrewName": "כסרא סמיע",
+          "names": [
+            "כסרא סמיע"
+          ],
+          "lat": 32.988357,
+          "lon": 35.319937,
+          "municipalityType": "municipality",
+          "parentCouncilKey": null
+        },
+        {
+          "canonicalKey": "he_d79ed796d7a8d7a2d794",
+          "officialHebrewName": "מזרעה",
+          "names": [
+            "מזרעה"
+          ],
+          "lat": 32.983303,
+          "lon": 35.098342,
+          "municipalityType": "municipality",
+          "parentCouncilKey": null
+        },
+        {
+          "canonicalKey": "he_d79ed7a2d79cd795d7aa20d7",
+          "officialHebrewName": "מעלות תרשיחא",
+          "names": [
+            "מעלות תרשיחא"
+          ],
+          "lat": 33.015739,
+          "lon": 35.275967,
+          "municipalityType": "municipality",
+          "parentCouncilKey": null
+        },
+        {
+          "canonicalKey": "he_d7a0d797d7a3",
+          "officialHebrewName": "נחף",
+          "names": [
+            "נחף"
+          ],
+          "lat": 32.934651,
+          "lon": 35.317009,
+          "municipalityType": "municipality",
+          "parentCouncilKey": null
+        },
+        {
+          "canonicalKey": "he_d7a4d7a1d795d798d794",
+          "officialHebrewName": "פסוטה",
+          "names": [
+            "פסוטה"
+          ],
+          "lat": 33.048438,
+          "lon": 35.310025,
+          "municipalityType": "municipality",
+          "parentCouncilKey": null
+        },
+        {
+          "canonicalKey": "he_d7a4d7a7d799d7a2d799d79f",
+          "officialHebrewName": "פקיעין",
+          "names": [
+            "פקיעין"
+          ],
+          "lat": 32.977238,
+          "lon": 35.333989,
+          "municipalityType": "municipality",
+          "parentCouncilKey": null
+        }
+      ]
     },
-    {
-      "canonicalKey": "safed",
-      "officialHebrewName": "צפת",
-      "names": ["צפת", "Safed", "Tzfat"],
-      "lat": 32.9646,
-      "lon": 35.496,
-      "subregionId": "hiram",
-      "municipalityType": "city",
-      "parentCouncilKey": null
+    "hiram": {
+      "localities": [
+        {
+          "canonicalKey": "bu_eine_nujeidat",
+          "officialHebrewName": "בועינה - נוג'ידת",
+          "names": [
+            "בועינה - נוג'ידת",
+            "בועינה נוג'ידת",
+            "Bu'eine Nujeidat"
+          ],
+          "lat": 32.8062,
+          "lon": 35.3649,
+          "municipalityType": "municipality",
+          "parentCouncilKey": null
+        },
+        {
+          "canonicalKey": "he_d79bd7a4d7a820d795d7a8d7",
+          "officialHebrewName": "כפר ורדים",
+          "names": [
+            "כפר ורדים"
+          ],
+          "lat": 32.997251,
+          "lon": 35.272534,
+          "municipalityType": "municipality",
+          "parentCouncilKey": null
+        },
+        {
+          "canonicalKey": "he_d79bd7a4d7a820d79ed7a0d7",
+          "officialHebrewName": "כפר מנדא",
+          "names": [
+            "כפר מנדא"
+          ],
+          "lat": 32.811409,
+          "lon": 35.259756,
+          "municipalityType": "municipality",
+          "parentCouncilKey": null
+        },
+        {
+          "canonicalKey": "he_d79bd7a8d79ed799d790d79c",
+          "officialHebrewName": "כרמיאל",
+          "names": [
+            "כרמיאל"
+          ],
+          "lat": 32.91591,
+          "lon": 35.293429,
+          "municipalityType": "municipality",
+          "parentCouncilKey": null
+        },
+        {
+          "canonicalKey": "he_d79ed792d790d7a8",
+          "officialHebrewName": "מגאר",
+          "names": [
+            "מגאר"
+          ],
+          "lat": 32.88582,
+          "lon": 35.406202,
+          "municipalityType": "municipality",
+          "parentCouncilKey": null
+        },
+        {
+          "canonicalKey": "he_d79ed792d793d79c20d7aad7",
+          "officialHebrewName": "מגדל תפן",
+          "names": [
+            "מגדל תפן"
+          ],
+          "lat": 32.975392,
+          "lon": 35.277088,
+          "municipalityType": "municipality",
+          "parentCouncilKey": null
+        },
+        {
+          "canonicalKey": "he_d79ed7a9d792d791",
+          "officialHebrewName": "משגב",
+          "names": [
+            "משגב"
+          ],
+          "lat": 32.91971,
+          "lon": 35.29473,
+          "municipalityType": "municipality",
+          "parentCouncilKey": null
+        },
+        {
+          "canonicalKey": "he_d7a1d79727d7a0d799d79f",
+          "officialHebrewName": "סח'נין",
+          "names": [
+            "סח'נין"
+          ],
+          "lat": 32.863805,
+          "lon": 35.302318,
+          "municipalityType": "municipality",
+          "parentCouncilKey": null
+        },
+        {
+          "canonicalKey": "he_d7a2d7a8d790d791d794",
+          "officialHebrewName": "עראבה",
+          "names": [
+            "עראבה"
+          ],
+          "lat": 32.848626,
+          "lon": 35.335827,
+          "municipalityType": "municipality",
+          "parentCouncilKey": null
+        },
+        {
+          "canonicalKey": "he_d7a9d7a2d791",
+          "officialHebrewName": "שעב",
+          "names": [
+            "שעב"
+          ],
+          "lat": 32.890593,
+          "lon": 35.238376,
+          "municipalityType": "municipality",
+          "parentCouncilKey": null
+        },
+        {
+          "canonicalKey": "he_d7a9d7a4d7a8d7a2d79d",
+          "officialHebrewName": "שפרעם",
+          "names": [
+            "שפרעם"
+          ],
+          "lat": 32.806358,
+          "lon": 35.171264,
+          "municipalityType": "municipality",
+          "parentCouncilKey": null
+        }
+      ]
+    },
+    "galma": {
+      "localities": [
+        {
+          "canonicalKey": "he_d790d7a2d791d79cd799d79f",
+          "officialHebrewName": "אעבלין",
+          "names": [
+            "אעבלין"
+          ],
+          "lat": 32.820917,
+          "lon": 35.19133,
+          "municipalityType": "municipality",
+          "parentCouncilKey": null
+        },
+        {
+          "canonicalKey": "he_d79227d793d799d799d793d7",
+          "officialHebrewName": "ג'דיידה מכר",
+          "names": [
+            "ג'דיידה מכר"
+          ],
+          "lat": 32.929535,
+          "lon": 35.146728,
+          "municipalityType": "municipality",
+          "parentCouncilKey": null
+        },
+        {
+          "canonicalKey": "he_d793d799d7a820d790d79c20",
+          "officialHebrewName": "דיר אל אסד",
+          "names": [
+            "דיר אל אסד"
+          ],
+          "lat": 32.934772,
+          "lon": 35.266828,
+          "municipalityType": "municipality",
+          "parentCouncilKey": null
+        },
+        {
+          "canonicalKey": "he_d799d7a8d79bd790",
+          "officialHebrewName": "ירכא",
+          "names": [
+            "ירכא"
+          ],
+          "lat": 32.956311,
+          "lon": 35.211352,
+          "municipalityType": "municipality",
+          "parentCouncilKey": null
+        },
+        {
+          "canonicalKey": "he_d79bd7a4d7a820d799d790d7",
+          "officialHebrewName": "כפר יאסיף",
+          "names": [
+            "כפר יאסיף"
+          ],
+          "lat": 32.953307,
+          "lon": 35.165698,
+          "municipalityType": "municipality",
+          "parentCouncilKey": null
+        },
+        {
+          "canonicalKey": "he_d79ed79227d79320d790d79c",
+          "officialHebrewName": "מג'ד אל-כרום",
+          "names": [
+            "מג'ד אל-כרום"
+          ],
+          "lat": 32.922577,
+          "lon": 35.25795,
+          "municipalityType": "municipality",
+          "parentCouncilKey": null
+        },
+        {
+          "canonicalKey": "he_d79ed798d79420d790d7a9d7",
+          "officialHebrewName": "מטה אשר",
+          "names": [
+            "מטה אשר"
+          ],
+          "lat": 32.977131,
+          "lon": 35.166334,
+          "municipalityType": "municipality",
+          "parentCouncilKey": null
+        },
+        {
+          "canonicalKey": "he_d79ed7a2d799d79cd799d790",
+          "officialHebrewName": "מעיליא",
+          "names": [
+            "מעיליא"
+          ],
+          "lat": 33.028063,
+          "lon": 35.25833,
+          "municipalityType": "municipality",
+          "parentCouncilKey": null
+        },
+        {
+          "canonicalKey": "he_d7a0d794d7a8d799d794",
+          "officialHebrewName": "נהריה",
+          "names": [
+            "נהריה"
+          ],
+          "lat": 33.006306,
+          "lon": 35.094558,
+          "municipalityType": "municipality",
+          "parentCouncilKey": null
+        },
+        {
+          "canonicalKey": "he_d7a2d79bd795",
+          "officialHebrewName": "עכו",
+          "names": [
+            "עכו"
+          ],
+          "lat": 32.928173,
+          "lon": 35.075638,
+          "municipalityType": "municipality",
+          "parentCouncilKey": null
+        },
+        {
+          "canonicalKey": "he_d7a9d79cd795d79ed799",
+          "officialHebrewName": "שלומי",
+          "names": [
+            "שלומי"
+          ],
+          "lat": 33.07605,
+          "lon": 35.148584,
+          "municipalityType": "municipality",
+          "parentCouncilKey": null
+        }
+      ]
     }
-  ]
+  }
 }
