@@ -1,5 +1,7 @@
 # Geographic enrichment — developer guide
 
+**Location:** `docs/main_docu_files/` (canonical main documentation — see [README](./README.md))
+
 This document describes **deterministic geographic enrichment** in the app: how localities are resolved to a canonical **`geo` envelope**, where that envelope is **attached** (WhatsApp signals, survey reports, APIs), how **versions** keep results auditable, and how this interacts with **north scoping** and evidence storage.
 
 ---

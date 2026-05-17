@@ -6,9 +6,9 @@
 
 | Document | Use when you need |
 |----------|-------------------|
-| [Daily pipeline (news)](../pipeline.md) | Fetch-to-markdown and classic news analysis flow (note: some paths in that file still mention legacy `src/resilience/`; canonical code lives under `business_modules/resilience/` — see §2). |
+| [Daily pipeline (news)](../main_docu_files/pipeline.md) | Fetch-to-markdown and classic news analysis flow; canonical code under `business_modules/resilience/`. |
 | [System overview](../../product_docs/architecture/system-overview.md) | Subsystem map, constraints, “where do I change X?” |
-| [Geographic analysis — developer guide](../GEOGRAPHIC-ANALYSIS.md) | `geo` envelope contract, consumer rules, wiring. |
+| [Geographic analysis — developer guide](../main_docu_files/GEOGRAPHIC-ANALYSIS.md) | `geo` envelope contract, consumer rules, wiring. |
 | [Geographic analysis — implementation review](./geographic-analysis-implementation.md) | Match stages, fuzzy policy, unknown sink, audit fields. |
 
 ---
@@ -117,11 +117,13 @@ Readers often conflate these; they serve different operational models.
 
 **Implication:** “North” in the product is primarily **a filtered view of evidence** persisted as a **separate report artifact**, not a post-hoc filter applied inside `runResilienceAssessment` unless your operational pipeline always produces both files.
 
-### 2.3 Client and API contract for scope
+### 2.3 Client and API contract for scope and display tier
 
-- [`GET /api/report/today`](../../app.js) accepts `?scope=north` or default national.  
-- [`useTodayReport(scope)`](../../client/src/hooks/useAnalysis.js) passes that query string when `scope === 'north'`.  
-- [`MainApp.jsx`](../../client/src/MainApp.jsx) restricts report tabs to `national` and `north` via `REPORT_SCOPES`.
+- [`GET /api/report/today`](../../app.js) accepts `?scope=north` or default national, and `?view=operator` (default) or `?view=analyst` (only when the authenticated user’s email is listed in `RESILIENCE_ANALYST_EMAILS`).  
+- Responses include `display_view` and redact numeric scores for operator tier via [`assessmentDisplayTier.js`](../../business_modules/resilience/domain/services/assessmentDisplayTier.js).  
+- [`GET /api/resilience/display-capabilities`](../../app.js) returns `{ canViewAnalyst }` for the optional signed-in user.  
+- [`useTodayReport(scope, view)`](../../client/src/hooks/useAnalysis.js) passes scope and view query params.  
+- [`MainApp.jsx`](../../client/src/MainApp.jsx) shows an **Analyst** toggle when `canViewAnalyst` is true; drift and override APIs are gated when the allowlist is configured.
 
 ---
 
@@ -280,7 +282,7 @@ Some components expose **sub-facets** (see `computeFacets` and [`componentFacets
 
 ## 6. Geographic analysis and the main resilience workflow
 
-Geographic capability is deliberately **non-LLM**: a deterministic resolver turns free-text locality strings into a **versioned `geo` envelope** (subregion, tags, distance-to-border band, match diagnostics, quality, and policy flags). That design is documented in [GEOGRAPHIC-ANALYSIS.md](../GEOGRAPHIC-ANALYSIS.md) and reviewed in depth in [geographic-analysis-implementation.md](./geographic-analysis-implementation.md).
+Geographic capability is deliberately **non-LLM**: a deterministic resolver turns free-text locality strings into a **versioned `geo` envelope** (subregion, tags, distance-to-border band, match diagnostics, quality, and policy flags). That design is documented in [GEOGRAPHIC-ANALYSIS.md](../main_docu_files/GEOGRAPHIC-ANALYSIS.md) and reviewed in depth in [geographic-analysis-implementation.md](./geographic-analysis-implementation.md).
 
 ### 6.1 Module boundary
 
@@ -371,7 +373,9 @@ Unknown or ambiguous localities can be routed to review sinks when configured (`
 
 ## 8. Weaknesses and risks
 
-1. **Documentation drift:** [`docs/pipeline.md`](../pipeline.md) still references `src/resilience/behaviorSignals.js` in places; canonical implementation is [`business_modules/resilience/domain/services/behaviorSignals.js`](../../business_modules/resilience/domain/services/behaviorSignals.js).  
+**Phase-1 transparency (addressed in code, not eliminated):** Each assess run persists `assessment.methodology` (author-set weights manifest on disk, scope-decision counts, epistemic copy, advisory `tuning_proposal`). Operator UI shows epistemic banners and north keyword-fallback warnings; `GET /api/report/today?scope=north` returns `north_requires_assess_signals` when no north artifact exists. **Still deferred:** multi-district scope, fitted weights, auto-applied tanhK/certM, merging `runResilienceAssessment` with `filterSignalsForScope`.
+
+1. **Documentation drift:** [`docs/main_docu_files/pipeline.md`](../main_docu_files/pipeline.md) now points at `business_modules/resilience/`; keep other docs in sync when modules move.  
 2. **North scope without geo on news:** keyword fallback can **false positive** (generic “north” language) or **false negative** (hyperlocal Hebrew placenames missing from `NORTH_TERMS`). WhatsApp benefits from structured locality + geo; news less so.  
 3. **Dual pipelines (`runResilienceAssessment` vs `assess-signals`):** easy to misconfigure if operators expect scope filtering in the API-run path when only national scoring ran.  
 4. **LLM brittleness:** model upgrades, prompt drift, and multilingual edge cases affect extraction rates; monitoring is mostly operational (logs, costs) rather than a packaged offline benchmark suite in-repo.  
@@ -382,11 +386,11 @@ Unknown or ambiguous localities can be routed to review sinks when configured (`
 
 ## 9. Recommended improvements
 
-1. **Doc alignment:** add a short “canonical paths (2026)” callout at the top of [`docs/pipeline.md`](../pipeline.md) pointing to `business_modules/resilience/` (small maintenance PR).  
+1. **Doc alignment:** canonical paths callout added to [`docs/main_docu_files/pipeline.md`](../main_docu_files/pipeline.md); keep other specs in sync when modules move.  
 2. **News + controlled geo:** extract candidate place names from titles or first paragraphs → `resolveLocalityName` with **strict** `usableForMetrics` rules and human review for new aliases.  
 3. **Gold-set evaluation:** periodic labeled audit set for extraction precision/recall by `signal_type` and by language.  
 4. **Calibration study:** treat `COMPONENT_TUNING` and selected weights as parameters fit with constraints (monotonicity, max sensitivity per day).  
-5. **Telemetry:** log histogram of `signal.scopeDecision.source` (`geo_tags` vs `keyword_fallback` vs `source_type`) per day to measure reliance on keywords.  
+5. **Telemetry:** `assessment.methodology.scope.scope_decision_summary` on each assess run; operator UI warns when north keyword-fallback share is high.  
 6. **Single mental model for scope:** either document-only clarity (status quo) or add an optional `scope` parameter to server-side assessment that applies `filterSignalsForScope` before scoring — product tradeoff between **one** national signal file vs **two** artifacts.
 
 ---
@@ -422,6 +426,8 @@ Non-exhaustive list of variables referenced across analysis, geo, and client-fac
 | `TRANSLATION_ENABLED` | Gate server-side report translation. |
 | `AUTH_REQUIRED` | Gate API routes and docs pages. |
 | `RESILIENCE_DRIFT_*` | Drift alert thresholds (override rate, polarization window) — see client i18n help strings. |
+| `RESILIENCE_ANALYST_EMAILS` | Comma-separated emails allowed analyst display tier and gated drift/overrides APIs. |
+| `RESILIENCE_NARRATIVE_INCLUDE_SCORES` | Default `false`; set `true` to pass 1–10 scores into narrative LLM prompts. |
 
 Always treat this table as **hints**; authoritative behavior is the code path that reads each variable.
 

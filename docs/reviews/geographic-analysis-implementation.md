@@ -7,7 +7,7 @@ This document is a **detailed review** of how geographic analysis is implemented
 - **Operations**: running geo in production, auditing versions, and handling unknowns.
 - **Future evolution**: avoiding semantic drift (locality vs council vs area) and preventing fuzzy matches from leaking into KPIs.
 
-This review complements (and links to) the developer guide: [`docs/GEOGRAPHIC-ANALYSIS.md`](../GEOGRAPHIC-ANALYSIS.md).
+This review complements (and links to) the developer guide: [`docs/main_docu_files/GEOGRAPHIC-ANALYSIS.md`](../main_docu_files/GEOGRAPHIC-ANALYSIS.md).
 
 ---
 
@@ -122,7 +122,7 @@ The shape is a discriminated union:
 
 The canonical description lives in:
 
-- `docs/GEOGRAPHIC-ANALYSIS.md`
+- `docs/main_docu_files/GEOGRAPHIC-ANALYSIS.md`
 - typedefs: `business_modules/geo/domain/value_objects/geoEnrichment.js`
 - schema: `business_modules/geo/domain/value_objects/geoEnrichmentSchema.js`
 
@@ -463,5 +463,5 @@ Operationally, the next steps that improve scalability and dashboards are:
 
 See the roadmap table in the developer guide for current tracking:
 
-- [`docs/GEOGRAPHIC-ANALYSIS.md`](../GEOGRAPHIC-ANALYSIS.md)
+- [`docs/main_docu_files/GEOGRAPHIC-ANALYSIS.md`](../main_docu_files/GEOGRAPHIC-ANALYSIS.md)
 

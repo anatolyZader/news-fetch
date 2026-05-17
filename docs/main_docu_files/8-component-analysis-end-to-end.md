@@ -1,5 +1,7 @@
 # 8-Component Community Resilience Analysis — Canonical Reference
 
+**Location:** `docs/main_docu_files/` (canonical main documentation; auto-synced sections — see [README](./README.md))
+
 **System:** Population Resilience Monitor (this app)
 **Framework:** Pikud HaOref / פיקוד העורף (Home Front Command) Community Resilience Model — based on Fran Norris (2008) and Israeli Civil Defense doctrine
 **Scope of this document:** the *complete* implementation reference — meaning of "community resilience" in this system, the eight components in depth, the full pipeline (data sources → ingestion → extraction → verification → deterministic scoring → reliability instruments → narration → reports → UI), the math, the operational guardrails, the QA harness, the practical reading guide for officers and reviewers, and the deferred-work backlog. Everything previously split across multiple notes is consolidated here.
@@ -77,208 +79,302 @@ Stable IDs are used throughout JSON, code, and i18n keys.
 
 ### 2.0 At-a-glance table
 
+<!-- docs-sync:BEGIN components-at-a-glance -->
+
+> **Auto-synced** from `business_modules/resilience/domain/resilienceComponents.js` on 2026-05-17. Do not edit between sync markers.
+
 | # | ID | English | Hebrew | What it measures (in one line) |
 |---|---|---|---|---|
-| 1 | `narrative` | Narrative | נרטיב | Public coping story; credibility of the official narrative; competing/contradictory narratives. |
-| 2 | `information_communication` | Information & Communication | מידע, תקשורת ושיתוף | Clarity, credibility, accessibility, and *actionability* of public messaging; rumor / misinformation dynamics. |
-| 3 | `lifesaving_behavior` | Effective Life-Saving Behavior | התנהגות אפקטיבית להצלת חיים | Whether people actually do the protective thing — sheltering, compliance, knowledge, enforcement, professional authority. |
-| 4 | `functional_continuity` | Functional Continuity | רציפות תפקודית | Continuity of work, education, commerce, services; "help them help themselves." |
-| 5 | `community_capital` | Community Capital & Resources | הון ומשאבי קהילה | Mobilization of human / physical / social network resources; volunteers; cross-sector cooperation. |
-| 6 | `leadership` | Leadership | מנהיגות | Formal & informal leadership as support, trust, example, representation across segments. |
-| 7 | `belonging_solidarity` | Belonging & Solidarity | שייכות וסולידריות | Shared fate; mutual aid; inclusion vs. scapegoating. |
-| 8 | `wellbeing_atrisk` | Physical & Mental Wellbeing (At-Risk) | דאגה לרווחה הפיזית והנפשית בדגש על אוכלוסיות סיכון | Identification of and adapted response to vulnerable populations (the chain is only as strong as its weakest link). |
+| 1 | `narrative` | Narrative | נרטיב | The ability of the public story surrounding the crisis to influence coping. |
+| 2 | `information_communication` | Information, Communication, and Sharing | מידע, תקשורת ושיתוף | The ability of information and public messaging to guide life-saving behavior, and to be clear, credible, available, and accessible to all population segments. |
+| 3 | `lifesaving_behavior` | Effective Life-Saving Behavior | התנהגות אפקטיבית להצלת חיים | The ability to prepare community mechanisms in routine times and activate them during emergencies to ensure effective life-saving behavior. |
+| 4 | `functional_continuity` | Functional Continuity | רציפות תפקודית | The ability of the community to continue functioning and providing essential personal and community services and needs according to the situation's characteristics. |
+| 5 | `community_capital` | Community Capital and Resources | הון ומשאבי קהילה | The ability to maximize community resources — human, physical, and social networks — through coordination between community mechanisms, cross-sector cooperation, activation of anchor organizations (local authority, community organizations), and volunteer mobilization. |
+| 6 | `leadership` | Leadership | מנהיגות | The perceived ability of formal and informal leadership — including religious figures, spiritual leaders, and community influencers — to lead the community, address its needs, and serve as a source of support and empowerment. |
+| 7 | `belonging_solidarity` | Belonging and Solidarity | שייכות וסולידריות | The ability to create a sense of belonging and mutual guarantee among community members. |
+| 8 | `wellbeing_atrisk` | Physical and Mental Wellbeing (At-Risk Populations) | דאגה לרווחה הפיזית והנפשית בדגש על אוכלוסיות סיכון | The ability of the community to identify and address the needs of vulnerable populations — in routine times and during emergencies. |
+
+<!-- docs-sync:END components-at-a-glance -->
 
 ### 2.1 Per-component facet decomposition
 
 Each component additionally exposes **2–4 facets** (defined in `business_modules/resilience/domain/services/componentFacets.js`). Facets are scored with the same directional math (no cap, no bootstrap, to keep them cheap). They are intentionally narrow — they expose *where* inside a component the evidence is concentrated; flat headlines often hide a clear sub-facet drift.
 
+<!-- docs-sync:BEGIN component-facets -->
+
+> **Auto-synced** from `business_modules/resilience/domain/services/componentFacets.js` on 2026-05-17. Do not edit between sync markers.
+
 | Component | Facets |
 |---|---|
 | `narrative` | `mood`, `coping_story`, `competing_narratives` |
-| `information_communication` | `clarity`, `accessibility`, `actionability` |
+| `information_communication` | `clarity`, `trust`, `accessibility`, `actionability` |
 | `lifesaving_behavior` | `compliance`, `knowledge`, `enforcement` |
-| `functional_continuity` | `essential_services`, `system_load`, `economic`, `recovery` |
-| `community_capital` | `mobilization`, `local_capacity`, `external_dependency` |
-| `leadership` | `visibility`, `credibility`, `coordination` |
+| `functional_continuity` | `essential_services`, `system_load`, `economic`, `recovery`, `displacement` |
+| `community_capital` | `mobilization`, `local_capacity`, `external_dependency`, `collective_action` |
+| `leadership` | `visibility`, `credibility`, `competence`, `coordination` |
 | `belonging_solidarity` | `mutual_aid`, `cohesion`, `inclusion` |
-| `wellbeing_atrisk` | `physical_harm`, `psychological_distress`, `care_access` |
+| `wellbeing_atrisk` | `physical_harm`, `psychological_distress`, `care_access`, `equity` |
+
+<!-- docs-sync:END component-facets -->
 
 Every signal type listed in a facet must route into its parent component via `SIGNAL_TO_COMPONENTS` (enforced by a unit test).
 
----
+<!-- docs-sync:BEGIN components-detail -->
+
+> **Auto-synced** from `resilienceComponents.js + componentFacets.js` on 2026-05-17. Do not edit between sync markers.
+
+
+Per-component reference below is regenerated from code. Extended narrative, signal-routing notes, and boundary rules in earlier manual sections may appear in pipeline stages §3+.
 
 ### 2.2 `narrative` — Narrative (נרטיב)
 
-**What it measures (per framework text):** the public story around the crisis and whether it supports or undermines coping; credibility/relevance of official narratives; coexistence of competing narratives. The framework explicitly contemplates competing frames, e.g. *"there is a purpose to the war"* vs. *"victory is not worth the price."*
+**What it measures:** The ability of the public story surrounding the crisis to influence coping. A dominant narrative can strengthen or weaken the community's ability to endure. The official narrative must be perceived as credible and relevant. Multiple narratives may coexist — complementary or conflicting. Examples of competing frames: "there is a purpose to the war" vs. "victory is not worth the price."
 
-**Guiding questions (verbatim intent from `RESILIENCE_COMPONENTS`):**
-
-- Is there a dominant narrative of successful coping?
-- Is the official narrative credible/relevant to the population?
-- Are contradictory narratives undermining the shared story?
+**Guiding questions (from `RESILIENCE_COMPONENTS`):**
+- To what extent is there a dominant narrative of successful coping?
+- To what extent is the official narrative perceived as credible and relevant by the population?
+- To what extent are there contradictory or competing narratives undermining the shared story?
 
 **Behavioral manifestations (from code):**
+- A narrative of successful coping is visible and circulating (residents/officials describe coping as effective)
+- The coping story reflects the entire population, not just a subset
+- Residents express that the authority's narrative is credible and reflects their lived reality
+- Competing or contradictory narratives are explicitly voiced by residents or groups
 
-- A narrative of successful coping is visible and circulating (residents/officials describe coping as effective).
-- The coping story reflects the entire population, not just a subset.
-- Residents express that the authority's narrative is credible and reflects their lived reality.
-- Competing or contradictory narratives are explicitly voiced by residents or groups.
+**Facets and signal types (from `componentFacets.js`):**
 
-**Primary signal types routed strongly into this component:**
+| Facet | Signal types |
+|---|---|
+| `mood` | `fear_expression`, `calm_confidence` |
+| `coping_story` | `resilience_narrative_positive`, `resilience_narrative_negative`, `post_event_recovery_indicator` |
+| `competing_narratives` | `rumor_spread`, `rumor_correction`, `harm_to_population`, `cultural_continuity` |
 
-- `resilience_narrative_positive` / `resilience_narrative_negative` — core narrative evidence.
-- `calm_confidence` (positive) / `fear_expression` (negative spillover) — community mood.
-- `rumor_spread` (negative) / `rumor_correction` (positive) — narrative/info contamination and repair.
-- `harm_to_population` (small negative spillover) — harm as narrative damage beyond pure wellbeing.
-- `cultural_continuity`, `post_event_recovery_indicator` — recovery/coping framing.
-
-**Boundary rules:**
-
-- `calm_confidence` maps to narrative + wellbeing (community mood) but is **not** the same construct as "official narrative credibility".
-- Field-observer summaries or abstract labels ("overall resilience present", "strong settlement", "population coping", "community functioning") must be **rejected** as narrative signals — they get split into specific factual signal types or discarded.
+**All facet signal types for this component:** `calm_confidence`, `cultural_continuity`, `fear_expression`, `harm_to_population`, `post_event_recovery_indicator`, `resilience_narrative_negative`, `resilience_narrative_positive`, `rumor_correction`, `rumor_spread`
 
 ---
 
-### 2.3 `information_communication` — Information, communication, and sharing (מידע, תקשורת ושיתוף)
+### 2.3 `information_communication` — Information, Communication, and Sharing (מידע, תקשורת ושיתוף)
 
-**What it measures:** whether messaging is **clear, credible, available, accessible**, and actually steers life-saving behavior; adapted channels; feedback loops; rumor/misinformation dynamics. When information is unavailable or not credible, rumors and misinformation fill the vacuum. The framework's stated goal is to channel the population toward effective life-saving behavior.
+**What it measures:** The ability of information and public messaging to guide life-saving behavior, and to be clear, credible, available, and accessible to all population segments. Includes adapted messaging for different sectors and feedback mechanisms. When information is unavailable or not credible, rumors and misinformation fill the vacuum. The goal is to channel the population toward effective life-saving behavior.
 
-**Guiding questions (intent):**
+**Guiding questions (from `RESILIENCE_COMPONENTS`):**
+- To what extent does the population perceive official information — guidance, instructions, and support — as effective and meeting their needs?
+- To what extent do information and messaging mechanisms adapted to different community sectors exist?
+- To what extent do information gaps remain, or is misinformation (fake news) being spread?
+- To what extent is information accessible and available to all population segments, including vulnerable groups?
+- To what extent does the guidance match the actual situation people face — is it actionable given real constraints (workers who cannot stop, shelters not accessible, no legal framework to comply), and does it cover edge cases (mass casualties, no nearby shelter, economic decisions under fire)?
 
-- To what extent does the population perceive official information as effective and meeting their needs?
-- To what extent do messaging mechanisms adapted to different community sectors exist?
-- To what extent do information gaps remain, or is misinformation being spread?
-- To what extent is information accessible to all population segments, including vulnerable groups?
-- To what extent does the guidance match the actual situation people face — is it actionable given real constraints (workers who cannot stop, shelters not accessible, no legal framework to comply), and does it cover edge cases?
+**Behavioral manifestations (from code):**
+- Residents state they receive the information they need to function during the emergency
+- Authority communication mechanisms are adapted to different resident groups (language, channel, format)
+- Residents express trust in information received from the authority
+- Population perceives national media information as relevant and addressing their needs
+- Residents report information gaps, confusion, or spread of rumors/misinformation
+- Guidance is reported as situation-matched and actionable — residents could follow it given real-world constraints
+- Guidance is reported as mismatched, impractical, or failing to cover critical scenarios (workers with no legal protection to stop, no shelter access, mass-casualty situations)
 
-**Behavioral manifestations:** residents state they receive the information they need; communication is adapted by language/channel/format; trust in authority information; perception of national media as relevant; reports of gaps/confusion/rumors; guidance reported as actionable; guidance reported as mismatched/impractical.
+**Facets and signal types (from `componentFacets.js`):**
 
-**Primary signal types:**
+| Facet | Signal types |
+|---|---|
+| `clarity` | `information_clarity`, `information_confusion`, `rumor_spread`, `rumor_correction` |
+| `trust` | `trusted_information_source`, `mistrusted_information_source`, `feedback_channel_open`, `feedback_channel_blocked` |
+| `accessibility` | `information_inclusivity_present`, `information_inclusivity_gap`, `active_information_seeking` |
+| `actionability` | `information_actionable_effective`, `information_effectiveness_gap` |
 
-- `information_clarity`, `information_confusion`, `rumor_spread`, `rumor_correction`.
-- `active_information_seeking`.
-- `information_actionable_effective`, `information_effectiveness_gap`.
-- `information_inclusivity_present` / `information_inclusivity_gap`.
-- `feedback_loop_closure` (also touches leadership).
-
-Many information signals also spill into **`lifesaving_behavior`** with smaller weights, reflecting the framework statement that information's purpose is to drive protective behavior.
-
----
-
-### 2.4 `lifesaving_behavior` — Effective life-saving behavior (התנהגות אפקטיבית להצלת חיים)
-
-**What it measures:** preparedness + activation of mechanisms that produce **actual protective behavior** (sheltering, compliance culture, knowledge/skills, enforcement, trust in professional authority). Includes embedding threat awareness, building knowledge and skills, formal and community enforcement, and personal/family/community action plans.
-
-**Key elements enumerated in code:**
-
-- Threat perception — population perceives the event as genuinely life-threatening.
-- Clarity of guidelines.
-- Population knowledge and skills.
-- Formal and community enforcement of protective guidelines.
-- Perception of leadership as a professional authority worthy of compliance.
-
-**Guiding questions:** does the population act according to life-saving guidelines; does it perceive the event as life-threatening; does it know and understand the guidelines; is enforcement happening; is leadership perceived as professional authority?
-
-**Primary signal types:**
-
-- Compliance: `compliance_enter_shelter`, `compliance_follow_instructions`, `non_compliance_exit_early`, `non_compliance_ignore_guidelines`.
-- Risk behaviors: `risk_exposure_behavior`, `panic_behavior`, `unsafe_gathering`.
-- Information quality (smaller weights): `information_clarity` (+), `information_confusion` (−), `information_actionable_effective` (+), `information_effectiveness_gap` (−).
-- `leadership_absence` (−) — leadership absence reduces compliance via authority.
-
-Information quality signals affect this component because unclear/non-actionable guidance is modeled as undermining protective behavior.
+**All facet signal types for this component:** `active_information_seeking`, `feedback_channel_blocked`, `feedback_channel_open`, `information_actionable_effective`, `information_clarity`, `information_confusion`, `information_effectiveness_gap`, `information_inclusivity_gap`, `information_inclusivity_present`, `mistrusted_information_source`, `rumor_correction`, `rumor_spread`, `trusted_information_source`
 
 ---
 
-### 2.5 `functional_continuity` — Functional continuity (רציפות תפקודית)
+### 2.4 `lifesaving_behavior` — Effective Life-Saving Behavior (התנהגות אפקטיבית להצלת חיים)
 
-**What it measures:** maintaining essential **daily functioning** and services under emergency conditions: work/study/commerce/leisure disruption, essential goods, institutions, supply chains, "help them help themselves."
+**What it measures:** The ability to prepare community mechanisms in routine times and activate them during emergencies to ensure effective life-saving behavior. Includes embedding threat awareness, building knowledge and skills, formal and community enforcement of protective guidelines, and planning and activating personal, family, and community action plans. Also includes embedding a culture of personal and community preparedness.
 
-**Principle in code:** preserve **functional, identity, and interpersonal** continuity. *Functional* = roles and tasks. *Identity* = sense of self and role. *Interpersonal* = relationships and social bonds. Maintaining continuity strengthens a sense of competence and reduces dependency. Examples: a citizen who continues working during an emergency; maintaining family roles after evacuation.
+**Key elements:**
+- Threat perception — the population perceives the event as genuinely life-threatening
+- Clarity of guidelines — instructions are clear and understood
+- Population knowledge and skills — ability to act correctly at both individual and community levels
+- Formal and community enforcement of protective guidelines
+- Perception of leadership as a professional authority worthy of compliance
 
-**Guiding questions:** to what extent was daily routine disrupted (work, studies, commerce, leisure)? Are essential services and goods available? Are essential workplaces and educational institutions operating? Are people able to maintain functional, identity, and social roles under emergency conditions?
+**Guiding questions (from `RESILIENCE_COMPONENTS`):**
+- To what extent does the population act according to life-saving guidelines?
+- To what extent does the population perceive the event as life-threatening?
+- To what extent does the population know and understand the published guidelines?
+- To what extent does formal or community enforcement of protective guidelines take place?
+- To what extent is leadership perceived as a professional authority that guides protective behavior?
 
-**Primary signal types:**
+**Behavioral manifestations (from code):**
+- Residents are observed or reported to actually follow Home Front Command (HFC) protective guidelines (sheltering, evacuating, etc.)
+- Residents demonstrate knowledge and understanding of HFC guidelines
+- Community teams or roles actively promote emergency preparedness among residents
+- Residents or officials report non-compliance with protective guidelines
+- Residents express or demonstrate perception of the situation as genuinely life-threatening
 
-- `service_continuity` / `service_disruption`.
-- `routine_maintenance`.
-- `system_overload` (−) / `system_resilience_under_load` (+).
-- `economic_continuity` / `economic_disruption`.
-- `post_event_recovery_indicator`, `cultural_continuity`.
-- `coordination_failure` (−, also hits leadership/community capital).
-- `resource_shortage`, `dependency_on_external_aid` (secondary negative pulls).
+**Facets and signal types (from `componentFacets.js`):**
+
+| Facet | Signal types |
+|---|---|
+| `compliance` | `compliance_enter_shelter`, `compliance_follow_instructions`, `non_compliance_exit_early`, `non_compliance_ignore_guidelines` |
+| `knowledge` | `information_actionable_effective`, `information_effectiveness_gap`, `information_clarity` |
+| `enforcement` | `risk_exposure_behavior`, `unsafe_gathering`, `panic_behavior` |
+
+**All facet signal types for this component:** `compliance_enter_shelter`, `compliance_follow_instructions`, `information_actionable_effective`, `information_clarity`, `information_effectiveness_gap`, `non_compliance_exit_early`, `non_compliance_ignore_guidelines`, `panic_behavior`, `risk_exposure_behavior`, `unsafe_gathering`
 
 ---
 
-### 2.6 `community_capital` — Community capital and resources (הון ומשאבי קהילה)
+### 2.5 `functional_continuity` — Functional Continuity (רציפות תפקודית)
 
-**What it measures:** mobilizing **human, physical, and network** resources; coordination between community mechanisms; cross-sector cooperation; activation of anchor organizations (local authority, community organizations); volunteer mobilization; optimal use of comparative advantages of each partner.
+**What it measures:** The ability of the community to continue functioning and providing essential personal and community services and needs according to the situation's characteristics. Includes supply of essential goods and services, operation of essential workplaces and educational institutions, and minimization of damage to daily routine. The aspiration is to restore or preserve continuity as much as possible.
 
-**Guiding questions:** are mechanisms in place to coordinate and maximize community resources? Is there willingness to volunteer? Are anchor organizations activated and coordinating? Is cross-sector cooperation taking place?
+**Principle:** In a disaster, three forms of continuity must be preserved or restored: functional continuity (roles and tasks), identity continuity (sense of self and role), and interpersonal continuity (relationships and social bonds). Maintaining continuity strengthens a sense of competence and reduces dependency. The guiding principle is: "help them help themselves." Examples: a citizen who continues working during an emergency; maintaining family roles after evacuation.
 
-**Primary signal types:**
+**Guiding questions (from `RESILIENCE_COMPONENTS`):**
+- To what extent was daily routine disrupted in the following areas: work, studies, commerce, leisure activities?
+- To what extent are essential services and goods available to the population?
+- To what extent are essential workplaces and educational institutions continuing to operate?
+- To what extent are people able to maintain their functional, identity, and social roles under emergency conditions?
 
-- `community_volunteering`, `self_organization`, `resource_mobilization` (positive core).
-- `local_capacity_demonstrated`, `coordination_success`, `post_event_recovery_indicator` (newer positive signals).
-- `resource_shortage`, `dependency_on_external_aid`, `coordination_failure` (negative).
-- `wellbeing_support_accessed` (small positive spillover — care delivery as organized response).
+**Behavioral manifestations (from code):**
+- Residents succeed in managing daily life (reported continuation of work, commerce, or social roles)
+- Schools and educational institutions are open and operating (or explicitly closed/disrupted)
+- Residents report that sufficient resources are available to maintain routine functioning
+- Essential services (healthcare, supply chains, municipal services) continue to operate
+- Specific disruptions to daily life are reported (closures, evacuations, inability to work)
+
+**Facets and signal types (from `componentFacets.js`):**
+
+| Facet | Signal types |
+|---|---|
+| `essential_services` | `service_continuity`, `service_disruption`, `routine_maintenance`, `routine_disruption` |
+| `system_load` | `system_overload`, `system_resilience_under_load` |
+| `economic` | `economic_continuity`, `economic_disruption` |
+| `recovery` | `post_event_recovery_indicator`, `cultural_continuity` |
+| `displacement` | `evacuation_displacement` |
+
+**All facet signal types for this component:** `cultural_continuity`, `economic_continuity`, `economic_disruption`, `evacuation_displacement`, `post_event_recovery_indicator`, `routine_disruption`, `routine_maintenance`, `service_continuity`, `service_disruption`, `system_overload`, `system_resilience_under_load`
+
+---
+
+### 2.6 `community_capital` — Community Capital and Resources (הון ומשאבי קהילה)
+
+**What it measures:** The ability to maximize community resources — human, physical, and social networks — through coordination between community mechanisms, cross-sector cooperation, activation of anchor organizations (local authority, community organizations), and volunteer mobilization. Optimal use of the comparative advantages of each partner.
+
+**Guiding questions (from `RESILIENCE_COMPONENTS`):**
+- To what extent do mechanisms exist for effective coordination and maximization of community resources (human, physical, network)?
+- To what extent is there willingness among the population for active volunteer action for their community?
+- To what extent are anchor organizations (local authority, community bodies) effectively activated and coordinating?
+- To what extent is cross-sector cooperation taking place to address community needs?
+
+**Behavioral manifestations (from code):**
+- Residents volunteer or express willingness to volunteer in formal or informal frameworks
+- Authority or organizations are observed to activate and coordinate community resources
+- Mechanisms exist and operate to coordinate volunteers and community organizations
+- Cross-sector cooperation (e.g., municipality + NGOs + businesses) is reported or observed
+
+**Facets and signal types (from `componentFacets.js`):**
+
+| Facet | Signal types |
+|---|---|
+| `mobilization` | `resource_mobilization`, `community_volunteering`, `self_organization` |
+| `local_capacity` | `local_capacity_demonstrated`, `resource_shortage` |
+| `external_dependency` | `dependency_on_external_aid`, `coordination_success`, `coordination_failure` |
+| `collective_action` | `rapid_mobilization`, `delayed_mobilization`, `conflict_resolution`, `feedback_channel_open` |
+
+**All facet signal types for this component:** `community_volunteering`, `conflict_resolution`, `coordination_failure`, `coordination_success`, `delayed_mobilization`, `dependency_on_external_aid`, `feedback_channel_open`, `local_capacity_demonstrated`, `rapid_mobilization`, `resource_mobilization`, `resource_shortage`, `self_organization`
 
 ---
 
 ### 2.7 `leadership` — Leadership (מנהיגות)
 
-**What it measures:** the perceived ability of formal and informal leadership — including religious figures, spiritual leaders, and community influencers — to lead the community, address its needs, and serve as a source of support and empowerment. Leadership can strengthen *or* weaken resilience. Key attributes: public trust, personal example, channeling public perceptions and behavior, representing all segments.
+**What it measures:** The perceived ability of formal and informal leadership — including religious figures, spiritual leaders, and community influencers — to lead the community, address its needs, and serve as a source of support and empowerment. Leadership can strengthen or weaken resilience. Key attributes include public trust, personal example, channeling public perceptions and behavior, and representing all segments of the community.
 
-**Guiding questions:** is local leadership perceived as a source of support? Does leadership set a personal example? Does it enjoy public trust and provide a sense of security in managing the event? Does it represent and address the needs of all community segments, including marginalized groups?
+**Guiding questions (from `RESILIENCE_COMPONENTS`):**
+- To what extent is local leadership perceived as a source of support for the population?
+- To what extent does leadership set a personal example for the public?
+- To what extent does local leadership enjoy public trust and provide a sense of security in managing the event?
+- To what extent does leadership represent and address the needs of all community segments, including marginalized groups?
 
-**Primary signal types:**
+**Behavioral manifestations (from code):**
+- Residents express that formal or informal leadership is a source of support and security
+- Leadership actively encourages residents to follow HFC guidelines (statements, actions, public presence)
+- Leadership is reported to function professionally and manage the situation competently
+- Residents express distrust, criticism, or frustration with leadership
 
-- `leadership_visible_presence`, `leadership_clear_guidance` (positive core).
-- `leadership_absence`, `coordination_failure` (negative core).
-- `coordination_success`, `feedback_loop_closure` (newer positive signals).
-- `information_confusion` (secondary negative — leadership credibility/steering).
+**Facets and signal types (from `componentFacets.js`):**
 
-**Classifier guidance (important in practice):** the extraction prompt distinguishes "officials performing leadership communication" vs. "civilian mood/narrative" vs. "service continuity facts". Those boundary rules live in `claudeEvaluator.js` and materially affect which signals appear under leadership.
+| Facet | Signal types |
+|---|---|
+| `visibility` | `leadership_visible_presence`, `leadership_absence` |
+| `credibility` | `leadership_clear_guidance`, `information_confusion`, `feedback_loop_closure`, `leadership_credibility_loss`, `political_distrust` |
+| `competence` | `consensus_on_priorities`, `dissensus_blocks_action`, `conflict_resolution` |
+| `coordination` | `coordination_failure`, `coordination_success` |
 
----
-
-### 2.8 `belonging_solidarity` — Belonging and solidarity (שייכות וסולידריות)
-
-**What it measures:** creating a sense of belonging and **mutual guarantee** among community members; fostering "shared fate"; building/activating programs that strengthen belonging; encouraging mutual aid; providing responses to groups perceived as outside the community mainstream.
-
-**Principle in code:** *"We are all in the same boat"* — a collective sense of shared destiny and mutual responsibility.
-
-**Guiding questions:** is there solidarity, shared fate, and mutual guarantee? Is there mutual aid at the community level? Are population groups perceived as "outside the camp" or being scapegoated? Are belonging programs in place for marginalized or vulnerable groups?
-
-**Primary signal types:**
-
-- `solidarity_help_others`, `community_volunteering`, `self_organization` (positive).
-- `wellbeing_support_accessed`, `cultural_continuity` (smaller positive spillover).
-- `social_isolation`, `conflict_or_tension` (negative core).
-
-Several "helping" signals also touch `wellbeing_atrisk` because mutual aid is modeled as protective for vulnerable people, not only cohesion.
+**All facet signal types for this component:** `conflict_resolution`, `consensus_on_priorities`, `coordination_failure`, `coordination_success`, `dissensus_blocks_action`, `feedback_loop_closure`, `information_confusion`, `leadership_absence`, `leadership_clear_guidance`, `leadership_credibility_loss`, `leadership_visible_presence`, `political_distrust`
 
 ---
 
-### 2.9 `wellbeing_atrisk` — Physical and mental wellbeing, with emphasis on at-risk populations (דאגה לרווחה הפיזית והנפשית בדגש על אוכלוסיות סיכון)
+### 2.8 `belonging_solidarity` — Belonging and Solidarity (שייכות וסולידריות)
 
-**What it measures:** the community's ability to **identify and address** the needs of vulnerable populations — in routine times and emergencies. Includes mapping vulnerability, mechanisms for identifying needs, and providing **adapted** responses (physical, emotional, informational).
+**What it measures:** The ability to create a sense of belonging and mutual guarantee among community members. Includes fostering a sense of "shared fate," building and activating programs that strengthen residents' sense of belonging, encouraging mutual aid, and providing responses to groups perceived as outside the community mainstream.
 
-**Principle in code:** the chain is only as strong as its weakest link. Responses must be tailored to the specific characteristics of vulnerable and at-risk populations (first, second, and third "circles" of vulnerability).
+**Principle:** "We are all in the same boat" — a collective sense of shared destiny and mutual responsibility.
 
-**Guiding questions:** is activity taking place to identify needs of vulnerable populations across the three circles of vulnerability? Are sufficient and adapted responses available at the authority level (physical, emotional, informational)? Are mechanisms in place to locate, map, and continuously monitor at-risk individuals and groups?
+**Guiding questions (from `RESILIENCE_COMPONENTS`):**
+- To what extent does a sense of solidarity, shared fate, and mutual guarantee exist among the public?
+- To what extent do phenomena of mutual aid at the community level exist?
+- To what extent are there population groups perceived as "outside the camp" or being scapegoated or blamed?
+- To what extent are programs in place to strengthen belonging and address marginalized or vulnerable groups?
 
-**Primary signal types:**
+**Behavioral manifestations (from code):**
+- Residents express a sense of solidarity or shared fate (in their own words)
+- Concrete acts of mutual aid between residents are reported (helping neighbors, sharing resources, organizing support)
+- Population groups are reported as scapegoated, blamed, or excluded due to the emergency (negative signal)
+- Programs or events strengthening belonging are activated and attended
 
-- `harm_to_population` (negative — physical harm; small positive spillover into belonging via mutual-aid response).
-- `psychological_distress`, `fear_expression` (negative).
-- `wellbeing_support_accessed`, `calm_confidence` (positive).
-- `service_disruption`, `panic_behavior`, `social_isolation`, `resource_shortage`, `system_overload`, `economic_disruption` (secondary negatives — they all hurt at-risk populations disproportionately).
-- `information_inclusivity_present` / `information_inclusivity_gap` — adapted information access.
+**Facets and signal types (from `componentFacets.js`):**
 
-Note: `fear_expression` is mapped as wellbeing-negative in the weight table (distinct from narrative constructs like `resilience_narrative_*`).
+| Facet | Signal types |
+|---|---|
+| `mutual_aid` | `solidarity_help_others`, `community_volunteering` |
+| `cohesion` | `social_isolation`, `conflict_or_tension`, `cultural_continuity` |
+| `inclusion` | `self_organization`, `wellbeing_support_accessed` |
+
+**All facet signal types for this component:** `community_volunteering`, `conflict_or_tension`, `cultural_continuity`, `self_organization`, `social_isolation`, `solidarity_help_others`, `wellbeing_support_accessed`
 
 ---
+
+### 2.9 `wellbeing_atrisk` — Physical and Mental Wellbeing (At-Risk Populations) (דאגה לרווחה הפיזית והנפשית בדגש על אוכלוסיות סיכון)
+
+**What it measures:** The ability of the community to identify and address the needs of vulnerable populations — in routine times and during emergencies. Includes mapping population vulnerability, establishing mechanisms for identifying needs and providing adapted responses: physical, emotional, and informational.
+
+**Principle:** The chain is only as strong as its weakest link. Responses must be tailored to the specific characteristics of vulnerable and at-risk populations.
+
+**Guiding questions (from `RESILIENCE_COMPONENTS`):**
+- To what extent is activity taking place to identify the needs of vulnerable populations (first, second, and third circles of vulnerability)?
+- To what extent do sufficient and adapted responses exist for population needs — with emphasis on at-risk populations — at the authority level (physical, emotional, informational)?
+- To what extent are mechanisms in place to locate, map, and continuously monitor at-risk individuals and groups?
+
+**Behavioral manifestations (from code):**
+- Emotional support responses (psychological first aid, mental health services) are available and used by residents showing anxiety or trauma
+- Specific responses for at-risk or special-needs populations are reported as active (elderly, disabled, evacuees, etc.)
+- Residents in the second or third circle of vulnerability (indirectly affected) receive responses to their needs
+- Reports of unmet mental health or physical wellbeing needs among residents
+
+**Facets and signal types (from `componentFacets.js`):**
+
+| Facet | Signal types |
+|---|---|
+| `physical_harm` | `harm_to_population` |
+| `psychological_distress` | `psychological_distress`, `fear_expression`, `calm_confidence` |
+| `care_access` | `wellbeing_support_accessed`, `information_inclusivity_present`, `information_inclusivity_gap` |
+| `equity` | `inequitable_resource_access`, `equitable_resource_distribution` |
+
+**All facet signal types for this component:** `calm_confidence`, `equitable_resource_distribution`, `fear_expression`, `harm_to_population`, `inequitable_resource_access`, `information_inclusivity_gap`, `information_inclusivity_present`, `psychological_distress`, `wellbeing_support_accessed`
+
+---
+
+<!-- docs-sync:END components-detail -->
 
 ## 3) Architecture at a glance
 
@@ -831,9 +927,10 @@ The narrative prompt contains hard rules:
 
 ### 11.1 Report writer
 
-`business_modules/resilience/infrastructure/reportWriter.js` writes two files to `reports/`:
+`business_modules/resilience/infrastructure/reportWriter.js` writes three files to `reports/`:
 
-- `resilience-report-{date}-{HHMM}.md` — markdown for humans.
+- `resilience-report-{date}-{HHMM}.md` — full markdown (scores, CIs) for analysts and offline audit.
+- `resilience-report-{date}-{HHMM}-brief.md` — operator-oriented markdown (narratives + evidence; no `/10`).
 - `resilience-report-{date}-{HHMM}.json` — structured payload for the React client, drift dashboard, and API.
 
 For *north* scope the prefix is `resilience-report-north-…`.
@@ -847,9 +944,30 @@ The markdown report contains:
 5. Evidence quality note.
 6. **Signal appendix** — every extracted signal grouped by type, each linking to the source article URL where available.
 
-### 11.2 Web UI
+### 11.2 Display tiers (operator vs analyst)
+
+Scoring still runs in code for every report (full JSON on disk under `reports/`). **What users see** is controlled by display tier logic in `business_modules/resilience/domain/services/assessmentDisplayTier.js`.
+
+| Tier | Audience | API / UI | Contents |
+|------|----------|----------|----------|
+| **Operator (default)** | Field, municipal | `GET /api/report/today` (default) | Narratives, evidence lists, `instrument` flags per component (confidence, evidence sufficiency, contested, significant delta). **No** headline 1–10 scores, CIs, drift sparklines, or score-override UI. |
+| **Internal (pipeline)** | Narrative LLM | `generateNarratives` prompt | Instrument tags by default (`RESILIENCE_NARRATIVE_INCLUDE_SCORES=false`). Set env to `true` to include numeric scores in the prompt again. |
+| **Analyst** | Calibration / reviewers | `GET /api/report/today?view=analyst` when authenticated email ∈ `RESILIENCE_ANALYST_EMAILS` | Full scores, CIs, EWMA, facets, drift (`GET /api/resilience/drift`), overrides. UI toggle appears only when `GET /api/resilience/display-capabilities` returns `canViewAnalyst: true`. |
+
+When `RESILIENCE_ANALYST_EMAILS` is non-empty, drift and overrides endpoints return **403** unless the caller is an allowlisted signed-in user (even if the legacy UI could reach them).
+
+### 11.3 Web UI
 
 `client/src/components/ReportView.jsx` renders:
+
+**Operator mode (default):**
+
+1. **Epistemic banner** and optional **north keyword-fallback** / **thin-evidence** warnings (from `assessment.methodology`).
+2. **Evidence overview** (scope label, counts of adequate / thin / contested components).
+3. The **executive synthesis**.
+3. Eight **component cards** with **instrument badges** (no `/10`), narrative, optional absent-manifestation hints, and evidence accordion.
+
+**Analyst mode** (toggle in report header when allowlisted):
 
 1. **Overall resilience** (`assessment.overall_resilience_score`) with the same 1–10 label bands as components (`scoreLabel10` thresholds).
 2. A row of **component chips** (score + band label, with `Δ+1`/`Δ−1` adornments highlighted when significant).
@@ -866,14 +984,15 @@ The markdown report contains:
    - An **evidence accordion**:
      - When `scoreBySource` is present: raw signals grouped from `score_by_source` (badges for `field`, `radio`, `naftali`, `press/news`, `pbo`).
      - Otherwise: curated evidence strings from `comp.evidence`.
-5. A **Drift** tab — see §14.
+5. Drift sparklines per component — see §14.
 
-### 11.3 API surface
+### 11.4 API surface
 
 | Endpoint | Description |
 |---|---|
-| `GET /api/report/today` | Latest assessment for the requested scope, plus `overrides_count: { component_id: n }` for the report date. |
-| `GET /api/resilience/drift?scope=national\|north&days=30` | Time-series for sparklines + alerts (capped at 90 days). |
+| `GET /api/report/today?view=operator\|analyst&scope=national\|north` | Latest assessment redacted per tier. Operator view uses `-brief.md` when on disk (no `/10`). Response includes `display_view`; `analyst_denied: true` when analyst was requested but not allowlisted. `overrides_count` only when `display_view=analyst`. |
+| `GET /api/resilience/display-capabilities` | `{ canViewAnalyst: boolean }` for the signed-in user (optional Bearer token). |
+| `GET /api/resilience/drift?scope=national\|north&days=30` | Analyst-gated when `RESILIENCE_ANALYST_EMAILS` is set. Time-series for sparklines + alerts (capped at 90 days). |
 | `POST /api/resilience/overrides` | Auth-gated. Body: `{report_date, scope, component_id, kind, original?, proposed?, note?}`; kinds: `challenge_score | dispute_evidence`. |
 | `GET /api/resilience/overrides?date=YYYY-MM-DD&scope=…` | Lists existing overrides. |
 | `GET /api/visits/...` | Field-reports dashboard (days, signals, municipalities). |
@@ -890,6 +1009,24 @@ The markdown report contains:
 - **News, radio**: signals are kept for north scope only when `evidence` (or article title) matches one of dozens of north terms — Hebrew (`צפון`, `גליל`, `הגולן`, `קריית שמונה`, `מטולה`, `שלומי`, `חורפיש`, `מעלה יוסף`, …) or English (`north`, `Galilee`, `Golan`, `Kiryat Shmona`, `Metula`, `Hurfeish`, `Yirka`, `Majdal Shams`, …).
 
 For north scope, `total_articles` becomes `max(scopedArticleCount, 1)` so the coverage ratio reflects the north corpus, not the national one.
+
+### Phase 1 scope model (national + north only)
+
+**Now:** Production and UI support only `national` and `north` report scopes. North is the **only** regional slice; `regionSignalFilter.js` hardcodes north terms and `ALWAYS_NORTH_SOURCE_TYPES` as a **collection contract** for north-theater ingestion—not a generic district model.
+
+**Later (Phase 2):** Additional districts require a first-class `report_scope.id` per district, per-district report prefixes, and collection metadata per channel. Do **not** add more hardcoded regional scopes on top of `north`; generalize `filterSignalsForScope(districtId)` instead.
+
+Each `assess-signals` run writes `assessment.methodology` (phase label, scope-decision counts, epistemic copy, optional advisory `tuning_proposal`). Full `scoring_model` manifest is on disk for analysts; operator API redaction keeps non-numeric `epistemic` and `scope_decision_summary` only.
+
+### Operational runbook (phase 1)
+
+| Goal | Command / path |
+|------|----------------|
+| National daily report | `npm run assess-signals -- --date YYYY-MM-DD --days 3 --scope national` |
+| North daily report | `npm run assess-signals -- --date YYYY-MM-DD --days 3 --scope north` |
+| Advisory tanhK/certM from history | `npm run suggest-tuning` |
+| News-only experiment (no north artifact) | `npm run analyze-resilience` / API `runAnalysis` |
+| Operator UI missing north | `GET /api/report/today?scope=north` → `hint: north_requires_assess_signals` when no `resilience-report-north-*` file exists |
 
 ---
 
@@ -1021,6 +1158,8 @@ Required env vars:
 | `RESILIENCE_SECOND_EXTRACT` | `1` to enable dual-model agreement boost |
 | `RESILIENCE_SECOND_EXTRACT_MODEL` | Optional second extraction model id |
 | `RESILIENCE_DUAL_AGREEMENT_BOOST` | Default `1.05`; clamped `[1, 1.2]` |
+| `RESILIENCE_ANALYST_EMAILS` | Comma-separated emails allowed `?view=analyst` and analyst-only API routes (when non-empty) |
+| `RESILIENCE_NARRATIVE_INCLUDE_SCORES` | Default `false` — include 1–10 lines in narrative LLM prompt when `true` |
 | `RESILIENCE_EMBEDDING_VERIFY` | `0` to disable embedding rescue |
 | `RESILIENCE_EMBEDDING_SIM_THRESHOLD` | Default `0.82` |
 | `RESILIENCE_OUTLET_PRIORS_PATH` | Test path override for outlet priors |
@@ -1170,16 +1309,22 @@ These items were proposed during the v3 sensitivity/reliability redesign but req
 
 Stable IDs (used in JSON, code, and i18n keys) and their English labels from `client/src/i18n/translations.js`:
 
+<!-- docs-sync:BEGIN appendix-ui-labels -->
+
+> **Auto-synced** from `client/src/i18n/translations.js (en + he)` on 2026-05-17. Do not edit between sync markers.
+
 | ID | English UI label | Hebrew UI label |
 |---|---|---|
 | `narrative` | narrative | נרטיב |
-| `information_communication` | information & communication | מידע, תקשורת ושיתוף |
-| `lifesaving_behavior` | lifesaving behavior | התנהגות אפקטיבית להצלת חיים |
-| `functional_continuity` | functional continuity | רציפות תפקודית |
-| `community_capital` | community capital | הון ומשאבי קהילה |
+| `information_communication` | information & communication | מידע ותקשורת |
+| `lifesaving_behavior` | lifesaving behavior | התנהגות הצלת חיים |
+| `functional_continuity` | functional continuity | המשכיות תפקודית |
+| `community_capital` | community capital | הון קהילתי |
 | `leadership` | leadership | מנהיגות |
 | `belonging_solidarity` | belonging & solidarity | שייכות וסולידריות |
-| `wellbeing_atrisk` | wellbeing at risk | דאגה לרווחה הפיזית והנפשית |
+| `wellbeing_atrisk` | wellbeing at risk | רווחה בסיכון |
+
+<!-- docs-sync:END appendix-ui-labels -->
 
 Hebrew UI strings are defined in parallel under the same `comp.*` keys in `translations.js`.
 

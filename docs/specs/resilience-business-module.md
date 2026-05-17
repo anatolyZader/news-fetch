@@ -84,7 +84,7 @@ All upstream modules map their output into this shape (or the composition root m
 
 ## Domain model (resilience module)
 
-- **`RESILIENCE_COMPONENTS`**: eight component definitions (ids, names, guiding questions, behavioral manifestations) — **source of truth in `domain/`** (moved from legacy `src/resilience/resilienceComponents.js`).
+- **`RESILIENCE_COMPONENTS`**: eight component definitions (ids, names, guiding questions, behavioral manifestations) — **source of truth in `domain/resilienceComponents.js`**.
 - **Signal taxonomy + scoring**: closed vocabulary and deterministic `scoreComponents` — **`domain/services/`** or `domain/value_objects/` as pure logic.
 - **Port interfaces** (no I/O), e.g.:
   - `IResilienceLlmPort` — batch extract + narrative generation (implemented by Anthropic adapter in infrastructure).
@@ -164,13 +164,13 @@ Optional Fastify plugin or thin handlers that:
 
 ## Migration notes (from current repo)
 
-- Legacy orchestration in `src/resilience/runResilienceAnalysis.js` + `src/api/analysisService.js` maps directly to **`app/resilienceAnalysisService.js`** once ports are introduced.
+- Legacy orchestration maps to **`app/resilienceAnalysisService.js`** + **`api/analysisService.js`** (host); canonical code is under `business_modules/resilience/`.
 - `loadMdFiles` (markdown → article DTOs) remains a **host-side** concern that **builds `ResilienceContentBatch`** until all callers pass DTOs explicitly.
 
 ---
 
 ## References
 
-- Component definitions: `src/resilience/resilienceComponents.js` (to move under module `domain/`).
-- Pipeline overview: `docs/pipeline.md`, `docs/audio-pipeline.md`.
+- Component definitions: `business_modules/resilience/domain/resilienceComponents.js`.
+- Pipeline overview: `docs/main_docu_files/pipeline.md`, `docs/audio-pipeline.md`.
 - Module layout rules: `.cursor/skills/create-business-module/SKILL.md` / `.cursor/rules/module-structure.mdc`.

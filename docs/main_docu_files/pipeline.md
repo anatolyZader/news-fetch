@@ -1,5 +1,9 @@
 # Daily News Resilience Analysis — Pipeline Documentation
 
+**Location:** `docs/main_docu_files/` (canonical main documentation — see [README](./README.md))
+
+> **Canonical code paths:** Resilience logic lives under `business_modules/resilience/` (not `src/resilience/`). Key modules: `domain/services/behaviorSignals.js`, `infrastructure/claudeEvaluator.js`, `infrastructure/reportWriter.js`, `domain/resilienceComponents.js`.
+
 **System:** Population Resilience Monitor
 **Framework:** 8-Component Community Resilience (Pikud HaOref / פיקוד העורף)
 **Last updated:** 2026-03-22
@@ -71,7 +75,7 @@ npm run analyze-resilience -- --date YYYY-MM-DD
 Or via the `/analyze-news` slash command (which runs both stages).
 
 **Script:** `business_modules/resilience/input/analyze-resilience.js` (via `npm run analyze-resilience`)
-**Core module:** `src/resilience/claudeEvaluator.js`
+**Core module:** `business_modules/resilience/infrastructure/claudeEvaluator.js`
 
 ---
 
@@ -160,7 +164,7 @@ Signals with unknown `signal_type` values are silently dropped by the validator 
 
 ## Stage 3 — Deterministic Scoring
 
-**Module:** `src/resilience/behaviorSignals.js`
+**Module:** `business_modules/resilience/domain/services/behaviorSignals.js`
 **No LLM involved — pure code.**
 
 ### Many-to-many mapping
@@ -175,7 +179,7 @@ Each signal type maps to one or more resilience components, with a base weight p
 | `coordination_failure` | `leadership` −1.0, `community_capital` −0.6, `functional_continuity` −0.5 |
 | `fear_expression` | `narrative` −0.8, `wellbeing_atrisk` −0.7 |
 
-The full mapping table is in `src/resilience/behaviorSignals.js` → `SIGNAL_TO_COMPONENTS`.
+The full mapping table is in `business_modules/resilience/domain/services/behaviorSignals.js` → `SIGNAL_TO_COMPONENTS`.
 
 ### Scoring formula
 
@@ -210,7 +214,7 @@ Mean of all components that have at least one signal. Components with `insuffici
 ## Stage 4 — Narrative Generation
 
 **Model:** `claude-sonnet-4-6`
-**Module:** `src/resilience/claudeEvaluator.js` → `generateNarratives()`
+**Module:** `business_modules/resilience/infrastructure/claudeEvaluator.js` → `generateNarratives()`
 
 Sonnet receives the pre-computed scores and the signals bucketed by component. Its only job is to **write behavioral narratives** — it does not re-score.
 
@@ -227,7 +231,7 @@ At the top level:
 
 ### Behavioral manifestations
 
-Each component has 4–5 specific behavioral manifestations defined in `src/resilience/resilienceComponents.js`. These are the observable signs the framework expects to see, derived from the Home Front Command's assessment methodology.
+Each component has 4–5 specific behavioral manifestations defined in `business_modules/resilience/domain/resilienceComponents.js`. These are the observable signs the framework expects to see, derived from the Home Front Command's assessment methodology.
 
 Example — **Leadership** manifestations:
 1. Residents express that formal or informal leadership is a source of support and security
@@ -241,7 +245,7 @@ Narratives explicitly note which manifestations are absent — a deliberate desi
 
 ## Stage 5 — Report Writing
 
-**Module:** `src/resilience/reportWriter.js`
+**Module:** `business_modules/resilience/infrastructure/reportWriter.js`
 
 Two files are written to `reports/`:
 
@@ -283,7 +287,7 @@ Based on the Pikud HaOref / Fran Norris 2008 framework:
 | `belonging_solidarity` | שייכות וסולידריות | Belonging & Solidarity |
 | `wellbeing_atrisk` | דאגה לרווחה הפיזית והנפשית | Physical & Mental Wellbeing (At-Risk) |
 
-Full definitions and behavioral manifestations: `src/resilience/resilienceComponents.js`
+Full definitions and behavioral manifestations: `business_modules/resilience/domain/resilienceComponents.js`
 
 ---
 
@@ -367,13 +371,14 @@ business_modules/news-sites/
   domain/homefrontKeywords.js     Hebrew keywords (social / auxiliary)
   infrastructure/adapters/        newsApiAdapterFactory + per-site NewsAPI.ai adapters
 
-src/resilience/
-  resilienceComponents.js         8 component definitions + behavioral manifestations
-  behaviorSignals.js              Signal taxonomy (32 types), mapping table, deterministic scoring
-  claudeEvaluator.js              LLM calls: signal extraction, narrative generation
-  mdReportsLoader.js              Parse articles-*.md into article objects
-  reportWriter.js                 Write .md and .json output files
-  runResilienceAnalysis.js        Shared orchestration (news + audio)
+business_modules/resilience/
+  domain/resilienceComponents.js  8 component definitions + behavioral manifestations
+  domain/services/behaviorSignals.js   Signal taxonomy, mapping table, deterministic scoring
+  domain/services/assessmentMethodology.js  Phase-1 methodology metadata on reports
+  infrastructure/claudeEvaluator.js      LLM: signal extraction, narrative generation
+  infrastructure/reportWriter.js         Write .md and .json output files
+  input/assess-signals.js           Stage-2 assess (national + north scope)
+  input/analyze-resilience.js       News/audio orchestration (national artifact only)
 
 reports/
   resilience-report-YYYY-MM-DD.md    Daily markdown report (human-readable)
@@ -383,7 +388,7 @@ reports/
   analyze-news.md                 /analyze-news slash command definition
 
 docs/
-  pipeline.md                     This file
+  docs/main_docu_files/pipeline.md   This file
 ```
 
 ---
