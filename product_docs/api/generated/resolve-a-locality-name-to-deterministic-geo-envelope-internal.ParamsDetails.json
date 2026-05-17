@@ -1,0 +1,1 @@
+{"parameters":[{"in":"query","name":"name","schema":{"type":"string"},"description":"Locality name (Hebrew or English). Alias query param `q`."},{"in":"query","name":"q","schema":{"type":"string"},"description":"Same as `name` when preferred."}]}

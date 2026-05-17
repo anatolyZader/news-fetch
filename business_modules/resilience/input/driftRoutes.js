@@ -1,3 +1,5 @@
+import { requireAnalystView } from '../domain/services/assessmentDisplayTier.js';
+
 /**
  * Fastify routes for the resilience drift dashboard (N4).
  *
@@ -12,6 +14,7 @@ export async function registerDriftRoutes(app, opts) {
   const preHandler = opts?.authPreHandler ? { preHandler: opts.authPreHandler } : {};
 
   app.get('/api/resilience/drift', preHandler, async (request, reply) => {
+    if (!requireAnalystView(request, reply)) return;
     if (!driftService) {
       return reply.code(503).send({ error: 'drift service not configured' });
     }

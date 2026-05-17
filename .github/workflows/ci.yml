@@ -8,8 +8,13 @@ concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Explicit permissions: if only `contents: write` is set, GITHUB_TOKEN cannot
+# register commit/PR status checks — branch protection will show "No checks".
 permissions:
   contents: write
+  checks: write
+  statuses: write
+  pull-requests: write
 
 jobs:
   sync-main-docs:

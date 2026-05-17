@@ -4,9 +4,10 @@ import { useAuth } from '../context/AuthContext.jsx';
 /**
  * Loads the resilience drift dashboard payload from `GET /api/resilience/drift`.
  *
- * @param {{ scope?: 'national'|'north', days?: number, endDate?: string }} [opts]
+ * @param {{ scope?: 'national'|'north', days?: number, endDate?: string, enabled?: boolean }} [opts]
  */
 export function useResilienceDrift(opts = {}) {
+  const enabled = opts.enabled !== false;
   const scope = opts.scope === 'north' ? 'north' : 'national';
   const days = Number.isFinite(opts.days) && opts.days > 0 ? Math.floor(opts.days) : 30;
   const endDate =
@@ -20,7 +21,11 @@ export function useResilienceDrift(opts = {}) {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!apiReady) return;
+    if (!apiReady || !enabled) {
+      setData(null);
+      setLoading(false);
+      return;
+    }
 
     let cancelled = false;
     setLoading(true);
@@ -51,7 +56,7 @@ export function useResilienceDrift(opts = {}) {
     })();
 
     return () => { cancelled = true; };
-  }, [apiReady, getIdToken, scope, days, endDate]);
+  }, [apiReady, getIdToken, scope, days, endDate, enabled]);
 
   return { data, loading, error };
 }

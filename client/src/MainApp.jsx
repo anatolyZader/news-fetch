@@ -16,7 +16,8 @@ import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
-import { useTodayReport } from './hooks/useAnalysis.js';
+import { useTodayReport, readStoredReportView, writeStoredReportView } from './hooks/useAnalysis.js';
+import { useDisplayCapabilities } from './hooks/useDisplayCapabilities.js';
 import { useTranslatedReport } from './hooks/useTranslatedReport.js';
 import { useResilienceDrift } from './hooks/useResilienceDrift.js';
 import { ReportView } from './components/ReportView.jsx';
@@ -196,7 +197,18 @@ function readReportScope() {
 function AppShell() {
   const { logout, authRequired } = useAuth();
   const [reportScope, setReportScope] = useState(() => readReportScope());
-  const { report, scoreBySource, reportDate, overridesCount, refreshOverrides, initialReportLoadDone } = useTodayReport(reportScope);
+  const [reportView, setReportView] = useState(() => readStoredReportView());
+  const { canViewAnalyst } = useDisplayCapabilities();
+  const {
+    report,
+    scoreBySource,
+    reportDate,
+    overridesCount,
+    displayView,
+    refreshOverrides,
+    initialReportLoadDone,
+    reportMissingHint,
+  } = useTodayReport(reportScope, reportView);
   const [activeTab, setActiveTab] = useState(() => readMainTab());
   const [activePoolTab, setActivePoolTab] = useState(() => readPoolTab());
   const [activePboTab, setActivePboTab] = useState(() => readPboTab());
@@ -264,11 +276,20 @@ function AppShell() {
   const { t, lang } = useLanguage();
   const { displayReport, translating, translateError } = useTranslatedReport(report, lang);
   const driftDays = 7;
+  const analystUi = canViewAnalyst && reportView === 'analyst' && displayView === 'analyst';
   const { data: driftData, loading: driftLoading } = useResilienceDrift({
     scope: reportScope,
     days: driftDays,
     endDate: reportDate || '',
+    enabled: analystUi,
   });
+
+  useEffect(() => {
+    if (!canViewAnalyst && reportView === 'analyst') {
+      setReportView('operator');
+      writeStoredReportView('operator');
+    }
+  }, [canViewAnalyst, reportView]);
 
   useEffect(() => {
     const applyDeepLink = () => {
@@ -539,12 +560,35 @@ function AppShell() {
                 <ToggleButton value="national">{t('report.scope.national')}</ToggleButton>
                 <ToggleButton value="north">{t('report.scope.north')}</ToggleButton>
               </ToggleButtonGroup>
+              {canViewAnalyst && (
+                <ToggleButtonGroup
+                  exclusive
+                  size="small"
+                  value={reportView}
+                  onChange={(_, next) => {
+                    if (!next) return;
+                    setReportView(next);
+                    writeStoredReportView(next);
+                  }}
+                  aria-label={t('report.view.label')}
+                  sx={(theme) => ({ marginInlineStart: theme.spacing(1) })}
+                >
+                  <ToggleButton value="operator">{t('report.view.operator')}</ToggleButton>
+                  <ToggleButton value="analyst">{t('report.view.analyst')}</ToggleButton>
+                </ToggleButtonGroup>
+              )}
             </Box>
 
             {!initialReportLoadDone && (
               <Typography variant="body2" color="text.secondary">
                 {t('app.reportLoading')}
               </Typography>
+            )}
+
+            {initialReportLoadDone && !report && reportMissingHint === 'north_requires_assess_signals' && (
+              <Alert severity="info" variant="outlined" sx={(theme) => ({ marginBottom: theme.spacing(1) })}>
+                {t('app.northReportMissingHint')}
+              </Alert>
             )}
 
             {initialReportLoadDone && !report && (
@@ -624,6 +668,7 @@ function AppShell() {
                     <ReportView
                       assessment={displayReport}
                       scoreBySource={displayReport?.score_by_source ?? scoreBySource}
+                      displayTier={analystUi ? 'analyst' : 'operator'}
                       readOnly
                       translating={translating}
                       translateError={translateError}

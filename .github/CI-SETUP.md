@@ -650,6 +650,7 @@ npm audit --audit-level=high
 | Integration tests skipped | No API keys in CI | Expected; add secrets only if you intentionally want live API tests in CI. |
 | Fork PR: docs out of date | Bot cannot push to fork | Maintainer or author runs `npm run docs:sync` and pushes. |
 | Infinite CI loops | Doc sync without `[skip ci]` | Commit message already includes `[skip ci]`; ensure branch protection does not re-trigger all jobs on bot commits unnecessarily. |
+| Branch protection shows **No checks** / empty list | Workflow `permissions:` only listed `contents: write` | Add `checks: write` and `statuses: write` at workflow level (see `ci.yml`). Re-run CI, then search for `Test` or `CI / Test`. |
 | SonarCloud skipped | `SONAR_TOKEN` not set | Add all three Sonar secrets (Part 8). |
 | SonarCloud `Project not found` | Wrong `SONAR_PROJECT_KEY` or org | Match keys exactly to SonarCloud **Information** page. |
 | SonarCloud `You're not authorized` | Invalid or expired token | Regenerate token in SonarCloud → Security; update `SONAR_TOKEN`. |

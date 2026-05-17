@@ -97,6 +97,13 @@ function reportPrefixForScope(scope = 'national') {
   return scope === 'north' ? 'resilience-report-north' : 'resilience-report';
 }
 
+function resolveReportsDir(opts = {}) {
+  if (opts.reportsDir) return opts.reportsDir;
+  const fromEnv = process.env.REPORTS_DIR?.trim();
+  if (fromEnv) return isAbsolute(fromEnv) ? fromEnv : resolve(ROOT, fromEnv);
+  return resolve(ROOT, 'reports');
+}
+
 function reportPaths(date, { scope = 'national' } = {}) {
   const base = resolve(ROOT, 'reports', `${reportPrefixForScope(scope)}-${date}`);
   return { base, json: `${base}.json`, md: `${base}.md` };
@@ -177,24 +184,27 @@ export function getCachedReport(store, opts = {}) {
   const timezone = process.env.TZ_ARTICLES || 'Asia/Jerusalem';
   const today = getTodayInTimezone(timezone);
   const scope = opts.scope === 'north' ? 'north' : 'national';
+  const reportsDir = resolveReportsDir(opts);
 
-  const todayResult = _loadReportForDate(today, store, { scope });
+  const todayResult = _loadReportForDate(today, store, { scope, reportsDir });
   if (todayResult) return { ...todayResult, reportDate: today };
 
   // Fallback: find the most recent report from any previous date
-  const fallback = _findLatestAvailableReport(today, store, { scope });
+  const fallback = _findLatestAvailableReport(today, store, { scope, reportsDir });
   if (fallback) return fallback;
 
   return null;
 }
 
 /** Load a report for a specific date from filesystem or store. Returns payload or null. */
-function _loadReportForDate(date, store, { scope = 'national' } = {}) {
-  const jsonPath = resolveReportJsonPathForDate(date, { scope });
+function _loadReportForDate(date, store, { scope = 'national', reportsDir } = {}) {
+  const jsonPath = resolveReportJsonPathForDate(date, { scope, reportsDir });
   if (jsonPath && existsSync(jsonPath)) {
     const parsed = JSON.parse(readFileSync(jsonPath, 'utf-8'));
     const mdPath = jsonPath.replace(/\.json$/i, '.md');
+    const briefMdPath = jsonPath.replace(/\.json$/i, '-brief.md');
     let markdown = null;
+    let markdown_brief = null;
     if (existsSync(mdPath)) {
       try {
         markdown = readFileSync(mdPath, 'utf8');
@@ -202,8 +212,20 @@ function _loadReportForDate(date, store, { scope = 'national' } = {}) {
         /* ignore */
       }
     }
+    if (existsSync(briefMdPath)) {
+      try {
+        markdown_brief = readFileSync(briefMdPath, 'utf8');
+      } catch {
+        /* ignore */
+      }
+    }
     const costBreakdown = readCostBreakdownForDate(date);
-    return { ...parsed, markdown, ...(costBreakdown ? { costBreakdown } : {}) };
+    return {
+      ...parsed,
+      markdown,
+      ...(markdown_brief ? { markdown_brief } : {}),
+      ...(costBreakdown ? { costBreakdown } : {}),
+    };
   }
 
   if (scope === 'national' && store) {
@@ -222,13 +244,13 @@ function _loadReportForDate(date, store, { scope = 'national' } = {}) {
 }
 
 /** Scan the reports directory for the most recent report before `today`. */
-function _findLatestAvailableReport(today, store, { scope = 'national' } = {}) {
-  const reportsDir = resolve(ROOT, 'reports');
-  if (!existsSync(reportsDir)) return null;
+function _findLatestAvailableReport(today, store, { scope = 'national', reportsDir } = {}) {
+  const dir = reportsDir ?? resolveReportsDir();
+  if (!existsSync(dir)) return null;
 
   let names;
   try {
-    names = readdirSync(reportsDir);
+    names = readdirSync(dir);
   } catch {
     return null;
   }
@@ -245,7 +267,7 @@ function _findLatestAvailableReport(today, store, { scope = 'national' } = {}) {
   // Try dates in reverse chronological order
   for (let i = dates.length - 1; i >= 0; i--) {
     const date = dates[i];
-    const result = _loadReportForDate(date, store, { scope });
+    const result = _loadReportForDate(date, store, { scope, reportsDir: dir });
     if (result) return { ...result, reportDate: date };
   }
 
@@ -398,5 +420,17 @@ export async function runAnalysis({ onProgress, store } = {}) {
 
   onProgress?.({ type: 'progress', step: 'done', message: `Report saved. Total cost: $${totalCostUsd.toFixed(4)}` });
 
-  return { assessment, costUsd: totalCostUsd, date };
+  return {
+    assessment,
+    costUsd: totalCostUsd,
+    date,
+    scope_artifacts: {
+      national: true,
+      north: false,
+      hint: 'north_requires_assess_signals',
+      note:
+        'This pipeline (runResilienceAssessment / API analyze) does not apply region scope filtering. '
+        + 'Run `npm run assess-signals -- --date DATE --scope north` after signal files exist for a north report.',
+    },
+  };
 }

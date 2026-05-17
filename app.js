@@ -39,6 +39,13 @@ import { createOverridesService } from './business_modules/resilience/app/overri
 import { registerOverridesRoutes } from './business_modules/resilience/input/overridesRoutes.js';
 import { createDriftService } from './business_modules/resilience/app/driftService.js';
 import { registerDriftRoutes } from './business_modules/resilience/input/driftRoutes.js';
+import {
+  resolveDisplayView,
+  redactReportPayload,
+  redactScoreBySource,
+  canViewAnalystDisplay,
+  DISPLAY_VIEWS,
+} from './business_modules/resilience/domain/services/assessmentDisplayTier.js';
 import { createDefaultPoolService, registerPoolRoutes } from './business_modules/pool/index.js';
 import { getMunicipalityDashboard } from './business_modules/pbo_report_muni/app/pboMunicipalityService.js';
 import {
@@ -725,17 +732,51 @@ export async function createApp(options) {
 
   app.get('/api/report/today', authHook, async (request, reply) => {
     const scope = request.query?.scope === 'north' ? 'north' : 'national';
+    const requestedView = String(request.query?.view ?? 'operator').trim().toLowerCase();
     const data = getCachedReport(evidenceStore, { scope });
-    if (!data) return reply.send({ found: false });
-    let overrides_count = {};
-    try {
-      if (typeof data.reportDate === 'string') {
-        overrides_count = overridesService.countByComponent({ date: data.reportDate, scope });
+    if (!data) {
+      if (scope === 'north') {
+        return reply.send({
+          found: false,
+          code: 'north_requires_assess_signals',
+          hint: 'north_requires_assess_signals',
+          message:
+            'No north-scoped report found. Run assess-signals with --scope north (news-only analysis does not produce a north artifact).',
+        });
       }
-    } catch {
-      /* non-fatal: overrides are optional metadata */
+      return reply.send({ found: false });
     }
-    return reply.send({ found: true, ...data, overrides_count });
+    const display_view = resolveDisplayView({
+      queryView: request.query?.view,
+      userEmail: request.user?.email,
+    });
+    const analyst_denied = requestedView === DISPLAY_VIEWS.analyst
+      && display_view !== DISPLAY_VIEWS.analyst;
+    const redacted = redactReportPayload(data, display_view);
+    let overrides_count = {};
+    if (display_view === DISPLAY_VIEWS.analyst) {
+      try {
+        if (typeof data.reportDate === 'string') {
+          overrides_count = overridesService.countByComponent({ date: data.reportDate, scope });
+        }
+      } catch {
+        /* non-fatal: overrides are optional metadata */
+      }
+    }
+    return reply.send({
+      found: true,
+      display_view,
+      ...(analyst_denied ? { analyst_denied: true, requested_view: DISPLAY_VIEWS.analyst } : {}),
+      ...redacted,
+      overrides_count,
+    });
+  });
+
+  app.get('/api/resilience/display-capabilities', async (request, reply) => {
+    await tryAuthPreHandler(request, reply);
+    return reply.send({
+      canViewAnalyst: canViewAnalystDisplay(request.user?.email),
+    });
   });
 
   await registerOverridesRoutes(app, {
@@ -912,8 +953,9 @@ export async function createApp(options) {
     const send = (data) => reply.raw.write(`data: ${JSON.stringify(data)}\n\n`);
 
     try {
-      const { assessment, costUsd, date } = await runAnalysis({ onProgress: send, store: evidenceStore });
-      send({ type: 'done', assessment, costUsd, date });
+      const result = await runAnalysis({ onProgress: send, store: evidenceStore });
+      const { assessment, costUsd, date, scope_artifacts } = result;
+      send({ type: 'done', assessment, costUsd, date, scope_artifacts });
     } catch (err) {
       send({ type: 'error', message: err.message });
     }
@@ -986,7 +1028,12 @@ export async function createApp(options) {
       if (!report.score_by_source) {
         const scope = report.report_scope?.id === 'north' ? 'north' : 'national';
         const cached = getCachedReport(evidenceStore, { scope });
-        if (cached?.score_by_source) report.score_by_source = cached.score_by_source;
+        if (cached?.score_by_source) {
+          const view = report.display_view === DISPLAY_VIEWS.analyst
+            ? DISPLAY_VIEWS.analyst
+            : DISPLAY_VIEWS.operator;
+          report.score_by_source = redactScoreBySource(cached.score_by_source, view);
+        }
       }
       const translated = await getTranslatedReport(report, lang);
       return reply.send({ report: translated });

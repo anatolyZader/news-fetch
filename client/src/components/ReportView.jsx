@@ -355,6 +355,99 @@ function ChallengeDialog({
   );
 }
 
+function InstrumentStateBadges({ instrument, t }) {
+  const inst = instrument ?? {};
+  const suffKey = `report.instrument.sufficiency.${inst.evidence_sufficiency ?? 'adequate'}`;
+  return (
+    <Stack direction="row" flexWrap="wrap" gap={1.5} sx={{ justifyContent: 'flex-end' }}>
+      <StatusTag variant="neutral">
+        {t(`confidence.${inst.confidence}`) ?? inst.confidence}
+      </StatusTag>
+      <StatusTag variant="neutral">{t(suffKey)}</StatusTag>
+      {inst.contested && <ContestedBadge t={t} />}
+      {inst.significant_delta && (
+        <StatusTag variant="alert">{t('report.delta.significant')}</StatusTag>
+      )}
+      {inst.floor_clamped && (
+        <StatusTag variant="alert">{t('report.scoreInterval.thinEvidence')}</StatusTag>
+      )}
+      {inst.ci_unstable && (
+        <StatusTag variant="alert">{t('report.scoreInterval.ciUnstable')}</StatusTag>
+      )}
+    </Stack>
+  );
+}
+
+const NORTH_KEYWORD_FALLBACK_WARN_PCT = 25;
+
+function OperatorMethodologyAlerts({ assessment, reportScope, t }) {
+  const methodology = assessment?.methodology;
+  const scopeId = reportScope ?? assessment?.report_scope?.id;
+  const isNorth = scopeId === 'north';
+  const pctKw = methodology?.scope?.scope_decision_summary?.pct_keyword_fallback_among_north;
+  const comps = assessment?.components ?? [];
+  const thinCount = comps.filter((c) => c.instrument?.evidence_sufficiency === 'thin').length;
+  const majorityThin = comps.length > 0 && thinCount > comps.length / 2;
+  const gov = methodology?.governance;
+  const norrisNote = methodology?.norris_lens?.not_same_as;
+
+  return (
+    <Stack spacing={1}>
+      <Alert severity="info" variant="outlined">
+        {gov?.operator_accountability ?? t('report.methodology.epistemicBanner')}
+      </Alert>
+      {gov?.headline_scores_are && (
+        <Alert severity="info" variant="outlined">
+          {gov.headline_scores_are}
+        </Alert>
+      )}
+      {norrisNote && (
+        <Alert severity="info" variant="outlined">
+          {t('report.methodology.norrisDisclaimer')}
+        </Alert>
+      )}
+      {isNorth && pctKw != null && pctKw >= NORTH_KEYWORD_FALLBACK_WARN_PCT && (
+        <Alert severity="warning" variant="outlined">
+          {t('report.methodology.northKeywordWarning').replace('{pct}', String(pctKw))}
+        </Alert>
+      )}
+      {majorityThin && (
+        <Alert severity="warning" variant="outlined">
+          {t('report.methodology.thinEvidenceWarning')}
+        </Alert>
+      )}
+    </Stack>
+  );
+}
+
+function OperatorReportHeader({ assessment, t }) {
+  const comps = assessment?.components ?? [];
+  let adequate = 0;
+  let contested = 0;
+  let thin = 0;
+  for (const c of comps) {
+    const inst = c.instrument ?? {};
+    if (inst.evidence_sufficiency === 'adequate') adequate += 1;
+    if (inst.evidence_sufficiency === 'thin') thin += 1;
+    if (inst.contested) contested += 1;
+  }
+  const scopeLabel =
+    assessment?.report_scope?.label
+    ?? (assessment?.report_scope?.id === 'north' ? t('report.scope.north') : t('report.scope.national'));
+  return (
+    <ReportSection title={t('report.instrument.summaryTitle')}>
+      <Typography variant="body2" color="text.secondary" sx={{ marginBottom: 1 }}>
+        {t('report.instrument.summaryBody')
+          .replace('{scope}', scopeLabel)
+          .replace('{adequate}', String(adequate))
+          .replace('{total}', String(comps.length))
+          .replace('{thin}', String(thin))
+          .replace('{contested}', String(contested))}
+      </Typography>
+    </ReportSection>
+  );
+}
+
 function ContestedBadge({ t }) {
   return (
     <Box
@@ -645,11 +738,13 @@ function ComponentCard({
   driftLoading,
   overrideCount,
   onChallengeClick,
+  displayTier = 'operator',
   open,
   evidenceOpen,
   onToggle,
   onEvidenceToggle,
 }) {
+  const isAnalyst = displayTier === 'analyst';
   const Icon = getComponentIcon(comp.component_id);
   const label = t(`comp.${comp.component_id}`) ?? comp.component_id.replace(/_/g, ' ');
   const confidenceLabel = t(`confidence.${comp.confidence}`) ?? comp.confidence;
@@ -658,7 +753,9 @@ function ComponentCard({
   const signals = isFiltered ? (sourceSignals ?? []) : null;
   const curatedEvidence = isFiltered ? null : (comp.evidence ?? []);
   const evidenceCount = isFiltered ? signals.length : curatedEvidence.length;
-  const isInsufficient = comp.confidence === 'insufficient_data' || comp.score == null;
+  const isInsufficient = comp.confidence === 'insufficient_data'
+    || (!isAnalyst && (comp.instrument?.evidence_sufficiency === 'thin' || !comp.instrument))
+    || (isAnalyst && comp.score == null);
   const isContested = comp.polarization != null && comp.polarization > 0.5
     && (comp.evidence_mass ?? 0) > 4;
 
@@ -696,23 +793,29 @@ function ComponentCard({
           direction="row"
           alignItems="center"
           spacing={1}
-          sx={{ flexShrink: 0, marginLeft: 'auto', textAlign: 'right' }}
+          sx={{ flexShrink: 0, marginLeft: 'auto', textAlign: 'right', maxWidth: '55%' }}
         >
-          <ScoreWithInterval comp={comp} t={t} />
-          <DeltaAdornment
-            delta={comp.delta_score}
-            significant={comp.delta_flag === 'significant'}
-            t={t}
-          />
-          <Tooltip title="Confidence level">
-            <Typography variant="caption" color="text.secondary">
-              Confidence: {confidenceLabel}
-            </Typography>
-          </Tooltip>
+          {isAnalyst ? (
+            <>
+              <ScoreWithInterval comp={comp} t={t} />
+              <DeltaAdornment
+                delta={comp.delta_score}
+                significant={comp.delta_flag === 'significant'}
+                t={t}
+              />
+              <Tooltip title="Confidence level">
+                <Typography variant="caption" color="text.secondary">
+                  Confidence: {confidenceLabel}
+                </Typography>
+              </Tooltip>
+            </>
+          ) : (
+            <InstrumentStateBadges instrument={comp.instrument} t={t} />
+          )}
         </Stack>
       </AccordionSummary>
       <AccordionDetails>
-        {onChallengeClick && (
+        {isAnalyst && onChallengeClick && (
           <Box sx={(theme) => ({
             display: 'flex', justifyContent: 'flex-end',
             marginBottom: theme.spacing(0.5),
@@ -731,19 +834,26 @@ function ComponentCard({
             </Tooltip>
           </Box>
         )}
-        <Box sx={(theme) => ({ marginTop: theme.spacing(0.5), marginBottom: theme.spacing(0.75) })}>
-          {driftLoading && (
-            <Typography variant="caption" color="text.disabled" sx={{ fontStyle: 'italic', display: 'block', marginBottom: 0.5 }}>
-              {t('app.reportLoading')}
-            </Typography>
-          )}
-          <DriftSparkline series={driftSeries ?? []} t={t} height={78} />
-        </Box>
-        <WhyThisScore comp={comp} t={t} />
-        <DeltaLine comp={comp} t={t} />
-        <CounterfactualHint comp={comp} t={t} />
+        {isAnalyst && (
+          <Box sx={(theme) => ({ marginTop: theme.spacing(0.5), marginBottom: theme.spacing(0.75) })}>
+            {driftLoading && (
+              <Typography variant="caption" color="text.disabled" sx={{ fontStyle: 'italic', display: 'block', marginBottom: 0.5 }}>
+                {t('app.reportLoading')}
+              </Typography>
+            )}
+            <DriftSparkline series={driftSeries ?? []} t={t} height={78} />
+          </Box>
+        )}
+        {isAnalyst && <WhyThisScore comp={comp} t={t} />}
+        {isAnalyst && <DeltaLine comp={comp} t={t} />}
+        {isAnalyst && <CounterfactualHint comp={comp} t={t} />}
         <MarkdownArticle variant="report" markdown={expandSourceCitationLinks(comp.narrative ?? '')} />
-        <FacetBars facets={comp.facets} t={t} />
+        {!isAnalyst && Array.isArray(comp.manifestations_absent) && comp.manifestations_absent.length > 0 && (
+          <Typography variant="caption" color="text.secondary" component="div" sx={{ mt: 1 }}>
+            {comp.manifestations_absent.slice(0, 4).join(' · ')}
+          </Typography>
+        )}
+        {isAnalyst && <FacetBars facets={comp.facets} t={t} />}
 
         {evidenceCount > 0 && (
           <Accordion
@@ -819,6 +929,7 @@ function ComponentCard({
 export function ReportView({
   assessment,
   scoreBySource,
+  displayTier = 'operator',
   readOnly: _readOnly,
   translating,
   translateError,
@@ -833,6 +944,7 @@ export function ReportView({
   openEvidenceCompId: openEvidenceCompIdProp,
   setOpenEvidenceCompId: setOpenEvidenceCompIdProp,
 }) {
+  const isAnalyst = displayTier === 'analyst';
   const { t } = useLanguage();
   const theme = useTheme();
   const overall = assessment.overall_resilience_score;
@@ -885,34 +997,42 @@ export function ReportView({
         </Alert>
       )}
 
-      <ResilienceSummaryCard
-        statusText={scoreLabel(overall, t)}
-        statusColor={scoreColor10(overall, theme)}
-        title={t('report.overallLabel')}
-      />
-
-      <Box
-        sx={(theme) => ({
-          display: 'flex',
-          flexDirection: 'row',
-          flexWrap: 'wrap',
-          gap: theme.spacing(0.5),
-          minWidth: 0,
-        })}
-      >
-        {components.map((c) => (
-          <ComponentChip
-            key={c.component_id}
-            label={t(`comp.${c.component_id}`) ?? c.component_id.replace(/_/g, ' ')}
-            value={c.score}
-            variant={scoreVariant10(c.score)}
-            t={t}
-            comp={c}
+      {isAnalyst ? (
+        <>
+          <ResilienceSummaryCard
+            statusText={scoreLabel(overall, t)}
+            statusColor={scoreColor10(overall, theme)}
+            title={t('report.overallLabel')}
           />
-        ))}
-      </Box>
+          <Box
+            sx={(theme) => ({
+              display: 'flex',
+              flexDirection: 'row',
+              flexWrap: 'wrap',
+              gap: theme.spacing(0.5),
+              minWidth: 0,
+            })}
+          >
+            {components.map((c) => (
+              <ComponentChip
+                key={c.component_id}
+                label={t(`comp.${c.component_id}`) ?? c.component_id.replace(/_/g, ' ')}
+                value={c.score}
+                variant={scoreVariant10(c.score)}
+                t={t}
+                comp={c}
+              />
+            ))}
+          </Box>
+        </>
+      ) : (
+        <>
+          <OperatorMethodologyAlerts assessment={assessment} reportScope={reportScope} t={t} />
+          <OperatorReportHeader assessment={assessment} t={t} />
+        </>
+      )}
 
-      {Array.isArray(norrisCaps) && norrisCaps.length > 0 && (
+      {isAnalyst && Array.isArray(norrisCaps) && norrisCaps.length > 0 && (
         <ReportSection title={t('report.norris.title') ?? 'Norris capacities'}>
           <Stack spacing={1.5}>
             {norrisCaps.map((cap) => (
@@ -1016,11 +1136,12 @@ export function ReportView({
             <ComponentCard
               comp={c}
               t={t}
+              displayTier={displayTier}
               sourceSignals={getSourceSignals(c.component_id)}
               driftSeries={driftMap?.[c.component_id]?.series ?? []}
               driftLoading={driftLoading}
               overrideCount={overridesCount?.[c.component_id] ?? 0}
-              onChallengeClick={reportDate ? setChallengeComp : null}
+              onChallengeClick={isAnalyst && reportDate ? setChallengeComp : null}
               open={openCompId === c.component_id}
               evidenceOpen={openEvidenceCompId === c.component_id}
               onToggle={(isOpen) => {
@@ -1048,15 +1169,17 @@ export function ReportView({
         </ReportSection>
       )}
 
-      <ChallengeDialog
-        open={Boolean(challengeComp)}
-        onClose={() => setChallengeComp(null)}
-        comp={challengeComp}
-        reportDate={reportDate}
-        reportScope={reportScope}
-        onSuccess={onOverridesChanged}
-        t={t}
-      />
+      {isAnalyst && (
+        <ChallengeDialog
+          open={Boolean(challengeComp)}
+          onClose={() => setChallengeComp(null)}
+          comp={challengeComp}
+          reportDate={reportDate}
+          reportScope={reportScope}
+          onSuccess={onOverridesChanged}
+          t={t}
+        />
+      )}
     </Stack>
   );
 }

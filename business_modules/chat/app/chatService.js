@@ -4,6 +4,11 @@
 import { buildReportContext } from '../domain/reportContext.js';
 import { streamChatResponse } from '../infrastructure/claudeChat.js';
 import { embeddingsEnabled } from '../../../cross-cut-modules/vector_index/index.js';
+import {
+  DISPLAY_VIEWS,
+  redactReportPayload,
+  deriveInstrumentState,
+} from '../../resilience/domain/services/assessmentDisplayTier.js';
 
 const MAX_HISTORY_MESSAGES = 20;
 const INDEXED_NAMESPACES = new Map(); // namespace -> fingerprint string
@@ -20,8 +25,14 @@ const INDEXED_NAMESPACES = new Map(); // namespace -> fingerprint string
  * @param {(event: any) => void} [opts.onSend] - called for each streamed SSE event object
  * @param {string} [opts.systemHint] - appended to the system context (Anthropic requires system to be top-level)
  */
+function chatReportData(raw) {
+  if (!raw) return raw;
+  if (raw.display_view === DISPLAY_VIEWS.analyst) return raw;
+  return redactReportPayload(raw, DISPLAY_VIEWS.operator);
+}
+
 export async function streamChat(message, history, rawReply, getReportData, opts = {}) {
-  const reportData = getReportData();
+  const reportData = chatReportData(getReportData());
   const { context: baseContext, pboLookup } = buildReportContext(reportData);
   const retrievalHint = await buildRetrievalHint(message, reportData, opts.vectorIndexStore ?? null);
   const context =
@@ -69,9 +80,9 @@ function fingerprintReport(reportData) {
     Array.isArray(reportData?.signals) ? reportData.signals.length
       : Array.isArray(a?.signals) ? a.signals.length
       : 0;
-  const overall = a?.overall_resilience_score ?? 'n/a';
   const createdAt = reportData?.created_at ?? reportData?.createdAt ?? '';
-  return `${a?.date ?? ''}|overall=${overall}|signals=${sigCount}|created=${createdAt}`;
+  const scope = a?.report_scope?.id ?? 'national';
+  return `${a?.date ?? ''}|scope=${scope}|signals=${sigCount}|created=${createdAt}`;
 }
 
 function signalToDoc(signal, idx) {
@@ -96,12 +107,17 @@ function componentToDoc(component) {
   if (!id) return null;
   const narrative = String(component?.narrative ?? '').trim();
   const evidence = Array.isArray(component?.evidence) ? component.evidence.join('\n') : '';
-  const text = `${id}\nScore: ${component?.score ?? 'n/a'}/10 (${component?.confidence ?? 'n/a'})\n\n${narrative}\n\nEvidence:\n${evidence}`;
+  const inst = component?.instrument ?? deriveInstrumentState(component);
+  const text =
+    `${id}\n` +
+    `Instrument: confidence=${inst.confidence}, sufficiency=${inst.evidence_sufficiency}` +
+    `${inst.contested ? ', contested' : ''}${inst.significant_delta ? ', significant_delta' : ''}\n\n` +
+    `${narrative}\n\nEvidence:\n${evidence}`;
   return {
     docId: `component:${id}`,
     kind: 'component',
     text,
-    meta: { component_id: id, score: component?.score ?? null },
+    meta: { component_id: id },
   };
 }
 
@@ -118,13 +134,14 @@ async function ensureIndexed(reportData, vectorIndexStore) {
   const a = reportData.assessment;
   const docs = [];
 
+  const synth = String(a.cross_component_synthesis ?? '').trim();
   docs.push({
     docId: 'assessment:summary',
     kind: 'assessment',
     text:
       `Assessment date: ${a.date}\n` +
-      `Overall: ${a.overall_resilience_score}/10\n\n` +
-      `${String(a.cross_component_synthesis ?? '').trim()}\n\n` +
+      `Scope: ${a?.report_scope?.label ?? a?.report_scope?.id ?? 'national'}\n\n` +
+      `${synth}\n\n` +
       `Evidence quality: ${String(a.evidence_quality_note ?? '').trim()}`,
     meta: { date: a.date, scope: a?.report_scope?.id ?? 'national' },
   });

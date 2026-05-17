@@ -37,6 +37,12 @@ import {
   enrichWithDeltaChannel,
 } from './assessSignalsHelpers.js';
 import { summarizeGeoCoverage } from '../../../cross-cut-modules/geo/signalGeoSummary.js';
+import {
+  buildAssessmentMethodology,
+  buildScoringModelManifest,
+  formatScopeDecisionLogLine,
+} from '../domain/services/assessmentMethodology.js';
+import { proposeComponentTuningFromReportFiles } from '../domain/services/componentTuningProposal.js';
 
 const TEMPORAL_WEIGHTS = { 0: 1.00, 1: 0.85, 2: 0.70 };
 
@@ -334,6 +340,13 @@ async function run() {
     console.error(`  → Scope filter (${reportScope.label}): ${allSignals.length}/${nationalSignals.length} signals retained`);
   }
 
+  const scopeMethodologyPreview = buildAssessmentMethodology({
+    signals: allSignals,
+    reportScopeId,
+  });
+  const scopeLogLine = formatScopeDecisionLogLine(scopeMethodologyPreview);
+  if (scopeLogLine) console.error(scopeLogLine);
+
   if (allSignals.length === 0) {
     console.error(`No signal files contained ${reportScope.label} evidence for ${targetDate}${days > 1 ? ` (last ${days} days)` : ''}.`);
     process.exit(1);
@@ -414,6 +427,14 @@ async function run() {
     };
   }
 
+  const tuningProposal = proposeComponentTuningFromReportFiles(resolve('reports'), { minReports: 10 });
+  assessment.methodology = buildAssessmentMethodology({
+    signals: allSignals,
+    reportScopeId,
+    scoringModelManifest: buildScoringModelManifest(),
+    tuningProposal,
+  });
+
   writeReport(assessment, allSignals, [...new Set(sourceFiles)], outputBase, { scoreBySource });
 
   console.error(`\n=== Resilience Components ===`);
@@ -423,7 +444,8 @@ async function run() {
 
   printSummary();
   console.error(`\nReports written:`);
-  console.error(`  ${outputBase}.md`);
+  console.error(`  ${outputBase}.md (analyst/full scores)`);
+  console.error(`  ${outputBase}-brief.md (operator brief, no /10)`);
   console.error(`  ${outputBase}.json`);
 
   const { totalCostUsd, usageLog, stageEvents } = getTotal();

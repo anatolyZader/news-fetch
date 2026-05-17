@@ -5,6 +5,10 @@ import { existsSync, readFileSync, readdirSync } from 'fs';
 import { resolve } from 'path';
 import { createDefaultPoolService } from '../../pool/index.js';
 import { getMunicipalityDashboard } from '../../pbo_report_muni/app/pboMunicipalityService.js';
+import {
+  deriveInstrumentState,
+  operatorAssessmentSummary,
+} from '../../resilience/domain/services/assessmentDisplayTier.js';
 
 const DEFAULT_MAX_MARKDOWN = 100_000;
 const LABELS = {
@@ -25,6 +29,8 @@ const LABELS = {
     date: 'Date',
     articles: 'Articles',
     overallScore: 'Overall score',
+    instrumentSummary: 'Evidence summary',
+    confidence: 'confidence',
     components: 'Components',
     executiveSummary: 'Executive summary',
     componentNarratives: 'Component narratives',
@@ -49,6 +55,8 @@ const LABELS = {
     date: 'תאריך',
     articles: 'כתבות',
     overallScore: 'ציון כולל',
+    instrumentSummary: 'סיכום ראיות',
+    confidence: 'רמת ביטחון',
     components: 'מרכיבים',
     executiveSummary: 'סיכום מנהלים',
     componentNarratives: 'נרטיבים לפי מרכיב',
@@ -73,6 +81,8 @@ const LABELS = {
     date: 'Дата',
     articles: 'Статьи',
     overallScore: 'Общая оценка',
+    instrumentSummary: 'Сводка по доказательствам',
+    confidence: 'уверенность',
     components: 'Компоненты',
     executiveSummary: 'Краткое резюме',
     componentNarratives: 'Текстовые выводы по компонентам',
@@ -595,7 +605,7 @@ function buildReportText({ cached, assessment, labels, lang }) {
   const totalArticles = assessment?.total_articles_analyzed ?? cached?.total_articles_analyzed ?? '';
   const dayBreakdown = buildDayBreakdown(cached, assessment);
   const totalPboReports = dayBreakdown.reduce((sum, d) => sum + (Number(d.pboReports) || 0), 0);
-  const overall = assessment?.overall_resilience_score ?? '';
+  const instrumentLine = operatorAssessmentSummary(assessment);
   const comps = Array.isArray(assessment?.components) ? assessment.components : [];
   const lines = [
     `=== ${labels.reportTitle} (${reportDate}) ===`,
@@ -606,7 +616,7 @@ function buildReportText({ cached, assessment, labels, lang }) {
     `- ${labels.generatedAt}: ${displayValue(generatedAt)}`,
     `- ${labels.totalArticles}: ${displayValue(totalArticles)}`,
     `- ${labels.pboReports}: ${displayValue(totalPboReports)}`,
-    `- ${labels.overallScore}: ${displayValue(overall)}`,
+    `- ${labels.instrumentSummary}: ${displayValue(instrumentLine)}`,
     '',
     `${labels.dataByDay}:`,
     ...dayBreakdown.map((d) => `- ${d.date}: ${labels.articles} ${displayValue(d.articles)}; ${labels.pboReports} ${displayValue(d.pboReports)}`),
@@ -617,9 +627,10 @@ function buildReportText({ cached, assessment, labels, lang }) {
     `${labels.componentNarratives}:`,
   ];
   for (const c of comps) {
+    const inst = c.instrument ?? deriveInstrumentState(c);
     lines.push(
       '',
-      `--- ${componentLabel(c.component_id, lang)} (${labels.score} ${displayValue(c.score)}) ---`,
+      `--- ${componentLabel(c.component_id, lang)} (${labels.confidence} ${inst.confidence}, sufficiency ${inst.evidence_sufficiency}) ---`,
       truncate(String(c.narrative ?? ''), 6000),
     );
   }
@@ -633,26 +644,26 @@ function buildReportHtml({ cached, assessment, labels, lang, dir }) {
   const totalArticles = assessment?.total_articles_analyzed ?? cached?.total_articles_analyzed ?? '';
   const dayBreakdown = buildDayBreakdown(cached, assessment);
   const totalPboReports = dayBreakdown.reduce((sum, d) => sum + (Number(d.pboReports) || 0), 0);
-  const overall = assessment?.overall_resilience_score ?? '';
+  const instrumentLine = operatorAssessmentSummary(assessment);
   const comps = Array.isArray(assessment?.components) ? assessment.components : [];
-  const overallColors = scoreBadgeColor(overall);
   const metaRows = [
     [labels.reportDate, reportDate],
     [labels.generatedAt, generatedAt],
     [labels.totalArticles, totalArticles],
     [labels.pboReports, totalPboReports],
-    [labels.overallScore, overall],
+    [labels.instrumentSummary, instrumentLine],
   ];
 
   const componentCards = comps.map((c) => {
-    const colors = scoreBadgeColor(c.score);
+    const inst = c.instrument ?? deriveInstrumentState(c);
     const componentLink = appLink({ section: 'report', component: c.component_id ?? '' });
+    const instBadge = `${inst.confidence} · ${inst.evidence_sufficiency}${inst.contested ? ' · contested' : ''}`;
     return `
       <section style="margin:0 0 16px 0;padding:18px 20px;border:1px solid #e2e8f0;border-radius:16px;background:#ffffff">
         <div style="display:flex;align-items:center;justify-content:flex-start;gap:14px;margin-bottom:10px">
           <h3 style="margin:0;font-size:18px;line-height:1.3;color:#0f172a">${escapeHtml(componentLabel(c.component_id, lang))}</h3>
-          <span style="display:inline-block;white-space:nowrap;border:1px solid ${colors.border};background:${colors.bg};color:${colors.fg};border-radius:999px;padding:5px 10px;font-size:13px;font-weight:700;${dir === 'rtl' ? 'margin-right:14px' : 'margin-left:14px'}">
-            ${escapeHtml(labels.score)} ${escapeHtml(displayValue(c.score))}
+          <span style="display:inline-block;white-space:nowrap;border:1px solid #cbd5e1;background:#f8fafc;color:#475569;border-radius:999px;padding:5px 10px;font-size:12px;font-weight:600;${dir === 'rtl' ? 'margin-right:14px' : 'margin-left:14px'}">
+            ${escapeHtml(instBadge)}
           </span>
         </div>
         <div style="font-size:15px;line-height:1.65;color:#1e293b">${paragraphHtml(truncate(String(c.narrative ?? ''), 6000))}</div>
@@ -684,9 +695,7 @@ function buildReportHtml({ cached, assessment, labels, lang, dir }) {
                   <tr>
                     <td style="width:38%;padding:12px 14px;border-bottom:${idx === metaRows.length - 1 ? '0' : '1px solid #e2e8f0'};background:#f8fafc;color:#64748b;font-size:13px;font-weight:700">${escapeHtml(k)}</td>
                     <td style="padding:12px 14px;border-bottom:${idx === metaRows.length - 1 ? '0' : '1px solid #e2e8f0'};color:#0f172a;font-size:14px;font-weight:600">
-                      ${k === labels.overallScore
-    ? `<span style="display:inline-block;border:1px solid ${overallColors.border};background:${overallColors.bg};color:${overallColors.fg};border-radius:999px;padding:5px 10px;font-weight:800">${escapeHtml(displayValue(v))}</span>`
-    : escapeHtml(displayValue(v))}
+                      ${escapeHtml(displayValue(v))}
                     </td>
                   </tr>
                 `).join('')}

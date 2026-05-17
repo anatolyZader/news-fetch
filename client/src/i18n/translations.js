@@ -95,6 +95,24 @@ export const translations = {
     'report.scope.label': 'Report scope',
     'report.scope.national': 'National',
     'report.scope.north': 'North',
+    'report.view.label': 'Display mode',
+    'report.view.operator': 'Narrative',
+    'report.view.analyst': 'Analyst',
+    'report.instrument.summaryTitle': 'Evidence overview',
+    'report.instrument.summaryBody': 'Scope: {scope}. Components with adequate evidence: {adequate}/{total}. Thin evidence: {thin}. Contested: {contested}.',
+    'report.instrument.sufficiency.thin': 'thin evidence',
+    'report.instrument.sufficiency.moderate': 'moderate evidence',
+    'report.instrument.sufficiency.adequate': 'adequate evidence',
+    'report.methodology.epistemicBanner':
+      'Headline scores are hidden by design. Instrument flags describe evidence sufficiency and instability—not validated resilience or ground truth.',
+    'report.methodology.northKeywordWarning':
+      'Many north signals were attributed via keyword fallback ({pct}% of north-relevant signals). Treat geographic scope as low confidence for news-like sources.',
+    'report.methodology.thinEvidenceWarning':
+      'Most components have thin evidence for this scope. Narratives may under-represent local conditions.',
+    'report.methodology.norrisDisclaimer':
+      'Norris capacities (when shown to analysts) are a synthetic 4Rs lens from component scores—not the same as Pikud 8-component community resilience or validated community robustness.',
+    'app.northReportMissingHint':
+      'No north report is available for today. Generate one with: npm run assess-signals -- --date YYYY-MM-DD --scope north (the news-only pipeline does not produce a north artifact).',
 
     // Language names
     'lang.en': 'EN',
@@ -616,6 +634,24 @@ export const translations = {
     'report.scope.label': 'היקף הדוח',
     'report.scope.national': 'ארצי',
     'report.scope.north': 'צפון',
+    'report.view.label': 'מצב תצוגה',
+    'report.view.operator': 'נרטיב',
+    'report.view.analyst': 'אנליסט',
+    'report.instrument.summaryTitle': 'סקירת ראיות',
+    'report.instrument.summaryBody': 'היקף: {scope}. מרכיבים עם ראיות מספקות: {adequate}/{total}. ראיות דלות: {thin}. מחלוקת: {contested}.',
+    'report.instrument.sufficiency.thin': 'ראיות דלות',
+    'report.instrument.sufficiency.moderate': 'ראיות בינוניות',
+    'report.instrument.sufficiency.adequate': 'ראיות מספקות',
+    'report.methodology.epistemicBanner':
+      'ציוני כותרת מוסתרים בכוונה. דגלי המכשיר מתארים מספיקות ראיות ואי-יציבות—לא חוסן מאומת או אמת בשטח.',
+    'report.methodology.northKeywordWarning':
+      'חלק גדול מהאותות בצפון שויכו בנפילה למילות מפתח ({pct}% מהאותות הרלוונטיים לצפון). יש לייחס לגיאוגרפיה רמת ביטחון נמוכה במקורות חדשותיים.',
+    'report.methodology.thinEvidenceWarning':
+      'ברוב המרכיבים יש ראיות דלות בהיקף זה. הנרטיבים עלולים שלא לשקף מספיק את המצב המקומי.',
+    'report.methodology.norrisDisclaimer':
+      'יכולות נוריס (בתצוגת אנליסט) הן עדשת 4R סינתטית מציוני מרכיבים; אינן זהות ל-8 מרכיבי פיקוד או לחוסן קהילתי מאומת.',
+    'app.northReportMissingHint':
+      'אין דוח צפון להיום. ליצירה: npm run assess-signals -- --date YYYY-MM-DD --scope north (ניתוח חדשות בלבד אינו מייצר דוח צפון).',
 
     'lang.en': 'EN',
     'lang.he': 'עב',
@@ -1078,6 +1114,24 @@ export const translations = {
     'report.scope.label': 'Охват отчёта',
     'report.scope.national': 'Страна',
     'report.scope.north': 'Север',
+    'report.view.label': 'Режим отображения',
+    'report.view.operator': 'Нарратив',
+    'report.view.analyst': 'Аналитик',
+    'report.instrument.summaryTitle': 'Обзор доказательств',
+    'report.instrument.summaryBody': 'Охват: {scope}. Компонентов с достаточными данными: {adequate}/{total}. Мало данных: {thin}. Противоречиво: {contested}.',
+    'report.instrument.sufficiency.thin': 'мало данных',
+    'report.instrument.sufficiency.moderate': 'умеренный объём',
+    'report.instrument.sufficiency.adequate': 'достаточно данных',
+    'report.methodology.epistemicBanner':
+      'Итоговые баллы скрыты намеренно. Флаги инструмента описывают достаточность данных и нестабильность, а не проверенную устойчивость.',
+    'report.methodology.northKeywordWarning':
+      'Многие сигналы на севере привязаны по ключевым словам ({pct}% северных сигналов). Географию новостных источников следует считать ненадёжной.',
+    'report.methodology.thinEvidenceWarning':
+      'У большинства компонентов мало данных в этой области. Нарративы могут не отражать местную ситуацию.',
+    'report.methodology.norrisDisclaimer':
+      'Возможности Норрис (для аналитиков) — синтетическая 4R-линза из баллов компонентов, не то же самое, что 8 компонентов Пикуда или проверенная устойчивость сообщества.',
+    'app.northReportMissingHint':
+      'Нет северного отчёта на сегодня. Создайте: npm run assess-signals -- --date YYYY-MM-DD --scope north (только новости не создают северный артефакт).',
 
     'lang.en': 'EN',
     'lang.he': 'ИВ',

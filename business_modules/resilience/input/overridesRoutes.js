@@ -1,3 +1,5 @@
+import { requireAnalystView } from '../domain/services/assessmentDisplayTier.js';
+
 /**
  * Fastify routes for reviewer overrides on resilience reports (N3).
  *
@@ -16,6 +18,7 @@ export async function registerOverridesRoutes(app, opts) {
   const preHandler = opts?.authPreHandler ? { preHandler: opts.authPreHandler } : {};
 
   app.get('/api/resilience/overrides', preHandler, async (request, reply) => {
+    if (!requireAnalystView(request, reply)) return;
     if (!service) return reply.code(503).send({ error: 'overrides service not configured' });
     const date = request.query?.date;
     const scope = request.query?.scope === 'north' ? 'north' : 'national';
@@ -32,6 +35,7 @@ export async function registerOverridesRoutes(app, opts) {
   });
 
   app.post('/api/resilience/overrides', preHandler, async (request, reply) => {
+    if (!requireAnalystView(request, reply)) return;
     if (!service) return reply.code(503).send({ error: 'overrides service not configured' });
     const body = request.body ?? {};
     const uid = request.user?.uid ?? body.uid ?? null;

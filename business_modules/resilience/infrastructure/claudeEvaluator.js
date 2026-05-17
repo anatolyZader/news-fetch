@@ -17,6 +17,7 @@ import {
   scoreComponents,
 } from '../domain/services/behaviorSignals.js';
 import { computeNorrisCapacities } from '../domain/services/norrisCapacities.js';
+import { narrativeIncludesScores } from '../domain/services/assessmentDisplayTier.js';
 import {
   DOMAIN_GROUPS,
   isMultipassEnabled,
@@ -1277,10 +1278,38 @@ export { extractSignals as extractEvidence };
 
 // ─── Step 2: Narrative generation ─────────────────────────────────────────────
 
+function narrativeInstrumentLine(scored, totalArticles) {
+  if (!scored || scored.score == null && scored.confidence === 'insufficient_data') {
+    return 'Instrument: insufficient data';
+  }
+  const certaintyPct = scored.certainty != null
+    ? `${(scored.certainty * 100).toFixed(0)}%`
+    : 'n/a';
+  const dir = scored.strength != null
+    ? (scored.strength >= 0 ? 'net_positive' : 'net_negative')
+    : 'unknown';
+  const mass = scored.evidence_mass ?? 0;
+  const suff = mass < 1.5 ? 'thin' : mass < 4 ? 'moderate' : 'adequate';
+  const polTag = scored.polarization != null && scored.polarization > 0.5 && mass > 4
+    ? '  contested'
+    : '';
+  const deltaTag = scored.delta_flag === 'significant' ? '  SIGNIFICANT_vs_baseline' : '';
+  const floorTag = scored.floor_clamped ? '  thin_evidence_floor' : '';
+  return (
+    `Instrument: certainty=${certaintyPct}  direction=${dir}  evidence_sufficiency=${suff}` +
+    `  (${scored.distinct_article_count ?? 0}/${totalArticles} articles, ${scored.signal_count ?? 0} signals)` +
+    `${polTag}${deltaTag}${floorTag}`
+  );
+}
+
 /**
  * Format the pre-scored component data + its signals for the narrative prompt.
+ * @param {object} scoredComponents
+ * @param {number} totalArticles
+ * @param {{ includeScores?: boolean }} [opts]
  */
-export function formatScoredComponentsForNarrative(scoredComponents, totalArticles) {
+export function formatScoredComponentsForNarrative(scoredComponents, totalArticles, opts = {}) {
+  const includeScores = opts.includeScores ?? narrativeIncludesScores();
   return RESILIENCE_COMPONENTS.map((compDef) => {
     const scored = scoredComponents[compDef.id];
     const conf = summarizeConfidence(scored?.confidence);
@@ -1292,26 +1321,46 @@ export function formatScoredComponentsForNarrative(scoredComponents, totalArticl
       );
     }).join('\n');
 
-    const ciTag = scored?.score_low != null && scored?.score_high != null
-      ? `  CI: ${scored.score_low}-${scored.score_high}` : '';
-    const polTag = scored?.polarization != null && scored.polarization > 0.5 && scored.evidence_mass > 4
-      ? `  ⚠ contested (pol=${scored.polarization.toFixed(2)})` : '';
-    const deltaTag = scored?.delta_score != null
-      ? `  Δvs prev: ${scored.delta_score >= 0 ? '+' : ''}${scored.delta_score}` +
-        (scored.delta_significance != null ? ` (z=${scored.delta_significance.toFixed(1)})` : '') +
-        (scored.delta_flag === 'significant' ? ' SIGNIFICANT' : '')
-      : '';
-    const scoresSummary = scored?.score != null
-      ? `Score: ${scored.score}/10  Certainty: ${(scored.certainty * 100).toFixed(0)}%  Direction: ${scored.strength >= 0 ? '+' : ''}${scored.strength.toFixed(2)}  (${scored.distinct_article_count}/${totalArticles} articles, ${(scored.coverage_ratio * 100).toFixed(1)}%, ${scored.dispersion} dispersion)  +ev:${scored.positive_evidence} −ev:${scored.negative_evidence}${ciTag}${polTag}${deltaTag}`
-      : 'Score: insufficient data';
+    let metricsSummary;
+    if (includeScores) {
+      const ciTag = scored?.score_low != null && scored?.score_high != null
+        ? `  CI: ${scored.score_low}-${scored.score_high}` : '';
+      const polTag = scored?.polarization != null && scored.polarization > 0.5 && scored.evidence_mass > 4
+        ? `  ⚠ contested (pol=${scored.polarization.toFixed(2)})` : '';
+      const deltaTag = scored?.delta_score != null
+        ? `  Δvs prev: ${scored.delta_score >= 0 ? '+' : ''}${scored.delta_score}` +
+          (scored.delta_significance != null ? ` (z=${scored.delta_significance.toFixed(1)})` : '') +
+          (scored.delta_flag === 'significant' ? ' SIGNIFICANT' : '')
+        : '';
+      metricsSummary = scored?.score != null
+        ? `Score: ${scored.score}/10  Certainty: ${(scored.certainty * 100).toFixed(0)}%  Direction: ${scored.strength >= 0 ? '+' : ''}${scored.strength.toFixed(2)}  (${scored.distinct_article_count}/${totalArticles} articles, ${(scored.coverage_ratio * 100).toFixed(1)}%, ${scored.dispersion} dispersion)  +ev:${scored.positive_evidence} −ev:${scored.negative_evidence}${ciTag}${polTag}${deltaTag}`
+        : 'Score: insufficient data';
+    } else {
+      metricsSummary = narrativeInstrumentLine(scored, totalArticles);
+    }
 
     return (
       `**${compDef.id}** — ${compDef.name_en}\n` +
-      `Confidence: ${conf}  ${scoresSummary}\n` +
+      `Confidence: ${conf}  ${metricsSummary}\n` +
       `Behavioral manifestations:\n${compDef.behavioral_manifestations?.map((m, i) => `  ${i + 1}. ${m}`).join('\n') ?? '(none defined)'}\n` +
       `Signals extracted (${scored?.signal_count ?? 0}):\n${signals || '  (none)'}`
     );
   }).join('\n\n---\n\n');
+}
+
+function priorComponentTrendTags(c) {
+  const tags = [`confidence=${c.confidence ?? 'n/a'}`];
+  if (c.delta_flag === 'significant') {
+    const dir = (c.delta_score ?? 0) > 0 ? 'up' : (c.delta_score ?? 0) < 0 ? 'down' : 'shift';
+    tags.push(`significant_delta_${dir}`);
+  }
+  if (c.polarization != null && c.polarization > 0.5 && (c.evidence_mass ?? 0) > 4) {
+    tags.push('contested');
+  }
+  if (c.strength != null) {
+    tags.push(c.strength >= 0 ? 'evidence_net_positive' : 'evidence_net_negative');
+  }
+  return tags.join(', ');
 }
 
 /**
@@ -1324,33 +1373,50 @@ export function formatScoredComponentsForNarrative(scoredComponents, totalArticl
  * @param {number} totalArticles
  * @returns {Object}                 Assessment object with narratives merged into scored components
  */
-function formatPriorReportsContext(priorReports) {
+function formatPriorReportsContext(priorReports, { includeScores } = {}) {
   if (!priorReports || priorReports.length === 0) return '';
+  const useScores = includeScores ?? narrativeIncludesScores();
   const sections = priorReports.map((r) => {
-    const compScores = (r.components ?? [])
-      .map((c) => `    ${c.component_id.padEnd(28)} ${c.score ?? 'N/A'}/10`)
-      .join('\n');
-    return `[${r.date}] Overall: ${r.overall_resilience_score}/10\n${compScores}`;
+    const compLines = (r.components ?? []).map((c) => {
+      if (useScores) {
+        return `    ${c.component_id.padEnd(28)} ${c.score ?? 'N/A'}/10`;
+      }
+      return `    ${c.component_id.padEnd(28)} ${priorComponentTrendTags(c)}`;
+    }).join('\n');
+    const header = useScores
+      ? `[${r.date}] Overall: ${r.overall_resilience_score ?? 'N/A'}/10`
+      : `[${r.date}] Prior-day instrument trends (no numeric scores)`;
+    return `${header}\n${compLines}`;
   });
+  const trajectoryNote = useScores
+    ? 'Shows component scores only for earlier report dates.'
+    : 'Shows instrument trend tags only (no numeric scores) for earlier report dates.';
   return (
-    `━━━ PRIOR DAYS' CONTEXT (SCORE TRAJECTORY ONLY) ━━━\n` +
-    `Shows component scores only for earlier report dates. Use ONLY for trend wording (improving / declining / stable vs prior days).\n` +
+    `━━━ PRIOR DAYS' CONTEXT (TREND ONLY) ━━━\n` +
+    `${trajectoryNote} Use ONLY for trend wording (improving / declining / stable vs prior days).\n` +
     `Do NOT reuse factual geopolitical situations, timelines, treaty/ceasefire claims, battles, diplomacy, etc. from those days unless the SAME fact appears in TODAY's Evidence lines below.\n` +
     `Do not summarize or import earlier executive summaries.\n\n` +
     `${sections.join('\n\n')}\n\n`
   );
 }
 
-function formatComparisonScoresContext(scopeLabel, scoredComponents) {
+function formatComparisonScoresContext(scopeLabel, scoredComponents, { includeScores } = {}) {
   if (!scopeLabel || !scoredComponents) return '';
+  const useScores = includeScores ?? narrativeIncludesScores();
   const compScores = RESILIENCE_COMPONENTS.map((def) => {
     const c = scoredComponents[def.id] ?? {};
-    return `- ${def.id}: ${c.score ?? 'n/a'}/10, confidence=${c.confidence ?? 'n/a'}, signals=${c.signal_count ?? 0}`;
+    if (useScores) {
+      return `- ${def.id}: ${c.score ?? 'n/a'}/10, confidence=${c.confidence ?? 'n/a'}, signals=${c.signal_count ?? 0}`;
+    }
+    return `- ${def.id}: ${priorComponentTrendTags(c)}, signals=${c.signal_count ?? 0}`;
   }).join('\n');
+  const comparisonNote = useScores
+    ? 'Use these pre-computed comparison scores as context only.'
+    : 'Use these comparison instrument tags as context only (no numeric scores).';
   return (
     `━━━ COMPARISON CONTEXT: ${scopeLabel.toUpperCase()} ━━━\n` +
-    `Use these pre-computed comparison scores as context only. The report you are writing is for the requested scope; ` +
-    `do not average these scores into the scoped scores. Mention differences only when analytically meaningful.\n` +
+    `${comparisonNote} The report you are writing is for the requested scope; ` +
+    `do not average comparison context into the scoped assessment. Mention differences only when analytically meaningful.\n` +
     `${compScores}\n\n`
   );
 }
@@ -1407,8 +1473,11 @@ export async function generateNarratives(
     }
   }
 
-  const priorContext = formatPriorReportsContext(priorReports);
-  const comparisonContext = formatComparisonScoresContext(comparisonLabel, comparisonScores);
+  const includeScoresInPrompt = narrativeIncludesScores();
+  const priorContext = formatPriorReportsContext(priorReports, { includeScores: includeScoresInPrompt });
+  const comparisonContext = formatComparisonScoresContext(comparisonLabel, comparisonScores, {
+    includeScores: includeScoresInPrompt,
+  });
   const scopeContext = reportScope?.id === 'north'
     ? `━━━ REPORT SCOPE: NORTHERN ISRAEL ━━━\n` +
       `Write this assessment as a northern-region report, focused on civilians and communities in northern Israel. ` +
@@ -1427,7 +1496,9 @@ export async function generateNarratives(
 
   const systemPrompt =
     `You are a community resilience analyst writing behavioral narratives for a structured report.\n` +
-    `The component SCORES are already computed — do not re-score. Your job is to write clear, behavioral narratives.\n\n` +
+    (includeScoresInPrompt
+      ? `The component SCORES are already computed — do not re-score. Your job is to write clear, behavioral narratives.\n\n`
+      : `Component instrument tags (certainty, direction, sufficiency) are pre-computed — do not invent numeric 1–10 ratings. Your job is to write clear, behavioral narratives grounded in Evidence lines.\n\n`) +
     scopeContext +
     (contentKind === 'audio' ? AUDIO_NARRATIVE_CONTEXT : '') +
     (sourceTypes.has('field') ? FIELD_REPORT_NARRATIVE_CONTEXT : '') +
@@ -1462,7 +1533,7 @@ export async function generateNarratives(
     `  Name this split explicitly. E.g.: "Shelter instructions reached residents through multiple channels — but no guidance was issued for workers without legal protection to stop, and mass-casualty scenarios were not addressed in official messaging."\n` +
     `  Use information_actionable_effective signals to evidence the presence-effectiveness link; use information_effectiveness_gap signals to evidence the gap.\n` +
     `- BASELINE VS ELEVATED SERVICE FUNCTIONING: Baseline service operation (ambulance responded, hospital treated) is neutral, not positive evidence. Only cite service functioning as strong when it demonstrably performed despite disruption or elevated demand.\n` +
-    `- DELTA + CONTESTED EVIDENCE TAGS: When a component's pre-computed line shows "SIGNIFICANT" (|z|>2 vs 14-day baseline), include a brief trend phrase ("a notable shift vs the 14-day baseline"). When it shows "contested", note that the evidence is split between supporting and opposing observations rather than collapsing to a single verdict. Do not invent direction or magnitude beyond what the score+delta numbers say.\n` +
+    `- DELTA + CONTESTED EVIDENCE TAGS: When a component's pre-computed line shows "SIGNIFICANT" or "SIGNIFICANT_vs_baseline", include a brief trend phrase ("a notable shift vs the 14-day baseline"). When it shows "contested", note that the evidence is split between supporting and opposing observations rather than collapsing to a single verdict. Do not invent direction or magnitude beyond what the instrument tags say.\n` +
     `- SCOPE DISCIPLINE: Never use "the only", "the one exception", "uniquely", or similar exclusive claims.\n` +
     `  The inputs are a sample, not a census. Something appearing once in the data means it was reported once — not that it is the sole instance.\n` +
     `- LINKS: Each signal has a URL. When a signal has a URL, embed a markdown link for every significant claim:\n` +
@@ -1470,8 +1541,8 @@ export async function generateNarratives(
     `    In evidence items: append ([source](URL)) at end of the item\n` +
     `    If a signal has no URL, omit the link — do not fabricate URLs\n\n` +
 
-    `━━━ THE 8 COMPONENTS (with pre-computed scores and signals) ━━━\n\n` +
-    `${formatScoredComponentsForNarrative(scoredForNarrative, totalArticles)}\n\n` +
+    `━━━ THE 8 COMPONENTS (with pre-computed ${includeScoresInPrompt ? 'scores' : 'instrument tags'} and signals) ━━━\n\n` +
+    `${formatScoredComponentsForNarrative(scoredForNarrative, totalArticles, { includeScores: includeScoresInPrompt })}\n\n` +
 
     `━━━ OUTPUT FORMAT ━━━\n` +
     `Return ONLY valid JSON:\n` +
