@@ -79,38 +79,6 @@ describe('driftService.compute', () => {
     assert.equal(result.source_share_per_day[1].by_source_type.field, 1);
   });
 
-  it('counts overrides per day and computes rate', () => {
-    const fakeHistory = buildHistory();
-    const overridesService = {
-      countByComponent: ({ date }) => {
-        if (date === '2026-05-01') return { narrative: 1 };
-        if (date === '2026-05-02') return { narrative: 2, leadership: 1 };
-        return {};
-      },
-    };
-    const svc = createDriftService({
-      historyReader: () => fakeHistory,
-      overridesService,
-    });
-    const result = svc.compute({ scope: 'national', days: 2, endDate: '2026-05-02' });
-
-    assert.equal(result.overrides.total, 4);
-    assert.equal(result.overrides.by_component.narrative, 3);
-    assert.equal(result.overrides.by_component.leadership, 1);
-    assert.equal(result.overrides.per_day[0].count, 1);
-    assert.equal(result.overrides.per_day[1].count, 3);
-    // rate = 4 overrides / 4 components-with-data (2 per day × 2 days) = 1.0
-    assert.equal(result.overrides.rate, 1.0);
-  });
-
-  it('produces zero overrides when no overridesService is provided', () => {
-    const svc = createDriftService({ historyReader: () => buildHistory() });
-    const result = svc.compute({ scope: 'national', days: 2, endDate: '2026-05-02' });
-    assert.equal(result.overrides.total, 0);
-    assert.equal(result.overrides.rate, 0);
-    assert.deepEqual(result.overrides.per_day.map((d) => d.count), [0, 0]);
-  });
-
   it('includes daily mean polarization and certainty series', () => {
     const svc = createDriftService({ historyReader: () => buildHistory() });
     const result = svc.compute({ scope: 'national', days: 2, endDate: '2026-05-02' });
@@ -121,7 +89,7 @@ describe('driftService.compute', () => {
     assert.ok(result.per_component.narrative.series[0].certainty != null);
   });
 
-  it('emits alerts when override rate and 3-day polarization mean exceed thresholds', () => {
+  it('emits alert when 3-day polarization mean exceeds threshold', () => {
     const fakeHistory = [
       {
         date: '2026-04-29', scope: 'national',
@@ -148,24 +116,15 @@ describe('driftService.compute', () => {
         signal_counts: { fear_expression: 2 }, source_type_mass: { news: 2 },
       },
     ];
-    const overridesService = {
-      countByComponent: () => ({ narrative: 5 }),
-    };
-    const prevO = process.env.RESILIENCE_DRIFT_ALERT_OVERRIDE_RATE;
     const prevP = process.env.RESILIENCE_DRIFT_ALERT_POLARIZATION;
-    process.env.RESILIENCE_DRIFT_ALERT_OVERRIDE_RATE = '0.1';
     process.env.RESILIENCE_DRIFT_ALERT_POLARIZATION = '0.7';
     try {
-      const svc = createDriftService({ historyReader: () => fakeHistory, overridesService });
+      const svc = createDriftService({ historyReader: () => fakeHistory });
       const result = svc.compute({ scope: 'national', days: 3, endDate: '2026-05-01' });
-      const codes = result.alerts.map((a) => a.code);
-      assert.ok(codes.includes('high_override_rate'));
       const polAlert = result.alerts.find((a) => a.code === 'high_mean_polarization');
       assert.ok(polAlert);
       assert.equal(polAlert.polarization_window_days, 3);
     } finally {
-      if (prevO === undefined) delete process.env.RESILIENCE_DRIFT_ALERT_OVERRIDE_RATE;
-      else process.env.RESILIENCE_DRIFT_ALERT_OVERRIDE_RATE = prevO;
       if (prevP === undefined) delete process.env.RESILIENCE_DRIFT_ALERT_POLARIZATION;
       else process.env.RESILIENCE_DRIFT_ALERT_POLARIZATION = prevP;
     }

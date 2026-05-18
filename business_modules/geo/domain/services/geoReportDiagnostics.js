@@ -9,11 +9,13 @@ export function collectGeoVersionsFromSignals(signals) {
   for (const s of signals ?? []) {
     const g = s?.geo;
     if (!g || g.kind !== 'resolved') continue;
-    if (typeof g.geoReferenceVersion === 'string' && g.geoReferenceVersion.trim()) {
-      refs.add(g.geoReferenceVersion.trim());
+    const refVer = g.audit?.geoReferenceVersion ?? g.geoReferenceVersion;
+    const borderVer = g.audit?.borderReferenceVersion ?? g.borderReferenceVersion;
+    if (typeof refVer === 'string' && refVer.trim()) {
+      refs.add(refVer.trim());
     }
-    if (typeof g.borderReferenceVersion === 'string' && g.borderReferenceVersion.trim()) {
-      borders.add(g.borderReferenceVersion.trim());
+    if (typeof borderVer === 'string' && borderVer.trim()) {
+      borders.add(borderVer.trim());
     }
   }
   return {

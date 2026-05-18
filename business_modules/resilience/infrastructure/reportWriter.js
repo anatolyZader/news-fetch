@@ -27,7 +27,7 @@ function evidenceDirection(pos, neg) {
  * @param {string[]} sourceFiles
  * @param {{ includeScores?: boolean }} [opts] When false, narrative-focused brief (no /10).
  */
-function buildMarkdown(assessment, sourceFiles, { includeScores = true } = {}) {
+export function buildMarkdown(assessment, sourceFiles, { includeScores = true } = {}) {
   const lines = [];
 
   // ── Header ────────────────────────────────────────────────────────────────
@@ -260,7 +260,7 @@ function i18n(componentId) {
 /**
  * Append a signal-level appendix with article links.
  */
-function buildSignalAppendix(signals) {
+export function buildSignalAppendix(signals) {
   if (!signals?.length) return '';
 
   const lines = [``, `---`, ``, `## Signal Evidence (with article links)`, ``];

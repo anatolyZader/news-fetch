@@ -14,7 +14,6 @@ export function useTodayReport(scope = 'national', view = 'operator') {
   const [markdown, setMarkdown] = useState(null);
   const [scoreBySource, setScoreBySource] = useState(null);
   const [reportDate, setReportDate] = useState(null);
-  const [overridesCount, setOverridesCount] = useState({});
   const [displayView, setDisplayView] = useState(view);
   const [refreshTick, setRefreshTick] = useState(0);
   /** False until the first GET /api/report/today attempt finishes (success or failure). */
@@ -29,7 +28,6 @@ export function useTodayReport(scope = 'national', view = 'operator') {
     setMarkdown(null);
     setScoreBySource(null);
     setReportDate(null);
-    setOverridesCount({});
     setDisplayView(view);
     setInitialReportLoadDone(false);
     setReportMissingHint(null);
@@ -52,7 +50,6 @@ export function useTodayReport(scope = 'national', view = 'operator') {
           setMarkdown(typeof data.markdown === 'string' && data.markdown.trim() ? data.markdown : null);
           setScoreBySource(data.score_by_source && typeof data.score_by_source === 'object' ? data.score_by_source : null);
           setReportDate(typeof data.reportDate === 'string' ? data.reportDate : null);
-          setOverridesCount(data.overrides_count && typeof data.overrides_count === 'object' ? data.overrides_count : {});
           setDisplayView(data.display_view === 'analyst' ? 'analyst' : 'operator');
           setReportMissingHint(null);
         } else if (!data.found && data.hint) {
@@ -70,11 +67,7 @@ export function useTodayReport(scope = 'national', view = 'operator') {
     };
   }, [apiReady, getIdToken, scope, view, refreshTick]);
 
-  /**
-   * Re-fetches the report (used after submitting a reviewer override so the
-   * overrides_count badge reflects the new total without a full page reload).
-   */
-  const refreshOverrides = useCallback(() => {
+  const refreshReport = useCallback(() => {
     setRefreshTick((t) => t + 1);
   }, []);
 
@@ -83,9 +76,8 @@ export function useTodayReport(scope = 'national', view = 'operator') {
     markdown,
     scoreBySource,
     reportDate,
-    overridesCount,
     displayView,
-    refreshOverrides,
+    refreshReport,
     initialReportLoadDone,
     reportMissingHint,
   };

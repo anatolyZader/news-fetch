@@ -33,7 +33,7 @@ It is written to match — line for line where possible — the implementation i
 10. [Stage 6 — Narrative generation (LLM, no re-scoring)](#10-stage-6--narrative-generation-llm-no-re-scoring)
 11. [Stage 7 — Report writing and UI rendering](#11-stage-7--report-writing-and-ui-rendering)
 12. [Geographic scoping (national vs north)](#12-geographic-scoping-national-vs-north)
-13. [Reviewer overrides and post-score adjustment](#13-reviewer-overrides-and-post-score-adjustment)
+13. [Reviewer overrides (removed in phase 1)](#13-reviewer-overrides-removed-in-phase-1)
 14. [Drift dashboard, alerts, and history](#14-drift-dashboard-alerts-and-history)
 15. [Quality assurance (golden corpus, adversarial regression, calibration)](#15-quality-assurance-golden-corpus-adversarial-regression-calibration)
 16. [Operational guardrails (cost, retries, secrets)](#16-operational-guardrails-cost-retries-secrets)
@@ -407,7 +407,6 @@ The pipeline is intentionally split into **auditable stages** so the LLM does pa
 │   • Within-source dedup, cross-source dedup                              │
 │   • scoreComponents() → 1–10 per component                               │
 │   • Bootstrap 90% CI, counterfactual leverage, EWMA, delta z-score       │
-│   • Loads reviewer overrides; applies blend/replace if configured        │
 └──────────────────────────────────────────────────────────────────────────┘
                                        │
                                        ▼
@@ -426,7 +425,7 @@ The pipeline is intentionally split into **auditable stages** so the LLM does pa
                                        ▼
 ┌──────────────────────────────────────────────────────────────────────────┐
 │ F. SERVE — REST API + React UI (`ReportView.jsx`, drift tab)             │
-│   /api/report/today, /api/resilience/drift, /api/resilience/overrides    │
+│   /api/report/today, /api/resilience/drift, POST /api/analyze (SSE)      │
 └──────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -894,7 +893,6 @@ Operationally: a flat headline often hides a clear sub-facet drift. Facets expos
 - All extracted signals bucketed by component.
 - Optional **prior reports** (the previous 1–2 daily assessments) for narrative continuity.
 - Optional **source-mix metadata** (which source types contributed) and an optional **`comparison_scores`** payload (when scope=north, the national scores are provided for explicit comparison).
-- Optional **reviewer overrides** for the report date + scope (`challenge_score` / `dispute_evidence` — see §13).
 
 Sonnet's only job is **labeling and quoting**. It produces, per component:
 
@@ -950,11 +948,11 @@ Scoring still runs in code for every report (full JSON on disk under `reports/`)
 
 | Tier | Audience | API / UI | Contents |
 |------|----------|----------|----------|
-| **Operator (default)** | Field, municipal | `GET /api/report/today` (default) | Narratives, evidence lists, `instrument` flags per component (confidence, evidence sufficiency, contested, significant delta). **No** headline 1–10 scores, CIs, drift sparklines, or score-override UI. |
+| **Operator (default)** | Field, municipal | `GET /api/report/today` (default) | Narratives, evidence lists, `instrument` flags per component (confidence, evidence sufficiency, contested, significant delta). **No** headline 1–10 scores, CIs, or drift sparklines. |
 | **Internal (pipeline)** | Narrative LLM | `generateNarratives` prompt | Instrument tags by default (`RESILIENCE_NARRATIVE_INCLUDE_SCORES=false`). Set env to `true` to include numeric scores in the prompt again. |
-| **Analyst** | Calibration / reviewers | `GET /api/report/today?view=analyst` when authenticated email ∈ `RESILIENCE_ANALYST_EMAILS` | Full scores, CIs, EWMA, facets, drift (`GET /api/resilience/drift`), overrides. UI toggle appears only when `GET /api/resilience/display-capabilities` returns `canViewAnalyst: true`. |
+| **Analyst** | Calibration / reviewers | `GET /api/report/today?view=analyst` when authenticated email ∈ `RESILIENCE_ANALYST_EMAILS` | Full scores, CIs, EWMA, facets, drift (`GET /api/resilience/drift`). UI toggle appears only when `GET /api/resilience/display-capabilities` returns `canViewAnalyst: true`. |
 
-When `RESILIENCE_ANALYST_EMAILS` is non-empty, drift and overrides endpoints return **403** unless the caller is an allowlisted signed-in user (even if the legacy UI could reach them).
+When `RESILIENCE_ANALYST_EMAILS` is non-empty, drift endpoints return **403** unless the caller is an allowlisted signed-in user.
 
 ### 11.3 Web UI
 
@@ -978,7 +976,6 @@ When `RESILIENCE_ANALYST_EMAILS` is non-empty, drift and overrides endpoints ret
    - **Thin-evidence annotation** when `floor_clamped: true` (*"thin evidence — score floored into [3, 8]"*) — a visible warning that the headline is constrained by the min-mass floor.
    - **CI-unstable annotation** when `ci_unstable: true` (*"CI unstable — bootstrap resamples often empty"*) — the displayed CI is a widened fallback rather than a tight resample distribution.
    - **Top contributors** (top-3 `_contribution`-ordered signals): the fastest "why is this score what it is?" check. Each contributor signal also carries `_contribution_raw` (pre-cap mass) alongside `_contribution` (post-cap mass) so reviewers can see *what evidence really mattered* even after the source/article cap.
-   - A `{n} reviewer notes` badge when overrides exist for this component on this date (clicking the edit-note icon opens `ChallengeDialog`).
    - The **markdown narrative**.
    - **Facet bars** (2–4 per component, when defined).
    - An **evidence accordion**:
@@ -990,11 +987,9 @@ When `RESILIENCE_ANALYST_EMAILS` is non-empty, drift and overrides endpoints ret
 
 | Endpoint | Description |
 |---|---|
-| `GET /api/report/today?view=operator\|analyst&scope=national\|north` | Latest assessment redacted per tier. Operator view uses `-brief.md` when on disk (no `/10`). Response includes `display_view`; `analyst_denied: true` when analyst was requested but not allowlisted. `overrides_count` only when `display_view=analyst`. |
+| `GET /api/report/today?view=operator\|analyst&scope=national\|north` | Latest assessment redacted per tier. Operator view uses `-brief.md` when on disk (no `/10`). Response includes `display_view`; `analyst_denied: true` when analyst was requested but not allowlisted. |
 | `GET /api/resilience/display-capabilities` | `{ canViewAnalyst: boolean }` for the signed-in user (optional Bearer token). |
 | `GET /api/resilience/drift?scope=national\|north&days=30` | Analyst-gated when `RESILIENCE_ANALYST_EMAILS` is set. Time-series for sparklines + alerts (capped at 90 days). |
-| `POST /api/resilience/overrides` | Auth-gated. Body: `{report_date, scope, component_id, kind, original?, proposed?, note?}`; kinds: `challenge_score | dispute_evidence`. |
-| `GET /api/resilience/overrides?date=YYYY-MM-DD&scope=…` | Lists existing overrides. |
 | `GET /api/visits/...` | Field-reports dashboard (days, signals, municipalities). |
 
 ---
@@ -1030,27 +1025,11 @@ Each `assess-signals` run writes `assessment.methodology` (phase label, scope-de
 
 ---
 
-## 13) Reviewer overrides and post-score adjustment
+## 13) Reviewer overrides (removed in phase 1)
 
-`business_modules/resilience/infrastructure/overridesStore.js` (append-only JSONL) + `app/overridesService.js` + `input/overridesRoutes.js`:
+Reviewer score challenges (`challenge_score` / `dispute_evidence`, `/api/resilience/overrides`, drift override-rate) were **removed** for the population-behavior officer rollout. Headline scores now always reflect deterministic `scoreComponents()` output with no post-hoc blend. Legacy `reports/overrides/*.jsonl` files on disk are ignored.
 
-- File: `reports/overrides/{YYYY-MM-DD}.jsonl` (one challenge / dispute per line).
-- **Kinds today**: `challenge_score` (live, affects displayed score) and `dispute_evidence` (offline tooling input for outlet priors / future audit). The legacy `flag_signal` kind was removed in A8 — it had no consumer in the live pipeline.
-- **UI**: `OverrideBadge` shows "{n} reviewer notes" on the component title; `ChallengeDialog` writes via the API.
-
-### 13.1 v2 display adjustment (post-score, bounded)
-
-`generateNarratives` loads `challenge_score` overrides for the report date + scope and applies **blend** or **replace** to the headline integer shown in JSON/UI while preserving `score_deterministic` (model path).
-
-- Env: `RESILIENCE_OVERRIDE_SCORE_MODE=blend|replace` (default `blend`).
-- `RESILIENCE_OVERRIDE_BLEND_ALPHA` (default `0.85` — weight on the **model** score).
-- **Multi-reviewer aggregation (A9)**: when more than one reviewer challenges the same component, the proposed scores are aggregated by **median** (rounded for even counts) rather than "latest wins". Invalid proposed scores (out of range or non-integer) are skipped, not coerced. The component carries `reviewer_proposal_count` and `reviewer_proposal_median` so the UI can show "median of N reviewers".
-- `overall_resilience_score` uses the adjusted map.
-- Deterministic `scoreComponents` output is unchanged; only the merged assessment payload is adjusted. Wired from `assess-signals.js` via `createOverridesService`; other callers omit `overridesService` and keep prior behavior.
-
-### 13.2 Deferred — override-aware re-scoring
-
-Once enough overrides accumulate to fit a per-`signal_type` correction, the next iteration adds an override-weighted re-score pass. Tracked in §19.2 below.
+---
 
 ---
 
@@ -1065,13 +1044,11 @@ Response:
 - Per-component score series.
 - **`signal_volume`** per day.
 - **`source_type_share`** (stacked area: news / radio / field / pbo / …).
-- **`override_rate`** per day.
 - `daily_mean_polarization`, `daily_mean_certainty` (numeric `certainty` from JSON when present, else bucket proxy from `confidence`).
-- **`alerts`** stub array:
-  - `high_override_rate` when ratio exceeds `RESILIENCE_DRIFT_ALERT_OVERRIDE_RATE` (default `0.15`).
+- **`alerts`** array:
   - `high_mean_polarization` fires on a **trailing-window mean** (default 3 days; `RESILIENCE_DRIFT_POLARIZATION_WINDOW`, clamped `[1, 14]`); threshold `RESILIENCE_DRIFT_ALERT_POLARIZATION` (default `0.7`). Payload includes `polarization_window_days`.
 
-UI (Drift tab): per-component sparklines, signal-volume bars, override-rate bar, two extra sparklines for daily mean polarization / certainty (0–1 scale), and any `alerts` rendered as MUI `Alert` rows.
+UI (Drift tab): per-component sparklines, signal-volume bars, two extra sparklines for daily mean polarization / certainty (0–1 scale), and any `alerts` rendered as MUI `Alert` rows.
 
 ---
 
@@ -1117,7 +1094,6 @@ All hermetic; wired into `npm test`.
   node scripts/suggest-component-tuning.js              # current and proposed for every component
   node scripts/suggest-component-tuning.js --diff       # diff only (suppresses unchanged rows)
   ```
-- `scripts/suggest-outlet-priors.js` — prints suggested `config/resilience-outlet-priors.json` from accumulated overrides.
 - `business_modules/resilience/domain/services/signalWeightsFit.js` — `fitSignalWeightsRidgeMock()` returns `null` until labelled data exists (T5 placeholder for ridge regression with sign constraints on `SIGNAL_TO_COMPONENTS`).
 
 ### 15.4 Live-LLM CI
@@ -1163,10 +1139,7 @@ Required env vars:
 | `RESILIENCE_EMBEDDING_VERIFY` | `0` to disable embedding rescue |
 | `RESILIENCE_EMBEDDING_SIM_THRESHOLD` | Default `0.82` |
 | `RESILIENCE_OUTLET_PRIORS_PATH` | Test path override for outlet priors |
-| `RESILIENCE_OVERRIDE_SCORE_MODE` | `blend` (default) or `replace` |
-| `RESILIENCE_OVERRIDE_BLEND_ALPHA` | Default `0.85` (weight on model) |
 | `RESILIENCE_DELTA_MIN_HISTORY` | Min non-null baseline points for delta-significance z; default `5` |
-| `RESILIENCE_DRIFT_ALERT_OVERRIDE_RATE` | Default `0.15` |
 | `RESILIENCE_DRIFT_ALERT_POLARIZATION` | Default `0.7` |
 | `RESILIENCE_DRIFT_POLARIZATION_WINDOW` | Default `3`, clamped `[1, 14]` |
 | `RESILIENCE_REFRESH_GOLDEN` | Local-only golden corpus rebuild |
@@ -1248,11 +1221,7 @@ Above the narrative, the **Top contributors** block (N9) shows the three signals
 - If the top contributors are spread across **different `source_type`s** (e.g. one news, one field, one PBO), the score is built on multi-channel agreement.
 - If the top contributors all share the same `signal_type`, the picture is **direction-narrow**: high confidence in *what* is happening, but only one *kind* of behavior is showing up.
 
-### 18.3 Reviewer notes (overrides) badge
-
-If the card shows an **"{n} reviewer notes"** badge next to the title (N3), reviewers have flagged this component before. Click the **edit-note icon** in the open card to file your own challenge or read existing notes via `/api/resilience/overrides?date=…`. When `RESILIENCE_OVERRIDE_SCORE_MODE` is set, the headline integer in the JSON/UI may already incorporate a *blend* (default α=0.85 on model) or *replace* of those overrides — the deterministic `score_deterministic` field is preserved alongside.
-
-### 18.4 Read the narrative
+### 18.3 Read the narrative
 
 Read the **markdown narrative** as a behavioral summary constrained to the evidence payload. The Sonnet prompt explicitly forbids re-scoring, journalist-style generalisation, and inventing magnitude on flagged deltas — claims should trace back to specific signals.
 
@@ -1283,23 +1252,19 @@ Then the older diagnostics still apply:
 
 These items were proposed during the v3 sensitivity/reliability redesign but require artifacts the codebase does not yet have, or were explicitly scoped out of the current bundle. They are intentionally **out of scope** for this branch and tracked here so reviewers know they are deferred, not forgotten.
 
-> **Recently shipped (Resilience Operations Bundle):** golden eval framework with seeded corpus (§15.1), adversarial regression suite (§15.2), reviewer override persistence (§13), drift dashboard (§14). The corresponding deferred-work entries below have been removed because they now have first-class implementations.
+> **Recently shipped (Resilience Operations Bundle):** golden eval framework with seeded corpus (§15.1), adversarial regression suite (§15.2), drift dashboard (§14), operator/analyst display tiers, methodology telemetry. Reviewer overrides were removed in phase 1 (see §13).
 
 ### 19.1 Requires labels at human scale
 
 - **Expand golden corpus to 80–100 hand-reviewed articles.** The seeded corpus in `tests/fixtures/resilience-golden/corpus.jsonl` is agent-curated from production extractions (~30 records). It catches snapshot drift but not LLM truth-quality. Replacing the snapshot baseline with human-checked labels raises the bar from "model regression" to "extraction quality".
-- **Per-outlet reliability priors learned from data.** Outlet-level reputation learned from override + agreement data, replacing the current author-supplied per-`source_type` reliability multiplier in `config/resilience-outlet-priors.json`.
+- **Per-outlet reliability priors learned from data.** Outlet-level reputation learned from calibration + agreement data, replacing the current author-supplied per-`source_type` reliability multiplier in `config/resilience-outlet-priors.json`.
 
-### 19.2 Requires score recomputation from overrides
-
-- **Override-aware re-scoring.** v1 of the override system (§13) persists challenges and shows them as a badge but does not affect the *deterministic* score (`scoreComponents` output is unchanged; only the merged assessment payload is adjusted). Adding an override-weighted re-score pass is the next iteration once enough overrides accumulate to fit a per-`signal_type` correction.
-
-### 19.3 Requires score history (collected automatically; rerun in 30 days)
+### 19.2 Requires score history (collected automatically; rerun in 30 days)
 
 - **Per-component K/m calibration (full 4c).** The `tanhK_c` / `certM_c` values in §8.3 are author-set heuristics. Once 30+ days of `reports/resilience-report-*.json` exist, fit `K`/`m` per component to actual evidence-mass distributions.
 - **Data-driven weight tuning (T5).** Ridge regression with sign constraints on `SIGNAL_TO_COMPONENTS` weights against expert-labeled per-component scores. Stub: `business_modules/resilience/domain/services/signalWeightsFit.js` (`fitSignalWeightsRidgeMock` returns `null` until labelled data exists).
 
-### 19.4 Requires an additional model run
+### 19.3 Requires an additional model run
 
 - **Two-model agreement at population scale (E3 full).** §6.7 ships an *opt-in* dual-pass extraction (`RESILIENCE_SECOND_EXTRACT=1`) that flags reproduced signals with `_dual_pass_agreement` and applies a small evidence boost. Doubling extraction cost in the default path is deferred until quality plateau is hit on the single-model path.
 
@@ -1386,14 +1351,15 @@ business_modules/
     │       ├── regionSignalFilter.js              # National vs north scope filter
     │       ├── resilienceBatchValidation.js
     │       ├── resilienceScoring.js               # Re-export of scoreComponents
-    │       ├── reviewerScoreAdjustments.js        # Override blend/replace logic
+    │       ├── assessmentDisplayTier.js           # Operator vs analyst redaction
+    │       ├── assessmentMethodology.js           # Methodology block + operator view
+    │       ├── pipelineStageTelemetry.js          # Extraction/assess stage summaries
     │       └── signalWeightsFit.js                # T5 placeholder for ridge regression
     ├── app/
     │   ├── surveyEvaluator.js                     # Field survey — Haiku qualitative pass
     │   ├── surveyReportWriter.js                  # Field survey — MD/JSON output
     │   ├── contentBatchFromMdArticles.js
     │   ├── driftService.js                        # /api/resilience/drift aggregation
-    │   ├── overridesService.js                    # Override CRUD + validation
     │   ├── resilienceAnalysisService.js           # End-to-end batch orchestration
     │   └── runResilienceAnalysis.js               # Shared news/audio orchestration
     ├── infrastructure/
@@ -1402,7 +1368,6 @@ business_modules/
     │   ├── embeddingEvidenceVerifier.js           # N8 embedding rescue
     │   ├── extractionPasses.js                    # Multipass domain groups + self-check prompt
     │   ├── mdReportsLoader.js                     # Parse articles-*.md → article objects
-    │   ├── overridesStore.js                      # Append-only JSONL store
     │   ├── reportHistoryReader.js                 # Walks reports/, picks canonical per-date run
     │   ├── reportWriter.js                        # Markdown + JSON output
     │   ├── signalVerification.js                  # n-gram containment + within-batch dedup
@@ -1417,13 +1382,12 @@ business_modules/
         ├── assess-signals.js                      # Stage-2 CLI: combine signals + assess
         ├── assessSignalsHelpers.js                # crossSourceDedup, EWMA, delta-channel
         ├── driftRoutes.js                         # /api/resilience/drift
-        ├── extract-signals.js                     # Stage-1 CLI: extract per source
-        └── overridesRoutes.js                     # /api/resilience/overrides
+        └── extract-signals.js                     # Stage-1 CLI: extract per source
 
 reports/
 ├── resilience-report-{date}-{HHMM}.{md,json}
-├── resilience-report-north-{date}-{HHMM}.{md,json}
-└── overrides/{YYYY-MM-DD}.jsonl
+├── resilience-report-{date}-{HHMM}-brief.md      # Operator brief (no scores)
+└── resilience-report-north-{date}-{HHMM}.{md,json}
 
 signals/
 ├── signals-news-{date}.json

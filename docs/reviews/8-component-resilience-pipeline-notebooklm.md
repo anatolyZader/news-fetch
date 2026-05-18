@@ -112,7 +112,6 @@ flowchart TB
   end
 
   subgraph narrate [Narrate]
-    overrides[Optional_reviewer_overrides]
     genNarr[generateNarratives_Sonnet]
   end
 
@@ -141,8 +140,7 @@ flowchart TB
   scopeFilter --> scoreScoped
   scoreScoped --> deltaEnrich
   deltaEnrich --> bySource
-  bySource --> overrides
-  overrides --> genNarr
+  bySource --> genNarr
   genNarr --> report
   report --> ui
 ```
@@ -338,13 +336,7 @@ export function overallScore(componentScores) {
 
 **Reading this for decision support.** Sparse components (**low certainty**) pull the overall score **less** than components backed by broader, heavier evidence mass. Completely **missing** components are excluded from the denominator (unless all are absent → `null` overall).
 
-### 8.1 Reviewer overrides and the displayed headline
-
-When `generateNarratives` is invoked with an `overridesService`, reviewer **challenge_score** entries can **blend** or **replace** model scores (`reviewerScoreAdjustments.js`; modes via `RESILIENCE_OVERRIDE_SCORE_MODE`). The JSON/UI **headline score** reflects the **adjusted** value; **`score_deterministic`** preserves the model-only score for audit.
-
-The **overall_resilience_score** in the assessment uses **`overallScore(scoredForNarrative)`** — i.e., after override adjustments when applied inside `generateNarratives`.
-
-### 8.2 Norris capacities (orthogonal lens)
+### 8.1 Norris capacities (orthogonal lens)
 
 `norris_capacities` in the assessment (`norrisCapacities.js`) is an **additive diagnostic** framed after Norris et al. (2008). It **does not replace** the eight-component scores; think of it as a **parallel reading aid** derived from the same evidence landscape.
 
@@ -404,7 +396,6 @@ Interactive / API batch assembly may call `runResilienceAssessment` (`resilience
 | Merge / dedupe / scope | `input/assess-signals.js`, `assessSignalsHelpers.js`, `regionSignalFilter.js` | Single in-memory signal array per run |
 | Score | `domain/services/behaviorSignals.js` | `scoredComponents` map |
 | Delta history | `assessSignalsHelpers.js` (`loadHistoricalScores`, `enrichWithDeltaChannel`) | Smoothed + delta fields |
-| Overrides | `overridesStore.js`, `overridesService.js`, `reviewerScoreAdjustments.js`, applied in `generateNarratives` | Adjusted headline vs `score_deterministic` |
 | Narrate | `claudeEvaluator.js` | `assessment` object |
 | Norris lens | `norrisCapacities.js` | `norris_capacities` block |
 | Persist | `reportWriter.js` | `reports/*.md`, `reports/*.json` |
@@ -439,7 +430,6 @@ Interactive / API batch assembly may call `runResilienceAssessment` (`resilience
 | **`delta_significance`** | z-score vs trailing history; powers **`delta_flag`**. |
 | **Overall resilience score** | Certainty-weighted mean of eight component scores. |
 | **Norris capacities** | Add-on diagnostic layer; does not replace components. |
-| **`score_deterministic`** | Model score before reviewer override display blending. |
 
 ---
 
@@ -462,11 +452,10 @@ Use these prompts directly against a notebook containing this file.
 13. How is **`score_smoothed`** computed, and why does \(\alpha\) depend on certainty?
 14. What minimum history does **`delta_significance`** require, and why?
 15. Can the narrative LLM change a component score? Quote the invariant.
-16. Where are **reviewer overrides** applied, and which field preserves the untouched model score?
-17. What is **`national_comparison`**, and when does it appear?
-18. What is the **Norris capacities** block relative to the eight components?
-19. Name **three** UI annotations in `ReportView.jsx` tied to reliability fields.
-20. Map each pipeline stage to a **file path** using Section 11.
+16. What is **`national_comparison`**, and when does it appear?
+17. What is the **Norris capacities** block relative to the eight components?
+18. Name **three** UI annotations in `ReportView.jsx` tied to reliability fields.
+19. Map each pipeline stage to a **file path** using Section 11.
 
 ---
 

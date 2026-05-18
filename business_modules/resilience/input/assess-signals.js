@@ -17,8 +17,9 @@
  */
 
 import 'dotenv/config';
-import { resolve } from 'path';
+import { resolve, dirname } from 'path';
 import { existsSync, readFileSync, readdirSync } from 'fs';
+import { fileURLToPath } from 'url';
 
 import { overallScore, scoreComponents } from '../domain/services/behaviorSignals.js';
 import {
@@ -28,23 +29,34 @@ import {
 } from '../domain/services/regionSignalFilter.js';
 import { generateNarratives } from '../infrastructure/claudeEvaluator.js';
 import { writeReport } from '../infrastructure/reportWriter.js';
-import { createOverridesStore } from '../infrastructure/overridesStore.js';
-import { createOverridesService } from '../app/overridesService.js';
 import { createCostTracker, appendCostLog, checkDailyBudget } from '../../../cross-cut-modules/budget/index.js';
 import {
   crossSourceDedupSemantic,
   loadHistoricalScores,
   enrichWithDeltaChannel,
 } from './assessSignalsHelpers.js';
-import { summarizeGeoCoverage } from '../../../cross-cut-modules/geo/signalGeoSummary.js';
+import { summarizeGeoCoverage, summarizeGeoQuality } from '../../../cross-cut-modules/geo/signalGeoSummary.js';
+import { createGeoWiring } from '../../../cross-cut-modules/geo/createGeoWiring.js';
+import { attachGeoToSignals } from '../../../cross-cut-modules/geo/attachGeoToSignals.js';
+import { buildReferenceNameIndex } from '../../../cross-cut-modules/geo/referenceNameIndex.js';
 import {
   buildAssessmentMethodology,
   buildScoringModelManifest,
   formatScopeDecisionLogLine,
 } from '../domain/services/assessmentMethodology.js';
 import { proposeComponentTuningFromReportFiles } from '../domain/services/componentTuningProposal.js';
+import {
+  summarizeStageEvents,
+  readCostLogStagesForDate,
+} from '../domain/services/pipelineStageTelemetry.js';
 
 const TEMPORAL_WEIGHTS = { 0: 1.00, 1: 0.85, 2: 0.70 };
+const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
+const GEO_ATTACH_SOURCE_TYPES = new Set(['news', 'radio']);
+
+function signalGeoMergeKey(s) {
+  return `${s?.source_type ?? ''}|${s?.signal_type ?? ''}|${s?.evidence ?? ''}|${s?.article_url ?? s?.article_index ?? ''}`;
+}
 
 /**
  * basename-dated bundles only inside { targetDates } ∩ { ≤ targetDate }.
@@ -316,6 +328,46 @@ async function run() {
     : sourceTypesSeen.has('radio') ? 'audio'
     : 'news';
 
+  if (allSignals.some((s) => GEO_ATTACH_SOURCE_TYPES.has(s?.source_type))) {
+    const { geoEnrichmentPort } = createGeoWiring({
+      rootDir: REPO_ROOT,
+      unknownSourceType: 'assess-signals',
+    });
+    const nameIndex = buildReferenceNameIndex(REPO_ROOT);
+    const needGeo = allSignals.filter(
+      (s) => GEO_ATTACH_SOURCE_TYPES.has(s?.source_type) && !(s && 'geo' in s && s.geo != null),
+    );
+    if (needGeo.length > 0) {
+      const byType = new Map();
+      for (const st of GEO_ATTACH_SOURCE_TYPES) {
+        const subset = needGeo.filter((s) => s.source_type === st);
+        if (!subset.length) continue;
+        const { signals: enriched, attached, resolved, unknown } = attachGeoToSignals(
+          subset,
+          geoEnrichmentPort,
+          { sourceType: st, nameIndex },
+        );
+        byType.set(st, { enriched, attached, resolved, unknown });
+      }
+      const merged = new Map();
+      for (const { enriched } of byType.values()) {
+        for (const s of enriched) merged.set(signalGeoMergeKey(s), s);
+      }
+      allSignals = allSignals.map((s) => merged.get(signalGeoMergeKey(s)) ?? s);
+      const totals = [...byType.values()].reduce(
+        (acc, v) => ({
+          attached: acc.attached + v.attached,
+          resolved: acc.resolved + v.resolved,
+          unknown: acc.unknown + v.unknown,
+        }),
+        { attached: 0, resolved: 0, unknown: 0 },
+      );
+      console.error(
+        `  → Geo attach (news/radio): ${totals.attached} signals, ${totals.resolved} resolved, ${totals.unknown} unknown`,
+      );
+    }
+  }
+
   console.error(`\nResilience Assessment (${contentKind})`);
   console.error(`===================`);
   console.error(`Date:     ${targetDate}${days > 1 ? ` (last ${days} days)` : ''}`);
@@ -382,8 +434,12 @@ async function run() {
   console.error(`  → ${allSignals.length} total behavioral signals\n`);
   if (allSignals.some((s) => s && 'geo' in s)) {
     const geoCov = summarizeGeoCoverage(allSignals);
+    const geoQual = summarizeGeoQuality(allSignals);
     console.error(
-      `  → Geo on signals: ${geoCov.resolved} resolved, ${geoCov.unknown} unknown (${geoCov.pctResolved}% of ${geoCov.withGeoField} geo-tagged)\n`,
+      `  → Geo on signals: ${geoCov.resolved} resolved, ${geoCov.unknown} unknown (${geoCov.pctResolved}% of ${geoCov.withGeoField} geo-tagged)`,
+    );
+    console.error(
+      `  → Geo quality: metrics-safe ${geoQual.pctUsableForMetrics}% of resolved, requiresReview ${geoQual.pctRequiresReview}%\n`,
     );
   }
   for (const [id, c] of Object.entries(scoredFull)) {
@@ -397,9 +453,6 @@ async function run() {
     console.error(`\nPrior context: ${priorReports.map((r) => r.date).join(', ')}`);
   }
 
-  const overridesStore = createOverridesStore();
-  const overridesSvc = createOverridesService({ store: overridesStore });
-
   // Narrate once (full combined)
   const assessment = await generateNarratives(scoredFull, allSignals, targetDate, scopedTotalArticles, {
     onUsage,
@@ -409,8 +462,6 @@ async function run() {
     reportScope,
     comparisonScores: reportScopeId === 'north' ? nationalScored : null,
     comparisonLabel: reportScopeId === 'north' ? 'national' : null,
-    overridesService: overridesSvc,
-    overrideScope: reportScopeId,
   });
 
   // Write extended report
@@ -427,12 +478,24 @@ async function run() {
     };
   }
 
+  const { totalCostUsd, usageLog, stageEvents } = getTotal();
+  const assessStages = summarizeStageEvents(stageEvents);
+  const costLogStages = readCostLogStagesForDate(targetDate, {
+    scripts: ['extract-signals', 'assess-signals'],
+  });
+  const extractionTelemetry = {
+    assess: assessStages,
+    extract: costLogStages['extract-signals'] ?? null,
+    assess_log: costLogStages['assess-signals'] ?? null,
+  };
+
   const tuningProposal = proposeComponentTuningFromReportFiles(resolve('reports'), { minReports: 10 });
   assessment.methodology = buildAssessmentMethodology({
     signals: allSignals,
     reportScopeId,
     scoringModelManifest: buildScoringModelManifest(),
     tuningProposal,
+    extractionTelemetry,
   });
 
   writeReport(assessment, allSignals, [...new Set(sourceFiles)], outputBase, { scoreBySource });
@@ -448,7 +511,6 @@ async function run() {
   console.error(`  ${outputBase}-brief.md (operator brief, no /10)`);
   console.error(`  ${outputBase}.json`);
 
-  const { totalCostUsd, usageLog, stageEvents } = getTotal();
   appendCostLog({ script: 'assess-signals', date: targetDate, totalCostUsd, usageLog, stageEvents, articles: totalArticles });
 }
 

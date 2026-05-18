@@ -86,4 +86,32 @@ describe('regionSignalFilter', () => {
     assert.equal(normalizeReportScope('north'), 'north');
     assert.equal(normalizeReportScope('unknown'), 'national');
   });
+
+  it('prefers resolved geo over keyword_fallback for reference locality', () => {
+    const d = filterSignalsForScope(
+      [
+        {
+          source_type: 'news',
+          evidence: 'תושבי יבנאל דיווחו על לחץ ביומיום.',
+          geo: {
+            kind: 'resolved',
+            policy: { usableForMetrics: true, scopeConfidence: 'high' },
+            classification: { pboSubregionId: 'galma', geoAreaTags: ['north', 'galilee'] },
+          },
+        },
+      ],
+      'north',
+    )[0]?.scopeDecision;
+    assert.equal(d?.isNorthRelevant, true);
+    assert.notEqual(d?.source, 'keyword_fallback');
+  });
+
+  it('matches reference-only Hebrew locality via keyword_fallback', () => {
+    const d = filterSignalsForScope(
+      [{ source_type: 'news', evidence: 'תושבי יבנאל דיווחו על לחץ ביומיום.' }],
+      'north',
+    )[0]?.scopeDecision;
+    assert.equal(d?.isNorthRelevant, true);
+    assert.equal(d?.source, 'keyword_fallback');
+  });
 });

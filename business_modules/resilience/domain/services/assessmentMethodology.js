@@ -9,6 +9,8 @@ import {
   SIGNAL_TO_COMPONENTS,
   SIGNAL_TYPES,
 } from './behaviorSignals.js';
+import { extractionTelemetryForOperator } from './pipelineStageTelemetry.js';
+import { summarizeGeoQuality } from '../../../../cross-cut-modules/geo/signalGeoSummary.js';
 
 export const SCORING_MODEL_VERSION = 'v3';
 
@@ -93,6 +95,7 @@ export function buildScoringModelManifest() {
  *   reportScopeId?: string,
  *   scoringModelManifest?: object | null,
  *   tuningProposal?: object | null,
+ *   extractionTelemetry?: object | null,
  * }} opts
  */
 export function buildAssessmentMethodology({
@@ -100,6 +103,7 @@ export function buildAssessmentMethodology({
   reportScopeId = 'national',
   scoringModelManifest = null,
   tuningProposal = null,
+  extractionTelemetry = null,
 } = {}) {
   const scopeId = reportScopeId === 'north' ? 'north' : 'national';
 
@@ -119,6 +123,9 @@ export function buildAssessmentMethodology({
         note: NORTH_COLLECTION_NOTE,
       },
       scope_decision_summary: summarizeScopeDecisionSources(signals, { reportScopeId: scopeId }),
+      ...(Array.isArray(signals) && signals.some((s) => s && 'geo' in s)
+        ? { geo_quality_summary: summarizeGeoQuality(signals) }
+        : {}),
     },
     governance: {
       weights_steward: 'analyst_and_product_review',
@@ -139,6 +146,7 @@ export function buildAssessmentMethodology({
         'runResilienceAssessment (API/news) scores all signals without scope filter; north artifact requires assess-signals --scope north',
       extraction_quality:
         'LLM extraction monitored via tests/fixtures/resilience-golden (npm test golden-corpus); no production SLA',
+      ...(extractionTelemetry ? { extraction_pipeline_stages: extractionTelemetry } : {}),
     },
     norris_lens: {
       measures: 'Synthetic 4Rs (robustness/redundancy/rapidity/resourcefulness) derived from component scores',
@@ -164,6 +172,14 @@ export function methodologyForOperatorView(methodology) {
   if (!methodology || typeof methodology !== 'object') return methodology;
   const out = { ...methodology };
   delete out.scoring_model;
+  if (out.limitations?.extraction_pipeline_stages) {
+    out.limitations = {
+      ...out.limitations,
+      extraction_pipeline_stages: extractionTelemetryForOperator(
+        out.limitations.extraction_pipeline_stages,
+      ),
+    };
+  }
   if (out.tuning_proposal) {
     out.tuning_proposal = {
       status: out.tuning_proposal.status ?? 'advisory_only',

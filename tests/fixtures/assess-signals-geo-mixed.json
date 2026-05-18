@@ -1,0 +1,55 @@
+{
+  "signals": [
+    {
+      "source_type": "news",
+      "signal_type": "leadership_visible_presence",
+      "evidence": "Kiryat Shmona municipality announced general strike in education",
+      "article_url": "https://example.com/a1"
+    },
+    {
+      "source_type": "news",
+      "signal_type": "resilience_narrative_negative",
+      "evidence": "Tel Aviv municipality published instructions.",
+      "article_url": "https://example.com/a2"
+    },
+    {
+      "source_type": "news",
+      "signal_type": "compliance_enter_shelter",
+      "evidence": "תושבי יבנאל דיווחו על לחץ ביומיום.",
+      "article_url": "https://example.com/a3",
+      "geo": {
+        "kind": "resolved",
+        "geoEntityType": "locality",
+        "scopeConfidence": "high",
+        "geoPolicyVersion": "geo-policy-2026-05-v2",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "canonicalKey": "yavneel",
+        "matchedName": "יבנאל",
+        "pboSubregionId": "galma",
+        "geoAreaTags": ["north", "galilee"],
+        "distanceKmToNorthBorder": 12,
+        "distanceBand": "10-25",
+        "isGolan": false,
+        "matchMethod": "exact",
+        "matchConfidence": 1,
+        "quality": "high",
+        "usableForMetrics": true,
+        "requiresReview": false,
+        "matchEvidence": {
+          "rawInput": "יבנאל",
+          "normalizedInput": "יבנאל",
+          "matchedVariant": "יבנאל",
+          "candidateCount": 1
+        },
+        "scopeDecision": {
+          "isNorthRelevant": true,
+          "source": "geo_tags",
+          "confidence": "high",
+          "usableForMetrics": true,
+          "reasons": ["geoAreaTags includes north"]
+        }
+      }
+    }
+  ]
+}

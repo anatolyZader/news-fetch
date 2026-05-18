@@ -34,11 +34,12 @@ import { createHttpAudioDownloadAdapter } from './business_modules/audio/infrast
 import { runResilienceAssessment } from './business_modules/resilience/app/resilienceAnalysisService.js';
 import { contentBatchFromMdArticles } from './business_modules/resilience/app/contentBatchFromMdArticles.js';
 import { createAnthropicResilienceLlmAdapter } from './business_modules/resilience/infrastructure/adapters/anthropicResilienceLlmAdapter.js';
-import { createOverridesStore } from './business_modules/resilience/infrastructure/overridesStore.js';
-import { createOverridesService } from './business_modules/resilience/app/overridesService.js';
-import { registerOverridesRoutes } from './business_modules/resilience/input/overridesRoutes.js';
 import { createDriftService } from './business_modules/resilience/app/driftService.js';
 import { registerDriftRoutes } from './business_modules/resilience/input/driftRoutes.js';
+import {
+  createSearchTrendsService,
+  registerSearchTrendsRoutes,
+} from './business_modules/search_trends/index.js';
 import {
   resolveDisplayView,
   redactReportPayload,
@@ -52,15 +53,8 @@ import {
   createPboRegionalDailyService,
   createPboReportRegionalFsAdapter,
 } from './business_modules/pbo_report_regional/index.js';
-import {
-  createGeoLocalityOverridesSqliteAdapter,
-  createGeoNorthReferenceJsonAdapter,
-  createGeoUnknownSqliteQueueAdapter,
-  createGeoService,
-} from './business_modules/geo/index.js';
-import { createGeoUnknownJsonlSinkAdapter } from './business_modules/geo/infrastructure/adapters/geoUnknownJsonlSinkAdapter.js';
 import { registerGeoRoutes } from './business_modules/geo/input/geoRoutes.js';
-import { createGeoEnrichmentAdapter } from './business_modules/resilience/infrastructure/adapters/geoEnrichmentAdapter.js';
+import { createGeoWiring } from './cross-cut-modules/geo/createGeoWiring.js';
 import { createVisitsFsAdapter, createVisitsService, visitsRoutes } from './business_modules/visits/index.js';
 import {
   reportBotManualReportsRoutes,
@@ -123,40 +117,12 @@ const pboRegionalDailyService = createPboRegionalDailyService({
   }),
 });
 
-const geoOverridesPort =
-  process.env.GEO_OVERRIDES_SQLITE === '1'
-    ? createGeoLocalityOverridesSqliteAdapter({ dbPath: sqlitePath })
-    : null;
-
 const poolService = createDefaultPoolService();
 
-const geoService = createGeoService({
-  northReferencePort: createGeoNorthReferenceJsonAdapter({
-    dataDir: resolve(__dirname, 'business_modules', 'geo', 'data'),
-  }),
-  overridesPort: geoOverridesPort,
-});
-
-const geoUnknownReviewSink =
-  process.env.GEO_UNKNOWN_REVIEW_JSONL === '1'
-    ? createGeoUnknownJsonlSinkAdapter({
-        filePath: resolve(__dirname, 'business_modules', 'geo', 'data', 'review', 'unknown-localities.jsonl'),
-      })
-    : null;
-
-const geoUnknownReviewQueue =
-  process.env.GEO_UNKNOWN_REVIEW_SQLITE === '1'
-    ? createGeoUnknownSqliteQueueAdapter({ dbPath: sqlitePath, sourceType: 'whatsapp' })
-    : null;
-
-const geoUnknownSink =
-  geoUnknownReviewSink && geoUnknownReviewQueue
-    ? { recordUnknown: (e) => { geoUnknownReviewSink.recordUnknown(e); geoUnknownReviewQueue.recordUnknown(e); } }
-    : (geoUnknownReviewSink ?? geoUnknownReviewQueue);
-
-const geoEnrichmentPort = createGeoEnrichmentAdapter({
-  geoService,
-  unknownSink: geoUnknownSink,
+const { geoService, geoEnrichmentPort } = createGeoWiring({
+  rootDir: __dirname,
+  unknownSourceType: 'whatsapp',
+  sqlitePath,
 });
 
 function isMailingConfigured() {
@@ -727,9 +693,6 @@ export async function createApp(options) {
   });
 
   // ─── Protected API routes (when AUTH_REQUIRED=true) ───────────────────────
-  const overridesStore = createOverridesStore();
-  const overridesService = createOverridesService({ store: overridesStore });
-
   app.get('/api/report/today', authHook, async (request, reply) => {
     const scope = request.query?.scope === 'north' ? 'north' : 'national';
     const requestedView = String(request.query?.view ?? 'operator').trim().toLowerCase();
@@ -753,22 +716,11 @@ export async function createApp(options) {
     const analyst_denied = requestedView === DISPLAY_VIEWS.analyst
       && display_view !== DISPLAY_VIEWS.analyst;
     const redacted = redactReportPayload(data, display_view);
-    let overrides_count = {};
-    if (display_view === DISPLAY_VIEWS.analyst) {
-      try {
-        if (typeof data.reportDate === 'string') {
-          overrides_count = overridesService.countByComponent({ date: data.reportDate, scope });
-        }
-      } catch {
-        /* non-fatal: overrides are optional metadata */
-      }
-    }
     return reply.send({
       found: true,
       display_view,
       ...(analyst_denied ? { analyst_denied: true, requested_view: DISPLAY_VIEWS.analyst } : {}),
       ...redacted,
-      overrides_count,
     });
   });
 
@@ -779,14 +731,15 @@ export async function createApp(options) {
     });
   });
 
-  await registerOverridesRoutes(app, {
-    service: overridesService,
+  const driftService = createDriftService({});
+  await registerDriftRoutes(app, {
+    driftService,
     authPreHandler: authHook?.preHandler,
   });
 
-  const driftService = createDriftService({ overridesService });
-  await registerDriftRoutes(app, {
-    driftService,
+  const searchTrendsService = createSearchTrendsService({});
+  await registerSearchTrendsRoutes(app, {
+    searchTrendsService,
     authPreHandler: authHook?.preHandler,
   });
 

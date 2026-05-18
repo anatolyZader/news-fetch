@@ -3,6 +3,10 @@
  */
 import { readFileSync, readdirSync } from 'node:fs';
 import { join, basename } from 'node:path';
+import {
+  deriveInstrumentState,
+  operatorAssessmentSummary,
+} from '../../resilience/domain/services/assessmentDisplayTier.js';
 
 const SIGNALS_DIR = join(import.meta.dirname, '..', '..', '..', 'signals');
 const REPORTS_DIR = join(import.meta.dirname, '..', '..', '..', 'reports');
@@ -179,9 +183,10 @@ export function listSignalMeta() {
  * Compare two report dates — produce per-component deltas.
  * @param {string} dateA - older date (YYYY-MM-DD)
  * @param {string} dateB - newer date (YYYY-MM-DD)
+ * @param {{ includeScores?: boolean }} [opts]
  * @returns {string} formatted comparison text
  */
-export function compareReports(dateA, dateB) {
+export function compareReports(dateA, dateB, opts = {}) {
   const reportA = loadReport(dateA);
   const reportB = loadReport(dateB);
 
@@ -196,20 +201,41 @@ export function compareReports(dateA, dateB) {
     (reportB.assessment.components ?? []).map((c) => [c.component_id, c]),
   );
 
+  const includeScores = opts.includeScores === true;
   const lines = [`Comparison: ${dateA} → ${dateB}\n`];
-  lines.push(`Overall: ${reportA.assessment.overall_resilience_score}/10 → ${reportB.assessment.overall_resilience_score}/10`);
+  if (includeScores) {
+    lines.push(
+      `Overall: ${reportA.assessment.overall_resilience_score}/10 → ${reportB.assessment.overall_resilience_score}/10`,
+    );
+  } else {
+    lines.push(`Summary A: ${operatorAssessmentSummary(reportA.assessment)}`);
+    lines.push(`Summary B: ${operatorAssessmentSummary(reportB.assessment)}`);
+  }
   lines.push(`Articles: ${reportA.assessment.total_articles_analyzed} → ${reportB.assessment.total_articles_analyzed}\n`);
 
   lines.push('Per-component deltas:');
   for (const [id, b] of Object.entries(bComps)) {
     const a = aComps[id];
     if (!a) {
-      lines.push(`  ${id}: NEW ${b.score}/10 (${b.confidence})`);
+      if (includeScores && b.score != null) {
+        lines.push(`  ${id}: NEW ${b.score}/10 (${b.confidence})`);
+      } else {
+        const inst = b.instrument ?? deriveInstrumentState(b);
+        lines.push(`  ${id}: NEW (${inst.confidence}, ${inst.evidence_sufficiency})`);
+      }
       continue;
     }
-    const delta = b.score - a.score;
-    const arrow = delta > 0 ? '+' : delta < 0 ? '' : '=';
-    lines.push(`  ${id}: ${a.score} → ${b.score} (${arrow}${delta}) [${a.confidence} → ${b.confidence}]`);
+    if (includeScores && a.score != null && b.score != null) {
+      const delta = b.score - a.score;
+      const arrow = delta > 0 ? '+' : delta < 0 ? '' : '=';
+      lines.push(`  ${id}: ${a.score} → ${b.score} (${arrow}${delta}) [${a.confidence} → ${b.confidence}]`);
+    } else {
+      const instA = a.instrument ?? deriveInstrumentState(a);
+      const instB = b.instrument ?? deriveInstrumentState(b);
+      lines.push(
+        `  ${id}: [${instA.confidence}/${instA.evidence_sufficiency}] → [${instB.confidence}/${instB.evidence_sufficiency}]`,
+      );
+    }
   }
 
   // Highlight key narrative differences

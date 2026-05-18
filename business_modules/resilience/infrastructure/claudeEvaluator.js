@@ -30,7 +30,6 @@ import {
   tokenize,
 } from './signalVerification.js';
 import { maybeRescueEvidenceWithEmbedding } from './embeddingEvidenceVerifier.js';
-import { applyReviewerScoreAdjustmentsToScoredMap } from '../domain/services/reviewerScoreAdjustments.js';
 import { embedText, embeddingsEnabled, embeddingModelId } from '../../../cross-cut-modules/vector_index/index.js';
 import { createHash } from 'node:crypto';
 
@@ -1458,21 +1457,8 @@ export async function generateNarratives(
     reportScope = null,
     comparisonScores = null,
     comparisonLabel = null,
-    overridesService = null,
-    overrideScope = null,
   } = {},
 ) {
-  const listScope = overrideScope ?? reportScope?.id ?? 'national';
-  let scoredForNarrative = scoredComponents;
-  if (overridesService && date) {
-    try {
-      const olist = overridesService.list({ date, scope: listScope });
-      scoredForNarrative = applyReviewerScoreAdjustmentsToScoredMap(scoredComponents, olist);
-    } catch (err) {
-      console.error(`  ⚠ reviewer overrides not applied (${err.message})`);
-    }
-  }
-
   const includeScoresInPrompt = narrativeIncludesScores();
   const priorContext = formatPriorReportsContext(priorReports, { includeScores: includeScoresInPrompt });
   const comparisonContext = formatComparisonScoresContext(comparisonLabel, comparisonScores, {
@@ -1591,12 +1577,10 @@ export async function generateNarratives(
 
       const components = RESILIENCE_COMPONENTS.map((def) => {
         const scored = scoredComponents[def.id] ?? {};
-        const display = scoredForNarrative[def.id] ?? scored;
         const narr = componentMap[def.id] ?? {};
         return {
           component_id: def.id,
-          score: display.score ?? scored.score ?? null,
-          score_deterministic: scored.score ?? null,
+          score: scored.score ?? null,
           confidence: scored.confidence ?? 'insufficient_data',
           signal_count: scored.signal_count ?? 0,
           distinct_article_count: scored.distinct_article_count ?? 0,
@@ -1645,7 +1629,6 @@ export async function generateNarratives(
           manifestations_absent: narr.manifestations_absent ?? [],
           evidence: narr.evidence ?? [],
           narrative: narr.narrative ?? '',
-          reviewer_score_adjusted: Boolean(display.reviewer_score_adjusted),
         };
       });
 
@@ -1653,11 +1636,11 @@ export async function generateNarratives(
         date,
         ...(reportScope ? { report_scope: reportScope } : {}),
         total_articles_analyzed: totalArticles,
-        overall_resilience_score: overallScore(scoredForNarrative),
+        overall_resilience_score: overallScore(scoredComponents),
         content_kind: contentKind,
         cross_component_synthesis: narratives.cross_component_synthesis ?? '',
         evidence_quality_note: narratives.evidence_quality_note ?? '',
-        norris_capacities: computeNorrisCapacities(scoredComponents, scoredForNarrative),
+        norris_capacities: computeNorrisCapacities(scoredComponents, scoredComponents),
         components,
       };
     } catch (err) {

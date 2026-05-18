@@ -183,11 +183,23 @@ function buildMunicipalityMarkdown(mun, date, sourceFile) {
   if (mun.geo && typeof mun.geo === 'object') {
     lines.push(`## Geo enrichment`, ``);
     if (mun.geo.kind === 'resolved') {
-      const br = mun.geo.borderReferenceVersion ?? 'n/a';
+      const br = mun.geo.borderReferenceVersion ?? mun.geo.audit?.borderReferenceVersion ?? 'n/a';
+      const entity = mun.geo.resolution?.geoEntityType ?? mun.geo.geoEntityType;
+      const semantics = mun.geo.classification?.distanceSemantics;
       lines.push(
-        `*Reference version:* \`${String(mun.geo.geoReferenceVersion)}\` · *Border version:* \`${String(br)}\` · *Entity type:* \`${String(mun.geo.geoEntityType)}\` · *Scope confidence:* \`${String(mun.geo.scopeConfidence)}\` · *Quality:* \`${mun.geo.quality}\` · *Usable for metrics:* ${mun.geo.usableForMetrics} · *Requires review:* ${mun.geo.requiresReview}`,
+        `*Reference version:* \`${String(mun.geo.geoReferenceVersion ?? mun.geo.audit?.geoReferenceVersion)}\` · *Border version:* \`${String(br)}\` · *Entity type:* \`${String(entity)}\` · *Scope confidence:* \`${String(mun.geo.scopeConfidence ?? mun.geo.policy?.scopeConfidence)}\` · *Quality:* \`${mun.geo.quality ?? mun.geo.policy?.quality}\` · *Usable for metrics:* ${mun.geo.usableForMetrics ?? mun.geo.policy?.usableForMetrics} · *Requires review:* ${mun.geo.requiresReview ?? mun.geo.policy?.requiresReview}`,
         ``,
       );
+      if (
+        semantics === 'representative_centroid_to_polyline' ||
+        entity === 'regional_council' ||
+        entity === 'area'
+      ) {
+        lines.push(
+          `*Distance note:* approximate administrative centroid — not a settlement pin; use for orientation only.`,
+          ``,
+        );
+      }
     }
     lines.push('```json', JSON.stringify(mun.geo, null, 2), '```', ``, `---`, ``);
   }

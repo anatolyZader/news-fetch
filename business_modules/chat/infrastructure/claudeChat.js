@@ -3,6 +3,11 @@
  */
 import Anthropic from '@anthropic-ai/sdk';
 import { loadSignals, searchSignals, formatSignals, compareReports, loadReport, listReportDates } from '../domain/signalLookup.js';
+import {
+  deriveInstrumentState,
+  operatorAssessmentSummary,
+  DISPLAY_VIEWS,
+} from '../../resilience/domain/services/assessmentDisplayTier.js';
 import { lookupEvidenceText, searchEvidenceCandidates } from '../domain/evidenceLookup.js';
 
 const client = new Anthropic();
@@ -268,7 +273,8 @@ async function handleToolCall(toolName, input, pboLookup, reportData, evidenceSt
   }
 
   if (toolName === 'compare_dates') {
-    return compareReports(input.date_a, input.date_b);
+    const includeScores = reportData?.display_view === DISPLAY_VIEWS.analyst;
+    return compareReports(input.date_a, input.date_b, { includeScores });
   }
 
   if (toolName === 'generate_brief') {
@@ -306,11 +312,22 @@ async function generateBrief(input, reportData, pboLookup) {
   let briefContext = '';
   if (reportData?.assessment) {
     const a = reportData.assessment;
+    const includeScores = reportData?.display_view === DISPLAY_VIEWS.analyst;
     briefContext += `Assessment date: ${a.date}\n`;
-    briefContext += `Overall score: ${a.overall_resilience_score}/10\n`;
+    if (includeScores) {
+      briefContext += `Overall score: ${a.overall_resilience_score}/10\n`;
+    } else {
+      briefContext += `${operatorAssessmentSummary(a)}\n`;
+    }
     briefContext += `Executive summary: ${a.cross_component_synthesis?.slice(0, 2000) ?? 'N/A'}\n\n`;
     for (const c of a.components ?? []) {
-      briefContext += `${c.component_id}: ${c.score}/10 (${c.confidence}) — ${c.narrative?.slice(0, 400) ?? ''}\n\n`;
+      if (includeScores && c.score != null) {
+        briefContext += `${c.component_id}: ${c.score}/10 (${c.confidence}) — ${c.narrative?.slice(0, 400) ?? ''}\n\n`;
+      } else {
+        const inst = c.instrument ?? deriveInstrumentState(c);
+        briefContext +=
+          `${c.component_id}: (${inst.confidence}, ${inst.evidence_sufficiency}) — ${c.narrative?.slice(0, 400) ?? ''}\n\n`;
+      }
     }
   }
 

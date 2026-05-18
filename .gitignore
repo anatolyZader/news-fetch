@@ -20,6 +20,9 @@ secrets/
 *.log
 cost-log.jsonl
 
+# Google Trends API cache (6h TTL)
+business_modules/search_trends/data/cache/*.json
+
 # Data + downloads + recordings + reports (runtime/generated)
 # Root-only: do not ignore e.g. business_modules/geo/data/ (versioned reference JSON).
 /data/

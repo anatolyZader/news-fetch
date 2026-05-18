@@ -11,8 +11,8 @@ export class GeoEnrichmentAdapter extends IGeoEnrichmentPort {
     this._unknownSink = unknownSink;
   }
 
-  resolveLocalityName(rawName) {
-    const r = this._geoService.resolveLocalityName(rawName);
+  resolveLocalityName(rawName, options) {
+    const r = this._geoService.resolveLocalityName(rawName, options);
     if (
       this._unknownSink &&
       r?.kind === 'unknown' &&
@@ -33,12 +33,13 @@ export function createGeoEnrichmentAdapter(deps) {
 
 /** Duck-typed no-op for tests or offline mode (no geo dependency). */
 export class NoOpGeoEnrichmentPort extends IGeoEnrichmentPort {
-  resolveLocalityName() {
+  resolveLocalityName(_rawName, _options) {
     return {
       kind: 'unknown',
       reason: 'GEO_DISABLED',
       rawName: null,
       geoReferenceVersion: null,
+      envelopeSchemaVersion: null,
     };
   }
 }

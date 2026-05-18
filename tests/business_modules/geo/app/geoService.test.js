@@ -48,8 +48,9 @@ test('geoService resolves known Hebrew locality', () => {
     assert.equal(r.classification.pboSubregionId, 'naftali');
     assert.equal(r.classification.distanceSemantics, 'point_to_polyline');
     assert.equal(r.policy.geoPolicyVersion, GEO_POLICY_VERSION);
-    assert.equal(r.subregionId, 'naftali');
+    assert.equal(r.subregionId, undefined);
     assert.equal(r.pboSubregionId, 'naftali');
+    assert.equal(r.envelopeSchemaVersion, 'geo-envelope-2026-05-v1');
     assert.equal(r.geoEntityType, 'locality');
     assert.equal(r.scopeConfidence, 'high');
     assert.equal(r.matchEvidence.rawInput, 'קריית שמונה');

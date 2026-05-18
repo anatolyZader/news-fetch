@@ -97,7 +97,7 @@ export async function runAnalyzeSurveyCli(options = {}) {
 
       if (geoEnrichmentPort) {
         for (const m of assessment.municipalities) {
-          m.geo = geoEnrichmentPort.resolveLocalityName(m.name);
+          m.geo = geoEnrichmentPort.resolveLocalityName(m.name, { sourceType: 'survey' });
         }
         const g = assessment.municipalities[0]?.geo;
         if (g?.kind === 'resolved') {

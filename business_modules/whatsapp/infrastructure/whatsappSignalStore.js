@@ -5,6 +5,8 @@ import { mkdirSync } from 'fs';
 import { dirname } from 'path';
 import { DatabaseSync } from 'node:sqlite';
 
+import { denormalizedGeoColumns } from '../../../cross-cut-modules/geo/geoSqliteColumns.js';
+
 const DDL = `
 CREATE TABLE IF NOT EXISTS whatsapp_signals (
   id            INTEGER PRIMARY KEY,
@@ -97,20 +99,7 @@ export function createWhatsAppSignalStore(dbPath) {
      */
     insertSignals(metaMsgId, date, signals, senderPhone) {
       for (const s of signals) {
-        const g = s?.geo;
-        const geoJson = g && typeof g === 'object' ? JSON.stringify(g) : null;
-        const kind = g?.kind ?? null;
-        const canonicalKey = g?.kind === 'resolved' ? (g.canonicalKey ?? null) : null;
-        const entityType = g?.kind === 'resolved' ? (g.geoEntityType ?? null) : null;
-        const pboSubregionId = g?.kind === 'resolved' ? (g.pboSubregionId ?? null) : null;
-        const distanceBand = g?.kind === 'resolved' ? (g.distanceBand ?? null) : null;
-        const quality = g?.kind === 'resolved' ? (g.quality ?? null) : null;
-        const usable = g?.kind === 'resolved' ? (g.usableForMetrics ? 1 : 0) : null;
-        const review = g?.kind === 'resolved' ? (g.requiresReview ? 1 : 0) : null;
-        const scope = g?.kind === 'resolved' ? (g.scopeConfidence ?? null) : null;
-        const refVer = g?.kind === 'resolved' ? (g.geoReferenceVersion ?? null) : (g?.geoReferenceVersion ?? null);
-        const borderVer = g?.kind === 'resolved' ? (g.borderReferenceVersion ?? null) : null;
-        const policyVer = g?.kind === 'resolved' ? (g.geoPolicyVersion ?? null) : null;
+        const cols = denormalizedGeoColumns(s?.geo);
         insertStmt.run(
           metaMsgId,
           date,
@@ -119,19 +108,19 @@ export function createWhatsAppSignalStore(dbPath) {
           s.evidence ?? '',
           s.scope_level ?? 'single_case',
           senderPhone ?? null,
-          geoJson,
-          kind,
-          canonicalKey,
-          entityType,
-          pboSubregionId,
-          distanceBand,
-          quality,
-          usable,
-          review,
-          scope,
-          refVer,
-          borderVer,
-          policyVer,
+          cols.geoJson,
+          cols.kind,
+          cols.canonicalKey,
+          cols.entityType,
+          cols.pboSubregionId,
+          cols.distanceBand,
+          cols.quality,
+          cols.usable,
+          cols.review,
+          cols.scope,
+          cols.refVer,
+          cols.borderVer,
+          cols.policyVer,
         );
       }
     },

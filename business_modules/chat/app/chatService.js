@@ -33,7 +33,8 @@ function chatReportData(raw) {
 
 export async function streamChat(message, history, rawReply, getReportData, opts = {}) {
   const reportData = chatReportData(getReportData());
-  const { context: baseContext, pboLookup } = buildReportContext(reportData);
+  const includeScores = reportData?.display_view === DISPLAY_VIEWS.analyst;
+  const { context: baseContext, pboLookup } = buildReportContext(reportData, { includeScores });
   const retrievalHint = await buildRetrievalHint(message, reportData, opts.vectorIndexStore ?? null);
   const context =
     String(baseContext ?? '') +

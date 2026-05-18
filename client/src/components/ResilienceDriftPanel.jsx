@@ -131,37 +131,6 @@ function ComponentTile({ id, series, t }) {
   );
 }
 
-function OverridesBar({ overrides, t }) {
-  if (!overrides) return null;
-  const total = overrides.total ?? 0;
-  const rate = overrides.rate ?? 0;
-  return (
-    <Box sx={(theme) => ({
-      padding: theme.spacing(2),
-      border: theme.custom.border.hairline,
-      borderRadius: theme.custom.radius.sm,
-      background: theme.palette.background.paper,
-    })}>
-      <Typography variant="cardTitle" sx={{ marginBottom: 0.5 }}>
-        {t('drift.overrideRate')}
-      </Typography>
-      <Stack direction="row" spacing={2} sx={{ marginBottom: 1 }}>
-        <Typography variant="body2" color="text.secondary">
-          {t('drift.overrides.total').replace('{n}', String(total))}
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          {t('drift.overrides.rate').replace('{rate}', (rate * 100).toFixed(1))}
-        </Typography>
-      </Stack>
-      <LinearProgress
-        variant="determinate"
-        value={Math.min(100, rate * 100)}
-        sx={{ height: 6, borderRadius: 3 }}
-      />
-    </Box>
-  );
-}
-
 function SignalVolumeBar({ days, t }) {
   if (!Array.isArray(days) || days.length === 0) {
     return (
@@ -246,17 +215,7 @@ export function ResilienceDriftPanel({ scope = 'national' }) {
             ))}
           </Box>
 
-          <Stack
-            direction={{ xs: 'column', md: 'row' }}
-            spacing={2}
-          >
-            <Box sx={{ flex: 1 }}>
-              <SignalVolumeBar days={data.signal_volume_per_day} t={t} />
-            </Box>
-            <Box sx={{ flex: 1 }}>
-              <OverridesBar overrides={data.overrides} t={t} />
-            </Box>
-          </Stack>
+          <SignalVolumeBar days={data.signal_volume_per_day} t={t} />
 
           <Stack
             direction={{ xs: 'column', md: 'row' }}

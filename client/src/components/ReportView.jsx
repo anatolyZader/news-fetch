@@ -7,17 +7,8 @@ import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import Alert from '@mui/material/Alert';
 import LinearProgress from '@mui/material/LinearProgress';
-import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import DialogActions from '@mui/material/DialogActions';
-import TextField from '@mui/material/TextField';
-import MenuItem from '@mui/material/MenuItem';
-import Button from '@mui/material/Button';
-import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import { useTheme } from '@mui/material/styles';
-import EditNoteOutlinedIcon from '@mui/icons-material/EditNoteOutlined';
 import MenuBookOutlinedIcon from '@mui/icons-material/MenuBookOutlined';
 import CellTowerOutlinedIcon from '@mui/icons-material/CellTowerOutlined';
 import HealthAndSafetyOutlinedIcon from '@mui/icons-material/HealthAndSafetyOutlined';
@@ -29,7 +20,6 @@ import MonitorHeartOutlinedIcon from '@mui/icons-material/MonitorHeartOutlined';
 import HelpOutlineOutlinedIcon from '@mui/icons-material/HelpOutlineOutlined';
 import { expandSourceCitationLinks } from './ReportMarkdownView.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
-import { useAuth } from '../context/AuthContext.jsx';
 import { scoreColor10, scoreLabel10, scoreVariant10 } from '../lib/score.js';
 import { DriftSparkline, ResilienceSummaryCard, StatusTag, MarkdownArticle } from '../ui/index.js';
 
@@ -154,33 +144,7 @@ function DeltaAdornment({ delta, significant, t }) {
   );
 }
 
-function ReviewerAdjustmentMark({ deterministic, t }) {
-  if (deterministic == null) return null;
-  return (
-    <Tooltip title={t('report.reviewerAdjustmentCaption').replace('{n}', String(deterministic))}>
-      <Box
-        component="span"
-        aria-label={t('report.reviewerAdjustmentCaption').replace('{n}', String(deterministic))}
-        sx={(theme) => ({
-          marginInlineStart: theme.spacing(0.25),
-          fontSize: theme.typography.eyebrow.fontSize,
-          fontWeight: 700,
-          color: theme.palette.info.main,
-          lineHeight: 1,
-        })}
-      >
-        *
-      </Box>
-    </Tooltip>
-  );
-}
-
 function ComponentChip({ label, variant, value, t, comp }) {
-  const reviewerAdjusted =
-    comp != null
-    && comp.score_deterministic != null
-    && comp.score != null
-    && comp.score_deterministic !== comp.score;
   return (
     <Stack
       direction="row"
@@ -203,9 +167,6 @@ function ComponentChip({ label, variant, value, t, comp }) {
         {label}
       </Box>
       <StatusTag variant={variant}>{scoreLabel(value, t)}</StatusTag>
-      {reviewerAdjusted && (
-        <ReviewerAdjustmentMark deterministic={comp.score_deterministic} t={t} />
-      )}
       {comp && (
         <DeltaAdornment
           delta={comp.delta_score}
@@ -214,144 +175,6 @@ function ComponentChip({ label, variant, value, t, comp }) {
         />
       )}
     </Stack>
-  );
-}
-
-function OverrideBadge({ count, t }) {
-  if (!count || count <= 0) return null;
-  const text = t('report.overrides.badge').replace('{n}', String(count));
-  return (
-    <Tooltip title={t('report.overrides.badge.tooltip')}>
-      <Box
-        component="span"
-        sx={(theme) => ({
-          marginInlineStart: theme.spacing(0.5),
-          paddingInline: theme.spacing(0.6),
-          paddingBlock: '1px',
-          borderRadius: theme.custom.radius.xs,
-          fontSize: theme.typography.eyebrow.fontSize,
-          fontWeight: 600,
-          color: theme.palette.info.main,
-          border: `1px solid ${theme.palette.info.main}`,
-          background: theme.palette.background.paper,
-          whiteSpace: 'nowrap',
-        })}
-      >
-        {text}
-      </Box>
-    </Tooltip>
-  );
-}
-
-function ChallengeDialog({
-  open, onClose, comp, reportDate, reportScope, onSuccess, t,
-}) {
-  const { getIdToken } = useAuth();
-  const [proposedScore, setProposedScore] = useState(comp?.score ?? '');
-  const [note, setNote] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    if (open) {
-      setProposedScore(comp?.score ?? '');
-      setNote('');
-      setError(null);
-      setSubmitting(false);
-    }
-  }, [open, comp]);
-
-  async function handleSubmit() {
-    if (!comp || !reportDate) return;
-    const score = Number.parseInt(proposedScore, 10);
-    if (!Number.isInteger(score) || score < 1 || score > 10) {
-      setError(t('report.overrides.dialog.error.score'));
-      return;
-    }
-    setSubmitting(true);
-    setError(null);
-    try {
-      const headers = new Headers({ 'Content-Type': 'application/json' });
-      const token = await getIdToken();
-      if (token) headers.set('Authorization', `Bearer ${token}`);
-      const res = await fetch('/api/resilience/overrides', {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
-          report_date: reportDate,
-          scope: reportScope ?? 'national',
-          component_id: comp.component_id,
-          kind: 'challenge_score',
-          original: comp.score != null ? { score: comp.score } : null,
-          proposed: { score },
-          note: note?.trim() ? note.trim() : null,
-        }),
-      });
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body?.error ?? `HTTP ${res.status}`);
-      }
-      if (onSuccess) onSuccess();
-      onClose();
-    } catch (err) {
-      setError(err?.message ?? t('report.overrides.dialog.error.submit'));
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
-  if (!comp) return null;
-  return (
-    <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
-      <DialogTitle>
-        {t('report.overrides.dialog.title').replace('{component}', comp.component_id.replace(/_/g, ' '))}
-      </DialogTitle>
-      <DialogContent>
-        <Stack spacing={2} sx={{ marginTop: 1 }}>
-          {comp.score != null && (
-            <Typography variant="caption" color="text.secondary">
-              {t('report.overrides.dialog.original').replace('{score}', String(comp.score))}
-            </Typography>
-          )}
-          <TextField
-            select
-            label={t('report.overrides.dialog.proposedScore')}
-            value={proposedScore}
-            onChange={(e) => setProposedScore(e.target.value)}
-            fullWidth
-            disabled={submitting}
-          >
-            {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
-              <MenuItem key={n} value={n}>{n}/10</MenuItem>
-            ))}
-          </TextField>
-          <TextField
-            label={t('report.overrides.dialog.note')}
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-            multiline
-            rows={3}
-            fullWidth
-            disabled={submitting}
-            inputProps={{ maxLength: 500 }}
-            helperText={`${note.length}/500`}
-          />
-          {error && <Alert severity="error">{error}</Alert>}
-        </Stack>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose} disabled={submitting}>
-          {t('report.overrides.dialog.cancel')}
-        </Button>
-        <Button
-          onClick={handleSubmit}
-          variant="contained"
-          disabled={submitting || !reportDate}
-        >
-          {t('report.overrides.dialog.submit')}
-        </Button>
-      </DialogActions>
-    </Dialog>
   );
 }
 
@@ -479,8 +302,6 @@ function ScoreWithInterval({ comp, t }) {
   }
   const hasCi = comp.score_low != null && comp.score_high != null
     && (comp.score_low !== comp.score || comp.score_high !== comp.score);
-  const det = comp.score_deterministic;
-  const showAdj = det != null && comp.score != null && det !== comp.score;
   const showSmoothed = comp.score_smoothed != null && comp.score_smoothed !== comp.score;
   const floorClamped = comp.floor_clamped === true;
   const ciUnstable = comp.ci_unstable === true;
@@ -500,11 +321,6 @@ function ScoreWithInterval({ comp, t }) {
       {ciUnstable && (
         <Typography component="span" variant="caption" color="warning.main" sx={{ fontStyle: 'italic' }}>
           {t('report.scoreInterval.ciUnstable')}
-        </Typography>
-      )}
-      {showAdj && (
-        <Typography component="span" variant="caption" color="text.disabled" sx={{ fontStyle: 'italic' }}>
-          {t('report.reviewerAdjustmentCaption').replace('{n}', String(det))}
         </Typography>
       )}
     </>
@@ -736,8 +552,6 @@ function ComponentCard({
   sourceSignals,
   driftSeries,
   driftLoading,
-  overrideCount,
-  onChallengeClick,
   displayTier = 'operator',
   open,
   evidenceOpen,
@@ -786,7 +600,6 @@ function ComponentCard({
               {label}
             </Typography>
             {isContested && <ContestedBadge t={t} />}
-            <OverrideBadge count={overrideCount} t={t} />
           </Stack>
         </Stack>
         <Stack
@@ -815,25 +628,6 @@ function ComponentCard({
         </Stack>
       </AccordionSummary>
       <AccordionDetails>
-        {isAnalyst && onChallengeClick && (
-          <Box sx={(theme) => ({
-            display: 'flex', justifyContent: 'flex-end',
-            marginBottom: theme.spacing(0.5),
-          })}>
-            <Tooltip title={t('report.overrides.challenge')}>
-              <IconButton
-                size="small"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onChallengeClick(comp);
-                }}
-                aria-label={t('report.overrides.challenge')}
-              >
-                <EditNoteOutlinedIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
-          </Box>
-        )}
         {isAnalyst && (
           <Box sx={(theme) => ({ marginTop: theme.spacing(0.5), marginBottom: theme.spacing(0.75) })}>
             {driftLoading && (
@@ -937,8 +731,6 @@ export function ReportView({
   reportScope,
   driftByComponent,
   driftLoading,
-  overridesCount,
-  onOverridesChanged,
   openCompId: openCompIdProp,
   setOpenCompId: setOpenCompIdProp,
   openEvidenceCompId: openEvidenceCompIdProp,
@@ -950,7 +742,6 @@ export function ReportView({
   const overall = assessment.overall_resilience_score;
   const [openCompIdInternal, setOpenCompIdInternal] = useState(null);
   const [openEvidenceCompIdInternal, setOpenEvidenceCompIdInternal] = useState(null);
-  const [challengeComp, setChallengeComp] = useState(null);
   const compRefs = useRef({});
 
   const openCompId = openCompIdProp ?? openCompIdInternal;
@@ -1140,8 +931,6 @@ export function ReportView({
               sourceSignals={getSourceSignals(c.component_id)}
               driftSeries={driftMap?.[c.component_id]?.series ?? []}
               driftLoading={driftLoading}
-              overrideCount={overridesCount?.[c.component_id] ?? 0}
-              onChallengeClick={isAnalyst && reportDate ? setChallengeComp : null}
               open={openCompId === c.component_id}
               evidenceOpen={openEvidenceCompId === c.component_id}
               onToggle={(isOpen) => {
@@ -1169,17 +958,6 @@ export function ReportView({
         </ReportSection>
       )}
 
-      {isAnalyst && (
-        <ChallengeDialog
-          open={Boolean(challengeComp)}
-          onClose={() => setChallengeComp(null)}
-          comp={challengeComp}
-          reportDate={reportDate}
-          reportScope={reportScope}
-          onSuccess={onOverridesChanged}
-          t={t}
-        />
-      )}
     </Stack>
   );
 }

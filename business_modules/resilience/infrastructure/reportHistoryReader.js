@@ -17,8 +17,7 @@ import { resolve, join } from 'node:path';
  *     overall_score: number | null,
  *     components: [{ component_id, score, confidence, polarization, evidence_mass, signal_count }],
  *     signal_counts: { [signal_type]: count },         // from root signals[]
- *     source_type_mass: { [source_type]: count },      // proxy: count of signals per source_type
- *     overrides_count?: { [component_id]: n }          // backfilled by caller
+ *     source_type_mass: { [source_type]: count }      // proxy: count of signals per source_type
  *   }
  */
 

@@ -8,6 +8,16 @@ import {
   resolveByFuzzyBest,
 } from '../../../../../business_modules/geo/domain/services/resolveLocalityMatch.js';
 
+test('resolveByExactStages matches English transliteration variant', () => {
+  const localities = [
+    { canonicalKey: 'kiryat_shmona', names: ['קריית שמונה'], lat: 33, lon: 35, subregionId: 'naftali' },
+  ];
+  const index = buildLookupIndex(localities);
+  const r = resolveByExactStages(index, 'Kiryat Shmona');
+  assert.ok(r);
+  assert.equal(r.row.canonicalKey, 'kiryat_shmona');
+});
+
 test('resolveByExactStages matches punctuation-stripped Hebrew', () => {
   const localities = [
     { canonicalKey: 'foo', names: ['בדיקה'], lat: 33, lon: 35, subregionId: 'naftali' },

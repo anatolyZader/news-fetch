@@ -1,3 +1,5 @@
+import { northRelevanceFromResolvedGeo } from '../../../../cross-cut-modules/geo/northRelevanceFromResolvedGeo.js';
+
 const ALWAYS_NORTH_SOURCE_TYPES = new Set(['field', 'pbo', 'pbo_regional', 'naftali', 'whatsapp']);
 
 const NORTH_TERMS = [
@@ -90,24 +92,28 @@ const NORTH_TERMS = [
   'ג׳דיידה מכר',
   'ג\'דיידה מכר',
   'אעבלין',
-];
 
-function isNorthFromResolvedGeo(signal) {
-  const g = signal?.geo;
-  if (!g || g.kind !== 'resolved') return false;
-  // Explicit low-confidence / non-metrics geo must not count as verified north from geo alone.
-  const usable =
-    g?.policy && typeof g.policy === 'object' && Object.prototype.hasOwnProperty.call(g.policy, 'usableForMetrics')
-      ? g.policy.usableForMetrics
-      : g.usableForMetrics;
-  if (usable === false) {
-    return false;
-  }
-  const tags = g?.classification?.geoAreaTags ?? g.geoAreaTags;
-  if (Array.isArray(tags) && tags.includes('north')) return true;
-  const id = String(g?.classification?.pboSubregionId ?? g.pboSubregionId ?? g.subregionId ?? '').trim().toLowerCase();
-  return ['naftali', 'golan', 'baram', 'hiram', 'galma'].includes(id);
-}
+  // From north-reference.json (sync-north-terms-from-reference.mjs)
+  'bu\'eine nujeidat',
+  'golan regional council',
+  'qiryat shemona',
+  'בועינה - נוג\'ידת',
+  'בועינה נוג\'ידת',
+  'בוקעאתא',
+  'בית ג\'ן',
+  'גליל תחתון',
+  'דיר אל אסד',
+  'טובא-זנגריה',
+  'יאנוח-ג\'ת',
+  'יבנאל',
+  'יסוד המעלה',
+  'כסרא סמיע',
+  'כפר ורדים',
+  'כפר יאסיף',
+  'מגאר',
+  'גוש חלב',
+  'ג\'ש (גוש חלב)',
+];
 
 function haystackForSignal(signal) {
   return [
@@ -137,26 +143,16 @@ export function scopeDecisionForSignal(signal) {
   }
   const g = signal?.geo;
   if (g?.kind === 'resolved') {
-    const usable =
-      g?.policy && typeof g.policy === 'object' && Object.prototype.hasOwnProperty.call(g.policy, 'usableForMetrics')
-        ? g.policy.usableForMetrics
-        : g.usableForMetrics;
-    if (usable === false) {
-      reasons.push('geo.usableForMetrics=false');
-      return { isNorthRelevant: false, source: 'geo', confidence: 'low', reasons };
+    const geoNorth = northRelevanceFromResolvedGeo(g);
+    if (geoNorth.isNorthRelevant) {
+      return {
+        isNorthRelevant: true,
+        source: geoNorth.source,
+        confidence: geoNorth.confidence,
+        reasons: [...geoNorth.reasons],
+      };
     }
-    const tags = g?.classification?.geoAreaTags ?? g.geoAreaTags;
-    if (Array.isArray(tags) && tags.includes('north')) {
-      reasons.push('geoAreaTags includes north');
-      const conf = g?.policy?.scopeConfidence ?? g.scopeConfidence ?? 'medium';
-      return { isNorthRelevant: true, source: 'geo_tags', confidence: conf, reasons };
-    }
-    const id = String(g?.classification?.pboSubregionId ?? g.pboSubregionId ?? g.subregionId ?? '').trim().toLowerCase();
-    if (['naftali', 'golan', 'baram', 'hiram', 'galma'].includes(id)) {
-      reasons.push(`pboSubregionId=${id}`);
-      const conf = g?.policy?.scopeConfidence ?? g.scopeConfidence ?? 'medium';
-      return { isNorthRelevant: true, source: 'pbo_subregion', confidence: conf, reasons };
-    }
+    // usableForMetrics=false: do not count geo as verified north, but allow keyword_fallback below.
   }
   const haystack = haystackForSignal(signal);
   if (NORTH_TERMS.some((term) => haystack.includes(term.toLowerCase()))) {

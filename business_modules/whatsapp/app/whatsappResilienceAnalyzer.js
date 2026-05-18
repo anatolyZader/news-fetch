@@ -13,7 +13,11 @@
  */
 
 import Anthropic from '@anthropic-ai/sdk';
-import { validateGeoEnvelope } from '../../../cross-cut-modules/geo/signalGeoSummary.js';
+import { attachGeoToSignalsAndStructured } from '../../../cross-cut-modules/geo/attachGeoToSignals.js';
+import {
+  inferLocalityFromText,
+  normalizeLocalityName,
+} from '../../../cross-cut-modules/geo/localityCandidate.js';
 import { buildSignalExtractionSystemPrompt, extractJsonArray } from '../../resilience/infrastructure/claudeEvaluator.js';
 import { createNoOpGeoEnrichmentPort } from '../../resilience/infrastructure/adapters/geoEnrichmentAdapter.js';
 import { SIGNAL_TYPES } from '../../resilience/domain/services/behaviorSignals.js';
@@ -190,29 +194,6 @@ function formatTurnHistory(turnHistory, senderName) {
   return `${header}\n${lines.join('\n')}`;
 }
 
-function normalizeLocalityName(raw) {
-  const s = String(raw ?? '').trim();
-  if (!s) return null;
-  return s
-    .replace(/[()\[\]{}<>]/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .slice(0, 80) || null;
-}
-
-function inferLocalityFromText(text) {
-  const t = String(text ?? '').trim();
-  if (!t) return null;
-  // Hebrew locality cue patterns (best-effort): "בקריית שמונה", "בקיבוץ X", "במושב Y", "ביישוב Z"
-  const m = t.match(/(?:\bביישוב\b|\bבקיבוץ\b|\bבמושב\b|\bבעיר\b|\bבכפר\b|\bבקריית\b|\bב)\s*([א-ת"׳'\- ]{2,28})/);
-  if (!m) return null;
-  const cand = normalizeLocalityName(m[1]);
-  if (!cand) return null;
-  // Avoid capturing generic words.
-  if (/^(האזור|האזור הזה|הצפון|דרום|מרכז|המרכז|הצפון)$/i.test(cand)) return null;
-  return cand;
-}
-
 function inferTimeframeFromText(text) {
   const t = String(text ?? '').toLowerCase();
   if (!t) return null;
@@ -236,28 +217,6 @@ function postNormalizeStructured(structured, rawText) {
 
   out.observation = obs;
   return out;
-}
-
-/**
- * @param {Array<object>} signals
- * @param {object} structured
- * @param {{ resolveLocalityName: (raw: string|null|undefined) => object }} geoEnrichmentPort
- */
-function attachGeoToSignalsAndStructured(signals, structured, geoEnrichmentPort) {
-  const locality = structured?.observation?.locality ?? null;
-  const geo = geoEnrichmentPort.resolveLocalityName(locality);
-  if (process.env.GEO_ASSERT_ENVELOPE === '1') {
-    const v = validateGeoEnvelope(geo);
-    if (!v.ok) {
-      throw new Error(`Invalid geo envelope after resolve: ${v.errors.join('; ')}`);
-    }
-  }
-  const withGeo = (Array.isArray(signals) ? signals : []).map((s) => ({ ...s, geo }));
-  const observation = { ...structured.observation, geo };
-  return {
-    signals: withGeo,
-    structured: { ...structured, observation },
-  };
 }
 
 // ── Public factory ─────────────────────────────────────────────────────────
@@ -339,7 +298,9 @@ export function createWhatsAppResilienceAnalyzer({ anthropicApiKey, geoEnrichmen
       // Realtime flow has no _structured output; still infer locality/timeframe heuristically for downstream UI.
       const structuredRaw = postNormalizeStructured(EMPTY_STRUCTURED(), messageText);
       const validated = validateSignals(signals);
-      const { signals: sigGeo, structured } = attachGeoToSignalsAndStructured(validated, structuredRaw, geoPort);
+      const { signals: sigGeo, structured } = attachGeoToSignalsAndStructured(validated, structuredRaw, geoPort, {
+        sourceType: 'whatsapp',
+      });
       return { signals: sigGeo, assessment, structured };
     },
 
@@ -389,6 +350,7 @@ export function createWhatsAppResilienceAnalyzer({ anthropicApiKey, geoEnrichmen
         validated,
         structuredNorm,
         geoPort,
+        { sourceType: 'whatsapp' },
       );
 
       return { signals: sigGeo, structured, assessment };

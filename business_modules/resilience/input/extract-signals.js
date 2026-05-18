@@ -13,12 +13,18 @@
  */
 
 import 'dotenv/config';
-import { resolve, basename } from 'path';
+import { resolve, basename, dirname } from 'path';
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
+import { fileURLToPath } from 'url';
 
 import { loadMdFiles } from '../infrastructure/mdReportsLoader.js';
 import { extractSignals } from '../infrastructure/claudeEvaluator.js';
 import { createCostTracker, appendCostLog, checkDailyBudget } from '../../../cross-cut-modules/budget/index.js';
+import { createGeoWiring } from '../../../cross-cut-modules/geo/createGeoWiring.js';
+import { attachGeoToSignals } from '../../../cross-cut-modules/geo/attachGeoToSignals.js';
+import { buildReferenceNameIndex } from '../../../cross-cut-modules/geo/referenceNameIndex.js';
+
+const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 
 const CONTENT_KIND = { news: 'news', radio: 'audio', field: 'field_report', whatsapp: 'whatsapp' };
 
@@ -89,7 +95,24 @@ async function run() {
   const rawSignals = await extractSignals(articles, { onUsage, contentKind });
 
   // Tag every signal with its source type so assess-signals can split them later
-  const signals = rawSignals.map((s) => ({ ...s, source_type: sourceType }));
+  let signals = rawSignals.map((s) => ({ ...s, source_type: sourceType }));
+
+  if (
+    process.env.GEO_ATTACH_ON_EXTRACT === '1' &&
+    (sourceType === 'news' || sourceType === 'radio')
+  ) {
+    const { geoEnrichmentPort } = createGeoWiring({
+      rootDir: REPO_ROOT,
+      unknownSourceType: `extract-${sourceType}`,
+    });
+    const nameIndex = buildReferenceNameIndex(REPO_ROOT);
+    const { signals: withGeo, attached, resolved, unknown } = attachGeoToSignals(signals, geoEnrichmentPort, {
+      sourceType,
+      nameIndex,
+    });
+    signals = withGeo;
+    console.error(`  → Geo attach: ${attached} signals, ${resolved} resolved, ${unknown} unknown`);
+  }
 
   console.error(`\n→ ${signals.length} signals extracted`);
 

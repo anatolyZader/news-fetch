@@ -17,6 +17,7 @@ import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { useTodayReport, readStoredReportView, writeStoredReportView } from './hooks/useAnalysis.js';
+import { useRunAnalysis } from './hooks/useRunAnalysis.js';
 import { useDisplayCapabilities } from './hooks/useDisplayCapabilities.js';
 import { useTranslatedReport } from './hooks/useTranslatedReport.js';
 import { useResilienceDrift } from './hooks/useResilienceDrift.js';
@@ -32,6 +33,7 @@ import { PboRegionalDailyReports } from './components/PboRegionalDailyReports.js
 import { NaftaliTab } from './components/NaftaliTab.jsx';
 import { ReportBotManualReportsTab } from './components/ReportBotManualReportsTab.jsx';
 import { VisitsTab } from './components/VisitsTab.jsx';
+import { TrendsTab } from './components/TrendsTab.jsx';
 import { useLanguage } from './context/LanguageContext.jsx';
 import { LanguageSelector } from './components/LanguageSelector.jsx';
 import { useAuth } from './context/AuthContext.jsx';
@@ -50,7 +52,7 @@ const LS_POOL_TAB = 'vibes-witch:poolTab';
 const LS_PBO_TAB = 'vibes-witch:pboTab';
 const LS_PBO_REGION = 'vibes-witch:pboRegion';
 const LS_REPORT_SCOPE = 'vibes-witch:reportScope';
-const MAIN_TAB_IDS = new Set(['report', 'pbo-reports', 'report-bot', 'visits', 'pools']);
+const MAIN_TAB_IDS = new Set(['report', 'pbo-reports', 'report-bot', 'visits', 'pools', 'trends']);
 const PBO_TAB_IDS = new Set(['local', 'regional']);
 /** Northern PBO sub-regions (maps to divisions in regions.json; Galma ≈ Western Galilee / גלמ״ע). */
 const PBO_REGION_IDS_ORDER = ['naftali', 'golan', 'baram', 'hiram', 'galma'];
@@ -195,7 +197,7 @@ function readReportScope() {
 }
 
 function AppShell() {
-  const { logout, authRequired } = useAuth();
+  const { logout, authRequired, apiReady } = useAuth();
   const [reportScope, setReportScope] = useState(() => readReportScope());
   const [reportView, setReportView] = useState(() => readStoredReportView());
   const { canViewAnalyst } = useDisplayCapabilities();
@@ -203,12 +205,19 @@ function AppShell() {
     report,
     scoreBySource,
     reportDate,
-    overridesCount,
     displayView,
-    refreshOverrides,
+    refreshReport,
     initialReportLoadDone,
     reportMissingHint,
   } = useTodayReport(reportScope, reportView);
+  const {
+    runAnalysis,
+    running: analysisRunning,
+    progressMessage: analysisProgress,
+    error: analysisError,
+    lastResult: analysisResult,
+    clearResult: clearAnalysisResult,
+  } = useRunAnalysis();
   const [activeTab, setActiveTab] = useState(() => readMainTab());
   const [activePoolTab, setActivePoolTab] = useState(() => readPoolTab());
   const [activePboTab, setActivePboTab] = useState(() => readPboTab());
@@ -350,6 +359,7 @@ function AppShell() {
     { id: 'report-bot', label: t('tab.reportBot') },
     { id: 'visits', label: t('tab.visits') },
     { id: 'pools', label: t('tab.pools') },
+    { id: 'trends', label: t('tab.trends') },
   ];
 
   const PBO_TABS = [
@@ -577,7 +587,47 @@ function AppShell() {
                   <ToggleButton value="analyst">{t('report.view.analyst')}</ToggleButton>
                 </ToggleButtonGroup>
               )}
+              {apiReady && (
+                <Button
+                  size="small"
+                  variant="outlined"
+                  disabled={analysisRunning}
+                  onClick={async () => {
+                    const result = await runAnalysis();
+                    if (result) refreshReport();
+                  }}
+                  sx={(theme) => ({ marginInlineStart: theme.spacing(1) })}
+                >
+                  {analysisRunning ? t('app.analyzeRunning') : t('app.runNationalAnalysis')}
+                </Button>
+              )}
             </Box>
+
+            {analysisError && (
+              <Alert severity="error" variant="outlined" onClose={() => clearAnalysisResult()}>
+                {analysisError}
+              </Alert>
+            )}
+            {analysisRunning && analysisProgress && (
+              <Alert severity="info" variant="outlined">
+                {analysisProgress}
+              </Alert>
+            )}
+            {analysisResult?.scope_artifacts?.hint === 'north_requires_assess_signals' && (
+              <Alert severity="info" variant="outlined" onClose={() => clearAnalysisResult()}>
+                {t('app.scopeArtifactsNorthHint')}
+                {analysisResult.scope_artifacts.note ? (
+                  <Typography component="p" variant="body2" sx={{ marginTop: 1, marginBottom: 0 }}>
+                    {analysisResult.scope_artifacts.note}
+                  </Typography>
+                ) : null}
+              </Alert>
+            )}
+            {analysisResult && !analysisRunning && analysisResult.scope_artifacts?.national && (
+              <Alert severity="success" variant="outlined" onClose={() => clearAnalysisResult()}>
+                {t('app.analyzeComplete').replace('{date}', analysisResult.date ?? '')}
+              </Alert>
+            )}
 
             {!initialReportLoadDone && (
               <Typography variant="body2" color="text.secondary">
@@ -676,8 +726,6 @@ function AppShell() {
                       reportScope={reportScope}
                       driftByComponent={driftData?.per_component ?? null}
                       driftLoading={driftLoading}
-                      overridesCount={overridesCount}
-                      onOverridesChanged={refreshOverrides}
                       openCompId={openReportCompId}
                       setOpenCompId={setOpenReportCompId}
                       openEvidenceCompId={openReportEvidenceCompId}
@@ -746,6 +794,8 @@ function AppShell() {
         {activeTab === 'report-bot' && <ReportBotManualReportsTab />}
 
         {activeTab === 'visits' && <VisitsTab />}
+
+        {activeTab === 'trends' && <TrendsTab />}
 
         {activeTab === 'pools' && (
           <>

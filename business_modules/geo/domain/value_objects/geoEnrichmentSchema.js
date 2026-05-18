@@ -27,6 +27,8 @@ export const DISTANCE_SEMANTICS = new Set(['point_to_polyline', 'representative_
 /** `geo.scopeDecision.source` — geo-only audit (subset of full signal scope sources). */
 export const GEO_SCOPE_DECISION_SOURCES = new Set(['geo', 'geo_tags', 'pbo_subregion', 'unknown']);
 
+const RESOLUTION_SCOPES = new Set(['message', 'signal']);
+
 /**
  * @param {unknown} g
  * @returns {{ ok: true, value: object } | { ok: false, errors: string[] }}
@@ -38,6 +40,9 @@ export function validateGeoEnvelope(g) {
   }
   const kind = g.kind;
   if (kind === 'resolved') {
+    if (g.envelopeSchemaVersion != null && typeof g.envelopeSchemaVersion !== 'string') {
+      errors.push('resolved.envelopeSchemaVersion must be string when present');
+    }
     if (!GEO_ENTITY_TYPES.has(g.geoEntityType)) errors.push('resolved.geoEntityType invalid');
     if (!SCOPE_LEVELS.has(g.scopeConfidence)) errors.push('resolved.scopeConfidence must be high|medium|low');
     if (typeof g.geoPolicyVersion !== 'string' || !g.geoPolicyVersion.trim()) {
@@ -57,6 +62,9 @@ export function validateGeoEnvelope(g) {
         if (!Number.isFinite(r.matchConfidence)) errors.push('resolved.resolution.matchConfidence must be number');
         if (!Number.isInteger(r.candidateCount) || r.candidateCount < 1) errors.push('resolved.resolution.candidateCount must be integer >= 1');
         if (!GEO_ENTITY_TYPES.has(r.geoEntityType)) errors.push('resolved.resolution.geoEntityType invalid');
+        if (r.scope != null && !RESOLUTION_SCOPES.has(r.scope)) {
+          errors.push('resolved.resolution.scope must be message|signal when present');
+        }
       }
     }
     if (g.classification != null) {
@@ -145,6 +153,9 @@ export function validateGeoEnvelope(g) {
       }
     }
   } else if (kind === 'unknown') {
+    if (g.envelopeSchemaVersion != null && typeof g.envelopeSchemaVersion !== 'string') {
+      errors.push('unknown.envelopeSchemaVersion must be string when present');
+    }
     if (typeof g.reason !== 'string' || !g.reason.trim()) errors.push('unknown.reason required');
     if (g.geoReferenceVersion != null && typeof g.geoReferenceVersion !== 'string') {
       errors.push('unknown.geoReferenceVersion must be string or null');

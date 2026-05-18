@@ -36,7 +36,7 @@
 
 This repository implements a **population / community resilience monitoring** stack aligned with an **eight-component** framework (Home Front Command / Pikud HaOref style): narrative, information and communication, lifesaving behavior, functional continuity, community capital, leadership, belonging and solidarity, and wellbeing of at-risk groups.
 
-Evidence is drawn from **multiple channels** (news sites via NewsAPI.ai, optional SQLite-backed evidence such as audio or other ingests, WhatsApp field reports, radio/audio transcripts, municipal / PBO event flows, Naftali pool extraction, field visits, and structured **field surveys** from Excel). The system normalizes heterogeneous inputs into analyzable **content**, extracts **atomic behavioral signals** into a **closed vocabulary**, and applies **deterministic scoring** so that day-to-day and channel-to-channel comparisons are **auditable**. Large language models (LLMs) are used for **relevance filtering**, **signal extraction**, and **narrative synthesis**, but **not** for assigning numeric component scores (except where human reviewers apply overrides through product flows).
+Evidence is drawn from **multiple channels** (news sites via NewsAPI.ai, optional SQLite-backed evidence such as audio or other ingests, WhatsApp field reports, radio/audio transcripts, municipal / PBO event flows, Naftali pool extraction, field visits, and structured **field surveys** from Excel). The system normalizes heterogeneous inputs into analyzable **content**, extracts **atomic behavioral signals** into a **closed vocabulary**, and applies **deterministic scoring** so that day-to-day and channel-to-channel comparisons are **auditable**. Large language models (LLMs) are used for **relevance filtering**, **signal extraction**, and **narrative synthesis**, but **not** for assigning numeric component scores.
 
 ### 1.2 Design mantra: “LLM extracts, code scores”
 
@@ -101,7 +101,7 @@ The workspace follows a **hexagonal / DDD-style** layout:
 | [`business_modules/`](../../business_modules/) | One folder per business capability (`resilience`, `geo`, `news-sites`, `whatsapp`, `audio`, `survey`, PBO modules, etc.). Each module uses `app/`, `domain/`, `infrastructure/adapters/`, and optional `input/` for CLI or HTTP entrypoints. |
 | [`cross-cut-modules/`](../../cross-cut-modules/) | Persistence, budget, shared adapters, and helpers used by multiple modules (e.g. `signalGeoSummary.js` re-exports geo helpers for report code that must not deep-import geo internals). |
 | [`api/analysisService.js`](../../api/analysisService.js) | Server-side orchestration of “run full analysis” for news-style batches (MD plus optional DB merge), cost tracking, and report path resolution by **scope** (national vs north). |
-| [`app.js`](../../app.js) / [`server.js`](../../server.js) | Fastify shell: auth, routes, **composition root** (wires `geoService`, `geoEnrichmentPort`, WhatsApp analyzer, drift routes, overrides, cached report readers). |
+| [`app.js`](../../app.js) / [`server.js`](../../server.js) | Fastify shell: auth, routes, **composition root** (wires `geoService`, `geoEnrichmentPort`, WhatsApp analyzer, drift routes, cached report readers). |
 | [`client/`](../../client/) | React SPA: report scope toggle, dashboards, docs panel. |
 
 **Composition rule:** business modules do not import each other arbitrarily; shared abstractions are expressed as **ports** (e.g. `IGeoEnrichmentPort`) and implemented by adapters wired only from `app.js` or dedicated scripts.
@@ -123,7 +123,7 @@ Readers often conflate these; they serve different operational models.
 - Responses include `display_view` and redact numeric scores for operator tier via [`assessmentDisplayTier.js`](../../business_modules/resilience/domain/services/assessmentDisplayTier.js).  
 - [`GET /api/resilience/display-capabilities`](../../app.js) returns `{ canViewAnalyst }` for the optional signed-in user.  
 - [`useTodayReport(scope, view)`](../../client/src/hooks/useAnalysis.js) passes scope and view query params.  
-- [`MainApp.jsx`](../../client/src/MainApp.jsx) shows an **Analyst** toggle when `canViewAnalyst` is true; drift and override APIs are gated when the allowlist is configured.
+- [`MainApp.jsx`](../../client/src/MainApp.jsx) shows an **Analyst** toggle when `canViewAnalyst` is true; drift APIs are gated when the allowlist is configured.
 
 ---
 
@@ -363,7 +363,7 @@ Unknown or ambiguous localities can be routed to review sinks when configured (`
 ## 7. Strengths
 
 1. **Separation of concerns:** clear ports/adapters; geo and resilience stay testable in isolation (`tests/business_modules/geo`, `tests/business_modules/resilience`).  
-2. **Auditable scoring:** numeric outcomes replay from stored signals + versioned code — suitable for governance and reviewer overrides.  
+2. **Auditable scoring:** numeric outcomes replay from stored signals + versioned code — suitable for governance review.  
 3. **Explainability:** per-signal contributions, dominance caps, counterfactual article, bootstrap CIs, polarization, facets, and `scopeDecision` traces.  
 4. **Geographic hygiene:** explicit **`usableForMetrics`** gate prevents fuzzy leakage into north KPIs; version stamps on envelopes and report JSON support reproducibility.  
 5. **Multi-channel fusion path:** `assess-signals` + caps + diversity factors mitigate “single outlet echo chamber” failure modes.  
@@ -397,7 +397,7 @@ Unknown or ambiguous localities can be routed to review sinks when configured (`
 
 ## 10. Future functionality
 
-- **Time-series and drift:** drift routes and services already exist (`registerDriftRoutes` in `app.js`); extend with automated anomaly detection on component scores and override rates.  
+- **Time-series and drift:** drift routes and services already exist (`registerDriftRoutes` in `app.js`); extend with automated anomaly detection on component scores.  
 - **Stronger temporal modeling:** explicit half-life decay by `publishedAt` instead of only `temporal_weight` where present.  
 - **Geo review UI:** operational queue for unknowns feeding reference JSON builders (`npm run build:north-reference` pipeline).  
 - **Multilingual normalization:** cross-lingual dedup and translation-gated extraction for Arabic and Russian sources where licenses permit.  
@@ -425,8 +425,8 @@ Non-exhaustive list of variables referenced across analysis, geo, and client-fac
 | `GEO_UNKNOWN_REVIEW_JSONL` / `GEO_UNKNOWN_REVIEW_SQLITE` | Unknown locality review sinks. |
 | `TRANSLATION_ENABLED` | Gate server-side report translation. |
 | `AUTH_REQUIRED` | Gate API routes and docs pages. |
-| `RESILIENCE_DRIFT_*` | Drift alert thresholds (override rate, polarization window) — see client i18n help strings. |
-| `RESILIENCE_ANALYST_EMAILS` | Comma-separated emails allowed analyst display tier and gated drift/overrides APIs. |
+| `RESILIENCE_DRIFT_*` | Drift alert thresholds (polarization window, etc.) — see client i18n help strings. |
+| `RESILIENCE_ANALYST_EMAILS` | Comma-separated emails allowed analyst display tier and gated drift APIs. |
 | `RESILIENCE_NARRATIVE_INCLUDE_SCORES` | Default `false`; set `true` to pass 1–10 scores into narrative LLM prompts. |
 
 Always treat this table as **hints**; authoritative behavior is the code path that reads each variable.

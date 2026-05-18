@@ -13,6 +13,7 @@
     "dotenv": "^16.4.5",
     "fastify": "^5.2.0",
     "firebase-admin": "^13.7.0",
+    "google-trends-api": "^4.9.2",
     "googleapis": "^144.0.0",
     "jsonrepair": "^3.13.3",
     "openai": "^4.104.0",
@@ -39,6 +40,9 @@
     "analyze-event-log": "node business_modules/pbo_report_muni/input/analyze-event-log.js",
     "analyze-survey": "node scripts/analyze-survey.mjs",
     "build:north-reference": "node scripts/build-north-reference-from-regions.mjs",
+    "sync:north-terms": "node scripts/sync-north-terms-from-reference.mjs",
+    "sync:north-terms:check": "node scripts/sync-north-terms-from-reference.mjs",
+    "backfill:report-brief": "node scripts/backfill-report-brief-md.mjs",
     "test-tokens": "node cross-cut-modules/budget/input/test-token-usage.js",
     "client:dev": "cd client && npm run dev",
     "client:build": "cd client && npm run build",
@@ -50,6 +54,7 @@
     "radio:test": "node business_modules/recording/input/test-stream.js --url https://radio.streamgates.net/stream/1045fm",
     "radio:jobs": "node business_modules/recording/input/manage-jobs.js",
     "whatsapp-to-md": "node business_modules/whatsapp/input/whatsapp-to-md.js",
-    "mail:digest": "node business_modules/mailing/input/runDailyDigest.js"
+    "mail:digest": "node business_modules/mailing/input/runDailyDigest.js",
+    "trends:warm-cache": "node business_modules/search_trends/input/warmTrendsCache.js"
   }
 }
