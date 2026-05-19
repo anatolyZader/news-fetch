@@ -1,0 +1,30 @@
+name: Setup npm for CI
+description: Pin npm 11.10+ and run npm ci with optional min-release-age (supply-chain policy).
+inputs:
+  working-directory:
+    description: Optional directory for npm ci (--prefix), e.g. client or docs-site
+    required: false
+    default: ''
+  min-release-age-days:
+    description: Minimum package age in days; empty string disables the check
+    required: false
+    default: '7'
+runs:
+  using: composite
+  steps:
+    - name: Use npm with min-release-age support
+      shell: bash
+      run: npm install -g npm@11.10.0
+
+    - name: npm ci
+      shell: bash
+      run: |
+        set -euo pipefail
+        if [ -n "${{ inputs.min-release-age-days }}" ]; then
+          export NPM_CONFIG_MIN_RELEASE_AGE="${{ inputs.min-release-age-days }}"
+        fi
+        if [ -n "${{ inputs.working-directory }}" ]; then
+          npm ci --prefix "${{ inputs.working-directory }}"
+        else
+          npm ci
+        fi

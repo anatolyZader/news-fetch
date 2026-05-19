@@ -43,6 +43,7 @@ import {
   buildAssessmentMethodology,
   buildScoringModelManifest,
   formatScopeDecisionLogLine,
+  formatSubgroupCoverageLogLine,
 } from '../domain/services/assessmentMethodology.js';
 import { proposeComponentTuningFromReportFiles } from '../domain/services/componentTuningProposal.js';
 import {
@@ -497,6 +498,8 @@ async function run() {
     tuningProposal,
     extractionTelemetry,
   });
+  const subgroupLogLine = formatSubgroupCoverageLogLine(assessment.methodology);
+  if (subgroupLogLine) console.error(subgroupLogLine);
 
   writeReport(assessment, allSignals, [...new Set(sourceFiles)], outputBase, { scoreBySource });
 

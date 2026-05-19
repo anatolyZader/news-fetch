@@ -34,12 +34,13 @@ Define what a "signal" is in VibeSwitch, why we use a closed vocabulary, and the
 
 ```json
 {
-  "signal_type": "service_disruption",
+  "signal_type": "educational_disruption",
   "evidence": "Kindergarten closed on Sunday due to security situation",
-  "intensity": 0.8,
-  "confidence": 0.9,
-  "source_url": "https://example.com/article",
-  "published_at": "2026-04-21"
+  "scope_level": "quantified_or_broad",
+  "intensity": "severe",
+  "phase": "response",
+  "extraction_confidence": 0.9,
+  "article_url": "https://example.com/article"
 }
 ```
 
@@ -47,8 +48,10 @@ Expected:
 
 - `signal_type` is one of the allowed values — not a freeform phrase.
 - `evidence` is an attributable fact (quote, action, stat), not an interpretation.
-- `intensity` ∈ [0, 1]: how strong this instance is (scope, duration, severity).
-- `confidence` ∈ [0, 1]: how certain we are this actually happened, given the source.
+- `intensity` ∈ {`light`, `moderate`, `severe`}: severity of this instance (defaults to `moderate` when omitted).
+- `scope_level` ∈ {`single_case`, `repeated_pattern`, `quantified_or_broad`}: breadth of evidence.
+- Optional: `phase`, `affected_subgroup`, `affected_system` (continuity signals only), `polarity_override` (whitelist only).
+- `extraction_confidence` ∈ [0, 1]: how certain we are this is correctly classified and grounded.
 - `source_url` + `published_at` make the signal replayable and auditable.
 
 ## Examples

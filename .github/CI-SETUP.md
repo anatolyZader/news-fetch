@@ -85,6 +85,8 @@ The page has three areas that matter for this project: **Actions permissions**, 
 
 **What it does:** Protected branches can block direct pushes, require reviews, and require specific CI jobs to pass before merge. Doc sync and required checks must be compatible with those rules.
 
+**Security checklist (2FA, secret scanning, dependency policy, AI rules):** see **[`SECURITY.md`](../SECURITY.md)** at the repository root.
+
 **When you need this section:** Only if **Settings → Branches** shows a rule for `main` (or you use **Rulesets** under **Settings → Rules**).
 
 #### 1.3.1 Allow `github-actions[bot]` to push doc updates
@@ -138,8 +140,10 @@ To require CI before merge, add checks whose names match the workflow job `name:
 3. Enable **Require branches to be up to date before merging** (recommended so doc-sync + CI run on latest commit).
 4. In the search box under status checks, type e.g. `Test` and select **Test** when it appears (GitHub learns check names after the workflow has run at least once on the default branch or a PR).
 5. Repeat for **Validate**, **Lint**, **Build client**, **Build docs site**, **Security audit**, and optionally **SonarCloud**.
-6. On PRs, optionally require **Dependency review** (workflow `Dependency review`) after it has run once.
+6. On PRs, require **Dependency review** (workflow `Dependency review`) after it has run once — recommended for supply-chain safety (see [`SECURITY.md`](../SECURITY.md)).
 7. Save changes.
+
+**Dependency inventory and quarterly review:** [`docs/DEPENDENCIES.md`](../docs/DEPENDENCIES.md).
 
 **Notes:**
 

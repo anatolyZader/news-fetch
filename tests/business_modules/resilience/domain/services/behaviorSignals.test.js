@@ -4,10 +4,13 @@ import assert from 'node:assert';
 import {
   SIGNAL_CATALOG,
   SIGNAL_TO_COMPONENTS,
+  SIGNAL_TYPES,
   scoreComponents,
   overallScore,
+  assertCatalogPolarityCoherence,
 } from '../../../../../business_modules/resilience/domain/services/behaviorSignals.js';
 import { COMPONENT_FACETS } from '../../../../../business_modules/resilience/domain/services/componentFacets.js';
+import { summarizeSubgroupCoverage } from '../../../../../business_modules/resilience/domain/services/assessmentMethodology.js';
 
 function makeSignal(overrides = {}) {
   return {
@@ -730,5 +733,155 @@ describe('overallScore', () => {
     const overall = overallScore(scored);
     assert.ok(Number.isInteger(overall));
     assert.ok(overall >= 1 && overall <= 10);
+  });
+});
+
+describe('v4 catalog integrity', () => {
+  it('SIGNAL_CATALOG and SIGNAL_TO_COMPONENTS are bidirectionally complete', () => {
+    const catalogTypes = new Set(SIGNAL_CATALOG.map((s) => s.type));
+    const mappingTypes = new Set(Object.keys(SIGNAL_TO_COMPONENTS));
+    for (const t of catalogTypes) {
+      assert.ok(mappingTypes.has(t), `missing mapping for catalog type ${t}`);
+    }
+    for (const t of mappingTypes) {
+      assert.ok(catalogTypes.has(t), `orphan mapping for ${t}`);
+    }
+    assert.equal(catalogTypes.size, SIGNAL_TYPES.length);
+  });
+
+  it('every catalog entry has signal_class and polarity-coherent mapping', () => {
+    for (const entry of SIGNAL_CATALOG) {
+      assert.ok(entry.signal_class, `${entry.type} missing signal_class`);
+    }
+    const warnings = assertCatalogPolarityCoherence();
+    assert.deepEqual(warnings, [], warnings.join('; '));
+  });
+
+  it('includes all v4 expansion signal types', () => {
+    const types = new Set(SIGNAL_TYPES);
+    for (const t of [
+      'preparedness_drill_conducted',
+      'adaptive_practice',
+      'recovery_setback',
+      'displacement_resolved',
+      'civic_engagement_constructive',
+      'educational_continuity',
+      'child_distress',
+      'reservist_family_strain',
+      'religious_coping_practice',
+      'hostile_influence_operation',
+      'protection_effective',
+      'media_literacy_demonstrated',
+      'complacency_or_normalization',
+    ]) {
+      assert.ok(types.has(t), `missing v4 type ${t}`);
+    }
+  });
+
+  it('protection_effective and displacement_resolved route as positive counterparts', () => {
+    assert.ok(SIGNAL_TO_COMPONENTS.protection_effective.lifesaving_behavior > 0);
+    assert.ok(SIGNAL_TO_COMPONENTS.displacement_resolved.functional_continuity > 0);
+    assert.ok(SIGNAL_TO_COMPONENTS.evacuation_displacement.functional_continuity < 0);
+  });
+
+  it('topology: compliance_enter_shelter spills to leadership; leadership_clear_guidance to lifesaving', () => {
+    assert.ok(SIGNAL_TO_COMPONENTS.compliance_enter_shelter.leadership > 0);
+    assert.ok(SIGNAL_TO_COMPONENTS.leadership_clear_guidance.lifesaving_behavior > 0);
+  });
+});
+
+describe('scoreComponents — v4 intensity', () => {
+  it('severe intensity yields higher evidence mass than light for the same signal', () => {
+    const light = repeat(4, (i) => makeSignal({
+      article_url: `https://x.com/int-l/${i}`,
+      article_index: i + 1,
+      source_type: 'news',
+      signal_type: 'harm_to_population',
+      intensity: 'light',
+    }));
+    const severe = light.map((s, i) => ({
+      ...s,
+      article_url: `https://x.com/int-s/${i}`,
+      intensity: 'severe',
+    }));
+    const scoredLight = scoreComponents(light, { totalArticles: 4 });
+    const scoredSevere = scoreComponents(severe, { totalArticles: 4 });
+    assert.ok(scoredSevere.wellbeing_atrisk.evidence_mass > scoredLight.wellbeing_atrisk.evidence_mass);
+  });
+});
+
+describe('scoreComponents — v4 duplicate-article discount', () => {
+  it('ten identical signals from one article contribute less than ten from distinct articles', () => {
+    const duplicated = repeat(10, () => makeSignal({
+      article_url: 'https://x.com/dup',
+      article_index: 1,
+      source_type: 'news',
+      signal_type: 'solidarity_help_others',
+    }));
+    const distinct = repeat(10, (i) => makeSignal({
+      article_url: `https://x.com/distinct/${i}`,
+      article_index: i + 1,
+      source_type: 'news',
+      signal_type: 'solidarity_help_others',
+    }));
+    const scoredDup = scoreComponents(duplicated, { totalArticles: 10 });
+    const scoredDist = scoreComponents(distinct, { totalArticles: 10 });
+    assert.ok(
+      scoredDup.belonging_solidarity.positive_evidence <
+      scoredDist.belonging_solidarity.positive_evidence,
+    );
+  });
+});
+
+describe('scoreComponents — v4 polarity_override', () => {
+  it('social_isolation with polarity_override positive contributes to positive bucket', () => {
+    const sigs = [
+      makeSignal({
+        signal_type: 'social_isolation',
+        polarity_override: 'positive',
+        scope_level: 'repeated_pattern',
+      }),
+    ];
+    const scored = scoreComponents(sigs, { totalArticles: 1 });
+    assert.ok(scored.belonging_solidarity.positive_evidence > 0);
+    assert.equal(scored.belonging_solidarity.negative_evidence, 0);
+  });
+});
+
+describe('scoreComponents — v4 signal_class_mix', () => {
+  it('returns class masses for mixed wellbeing evidence', () => {
+    const sigs = [
+      makeSignal({
+        article_url: 'https://x.com/h1',
+        article_index: 1,
+        signal_type: 'harm_to_population',
+        scope_level: 'quantified_or_broad',
+      }),
+      makeSignal({
+        article_url: 'https://x.com/f1',
+        article_index: 2,
+        source_type: 'radio',
+        signal_type: 'fear_expression',
+        evidence_type: 'direct_quote_named_person',
+      }),
+    ];
+    const scored = scoreComponents(sigs, { totalArticles: 2 });
+    const mix = scored.wellbeing_atrisk.signal_class_mix;
+    assert.ok(mix.structural_state > 0);
+    assert.ok(mix.attitude > 0);
+  });
+});
+
+describe('summarizeSubgroupCoverage', () => {
+  it('computes pct_subgroup_named among equity-relevant signals', () => {
+    const signals = [
+      makeSignal({ signal_type: 'inequitable_resource_access', affected_subgroup: 'elderly' }),
+      makeSignal({ signal_type: 'inequitable_resource_access' }),
+      makeSignal({ signal_type: 'information_clarity' }),
+    ];
+    const summary = summarizeSubgroupCoverage(signals);
+    assert.equal(summary.equity_signal_count, 2);
+    assert.equal(summary.subgroup_named_count, 1);
+    assert.equal(summary.pct_subgroup_named, 50);
   });
 });

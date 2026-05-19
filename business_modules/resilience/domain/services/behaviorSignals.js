@@ -15,201 +15,40 @@
 
 import { COMPONENT_FACETS } from './componentFacets.js';
 import { getOutletReliabilityMultiplier } from './outletReliabilityPriors.js';
+import {
+  SIGNAL_CATALOG,
+  SIGNAL_DOMAINS,
+  SIGNAL_TO_COMPONENTS,
+  SIGNAL_TYPES,
+  getSignalCatalogEntry,
+  assertCatalogPolarityCoherence,
+} from './signalCatalog.js';
+import {
+  INTENSITY_WEIGHT,
+  POLARITY_OVERRIDE_SIGNAL_TYPES,
+} from './signalInstanceSchema.js';
 
-// ─── Signal taxonomy ──────────────────────────────────────────────────────────
-
-export const SIGNAL_DOMAINS = {
-  compliance:    'Compliance & Discipline',
-  risk:          'Risk & Safety',
-  social:        'Social Cohesion',
-  leadership:    'Leadership & Governance',
-  information:   'Information & Communication',
-  continuity:    'Functional Continuity',
-  narrative:     'Emotional / Narrative',
-  resources:     'Community Resources',
-  wellbeing:     'Population Wellbeing',
+export {
+  SIGNAL_CATALOG,
+  SIGNAL_DOMAINS,
+  SIGNAL_TO_COMPONENTS,
+  SIGNAL_TYPES,
+  getSignalCatalogEntry,
+  assertCatalogPolarityCoherence,
 };
+export {
+  SIGNAL_CLASSES,
+  INTENSITY_LEVELS,
+  PHASE_LEVELS,
+  AFFECTED_SUBGROUPS,
+  AFFECTED_SYSTEMS,
+  POLARITY_OVERRIDE_SIGNAL_TYPES,
+  AFFECTED_SYSTEM_SIGNAL_TYPES,
+  EQUITY_RELEVANT_TYPES,
+  INTENSITY_WEIGHT,
+} from './signalInstanceSchema.js';
 
-/**
- * All valid signal types the LLM may emit.
- * Each entry: { type, domain, label, defaultPolarity }
- */
-export const SIGNAL_CATALOG = [
-  // A. Compliance & Discipline
-  { type: 'compliance_enter_shelter',         domain: 'compliance',  label: 'Residents enter shelter when alerted',           defaultPolarity: 'positive' },
-  { type: 'compliance_follow_instructions',   domain: 'compliance',  label: 'Residents follow official protective instructions', defaultPolarity: 'positive' },
-  { type: 'non_compliance_exit_early',        domain: 'compliance',  label: 'Residents leave shelter before all-clear',         defaultPolarity: 'negative' },
-  { type: 'non_compliance_ignore_guidelines', domain: 'compliance',  label: 'Residents ignore or dismiss safety guidelines',     defaultPolarity: 'negative' },
-
-  // B. Risk & Safety
-  { type: 'risk_exposure_behavior',           domain: 'risk',        label: 'Residents expose themselves to risk (filming, staying outside)', defaultPolarity: 'negative' },
-  { type: 'panic_behavior',                   domain: 'risk',        label: 'Chaotic or unsafe reactions during alerts',        defaultPolarity: 'negative' },
-  { type: 'unsafe_gathering',                 domain: 'risk',        label: 'Gatherings that violate safety guidelines',        defaultPolarity: 'negative' },
-
-  // C. Social Cohesion
-  { type: 'solidarity_help_others',           domain: 'social',      label: 'Residents help neighbors, strangers, or community members', defaultPolarity: 'positive' },
-  { type: 'community_volunteering',           domain: 'social',      label: 'Organized or spontaneous volunteering',            defaultPolarity: 'positive' },
-  { type: 'social_isolation',                 domain: 'social',      label: 'Residents withdraw, are isolated, or excluded',    defaultPolarity: 'negative' },
-  { type: 'conflict_or_tension',              domain: 'social',      label: 'Reported conflicts, scapegoating, or inter-group tension', defaultPolarity: 'negative' },
-  { type: 'conflict_resolution',              domain: 'social',      label: 'Community actors resolve conflicts constructively, enabling cooperation (mediation, compromise, de-escalation)', defaultPolarity: 'positive' },
-
-  // D. Leadership & Governance
-  { type: 'leadership_visible_presence',      domain: 'leadership',  label: 'Leadership is publicly visible and active',        defaultPolarity: 'positive' },
-  { type: 'leadership_clear_guidance',        domain: 'leadership',  label: 'Leadership provides clear, specific directions',   defaultPolarity: 'positive' },
-  { type: 'leadership_absence',               domain: 'leadership',  label: 'Leadership is absent, unavailable, or unresponsive', defaultPolarity: 'negative' },
-  { type: 'leadership_credibility_loss',      domain: 'leadership',  label: 'Residents or affected groups voice concrete loss of trust in named leadership (broken promises, false reassurances, perceived dishonesty about emergency conditions)', defaultPolarity: 'negative' },
-  { type: 'political_distrust',               domain: 'leadership',  label: 'Residents or named civic figures publicly demand accountability or express distrust of the political/governmental handling of the emergency (specific policy demands, not general partisan opinion)', defaultPolarity: 'negative' },
-  { type: 'consensus_on_priorities',          domain: 'leadership',  label: 'Community actors reach working consensus on goals/priorities and a plan for action (collaboration, agreement on what to do next)', defaultPolarity: 'positive' },
-  { type: 'dissensus_blocks_action',          domain: 'leadership',  label: 'Mistrust/conflict prevents working consensus or blocks collective action (dissensus, infighting, inability to agree on priorities)', defaultPolarity: 'negative' },
-  { type: 'coordination_failure',             domain: 'leadership',  label: 'Inter-agency or inter-organization coordination breaks down', defaultPolarity: 'negative' },
-  { type: 'coordination_success',             domain: 'leadership',  label: 'Multiple agencies, services, or organizations coordinate effectively in response', defaultPolarity: 'positive' },
-  { type: 'feedback_loop_closure',            domain: 'leadership',  label: 'Authorities visibly act on community input, complaints, or requests', defaultPolarity: 'positive' },
-
-  // E. Information & Communication
-  { type: 'information_clarity',              domain: 'information', label: 'Residents report receiving clear, useful information', defaultPolarity: 'positive' },
-  { type: 'information_confusion',            domain: 'information', label: 'Residents report confusion, contradictory, or missing information', defaultPolarity: 'negative' },
-  { type: 'rumor_spread',                     domain: 'information', label: 'Rumors or misinformation are circulating',          defaultPolarity: 'negative' },
-  { type: 'rumor_correction',                 domain: 'information', label: 'Authorities, experts, or community members visibly correct circulating rumors or misinformation', defaultPolarity: 'positive' },
-  { type: 'trusted_information_source',       domain: 'information', label: 'Residents rely on or explicitly trust a specific local/official source for emergency information (trusted hotline, known local authority, trusted broadcaster)', defaultPolarity: 'positive' },
-  { type: 'mistrusted_information_source',    domain: 'information', label: 'Residents explicitly distrust or disregard an emergency information source (source seen as unreliable/lying/ignored), reducing adherence', defaultPolarity: 'negative' },
-  { type: 'feedback_channel_open',            domain: 'information', label: 'A working channel exists for the public to ask questions / articulate needs and receive responses (hotline, municipal desk, two-way messaging)', defaultPolarity: 'positive' },
-  { type: 'feedback_channel_blocked',         domain: 'information', label: 'Public feedback/inquiry channels are absent, unreachable, or ignored (hotline down, no response, no way to ask/clarify)', defaultPolarity: 'negative' },
-  { type: 'active_information_seeking',       domain: 'information', label: 'Residents actively seek out emergency or protective guidance — shelter locations, HFC instructions, evacuation routes, operational alerts. NOT: legal, financial, religious, or personal planning information.',  defaultPolarity: 'positive' },
-  { type: 'information_actionable_effective', domain: 'information', label: 'Guidance is specific, situation-matched, and demonstrably leads to correct protective behavior', defaultPolarity: 'positive' },
-  { type: 'information_effectiveness_gap',    domain: 'information', label: 'Guidance exists but fails to help — does not match real constraints, too vague to act on, or leaves critical scenarios uncovered', defaultPolarity: 'negative' },
-  { type: 'information_inclusivity_present',  domain: 'information', label: 'Emergency information adapted for at-risk groups (Arabic translations, accessible formats, elder outreach, special-needs channels)', defaultPolarity: 'positive' },
-  { type: 'information_inclusivity_gap',      domain: 'information', label: 'Emergency information not reaching at-risk groups (no Arabic, inaccessible formats, elders/disabled left uninformed)', defaultPolarity: 'negative' },
-
-  // F. Functional Continuity
-  { type: 'service_continuity',               domain: 'continuity',  label: 'Essential services or institutions are operating',  defaultPolarity: 'positive' },
-  { type: 'service_disruption',               domain: 'continuity',  label: 'Essential services, schools, or businesses are closed/disrupted', defaultPolarity: 'negative' },
-  { type: 'routine_maintenance',              domain: 'continuity',  label: 'Residents maintain normal daily routines',          defaultPolarity: 'positive' },
-  { type: 'routine_disruption',               domain: 'continuity',  label: 'Civilian daily routines (commuting, shopping, leisure, social rhythms) are visibly disrupted by the emergency — distinct from named-institution closures, which are service_disruption', defaultPolarity: 'negative' },
-  { type: 'evacuation_displacement',          domain: 'continuity',  label: 'Residents are evacuated, displaced, or unable to return home because of the emergency (named community, hotel/relative housing, prolonged absence)', defaultPolarity: 'negative' },
-  { type: 'system_overload',                  domain: 'continuity',  label: 'Systems (healthcare, emergency, infrastructure) are overwhelmed', defaultPolarity: 'negative' },
-  { type: 'system_resilience_under_load',     domain: 'continuity',  label: 'A named system continues operating effectively despite documented elevated demand or disruption', defaultPolarity: 'positive' },
-  { type: 'economic_continuity',              domain: 'continuity',  label: 'Local economic activity (employment, business, commerce) sustains during the emergency', defaultPolarity: 'positive' },
-  { type: 'economic_disruption',              domain: 'continuity',  label: 'Local economic activity is disrupted: business closures, lost income, employment freeze due to the emergency', defaultPolarity: 'negative' },
-  { type: 'post_event_recovery_indicator',    domain: 'continuity',  label: 'Communities visibly recover after a hit: re-opening, return of evacuees, resumed routines', defaultPolarity: 'positive' },
-  { type: 'cultural_continuity',              domain: 'continuity',  label: 'Identity-bearing rituals, ceremonies, holidays, or cultural events take place during the emergency', defaultPolarity: 'positive' },
-  { type: 'rapid_mobilization',               domain: 'continuity',  label: 'Resources/services are mobilized quickly to meet needs (rapid access, timely restoration, fast deployment)', defaultPolarity: 'positive' },
-  { type: 'delayed_mobilization',             domain: 'continuity',  label: 'Resources/services are mobilized too slowly, increasing disruption (slow response, delays in opening/repairing/deploying)', defaultPolarity: 'negative' },
-
-  // G. Emotional / Narrative
-  { type: 'fear_expression',                  domain: 'narrative',   label: 'Residents express fear, anxiety, or trauma',       defaultPolarity: 'negative' },
-  { type: 'calm_confidence',                  domain: 'narrative',   label: 'Residents express calm, confidence, or sense of control', defaultPolarity: 'positive' },
-  { type: 'resilience_narrative_positive',    domain: 'narrative',   label: 'Residents describe the community as coping effectively', defaultPolarity: 'positive' },
-  { type: 'resilience_narrative_negative',    domain: 'narrative',   label: 'Residents contradict or reject the official coping narrative', defaultPolarity: 'negative' },
-
-  // H. Community Resources
-  { type: 'resource_mobilization',            domain: 'resources',   label: 'Community or authority mobilizes material/human resources', defaultPolarity: 'positive' },
-  { type: 'resource_shortage',                domain: 'resources',   label: 'Community reports shortage of resources, services, or support', defaultPolarity: 'negative' },
-  { type: 'self_organization',                domain: 'resources',   label: 'Community organizes itself without external direction', defaultPolarity: 'positive' },
-  { type: 'dependency_on_external_aid',       domain: 'resources',   label: 'Community depends heavily on external aid due to local capacity gaps', defaultPolarity: 'negative' },
-  { type: 'local_capacity_demonstrated',      domain: 'resources',   label: 'Community demonstrates self-reliant capacity (own funds, own labour, own infrastructure) without leaning on outside aid', defaultPolarity: 'positive' },
-
-  // I. Population Wellbeing
-  { type: 'harm_to_population',              domain: 'wellbeing',   label: 'Physical harm occurred in the community: casualties, injuries, civilians wounded or killed', defaultPolarity: 'negative' },
-  { type: 'psychological_distress',          domain: 'wellbeing',   label: 'Named individual or survey reports accumulated trauma, PTSD, grief, or chronic sleep disruption — distinct from situational fear', defaultPolarity: 'negative' },
-  { type: 'wellbeing_support_accessed',      domain: 'wellbeing',   label: 'Individuals or groups access psychological support, trauma care, or community wellbeing programs', defaultPolarity: 'positive' },
-  { type: 'inequitable_resource_access',     domain: 'wellbeing',   label: 'Unequal access to safety/resources/services across subgroups (disparities, exclusion of vulnerable populations)', defaultPolarity: 'negative' },
-  { type: 'equitable_resource_distribution', domain: 'wellbeing',   label: 'Resources/support are distributed fairly based on needs (equity-aware allocation, non-disparate access)', defaultPolarity: 'positive' },
-];
-
-export const SIGNAL_TYPES = SIGNAL_CATALOG.map((s) => s.type);
-
-// ─── Many-to-many mapping: signal → component weights ─────────────────────────
-//
-// Format: { signal_type: { component_id: weight } }
-// Positive weight = signal strengthens this component's score
-// Negative weight = signal weakens this component's score
-//
-// The LLM maps signals → component IDs is done here in code, not by the LLM.
-
-export const SIGNAL_TO_COMPONENTS = {
-  // Compliance
-  compliance_enter_shelter:          { lifesaving_behavior: +1.0 },
-  compliance_follow_instructions:    { lifesaving_behavior: +0.9 },
-  non_compliance_exit_early:         { lifesaving_behavior: -1.2 },
-  non_compliance_ignore_guidelines:  { lifesaving_behavior: -1.0 },
-
-  // Risk
-  risk_exposure_behavior:            { lifesaving_behavior: -1.0 },
-  panic_behavior:                    { lifesaving_behavior: -0.7, wellbeing_atrisk: -0.8 },
-  unsafe_gathering:                  { lifesaving_behavior: -0.9 },
-
-  // Social Cohesion (with T3 narrative spillover for solidarity)
-  solidarity_help_others:            { belonging_solidarity: +1.0, wellbeing_atrisk: +0.7, community_capital: +0.6, narrative: +0.3 },
-  community_volunteering:            { community_capital: +1.0, belonging_solidarity: +0.7, wellbeing_atrisk: +0.5 },
-  social_isolation:                  { belonging_solidarity: -1.0, wellbeing_atrisk: -0.8 },
-  conflict_or_tension:               { belonging_solidarity: -1.1, wellbeing_atrisk: -0.4 },
-  conflict_resolution:               { community_capital: +0.6, belonging_solidarity: +0.6, leadership: +0.3 },
-
-  // Leadership
-  leadership_visible_presence:       { leadership: +1.0 },
-  leadership_clear_guidance:         { leadership: +1.1 },
-  leadership_absence:                { leadership: -1.3, lifesaving_behavior: -0.4 },
-  leadership_credibility_loss:       { leadership: -1.1, narrative: -0.3 },
-  political_distrust:                { leadership: -1.0, narrative: -0.4, information_communication: -0.3 },
-  consensus_on_priorities:           { leadership: +0.5, community_capital: +0.6, narrative: +0.2 },
-  dissensus_blocks_action:           { leadership: -0.6, community_capital: -0.7, narrative: -0.3 },
-  coordination_failure:              { leadership: -1.0, community_capital: -0.6, functional_continuity: -0.5 },
-  coordination_success:              { leadership: +1.0, community_capital: +0.6, functional_continuity: +0.4 },
-  feedback_loop_closure:             { leadership: +0.7, information_communication: +0.5 },
-
-  // Information
-  information_clarity:               { information_communication: +1.0, lifesaving_behavior: +0.4 },
-  information_confusion:             { information_communication: -1.0, leadership: -0.4, lifesaving_behavior: -0.3 },
-  rumor_spread:                      { information_communication: -1.2, narrative: -0.5 },
-  rumor_correction:                  { information_communication: +1.0, narrative: +0.4 },
-  trusted_information_source:        { information_communication: +0.9, leadership: +0.4, narrative: +0.3 },
-  mistrusted_information_source:     { information_communication: -0.9, leadership: -0.4, narrative: -0.3 },
-  feedback_channel_open:             { information_communication: +0.7, leadership: +0.4, community_capital: +0.3 },
-  feedback_channel_blocked:          { information_communication: -0.7, leadership: -0.4, community_capital: -0.3 },
-  active_information_seeking:        { information_communication: +0.7 },
-  information_actionable_effective:  { information_communication: +1.0, lifesaving_behavior: +0.6 },
-  information_effectiveness_gap:     { information_communication: -1.0, lifesaving_behavior: -0.5 },
-  information_inclusivity_present:   { information_communication: +1.0, wellbeing_atrisk: +0.5 },
-  information_inclusivity_gap:       { information_communication: -1.0, wellbeing_atrisk: -0.5 },
-
-  // Continuity
-  service_continuity:                { functional_continuity: +1.0 },
-  service_disruption:                { functional_continuity: -1.5, wellbeing_atrisk: -0.4 },
-  routine_maintenance:               { functional_continuity: +0.9 },
-  routine_disruption:                { functional_continuity: -0.7, wellbeing_atrisk: -0.3 },
-  evacuation_displacement:           { functional_continuity: -1.0, wellbeing_atrisk: -0.6, belonging_solidarity: -0.3 },
-  system_overload:                   { functional_continuity: -1.0, wellbeing_atrisk: -0.6 },
-  system_resilience_under_load:      { functional_continuity: +1.0, wellbeing_atrisk: +0.4 },
-  economic_continuity:               { functional_continuity: +0.8, wellbeing_atrisk: +0.4 },
-  economic_disruption:               { functional_continuity: -0.8, wellbeing_atrisk: -0.4 },
-  post_event_recovery_indicator:     { functional_continuity: +0.7, community_capital: +0.4, narrative: +0.4 },
-  cultural_continuity:               { narrative: +0.6, belonging_solidarity: +0.6, functional_continuity: +0.4 },
-  rapid_mobilization:                { functional_continuity: +0.6, community_capital: +0.6, leadership: +0.4 },
-  delayed_mobilization:              { functional_continuity: -0.6, community_capital: -0.5, leadership: -0.4 },
-
-  // Narrative (with T3 spillover for fear -> narrative)
-  fear_expression:                   { wellbeing_atrisk: -0.7, narrative: -0.3 },
-  calm_confidence:                   { narrative: +0.9, wellbeing_atrisk: +0.5 },
-  resilience_narrative_positive:     { narrative: +1.0 },
-  resilience_narrative_negative:     { narrative: -1.0 },
-
-  // Resources
-  resource_mobilization:             { community_capital: +1.0, wellbeing_atrisk: +0.6 },
-  resource_shortage:                 { community_capital: -1.0, wellbeing_atrisk: -0.8, functional_continuity: -0.5 },
-  self_organization:                 { community_capital: +0.9, belonging_solidarity: +0.6 },
-  dependency_on_external_aid:        { community_capital: -0.5, functional_continuity: -0.3 },
-  local_capacity_demonstrated:       { community_capital: +0.9, functional_continuity: +0.4 },
-
-  // Wellbeing (with T3 spillover for harm -> narrative; B1: belonging spillover dropped —
-  // mutual-aid response should be evidenced via solidarity_help_others, not inferred from harm)
-  harm_to_population:                { wellbeing_atrisk: -1.2, narrative: -0.4 },
-  psychological_distress:            { wellbeing_atrisk: -1.0 },
-  wellbeing_support_accessed:        { wellbeing_atrisk: +0.7, community_capital: +0.4, belonging_solidarity: +0.3 },
-  inequitable_resource_access:       { wellbeing_atrisk: -0.8, community_capital: -0.5, belonging_solidarity: -0.4 },
-  equitable_resource_distribution:   { wellbeing_atrisk: +0.3, community_capital: +0.4, belonging_solidarity: +0.4 },
-};
-
-// ─── Deterministic scoring ────────────────────────────────────────────────────
+// ─── Deterministic scoring (v4) ─────────────────────────────────────────────
 
 export const COMPONENT_IDS = [
   'narrative', 'information_communication', 'lifesaving_behavior',
@@ -284,16 +123,26 @@ const OUTLET_PRIOR_APPLIES_TO = new Set([
   'named_institutional_fact',
 ]);
 
-/** Per-signal contribution before per-source capping. */
+/** Effective component weight after optional instance-level polarity override. */
+function effectiveWeightForSignal(signal, signalType, baseWeight) {
+  const catalog = getSignalCatalogEntry(signalType);
+  if (!catalog || !POLARITY_OVERRIDE_SIGNAL_TYPES.has(signalType)) return baseWeight;
+  const override = signal.polarity_override;
+  if (override !== 'positive' && override !== 'negative') return baseWeight;
+  if (override === catalog.defaultPolarity) return baseWeight;
+  return -baseWeight;
+}
+
+/** Per-signal contribution before per-source capping (excludes duplicate-article discount). */
 function contributionForSignal(signal, baseWeight) {
-  // B2: field reports default to repeated_pattern when scope_level is missing. The doc and
-  // prompt have always treated field observations as covering >1 instance / a recurrence
-  // (a field worker writes "shelters busy this morning" knowing the pattern, not a single
-  // anecdote), but the LLM occasionally omits scope_level. Defaulting to single_case in
-  // that case under-weighted every otherwise-valid field signal by ~50%.
+  const signalType = signal.signal_type ?? signal.type;
+  const effectiveWeight = effectiveWeightForSignal(signal, signalType, baseWeight);
+  // B2: field reports default to repeated_pattern when scope_level is missing.
   const isField = signal.source_type === 'field';
   const defaultScope = isField ? 'repeated_pattern' : 'single_case';
   const scope = SCOPE_WEIGHT[signal.scope_level ?? defaultScope] ?? SCOPE_WEIGHT[defaultScope];
+  const intensityKey = signal.intensity ?? 'moderate';
+  const intensity = INTENSITY_WEIGHT[intensityKey] ?? INTENSITY_WEIGHT.moderate;
   const reliabilityKey = signal.evidence_type ?? signal.evidence_class ?? 'observational_reported_fact';
   const reliability = RELIABILITY_WEIGHT[reliabilityKey] ?? RELIABILITY_WEIGHT.observational_reported_fact;
   const outletPrior = OUTLET_PRIOR_APPLIES_TO.has(reliabilityKey)
@@ -305,7 +154,52 @@ function contributionForSignal(signal, baseWeight) {
   const dualBoost = Number.isFinite(dualBoostRaw) ? Math.min(1.2, Math.max(1, dualBoostRaw)) : 1;
   const temporal = signal.temporal_weight ?? 1.0;
   const extractionConfidence = Math.min(1, Math.max(0, signal.extraction_confidence ?? 1.0));
-  return Math.abs(baseWeight) * scope * reliability * outletPrior * dualBoost * temporal * extractionConfidence;
+  return Math.abs(effectiveWeight) * scope * intensity * reliability * outletPrior * dualBoost * temporal * extractionConfidence;
+}
+
+/** Log-discounted factor for duplicate signal_type within one article (k = 1-based occurrence). */
+function duplicateArticleFactor(k) {
+  return (1 + Math.log(k)) / k;
+}
+
+function articleKeyForSignal(signal) {
+  return String(signal.article_url ?? signal.article_index ?? '_no_article');
+}
+
+/** 1-based occurrence index per (article, signal_type) across the batch. */
+function buildDuplicateOccurrenceIndex(signals) {
+  const counts = new Map();
+  const indexBySignal = new WeakMap();
+  for (const s of signals) {
+    const key = `${articleKeyForSignal(s)}|${s.signal_type ?? s.type}`;
+    const k = (counts.get(key) ?? 0) + 1;
+    counts.set(key, k);
+    indexBySignal.set(s, k);
+  }
+  return indexBySignal;
+}
+
+/**
+ * Mass-weighted signal_class mix for one component's contribution items.
+ * @param {Array<{ signal: object, contribution: number }>} items
+ */
+function computeSignalClassMix(items) {
+  const mix = { behavior: 0, attitude: 0, structural_state: 0, narrative: 0 };
+  for (const it of items) {
+    const t = it.signal.signal_type ?? it.signal.type;
+    const entry = getSignalCatalogEntry(t);
+    const cls = entry?.signal_class;
+    if (!cls || !(cls in mix)) continue;
+    mix[cls] += it.contribution;
+  }
+  const attitudeMass = mix.attitude;
+  mix.behavior_to_attitude_ratio = attitudeMass > 0
+    ? round3(mix.behavior / attitudeMass)
+    : (mix.behavior > 0 ? null : 0);
+  for (const k of Object.keys(mix)) {
+    if (k !== 'behavior_to_attitude_ratio') mix[k] = round3(mix[k]);
+  }
+  return mix;
 }
 
 /**
@@ -582,10 +476,12 @@ function computeFacets(componentId, allComponentSignals, _totalArticles) {
     let positive = 0;
     let negative = 0;
     for (const s of subset) {
-      const w = SIGNAL_TO_COMPONENTS[s.signal_type ?? s.type]?.[componentId];
+      const signalType = s.signal_type ?? s.type;
+      const w = SIGNAL_TO_COMPONENTS[signalType]?.[componentId];
       if (w == null) continue;
+      const effectiveW = effectiveWeightForSignal(s, signalType, w);
       const c = contributionForSignal(s, w);
-      if (w >= 0) positive += c;
+      if (effectiveW >= 0) positive += c;
       else negative += c;
     }
     const mass = positive + negative;
@@ -604,10 +500,11 @@ function computeFacets(componentId, allComponentSignals, _totalArticles) {
 // ─── Public API ───────────────────────────────────────────────────────────────
 
 /**
- * v3 scoring model.
+ * v4 scoring model.
  *
  * Per component:
- *   contribution(s,c) = |w_{s,c}| × scope × reliability × temporal × extraction_confidence
+ *   contribution(s,c) = |w_{s,c}| × scope × intensity × reliability × temporal × extraction_confidence
+ *                       × duplicate_article_factor (same article + signal_type)
  *   per-source cap: no single source > 50% of polarity mass when ≥2 sources
  *   evidence_mass  = positive + negative
  *   net_evidence   = positive − negative
@@ -631,9 +528,10 @@ function computeFacets(componentId, allComponentSignals, _totalArticles) {
  */
 export function scoreComponents(signals, { totalArticles = 0 } = {}) {
   const results = {};
+  const duplicateIndex = buildDuplicateOccurrenceIndex(signals);
 
   for (const id of COMPONENT_IDS) {
-    const items = []; // { signal, contribution, polarity }
+    const items = []; // { signal, contribution, contributionPreDuplicate, polarity }
     const articleSet = new Set();
     const sourceSet = new Set();
 
@@ -642,8 +540,16 @@ export function scoreComponents(signals, { totalArticles = 0 } = {}) {
       const mapping = SIGNAL_TO_COMPONENTS[signalType];
       if (!mapping || !(id in mapping)) continue;
       const baseWeight = mapping[id];
-      const contribution = contributionForSignal(signal, baseWeight);
-      items.push({ signal, contribution, polarity: baseWeight >= 0 ? '+' : '-' });
+      const effectiveWeight = effectiveWeightForSignal(signal, signalType, baseWeight);
+      const preDuplicate = contributionForSignal(signal, baseWeight);
+      const k = duplicateIndex.get(signal) ?? 1;
+      const contribution = preDuplicate * duplicateArticleFactor(k);
+      items.push({
+        signal,
+        contribution,
+        contributionPreDuplicate: preDuplicate,
+        polarity: effectiveWeight >= 0 ? '+' : '-',
+      });
 
       const articleKey = signal.article_url || (signal.article_index ?? null);
       if (articleKey != null) articleSet.add(articleKey);
@@ -660,6 +566,7 @@ export function scoreComponents(signals, { totalArticles = 0 } = {}) {
         score_low: null, score_high: null, ci_unstable: false, floor_clamped: false,
         counterfactual_article_key: null, counterfactual_delta: null,
         signal_count: 0, distinct_article_count: 0, source_diversity: 0,
+        signal_class_mix: computeSignalClassMix([]),
         signals: [], facets: computeFacets(id, [], totalArticles),
       };
       continue;
@@ -675,8 +582,12 @@ export function scoreComponents(signals, { totalArticles = 0 } = {}) {
     const enrichedSignals = cappedItems.map((cappedIt, idx) => ({
       ...cappedIt.signal,
       _contribution: round3(cappedIt.contribution),
-      _contribution_raw: round3(items[idx]?.contribution ?? cappedIt.contribution),
-      _weight: SIGNAL_TO_COMPONENTS[cappedIt.signal.signal_type ?? cappedIt.signal.type]?.[id] ?? 0,
+      _contribution_raw: round3(items[idx]?.contributionPreDuplicate ?? cappedIt.contribution),
+      _weight: effectiveWeightForSignal(
+        cappedIt.signal,
+        cappedIt.signal.signal_type ?? cappedIt.signal.type,
+        SIGNAL_TO_COMPONENTS[cappedIt.signal.signal_type ?? cappedIt.signal.type]?.[id] ?? 0,
+      ),
       _polarity: cappedIt.polarity,
     }));
     const sc = scoreFromItems(cappedItems, id, totalArticles, articleSet, sourceSet);
@@ -690,6 +601,7 @@ export function scoreComponents(signals, { totalArticles = 0 } = {}) {
         score_low: null, score_high: null, ci_unstable: false, floor_clamped: false,
         counterfactual_article_key: null, counterfactual_delta: null,
         signal_count: 0, distinct_article_count: 0, source_diversity: 0,
+        signal_class_mix: computeSignalClassMix([]),
         signals: [], facets: computeFacets(id, [], totalArticles),
       };
       continue;
@@ -745,6 +657,7 @@ export function scoreComponents(signals, { totalArticles = 0 } = {}) {
       signal_count:            enrichedSignals.length,
       distinct_article_count:  distinctArticleCount,
       source_diversity:        sourceSet.size,
+      signal_class_mix:        computeSignalClassMix(cappedItems),
       signals:                 enrichedSignals,
       facets:                  computeFacets(id, enrichedSignals, totalArticles),
     };

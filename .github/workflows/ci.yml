@@ -3,18 +3,22 @@ name: CI
 on:
   push:
   pull_request:
+  workflow_dispatch:
+    inputs:
+      skip_release_age:
+        description: Skip min-release-age check (emergency CVE fix only)
+        type: boolean
+        default: false
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-# Explicit permissions: if only `contents: write` is set, GITHUB_TOKEN cannot
-# register commit/PR status checks — branch protection will show "No checks".
+# Status checks need checks + statuses write; only sync-main-docs needs contents write.
 permissions:
-  contents: write
+  contents: read
   checks: write
   statuses: write
-  pull-requests: write
 
 jobs:
   validate:
@@ -28,13 +32,27 @@ jobs:
           node-version-file: '.nvmrc'
           cache: 'npm'
 
+      - name: Resolve min-release-age policy
+        id: release_age
+        env:
+          INPUT_SKIP_RELEASE_AGE: ${{ github.event_name == 'workflow_dispatch' && inputs.skip_release_age || 'false' }}
+          PR_LABELS_JSON: ${{ toJson(github.event.pull_request.labels.*.name) }}
+        run: bash .github/scripts/resolve-min-release-age.sh
+
       - run: npm run check:engines
-      - run: npm ci
+
+      - uses: ./.github/actions/setup-npm-ci
+        with:
+          min-release-age-days: ${{ steps.release_age.outputs.days }}
+
       - run: npm run openapi:lint
 
   sync-main-docs:
     name: Sync main documentation
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -46,10 +64,22 @@ jobs:
           node-version-file: '.nvmrc'
           cache: 'npm'
 
+      - name: Resolve min-release-age policy
+        id: release_age
+        env:
+          INPUT_SKIP_RELEASE_AGE: ${{ github.event_name == 'workflow_dispatch' && inputs.skip_release_age || 'false' }}
+          PR_LABELS_JSON: ${{ toJson(github.event.pull_request.labels.*.name) }}
+        run: bash .github/scripts/resolve-min-release-age.sh
+
       - name: Install dependencies
-        run: |
-          npm ci
-          npm ci --prefix docs-site
+        uses: ./.github/actions/setup-npm-ci
+        with:
+          min-release-age-days: ${{ steps.release_age.outputs.days }}
+
+      - uses: ./.github/actions/setup-npm-ci
+        with:
+          working-directory: docs-site
+          min-release-age-days: ${{ steps.release_age.outputs.days }}
 
       - name: Regenerate main_docu_files and API docs
         run: npm run docs:sync
@@ -93,7 +123,17 @@ jobs:
           node-version-file: '.nvmrc'
           cache: 'npm'
 
-      - run: npm ci
+      - name: Resolve min-release-age policy
+        id: release_age
+        env:
+          INPUT_SKIP_RELEASE_AGE: ${{ github.event_name == 'workflow_dispatch' && inputs.skip_release_age || 'false' }}
+          PR_LABELS_JSON: ${{ toJson(github.event.pull_request.labels.*.name) }}
+        run: bash .github/scripts/resolve-min-release-age.sh
+
+      - uses: ./.github/actions/setup-npm-ci
+        with:
+          min-release-age-days: ${{ steps.release_age.outputs.days }}
+
       - run: npm run lint
 
   test:
@@ -107,7 +147,17 @@ jobs:
           node-version-file: '.nvmrc'
           cache: 'npm'
 
-      - run: npm ci
+      - name: Resolve min-release-age policy
+        id: release_age
+        env:
+          INPUT_SKIP_RELEASE_AGE: ${{ github.event_name == 'workflow_dispatch' && inputs.skip_release_age || 'false' }}
+          PR_LABELS_JSON: ${{ toJson(github.event.pull_request.labels.*.name) }}
+        run: bash .github/scripts/resolve-min-release-age.sh
+
+      - uses: ./.github/actions/setup-npm-ci
+        with:
+          min-release-age-days: ${{ steps.release_age.outputs.days }}
+
       - name: Verify Node built-in sqlite (node:sqlite)
         run: node -e "import('node:sqlite').then(()=>console.log('node:sqlite OK')).catch(e=>{console.error(e);process.exit(1)})"
       - name: Check NORTH_TERMS synced with north-reference
@@ -139,7 +189,18 @@ jobs:
           cache: 'npm'
           cache-dependency-path: client/package-lock.json
 
-      - run: npm ci --prefix client
+      - name: Resolve min-release-age policy
+        id: release_age
+        env:
+          INPUT_SKIP_RELEASE_AGE: ${{ github.event_name == 'workflow_dispatch' && inputs.skip_release_age || 'false' }}
+          PR_LABELS_JSON: ${{ toJson(github.event.pull_request.labels.*.name) }}
+        run: bash .github/scripts/resolve-min-release-age.sh
+
+      - uses: ./.github/actions/setup-npm-ci
+        with:
+          working-directory: client
+          min-release-age-days: ${{ steps.release_age.outputs.days }}
+
       - run: npm run client:build
 
   build-docs-site:
@@ -157,7 +218,18 @@ jobs:
           node-version-file: '.nvmrc'
           cache: 'npm'
 
-      - run: npm ci --prefix docs-site
+      - name: Resolve min-release-age policy
+        id: release_age
+        env:
+          INPUT_SKIP_RELEASE_AGE: ${{ github.event_name == 'workflow_dispatch' && inputs.skip_release_age || 'false' }}
+          PR_LABELS_JSON: ${{ toJson(github.event.pull_request.labels.*.name) }}
+        run: bash .github/scripts/resolve-min-release-age.sh
+
+      - uses: ./.github/actions/setup-npm-ci
+        with:
+          working-directory: docs-site
+          min-release-age-days: ${{ steps.release_age.outputs.days }}
+
       - run: npm run gen:api --prefix docs-site
       - run: npm run build --prefix docs-site
 
@@ -170,7 +242,18 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: 'npm'
-      - run: npm ci
+
+      - name: Resolve min-release-age policy
+        id: release_age
+        env:
+          INPUT_SKIP_RELEASE_AGE: ${{ github.event_name == 'workflow_dispatch' && inputs.skip_release_age || 'false' }}
+          PR_LABELS_JSON: ${{ toJson(github.event.pull_request.labels.*.name) }}
+        run: bash .github/scripts/resolve-min-release-age.sh
+
+      - uses: ./.github/actions/setup-npm-ci
+        with:
+          min-release-age-days: ${{ steps.release_age.outputs.days }}
+
       - run: node scripts/ci-audit.mjs
 
   sonarcloud:

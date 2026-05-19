@@ -11,14 +11,14 @@ import { SIGNAL_CATALOG, SIGNAL_TYPES } from '../domain/services/behaviorSignals
  * Each pass receives the full classification rules but a focused signal vocabulary.
  */
 export const DOMAIN_GROUPS = Object.freeze({
-  A: ['compliance', 'risk'],                                    // protective behavior
-  B: ['information', 'continuity', 'leadership'],               // institutional response
+  A: ['compliance', 'risk', 'preparedness'],                    // protective behavior & capacity
+  B: ['information', 'continuity', 'leadership', 'adaptation', 'education'], // institutional response & adaptation
   C: ['social', 'narrative', 'resources', 'wellbeing'],         // social fabric & wellbeing
 });
 
 export const DOMAIN_GROUP_LABELS = Object.freeze({
-  A: 'Protective Behavior (compliance + risk)',
-  B: 'Institutional Response (information + continuity + leadership)',
+  A: 'Protective Behavior (compliance + risk + preparedness)',
+  B: 'Institutional Response (information + continuity + leadership + adaptation + education)',
   C: 'Social Fabric & Wellbeing (social + narrative + resources + wellbeing)',
 });
 

@@ -15,6 +15,12 @@ import {
   summarizeConfidence,
   overallScore,
   scoreComponents,
+  AFFECTED_SUBGROUPS,
+  AFFECTED_SYSTEMS,
+  INTENSITY_LEVELS,
+  PHASE_LEVELS,
+  POLARITY_OVERRIDE_SIGNAL_TYPES,
+  AFFECTED_SYSTEM_SIGNAL_TYPES,
 } from '../domain/services/behaviorSignals.js';
 import { computeNorrisCapacities } from '../domain/services/norrisCapacities.js';
 import { narrativeIncludesScores } from '../domain/services/assessmentDisplayTier.js';
@@ -51,8 +57,12 @@ function formatSignalCatalog() {
     byDomain[s.domain].push(s);
   }
   return Object.entries(byDomain).map(([domain, signals]) => {
-    const lines = signals.map((s) => `  - \`${s.type}\`: ${s.label}`);
-    return `**${domain}**\n${lines.join('\n')}`;
+    const domainLabel = signals[0]?.domain ?? domain;
+    const lines = signals.map((s) => {
+      const cls = s.signal_class ? ` [${s.signal_class}]` : '';
+      return `  - \`${s.type}\`${cls}: ${s.label}`;
+    });
+    return `**${domainLabel}**\n${lines.join('\n')}`;
   }).join('\n\n');
 }
 
@@ -449,7 +459,16 @@ const SIGNAL_EXTRACTION_SYSTEM_PROMPT =
   `- Accumulated trauma, PTSD, chronic sleep disruption, grief (reported in named quote or survey) → psychological_distress (NOT fear_expression, which is situational/in-the-moment)\n` +
   `- People accessing therapy, trauma hotlines, mental health programs, or community wellbeing services → wellbeing_support_accessed\n` +
   `- Emergency family reunification / finding family during evacuation → compliance_enter_shelter or lifesaving domain, NOT solidarity\n` +
-  `- Education operating remotely / schools closed → service_disruption or service_continuity (functional_continuity domain), NOT information_*\n` +
+  `- Schools / kindergartens / youth education: prefer educational_continuity or educational_disruption when evidence is school-specific;\n` +
+  `  use service_disruption only for generic institutional closure without education-specific detail.\n` +
+  `- child_distress vs psychological_distress vs fear_expression: child_distress for children-specific symptoms;\n` +
+  `  psychological_distress for named adult trauma/PTSD; fear_expression for situational safety fear.\n` +
+  `- preparedness_drill_conducted vs lessons_learned_uptake: drill = exercise conducted; lessons = protocol change after prior event.\n` +
+  `- complacency_or_normalization vs non_compliance_ignore_guidelines: habituation/alert fatigue vs active defiance of rules.\n` +
+  `- hostile_influence_operation vs rumor_spread: coordinated foreign/bot campaign vs organic local rumor.\n` +
+  `- protection_effective vs compliance_*: defensive measure averted harm (Iron Dome, mamad saved lives) vs people following instructions.\n` +
+  `- displacement_resolved vs evacuation_displacement: return home / resolved displacement vs ongoing displacement.\n` +
+  `- civil_society_mobilization vs community_volunteering: organized NGO/civil-society response vs general volunteering.\n` +
   `- Businesses closed, clinics not operating, transport cancelled, business operations impaired by war, livelihoods disrupted, income lost → service_disruption (functional_continuity domain)\n` +
   `- LIVELIHOOD DISTRESS vs FEAR vs AID GAP — disambiguation:\n` +
   `  (a) A business owner describing their business being damaged/threatened/on-the-edge by the war, even with emotional language ("brought us to the edge", "my baby", "never thought the business would be harmed")\n` +
@@ -645,6 +664,15 @@ const SIGNAL_EXTRACTION_SYSTEM_PROMPT =
   `Limit yourself to at most 3 inferred-absence signals across the entire batch — they are weak\n` +
   `evidence and should not dominate.\n\n` +
 
+  `━━━ OPTIONAL INSTANCE FIELDS (omit when not applicable) ━━━\n` +
+  `  "intensity": "light" | "moderate" | "severe" — severity of this instance (default moderate if omitted)\n` +
+  `  "phase": "anticipation" | "response" | "recovery" — event timeline phase\n` +
+  `  "affected_subgroup": one of [${AFFECTED_SUBGROUPS.join(', ')}] — when equity/disparity targets a subgroup\n` +
+  `  "affected_system": one of [${AFFECTED_SYSTEMS.join(', ')}] — ONLY for service_continuity, service_disruption,\n` +
+  `    system_overload, system_resilience_under_load (which infrastructure failed or held)\n` +
+  `  "polarity_override": "positive" | "negative" — ONLY for social_isolation, dependency_on_external_aid,\n` +
+  `    cultural_continuity when context clearly reverses the default reading\n\n` +
+
   `━━━ OUTPUT SCHEMA ━━━\n` +
   `For each behavioral signal found, output a JSON object:\n` +
   `{\n` +
@@ -655,7 +683,12 @@ const SIGNAL_EXTRACTION_SYSTEM_PROMPT =
   `  "evidence": "<exact quote or bare factual description — no journalist adjectives, max 300 chars>",\n` +
   `  "scope_level": "single_case" | "repeated_pattern" | "quantified_or_broad",\n` +
   `  "evidence_basis": "present_in_text" | "paraphrased" | "inferred_absence",\n` +
-  `  "extraction_confidence": <number 0.0-1.0 — your self-rated confidence that this signal is correctly classified and faithfully grounded in the article>\n` +
+  `  "extraction_confidence": <number 0.0-1.0>,\n` +
+  `  "intensity": "light" | "moderate" | "severe" (optional),\n` +
+  `  "phase": "anticipation" | "response" | "recovery" (optional),\n` +
+  `  "affected_subgroup": "<enum>" (optional),\n` +
+  `  "affected_system": "<enum>" (optional, continuity signals only),\n` +
+  `  "polarity_override": "positive" | "negative" (optional, whitelist only)\n` +
   `}\n\n` +
   `Return ONLY a valid JSON array. One article can yield multiple signals. Skip articles with no extractable behavioral evidence.`;
 
@@ -781,7 +814,11 @@ function validateSignalsFromCall(signals, articles, sourceLabel) {
     'named_institutional_fact', 'observational_reported_fact',
   ]);
   const validBasis = new Set(['present_in_text', 'paraphrased', 'inferred_absence']);
-  const INDIVIDUAL_EMOTIONAL_SIGNAL_TYPES = new Set(['fear_expression', 'calm_confidence']);
+  const INDIVIDUAL_EMOTIONAL_SIGNAL_TYPES = new Set(['fear_expression', 'calm_confidence', 'child_distress']);
+  const validIntensity = new Set(INTENSITY_LEVELS);
+  const validPhase = new Set(PHASE_LEVELS);
+  const validSubgroup = new Set(AFFECTED_SUBGROUPS);
+  const validAffectedSystem = new Set(AFFECTED_SYSTEMS);
 
   const valid = signals.filter((s) => {
     if (!s || typeof s !== 'object') return false;
@@ -805,6 +842,22 @@ function validateSignalsFromCall(signals, articles, sourceLabel) {
       s.extraction_confidence = 0.85;
     } else {
       s.extraction_confidence = Math.min(1, Math.max(0, s.extraction_confidence));
+    }
+    if (s.intensity != null && !validIntensity.has(s.intensity)) delete s.intensity;
+    if (s.phase != null && !validPhase.has(s.phase)) delete s.phase;
+    if (s.affected_subgroup != null && !validSubgroup.has(s.affected_subgroup)) {
+      delete s.affected_subgroup;
+    }
+    if (s.affected_system != null) {
+      if (!AFFECTED_SYSTEM_SIGNAL_TYPES.has(s.signal_type) || !validAffectedSystem.has(s.affected_system)) {
+        delete s.affected_system;
+      }
+    }
+    if (s.polarity_override != null) {
+      if (!POLARITY_OVERRIDE_SIGNAL_TYPES.has(s.signal_type) ||
+          (s.polarity_override !== 'positive' && s.polarity_override !== 'negative')) {
+        delete s.polarity_override;
+      }
     }
     return true;
   });

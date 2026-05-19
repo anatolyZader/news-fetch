@@ -8,14 +8,21 @@ import {
   COMPONENT_TUNING,
   SIGNAL_TO_COMPONENTS,
   SIGNAL_TYPES,
+  EQUITY_RELEVANT_TYPES,
 } from './behaviorSignals.js';
 import { extractionTelemetryForOperator } from './pipelineStageTelemetry.js';
 import { summarizeGeoQuality } from '../../../../cross-cut-modules/geo/signalGeoSummary.js';
 
-export const SCORING_MODEL_VERSION = 'v3';
+export const SCORING_MODEL_VERSION = 'v4';
 
 /** Human-maintained; bump SCORING_MODEL_VERSION when SIGNAL_TO_COMPONENTS changes materially. */
 export const SCORING_MODEL_CHANGELOG = [
+  {
+    version: 'v4',
+    date: '2026-05-19',
+    summary:
+      'Expanded closed vocabulary (~29 types), per-instance intensity/phase/subgroup fields, duplicate-article discount, polarity override whitelist, signal_class_mix diagnostics.',
+  },
   {
     version: 'v3',
     date: '2026-03-01',
@@ -34,6 +41,33 @@ export const PHASE1_ALWAYS_NORTH_SOURCE_TYPES = [
 
 const NORTH_COLLECTION_NOTE =
   'Signals from these source types are treated as north-relevant because ingestion is north-theater scoped in phase 1. A future district model will replace this assumption.';
+
+/**
+ * Report-quality metric: how often equity-relevant signals name an affected_subgroup.
+ * @param {Array<object>} signals
+ */
+export function summarizeSubgroupCoverage(signals) {
+  const list = Array.isArray(signals) ? signals : [];
+  const equitySignals = list.filter((s) => {
+    const t = s?.signal_type ?? s?.type;
+    return t && EQUITY_RELEVANT_TYPES.has(t);
+  });
+  const withSubgroup = equitySignals.filter((s) => s.affected_subgroup);
+  const bySubgroup = {};
+  for (const s of withSubgroup) {
+    const g = s.affected_subgroup;
+    bySubgroup[g] = (bySubgroup[g] ?? 0) + 1;
+  }
+  const equityCount = equitySignals.length;
+  return {
+    equity_signal_count: equityCount,
+    subgroup_named_count: withSubgroup.length,
+    pct_subgroup_named: equityCount > 0
+      ? Math.round((1000 * withSubgroup.length) / equityCount) / 10
+      : null,
+    by_subgroup: bySubgroup,
+  };
+}
 
 /**
  * @param {Array<object>} signals
@@ -146,6 +180,7 @@ export function buildAssessmentMethodology({
         'runResilienceAssessment (API/news) scores all signals without scope filter; north artifact requires assess-signals --scope north',
       extraction_quality:
         'LLM extraction monitored via tests/fixtures/resilience-golden (npm test golden-corpus); no production SLA',
+      subgroup_coverage: summarizeSubgroupCoverage(signals),
       ...(extractionTelemetry ? { extraction_pipeline_stages: extractionTelemetry } : {}),
     },
     norris_lens: {
@@ -206,4 +241,14 @@ export function formatScopeDecisionLogLine(methodology) {
     line += `; north keyword_fallback=${s.pct_keyword_fallback_among_north}%`;
   }
   return line;
+}
+
+/**
+ * One-line stderr summary for equity subgroup tagging coverage.
+ * @param {object} methodology
+ */
+export function formatSubgroupCoverageLogLine(methodology) {
+  const sc = methodology?.limitations?.subgroup_coverage;
+  if (!sc || sc.equity_signal_count === 0) return '';
+  return `  → Equity signals with affected_subgroup: ${sc.subgroup_named_count}/${sc.equity_signal_count} (${sc.pct_subgroup_named ?? 0}%)`;
 }
