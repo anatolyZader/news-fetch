@@ -39,7 +39,7 @@ The page has three areas that matter for this project: **Actions permissions**, 
 2. Choose one of:
    - **Allow all actions and reusable workflows** — simplest; use this unless your organization forbids it.
    - **Allow \<ORG\> actions and reusable workflows** — common in companies; only actions from your org or GitHub Marketplace allow list run.
-   - **Allow select actions…** — you must explicitly allow `actions/checkout`, `actions/setup-node`, `SonarSource/sonarcloud-github-action`, etc.
+   - **Allow select actions…** — you must explicitly allow `actions/checkout`, `actions/setup-node`, `SonarSource/sonarqube-scan-action`, etc.
 3. Scroll down and click **Save** (GitHub only applies changes after Save).
 
 **How to verify:** Push any commit. Open the **Actions** tab on the repo. You should see a workflow run named **CI** (from `ci.yml`). If nothing appears, Actions may still be disabled at the **organization** level — ask an org owner to check **Organization → Settings → Actions**.
