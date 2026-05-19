@@ -100,7 +100,8 @@ jobs:
           OUT=$(node scripts/sync-north-terms-from-reference.mjs)
           echo "$OUT"
           node -e "const j=JSON.parse(process.argv[1]); if(j.new_count>0){console.error('Run: npm run sync:north-terms -- --write'); process.exit(1)}" "$OUT"
-      - run: npm test
+      - name: Run tests (serial — shared SQLite at data/app.sqlite)
+        run: npm test
         env:
           GEO_ASSERT_ENVELOPE: '1'
 

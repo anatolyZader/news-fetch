@@ -28,7 +28,7 @@
     "start": "node server.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "test": "node --test $(find tests -name '*.test.js' -type f | sort)",
+    "test": "node --test --test-concurrency=1 $(find tests -name '*.test.js' -type f | sort)",
     "docs:check": "node scripts/docs/validate-docs.js",
     "docs:sync": "node scripts/docs/sync-overarching-docs.js",
     "articles-to-md": "node business_modules/news-sites/input/fetch-articles-to-md.js",
