@@ -4,10 +4,9 @@
  * without an LLM client.
  */
 
-import { SIGNAL_CATALOG, SIGNAL_TYPES } from '../domain/services/behaviorSignals.js';
+import { SIGNAL_TYPES } from '../domain/services/behaviorSignals.js';
 import {
   formatSignalCatalogSubset as formatCatalogSubset,
-  formatMirrorSelfCheckHint,
   getMirrorTypeForSelfCheck,
 } from '../domain/services/signalCatalogPrompt.js';
 

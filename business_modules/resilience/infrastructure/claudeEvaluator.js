@@ -10,7 +10,6 @@ import Anthropic from '@anthropic-ai/sdk';
 import { jsonrepair } from 'jsonrepair';
 import { RESILIENCE_COMPONENTS } from '../domain/resilienceComponents.js';
 import {
-  SIGNAL_CATALOG,
   SIGNAL_TYPES,
   summarizeConfidence,
   overallScore,
@@ -453,7 +452,7 @@ const SIGNAL_EXTRACTION_SYSTEM_PROMPT =
   `- connectivity_outage: telecom/internet/mobile failure (set affected_system: telecom when applicable).\n` +
   `- STATE ADMINISTRATIVE CONTINUITY → service_continuity; ACTIVE AID MOBILIZATION → resource_mobilization.\n` +
   `- COMMERCIAL TRANSPORT suspensions/resumptions → service_disruption / service_continuity.\n` +
-  `- צח\"י: extract leadership_visible_presence/absence AND community_volunteering/resource_shortage when mentioned.\n` +
+  `- צח"י: extract leadership_visible_presence/absence AND community_volunteering/resource_shortage when mentioned.\n` +
   `- system_overload vs resource_shortage: overloaded capacity vs absent supplies.\n` +
   `- trust types (interpersonal/institutional/media/inter_group): use polarity_override negative when evidence shows erosion.\n` +
   `- domestic_violence_indicator / suicide_self_harm_indicator: explicit reported fact only — never infer.\n` +

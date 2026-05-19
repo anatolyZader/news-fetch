@@ -11,8 +11,8 @@ describe('signalWeightsFit calibration snapshot', () => {
   it('exports calibration targets and snapshot shape', () => {
     assert.ok(CALIBRATION_TARGETS.signal_to_components);
     const snap = getCalibrationSnapshot();
-    assert.equal(snap.catalog_version, 'v5');
-    assert.ok(snap.signal_count >= 155);
+    assert.equal(snap.catalog_version, 'v6');
+    assert.ok(snap.signal_count >= 165);
     assert.ok(snap.priors_by_type.harm_to_population);
     assert.ok(snap.component_tuning.lifesaving_behavior);
     assert.ok(snap.signal_to_components.harm_to_population);
