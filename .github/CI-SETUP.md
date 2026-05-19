@@ -122,6 +122,7 @@ To require CI before merge, add checks whose names match the workflow job `name:
 | Job key in YAML | Name shown in GitHub UI (use this in branch protection) |
 |---------------|--------------------------------------------------------|
 | `sync-main-docs` | **Sync main documentation** |
+| `lint` | **Lint** |
 | `test` | **Test** |
 | `build-client` | **Build client** |
 | `build-docs-site` | **Build docs site** |
@@ -134,7 +135,7 @@ To require CI before merge, add checks whose names match the workflow job `name:
 2. Enable **Require status checks to pass before merging**.
 3. Enable **Require branches to be up to date before merging** (recommended so doc-sync + CI run on latest commit).
 4. In the search box under status checks, type e.g. `Test` and select **Test** when it appears (GitHub learns check names after the workflow has run at least once on the default branch or a PR).
-5. Repeat for **Build client**, **Build docs site**, **Security audit**, and optionally **SonarCloud**.
+5. Repeat for **Lint**, **Build client**, **Build docs site**, **Security audit**, and optionally **SonarCloud**.
 6. Save changes.
 
 **Notes:**
@@ -324,10 +325,11 @@ You do **not** configure these in the GitHub UI:
 | Job | Env vars | Notes |
 |-----|----------|-------|
 | `sync-main-docs` | `BRANCH` (step env) | Branch to push doc commits to (`head_ref` on PRs, else ref name). |
-| `test` | — | Unit tests use mocks; integration tests **skip** if API keys are absent. |
+| `lint` | — | `npm run lint` (ESLint). |
+| `test` | `GEO_ASSERT_ENVELOPE=1` | Unit tests; integration tests **skip** if API keys are absent. |
 | `build-client` | — | Vite build does not require `VITE_*` at build time (see below). |
 | `build-docs-site` | — | Docusaurus build only; no API keys. |
-| `security-audit` | — | `npm audit --audit-level=high` only. |
+| `security-audit` | — | `node scripts/ci-audit.mjs` (high/critical except documented `xlsx`). |
 | `sonarcloud` | `SONAR_TOKEN`, `SONAR_ORGANIZATION`, `SONAR_PROJECT_KEY` (via scanner `args`) | Runs after **Test**; needs `fetch-depth: 0` and `pull-requests: write` for PR decoration. |
 
 ### 3.3 `resilience-live-llm.yml` environment
@@ -620,7 +622,7 @@ After configuration, confirm:
 
 - [ ] **Actions** enabled; workflow permissions **Read and write**.
 - [ ] Push a small change → **Actions** tab shows **CI** workflow running.
-- [ ] Jobs complete: **Sync main documentation**, **Test**, **Build client**, **Build docs site**, **Security audit**.
+- [ ] Jobs complete: **Sync main documentation**, **Lint**, **Test**, **Build client**, **Build docs site**, **Security audit**.
 - [ ] If resilience code or OpenAPI changed, `sync-main-docs` may add a commit `docs: sync main_docu_files from code [skip ci]`.
 - [ ] `SONAR_TOKEN`, `SONAR_ORGANIZATION`, `SONAR_PROJECT_KEY` set → **SonarCloud** job runs and project updates on [sonarcloud.io](https://sonarcloud.io).
 - [ ] (Optional) `ANTHROPIC_API_KEY` set → **Resilience live LLM** runs adversarial tests when triggered.
@@ -635,7 +637,8 @@ npm run docs:check     # product_docs validation
 npm test
 npm run client:build
 cd docs-site && npm run gen:api && npm run build
-npm audit --audit-level=high
+node scripts/ci-audit.mjs
+npm run sync:north-terms:check   # must report new_count: 0
 ```
 
 ---
@@ -644,9 +647,11 @@ npm audit --audit-level=high
 
 | Symptom | Likely cause | Fix |
 |---------|----------------|-----|
-| Doc sync push `403` | Workflow read-only or branch protection | **Read and write** permissions; allow `github-actions[bot]` on protected branches. |
+| Doc sync push rejected on `dev` | Protected default branch requires PRs | Run `npm run docs:sync` locally and commit before merge; auto-push runs only on **same-repo PRs**. |
+| Doc sync push `403` | Workflow read-only | **Read and write** workflow permissions (Settings → Actions). |
 | `gen:api` / Docusaurus fails in CI | Missing `docs-site` install | CI already runs `npm ci --prefix docs-site`; locally run the same before `docs:sync`. |
-| `npm audit` fails | High/critical vulnerability in lockfile | Run `npm audit`, update dependencies, commit lockfile. |
+| Security audit fails | High/critical in lockfile (except `xlsx`) | Run `npm audit fix`, commit lockfile; locally run `node scripts/ci-audit.mjs`. |
+| `NORTH_TERMS` check fails | `north-reference.json` ahead of `regionSignalFilter.js` | Run `npm run sync:north-terms -- --write` and commit. |
 | Integration tests skipped | No API keys in CI | Expected; add secrets only if you intentionally want live API tests in CI. |
 | Fork PR: docs out of date | Bot cannot push to fork | Maintainer or author runs `npm run docs:sync` and pushes. |
 | Infinite CI loops | Doc sync without `[skip ci]` | Commit message already includes `[skip ci]`; ensure branch protection does not re-trigger all jobs on bot commits unnecessarily. |

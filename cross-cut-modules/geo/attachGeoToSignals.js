@@ -8,8 +8,37 @@ import { inferLocalityCandidateForSignal } from './localityCandidate.js';
  */
 function stampResolutionScope(geo, scope) {
   if (!geo || geo.kind !== 'resolved' || typeof geo !== 'object') return geo;
-  const resolution = { ...(geo.resolution ?? {}), scope };
-  return { ...geo, resolution };
+
+  const existing = geo.resolution;
+  if (existing != null && typeof existing === 'object' && typeof existing.rawInput === 'string') {
+    return { ...geo, resolution: { ...existing, scope } };
+  }
+
+  const me = geo.matchEvidence;
+  if (
+    me != null &&
+    typeof me === 'object' &&
+    typeof geo.canonicalKey === 'string' &&
+    geo.matchMethod
+  ) {
+    return {
+      ...geo,
+      resolution: {
+        rawInput: me.rawInput,
+        normalizedInput: me.normalizedInput,
+        canonicalKey: geo.canonicalKey,
+        matchedName: geo.matchedName ?? me.matchedVariant,
+        matchedVariant: me.matchedVariant,
+        matchMethod: geo.matchMethod,
+        matchConfidence: geo.matchConfidence,
+        candidateCount: me.candidateCount,
+        geoEntityType: geo.geoEntityType,
+        scope,
+      },
+    };
+  }
+
+  return geo;
 }
 
 /**

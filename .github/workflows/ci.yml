@@ -42,25 +42,44 @@ jobs:
       - name: Validate product_docs
         run: npm run docs:check
 
-      - name: Commit documentation updates
+      - name: Commit documentation updates (PR branches only)
         env:
           BRANCH: ${{ github.head_ref || github.ref_name }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add docs/main_docu_files product_docs/api/generated
           if git diff --staged --quiet; then
             echo "Main documentation already up to date."
             exit 0
           fi
-          git commit -m "docs: sync main_docu_files from code [skip ci]"
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            if [ "${{ github.event.pull_request.head.repo.full_name }}" != "${{ github.repository }}" ]; then
-              echo "::warning::Cannot push doc sync to fork PR; run npm run docs:sync locally."
-              exit 0
-            fi
+          if [ "${{ github.event_name }}" != "pull_request" ]; then
+            echo "::error::Documentation drift after docs:sync. On protected branches, commit locally:"
+            echo "  npm run docs:sync && git add docs/main_docu_files product_docs/api/generated && git commit"
+            git diff --staged --stat
+            exit 1
           fi
+          if [ "${{ github.event.pull_request.head.repo.full_name }}" != "${{ github.repository }}" ]; then
+            echo "::warning::Cannot push doc sync to fork PR; run npm run docs:sync locally."
+            git diff --staged --stat
+            exit 1
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "docs: sync main_docu_files from code [skip ci]"
           git push origin HEAD:"${BRANCH}"
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - run: npm ci
+      - run: npm run lint
 
   test:
     name: Test
@@ -74,7 +93,6 @@ jobs:
           cache: 'npm'
 
       - run: npm ci
-      - run: npm run lint
       - name: Check NORTH_TERMS synced with north-reference
         run: |
           OUT=$(node scripts/sync-north-terms-from-reference.mjs)
@@ -128,7 +146,7 @@ jobs:
           node-version: '20'
           cache: 'npm'
       - run: npm ci
-      - run: npm audit --audit-level=high
+      - run: node scripts/ci-audit.mjs
 
   sonarcloud:
     name: SonarCloud

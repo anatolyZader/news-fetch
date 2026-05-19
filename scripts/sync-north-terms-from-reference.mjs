@@ -35,9 +35,10 @@ function loadExistingTerms() {
   const m = src.match(/const NORTH_TERMS = \[([\s\S]*?)\];/);
   if (!m) throw new Error('NORTH_TERMS array not found');
   const terms = [];
-  for (const line of m[1].split('\n')) {
-    const q = line.match(/'([^']*)'/);
-    if (q) terms.push(q[1]);
+  const re = /'((?:\\.|[^'\\])*)'/g;
+  let match;
+  while ((match = re.exec(m[1])) !== null) {
+    terms.push(match[1].replace(/\\'/g, "'"));
   }
   return new Set(terms);
 }
@@ -70,10 +71,18 @@ const candidates = collectCandidates().filter((t) => !existing.has(t));
 if (process.argv.includes('--write') && candidates.length > 0) {
   let src = readFileSync(filterPath, 'utf8');
   const insert = candidates.map((t) => `  '${t.replace(/'/g, "\\'")}',`).join('\n');
-  src = src.replace(
-    /(\s+'אעבלין',\n)(\];)/,
-    `$1\n  // From north-reference.json (sync-north-terms-from-reference.mjs)\n${insert}\n$2`,
-  );
+  const marker = '  // From north-reference.json (sync-north-terms-from-reference.mjs)';
+  if (src.includes(marker)) {
+    src = src.replace(
+      /(\n];)\s*\n\nfunction haystackForSignal/,
+      `\n${insert}\n$1\n\nfunction haystackForSignal`,
+    );
+  } else {
+    src = src.replace(
+      /(\s+'אעבלין',\n)(\];)/,
+      `$1\n${marker}\n${insert}\n$2`,
+    );
+  }
   writeFileSync(filterPath, src);
   console.error(`Wrote ${candidates.length} new terms to regionSignalFilter.js`);
 } else {
