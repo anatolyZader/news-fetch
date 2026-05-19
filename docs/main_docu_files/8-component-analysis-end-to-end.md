@@ -107,13 +107,13 @@ Each component additionally exposes **2–4 facets** (defined in `business_modul
 | Component | Facets |
 |---|---|
 | `narrative` | `mood`, `coping_story`, `competing_narratives` |
-| `information_communication` | `clarity`, `trust`, `accessibility`, `actionability` |
-| `lifesaving_behavior` | `compliance`, `knowledge`, `enforcement` |
-| `functional_continuity` | `essential_services`, `system_load`, `economic`, `recovery`, `displacement` |
+| `information_communication` | `clarity`, `trust`, `accessibility`, `actionability`, `influence` |
+| `lifesaving_behavior` | `compliance`, `knowledge`, `enforcement`, `preparedness` |
+| `functional_continuity` | `essential_services`, `system_load`, `economic`, `recovery`, `displacement`, `education`, `adaptation` |
 | `community_capital` | `mobilization`, `local_capacity`, `external_dependency`, `collective_action` |
-| `leadership` | `visibility`, `credibility`, `competence`, `coordination` |
-| `belonging_solidarity` | `mutual_aid`, `cohesion`, `inclusion` |
-| `wellbeing_atrisk` | `physical_harm`, `psychological_distress`, `care_access`, `equity` |
+| `leadership` | `visibility`, `credibility`, `competence`, `coordination`, `civic` |
+| `belonging_solidarity` | `mutual_aid`, `cohesion`, `inclusion`, `exclusion` |
+| `wellbeing_atrisk` | `physical_harm`, `psychological_distress`, `care_access`, `equity`, `household_strain` |
 
 <!-- docs-sync:END component-facets -->
 
@@ -147,9 +147,9 @@ Per-component reference below is regenerated from code. Extended narrative, sign
 |---|---|
 | `mood` | `fear_expression`, `calm_confidence` |
 | `coping_story` | `resilience_narrative_positive`, `resilience_narrative_negative`, `post_event_recovery_indicator` |
-| `competing_narratives` | `rumor_spread`, `rumor_correction`, `harm_to_population`, `cultural_continuity` |
+| `competing_narratives` | `rumor_spread`, `rumor_correction`, `harm_to_population`, `cultural_continuity`, `hostile_influence_operation` |
 
-**All facet signal types for this component:** `calm_confidence`, `cultural_continuity`, `fear_expression`, `harm_to_population`, `post_event_recovery_indicator`, `resilience_narrative_negative`, `resilience_narrative_positive`, `rumor_correction`, `rumor_spread`
+**All facet signal types for this component:** `calm_confidence`, `cultural_continuity`, `fear_expression`, `harm_to_population`, `hostile_influence_operation`, `post_event_recovery_indicator`, `resilience_narrative_negative`, `resilience_narrative_positive`, `rumor_correction`, `rumor_spread`
 
 ---
 
@@ -181,8 +181,9 @@ Per-component reference below is regenerated from code. Extended narrative, sign
 | `trust` | `trusted_information_source`, `mistrusted_information_source`, `feedback_channel_open`, `feedback_channel_blocked` |
 | `accessibility` | `information_inclusivity_present`, `information_inclusivity_gap`, `active_information_seeking` |
 | `actionability` | `information_actionable_effective`, `information_effectiveness_gap` |
+| `influence` | `hostile_influence_operation`, `rumor_spread`, `news_avoidance_behavior`, `media_literacy_demonstrated` |
 
-**All facet signal types for this component:** `active_information_seeking`, `feedback_channel_blocked`, `feedback_channel_open`, `information_actionable_effective`, `information_clarity`, `information_confusion`, `information_effectiveness_gap`, `information_inclusivity_gap`, `information_inclusivity_present`, `mistrusted_information_source`, `rumor_correction`, `rumor_spread`, `trusted_information_source`
+**All facet signal types for this component:** `active_information_seeking`, `feedback_channel_blocked`, `feedback_channel_open`, `hostile_influence_operation`, `information_actionable_effective`, `information_clarity`, `information_confusion`, `information_effectiveness_gap`, `information_inclusivity_gap`, `information_inclusivity_present`, `media_literacy_demonstrated`, `mistrusted_information_source`, `news_avoidance_behavior`, `rumor_correction`, `rumor_spread`, `trusted_information_source`
 
 ---
 
@@ -215,11 +216,12 @@ Per-component reference below is regenerated from code. Extended narrative, sign
 
 | Facet | Signal types |
 |---|---|
-| `compliance` | `compliance_enter_shelter`, `compliance_follow_instructions`, `non_compliance_exit_early`, `non_compliance_ignore_guidelines` |
-| `knowledge` | `information_actionable_effective`, `information_effectiveness_gap`, `information_clarity` |
+| `compliance` | `compliance_enter_shelter`, `compliance_follow_instructions`, `non_compliance_exit_early`, `non_compliance_ignore_guidelines`, `complacency_or_normalization` |
+| `knowledge` | `information_actionable_effective`, `information_effectiveness_gap`, `information_clarity`, `leadership_clear_guidance`, `protection_effective` |
 | `enforcement` | `risk_exposure_behavior`, `unsafe_gathering`, `panic_behavior` |
+| `preparedness` | `preparedness_drill_conducted`, `preparedness_gap_identified`, `protective_infrastructure_present`, `protective_infrastructure_absent`, `household_readiness_demonstrated`, `household_readiness_gap` |
 
-**All facet signal types for this component:** `compliance_enter_shelter`, `compliance_follow_instructions`, `information_actionable_effective`, `information_clarity`, `information_effectiveness_gap`, `non_compliance_exit_early`, `non_compliance_ignore_guidelines`, `panic_behavior`, `risk_exposure_behavior`, `unsafe_gathering`
+**All facet signal types for this component:** `complacency_or_normalization`, `compliance_enter_shelter`, `compliance_follow_instructions`, `household_readiness_demonstrated`, `household_readiness_gap`, `information_actionable_effective`, `information_clarity`, `information_effectiveness_gap`, `leadership_clear_guidance`, `non_compliance_exit_early`, `non_compliance_ignore_guidelines`, `panic_behavior`, `preparedness_drill_conducted`, `preparedness_gap_identified`, `protection_effective`, `protective_infrastructure_absent`, `protective_infrastructure_present`, `risk_exposure_behavior`, `unsafe_gathering`
 
 ---
 
@@ -249,10 +251,12 @@ Per-component reference below is regenerated from code. Extended narrative, sign
 | `essential_services` | `service_continuity`, `service_disruption`, `routine_maintenance`, `routine_disruption` |
 | `system_load` | `system_overload`, `system_resilience_under_load` |
 | `economic` | `economic_continuity`, `economic_disruption` |
-| `recovery` | `post_event_recovery_indicator`, `cultural_continuity` |
-| `displacement` | `evacuation_displacement` |
+| `recovery` | `post_event_recovery_indicator`, `cultural_continuity`, `recovery_setback`, `compensation_received`, `compensation_blocked`, `displacement_resolved` |
+| `displacement` | `evacuation_displacement`, `displacement_resolved` |
+| `education` | `educational_continuity`, `educational_disruption` |
+| `adaptation` | `adaptive_practice`, `lessons_learned_uptake` |
 
-**All facet signal types for this component:** `cultural_continuity`, `economic_continuity`, `economic_disruption`, `evacuation_displacement`, `post_event_recovery_indicator`, `routine_disruption`, `routine_maintenance`, `service_continuity`, `service_disruption`, `system_overload`, `system_resilience_under_load`
+**All facet signal types for this component:** `adaptive_practice`, `compensation_blocked`, `compensation_received`, `cultural_continuity`, `displacement_resolved`, `economic_continuity`, `economic_disruption`, `educational_continuity`, `educational_disruption`, `evacuation_displacement`, `lessons_learned_uptake`, `post_event_recovery_indicator`, `recovery_setback`, `routine_disruption`, `routine_maintenance`, `service_continuity`, `service_disruption`, `system_overload`, `system_resilience_under_load`
 
 ---
 
@@ -276,12 +280,12 @@ Per-component reference below is regenerated from code. Extended narrative, sign
 
 | Facet | Signal types |
 |---|---|
-| `mobilization` | `resource_mobilization`, `community_volunteering`, `self_organization` |
+| `mobilization` | `resource_mobilization`, `community_volunteering`, `self_organization`, `civil_society_mobilization` |
 | `local_capacity` | `local_capacity_demonstrated`, `resource_shortage` |
 | `external_dependency` | `dependency_on_external_aid`, `coordination_success`, `coordination_failure` |
 | `collective_action` | `rapid_mobilization`, `delayed_mobilization`, `conflict_resolution`, `feedback_channel_open` |
 
-**All facet signal types for this component:** `community_volunteering`, `conflict_resolution`, `coordination_failure`, `coordination_success`, `delayed_mobilization`, `dependency_on_external_aid`, `feedback_channel_open`, `local_capacity_demonstrated`, `rapid_mobilization`, `resource_mobilization`, `resource_shortage`, `self_organization`
+**All facet signal types for this component:** `civil_society_mobilization`, `community_volunteering`, `conflict_resolution`, `coordination_failure`, `coordination_success`, `delayed_mobilization`, `dependency_on_external_aid`, `feedback_channel_open`, `local_capacity_demonstrated`, `rapid_mobilization`, `resource_mobilization`, `resource_shortage`, `self_organization`
 
 ---
 
@@ -306,11 +310,12 @@ Per-component reference below is regenerated from code. Extended narrative, sign
 | Facet | Signal types |
 |---|---|
 | `visibility` | `leadership_visible_presence`, `leadership_absence` |
-| `credibility` | `leadership_clear_guidance`, `information_confusion`, `feedback_loop_closure`, `leadership_credibility_loss`, `political_distrust` |
+| `credibility` | `leadership_clear_guidance`, `information_confusion`, `feedback_loop_closure`, `leadership_credibility_loss`, `political_distrust`, `civic_engagement_constructive`, `accountability_demand_constructive` |
 | `competence` | `consensus_on_priorities`, `dissensus_blocks_action`, `conflict_resolution` |
 | `coordination` | `coordination_failure`, `coordination_success` |
+| `civic` | `civic_engagement_constructive`, `civil_society_mobilization`, `accountability_demand_constructive` |
 
-**All facet signal types for this component:** `conflict_resolution`, `consensus_on_priorities`, `coordination_failure`, `coordination_success`, `dissensus_blocks_action`, `feedback_loop_closure`, `information_confusion`, `leadership_absence`, `leadership_clear_guidance`, `leadership_credibility_loss`, `leadership_visible_presence`, `political_distrust`
+**All facet signal types for this component:** `accountability_demand_constructive`, `civic_engagement_constructive`, `civil_society_mobilization`, `conflict_resolution`, `consensus_on_priorities`, `coordination_failure`, `coordination_success`, `dissensus_blocks_action`, `feedback_loop_closure`, `information_confusion`, `leadership_absence`, `leadership_clear_guidance`, `leadership_credibility_loss`, `leadership_visible_presence`, `political_distrust`
 
 ---
 
@@ -336,11 +341,12 @@ Per-component reference below is regenerated from code. Extended narrative, sign
 
 | Facet | Signal types |
 |---|---|
-| `mutual_aid` | `solidarity_help_others`, `community_volunteering` |
-| `cohesion` | `social_isolation`, `conflict_or_tension`, `cultural_continuity` |
+| `mutual_aid` | `solidarity_help_others`, `community_volunteering`, `interfaith_solidarity` |
+| `cohesion` | `social_isolation`, `conflict_or_tension`, `cultural_continuity`, `interfaith_tension` |
 | `inclusion` | `self_organization`, `wellbeing_support_accessed` |
+| `exclusion` | `inequitable_resource_access`, `information_inclusivity_gap`, `social_isolation` |
 
-**All facet signal types for this component:** `community_volunteering`, `conflict_or_tension`, `cultural_continuity`, `self_organization`, `social_isolation`, `solidarity_help_others`, `wellbeing_support_accessed`
+**All facet signal types for this component:** `community_volunteering`, `conflict_or_tension`, `cultural_continuity`, `inequitable_resource_access`, `information_inclusivity_gap`, `interfaith_solidarity`, `interfaith_tension`, `self_organization`, `social_isolation`, `solidarity_help_others`, `wellbeing_support_accessed`
 
 ---
 
@@ -366,11 +372,12 @@ Per-component reference below is regenerated from code. Extended narrative, sign
 | Facet | Signal types |
 |---|---|
 | `physical_harm` | `harm_to_population` |
-| `psychological_distress` | `psychological_distress`, `fear_expression`, `calm_confidence` |
+| `psychological_distress` | `psychological_distress`, `fear_expression`, `calm_confidence`, `child_distress` |
 | `care_access` | `wellbeing_support_accessed`, `information_inclusivity_present`, `information_inclusivity_gap` |
 | `equity` | `inequitable_resource_access`, `equitable_resource_distribution` |
+| `household_strain` | `reservist_family_strain`, `household_strain_economic`, `parental_burden`, `child_distress` |
 
-**All facet signal types for this component:** `calm_confidence`, `equitable_resource_distribution`, `fear_expression`, `harm_to_population`, `inequitable_resource_access`, `information_inclusivity_gap`, `information_inclusivity_present`, `psychological_distress`, `wellbeing_support_accessed`
+**All facet signal types for this component:** `calm_confidence`, `child_distress`, `equitable_resource_distribution`, `fear_expression`, `harm_to_population`, `household_strain_economic`, `inequitable_resource_access`, `information_inclusivity_gap`, `information_inclusivity_present`, `parental_burden`, `psychological_distress`, `reservist_family_strain`, `wellbeing_support_accessed`
 
 ---
 
