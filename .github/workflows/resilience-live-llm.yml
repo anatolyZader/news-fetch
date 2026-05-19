@@ -29,9 +29,9 @@ jobs:
             echo "has_key=0" >> "$GITHUB_OUTPUT"
             echo "::notice::ANTHROPIC_API_KEY is not set; skipping live-LLM adversarial run."
           fi
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         if: steps.gate.outputs.has_key == '1'
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         if: steps.gate.outputs.has_key == '1'
         with:
           node-version-file: '.nvmrc'
