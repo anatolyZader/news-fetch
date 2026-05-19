@@ -50,7 +50,7 @@ export class ReportBotManualReportsFsAdapter extends IReportBotManualReportsPort
         continue;
       }
       if (!st.isFile()) continue;
-      let snippet = '';
+      let snippet;
       try {
         const buf = readFileSync(resolved);
         snippet = textSnippet(buf);

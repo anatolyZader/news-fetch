@@ -35,13 +35,12 @@ export function ReportBotManualReportsTab() {
   const [fullLoading, setFullLoading] = useState(null);
   const fetchedRef = useRef(new Set());
 
-  const files = data?.files ?? [];
   const title = t('tab.reportBot');
   const subtitle = t('reportBotManual.subtitle');
 
   const sorted = useMemo(
-    () => [...files].sort((a, b) => (b.mtimeMs ?? 0) - (a.mtimeMs ?? 0)),
-    [files],
+    () => [...(data?.files ?? [])].sort((a, b) => (b.mtimeMs ?? 0) - (a.mtimeMs ?? 0)),
+    [data?.files],
   );
 
   const loadFull = useCallback(

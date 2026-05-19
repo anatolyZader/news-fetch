@@ -25,7 +25,10 @@ export function useReportBotManualReports({ getIdToken, apiReady }) {
   }, [getIdToken]);
 
   useEffect(() => {
-    if (apiReady) void reload();
+    if (!apiReady) return;
+    void (async () => {
+      await reload();
+    })();
   }, [apiReady, reload]);
 
   return { data, loading, error, reload };

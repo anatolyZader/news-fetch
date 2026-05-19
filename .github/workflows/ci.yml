@@ -74,6 +74,7 @@ jobs:
           cache: 'npm'
 
       - run: npm ci
+      - run: npm run lint
       - name: Check NORTH_TERMS synced with north-reference
         run: |
           OUT=$(node scripts/sync-north-terms-from-reference.mjs)

@@ -109,10 +109,10 @@ export function SettingsPanel({ open, onClose, onOpenDocs }) {
 
   useEffect(() => {
     if (!open) return;
-    setMailFeedback(null);
     let cancelled = false;
 
     (async () => {
+      setMailFeedback(null);
       try {
         const cfgR = await fetch('/api/mail/config');
         const cfg = await cfgR.json().catch(() => ({}));

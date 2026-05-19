@@ -87,7 +87,7 @@ async function nominatimSearch(query) {
   return { lat, lon, displayName: hit.display_name };
 }
 
-async function geocodeMunicipality(hebrewName, subregionId) {
+async function geocodeMunicipality(hebrewName, _subregionId) {
   const manual = MANUAL_COORDS[hebrewName];
   if (manual) {
     return { lat: manual.lat, lon: manual.lon, displayName: 'manual' };

@@ -23,6 +23,8 @@
   },
   "scripts": {
     "start": "node server.js",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "test": "node --test $(find tests -name '*.test.js' -type f | sort)",
     "docs:check": "node scripts/docs/validate-docs.js",
     "docs:sync": "node scripts/docs/sync-overarching-docs.js",
@@ -56,5 +58,11 @@
     "whatsapp-to-md": "node business_modules/whatsapp/input/whatsapp-to-md.js",
     "mail:digest": "node business_modules/mailing/input/runDailyDigest.js",
     "trends:warm-cache": "node business_modules/search_trends/input/warmTrendsCache.js"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.4.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.6.0"
   }
 }

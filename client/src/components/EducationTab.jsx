@@ -110,7 +110,7 @@ function aggregateSessions(sessions) {
   return { trends, dist };
 }
 
-function CommentsTable({ comments, t, lang, showSettlement = true }) {
+function CommentsTable({ comments, t, lang: _lang, showSettlement = true }) {
   if (!comments || comments.length === 0) {
     return <Typography variant="body2" color="text.secondary">{t('edu.comments.empty')}</Typography>;
   }
@@ -191,7 +191,12 @@ export function EducationTab() {
     }
   }, [getIdToken]);
 
-  useEffect(() => { if (apiReady) load(); }, [apiReady, load]);
+  useEffect(() => {
+    if (!apiReady) return;
+    void (async () => {
+      await load();
+    })();
+  }, [apiReady, load]);
 
   const { trends, dist, filteredCount } = useMemo(() => {
     if (!data?.sessions) return { trends: [], dist: {}, filteredCount: 0 };

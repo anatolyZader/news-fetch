@@ -42,24 +42,6 @@ const DEFAULT_EXTRACT_MODEL = process.env.RESILIENCE_EXTRACT_MODEL ?? 'claude-ha
 const DEFAULT_SELF_CHECK_MODEL = process.env.RESILIENCE_SELF_CHECK_MODEL ?? 'claude-haiku-4-5-20251001';
 const DEFAULT_NARRATIVE_MODEL = process.env.RESILIENCE_NARRATIVE_MODEL ?? 'claude-sonnet-4-6';
 
-// ─── Component formatters ─────────────────────────────────────────────────────
-
-function formatComponentsForPrompt() {
-  return RESILIENCE_COMPONENTS.map((c) => {
-    let text =
-      `**${c.id}** — ${c.name_en}\n` +
-      `Description: ${c.description}`;
-    if (c.principle) {
-      text += `\nPrinciple: ${c.principle}`;
-    }
-    if (c.behavioral_manifestations?.length) {
-      text += `\nBehavioral manifestations:\n` +
-        c.behavioral_manifestations.map((m, i) => `  ${i + 1}. ${m}`).join('\n');
-    }
-    return text;
-  }).join('\n\n');
-}
-
 // ─── Signal catalog formatter ─────────────────────────────────────────────────
 
 function formatSignalCatalog() {
@@ -1191,7 +1173,7 @@ async function dedupeSignalsBySemanticEvidence(signals, { contentKind = 'news' }
   }
 
   const survivors = [];
-  for (const [type, list] of byType.entries()) {
+  for (const [, list] of byType.entries()) {
     if (list.length === 1) {
       survivors.push(list[0]);
       continue;
@@ -1473,10 +1455,10 @@ export async function generateNarratives(
   const groundingContext =
     `━━━ GROUND TRUTH & DATE DISCIPLINE ━━━\n` +
     `Assessment anchor date for this JSON output: ${date}.\n` +
-    `- The \"Signals extracted\" Evidence blocks ARE the allowable facts for TODAY's behavior picture. Treat each bundle-date line (when shown) as the dated provenance for that excerpt.\n` +
+    `- The "Signals extracted" Evidence blocks ARE the allowable facts for TODAY's behavior picture. Treat each bundle-date line (when shown) as the dated provenance for that excerpt.\n` +
     `- cross_component_synthesis and every component narrative must only assert situations that fair readers could trace back to TODAY's Evidence text. You may add trend phrases using PRIOR DAYS' CONTEXT only when explicitly comparing score trajectories—never as a source of new factual events.\n` +
     `- Do not use independent world knowledge of Israel/Lebanon, military operations, treaties, diplomacy, or ceasefires—even if widely known or plausible.\n` +
-    `- Do not state timelines (e.g. \"at midnight\", \"entered into force\", \"day N of truce\") unless that exact timetable or factual claim appears inside the Evidence strings you rely on.\n` +
+    `- Do not state timelines (e.g. "at midnight", "entered into force", "day N of truce") unless that exact timetable or factual claim appears inside the Evidence strings you rely on.\n` +
     `- If evidence records expectations, rumours, or reported statements, phrase them strictly as attributed communications or observed reporting—never as externally verified geopolitical facts.\n` +
     `- When evidence conflicts, surface the conflict; do not resolve it from outside facts.\n\n`;
 
@@ -1528,7 +1510,7 @@ export async function generateNarratives(
     `    If a signal has no URL, omit the link — do not fabricate URLs\n\n` +
 
     `━━━ THE 8 COMPONENTS (with pre-computed ${includeScoresInPrompt ? 'scores' : 'instrument tags'} and signals) ━━━\n\n` +
-    `${formatScoredComponentsForNarrative(scoredForNarrative, totalArticles, { includeScores: includeScoresInPrompt })}\n\n` +
+    `${formatScoredComponentsForNarrative(scoredComponents, totalArticles, { includeScores: includeScoresInPrompt })}\n\n` +
 
     `━━━ OUTPUT FORMAT ━━━\n` +
     `Return ONLY valid JSON:\n` +

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
@@ -41,7 +41,7 @@ function hasLocalityCue(text) {
 function hasConcreteExampleCue(text) {
   const t = String(text ?? '').toLowerCase();
   if (/\b(saw|see|heard|found|entered|refused|ignored|ran|shelter|alert)\b/.test(t)) return true;
-  if (/ראיתי|שמעתי|נכנסו|לא נכנסו|התעלמו|אזעקה|ממ\"ד|מקלט|מרחב מוגן/.test(t)) return true;
+  if (/ראיתי|שמעתי|נכנסו|לא נכנסו|התעלמו|אזעקה|ממ"ד|מקלט|מרחב מוגן/.test(t)) return true;
   return false;
 }
 
@@ -61,7 +61,7 @@ function stripParentheticals(text) {
   const s = String(text ?? '');
   // Support ASCII parentheses () and fullwidth （）.
   const out = s
-    .replace(/\s*[\(（][^\)）]*[\)）]\s*/g, ' ')
+    .replace(/\s*[(（][^)）]*[)）]\s*/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
   return out;
@@ -80,17 +80,19 @@ export function ReportBuildPanel({ open, onClose }) {
   const { getIdToken } = useAuth();
   const { t } = useLanguage();
   const tRef = useRef(t);
-  tRef.current = t;
+  useLayoutEffect(() => {
+    tRef.current = t;
+  });
 
   const [input, setInput] = useState('');
   const [state, setState] = useState('collecting');
   const [questions, setQuestions] = useState([]);
   const [liveQuestions, setLiveQuestions] = useState([]);
   const [typedQuestions, setTypedQuestions] = useState([]);
-  const [typedProgress, setTypedProgress] = useState({ qIdx: 0, chIdx: 0 });
+  const [, setTypedProgress] = useState({ qIdx: 0, chIdx: 0 });
   const [preview, setPreview] = useState('');
   const [busy, setBusy] = useState(false);
-  const [suggesting, setSuggesting] = useState(false);
+  const [, setSuggesting] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState('');
 
@@ -188,8 +190,10 @@ export function ReportBuildPanel({ open, onClose }) {
         suggestAbortRef.current.abort();
         suggestAbortRef.current = null;
       }
-      setSuggesting(false);
-      setLiveQuestions([]);
+      void Promise.resolve().then(() => {
+        setSuggesting(false);
+        setLiveQuestions([]);
+      });
       return;
     }
 
@@ -275,8 +279,10 @@ export function ReportBuildPanel({ open, onClose }) {
 
   useEffect(() => {
     if (!open) return;
-    resetUi();
-    void start();
+    void (async () => {
+      resetUi();
+      await start();
+    })();
   }, [open, resetUi, start]);
 
   // Typewriter effect for follow-up questions (fast).
@@ -293,8 +299,10 @@ export function ReportBuildPanel({ open, onClose }) {
       typeTimerRef.current = null;
     }
 
-    setTypedQuestions(displayQuestions.map(() => ''));
-    setTypedProgress({ qIdx: 0, chIdx: 0 });
+    void Promise.resolve().then(() => {
+      setTypedQuestions(displayQuestions.map(() => ''));
+      setTypedProgress({ qIdx: 0, chIdx: 0 });
+    });
 
     if (!displayQuestions.length) return;
 
@@ -337,7 +345,7 @@ export function ReportBuildPanel({ open, onClose }) {
         typeTimerRef.current = null;
       }
     };
-  }, [open, preview, displayQuestionsKey]);
+  }, [open, preview, displayQuestionsKey, displayQuestions]);
 
   return (
     <ModalPanel

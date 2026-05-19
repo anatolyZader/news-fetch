@@ -42,7 +42,7 @@ function createScriptedAnalyzer(scripts) {
       turnCall++;
       return typeof script === 'function' ? script(turnHistory, senderName) : script;
     },
-    async analyzeMessage(text, senderName) {
+    async analyzeMessage(_text, _senderName) {
       return scripts.message ?? { signals: [], assessment: { sufficient: true, missing: [] } };
     },
   };

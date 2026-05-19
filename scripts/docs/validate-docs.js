@@ -180,17 +180,14 @@ async function main() {
   }
 
   if (errors.length > 0) {
-    // eslint-disable-next-line no-console
     console.error(`Docs validation failed (${errors.length} issue(s)):\n- ${errors.join('\n- ')}`);
     process.exit(1);
   }
 
-  // eslint-disable-next-line no-console
   console.log(`Docs validation OK (${mdFiles.length} pages).`);
 }
 
 main().catch((err) => {
-  // eslint-disable-next-line no-console
   console.error(err);
   process.exit(1);
 });

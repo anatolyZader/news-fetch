@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { createElement, useEffect, useRef, useState } from 'react';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
@@ -349,43 +349,6 @@ function ScoreWithInterval({ comp, t }) {
   );
 }
 
-function DecompositionRow({ comp, t }) {
-  if (comp.score == null) return null;
-  const items = [
-    { label: t('report.decomposition.positive'), value: comp.positive_evidence },
-    { label: t('report.decomposition.negative'), value: comp.negative_evidence },
-    { label: t('report.decomposition.sources'),  value: comp.source_diversity },
-    {
-      label: t('report.decomposition.entropy'),
-      value: comp.signal_type_entropy != null ? comp.signal_type_entropy.toFixed(2) : '—',
-    },
-  ];
-  return (
-    <Stack
-      direction="row"
-      flexWrap="wrap"
-      spacing={1.5}
-      useFlexGap
-      sx={(theme) => ({
-        marginTop: theme.spacing(0.75),
-        marginBottom: theme.spacing(0.75),
-        color: 'text.secondary',
-        fontSize: theme.typography.eyebrow.fontSize,
-        opacity: 0.85,
-      })}
-    >
-      <Typography variant="eyebrow" component="span" sx={{ opacity: 0.7 }}>
-        {t('report.decomposition.label')}:
-      </Typography>
-      {items.map((it) => (
-        <Box component="span" key={it.label}>
-          <strong>{it.label}</strong> {it.value ?? '—'}
-        </Box>
-      ))}
-    </Stack>
-  );
-}
-
 function WhyThisScore({ comp, t }) {
   const contributors = comp.top_contributors;
   if (!Array.isArray(contributors) || contributors.length === 0) return null;
@@ -559,7 +522,6 @@ function ComponentCard({
   onEvidenceToggle,
 }) {
   const isAnalyst = displayTier === 'analyst';
-  const Icon = getComponentIcon(comp.component_id);
   const label = t(`comp.${comp.component_id}`) ?? comp.component_id.replace(/_/g, ' ');
   const confidenceLabel = t(`confidence.${comp.confidence}`) ?? comp.confidence;
 
@@ -587,13 +549,13 @@ function ComponentCard({
       })}
     >
       <AccordionSummary>
-        <Icon
-          sx={(theme) => ({
+        {createElement(getComponentIcon(comp.component_id), {
+          sx: (theme) => ({
             fontSize: theme.typography.sectionTitle.fontSize,
             color: theme.palette.text.secondary,
             marginRight: theme.spacing(1),
-          })}
-        />
+          }),
+        })}
         <Stack direction="column" sx={{ flex: 1, minWidth: 0 }}>
           <Stack direction="row" alignItems="center" spacing={1}>
             <Typography sx={{ fontWeight: 500, textTransform: 'capitalize' }}>
@@ -727,7 +689,7 @@ export function ReportView({
   readOnly: _readOnly,
   translating,
   translateError,
-  reportDate,
+  reportDate: _reportDate,
   reportScope,
   driftByComponent,
   driftLoading,

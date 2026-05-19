@@ -472,7 +472,7 @@ describe('scoreComponents — counterfactual (C3)', () => {
   });
 
   it('returns null when only one article contributes', () => {
-    const sigs = repeat(5, (i) => makeSignal({
+    const sigs = repeat(5, () => makeSignal({
       article_url: 'https://x.com/only',
       article_index: 1,
       source_type: 'news',

@@ -96,12 +96,16 @@ export function DocsPanel({ open, onClose }) {
 
   useEffect(() => {
     if (!open) return;
-    void loadIndex();
+    void (async () => {
+      await loadIndex();
+    })();
   }, [open, loadIndex]);
 
   useEffect(() => {
     if (!open) return;
-    void loadPage(selectedSlug);
+    void (async () => {
+      await loadPage(selectedSlug);
+    })();
   }, [open, selectedSlug, loadPage]);
 
   const filtered = useMemo(() => {

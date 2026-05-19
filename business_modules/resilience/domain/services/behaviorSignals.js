@@ -568,7 +568,7 @@ function counterfactualLargestArticle(items, componentId, totalArticles, current
  * directional math restricted to the facet's signal subset. We deliberately
  * skip per-source cap and bootstrap here to keep facets cheap.
  */
-function computeFacets(componentId, allComponentSignals, totalArticles) {
+function computeFacets(componentId, allComponentSignals, _totalArticles) {
   const def = COMPONENT_FACETS[componentId];
   if (!def) return null;
   const out = {};

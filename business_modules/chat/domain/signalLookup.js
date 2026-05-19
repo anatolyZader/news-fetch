@@ -2,7 +2,7 @@
  * Signal and report lookup utilities for chat tools.
  */
 import { readFileSync, readdirSync } from 'node:fs';
-import { join, basename } from 'node:path';
+import { join } from 'node:path';
 import {
   deriveInstrumentState,
   operatorAssessmentSummary,

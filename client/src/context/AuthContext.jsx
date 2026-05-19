@@ -57,12 +57,8 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     if (!configLoaded) return;
-    if (!authRequired) {
-      setAuthLoading(false);
-      return;
-    }
-    if (!isFirebaseClientConfigured()) {
-      setAuthLoading(false);
+    if (!authRequired || !isFirebaseClientConfigured()) {
+      void Promise.resolve().then(() => setAuthLoading(false));
       return;
     }
 

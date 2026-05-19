@@ -27,9 +27,10 @@ export function useMunicipalitiesData({ getIdToken, apiReady }) {
   }, [getIdToken]);
 
   useEffect(() => {
-    if (apiReady) {
-      void load();
-    }
+    if (!apiReady) return;
+    void (async () => {
+      await load();
+    })();
   }, [apiReady, load]);
 
   const day = useMemo(() => {

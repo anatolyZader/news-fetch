@@ -82,7 +82,7 @@ export function calcInvocationCostUsd(model, usage) {
  * @param {string} [opts.label]        Human-readable label for log messages
  * @returns {{ onUsage, getTotal, printSummary }}
  */
-export function createCostTracker({ maxCostUsd, label = 'run' } = {}) {
+export function createCostTracker({ maxCostUsd, label: _label = 'run' } = {}) {
   const cap = maxCostUsd ?? parseFloat(process.env.MAX_COST_USD ?? '3.00');
   const usageLog = [];
   // C9 — stage instrumentation: stage events (verifier kills, self-check

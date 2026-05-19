@@ -293,7 +293,7 @@ export async function runAnalysis({ onProgress, store } = {}) {
 
   let rawArticles;
   let sourceFiles;
-  let sourceTypes = [];
+  let sourceTypes;
 
   // ── DB + optional homefront merge, else MD file only ───────────────────────
   if (store && store.hasItemsForDate(date)) {

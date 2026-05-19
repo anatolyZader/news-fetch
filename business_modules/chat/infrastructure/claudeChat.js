@@ -2,7 +2,7 @@
  * Claude API interaction for chat — Haiku with tool use.
  */
 import Anthropic from '@anthropic-ai/sdk';
-import { loadSignals, searchSignals, formatSignals, compareReports, loadReport, listReportDates } from '../domain/signalLookup.js';
+import { loadSignals, searchSignals, formatSignals, compareReports } from '../domain/signalLookup.js';
 import {
   deriveInstrumentState,
   operatorAssessmentSummary,

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
@@ -121,7 +121,7 @@ export function SendEvidencePanel({ open, onClose, onSubmissionComplete }) {
           // Closing the panel should still clear the visible draft even if server sync retries later.
         });
     }
-  }, [apiReady, hydrated, putEvidence]);
+  }, [apiReady, putEvidence]);
 
   const handleClose = useCallback(
     (...args) => {
@@ -153,6 +153,7 @@ export function SendEvidencePanel({ open, onClose, onSubmissionComplete }) {
     [getIdToken],
   );
 
+  const pollSubmissionUntilDoneRef = useRef(/** @type {(submissionId: number) => Promise<void>} */ (async () => {}));
   const pollSubmissionUntilDone = useCallback(
     async (submissionId) => {
       try {
@@ -186,23 +187,26 @@ export function SendEvidencePanel({ open, onClose, onSubmissionComplete }) {
         }
         setAnalysisNote('8-component analysis in progress…');
         submissionPollRef.current.timerId = setTimeout(() => {
-          void pollSubmissionUntilDone(submissionId);
+          void pollSubmissionUntilDoneRef.current(submissionId);
         }, 2000);
       } catch (err) {
         setAnalysisNote(`Status check failed: ${err?.message ?? 'unknown error'}`);
         submissionPollRef.current.timerId = setTimeout(() => {
-          void pollSubmissionUntilDone(submissionId);
+          void pollSubmissionUntilDoneRef.current(submissionId);
         }, 3000);
       }
     },
     [cancelSubmissionPoll, fetchSubmissionStatus, onSubmissionComplete],
   );
+  useLayoutEffect(() => {
+    pollSubmissionUntilDoneRef.current = pollSubmissionUntilDone;
+  });
 
   useEffect(() => {
     if (!apiReady) return;
     let cancelled = false;
-    setSyncError(null);
     (async () => {
+      setSyncError(null);
       try {
         const data = await fetchEvidence();
         if (cancelled) return;

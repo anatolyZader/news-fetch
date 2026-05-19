@@ -12,7 +12,7 @@ export class IReportBotManualReportsPort {
 
   /** @param {string} fileName */
   /** @returns {string} */
-  readReportText(fileName) {
+  readReportText(_fileName) {
     throw new Error('IReportBotManualReportsPort.readReportText not implemented');
   }
 }

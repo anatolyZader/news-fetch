@@ -483,7 +483,10 @@ export function VisitsTab() {
   }, [getIdToken]);
 
   useEffect(() => {
-    if (apiReady) void load();
+    if (!apiReady) return;
+    void (async () => {
+      await load();
+    })();
   }, [apiReady, load]);
 
   const selectedDay = useMemo(() => {

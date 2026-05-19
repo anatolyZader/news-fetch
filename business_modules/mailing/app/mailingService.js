@@ -140,9 +140,6 @@ const POOL_COLORS = {
 
 const NAF_SEVERITY_KEYS = ['financialRequests', 'schoolMentalHealth', 'communityMentalHealth', 'parentalStress', 'coupleConflicts', 'parentChildConflicts'];
 const NAF_VULN_KEYS = ['physicalDisability', 'mentalDisability', 'specialEducation', 'domesticViolence', 'severeFinancial', 'singleParent'];
-const EDU_COPING_KEYS = ['indifferent', 'coping_easily', 'struggling_somewhat', 'struggling_greatly', 'other'];
-const EDU_FREQ_KEYS = ['high', 'low', 'rarely'];
-
 const POOL_LABELS = {
   en: {
     totalResponses: 'Total responses',
@@ -488,14 +485,6 @@ function commentsTableHtml({ title, rows, columns, dir, reverseColumns = false }
       `}
     </section>
   `;
-}
-
-function scoreBadgeColor(score) {
-  const n = Number(score);
-  if (!Number.isFinite(n)) return { bg: '#eef2f7', fg: '#334155', border: '#d8dee8' };
-  if (n <= 3) return { bg: '#fee2e2', fg: '#991b1b', border: '#fecaca' };
-  if (n <= 6) return { bg: '#fef3c7', fg: '#92400e', border: '#fde68a' };
-  return { bg: '#dcfce7', fg: '#166534', border: '#bbf7d0' };
 }
 
 function paragraphHtml(text) {
@@ -996,7 +985,7 @@ export function createMailingService({
   mailFrom,
   getCachedReport,
   translateReport,
-  maxMarkdownChars = Number(process.env.MAIL_DIGEST_MAX_MARKDOWN_CHARS) || DEFAULT_MAX_MARKDOWN,
+  maxMarkdownChars: _maxMarkdownChars = Number(process.env.MAIL_DIGEST_MAX_MARKDOWN_CHARS) || DEFAULT_MAX_MARKDOWN,
   poolService: poolServiceArg,
 }) {
   if (!deliveryPort || !mailFrom) {
@@ -1019,7 +1008,6 @@ export function createMailingService({
     if (products.report) {
       const cached = getCachedReport();
       let assessment = getAssessmentFromCache(cached);
-      const reportDate = cached?.reportDate ?? 'unknown date';
       if (lang !== 'en' && assessment && translateReport) {
         try {
           assessment = await translateReport(assessment, lang);

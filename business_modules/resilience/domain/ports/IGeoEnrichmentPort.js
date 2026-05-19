@@ -14,7 +14,7 @@ export class IGeoEnrichmentPort {
    * @param {{ sourceType?: string, reporterSubregionHint?: string }} [options]
    * @returns {object} GeoResolved | GeoUnknown envelope (see business_modules/geo domain value objects)
    */
-  resolveLocalityName(rawName, options) {
+  resolveLocalityName(_rawName, _options) {
     throw new Error('resolveLocalityName() must be implemented');
   }
 }

@@ -101,7 +101,7 @@ export function precisionRecallF1(pairs, opts = {}) {
   let macroP = 0, macroR = 0, macroF = 0, macroN = 0;
   let microTp = 0, microFp = 0, microFn = 0;
 
-  for (const [t, b] of Object.entries(per_type)) {
+  for (const [, b] of Object.entries(per_type)) {
     const p = b.tp + b.fp > 0 ? b.tp / (b.tp + b.fp) : 0;
     const r = b.tp + b.fn > 0 ? b.tp / (b.tp + b.fn) : 0;
     const f = p + r > 0 ? (2 * p * r) / (p + r) : 0;

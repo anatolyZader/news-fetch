@@ -11,7 +11,7 @@ export class IGeoUnknownSinkPort {
   /**
    * @param {import('../value_objects/geoEnrichment.js').GeoUnknown} envelope
    */
-  recordUnknown(envelope) {
+  recordUnknown(_envelope) {
     throw new Error('recordUnknown() must be implemented');
   }
 }

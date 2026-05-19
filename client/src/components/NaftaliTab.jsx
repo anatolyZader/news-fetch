@@ -59,7 +59,7 @@ function formatWeekLabel(trend) {
 
 export function NaftaliTab() {
   const { getIdToken, apiReady } = useAuth();
-  const { lang, t } = useLanguage();
+  const { t } = useLanguage();
   const theme = useTheme();
   const SEVERITY_COLORS = useMemo(() => buildSeverityColors(theme.palette.chart), [theme]);
   const VULN_COLORS = useMemo(() => buildVulnColors(theme.palette.chart), [theme]);
@@ -119,7 +119,12 @@ export function NaftaliTab() {
     }
   }, [getIdToken]);
 
-  useEffect(() => { if (apiReady) load(); }, [apiReady, load]);
+  useEffect(() => {
+    if (!apiReady) return;
+    void (async () => {
+      await load();
+    })();
+  }, [apiReady, load]);
 
   const filteredTrends = useMemo(() => {
     if (!data?.weeks || muniFilter.size === 0) return data?.trends ?? [];

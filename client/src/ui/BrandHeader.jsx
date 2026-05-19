@@ -12,7 +12,7 @@ export function BrandHeader({ title, subtitle, align = 'start' }) {
   return (
     <Stack
       spacing={0.25}
-      sx={(theme) => ({
+      sx={() => ({
         ...alignSx,
         '[dir="rtl"] &': align === 'start'
           ? { alignItems: 'flex-end', textAlign: 'right' }

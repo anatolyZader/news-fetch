@@ -5,7 +5,6 @@ const VARIANT_TO_HEBREW = {
   'kiryat shmona': 'קריית שמונה',
   'kiryat shemona': 'קריית שמונה',
   'qiryat shemona': 'קריית שמונה',
-  'kiryat shemona': 'קריית שמונה',
   'tzfat': 'צפת',
   'safed': 'צפת',
   'tiberias': 'טבריה',

@@ -227,7 +227,7 @@ async function translateChunkWithRetry(payload, lang, langName) {
       const transient = isTransientTranslateError(err);
       if (!transient || attempt === MAX_ATTEMPTS) {
         const detail = status ? `HTTP ${status}` : (err?.message ?? 'unknown error');
-        throw new Error(`Translation provider error (${detail})`);
+        throw new Error(`Translation provider error (${detail})`, { cause: err });
       }
       // Exponential backoff with small jitter to avoid stampeding.
       const base = 750 * (2 ** (attempt - 1));
@@ -264,7 +264,8 @@ export async function getTranslatedReport(report, lang) {
     // upgrade it by translating ONLY the missing summary and writing back.
     const meta = fromDisk?._translation_meta;
     const metaSaysSynthesisTranslated = meta?.fields?.cross_component_synthesis === true;
-    const looksLikeEnglish = /^[\x00-\x7F]/.test(String(fromDisk?.cross_component_synthesis ?? '').trim());
+    const synthesisHead = String(fromDisk?.cross_component_synthesis ?? '').trim();
+    const looksLikeEnglish = synthesisHead.length > 0 && synthesisHead.charCodeAt(0) <= 0x7f;
     const needsSynthesisUpgrade = !metaSaysSynthesisTranslated && looksLikeEnglish && (lang === 'he' || lang === 'ru');
 
     if (needsSynthesisUpgrade) {

@@ -184,7 +184,6 @@ try {
     console.error(`Contextualized ${articles.length} scene(s) → ${outPath}`);
 
     // Persist to DB
-    const sqlitePath = process.env.SQLITE_PATH?.trim() || resolve(outPath, '../../data/app.sqlite');
     try {
       const store = createEvidenceStore(resolve(process.cwd(), process.env.SQLITE_PATH?.trim() || 'data/app.sqlite'));
       const inserted = store.insertItems(result.items);

@@ -24,10 +24,10 @@ class GeoNorthReferenceJsonAdapter extends IGeoNorthReferencePort {
     const legacyPath = join(this.dataDir, 'north-localities.json');
     const borderPath = join(this.dataDir, 'north-border.json');
 
-    let referenceVersion = 'unknown';
+    let referenceVersion;
     let referenceSource = 'north-localities-v1';
     /** @type {unknown[]} */
-    let rawLocalities = [];
+    let rawLocalities;
 
     if (existsSync(refPath)) {
       const doc = JSON.parse(readFileSync(refPath, 'utf8'));

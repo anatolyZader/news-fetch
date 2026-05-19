@@ -16,7 +16,7 @@ export class IGeoLocalityOverridesPort {
    * @param {string} normalizedInput Normalized lookup key (NFKC/lower/space collapse).
    * @returns {{ canonicalKey: string, geoEntityType?: string } | null}
    */
-  lookupOverride(rawInput, normalizedInput) {
+  lookupOverride(_rawInput, _normalizedInput) {
     throw new Error('lookupOverride() must be implemented');
   }
 }

@@ -21,17 +21,15 @@ export function useResilienceDrift(opts = {}) {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!apiReady || !enabled) {
-      setData(null);
-      setLoading(false);
-      return;
-    }
+    if (!apiReady || !enabled) return;
 
     let cancelled = false;
-    setLoading(true);
-    setError(null);
 
     (async () => {
+      setLoading(true);
+      setError(null);
+      setData(null);
+
       const headers = new Headers();
       const token = await getIdToken();
       if (cancelled) return;
@@ -58,5 +56,9 @@ export function useResilienceDrift(opts = {}) {
     return () => { cancelled = true; };
   }, [apiReady, getIdToken, scope, days, endDate, enabled]);
 
-  return { data, loading, error };
+  return {
+    data: apiReady && enabled ? data : null,
+    loading: apiReady && enabled ? loading : false,
+    error: apiReady && enabled ? error : null,
+  };
 }

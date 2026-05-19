@@ -41,17 +41,16 @@ export function useSearchTrendsDashboard(opts = {}) {
   }, [apiReady, getIdToken, districtId, days]);
 
   useEffect(() => {
-    if (!enabled) {
-      setData(null);
-      setLoading(false);
-      return;
-    }
-    if (!apiReady) {
-      setLoading(true);
-      return;
-    }
-    load(false);
+    if (!enabled || !apiReady) return;
+    void (async () => {
+      await load(false);
+    })();
   }, [enabled, apiReady, load]);
 
-  return { data, loading, error, reload: () => load(true) };
+  return {
+    data: enabled ? data : null,
+    loading: enabled && apiReady ? loading : !enabled ? false : true,
+    error: enabled ? error : null,
+    reload: () => load(true),
+  };
 }

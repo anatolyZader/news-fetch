@@ -29,17 +29,6 @@ const IL_TZ = 'Asia/Jerusalem';
 
 /** Returns Israel-time components for the given Date. */
 function ilTimeParts(date) {
-  const fmt = new Intl.DateTimeFormat('en-CA', {
-    timeZone: IL_TZ,
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-    weekday: 'narrow',  // 'S','M','T','W','T','F','S' — but narrow is locale-dependent
-  });
-
   // Use a more reliable approach: separate calls for numeric parts vs weekday
   const numericParts = Object.fromEntries(
     new Intl.DateTimeFormat('en-CA', {

@@ -268,8 +268,10 @@ function AppShell() {
     try {
       localStorage.setItem(LS_REPORT_SCOPE, reportScope);
     } catch { /* */ }
-    setOpenReportCompId(null);
-    setOpenReportEvidenceCompId(null);
+    void Promise.resolve().then(() => {
+      setOpenReportCompId(null);
+      setOpenReportEvidenceCompId(null);
+    });
   }, [reportScope]);
 
   const [docsOpen, setDocsOpen] = useState(false);
@@ -295,8 +297,10 @@ function AppShell() {
 
   useEffect(() => {
     if (!canViewAnalyst && reportView === 'analyst') {
-      setReportView('operator');
-      writeStoredReportView('operator');
+      void Promise.resolve().then(() => {
+        setReportView('operator');
+        writeStoredReportView('operator');
+      });
     }
   }, [canViewAnalyst, reportView]);
 

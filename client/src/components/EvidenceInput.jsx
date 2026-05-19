@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
@@ -147,6 +147,7 @@ export function EvidenceInput() {
     [putEvidence, cancelRetry],
   );
 
+  const scheduleRetryRef = useRef(/** @type {(content: string) => void} */ (() => {}));
   const scheduleRetry = useCallback(
     (content) => {
       retryRef.current.content = content;
@@ -157,11 +158,14 @@ export function EvidenceInput() {
         retryRef.current.timerId = null;
         retryRef.current.attempts += 1;
         const ok = await persistDraft(retryRef.current.content, true);
-        if (!ok) scheduleRetry(retryRef.current.content);
+        if (!ok) scheduleRetryRef.current(retryRef.current.content);
       }, waitMs);
     },
     [persistDraft],
   );
+  useLayoutEffect(() => {
+    scheduleRetryRef.current = scheduleRetry;
+  });
 
   useEffect(() => {
     if (!hydrated) return;
@@ -173,9 +177,9 @@ export function EvidenceInput() {
   useEffect(() => {
     if (!apiReady) return;
     let cancelled = false;
-    setSyncError(null);
 
     (async () => {
+      setSyncError(null);
       try {
         const data = await fetchEvidence();
         if (cancelled) return;
@@ -258,6 +262,7 @@ export function EvidenceInput() {
   );
 
 
+  const pollSubmissionUntilDoneRef = useRef(/** @type {(submissionId: number) => Promise<void>} */ (async () => {}));
   const pollSubmissionUntilDone = useCallback(
     async (submissionId) => {
       try {
@@ -285,17 +290,20 @@ export function EvidenceInput() {
         }
         setAnalysisNote('8-component analysis in progress…');
         submissionPollRef.current.timerId = setTimeout(() => {
-          void pollSubmissionUntilDone(submissionId);
+          void pollSubmissionUntilDoneRef.current(submissionId);
         }, 2000);
       } catch (err) {
         setAnalysisNote(`Status check failed: ${err?.message ?? 'unknown error'}`);
         submissionPollRef.current.timerId = setTimeout(() => {
-          void pollSubmissionUntilDone(submissionId);
+          void pollSubmissionUntilDoneRef.current(submissionId);
         }, 3000);
       }
     },
     [cancelSubmissionPoll, fetchSubmissionStatus],
   );
+  useLayoutEffect(() => {
+    pollSubmissionUntilDoneRef.current = pollSubmissionUntilDone;
+  });
 
   const handleSend = useCallback(async () => {
     if (sending || !hydrated) return;
@@ -359,7 +367,7 @@ export function EvidenceInput() {
     } finally {
       setSending(false);
     }
-  }, [sending, hydrated, value, getIdToken, cancelSubmissionPoll, pollSubmissionUntilDone]);
+  }, [sending, hydrated, value, getIdToken, cancelRetry, cancelSubmissionPoll, pollSubmissionUntilDone]);
 
 
   return (

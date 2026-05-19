@@ -153,7 +153,6 @@ export function createWhatsAppIngestService({
       switch (effect.type) {
         case 'create_draft': {
           activeDraftId = draftStore.create(normalized.phoneNumber);
-          draft = draftStore.get(activeDraftId);
           break;
         }
         case 'append_turn_officer': {
@@ -161,7 +160,6 @@ export function createWhatsAppIngestService({
             draftStore.appendTurn(activeDraftId, {
               role: 'officer', text: effect.text, ts: timestampUtc,
             });
-            draft = draftStore.get(activeDraftId);
           }
           break;
         }
@@ -170,7 +168,6 @@ export function createWhatsAppIngestService({
             draftStore.appendTurn(activeDraftId, {
               role: 'bot', text: effect.text, ts: new Date().toISOString(),
             });
-            draft = draftStore.get(activeDraftId);
           }
           break;
         }
@@ -180,12 +177,10 @@ export function createWhatsAppIngestService({
           });
           nextState = outcome.nextState;
           for (const reply of outcome.replies) result.replies.push(reply);
-          draft = activeDraftId ? draftStore.get(activeDraftId) : null;
           if (outcome.askDraftGenerator) {
             const generated = await runDraftGenerator({ draftId: activeDraftId });
             for (const reply of generated.replies) result.replies.push(reply);
             nextState = generated.nextState;
-            draft = activeDraftId ? draftStore.get(activeDraftId) : null;
           }
           break;
         }

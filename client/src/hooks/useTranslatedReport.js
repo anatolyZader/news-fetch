@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
 
 /**
@@ -13,9 +13,11 @@ export function useTranslatedReport(report, lang) {
   const { getIdToken } = useAuth();
   // Keep unstable references in refs so they never re-trigger the effect
   const getIdTokenRef = useRef(getIdToken);
-  getIdTokenRef.current = getIdToken;
   const reportRef = useRef(report);
-  reportRef.current = report;
+  useLayoutEffect(() => {
+    getIdTokenRef.current = getIdToken;
+    reportRef.current = report;
+  });
 
   const [translated, setTranslated] = useState(null);
   const [translating, setTranslating] = useState(false);
@@ -26,20 +28,20 @@ export function useTranslatedReport(report, lang) {
   const articleCount = report?.total_articles_analyzed ?? 0;
 
   useEffect(() => {
-    if (!reportDate || lang === 'en') {
-      setTranslated(null);
-      setTranslateError(null);
-      setTranslating(false);
-      return;
-    }
-
-    setTranslated(null);
-    setTranslateError(null);
-    setTranslating(true);
-
     let cancelled = false;
 
     (async () => {
+      if (!reportDate || lang === 'en') {
+        setTranslated(null);
+        setTranslateError(null);
+        setTranslating(false);
+        return;
+      }
+
+      setTranslated(null);
+      setTranslateError(null);
+      setTranslating(true);
+
       try {
         const headers = new Headers({ 'Content-Type': 'application/json' });
         const token = await getIdTokenRef.current();
@@ -71,7 +73,6 @@ export function useTranslatedReport(report, lang) {
     })();
 
     return () => { cancelled = true; };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reportDate, reportScope, articleCount, lang]);
 
   return { displayReport: translated ?? report, translating, translateError };

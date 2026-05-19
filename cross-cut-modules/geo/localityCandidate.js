@@ -8,7 +8,7 @@ export function normalizeLocalityName(raw) {
   const s = String(raw ?? '').trim();
   if (!s) return null;
   return s
-    .replace(/[()\[\]{}<>]/g, ' ')
+    .replace(/[()[\]{}<>]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim()
     .slice(0, 80) || null;
@@ -22,8 +22,8 @@ export function inferLocalityFromText(text) {
   const t = String(text ?? '').trim();
   if (!t) return null;
   const m =
-    t.match(/(?:\bביישוב\b|\bבקיבוץ\b|\bבמושב\b|\bבעיר\b|\bבכפר\b|\bבקריית\b|\bב)\s*([א-ת"׳'\- ]{2,28})/) ??
-    t.match(/\bב([א-ת"׳'\-]{2,28})/);
+    t.match(/(?:\bביישוב\b|\bבקיבוץ\b|\bבמושב\b|\bבעיר\b|\bבכפר\b|\bבקריית\b|\bב)\s*([א-ת"׳' -]{2,28})/) ??
+    t.match(/\bב([א-ת"׳'-]{2,28})/);
   if (!m) return null;
   const cand = normalizeLocalityName(m[1]);
   if (!cand) return null;

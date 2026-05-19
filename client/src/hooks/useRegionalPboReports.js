@@ -66,13 +66,15 @@ export function useRegionalPboReports({ regionId, getIdToken, apiReady }) {
 
   useEffect(() => {
     if (!apiReady) return;
-    if (!canonicalRegionalPboRegionId(regionId)) {
-      setLoading(false);
-      setData(null);
-      setError(null);
-      return;
-    }
-    void reload();
+    void (async () => {
+      if (!canonicalRegionalPboRegionId(regionId)) {
+        setLoading(false);
+        setData(null);
+        setError(null);
+        return;
+      }
+      await reload();
+    })();
   }, [apiReady, regionId, reload]);
 
   return { data, loading, error, reload };

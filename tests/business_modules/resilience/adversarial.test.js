@@ -174,8 +174,6 @@ function makeMockExtraction(spec) {
 function resolveSignals(c) {
   if (Array.isArray(c.mock_extraction)) return c.mock_extraction;
   if (c._generator && typeof c._generator === 'string') {
-    const generators = makeMockExtraction.__generators ?? null;
-    // Use the generator name in `_generator` directly.
     return makeMockExtraction(c._generator);
   }
   // Fallback: treat string mock_extraction as the legacy shorthand.

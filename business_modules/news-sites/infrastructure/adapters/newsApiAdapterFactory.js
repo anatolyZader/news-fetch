@@ -20,10 +20,7 @@ export function createNewsApiArticlesFetcher(options) {
 
   async function fetchArticlesForDay({ date }) {
     const all = [];
-    let page = 1;
-    let totalPages = 1;
-
-    do {
+    for (let page = 1; ; page++) {
       const body = {
         action: 'getArticles',
         resultType: 'articles',
@@ -54,7 +51,7 @@ export function createNewsApiArticlesFetcher(options) {
 
       const data = await res.json();
       const results = data?.articles?.results ?? [];
-      totalPages = data?.articles?.pages ?? 1;
+      const totalPages = data?.articles?.pages ?? 1;
 
       for (const a of results) {
         const url = a.url ?? '';
@@ -67,8 +64,8 @@ export function createNewsApiArticlesFetcher(options) {
           body: a.body ?? '',
         });
       }
-      page += 1;
-    } while (page <= totalPages);
+      if (page >= totalPages) break;
+    }
 
     all.sort((a, b) => (a.publishedAt || '').localeCompare(b.publishedAt || ''));
     return all;

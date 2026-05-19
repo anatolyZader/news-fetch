@@ -98,7 +98,7 @@ export async function mailingRoutes(app, opts) {
     const prefs = prefsStore.getByUid(uid);
     const savedEmail = String(prefs?.email ?? '').trim().toLowerCase();
 
-    let to = '';
+    let to;
     if (bodyTo) {
       if (bodyTo !== jwtEmail && bodyTo !== savedEmail) {
         return reply.code(400).send({

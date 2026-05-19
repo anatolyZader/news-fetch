@@ -40,7 +40,7 @@ export function createMailingResendAdapter({ apiKey, fetchImpl = fetch }) {
       });
 
       const raw = await res.text();
-      let parsed = null;
+      let parsed;
       try {
         parsed = raw ? JSON.parse(raw) : null;
       } catch {

@@ -24,15 +24,16 @@ export function useTodayReport(scope = 'national', view = 'operator') {
     if (!apiReady) return;
 
     let cancelled = false;
-    setReport(null);
-    setMarkdown(null);
-    setScoreBySource(null);
-    setReportDate(null);
-    setDisplayView(view);
-    setInitialReportLoadDone(false);
-    setReportMissingHint(null);
 
     (async () => {
+      setReport(null);
+      setMarkdown(null);
+      setScoreBySource(null);
+      setReportDate(null);
+      setDisplayView(view);
+      setInitialReportLoadDone(false);
+      setReportMissingHint(null);
+
       const headers = new Headers();
       const t = await getIdToken();
       if (cancelled) return;
