@@ -78,7 +78,7 @@ Each arrow crosses a file boundary. Each stage is restartable from the last arti
 ## Troubleshooting
 - **Reports stop updating**
   - **Check**: ingestion sources, background job exit codes, API keys, and budget caps.
-  - **Fix**: verify environment variables and inspect server logs for upstream failures. Start with [Observability](../operations/observability.md).
+  - **Fix**: verify environment variables and inspect server logs for upstream failures. Start with [Observability](https://docs.vibeswitch.ai/operations/observability).
 - **A change to the UI surfaces analysis differently but the numbers are the same**
   - **Check**: is the code in `client/` reshaping data, or is an analysis module changing values?
   - **Fix**: keep analysis in `business_modules/resilience/`; keep presentation in `client/`. Data mutations in the UI are a code smell.

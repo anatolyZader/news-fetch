@@ -31,5 +31,5 @@ Operators maintain an internal, auditable export for each day (so they can valid
   - **Fix**: unset it and rerun.
 - **Costs jumped**
   - **Cause**: the number of candidate articles grew; filtering cost scales with candidates.
-  - **Fix**: tighten the upstream query and review caps (see [Cost controls](../operations/cost-controls.md)).
+  - **Fix**: tighten the upstream query and review caps (see [Cost controls](https://docs.vibeswitch.ai/operations/cost-controls)).
 

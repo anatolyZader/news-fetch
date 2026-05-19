@@ -87,7 +87,7 @@ Each step halves the possible causes. Don't skip ahead.
 **Symptom**: ingestion or extraction fails with 5xx or connection errors.
 
 - **Check**: the provider's status page and your account dashboard (quota, billing).
-- **Fix**: pause the affected stage, wait for upstream recovery, then replay the date. Don't spin retries indefinitely — each failed attempt burns cost. See [Cost controls](../operations/cost-controls.md).
+- **Fix**: pause the affected stage, wait for upstream recovery, then replay the date. Don't spin retries indefinitely — each failed attempt burns cost. See [Cost controls](https://docs.vibeswitch.ai/operations/cost-controls).
 
 #### P6 — WhatsApp webhook stops delivering
 
@@ -135,7 +135,7 @@ Put these on a calendar, don't wait for breakage:
 
 ## Troubleshooting
 - **The symptom doesn't match anything listed above**
-  - **Check**: run the fast triage sequence to narrow to a stage. Then consult [Common failures](../operations/common-failures.md) and [Observability](../operations/observability.md).
+  - **Check**: run the fast triage sequence to narrow to a stage. Then consult [Common failures](https://docs.vibeswitch.ai/operations/common-failures) and [Observability](https://docs.vibeswitch.ai/operations/observability).
   - **Fix**: if none of those match either, capture logs + symptom + date and escalate.
 - **A fix "worked" but I don't know why**
   - **Check**: what *exactly* changed between the failing and succeeding states.

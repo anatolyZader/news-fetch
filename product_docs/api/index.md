@@ -101,7 +101,7 @@ Don't hand-edit the generated pages — your changes will be overwritten.
   - **Fix**: update the YAML and rebuild the docs site. Don't patch the generated markdown directly.
 - **Swagger UI is blank**
   - **Check**: `/api/openapi.json` returns valid JSON.
-  - **Fix**: confirm the spec file exists on the server; see [Common failures](../operations/common-failures.md).
+  - **Fix**: confirm the spec file exists on the server; see [Common failures](https://docs.vibeswitch.ai/operations/common-failures).
 - **401 from every endpoint**
   - **Check**: `/api/auth/config` — if `authRequired: true`, you need a Bearer token.
   - **Fix**: sign in via the UI or mint an ID token via Firebase to use directly. See [Auth model](../concepts/auth-model.md).

@@ -18,13 +18,13 @@ If you’re here to *use the product* (not deploy it), start with **Using the ap
 ## Where should I start?
 - **I want to read today’s assessment** → [Using the app (first report)](getting-started/using-the-app.md)
 - **I want to connect WhatsApp** → [WhatsApp integration](guides/whatsapp-integration.md)
-- **I run this every day** → [Operate the daily pipeline](guides/operating-daily-pipeline.md)
-- **Something is broken** → [Common failures](operations/common-failures.md)
+- **I run this every day** → [Operate the daily pipeline](https://docs.vibeswitch.ai/guides/operating-daily-pipeline)
+- **Something is broken** → [Common failures](https://docs.vibeswitch.ai/operations/common-failures)
 
 If you’re a developer/operator deploying a new instance, use:
-- [Install & run (local)](getting-started/install-and-run.md)
-- [Deploy (production)](getting-started/deploy.md)
-- [Auth setup](getting-started/auth-setup.md)
+- [Install & run (local)](https://docs.vibeswitch.ai/getting-started/install-and-run)
+- [Deploy (production)](https://docs.vibeswitch.ai/getting-started/deploy)
+- [Auth setup](https://docs.vibeswitch.ai/getting-started/auth-setup)
 
 ## How the system stays trustworthy
 - **Evidence-first**: every score should be traceable to concrete sources.
