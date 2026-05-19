@@ -14,6 +14,10 @@ concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# actions/checkout@v4 and setup-node@v4 run on Node 24 (Node 20 deprecated on runners).
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+
 # Status checks need checks + statuses write; only sync-main-docs needs contents write.
 permissions:
   contents: read
