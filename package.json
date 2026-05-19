@@ -67,7 +67,7 @@
     "trends:warm-cache": "node business_modules/search_trends/input/warmTrendsCache.js"
   },
   "devDependencies": {
-    "@redocly/cli": "^1.34.0",
+    "@redocly/cli": "^2.31.2",
     "@eslint/js": "^10.0.1",
     "eslint": "^10.4.0",
     "eslint-plugin-react-hooks": "^7.1.1",
