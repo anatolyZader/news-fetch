@@ -317,7 +317,7 @@ You do **not** configure these in the GitHub UI:
 | Variable / token | Set by | Used for |
 |------------------|--------|----------|
 | `GITHUB_TOKEN` | GitHub Actions | Checkout, and `git push` in `sync-main-docs` when permissions are read/write. |
-| `NODE_VERSION` | `actions/setup-node` | Node **20** (from workflow `node-version: '20'`). |
+| `NODE_VERSION` | `actions/setup-node` | Node **22** (from workflow `node-version: '22'`; required for built-in `node:sqlite`). |
 | `CI=true` | GitHub Actions | Standard; Node/npm tools may change behavior when set. |
 
 ### 3.2 Environment variables in `ci.yml` jobs
@@ -437,7 +437,7 @@ Replace or extend the **Build client** job:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
           cache-dependency-path: client/package-lock.json
       - run: npm ci --prefix client
@@ -650,6 +650,7 @@ npm run sync:north-terms:check   # must report new_count: 0
 | Doc sync push rejected on `dev` | Protected default branch requires PRs | Run `npm run docs:sync` locally and commit before merge; auto-push runs only on **same-repo PRs**. |
 | Doc sync push `403` | Workflow read-only | **Read and write** workflow permissions (Settings → Actions). |
 | `gen:api` / Docusaurus fails in CI | Missing `docs-site` install | CI already runs `npm ci --prefix docs-site`; locally run the same before `docs:sync`. |
+| `ERR_UNKNOWN_BUILTIN_MODULE: node:sqlite` | Node &lt; 22.13 in CI or locally | Use Node **22.13+** (CI uses `node-version: '22'`). |
 | Security audit fails | High/critical in lockfile (except `xlsx`) | Run `npm audit fix`, commit lockfile; locally run `node scripts/ci-audit.mjs`. |
 | `NORTH_TERMS` check fails | `north-reference.json` ahead of `regionSignalFilter.js` | Run `npm run sync:north-terms -- --write` and commit. |
 | Integration tests skipped | No API keys in CI | Expected; add secrets only if you intentionally want live API tests in CI. |

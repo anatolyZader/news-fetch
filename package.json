@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Fastify app – Ynet.co.il articles (same day, Hebrew) via NewsAPI.ai",
   "type": "module",
+  "engines": {
+    "node": ">=22.13.0"
+  },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",
     "@fastify/multipart": "^9.4.0",
