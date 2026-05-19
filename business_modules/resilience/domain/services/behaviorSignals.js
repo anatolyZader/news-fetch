@@ -16,10 +16,13 @@
 import { COMPONENT_FACETS } from './componentFacets.js';
 import { getOutletReliabilityMultiplier } from './outletReliabilityPriors.js';
 import {
+  CATALOG_VERSION,
+  DEFAULT_SCORING_PRIORS,
   SIGNAL_CATALOG,
   SIGNAL_DOMAINS,
   SIGNAL_TO_COMPONENTS,
   SIGNAL_TYPES,
+  getScoringPriors,
   getSignalCatalogEntry,
   assertCatalogPolarityCoherence,
 } from './signalCatalog.js';
@@ -29,10 +32,13 @@ import {
 } from './signalInstanceSchema.js';
 
 export {
+  CATALOG_VERSION,
+  DEFAULT_SCORING_PRIORS,
   SIGNAL_CATALOG,
   SIGNAL_DOMAINS,
   SIGNAL_TO_COMPONENTS,
   SIGNAL_TYPES,
+  getScoringPriors,
   getSignalCatalogEntry,
   assertCatalogPolarityCoherence,
 };
@@ -48,7 +54,32 @@ export {
   INTENSITY_WEIGHT,
 } from './signalInstanceSchema.js';
 
-// ─── Deterministic scoring (v4) ─────────────────────────────────────────────
+// ─── Deterministic scoring (v5) ─────────────────────────────────────────────
+
+const INTENSITY_ORDER = { light: 0, moderate: 1, severe: 2 };
+
+/** Clamp intensity key up to catalog floor when set. */
+function effectiveIntensityKey(signal, signalType) {
+  const key = signal.intensity ?? 'moderate';
+  const priors = getScoringPriors(signalType);
+  const floor = priors.intensity_floor;
+  if (!floor || INTENSITY_ORDER[key] == null || INTENSITY_ORDER[floor] == null) return key;
+  return INTENSITY_ORDER[key] >= INTENSITY_ORDER[floor] ? key : floor;
+}
+
+/** Half-life decay from article_date (YYYY-MM-DD) or batch_report_date on signal. */
+function temporalDecayMultiplier(signal, priors) {
+  const halfLife = priors.temporal_half_life_days;
+  if (halfLife == null || halfLife <= 0) return 1;
+  const ref = signal.batch_report_date ?? signal.report_date;
+  const articleDate = signal.article_date;
+  if (!ref || !articleDate) return 1;
+  const refMs = Date.parse(ref);
+  const artMs = Date.parse(articleDate);
+  if (!Number.isFinite(refMs) || !Number.isFinite(artMs)) return 1;
+  const days = Math.max(0, (refMs - artMs) / 86400000);
+  return Math.pow(0.5, days / halfLife);
+}
 
 export const COMPONENT_IDS = [
   'narrative', 'information_communication', 'lifesaving_behavior',
@@ -136,15 +167,19 @@ function effectiveWeightForSignal(signal, signalType, baseWeight) {
 /** Per-signal contribution before per-source capping (excludes duplicate-article discount). */
 function contributionForSignal(signal, baseWeight) {
   const signalType = signal.signal_type ?? signal.type;
+  const priors = getScoringPriors(signalType);
   const effectiveWeight = effectiveWeightForSignal(signal, signalType, baseWeight);
   // B2: field reports default to repeated_pattern when scope_level is missing.
   const isField = signal.source_type === 'field';
   const defaultScope = isField ? 'repeated_pattern' : 'single_case';
   const scope = SCOPE_WEIGHT[signal.scope_level ?? defaultScope] ?? SCOPE_WEIGHT[defaultScope];
-  const intensityKey = signal.intensity ?? 'moderate';
+  const intensityKey = effectiveIntensityKey(signal, signalType);
   const intensity = INTENSITY_WEIGHT[intensityKey] ?? INTENSITY_WEIGHT.moderate;
   const reliabilityKey = signal.evidence_type ?? signal.evidence_class ?? 'observational_reported_fact';
-  const reliability = RELIABILITY_WEIGHT[reliabilityKey] ?? RELIABILITY_WEIGHT.observational_reported_fact;
+  let reliability = RELIABILITY_WEIGHT[reliabilityKey] ?? RELIABILITY_WEIGHT.observational_reported_fact;
+  if (priors.reliability_override?.[reliabilityKey] != null) {
+    reliability = priors.reliability_override[reliabilityKey];
+  }
   const outletPrior = OUTLET_PRIOR_APPLIES_TO.has(reliabilityKey)
     ? getOutletReliabilityMultiplier(signal.article_source)
     : 1;
@@ -152,9 +187,17 @@ function contributionForSignal(signal, baseWeight) {
     ? Number.parseFloat(process.env.RESILIENCE_DUAL_AGREEMENT_BOOST ?? '1.05')
     : 1;
   const dualBoost = Number.isFinite(dualBoostRaw) ? Math.min(1.2, Math.max(1, dualBoostRaw)) : 1;
-  const temporal = signal.temporal_weight ?? 1.0;
+  let temporal = signal.temporal_weight ?? 1.0;
+  temporal *= temporalDecayMultiplier(signal, priors);
+  let phaseFactor = 1;
+  if (signal.phase && Array.isArray(priors.expected_phases) && priors.expected_phases.length > 0) {
+    if (!priors.expected_phases.includes(signal.phase)) {
+      phaseFactor = priors.phase_mismatch_discount ?? 1;
+    }
+  }
   const extractionConfidence = Math.min(1, Math.max(0, signal.extraction_confidence ?? 1.0));
-  return Math.abs(effectiveWeight) * scope * intensity * reliability * outletPrior * dualBoost * temporal * extractionConfidence;
+  return Math.abs(effectiveWeight) * scope * intensity * reliability * outletPrior
+    * dualBoost * temporal * phaseFactor * extractionConfidence;
 }
 
 /** Log-discounted factor for duplicate signal_type within one article (k = 1-based occurrence). */
@@ -184,7 +227,14 @@ function buildDuplicateOccurrenceIndex(signals) {
  * @param {Array<{ signal: object, contribution: number }>} items
  */
 function computeSignalClassMix(items) {
-  const mix = { behavior: 0, attitude: 0, structural_state: 0, narrative: 0 };
+  const mix = {
+    behavior: 0,
+    attitude: 0,
+    structural_state: 0,
+    narrative: 0,
+    event: 0,
+    capacity: 0,
+  };
   for (const it of items) {
     const t = it.signal.signal_type ?? it.signal.type;
     const entry = getSignalCatalogEntry(t);
@@ -196,10 +246,132 @@ function computeSignalClassMix(items) {
   mix.behavior_to_attitude_ratio = attitudeMass > 0
     ? round3(mix.behavior / attitudeMass)
     : (mix.behavior > 0 ? null : 0);
+  mix.capacity_realized_ratio = mix.capacity > 0
+    ? round3(mix.behavior / mix.capacity)
+    : (mix.behavior > 0 ? null : 0);
   for (const k of Object.keys(mix)) {
-    if (k !== 'behavior_to_attitude_ratio') mix[k] = round3(mix[k]);
+    if (k !== 'behavior_to_attitude_ratio' && k !== 'capacity_realized_ratio') {
+      mix[k] = round3(mix[k]);
+    }
   }
   return mix;
+}
+
+/** Mass by signal_type from capped contribution items. */
+function massBySignalType(items) {
+  const m = {};
+  for (const it of items) {
+    const t = it.signal.signal_type ?? it.signal.type;
+    if (!t) continue;
+    m[t] = (m[t] ?? 0) + it.contribution;
+  }
+  return m;
+}
+
+/**
+ * Composite indicators (code-side, not LLM vocabulary).
+ * @param {string} componentId
+ * @param {Array<{signal: object, contribution: number}>} cappedItems
+ * @param {Record<string, number>} [batchMassByType] mass by signal_type across entire batch
+ */
+function computeDerivedIndicators(componentId, cappedItems, batchMassByType = null) {
+  const byType = batchMassByType ?? massBySignalType(cappedItems);
+  const out = {
+    compliance_paradox: false,
+    narrative_wellbeing_dissociation: false,
+    leadership_narrative_divergence: false,
+    outlet_concentration_warning: false,
+    dominant_outlet_key: null,
+    trust_information_cascade: false,
+    recovery_fragility: false,
+    equity_information_double_gap: false,
+    capacity_without_behavior: false,
+    solidarity_under_harm: false,
+  };
+
+  if (componentId === 'lifesaving_behavior') {
+    out.compliance_paradox =
+      (byType.compliance_enter_shelter ?? 0) > 0 && (byType.information_confusion ?? 0) > 0;
+  }
+  if (componentId === 'narrative') {
+    const posNarr = byType.resilience_narrative_positive ?? 0;
+    const distress = (byType.fear_expression ?? 0) + (byType.psychological_distress ?? 0)
+      + (byType.child_distress ?? 0);
+    out.narrative_wellbeing_dissociation = posNarr > 0 && distress > 0;
+  }
+  if (componentId === 'wellbeing_atrisk') {
+    const posWell = (byType.positive_wellbeing_marker ?? 0) + (byType.calm_confidence ?? 0);
+    const distress = (byType.psychological_distress ?? 0) + (byType.child_distress ?? 0)
+      + (byType.fear_expression ?? 0);
+    out.narrative_wellbeing_dissociation = posWell > 0 && distress > 0;
+  }
+  if (componentId === 'leadership' || componentId === 'narrative') {
+    const posNarr = (byType.resilience_narrative_positive ?? 0) + (byType.calm_confidence ?? 0);
+    out.leadership_narrative_divergence =
+      posNarr > 0 && (byType.leadership_absence ?? 0) > 0;
+  }
+  if (componentId === 'lifesaving_behavior' || componentId === 'information_communication') {
+    out.trust_information_cascade =
+      (byType.mistrusted_information_source ?? 0) > 0
+      && (byType.non_compliance_due_to_distrust ?? 0) > 0;
+  }
+  if (componentId === 'functional_continuity') {
+    out.recovery_fragility =
+      (byType.post_event_recovery_indicator ?? 0) > 0 && (byType.recovery_setback ?? 0) > 0;
+  }
+  if (componentId === 'wellbeing_atrisk' || componentId === 'information_communication') {
+    out.equity_information_double_gap =
+      (byType.information_inclusivity_gap ?? 0) > 0
+      && (byType.inequitable_resource_access ?? 0) > 0;
+  }
+  if (componentId === 'community_capital') {
+    const mix = computeSignalClassMix(cappedItems);
+    out.capacity_without_behavior =
+      (mix.capacity ?? 0) > 0.5 && (mix.behavior ?? 0) < 0.3 * (mix.capacity ?? 0);
+  }
+  if (componentId === 'belonging_solidarity' || componentId === 'wellbeing_atrisk') {
+    out.solidarity_under_harm =
+      (byType.harm_to_population ?? 0) > 0 && (byType.solidarity_help_others ?? 0) > 0;
+  }
+
+  const outletInfo = detectOutletConcentration(cappedItems, 0.35);
+  out.outlet_concentration_warning = outletInfo.warning;
+  out.dominant_outlet_key = outletInfo.dominantKey;
+
+  return out;
+}
+
+/** Pre-cap check: would article_source cap bind for any polarity? */
+function detectOutletConcentration(items, threshold) {
+  if (items.length === 0) return { warning: false, dominantKey: null };
+  const distinct = new Set(items.map((it) => it.signal.article_source ?? '_unknown'));
+  if (distinct.size <= 1) return { warning: false, dominantKey: null };
+
+  for (const polarity of ['+', '-']) {
+    const polItems = items.filter((it) => it.polarity === polarity);
+    const total = polItems.reduce((s, it) => s + it.contribution, 0);
+    if (total === 0) continue;
+    const byKey = {};
+    for (const it of polItems) {
+      const k = it.signal.article_source ?? '_unknown';
+      byKey[k] = (byKey[k] || 0) + it.contribution;
+    }
+    for (const [key, mass] of Object.entries(byKey)) {
+      if (mass / total > threshold) {
+        return { warning: true, dominantKey: key };
+      }
+    }
+  }
+  return { warning: false, dominantKey: null };
+}
+
+/** Whether applySourceCap scaled any item (post vs pre cap mass). */
+function sourceCapWasApplied(preItems, postItems) {
+  if (preItems.length !== postItems.length) return false;
+  for (let i = 0; i < preItems.length; i++) {
+    if (Math.abs(preItems[i].contribution - postItems[i].contribution) > 1e-6) return true;
+  }
+  return false;
 }
 
 /**
@@ -530,6 +702,23 @@ export function scoreComponents(signals, { totalArticles = 0 } = {}) {
   const results = {};
   const duplicateIndex = buildDuplicateOccurrenceIndex(signals);
 
+  // Precompute batch-wide type mass (pre-cap) for cross-component derived indicators.
+  const batchPreCapItems = [];
+  for (const signal of signals) {
+    const signalType = signal.signal_type ?? signal.type;
+    const mapping = SIGNAL_TO_COMPONENTS[signalType];
+    if (!mapping) continue;
+    const firstComponent = Object.keys(mapping)[0];
+    const baseWeight = mapping[firstComponent];
+    const preDuplicate = contributionForSignal(signal, baseWeight);
+    const k = duplicateIndex.get(signal) ?? 1;
+    batchPreCapItems.push({
+      signal,
+      contribution: preDuplicate * duplicateArticleFactor(k),
+    });
+  }
+  const batchMassByType = massBySignalType(batchPreCapItems);
+
   for (const id of COMPONENT_IDS) {
     const items = []; // { signal, contribution, contributionPreDuplicate, polarity }
     const articleSet = new Set();
@@ -567,12 +756,15 @@ export function scoreComponents(signals, { totalArticles = 0 } = {}) {
         counterfactual_article_key: null, counterfactual_delta: null,
         signal_count: 0, distinct_article_count: 0, source_diversity: 0,
         signal_class_mix: computeSignalClassMix([]),
+        derived_indicators: computeDerivedIndicators(id, [], batchMassByType),
+        source_cap_binding: false,
         signals: [], facets: computeFacets(id, [], totalArticles),
       };
       continue;
     }
 
     const cappedItems = applySourceCap(items);
+    const sourceCapBinding = sourceCapWasApplied(items, cappedItems);
     // Enriched signal copies for downstream UI explainability (N9 + A5): each signal carries
     // BOTH its pre-cap raw contribution (_contribution_raw, used by reviewers to see "what
     // evidence really mattered") and its post-cap final contribution (_contribution, what the
@@ -602,6 +794,8 @@ export function scoreComponents(signals, { totalArticles = 0 } = {}) {
         counterfactual_article_key: null, counterfactual_delta: null,
         signal_count: 0, distinct_article_count: 0, source_diversity: 0,
         signal_class_mix: computeSignalClassMix([]),
+        derived_indicators: computeDerivedIndicators(id, [], batchMassByType),
+        source_cap_binding: false,
         signals: [], facets: computeFacets(id, [], totalArticles),
       };
       continue;
@@ -658,6 +852,8 @@ export function scoreComponents(signals, { totalArticles = 0 } = {}) {
       distinct_article_count:  distinctArticleCount,
       source_diversity:        sourceSet.size,
       signal_class_mix:        computeSignalClassMix(cappedItems),
+      derived_indicators:      computeDerivedIndicators(id, cappedItems, batchMassByType),
+      source_cap_binding:      sourceCapBinding,
       signals:                 enrichedSignals,
       facets:                  computeFacets(id, enrichedSignals, totalArticles),
     };

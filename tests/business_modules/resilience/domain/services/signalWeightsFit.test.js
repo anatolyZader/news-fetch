@@ -1,7 +1,23 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { fitSignalWeightsRidgeMock } from '../../../../../business_modules/resilience/domain/services/signalWeightsFit.js';
+import {
+  CALIBRATION_TARGETS,
+  fitSignalWeightsRidgeMock,
+  getCalibrationSnapshot,
+} from '../../../../../business_modules/resilience/domain/services/signalWeightsFit.js';
+
+describe('signalWeightsFit calibration snapshot', () => {
+  it('exports calibration targets and snapshot shape', () => {
+    assert.ok(CALIBRATION_TARGETS.signal_to_components);
+    const snap = getCalibrationSnapshot();
+    assert.equal(snap.catalog_version, 'v5');
+    assert.ok(snap.signal_count >= 155);
+    assert.ok(snap.priors_by_type.harm_to_population);
+    assert.ok(snap.component_tuning.lifesaving_behavior);
+    assert.ok(snap.signal_to_components.harm_to_population);
+  });
+});
 
 describe('signalWeightsFit (stub)', () => {
   it('returns null for empty or short input', () => {

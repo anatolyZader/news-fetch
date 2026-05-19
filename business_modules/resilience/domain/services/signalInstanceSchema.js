@@ -88,6 +88,7 @@ export const AFFECTED_SYSTEM_SIGNAL_TYPES = new Set([
   'infrastructure_damage_acute',
   'food_security_stress',
   'food_security_maintained',
+  'connectivity_outage',
   'cyber_attack_on_infrastructure',
 ]);
 
@@ -102,6 +103,7 @@ export const EQUITY_RELEVANT_TYPES = new Set([
   'household_readiness_gap',
   'household_readiness_demonstrated',
   'evacuation_displacement',
+  'self_evacuation_unauthorized',
   'service_disruption',
   'compensation_blocked',
   'educational_disruption',

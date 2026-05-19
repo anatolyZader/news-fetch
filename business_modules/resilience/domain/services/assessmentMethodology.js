@@ -13,15 +13,15 @@ import {
 import { extractionTelemetryForOperator } from './pipelineStageTelemetry.js';
 import { summarizeGeoQuality } from '../../../../cross-cut-modules/geo/signalGeoSummary.js';
 
-export const SCORING_MODEL_VERSION = 'v4';
+export const SCORING_MODEL_VERSION = 'v5';
 
 /** Human-maintained; bump SCORING_MODEL_VERSION when SIGNAL_TO_COMPONENTS changes materially. */
 export const SCORING_MODEL_CHANGELOG = [
   {
-    version: 'v4',
+    version: 'v5',
     date: '2026-05-19',
     summary:
-      'Expanded closed vocabulary (~29 types), per-instance intensity/phase/subgroup fields, duplicate-article discount, polarity override whitelist, signal_class_mix diagnostics.',
+      'Catalog v6: disambiguation metadata, mirror pairs, 7 new signal types, expanded scoringPriors, derived indicators, facet coverage, catalog-driven extraction prompts.',
   },
   {
     version: 'v3',

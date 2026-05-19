@@ -58,14 +58,15 @@ Expected:
 
 ### What counts as a good signal
 
-- **`mutual_aid`** with evidence "Residents coordinated overnight food deliveries to displaced families in the community center on Ben-Gurion Street, per the municipal spokesperson." Concrete action, attributed source, specific place.
-- **`leadership_message`** with evidence "The mayor issued a video statement at 18:00 saying schools would reopen Monday." Observable action, timestamp, clear outcome.
+- **`solidarity_help_others`** with evidence "Residents coordinated overnight food deliveries to displaced families in the community center on Ben-Gurion Street, per the municipal spokesperson." Concrete action, attributed source, specific place.
+- **`leadership_clear_guidance`** with evidence "The mayor issued a video statement at 18:00 saying schools would reopen Monday." Observable action, timestamp, clear outcome.
 - **`service_disruption`** with evidence "Ramle municipality announced that kindergartens will be closed Sunday." Quoted announcement, specific jurisdiction.
+- **`population_survey_finding`** with evidence "Bar-Ilan survey: 68% of northern residents report sleep disruption." Named survey with quantified finding.
 
 ### What does *not* count (and why)
 
 - "The atmosphere is tense." → Narrative framing, no observable fact.
-- "Many residents are worried." → Unattributed generalization. If a specific report says "60% of respondents in today's municipal survey reported worry," that's a different signal type (`survey_stat`) with the number and provenance.
+- "Many residents are worried." → Unattributed generalization. If a specific report says "60% of respondents in today's municipal survey reported worry," use **`population_survey_finding`** with the number and provenance.
 - "This shows a breakdown in trust." → Editorial interpretation. The underlying event might be a signal; the interpretation is the analyst's job.
 
 ### Versioning the taxonomy

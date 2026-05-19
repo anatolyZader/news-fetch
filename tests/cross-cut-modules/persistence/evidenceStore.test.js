@@ -1,17 +1,31 @@
-import { describe, it, after } from 'node:test';
+import { describe, it, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { unlinkSync, existsSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
 import { createEvidenceStore } from '../../../cross-cut-modules/persistence/evidenceStore.js';
 
-const dbPath = join(tmpdir(), `evidence-store-test-${Date.now()}.sqlite`);
-
 describe('evidenceStore', () => {
-  const store = createEvidenceStore(dbPath);
+  /** @type {ReturnType<createEvidenceStore>} */
+  let store;
+  let dbPath;
 
-  after(() => {
-    try { if (existsSync(dbPath)) unlinkSync(dbPath); } catch { /* ignore */ }
+  beforeEach(() => {
+    dbPath = join(tmpdir(), `evidence-store-test-${process.pid}-${Date.now()}.sqlite`);
+    store = createEvidenceStore(dbPath);
+  });
+
+  afterEach(() => {
+    try {
+      store.close();
+    } catch {
+      /* ignore */
+    }
+    try {
+      if (existsSync(dbPath)) unlinkSync(dbPath);
+    } catch {
+      /* ignore */
+    }
   });
 
   // ── evidence_items ──────────────────────────────────────────────────────────
@@ -32,6 +46,7 @@ describe('evidenceStore', () => {
 
     it('inserts audio items alongside news', () => {
       store.insertItems([
+        { date: '2026-01-01', source_type: 'news', source_label: 'ynet', source_url: 'https://ynet.co.il/1', title: 'Article A', body: 'Body A', published_at: '2026-01-01' },
         { date: '2026-01-01', source_type: 'audio', source_label: 'YouTube — Test', source_url: 'https://youtube.com/watch?v=abc&t=42', title: 'Scene 1', body: 'Narrative', published_at: '2026-01-01' },
       ]);
       const items = store.getByDate('2026-01-01');
@@ -46,16 +61,19 @@ describe('evidenceStore', () => {
 
     it('does not return items from other dates', () => {
       store.insertItems([
+        { date: '2026-01-01', source_type: 'news', source_url: 'https://ynet.co.il/1', title: 'Today', body: 'Body', published_at: '2026-01-01' },
         { date: '2026-01-02', source_type: 'news', source_url: 'https://ynet.co.il/2', title: 'Tomorrow', body: 'Body', published_at: '2026-01-02' },
       ]);
       const items = store.getByDate('2026-01-01');
-      assert.ok(items.every(i => i.date === '2026-01-01'));
+      assert.equal(items.length, 1);
+      assert.equal(items[0].title, 'Today');
     });
   });
 
   describe('deduplication', () => {
     it('ignores exact duplicate (same date + url + title)', () => {
       const item = { date: '2026-01-01', source_type: 'news', source_url: 'https://ynet.co.il/1', title: 'Article A', body: 'Body A' };
+      store.insertItems([item]);
       const inserted = store.insertItems([item]);
       assert.equal(inserted, 0, 'duplicate should not be inserted');
     });
@@ -83,6 +101,9 @@ describe('evidenceStore', () => {
 
   describe('hasItemsForDate', () => {
     it('returns true when items exist', () => {
+      store.insertItems([
+        { date: '2026-01-01', source_type: 'news', source_url: 'https://ynet.co.il/1', title: 'Article A', body: 'Body A' },
+      ]);
       assert.equal(store.hasItemsForDate('2026-01-01'), true);
     });
 
@@ -122,6 +143,7 @@ describe('evidenceStore', () => {
     });
 
     it('run for one date does not appear for another', () => {
+      store.saveRun({ date: '2026-01-05', reportJson: { version: 1 }, sourceTypes: ['news'], totalItems: 1, totalSignals: 1 });
       assert.equal(store.getLatestRunForDate('2026-01-06'), null);
     });
   });

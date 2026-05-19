@@ -61,6 +61,28 @@ describe('formatSignalCatalogSubset', () => {
   });
 });
 
+describe('formatSignalCatalogSubset — v5 domains', () => {
+  it('pass A includes environmental domain types', () => {
+    const out = formatSignalCatalogSubset(DOMAIN_GROUPS.A);
+    assert.match(out, /environmental_damage_acute/);
+    assert.doesNotMatch(out, /diaspora_solidarity/);
+  });
+
+  it('pass B includes trust and cyber domain types', () => {
+    const out = formatSignalCatalogSubset(DOMAIN_GROUPS.B);
+    assert.match(out, /institutional_trust/);
+    assert.match(out, /cyber_attack_on_infrastructure/);
+    assert.doesNotMatch(out, /hostage_uncertainty_distress/);
+  });
+
+  it('pass C includes memory and hostage domain types', () => {
+    const out = formatSignalCatalogSubset(DOMAIN_GROUPS.C);
+    assert.match(out, /commemoration_event_observed/);
+    assert.match(out, /hostage_return_event/);
+    assert.doesNotMatch(out, /compliance_enter_shelter/);
+  });
+});
+
 describe('buildDomainScopeSuffix', () => {
   it('emits the scoped header and embeds the catalog subset', () => {
     const s = buildDomainScopeSuffix('A');
@@ -93,5 +115,13 @@ describe('buildSelfCheckPrompt', () => {
       { signal_type: 'definitely_not_a_real_type', evidence: 'x', evidence_type: 'observational_reported_fact' },
     ]);
     assert.match(out.user, /INVALID\(/);
+  });
+
+  it('includes mirror hint in self-check prompt when type has mirror', () => {
+    const out = buildSelfCheckPrompt([
+      { signal_type: 'solidarity_help_others', evidence: 'residents brought food to elderly neighbors', evidence_type: 'observational_reported_fact' },
+    ]);
+    assert.match(out.user, /mirror=social_isolation/);
+    assert.match(out.system, /mirror type/i);
   });
 });

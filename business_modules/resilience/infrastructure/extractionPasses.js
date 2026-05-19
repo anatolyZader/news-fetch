@@ -5,21 +5,26 @@
  */
 
 import { SIGNAL_CATALOG, SIGNAL_TYPES } from '../domain/services/behaviorSignals.js';
+import {
+  formatSignalCatalogSubset as formatCatalogSubset,
+  formatMirrorSelfCheckHint,
+  getMirrorTypeForSelfCheck,
+} from '../domain/services/signalCatalogPrompt.js';
 
 /**
  * Three grouped passes balance per-pass focus against API cost.
  * Each pass receives the full classification rules but a focused signal vocabulary.
  */
 export const DOMAIN_GROUPS = Object.freeze({
-  A: ['compliance', 'risk', 'preparedness'],                    // protective behavior & capacity
-  B: ['information', 'continuity', 'leadership', 'adaptation', 'education'], // institutional response & adaptation
-  C: ['social', 'narrative', 'resources', 'wellbeing'],         // social fabric & wellbeing
+  A: ['compliance', 'risk', 'preparedness', 'environmental'],
+  B: ['information', 'continuity', 'leadership', 'adaptation', 'education', 'trust', 'cyber', 'diaspora'],
+  C: ['social', 'narrative', 'resources', 'wellbeing', 'memory', 'hostage'],
 });
 
 export const DOMAIN_GROUP_LABELS = Object.freeze({
-  A: 'Protective Behavior (compliance + risk + preparedness)',
-  B: 'Institutional Response (information + continuity + leadership + adaptation + education)',
-  C: 'Social Fabric & Wellbeing (social + narrative + resources + wellbeing)',
+  A: 'Protective Behavior (compliance + risk + preparedness + environmental)',
+  B: 'Institutional Response (information + continuity + leadership + adaptation + education + trust + cyber + diaspora)',
+  C: 'Social Fabric & Wellbeing (social + narrative + resources + wellbeing + memory + hostage)',
 });
 
 /**
@@ -38,17 +43,7 @@ export function isMultipassEnabled(env = process.env) {
  * includes signal types whose `domain` is in the allowed list.
  */
 export function formatSignalCatalogSubset(domains) {
-  const allowed = new Set(domains);
-  const filtered = SIGNAL_CATALOG.filter((s) => allowed.has(s.domain));
-  const byDomain = {};
-  for (const s of filtered) {
-    if (!byDomain[s.domain]) byDomain[s.domain] = [];
-    byDomain[s.domain].push(s);
-  }
-  return Object.entries(byDomain).map(([domain, signals]) => {
-    const lines = signals.map((s) => `  - \`${s.type}\`: ${s.label}`);
-    return `**${domain}**\n${lines.join('\n')}`;
-  }).join('\n\n');
+  return formatCatalogSubset(domains);
 }
 
 /**
@@ -82,16 +77,21 @@ export function buildSelfCheckPrompt(signals) {
     type: validTypes.has(s.signal_type) ? s.signal_type : `INVALID(${s.signal_type})`,
     evidence: (s.evidence ?? '').slice(0, 240),
     declared_evidence_type: s.evidence_type ?? 'observational_reported_fact',
+    mirror: validTypes.has(s.signal_type) ? getMirrorTypeForSelfCheck(s.signal_type) : null,
   }));
 
   const list = items
-    .map((it) => `${it.index}. type=${it.type} | evidence_type=${it.declared_evidence_type} | "${it.evidence}"`)
+    .map((it) => {
+      const mirrorNote = it.mirror ? ` | mirror=${it.mirror}` : '';
+      return `${it.index}. type=${it.type}${mirrorNote} | evidence_type=${it.declared_evidence_type} | "${it.evidence}"`;
+    })
     .join('\n');
 
   const system =
     `You are a closed-vocabulary signal classifier. For each candidate signal below, ` +
     `decide whether its evidence text is a correct instance of its declared signal_type. ` +
-    `Use only the closed vocabulary; never propose alternative types.\n\n` +
+    `Use only the closed vocabulary; never propose alternative types.\n` +
+    `When a mirror type is listed, vote "no" if the evidence clearly fits the mirror better.\n\n` +
     `Output a JSON array of {"index":N,"verdict":"yes"|"no"|"uncertain"} — one per signal.\n` +
     `Be strict: vote "no" only when the evidence clearly does not match the declared type.\n` +
     `Vote "uncertain" when the evidence is ambiguous; vote "yes" otherwise.`;

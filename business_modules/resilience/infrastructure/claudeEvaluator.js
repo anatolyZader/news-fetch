@@ -31,6 +31,10 @@ import {
   buildSelfCheckPrompt,
 } from './extractionPasses.js';
 import {
+  formatSignalCatalog,
+  formatDisambiguationBlock,
+} from '../domain/services/signalCatalogPrompt.js';
+import {
   verifyEvidenceAgainstArticle,
   dedupeSignalsWithinBatch,
   tokenize,
@@ -48,22 +52,10 @@ const DEFAULT_EXTRACT_MODEL = process.env.RESILIENCE_EXTRACT_MODEL ?? 'claude-ha
 const DEFAULT_SELF_CHECK_MODEL = process.env.RESILIENCE_SELF_CHECK_MODEL ?? 'claude-haiku-4-5-20251001';
 const DEFAULT_NARRATIVE_MODEL = process.env.RESILIENCE_NARRATIVE_MODEL ?? 'claude-sonnet-4-6';
 
-// ─── Signal catalog formatter ─────────────────────────────────────────────────
+// ─── Signal catalog formatter (re-exported from domain) ─────────────────────
 
-function formatSignalCatalog() {
-  const byDomain = {};
-  for (const s of SIGNAL_CATALOG) {
-    if (!byDomain[s.domain]) byDomain[s.domain] = [];
-    byDomain[s.domain].push(s);
-  }
-  return Object.entries(byDomain).map(([domain, signals]) => {
-    const domainLabel = signals[0]?.domain ?? domain;
-    const lines = signals.map((s) => {
-      const cls = s.signal_class ? ` [${s.signal_class}]` : '';
-      return `  - \`${s.type}\`${cls}: ${s.label}`;
-    });
-    return `**${domainLabel}**\n${lines.join('\n')}`;
-  }).join('\n\n');
+function formatSignalCatalogForPrompt() {
+  return formatSignalCatalog();
 }
 
 // ─── JSON extraction helpers ──────────────────────────────────────────────────
@@ -450,206 +442,25 @@ const SIGNAL_EXTRACTION_SYSTEM_PROMPT =
   `     members killed in missile strike". These are direct war-caused civilian harm.\n\n` +
 
   `━━━ CLASSIFICATION BOUNDARIES (read before choosing signal type) ━━━\n` +
-  `- solidarity_help_others / community_volunteering: ONLY when an explicit act of helping, assisting, or supporting\n` +
-  `  another person is described. The act must be named — not inferred from proximity or mention of neighbors.\n` +
-  `  ACCEPT: "residents brought food to elderly neighbors who couldn't reach shelters"\n` +
-  `  REJECT: "I went to find my family; I saw my neighbors' children were injured" — no helping act present\n` +
-  `  REJECT: "a community gathered in a shelter" — co-location is not solidarity\n` +
-  `- Witnessing or hearing about harm to others (injured children, suffering neighbors, casualties) → harm_to_population, NOT solidarity\n` +
-  `- Accumulated trauma, PTSD, chronic sleep disruption, grief (reported in named quote or survey) → psychological_distress (NOT fear_expression, which is situational/in-the-moment)\n` +
-  `- People accessing therapy, trauma hotlines, mental health programs, or community wellbeing services → wellbeing_support_accessed\n` +
-  `- Emergency family reunification / finding family during evacuation → compliance_enter_shelter or lifesaving domain, NOT solidarity\n` +
-  `- Schools / kindergartens / youth education: prefer educational_continuity or educational_disruption when evidence is school-specific;\n` +
-  `  use service_disruption only for generic institutional closure without education-specific detail.\n` +
-  `- child_distress vs psychological_distress vs fear_expression: child_distress for children-specific symptoms;\n` +
-  `  psychological_distress for named adult trauma/PTSD; fear_expression for situational safety fear.\n` +
-  `- preparedness_drill_conducted vs lessons_learned_uptake: drill = exercise conducted; lessons = protocol change after prior event.\n` +
-  `- complacency_or_normalization vs non_compliance_ignore_guidelines: habituation/alert fatigue vs active defiance of rules.\n` +
-  `- hostile_influence_operation vs rumor_spread: coordinated foreign/bot campaign vs organic local rumor.\n` +
-  `- protection_effective vs compliance_*: defensive measure averted harm (Iron Dome, mamad saved lives) vs people following instructions.\n` +
-  `- displacement_resolved vs evacuation_displacement: return home / resolved displacement vs ongoing displacement.\n` +
-  `- civil_society_mobilization vs community_volunteering: organized NGO/civil-society response vs general volunteering.\n` +
-  `- Businesses closed, clinics not operating, transport cancelled, business operations impaired by war, livelihoods disrupted, income lost → service_disruption (functional_continuity domain)\n` +
-  `- LIVELIHOOD DISTRESS vs FEAR vs AID GAP — disambiguation:\n` +
-  `  (a) A business owner describing their business being damaged/threatened/on-the-edge by the war, even with emotional language ("brought us to the edge", "my baby", "never thought the business would be harmed")\n` +
-  `      → service_disruption. The behavioral fact is the business/livelihood being disrupted; emotional framing does not move it to wellbeing.\n` +
-  `  (b) Self-employed/workers reportedly forced to change budgets, seek financial adjustments, or manage reduced income due to war\n` +
-  `      → service_disruption (their functional/economic routine is disrupted). Not resource_shortage unless a specific state aid/support gap is named.\n` +
-  `  (c) resource_shortage for livelihoods: use ONLY when a named aid/support/compensation gap is described ("not a single shekel of compensation has reached business owners", "hundreds of thousands await promised grants"). The signal is the missing institutional response, not the livelihood hardship itself.\n` +
-  `  (d) fear_expression: reserve for personal safety/trauma fear (sirens, shelters, physical threat) by a named individual. Do NOT use for distress about business viability — that is functional, not safety, and belongs under service_disruption.\n` +
-  `- STATE ADMINISTRATIVE CONTINUITY vs RESOURCE MOBILIZATION — disambiguation:\n` +
-  `  (a) Government agency adapting administrative schedules to the emergency (National Insurance / Bituach Leumi\n` +
-  `      paying allowances early, Tax Authority extending filing deadlines, Ministry rescheduling services,\n` +
-  `      Home Front Command easing restrictions) → service_continuity (functional_continuity only).\n` +
-  `      These are institutional adjustments to keep the system operating — NOT targeted aid mobilization.\n` +
-  `      Do NOT use resource_mobilization (which routes weight into wellbeing_atrisk); use service_continuity.\n` +
-  `  (b) resource_mobilization: reserve for ACTIVE mobilization of material/human aid to SPECIFIC at-risk\n` +
-  `      populations ("municipality dispatched food packages to 900 elderly households", "NGO mobilized 200\n` +
-  `      volunteers to staff shelters for Arab-community evacuees"). Not for blanket administrative adaptations.\n` +
-  `  (c) If the state agency is merely announcing/directing (without executing the service change) → leadership_clear_guidance.\n` +
-  `- COMMERCIAL TRANSPORT & FOREIGN CARRIER SUSPENSIONS:\n` +
-  `  Wizz Air, El Al, Ryanair, cruise lines, or any commercial transport operator suspending/resuming service\n` +
-  `  to/from Israel → service_disruption (if suspended) or service_continuity (if resumed).\n` +
-  `  This is functional_continuity of civilian transport; do NOT classify as fear_expression, harm_to_population,\n` +
-  `  or any wellbeing signal. Foreign carrier decisions are a civilian-mobility functional signal.\n` +
-  `- צח"י (צוות חוסן יישובי — community resilience team): a volunteer-based local emergency leadership body\n` +
-  `  that coordinates with council, MDA, fire, police, and IDF. Extract TWO signals when צח"י is mentioned:\n` +
-  `  (1) leadership_visible_presence (active) or leadership_absence (missing/needed)\n` +
-  `  (2) community_volunteering (active) or resource_shortage (missing/needed)\n` +
-  `  צח"י is both a leadership structure and a community capital asset.\n` +
-  `- system_overload vs resource_shortage: use system_overload when infrastructure is operating but at dangerous\n` +
-  `  capacity relative to demand (one ICU for 115,000 residents; ER wait times tripled; ambulances unavailable).\n` +
-  `  Use resource_shortage when material supplies or services are simply absent (no shelters in a neighbourhood,\n` +
-  `  no compensation payments issued, volunteers ran out of food packages).\n` +
-  `- resilience_narrative_positive / resilience_narrative_negative: ONLY when RESIDENTS or AFFECTED CIVILIANS
-  explicitly characterise how their community is coping — a subjective judgement about the collective story,
-  mood, or spirit, using WORDS ABOUT MOOD, SPIRIT, or COPING IDENTITY (not descriptions of conditions or services).
-  The speaker MUST be a resident, evacuee, or person directly affected by the situation — someone describing
-  their OWN community's experience from the inside.
-  ACCEPT: "people here say we're managing fine", "the spirit in the north has broken", "residents feel abandoned by the state"
-  ACCEPT: "the community sees itself as holding the line", "morale is high despite the situation"
-  ACCEPT: a named resident of an affected area describing how their community feels or copes
-  REJECT: politicians, ministers, mayors, or officials making rhetorical speeches about national resilience or spirit.
-    Officials declaring "we are strong" or "the spirit of Israel" are performing leadership, not reporting community mood.
-    If they give actionable guidance, use leadership_clear_guidance instead.
-  REJECT: diaspora voices, events outside Israel, or statements about antisemitism abroad — these are outside scope.
-  REJECT: celebrities, public figures, or inspirational speakers offering general coping wisdom.
-  REJECT: a list of observable conditions (empty streets, closed businesses, no frameworks, self-evacuation).
-  REJECT: field-observer summary labels: "overall resilience present", "strong settlement", "population coping",
-    "community functioning well". These are abstract assessments, not expressed narratives — either split into
-    the specific factual signals that underlie the assessment, or discard if too vague.
-  REJECT: descriptions of services, programs, or frameworks (e.g. "protected space for children", "employment
-    program operating"). These are service_continuity or service_disruption signals, not narratives.
-  REJECT: political instability, governance issues, or institutional trust problems — use political_distrust
-    (named accountability demands / loss of trust in the political handling of the emergency) or
-    leadership_credibility_loss (loss of trust in named leadership: broken promises, false reassurances).
-  Observable conditions are FACTS — classify them under the appropriate factual signal type
-  (service_disruption, evacuation_displacement, routine_disruption, resource_shortage, etc.).
-  A community with empty streets is not necessarily rejecting a narrative — it may simply be describing its situation.
-  ⚠ FIELD REPORTS: field observer summaries are almost never narrative signals. Field teams report observable
-  conditions — classify each concrete observation under its factual signal type. Only use resilience_narrative_*
-  for field data when the observer quotes residents characterising their own collective story.
-- leadership_clear_guidance: ONLY when an authority provides specific, actionable EMERGENCY directions to civilians\n` +
-  `  (e.g. "HFC approved easing of restrictions", "municipality announced shelter hours").\n` +
-  `  The authority must be giving directions that civilians can ACT ON for their safety or daily emergency routine.\n` +
-  `  REJECT: pundits/experts discussing strategy, institutional appointments, military personnel decisions,\n` +
-  `    geopolitical analysis, or any commentary that uses words like "guidance" or "clear" but is not\n` +
-  `    an authority directing civilians. A civilian DEMANDING guidance is NOT leadership_clear_guidance —\n` +
-  `    it is resource_shortage (if demanding aid) or political_distrust (if demanding accountability or naming\n` +
-  `    a specific policy failure tied to the emergency), or leadership_credibility_loss (if naming a specific\n` +
-  `    leader/institution whose trustworthiness has eroded — broken promises, false reassurances).\n` +
-  `  leadership_clear_guidance vs information_* types: An authority publishing or updating guidelines is a\n` +
-  `  LEADERSHIP action → leadership_clear_guidance. It tells us the authority acted, NOT that people received,\n` +
-  `  understood, or were influenced by the information. Only use information_* types when the evidence describes\n` +
-  `  the RECEPTION side: did people get the info? Was it clear or confusing? Did it match reality?\n` +
-  `- consensus_on_priorities / dissensus_blocks_action: ONLY when the evidence describes community-level decision-making\n` +
-  `  capacity for emergency response — agreement on priorities and plan (consensus) or inability to act due to internal\n` +
-  `  dispute (dissensus). This is about COLLECTIVE ACTION capacity, not partisan debate.\n` +
-  `  REJECT: political opinion, coalition/party infighting, pundit arguments, or ideological disagreement.\n` +
-  `  Acceptable examples: "local council + residents agreed to prioritize elderly evacuation"; "internal disputes between\n` +
-  `  community bodies blocked opening a shelter / delayed an emergency initiative".\n` +
-  `- conflict_resolution: ONLY when a conflict is described AND the parties resolved it constructively, enabling cooperation\n` +
-  `  (mediation, compromise, de-escalation). REJECT: conflict existing with no resolution → conflict_or_tension.\n` +
-  `- information_* types are ONLY for: residents receiving/missing/seeking EMERGENCY SAFETY or OPERATIONAL guidance\n` +
-  `  about immediate protective actions (shelters, alerts, evacuation routes, HFC restrictions),\n` +
-  `  rumor spread, or contradictory official emergency messages.\n` +
-  `  REJECT from ALL information_* types:\n` +
-  `  - Education policy disputes (exam frameworks, matriculation relief, school schedules) → service_disruption\n` +
-  `  - Demands for policy clarification from politicians (mayors demanding PM clarify policy) → political_distrust\n` +
-  `  - Ministerial PR statements about recovery (aviation, tourism, economy) → routine_maintenance\n` +
-  `  - Descriptions of existing laws or legal rights → DO NOT EXTRACT (background legal fact, not behavioral evidence)\n` +
-  `  - Academic/international research papers → DO NOT EXTRACT (research ≠ actionable guidance that reached people)\n` +
-  `  - Service adequacy complaints ("exam framework not adapted") → service_disruption, NOT information_effectiveness_gap\n` +
-  `  KEY TEST: does the evidence show the HUMAN SIDE of information — people receiving, understanding,\n` +
-  `  acting on, or failing to receive/understand/act on emergency safety guidance?\n` +
-  `  Mere issuance of alerts or warnings (without evidence of reception or failure) → DO NOT EXTRACT.\n` +
-  `  If it describes a service not meeting needs → service_disruption. Political demands → political_distrust.\n` +
-  `- trusted_information_source / mistrusted_information_source: ONLY when the evidence explicitly states that civilians\n` +
-  `  TRUST (or DISTRUST) a specific information source for emergency guidance (e.g. HFC hotline, municipality hotline,\n` +
-  `  named local authority, trusted broadcaster, official alert app, trusted WhatsApp admin channel).\n` +
-  `  REJECT: generic "people got info from the media" with no trust framing; expert analysis; political media bias claims.\n` +
-  `- feedback_channel_open / feedback_channel_blocked: ONLY when the evidence describes a TWO-WAY channel for questions/needs\n` +
-  `  (hotline, municipal desk, live Q&A, two-way messaging) working (open) or failing/ignored/unreachable (blocked).\n` +
-  `  REJECT: one-way announcements or press statements — those are not feedback channels.\n` +
-  `- active_information_seeking: ONLY when a resident or group explicitly seeks emergency or protective guidance — e.g. calling an HFC hotline, checking alert apps, asking where the nearest shelter is, seeking evacuation instructions.\n` +
-  `  REJECT: consulting a lawyer about a will or inheritance; asking about financial relief; seeking religious guidance; any general wartime planning unrelated to immediate safety.\n` +
-  `  A surge in will-writing, legal consultations, or financial inquiries during wartime → fear_expression (if named quote) or omit. It is NOT active_information_seeking.\n` +
-  `  information_actionable_effective: EMERGENCY guidance was specific and situation-matched — people could follow it\n` +
-  `  given actual constraints (accessible shelter, legally permitted to stop work, covers the scenario they faced).\n` +
-  `  Use ONLY when evidence shows emergency/safety guidance worked in practice — i.e. people RECEIVED it AND could act on it.\n` +
-  `  REJECT: routine alert issuance ("council issued alert to stay near shelters", "ministry warned public").\n` +
-  `  Alerts being sent is the baseline — it happens dozens of times daily and tells us nothing about whether\n` +
-  `  information actually reached people or improved their coping. Only extract when there is evidence of\n` +
-  `  RECEPTION, COMPREHENSION, or BEHAVIORAL RESPONSE to the information (e.g. "residents reported the new\n` +
-  `  app delivered alerts faster", "instructions were clear enough that people knew which shelter to use").\n` +
-  `  NOT for: academic studies, legal descriptions, policy announcements, or ministerial statements.\n` +
-  `  information_effectiveness_gap: EMERGENCY guidance existed and was distributed, but failed to help because it\n` +
-  `  did not match reality — instructions people physically or legally could not follow, scenarios left uncovered\n` +
-  `  (mass casualties, no nearby shelter, workers with no legal protection to stop), or contradictions between\n` +
-  `  official sources that left people unable to act. Do NOT use for mere absence of information — use information_confusion.\n` +
-  `  Do NOT use for education/service adequacy complaints — those are service_disruption.\n` +
-  `  Do NOT use for economic relief/compensation gaps — those are resource_shortage.\n` +
-  `- rumor_spread: ONLY for false or unverified claims about EMERGENCY SAFETY conditions spreading among civilians\n` +
-  `  (e.g. "residents sharing false reports of chemical attack", "WhatsApp groups spreading unverified casualty numbers").\n` +
-  `  REJECT: political media framing (Haredi media framing a leak as conspiracy), partisan spin, or editorial bias.\n` +
-  `  Media framing of political events is political discourse, not emergency rumor spread.\n` +
-  `- information_confusion: ONLY for contradictory or unclear EMERGENCY SAFETY messages from authorities that leave\n` +
-  `  civilians unable to act (e.g. "one authority says shelter-in-place, another says evacuate").\n` +
-  `  REJECT: police/security investigation updates, criminal investigations, or any non-emergency operational status.\n` +
-  `- Emergency response to a harm event (ambulance to cardiac arrest, hospital treating injury): classify the harm itself as harm_to_population. Do NOT emit service_continuity — a service doing its normal job is not evidence of elevated functioning.\n` +
-  `- coordination_success: the positive counterpart to coordination_failure. Use when two or more named agencies, services,\n` +
-  `  or organizations visibly coordinate on the SAME emergency response (HFC + municipality + MDA jointly running a drill;\n` +
-  `  council + welfare dept. + IDF unit jointly evacuating a neighbourhood). REJECT generic statements about cooperation\n` +
-  `  intent, photo-ops, or solo institutional action — coordination requires multiple named bodies acting together on a\n` +
-  `  shared concrete task.\n` +
-  `- feedback_loop_closure: an authority visibly ACTS on community input — fixes a complaint that was raised, opens a\n` +
-  `  shelter that residents demanded, modifies a guideline because of feedback. The fact must show BOTH the input AND the\n` +
-  `  responsive action. Mere "we listened" speeches do not qualify.\n` +
-  `- rumor_correction: the positive counterpart to rumor_spread. An authority, expert, or community member publicly debunks\n` +
-  `  or corrects a circulating false report about emergency conditions (chemical-attack hoax corrected; casualty-number\n` +
-  `  rumor refuted). REJECT generic "fake news" complaints with no specific claim+correction.\n` +
-  `- system_resilience_under_load: a named system continues operating effectively under DOCUMENTED elevated demand or\n` +
-  `  damage (hospital triaged 200 patients in 4 hours; one dispatch centre handled 3× normal call volume). REJECT routine\n` +
-  `  service operation — the elevated load must be named.\n` +
-  `- post_event_recovery_indicator: a community visibly recovers after a hit — re-opens businesses, returns evacuees, restarts\n` +
-  `  services after a strike/closure. The "after" is essential; first-day-back stories qualify, ongoing-normal stories do not.\n` +
-  `- local_capacity_demonstrated: positive counterpart to dependency_on_external_aid. The community uses its OWN resources\n` +
-  `  (own funds, own labour, own infrastructure) to meet emergency needs without leaning on outside aid. Use when the\n` +
-  `  evidence explicitly contrasts with external dependency or names the local provider.\n` +
-  `- information_inclusivity_present / information_inclusivity_gap: emergency information adapted (or not) for at-risk\n` +
-  `  populations — Arabic translations, sign language, accessible formats, elder outreach. Use ONLY when a specific group\n` +
-  `  is named (Arab residents, deaf community, elderly without smartphones, visually impaired). Generic "everyone got the\n` +
-  `  message" is not inclusivity evidence.\n` +
-  `- rapid_mobilization / delayed_mobilization: ONLY when the evidence makes timing salient — fast deployment/restoration\n` +
-  `  (rapid) or delays/slow response that worsened disruption (delayed). Must be tied to emergency response or service/resource\n` +
-  `  access. REJECT: long-term recovery planning with no timing evidence.\n` +
-  `- inequitable_resource_access / equitable_resource_distribution: ONLY when the evidence explicitly compares access across\n` +
-  `  subgroups (by locality, disability, age, ethnicity, income, evacuee status, etc.) or explicitly describes equity-aware\n` +
-  `  distribution based on needs. REJECT: generic "shortage" complaints without disparity framing → resource_shortage.\n` +
-  `- economic_continuity / economic_disruption: distinct from generic service_disruption. Use when the evidence is about\n` +
-  `  EMPLOYMENT, BUSINESS OPERATIONS, or COMMERCE specifically (factory still running; restaurant closed; tourism collapsed;\n` +
-  `  workers laid off). For non-economic services (schools, clinics, transport) keep using service_continuity / service_disruption.\n` +
-  `- cultural_continuity: identity-bearing rituals, ceremonies, holidays, religious observance, or cultural events that took\n` +
-  `  place during the emergency (Passover seder held under fire; memorial ceremony despite siren; community Iftar). Distinct\n` +
-  `  from service_continuity (a cultural event is not a service).\n` +
-  `- political_distrust: residents or named civic figures publicly demand accountability or voice distrust of the political\n` +
-  `  handling of the emergency (mayor demanding the PM clarify a policy; a named MK calling for resignation over a war\n` +
-  `  decision; residents naming a specific governmental failure tied to the emergency). REJECT generic partisan opinion,\n` +
-  `  pre-existing political grievances unrelated to the emergency, or media commentary about coalition politics.\n` +
-  `- leadership_credibility_loss: residents or affected groups voice CONCRETE loss of trust in NAMED leadership tied to the\n` +
-  `  emergency — broken promises ("they promised a quiet border"), false reassurances, leaders perceived as dishonest about\n` +
-  `  on-the-ground conditions. The named leader/institution is required. Distinct from political_distrust (which is about\n` +
-  `  political/policy demands) and from leadership_absence (which is about non-presence, not credibility).\n` +
-  `- evacuation_displacement: residents are evacuated, displaced, or unable to return home because of the emergency — named\n` +
-  `  community, hotel/relative housing, prolonged absence, or "hundreds still away from home". Distinct from\n` +
-  `  service_disruption (which is about institutions). Distinct from harm_to_population (which is about physical harm).\n` +
-  `- routine_disruption: civilian DAILY ROUTINES (commuting, shopping, leisure, social rhythms, weddings postponed, parks\n` +
-  `  empty) are visibly disrupted by the emergency. Distinct from service_disruption (closures of named institutions like\n` +
-  `  schools, clinics, businesses) and economic_disruption (employment / business operations). Use when the evidence is about\n` +
-  `  the texture of everyday life rather than a specific institutional closure.\n\n` +
+  `${formatDisambiguationBlock()}\n` +
+  `Supplemental rules (cross-cutting, not duplicated in catalog metadata above):\n` +
+  `- community_volunteering: organized or spontaneous volunteering (distinct from one-off solidarity_help_others).\n` +
+  `- psychological_distress vs fear_expression vs child_distress: PTSD/chronic grief → psychological_distress;\n` +
+  `  situational safety fear → fear_expression; children-specific symptoms → child_distress.\n` +
+  `- population_survey_finding: named survey/institutional measured finding (use evidence_type named_survey_statistic).\n` +
+  `- self_evacuation_unauthorized vs evacuation_displacement: residents leave without official order vs institutional evacuation.\n` +
+  `- early_warning_system_* vs information_*: siren/app/HFC timing failures or successes → preparedness domain types.\n` +
+  `- connectivity_outage: telecom/internet/mobile failure (set affected_system: telecom when applicable).\n` +
+  `- STATE ADMINISTRATIVE CONTINUITY → service_continuity; ACTIVE AID MOBILIZATION → resource_mobilization.\n` +
+  `- COMMERCIAL TRANSPORT suspensions/resumptions → service_disruption / service_continuity.\n` +
+  `- צח\"י: extract leadership_visible_presence/absence AND community_volunteering/resource_shortage when mentioned.\n` +
+  `- system_overload vs resource_shortage: overloaded capacity vs absent supplies.\n` +
+  `- trust types (interpersonal/institutional/media/inter_group): use polarity_override negative when evidence shows erosion.\n` +
+  `- domestic_violence_indicator / suicide_self_harm_indicator: explicit reported fact only — never infer.\n` +
+  `- FIELD REPORTS: classify observable facts; resilience_narrative_* only when quoting residents' collective story.\n\n` +
 
   `━━━ SIGNAL TYPES (closed vocabulary) ━━━\n` +
-  `${formatSignalCatalog()}\n\n` +
+  `${formatSignalCatalogForPrompt()}\n\n` +
 
   `━━━ SCOPE LEVEL (choose one — rates evidence breadth, not emotional vividness) ━━━\n` +
   `"single_case"          — a single behavioral instance or quote from one actor\n` +
@@ -668,10 +479,9 @@ const SIGNAL_EXTRACTION_SYSTEM_PROMPT =
   `  "intensity": "light" | "moderate" | "severe" — severity of this instance (default moderate if omitted)\n` +
   `  "phase": "anticipation" | "response" | "recovery" — event timeline phase\n` +
   `  "affected_subgroup": one of [${AFFECTED_SUBGROUPS.join(', ')}] — when equity/disparity targets a subgroup\n` +
-  `  "affected_system": one of [${AFFECTED_SYSTEMS.join(', ')}] — ONLY for service_continuity, service_disruption,\n` +
-  `    system_overload, system_resilience_under_load (which infrastructure failed or held)\n` +
-  `  "polarity_override": "positive" | "negative" — ONLY for social_isolation, dependency_on_external_aid,\n` +
-  `    cultural_continuity when context clearly reverses the default reading\n\n` +
+  `  "affected_system": one of [${AFFECTED_SYSTEMS.join(', ')}] — ONLY for: ${[...AFFECTED_SYSTEM_SIGNAL_TYPES].join(', ')}\n` +
+  `  "polarity_override": "positive" | "negative" — ONLY for: ${[...POLARITY_OVERRIDE_SIGNAL_TYPES].join(', ')}\n` +
+  `    when context clearly reverses the default reading\n\n` +
 
   `━━━ OUTPUT SCHEMA ━━━\n` +
   `For each behavioral signal found, output a JSON object:\n` +

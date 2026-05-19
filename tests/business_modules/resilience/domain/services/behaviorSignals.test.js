@@ -848,8 +848,8 @@ describe('scoreComponents — v4 polarity_override', () => {
   });
 });
 
-describe('scoreComponents — v4 signal_class_mix', () => {
-  it('returns class masses for mixed wellbeing evidence', () => {
+describe('scoreComponents — v5 signal_class_mix', () => {
+  it('returns class masses including event and capacity_realized_ratio', () => {
     const sigs = [
       makeSignal({
         article_url: 'https://x.com/h1',
@@ -867,8 +867,135 @@ describe('scoreComponents — v4 signal_class_mix', () => {
     ];
     const scored = scoreComponents(sigs, { totalArticles: 2 });
     const mix = scored.wellbeing_atrisk.signal_class_mix;
-    assert.ok(mix.structural_state > 0);
+    assert.ok(mix.event > 0);
     assert.ok(mix.attitude > 0);
+    assert.equal(mix.structural_state, 0);
+  });
+
+  it('tracks capacity mass when protective infrastructure is present', () => {
+    const sigs = [
+      makeSignal({
+        article_url: 'https://x.com/cap',
+        article_index: 1,
+        signal_type: 'protective_infrastructure_present',
+        scope_level: 'repeated_pattern',
+      }),
+    ];
+    const scored = scoreComponents(sigs, { totalArticles: 1 });
+    assert.ok(scored.lifesaving_behavior.signal_class_mix.capacity > 0);
+  });
+});
+
+describe('scoreComponents — v5 derived indicators', () => {
+  it('flags solidarity_under_harm on belonging when harm co-occurs with mutual aid', () => {
+    const sigs = [
+      makeSignal({ signal_type: 'harm_to_population', article_url: 'https://x.com/h1', article_index: 1,
+        evidence_type: 'named_institutional_fact', scope_level: 'single_case' }),
+      makeSignal({ signal_type: 'solidarity_help_others', article_url: 'https://x.com/h2', article_index: 2,
+        source_type: 'field' }),
+    ];
+    const scored = scoreComponents(sigs, { totalArticles: 2 });
+    assert.equal(scored.belonging_solidarity.derived_indicators.solidarity_under_harm, true);
+  });
+
+  it('flags trust_information_cascade on lifesaving when distrust drives non-compliance', () => {
+    const sigs = [
+      makeSignal({ signal_type: 'mistrusted_information_source', article_url: 'https://x.com/i1', article_index: 1 }),
+      makeSignal({ signal_type: 'non_compliance_due_to_distrust', article_url: 'https://x.com/i2', article_index: 2,
+        source_type: 'radio' }),
+    ];
+    const scored = scoreComponents(sigs, { totalArticles: 2 });
+    assert.equal(scored.lifesaving_behavior.derived_indicators.trust_information_cascade, true);
+  });
+
+  it('flags compliance_paradox on lifesaving when compliance meets confusion', () => {
+    const sigs = [
+      makeSignal({ signal_type: 'compliance_enter_shelter', article_url: 'https://x.com/a1', article_index: 1 }),
+      makeSignal({ signal_type: 'information_confusion', article_url: 'https://x.com/a2', article_index: 2, source_type: 'radio' }),
+    ];
+    const scored = scoreComponents(sigs, { totalArticles: 2 });
+    assert.equal(scored.lifesaving_behavior.derived_indicators.compliance_paradox, true);
+  });
+
+  it('flags narrative_wellbeing_dissociation when positive narrative coexists with distress', () => {
+    const narrativeSigs = [
+      makeSignal({ signal_type: 'resilience_narrative_positive', article_url: 'https://x.com/n1', article_index: 1 }),
+      makeSignal({ signal_type: 'fear_expression', article_url: 'https://x.com/n2', article_index: 2, source_type: 'radio',
+        evidence_type: 'direct_quote_named_person' }),
+    ];
+    const wellbeingSigs = [
+      makeSignal({ signal_type: 'calm_confidence', article_url: 'https://x.com/w1', article_index: 1,
+        evidence_type: 'direct_quote_named_person' }),
+      makeSignal({ signal_type: 'psychological_distress', article_url: 'https://x.com/w2', article_index: 2, source_type: 'radio',
+        evidence_type: 'direct_quote_named_person' }),
+    ];
+    const scoredNarr = scoreComponents(narrativeSigs, { totalArticles: 2 });
+    const scoredWell = scoreComponents(wellbeingSigs, { totalArticles: 2 });
+    assert.equal(scoredNarr.narrative.derived_indicators.narrative_wellbeing_dissociation, true);
+    assert.equal(scoredWell.wellbeing_atrisk.derived_indicators.narrative_wellbeing_dissociation, true);
+  });
+
+  it('exposes source_cap_binding when outlet concentration triggers cap', () => {
+    const heavy = repeat(8, (i) => makeSignal({
+      signal_type: 'resilience_narrative_positive',
+      article_url: `https://ynet.co.il/v5/${i}`,
+      article_index: i + 1,
+      source_type: 'news',
+      article_source: 'ynet.co.il',
+    }));
+    const light = [
+      makeSignal({
+        signal_type: 'resilience_narrative_positive',
+        article_url: 'https://maariv.co.il/v5',
+        article_index: 100,
+        source_type: 'news',
+        article_source: 'maariv.co.il',
+      }),
+    ];
+    const scored = scoreComponents([...heavy, ...light], { totalArticles: 9 });
+    assert.equal(scored.narrative.source_cap_binding, true);
+    assert.equal(scored.narrative.derived_indicators.outlet_concentration_warning, true);
+  });
+});
+
+describe('scoreComponents — v5 scoring priors', () => {
+  it('applies intensity floor for harm_to_population (light treated as moderate)', () => {
+    const lightOnly = [makeSignal({
+      signal_type: 'harm_to_population',
+      intensity: 'light',
+      article_url: 'https://x.com/p1',
+      article_index: 1,
+    })];
+    const moderateOnly = [makeSignal({
+      signal_type: 'harm_to_population',
+      intensity: 'moderate',
+      article_url: 'https://x.com/p2',
+      article_index: 1,
+    })];
+    const scoredLight = scoreComponents(lightOnly, { totalArticles: 1 });
+    const scoredMod = scoreComponents(moderateOnly, { totalArticles: 1 });
+    assert.equal(
+      scoredLight.wellbeing_atrisk.evidence_mass,
+      scoredMod.wellbeing_atrisk.evidence_mass,
+    );
+  });
+
+  it('phase mismatch discount reduces mass when phase outside expected_phases', () => {
+    const matched = [makeSignal({
+      signal_type: 'complacency_or_normalization',
+      phase: 'response',
+      article_url: 'https://x.com/ph1',
+      article_index: 1,
+    })];
+    const mismatched = [makeSignal({
+      signal_type: 'complacency_or_normalization',
+      phase: 'anticipation',
+      article_url: 'https://x.com/ph2',
+      article_index: 1,
+    })];
+    const scoredMatch = scoreComponents(matched, { totalArticles: 1 });
+    const scoredMismatch = scoreComponents(mismatched, { totalArticles: 1 });
+    assert.ok(scoredMismatch.lifesaving_behavior.evidence_mass < scoredMatch.lifesaving_behavior.evidence_mass);
   });
 });
 

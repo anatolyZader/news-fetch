@@ -90,7 +90,14 @@ export function createEvidenceStore(dbPath) {
     LIMIT 1
   `);
 
-  return {
+  const api = {
+    /**
+     * Close the underlying database (for tests and long-lived scripts).
+     */
+    close() {
+      db.close();
+    },
+
     /**
      * Bulk-insert evidence items. Silently skips duplicates (same date+url+title).
      * @param {Array<{date: string, source_type: string, source_label?: string, source_url?: string, title?: string, body: string, published_at?: string}>} items
@@ -173,4 +180,8 @@ export function createEvidenceStore(dbPath) {
       };
     },
   };
+
+  // Keep a strong reference so prepared statements stay valid under coverage/GC (Node 22).
+  api._database = db;
+  return api;
 }
