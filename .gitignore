@@ -1,6 +1,9 @@
 node_modules/
 client/node_modules/
 
+# Test coverage (CI → SonarCloud)
+coverage/
+
 # Build outputs
 dist/
 client/dist/

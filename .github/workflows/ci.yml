@@ -17,6 +17,21 @@ permissions:
   pull-requests: write
 
 jobs:
+  validate:
+    name: Validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - run: npm run check:engines
+      - run: npm ci
+      - run: npm run openapi:lint
+
   sync-main-docs:
     name: Sync main documentation
     runs-on: ubuntu-latest
@@ -28,7 +43,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version-file: '.nvmrc'
           cache: 'npm'
 
       - name: Install dependencies
@@ -75,7 +90,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version-file: '.nvmrc'
           cache: 'npm'
 
       - run: npm ci
@@ -89,7 +104,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version-file: '.nvmrc'
           cache: 'npm'
 
       - run: npm ci
@@ -100,10 +115,17 @@ jobs:
           OUT=$(node scripts/sync-north-terms-from-reference.mjs)
           echo "$OUT"
           node -e "const j=JSON.parse(process.argv[1]); if(j.new_count>0){console.error('Run: npm run sync:north-terms -- --write'); process.exit(1)}" "$OUT"
-      - name: Run tests (serial — shared SQLite at data/app.sqlite)
-        run: npm test
+      - name: Run tests with coverage (serial — shared SQLite at data/app.sqlite)
+        run: npm run test:coverage
         env:
           GEO_ASSERT_ENVELOPE: '1'
+
+      - name: Upload coverage for SonarCloud
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-lcov
+          path: coverage/lcov.info
+          if-no-files-found: error
 
   build-client:
     name: Build client
@@ -113,7 +135,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version-file: '.nvmrc'
           cache: 'npm'
           cache-dependency-path: client/package-lock.json
 
@@ -132,7 +154,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version-file: '.nvmrc'
           cache: 'npm'
 
       - run: npm ci --prefix docs-site
@@ -146,7 +168,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version-file: '.nvmrc'
           cache: 'npm'
       - run: npm ci
       - run: node scripts/ci-audit.mjs
@@ -177,6 +199,13 @@ jobs:
         if: steps.gate.outputs.run == '1'
         with:
           fetch-depth: 0
+
+      - name: Download test coverage
+        if: steps.gate.outputs.run == '1'
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-lcov
+          path: coverage
 
       - name: SonarCloud Scan
         if: steps.gate.outputs.run == '1'

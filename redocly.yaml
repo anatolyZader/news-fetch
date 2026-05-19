@@ -1,0 +1,11 @@
+extends:
+  - recommended
+
+# OpenAPI 3.1 uses type unions for null; legacy `nullable: true` is intentional until migrated.
+rules:
+  struct: off
+  operation-operationId: warn
+
+apis:
+  openapi:
+    root: openapi/openapi.yaml

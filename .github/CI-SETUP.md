@@ -9,6 +9,7 @@ This guide explains how to configure GitHub so the workflows in [`.github/workfl
 | Workflow | When it runs | Secrets required? |
 |----------|----------------|-------------------|
 | **`ci.yml`** | Every `push` and `pull_request` | **None** for test/build/audit/doc sync. **SonarCloud:** three secrets (below) — job skips if `SONAR_TOKEN` is unset. |
+| **`dependency-review.yml`** | **`pull_request` only** | **None** — uses `GITHUB_TOKEN`; fails if the PR introduces a **high** severity dependency. |
 | **`resilience-live-llm.yml`** | Mondays 06:00 UTC + manual | **Optional:** `ANTHROPIC_API_KEY` — without it, the job skips cleanly. |
 
 You can run CI with **zero** secrets (SonarCloud skipped). For code quality gates and PR decoration, configure SonarCloud as in **Part 8** below.
@@ -121,6 +122,7 @@ To require CI before merge, add checks whose names match the workflow job `name:
 
 | Job key in YAML | Name shown in GitHub UI (use this in branch protection) |
 |---------------|--------------------------------------------------------|
+| `validate` | **Validate** |
 | `sync-main-docs` | **Sync main documentation** |
 | `lint` | **Lint** |
 | `test` | **Test** |
@@ -135,8 +137,9 @@ To require CI before merge, add checks whose names match the workflow job `name:
 2. Enable **Require status checks to pass before merging**.
 3. Enable **Require branches to be up to date before merging** (recommended so doc-sync + CI run on latest commit).
 4. In the search box under status checks, type e.g. `Test` and select **Test** when it appears (GitHub learns check names after the workflow has run at least once on the default branch or a PR).
-5. Repeat for **Lint**, **Build client**, **Build docs site**, **Security audit**, and optionally **SonarCloud**.
-6. Save changes.
+5. Repeat for **Validate**, **Lint**, **Build client**, **Build docs site**, **Security audit**, and optionally **SonarCloud**.
+6. On PRs, optionally require **Dependency review** (workflow `Dependency review`) after it has run once.
+7. Save changes.
 
 **Notes:**
 
@@ -317,20 +320,21 @@ You do **not** configure these in the GitHub UI:
 | Variable / token | Set by | Used for |
 |------------------|--------|----------|
 | `GITHUB_TOKEN` | GitHub Actions | Checkout, and `git push` in `sync-main-docs` when permissions are read/write. |
-| `NODE_VERSION` | `actions/setup-node` | Node **22** (from workflow `node-version: '22'`; required for built-in `node:sqlite`). |
+| `NODE_VERSION` | `actions/setup-node` | Node **22.13+** from [`.nvmrc`](../.nvmrc) via `node-version-file` (required for built-in `node:sqlite`). |
 | `CI=true` | GitHub Actions | Standard; Node/npm tools may change behavior when set. |
 
 ### 3.2 Environment variables in `ci.yml` jobs
 
 | Job | Env vars | Notes |
 |-----|----------|-------|
+| `validate` | — | `npm run check:engines`, `npm run openapi:lint` (Redocly). |
 | `sync-main-docs` | `BRANCH` (step env) | Branch to push doc commits to (`head_ref` on PRs, else ref name). |
 | `lint` | — | `npm run lint` (ESLint). |
-| `test` | `GEO_ASSERT_ENVELOPE=1` | Unit tests; integration tests **skip** if API keys are absent. |
+| `test` | `GEO_ASSERT_ENVELOPE=1` | `npm run test:coverage` → LCOV artifact for SonarCloud. |
 | `build-client` | — | Vite build does not require `VITE_*` at build time (see below). |
 | `build-docs-site` | — | Docusaurus build only; no API keys. |
 | `security-audit` | — | `node scripts/ci-audit.mjs` (high/critical except documented `xlsx`). |
-| `sonarcloud` | `SONAR_TOKEN`, `SONAR_ORGANIZATION`, `SONAR_PROJECT_KEY` (via scanner `args`) | Runs after **Test**; needs `fetch-depth: 0` and `pull-requests: write` for PR decoration. |
+| `sonarcloud` | `SONAR_TOKEN`, `SONAR_ORGANIZATION`, `SONAR_PROJECT_KEY` (via scanner `args`) | Runs after **Test**; downloads `coverage/lcov.info`; needs `fetch-depth: 0` and `pull-requests: write` for PR decoration. |
 
 ### 3.3 `resilience-live-llm.yml` environment
 
@@ -622,7 +626,8 @@ After configuration, confirm:
 
 - [ ] **Actions** enabled; workflow permissions **Read and write**.
 - [ ] Push a small change → **Actions** tab shows **CI** workflow running.
-- [ ] Jobs complete: **Sync main documentation**, **Lint**, **Test**, **Build client**, **Build docs site**, **Security audit**.
+- [ ] Jobs complete: **Validate**, **Sync main documentation**, **Lint**, **Test**, **Build client**, **Build docs site**, **Security audit**.
+- [ ] Open a PR → **Dependency review** workflow runs (if dependency graph is enabled for the repo).
 - [ ] If resilience code or OpenAPI changed, `sync-main-docs` may add a commit `docs: sync main_docu_files from code [skip ci]`.
 - [ ] `SONAR_TOKEN`, `SONAR_ORGANIZATION`, `SONAR_PROJECT_KEY` set → **SonarCloud** job runs and project updates on [sonarcloud.io](https://sonarcloud.io).
 - [ ] (Optional) `ANTHROPIC_API_KEY` set → **Resilience live LLM** runs adversarial tests when triggered.
@@ -630,11 +635,14 @@ After configuration, confirm:
 ### Local parity with CI
 
 ```bash
+npm run check:engines    # matches package.json engines.node (use .nvmrc)
 npm ci
+npm run openapi:lint     # Redocly — same as CI Validate job
 npm ci --prefix docs-site
 npm run docs:sync      # same as CI doc regeneration
 npm run docs:check     # product_docs validation
-npm test
+npm test               # fast local run (no coverage)
+npm run test:coverage  # CI Test job — writes coverage/lcov.info
 npm run client:build
 cd docs-site && npm run gen:api && npm run build
 node scripts/ci-audit.mjs
@@ -650,7 +658,9 @@ npm run sync:north-terms:check   # must report new_count: 0
 | Doc sync push rejected on `dev` | Protected default branch requires PRs | Run `npm run docs:sync` locally and commit before merge; auto-push runs only on **same-repo PRs**. |
 | Doc sync push `403` | Workflow read-only | **Read and write** workflow permissions (Settings → Actions). |
 | `gen:api` / Docusaurus fails in CI | Missing `docs-site` install | CI already runs `npm ci --prefix docs-site`; locally run the same before `docs:sync`. |
-| `ERR_UNKNOWN_BUILTIN_MODULE: node:sqlite` | Node &lt; 22.13 in CI or locally | Use Node **22.13+** (CI uses `node-version: '22'`). |
+| `ERR_UNKNOWN_BUILTIN_MODULE: node:sqlite` | Node &lt; 22.13 in CI or locally | Use Node **22.13+** (`nvm use` with root [`.nvmrc`](../.nvmrc)). |
+| OpenAPI lint fails | Invalid or breaking `openapi/openapi.yaml` | Run `npm run openapi:lint`; see [`redocly.yaml`](../redocly.yaml). |
+| Dependency review fails on PR | PR adds high-severity dependency | Update or remove the dependency; complements full-lockfile `ci-audit`. |
 | Security audit fails | High/critical in lockfile (except `xlsx`) | Run `npm audit fix`, commit lockfile; locally run `node scripts/ci-audit.mjs`. |
 | `NORTH_TERMS` check fails | `north-reference.json` ahead of `regionSignalFilter.js` | Run `npm run sync:north-terms -- --write` and commit. |
 | Integration tests skipped | No API keys in CI | Expected; add secrets only if you intentionally want live API tests in CI. |
@@ -668,6 +678,9 @@ npm run sync:north-terms:check   # must report new_count: 0
 | File | Role |
 |------|------|
 | [`.github/workflows/ci.yml`](./workflows/ci.yml) | Main CI pipeline |
+| [`.github/workflows/dependency-review.yml`](./workflows/dependency-review.yml) | PR dependency delta review |
+| [`.nvmrc`](../.nvmrc) | Node version for CI and local dev |
+| [`redocly.yaml`](../redocly.yaml) | OpenAPI lint rules |
 | [`sonar-project.properties`](../sonar-project.properties) | SonarCloud sources, tests, exclusions |
 | [`.github/workflows/resilience-live-llm.yml`](./workflows/resilience-live-llm.yml) | Optional live LLM tests |
 | [`docs/main_docu_files/README.md`](../docs/main_docu_files/README.md) | Auto-synced canonical docs |
