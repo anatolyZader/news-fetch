@@ -1,9 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { Bar, Cell, Line } from 'recharts';
 import {
-  AttentionSummaryPanel,
-  ComponentMapPanel,
-  DistrictComparisonPanel,
   QueriesIntelPanel,
   TopicDeepDivePanel,
 } from './trends/TrendsTabPanels.jsx';
@@ -180,7 +177,6 @@ export function TrendsTab() {
   }, [data, t]);
 
   const analytics = data?.analytics;
-  const districtName = districtDisplayName(t, data?.district?.labelKey ?? data?.district?.id);
 
   const filteredDeepDives = useMemo(() => {
     const dives = analytics?.topicDeepDives ?? [];
@@ -386,34 +382,10 @@ export function TrendsTab() {
 
       <Divider sx={{ opacity: 0.6 }} />
 
-      {analytics?.attention && (
-        <AttentionSummaryPanel
-          attention={analytics.attention}
-          districtName={districtName}
-          t={t}
-        />
-      )}
-
       {filteredTopics.length === 0 ? (
         <EmptyState>{t('trends.emptyGroup')}</EmptyState>
       ) : (
         <>
-          {analytics?.components?.length > 0 && (
-            <ComponentMapPanel
-              rows={analytics.components}
-              t={t}
-              chartColor={chart.blue}
-            />
-          )}
-
-          {analytics?.districtComparison && (
-            <DistrictComparisonPanel
-              comparison={analytics.districtComparison}
-              t={t}
-              onSelectDistrict={selectDistrict}
-            />
-          )}
-
           <KpiStrip columns={Math.min(4, filteredTopics.length) || 1}>
             {filteredTopics.slice(0, 4).map((topic) => (
               <KpiCard

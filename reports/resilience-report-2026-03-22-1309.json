@@ -227,7 +227,7 @@
         "narrative": "The one belonging signal documented today captures a resident actively concealing her nighttime shelter routine from neighbors, a behavior that indicates social withdrawal and an unwillingness to expose vulnerability within the immediate community ([source](https://www.youtube.com/watch?v=g4qYIE7Br50)). This behavior functions as a counter-indicator for solidarity: rather than mutual aid or shared acknowledgment of a common situation, the observed interaction is one of deliberate concealment. No evidence was found of residents articulating shared fate, mutual assistance, or community cohesion. Given the prior day's documentation of volunteer distribution and expressions of community support in other contexts, this split — solidarity visible in organized frameworks elsewhere, absent or actively suppressed at the neighborhood level in this context — warrants continued monitoring."
       },
       {
-        "component_id": "wellbeing_atrisk",
+        "component_id": "wellbeing_at_risk",
         "score": 3,
         "confidence": "low",
         "signal_count": 7,

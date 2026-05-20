@@ -71,7 +71,7 @@ export function searchSignals(signals, { query, component, sourceType, municipal
       community_capital: ['mutual_aid', 'volunteer_action', 'community_initiative', 'social_cohesion', 'social_fragmentation', 'community_organization'],
       leadership: ['leadership_visible_presence', 'leadership_absence', 'leadership_trust', 'leadership_distrust', 'leadership_action', 'leadership_inaction'],
       belonging_solidarity: ['solidarity_expression', 'solidarity_action', 'belonging_expression', 'alienation_expression', 'national_solidarity', 'inter_group_tension'],
-      wellbeing_atrisk: ['fear_expression', 'calm_confidence', 'stress_indicator', 'trauma_indicator', 'mental_health_concern', 'welfare_need', 'welfare_response', 'welfare_gap', 'vulnerable_population_concern'],
+      wellbeing_at_risk: ['fear_expression', 'calm_confidence', 'stress_indicator', 'trauma_indicator', 'mental_health_concern', 'welfare_need', 'welfare_response', 'welfare_gap', 'vulnerable_population_concern'],
     };
     const types = componentSignalMap[component];
     if (types) {

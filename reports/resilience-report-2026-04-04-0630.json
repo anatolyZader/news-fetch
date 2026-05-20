@@ -302,7 +302,7 @@
         "narrative": "Concrete mutual aid is present and active: cross-community hosting for Passover, coordinated food and medicine deliveries to elderly residents, community fundraising for damaged businesses, and a mayor organizing a community Seder for hard-hit neighboring settlements all constitute evidenced solidarity behavior. Simultaneously, several signals document fractures in belonging: the demonstration outside an Arab-Israeli journalist's home, reports of looting of missile-damaged properties (220 police cases opened), and a hate-vandalism incident on a community shelter indicate antisocial behaviors that exploit emergency conditions. Field reports document a structural isolation pattern for specific sub-populations — elderly women whose husbands are in reserve service, families with special-needs children, and non-Hebrew-speaking communities — who are not reached by existing solidarity mechanisms. The behavior of Arab communities under fire (Arraba al-Aramsha, Ghajar) is observed in field reports without evidence that national solidarity frameworks are extended to them, representing a population whose belonging experience during the emergency is not documented by news sources."
       },
       {
-        "component_id": "wellbeing_atrisk",
+        "component_id": "wellbeing_at_risk",
         "score": 2,
         "confidence": "high",
         "signal_count": 250,
@@ -7568,7 +7568,7 @@
           }
         ]
       },
-      "wellbeing_atrisk": {
+      "wellbeing_at_risk": {
         "score": 2,
         "confidence": "high",
         "positive_evidence": 3.657,
@@ -11418,7 +11418,7 @@
           }
         ]
       },
-      "wellbeing_atrisk": {
+      "wellbeing_at_risk": {
         "score": 2,
         "confidence": "high",
         "positive_evidence": 6.687,

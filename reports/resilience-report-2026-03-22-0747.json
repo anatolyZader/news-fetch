@@ -261,7 +261,7 @@
         "narrative": "Belonging and solidarity signals are present but limited in today's sample — two reports, both reflecting single cases or repeated patterns, rather than broad population-level evidence. Youth movement members and student village residents are described as engaged across multiple community support roles including affected neighborhoods and evacuated hotels, indicating that organized informal solidarity networks remain active ([source](https://www.maariv.co.il/news/opinions/article-1299374)). At the interpersonal level, a resident recounts neighbors helping organize a shared event in a building during wartime conditions, expressing the sentiment that it 'belonged to the whole building' — a direct articulation of collective ownership of communal space ([source](https://www.ynetnews.com/jewish-world/article/h11ijhn5zl)). No signals appear indicating group-level blame, scapegoating, or exclusion, though the absence is likely a reflection of reporting coverage rather than confirmed absence of such dynamics. Given the scale of mass casualties today, the relative thinness of solidarity reporting is a notable gap — whether it reflects reduced community activity, reduced journalistic attention to this domain, or both cannot be determined from available signals."
       },
       {
-        "component_id": "wellbeing_atrisk",
+        "component_id": "wellbeing_at_risk",
         "score": 1,
         "confidence": "high",
         "signal_count": 39,

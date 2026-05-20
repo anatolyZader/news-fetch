@@ -131,7 +131,7 @@ function makeMockExtraction(spec) {
       },
       ynet_geo_negatives_with_one_maariv: () => {
         // Layer 2 (article_source) cap @ 35%: 6 ynet negatives + 1 maariv negative
-        // on wellbeing_atrisk. Two outlets present -> Layer 2 must scale ynet down.
+        // on wellbeing_at_risk. Two outlets present -> Layer 2 must scale ynet down.
         const out = [];
         for (let i = 0; i < 6; i++) {
           out.push({

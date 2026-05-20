@@ -239,7 +239,7 @@ All tools are defined in `business_modules/chat/infrastructure/claudeChat.js`.
 ```json
 {
   "query": "string",
-  "component": "narrative|information_communication|lifesaving_behavior|functional_continuity|community_capital|leadership|belonging_solidarity|wellbeing_atrisk",
+  "component": "narrative|information_communication|lifesaving_behavior|functional_continuity|community_capital|leadership|belonging_solidarity|wellbeing_at_risk",
   "source_type": "news|radio|field|pbo|naftali|whatsapp",
   "municipality": "string",
   "date": "YYYY-MM-DD",

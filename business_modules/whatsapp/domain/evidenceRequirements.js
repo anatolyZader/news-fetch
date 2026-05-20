@@ -136,8 +136,8 @@ export const EVIDENCE_REQUIREMENTS = {
     ],
   },
 
-  wellbeing_atrisk: {
-    componentId: 'wellbeing_atrisk',
+  wellbeing_at_risk: {
+    componentId: 'wellbeing_at_risk',
     required: [...COMMON_REQUIRED, 'vulnerableGroup'],
     optional: [...COMMON_OPTIONAL, 'responseType', 'unmetNeeds'],
     disambiguation: [

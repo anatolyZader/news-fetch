@@ -361,8 +361,8 @@
       "_generator": "ynet_geo_negatives_with_one_maariv",
       "scenario": "Six ynet pieces pile a negative wellbeing narrative; one maariv piece balances. Layer-2 article_source cap (≤35%) keeps source_diversity_factor low and bounds the score.",
       "expectations": {
-        "score_range": {"wellbeing_atrisk": [1, 9]},
-        "max_source_diversity_factor": {"wellbeing_atrisk": 0.95},
+        "score_range": {"wellbeing_at_risk": [1, 9]},
+        "max_source_diversity_factor": {"wellbeing_at_risk": 0.95},
         "comment": "Layer-2 cap keeps single outlet from dominating the negative case."
       }
     },
@@ -390,7 +390,7 @@
       ],
       "expectations": {
         "after_cross_source_dedup_count": 1,
-        "score_range": {"wellbeing_atrisk": [3, 10]}
+        "score_range": {"wellbeing_at_risk": [3, 10]}
       }
     }
   ]

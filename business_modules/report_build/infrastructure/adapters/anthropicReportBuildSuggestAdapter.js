@@ -21,7 +21,7 @@ const SYSTEM_PROMPT =
   `- "community_capital"\n` +
   `- "leadership"\n` +
   `- "belonging_solidarity"\n` +
-  `- "wellbeing_atrisk"\n\n` +
+  `- "wellbeing_at_risk"\n\n` +
   `Allowed values:\n` +
   `- spread: "isolated" | "noticeable" | "widespread" | null\n` +
   `- sourceBasis: "direct" | "staff" | "residents" | "mixed" | null\n`;

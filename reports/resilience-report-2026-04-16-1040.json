@@ -289,7 +289,7 @@
         "narrative": "Solidarity and mutual aid remain the most consistently reported behavioral pattern across the entire northern community sample, with field professionals across nearly all localities describing residents helping neighbors, clan and extended family networks providing informal shelter and care, and formal volunteer systems organized around community membership. The most analytically important finding is the differential between community types: small, ethnically cohesive communities — Rama, Uja'r, Sha'ab, Ein Qiniyya — report near-total internal solidarity with no excluded or marginalized groups identified. Larger, multi-community municipalities such as Shfaram and Tiberias report community-level solidarity within sub-groups but less cross-community integration. Majdal Shams provides the clearest documented exclusion risk: children with severe disabilities who have been unable to leave their homes for 43 days are being tracked through individual welfare visits, but no group belonging mechanisms have been activated for them given security restrictions on in-person gatherings. A separate exclusion incident — coordinated cyberbullying of a 13-year-old in Be'er Ya'akov through a fake obituary notice — represents a non-emergency-related solidarity failure documented in today's sample, though its geographic scope within the studied population is limited."
       },
       {
-        "component_id": "wellbeing_atrisk",
+        "component_id": "wellbeing_at_risk",
         "score": 9,
         "confidence": "high",
         "signal_count": 295,
@@ -10036,7 +10036,7 @@
           }
         ]
       },
-      "wellbeing_atrisk": {
+      "wellbeing_at_risk": {
         "score": 2,
         "confidence": "high",
         "positive_evidence": 6.652,
@@ -18604,7 +18604,7 @@
           }
         ]
       },
-      "wellbeing_atrisk": {
+      "wellbeing_at_risk": {
         "score": 9,
         "confidence": "high",
         "positive_evidence": 83.156,
@@ -20929,7 +20929,7 @@
         "source_diversity": 0,
         "signals": []
       },
-      "wellbeing_atrisk": {
+      "wellbeing_at_risk": {
         "score": null,
         "confidence": "insufficient_data",
         "positive_evidence": 0,

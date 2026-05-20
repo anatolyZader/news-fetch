@@ -241,7 +241,7 @@
         "narrative": "Today's signals show a decline from the March 19 baseline, where belonging scored 7/10 and expressions of solidarity were visible. In today's sample, both available signals indicate fragmentation rather than cohesion: a shelter-based assault in Petah Tikva reflects interpersonal breakdown under stress, and more than 1,000 displaced Beit Shemesh residents are dispersed in hotel accommodation in Jerusalem, physically separated from their community networks. No expressions of shared fate, mutual aid, or community-building activities appear in today's signals. The absence of solidarity and mutual aid indicators is assessed as informative given the displacement and distress conditions described — this represents a meaningful deterioration from two days prior."
       },
       {
-        "component_id": "wellbeing_atrisk",
+        "component_id": "wellbeing_at_risk",
         "confidence": "high",
         "signal_count": 14,
         "distinct_article_count": 12,

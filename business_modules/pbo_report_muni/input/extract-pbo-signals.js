@@ -26,7 +26,7 @@ const COMPONENT_TO_SIGNAL_TYPE = {
   community_capital:         'community_volunteering',
   leadership:                'leadership_visible_present',
   belonging_solidarity:      'solidarity_help_others',
-  wellbeing_atrisk:          'wellbeing_support_accessed',
+  wellbeing_at_risk:          'wellbeing_support_accessed',
 };
 
 const COMPONENT_TO_NEG_SIGNAL = {
@@ -37,7 +37,7 @@ const COMPONENT_TO_NEG_SIGNAL = {
   community_capital:         'dependency_on_external_aid',
   leadership:                'leadership_absent_criticized',
   belonging_solidarity:      'social_exclusion',
-  wellbeing_atrisk:          'psychological_distress',
+  wellbeing_at_risk:          'psychological_distress',
 };
 
 function run() {

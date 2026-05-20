@@ -33,7 +33,7 @@ export const COMPONENT_LEXICON_PATTERNS = Object.freeze({
   belonging_solidarity: [
     'אחדות', 'פילוג', 'מחלוקת', 'סולידריות', 'שכנים', 'דאגה הדדית',
   ],
-  wellbeing_atrisk: [
+  wellbeing_at_risk: [
     'חרדה', 'פחד', 'לחץ', 'מצוקה', 'נפש', 'טראומה', 'תמיכה נפשית', 'חוסן נפשי',
     'ילדים', 'קשישים',
   ],

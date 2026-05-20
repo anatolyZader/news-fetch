@@ -92,7 +92,7 @@ Stable IDs are used throughout JSON, code, and i18n keys.
 | 5 | `community_capital` | Community Capital and Resources | הון ומשאבי קהילה | The ability to maximize community resources — human, physical, and social networks — through coordination between community mechanisms, cross-sector cooperation, activation of anchor organizations (local authority, community organizations), and volunteer mobilization. |
 | 6 | `leadership` | Leadership | מנהיגות | The perceived ability of formal and informal leadership — including religious figures, spiritual leaders, and community influencers — to lead the community, address its needs, and serve as a source of support and empowerment. |
 | 7 | `belonging_solidarity` | Belonging and Solidarity | שייכות וסולידריות | The ability to create a sense of belonging and mutual guarantee among community members. |
-| 8 | `wellbeing_atrisk` | Physical and Mental Wellbeing (At-Risk Populations) | דאגה לרווחה הפיזית והנפשית בדגש על אוכלוסיות סיכון | The ability of the community to identify and address the needs of vulnerable populations — in routine times and during emergencies. |
+| 8 | `wellbeing_at_risk` | Physical and Mental Wellbeing (At-Risk Populations) | דאגה לרווחה הפיזית והנפשית בדגש על אוכלוסיות סיכון | The ability of the community to identify and address the needs of vulnerable populations — in routine times and during emergencies. |
 
 <!-- docs-sync:END components-at-a-glance -->
 
@@ -113,7 +113,7 @@ Each component additionally exposes **2–4 facets** (defined in `business_modul
 | `community_capital` | `mobilization`, `local_capacity`, `external_dependency`, `collective_action`, `allocation` |
 | `leadership` | `visibility`, `credibility`, `competence`, `coordination`, `civic`, `trust` |
 | `belonging_solidarity` | `mutual_aid`, `cohesion`, `inclusion`, `exclusion`, `bridging` |
-| `wellbeing_atrisk` | `physical_harm`, `psychological_distress`, `affect_balance`, `care_access`, `equity`, `household_strain`, `population_evidence`, `sensitive_harm`, `hostage` |
+| `wellbeing_at_risk` | `physical_harm`, `psychological_distress`, `affect_balance`, `care_access`, `equity`, `household_strain`, `population_evidence`, `sensitive_harm`, `hostage` |
 
 <!-- docs-sync:END component-facets -->
 
@@ -358,7 +358,7 @@ Per-component reference below is regenerated from code. Extended narrative, sign
 
 ---
 
-### 2.9 `wellbeing_atrisk` — Physical and Mental Wellbeing (At-Risk Populations) (דאגה לרווחה הפיזית והנפשית בדגש על אוכלוסיות סיכון)
+### 2.9 `wellbeing_at_risk` — Physical and Mental Wellbeing (At-Risk Populations) (דאגה לרווחה הפיזית והנפשית בדגש על אוכלוסיות סיכון)
 
 **What it measures:** The ability of the community to identify and address the needs of vulnerable populations — in routine times and during emergencies. Includes mapping population vulnerability, establishing mechanisms for identifying needs and providing adapted responses: physical, emotional, and informational.
 
@@ -525,12 +525,12 @@ const COMPONENT_TO_SIGNAL_TYPE = {
   community_capital:         'community_volunteering',
   leadership:                'leadership_visible_present',
   belonging_solidarity:      'solidarity_help_others',
-  wellbeing_atrisk:          'wellbeing_support_accessed',
+  wellbeing_at_risk:          'wellbeing_support_accessed',
 };
 const COMPONENT_TO_NEG_SIGNAL = {
   narrative:                 'resilience_narrative_negative',
   /* ... */
-  wellbeing_atrisk:          'psychological_distress',
+  wellbeing_at_risk:          'psychological_distress',
 };
 ```
 
@@ -660,22 +660,22 @@ These fuel the **top contributors** explainability block (N9) shown in the UI.
 Unknown `signal_type` values are silently dropped. `SIGNAL_TO_COMPONENTS` then maps each type to one or more components with a signed weight, e.g.:
 
 ```js
-solidarity_help_others:    { belonging_solidarity: +1.0, wellbeing_atrisk: +0.7, community_capital: +0.6, narrative: +0.3 },
-service_disruption:        { functional_continuity: -1.5, wellbeing_atrisk: -0.4 },
+solidarity_help_others:    { belonging_solidarity: +1.0, wellbeing_at_risk: +0.7, community_capital: +0.6, narrative: +0.3 },
+service_disruption:        { functional_continuity: -1.5, wellbeing_at_risk: -0.4 },
 leadership_clear_guidance: { leadership: +1.1 },
 coordination_failure:      { leadership: -1.0, community_capital: -0.6, functional_continuity: -0.5 },
-fear_expression:           { wellbeing_atrisk: -0.7, narrative: -0.3 },
+fear_expression:           { wellbeing_at_risk: -0.7, narrative: -0.3 },
 rumor_spread:              { information_communication: -1.2, narrative: -0.5 },
 ```
 
-Negative weights make the signal *reduce* the component score; many signals also carry small "spillover" weights (e.g. `service_disruption` spills `−0.4` into `wellbeing_atrisk`, and `evacuation_displacement` spills `−0.3` into `belonging_solidarity`), enforced through `SIGNAL_TO_COMPONENTS` and tested for sign consistency. Note that **harm_to_population no longer auto-boosts `belonging_solidarity`** — the older +0.2 spillover was removed in B1 because mutual-aid response should be evidenced via `solidarity_help_others`, not inferred automatically from harm.
+Negative weights make the signal *reduce* the component score; many signals also carry small "spillover" weights (e.g. `service_disruption` spills `−0.4` into `wellbeing_at_risk`, and `evacuation_displacement` spills `−0.3` into `belonging_solidarity`), enforced through `SIGNAL_TO_COMPONENTS` and tested for sign consistency. Note that **harm_to_population no longer auto-boosts `belonging_solidarity`** — the older +0.2 spillover was removed in B1 because mutual-aid response should be evidenced via `solidarity_help_others`, not inferred automatically from harm.
 
 Four signal types added in this revision (closing a long-standing gap between the prompt and the catalog):
 
 - **`political_distrust`** — residents or named civic figures publicly demand accountability or distrust the political handling of the emergency. Routes to `leadership` (negative), `narrative` (negative), and `information_communication` (negative).
 - **`leadership_credibility_loss`** — concrete loss of trust in named leadership (broken promises, false reassurances). Routes to `leadership` (negative) and `narrative` (negative).
-- **`evacuation_displacement`** — residents evacuated, displaced, or unable to return home. Routes to `functional_continuity` (negative), `wellbeing_atrisk` (negative), and `belonging_solidarity` (negative).
-- **`routine_disruption`** — civilian daily routines (commuting, shopping, leisure, social rhythms) visibly disrupted. Distinct from `service_disruption` (institutional closures). Routes to `functional_continuity` (negative) and `wellbeing_atrisk` (negative).
+- **`evacuation_displacement`** — residents evacuated, displaced, or unable to return home. Routes to `functional_continuity` (negative), `wellbeing_at_risk` (negative), and `belonging_solidarity` (negative).
+- **`routine_disruption`** — civilian daily routines (commuting, shopping, leisure, social rhythms) visibly disrupted. Distinct from `service_disruption` (institutional closures). Routes to `functional_continuity` (negative) and `wellbeing_at_risk` (negative).
 
 ### 6.3 Multipass grouped extraction (E2)
 
@@ -807,7 +807,7 @@ strength       = tanh(net_evidence / tanhK_c)
 | `community_capital` | 2.2 | 1.8 |
 | `leadership` | 2.2 | 1.8 |
 | `belonging_solidarity` | 1.8 | 1.4 |
-| `wellbeing_atrisk` | 2.5 | 2.0 |
+| `wellbeing_at_risk` | 2.5 | 2.0 |
 
 (Author-set heuristics; planned for regression recalibration once 30+ days of report history exist.)
 
@@ -1306,7 +1306,7 @@ Stable IDs (used in JSON, code, and i18n keys) and their English labels from `cl
 | `community_capital` | community capital | הון קהילתי |
 | `leadership` | leadership | מנהיגות |
 | `belonging_solidarity` | belonging & solidarity | שייכות וסולידריות |
-| `wellbeing_atrisk` | wellbeing at risk | רווחה בסיכון |
+| `wellbeing_at_risk` | wellbeing at risk | רווחה בסיכון |
 
 <!-- docs-sync:END appendix-ui-labels -->
 
@@ -1472,7 +1472,7 @@ tests/
 - **Evidence basis** — one of `present_in_text` (verifier expects direct overlap), `paraphrased`, or `inferred_absence` (verifier bypassed).
 - **`_dual_pass_agreement`** — flag set when a signal is reproduced by both extraction passes; multiplies evidence by `dualBoost ∈ [1, 1.2]`.
 - **`political_distrust` / `leadership_credibility_loss`** — leadership-domain negative signal types (added in this revision). The first is about named accountability demands or distrust of the political handling of the emergency; the second is about concrete loss of trust in named leadership (broken promises, false reassurances).
-- **`evacuation_displacement`** — continuity-domain negative signal type for residents evacuated, displaced, or unable to return home; spills into `wellbeing_atrisk` and `belonging_solidarity`.
+- **`evacuation_displacement`** — continuity-domain negative signal type for residents evacuated, displaced, or unable to return home; spills into `wellbeing_at_risk` and `belonging_solidarity`.
 - **`routine_disruption`** — continuity-domain negative signal type for civilian daily-routine disruption (commuting, shopping, leisure, social rhythms). Distinct from `service_disruption` (institutions) and `economic_disruption` (employment / business).
 
 ---

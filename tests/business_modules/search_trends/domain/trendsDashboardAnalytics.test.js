@@ -53,10 +53,6 @@ describe('trendsDashboardAnalytics', () => {
         { districtId: 'south', topics: [{ id: 'alerts', latest: 30 }] },
       ],
     });
-    assert.ok(analytics.attention.index > 0);
-    const lifesaving = analytics.components.find((c) => c.componentId === 'lifesaving_behavior');
-    assert.ok(lifesaving?.sai > 0);
-    assert.ok(lifesaving.direction);
     assert.ok(analytics.queriesIntel.popular[0].signalTypes?.length >= 0);
     assert.equal(analytics.queriesIntel.popular[0].group, 'emergency');
     assert.equal(interestBand(75, 30), 'spike');

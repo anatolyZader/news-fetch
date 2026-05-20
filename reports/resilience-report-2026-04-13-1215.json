@@ -311,7 +311,7 @@
         "narrative": "Belonging and solidarity remain among the most consistently documented and strongest behavioral manifestations across the field reports, with the majority of visited communities reporting high levels of mutual aid, neighbor-to-neighbor assistance, and care for vulnerable populations. Field reports document residents hosting families without safe rooms, bringing food to elderly neighbors, sharing medicines, and organizing community-level holiday celebrations despite emergency restrictions. Small-community settings — Druze villages, small kibbutzim, Arab villages — show the highest cohesion, with field reporters describing social fabrics in which everyone knows everyone and no one is considered outside the community. A structural split is visible, however, between intra-community solidarity (universally high) and inter-community or inter-sector solidarity (variable). In Shfar'am, each religious community operates independently with no cross-community coordination. In Maaleh Yosef, some settlements maintain strong solidarity networks while others have not completed basic population mapping. No evidence of emergency-related scapegoating of population groups was found at the community level, though social media hostility toward cross-ethnic solidarity gestures was reported in one national-level case."
       },
       {
-        "component_id": "wellbeing_atrisk",
+        "component_id": "wellbeing_at_risk",
         "score": 9,
         "confidence": "high",
         "signal_count": 825,
@@ -23490,7 +23490,7 @@
           }
         ]
       },
-      "wellbeing_atrisk": {
+      "wellbeing_at_risk": {
         "score": 2,
         "confidence": "high",
         "positive_evidence": 8.108,
@@ -25898,7 +25898,7 @@
           }
         ]
       },
-      "wellbeing_atrisk": {
+      "wellbeing_at_risk": {
         "score": 2,
         "confidence": "high",
         "positive_evidence": 2.903,
@@ -27856,7 +27856,7 @@
           }
         ]
       },
-      "wellbeing_atrisk": {
+      "wellbeing_at_risk": {
         "score": 2,
         "confidence": "high",
         "positive_evidence": 3.993,
@@ -45235,7 +45235,7 @@
           }
         ]
       },
-      "wellbeing_atrisk": {
+      "wellbeing_at_risk": {
         "score": 9,
         "confidence": "high",
         "positive_evidence": 146.685,
@@ -52726,7 +52726,7 @@
           }
         ]
       },
-      "wellbeing_atrisk": {
+      "wellbeing_at_risk": {
         "score": 2,
         "confidence": "high",
         "positive_evidence": 10.379,
@@ -54182,7 +54182,7 @@
         "source_diversity": 0,
         "signals": []
       },
-      "wellbeing_atrisk": {
+      "wellbeing_at_risk": {
         "score": null,
         "confidence": "insufficient_data",
         "positive_evidence": 0,

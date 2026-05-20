@@ -21,7 +21,7 @@ describe('computeNorrisCapacities', () => {
   it('returns 4 capacities with stable identifiers', () => {
     const scored = {
       functional_continuity: makeComp({ score: 7 }),
-      wellbeing_atrisk: makeComp({ score: 5 }),
+      wellbeing_at_risk: makeComp({ score: 5 }),
       community_capital: makeComp({ score: 6 }),
       belonging_solidarity: makeComp({ score: 6 }),
       information_communication: makeComp({ score: 8 }),
@@ -39,7 +39,7 @@ describe('computeNorrisCapacities', () => {
   it('uses certainty-weighted mean to derive capacity score', () => {
     const deterministic = {
       functional_continuity: makeComp({ score: 8, certainty: 0.9 }),
-      wellbeing_atrisk: makeComp({ score: 4, certainty: 0.1 }),
+      wellbeing_at_risk: makeComp({ score: 4, certainty: 0.1 }),
       community_capital: makeComp({ score: 6, certainty: 0.5 }),
       belonging_solidarity: makeComp({ score: 6, certainty: 0.5 }),
       information_communication: makeComp({ score: 7, certainty: 1.0 }),
@@ -63,7 +63,7 @@ describe('computeNorrisCapacities', () => {
           makeSignal({ signal_type: 'delayed_mobilization', _contribution_raw: -0.7 }),
         ],
       }),
-      wellbeing_atrisk: makeComp({ score: 5 }),
+      wellbeing_at_risk: makeComp({ score: 5 }),
       community_capital: makeComp({ score: 6 }),
       belonging_solidarity: makeComp({ score: 6 }),
       information_communication: makeComp({ score: 7 }),
@@ -86,7 +86,7 @@ describe('computeNorrisCapacities', () => {
           makeSignal({ signal_type: 'service_disruption', _contribution_raw: -0.9, evidence: 'c' }),
         ],
       }),
-      wellbeing_atrisk: makeComp({ score: 5 }),
+      wellbeing_at_risk: makeComp({ score: 5 }),
       community_capital: makeComp({ score: 6 }),
       belonging_solidarity: makeComp({ score: 6 }),
       information_communication: makeComp({ score: 7 }),

@@ -297,7 +297,7 @@
         "narrative": "Belonging and solidarity are documented as functional across most visited communities, with concrete mutual aid behaviors including hosting neighbors without protected spaces, coordinating medicine and food delivery for elderly residents, and spontaneous community support during impact events. The most analytically significant solidarity dynamic on April 11 is the Passover and Easter holiday period: field reports from Shefa-Amr document a communal Christian Seder with 74 households, Yavneel documents food distribution (Kimcha d'Piskha) within modest capsule groupings, and multiple Arab communities report informal family gatherings that provide belonging reinforcement while raising compliance concerns around gathering limits. A divergence exists in multi-community settings: Shefa-Amr's field report explicitly notes that 'each community operates for itself' with no cross-community volunteer coordination — a structural gap in inter-community solidarity that is not present in smaller, ethnically homogeneous communities. One documented instance of online harassment of a disabled captivity survivor by right-wing commenters represents an exclusion dynamic in national public discourse that does not appear in community-level field observations."
       },
       {
-        "component_id": "wellbeing_atrisk",
+        "component_id": "wellbeing_at_risk",
         "score": 9,
         "confidence": "high",
         "signal_count": 766,
@@ -22574,7 +22574,7 @@
           }
         ]
       },
-      "wellbeing_atrisk": {
+      "wellbeing_at_risk": {
         "score": 2,
         "confidence": "high",
         "positive_evidence": 8.468,
@@ -24973,7 +24973,7 @@
           }
         ]
       },
-      "wellbeing_atrisk": {
+      "wellbeing_at_risk": {
         "score": 2,
         "confidence": "high",
         "positive_evidence": 2.903,
@@ -27481,7 +27481,7 @@
           }
         ]
       },
-      "wellbeing_atrisk": {
+      "wellbeing_at_risk": {
         "score": 2,
         "confidence": "high",
         "positive_evidence": 4.113,
@@ -45069,7 +45069,7 @@
           }
         ]
       },
-      "wellbeing_atrisk": {
+      "wellbeing_at_risk": {
         "score": 9,
         "confidence": "high",
         "positive_evidence": 146.685,
@@ -50965,7 +50965,7 @@
           }
         ]
       },
-      "wellbeing_atrisk": {
+      "wellbeing_at_risk": {
         "score": 2,
         "confidence": "high",
         "positive_evidence": 2.799,
@@ -51574,7 +51574,7 @@
         "source_diversity": 0,
         "signals": []
       },
-      "wellbeing_atrisk": {
+      "wellbeing_at_risk": {
         "score": null,
         "confidence": "insufficient_data",
         "positive_evidence": 0,

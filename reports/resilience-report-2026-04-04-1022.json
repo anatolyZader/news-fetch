@@ -267,7 +267,7 @@
         "narrative": "Belonging and solidarity at the interpersonal and community level are functioning robustly across the majority of visited communities, with field reports consistently documenting neighbor-to-neighbor assistance during alerts, organized hosting of displaced northern residents for Passover, food distribution to economically vulnerable families, and spontaneous grassroots mutual aid. The dominant behavioral pattern is one of communities drawing tighter together under shared threat rather than fracturing along sectoral or ethnic lines — notably, this holds across Arab, Druze, and Jewish communities of diverse composition. Two splits within this component are analytically significant. First, intra-community solidarity is present in most communities but does not translate to inter-community solidarity in several mixed cities: Shfaram field reports explicitly note that each of the city's Christian, Muslim, and Jewish communities operates independently without coordinated cross-community initiatives. Second, solidarity is interpersonally rich but often lacks coordination infrastructure in communities where the volunteer coordinator role is unfilled — meaning that willingness to help exists but is not efficiently directed to those who most need it, particularly elderly and disabled residents without active family support networks."
       },
       {
-        "component_id": "wellbeing_atrisk",
+        "component_id": "wellbeing_at_risk",
         "score": 9,
         "confidence": "high",
         "signal_count": 621,
@@ -18539,7 +18539,7 @@
           }
         ]
       },
-      "wellbeing_atrisk": {
+      "wellbeing_at_risk": {
         "score": 2,
         "confidence": "high",
         "positive_evidence": 3.657,
@@ -21707,7 +21707,7 @@
           }
         ]
       },
-      "wellbeing_atrisk": {
+      "wellbeing_at_risk": {
         "score": 2,
         "confidence": "high",
         "positive_evidence": 5.023,
@@ -37194,7 +37194,7 @@
           }
         ]
       },
-      "wellbeing_atrisk": {
+      "wellbeing_at_risk": {
         "score": 9,
         "confidence": "high",
         "positive_evidence": 134.966,

@@ -103,7 +103,7 @@ const COMPONENT_LABELS = {
     community_capital: 'Community capital',
     leadership: 'Leadership',
     belonging_solidarity: 'Belonging and solidarity',
-    wellbeing_atrisk: 'Wellbeing and at-risk groups',
+    wellbeing_at_risk: 'Wellbeing and at-risk groups',
   },
   he: {
     narrative: 'נרטיב',
@@ -113,7 +113,7 @@ const COMPONENT_LABELS = {
     community_capital: 'הון קהילתי',
     leadership: 'מנהיגות',
     belonging_solidarity: 'שייכות וסולידריות',
-    wellbeing_atrisk: 'רווחה וקבוצות בסיכון',
+    wellbeing_at_risk: 'רווחה וקבוצות בסיכון',
   },
   ru: {
     narrative: 'Нарратив',
@@ -123,7 +123,7 @@ const COMPONENT_LABELS = {
     community_capital: 'Общественный капитал',
     leadership: 'Лидерство',
     belonging_solidarity: 'Принадлежность и солидарность',
-    wellbeing_atrisk: 'Благополучие и группы риска',
+    wellbeing_at_risk: 'Благополучие и группы риска',
   },
 };
 

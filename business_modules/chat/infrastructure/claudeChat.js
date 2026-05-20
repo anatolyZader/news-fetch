@@ -44,7 +44,7 @@ const LOOKUP_SIGNALS_TOOL = {
       },
       component: {
         type: 'string',
-        enum: ['narrative', 'information_communication', 'lifesaving_behavior', 'functional_continuity', 'community_capital', 'leadership', 'belonging_solidarity', 'wellbeing_atrisk'],
+        enum: ['narrative', 'information_communication', 'lifesaving_behavior', 'functional_continuity', 'community_capital', 'leadership', 'belonging_solidarity', 'wellbeing_at_risk'],
         description: 'Filter by resilience component (optional).',
       },
       source_type: {

@@ -302,7 +302,7 @@
         "narrative": "Belonging and solidarity show a directionally mixed pattern, with the score declining slightly from the prior period. The most active expression of solidarity is organized rather than spontaneous — large-scale communal Seder initiatives, hotel relocations for elderly border residents, and nonprofit retreats for bereaved families represent structured belonging rather than emergent neighborhood-level mutual aid. Field reports document that spontaneous community cohesion is stronger in communities that did not experience prior evacuation: communities such as Kibbutz Ayalon that were evacuated during the Iron Swords war show broken cohesion and reduced engagement, while communities that remained in place report stronger internal bonds. A dimension of belonging that is inadequately addressed by current initiatives involves minority and marginalized populations: field reports document Arab communities where children's frameworks are closed and shelter infrastructure is absent, and Christian community representatives document a pattern of 181 recorded attacks against their communities over recent years — an escalating exclusion experience that wartime conditions have not interrupted. Political conflict is also producing exclusionary discourse: parliamentary opposition language frames the coalition as robbing citizens in shelters, activating a we/they framing that subdivides rather than consolidates national solidarity. All four behavioral manifestations are evidenced, though the scapegoating/exclusion manifestation is present specifically for Christian and Arab minority populations."
       },
       {
-        "component_id": "wellbeing_atrisk",
+        "component_id": "wellbeing_at_risk",
         "score": 2,
         "confidence": "high",
         "signal_count": 256,
@@ -7776,7 +7776,7 @@
           }
         ]
       },
-      "wellbeing_atrisk": {
+      "wellbeing_at_risk": {
         "score": 2,
         "confidence": "high",
         "positive_evidence": 3.588,
@@ -12605,7 +12605,7 @@
           }
         ]
       },
-      "wellbeing_atrisk": {
+      "wellbeing_at_risk": {
         "score": 2,
         "confidence": "high",
         "positive_evidence": 17.33,
@@ -14672,7 +14672,7 @@
           }
         ]
       },
-      "wellbeing_atrisk": {
+      "wellbeing_at_risk": {
         "score": 2,
         "confidence": "medium",
         "positive_evidence": 0,

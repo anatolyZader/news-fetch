@@ -15,7 +15,7 @@ import { scoreColor10 } from '../lib/score.js';
 const COMPONENT_IDS = [
   'narrative', 'information_communication', 'lifesaving_behavior',
   'functional_continuity', 'community_capital', 'leadership',
-  'belonging_solidarity', 'wellbeing_atrisk',
+  'belonging_solidarity', 'wellbeing_at_risk',
 ];
 
 function Sparkline({ series, t, valueKey = 'score', variant = 'score10' }) {

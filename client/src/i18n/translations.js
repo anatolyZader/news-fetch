@@ -38,7 +38,7 @@ export const translations = {
     'tab.trends':         'Trends',
     'muni.trendTitle':    'Score over time',
     'trends.title':              'Search trends',
-    'trends.subtitle':           'Google search interest for homefront topics — supplementary context, not scored evidence.',
+    'trends.subtitle':           'Google search interest for homefront topics.',
     'trends.loading':            'Loading search trends…',
     'trends.error':              'Could not load trends',
     'trends.empty':              'No trend data for this selection.',
@@ -523,7 +523,7 @@ export const translations = {
     'comp.community_capital':        'community capital',
     'comp.leadership':               'leadership',
     'comp.belonging_solidarity':     'belonging & solidarity',
-    'comp.wellbeing_atrisk':         'wellbeing at risk',
+    'comp.wellbeing_at_risk':         'wellbeing at risk',
 
     // Evidence input
     'evidence.heading':   'Report evidence',
@@ -637,7 +637,7 @@ export const translations = {
     'tab.trends':         'מגמות',
     'muni.trendTitle':    'מגמת ציון לאורך זמן',
     'trends.title':              'מגמות חיפוש',
-    'trends.subtitle':           'עניין חיפוש בגוגל לנושאי עורף — הקשר משלים, לא ראיה לציון.',
+    'trends.subtitle':           'עניין חיפוש בגוגל לנושאי עורף.',
     'trends.loading':            'טוען מגמות חיפוש…',
     'trends.error':              'לא ניתן לטעון מגמות',
     'trends.empty':              'אין נתונים לבחירה זו.',
@@ -1107,7 +1107,7 @@ export const translations = {
     'comp.community_capital':        'הון קהילתי',
     'comp.leadership':               'מנהיגות',
     'comp.belonging_solidarity':     'שייכות וסולידריות',
-    'comp.wellbeing_atrisk':         'רווחה בסיכון',
+    'comp.wellbeing_at_risk':         'רווחה בסיכון',
 
     // Evidence input
     'evidence.heading':    'עדויות לדוח',
@@ -1221,7 +1221,7 @@ export const translations = {
     'tab.trends':         'Тренды',
     'muni.trendTitle':    'Динамика оценки',
     'trends.title':              'Поисковые тренды',
-    'trends.subtitle':           'Интерес поиска Google по темам тыла — дополнительный контекст, не оценка.',
+    'trends.subtitle':           'Интерес поиска Google по темам тыла.',
     'trends.loading':            'Загрузка трендов…',
     'trends.error':              'Не удалось загрузить тренды',
     'trends.empty':              'Нет данных для этого выбора.',
@@ -1691,7 +1691,7 @@ export const translations = {
     'comp.community_capital':        'общественный капитал',
     'comp.leadership':               'лидерство',
     'comp.belonging_solidarity':     'принадлежность и солидарность',
-    'comp.wellbeing_atrisk':         'благополучие в группе риска',
+    'comp.wellbeing_at_risk':         'благополучие в группе риска',
 
     // Evidence input
     'evidence.heading':    'Доказательства для отчёта',

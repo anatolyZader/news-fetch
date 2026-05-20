@@ -15,6 +15,7 @@ export function PageHeader({ title, subtitle, action }) {
       useFlexGap
       flexWrap="wrap"
       spacing={1.2}
+      sx={{ width: '100%' }}
     >
       <Box>
         {title && (
@@ -32,7 +33,11 @@ export function PageHeader({ title, subtitle, action }) {
           </Typography>
         )}
       </Box>
-      {action}
+      {action && (
+        <Box sx={{ flexShrink: 0, marginLeft: 'auto' }}>
+          {action}
+        </Box>
+      )}
     </Stack>
   );
 }

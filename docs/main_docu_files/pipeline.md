@@ -173,11 +173,11 @@ Each signal type maps to one or more resilience components, with a base weight p
 
 | Signal | Component mappings |
 |---|---|
-| `solidarity_help_others` | `belonging_solidarity` +1.0, `wellbeing_atrisk` +0.7, `community_capital` +0.6 |
-| `service_disruption` | `functional_continuity` −1.5, `wellbeing_atrisk` −0.4 |
+| `solidarity_help_others` | `belonging_solidarity` +1.0, `wellbeing_at_risk` +0.7, `community_capital` +0.6 |
+| `service_disruption` | `functional_continuity` −1.5, `wellbeing_at_risk` −0.4 |
 | `leadership_clear_guidance` | `leadership` +1.1, `information_communication` +0.4 |
 | `coordination_failure` | `leadership` −1.0, `community_capital` −0.6, `functional_continuity` −0.5 |
-| `fear_expression` | `narrative` −0.8, `wellbeing_atrisk` −0.7 |
+| `fear_expression` | `narrative` −0.8, `wellbeing_at_risk` −0.7 |
 
 The full mapping table is in `business_modules/resilience/domain/services/behaviorSignals.js` → `SIGNAL_TO_COMPONENTS`.
 
@@ -285,7 +285,7 @@ Based on the Pikud HaOref / Fran Norris 2008 framework:
 | `community_capital` | הון ומשאבי קהילה | Community Capital & Resources |
 | `leadership` | מנהיגות | Leadership |
 | `belonging_solidarity` | שייכות וסולידריות | Belonging & Solidarity |
-| `wellbeing_atrisk` | דאגה לרווחה הפיזית והנפשית | Physical & Mental Wellbeing (At-Risk) |
+| `wellbeing_at_risk` | דאגה לרווחה הפיזית והנפשית | Physical & Mental Wellbeing (At-Risk) |
 
 Full definitions and behavioral manifestations: `business_modules/resilience/domain/resilienceComponents.js`
 

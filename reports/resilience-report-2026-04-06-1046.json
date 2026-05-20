@@ -300,7 +300,7 @@
         "narrative": "Solidarity and mutual aid are broadly documented across communities of all types — Jewish, Arab, Druze, mixed — with field reports and news signals both recording concrete acts: families hosting neighbors without shelters, volunteers delivering medications to elderly residents, communities organizing spontaneous gathering activities. The pattern is strongest in small, socially cohesive communities where family networks provide a natural mutual aid infrastructure, and is documented explicitly in field reports from Rama, Sha'ab, Ein Kinya, and Kfar Kama. The component's negative signals are concentrated in specific settings: urban shelter environments where youth gangs occupied communal spaces and displaced elderly residents, intra-group tensions at demonstration sites in Tel Aviv and at IDF recruitment offices in Jerusalem, and, at the community level, Shfar'am's documented absence of inter-community solidarity between its constituent Jewish, Arab, and Christian populations. No evidence was found of population groups being scapegoated or blamed due to the emergency in the field report communities; the exclusion signals are behavioral (shelter access denial) rather than ideological."
       },
       {
-        "component_id": "wellbeing_atrisk",
+        "component_id": "wellbeing_at_risk",
         "score": 9,
         "confidence": "high",
         "signal_count": 700,
@@ -20375,7 +20375,7 @@
           }
         ]
       },
-      "wellbeing_atrisk": {
+      "wellbeing_at_risk": {
         "score": 2,
         "confidence": "high",
         "positive_evidence": 4.444,
@@ -23763,7 +23763,7 @@
           }
         ]
       },
-      "wellbeing_atrisk": {
+      "wellbeing_at_risk": {
         "score": 2,
         "confidence": "high",
         "positive_evidence": 6.003,
@@ -40603,7 +40603,7 @@
           }
         ]
       },
-      "wellbeing_atrisk": {
+      "wellbeing_at_risk": {
         "score": 9,
         "confidence": "high",
         "positive_evidence": 167.036,
@@ -46059,7 +46059,7 @@
           }
         ]
       },
-      "wellbeing_atrisk": {
+      "wellbeing_at_risk": {
         "score": 2,
         "confidence": "high",
         "positive_evidence": 0.327,

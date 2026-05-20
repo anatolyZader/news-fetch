@@ -140,7 +140,7 @@ export function computeNorrisCapacities(scoredComponentsDeterministic, scoredCom
       capacity_id: 'economic_development',
       label_en: 'Economic development',
       label_he: 'התפתחות כלכלית',
-      component_ids: ['functional_continuity', 'wellbeing_atrisk'],
+      component_ids: ['functional_continuity', 'wellbeing_at_risk'],
       scoredComponentsDeterministic,
       scoredComponentsDisplay,
       rapiditySignalsOfInterest: true,

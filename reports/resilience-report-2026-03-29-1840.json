@@ -284,7 +284,7 @@
         "narrative": "Belonging and solidarity on March 29 presents two contradictory behavioral patterns operating simultaneously. On the solidarity side, informal mutual aid networks are active and visible: volunteers bring food to shelters during active alerts, theatrical performances are staged in bomb shelters for marginalized populations, and a mixed Jewish-Arab emergency response team of 84 is operating in the Galilee Panhandle. Against this, fracture signals have increased in salience compared to prior days — police dispersed protests with tear gas and physical force in both Tel Aviv and Haifa, bystanders threw eggs at demonstrators, a community shelter was vandalized and looted in Tiberias, and residents in Kiryat Shmona describe social isolation extending beyond four weeks with grocery trips experienced as dangerous. The score's directional decline from 6 to 3 reflects this shift: while mutual aid is genuine and documented, the social tensions around protest, the destruction of a shared protective resource, and the deepening isolation of residents in high-threat areas indicate that community cohesion is not evenly distributed and is under pressure in specific populations and locations. Arab communities in the north are structurally absent from solidarity reporting, representing either a reporting gap or a population whose needs are not being reached by the informal mutual aid networks visible elsewhere."
       },
       {
-        "component_id": "wellbeing_atrisk",
+        "component_id": "wellbeing_at_risk",
         "score": 2,
         "confidence": "high",
         "signal_count": 61,

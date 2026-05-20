@@ -274,7 +274,7 @@
         "narrative": "Mutual aid behaviors are documented across multiple communities, though they operate in tension with indicators of social fragmentation. In Shetula and Manot, organized delivery of medicines, food, and supplies to vulnerable residents — including widows and the elderly — is occurring through coordinated volunteer networks. In several northern communities, field reports note that the departure of younger families and religious anchor groups has reduced the social base available for solidarity activities. Two signals point to social tension rather than cohesion: a public shelter in Tiberias was vandalized and looted during the ongoing security threat, representing a direct degradation of shared protective infrastructure; and anti-war protesters in Haifa and Tel Aviv were arrested following police clearance operations, indicating active political division within the population. Solidarity across communal lines is documented through United Hatzalah's mixed Jewish-Arab volunteer team in the Galilee Panhandle, though this appears as a single reported case rather than a systemic pattern. The trajectory from prior days shows a slight decline in this component, consistent with field reports indicating community depletion in northern settlements."
       },
       {
-        "component_id": "wellbeing_atrisk",
+        "component_id": "wellbeing_at_risk",
         "score": 2,
         "confidence": "high",
         "signal_count": 88,

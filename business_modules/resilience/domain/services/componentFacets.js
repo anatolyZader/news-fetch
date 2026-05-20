@@ -105,7 +105,7 @@ export const COMPONENT_FACETS = {
                  'inter_group_trust'],
   },
 
-  wellbeing_atrisk: {
+  wellbeing_at_risk: {
     physical_harm:          ['harm_to_population', 'near_miss_reported'],
     psychological_distress: ['psychological_distress', 'fear_expression', 'child_distress'],
     affect_balance:         ['calm_confidence', 'fear_expression', 'positive_wellbeing_marker'],

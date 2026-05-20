@@ -309,7 +309,7 @@
         "narrative": "Solidarity and mutual aid are documented across the broad majority of visited communities, with the most consistent behavioral manifestation being informal peer-to-peer support: neighbors hosting displaced families, youth volunteers visiting elderly residents, and households sharing resources during alert periods. Both field reports and news signals evidence this pattern. The strongest expressions of belonging are documented in small, socially cohesive communities — Rama, where family networks structurally cover at-risk populations; Shab, described as 'a small settlement that behaves like one big family'; and multiple Druze and Circassian villages where communal identity appears to strengthen rather than fracture under pressure. A structural split is evident in mixed-population cities: Shfaram field professionals documented that communal solidarity is strong within each religious community but absent between them, with each community functioning independently rather than as a unified city. The tension-related signals — police-protester clashes in Tel Aviv and a shelter confrontation in which an officer drew a weapon — represent ruptures at the state-civil interface rather than inter-community dynamics, and no evidence of systematic scapegoating of any population group was found in the data."
       },
       {
-        "component_id": "wellbeing_atrisk",
+        "component_id": "wellbeing_at_risk",
         "score": 9,
         "confidence": "high",
         "signal_count": 871,
@@ -23886,7 +23886,7 @@
           }
         ]
       },
-      "wellbeing_atrisk": {
+      "wellbeing_at_risk": {
         "score": 2,
         "confidence": "high",
         "positive_evidence": 3.741,
@@ -26028,7 +26028,7 @@
           }
         ]
       },
-      "wellbeing_atrisk": {
+      "wellbeing_at_risk": {
         "score": 2,
         "confidence": "high",
         "positive_evidence": 2.903,
@@ -30516,7 +30516,7 @@
           }
         ]
       },
-      "wellbeing_atrisk": {
+      "wellbeing_at_risk": {
         "score": 2,
         "confidence": "high",
         "positive_evidence": 7.277,
@@ -49567,7 +49567,7 @@
           }
         ]
       },
-      "wellbeing_atrisk": {
+      "wellbeing_at_risk": {
         "score": 9,
         "confidence": "high",
         "positive_evidence": 178.68,
@@ -55771,7 +55771,7 @@
           }
         ]
       },
-      "wellbeing_atrisk": {
+      "wellbeing_at_risk": {
         "score": 2,
         "confidence": "high",
         "positive_evidence": 0.894,

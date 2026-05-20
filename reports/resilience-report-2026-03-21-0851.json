@@ -138,7 +138,7 @@
         "narrative": "The sole belonging-related signal captured on March 21 is an incident of interpersonal violence between neighbors sharing a shelter during a siren, resulting in injuries requiring medical treatment. This is consistent with the prior period's reports of social friction under conditions of sustained confinement and stress. No signals of mutual aid, expressed solidarity, or community events were captured in today's data, though the limited article sample means their absence cannot be treated as definitive. The shelter — a space explicitly designed for collective protection — was the setting for the conflict, indicating that shared physical vulnerability is not generating observable solidarity in all cases. The trend from prior days, which showed some solidarity activity alongside stress-related friction, does not have corresponding positive evidence in today's signals."
       },
       {
-        "component_id": "wellbeing_atrisk",
+        "component_id": "wellbeing_at_risk",
         "confidence": "high",
         "signal_count": 9,
         "manifestations_evidenced": [

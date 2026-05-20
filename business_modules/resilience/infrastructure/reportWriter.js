@@ -252,7 +252,7 @@ function i18n(componentId) {
     community_capital: '🤝',
     leadership: '👤',
     belonging_solidarity: '🔗',
-    wellbeing_atrisk: '❤️',
+    wellbeing_at_risk: '❤️',
   };
   return icons[componentId] ?? '•';
 }

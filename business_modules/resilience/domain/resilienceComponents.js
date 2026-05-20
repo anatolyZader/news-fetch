@@ -195,7 +195,7 @@ export const RESILIENCE_COMPONENTS = [
     ],
   },
   {
-    id: 'wellbeing_atrisk',
+    id: 'wellbeing_at_risk',
     name_he: 'דאגה לרווחה הפיזית והנפשית בדגש על אוכלוסיות סיכון',
     name_en: 'Physical and Mental Wellbeing (At-Risk Populations)',
     description:

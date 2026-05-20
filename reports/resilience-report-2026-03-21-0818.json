@@ -127,7 +127,7 @@
         "narrative": "The sole behavioral signal for belonging and solidarity on March 21 is a reported interpersonal assault occurring within a shared shelter space during an air raid siren in Petah Tikva. The incident — in which a remark prompted a physical attack between neighbors — illustrates the interpersonal stress that can emerge when residents are confined together under sustained pressure. No evidence of mutual aid, solidarity expressions, or community-building activity was recorded on this date. The component's prior-day score of 7/10 reflected stronger belonging indicators; today's signal base is insufficient to confirm whether that baseline holds or has deteriorated, though the absence of positive signals and the presence of a conflict incident indicate ongoing fragility."
       },
       {
-        "component_id": "wellbeing_atrisk",
+        "component_id": "wellbeing_at_risk",
         "confidence": "medium",
         "signal_count": 5,
         "manifestations_evidenced": [

@@ -10,7 +10,7 @@
  * Component IDs match resilienceComponents.js:
  *   narrative, information_communication, lifesaving_behavior,
  *   functional_continuity, community_capital, leadership,
- *   belonging_solidarity, wellbeing_atrisk
+ *   belonging_solidarity, wellbeing_at_risk
  */
 
 import { COMPONENT_FACETS } from './componentFacets.js';
@@ -84,7 +84,7 @@ function temporalDecayMultiplier(signal, priors) {
 export const COMPONENT_IDS = [
   'narrative', 'information_communication', 'lifesaving_behavior',
   'functional_continuity', 'community_capital', 'leadership',
-  'belonging_solidarity', 'wellbeing_atrisk',
+  'belonging_solidarity', 'wellbeing_at_risk',
 ];
 
 const SCOPE_WEIGHT = {
@@ -122,7 +122,7 @@ export const COMPONENT_TUNING = {
   community_capital:         { tanhK: 2.2, certM: 1.8 },
   leadership:                { tanhK: 2.2, certM: 1.8 },
   belonging_solidarity:      { tanhK: 1.8, certM: 1.4 },
-  wellbeing_atrisk:          { tanhK: 2.5, certM: 2.0 },
+  wellbeing_at_risk:          { tanhK: 2.5, certM: 2.0 },
 };
 const DEFAULT_TUNING = { tanhK: 2.5, certM: 2.0 };
 
@@ -299,7 +299,7 @@ function computeDerivedIndicators(componentId, cappedItems, batchMassByType = nu
       + (byType.child_distress ?? 0);
     out.narrative_wellbeing_dissociation = posNarr > 0 && distress > 0;
   }
-  if (componentId === 'wellbeing_atrisk') {
+  if (componentId === 'wellbeing_at_risk') {
     const posWell = (byType.positive_wellbeing_marker ?? 0) + (byType.calm_confidence ?? 0);
     const distress = (byType.psychological_distress ?? 0) + (byType.child_distress ?? 0)
       + (byType.fear_expression ?? 0);
@@ -319,7 +319,7 @@ function computeDerivedIndicators(componentId, cappedItems, batchMassByType = nu
     out.recovery_fragility =
       (byType.post_event_recovery_indicator ?? 0) > 0 && (byType.recovery_setback ?? 0) > 0;
   }
-  if (componentId === 'wellbeing_atrisk' || componentId === 'information_communication') {
+  if (componentId === 'wellbeing_at_risk' || componentId === 'information_communication') {
     out.equity_information_double_gap =
       (byType.information_inclusivity_gap ?? 0) > 0
       && (byType.inequitable_resource_access ?? 0) > 0;
@@ -329,7 +329,7 @@ function computeDerivedIndicators(componentId, cappedItems, batchMassByType = nu
     out.capacity_without_behavior =
       (mix.capacity ?? 0) > 0.5 && (mix.behavior ?? 0) < 0.3 * (mix.capacity ?? 0);
   }
-  if (componentId === 'belonging_solidarity' || componentId === 'wellbeing_atrisk') {
+  if (componentId === 'belonging_solidarity' || componentId === 'wellbeing_at_risk') {
     out.solidarity_under_harm =
       (byType.harm_to_population ?? 0) > 0 && (byType.solidarity_help_others ?? 0) > 0;
   }

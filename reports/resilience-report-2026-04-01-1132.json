@@ -311,7 +311,7 @@
         "narrative": "Belonging and solidarity signals are mixed across community type and population composition. Concrete mutual aid — supply distribution via WhatsApp, volunteer care for elderly, organized charitable distributions by youth football teams — is documented in multiple settings, indicating that solidarity as a behavior is present. A structural erosion of belonging is documented in communities where selective demographic departure has occurred: in Goren, departure of younger residents has left an older cohort with diminished informal networks, and in Kibbutz Ayalon, prolonged evacuation during the prior conflict has produced reduced community engagement and a dependency pattern inconsistent with mutual aid capacity. The field reports also surface a distinct solidarity deficit among elderly populations, documented across Shtula, Margeliot, Dafna, and Manara as isolation without informal social contact — a manifestation distinct from general community cohesion and not addressed by the mutual aid structures that are functioning for other population groups. Signals of institutional exclusion — structured around Arab communities' disproportionate casualty rates and a football committee dispute framed explicitly as a pattern of differential treatment — indicate that solidarity is not experienced uniformly across population identity lines. The direction from March 31 is stable, with no improvement in the elderly isolation dimension."
       },
       {
-        "component_id": "wellbeing_atrisk",
+        "component_id": "wellbeing_at_risk",
         "score": 2,
         "confidence": "high",
         "signal_count": 137,
@@ -5271,7 +5271,7 @@
           }
         ]
       },
-      "wellbeing_atrisk": {
+      "wellbeing_at_risk": {
         "score": 2,
         "confidence": "high",
         "positive_evidence": 3.588,
@@ -7185,7 +7185,7 @@
           }
         ]
       },
-      "wellbeing_atrisk": {
+      "wellbeing_at_risk": {
         "score": 3,
         "confidence": "high",
         "positive_evidence": 2.044,
@@ -7854,7 +7854,7 @@
           }
         ]
       },
-      "wellbeing_atrisk": {
+      "wellbeing_at_risk": {
         "score": 2,
         "confidence": "high",
         "positive_evidence": 2.8,

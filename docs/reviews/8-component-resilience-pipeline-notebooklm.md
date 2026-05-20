@@ -162,7 +162,7 @@ Stable IDs (used in JSON, code, and i18n):
 | 5 | `community_capital` | Community capital and resources |
 | 6 | `leadership` | Leadership |
 | 7 | `belonging_solidarity` | Belonging and solidarity |
-| 8 | `wellbeing_atrisk` | Physical and mental wellbeing (at-risk focus) |
+| 8 | `wellbeing_at_risk` | Physical and mental wellbeing (at-risk focus) |
 
 **Definitions, guiding questions, and behavioral manifestations** are maintained in code as the single source of truth: `business_modules/resilience/domain/resilienceComponents.js` (`RESILIENCE_COMPONENTS`).
 

@@ -543,7 +543,7 @@ const WHATSAPP_INTERACTIVE_SIGNAL_EXTRACTION_PREFIX =
   `    confidence.level: "low" | "medium" | "high"\n` +
   `    componentId ∈ ["narrative","information_communication","lifesaving_behavior",\n` +
   `                   "functional_continuity","community_capital","leadership",\n` +
-  `                   "belonging_solidarity","wellbeing_atrisk"]\n\n` +
+  `                   "belonging_solidarity","wellbeing_at_risk"]\n\n` +
   `OUTPUT FORMAT (three JSON fragments, in order, each on its own line):\n` +
   `1) JSON array of signal objects (same schema as batch).\n` +
   `2) Then a single-line JSON object:\n` +

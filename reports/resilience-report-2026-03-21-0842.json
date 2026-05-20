@@ -140,7 +140,7 @@
         "narrative": "The single signal available for this component today documents an interpersonal assault between neighbors sharing a shelter during an alert in Petah Tikva. The incident — a physical attack resulting in injuries requiring medical attention, triggered by a verbal remark in a confined emergency space — is a behavioral indicator of stress-driven social friction rather than solidarity. Shelter environments, which are structurally designed as shared protective spaces, are in this case the site of breakdown rather than cohesion. No mutual aid, shared fate expressions, or belonging-oriented community activities are documented in today's signals. The signal base is limited to one incident and does not permit characterization of solidarity behaviors across the broader affected population; the absence of positive belonging signals in the data may reflect both the state of conditions and the scope of available reporting."
       },
       {
-        "component_id": "wellbeing_atrisk",
+        "component_id": "wellbeing_at_risk",
         "confidence": "high",
         "signal_count": 9,
         "manifestations_evidenced": [

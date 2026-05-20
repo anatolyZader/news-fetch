@@ -26,7 +26,7 @@ const ICONS = {
   community_capital: '🤝',
   leadership: '👤',
   belonging_solidarity: '🔗',
-  wellbeing_atrisk: '❤️',
+  wellbeing_at_risk: '❤️',
 };
 
 function buildMarkdown(assessment, sourceFile) {

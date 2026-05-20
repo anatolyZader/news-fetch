@@ -140,7 +140,7 @@
         "narrative": "The single signal available for this component documents an episode of interpersonal violence between neighbors sharing a shelter during an alert in Petah Tikva: a resident in his 20s is reported to have struck and headbutted a neighbor following a verbal remark, resulting in injuries requiring medical treatment ([source](https://www.mako.co.il/men-men_news/Article-4efeb1817bd0d91026.htm)). This event is a behavioral indicator of social friction under sustained shelter-seeking conditions, where enforced proximity and repeated stress may lower tolerance between co-residents. No signals today document expressions of solidarity, mutual aid, or community cohesion events. The evidence base for this component is limited to a single signal, which constrains any broader characterization of solidarity trends; prior days' data showed higher belonging scores and the current signal set does not confirm whether that trend has shifted or merely goes undocumented."
       },
       {
-        "component_id": "wellbeing_atrisk",
+        "component_id": "wellbeing_at_risk",
         "confidence": "high",
         "signal_count": 8,
         "manifestations_evidenced": [

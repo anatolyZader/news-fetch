@@ -27,20 +27,20 @@ const COLUMN_MAP = [
   { pattern: 'פועלים הלכה למעשה על פי ההנחיות',        component: 'lifesaving_behavior',        kind: 'score' },
   { pattern: 'תופסים את הנרטיב המוצג על ידי הנהגת',   component: 'narrative',                  kind: 'score' },
   { pattern: 'נרטיב של התמודדות מוצלחת בקרב',         component: 'narrative',                  kind: 'score' },
-  { pattern: 'מענים מספקים לצורכי האוכלוסיות המיוחדות', component: 'wellbeing_atrisk',           kind: 'score' },
+  { pattern: 'מענים מספקים לצורכי האוכלוסיות המיוחדות', component: 'wellbeing_at_risk',           kind: 'score' },
   { pattern: 'יוזמות של סיוע הדדי',                    component: 'belonging_solidarity',       kind: 'score' },
   { pattern: 'קבוצות אוכלוסייה הנתפסות כמחוץ למחנה',  component: 'belonging_solidarity',       kind: 'score', invert: true },
   { pattern: 'מנגנוני המידע והתקשורת של הרשות מותאמים', component: 'information_communication', kind: 'score' },
-  { pattern: 'פעילות לאיתור אוכלוסיות מעגל שני',       component: 'wellbeing_atrisk',           kind: 'score' },
+  { pattern: 'פעילות לאיתור אוכלוסיות מעגל שני',       component: 'wellbeing_at_risk',           kind: 'score' },
   { pattern: 'סיפור ההתמודדות המרכזי משקף',            component: 'narrative',                  kind: 'score' },
   { pattern: 'מנגנונים לתכלול פעילות המתנדבים',        component: 'community_capital',          kind: 'score' },
-  { pattern: 'מענים רגשיים עבור תושבים המגלים סימני',  component: 'wellbeing_atrisk',           kind: 'score' },
+  { pattern: 'מענים רגשיים עבור תושבים המגלים סימני',  component: 'wellbeing_at_risk',           kind: 'score' },
   { pattern: 'נכונות בקרב התושבים להתנדב',             component: 'community_capital',          kind: 'score' },
   { pattern: 'תחושת סולידריות בקרב התושבים',           component: 'belonging_solidarity',       kind: 'score' },
   { pattern: 'תפיסת האיום של התושבים מקדמת',           component: 'lifesaving_behavior',        kind: 'score' },
 
   // Free text columns (התייחסות מילולית = verbal reference)
-  { pattern: 'התייחסות מילולית דאגה לרווחה',            component: 'wellbeing_atrisk',           kind: 'text' },
+  { pattern: 'התייחסות מילולית דאגה לרווחה',            component: 'wellbeing_at_risk',           kind: 'text' },
   { pattern: 'התייחסות מילולית התנהגות אפקטיבית',       component: 'lifesaving_behavior',        kind: 'text' },
   { pattern: 'התייחסות מילולית מידע ותקשורת',           component: 'information_communication',  kind: 'text' },
   { pattern: 'התייחסות מילולית מיצוי משאבי קהילה',      component: 'community_capital',          kind: 'text' },
@@ -53,7 +53,7 @@ const COLUMN_MAP = [
 export const COMPONENTS_ORDER = [
   'narrative', 'information_communication', 'lifesaving_behavior',
   'functional_continuity', 'community_capital', 'leadership',
-  'belonging_solidarity', 'wellbeing_atrisk',
+  'belonging_solidarity', 'wellbeing_at_risk',
 ];
 
 export const COMPONENT_NAMES_HE = {
@@ -64,7 +64,7 @@ export const COMPONENT_NAMES_HE = {
   community_capital:         'הון ומשאבי קהילה',
   leadership:                'מנהיגות',
   belonging_solidarity:      'שייכות וסולידריות',
-  wellbeing_atrisk:          'דאגה לרווחה',
+  wellbeing_at_risk:          'דאגה לרווחה',
 };
 
 export const COMPONENT_NAMES_EN = {
@@ -75,7 +75,7 @@ export const COMPONENT_NAMES_EN = {
   community_capital:         'Community Capital',
   leadership:                'Leadership',
   belonging_solidarity:      'Belonging & Solidarity',
-  wellbeing_atrisk:          'Wellbeing (At-Risk)',
+  wellbeing_at_risk:          'Wellbeing (At-Risk)',
 };
 
 /**

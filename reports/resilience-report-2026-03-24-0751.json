@@ -247,7 +247,7 @@
         "narrative": "No signals for belonging or solidarity were extracted from today's sample across any of the four expected manifestations. This represents the second consecutive day with limited or absent evidence in this component — on March 23 it scored 3/10, and today the signal base is insufficient to score. The absence is interpreted primarily as a reporting gap: coverage on March 24 is concentrated on missile strike events, operational guidance, and systemic disruptions, which leaves interpersonal and community solidarity behaviors underreported rather than demonstrably absent. The concert audience sheltering together and returning to the venue — documented under functional continuity — could be read as an informal solidarity expression, but it was not coded as a belonging signal in the available data. Whether mutual aid and solidarity behaviors are occurring at a level comparable to prior weeks cannot be determined from today's evidence alone."
       },
       {
-        "component_id": "wellbeing_atrisk",
+        "component_id": "wellbeing_at_risk",
         "score": 2,
         "confidence": "high",
         "signal_count": 15,

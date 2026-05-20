@@ -316,7 +316,7 @@
         "narrative": "Solidarity and mutual aid are broadly present across northern communities on April 16, with most localities reporting informal support networks, families hosting displaced neighbors, and community initiatives centered on shared memory and practical assistance. The dominant social behavior is one of communities remaining internally cohesive — Katzrin describes a 'unit pride' among residents, Rama reports no excluded groups, and multiple smaller communities describe operating as extended families. A notable split exists in Ma'ale Yosef, where the regional resilience team documents that some settlements maintain strong mutual solidarity while others show residents functioning as individuals with little inter-household coordination, pointing to intra-regional variation that aggregate solidarity scores may obscure. A structurally concerning population absence is documented in Majdal Shams, where a child with severe mobility disability has not left home in 43 days due to accessibility barriers — a form of de-facto exclusion from communal life and solidarity networks that is not a matter of social rejection but of physical inaccessibility, and that represents an informative gap in the otherwise positive solidarity picture. Memorial Day programming — private home hosting events, grassroots memorials, and community food initiatives — is actively reinforcing collective identity and shared fate as a behavioral mechanism."
       },
       {
-        "component_id": "wellbeing_atrisk",
+        "component_id": "wellbeing_at_risk",
         "score": 9,
         "confidence": "high",
         "signal_count": 389,
@@ -10648,7 +10648,7 @@
           }
         ]
       },
-      "wellbeing_atrisk": {
+      "wellbeing_at_risk": {
         "score": 2,
         "confidence": "high",
         "positive_evidence": 2.903,
@@ -13673,7 +13673,7 @@
           }
         ]
       },
-      "wellbeing_atrisk": {
+      "wellbeing_at_risk": {
         "score": 2,
         "confidence": "high",
         "positive_evidence": 8.969,
@@ -22703,7 +22703,7 @@
           }
         ]
       },
-      "wellbeing_atrisk": {
+      "wellbeing_at_risk": {
         "score": 9,
         "confidence": "high",
         "positive_evidence": 83.156,
@@ -25028,7 +25028,7 @@
         "source_diversity": 0,
         "signals": []
       },
-      "wellbeing_atrisk": {
+      "wellbeing_at_risk": {
         "score": null,
         "confidence": "insufficient_data",
         "positive_evidence": 0,

@@ -122,8 +122,8 @@ export const CATEGORY_COMPONENT_HINTS = {
   'official communication': ['information_communication', 'leadership'],
   'community support': ['community_capital', 'belonging_solidarity'],
   'emergency response': ['leadership', 'community_capital', 'lifesaving_behavior'],
-  'emotional response': ['wellbeing_atrisk', 'narrative'],
-  'family coping': ['wellbeing_atrisk', 'belonging_solidarity'],
+  'emotional response': ['wellbeing_at_risk', 'narrative'],
+  'family coping': ['wellbeing_at_risk', 'belonging_solidarity'],
   'narrative formation': ['narrative'],
   'rumor propagation': ['narrative', 'information_communication'],
   'situational awareness': ['information_communication', 'lifesaving_behavior'],
@@ -131,5 +131,5 @@ export const CATEGORY_COMPONENT_HINTS = {
   'functional continuity': ['functional_continuity'],
   'recovery behavior': ['functional_continuity'],
   'post-alert movement': ['functional_continuity', 'lifesaving_behavior'],
-  'anticipation behavior': ['narrative', 'wellbeing_atrisk'],
+  'anticipation behavior': ['narrative', 'wellbeing_at_risk'],
 };

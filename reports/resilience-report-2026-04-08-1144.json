@@ -304,7 +304,7 @@
         "narrative": "Belonging and solidarity remain among the strongest-performing behavioral dimensions on April 8, with both field reports and news signals documenting concrete mutual aid across a wide range of community types. Field professionals describe communities in Rama, Maizra, Nahf, Jish, and Kfar Manda as characterized by spontaneous solidarity — families hosting displaced neighbors, residents checking on elderly, and communities rallying around bereaved families — without requiring formal coordination. The Passover period appears to have served as a solidarity-reinforcing event in Jewish communities, with collective Seders documented in Shlomi and Yavniel providing structured social contact during an otherwise isolated period. A structural split exists within the solidarity landscape: Shfaram, a mixed-faith city, shows each community functioning with internal solidarity but without inter-community mutual aid initiatives — a fragmented rather than integrated solidarity pattern. No signals of inter-group scapegoating or exclusion were found in today's sample, continuing the pattern from prior days; the absence of this signal is assessed as informative given the context of ongoing Iranian missile attacks, suggesting inter-communal tensions have not materialized around attribution of blame."
       },
       {
-        "component_id": "wellbeing_atrisk",
+        "component_id": "wellbeing_at_risk",
         "score": 9,
         "confidence": "high",
         "signal_count": 800,
@@ -23332,7 +23332,7 @@
           }
         ]
       },
-      "wellbeing_atrisk": {
+      "wellbeing_at_risk": {
         "score": 2,
         "confidence": "high",
         "positive_evidence": 7.93,
@@ -25841,7 +25841,7 @@
           }
         ]
       },
-      "wellbeing_atrisk": {
+      "wellbeing_at_risk": {
         "score": 2,
         "confidence": "high",
         "positive_evidence": 2.903,
@@ -28525,7 +28525,7 @@
           }
         ]
       },
-      "wellbeing_atrisk": {
+      "wellbeing_at_risk": {
         "score": 2,
         "confidence": "high",
         "positive_evidence": 5.243,
@@ -46575,7 +46575,7 @@
           }
         ]
       },
-      "wellbeing_atrisk": {
+      "wellbeing_at_risk": {
         "score": 9,
         "confidence": "high",
         "positive_evidence": 157.474,
@@ -52240,7 +52240,7 @@
           }
         ]
       },
-      "wellbeing_atrisk": {
+      "wellbeing_at_risk": {
         "score": 2,
         "confidence": "high",
         "positive_evidence": 1.187,

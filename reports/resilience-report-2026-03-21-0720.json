@@ -122,7 +122,7 @@
         "narrative": "The sole belonging and solidarity signal today is a documented incident of interpersonal violence in a shared shelter in Petah Tikva ([source](https://www.mako.co.il/men-me_news/Article-4efeb1817bd0d91026.htm)). A verbal exchange during an alert escalated to a physical assault resulting in injury and arrest, indicating that communal shelter spaces — which are, by design, spaces of shared protective behavior — are also sites of social friction. No signals of mutual aid, solidarity expression, or community cohesion were captured. This represents a decline from March 19's score of 7/10, though the small sample size limits the degree to which this can be interpreted as a population-level trend rather than a reporting artifact."
       },
       {
-        "component_id": "wellbeing_atrisk",
+        "component_id": "wellbeing_at_risk",
         "confidence": "medium",
         "signal_count": 6,
         "manifestations_evidenced": [

@@ -90,8 +90,8 @@ describe('SIGNAL_CATALOG / SIGNAL_TO_COMPONENTS — T1 + T2 additions', () => {
     assert.equal(scored.belonging_solidarity.score, null,
       'B1: harm alone should not produce a belonging score; it must remain insufficient_data');
     assert.equal(scored.belonging_solidarity.confidence, 'insufficient_data');
-    assert.ok(scored.wellbeing_atrisk.score != null,
-      'wellbeing_atrisk should still register the harm signal');
+    assert.ok(scored.wellbeing_at_risk.score != null,
+      'wellbeing_at_risk should still register the harm signal');
   });
 
   it('A1: 4 phantom-prompt signal types now exist in the catalog', () => {
@@ -154,7 +154,7 @@ describe('SIGNAL_CATALOG / SIGNAL_TO_COMPONENTS — T1 + T2 additions', () => {
     assert.ok(SIGNAL_TO_COMPONENTS.rapid_mobilization.functional_continuity > 0);
     assert.ok(SIGNAL_TO_COMPONENTS.delayed_mobilization.functional_continuity < 0);
 
-    assert.ok(SIGNAL_TO_COMPONENTS.inequitable_resource_access.wellbeing_atrisk < 0);
+    assert.ok(SIGNAL_TO_COMPONENTS.inequitable_resource_access.wellbeing_at_risk < 0);
     assert.ok(SIGNAL_TO_COMPONENTS.equitable_resource_distribution.community_capital > 0);
   });
 });
@@ -806,7 +806,7 @@ describe('scoreComponents — v4 intensity', () => {
     }));
     const scoredLight = scoreComponents(light, { totalArticles: 4 });
     const scoredSevere = scoreComponents(severe, { totalArticles: 4 });
-    assert.ok(scoredSevere.wellbeing_atrisk.evidence_mass > scoredLight.wellbeing_atrisk.evidence_mass);
+    assert.ok(scoredSevere.wellbeing_at_risk.evidence_mass > scoredLight.wellbeing_at_risk.evidence_mass);
   });
 });
 
@@ -866,7 +866,7 @@ describe('scoreComponents — v5 signal_class_mix', () => {
       }),
     ];
     const scored = scoreComponents(sigs, { totalArticles: 2 });
-    const mix = scored.wellbeing_atrisk.signal_class_mix;
+    const mix = scored.wellbeing_at_risk.signal_class_mix;
     assert.ok(mix.event > 0);
     assert.ok(mix.attitude > 0);
     assert.equal(mix.structural_state, 0);
@@ -932,7 +932,7 @@ describe('scoreComponents — v5 derived indicators', () => {
     const scoredNarr = scoreComponents(narrativeSigs, { totalArticles: 2 });
     const scoredWell = scoreComponents(wellbeingSigs, { totalArticles: 2 });
     assert.equal(scoredNarr.narrative.derived_indicators.narrative_wellbeing_dissociation, true);
-    assert.equal(scoredWell.wellbeing_atrisk.derived_indicators.narrative_wellbeing_dissociation, true);
+    assert.equal(scoredWell.wellbeing_at_risk.derived_indicators.narrative_wellbeing_dissociation, true);
   });
 
   it('exposes source_cap_binding when outlet concentration triggers cap', () => {
@@ -975,8 +975,8 @@ describe('scoreComponents — v5 scoring priors', () => {
     const scoredLight = scoreComponents(lightOnly, { totalArticles: 1 });
     const scoredMod = scoreComponents(moderateOnly, { totalArticles: 1 });
     assert.equal(
-      scoredLight.wellbeing_atrisk.evidence_mass,
-      scoredMod.wellbeing_atrisk.evidence_mass,
+      scoredLight.wellbeing_at_risk.evidence_mass,
+      scoredMod.wellbeing_at_risk.evidence_mass,
     );
   });
 

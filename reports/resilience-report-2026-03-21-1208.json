@@ -278,7 +278,7 @@
         "narrative": "Belonging and solidarity is the least evidenced component in today's sample, with only four signals and a medium confidence rating. The signals that are present reflect two directions: organized mutual aid through food distribution in Hadera and ad hoc proximity-based support in shelters, including an unconventional family configuration described as maintaining bonds through shared shelter time. The single negative signal — a physical assault on journalists in a Tel Aviv shelter — represents one documented instance of interpersonal aggression in a collective protection space, which may reflect accumulated stress rather than a broader exclusionary dynamic; the sample does not support a broader pattern claim. The relative absence of explicit solidarity expression in residents' own words, and the absence of reported community-belonging events or programs, likely reflects both reporting priorities and the increasingly shelter-centered nature of daily life, which constrains the social settings in which solidarity is typically expressed and observed."
       },
       {
-        "component_id": "wellbeing_atrisk",
+        "component_id": "wellbeing_at_risk",
         "confidence": "high",
         "signal_count": 45,
         "distinct_article_count": 35,

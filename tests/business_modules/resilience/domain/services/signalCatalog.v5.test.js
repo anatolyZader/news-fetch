@@ -149,6 +149,6 @@ describe('signalCatalog v6', () => {
     assert.equal(SIGNAL_TO_COMPONENTS.harm_to_population.leadership, -0.3);
     assert.equal(SIGNAL_TO_COMPONENTS.harm_to_population.community_capital, -0.4);
     assert.equal(SIGNAL_TO_COMPONENTS.protection_effective.narrative, 0.3);
-    assert.equal(SIGNAL_TO_COMPONENTS.religious_coping_practice.wellbeing_atrisk, 0.5);
+    assert.equal(SIGNAL_TO_COMPONENTS.religious_coping_practice.wellbeing_at_risk, 0.5);
   });
 });

@@ -290,7 +290,7 @@
         "narrative": "Solidarity and mutual aid are documented at high levels across most visited communities, with field reports from dozens of localities describing neighbors caring for elderly residents, volunteers distributing food packages, and communities mobilizing during funeral and crisis events without being asked. The dominant pattern in small and medium communities — particularly Arab and Druze villages — is that pre-existing kinship and familiarity networks activate as informal mutual aid infrastructure during alerts and events. A notable absence, documented explicitly in field reports from Ma'aleh Yosef and Mevoot Hermon, is that solidarity is uneven within regional councils: some settlements within the same council are highly cohesive while others have not developed collective functioning, and residents in the latter group act as isolated individuals rather than as community members during emergencies. The most analytically distinctive signal is the identification in Majdal Shams of children with significant disabilities who have not left their homes for the entire 43-day operation — a population rendered effectively invisible by the combination of educational closure and caregiver isolation, whose needs fall outside what standard welfare mapping has reached."
       },
       {
-        "component_id": "wellbeing_atrisk",
+        "component_id": "wellbeing_at_risk",
         "score": 9,
         "confidence": "high",
         "signal_count": 381,
@@ -10740,7 +10740,7 @@
           }
         ]
       },
-      "wellbeing_atrisk": {
+      "wellbeing_at_risk": {
         "score": 2,
         "confidence": "high",
         "positive_evidence": 2.903,
@@ -13556,7 +13556,7 @@
           }
         ]
       },
-      "wellbeing_atrisk": {
+      "wellbeing_at_risk": {
         "score": 2,
         "confidence": "high",
         "positive_evidence": 9.533,
@@ -22718,7 +22718,7 @@
           }
         ]
       },
-      "wellbeing_atrisk": {
+      "wellbeing_at_risk": {
         "score": 9,
         "confidence": "high",
         "positive_evidence": 86.738,
@@ -25120,7 +25120,7 @@
         "source_diversity": 0,
         "signals": []
       },
-      "wellbeing_atrisk": {
+      "wellbeing_at_risk": {
         "score": null,
         "confidence": "insufficient_data",
         "positive_evidence": 0,

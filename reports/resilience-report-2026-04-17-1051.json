@@ -274,7 +274,7 @@
         "narrative": "Belonging and solidarity behaviors are documented at consistently high levels across the observed community sample, with concrete mutual aid — food sharing, medication delivery to elderly, hosting of displaced neighbors, WhatsApp-coordinated crisis response — reported as active in the large majority of communities. The ceasefire and Memorial Day proximity together activated several belonging-oriented programs: the 'Victory in the Living Room' initiative connected bereaved families and fighters in private homes, and organ donation by a bereaved family in Kafr Qasem carried symbolic weight as an act of shared fate across communal lines. A solidarity gap is documented at the structural level in Kiryat Shmona: residents expressed collective frustration that while the rest of the country returned to normal, the north remained in an emergency that had produced over 6,000 rejected respite requests — a form of solidarity rupture between front-line and non-front-line populations. Within communities, the field data identifies variation: small, tight-knit villages (Rama, Ein Qiniyye, Sha'ab) describe near-total solidarity with no excluded groups, while larger or more heterogeneous communities (Maaleh Yosef, Tzfat) document incomplete population mapping and some groups receiving inadequate outreach."
       },
       {
-        "component_id": "wellbeing_atrisk",
+        "component_id": "wellbeing_at_risk",
         "score": 9,
         "confidence": "high",
         "signal_count": 326,
@@ -11000,7 +11000,7 @@
           }
         ]
       },
-      "wellbeing_atrisk": {
+      "wellbeing_at_risk": {
         "score": 2,
         "confidence": "high",
         "positive_evidence": 7.779,
@@ -19909,7 +19909,7 @@
           }
         ]
       },
-      "wellbeing_atrisk": {
+      "wellbeing_at_risk": {
         "score": 9,
         "confidence": "high",
         "positive_evidence": 71.355,
@@ -22234,7 +22234,7 @@
         "source_diversity": 0,
         "signals": []
       },
-      "wellbeing_atrisk": {
+      "wellbeing_at_risk": {
         "score": null,
         "confidence": "insufficient_data",
         "positive_evidence": 0,

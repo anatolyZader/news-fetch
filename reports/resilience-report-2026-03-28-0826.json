@@ -252,7 +252,7 @@
         "narrative": "Solidarity is behaviorally visible in several documented instances: a 84-person mixed-identity volunteer team operating under risk in the north, cultural programming in bomb shelters funded by an established foundation, and a new community rescue unit generating strong enlistment interest in Beit Shemesh ([source](https://www.inn.co.il/flashes/1104776)). These signals indicate that belonging-oriented activity is organized and active across diverse communities and geographies. The contrasting signal is the reported experience of reserve soldiers, described at scale as feeling 'forgotten at the front' — managing dual expectations from employers and family while enduring extended deployment, without adequate recognition or support structures ([source](https://www.themarker.com/career/2026-03-26/ty-article-magazine/.premium/0000019d-204c-d62e-addd-234e41620000)). This constitutes a documented solidarity deficit for a specific and sizable population group: individuals whose contribution to collective security is not matched by collective recognition of their individual circumstances. No evidence of scapegoating or inter-group exclusion was captured, though this is assessed as a likely reporting gap rather than confirmed absence."
       },
       {
-        "component_id": "wellbeing_atrisk",
+        "component_id": "wellbeing_at_risk",
         "score": 2,
         "confidence": "high",
         "signal_count": 27,

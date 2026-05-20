@@ -266,7 +266,7 @@
         "narrative": "Belonging and solidarity remain strong across the reporting sample, with concrete mutual aid acts, community-organized programs, and expressions of shared fate documented in the majority of communities. The predominant pattern is one of family- and neighborhood-level solidarity — residents taking in displaced neighbors, volunteers delivering supplies to elderly residents, and community groups organizing emotional support activities. Solidarity-building programs have adapted to security restrictions: where physical gatherings are restricted, digital formats (Zoom sessions with up to 1,000 participants, WhatsApp groups for mutual aid) are substituting effectively for in-person events. A distinction is worth noting between communities where solidarity operates organically through dense family networks (Rama, Gush Halav, Ein Qiniyya) and larger or more fragmented urban communities (Shfar'am, Tzfat) where solidarity functions at the sub-community level — each ethno-religious community largely supporting its own members — rather than city-wide. No evidence of emergency-related group scapegoating or exclusion was found in today's sample."
       },
       {
-        "component_id": "wellbeing_atrisk",
+        "component_id": "wellbeing_at_risk",
         "score": 9,
         "confidence": "high",
         "signal_count": 304,
@@ -10054,7 +10054,7 @@
           }
         ]
       },
-      "wellbeing_atrisk": {
+      "wellbeing_at_risk": {
         "score": 2,
         "confidence": "high",
         "positive_evidence": 6.908,
@@ -18721,7 +18721,7 @@
           }
         ]
       },
-      "wellbeing_atrisk": {
+      "wellbeing_at_risk": {
         "score": 9,
         "confidence": "high",
         "positive_evidence": 83.156,
@@ -21046,7 +21046,7 @@
         "source_diversity": 0,
         "signals": []
       },
-      "wellbeing_atrisk": {
+      "wellbeing_at_risk": {
         "score": null,
         "confidence": "insufficient_data",
         "positive_evidence": 0,

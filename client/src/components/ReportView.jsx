@@ -31,7 +31,7 @@ const COMPONENT_ICONS = {
   community_capital:         HandshakeOutlinedIcon,
   leadership:                SupervisorAccountOutlinedIcon,
   belonging_solidarity:      Diversity3OutlinedIcon,
-  wellbeing_atrisk:          MonitorHeartOutlinedIcon,
+  wellbeing_at_risk:          MonitorHeartOutlinedIcon,
 };
 
 function getComponentIcon(componentId) {

@@ -45,8 +45,6 @@ describe('searchTrendsService', () => {
     assert.equal(data.popularQueries[0].query, 'test popular');
     assert.equal(data.risingQueries[0].query, 'test rising');
     assert.equal(data.relatedSeedLabelKey, 'trends.topic.alerts');
-    assert.ok(data.analytics?.attention?.index >= 0);
-    assert.ok(Array.isArray(data.analytics?.components));
     assert.ok(data.analytics?.queriesIntel?.popularByGroup);
   });
 

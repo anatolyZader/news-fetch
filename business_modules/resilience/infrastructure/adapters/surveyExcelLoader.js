@@ -17,7 +17,7 @@
  *         community_capital:       [],
  *         leadership:              [],
  *         belonging_solidarity:    [],
- *         wellbeing_atrisk:        [],
+ *         wellbeing_at_risk:        [],
  *         context:                 [...]   ← background, not assessed
  *       }
  *     }],
@@ -35,7 +35,7 @@ const SKIP_PATTERN = /חותמת זמן|timestamp|תאריך ביצוע|שמות
 const ALL_COMPONENTS = [
   'narrative', 'information_communication', 'lifesaving_behavior',
   'functional_continuity', 'community_capital', 'leadership',
-  'belonging_solidarity', 'wellbeing_atrisk', 'context',
+  'belonging_solidarity', 'wellbeing_at_risk', 'context',
 ];
 
 /**

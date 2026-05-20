@@ -315,7 +315,7 @@
         "narrative": "Solidarity behaviors are documented with high frequency and consistency across the field report sample, with spontaneous and organized mutual aid operating as a primary coping mechanism in small and mid-size communities: residents hosting families without safe rooms, coordinating medication delivery to homebound elderly, activating volunteer response systems within minutes of rocket falls, and sustaining informal social contact that offsets institutional service gaps. The most functionally significant solidarity behaviors are those that directly substitute for absent services — the Nahf volunteer response to a rocket impact, the Mazra'a community absorption of displaced families, and the Ma'aleh Yosef welfare system distributing Passover food packages — rather than symbolic gestures. A structural split exists between small homogeneous communities (described as 'one large family') where informal solidarity is nearly total, and larger mixed or multi-community municipalities (Shefa-Amr, Maalot-Tarshiha) where solidarity operates within each sub-community but not across them. No evidence was found of inter-community scapegoating; the one assault incident reported involved a political rather than community-emergency context."
       },
       {
-        "component_id": "wellbeing_atrisk",
+        "component_id": "wellbeing_at_risk",
         "score": 9,
         "confidence": "high",
         "signal_count": 780,
@@ -23784,7 +23784,7 @@
           }
         ]
       },
-      "wellbeing_atrisk": {
+      "wellbeing_at_risk": {
         "score": 2,
         "confidence": "high",
         "positive_evidence": 6.57,
@@ -26192,7 +26192,7 @@
           }
         ]
       },
-      "wellbeing_atrisk": {
+      "wellbeing_at_risk": {
         "score": 2,
         "confidence": "high",
         "positive_evidence": 2.903,
@@ -29635,7 +29635,7 @@
           }
         ]
       },
-      "wellbeing_atrisk": {
+      "wellbeing_at_risk": {
         "score": 2,
         "confidence": "high",
         "positive_evidence": 5.276,
@@ -47399,7 +47399,7 @@
           }
         ]
       },
-      "wellbeing_atrisk": {
+      "wellbeing_at_risk": {
         "score": 9,
         "confidence": "high",
         "positive_evidence": 146.685,
@@ -53570,7 +53570,7 @@
           }
         ]
       },
-      "wellbeing_atrisk": {
+      "wellbeing_at_risk": {
         "score": 2,
         "confidence": "high",
         "positive_evidence": 3.052,
