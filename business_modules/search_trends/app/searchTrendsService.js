@@ -8,6 +8,8 @@ import {
 } from '../domain/trendQueryTopics.js';
 import { createTrendsPort } from '../infrastructure/adapters/createTrendsPort.js';
 import { createTrendsDashboardCacheAdapter } from '../infrastructure/adapters/trendsDashboardCacheAdapter.js';
+import { enrichDashboardAnalytics } from '../domain/services/trendsDashboardAnalytics.js';
+import { normalizeIsraelDistrictRefs } from '../../../cross-cut-modules/geo/israelDistricts.js';
 
 function sleep(ms) {
   return new Promise((r) => setTimeout(r, ms));
@@ -78,6 +80,12 @@ function buildDemoDashboard(district, days) {
       { query: 'הנחיות פיקוד העורף', formattedValue: '+120%' },
       { query: 'מקלט ציבורי', formattedValue: '+80%' },
     ],
+    popularQueries: [
+      { query: 'מקלט ציבורי', formattedValue: '100' },
+      { query: 'הנחיות פיקוד העורף', formattedValue: '85' },
+      { query: 'סגירת בתי ספר', formattedValue: '62' },
+    ],
+    relatedSeedLabelKey: 'trends.topic.alerts',
     regionBreakdown: TREND_DISTRICTS.filter((d) => d.id !== 'national').map((d, i) => ({
       geoCode: d.geo,
       districtId: d.id,
@@ -87,6 +95,58 @@ function buildDemoDashboard(district, days) {
     topicGroups: TREND_TOPIC_GROUPS.map((g) => ({ id: g.id, labelKey: g.labelKey })),
     disclaimerKey: 'trends.disclaimer',
   };
+}
+
+/**
+ * @param {ReturnType<typeof createTrendsDashboardCacheAdapter>} cache
+ * @param {number} days
+ */
+async function loadDistrictSnapshots(cache, days) {
+  /** @type {Array<{ districtId: string, labelKey: string, topics: object[] }>} */
+  const out = [];
+  for (const district of TREND_DISTRICTS) {
+    const snap = (await cache.read(district.id, days))
+      ?? (typeof cache.readStale === 'function'
+        ? await cache.readStale(district.id, days)
+        : null);
+    if (snap?.topics?.length) {
+      out.push({
+        districtId: district.id,
+        labelKey: district.labelKey,
+        topics: snap.topics,
+      });
+    }
+  }
+  return out;
+}
+
+/**
+ * @param {object} payload
+ * @param {ReturnType<typeof createTrendsDashboardCacheAdapter>} cache
+ * @param {number} days
+ */
+async function finalizeDashboard(payload, cache, days) {
+  let districtSnapshots = await loadDistrictSnapshots(cache, days);
+  if (payload.source === 'demo' && districtSnapshots.length < 3) {
+    districtSnapshots = TREND_DISTRICTS.map((d) => ({
+      districtId: d.id,
+      labelKey: d.labelKey,
+      topics: buildDemoDashboard(d, days).topics,
+    }));
+  }
+  const nationalDashboard =
+    payload.district?.id === 'national'
+      ? payload
+      : (await cache.read('national', days))
+        ?? (typeof cache.readStale === 'function'
+          ? await cache.readStale('national', days)
+          : null)
+        ?? (payload.source === 'demo' ? buildDemoDashboard(resolveTrendDistrict('national'), days) : null);
+
+  return normalizeIsraelDistrictRefs({
+    ...payload,
+    analytics: enrichDashboardAnalytics(payload, { nationalDashboard, districtSnapshots }),
+  });
 }
 
 /**
@@ -162,13 +222,15 @@ export function createSearchTrendsService(deps = {}) {
 
       if (!refresh) {
         const cached = await cache.read(district.id, days);
-        if (cached) return { ...cached, source: 'cache' };
+        if (cached) {
+          return finalizeDashboard({ ...cached, source: 'cache' }, cache, days);
+        }
       }
 
       if (!useLive) {
         const demo = buildDemoDashboard(district, days);
         await cache.write(district.id, days, demo);
-        return demo;
+        return finalizeDashboard(demo, cache, days);
       }
 
       const endTime = new Date();
@@ -246,27 +308,40 @@ export function createSearchTrendsService(deps = {}) {
             query: r.query,
             formattedValue: r.formattedValue || String(r.value),
           })),
+          popularQueries: (related.top ?? []).slice(0, 12).map((r) => ({
+            query: r.query,
+            formattedValue: r.formattedValue || String(r.value),
+          })),
+          relatedSeedLabelKey: 'trends.topic.alerts',
           regionBreakdown,
           topicGroups: TREND_TOPIC_GROUPS.map((g) => ({ id: g.id, labelKey: g.labelKey })),
           disclaimerKey: 'trends.disclaimer',
         };
         await cache.write(district.id, days, payload);
-        return payload;
+        return finalizeDashboard(payload, cache, days);
       } catch (err) {
         const stale = await cache.readStale(district.id, days);
         if (stale) {
-          return {
-            ...stale,
-            source: 'stale',
-            fetchError: err?.message ?? 'Google Trends fetch failed',
-          };
+          return finalizeDashboard(
+            {
+              ...stale,
+              source: 'stale',
+              fetchError: err?.message ?? 'Google Trends fetch failed',
+            },
+            cache,
+            days,
+          );
         }
         const demo = buildDemoDashboard(district, days);
-        return {
-          ...demo,
-          source: 'demo',
-          fetchError: err?.message ?? 'Google Trends fetch failed',
-        };
+        return finalizeDashboard(
+          {
+            ...demo,
+            source: 'demo',
+            fetchError: err?.message ?? 'Google Trends fetch failed',
+          },
+          cache,
+          days,
+        );
       }
     },
   };

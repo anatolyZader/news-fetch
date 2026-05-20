@@ -3,7 +3,8 @@
  * Nightly Google Trends cache warm — one-shot CLI for cron (or systemd timer).
  *
  * Fetches and caches dashboards for every district × time window (1, 3, 7 days).
- * Set TRENDS_DEMO_MODE=1 to skip live Google calls (writes demo payloads only).
+ * Set TRENDS_DEMO_MODE=1 to skip live fetches (writes demo payloads only).
+ * Requires DATAFORSEO_LOGIN and DATAFORSEO_PASSWORD in the environment.
  *
  * Ops example (03:30 Asia/Jerusalem):
  *

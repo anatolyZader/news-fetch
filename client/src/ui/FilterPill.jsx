@@ -1,3 +1,4 @@
+import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Chip from '@mui/material/Chip';
 
@@ -35,11 +36,36 @@ export function FilterPill({
   );
 }
 
-export function FilterPillGroup({ children, label, spacing = 0.5, wrap = true }) {
+export function FilterPillGroup({ children, label, spacing = 0.5, wrap = true, center = false }) {
+  if (center) {
+    return (
+      <Box
+        role="group"
+        aria-label={label}
+        sx={(theme) => ({
+          display: 'flex',
+          flexDirection: 'row',
+          flexWrap: wrap ? 'wrap' : 'nowrap',
+          justifyContent: 'center',
+          alignItems: 'center',
+          alignSelf: 'stretch',
+          gap: theme.spacing(spacing),
+          width: '100%',
+          maxWidth: '100%',
+          '& .MuiChip-root': { flexShrink: 0 },
+          '& .MuiChip-label': { whiteSpace: 'nowrap' },
+        })}
+      >
+        {children}
+      </Box>
+    );
+  }
+
   return (
     <Stack
       direction="row"
       alignItems="center"
+      justifyContent="flex-start"
       useFlexGap
       flexWrap={wrap ? 'wrap' : 'nowrap'}
       spacing={spacing}

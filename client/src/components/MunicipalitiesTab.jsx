@@ -295,7 +295,7 @@ export function MunicipalitiesTab() {
               <TableFooter>
                 <TableRow>
                   <TableCell sx={{ fontWeight: 600, color: 'text.primary' }}>
-                    {isHe ? 'ממוצע מחוזי' : 'District avg'}
+                    {t('district.avgLabel')}
                   </TableCell>
                   {comps.map((cid) => (
                     <TableCell key={cid} sx={{ fontWeight: 700, color: scoreColor01(districtAvg[cid], theme) }}>

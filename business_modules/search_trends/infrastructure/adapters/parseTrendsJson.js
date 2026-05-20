@@ -9,7 +9,7 @@ export function parseTrendsJson(raw, label) {
   const trimmed = raw.trim();
   if (trimmed.startsWith('<')) {
     throw new Error(
-      `${label}: Google returned HTML (common on cloud server IPs — set SERPAPI_API_KEY for live data)`,
+      `${label}: Google returned HTML (common on cloud server IPs — set DATAFORSEO_LOGIN/PASSWORD for live data)`,
     );
   }
   try {

@@ -15,7 +15,10 @@ function mockPort() {
       return mkSeries(keywords);
     },
     async relatedQueries() {
-      return { rising: [{ query: 'test rising', value: 100, formattedValue: '+50%' }], top: [] };
+      return {
+        rising: [{ query: 'test rising', value: 100, formattedValue: '+50%' }],
+        top: [{ query: 'test popular', value: 90, formattedValue: '90' }],
+      };
     },
     async interestByRegion() {
       return [
@@ -39,12 +42,20 @@ describe('searchTrendsService', () => {
     assert.ok(Array.isArray(data.topics) && data.topics.length >= 5);
     assert.ok(Array.isArray(data.timeSeries) && data.timeSeries.length >= 2);
     assert.ok(data.topics[0].latest >= 0);
+    assert.equal(data.popularQueries[0].query, 'test popular');
+    assert.equal(data.risingQueries[0].query, 'test rising');
+    assert.equal(data.relatedSeedLabelKey, 'trends.topic.alerts');
+    assert.ok(data.analytics?.attention?.index >= 0);
+    assert.ok(Array.isArray(data.analytics?.components));
+    assert.ok(data.analytics?.queriesIntel?.popularByGroup);
   });
 
   it('lists districts', () => {
     const svc = createSearchTrendsService({ useLive: false });
     const districts = svc.listDistricts();
     assert.ok(districts.some((d) => d.id === 'north'));
+    assert.ok(districts.some((d) => d.id === 'dan'));
+    assert.ok(!districts.some((d) => d.id === 'tel_aviv'));
     assert.ok(districts.some((d) => d.id === 'national'));
   });
 

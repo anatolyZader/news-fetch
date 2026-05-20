@@ -1,16 +1,27 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { Bar, Cell, Line } from 'recharts';
+import {
+  AttentionSummaryPanel,
+  ComponentMapPanel,
+  DistrictComparisonPanel,
+  QueriesIntelPanel,
+  TopicDeepDivePanel,
+} from './trends/TrendsTabPanels.jsx';
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
-import ToggleButton from '@mui/material/ToggleButton';
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import Typography from '@mui/material/Typography';
+import Divider from '@mui/material/Divider';
 import { useTheme } from '@mui/material/styles';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { useSearchTrendsDashboard } from '../hooks/useSearchTrendsDashboard.js';
+import {
+  ISRAEL_DISTRICT_FILTER_ORDER,
+  normalizeIsraelDistrictId,
+  districtDisplayName,
+} from '../lib/israelDistricts.js';
 import {
   BarChartFrame,
   ChartCard,
@@ -20,7 +31,6 @@ import {
   FilterBar,
   FilterPill,
   FilterPillGroup,
-  FilterRow,
   HorizontalBarChartFrame,
   KpiCard,
   KpiStrip,
@@ -33,16 +43,6 @@ import {
 const LS_TRENDS_DISTRICT = 'vibes-witch:trendsDistrict';
 const LS_TRENDS_DAYS = 'vibes-witch:trendsDays';
 const LS_TRENDS_GROUP = 'vibes-witch:trendsTopicGroup';
-
-const DISTRICT_ORDER = [
-  'national',
-  'north',
-  'south',
-  'center',
-  'haifa',
-  'tel_aviv',
-  'jerusalem',
-];
 
 const TOPIC_GROUP_ORDER = ['all', 'emergency', 'services', 'psycho'];
 
@@ -68,7 +68,8 @@ function readStoredDistrict() {
   if (typeof localStorage === 'undefined') return 'national';
   try {
     const v = localStorage.getItem(LS_TRENDS_DISTRICT);
-    if (v && DISTRICT_ORDER.includes(v)) return v;
+    const id = normalizeIsraelDistrictId(v);
+    if (id && ISRAEL_DISTRICT_FILTER_ORDER.includes(id)) return id;
   } catch { /* */ }
   return 'national';
 }
@@ -119,9 +120,8 @@ export function TrendsTab() {
     days,
     enabled: true,
   });
-
   const selectDistrict = useCallback((id) => {
-    if (!DISTRICT_ORDER.includes(id)) return;
+    if (!ISRAEL_DISTRICT_FILTER_ORDER.includes(id)) return;
     setDistrictId(id);
     try {
       localStorage.setItem(LS_TRENDS_DISTRICT, id);
@@ -129,13 +129,8 @@ export function TrendsTab() {
     filterRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }, []);
 
-  const onDistrict = (_e, next) => {
-    if (!next) return;
-    selectDistrict(next);
-  };
-
   const onDays = (_e, next) => {
-    if (!next) return;
+    if (next == null) return;
     setDays(next);
     try {
       localStorage.setItem(LS_TRENDS_DAYS, String(next));
@@ -179,11 +174,23 @@ export function TrendsTab() {
   const regionBarData = useMemo(() => {
     if (!data?.regionBreakdown?.length) return [];
     return data.regionBreakdown.map((r) => ({
-      name: t(r.labelKey),
+      name: districtDisplayName(t, r.labelKey ?? r.districtId),
       value: r.value,
       districtId: r.districtId,
     }));
   }, [data, t]);
+
+  const analytics = data?.analytics;
+  const districtName = districtDisplayName(t, data?.district?.labelKey ?? data?.district?.id);
+
+  const filteredDeepDives = useMemo(() => {
+    const dives = analytics?.topicDeepDives ?? [];
+    if (topicGroup === 'all') return dives;
+    const ids = new Set(
+      (data?.topics ?? []).filter((tp) => tp.group === topicGroup).map((tp) => tp.id),
+    );
+    return dives.filter((d) => ids.has(d.topicId));
+  }, [analytics?.topicDeepDives, topicGroup, data?.topics]);
 
   if (loading && !data) {
     return (
@@ -225,7 +232,7 @@ export function TrendsTab() {
 
   const fetchWarning =
     data.fetchError && (data.source === 'demo' || data.source === 'stale')
-      ? data.fetchError.includes('SERPAPI') || data.fetchError.includes('HTML')
+      ? data.fetchError.includes('DATAFORSEO') || data.fetchError.includes('HTML')
         ? t('trends.blockedHint')
         : t('trends.demoFallback').replace('{msg}', data.fetchError)
       : data.source === 'demo'
@@ -262,41 +269,48 @@ export function TrendsTab() {
         )}
       />
 
-      <FilterBar>
-        <Stack ref={filterRef} spacing={1.5} sx={{ width: '100%' }}>
-          <Box>
-            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.75 }}>
-              {t('trends.districtLabel')}
-            </Typography>
-            <ToggleButtonGroup
-              exclusive
-              value={districtId}
-              onChange={onDistrict}
-              size="small"
-              sx={{ flexWrap: 'wrap', gap: 0.5 }}
-            >
-              {DISTRICT_ORDER.map((id) => (
-                <ToggleButton key={id} value={id} sx={{ textTransform: 'none' }}>
-                  {t(`trends.district.${id === 'tel_aviv' ? 'telAviv' : id}`)}
-                </ToggleButton>
-              ))}
-            </ToggleButtonGroup>
-          </Box>
-          <Box>
-            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.75 }}>
-              {t('trends.windowLabel')}
-            </Typography>
-            <ToggleButtonGroup exclusive value={days} onChange={onDays} size="small">
-              {WINDOW_OPTIONS.map((w) => (
-                <ToggleButton key={w.days} value={w.days}>
+      <FilterBar centered>
+        <Box
+          ref={filterRef}
+          sx={(theme) => ({
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            width: '100%',
+            maxWidth: 900,
+            mx: 'auto',
+            py: 0.5,
+            gap: theme.spacing(2.5),
+          })}
+        >
+          {[
+            {
+              label: t('district.label'),
+              pills: ISRAEL_DISTRICT_FILTER_ORDER.map((id) => (
+                <FilterPill
+                  key={id}
+                  active={districtId === id}
+                  onClick={() => selectDistrict(id)}
+                >
+                  {districtDisplayName(t, id)}
+                </FilterPill>
+              )),
+            },
+            {
+              label: t('trends.windowLabel'),
+              pills: WINDOW_OPTIONS.map((w) => (
+                <FilterPill
+                  key={w.days}
+                  active={days === w.days}
+                  onClick={() => onDays(null, w.days)}
+                >
                   {t(w.labelKey)}
-                </ToggleButton>
-              ))}
-            </ToggleButtonGroup>
-          </Box>
-          <FilterRow label={t('trends.groupLabel')}>
-            <FilterPillGroup label={t('trends.groupLabel')}>
-              {TOPIC_GROUP_ORDER.map((id) => (
+                </FilterPill>
+              )),
+            },
+            {
+              label: t('trends.groupLabel'),
+              pills: TOPIC_GROUP_ORDER.map((id) => (
                 <FilterPill
                   key={id}
                   active={topicGroup === id}
@@ -304,10 +318,32 @@ export function TrendsTab() {
                 >
                   {t(`trends.group.${id}`)}
                 </FilterPill>
-              ))}
-            </FilterPillGroup>
-          </FilterRow>
-        </Stack>
+              )),
+            },
+          ].map((section) => (
+            <Box
+              key={section.label}
+              sx={(theme) => ({
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'stretch',
+                width: '100%',
+                gap: theme.spacing(1),
+              })}
+            >
+              <Typography
+                variant="eyebrow"
+                color="text.secondary"
+                sx={{ width: '100%', textAlign: 'center' }}
+              >
+                {section.label}
+              </Typography>
+              <FilterPillGroup label={section.label} center>
+                {section.pills}
+              </FilterPillGroup>
+            </Box>
+          ))}
+        </Box>
       </FilterBar>
 
       {fetchWarning && (
@@ -316,19 +352,56 @@ export function TrendsTab() {
         </Alert>
       )}
 
-      <Stack direction="row" spacing={1} flexWrap="wrap" alignItems="center">
-        <Chip size="small" label={sourceLabel} variant="outlined" />
-        <Chip size="small" label={groupLabel} variant="outlined" color="primary" />
-        <Typography variant="caption" color="text.secondary">
+      <Box
+        sx={(theme) => ({
+          display: 'flex',
+          flexWrap: 'wrap',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: theme.spacing(1.5),
+          py: theme.spacing(0.5),
+        })}
+      >
+        <Stack direction="row" flexWrap="wrap" useFlexGap spacing={1} alignItems="center">
+          <Chip size="small" label={sourceLabel} variant="outlined" />
+          <Chip size="small" label={groupLabel} variant="outlined" color="primary" />
+        </Stack>
+        <Typography variant="caption" color="text.secondary" sx={{ whiteSpace: 'nowrap' }}>
           {t('trends.generatedAt')}: {new Date(data.generatedAt).toLocaleString()}
         </Typography>
-      </Stack>
+      </Box>
+
+      <Divider sx={{ opacity: 0.6 }} />
+
+      {analytics?.attention && (
+        <AttentionSummaryPanel
+          attention={analytics.attention}
+          districtName={districtName}
+          t={t}
+        />
+      )}
 
       {filteredTopics.length === 0 ? (
         <EmptyState>{t('trends.emptyGroup')}</EmptyState>
       ) : (
         <>
-          <KpiStrip>
+          {analytics?.components?.length > 0 && (
+            <ComponentMapPanel
+              rows={analytics.components}
+              t={t}
+              chartColor={chart.blue}
+            />
+          )}
+
+          {analytics?.districtComparison && (
+            <DistrictComparisonPanel
+              comparison={analytics.districtComparison}
+              t={t}
+              onSelectDistrict={selectDistrict}
+            />
+          )}
+
+          <KpiStrip columns={Math.min(4, filteredTopics.length) || 1}>
             {filteredTopics.slice(0, 4).map((topic) => (
               <KpiCard
                 key={topic.id}
@@ -397,22 +470,20 @@ export function TrendsTab() {
               </Box>
             )}
 
-            {(data.risingQueries ?? []).length > 0 && (
-              <ChartCard title={t('trends.chart.rising')}>
-                <Stack spacing={1} component="ul" sx={{ m: 0, pl: 2.5 }}>
-                  {data.risingQueries.map((row) => (
-                    <Typography key={row.query} component="li" variant="body2">
-                      <Box component="span" sx={{ fontWeight: 500 }}>{row.query}</Box>
-                      {' '}
-                      <Typography component="span" variant="caption" color="text.secondary">
-                        {row.formattedValue}
-                      </Typography>
-                    </Typography>
-                  ))}
-                </Stack>
-              </ChartCard>
-            )}
           </ChartGrid>
+
+          {analytics?.queriesIntel && (
+            <QueriesIntelPanel queriesIntel={analytics.queriesIntel} t={t} />
+          )}
+
+          {filteredDeepDives.length > 0 && (
+            <TopicDeepDivePanel
+              dives={filteredDeepDives}
+              t={t}
+              chartColor={chart.blue}
+              nationalColor={chart.gray}
+            />
+          )}
         </>
       )}
 

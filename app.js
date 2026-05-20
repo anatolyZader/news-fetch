@@ -40,6 +40,7 @@ import {
   createSearchTrendsService,
   registerSearchTrendsRoutes,
 } from './business_modules/search_trends/index.js';
+import { listIsraelDistrictsForApi } from './cross-cut-modules/geo/israelDistricts.js';
 import {
   resolveDisplayView,
   redactReportPayload,
@@ -47,6 +48,7 @@ import {
   canViewAnalystDisplay,
   DISPLAY_VIEWS,
 } from './business_modules/resilience/domain/services/assessmentDisplayTier.js';
+import { requireMaintainerAccess } from './business_modules/resilience/domain/services/resilienceMaintainerAccess.js';
 import { createDefaultPoolService, registerPoolRoutes } from './business_modules/pool/index.js';
 import { getMunicipalityDashboard } from './business_modules/pbo_report_muni/app/pboMunicipalityService.js';
 import {
@@ -365,8 +367,11 @@ export async function createApp(options) {
     options.authRequired ??
     (process.env.AUTH_REQUIRED === 'true' && !!process.env.FIREBASE_PROJECT_ID?.trim());
 
-  if (authRequired) {
-    initFirebaseAdminForAuth(process.env.FIREBASE_PROJECT_ID.trim());
+  const firebaseProjectId = process.env.FIREBASE_PROJECT_ID?.trim();
+  if (authRequired && firebaseProjectId) {
+    initFirebaseAdminForAuth(firebaseProjectId);
+  } else if (process.env.RESILIENCE_MAINTAINER_EMAILS?.trim() && firebaseProjectId) {
+    initFirebaseAdminForAuth(firebaseProjectId);
   }
 
   const authHook = authRequired ? { preHandler: requireAuthPreHandler } : {};
@@ -743,6 +748,10 @@ export async function createApp(options) {
     authPreHandler: authHook?.preHandler,
   });
 
+  app.get('/api/districts', authHook, async (_request, reply) => {
+    return reply.send({ districts: listIsraelDistrictsForApi() });
+  });
+
   await registerGeoRoutes(app, {
     authPreHandler: authHook?.preHandler,
   });
@@ -895,7 +904,21 @@ export async function createApp(options) {
     return reply.send({ found: true, submission });
   });
 
-  app.post('/api/analyze', authHook, async (_req, reply) => {
+  async function analyzeRunPreHandler(request, reply) {
+    if (!firebaseProjectId) {
+      return reply.code(503).send({
+        error: 'Service Unavailable',
+        code: 'firebase_not_configured',
+        message: 'POST /api/analyze requires FIREBASE_PROJECT_ID for maintainer authentication.',
+      });
+    }
+    initFirebaseAdminForAuth(firebaseProjectId);
+    await requireAuthPreHandler(request, reply);
+    if (reply.sent) return;
+    requireMaintainerAccess(request, reply);
+  }
+
+  app.post('/api/analyze', { preHandler: analyzeRunPreHandler }, async (_req, reply) => {
     reply.hijack();
     reply.raw.writeHead(200, {
       'Content-Type': 'text/event-stream',

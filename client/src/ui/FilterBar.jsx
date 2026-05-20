@@ -9,15 +9,19 @@ import Button from '@mui/material/Button';
  * { message, onClear, clearLabel } to render the standard
  * "Showing N of M" + clear button.
  */
-export function FilterBar({ children, footer }) {
+export function FilterBar({ children, footer, centered = false }) {
   return (
     <Card sx={(theme) => ({
-      paddingTop: theme.spacing(1),
-      paddingBottom: theme.spacing(1),
-      paddingLeft: theme.spacing(1.5),
-      paddingRight: theme.spacing(1.5),
+      paddingTop: theme.spacing(1.5),
+      paddingBottom: theme.spacing(1.5),
+      paddingLeft: theme.spacing(2),
+      paddingRight: theme.spacing(2),
     })}>
-      <Stack spacing={1}>
+      <Stack
+        spacing={1}
+        alignItems={centered ? 'center' : 'stretch'}
+        sx={centered ? { width: '100%' } : undefined}
+      >
         {children}
         {footer && (
           <Stack

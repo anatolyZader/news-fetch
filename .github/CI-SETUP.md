@@ -513,6 +513,7 @@ Reference: [`docs/env.server.example`](../docs/env.server.example), [`docs/IDENT
 | `GOOGLE_APPLICATION_CREDENTIALS` | Local dev only (path to JSON); production uses workload identity |
 | `ANTHROPIC_API_KEY`, `OPENAI_API_KEY` | LLM / transcription pipelines |
 | `RESILIENCE_ANALYST_EMAILS` | Analyst-tier report view |
+| `RESILIENCE_MAINTAINER_EMAILS` | Who may `POST /api/analyze` (comma-separated emails; sign-in required) |
 | Many others | See `docs/env.server.example` and module docs |
 
 **Do not** commit `.env` or `secrets/service-account.json`. **Do not** copy production server secrets into GitHub unless a specific job needs them.

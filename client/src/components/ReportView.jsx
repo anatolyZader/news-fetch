@@ -201,48 +201,6 @@ function InstrumentStateBadges({ instrument, t }) {
   );
 }
 
-const NORTH_KEYWORD_FALLBACK_WARN_PCT = 25;
-
-function OperatorMethodologyAlerts({ assessment, reportScope, t }) {
-  const methodology = assessment?.methodology;
-  const scopeId = reportScope ?? assessment?.report_scope?.id;
-  const isNorth = scopeId === 'north';
-  const pctKw = methodology?.scope?.scope_decision_summary?.pct_keyword_fallback_among_north;
-  const comps = assessment?.components ?? [];
-  const thinCount = comps.filter((c) => c.instrument?.evidence_sufficiency === 'thin').length;
-  const majorityThin = comps.length > 0 && thinCount > comps.length / 2;
-  const gov = methodology?.governance;
-  const norrisNote = methodology?.norris_lens?.not_same_as;
-
-  return (
-    <Stack spacing={1}>
-      <Alert severity="info" variant="outlined">
-        {gov?.operator_accountability ?? t('report.methodology.epistemicBanner')}
-      </Alert>
-      {gov?.headline_scores_are && (
-        <Alert severity="info" variant="outlined">
-          {gov.headline_scores_are}
-        </Alert>
-      )}
-      {norrisNote && (
-        <Alert severity="info" variant="outlined">
-          {t('report.methodology.norrisDisclaimer')}
-        </Alert>
-      )}
-      {isNorth && pctKw != null && pctKw >= NORTH_KEYWORD_FALLBACK_WARN_PCT && (
-        <Alert severity="warning" variant="outlined">
-          {t('report.methodology.northKeywordWarning').replace('{pct}', String(pctKw))}
-        </Alert>
-      )}
-      {majorityThin && (
-        <Alert severity="warning" variant="outlined">
-          {t('report.methodology.thinEvidenceWarning')}
-        </Alert>
-      )}
-    </Stack>
-  );
-}
-
 function OperatorReportHeader({ assessment, t }) {
   const comps = assessment?.components ?? [];
   let adequate = 0;
@@ -604,11 +562,6 @@ function ComponentCard({
         {isAnalyst && <DeltaLine comp={comp} t={t} />}
         {isAnalyst && <CounterfactualHint comp={comp} t={t} />}
         <MarkdownArticle variant="report" markdown={expandSourceCitationLinks(comp.narrative ?? '')} />
-        {!isAnalyst && Array.isArray(comp.manifestations_absent) && comp.manifestations_absent.length > 0 && (
-          <Typography variant="caption" color="text.secondary" component="div" sx={{ mt: 1 }}>
-            {comp.manifestations_absent.slice(0, 4).join(' · ')}
-          </Typography>
-        )}
         {isAnalyst && <FacetBars facets={comp.facets} t={t} />}
 
         {evidenceCount > 0 && (
@@ -779,10 +732,7 @@ export function ReportView({
           </Box>
         </>
       ) : (
-        <>
-          <OperatorMethodologyAlerts assessment={assessment} reportScope={reportScope} t={t} />
-          <OperatorReportHeader assessment={assessment} t={t} />
-        </>
+        <OperatorReportHeader assessment={assessment} t={t} />
       )}
 
       {isAnalyst && Array.isArray(norrisCaps) && norrisCaps.length > 0 && (

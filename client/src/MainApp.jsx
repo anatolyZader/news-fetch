@@ -17,7 +17,6 @@ import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { useTodayReport, readStoredReportView, writeStoredReportView } from './hooks/useAnalysis.js';
-import { useRunAnalysis } from './hooks/useRunAnalysis.js';
 import { useDisplayCapabilities } from './hooks/useDisplayCapabilities.js';
 import { useTranslatedReport } from './hooks/useTranslatedReport.js';
 import { useResilienceDrift } from './hooks/useResilienceDrift.js';
@@ -197,7 +196,7 @@ function readReportScope() {
 }
 
 function AppShell() {
-  const { logout, authRequired, apiReady } = useAuth();
+  const { logout, authRequired } = useAuth();
   const [reportScope, setReportScope] = useState(() => readReportScope());
   const [reportView, setReportView] = useState(() => readStoredReportView());
   const { canViewAnalyst } = useDisplayCapabilities();
@@ -210,14 +209,6 @@ function AppShell() {
     initialReportLoadDone,
     reportMissingHint,
   } = useTodayReport(reportScope, reportView);
-  const {
-    runAnalysis,
-    running: analysisRunning,
-    progressMessage: analysisProgress,
-    error: analysisError,
-    lastResult: analysisResult,
-    clearResult: clearAnalysisResult,
-  } = useRunAnalysis();
   const [activeTab, setActiveTab] = useState(() => readMainTab());
   const [activePoolTab, setActivePoolTab] = useState(() => readPoolTab());
   const [activePboTab, setActivePboTab] = useState(() => readPboTab());
@@ -591,47 +582,7 @@ function AppShell() {
                   <ToggleButton value="analyst">{t('report.view.analyst')}</ToggleButton>
                 </ToggleButtonGroup>
               )}
-              {apiReady && (
-                <Button
-                  size="small"
-                  variant="outlined"
-                  disabled={analysisRunning}
-                  onClick={async () => {
-                    const result = await runAnalysis();
-                    if (result) refreshReport();
-                  }}
-                  sx={(theme) => ({ marginInlineStart: theme.spacing(1) })}
-                >
-                  {analysisRunning ? t('app.analyzeRunning') : t('app.runNationalAnalysis')}
-                </Button>
-              )}
             </Box>
-
-            {analysisError && (
-              <Alert severity="error" variant="outlined" onClose={() => clearAnalysisResult()}>
-                {analysisError}
-              </Alert>
-            )}
-            {analysisRunning && analysisProgress && (
-              <Alert severity="info" variant="outlined">
-                {analysisProgress}
-              </Alert>
-            )}
-            {analysisResult?.scope_artifacts?.hint === 'north_requires_assess_signals' && (
-              <Alert severity="info" variant="outlined" onClose={() => clearAnalysisResult()}>
-                {t('app.scopeArtifactsNorthHint')}
-                {analysisResult.scope_artifacts.note ? (
-                  <Typography component="p" variant="body2" sx={{ marginTop: 1, marginBottom: 0 }}>
-                    {analysisResult.scope_artifacts.note}
-                  </Typography>
-                ) : null}
-              </Alert>
-            )}
-            {analysisResult && !analysisRunning && analysisResult.scope_artifacts?.national && (
-              <Alert severity="success" variant="outlined" onClose={() => clearAnalysisResult()}>
-                {t('app.analyzeComplete').replace('{date}', analysisResult.date ?? '')}
-              </Alert>
-            )}
 
             {!initialReportLoadDone && (
               <Typography variant="body2" color="text.secondary">
