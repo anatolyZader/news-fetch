@@ -14,7 +14,7 @@ import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
-import { useTheme } from '@mui/material/styles';
+import { alpha, useTheme } from '@mui/material/styles';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { useSearchTrendsDashboard } from '../hooks/useSearchTrendsDashboard.js';
 import {
@@ -28,7 +28,6 @@ import {
   ChartGrid,
   EmptyState,
   ErrorState,
-  FilterBar,
   FilterPill,
   FilterPillGroup,
   HorizontalBarChartFrame,
@@ -192,70 +191,58 @@ export function TrendsTab() {
     return dives.filter((d) => ids.has(d.topicId));
   }, [analytics?.topicDeepDives, topicGroup, data?.topics]);
 
-  if (loading && !data) {
-    return (
-      <Box sx={{ py: 2 }}>
-        <LoadingState>{t('trends.loading')}</LoadingState>
-      </Box>
-    );
-  }
-  if (error && !data) {
-    return (
-      <Box sx={{ py: 2 }}>
-        <ErrorState>{`${t('trends.error')}: ${error}`}</ErrorState>
-      </Box>
-    );
-  }
-  if (!data) {
-    return (
-      <Box sx={{ py: 2 }}>
-        <EmptyState>{t('trends.empty')}</EmptyState>
-      </Box>
-    );
-  }
-
-  const changePctLabel =
-    days === 1
-      ? 'trends.changePct.day'
-      : days === 3
-        ? 'trends.changePct.threeDays'
-        : 'trends.changePct.week';
-
-  const sourceLabel =
-    data.source === 'live'
-      ? t('trends.source.live')
-      : data.source === 'cache'
-        ? t('trends.source.cache')
-        : data.source === 'stale'
-          ? t('trends.source.stale')
-          : t('trends.source.demo');
-
-  const fetchWarning =
-    data.fetchError && (data.source === 'demo' || data.source === 'stale')
-      ? data.fetchError.includes('DATAFORSEO') || data.fetchError.includes('HTML')
-        ? t('trends.blockedHint')
-        : t('trends.demoFallback').replace('{msg}', data.fetchError)
-      : data.source === 'demo'
-        ? t('trends.demoMode')
-        : null;
-
-  const lineSeries = filteredTopics.map((topic, i) => (
-    <Line
-      key={topic.id}
-      type="monotone"
-      dataKey={topic.id}
-      name={t(topic.labelKey)}
-      stroke={colorList[i % colorList.length]}
-      strokeWidth={2}
-      dot={false}
-      connectNulls
-    />
-  ));
-
   const groupLabel =
     topicGroup === 'all'
       ? t('trends.group.all')
       : t(`trends.group.${topicGroup}`);
+
+  const filterSections = [
+          {
+            label: t('district.label'),
+            accent: (theme) => theme.palette.primary.main,
+            bg: (theme) =>
+              `linear-gradient(90deg, ${alpha(theme.palette.primary.main, 0.14)} 0%, ${alpha(theme.palette.primary.main, 0.05)} 100%)`,
+            pills: ISRAEL_DISTRICT_FILTER_ORDER.map((id) => (
+              <FilterPill
+                key={id}
+                active={districtId === id}
+                onClick={() => selectDistrict(id)}
+              >
+                {districtDisplayName(t, id)}
+              </FilterPill>
+            )),
+          },
+          {
+            label: t('trends.windowLabel'),
+            accent: (theme) => theme.palette.chart.teal,
+            bg: (theme) =>
+              `linear-gradient(90deg, ${alpha(theme.palette.chart.teal, 0.13)} 0%, ${alpha(theme.palette.chart.teal, 0.05)} 100%)`,
+            pills: WINDOW_OPTIONS.map((w) => (
+              <FilterPill
+                key={w.days}
+                active={days === w.days}
+                onClick={() => onDays(null, w.days)}
+              >
+                {t(w.labelKey)}
+              </FilterPill>
+            )),
+          },
+          {
+            label: t('trends.groupLabel'),
+            accent: (theme) => theme.palette.chart.purple,
+            bg: (theme) =>
+              `linear-gradient(90deg, ${alpha(theme.palette.chart.purple, 0.13)} 0%, ${alpha(theme.palette.chart.purple, 0.05)} 100%)`,
+            pills: TOPIC_GROUP_ORDER.map((id) => (
+              <FilterPill
+                key={id}
+                active={topicGroup === id}
+                onClick={() => onTopicGroup(id)}
+              >
+                {t(`trends.group.${id}`)}
+              </FilterPill>
+            )),
+          },
+  ];
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, pb: 3 }}>
@@ -269,83 +256,109 @@ export function TrendsTab() {
         )}
       />
 
-      <FilterBar centered>
-        <Box
-          ref={filterRef}
-          sx={(theme) => ({
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            width: '100%',
-            maxWidth: 900,
-            mx: 'auto',
-            py: 0.5,
-            gap: theme.spacing(2.5),
-          })}
-        >
-          {[
-            {
-              label: t('district.label'),
-              pills: ISRAEL_DISTRICT_FILTER_ORDER.map((id) => (
-                <FilterPill
-                  key={id}
-                  active={districtId === id}
-                  onClick={() => selectDistrict(id)}
-                >
-                  {districtDisplayName(t, id)}
-                </FilterPill>
-              )),
-            },
-            {
-              label: t('trends.windowLabel'),
-              pills: WINDOW_OPTIONS.map((w) => (
-                <FilterPill
-                  key={w.days}
-                  active={days === w.days}
-                  onClick={() => onDays(null, w.days)}
-                >
-                  {t(w.labelKey)}
-                </FilterPill>
-              )),
-            },
-            {
-              label: t('trends.groupLabel'),
-              pills: TOPIC_GROUP_ORDER.map((id) => (
-                <FilterPill
-                  key={id}
-                  active={topicGroup === id}
-                  onClick={() => onTopicGroup(id)}
-                >
-                  {t(`trends.group.${id}`)}
-                </FilterPill>
-              )),
-            },
-          ].map((section) => (
-            <Box
-              key={section.label}
+      <Box
+        ref={filterRef}
+        sx={(theme) => ({
+          display: 'flex',
+          flexDirection: 'column',
+          width: `calc(100% + ${theme.spacing(6)})`,
+          maxWidth: 'none',
+          mx: theme.spacing(-3),
+          borderRadius: theme.custom.radius.lg,
+          overflow: 'hidden',
+          border: theme.custom.border.hairline,
+          borderColor: alpha(theme.palette.primary.main, 0.22),
+          boxShadow: theme.custom.elevation.subtle,
+        })}
+      >
+        {filterSections.map((section, index) => (
+          <Box
+            key={section.label}
+            sx={(theme) => ({
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'stretch',
+              width: '100%',
+              gap: theme.spacing(1.25),
+              py: theme.spacing(2),
+              px: theme.spacing(3),
+              background: section.bg(theme),
+              borderLeft: `3px solid ${alpha(section.accent(theme), 0.45)}`,
+              ...(index > 0 && {
+                borderTop: `1px solid ${alpha(theme.palette.divider, 0.9)}`,
+              }),
+            })}
+          >
+            <Typography
+              variant="eyebrow"
               sx={(theme) => ({
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'stretch',
                 width: '100%',
-                gap: theme.spacing(1),
+                textAlign: 'center',
+                color: section.accent(theme),
               })}
             >
-              <Typography
-                variant="eyebrow"
-                color="text.secondary"
-                sx={{ width: '100%', textAlign: 'center' }}
-              >
-                {section.label}
-              </Typography>
-              <FilterPillGroup label={section.label} center>
-                {section.pills}
-              </FilterPillGroup>
-            </Box>
-          ))}
-        </Box>
-      </FilterBar>
+              {section.label}
+            </Typography>
+            <FilterPillGroup label={section.label} center>
+              {section.pills}
+            </FilterPillGroup>
+          </Box>
+        ))}
+      </Box>
 
+      {loading && !data && (
+        <LoadingState>{t('trends.loading')}</LoadingState>
+      )}
+
+      {error && !data && (
+        <ErrorState>{`${t('trends.error')}: ${error}`}</ErrorState>
+      )}
+
+      {!loading && !error && !data && (
+        <EmptyState>{t('trends.empty')}</EmptyState>
+      )}
+
+      {data && (() => {
+        const changePctLabel =
+          days === 1
+            ? 'trends.changePct.day'
+            : days === 3
+              ? 'trends.changePct.threeDays'
+              : 'trends.changePct.week';
+
+        const sourceLabel =
+          data.source === 'live'
+            ? t('trends.source.live')
+            : data.source === 'cache'
+              ? t('trends.source.cache')
+              : data.source === 'stale'
+                ? t('trends.source.stale')
+                : t('trends.source.demo');
+
+        const fetchWarning =
+          data.fetchError && (data.source === 'demo' || data.source === 'stale')
+            ? data.fetchError.includes('DATAFORSEO') || data.fetchError.includes('HTML')
+              ? t('trends.blockedHint')
+              : t('trends.demoFallback').replace('{msg}', data.fetchError)
+            : data.source === 'demo'
+              ? t('trends.demoMode')
+              : null;
+
+        const lineSeries = filteredTopics.map((topic, i) => (
+          <Line
+            key={topic.id}
+            type="monotone"
+            dataKey={topic.id}
+            name={t(topic.labelKey)}
+            stroke={colorList[i % colorList.length]}
+            strokeWidth={2}
+            dot={false}
+            connectNulls
+          />
+        ));
+
+        return (
+          <>
       {fetchWarning && (
         <Alert severity={data.source === 'stale' ? 'info' : 'warning'} variant="outlined">
           {fetchWarning}
@@ -486,6 +499,9 @@ export function TrendsTab() {
           )}
         </>
       )}
+          </>
+        );
+      })()}
 
       <SectionHeading>{t('trends.aboutTitle')}</SectionHeading>
       <Typography variant="body2" color="text.secondary">

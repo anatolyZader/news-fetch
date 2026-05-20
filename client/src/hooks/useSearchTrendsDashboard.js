@@ -1,5 +1,7 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
+
+const FETCH_TIMEOUT_MS = 45_000;
 
 /**
  * @param {{ districtId?: string, days?: number, enabled?: boolean }} [opts]
@@ -16,40 +18,61 @@ export function useSearchTrendsDashboard(opts = {}) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const requestIdRef = useRef(0);
 
   const load = useCallback(async (refresh = false) => {
     if (!apiReady) return;
+    const requestId = ++requestIdRef.current;
     setLoading(true);
     setError(null);
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+
     const headers = new Headers();
-    const token = await getIdToken();
-    if (token) headers.set('Authorization', `Bearer ${token}`);
     try {
+      const token = await getIdToken();
+      if (requestId !== requestIdRef.current) return;
+      if (token) headers.set('Authorization', `Bearer ${token}`);
+
       const qs = new URLSearchParams({
         district: districtId,
         days: String(days),
         ...(refresh ? { refresh: '1' } : null),
       });
-      const res = await fetch(`/api/search-trends/dashboard?${qs.toString()}`, { headers });
+      const res = await fetch(`/api/search-trends/dashboard?${qs.toString()}`, {
+        headers,
+        signal: controller.signal,
+      });
+      if (requestId !== requestIdRef.current) return;
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setData(await res.json());
     } catch (err) {
-      setError(err?.message ?? 'failed to load trends');
+      if (requestId !== requestIdRef.current) return;
+      if (err?.name === 'AbortError') {
+        setError('request timed out');
+      } else {
+        setError(err?.message ?? 'failed to load trends');
+      }
     } finally {
-      setLoading(false);
+      clearTimeout(timeoutId);
+      if (requestId === requestIdRef.current) {
+        setLoading(false);
+      }
     }
   }, [apiReady, getIdToken, districtId, days]);
 
   useEffect(() => {
-    if (!enabled || !apiReady) return;
-    void (async () => {
-      await load(false);
-    })();
+    if (!enabled || !apiReady) return undefined;
+    void load(false);
+    return () => {
+      requestIdRef.current += 1;
+    };
   }, [enabled, apiReady, load]);
 
   return {
     data: enabled ? data : null,
-    loading: enabled && apiReady ? loading : !enabled ? false : true,
+    loading: enabled && apiReady && loading,
     error: enabled ? error : null,
     reload: () => load(true),
   };

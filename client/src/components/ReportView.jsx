@@ -201,34 +201,6 @@ function InstrumentStateBadges({ instrument, t }) {
   );
 }
 
-function OperatorReportHeader({ assessment, t }) {
-  const comps = assessment?.components ?? [];
-  let adequate = 0;
-  let contested = 0;
-  let thin = 0;
-  for (const c of comps) {
-    const inst = c.instrument ?? {};
-    if (inst.evidence_sufficiency === 'adequate') adequate += 1;
-    if (inst.evidence_sufficiency === 'thin') thin += 1;
-    if (inst.contested) contested += 1;
-  }
-  const scopeLabel =
-    assessment?.report_scope?.label
-    ?? (assessment?.report_scope?.id === 'north' ? t('report.scope.north') : t('report.scope.national'));
-  return (
-    <ReportSection title={t('report.instrument.summaryTitle')}>
-      <Typography variant="body2" color="text.secondary" sx={{ marginBottom: 1 }}>
-        {t('report.instrument.summaryBody')
-          .replace('{scope}', scopeLabel)
-          .replace('{adequate}', String(adequate))
-          .replace('{total}', String(comps.length))
-          .replace('{thin}', String(thin))
-          .replace('{contested}', String(contested))}
-      </Typography>
-    </ReportSection>
-  );
-}
-
 function ContestedBadge({ t }) {
   return (
     <Box
@@ -703,7 +675,7 @@ export function ReportView({
         </Alert>
       )}
 
-      {isAnalyst ? (
+      {isAnalyst && (
         <>
           <ResilienceSummaryCard
             statusText={scoreLabel(overall, t)}
@@ -731,8 +703,6 @@ export function ReportView({
             ))}
           </Box>
         </>
-      ) : (
-        <OperatorReportHeader assessment={assessment} t={t} />
       )}
 
       {isAnalyst && Array.isArray(norrisCaps) && norrisCaps.length > 0 && (
