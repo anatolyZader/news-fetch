@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Bar, Cell, Line } from 'recharts';
 import {
   QueriesIntelPanel,
@@ -111,6 +111,7 @@ export function TrendsTab() {
   const [districtId, setDistrictId] = useState(readStoredDistrict);
   const [days, setDays] = useState(readStoredDays);
   const [topicGroup, setTopicGroup] = useState(readStoredTopicGroup);
+  const pendingFilterScrollRef = useRef(false);
   const { data, loading, error, reload } = useSearchTrendsDashboard({
     districtId,
     days,
@@ -122,8 +123,13 @@ export function TrendsTab() {
     try {
       localStorage.setItem(LS_TRENDS_DISTRICT, id);
     } catch { /* */ }
-    filterRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }, []);
+
+  useEffect(() => {
+    if (!pendingFilterScrollRef.current) return;
+    pendingFilterScrollRef.current = false;
+    filterRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, [districtId]);
 
   const onDays = (_e, next) => {
     if (next == null) return;
@@ -445,7 +451,12 @@ export function TrendsTab() {
                           key={entry.districtId ?? i}
                           fill={colorList[i % colorList.length]}
                           opacity={0.9}
-                          onClick={() => entry.districtId && selectDistrict(entry.districtId)}
+                          onClick={() => {
+                            const id = entry.districtId;
+                            if (!id) return;
+                            pendingFilterScrollRef.current = true;
+                            selectDistrict(id);
+                          }}
                           style={{ cursor: 'pointer' }}
                         />
                       ))}

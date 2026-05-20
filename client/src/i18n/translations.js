@@ -71,7 +71,6 @@ export const translations = {
     'district.jerusalem':        'Jerusalem',
     'district.dan':              'Dan',
     'district.avgLabel':         'District avg',
-    'trends.districtLabel':      'District',
     'trends.district.national':  'National',
     'trends.district.north':     'North',
     'trends.district.south':     'South',

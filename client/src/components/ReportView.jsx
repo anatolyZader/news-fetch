@@ -615,7 +615,7 @@ export function ReportView({
   translating,
   translateError,
   reportDate: _reportDate,
-  reportScope,
+  reportScope: _reportScope,
   driftByComponent,
   driftLoading,
   openCompId: openCompIdProp,

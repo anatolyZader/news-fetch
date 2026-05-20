@@ -205,7 +205,6 @@ function AppShell() {
     scoreBySource,
     reportDate,
     displayView,
-    refreshReport,
     initialReportLoadDone,
     reportMissingHint,
   } = useTodayReport(reportScope, reportView);

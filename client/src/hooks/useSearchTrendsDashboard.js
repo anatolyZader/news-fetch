@@ -64,8 +64,12 @@ export function useSearchTrendsDashboard(opts = {}) {
 
   useEffect(() => {
     if (!enabled || !apiReady) return undefined;
-    void load(false);
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) void load(false);
+    });
     return () => {
+      cancelled = true;
       requestIdRef.current += 1;
     };
   }, [enabled, apiReady, load]);
