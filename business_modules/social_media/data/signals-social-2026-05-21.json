@@ -1,0 +1,286 @@
+{
+  "source_type": "social",
+  "content_kind": "osint_citizen_voice",
+  "date": "2026-05-21",
+  "window_days": 7,
+  "window_start": "2026-05-15",
+  "window_end": "2026-05-21",
+  "extracted_at": "2026-05-21T09:43:06Z",
+  "languages": [
+    "he",
+    "ar",
+    "ru"
+  ],
+  "platforms_searched": [
+    "x",
+    "facebook_public",
+    "youtube",
+    "tiktok",
+    "telegram_public",
+    "reddit",
+    "hebrew_forums"
+  ],
+  "queries_executed": 27,
+  "candidate_hits": 38,
+  "verified_findings": 3,
+  "low_confidence_findings": 3,
+  "rejected": {
+    "news_domain": 19,
+    "no_citizen_quote": 6,
+    "official_speaker": 2,
+    "not_public_or_login_required": 5,
+    "off_topic": 3
+  },
+  "access_limitations": [
+    "X/Twitter returns HTTP 402 for unauthenticated WebFetch — could not verify any X post content beyond Google search snippets.",
+    "TikTok returns generic homepage to non-app fetchers — could not verify any TikTok caption, date, or creator location.",
+    "Reddit blocks Claude Code WebFetch on all reddit.com and old.reddit.com URLs.",
+    "Facebook posts mostly return login walls; only a few public-page posts were partially accessible via metadata.",
+    "Public Telegram t.me/s/ channel pages were fetchable but visible posts on the index pages were truncated and rarely showed full dates.",
+    "Rotter.net thread pages returned HTTP 403 on direct WebFetch.",
+    "Most established Hebrew citizen forums (Hasolidit, Tapuz) have shifted away from war/security topics; Hasolidit's current visible categories are personal finance only."
+  ],
+  "findings": [
+    {
+      "id": "f01",
+      "date": "2026-04-16",
+      "location": "נהריה",
+      "platform": "hebrew_forum_hasolidit",
+      "source_kind": "thread_reply",
+      "url": "https://www.hasolidit.com/kehila/threads/%D7%94%D7%99%D7%99%D7%AA%D7%9D-%D7%9E%D7%95%D7%95%D7%AA%D7%A8%D7%99%D7%9D-%D7%A2%D7%9C-%D7%9E%D7%9E-%D7%93-%D7%91%D7%93%D7%99%D7%A8%D7%AA%D7%9B%D7%9D.36510/",
+      "quote_original": "עבורי בנהריה, ממ\"ד חשוב מאוד בגלל זמן ההתרעה. במרכז – לא כל כך.",
+      "quote_language": "he",
+      "quote_translation_he": null,
+      "speaker_role": "תושב",
+      "behavior_or_emotion": "תפיסה רציונלית של פער זמן ההתרעה בקו העימות מול המרכז; הצדקה אישית של ההשקעה בממ\"ד כאמצעי לשרידות.",
+      "resilience_component": "lifesaving_behavior",
+      "confidence": "גבוהה",
+      "relevance_reason": "תושב מזהה את עצמו לפי שם משתמש קבוע בקהילה, מציין יישוב מפורש (נהריה), ומבטא הבדל חוויתי בין צפון למרכז שמשפיע על התנהגות מצילת חיים. בדיוק סוג הסיגנל שמוסיף ערך מעל לחדשות.",
+      "verification_notes": "נשלף ב-WebFetch מעמוד הפורום הציבורי. הציטוט והתאריך אומתו ישירות מתוך התגובה. הפורום נגיש ללא login. מחוץ לחלון 7 ימים — שייך לאפריל 2026 ולא לטווח 15-21 במאי."
+    },
+    {
+      "id": "f02",
+      "date": "2026-04-16",
+      "location": "נהריה",
+      "platform": "hebrew_forum_hasolidit",
+      "source_kind": "thread_reply",
+      "url": "https://www.hasolidit.com/kehila/threads/%D7%94%D7%99%D7%99%D7%AA%D7%9D-%D7%9E%D7%95%D7%95%D7%AA%D7%A8%D7%99%D7%9D-%D7%A2%D7%9C-%D7%9E%D7%9E-%D7%93-%D7%91%D7%93%D7%99%D7%A8%D7%AA%D7%9B%D7%9D.36510/",
+      "quote_original": "תוך כדי שאני כותב, פה התפוצץ משהו ללא התרעה. אולי כמו רחפנים, נשמע קרוב. הנה ההתרעה חצי דקה אחרי...",
+      "quote_language": "he",
+      "quote_translation_he": null,
+      "speaker_role": "תושב",
+      "behavior_or_emotion": "אירוע חי בזמן כתיבת התגובה — פיצוץ ללא התרעה מקדימה ואזעקה מאוחרת בחצי דקה. הדובר מאבחן בעצמו 'אולי כמו רחפנים'. ביטוי של הסתגלות וגם של חוסר אמון בזמן ההתרעה.",
+      "resilience_component": "information_communication",
+      "confidence": "גבוהה",
+      "relevance_reason": "תושב מתעד בזמן אמת חוויית פיצוץ עם אזעקה מאוחרת — מצביע ישירות על פערי זמן התרעה בפועל מול מערכת ההתרעה, ולא רק כסטטיסטיקה בעיתון. תושב שמכיר את האיום ומקטלג אותו עצמית כ'רחפנים'.",
+      "verification_notes": "אומת בקריאת הדף. תאריך מהודעת הפורום. מחוץ לחלון 7 ימים (אפריל 2026)."
+    },
+    {
+      "id": "f03",
+      "date": "2026-04-16",
+      "location": "אזור כפרי / מושב בצפון",
+      "platform": "hebrew_forum_hasolidit",
+      "source_kind": "thread_reply",
+      "url": "https://www.hasolidit.com/kehila/threads/%D7%94%D7%99%D7%99%D7%AA%D7%9D-%D7%9E%D7%95%D7%95%D7%AA%D7%A8%D7%99%D7%9D-%D7%A2%D7%9C-%D7%9E%D7%9E-%D7%93-%D7%91%D7%93%D7%99%D7%A8%D7%AA%D7%9B%D7%9D.36510/",
+      "quote_original": "היום אנחנו גרים בבית בלי ממ\"ד...אבל היום ממ\"ד חשוב לי",
+      "quote_language": "he",
+      "quote_translation_he": null,
+      "speaker_role": "תושב",
+      "behavior_or_emotion": "שינוי בעמדה אישית: מי שגר בבית ללא ממ\"ד מציין שכיום הממ\"ד הפך חשוב, בעיקר בהקשר של נכדים שבאים לבקר. רכישת חשיבות מצטברת לעומת שגרת הקבע שלפני המלחמה.",
+      "resilience_component": "lifesaving_behavior",
+      "confidence": "בינונית",
+      "relevance_reason": "עדות לאופן שבו המלחמה שינתה את ההעדפות הביתיות של אזרחים — שינוי תפיסת סיכון בקבוצה שעד לאחרונה לא חיה את המקלוט.",
+      "verification_notes": "אומת בקריאת הדף. הציטוט קוצר במעט בתצוגה, נשמרה כוונת הדובר. מחוץ לחלון 7 ימים."
+    },
+    {
+      "id": "f04",
+      "date": "unknown_2024_2025",
+      "location": "נהריה",
+      "platform": "facebook_public_group",
+      "source_kind": "group_post",
+      "url": "https://www.facebook.com/groups/888838424659610/posts/2480500028826767/",
+      "quote_original": "תיעוד מקומם מאתמול של כטב\"ם מעל נהריה (צולם מעין שרה) בזמן האזעקות באיזורים אחרים",
+      "quote_language": "he",
+      "quote_translation_he": null,
+      "speaker_role": "תושב",
+      "behavior_or_emotion": "תיעוד-קהילה של כטב\"ם מעל העיר. השימוש במילה 'מקומם' מסמן רגש של זעם/תסכול. ההקשר 'בזמן האזעקות באזורים אחרים' מצביע על חוויית 'הצפון בלי התרעה'.",
+      "resilience_component": "narrative",
+      "confidence": "בינונית",
+      "relevance_reason": "פוסט בקבוצת 'פורום תושבי נהריה' — קהילה תושבית מובהקת, לא דוברות. הביטוי הציבורי-קהילתי בדיוק מה שביקשת. עם זאת לא ניתן היה לאמת תאריך מדויק מהדף החתוך.",
+      "verification_notes": "הפוסט נגיש ציבורית אך WebFetch החזיר תוכן חתוך — שם הקבוצה ומחצית הציטוט אומתו, התאריך לא. רוב הסיכויים שהפוסט מ-2024 לפני הפסקת אש. סומן באמינות בינונית."
+    },
+    {
+      "id": "f05",
+      "date": "2026-05-approx_mid",
+      "location": "נהריה",
+      "platform": "x_twitter",
+      "source_kind": "post",
+      "url": "https://x.com/doron_shabti/status/2042988671180136915",
+      "quote_original": "לפני שבועיים בערך הייתי בנהריה כדי להשתתף בחלוקת אוכל. נסעתי להביא מנות לאם חד הורית באחת השכונות הישנות. בדרך לבית שלה עברתי במקלט ציבורי. שם, כמו במקומות אחרים, נוצר משהו בין זולת קבע לכמעט מחנה פליטים בכניסה. ספות יד שנייה ומזרונים מסביב ואנשים, בעיקר מבוגרים, נמצאים שם.",
+      "quote_language": "he",
+      "quote_translation_he": null,
+      "speaker_role": "אזרח מקומי",
+      "behavior_or_emotion": "מתנדב מתאר מקלט ציבורי בנהריה כתחנת קבע למבוגרים — שילוב של תמיכה הדדית קהילתית ('זולת קבע') ושל עוני מוגן ('כמעט מחנה פליטים'). תיאור מצב-מתמשך, לא אירוע נקודתי.",
+      "resilience_component": "community_capital",
+      "confidence": "נמוכה",
+      "relevance_reason": "אם זה אזרח-מתנדב פרטי ולא עיתונאי — זו עדות-עיניים נדירה לשגרת המקלט הציבורי בצפון, כולל המימד של בני-גיל-זהב שלא יכולים לעלות לדירה כשיש אזעקה. מעלה את רכיב הון קהילתי + פגיעות באוכלוסיית סיכון.",
+      "verification_notes": "WebFetch ל-x.com נכשל (HTTP 402). הציטוט נשאב מתקציר חיפוש גוגל ולכן יתכן שאינו מלא. תאריך מדויק לא אומת — מזהה הציוץ 2042988671... תואם תאריך מקורב באמצע מאי 2026 (X snowflake ID). זהות הדובר 'דורון שבתי' לא אומתה כאזרח-לא-עיתונאי. סומן באמינות נמוכה."
+    },
+    {
+      "id": "f06",
+      "date": "2024-fall_approx",
+      "location": "צפון (לא צוין יישוב)",
+      "platform": "tiktok",
+      "source_kind": "video_caption",
+      "url": "https://www.tiktok.com/@stivaronovich/video/7428560674827144455",
+      "quote_original": "אזעקות מוקלטות! וזאת המציאות שלנו בצפון…🤦🏼 אנחנו חזקים ואנחנו ננצח ושום דבר לא יוריד לנו את החיוך 💙 עם ישראל חי. #אבאמביך #אזעקה",
+      "quote_language": "he",
+      "quote_translation_he": null,
+      "speaker_role": "תושב",
+      "behavior_or_emotion": "שילוב של עייפות ('המציאות שלנו') עם עמדת חוסן הצהרתית ('חזקים', 'לא יוריד לנו את החיוך'). דפוס תרבותי של ניסוח קושי דרך נחישות.",
+      "resilience_component": "belonging_solidarity",
+      "confidence": "נמוכה",
+      "relevance_reason": "ביטוי אזרחי מובהק — ביטוי-אני, ביטוי 'שלנו', תושב צפוני שמתמודד פומבית. דפוס שיח שמופיע אצל רבים: עייפות שלא מומרת לאי-ציות אלא לסולידריות.",
+      "verification_notes": "WebFetch ל-TikTok החזיר רק טאגליין; הציטוט נשאב מתקציר גוגל ולכן יתכן שאינו מלא. מזהה הסרטון 7428560674827144455 תואם תאריך פרסום בסביבות אוקטובר 2024 — מחוץ לחלון. נכלל כראיה לדפוס שיח אזרחי-צפוני שעדיין רלוונטי כקונטקסט."
+    }
+  ],
+  "rejected_examples": [
+    {
+      "url": "https://www.ynetnews.com/article/bkyjuyjymx",
+      "reason": "כתבת חדשות (ynetnews) המכילה ציטוט הורה ('Jordan Bar') — נפסל לפי כללי המקור, גם אם הציטוט נשמע אזרחי."
+    },
+    {
+      "url": "https://x.com/N12News/status/1967316885038625170",
+      "reason": "חשבון רשמי של רשת חדשות (N12News) — לא קול אזרחי."
+    },
+    {
+      "url": "https://www.maariv.co.il/breaking-news/article-1235369",
+      "reason": "אתר חדשות (maariv)."
+    },
+    {
+      "url": "https://www.facebook.com/CumtaAlerts/posts/1277423407722514/",
+      "reason": "דף אזעקות אוטומטי ('Cumta Alerts') ולא קול תושב. תוכן התגובות לא נראה ב-WebFetch."
+    },
+    {
+      "url": "https://www.youtube.com/watch?v=QT6fn3y5vFQ",
+      "reason": "סרטון של ערוץ חדשות / תקשורת ממוסדת. WebFetch לא החזיר תגובות צופים שניתן לחלץ מהן קול אזרחי ישיר."
+    },
+    {
+      "url": "https://x.com/shmuelsh23/status/2048652210276348178",
+      "reason": "ציוץ אזרחי לכאורה אך עוסק בהתנהגות חיילים ולא בתגובת אזרחים לאיום כטב\"ם בצפון — אוף-טופיק לנושא הספציפי."
+    },
+    {
+      "url": "https://www.tiktok.com/@n12news/video/7344786407564594439",
+      "reason": "חשבון רשת חדשות N12 בטיקטוק."
+    }
+  ],
+  "summary": {
+    "recurring_emotions": [
+      "תסכול ('מקומם') כלפי כטב\"מים שמופיעים מעל היישוב בלי שאיכשהו 'יודעים' שיש אזעקה",
+      "התרת חוסר אמון בזמן ההתרעה ('הנה ההתרעה חצי דקה אחרי...')",
+      "סולידריות הצהרתית ('אנחנו חזקים', 'לא יוריד לנו את החיוך') שמתפקדת כמסכה רגשית מעל עייפות"
+    ],
+    "threat_perception": "mixed",
+    "threat_perception_explanation": "אצל תושבי נהריה מודגש שזה לא חדש אלא מצב מוכר ומדורג — כולל ההכרה שבמרכז 'לא כל כך' צריך ממ\"ד. בה בעת מופיע מימד של 'חדש' סביב כטב\"מים אופטיים/FPV שלא נראים ולא מזוהים, ושעוקפים את מערכת ההתרעה. הצפון מתפקד כ-baseline והאיום מתעדכן עליו, לא מתחיל ממנו.",
+    "knowledge_of_what_to_do": "partial",
+    "knowledge_of_what_to_do_explanation": "התושבים יודעים לכמת זמני התרעה ('40 שניות', 'חצי דקה אחרי'), מבחינים בין סוגי איום ('אולי כמו רחפנים, נשמע קרוב'), ויודעים על ערכו של ממ\"ד. הפער איננו בידע אלא בפער בין ההנחיות לבין הזמן/המידע שבפועל מגיע אליהם.",
+    "burnout_or_disobedience_signs": "לא נמצאה בדגימה הנוכחית עדות אזרחית מובהקת לאי-ציות פעיל ('לא נכנסים יותר למקלט'). יש סימני שחיקה רגשית עקיפים (ביטוי תסכול, ניסוח דרך נחישות), אך לא צויצה הצהרה חד-משמעית של אי-מקלוט. ייתכן שהדבר כן קיים בפלטפורמות שלא הצלחנו לחדור אליהן (TikTok, X).",
+    "resilience_signs": [
+      "מקלט ציבורי שמתפקד כ'זולת קבע' לקשישים — תמיכה הדדית מאורגנת מתחת לרדאר המוסדי (אם הציטוף של דורון שבתי אכן אזרחי)",
+      "קהילה תושבית בפייסבוק שמתעדת אירועים בזמן אמת ומאמצת שפה משותפת ('פורום תושבי נהריה')",
+      "דובר משדר 'אנחנו חזקים' אחרי אזעקות — מנגנון התמודדות תרבותי-קולקטיבי, גם אם הצהרתי"
+    ],
+    "settlements_well_covered": [
+      "נהריה — כל הממצאים המאומתים מגיעים משם"
+    ],
+    "settlements_thin_or_missing": [
+      "קריית שמונה — מופיעה אך ורק דרך כתבות חדשות, לא נמצאו קולות אזרחיים פומביים שניתן לאמת ב-WebFetch",
+      "צפת, מטולה, ראש פינה, שלומי — אין כיסוי תושבי שניתן לאמת",
+      "מעלות תרשיחא, חורפיש, מרגליות, יראון, אביבים — חסרים לחלוטין",
+      "חיפה וקריית ביאליק — חסרים; לא נמצאו פוסטים אזרחיים פומביים בעברית/ערבית/רוסית שניתן לאמת",
+      "תושבי הגליל הערבי (חורפיש, מג'דל שמס, סח'נין) — חסרים; חיפושים בערבית הניבו תוצאות חדשותיות בלבד",
+      "קהילת דוברי רוסית בצפון — חסרה; חיפושים ב-русский הניבו אתרי חדשות ייעודיים בלבד"
+    ],
+    "evidence_gaps": "הפער המרכזי איננו 'אין קול אזרחי בצפון' אלא 'אין נגישות אל הקול הזה ללא login'. הפלטפורמות בהן הקול הזה ככל הנראה כן קיים — X, TikTok, אינסטגרם, פייסבוק קבוצות סגורות, ערוצי טלגרם של קהילות יישוב — חוסמות שאיבה לא-מאומתת. כל המבנה של 'OSINT שקוף וציבורי' מתפרק נוכח החסימות החדשות של 2024-2026. כדי לקבל קול אזרחי באמת רחב לטווח 7 ימים, נדרשת אחת מהבאות: (א) שילוב MCP מאומת אל X/Reddit/Facebook; (ב) שיתוף פעולה עם תושבי-צפון שיתעדו ויצרפו לחומר בצורה ידנית; (ג) הסתמכות על דיווחי שדה כפי שכבר קיימים במודול הקיים. הסיגנלים שמצאנו בחודש האחרון (אפריל 2026) מספקים תמונת רוחב טובה לדפוסים אך אינם 'live' לטווח שביקשת."
+  },
+  "signals": [
+    {
+      "signal_type": "compliance_enter_shelter",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "עבורי בנהריה, ממ\"ד חשוב מאוד בגלל זמן ההתרעה. במרכז – לא כל כך. (נהריה) — תפיסה רציונלית של פער זמן ההתרעה בקו העימות מול המרכז; הצדקה אישית של ההשקעה בממ\"ד כאמצעי לשרידות.",
+      "scope_level": "repeated_pattern",
+      "article_url": "https://www.hasolidit.com/kehila/threads/%D7%94%D7%99%D7%99%D7%AA%D7%9D-%D7%9E%D7%95%D7%95%D7%AA%D7%A8%D7%99%D7%9D-%D7%A2%D7%9C-%D7%9E%D7%9E-%D7%93-%D7%91%D7%93%D7%99%D7%A8%D7%AA%D7%9B%D7%9D.36510/",
+      "article_source": "hebrew_forum_hasolidit",
+      "speaker_role": "תושב",
+      "osint_finding_id": "f01",
+      "extraction_confidence": 0.9,
+      "source_type": "social"
+    },
+    {
+      "signal_type": "mistrusted_information_source",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "תוך כדי שאני כותב, פה התפוצץ משהו ללא התרעה. אולי כמו רחפנים, נשמע קרוב. הנה ההתרעה חצי דקה אחרי... (נהריה) — אירוע חי בזמן כתיבת התגובה — פיצוץ ללא התרעה מקדימה ואזעקה מאוחרת בחצי דקה. הדובר מאבחן בעצמו 'אולי כמו רחפנים'. ביטוי של הסתגלות וגם של חוסר אמון בזמן ההתרעה.",
+      "scope_level": "repeated_pattern",
+      "article_url": "https://www.hasolidit.com/kehila/threads/%D7%94%D7%99%D7%99%D7%AA%D7%9D-%D7%9E%D7%95%D7%95%D7%AA%D7%A8%D7%99%D7%9D-%D7%A2%D7%9C-%D7%9E%D7%9E-%D7%93-%D7%91%D7%93%D7%99%D7%A8%D7%AA%D7%9B%D7%9D.36510/",
+      "article_source": "hebrew_forum_hasolidit",
+      "speaker_role": "תושב",
+      "osint_finding_id": "f02",
+      "extraction_confidence": 0.9,
+      "source_type": "social"
+    },
+    {
+      "signal_type": "compliance_enter_shelter",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "היום אנחנו גרים בבית בלי ממ\"ד...אבל היום ממ\"ד חשוב לי (אזור כפרי / מושב בצפון) — שינוי בעמדה אישית: מי שגר בבית ללא ממ\"ד מציין שכיום הממ\"ד הפך חשוב, בעיקר בהקשר של נכדים שבאים לבקר. רכישת חשיבות מצטברת לעומת שגרת הקבע שלפני המלחמה.",
+      "scope_level": "single_case",
+      "article_url": "https://www.hasolidit.com/kehila/threads/%D7%94%D7%99%D7%99%D7%AA%D7%9D-%D7%9E%D7%95%D7%95%D7%AA%D7%A8%D7%99%D7%9D-%D7%A2%D7%9C-%D7%9E%D7%9E-%D7%93-%D7%91%D7%93%D7%99%D7%A8%D7%AA%D7%9B%D7%9D.36510/",
+      "article_source": "hebrew_forum_hasolidit",
+      "speaker_role": "תושב",
+      "osint_finding_id": "f03",
+      "extraction_confidence": 0.65,
+      "source_type": "social"
+    },
+    {
+      "signal_type": "fear_expression",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "תיעוד מקומם מאתמול של כטב\"ם מעל נהריה (צולם מעין שרה) בזמן האזעקות באיזורים אחרים (נהריה) — תיעוד-קהילה של כטב\"ם מעל העיר. השימוש במילה 'מקומם' מסמן רגש של זעם/תסכול. ההקשר 'בזמן האזעקות באזורים אחרים' מצביע על חוויית 'הצפון בלי התרעה'.",
+      "scope_level": "single_case",
+      "article_url": "https://www.facebook.com/groups/888838424659610/posts/2480500028826767/",
+      "article_source": "facebook_public_group",
+      "speaker_role": "תושב",
+      "osint_finding_id": "f04",
+      "extraction_confidence": 0.65,
+      "source_type": "social"
+    },
+    {
+      "signal_type": "community_volunteering",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "לפני שבועיים בערך הייתי בנהריה כדי להשתתף בחלוקת אוכל. נסעתי להביא מנות לאם חד הורית באחת השכונות הישנות. בדרך לבית שלה עברתי במקלט ציבורי. שם, כמו במקומות אחרים, נוצר משהו בין זולת קבע לכמעט מחנה פליטים בכניסה. ספות יד שנייה ומזרונים מסביב ואנשים, בעיקר מבוגרים, נמצאים שם. (נהריה) — מתנדב מתאר מקלט ציבורי בנהריה כתחנת קבע למבוגרים — שילוב של תמיכה הדדית קהילתית ('זולת קבע') ושל עוני מוגן ('כמעט מחנה פליטים'). תיאור מצב-מתמשך, לא אירוע נקודתי.",
+      "scope_level": "single_case",
+      "article_url": "https://x.com/doron_shabti/status/2042988671180136915",
+      "article_source": "x_twitter",
+      "speaker_role": "אזרח מקומי",
+      "osint_finding_id": "f05",
+      "extraction_confidence": 0.4,
+      "source_type": "social"
+    },
+    {
+      "signal_type": "solidarity_help_others",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "אזעקות מוקלטות! וזאת המציאות שלנו בצפון…🤦🏼 אנחנו חזקים ואנחנו ננצח ושום דבר לא יוריד לנו את החיוך 💙 עם ישראל חי. #אבאמביך #אזעקה (צפון (לא צוין יישוב)) — שילוב של עייפות ('המציאות שלנו') עם עמדת חוסן הצהרתית ('חזקים', 'לא יוריד לנו את החיוך'). דפוס תרבותי של ניסוח קושי דרך נחישות.",
+      "scope_level": "single_case",
+      "article_url": "https://www.tiktok.com/@stivaronovich/video/7428560674827144455",
+      "article_source": "tiktok",
+      "speaker_role": "תושב",
+      "osint_finding_id": "f06",
+      "extraction_confidence": 0.4,
+      "source_type": "social"
+    }
+  ],
+  "treated_at": "2026-05-21T10:22:09.983Z",
+  "total_articles": 6,
+  "source_files": [
+    "business_modules/social_media/data/signals-social-2026-05-21.json",
+    "business_modules/social_media/data/social-osint-report-2026-05-21.md"
+  ]
+}

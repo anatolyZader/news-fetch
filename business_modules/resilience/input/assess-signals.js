@@ -3,17 +3,18 @@
  * Stage-2 CLI: load pre-extracted signal files, score per-source + full, narrate once, write report.
  *
  * Usage:
- *   node assess-signals.js --date YYYY-MM-DD [--days 1|3] [--scope national|north] [--output <path-without-ext>]
+ *   node assess-signals.js --date YYYY-MM-DD [--days N] [--scope national|north] [--output <path-without-ext>]
  *
  * All sources—including field, PBO, and Naftali—may only load bundles whose basename date `YYYY-MM-DD` is:
  * - on or before `--date` (no forward leakage from later calendar days when replaying history), and
- * - inside the assessment window `{ --date , --date-1 , … }` of length `--days` (default 1, max 3).
- * So `--date D --days 3` uses only D, D−1, D−2. Up to three field bundles and three PBO bundles within that window may load
- * when multiple dated files exist; Naftali at most one within the window.
+ * - inside the assessment window `{ --date , --date-1 , … }` of length `--days` (default 1, max 14).
+ * So `--date D --days 14` uses D through D−13. Up to `--days` bundles per channel may load within the window;
+ * Naftali at most one within the window.
  *
- * Auto-discovers signals/signals-{type}-{date}.json (root) and field signals under
- * business_modules/visits/data/signals/ for the requested date window.
- * Temporal weights: today=1.0, T-1=0.85, T-2=0.70
+ * Auto-discovers signals/signals-{type}-{date}.json (root), field signals under
+ * business_modules/visits/data/signals/, and social OSINT under
+ * business_modules/social_media/data/ for the requested date window.
+ * Temporal weights: T=1.0, T-1=0.85, T-2=0.70, then geometric decay (floor 0.50).
  */
 
 import 'dotenv/config';
@@ -51,7 +52,16 @@ import {
   readCostLogStagesForDate,
 } from '../domain/services/pipelineStageTelemetry.js';
 
-const TEMPORAL_WEIGHTS = { 0: 1.00, 1: 0.85, 2: 0.70 };
+/** @param {number} dayOffset days before --date (0 = target day) */
+export function temporalWeightForOffset(dayOffset) {
+  if (dayOffset <= 0) return 1.00;
+  if (dayOffset === 1) return 0.85;
+  if (dayOffset === 2) return 0.70;
+  const decay = 0.70 * Math.pow(0.70 / 0.85, dayOffset - 2);
+  return Math.max(0.50, decay);
+}
+
+const MAX_ASSESSMENT_DAYS = 14;
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 const GEO_ATTACH_SOURCE_TYPES = new Set(['news', 'radio']);
 
@@ -108,7 +118,7 @@ async function run() {
   const getArg = (flag) => { const i = args.indexOf(flag); return i >= 0 ? args[i + 1] : null; };
 
   const targetDate = getArg('--date') ?? new Date().toISOString().slice(0, 10);
-  const days = Math.min(3, Math.max(1, parseInt(getArg('--days') ?? '1', 10)));
+  const days = Math.min(MAX_ASSESSMENT_DAYS, Math.max(1, parseInt(getArg('--days') ?? '1', 10)));
   const reportScopeId = normalizeReportScope(getArg('--scope') ?? 'national');
   const reportScope = reportScopeMetadata(reportScopeId);
 
@@ -122,11 +132,13 @@ async function run() {
   // Discover signal files for the requested date window
   const signalsDir = resolve('signals');
   const fieldSignalsDir = resolve('business_modules', 'visits', 'data', 'signals');
+  const socialSignalsDir = resolve('business_modules', 'social_media', 'data');
 
   const signalsRootExists = existsSync(signalsDir);
   const fieldSignalsRootExists = existsSync(fieldSignalsDir);
+  const socialSignalsRootExists = existsSync(socialSignalsDir);
 
-  if (!signalsRootExists && !fieldSignalsRootExists) {
+  if (!signalsRootExists && !fieldSignalsRootExists && !socialSignalsRootExists) {
     console.error('No signals directories found. Run extract-signals.js first.');
     process.exit(1);
   }
@@ -139,6 +151,10 @@ async function run() {
     ? readdirSync(fieldSignalsDir).filter((f) => f.startsWith('signals-') && f.endsWith('.json'))
     : [];
 
+  const socialDirFiles = socialSignalsRootExists
+    ? readdirSync(socialSignalsDir).filter((f) => f.startsWith('signals-social-') && f.endsWith('.json'))
+    : [];
+
   // Build date set to include
   const targetDates = new Set();
   const base = new Date(targetDate);
@@ -148,12 +164,14 @@ async function run() {
     targetDates.add(d.toISOString().slice(0, 10));
   }
 
+  const bundleCap = days;
+
   const recentFieldFiles = signalBundlesInAssessmentWindow(
     fieldDirFiles.sort(),
     /^signals-field-(\d{4}-\d{2}-\d{2})\.json$/,
     targetDate,
     targetDates,
-    3,
+    bundleCap,
   );
 
   const recentPboFiles = signalBundlesInAssessmentWindow(
@@ -161,7 +179,7 @@ async function run() {
     /^signals-pbo-(\d{4}-\d{2}-\d{2})\.json$/,
     targetDate,
     targetDates,
-    3,
+    bundleCap,
   );
 
   const recentPboRegionalFiles = signalBundlesInAssessmentWindow(
@@ -169,7 +187,7 @@ async function run() {
     /^signals-pbo_regional-(\d{4}-\d{2}-\d{2})\.json$/,
     targetDate,
     targetDates,
-    3,
+    bundleCap,
   );
 
   const recentNaftaliFiles = signalBundlesInAssessmentWindow(
@@ -180,30 +198,34 @@ async function run() {
     1,
   );
 
-  // C4 — symmetric recency cap: previously only field/pbo/pbo_regional/naftali were capped at
-  // their bundle counts, while news/radio/whatsapp could pile up unconstrained. We now cap
-  // every channel at 3 bundles per assessment window so no single source can dominate by
-  // accumulation alone. Plain symmetry with §5 of the doc.
+  // Cap every channel at `--days` bundles per assessment window (symmetric recency).
   const recentNewsFiles = signalBundlesInAssessmentWindow(
     rootFiles.sort(),
     /^signals-news-(\d{4}-\d{2}-\d{2})\.json$/,
     targetDate,
     targetDates,
-    3,
+    bundleCap,
   );
   const recentRadioFiles = signalBundlesInAssessmentWindow(
     rootFiles.sort(),
     /^signals-radio-(\d{4}-\d{2}-\d{2})\.json$/,
     targetDate,
     targetDates,
-    3,
+    bundleCap,
   );
   const recentWhatsappFiles = signalBundlesInAssessmentWindow(
     rootFiles.sort(),
     /^signals-whatsapp-(\d{4}-\d{2}-\d{2})\.json$/,
     targetDate,
     targetDates,
-    3,
+    bundleCap,
+  );
+  const recentSocialFiles = signalBundlesInAssessmentWindow(
+    socialDirFiles.sort(),
+    /^signals-social-(\d{4}-\d{2}-\d{2})\.json$/,
+    targetDate,
+    targetDates,
+    bundleCap,
   );
 
   // Same calendar window + bundle-count cap for every source.
@@ -215,6 +237,7 @@ async function run() {
     news: recentNewsFiles,
     radio: recentRadioFiles,
     whatsapp: recentWhatsappFiles,
+    social: recentSocialFiles,
   };
 
   // Load pipeline config to check which sources are enabled
@@ -237,7 +260,7 @@ async function run() {
     }
   }
 
-  // Load matching signal files (field JSON lives under visits module; other sources in signals/)
+  // Load matching signal files (field JSON under visits; social OSINT under social_media/data)
   const loadedFiles = [];
 
   function tryLoadSignalFile(file, baseDir) {
@@ -251,7 +274,7 @@ async function run() {
     try {
       const data = JSON.parse(readFileSync(resolve(baseDir, file), 'utf8'));
       const offset = dateOffset(fileDate, targetDate);
-      const weight = TEMPORAL_WEIGHTS[offset] ?? 0.70;
+      const weight = temporalWeightForOffset(offset);
       loadedFiles.push({ file, sourceType, fileDate, weight, data });
     } catch (e) {
       console.error(`  ⚠ Could not load ${file}: ${e.message}`);
@@ -261,7 +284,7 @@ async function run() {
   for (const file of rootFiles.sort()) {
     const m = file.match(/^signals-(\w+)-(\d{4}-\d{2}-\d{2})\.json$/);
     if (!m) continue;
-    if (m[1] === 'field') continue;
+    if (m[1] === 'field' || m[1] === 'social') continue;
     tryLoadSignalFile(file, signalsDir);
   }
 
@@ -269,6 +292,10 @@ async function run() {
     const m = file.match(/^signals-(\w+)-(\d{4}-\d{2}-\d{2})\.json$/);
     if (!m || m[1] !== 'field') continue;
     tryLoadSignalFile(file, fieldSignalsDir);
+  }
+
+  for (const file of socialDirFiles.sort()) {
+    tryLoadSignalFile(file, socialSignalsDir);
   }
 
   if (loadedFiles.length === 0) {
@@ -284,7 +311,7 @@ async function run() {
   const sourceTypesSeen = new Set();
 
   for (const { weight, data, sourceType, fileDate } of loadedFiles) {
-    const weighted = data.signals.map((s) => ({
+    const weighted = (data.signals ?? []).map((s) => ({
       ...s,
       temporal_weight: weight,
       source_type: sourceType,

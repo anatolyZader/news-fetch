@@ -55,6 +55,7 @@
     "test-tokens": "node cross-cut-modules/budget/input/test-token-usage.js",
     "client:dev": "cd client && npm run dev",
     "client:build": "cd client && npm run build",
+    "client:watch": "cd client && npm run build -- --watch",
     "check-identity-env": "node utils/check-identity-env.js",
     "record:test": "node business_modules/recording/input/test-stream.js",
     "record:jobs": "node business_modules/recording/input/manage-jobs.js",
@@ -64,7 +65,9 @@
     "radio:jobs": "node business_modules/recording/input/manage-jobs.js",
     "whatsapp-to-md": "node business_modules/whatsapp/input/whatsapp-to-md.js",
     "mail:digest": "node business_modules/mailing/input/runDailyDigest.js",
-    "trends:warm-cache": "node business_modules/search_trends/input/warmTrendsCache.js"
+    "trends:warm-cache": "node business_modules/search_trends/input/warmTrendsCache.js",
+    "social-media:init": "node business_modules/social_media/input/socialMediaInput.js init",
+    "social-media:treat": "node business_modules/social_media/input/socialMediaInput.js treat"
   },
   "devDependencies": {
     "@redocly/cli": "^1.34.0",

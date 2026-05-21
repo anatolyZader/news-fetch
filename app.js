@@ -58,6 +58,7 @@ import {
 import { registerGeoRoutes } from './business_modules/geo/input/geoRoutes.js';
 import { createGeoWiring } from './cross-cut-modules/geo/createGeoWiring.js';
 import { createVisitsFsAdapter, createVisitsService, visitsRoutes } from './business_modules/visits/index.js';
+import { createSocialMediaService, socialMediaRoutes } from './business_modules/social_media/index.js';
 import {
   reportBotManualReportsRoutes,
   createReportBotManualReportsFsAdapter,
@@ -107,6 +108,10 @@ const visitsService = createVisitsService({
     reportsDir: resolve(__dirname, 'business_modules', 'visits', 'data'),
     signalsDir: resolve(__dirname, 'business_modules', 'visits', 'data', 'signals'),
   }),
+});
+
+const socialMediaService = createSocialMediaService({
+  dataDir: resolve(__dirname, 'business_modules', 'social_media', 'data'),
 });
 
 const reportBotManualReportsService = createReportBotManualReportsService({
@@ -1158,6 +1163,11 @@ export async function createApp(options) {
 
   await app.register(visitsRoutes, {
     visitsService,
+    authPreHandler: authHook?.preHandler,
+  });
+
+  await app.register(socialMediaRoutes, {
+    socialMediaService,
     authPreHandler: authHook?.preHandler,
   });
 

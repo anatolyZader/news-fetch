@@ -1,13 +1,8 @@
 /**
- * Keywords (Hebrew) for articles relevant to:
- * - Population behavior in emergency
- * - Home Front Command (פיקוד העורף) analysis
- * - Psychoemotional state of the population
- * - Special / vulnerable populations
- * Used by social / resilience loaders; home-front article ingest uses LLM pre-filter.
+ * Multilingual keywords for home-front / population-behavior relevance.
+ * Used by social-media gather queries and pre-filtering citizen-voice content.
  */
 export const HOMEFRONT_KEYWORDS = [
-  // Home Front Command & emergency behavior
   'פיקוד העורף',
   'אזעקות',
   'אזעקה',
@@ -58,7 +53,6 @@ export const HOMEFRONT_KEYWORDS = [
   'שיטפונות',
   'מזג אוויר',
   'הפרעות באספקת החשמל',
-  // Psychoemotional state
   'מצב נפשי',
   'נפשי',
   'רגשי',
@@ -90,7 +84,6 @@ export const HOMEFRONT_KEYWORDS = [
   'שדה הקרב',
   'לא יוצא מהמיטה',
   'PTSD',
-  // Vulnerable / special populations
   'אוכלוסיות פגיעות',
   'אוכלוסיות מיוחדות',
   'אוכלוסייה מוחלשת',
@@ -116,9 +109,7 @@ export const HOMEFRONT_KEYWORDS = [
   'קהילה',
 ];
 
-// ─── Arabic keywords ───────────────────────────────────────────────────────────
 export const HOMEFRONT_KEYWORDS_ARA = [
-  // Home Front Command & emergency behavior
   'قيادة الجبهة الداخلية', 'الجبهة الداخلية', 'جبهة الداخل',
   'صفارات الإنذار', 'صافرة الإنذار', 'إنذار جوي', 'إنذار',
   'ملجأ', 'غرفة آمنة', 'ملاجئ', 'مامد',
@@ -128,18 +119,14 @@ export const HOMEFRONT_KEYWORDS_ARA = [
   'سكان', 'مقيمون', 'مدنيون',
   'مدارس', 'طلاب', 'تعليم',
   'شمال إسرائيل', 'الجليل', 'مستوطنات',
-  // Psychoemotional
   'خوف', 'قلق', 'توتر', 'ضغط نفسي',
   'صدمة', 'صدمة نفسية', 'اضطراب ما بعد الصدمة',
   'دعم نفسي', 'صحة نفسية', 'صمود',
-  // Vulnerable populations
   'مسنون', 'أطفال', 'ذوو الاحتياجات الخاصة', 'نساء حوامل',
   'مجتمع', 'قرية', 'بلدة',
 ];
 
-// ─── Russian keywords ──────────────────────────────────────────────────────────
 export const HOMEFRONT_KEYWORDS_RUS = [
-  // Home Front Command & emergency behavior
   'Командование тылом', 'командование тыла', 'Пикуд а-Орев', 'тыл',
   'сирены', 'сирена', 'воздушная тревога', 'тревога',
   'убежище', 'безопасная комната', 'мамад', 'укрытие',
@@ -149,19 +136,15 @@ export const HOMEFRONT_KEYWORDS_RUS = [
   'жители', 'население', 'мирные жители',
   'школы', 'дети', 'учащиеся', 'дистанционное обучение',
   'север Израиля', 'Галилея', 'поселения',
-  // Psychoemotional
   'страх', 'тревожность', 'стресс', 'психологическое давление',
   'травма', 'ПТСР', 'посттравматическое', 'психологическая помощь',
   'психолог', 'психическое здоровье', 'устойчивость',
-  // Vulnerable populations
   'пожилые', 'дети', 'инвалиды', 'беременные',
   'репатрианты', 'новые репатрианты', 'олим',
   'сообщество', 'община',
 ];
 
-// ─── English keywords ──────────────────────────────────────────────────────────
 export const HOMEFRONT_KEYWORDS_ENG = [
-  // Home Front Command & emergency behavior
   'Home Front Command', 'civil defense', 'home front',
   'sirens', 'siren', 'air raid', 'alert', 'alarm',
   'bomb shelter', 'safe room', 'shelter',
@@ -171,20 +154,16 @@ export const HOMEFRONT_KEYWORDS_ENG = [
   'residents', 'civilians', 'population',
   'schools', 'students', 'remote learning', 'distance learning',
   'northern Israel', 'Galilee', 'communities',
-  // Psychoemotional
   'anxiety', 'fear', 'stress', 'psychological',
   'trauma', 'PTSD', 'post-traumatic',
   'mental health', 'resilience', 'coping',
   'psychologist', 'counseling', 'emotional support',
-  // Vulnerable populations
   'elderly', 'children', 'disabled', 'pregnant',
   'immigrants', 'new immigrants', 'special needs',
   'community', 'settlement', 'town',
 ];
 
-// ─── French keywords ───────────────────────────────────────────────────────────
 export const HOMEFRONT_KEYWORDS_FRA = [
-  // Home Front Command & emergency behavior
   'commandement du front intérieur', 'défense civile', 'front intérieur',
   'sirènes', 'sirène', 'alerte', 'alerte aérienne',
   'abri', 'salle sécurisée', 'abris',
@@ -194,31 +173,29 @@ export const HOMEFRONT_KEYWORDS_FRA = [
   'résidents', 'civils', 'population',
   'écoles', 'élèves', 'enseignement à distance',
   'nord d\'Israël', 'Galilée', 'communautés',
-  // Psychoemotional
   'anxiété', 'peur', 'stress', 'psychologique',
   'traumatisme', 'PTSD', 'post-traumatique',
   'santé mentale', 'résilience', 'faire face',
   'psychologue', 'soutien émotionnel',
-  // Vulnerable populations
   'personnes âgées', 'enfants', 'handicapés', 'femmes enceintes',
   'immigrants', 'nouveaux immigrants', 'besoins spéciaux',
   'communauté', 'ville',
 ];
 
+const ALL_KEYWORD_SETS = [
+  HOMEFRONT_KEYWORDS,
+  HOMEFRONT_KEYWORDS_ARA,
+  HOMEFRONT_KEYWORDS_RUS,
+  HOMEFRONT_KEYWORDS_ENG,
+  HOMEFRONT_KEYWORDS_FRA,
+];
+
 /**
- * Returns true if text (title + body) contains any homefront-relevant keyword
- * in any supported language (Hebrew, Arabic, Russian, English, French).
  * @param {string} title
  * @param {string} body
  * @returns {boolean}
  */
 export function isHomefrontRelevant(title, body) {
   const text = `${title || ''} ${body || ''}`;
-  return (
-    HOMEFRONT_KEYWORDS.some((kw) => text.includes(kw)) ||
-    HOMEFRONT_KEYWORDS_ARA.some((kw) => text.includes(kw)) ||
-    HOMEFRONT_KEYWORDS_RUS.some((kw) => text.includes(kw)) ||
-    HOMEFRONT_KEYWORDS_ENG.some((kw) => text.includes(kw)) ||
-    HOMEFRONT_KEYWORDS_FRA.some((kw) => text.includes(kw))
-  );
+  return ALL_KEYWORD_SETS.some((set) => set.some((kw) => text.includes(kw)));
 }

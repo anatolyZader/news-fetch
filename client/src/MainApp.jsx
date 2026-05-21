@@ -33,6 +33,7 @@ import { NaftaliTab } from './components/NaftaliTab.jsx';
 import { ReportBotManualReportsTab } from './components/ReportBotManualReportsTab.jsx';
 import { VisitsTab } from './components/VisitsTab.jsx';
 import { TrendsTab } from './components/TrendsTab.jsx';
+import { SocialMediaTab } from './components/SocialMediaTab.jsx';
 import { useLanguage } from './context/LanguageContext.jsx';
 import { LanguageSelector } from './components/LanguageSelector.jsx';
 import { useAuth } from './context/AuthContext.jsx';
@@ -51,7 +52,7 @@ const LS_POOL_TAB = 'vibes-witch:poolTab';
 const LS_PBO_TAB = 'vibes-witch:pboTab';
 const LS_PBO_REGION = 'vibes-witch:pboRegion';
 const LS_REPORT_SCOPE = 'vibes-witch:reportScope';
-const MAIN_TAB_IDS = new Set(['report', 'pbo-reports', 'report-bot', 'visits', 'pools', 'trends']);
+const MAIN_TAB_IDS = new Set(['report', 'pbo-reports', 'report-bot', 'visits', 'pools', 'trends', 'social-media']);
 const PBO_TAB_IDS = new Set(['local', 'regional']);
 /** Northern PBO sub-regions (maps to divisions in regions.json; Galma ≈ Western Galilee / גלמ״ע). */
 const PBO_REGION_IDS_ORDER = ['naftali', 'golan', 'baram', 'hiram', 'galma'];
@@ -352,6 +353,7 @@ function AppShell() {
     { id: 'pbo-reports', label: t('tab.pboReports') },
     { id: 'report-bot', label: t('tab.reportBot') },
     { id: 'visits', label: t('tab.visits') },
+    { id: 'social-media', label: t('tab.socialMedia') },
     { id: 'pools', label: t('tab.pools') },
     { id: 'trends', label: t('tab.trends') },
   ];
@@ -748,6 +750,8 @@ function AppShell() {
         {activeTab === 'report-bot' && <ReportBotManualReportsTab />}
 
         {activeTab === 'visits' && <VisitsTab />}
+
+        {activeTab === 'social-media' && <SocialMediaTab />}
 
         {activeTab === 'trends' && <TrendsTab />}
 

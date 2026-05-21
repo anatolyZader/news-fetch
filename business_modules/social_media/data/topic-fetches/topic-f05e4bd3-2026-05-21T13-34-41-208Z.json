@@ -1,0 +1,740 @@
+{
+  "topic": "ben gvir's visit to Ashdod port",
+  "platforms": [
+    "x"
+  ],
+  "lang": "en",
+  "fetchedAt": "2026-05-21T13:34:41.207Z",
+  "source": "x_api_v2",
+  "mode": "execute",
+  "accessNotes": [
+    "Live X API v2 search (/x-3 execute mode).",
+    "Fetched 60 posts from X (3-day window, he/en/ar).",
+    "Actual estimated X API spend: $0.77."
+  ],
+  "dryRun": {
+    "topic": "ben gvir's visit to Ashdod port",
+    "slug": "ben-gvir-s-visit-to-ashdod-port",
+    "queries": {
+      "he": "(\"בן גביר\" OR בן-גביר OR בן גביר OR \"ben gvir\") (אשדוד OR Ashdod) (נמל OR port) -is:retweet",
+      "en": "(\"ben gvirs visit to Ashdod port\" OR \"ben gvir\" OR BenGvir OR ben OR gvir OR visit OR ashdod OR port) (Ashdod OR Ashdod) (port OR נמל) -is:retweet",
+      "ar": "(\"ben gvirs visit to Ashdod port\" OR \"בן גביר\" OR בן-גביר OR \"ben gvir\" OR BenGvir OR נמל OR port OR הנמל) (أشدود OR Ashdod) (port OR נמל) -is:retweet"
+    },
+    "estimate": {
+      "countsCalls": 3,
+      "totalCountsCost": 0.015,
+      "projectedPosts": 150,
+      "estPostCost": 0.75,
+      "estTotalX": 0.765,
+      "byLang": [
+        {
+          "lang": "he",
+          "total": 54
+        },
+        {
+          "lang": "en",
+          "total": 309
+        },
+        {
+          "lang": "ar",
+          "total": 309
+        }
+      ],
+      "window": {
+        "startTime": "2026-05-19T00:00:00Z",
+        "endTime": "2026-05-21T13:33:38Z"
+      }
+    },
+    "dates": [
+      "2026-05-21",
+      "2026-05-20",
+      "2026-05-19"
+    ]
+  },
+  "estimate": {
+    "countsCalls": 3,
+    "totalCountsCost": 0.015,
+    "projectedPosts": 150,
+    "estPostCost": 0.75,
+    "estTotalX": 0.765,
+    "byLang": [
+      {
+        "lang": "he",
+        "total": 54
+      },
+      {
+        "lang": "en",
+        "total": 309
+      },
+      {
+        "lang": "ar",
+        "total": 309
+      }
+    ],
+    "window": {
+      "startTime": "2026-05-19T00:00:00Z",
+      "endTime": "2026-05-21T13:33:38Z"
+    },
+    "searchCost": 0.75,
+    "postsFetched": 95,
+    "postsReturned": 60
+  },
+  "posts": [
+    {
+      "id": "x-2057310901707956664",
+      "platform": "x",
+      "url": "https://x.com/ShayGal84/status/2057310901707956664",
+      "text": "The participants in the Global Sumud Flotilla were looking for only one thing: provocation.\n\nRegrettably, at the Port of Ashdod, they found a partner. His name is Itamar Ben-Gvir, a minister by office, not by statecraft.\n\nThe flotilla was intercepted at sea by the Israeli Navy, https://t.co/lUF8sHfNqq",
+      "authorRole": "",
+      "location": "Israel",
+      "postedAt": "2026-05-21T04:01:56.000Z",
+      "categoryId": "other",
+      "confidence": "בינונית",
+      "behaviorOrEmotion": "@ShayGal84",
+      "replies": [],
+      "dedupeKey": "the participants in the global sumud flotilla were looking for only one thing provocation regrettably at the port of ash",
+      "meta": {
+        "topic": "ben gvir's visit to Ashdod port",
+        "lang": "he",
+        "likes": 74,
+        "replyCount": 28,
+        "handle": "ShayGal84"
+      }
+    },
+    {
+      "id": "x-2057342822521475471",
+      "platform": "x",
+      "url": "https://x.com/RamAbdu/status/2057342822521475471",
+      "text": "Israeli journalist @nirhasson: “A dramatic statement from the legal team of @AdalahEnglish, which met in Ashdod port with hundreds of participants from the flotilla (not all of them):\n\nReports of extreme violence, sexual humiliation, and serious injuries by soldiers, police, and https://t.co/8nCBVtq6bB",
+      "authorRole": "",
+      "location": "Gaza",
+      "postedAt": "2026-05-21T06:08:47.000Z",
+      "categoryId": "other",
+      "confidence": "בינונית",
+      "behaviorOrEmotion": "@RamAbdu",
+      "replies": [],
+      "dedupeKey": "israeli journalist nirhasson a dramatic statement from the legal team of adalahenglish which met in ashdod port with hun",
+      "meta": {
+        "topic": "ben gvir's visit to Ashdod port",
+        "lang": "en",
+        "likes": 92,
+        "replyCount": 2,
+        "handle": "RamAbdu"
+      }
+    },
+    {
+      "id": "x-2057284355504869810",
+      "platform": "x",
+      "url": "https://x.com/alardah91/status/2057284355504869810",
+      "text": "@TuckerCarlson @hodgetwins Far-right National Security Minister Itamar Ben-Gvir released a video showing detained Gaza flotilla activists bound and dragged in Ashdod Port, writing: “This is how we welcome terror supporters. Welcome to Israel. https://t.co/W5BlPfitbO",
+      "authorRole": "",
+      "location": "לא ברור",
+      "postedAt": "2026-05-21T02:16:27.000Z",
+      "categoryId": "other",
+      "confidence": "בינונית",
+      "behaviorOrEmotion": "@alardah91",
+      "replies": [],
+      "dedupeKey": "tuckercarlson hodgetwins far right national security minister itamar ben gvir released a video showing detained gaza flo",
+      "meta": {
+        "topic": "ben gvir's visit to Ashdod port",
+        "lang": "he",
+        "likes": 32,
+        "replyCount": 7,
+        "handle": "alardah91"
+      }
+    },
+    {
+      "id": "x-2057447891674022010",
+      "platform": "x",
+      "url": "https://x.com/afshineemrani/status/2057447891674022010",
+      "text": "The Ben-Gvir Flotilla Outrage: Let’s talk about what the media is hiding. 👇\n​Look, I’m not defending Itamar Ben-Gvir’s behavior at the Ashdod port. Waving flags and taunting detained activists isn't exactly a masterclass in statecraft, and even Netanyahu publicly called it out. https://t.co/kh8gHu99lz",
+      "authorRole": "",
+      "location": "Los Angeles, CA",
+      "postedAt": "2026-05-21T13:06:17.000Z",
+      "categoryId": "other",
+      "confidence": "בינונית",
+      "behaviorOrEmotion": "@afshineemrani",
+      "replies": [],
+      "dedupeKey": "the ben gvir flotilla outrage let s talk about what the media is hiding look i m not defending itamar ben gvir s behavio",
+      "meta": {
+        "topic": "ben gvir's visit to Ashdod port",
+        "lang": "he",
+        "likes": 12,
+        "replyCount": 4,
+        "handle": "afshineemrani"
+      }
+    },
+    {
+      "id": "x-2057374954149028151",
+      "platform": "x",
+      "url": "https://x.com/Bine246/status/2057374954149028151",
+      "text": "🇮🇱 Pro-Israel here, always — and I mean it.\n\nBut Ben-Gvir’s latest video from Ashdod port is dead wrong, pure and simple.\n\nReleasing footage of himself strutting among zip-tied, kneeling detainees from the Global Sumud flotilla, waving the Israeli flag, forcing heads down, https://t.co/ykNDxoUEiE",
+      "authorRole": "",
+      "location": "Germany",
+      "postedAt": "2026-05-21T08:16:27.000Z",
+      "categoryId": "other",
+      "confidence": "בינונית",
+      "behaviorOrEmotion": "@Bine246",
+      "replies": [],
+      "dedupeKey": "pro israel here always and i mean it but ben gvir s latest video from ashdod port is dead wrong pure and simple releasin",
+      "meta": {
+        "topic": "ben gvir's visit to Ashdod port",
+        "lang": "en",
+        "likes": 9,
+        "replyCount": 0,
+        "handle": "Bine246"
+      }
+    },
+    {
+      "id": "x-2057205849114779976",
+      "platform": "x",
+      "url": "https://x.com/SgforgoodStella/status/2057205849114779976",
+      "text": "Israeli National Security Minister Itamar Ben-Gvir published a video showing detained members of the intercepted Gaza-bound humanitarian flotilla being tied up and dragged through the Israeli port of Ashdod, writing: This is how we welcome supporters of terror. Welcome to Israel https://t.co/HK0ZR6IzGf",
+      "authorRole": "",
+      "location": "Sevastopol — Moscow, Russia",
+      "postedAt": "2026-05-20T21:04:30.000Z",
+      "categoryId": "other",
+      "confidence": "בינונית",
+      "behaviorOrEmotion": "@SgforgoodStella",
+      "replies": [],
+      "dedupeKey": "israeli national security minister itamar ben gvir published a video showing detained members of the intercepted gaza bo",
+      "meta": {
+        "topic": "ben gvir's visit to Ashdod port",
+        "lang": "he",
+        "likes": 4,
+        "replyCount": 1,
+        "handle": "SgforgoodStella"
+      }
+    },
+    {
+      "id": "x-2057320520551690660",
+      "platform": "x",
+      "url": "https://x.com/adamz2769/status/2057320520551690660",
+      "text": "@Marchfoward Lepas ni port ashdod &amp; kapal2 idf boleh dibom",
+      "authorRole": "",
+      "location": "Kuala Lumpur",
+      "postedAt": "2026-05-21T04:40:09.000Z",
+      "categoryId": "other",
+      "confidence": "בינונית",
+      "behaviorOrEmotion": "@adamz2769",
+      "replies": [],
+      "dedupeKey": "marchfoward lepas ni port ashdod amp kapal2 idf boleh dibom",
+      "meta": {
+        "topic": "ben gvir's visit to Ashdod port",
+        "lang": "en",
+        "likes": 5,
+        "replyCount": 0,
+        "handle": "adamz2769"
+      }
+    },
+    {
+      "id": "x-2057203926038896937",
+      "platform": "x",
+      "url": "https://x.com/omar88bassam/status/2057203926038896937",
+      "text": "Ben Gvir toured the Port of Ashdod and oversaw the arrest of the Sumud Flotilla activists, whom he described as “supporters of terrorism.” He said: “I call on Netanyahu to hand them over to me for some time inside the prisons...” https://t.co/CoGC5GCEVn",
+      "authorRole": "",
+      "location": "gaza",
+      "postedAt": "2026-05-20T20:56:51.000Z",
+      "categoryId": "other",
+      "confidence": "בינונית",
+      "behaviorOrEmotion": "@omar88bassam",
+      "replies": [],
+      "dedupeKey": "ben gvir toured the port of ashdod and oversaw the arrest of the sumud flotilla activists whom he described as supporter",
+      "meta": {
+        "topic": "ben gvir's visit to Ashdod port",
+        "lang": "he",
+        "likes": 4,
+        "replyCount": 0,
+        "handle": "omar88bassam"
+      }
+    },
+    {
+      "id": "x-2057432361428771054",
+      "platform": "x",
+      "url": "https://x.com/zhr2970/status/2057432361428771054",
+      "text": "Israel has arrested and transferred the activists of the global Sumud Flotilla to the port of Ashdod in the occupied territories after intercepting them in international waters.Israeli forces, among them National Security Minister Ben-Gvir,treated the activists in an inhuman way. https://t.co/zsGCCPhmSN",
+      "authorRole": "",
+      "location": "לא ברור",
+      "postedAt": "2026-05-21T12:04:34.000Z",
+      "categoryId": "other",
+      "confidence": "בינונית",
+      "behaviorOrEmotion": "@zhr2970",
+      "replies": [],
+      "dedupeKey": "israel has arrested and transferred the activists of the global sumud flotilla to the port of ashdod in the occupied ter",
+      "meta": {
+        "topic": "ben gvir's visit to Ashdod port",
+        "lang": "he",
+        "likes": 1,
+        "replyCount": 2,
+        "handle": "zhr2970"
+      }
+    },
+    {
+      "id": "x-2057315600829993414",
+      "platform": "x",
+      "url": "https://x.com/SZTH264/status/2057315600829993414",
+      "text": "🇮🇱⚡️🇵🇸🌍 Israeli National Security Minister Ben-Gvir during his visit to the kidnapped activists from the Gaza Global Sumud Flotilla at Ashdod Port: \n\nWelcome to Israel, we are in charge here. This is how it should be.\n\n1/2 https://t.co/NuzVVjejEh",
+      "authorRole": "",
+      "location": "Greenland ",
+      "postedAt": "2026-05-21T04:20:36.000Z",
+      "categoryId": "other",
+      "confidence": "בינונית",
+      "behaviorOrEmotion": "@SZTH264",
+      "replies": [],
+      "dedupeKey": "israeli national security minister ben gvir during his visit to the kidnapped activists from the gaza global sumud floti",
+      "meta": {
+        "topic": "ben gvir's visit to Ashdod port",
+        "lang": "he",
+        "likes": 0,
+        "replyCount": 1,
+        "handle": "SZTH264"
+      }
+    },
+    {
+      "id": "x-2057300471295996068",
+      "platform": "x",
+      "url": "https://x.com/RealPolitikSion/status/2057300471295996068",
+      "text": "Ben-Gvir confronts flotilla activists, sparks international incident\nNational Security Minister Itamar Ben-Gvir drew fierce backlash after filming detained Gaza flotilla activists at Ashdod Port. https://t.co/l6DmMCyZbm",
+      "authorRole": "",
+      "location": "New York, NY, 10128",
+      "postedAt": "2026-05-21T03:20:29.000Z",
+      "categoryId": "other",
+      "confidence": "בינונית",
+      "behaviorOrEmotion": "@RealPolitikSion",
+      "replies": [],
+      "dedupeKey": "ben gvir confronts flotilla activists sparks international incident national security minister itamar ben gvir drew fier",
+      "meta": {
+        "topic": "ben gvir's visit to Ashdod port",
+        "lang": "he",
+        "likes": 1,
+        "replyCount": 1,
+        "handle": "RealPolitikSion"
+      }
+    },
+    {
+      "id": "x-2057221075092615337",
+      "platform": "x",
+      "url": "https://x.com/HuffPostWomen/status/2057221075092615337",
+      "text": "Itamar Ben-Gvir released videos assaulting and taunting hundreds of bound and forcibly kneeling international activists at Ashdod port. https://t.co/4LVl1IOIo7",
+      "authorRole": "",
+      "location": "New York, NY",
+      "postedAt": "2026-05-20T22:05:00.000Z",
+      "categoryId": "other",
+      "confidence": "בינונית",
+      "behaviorOrEmotion": "@HuffPostWomen",
+      "replies": [],
+      "dedupeKey": "itamar ben gvir released videos assaulting and taunting hundreds of bound and forcibly kneeling international activists ",
+      "meta": {
+        "topic": "ben gvir's visit to Ashdod port",
+        "lang": "he",
+        "likes": 2,
+        "replyCount": 0,
+        "handle": "HuffPostWomen"
+      }
+    },
+    {
+      "id": "x-2057197147838407132",
+      "platform": "x",
+      "url": "https://x.com/theinformant_x/status/2057197147838407132",
+      "text": "❗️🇮🇱⚔️🇵🇸 - National Security Minister Itamar Ben Gvir posted a video of himself taunting bound and detained activists from the Global Sumud Flotilla at Ashdod Port on May 20, 2026. \n\nIn the clip, dozens of activists are shown kneeling on the ground with their hands tied as Ben https://t.co/mzZvM0m8Va",
+      "authorRole": "",
+      "location": "Ancapistan",
+      "postedAt": "2026-05-20T20:29:55.000Z",
+      "categoryId": "other",
+      "confidence": "בינונית",
+      "behaviorOrEmotion": "@theinformant_x",
+      "replies": [],
+      "dedupeKey": "national security minister itamar ben gvir posted a video of himself taunting bound and detained activists from the glob",
+      "meta": {
+        "topic": "ben gvir's visit to Ashdod port",
+        "lang": "he",
+        "likes": 2,
+        "replyCount": 0,
+        "handle": "theinformant_x"
+      }
+    },
+    {
+      "id": "x-2057428022060290309",
+      "platform": "x",
+      "url": "https://x.com/Truth_Bj/status/2057428022060290309",
+      "text": "The Condemnation: Prime Minister\nMark Carney characterized the treatment of international and domestic activists as \"abominable\" and entirely \"unacceptable.\" He directly called out the footage published by Ben-Gvir at Ashdod Port, https://t.co/b6uWJ9MSkh",
+      "authorRole": "",
+      "location": "Rome ",
+      "postedAt": "2026-05-21T11:47:20.000Z",
+      "categoryId": "other",
+      "confidence": "בינונית",
+      "behaviorOrEmotion": "@Truth_Bj",
+      "replies": [],
+      "dedupeKey": "the condemnation prime minister mark carney characterized the treatment of international and domestic activists as abomi",
+      "meta": {
+        "topic": "ben gvir's visit to Ashdod port",
+        "lang": "he",
+        "likes": 0,
+        "replyCount": 1,
+        "handle": "Truth_Bj"
+      }
+    },
+    {
+      "id": "x-2057407534374297714",
+      "platform": "x",
+      "url": "https://x.com/Barong369/status/2057407534374297714",
+      "text": "🇮🇱⚡️ Israel’s Minister of National Security, Itamar Ben-Gvir, “visited” the detainees from the Gaza flotilla at the port of Ashdod, accompanied by Israeli police.\n\nAmong the detainees are numerous citizens of European and Western countries, including the sister of the Irish https://t.co/7cIulScq73",
+      "authorRole": "",
+      "location": "Russland",
+      "postedAt": "2026-05-21T10:25:55.000Z",
+      "categoryId": "other",
+      "confidence": "בינונית",
+      "behaviorOrEmotion": "@Barong369",
+      "replies": [],
+      "dedupeKey": "israel s minister of national security itamar ben gvir visited the detainees from the gaza flotilla at the port of ashdo",
+      "meta": {
+        "topic": "ben gvir's visit to Ashdod port",
+        "lang": "he",
+        "likes": 0,
+        "replyCount": 0,
+        "handle": "Barong369"
+      }
+    },
+    {
+      "id": "x-2057381496919556361",
+      "platform": "x",
+      "url": "https://x.com/UmarNoFilter/status/2057381496919556361",
+      "text": "What kind of government minister films bound detainees, taunts them, and posts it proudly online?\nMeet Itamar Ben Gvir. 🧵\n\nIsrael’s National Security Minister Ben Gvir filmed himself taunting 430 bound, kneeling humanitarian activists at Ashdod port — and posted it online like a https://t.co/1DXe5IiHvG",
+      "authorRole": "",
+      "location": "Australia",
+      "postedAt": "2026-05-21T08:42:27.000Z",
+      "categoryId": "other",
+      "confidence": "בינונית",
+      "behaviorOrEmotion": "@UmarNoFilter",
+      "replies": [],
+      "dedupeKey": "what kind of government minister films bound detainees taunts them and posts it proudly online meet itamar ben gvir isra",
+      "meta": {
+        "topic": "ben gvir's visit to Ashdod port",
+        "lang": "he",
+        "likes": 0,
+        "replyCount": 1,
+        "handle": "UmarNoFilter"
+      }
+    },
+    {
+      "id": "x-2057370720016146847",
+      "platform": "x",
+      "url": "https://x.com/Flickrj316/status/2057370720016146847",
+      "text": "International outcry was sparked after video showed Israel's far-right  Itamar Ben Gvir taunting flotilla activists at the Port of Ashdod who were detained in international waters after attempting to deliver humanitarian aid to Gaza.\n\nRead more: https://t.co/xCguyIj9wG https://t.co/e2cIeSaqvr",
+      "authorRole": "",
+      "location": "Penang Malaysia",
+      "postedAt": "2026-05-21T07:59:38.000Z",
+      "categoryId": "other",
+      "confidence": "בינונית",
+      "behaviorOrEmotion": "@Flickrj316",
+      "replies": [],
+      "dedupeKey": "international outcry was sparked after video showed israel s far right itamar ben gvir taunting flotilla activists at th",
+      "meta": {
+        "topic": "ben gvir's visit to Ashdod port",
+        "lang": "he",
+        "likes": 1,
+        "replyCount": 0,
+        "handle": "Flickrj316"
+      }
+    },
+    {
+      "id": "x-2057368011216949284",
+      "platform": "x",
+      "url": "https://x.com/beirut_politics/status/2057368011216949284",
+      "text": "من ميناء أسدود… بن غفير يشرف على اعتقال نشطاء «أسطول الصمود» ويطلق تصريحًا أثار جدلًا واسعًا: «أعطوني إياهم لفترة داخل السجن» \n From the Port of Ashdod, Itamar Ben-Gvir oversaw the arrest of “Sumud Flotilla” activists and made a statement that sparked widespread controversy: https://t.co/P61dBOcuil",
+      "authorRole": "",
+      "location": "לא ברור",
+      "postedAt": "2026-05-21T07:48:52.000Z",
+      "categoryId": "other",
+      "confidence": "בינונית",
+      "behaviorOrEmotion": "@beirut_politics",
+      "replies": [],
+      "dedupeKey": "من ميناء أسدود بن غفير يشرف على اعتقال نشطاء أسطول الصمود ويطلق تصريح ا أثار جدل ا واسع ا أعطوني إياهم لفترة داخل السجن ",
+      "meta": {
+        "topic": "ben gvir's visit to Ashdod port",
+        "lang": "he",
+        "likes": 1,
+        "replyCount": 0,
+        "handle": "beirut_politics"
+      }
+    },
+    {
+      "id": "x-2057362715841273949",
+      "platform": "x",
+      "url": "https://x.com/BritishMuslimTV/status/2057362715841273949",
+      "text": "Footage released by Israeli Security Minister Itamar Ben Gvir shows him visiting a detention center at Ashdod port where activists from a Gaza-bound flotilla were being held after being arrested by Israeli forces.\n\nIn the video, Ben Gvir mocked and abused the detained activists https://t.co/XutDJ3k6HJ",
+      "authorRole": "",
+      "location": "UK",
+      "postedAt": "2026-05-21T07:27:50.000Z",
+      "categoryId": "other",
+      "confidence": "בינונית",
+      "behaviorOrEmotion": "@BritishMuslimTV",
+      "replies": [],
+      "dedupeKey": "footage released by israeli security minister itamar ben gvir shows him visiting a detention center at ashdod port where",
+      "meta": {
+        "topic": "ben gvir's visit to Ashdod port",
+        "lang": "he",
+        "likes": 1,
+        "replyCount": 0,
+        "handle": "BritishMuslimTV"
+      }
+    },
+    {
+      "id": "x-2057341944108318993",
+      "platform": "x",
+      "url": "https://x.com/kello1222/status/2057341944108318993",
+      "text": "International outcry was sparked after video showed Israel's far-right National Security Minister Itamar Ben Gvir taunting flotilla activists at the Port of Ashdod who were detained in international waters after attempting to deliver humanitarian aid to Gaza.\nRead more: https:// https://t.co/spkfZxsm1Y",
+      "authorRole": "",
+      "location": "לא ברור",
+      "postedAt": "2026-05-21T06:05:17.000Z",
+      "categoryId": "other",
+      "confidence": "בינונית",
+      "behaviorOrEmotion": "@kello1222",
+      "replies": [],
+      "dedupeKey": "international outcry was sparked after video showed israel s far right national security minister itamar ben gvir taunti",
+      "meta": {
+        "topic": "ben gvir's visit to Ashdod port",
+        "lang": "he",
+        "likes": 1,
+        "replyCount": 0,
+        "handle": "kello1222"
+      }
+    },
+    {
+      "id": "x-2057252951396077912",
+      "platform": "x",
+      "url": "https://x.com/crypticvalentin/status/2057252951396077912",
+      "text": "'Israeli National Security Minister Itamar Ben Gvir sparked international outrage after posting a video showing him taunting and abusing detained activists from a Gaza flotilla intercepted by Israel. \nThe footage showed bound activists kneeling on the ground at Ashdod port while",
+      "authorRole": "",
+      "location": "New York City",
+      "postedAt": "2026-05-21T00:11:40.000Z",
+      "categoryId": "other",
+      "confidence": "בינונית",
+      "behaviorOrEmotion": "@crypticvalentin",
+      "replies": [],
+      "dedupeKey": "israeli national security minister itamar ben gvir sparked international outrage after posting a video showing him taunt",
+      "meta": {
+        "topic": "ben gvir's visit to Ashdod port",
+        "lang": "he",
+        "likes": 1,
+        "replyCount": 0,
+        "handle": "crypticvalentin"
+      }
+    },
+    {
+      "id": "x-2057216743018242267",
+      "platform": "x",
+      "url": "https://x.com/ArtyLunch/status/2057216743018242267",
+      "text": "3 crimes: kidnapping, torture and humilating captives.\nIsrael's National Security Minister Itamar Ben-Gvir released a video showing detained participants of the illegally seized Gaza-bound flotilla being bound, shoved, dragged and abused in Israel's Ashdod Port. https://t.co/8aL07ENZ0L",
+      "authorRole": "",
+      "location": "Isla de Galvez, México Norte",
+      "postedAt": "2026-05-20T21:47:47.000Z",
+      "categoryId": "other",
+      "confidence": "בינונית",
+      "behaviorOrEmotion": "@ArtyLunch",
+      "replies": [],
+      "dedupeKey": "3 crimes kidnapping torture and humilating captives israel s national security minister itamar ben gvir released a video",
+      "meta": {
+        "topic": "ben gvir's visit to Ashdod port",
+        "lang": "he",
+        "likes": 1,
+        "replyCount": 0,
+        "handle": "ArtyLunch"
+      }
+    },
+    {
+      "id": "x-2057208205575377399",
+      "platform": "x",
+      "url": "https://x.com/nanana365media/status/2057208205575377399",
+      "text": "🔴ISRAEL 🇮🇱-PALESTINE 🇵🇸| Israeli Security Minister Ben-Gvir visited the port of Ashdod where militants from the #GlobalSumud flotilla for #Gaza are being held. The degrading scenes filmed have drawn reactions from #France and #Italy, who denounced the images as \"unacceptable\". https://t.co/sB7XB87f5A",
+      "authorRole": "",
+      "location": "France",
+      "postedAt": "2026-05-20T21:13:51.000Z",
+      "categoryId": "other",
+      "confidence": "בינונית",
+      "behaviorOrEmotion": "@nanana365media",
+      "replies": [],
+      "dedupeKey": "israel palestine israeli security minister ben gvir visited the port of ashdod where militants from the globalsumud flot",
+      "meta": {
+        "topic": "ben gvir's visit to Ashdod port",
+        "lang": "he",
+        "likes": 1,
+        "replyCount": 0,
+        "handle": "nanana365media"
+      }
+    },
+    {
+      "id": "x-2057420310211661934",
+      "platform": "x",
+      "url": "https://x.com/CGTNEurope/status/2057420310211661934",
+      "text": "Iran MFA Spokesman: 'The images of an Israeli regime's minister at Ashdod Port personally humiliating handcuffed humanitarian activists from the “Aid to Gaza” #flotilla (many of them European citizens) are profoundly shocking. They evoke the darkest echoes of history— moments",
+      "authorRole": "",
+      "location": "Europe",
+      "postedAt": "2026-05-21T11:16:41.000Z",
+      "categoryId": "other",
+      "confidence": "בינונית",
+      "behaviorOrEmotion": "@CGTNEurope",
+      "replies": [],
+      "dedupeKey": "iran mfa spokesman the images of an israeli regime s minister at ashdod port personally humiliating handcuffed humanitar",
+      "meta": {
+        "topic": "ben gvir's visit to Ashdod port",
+        "lang": "en",
+        "likes": 0,
+        "replyCount": 1,
+        "handle": "CGTNEurope"
+      }
+    },
+    {
+      "id": "x-2057412589211029572",
+      "platform": "x",
+      "url": "https://x.com/ufonom2/status/2057412589211029572",
+      "text": "@Gelu_JnL @AdamKoscielak Oczywiście że ten port jest w gorszej kondycji - izrael dba o niszczenie Gazy w każdym kawałku nieprzerwanie od dziesiątek lat. I co ma niby pokazywać port Ashdod, że izrael jest bogatszy? Gwarantuję, że rozładowanie pomocy humanitarnej to nie jest najtrudniejsze zadanie świata",
+      "authorRole": "",
+      "location": "Mordor",
+      "postedAt": "2026-05-21T10:46:00.000Z",
+      "categoryId": "other",
+      "confidence": "בינונית",
+      "behaviorOrEmotion": "@ufonom2",
+      "replies": [],
+      "dedupeKey": "gelu jnl adamkoscielak oczywiście że ten port jest w gorszej kondycji izrael dba o niszczenie gazy w każdym kawałku niep",
+      "meta": {
+        "topic": "ben gvir's visit to Ashdod port",
+        "lang": "en",
+        "likes": 0,
+        "replyCount": 1,
+        "handle": "ufonom2"
+      }
+    },
+    {
+      "id": "x-2057410540780052659",
+      "platform": "x",
+      "url": "https://x.com/NaeemAslam23/status/2057410540780052659",
+      "text": "🚨 🇬🇧🇮🇱 GAZA FLOTILLA ROW JUST TURNED DIPLOMACY INTO A MARKET RISK SIGNAL\n\nUK Foreign Secretary Yvette Cooper summoned Israel’s ambassador after reports of detained Gaza-bound flotilla activists at Ashdod Port. Several countries, including Canada, France, Italy, the Netherlands https://t.co/55BuzPWEZl",
+      "authorRole": "",
+      "location": "London, England",
+      "postedAt": "2026-05-21T10:37:52.000Z",
+      "categoryId": "other",
+      "confidence": "בינונית",
+      "behaviorOrEmotion": "@NaeemAslam23",
+      "replies": [],
+      "dedupeKey": "gaza flotilla row just turned diplomacy into a market risk signal uk foreign secretary yvette cooper summoned israel s a",
+      "meta": {
+        "topic": "ben gvir's visit to Ashdod port",
+        "lang": "en",
+        "likes": 0,
+        "replyCount": 0,
+        "handle": "NaeemAslam23"
+      }
+    },
+    {
+      "id": "x-2057410456365441176",
+      "platform": "x",
+      "url": "https://x.com/Gelu_JnL/status/2057410456365441176",
+      "text": "@ufonom2 @AdamKoscielak To co zaznaczyłeś to nie jest port, tylko zatoka. I nie nadaje się do rozładunku. Po tym pływają jakieś małe łódeczki turystyczne. Polecam sobie przejrzeć tą linię brzegu na google maps. Wszystkie porty są oznaczone. Na drugim zdjęciu port Ashdod dla porównania. https://t.co/lj2njc8vfu",
+      "authorRole": "",
+      "location": "לא ברור",
+      "postedAt": "2026-05-21T10:37:32.000Z",
+      "categoryId": "other",
+      "confidence": "בינונית",
+      "behaviorOrEmotion": "@Gelu_JnL",
+      "replies": [],
+      "dedupeKey": "ufonom2 adamkoscielak to co zaznaczyłeś to nie jest port tylko zatoka i nie nadaje się do rozładunku po tym pływają jaki",
+      "meta": {
+        "topic": "ben gvir's visit to Ashdod port",
+        "lang": "en",
+        "likes": 0,
+        "replyCount": 1,
+        "handle": "Gelu_JnL"
+      }
+    },
+    {
+      "id": "x-2057332746935005564",
+      "platform": "x",
+      "url": "https://x.com/wewiv2014/status/2057332746935005564",
+      "text": "This is what's happening in the lie of the Middle East's democracy.\n\nWith the participation of Minister #Ben_Gvir... Photos document the brutal abuse by the Israeli army of \"Steadfastness Flotilla\" activists after their arrest in Ashdod port. https://t.co/VDhjIlh8n1",
+      "authorRole": "",
+      "location": "رام الله",
+      "postedAt": "2026-05-21T05:28:44.000Z",
+      "categoryId": "other",
+      "confidence": "בינונית",
+      "behaviorOrEmotion": "@wewiv2014",
+      "replies": [],
+      "dedupeKey": "this is what s happening in the lie of the middle east s democracy with the participation of minister ben gvir photos do",
+      "meta": {
+        "topic": "ben gvir's visit to Ashdod port",
+        "lang": "en",
+        "likes": 0,
+        "replyCount": 1,
+        "handle": "wewiv2014"
+      }
+    },
+    {
+      "id": "x-2057330292445114418",
+      "platform": "x",
+      "url": "https://x.com/wewiv2014/status/2057330292445114418",
+      "text": "This is what happens in the lie of the Middle East's democracy\nNational Security Minister Itamar #Ben_Gvir, during the arrest and abuse of activists from the Global Flotilla by his police in the port of Ashdod, said: \"I call on Netanyahu to give them to me for a while in prison.\" https://t.co/ylDABBfDvQ",
+      "authorRole": "",
+      "location": "رام الله",
+      "postedAt": "2026-05-21T05:18:59.000Z",
+      "categoryId": "other",
+      "confidence": "בינונית",
+      "behaviorOrEmotion": "@wewiv2014",
+      "replies": [],
+      "dedupeKey": "this is what happens in the lie of the middle east s democracy national security minister itamar ben gvir during the arr",
+      "meta": {
+        "topic": "ben gvir's visit to Ashdod port",
+        "lang": "en",
+        "likes": 1,
+        "replyCount": 0,
+        "handle": "wewiv2014"
+      }
+    },
+    {
+      "id": "x-2057437280998973548",
+      "platform": "x",
+      "url": "https://x.com/RNK_3/status/2057437280998973548",
+      "text": "@Antonio_Tajani @kajakallas Look, the footage released by Ben Gvir showing bound and kneeling international activists at Ashdod Port is the ultimate proof of how tactical arrogance completely ruins strategic credibility. This public humiliation, which included the sister of Ireland's President, backfired",
+      "authorRole": "",
+      "location": "الرياض, المملكة العربية السعود",
+      "postedAt": "2026-05-21T12:24:07.000Z",
+      "categoryId": "other",
+      "confidence": "בינונית",
+      "behaviorOrEmotion": "@RNK_3",
+      "replies": [],
+      "dedupeKey": "antonio tajani kajakallas look the footage released by ben gvir showing bound and kneeling international activists at as",
+      "meta": {
+        "topic": "ben gvir's visit to Ashdod port",
+        "lang": "he",
+        "likes": 0,
+        "replyCount": 0,
+        "handle": "RNK_3"
+      }
+    },
+    {
+      "id": "x-2057424797345222827",
+      "platform": "x",
+      "url": "https://x.com/Howard1957418/status/2057424797345222827",
+      "text": "Italy condemned Israel’s abuse of Gaza flotilla activists as “unacceptable” and announced it would summon the Israeli ambassador after footage showed Itamar Ben-Gvir taunting detained activists who appeared bound and blindfolded in Ashdod port. https://t.co/q0mXqiJ9kj",
+      "authorRole": "",
+      "location": "לא ברור",
+      "postedAt": "2026-05-21T11:34:31.000Z",
+      "categoryId": "other",
+      "confidence": "בינונית",
+      "behaviorOrEmotion": "@Howard1957418",
+      "replies": [],
+      "dedupeKey": "italy condemned israel s abuse of gaza flotilla activists as unacceptable and announced it would summon the israeli amba",
+      "meta": {
+        "topic": "ben gvir's visit to Ashdod port",
+        "lang": "he",
+        "likes": 0,
+        "replyCount": 0,
+        "handle": "Howard1957418"
+      }
+    }
+  ],
+  "stats": {
+    "matched": 60,
+    "afterDedup": 31,
+    "duplicatesRemoved": 29
+  }
+}

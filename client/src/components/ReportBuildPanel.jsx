@@ -290,6 +290,8 @@ export function ReportBuildPanel({ open, onClose }) {
     if (!open) return;
     if (preview) return;
 
+    const questions = displayQuestionsKey ? displayQuestionsKey.split('\n') : [];
+
     // Reset animation state on new questions.
     typeRunIdRef.current += 1;
     const runId = typeRunIdRef.current;
@@ -300,26 +302,26 @@ export function ReportBuildPanel({ open, onClose }) {
     }
 
     void Promise.resolve().then(() => {
-      setTypedQuestions(displayQuestions.map(() => ''));
+      setTypedQuestions(questions.map(() => ''));
       setTypedProgress({ qIdx: 0, chIdx: 0 });
     });
 
-    if (!displayQuestions.length) return;
+    if (!questions.length) return;
 
     const step = () => {
       if (typeRunIdRef.current !== runId) return;
 
       setTypedProgress((prev) => {
-        const qText = displayQuestions[prev.qIdx] ?? '';
+        const qText = questions[prev.qIdx] ?? '';
         if (!qText) {
           const nextQ = prev.qIdx + 1;
-          if (nextQ >= displayQuestions.length) return prev;
+          if (nextQ >= questions.length) return prev;
           return { qIdx: nextQ, chIdx: 0 };
         }
 
         if (prev.chIdx >= qText.length) {
           const nextQ = prev.qIdx + 1;
-          if (nextQ >= displayQuestions.length) return prev;
+          if (nextQ >= questions.length) return prev;
           // Small pause between questions.
           typeTimerRef.current = setTimeout(step, 180);
           return { qIdx: nextQ, chIdx: 0 };
@@ -345,7 +347,7 @@ export function ReportBuildPanel({ open, onClose }) {
         typeTimerRef.current = null;
       }
     };
-  }, [open, preview, displayQuestionsKey, displayQuestions]);
+  }, [open, preview, displayQuestionsKey]);
 
   return (
     <ModalPanel

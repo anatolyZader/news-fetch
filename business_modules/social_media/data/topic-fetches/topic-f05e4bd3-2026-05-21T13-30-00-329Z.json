@@ -1,0 +1,220 @@
+{
+  "topic": "ben gvir's visit to Ashdod port",
+  "platforms": [
+    "x"
+  ],
+  "lang": "en",
+  "fetchedAt": "2026-05-21T13:30:00.329Z",
+  "source": "x_api_v2",
+  "mode": "execute",
+  "accessNotes": [
+    "Live X API v2 search (/x-3 execute mode).",
+    "Fetched 0 topic-relevant posts (0 dropped as off-topic).",
+    "Actual estimated X API spend: $0.04."
+  ],
+  "dryRun": {
+    "topic": "ben gvir's visit to Ashdod port",
+    "slug": "ben-gvir-s-visit-to-ashdod-port",
+    "queries": {
+      "he": "(\"ben gvir's visit to Ashdod port\" OR ben OR gvir OR visit OR ashdod OR port OR \"בן גביר\" OR בן-גביר OR \"ben gvir\" OR BenGvir) (אשדוד OR Ashdod) lang:he -is:retweet",
+      "ar": "(\"ben gvir's visit to Ashdod port\" OR ben OR gvir OR visit OR ashdod OR port OR \"בן גביר\" OR בן-גביר OR \"ben gvir\" OR BenGvir) (أشدود OR Ashdod) lang:ar -is:retweet",
+      "ru": "(\"ben gvir's visit to Ashdod port\" OR ben OR gvir OR visit OR ashdod OR port OR \"בן גביר\" OR בן-גביר OR \"ben gvir\" OR BenGvir) (Ashdod OR Ashdod) lang:ru -is:retweet"
+    },
+    "estimate": {
+      "countsCalls": 9,
+      "totalCountsCost": 0.045,
+      "projectedPosts": 59,
+      "estPostCost": 0.295,
+      "estTotalX": 0.33999999999999997,
+      "byDate": [
+        {
+          "date": "2026-05-21",
+          "total": 15
+        },
+        {
+          "date": "2026-05-20",
+          "total": 36
+        },
+        {
+          "date": "2026-05-19",
+          "total": 8
+        }
+      ],
+      "byLang": [
+        {
+          "lang": "he",
+          "total": 58
+        },
+        {
+          "lang": "ar",
+          "total": 0
+        },
+        {
+          "lang": "ru",
+          "total": 1
+        }
+      ],
+      "slots": [
+        {
+          "date": "2026-05-21",
+          "lang": "he",
+          "result_count": 14,
+          "capped": 14
+        },
+        {
+          "date": "2026-05-21",
+          "lang": "ar",
+          "result_count": 0,
+          "capped": 0
+        },
+        {
+          "date": "2026-05-21",
+          "lang": "ru",
+          "result_count": 1,
+          "capped": 1
+        },
+        {
+          "date": "2026-05-20",
+          "lang": "he",
+          "result_count": 36,
+          "capped": 36
+        },
+        {
+          "date": "2026-05-20",
+          "lang": "ar",
+          "result_count": 0,
+          "capped": 0
+        },
+        {
+          "date": "2026-05-20",
+          "lang": "ru",
+          "result_count": 0,
+          "capped": 0
+        },
+        {
+          "date": "2026-05-19",
+          "lang": "he",
+          "result_count": 8,
+          "capped": 8
+        },
+        {
+          "date": "2026-05-19",
+          "lang": "ar",
+          "result_count": 0,
+          "capped": 0
+        },
+        {
+          "date": "2026-05-19",
+          "lang": "ru",
+          "result_count": 0,
+          "capped": 0
+        }
+      ]
+    },
+    "dates": [
+      "2026-05-21",
+      "2026-05-20",
+      "2026-05-19"
+    ]
+  },
+  "estimate": {
+    "countsCalls": 9,
+    "totalCountsCost": 0.045,
+    "projectedPosts": 59,
+    "estPostCost": 0.295,
+    "estTotalX": 0.045,
+    "byDate": [
+      {
+        "date": "2026-05-21",
+        "total": 15
+      },
+      {
+        "date": "2026-05-20",
+        "total": 36
+      },
+      {
+        "date": "2026-05-19",
+        "total": 8
+      }
+    ],
+    "byLang": [
+      {
+        "lang": "he",
+        "total": 58
+      },
+      {
+        "lang": "ar",
+        "total": 0
+      },
+      {
+        "lang": "ru",
+        "total": 1
+      }
+    ],
+    "slots": [
+      {
+        "date": "2026-05-21",
+        "lang": "he",
+        "result_count": 14,
+        "capped": 14
+      },
+      {
+        "date": "2026-05-21",
+        "lang": "ar",
+        "result_count": 0,
+        "capped": 0
+      },
+      {
+        "date": "2026-05-21",
+        "lang": "ru",
+        "result_count": 1,
+        "capped": 1
+      },
+      {
+        "date": "2026-05-20",
+        "lang": "he",
+        "result_count": 36,
+        "capped": 36
+      },
+      {
+        "date": "2026-05-20",
+        "lang": "ar",
+        "result_count": 0,
+        "capped": 0
+      },
+      {
+        "date": "2026-05-20",
+        "lang": "ru",
+        "result_count": 0,
+        "capped": 0
+      },
+      {
+        "date": "2026-05-19",
+        "lang": "he",
+        "result_count": 8,
+        "capped": 8
+      },
+      {
+        "date": "2026-05-19",
+        "lang": "ar",
+        "result_count": 0,
+        "capped": 0
+      },
+      {
+        "date": "2026-05-19",
+        "lang": "ru",
+        "result_count": 0,
+        "capped": 0
+      }
+    ],
+    "searchCost": 0,
+    "postsFetched": 0,
+    "postsReturned": 0
+  },
+  "posts": [],
+  "stats": {
+    "matched": 0,
+    "afterDedup": 0,
+    "duplicatesRemoved": 0
+  }
+}

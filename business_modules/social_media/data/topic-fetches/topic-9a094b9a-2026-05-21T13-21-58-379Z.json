@@ -1,0 +1,219 @@
+{
+  "topic": "uav danger",
+  "platforms": [
+    "x"
+  ],
+  "fetchedAt": "2026-05-21T13:21:58.379Z",
+  "source": "x_api_v2",
+  "mode": "execute",
+  "accessNotes": [
+    "Live X API v2 search (/x-3 execute mode).",
+    "Fetched 0 citizen-voice candidates after pre-filter (top 60 by engagement).",
+    "Actual estimated X API spend: $0.04."
+  ],
+  "dryRun": {
+    "topic": "uav danger",
+    "slug": "uav-danger",
+    "queries": {
+      "he": "(\"uav danger\" OR uav OR danger) (קריית שמונה OR נהריה OR צפת OR מטולה OR שלומי OR חיפה OR גליל OR גולן OR \"ראש פינה\" OR מעלות OR חורפיש OR מרגליות OR יראון OR אביבים OR \"קריית ביאליק\" OR עכו) lang:he -is:retweet",
+      "ar": "(\"uav danger\" OR uav OR danger) (حيفا OR عكا OR \"كريات شمونة\" OR نهاريا OR صفد OR \"كريات بيالك\" OR الجليل OR الجولان OR شفاعمرو) lang:ar -is:retweet",
+      "ru": "(\"uav danger\" OR uav OR danger) (\"Кирьят-Шмона\" OR Хайфа OR Нагария OR \"Кирьят-Бялик\" OR Цфат OR Галилея OR Голаны OR Акко) lang:ru -is:retweet"
+    },
+    "estimate": {
+      "countsCalls": 9,
+      "totalCountsCost": 0.045,
+      "projectedPosts": 0,
+      "estPostCost": 0,
+      "estTotalX": 0.045,
+      "byDate": [
+        {
+          "date": "2026-05-21",
+          "total": 0
+        },
+        {
+          "date": "2026-05-20",
+          "total": 0
+        },
+        {
+          "date": "2026-05-19",
+          "total": 0
+        }
+      ],
+      "byLang": [
+        {
+          "lang": "he",
+          "total": 0
+        },
+        {
+          "lang": "ar",
+          "total": 0
+        },
+        {
+          "lang": "ru",
+          "total": 0
+        }
+      ],
+      "slots": [
+        {
+          "date": "2026-05-21",
+          "lang": "he",
+          "result_count": 0,
+          "capped": 0
+        },
+        {
+          "date": "2026-05-21",
+          "lang": "ar",
+          "result_count": 0,
+          "capped": 0
+        },
+        {
+          "date": "2026-05-21",
+          "lang": "ru",
+          "result_count": 0,
+          "capped": 0
+        },
+        {
+          "date": "2026-05-20",
+          "lang": "he",
+          "result_count": 0,
+          "capped": 0
+        },
+        {
+          "date": "2026-05-20",
+          "lang": "ar",
+          "result_count": 0,
+          "capped": 0
+        },
+        {
+          "date": "2026-05-20",
+          "lang": "ru",
+          "result_count": 0,
+          "capped": 0
+        },
+        {
+          "date": "2026-05-19",
+          "lang": "he",
+          "result_count": 0,
+          "capped": 0
+        },
+        {
+          "date": "2026-05-19",
+          "lang": "ar",
+          "result_count": 0,
+          "capped": 0
+        },
+        {
+          "date": "2026-05-19",
+          "lang": "ru",
+          "result_count": 0,
+          "capped": 0
+        }
+      ]
+    },
+    "dates": [
+      "2026-05-21",
+      "2026-05-20",
+      "2026-05-19"
+    ]
+  },
+  "estimate": {
+    "countsCalls": 9,
+    "totalCountsCost": 0.045,
+    "projectedPosts": 0,
+    "estPostCost": 0,
+    "estTotalX": 0.045,
+    "byDate": [
+      {
+        "date": "2026-05-21",
+        "total": 0
+      },
+      {
+        "date": "2026-05-20",
+        "total": 0
+      },
+      {
+        "date": "2026-05-19",
+        "total": 0
+      }
+    ],
+    "byLang": [
+      {
+        "lang": "he",
+        "total": 0
+      },
+      {
+        "lang": "ar",
+        "total": 0
+      },
+      {
+        "lang": "ru",
+        "total": 0
+      }
+    ],
+    "slots": [
+      {
+        "date": "2026-05-21",
+        "lang": "he",
+        "result_count": 0,
+        "capped": 0
+      },
+      {
+        "date": "2026-05-21",
+        "lang": "ar",
+        "result_count": 0,
+        "capped": 0
+      },
+      {
+        "date": "2026-05-21",
+        "lang": "ru",
+        "result_count": 0,
+        "capped": 0
+      },
+      {
+        "date": "2026-05-20",
+        "lang": "he",
+        "result_count": 0,
+        "capped": 0
+      },
+      {
+        "date": "2026-05-20",
+        "lang": "ar",
+        "result_count": 0,
+        "capped": 0
+      },
+      {
+        "date": "2026-05-20",
+        "lang": "ru",
+        "result_count": 0,
+        "capped": 0
+      },
+      {
+        "date": "2026-05-19",
+        "lang": "he",
+        "result_count": 0,
+        "capped": 0
+      },
+      {
+        "date": "2026-05-19",
+        "lang": "ar",
+        "result_count": 0,
+        "capped": 0
+      },
+      {
+        "date": "2026-05-19",
+        "lang": "ru",
+        "result_count": 0,
+        "capped": 0
+      }
+    ],
+    "searchCost": 0,
+    "postsFetched": 0,
+    "postsReturned": 0
+  },
+  "posts": [],
+  "stats": {
+    "matched": 0,
+    "afterDedup": 0,
+    "duplicatesRemoved": 0
+  }
+}

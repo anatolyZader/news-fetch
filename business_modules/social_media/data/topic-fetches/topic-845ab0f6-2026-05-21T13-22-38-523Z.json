@@ -1,0 +1,388 @@
+{
+  "topic": "ben gvir's visit to ashdod",
+  "platforms": [
+    "x"
+  ],
+  "fetchedAt": "2026-05-21T13:22:38.523Z",
+  "source": "x_api_v2",
+  "mode": "execute",
+  "accessNotes": [
+    "Live X API v2 search (/x-3 execute mode).",
+    "Fetched 8 citizen-voice candidates after pre-filter (top 60 by engagement).",
+    "Actual estimated X API spend: $0.10."
+  ],
+  "dryRun": {
+    "topic": "ben gvir's visit to ashdod",
+    "slug": "ben-gvir-s-visit-to-ashdod",
+    "queries": {
+      "he": "(\"ben gvir's visit to ashdod\" OR ben OR gvir's OR visit OR to OR ashdod) (קריית שמונה OR נהריה OR צפת OR מטולה OR שלומי OR חיפה OR גליל OR גולן OR \"ראש פינה\" OR מעלות OR חורפיש OR מרגליות OR יראון OR אביבים OR \"קריית ביאליק\" OR עכו) lang:he -is:retweet",
+      "ar": "(\"ben gvir's visit to ashdod\" OR ben OR gvir's OR visit OR to OR ashdod) (حيفا OR عكا OR \"كريات شمونة\" OR نهاريا OR صفد OR \"كريات بيالك\" OR الجليل OR الجولان OR شفاعمرو) lang:ar -is:retweet",
+      "ru": "(\"ben gvir's visit to ashdod\" OR ben OR gvir's OR visit OR to OR ashdod) (\"Кирьят-Шмона\" OR Хайфа OR Нагария OR \"Кирьят-Бялик\" OR Цфат OR Галилея OR Голаны OR Акко) lang:ru -is:retweet"
+    },
+    "estimate": {
+      "countsCalls": 9,
+      "totalCountsCost": 0.045,
+      "projectedPosts": 10,
+      "estPostCost": 0.05,
+      "estTotalX": 0.095,
+      "byDate": [
+        {
+          "date": "2026-05-21",
+          "total": 2
+        },
+        {
+          "date": "2026-05-20",
+          "total": 5
+        },
+        {
+          "date": "2026-05-19",
+          "total": 3
+        }
+      ],
+      "byLang": [
+        {
+          "lang": "he",
+          "total": 7
+        },
+        {
+          "lang": "ar",
+          "total": 3
+        },
+        {
+          "lang": "ru",
+          "total": 0
+        }
+      ],
+      "slots": [
+        {
+          "date": "2026-05-21",
+          "lang": "he",
+          "result_count": 2,
+          "capped": 2
+        },
+        {
+          "date": "2026-05-21",
+          "lang": "ar",
+          "result_count": 0,
+          "capped": 0
+        },
+        {
+          "date": "2026-05-21",
+          "lang": "ru",
+          "result_count": 0,
+          "capped": 0
+        },
+        {
+          "date": "2026-05-20",
+          "lang": "he",
+          "result_count": 3,
+          "capped": 3
+        },
+        {
+          "date": "2026-05-20",
+          "lang": "ar",
+          "result_count": 2,
+          "capped": 2
+        },
+        {
+          "date": "2026-05-20",
+          "lang": "ru",
+          "result_count": 0,
+          "capped": 0
+        },
+        {
+          "date": "2026-05-19",
+          "lang": "he",
+          "result_count": 2,
+          "capped": 2
+        },
+        {
+          "date": "2026-05-19",
+          "lang": "ar",
+          "result_count": 1,
+          "capped": 1
+        },
+        {
+          "date": "2026-05-19",
+          "lang": "ru",
+          "result_count": 0,
+          "capped": 0
+        }
+      ]
+    },
+    "dates": [
+      "2026-05-21",
+      "2026-05-20",
+      "2026-05-19"
+    ]
+  },
+  "estimate": {
+    "countsCalls": 9,
+    "totalCountsCost": 0.045,
+    "projectedPosts": 10,
+    "estPostCost": 0.05,
+    "estTotalX": 0.1,
+    "byDate": [
+      {
+        "date": "2026-05-21",
+        "total": 2
+      },
+      {
+        "date": "2026-05-20",
+        "total": 5
+      },
+      {
+        "date": "2026-05-19",
+        "total": 3
+      }
+    ],
+    "byLang": [
+      {
+        "lang": "he",
+        "total": 7
+      },
+      {
+        "lang": "ar",
+        "total": 3
+      },
+      {
+        "lang": "ru",
+        "total": 0
+      }
+    ],
+    "slots": [
+      {
+        "date": "2026-05-21",
+        "lang": "he",
+        "result_count": 2,
+        "capped": 2
+      },
+      {
+        "date": "2026-05-21",
+        "lang": "ar",
+        "result_count": 0,
+        "capped": 0
+      },
+      {
+        "date": "2026-05-21",
+        "lang": "ru",
+        "result_count": 0,
+        "capped": 0
+      },
+      {
+        "date": "2026-05-20",
+        "lang": "he",
+        "result_count": 3,
+        "capped": 3
+      },
+      {
+        "date": "2026-05-20",
+        "lang": "ar",
+        "result_count": 2,
+        "capped": 2
+      },
+      {
+        "date": "2026-05-20",
+        "lang": "ru",
+        "result_count": 0,
+        "capped": 0
+      },
+      {
+        "date": "2026-05-19",
+        "lang": "he",
+        "result_count": 2,
+        "capped": 2
+      },
+      {
+        "date": "2026-05-19",
+        "lang": "ar",
+        "result_count": 1,
+        "capped": 1
+      },
+      {
+        "date": "2026-05-19",
+        "lang": "ru",
+        "result_count": 0,
+        "capped": 0
+      }
+    ],
+    "searchCost": 0.055,
+    "postsFetched": 8,
+    "postsReturned": 8
+  },
+  "posts": [
+    {
+      "id": "x-2057022105196335395",
+      "platform": "x",
+      "url": "https://x.com/Minanosekai/status/2057022105196335395",
+      "text": "فعلا... الونس العربي ما عمرهم جتهم الفرصه حتى ترانزيت في المطار ما صار~!\n\nتوايس طلعت اخبار كثيره انهم كانوا بيجون الشرق الاوسط في جوله Ready to be و من بعدها رفعنا هاشتاقات لجوله This is for و صارت ترند و مازال جيوايبي ما حاطين اي ذره اهتمام لنا و داخلين على 11 سنه انتظار~ https://t.co/6IumIHEz79",
+      "authorRole": "",
+      "location": "Somewhere",
+      "postedAt": "2026-05-20T08:54:22.000Z",
+      "categoryId": "other",
+      "confidence": "בינונית",
+      "behaviorOrEmotion": "@Minanosekai",
+      "replies": [],
+      "dedupeKey": "فعلا الونس العربي ما عمرهم جتهم الفرصه حتى ترانزيت في المطار ما صار توايس طلعت اخبار كثيره انهم كانوا بيجون الشرق الاوسط",
+      "meta": {
+        "topic": "ben gvir's visit to ashdod",
+        "lang": "ar",
+        "likes": 43,
+        "replyCount": 4,
+        "handle": "Minanosekai"
+      }
+    },
+    {
+      "id": "x-2057138304064143467",
+      "platform": "x",
+      "url": "https://x.com/notyourfav3th/status/2057138304064143467",
+      "text": "ما بعرف what kind of education level الي عندكم بس أتوقع اتوقععع حيفا معروف انها اسم مدينة فلسطينية محتلة و الكلمة اصلها عربي \n\nكل المدن الموجودة في إسرائيل المحتلة  اصلها فلسطيني  it doesn’t take a genius to know that 🤓 https://t.co/NT0LTRMY6s",
+      "authorRole": "",
+      "location": "Palestine 🇵🇸",
+      "postedAt": "2026-05-20T16:36:06.000Z",
+      "categoryId": "other",
+      "confidence": "בינונית",
+      "behaviorOrEmotion": "@notyourfav3th",
+      "replies": [],
+      "dedupeKey": "ما بعرف what kind of education level الي عندكم بس أتوقع اتوقععع حيفا معروف انها اسم مدينة فلسطينية محتلة و الكلمة اصلها ",
+      "meta": {
+        "topic": "ben gvir's visit to ashdod",
+        "lang": "ar",
+        "likes": 6,
+        "replyCount": 0,
+        "handle": "notyourfav3th"
+      }
+    },
+    {
+      "id": "x-2057023853206122630",
+      "platform": "x",
+      "url": "https://x.com/Minanosekai/status/2057023853206122630",
+      "text": "@sanamaryyy على الاقل الونس اللاتيني شافوا توايس في جوله Ready to be و الونس العربي ما شافوا شي و هنا الفرق 😅",
+      "authorRole": "",
+      "location": "Somewhere",
+      "postedAt": "2026-05-20T09:01:18.000Z",
+      "categoryId": "other",
+      "confidence": "בינונית",
+      "behaviorOrEmotion": "@Minanosekai",
+      "replies": [],
+      "dedupeKey": "sanamaryyy على الاقل الونس اللاتيني شافوا توايس في جوله ready to be و الونس العربي ما شافوا شي و هنا الفرق",
+      "meta": {
+        "topic": "ben gvir's visit to ashdod",
+        "lang": "ar",
+        "likes": 3,
+        "replyCount": 1,
+        "handle": "Minanosekai"
+      }
+    },
+    {
+      "id": "x-2056943288788095116",
+      "platform": "x",
+      "url": "https://x.com/BTS_algeria/status/2056943288788095116",
+      "text": "أعضاء من أداء اغنية \" Body To Body\" لحفل اليوم التالت و الأخير للجولة العالمية ARIRANG/ ستانفورد\n\n#BTS_WORLDTOUR_ARIRANG_STANFORD\n\n@BTS_twt \n-FY🪷 https://t.co/JE7bkr56a7",
+      "authorRole": "",
+      "location": "Algeria",
+      "postedAt": "2026-05-20T03:41:10.000Z",
+      "categoryId": "other",
+      "confidence": "בינונית",
+      "behaviorOrEmotion": "@BTS_algeria",
+      "replies": [],
+      "dedupeKey": "أعضاء من أداء اغنية body to body لحفل اليوم التالت و الأخير للجولة العالمية arirang ستانفورد bts worldtour arirang stanf",
+      "meta": {
+        "topic": "ben gvir's visit to ashdod",
+        "lang": "ar",
+        "likes": 4,
+        "replyCount": 0,
+        "handle": "BTS_algeria"
+      }
+    },
+    {
+      "id": "x-2056908446956458001",
+      "platform": "x",
+      "url": "https://x.com/ihdwp/status/2056908446956458001",
+      "text": "@iQuriv @XZXZX169 حصلت ملف pdf لبعثة تنقيب فرنسيه في العلا، وحصلو اثار ومقتنيات جريئة شوي، ولا اتوقع يحطونها بالمتاحف 😹\n\nالا اذا كان فيه جولات بالمتاحف الخارجية لأثارنا مثل Road to Arabia نفس هذي الي تحت https://t.co/fJOefaGeJy",
+      "authorRole": "",
+      "location": "Nauru",
+      "postedAt": "2026-05-20T01:22:43.000Z",
+      "categoryId": "other",
+      "confidence": "בינונית",
+      "behaviorOrEmotion": "@ihdwp",
+      "replies": [],
+      "dedupeKey": "iquriv xzxzx169 حصلت ملف pdf لبعثة تنقيب فرنسيه في العلا وحصلو اثار ومقتنيات جريئة شوي ولا اتوقع يحطونها بالمتاحف الا اذ",
+      "meta": {
+        "topic": "ben gvir's visit to ashdod",
+        "lang": "ar",
+        "likes": 3,
+        "replyCount": 0,
+        "handle": "ihdwp"
+      }
+    },
+    {
+      "id": "x-2056537008986538435",
+      "platform": "x",
+      "url": "https://x.com/alsayeghpoet1/status/2056537008986538435",
+      "text": "5- مهرجان الشعر الدولي في كازبلانكا (7 - 10 ماي 2926). \nـــــــ وجولة شعرية حرة، بين سطور المدينة (10-13 ماي 2026) \n5-The Poetry Festival in Casablanca, from 7 to 10 May 2026 https://t.co/ZW2Zxr7yfc",
+      "authorRole": "",
+      "location": "London, England",
+      "postedAt": "2026-05-19T00:46:46.000Z",
+      "categoryId": "other",
+      "confidence": "בינונית",
+      "behaviorOrEmotion": "@alsayeghpoet1",
+      "replies": [],
+      "dedupeKey": "5 مهرجان الشعر الدولي في كازبلانكا 7 10 ماي 2926 ـــــــ وجولة شعرية حرة بين سطور المدينة 10 13 ماي 2026 5 the poetry fe",
+      "meta": {
+        "topic": "ben gvir's visit to ashdod",
+        "lang": "ar",
+        "likes": 2,
+        "replyCount": 0,
+        "handle": "alsayeghpoet1"
+      }
+    },
+    {
+      "id": "x-2056536436480860183",
+      "platform": "x",
+      "url": "https://x.com/alsayeghpoet1/status/2056536436480860183",
+      "text": "4- مهرجان الشعر الدولي في كازبلانكا (7 - 10 ماي 2926). \nـــــــ وجولة شعرية حرة، بين سطور المدينة (10-13 ماي 2026) \n4-The Poetry Festival in Casablanca, from 7 to 10 May 2026 https://t.co/XasDTx8l8c",
+      "authorRole": "",
+      "location": "London, England",
+      "postedAt": "2026-05-19T00:44:29.000Z",
+      "categoryId": "other",
+      "confidence": "בינונית",
+      "behaviorOrEmotion": "@alsayeghpoet1",
+      "replies": [],
+      "dedupeKey": "4 مهرجان الشعر الدولي في كازبلانكا 7 10 ماي 2926 ـــــــ وجولة شعرية حرة بين سطور المدينة 10 13 ماي 2026 4 the poetry fe",
+      "meta": {
+        "topic": "ben gvir's visit to ashdod",
+        "lang": "ar",
+        "likes": 2,
+        "replyCount": 0,
+        "handle": "alsayeghpoet1"
+      }
+    },
+    {
+      "id": "x-2056658879941955800",
+      "platform": "x",
+      "url": "https://x.com/BarbellaGym/status/2056658879941955800",
+      "text": "3 تمارين سهلة تساعدك تخففين الانفصال العضلي\nو تصغرين الخصر وتشدي الكور بطريقة أنثوية 👀🔥\n\n🤱 مناسبة للنيو مامي💔 وللبنات اللي عندهم ضعف بعضلات الكور\n\n🔥 Dead Bug20 عدة × 3 جولات\n\n🔥 Reverse Plank to High Knees20 عدة × 3 جولات\n\n🔥 Bear Hold30 ثانية × 3 جولات https://t.co/6hwV46iS3o",
+      "authorRole": "",
+      "location": "לא ברור",
+      "postedAt": "2026-05-19T08:51:02.000Z",
+      "categoryId": "other",
+      "confidence": "בינונית",
+      "behaviorOrEmotion": "@BarbellaGym",
+      "replies": [],
+      "dedupeKey": "3 تمارين سهلة تساعدك تخففين الانفصال العضلي و تصغرين الخصر وتشدي الكور بطريقة أنثوية مناسبة للنيو مامي وللبنات اللي عنده",
+      "meta": {
+        "topic": "ben gvir's visit to ashdod",
+        "lang": "ar",
+        "likes": 0,
+        "replyCount": 0,
+        "handle": "BarbellaGym"
+      }
+    }
+  ],
+  "stats": {
+    "matched": 8,
+    "afterDedup": 8,
+    "duplicatesRemoved": 0
+  }
+}

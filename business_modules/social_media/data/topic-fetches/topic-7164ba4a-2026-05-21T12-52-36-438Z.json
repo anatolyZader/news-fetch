@@ -1,0 +1,18 @@
+{
+  "topic": "נהריה",
+  "platforms": [
+    "x",
+    "hebrew_forums"
+  ],
+  "fetchedAt": "2026-05-21T12:52:36.437Z",
+  "source": "stub_osint_cache",
+  "accessNotes": [
+    "No cached posts matched this topic on the selected platforms. Live fetch APIs are not yet connected."
+  ],
+  "posts": [],
+  "stats": {
+    "matched": 0,
+    "afterDedup": 0,
+    "duplicatesRemoved": 0
+  }
+}

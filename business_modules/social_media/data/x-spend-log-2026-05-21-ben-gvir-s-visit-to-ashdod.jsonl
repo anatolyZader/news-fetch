@@ -1,0 +1,14 @@
+{"ts":"2026-05-21T13:22:35.475Z","endpoint":"counts/recent","date":"2026-05-21","lang":"he","result_count":2,"est_cost_usd":0.005}
+{"ts":"2026-05-21T13:22:35.676Z","endpoint":"counts/recent","date":"2026-05-21","lang":"ar","result_count":0,"est_cost_usd":0.005}
+{"ts":"2026-05-21T13:22:35.868Z","endpoint":"counts/recent","date":"2026-05-21","lang":"ru","result_count":0,"est_cost_usd":0.005}
+{"ts":"2026-05-21T13:22:36.094Z","endpoint":"counts/recent","date":"2026-05-20","lang":"he","result_count":3,"est_cost_usd":0.005}
+{"ts":"2026-05-21T13:22:36.297Z","endpoint":"counts/recent","date":"2026-05-20","lang":"ar","result_count":2,"est_cost_usd":0.005}
+{"ts":"2026-05-21T13:22:36.492Z","endpoint":"counts/recent","date":"2026-05-20","lang":"ru","result_count":0,"est_cost_usd":0.005}
+{"ts":"2026-05-21T13:22:36.705Z","endpoint":"counts/recent","date":"2026-05-19","lang":"he","result_count":2,"est_cost_usd":0.005}
+{"ts":"2026-05-21T13:22:36.934Z","endpoint":"counts/recent","date":"2026-05-19","lang":"ar","result_count":1,"est_cost_usd":0.005}
+{"ts":"2026-05-21T13:22:37.136Z","endpoint":"counts/recent","date":"2026-05-19","lang":"ru","result_count":0,"est_cost_usd":0.005}
+{"ts":"2026-05-21T13:22:37.371Z","endpoint":"search/recent","date":"2026-05-21","lang":"he","result_count":0,"est_cost_usd":0}
+{"ts":"2026-05-21T13:22:37.606Z","endpoint":"search/recent","date":"2026-05-20","lang":"he","result_count":0,"est_cost_usd":0}
+{"ts":"2026-05-21T13:22:37.941Z","endpoint":"search/recent","date":"2026-05-20","lang":"ar","result_count":8,"est_cost_usd":0.04}
+{"ts":"2026-05-21T13:22:38.221Z","endpoint":"search/recent","date":"2026-05-19","lang":"he","result_count":0,"est_cost_usd":0}
+{"ts":"2026-05-21T13:22:38.522Z","endpoint":"search/recent","date":"2026-05-19","lang":"ar","result_count":3,"est_cost_usd":0.015}

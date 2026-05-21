@@ -552,7 +552,7 @@ Each channel has its own adapter / loader, but all channels eventually produce o
 `business_modules/news-sites/input/extract-homefront-articles.js` → `app/extractHomefrontArticles.js`:
 
 - **Fetches** today's main-news articles from Israeli outlets via NewsAPI.ai. Each site has a per-outlet adapter under `infrastructure/adapters/newsApi*Adapter.js`. "Today" is computed in `Asia/Jerusalem` (`TZ_ARTICLES`).
-- **LLM Haiku pre-filter** on title + short body snippet: keeps only articles plausibly carrying *population-behavior* content (not pure geopolitical/military analysis). The Hebrew keyword list at `business_modules/news-sites/domain/homefrontKeywords.js` is auxiliary and used for other tools.
+- **LLM Haiku pre-filter** on title + short body snippet: keeps only articles plausibly carrying *population-behavior* content (not pure geopolitical/military analysis). The keyword list at `business_modules/social_media/domain/services/homefrontKeywords.js` is auxiliary and used for social ingest.
 - **Cross-site dedup** by first 40 meaningful chars of title (same story republished across outlets is counted once).
 - **Output**: `articles-homefront.md` — a single markdown file with title, URL, publication date, source, and full body for each surviving article. Typical run: ~300–400 fetched, ~80–150 kept.
 
@@ -1217,7 +1217,7 @@ This loads up to 3 days each of news/radio/field/pbo/pbo_regional bundles within
 /8comp
 ```
 
-`.claude/commands/8comp.md` runs steps 0–7 above end-to-end; `8comp-3.md` and `8comp-3-north.md` are 3-day window variants.
+`.claude/commands/8comp.md` runs steps 0–7 above end-to-end; `8comp-3.md` and `8comp-3-north.md` are 3-day window variants; `8comp-7.md` and `8comp-7-north.md` are 14-day (two-week) variants.
 
 ---
 
@@ -1321,7 +1321,7 @@ business_modules/
 ├── news-sites/                                    # Source 1 — News
 │   ├── input/extract-homefront-articles.js        # CLI: fetch + LLM pre-filter → articles-homefront.md
 │   ├── app/extractHomefrontArticles.js            # Orchestration
-│   ├── domain/homefrontKeywords.js                # Hebrew keyword list (auxiliary)
+│   ├── domain/services/homefrontKeywords.js       # Multilingual keyword list (social_media)
 │   ├── domain/mainNewsFilter.js                   # Main-news URL filter
 │   └── infrastructure/adapters/newsApi*Adapter.js # Per-outlet NewsAPI.ai adapters
 │
@@ -1428,6 +1428,8 @@ pipeline-config.json                                # Source enable/disable togg
 ├── 8comp.md                                       # Full daily pipeline (national)
 ├── 8comp-3.md                                     # 3-day window
 ├── 8comp-3-north.md                               # 3-day window, north scope
+├── 8comp-7.md                                     # 14-day (two-week) window
+├── 8comp-7-north.md                               # 14-day window, north scope
 ├── analyze-news.md  / analyze-news-full-3.md
 ├── analyze-radio.md / analyze-radio-full-3.md
 ├── analyze-field.md / analyze-field-full-3.md

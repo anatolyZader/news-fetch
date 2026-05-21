@@ -42,7 +42,7 @@ npm run homefront-to-md
    - Each site has an adapter under `business_modules/news-sites/infrastructure/adapters/newsApi*Adapter.js`
    - The date used is today in `Asia/Jerusalem` timezone (configurable via `TZ_ARTICLES` env var)
 
-2. **Filters** with an LLM (Haiku) on title plus a short body snippet for population-behavior relevance (not the legacy keyword-only filter). A Hebrew keyword list still lives at `business_modules/news-sites/domain/homefrontKeywords.js` for other tools (e.g. social ingest).
+2. **Filters** with an LLM (Haiku) on title plus a short body snippet for population-behavior relevance (not the legacy keyword-only filter). A multilingual keyword list lives at `business_modules/social_media/domain/services/homefrontKeywords.js` for social ingest and query building.
 
 3. **Deduplicates** cross-site articles — same story published by multiple outlets is counted once (key = first 40 meaningful chars of title)
 
@@ -368,7 +368,9 @@ business_modules/news-sites/
   app/extractHomefrontArticles.js  Fetch all sites + LLM pre-filter → articles-homefront.md
   app/fetchArticlesToMd.js         Single-site markdown export
   domain/mainNewsFilter.js        Main-news URL filter (used by adapters)
-  domain/homefrontKeywords.js     Hebrew keywords (social / auxiliary)
+  domain/services/homefrontKeywords.js   Multilingual keywords (social_media module)
+
+business_modules/social_media/data/       OSINT JSON (signals-social-*.json) + markdown reports
   infrastructure/adapters/        newsApiAdapterFactory + per-site NewsAPI.ai adapters
 
 business_modules/resilience/

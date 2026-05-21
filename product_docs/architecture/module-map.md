@@ -45,6 +45,7 @@ Orient an integrator or developer to the repo's top-level layout so they can ans
 ├── business_modules/
 │   ├── news-sites/            # NewsAPI.ai + homefront extractor
 │   ├── whatsapp/              # Meta Cloud API webhook + stores + export
+│   ├── social_media/          # OSINT citizen-voice; data/ holds signals-social-*.json + reports
 │   ├── audio/                 # Whisper transcription + markdown export
 │   ├── video/                 # YouTube / video ingest
 │   ├── recording/             # Scheduled stream recorders

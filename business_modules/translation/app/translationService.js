@@ -337,3 +337,41 @@ export async function getTranslatedReport(report, lang) {
   await writeDiskCache(report, lang, translatedReport);
   return translatedReport;
 }
+
+/**
+ * Translate social-media post evidence to the UI language.
+ *
+ * @param {object[]} posts
+ * @param {string} lang 'he' | 'ru' | 'en'
+ * @returns {Promise<object[]>}
+ */
+export async function translateSocialPosts(posts, lang) {
+  if (!Array.isArray(posts) || !posts.length || !lang || lang === 'en') return posts;
+  if (process.env.TRANSLATION_ENABLED !== 'true') return posts;
+
+  const langName = LANG_NAMES[lang] ?? lang;
+  const payload = {
+    posts: posts.map((p, i) => ({
+      id: String(p.id ?? i),
+      text: p.text ?? '',
+      behaviorOrEmotion: p.behaviorOrEmotion ?? '',
+      location: p.location && p.location !== 'לא ברור' ? p.location : '',
+    })),
+  };
+
+  const { result } = await translateChunkWithRetry(payload, lang, langName);
+  const byId = new Map((result.posts ?? []).map((row) => [String(row.id), row]));
+
+  return posts.map((p, i) => {
+    const tr = byId.get(String(p.id ?? i)) ?? {};
+    return {
+      ...p,
+      textOriginal: p.text,
+      text: tr.text ?? p.text,
+      behaviorOrEmotionOriginal: p.behaviorOrEmotion,
+      behaviorOrEmotion: tr.behaviorOrEmotion ?? p.behaviorOrEmotion,
+      location: tr.location || p.location,
+      translatedTo: lang,
+    };
+  });
+}
