@@ -88,9 +88,47 @@ export function createSocialMediaFsAdapter(opts = {}) {
       const dir = resolve(dataDir, 'topic-fetches');
       mkdirSync(dir, { recursive: true });
       const ts = new Date().toISOString().replace(/[:.]/g, '-');
-      const path = resolve(dir, `topic-${slug}-${ts}.json`);
+      const id = `topic-${slug}-${ts}`;
+      const path = resolve(dir, `${id}.json`);
       writeFileSync(path, `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
-      return { path };
+      return { path, id };
+    },
+
+    listTopicFetches(limit = 50) {
+      const dir = resolve(dataDir, 'topic-fetches');
+      if (!existsSync(dir)) return [];
+      const files = readdirSync(dir)
+        .filter((f) => f.startsWith('topic-') && f.endsWith('.json'))
+        .sort((a, b) => b.localeCompare(a))
+        .slice(0, Math.max(1, Math.min(limit, 100)));
+
+      return files.map((file) => {
+        const id = file.replace(/\.json$/i, '');
+        try {
+          const raw = JSON.parse(readFileSync(resolve(dir, file), 'utf8'));
+          return {
+            id,
+            topic: raw.topic ?? '',
+            fetchedAt: raw.fetchedAt ?? null,
+            platforms: raw.platforms ?? [],
+            postCount: raw.stats?.afterDedup ?? raw.posts?.length ?? 0,
+            lang: raw.lang ?? 'en',
+          };
+        } catch {
+          return { id, topic: '', fetchedAt: null, platforms: [], postCount: 0, lang: 'en' };
+        }
+      }).filter((row) => row.topic);
+    },
+
+    async loadTopicFetch(id) {
+      const safeId = String(id ?? '').trim().replace(/\.json$/i, '');
+      if (!safeId.startsWith('topic-') || safeId.includes('..') || /[/\\]/.test(safeId)) {
+        return null;
+      }
+      const path = resolve(dataDir, 'topic-fetches', `${safeId}.json`);
+      if (!existsSync(path)) return null;
+      const raw = JSON.parse(readFileSync(path, 'utf8'));
+      return { ...raw, id: safeId };
     },
   };
 }

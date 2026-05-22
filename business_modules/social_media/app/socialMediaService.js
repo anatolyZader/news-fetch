@@ -95,5 +95,13 @@ export function createSocialMediaService(opts = {}) {
     fetchByTopic(input) {
       return topic.fetchByTopic(input);
     },
+
+    listTopicFetchHistory(limit) {
+      return topic.listTopicFetchHistory(limit);
+    },
+
+    getTopicFetch(id) {
+      return topic.getTopicFetch(id);
+    },
   };
 }

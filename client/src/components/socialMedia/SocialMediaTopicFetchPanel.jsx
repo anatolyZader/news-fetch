@@ -9,7 +9,10 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { useLanguage } from '../../context/LanguageContext.jsx';
-import { fetchSocialMediaTopic } from '../../hooks/useSocialMedia.js';
+import {
+  fetchSocialMediaTopic,
+  loadTopicFetchById,
+} from '../../hooks/useSocialMedia.js';
 import {
   DEFAULT_TOPIC_FETCH_PLATFORM_IDS,
   TOPIC_FETCH_PLATFORMS,
@@ -23,8 +26,10 @@ import {
   SectionHeading,
 } from '../../ui/index.js';
 import { SocialMediaPostCard } from './SocialMediaPostCard.jsx';
+import { SocialMediaPreviousSearchesMenu } from './SocialMediaPreviousSearchesMenu.jsx';
 
 const LS_PLATFORMS = 'vibes-witch:socialMediaPlatforms';
+const LS_LAST_SEARCH = 'vibes-witch:socialMediaTopicLastSearch';
 
 function readStoredPlatforms(defaults) {
   if (typeof localStorage === 'undefined') return defaults;
@@ -37,24 +42,79 @@ function readStoredPlatforms(defaults) {
   return defaults;
 }
 
+function getInitialPlatforms() {
+  const allowed = new Set(TOPIC_FETCH_PLATFORMS.map((p) => p.id));
+  const stored = readStoredPlatforms(DEFAULT_TOPIC_FETCH_PLATFORM_IDS).filter((id) => allowed.has(id));
+  return stored.length ? stored : DEFAULT_TOPIC_FETCH_PLATFORM_IDS;
+}
+
+function readLastSearchId() {
+  if (typeof localStorage === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem(LS_LAST_SEARCH);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return typeof parsed?.id === 'string' ? parsed.id : null;
+  } catch {
+    return null;
+  }
+}
+
+function storeLastSearchId(id) {
+  if (typeof localStorage === 'undefined' || !id) return;
+  try {
+    localStorage.setItem(LS_LAST_SEARCH, JSON.stringify({ id }));
+  } catch { /* */ }
+}
+
 export function SocialMediaTopicFetchPanel() {
   const { t, lang } = useLanguage();
-  const { getIdToken } = useAuth();
+  const { apiReady, getIdToken } = useAuth();
 
   const [topic, setTopic] = useState('');
-  const [selectedPlatforms, setSelectedPlatforms] = useState([]);
+  const [selectedPlatforms, setSelectedPlatforms] = useState(getInitialPlatforms);
   const [result, setResult] = useState(null);
+  const [activeSearchId, setActiveSearchId] = useState(null);
   const [fetching, setFetching] = useState(false);
+  const [restoring, setRestoring] = useState(false);
   const [error, setError] = useState(null);
 
   const onlyXSelected = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'x';
 
+  const applyFetchedResult = useCallback((out) => {
+    setResult(out);
+    setError(null);
+    if (out?.topic) setTopic(out.topic);
+    if (Array.isArray(out?.platforms) && out.platforms.length) {
+      setSelectedPlatforms(out.platforms);
+      try { localStorage.setItem(LS_PLATFORMS, JSON.stringify(out.platforms)); } catch { /* */ }
+    }
+    const id = out?.id ?? null;
+    setActiveSearchId(id);
+    if (id) storeLastSearchId(id);
+  }, []);
+
   useEffect(() => {
-    if (selectedPlatforms.length) return;
-    const allowed = new Set(TOPIC_FETCH_PLATFORMS.map((p) => p.id));
-    const stored = readStoredPlatforms(DEFAULT_TOPIC_FETCH_PLATFORM_IDS).filter((id) => allowed.has(id));
-    setSelectedPlatforms(stored.length ? stored : DEFAULT_TOPIC_FETCH_PLATFORM_IDS);
-  }, [selectedPlatforms.length]);
+    if (!apiReady) return;
+    const id = readLastSearchId();
+    if (!id) return;
+    let cancelled = false;
+    void (async () => {
+      setRestoring(true);
+      try {
+        const out = await loadTopicFetchById({ id, getIdToken });
+        if (!cancelled) applyFetchedResult(out);
+      } catch {
+        if (!cancelled) {
+          setResult(null);
+          setActiveSearchId(null);
+        }
+      } finally {
+        if (!cancelled) setRestoring(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [apiReady, getIdToken, applyFetchedResult]);
 
   const togglePlatform = useCallback((id) => {
     setSelectedPlatforms((prev) => {
@@ -63,6 +123,20 @@ export function SocialMediaTopicFetchPanel() {
       return next;
     });
   }, []);
+
+  const onLoadPreviousSearch = useCallback(async (search) => {
+    if (!search?.id || restoring || fetching) return;
+    setRestoring(true);
+    setError(null);
+    try {
+      const out = await loadTopicFetchById({ id: search.id, getIdToken });
+      applyFetchedResult(out);
+    } catch (e) {
+      setError(e?.message ?? t('socialMedia.topic.historyLoadFailed'));
+    } finally {
+      setRestoring(false);
+    }
+  }, [restoring, fetching, getIdToken, applyFetchedResult, t]);
 
   const onFetch = useCallback(async () => {
     const q = topic.trim();
@@ -77,20 +151,30 @@ export function SocialMediaTopicFetchPanel() {
         lang,
         getIdToken,
       });
-      setResult(out);
+      applyFetchedResult(out);
     } catch (e) {
       setError(e?.message ?? t('socialMedia.topic.fetchFailed'));
       setResult(null);
+      setActiveSearchId(null);
     } finally {
       setFetching(false);
     }
-  }, [topic, fetching, selectedPlatforms, onlyXSelected, lang, getIdToken, t]);
+  }, [topic, fetching, selectedPlatforms, onlyXSelected, lang, getIdToken, t, applyFetchedResult]);
+
+  const busy = fetching || restoring;
 
   return (
     <Stack spacing={2}>
-      <Typography variant="body2" color="text.secondary">
-        {t('socialMedia.topic.subtitle')}
-      </Typography>
+      <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={1}>
+        <Typography variant="body2" color="text.secondary" sx={{ flex: 1 }}>
+          {t('socialMedia.topic.subtitle')}
+        </Typography>
+        <SocialMediaPreviousSearchesMenu
+          activeId={activeSearchId}
+          onSelect={(search) => void onLoadPreviousSearch(search)}
+          disabled={busy}
+        />
+      </Stack>
 
       <TextField
         label={t('socialMedia.topic.inputLabel')}
@@ -126,7 +210,7 @@ export function SocialMediaTopicFetchPanel() {
         <Button
           variant="contained"
           onClick={() => void onFetch()}
-          disabled={fetching || !topic.trim() || selectedPlatforms.length === 0}
+          disabled={busy || !topic.trim() || selectedPlatforms.length === 0}
         >
           {fetching ? t('socialMedia.topic.fetching') : t('socialMedia.topic.fetch')}
         </Button>
@@ -134,7 +218,7 @@ export function SocialMediaTopicFetchPanel() {
 
       {error && <ErrorState>{error}</ErrorState>}
 
-      {fetching && <LoadingState>{t('socialMedia.topic.fetching')}</LoadingState>}
+      {busy && !result && <LoadingState>{restoring ? t('socialMedia.topic.restoring') : t('socialMedia.topic.fetching')}</LoadingState>}
 
       {result && !fetching && (
         <>

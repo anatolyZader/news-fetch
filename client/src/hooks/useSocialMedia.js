@@ -34,8 +34,21 @@ export function useSocialMediaDashboard({ getIdToken, apiReady }) {
 
   useEffect(() => {
     if (!apiReady) return;
-    void reload();
-  }, [apiReady, reload]);
+    let cancelled = false;
+    void (async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const out = await authFetch('/api/social-media', { getIdToken });
+        if (!cancelled) setData(out);
+      } catch (e) {
+        if (!cancelled) setError(e?.message ?? 'Failed');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [apiReady, getIdToken]);
 
   return { data, loading, error, reload };
 }
@@ -100,6 +113,18 @@ export async function fetchSocialMediaTopic({ topic, platforms, execute, maxCost
     method: 'POST',
     body: { topic, platforms, execute: Boolean(execute), maxCostUsd, lang },
   });
+}
+
+/** @param {{ limit?: number, getIdToken: () => Promise<string|null> }} opts */
+export async function fetchTopicFetchHistory({ limit = 30, getIdToken }) {
+  const q = new URLSearchParams({ limit: String(limit) });
+  const data = await authFetch(`/api/social-media/topic-fetches?${q.toString()}`, { getIdToken });
+  return data?.searches ?? [];
+}
+
+/** @param {{ id: string, getIdToken: () => Promise<string|null> }} opts */
+export async function loadTopicFetchById({ id, getIdToken }) {
+  return authFetch(`/api/social-media/topic-fetches/${encodeURIComponent(id)}`, { getIdToken });
 }
 
 /** @deprecated use useSocialMediaDailyFeed */

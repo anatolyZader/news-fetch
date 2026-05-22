@@ -78,9 +78,17 @@ export function createSocialMediaTopicFetchService({ persistencePort, fetchPort,
       };
 
       const slug = slugifyTopic(topic);
-      await persistencePort.saveTopicFetch?.(slug, payload);
+      const saved = await persistencePort.saveTopicFetch?.(slug, payload);
 
-      return payload;
+      return { ...payload, id: saved?.id ?? null };
+    },
+
+    listTopicFetchHistory(limit) {
+      return persistencePort.listTopicFetches?.(limit) ?? [];
+    },
+
+    async getTopicFetch(id) {
+      return persistencePort.loadTopicFetch?.(id) ?? null;
     },
   };
 }

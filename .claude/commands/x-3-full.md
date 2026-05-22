@@ -74,7 +74,7 @@ Two thematic clusters per language. Each cluster query is `(<terms>) [(<locality
 
 ### Cluster A — operational / behavioral (alerts, sheltering, evacuation, schools, civil defense)
 
-- **he** (A): `(אזעקה OR "צבע אדום" OR מקלט OR "מרחב מוגן" OR "פיקוד העורף" OR פינוי OR מפונים OR התראה OR "בתי הספר" OR "למידה מרחוק" OR חירום OR "הוראות העורף" OR נפילה OR שיגורים OR "מד״א" OR חילוץ)`
+- **he** (A): `(אזעקה OR "צבע אדום" OR מקלט OR "מרחב מוגן" OR "פיקוד העורף" OR פינוי OR מפונים OR התראה OR "בתי הספר" OR "למידה מרחוק" OR חירום OR "הוראות העורף" OR נפילה OR שיגורים OR "מד״א" OR חילוץ)` — use `lang:iw`, not `lang:he` (see mapping table above).
 - **ar** (A): `("صفارة الإنذار" OR إنذار OR ملجأ OR "غرفة آمنة" OR إخلاء OR نازحون OR مدارس OR طوارئ OR "قيادة الجبهة الداخلية" OR قصف OR صواريخ OR "تعليم عن بعد")`
 - **ru** (A): `(сирена OR тревога OR убежище OR "безопасная комната" OR эвакуация OR "командование тылом" OR школы OR "дистанционное обучение" OR "ракетная тревога" OR обстрел OR "чрезвычайная ситуация")`
 - **en** (A, if requested): `("air raid" OR siren OR alarm OR shelter OR "safe room" OR evacuation OR evacuees OR "Home Front Command" OR "remote learning" OR "rocket fire" OR "emergency")`
@@ -87,8 +87,8 @@ Two thematic clusters per language. Each cluster query is `(<terms>) [(<locality
 - **en** (B, if requested): `(anxiety OR fear OR PTSD OR trauma OR "mental health" OR resilience OR coping OR psychologist OR elderly OR disabled OR community OR volunteers OR "mutual aid")`
 
 **Locality clause (only if `--north`):**
-- **he**: `(קריית שמונה OR נהריה OR צפת OR מטולה OR שלומי OR חיפה OR גליל OR גולן OR "ראש פינה" OR מעלות OR חורפיש OR מרגליות OR יראון OR אביבים OR "קריית ביאליק" OR עכו)`
-- **ar**: `(حيفا OR عكا OR "كريات شمونة" OR نهاريا OR صفد OR "كريات بيالك" OR الجليل OR الجولان OR شفاعمرو)`
+- **he**: `("קריית שמונה" OR נהריה OR צפת OR מטולה OR שלומי OR חיפה OR "ראש פינה" OR מעלות OR חורפיש OR מרגליות OR יראון OR אביבים OR "קריית ביאליק" OR עכו OR "רמת הגולן" OR "הגליל העליון" OR "הגליל המערבי")` — all multi-word names quoted (unquoted `קריית שמונה` parses inconsistently between counts/recent and search/recent inside an OR-clause). Bare `גליל` and `גולן` removed because they over-match common Hebrew word forms; replaced with quoted phrases.
+- **ar**: `(حيفا OR عكا OR "كريات شمونة" OR نهاريا OR صفد OR "كريات بيالك" OR شفاعمرو OR "الجليل الأعلى" OR "الجليل الأسفل" OR طمرة OR سخنين OR "كفر كنا")` — bare `الجليل` and `الجولان` removed (Arabic search uses root-stemming, so `الجليل` matches the adjective "glorious/magnificent" in religious texts and `الجولان` matches `جولة` "round/tour" and Syrian political discourse about displaced Golanis). Quoted phrases anchor to place names; specific Israeli-Arab towns (طمرة, سخنين, كفر كنا) expanded for citizen-voice coverage.
 - **ru**: `("Кирьят-Шмона" OR Хайфа OR Нагария OR "Кирьят-Бялик" OR Цфат OR Галилея OR Голаны OR Акко)`
 - **en**: `("Kiryat Shmona" OR Haifa OR Naharia OR Acre OR Galilee OR Golan OR Metula)`
 
@@ -325,7 +325,7 @@ Use the **validator-required schema** (matching `socialMediaGatherService.create
 
 `Write` the JSON to the `.new.json` temp path. Do not re-`Read`.
 
-**6b.** Merge with any pre-existing canonical bundle so this run accumulates with prior same-day runs instead of overwriting them. The canonical path is the one the resilience pipeline consumes — no `/x-3` slug-suffixed bundle ever lands here, so the only collision risk is re-running `/x-3-full` itself on the same day.
+**6b.** Merge with any pre-existing canonical bundle so this run accumulates with prior same-day runs instead of overwriting them. Other producers may already have written to this canonical path on the same day — re-runs of `/x-3-full` itself, and `/x-3 <topic>` runs which now also merge their findings here. The merge below preserves all prior `findings` (deduped by `id`).
 
 ```bash
 CANONICAL="business_modules/social_media/data/signals-social-${DATE}.json"

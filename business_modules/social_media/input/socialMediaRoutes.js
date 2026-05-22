@@ -69,6 +69,33 @@ export async function socialMediaRoutes(app, opts) {
     }
   });
 
+  app.get('/api/social-media/topic-fetches', preHandler, async (request, reply) => {
+    if (!socialMediaService) {
+      return reply.code(503).send({ error: 'social media service not configured' });
+    }
+    const limit = Math.min(Math.max(Number(request.query?.limit ?? 30), 1), 100);
+    try {
+      const searches = await socialMediaService.listTopicFetchHistory(limit);
+      return reply.send({ searches });
+    } catch (err) {
+      return reply.code(502).send({ error: err?.message ?? 'Failed to list topic fetches' });
+    }
+  });
+
+  app.get('/api/social-media/topic-fetches/:id', preHandler, async (request, reply) => {
+    if (!socialMediaService) {
+      return reply.code(503).send({ error: 'social media service not configured' });
+    }
+    const id = String(request.params?.id ?? '').trim();
+    try {
+      const result = await socialMediaService.getTopicFetch(id);
+      if (!result) return reply.code(404).send({ error: 'Topic fetch not found' });
+      return reply.send(result);
+    } catch (err) {
+      return reply.code(502).send({ error: err?.message ?? 'Failed to load topic fetch' });
+    }
+  });
+
   app.get('/api/social-media/report', preHandler, async (request, reply) => {
     if (!socialMediaService) {
       return reply.code(503).send({ error: 'social media service not configured' });

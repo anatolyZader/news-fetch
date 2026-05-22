@@ -36,4 +36,35 @@ describe('socialMediaTopicFetchService', () => {
       /at least 2 characters/,
     );
   });
+
+  it('lists and loads saved topic fetches from disk', async () => {
+    const persistencePort = createSocialMediaFsAdapter({ dataDir });
+    const list = persistencePort.listTopicFetches(5);
+    assert.ok(Array.isArray(list));
+    if (list.length === 0) return;
+    const first = list[0];
+    assert.ok(first.id);
+    assert.ok(first.topic);
+    const full = await persistencePort.loadTopicFetch(first.id);
+    assert.ok(full);
+    assert.equal(full.id, first.id);
+    assert.equal(full.topic, first.topic);
+    assert.ok(Array.isArray(full.posts));
+  });
+
+  it('returns id when saving a topic fetch', async () => {
+    const persistencePort = createSocialMediaFsAdapter({ dataDir });
+    const fetchPort = createSocialMediaStubFetchAdapter({ persistencePort });
+    const topic = createSocialMediaTopicFetchService({ persistencePort, fetchPort });
+
+    const result = await topic.fetchByTopic({
+      topic: 'test topic history',
+      platforms: ['x'],
+    });
+
+    assert.ok(result.id);
+    const loaded = await topic.getTopicFetch(result.id);
+    assert.ok(loaded);
+    assert.equal(loaded.topic, 'test topic history');
+  });
 });
