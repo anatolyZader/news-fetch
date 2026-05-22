@@ -2,7 +2,9 @@ import { createSocialMediaFsAdapter } from '../infrastructure/adapters/socialMed
 import { createSocialMediaStubFetchAdapter } from '../infrastructure/adapters/socialMediaStubFetchAdapter.js';
 import { createSocialMediaCompositeFetchAdapter } from '../infrastructure/adapters/socialMediaCompositeFetchAdapter.js';
 import { createSocialMediaXFetchAdapter } from '../infrastructure/adapters/socialMediaXFetchAdapter.js';
+import { createSocialMediaTelegramFetchAdapter } from '../infrastructure/adapters/socialMediaTelegramFetchAdapter.js';
 import { createXApiClient } from '../infrastructure/adapters/xApiClient.js';
+import { createTelegramMtprotoClientFromEnv } from '../infrastructure/adapters/telegramMtprotoClient.js';
 import { createSocialMediaGatherService } from './socialMediaGatherService.js';
 import { createSocialMediaTreatmentService } from './socialMediaTreatmentService.js';
 import { createSocialMediaDailyFeedService } from './socialMediaDailyFeedService.js';
@@ -13,6 +15,10 @@ import { createSocialMediaTopicFetchService } from './socialMediaTopicFetchServi
  *   persistencePort?: import('../domain/ports/ISocialMediaPersistencePort.js').ISocialMediaPersistencePort,
  *   fetchPort?: import('../domain/ports/ISocialMediaFetchPort.js').ISocialMediaFetchPort,
  *   dataDir?: string,
+ *   xBearerToken?: string,
+ *   telegramClient?: object | null,
+ *   xFetchAdapter?: { fetchByTopic: Function } | null,
+ *   telegramFetchAdapter?: { fetchByTopic: Function } | null,
  * }} [opts]
  */
 export function createSocialMediaService(opts = {}) {
@@ -30,8 +36,17 @@ export function createSocialMediaService(opts = {}) {
       dataDir,
     })
     : null);
+  const telegramClient = opts.telegramClient ?? createTelegramMtprotoClientFromEnv();
+  const telegramFetchAdapter = opts.telegramFetchAdapter ?? (telegramClient
+    ? createSocialMediaTelegramFetchAdapter({
+      telegramClient,
+      persistencePort,
+      dataDir,
+    })
+    : null);
   const fetchPort = opts.fetchPort ?? createSocialMediaCompositeFetchAdapter({
     xFetchAdapter,
+    telegramFetchAdapter,
     stubFetchAdapter,
   });
 

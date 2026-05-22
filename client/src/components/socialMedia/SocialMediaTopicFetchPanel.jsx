@@ -28,8 +28,14 @@ import {
 import { SocialMediaPostCard } from './SocialMediaPostCard.jsx';
 import { SocialMediaPreviousSearchesMenu } from './SocialMediaPreviousSearchesMenu.jsx';
 
+const LIVE_PLATFORMS = new Set(['x', 'telegram_public']);
+
 const LS_PLATFORMS = 'vibes-witch:socialMediaPlatforms';
 const LS_LAST_SEARCH = 'vibes-witch:socialMediaTopicLastSearch';
+
+function shouldExecuteLiveFetch(platforms) {
+  return platforms.some((p) => LIVE_PLATFORMS.has(p));
+}
 
 function readStoredPlatforms(defaults) {
   if (typeof localStorage === 'undefined') return defaults;
@@ -79,7 +85,7 @@ export function SocialMediaTopicFetchPanel() {
   const [restoring, setRestoring] = useState(false);
   const [error, setError] = useState(null);
 
-  const onlyXSelected = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'x';
+  const executeLiveFetch = shouldExecuteLiveFetch(selectedPlatforms);
 
   const applyFetchedResult = useCallback((out) => {
     setResult(out);
@@ -148,7 +154,7 @@ export function SocialMediaTopicFetchPanel() {
       const out = await fetchSocialMediaTopic({
         topic: q,
         platforms: selectedPlatforms,
-        execute: onlyXSelected,
+        execute: executeLiveFetch,
         lang,
         getIdToken,
       });
@@ -160,7 +166,7 @@ export function SocialMediaTopicFetchPanel() {
     } finally {
       setFetching(false);
     }
-  }, [topic, fetching, selectedPlatforms, onlyXSelected, lang, getIdToken, t, applyFetchedResult]);
+  }, [topic, fetching, selectedPlatforms, executeLiveFetch, lang, getIdToken, t, applyFetchedResult]);
 
   const busy = fetching || restoring;
 
@@ -230,7 +236,23 @@ export function SocialMediaTopicFetchPanel() {
           </KpiStrip>
 
           {(result.posts ?? []).length === 0 ? (
-            <EmptyState>{t('socialMedia.topic.noResults')}</EmptyState>
+            <EmptyState>
+              {t('socialMedia.topic.noResults')}
+              {result.mode === 'dry_run' && (
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                  {t('socialMedia.topic.dryRunHint')}
+                </Typography>
+              )}
+              {(result.accessNotes ?? []).length > 0 && (
+                <Box component="ul" sx={{ mt: 1.5, pl: 2, textAlign: 'start', maxWidth: 560, mx: 'auto' }}>
+                  {result.accessNotes.map((note) => (
+                    <Typography key={note} component="li" variant="body2" color="text.secondary">
+                      {note}
+                    </Typography>
+                  ))}
+                </Box>
+              )}
+            </EmptyState>
           ) : (
             <Stack spacing={1.5}>
               {(result.posts ?? []).map((post) => (

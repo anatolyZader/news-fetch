@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react';
+import PropTypes from 'prop-types';
 import MenuIcon from '@mui/icons-material/Menu';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -121,3 +122,9 @@ export function SocialMediaPreviousSearchesMenu({ activeId, onSelect, disabled =
     </>
   );
 }
+
+SocialMediaPreviousSearchesMenu.propTypes = {
+  activeId: PropTypes.string,
+  onSelect: PropTypes.func.isRequired,
+  disabled: PropTypes.bool,
+};

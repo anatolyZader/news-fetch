@@ -92,7 +92,7 @@ export const translations = {
     'socialMedia.topic.historyLoadFailed': 'Could not restore this search',
     'socialMedia.topic.restoring': 'Restoring search…',
     'socialMedia.topic.executeX': 'Execute X fetch (spends API credits)',
-    'socialMedia.topic.dryRunHint': 'Dry-run runs /x-3 cost estimate only (counts/recent). Check “Execute X fetch” to pull posts.',
+    'socialMedia.topic.dryRunHint': 'Live fetch was not run (dry-run). Ensure X/Telegram credentials are configured, then fetch again.',
     'socialMedia.topic.estimate': 'Estimate cost',
     'socialMedia.topic.queries': 'X search queries',
     'socialMedia.topic.estimatedCost': 'Estimated X API cost if executed: ${amount}',

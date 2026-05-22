@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import { normalizePlatformSelection, SELECTABLE_PLATFORMS } from '../domain/value_objects/socialPlatform.js';
+import { normalizeTopicConcept } from '../domain/services/topicConceptNormalizer.js';
 import { translateSocialPosts } from '../../translation/app/translationService.js';
 
 function slugifyTopic(topic) {
@@ -33,6 +34,8 @@ export function createSocialMediaTopicFetchService({ persistencePort, fetchPort,
         throw new Error('topic must be at least 2 characters');
       }
 
+      const topicNormalized = normalizeTopicConcept(topic);
+
       const platforms = normalizePlatformSelection(input?.platforms);
       const fetched = await fetchPort.fetchByTopic({
         topic,
@@ -61,6 +64,11 @@ export function createSocialMediaTopicFetchService({ persistencePort, fetchPort,
 
       const payload = {
         topic,
+        topicNormalized: {
+          conceptIds: topicNormalized.conceptIds,
+          matchTokens: topicNormalized.matchTokens,
+          searchTermsByLang: topicNormalized.searchTermsByLang,
+        },
         platforms,
         lang: lang || 'en',
         fetchedAt: new Date().toISOString(),

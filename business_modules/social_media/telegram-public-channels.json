@@ -1,0 +1,253 @@
+{
+    "generated_at_utc": "2026-05-22T12:01:03Z",
+    "research_scope": "Public Telegram sources that may support emergency population-behavior / citizen-reaction research in northern Israel.",
+    "important_limits": [
+      "This is a source-discovery list, not a validated evidence corpus.",
+      "Most public Telegram search results are channels, not true open groups.",
+      "For 'real citizen voice', use only direct resident posts/comments/reports. Reject media-style summaries, editorials, official-only notices, and unverifiable claims.",
+      "Do not join private/invite-only groups, bypass access restrictions, scrape at scale, or collect unnecessary personal identifiers.",
+      "Use alert channels only to create event windows; do not treat them as citizen behavior evidence."
+    ],
+    "recommended_pipeline_filters": {
+      "include_if": [
+        "message contains direct public resident expression or explicit resident report",
+        "message mentions relevant locality/region in northern Israel",
+        "message relates to UAV/drone alerts, sheltering, routine disruption, fear, fatigue, trust, compliance, or community support",
+        "source URL and timestamp can be preserved"
+      ],
+      "exclude_if": [
+        "news article or journalistic analysis",
+        "official statement without direct resident voice",
+        "private or login-gated content",
+        "message contains unnecessary personal data",
+        "graphic/irrelevant media or political commentary without behavioral evidence"
+      ]
+    },
+    "sources": [
+      {
+        "id": "telegram_kiryat_shmona_municipality",
+        "display_name": "עיריית קריית שמונה",
+        "telegram_handle": "newsk8",
+        "telegram_url": "https://t.me/newsk8",
+        "public_web_preview_url": "https://t.me/s/newsk8",
+        "source_type": "public_channel",
+        "source_category": "official_municipal_updates",
+        "coverage_area": [
+          "קריית שמונה",
+          "תל חי",
+          "אצבע הגליל",
+          "קו העימות"
+        ],
+        "language": [
+          "he"
+        ],
+        "priority": 1,
+        "citizen_voice_level": "low",
+        "emergency_research_value": "high",
+        "recommended_use": [
+          "local emergency instructions",
+          "timeline of alerts and municipal guidance",
+          "context for whether residents were told to shelter, evacuate, avoid gatherings, or resume routine"
+        ],
+        "do_not_use_for": [
+          "direct citizen sentiment unless a post includes quoted residents or links to resident Q&A"
+        ],
+        "example_search_terms": [
+          "כטבם",
+          "כטב״ם",
+          "רחפן",
+          "חדירת כלי טיס",
+          "אזעקה",
+          "מרחב מוגן",
+          "שגרה",
+          "פינוי",
+          "תושבים"
+        ],
+        "collection_notes": "Official municipal channel; strong for exposure/instructions, weak for direct citizen voice. Use as context/ground truth around events, then pair with social discussion sources.",
+        "access_status": "public web preview found",
+        "source_evidence_urls": [
+          "https://t.me/newsk8"
+        ]
+      },
+      {
+        "id": "telegram_nahariya_municipality",
+        "display_name": "עיריית נהריה אונליין",
+        "telegram_handle": "muninahariya",
+        "telegram_url": "https://t.me/muninahariya",
+        "public_web_preview_url": "https://t.me/s/muninahariya",
+        "source_type": "public_channel",
+        "source_category": "official_municipal_updates",
+        "coverage_area": [
+          "נהריה",
+          "גליל מערבי",
+          "קו העימות"
+        ],
+        "language": [
+          "he"
+        ],
+        "priority": 1,
+        "citizen_voice_level": "low",
+        "emergency_research_value": "high",
+        "recommended_use": [
+          "official sheltering instructions",
+          "municipal requests indicating citizen behavior issues, e.g. building doors/open gates during alarms",
+          "timeline of alert and all-clear messages"
+        ],
+        "do_not_use_for": [
+          "unmediated citizen voice unless post contains explicit resident quote or public comments are accessible"
+        ],
+        "example_search_terms": [
+          "כטבם",
+          "חדירת כלי טיס",
+          "אזעקה",
+          "מרחב מוגן",
+          "מקלט",
+          "ממ״ד",
+          "תושבים",
+          "דלתות הבניינים"
+        ],
+        "collection_notes": "Useful because municipal posts sometimes reveal behavior gaps or compliance needs, but it is official-source evidence, not citizen expression.",
+        "access_status": "public web preview found",
+        "source_evidence_urls": [
+          "https://t.me/s/muninahariya"
+        ]
+      },
+      {
+        "id": "telegram_metulla_security",
+        "display_name": "ביטחון מטולה",
+        "telegram_handle": "bitahonmetulla",
+        "telegram_url": "https://t.me/bitahonmetulla",
+        "public_web_preview_url": "https://t.me/s/bitahonmetulla",
+        "source_type": "public_channel",
+        "source_category": "local_security_updates",
+        "coverage_area": [
+          "מטולה",
+          "קו העימות",
+          "אצבע הגליל"
+        ],
+        "language": [
+          "he"
+        ],
+        "priority": 1,
+        "citizen_voice_level": "medium",
+        "emergency_research_value": "high",
+        "recommended_use": [
+          "resident-facing security instructions",
+          "entry/exit restrictions",
+          "resident Zoom/Q&A events as indicators of concerns and information needs",
+          "routine disruption and access constraints"
+        ],
+        "do_not_use_for": [
+          "anonymous citizen comments unless linked discussion/comment source is accessible"
+        ],
+        "example_search_terms": [
+          "כטבם",
+          "רחפן",
+          "חדירת כלי טיס",
+          "כניסה למטולה",
+          "זום תושבים",
+          "שאלות",
+          "מרחב מוגן",
+          "הנחיות"
+        ],
+        "collection_notes": "High local relevance. It may reveal resident questions/needs indirectly through Q&A invitations and official responses.",
+        "access_status": "public web preview found",
+        "source_evidence_urls": [
+          "https://t.me/s/bitahonmetulla"
+        ]
+      },
+      {
+        "id": "telegram_hamal_no_censorship",
+        "display_name": "חמ״ל ללא צנזורה",
+        "telegram_handle": "Hatufim_israel",
+        "telegram_url": "https://t.me/Hatufim_israel",
+        "public_web_preview_url": "https://t.me/s/hatufim_israel",
+        "source_type": "public_channel_with_linked_public_chat_candidate",
+        "source_category": "open_discussion_and_field_reports",
+        "coverage_area": [
+          "ישראל",
+          "צפון",
+          "קו העימות",
+          "נהריה",
+          "שלומי",
+          "ראש הנקרה"
+        ],
+        "language": [
+          "he"
+        ],
+        "priority": 4,
+        "citizen_voice_level": "medium",
+        "emergency_research_value": "medium",
+        "recommended_use": [
+          "candidate public discussion group discovery",
+          "raw citizen reactions if the linked open chat is accessible",
+          "field reports around alerts"
+        ],
+        "do_not_use_for": [
+          "high-confidence evidence without moderation/verification",
+          "private-user identity collection",
+          "political or inflammatory content"
+        ],
+        "example_search_terms": [
+          "כטבם",
+          "רחפן",
+          "נהריה",
+          "שלומי",
+          "מקלט",
+          "פחד",
+          "אזעקה",
+          "קבוצה פתוחה לדיבורים"
+        ],
+        "collection_notes": "Search result exposed an open discussion-group link: https://t.me/hamal_israel1. Treat as noisy/high-risk; collect only relevant public text snippets and minimize user metadata.",
+        "access_status": "public web preview found for channel; linked discussion group candidate requires verification",
+        "source_evidence_urls": [
+          "https://t.me/s/hatufim_israel",
+          "https://t.me/hamal_israel1"
+        ]
+      },
+      {
+        "id": "telegram_ravshatzim_reports_candidate",
+        "display_name": "רבש״צים - דיווחים מהשטח",
+        "telegram_handle": "ravarava1233",
+        "telegram_url": "https://t.me/ravarava1233",
+        "public_web_preview_url": "https://t.me/s/ravarava1233",
+        "source_type": "public_channel_candidate",
+        "source_category": "security_coordinator_field_reports",
+        "coverage_area": [
+          "ישראל",
+          "יישובים",
+          "אפשרי: צפון וקו העימות"
+        ],
+        "language": [
+          "he"
+        ],
+        "priority": 3,
+        "citizen_voice_level": "low",
+        "emergency_research_value": "medium",
+        "recommended_use": [
+          "field reports from local security coordinators",
+          "context on emergency management and locality-level behavior",
+          "source discovery for northern incidents"
+        ],
+        "do_not_use_for": [
+          "direct citizen voice",
+          "personal data about security staff",
+          "unverified sensitive operational details"
+        ],
+        "example_search_terms": [
+          "צפון",
+          "קו העימות",
+          "חדירת כלי טיס",
+          "כטבם",
+          "תושבים",
+          "מקלט",
+          "כיתת כוננות"
+        ],
+        "collection_notes": "Discovered through a public Telegram directory snippet, not fully validated from its own web preview in this pass. Verify public accessibility before automated collection.",
+        "access_status": "candidate discovered via public directory; verify before use",
+        "source_evidence_urls": [
+          "https://t.me/s/Recommended_channels?before=1415"
+        ]
+      }
+    ]
+  }

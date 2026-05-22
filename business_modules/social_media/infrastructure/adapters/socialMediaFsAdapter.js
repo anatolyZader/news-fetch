@@ -11,8 +11,10 @@ function bundleFilename(date) {
   return `signals-social-${date}.json`;
 }
 
+const BUNDLE_FILENAME_RE = /^signals-social-(\d{4}-\d{2}-\d{2})\.json$/;
+
 function parseDateFromBundleFile(file) {
-  const m = String(file).match(/^signals-social-(\d{4}-\d{2}-\d{2})\.json$/);
+  const m = BUNDLE_FILENAME_RE.exec(String(file));
   return m?.[1] ?? null;
 }
 

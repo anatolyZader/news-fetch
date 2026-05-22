@@ -16,6 +16,11 @@ export {
   HOMEFRONT_KEYWORDS_FRA,
   isHomefrontRelevant,
 } from './domain/services/homefrontKeywords.js';
+export {
+  isHomefrontBehaviorRelevant,
+  isTelegramPostBehaviorEvidence,
+  hasPopulationBehaviorSignal,
+} from './domain/services/homefrontBehaviorFilter.js';
 export { mapFindingToSignal, mapFindingsToSignals } from './domain/services/findingToSignalMapper.js';
 export { validateOsintBundle } from './domain/services/osintBundleValidator.js';
 export { evaluateCitizenVoiceCandidate } from './domain/services/osintRejectionRules.js';

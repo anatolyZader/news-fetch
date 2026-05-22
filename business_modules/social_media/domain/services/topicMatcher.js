@@ -1,53 +1,20 @@
-const STOP_WORDS = new Set([
-  'a', 'an', 'the', 'to', 'in', 'on', 'at', 'of', 'for', 'and', 'or', 'is', 'was', 'are',
-  'be', 'by', 'with', 'from', 'as', 'it', 'its', 'that', 'this', 's',
-]);
+import {
+  normalizeTopicConcept,
+  TOPIC_PLACE_NAMES,
+  isSubjectConceptId,
+  tokensForConceptId,
+} from './topicConceptNormalizer.js';
 
-/** Cities/places mentioned in topics — override default north-locality filter. */
-const TOPIC_PLACES = Object.freeze({
-  ashdod: { he: 'אשדוד', en: 'Ashdod', ar: 'أشدود' },
-  haifa: { he: 'חיפה', en: 'Haifa', ar: 'حيفا' },
-  nahariya: { he: 'נהריה', en: 'Nahariya', ar: 'نهاريا' },
-  'kiryat shmona': { he: 'קריית שמונה', en: 'Kiryat Shmona', ar: 'كريات شمونة' },
-  'tel aviv': { he: 'תל אביב', en: 'Tel Aviv', ar: 'تل أبيب' },
-  jerusalem: { he: 'ירושלים', en: 'Jerusalem', ar: 'القدس' },
-  akko: { he: 'עכו', en: 'Acre', ar: 'عكا' },
-  acre: { he: 'עכו', en: 'Acre', ar: 'عكا' },
-});
+export { normalizeTopicConcept, meaningfulTopicTokens } from './topicConceptNormalizer.js';
 
-/** English/multi-lingual topic aliases for X query expansion. */
-const TOPIC_ALIASES = Object.freeze([
-  { re: /ben\s*[- ]?\s*gvir|בן\s*גביר/i, terms: ['"בן גביר"', 'בן-גביר', '"ben gvir"', 'BenGvir'] },
-  { re: /uav|drone|כטב"מ|רחפן/i, terms: ['כטב"מ', 'רחפן', 'drone', 'UAV', 'כטבם'] },
-  { re: /shelter|מקלט|ממ"ד/i, terms: ['מקלט', 'ממ"ד', 'מרחב מוגן', 'shelter'] },
-  { re: /siren|אזעק/i, terms: ['אזעקה', 'אזעקות', 'siren', 'sirens'] },
-  { re: /port|נמל/i, terms: ['נמל', 'port', 'הנמל'] },
-]);
-
-/**
- * @param {string} topic
- */
-export function meaningfulTopicTokens(topic) {
-  return String(topic ?? '')
-    .toLowerCase()
-    .split(/\s+/)
-    .map((t) => t.replace(/^['"']|['"']$/g, '').replace(/['']s$/i, ''))
-    .filter((t) => t.length >= 3 && !STOP_WORDS.has(t));
-}
+/** @deprecated use TOPIC_PLACE_NAMES from topicConceptNormalizer */
+export const TOPIC_PLACES = TOPIC_PLACE_NAMES;
 
 /**
  * @param {string} topic
  */
 export function topicMatchTokens(topic) {
-  const tokens = meaningfulTopicTokens(topic);
-  for (const { re, terms } of TOPIC_ALIASES) {
-    if (re.test(topic)) {
-      for (const term of terms) {
-        tokens.push(term.toLowerCase().replace(/"/g, ''));
-      }
-    }
-  }
-  return [...new Set(tokens)];
+  return normalizeTopicConcept(topic).matchTokens;
 }
 
 /**
@@ -56,7 +23,7 @@ export function topicMatchTokens(topic) {
  */
 export function detectTopicPlaceClause(topic, lang) {
   const lower = String(topic ?? '').toLowerCase();
-  for (const [key, names] of Object.entries(TOPIC_PLACES)) {
+  for (const [key, names] of Object.entries(TOPIC_PLACE_NAMES)) {
     if (lower.includes(key)) {
       const label = names[lang] ?? names.en;
       return `(${label} OR ${names.en})`;
@@ -69,27 +36,55 @@ export function detectTopicPlaceClause(topic, lang) {
  * @param {string} topic
  */
 export function expandTopicAliases(topic) {
+  const normalized = normalizeTopicConcept(topic);
   const out = new Set();
-  for (const { re, terms } of TOPIC_ALIASES) {
-    if (re.test(topic)) {
-      for (const term of terms) out.add(term);
-    }
+  for (const terms of Object.values(normalized.searchTermsByLang)) {
+    for (const term of terms) out.add(term);
   }
   return [...out];
 }
 
 /**
  * @param {object} post
- * @param {string} topic
  */
-export function postMatchesTopic(post, topic) {
-  const tokens = topicMatchTokens(topic);
-  if (!tokens.length) return true;
-  const hay = [
+function postHaystack(post) {
+  return [
     post.text,
     post.behaviorOrEmotion,
     post.location,
     post.authorRole,
   ].join(' ').toLowerCase();
-  return tokens.some((tok) => hay.includes(tok.toLowerCase()));
+}
+
+/**
+ * @param {string} hay
+ * @param {string[]} tokens
+ */
+function hayIncludesAnyToken(hay, tokens) {
+  return tokens.some((tok) => {
+    const t = String(tok).toLowerCase().replace(/"/g, '');
+    return t.length >= 2 && hay.includes(t);
+  });
+}
+
+/**
+ * When the topic activates subject concepts (UAV, shelter, place, …), at least one
+ * subject term must match. Modifier-only hits (e.g. "חשש" for "uav danger") are not enough.
+ *
+ * @param {object} post
+ * @param {string} topic
+ */
+export function postMatchesTopic(post, topic) {
+  const normalized = normalizeTopicConcept(topic);
+  const hay = postHaystack(post);
+  const subjectIds = normalized.conceptIds.filter((id) => isSubjectConceptId(id));
+
+  if (subjectIds.length > 0) {
+    const subjectMatch = subjectIds.some((id) => hayIncludesAnyToken(hay, tokensForConceptId(id, topic)));
+    if (!subjectMatch) return false;
+    return true;
+  }
+
+  if (!normalized.matchTokens.length) return true;
+  return hayIncludesAnyToken(hay, normalized.matchTokens);
 }

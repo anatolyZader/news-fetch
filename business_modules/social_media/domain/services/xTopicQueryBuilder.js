@@ -1,9 +1,6 @@
 import { createHash } from 'node:crypto';
-import {
-  detectTopicPlaceClause,
-  expandTopicAliases,
-  meaningfulTopicTokens,
-} from './topicMatcher.js';
+import { conceptSearchTermsForLang } from './topicConceptNormalizer.js';
+import { detectTopicPlaceClause } from './topicMatcher.js';
 
 const LOCALITY_BY_LANG = Object.freeze({
   he: '(קריית שמונה OR נהריה OR צפת OR מטולה OR שלומי OR חיפה OR גליל OR גולן OR "ראש פינה" OR מעלות OR חורפיש OR מרגליות OR יראון OR אביבים OR "קריית ביאליק" OR עכו)',
@@ -42,48 +39,11 @@ export function topicSlug(topic) {
 function conceptTermsForLang(topic, lang) {
   const trimmed = String(topic ?? '').trim();
   if (!trimmed) return [];
+  const terms = conceptSearchTermsForLang(trimmed, lang);
+  if (terms.length) return terms.slice(0, 8);
+
   const sanitized = trimmed.replace(/'/g, '');
-  const terms = new Set();
-
-  if (lang === 'he') {
-    if (HEBREW_RE.test(trimmed)) terms.add(`"${sanitized}"`);
-    for (const alias of expandTopicAliases(trimmed)) {
-      if (alias === 'port' || alias === 'נמל' || alias === 'הנמל') continue;
-      if (HEBREW_RE.test(alias) || alias.includes('בן')) terms.add(alias);
-    }
-    if (/ben\s*[- ]?\s*gvir|gvir/i.test(trimmed)) {
-      terms.add('בן גביר');
-      terms.add('בן-גביר');
-      terms.add('"ben gvir"');
-    }
-    for (const token of meaningfulTopicTokens(trimmed)) {
-      if (HEBREW_RE.test(token)) terms.add(token);
-    }
-  } else if (lang === 'en') {
-    terms.add(`"${sanitized}"`);
-    for (const alias of expandTopicAliases(trimmed)) {
-      if (alias === 'port' || alias === 'נמל' || alias === 'הנמל') continue;
-      if (!HEBREW_RE.test(alias) || alias.includes('ben')) terms.add(alias);
-    }
-    for (const token of meaningfulTopicTokens(trimmed)) {
-      if (LATIN_RE.test(token)) terms.add(token);
-    }
-    if (/ben\s*[- ]?\s*gvir|gvir/i.test(trimmed)) {
-      terms.add('"ben gvir"');
-      terms.add('BenGvir');
-      terms.add('בן גביר');
-    }
-  } else if (lang === 'ar') {
-    terms.add(`"${sanitized}"`);
-    for (const alias of expandTopicAliases(trimmed)) terms.add(alias);
-    for (const token of meaningfulTopicTokens(trimmed)) terms.add(token);
-  } else {
-    terms.add(`"${sanitized}"`);
-    for (const alias of expandTopicAliases(trimmed)) terms.add(alias);
-    for (const token of meaningfulTopicTokens(trimmed)) terms.add(token);
-  }
-
-  return [...terms].filter(Boolean).slice(0, 8);
+  return [`"${sanitized}"`];
 }
 
 /**
