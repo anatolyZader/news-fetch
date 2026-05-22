@@ -1,7 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  meaningfulTopicTokens,
   postMatchesTopic,
   topicMatchTokens,
 } from '../../../../../business_modules/social_media/domain/services/topicMatcher.js';
