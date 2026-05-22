@@ -252,12 +252,17 @@ export function createSearchTrendsService(deps = {}) {
           endTime,
         });
         await sleep(400);
-        const related = await trendsPort.relatedQueries({
-          keyword: PRIMARY_TREND_KEYWORDS[0],
-          geo: district.geo,
-          startTime,
-          endTime,
-        });
+        let related = { rising: [], top: [] };
+        try {
+          related = await trendsPort.relatedQueries({
+            keyword: PRIMARY_TREND_KEYWORDS[0],
+            geo: district.geo,
+            startTime,
+            endTime,
+          });
+        } catch {
+          /* charts still useful without related queries */
+        }
 
         const timeSeries = mergeSeries(primary, secondary, TREND_QUERY_TOPICS);
         const topics = TREND_QUERY_TOPICS.map((t) => {
@@ -275,26 +280,30 @@ export function createSearchTrendsService(deps = {}) {
         let regionBreakdown = [];
         if (district.id === 'national') {
           await sleep(400);
-          const regions = await trendsPort.interestByRegion({
-            keyword: PRIMARY_TREND_KEYWORDS[0],
-            startTime,
-            endTime,
-          });
-          const geoToDistrict = Object.fromEntries(
-            TREND_DISTRICTS.filter((d) => d.id !== 'national').map((d) => [d.geo, d]),
-          );
-          regionBreakdown = regions
-            .map((r) => {
-              const d = geoToDistrict[r.geoCode];
-              if (!d) return null;
-              return {
-                geoCode: r.geoCode,
-                districtId: d.id,
-                labelKey: d.labelKey,
-                value: r.value,
-              };
-            })
-            .filter(Boolean);
+          try {
+            const regions = await trendsPort.interestByRegion({
+              keyword: PRIMARY_TREND_KEYWORDS[0],
+              startTime,
+              endTime,
+            });
+            const geoToDistrict = Object.fromEntries(
+              TREND_DISTRICTS.filter((d) => d.id !== 'national').map((d) => [d.geo, d]),
+            );
+            regionBreakdown = regions
+              .map((r) => {
+                const d = geoToDistrict[r.geoCode];
+                if (!d) return null;
+                return {
+                  geoCode: r.geoCode,
+                  districtId: d.id,
+                  labelKey: d.labelKey,
+                  value: r.value,
+                };
+              })
+              .filter(Boolean);
+          } catch {
+            /* district bar chart optional */
+          }
         }
 
         const payload = {

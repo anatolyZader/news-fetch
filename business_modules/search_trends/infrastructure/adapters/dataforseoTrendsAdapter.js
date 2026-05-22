@@ -71,9 +71,13 @@ async function exploreLive(taskFields) {
     ]),
   });
 
-  const body = await res.json();
+  const body = await res.json().catch(() => ({}));
+  const task = body?.tasks?.[0];
+  // HTTP 402 etc. can return top-level status_message "Ok." while the task carries the real error.
   if (!res.ok) {
-    throw new Error(body?.status_message || `DataForSEO HTTP ${res.status}`);
+    throw new Error(
+      task?.status_message || body?.status_message || `DataForSEO HTTP ${res.status}`,
+    );
   }
   return assertTaskOk(body);
 }

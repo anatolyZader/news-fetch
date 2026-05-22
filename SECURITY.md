@@ -8,7 +8,7 @@ Repository admins should configure:
 
 1. **Two-factor authentication** — Require 2FA for all org members (GitHub: Organization → Settings → Security).
 2. **Secret scanning and push protection** — Enable under Settings → Code security and analysis.
-3. **Branch protection on `main`** (and release branches if used):
+3. **Branch protection on `dev`** (and release branches if used):
    - Require pull request reviews before merging
    - Require status checks to pass (see [Required CI checks](#required-ci-checks))
    - Do not allow force pushes

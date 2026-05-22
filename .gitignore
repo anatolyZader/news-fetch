@@ -3,6 +3,7 @@ client/node_modules/
 
 # Test coverage (CI → SonarCloud)
 coverage/
+eslint-report.json
 
 # Build outputs
 dist/

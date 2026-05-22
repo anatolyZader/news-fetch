@@ -29,6 +29,7 @@ export async function registerSearchTrendsRoutes(app, opts = {}) {
     const days = normalizeTrendWindowDays(daysRaw, 7);
     try {
       const data = await svc.getDashboard({ districtId, days, refresh });
+      reply.header('Cache-Control', 'no-store');
       return reply.send(data);
     } catch (err) {
       return reply.code(502).send({ error: err?.message ?? 'Failed to load search trends' });

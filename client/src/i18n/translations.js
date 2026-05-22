@@ -120,6 +120,9 @@ export const translations = {
     'trends.aboutTitle':         'About this view',
     'trends.demoMode':           'Showing sample data (live fetch disabled or unavailable).',
     'trends.demoFallback':       'Live Google Trends fetch failed; showing sample data. ({msg})',
+    'trends.staleFallback':      'Live fetch failed; showing last successful data from {date}. ({msg})',
+    'trends.paymentRequiredHint':
+      'DataForSEO account needs payment or credits (Payment Required). Live data is fetched via direct Google Trends when possible; refresh again or top up at app.dataforseo.com.',
     'trends.source.live':        'Live · Google Trends',
     'trends.source.cache':       'Cached',
     'trends.source.demo':        'Sample data',
@@ -782,6 +785,9 @@ export const translations = {
     'trends.aboutTitle':         'אודות תצוגה זו',
     'trends.demoMode':           'מוצגים נתוני דוגמה (שליפה חיה כבויה או לא זמינה).',
     'trends.demoFallback':       'שליפה מ-Google Trends נכשלה; מוצגים נתוני דוגמה. ({msg})',
+    'trends.staleFallback':      'שליפה חיה נכשלה; מוצגים נתונים אחרונים מ-{date}. ({msg})',
+    'trends.paymentRequiredHint':
+      'חשבון DataForSEO דורש תשלום או קרדיט (Payment Required). ניסיון שליפה ישירה מ-Google Trends; רעננו שוב או הוסיפו קרדיט ב-app.dataforseo.com.',
     'trends.source.live':        'חי · Google Trends',
     'trends.source.cache':       'מטמון',
     'trends.source.demo':        'נתוני דוגמה',
@@ -1430,6 +1436,9 @@ export const translations = {
     'trends.aboutTitle':         'О представлении',
     'trends.demoMode':           'Показаны примерные данные (живой запрос отключён или недоступен).',
     'trends.demoFallback':       'Запрос Google Trends не удался; показаны примерные данные. ({msg})',
+    'trends.staleFallback':      'Живой запрос не удался; показаны последние данные от {date}. ({msg})',
+    'trends.paymentRequiredHint':
+      'Аккаунту DataForSEO нужна оплата или кредиты (Payment Required). При возможности используется прямой Google Trends; обновите или пополните баланс на app.dataforseo.com.',
     'trends.source.live':        'Онлайн · Google Trends',
     'trends.source.cache':       'Кэш',
     'trends.source.demo':        'Пример',

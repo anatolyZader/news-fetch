@@ -67,4 +67,33 @@ describe('dataforseoTrendsAdapter', () => {
     assert.equal(out.series.length, 2);
     assert.equal(out.series[1].values['אזעקות'], 55);
   });
+
+  it('surfaces task error on HTTP 402 (not top-level Ok.)', async () => {
+    process.env.DATAFORSEO_LOGIN = 'user';
+    process.env.DATAFORSEO_PASSWORD = 'pass';
+
+    mock.method(globalThis, 'fetch', async () => ({
+      ok: false,
+      status: 402,
+      json: async () => ({
+        status_code: 20000,
+        status_message: 'Ok.',
+        tasks: [{ status_code: 40200, status_message: 'Payment Required.' }],
+      }),
+    }));
+
+    const port = createDataforseoTrendsAdapter();
+    const end = new Date('2026-05-18T12:00:00Z');
+    const start = new Date('2026-05-11T12:00:00Z');
+    await assert.rejects(
+      () =>
+        port.interestOverTime({
+          keywords: ['אזעקות'],
+          geo: 'IL',
+          startTime: start,
+          endTime: end,
+        }),
+      /Payment Required/,
+    );
+  });
 });

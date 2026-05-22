@@ -338,7 +338,7 @@ You do **not** configure these in the GitHub UI:
 | `build-client` | — | Vite build does not require `VITE_*` at build time (see below). |
 | `build-docs-site` | — | Docusaurus build only; no API keys. |
 | `security-audit` | — | `node scripts/ci-audit.mjs` (high/critical except documented `xlsx`). |
-| `sonarcloud` | `SONAR_TOKEN`, `SONAR_ORGANIZATION`, `SONAR_PROJECT_KEY` (via scanner `args`) | Runs after **Test**; downloads `coverage/lcov.info`; needs `fetch-depth: 0` and `pull-requests: write` for PR decoration. |
+| `sonarcloud` | `SONAR_TOKEN`, `SONAR_ORGANIZATION`, `SONAR_PROJECT_KEY` (via scanner `args`) | Runs after **Test** and **Lint**; downloads `coverage/lcov.info` and `eslint-report.json`; enforces Quality Gate (`sonar.qualitygate.wait=true`); needs `fetch-depth: 0` and `pull-requests: write` for PR decoration. |
 
 ### 3.3 `resilience-live-llm.yml` environment
 
@@ -601,15 +601,21 @@ The repo includes [`sonar-project.properties`](../sonar-project.properties) (sou
 
 The `sonarcloud` job sets `pull-requests: write` so SonarCloud can comment on PRs. In SonarCloud → **Project Settings → Pull Requests**, ensure PR analysis is enabled.
 
-To **block merges** on Quality Gate failure: GitHub → **Settings → Branches** → branch protection → add required status check **SonarCloud** (exact name from the workflow job).
+Set the SonarCloud **main branch** to match GitHub: **Project Settings → Branches and Pull Requests → Main Branch** → **`dev`** (this repository’s default branch is `dev`, not `main`).
 
-### 8.6 Coverage (optional follow-up)
+To **block merges** on Quality Gate failure: GitHub → **Settings → Branches** → branch protection rule for **`dev`** → add required status check **SonarCloud** (exact name from the workflow job).
 
-The default setup analyzes code without coverage metrics. To add coverage later, introduce an LCOV reporter (e.g. `c8` with `npm test`) and set in `sonar-project.properties`:
+### 8.6 Coverage, ESLint, and Quality Gate enforcement
 
-```properties
-sonar.javascript.lcov.reportPaths=coverage/lcov.info
-```
+Coverage is wired end-to-end:
+
+1. **Test** job runs `npm run test:coverage` and uploads `coverage/lcov.info`.
+2. **Lint** job runs ESLint and uploads `eslint-report.json` for SonarCloud.
+3. **SonarCloud** job downloads both artifacts and scans with `sonar.qualitygate.wait=true` so the CI job **fails** when the SonarCloud Quality Gate fails.
+
+Sources analyzed include backend code (`business_modules`, `api`, `utils`, `shared`, `scripts`) and the React client (`client/src`). Client code is excluded from coverage expectations until client tests exist (`sonar.coverage.exclusions` in [`sonar-project.properties`](../sonar-project.properties)).
+
+In SonarCloud → **Project Settings → Quality Gate**, prefer conditions on **new code** (bugs, vulnerabilities, coverage) so legacy gaps do not block every PR. **New code** is measured against the main branch (`dev`); confirm that under **Project Settings → Branches and Pull Requests**.
 
 ---
 

@@ -18,12 +18,14 @@ export function useSearchTrendsDashboard(opts = {}) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
   const requestIdRef = useRef(0);
 
   const load = useCallback(async (refresh = false) => {
     if (!apiReady) return;
     const requestId = ++requestIdRef.current;
     setLoading(true);
+    if (refresh) setRefreshing(true);
     setError(null);
 
     const controller = new AbortController();
@@ -43,6 +45,7 @@ export function useSearchTrendsDashboard(opts = {}) {
       const res = await fetch(`/api/search-trends/dashboard?${qs.toString()}`, {
         headers,
         signal: controller.signal,
+        cache: 'no-store',
       });
       if (requestId !== requestIdRef.current) return;
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -58,6 +61,7 @@ export function useSearchTrendsDashboard(opts = {}) {
       clearTimeout(timeoutId);
       if (requestId === requestIdRef.current) {
         setLoading(false);
+        setRefreshing(false);
       }
     }
   }, [apiReady, getIdToken, districtId, days]);
@@ -77,6 +81,7 @@ export function useSearchTrendsDashboard(opts = {}) {
   return {
     data: enabled ? data : null,
     loading: enabled && apiReady && loading,
+    refreshing: enabled && apiReady && refreshing,
     error: enabled ? error : null,
     reload: () => load(true),
   };

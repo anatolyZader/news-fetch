@@ -101,6 +101,28 @@ function filterTopics(topics, groupId) {
   return topics.filter((t) => t.group === groupId);
 }
 
+function trendsFetchWarning(data, t) {
+  if (data.source === 'demo' && !data.fetchError) {
+    return t('trends.demoMode');
+  }
+  if (!data.fetchError) return null;
+
+  const msg = String(data.fetchError);
+  if (data.source === 'stale') {
+    const when = data.generatedAt
+      ? new Date(data.generatedAt).toLocaleString()
+      : '—';
+    return t('trends.staleFallback').replace('{date}', when).replace('{msg}', msg);
+  }
+  if (/payment required|40200/i.test(msg)) {
+    return t('trends.paymentRequiredHint');
+  }
+  if (msg.includes('Google returned HTML')) {
+    return t('trends.blockedHint');
+  }
+  return t('trends.demoFallback').replace('{msg}', msg);
+}
+
 export function TrendsTab() {
   const { t } = useLanguage();
   const theme = useTheme();
@@ -112,7 +134,7 @@ export function TrendsTab() {
   const [days, setDays] = useState(readStoredDays);
   const [topicGroup, setTopicGroup] = useState(readStoredTopicGroup);
   const pendingFilterScrollRef = useRef(false);
-  const { data, loading, error, reload } = useSearchTrendsDashboard({
+  const { data, loading, refreshing, error, reload } = useSearchTrendsDashboard({
     districtId,
     days,
     enabled: true,
@@ -253,7 +275,7 @@ export function TrendsTab() {
         subtitle={t('trends.subtitle')}
         action={(
           <Button variant="outlined" size="small" onClick={reload} disabled={loading}>
-            {t('trends.refresh')}
+            {refreshing ? t('trends.loading') : t('trends.refresh')}
           </Button>
         )}
       />
@@ -312,8 +334,10 @@ export function TrendsTab() {
         <LoadingState>{t('trends.loading')}</LoadingState>
       )}
 
-      {error && !data && (
-        <ErrorState>{`${t('trends.error')}: ${error}`}</ErrorState>
+      {error && (
+        <Alert severity="error" variant="outlined">
+          {`${t('trends.error')}: ${error}`}
+        </Alert>
       )}
 
       {!loading && !error && !data && (
@@ -337,14 +361,7 @@ export function TrendsTab() {
                 ? t('trends.source.stale')
                 : t('trends.source.demo');
 
-        const fetchWarning =
-          data.fetchError && (data.source === 'demo' || data.source === 'stale')
-            ? data.fetchError.includes('DATAFORSEO') || data.fetchError.includes('HTML')
-              ? t('trends.blockedHint')
-              : t('trends.demoFallback').replace('{msg}', data.fetchError)
-            : data.source === 'demo'
-              ? t('trends.demoMode')
-              : null;
+        const fetchWarning = trendsFetchWarning(data, t);
 
         const lineSeries = filteredTopics.map((topic, i) => (
           <Line
