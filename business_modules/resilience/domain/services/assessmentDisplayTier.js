@@ -204,7 +204,7 @@ export function redactScoreBySource(scoreBySource, view) {
       }
       compOut[compId] = {
         signals: compData.signals ?? [],
-        instrument: compData.score != null ? deriveInstrumentState(compData) : undefined,
+        instrument: compData.score == null ? undefined : deriveInstrumentState(compData),
       };
     }
     out[sourceKey] = compOut;
@@ -229,7 +229,7 @@ export function redactReportPayload(payload, view) {
     ...payload,
     display_view: view,
     assessment,
-    ...(score_by_source != null ? { score_by_source } : {}),
+    ...(score_by_source == null ? {} : { score_by_source }),
   };
   if (view === DISPLAY_VIEWS.operator && typeof payload.markdown_brief === 'string' && payload.markdown_brief.trim()) {
     out.markdown = payload.markdown_brief;
