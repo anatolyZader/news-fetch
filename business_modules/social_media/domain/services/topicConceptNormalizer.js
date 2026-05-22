@@ -196,7 +196,8 @@ export function conceptSearchTermsForLang(topic, lang) {
   if (fromLang.length) return fromLang.slice(0, 8);
 
   if (lang === 'en') {
-    return [`"${normalized.original}"`, ...normalized.matchTokens.filter((t) => /^[\x00-\x7F]+$/.test(t))].slice(0, 8);
+    const isAsciiToken = (t) => ![...t].some((ch) => (ch.codePointAt(0) ?? 0) > 0x7f);
+    return [`"${normalized.original}"`, ...normalized.matchTokens.filter(isAsciiToken)].slice(0, 8);
   }
 
   return normalized.matchTokens.slice(0, 8);

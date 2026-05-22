@@ -14,9 +14,6 @@ export const SOCIAL_MEDIA_X_LANGS = Object.freeze(['he', 'en', 'ar']);
 
 const LANG_CODES = Object.freeze(['he', 'ar', 'ru']);
 
-const HEBREW_RE = /[\u0590-\u05FF]/;
-const LATIN_RE = /^[\u0020-\u007F]+$/;
-
 /**
  * @param {string} topic
  */
