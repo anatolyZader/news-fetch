@@ -11,7 +11,7 @@ describe('xTopicQueryBuilder', () => {
   it('builds per-language queries without north locality on social media tab', () => {
     const queries = buildXTopicQueries('מקלטים', ['he', 'ar'], SOCIAL_MEDIA_X_QUERY_OPTS);
     assert.ok(queries.he.includes('מקלטים'));
-    assert.ok(queries.he.includes('lang:he'));
+    assert.doesNotMatch(queries.he, /lang:he/);
     assert.doesNotMatch(queries.he, /נהריה|קריית שמונה/);
     assert.match(queries.he, /-is:retweet$/);
   });
