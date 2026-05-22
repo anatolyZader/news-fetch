@@ -35,8 +35,9 @@ export async function socialMediaRoutes(app, opts) {
       return reply.code(400).send({ error: 'date query param required (YYYY-MM-DD)' });
     }
     const categoryId = String(request.query?.category ?? '').trim() || undefined;
+    const lang = String(request.query?.lang ?? '').trim() || undefined;
     try {
-      const feed = await socialMediaService.getDailyFeed(date, { categoryId });
+      const feed = await socialMediaService.getDailyFeed(date, { categoryId, lang });
       if (!feed) return reply.code(404).send({ error: 'Daily feed not found' });
       return reply.send(feed);
     } catch (err) {
@@ -87,8 +88,9 @@ export async function socialMediaRoutes(app, opts) {
       return reply.code(503).send({ error: 'social media service not configured' });
     }
     const id = String(request.params?.id ?? '').trim();
+    const lang = String(request.query?.lang ?? '').trim() || undefined;
     try {
-      const result = await socialMediaService.getTopicFetch(id);
+      const result = await socialMediaService.getTopicFetch(id, { lang });
       if (!result) return reply.code(404).send({ error: 'Topic fetch not found' });
       return reply.send(result);
     } catch (err) {

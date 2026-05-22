@@ -53,8 +53,8 @@ export function useSocialMediaDashboard({ getIdToken, apiReady }) {
   return { data, loading, error, reload };
 }
 
-/** @param {{ date: string, categoryId?: string, getIdToken: () => Promise<string|null>, apiReady: boolean }} opts */
-export function useSocialMediaDailyFeed({ date, categoryId, getIdToken, apiReady }) {
+/** @param {{ date: string, categoryId?: string, lang?: string, getIdToken: () => Promise<string|null>, apiReady: boolean }} opts */
+export function useSocialMediaDailyFeed({ date, categoryId, lang, getIdToken, apiReady }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -68,6 +68,7 @@ export function useSocialMediaDailyFeed({ date, categoryId, getIdToken, apiReady
       try {
         const q = new URLSearchParams({ date });
         if (categoryId) q.set('category', categoryId);
+        if (lang) q.set('lang', lang);
         const out = await authFetch(`/api/social-media/daily?${q.toString()}`, { getIdToken });
         if (!cancelled) setData(out);
       } catch (e) {
@@ -80,7 +81,7 @@ export function useSocialMediaDailyFeed({ date, categoryId, getIdToken, apiReady
       }
     })();
     return () => { cancelled = true; };
-  }, [date, categoryId, apiReady, getIdToken]);
+  }, [date, categoryId, lang, apiReady, getIdToken]);
 
   return { data, loading, error };
 }
@@ -122,9 +123,12 @@ export async function fetchTopicFetchHistory({ limit = 30, getIdToken }) {
   return data?.searches ?? [];
 }
 
-/** @param {{ id: string, getIdToken: () => Promise<string|null> }} opts */
-export async function loadTopicFetchById({ id, getIdToken }) {
-  return authFetch(`/api/social-media/topic-fetches/${encodeURIComponent(id)}`, { getIdToken });
+/** @param {{ id: string, lang?: string, getIdToken: () => Promise<string|null> }} opts */
+export async function loadTopicFetchById({ id, lang, getIdToken }) {
+  const q = new URLSearchParams();
+  if (lang) q.set('lang', lang);
+  const suffix = q.toString() ? `?${q.toString()}` : '';
+  return authFetch(`/api/social-media/topic-fetches/${encodeURIComponent(id)}${suffix}`, { getIdToken });
 }
 
 /** @deprecated use useSocialMediaDailyFeed */

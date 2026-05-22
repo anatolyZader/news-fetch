@@ -13,7 +13,17 @@ const client = new Anthropic();
 /** In-memory cache to avoid disk reads on repeat requests */
 const memCache = new Map();
 
-const LANG_NAMES = { he: 'Hebrew', ru: 'Russian' };
+const LANG_NAMES = { en: 'English', he: 'Hebrew', ru: 'Russian' };
+
+const SOCIAL_POST_SYSTEM_PROMPT = {
+  en: `You translate citizen social-media posts about the Israeli home front and civil defense into clear, natural English. Preserve URLs, @handles, and hashtags. Return ONLY valid JSON with the exact same structure as the input.`,
+  he: `You translate social-media posts into modern Israeli Hebrew suitable for civil-defense analysis. Preserve URLs, @handles, and hashtags. Return ONLY valid JSON with the exact same structure as the input.`,
+  ru: `You translate social-media posts into formal Russian suitable for civil-defense analysis. Preserve URLs, @handles, and hashtags. Return ONLY valid JSON with the exact same structure as the input.`,
+};
+
+function isSocialTranslationEnabled() {
+  return process.env.TRANSLATION_ENABLED === 'true' || Boolean(process.env.ANTHROPIC_API_KEY);
+}
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -238,6 +248,62 @@ async function translateChunkWithRetry(payload, lang, langName) {
   throw new Error('Translation provider error (exhausted retries)');
 }
 
+async function translateSocialChunk(payload, lang, langName) {
+  const system = SOCIAL_POST_SYSTEM_PROMPT[lang];
+  if (!system) throw new Error(`Unsupported social translation language: ${lang}`);
+
+  const message = await client.messages.create({
+    model: 'claude-sonnet-4-6',
+    max_tokens: 8000,
+    system,
+    messages: [{
+      role: 'user',
+      content: `Translate the following JSON into ${langName}. Return ONLY valid JSON with the exact same structure.\n\n${JSON.stringify(payload)}`,
+    }],
+  });
+
+  if (message.stop_reason === 'max_tokens') {
+    throw new Error('Social post translation chunk truncated (max_tokens)');
+  }
+
+  const raw = message.content[0].text;
+  const match = raw.match(/\{[\s\S]*\}/);
+  if (!match) throw new Error('Social translation response contained no JSON');
+
+  let result;
+  try {
+    result = JSON.parse(match[0]);
+  } catch {
+    result = JSON.parse(jsonrepair(match[0]));
+  }
+
+  return { result, usage: message.usage };
+}
+
+async function translateSocialChunkWithRetry(payload, lang, langName) {
+  const MAX_ATTEMPTS = 3;
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    try {
+      return await translateSocialChunk(payload, lang, langName);
+    } catch (err) {
+      const transient = isTransientTranslateError(err);
+      if (!transient || attempt === MAX_ATTEMPTS) throw err;
+      const base = 750 * (2 ** (attempt - 1));
+      const jitter = Math.floor(Math.random() * 250);
+      await sleep(base + jitter);
+    }
+  }
+  throw new Error('Social translation provider error (exhausted retries)');
+}
+
+function socialPostSourceText(post) {
+  return post.textOriginal ?? post.text ?? '';
+}
+
+function socialReplySourceText(reply) {
+  return reply.textOriginal ?? reply.text ?? reply.quote_original ?? '';
+}
+
 /**
  * Translate the narrative and evidence fields of a report into the target language.
  * All components are translated in parallel (one API call each) plus one call for
@@ -346,31 +412,56 @@ export async function getTranslatedReport(report, lang) {
  * @returns {Promise<object[]>}
  */
 export async function translateSocialPosts(posts, lang) {
-  if (!Array.isArray(posts) || !posts.length || !lang || lang === 'en') return posts;
-  if (process.env.TRANSLATION_ENABLED !== 'true') return posts;
+  if (!Array.isArray(posts) || !posts.length || !lang) return posts;
+  if (!SOCIAL_POST_SYSTEM_PROMPT[lang]) return posts;
+  if (posts.every((p) => p.translatedTo === lang)) return posts;
+  if (!isSocialTranslationEnabled()) return posts;
 
   const langName = LANG_NAMES[lang] ?? lang;
   const payload = {
     posts: posts.map((p, i) => ({
       id: String(p.id ?? i),
-      text: p.text ?? '',
-      behaviorOrEmotion: p.behaviorOrEmotion ?? '',
+      text: socialPostSourceText(p),
+      behaviorOrEmotion: p.behaviorOrEmotionOriginal ?? p.behaviorOrEmotion ?? '',
       location: p.location && p.location !== 'לא ברור' ? p.location : '',
+      replies: (p.replies ?? []).map((r, j) => ({
+        id: String(r.id ?? `${p.id ?? i}-r${j}`),
+        text: socialReplySourceText(r),
+      })),
     })),
   };
 
-  const { result } = await translateChunkWithRetry(payload, lang, langName);
+  let result;
+  try {
+    ({ result } = await translateSocialChunkWithRetry(payload, lang, langName));
+  } catch {
+    return posts;
+  }
+
   const byId = new Map((result.posts ?? []).map((row) => [String(row.id), row]));
 
   return posts.map((p, i) => {
     const tr = byId.get(String(p.id ?? i)) ?? {};
+    const sourceText = socialPostSourceText(p);
+    const sourceBehavior = p.behaviorOrEmotionOriginal ?? p.behaviorOrEmotion ?? '';
+    const replyById = new Map((tr.replies ?? []).map((row) => [String(row.id), row]));
     return {
       ...p,
-      textOriginal: p.text,
-      text: tr.text ?? p.text,
-      behaviorOrEmotionOriginal: p.behaviorOrEmotion,
-      behaviorOrEmotion: tr.behaviorOrEmotion ?? p.behaviorOrEmotion,
+      textOriginal: p.textOriginal ?? sourceText,
+      text: tr.text ?? sourceText,
+      behaviorOrEmotionOriginal: p.behaviorOrEmotionOriginal ?? sourceBehavior,
+      behaviorOrEmotion: tr.behaviorOrEmotion ?? sourceBehavior,
       location: tr.location || p.location,
+      replies: (p.replies ?? []).map((r, j) => {
+        const rid = String(r.id ?? `${p.id ?? i}-r${j}`);
+        const trReply = replyById.get(rid) ?? {};
+        const sourceReply = socialReplySourceText(r);
+        return {
+          ...r,
+          textOriginal: r.textOriginal ?? sourceReply,
+          text: trReply.text ?? sourceReply,
+        };
+      }),
       translatedTo: lang,
     };
   });

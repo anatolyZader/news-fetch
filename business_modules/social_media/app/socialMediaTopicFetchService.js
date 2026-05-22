@@ -55,7 +55,7 @@ export function createSocialMediaTopicFetchService({ persistencePort, fetchPort,
       }
 
       const lang = String(input?.lang ?? '').trim();
-      if (lang && lang !== 'en' && translatePosts) {
+      if (lang && translatePosts) {
         posts = await translatePosts(posts, lang);
       }
 
@@ -87,8 +87,18 @@ export function createSocialMediaTopicFetchService({ persistencePort, fetchPort,
       return persistencePort.listTopicFetches?.(limit) ?? [];
     },
 
-    async getTopicFetch(id) {
-      return persistencePort.loadTopicFetch?.(id) ?? null;
+    async getTopicFetch(id, opts = {}) {
+      const raw = await persistencePort.loadTopicFetch?.(id) ?? null;
+      if (!raw) return null;
+      const lang = String(opts.lang ?? '').trim();
+      if (lang && translatePosts && Array.isArray(raw.posts) && raw.posts.length) {
+        return {
+          ...raw,
+          lang,
+          posts: await translatePosts(raw.posts, lang),
+        };
+      }
+      return raw;
     },
   };
 }

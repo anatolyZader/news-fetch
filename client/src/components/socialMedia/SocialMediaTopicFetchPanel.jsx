@@ -96,13 +96,14 @@ export function SocialMediaTopicFetchPanel() {
 
   useEffect(() => {
     if (!apiReady) return;
-    const id = readLastSearchId();
+    const id = activeSearchId ?? readLastSearchId();
     if (!id) return;
+    if (result?.id === id && result?.lang === lang) return;
     let cancelled = false;
     void (async () => {
       setRestoring(true);
       try {
-        const out = await loadTopicFetchById({ id, getIdToken });
+        const out = await loadTopicFetchById({ id, lang, getIdToken });
         if (!cancelled) applyFetchedResult(out);
       } catch {
         if (!cancelled) {
@@ -114,7 +115,7 @@ export function SocialMediaTopicFetchPanel() {
       }
     })();
     return () => { cancelled = true; };
-  }, [apiReady, getIdToken, applyFetchedResult]);
+  }, [apiReady, getIdToken, lang, activeSearchId, result?.id, result?.lang, applyFetchedResult]);
 
   const togglePlatform = useCallback((id) => {
     setSelectedPlatforms((prev) => {
@@ -129,14 +130,14 @@ export function SocialMediaTopicFetchPanel() {
     setRestoring(true);
     setError(null);
     try {
-      const out = await loadTopicFetchById({ id: search.id, getIdToken });
+      const out = await loadTopicFetchById({ id: search.id, lang, getIdToken });
       applyFetchedResult(out);
     } catch (e) {
       setError(e?.message ?? t('socialMedia.topic.historyLoadFailed'));
     } finally {
       setRestoring(false);
     }
-  }, [restoring, fetching, getIdToken, applyFetchedResult, t]);
+  }, [restoring, fetching, getIdToken, lang, applyFetchedResult, t]);
 
   const onFetch = useCallback(async () => {
     const q = topic.trim();

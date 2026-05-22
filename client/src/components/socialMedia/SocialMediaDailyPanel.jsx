@@ -20,7 +20,7 @@ import { formatDate } from '../../lib/date.js';
 import { SocialMediaPostCard } from './SocialMediaPostCard.jsx';
 
 export function SocialMediaDailyPanel() {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const { apiReady, getIdToken } = useAuth();
   const { data: dashboard, loading: dashLoading, error: dashError } = useSocialMediaDashboard({
     getIdToken,
@@ -39,6 +39,7 @@ export function SocialMediaDailyPanel() {
   const { data: feed, loading: feedLoading, error: feedError } = useSocialMediaDailyFeed({
     date: activeDate,
     categoryId: selectedCategory === 'all' ? undefined : selectedCategory,
+    lang,
     getIdToken,
     apiReady,
   });

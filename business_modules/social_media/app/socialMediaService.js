@@ -100,8 +100,8 @@ export function createSocialMediaService(opts = {}) {
       return topic.listTopicFetchHistory(limit);
     },
 
-    getTopicFetch(id) {
-      return topic.getTopicFetch(id);
+    getTopicFetch(id, opts) {
+      return topic.getTopicFetch(id, opts);
     },
   };
 }

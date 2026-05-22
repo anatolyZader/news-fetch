@@ -1,0 +1,27 @@
+{
+  "topic": "test topic",
+  "platforms": [
+    "x"
+  ],
+  "lang": "en",
+  "fetchedAt": "2026-05-22T09:45:08.305Z",
+  "source": "test",
+  "mode": "dry_run",
+  "accessNotes": [],
+  "dryRun": null,
+  "estimate": null,
+  "posts": [
+    {
+      "id": "p1",
+      "platform": "x",
+      "text": "[en] טקסט בעברית",
+      "dedupeKey": "p1",
+      "translatedTo": "en"
+    }
+  ],
+  "stats": {
+    "matched": 1,
+    "afterDedup": 1,
+    "duplicatesRemoved": 0
+  }
+}
