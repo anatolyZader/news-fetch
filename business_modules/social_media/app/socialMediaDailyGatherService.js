@@ -34,6 +34,7 @@ const POST_COST = 0.005;
  *   defaultMaxPerQuery?: number,
  *   defaultMaxCostUsd?: number,
  *   candidateCap?: number,
+ *   classifyCandidates?: typeof import('./socialCandidateClassifier.js').classifySocialCandidates,
  * }} deps
  */
 export function createSocialMediaDailyGatherService({
@@ -46,6 +47,7 @@ export function createSocialMediaDailyGatherService({
   defaultMaxPerQuery = 50,
   defaultMaxCostUsd = 5,
   candidateCap = 100,
+  classifyCandidates = classifySocialCandidates,
 }) {
   if (!persistencePort) throw new Error('persistencePort is required');
   if (!gatherService) throw new Error('gatherService is required');
@@ -163,7 +165,7 @@ export function createSocialMediaDailyGatherService({
   }
 
   async function persistFindings(ctx) {
-    const { findings, rejected, rejected_examples } = await classifySocialCandidates(
+    const { findings, rejected, rejected_examples } = await classifyCandidates(
       postsToClassifierCandidates(ctx.behaviorPosts),
     );
     const byDate = groupFindingsByDate(findings);

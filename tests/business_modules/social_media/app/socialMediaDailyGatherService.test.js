@@ -94,4 +94,79 @@ describe('socialMediaDailyGatherService', () => {
     assert.equal(result.mode, 'reuse');
     assert.equal(countsCalls, 0);
   });
+
+  it('rejects invalid date', async () => {
+    const dataDir = mkdtempSync(join(tmpdir(), 'sm-daily-'));
+    const persistencePort = createSocialMediaFsAdapter({ dataDir });
+    const gatherService = createSocialMediaGatherService({ persistencePort });
+    const treatmentService = createSocialMediaTreatmentService({ persistencePort });
+    const service = createSocialMediaDailyGatherService({
+      persistencePort,
+      gatherService,
+      treatmentService,
+      dataDir,
+    });
+
+    await assert.rejects(
+      () => service.gatherDaily({ date: 'bad-date', execute: false }),
+      /YYYY-MM-DD/,
+    );
+  });
+
+  it('execute path classifies behavior posts and saves bundles', async () => {
+    const dataDir = mkdtempSync(join(tmpdir(), 'sm-daily-'));
+    const persistencePort = createSocialMediaFsAdapter({ dataDir });
+    const gatherService = createSocialMediaGatherService({ persistencePort });
+    const treatmentService = createSocialMediaTreatmentService({ persistencePort });
+
+    const xApiClient = {
+      async countsRecent() {
+        return { meta: { total_tweet_count: 1 } };
+      },
+      async searchRecent() {
+        return {
+          data: [{
+            id: '9001',
+            author_id: '1',
+            text: 'תושבים נכנסים למקלט בנהריה אחרי האזעקה',
+            created_at: '2026-05-23T08:00:00.000Z',
+          }],
+          includes: { users: [{ id: '1', username: 'north_user' }] },
+        };
+      },
+    };
+
+    const service = createSocialMediaDailyGatherService({
+      persistencePort,
+      gatherService,
+      treatmentService,
+      xApiClient,
+      telegramFetchAdapter: null,
+      dataDir,
+      classifyCandidates: async (candidates) => ({
+        findings: candidates.map((c) => ({
+          id: c.id,
+          date: '2026-05-23',
+          platform: c.platform,
+          quote_original: c.text,
+          resilience_component: 'functional_continuity',
+        })),
+        rejected: {},
+        rejected_examples: [],
+      }),
+    });
+
+    const result = await service.gatherDaily({
+      date: '2026-05-23',
+      days: 1,
+      north: true,
+      execute: true,
+      force: true,
+      platforms: ['x'],
+    });
+
+    assert.equal(result.mode, 'execute');
+    assert.ok(result.findingsCount >= 1);
+    assert.ok(result.bundlePaths.length >= 1);
+  });
 });

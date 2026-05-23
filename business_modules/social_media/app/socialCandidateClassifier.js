@@ -57,8 +57,8 @@ export async function classifySocialCandidates(candidates, opts = {}) {
     return { findings: [], rejected: {}, rejected_examples: [] };
   }
 
-  checkDailyBudget();
-  const anthropic = new Anthropic();
+  if (!opts.skipBudgetCheck) checkDailyBudget();
+  const anthropic = opts.anthropicClient ?? new Anthropic();
   const tracker = createCostTracker({ label: 'social-gather-classify' });
 
   /** @type {object[]} */
@@ -115,16 +115,18 @@ export async function classifySocialCandidates(candidates, opts = {}) {
     }
   }
 
-  tracker.printSummary();
-  const { totalCostUsd, usageLog, stageEvents } = tracker.getTotal();
-  appendCostLog({
-    script: 'social-gather-classify',
-    date: new Date().toISOString().slice(0, 10),
-    totalCostUsd,
-    usageLog,
-    stageEvents,
-    articles: candidates.length,
-  });
+  if (!opts.skipCostLog) {
+    tracker.printSummary();
+    const { totalCostUsd, usageLog, stageEvents } = tracker.getTotal();
+    appendCostLog({
+      script: 'social-gather-classify',
+      date: new Date().toISOString().slice(0, 10),
+      totalCostUsd,
+      usageLog,
+      stageEvents,
+      articles: candidates.length,
+    });
+  }
   return { findings, rejected, rejected_examples };
 }
 

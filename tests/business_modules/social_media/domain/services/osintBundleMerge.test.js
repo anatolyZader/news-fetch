@@ -4,9 +4,41 @@ import {
   mergeFindingsIntoBundle,
   isBundleFreshForRun,
   groupFindingsByDate,
+  findingDateFromPostedAt,
+  postToOsintFinding,
 } from '../../../../../business_modules/social_media/domain/services/osintBundleMerge.js';
 
 describe('osintBundleMerge', () => {
+  it('findingDateFromPostedAt parses ISO and date prefixes', () => {
+    assert.equal(findingDateFromPostedAt('2026-05-23T08:00:00Z'), '2026-05-23');
+    assert.equal(findingDateFromPostedAt('2026-05-22'), '2026-05-22');
+    assert.match(findingDateFromPostedAt(''), /^\d{4}-\d{2}-\d{2}$/);
+  });
+
+  it('postToOsintFinding rejects news-domain URLs', () => {
+    const wrapped = postToOsintFinding({
+      id: 'x-news',
+      platform: 'x',
+      text: 'תושבים במקלט בנהריה אחרי האזעקה בצפון',
+      url: 'https://www.ynet.co.il/article/123',
+      postedAt: '2026-05-23T10:00:00Z',
+    });
+    assert.equal(wrapped.rejected, true);
+    assert.equal(wrapped.reason, 'news_domain');
+  });
+
+  it('postToOsintFinding accepts citizen behavior quotes', () => {
+    const wrapped = postToOsintFinding({
+      id: 'x-citizen',
+      platform: 'x',
+      text: 'תושבים במקלט בנהריה אחרי האזעקה',
+      url: 'https://x.com/a/2',
+      postedAt: '2026-05-23T10:00:00Z',
+    });
+    assert.equal(wrapped.rejected, false);
+    assert.equal(wrapped.finding.id, 'x-citizen');
+  });
+
   it('mergeFindingsIntoBundle dedupes by id', () => {
     const bundle = {
       date: '2026-05-23',

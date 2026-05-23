@@ -1,5 +1,10 @@
 import ButtonBase from '@mui/material/ButtonBase';
 
+function mergeSx(sx) {
+  if (sx == null) return [];
+  return Array.isArray(sx) ? sx : [sx];
+}
+
 export function PrimaryTab({ active = false, compact = false, className = '', sx, children, ...props }) {
   return (
     <ButtonBase
@@ -25,7 +30,7 @@ export function PrimaryTab({ active = false, compact = false, className = '', sx
           }),
           '&:hover': { color: theme.palette.text.primary, background: 'transparent' },
         }),
-        ...(Array.isArray(sx) ? sx : sx ? [sx] : []),
+        ...mergeSx(sx),
       ]}
       {...props}
     >
