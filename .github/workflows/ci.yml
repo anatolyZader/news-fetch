@@ -342,6 +342,10 @@ jobs:
           curl -sf -u "${SONAR_TOKEN}:" \
             "https://sonarcloud.io/api/qualitygates/project_status?projectKey=${SONAR_PROJECT_KEY}" \
             | jq -r '.projectStatus.conditions[]? | select(.status=="ERROR") | "\(.metricKey): actual=\(.actualValue) errorThreshold=\(.errorThreshold) (\(.status))"'
+          echo "--- new bugs ---"
+          curl -sf -u "${SONAR_TOKEN}:" \
+            "https://sonarcloud.io/api/issues/search?componentKeys=${SONAR_PROJECT_KEY}&types=BUG&inNewCodePeriod=true&ps=20" \
+            | jq -r '.issues[]? | "\(.component | split(":")[1] // .component):\(.line) \(.message)"'
           echo "--- new security hotspots (TO_REVIEW) ---"
           curl -sf -u "${SONAR_TOKEN}:" \
             "https://sonarcloud.io/api/hotspots/search?projectKey=${SONAR_PROJECT_KEY}&status=TO_REVIEW&inNewCodePeriod=true&ps=50" \

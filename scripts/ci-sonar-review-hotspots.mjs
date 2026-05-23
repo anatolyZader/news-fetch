@@ -23,11 +23,12 @@ async function sonarJson(url, init = {}) {
       ...init.headers,
     },
   });
+  const text = await res.text();
   if (!res.ok) {
-    const text = await res.text();
     throw new Error(`${url} -> ${res.status} ${text.slice(0, 200)}`);
   }
-  return res.json();
+  if (!text.trim()) return {};
+  return JSON.parse(text);
 }
 
 async function listHotspots(page = 1) {
