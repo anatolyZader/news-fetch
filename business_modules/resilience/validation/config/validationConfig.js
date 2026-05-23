@@ -110,7 +110,7 @@ export function loadValidationConfig(configPath) {
     }
     return { ...merged, _config_path: path, _loaded: true };
   } catch (err) {
-    throw new Error(`Failed to load validation config at ${path}: ${err.message}`);
+    throw new Error(`Failed to load validation config at ${path}: ${err.message}`, { cause: err });
   }
 }
 
