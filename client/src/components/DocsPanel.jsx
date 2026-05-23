@@ -23,7 +23,12 @@ export function DocsPanel({ open, onClose, initialSlug }) {
   const { getIdToken, authRequired, user } = useAuth();
   const { t } = useLanguage();
   const [index, setIndex] = useState([]);
-  const [selectedSlug, setSelectedSlug] = useState('getting-started/using-the-app');
+  const [selectedSlug, setSelectedSlug] = useState(initialSlug ?? 'getting-started/using-the-app');
+  const [syncedInitialSlug, setSyncedInitialSlug] = useState(initialSlug);
+  if (open && initialSlug !== syncedInitialSlug) {
+    setSyncedInitialSlug(initialSlug);
+    setSelectedSlug(initialSlug);
+  }
   const [query, setQuery] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [loadingIndex, setLoadingIndex] = useState(false);
@@ -91,13 +96,10 @@ export function DocsPanel({ open, onClose, initialSlug }) {
 
   useEffect(() => {
     if (!open) return;
-    if (initialSlug) {
-      setSelectedSlug(initialSlug);
-    }
     void (async () => {
       await loadIndex();
     })();
-  }, [open, initialSlug, loadIndex]);
+  }, [open, loadIndex]);
 
   useEffect(() => {
     if (!open) return;
