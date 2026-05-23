@@ -78,4 +78,18 @@ describe('socialCandidateClassifier', () => {
     assert.equal(result.findings.length, 1);
     assert.equal(result.findings[0].quote_original, 'מקלט');
   });
+
+  it('classifySocialCandidates rejects non-array classifier JSON', async () => {
+    await assert.rejects(
+      () => classifySocialCandidates(
+        [{ id: 'x-1', platform: 'x', text: 'תושבים במקלט', url: 'https://x.com/a/1' }],
+        {
+          skipBudgetCheck: true,
+          skipCostLog: true,
+          anthropicClient: mockAnthropicClient('{"keep":true}'),
+        },
+      ),
+      /Classifier returned no JSON array/,
+    );
+  });
 });

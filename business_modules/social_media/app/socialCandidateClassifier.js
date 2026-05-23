@@ -40,11 +40,14 @@ function parseClassifierJson(text) {
   const arrEnd = text.lastIndexOf(']');
   if (arrStart === -1 || arrEnd === -1) throw new Error('Classifier returned no JSON array');
   const raw = text.slice(arrStart, arrEnd + 1);
+  let parsed;
   try {
-    return JSON.parse(raw);
+    parsed = JSON.parse(raw);
   } catch {
-    return JSON.parse(jsonrepair(raw));
+    parsed = JSON.parse(jsonrepair(raw));
   }
+  if (!Array.isArray(parsed)) throw new Error('Classifier returned non-array JSON');
+  return parsed;
 }
 
 /**

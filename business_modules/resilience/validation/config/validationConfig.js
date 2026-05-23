@@ -70,6 +70,7 @@ function deepMerge(base, override) {
   }
   const out = { ...base };
   for (const [k, v] of Object.entries(override)) {
+    if (k === '__proto__' || k === 'constructor' || k === 'prototype') continue;
     out[k] = v != null && typeof v === 'object' && !Array.isArray(v) && typeof base[k] === 'object'
       ? deepMerge(base[k], v)
       : v;
