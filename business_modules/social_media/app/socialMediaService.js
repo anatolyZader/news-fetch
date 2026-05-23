@@ -9,6 +9,7 @@ import { createSocialMediaGatherService } from './socialMediaGatherService.js';
 import { createSocialMediaTreatmentService } from './socialMediaTreatmentService.js';
 import { createSocialMediaDailyFeedService } from './socialMediaDailyFeedService.js';
 import { createSocialMediaTopicFetchService } from './socialMediaTopicFetchService.js';
+import { createSocialMediaDailyGatherService } from './socialMediaDailyGatherService.js';
 
 /**
  * @param {{
@@ -54,12 +55,21 @@ export function createSocialMediaService(opts = {}) {
   const treatment = createSocialMediaTreatmentService({ persistencePort });
   const daily = createSocialMediaDailyFeedService({ persistencePort });
   const topic = createSocialMediaTopicFetchService({ persistencePort, fetchPort });
+  const dailyGather = createSocialMediaDailyGatherService({
+    persistencePort,
+    gatherService: gather,
+    treatmentService: treatment,
+    xApiClient: bearerToken ? createXApiClient({ bearerToken }) : null,
+    telegramFetchAdapter,
+    dataDir,
+  });
 
   return {
     gather,
     treatment,
     daily,
     topic,
+    dailyGather,
     persistence: persistencePort,
 
     async getDashboard() {
@@ -117,6 +127,10 @@ export function createSocialMediaService(opts = {}) {
 
     getTopicFetch(id, opts) {
       return topic.getTopicFetch(id, opts);
+    },
+
+    gatherDaily(input) {
+      return dailyGather.gatherDaily(input);
     },
   };
 }

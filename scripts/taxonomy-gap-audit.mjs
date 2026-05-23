@@ -18,10 +18,13 @@ import {
 const __dirname = resolve(fileURLToPath(import.meta.url), '..');
 const ROOT = resolve(__dirname, '..');
 const SIGNALS_DIR = resolve(ROOT, 'signals');
-const GOLDEN_SNAPSHOT = resolve(ROOT, 'tests/fixtures/resilience-golden/extraction-snapshot.jsonl');
+const GOLDEN_SNAPSHOT = resolve(
+  ROOT,
+  'business_modules/resilience/tuning/golden/extraction-snapshot.jsonl',
+);
 
 const daysArg = process.argv.find((a) => a.startsWith('--days='));
-const maxDays = daysArg ? parseInt(daysArg.split('=')[1], 10) : 30;
+const maxDays = daysArg ? Number.parseInt(daysArg.split('=')[1], 10) : 30;
 
 function parseDateFromFilename(name) {
   const m = name.match(/(\d{4}-\d{2}-\d{2})/);
@@ -32,7 +35,8 @@ function loadProductionSignals(maxDaysBack) {
   const counts = {};
   let total = 0;
   const files = existsSync(SIGNALS_DIR) ? readdirSync(SIGNALS_DIR).filter((f) => f.startsWith('signals-') && f.endsWith('.json')) : [];
-  const dates = [...new Set(files.map(parseDateFromFilename).filter(Boolean))].sort();
+  const dates = [...new Set(files.map(parseDateFromFilename).filter(Boolean))]
+    .sort((a, b) => a.localeCompare(b));
   const cutoff = dates.length > maxDaysBack ? dates[dates.length - maxDaysBack] : dates[0];
 
   for (const file of files) {

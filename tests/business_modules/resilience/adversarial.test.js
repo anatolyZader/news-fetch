@@ -1,18 +1,15 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
 
 import { scoreComponents } from '../../../business_modules/resilience/domain/services/behaviorSignals.js';
 import { dedupeSignalsWithinBatch, verifyEvidenceAgainstArticle }
   from '../../../business_modules/resilience/infrastructure/signalVerification.js';
 import { crossSourceDedup } from '../../../business_modules/resilience/input/assessSignalsHelpers.js';
 
-const __dirname = resolve(fileURLToPath(import.meta.url), '..');
-const FIXTURE_PATH = resolve(__dirname, '../../fixtures/resilience-adversarial/cases.json');
+import { ADVERSARIAL_CASES_PATH } from '../../../business_modules/resilience/tuning/goldenPaths.js';
 
-const fixture = JSON.parse(readFileSync(FIXTURE_PATH, 'utf8'));
+const fixture = JSON.parse(readFileSync(ADVERSARIAL_CASES_PATH, 'utf8'));
 const liveLlm = process.env.RESILIENCE_LIVE_LLM === '1';
 
 /**
@@ -33,7 +30,7 @@ function makeMockExtraction(spec) {
             evidence_type: 'observational_reported_fact',
             scope_level: 'repeated_pattern',
             evidence: `flood signal ${i}`,
-            extraction_confidence: 0.9, temporal_weight: 1.0,
+            extraction_confidence: 0.9, temporal_weight: 1,
           });
         }
         out.push({
@@ -43,7 +40,7 @@ function makeMockExtraction(spec) {
           evidence_type: 'observational_reported_fact',
           scope_level: 'repeated_pattern',
           evidence: 'maariv positive',
-          extraction_confidence: 0.9, temporal_weight: 1.0,
+          extraction_confidence: 0.9, temporal_weight: 1,
         });
         return out;
       },
@@ -57,7 +54,7 @@ function makeMockExtraction(spec) {
             evidence_type: 'observational_reported_fact',
             scope_level: 'repeated_pattern',
             evidence: `low-conf neg ${i}`,
-            extraction_confidence: 0.2, temporal_weight: 1.0,
+            extraction_confidence: 0.2, temporal_weight: 1,
           });
         }
         return out;
@@ -72,7 +69,7 @@ function makeMockExtraction(spec) {
             evidence_type: 'observational_reported_fact',
             scope_level: 'repeated_pattern',
             evidence: `calm signal ${i}`,
-            extraction_confidence: 0.9, temporal_weight: 1.0,
+            extraction_confidence: 0.9, temporal_weight: 1,
           });
         }
         return out;
@@ -90,7 +87,7 @@ function makeMockExtraction(spec) {
             evidence_type: 'direct_quote_named_person',
             scope_level: 'quantified_or_broad',
             evidence: `quantified calm ${i}`,
-            extraction_confidence: 1.0, temporal_weight: 1.0,
+            extraction_confidence: 1, temporal_weight: 1,
           });
         }
         return out;
@@ -112,7 +109,7 @@ function makeMockExtraction(spec) {
             scope_level: 'repeated_pattern',
             evidence: `news framing positive ${i}`,
             extraction_confidence: 0.9,
-            temporal_weight: 1.0,
+            temporal_weight: 1,
           });
         }
         out.push({
@@ -125,7 +122,7 @@ function makeMockExtraction(spec) {
           scope_level: 'repeated_pattern',
           evidence: 'radio framing positive once',
           extraction_confidence: 0.9,
-          temporal_weight: 1.0,
+          temporal_weight: 1,
         });
         return out;
       },
@@ -144,7 +141,7 @@ function makeMockExtraction(spec) {
             scope_level: 'quantified_or_broad',
             evidence: `Residents reported sustained fear in border towns ${i}`,
             extraction_confidence: 0.9,
-            temporal_weight: 1.0,
+            temporal_weight: 1,
           });
         }
         out.push({
@@ -157,7 +154,7 @@ function makeMockExtraction(spec) {
           scope_level: 'quantified_or_broad',
           evidence: 'Different reporter logged similar fear elsewhere',
           extraction_confidence: 0.9,
-          temporal_weight: 1.0,
+          temporal_weight: 1,
         });
         return out;
       },
@@ -183,6 +180,106 @@ function resolveSignals(c) {
   return [];
 }
 
+function assertVerifierCase(c, exp) {
+  const verdict = verifyEvidenceAgainstArticle(c.mock_signal, c.article_body);
+  if (typeof exp.verifier_should_pass === 'boolean') {
+    assert.equal(verdict.ok, exp.verifier_should_pass,
+      `${c.id}: verifier_should_pass=${exp.verifier_should_pass} but got ok=${verdict.ok}, reason=${verdict.reason}, sim=${verdict.sim}`);
+  }
+}
+
+function assertDedupCounts(c, exp, dedupedWithin, dedupedAll) {
+  if (typeof exp.after_within_dedup_count === 'number') {
+    assert.equal(dedupedWithin.length, exp.after_within_dedup_count,
+      `${c.id}: expected ${exp.after_within_dedup_count} after within-source dedup, got ${dedupedWithin.length}`);
+  }
+  if (typeof exp.after_cross_source_dedup_count === 'number') {
+    assert.equal(dedupedAll.length, exp.after_cross_source_dedup_count,
+      `${c.id}: expected ${exp.after_cross_source_dedup_count} after cross-source dedup, got ${dedupedAll.length}`);
+  }
+}
+
+function assertAllComponentsInsufficient(c, scored) {
+  for (const [cid, c2] of Object.entries(scored)) {
+    assert.equal(c2.confidence, 'insufficient_data',
+      `${c.id}: ${cid} should be insufficient_data when no signals provided`);
+    assert.equal(c2.score, null, `${c.id}: ${cid} score should be null`);
+  }
+}
+
+function assertScoreRange(c, exp, scored) {
+  for (const [cid, [lo, hi]] of Object.entries(exp.score_range)) {
+    const sc = scored[cid]?.score;
+    assert.ok(sc != null, `${c.id}: expected scored.${cid} but got null`);
+    assert.ok(sc >= lo && sc <= hi,
+      `${c.id}: scored.${cid}=${sc} out of expected range [${lo},${hi}]`);
+  }
+}
+
+function assertScoreBounds(c, exp, scored) {
+  if (typeof exp.score_max === 'number') {
+    for (const [cid, c2] of Object.entries(scored)) {
+      if (c2.score == null) continue;
+      assert.ok(c2.score <= exp.score_max,
+        `${c.id}: scored.${cid}=${c2.score} > score_max ${exp.score_max}`);
+    }
+  }
+  if (typeof exp.score_min === 'number') {
+    const someAbove = Object.values(scored).some((c2) => c2.score != null && c2.score >= exp.score_min);
+    assert.ok(someAbove,
+      `${c.id}: expected at least one component score >= ${exp.score_min}`);
+  }
+}
+
+function assertMinPolarization(c, exp, scored) {
+  for (const [cid, threshold] of Object.entries(exp.min_polarization)) {
+    const p = scored[cid]?.polarization;
+    assert.ok(p != null && p >= threshold,
+      `${c.id}: polarization.${cid}=${p} < ${threshold}`);
+  }
+}
+
+function assertScoreExpectations(c, exp, scored) {
+  if (exp.all_components_insufficient) assertAllComponentsInsufficient(c, scored);
+  if (exp.score_range) assertScoreRange(c, exp, scored);
+  assertScoreBounds(c, exp, scored);
+  if (exp.min_polarization) assertMinPolarization(c, exp, scored);
+}
+
+function assertEvidenceMassExpectations(c, exp, scored) {
+  if (typeof exp.min_evidence_mass === 'number') {
+    const totalMass = Object.values(scored).reduce((s, c2) => s + (c2.evidence_mass ?? 0), 0);
+    assert.ok(totalMass >= exp.min_evidence_mass,
+      `${c.id}: total evidence_mass ${totalMass} < ${exp.min_evidence_mass}`);
+  }
+  if (typeof exp.max_evidence_mass === 'number') {
+    for (const [cid, c2] of Object.entries(scored)) {
+      if (c2.evidence_mass == null) continue;
+      assert.ok(c2.evidence_mass <= exp.max_evidence_mass,
+        `${c.id}: evidence_mass.${cid}=${c2.evidence_mass} > max ${exp.max_evidence_mass}`);
+    }
+  }
+
+  if (exp.max_source_diversity_factor) {
+    for (const [cid, max] of Object.entries(exp.max_source_diversity_factor)) {
+      const sdf = scored[cid]?.source_diversity_factor;
+      assert.ok(sdf != null && sdf <= max,
+        `${c.id}: source_diversity_factor.${cid}=${sdf} > max ${max}`);
+    }
+  }
+}
+
+function runPipelineCase(c, exp) {
+  const signals = resolveSignals(c);
+  const dedupedWithin = dedupeSignalsWithinBatch(signals);
+  const dedupedAll = crossSourceDedup(dedupedWithin);
+  assertDedupCounts(c, exp, dedupedWithin, dedupedAll);
+
+  const scored = scoreComponents(dedupedAll, { totalArticles: dedupedAll.length || 1 });
+  assertScoreExpectations(c, exp, scored);
+  assertEvidenceMassExpectations(c, exp, scored);
+}
+
 describe('Resilience adversarial regression suite (N2)', () => {
   for (const c of fixture.cases) {
     if (c.live_llm_only && !liveLlm) {
@@ -193,94 +290,12 @@ describe('Resilience adversarial regression suite (N2)', () => {
     it(`${c.id} — ${c.scenario}`, () => {
       const exp = c.expectations ?? {};
 
-      // Branch 1: signal verification cases (single article + single signal).
       if (c.mock_signal && c.article_body != null) {
-        const verdict = verifyEvidenceAgainstArticle(c.mock_signal, c.article_body);
-        if (typeof exp.verifier_should_pass === 'boolean') {
-          assert.equal(verdict.ok, exp.verifier_should_pass,
-            `${c.id}: verifier_should_pass=${exp.verifier_should_pass} but got ok=${verdict.ok}, reason=${verdict.reason}, sim=${verdict.sim}`);
-        }
+        assertVerifierCase(c, exp);
         return;
       }
 
-      // Branch 2: pipeline cases.
-      const signals = resolveSignals(c);
-
-      // Within-source dedup
-      const dedupedWithin = dedupeSignalsWithinBatch(signals);
-      if (typeof exp.after_within_dedup_count === 'number') {
-        assert.equal(dedupedWithin.length, exp.after_within_dedup_count,
-          `${c.id}: expected ${exp.after_within_dedup_count} after within-source dedup, got ${dedupedWithin.length}`);
-      }
-
-      // Cross-source dedup
-      const dedupedAll = crossSourceDedup(dedupedWithin);
-      if (typeof exp.after_cross_source_dedup_count === 'number') {
-        assert.equal(dedupedAll.length, exp.after_cross_source_dedup_count,
-          `${c.id}: expected ${exp.after_cross_source_dedup_count} after cross-source dedup, got ${dedupedAll.length}`);
-      }
-
-      // Score
-      const scored = scoreComponents(dedupedAll, { totalArticles: dedupedAll.length || 1 });
-
-      if (exp.all_components_insufficient) {
-        for (const [cid, c2] of Object.entries(scored)) {
-          assert.equal(c2.confidence, 'insufficient_data',
-            `${c.id}: ${cid} should be insufficient_data when no signals provided`);
-          assert.equal(c2.score, null, `${c.id}: ${cid} score should be null`);
-        }
-      }
-
-      if (exp.score_range) {
-        for (const [cid, [lo, hi]] of Object.entries(exp.score_range)) {
-          const sc = scored[cid]?.score;
-          assert.ok(sc != null, `${c.id}: expected scored.${cid} but got null`);
-          assert.ok(sc >= lo && sc <= hi,
-            `${c.id}: scored.${cid}=${sc} out of expected range [${lo},${hi}]`);
-        }
-      }
-
-      if (typeof exp.score_max === 'number') {
-        for (const [cid, c2] of Object.entries(scored)) {
-          if (c2.score == null) continue;
-          assert.ok(c2.score <= exp.score_max,
-            `${c.id}: scored.${cid}=${c2.score} > score_max ${exp.score_max}`);
-        }
-      }
-      if (typeof exp.score_min === 'number') {
-        const someAbove = Object.values(scored).some((c2) => c2.score != null && c2.score >= exp.score_min);
-        assert.ok(someAbove,
-          `${c.id}: expected at least one component score >= ${exp.score_min}`);
-      }
-
-      if (exp.min_polarization) {
-        for (const [cid, threshold] of Object.entries(exp.min_polarization)) {
-          const p = scored[cid]?.polarization;
-          assert.ok(p != null && p >= threshold,
-            `${c.id}: polarization.${cid}=${p} < ${threshold}`);
-        }
-      }
-
-      if (typeof exp.min_evidence_mass === 'number') {
-        const totalMass = Object.values(scored).reduce((s, c2) => s + (c2.evidence_mass ?? 0), 0);
-        assert.ok(totalMass >= exp.min_evidence_mass,
-          `${c.id}: total evidence_mass ${totalMass} < ${exp.min_evidence_mass}`);
-      }
-      if (typeof exp.max_evidence_mass === 'number') {
-        for (const [cid, c2] of Object.entries(scored)) {
-          if (c2.evidence_mass == null) continue;
-          assert.ok(c2.evidence_mass <= exp.max_evidence_mass,
-            `${c.id}: evidence_mass.${cid}=${c2.evidence_mass} > max ${exp.max_evidence_mass}`);
-        }
-      }
-
-      if (exp.max_source_diversity_factor) {
-        for (const [cid, max] of Object.entries(exp.max_source_diversity_factor)) {
-          const sdf = scored[cid]?.source_diversity_factor;
-          assert.ok(sdf != null && sdf <= max,
-            `${c.id}: source_diversity_factor.${cid}=${sdf} > max ${max}`);
-        }
-      }
+      runPipelineCase(c, exp);
     });
   }
 });

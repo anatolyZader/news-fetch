@@ -1,3 +1,5 @@
+// xTopicQueryBuilder.js - build X search queries for topics
+
 import { createHash } from 'node:crypto';
 import { conceptSearchTermsForLang } from './topicConceptNormalizer.js';
 import { detectTopicPlaceClause } from './topicMatcher.js';
@@ -39,7 +41,7 @@ function conceptTermsForLang(topic, lang) {
   const terms = conceptSearchTermsForLang(trimmed, lang);
   if (terms.length) return terms.slice(0, 8);
 
-  const sanitized = trimmed.replace(/'/g, '');
+  const sanitized = trimmed.replaceAll("'", '');
   return [`"${sanitized}"`];
 }
 
@@ -137,8 +139,8 @@ export function xSlotEndTime(date) {
  * @param {string[]} dates newest-first date strings
  */
 export function xWindowBounds(dates) {
-  const newest = dates[0];
-  const oldest = dates[dates.length - 1];
+  const newest = dates.at(0);
+  const oldest = dates.at(-1);
   return {
     startTime: `${oldest}T00:00:00Z`,
     endTime: xSlotEndTime(newest),

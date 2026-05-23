@@ -1,0 +1,119 @@
+{
+  "data": [
+    {
+      "created_at": "2026-05-22T21:05:12.000Z",
+      "id": "2057930801208295862",
+      "conversation_id": "2057930801208295862",
+      "edit_history_tweet_ids": [
+        "2057930801208295862"
+      ],
+      "public_metrics": {
+        "retweet_count": 107,
+        "reply_count": 1,
+        "like_count": 149,
+        "quote_count": 4,
+        "bookmark_count": 30,
+        "impression_count": 3751
+      },
+      "text": "مجزرة الطنطورة | \nفي الـ١٢ ظهرا اقتادونا مشيا إلى بستان يقع في الجهة الشرقية من البلدة، هناك شاهدت أكواما من الجثث تنقلها عربة خيل ويجرها رجال من الطنطورة ثم تلقى في حفرة كبيرة. \nأحضروا سيارات شحن ووضعوا فيها النساء والأطفال وأخذونا إلى الفريديس (جنوب حيفا)..لم نعرف مصير الرجال https://t.co/HD87YaTxVu",
+      "lang": "ar",
+      "author_id": "1265773179454328833"
+    },
+    {
+      "created_at": "2026-05-22T13:52:53.000Z",
+      "id": "2057822006213529831",
+      "conversation_id": "2057798907833278910",
+      "edit_history_tweet_ids": [
+        "2057822006213529831"
+      ],
+      "public_metrics": {
+        "retweet_count": 0,
+        "reply_count": 0,
+        "like_count": 1,
+        "quote_count": 0,
+        "bookmark_count": 0,
+        "impression_count": 15
+      },
+      "text": "@krim237 انتصرت غزة على الكيان الصهيوني قتلة الأطفال والنساء وانتصرت ايران على اميركا والكيان الصهيوني ولن تقو للصهاينه المحتلين ل فلسطين قائمة . بعد تدمير تل ابيب وحيفا ويافا وديمونة . وسوف تنتصر المقاومة اللبنانية على المحتل الصهيوني للجنوب ..",
+      "lang": "ar",
+      "author_id": "1971962939734478850"
+    },
+    {
+      "created_at": "2026-05-22T08:46:56.000Z",
+      "id": "2057745010871689695",
+      "conversation_id": "2057745010871689695",
+      "edit_history_tweet_ids": [
+        "2057745010871689695"
+      ],
+      "public_metrics": {
+        "retweet_count": 1,
+        "reply_count": 1,
+        "like_count": 5,
+        "quote_count": 0,
+        "bookmark_count": 0,
+        "impression_count": 111
+      },
+      "text": "عندما يكون الاجرام لا حدود له .. سأل المذيع الارهابي وهو شاب عندما وضعت السيارة المفخخة في شارع حيفا هل كنت تعلم انها روضة اطفال قال نعم عندما سمعت ان الانفجار تسبب بقتل اغلب اطفال الروضة قال نعم هل لديك اطفال قال نعم الم تشعر بألم وتأنيب انت تلاعب اطفالك قال لا .. اعطف القصة👇 https://t.co/pfIIRQ6TAc",
+      "lang": "ar",
+      "author_id": "1567584770162393088"
+    }
+  ],
+  "includes": {
+    "users": [
+      {
+        "description": "صفحة شخصية مختصة بالأرشيف عن فلسطين من أجل #فلسطين | ومحاولة لحفظ الذاكرة وجمع شتات ما تيسر من أرشيف ضائع أو مسروق أو مبعثر | غير تابعة لمنظمة أو فصيل",
+        "name": "The Palestinian Archive الأرشيف الفلسطيني",
+        "id": "1265773179454328833",
+        "username": "palestinian_the",
+        "verified_type": "blue",
+        "public_metrics": {
+          "followers_count": 108433,
+          "following_count": 33,
+          "tweet_count": 5945,
+          "listed_count": 232,
+          "like_count": 9195,
+          "media_count": 4772
+        },
+        "verified": true,
+        "location": "فلسطين"
+      },
+      {
+        "description": "",
+        "name": ".",
+        "id": "1971962939734478850",
+        "username": "ssnolp11",
+        "verified_type": "none",
+        "public_metrics": {
+          "followers_count": 1,
+          "following_count": 3,
+          "tweet_count": 898,
+          "listed_count": 0,
+          "like_count": 6,
+          "media_count": 3
+        },
+        "verified": false
+      },
+      {
+        "description": "ان الله مع الصابرين",
+        "name": "قمر 🌙الحشد🌙",
+        "id": "1567584770162393088",
+        "username": "hashdaweya67",
+        "verified_type": "none",
+        "public_metrics": {
+          "followers_count": 3147,
+          "following_count": 795,
+          "tweet_count": 32567,
+          "listed_count": 3,
+          "like_count": 3441,
+          "media_count": 26344
+        },
+        "verified": false
+      }
+    ]
+  },
+  "meta": {
+    "newest_id": "2057930801208295862",
+    "oldest_id": "2057745010871689695",
+    "result_count": 3
+  }
+}

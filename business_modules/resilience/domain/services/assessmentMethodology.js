@@ -179,7 +179,7 @@ export function buildAssessmentMethodology({
       dual_pipeline:
         'runResilienceAssessment (API/news) scores all signals without scope filter; north artifact requires assess-signals --scope north',
       extraction_quality:
-        'LLM extraction monitored via tests/fixtures/resilience-golden (npm test golden-corpus); no production SLA',
+        'LLM extraction monitored via business_modules/resilience/tuning/golden (npm test golden-corpus); no production SLA',
       subgroup_coverage: summarizeSubgroupCoverage(signals),
       ...(extractionTelemetry ? { extraction_pipeline_stages: extractionTelemetry } : {}),
     },

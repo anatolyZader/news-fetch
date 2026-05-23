@@ -5,12 +5,11 @@
  *
  * Usage:
  *   npm run suggest-tuning
- *   node scripts/suggest-component-tuning.js [--diff]
- *   REPORTS_DIR=/path/to/reports node scripts/suggest-component-tuning.js
+ *   node business_modules/resilience/tuning/scripts/suggestComponentTuning.js [--diff]
  */
 
 import { resolve } from 'node:path';
-import { proposeComponentTuningFromReportFiles } from '../business_modules/resilience/domain/services/componentTuningProposal.js';
+import { proposeComponentTuningFromReportFiles } from '../domain/componentTuningProposal.js';
 
 const reportsDir = process.env.REPORTS_DIR
   ? resolve(process.env.REPORTS_DIR)

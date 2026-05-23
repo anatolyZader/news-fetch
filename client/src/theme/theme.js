@@ -49,6 +49,7 @@ const SOURCE = {
   radio:   { main: SCORE.alert.main, fg: '#c2410c'        },
   naftali: { main: CHART.purple,     fg: '#6d28d9'        },
   press:   { main: SCORE.good.main,  fg: '#15803d'        },
+  social:  { main: CHART.blue,       fg: '#1d4ed8'        },
   pbo:     { main: SCORE.moderate.main, fg: '#a16207'     },
 };
 for (const key of Object.keys(SOURCE)) {

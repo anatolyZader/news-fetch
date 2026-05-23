@@ -8,26 +8,28 @@ import { spawnSync } from 'node:child_process';
 import {
   precisionRecallF1,
   cohensKappa,
-} from '../../../business_modules/resilience/domain/services/extractionMetrics.js';
+} from '../../../business_modules/resilience/tuning/domain/extractionMetrics.js';
+import {
+  BUILD_CORPUS_SCRIPT,
+  CORPUS_PATH,
+  EXTRACTION_SNAPSHOT_PATH,
+} from '../../../business_modules/resilience/tuning/goldenPaths.js';
 
 const __dirname = resolve(fileURLToPath(import.meta.url), '..');
-const CORPUS_PATH   = resolve(__dirname, '../../fixtures/resilience-golden/corpus.jsonl');
-const SNAPSHOT_PATH = resolve(__dirname, '../../fixtures/resilience-golden/extraction-snapshot.jsonl');
-const BUILD_SCRIPT  = resolve(__dirname, '../../fixtures/resilience-golden/build-corpus.mjs');
-const REPO_ROOT     = resolve(__dirname, '../../..');
+const REPO_ROOT = resolve(__dirname, '../../..');
 
 const F1_THRESHOLD = 0.55;
-const MACRO_KAPPA_THRESHOLD = 0.40;
+const MACRO_KAPPA_THRESHOLD = 0.4;
 const MIN_CORPUS_SIZE = 20;
 
 function maybeRefreshGoldenCorpus() {
   if (process.env.RESILIENCE_REFRESH_GOLDEN !== '1') return;
-  const r = spawnSync(process.execPath, [BUILD_SCRIPT], {
+  const r = spawnSync(process.execPath, [BUILD_CORPUS_SCRIPT], {
     cwd: REPO_ROOT,
     stdio: 'inherit',
     encoding: 'utf8',
   });
-  assert.equal(r.status, 0, `build-corpus.mjs failed with exit ${r.status}`);
+  assert.equal(r.status, 0, `buildCorpus.mjs failed with exit ${r.status}`);
 }
 
 function loadJsonl(path) {
@@ -40,14 +42,14 @@ function loadJsonl(path) {
 describe('Golden corpus regression (N1)', () => {
   maybeRefreshGoldenCorpus();
   const corpus   = loadJsonl(CORPUS_PATH);
-  const snapshot = loadJsonl(SNAPSHOT_PATH);
+  const snapshot = loadJsonl(EXTRACTION_SNAPSHOT_PATH);
 
   if (!corpus || corpus.length === 0) {
-    it.skip('corpus.jsonl missing or empty — see tests/fixtures/resilience-golden/build-corpus.mjs', () => {});
+    it.skip('corpus.jsonl missing or empty — run npm run golden:build-corpus', () => {});
     return;
   }
   if (!snapshot || snapshot.length === 0) {
-    it.skip('extraction-snapshot.jsonl missing or empty — re-run build-corpus.mjs', () => {});
+    it.skip('extraction-snapshot.jsonl missing or empty — run npm run golden:build-corpus', () => {});
     return;
   }
 
@@ -60,7 +62,7 @@ describe('Golden corpus regression (N1)', () => {
   it('every corpus record has a snapshot entry (no missing predictions)', () => {
     for (const rec of corpus) {
       assert.ok(snapshotById.has(rec.id),
-        `corpus record ${rec.id} has no predicted_signals snapshot — re-run build-corpus.mjs`);
+        `corpus record ${rec.id} has no predicted_signals snapshot — re-run npm run golden:build-corpus`);
     }
   });
 

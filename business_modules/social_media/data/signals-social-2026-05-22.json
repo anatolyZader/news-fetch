@@ -1,0 +1,1293 @@
+{
+  "source_type": "social",
+  "content_kind": "osint_citizen_voice",
+  "date": "2026-05-22",
+  "window_days": 1,
+  "window_start": "2026-05-22",
+  "window_end": "2026-05-22",
+  "extracted_at": "2026-05-23T11:51:05.955Z",
+  "languages": [
+    "he",
+    "ar",
+    "ru"
+  ],
+  "platforms_searched": [
+    "x",
+    "telegram_public"
+  ],
+  "queries_executed": 6,
+  "candidate_hits": 1,
+  "verified_findings": 1,
+  "low_confidence_findings": 0,
+  "rejected": {
+    "news_domain": 0,
+    "no_citizen_quote": 0,
+    "official_speaker": 0,
+    "not_public_or_login_required": 0,
+    "off_topic": 3
+  },
+  "access_limitations": [
+    "X/Twitter may require authenticated access — unauthenticated fetchers often fail.",
+    "TikTok often returns generic pages to non-app fetchers.",
+    "Reddit may block automated fetchers on reddit.com and old.reddit.com.",
+    "Facebook posts frequently require login; only some public pages are partially accessible.",
+    "Public Telegram t.me/s/ channel pages may truncate posts and omit full dates.",
+    "Some Hebrew forums (e.g. Rotter) may return HTTP 403 on direct fetch."
+  ],
+  "gather_queries": [
+    {
+      "language": "he",
+      "locality": "נהריה",
+      "query": "\"נהריה\" פיקוד העורף תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "נהריה",
+      "query": "\"נהריה\" פיקוד העורף \"ראיתי\""
+    },
+    {
+      "language": "he",
+      "locality": "נהריה",
+      "query": "\"נהריה\" אזעקות תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "נהריה",
+      "query": "\"נהריה\" אזעקות \"ראיתי\""
+    },
+    {
+      "language": "he",
+      "locality": "נהריה",
+      "query": "\"נהריה\" אזעקה תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "נהריה",
+      "query": "\"נהריה\" אזעקה \"ראיתי\""
+    },
+    {
+      "language": "he",
+      "locality": "נהריה",
+      "query": "\"נהריה\" ממ\"ד תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "נהריה",
+      "query": "\"נהריה\" ממ\"ד \"ראיתי\""
+    },
+    {
+      "language": "he",
+      "locality": "נהריה",
+      "query": "\"נהריה\" מרחב מוגן תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "נהריה",
+      "query": "\"נהריה\" מרחב מוגן \"ראיתי\""
+    },
+    {
+      "language": "he",
+      "locality": "נהריה",
+      "query": "\"נהריה\" פינוי תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "נהריה",
+      "query": "\"נהריה\" פינוי \"ראיתי\""
+    },
+    {
+      "language": "ar",
+      "locality": "נהריה",
+      "query": "נהריה قيادة الجبهة الداخلية"
+    },
+    {
+      "language": "ar",
+      "locality": "נהריה",
+      "query": "נהריה الجبهة الداخلية"
+    },
+    {
+      "language": "ar",
+      "locality": "נהריה",
+      "query": "נהריה جبهة الداخل"
+    },
+    {
+      "language": "ar",
+      "locality": "נהריה",
+      "query": "נהריה صفارات الإنذار"
+    },
+    {
+      "language": "ru",
+      "locality": "נהריה",
+      "query": "נהריה Командование тылом"
+    },
+    {
+      "language": "ru",
+      "locality": "נהריה",
+      "query": "נהריה командование тыла"
+    },
+    {
+      "language": "ru",
+      "locality": "נהריה",
+      "query": "נהריה Пикуд а-Орев"
+    },
+    {
+      "language": "ru",
+      "locality": "נהריה",
+      "query": "נהריה тыл"
+    },
+    {
+      "language": "he",
+      "locality": "קריית שמונה",
+      "query": "\"קריית שמונה\" פיקוד העורף תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "קריית שמונה",
+      "query": "\"קריית שמונה\" פיקוד העורף \"ראיתי\""
+    },
+    {
+      "language": "he",
+      "locality": "קריית שמונה",
+      "query": "\"קריית שמונה\" אזעקות תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "קריית שמונה",
+      "query": "\"קריית שמונה\" אזעקות \"ראיתי\""
+    },
+    {
+      "language": "he",
+      "locality": "קריית שמונה",
+      "query": "\"קריית שמונה\" אזעקה תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "קריית שמונה",
+      "query": "\"קריית שמונה\" אזעקה \"ראיתי\""
+    },
+    {
+      "language": "he",
+      "locality": "קריית שמונה",
+      "query": "\"קריית שמונה\" ממ\"ד תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "קריית שמונה",
+      "query": "\"קריית שמונה\" ממ\"ד \"ראיתי\""
+    },
+    {
+      "language": "he",
+      "locality": "קריית שמונה",
+      "query": "\"קריית שמונה\" מרחב מוגן תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "קריית שמונה",
+      "query": "\"קריית שמונה\" מרחב מוגן \"ראיתי\""
+    },
+    {
+      "language": "he",
+      "locality": "קריית שמונה",
+      "query": "\"קריית שמונה\" פינוי תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "קריית שמונה",
+      "query": "\"קריית שמונה\" פינוי \"ראיתי\""
+    },
+    {
+      "language": "ar",
+      "locality": "קריית שמונה",
+      "query": "קריית שמונה قيادة الجبهة الداخلية"
+    },
+    {
+      "language": "ar",
+      "locality": "קריית שמונה",
+      "query": "קריית שמונה الجبهة الداخلية"
+    },
+    {
+      "language": "ar",
+      "locality": "קריית שמונה",
+      "query": "קריית שמונה جبهة الداخل"
+    },
+    {
+      "language": "ar",
+      "locality": "קריית שמונה",
+      "query": "קריית שמונה صفارات الإنذار"
+    },
+    {
+      "language": "ru",
+      "locality": "קריית שמונה",
+      "query": "קריית שמונה Командование тылом"
+    },
+    {
+      "language": "ru",
+      "locality": "קריית שמונה",
+      "query": "קריית שמונה командование тыла"
+    },
+    {
+      "language": "ru",
+      "locality": "קריית שמונה",
+      "query": "קריית שמונה Пикуд а-Орев"
+    },
+    {
+      "language": "ru",
+      "locality": "קריית שמונה",
+      "query": "קריית שמונה тыл"
+    },
+    {
+      "language": "he",
+      "locality": "צפת",
+      "query": "\"צפת\" פיקוד העורף תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "צפת",
+      "query": "\"צפת\" פיקוד העורף \"ראיתי\""
+    },
+    {
+      "language": "he",
+      "locality": "צפת",
+      "query": "\"צפת\" אזעקות תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "צפת",
+      "query": "\"צפת\" אזעקות \"ראיתי\""
+    },
+    {
+      "language": "he",
+      "locality": "צפת",
+      "query": "\"צפת\" אזעקה תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "צפת",
+      "query": "\"צפת\" אזעקה \"ראיתי\""
+    },
+    {
+      "language": "he",
+      "locality": "צפת",
+      "query": "\"צפת\" ממ\"ד תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "צפת",
+      "query": "\"צפת\" ממ\"ד \"ראיתי\""
+    },
+    {
+      "language": "he",
+      "locality": "צפת",
+      "query": "\"צפת\" מרחב מוגן תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "צפת",
+      "query": "\"צפת\" מרחב מוגן \"ראיתי\""
+    },
+    {
+      "language": "he",
+      "locality": "צפת",
+      "query": "\"צפת\" פינוי תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "צפת",
+      "query": "\"צפת\" פינוי \"ראיתי\""
+    },
+    {
+      "language": "ar",
+      "locality": "צפת",
+      "query": "צפת قيادة الجبهة الداخلية"
+    },
+    {
+      "language": "ar",
+      "locality": "צפת",
+      "query": "צפת الجبهة الداخلية"
+    },
+    {
+      "language": "ar",
+      "locality": "צפת",
+      "query": "צפת جبهة الداخل"
+    },
+    {
+      "language": "ar",
+      "locality": "צפת",
+      "query": "צפת صفارات الإنذار"
+    },
+    {
+      "language": "ru",
+      "locality": "צפת",
+      "query": "צפת Командование тылом"
+    },
+    {
+      "language": "ru",
+      "locality": "צפת",
+      "query": "צפת командование тыла"
+    },
+    {
+      "language": "ru",
+      "locality": "צפת",
+      "query": "צפת Пикуд а-Орев"
+    },
+    {
+      "language": "ru",
+      "locality": "צפת",
+      "query": "צפת тыл"
+    },
+    {
+      "language": "he",
+      "locality": "מטולה",
+      "query": "\"מטולה\" פיקוד העורף תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "מטולה",
+      "query": "\"מטולה\" פיקוד העורף \"ראיתי\""
+    },
+    {
+      "language": "he",
+      "locality": "מטולה",
+      "query": "\"מטולה\" אזעקות תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "מטולה",
+      "query": "\"מטולה\" אזעקות \"ראיתי\""
+    },
+    {
+      "language": "he",
+      "locality": "מטולה",
+      "query": "\"מטולה\" אזעקה תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "מטולה",
+      "query": "\"מטולה\" אזעקה \"ראיתי\""
+    },
+    {
+      "language": "he",
+      "locality": "מטולה",
+      "query": "\"מטולה\" ממ\"ד תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "מטולה",
+      "query": "\"מטולה\" ממ\"ד \"ראיתי\""
+    },
+    {
+      "language": "he",
+      "locality": "מטולה",
+      "query": "\"מטולה\" מרחב מוגן תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "מטולה",
+      "query": "\"מטולה\" מרחב מוגן \"ראיתי\""
+    },
+    {
+      "language": "he",
+      "locality": "מטולה",
+      "query": "\"מטולה\" פינוי תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "מטולה",
+      "query": "\"מטולה\" פינוי \"ראיתי\""
+    },
+    {
+      "language": "ar",
+      "locality": "מטולה",
+      "query": "מטולה قيادة الجبهة الداخلية"
+    },
+    {
+      "language": "ar",
+      "locality": "מטולה",
+      "query": "מטולה الجبهة الداخلية"
+    },
+    {
+      "language": "ar",
+      "locality": "מטולה",
+      "query": "מטולה جبهة الداخل"
+    },
+    {
+      "language": "ar",
+      "locality": "מטולה",
+      "query": "מטולה صفارات الإنذار"
+    },
+    {
+      "language": "ru",
+      "locality": "מטולה",
+      "query": "מטולה Командование тылом"
+    },
+    {
+      "language": "ru",
+      "locality": "מטולה",
+      "query": "מטולה командование тыла"
+    },
+    {
+      "language": "ru",
+      "locality": "מטולה",
+      "query": "מטולה Пикуд а-Орев"
+    },
+    {
+      "language": "ru",
+      "locality": "מטולה",
+      "query": "מטולה тыл"
+    },
+    {
+      "language": "he",
+      "locality": "שלומי",
+      "query": "\"שלומי\" פיקוד העורף תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "שלומי",
+      "query": "\"שלומי\" פיקוד העורף \"ראיתי\""
+    },
+    {
+      "language": "he",
+      "locality": "שלומי",
+      "query": "\"שלומי\" אזעקות תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "שלומי",
+      "query": "\"שלומי\" אזעקות \"ראיתי\""
+    },
+    {
+      "language": "he",
+      "locality": "שלומי",
+      "query": "\"שלומי\" אזעקה תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "שלומי",
+      "query": "\"שלומי\" אזעקה \"ראיתי\""
+    },
+    {
+      "language": "he",
+      "locality": "שלומי",
+      "query": "\"שלומי\" ממ\"ד תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "שלומי",
+      "query": "\"שלומי\" ממ\"ד \"ראיתי\""
+    },
+    {
+      "language": "he",
+      "locality": "שלומי",
+      "query": "\"שלומי\" מרחב מוגן תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "שלומי",
+      "query": "\"שלומי\" מרחב מוגן \"ראיתי\""
+    },
+    {
+      "language": "he",
+      "locality": "שלומי",
+      "query": "\"שלומי\" פינוי תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "שלומי",
+      "query": "\"שלומי\" פינוי \"ראיתי\""
+    },
+    {
+      "language": "ar",
+      "locality": "שלומי",
+      "query": "שלומי قيادة الجبهة الداخلية"
+    },
+    {
+      "language": "ar",
+      "locality": "שלומי",
+      "query": "שלומי الجبهة الداخلية"
+    },
+    {
+      "language": "ar",
+      "locality": "שלומי",
+      "query": "שלומי جبهة الداخل"
+    },
+    {
+      "language": "ar",
+      "locality": "שלומי",
+      "query": "שלומי صفارات الإنذار"
+    },
+    {
+      "language": "ru",
+      "locality": "שלומי",
+      "query": "שלומי Командование тылом"
+    },
+    {
+      "language": "ru",
+      "locality": "שלומי",
+      "query": "שלומי командование тыла"
+    },
+    {
+      "language": "ru",
+      "locality": "שלומי",
+      "query": "שלומי Пикуд а-Орев"
+    },
+    {
+      "language": "ru",
+      "locality": "שלומי",
+      "query": "שלומי тыл"
+    },
+    {
+      "language": "he",
+      "locality": "מעלות תרשיחא",
+      "query": "\"מעלות תרשיחא\" פיקוד העורף תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "מעלות תרשיחא",
+      "query": "\"מעלות תרשיחא\" פיקוד העורף \"ראיתי\""
+    },
+    {
+      "language": "he",
+      "locality": "מעלות תרשיחא",
+      "query": "\"מעלות תרשיחא\" אזעקות תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "מעלות תרשיחא",
+      "query": "\"מעלות תרשיחא\" אזעקות \"ראיתי\""
+    },
+    {
+      "language": "he",
+      "locality": "מעלות תרשיחא",
+      "query": "\"מעלות תרשיחא\" אזעקה תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "מעלות תרשיחא",
+      "query": "\"מעלות תרשיחא\" אזעקה \"ראיתי\""
+    },
+    {
+      "language": "he",
+      "locality": "מעלות תרשיחא",
+      "query": "\"מעלות תרשיחא\" ממ\"ד תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "מעלות תרשיחא",
+      "query": "\"מעלות תרשיחא\" ממ\"ד \"ראיתי\""
+    },
+    {
+      "language": "he",
+      "locality": "מעלות תרשיחא",
+      "query": "\"מעלות תרשיחא\" מרחב מוגן תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "מעלות תרשיחא",
+      "query": "\"מעלות תרשיחא\" מרחב מוגן \"ראיתי\""
+    },
+    {
+      "language": "he",
+      "locality": "מעלות תרשיחא",
+      "query": "\"מעלות תרשיחא\" פינוי תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "מעלות תרשיחא",
+      "query": "\"מעלות תרשיחא\" פינוי \"ראיתי\""
+    },
+    {
+      "language": "ar",
+      "locality": "מעלות תרשיחא",
+      "query": "מעלות תרשיחא قيادة الجبهة الداخلية"
+    },
+    {
+      "language": "ar",
+      "locality": "מעלות תרשיחא",
+      "query": "מעלות תרשיחא الجبهة الداخلية"
+    },
+    {
+      "language": "ar",
+      "locality": "מעלות תרשיחא",
+      "query": "מעלות תרשיחא جبهة الداخل"
+    },
+    {
+      "language": "ar",
+      "locality": "מעלות תרשיחא",
+      "query": "מעלות תרשיחא صفارات الإنذار"
+    },
+    {
+      "language": "ru",
+      "locality": "מעלות תרשיחא",
+      "query": "מעלות תרשיחא Командование тылом"
+    },
+    {
+      "language": "ru",
+      "locality": "מעלות תרשיחא",
+      "query": "מעלות תרשיחא командование тыла"
+    },
+    {
+      "language": "ru",
+      "locality": "מעלות תרשיחא",
+      "query": "מעלות תרשיחא Пикуд а-Орев"
+    },
+    {
+      "language": "ru",
+      "locality": "מעלות תרשיחא",
+      "query": "מעלות תרשיחא тыл"
+    },
+    {
+      "language": "he",
+      "locality": "חורפיש",
+      "query": "\"חורפיש\" פיקוד העורף תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "חורפיש",
+      "query": "\"חורפיש\" פיקוד העורף \"ראיתי\""
+    },
+    {
+      "language": "he",
+      "locality": "חורפיש",
+      "query": "\"חורפיש\" אזעקות תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "חורפיש",
+      "query": "\"חורפיש\" אזעקות \"ראיתי\""
+    },
+    {
+      "language": "he",
+      "locality": "חורפיש",
+      "query": "\"חורפיש\" אזעקה תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "חורפיש",
+      "query": "\"חורפיש\" אזעקה \"ראיתי\""
+    },
+    {
+      "language": "he",
+      "locality": "חורפיש",
+      "query": "\"חורפיש\" ממ\"ד תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "חורפיש",
+      "query": "\"חורפיש\" ממ\"ד \"ראיתי\""
+    },
+    {
+      "language": "he",
+      "locality": "חורפיש",
+      "query": "\"חורפיש\" מרחב מוגן תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "חורפיש",
+      "query": "\"חורפיש\" מרחב מוגן \"ראיתי\""
+    },
+    {
+      "language": "he",
+      "locality": "חורפיש",
+      "query": "\"חורפיש\" פינוי תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "חורפיש",
+      "query": "\"חורפיש\" פינוי \"ראיתי\""
+    },
+    {
+      "language": "ar",
+      "locality": "חורפיש",
+      "query": "חורפיש قيادة الجبهة الداخلية"
+    },
+    {
+      "language": "ar",
+      "locality": "חורפיש",
+      "query": "חורפיש الجبهة الداخلية"
+    },
+    {
+      "language": "ar",
+      "locality": "חורפיש",
+      "query": "חורפיש جبهة الداخل"
+    },
+    {
+      "language": "ar",
+      "locality": "חורפיש",
+      "query": "חורפיש صفارات الإنذار"
+    },
+    {
+      "language": "ru",
+      "locality": "חורפיש",
+      "query": "חורפיש Командование тылом"
+    },
+    {
+      "language": "ru",
+      "locality": "חורפיש",
+      "query": "חורפיש командование тыла"
+    },
+    {
+      "language": "ru",
+      "locality": "חורפיש",
+      "query": "חורפיש Пикуд а-Орев"
+    },
+    {
+      "language": "ru",
+      "locality": "חורפיש",
+      "query": "חורפיש тыл"
+    },
+    {
+      "language": "he",
+      "locality": "מרגליות",
+      "query": "\"מרגליות\" פיקוד העורף תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "מרגליות",
+      "query": "\"מרגליות\" פיקוד העורף \"ראיתי\""
+    },
+    {
+      "language": "he",
+      "locality": "מרגליות",
+      "query": "\"מרגליות\" אזעקות תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "מרגליות",
+      "query": "\"מרגליות\" אזעקות \"ראיתי\""
+    },
+    {
+      "language": "he",
+      "locality": "מרגליות",
+      "query": "\"מרגליות\" אזעקה תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "מרגליות",
+      "query": "\"מרגליות\" אזעקה \"ראיתי\""
+    },
+    {
+      "language": "he",
+      "locality": "מרגליות",
+      "query": "\"מרגליות\" ממ\"ד תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "מרגליות",
+      "query": "\"מרגליות\" ממ\"ד \"ראיתי\""
+    },
+    {
+      "language": "he",
+      "locality": "מרגליות",
+      "query": "\"מרגליות\" מרחב מוגן תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "מרגליות",
+      "query": "\"מרגליות\" מרחב מוגן \"ראיתי\""
+    },
+    {
+      "language": "he",
+      "locality": "מרגליות",
+      "query": "\"מרגליות\" פינוי תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "מרגליות",
+      "query": "\"מרגליות\" פינוי \"ראיתי\""
+    },
+    {
+      "language": "ar",
+      "locality": "מרגליות",
+      "query": "מרגליות قيادة الجبهة الداخلية"
+    },
+    {
+      "language": "ar",
+      "locality": "מרגליות",
+      "query": "מרגליות الجبهة الداخلية"
+    },
+    {
+      "language": "ar",
+      "locality": "מרגליות",
+      "query": "מרגליות جبهة الداخل"
+    },
+    {
+      "language": "ar",
+      "locality": "מרגליות",
+      "query": "מרגליות صفارات الإنذار"
+    },
+    {
+      "language": "ru",
+      "locality": "מרגליות",
+      "query": "מרגליות Командование тылом"
+    },
+    {
+      "language": "ru",
+      "locality": "מרגליות",
+      "query": "מרגליות командование тыла"
+    },
+    {
+      "language": "ru",
+      "locality": "מרגליות",
+      "query": "מרגליות Пикуд а-Орев"
+    },
+    {
+      "language": "ru",
+      "locality": "מרגליות",
+      "query": "מרגליות тыл"
+    },
+    {
+      "language": "he",
+      "locality": "יראון",
+      "query": "\"יראון\" פיקוד העורף תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "יראון",
+      "query": "\"יראון\" פיקוד העורף \"ראיתי\""
+    },
+    {
+      "language": "he",
+      "locality": "יראון",
+      "query": "\"יראון\" אזעקות תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "יראון",
+      "query": "\"יראון\" אזעקות \"ראיתי\""
+    },
+    {
+      "language": "he",
+      "locality": "יראון",
+      "query": "\"יראון\" אזעקה תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "יראון",
+      "query": "\"יראון\" אזעקה \"ראיתי\""
+    },
+    {
+      "language": "he",
+      "locality": "יראון",
+      "query": "\"יראון\" ממ\"ד תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "יראון",
+      "query": "\"יראון\" ממ\"ד \"ראיתי\""
+    },
+    {
+      "language": "he",
+      "locality": "יראון",
+      "query": "\"יראון\" מרחב מוגן תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "יראון",
+      "query": "\"יראון\" מרחב מוגן \"ראיתי\""
+    },
+    {
+      "language": "he",
+      "locality": "יראון",
+      "query": "\"יראון\" פינוי תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "יראון",
+      "query": "\"יראון\" פינוי \"ראיתי\""
+    },
+    {
+      "language": "ar",
+      "locality": "יראון",
+      "query": "יראון قيادة الجبهة الداخلية"
+    },
+    {
+      "language": "ar",
+      "locality": "יראון",
+      "query": "יראון الجبهة الداخلية"
+    },
+    {
+      "language": "ar",
+      "locality": "יראון",
+      "query": "יראון جبهة الداخل"
+    },
+    {
+      "language": "ar",
+      "locality": "יראון",
+      "query": "יראון صفارات الإنذار"
+    },
+    {
+      "language": "ru",
+      "locality": "יראון",
+      "query": "יראון Командование тылом"
+    },
+    {
+      "language": "ru",
+      "locality": "יראון",
+      "query": "יראון командование тыла"
+    },
+    {
+      "language": "ru",
+      "locality": "יראון",
+      "query": "יראון Пикуд а-Орев"
+    },
+    {
+      "language": "ru",
+      "locality": "יראון",
+      "query": "יראון тыл"
+    },
+    {
+      "language": "he",
+      "locality": "אביבים",
+      "query": "\"אביבים\" פיקוד העורף תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "אביבים",
+      "query": "\"אביבים\" פיקוד העורף \"ראיתי\""
+    },
+    {
+      "language": "he",
+      "locality": "אביבים",
+      "query": "\"אביבים\" אזעקות תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "אביבים",
+      "query": "\"אביבים\" אזעקות \"ראיתי\""
+    },
+    {
+      "language": "he",
+      "locality": "אביבים",
+      "query": "\"אביבים\" אזעקה תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "אביבים",
+      "query": "\"אביבים\" אזעקה \"ראיתי\""
+    },
+    {
+      "language": "he",
+      "locality": "אביבים",
+      "query": "\"אביבים\" ממ\"ד תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "אביבים",
+      "query": "\"אביבים\" ממ\"ד \"ראיתי\""
+    },
+    {
+      "language": "he",
+      "locality": "אביבים",
+      "query": "\"אביבים\" מרחב מוגן תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "אביבים",
+      "query": "\"אביבים\" מרחב מוגן \"ראיתי\""
+    },
+    {
+      "language": "he",
+      "locality": "אביבים",
+      "query": "\"אביבים\" פינוי תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "אביבים",
+      "query": "\"אביבים\" פינוי \"ראיתי\""
+    },
+    {
+      "language": "ar",
+      "locality": "אביבים",
+      "query": "אביבים قيادة الجبهة الداخلية"
+    },
+    {
+      "language": "ar",
+      "locality": "אביבים",
+      "query": "אביבים الجبهة الداخلية"
+    },
+    {
+      "language": "ar",
+      "locality": "אביבים",
+      "query": "אביבים جبهة الداخل"
+    },
+    {
+      "language": "ar",
+      "locality": "אביבים",
+      "query": "אביבים صفارات الإنذار"
+    },
+    {
+      "language": "ru",
+      "locality": "אביבים",
+      "query": "אביבים Командование тылом"
+    },
+    {
+      "language": "ru",
+      "locality": "אביבים",
+      "query": "אביבים командование тыла"
+    },
+    {
+      "language": "ru",
+      "locality": "אביבים",
+      "query": "אביבים Пикуд а-Орев"
+    },
+    {
+      "language": "ru",
+      "locality": "אביבים",
+      "query": "אביבים тыл"
+    },
+    {
+      "language": "he",
+      "locality": "ראש פינה",
+      "query": "\"ראש פינה\" פיקוד העורף תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "ראש פינה",
+      "query": "\"ראש פינה\" פיקוד העורף \"ראיתי\""
+    },
+    {
+      "language": "he",
+      "locality": "ראש פינה",
+      "query": "\"ראש פינה\" אזעקות תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "ראש פינה",
+      "query": "\"ראש פינה\" אזעקות \"ראיתי\""
+    },
+    {
+      "language": "he",
+      "locality": "ראש פינה",
+      "query": "\"ראש פינה\" אזעקה תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "ראש פינה",
+      "query": "\"ראש פינה\" אזעקה \"ראיתי\""
+    },
+    {
+      "language": "he",
+      "locality": "ראש פינה",
+      "query": "\"ראש פינה\" ממ\"ד תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "ראש פינה",
+      "query": "\"ראש פינה\" ממ\"ד \"ראיתי\""
+    },
+    {
+      "language": "he",
+      "locality": "ראש פינה",
+      "query": "\"ראש פינה\" מרחב מוגן תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "ראש פינה",
+      "query": "\"ראש פינה\" מרחב מוגן \"ראיתי\""
+    },
+    {
+      "language": "he",
+      "locality": "ראש פינה",
+      "query": "\"ראש פינה\" פינוי תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "ראש פינה",
+      "query": "\"ראש פינה\" פינוי \"ראיתי\""
+    },
+    {
+      "language": "ar",
+      "locality": "ראש פינה",
+      "query": "ראש פינה قيادة الجبهة الداخلية"
+    },
+    {
+      "language": "ar",
+      "locality": "ראש פינה",
+      "query": "ראש פינה الجبهة الداخلية"
+    },
+    {
+      "language": "ar",
+      "locality": "ראש פינה",
+      "query": "ראש פינה جبهة الداخل"
+    },
+    {
+      "language": "ar",
+      "locality": "ראש פינה",
+      "query": "ראש פינה صفارات الإنذار"
+    },
+    {
+      "language": "ru",
+      "locality": "ראש פינה",
+      "query": "ראש פינה Командование тылом"
+    },
+    {
+      "language": "ru",
+      "locality": "ראש פינה",
+      "query": "ראש פינה командование тыла"
+    },
+    {
+      "language": "ru",
+      "locality": "ראש פינה",
+      "query": "ראש פינה Пикуд а-Орев"
+    },
+    {
+      "language": "ru",
+      "locality": "ראש פינה",
+      "query": "ראש פינה тыл"
+    },
+    {
+      "language": "he",
+      "locality": "חיפה",
+      "query": "\"חיפה\" פיקוד העורף תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "חיפה",
+      "query": "\"חיפה\" פיקוד העורף \"ראיתי\""
+    },
+    {
+      "language": "he",
+      "locality": "חיפה",
+      "query": "\"חיפה\" אזעקות תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "חיפה",
+      "query": "\"חיפה\" אזעקות \"ראיתי\""
+    },
+    {
+      "language": "he",
+      "locality": "חיפה",
+      "query": "\"חיפה\" אזעקה תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "חיפה",
+      "query": "\"חיפה\" אזעקה \"ראיתי\""
+    },
+    {
+      "language": "he",
+      "locality": "חיפה",
+      "query": "\"חיפה\" ממ\"ד תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "חיפה",
+      "query": "\"חיפה\" ממ\"ד \"ראיתי\""
+    },
+    {
+      "language": "he",
+      "locality": "חיפה",
+      "query": "\"חיפה\" מרחב מוגן תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "חיפה",
+      "query": "\"חיפה\" מרחב מוגן \"ראיתי\""
+    },
+    {
+      "language": "he",
+      "locality": "חיפה",
+      "query": "\"חיפה\" פינוי תושבים"
+    },
+    {
+      "language": "he",
+      "locality": "חיפה",
+      "query": "\"חיפה\" פינוי \"ראיתי\""
+    },
+    {
+      "language": "ar",
+      "locality": "חיפה",
+      "query": "חיפה قيادة الجبهة الداخلية"
+    },
+    {
+      "language": "ar",
+      "locality": "חיפה",
+      "query": "חיפה الجبهة الداخلية"
+    },
+    {
+      "language": "ar",
+      "locality": "חיפה",
+      "query": "חיפה جبهة الداخل"
+    },
+    {
+      "language": "ar",
+      "locality": "חיפה",
+      "query": "חיפה صفارات الإنذار"
+    },
+    {
+      "language": "ru",
+      "locality": "חיפה",
+      "query": "חיפה Командование тылом"
+    },
+    {
+      "language": "ru",
+      "locality": "חיפה",
+      "query": "חיפה командование тыла"
+    },
+    {
+      "language": "ru",
+      "locality": "חיפה",
+      "query": "חיפה Пикуд а-Орев"
+    },
+    {
+      "language": "ru",
+      "locality": "חיפה",
+      "query": "חיפה тыл"
+    }
+  ],
+  "findings": [
+    {
+      "id": "telegram-Hatufim_israel-174969",
+      "date": "2026-05-22",
+      "location": "זרעית",
+      "platform": "telegram_public",
+      "source_kind": "post",
+      "url": "https://t.me/Hatufim_israel/174969",
+      "quote_original": "השוהים במרחב מוגן באזורים הבאים יכולים לצאת: זרעית. האירוע הסתיים.",
+      "quote_language": "he",
+      "quote_translation_he": null,
+      "speaker_role": "דובר רשות",
+      "behavior_or_emotion": "תושבים יוצאים ממרחבים מוגנים",
+      "resilience_component": "lifesaving_behavior",
+      "confidence": "גבוהה",
+      "relevance_reason": "עדכון פיקוד העורף על סיום אירוע וחזרת תושבים מהמרחבים המוגנים.",
+      "verification_notes": "עדכון פיקוד העורף, 22/05/2026 17:50"
+    }
+  ],
+  "rejected_examples": [
+    {
+      "url": "https://t.me/Hatufim_israel/175009",
+      "reason": "off_topic"
+    },
+    {
+      "url": "https://t.me/Hatufim_israel/174998",
+      "reason": "off_topic"
+    },
+    {
+      "url": "https://t.me/Hatufim_israel/174981",
+      "reason": "off_topic"
+    }
+  ],
+  "summary": null,
+  "signals": [
+    {
+      "signal_type": "compliance_enter_shelter",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "השוהים במרחב מוגן באזורים הבאים יכולים לצאת: זרעית. האירוע הסתיים. (זרעית) — תושבים יוצאים ממרחבים מוגנים",
+      "scope_level": "repeated_pattern",
+      "article_url": "https://t.me/Hatufim_israel/174969",
+      "article_source": "telegram_public",
+      "speaker_role": "דובר רשות",
+      "osint_finding_id": "telegram-Hatufim_israel-174969",
+      "extraction_confidence": 0.9,
+      "source_type": "social"
+    }
+  ],
+  "treated_at": "2026-05-23T11:51:05.956Z",
+  "total_articles": 1,
+  "source_files": [
+    "business_modules/social_media/data/signals-social-2026-05-22.json",
+    "business_modules/social_media/data/social-osint-report-2026-05-22.md"
+  ]
+}

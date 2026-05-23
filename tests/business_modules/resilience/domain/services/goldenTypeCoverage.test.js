@@ -1,16 +1,14 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { readFileSync, existsSync } from 'node:fs';
-import { resolve, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
 
 import { SIGNAL_TYPES } from '../../../../../business_modules/resilience/domain/services/signalCatalog.js';
+import {
+  EXTRACTION_SNAPSHOT_PATH,
+  TYPE_COVERAGE_SNAPSHOT_PATH,
+} from '../../../../../business_modules/resilience/tuning/goldenPaths.js';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const FIXTURE_DIR = resolve(__dirname, '../../../../fixtures/resilience-golden');
-
-function loadSignalTypesFromJsonl(filename) {
-  const path = resolve(FIXTURE_DIR, filename);
+function loadSignalTypesFromJsonl(path) {
   if (!existsSync(path)) return new Set();
   const types = new Set();
   for (const line of readFileSync(path, 'utf8').trim().split('\n')) {
@@ -25,8 +23,8 @@ function loadSignalTypesFromJsonl(filename) {
 
 describe('golden corpus type coverage', () => {
   it('covers at least 60 distinct signal types across golden + coverage fixtures', () => {
-    const fromGolden = loadSignalTypesFromJsonl('extraction-snapshot.jsonl');
-    const fromCoverage = loadSignalTypesFromJsonl('type-coverage-snapshot.jsonl');
+    const fromGolden = loadSignalTypesFromJsonl(EXTRACTION_SNAPSHOT_PATH);
+    const fromCoverage = loadSignalTypesFromJsonl(TYPE_COVERAGE_SNAPSHOT_PATH);
     const all = new Set([...fromGolden, ...fromCoverage]);
     assert.ok(all.size >= 60, `expected >=60 types, got ${all.size}`);
     assert.ok(all.size >= SIGNAL_TYPES.length - 5,
@@ -34,8 +32,8 @@ describe('golden corpus type coverage', () => {
   });
 
   it('every catalog type appears in at least one fixture row', () => {
-    const fromGolden = loadSignalTypesFromJsonl('extraction-snapshot.jsonl');
-    const fromCoverage = loadSignalTypesFromJsonl('type-coverage-snapshot.jsonl');
+    const fromGolden = loadSignalTypesFromJsonl(EXTRACTION_SNAPSHOT_PATH);
+    const fromCoverage = loadSignalTypesFromJsonl(TYPE_COVERAGE_SNAPSHOT_PATH);
     const all = new Set([...fromGolden, ...fromCoverage]);
     for (const t of SIGNAL_TYPES) {
       assert.ok(all.has(t), `catalog type ${t} missing from golden/coverage fixtures`);

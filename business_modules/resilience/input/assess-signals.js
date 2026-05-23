@@ -46,11 +46,12 @@ import {
   formatScopeDecisionLogLine,
   formatSubgroupCoverageLogLine,
 } from '../domain/services/assessmentMethodology.js';
-import { proposeComponentTuningFromReportFiles } from '../domain/services/componentTuningProposal.js';
+import { proposeComponentTuningFromReportFiles } from '../tuning/domain/componentTuningProposal.js';
 import {
   summarizeStageEvents,
   readCostLogStagesForDate,
 } from '../domain/services/pipelineStageTelemetry.js';
+import { createValidationCollectionService } from '../validation/app/validationCollectionService.js';
 
 /** @param {number} dayOffset days before --date (0 = target day) */
 export function temporalWeightForOffset(dayOffset) {
@@ -243,9 +244,11 @@ async function run() {
   // Load pipeline config to check which sources are enabled
   const pipelineConfigPath = resolve('pipeline-config.json');
   let enabledSources = null; // null = all enabled (no config file)
+  let pipelineConfig = null;
   if (existsSync(pipelineConfigPath)) {
     try {
       const cfg = JSON.parse(readFileSync(pipelineConfigPath, 'utf8'));
+      pipelineConfig = cfg;
       enabledSources = new Set(
         Object.entries(cfg.sources || {})
           .filter(([, v]) => v.enabled !== false)
@@ -527,6 +530,36 @@ async function run() {
   });
   const subgroupLogLine = formatSubgroupCoverageLogLine(assessment.methodology);
   if (subgroupLogLine) console.error(subgroupLogLine);
+
+  const reportJsonPath = `${outputBase}.json`;
+  const signalPaths = loadedFiles.map(({ file, sourceType }) => {
+    if (sourceType === 'field') return resolve(fieldSignalsDir, file);
+    if (sourceType === 'social') return resolve(socialSignalsDir, file);
+    return resolve(signalsDir, file);
+  });
+
+  try {
+    const validationSvc = createValidationCollectionService();
+    const validationResult = validationSvc.collectAfterAssessment({
+      assessment,
+      signals: allSignals,
+      reportJsonPath,
+      signalPaths,
+      pipelineConfig,
+      tuningProposal,
+    });
+    if (!validationResult.skipped) {
+      console.error(
+        `\nValidation collection (${validationResult.operationalPhase}): ` +
+        `${validationResult.reviewItemCount} review item(s) → ${validationResult.recordPath}`,
+      );
+      if (validationResult.elevationAdvisory) {
+        console.error(`  ⚠ ${validationResult.elevationAdvisory.message}`);
+      }
+    }
+  } catch (err) {
+    console.error(`  ⚠ Validation collection failed (report still written): ${err.message}`);
+  }
 
   writeReport(assessment, allSignals, [...new Set(sourceFiles)], outputBase, { scoreBySource });
 

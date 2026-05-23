@@ -1,0 +1,55 @@
+{
+  "topic": "uav danger",
+  "platforms": [
+    "telegram_public"
+  ],
+  "lang": "en",
+  "fetchedAt": "2026-05-22T12:27:59.784Z",
+  "source": "telegram_dry_run",
+  "mode": "dry_run",
+  "accessNotes": [
+    "Dry-run only. Pass execute=true to fetch from configured public channels.",
+    "Would scan 10 public channel(s) over 3-day window."
+  ],
+  "dryRun": {
+    "topic": "uav danger",
+    "slug": "uav-danger",
+    "channels": [
+      "newsk8",
+      "muninahariya",
+      "bitahonmetulla",
+      "newsil360",
+      "divuhim1234",
+      "hotnews1",
+      "North_Media",
+      "ravarava1233",
+      "Hatufim_israel",
+      "lelotsenzura"
+    ],
+    "window": {
+      "startTime": "2026-05-20T00:00:00Z",
+      "endTime": "2026-05-22T12:26:59Z",
+      "dates": [
+        "2026-05-22",
+        "2026-05-21",
+        "2026-05-20"
+      ]
+    },
+    "channelCount": 10
+  },
+  "estimate": {
+    "channelCount": 10,
+    "maxPerChannel": 50,
+    "maxTotal": 120,
+    "window": {
+      "startTime": "2026-05-20T00:00:00Z",
+      "endTime": "2026-05-22T12:26:59Z"
+    }
+  },
+  "posts": [],
+  "stats": {
+    "matched": 0,
+    "afterDedup": 0,
+    "duplicatesRemoved": 0
+  }
+}

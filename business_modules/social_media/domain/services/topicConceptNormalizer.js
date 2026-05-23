@@ -1,3 +1,5 @@
+// topicConceptNormalizer.js - normalize social topic concepts
+
 const STOP_WORDS = new Set([
   'a', 'an', 'the', 'to', 'in', 'on', 'at', 'of', 'for', 'and', 'or', 'is', 'was', 'are',
   'be', 'by', 'with', 'from', 'as', 'it', 'its', 'that', 'this', 's',

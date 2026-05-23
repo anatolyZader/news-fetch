@@ -1,0 +1,159 @@
+{
+  "topic": "uav danger",
+  "topicNormalized": {
+    "conceptIds": [
+      "uav_drone",
+      "danger_threat"
+    ],
+    "matchTokens": [
+      "uav",
+      "danger",
+      "כטבמ",
+      "כטבם",
+      "רחפן",
+      "רחפנים",
+      "חדירת כלי טיס",
+      "fpv",
+      "drone",
+      "drones",
+      "مسيرة",
+      "طائرة مسيرة",
+      "סכנה",
+      "איום",
+      "פחד",
+      "חשש",
+      "מסוכן",
+      "מפחיד",
+      "threat",
+      "risk",
+      "fear",
+      "خطر",
+      "تهديد",
+      "خوف"
+    ],
+    "searchTermsByLang": {
+      "he": [
+        "כטב\"מ",
+        "כטבם",
+        "רחפן",
+        "רחפנים",
+        "חדירת כלי טיס",
+        "FPV",
+        "סכנה",
+        "איום",
+        "פחד",
+        "חשש",
+        "מסוכן",
+        "מפחיד"
+      ],
+      "en": [
+        "UAV",
+        "drone",
+        "drones",
+        "danger",
+        "threat",
+        "risk",
+        "fear"
+      ],
+      "ar": [
+        "مسيرة",
+        "طائرة مسيرة",
+        "خطر",
+        "تهديد",
+        "خوف"
+      ]
+    }
+  },
+  "platforms": [
+    "telegram_public"
+  ],
+  "lang": "en",
+  "fetchedAt": "2026-05-22T12:35:35.736Z",
+  "source": "telegram_mtproto",
+  "mode": "execute",
+  "accessNotes": [
+    "Live Telegram MTProto channel history fetch (homefront population-behavior filter applied).",
+    "Fetched 2 matching post(s) from 10 configured channel(s)."
+  ],
+  "dryRun": {
+    "topic": "uav danger",
+    "slug": "uav-danger",
+    "channels": [
+      "newsk8",
+      "muninahariya",
+      "bitahonmetulla",
+      "newsil360",
+      "divuhim1234",
+      "hotnews1",
+      "North_Media",
+      "ravarava1233",
+      "Hatufim_israel",
+      "lelotsenzura"
+    ],
+    "window": {
+      "startTime": "2026-05-20T00:00:00Z",
+      "endTime": "2026-05-22T12:34:17Z",
+      "dates": [
+        "2026-05-22",
+        "2026-05-21",
+        "2026-05-20"
+      ]
+    },
+    "channelCount": 10
+  },
+  "estimate": {
+    "channelCount": 10,
+    "postsReturned": 2,
+    "channelErrors": [],
+    "window": {
+      "startTime": "2026-05-20T00:00:00Z",
+      "endTime": "2026-05-22T12:34:17Z"
+    }
+  },
+  "posts": [
+    {
+      "id": "telegram-newsil360-142252",
+      "platform": "telegram_public",
+      "url": "https://t.me/newsil360/142252",
+      "text": "פרטים חדשים על חיסול המחבלים הלילה בדרום לבנון: \n\nלקראת השעה 3 לפנות בוקר, תצפיות צה\"ל זיהוי באזור הכפר השיעי יארון שני מחבלים חמושים שצעדו מלבנון לכיוון שטח ישראל במרחק של בין 300 ל-500 מטר מהגבול. אזור שנמצא בשליטה ישראלית כחלק מרצועת הביטחון החדשה. \n\nבצה\"ל הכריזו מיד \"אביר לילה צבאי\" - המשמעות היא חשש לחדירת מחבלים. רבש\"צים וכיתות הכוננות בישובים הסמוכים: דובב, מתת וברעם, הוקפצו מיד. \n\nתצפיות צה\"ל היו במעקב הדוק אחרי שני המחבלים. בשלב מסויים הם ניסו להסתתר מאחורי עץ ומטוס קרב הוקפץ למקום והטיל פצצה. בצה\"ל עלה חשש שהמחבלים שרדו את התקיפה, ומטוס קרב נוסף הטיל פצצה שניה. שני המחבלים חוסלו באופן ודאי. \n\nמאחר ומדובר באירוע חריג, נסיון לחדירה מלבנון- וכדי לא לקחת סיכון מיותר, מפקד אוגדה 91, תא\"ל יובל גז, לא אישר לסיים את האירוע עד לזיהוי גופות שני המחבלים בעיניים. גופות המחבלים תועדו- וזהותם נמצאת בחקירה. \n\nבאזור השעה 5:00 בצה\"ל הכריזו על חזרה לשגרה.\n\nחדשות 360 | קבוצת הדיונים​",
+      "authorRole": "",
+      "location": "מטולה",
+      "postedAt": "2026-05-22T09:15:12.000Z",
+      "categoryId": "other",
+      "confidence": "בינונית",
+      "behaviorOrEmotion": "חדשות 360",
+      "replies": [],
+      "dedupeKey": "פרטים חדשים על חיסול המחבלים הלילה בדרום לבנון לקראת השעה 3 לפנות בוקר תצפיות צה ל זיהוי באזור הכפר השיעי יארון שני מחבל",
+      "meta": {
+        "topic": "uav danger",
+        "channel": "newsil360",
+        "lang": "he",
+        "views": 1673,
+        "sourceId": "telegram_news360_discussion_channel",
+        "sourceCategory": "field_reports_and_public_discussion",
+        "sourceType": "public_channel_with_discussion_references",
+        "citizenVoiceLevel": "medium",
+        "emergencyResearchValue": "high",
+        "accessStatus": "public web preview found",
+        "coverageArea": [
+          "ישראל",
+          "צפון",
+          "קו העימות",
+          "גליל מערבי",
+          "מטולה",
+          "מנרה",
+          "שלומי",
+          "נהריה",
+          "ראש הנקרה"
+        ],
+        "collectionNotes": "Not a clean citizen-only source, but search snippets show UAV alerts, field reports, and references to a discussion group. Use strict filters: keep only direct citizen reports/comments, reject general news reposts.",
+        "homefrontBehaviorEvidence": true
+      }
+    }
+  ],
+  "stats": {
+    "matched": 1,
+    "afterDedup": 1,
+    "duplicatesRemoved": 0
+  }
+}

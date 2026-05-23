@@ -1219,6 +1219,8 @@ This loads up to 3 days each of news/radio/field/pbo/pbo_regional bundles within
 
 `.claude/commands/8comp.md` runs steps 0–7 above end-to-end; `8comp-3.md` and `8comp-3-north.md` are 3-day window variants; `8comp-7.md` and `8comp-7-north.md` are 14-day (two-week) variants.
 
+**Social OSINT (X + Telegram) for north 3-day runs:** `/8comp-3-north` calls `npm run social-media:gather-daily -- --date <target> --days 3 --north --execute`, which writes population-behavior findings into `business_modules/social_media/data/signals-social-<date>.json`, runs `social-media:treat`, and feeds both the **Social media → Daily feed** UI (via `findings[]`) and `assess-signals.js` (via `signals[]` when `pipeline-config.json` has `social` enabled).
+
 ---
 
 ## 18) Practical reading guide for officers and reviewers

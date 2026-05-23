@@ -1,0 +1,89 @@
+{
+  "topic": "כטב\"ם",
+  "topicNormalized": {
+    "conceptIds": [
+      "uav_drone"
+    ],
+    "matchTokens": [
+      "כטבם",
+      "כטבמ",
+      "רחפן",
+      "רחפנים",
+      "חדירת כלי טיס",
+      "fpv",
+      "uav",
+      "drone",
+      "drones",
+      "مسيرة",
+      "طائرة مسيرة"
+    ],
+    "searchTermsByLang": {
+      "he": [
+        "כטב\"מ",
+        "כטבם",
+        "רחפן",
+        "רחפנים",
+        "חדירת כלי טיס",
+        "FPV"
+      ],
+      "en": [
+        "UAV",
+        "drone",
+        "drones"
+      ],
+      "ar": [
+        "مسيرة",
+        "طائرة مسيرة"
+      ]
+    }
+  },
+  "platforms": [
+    "telegram_public"
+  ],
+  "lang": "en",
+  "fetchedAt": "2026-05-23T07:44:09.608Z",
+  "source": "telegram_mtproto",
+  "mode": "execute",
+  "accessNotes": [
+    "Live Telegram MTProto channel history fetch (homefront population-behavior filter applied).",
+    "Found 8 topic match(es) on UAV/alerts, but all were attack/siren templates without population-behavior evidence (sheltering, fear, resident reports, compliance).",
+    "Kept 0 post(s) with population-behavior evidence from 5 configured channel(s)."
+  ],
+  "dryRun": {
+    "topic": "כטב\"ם",
+    "slug": "topic-1c12d528",
+    "channels": [
+      "newsk8",
+      "muninahariya",
+      "bitahonmetulla",
+      "ravarava1233",
+      "Hatufim_israel"
+    ],
+    "window": {
+      "startTime": "2026-05-21T00:00:00Z",
+      "endTime": "2026-05-23T07:43:00Z",
+      "dates": [
+        "2026-05-23",
+        "2026-05-22",
+        "2026-05-21"
+      ]
+    },
+    "channelCount": 5
+  },
+  "estimate": {
+    "channelCount": 5,
+    "postsReturned": 0,
+    "topicMatchedOnly": 8,
+    "channelErrors": [],
+    "window": {
+      "startTime": "2026-05-21T00:00:00Z",
+      "endTime": "2026-05-23T07:43:00Z"
+    }
+  },
+  "posts": [],
+  "stats": {
+    "matched": 0,
+    "afterDedup": 0,
+    "duplicatesRemoved": 0
+  }
+}

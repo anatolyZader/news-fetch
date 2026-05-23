@@ -38,7 +38,7 @@ function getComponentIcon(componentId) {
   return COMPONENT_ICONS[componentId] ?? HelpOutlineOutlinedIcon;
 }
 
-const SOURCE_KINDS = ['field', 'radio', 'naftali', 'press', 'pbo'];
+const SOURCE_KINDS = ['field', 'radio', 'naftali', 'press', 'pbo', 'social'];
 
 function SourceBadge({ kind, children }) {
   const safeKind = SOURCE_KINDS.includes(kind) ? kind : 'field';
@@ -182,7 +182,11 @@ function InstrumentStateBadges({ instrument, t }) {
   const inst = instrument ?? {};
   const suffKey = `report.instrument.sufficiency.${inst.evidence_sufficiency ?? 'adequate'}`;
   return (
-    <Stack direction="row" flexWrap="wrap" gap={1.5} sx={{ justifyContent: 'flex-end' }}>
+    <Stack
+      direction="row"
+      flexWrap="wrap"
+      sx={(theme) => ({ gap: theme.spacing(1), justifyContent: 'flex-end' })}
+    >
       <StatusTag variant="neutral">
         {t(`confidence.${inst.confidence}`) ?? inst.confidence}
       </StatusTag>
@@ -581,6 +585,7 @@ function ComponentCard({
                         {s.source_type === 'radio' && <SourceBadge kind="radio">{t('report.badge.radio')}</SourceBadge>}
                         {s.source_type === 'naftali' && <SourceBadge kind="naftali">{t('report.badge.naftali')}</SourceBadge>}
                         {(s.source_type === 'news' || s.source_type === 'press') && <SourceBadge kind="press">{t('report.badge.press')}</SourceBadge>}
+                        {s.source_type === 'social' && <SourceBadge kind="social">{t('report.badge.social')}</SourceBadge>}
                         {s.source_type === 'pbo' && <SourceBadge kind="pbo">{t('report.badge.pbo')}</SourceBadge>}
                         {s.source_type === 'pbo' ? s.article_source?.replace(/^pbo-/, '') : s.article_source}
                       </Box>
@@ -748,7 +753,11 @@ export function ReportView({
                   </Stack>
                 </Stack>
 
-                <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ marginTop: 1 }}>
+                <Stack
+                  direction="row"
+                  flexWrap="wrap"
+                  sx={(theme) => ({ gap: theme.spacing(1), marginTop: 1 })}
+                >
                   <StatusTag variant="neutral">
                     {t('norris.diag.robustness') ?? 'robustness'} {fmt01(cap.diagnostics?.robustness)}
                   </StatusTag>

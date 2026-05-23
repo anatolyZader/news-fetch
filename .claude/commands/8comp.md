@@ -10,7 +10,7 @@ Run the full daily resilience pipeline for today: fetch news, extract signals fr
 
 **Step 0 — Read pipeline config**
 
-Read `pipeline-config.json` in the project root. It contains a `sources` object with toggles for each data source (`news`, `radio`, `whatsapp`, `field`, `pbo`, `naftali`). **Skip all extraction steps for sources where `enabled` is `false`.** If the file is missing, treat all sources as enabled.
+Read `pipeline-config.json` in the project root. It contains a `sources` object with toggles for each data source (`news`, `radio`, `whatsapp`, `field`, `pbo`, `naftali`, `social`). **Skip all extraction steps for sources where `enabled` is `false`.** Social ingest uses `npm run social-media:gather-daily` (see `/8comp-3-north`), not `extract-signals.js`. If the file is missing, treat all sources as enabled.
 
 ---
 

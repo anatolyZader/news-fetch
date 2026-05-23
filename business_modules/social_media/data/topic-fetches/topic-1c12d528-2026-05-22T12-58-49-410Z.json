@@ -1,0 +1,92 @@
+{
+  "topic": "כטב\"ם",
+  "topicNormalized": {
+    "conceptIds": [
+      "uav_drone"
+    ],
+    "matchTokens": [
+      "כטבם",
+      "כטבמ",
+      "רחפן",
+      "רחפנים",
+      "חדירת כלי טיס",
+      "fpv",
+      "uav",
+      "drone",
+      "drones",
+      "مسيرة",
+      "طائرة مسيرة"
+    ],
+    "searchTermsByLang": {
+      "he": [
+        "כטב\"מ",
+        "כטבם",
+        "רחפן",
+        "רחפנים",
+        "חדירת כלי טיס",
+        "FPV"
+      ],
+      "en": [
+        "UAV",
+        "drone",
+        "drones"
+      ],
+      "ar": [
+        "مسيرة",
+        "طائرة مسيرة"
+      ]
+    }
+  },
+  "platforms": [
+    "telegram_public"
+  ],
+  "lang": "en",
+  "fetchedAt": "2026-05-22T12:58:49.409Z",
+  "source": "telegram_mtproto",
+  "mode": "execute",
+  "accessNotes": [
+    "Live Telegram MTProto channel history fetch (homefront population-behavior filter applied).",
+    "Fetched 0 matching post(s) from 10 configured channel(s)."
+  ],
+  "dryRun": {
+    "topic": "כטב\"ם",
+    "slug": "topic-1c12d528",
+    "channels": [
+      "newsk8",
+      "muninahariya",
+      "bitahonmetulla",
+      "newsil360",
+      "divuhim1234",
+      "hotnews1",
+      "North_Media",
+      "ravarava1233",
+      "Hatufim_israel",
+      "lelotsenzura"
+    ],
+    "window": {
+      "startTime": "2026-05-20T00:00:00Z",
+      "endTime": "2026-05-22T12:57:31Z",
+      "dates": [
+        "2026-05-22",
+        "2026-05-21",
+        "2026-05-20"
+      ]
+    },
+    "channelCount": 10
+  },
+  "estimate": {
+    "channelCount": 10,
+    "postsReturned": 0,
+    "channelErrors": [],
+    "window": {
+      "startTime": "2026-05-20T00:00:00Z",
+      "endTime": "2026-05-22T12:57:31Z"
+    }
+  },
+  "posts": [],
+  "stats": {
+    "matched": 0,
+    "afterDedup": 0,
+    "duplicatesRemoved": 0
+  }
+}

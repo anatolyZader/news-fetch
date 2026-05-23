@@ -18,7 +18,7 @@ import {
   shingles,
   containment,
 } from '../../infrastructure/signalVerification.js';
-import { SIGNAL_TYPES } from './behaviorSignals.js';
+import { SIGNAL_TYPES } from '../../domain/services/behaviorSignals.js';
 
 const DEFAULT_EVIDENCE_THRESHOLD = 0.4; // 3-gram containment threshold for evidence-overlap match
 
@@ -52,52 +52,40 @@ function findMatch(extracted, golds, threshold) {
   return bestIdx;
 }
 
-/**
- * Compute per-signal_type precision/recall/F1 over an aligned corpus.
- *
- * @param {Array<{gold: Array, predicted: Array}>} pairs — one entry per article.
- * @param {object} [opts]
- * @param {number} [opts.evidenceContainmentThreshold=0.4]
- * @returns {{
- *   per_type: { [signal_type]: { tp, fp, fn, precision, recall, f1, support } },
- *   macro: { precision, recall, f1 },
- *   micro: { precision, recall, f1, tp, fp, fn },
- * }}
- */
-export function precisionRecallF1(pairs, opts = {}) {
-  const threshold = opts.evidenceContainmentThreshold ?? DEFAULT_EVIDENCE_THRESHOLD;
+function signalType(entry) {
+  return entry.signal_type ?? entry.type;
+}
 
-  const per_type = {};
-  function bucket(t) {
-    if (!per_type[t]) per_type[t] = { tp: 0, fp: 0, fn: 0, support: 0 };
-    return per_type[t];
+function countGoldSupport(goldClone, bucket) {
+  for (const g of goldClone) {
+    const t = signalType(g);
+    if (t) bucket(t).support++;
   }
+}
 
-  for (const { gold = [], predicted = [] } of pairs) {
-    const goldClone = gold.map((g) => ({ ...g, __matched: false }));
-    for (const g of goldClone) {
-      const t = g.signal_type ?? g.type;
-      if (t) bucket(t).support++;
-    }
-
-    for (const p of predicted) {
-      const t = p.signal_type ?? p.type;
-      if (!t) continue;
-      const idx = findMatch(p, goldClone, threshold);
-      if (idx >= 0) {
-        bucket(t).tp++;
-        goldClone[idx].__matched = true;
-      } else {
-        bucket(t).fp++;
-      }
-    }
-    for (const g of goldClone) {
-      if (g.__matched) continue;
-      const t = g.signal_type ?? g.type;
-      if (t) bucket(t).fn++;
+function scorePredictions(predicted, goldClone, threshold, bucket) {
+  for (const p of predicted) {
+    const t = signalType(p);
+    if (!t) continue;
+    const idx = findMatch(p, goldClone, threshold);
+    if (idx >= 0) {
+      bucket(t).tp++;
+      goldClone[idx].__matched = true;
+    } else {
+      bucket(t).fp++;
     }
   }
+}
 
+function countFalseNegatives(goldClone, bucket) {
+  for (const g of goldClone) {
+    if (g.__matched) continue;
+    const t = signalType(g);
+    if (t) bucket(t).fn++;
+  }
+}
+
+function finalizeTypeMetrics(per_type) {
   let macroP = 0, macroR = 0, macroF = 0, macroN = 0;
   let microTp = 0, microFp = 0, microFn = 0;
 
@@ -124,6 +112,86 @@ export function precisionRecallF1(pairs, opts = {}) {
     tp: microTp, fp: microFp, fn: microFn,
   };
 
+  return { macro, micro };
+}
+
+function predHasMatchingEvidence(predEntries, gold, t, threshold) {
+  const goldClone = gold.filter((g) => signalType(g) === t)
+    .map((g) => ({ ...g, __matched: false }));
+  for (const p of predEntries) {
+    const idx = findMatch(p, goldClone, threshold);
+    if (idx >= 0) return true;
+  }
+  return false;
+}
+
+function kappaFromCounts({ n, bothYes, bothNo, goldYes, predYes }) {
+  if (n === 0) return null;
+  const Po = (bothYes + bothNo) / n;
+  const pGold = goldYes / n;
+  const pPred = predYes / n;
+  const Pe = (pGold * pPred) + ((1 - pGold) * (1 - pPred));
+  if (Pe === 1) {
+    return (Po === 1) ? 1 : 0;
+  }
+  return (Po - Pe) / (1 - Pe);
+}
+
+function kappaCountsForType(pairs, t, threshold) {
+  let n = 0;
+  let bothYes = 0;
+  let bothNo = 0;
+  let goldYes = 0;
+  let predYes = 0;
+
+  for (const { gold = [], predicted = [] } of pairs) {
+    n++;
+    const goldHas = gold.some((g) => signalType(g) === t);
+    const predEntries = predicted.filter((p) => signalType(p) === t);
+    const predHas = predEntries.length > 0;
+
+    if (goldHas) goldYes++;
+    if (predHas) predYes++;
+
+    if (goldHas && predHas && predHasMatchingEvidence(predEntries, gold, t, threshold)) {
+      bothYes++;
+    } else if (!goldHas && !predHas) {
+      bothNo++;
+    }
+  }
+
+  return { n, bothYes, bothNo, goldYes, predYes };
+}
+
+/**
+ * Compute per-signal_type precision/recall/F1 over an aligned corpus.
+ *
+ * @param {Array<{gold: Array, predicted: Array}>} pairs — one entry per article.
+ * @param {object} [opts]
+ * @param {number} [opts.evidenceContainmentThreshold=0.4]
+ * @returns {{
+ *   per_type: { [signal_type]: { tp, fp, fn, precision, recall, f1, support } },
+ *   macro: { precision, recall, f1 },
+ *   micro: { precision, recall, f1, tp, fp, fn },
+ * }}
+ */
+export function precisionRecallF1(pairs, opts = {}) {
+  const threshold = opts.evidenceContainmentThreshold ?? DEFAULT_EVIDENCE_THRESHOLD;
+
+  const per_type = {};
+  function bucket(t) {
+    if (!per_type[t]) per_type[t] = { tp: 0, fp: 0, fn: 0, support: 0 };
+    return per_type[t];
+  }
+
+  for (const { gold = [], predicted = [] } of pairs) {
+    const goldClone = gold.map((g) => ({ ...g, __matched: false }));
+    countGoldSupport(goldClone, bucket);
+    scorePredictions(predicted, goldClone, threshold, bucket);
+    countFalseNegatives(goldClone, bucket);
+  }
+
+  const { macro, micro } = finalizeTypeMetrics(per_type);
   return { per_type, macro, micro };
 }
 
@@ -146,52 +214,8 @@ export function cohensKappa(pairs, opts = {}) {
   const per_type = {};
 
   for (const t of types) {
-    let n = 0;            // total articles
-    let bothYes = 0;      // gold+pred both have signal type t
-    let bothNo  = 0;      // both lack
-    let goldYes = 0;      // gold has
-    let predYes = 0;      // pred has
-
-    for (const { gold = [], predicted = [] } of pairs) {
-      n++;
-      const goldHas = gold.some((g) => (g.signal_type ?? g.type) === t);
-      // pred "has" iff there's a predicted entry of type t that matches some gold of same type
-      // OR there's a predicted entry of type t at all (for false-positive accounting).
-      const predEntries = predicted.filter((p) => (p.signal_type ?? p.type) === t);
-      const predHas = predEntries.length > 0;
-
-      if (goldHas) goldYes++;
-      if (predHas) predYes++;
-      if (goldHas && predHas) {
-        // Be stricter: predicted only counts as "has" for kappa if at least one entry
-        // matches a gold entry by evidence containment too.
-        const goldClone = gold.filter((g) => (g.signal_type ?? g.type) === t)
-          .map((g) => ({ ...g, __matched: false }));
-        let matched = false;
-        for (const p of predEntries) {
-          const idx = findMatch(p, goldClone, threshold);
-          if (idx >= 0) { matched = true; goldClone[idx].__matched = true; break; }
-        }
-        if (matched) bothYes++;
-      } else if (!goldHas && !predHas) {
-        bothNo++;
-      }
-    }
-
-    if (n === 0) { per_type[t] = null; continue; }
-    const Po = (bothYes + bothNo) / n;
-    const pGold = goldYes / n;
-    const pPred = predYes / n;
-    const Pe = (pGold * pPred) + ((1 - pGold) * (1 - pPred));
-    let kappa;
-    if (Pe === 1) {
-      // No variance in either rater (always 0 or always 1) → kappa undefined; return 1
-      // when they match exactly, 0 otherwise.
-      kappa = (Po === 1) ? 1 : 0;
-    } else {
-      kappa = (Po - Pe) / (1 - Pe);
-    }
-    per_type[t] = round3(kappa);
+    const counts = kappaCountsForType(pairs, t, threshold);
+    per_type[t] = counts.n === 0 ? null : round3(kappaFromCounts(counts));
   }
 
   const observed = Object.values(per_type).filter((k) => k != null);

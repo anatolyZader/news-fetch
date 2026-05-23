@@ -5,7 +5,7 @@
   "window_days": 7,
   "window_start": "2026-05-15",
   "window_end": "2026-05-21",
-  "extracted_at": "2026-05-21T09:43:06Z",
+  "extracted_at": "2026-05-23T11:51:05.956Z",
   "languages": [
     "he",
     "ar",
@@ -20,10 +20,10 @@
     "reddit",
     "hebrew_forums"
   ],
-  "queries_executed": 27,
-  "candidate_hits": 38,
-  "verified_findings": 3,
-  "low_confidence_findings": 3,
+  "queries_executed": 33,
+  "candidate_hits": 40,
+  "verified_findings": 6,
+  "low_confidence_findings": 2,
   "rejected": {
     "news_domain": 19,
     "no_citizen_quote": 6,
@@ -142,6 +142,40 @@
       "confidence": "נמוכה",
       "relevance_reason": "ביטוי אזרחי מובהק — ביטוי-אני, ביטוי 'שלנו', תושב צפוני שמתמודד פומבית. דפוס שיח שמופיע אצל רבים: עייפות שלא מומרת לאי-ציות אלא לסולידריות.",
       "verification_notes": "WebFetch ל-TikTok החזיר רק טאגליין; הציטוט נשאב מתקציר גוגל ולכן יתכן שאינו מלא. מזהה הסרטון 7428560674827144455 תואם תאריך פרסום בסביבות אוקטובר 2024 — מחוץ לחלון. נכלל כראיה לדפוס שיח אזרחי-צפוני שעדיין רלוונטי כקונטקסט."
+    },
+    {
+      "id": "telegram-newsk8-1961",
+      "date": "2026-05-21",
+      "location": "קריית שמונה",
+      "platform": "telegram_public",
+      "source_kind": "post",
+      "url": "https://t.me/newsk8/1961",
+      "quote_original": "בהמשך להתרעות שהופעלו בקריית שמונה, פיקוד העורף מעדכן כעת כי ניתן לצאת מהמרחבים המוגנים.",
+      "quote_language": "he",
+      "quote_translation_he": null,
+      "speaker_role": "דובר רשות",
+      "behavior_or_emotion": "תושבים יוצאים ממרחבים מוגנים",
+      "resilience_component": "lifesaving_behavior",
+      "confidence": "גבוהה",
+      "relevance_reason": "הודעה רשמית על סיום אזעקה ותנועת אזרחים מהמרחבים המוגנים.",
+      "verification_notes": "דובר עיר קריית שמונה, הודעה מספר 693"
+    },
+    {
+      "id": "telegram-newsk8-1960",
+      "date": "2026-05-21",
+      "location": "קריית שמונה",
+      "platform": "telegram_public",
+      "source_kind": "post",
+      "url": "https://t.me/newsk8/1960",
+      "quote_original": "בשל חדירת כלי טייס עוין לאיזורנו, התושבים מתבקשים להיכנס למרחב מוגן ולשהות בו עד לקבלת הודעה אחרת.",
+      "quote_language": "he",
+      "quote_translation_he": null,
+      "speaker_role": "דובר רשות",
+      "behavior_or_emotion": "תושבים נכנסים למרחבים מוגנים",
+      "resilience_component": "lifesaving_behavior",
+      "confidence": "גבוהה",
+      "relevance_reason": "הודעה רשמית על אזעקה וחובת כניסה למרחבים מוגנים בתגובה לאיום אווירי.",
+      "verification_notes": "דובר עיר קריית שמונה, הודעה מספר 692"
     }
   ],
   "rejected_examples": [
@@ -172,6 +206,18 @@
     {
       "url": "https://www.tiktok.com/@n12news/video/7344786407564594439",
       "reason": "חשבון רשת חדשות N12 בטיקטוק."
+    },
+    {
+      "url": "https://t.me/Hatufim_israel/175009",
+      "reason": "off_topic"
+    },
+    {
+      "url": "https://t.me/Hatufim_israel/174998",
+      "reason": "off_topic"
+    },
+    {
+      "url": "https://t.me/Hatufim_israel/174981",
+      "reason": "off_topic"
     }
   ],
   "summary": {
@@ -275,10 +321,34 @@
       "osint_finding_id": "f06",
       "extraction_confidence": 0.4,
       "source_type": "social"
+    },
+    {
+      "signal_type": "compliance_enter_shelter",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "בהמשך להתרעות שהופעלו בקריית שמונה, פיקוד העורף מעדכן כעת כי ניתן לצאת מהמרחבים המוגנים. (קריית שמונה) — תושבים יוצאים ממרחבים מוגנים",
+      "scope_level": "repeated_pattern",
+      "article_url": "https://t.me/newsk8/1961",
+      "article_source": "telegram_public",
+      "speaker_role": "דובר רשות",
+      "osint_finding_id": "telegram-newsk8-1961",
+      "extraction_confidence": 0.9,
+      "source_type": "social"
+    },
+    {
+      "signal_type": "compliance_enter_shelter",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "בשל חדירת כלי טייס עוין לאיזורנו, התושבים מתבקשים להיכנס למרחב מוגן ולשהות בו עד לקבלת הודעה אחרת. (קריית שמונה) — תושבים נכנסים למרחבים מוגנים",
+      "scope_level": "repeated_pattern",
+      "article_url": "https://t.me/newsk8/1960",
+      "article_source": "telegram_public",
+      "speaker_role": "דובר רשות",
+      "osint_finding_id": "telegram-newsk8-1960",
+      "extraction_confidence": 0.9,
+      "source_type": "social"
     }
   ],
-  "treated_at": "2026-05-21T10:22:09.983Z",
-  "total_articles": 6,
+  "treated_at": "2026-05-23T11:51:05.957Z",
+  "total_articles": 8,
   "source_files": [
     "business_modules/social_media/data/signals-social-2026-05-21.json",
     "business_modules/social_media/data/social-osint-report-2026-05-21.md"

@@ -1,6 +1,6 @@
 ---
-allowed-tools: Bash(npm run homefront-to-md*), Bash(node business_modules/resilience/input/extract-signals.js*), Bash(node business_modules/resilience/input/assess-signals.js*), Bash(ls articles-audio-* articles-field-reports-* articles-homefront-* articles-whatsapp-* signals/*), Bash(node business_modules/whatsapp/input/whatsapp-to-md.js*), Bash(node business_modules/pbo_report_muni/input/extract-pbo-signals.js*), Bash(node business_modules/pool/input/extract-naftali-signals.js*), Bash(rm signals/signals-*.json)
-description: Full 3-day northern Israel 8-component pipeline — reuse/extract signals, then run a north-focused assessment in comparison to national context.
+allowed-tools: Bash(npm run homefront-to-md*), Bash(npm run social-media:gather-daily*), Bash(node business_modules/social_media/input/socialMediaInput.js*), Bash(node business_modules/resilience/input/extract-signals.js*), Bash(node business_modules/resilience/input/assess-signals.js*), Bash(ls articles-audio-* articles-field-reports-* articles-homefront-* articles-whatsapp-* signals/* business_modules/social_media/data/signals-social-*.json), Bash(node business_modules/whatsapp/input/whatsapp-to-md.js*), Bash(node business_modules/pbo_report_muni/input/extract-pbo-signals.js*), Bash(node business_modules/pool/input/extract-naftali-signals.js*), Bash(rm signals/signals-*.json)
+description: Full 3-day northern Israel 8-component pipeline — gather social OSINT (X + Telegram), reuse/extract other signals, then run a north-focused assessment.
 ---
 
 ## Your task
@@ -9,11 +9,13 @@ Run the full 3-day resilience pipeline and produce a north-focused 8-component a
 
 Follow the same argument parsing and date validation as `/8comp-3`.
 
+The 3 dates to cover are: target, target-1, target-2.
+
 ## Critical reuse rule
 
 Do **not** download or extract the same source twice just because both the national and north reports are needed.
 
-The north report is a second assessment over the same `signals/signals-<type>-<date>.json` files used by the national report. If the national 3-day pipeline already ran, skip directly to the final north assessment step.
+The north report is a second assessment over the same `signals/signals-<type>-<date>.json` files used by the national report. If the national 3-day pipeline already ran, skip directly to the final north assessment step **only when** social OSINT bundles for the window are also fresh.
 
 For every enabled source and window date, use this reuse-first plan:
 
@@ -28,11 +30,45 @@ For every enabled source and window date, use this reuse-first plan:
 
 This reuse-first preflight applies in both today mode and replay mode. Unlike `/8comp-3`, today mode must **not** automatically re-fetch news for dates that already have signals or `articles-homefront-<date>.md`.
 
-If all required signal files already exist, run only:
+---
+
+## Step — Social OSINT (X + Telegram) for daily feed + 8-component
+
+Canonical bundles: `business_modules/social_media/data/signals-social-<YYYY-MM-DD>.json`. The **Daily feed** UI sub-tab reads `findings[]` from these files. `assess-signals.js` loads `signals[]` after `treat`.
+
+**Env (required for live fetch):**
+- `X_BEARER_TOKEN` — X API v2
+- `TELEGRAM_API_ID`, `TELEGRAM_API_HASH`, `TELEGRAM_SESSION` — MTProto
+- Channels listed in `business_modules/social_media/telegram-public-channels.json`
+
+| Situation (per window date) | Action |
+|---|---|
+| `signals-social-<date>.json` exists, `extracted_at` is today (Asia/Jerusalem), no `--force` | **reuse** social bundle for that date |
+| bundle missing, stale, or `--force` | include date in social gather |
+
+**Social gather** (once for the whole 3-day window — do not run per date):
 
 ```
-node business_modules/resilience/input/assess-signals.js --date <target date> --days 3 --scope north
+npm run social-media:gather-daily -- --date <target YYYY-MM-DD> --days 3 --north --execute
 ```
+
+Pass `--force` on the overall command if re-gathering social evidence. If `X_BEARER_TOKEN` or Telegram is missing, run without `--execute` first to log access notes, then continue with assessment using any existing bundles.
+
+The CLI automatically runs `treat` on dates that received new findings (maps `findings` → `signals[]` for `assess-signals`).
+
+Print after social step:
+- Mode (`reuse` / `dry_run` / `execute`)
+- X candidate count and Telegram post count kept
+- Paths of `signals-social-<date>.json` updated
+- Any access limitations
+
+---
+
+## Other signal sources
+
+Run the same reuse-first ingestion as `/8comp-3` for news, radio, whatsapp, field, pbo, naftali (Steps 0–7 in that command) when those signal files are missing — unless **only** social was stale and all `signals/signals-*` already exist.
+
+---
 
 ## Final assessment
 
@@ -47,10 +83,13 @@ reports/resilience-report-north-<target date>-<HHMM>.json
 reports/resilience-report-north-<target date>-<HHMM>.md
 ```
 
+`pipeline-config.json` must have `"social": { "enabled": true }` so social bundles enter the assessment.
+
 After completion, report:
 - Mode used (today vs. replay) and `--force` state
-- The preflight plan vs. what actually executed
+- The preflight plan vs. what actually executed (including social gather)
 - Which sources and dates contributed to the northern assessment and which were absent
+- Social: findings count per date in `signals-social-*.json` (X vs telegram platforms)
 - Number of national signals loaded and number retained by the north scope filter
 - Per-component scores and confidence levels
 - Path of the written north report file

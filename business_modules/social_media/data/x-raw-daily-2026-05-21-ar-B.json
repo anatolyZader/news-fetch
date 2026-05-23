@@ -1,0 +1,120 @@
+{
+  "data": [
+    {
+      "edit_history_tweet_ids": [
+        "2057521808103112953"
+      ],
+      "author_id": "1447654976906481667",
+      "lang": "ar",
+      "id": "2057521808103112953",
+      "public_metrics": {
+        "retweet_count": 2,
+        "reply_count": 0,
+        "like_count": 6,
+        "quote_count": 0,
+        "bookmark_count": 0,
+        "impression_count": 430
+      },
+      "text": "في مثل هذا اليوم 21 مايو من عام 1799م، فشلت الحملة الفرنسية في دخول الشام، وكُتبت واحدة من أعظم ملاحم الصمود العربي والإسلامي؛ حينما أُجبر القائد الفرنسي الذي هزّ أوروبا، نابليون بونابرت، على حزم أمتعته وجرّ أذيال الخيبة، معلناً نهاية حصار مدينة عكا وفشل حملته بالكامل على بلاد https://t.co/iuBujLapEA",
+      "created_at": "2026-05-21T18:00:00.000Z",
+      "conversation_id": "2057521808103112953"
+    },
+    {
+      "edit_history_tweet_ids": [
+        "2057438009918672943"
+      ],
+      "author_id": "1257658655098494977",
+      "lang": "ar",
+      "id": "2057438009918672943",
+      "public_metrics": {
+        "retweet_count": 0,
+        "reply_count": 0,
+        "like_count": 0,
+        "quote_count": 0,
+        "bookmark_count": 0,
+        "impression_count": 41
+      },
+      "text": "ما أتحمل السخونة \nخصوصًا سخونة الأطفال💔💔\nطعمت ولدي وسخن وإنهرت ولا عرفت كيف أتصرف😔\nالحمدلله الحين أحسن",
+      "created_at": "2026-05-21T12:27:01.000Z",
+      "conversation_id": "2057438009918672943"
+    },
+    {
+      "edit_history_tweet_ids": [
+        "2057297479989641399"
+      ],
+      "author_id": "824493569293635584",
+      "lang": "ar",
+      "id": "2057297479989641399",
+      "public_metrics": {
+        "retweet_count": 0,
+        "reply_count": 0,
+        "like_count": 0,
+        "quote_count": 0,
+        "bookmark_count": 0,
+        "impression_count": 103
+      },
+      "text": "@aliamansour خليه يعتذر الاول عن الدم اللي اتلطخت ايديه بيه الاول ويجيب حق الضحايا لو فعلا صادق واول واحد حيتحاسب هو نفسه . تفجير كنيسة ومجزرتين في حق ناس ايرياء غير تاريخه غير الثوري في قتل اطفال سوريين. التاريخ لا ينسى وبزيادة الكلمتين الفارغين اللي فاكر انه فتح بيهم عكا.",
+      "created_at": "2026-05-21T03:08:36.000Z",
+      "conversation_id": "2057202858219724886"
+    }
+  ],
+  "includes": {
+    "users": [
+      {
+        "id": "1447654976906481667",
+        "name": "الھیئة العالمیة لأنصار النبي ﷺ",
+        "location": "Turkey",
+        "public_metrics": {
+          "followers_count": 157067,
+          "following_count": 22,
+          "tweet_count": 22884,
+          "listed_count": 114,
+          "like_count": 2722,
+          "media_count": 21573
+        },
+        "description": "مرجعية للأمة في نصرة نبيها الكريم ﷺ، ونافذة على شؤون المسلمين حول العالم، وصوت العلماء في مواجهة الظلم ودحض الشبهات.",
+        "verified": true,
+        "verified_type": "blue",
+        "username": "SupportProphetM"
+      },
+      {
+        "id": "1257658655098494977",
+        "name": "⚜️",
+        "public_metrics": {
+          "followers_count": 6,
+          "following_count": 33,
+          "tweet_count": 1694,
+          "listed_count": 0,
+          "like_count": 1304,
+          "media_count": 186
+        },
+        "description": "مذكرات زوجة سعيدة وماما حنونة💗",
+        "verified": false,
+        "verified_type": "none",
+        "username": "iillvi2"
+      },
+      {
+        "id": "824493569293635584",
+        "name": "Batool",
+        "location": "Portland, ME",
+        "public_metrics": {
+          "followers_count": 314,
+          "following_count": 217,
+          "tweet_count": 9830,
+          "listed_count": 0,
+          "like_count": 21151,
+          "media_count": 40
+        },
+        "description": "",
+        "verified": false,
+        "verified_type": "none",
+        "username": "Batool63953575"
+      }
+    ]
+  },
+  "meta": {
+    "newest_id": "2057521808103112953",
+    "oldest_id": "2057297479989641399",
+    "result_count": 3
+  }
+}

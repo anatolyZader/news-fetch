@@ -114,6 +114,39 @@ describe('socialMediaTelegramFetchAdapter', () => {
     assert.ok(result.posts[0].url.includes('t.me/north_alerts/42'));
   });
 
+  it('fetchDailyEvidence does not require topic match', async () => {
+    const persistencePort = createSocialMediaFsAdapter({ dataDir });
+    const telegramClient = {
+      async getChannelHistory() {
+        return [{
+          id: 99,
+          message: 'תושבים בנהריה מדווחים על פחד ונכנסים למקלט',
+          date: Math.floor(Date.now() / 1000) - 3600,
+        }];
+      },
+      async delayBetweenChannels() {},
+    };
+
+    const adapter = createSocialMediaTelegramFetchAdapter({
+      telegramClient,
+      persistencePort,
+      dataDir,
+      loadChannels: () => MOCK_CHANNELS,
+    });
+
+    const result = await adapter.fetchDailyEvidence({
+      execute: true,
+      north: true,
+      anchorDate: new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jerusalem' }),
+      days: 1,
+    });
+
+    assert.equal(result.mode, 'execute');
+    assert.equal(result.source, 'telegram_mtproto_daily');
+    assert.ok(result.posts.length >= 1);
+    assert.equal(result.posts[0].platform, 'telegram_public');
+  });
+
   it('returns unconfigured when channel registry is empty', async () => {
     const persistencePort = createSocialMediaFsAdapter({ dataDir });
     const adapter = createSocialMediaTelegramFetchAdapter({

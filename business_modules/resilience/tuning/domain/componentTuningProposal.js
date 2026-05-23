@@ -5,12 +5,12 @@
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { COMPONENT_TUNING } from './behaviorSignals.js';
+import { COMPONENT_TUNING } from '../../domain/services/behaviorSignals.js';
 
-const TANHK_MIN = 1.0;
-const TANHK_MAX = 4.0;
+const TANHK_MIN = 1;
+const TANHK_MAX = 4;
 const CERTM_MIN = 0.5;
-const CERTM_MAX = 4.0;
+const CERTM_MAX = 4;
 
 function median(arr) {
   if (!arr.length) return null;
@@ -44,9 +44,9 @@ function rowToFitInputs(c) {
   const netEvidence = typeof c.net_evidence === 'number' ? c.net_evidence : null;
   const certainty = typeof c.certainty === 'number' ? c.certainty : null;
   if (!id || score == null || evidenceMass == null) return null;
-  const netApprox = netEvidence != null
-    ? netEvidence
-    : evidenceMass * Math.sign(score - 5.5);
+  const netApprox = netEvidence == null
+    ? evidenceMass * Math.sign(score - 5.5)
+    : netEvidence;
   return { id, score, evidenceMass, netEvidence: netApprox, certainty };
 }
 
@@ -94,43 +94,45 @@ function rmseCertM(rows, M) {
   return n > 0 ? Math.sqrt(acc / n) : null;
 }
 
+function buildComponentProposal(id, rows) {
+  const tanhKsamples = rows.map(perRowTanhK).filter((v) => v != null);
+  const certMsamples = rows.map(perRowCertM).filter((v) => v != null);
+
+  const proposedK = tanhKsamples.length >= 5
+    ? clampNum(median(tanhKsamples), TANHK_MIN, TANHK_MAX)
+    : null;
+  const proposedM = certMsamples.length >= 5
+    ? clampNum(median(certMsamples), CERTM_MIN, CERTM_MAX)
+    : null;
+
+  const current = COMPONENT_TUNING[id] ?? null;
+
+  return {
+    n_rows: rows.length,
+    n_K_samples: tanhKsamples.length,
+    n_M_samples: certMsamples.length,
+    mean_evidence_mass: mean(rows.map((r) => r.evidenceMass))?.toFixed?.(3) ?? null,
+    mean_score: mean(rows.map((r) => r.score))?.toFixed?.(2) ?? null,
+    current,
+    proposed: {
+      tanhK: proposedK == null ? null : Number(proposedK.toFixed(2)),
+      certM: proposedM == null ? null : Number(proposedM.toFixed(2)),
+    },
+    rmse: {
+      score_at_current_K: current ? rmseScore(rows, current.tanhK)?.toFixed?.(3) : null,
+      score_at_proposed_K: proposedK == null ? null : rmseScore(rows, proposedK)?.toFixed?.(3),
+      certainty_at_current_M: current ? rmseCertM(rows, current.certM)?.toFixed?.(3) : null,
+      certainty_at_proposed_M: proposedM == null ? null : rmseCertM(rows, proposedM)?.toFixed?.(3),
+    },
+  };
+}
+
 function buildProposalsFromRows(rowsByComponent) {
   const components = {};
   for (const [id, rows] of Object.entries(rowsByComponent)) {
-    if (rows.length < 5) {
-      components[id] = { note: 'insufficient_rows', n: rows.length };
-      continue;
-    }
-    const tanhKsamples = rows.map(perRowTanhK).filter((v) => v != null);
-    const certMsamples = rows.map(perRowCertM).filter((v) => v != null);
-
-    const proposedK = tanhKsamples.length >= 5
-      ? clampNum(median(tanhKsamples), TANHK_MIN, TANHK_MAX)
-      : null;
-    const proposedM = certMsamples.length >= 5
-      ? clampNum(median(certMsamples), CERTM_MIN, CERTM_MAX)
-      : null;
-
-    const current = COMPONENT_TUNING[id] ?? null;
-
-    components[id] = {
-      n_rows: rows.length,
-      n_K_samples: tanhKsamples.length,
-      n_M_samples: certMsamples.length,
-      mean_evidence_mass: mean(rows.map((r) => r.evidenceMass))?.toFixed?.(3) ?? null,
-      mean_score: mean(rows.map((r) => r.score))?.toFixed?.(2) ?? null,
-      current,
-      proposed: {
-        tanhK: proposedK != null ? Number(proposedK.toFixed(2)) : null,
-        certM: proposedM != null ? Number(proposedM.toFixed(2)) : null,
-      },
-      rmse: {
-        score_at_current_K: current ? rmseScore(rows, current.tanhK)?.toFixed?.(3) : null,
-        score_at_proposed_K: proposedK != null ? rmseScore(rows, proposedK)?.toFixed?.(3) : null,
-        certainty_at_current_M: current ? rmseCertM(rows, current.certM)?.toFixed?.(3) : null,
-        certainty_at_proposed_M: proposedM != null ? rmseCertM(rows, proposedM)?.toFixed?.(3) : null,
-      },
-    };
+    components[id] = rows.length < 5
+      ? { note: 'insufficient_rows', n: rows.length }
+      : buildComponentProposal(id, rows);
   }
   return components;
 }

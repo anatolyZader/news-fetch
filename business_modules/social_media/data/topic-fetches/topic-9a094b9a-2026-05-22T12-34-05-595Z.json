@@ -1,0 +1,161 @@
+{
+  "topic": "uav danger",
+  "topicNormalized": {
+    "conceptIds": [
+      "uav_drone",
+      "danger_threat"
+    ],
+    "matchTokens": [
+      "uav",
+      "danger",
+      "כטבמ",
+      "כטבם",
+      "רחפן",
+      "רחפנים",
+      "חדירת כלי טיס",
+      "fpv",
+      "drone",
+      "drones",
+      "مسيرة",
+      "طائرة مسيرة",
+      "סכנה",
+      "איום",
+      "פחד",
+      "חשש",
+      "מסוכן",
+      "מפחיד",
+      "threat",
+      "risk",
+      "fear",
+      "خطر",
+      "تهديد",
+      "خوف"
+    ],
+    "searchTermsByLang": {
+      "he": [
+        "כטב\"מ",
+        "כטבם",
+        "רחפן",
+        "רחפנים",
+        "חדירת כלי טיס",
+        "FPV",
+        "סכנה",
+        "איום",
+        "פחד",
+        "חשש",
+        "מסוכן",
+        "מפחיד"
+      ],
+      "en": [
+        "UAV",
+        "drone",
+        "drones",
+        "danger",
+        "threat",
+        "risk",
+        "fear"
+      ],
+      "ar": [
+        "مسيرة",
+        "طائرة مسيرة",
+        "خطر",
+        "تهديد",
+        "خوف"
+      ]
+    }
+  },
+  "platforms": [
+    "telegram_public"
+  ],
+  "lang": "en",
+  "fetchedAt": "2026-05-22T12:34:05.594Z",
+  "source": "telegram_mtproto",
+  "mode": "execute",
+  "accessNotes": [
+    "Live Telegram MTProto channel history fetch (homefront population-behavior filter applied).",
+    "Skipped or failed on 10 channel(s): newsk8, muninahariya, bitahonmetulla, newsil360, divuhim1234, hotnews1, North_Media, ravarava1233, Hatufim_israel, lelotsenzura.",
+    "Fetched 0 matching post(s) from 10 configured channel(s)."
+  ],
+  "dryRun": {
+    "topic": "uav danger",
+    "slug": "uav-danger",
+    "channels": [
+      "newsk8",
+      "muninahariya",
+      "bitahonmetulla",
+      "newsil360",
+      "divuhim1234",
+      "hotnews1",
+      "North_Media",
+      "ravarava1233",
+      "Hatufim_israel",
+      "lelotsenzura"
+    ],
+    "window": {
+      "startTime": "2026-05-20T00:00:00Z",
+      "endTime": "2026-05-22T12:32:50Z",
+      "dates": [
+        "2026-05-22",
+        "2026-05-21",
+        "2026-05-20"
+      ]
+    },
+    "channelCount": 10
+  },
+  "estimate": {
+    "channelCount": 10,
+    "postsReturned": 0,
+    "channelErrors": [
+      {
+        "channel": "newsk8",
+        "error": "Not a valid string"
+      },
+      {
+        "channel": "muninahariya",
+        "error": "Not a valid string"
+      },
+      {
+        "channel": "bitahonmetulla",
+        "error": "Not a valid string"
+      },
+      {
+        "channel": "newsil360",
+        "error": "Not a valid string"
+      },
+      {
+        "channel": "divuhim1234",
+        "error": "Not a valid string"
+      },
+      {
+        "channel": "hotnews1",
+        "error": "Not a valid string"
+      },
+      {
+        "channel": "North_Media",
+        "error": "Not a valid string"
+      },
+      {
+        "channel": "ravarava1233",
+        "error": "Not a valid string"
+      },
+      {
+        "channel": "Hatufim_israel",
+        "error": "Not a valid string"
+      },
+      {
+        "channel": "lelotsenzura",
+        "error": "Not a valid string"
+      }
+    ],
+    "window": {
+      "startTime": "2026-05-20T00:00:00Z",
+      "endTime": "2026-05-22T12:32:50Z"
+    }
+  },
+  "posts": [],
+  "stats": {
+    "matched": 0,
+    "afterDedup": 0,
+    "duplicatesRemoved": 0
+  }
+}

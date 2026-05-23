@@ -7,11 +7,11 @@
  *     the matching `articles-homefront-{date}.md` (indices align with that MD only).
  *
  * Output:
- *   - tests/fixtures/resilience-golden/corpus.jsonl
- *   - tests/fixtures/resilience-golden/extraction-snapshot.jsonl
+ *   - business_modules/resilience/tuning/golden/corpus.jsonl
+ *   - business_modules/resilience/tuning/golden/extraction-snapshot.jsonl
  *
  * Usage:
- *   node tests/fixtures/resilience-golden/build-corpus.mjs
+ *   node business_modules/resilience/tuning/golden/buildCorpus.mjs
  *
  * Re-run locally with RESILIENCE_REFRESH_GOLDEN=1 via golden-corpus.test.js, or run this
  * script directly. Refreshing changes F1/κ baselines — commit intentionally.
@@ -22,7 +22,7 @@ import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = resolve(fileURLToPath(import.meta.url), '..');
-const ROOT = resolve(__dirname, '../../..');
+const ROOT = resolve(__dirname, '../../../..');
 
 const SIGNAL_STEMS = ['news', 'radio', 'pbo', 'field'];
 const MAX_CORPUS = 80;
@@ -44,7 +44,7 @@ function loadArticles(date) {
     const sect = sections[i];
     const titleMatch = sect.match(/^(\d+)\.\s+(.+)/);
     if (!titleMatch) continue;
-    const article_index = parseInt(titleMatch[1], 10);
+    const article_index = Number.parseInt(titleMatch[1], 10);
     const title = titleMatch[2].trim();
     const urlMatch = sect.match(/\*\*URL:\*\*\s+(\S+)/);
     const sourceMatch = sect.match(/\*\*Source:\*\*\s+(.+)/);
@@ -64,15 +64,25 @@ function loadArticles(date) {
   return articles;
 }
 
+function collectArticleDates(articlesDir) {
+  const articleDates = new Set();
+  if (!existsSync(articlesDir)) return articleDates;
+  for (const f of readdirSync(articlesDir)) {
+    const m = /^articles-homefront-(\d{4}-\d{2}-\d{2})\.md$/.exec(f);
+    if (m) articleDates.add(m[1]);
+  }
+  return articleDates;
+}
+
+function signalFileUsesHomefront(parsed, date) {
+  const files = parsed.source_files ?? [];
+  return files.some((x) =>
+    typeof x === 'string' && x.includes(`articles-homefront-${date}`));
+}
+
 function discoverDatesWithHomefrontSignals() {
   const articlesDir = resolve(ROOT, 'business_modules/news-sites/articles_extracted');
-  const articleDates = new Set();
-  if (existsSync(articlesDir)) {
-    for (const f of readdirSync(articlesDir)) {
-      const m = /^articles-homefront-(\d{4}-\d{2}-\d{2})\.md$/.exec(f);
-      if (m) articleDates.add(m[1]);
-    }
-  }
+  const articleDates = collectArticleDates(articlesDir);
 
   const signalsDir = resolve(ROOT, 'signals');
   const eligible = new Set();
@@ -90,14 +100,10 @@ function discoverDatesWithHomefrontSignals() {
     } catch {
       continue;
     }
-    const files = parsed.source_files ?? [];
-    const usesHomefront = files.some((x) =>
-      typeof x === 'string' && x.includes(`articles-homefront-${date}`));
-    if (!usesHomefront) continue;
-    eligible.add(date);
+    if (signalFileUsesHomefront(parsed, date)) eligible.add(date);
   }
 
-  return [...eligible].sort().reverse();
+  return [...eligible].sort((a, b) => b.localeCompare(a));
 }
 
 function loadMergedSignalsForDate(date) {
@@ -114,10 +120,7 @@ function loadMergedSignalsForDate(date) {
     } catch {
       continue;
     }
-    const files = parsed.source_files ?? [];
-    const usesHomefront = files.some((x) =>
-      typeof x === 'string' && x.includes(`articles-homefront-${date}`));
-    if (!usesHomefront) continue;
+    if (!signalFileUsesHomefront(parsed, date)) continue;
     const sigs = Array.isArray(parsed.signals) ? parsed.signals : [];
     for (const s of sigs) {
       merged.push({
@@ -151,7 +154,7 @@ function pickCovering(articles, signalsByIdx, count) {
   enriched.sort((a, b) => {
     const diff = new Set(b.gold_signals.map((s) => s.signal_type)).size
                - new Set(a.gold_signals.map((s) => s.signal_type)).size;
-    return diff !== 0 ? diff : b.gold_signals.length - a.gold_signals.length;
+    return diff === 0 ? b.gold_signals.length - a.gold_signals.length : diff;
   });
   return enriched.slice(0, count);
 }
@@ -201,7 +204,8 @@ function main() {
     for (const s of signals) {
       const i = s.article_index;
       if (i == null) continue;
-      (byIdx[i] = byIdx[i] ?? []).push(s);
+      if (!byIdx[i]) byIdx[i] = [];
+      byIdx[i].push(s);
     }
     const budget = Math.min(PER_DATE, MAX_CORPUS - total);
     const picked = pickCovering(articles, byIdx, budget);

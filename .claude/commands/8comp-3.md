@@ -26,7 +26,7 @@ The 3 dates to cover are: target, target-1, target-2.
 
 **Step 0 — Read pipeline config**
 
-Read `pipeline-config.json`. Skip any source where `enabled: false`. If the file is missing, treat all sources as enabled.
+Read `pipeline-config.json`. Skip any source where `enabled: false`. Sources: `news`, `radio`, `whatsapp`, `field`, `pbo`, `naftali`, `social` (social = `business_modules/social_media/data/signals-social-*.json` via `social-media:gather-daily`, not extract-signals). If the file is missing, treat all sources as enabled.
 
 ---
 

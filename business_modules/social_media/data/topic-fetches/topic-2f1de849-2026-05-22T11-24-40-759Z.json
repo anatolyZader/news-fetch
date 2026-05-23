@@ -1,0 +1,21 @@
+{
+  "topic": "ממ\"ד",
+  "platforms": [
+    "x"
+  ],
+  "lang": "en",
+  "fetchedAt": "2026-05-22T11:24:40.759Z",
+  "source": "x_unconfigured",
+  "mode": "dry_run",
+  "accessNotes": [
+    "X_BEARER_TOKEN is not configured on the server. Set it in .env and restart to run live X fetch from the UI."
+  ],
+  "dryRun": null,
+  "estimate": null,
+  "posts": [],
+  "stats": {
+    "matched": 0,
+    "afterDedup": 0,
+    "duplicatesRemoved": 0
+  }
+}

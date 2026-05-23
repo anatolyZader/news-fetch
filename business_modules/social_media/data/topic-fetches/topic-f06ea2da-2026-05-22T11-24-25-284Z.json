@@ -1,0 +1,28 @@
+{
+  "topic": "test topic retranslate",
+  "platforms": [
+    "x"
+  ],
+  "lang": "he",
+  "fetchedAt": "2026-05-22T11:24:25.284Z",
+  "source": "test",
+  "mode": "dry_run",
+  "accessNotes": [],
+  "dryRun": null,
+  "estimate": null,
+  "posts": [
+    {
+      "id": "p1",
+      "platform": "x",
+      "text": "[he] טקסט בעברית",
+      "dedupeKey": "p1",
+      "textOriginal": "טקסט בעברית",
+      "translatedTo": "he"
+    }
+  ],
+  "stats": {
+    "matched": 1,
+    "afterDedup": 1,
+    "duplicatesRemoved": 0
+  }
+}
