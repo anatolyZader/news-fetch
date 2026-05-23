@@ -12,7 +12,7 @@ if (!token || !projectKey) {
   process.exit(1);
 }
 
-const authHeader = `Basic ${Buffer.from(`${token}:`).toString('base64')}`;
+const authHeader = 'Basic ' + Buffer.from(token + ':').toString('base64');
 
 async function sonarJson(url, init = {}) {
   const res = await fetch(url, {

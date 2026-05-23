@@ -30,10 +30,10 @@ const SIGNAL_QUERY_RULES = [
  */
 export function parseQueryInterestProxy(formattedValue) {
   const s = String(formattedValue ?? '').trim();
-  const pct = s.match(/\+(\d+)%/);
-  if (pct) {
+  const pctMatch = /\+(\d+)%/.exec(s);
+  if (pctMatch) {
     return {
-      interest: Math.min(100, 40 + Number.parseInt(pct[1], 10) * 0.5),
+      interest: Math.min(100, 40 + Number.parseInt(pctMatch[1], 10) * 0.5),
       momentum: 'rising',
     };
   }
@@ -84,8 +84,6 @@ export function classifyTrendQuery(query, formattedValue = '') {
     themeGroup = 'services';
   } else if (signalTypes.some((s) => /fear|help_seeking|hostage/.test(s.type))) {
     themeGroup = 'psycho';
-  } else if (lexiconHits.some((h) => h.componentId === 'narrative')) {
-    themeGroup = 'other';
   }
 
   return {
