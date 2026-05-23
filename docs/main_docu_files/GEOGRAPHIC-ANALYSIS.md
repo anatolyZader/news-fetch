@@ -432,7 +432,7 @@ Run **`npm test`** from the repository root.
 3. **Wire new consumers** — inject **`IGeoEnrichmentPort`** (adapter or NoOp) from `app.js` or a thin `scripts/*.mjs` entry; do not import `geo` from other business modules.
 4. **Debug a name** — `GET /api/geo/resolve?name=...` (with auth if enabled) or a small Node snippet using `createGeoService` + the JSON adapter.
 5. **Collect unknown localities for review** — set **`GEO_UNKNOWN_REVIEW_JSONL=1`** when running the app or **`npm run analyze-survey`** so **`NO_MATCH`** / **`NO_CONFIDENT_MATCH`** rows append to **`business_modules/geo/data/review/unknown-localities.jsonl`** (see [Unknown locality review sink](#unknown-locality-review-sink-optional)).
-6. **Drop legacy `subregionId` from new payloads** — set **`GEO_LEGACY_SUBREGION_ID=0`** (or **`false`**) once all in-repo consumers use **`pboSubregionId`** only; keep **`1`** (default) until external clients have migrated.
+6. **Legacy `subregionId` on envelopes** — **`GEO_LEGACY_SUBREGION_ID` defaults to off** (`0` / omitted). New code must read **`pboSubregionId`** from **`classification.pboSubregionId`** only. Set **`GEO_LEGACY_SUBREGION_ID=1`** only when an external consumer still requires the deprecated flat **`subregionId`** field.
 
 ---
 
@@ -445,9 +445,9 @@ The current **flat resolved envelope** is intentional for shipping speed. The fo
 | 1 | **`geoEntityType`** | Shipped for **`locality`**; extend enum when regional councils, cities-as-whole, macro areas, and vague “צפון” inputs are modeled. Distance-to-border semantics should vary by type (e.g. council ≠ point). |
 | 2 | **`matchEvidence`** | Shipped (`rawInput`, `normalizedInput`, `matchedVariant`, `candidateCount`). Helps admin review of noisy PBO / WhatsApp strings. |
 | 3 | **SQLite extracted geo columns** | Denormalize `geo_kind`, PBO id, band, quality, metrics flags, reference versions for dashboards; **keep** full **`geo`** JSON on the signal. |
-| 4 | **Manual override table** | Durable corrections (`raw_name` → `canonical_key`) with resolution order: reference → **override** → normalized → fuzzy → unknown. JSONL sink remains useful for discovery. |
-| 5 | **Versioned distance-band policy** | Move `0-10` / `10-25` / `25+` thresholds to a versioned policy file; add **`distancePolicyVersion`** on the envelope when bands become analytics policy, not just geometry. |
-| 6 | **Split envelope: resolution / classification / audit** | Group fields so PBO or border policy can change without conflating “which locality won” with “which subregion tag applies”. Migrate behind a version flag when ready. |
+| 4 | **Manual override table** | **Shipped** (`GEO_OVERRIDES_SQLITE=1`, `matchMethod: manual_override`). JSONL/SQLite unknown sinks remain for discovery. |
+| 5 | **Versioned distance-band policy** | **Shipped** (`distance-band-policy.json`, `classification.distancePolicyVersion` on envelopes). |
+| 6 | **Split envelope: resolution / classification / audit** | **Shipped** (nested groups canonical; flat fields deprecated compatibility aliases). |
 | 7 | **`subregionId` removal** | Emit only **`pboSubregionId`** after migration window; add consumer tests that never read **`subregionId`**. **`GEO_LEGACY_SUBREGION_ID`** is the interim switch. |
 | 8 | **Source-aware `resolveLocalityName`** | Optional second argument (`sourceType`, `reporterRegionHint`, …) for **deterministic** tie-breaks only — not LLM geography. |
 | 9 | **`scopeConfidence`** | Shipped (v1 from metrics policy). Evolve when source hints and entity types feed north analytics separately from string **`matchConfidence`**. |
@@ -464,3 +464,4 @@ The current **flat resolved envelope** is intentional for shipping speed. The fo
 | 2026-05 | **`geoEntityType`**, **`matchEvidence`**, **`scopeConfidence`**; fuzzy **`candidateCount`**; **`GEO_LEGACY_SUBREGION_ID`** to omit deprecated **`subregionId`**; roadmap table for split envelope, SQLite columns, overrides, distance policy versioning, KPIs, and source-aware resolve. |
 | 2026-05 | **`geo.scopeDecision`** on resolved envelopes (geo-only north hint audit); stricter doc rule: nested fields canonical, flat deprecated; full **`geoEntityType`** enum called out in guide. |
 | 2026-05 | News/radio geo attach in **`assess-signals`**; **`GEO_ATTACH_ON_EXTRACT`**; per-signal WhatsApp geo; **`northRelevanceFromResolvedGeo`**; **`summarizeGeoQuality`**; transliteration pass; versioned distance-band policy; **`createGeoWiring`**; CI north-terms sync check; default omit **`subregionId`**. |
+| 2026-05 | Doc sync: manual overrides, distance-band policy, and split envelope marked shipped; ops checklist **`GEO_LEGACY_SUBREGION_ID`** default corrected to off. |

@@ -1,0 +1,1 @@
+{"parameters":[{"in":"query","name":"date","required":true,"schema":{"type":"string","format":"date"},"description":"Bundle date (YYYY-MM-DD)"},{"in":"query","name":"category","schema":{"type":"string"},"description":"Optional emergency category id filter"},{"in":"query","name":"lang","schema":{"type":"string"},"description":"Optional UI language for post translation"}]}

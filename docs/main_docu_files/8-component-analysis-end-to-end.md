@@ -403,7 +403,8 @@ The pipeline is intentionally split into **auditable stages** so the LLM does pa
 ┌──────────────────────────────────────────────────────────────────────────┐
 │ A. INGEST — channel-specific adapters / loaders                          │
 │   News APIs, audio (whisper), WhatsApp exports, field reports (xlsx),    │
-│   PBO municipality (xlsx), regional PBO, Naftali (xlsx), survey forms.   │
+│   PBO municipality (xlsx), regional PBO, Naftali (xlsx), survey forms,   │
+│   Social OSINT (X + Telegram via social_media module).                   │
 │        ↓ writes one canonical text bundle per source per date            │
 └──────────────────────────────────────────────────────────────────────────┘
                                        │
@@ -461,7 +462,7 @@ The pipeline is intentionally split into **auditable stages** so the LLM does pa
 
 ## 4) Data sources — channels feeding the analysis
 
-Six channels can feed the assessment; toggles live in `pipeline-config.json` at the repo root:
+Seven source types can feed the assessment; toggles live in `pipeline-config.json` at the repo root:
 
 ```json
 {
@@ -471,12 +472,13 @@ Six channels can feed the assessment; toggles live in `pipeline-config.json` at 
     "whatsapp": { "enabled": true,  "description": "WhatsApp reports" },
     "field":    { "enabled": true,  "description": "Professional squad field visit reports" },
     "pbo":      { "enabled": true,  "description": "PBO municipality daily reports" },
-    "naftali":  { "enabled": false, "description": "Naftali weekly questionnaire" }
+    "naftali":  { "enabled": false, "description": "Naftali weekly questionnaire" },
+    "social":   { "enabled": true,  "description": "Social media OSINT (X + Telegram): signals-social-*.json" }
   }
 }
 ```
 
-Each source produces a `signals/signals-{source}-{YYYY-MM-DD}.json` file (field signals live under `business_modules/visits/data/signals/`). `assess-signals.js` then discovers and merges these files within the requested date window.
+Each source produces a `signals/signals-{source}-{YYYY-MM-DD}.json` file (field signals live under `business_modules/visits/data/signals/`; social OSINT under `business_modules/social_media/data/signals-social-{YYYY-MM-DD}.json`). `assess-signals.js` then discovers and merges these files within the requested date window.
 
 | Source | `source_type` tag | Owner module | Native format | Conversion to text/signals | Geographic default |
 |---|---|---|---|---|---|
@@ -486,7 +488,8 @@ Each source produces a `signals/signals-{source}-{YYYY-MM-DD}.json` file (field 
 | **Field reports** | `field` | `business_modules/visits` | Hebrew expert field notes from population-behavior officer visits to northern communities (one MD bundle per visit day) | `articles-field-reports-{date}.md` (already markdown) | Always `north` |
 | **PBO municipality** | `pbo` | `business_modules/pbo_report_muni` | Excel `north_<day>_4.xlsx` (structured per-component scores per municipality) | `extract-pbo-signals.js` directly emits `signals-pbo-{date}.json` (no LLM extraction — structured input is converted by polarity around 0.5) | Always `north` |
 | **PBO regional** | `pbo_regional` | `business_modules/pbo_report_regional` | Excel per regional cluster (`baram`, `galma`, `golan`, `hiram`, `naftali`) | Similar conversion path | Always `north` |
-| **Naftali** | `naftali` | `business_modules/naftali` | Weekly municipal questionnaire | `extract-naftali-signals.js` maps severity dimensions and free-text fields → signals | Always `north` |
+| **Naftali** | `naftali` | `business_modules/pool` | Weekly municipal questionnaire | `pool/input/extract-naftali-signals.js` maps severity dimensions and free-text fields → signals | Always `north` |
+| **Social OSINT** | `social` | `business_modules/social_media` | X posts + Telegram channel messages | `social-media:gather-daily` → Haiku classify → `signals-social-{date}.json`; `social-media:treat` → `signals[]` | North-biased queries when `--north`; scope filter applies like news/radio |
 | **Survey** (optional) | (varies) | `business_modules/resilience` (survey Excel + writers under `app/` / `infrastructure/adapters/`) | Municipality survey Excel | `analyze-survey.js` (one-off analysis path) | Configurable |
 
 Two tags — `field`, `pbo`, `pbo_regional`, `naftali`, `whatsapp` — are also marked `ALWAYS_NORTH_SOURCE_TYPES` in `regionSignalFilter.js`, meaning their signals are *always* counted toward the north scope regardless of geographic terms in the evidence text. News and radio signals are scope-filtered by Hebrew/English north terminology (Galilee, Golan, Kiryat Shmona, Metula, חורפיש, מטולה, רמת הגולן, …).
@@ -601,12 +604,25 @@ The signal-extraction prompt then explicitly instructs the LLM to be **highly se
 
 ### 5.7 Naftali (`source_type: 'naftali'`)
 
-`business_modules/naftali/`:
+`business_modules/pool/`:
 
 - Weekly questionnaire Excel (`naftali_week_4.xlsx`). One signals file per week (`signals-naftali-{week-end-date}.json`).
-- Mapping is dimension-driven (severity → signal type, polarity by direction): financial requests, school mental health, parental stress, couple/parent-child conflicts, vulnerability counts, plus free-text fields like volunteer initiatives, staff shortages, and main challenges.
+- `pool/input/extract-naftali-signals.js` maps dimension-driven severity → signal type, polarity by direction: financial requests, school mental health, parental stress, couple/parent-child conflicts, vulnerability counts, plus free-text fields like volunteer initiatives, staff shortages, and main challenges.
 
-### 5.8 Survey (one-off path)
+### 5.8 Social OSINT — X + Telegram (`source_type: 'social'`)
+
+`business_modules/social_media/`:
+
+- **Daily gather** (`npm run social-media:gather-daily -- --date YYYY-MM-DD --days N [--north] [--execute]`):
+  - **X:** cluster queries from `xHomefrontClusterQueries.js` → X API v2 counts + search → `x-raw-daily-{date}-{lang}-{cluster}.json` → behavior prefilter → Haiku batch classifier (`socialCandidateClassifier.js`).
+  - **Telegram:** MTProto client over configured public channels (`telegram-public-channels.json`) → `telegram-raw-daily-{date}-*.jsonl` → same classify path.
+  - Merged `findings[]` written to `business_modules/social_media/data/signals-social-{date}.json`.
+- **Treat** (`npm run social-media:treat` or auto after gather): `findingToSignalMapper.js` converts findings → resilience `signals[]`; writes `social-osint-report-{date}.md`.
+- **Assessment:** `assess-signals.js` loads `signals-social-*.json` when `pipeline-config.json` has `social.enabled`.
+- **UI:** Social media tab — Daily feed (`findings[]` by emergency category) and Topic search (on-demand X/Facebook/Telegram via `socialMediaTopicFetchService.js`).
+- **Env:** `X_BEARER_TOKEN`, `TELEGRAM_API_ID` / `TELEGRAM_API_HASH` / `TELEGRAM_SESSION`, `ANTHROPIC_API_KEY`. One-time Telegram session: `npm run social-media:telegram-session`.
+
+### 5.9 Survey (one-off path)
 
 Field survey analysis lives under **`business_modules/resilience`** (`surveyExcelLoader`, `surveyEvaluator`, `surveyReportWriter`, and `resilience/input/analyze-survey.js`) and covers a separate, ad-hoc municipality-survey analysis flow that produces its own report alongside the daily one.
 
@@ -1010,6 +1026,10 @@ When `RESILIENCE_ANALYST_EMAILS` is non-empty, drift endpoints return **403** un
 | `GET /api/resilience/display-capabilities` | `{ canViewAnalyst: boolean }` for the signed-in user (optional Bearer token). |
 | `GET /api/resilience/drift?scope=national\|north&days=30` | Analyst-gated when `RESILIENCE_ANALYST_EMAILS` is set. Time-series for sparklines + alerts (capped at 90 days). |
 | `GET /api/visits/...` | Field-reports dashboard (days, signals, municipalities). |
+| `GET /api/social-media/daily?date=&category=&lang=` | Social OSINT daily feed (`findings[]`). |
+| `POST /api/social-media/fetch-topic` | On-demand topic search (X / Telegram / Facebook). |
+| `GET /api/search-trends/dashboard?district=&days=&refresh=1` | Search interest dashboards (Trends tab; separate from assessment scoring). |
+| `GET /api/search-trends/districts`, `/topic-groups` | Trends tab metadata. |
 
 ---
 
@@ -1108,16 +1128,33 @@ All hermetic; wired into `npm test`.
 
 ### 15.3 Calibration
 
-- `scripts/suggest-component-tuning.js` — scans national `reports/resilience-report-*.json`, fits per-component (`tanhK`, `certM`) by inverting the scoring math row-by-row and taking the median (B5 / Tier 7). Output is **advisory only**: `COMPONENT_TUNING` defaults stay in `behaviorSignals.js` untouched until a human edits them. Pass `--diff` to print only the components whose proposal moves by more than ±0.05 from current.
+- `npm run suggest-tuning` (or `node business_modules/resilience/tuning/scripts/suggestComponentTuning.js`) — scans national `reports/resilience-report-*.json`, fits per-component (`tanhK`, `certM`) by inverting the scoring math row-by-row and taking the median (B5 / Tier 7). Output is **advisory only**: `COMPONENT_TUNING` defaults stay in `behaviorSignals.js` untouched until a human edits them. Pass `--diff` to print only the components whose proposal moves by more than ±0.05 from current.
   ```bash
-  node scripts/suggest-component-tuning.js              # current and proposed for every component
-  node scripts/suggest-component-tuning.js --diff       # diff only (suppresses unchanged rows)
+  npm run suggest-tuning              # current and proposed for every component
+  npm run suggest-tuning -- --diff    # diff only (suppresses unchanged rows)
   ```
 - `business_modules/resilience/domain/services/signalWeightsFit.js` — `fitSignalWeightsRidgeMock()` returns `null` until labelled data exists (T5 placeholder for ridge regression with sign constraints on `SIGNAL_TO_COMPONENTS`).
 
 ### 15.4 Live-LLM CI
 
 `.github/workflows/resilience-live-llm.yml` — `workflow_dispatch` + weekly schedule; runs `tests/business_modules/resilience/adversarial.test.js` with `RESILIENCE_LIVE_LLM=1`. Job-level secret gating uses an explicit `steps.gate.outputs.has_key` flag.
+
+### 15.5 Validation collection (operational calibration)
+
+`business_modules/resilience/validation/` — runs automatically at the end of every **`assess-signals.js`** run (not legacy `analyze-resilience`). Purpose: shadow/active collection of assessment snapshots and expert review queues during peacetime and crisis, tracking construct-validity maturity tiers.
+
+| Item | Detail |
+|------|--------|
+| Config | `validation-config.json` — phase, collection toggles, review thresholds, acceptance criteria |
+| Phase CLI | `npm run validation:status`, `npm run validation:set-phase -- elevated` |
+| Service | `validation/app/validationCollectionService.js` → `collectAfterAssessment()` |
+| Artifacts | `validation/artifacts/records/{date}-{scope}.json`, `review-queue/{date}-{scope}.jsonl`, `phase-log/phase-changes.jsonl` |
+
+**Operational phases:** `baseline` (default shadow collection) → `elevated` → `acute`. Auto-elevation from signal volume is **advisory only** (`auto_elevation.advisory_only: true`) — never auto-applied.
+
+**Review queue:** up to 15 flagged articles/day (high delta significance, counterfactual leverage, polarization, low extraction confidence). No dedicated UI tab — operators use CLI + JSONL artifacts.
+
+**Acceptance tiers** (from config): Tier 1 = CI golden + adversarial; Tier 2 = extraction F1/kappa; Tier 3 = 30+ daily records → `npm run suggest-tuning`; Tier 4 = expert labels (Spearman ≥ 0.6); Tier 5 = ridge weight fit (`signalWeightsFit.js` stub).
 
 ---
 
@@ -1153,6 +1190,10 @@ Required env vars:
 | `RESILIENCE_SECOND_EXTRACT` | `1` to enable dual-model agreement boost |
 | `RESILIENCE_SECOND_EXTRACT_MODEL` | Optional second extraction model id |
 | `RESILIENCE_DUAL_AGREEMENT_BOOST` | Default `1.05`; clamped `[1, 1.2]` |
+| `X_BEARER_TOKEN` | X API v2 for social OSINT gather/topic fetch |
+| `TELEGRAM_API_ID`, `TELEGRAM_API_HASH`, `TELEGRAM_SESSION` | Telegram MTProto for social OSINT |
+| `DATAFORSEO_LOGIN`, `DATAFORSEO_PASSWORD` | Search trends live fetch (Trends tab) |
+| `TRENDS_DEMO_MODE` | `1` = synthetic trends data, no live API |
 | `RESILIENCE_ANALYST_EMAILS` | Comma-separated emails allowed `?view=analyst` and analyst-only API routes (when non-empty) |
 | `RESILIENCE_NARRATIVE_INCLUDE_SCORES` | Default `false` — include 1–10 lines in narrative LLM prompt when `true` |
 | `RESILIENCE_EMBEDDING_VERIFY` | `0` to disable embedding rescue |
@@ -1355,9 +1396,22 @@ business_modules/
 │   ├── baram/  galma/  golan/  hiram/  naftali/   # Per-cluster data
 │   ├── app/  domain/  infrastructure/             # Same shape as pbo_report_muni
 │
-├── naftali/                                       # Source 7 — Naftali weekly questionnaire
-│   ├── input/extract-naftali-signals.js           # Excel → signals
+├── pool/                                          # Naftali questionnaire + education sessions (Pools tab)
+│   ├── input/extract-naftali-signals.js           # Excel → signals-naftali-{week}.json
 │   ├── app/naftaliService.js
+│   └── input/poolRoutes.js
+├── social_media/                                  # Source 8 — Social OSINT (X + Telegram)
+│   ├── input/socialMediaInput.js                  # gather-daily | treat | init
+│   ├── input/socialMediaRoutes.js                 # /api/social-media/*
+│   ├── app/socialMediaDailyGatherService.js       # X + Telegram daily pipeline
+│   ├── app/socialMediaTreatmentService.js         # findings → signals[]
+│   ├── app/socialMediaTopicFetchService.js        # On-demand topic search
+│   └── data/signals-social-{date}.json            # OSINT bundle
+│
+├── search_trends/                                 # Trends tab (not in assess pipeline)
+│   ├── input/searchTrendsRoutes.js              # /api/search-trends/*
+│   ├── app/searchTrendsService.js
+│   └── data/cache/dashboard-{district}-{days}d.json
 │
 ├── resilience/                                    # The brain (+ field survey Excel → MD/JSON under app/survey*.js, input/analyze-survey.js)
     ├── domain/
@@ -1400,10 +1454,16 @@ business_modules/
         ├── analyze-survey.js                      # Survey path
         ├── analyzeResilienceInput.js
         ├── analyzeSurveyInput.js
-        ├── assess-signals.js                      # Stage-2 CLI: combine signals + assess
+        ├── assess-signals.js                      # Stage-2 CLI: combine signals + assess (+ validation)
         ├── assessSignalsHelpers.js                # crossSourceDedup, EWMA, delta-channel
         ├── driftRoutes.js                         # /api/resilience/drift
         └── extract-signals.js                     # Stage-1 CLI: extract per source
+    └── validation/                                # Post-assess calibration collection
+        ├── validation-config.json
+        ├── app/validationCollectionService.js
+        ├── domain/validationRecordBuilder.js
+        ├── scripts/validationStatus.js            # npm run validation:status
+        └── artifacts/records|review-queue|phase-log/
 
 reports/
 ├── resilience-report-{date}-{HHMM}.{md,json}
@@ -1417,6 +1477,9 @@ signals/
 ├── signals-pbo-{date}.json
 ├── signals-pbo_regional-{date}.json
 └── signals-naftali-{week-end-date}.json
+
+business_modules/social_media/data/
+└── signals-social-{date}.json                     # Social OSINT (findings + signals[])
 
 business_modules/visits/data/signals/
 └── signals-field-{date}.json

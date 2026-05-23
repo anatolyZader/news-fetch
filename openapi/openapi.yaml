@@ -17,6 +17,9 @@ tags:
   - name: Municipalities
   - name: Visits
   - name: Naftali
+  - name: Geo
+  - name: SocialMedia
+  - name: SearchTrends
   - name: Translation
   - name: Chat
   - name: Mailing
@@ -131,6 +134,58 @@ components:
       properties:
         ok: { type: boolean }
         id: { type: string, nullable: true, description: "Resend message id when returned" }
+    SocialMediaFetchTopicRequest:
+      type: object
+      required: [topic]
+      properties:
+        topic:
+          type: string
+          minLength: 2
+          description: Free-text topic or concept to search across platforms
+        platforms:
+          type: array
+          items: { type: string, enum: [x, telegram, facebook] }
+          description: Subset of platforms; at least two required when execute is true
+        execute:
+          type: boolean
+          default: false
+          description: When false, returns dry-run estimate only
+        maxCostUsd:
+          type: number
+          description: Optional cost cap for live fetch
+        maxPerQuery:
+          type: integer
+          description: Optional per-query result cap
+        lang:
+          type: string
+          description: Optional UI language for post translation (e.g. en, he, ru)
+    SocialMediaTopicFetchHistoryResponse:
+      type: object
+      required: [searches]
+      properties:
+        searches:
+          type: array
+          items: { type: object, additionalProperties: true }
+    SearchTrendsDistrictsResponse:
+      type: object
+      required: [districts]
+      properties:
+        districts:
+          type: array
+          items:
+            type: object
+            required: [id, geo, labelKey]
+            properties:
+              id: { type: string, description: "District id (national, north, south, …)" }
+              geo: { type: string, description: "Google Trends geo code" }
+              labelKey: { type: string }
+    SearchTrendsTopicGroupsResponse:
+      type: object
+      required: [topicGroups]
+      properties:
+        topicGroups:
+          type: array
+          items: { type: object, additionalProperties: true }
 paths:
   /api/auth/config:
     get:
@@ -474,6 +529,341 @@ paths:
               schema: { type: object, additionalProperties: true }
         "502":
           description: Upstream failure
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /api/social-media:
+    get:
+      tags: [SocialMedia]
+      summary: Social OSINT dashboard — available bundle dates and counts.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        "502":
+          description: Upstream failure
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "503":
+          description: Social media service not configured
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /api/social-media/platforms:
+    get:
+      tags: [SocialMedia]
+      summary: Selectable platforms for topic fetch (X, Telegram, Facebook).
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        "503":
+          description: Social media service not configured
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /api/social-media/daily:
+    get:
+      tags: [SocialMedia]
+      summary: Daily OSINT feed — findings grouped by emergency category.
+      parameters:
+        - in: query
+          name: date
+          required: true
+          schema: { type: string, format: date }
+          description: Bundle date (YYYY-MM-DD)
+        - in: query
+          name: category
+          schema: { type: string }
+          description: Optional emergency category id filter
+        - in: query
+          name: lang
+          schema: { type: string }
+          description: Optional UI language for post translation
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        "400":
+          description: Missing or invalid date
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "404":
+          description: Daily feed not found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "502":
+          description: Upstream failure
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "503":
+          description: Social media service not configured
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /api/social-media/fetch-topic:
+    post:
+      tags: [SocialMedia]
+      summary: On-demand topic search across social platforms.
+      description: >
+        Dry-run by default (`execute: false`). When `execute` is true, at least two
+        platforms must be selected. Results may be persisted for history retrieval.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SocialMediaFetchTopicRequest" }
+      responses:
+        "200":
+          description: Topic fetch result (dry-run estimate or live posts)
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        "400":
+          description: Invalid topic or platform selection
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "502":
+          description: Upstream failure
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "503":
+          description: Social media service not configured
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /api/social-media/topic-fetches:
+    get:
+      tags: [SocialMedia]
+      summary: List recent on-demand topic searches.
+      parameters:
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 100, default: 30 }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SocialMediaTopicFetchHistoryResponse" }
+        "502":
+          description: Upstream failure
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "503":
+          description: Social media service not configured
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /api/social-media/topic-fetches/{id}:
+    get:
+      tags: [SocialMedia]
+      summary: Load a saved topic fetch by id.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+        - in: query
+          name: lang
+          schema: { type: string }
+          description: Optional UI language for post translation
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        "404":
+          description: Topic fetch not found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "502":
+          description: Upstream failure
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "503":
+          description: Social media service not configured
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /api/social-media/report:
+    get:
+      tags: [SocialMedia]
+      summary: OSINT bundle and markdown report for a date.
+      parameters:
+        - in: query
+          name: date
+          required: true
+          schema: { type: string, format: date }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        "400":
+          description: Missing or invalid date
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "404":
+          description: Report not found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "502":
+          description: Upstream failure
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "503":
+          description: Social media service not configured
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /api/search-trends/districts:
+    get:
+      tags: [SearchTrends]
+      summary: Israel district list for trends dashboards.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SearchTrendsDistrictsResponse" }
+        "503":
+          description: Search trends service not configured
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /api/search-trends/topic-groups:
+    get:
+      tags: [SearchTrends]
+      summary: Topic group metadata for the Trends tab filters.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SearchTrendsTopicGroupsResponse" }
+        "503":
+          description: Search trends service not configured
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /api/search-trends/dashboard:
+    get:
+      tags: [SearchTrends]
+      summary: Search interest dashboard for a district and time window.
+      description: >
+        Returns cached data when fresh (6h TTL) unless `refresh=1`. Falls back to
+        stale cache or demo data when live fetch is unavailable (`TRENDS_DEMO_MODE=1`).
+      parameters:
+        - in: query
+          name: district
+          schema: { type: string, default: national }
+          description: District id (alias query param `scope`)
+        - in: query
+          name: scope
+          schema: { type: string }
+          description: Same as `district` when preferred
+        - in: query
+          name: days
+          schema: { type: integer, enum: [1, 3, 7], default: 7 }
+          description: Time window in days
+        - in: query
+          name: refresh
+          schema: { type: string, enum: ["0", "1", "true", "false"] }
+          description: Force live fetch when `1` or `true`
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        "502":
+          description: Upstream failure
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "503":
+          description: Search trends service not configured
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }

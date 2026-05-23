@@ -2,411 +2,405 @@
 
 **Location:** `docs/main_docu_files/` (canonical main documentation — see [README](./README.md))
 
-> **Canonical code paths:** Resilience logic lives under `business_modules/resilience/` (not `src/resilience/`). Key modules: `domain/services/behaviorSignals.js`, `infrastructure/claudeEvaluator.js`, `infrastructure/reportWriter.js`, `domain/resilienceComponents.js`.
+> **Deep reference:** For the full 8-component framework, signal catalog (~165 types), scoring math, reliability instruments, UI tiers, and QA harness, see [8-component-analysis-end-to-end.md](./8-component-analysis-end-to-end.md).
+>
+> **Geographic enrichment:** See [GEOGRAPHIC-ANALYSIS.md](./GEOGRAPHIC-ANALYSIS.md).
 
-**System:** Population Resilience Monitor
-**Framework:** 8-Component Community Resilience (Pikud HaOref / פיקוד העורף)
-**Last updated:** 2026-03-22
+**System:** Population Resilience Monitor  
+**Framework:** 8-Component Community Resilience (Pikud HaOref / פיקוד העורף)  
+**Last updated:** 2026-05-23
 
 ---
 
 ## Overview
 
-Every day, news articles from 7 Israeli news sites are fetched, filtered for home-front relevance, and analyzed for behavioral signals that indicate how the population is coping with the emergency. The result is a structured resilience report scored across 8 components.
+The app produces a **daily 8-component community resilience assessment** for Israeli civilian populations under emergency conditions. Evidence comes from **multiple channels** (news, radio, WhatsApp, field visits, PBO reports, Naftali questionnaires, social OSINT). Each channel is ingested and extracted independently; a combined assessment merges all enabled sources within a configurable date window.
 
-The pipeline has three major stages:
+Two scopes are supported:
 
-```
-[News APIs] → articles-homefront.md → [LLM signal extraction] → [Code scoring] → [LLM narrative] → Report
-```
+| Scope | Report prefix | Typical use |
+|-------|---------------|-------------|
+| **National** | `resilience-report-{date}-{HHMM}` | Country-wide population behavior |
+| **North** | `resilience-report-north-{date}-{HHMM}` | Galilee / Golan / northern border belt |
 
-A key design principle: **LLM extracts, code scores**. The LLM finds behavioral evidence and classifies it into a fixed signal vocabulary. A deterministic algorithm then maps those signals to component scores — the LLM does not decide the scores. This makes scoring consistent, auditable, and comparable across days.
+A key design principle: **LLM extracts, code scores**. The LLM finds behavioral evidence and classifies it into a fixed signal vocabulary (`SIGNAL_CATALOG`, ~165 types). A deterministic algorithm maps those signals to component scores — the LLM does not decide the scores.
 
 ---
 
-## Stage 1 — Article Fetching and Filtering
+## Two pipeline paths
 
-### Trigger
+### Modern multi-source pipeline (production default)
 
-Run manually or via the `/analyze-news` slash command:
+Split into auditable stages so signals are reusable and comparable across days:
+
+```
+[Per-source ingest] → signals/signals-{type}-{date}.json
+        ↓
+[assess-signals.js] → merge + scope filter + deterministic scoring + LLM narrative
+        ↓
+reports/resilience-report[-north]-{date}-{HHMM}.{md,json}
+        ↓
+validation artifacts (records + review queue)
+```
+
+**Stage 1 — extract:** `npm run extract-signals -- --source-type <type> --files … --date YYYY-MM-DD`  
+**Stage 2 — assess:** `npm run assess-signals -- --date YYYY-MM-DD --days N [--scope national|north]`
+
+Recommended entry points:
+
+| Entry | What it runs |
+|-------|--------------|
+| `/8comp-3` | 3-day national window (news, whatsapp, field, PBO, … per config) |
+| `/8comp-3-north` | Same + north scope + `social-media:gather-daily` (X + Telegram) |
+| `./scripts/daily-pipeline.sh` | Cron-friendly: transcribe → fetch news → extract all sources → assess (3-day) |
+
+### Legacy news-only path (still supported)
+
+Single-shot analysis from one markdown file — no intermediate signal JSON, no multi-source merge, no validation collection:
 
 ```bash
 npm run homefront-to-md
-```
-
-### What it does
-
-**Entry:** `business_modules/news-sites/input/extract-homefront-articles.js` → `app/extractHomefrontArticles.js`
-
-1. **Fetches** today's main-news articles from many Israeli outlets via the NewsAPI.ai API:
-   - Each site has an adapter under `business_modules/news-sites/infrastructure/adapters/newsApi*Adapter.js`
-   - The date used is today in `Asia/Jerusalem` timezone (configurable via `TZ_ARTICLES` env var)
-
-2. **Filters** with an LLM (Haiku) on title plus a short body snippet for population-behavior relevance (not the legacy keyword-only filter). A multilingual keyword list lives at `business_modules/social_media/domain/services/homefrontKeywords.js` for social ingest and query building.
-
-3. **Deduplicates** cross-site articles — same story published by multiple outlets is counted once (key = first 40 meaningful chars of title)
-
-4. **Writes** a single markdown file: `articles-homefront.md`
-   - Each article includes: title, URL, publication date, source, full body text
-   - A header summarizes the total and filtered counts
-
-### Output
-
-`articles-homefront.md` — the single source of truth for the analysis. Typical result: ~300–400 articles fetched across all sites, ~50–150 pass the filter.
-
-### Environment variables required
-
-| Variable | Purpose |
-|---|---|
-| `NEWSAPI_AI_KEY` (or `NEWSAPI_API_KEY`) | NewsAPI.ai authentication |
-| `TZ_ARTICLES` | Timezone for "today" (default: `Asia/Jerusalem`) |
-| `HOMEFRONT_MD` | Output path (default: `articles-homefront.md`) |
-
----
-
-## Stage 2 — Behavioral Signal Extraction
-
-### Trigger
-
-```bash
 npm run analyze-resilience -- --date YYYY-MM-DD
 ```
 
-Or via the `/analyze-news` slash command (which runs both stages).
-
-**Script:** `business_modules/resilience/input/analyze-resilience.js` (via `npm run analyze-resilience`)
-**Core module:** `business_modules/resilience/infrastructure/claudeEvaluator.js`
+Also used by `POST /api/analyze` (SSE maintainer trigger). Prefer `assess-signals` for production daily reports.
 
 ---
 
-### Step 2a — Title Pre-filter (Haiku)
+## Source toggles (`pipeline-config.json`)
 
-Before sending full article bodies to the LLM, a fast Haiku pass classifies article titles to discard ones with no plausible behavioral content.
-
-**Model:** `claude-haiku-4-5-20251001`
-**Input:** All article titles (one list)
-**Output:** Indices of articles to keep
-
-**INCLUDE criteria:**
-- Direct quotes from residents or local officials
-- Specific observable actions (sheltering, evacuating, volunteering, closing schools)
-- Statistics or counts (compliance rates, attendance figures)
-- Institutions operating or failing (hospitals, municipalities)
-- Mutual aid, community organizing, solidarity acts
-- Mental health services activated or residents seeking support
-
-**EXCLUDE:**
-- Military/battlefield reports with no civilian behavior component
-- National-level political statements without a described public reaction
-- Journalist assessments of "how the community is coping" without concrete evidence
-
-Typical result: ~80–130 articles pass out of 300–400.
-
----
-
-### Step 2b — Signal Extraction (Haiku)
-
-The pre-filtered articles are sent in batches of 60 to Haiku for behavioral signal extraction.
-
-**Model:** `claude-haiku-4-5-20251001`
-**Max tokens per batch:** 12,000
-**Batching:** Automatic — articles are split into batches of ≤60
-
-#### Closed Signal Vocabulary
-
-The LLM must classify each piece of behavioral evidence into one of **32 signal types** across 8 domains. It cannot invent new types.
-
-| Domain | Signal Types |
-|---|---|
-| **Compliance & Discipline** | `compliance_enter_shelter`, `compliance_follow_instructions`, `non_compliance_exit_early`, `non_compliance_ignore_guidelines` |
-| **Risk & Safety** | `risk_exposure_behavior`, `panic_behavior`, `unsafe_gathering` |
-| **Social Cohesion** | `solidarity_help_others`, `community_volunteering`, `social_isolation`, `conflict_or_tension` |
-| **Leadership & Governance** | `leadership_visible_presence`, `leadership_clear_guidance`, `leadership_absence`, `coordination_failure` |
-| **Information & Communication** | `information_clarity`, `information_confusion`, `rumor_spread`, `active_information_seeking` |
-| **Functional Continuity** | `service_continuity`, `service_disruption`, `routine_maintenance`, `system_overload` |
-| **Emotional / Narrative** | `fear_expression`, `calm_confidence`, `resilience_narrative_positive`, `resilience_narrative_negative` |
-| **Community Resources** | `resource_mobilization`, `resource_shortage`, `self_organization`, `dependency_on_external_aid` |
-
-#### Signal Schema
-
-Each extracted signal has this structure:
+Each source can be enabled or disabled without code changes:
 
 ```json
 {
-  "article_index": 12,
-  "article_url": "https://...",
-  "signal_type": "service_disruption",
-  "evidence": "גן הילדים נסגר ביום ראשון בשל מצב הביטחוני",
-  "intensity": 0.8,
-  "confidence": 0.9
+  "sources": {
+    "news":     { "enabled": true,  "description": "Homefront news articles" },
+    "radio":    { "enabled": false, "description": "Radio broadcast transcripts" },
+    "whatsapp": { "enabled": true,  "description": "WhatsApp reports" },
+    "field":    { "enabled": false, "description": "Professional squad field visit reports" },
+    "pbo":      { "enabled": false, "description": "PBO municipality daily reports" },
+    "naftali":  { "enabled": false, "description": "Naftali weekly questionnaire" },
+    "social":   { "enabled": true,  "description": "Social media OSINT (X + Telegram)" }
+  }
 }
 ```
 
-| Field | Description |
-|---|---|
-| `article_index` | Position of the article in the batch |
-| `article_url` | Direct link to the source article |
-| `signal_type` | One of the 32 fixed signal types |
-| `evidence` | Exact quote or bare factual description — no journalist adjectives |
-| `intensity` | 0–1: how strong/clear this behavioral signal is |
-| `confidence` | 0–1: how confident the LLM is this is genuine behavioral evidence (not journalist characterization) |
-
-#### Extraction Rules (enforced in the prompt)
-
-1. **Atomic** — one signal = one behavioral fact. Compound behaviors are split into separate signals.
-2. **Closed vocabulary** — only types from the catalog above are accepted; unknown types are dropped by code.
-3. **Evidence required** — only extract if there is a verbatim/near-verbatim quote, a specific observable action, or a statistic. Journalist opinions are rejected.
-4. **No journalist framing** — strip characterizations; keep only the bare fact.
-
-Signals with unknown `signal_type` values are silently dropped by the validator in `claudeEvaluator.js`.
+Both `extract-signals.js` and `assess-signals.js` honour this file. Disabled sources exit 0 with a log line (idempotent slash-command runs).
 
 ---
 
-## Stage 3 — Deterministic Scoring
+## Stage 1 — Ingestion (per source)
 
-**Module:** `business_modules/resilience/domain/services/behaviorSignals.js`
-**No LLM involved — pure code.**
-
-### Many-to-many mapping
-
-Each signal type maps to one or more resilience components, with a base weight per component. Examples:
-
-| Signal | Component mappings |
-|---|---|
-| `solidarity_help_others` | `belonging_solidarity` +1.0, `wellbeing_at_risk` +0.7, `community_capital` +0.6 |
-| `service_disruption` | `functional_continuity` −1.5, `wellbeing_at_risk` −0.4 |
-| `leadership_clear_guidance` | `leadership` +1.1, `information_communication` +0.4 |
-| `coordination_failure` | `leadership` −1.0, `community_capital` −0.6, `functional_continuity` −0.5 |
-| `fear_expression` | `narrative` −0.8, `wellbeing_at_risk` −0.7 |
-
-The full mapping table is in `business_modules/resilience/domain/services/behaviorSignals.js` → `SIGNAL_TO_COMPONENTS`.
-
-### Scoring formula
-
-For each component:
-
-```
-raw_score = Σ (base_weight × intensity × confidence)   for all signals mapped to this component
-
-score (1–10) = sigmoid(raw_score) × 9 + 1
-```
-
-The sigmoid function maps any raw score to the 1–10 range:
-- `raw = 0` → score ≈ 5.5 (neutral baseline — equal positive and negative evidence)
-- Large positive raw → approaches 10
-- Large negative raw → approaches 1
-
-### Confidence levels
-
-| Confidence | Condition |
-|---|---|
-| `insufficient_data` | 0 signals mapped to this component |
-| `low` | 1–2 signals |
-| `medium` | 3–6 signals |
-| `high` | 7+ signals |
-
-### Overall score
-
-Mean of all components that have at least one signal. Components with `insufficient_data` are excluded from the mean.
-
----
-
-## Stage 4 — Narrative Generation
-
-**Model:** `claude-sonnet-4-6`
-**Module:** `business_modules/resilience/infrastructure/claudeEvaluator.js` → `generateNarratives()`
-
-Sonnet receives the pre-computed scores and the signals bucketed by component. Its only job is to **write behavioral narratives** — it does not re-score.
-
-For each component, Sonnet produces:
-- `narrative` — 3–5 sentence behavioral description (describes what people are doing/saying, not abstract assessments)
-- `manifestations_evidenced` — which of the component's behavioral manifestations have evidence today
-- `manifestations_absent` — which manifestations have no evidence today
-- `supporting_evidence` — up to 3 evidence quotes supporting the score
-- `weakening_evidence` — up to 3 evidence quotes working against the score
-
-At the top level:
-- `cross_component_synthesis` — 2-paragraph behavioral summary across all 8 components
-- `evidence_quality_note` — 1 sentence on the proportion of direct quotes vs reported facts today
-
-### Behavioral manifestations
-
-Each component has 4–5 specific behavioral manifestations defined in `business_modules/resilience/domain/resilienceComponents.js`. These are the observable signs the framework expects to see, derived from the Home Front Command's assessment methodology.
-
-Example — **Leadership** manifestations:
-1. Residents express that formal or informal leadership is a source of support and security
-2. Leadership actively encourages residents to follow HFC guidelines (statements, actions, public presence)
-3. Leadership is reported to function professionally and manage the situation competently
-4. Residents express distrust, criticism, or frustration with leadership
-
-Narratives explicitly note which manifestations are absent — a deliberate design choice to avoid hiding gaps.
-
----
-
-## Stage 5 — Report Writing
-
-**Module:** `business_modules/resilience/infrastructure/reportWriter.js`
-
-Two files are written to `reports/`:
-
-### Markdown report (`resilience-report-YYYY-MM-DD.md`)
-
-1. **Header table** — date, sources, article count, overall score
-2. **Executive summary** — cross-component synthesis (behavioral)
-3. **Component score table** — all 8 components with score, status (color), confidence, signal count
-4. **Detailed analysis** — per component:
-   - Score, confidence, signal count
-   - Narrative (behavioral, 3–5 sentences)
-   - Positive behavioral signals
-   - Negative behavioral signals
-   - Behavioral signs with no evidence today
-5. **Evidence quality note**
-6. **Signal appendix** — every extracted signal grouped by type, each with a direct link to the source article URL
-
-### JSON data file (`resilience-report-YYYY-MM-DD.json`)
-
-Full structured data including:
-- Complete assessment object (all scores, narratives, manifestations)
-- All extracted signals with URLs, evidence text, intensity, confidence
-- Source file list and generation timestamp
-
----
-
-## The 8 Resilience Components
-
-Based on the Pikud HaOref / Fran Norris 2008 framework:
-
-| ID | Hebrew | English |
-|---|---|---|
-| `narrative` | נרטיב | Narrative |
-| `information_communication` | מידע, תקשורת ושיתוף | Information, Communication & Sharing |
-| `lifesaving_behavior` | התנהגות אפקטיבית להצלת חיים | Effective Life-Saving Behavior |
-| `functional_continuity` | רציפות תפקודית | Functional Continuity |
-| `community_capital` | הון ומשאבי קהילה | Community Capital & Resources |
-| `leadership` | מנהיגות | Leadership |
-| `belonging_solidarity` | שייכות וסולידריות | Belonging & Solidarity |
-| `wellbeing_at_risk` | דאגה לרווחה הפיזית והנפשית | Physical & Mental Wellbeing (At-Risk) |
-
-Full definitions and behavioral manifestations: `business_modules/resilience/domain/resilienceComponents.js`
-
----
-
-## Running the Full Pipeline
-
-### Via slash command (recommended)
-
-```
-/analyze-news
-```
-
-This runs both stages automatically and reports the scores.
-
-### Manually
+### News (`source_type: news`)
 
 ```bash
-# Stage 1 — fetch and filter articles
-npm run homefront-to-md
-
-# Stages 2–5 — extract signals, score, generate report
-npm run analyze-resilience -- --date 2026-03-17
+npm run homefront-to-md -- YYYY-MM-DD
 ```
 
-### CLI options
+**Entry:** `business_modules/news-sites/input/extract-homefront-articles.js` → `app/extractHomefrontArticles.js`
 
+1. **Fetches** main-news articles from ~30 Israeli outlets via NewsAPI.ai (`infrastructure/adapters/newsApi*Adapter.js`). Date is `Asia/Jerusalem` (`TZ_ARTICLES`).
+2. **LLM Haiku pre-filter** on title + short body snippet for population-behavior relevance (not keyword-only). Keywords at `business_modules/social_media/domain/services/homefrontKeywords.js` are auxiliary (social ingest).
+3. **Deduplicates** cross-site by first 40 meaningful title chars.
+4. **Writes** `business_modules/news-sites/articles_extracted/articles-homefront.md` **and** dated `articles-homefront-{date}.md`. Articles are also persisted to SQLite evidence store when configured.
+
+| Variable | Purpose |
+|----------|---------|
+| `NEWSAPI_AI_KEY` (or `NEWSAPI_API_KEY`) | NewsAPI.ai authentication |
+| `TZ_ARTICLES` | Timezone for "today" (default: `Asia/Jerusalem`) |
+| `HOMEFRONT_MD` | Output path (default: `articles_extracted/articles-homefront.md`) |
+| `HOMEFRONT_MAX_ARTICLES` | Cap after dedup (default: 300) |
+
+### Radio / audio (`source_type: radio`)
+
+```bash
+npm run audio-to-md -- --file <path> --date YYYY-MM-DD --station … --program …
 ```
---files <f1.md,...>    Input file(s), comma-separated (default: articles-homefront.md)
---date  <YYYY-MM-DD>   Report date (default: parsed from file header)
---output <path>        Output path without extension (default: reports/resilience-report-<date>)
+
+Whisper transcription → `articles-audio-{station}-{program}-{date}.md`. Optional `--contextualize` for speaker labels. Daily pipeline runs `scripts/radio-transcribe.sh` for missing recordings.
+
+### WhatsApp (`source_type: whatsapp`)
+
+```bash
+npm run whatsapp-to-md -- --date YYYY-MM-DD
 ```
+
+Export → `business_modules/whatsapp/reports/whatsapp_reports-{date}.md`. Live webhook ingest also available. Always counted as north scope. Geo attached via `IGeoEnrichmentPort` (see geographic doc).
+
+### Field reports (`source_type: field`)
+
+Markdown bundles at `business_modules/visits/data/articles-field-reports-{date}.md` — professional visit notes. Signals written to `business_modules/visits/data/signals/signals-field-{date}.json`. Always north scope.
+
+### PBO municipality (`source_type: pbo`)
+
+```bash
+node business_modules/pbo_report_muni/input/extract-pbo-signals.js
+```
+
+Excel `north_<day>_4.xlsx` → `signals/signals-pbo-{date}.json` (structured conversion, no extraction LLM).
+
+### PBO regional (`source_type: pbo_regional`)
+
+```bash
+node business_modules/pbo_report_regional/input/extract-regional-pbo-signals.js --files … --date YYYY-MM-DD
+```
+
+Per-cluster markdown/Excel under `pbo_report_regional/data/`. Always north scope.
+
+### Naftali questionnaire (`source_type: naftali`)
+
+```bash
+node business_modules/pool/input/extract-naftali-signals.js
+```
+
+Weekly Excel → `signals/signals-naftali-{week-end-date}.json`. Module lives under `business_modules/pool/`.
+
+### Social OSINT — X + Telegram (`source_type: social`)
+
+```bash
+npm run social-media:gather-daily -- --date YYYY-MM-DD --days 3 [--north] [--execute]
+npm run social-media:treat -- --date YYYY-MM-DD   # usually auto-run by gather-daily
+```
+
+**Module:** `business_modules/social_media/`
+
+| Step | What happens |
+|------|--------------|
+| X gather | Cluster queries (`xHomefrontClusterQueries.js`) → counts + search → raw JSON → behavior filter → Haiku classifier |
+| Telegram gather | MTProto client → public channels (`telegram-public-channels.json`) → raw JSONL → same classify path |
+| Treat | `findings[]` → resilience `signals[]` via `findingToSignalMapper.js` |
+| Output | `business_modules/social_media/data/signals-social-{date}.json`, `social-osint-report-{date}.md` |
+
+**UI:** Social media tab (Daily feed + Topic search). **Assessment:** `assess-signals.js` loads `signals-social-*.json` when `social` is enabled.
+
+| Variable | Purpose |
+|----------|---------|
+| `X_BEARER_TOKEN` | X API v2 |
+| `TELEGRAM_API_ID`, `TELEGRAM_API_HASH`, `TELEGRAM_SESSION` | Telegram MTProto |
+| `ANTHROPIC_API_KEY` | Haiku classifier in gather-daily |
+
+One-time Telegram setup: `npm run social-media:telegram-session`
+
+### Survey (one-off, not daily pipeline)
+
+```bash
+npm run analyze-survey -- --file <excel> …
+```
+
+Municipality survey Excel → separate report with geo enrichment. See resilience `surveyReportWriter.js`.
 
 ---
 
-## Cost and Safety Controls
+## Stage 2 — Signal extraction (`extract-signals.js`)
 
-| Control | Value / Behavior |
-|---|---|
-| **Cost cap** | $3.00 per run. Process terminates with partial usage report if exceeded. |
-| **Haiku batch retries** | Up to 3 attempts with 3/6/9s backoff |
-| **Sonnet retries** | Up to 3 attempts with 5/10/15s backoff |
-| **Partial recovery** | If a Haiku batch hits `max_tokens`, complete JSON objects are salvaged from the truncated output |
-| **Unknown signal types** | Dropped with a warning — do not crash or corrupt scores |
+```bash
+npm run extract-signals -- --source-type news --files articles-homefront-2026-05-23.md --date 2026-05-23
+```
 
-### Typical costs per run
+**Core:** `business_modules/resilience/infrastructure/claudeEvaluator.js`
 
-| Step | Model | Typical cost |
-|---|---|---|
-| Pre-filter | Haiku | ~$0.01 |
-| Signal extraction (2 batches) | Haiku | ~$0.07–0.10 |
-| Narrative generation | Sonnet | ~$0.10–0.15 |
-| **Total** | | **~$0.18–0.26** |
+| Feature | Detail |
+|---------|--------|
+| Model | `claude-haiku-4-5-20251001` |
+| Vocabulary | ~165 closed `signal_type` values in `SIGNAL_CATALOG` (`domain/services/signalCatalog.js`) |
+| Multipass | 3 grouped Haiku passes + 4th self-check pass (`RESILIENCE_EXTRACT_MULTIPASS=0` to disable) |
+| Verification | N-gram evidence containment; optional embedding rescue (`RESILIENCE_EMBEDDING_VERIFY=1`) |
+| Output | `signals/signals-{type}-{date}.json` (+ field/social paths as above) |
+| Geo | Set `GEO_ATTACH_ON_EXTRACT=1` to persist `geo` on written signal files |
+
+Full signal schema, domain groups, and source-specific prompts: [8-component doc §6](./8-component-analysis-end-to-end.md#6-stage-2--signal-extraction-llm-closed-vocabulary).
 
 ---
 
-## File Map
+## Stage 3 — Combined assessment (`assess-signals.js`)
+
+```bash
+npm run assess-signals -- --date 2026-05-23 --days 3 --scope national
+npm run assess-signals -- --date 2026-05-23 --days 3 --scope north
+```
+
+**What it does:**
+
+1. Discovers signal JSON for all **enabled** sources within `{date, date−1, …}` (up to `--days`, max 14).
+2. Applies **temporal weights** (today=1.0, T−1=0.85, T−2=0.70).
+3. **Within-source dedup** and **cross-source dedup** on `(signal_type | source | evidence)`.
+4. Attaches **geo** to news/radio signals; applies **north scope filter** when `--scope north`.
+5. **Deterministic scoring** via `scoreComponents()` — sigmoid to 1–10, bootstrap CI, counterfactual, EWMA, polarization, facets.
+6. **LLM narrative** (Sonnet) — writes behavioral text only; does not re-score.
+7. Writes `reports/resilience-report[-north]-{date}-{HHMM}.{md,json}` (+ `-brief.md` for operators).
+8. Runs **validation collection** (see below).
+
+| Variable | Purpose |
+|----------|---------|
+| `RESILIENCE_COST_CAP_USD` | Per-run LLM cost cap (default $3) |
+| `RESILIENCE_ANALYST_EMAILS` | Comma-separated emails for analyst-tier API/UI |
+
+---
+
+## Validation collection (post-assess)
+
+Automatically invoked at the end of every `assess-signals` run (not legacy `analyze-resilience`).
+
+**Module:** `business_modules/resilience/validation/`  
+**Config:** `validation-config.json`
+
+| Phase | Meaning |
+|-------|---------|
+| `baseline` | Peacetime shadow collection (default) |
+| `elevated` | Crisis volume — active collection |
+| `acute` | High-intensity crisis |
+
+```bash
+npm run validation:status
+npm run validation:set-phase -- elevated [--note "…"]
+```
+
+**Artifacts** (default: `validation/artifacts/`):
+
+| Path | Content |
+|------|---------|
+| `records/{date}-{scope}.json` | Daily immutable validation record |
+| `review-queue/{date}-{scope}.jsonl` | Up to 15 flagged articles/day for expert review |
+| `phase-log/phase-changes.jsonl` | Manual phase transitions |
+
+Acceptance tiers (CI golden/adversarial → extraction F1 → 30-day tuning → expert labels → weight fitting) are defined in config. No dedicated UI tab — CLI + artifact files.
+
+---
+
+## Search trends (UI module, separate from assessment)
+
+**Module:** `business_modules/search_trends/`  
+**Tab:** Trends (main nav)
+
+Google Trends–style interest dashboards for 8 Israel districts × 1/3/7-day windows. DataForSEO primary, `google-trends-api` fallback, 6-hour file cache.
+
+```bash
+npm run trends:warm-cache
+```
+
+API: `GET /api/search-trends/dashboard?district=&days=&refresh=1`
+
+Does **not** feed the 8-component scoring pipeline directly — operational context for officers.
+
+---
+
+## Daily automation (`scripts/daily-pipeline.sh`)
+
+```bash
+./scripts/daily-pipeline.sh              # full pipeline
+./scripts/daily-pipeline.sh --no-transcribe
+```
+
+Steps (last 3 calendar days):
+
+1. Transcribe missing radio recordings (`radio-transcribe.sh`)
+2. Fetch news per day (`homefront-to-md`)
+3. Extract news signals
+4. Extract radio signals
+5. WhatsApp export + extract
+6. Field report extract (last 3 files)
+7. PBO municipality extract
+8. Regional PBO extract
+9. Naftali extract
+10. Combined assessment (`assess-signals --days 3`)
+
+Social OSINT is **not** in this shell script — run via `/8comp-3-north` or `social-media:gather-daily` separately.
+
+---
+
+## Report outputs
+
+| File | Audience |
+|------|----------|
+| `reports/resilience-report-{date}-{HHMM}.md` | Full markdown (analyst) |
+| `reports/resilience-report-{date}-{HHMM}.json` | Structured data + API |
+| `reports/resilience-report-{date}-{HHMM}-brief.md` | Operator brief (no numeric scores) |
+| `reports/resilience-report-north-{date}-{HHMM}.*` | North scope variants |
+
+JSON includes: all scores, narratives, manifestations, signal appendix with URLs, methodology block, geo reference versions, reliability instruments per component.
+
+---
+
+## Web UI and API
+
+| Tab / endpoint | Role |
+|----------------|------|
+| **Report** | Latest assessment (`GET /api/report/today?scope=&view=operator\|analyst`) |
+| **Drift** (analyst, in Report) | `GET /api/resilience/drift?scope=&days=30` |
+| **Social media** | Daily OSINT feed + topic fetch |
+| **Trends** | Search interest dashboards |
+| **Visits** | Field report dashboard |
+| **PBO reports** | Municipality/regional PBO views |
+
+North scope in UI requires a north report artifact — otherwise API returns `hint: north_requires_assess_signals` (expected until `/8comp-3-north` has been run).
+
+---
+
+## Cost and safety controls
+
+| Control | Value / behavior |
+|---------|------------------|
+| Cost cap | $3.00 per assess run (`RESILIENCE_COST_CAP_USD`) |
+| Haiku retries | Up to 3 attempts, 3/6/9s backoff |
+| Sonnet retries | Up to 3 attempts, 5/10/15s backoff |
+| Partial recovery | Truncated Haiku JSON salvaged when possible |
+| Unknown signal types | Dropped with warning — no score corruption |
+
+Typical legacy news-only run (`analyze-resilience`): ~$0.18–0.26. Multi-source runs scale with enabled sources and window size.
+
+---
+
+## File map
 
 ```
-business_modules/news-sites/input/
-  extract-homefront-articles.js   Stage 1 CLI → extractHomefrontArticles
-  fetch-articles-to-md.js         Single-site fetch CLI
-  discover-source-uris.js         NewsAPI.ai source URI probe (dev)
-  debug-api.js                    Event Registry response debug (dev)
-
-business_modules/audio/input/
-  audio-to-md.js                  Transcribe audio → articles-audio.md
-
-business_modules/resilience/input/
-  analyze-resilience.js           News/audio-transcript markdown → 8-component report
-  analyze-survey.js               Municipality survey Excel → reports
-
-cross-cut-modules/budget/input/
-  test-token-usage.js             Token/cost audit vs resilience pipeline (dev)
-
-business_modules/pbo_report_muni/input/
-  analyze-event-log.js            PBO pipe-delimited log → event report
-
 business_modules/news-sites/
-  app/extractHomefrontArticles.js  Fetch all sites + LLM pre-filter → articles-homefront.md
-  app/fetchArticlesToMd.js         Single-site markdown export
-  domain/mainNewsFilter.js        Main-news URL filter (used by adapters)
-  domain/services/homefrontKeywords.js   Multilingual keywords (social_media module)
-
-business_modules/social_media/data/       OSINT JSON (signals-social-*.json) + markdown reports
-  infrastructure/adapters/        newsApiAdapterFactory + per-site NewsAPI.ai adapters
+  input/extract-homefront-articles.js     News fetch + LLM filter
+  articles_extracted/articles-homefront-{date}.md
 
 business_modules/resilience/
-  domain/resilienceComponents.js  8 component definitions + behavioral manifestations
-  domain/services/behaviorSignals.js   Signal taxonomy, mapping table, deterministic scoring
-  domain/services/assessmentMethodology.js  Phase-1 methodology metadata on reports
-  infrastructure/claudeEvaluator.js      LLM: signal extraction, narrative generation
-  infrastructure/reportWriter.js         Write .md and .json output files
-  input/assess-signals.js           Stage-2 assess (national + north scope)
-  input/analyze-resilience.js       News/audio orchestration (national artifact only)
+  input/extract-signals.js                Stage 1: per-source extraction
+  input/assess-signals.js                 Stage 2: merge + score + narrate
+  input/analyze-resilience.js             Legacy all-in-one (news/audio)
+  validation/                             Post-assess calibration collection
+  domain/services/behaviorSignals.js      Scoring + SIGNAL_TO_COMPONENTS
+  infrastructure/claudeEvaluator.js       LLM extraction + narratives
 
-reports/
-  resilience-report-YYYY-MM-DD.md    Daily markdown report (human-readable)
-  resilience-report-YYYY-MM-DD.json  Daily JSON data file (machine-readable)
+business_modules/social_media/
+  input/socialMediaInput.js               gather-daily | treat | init
+  data/signals-social-{date}.json         OSINT bundle (findings + signals)
+
+business_modules/search_trends/           Trends tab (not in assess pipeline)
+
+signals/
+  signals-{news,radio,whatsapp,pbo,pbo_regional,naftali}-{date}.json
+
+scripts/daily-pipeline.sh                 Cron-friendly multi-source runner
+pipeline-config.json                      Source enable/disable toggles
 
 .claude/commands/
-  analyze-news.md                 /analyze-news slash command definition
-
-docs/
-  docs/main_docu_files/pipeline.md   This file
+  8comp-3.md, 8comp-3-north.md            Recommended daily runbooks
+  analyze-news.md                         Legacy news-only shortcut
 ```
 
 ---
 
-## Design Principles
+## Design principles
 
-1. **LLM extracts, code scores.** The LLM's job is pattern recognition — find behavioral evidence, classify signal type. Scoring is deterministic and auditable.
+1. **LLM extracts, code scores.** Scoring is deterministic and auditable.
+2. **Closed vocabulary.** ~165 fixed signal types; trends comparable across days.
+3. **Behavioral signals only.** Concrete quotes, actions, or statistics — not journalist characterizations.
+4. **Atomic signals.** One signal = one behavioral fact.
+5. **Many-to-many mapping.** One signal can affect multiple components.
+6. **Absence is explicit.** Reports list manifestations with no evidence today.
+7. **Provenance everywhere.** Every signal links back to source URL or report identifier.
+8. **Auditable stages.** Intermediate signal JSON enables replay, QA, and validation review queues.
 
-2. **Closed vocabulary.** The LLM cannot invent signal types. This ensures consistency across days and makes trends comparable over time.
+---
 
-3. **Behavioral signals only.** The system explicitly rejects journalist characterizations ("the community showed resilience"). It requires concrete evidence: a verbatim quote, a specific action, or a statistic.
+## Related documentation
 
-4. **Atomic signals.** One signal = one behavioral fact. Compound observations are split so each signal maps cleanly to its components.
-
-5. **Many-to-many mapping.** One signal can affect multiple components. `solidarity_help_others` is simultaneously evidence for Belonging, Wellbeing, and Community Capital — reflecting the real-world complexity of behavior.
-
-6. **Absence is explicit.** The report always lists which behavioral manifestations have no evidence today. This prevents the appearance of completeness when data is thin.
-
-7. **Article links in evidence.** Every signal in the appendix links back to the original article URL, making every claim in the report traceable to its source.
+| Document | Covers |
+|----------|--------|
+| [8-component-analysis-end-to-end.md](./8-component-analysis-end-to-end.md) | Full framework, scoring math, reliability instruments, QA, UI reading guide |
+| [GEOGRAPHIC-ANALYSIS.md](./GEOGRAPHIC-ANALYSIS.md) | Geo envelope, north scoping, reference data |
+| [README](./README.md) | Index of main docs + auto-sync markers |

@@ -3,12 +3,26 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import Link from '@mui/material/Link';
 import PropTypes from 'prop-types';
+import { alpha } from '@mui/material/styles';
+import { useCallback } from 'react';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { LanguageSelector } from '../components/LanguageSelector.jsx';
-import { getDocsBaseUrl, getSupportEmail } from '../lib/docsUrl.js';
+import { getDocsBaseUrl, getSupportEmail, joinDocsPath } from '../lib/docsUrl.js';
 import { formatDate } from '../lib/date.js';
 
 const COPYRIGHT = '© 2026 VibesWitch.ai';
+
+const FOOTER_ROOT_SX = (theme) => ({
+  width: '100%',
+  marginTop: 'auto',
+  background: theme.palette.background.default,
+  borderTop: theme.custom.border.hairline,
+});
+
+const FOOTER_META_SX = (theme) => ({
+  borderTop: theme.custom.border.hairline,
+  background: alpha(theme.palette.divider, 0.55),
+});
 
 const FOOTER_SHELL_SX = (theme) => ({
   maxWidth: 1280,
@@ -144,8 +158,7 @@ function FooterMetaBar({
   return (
     <Box
       sx={(theme) => ({
-        borderTop: theme.custom.border.hairline,
-        background: theme.palette.background.default,
+        ...FOOTER_META_SX(theme),
       })}
     >
       <Box
@@ -191,7 +204,9 @@ function FooterMetaBar({
                 {t('settings.signedInAs')} {userEmail}
               </Box>
               <MetaDot />
-              <FooterLink meta onClick={onSignOut}>{t('settings.signOut')}</FooterLink>
+              <FooterLink meta onClick={onSignOut}>
+                {t('settings.signOut')}
+              </FooterLink>
             </MetaLine>
           )}
           <LanguageSelector appearance="ghost" />
@@ -228,13 +243,47 @@ export function SiteFooter({
   const version = String(import.meta.env.VITE_APP_VERSION ?? '').trim();
   const userEmail = user?.email ?? '';
 
-  const handleContact = () => {
+  const handleContact = useCallback(() => {
     if (supportEmail) {
-      globalThis.location.href = `mailto:${supportEmail}`;
+      globalThis.location.href = 'mailto:' + supportEmail;
       return;
     }
     onOpenSettings?.();
-  };
+  }, [onOpenSettings, supportEmail]);
+
+  const navigateToTrends = useCallback(() => {
+    onNavigateTab?.('trends');
+  }, [onNavigateTab]);
+
+  const navigateToSocialMedia = useCallback(() => {
+    onNavigateTab?.('social-media');
+  }, [onNavigateTab]);
+
+  const navigateToPboReports = useCallback(() => {
+    onNavigateTab?.('pbo-reports');
+  }, [onNavigateTab]);
+
+  const openGetStartedDocs = useCallback(() => {
+    onOpenDocs?.('getting-started/get-started');
+  }, [onOpenDocs]);
+
+  const openDocsHome = useCallback(() => {
+    onOpenDocs?.();
+  }, [onOpenDocs]);
+
+  const openScoringDocs = useCallback(() => {
+    onOpenDocs?.('concepts/scoring-model');
+  }, [onOpenDocs]);
+
+  const openTermsDocs = useCallback(() => {
+    onOpenDocs?.('getting-started/using-the-app');
+  }, [onOpenDocs]);
+
+  const openDataHandlingDocs = useCallback(() => {
+    onOpenDocs?.('concepts/system-dataflow');
+  }, [onOpenDocs]);
+
+  const getStartedHref = joinDocsPath(docsBaseUrl, 'getting-started/get-started');
 
   if (variant === 'minimal') {
     return (
@@ -242,10 +291,7 @@ export function SiteFooter({
         component="footer"
         aria-label={t('footer.ariaLabel')}
         sx={(theme) => ({
-          width: '100%',
-          marginTop: 'auto',
-          background: theme.palette.background.paper,
-          borderTop: theme.custom.border.hairline,
+          ...FOOTER_ROOT_SX(theme),
         })}
       >
         <Box sx={(theme) => ({ ...FOOTER_SHELL_SX(theme), paddingTop: theme.spacing(3), paddingBottom: theme.spacing(2) })}>
@@ -264,7 +310,7 @@ export function SiteFooter({
               </Typography>
             </Stack>
             <Stack direction="row" flexWrap="wrap" spacing={2} useFlexGap>
-              <FooterLink href={`${docsBaseUrl}/getting-started/get-started`} external>
+              <FooterLink href={getStartedHref} external>
                 {t('footer.link.getStarted')}
               </FooterLink>
               <FooterLink href={docsBaseUrl} external>
@@ -290,10 +336,7 @@ export function SiteFooter({
       component="footer"
       aria-label={t('footer.ariaLabel')}
       sx={(theme) => ({
-        width: '100%',
-        marginTop: 'auto',
-        background: theme.palette.background.paper,
-        borderTop: theme.custom.border.hairline,
+        ...FOOTER_ROOT_SX(theme),
       })}
     >
       <Box
@@ -332,52 +375,68 @@ export function SiteFooter({
 
           <FooterColumn title={t('footer.column.product')}>
             <FooterColumnItem>
-              <FooterLink onClick={onGoToAssessment}>{t('nav.dailyAssessment')}</FooterLink>
+              <FooterLink onClick={onGoToAssessment}>
+                {t('nav.dailyAssessment')}
+              </FooterLink>
             </FooterColumnItem>
             <FooterColumnItem>
-              <FooterLink onClick={onSendEvidence}>{t('app.sendEvidence')}</FooterLink>
+              <FooterLink onClick={onSendEvidence}>
+                {t('app.sendEvidence')}
+              </FooterLink>
             </FooterColumnItem>
             <FooterColumnItem>
-              <FooterLink onClick={() => onNavigateTab?.('trends')}>{t('tab.trends')}</FooterLink>
+              <FooterLink onClick={navigateToTrends}>
+                {t('tab.trends')}
+              </FooterLink>
             </FooterColumnItem>
             <FooterColumnItem>
-              <FooterLink onClick={() => onNavigateTab?.('social-media')}>{t('tab.socialMedia')}</FooterLink>
+              <FooterLink onClick={navigateToSocialMedia}>
+                {t('tab.socialMedia')}
+              </FooterLink>
             </FooterColumnItem>
             <FooterColumnItem>
-              <FooterLink onClick={() => onNavigateTab?.('pbo-reports')}>{t('tab.pboReports')}</FooterLink>
+              <FooterLink onClick={navigateToPboReports}>
+                {t('tab.pboReports')}
+              </FooterLink>
             </FooterColumnItem>
           </FooterColumn>
 
           <FooterColumn title={t('footer.column.help')}>
             <FooterColumnItem>
-              <FooterLink onClick={() => onOpenDocs?.('getting-started/get-started')}>
+              <FooterLink onClick={openGetStartedDocs}>
                 {t('footer.link.getStarted')}
               </FooterLink>
             </FooterColumnItem>
             <FooterColumnItem>
-              <FooterLink onClick={() => onOpenDocs?.()}>{t('app.docs')}</FooterLink>
+              <FooterLink onClick={openDocsHome}>
+                {t('app.docs')}
+              </FooterLink>
             </FooterColumnItem>
             <FooterColumnItem>
-              <FooterLink onClick={() => onOpenDocs?.('concepts/scoring-model')}>
+              <FooterLink onClick={openScoringDocs}>
                 {t('footer.link.scoring')}
               </FooterLink>
             </FooterColumnItem>
             <FooterColumnItem>
-              <FooterLink onClick={handleContact}>{t('footer.link.contact')}</FooterLink>
+              <FooterLink onClick={handleContact}>
+                {t('footer.link.contact')}
+              </FooterLink>
             </FooterColumnItem>
           </FooterColumn>
 
           <FooterColumn title={t('footer.column.legal')}>
             <FooterColumnItem>
-              <FooterLink onClick={onOpenSettings}>{t('settings.section.privacy')}</FooterLink>
+              <FooterLink onClick={onOpenSettings}>
+                {t('settings.section.privacy')}
+              </FooterLink>
             </FooterColumnItem>
             <FooterColumnItem>
-              <FooterLink onClick={() => onOpenDocs?.('getting-started/using-the-app')}>
+              <FooterLink onClick={openTermsDocs}>
                 {t('footer.link.terms')}
               </FooterLink>
             </FooterColumnItem>
             <FooterColumnItem>
-              <FooterLink onClick={() => onOpenDocs?.('concepts/system-dataflow')}>
+              <FooterLink onClick={openDataHandlingDocs}>
                 {t('footer.link.dataHandling')}
               </FooterLink>
             </FooterColumnItem>

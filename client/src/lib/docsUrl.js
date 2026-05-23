@@ -1,3 +1,9 @@
+export function joinDocsPath(baseUrl, slug = '') {
+  const base = String(baseUrl ?? '').replace(/\/+$/, '');
+  const path = String(slug ?? '').replace(/^\/+/, '');
+  return path ? base + '/' + path : base;
+}
+
 export function getDocsBaseUrl() {
   const raw = import.meta?.env?.VITE_DOCS_BASE_URL;
   if (typeof raw !== 'string') return 'https://docs.vibeswitch.ai';

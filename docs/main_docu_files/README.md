@@ -4,11 +4,17 @@ Canonical, **overarching** reference documents for this repository. They are kep
 
 ## Files in this directory
 
-| File | Role |
-|------|------|
-| [8-component-analysis-end-to-end.md](./8-component-analysis-end-to-end.md) | Full resilience pipeline and 8-component framework (implementation reference) |
-| [GEOGRAPHIC-ANALYSIS.md](./GEOGRAPHIC-ANALYSIS.md) | Geographic enrichment (`geo` envelope) developer guide |
-| [pipeline.md](./pipeline.md) | Daily news resilience pipeline overview |
+| File | Role | Start here if… |
+|------|------|----------------|
+| [pipeline.md](./pipeline.md) | **Operational overview** — multi-source daily pipeline, source toggles, CLI commands, validation, social OSINT, trends tab, file map | You need to run or operate the daily pipeline |
+| [8-component-analysis-end-to-end.md](./8-component-analysis-end-to-end.md) | **Implementation reference** — 8 components, ~165 signal types, scoring math, reliability instruments, UI reading guide, QA harness | You need to understand scoring, signals, or change resilience logic |
+| [GEOGRAPHIC-ANALYSIS.md](./GEOGRAPHIC-ANALYSIS.md) | **Geographic enrichment** — `geo` envelope, north scoping, reference data, matching pipeline | You work on locality resolution or north filters |
+
+### What each doc covers (current app state, 2026-05)
+
+- **pipeline.md** — Modern `extract-signals` + `assess-signals` path (production default), legacy `analyze-resilience`, all seven source types in `pipeline-config.json` (including **social** X + Telegram), validation collection, search trends UI, `daily-pipeline.sh`, slash commands (`/8comp-3`, `/8comp-3-north`).
+- **8-component-analysis-end-to-end.md** — Full framework depth: multipass extraction, verification, deterministic scoring, bootstrap/EWMA/polarization, drift dashboard, golden corpus, adversarial tests, operator vs analyst tiers. Auto-synced component/facet tables from code.
+- **GEOGRAPHIC-ANALYSIS.md** — `IGeoEnrichmentPort`, envelope contract, WhatsApp/survey/news geo attach, `regionSignalFilter`, unknown-locality review sinks.
 
 ## Auto-sync
 
@@ -20,4 +26,4 @@ npm run docs:sync
 
 Do not hand-edit content between those markers. Edit the source modules instead.
 
-API reference pages under `product_docs/api/generated/` are regenerated from `openapi/openapi.yaml` as part of the same sync.
+API reference pages under `product_docs/api/generated/` are regenerated from `openapi/openapi.yaml` as part of the same sync. The spec includes **SocialMedia** (7 routes) and **SearchTrends** (3 routes) tags alongside existing modules.

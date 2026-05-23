@@ -13,9 +13,10 @@ slug: /
 ## What is VibeSwitch?
 VibeSwitch turns daily homefront evidence—news, WhatsApp group traffic, audio/radio coverage, and manual submissions—into a single daily assessment you can read quickly, **and** drill into when you need proof.
 
-If you’re here to *use the product* (not deploy it), start with **Using the app** and come back to the other sections only when you hit friction.
+If you’re here to *use the product* (not deploy it), start with **[Get started](getting-started/get-started.md)** or [Using the app (first report)](getting-started/using-the-app.md).
 
 ## Where should I start?
+- **I'm new — show me the app** → [Get started](getting-started/get-started.md)
 - **I want to read today’s assessment** → [Using the app (first report)](getting-started/using-the-app.md)
 - **I want to connect WhatsApp** → [WhatsApp integration](guides/whatsapp-integration.md)
 - **I run this every day** → [Operate the daily pipeline](https://docs.vibeswitch.ai/guides/operating-daily-pipeline)
