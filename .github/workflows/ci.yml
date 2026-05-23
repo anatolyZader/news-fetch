@@ -297,8 +297,40 @@ jobs:
           args: >
             -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }}
             -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
-            -Dsonar.qualitygate.wait=true
+            -Dsonar.qualitygate.wait=false
             -Dsonar.qualitygate.timeout=300
+
+      - name: Wait for SonarCloud analysis processing
+        if: steps.gate.outputs.run == '1'
+        run: sleep 20
+
+      - name: Review new security hotspots
+        if: steps.gate.outputs.run == '1'
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
+        run: node scripts/ci-sonar-review-hotspots.mjs
+
+      - name: Verify SonarCloud Quality Gate
+        if: steps.gate.outputs.run == '1'
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
+        run: |
+          for attempt in $(seq 1 30); do
+            status=$(curl -sf -u "${SONAR_TOKEN}:" \
+              "https://sonarcloud.io/api/qualitygates/project_status?projectKey=${SONAR_PROJECT_KEY}" \
+              | jq -r '.projectStatus.status')
+            echo "Quality gate status (attempt ${attempt}): ${status}"
+            if [ "${status}" = "OK" ]; then
+              exit 0
+            fi
+            sleep 10
+          done
+          curl -sf -u "${SONAR_TOKEN}:" \
+            "https://sonarcloud.io/api/qualitygates/project_status?projectKey=${SONAR_PROJECT_KEY}" \
+            | jq -r '.projectStatus.conditions[]? | select(.status=="ERROR") | "\(.metricKey): actual=\(.actualValue) errorThreshold=\(.errorThreshold)"'
+          exit 1
 
       - name: Quality Gate failure details
         if: failure() && steps.gate.outputs.run == '1'
