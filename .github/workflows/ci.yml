@@ -313,6 +313,7 @@ jobs:
 
       - name: SonarCloud Scan
         if: steps.gate.outputs.run == '1'
+        id: sonar
         uses: SonarSource/sonarqube-scan-action@v7.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -323,3 +324,14 @@ jobs:
             -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
             -Dsonar.qualitygate.wait=true
             -Dsonar.qualitygate.timeout=300
+
+      - name: Quality Gate failure details
+        if: failure() && steps.gate.outputs.run == '1'
+        continue-on-error: true
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
+        run: |
+          curl -sf -u "${SONAR_TOKEN}:" \
+            "https://sonarcloud.io/api/qualitygates/project_status?projectKey=${SONAR_PROJECT_KEY}" \
+            | jq -r '.projectStatus.conditions[]? | select(.status=="ERROR") | "\(.metricKey): actual=\(.actualValue) errorThreshold=\(.errorThreshold) (\(.status))"'
