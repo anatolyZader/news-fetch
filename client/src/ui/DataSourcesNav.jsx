@@ -1,14 +1,14 @@
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
-import Typography from '@mui/material/Typography';
+import PropTypes from 'prop-types';
+import { alpha } from '@mui/material/styles';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { PrimaryTab } from './PrimaryTab.jsx';
 
 /**
- * Persistent data-source tab strip — single-row ruler (label + tabs inline).
- * Source views: ruler first, then a prominent back-to-results control (no breadcrumb).
+ * Persistent data-source tab strip — label column + equal-width tabs across full width.
  */
 export function DataSourcesNav({
   isOnAssessment,
@@ -21,48 +21,81 @@ export function DataSourcesNav({
 
   const sourceRuler = (
     <Stack
-      component="div"
-      role="tablist"
-      aria-label={t('app.ariaDataSources')}
       direction="row"
-      alignItems="flex-end"
-      flexWrap="wrap"
-      sx={(th) => ({ borderBottom: th.custom.border.hairline })}
+      alignItems="stretch"
+      sx={(th) => ({
+        width: '100%',
+        borderBottom: th.custom.border.hairline,
+      })}
     >
-      <Typography
-        variant="caption"
-        color="text.secondary"
-        component="span"
+      <Box
+        component="p"
         sx={(th) => ({
-          fontWeight: 600,
-          textTransform: 'uppercase',
-          letterSpacing: '0.04em',
-          paddingTop: th.spacing(0.75),
-          paddingBottom: th.spacing(0.75),
-          paddingLeft: th.spacing(1.5),
-          paddingRight: th.spacing(0.5),
+          display: 'flex',
+          alignItems: 'center',
           flexShrink: 0,
+          margin: 0,
+          paddingTop: th.spacing(1.25),
+          paddingBottom: th.spacing(1.25),
+          paddingLeft: th.spacing(2),
+          paddingRight: th.spacing(2),
+          borderRight: th.custom.border.hairline,
+          backgroundColor: alpha(th.palette.divider, 0.35),
+          color: th.palette.text.secondary,
+          ...th.typography.eyebrow,
+          letterSpacing: '0.08em',
           userSelect: 'none',
+          [th.breakpoints.down('sm')]: {
+            paddingLeft: th.spacing(1.5),
+            paddingRight: th.spacing(1.5),
+            fontSize: '0.65rem',
+          },
         })}
       >
         {t('nav.dataSources')}
-      </Typography>
-      {sources.map((source) => (
-        <PrimaryTab
-          key={source.id}
-          compact
-          active={!isOnAssessment && activeSourceId === source.id}
-          onClick={() => onSelectSource(source.id)}
-        >
-          {source.label}
-        </PrimaryTab>
-      ))}
+      </Box>
+
+      <Stack
+        component="div"
+        role="tablist"
+        aria-label={t('app.ariaDataSources')}
+        direction="row"
+        alignItems="flex-end"
+        sx={{ flex: 1, minWidth: 0 }}
+      >
+        {sources.map((source) => (
+          <PrimaryTab
+            key={source.id}
+            active={!isOnAssessment && activeSourceId === source.id}
+            onClick={() => onSelectSource(source.id)}
+            sx={(th) => ({
+              flex: 1,
+              minWidth: 0,
+              justifyContent: 'center',
+              fontSize: th.typography.body1.fontSize,
+              fontWeight: !isOnAssessment && activeSourceId === source.id ? 600 : 500,
+              paddingTop: th.spacing(1.25),
+              paddingBottom: th.spacing(1.25),
+              paddingLeft: th.spacing(0.75),
+              paddingRight: th.spacing(0.75),
+              whiteSpace: 'nowrap',
+              [th.breakpoints.down('md')]: {
+                fontSize: th.typography.body2.fontSize,
+                paddingLeft: th.spacing(0.5),
+                paddingRight: th.spacing(0.5),
+              },
+            })}
+          >
+            {source.label}
+          </PrimaryTab>
+        ))}
+      </Stack>
     </Stack>
   );
 
   if (isOnAssessment) {
     return (
-      <Box component="nav" aria-label={t('app.ariaDataSources')}>
+      <Box component="nav" aria-label={t('app.ariaDataSources')} sx={{ width: '100%' }}>
         {sourceRuler}
       </Box>
     );
@@ -74,6 +107,7 @@ export function DataSourcesNav({
       aria-label={t('app.ariaDataSources')}
       spacing={3}
       sx={(th) => ({
+        width: '100%',
         paddingTop: th.spacing(0.5),
         paddingBottom: th.spacing(2.5),
       })}
@@ -115,3 +149,16 @@ export function DataSourcesNav({
     </Stack>
   );
 }
+
+DataSourcesNav.propTypes = {
+  isOnAssessment: PropTypes.bool,
+  activeSourceId: PropTypes.string,
+  sources: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.string.isRequired,
+      label: PropTypes.string.isRequired,
+    }),
+  ).isRequired,
+  onSelectSource: PropTypes.func.isRequired,
+  onGoToAssessment: PropTypes.func.isRequired,
+};

@@ -12,38 +12,39 @@ const LANG_LABELS = { en: 'EN', he: 'HE', ru: 'RU' };
 
 const MENU_ID = 'language-selector-menu';
 
-export function LanguageSelector() {
+export function LanguageSelector({ appearance = 'outlined' }) {
   const { lang, setLang, t } = useLanguage();
   const [anchor, setAnchor] = useState(null);
   const open = Boolean(anchor);
+  const ghost = appearance === 'ghost';
 
   return (
     <>
       <Button
         type="button"
-        variant="outlined"
+        variant={ghost ? 'text' : 'outlined'}
         size="small"
         onClick={(e) => setAnchor(e.currentTarget)}
-        endIcon={<KeyboardArrowDownIcon fontSize="small" />}
+        endIcon={ghost ? undefined : <KeyboardArrowDownIcon fontSize="small" />}
         aria-haspopup="true"
         aria-expanded={open ? 'true' : 'false'}
         aria-controls={open ? MENU_ID : undefined}
         aria-label={`${t('settings.section.language')}: ${LANG_LABELS[lang]}`}
         sx={(theme) => ({
           minWidth: 0,
-          paddingTop: theme.spacing(0.5),
-          paddingBottom: theme.spacing(0.5),
-          paddingLeft: theme.spacing(1),
-          paddingRight: theme.spacing(0.5),
-          fontSize: theme.typography.pill.fontSize,
+          paddingTop: theme.spacing(0.25),
+          paddingBottom: theme.spacing(0.25),
+          paddingLeft: ghost ? theme.spacing(0.5) : theme.spacing(1),
+          paddingRight: ghost ? theme.spacing(0.5) : theme.spacing(0.5),
+          fontSize: ghost ? theme.typography.caption.fontSize : theme.typography.pill.fontSize,
           borderRadius: theme.custom.radius.sm,
-          color: theme.palette.text.secondary,
-          borderColor: theme.palette.divider,
+          color: 'text.secondary',
+          borderColor: ghost ? 'transparent' : theme.palette.divider,
           lineHeight: 1.2,
           '&:hover': {
-            color: theme.palette.text.primary,
-            borderColor: theme.palette.divider,
-            background: 'transparent',
+            color: 'text.primary',
+            borderColor: ghost ? 'transparent' : theme.palette.divider,
+            background: theme.palette.action.hover,
           },
         })}
       >

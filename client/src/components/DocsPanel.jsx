@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import PropTypes from 'prop-types';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
@@ -11,20 +12,14 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { MarkdownDocView } from './MarkdownDocView.jsx';
 import { ModalPanel } from '../ui/ModalPanel.jsx';
+import { getDocsBaseUrl } from '../lib/docsUrl.js';
 
 function canonicalFromMeta(meta) {
   const raw = meta?.canonical;
   return typeof raw === 'string' && raw.startsWith('http') ? raw : null;
 }
 
-function getDocsBaseUrl() {
-  const raw = import.meta?.env?.VITE_DOCS_BASE_URL;
-  if (typeof raw !== 'string') return 'https://docs.vibeswitch.ai';
-  const trimmed = raw.trim().replace(/\/+$/, '');
-  return trimmed || 'https://docs.vibeswitch.ai';
-}
-
-export function DocsPanel({ open, onClose }) {
+export function DocsPanel({ open, onClose, initialSlug }) {
   const { getIdToken, authRequired, user } = useAuth();
   const { t } = useLanguage();
   const [index, setIndex] = useState([]);
@@ -96,10 +91,13 @@ export function DocsPanel({ open, onClose }) {
 
   useEffect(() => {
     if (!open) return;
+    if (initialSlug) {
+      setSelectedSlug(initialSlug);
+    }
     void (async () => {
       await loadIndex();
     })();
-  }, [open, loadIndex]);
+  }, [open, initialSlug, loadIndex]);
 
   useEffect(() => {
     if (!open) return;
@@ -131,6 +129,7 @@ export function DocsPanel({ open, onClose }) {
 
     if (!q) {
       const priority = new Map([
+        ['getting-started/get-started', -1],
         ['getting-started/using-the-app', 0],
         ['guides/whatsapp-integration', 1],
         ['guides/news-ingestion', 2],
@@ -151,7 +150,7 @@ export function DocsPanel({ open, onClose }) {
   const fullDocsUrl = useMemo(() => {
     const docsBaseUrl = getDocsBaseUrl();
     const direct = canonicalFromMeta(page?.meta);
-    if (direct && direct.startsWith(docsBaseUrl)) return direct;
+    if (direct?.startsWith(docsBaseUrl)) return direct;
     const idxCanonical = index.find((p) => p.slug === selectedSlug)?.canonical;
     if (typeof idxCanonical === 'string' && idxCanonical.startsWith(docsBaseUrl)) return idxCanonical;
     const slugPath = String(selectedSlug ?? '').replace(/^\/+/, '');
@@ -339,3 +338,9 @@ export function DocsPanel({ open, onClose }) {
     </ModalPanel>
   );
 }
+
+DocsPanel.propTypes = {
+  open: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  initialSlug: PropTypes.string,
+};

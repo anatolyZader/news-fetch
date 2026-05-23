@@ -1,3 +1,4 @@
+export { SiteFooter } from './SiteFooter.jsx';
 export { AppLayout } from './AppLayout.jsx';
 export { BrandHeader } from './BrandHeader.jsx';
 export { Button } from './Button.jsx';

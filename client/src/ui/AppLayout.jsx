@@ -2,9 +2,11 @@ import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
+import PropTypes from 'prop-types';
 
 export function AppLayout({
   header,
+  footer,
   children,
   maxWidth = 1280,
   contentSpacing = 4,
@@ -54,7 +56,7 @@ export function AppLayout({
           marginLeft: 'auto',
           marginRight: 'auto',
           paddingTop: `${theme.spacing(4)} !important`,
-          paddingBottom: `${theme.spacing(4)} !important`,
+          paddingBottom: `${theme.spacing(6)} !important`,
           paddingLeft: `${theme.spacing(3)} !important`,
           paddingRight: `${theme.spacing(3)} !important`,
           display: 'flex',
@@ -64,6 +66,15 @@ export function AppLayout({
       >
         {children}
       </Container>
+      {footer}
     </Box>
   );
 }
+
+AppLayout.propTypes = {
+  header: PropTypes.node,
+  footer: PropTypes.node,
+  children: PropTypes.node,
+  maxWidth: PropTypes.number,
+  contentSpacing: PropTypes.number,
+};

@@ -46,6 +46,7 @@ import {
   PrimaryTab,
   ResizableFrame,
   SidebarItem,
+  SiteFooter,
 } from './ui/index.js';
 import { formatDate } from './lib/date.js';
 
@@ -90,12 +91,45 @@ function normalizePboSubFromSection(section, pboQuery) {
 const POOL_TAB_IDS = new Set(['naftali', 'education']);
 const REPORT_SCOPES = new Set(['national', 'north']);
 
-function readDeepLink() {
-  if (typeof window === 'undefined') {
-    return { section: '', pool: '', component: '', pboSub: '', pboRegion: '' };
+const EMPTY_DEEP_LINK = { section: '', pool: '', component: '', pboSub: '', pboRegion: '' };
+
+function parsePboReportsHashSuffix(rest, existingPboSub) {
+  let pboSub = existingPboSub;
+  let pboRegion = '';
+  const match = /^(local|regional)(?:-([\w-]+))?$/i.exec(rest);
+  if (match && !pboSub) {
+    const sub = String(match[1] ?? '').trim().toLowerCase();
+    if (PBO_TAB_IDS.has(sub)) pboSub = sub;
   }
-  const params = new URLSearchParams(window.location.search);
-  const hash = window.location.hash.replace(/^#/, '');
+  if (match?.[2]) {
+    const region = normalizeNorthPboRegionFromUrl(match[2]);
+    if (region) pboRegion = region;
+  } else if (!match && !pboSub) {
+    const restTab = String(rest).trim().toLowerCase();
+    if (PBO_TAB_IDS.has(restTab)) pboSub = restTab;
+  }
+  return { pboSub, pboRegion };
+}
+
+function parseHashDeepLink(hash) {
+  if (hash.startsWith('pools-')) {
+    return { section: 'pools', pool: '', pboSub: '', pboRegion: '' };
+  }
+  if (hash.startsWith('pbo-reports-')) {
+    return { section: 'pbo-reports', pool: '', ...parsePboReportsHashSuffix(hash.slice('pbo-reports-'.length), '') };
+  }
+  if (hash === 'report-bot' || hash === 'chatbot') {
+    return { section: 'report-bot', pool: '', pboSub: '', pboRegion: '' };
+  }
+  return { section: hash.split('-')[0] || '', pool: '', pboSub: '', pboRegion: '' };
+}
+
+function readDeepLink() {
+  const browserWindow = globalThis.window;
+  if (!browserWindow) {
+    return EMPTY_DEEP_LINK;
+  }
+  const params = new URLSearchParams(browserWindow.location.search);
   let section = params.get('section') || '';
   const rawPbo = params.get('pbo');
   let pboSub =
@@ -103,30 +137,12 @@ function readDeepLink() {
       ? String(rawPbo).trim().toLowerCase()
       : '';
   let pboRegion = normalizeNorthPboRegionFromUrl(params.get('pbo_region') || '');
+  const hash = browserWindow.location.hash.replace(/^#/, '');
   if (!section && hash) {
-    if (hash.startsWith('pools-')) {
-      section = 'pools';
-    } else if (hash.startsWith('pbo-reports-')) {
-      section = 'pbo-reports';
-      const rest = hash.slice('pbo-reports-'.length);
-      const mh = rest.match(/^(local|regional)(?:-([\w-]+))?$/i);
-      if (mh && !pboSub) {
-        const sub = String(mh[1] ?? '').trim().toLowerCase();
-        if (PBO_TAB_IDS.has(sub)) pboSub = sub;
-      }
-      if (mh?.[2]) {
-        const r = normalizeNorthPboRegionFromUrl(mh[2]);
-        if (r) pboRegion = r;
-      }
-      else if (!mh && !pboSub) {
-        const restTab = String(rest).trim().toLowerCase();
-        if (PBO_TAB_IDS.has(restTab)) pboSub = restTab;
-      }
-    } else if (hash === 'report-bot' || hash === 'chatbot') {
-      section = 'report-bot';
-    } else {
-      section = hash.split('-')[0] || '';
-    }
+    const fromHash = parseHashDeepLink(hash);
+    section = fromHash.section;
+    if (!pboSub && fromHash.pboSub) pboSub = fromHash.pboSub;
+    if (fromHash.pboRegion) pboRegion = fromHash.pboRegion;
   }
   const pool =
     params.get('pool') || (hash.startsWith('pools-') ? hash.replace('pools-', '') : '');
@@ -199,7 +215,7 @@ function readReportScope() {
 }
 
 function AppShell() {
-  const { logout, authRequired } = useAuth();
+  const { logout, authRequired, user } = useAuth();
   const [reportScope, setReportScope] = useState(() => readReportScope());
   const [reportView, setReportView] = useState(() => readStoredReportView());
   const { canViewAnalyst } = useDisplayCapabilities();
@@ -220,13 +236,15 @@ function AppShell() {
   const [openReportEvidenceCompId, setOpenReportEvidenceCompId] = useState(null);
   const [chatOpen, setChatOpen] = useState(false);
   const [chatSize, setChatSize] = useState(() => {
-    if (typeof window === 'undefined') return { w: 420, h: 420 };
-    return { w: Math.min(420, window.innerWidth - 32), h: 420 };
+    const browserWindow = globalThis.window;
+    if (!browserWindow) return { w: 420, h: 420 };
+    return { w: Math.min(420, browserWindow.innerWidth - 32), h: 420 };
   });
   const onChatSize = useCallback((next) => {
-    if (typeof window === 'undefined') return;
-    const maxW = window.innerWidth - 16;
-    const maxH = window.innerHeight - 24;
+    const browserWindow = globalThis.window;
+    if (!browserWindow) return;
+    const maxW = browserWindow.innerWidth - 16;
+    const maxH = browserWindow.innerHeight - 24;
     setChatSize({
       w: Math.max(280, Math.min(maxW, next.width)),
       h: Math.max(200, Math.min(maxH, next.height)),
@@ -268,6 +286,7 @@ function AppShell() {
   }, [reportScope]);
 
   const [docsOpen, setDocsOpen] = useState(false);
+  const [docsInitialSlug, setDocsInitialSlug] = useState('');
   const [reportBuildOpen, setReportBuildOpen] = useState(false);
   const [sendEvidenceOpen, setSendEvidenceOpen] = useState(false);
   const [evidenceNotice, setEvidenceNotice] = useState(null);
@@ -280,6 +299,18 @@ function AppShell() {
   const goToAssessment = useCallback(() => {
     setActiveTab('report');
     reportTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, []);
+  const openDocs = useCallback((slug) => {
+    setDocsInitialSlug(slug ?? '');
+    setDocsOpen(true);
+  }, []);
+  const closeDocs = useCallback(() => {
+    setDocsOpen(false);
+    setDocsInitialSlug('');
+  }, []);
+  const openSettings = useCallback(() => {
+    setSettingsMinimized(false);
+    setSettingsOpen(true);
   }, []);
   const { t, lang } = useLanguage();
   const { displayReport, translating, translateError } = useTranslatedReport(report, lang);
@@ -318,8 +349,8 @@ function AppShell() {
       }
     };
     applyDeepLink();
-    window.addEventListener('popstate', applyDeepLink);
-    return () => window.removeEventListener('popstate', applyDeepLink);
+    globalThis.window?.addEventListener('popstate', applyDeepLink);
+    return () => globalThis.window?.removeEventListener('popstate', applyDeepLink);
   }, []);
 
   const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jerusalem' });
@@ -474,7 +505,7 @@ function AppShell() {
           )}
           <MenuItem
             onClick={() => {
-              setDocsOpen(true);
+              openDocs();
               closeMoreMenu();
             }}
           >
@@ -530,7 +561,22 @@ function AppShell() {
   );
 
   return (
-    <AppLayout header={header}>
+    <AppLayout
+      header={header}
+      footer={(
+        <SiteFooter
+          reportDate={reportDate}
+          onGoToAssessment={goToAssessment}
+          onSendEvidence={() => setSendEvidenceOpen(true)}
+          onNavigateTab={setActiveTab}
+          onOpenDocs={openDocs}
+          onOpenSettings={openSettings}
+          onSignOut={logout}
+          authRequired={authRequired}
+          user={user}
+        />
+      )}
+    >
         <DataSourcesNav
           isOnAssessment={isOnAssessment}
           activeSourceId={activeTab}
@@ -823,8 +869,8 @@ function AppShell() {
             onSize={onChatSize}
             minWidth={280}
             minHeight={200}
-            maxWidth={typeof window !== 'undefined' ? window.innerWidth - 16 : 2000}
-            maxHeight={typeof window !== 'undefined' ? window.innerHeight - 24 : 2000}
+            maxWidth={globalThis.window ? globalThis.window.innerWidth - 16 : 2000}
+            maxHeight={globalThis.window ? globalThis.window.innerHeight - 24 : 2000}
             zIndex={2}
           />
           <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
@@ -833,7 +879,7 @@ function AppShell() {
         </Paper>
       </Slide>
 
-      <DocsPanel open={docsOpen} onClose={() => setDocsOpen(false)} />
+      <DocsPanel open={docsOpen} initialSlug={docsInitialSlug || undefined} onClose={closeDocs} />
       <ReportBuildPanel open={reportBuildOpen} onClose={() => setReportBuildOpen(false)} />
       <SendEvidencePanel
         open={sendEvidenceOpen}
@@ -868,7 +914,7 @@ function AppShell() {
         onOpenDocs={() => {
           setSettingsMinimized(false);
           setSettingsOpen(false);
-          setDocsOpen(true);
+          openDocs();
         }}
       />
       {settingsMinimized && !settingsOpen && (
