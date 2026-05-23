@@ -33,7 +33,7 @@ business_modules/search_trends/data/cache/*.json
 downloads/
 recordings/
 reports/
-validation/
+/validation/
 business_modules/resilience/validation/artifacts/
 logs/
 

@@ -14,7 +14,10 @@ describe('socialMediaService.getDashboard', () => {
     const dash = await service.getDashboard();
     assert.ok(Array.isArray(dash.dates));
     assert.ok(dash.dates.length >= 1);
-    assert.equal(dash.dates[0].date, '2026-05-21');
+    const dateStrings = dash.dates.map((d) => d.date);
+    assert.ok(dateStrings.includes('2026-05-21'));
+    const sorted = [...dateStrings].sort((a, b) => b.localeCompare(a));
+    assert.equal(dash.dates[0].date, sorted[0]);
     assert.ok(dash.dates[0].findingCount > 0);
   });
 
