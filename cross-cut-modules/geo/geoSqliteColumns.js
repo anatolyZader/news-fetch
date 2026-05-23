@@ -44,7 +44,7 @@ export function denormalizedGeoColumns(g) {
     usable: resolved ? (usableForMetrics(g) ? 1 : 0) : null,
     review: resolved ? (requiresReview(g) ? 1 : 0) : null,
     scope: resolved ? scopeConfidence(g) : null,
-    refVer: resolved ? geoReferenceVersion(g) : geoReferenceVersion(g),
+    refVer: resolved ? geoReferenceVersion(g) : null,
     borderVer: resolved ? borderReferenceVersion(g) : null,
     policyVer: resolved ? (g.policy?.geoPolicyVersion ?? g.geoPolicyVersion ?? null) : null,
   };

@@ -41,7 +41,7 @@ export function parseQueryInterestProxy(formattedValue) {
   if (Number.isFinite(num) && num > 0) {
     return { interest: Math.min(100, num), momentum: 'sustained' };
   }
-  if (/^\+|breakout/i.test(s)) {
+  if (/^(?:\+|breakout)/i.test(s)) {
     return { interest: 65, momentum: 'rising' };
   }
   return { interest: 45, momentum: 'sustained' };
