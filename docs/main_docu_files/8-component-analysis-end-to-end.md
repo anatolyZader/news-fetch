@@ -81,7 +81,7 @@ Stable IDs are used throughout JSON, code, and i18n keys.
 
 <!-- docs-sync:BEGIN components-at-a-glance -->
 
-> **Auto-synced** from `business_modules/resilience/domain/resilienceComponents.js` on 2026-05-22. Do not edit between sync markers.
+> **Auto-synced** from `business_modules/resilience/domain/resilienceComponents.js` on 2026-05-23. Do not edit between sync markers.
 
 | # | ID | English | Hebrew | What it measures (in one line) |
 |---|---|---|---|---|
@@ -102,7 +102,7 @@ Each component additionally exposes **2–4 facets** (defined in `business_modul
 
 <!-- docs-sync:BEGIN component-facets -->
 
-> **Auto-synced** from `business_modules/resilience/domain/services/componentFacets.js` on 2026-05-22. Do not edit between sync markers.
+> **Auto-synced** from `business_modules/resilience/domain/services/componentFacets.js` on 2026-05-23. Do not edit between sync markers.
 
 | Component | Facets |
 |---|---|
@@ -121,7 +121,7 @@ Every signal type listed in a facet must route into its parent component via `SI
 
 <!-- docs-sync:BEGIN components-detail -->
 
-> **Auto-synced** from `resilienceComponents.js + componentFacets.js` on 2026-05-22. Do not edit between sync markers.
+> **Auto-synced** from `resilienceComponents.js + componentFacets.js` on 2026-05-23. Do not edit between sync markers.
 
 
 Per-component reference below is regenerated from code. Extended narrative, signal-routing notes, and boundary rules in earlier manual sections may appear in pipeline stages §3+.
@@ -1295,7 +1295,7 @@ Stable IDs (used in JSON, code, and i18n keys) and their English labels from `cl
 
 <!-- docs-sync:BEGIN appendix-ui-labels -->
 
-> **Auto-synced** from `client/src/i18n/translations.js (en + he)` on 2026-05-22. Do not edit between sync markers.
+> **Auto-synced** from `client/src/i18n/translations.js (en + he)` on 2026-05-23. Do not edit between sync markers.
 
 | ID | English UI label | Hebrew UI label |
 |---|---|---|
