@@ -10,6 +10,7 @@ export {
   PieChartFrame,
 } from './charts.jsx';
 export { ChatLauncher } from './ChatLauncher.jsx';
+export { DataSourcesNav } from './DataSourcesNav.jsx';
 export { DetailPanel } from './DetailPanel.jsx';
 export { DriftSparkline } from './DriftSparkline.jsx';
 export { FilterBar } from './FilterBar.jsx';

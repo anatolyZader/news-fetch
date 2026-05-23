@@ -204,40 +204,40 @@ export function MunicipalitiesTab() {
 
   const comps = data.componentsOrder;
 
+  const dateTabSx = (t) => ({
+    borderRadius: `${t.custom.radius.pill}px !important`,
+    border: `1px solid ${t.palette.divider} !important`,
+    marginRight: t.spacing(0.25),
+    marginBottom: t.spacing(0.25),
+    '&.Mui-selected': {
+      color: t.palette.primary.main,
+      borderColor: `${t.palette.primary.main} !important`,
+      backgroundColor: alpha(t.palette.primary.main, 0.06),
+    },
+  });
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      <PageHeader
-        title={isHe ? ' דוחות קה"א יקל"ר' : 'Municipality PBO Reports'}
-        action={(
-          <ToggleButtonGroup
-            value={selectedDate}
-            exclusive
-            size="small"
-            onChange={(_, next) => { if (next) setSelectedDate(next); }}
-            sx={{ flexWrap: 'wrap' }}
-          >
-            {data.days.map((d) => (
-              <ToggleButton
-                key={d.date}
-                value={d.date}
-                sx={(t) => ({
-                  borderRadius: `${t.custom.radius.pill}px !important`,
-                  border: `1px solid ${t.palette.divider} !important`,
-                  marginRight: t.spacing(0.25),
-                  marginBottom: t.spacing(0.25),
-                  '&.Mui-selected': {
-                    color: t.palette.primary.main,
-                    borderColor: `${t.palette.primary.main} !important`,
-                    backgroundColor: alpha(t.palette.primary.main, 0.06),
-                  },
-                })}
-              >
-                {formatDate(d.date)} ({d.municipalities.length})
-              </ToggleButton>
-            ))}
-          </ToggleButtonGroup>
-        )}
-      />
+      <PageHeader title={isHe ? ' דוחות קה"א יקל"ר' : 'Municipality PBO Reports'} />
+
+      <ToggleButtonGroup
+        value={selectedDate}
+        exclusive
+        size="small"
+        onChange={(_, next) => { if (next) setSelectedDate(next); }}
+        aria-label={isHe ? 'בחר תאריך' : 'Select date'}
+        sx={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          width: '100%',
+        }}
+      >
+        {data.days.map((d) => (
+          <ToggleButton key={d.date} value={d.date} sx={dateTabSx}>
+            {formatDate(d.date)} ({d.municipalities.length})
+          </ToggleButton>
+        ))}
+      </ToggleButtonGroup>
 
       {day && (
         <KpiStrip columns={8}>

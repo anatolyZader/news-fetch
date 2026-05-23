@@ -34,7 +34,7 @@ export function PageHeader({ title, subtitle, action }) {
         )}
       </Box>
       {action && (
-        <Box sx={{ flexShrink: 0, marginLeft: 'auto' }}>
+        <Box sx={{ flexShrink: 1, minWidth: 0, maxWidth: '100%', marginLeft: 'auto' }}>
           {action}
         </Box>
       )}

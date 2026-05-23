@@ -41,6 +41,8 @@ import {
   AppLayout,
   BrandHeader,
   ChatLauncher,
+  DataSourcesNav,
+  PageHeader,
   PrimaryTab,
   ResizableFrame,
   SidebarItem,
@@ -275,6 +277,10 @@ function AppShell() {
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
   const closeMoreMenu = useCallback(() => setMoreMenuAnchor(null), []);
+  const goToAssessment = useCallback(() => {
+    setActiveTab('report');
+    reportTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, []);
   const { t, lang } = useLanguage();
   const { displayReport, translating, translateError } = useTranslatedReport(report, lang);
   const driftDays = 7;
@@ -348,8 +354,7 @@ function AppShell() {
     setOpenReportEvidenceCompId(null);
   }
 
-  const TABS = [
-    { id: 'report', label: t('tab.report') },
+  const SOURCE_TABS = [
     { id: 'pbo-reports', label: t('tab.pboReports') },
     { id: 'report-bot', label: t('tab.reportBot') },
     { id: 'visits', label: t('tab.visits') },
@@ -357,6 +362,8 @@ function AppShell() {
     { id: 'pools', label: t('tab.pools') },
     { id: 'trends', label: t('tab.trends') },
   ];
+
+  const isOnAssessment = activeTab === 'report';
 
   const PBO_TABS = [
     { id: 'local',    label: t('tab.pboLocal') },
@@ -403,7 +410,12 @@ function AppShell() {
 
   const header = (
     <>
-      <BrandHeader title="Vibes Witch" subtitle="Community resilience · Daily Assessment" />
+      <BrandHeader
+        title="Vibes Witch"
+        subtitle="Community resilience · Daily Assessment"
+        onHomeClick={goToAssessment}
+        homeAriaLabel={t('app.goToDailyAssessment')}
+      />
       <Stack
         direction="row"
         alignItems="center"
@@ -519,71 +531,63 @@ function AppShell() {
 
   return (
     <AppLayout header={header}>
-        <Stack
-          component="nav"
-          aria-label={t('app.ariaMainSections')}
-          direction="row"
-          sx={(theme) => ({ borderBottom: theme.custom.border.hairline })}
-        >
-          {TABS.map((tab) => (
-            <PrimaryTab
-              key={tab.id}
-              active={activeTab === tab.id}
-              onClick={() => setActiveTab(tab.id)}
-            >
-              {tab.label}
-            </PrimaryTab>
-          ))}
-        </Stack>
+        <DataSourcesNav
+          isOnAssessment={isOnAssessment}
+          activeSourceId={activeTab}
+          sources={SOURCE_TABS}
+          onSelectSource={setActiveTab}
+          onGoToAssessment={goToAssessment}
+        />
 
         {activeTab === 'report' && (
           <Stack
             component="section"
-            aria-labelledby="today-report-heading"
+            aria-label={t('nav.dailyAssessment')}
             spacing={2}
           >
             <div ref={reportTopRef} />
-            <Box
-              sx={(theme) => ({
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'flex-end',
-                width: '100%',
-                minHeight: 48,
-                marginTop: theme.spacing(1.5),
-                marginBottom: theme.spacing(2),
-              })}
-            >
-              <ToggleButtonGroup
-                exclusive
-                size="small"
-                value={reportScope}
-                onChange={(_, next) => {
-                  if (next) setReportScope(next);
-                }}
-                aria-label={t('report.scope.label')}
-              >
-                <ToggleButton value="national">{t('report.scope.national')}</ToggleButton>
-                <ToggleButton value="north">{t('report.scope.north')}</ToggleButton>
-              </ToggleButtonGroup>
-              {canViewAnalyst && (
-                <ToggleButtonGroup
-                  exclusive
-                  size="small"
-                  value={reportView}
-                  onChange={(_, next) => {
-                    if (!next) return;
-                    setReportView(next);
-                    writeStoredReportView(next);
+            <PageHeader
+              title={t('nav.dailyAssessment')}
+              action={(
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    gap: 1,
                   }}
-                  aria-label={t('report.view.label')}
-                  sx={(theme) => ({ marginInlineStart: theme.spacing(1) })}
                 >
-                  <ToggleButton value="operator">{t('report.view.operator')}</ToggleButton>
-                  <ToggleButton value="analyst">{t('report.view.analyst')}</ToggleButton>
-                </ToggleButtonGroup>
+                  <ToggleButtonGroup
+                    exclusive
+                    size="small"
+                    value={reportScope}
+                    onChange={(_, next) => {
+                      if (next) setReportScope(next);
+                    }}
+                    aria-label={t('report.scope.label')}
+                  >
+                    <ToggleButton value="national">{t('report.scope.national')}</ToggleButton>
+                    <ToggleButton value="north">{t('report.scope.north')}</ToggleButton>
+                  </ToggleButtonGroup>
+                  {canViewAnalyst && (
+                    <ToggleButtonGroup
+                      exclusive
+                      size="small"
+                      value={reportView}
+                      onChange={(_, next) => {
+                        if (!next) return;
+                        setReportView(next);
+                        writeStoredReportView(next);
+                      }}
+                      aria-label={t('report.view.label')}
+                    >
+                      <ToggleButton value="operator">{t('report.view.operator')}</ToggleButton>
+                      <ToggleButton value="analyst">{t('report.view.analyst')}</ToggleButton>
+                    </ToggleButtonGroup>
+                  )}
+                </Box>
               )}
-            </Box>
+            />
 
             {!initialReportLoadDone && (
               <Typography variant="body2" color="text.secondary">
@@ -702,7 +706,6 @@ function AppShell() {
               aria-label={t('tab.pboReports')}
               sx={(theme) => ({
                 borderBottom: theme.custom.border.hairline,
-                marginTop: theme.spacing(-1.5),
               })}
             >
               {PBO_TABS.map((tab) => (
@@ -763,7 +766,6 @@ function AppShell() {
               aria-label={t('tab.pools')}
               sx={(theme) => ({
                 borderBottom: theme.custom.border.hairline,
-                marginTop: theme.spacing(-1.5),
               })}
             >
               {POOL_TABS.map((tab) => (

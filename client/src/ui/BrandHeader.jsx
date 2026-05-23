@@ -1,3 +1,4 @@
+import ButtonBase from '@mui/material/ButtonBase';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
@@ -7,8 +8,14 @@ const ALIGN_MAP = {
   center:{ alignItems: 'center',     textAlign: 'center' },
 };
 
-export function BrandHeader({ title, subtitle, align = 'start' }) {
+export function BrandHeader({ title, subtitle, align = 'start', onHomeClick, homeAriaLabel }) {
   const alignSx = ALIGN_MAP[align] ?? ALIGN_MAP.start;
+  const titleNode = (
+    <Typography variant="h1" component="h1">
+      {title}
+    </Typography>
+  );
+
   return (
     <Stack
       spacing={0.25}
@@ -19,9 +26,25 @@ export function BrandHeader({ title, subtitle, align = 'start' }) {
           : alignSx,
       })}
     >
-      <Typography variant="h1" component="h1">
-        {title}
-      </Typography>
+      {onHomeClick ? (
+        <ButtonBase
+          type="button"
+          onClick={onHomeClick}
+          aria-label={homeAriaLabel}
+          sx={(theme) => ({
+            alignSelf: alignSx.alignItems,
+            textAlign: alignSx.textAlign,
+            borderRadius: theme.custom.radius.sm,
+            padding: theme.spacing(0.25, 0.5),
+            margin: theme.spacing(-0.25, -0.5),
+            '&:hover': { background: theme.palette.action.hover },
+          })}
+        >
+          {titleNode}
+        </ButtonBase>
+      ) : (
+        titleNode
+      )}
       {subtitle && (
         <Typography variant="body2" color="text.secondary">
           {subtitle}
