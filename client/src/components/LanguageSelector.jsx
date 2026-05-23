@@ -35,7 +35,7 @@ export function LanguageSelector({ appearance = 'outlined' }) {
           paddingTop: theme.spacing(0.25),
           paddingBottom: theme.spacing(0.25),
           paddingLeft: ghost ? theme.spacing(0.5) : theme.spacing(1),
-          paddingRight: ghost ? theme.spacing(0.5) : theme.spacing(0.5),
+          paddingRight: theme.spacing(0.5),
           fontSize: ghost ? theme.typography.caption.fontSize : theme.typography.pill.fontSize,
           borderRadius: theme.custom.radius.sm,
           color: 'text.secondary',

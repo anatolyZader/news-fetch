@@ -19,7 +19,7 @@ const REPORTS_DIR = join(import.meta.dirname, '..', '..', '..', 'reports');
 export function loadSignals({ date, sourceType } = {}) {
   let files;
   try {
-    files = readdirSync(SIGNALS_DIR).filter((f) => f.endsWith('.json')).sort();
+    files = readdirSync(SIGNALS_DIR).filter((f) => f.endsWith('.json')).sort((a, b) => a.localeCompare(b));
   } catch {
     return [];
   }
@@ -123,7 +123,7 @@ export function loadReport(date) {
   try {
     files = readdirSync(REPORTS_DIR)
       .filter((f) => f.startsWith(`resilience-report-${date}`) && f.endsWith('.json'))
-      .sort();
+      .sort((a, b) => a.localeCompare(b));
   } catch {
     return null;
   }
@@ -144,7 +144,7 @@ export function listReportDates() {
   try {
     files = readdirSync(REPORTS_DIR)
       .filter((f) => f.startsWith('resilience-report-') && f.endsWith('.json'))
-      .sort();
+      .sort((a, b) => a.localeCompare(b));
   } catch {
     return [];
   }
@@ -153,7 +153,7 @@ export function listReportDates() {
     const m = f.match(/resilience-report-(\d{4}-\d{2}-\d{2})/);
     if (m) dates.add(m[1]);
   }
-  return [...dates].sort();
+  return [...dates].sort((a, b) => a.localeCompare(b));
 }
 
 /**
@@ -163,7 +163,7 @@ export function listReportDates() {
 export function listSignalMeta() {
   let files;
   try {
-    files = readdirSync(SIGNALS_DIR).filter((f) => f.endsWith('.json')).sort();
+    files = readdirSync(SIGNALS_DIR).filter((f) => f.endsWith('.json')).sort((a, b) => a.localeCompare(b));
   } catch {
     return { sourceTypes: [], signalDates: [] };
   }
@@ -176,7 +176,10 @@ export function listSignalMeta() {
       dates.add(m[2]);
     }
   }
-  return { sourceTypes: [...types].sort(), signalDates: [...dates].sort() };
+  return {
+    sourceTypes: [...types].sort((a, b) => a.localeCompare(b)),
+    signalDates: [...dates].sort((a, b) => a.localeCompare(b)),
+  };
 }
 
 /**

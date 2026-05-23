@@ -54,7 +54,7 @@ function formatSignalTypes(facets) {
   for (const list of Object.values(facets)) {
     for (const t of list) types.add(t);
   }
-  return [...types].sort().map((t) => `\`${t}\``).join(', ');
+  return [...types].sort((a, b) => a.localeCompare(b)).map((t) => `\`${t}\``).join(', ');
 }
 
 async function loadUiLabels() {

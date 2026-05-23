@@ -605,7 +605,10 @@ function counterfactualLargestArticle(items, componentId, totalArticles, current
   if (articleKeys.length <= 1) {
     return { counterfactual_article_key: null, counterfactual_delta: null };
   }
-  const topKey = articleKeys.reduce((a, b) => (massByArticle[a] >= massByArticle[b] ? a : b));
+  const topKey = articleKeys.reduce(
+    (a, b) => (massByArticle[a] >= massByArticle[b] ? a : b),
+    articleKeys[0],
+  );
   const remaining = items.filter((it) => {
     const key = it.signal.article_url || (it.signal.article_index ?? null) || '_no_article';
     return key !== topKey;

@@ -509,7 +509,7 @@ function extractSourceFileDates(sourceFiles = []) {
     sourceFiles
       .map((f) => /(\d{4}-\d{2}-\d{2})/.exec(String(f))?.[1])
       .filter(Boolean),
-  )].sort();
+  )].sort((a, b) => a.localeCompare(b));
 }
 
 function countArticlesInSourceFile(fileName) {
@@ -557,7 +557,7 @@ function buildDayBreakdown(cached, assessment) {
     ...articleCounts.keys(),
     ...pboCounts.keys(),
     cached?.reportDate ?? assessment?.date,
-  ].filter(Boolean))].sort();
+  ].filter(Boolean))].sort((a, b) => a.localeCompare(b));
 
   for (const f of sourceFiles) {
     const date = /articles-homefront-(\d{4}-\d{2}-\d{2})\.md$/.exec(String(f))?.[1];
@@ -578,7 +578,7 @@ function buildDayBreakdown(cached, assessment) {
     }
   }
 
-  dates = [...new Set([...dates, ...pboCounts.keys()])].sort();
+  dates = [...new Set([...dates, ...pboCounts.keys()])].sort((a, b) => a.localeCompare(b));
 
   return dates.map((date) => ({
     date,

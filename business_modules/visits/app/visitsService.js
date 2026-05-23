@@ -14,8 +14,10 @@ export function createVisitsService({ visitsRepository }) {
         }
       }
 
-      const visitDates = allVisits.map((visit) => visit.visitDate || visit.dayDate).filter(Boolean).sort();
-      const municipalities = [...new Set(allVisits.map((visit) => visit.municipality).filter(Boolean))].sort();
+      const visitDates = allVisits.map((visit) => visit.visitDate || visit.dayDate).filter(Boolean)
+        .sort((a, b) => a.localeCompare(b));
+      const municipalities = [...new Set(allVisits.map((visit) => visit.municipality).filter(Boolean))]
+        .sort((a, b) => a.localeCompare(b));
 
       return {
         summary: {

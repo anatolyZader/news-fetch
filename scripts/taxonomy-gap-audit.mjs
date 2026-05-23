@@ -76,7 +76,8 @@ const prod = loadProductionSignals(maxDays);
 const golden = loadGoldenCounts();
 const prodSorted = Object.entries(prod.counts).sort((a, b) => b[1] - a[1]);
 const goldenTypes = new Set(Object.keys(golden));
-const zeroProd = SIGNAL_TYPES.filter((t) => !prod.counts[t]);
+const zeroProd = SIGNAL_TYPES.filter((t) => !prod.counts[t])
+  .sort((a, b) => a.localeCompare(b));
 const zeroGolden = SIGNAL_TYPES.filter((t) => !golden[t]);
 const withDisambiguation = SIGNAL_CATALOG.filter((e) => e.disambiguation || e.example_evidence?.length);
 

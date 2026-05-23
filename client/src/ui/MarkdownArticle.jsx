@@ -121,7 +121,7 @@ export function MarkdownArticle({
             border: theme.custom.border.hairline,
             borderRadius: variant === 'report' ? theme.custom.radius.md : theme.custom.radius.lg,
             color: theme.palette.text.secondary,
-            fontSize: variant === 'report' ? theme.typography.body2.fontSize : theme.typography.body2.fontSize,
+            fontSize: theme.typography.body2.fontSize,
             lineHeight: theme.typography.body2.lineHeight,
           })}
         >

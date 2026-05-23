@@ -44,7 +44,7 @@ export function buildPboIndex(signals) {
   }
 
   // Sort by avg ascending so outliers are visible at top/bottom
-  indexLines.sort();
+  indexLines.sort((a, b) => a.localeCompare(b));
 
   const index =
     `\n\nPBO MUNICIPALITY INDEX (${Object.keys(byMuni).length} municipalities, overall avg score):\n` +

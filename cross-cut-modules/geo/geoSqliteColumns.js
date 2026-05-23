@@ -10,15 +10,39 @@ import {
   distanceBand,
 } from './geoEnvelopeAccess.js';
 
+const EMPTY_COLUMNS = {
+  geoJson: null,
+  kind: null,
+  canonicalKey: null,
+  entityType: null,
+  pboSubregionId: null,
+  distanceBand: null,
+  quality: null,
+  usable: null,
+  review: null,
+  scope: null,
+  refVer: null,
+  borderVer: null,
+  policyVer: null,
+};
+
 /**
  * Denormalized SQLite columns for a signal geo envelope (WhatsApp store and future DBs).
  * @param {object | null | undefined} g
  */
 export function denormalizedGeoColumns(g) {
   if (!g || typeof g !== 'object') {
+    return { ...EMPTY_COLUMNS };
+  }
+
+  const base = {
+    geoJson: JSON.stringify(g),
+    kind: g.kind ?? null,
+  };
+
+  if (g.kind !== 'resolved') {
     return {
-      geoJson: null,
-      kind: null,
+      ...base,
       canonicalKey: null,
       entityType: null,
       pboSubregionId: null,
@@ -32,20 +56,19 @@ export function denormalizedGeoColumns(g) {
       policyVer: null,
     };
   }
-  const resolved = g.kind === 'resolved';
+
   return {
-    geoJson: JSON.stringify(g),
-    kind: g.kind ?? null,
-    canonicalKey: resolved ? (g.resolution?.canonicalKey ?? g.canonicalKey ?? null) : null,
-    entityType: resolved ? geoEntityType(g) : null,
-    pboSubregionId: resolved ? pboSubregionId(g) : null,
-    distanceBand: resolved ? distanceBand(g) : null,
-    quality: resolved ? quality(g) : null,
-    usable: resolved ? (usableForMetrics(g) ? 1 : 0) : null,
-    review: resolved ? (requiresReview(g) ? 1 : 0) : null,
-    scope: resolved ? scopeConfidence(g) : null,
-    refVer: resolved ? geoReferenceVersion(g) : null,
-    borderVer: resolved ? borderReferenceVersion(g) : null,
-    policyVer: resolved ? (g.policy?.geoPolicyVersion ?? g.geoPolicyVersion ?? null) : null,
+    ...base,
+    canonicalKey: g.resolution?.canonicalKey ?? g.canonicalKey ?? null,
+    entityType: geoEntityType(g),
+    pboSubregionId: pboSubregionId(g),
+    distanceBand: distanceBand(g),
+    quality: quality(g),
+    usable: usableForMetrics(g) ? 1 : 0,
+    review: requiresReview(g) ? 1 : 0,
+    scope: scopeConfidence(g),
+    refVer: geoReferenceVersion(g),
+    borderVer: borderReferenceVersion(g),
+    policyVer: g.policy?.geoPolicyVersion ?? g.geoPolicyVersion ?? null,
   };
 }

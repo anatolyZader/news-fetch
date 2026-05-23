@@ -262,7 +262,7 @@ function _findLatestAvailableReport(today, store, { scope = 'national', reportsD
     names
       .map((f) => datePattern.exec(f)?.[1])
       .filter((d) => d && d < today),
-  )].sort();
+  )].sort((a, b) => a.localeCompare(b));
 
   // Try dates in reverse chronological order
   for (let i = dates.length - 1; i >= 0; i--) {

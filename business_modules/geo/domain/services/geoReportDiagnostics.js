@@ -19,7 +19,7 @@ export function collectGeoVersionsFromSignals(signals) {
     }
   }
   return {
-    geo_reference_versions_used: [...refs].sort(),
-    border_reference_versions_used: [...borders].sort(),
+    geo_reference_versions_used: [...refs].sort((a, b) => a.localeCompare(b)),
+    border_reference_versions_used: [...borders].sort((a, b) => a.localeCompare(b)),
   };
 }

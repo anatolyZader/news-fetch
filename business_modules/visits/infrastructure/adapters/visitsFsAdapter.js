@@ -147,7 +147,8 @@ export class VisitsFsAdapter extends IVisitsRepositoryPort {
         ...day,
         file: day.file ? basename(day.file) : null,
         visitCount: day.visits.length,
-        municipalities: [...new Set(day.visits.map((visit) => visit.municipality).filter(Boolean))].sort(),
+        municipalities: [...new Set(day.visits.map((visit) => visit.municipality).filter(Boolean))]
+          .sort((a, b) => a.localeCompare(b)),
       }))
       .sort((a, b) => a.date.localeCompare(b.date));
   }

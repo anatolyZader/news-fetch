@@ -44,7 +44,7 @@ console.log(`Root production dependencies: ${direct.length}\n`);
 /** @type {string[]} */
 const unused = [];
 
-for (const name of direct.sort()) {
+for (const name of direct.sort((a, b) => a.localeCompare(b))) {
   const patterns = [
     `from '${name}'`,
     `from "${name}"`,
