@@ -5,6 +5,18 @@
 import { assertValidResilienceContentBatch } from '../domain/services/resilienceBatchValidation.js';
 import { scoreComponents } from '../domain/services/resilienceScoring.js';
 import { mergeDualExtractionSignals } from '../infrastructure/dualModelExtract.js';
+import {
+  filterSignalsForScope,
+  normalizeReportScope,
+  reportScopeMetadata,
+} from '../domain/services/regionSignalFilter.js';
+import {
+  annotateSignalsEpistemics,
+  partitionMacroSignals,
+} from '../domain/services/evidenceEligibility.js';
+import { computeDataVoidIndex } from '../domain/services/dataVoidIndex.js';
+import { countOovCapturesForDate } from '../domain/services/oovCapture.js';
+import { loadHistoricalSignalDays } from '../input/assessSignalsHelpers.js';
 
 /** Aligned with infrastructure/mdReportsLoader.js body cap */
 export const MAX_BODY_CHARS = 2000;
@@ -59,10 +71,14 @@ export async function runResilienceAssessment(batch, options = {}) {
     persist = false,
     outputBase = null,
     reportSourceFiles = null,
+    scope = null,
     // Optional supplementary articles (e.g. field reports) extracted with a different content kind
     supplementaryArticles = [],
     supplementaryContentKind = 'field_report',
   } = options;
+
+  const reportScopeId = normalizeReportScope(scope ?? batch.scope ?? 'national');
+  const reportScope = reportScopeMetadata(reportScopeId);
 
   assertValidResilienceContentBatch(batch);
   if (!llmPort) {
@@ -94,14 +110,29 @@ export async function runResilienceAssessment(batch, options = {}) {
     allSignals = [...allSignals, ...suppSignals];
   }
 
+  allSignals = filterSignalsForScope(allSignals, reportScopeId);
+  allSignals = annotateSignalsEpistemics(allSignals, { reportScope: reportScopeId });
+  const { metricsSignals, macroSignals } = partitionMacroSignals(allSignals, reportScopeId);
+  const signalsForScoring = reportScopeId === 'north' ? metricsSignals : allSignals;
+
   const totalArticles = articles.length + supplementaryArticles.length;
-  // When sources are mixed, use 'mixed' as the narrative content kind to trigger combined context
   const narrativeContentKind = supplementaryArticles.length > 0 ? 'mixed' : batch.contentKind;
 
-  const scoredComponents = scoreComponents(allSignals, { totalArticles });
+  const scoredComponents = scoreComponents(signalsForScoring, {
+    totalArticles,
+    mediaSignals: allSignals,
+  });
+  const historicalSignalDays = loadHistoricalSignalDays(
+    batch.reportDate,
+    options.reportsDir ?? 'reports',
+    7,
+    reportScopeId,
+  );
+  const dataVoid = computeDataVoidIndex(allSignals, historicalSignalDays, { reportScope: reportScopeId });
+  const oovCaptureCount = countOovCapturesForDate(batch.reportDate);
   const assessment = await llmPort.generateNarratives(
     scoredComponents,
-    allSignals,
+    signalsForScoring,
     batch.reportDate,
     totalArticles,
     {
@@ -109,6 +140,11 @@ export async function runResilienceAssessment(batch, options = {}) {
       onProgress,
       priorReports: batch.priorAssessments ?? [],
       contentKind: narrativeContentKind,
+      reportScope,
+      macroSignals,
+      allScopedSignals: allSignals,
+      dataVoid,
+      oovCaptureCount,
     },
   );
 

@@ -392,6 +392,131 @@
         "after_cross_source_dedup_count": 1,
         "score_range": {"wellbeing_at_risk": [3, 10]}
       }
+    },
+
+    {
+      "id": "keyword_fallback_excluded_from_metrics",
+      "category": "epistemic_geo",
+      "scenario": "Keyword-only north signal must not affect component scores when epistemic geo v2 is enabled.",
+      "mock_extraction": [
+        {
+          "article_index": 1,
+          "article_url": "https://ynet.co.il/n1",
+          "article_source": "ynet.co.il",
+          "source_type": "news",
+          "signal_type": "panic_behavior",
+          "evidence_type": "observational_reported_fact",
+          "scope_level": "single_case",
+          "evidence": "Residents in Kiryat Shmona reported panic in shelters.",
+          "extraction_confidence": 0.85,
+          "temporal_weight": 1.0,
+          "scopeDecision": { "isNorthRelevant": true, "source": "keyword_fallback", "confidence": "low" },
+          "metricsEligible": false
+        }
+      ],
+      "expectations": {
+        "confidence": {"wellbeing_at_risk": "insufficient_data"},
+        "comment": "metricsEligible=false => no contributing signals for scoring."
+      }
+    },
+
+    {
+      "id": "thin_extreme_floor_clamped",
+      "category": "thin_evidence",
+      "scenario": "Single extreme negative signal with mass<1.5 triggers floor_clamped.",
+      "mock_extraction": [
+        {
+          "article_index": 1,
+          "article_source": "field",
+          "source_type": "field",
+          "signal_type": "service_disruption",
+          "evidence_type": "observational_reported_fact",
+          "scope_level": "single_case",
+          "evidence": "Complete collapse of water supply in village.",
+          "extraction_confidence": 0.9,
+          "temporal_weight": 1.0
+        }
+      ],
+      "expectations": {
+        "score_range": {"functional_continuity": [3, 8]},
+        "comment": "Min-mass floor keeps thin single-signal score in [3,8]."
+      }
+    },
+
+    {
+      "id": "digital_darkness_field_active",
+      "category": "data_void",
+      "scenario": "Digital channels silent while field reports continue — data void index must flag digital_darkness.",
+      "mock_extraction": [
+        {
+          "article_index": 1,
+          "article_source": "pbo-north",
+          "source_type": "pbo",
+          "signal_type": "service_continuity",
+          "evidence_type": "observational_reported_fact",
+          "scope_level": "single_case",
+          "evidence": "Officers report continued shelter operations despite connectivity loss.",
+          "extraction_confidence": 0.9,
+          "temporal_weight": 1.0
+        }
+      ],
+      "historical_signals": [
+        [
+          {"source_type": "whatsapp", "signal_type": "fear_expression", "evidence": "chat a"},
+          {"source_type": "news", "signal_type": "calm_confidence", "evidence": "news b"},
+          {"source_type": "news", "signal_type": "calm_confidence", "evidence": "news c"}
+        ]
+      ],
+      "expectations": {
+        "data_void": {"digital_darkness": true, "level": "critical"},
+        "comment": "Historical digital volume > 0, today digital = 0, field active."
+      }
+    },
+
+    {
+      "id": "ynet_flood_suppression_binding",
+      "category": "suppression",
+      "scenario": "Single-outlet flood triggers source cap; suppression_delta and source_cap_binding should surface.",
+      "mock_extraction": "REPEAT(9, ynet, resilience_narrative_positive) + REPEAT(1, maariv, resilience_narrative_positive)",
+      "_generator": "outlet_flood_positive",
+      "expectations": {
+        "source_cap_binding": {"narrative": true},
+        "min_suppression_delta": {"narrative": 0.5},
+        "comment": "Cap scales Ynet contributions; score_raw should exceed headline when binding."
+      }
+    },
+
+    {
+      "id": "contested_thin_balanced",
+      "category": "contested_thin",
+      "scenario": "Moderate mass with balanced +/- evidence yields high polarization in thin-moderate band.",
+      "mock_extraction": [
+        {
+          "article_index": 1, "article_url": "https://ynet.co.il/a1", "article_source": "ynet.co.il", "source_type": "news",
+          "signal_type": "resilience_narrative_positive", "evidence_type": "named_institutional_fact",
+          "scope_level": "quantified_or_broad", "evidence": "Municipal survey: 52% report hope.", "extraction_confidence": 0.95, "temporal_weight": 1.0
+        },
+        {
+          "article_index": 2, "article_url": "https://maariv.co.il/a2", "article_source": "maariv.co.il", "source_type": "news",
+          "signal_type": "resilience_narrative_positive", "evidence_type": "observational_reported_fact",
+          "scope_level": "quantified_or_broad", "evidence": "Volunteers report continued community support.", "extraction_confidence": 0.9, "temporal_weight": 1.0
+        },
+        {
+          "article_index": 3, "article_url": "https://kan.org.il/a3", "article_source": "kan.org.il", "source_type": "radio",
+          "signal_type": "resilience_narrative_negative", "evidence_type": "named_institutional_fact",
+          "scope_level": "quantified_or_broad", "evidence": "Poll: 48% report exhaustion and despair.", "extraction_confidence": 0.95, "temporal_weight": 1.0
+        },
+        {
+          "article_index": 4, "article_url": "https://haaretz.co.il/a4", "article_source": "haaretz.co.il", "source_type": "news",
+          "signal_type": "resilience_narrative_negative", "evidence_type": "observational_reported_fact",
+          "scope_level": "quantified_or_broad", "evidence": "Widespread anxiety and fatigue reported.", "extraction_confidence": 0.9, "temporal_weight": 1.0
+        }
+      ],
+      "expectations": {
+        "min_polarization": {"narrative": 0.4},
+        "min_evidence_mass_band": {"narrative": [1.5, 4]},
+        "comment": "Balanced +/- narrative mass — contested_thin band when pol > 0.5 and mass < 4."
+      }
     }
   ]
 }

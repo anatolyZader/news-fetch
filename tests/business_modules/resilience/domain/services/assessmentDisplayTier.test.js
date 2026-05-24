@@ -118,6 +118,19 @@ describe('assessmentDisplayTier', () => {
     assert.equal(out.display_view, DISPLAY_VIEWS.analyst);
   });
 
+  it('redactAssessmentForView summarizes macro_signals for operator', () => {
+    const assessment = {
+      components: [],
+      macro_signals: [
+        { signal_type: 'macro_framing', evidence: 'National TV coverage of war.' },
+      ],
+    };
+    const out = redactAssessmentForView(assessment, DISPLAY_VIEWS.operator);
+    assert.equal(out.macro_signals, undefined);
+    assert.equal(out.macro_signals_summary.count, 1);
+    assert.deepEqual(out.macro_signals_summary.signal_types, ['macro_framing']);
+  });
+
   it('redactScoreBySource keeps signals only for operator', () => {
     const raw = {
       news: {

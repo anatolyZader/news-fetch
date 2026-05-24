@@ -174,7 +174,7 @@ export function buildAssessmentMethodology({
       signal_weights: 'author_set_not_ml_fitted',
       component_tuning: 'heuristic_tanhK_certM; see tuning_proposal when enough national history',
       north_geo_news:
-        'News/radio north scope may use keyword_fallback when geo is missing or not usableForMetrics',
+        'News/radio north scope uses text-evidence fallback (keyword_fallback) when geo is missing or not usableForMetrics—partial context preferred over dropping critical text',
       always_north_source_types: [...PHASE1_ALWAYS_NORTH_SOURCE_TYPES],
       dual_pipeline:
         'runResilienceAssessment (API/news) scores all signals without scope filter; north artifact requires assess-signals --scope north',
@@ -191,6 +191,12 @@ export function buildAssessmentMethodology({
     },
     epistemic: {
       operator_view: 'narrative_and_evidence_not_headline_scores',
+      thin_evidence_policy:
+        'When evidence_mass < 1.5 (Option C), operators see limited_evidence_neutral or unverified_alert — not headline 1–10 scores.',
+      contested_thin:
+        'Polarization > 0.5 with mass in [1.5, 4) hides operator scores; narrative must describe conflict without resolving it.',
+      keyword_macro_partition:
+        'Keyword/geo fallback and national macro terms are scope context only — excluded from component metrics when RESILIENCE_EPISTEMIC_GEO_V2 is enabled.',
       reliability_instruments:
         'Bootstrap, entropy, and caps quantify instability and dominance; they do not validate ground-truth resilience.',
     },

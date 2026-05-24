@@ -1,0 +1,23 @@
+{
+  "_doc": "Default peace-time component anchors (1-10). Override via RESILIENCE_PEACE_ANCHORS_PATH or update after baseline validation phase.",
+  "national": {
+    "narrative": 6,
+    "information_communication": 6,
+    "lifesaving_behavior": 7,
+    "functional_continuity": 7,
+    "community_capital": 6,
+    "leadership": 6,
+    "belonging_solidarity": 6,
+    "wellbeing_at_risk": 6
+  },
+  "north": {
+    "narrative": 5,
+    "information_communication": 5,
+    "lifesaving_behavior": 6,
+    "functional_continuity": 6,
+    "community_capital": 5,
+    "leadership": 5,
+    "belonging_solidarity": 5,
+    "wellbeing_at_risk": 5
+  }
+}

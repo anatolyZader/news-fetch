@@ -30,6 +30,9 @@ import {
   INTENSITY_WEIGHT,
   POLARITY_OVERRIDE_SIGNAL_TYPES,
 } from './signalInstanceSchema.js';
+import { metricsEligible } from './evidenceEligibility.js';
+
+const PRESS_SOURCE_TYPES = new Set(['news', 'radio']);
 
 export {
   CATALOG_VERSION,
@@ -393,11 +396,15 @@ function sourceCapWasApplied(preItems, postItems) {
  * @returns {Array<{signal: object, contribution: number, polarity: '+'|'-'}>}
  */
 function applySourceCap(items) {
-  let out = items.map((it) => ({ ...it }));
+  let out = items.map((it) => ({
+    ...it,
+    _cap_scale_factor: it._cap_scale_factor ?? 1,
+    _cap_layer: it._cap_layer ?? null,
+  }));
 
-  out = capByGroup(out, (sig) => sig.source_type ?? '_unknown', 0.5);
+  out = capByGroup(out, (sig) => sig.source_type ?? '_unknown', 0.5, 'source_type');
 
-  out = capByGroup(out, (sig) => sig.article_source ?? '_unknown', 0.35);
+  out = capByGroup(out, (sig) => sig.article_source ?? '_unknown', 0.35, 'article_source');
 
   return out;
 }
@@ -411,7 +418,7 @@ function applySourceCap(items) {
  *   ⇒ newDominant = threshold · otherMass / (1 − threshold)
  * For threshold=0.5 this collapses to `newDominant = otherMass` (matches the prior code).
  */
-function capByGroup(items, keyFn, threshold) {
+function capByGroup(items, keyFn, threshold, layerName = null) {
   const distinctKeys = new Set(items.map((it) => keyFn(it.signal)));
   if (distinctKeys.size <= 1) return items;
 
@@ -435,7 +442,10 @@ function capByGroup(items, keyFn, threshold) {
         const targetMass = (threshold * otherMass) / (1 - threshold);
         const scale = targetMass / mass;
         for (const it of polItems) {
-          if (keyFn(it.signal) === key) it.contribution *= scale;
+          if (keyFn(it.signal) !== key) continue;
+          it.contribution *= scale;
+          it._cap_scale_factor = (it._cap_scale_factor ?? 1) * scale;
+          if (layerName) it._cap_layer = layerName;
         }
       }
     }
@@ -470,7 +480,8 @@ function countByType(signals) {
  * Compute final 1-10 score for one component from its capped contribution items
  * and pre-computed strength/coverage/diversity factors.
  */
-function scoreFromItems(items, componentId, totalArticles, articleSet, sourceSet) {
+function scoreFromItems(items, componentId, totalArticles, articleSet, sourceSet, opts = {}) {
+  const applyFloor = opts.applyFloor !== false;
   let positive = 0;
   let negative = 0;
   for (const it of items) {
@@ -505,7 +516,7 @@ function scoreFromItems(items, componentId, totalArticles, articleSet, sourceSet
   // C7: surface a `floorClamped` flag whenever the floor actually constrains the score so the
   // UI can annotate "thin evidence" rather than silently letting the headline drift toward 5.
   let floorClamped = false;
-  if (evidenceMass < 1.5) {
+  if (applyFloor && evidenceMass < 1.5) {
     const clamped = Math.max(3, Math.min(8, score));
     if (clamped !== score) floorClamped = true;
     score = clamped;
@@ -701,13 +712,19 @@ function computeFacets(componentId, allComponentSignals, _totalArticles) {
  * @param {number} opts.totalArticles
  * @returns {Object}
  */
-export function scoreComponents(signals, { totalArticles = 0 } = {}) {
+export function scoreComponents(signals, { totalArticles = 0, epistemicGeoV2, mediaSignals = null } = {}) {
   const results = {};
   const duplicateIndex = buildDuplicateOccurrenceIndex(signals);
 
+  const scoringSignals = (signals ?? []).filter((s) => {
+    if (s?.metricsEligible === false) return false;
+    if (s?.metricsEligible === true) return true;
+    return metricsEligible(s, { epistemicGeoV2 });
+  });
+
   // Precompute batch-wide type mass (pre-cap) for cross-component derived indicators.
   const batchPreCapItems = [];
-  for (const signal of signals) {
+  for (const signal of scoringSignals) {
     const signalType = signal.signal_type ?? signal.type;
     const mapping = SIGNAL_TO_COMPONENTS[signalType];
     if (!mapping) continue;
@@ -727,7 +744,7 @@ export function scoreComponents(signals, { totalArticles = 0 } = {}) {
     const articleSet = new Set();
     const sourceSet = new Set();
 
-    for (const signal of signals) {
+    for (const signal of scoringSignals) {
       const signalType = signal.signal_type ?? signal.type;
       const mapping = SIGNAL_TO_COMPONENTS[signalType];
       if (!mapping || !(id in mapping)) continue;
@@ -768,16 +785,31 @@ export function scoreComponents(signals, { totalArticles = 0 } = {}) {
 
     const cappedItems = applySourceCap(items);
     const sourceCapBinding = sourceCapWasApplied(items, cappedItems);
-    // Enriched signal copies for downstream UI explainability (N9 + A5): each signal carries
-    // BOTH its pre-cap raw contribution (_contribution_raw, used by reviewers to see "what
-    // evidence really mattered") and its post-cap final contribution (_contribution, what the
-    // math actually used). applySourceCap preserves order, so items[i] zips with cappedItems[i].
-    // We emit copies so the same underlying signal can be enriched differently across the
-    // multiple components it routes into without cross-contamination.
+    const scRaw = scoreFromItems(items, id, totalArticles, articleSet, sourceSet, { applyFloor: false });
+    const scCapNoFloor = scoreFromItems(cappedItems, id, totalArticles, articleSet, sourceSet, { applyFloor: false });
+    const sc = scoreFromItems(cappedItems, id, totalArticles, articleSet, sourceSet, { applyFloor: true });
+    const scoreRaw = scRaw?.score ?? null;
+    const scoreHeadline = sc?.score ?? null;
+    const suppressionDelta = (scoreRaw != null && scoreHeadline != null)
+      ? scoreRaw - scoreHeadline
+      : null;
+    const suppressionBreakdown = {
+      source_cap: (scRaw?.score != null && scCapNoFloor?.score != null)
+        ? scCapNoFloor.score - scRaw.score
+        : null,
+      min_mass_floor: (scCapNoFloor?.score != null && sc?.score != null)
+        ? sc.score - scCapNoFloor.score
+        : null,
+    };
     const enrichedSignals = cappedItems.map((cappedIt, idx) => ({
       ...cappedIt.signal,
       _contribution: round3(cappedIt.contribution),
+      _contribution_pre_cap: round3(items[idx]?.contribution ?? cappedIt.contribution),
       _contribution_raw: round3(items[idx]?.contributionPreDuplicate ?? cappedIt.contribution),
+      _cap_scale_factor: cappedIt._cap_scale_factor != null
+        ? round3(cappedIt._cap_scale_factor)
+        : 1,
+      _cap_layer: cappedIt._cap_layer ?? null,
       _weight: effectiveWeightForSignal(
         cappedIt.signal,
         cappedIt.signal.signal_type ?? cappedIt.signal.type,
@@ -785,7 +817,6 @@ export function scoreComponents(signals, { totalArticles = 0 } = {}) {
       ),
       _polarity: cappedIt.polarity,
     }));
-    const sc = scoreFromItems(cappedItems, id, totalArticles, articleSet, sourceSet);
     if (!sc) {
       results[id] = {
         score: null, confidence: 'insufficient_data',
@@ -830,6 +861,10 @@ export function scoreComponents(signals, { totalArticles = 0 } = {}) {
 
     results[id] = {
       score: sc.score,
+      score_raw: scoreRaw,
+      score_headline: scoreHeadline,
+      suppression_delta: suppressionDelta,
+      suppression_breakdown: suppressionBreakdown,
       confidence,
       positive_evidence:       round3(sc.positive),
       negative_evidence:       round3(sc.negative),
@@ -851,6 +886,7 @@ export function scoreComponents(signals, { totalArticles = 0 } = {}) {
       floor_clamped:           sc.floorClamped === true,
       counterfactual_article_key: cf.counterfactual_article_key,
       counterfactual_delta:    cf.counterfactual_delta,
+      counterfactual_no_caps:  scoreRaw,
       signal_count:            enrichedSignals.length,
       distinct_article_count:  distinctArticleCount,
       source_diversity:        sourceSet.size,
@@ -862,7 +898,31 @@ export function scoreComponents(signals, { totalArticles = 0 } = {}) {
     };
   }
 
+  const mediaMass = computeMediaMentionMass(mediaSignals ?? signals);
+
+  for (const id of COMPONENT_IDS) {
+    if (results[id]) {
+      results[id].media_mention_mass = round3(mediaMass[id] ?? 0);
+    }
+  }
+
   return results;
+}
+
+/** Pre-dedup press-only mention mass per component (information environment metric). */
+function computeMediaMentionMass(allSignals) {
+  const byComp = Object.fromEntries(COMPONENT_IDS.map((id) => [id, 0]));
+  for (const signal of allSignals ?? []) {
+    if (!PRESS_SOURCE_TYPES.has(signal?.source_type)) continue;
+    const signalType = signal.signal_type ?? signal.type;
+    const mapping = SIGNAL_TO_COMPONENTS[signalType];
+    if (!mapping) continue;
+    for (const [compId, w] of Object.entries(mapping)) {
+      if (!(compId in byComp)) continue;
+      byComp[compId] += Math.abs(w) * (signal.extraction_confidence ?? 0.85);
+    }
+  }
+  return byComp;
 }
 
 /** Render confidence as a display string (simple passthrough for v2 string values). */

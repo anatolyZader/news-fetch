@@ -1,0 +1,72 @@
+/**
+ * Capture out-of-vocabulary signal suggestions for catalog evolution.
+ */
+import { appendFileSync, existsSync, mkdirSync, readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { LEARNING_CAPTURE_KINDS } from '../../../../cross-cut-modules/learningCapture/kinds.js';
+
+export { LEARNING_CAPTURE_KINDS };
+
+/**
+ * @param {NodeJS.ProcessEnv} [env]
+ */
+export function isLearningCaptureEnabled(env = process.env) {
+  return env.RESILIENCE_OOV_CAPTURE !== '0';
+}
+
+/**
+ * Opt-in residual LLM pass for articles that yielded zero scored signals.
+ * @param {NodeJS.ProcessEnv} [env]
+ */
+export function isResidualCaptureEnabled(env = process.env) {
+  const v = env.RESILIENCE_RESIDUAL_CAPTURE;
+  return v === '1' || v === 'true' || v === 'on';
+}
+
+/**
+ * @param {object} record
+ * @param {string} [reportsDir]
+ */
+export function appendOovCapture(record, reportsDir = 'reports') {
+  if (!isLearningCaptureEnabled()) return;
+  const dir = resolve(reportsDir);
+  mkdirSync(dir, { recursive: true });
+  const date = record.timestamp?.slice(0, 10) ?? new Date().toISOString().slice(0, 10);
+  const path = resolve(dir, `oov-capture-${date}.jsonl`);
+  appendFileSync(path, `${JSON.stringify(record)}\n`, 'utf8');
+}
+
+/** @type {Array<object>} in-memory buffer for current run */
+let runBuffer = [];
+
+export function bufferOovCapture(record) {
+  runBuffer.push(record);
+  appendOovCapture(record);
+}
+
+export function flushOovRunBuffer() {
+  const n = runBuffer.length;
+  runBuffer = [];
+  return n;
+}
+
+export function getOovRunCount() {
+  return runBuffer.length;
+}
+
+/**
+ * Count JSONL lines in today's (or given date's) OOV capture file.
+ * @param {string} date YYYY-MM-DD
+ * @param {string} [reportsDir]
+ */
+export function countOovCapturesForDate(date, reportsDir = 'reports') {
+  if (!isLearningCaptureEnabled()) return 0;
+  const path = resolve(reportsDir, `oov-capture-${date}.jsonl`);
+  if (!existsSync(path)) return 0;
+  try {
+    const text = readFileSync(path, 'utf8');
+    return text.split('\n').filter((line) => line.trim()).length;
+  } catch {
+    return 0;
+  }
+}

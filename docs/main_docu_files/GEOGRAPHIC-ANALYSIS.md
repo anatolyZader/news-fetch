@@ -313,14 +313,14 @@ Use this for debugging, admin tools, or future UI — not as a public geocoder.
 
 1. Certain **`source_type`** values are always north (field, PBO, WhatsApp, etc.).
 2. If **`signal.geo.kind === 'resolved'`** and tags / PBO id indicate the configured north set, the signal is **north** even when the evidence text has no keyword hit — **unless** **`usableForMetrics`** is explicitly **`false`**, in which case that geo-derived north hint is ignored (low-confidence fuzzy / non-metrics-safe rows still fall through to keywords or other rules).
-3. Otherwise the existing **`NORTH_TERMS`** substring list is used (**legacy fallback** for signals without **`geo`**, or when geo alone must not count as verified north).
+3. Otherwise **`NORTH_TERMS`** substring matching applies (**text-evidence fallback**, persisted as `source: keyword_fallback`) — for signals without **`geo`**, or when geo alone must not count as verified north.
 
-**Legacy keyword list:** substring matching on evidence remains a **best-effort** path for older payloads; prefer resolved **`geo`** with **`usableForMetrics: true`** when present.
+**Text-evidence fallback (graceful degradation):** when coordinates are missing or not metrics-safe, place names in evidence/article metadata provide **partial north context** rather than dropping behaviorally critical text. Confidence is **low** by design; prefer resolved **`geo`** with **`usableForMetrics: true`** when present. High fallback share triggers operator scope-quality warnings.
 
 ### `scopeDecision`: geo envelope vs signal
 
 - **`geo.scopeDecision`** (resolved envelopes only) — built by [`buildGeoScopeDecision`](../business_modules/geo/domain/services/geoScopeDecisionFromResolved.js) inside `geoService`. Explains north relevance **from tags + PBO id + `usableForMetrics` only** (`source`: `geo` | `geo_tags` | `pbo_subregion` | `unknown`). Persisted on `signal.geo` so a stored geo blob answers “was this geo, on its own, allowed to count as north-from-geo?”
-- **`signal.scopeDecision`** — attached by [`filterSignalsForScope`](../business_modules/resilience/domain/services/regionSignalFilter.js): full north filter including **`source_type`**, resolved geo (with the same metrics gate), and **`keyword_fallback`**. Use this for “why did this signal enter north-scoped analysis?”
+- **`signal.scopeDecision`** — attached by [`filterSignalsForScope`](../business_modules/resilience/domain/services/regionSignalFilter.js): full north filter including **`source_type`**, resolved geo (with the same metrics gate), and **text-evidence fallback** (`keyword_fallback`). Use this for “why did this signal enter north-scoped analysis?”
 
 `filterSignalsForScope()` maps each signal to include **`signal.scopeDecision`**:
 
@@ -385,7 +385,7 @@ When **`GEO_OVERRIDES_SQLITE=1`**, composition wires a SQLite-backed overrides a
 |---------|------|
 | **PBO regional daily files** | Five region ids + markdown on disk under `pbo_report_regional/data` |
 | **Resilience LLM prompts** | Narrative scope (Israel-only, Naftali vs whole north, etc.) — policy, not metrics |
-| **Keyword list in `regionSignalFilter`** | Legacy fallback when **`geo`** is missing, not resolved, or not metrics-safe (`usableForMetrics === false`) |
+| **Text-evidence fallback (`NORTH_TERMS`)** | Degraded scope path when **`geo`** is missing, not resolved, or not metrics-safe (`usableForMetrics === false`) — partial context over dropping uncoded text |
 
 ---
 

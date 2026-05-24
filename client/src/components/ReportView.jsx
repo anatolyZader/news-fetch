@@ -201,6 +201,15 @@ function InstrumentStateBadges({ instrument, t }) {
       {inst.ci_unstable && (
         <StatusTag variant="alert">{t('report.scoreInterval.ciUnstable')}</StatusTag>
       )}
+      {inst.contested_thin && (
+        <StatusTag variant="alert">{t('report.instrument.contestedThin')}</StatusTag>
+      )}
+      {inst.thin_evidence_instrument === 'unverified_alert' && (
+        <StatusTag variant="alert">{t('report.instrument.unverifiedAlert')}</StatusTag>
+      )}
+      {inst.thin_evidence_instrument === 'limited_evidence_neutral' && (
+        <StatusTag variant="neutral">{t('report.instrument.limitedNeutral')}</StatusTag>
+      )}
     </Stack>
   );
 }
@@ -311,6 +320,8 @@ function WhyThisScore({ comp, t }) {
           const sign = s._polarity === '-' ? '−' : '+';
           const signColor = s._polarity === '-' ? 'error.main' : 'success.main';
           const signalLabel = (s.signal_type ?? '').replace(/_/g, ' ');
+          const preCap = s._contribution_pre_cap;
+          const showPreCap = preCap != null && Math.abs(preCap - s._contribution) > 0.01;
           return (
             <Stack
               key={i}
@@ -342,8 +353,15 @@ function WhyThisScore({ comp, t }) {
                 variant="caption"
                 sx={{ color: 'text.secondary', marginInlineStart: 'auto', whiteSpace: 'nowrap' }}
               >
-                {t('report.whyThisScore.contribution')
-                  .replace('{value}', s._contribution.toFixed(2))}
+                {showPreCap
+                  ? t('report.whyThisScore.contributionCapped')
+                    .replace('{pre}', preCap.toFixed(2))
+                    .replace('{post}', s._contribution.toFixed(2))
+                  : t('report.whyThisScore.contribution')
+                    .replace('{value}', s._contribution.toFixed(2))}
+                {s._cap_layer && s._cap_scale_factor != null && s._cap_scale_factor < 0.999 && (
+                  <> · {s._cap_layer} ×{s._cap_scale_factor.toFixed(2)}</>
+                )}
               </Typography>
             </Stack>
           );
@@ -443,6 +461,37 @@ function DeltaLine({ comp, t }) {
   );
 }
 
+function MacroSignalsSection({ macroSignals, t, isAnalyst }) {
+  const list = Array.isArray(macroSignals) ? macroSignals : [];
+  if (list.length === 0) return null;
+  if (!isAnalyst) return null;
+
+  return (
+    <Box sx={(theme) => ({
+      padding: theme.spacing(1.5),
+      border: theme.custom.border.hairline,
+      borderRadius: theme.custom.radius.sm,
+      background: theme.palette.action.hover,
+    })}>
+      <Typography variant="cardTitle" sx={{ marginBottom: 1 }}>
+        {t('report.macroSignals.title').replace('{n}', String(list.length))}
+      </Typography>
+      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', marginBottom: 1 }}>
+        {t('report.macroSignals.body')}
+      </Typography>
+      <Stack spacing={0.75}>
+        {list.slice(0, 12).map((s, i) => (
+          <Typography key={i} variant="body2" sx={{ fontSize: '0.85rem' }}>
+            <strong>{(s.signal_type ?? s.type ?? 'macro').replace(/_/g, ' ')}</strong>
+            {' — '}
+            {String(s.evidence ?? '').slice(0, 240)}
+          </Typography>
+        ))}
+      </Stack>
+    </Box>
+  );
+}
+
 function ComponentCard({
   comp,
   t,
@@ -464,7 +513,7 @@ function ComponentCard({
   const curatedEvidence = isFiltered ? null : (comp.evidence ?? []);
   const evidenceCount = isFiltered ? signals.length : curatedEvidence.length;
   const isInsufficient = comp.confidence === 'insufficient_data'
-    || (!isAnalyst && (comp.instrument?.evidence_sufficiency === 'thin' || !comp.instrument))
+    || (!isAnalyst && comp.instrument?.operator_shows_score === false)
     || (isAnalyst && comp.score == null);
   const isContested = comp.polarization != null && comp.polarization > 0.5
     && (comp.evidence_mass ?? 0) > 4;
@@ -538,6 +587,36 @@ function ComponentCard({
         {isAnalyst && <DeltaLine comp={comp} t={t} />}
         {isAnalyst && <CounterfactualHint comp={comp} t={t} />}
         <MarkdownArticle variant="report" markdown={expandSourceCitationLinks(comp.narrative ?? '')} />
+        {Array.isArray(comp.manifestations_absent) && comp.manifestations_absent.length > 0 && (
+          <Box sx={(theme) => ({ marginTop: theme.spacing(1) })}>
+            <Typography variant="meta" color="text.secondary">{t('report.manifestations.absent')}</Typography>
+            <Box component="ul" sx={{ margin: 0, paddingLeft: 2 }}>
+              {comp.manifestations_absent.map((m, i) => (
+                <Typography component="li" variant="body2" key={i}>{m}</Typography>
+              ))}
+            </Box>
+          </Box>
+        )}
+        {isAnalyst && comp.media_mention_mass != null && comp.media_mention_mass > 0 && (
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', marginTop: 0.5 }}>
+            {t('report.mediaMentionMass').replace('{value}', comp.media_mention_mass.toFixed(2))}
+          </Typography>
+        )}
+        {isAnalyst && comp.suppression_delta != null && Math.abs(comp.suppression_delta) >= 1 && (
+          <Typography variant="caption" color="warning.main" sx={{ display: 'block', marginTop: 1 }}>
+            {t('report.suppression.delta')
+              .replace('{raw}', String(comp.score_raw ?? '—'))
+              .replace('{headline}', String(comp.score_headline ?? comp.score ?? '—'))}
+            {comp.suppression_breakdown && (
+              <>
+                {' · '}
+                {t('report.suppression.breakdown')
+                  .replace('{cap}', comp.suppression_breakdown.source_cap ?? '—')
+                  .replace('{floor}', comp.suppression_breakdown.min_mass_floor ?? '—')}
+              </>
+            )}
+          </Typography>
+        )}
         {isAnalyst && <FacetBars facets={comp.facets} t={t} />}
 
         {evidenceCount > 0 && (
@@ -644,6 +723,10 @@ export function ReportView({
   const components = assessment.components ?? [];
   const norrisCaps = assessment.norris_capacities ?? [];
   const driftMap = driftByComponent ?? {};
+  const methodology = assessment.methodology ?? null;
+  const dataVoid = assessment.data_void ?? null;
+  const scopeSummary = methodology?.scope?.scope_decision_summary ?? null;
+  const keywordPct = scopeSummary?.pct_keyword_fallback_among_north ?? null;
 
   function getSourceSignals(compId) {
     if (!scoreBySource) return null;
@@ -679,6 +762,54 @@ export function ReportView({
           Translation error: {translateError}
         </Alert>
       )}
+
+      {dataVoid?.level && dataVoid.level !== 'none' && (
+        <Alert severity="error" variant="filled">
+          {t('report.dataVoid.banner')
+            .replace('{level}', dataVoid.level)
+            .replace('{digital}', dataVoid.digital_darkness ? 'yes' : 'no')}
+          {dataVoid.information_vacuum_index != null && (
+            <> · {t('report.dataVoid.vacuumIndex').replace('{value}', dataVoid.information_vacuum_index.toFixed(2))}</>
+          )}
+        </Alert>
+      )}
+
+      {Array.isArray(assessment.macro_signals) && assessment.macro_signals.length > 0 && (
+        <Alert severity="info" variant="outlined">
+          {t('report.macroSignals.banner').replace('{n}', String(assessment.macro_signals.length))}
+        </Alert>
+      )}
+      {!Array.isArray(assessment.macro_signals) && assessment.macro_signals_summary?.count > 0 && (
+        <Alert severity="info" variant="outlined">
+          {t('report.macroSignals.banner').replace('{n}', String(assessment.macro_signals_summary.count))}
+        </Alert>
+      )}
+
+      {isAnalyst && assessment.oov_capture_count > 0 && (
+        <Alert severity="warning" variant="outlined">
+          {t('report.oovCapture.count').replace('{n}', String(assessment.oov_capture_count))}
+        </Alert>
+      )}
+
+      {!isAnalyst && methodology && (
+        <Alert severity="info" variant="outlined">
+          {t('report.instrument.summaryTitle')}:{' '}
+          {t('report.instrument.summaryBody')
+            .replace('{scope}', assessment.report_scope?.label ?? 'national')
+            .replace('{adequate}', String(components.filter((c) => c.instrument?.evidence_sufficiency === 'adequate').length))
+            .replace('{total}', String(components.length))
+            .replace('{thin}', String(components.filter((c) => c.instrument?.evidence_sufficiency === 'thin').length))
+            .replace('{contested}', String(components.filter((c) => c.instrument?.contested).length))}
+        </Alert>
+      )}
+
+      {keywordPct != null && keywordPct > 25 && (
+        <Alert severity="warning" variant="outlined">
+          {t('report.methodology.northKeywordWarning').replace('{pct}', String(Math.round(keywordPct)))}
+        </Alert>
+      )}
+
+      <MacroSignalsSection macroSignals={assessment.macro_signals} t={t} isAnalyst={isAnalyst} />
 
       {isAnalyst && (
         <>

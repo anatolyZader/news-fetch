@@ -2,7 +2,7 @@ import { northRelevanceFromResolvedGeo } from './northRelevanceFromResolvedGeo.j
 
 /**
  * North relevance implied by a **resolved** geo envelope alone (tags, PBO id, metrics gate).
- * For full signal-level north scoping (source_type, keyword fallback), see
+ * For full signal-level north scoping (source_type, text-evidence fallback / keyword_fallback), see
  * `scopeDecisionForSignal` in `regionSignalFilter.js` — it may attach `signal.scopeDecision`.
  */
 

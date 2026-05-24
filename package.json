@@ -42,6 +42,7 @@
     "suggest-tuning": "node business_modules/resilience/tuning/scripts/suggestComponentTuning.js",
     "validation:status": "node business_modules/resilience/validation/scripts/validationStatus.js",
     "validation:set-phase": "node business_modules/resilience/validation/scripts/validationSetPhase.js",
+    "catalog-learning:gap-report": "node business_modules/catalogLearning/input/generate-gap-report.js",
     "golden:build-corpus": "node business_modules/resilience/tuning/golden/buildCorpus.mjs",
     "ingest-field-reports": "node business_modules/visits/input/visitsInput.js",
     "audio-to-md": "node business_modules/audio/input/audio-to-md.js",

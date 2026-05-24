@@ -13,6 +13,7 @@
 import { existsSync, readdirSync, readFileSync } from 'fs';
 import { resolve } from 'path';
 import { createHash } from 'node:crypto';
+import { getPeaceTimeAnchor, isDualBaselineEnabled } from '../domain/services/peaceTimeAnchors.js';
 import { embedText, embeddingsEnabled, embeddingModelId } from '../../../cross-cut-modules/vector_index/index.js';
 
 /** Lower-cased, punctuation-free first 120 chars of evidence — stable for keying. */
@@ -179,21 +180,23 @@ export async function crossSourceDedupSemantic(signals) {
  * Walk reports dir and return per-component score history for the trailing
  * `days` days BEFORE `targetDate` (i.e. excluding `targetDate` itself).
  *
- * A6 — calendar-aligned: the returned series has length === `days` for every
- * known component, with `null` at positions where the report is missing OR the
- * component had insufficient_data on that day. Index 0 is calendar yesterday,
- * index 1 is two days ago, etc. Calendar alignment ensures `series[0]` always
- * means "yesterday" rather than "the most recent non-null prior day", which is
- * what EWMA / delta-vs-yesterday semantics require.
- *
- * Returns: { component_id: [score_d-1, score_d-2, ..., score_d-N] }
+ * @param {string} scope  'national' | 'north' — selects report file prefix
  */
-export function loadHistoricalScores(targetDate, reportsDir = 'reports', days = 14) {
+export function loadHistoricalScores(targetDate, reportsDir = 'reports', days = 14, scope = 'national') {
   const dir = resolve(reportsDir);
   if (!existsSync(dir)) return {};
   const allFiles = readdirSync(dir);
   const targetTime = new Date(targetDate).getTime();
   if (Number.isNaN(targetTime)) return {};
+
+  const matchesScope = (f, dStr) => {
+    if (scope === 'north') {
+      return f.startsWith(`resilience-report-north-${dStr}`) && f.endsWith('.json');
+    }
+    return f.startsWith(`resilience-report-${dStr}`)
+      && !f.startsWith(`resilience-report-north-`)
+      && f.endsWith('.json');
+  };
 
   const seriesByComponent = {};
   const knownComponents = new Set();
@@ -207,7 +210,7 @@ export function loadHistoricalScores(targetDate, reportsDir = 'reports', days = 
     d.setUTCDate(d.getUTCDate() - i);
     const dStr = d.toISOString().slice(0, 10);
     const match = allFiles
-      .filter((f) => f.startsWith(`resilience-report-${dStr}`) && f.endsWith('.json'))
+      .filter((f) => matchesScope(f, dStr))
       .sort()
       .at(-1);
     if (!match) continue;
@@ -234,6 +237,53 @@ export function loadHistoricalScores(targetDate, reportsDir = 'reports', days = 
     }
   }
   return seriesByComponent;
+}
+
+/**
+ * Load signal arrays from prior report JSON files (for data-void baseline volume).
+ * Returns one array per day that had a report, oldest first.
+ *
+ * @param {string} targetDate YYYY-MM-DD
+ * @param {string} [reportsDir]
+ * @param {number} [days]
+ * @param {'national'|'north'} [scope]
+ * @returns {Array<Array<object>>}
+ */
+export function loadHistoricalSignalDays(targetDate, reportsDir = 'reports', days = 7, scope = 'national') {
+  const dir = resolve(reportsDir);
+  if (!existsSync(dir)) return [];
+  const allFiles = readdirSync(dir);
+  const targetTime = new Date(targetDate).getTime();
+  if (Number.isNaN(targetTime)) return [];
+
+  const matchesScope = (f, dStr) => {
+    if (scope === 'north') {
+      return f.startsWith(`resilience-report-north-${dStr}`) && f.endsWith('.json');
+    }
+    return f.startsWith(`resilience-report-${dStr}`)
+      && !f.startsWith(`resilience-report-north-`)
+      && f.endsWith('.json');
+  };
+
+  const out = [];
+  for (let i = days; i >= 1; i--) {
+    const d = new Date(targetTime);
+    d.setUTCDate(d.getUTCDate() - i);
+    const dStr = d.toISOString().slice(0, 10);
+    const match = allFiles
+      .filter((f) => matchesScope(f, dStr))
+      .sort()
+      .at(-1);
+    if (!match) continue;
+    try {
+      const json = JSON.parse(readFileSync(resolve(dir, match), 'utf8'));
+      const signals = json.signals ?? [];
+      if (Array.isArray(signals) && signals.length > 0) out.push(signals);
+    } catch {
+      // skip unreadable report
+    }
+  }
+  return out;
 }
 
 /** EWMA: alpha * today + (1 - alpha) * yesterday. Returns rounded integer. */
@@ -289,14 +339,11 @@ export function deltaSignificance(today, history) {
  *
  * Returns a NEW object (does not mutate the input).
  */
-export function enrichWithDeltaChannel(scoredComponents, history = {}) {
+export function enrichWithDeltaChannel(scoredComponents, history = {}, opts = {}) {
+  const scopeId = opts.scopeId ?? 'national';
   const out = {};
   for (const [id, c] of Object.entries(scoredComponents)) {
     const series = history[id] ?? [];
-    // A6 (calendar-aligned): series[0] is calendar yesterday and may be null. When yesterday
-    // is null the EWMA falls back to today (no smoothing nudge) and delta_score is null —
-    // both via the existing ewmaScore() / null-guard semantics. Baseline filters nulls before
-    // computing stats; deltaSignificance enforces the min-history threshold.
     const yesterday = series[0] ?? null;
     const baseline = series.slice(0, 14);
     const alpha = 0.3 + 0.5 * (c.certainty ?? 0);
@@ -304,12 +351,40 @@ export function enrichWithDeltaChannel(scoredComponents, history = {}) {
     const delta_score = c.score != null && yesterday != null ? c.score - yesterday : null;
     const sig = deltaSignificance(c.score, baseline);
     const delta_flag = sig != null && Math.abs(sig) > 2 ? 'significant' : null;
+
+    let delta_chronic = null;
+    let z_score_chronic = null;
+    let erosion_index = null;
+    let exhaustion_days = null;
+    let cumulative_deficit = null;
+
+    if (isDualBaselineEnabled()) {
+      const anchor = getPeaceTimeAnchor(scopeId, id);
+      if (c.score != null && anchor != null) {
+        delta_chronic = c.score - anchor;
+        z_score_chronic = delta_chronic / 2;
+      }
+      if (c.score != null && anchor != null && score_smoothed != null) {
+        erosion_index = Math.min(1, Math.max(0, (anchor - score_smoothed) / 10));
+      }
+      const lowDays = baseline.filter((v) => v != null && v < 4);
+      exhaustion_days = lowDays.length;
+      cumulative_deficit = lowDays.reduce((s, v) => s + (4 - v), 0);
+    }
+
     out[id] = {
       ...c,
       score_smoothed,
       delta_score,
       delta_significance: sig != null ? Math.round(sig * 100) / 100 : null,
       delta_flag,
+      ...(isDualBaselineEnabled() ? {
+        delta_chronic,
+        z_score_chronic: z_score_chronic != null ? Math.round(z_score_chronic * 100) / 100 : null,
+        erosion_index: erosion_index != null ? Math.round(erosion_index * 1000) / 1000 : null,
+        exhaustion_days,
+        cumulative_deficit: cumulative_deficit != null ? Math.round(cumulative_deficit * 10) / 10 : null,
+      } : {}),
     };
   }
   return out;

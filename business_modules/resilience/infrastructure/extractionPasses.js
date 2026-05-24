@@ -101,3 +101,41 @@ export function buildSelfCheckPrompt(signals) {
 
   return { system, user, indices: items.map((it) => it.index) };
 }
+
+/**
+ * Residual observation pass for articles with zero closed-vocab signals.
+ * Does not emit scored signal_type values — only structured observations for catalog learning.
+ * @param {Array<{ url?: string, source?: string, body?: string, promptBody?: string }>} articles
+ */
+export function buildResidualCapturePrompt(articles) {
+  const blocks = articles.map((art, i) => {
+    const idx = i + 1;
+    const body = String(art.promptBody ?? art.body ?? '').trim().slice(0, 1200);
+    const meta = [
+      art.url ? `url=${art.url}` : null,
+      art.source ? `source=${art.source}` : null,
+    ].filter(Boolean).join(' ');
+    return `[Article ${idx}] ${meta}\n${body || '(no body)'}`;
+  }).join('\n\n---\n\n');
+
+  const system =
+    `You identify observable civilian behavioral facts in Israeli emergency-coverage text ` +
+    `that are poorly captured by a fixed resilience signal taxonomy.\n\n` +
+    `Rules:\n` +
+    `- Output ONLY facts grounded in the text (quote, named statistic, or reported action).\n` +
+    `- Do NOT invent snake_case signal types.\n` +
+    `- Do NOT summarize journalist opinion without a behavioral fact.\n` +
+    `- For each observation list 1–3 nearest EXISTING taxonomy types if any fit partially.\n` +
+    `- novelty_hint: "low" if an existing type fits well; "medium" if partial fit; "high" if genuinely novel.\n\n` +
+    `Output a JSON array of objects:\n` +
+    `{"article_index":N,"behavioral_description":"...","evidence":"verbatim or near-verbatim quote",` +
+    `"nearest_existing_types":["type_a"],"novelty_hint":"low|medium|high"}\n` +
+    `Return [] when no behavioral facts are present.`;
+
+  const user =
+    `These ${articles.length} article(s) yielded zero signals in closed-vocabulary extraction.\n` +
+    `Find behavioral facts the taxonomy may be missing or mis-labeling:\n\n${blocks}\n\n` +
+    `Return only the JSON array.`;
+
+  return { system, user };
+}

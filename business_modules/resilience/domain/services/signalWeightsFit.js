@@ -2,9 +2,12 @@
  * Calibration hooks for future T5 / ridge fitting of signal weights (plan §7).
  *
  * When labeled component scores or dense counterfactuals exist, offline scripts may
- * fit weights against CALIBRATION_TARGETS. Today fitSignalWeightsRidgeMock returns null.
+ * fit weights against CALIBRATION_TARGETS. Shadow RGR path activates when report count
+ * meets tier3_tuning.min_reports (default 30).
  */
 
+import { readFileSync, existsSync } from 'node:fs';
+import { resolve } from 'node:path';
 import {
   CATALOG_VERSION,
   DEFAULT_SCORING_PRIORS,
@@ -20,6 +23,8 @@ export const CALIBRATION_TARGETS = Object.freeze({
   component_tuning: 'Per-component tanhK and certM (COMPONENT_TUNING)',
   scoring_priors: 'Per-type priors merged from DEFAULT_SCORING_PRIORS + catalog scoringPriors',
 });
+
+const DEFAULT_SHADOW_MIN_REPORTS = 30;
 
 /**
  * Snapshot of fittable parameters for offline ridge / regression scripts.
@@ -41,13 +46,54 @@ export function getCalibrationSnapshot() {
 }
 
 /**
- * @param {object} input
- * @param {Array<object>} [input.labeledExamples]  { component_id, signals?, score?, ... }
- * @returns {null | { weights: Record<string, number>, notes: string }}
+ * Load shadow weight overlay written by offline tuning scripts (optional).
+ * @param {string} [rootDir]
  */
-export function fitSignalWeightsRidgeMock({ labeledExamples } = {}) {
-  if (!Array.isArray(labeledExamples) || labeledExamples.length < 2) {
+export function loadShadowWeights(rootDir = process.cwd()) {
+  const path = resolve(rootDir, 'business_modules/resilience/tuning/shadow-weights.json');
+  if (!existsSync(path)) return null;
+  try {
+    return JSON.parse(readFileSync(path, 'utf8'));
+  } catch {
     return null;
   }
-  return null;
+}
+
+/**
+ * Merge shadow weights into a calibration snapshot (read-only overlay for analysis).
+ * @param {object} snapshot
+ * @param {object | null} shadow
+ */
+export function applyCalibrationOverlay(snapshot, shadow) {
+  if (!shadow?.signal_to_components) return snapshot;
+  return {
+    ...snapshot,
+    signal_to_components: { ...snapshot.signal_to_components, ...shadow.signal_to_components },
+    _shadow_overlay: true,
+    _shadow_source: shadow.generated_at ?? null,
+  };
+}
+
+/**
+ * @param {object} input
+ * @param {Array<object>} [input.labeledExamples]  { component_id, signals?, score?, ... }
+ * @param {number} [input.minReports]
+ * @returns {null | { mode: string, weights: object, notes: string, example_count: number }}
+ */
+export function fitSignalWeightsRidgeMock({ labeledExamples, minReports } = {}) {
+  const threshold = minReports ?? DEFAULT_SHADOW_MIN_REPORTS;
+  if (!Array.isArray(labeledExamples) || labeledExamples.length < threshold) {
+    return null;
+  }
+  const snap = getCalibrationSnapshot();
+  const shadow = loadShadowWeights();
+  const overlay = shadow ? applyCalibrationOverlay(snap, shadow) : snap;
+  return {
+    mode: 'shadow_rgr',
+    weights: overlay.signal_to_components,
+    notes:
+      `Shadow RGR: ${labeledExamples.length} report(s) ≥ ${threshold}; ` +
+      'weights unchanged until labeled component scores exist.',
+    example_count: labeledExamples.length,
+  };
 }

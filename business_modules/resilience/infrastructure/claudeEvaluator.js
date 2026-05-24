@@ -23,6 +23,7 @@ import {
 } from '../domain/services/behaviorSignals.js';
 import { computeNorrisCapacities } from '../domain/services/norrisCapacities.js';
 import { narrativeIncludesScores } from '../domain/services/assessmentDisplayTier.js';
+import { bufferOovCapture, LEARNING_CAPTURE_KINDS } from '../domain/services/oovCapture.js';
 import {
   DOMAIN_GROUPS,
   isMultipassEnabled,
@@ -41,6 +42,10 @@ import {
 import { maybeRescueEvidenceWithEmbedding } from './embeddingEvidenceVerifier.js';
 import { embedText, embeddingsEnabled, embeddingModelId } from '../../../cross-cut-modules/vector_index/index.js';
 import { createHash } from 'node:crypto';
+import {
+  captureBatchLearningSignals,
+  logSelfCheckUncertain,
+} from './learningCapture.js';
 
 const client = new Anthropic(); // uses ANTHROPIC_API_KEY from env
 
@@ -633,6 +638,14 @@ function validateSignalsFromCall(signals, articles, sourceLabel) {
     if (!s || typeof s !== 'object') return false;
     if (!validTypes.has(s.signal_type)) {
       console.error(`  ⚠ [${sourceLabel}] Dropped unknown signal type: "${s.signal_type}"`);
+      bufferOovCapture({
+        capture_kind: LEARNING_CAPTURE_KINDS.UNKNOWN_TYPE,
+        suggested_type: s.signal_type,
+        evidence: s.evidence ?? null,
+        source_label: sourceLabel,
+        article_index: s.article_index ?? null,
+        timestamp: new Date().toISOString(),
+      });
       return false;
     }
     if (!validEvidenceTypes.has(s.evidence_type)) {
@@ -937,14 +950,22 @@ async function runSelfCheck(signals, batchLabel, usageCallback) {
     const verdicts = extractJsonArray(textBlock.text);
     if (!Array.isArray(verdicts)) return signals;
     const noSet = new Set();
+    const uncertainSet = new Set();
     const reasonCounts = {};
     for (const v of verdicts) {
-      if (v && (v.verdict === 'no' || v.verdict === 'No' || v.verdict === 'NO')) {
-        const idx = Number(v.index);
-        if (Number.isInteger(idx)) noSet.add(idx);
+      const idx = Number(v.index);
+      if (!Number.isInteger(idx)) continue;
+      const verdict = String(v.verdict ?? '').toLowerCase();
+      if (verdict === 'no') {
+        noSet.add(idx);
         const reason = typeof v.reason === 'string' && v.reason ? v.reason : 'unspecified';
         reasonCounts[reason] = (reasonCounts[reason] || 0) + 1;
+      } else if (verdict === 'uncertain') {
+        uncertainSet.add(idx);
       }
+    }
+    for (const idx of uncertainSet) {
+      if (signals[idx]) logSelfCheckUncertain(signals[idx], batchLabel);
     }
     if (noSet.size === 0) {
       // C9: still emit a stats event so we know the self-check ran but kept all.
@@ -1013,6 +1034,7 @@ async function extractSignalsBatch(articles, batchLabel, retries = 3, usageCallb
   let valid = validateSignalsFromCall(raw, articles, batchLabel);
   valid = await applyEvidenceVerifier(valid, articles, batchLabel, usageCallback);
   valid = await runSelfCheck(valid, batchLabel, usageCallback);
+  await captureBatchLearningSignals(articles, valid, batchLabel, usageCallback);
   return valid;
 }
 
@@ -1169,14 +1191,24 @@ export function formatScoredComponentsForNarrative(scoredComponents, totalArticl
       const ciTag = scored?.score_low != null && scored?.score_high != null
         ? `  CI: ${scored.score_low}-${scored.score_high}` : '';
       const polTag = scored?.polarization != null && scored.polarization > 0.5 && scored.evidence_mass > 4
-        ? `  ⚠ contested (pol=${scored.polarization.toFixed(2)})` : '';
+        ? `  ⚠ contested (pol=${scored.polarization.toFixed(2)})`
+        : scored?.polarization != null && scored.polarization > 0.5
+          && scored.evidence_mass >= 1.5 && scored.evidence_mass < 4
+          ? `  ⚠ contested_thin (pol=${scored.polarization.toFixed(2)}, mass=${scored.evidence_mass})`
+          : '';
+      const suppressTag = scored?.suppression_delta != null && Math.abs(scored.suppression_delta) >= 1
+        ? `  suppression: raw=${scored.score_raw ?? scored.score} headline=${scored.score_headline ?? scored.score} (Δ=${scored.suppression_delta})`
+        : '';
+      const mediaTag = scored?.media_mention_mass != null && scored.media_mention_mass > 0
+        ? `  press_mention_mass=${scored.media_mention_mass}`
+        : '';
       const deltaTag = scored?.delta_score != null
         ? `  Δvs prev: ${scored.delta_score >= 0 ? '+' : ''}${scored.delta_score}` +
           (scored.delta_significance != null ? ` (z=${scored.delta_significance.toFixed(1)})` : '') +
           (scored.delta_flag === 'significant' ? ' SIGNIFICANT' : '')
         : '';
       metricsSummary = scored?.score != null
-        ? `Score: ${scored.score}/10  Certainty: ${(scored.certainty * 100).toFixed(0)}%  Direction: ${scored.strength >= 0 ? '+' : ''}${scored.strength.toFixed(2)}  (${scored.distinct_article_count}/${totalArticles} articles, ${(scored.coverage_ratio * 100).toFixed(1)}%, ${scored.dispersion} dispersion)  +ev:${scored.positive_evidence} −ev:${scored.negative_evidence}${ciTag}${polTag}${deltaTag}`
+        ? `Score: ${scored.score}/10  Certainty: ${(scored.certainty * 100).toFixed(0)}%  Direction: ${scored.strength >= 0 ? '+' : ''}${scored.strength.toFixed(2)}  (${scored.distinct_article_count}/${totalArticles} articles, ${(scored.coverage_ratio * 100).toFixed(1)}%, ${scored.dispersion} dispersion)  +ev:${scored.positive_evidence} −ev:${scored.negative_evidence}${ciTag}${polTag}${suppressTag}${mediaTag}${deltaTag}`
         : 'Score: insufficient data';
     } else {
       metricsSummary = narrativeInstrumentLine(scored, totalArticles);
@@ -1287,6 +1319,20 @@ const NAFTALI_NARRATIVE_CONTEXT =
   `Do not blend Naftali findings into general population statements without marking the geographic scope.\n` +
   `Naftali signals have no URL — do not fabricate links for them.\n\n`;
 
+function formatMacroSignalsContext(macroSignals) {
+  if (!Array.isArray(macroSignals) || macroSignals.length === 0) return '';
+  const lines = macroSignals.slice(0, 25).map((s) => {
+    const type = s.signal_type ?? s.type ?? 'macro';
+    const ev = String(s.evidence ?? '').slice(0, 220);
+    return `  [${type}] ${ev}`;
+  });
+  return (
+    `━━━ MACRO / NATIONAL INFORMATION ENVIRONMENT (context only — NOT in component scores) ━━━\n` +
+    `Use for national backdrop in cross_component_synthesis only. Do NOT cite as northern behavioral metrics.\n` +
+    `${lines.join('\n')}\n\n`
+  );
+}
+
 export async function generateNarratives(
   scoredComponents,
   _allSignals,
@@ -1301,6 +1347,10 @@ export async function generateNarratives(
     reportScope = null,
     comparisonScores = null,
     comparisonLabel = null,
+    macroSignals = [],
+    allScopedSignals = null,
+    dataVoid = null,
+    oovCaptureCount = 0,
   } = {},
 ) {
   const includeScoresInPrompt = narrativeIncludesScores();
@@ -1324,12 +1374,21 @@ export async function generateNarratives(
     `- If evidence records expectations, rumours, or reported statements, phrase them strictly as attributed communications or observed reporting—never as externally verified geopolitical facts.\n` +
     `- When evidence conflicts, surface the conflict; do not resolve it from outside facts.\n\n`;
 
+  const dataVoidContext = dataVoid?.level && dataVoid.level !== 'none'
+    ? `━━━ DATA VOID / DIGITAL DARKNESS ━━━\n` +
+      `Critical sampling gap detected (level=${dataVoid.level}, digital_darkness=${dataVoid.digital_darkness === true}).\n` +
+      `You MUST NOT describe the situation as stable or calm due to lack of reports.\n` +
+      `Lead with a warning that evidence is critically insufficient and may reflect connectivity failure.\n\n`
+    : '';
+
   const systemPrompt =
     `You are a community resilience analyst writing behavioral narratives for a structured report.\n` +
     (includeScoresInPrompt
       ? `The component SCORES are already computed — do not re-score. Your job is to write clear, behavioral narratives.\n\n`
       : `Component instrument tags (certainty, direction, sufficiency) are pre-computed — do not invent numeric 1–10 ratings. Your job is to write clear, behavioral narratives grounded in Evidence lines.\n\n`) +
     scopeContext +
+    dataVoidContext +
+    formatMacroSignalsContext(macroSignals) +
     (contentKind === 'audio' ? AUDIO_NARRATIVE_CONTEXT : '') +
     (sourceTypes.has('field') ? FIELD_REPORT_NARRATIVE_CONTEXT : '') +
     (sourceTypes.has('naftali') ? NAFTALI_NARRATIVE_CONTEXT : '') +
@@ -1364,6 +1423,8 @@ export async function generateNarratives(
     `  Use information_actionable_effective signals to evidence the presence-effectiveness link; use information_effectiveness_gap signals to evidence the gap.\n` +
     `- BASELINE VS ELEVATED SERVICE FUNCTIONING: Baseline service operation (ambulance responded, hospital treated) is neutral, not positive evidence. Only cite service functioning as strong when it demonstrably performed despite disruption or elevated demand.\n` +
     `- DELTA + CONTESTED EVIDENCE TAGS: When a component's pre-computed line shows "SIGNIFICANT" or "SIGNIFICANT_vs_baseline", include a brief trend phrase ("a notable shift vs the 14-day baseline"). When it shows "contested", note that the evidence is split between supporting and opposing observations rather than collapsing to a single verdict. Do not invent direction or magnitude beyond what the instrument tags say.\n` +
+    `- THIN EVIDENCE / ABSTENTION: When instrument tags include thin_evidence_floor, limited_evidence_neutral, or unverified_alert, do NOT use stability language ("calm", "stable", "normal"). For unverified_alert, lead with "a single unverified report suggests…" and recommend corroboration.\n` +
+    `- SUPPRESSION: When suppression_delta is large (|Δ|≥1), note that raw signal stream differed from the headline-adjusted assessment and explain why (e.g. single-source concentration).\n` +
     `- SCOPE DISCIPLINE: Never use "the only", "the one exception", "uniquely", or similar exclusive claims.\n` +
     `  The inputs are a sample, not a census. Something appearing once in the data means it was reported once — not that it is the sole instance.\n` +
     `- LINKS: Each signal has a URL. When a signal has a URL, embed a markdown link for every significant claim:\n` +
@@ -1447,14 +1508,27 @@ export async function generateNarratives(
           score_high:   scored.score_high ?? null,
           counterfactual_article_key: scored.counterfactual_article_key ?? null,
           counterfactual_delta:       scored.counterfactual_delta ?? null,
+          counterfactual_no_caps:     scored.counterfactual_no_caps ?? scored.score_raw ?? null,
           score_smoothed:     scored.score_smoothed ?? null,
           delta_score:        scored.delta_score ?? null,
           delta_significance: scored.delta_significance ?? null,
           delta_flag:         scored.delta_flag ?? null,
+          floor_clamped:      scored.floor_clamped === true,
+          ci_unstable:        scored.ci_unstable === true,
+          source_cap_binding: scored.source_cap_binding === true,
+          derived_indicators: scored.derived_indicators ?? null,
+          score_raw:          scored.score_raw ?? null,
+          score_headline:     scored.score_headline ?? scored.score ?? null,
+          suppression_delta:  scored.suppression_delta ?? null,
+          delta_chronic:        scored.delta_chronic ?? null,
+          z_score_chronic:      scored.z_score_chronic ?? null,
+          erosion_index:        scored.erosion_index ?? null,
+          exhaustion_days:      scored.exhaustion_days ?? null,
+          cumulative_deficit:   scored.cumulative_deficit ?? null,
+          media_mention_mass:   scored.media_mention_mass ?? null,
+          suppression_breakdown: scored.suppression_breakdown ?? null,
           facets:             scored.facets ?? null,
-          // N9 explainability: bounded top contributors (by |_contribution|), enriched with
-          // _contribution / _weight / _polarity by behaviorSignals.scoreComponents. Capped at
-          // 10 to keep JSON payload size reasonable; UI takes top 3 from this list.
+          // N9 explainability:
           top_contributors: ((scored.signals ?? [])
             .filter((s) => typeof s._contribution === 'number')
             .sort((a, b) => Math.abs(b._contribution) - Math.abs(a._contribution))
@@ -1466,6 +1540,10 @@ export async function generateNarratives(
               article_url:    s.article_url ?? null,
               evidence:       s.evidence ?? null,
               _contribution:  s._contribution,
+              _contribution_pre_cap: s._contribution_pre_cap ?? null,
+              _contribution_raw: s._contribution_raw ?? null,
+              _cap_scale_factor: s._cap_scale_factor ?? null,
+              _cap_layer: s._cap_layer ?? null,
               _weight:        s._weight,
               _polarity:      s._polarity,
             }))),
@@ -1486,6 +1564,10 @@ export async function generateNarratives(
         evidence_quality_note: narratives.evidence_quality_note ?? '',
         norris_capacities: computeNorrisCapacities(scoredComponents, scoredComponents),
         components,
+        ...(macroSignals?.length ? { macro_signals: macroSignals.slice(0, 50) } : {}),
+        ...(dataVoid ? { data_void: dataVoid } : {}),
+        ...(oovCaptureCount > 0 ? { oov_capture_count: oovCaptureCount } : {}),
+        ...(allScopedSignals ? { scoped_signal_count: allScopedSignals.length } : {}),
       };
     } catch (err) {
       if (attempt === MAX_RETRIES) throw err;

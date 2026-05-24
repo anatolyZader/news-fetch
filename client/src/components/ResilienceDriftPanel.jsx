@@ -18,7 +18,7 @@ const COMPONENT_IDS = [
   'belonging_solidarity', 'wellbeing_at_risk',
 ];
 
-function Sparkline({ series, t, valueKey = 'score', variant = 'score10' }) {
+function Sparkline({ series, t, valueKey = 'score', variant = 'score10', yMin: yMinOverride, yMax: yMaxOverride }) {
   const theme = useTheme();
   const W = 240;
   const H = 60;
@@ -37,8 +37,8 @@ function Sparkline({ series, t, valueKey = 'score', variant = 'score10' }) {
   }
 
   const xMax = Math.max(1, series.length - 1);
-  const yMin = variant === 'unit01' ? 0 : 1;
-  const yMax = variant === 'unit01' ? 1 : 10;
+  const yMin = yMinOverride ?? (variant === 'unit01' ? 0 : 1);
+  const yMax = yMaxOverride ?? (variant === 'unit01' ? 1 : 10);
 
   function sx(x) { return padX + (x / xMax) * (W - 2 * padX); }
   function sy(y) { return H - padY - ((y - yMin) / (yMax - yMin)) * (H - 2 * padY); }
@@ -92,6 +92,8 @@ function ComponentTile({ id, series, t }) {
   const change = (last && first && last !== first)
     ? last.score - first.score
     : null;
+  const lastChronic = [...series].reverse().find((p) => p.z_score_chronic != null);
+  const lastErosion = [...series].reverse().find((p) => p.erosion_index != null);
 
   return (
     <Box sx={(theme) => ({
@@ -120,6 +122,16 @@ function ComponentTile({ id, series, t }) {
               })}
             >
               {change > 0 ? '+' : ''}{change}
+            </Typography>
+          )}
+          {lastChronic && lastChronic.z_score_chronic <= -1.5 && (
+            <Typography variant="caption" sx={{ color: 'warning.main', fontWeight: 600 }}>
+              z<sub>c</sub>={lastChronic.z_score_chronic}
+            </Typography>
+          )}
+          {lastErosion && lastErosion.erosion_index > 0.25 && (
+            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+              E={lastErosion.erosion_index.toFixed(2)}
             </Typography>
           )}
         </Stack>
@@ -256,6 +268,50 @@ export function ResilienceDriftPanel({ scope = 'national' }) {
                 t={t}
               />
             </Box>
+            <Box sx={(theme) => ({
+              flex: 1,
+              padding: theme.spacing(2),
+              border: theme.custom.border.hairline,
+              borderRadius: theme.custom.radius.sm,
+              background: theme.palette.background.paper,
+            })}>
+              <Typography variant="cardTitle" sx={{ marginBottom: 1 }}>
+                {t('drift.meanErosion')}
+              </Typography>
+              <Sparkline
+                variant="unit01"
+                valueKey="mean"
+                series={data.daily_mean_erosion ?? []}
+                t={t}
+              />
+            </Box>
+          </Stack>
+
+          <Stack
+            direction={{ xs: 'column', md: 'row' }}
+            spacing={2}
+            sx={(theme) => ({ marginTop: theme.spacing(0.5) })}
+          >
+            <Box sx={(theme) => ({
+              flex: 1,
+              padding: theme.spacing(2),
+              border: theme.custom.border.hairline,
+              borderRadius: theme.custom.radius.sm,
+              background: theme.palette.background.paper,
+            })}>
+              <Typography variant="cardTitle" sx={{ marginBottom: 1 }}>
+                {t('drift.meanChronicZ')}
+              </Typography>
+              <Sparkline
+                variant="unit01"
+                valueKey="mean"
+                series={data.daily_mean_chronic_z ?? []}
+                yMin={-3}
+                yMax={1}
+                t={t}
+              />
+            </Box>
+            <Box sx={{ flex: 1 }} />
           </Stack>
 
           {Array.isArray(data.alerts) && data.alerts.length > 0 && (

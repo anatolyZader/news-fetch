@@ -99,6 +99,37 @@ describe('reviewQueueBuilder', () => {
       'url:https://x.test/1',
     );
   });
+
+  it('flags oov_suggested and contested_thin on review items', () => {
+    const assessment = {
+      date: '2026-05-23',
+      oov_capture_count: 3,
+      data_void: { level: 'critical' },
+      report_scope: { id: 'national' },
+      components: [{
+        component_id: 'wellbeing_at_risk',
+        polarization: 0.7,
+        evidence_mass: 2,
+        suppression_delta: 2,
+        source_cap_binding: true,
+        top_contributors: [],
+      }],
+    };
+    const queue = buildReviewQueue({
+      assessment,
+      signals: [{
+        signal_type: 'novel_behavior_x',
+        article_url: 'https://example.com/oov',
+        extraction_confidence: 0.4,
+        evidence: 'Unusual pattern',
+      }],
+      reviewConfig: { max_items_per_day: 10, random_control_rate: 0 },
+    });
+    assert.equal(queue.item_count, 1);
+    const codes = queue.items[0].reasons.map((r) => r.code);
+    assert.ok(codes.includes('oov_suggested'));
+    assert.ok(codes.includes('data_void_context'));
+  });
 });
 
 describe('validationCollectionService', () => {

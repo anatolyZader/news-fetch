@@ -34,6 +34,7 @@ import { createCostTracker, appendCostLog, checkDailyBudget } from '../../../cro
 import {
   crossSourceDedupSemantic,
   loadHistoricalScores,
+  loadHistoricalSignalDays,
   enrichWithDeltaChannel,
 } from './assessSignalsHelpers.js';
 import { summarizeGeoCoverage, summarizeGeoQuality } from '../../../cross-cut-modules/geo/signalGeoSummary.js';
@@ -46,6 +47,12 @@ import {
   formatScopeDecisionLogLine,
   formatSubgroupCoverageLogLine,
 } from '../domain/services/assessmentMethodology.js';
+import { computeDataVoidIndex } from '../domain/services/dataVoidIndex.js';
+import { countOovCapturesForDate } from '../domain/services/oovCapture.js';
+import {
+  annotateSignalsEpistemics,
+  partitionMacroSignals,
+} from '../domain/services/evidenceEligibility.js';
 import { proposeComponentTuningFromReportFiles } from '../tuning/domain/componentTuningProposal.js';
 import {
   summarizeStageEvents,
@@ -413,12 +420,18 @@ async function run() {
   const nationalScored = scoreComponents(nationalSignals, { totalArticles: nationalTotalArticles });
 
   // Load 14-day per-component score history once for delta-channel enrichment.
-  const historicalScores = loadHistoricalScores(targetDate, 'reports', 14);
+  const historicalScores = loadHistoricalScores(targetDate, 'reports', 14, reportScopeId);
   if (Object.keys(historicalScores).length > 0) {
     console.error(`  Loaded historical score series for ${Object.keys(historicalScores).length} components`);
   }
 
   allSignals = filterSignalsForScope(allSignals, reportScopeId);
+  allSignals = annotateSignalsEpistemics(allSignals, { reportScope: reportScopeId });
+  const { metricsSignals, macroSignals } = partitionMacroSignals(allSignals, reportScopeId);
+  const signalsForScoring = reportScopeId === 'north' ? metricsSignals : allSignals;
+  if (reportScopeId === 'north' && macroSignals.length > 0) {
+    console.error(`  → Epistemic partition: ${metricsSignals.length} metrics-eligible, ${macroSignals.length} macro/context-only`);
+  }
   if (reportScopeId !== 'national') {
     console.error(`  → Scope filter (${reportScope.label}): ${allSignals.length}/${nationalSignals.length} signals retained`);
   }
@@ -430,29 +443,32 @@ async function run() {
   const scopeLogLine = formatScopeDecisionLogLine(scopeMethodologyPreview);
   if (scopeLogLine) console.error(scopeLogLine);
 
-  if (allSignals.length === 0) {
+  if (signalsForScoring.length === 0 && macroSignals.length === 0) {
     console.error(`No signal files contained ${reportScope.label} evidence for ${targetDate}${days > 1 ? ` (last ${days} days)` : ''}.`);
     process.exit(1);
   }
 
   const scopedArticleKeys = new Set(
-    allSignals
+    signalsForScoring
       .map((s) => s.article_url || (s.article_index ?? null))
       .filter((v) => v != null),
   );
   const scopedTotalArticles = reportScopeId === 'national'
     ? totalArticles
     : Math.max(scopedArticleKeys.size, 1);
-  const scopedSourceTypesSeen = new Set(allSignals.map((s) => s.source_type).filter(Boolean));
+  const scopedSourceTypesSeen = new Set(signalsForScoring.map((s) => s.source_type).filter(Boolean));
 
-  // Score full (all signals combined for the selected scope)
-  let scoredFull = scoreComponents(allSignals, { totalArticles: scopedTotalArticles });
-  scoredFull = enrichWithDeltaChannel(scoredFull, historicalScores);
+  // Score full (metrics-eligible signals for the selected scope)
+  let scoredFull = scoreComponents(signalsForScoring, {
+    totalArticles: scopedTotalArticles,
+    mediaSignals: allSignals,
+  });
+  scoredFull = enrichWithDeltaChannel(scoredFull, historicalScores, { scopeId: reportScopeId });
 
   // Score per source type
   const scoreBySource = {};
   for (const sourceType of scopedSourceTypesSeen) {
-    const sourceSigs = allSignals.filter((s) => s.source_type === sourceType);
+    const sourceSigs = signalsForScoring.filter((s) => s.source_type === sourceType);
     const sourceArticles = reportScopeId === 'national'
       ? loadedFiles
         .filter((f) => f.sourceType === sourceType)
@@ -462,7 +478,7 @@ async function run() {
   }
 
   // Print per-component scores
-  console.error(`  → ${allSignals.length} total behavioral signals\n`);
+  console.error(`  → ${signalsForScoring.length} metrics-eligible behavioral signals\n`);
   if (allSignals.some((s) => s && 'geo' in s)) {
     const geoCov = summarizeGeoCoverage(allSignals);
     const geoQual = summarizeGeoQuality(allSignals);
@@ -484,8 +500,12 @@ async function run() {
     console.error(`\nPrior context: ${priorReports.map((r) => r.date).join(', ')}`);
   }
 
+  const historicalSignalDays = loadHistoricalSignalDays(targetDate, 'reports', 7, reportScopeId);
+  const dataVoid = computeDataVoidIndex(allSignals, historicalSignalDays, { reportScope: reportScopeId });
+  const oovCaptureCount = countOovCapturesForDate(targetDate);
+
   // Narrate once (full combined)
-  const assessment = await generateNarratives(scoredFull, allSignals, targetDate, scopedTotalArticles, {
+  const assessment = await generateNarratives(scoredFull, signalsForScoring, targetDate, scopedTotalArticles, {
     onUsage,
     priorReports,
     contentKind,
@@ -493,6 +513,10 @@ async function run() {
     reportScope,
     comparisonScores: reportScopeId === 'north' ? nationalScored : null,
     comparisonLabel: reportScopeId === 'north' ? 'national' : null,
+    macroSignals,
+    allScopedSignals: allSignals,
+    dataVoid,
+    oovCaptureCount,
   });
 
   // Write extended report

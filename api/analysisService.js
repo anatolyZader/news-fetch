@@ -285,7 +285,7 @@ function _findLatestAvailableReport(today, store, { scope = 'national', reportsD
  * Resolves with { assessment, costUsd, date }.
  * @param {{ onProgress?: Function, store?: object }} [opts]
  */
-export async function runAnalysis({ onProgress, store } = {}) {
+export async function runAnalysis({ onProgress, store, scope = 'national' } = {}) {
   if (!process.env.ANTHROPIC_API_KEY) throw new Error('ANTHROPIC_API_KEY not set');
 
   const timezone = process.env.TZ_ARTICLES || 'Asia/Jerusalem';
@@ -392,6 +392,7 @@ export async function runAnalysis({ onProgress, store } = {}) {
     reportSourceFiles: sourceFiles,
     onProgress,
     onUsage,
+    scope,
   });
 
   // Save to DB (include Markdown body when the writer produced a sibling .md file)

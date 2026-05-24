@@ -106,6 +106,22 @@ describe('regionSignalFilter', () => {
     assert.notEqual(d?.source, 'keyword_fallback');
   });
 
+  it('does not match bare "north" as locality keyword', () => {
+    assert.equal(
+      isNorthSignal({ source_type: 'news', evidence: 'Policy shift in the north discussed nationally.' }),
+      false,
+    );
+  });
+
+  it('tags "northern israel" as macro national (context) not bare locality', () => {
+    const d = filterSignalsForScope(
+      [{ source_type: 'news', evidence: 'Compensation for northern israel communities debated.' }],
+      'north',
+    )[0]?.scopeDecision;
+    assert.equal(d?.isNorthRelevant, true);
+    assert.equal(d?.macro_scope, 'national');
+  });
+
   it('matches reference-only Hebrew locality via keyword_fallback', () => {
     const d = filterSignalsForScope(
       [{ source_type: 'news', evidence: 'תושבי יבנאל דיווחו על לחץ ביומיום.' }],

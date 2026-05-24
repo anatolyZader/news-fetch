@@ -53,6 +53,20 @@ function componentFlags(comp, thresholds) {
     reasons.push({ code: 'contested_polarization', detail: comp.polarization });
   }
 
+  const contestedThin = (comp.polarization ?? 0) > (t.contested_thin_polarization ?? 0.5)
+    && (comp.evidence_mass ?? 0) >= (t.min_evidence_mass_for_contested_thin ?? 1.5)
+    && (comp.evidence_mass ?? 0) < (t.max_evidence_mass_for_contested_thin ?? 4);
+  if (contestedThin) {
+    reasons.push({ code: 'contested_thin', detail: comp.polarization });
+  }
+
+  if (comp.source_cap_binding === true || (comp.suppression_delta != null && Math.abs(comp.suppression_delta) >= (t.suppression_delta ?? 1))) {
+    reasons.push({
+      code: 'suppression_binding',
+      detail: comp.suppression_delta ?? comp.source_cap_binding,
+    });
+  }
+
   return reasons;
 }
 
@@ -65,6 +79,9 @@ function priorityScore(reasons) {
     high_delta_z: 8,
     high_counterfactual: 8,
     contested_polarization: 6,
+    contested_thin: 5,
+    suppression_binding: 5,
+    oov_suggested: 4,
     low_extraction_confidence: 4,
     rare_signal_type: 3,
     random_control: 1,
@@ -96,6 +113,9 @@ export function buildReviewQueue({
     const reasons = componentFlags(comp, thresholds);
     if (reasons.length) flaggedComponents.set(comp.component_id, reasons);
   }
+
+  const oovCaptureCount = assessment?.oov_capture_count ?? 0;
+  const dataVoidLevel = assessment?.data_void?.level ?? 'none';
 
   const signalList = Array.isArray(signals) ? signals : [];
   const typeCounts = {};
@@ -169,6 +189,12 @@ export function buildReviewQueue({
     const t = s.signal_type ?? s.type;
     if (t && typeCounts[t] === 1) {
       reasons.push({ code: 'rare_signal_type', detail: t });
+    }
+    if (oovCaptureCount > 0 && (conf != null && conf < lowConf || (t && typeCounts[t] === 1))) {
+      reasons.push({ code: 'oov_suggested', detail: oovCaptureCount });
+    }
+    if (dataVoidLevel === 'critical' || dataVoidLevel === 'elevated') {
+      reasons.push({ code: 'data_void_context', detail: dataVoidLevel });
     }
     if (!reasons.length) continue;
 

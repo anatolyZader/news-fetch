@@ -1,12 +1,11 @@
 import { northRelevanceFromResolvedGeo } from '../../../../cross-cut-modules/geo/northRelevanceFromResolvedGeo.js';
+import { MACRO_NATIONAL_TERMS } from './evidenceEligibility.js';
 
 const ALWAYS_NORTH_SOURCE_TYPES = new Set(['field', 'pbo', 'pbo_regional', 'naftali', 'whatsapp']);
 
+/** Removed bare macro terms (north, צפון, northern israel) — use MACRO_NATIONAL_TERMS instead. */
 const NORTH_TERMS = [
-  // English
-  'north',
-  'northern',
-  'northern israel',
+  // English — locality / region names only
   'galilee',
   'upper galilee',
   'western galilee',
@@ -47,11 +46,7 @@ const NORTH_TERMS = [
   'i\'billin',
   'ibillin',
 
-  // Hebrew
-  'צפון',
-  'צפוני',
-  'צפונית',
-  'צפונ',
+  // Hebrew — locality / region names only
   'גליל',
   'הגליל',
   'גליל עליון',
@@ -142,7 +137,6 @@ function haystackForSignal(signal) {
     signal?.evidence,
     signal?.article_source,
     signal?.article_title,
-    signal?.article_url,
     signal?.source_file,
     signal?.municipality,
     signal?.region,
@@ -150,6 +144,28 @@ function haystackForSignal(signal) {
     .filter(Boolean)
     .join(' ')
     .toLowerCase();
+}
+
+/** Word-boundary or Hebrew-token match (avoids substring hits inside unrelated words). */
+function termMatchesHaystack(term, haystack) {
+  const t = term.toLowerCase().trim();
+  if (!t || !haystack) return false;
+  if (/[\u0590-\u05FF]/.test(t)) {
+    return haystack.includes(t);
+  }
+  const escaped = t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const re = new RegExp(`(?:^|[^a-z0-9])${escaped}(?:[^a-z0-9]|$)`, 'i');
+  return re.test(haystack);
+}
+
+function matchNorthKeyword(haystack) {
+  for (const term of NORTH_TERMS) {
+    if (termMatchesHaystack(term, haystack)) return { matched: true, term, macro: false };
+  }
+  for (const term of MACRO_NATIONAL_TERMS) {
+    if (termMatchesHaystack(term, haystack)) return { matched: true, term, macro: true };
+  }
+  return { matched: false, term: null, macro: false };
 }
 
 /**
@@ -174,12 +190,20 @@ export function scopeDecisionForSignal(signal) {
         reasons: [...geoNorth.reasons],
       };
     }
-    // usableForMetrics=false: do not count geo as verified north, but allow keyword_fallback below.
+    // usableForMetrics=false: do not count geo as verified north; fall through to text-evidence fallback.
   }
   const haystack = haystackForSignal(signal);
-  if (NORTH_TERMS.some((term) => haystack.includes(term.toLowerCase()))) {
-    reasons.push('keyword_fallback');
-    return { isNorthRelevant: true, source: 'keyword_fallback', confidence: 'low', reasons };
+  const kw = matchNorthKeyword(haystack);
+  if (kw.matched) {
+    reasons.push(kw.macro ? 'macro_national_keyword' : 'keyword_fallback');
+    if (kw.term) reasons.push(`term=${kw.term}`);
+    return {
+      isNorthRelevant: true,
+      source: 'keyword_fallback',
+      confidence: 'low',
+      macro_scope: kw.macro ? 'national' : undefined,
+      reasons,
+    };
   }
   return { isNorthRelevant: false, source: 'unknown', confidence: 'low', reasons };
 }
@@ -191,7 +215,11 @@ export function isNorthSignal(signal) {
 export function filterSignalsForScope(signals, scope) {
   const out = (signals ?? []).map((s) => {
     const d = scopeDecisionForSignal(s);
-    return s && typeof s === 'object' ? { ...s, scopeDecision: d } : s;
+    const merged = s && typeof s === 'object' ? { ...s, scopeDecision: d } : s;
+    if (merged?.scopeDecision?.macro_scope === 'national') {
+      merged.macro_scope = 'national';
+    }
+    return merged;
   });
   if (scope === 'north') return out.filter((s) => s?.scopeDecision?.isNorthRelevant);
   return out;

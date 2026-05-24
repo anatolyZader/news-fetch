@@ -3,6 +3,8 @@
  * Full scores remain on disk; redaction applies at API/UI boundaries.
  */
 
+import { deriveThinEvidencePolicy, isThinEvidencePolicyEnabled } from './thinEvidencePolicy.js';
+
 export const DISPLAY_VIEWS = Object.freeze({
   operator: 'operator',
   analyst: 'analyst',
@@ -29,6 +31,10 @@ const SCORE_KEYS_COMPONENT = [
   'counterfactual_delta',
   'delta_score',
   'delta_significance',
+  'score_raw',
+  'score_headline',
+  'suppression_delta',
+  'suppression_breakdown',
 ];
 
 function parseAnalystAllowlist() {
@@ -81,15 +87,30 @@ export function deriveInstrumentState(comp) {
     && comp.polarization > 0.5
     && mass > 4;
 
+  const contestedThin =
+    comp?.polarization != null
+    && comp.polarization > 0.5
+    && mass >= 1.5
+    && mass < 4;
+
+  const thinPolicy = isThinEvidencePolicyEnabled()
+    ? deriveThinEvidencePolicy(comp)
+    : null;
+
   return {
     confidence: comp?.confidence ?? 'insufficient_data',
     evidence_sufficiency,
     contested: contested === true,
+    contested_thin: thinPolicy?.contested_thin ?? contestedThin === true,
     significant_delta: comp?.delta_flag === 'significant',
     floor_clamped: comp?.floor_clamped === true,
     ci_unstable: comp?.ci_unstable === true,
+    source_cap_binding: comp?.source_cap_binding === true,
     signal_count: comp?.signal_count ?? 0,
     distinct_article_count: comp?.distinct_article_count ?? 0,
+    thin_evidence_instrument: thinPolicy?.instrument ?? null,
+    operator_shows_score: thinPolicy?.operatorShowsScore ?? (mass >= 1.5),
+    suppression_delta: comp?.suppression_delta ?? null,
   };
 }
 
@@ -173,6 +194,13 @@ export function redactAssessmentForView(assessment, view) {
     norris_capacities: norris,
   };
   delete out.overall_resilience_score;
+  if (Array.isArray(out.macro_signals) && out.macro_signals.length > 0) {
+    out.macro_signals_summary = {
+      count: out.macro_signals.length,
+      signal_types: [...new Set(out.macro_signals.map((s) => s.signal_type ?? s.type).filter(Boolean))],
+    };
+    delete out.macro_signals;
+  }
   if (out.national_comparison && typeof out.national_comparison === 'object') {
     out.national_comparison = omitKeys(out.national_comparison, [
       'overall_resilience_score',

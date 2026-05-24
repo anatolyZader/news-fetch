@@ -94,6 +94,8 @@ export function createDriftService({ reportsDir, historyReader } = {}) {
           confidence: c?.confidence ?? null,
           certainty: c?.certainty ?? null,
           polarization: c?.polarization ?? null,
+          erosion_index: c?.erosion_index ?? null,
+          z_score_chronic: c?.z_score_chronic ?? null,
         };
       });
       const series = interpolateScoreGaps(seriesRaw);
@@ -111,6 +113,22 @@ export function createDriftService({ reportsDir, historyReader } = {}) {
     const daily_mean_certainty = history.map((r) => {
       const vals = r.components
         .map((c) => c.certainty)
+        .filter((v) => typeof v === 'number' && !Number.isNaN(v));
+      const mean = vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
+      return { date: r.date, mean };
+    });
+
+    const daily_mean_erosion = history.map((r) => {
+      const vals = r.components
+        .map((c) => c.erosion_index)
+        .filter((v) => typeof v === 'number' && !Number.isNaN(v));
+      const mean = vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
+      return { date: r.date, mean };
+    });
+
+    const daily_mean_chronic_z = history.map((r) => {
+      const vals = r.components
+        .map((c) => c.z_score_chronic)
         .filter((v) => typeof v === 'number' && !Number.isNaN(v));
       const mean = vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
       return { date: r.date, mean };
@@ -148,6 +166,28 @@ export function createDriftService({ reportsDir, historyReader } = {}) {
       });
     }
 
+    const latest = history[history.length - 1];
+    if (latest?.components?.length) {
+      for (const c of latest.components) {
+        if (c.z_score_chronic != null && c.z_score_chronic <= -2) {
+          alerts.push({
+            level: 'warning',
+            code: 'long_term_degradation_warning',
+            component_id: c.component_id,
+            message: `Chronic baseline z=${c.z_score_chronic} for ${c.component_id}.`,
+          });
+        }
+        if (c.erosion_index != null && c.erosion_index > 0.35) {
+          alerts.push({
+            level: 'info',
+            code: 'erosion_elevated',
+            component_id: c.component_id,
+            message: `Erosion index ${c.erosion_index} for ${c.component_id}.`,
+          });
+        }
+      }
+    }
+
     return {
       scope,
       days,
@@ -157,6 +197,8 @@ export function createDriftService({ reportsDir, historyReader } = {}) {
       per_component,
       daily_mean_polarization,
       daily_mean_certainty,
+      daily_mean_erosion,
+      daily_mean_chronic_z,
       alerts,
       signal_volume_per_day,
       source_share_per_day,

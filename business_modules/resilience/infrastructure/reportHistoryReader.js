@@ -144,6 +144,9 @@ function summarizeReport(date, scope, parsed) {
         polarization:  c.polarization ?? null,
         evidence_mass: c.evidence_mass ?? null,
         signal_count:  c.signal_count ?? null,
+        erosion_index: c.erosion_index ?? null,
+        z_score_chronic: c.z_score_chronic ?? null,
+        delta_chronic: c.delta_chronic ?? null,
       }))
     : [];
 

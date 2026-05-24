@@ -492,7 +492,7 @@ Each source produces a `signals/signals-{source}-{YYYY-MM-DD}.json` file (field 
 | **Social OSINT** | `social` | `business_modules/social_media` | X posts + Telegram channel messages | `social-media:gather-daily` → Haiku classify → `signals-social-{date}.json`; `social-media:treat` → `signals[]` | North-biased queries when `--north`; scope filter applies like news/radio |
 | **Survey** (optional) | (varies) | `business_modules/resilience` (survey Excel + writers under `app/` / `infrastructure/adapters/`) | Municipality survey Excel | `analyze-survey.js` (one-off analysis path) | Configurable |
 
-Two tags — `field`, `pbo`, `pbo_regional`, `naftali`, `whatsapp` — are also marked `ALWAYS_NORTH_SOURCE_TYPES` in `regionSignalFilter.js`, meaning their signals are *always* counted toward the north scope regardless of geographic terms in the evidence text. News and radio signals are scope-filtered by Hebrew/English north terminology (Galilee, Golan, Kiryat Shmona, Metula, חורפיש, מטולה, רמת הגולן, …).
+Two tags — `field`, `pbo`, `pbo_regional`, `naftali`, `whatsapp` — are also marked `ALWAYS_NORTH_SOURCE_TYPES` in `regionSignalFilter.js`, meaning their signals are *always* counted toward the north scope regardless of geographic terms in the evidence text. News, radio, and social signals use **geo-first north scoping** with a **text-evidence fallback** when coordinates are missing or not metrics-safe — see §12.
 
 ### 4.1 Sample raw shape — field report (Hebrew)
 
@@ -802,6 +802,44 @@ To stop one channel or one outlet from dominating the polarity mass:
 
 Both layers use the same scaling math: if a bucket exceeds its threshold, every contribution from that bucket is multiplied by `targetMass / mass`, where `targetMass = threshold · otherMass / (1 − threshold)`. For threshold=0.5 this collapses to *dominant mass = sum of other mass*. The two layers compose: source-type pass first, article-source pass second.
 
+Each capped signal carries audit fields on the assessment JSON: `_cap_scale_factor`, `_cap_layer` (`source_type` | `article_source`), and `_contribution_pre_cap` vs `_contribution` in `top_contributors`. Analyst **Why this score** shows pre→post when they differ.
+
+### 8.9 Epistemic eligibility (metrics vs context)
+
+When `RESILIENCE_EPISTEMIC_GEO_V2` is enabled (default; set `=0` for legacy):
+
+| Provenance | In component metrics? | In narrative? |
+|---|---|---|
+| `verified_geo` / `source_assigned` | Yes | Yes |
+| `keyword_fallback` (north text match) | **No** — context only | Yes (with low-confidence scope warning) |
+| `macro_national` (e.g. bare "northern Israel" TV framing) | **No** — `macro_signals[]` bucket | National backdrop in synthesis only |
+
+Implementation: `evidenceEligibility.js` → `annotateSignalsEpistemics`, `partitionMacroSignals`, `metricsEligible`. North scope scores only `metricsSignals`; macro/context signals appear in `assessment.macro_signals` (operator API redacts to `macro_signals_summary`).
+
+### 8.10 Suppression transparency (analyst)
+
+| Field | Meaning |
+|---|---|
+| `score_raw` | Pre-cap, pre-floor headline math |
+| `score_headline` | Published score after cap + floor |
+| `suppression_delta` | `score_raw − score_headline` |
+| `suppression_breakdown.source_cap` | Effect of source/outlet caps |
+| `suppression_breakdown.min_mass_floor` | Effect of thin-evidence `[3,8]` floor |
+| `counterfactual_no_caps` | Same as raw score (explicit alias) |
+
+### 8.11 Operator thin-evidence policy (Option C)
+
+When `RESILIENCE_THIN_EVIDENCE_POLICY` is on (default) and `evidence_mass < 1.5`:
+
+| Condition | Operator instrument | Shows 1–10? |
+|---|---|---|
+| Raw score inside `[3, 8]` | `limited_evidence_neutral` | No |
+| Raw score outside `[3, 8]` | `unverified_alert` | No |
+| Zero metrics-eligible signals | `insufficient_data` | No |
+| `polarization > 0.5` and mass in `[1.5, 4)` | `contested_thin` | No |
+
+Derived by `thinEvidencePolicy.js` → `deriveInstrumentState()` → operator API redaction strips numeric score keys.
+
 ### 8.3 Direction, mass, strength
 
 ```
@@ -918,6 +956,31 @@ Each component has 2–4 facets defined in `componentFacets.js` (e.g. `leadershi
 
 Operationally: a flat headline often hides a clear sub-facet drift. Facets expose *where* inside a component the evidence is concentrated.
 
+### 9.6 Dual baseline — chronic metrics (peace-time anchor)
+
+When `RESILIENCE_DUAL_BASELINE=1` (default), each component also carries:
+
+| Field | Meaning |
+|---|---|
+| `delta_chronic` | `score − peace_time_anchor` (from `config/peaceTimeAnchors.json`) |
+| `z_score_chronic` | Chronic z vs anchor (σ≈2 heuristic until Tier 3 calibration) |
+| `erosion_index` | `(anchor − score_smoothed) / 10`, clamped `[0,1]` |
+| `exhaustion_days` | Count of sub-4 days in trailing 14-day history |
+
+Drift alerts: `long_term_degradation_warning` (z ≤ −2), `erosion_elevated` (erosion > 0.35). Drift UI shows mean erosion / chronic-z sparklines.
+
+**Author-set anchors and σ — not fitted until Tier 3+ report history exists.**
+
+### 9.7 Data void / digital darkness (separate from scores)
+
+`dataVoidIndex.js` — not a component score. Fires when digital streams (`whatsapp`, `news`, `radio`, …) drop vs trailing report history while field/PBO remain active, or when `connectivity_outage` tags appear. Surfaces `assessment.data_void` with `level`, `digital_darkness`, `information_vacuum_index` (0–1). Operator red banner; narrator must not treat silence as stability.
+
+Historical digital volume baseline: prior `reports/resilience-report-*.json` signal arrays via `loadHistoricalSignalDays()` (7-day lookback).
+
+### 9.8 Press repetition (`media_mention_mass`)
+
+Pre-cap press-only mention mass per component — information-environment metric, **not** merged into headline score. Shown to analysts in ReportView.
+
 ---
 
 ## 10) Stage 6 — Narrative generation (LLM, no re-scoring)
@@ -995,7 +1058,7 @@ When `RESILIENCE_ANALYST_EMAILS` is non-empty, drift endpoints return **403** un
 
 **Operator mode (default):**
 
-1. **Epistemic banner** and optional **north keyword-fallback** / **thin-evidence** warnings (from `assessment.methodology`).
+1. **Epistemic banner** and optional **north text-evidence fallback** (degraded scope path) / **thin-evidence** warnings (from `assessment.methodology`).
 2. **Evidence overview** (scope label, counts of adequate / thin / contested components).
 3. The **executive synthesis**.
 3. Eight **component cards** with **instrument badges** (no `/10`), narrative, optional absent-manifestation hints, and evidence accordion.
@@ -1037,10 +1100,13 @@ When `RESILIENCE_ANALYST_EMAILS` is non-empty, drift endpoints return **403** un
 
 `assess-signals.js --scope national|north`. The filter is applied **after** the national score is computed (so the north report can include a `national_comparison` block).
 
-`regionSignalFilter.js`:
+`regionSignalFilter.js` attaches an explainable **`scopeDecision`** per signal (`source`, `confidence`, `reasons`). North relevance is evaluated in order:
 
-- **`ALWAYS_NORTH_SOURCE_TYPES`**: `field`, `pbo`, `pbo_regional`, `naftali`, `whatsapp` — these channels are always counted as north regardless of evidence text.
-- **News, radio**: signals are kept for north scope only when `evidence` (or article title) matches one of dozens of north terms — Hebrew (`צפון`, `גליל`, `הגולן`, `קריית שמונה`, `מטולה`, `שלומי`, `חורפיש`, `מעלה יוסף`, …) or English (`north`, `Galilee`, `Golan`, `Kiryat Shmona`, `Metula`, `Hurfeish`, `Yirka`, `Majdal Shams`, …).
+1. **`ALWAYS_NORTH_SOURCE_TYPES`**: `field`, `pbo`, `pbo_regional`, `naftali`, `whatsapp` — always north (`confidence: high`).
+2. **Resolved geo** (`signal.geo.kind === 'resolved'`): north when PBO subregion / tags match the north reference via `northRelevanceFromResolvedGeo` — **unless** `usableForMetrics === false`, in which case geo alone must not count as verified north (`confidence: high` / `medium`).
+3. **Text-evidence fallback** (persisted as `source: keyword_fallback`): when geo is missing, unresolved, or not metrics-safe, **word-boundary** match on curated **`NORTH_TERMS`** (Hebrew place names, `Galilee`, `Golan`, `Kiryat Shmona`, … — **not** bare English `north` alone). **`confidence: low`**; **`metricsEligible: false`** under epistemic v2.
+
+Step 3 is **graceful degradation / operational pragmatism**: north-scoped reports keep behaviorally critical news and radio text that lacks coordinates, using place names in the source as partial context rather than dropping the signal entirely. Prefer resolved geo with `usableForMetrics: true` when present; treat high text-evidence-fallback share as a scope-quality warning (see operator UI). Full geo contract: [`GEOGRAPHIC-ANALYSIS.md`](GEOGRAPHIC-ANALYSIS.md).
 
 For north scope, `total_articles` becomes `max(scopedArticleCount, 1)` so the coverage ratio reflects the north corpus, not the national one.
 
@@ -1084,10 +1150,12 @@ Response:
 - **`signal_volume`** per day.
 - **`source_type_share`** (stacked area: news / radio / field / pbo / …).
 - `daily_mean_polarization`, `daily_mean_certainty` (numeric `certainty` from JSON when present, else bucket proxy from `confidence`).
+- `daily_mean_erosion`, `daily_mean_chronic_z` (when chronic fields present in stored reports).
 - **`alerts`** array:
   - `high_mean_polarization` fires on a **trailing-window mean** (default 3 days; `RESILIENCE_DRIFT_POLARIZATION_WINDOW`, clamped `[1, 14]`); threshold `RESILIENCE_DRIFT_ALERT_POLARIZATION` (default `0.7`). Payload includes `polarization_window_days`.
+  - `long_term_degradation_warning`, `erosion_elevated` (chronic baseline; §9.6).
 
-UI (Drift tab): per-component sparklines, signal-volume bars, two extra sparklines for daily mean polarization / certainty (0–1 scale), and any `alerts` rendered as MUI `Alert` rows.
+UI (Drift tab): per-component sparklines (with chronic z / erosion chips when elevated), signal-volume bars, polarization / certainty / erosion / chronic-z sparklines, and `alerts` as MUI `Alert` rows.
 
 ---
 
@@ -1122,6 +1190,10 @@ All hermetic; wired into `npm test`.
 - Layer-1 source_type cap (news flood + lone radio).
 - Layer-2 article_source cap (Ynet flood + lone Maariv).
 - Wire-copy / military-framing / headline-echo geo duplications.
+- Epistemic geo: `keyword_fallback_excluded_from_metrics`.
+- Data void: `digital_darkness_field_active`.
+- Suppression: `ynet_flood_suppression_binding`.
+- Contested thin band: `contested_thin_balanced`.
 - LLM-only: satire-as-fact + opinion-as-fact.
 
 `adversarial.test.js` asserts bounded expectations (`score_range`, `min_polarization`, `after_cross_source_dedup_count`, `verifier_should_pass`, …). The pipeline is asserted, not the LLM — so this catches regressions in dedup, capping, and scoring math regardless of model behaviour.
@@ -1133,7 +1205,9 @@ All hermetic; wired into `npm test`.
   npm run suggest-tuning              # current and proposed for every component
   npm run suggest-tuning -- --diff    # diff only (suppresses unchanged rows)
   ```
-- `business_modules/resilience/domain/services/signalWeightsFit.js` — `fitSignalWeightsRidgeMock()` returns `null` until labelled data exists (T5 placeholder for ridge regression with sign constraints on `SIGNAL_TO_COMPONENTS`).
+- `business_modules/resilience/domain/services/signalWeightsFit.js` — **shadow RGR** when ≥30 report records exist (`fitSignalWeightsRidgeMock` returns advisory payload; production weights unchanged until Tier 5 labeled scores). Optional overlay: `tuning/shadow-weights.json`.
+- **OOV capture:** `reports/oov-capture-{date}.jsonl`; `assessment.oov_capture_count`; review queue `oov_suggested`. Cluster digest: `validation/scripts/oovClusterDigest.js`.
+- **Model card:** `docs/MODEL-CARD.md` — operator instruments, feature flags, known limits.
 
 ### 15.4 Live-LLM CI
 
@@ -1314,7 +1388,7 @@ Then the older diagnostics still apply:
 
 These items were proposed during the v3 sensitivity/reliability redesign but require artifacts the codebase does not yet have, or were explicitly scoped out of the current bundle. They are intentionally **out of scope** for this branch and tracked here so reviewers know they are deferred, not forgotten.
 
-> **Recently shipped (Resilience Operations Bundle):** golden eval framework with seeded corpus (§15.1), adversarial regression suite (§15.2), drift dashboard (§14), operator/analyst display tiers, methodology telemetry. Reviewer overrides were removed in phase 1 (see §13).
+> **Recently shipped (critique remediation + operations bundle):** epistemic metrics/context partition (§8.9), Option C operator abstention (§8.11), data void index (§9.7), suppression transparency (§8.10), dual chronic baseline (§9.6), OOV capture + review queue reasons, macro context bucket, drift erosion/chronic UI, golden + adversarial suites (§15), operator/analyst display tiers, methodology telemetry. Reviewer overrides removed (§13). **Core tanhK/certM/weights remain author-set until Tier 3–5 gates (§19.2).**
 
 ### 19.1 Requires labels at human scale
 

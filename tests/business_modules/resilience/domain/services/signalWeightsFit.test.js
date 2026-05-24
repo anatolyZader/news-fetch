@@ -25,10 +25,19 @@ describe('signalWeightsFit (stub)', () => {
     assert.equal(fitSignalWeightsRidgeMock({ labeledExamples: [{ score: 5 }] }), null);
   });
 
-  it('returns null for toy varied scores (placeholder until T5)', () => {
+  it('returns null for toy varied scores below minReports', () => {
     const out = fitSignalWeightsRidgeMock({
       labeledExamples: [{ score: 3 }, { score: 9 }],
     });
     assert.equal(out, null);
+  });
+
+  it('returns shadow RGR payload when report count meets threshold', () => {
+    const examples = Array.from({ length: 30 }, (_, i) => ({ score: 5 + (i % 3) }));
+    const out = fitSignalWeightsRidgeMock({ labeledExamples: examples });
+    assert.ok(out);
+    assert.equal(out.mode, 'shadow_rgr');
+    assert.equal(out.example_count, 30);
+    assert.ok(out.weights.harm_to_population);
   });
 });

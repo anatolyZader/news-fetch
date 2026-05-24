@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
 import { scoreComponents } from '../../../business_modules/resilience/domain/services/behaviorSignals.js';
+import { computeDataVoidIndex } from '../../../business_modules/resilience/domain/services/dataVoidIndex.js';
 import { dedupeSignalsWithinBatch, verifyEvidenceAgainstArticle }
   from '../../../business_modules/resilience/infrastructure/signalVerification.js';
 import { crossSourceDedup } from '../../../business_modules/resilience/input/assessSignalsHelpers.js';
@@ -244,6 +245,35 @@ function assertScoreExpectations(c, exp, scored) {
   if (exp.score_range) assertScoreRange(c, exp, scored);
   assertScoreBounds(c, exp, scored);
   if (exp.min_polarization) assertMinPolarization(c, exp, scored);
+  if (exp.confidence) {
+    for (const [cid, want] of Object.entries(exp.confidence)) {
+      assert.equal(scored[cid]?.confidence, want, `${c.id}: confidence.${cid}`);
+    }
+  }
+  if (exp.floor_clamped) {
+    for (const [cid, want] of Object.entries(exp.floor_clamped)) {
+      assert.equal(scored[cid]?.floor_clamped, want, `${c.id}: floor_clamped.${cid}`);
+    }
+  }
+  if (exp.source_cap_binding) {
+    for (const [cid, want] of Object.entries(exp.source_cap_binding)) {
+      assert.equal(scored[cid]?.source_cap_binding, want, `${c.id}: source_cap_binding.${cid}`);
+    }
+  }
+  if (exp.min_suppression_delta) {
+    for (const [cid, min] of Object.entries(exp.min_suppression_delta)) {
+      const d = scored[cid]?.suppression_delta;
+      assert.ok(d != null && Math.abs(d) >= min,
+        `${c.id}: suppression_delta.${cid}=${d} < min ${min}`);
+    }
+  }
+  if (exp.min_evidence_mass_band) {
+    for (const [cid, [lo, hi]] of Object.entries(exp.min_evidence_mass_band)) {
+      const m = scored[cid]?.evidence_mass;
+      assert.ok(m != null && m >= lo && m < hi,
+        `${c.id}: evidence_mass.${cid}=${m} not in [${lo}, ${hi})`);
+    }
+  }
 }
 
 function assertEvidenceMassExpectations(c, exp, scored) {
@@ -274,6 +304,13 @@ function runPipelineCase(c, exp) {
   const dedupedWithin = dedupeSignalsWithinBatch(signals);
   const dedupedAll = crossSourceDedup(dedupedWithin);
   assertDedupCounts(c, exp, dedupedWithin, dedupedAll);
+
+  if (exp.data_void) {
+    const dv = computeDataVoidIndex(dedupedAll, c.historical_signals ?? []);
+    for (const [key, want] of Object.entries(exp.data_void)) {
+      assert.equal(dv[key], want, `${c.id}: data_void.${key}`);
+    }
+  }
 
   const scored = scoreComponents(dedupedAll, { totalArticles: dedupedAll.length || 1 });
   assertScoreExpectations(c, exp, scored);
