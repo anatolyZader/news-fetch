@@ -1,6 +1,7 @@
 # Geographic enrichment — developer guide
 
-**Location:** `docs/main_docu_files/` (canonical main documentation — see [README](./README.md))
+**Location:** `docs/main_docu_files/` (canonical main documentation — see [README](./README.md))  
+**Last updated:** 2026-05-25
 
 This document describes **deterministic geographic enrichment** in the app: how localities are resolved to a canonical **`geo` envelope**, where that envelope is **attached** (WhatsApp signals, survey reports, APIs), how **versions** keep results auditable, and how this interacts with **north scoping** and evidence storage.
 
@@ -296,7 +297,7 @@ Running **`node business_modules/resilience/input/analyze-survey.js`** directly 
 - **Route:** `GET /api/geo/resolve?name=...` or **`?q=...`**
 - **Plugin:** [`business_modules/geo/input/geoRoutes.js`](../business_modules/geo/input/geoRoutes.js)
 - **Handler:** uses **`request.server.geoService`** (same instance as `createGeoService` in `app.js`).
-- **Auth:** uses the same optional **`authPreHandler`** pattern as drift/overrides when Firebase auth is enabled.
+- **Auth:** uses the same optional **`authPreHandler`** pattern as drift and report routes when Firebase auth is enabled.
 - **OpenAPI:** [`openapi/openapi.yaml`](../openapi/openapi.yaml), tag **Geo**.
 
 Use this for debugging, admin tools, or future UI — not as a public geocoder.
@@ -465,3 +466,4 @@ The current **flat resolved envelope** is intentional for shipping speed. The fo
 | 2026-05 | **`geo.scopeDecision`** on resolved envelopes (geo-only north hint audit); stricter doc rule: nested fields canonical, flat deprecated; full **`geoEntityType`** enum called out in guide. |
 | 2026-05 | News/radio geo attach in **`assess-signals`**; **`GEO_ATTACH_ON_EXTRACT`**; per-signal WhatsApp geo; **`northRelevanceFromResolvedGeo`**; **`summarizeGeoQuality`**; transliteration pass; versioned distance-band policy; **`createGeoWiring`**; CI north-terms sync check; default omit **`subregionId`**. |
 | 2026-05 | Doc sync: manual overrides, distance-band policy, and split envelope marked shipped; ops checklist **`GEO_LEGACY_SUBREGION_ID`** default corrected to off. |
+| 2026-05-25 | Cross-doc alignment: text-evidence fallback / epistemic v2 north scope, `scopeDecision` vs `geo.scopeDecision`, assess-signals geo quality summary (see [pipeline.md](./pipeline.md), [8-component doc §12](./8-component-analysis-end-to-end.md#12-geographic-scoping-national-vs-north)). |

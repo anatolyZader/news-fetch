@@ -81,7 +81,7 @@ Stable IDs are used throughout JSON, code, and i18n keys.
 
 <!-- docs-sync:BEGIN components-at-a-glance -->
 
-> **Auto-synced** from `business_modules/resilience/domain/resilienceComponents.js` on 2026-05-23. Do not edit between sync markers.
+> **Auto-synced** from `business_modules/resilience/domain/resilienceComponents.js` on 2026-05-25. Do not edit between sync markers.
 
 | # | ID | English | Hebrew | What it measures (in one line) |
 |---|---|---|---|---|
@@ -102,7 +102,7 @@ Each component additionally exposes **2–4 facets** (defined in `business_modul
 
 <!-- docs-sync:BEGIN component-facets -->
 
-> **Auto-synced** from `business_modules/resilience/domain/services/componentFacets.js` on 2026-05-23. Do not edit between sync markers.
+> **Auto-synced** from `business_modules/resilience/domain/services/componentFacets.js` on 2026-05-25. Do not edit between sync markers.
 
 | Component | Facets |
 |---|---|
@@ -121,7 +121,7 @@ Every signal type listed in a facet must route into its parent component via `SI
 
 <!-- docs-sync:BEGIN components-detail -->
 
-> **Auto-synced** from `resilienceComponents.js + componentFacets.js` on 2026-05-23. Do not edit between sync markers.
+> **Auto-synced** from `resilienceComponents.js + componentFacets.js` on 2026-05-25. Do not edit between sync markers.
 
 
 Per-component reference below is regenerated from code. Extended narrative, signal-routing notes, and boundary rules in earlier manual sections may appear in pipeline stages §3+.
@@ -1079,7 +1079,7 @@ When `RESILIENCE_ANALYST_EMAILS` is non-empty, drift endpoints return **403** un
    - An **evidence accordion**:
      - When `scoreBySource` is present: raw signals grouped from `score_by_source` (badges for `field`, `radio`, `naftali`, `press/news`, `pbo`).
      - Otherwise: curated evidence strings from `comp.evidence`.
-5. Drift sparklines per component — see §14.
+5. Per-component **score sparklines** (from drift API) when analyst mode — see §14.
 
 ### 11.4 API surface
 
@@ -1087,7 +1087,7 @@ When `RESILIENCE_ANALYST_EMAILS` is non-empty, drift endpoints return **403** un
 |---|---|
 | `GET /api/report/today?view=operator\|analyst&scope=national\|north` | Latest assessment redacted per tier. Operator view uses `-brief.md` when on disk (no `/10`). Response includes `display_view`; `analyst_denied: true` when analyst was requested but not allowlisted. |
 | `GET /api/resilience/display-capabilities` | `{ canViewAnalyst: boolean }` for the signed-in user (optional Bearer token). |
-| `GET /api/resilience/drift?scope=national\|north&days=30` | Analyst-gated when `RESILIENCE_ANALYST_EMAILS` is set. Time-series for sparklines + alerts (capped at 90 days). |
+| `GET /api/resilience/drift?scope=national\|north&days=30` | Analyst-gated when `RESILIENCE_ANALYST_EMAILS` is set. Feeds **per-component score sparklines** in Report (analyst mode). Response also includes signal volume, polarization/certainty/erosion series, and `alerts` (max 90 days). Full multi-chart drift dashboard UI (`ResilienceDriftPanel`) is implemented but **not mounted** in the current client — use API or re-wire the component if you need the standalone dashboard. |
 | `GET /api/visits/...` | Field-reports dashboard (days, signals, municipalities). |
 | `GET /api/social-media/daily?date=&category=&lang=` | Social OSINT daily feed (`findings[]`). |
 | `POST /api/social-media/fetch-topic` | On-demand topic search (X / Telegram / Facebook). |
@@ -1136,8 +1136,6 @@ Reviewer score challenges (`challenge_score` / `dispute_evidence`, `/api/resilie
 
 ---
 
----
-
 ## 14) Drift dashboard, alerts, and history
 
 `business_modules/resilience/infrastructure/reportHistoryReader.js` walks `reports/`, picks the canonical run per date (highest `total_articles_analyzed`, tie-break on mtime) for the requested scope. `app/driftService.js` aggregates and `input/driftRoutes.js` exposes:
@@ -1155,7 +1153,7 @@ Response:
   - `high_mean_polarization` fires on a **trailing-window mean** (default 3 days; `RESILIENCE_DRIFT_POLARIZATION_WINDOW`, clamped `[1, 14]`); threshold `RESILIENCE_DRIFT_ALERT_POLARIZATION` (default `0.7`). Payload includes `polarization_window_days`.
   - `long_term_degradation_warning`, `erosion_elevated` (chronic baseline; §9.6).
 
-UI (Drift tab): per-component sparklines (with chronic z / erosion chips when elevated), signal-volume bars, polarization / certainty / erosion / chronic-z sparklines, and `alerts` as MUI `Alert` rows.
+**UI today:** analyst Report cards show per-component **score sparklines** only (`DriftSparkline` in `ReportView.jsx`). The drift API still returns signal volume, polarization/certainty/erosion/chronic series, and `alerts`; a fuller dashboard (`ResilienceDriftPanel.jsx`) exists but is not wired into `MainApp.jsx` (legacy `#drift` URLs redirect to the Report section).
 
 ---
 
@@ -1206,8 +1204,15 @@ All hermetic; wired into `npm test`.
   npm run suggest-tuning -- --diff    # diff only (suppresses unchanged rows)
   ```
 - `business_modules/resilience/domain/services/signalWeightsFit.js` — **shadow RGR** when ≥30 report records exist (`fitSignalWeightsRidgeMock` returns advisory payload; production weights unchanged until Tier 5 labeled scores). Optional overlay: `tuning/shadow-weights.json`.
-- **OOV capture:** `reports/oov-capture-{date}.jsonl`; `assessment.oov_capture_count`; review queue `oov_suggested`. Cluster digest: `validation/scripts/oovClusterDigest.js`.
-- **Model card:** `docs/MODEL-CARD.md` — operator instruments, feature flags, known limits.
+- **OOV / learning capture** (extraction hooks, default on via `RESILIENCE_OOV_CAPTURE`):
+  - `reports/oov-capture-{date}.jsonl` — unknown `signal_type`, self-check uncertain, zero-signal articles.
+  - Optional `RESILIENCE_RESIDUAL_CAPTURE=1` — open-vocab residual observations for zero-signal articles (`learningCapture.js`).
+  - `assessment.oov_capture_count` on each assess run; validation review queue reason `oov_suggested`.
+  - Cluster digest: `validation/scripts/oovClusterDigest.js`.
+- **Catalog learning** (`business_modules/catalogLearning/`):
+  - `npm run catalog-learning:gap-report` — clusters JSONL captures (prefix or embedding when `OPENAI_API_KEY` / vector index enabled) → `reports/catalog-gap-report.md`.
+  - `ILearningCapturePort` + `learningCaptureFsAdapter`; kinds shared via `cross-cut-modules/learningCapture/`.
+- **Model card:** `docs/MODEL-CARD.md` — operator instruments, epistemic tiers, feature flags, known limits.
 
 ### 15.4 Live-LLM CI
 
@@ -1219,16 +1224,16 @@ All hermetic; wired into `npm test`.
 
 | Item | Detail |
 |------|--------|
-| Config | `validation-config.json` — phase, collection toggles, review thresholds, acceptance criteria |
+| Config | `business_modules/resilience/validation/validation-config.json` — phase, collection toggles, review thresholds, acceptance criteria |
 | Phase CLI | `npm run validation:status`, `npm run validation:set-phase -- elevated` |
 | Service | `validation/app/validationCollectionService.js` → `collectAfterAssessment()` |
-| Artifacts | `validation/artifacts/records/{date}-{scope}.json`, `review-queue/{date}-{scope}.jsonl`, `phase-log/phase-changes.jsonl` |
+| Artifacts | `business_modules/resilience/validation/artifacts/records/{date}-{scope}.json`, `review-queue/{date}-{scope}.jsonl`, `phase-log/phase-changes.jsonl` |
 
 **Operational phases:** `baseline` (default shadow collection) → `elevated` → `acute`. Auto-elevation from signal volume is **advisory only** (`auto_elevation.advisory_only: true`) — never auto-applied.
 
 **Review queue:** up to 15 flagged articles/day (high delta significance, counterfactual leverage, polarization, low extraction confidence). No dedicated UI tab — operators use CLI + JSONL artifacts.
 
-**Acceptance tiers** (from config): Tier 1 = CI golden + adversarial; Tier 2 = extraction F1/kappa; Tier 3 = 30+ daily records → `npm run suggest-tuning`; Tier 4 = expert labels (Spearman ≥ 0.6); Tier 5 = ridge weight fit (`signalWeightsFit.js` stub).
+**Acceptance tiers** (from config): Tier 1 = CI golden (`micro_F1 ≥ 0.55`, `macro_κ ≥ 0.40` in `golden-corpus.test.js`) + adversarial; Tier 2 = operational extraction targets (`micro_f1_min: 0.65`, `macro_kappa_min: 0.5` in config); Tier 3 = 30+ daily records → `npm run suggest-tuning`; Tier 4 = expert labels (Spearman ≥ 0.6); Tier 5 = shadow ridge weight fit (`signalWeightsFit.js`).
 
 ---
 
@@ -1412,7 +1417,7 @@ Stable IDs (used in JSON, code, and i18n keys) and their English labels from `cl
 
 <!-- docs-sync:BEGIN appendix-ui-labels -->
 
-> **Auto-synced** from `client/src/i18n/translations.js (en + he)` on 2026-05-23. Do not edit between sync markers.
+> **Auto-synced** from `client/src/i18n/translations.js (en + he)` on 2026-05-25. Do not edit between sync markers.
 
 | ID | English UI label | Hebrew UI label |
 |---|---|---|
@@ -1487,6 +1492,17 @@ business_modules/
 │   ├── app/searchTrendsService.js
 │   └── data/cache/dashboard-{district}-{days}d.json
 │
+├── geo/                                           # Deterministic locality resolve (no direct imports from resilience)
+│   ├── data/north-reference.json, north-border.json
+│   ├── app/geoService.js
+│   ├── domain/services/resolveLocalityMatch.js, geoQualityPolicy.js
+│   └── input/geoRoutes.js                       # GET /api/geo/resolve
+│
+├── catalogLearning/                               # OOV cluster gap reports (analyst)
+│   ├── input/generate-gap-report.js             # npm run catalog-learning:gap-report
+│   ├── app/catalogLearningService.js
+│   └── infrastructure/adapters/learningCaptureFsAdapter.js
+│
 ├── resilience/                                    # The brain (+ field survey Excel → MD/JSON under app/survey*.js, input/analyze-survey.js)
     ├── domain/
     │   ├── resilienceComponents.js                # 8 component definitions, principles, manifestations
@@ -1502,8 +1518,10 @@ business_modules/
     │       ├── resilienceScoring.js               # Re-export of scoreComponents
     │       ├── assessmentDisplayTier.js           # Operator vs analyst redaction
     │       ├── assessmentMethodology.js           # Methodology block + operator view
+    │       ├── dataVoidIndex.js                   # Digital darkness / information vacuum
+    │       ├── oovCapture.js                      # OOV + learning-capture JSONL buffer
     │       ├── pipelineStageTelemetry.js          # Extraction/assess stage summaries
-    │       └── signalWeightsFit.js                # T5 placeholder for ridge regression
+    │       └── signalWeightsFit.js                # T5 shadow RGR weight fit
     ├── app/
     │   ├── surveyEvaluator.js                     # Field survey — Haiku qualitative pass
     │   ├── surveyReportWriter.js                  # Field survey — MD/JSON output
@@ -1516,6 +1534,7 @@ business_modules/
     │   ├── dualModelExtract.js                    # E3 dual-pass merge + agreement boost
     │   ├── embeddingEvidenceVerifier.js           # N8 embedding rescue
     │   ├── extractionPasses.js                    # Multipass domain groups + self-check prompt
+    │   ├── learningCapture.js                     # Residual / zero-signal / uncertain capture hooks
     │   ├── mdReportsLoader.js                     # Parse articles-*.md → article objects
     │   ├── reportHistoryReader.js                 # Walks reports/, picks canonical per-date run
     │   ├── reportWriter.js                        # Markdown + JSON output
@@ -1533,7 +1552,7 @@ business_modules/
         ├── driftRoutes.js                         # /api/resilience/drift
         └── extract-signals.js                     # Stage-1 CLI: extract per source
     └── validation/                                # Post-assess calibration collection
-        ├── validation-config.json
+        ├── validation-config.json               # under business_modules/resilience/validation/
         ├── app/validationCollectionService.js
         ├── domain/validationRecordBuilder.js
         ├── scripts/validationStatus.js            # npm run validation:status
@@ -1542,7 +1561,9 @@ business_modules/
 reports/
 ├── resilience-report-{date}-{HHMM}.{md,json}
 ├── resilience-report-{date}-{HHMM}-brief.md      # Operator brief (no scores)
-└── resilience-report-north-{date}-{HHMM}.{md,json}
+├── resilience-report-north-{date}-{HHMM}.{md,json}
+├── oov-capture-{date}.jsonl                     # Learning capture (when enabled)
+└── catalog-gap-report.md                          # catalog-learning:gap-report output
 
 signals/
 ├── signals-news-{date}.json

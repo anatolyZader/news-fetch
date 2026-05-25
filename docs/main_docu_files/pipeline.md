@@ -8,7 +8,7 @@
 
 **System:** Population Resilience Monitor  
 **Framework:** 8-Component Community Resilience (Pikud HaOref / פיקוד העורף)  
-**Last updated:** 2026-05-23
+**Last updated:** 2026-05-25
 
 ---
 
@@ -85,7 +85,9 @@ Each source can be enabled or disabled without code changes:
 }
 ```
 
-Both `extract-signals.js` and `assess-signals.js` honour this file. Disabled sources exit 0 with a log line (idempotent slash-command runs).
+Both `extract-signals.js` and `assess-signals.js` honour this file for toggled types. Disabled sources exit 0 with a log line (idempotent slash-command runs).
+
+**Not in `pipeline-config.json`:** `pbo_regional` has no enable/disable toggle. Regional PBO signals come from `extract-regional-pbo-signals.js` → `signals/signals-pbo_regional-{date}.json`. `assess-signals.js` always loads matching regional bundles in the date window (not gated by `sources.*.enabled`; always north scope).
 
 ---
 
@@ -222,18 +224,43 @@ npm run assess-signals -- --date 2026-05-23 --days 3 --scope north
 **What it does:**
 
 1. Discovers signal JSON for all **enabled** sources within `{date, date−1, …}` (up to `--days`, max 14).
-2. Applies **temporal weights** (today=1.0, T−1=0.85, T−2=0.70).
+2. Applies **temporal weights** (T=1.0, T−1=0.85, T−2=0.70, then geometric decay to floor 0.50 for older days in the window).
 3. **Within-source dedup** and **cross-source dedup** on `(signal_type | source | evidence)`.
 4. Attaches **geo** to news/radio signals; applies **north scope filter** when `--scope north`.
 5. **Deterministic scoring** via `scoreComponents()` — sigmoid to 1–10, bootstrap CI, counterfactual, EWMA, polarization, facets.
 6. **LLM narrative** (Sonnet) — writes behavioral text only; does not re-score.
 7. Writes `reports/resilience-report[-north]-{date}-{HHMM}.{md,json}` (+ `-brief.md` for operators).
 8. Runs **validation collection** (see below).
+9. Emits **methodology** (`assessment.methodology`) — epistemic scope counts, scope-decision summary, optional advisory `tuning_proposal` from `suggest-tuning` history.
+10. Computes **data void index** (`assessment.data_void`) when digital channels drop while field/PBO remain active (`dataVoidIndex.js`; disable with `RESILIENCE_DATA_VOID=0`).
+11. Counts **OOV captures** for the run date (`reports/oov-capture-{date}.jsonl` when `RESILIENCE_OOV_CAPTURE=1`).
+
+**Display tiers:** operator API/UI omits headline 1–10 scores by default; analysts use `?view=analyst` when allowlisted (`RESILIENCE_ANALYST_EMAILS`). See [8-component doc §11.2](./8-component-analysis-end-to-end.md#112-display-tiers-operator-vs-analyst).
 
 | Variable | Purpose |
 |----------|---------|
 | `RESILIENCE_COST_CAP_USD` | Per-run LLM cost cap (default $3) |
 | `RESILIENCE_ANALYST_EMAILS` | Comma-separated emails for analyst-tier API/UI |
+| `RESILIENCE_EPISTEMIC_GEO_V2` | Geo-first north scope; keyword fallback excluded from metrics (default on) |
+| `RESILIENCE_DATA_VOID` | Data void / digital darkness index (default on) |
+| `RESILIENCE_OOV_CAPTURE` | Log unknown types, self-check uncertain, zero-signal articles (default on) |
+
+---
+
+## Catalog learning & OOV capture (analyst tooling)
+
+During **extract**, optional learning capture writes JSONL under `reports/` (kinds: unknown signal types, self-check uncertain, zero-signal articles; optional residual observations when `RESILIENCE_RESIDUAL_CAPTURE=1`).
+
+**Gap report** — clusters recent captures for catalog expansion review:
+
+```bash
+npm run catalog-learning:gap-report
+# optional: --days 14 --out reports/catalog-gap-report.md
+```
+
+**Module:** `business_modules/catalogLearning/` (`catalogLearningService`, `learningCaptureFsAdapter`). Shared capture kinds live in `cross-cut-modules/learningCapture/`. Extraction hooks: `resilience/infrastructure/learningCapture.js` + `domain/services/oovCapture.js`. Cluster digest CLI: `validation/scripts/oovClusterDigest.js`.
+
+Does not change daily scores — feeds analyst review of the closed `SIGNAL_CATALOG` vocabulary.
 
 ---
 
@@ -242,7 +269,7 @@ npm run assess-signals -- --date 2026-05-23 --days 3 --scope north
 Automatically invoked at the end of every `assess-signals` run (not legacy `analyze-resilience`).
 
 **Module:** `business_modules/resilience/validation/`  
-**Config:** `validation-config.json`
+**Config:** `business_modules/resilience/validation/validation-config.json`
 
 | Phase | Meaning |
 |-------|---------|
@@ -255,7 +282,7 @@ npm run validation:status
 npm run validation:set-phase -- elevated [--note "…"]
 ```
 
-**Artifacts** (default: `validation/artifacts/`):
+**Artifacts** (default: `business_modules/resilience/validation/artifacts/`):
 
 | Path | Content |
 |------|---------|
@@ -263,7 +290,7 @@ npm run validation:set-phase -- elevated [--note "…"]
 | `review-queue/{date}-{scope}.jsonl` | Up to 15 flagged articles/day for expert review |
 | `phase-log/phase-changes.jsonl` | Manual phase transitions |
 
-Acceptance tiers (CI golden/adversarial → extraction F1 → 30-day tuning → expert labels → weight fitting) are defined in config. No dedicated UI tab — CLI + artifact files.
+Acceptance tiers are defined in config: **CI** golden corpus enforces `micro_F1 ≥ 0.55` / `macro_κ ≥ 0.40` in tests; **operational tier 2** in config targets `0.65` / `0.5` once hand-reviewed articles exist. No dedicated UI tab — CLI + artifact files.
 
 ---
 
@@ -326,7 +353,7 @@ JSON includes: all scores, narratives, manifestations, signal appendix with URLs
 | Tab / endpoint | Role |
 |----------------|------|
 | **Report** | Latest assessment (`GET /api/report/today?scope=&view=operator\|analyst`) |
-| **Drift** (analyst, in Report) | `GET /api/resilience/drift?scope=&days=30` |
+| **Report (analyst)** | Per-component **score sparklines** via `GET /api/resilience/drift` (embedded in Report cards; not a separate nav tab) |
 | **Social media** | Daily OSINT feed + topic fetch |
 | **Trends** | Search interest dashboards |
 | **Visits** | Field report dashboard |
@@ -363,7 +390,18 @@ business_modules/resilience/
   input/analyze-resilience.js             Legacy all-in-one (news/audio)
   validation/                             Post-assess calibration collection
   domain/services/behaviorSignals.js      Scoring + SIGNAL_TO_COMPONENTS
+  domain/services/dataVoidIndex.js        Digital darkness / data void index
+  domain/services/oovCapture.js           OOV + learning-capture buffer
   infrastructure/claudeEvaluator.js       LLM extraction + narratives
+  infrastructure/learningCapture.js       Residual / zero-signal capture hooks
+
+business_modules/catalogLearning/
+  input/generate-gap-report.js            npm run catalog-learning:gap-report
+
+business_modules/pbo_report_regional/
+  input/extract-regional-pbo-signals.js   → signals-pbo_regional-{date}.json
+
+business_modules/geo/                     Reference data + IGeoEnrichmentPort impl
 
 business_modules/social_media/
   input/socialMediaInput.js               gather-daily | treat | init
@@ -403,4 +441,5 @@ pipeline-config.json                      Source enable/disable toggles
 |----------|--------|
 | [8-component-analysis-end-to-end.md](./8-component-analysis-end-to-end.md) | Full framework, scoring math, reliability instruments, QA, UI reading guide |
 | [GEOGRAPHIC-ANALYSIS.md](./GEOGRAPHIC-ANALYSIS.md) | Geo envelope, north scoping, reference data |
+| [MODEL-CARD.md](../MODEL-CARD.md) | Operator instruments, epistemic tiers, feature flags |
 | [README](./README.md) | Index of main docs + auto-sync markers |

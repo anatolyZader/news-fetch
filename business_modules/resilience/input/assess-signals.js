@@ -278,7 +278,8 @@ async function run() {
     if (!m) return;
     const [, sourceType, fileDate] = m;
     if (fileDate > targetDate || !targetDates.has(fileDate)) return;
-    if (enabledSources && !enabledSources.has(sourceType)) return;
+    // pbo_regional has no pipeline-config toggle — always load when bundles exist
+    if (enabledSources && !enabledSources.has(sourceType) && sourceType !== 'pbo_regional') return;
     const recencySet = RECENCY_SOURCES[sourceType];
     if (recencySet && !recencySet.has(file)) return;
     try {
