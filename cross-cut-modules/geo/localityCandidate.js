@@ -80,6 +80,31 @@ export function matchLongestReferenceNameInText(evidence, nameIndex) {
 }
 
 /**
+ * @param {string|null|undefined} articleSource
+ * @returns {string|null}
+ */
+export function extractLocalityFromArticleSource(articleSource) {
+  const s = String(articleSource ?? '').trim();
+  const m = s.match(/^(?:pbo|naftali)-(.+)$/i);
+  if (!m?.[1]) return null;
+  return normalizeLocalityName(m[1]);
+}
+
+/**
+ * Field visit titles: "municipality — region (visit)" or "council/locality — region".
+ * @param {string|null|undefined} title
+ * @returns {string|null}
+ */
+export function parseFieldReportTitleLocality(title) {
+  const raw = String(title ?? '').trim();
+  if (!raw) return null;
+  const beforeDash = raw.split(/\s+—\s+/)[0]?.replace(/\s*\([^)]*\)\s*$/, '').trim();
+  if (!beforeDash) return null;
+  const primary = beforeDash.includes('/') ? beforeDash.split('/')[0].trim() : beforeDash;
+  return normalizeLocalityName(primary);
+}
+
+/**
  * @param {object} signal
  * @param {{ nameIndex?: { entries: { normalized: string, display: string }[] } }} [opts]
  * @returns {{ candidate: string|null, scope: 'signal' | 'message' }}
@@ -88,6 +113,14 @@ export function inferLocalityCandidateForSignal(signal, opts = {}) {
   const fromField =
     normalizeLocalityName(signal?.locality) ?? normalizeLocalityName(signal?.municipality);
   if (fromField) return { candidate: fromField, scope: 'signal' };
+
+  const fromArticleSource = extractLocalityFromArticleSource(signal?.article_source);
+  if (fromArticleSource) return { candidate: fromArticleSource, scope: 'signal' };
+
+  const fromTitle =
+    parseFieldReportTitleLocality(signal?.article_title) ??
+    parseFieldReportTitleLocality(signal?.articleTitle);
+  if (fromTitle) return { candidate: fromTitle, scope: 'signal' };
 
   const evidence = signal?.evidence ?? '';
   const bracketed = extractBracketedLocality(evidence);

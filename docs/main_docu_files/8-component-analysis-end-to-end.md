@@ -1105,7 +1105,7 @@ When `RESILIENCE_ANALYST_EMAILS` is non-empty, drift endpoints return **403** un
 1. **`ALWAYS_NORTH_SOURCE_TYPES`**: `field`, `pbo`, `pbo_regional`, `naftali`, `whatsapp` — always north (`confidence: high`).
 2. **Resolved geo** (`signal.geo.kind === 'resolved'`): north when PBO subregion / tags match the north reference via `northRelevanceFromResolvedGeo`. Scope uses geo tags even when `usableForMetrics === false` (`confidence: low`); such signals are excluded from component metrics under epistemic v2.
 
-Text keyword fallback (`NORTH_TERMS`) was removed. News/radio/social signals without resolved north geo are excluded from north scope. Geo is attached at extract (news/radio/social) and assess via `attachGeoToSignals` + `localityCandidate` → `geoService`. Full geo contract: [`GEOGRAPHIC-ANALYSIS.md`](GEOGRAPHIC-ANALYSIS.md).
+Text keyword fallback (`NORTH_TERMS`) was removed. News/radio/social signals without resolved north geo are excluded from north scope. All pipeline sources receive geo envelopes via `enrichSignalsWithGeo` → `localityCandidate` → `geoService` at extract/treat and assess. Full geo contract: [`GEOGRAPHIC-ANALYSIS.md`](GEOGRAPHIC-ANALYSIS.md).
 
 For north scope, `total_articles` becomes `max(scopedArticleCount, 1)` so the coverage ratio reflects the north corpus, not the national one.
 

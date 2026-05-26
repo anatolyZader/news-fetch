@@ -11,9 +11,13 @@
  * Output: signals/signals-naftali-{date}.json per week (uses week end-date)
  */
 
-import { resolve } from 'path';
+import { resolve, dirname } from 'path';
 import { writeFileSync, mkdirSync, existsSync } from 'fs';
+import { fileURLToPath } from 'url';
 import { getNaftaliDashboardSync } from '../app/naftaliService.js';
+import { enrichSignalsWithGeo } from '../../../cross-cut-modules/geo/enrichSignalsWithGeo.js';
+
+const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 
 // Map severity dimensions → resilience signal types
 const SEVERITY_TO_SIGNAL = {
@@ -87,6 +91,7 @@ function run() {
           evidence: `[${resp.municipality}] ${dimensionLabels[key]}: ${sevLabel}`,
           scope_level: 'single_case',
           article_source: `naftali-${resp.municipality}`,
+          municipality: resp.municipality,
           source_type: 'naftali',
         });
       }
@@ -117,6 +122,7 @@ function run() {
           evidence: `[${resp.municipality}] Vulnerable populations: ${parts} (total: ${totalVuln})`,
           scope_level: 'quantified_or_broad',
           article_source: `naftali-${resp.municipality}`,
+          municipality: resp.municipality,
           source_type: 'naftali',
         });
       }
@@ -134,10 +140,16 @@ function run() {
           evidence: `[${resp.municipality}] ${text}`,
           scope_level: 'single_case',
           article_source: `naftali-${resp.municipality}`,
+          municipality: resp.municipality,
           source_type: 'naftali',
         });
       }
     }
+
+    const { signals: geoSignals, attached, resolved, unknown } = enrichSignalsWithGeo(signals, {
+      rootDir: REPO_ROOT,
+      unknownSourceType: 'extract-naftali',
+    });
 
     writeFileSync(outPath, JSON.stringify({
       source_type: 'naftali',
@@ -148,10 +160,10 @@ function run() {
       extracted_at: new Date().toISOString(),
       source_files: [week.file],
       total_articles: week.responses.length,
-      signals,
+      signals: geoSignals,
     }, null, 2), 'utf-8');
 
-    console.error(`signals-naftali-${weekDate}.json  →  ${signals.length} signals from ${week.responses.length} municipalities`);
+    console.error(`signals-naftali-${weekDate}.json  →  ${geoSignals.length} signals from ${week.responses.length} municipalities (geo: ${resolved} resolved, ${unknown} unknown)`);
     filesWritten++;
   }
 

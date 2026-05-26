@@ -169,7 +169,7 @@ export function buildAssessmentMethodology({
       signal_weights: 'author_set_not_ml_fitted',
       component_tuning: 'heuristic_tanhK_certM; see tuning_proposal when enough national history',
       north_geo_news:
-        'News/radio/social north scope requires resolved geo (geoService) or always-north source types; text keyword fallback removed',
+        'All pipeline sources receive resolved geo envelopes via geoService at extract/treat and assess; text keyword north scoping removed',
       always_north_source_types: [...PHASE1_ALWAYS_NORTH_SOURCE_TYPES],
       dual_pipeline:
         'runResilienceAssessment (API/news) scores all signals without scope filter; north artifact requires assess-signals --scope north',

@@ -1,5 +1,10 @@
 import { mapFindingsToSignals } from '../domain/services/findingToSignalMapper.js';
 import { validateOsintBundle } from '../domain/services/osintBundleValidator.js';
+import { enrichSignalsWithGeo } from '../../../cross-cut-modules/geo/enrichSignalsWithGeo.js';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 
 /**
  * @param {{ persistencePort: import('../domain/ports/ISocialMediaPersistencePort.js').ISocialMediaPersistencePort }} deps
@@ -19,7 +24,12 @@ export function createSocialMediaTreatmentService({ persistencePort }) {
         return { bundle, signals: [], errors };
       }
 
-      const signals = mapFindingsToSignals(bundle.findings);
+      let signals = mapFindingsToSignals(bundle.findings);
+      const { signals: geoSignals } = enrichSignalsWithGeo(signals, {
+        rootDir: REPO_ROOT,
+        unknownSourceType: 'social-treat',
+      });
+      signals = geoSignals;
       const treated = {
         ...bundle,
         signals,

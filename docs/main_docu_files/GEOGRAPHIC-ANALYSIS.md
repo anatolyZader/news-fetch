@@ -264,6 +264,20 @@ Order of attempts ([`resolveLocalityMatch.js`](../business_modules/geo/domain/se
 
 ## Where `geo` is attached today
 
+### All resilience pipeline signals (`enrichSignalsWithGeo`)
+
+[`enrichSignalsWithGeo.js`](../cross-cut-modules/geo/enrichSignalsWithGeo.js) attaches **`geo`** to every signal from:
+
+| Source | When |
+|--------|------|
+| `news`, `radio`, `field`, `whatsapp` | [`extract-signals.js`](../business_modules/resilience/input/extract-signals.js) + [`assess-signals.js`](../business_modules/resilience/input/assess-signals.js) |
+| `pbo` | [`extract-pbo-signals.js`](../business_modules/pbo_report_muni/input/extract-pbo-signals.js) + assess |
+| `pbo_regional` | [`extract-regional-pbo-signals.js`](../business_modules/pbo_report_regional/input/extract-regional-pbo-signals.js) + assess |
+| `naftali` | [`extract-naftali-signals.js`](../business_modules/pool/input/extract-naftali-signals.js) + assess |
+| `social` | [`socialMediaTreatmentService.js`](../business_modules/social_media/app/socialMediaTreatmentService.js) + assess |
+
+Locality candidates come from structured fields (`locality`, `municipality`, `article_source` prefixes, field visit titles) and evidence patterns, then resolve through [`geoService`](../business_modules/geo/app/geoService.js) — not keyword north scoping.
+
 ### WhatsApp field signals
 
 [`whatsappResilienceAnalyzer.js`](../business_modules/whatsapp/app/whatsappResilienceAnalyzer.js) uses [`attachGeoToSignalsAndStructured`](../cross-cut-modules/geo/attachGeoToSignals.js):
@@ -277,12 +291,6 @@ Set **`GEO_ASSERT_ENVELOPE=1`** in the server environment to throw if the resolv
 When **`geoEnrichmentPort`** is omitted, the factory uses **`NoOpGeoEnrichmentPort`** (unknown `GEO_DISABLED`). In production, [`app.js`](../app.js) passes the real adapter.
 
 Persisted WhatsApp JSON on disk will include **`geo`** on each signal object whenever the live analyzer ran with the adapter.
-
-### News / radio (`assess-signals` and optional extract)
-
-[`assess-signals.js`](../business_modules/resilience/input/assess-signals.js) always attaches **`geo`** to **`news`** and **`radio`** signals (before north scope filter) via deterministic locality inference on evidence ([`localityCandidate.js`](../cross-cut-modules/geo/localityCandidate.js)).
-
-Set **`GEO_ATTACH_ON_EXTRACT=1`** when running [`extract-signals.js`](../business_modules/resilience/input/extract-signals.js) to persist **`geo`** on written `signals/signals-{type}-{date}.json` files.
 
 ### Survey (field survey CLI)
 
@@ -316,7 +324,7 @@ Use this for debugging, admin tools, or future UI — not as a public geocoder.
 2. If **`signal.geo.kind === 'resolved'`** and tags / PBO id indicate the configured north set, the signal is **north** — including when **`usableForMetrics`** is **`false`** (scope only; excluded from metrics under epistemic v2).
 3. Otherwise the signal is **not north** (no text keyword fallback).
 
-Geo attach runs at extract for news/radio/social and at assess for news/radio/social via `attachGeoToSignals` + `localityCandidate` → `geoService`.
+Geo attach runs at extract/treat time for all pipeline sources (news, radio, social, whatsapp, field, pbo, pbo_regional, naftali) and again at assess for any signal still missing `geo`. Resolution uses structured locality fields and `geoService` — not text keyword north scoping.
 
 ### `scopeDecision`: geo envelope vs signal
 

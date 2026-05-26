@@ -68,6 +68,7 @@ export function mapFindingToSignal(finding) {
     osint_finding_id: String(finding?.id ?? ''),
     extraction_confidence: weight,
     source_type: SOURCE_TYPE_SOCIAL,
+    ...(location ? { locality: location } : {}),
   };
 }
 

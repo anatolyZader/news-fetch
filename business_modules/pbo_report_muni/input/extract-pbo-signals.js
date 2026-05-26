@@ -14,9 +14,13 @@
  * Output: signals/signals-pbo-{date}.json per file
  */
 
-import { resolve } from 'path';
+import { resolve, dirname } from 'path';
+import { fileURLToPath } from 'url';
 import { writeFileSync, mkdirSync, existsSync } from 'fs';
 import { getMunicipalityDashboard } from '../app/pboMunicipalityService.js';
+import { enrichSignalsWithGeo } from '../../../cross-cut-modules/geo/enrichSignalsWithGeo.js';
+
+const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 
 const COMPONENT_TO_SIGNAL_TYPE = {
   narrative:                 'resilience_narrative_positive',
@@ -90,10 +94,16 @@ function run() {
           evidence,
           scope_level: scope,
           article_source: `pbo-${muni.name}`,
+          municipality: muni.name,
           source_type: 'pbo',
         });
       }
     }
+
+    const { signals: geoSignals, attached, resolved, unknown } = enrichSignalsWithGeo(signals, {
+      rootDir: REPO_ROOT,
+      unknownSourceType: 'extract-pbo',
+    });
 
     writeFileSync(outPath, JSON.stringify({
       source_type: 'pbo',
@@ -102,10 +112,10 @@ function run() {
       extracted_at: new Date().toISOString(),
       source_files: [day.file],
       total_articles: day.municipalities.length,
-      signals,
+      signals: geoSignals,
     }, null, 2), 'utf-8');
 
-    console.error(`signals-pbo-${day.date}.json  →  ${signals.length} signals from ${day.municipalities.length} municipalities`);
+    console.error(`signals-pbo-${day.date}.json  →  ${geoSignals.length} signals from ${day.municipalities.length} municipalities (geo: ${resolved} resolved, ${unknown} unknown)`);
     filesWritten++;
   }
 

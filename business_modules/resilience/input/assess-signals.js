@@ -38,9 +38,7 @@ import {
   enrichWithDeltaChannel,
 } from './assessSignalsHelpers.js';
 import { summarizeGeoCoverage, summarizeGeoQuality } from '../../../cross-cut-modules/geo/signalGeoSummary.js';
-import { createGeoWiring } from '../../../cross-cut-modules/geo/createGeoWiring.js';
-import { attachGeoToSignals } from '../../../cross-cut-modules/geo/attachGeoToSignals.js';
-import { buildReferenceNameIndex } from '../../../cross-cut-modules/geo/referenceNameIndex.js';
+import { enrichSignalsWithGeo } from '../../../cross-cut-modules/geo/enrichSignalsWithGeo.js';
 import {
   buildAssessmentMethodology,
   buildScoringModelManifest,
@@ -71,11 +69,6 @@ export function temporalWeightForOffset(dayOffset) {
 
 const MAX_ASSESSMENT_DAYS = 14;
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
-const GEO_ATTACH_SOURCE_TYPES = new Set(['news', 'radio', 'social']);
-
-function signalGeoMergeKey(s) {
-  return `${s?.source_type ?? ''}|${s?.signal_type ?? ''}|${s?.evidence ?? ''}|${s?.article_url ?? s?.article_index ?? ''}`;
-}
 
 /**
  * basename-dated bundles only inside { targetDates } ∩ { ≤ targetDate }.
@@ -367,42 +360,16 @@ async function run() {
     : sourceTypesSeen.has('radio') ? 'audio'
     : 'news';
 
-  if (allSignals.some((s) => GEO_ATTACH_SOURCE_TYPES.has(s?.source_type))) {
-    const { geoEnrichmentPort } = createGeoWiring({
+  const needGeoCount = allSignals.filter((s) => !(s && 'geo' in s && s.geo != null)).length;
+  if (needGeoCount > 0) {
+    const { signals: enriched, attached, resolved, unknown } = enrichSignalsWithGeo(allSignals, {
       rootDir: REPO_ROOT,
       unknownSourceType: 'assess-signals',
     });
-    const nameIndex = buildReferenceNameIndex(REPO_ROOT);
-    const needGeo = allSignals.filter(
-      (s) => GEO_ATTACH_SOURCE_TYPES.has(s?.source_type) && !(s && 'geo' in s && s.geo != null),
-    );
-    if (needGeo.length > 0) {
-      const byType = new Map();
-      for (const st of GEO_ATTACH_SOURCE_TYPES) {
-        const subset = needGeo.filter((s) => s.source_type === st);
-        if (!subset.length) continue;
-        const { signals: enriched, attached, resolved, unknown } = attachGeoToSignals(
-          subset,
-          geoEnrichmentPort,
-          { sourceType: st, nameIndex },
-        );
-        byType.set(st, { enriched, attached, resolved, unknown });
-      }
-      const merged = new Map();
-      for (const { enriched } of byType.values()) {
-        for (const s of enriched) merged.set(signalGeoMergeKey(s), s);
-      }
-      allSignals = allSignals.map((s) => merged.get(signalGeoMergeKey(s)) ?? s);
-      const totals = [...byType.values()].reduce(
-        (acc, v) => ({
-          attached: acc.attached + v.attached,
-          resolved: acc.resolved + v.resolved,
-          unknown: acc.unknown + v.unknown,
-        }),
-        { attached: 0, resolved: 0, unknown: 0 },
-      );
+    allSignals = enriched;
+    if (attached > 0) {
       console.error(
-        `  → Geo attach (news/radio): ${totals.attached} signals, ${totals.resolved} resolved, ${totals.unknown} unknown`,
+        `  → Geo attach (all sources): ${attached} signals, ${resolved} resolved, ${unknown} unknown`,
       );
     }
   }

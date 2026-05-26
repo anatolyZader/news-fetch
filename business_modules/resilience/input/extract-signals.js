@@ -20,9 +20,7 @@ import { fileURLToPath } from 'url';
 import { loadMdFiles } from '../infrastructure/mdReportsLoader.js';
 import { extractSignals } from '../infrastructure/claudeEvaluator.js';
 import { createCostTracker, appendCostLog, checkDailyBudget } from '../../../cross-cut-modules/budget/index.js';
-import { createGeoWiring } from '../../../cross-cut-modules/geo/createGeoWiring.js';
-import { attachGeoToSignals } from '../../../cross-cut-modules/geo/attachGeoToSignals.js';
-import { buildReferenceNameIndex } from '../../../cross-cut-modules/geo/referenceNameIndex.js';
+import { enrichSignalsWithGeo } from '../../../cross-cut-modules/geo/enrichSignalsWithGeo.js';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 
@@ -97,17 +95,12 @@ async function run() {
   // Tag every signal with its source type so assess-signals can split them later
   let signals = rawSignals.map((s) => ({ ...s, source_type: sourceType }));
 
-  if (sourceType === 'news' || sourceType === 'radio' || sourceType === 'social') {
-    const { geoEnrichmentPort } = createGeoWiring({
-      rootDir: REPO_ROOT,
-      unknownSourceType: `extract-${sourceType}`,
-    });
-    const nameIndex = buildReferenceNameIndex(REPO_ROOT);
-    const { signals: withGeo, attached, resolved, unknown } = attachGeoToSignals(signals, geoEnrichmentPort, {
-      sourceType,
-      nameIndex,
-    });
-    signals = withGeo;
+  const { signals: withGeo, attached, resolved, unknown } = enrichSignalsWithGeo(signals, {
+    rootDir: REPO_ROOT,
+    unknownSourceType: `extract-${sourceType}`,
+  });
+  signals = withGeo;
+  if (attached > 0) {
     console.error(`  → Geo attach: ${attached} signals, ${resolved} resolved, ${unknown} unknown`);
   }
 

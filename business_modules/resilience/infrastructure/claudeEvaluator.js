@@ -24,6 +24,7 @@ import {
 import { computeNorrisCapacities } from '../domain/services/norrisCapacities.js';
 import { narrativeIncludesScores } from '../domain/services/assessmentDisplayTier.js';
 import { bufferOovCapture, LEARNING_CAPTURE_KINDS } from '../domain/services/oovCapture.js';
+import { parseFieldReportTitleLocality } from '../../../cross-cut-modules/geo/localityCandidate.js';
 import {
   DOMAIN_GROUPS,
   isMultipassEnabled,
@@ -689,6 +690,13 @@ function validateSignalsFromCall(signals, articles, sourceLabel) {
     if (art) {
       s.article_source = art.source;
       s.temporal_weight = art.temporal_weight ?? 1.0;
+      if (art.title) {
+        s.article_title = art.title;
+        if (contentKind === 'field_report') {
+          const municipality = parseFieldReportTitleLocality(art.title);
+          if (municipality) s.municipality = municipality;
+        }
+      }
     }
   }
 

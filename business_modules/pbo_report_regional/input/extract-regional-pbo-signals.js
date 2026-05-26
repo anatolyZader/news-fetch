@@ -13,11 +13,15 @@
  */
 
 import 'dotenv/config';
-import { basename, extname, resolve } from 'path';
+import { basename, dirname, extname, resolve } from 'path';
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
+import { fileURLToPath } from 'url';
 
 import { extractSignals } from '../../resilience/infrastructure/claudeEvaluator.js';
 import { createCostTracker, appendCostLog, checkDailyBudget } from '../../../cross-cut-modules/budget/index.js';
+import { enrichSignalsWithGeo } from '../../../cross-cut-modules/geo/enrichSignalsWithGeo.js';
+
+const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 
 const MAX_BODY_CHARS = 2000;
 const DATE_RE = /\b(\d{4}-\d{2}-\d{2})\b/;
@@ -120,9 +124,17 @@ async function run() {
   console.error(`Articles loaded: ${articles.length}\n`);
 
   const rawSignals = await extractSignals(articles, { onUsage, contentKind: 'field_report' });
-  const signals = rawSignals.map((s) => ({ ...s, source_type: 'pbo_regional' }));
+  let signals = rawSignals.map((s) => ({ ...s, source_type: 'pbo_regional' }));
+  const { signals: geoSignals, attached, resolved, unknown } = enrichSignalsWithGeo(signals, {
+    rootDir: REPO_ROOT,
+    unknownSourceType: 'extract-pbo_regional',
+  });
+  signals = geoSignals;
 
   console.error(`\n→ ${signals.length} signals extracted`);
+  if (attached > 0) {
+    console.error(`  → Geo attach: ${attached} signals, ${resolved} resolved, ${unknown} unknown`);
+  }
 
   const outDir = resolve('signals');
   mkdirSync(outDir, { recursive: true });
