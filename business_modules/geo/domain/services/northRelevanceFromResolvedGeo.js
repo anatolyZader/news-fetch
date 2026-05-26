@@ -25,16 +25,8 @@ export function northRelevanceFromResolvedGeo(g) {
       : g.usableForMetrics;
   const usableBool = usable === true;
   const reasons = [];
-
   if (usable === false) {
     reasons.push('geo.usableForMetrics=false');
-    return {
-      isNorthRelevant: false,
-      source: 'geo',
-      confidence: 'low',
-      usableForMetrics: false,
-      reasons,
-    };
   }
 
   const tags = g?.classification?.geoAreaTags ?? g.geoAreaTags;
@@ -43,8 +35,9 @@ export function northRelevanceFromResolvedGeo(g) {
     const rawConf = String(g?.policy?.scopeConfidence ?? g.scopeConfidence ?? 'medium')
       .trim()
       .toLowerCase();
-    const confidence =
+    let confidence =
       rawConf === 'high' || rawConf === 'medium' || rawConf === 'low' ? rawConf : 'medium';
+    if (!usableBool) confidence = 'low';
     return {
       isNorthRelevant: true,
       source: 'geo_tags',
@@ -62,8 +55,9 @@ export function northRelevanceFromResolvedGeo(g) {
     const rawConf = String(g?.policy?.scopeConfidence ?? g.scopeConfidence ?? 'medium')
       .trim()
       .toLowerCase();
-    const confidence =
+    let confidence =
       rawConf === 'high' || rawConf === 'medium' || rawConf === 'low' ? rawConf : 'medium';
+    if (!usableBool) confidence = 'low';
     return {
       isNorthRelevant: true,
       source: 'pbo_subregion',

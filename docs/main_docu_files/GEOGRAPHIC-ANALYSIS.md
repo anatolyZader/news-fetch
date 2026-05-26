@@ -313,20 +313,20 @@ Use this for debugging, admin tools, or future UI — not as a public geocoder.
 [`regionSignalFilter.js`](../business_modules/resilience/domain/services/regionSignalFilter.js) decides whether a signal counts as **north** for scoped reporting:
 
 1. Certain **`source_type`** values are always north (field, PBO, WhatsApp, etc.).
-2. If **`signal.geo.kind === 'resolved'`** and tags / PBO id indicate the configured north set, the signal is **north** even when the evidence text has no keyword hit — **unless** **`usableForMetrics`** is explicitly **`false`**, in which case that geo-derived north hint is ignored (low-confidence fuzzy / non-metrics-safe rows still fall through to keywords or other rules).
-3. Otherwise **`NORTH_TERMS`** substring matching applies (**text-evidence fallback**, persisted as `source: keyword_fallback`) — for signals without **`geo`**, or when geo alone must not count as verified north.
+2. If **`signal.geo.kind === 'resolved'`** and tags / PBO id indicate the configured north set, the signal is **north** — including when **`usableForMetrics`** is **`false`** (scope only; excluded from metrics under epistemic v2).
+3. Otherwise the signal is **not north** (no text keyword fallback).
 
-**Text-evidence fallback (graceful degradation):** when coordinates are missing or not metrics-safe, place names in evidence/article metadata provide **partial north context** rather than dropping behaviorally critical text. Confidence is **low** by design; prefer resolved **`geo`** with **`usableForMetrics: true`** when present. High fallback share triggers operator scope-quality warnings.
+Geo attach runs at extract for news/radio/social and at assess for news/radio/social via `attachGeoToSignals` + `localityCandidate` → `geoService`.
 
 ### `scopeDecision`: geo envelope vs signal
 
 - **`geo.scopeDecision`** (resolved envelopes only) — built by [`buildGeoScopeDecision`](../business_modules/geo/domain/services/geoScopeDecisionFromResolved.js) inside `geoService`. Explains north relevance **from tags + PBO id + `usableForMetrics` only** (`source`: `geo` | `geo_tags` | `pbo_subregion` | `unknown`). Persisted on `signal.geo` so a stored geo blob answers “was this geo, on its own, allowed to count as north-from-geo?”
-- **`signal.scopeDecision`** — attached by [`filterSignalsForScope`](../business_modules/resilience/domain/services/regionSignalFilter.js): full north filter including **`source_type`**, resolved geo (with the same metrics gate), and **text-evidence fallback** (`keyword_fallback`). Use this for “why did this signal enter north-scoped analysis?”
+- **`signal.scopeDecision`** — attached by [`filterSignalsForScope`](../business_modules/resilience/domain/services/regionSignalFilter.js): north filter from **`source_type`** and resolved geo only.
 
 `filterSignalsForScope()` maps each signal to include **`signal.scopeDecision`**:
 
 - `isNorthRelevant`
-- `source`: `source_type` | `geo_tags` | `pbo_subregion` | `geo` | `keyword_fallback` | `unknown`
+- `source`: `source_type` | `geo_tags` | `pbo_subregion` | `geo` | `unknown`
 - `confidence`: `high` | `medium` | `low`
 - `reasons`: short list of strings describing the decision
 
@@ -386,7 +386,7 @@ When **`GEO_OVERRIDES_SQLITE=1`**, composition wires a SQLite-backed overrides a
 |---------|------|
 | **PBO regional daily files** | Five region ids + markdown on disk under `pbo_report_regional/data` |
 | **Resilience LLM prompts** | Narrative scope (Israel-only, Naftali vs whole north, etc.) — policy, not metrics |
-| **Text-evidence fallback (`NORTH_TERMS`)** | Degraded scope path when **`geo`** is missing, not resolved, or not metrics-safe (`usableForMetrics === false`) — partial context over dropping uncoded text |
+| **Geo attach (`localityCandidate` → `geoService`)** | Sole path for news/radio/social north scope besides always-north source types |
 
 ---
 
@@ -466,4 +466,4 @@ The current **flat resolved envelope** is intentional for shipping speed. The fo
 | 2026-05 | **`geo.scopeDecision`** on resolved envelopes (geo-only north hint audit); stricter doc rule: nested fields canonical, flat deprecated; full **`geoEntityType`** enum called out in guide. |
 | 2026-05 | News/radio geo attach in **`assess-signals`**; **`GEO_ATTACH_ON_EXTRACT`**; per-signal WhatsApp geo; **`northRelevanceFromResolvedGeo`**; **`summarizeGeoQuality`**; transliteration pass; versioned distance-band policy; **`createGeoWiring`**; CI north-terms sync check; default omit **`subregionId`**. |
 | 2026-05 | Doc sync: manual overrides, distance-band policy, and split envelope marked shipped; ops checklist **`GEO_LEGACY_SUBREGION_ID`** default corrected to off. |
-| 2026-05-25 | Cross-doc alignment: text-evidence fallback / epistemic v2 north scope, `scopeDecision` vs `geo.scopeDecision`, assess-signals geo quality summary (see [pipeline.md](./pipeline.md), [8-component doc §12](./8-component-analysis-end-to-end.md#12-geographic-scoping-national-vs-north)). |
+| 2026-05-25 | Removed text keyword fallback (`NORTH_TERMS`); north scope requires resolved geo or always-north source types. Geo attach enabled at extract for news/radio/social. |

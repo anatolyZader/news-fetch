@@ -10,12 +10,13 @@ import {
 } from '../../../../../business_modules/resilience/domain/services/evidenceEligibility.js';
 
 describe('evidenceEligibility', () => {
-  it('marks keyword_fallback as not metricsEligible', () => {
+  it('marks metrics-unsafe resolved geo as not metricsEligible', () => {
     const s = {
       source_type: 'news',
-      scopeDecision: { isNorthRelevant: true, source: 'keyword_fallback', confidence: 'low' },
+      scopeDecision: { isNorthRelevant: true, source: 'geo_tags', confidence: 'low' },
+      geo: { kind: 'resolved', policy: { usableForMetrics: false } },
     };
-    assert.equal(deriveSignalProvenance(s), SIGNAL_PROVENANCE.keyword_fallback);
+    assert.equal(deriveSignalProvenance(s), SIGNAL_PROVENANCE.source_assigned);
     assert.equal(metricsEligible(s), false);
   });
 
@@ -37,13 +38,13 @@ describe('evidenceEligibility', () => {
     assert.equal(metricsEligible(s), true);
   });
 
-  it('partitions macro and keyword signals out of north metrics', () => {
+  it('partitions macro signals out of north metrics', () => {
     const signals = annotateSignalsEpistemics([
       { source_type: 'field', evidence: 'ok', scopeDecision: { isNorthRelevant: true, source: 'source_type' } },
       {
         source_type: 'news',
         evidence: 'national',
-        scopeDecision: { isNorthRelevant: true, source: 'keyword_fallback', macro_scope: 'national' },
+        scopeDecision: { isNorthRelevant: true, source: 'unknown', macro_scope: 'national' },
         macro_scope: 'national',
       },
     ]);

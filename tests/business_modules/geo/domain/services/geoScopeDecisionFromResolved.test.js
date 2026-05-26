@@ -3,13 +3,14 @@ import test from 'node:test';
 
 import { buildGeoScopeDecision } from '../../../../../business_modules/geo/domain/services/geoScopeDecisionFromResolved.js';
 
-test('buildGeoScopeDecision: metrics ineligible → not north-relevant from geo', () => {
+test('buildGeoScopeDecision: metrics ineligible still north-scoped from geo tags', () => {
   const d = buildGeoScopeDecision({
     policy: { usableForMetrics: false, scopeConfidence: 'low' },
     classification: { pboSubregionId: 'golan', geoAreaTags: ['north', 'golan_heights'] },
   });
-  assert.equal(d.isNorthRelevant, false);
-  assert.equal(d.source, 'geo');
+  assert.equal(d.isNorthRelevant, true);
+  assert.equal(d.source, 'geo_tags');
+  assert.equal(d.confidence, 'low');
   assert.ok(d.reasons.includes('geo.usableForMetrics=false'));
 });
 

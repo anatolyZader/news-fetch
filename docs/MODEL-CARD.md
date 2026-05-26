@@ -18,8 +18,8 @@ LLM extract (closed vocabulary, ~165 tags) → verify evidence → deterministic
 |------------|-------|---------|-----------|
 | `verified_geo` | Yes | Yes | Yes |
 | `source_assigned` (field/PBO/WhatsApp) | Yes | Yes | Yes |
-| `keyword_fallback` | Context | **No** | Context only |
 | `macro_national` | Context | **No** | Information environment |
+| metrics-unsafe resolved geo | Yes (low confidence) | **No** | Context only |
 | `insufficient_data` | — | Abstain | Abstain |
 
 Feature flag: `RESILIENCE_EPISTEMIC_GEO_V2=0` disables metrics gating (legacy).

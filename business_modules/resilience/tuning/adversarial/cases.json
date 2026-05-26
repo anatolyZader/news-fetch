@@ -395,9 +395,9 @@
     },
 
     {
-      "id": "keyword_fallback_excluded_from_metrics",
+      "id": "metrics_unsafe_geo_excluded_from_metrics",
       "category": "epistemic_geo",
-      "scenario": "Keyword-only north signal must not affect component scores when epistemic geo v2 is enabled.",
+      "scenario": "North-scoped signal with usableForMetrics=false must not affect component scores when epistemic geo v2 is enabled.",
       "mock_extraction": [
         {
           "article_index": 1,
@@ -410,7 +410,12 @@
           "evidence": "Residents in Kiryat Shmona reported panic in shelters.",
           "extraction_confidence": 0.85,
           "temporal_weight": 1.0,
-          "scopeDecision": { "isNorthRelevant": true, "source": "keyword_fallback", "confidence": "low" },
+          "geo": {
+            "kind": "resolved",
+            "policy": { "usableForMetrics": false, "scopeConfidence": "low" },
+            "classification": { "pboSubregionId": "kiryat_shmona", "geoAreaTags": ["north"] }
+          },
+          "scopeDecision": { "isNorthRelevant": true, "source": "geo_tags", "confidence": "low" },
           "metricsEligible": false
         }
       ],

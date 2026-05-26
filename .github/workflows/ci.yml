@@ -179,11 +179,6 @@ jobs:
 
       - name: Verify Node built-in sqlite (node:sqlite)
         run: node -e "import('node:sqlite').then(()=>console.log('node:sqlite OK')).catch(e=>{console.error(e);process.exit(1)})"
-      - name: Check NORTH_TERMS synced with north-reference
-        run: |
-          OUT=$(node scripts/sync-north-terms-from-reference.mjs)
-          echo "$OUT"
-          node -e "const j=JSON.parse(process.argv[1]); if(j.new_count>0){console.error('Run: npm run sync:north-terms -- --write'); process.exit(1)}" "$OUT"
       - name: Run tests with coverage (serial — shared SQLite at data/app.sqlite)
         run: npm run test:coverage
         env:

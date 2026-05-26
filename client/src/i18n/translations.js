@@ -330,8 +330,8 @@ export const translations = {
     'report.suppression.delta': 'Suppression Δ: raw {raw} → headline {headline}',
     'report.methodology.epistemicBanner':
       'Headline scores are hidden by design. Instrument flags describe evidence sufficiency and instability—not validated resilience or ground truth.',
-    'report.methodology.northKeywordWarning':
-      'Many north signals lack resolved coordinates; {pct}% were scoped via text-evidence fallback (place names in source text). Treat north geographic attribution as lower confidence for news-like sources.',
+    'report.methodology.northGeoQualityWarning':
+      'Only {pct}% of north signals with resolved geo are metrics-safe. Treat geographic attribution as lower confidence until geo enrichment improves.',
     'report.methodology.thinEvidenceWarning':
       'Most components have thin evidence for this scope. Narratives may under-represent local conditions.',
     'report.methodology.norrisDisclaimer':
@@ -1079,8 +1079,8 @@ export const translations = {
     'report.suppression.breakdown': 'תקרה {cap}, רצפה {floor}',
     'report.methodology.epistemicBanner':
       'ציוני כותרת מוסתרים בכוונה. דגלי המכשיר מתארים מספיקות ראיות ואי-יציבות—לא חוסן מאומת או אמת בשטח.',
-    'report.methodology.northKeywordWarning':
-      'לחלק מהאותות בצפון אין קואורדינטות מפורשות; {pct}% שויכו בנתיב נפילה לפי שמות מקום בטקסט. יש לייחס לגיאוגרפיה רמת ביטחון נמוכה במקורות חדשותיים.',
+    'report.methodology.northGeoQualityWarning':
+      'רק {pct}% מהאותות בצפון עם geo מפורש בטוחים למטריקות. יש לייחס לגיאוגרפיה רמת ביטחון נמוכה עד שתשתפר העשרת geo.',
     'report.methodology.thinEvidenceWarning':
       'ברוב המרכיבים יש ראיות דלות בהיקף זה. הנרטיבים עלולים שלא לשקף מספיק את המצב המקומי.',
     'report.methodology.norrisDisclaimer':
@@ -1769,8 +1769,8 @@ export const translations = {
     'report.suppression.breakdown': 'ограничение {cap}, пол {floor}',
     'report.methodology.epistemicBanner':
       'Итоговые баллы скрыты намеренно. Флаги инструмента описывают достаточность данных и нестабильность, а не проверенную устойчивость.',
-    'report.methodology.northKeywordWarning':
-      'У многих северных сигналов нет точных координат; {pct}% привязаны по названиям мест в тексте (резервный путь). Географию новостных источников следует считать менее надёжной.',
+    'report.methodology.northGeoQualityWarning':
+      'Только {pct}% северных сигналов с разрешённым geo безопасны для метрик. Географию следует считать менее надёжной, пока не улучшится geo-обогащение.',
     'report.methodology.thinEvidenceWarning':
       'У большинства компонентов мало данных в этой области. Нарративы могут не отражать местную ситуацию.',
     'report.methodology.norrisDisclaimer':

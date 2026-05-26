@@ -811,8 +811,8 @@ When `RESILIENCE_EPISTEMIC_GEO_V2` is enabled (default; set `=0` for legacy):
 | Provenance | In component metrics? | In narrative? |
 |---|---|---|
 | `verified_geo` / `source_assigned` | Yes | Yes |
-| `keyword_fallback` (north text match) | **No** — context only | Yes (with low-confidence scope warning) |
-| `macro_national` (e.g. bare "northern Israel" TV framing) | **No** — `macro_signals[]` bucket | National backdrop in synthesis only |
+| metrics-unsafe resolved geo (north scope, low confidence) | **No** — context only | Yes |
+| `macro_national` (legacy reports only) | **No** — `macro_signals[]` bucket | National backdrop in synthesis only |
 
 Implementation: `evidenceEligibility.js` → `annotateSignalsEpistemics`, `partitionMacroSignals`, `metricsEligible`. North scope scores only `metricsSignals`; macro/context signals appear in `assessment.macro_signals` (operator API redacts to `macro_signals_summary`).
 
@@ -1103,10 +1103,9 @@ When `RESILIENCE_ANALYST_EMAILS` is non-empty, drift endpoints return **403** un
 `regionSignalFilter.js` attaches an explainable **`scopeDecision`** per signal (`source`, `confidence`, `reasons`). North relevance is evaluated in order:
 
 1. **`ALWAYS_NORTH_SOURCE_TYPES`**: `field`, `pbo`, `pbo_regional`, `naftali`, `whatsapp` — always north (`confidence: high`).
-2. **Resolved geo** (`signal.geo.kind === 'resolved'`): north when PBO subregion / tags match the north reference via `northRelevanceFromResolvedGeo` — **unless** `usableForMetrics === false`, in which case geo alone must not count as verified north (`confidence: high` / `medium`).
-3. **Text-evidence fallback** (persisted as `source: keyword_fallback`): when geo is missing, unresolved, or not metrics-safe, **word-boundary** match on curated **`NORTH_TERMS`** (Hebrew place names, `Galilee`, `Golan`, `Kiryat Shmona`, … — **not** bare English `north` alone). **`confidence: low`**; **`metricsEligible: false`** under epistemic v2.
+2. **Resolved geo** (`signal.geo.kind === 'resolved'`): north when PBO subregion / tags match the north reference via `northRelevanceFromResolvedGeo`. Scope uses geo tags even when `usableForMetrics === false` (`confidence: low`); such signals are excluded from component metrics under epistemic v2.
 
-Step 3 is **graceful degradation / operational pragmatism**: north-scoped reports keep behaviorally critical news and radio text that lacks coordinates, using place names in the source as partial context rather than dropping the signal entirely. Prefer resolved geo with `usableForMetrics: true` when present; treat high text-evidence-fallback share as a scope-quality warning (see operator UI). Full geo contract: [`GEOGRAPHIC-ANALYSIS.md`](GEOGRAPHIC-ANALYSIS.md).
+Text keyword fallback (`NORTH_TERMS`) was removed. News/radio/social signals without resolved north geo are excluded from north scope. Geo is attached at extract (news/radio/social) and assess via `attachGeoToSignals` + `localityCandidate` → `geoService`. Full geo contract: [`GEOGRAPHIC-ANALYSIS.md`](GEOGRAPHIC-ANALYSIS.md).
 
 For north scope, `total_articles` becomes `max(scopedArticleCount, 1)` so the coverage ratio reflects the north corpus, not the national one.
 
@@ -1188,7 +1187,7 @@ All hermetic; wired into `npm test`.
 - Layer-1 source_type cap (news flood + lone radio).
 - Layer-2 article_source cap (Ynet flood + lone Maariv).
 - Wire-copy / military-framing / headline-echo geo duplications.
-- Epistemic geo: `keyword_fallback_excluded_from_metrics`.
+- Epistemic geo: `metrics_unsafe_geo_excluded_from_metrics`.
 - Data void: `digital_darkness_field_active`.
 - Suppression: `ynet_flood_suppression_binding`.
 - Contested thin band: `contested_thin_balanced`.

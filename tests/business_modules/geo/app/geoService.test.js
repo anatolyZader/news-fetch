@@ -143,8 +143,9 @@ test('geoService resolves Hebrew גולן to reference row as regional_council',
     assert.equal(r.quality, 'medium');
     assert.ok(r.policy.decisionReasons?.includes('centroid_geometry_only'));
     assert.equal(r.isGolan, true);
-    assert.equal(r.scopeDecision.isNorthRelevant, false);
-    assert.equal(r.scopeDecision.source, 'geo');
+    assert.equal(r.scopeDecision.isNorthRelevant, true);
+    assert.equal(r.scopeDecision.source, 'geo_tags');
+    assert.equal(r.scopeDecision.confidence, 'low');
   }
 });
 

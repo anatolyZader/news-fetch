@@ -726,7 +726,8 @@ export function ReportView({
   const methodology = assessment.methodology ?? null;
   const dataVoid = assessment.data_void ?? null;
   const scopeSummary = methodology?.scope?.scope_decision_summary ?? null;
-  const keywordPct = scopeSummary?.pct_keyword_fallback_among_north ?? null;
+  const geoQuality = methodology?.scope?.geo_quality_summary ?? null;
+  const geoMetricsSafePct = geoQuality?.pctUsableForMetrics ?? null;
 
   function getSourceSignals(compId) {
     if (!scoreBySource) return null;
@@ -803,9 +804,9 @@ export function ReportView({
         </Alert>
       )}
 
-      {keywordPct != null && keywordPct > 25 && (
+      {geoMetricsSafePct != null && geoMetricsSafePct < 75 && _reportScope === 'north' && (
         <Alert severity="warning" variant="outlined">
-          {t('report.methodology.northKeywordWarning').replace('{pct}', String(Math.round(keywordPct)))}
+          {t('report.methodology.northGeoQualityWarning').replace('{pct}', String(Math.round(geoMetricsSafePct)))}
         </Alert>
       )}
 

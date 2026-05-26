@@ -52,8 +52,6 @@
     "analyze-event-log": "node business_modules/pbo_report_muni/input/analyze-event-log.js",
     "analyze-survey": "node scripts/analyze-survey.mjs",
     "build:north-reference": "node scripts/build-north-reference-from-regions.mjs",
-    "sync:north-terms": "node scripts/sync-north-terms-from-reference.mjs",
-    "sync:north-terms:check": "node scripts/sync-north-terms-from-reference.mjs",
     "audit:ci": "node scripts/ci-audit.mjs",
     "deps:audit": "node scripts/audit-dependencies.mjs",
     "backfill:report-brief": "node scripts/backfill-report-brief-md.mjs",

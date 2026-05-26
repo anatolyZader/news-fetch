@@ -97,10 +97,7 @@ async function run() {
   // Tag every signal with its source type so assess-signals can split them later
   let signals = rawSignals.map((s) => ({ ...s, source_type: sourceType }));
 
-  if (
-    process.env.GEO_ATTACH_ON_EXTRACT === '1' &&
-    (sourceType === 'news' || sourceType === 'radio')
-  ) {
+  if (sourceType === 'news' || sourceType === 'radio' || sourceType === 'social') {
     const { geoEnrichmentPort } = createGeoWiring({
       rootDir: REPO_ROOT,
       unknownSourceType: `extract-${sourceType}`,

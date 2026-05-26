@@ -23,15 +23,17 @@ test('northRelevanceFromResolvedGeo matches scopeDecisionForSignal when only geo
     const fromGeo = northRelevanceFromResolvedGeo(geo);
     const fromSignal = scopeDecisionForSignal({ ...NEUTRAL_EVIDENCE, geo });
     assert.equal(fromSignal.isNorthRelevant, fromGeo.isNorthRelevant, `isNorthRelevant geo=${JSON.stringify(geo.policy)}`);
+    assert.equal(fromSignal.source, fromGeo.source);
   }
 });
 
-test('metrics-unsafe geo does not block keyword_fallback when evidence has north terms', () => {
+test('metrics-unsafe geo still scopes north from geo tags without keyword fallback', () => {
   const d = scopeDecisionForSignal({
     source_type: 'news',
     evidence: 'Residents in Kiryat Shmona entered shelters.',
     geo: METRICS_UNSAFE_GOLAN,
   });
   assert.equal(d.isNorthRelevant, true);
-  assert.equal(d.source, 'keyword_fallback');
+  assert.equal(d.source, 'geo_tags');
+  assert.equal(d.confidence, 'low');
 });

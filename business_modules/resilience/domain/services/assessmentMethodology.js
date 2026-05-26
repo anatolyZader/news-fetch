@@ -77,7 +77,6 @@ export function summarizeScopeDecisionSources(signals, opts = {}) {
   const list = Array.isArray(signals) ? signals : [];
   const bySource = {};
   let northRelevant = 0;
-  let northKeywordFallback = 0;
 
   for (const s of list) {
     const src = s?.scopeDecision?.source ?? 'unset';
@@ -85,12 +84,10 @@ export function summarizeScopeDecisionSources(signals, opts = {}) {
 
     if (s?.scopeDecision?.isNorthRelevant) {
       northRelevant += 1;
-      if (src === 'keyword_fallback') northKeywordFallback += 1;
     }
   }
 
   const total = list.length;
-  const northDenom = northRelevant > 0 ? northRelevant : 1;
   const summary = {
     total_signals: total,
     by_source: bySource,
@@ -98,8 +95,6 @@ export function summarizeScopeDecisionSources(signals, opts = {}) {
 
   if (opts.reportScopeId === 'north' || northRelevant > 0) {
     summary.north_relevant_signals = northRelevant;
-    summary.north_keyword_fallback_count = northKeywordFallback;
-    summary.pct_keyword_fallback_among_north = Math.round((1000 * northKeywordFallback) / northDenom) / 10;
   }
 
   return summary;
@@ -174,7 +169,7 @@ export function buildAssessmentMethodology({
       signal_weights: 'author_set_not_ml_fitted',
       component_tuning: 'heuristic_tanhK_certM; see tuning_proposal when enough national history',
       north_geo_news:
-        'News/radio north scope uses text-evidence fallback (keyword_fallback) when geo is missing or not usableForMetrics—partial context preferred over dropping critical text',
+        'News/radio/social north scope requires resolved geo (geoService) or always-north source types; text keyword fallback removed',
       always_north_source_types: [...PHASE1_ALWAYS_NORTH_SOURCE_TYPES],
       dual_pipeline:
         'runResilienceAssessment (API/news) scores all signals without scope filter; north artifact requires assess-signals --scope north',
@@ -196,7 +191,7 @@ export function buildAssessmentMethodology({
       contested_thin:
         'Polarization > 0.5 with mass in [1.5, 4) hides operator scores; narrative must describe conflict without resolving it.',
       keyword_macro_partition:
-        'Keyword/geo fallback and national macro terms are scope context only — excluded from component metrics when RESILIENCE_EPISTEMIC_GEO_V2 is enabled.',
+        'National macro terms and metrics-unsafe geo are scope context only — excluded from component metrics when RESILIENCE_EPISTEMIC_GEO_V2 is enabled.',
       reliability_instruments:
         'Bootstrap, entropy, and caps quantify instability and dominance; they do not validate ground-truth resilience.',
     },
@@ -243,9 +238,6 @@ export function formatScopeDecisionLogLine(methodology) {
     .sort((a, b) => b[1] - a[1])
     .map(([k, n]) => `${k}=${n}`);
   let line = `  → Scope decisions: ${parts.join(', ')}`;
-  if (s.pct_keyword_fallback_among_north != null) {
-    line += `; north keyword_fallback=${s.pct_keyword_fallback_among_north}%`;
-  }
   return line;
 }
 

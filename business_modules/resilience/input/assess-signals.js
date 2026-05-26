@@ -71,7 +71,7 @@ export function temporalWeightForOffset(dayOffset) {
 
 const MAX_ASSESSMENT_DAYS = 14;
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
-const GEO_ATTACH_SOURCE_TYPES = new Set(['news', 'radio']);
+const GEO_ATTACH_SOURCE_TYPES = new Set(['news', 'radio', 'social']);
 
 function signalGeoMergeKey(s) {
   return `${s?.source_type ?? ''}|${s?.signal_type ?? ''}|${s?.evidence ?? ''}|${s?.article_url ?? s?.article_index ?? ''}`;

@@ -6,14 +6,13 @@
 export const SIGNAL_PROVENANCE = Object.freeze({
   verified_geo: 'verified_geo',
   source_assigned: 'source_assigned',
-  keyword_fallback: 'keyword_fallback',
   macro_national: 'macro_national',
   unscoped: 'unscoped',
 });
 
 const ALWAYS_NORTH_SOURCE_TYPES = new Set(['field', 'pbo', 'pbo_regional', 'naftali', 'whatsapp']);
 
-/** Bare macro terms — scope hint only, never metrics for regional reports. */
+/** Bare macro terms — scope hint only, never metrics for regional reports (legacy reports only). */
 export const MACRO_NATIONAL_TERMS = [
   'northern israel',
   'צפון הארץ',
@@ -33,7 +32,6 @@ export function deriveSignalProvenance(signal) {
   if (ALWAYS_NORTH_SOURCE_TYPES.has(signal?.source_type)) {
     return SIGNAL_PROVENANCE.source_assigned;
   }
-  if (scope?.source === 'keyword_fallback') return SIGNAL_PROVENANCE.keyword_fallback;
   const g = signal?.geo;
   if (g?.kind === 'resolved') {
     const usable = g?.policy?.usableForMetrics ?? g?.usableForMetrics;
@@ -58,7 +56,6 @@ export function metricsEligible(signal, opts = {}) {
   if (!epistemicV2) return true;
 
   const provenance = signal?.signalProvenance ?? deriveSignalProvenance(signal);
-  if (provenance === SIGNAL_PROVENANCE.keyword_fallback) return false;
   if (provenance === SIGNAL_PROVENANCE.macro_national) return false;
 
   const g = signal?.geo;
@@ -88,7 +85,7 @@ export function annotateSignalsEpistemics(signals, opts = {}) {
 }
 
 /**
- * Split keyword/macro-only north signals into macro bucket for narrative context.
+ * Split macro-only north signals into macro bucket for narrative context.
  * @param {Array<object>} signals
  * @param {string} reportScope
  */
@@ -100,8 +97,7 @@ export function partitionMacroSignals(signals, reportScope = 'national') {
   const macroSignals = [];
   for (const s of signals ?? []) {
     const p = s?.signalProvenance ?? deriveSignalProvenance(s);
-    if (p === SIGNAL_PROVENANCE.macro_national
-      || (p === SIGNAL_PROVENANCE.keyword_fallback && s?.metricsEligible === false)) {
+    if (p === SIGNAL_PROVENANCE.macro_national) {
       macroSignals.push(s);
     } else if (s?.metricsEligible !== false) {
       metricsSignals.push(s);

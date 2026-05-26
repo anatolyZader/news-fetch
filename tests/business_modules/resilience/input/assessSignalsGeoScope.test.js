@@ -14,7 +14,7 @@ import { summarizeScopeDecisionSources } from '../../../../business_modules/resi
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../../..');
 
-test('geo attach lowers keyword_fallback for reference locality in evidence', () => {
+test('geo attach resolves reference locality in evidence for north scope', () => {
   const fixture = JSON.parse(
     readFileSync(resolve(ROOT, 'tests/fixtures/assess-signals-geo-mixed.json'), 'utf8'),
   );
@@ -40,12 +40,12 @@ test('geo attach lowers keyword_fallback for reference locality in evidence', ()
   if (attachedYavneel) {
     const d = scoped.find((s) => s.evidence === yavneelSignal.evidence)?.scopeDecision;
     assert.ok(d?.isNorthRelevant);
-    assert.notEqual(d?.source, 'keyword_fallback');
+    assert.equal(d?.source, 'geo_tags');
   }
 
   const kiryatScoped = scoped.find((s) => s.evidence.includes('Kiryat Shmona'));
   if (kiryatScoped?.geo?.kind === 'resolved' && kiryatScoped.geo.policy?.usableForMetrics !== false) {
-    assert.notEqual(kiryatScoped.scopeDecision?.source, 'keyword_fallback');
+    assert.equal(kiryatScoped.scopeDecision?.source, 'geo_tags');
   }
 
   assert.ok(summary.north_relevant_signals >= 1);
