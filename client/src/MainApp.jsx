@@ -407,6 +407,14 @@ function AppShell() {
   const handleChatPanelClose = useCallback(() => {
     setChatOpen(false);
   }, []);
+  const openChat = useCallback(() => {
+    if (isDesktop) {
+      openPanelPopup('chat', { reportScope: chatReportScope });
+      return;
+    }
+    setChatOpen(true);
+  }, [isDesktop, openPanelPopup, chatReportScope]);
+  const chatPopupOpen = isDesktop && isPanelPopupOpen('chat');
 
   function jumpToReportComponent(compId) {
     setOpenReportCompId((prev) => (prev === compId ? null : compId));
@@ -882,14 +890,15 @@ function AppShell() {
           </>
         )}
 
-      {!chatOpen && (
+      {!chatPopupOpen && !chatOpen && (
         <ChatLauncher
           open={false}
-          onClick={() => setChatOpen(true)}
+          onClick={openChat}
           closedLabel={t('chat.launcherWhenClosed')}
         />
       )}
 
+      {!isDesktop && (
       <Slide direction="up" in={chatOpen} mountOnEnter unmountOnExit>
         <Paper
           role="dialog"
@@ -930,6 +939,7 @@ function AppShell() {
           </Box>
         </Paper>
       </Slide>
+      )}
 
       <DocsPanel open={docsOpen} initialSlug={docsInitialSlug || undefined} onClose={closeDocs} />
       {!isDesktop && (

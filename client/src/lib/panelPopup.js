@@ -1,10 +1,11 @@
-import { isKnownPanelId, panelPathForId } from './panelRoutes.js';
+import { buildChatPanelPath, isKnownPanelId, panelPathForId } from './panelRoutes.js';
 
 /** @type {Record<string, { width: number, height: number }>} */
 const PANEL_SPECS = Object.freeze({
   'report-build': { width: 920, height: 680 },
   'send-evidence': { width: 920, height: 680 },
   settings: { width: 720, height: 640 },
+  chat: { width: 480, height: 720 },
 });
 
 /**
@@ -54,15 +55,18 @@ export function computePopupPosition(width, height) {
 /**
  * @param {string} panelId
  * @param {Window | null | undefined} existingWindow
+ * @param {{ reportScope?: { type?: string, id?: string, label?: string } }} [options]
  * @returns {Window | null}
  */
-export function openPanelPopup(panelId, existingWindow) {
+export function openPanelPopup(panelId, existingWindow, options = {}) {
   if (!isKnownPanelId(panelId)) return null;
   if (existingWindow && !existingWindow.closed) {
     existingWindow.focus();
     return existingWindow;
   }
-  const path = panelPathForId(panelId);
+  const path = panelId === 'chat'
+    ? buildChatPanelPath(options.reportScope)
+    : panelPathForId(panelId);
   const spec = PANEL_SPECS[panelId];
   if (!path || !spec) return null;
   const { left, top } = computePopupPosition(spec.width, spec.height);

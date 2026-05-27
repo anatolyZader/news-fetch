@@ -5,7 +5,8 @@ import Alert from '@mui/material/Alert';
 import { ReportBuildPanel } from './components/ReportBuildPanel.jsx';
 import { SendEvidencePanel } from './components/SendEvidencePanel.jsx';
 import { SettingsPanel } from './components/SettingsPanel.jsx';
-import { isKnownPanelId } from './lib/panelRoutes.js';
+import { ChatPanel } from './components/ChatPanel.jsx';
+import { isKnownPanelId, parseChatReportScope } from './lib/panelRoutes.js';
 import { createPanelMessage, PANEL_MESSAGE_TYPES, postToOpener } from './lib/panelMessages.js';
 import PropTypes from 'prop-types';
 
@@ -48,6 +49,17 @@ export function PanelWindowApp({ panelId }) {
         open
         onClose={handleClose}
         onSubmissionComplete={handleEvidenceSubmissionComplete}
+      />
+    );
+  }
+
+  if (panelId === 'chat') {
+    const reportScope = parseChatReportScope(globalThis.location?.search);
+    return (
+      <ChatPanel
+        variant="window"
+        reportScope={reportScope}
+        onClose={handleClose}
       />
     );
   }

@@ -24,7 +24,7 @@ const chatFieldSx = (theme) => ({
   '& .MuiOutlinedInput-notchedOutline': { borderRadius: panelSectionRadius(theme) },
 });
 
-export function ChatPanel({ reportScope, onClose }) {
+export function ChatPanel({ reportScope, onClose, variant = 'embedded' }) {
   const {
     sessions,
     activeSessionId,
@@ -93,13 +93,22 @@ export function ChatPanel({ reportScope, onClose }) {
   const closeMenu = () => setMenuAnchor(null);
   const closeHistory = () => setHistoryAnchor(null);
 
+  useEffect(() => {
+    if (variant !== 'window') return undefined;
+    const previous = document.title;
+    document.title = `${t('chat.ariaDialog')} · Vibes Witch`;
+    return () => {
+      document.title = previous;
+    };
+  }, [variant, t]);
+
   return (
     <Box
       sx={{
         position: 'relative',
         display: 'flex',
         flexDirection: 'column',
-        height: '100%',
+        height: variant === 'window' ? '100vh' : '100%',
         minHeight: 0,
         overflow: 'hidden',
       }}
@@ -502,6 +511,7 @@ export function ChatPanel({ reportScope, onClose }) {
 ChatPanel.propTypes = {
   reportScope: PropTypes.object,
   onClose: PropTypes.func,
+  variant: PropTypes.oneOf(['embedded', 'window']),
 };
 
 function ChatAvatar({ isUser }) {

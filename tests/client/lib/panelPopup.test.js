@@ -86,4 +86,18 @@ describe('panelPopup', () => {
     assert.equal(openedName, 'vibes-witch-send-evidence');
     assert.match(openedFeatures, /width=920/);
   });
+
+  it('openPanelPopup opens chat with encoded report scope', () => {
+    let openedUrl = '';
+    globalThis.window = {
+      screenX: 0,
+      outerWidth: 1000,
+      open(url) {
+        openedUrl = url;
+        return { closed: false, focus() {} };
+      },
+    };
+    openPanelPopup('chat', null, { reportScope: { type: 'component', id: 'narrative', label: 'Narrative' } });
+    assert.equal(openedUrl, '/panel/chat?scope=component&id=narrative&label=Narrative');
+  });
 });
