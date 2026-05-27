@@ -18,8 +18,7 @@ export function buildDefaultGatherQueries({ localities = NORTH_LOCALITIES_HE } =
 
   for (const loc of localities) {
     for (const kw of heSample) {
-      queries.push({ language: 'he', locality: loc, query: `"${loc}" ${kw} תושבים` });
-      queries.push({ language: 'he', locality: loc, query: `"${loc}" ${kw} "ראיתי"` });
+      queries.push({ language: 'he', locality: loc, query: `"${loc}" ${kw} תושבים` }, { language: 'he', locality: loc, query: `"${loc}" ${kw} "ראיתי"` });
     }
     for (const kw of arSample) {
       queries.push({ language: 'ar', locality: loc, query: `${loc} ${kw}` });

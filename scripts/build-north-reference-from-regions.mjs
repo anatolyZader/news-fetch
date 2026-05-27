@@ -64,9 +64,9 @@ function sleep(ms) {
 function slugifyHebrewName(name) {
   const n = String(name ?? '')
     .trim()
-    .replace(/["'`׳״]/g, '')
-    .replace(/\s+/g, '_')
-    .replace(/[^\u0590-\u05FFa-zA-Z0-9_()-]/g, '');
+    .replaceAll(/["'`׳״]/g, '')
+    .replaceAll(/\s+/g, '_')
+    .replaceAll(/[^\u0590-\u05FFa-zA-Z0-9_()-]/g, '');
   return n || 'locality';
 }
 
@@ -81,8 +81,8 @@ async function nominatimSearch(query) {
   const data = await res.json();
   if (!Array.isArray(data) || data.length === 0) return null;
   const hit = data[0];
-  const lat = parseFloat(hit.lat);
-  const lon = parseFloat(hit.lon);
+  const lat = Number.parseFloat(hit.lat);
+  const lon = Number.parseFloat(hit.lon);
   if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
   return { lat, lon, displayName: hit.display_name };
 }
@@ -148,7 +148,7 @@ function main() {
       let canonicalKey = HEBREW_NAME_TO_CANONICAL[hebrewName];
       if (!canonicalKey) {
         const baseSlug = slugifyHebrewName(hebrewName);
-        canonicalKey = baseSlug.toLowerCase().replace(/[()]/g, '').replace(/_+/g, '_');
+        canonicalKey = baseSlug.toLowerCase().replaceAll(/[()]/g, '').replaceAll(/_+/g, '_');
         if (!/^[a-z0-9_]/.test(canonicalKey)) {
           canonicalKey = `he_${Buffer.from(hebrewName, 'utf8').toString('hex').slice(0, 24)}`;
         }

@@ -833,6 +833,7 @@ When `RESILIENCE_THIN_EVIDENCE_POLICY` is on (default) and `evidence_mass < 1.5`
 
 | Condition | Operator instrument | Shows 1–10? |
 |---|---|---|
+| `salience_critical` (high-salience bypass) | `critical_single_signal` | **Yes** (with alert) |
 | Raw score inside `[3, 8]` | `limited_evidence_neutral` | No |
 | Raw score outside `[3, 8]` | `unverified_alert` | No |
 | Zero metrics-eligible signals | `insufficient_data` | No |
@@ -884,6 +885,8 @@ score = round( clamp_{[1,10]}( 5.5 + 4.5 · adjusted_strength ) )
 ```
 
 Plus a **min-mass floor**: if `evidence_mass < 1.5`, the score is clamped into `[3, 8]`. Thin single-signal evidence cannot push a score to the extremes.
+
+**High-salience bypass** (`highSalienceBypass.js`, on by default): when mass is still below 1.5 but a single verified high-stakes signal dominates (≥85% of component mass), passes critical-stakes + credibility-booster gates, the component may receive `salience_critical: true` and operator instrument `critical_single_signal` (score visible with alert). If the raw score would fall below 3, `floor_bypassed: true` skips the lower clamp asymmetrically; thin positive scores above 8 remain capped. Disable with `RESILIENCE_HIGH_SALIENCE_BYPASS=0`.
 
 `5.5` is neutral (rounded to "moderate" in UI labels). The ±4.5 range maps adjusted directional strength into 1–10.
 
@@ -1619,7 +1622,9 @@ tests/
 - **Many-to-many mapping** — one signal may push or pull several components, with signed weights.
 - **Adjusted strength** — `tanh(net/tanhK_c) · coverage_adj · source_div_f · type_div_f`. Maps directional evidence to `[-1, 1]` after diversity penalties.
 - **Min-mass floor** — when `evidence_mass < 1.5`, the rounded score is clamped into `[3, 8]`. Prevents thin single-signal evidence from reaching the extremes.
+- **High-salience bypass** — when mass is below 1.5 but a verified critical single signal dominates, may set `salience_critical` (operator-visible alert) and optionally `floor_bypassed` (skip lower clamp when raw &lt; 3). See `highSalienceBypass.js`.
 - **`floor_clamped`** — boolean flag emitted on a component whenever the min-mass floor actually constrained the headline (the unconstrained score would have lain outside `[3, 8]`). Surfaced in the UI as *"thin evidence"*.
+- **`salience_critical`** — verified high-stakes single signal on a thin-evidence day; operator instrument `critical_single_signal` shows the score with an alert.
 - **`ci_unstable`** — boolean flag emitted on a component when more than 20 % of bootstrap resamples yielded no score; CI then becomes a widened fallback `[score − 2, score + 2]` clamped to `[1, 10]`.
 - **Source-type cap (Layer 1)** — 50% threshold preventing one channel (e.g. news) from dominating polarity mass.
 - **Article-source cap (Layer 2)** — 35% threshold preventing one outlet (e.g. Ynet) from dominating polarity mass *within* the press channel.

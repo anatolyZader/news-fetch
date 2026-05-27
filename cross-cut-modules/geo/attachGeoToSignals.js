@@ -1,4 +1,5 @@
 import { validateGeoEnvelope } from '../../business_modules/geo/domain/value_objects/geoEnrichmentSchema.js';
+import { GEO_PROVENANCE } from '../../business_modules/geo/domain/value_objects/geoProvenance.js';
 import { inferLocalityCandidateForSignal } from './localityCandidate.js';
 
 /**
@@ -8,36 +9,10 @@ import { inferLocalityCandidateForSignal } from './localityCandidate.js';
  */
 function stampResolutionScope(geo, scope) {
   if (!geo || geo.kind !== 'resolved' || typeof geo !== 'object') return geo;
-
   const existing = geo.resolution;
-  if (existing != null && typeof existing === 'object' && typeof existing.rawInput === 'string') {
+  if (existing != null && typeof existing === 'object') {
     return { ...geo, resolution: { ...existing, scope } };
   }
-
-  const me = geo.matchEvidence;
-  if (
-    me != null &&
-    typeof me === 'object' &&
-    typeof geo.canonicalKey === 'string' &&
-    geo.matchMethod
-  ) {
-    return {
-      ...geo,
-      resolution: {
-        rawInput: me.rawInput,
-        normalizedInput: me.normalizedInput,
-        canonicalKey: geo.canonicalKey,
-        matchedName: geo.matchedName ?? me.matchedVariant,
-        matchedVariant: me.matchedVariant,
-        matchMethod: geo.matchMethod,
-        matchConfidence: geo.matchConfidence,
-        candidateCount: me.candidateCount,
-        geoEntityType: geo.geoEntityType,
-        scope,
-      },
-    };
-  }
-
   return geo;
 }
 
@@ -58,11 +33,6 @@ export function attachGeoToSignals(signals, geoEnrichmentPort, opts = {}) {
   let resolved = 0;
   let unknown = 0;
 
-  const resolveOpts = {
-    sourceType: opts.sourceType,
-    reporterSubregionHint: opts.reporterSubregionHint,
-  };
-
   const out = list.map((s) => {
     if (!s || typeof s !== 'object' || ('geo' in s && s.geo != null)) {
       return s;
@@ -70,17 +40,29 @@ export function attachGeoToSignals(signals, geoEnrichmentPort, opts = {}) {
 
     let candidate = null;
     let scope = 'signal';
+    let provenance = GEO_PROVENANCE.direct;
 
     const inferred = inferLocalityCandidateForSignal(s, { nameIndex: opts.nameIndex });
     if (inferred.candidate) {
       candidate = inferred.candidate;
       scope = inferred.scope;
+      provenance = inferred.provenance ?? GEO_PROVENANCE.text_inferred;
     } else if (opts.messageLocality) {
       candidate = opts.messageLocality;
       scope = 'message';
+      provenance = GEO_PROVENANCE.message_level;
     }
 
-    const geoRaw = geoEnrichmentPort.resolveLocalityName(candidate, resolveOpts);
+    if (!candidate) {
+      return s;
+    }
+
+    const geoRaw = geoEnrichmentPort.resolveLocalityName(candidate, {
+      sourceType: opts.sourceType ?? s.source_type,
+      reporterSubregionHint: opts.reporterSubregionHint,
+      provenance,
+      resolutionScope: scope,
+    });
     const geo = stampResolutionScope(geoRaw, scope);
 
     if (process.env.GEO_ASSERT_ENVELOPE === '1') {
@@ -108,25 +90,27 @@ export function attachGeoToSignals(signals, geoEnrichmentPort, opts = {}) {
  */
 export function attachGeoToSignalsAndStructured(signals, structured, geoEnrichmentPort, opts = {}) {
   const messageLocality =
-    structured?.observation?.locality != null
-      ? String(structured.observation.locality).trim() || null
-      : null;
+    structured?.observation?.locality == null
+      ? null
+      : String(structured.observation.locality).trim() || null;
 
   const { signals: withGeo } = attachGeoToSignals(signals, geoEnrichmentPort, {
     ...opts,
     messageLocality,
   });
 
-  const obsGeo =
-    withGeo.find((s) => s?.geo)?.geo ??
-    geoEnrichmentPort.resolveLocalityName(messageLocality, {
-      sourceType: opts.sourceType,
-      reporterSubregionHint: opts.reporterSubregionHint,
-    });
+  const obsGeo = messageLocality
+    ? geoEnrichmentPort.resolveLocalityName(messageLocality, {
+        sourceType: opts.sourceType,
+        reporterSubregionHint: opts.reporterSubregionHint,
+        provenance: GEO_PROVENANCE.message_level,
+        resolutionScope: 'message',
+      })
+    : withGeo.find((s) => s?.geo)?.geo ?? null;
 
   const observation = {
     ...structured.observation,
-    geo: stampResolutionScope(obsGeo, messageLocality ? 'message' : 'signal'),
+    ...(obsGeo ? { geo: stampResolutionScope(obsGeo, messageLocality ? 'message' : 'signal') } : {}),
   };
 
   return {

@@ -337,7 +337,7 @@ export function mergeLoadedSignalFiles(loadedFiles) {
 export function dedupWithinSource(allSignals) {
   const seen = new Map();
   for (const s of allSignals) {
-    const normEvidence = (s.evidence ?? '').replace(/[^\w\u0590-\u05FF]/g, '').toLowerCase().slice(0, 80);
+    const normEvidence = (s.evidence ?? '').replaceAll(/[^\w\u0590-\u05FF]/g, '').toLowerCase().slice(0, 80);
     const key = `${s.signal_type}|${s.article_source ?? ''}|${normEvidence}`;
     const existing = seen.get(key);
     if (!existing || (s.temporal_weight ?? 1) > (existing.temporal_weight ?? 1)) {
@@ -356,7 +356,7 @@ export function dedupWithinSource(allSignals) {
 function normalisedEvidence(s) {
   return (s.evidence ?? '')
     .toLowerCase()
-    .replace(/[^\w\u0590-\u05FF]/g, '')
+    .replaceAll(/[^\w\u0590-\u05FF]/g, '')
     .slice(0, 120);
 }
 

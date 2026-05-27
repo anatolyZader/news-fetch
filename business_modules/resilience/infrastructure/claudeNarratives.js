@@ -1,6 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { RESILIENCE_COMPONENTS } from '../domain/resilienceComponents.js';
 import { summarizeConfidence, overallScore, scoreComponents } from '../domain/services/behaviorSignals.js';
+import { salienceContextFromDataVoid } from '../domain/services/highSalienceBypass.js';
 import { computeNorrisCapacities } from '../domain/services/norrisCapacities.js';
 import { narrativeIncludesScores } from '../domain/services/assessmentDisplayTier.js';
 import { extractJson } from './claudeJsonHelpers.js';
@@ -99,13 +100,26 @@ function formatScoredMetricsWithScores(scored, totalArticles) {
   );
 }
 
+function geoAuditTagsForSignal(s) {
+  const g = s?.geo;
+  if (g?.kind !== 'resolved') return '';
+  const prov = g.resolution?.provenance;
+  const parts = [];
+  if (prov) parts.push(`geo:provenance=${prov}`);
+  if (s.metricsEligible === false) parts.push('metricsEligible=false');
+  const scopeConf = g.policy?.scopeConfidence ?? g.scopeConfidence;
+  if (scopeConf) parts.push(`scopeConfidence=${scopeConf}`);
+  return parts.length ? `\n  Geo audit: ${parts.join(' ')}` : '';
+}
+
 function formatSignalBlock(signals) {
   return (signals ?? []).map((s) => {
     const fd = s.signal_file_date ? `  Source bundle date: ${s.signal_file_date}\n` : '';
     const urlLine = s.article_url ? `\n  URL: ${s.article_url}` : '';
+    const geoTags = geoAuditTagsForSignal(s);
     return (
       `  [${s.signal_type}] (scope:${s.scope_level ?? 'single_case'}, ev:${s.evidence_type ?? 'unknown'}, conf:${(s.extraction_confidence ?? 1).toFixed(2)})\n` +
-      `${fd}  Evidence: "${s.evidence}"${urlLine}`
+      `${fd}  Evidence: "${s.evidence}"${urlLine}${geoTags}`
     );
   }).join('\n');
 }
@@ -282,6 +296,7 @@ const NARRATIVE_RULES_BLOCK =
   `- DELTA + CONTESTED EVIDENCE TAGS: When a component's pre-computed line shows "SIGNIFICANT" or "SIGNIFICANT_vs_baseline", include a brief trend phrase ("a notable shift vs the 14-day baseline"). When it shows "contested", note that the evidence is split between supporting and opposing observations rather than collapsing to a single verdict. Do not invent direction or magnitude beyond what the instrument tags say.\n` +
   `- THIN EVIDENCE / ABSTENTION: When instrument tags include thin_evidence_floor, limited_evidence_neutral, or unverified_alert, do NOT use stability language ("calm", "stable", "normal"). For unverified_alert, lead with "a single unverified report suggests…" and recommend corroboration. For critical_single_signal, lead with "one verified high-stakes report indicates…", state corroboration is still limited, and do NOT treat the situation as stable.\n` +
   `- SUPPRESSION: When suppression_delta is large (|Δ|≥1), note that raw signal stream differed from the headline-adjusted assessment and explain why (e.g. single-source concentration).\n` +
+  `- TEXT-INFERRED GEO: When Geo audit tags show geo:provenance=text_inferred or metricsEligible=false, treat the signal as geographic context only — do NOT describe it as on-the-ground behavioral evidence at that locality.\n` +
   `- SCOPE DISCIPLINE: Never use "the only", "the one exception", "uniquely", or similar exclusive claims.\n` +
   `  The inputs are a sample, not a census. Something appearing once in the data means it was reported once — not that it is the sole instance.\n` +
   `- LINKS: Each signal has a URL. When a signal has a URL, embed a markdown link for every significant claim:\n` +
@@ -428,6 +443,10 @@ function buildAssessmentComponent(def, scored, narr) {
     delta_significance: scored.delta_significance ?? null,
     delta_flag: scored.delta_flag ?? null,
     floor_clamped: scored.floor_clamped === true,
+    floor_bypassed: scored.floor_bypassed === true,
+    salience_critical: scored.salience_critical === true,
+    salience_bypass_reasons: scored.salience_bypass_reasons ?? [],
+    salience_dominant_signal_type: scored.salience_dominant_signal_type ?? null,
     ci_unstable: scored.ci_unstable === true,
     source_cap_binding: scored.source_cap_binding === true,
     derived_indicators: scored.derived_indicators ?? null,
@@ -557,7 +576,23 @@ export async function generateNarratives(
 // Backwards-compat: synthesizeComponents wraps the new two-step (score + narrate)
 // so that api/analysisService.js and cross-cut-modules/budget token audit continue to work.
 
-export async function synthesizeComponents(signals, date, totalArticles, { onUsage, onProgress, contentKind } = {}) {
-  const scored = scoreComponents(signals, { totalArticles });
-  return generateNarratives(scored, signals, date, totalArticles, { onUsage, onProgress, contentKind });
+export async function synthesizeComponents(signals, date, totalArticles, {
+  onUsage,
+  onProgress,
+  contentKind,
+  dataVoid = null,
+  salienceContext = null,
+} = {}) {
+  const scored = scoreComponents(signals, {
+    totalArticles,
+    salienceContext: salienceContext ?? salienceContextFromDataVoid(dataVoid),
+  });
+  return generateNarratives(scored, signals, date, totalArticles, {
+    onUsage,
+    onProgress,
+    contentKind,
+    dataVoid,
+  });
 }
+
+export { buildAssessmentPayload };

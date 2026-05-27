@@ -10,8 +10,8 @@ export function contentBatchFromMdArticles(rawArticles, meta) {
   return {
     reportDate,
     contentKind,
-    ...(priorAssessments != null ? { priorAssessments } : {}),
-    ...(sourceRunId != null ? { sourceRunId } : {}),
+    ...(priorAssessments == null ? {} : { priorAssessments }),
+    ...(sourceRunId == null ? {} : { sourceRunId }),
     items: rawArticles.map((a, i) => ({
       id: `${a.sourceFile}#${i}`,
       title: a.title,

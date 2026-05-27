@@ -14,7 +14,7 @@ const REPO_ROOT = resolve(__dirname, '..', '..', '..');
 const DEFAULT_HOMEFRONT_MD = 'business_modules/news-sites/articles_extracted/articles-homefront.md';
 
 function normalize(s) {
-  return String(s ?? '').replace(/\s+/g, ' ').trim();
+  return String(s ?? '').replaceAll(/\s+/g, ' ').trim();
 }
 
 function safeLower(s) {

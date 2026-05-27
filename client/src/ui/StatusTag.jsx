@@ -15,7 +15,7 @@ export function StatusTag({ variant = 'neutral', children, className = '' }) {
         const tone = theme.palette.score?.[key] ?? theme.palette.score.neutral;
         return {
           height: theme.spacing(2.75),
-          borderRadius: theme.custom.radius.pill,
+          borderRadius: `${theme.custom.radius.section}px`,
           fontWeight: 700,
           fontSize: theme.typography.caption.fontSize,
           color: tone.main,

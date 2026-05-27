@@ -1,9 +1,14 @@
-import { basename, join } from 'node:path';
-import { unlinkSync, rmdirSync } from 'node:fs';
+import { basename, join, resolve } from 'node:path';
+import { unlinkSync, rmdirSync, mkdirSync } from 'node:fs';
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
 import { AudioIngestService } from './audioIngestService.js';
 import { contextualizeTranscript as defaultContextualizer } from './audioTranscriptContextualizer.js';
+
+const APP_TEMP_ROOT = resolve(process.cwd(), 'data', '.tmp');
+
+function ensureAppTempRoot() {
+  mkdirSync(APP_TEMP_ROOT, { recursive: true });
+}
 
 function safeCleanup(filePath) {
   if (!filePath) return;
@@ -15,7 +20,7 @@ function safeCleanup(filePath) {
   try {
     const parts = filePath.split('/');
     const dir = parts.slice(0, -1).join('/');
-    if (dir.includes('/tmp/audio-url-')) rmdirSync(dir);
+    if (dir.includes('audio-evidence-') || dir.includes('audio-url-')) rmdirSync(dir);
   } catch {
     /* ignore */
   }
@@ -37,8 +42,8 @@ function parseAudioMarkdownEvidenceItems(markdown, { date, sourceUrl, sourceLabe
       const [rawTitle = '', ...rest] = section.split('\n');
       const body = rest
         .join('\n')
-        .replace(/^- \*\*(URL|Published|Source):\*\*.*$/gm, '')
-        .replace(/^---$/gm, '')
+        .replaceAll(/^- \*\*(URL|Published|Source):\*\*.*$/gm, '')
+        .replaceAll(/^---$/gm, '')
         .trim();
       return {
         date,
@@ -90,7 +95,8 @@ export class AudioEvidenceIngestService {
    * @param {{ filePath: string, date: string, sourceUrl?: string, sourceLabel?: string }} p
    */
   async ingestAudioFileToEvidenceItems({ filePath, date, sourceUrl = '', sourceLabel = 'audio-upload' }) {
-    const tmp = await mkdtemp(join(tmpdir(), 'audio-evidence-'));
+    ensureAppTempRoot();
+    const tmp = await mkdtemp(join(APP_TEMP_ROOT, 'audio-evidence-'));
     const outPath = join(tmp, 'articles-audio.md');
     try {
       await this.audioIngestService.ingestToMarkdown({

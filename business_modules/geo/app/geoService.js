@@ -13,7 +13,6 @@ import {
 import { GEO_ENVELOPE_SCHEMA_VERSION } from '../domain/value_objects/geoEnvelopeVersion.js';
 import { deriveGeoQualityFields, deriveScopeConfidence, FUZZY_METRICS_MIN_CONFIDENCE, GEO_POLICY_VERSION } from '../domain/services/geoQualityPolicy.js';
 import {
-  CENTROID_GEOMETRY_ONLY_ENTITY_TYPES,
   coalesceGeoEntityTypeHint,
   distanceSemanticsForGeoEntityType,
   resolveReferenceGeoEntityType,
@@ -21,6 +20,7 @@ import {
 import { buildGeoScopeDecision } from '../domain/services/geoScopeDecisionFromResolved.js';
 import { validateGeoEnvelope } from '../domain/value_objects/geoEnrichmentSchema.js';
 import { isGolanSubregionId } from '../domain/value_objects/northSubregionId.js';
+import { GEO_PROVENANCE } from '../domain/value_objects/geoProvenance.js';
 
 /**
  * @param {import('../domain/value_objects/geoEnrichment.js').NorthLocalityRow} row
@@ -125,11 +125,19 @@ export function createGeoService({ northReferencePort, overridesPort = null }) {
 
     /**
      * @param {string|null|undefined} rawName
-     * @param {{ sourceType?: string, reporterSubregionHint?: string }} [options]
+     * @param {{
+     *   sourceType?: string,
+     *   reporterSubregionHint?: string,
+     *   provenance?: string,
+     *   resolutionScope?: 'signal' | 'message',
+     * }} [options]
      * @returns {import('../domain/value_objects/geoEnrichment.js').GeoResolved | import('../domain/value_objects/geoEnrichment.js').GeoUnknown}
      */
     resolveLocalityName(rawName, options = {}) {
       const preferSubregionId = String(options.reporterSubregionHint ?? '').trim().toLowerCase() || undefined;
+      const provenance = String(options.provenance ?? GEO_PROVENANCE.direct).trim();
+      const resolutionScope = options.resolutionScope;
+      const sourceType = options.sourceType;
       const trimmed = String(rawName ?? '').trim();
       if (!trimmed) {
         return unknown('NO_LOCALITY', null, undefined, { geoEntityType: 'unknown', normalizedInput: null });
@@ -227,41 +235,49 @@ export function createGeoService({ northReferencePort, overridesPort = null }) {
       const geoEntityType = coalesceGeoEntityTypeHint(hit.overrideGeoEntityType, fromReference);
       const distanceSemantics = distanceSemanticsForGeoEntityType(geoEntityType);
 
-      const { quality, usableForMetrics, requiresReview } = deriveGeoQualityFields({
+      const { quality, usableForMetrics, requiresReview, policyReasons } = deriveGeoQualityFields({
         matchMethod,
         matchConfidence,
         geoEntityType,
+        provenance,
+        sourceType,
       });
       const scopeConfidence = deriveScopeConfidence({ usableForMetrics, requiresReview });
       const matchedVariant = pickMatchedDisplayName(row, trimmed);
       const candidateCount =
         matchMethod === 'fuzzy' && Number.isFinite(fuzzyCandidateCount) ? fuzzyCandidateCount : 1;
       const resolvedAt = new Date().toISOString();
-      const decisionReasons = [];
-      if (matchMethod === 'manual_override') decisionReasons.push('manual_override');
-      else if (matchMethod === 'fuzzy') decisionReasons.push(`fuzzy>=${FUZZY_METRICS_MIN_CONFIDENCE}`);
-      else decisionReasons.push('deterministic_match');
-      if (CENTROID_GEOMETRY_ONLY_ENTITY_TYPES.has(geoEntityType)) {
-        decisionReasons.push('centroid_geometry_only');
+      const decisionReasons = [...policyReasons];
+      if (matchMethod === 'manual_override') {
+        decisionReasons.length = 0;
+        decisionReasons.push('manual_override');
       }
 
       /** @type {import('../domain/value_objects/geoEnrichment.js').GeoResolved} */
       const band = distanceBandForKm(distanceKmToNorthBorder, distanceBandPolicy);
 
+      /** @type {import('../domain/value_objects/geoEnrichment.js').GeoResolution} */
+      const resolution = {
+        rawInput: trimmed,
+        normalizedInput: normalizeLocalityLookupKey(trimmed),
+        canonicalKey: row.canonicalKey,
+        matchedName: matchedVariant,
+        matchedVariant,
+        matchMethod,
+        matchConfidence,
+        candidateCount,
+        geoEntityType,
+        provenance,
+      };
+      if (resolutionScope === 'signal' || resolutionScope === 'message') {
+        resolution.scope = resolutionScope;
+      }
+
       const resolved = {
         kind: 'resolved',
         envelopeSchemaVersion: GEO_ENVELOPE_SCHEMA_VERSION,
-        resolution: {
-          rawInput: trimmed,
-          normalizedInput: normalizeLocalityLookupKey(trimmed),
-          canonicalKey: row.canonicalKey,
-          matchedName: matchedVariant,
-          matchedVariant,
-          matchMethod,
-          matchConfidence,
-          candidateCount,
-          geoEntityType,
-        },
+        geoEntityType,
+        resolution,
         classification: {
           pboSubregionId,
           geoAreaTags: geoAreaTagsForPboSubregion(pboSubregionId),
@@ -285,31 +301,12 @@ export function createGeoService({ northReferencePort, overridesPort = null }) {
           source: referenceSource,
           resolvedAt,
         },
-        geoEntityType,
         matchEvidence: {
           rawInput: trimmed,
           normalizedInput: normalizeLocalityLookupKey(trimmed),
           matchedVariant,
           candidateCount,
         },
-        scopeConfidence,
-        geoPolicyVersion: GEO_POLICY_VERSION,
-        geoReferenceVersion: referenceVersion,
-        borderReferenceVersion: borderVersion,
-        source: referenceSource,
-        canonicalKey: row.canonicalKey,
-        matchedName: matchedVariant,
-        pboSubregionId,
-        geoAreaTags: geoAreaTagsForPboSubregion(pboSubregionId),
-        distanceKmToNorthBorder,
-        distanceBand: band,
-        distancePolicyVersion: distanceBandPolicy.version,
-        isGolan: isGolanSubregionId(pboSubregionId),
-        matchMethod,
-        matchConfidence,
-        quality,
-        usableForMetrics,
-        requiresReview,
       };
       if (emitLegacySubregionId) {
         resolved.subregionId = pboSubregionId;

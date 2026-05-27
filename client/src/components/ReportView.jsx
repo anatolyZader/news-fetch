@@ -65,7 +65,7 @@ function SourceBadge({ kind, children }) {
           fontSize: theme.typography.eyebrow.fontSize,
           fontWeight: theme.typography.eyebrow.fontWeight,
           letterSpacing: '0.02em',
-          borderRadius: theme.custom.radius.xs,
+          borderRadius: `${theme.custom.radius.section}px`,
           lineHeight: 1.3,
           paddingTop: theme.spacing(0.25),
           paddingBottom: theme.spacing(0.25),
@@ -85,6 +85,42 @@ function SourceBadge({ kind, children }) {
   );
 }
 
+function GeoEpistemicBadge({ signal, t }) {
+  const prov = signal?.geo?.resolution?.provenance;
+  const metricsOff =
+    signal?.metricsEligible === false
+    || signal?.geo?.policy?.usableForMetrics === false
+    || signal?.geo?.usableForMetrics === false;
+  if (prov !== 'text_inferred' && !metricsOff) return null;
+  const label = prov === 'text_inferred' ? t('report.geo.textInferred') : t('report.geo.notInScores');
+  return (
+    <Box
+      component="span"
+      title={t('report.geo.notInScoresHint')}
+      sx={(theme) => ({
+        display: 'inline-flex',
+        alignItems: 'center',
+        fontSize: theme.typography.eyebrow.fontSize,
+        fontWeight: 500,
+        borderRadius: `${theme.custom.radius.section}px`,
+        lineHeight: 1.3,
+        paddingTop: theme.spacing(0.25),
+        paddingBottom: theme.spacing(0.25),
+        paddingLeft: theme.spacing(0.5),
+        paddingRight: theme.spacing(0.5),
+        marginInlineStart: theme.spacing(0.5),
+        verticalAlign: 'middle',
+        whiteSpace: 'nowrap',
+        border: `1px solid ${theme.palette.warning.main}`,
+        background: theme.palette.warning.light,
+        color: theme.palette.warning.contrastText,
+      })}
+    >
+      {label}
+    </Box>
+  );
+}
+
 function scoreLabel(s, t) {
   return scoreLabel10(s, {
     critical: t('score.critical'),
@@ -100,19 +136,25 @@ function fmt01(x) {
   return `${Math.round(x * 100)}%`;
 }
 
-function ReportSection({ title, children, ...props }) {
+function ReportSection({ title, children, flat = false, ...props }) {
   return (
     <Box
       component="section"
-      sx={(theme) => ({
-        background: theme.palette.background.paper,
-        border: theme.custom.border.hairline,
-        borderRadius: theme.custom.radius.lg,
-        paddingTop: theme.spacing(2.5),
-        paddingBottom: theme.spacing(2.5),
-        paddingLeft: theme.spacing(3),
-        paddingRight: theme.spacing(3),
-      })}
+      sx={(theme) => (flat
+        ? {
+          paddingTop: theme.spacing(2.5),
+          paddingBottom: theme.spacing(2.5),
+          borderBottom: theme.custom.border.hairline,
+        }
+        : {
+          background: theme.palette.background.paper,
+          border: theme.custom.border.hairline,
+          borderRadius: `${theme.custom.radius.section}px`,
+          paddingTop: theme.spacing(2.5),
+          paddingBottom: theme.spacing(2.5),
+          paddingLeft: theme.spacing(3),
+          paddingRight: theme.spacing(3),
+        })}
       {...props}
     >
       <Typography
@@ -166,7 +208,7 @@ function DeltaAdornment({ delta, significant, t }) {
         marginInlineStart: theme.spacing(0.5),
         paddingInline: theme.spacing(0.6),
         paddingBlock: '1px',
-        borderRadius: theme.custom.radius.xs,
+        borderRadius: `${theme.custom.radius.section}px`,
         fontSize: theme.typography.eyebrow.fontSize,
         fontWeight: 600,
         lineHeight: 1.2,
@@ -189,7 +231,7 @@ function ComponentChip({ label, variant, value, t, comp }) {
       sx={(theme) => ({
         background: theme.palette.background.paper,
         border: theme.custom.border.hairline,
-        borderRadius: theme.custom.radius.pill,
+        borderRadius: `${theme.custom.radius.section}px`,
         paddingTop: theme.spacing(0.4),
         paddingBottom: theme.spacing(0.4),
         paddingLeft: theme.spacing(1),
@@ -266,7 +308,7 @@ function ContestedBadge({ t }) {
         fontWeight: 600,
         color: theme.palette.warning.main,
         border: `1px solid ${theme.palette.warning.main}`,
-        borderRadius: theme.custom.radius.xs,
+        borderRadius: `${theme.custom.radius.section}px`,
         paddingInline: theme.spacing(0.6),
         paddingBlock: '1px',
         textTransform: 'lowercase',
@@ -347,7 +389,7 @@ function WhyThisScore({ comp, t }) {
       paddingBottom: theme.spacing(0.75),
       paddingLeft: theme.spacing(1),
       paddingRight: theme.spacing(1),
-      borderRadius: theme.custom.radius.sm,
+      borderRadius: `${theme.custom.radius.section}px`,
       background: theme.palette.action.hover,
     })}>
       <Typography
@@ -452,7 +494,7 @@ function FacetBars({ facets, t }) {
         {entries.map(([name, f]) => {
           const labelKey = `report.facet.${name}`;
           const facetLabel = t(labelKey) === labelKey ? name : t(labelKey);
-          const pct = f.score != null ? (f.score / 10) * 100 : 0;
+          const pct = f.score == null ? 0 : (f.score / 10) * 100;
           return (
             <Box key={name}>
               <Stack direction="row" justifyContent="space-between" alignItems="center">
@@ -460,7 +502,7 @@ function FacetBars({ facets, t }) {
                   {facetLabel}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
-                  {f.score != null ? `${f.score}/10` : '—'}
+                  {f.score == null ? '—' : `${f.score}/10`}
                   {' · '}
                   {f.signal_count ?? 0}
                 </Typography>
@@ -482,9 +524,9 @@ function FacetBars({ facets, t }) {
 function DeltaLine({ comp, t }) {
   if (comp.delta_score == null) return null;
   const sign = comp.delta_score > 0 ? '+' : '';
-  const sigText = comp.delta_significance != null
-    ? ` (z=${comp.delta_significance.toFixed(2)})`
-    : '';
+  const sigText = comp.delta_significance == null
+    ? ''
+    : ` (z=${comp.delta_significance.toFixed(2)})`;
   return (
     <Typography
       variant="caption"
@@ -510,7 +552,7 @@ function MacroSignalsSection({ macroSignals, t, isAnalyst }) {
     <Box sx={(theme) => ({
       padding: theme.spacing(1.5),
       border: theme.custom.border.hairline,
-      borderRadius: theme.custom.radius.sm,
+      borderRadius: `${theme.custom.radius.section}px`,
       background: theme.palette.action.hover,
     })}>
       <Typography variant="cardTitle" sx={{ marginBottom: 1 }}>
@@ -539,6 +581,7 @@ function ComponentCard({
   driftSeries,
   driftLoading,
   displayTier = 'operator',
+  flat = false,
   open,
   evidenceOpen,
   onToggle,
@@ -558,18 +601,34 @@ function ComponentCard({
   const isContested = comp.polarization != null && comp.polarization > 0.5
     && (comp.evidence_mass ?? 0) > 4;
 
+  const flatAccordionSx = (theme) => ({
+    marginBottom: 0,
+    borderRadius: '0 !important',
+    border: 'none',
+    boxShadow: 'none',
+    backgroundColor: 'transparent',
+    '&:before': { display: 'none' },
+    '&.Mui-expanded': { margin: 0 },
+    '& .MuiAccordionSummary-root': {
+      backgroundColor: 'transparent',
+    },
+    '&.Mui-expanded .MuiAccordionSummary-root': {
+      backgroundColor: theme.palette.action.hover,
+    },
+  });
+
   return (
     <Accordion
       expanded={open}
       onChange={(_, expanded) => onToggle(expanded)}
-      sx={(theme) => ({
-        marginBottom: theme.spacing(1),
-        ...(isInsufficient ? {
-          borderStyle: 'dashed',
-          opacity: 0.85,
-          backgroundColor: theme.palette.action.hover,
-        } : null),
-      })}
+      sx={(theme) => (flat
+        ? flatAccordionSx(theme)
+        : {
+          marginBottom: theme.spacing(1),
+          ...(isInsufficient ? {
+            backgroundColor: theme.palette.action.hover,
+          } : null),
+        })}
     >
       <AccordionSummary>
         {createElement(getComponentIcon(comp.component_id), {
@@ -663,7 +722,16 @@ function ComponentCard({
           <Accordion
             expanded={evidenceOpen}
             onChange={(_, expanded) => onEvidenceToggle(expanded)}
-            sx={(theme) => ({ borderRadius: `${theme.custom.radius.sm}px !important` })}
+            sx={(theme) => (flat
+              ? {
+                marginTop: theme.spacing(0.5),
+                borderRadius: '0 !important',
+                border: 'none',
+                borderTop: theme.custom.border.hairline,
+                boxShadow: 'none',
+                backgroundColor: 'transparent',
+              }
+              : { borderRadius: `${theme.custom.radius.section}px !important` })}
           >
             <AccordionSummary sx={(theme) => ({
               color: theme.palette.text.secondary,
@@ -707,6 +775,7 @@ function ComponentCard({
                         {s.source_type === 'social' && <SourceBadge kind="social">{t('report.badge.social')}</SourceBadge>}
                         {s.source_type === 'pbo' && <SourceBadge kind="pbo">{t('report.badge.pbo')}</SourceBadge>}
                         {s.source_type === 'pbo' ? s.article_source?.replace(/^pbo-/, '') : s.article_source}
+                        <GeoEpistemicBadge signal={s} t={t} />
                       </Box>
                       <Box component="span" sx={{ display: 'block' }}>{s.evidence}</Box>
                     </Box>
@@ -735,7 +804,7 @@ export function ReportView({
   assessment,
   scoreBySource,
   displayTier = 'operator',
-  readOnly: _readOnly,
+  readOnly = false,
   translating,
   translateError,
   reportDate: _reportDate,
@@ -765,6 +834,9 @@ export function ReportView({
   const driftMap = driftByComponent ?? {};
   const methodology = assessment.methodology ?? null;
   const dataVoid = assessment.data_void ?? null;
+  const epistemicStatus = assessment.epistemic_status ?? null;
+  const assessmentMode = assessment.assessment_mode ?? 'normal';
+  const staleDigital = assessment.stale_digital_scores ?? null;
   const geoQuality = methodology?.scope?.geo_quality_summary ?? null;
   const geoMetricsSafePct = geoQuality?.pctUsableForMetrics ?? null;
 
@@ -794,7 +866,7 @@ export function ReportView({
 
   return (
     <Stack
-      spacing={4}
+      spacing={readOnly ? 2.5 : 4}
       aria-busy={translating ? 'true' : 'false'}
     >
       {translateError && (
@@ -811,6 +883,33 @@ export function ReportView({
           {dataVoid.information_vacuum_index != null && (
             <> · {t('report.dataVoid.vacuumIndex').replace('{value}', dataVoid.information_vacuum_index.toFixed(2))}</>
           )}
+          {epistemicStatus?.sampling_status && (
+            <> · {t('report.epistemicStatus.sampling').replace('{status}', epistemicStatus.sampling_status)}</>
+          )}
+          {dataVoid.reason && (
+            <> · {t('report.epistemicStatus.reason').replace('{reason}', dataVoid.reason)}</>
+          )}
+        </Alert>
+      )}
+
+      {assessmentMode === 'field_anchor_only' && (
+        <Alert severity="warning" variant="outlined">
+          {t('report.epistemicStatus.fieldAnchorOnly')}
+          {staleDigital?.scored_at && (
+            <> · {t('report.epistemicStatus.staleAt').replace('{at}', staleDigital.scored_at)}</>
+          )}
+        </Alert>
+      )}
+
+      {epistemicStatus?.sampling_status === 'blind' && assessmentMode === 'abstained' && (
+        <Alert severity="warning" variant="filled">
+          {t('report.epistemicStatus.samplingBlind')}
+        </Alert>
+      )}
+
+      {Array.isArray(dataVoid?.affected_clusters) && dataVoid.affected_clusters.length > 0 && (
+        <Alert severity="info" variant="outlined">
+          {t('report.dataVoid.clusters').replace('{n}', String(dataVoid.affected_clusters.length))}
         </Alert>
       )}
 
@@ -831,18 +930,6 @@ export function ReportView({
         </Alert>
       )}
 
-      {!isAnalyst && methodology && (
-        <Alert severity="info" variant="outlined">
-          {t('report.instrument.summaryTitle')}:{' '}
-          {t('report.instrument.summaryBody')
-            .replace('{scope}', assessment.report_scope?.label ?? 'national')
-            .replace('{adequate}', String(components.filter((c) => c.instrument?.evidence_sufficiency === 'adequate').length))
-            .replace('{total}', String(components.length))
-            .replace('{thin}', String(components.filter((c) => c.instrument?.evidence_sufficiency === 'thin').length))
-            .replace('{contested}', String(components.filter((c) => c.instrument?.contested).length))}
-        </Alert>
-      )}
-
       {geoMetricsSafePct != null && geoMetricsSafePct < 75 && _reportScope === 'north' && (
         <Alert severity="warning" variant="outlined">
           {t('report.methodology.northGeoQualityWarning').replace('{pct}', String(Math.round(geoMetricsSafePct)))}
@@ -857,6 +944,7 @@ export function ReportView({
             statusText={scoreLabel(overall, t)}
             statusColor={scoreColor10(overall, theme)}
             title={t('report.overallLabel')}
+            flat={readOnly}
           />
           <Box
             sx={(theme) => ({
@@ -882,17 +970,35 @@ export function ReportView({
       )}
 
       {isAnalyst && Array.isArray(norrisCaps) && norrisCaps.length > 0 && (
-        <ReportSection title={t('report.norris.title') ?? 'Norris capacities'}>
-          <Stack spacing={1.5}>
-            {norrisCaps.map((cap) => (
+        <ReportSection flat={readOnly} title={t('report.norris.title') ?? 'Norris capacities'}>
+          <Box
+            sx={(theme) => (readOnly
+              ? {
+                border: theme.custom.border.hairline,
+                borderRadius: `${theme.custom.radius.section}px`,
+                overflow: 'hidden',
+                background: theme.palette.background.paper,
+              }
+              : undefined)}
+          >
+            <Stack spacing={readOnly ? 0 : 1.5}>
+              {norrisCaps.map((cap, capIndex) => (
               <Box
                 key={cap.capacity_id}
-                sx={(theme) => ({
-                  border: theme.custom.border.hairline,
-                  borderRadius: theme.custom.radius.md,
-                  padding: theme.spacing(1.5),
-                  background: theme.palette.background.default,
-                })}
+                sx={(theme) => (readOnly
+                  ? {
+                    padding: theme.spacing(1.5),
+                    background: theme.palette.background.default,
+                    borderBottom: capIndex < norrisCaps.length - 1
+                      ? theme.custom.border.hairline
+                      : 'none',
+                  }
+                  : {
+                    border: theme.custom.border.hairline,
+                    borderRadius: `${theme.custom.radius.section}px`,
+                    padding: theme.spacing(1.5),
+                    background: theme.palette.background.default,
+                  })}
               >
                 <Stack
                   direction={{ xs: 'column', sm: 'row' }}
@@ -913,13 +1019,13 @@ export function ReportView({
 
                   <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
                     <StatusTag variant={scoreVariant10(cap.score)}>
-                      {cap.score != null ? `${cap.score.toFixed(1)}/10` : '—'}
+                      {cap.score == null ? '—' : `${cap.score.toFixed(1)}/10`}
                     </StatusTag>
                     <Typography variant="body2" color="text.secondary">
-                      {t('norris.evidenceLevel') ?? 'Evidence level'}: {cap.certainty != null ? `${Math.round(cap.certainty * 100)}%` : '—'}
+                      {t('norris.evidenceLevel') ?? 'Evidence level'}: {cap.certainty == null ? '—' : `${Math.round(cap.certainty * 100)}%`}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                      {t('norris.evidenceMass') ?? 'Evidence mass'}: {cap.evidence_mass != null ? (Math.round(cap.evidence_mass * 10) / 10) : '—'}
+                      {t('norris.evidenceMass') ?? 'Evidence mass'}: {cap.evidence_mass == null ? '—' : (Math.round(cap.evidence_mass * 10) / 10)}
                     </Typography>
                   </Stack>
                 </Stack>
@@ -958,12 +1064,13 @@ export function ReportView({
                   </Box>
                 )}
               </Box>
-            ))}
-          </Stack>
+              ))}
+            </Stack>
+          </Box>
         </ReportSection>
       )}
 
-      <ReportSection title={t('report.executiveSummary')}>
+      <ReportSection flat={readOnly} title={t('report.executiveSummary')}>
         <Box
           sx={{
             maxWidth: 960,
@@ -978,39 +1085,54 @@ export function ReportView({
         </Box>
       </ReportSection>
 
-      <ReportSection title={t('report.components')}>
-        {(assessment.components ?? []).map((c) => (
-          <Box
-            key={c.component_id}
-            ref={(el) => {
-              if (el) compRefs.current[c.component_id] = el;
-            }}
-          >
-            <ComponentCard
-              comp={c}
-              t={t}
-              displayTier={displayTier}
-              sourceSignals={getSourceSignals(c.component_id)}
-              driftSeries={driftMap?.[c.component_id]?.series ?? []}
-              driftLoading={driftLoading}
-              open={openCompId === c.component_id}
-              evidenceOpen={openEvidenceCompId === c.component_id}
-              onToggle={(isOpen) => {
-                setOpenCompId(isOpen ? c.component_id : null);
-                if (!isOpen) {
-                  setOpenEvidenceCompId((prev) => (prev === c.component_id ? null : prev));
-                }
+      <ReportSection flat={readOnly} title={t('report.components')}>
+        <Box
+          sx={(theme) => (readOnly
+            ? {
+              border: theme.custom.border.hairline,
+              borderRadius: `${theme.custom.radius.section}px`,
+              overflow: 'hidden',
+              background: theme.palette.background.paper,
+            }
+            : undefined)}
+        >
+          {(assessment.components ?? []).map((c, componentIndex, componentList) => (
+            <Box
+              key={c.component_id}
+              ref={(el) => {
+                if (el) compRefs.current[c.component_id] = el;
               }}
-              onEvidenceToggle={(isOpen) => {
-                setOpenEvidenceCompId(isOpen ? c.component_id : null);
-              }}
-            />
-          </Box>
-        ))}
+              sx={(theme) => (readOnly && componentIndex < componentList.length - 1
+                ? { borderBottom: theme.custom.border.hairline }
+                : undefined)}
+            >
+              <ComponentCard
+                comp={c}
+                t={t}
+                displayTier={displayTier}
+                flat={readOnly}
+                sourceSignals={getSourceSignals(c.component_id)}
+                driftSeries={driftMap?.[c.component_id]?.series ?? []}
+                driftLoading={driftLoading}
+                open={openCompId === c.component_id}
+                evidenceOpen={openEvidenceCompId === c.component_id}
+                onToggle={(isOpen) => {
+                  setOpenCompId(isOpen ? c.component_id : null);
+                  if (!isOpen) {
+                    setOpenEvidenceCompId((prev) => (prev === c.component_id ? null : prev));
+                  }
+                }}
+                onEvidenceToggle={(isOpen) => {
+                  setOpenEvidenceCompId(isOpen ? c.component_id : null);
+                }}
+              />
+            </Box>
+          ))}
+        </Box>
       </ReportSection>
 
       {assessment.media_bias_caveats && (
-        <ReportSection title={t('report.caveats')}>
+        <ReportSection flat={readOnly} title={t('report.caveats')}>
           <Box sx={{ color: 'text.secondary' }}>
             <MarkdownArticle
               variant="report"
@@ -1032,6 +1154,7 @@ SourceBadge.propTypes = {
 ReportSection.propTypes = {
   title: PropTypes.string.isRequired,
   children: PropTypes.node,
+  flat: PropTypes.bool,
 };
 
 DeltaAdornment.propTypes = {
@@ -1095,6 +1218,7 @@ ComponentCard.propTypes = {
   driftSeries: PropTypes.array,
   driftLoading: PropTypes.bool,
   displayTier: PropTypes.oneOf(['operator', 'analyst']),
+  flat: PropTypes.bool,
   open: PropTypes.bool,
   evidenceOpen: PropTypes.bool,
   onToggle: PropTypes.func.isRequired,

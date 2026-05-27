@@ -33,7 +33,7 @@ export function parseWebVttToSegments(vtt) {
       i += 1;
     }
     const raw = bodyLines.join('\n').trim();
-    const cleaned = stripVttInlineTags(raw).replace(/\s+/g, ' ').trim();
+    const cleaned = stripVttInlineTags(raw).replaceAll(/\s+/g, ' ').trim();
     if (cleaned) {
       segments.push({
         speaker: 'CAPTION',
@@ -80,5 +80,5 @@ function parseVttTime(t) {
 
 /** @param {string} s */
 function stripVttInlineTags(s) {
-  return s.replace(/<[^>]+>/g, '');
+  return s.replaceAll(/<[^>]+>/g, '');
 }

@@ -89,7 +89,7 @@ export function createSocialMediaFsAdapter(opts = {}) {
     async saveTopicFetch(slug, payload) {
       const dir = resolve(dataDir, 'topic-fetches');
       mkdirSync(dir, { recursive: true });
-      const ts = new Date().toISOString().replace(/[:.]/g, '-');
+      const ts = new Date().toISOString().replaceAll(/[:.]/g, '-');
       const id = `topic-${slug}-${ts}`;
       const path = resolve(dir, `${id}.json`);
       writeFileSync(path, `${JSON.stringify(payload, null, 2)}\n`, 'utf8');

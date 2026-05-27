@@ -18,7 +18,7 @@ const LEGEND_FONT_SIZE = 11;
 function tooltipContentStyle(theme) {
   return {
     fontSize: 12,
-    borderRadius: theme.custom.radius.md,
+    borderRadius: `${theme.custom.radius.section}px`,
     border: `1px solid ${theme.palette.divider}`,
   };
 }

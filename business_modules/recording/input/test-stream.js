@@ -37,7 +37,7 @@ const getArg = (flag, def = null) => {
 };
 
 const streamUrl  = getArg('--url');
-const durationSec = parseInt(getArg('--duration', '30'), 10);
+const durationSec = Number.parseInt(getArg('--duration', '30'), 10);
 const defaultOut = join(__dirname, '..', '..', '..', 'recordings', 'test', `test-${Date.now()}.mp3`);
 const outputPath = resolve(getArg('--out', defaultOut));
 

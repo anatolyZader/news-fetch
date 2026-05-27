@@ -1,7 +1,20 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { verifyEvidenceAgainstArticle, tokenize } from './signalVerification.js';
+import {
+  verifyEvidenceAgainstArticle,
+  tokenize,
+  resolveQuoteText,
+} from './signalVerification.js';
 import { maybeRescueEvidenceWithEmbedding } from './embeddingEvidenceVerifier.js';
 import { extractJsonArray } from './claudeJsonHelpers.js';
+import {
+  GROUNDING_TIER,
+  assignGroundingFields,
+  groundingMetaFromVerifyPass,
+  groundingMetaFromEntailmentFail,
+  
+  isCriticalForGrounding,
+  isGroundingTieredVerifyEnabled,
+} from '../domain/services/groundingPolicy.js';
 
 const client = new Anthropic();
 const DEFAULT_SELF_CHECK_MODEL = process.env.RESILIENCE_SELF_CHECK_MODEL ?? 'claude-haiku-4-5-20251001';
@@ -12,6 +25,10 @@ const ENTAILMENT_THRESHOLDS = {
   named_institutional_fact: 0.5,
   observational_reported_fact: 0.4,
 };
+
+const SHORT_BODY_CHARS = 80;
+const SHORT_EVIDENCE_TOKENS = 8;
+const FULL_BODY_PREMISE_CHARS = 400;
 
 export function splitParagraphs(body) {
   const raw = String(body ?? '');
@@ -38,12 +55,24 @@ function entailmentThreshold(evidenceType) {
   return ENTAILMENT_THRESHOLDS[evidenceType] ?? 0.4;
 }
 
+export function isShortEvidence(signal) {
+  return tokenize(resolveQuoteText(signal)).length <= SHORT_EVIDENCE_TOKENS;
+}
+
+export function isShortBody(articleBody) {
+  return typeof articleBody === 'string' && articleBody.trim().length < SHORT_BODY_CHARS;
+}
+
+/**
+ * Whether to queue LLM entailment for a failed primary verification.
+ */
 export function shouldQueueEntailmentCheck(signal, primaryResult, articleBody) {
   if (process.env.RESILIENCE_NLI_VERIFY === '0') return false;
-  if (!articleBody || typeof articleBody !== 'string' || articleBody.trim().length < 80) {
-    return false;
-  }
+  if (!articleBody || typeof articleBody !== 'string' || !articleBody.trim()) return false;
   if (primaryResult?.reason !== 'low_similarity') return false;
+
+  if (isShortEvidence(signal) || isShortBody(articleBody)) return true;
+
   const sim = primaryResult?.sim;
   if (typeof sim !== 'number' || Number.isNaN(sim)) return false;
 
@@ -51,6 +80,16 @@ export function shouldQueueEntailmentCheck(signal, primaryResult, articleBody) {
   const low = Number.parseFloat(process.env.RESILIENCE_NLI_BORDERLINE_LOW ?? String(t * 0.65));
   const borderlineLow = Number.isFinite(low) ? Math.max(0.05, Math.min(t - 0.01, low)) : t * 0.65;
   return sim >= borderlineLow && sim < t;
+}
+
+export function selectEntailmentPremise(evidence, body, maxChars = 1400) {
+  if (isShortBody(body)) {
+    const trimmed = body.trim();
+    return trimmed.length > FULL_BODY_PREMISE_CHARS
+      ? `${trimmed.slice(0, FULL_BODY_PREMISE_CHARS)}...`
+      : trimmed;
+  }
+  return bestMatchingSnippet(evidence, body, maxChars);
 }
 
 export function bestMatchingSnippet(evidence, body, maxChars = 1400) {
@@ -74,13 +113,44 @@ export function bestMatchingSnippet(evidence, body, maxChars = 1400) {
   return snippet.length > maxChars ? `${snippet.slice(0, maxChars)}...` : snippet;
 }
 
+/**
+ * Resolve final tier for a signal that failed all automated checks.
+ * @returns {{ action: 'keep' | 'drop', meta: { tier: string, reason: string, method: string } }}
+ */
+export function resolveFailedGrounding(signal, primaryResult) {
+  if (!isGroundingTieredVerifyEnabled()) {
+    return {
+      action: 'drop',
+      meta: { tier: GROUNDING_TIER.rejected, reason: primaryResult?.reason ?? 'low_similarity', method: 'containment' },
+    };
+  }
+  if (isCriticalForGrounding(signal)) {
+    return {
+      action: 'keep',
+      meta: {
+        tier: GROUNDING_TIER.unverified_critical,
+        reason: 'verification_failed_critical',
+        method: primaryResult?.reason ?? 'containment',
+      },
+    };
+  }
+  return {
+    action: 'keep',
+    meta: {
+      tier: GROUNDING_TIER.weak,
+      reason: primaryResult?.reason ?? 'low_similarity',
+      method: 'containment',
+    },
+  };
+}
+
 function similaritySuffix(result) {
-  if (result.sim == null) return '';
+  if (result?.sim == null) return '';
   return `, sim=${result.sim.toFixed(2)}`;
 }
 
 function logDroppedEvidence(sourceLabel, result, signal) {
-  const evPreview = (signal.evidence ?? '').slice(0, 80).replace(/\s+/g, ' ');
+  const evPreview = (signal.evidence ?? '').slice(0, 80).replaceAll(/\s+/g, ' ');
   console.error(
     `  ⚠ [${sourceLabel}] Dropped unverifiable evidence ` +
     `(${result.reason}${similaritySuffix(result)}): ` +
@@ -88,35 +158,71 @@ function logDroppedEvidence(sourceLabel, result, signal) {
   );
 }
 
+function logTieredEvidence(sourceLabel, signal, meta) {
+  const evPreview = (signal.evidence ?? '').slice(0, 80).replaceAll(/\s+/g, ' ');
+  console.error(
+    `  ⚠ [${sourceLabel}] Kept ${meta.tier} evidence (${meta.reason}): ` +
+    `[${signal.signal_type}] "${evPreview}…"`,
+  );
+}
+
+function tagVerifiedSignal(signal, verifyResult, rescuedBy = null) {
+  const meta = groundingMetaFromVerifyPass(verifyResult, { rescuedBy });
+  return assignGroundingFields({ ...signal }, meta);
+}
+
 async function verifyOneSignal(s, articles, _sourceLabel) {
   const art = articles[s.article_index - 1];
-  const result = verifyEvidenceAgainstArticle(s, art?.body);
-  if (result.ok) return { status: 'verified', signal: s };
-
-  const emb = await maybeRescueEvidenceWithEmbedding(s, art?.body, result);
-  if (emb.ok) return { status: 'verified', signal: s };
-
-  if (shouldQueueEntailmentCheck(s, result, art?.body)) {
-    return { status: 'borderline', signal: s, artBody: art?.body ?? '', primary: result };
+  const body = art?.body ?? '';
+  const result = verifyEvidenceAgainstArticle(s, body);
+  if (result.ok) {
+    return { status: 'verified', signal: tagVerifiedSignal(s, result), verifyResult: result };
   }
 
-  return { status: 'dropped', reason: result.reason, result };
+  const emb = await maybeRescueEvidenceWithEmbedding(s, body, result);
+  if (emb.ok) {
+    return {
+      status: 'verified',
+      signal: tagVerifiedSignal(s, result, 'embedding'),
+      verifyResult: result,
+    };
+  }
+
+  if (shouldQueueEntailmentCheck(s, result, body)) {
+    return { status: 'borderline', signal: s, artBody: body, primary: result };
+  }
+
+  const resolved = resolveFailedGrounding(s, result);
+  if (resolved.action === 'drop') {
+    return { status: 'dropped', reason: result.reason, result };
+  }
+  assignGroundingFields(s, resolved.meta);
+  return { status: 'tiered', signal: s, meta: resolved.meta };
 }
 
 export async function applyEvidenceVerifier(signals, articles, sourceLabel, usageCallback = null) {
-  const verified = [];
+  const kept = [];
   const borderline = [];
   let dropped = 0;
   const reasonCounts = {};
+  const tierCounts = { tier_a: 0, tier_b: 0, tier_c: 0 };
 
   for (const s of signals) {
     const outcome = await verifyOneSignal(s, articles, sourceLabel);
     if (outcome.status === 'verified') {
-      verified.push(outcome.signal);
+      kept.push(outcome.signal);
+      tierCounts.tier_a++;
       continue;
     }
     if (outcome.status === 'borderline') {
       borderline.push({ s: outcome.signal, artBody: outcome.artBody, primary: outcome.primary });
+      continue;
+    }
+    if (outcome.status === 'tiered') {
+      kept.push(outcome.signal);
+      logTieredEvidence(sourceLabel, outcome.signal, outcome.meta);
+      if (outcome.meta.tier === GROUNDING_TIER.unverified_critical) tierCounts.tier_c++;
+      else tierCounts.tier_b++;
       continue;
     }
     dropped++;
@@ -125,11 +231,20 @@ export async function applyEvidenceVerifier(signals, articles, sourceLabel, usag
   }
 
   if (borderline.length > 0) {
-    const kept = await runEntailmentVerifier(borderline, sourceLabel, usageCallback);
-    for (const item of kept) verified.push(item);
-    dropped += borderline.length - kept.length;
-    if (dropped > 0) {
-      reasonCounts.entailment_reject = (reasonCounts.entailment_reject || 0) + (borderline.length - kept.length);
+    const entailmentOutcomes = await runEntailmentVerifier(borderline, sourceLabel, usageCallback);
+    for (const out of entailmentOutcomes) {
+      if (out.kept) {
+        kept.push(out.signal);
+        tierCounts.tier_a++;
+      } else if (out.tiered) {
+        kept.push(out.signal);
+        logTieredEvidence(sourceLabel, out.signal, out.meta);
+        if (out.meta.tier === GROUNDING_TIER.unverified_critical) tierCounts.tier_c++;
+        else tierCounts.tier_b++;
+      } else {
+        dropped++;
+        reasonCounts.entailment_reject = (reasonCounts.entailment_reject || 0) + 1;
+      }
     }
   }
 
@@ -141,14 +256,17 @@ export async function applyEvidenceVerifier(signals, articles, sourceLabel, usag
       label: `${sourceLabel} verifier`,
       stage: 'evidence_verifier',
       stats: {
-        kept: verified.length,
+        kept: kept.length,
         dropped,
         input: signals.length,
+        tier_a: tierCounts.tier_a,
+        tier_b: tierCounts.tier_b,
+        tier_c: tierCounts.tier_c,
         reason_counts: reasonCounts,
       },
     });
   }
-  return verified;
+  return kept;
 }
 
 function parseEntailmentVerdicts(text, itemCount) {
@@ -164,8 +282,20 @@ function parseEntailmentVerdicts(text, itemCount) {
   return keep;
 }
 
+/**
+ * @returns {Promise<Array<{ kept?: boolean, tiered?: boolean, signal: object, meta?: object }>>}
+ */
 export async function runEntailmentVerifier(borderlineItems, sourceLabel, usageCallback) {
-  if (process.env.RESILIENCE_NLI_VERIFY === '0') return [];
+  if (process.env.RESILIENCE_NLI_VERIFY === '0') {
+    return borderlineItems.map((it) => {
+      const resolved = resolveFailedGrounding(it.s, it.primary);
+      if (resolved.action === 'drop') {
+        return { kept: false, signal: it.s };
+      }
+      assignGroundingFields(it.s, resolved.meta);
+      return { tiered: true, signal: it.s, meta: resolved.meta };
+    });
+  }
   if (!borderlineItems.length) return [];
 
   const maxItems = Math.max(0, Math.min(30, Number.parseInt(process.env.RESILIENCE_NLI_MAX_ITEMS ?? '18', 10) || 18));
@@ -180,8 +310,8 @@ export async function runEntailmentVerifier(borderlineItems, sourceLabel, usageC
     `Do not use outside knowledge.\n`;
 
   const lines = items.map((it, i) => {
-    const ev = String(it.s?.evidence ?? '').trim().slice(0, 320);
-    const premise = bestMatchingSnippet(ev, it.artBody, 1400);
+    const ev = resolveQuoteText(it.s).trim().slice(0, 320);
+    const premise = selectEntailmentPremise(ev, it.artBody, 1400);
     return (
       `CASE ${i}\n` +
       `signal_type: ${it.s?.signal_type ?? 'unknown'}\n` +
@@ -205,26 +335,52 @@ export async function runEntailmentVerifier(borderlineItems, sourceLabel, usageC
     const text = textBlock ? textBlock.text : '';
     const keep = parseEntailmentVerdicts(text, items.length);
 
-    const kept = [];
+    const outcomes = [];
     for (let i = 0; i < items.length; i++) {
       if (keep.has(i)) {
-        kept.push(items[i].s);
+        const tagged = tagVerifiedSignal(items[i].s, items[i].primary, 'entailment');
+        outcomes.push({ kept: true, signal: tagged });
       } else {
-        const evPreview = String(items[i].s?.evidence ?? '').slice(0, 80).replace(/\s+/g, ' ');
-        console.error(`  ⚠ [${sourceLabel}] Dropped by entailment gate: [${items[i].s?.signal_type}] "${evPreview}…"`);
+        const evPreview = resolveQuoteText(items[i].s).slice(0, 80).replaceAll(/\s+/g, ' ');
+        if (!isGroundingTieredVerifyEnabled()) {
+          console.error(`  ⚠ [${sourceLabel}] Dropped by entailment gate: [${items[i].s?.signal_type}] "${evPreview}…"`);
+          outcomes.push({ kept: false, signal: items[i].s });
+          continue;
+        }
+        const meta = groundingMetaFromEntailmentFail(items[i].s);
+        assignGroundingFields(items[i].s, meta);
+        console.error(
+          `  ⚠ [${sourceLabel}] Entailment failed — kept as ${meta.tier}: [${items[i].s?.signal_type}] "${evPreview}…"`,
+        );
+        outcomes.push({ tiered: true, signal: items[i].s, meta });
       }
     }
     if (usageCallback) {
+      const keptCount = outcomes.filter((o) => o.kept).length;
+      const tieredCount = outcomes.filter((o) => o.tiered).length;
       usageCallback({
         label: `${sourceLabel} entailment`,
         stage: 'entailment_verifier',
         model,
-        stats: { kept: kept.length, dropped: items.length - kept.length, input: items.length },
+        stats: {
+          kept: keptCount,
+          tiered: tieredCount,
+          dropped: outcomes.length - keptCount - tieredCount,
+          input: items.length,
+        },
       });
     }
-    return kept;
+    return outcomes;
   } catch (err) {
-    console.error(`  ⚠ [${sourceLabel}] entailment verifier failed (${err.message}) — keeping borderline signals`);
-    return items.map((x) => x.s);
+    console.error(`  ⚠ [${sourceLabel}] entailment verifier failed (${err.message}) — tiering borderline signals`);
+    return borderlineItems.map((it) => {
+      const resolved = resolveFailedGrounding(it.s, it.primary);
+      assignGroundingFields(it.s, resolved.meta);
+      return { tiered: true, signal: it.s, meta: resolved.meta };
+    });
   }
 }
+
+
+
+export {deriveTierFromVerifyFailure, isCriticalForGrounding} from '../domain/services/groundingPolicy.js';

@@ -12,7 +12,7 @@ export function meaningfulTopicTokens(topic) {
   return String(topic ?? '')
     .toLowerCase()
     .split(/\s+/)
-    .map((t) => t.replace(/^['"']|['"']$/g, '').replace(/['']s$/i, ''))
+    .map((t) => t.replaceAll(/^['"]|['"]$/g, '').replace(/['']s$/i, ''))
     .filter((t) => t.length >= 3 && !STOP_WORDS.has(t));
 }
 
@@ -125,7 +125,7 @@ function addClusterTerms(topic, terms, conceptIds) {
     for (const langTerms of Object.values(cluster.terms)) {
       for (const term of langTerms) {
         terms.add(term);
-        terms.add(term.toLowerCase().replace(/"/g, ''));
+        terms.add(term.toLowerCase().replaceAll('"', ''));
       }
     }
   }
@@ -177,7 +177,7 @@ export function normalizeTopicConcept(topic) {
   }
 
   const matchTokens = [...new Set(
-    [...terms].map((t) => String(t).toLowerCase().replace(/"/g, '')),
+    [...terms].map((t) => String(t).toLowerCase().replaceAll('"', '')),
   )].filter(Boolean);
 
   return {
@@ -231,7 +231,7 @@ export function tokensForConceptId(conceptId, topic = '') {
   const terms = new Set();
   for (const langTerms of Object.values(cluster.terms)) {
     for (const term of langTerms) {
-      terms.add(String(term).toLowerCase().replace(/"/g, ''));
+      terms.add(String(term).toLowerCase().replaceAll('"', ''));
     }
   }
   for (const token of meaningfulTopicTokens(topic)) {

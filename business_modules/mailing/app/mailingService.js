@@ -310,11 +310,11 @@ const POOL_LABELS = {
 
 function escapeHtml(s) {
   return String(s ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll('\'', '&#39;');
 }
 
 function truncate(str, max) {
@@ -351,7 +351,7 @@ function shortDate(date) {
 }
 
 function labelPool(key, lang) {
-  return POOL_LABELS[lang]?.[key] ?? POOL_LABELS.en[key] ?? String(key ?? '').replace(/_/g, ' ');
+  return POOL_LABELS[lang]?.[key] ?? POOL_LABELS.en[key] ?? String(key ?? '').replaceAll('_', ' ');
 }
 
 function sumValues(obj) {
@@ -494,14 +494,14 @@ function paragraphHtml(text) {
     .filter(Boolean);
   if (chunks.length === 0) return '<p style="margin:0;color:#64748b"><em>—</em></p>';
   return chunks
-    .map((p) => `<p style="margin:0 0 12px 0">${escapeHtml(p).replace(/\n/g, '<br/>')}</p>`)
+    .map((p) => `<p style="margin:0 0 12px 0">${escapeHtml(p).replaceAll('\n', '<br/>')}</p>`)
     .join('');
 }
 
 function componentLabel(componentId, lang) {
   return COMPONENT_LABELS[lang]?.[componentId]
     ?? COMPONENT_LABELS.en[componentId]
-    ?? String(componentId ?? '').replace(/_/g, ' ');
+    ?? String(componentId ?? '').replaceAll('_', ' ');
 }
 
 function extractSourceFileDates(sourceFiles = []) {
@@ -527,7 +527,7 @@ function countArticlesInSourceFile(fileName) {
 
 function signalTotalsByDate(sourceType, sourceFiles) {
   const signalsDir = resolve(import.meta.dirname, '../../../signals');
-  const wantedFiles = new Set(sourceFiles.map((f) => String(f)));
+  const wantedFiles = new Set(sourceFiles.map(String));
   const totals = new Map();
   if (!existsSync(signalsDir) || wantedFiles.size === 0) return totals;
 
@@ -797,7 +797,7 @@ function buildNaftaliHtml(dashboard, labels, lang, dir) {
   const severityCards = NAF_SEVERITY_KEYS.map((key) => trendStackTableHtml({
     title: l(key),
     rows: dashboard.trends ?? [],
-    labelForRow: (row) => row.week != null ? `W${row.week}` : shortDate(row.dateFrom),
+    labelForRow: (row) => row.week == null ? shortDate(row.dateFrom) : `W${row.week}`,
     distForRow: (row) => row.severityDist?.[key],
     segments: severitySegments,
     dir,

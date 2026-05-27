@@ -18,9 +18,115 @@ export function tokenize(text) {
   if (!text || typeof text !== 'string') return [];
   return text
     .toLowerCase()
-    .replace(/[^\w\u0590-\u05FF\s]/g, ' ')
+    .replaceAll(/[^\w\u0590-\u05FF\s]/g, ' ')
     .split(/\s+/)
     .filter(Boolean);
+}
+
+/** NFKC lowercase; strip punctuation and collapse whitespace for substring checks. */
+export function normalizeForMatch(text) {
+  if (!text || typeof text !== 'string') return '';
+  return text
+    .normalize('NFKC')
+    .toLowerCase()
+    .replaceAll(/[^\w\u0590-\u05FF\s]/g, '')
+    .replaceAll(/\s+/g, ' ')
+    .trim();
+}
+
+/**
+ * Canonical quote text for verification (source-native anchor when present).
+ * @param {object} signal
+ * @returns {string}
+ */
+export function resolveQuoteText(signal) {
+  if (!signal || typeof signal !== 'object') return '';
+  const quote = signal.evidence_quote ?? signal.evidence ?? '';
+  return typeof quote === 'string' ? quote : '';
+}
+
+/**
+ * Ordered token subsequence containment: fraction of evTokens found in order in bodyTokens.
+ * @param {string[]} evTokens
+ * @param {string[]} bodyTokens
+ * @returns {number}
+ */
+export function orderedSubsequenceContainment(evTokens, bodyTokens) {
+  if (!evTokens.length || !bodyTokens.length) return 0;
+  let j = 0;
+  for (const t of bodyTokens) {
+    if (t === evTokens[j]) j++;
+    if (j === evTokens.length) return 1;
+  }
+  return j / evTokens.length;
+}
+
+/**
+ * @param {object} signal
+ * @param {string} body
+ * @returns {{ ok: boolean, reason: string, sim?: number }}
+ */
+export function verifyEvidenceSpan(signal, body) {
+  const span = signal?.evidence_span;
+  if (!span || typeof span !== 'object') {
+    return { ok: false, reason: 'no_span' };
+  }
+  const start = Number(span.start);
+  const end = Number(span.end);
+  if (!Number.isInteger(start) || !Number.isInteger(end) || start < 0 || end <= start) {
+    return { ok: false, reason: 'invalid_span' };
+  }
+  if (!body || typeof body !== 'string') {
+    return { ok: false, reason: 'no_body' };
+  }
+  if (end > body.length) {
+    return { ok: false, reason: 'span_out_of_bounds' };
+  }
+  const slice = body.slice(start, end);
+  const quoteNorm = normalizeForMatch(resolveQuoteText(signal));
+  const sliceNorm = normalizeForMatch(slice);
+  if (!quoteNorm || !sliceNorm) {
+    return { ok: false, reason: 'empty_span_text' };
+  }
+  if (quoteNorm === sliceNorm || sliceNorm.includes(quoteNorm) || quoteNorm.includes(sliceNorm)) {
+    return { ok: true, reason: 'evidence_span', sim: 1 };
+  }
+  const evTokens = tokenize(slice);
+  const quoteTokens = tokenize(resolveQuoteText(signal));
+  const subseq = orderedSubsequenceContainment(quoteTokens, evTokens);
+  if (subseq >= 0.8) {
+    return { ok: true, reason: 'evidence_span_subseq', sim: subseq };
+  }
+  return { ok: false, reason: 'span_mismatch', sim: subseq };
+}
+
+/**
+ * Source-native check: normalized substring or ordered subsequence in short bodies.
+ * @param {string} quoteText
+ * @param {string} sourceText
+ * @returns {{ ok: boolean, reason: string, sim?: number }}
+ */
+export function verifySourceNativeQuote(quoteText, sourceText) {
+  if (!quoteText || !sourceText) {
+    return { ok: false, reason: 'empty_source_or_quote' };
+  }
+  const qNorm = normalizeForMatch(quoteText);
+  const sNorm = normalizeForMatch(sourceText);
+  if (!qNorm) return { ok: false, reason: 'empty_quote' };
+  if (sNorm.includes(qNorm)) {
+    return { ok: true, reason: 'source_native_substring', sim: 1 };
+  }
+  const evTokens = tokenize(quoteText);
+  const bodyTokens = tokenize(sourceText);
+  let threshold;
+  if (evTokens.length <= 3) threshold = 1;
+  else if (evTokens.length <= 8) threshold = 0.8;
+  else threshold = 0.6;
+  const subseq = orderedSubsequenceContainment(evTokens, bodyTokens);
+  if (subseq >= threshold) {
+    return { ok: true, reason: 'source_native_subsequence', sim: subseq };
+  }
+  return { ok: false, reason: 'source_native_miss', sim: subseq };
 }
 
 /** k-gram shingle set over a token array. */
@@ -46,11 +152,6 @@ export function jaccard(a, b) {
 
 /**
  * Containment of A in B = |A ∩ B| / |A|.
- *
- * For evidence verification this is more appropriate than symmetric Jaccard:
- * evidence is short, articles are long, so |A ∩ B| / |A| measures
- * "how much of the evidence is supported by the article" — which is what we
- * actually want to test, not "how similar are these two texts".
  */
 export function containment(a, b) {
   if (!(a instanceof Set) || !(b instanceof Set)) return 0;
@@ -61,42 +162,18 @@ export function containment(a, b) {
 }
 
 const VERIFY_THRESHOLDS = {
-  direct_quote_named_person:   { containment: 0.70, windowContainment: 0.80 },
-  named_survey_statistic:      { containment: 0.50 },
-  named_institutional_fact:    { containment: 0.50 },
-  observational_reported_fact: { containment: 0.40 },
-  // Legacy fallbacks
-  direct_evidence:             { containment: 0.60 },
-  observational_evidence:      { containment: 0.40 },
+  direct_quote_named_person:   { containment: 0.7, windowContainment: 0.8 },
+  named_survey_statistic:      { containment: 0.5 },
+  named_institutional_fact:    { containment: 0.5 },
+  observational_reported_fact: { containment: 0.4 },
+  direct_evidence:             { containment: 0.6 },
+  observational_evidence:      { containment: 0.4 },
 };
 
-const DEFAULT_THRESHOLD = { containment: 0.40 };
+const DEFAULT_THRESHOLD = { containment: 0.4 };
 
-/**
- * Verifies that a signal's `evidence` is grounded in the article body.
- *
- * Returns { ok: boolean, reason: string, sim?: number }.
- *
- * Rules:
- *   - evidence_basis === 'inferred_absence' → bypass (absence isn't quotable).
- *   - empty article body → bypass (cannot verify; trust upstream filter).
- *   - direct_quote_named_person: pass if global 3-gram Jaccard ≥ 0.5 OR a
- *     sliding window of size max(8, |evTokens|) on the body has Jaccard ≥ 0.7
- *     against the evidence token set.
- *   - other types: pass if global 3-gram Jaccard ≥ type-specific threshold.
- */
-export function verifyEvidenceAgainstArticle(signal, articleBody) {
-  if (!signal || typeof signal !== 'object') {
-    return { ok: false, reason: 'invalid_signal' };
-  }
-  if (signal.evidence_basis === 'inferred_absence') {
-    return { ok: true, reason: 'inferred_absence' };
-  }
-  if (!articleBody || typeof articleBody !== 'string') {
-    return { ok: true, reason: 'no_body' };
-  }
-
-  const evTokens = tokenize(signal.evidence ?? '');
+function verifyShingleContainment(signal, articleBody, quoteText) {
+  const evTokens = tokenize(quoteText);
   if (evTokens.length === 0) {
     return { ok: false, reason: 'empty_evidence' };
   }
@@ -110,10 +187,6 @@ export function verifyEvidenceAgainstArticle(signal, articleBody) {
   const cfg = VERIFY_THRESHOLDS[signal.evidence_type] ?? DEFAULT_THRESHOLD;
   if (sim >= cfg.containment) return { ok: true, reason: 'containment', sim };
 
-  // Secondary window check for direct quotes: slide a 24-token window over the
-  // body and compute token-level containment of the evidence in each window.
-  // This catches quoted sentences buried in long bodies where global shingle
-  // containment may be diluted by surrounding content.
   if (cfg.windowContainment != null && bodyTokens.length > 0) {
     const evSet = new Set(evTokens);
     const W = Math.max(8, Math.min(evTokens.length * 2, 24));
@@ -129,9 +202,12 @@ export function verifyEvidenceAgainstArticle(signal, articleBody) {
     }
   }
 
-  // Short-evidence fallback: at most 8 tokens, accept if 60% appear in body.
-  // Covers paraphrased facts so terse they generate few or no shingles.
   if (evTokens.length <= 8) {
+    const subseq = orderedSubsequenceContainment(evTokens, bodyTokens);
+    const subseqThreshold = evTokens.length <= 3 ? 1 : 0.8;
+    if (subseq >= subseqThreshold) {
+      return { ok: true, reason: 'ordered_subsequence', sim: subseq };
+    }
     const bodySet = new Set(bodyTokens);
     let hits = 0;
     for (const t of evTokens) {
@@ -145,13 +221,43 @@ export function verifyEvidenceAgainstArticle(signal, articleBody) {
 }
 
 /**
+ * Verifies that a signal's evidence is grounded in the article body.
+ * Checks evidence_span first, then shingle containment on resolveQuoteText(signal).
+ *
+ * Returns { ok: boolean, reason: string, sim?: number }.
+ */
+export function verifyEvidenceAgainstArticle(signal, articleBody) {
+  if (!signal || typeof signal !== 'object') {
+    return { ok: false, reason: 'invalid_signal' };
+  }
+  if (signal.evidence_basis === 'inferred_absence') {
+    return { ok: true, reason: 'inferred_absence' };
+  }
+  if (!articleBody || typeof articleBody !== 'string') {
+    return { ok: true, reason: 'no_body' };
+  }
+
+  const quoteText = resolveQuoteText(signal);
+  if (!quoteText.trim()) {
+    return { ok: false, reason: 'empty_evidence' };
+  }
+
+  if (signal.evidence_span) {
+    const spanResult = verifyEvidenceSpan(signal, articleBody);
+    if (spanResult.ok) return spanResult;
+  }
+
+  return verifyShingleContainment(signal, articleBody, quoteText);
+}
+
+/**
  * Normalised key for in-batch dedup: collapses signals the LLM emitted twice
  * across grouped extraction passes (or by accident) into one entry.
  */
 export function signalDedupKey(signal) {
   const norm = (signal.evidence ?? '')
     .toLowerCase()
-    .replace(/[^\w\u0590-\u05FF]/g, '')
+    .replaceAll(/[^\w\u0590-\u05FF]/g, '')
     .slice(0, 80);
   return `${signal.article_index ?? '_'}|${signal.signal_type ?? '_'}|${norm}`;
 }

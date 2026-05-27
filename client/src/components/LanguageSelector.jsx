@@ -13,7 +13,8 @@ const LANG_LABELS = { en: 'EN', he: 'HE', ru: 'RU' };
 
 const MENU_ID = 'language-selector-menu';
 
-export function LanguageSelector({ appearance = 'outlined' }) {
+export const LanguageSelector = (props) => {
+  const { appearance = 'outlined' } = props;
   const { lang, setLang, t } = useLanguage();
   const [anchor, setAnchor] = useState(null);
   const open = Boolean(anchor);
@@ -33,12 +34,13 @@ export function LanguageSelector({ appearance = 'outlined' }) {
         aria-label={`${t('settings.section.language')}: ${LANG_LABELS[lang]}`}
         sx={(theme) => ({
           minWidth: 0,
-          paddingTop: theme.spacing(0.25),
-          paddingBottom: theme.spacing(0.25),
-          paddingLeft: ghost ? theme.spacing(0.5) : theme.spacing(1),
-          paddingRight: theme.spacing(0.5),
+          minHeight: ghost ? undefined : theme.spacing(4.5),
+          paddingTop: ghost ? theme.spacing(0.25) : theme.spacing(0.75),
+          paddingBottom: ghost ? theme.spacing(0.25) : theme.spacing(0.75),
+          paddingLeft: ghost ? theme.spacing(0.5) : theme.spacing(1.25),
+          paddingRight: ghost ? theme.spacing(0.5) : theme.spacing(1.25),
           fontSize: ghost ? theme.typography.caption.fontSize : theme.typography.pill.fontSize,
-          borderRadius: theme.custom.radius.sm,
+          borderRadius: `${theme.custom.radius.section}px`,
           color: 'text.secondary',
           borderColor: ghost ? 'transparent' : theme.palette.divider,
           lineHeight: 1.2,
@@ -75,7 +77,7 @@ export function LanguageSelector({ appearance = 'outlined' }) {
       </Menu>
     </>
   );
-}
+};
 
 LanguageSelector.propTypes = {
   appearance: PropTypes.oneOf(['outlined', 'ghost']),

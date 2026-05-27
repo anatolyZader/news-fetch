@@ -7,8 +7,8 @@
  */
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
-import { catalogLearningService } from '../app/catalogLearningService.js';
-import { learningCaptureFsAdapter } from '../infrastructure/adapters/learningCaptureFsAdapter.js';
+import { CatalogLearningService } from '../app/catalogLearningService.js';
+import { LearningCaptureFsAdapter } from '../infrastructure/adapters/learningCaptureFsAdapter.js';
 
 function parseArgs(argv) {
   const positional = [];
@@ -39,8 +39,8 @@ function parseArgs(argv) {
 
 async function main() {
   const { reportsDir, days, out, topN } = parseArgs(process.argv.slice(2));
-  const service = new catalogLearningService({
-    capturePort: new learningCaptureFsAdapter({ reportsDir }),
+  const service = new CatalogLearningService({
+    capturePort: new LearningCaptureFsAdapter({ reportsDir }),
   });
 
   const markdown = await service.generateGapReportMarkdown({ maxDays: days, topN });

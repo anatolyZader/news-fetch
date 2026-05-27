@@ -11,7 +11,7 @@ import { extractEvidence, synthesizeComponents } from '../../../business_modules
 import { getTodayInTimezone } from '../../../utils/dateUtils.js';
 import { PRICING, calcInvocationCostUsd } from '../app/budgetCostTracker.js';
 
-const MAX_COST_USD = 2.00;
+const MAX_COST_USD = 2;
 
 export async function runTestTokenUsageCli() {
   const usageLog = [];
@@ -127,7 +127,7 @@ export async function runTestTokenUsageCli() {
 
   const _seen = new Set();
   const articles = rawArticles.filter((a) => {
-    const key = a.title.replace(/[^\u0590-\u05FF\w]/g, '').slice(0, 40);
+    const key = a.title.replaceAll(/[^\u0590-\u05FF\w]/g, '').slice(0, 40);
     if (_seen.has(key)) return false;
     _seen.add(key);
     return true;

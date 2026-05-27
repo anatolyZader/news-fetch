@@ -29,7 +29,7 @@ export const TARGET_CHUNK_CHARS = 1900;
 export const MAX_WINDOW_SEC = 600;
 
 function escapeMdHeading(s) {
-  return String(s).replace(/#/g, '\\#').replace(/\n/g, ' ');
+  return String(s).replaceAll('#', '\\#').replaceAll('\n', ' ');
 }
 
 function formatClock(seconds) {
@@ -39,22 +39,68 @@ function formatClock(seconds) {
   return `${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
 }
 
+/** Fixed PATH for ffmpeg/ffprobe — avoids untrusted PATH injection (Sonar S4036). */
+const MEDIA_BIN_PATH = process.env.MEDIA_BIN_PATH ?? '/usr/local/bin:/usr/bin:/bin';
+
+const MEDIA_EXEC_ENV = { ...process.env, PATH: MEDIA_BIN_PATH };
+
+function execMediaCommand(bin, args, options = {}) {
+  return execFileSync(bin, args, {
+    env: MEDIA_EXEC_ENV,
+    ...options,
+  });
+}
+
 /**
  * @param {string} filePath
  * @returns {number|null} duration in seconds
  */
 export function ffprobeDuration(filePath) {
   try {
-    const out = execFileSync(
+    const out = execMediaCommand(
       'ffprobe',
       ['-v', 'error', '-show_entries', 'format=duration', '-of', 'default=noprint_wrappers=1:nokey=1', filePath],
       { encoding: 'utf8', maxBuffer: 1024 * 1024 },
     );
-    const d = parseFloat(out.trim());
+    const d = Number.parseFloat(out.trim());
     return Number.isFinite(d) ? d : null;
   } catch {
     return null;
   }
+}
+
+function cleanupSplitAttempt(parts, tmp) {
+  for (const p of parts) {
+    try { if (p.startsWith(tmp)) unlinkSync(p); } catch { /* ignore */ }
+  }
+}
+
+function writeFfmpegSegment(inputPath, out, ss, partDur) {
+  execMediaCommand(
+    'ffmpeg',
+    ['-y', '-i', inputPath, '-ss', String(ss), '-t', String(partDur), '-vn', '-acodec', 'libmp3lame', '-q:a', '4', out],
+    { stdio: 'ignore' },
+  );
+}
+
+function buildSplitParts(inputPath, duration, numParts, tmp) {
+  const parts = [];
+  const partDur = duration / numParts;
+  for (let i = 0; i < numParts; i++) {
+    const out = join(tmp, `part_${i}.mp3`);
+    writeFfmpegSegment(inputPath, out, i * partDur, partDur);
+    if (!statSync(out).size) {
+      throw new Error(`ffmpeg produced empty segment ${i}; check ffmpeg install and input format.`);
+    }
+    parts.push(out);
+  }
+  return parts;
+}
+
+function partsWithinLimits(parts, safeMaxBytes, maxDurationSec) {
+  const sizeOk = parts.every((p) => statSync(p).size <= safeMaxBytes);
+  const durOk = parts.every((p) => (ffprobeDuration(p) ?? 0) <= maxDurationSec);
+  return sizeOk && durOk;
 }
 
 /**
@@ -78,36 +124,16 @@ export function splitAudioFileIfNeeded(inputPath, safeMaxBytes = SAFE_MAX_BYTES,
     );
   }
 
-  // Number of parts required by each constraint; take the larger
   const partsBySize = Math.ceil(size / safeMaxBytes);
   const partsByDuration = Math.ceil(duration / maxDurationSec);
   const tmp = mkdtempSync(join(tmpdir(), 'audio-ingest-'));
   let numParts = Math.max(2, partsBySize, partsByDuration);
   let parts = [];
 
-  for (let attempt = 0; attempt < 5; attempt++) {
-    for (const p of parts) {
-      try { if (p.startsWith(tmp)) unlinkSync(p); } catch { /* ignore */ }
-    }
-    parts = [];
-    const partDur = duration / numParts;
-    for (let i = 0; i < numParts; i++) {
-      const out = join(tmp, `part_${i}.mp3`);
-      const ss = i * partDur;
-      execFileSync(
-        'ffmpeg',
-        // -ss after -i for accurate (decoded) seek — avoids corrupt frame boundaries in VBR MP3
-        ['-y', '-i', inputPath, '-ss', String(ss), '-t', String(partDur), '-vn', '-acodec', 'libmp3lame', '-q:a', '4', out],
-        { stdio: 'ignore' },
-      );
-      if (!statSync(out).size) {
-        throw new Error(`ffmpeg produced empty segment ${i}; check ffmpeg install and input format.`);
-      }
-      parts.push(out);
-    }
-    const sizeOk = parts.every((p) => statSync(p).size <= safeMaxBytes);
-    const durOk  = parts.every((p) => (ffprobeDuration(p) ?? 0) <= maxDurationSec);
-    if (sizeOk && durOk) break;
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    cleanupSplitAttempt(parts, tmp);
+    parts = buildSplitParts(inputPath, duration, numParts, tmp);
+    if (partsWithinLimits(parts, safeMaxBytes, maxDurationSec)) break;
     numParts *= 2;
   }
 
@@ -182,6 +208,125 @@ export function groupSegmentsIntoArticles(segments, meta) {
   return articles;
 }
 
+function cleanupTempParts(parts, filePath) {
+  if (!parts.some((pt) => pt !== filePath)) return;
+  if (!parts[0]?.includes('audio-ingest-')) return;
+  const dir = dirname(parts[0]);
+  for (const part of parts) {
+    try {
+      unlinkSync(part);
+    } catch {
+      /* ignore */
+    }
+  }
+  try {
+    rmdirSync(dir);
+  } catch {
+    /* ignore */
+  }
+}
+
+async function transcribeDiarizedWithFallback(adapter, part, language, knownSpeakerNames, knownSpeakerReferences) {
+  try {
+    const result = await adapter.transcribeDiarized({ filePath: part, language, knownSpeakerNames, knownSpeakerReferences });
+    return { result, modelId: OPENAI_TRANSCRIBE_DIARIZE_MODEL };
+  } catch (err) {
+    if (err.status !== 400) throw err;
+    console.warn(`[audio] Diarize failed on ${basename(part)} (${err.message}); retrying with whisper-1`);
+    const result = await adapter.transcribeWhisperPlain({ filePath: part, language });
+    return { result, modelId: OPENAI_WHISPER_MODEL };
+  }
+}
+
+async function transcribePart(adapter, part, { useWhisper, language, knownSpeakerNames, knownSpeakerReferences }) {
+  if (useWhisper) {
+    const result = await adapter.transcribeWhisperPlain({ filePath: part, language });
+    return { result, modelId: OPENAI_WHISPER_MODEL };
+  }
+  return transcribeDiarizedWithFallback(adapter, part, language, knownSpeakerNames, knownSpeakerReferences);
+}
+
+function appendSegmentsFromResult(allSegments, result, timeOffset) {
+  for (const seg of result.segments) {
+    allSegments.push({
+      speaker: seg.speaker,
+      text: seg.text,
+      start: seg.start == null ? undefined : seg.start + timeOffset,
+      end: seg.end == null ? undefined : seg.end + timeOffset,
+    });
+  }
+}
+
+async function transcribePartOrSkip(adapter, part, opts, timeOffset) {
+  const dur = ffprobeDuration(part) ?? 0;
+  try {
+    const { result, modelId } = await transcribePart(adapter, part, opts);
+    return { skipped: false, dur, result, modelId };
+  } catch (err) {
+    if (err.status === 400) {
+      console.warn(`[audio] Skipping corrupted chunk ${basename(part)} at offset ${timeOffset}s (${err.message})`);
+      return { skipped: true, dur, result: null, modelId: null };
+    }
+    throw err;
+  }
+}
+
+/**
+ * @param {object} p
+ * @param {import('../infrastructure/adapters/openaiTranscriptionAdapter.js').OpenaiTranscriptionAdapter} p.adapter
+ */
+async function collectTranscriptSegments(p) {
+  const {
+    filePath,
+    useWhisper = false,
+    language,
+    knownSpeakerNames,
+    knownSpeakerReferences,
+    onUsage,
+    adapter,
+  } = p;
+  const parts = splitAudioFileIfNeeded(filePath);
+  let timeOffset = 0;
+  const allSegments = [];
+  const transcribeOpts = { useWhisper, language, knownSpeakerNames, knownSpeakerReferences };
+
+  try {
+    for (const part of parts) {
+      const outcome = await transcribePartOrSkip(adapter, part, transcribeOpts, timeOffset);
+      timeOffset += outcome.dur;
+      if (outcome.skipped) continue;
+
+      if (onUsage) {
+        onUsage({
+          label: `Audio ${useWhisper ? 'whisper' : 'diarize'} ${basename(part)}`,
+          model: outcome.modelId,
+          costUsd: calcTranscriptionCostUsd(outcome.modelId, outcome.dur),
+        });
+      }
+      appendSegmentsFromResult(allSegments, outcome.result, timeOffset - outcome.dur);
+    }
+  } finally {
+    cleanupTempParts(parts, filePath);
+  }
+
+  return allSegments;
+}
+
+function groupTranscriptBlocks(allSegments, contextualize, station, program, onUsage) {
+  if (contextualize) {
+    return contextualizeTranscript(allSegments, { station, program, onUsage }).then((scenes) => {
+      const grouped = scenes.filter(
+        (s) => !NON_NEWS_SCENE_TYPES.has(s.scene_type) && s.quality !== 'low',
+      );
+      console.log(
+        `[audio] contextualize: ${scenes.length} scene(s) total, ${grouped.length} kept after filtering non-news/low-quality`,
+      );
+      return grouped;
+    });
+  }
+  return Promise.resolve(groupSegmentsIntoArticles(allSegments, { station, program }));
+}
+
 /**
  * @param {object} opts
  * @param {import('../infrastructure/adapters/openaiTranscriptionAdapter.js').OpenaiTranscriptionAdapter} opts.adapter  Transcription implementation (swap for other IAudioTranscriptionPort-style adapters)
@@ -222,92 +367,23 @@ export class AudioIngestService {
       contextualize = false,
     } = p;
 
-    const parts = splitAudioFileIfNeeded(filePath);
-    const isTemp = parts.some((pt) => pt !== filePath);
-    let timeOffset = 0;
-    const allSegments = [];
+    const allSegments = await collectTranscriptSegments({
+      filePath,
+      useWhisper,
+      language,
+      knownSpeakerNames,
+      knownSpeakerReferences,
+      onUsage,
+      adapter: this.adapter,
+    });
 
-    try {
-      for (const part of parts) {
-        const dur = ffprobeDuration(part) ?? 0;
-        let result;
-        let modelId;
-        try {
-          if (useWhisper) {
-            result = await this.adapter.transcribeWhisperPlain({ filePath: part, language });
-            modelId = OPENAI_WHISPER_MODEL;
-          } else {
-            try {
-              result = await this.adapter.transcribeDiarized({ filePath: part, language, knownSpeakerNames, knownSpeakerReferences });
-              modelId = OPENAI_TRANSCRIBE_DIARIZE_MODEL;
-            } catch (err) {
-              if (err.status === 400) {
-                // Diarize model rejected this chunk; fall back to whisper-1
-                console.warn(`[audio] Diarize failed on ${basename(part)} (${err.message}); retrying with whisper-1`);
-                result = await this.adapter.transcribeWhisperPlain({ filePath: part, language });
-                modelId = OPENAI_WHISPER_MODEL;
-              } else {
-                throw err;
-              }
-            }
-          }
-        } catch (err) {
-          if (err.status === 400) {
-            // Chunk is genuinely corrupted (source recording dropout) — skip and continue
-            console.warn(`[audio] Skipping corrupted chunk ${basename(part)} at offset ${timeOffset}s (${err.message})`);
-            timeOffset += dur;
-            continue;
-          }
-          throw err;
-        }
-
-        if (onUsage) {
-          onUsage({
-            label: `Audio ${useWhisper ? 'whisper' : 'diarize'} ${basename(part)}`,
-            model: modelId,
-            costUsd: calcTranscriptionCostUsd(modelId, dur),
-          });
-        }
-        for (const seg of result.segments) {
-          allSegments.push({
-            speaker: seg.speaker,
-            text: seg.text,
-            start: seg.start != null ? seg.start + timeOffset : undefined,
-            end: seg.end != null ? seg.end + timeOffset : undefined,
-          });
-        }
-        timeOffset += dur;
-      }
-    } finally {
-      if (isTemp && parts[0]?.includes('audio-ingest-')) {
-        const dir = dirname(parts[0]);
-        for (const part of parts) {
-          try {
-            unlinkSync(part);
-          } catch {
-            /* ignore */
-          }
-        }
-        try {
-          rmdirSync(dir);
-        } catch {
-          /* ignore */
-        }
-      }
-    }
-
-    let grouped;
-    if (contextualize) {
-      const scenes = await contextualizeTranscript(allSegments, { station, program, onUsage });
-      grouped = scenes.filter(
-        (s) => !NON_NEWS_SCENE_TYPES.has(s.scene_type) && s.quality !== 'low',
-      );
-      console.log(
-        `[audio] contextualize: ${scenes.length} scene(s) total, ${grouped.length} kept after filtering non-news/low-quality`,
-      );
-    } else {
-      grouped = groupSegmentsIntoArticles(allSegments, { station, program });
-    }
+    const grouped = await groupTranscriptBlocks(
+      allSegments,
+      contextualize,
+      station,
+      program,
+      onUsage,
+    );
     if (grouped.length === 0) {
       throw new Error('No transcript segments produced. Check audio content and API response.');
     }
@@ -395,16 +471,7 @@ export function buildAudioMarkdownDocument(opts) {
 
   grouped.forEach((a, i) => {
     const articleUrl = perArticleUrl && a.url ? `- **URL:** ${a.url}` : urlLine;
-    lines.push(`## ${i + 1}. ${escapeMdHeading(a.title)}`);
-    lines.push('');
-    lines.push(articleUrl);
-    lines.push(`- **Published:** ${publishedAt}`);
-    lines.push(`- **Source:** ${station} — ${program}`);
-    lines.push('');
-    lines.push(a.body);
-    lines.push('');
-    lines.push('---');
-    lines.push('');
+    lines.push(`## ${i + 1}. ${escapeMdHeading(a.title)}`, '', articleUrl, `- **Published:** ${publishedAt}`, `- **Source:** ${station} — ${program}`, '', a.body, '', '---', '');
   });
 
   return lines.join('\n');

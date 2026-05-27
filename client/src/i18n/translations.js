@@ -251,7 +251,7 @@ export const translations = {
     'app.openFullDocs':   'Open full docs',
     'app.documentation':  'Documentation',
     'nav.dailyAssessment': 'Daily assessment',
-    'nav.backToAnalysisResults': 'Back to analysis results',
+    'nav.backToAnalysisResults': 'back to 8 components analysis result',
     'nav.dataSources': 'Data sources',
     'nav.dataSourcesHint': 'Input feeds that inform the daily assessment',
     'nav.browseDataSources': 'Browse data sources',
@@ -346,6 +346,12 @@ export const translations = {
     'report.instrument.sourceCapBinding': 'source cap applied',
     'report.dataVoid.banner': 'Data void ({level}): digital darkness={digital}. Do not treat silence as stability.',
     'report.dataVoid.vacuumIndex': 'information vacuum index {value}',
+    'report.dataVoid.clusters': '{n} affected cluster(s) with sampling gaps',
+    'report.epistemicStatus.sampling': 'sampling {status}',
+    'report.epistemicStatus.reason': 'reason: {reason}',
+    'report.epistemicStatus.fieldAnchorOnly': 'Field-anchor-only mode: scores reflect field/PBO reports only; digital channels unavailable.',
+    'report.epistemicStatus.staleAt': 'digital-inclusive scores stale since {at}',
+    'report.epistemicStatus.samplingBlind': 'Sampling blind — headline scores suppressed due to information void.',
     'report.macroSignals.banner': '{n} national/macro context signal(s) — not included in component scores.',
     'report.macroSignals.title': 'Macro / national context ({n})',
     'report.macroSignals.body': 'These signals inform scope and synthesis only — they do not affect component scores.',
@@ -359,6 +365,9 @@ export const translations = {
       'Headline scores are hidden by design. Instrument flags describe evidence sufficiency and instability—not validated resilience or ground truth.',
     'report.methodology.northGeoQualityWarning':
       'Only {pct}% of north signals with resolved geo are metrics-safe. Treat geographic attribution as lower confidence until geo enrichment improves.',
+    'report.geo.textInferred': 'text-inferred geo',
+    'report.geo.notInScores': 'not in scores',
+    'report.geo.notInScoresHint': 'Geographic hint only — excluded from component scores.',
     'report.methodology.thinEvidenceWarning':
       'Most components have thin evidence for this scope. Narratives may under-represent local conditions.',
     'report.methodology.norrisDisclaimer':
@@ -1125,6 +1134,12 @@ export const translations = {
     'report.instrument.limitedNeutral': 'ראיות מוגבלות',
     'report.dataVoid.banner': 'חלל נתונים ({level}): חושך דיגיטלי={digital}. אל תפרש שקט כיציבות.',
     'report.dataVoid.vacuumIndex': 'מדד ריק נתונים {value}',
+    'report.dataVoid.clusters': '{n} אשכולות עם פערי דגימה',
+    'report.epistemicStatus.sampling': 'דגימה {status}',
+    'report.epistemicStatus.reason': 'סיבה: {reason}',
+    'report.epistemicStatus.fieldAnchorOnly': 'מצב עוגן שדה בלבד — הציונים מבוססים על דיווחי שדה/PBO; ערוצים דיגיטליים לא זמינים.',
+    'report.epistemicStatus.staleAt': 'ציונים דיגיטליים מיושנים מ-{at}',
+    'report.epistemicStatus.samplingBlind': 'עיוורון דגימה — ציונים מוסתרים בשל חלל מידע.',
     'report.macroSignals.banner': '{n} אותות הקשר לאומי/מאקרו — לא נכללים בציוני מרכיבים.',
     'report.macroSignals.title': 'הקשר לאומי/מאקרו ({n})',
     'report.macroSignals.body': 'אותות אלה מיועדים להקשר ולסינתזה בלבד — אינם משפיעים על ציוני מרכיבים.',
@@ -1135,6 +1150,9 @@ export const translations = {
       'ציוני כותרת מוסתרים בכוונה. דגלי המכשיר מתארים מספיקות ראיות ואי-יציבות—לא חוסן מאומת או אמת בשטח.',
     'report.methodology.northGeoQualityWarning':
       'רק {pct}% מהאותות בצפון עם geo מפורש בטוחים למטריקות. יש לייחס לגיאוגרפיה רמת ביטחון נמוכה עד שתשתפר העשרת geo.',
+    'report.geo.textInferred': 'geo מהטקסט',
+    'report.geo.notInScores': 'לא בציונים',
+    'report.geo.notInScoresHint': 'רמז גיאוגרפי בלבד — לא נכלל בציוני מרכיבים.',
     'report.methodology.thinEvidenceWarning':
       'ברוב המרכיבים יש ראיות דלות בהיקף זה. הנרטיבים עלולים שלא לשקף מספיק את המצב המקומי.',
     'report.methodology.norrisDisclaimer':
@@ -1842,6 +1860,12 @@ export const translations = {
     'report.instrument.limitedNeutral': 'ограниченные данные',
     'report.dataVoid.banner': 'Пустота данных ({level}): цифровая тьма={digital}. Не трактуйте тишину как стабильность.',
     'report.dataVoid.vacuumIndex': 'индекс информационного вакуума {value}',
+    'report.dataVoid.clusters': '{n} кластер(ов) с пробелами в выборке',
+    'report.epistemicStatus.sampling': 'выборка {status}',
+    'report.epistemicStatus.reason': 'причина: {reason}',
+    'report.epistemicStatus.fieldAnchorOnly': 'Режим только полевых якорей — баллы по полевым/PBO отчётам; цифровые каналы недоступны.',
+    'report.epistemicStatus.staleAt': 'цифровые баллы устарели с {at}',
+    'report.epistemicStatus.samplingBlind': 'Слепая выборка — итоговые баллы скрыты из-за информационной пустоты.',
     'report.macroSignals.banner': '{n} макро/общенациональных сигналов — не входят в баллы компонентов.',
     'report.macroSignals.title': 'Макро / общенациональный контекст ({n})',
     'report.macroSignals.body': 'Только для контекста и синтеза — не влияют на баллы компонентов.',
@@ -1852,6 +1876,9 @@ export const translations = {
       'Итоговые баллы скрыты намеренно. Флаги инструмента описывают достаточность данных и нестабильность, а не проверенную устойчивость.',
     'report.methodology.northGeoQualityWarning':
       'Только {pct}% северных сигналов с разрешённым geo безопасны для метрик. Географию следует считать менее надёжной, пока не улучшится geo-обогащение.',
+    'report.geo.textInferred': 'geo из текста',
+    'report.geo.notInScores': 'не в баллах',
+    'report.geo.notInScoresHint': 'Только географическая подсказка — не входит в баллы компонентов.',
     'report.methodology.thinEvidenceWarning':
       'У большинства компонентов мало данных в этой области. Нарративы могут не отражать местную ситуацию.',
     'report.methodology.norrisDisclaimer':

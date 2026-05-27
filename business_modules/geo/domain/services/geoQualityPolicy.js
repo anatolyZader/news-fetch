@@ -1,19 +1,28 @@
 import { CENTROID_GEOMETRY_ONLY_ENTITY_TYPES } from './referenceGeoEntityType.js';
+import { GEO_PROVENANCE, TEXT_INFERENCE_SOURCE_TYPES } from '../value_objects/geoProvenance.js';
 
 /** Fuzzy matches at or above this confidence are allowed in aggregate metrics. */
 export const FUZZY_METRICS_MIN_CONFIDENCE = 0.95;
 /** Version string for policy decisions (thresholds, review rules, banding semantics). */
-export const GEO_POLICY_VERSION = 'geo-policy-2026-05-v2';
+export const GEO_POLICY_VERSION = 'geo-policy-2026-05-v3';
 
 /**
  * Derived consumer-facing fields so callers do not re-implement match rules.
- * @param {{ matchMethod: string, matchConfidence: number, geoEntityType?: string }} p
- * @returns {{ quality: 'high' | 'medium' | 'low', usableForMetrics: boolean, requiresReview: boolean }}
+ * @param {{
+ *   matchMethod: string,
+ *   matchConfidence: number,
+ *   geoEntityType?: string,
+ *   provenance?: string,
+ *   sourceType?: string,
+ * }} p
+ * @returns {{ quality: 'high' | 'medium' | 'low', usableForMetrics: boolean, requiresReview: boolean, policyReasons: string[] }}
  */
-export function deriveGeoQualityFields({ matchMethod, matchConfidence, geoEntityType }) {
+export function deriveGeoQualityFields({ matchMethod, matchConfidence, geoEntityType, provenance, sourceType }) {
   const method = String(matchMethod ?? 'exact');
   const conf = Number(matchConfidence);
   const safeConf = Number.isFinite(conf) ? conf : 0;
+  /** @type {string[]} */
+  const policyReasons = [];
 
   const deterministic =
     method === 'exact' ||
@@ -36,14 +45,30 @@ export function deriveGeoQualityFields({ matchMethod, matchConfidence, geoEntity
     usableForMetrics = false;
     requiresReview = true;
     if (quality === 'high') quality = 'medium';
+    policyReasons.push('centroid_geometry_only');
   }
 
-  return { quality, usableForMetrics, requiresReview };
+  const prov = String(provenance ?? GEO_PROVENANCE.direct).trim();
+  const st = String(sourceType ?? '').trim().toLowerCase();
+  if (prov === GEO_PROVENANCE.text_inferred && TEXT_INFERENCE_SOURCE_TYPES.has(st)) {
+    usableForMetrics = false;
+    requiresReview = true;
+    if (quality === 'high') quality = 'medium';
+    policyReasons.push('text_inferred_source');
+  }
+
+  if (deterministic) policyReasons.push('deterministic_match');
+  else if (isFuzzy) policyReasons.push(`fuzzy>=${FUZZY_METRICS_MIN_CONFIDENCE}`);
+  if (method === 'manual_override') {
+    policyReasons.length = 0;
+    policyReasons.push('manual_override');
+  }
+
+  return { quality, usableForMetrics, requiresReview, policyReasons };
 }
 
 /**
  * How much to trust this row for **north-scoped analytics** (separate from string `matchConfidence`).
- * v1: derived from metrics policy only; may later incorporate `sourceType`, regional hints, or entity type.
  * @param {{ usableForMetrics: boolean, requiresReview: boolean }} p
  * @returns {'high' | 'medium' | 'low'}
  */

@@ -47,7 +47,7 @@ import {
   formatScopeDecisionLogLine,
   formatSubgroupCoverageLogLine,
 } from '../domain/services/assessmentMethodology.js';
-import { computeDataVoidIndex } from '../domain/services/dataVoidIndex.js';
+import { computeDataVoidIndex, applyEpistemicGate, attachEpistemicToAssessment } from '../domain/services/dataVoidIndex.js';
 import { salienceContextFromDataVoid } from '../domain/services/highSalienceBypass.js';
 import { countOovCapturesForDate } from '../domain/services/oovCapture.js';
 import {
@@ -59,7 +59,8 @@ import {
   summarizeStageEvents,
   readCostLogStagesForDate,
 } from '../domain/services/pipelineStageTelemetry.js';
-import { createValidationCollectionService } from '../validation/app/validationCollectionService.js';
+import createValidationCollectionService from '../validation/app/validationCollectionService.js';
+import { loadConnectivityProbeSignals } from '../infrastructure/adapters/connectivityProbeFileAdapter.js';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 
@@ -140,6 +141,12 @@ async function loadPreparedSignals(targetDate, days) {
   }
 
   let { allSignals, totalArticles, sourceFiles, sourceTypesSeen } = mergeLoadedSignalFiles(loadedFiles);
+  const probeSignals = loadConnectivityProbeSignals(targetDate, 'national');
+  if (probeSignals.length > 0) {
+    allSignals = [...allSignals, ...probeSignals];
+    sourceTypesSeen.add('infrastructure_probe');
+    console.error(`  → Connectivity probes: ${probeSignals.length} signal(s) merged`);
+  }
   allSignals = dedupWithinSource(allSignals);
 
   const beforeCrossSource = allSignals.length;
@@ -189,9 +196,11 @@ function logAssessmentHeader({ targetDate, days, reportScope, loadedFiles, allSi
 function buildScopedScoring(targetDate, days, allSignals, totalArticles, reportScopeId, reportScope, loadedFiles) {
   const nationalSignals = allSignals;
   const historicalSignalDays = loadHistoricalSignalDays(targetDate, 'reports', 7, reportScopeId);
-  const dataVoid = computeDataVoidIndex(allSignals, historicalSignalDays, { reportScope: reportScopeId });
-  const salienceContext = salienceContextFromDataVoid(dataVoid);
-  const nationalScored = scoreComponents(nationalSignals, { totalArticles, salienceContext });
+  const nationalHistoricalDays = reportScopeId === 'north'
+    ? loadHistoricalSignalDays(targetDate, 'reports', 7, 'national')
+    : historicalSignalDays;
+
+  let salienceContext = {};
 
   const historicalScores = loadHistoricalScores(targetDate, 'reports', 14, reportScopeId);
   if (Object.keys(historicalScores).length > 0) {
@@ -203,11 +212,23 @@ function buildScopedScoring(targetDate, days, allSignals, totalArticles, reportS
   const { metricsSignals, macroSignals } = partitionMacroSignals(scopedSignals, reportScopeId);
   const signalsForScoring = reportScopeId === 'north' ? metricsSignals : scopedSignals;
 
+  const voidInputSignals = signalsForScoring;
+  const dataVoid = computeDataVoidIndex(voidInputSignals, historicalSignalDays, { reportScope: reportScopeId });
+  const nationalDataVoid = reportScopeId === 'north'
+    ? computeDataVoidIndex(nationalSignals, nationalHistoricalDays, { reportScope: 'national' })
+    : null;
+
+  salienceContext = salienceContextFromDataVoid(dataVoid);
+  const nationalScored = scoreComponents(nationalSignals, { totalArticles, salienceContext });
+
   if (reportScopeId === 'north' && macroSignals.length > 0) {
     console.error(`  → Epistemic partition: ${metricsSignals.length} metrics-eligible, ${macroSignals.length} macro/context-only`);
   }
   if (reportScopeId !== 'national') {
     console.error(`  → Scope filter (${reportScope.label}): ${scopedSignals.length}/${nationalSignals.length} signals retained`);
+  }
+  if (dataVoid.level && dataVoid.level !== 'none') {
+    console.error(`  → Data void: level=${dataVoid.level} reason=${dataVoid.reason ?? 'n/a'} digital_darkness=${dataVoid.digital_darkness}`);
   }
 
   const scopeMethodologyPreview = buildAssessmentMethodology({ signals: scopedSignals, reportScopeId });
@@ -230,11 +251,24 @@ function buildScopedScoring(targetDate, days, allSignals, totalArticles, reportS
     : Math.max(scopedArticleKeys.size, 1);
   const scopedSourceTypesSeen = new Set(signalsForScoring.map((s) => s.source_type).filter(Boolean));
 
-  let scoredFull = scoreComponents(signalsForScoring, {
+  const digitalInclusiveScored = scoreComponents(signalsForScoring, {
     totalArticles: scopedTotalArticles,
     mediaSignals: scopedSignals,
     salienceContext,
   });
+
+  const gateResult = applyEpistemicGate({
+    scoredFull: digitalInclusiveScored,
+    signalsForScoring,
+    dataVoid,
+    totalArticles: scopedTotalArticles,
+    mediaSignals: scopedSignals,
+    salienceContext,
+    digitalInclusiveScored,
+  });
+
+  let scoredFull = gateResult.scoredFull;
+  salienceContext = gateResult.salienceContext;
   scoredFull = enrichWithDeltaChannel(scoredFull, historicalScores, { scopeId: reportScopeId });
 
   const scoreBySource = {};
@@ -254,6 +288,7 @@ function buildScopedScoring(targetDate, days, allSignals, totalArticles, reportS
   return {
     nationalSignals,
     nationalScored,
+    nationalDataVoid,
     scopedSignals,
     signalsForScoring,
     macroSignals,
@@ -262,6 +297,9 @@ function buildScopedScoring(targetDate, days, allSignals, totalArticles, reportS
     scoredFull,
     scoreBySource,
     dataVoid,
+    assessmentMode: gateResult.assessmentMode,
+    epistemicStatus: gateResult.epistemicStatus,
+    staleDigitalScores: gateResult.staleDigitalScores,
   };
 }
 
@@ -342,6 +380,7 @@ async function finalizeAndWriteReport({
   const {
     nationalSignals,
     nationalScored,
+    nationalDataVoid,
     scopedSignals,
     signalsForScoring,
     macroSignals,
@@ -350,6 +389,9 @@ async function finalizeAndWriteReport({
     scoredFull,
     scoreBySource,
     dataVoid,
+    assessmentMode,
+    epistemicStatus,
+    staleDigitalScores,
   } = scoring;
 
   const priorReports = loadPriorReports(targetDate);
@@ -371,12 +413,21 @@ async function finalizeAndWriteReport({
     oovCaptureCount: countOovCapturesForDate(targetDate),
   });
 
+  attachEpistemicToAssessment(assessment, {
+    dataVoid,
+    epistemicStatus,
+    assessmentMode,
+    staleDigitalScores,
+  });
+
   const outputBase = resolveOutputBase(reportScopeId, targetDate, getArg);
 
   if (reportScopeId === 'north') {
     assessment.national_comparison = {
       overall_resilience_score: overallScore(nationalScored),
       total_signals: nationalSignals.length,
+      national_data_void: nationalDataVoid,
+      ...(staleDigitalScores ? { stale_at: staleDigitalScores.scored_at } : {}),
     };
   }
 

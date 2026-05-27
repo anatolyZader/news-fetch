@@ -52,20 +52,14 @@ export function buildSocialOsintMarkdown(bundle) {
   if (findings.length) {
     lines.push('## Findings', '');
     for (const f of findings) {
-      lines.push(`### ${f.id ?? 'finding'} — ${f.location ?? 'unknown location'}`, '');
-      lines.push(`- **Platform:** ${f.platform ?? '—'}`);
-      lines.push(`- **Date:** ${f.date ?? '—'}`);
-      lines.push(`- **Confidence:** ${f.confidence ?? '—'}`);
-      lines.push(`- **Component:** ${f.resilience_component ?? '—'}`);
+      lines.push(`### ${f.id ?? 'finding'} — ${f.location ?? 'unknown location'}`, '', `- **Platform:** ${f.platform ?? '—'}`, `- **Date:** ${f.date ?? '—'}`, `- **Confidence:** ${f.confidence ?? '—'}`, `- **Component:** ${f.resilience_component ?? '—'}`);
       if (f.url) lines.push(`- **URL:** ${f.url}`);
       lines.push('');
       if (f.quote_original) {
-        lines.push('> ' + String(f.quote_original).replace(/\n/g, '\n> '));
-        lines.push('');
+        lines.push('> ' + String(f.quote_original).replaceAll('\n', '\n> '), '');
       }
       if (f.behavior_or_emotion) {
-        lines.push(`*Behavior / emotion:* ${f.behavior_or_emotion}`);
-        lines.push('');
+        lines.push(`*Behavior / emotion:* ${f.behavior_or_emotion}`, '');
       }
     }
   }

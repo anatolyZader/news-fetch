@@ -5,18 +5,23 @@ import { AuthProvider, useAuth } from './context/AuthContext.jsx';
 import { LanguageProvider } from './context/LanguageContext.jsx';
 import { LoginScreen } from './components/LoginScreen.jsx';
 import { MainApp } from './MainApp.jsx';
+import { PanelWindowApp, PanelWindowLoading } from './PanelWindowApp.jsx';
+import { parsePanelPath } from './lib/panelRoutes.js';
 import { AppProviders } from './theme/AppProviders.jsx';
+import { AppErrorBoundary } from './components/AppErrorBoundary.jsx';
 import PropTypes from 'prop-types';
 
 export default function App() {
   return (
-    <AuthProvider>
-      <LanguageProvider>
-        <AppProviders>
-          <AuthGate />
-        </AppProviders>
-      </LanguageProvider>
-    </AuthProvider>
+    <AppErrorBoundary>
+      <AuthProvider>
+        <LanguageProvider>
+          <AppProviders>
+            <AuthGate />
+          </AppProviders>
+        </LanguageProvider>
+      </AuthProvider>
+    </AppErrorBoundary>
   );
 }
 
@@ -49,7 +54,10 @@ function AuthGate() {
     authLoading,
   } = useAuth();
 
+  const panelId = parsePanelPath(globalThis.location?.pathname);
+
   if (!configLoaded || (authRequired && firebaseConfigured && authLoading)) {
+    if (panelId) return <PanelWindowLoading />;
     return (
       <CenteredWrap>
         <Typography variant="body2" color="text.secondary" sx={{ maxWidth: '36rem' }}>
@@ -75,6 +83,10 @@ function AuthGate() {
 
   if (authRequired && !user) {
     return <LoginScreen />;
+  }
+
+  if (panelId) {
+    return <PanelWindowApp panelId={panelId} />;
   }
 
   return <MainApp />;

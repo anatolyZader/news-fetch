@@ -33,11 +33,11 @@ function replaceRegion(content, regionId, body) {
 }
 
 function escapeRegExp(s) {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return s.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 function oneLineSummary(description) {
-  const text = String(description ?? '').replace(/\s+/g, ' ').trim();
+  const text = String(description ?? '').replaceAll(/\s+/g, ' ').trim();
   if (!text) return '';
   const end = text.search(/[.!?](\s|$)/);
   return end === -1 ? text.slice(0, 160) : text.slice(0, end + 1);
@@ -111,36 +111,27 @@ function generateComponentDetailSections() {
 
   RESILIENCE_COMPONENTS.forEach((c, i) => {
     const section = i + 2;
-    parts.push('');
-    parts.push(`### 2.${section} \`${c.id}\` — ${c.name_en} (${c.name_he})`);
-    parts.push('');
+    parts.push('', `### 2.${section} \`${c.id}\` — ${c.name_en} (${c.name_he})`, '');
     parts.push(`**What it measures:** ${c.description.trim()}`);
     if (c.principle) {
       parts.push('');
       parts.push(`**Principle:** ${c.principle.trim()}`);
     }
     if (c.key_elements?.length) {
-      parts.push('');
-      parts.push('**Key elements:**');
+      parts.push('', '**Key elements:**');
       for (const el of c.key_elements) parts.push(`- ${el}`);
     }
     if (c.guiding_questions?.length) {
-      parts.push('');
-      parts.push('**Guiding questions (from `RESILIENCE_COMPONENTS`):**');
+      parts.push('', '**Guiding questions (from `RESILIENCE_COMPONENTS`):**');
       for (const q of c.guiding_questions) parts.push(`- ${q}`);
     }
     if (c.behavioral_manifestations?.length) {
-      parts.push('');
-      parts.push('**Behavioral manifestations (from code):**');
+      parts.push('', '**Behavioral manifestations (from code):**');
       for (const m of c.behavioral_manifestations) parts.push(`- ${m}`);
     }
     const facets = COMPONENT_FACETS[c.id];
     if (facets) {
-      parts.push('');
-      parts.push('**Facets and signal types (from `componentFacets.js`):**');
-      parts.push('');
-      parts.push('| Facet | Signal types |');
-      parts.push('|---|---|');
+      parts.push('', '**Facets and signal types (from `componentFacets.js`):**', '', '| Facet | Signal types |', '|---|---|');
       for (const [facetId, signals] of Object.entries(facets)) {
         const sigCell = signals.map((s) => `\`${s}\``).join(', ');
         parts.push(`| \`${facetId}\` | ${sigCell} |`);
@@ -148,8 +139,7 @@ function generateComponentDetailSections() {
       parts.push('');
       parts.push(`**All facet signal types for this component:** ${formatSignalTypes(facets)}`);
     }
-    parts.push('');
-    parts.push('---');
+    parts.push('', '---');
   });
 
   return parts.join('\n');

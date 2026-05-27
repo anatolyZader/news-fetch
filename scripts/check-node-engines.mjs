@@ -21,7 +21,7 @@ if (!m) {
 }
 
 const min = [Number(m[1]), Number(m[2]), Number(m[3])];
-const cur = process.versions.node.split('.').map((n) => Number(n));
+const cur = process.versions.node.split('.').map(Number);
 
 function gte(a, b) {
   for (let i = 0; i < 3; i += 1) {

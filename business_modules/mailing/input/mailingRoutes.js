@@ -93,7 +93,7 @@ export async function mailingRoutes(app, opts) {
     const uid = request.user.uid;
     const jwtEmail = String(request.user.email ?? '').trim().toLowerCase();
     const body = request.body ?? {};
-    const bodyTo = body.to != null ? String(body.to).trim().toLowerCase() : '';
+    const bodyTo = body.to == null ? '' : String(body.to).trim().toLowerCase();
 
     const prefs = prefsStore.getByUid(uid);
     const savedEmail = String(prefs?.email ?? '').trim().toLowerCase();

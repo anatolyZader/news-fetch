@@ -9,7 +9,8 @@ const ALIGN_MAP = {
   center:{ alignItems: 'center',     textAlign: 'center' },
 };
 
-export function BrandHeader({ title, subtitle, align = 'start', onHomeClick, homeAriaLabel }) {
+export const BrandHeader = (props) => {
+  const { title, subtitle, align = 'start', onHomeClick, homeAriaLabel } = props;
   const alignSx = ALIGN_MAP[align] ?? ALIGN_MAP.start;
   const titleNode = (
     <Typography variant="h1" component="h1">
@@ -35,7 +36,7 @@ export function BrandHeader({ title, subtitle, align = 'start', onHomeClick, hom
           sx={(theme) => ({
             alignSelf: alignSx.alignItems,
             textAlign: alignSx.textAlign,
-            borderRadius: theme.custom.radius.sm,
+            borderRadius: `${theme.custom.radius.section}px`,
             padding: theme.spacing(0.25, 0.5),
             margin: theme.spacing(-0.25, -0.5),
             '&:hover': { background: theme.palette.action.hover },
@@ -53,7 +54,7 @@ export function BrandHeader({ title, subtitle, align = 'start', onHomeClick, hom
       )}
     </Stack>
   );
-}
+};
 
 BrandHeader.propTypes = {
   title: PropTypes.node.isRequired,

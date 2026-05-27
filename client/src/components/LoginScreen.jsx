@@ -86,7 +86,7 @@ export function LoginScreen() {
         <Container maxWidth="xs">
           <Paper
             variant="outlined"
-            sx={(theme) => ({ p: { xs: 3, sm: 4 }, borderRadius: theme.custom.radius.xl })}
+            sx={(theme) => ({ p: { xs: 3, sm: 4 }, borderRadius: `${theme.custom.radius.section}px` })}
           >
             <Stack spacing={2.25}>
               <Typography variant="h1" sx={{ textAlign: 'center' }}>Sign in</Typography>

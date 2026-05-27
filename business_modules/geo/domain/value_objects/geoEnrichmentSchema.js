@@ -1,7 +1,10 @@
 /**
  * Structural validation for persisted `geo` envelopes (signals, reports).
- * Keeps drift visible without requiring Zod.
+ * v3: nested groups are canonical; flat root duplicates optional (legacy read only).
  */
+
+import { GEO_PROVENANCE_VALUES } from './geoProvenance.js';
+import { GEO_ENVELOPE_SCHEMA_VERSION } from './geoEnvelopeVersion.js';
 
 const RESOLVED_METHODS = new Set(['exact', 'punctuation', 'hebrew_final', 'alias', 'manual_override', 'fuzzy']);
 const QUALITIES = new Set(['high', 'medium', 'low']);
@@ -40,71 +43,68 @@ export function validateGeoEnvelope(g) {
   }
   const kind = g.kind;
   if (kind === 'resolved') {
-    if (g.envelopeSchemaVersion != null && typeof g.envelopeSchemaVersion !== 'string') {
-      errors.push('resolved.envelopeSchemaVersion must be string when present');
+    if (typeof g.envelopeSchemaVersion !== 'string' || !g.envelopeSchemaVersion.trim()) {
+      errors.push('resolved.envelopeSchemaVersion required');
     }
     if (!GEO_ENTITY_TYPES.has(g.geoEntityType)) errors.push('resolved.geoEntityType invalid');
-    if (!SCOPE_LEVELS.has(g.scopeConfidence)) errors.push('resolved.scopeConfidence must be high|medium|low');
-    if (typeof g.geoPolicyVersion !== 'string' || !g.geoPolicyVersion.trim()) {
-      errors.push('resolved.geoPolicyVersion must be a non-empty string');
-    }
-    // Nested shape (dual-write): validate when present.
-    if (g.resolution != null) {
-      const r = g.resolution;
-      if (r == null || typeof r !== 'object') errors.push('resolved.resolution must be an object');
-      else {
-        if (typeof r.rawInput !== 'string') errors.push('resolved.resolution.rawInput must be string');
-        if (typeof r.normalizedInput !== 'string') errors.push('resolved.resolution.normalizedInput must be string');
-        if (typeof r.canonicalKey !== 'string' || !r.canonicalKey.trim()) errors.push('resolved.resolution.canonicalKey required');
-        if (typeof r.matchedName !== 'string' || !r.matchedName.trim()) errors.push('resolved.resolution.matchedName required');
-        if (typeof r.matchedVariant !== 'string' || !r.matchedVariant.trim()) errors.push('resolved.resolution.matchedVariant required');
-        if (typeof r.matchMethod !== 'string' || !NESTED_METHODS.has(r.matchMethod)) errors.push('resolved.resolution.matchMethod invalid');
-        if (!Number.isFinite(r.matchConfidence)) errors.push('resolved.resolution.matchConfidence must be number');
-        if (!Number.isInteger(r.candidateCount) || r.candidateCount < 1) errors.push('resolved.resolution.candidateCount must be integer >= 1');
-        if (!GEO_ENTITY_TYPES.has(r.geoEntityType)) errors.push('resolved.resolution.geoEntityType invalid');
-        if (r.scope != null && !RESOLUTION_SCOPES.has(r.scope)) {
-          errors.push('resolved.resolution.scope must be message|signal when present');
+
+    const r = g.resolution;
+    if (r == null || typeof r !== 'object') errors.push('resolved.resolution must be an object');
+    else {
+      if (typeof r.rawInput !== 'string') errors.push('resolved.resolution.rawInput must be string');
+      if (typeof r.normalizedInput !== 'string') errors.push('resolved.resolution.normalizedInput must be string');
+      if (typeof r.canonicalKey !== 'string' || !r.canonicalKey.trim()) errors.push('resolved.resolution.canonicalKey required');
+      if (typeof r.matchedName !== 'string' || !r.matchedName.trim()) errors.push('resolved.resolution.matchedName required');
+      if (typeof r.matchedVariant !== 'string' || !r.matchedVariant.trim()) errors.push('resolved.resolution.matchedVariant required');
+      if (typeof r.matchMethod !== 'string' || !NESTED_METHODS.has(r.matchMethod)) errors.push('resolved.resolution.matchMethod invalid');
+      if (!Number.isFinite(r.matchConfidence)) errors.push('resolved.resolution.matchConfidence must be number');
+      if (!Number.isInteger(r.candidateCount) || r.candidateCount < 1) errors.push('resolved.resolution.candidateCount must be integer >= 1');
+      if (!GEO_ENTITY_TYPES.has(r.geoEntityType)) errors.push('resolved.resolution.geoEntityType invalid');
+      if (r.scope != null && !RESOLUTION_SCOPES.has(r.scope)) {
+        errors.push('resolved.resolution.scope must be message|signal when present');
+      }
+      if (g.envelopeSchemaVersion === GEO_ENVELOPE_SCHEMA_VERSION) {
+        if (typeof r.provenance !== 'string' || !GEO_PROVENANCE_VALUES.has(r.provenance)) {
+          errors.push('resolved.resolution.provenance required for current envelope schema');
         }
       }
     }
-    if (g.classification != null) {
-      const c = g.classification;
-      if (c == null || typeof c !== 'object') errors.push('resolved.classification must be an object');
-      else {
-        if (typeof c.pboSubregionId !== 'string' || !c.pboSubregionId.trim()) errors.push('resolved.classification.pboSubregionId required');
-        if (!Array.isArray(c.geoAreaTags)) errors.push('resolved.classification.geoAreaTags must be an array');
-        if (typeof c.isGolan !== 'boolean') errors.push('resolved.classification.isGolan must be boolean');
-        if (!Number.isFinite(c.distanceKmToNorthBorder)) errors.push('resolved.classification.distanceKmToNorthBorder must be number');
-        if (typeof c.distanceBand !== 'string' || !c.distanceBand.trim()) errors.push('resolved.classification.distanceBand required');
-        if (c.distanceSemantics != null) {
-          if (typeof c.distanceSemantics !== 'string' || !DISTANCE_SEMANTICS.has(c.distanceSemantics)) {
-            errors.push('resolved.classification.distanceSemantics invalid');
-          }
+
+    const c = g.classification;
+    if (c == null || typeof c !== 'object') errors.push('resolved.classification must be an object');
+    else {
+      if (typeof c.pboSubregionId !== 'string' || !c.pboSubregionId.trim()) errors.push('resolved.classification.pboSubregionId required');
+      if (!Array.isArray(c.geoAreaTags)) errors.push('resolved.classification.geoAreaTags must be an array');
+      if (typeof c.isGolan !== 'boolean') errors.push('resolved.classification.isGolan must be boolean');
+      if (!Number.isFinite(c.distanceKmToNorthBorder)) errors.push('resolved.classification.distanceKmToNorthBorder must be number');
+      if (typeof c.distanceBand !== 'string' || !c.distanceBand.trim()) errors.push('resolved.classification.distanceBand required');
+      if (c.distanceSemantics != null) {
+        if (typeof c.distanceSemantics !== 'string' || !DISTANCE_SEMANTICS.has(c.distanceSemantics)) {
+          errors.push('resolved.classification.distanceSemantics invalid');
         }
       }
     }
-    if (g.policy != null) {
-      const p = g.policy;
-      if (p == null || typeof p !== 'object') errors.push('resolved.policy must be an object');
-      else {
-        if (typeof p.geoPolicyVersion !== 'string' || !p.geoPolicyVersion.trim()) errors.push('resolved.policy.geoPolicyVersion required');
-        if (!QUALITIES.has(p.quality)) errors.push('resolved.policy.quality must be high|medium|low');
-        if (typeof p.usableForMetrics !== 'boolean') errors.push('resolved.policy.usableForMetrics must be boolean');
-        if (typeof p.requiresReview !== 'boolean') errors.push('resolved.policy.requiresReview must be boolean');
-        if (!SCOPE_LEVELS.has(p.scopeConfidence)) errors.push('resolved.policy.scopeConfidence must be high|medium|low');
-        if (p.decisionReasons != null && !Array.isArray(p.decisionReasons)) errors.push('resolved.policy.decisionReasons must be array when present');
-      }
+
+    const p = g.policy;
+    if (p == null || typeof p !== 'object') errors.push('resolved.policy must be an object');
+    else {
+      if (typeof p.geoPolicyVersion !== 'string' || !p.geoPolicyVersion.trim()) errors.push('resolved.policy.geoPolicyVersion required');
+      if (!QUALITIES.has(p.quality)) errors.push('resolved.policy.quality must be high|medium|low');
+      if (typeof p.usableForMetrics !== 'boolean') errors.push('resolved.policy.usableForMetrics must be boolean');
+      if (typeof p.requiresReview !== 'boolean') errors.push('resolved.policy.requiresReview must be boolean');
+      if (!SCOPE_LEVELS.has(p.scopeConfidence)) errors.push('resolved.policy.scopeConfidence must be high|medium|low');
+      if (p.decisionReasons != null && !Array.isArray(p.decisionReasons)) errors.push('resolved.policy.decisionReasons must be array when present');
     }
-    if (g.audit != null) {
-      const a = g.audit;
-      if (a == null || typeof a !== 'object') errors.push('resolved.audit must be an object');
-      else {
-        if (typeof a.geoReferenceVersion !== 'string' || !a.geoReferenceVersion.trim()) errors.push('resolved.audit.geoReferenceVersion required');
-        if (a.borderReferenceVersion != null && typeof a.borderReferenceVersion !== 'string') errors.push('resolved.audit.borderReferenceVersion must be string|null');
-        if (typeof a.source !== 'string' || !a.source.trim()) errors.push('resolved.audit.source required');
-        if (typeof a.resolvedAt !== 'string' || !a.resolvedAt.trim()) errors.push('resolved.audit.resolvedAt required');
-      }
+
+    const a = g.audit;
+    if (a == null || typeof a !== 'object') errors.push('resolved.audit must be an object');
+    else {
+      if (typeof a.geoReferenceVersion !== 'string' || !a.geoReferenceVersion.trim()) errors.push('resolved.audit.geoReferenceVersion required');
+      if (a.borderReferenceVersion != null && typeof a.borderReferenceVersion !== 'string') errors.push('resolved.audit.borderReferenceVersion must be string|null');
+      if (typeof a.source !== 'string' || !a.source.trim()) errors.push('resolved.audit.source required');
+      if (typeof a.resolvedAt !== 'string' || !a.resolvedAt.trim()) errors.push('resolved.audit.resolvedAt required');
     }
+
     const me = g.matchEvidence;
     if (me == null || typeof me !== 'object') {
       errors.push('resolved.matchEvidence must be an object');
@@ -118,24 +118,7 @@ export function validateGeoEnvelope(g) {
         errors.push('resolved.matchEvidence.candidateCount must be integer >= 1');
       }
     }
-    if (g.subregionId != null && typeof g.subregionId !== 'string') {
-      errors.push('resolved.subregionId must be string when present');
-    }
-    if (typeof g.geoReferenceVersion !== 'string' || !g.geoReferenceVersion.trim()) {
-      errors.push('resolved.geoReferenceVersion must be a non-empty string');
-    }
-    if (typeof g.canonicalKey !== 'string' || !g.canonicalKey.trim()) errors.push('resolved.canonicalKey required');
-    if (typeof g.pboSubregionId !== 'string' || !g.pboSubregionId.trim()) {
-      errors.push('resolved.pboSubregionId required');
-    }
-    if (typeof g.matchMethod !== 'string' || !RESOLVED_METHODS.has(g.matchMethod)) {
-      errors.push('resolved.matchMethod invalid');
-    }
-    if (!Number.isFinite(g.matchConfidence)) errors.push('resolved.matchConfidence must be a number');
-    if (!QUALITIES.has(g.quality)) errors.push('resolved.quality must be high|medium|low');
-    if (typeof g.usableForMetrics !== 'boolean') errors.push('resolved.usableForMetrics must be boolean');
-    if (typeof g.requiresReview !== 'boolean') errors.push('resolved.requiresReview must be boolean');
-    if (!Array.isArray(g.geoAreaTags)) errors.push('resolved.geoAreaTags must be an array');
+
     const sd = g.scopeDecision;
     if (sd == null || typeof sd !== 'object') {
       errors.push('resolved.scopeDecision required');
@@ -151,6 +134,27 @@ export function validateGeoEnvelope(g) {
       if (!Array.isArray(sd.reasons) || !sd.reasons.every((x) => typeof x === 'string')) {
         errors.push('resolved.scopeDecision.reasons must be string[]');
       }
+    }
+
+    // Legacy flat duplicates — optional on read; validate types when present.
+    if (g.subregionId != null && typeof g.subregionId !== 'string') {
+      errors.push('resolved.subregionId must be string when present');
+    }
+    if (g.pboSubregionId != null && typeof g.pboSubregionId !== 'string') {
+      errors.push('resolved.pboSubregionId must be string when present');
+    }
+    if (g.matchMethod != null && !RESOLVED_METHODS.has(g.matchMethod)) {
+      errors.push('resolved.matchMethod invalid when present');
+    }
+    if (g.quality != null && !QUALITIES.has(g.quality)) errors.push('resolved.quality invalid when present');
+    if (g.usableForMetrics != null && typeof g.usableForMetrics !== 'boolean') {
+      errors.push('resolved.usableForMetrics must be boolean when present');
+    }
+    if (g.requiresReview != null && typeof g.requiresReview !== 'boolean') {
+      errors.push('resolved.requiresReview must be boolean when present');
+    }
+    if (g.scopeConfidence != null && !SCOPE_LEVELS.has(g.scopeConfidence)) {
+      errors.push('resolved.scopeConfidence invalid when present');
     }
   } else if (kind === 'unknown') {
     if (g.envelopeSchemaVersion != null && typeof g.envelopeSchemaVersion !== 'string') {

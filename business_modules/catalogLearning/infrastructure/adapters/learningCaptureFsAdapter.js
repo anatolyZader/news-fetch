@@ -6,7 +6,7 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { ILearningCapturePort } from '../../domain/ports/ILearningCapturePort.js';
 
-export class learningCaptureFsAdapter extends ILearningCapturePort {
+export class LearningCaptureFsAdapter extends ILearningCapturePort {
   /**
    * @param {object} [opts]
    * @param {string} [opts.reportsDir]

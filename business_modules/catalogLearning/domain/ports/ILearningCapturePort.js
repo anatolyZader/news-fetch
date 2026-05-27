@@ -9,7 +9,6 @@ export class ILearningCapturePort {
   }
 
   /** @returns {Promise<Array<object>>} */
-  // eslint-disable-next-line no-unused-vars
   async loadCaptureRecords(_opts) {
     throw new Error('not implemented');
   }

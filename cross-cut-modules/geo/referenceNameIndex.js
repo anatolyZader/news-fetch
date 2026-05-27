@@ -35,7 +35,7 @@ export function buildReferenceNameIndex(rootDir) {
     const names = [
       ...(row.names ?? []),
       row.officialHebrewName,
-      String(row.canonicalKey ?? '').replace(/_/g, ' '),
+      String(row.canonicalKey ?? '').replaceAll('_', ' '),
     ].filter(Boolean);
     for (const raw of names) {
       const display = String(raw).trim();

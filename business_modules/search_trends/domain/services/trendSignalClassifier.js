@@ -37,7 +37,7 @@ export function parseQueryInterestProxy(formattedValue) {
       momentum: 'rising',
     };
   }
-  const num = Number.parseInt(s.replace(/[^\d]/g, ''), 10);
+  const num = Number.parseInt(s.replaceAll(/[^\d]/g, ''), 10);
   if (Number.isFinite(num) && num > 0) {
     return { interest: Math.min(100, num), momentum: 'sustained' };
   }

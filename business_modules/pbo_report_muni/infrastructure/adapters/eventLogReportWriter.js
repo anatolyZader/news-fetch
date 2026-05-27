@@ -46,17 +46,8 @@ function buildMarkdown(assessment, parsedLog, sourceFile) {
     `| **Overall score** | **${assessment.overall_resilience_score}/10** — ${SCORE_LABEL(assessment.overall_resilience_score)} |`,
     ``,
     `---`,
-    ``,
-  );
-
-  // ── Incident summary ───────────────────────────────────────────────────────
-  lines.push(`## Incident Summary`, ``, assessment.incident_summary, ``, `---`, ``);
-
-  // ── Cross-component synthesis ──────────────────────────────────────────────
-  lines.push(`## Executive Synthesis`, ``, assessment.cross_component_synthesis, ``, `---`, ``);
-
-  // ── Score table ────────────────────────────────────────────────────────────
-  lines.push(
+    ``, `## Incident Summary`, ``, assessment.incident_summary, ``, `---`, ``
+  , `## Executive Synthesis`, ``, assessment.cross_component_synthesis, ``, `---`, ``, 
     `## Component Scores`,
     ``,
     `| # | Component | עברית | Score | Status | Confidence | Trend |`,
@@ -69,10 +60,7 @@ function buildMarkdown(assessment, parsedLog, sourceFile) {
       `| ${i + 1} | ${def.name_en ?? comp.component_id} | ${def.name_he ?? ''} | ${comp.score}/10 | ${SCORE_LABEL(comp.score)} | ${comp.confidence} | ${trend} ${comp.temporal_trend ?? ''} |`,
     );
   });
-  lines.push(``, `---`, ``);
-
-  // ── Per-component detail ───────────────────────────────────────────────────
-  lines.push(`## Detailed Analysis`, ``);
+  lines.push(``, `---`, ``, `## Detailed Analysis`, ``);
 
   for (const comp of assessment.components ?? []) {
     const def = COMPONENT_MAP[comp.component_id] ?? {};

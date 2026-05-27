@@ -61,7 +61,7 @@ async function onRecordingComplete({ job, runId, outputPath, date, scheduledStar
   console.log(`[recording] Transcribing run=${runId} file=${outputPath}`);
   // Each recording slot gets its own file: articles-audio-<station>-<date>T<HH-MM>.md
   // This avoids overwrites when multiple programs run on the same day.
-  const safeSlot = scheduledStart.replace(/:/g, '-'); // "2026-03-24T18-00"
+  const safeSlot = scheduledStart.replaceAll(':', '-'); // "2026-03-24T18-00"
   const mdPath = resolve(__dirname, '..', '..', '..', `articles-audio-${job.station}-${safeSlot}.md`);
   // gpt-4o-transcribe-diarize only supports Hebrew; use whisper-1 for other languages
   const useWhisper = job.language !== 'he';

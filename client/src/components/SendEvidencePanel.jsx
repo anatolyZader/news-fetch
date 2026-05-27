@@ -10,6 +10,8 @@ import CloudUploadOutlinedIcon from '@mui/icons-material/CloudUploadOutlined';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { ModalPanel } from '../ui/ModalPanel.jsx';
+import { PanelWindowShell } from '../ui/PanelWindowShell.jsx';
+import { panelHeaderButtonSx, panelInsetBoxSx, panelSectionRadius } from '../ui/panelChrome.js';
 import PropTypes from 'prop-types';
 
 const STORAGE_KEY = 'communityResilienceEvidenceDraft';
@@ -49,7 +51,7 @@ function formatSavedTime(isoLike) {
   return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 }
 
-export function SendEvidencePanel({ open, onClose, onSubmissionComplete }) {
+export function SendEvidencePanel({ open, onClose, onSubmissionComplete, variant = 'modal' }) {
   const { getIdToken, apiReady } = useAuth();
   const { t } = useLanguage();
   const [value, setValue] = useState(readDraft);
@@ -112,7 +114,7 @@ export function SendEvidencePanel({ open, onClose, onSubmissionComplete }) {
     lastSyncedRef.current = '';
     clearDraftCache();
     if (apiReady) {
-      void putEvidence('')
+      putEvidence('')
         .then((saved) => {
           if (draftGenerationRef.current !== clearGeneration) return;
           lastSyncedRef.current = '';
@@ -125,9 +127,9 @@ export function SendEvidencePanel({ open, onClose, onSubmissionComplete }) {
   }, [apiReady, putEvidence]);
 
   const handleClose = useCallback(
-    (...args) => {
+    (event, reason) => {
       clearInputAndDraft();
-      onClose?.(...args);
+      onClose?.(event, reason);
     },
     [clearInputAndDraft, onClose],
   );
@@ -188,12 +190,12 @@ export function SendEvidencePanel({ open, onClose, onSubmissionComplete }) {
         }
         setAnalysisNote('8-component analysis in progress…');
         submissionPollRef.current.timerId = setTimeout(() => {
-          void pollSubmissionUntilDoneRef.current(submissionId);
+          pollSubmissionUntilDoneRef.current(submissionId);
         }, 2000);
       } catch (err) {
         setAnalysisNote(`Status check failed: ${err?.message ?? 'unknown error'}`);
         submissionPollRef.current.timerId = setTimeout(() => {
-          void pollSubmissionUntilDoneRef.current(submissionId);
+          pollSubmissionUntilDoneRef.current(submissionId);
         }, 3000);
       }
     },
@@ -403,17 +405,8 @@ export function SendEvidencePanel({ open, onClose, onSubmissionComplete }) {
     handleClose,
   ]);
 
-  return (
-    <ModalPanel
-      open={open}
-      onClose={handleClose}
-      title={t('app.sendEvidence')}
-      ariaLabel={t('app.sendEvidence')}
-      initialWidth={920}
-      initialHeight={680}
-      zIndex={66}
-    >
-      <Stack spacing={1.4} sx={{ padding: '1rem 1.1rem 1.25rem' }}>
+  const body = (
+    <Stack spacing={1.4} sx={{ padding: '1rem 1.1rem 1.25rem' }}>
         <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.55, maxWidth: '62ch' }}>
           {t('evidence.introExtended')}
         </Typography>
@@ -429,6 +422,10 @@ export function SendEvidencePanel({ open, onClose, onSubmissionComplete }) {
           inputProps={{ maxLength: MAX_CHARS, 'aria-label': t('app.sendEvidence') }}
           disabled={!hydrated}
           fullWidth
+          sx={(theme) => ({
+            '& .MuiOutlinedInput-root': { borderRadius: panelSectionRadius(theme) },
+            '& .MuiOutlinedInput-notchedOutline': { borderRadius: panelSectionRadius(theme) },
+          })}
         />
 
         <Box
@@ -438,10 +435,9 @@ export function SendEvidencePanel({ open, onClose, onSubmissionComplete }) {
           onDragOver={onDragOver}
           onDragLeave={onDragLeave}
           sx={(theme) => ({
-            border: dragActive
-              ? `2px dashed ${theme.palette.primary.main}`
-              : theme.custom.border.hairline,
-            borderRadius: theme.custom.radius.lg,
+            ...(dragActive
+              ? { border: `2px dashed ${theme.palette.primary.main}` }
+              : panelInsetBoxSx(theme)),
             padding: theme.spacing(2),
             textAlign: 'center',
             background: dragActive ? theme.palette.action.selected : theme.palette.background.default,
@@ -478,7 +474,7 @@ export function SendEvidencePanel({ open, onClose, onSubmissionComplete }) {
                 onDelete={() => setPendingFiles((prev) => prev.filter((x) => x !== f))}
               />
             ))}
-            <Button size="small" onClick={() => setPendingFiles([])}>
+            <Button size="small" sx={panelHeaderButtonSx} onClick={() => setPendingFiles([])}>
               {t('evidence.clearFiles')}
             </Button>
           </Box>
@@ -519,6 +515,7 @@ export function SendEvidencePanel({ open, onClose, onSubmissionComplete }) {
           )}
           <Button
             variant="contained"
+            sx={panelHeaderButtonSx}
             onClick={handleSend}
             disabled={!hydrated || sending || (!value.trim() && pendingFiles.length === 0)}
           >
@@ -526,6 +523,35 @@ export function SendEvidencePanel({ open, onClose, onSubmissionComplete }) {
           </Button>
         </Box>
       </Stack>
+  );
+
+  if (variant === 'window') {
+    return (
+      <PanelWindowShell
+        title={t('app.sendEvidence')}
+        ariaLabel={t('app.sendEvidence')}
+        onClose={() => handleClose(undefined, 'closeButtonClick')}
+        closeLabel={t('app.close')}
+      >
+        {body}
+      </PanelWindowShell>
+    );
+  }
+
+  return (
+    <ModalPanel
+      open={open}
+      onClose={handleClose}
+      title={t('app.sendEvidence')}
+      ariaLabel={t('app.sendEvidence')}
+      initialWidth={920}
+      initialHeight={680}
+      zIndex={66}
+      modeless
+      minimizeOnOutsideClick
+      disableBackdropClose
+    >
+      {body}
     </ModalPanel>
   );
 }
@@ -534,4 +560,5 @@ SendEvidencePanel.propTypes = {
   open: PropTypes.bool,
   onClose: PropTypes.func,
   onSubmissionComplete: PropTypes.func,
+  variant: PropTypes.oneOf(['modal', 'window']),
 };

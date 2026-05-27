@@ -9,7 +9,7 @@ export function PboPlaceholderTab({ messageKey, messageValues }) {
   let text = t(messageKey);
   if (messageValues && typeof text === 'string') {
     for (const [k, val] of Object.entries(messageValues)) {
-      text = text.replace(new RegExp(`\\{${k}\\}`, 'g'), val);
+      text = text.replaceAll(new RegExp(`\\{${k}\\}`, 'g'), val);
     }
   }
   return (

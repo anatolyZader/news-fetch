@@ -15,7 +15,7 @@ import {
   buildReviewQueue,
 } from '../../../../../business_modules/resilience/validation/domain/reviewQueueBuilder.js';
 import { buildValidationRecord } from '../../../../../business_modules/resilience/validation/domain/validationRecordBuilder.js';
-import { createValidationCollectionService } from '../../../../../business_modules/resilience/validation/app/validationCollectionService.js';
+import createValidationCollectionService from '../../../../../business_modules/resilience/validation/app/validationCollectionService.js';
 
 describe('validationConfig', () => {
   it('loads defaults when file missing', () => {

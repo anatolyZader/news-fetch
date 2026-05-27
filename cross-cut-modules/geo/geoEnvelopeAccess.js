@@ -1,10 +1,16 @@
 /**
  * Nested-first accessors for geo envelopes (prefer classification/policy over flat duplicates).
+ * Legacy flat fallbacks retained here only for reading old persisted blobs.
  */
 
 /** @param {object | null | undefined} g */
 export function pboSubregionId(g) {
   return g?.classification?.pboSubregionId ?? g?.pboSubregionId ?? g?.subregionId ?? null;
+}
+
+/** @param {object | null | undefined} g */
+export function geoAreaTags(g) {
+  return g?.classification?.geoAreaTags ?? g?.geoAreaTags ?? [];
 }
 
 /** @param {object | null | undefined} g */
@@ -29,6 +35,17 @@ export function distanceBand(g) {
 }
 
 /** @param {object | null | undefined} g */
+export function distanceKmToNorthBorder(g) {
+  return g?.classification?.distanceKmToNorthBorder ?? g?.distanceKmToNorthBorder ?? null;
+}
+
+/** @param {object | null | undefined} g */
+export function isGolan(g) {
+  if (g?.classification && typeof g.classification.isGolan === 'boolean') return g.classification.isGolan;
+  return g?.isGolan ?? null;
+}
+
+/** @param {object | null | undefined} g */
 export function geoEntityType(g) {
   return g?.resolution?.geoEntityType ?? g?.geoEntityType ?? null;
 }
@@ -36,6 +53,31 @@ export function geoEntityType(g) {
 /** @param {object | null | undefined} g */
 export function matchMethod(g) {
   return g?.resolution?.matchMethod ?? g?.matchMethod ?? null;
+}
+
+/** @param {object | null | undefined} g */
+export function matchConfidence(g) {
+  return g?.resolution?.matchConfidence ?? g?.matchConfidence ?? null;
+}
+
+/** @param {object | null | undefined} g */
+export function provenance(g) {
+  return g?.resolution?.provenance ?? null;
+}
+
+/** @param {object | null | undefined} g */
+export function resolutionScope(g) {
+  return g?.resolution?.scope ?? null;
+}
+
+/** @param {object | null | undefined} g */
+export function canonicalKey(g) {
+  return g?.resolution?.canonicalKey ?? g?.canonicalKey ?? null;
+}
+
+/** @param {object | null | undefined} g */
+export function matchedName(g) {
+  return g?.resolution?.matchedName ?? g?.matchedName ?? g?.matchEvidence?.matchedVariant ?? null;
 }
 
 /** @param {object | null | undefined} g */
@@ -49,6 +91,11 @@ export function quality(g) {
 }
 
 /** @param {object | null | undefined} g */
+export function geoPolicyVersion(g) {
+  return g?.policy?.geoPolicyVersion ?? g?.geoPolicyVersion ?? null;
+}
+
+/** @param {object | null | undefined} g */
 export function geoReferenceVersion(g) {
   return g?.audit?.geoReferenceVersion ?? g?.geoReferenceVersion ?? null;
 }
@@ -56,6 +103,11 @@ export function geoReferenceVersion(g) {
 /** @param {object | null | undefined} g */
 export function borderReferenceVersion(g) {
   return g?.audit?.borderReferenceVersion ?? g?.borderReferenceVersion ?? null;
+}
+
+/** @param {object | null | undefined} g */
+export function geoSource(g) {
+  return g?.audit?.source ?? g?.source ?? null;
 }
 
 /** @param {object | null | undefined} g */

@@ -1,18 +1,12 @@
 import {
-  ISRAEL_DISTRICT_FILTER_ORDER,
-  ISRAEL_REGIONAL_DISTRICT_ORDER,
-  normalizeIsraelDistrictId,
+  
+  
+  
   normalizeIsraelDistrictLabelKey,
   israelDistrictLabelKey,
 } from '@israel-districts';
 
-export {
-  ISRAEL_DISTRICT_FILTER_ORDER,
-  ISRAEL_REGIONAL_DISTRICT_ORDER,
-  normalizeIsraelDistrictId,
-  normalizeIsraelDistrictLabelKey,
-  israelDistrictLabelKey,
-};
+
 
 /**
  * @param {(key: string) => string} t
@@ -26,3 +20,5 @@ export function districtDisplayName(t, labelKeyOrId) {
   }
   return t(israelDistrictLabelKey(key));
 }
+
+export {ISRAEL_DISTRICT_FILTER_ORDER, ISRAEL_REGIONAL_DISTRICT_ORDER, normalizeIsraelDistrictId, normalizeIsraelDistrictLabelKey, israelDistrictLabelKey} from '@israel-districts';

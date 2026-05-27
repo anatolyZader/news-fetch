@@ -5,7 +5,7 @@
 
 import {
   ISRAEL_DISTRICT_FILTER_ORDER,
-  ISRAEL_DISTRICT_IDS,
+  
   normalizeIsraelDistrictId,
   israelDistrictLabelKey,
 } from '../../../cross-cut-modules/geo/israelDistricts.js';
@@ -32,8 +32,8 @@ export const TREND_DISTRICTS = Object.freeze(
   })),
 );
 
-export const TREND_DISTRICT_FILTER_ORDER = ISRAEL_DISTRICT_FILTER_ORDER;
-export const TREND_DISTRICT_IDS = ISRAEL_DISTRICT_IDS;
+
+
 
 /**
  * @param {string} [raw]
@@ -44,3 +44,5 @@ export function resolveTrendDistrict(raw) {
   const found = TREND_DISTRICTS.find((d) => d.id === id);
   return found ?? TREND_DISTRICTS[0];
 }
+
+export {ISRAEL_DISTRICT_IDS as TREND_DISTRICT_IDS, ISRAEL_DISTRICT_FILTER_ORDER as TREND_DISTRICT_FILTER_ORDER} from '../../../cross-cut-modules/geo/israelDistricts.js';

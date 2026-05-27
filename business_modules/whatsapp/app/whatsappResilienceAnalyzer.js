@@ -19,9 +19,11 @@ import {
   normalizeLocalityName,
 } from '../../../cross-cut-modules/geo/localityCandidate.js';
 import { buildSignalExtractionSystemPrompt, extractJsonArray } from '../../resilience/infrastructure/claudeEvaluator.js';
+import { applySourceNativeGrounding } from '../../resilience/infrastructure/sourceNativeGrounding.js';
 import { createNoOpGeoEnrichmentPort } from '../../resilience/infrastructure/adapters/geoEnrichmentAdapter.js';
-import { SIGNAL_TYPES } from '../../resilience/domain/services/behaviorSignals.js';
+import { enrichFieldProvenance } from '../../resilience/domain/services/fieldSignalPolicy.js';
 import { COMPONENT_IDS, SPREAD_VALUES, SOURCE_BASIS_VALUES, COMPARISON_VALUES, DIRECTION_VALUES, CONFIDENCE_LEVELS } from '../domain/evidenceRequirements.js';
+import { SIGNAL_TYPES } from '../../resilience/domain/services/behaviorSignals.js';
 
 const VALID_SIGNAL_TYPES = new Set(SIGNAL_TYPES);
 const VALID_EVIDENCE_TYPES = new Set([
@@ -270,7 +272,9 @@ export function createWhatsAppResilienceAnalyzer({ anthropicApiKey, geoEnrichmen
      * Analyze a single WhatsApp message (group flow — single-shot).
      * Matches the pre-existing contract so group replies keep working.
      */
-    async analyzeMessage(messageText, senderName) {
+    async analyzeMessage(messageText, senderName, opts = {}) {
+      const sourceType = opts.sourceType ?? 'whatsapp';
+      const isFieldReserve = sourceType === 'field_whatsapp';
       const userContent =
         `Extract all behavioral signals from this WhatsApp field report:\n\n` +
         `[1] WhatsApp message from ${senderName || 'field worker'}\n` +
@@ -298,10 +302,17 @@ export function createWhatsAppResilienceAnalyzer({ anthropicApiKey, geoEnrichmen
       // Realtime flow has no _structured output; still infer locality/timeframe heuristically for downstream UI.
       const structuredRaw = postNormalizeStructured(EMPTY_STRUCTURED(), messageText);
       const validated = validateSignals(signals);
-      const { signals: sigGeo, structured } = attachGeoToSignalsAndStructured(validated, structuredRaw, geoPort, {
-        sourceType: 'whatsapp',
+      const grounded = applySourceNativeGrounding(validated, messageText, { source_type: sourceType });
+      const { signals: sigGeo, structured } = attachGeoToSignalsAndStructured(grounded, structuredRaw, geoPort, {
+        sourceType,
       });
-      return { signals: sigGeo, assessment, structured };
+      const withProvenance = isFieldReserve
+        ? sigGeo.map((s) => enrichFieldProvenance(s, {
+          officer_id: opts.officerId ?? null,
+          visit_timestamp: opts.visitTimestamp ?? null,
+        }))
+        : sigGeo;
+      return { signals: withProvenance, assessment, structured };
     },
 
     /**
@@ -344,16 +355,31 @@ export function createWhatsAppResilienceAnalyzer({ anthropicApiKey, geoEnrichmen
       const assessment = normalizeAssessment(inlineAssessment ?? trailingAssessment);
       const lastOfficerText =
         [...turnHistory].reverse().find((t) => t.role !== 'bot' && typeof t.text === 'string')?.text ?? '';
+      const officerSourceText = turnHistory
+        .filter((t) => t.role !== 'bot' && typeof t.text === 'string')
+        .map((t) => t.text.trim())
+        .filter(Boolean)
+        .join('\n');
       const structuredNorm = postNormalizeStructured(structuredRaw, lastOfficerText);
       const validated = validateSignals(signals);
+      const grounded = applySourceNativeGrounding(validated, officerSourceText || lastOfficerText, {
+        source_type: 'field_whatsapp',
+      });
       const { signals: sigGeo, structured } = attachGeoToSignalsAndStructured(
-        validated,
+        grounded,
         structuredNorm,
         geoPort,
-        { sourceType: 'whatsapp' },
+        { sourceType: 'field_whatsapp' },
       );
 
-      return { signals: sigGeo, structured, assessment };
+      const lastTs = [...turnHistory].reverse().find((t) => t.role !== 'bot')?.ts ?? null;
+      const withProvenance = sigGeo.map((s) => enrichFieldProvenance(s, {
+        officer_id: senderName,
+        visit_timestamp: lastTs,
+        visit_locality: structuredNorm?.observation?.locality ?? null,
+      }));
+
+      return { signals: withProvenance, structured, assessment };
     },
   };
 }

@@ -59,7 +59,7 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     if (!configLoaded) return;
     if (!authRequired || !isFirebaseClientConfigured()) {
-      void Promise.resolve().then(() => setAuthLoading(false));
+      setAuthLoading(false);
       return;
     }
 

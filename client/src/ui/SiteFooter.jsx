@@ -8,9 +8,9 @@ import { useCallback } from 'react';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { LanguageSelector } from '../components/LanguageSelector.jsx';
 import { getDocsBaseUrl, getSupportEmail, joinDocsPath } from '../lib/docsUrl.js';
-import { formatDate } from '../lib/date.js';
 
 const COPYRIGHT = '© 2026 VibesWitch.ai';
+const BRAND_NAME = 'Vibes Witch';
 
 const FOOTER_ROOT_SX = (theme) => ({
   width: '100%',
@@ -44,6 +44,13 @@ const linkSx = (theme) => ({
   cursor: 'pointer',
   textDecoration: 'none',
   '&:hover': { color: 'text.primary' },
+});
+
+const footerBodyTextSx = (theme) => ({
+  m: 0,
+  fontSize: theme.typography.body2.fontSize,
+  lineHeight: 1.6,
+  color: theme.palette.text.secondary,
 });
 
 const metaLinkSx = (theme) => ({
@@ -105,6 +112,28 @@ FooterColumn.propTypes = {
   children: PropTypes.node,
 };
 
+function FooterAboutColumn({ tagline, description }) {
+  return (
+    <FooterColumn title={BRAND_NAME}>
+      <FooterColumnItem>
+        <Typography component="p" sx={footerBodyTextSx}>
+          {tagline}
+        </Typography>
+      </FooterColumnItem>
+      <FooterColumnItem>
+        <Typography component="p" sx={footerBodyTextSx}>
+          {description}
+        </Typography>
+      </FooterColumnItem>
+    </FooterColumn>
+  );
+}
+
+FooterAboutColumn.propTypes = {
+  tagline: PropTypes.string.isRequired,
+  description: PropTypes.string.isRequired,
+};
+
 function FooterColumnItem({ children }) {
   return <Box component="li">{children}</Box>;
 }
@@ -148,7 +177,6 @@ MetaLine.propTypes = {
 };
 
 function FooterMetaBar({
-  reportDate,
   version,
   authRequired,
   userEmail,
@@ -175,12 +203,6 @@ function FooterMetaBar({
       >
         <MetaLine>
           <span>{COPYRIGHT}</span>
-          {reportDate && (
-            <>
-              <MetaDot />
-              <span>{t('footer.assessmentDate').replace('{date}', formatDate(reportDate))}</span>
-            </>
-          )}
           {version && (
             <>
               <MetaDot />
@@ -217,7 +239,6 @@ function FooterMetaBar({
 }
 
 FooterMetaBar.propTypes = {
-  reportDate: PropTypes.string,
   version: PropTypes.string,
   authRequired: PropTypes.bool,
   userEmail: PropTypes.string,
@@ -227,7 +248,6 @@ FooterMetaBar.propTypes = {
 
 export function SiteFooter({
   variant = 'full',
-  reportDate,
   onGoToAssessment,
   onSendEvidence,
   onNavigateTab,
@@ -309,14 +329,10 @@ export function SiteFooter({
             justifyContent="space-between"
             spacing={2}
           >
-            <Stack spacing={0.35}>
-              <Typography variant="cardTitle" component="p">
-                Vibes Witch
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                {t('footer.tagline')}
-              </Typography>
-            </Stack>
+            <FooterAboutColumn
+              tagline={t('footer.tagline')}
+              description={t('footer.description')}
+            />
             <Stack direction="row" flexWrap="wrap" spacing={2} useFlexGap>
               <FooterLink href={getStartedHref} external>
                 {t('footer.link.getStarted')}
@@ -328,7 +344,6 @@ export function SiteFooter({
           </Stack>
         </Box>
         <FooterMetaBar
-          reportDate={null}
           version={version}
           authRequired={false}
           userEmail=""
@@ -362,24 +377,17 @@ export function SiteFooter({
             display: 'grid',
             gridTemplateColumns: {
               xs: '1fr',
-              md: 'minmax(220px, 1.15fr) repeat(3, minmax(0, 1fr))',
+              md: 'repeat(4, minmax(0, 1fr))',
             },
             columnGap: { xs: 0, md: 4 },
             rowGap: { xs: 3, md: 0 },
             alignItems: 'start',
           }}
         >
-          <Stack spacing={0.75} sx={{ pr: { md: 2 }, pb: { xs: 0, md: 0 } }}>
-            <Typography variant="cardTitle" component="p">
-              Vibes Witch
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              {t('footer.tagline')}
-            </Typography>
-            <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1.55, maxWidth: 320 }}>
-              {t('footer.description')}
-            </Typography>
-          </Stack>
+          <FooterAboutColumn
+            tagline={t('footer.tagline')}
+            description={t('footer.description')}
+          />
 
           <FooterColumn title={t('footer.column.product')}>
             <FooterColumnItem>
@@ -463,7 +471,6 @@ export function SiteFooter({
       </Box>
 
       <FooterMetaBar
-        reportDate={reportDate}
         version={version}
         authRequired={authRequired}
         userEmail={userEmail}
@@ -476,7 +483,6 @@ export function SiteFooter({
 
 SiteFooter.propTypes = {
   variant: PropTypes.oneOf(['full', 'minimal']),
-  reportDate: PropTypes.string,
   onGoToAssessment: PropTypes.func,
   onSendEvidence: PropTypes.func,
   onNavigateTab: PropTypes.func,

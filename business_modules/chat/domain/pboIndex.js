@@ -35,12 +35,12 @@ export function buildPboIndex(signals) {
     const pctMatches = sigs
       .map((s) => s.evidence?.match(/avg=(\d+)%/))
       .filter(Boolean)
-      .map((m) => parseInt(m[1], 10));
+      .map((m) => Number.parseInt(m[1], 10));
     const overallAvg = pctMatches.length > 0
       ? Math.round(pctMatches.reduce((a, b) => a + b, 0) / pctMatches.length)
       : null;
 
-    indexLines.push(`${muni}: ${overallAvg != null ? overallAvg + '%' : 'N/A'}`);
+    indexLines.push(`${muni}: ${overallAvg == null ? 'N/A' : overallAvg + '%'}`);
   }
 
   // Sort by avg ascending so outliers are visible at top/bottom

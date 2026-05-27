@@ -64,7 +64,7 @@ export function readResilienceHistory(opts = {}) {
   const prefix = prefixFor(scope);
   // northern files start with `resilience-report-north-`. National files start with
   // `resilience-report-` AND must NOT match the north prefix to avoid double-counting.
-  const escapedPrefix = prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const escapedPrefix = prefix.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const datePattern = new RegExp(`^${escapedPrefix}-(\\d{4}-\\d{2}-\\d{2})(?:-(\\d{4}))?\\.json$`);
   const northRegex = new RegExp(`^${PREFIXES.north}-`);
 
@@ -113,7 +113,7 @@ export function readResilienceHistory(opts = {}) {
 }
 
 function daysAgoIsoFromAnchor(anchorIso, days) {
-  const [y, m, d] = anchorIso.split('-').map((s) => parseInt(s, 10));
+  const [y, m, d] = anchorIso.split('-').map((s) => Number.parseInt(s, 10));
   const dt = new Date(Date.UTC(y, m - 1, d));
   dt.setUTCDate(dt.getUTCDate() - days);
   return dt.toISOString().slice(0, 10);

@@ -3,8 +3,8 @@ const OFFICIAL_BIO_RE = /journalist|כתב|כתבת|עיתונאי|reporter|corr
 
 function stripUrlsAndMentions(text) {
   return String(text ?? '')
-    .replace(/https?:\/\/\S+/g, '')
-    .replace(/@[A-Za-z0-9_]+/g, '')
+    .replaceAll(/https?:\/\/\S+/g, '')
+    .replaceAll(/@[A-Za-z0-9_]+/g, '')
     .trim();
 }
 
@@ -90,7 +90,7 @@ export function candidateToPost(candidate, topic) {
     confidence: 'בינונית',
     behaviorOrEmotion: `@${candidate.handle}`,
     replies: [],
-    dedupeKey: text.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim().slice(0, 120),
+    dedupeKey: text.toLowerCase().replaceAll(/[^\p{L}\p{N}]+/gu, ' ').trim().slice(0, 120),
     meta: {
       topic,
       lang: candidate.lang,

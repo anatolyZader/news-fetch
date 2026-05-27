@@ -2,6 +2,23 @@ import { SIGNAL_TYPES, INTENSITY_LEVELS, PHASE_LEVELS, AFFECTED_SUBGROUPS, AFFEC
 import { bufferOovCapture, LEARNING_CAPTURE_KINDS } from '../domain/services/oovCapture.js';
 import { parseFieldReportTitleLocality } from '../../../cross-cut-modules/geo/localityCandidate.js';
 
+function normalizeEvidenceSpan(s, articles, sourceLabel) {
+  const span = s.evidence_span;
+  if (!span || typeof span !== 'object') return;
+  const start = Number(span.start);
+  const end = Number(span.end);
+  const art = articles?.[s.article_index - 1];
+  const bodyLen = art?.body?.length ?? 0;
+  if (!Number.isInteger(start) || !Number.isInteger(end) || start < 0 || end <= start || end > bodyLen) {
+    delete s.evidence_span;
+    if (bodyLen > 0) {
+      console.error(`  ⚠ [${sourceLabel}] Dropped invalid evidence_span on [${s.signal_type}]`);
+    }
+  } else {
+    s.evidence_span = { start, end };
+  }
+}
+
 const VALID_EVIDENCE_TYPES = new Set([
   'direct_quote_named_person', 'named_survey_statistic',
   'named_institutional_fact', 'observational_reported_fact',
@@ -97,6 +114,7 @@ export function validateSignalsFromCall(signals, articles, sourceLabel, contentK
   for (const s of valid) {
     const art = articles[s.article_index - 1];
     if (art) enrichSignalFromArticle(s, art, contentKind);
+    normalizeEvidenceSpan(s, articles, sourceLabel);
   }
 
   return valid;

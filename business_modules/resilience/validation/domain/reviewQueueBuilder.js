@@ -89,58 +89,28 @@ function priorityScore(reasons) {
   return reasons.reduce((s, r) => s + (weights[r.code] ?? 1), 0);
 }
 
+function emptyReviewItem(key) {
+  return {
+    article_key: key,
+    article_url: null,
+    article_source: null,
+    article_index: null,
+    source_file: null,
+    signal_types: [],
+    component_ids: [],
+    reasons: [],
+    signals: [],
+    priority: 0,
+    review_status: 'pending',
+  };
+}
+
 /**
- * @param {object} opts
- * @param {object} opts.assessment
- * @param {Array<object>} opts.signals
- * @param {object} [opts.reviewConfig]
- * @param {() => number} [opts.random] 0..1 for tests
+ * @param {Map<string, object>} byArticle
  */
-export function buildReviewQueue({
-  assessment,
-  signals,
-  reviewConfig,
-  random = Math.random,
-} = {}) {
-  const cfg = reviewConfig ?? {};
-  const maxItems = cfg.max_items_per_day ?? 15;
-  const controlRate = cfg.random_control_rate ?? 0.02;
-  const thresholds = cfg.thresholds ?? {};
-  const lowConf = thresholds.low_extraction_confidence ?? 0.6;
-
-  const flaggedComponents = new Map();
-  for (const comp of assessment?.components ?? []) {
-    const reasons = componentFlags(comp, thresholds);
-    if (reasons.length) flaggedComponents.set(comp.component_id, reasons);
-  }
-
-  const oovCaptureCount = assessment?.oov_capture_count ?? 0;
-  const dataVoidLevel = assessment?.data_void?.level ?? 'none';
-
-  const signalList = Array.isArray(signals) ? signals : [];
-  const typeCounts = {};
-  for (const s of signalList) {
-    const t = s?.signal_type ?? s?.type;
-    if (t) typeCounts[t] = (typeCounts[t] ?? 0) + 1;
-  }
-
-  /** @type {Map<string, object>} */
-  const byArticle = new Map();
-
-  function upsertItem(key, patch) {
-    const prev = byArticle.get(key) ?? {
-      article_key: key,
-      article_url: null,
-      article_source: null,
-      article_index: null,
-      source_file: null,
-      signal_types: [],
-      component_ids: [],
-      reasons: [],
-      signals: [],
-      priority: 0,
-      review_status: 'pending',
-    };
+function createReviewItemUpserter(byArticle) {
+  return function upsertItem(key, patch) {
+    const prev = byArticle.get(key) ?? emptyReviewItem(key);
     const merged = {
       ...prev,
       ...patch,
@@ -151,8 +121,27 @@ export function buildReviewQueue({
     };
     merged.priority = priorityScore(merged.reasons);
     byArticle.set(key, merged);
-  }
+  };
+}
 
+/**
+ * @param {Array<object>} signalList
+ */
+function buildSignalTypeCounts(signalList) {
+  const typeCounts = {};
+  for (const s of signalList) {
+    const t = s?.signal_type ?? s?.type;
+    if (t) typeCounts[t] = (typeCounts[t] ?? 0) + 1;
+  }
+  return typeCounts;
+}
+
+/**
+ * @param {Map<string, object>} flaggedComponents
+ * @param {ReturnType<typeof createReviewItemUpserter>} upsertItem
+ * @param {object} assessment
+ */
+function addComponentContributorItems(flaggedComponents, upsertItem, assessment) {
   for (const comp of assessment?.components ?? []) {
     const compReasons = flaggedComponents.get(comp.component_id) ?? [];
     for (const tc of comp.top_contributors ?? []) {
@@ -179,7 +168,16 @@ export function buildReviewQueue({
       });
     }
   }
+}
 
+/**
+ * @param {ReturnType<typeof createReviewItemUpserter>} upsertItem
+ * @param {Array<object>} signalList
+ * @param {Record<string, number>} typeCounts
+ * @param {object} context
+ */
+function addFlaggedSignalItems(upsertItem, signalList, typeCounts, context) {
+  const { lowConf, oovCaptureCount, dataVoidLevel } = context;
   for (const s of signalList) {
     const reasons = [];
     const conf = s.extraction_confidence;
@@ -215,7 +213,16 @@ export function buildReviewQueue({
       }],
     });
   }
+}
 
+/**
+ * @param {ReturnType<typeof createReviewItemUpserter>} upsertItem
+ * @param {Map<string, object>} byArticle
+ * @param {Array<object>} signalList
+ * @param {number} controlRate
+ * @param {() => number} random
+ */
+function addRandomControlItems(upsertItem, byArticle, signalList, controlRate, random) {
   for (const s of signalList) {
     if (random() > controlRate) continue;
     const key = articleKeyForSignal(s);
@@ -234,6 +241,50 @@ export function buildReviewQueue({
       }],
     });
   }
+}
+
+/**
+ * @param {object} opts
+ * @param {object} opts.assessment
+ * @param {Array<object>} opts.signals
+ * @param {object} [opts.reviewConfig]
+ * @param {() => number} [opts.random] 0..1 for tests
+ */
+export function buildReviewQueue({
+  assessment,
+  signals,
+  reviewConfig,
+  random = Math.random,
+} = {}) {
+  const cfg = reviewConfig ?? {};
+  const maxItems = cfg.max_items_per_day ?? 15;
+  const controlRate = cfg.random_control_rate ?? 0.02;
+  const thresholds = cfg.thresholds ?? {};
+  const lowConf = thresholds.low_extraction_confidence ?? 0.6;
+
+  const flaggedComponents = new Map();
+  for (const comp of assessment?.components ?? []) {
+    const reasons = componentFlags(comp, thresholds);
+    if (reasons.length) flaggedComponents.set(comp.component_id, reasons);
+  }
+
+  const oovCaptureCount = assessment?.oov_capture_count ?? 0;
+  const dataVoidLevel = assessment?.data_void?.level ?? 'none';
+
+  const signalList = Array.isArray(signals) ? signals : [];
+  const typeCounts = buildSignalTypeCounts(signalList);
+
+  /** @type {Map<string, object>} */
+  const byArticle = new Map();
+  const upsertItem = createReviewItemUpserter(byArticle);
+
+  addComponentContributorItems(flaggedComponents, upsertItem, assessment);
+  addFlaggedSignalItems(upsertItem, signalList, typeCounts, {
+    lowConf,
+    oovCaptureCount,
+    dataVoidLevel,
+  });
+  addRandomControlItems(upsertItem, byArticle, signalList, controlRate, random);
 
   const items = [...byArticle.values()]
     .sort((a, b) => b.priority - a.priority || String(a.article_key).localeCompare(b.article_key))

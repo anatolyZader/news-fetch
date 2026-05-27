@@ -491,14 +491,42 @@
       ],
       "historical_signals": [
         [
-          {"source_type": "whatsapp", "signal_type": "fear_expression", "evidence": "chat a"},
-          {"source_type": "news", "signal_type": "calm_confidence", "evidence": "news b"},
-          {"source_type": "news", "signal_type": "calm_confidence", "evidence": "news c"}
+          {"source_type": "whatsapp", "article_source": "wa1", "signal_type": "fear_expression", "evidence": "chat a"},
+          {"source_type": "news", "article_source": "news1", "signal_type": "calm_confidence", "evidence": "news b"},
+          {"source_type": "news", "article_source": "news2", "signal_type": "calm_confidence", "evidence": "news c"}
+        ],
+        [
+          {"source_type": "whatsapp", "article_source": "wa2", "signal_type": "fear_expression", "evidence": "chat b"},
+          {"source_type": "news", "article_source": "news3", "signal_type": "calm_confidence", "evidence": "news d"},
+          {"source_type": "news", "article_source": "news4", "signal_type": "calm_confidence", "evidence": "news e"}
         ]
       ],
       "expectations": {
         "data_void": {"digital_darkness": true, "level": "critical"},
         "comment": "Historical digital volume > 0, today digital = 0, field active."
+      }
+    },
+
+    {
+      "id": "total_silence_critical",
+      "category": "data_void",
+      "scenario": "Both digital and field silent with established digital baseline — total blackout critical.",
+      "mock_extraction": [],
+      "historical_signals": [
+        [
+          {"source_type": "whatsapp", "article_source": "wa1", "evidence": "a"},
+          {"source_type": "news", "article_source": "n1", "evidence": "b"},
+          {"source_type": "news", "article_source": "n2", "evidence": "c"}
+        ],
+        [
+          {"source_type": "whatsapp", "article_source": "wa2", "evidence": "a"},
+          {"source_type": "news", "article_source": "n3", "evidence": "b"},
+          {"source_type": "news", "article_source": "n4", "evidence": "c"}
+        ]
+      ],
+      "expectations": {
+        "data_void": {"total_silence": true, "level": "critical", "reason": "total_silence"},
+        "comment": "Complete sampling blackout must not downgrade to elevated."
       }
     },
 

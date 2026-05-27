@@ -78,7 +78,7 @@ export function PboRegionalDailyReports({ regionId }) {
             elevation={0}
             sx={(th) => ({
               border: th.custom.border.hairline,
-              borderRadius: th.custom.radius.lg,
+              borderRadius: `${th.custom.radius.section}px`,
               overflow: 'hidden',
               background:
                 theme.palette.mode === 'dark'

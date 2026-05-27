@@ -76,7 +76,7 @@ function parseTimestamp(val) {
   if (m) return `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`;
   // Fallback: try native parse
   const d = new Date(val);
-  return isNaN(d.getTime()) ? null : d.toISOString().split('T')[0];
+  return Number.isNaN(d.getTime()) ? null : d.toISOString().split('T')[0];
 }
 
 function parseRow(row, colMap) {
@@ -86,12 +86,12 @@ function parseRow(row, colMap) {
   const date = parseTimestamp(timestamp);
 
   const vulnerable = {
-    physicalDisability: parseInt(get('physicalDisability'), 10) || 0,
-    mentalDisability:   parseInt(get('mentalDisability'),   10) || 0,
-    specialEducation:   parseInt(get('specialEducation'),   10) || 0,
-    domesticViolence:   parseInt(get('domesticViolence'),   10) || 0,
-    severeFinancial:    parseInt(get('severeFinancial'),    10) || 0,
-    singleParent:       parseInt(get('singleParent'),       10) || 0,
+    physicalDisability: Number.parseInt(get('physicalDisability'), 10) || 0,
+    mentalDisability:   Number.parseInt(get('mentalDisability'),   10) || 0,
+    specialEducation:   Number.parseInt(get('specialEducation'),   10) || 0,
+    domesticViolence:   Number.parseInt(get('domesticViolence'),   10) || 0,
+    severeFinancial:    Number.parseInt(get('severeFinancial'),    10) || 0,
+    singleParent:       Number.parseInt(get('singleParent'),       10) || 0,
   };
 
   const severity = {

@@ -23,7 +23,7 @@
 import {
   buildWelcomeMenu, buildCollectingPrompt,
   buildSubmitSuccess, buildCancelConfirm, buildStatusMessage,
-  buildHelpMessage, buildUnknownInput, buildExpiredSession,
+  buildHelpMessage, buildUnknownInput, 
   buildMediaWithoutCaption, buildEditPrompt, buildAddExamplePrompt,
 } from './outboundMessageFactory.js';
 
@@ -125,9 +125,7 @@ function handleIdle(msg, text, replies, sideEffects) {
 
   // Substantive first message — auto-start, use the text as the first turn.
   if ((msg.type === 'text' || msg.type === 'media') && isSubstantiveText(text)) {
-    sideEffects.push({ type: 'create_draft' });
-    sideEffects.push({ type: 'append_turn_officer', text });
-    sideEffects.push({ type: 'run_extractor_loop' });
+    sideEffects.push({ type: 'create_draft' }, { type: 'append_turn_officer', text }, { type: 'run_extractor_loop' });
     return { nextState: 'collecting', replies, sideEffects };
   }
 
@@ -143,8 +141,7 @@ function handleCollecting(msg, text, replies, sideEffects) {
   }
 
   if ((msg.type === 'text' || msg.type === 'media') && text) {
-    sideEffects.push({ type: 'append_turn_officer', text });
-    sideEffects.push({ type: 'run_extractor_loop' });
+    sideEffects.push({ type: 'append_turn_officer', text }, { type: 'run_extractor_loop' });
     return { nextState: 'collecting', replies, sideEffects };
   }
 
@@ -173,8 +170,7 @@ function handleConfirming(msg, text, replies, sideEffects) {
 
   // Free text in confirming — treat as an edit / continuation.
   if ((msg.type === 'text' || msg.type === 'media') && text) {
-    sideEffects.push({ type: 'append_turn_officer', text });
-    sideEffects.push({ type: 'run_extractor_loop' });
+    sideEffects.push({ type: 'append_turn_officer', text }, { type: 'run_extractor_loop' });
     return { nextState: 'collecting', replies, sideEffects };
   }
 
@@ -183,4 +179,6 @@ function handleConfirming(msg, text, replies, sideEffects) {
 }
 
 /** Exposed for orchestrator's internal use when a session expires. */
-export { buildExpiredSession };
+
+
+export {buildExpiredSession} from './outboundMessageFactory.js';

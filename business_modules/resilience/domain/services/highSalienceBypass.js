@@ -9,6 +9,10 @@
  */
 
 import { getSignalCatalogEntry } from './signalCatalog.js';
+import {
+  GROUNDING_TIER,
+  UNVERIFIED_CRITICAL_GROUNDING_REASON,
+} from './groundingPolicy.js';
 
 export const MIN_MASS_THRESHOLD = 1.5;
 const DOMINANT_SHARE = 0.85;
@@ -20,7 +24,7 @@ const HIGH_TRUST_EVIDENCE = new Set([
   'direct_evidence',
 ]);
 
-const TRUSTED_SOURCE_TYPES = new Set(['field', 'pbo']);
+const TRUSTED_SOURCE_TYPES = new Set(['field', 'field_whatsapp', 'pbo']);
 
 /** Curated types where a lone verified report must not be suppressed. */
 export const CRITICAL_BYPASS_SIGNAL_TYPES = new Set([
@@ -73,7 +77,7 @@ export function findDominantContributor(items) {
 
 function effectiveScope(signal) {
   if (signal.scope_level) return signal.scope_level;
-  return signal.source_type === 'field' ? 'repeated_pattern' : 'single_case';
+  return signal.source_type === 'field' || signal.source_type === 'field_whatsapp' ? 'repeated_pattern' : 'single_case';
 }
 
 function hasCriticalStakes(signal) {
@@ -128,8 +132,26 @@ export function evaluateHighSalienceBypass(items, evidenceMass, rawScore, opts =
   };
 
   if (!isHighSalienceBypassEnabled()) return empty;
-  if (evidenceMass >= MIN_MASS_THRESHOLD) return empty;
   if (rawScore == null) return empty;
+
+  const tierCItem = items.find(
+    (it) => it?.signal?.grounding_tier === GROUNDING_TIER.unverified_critical
+      && hasCriticalStakes(it.signal),
+  );
+  if (tierCItem?.signal) {
+    const reasons = ['critical_signal', UNVERIFIED_CRITICAL_GROUNDING_REASON];
+    if (opts?.dataVoidLevel === 'critical' || opts?.digitalDarkness === true) {
+      reasons.push('data_void_context');
+    }
+    return {
+      skipFloor: false,
+      operatorCritical: true,
+      reasons,
+      dominantSignalType: tierCItem.signal.signal_type ?? tierCItem.signal.type ?? null,
+    };
+  }
+
+  if (evidenceMass >= MIN_MASS_THRESHOLD) return empty;
 
   const { item: dominant, share } = findDominantContributor(items);
   if (!dominant?.signal || share < DOMINANT_SHARE) return empty;

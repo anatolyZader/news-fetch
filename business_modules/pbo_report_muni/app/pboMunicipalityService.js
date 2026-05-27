@@ -157,8 +157,8 @@ function parseOneFile(filePath) {
       if (!def) continue;
       const val = row[c];
       if (def.kind === 'score') {
-        const num = parseFloat(val);
-        if (!isNaN(num)) {
+        const num = Number.parseFloat(val);
+        if (!Number.isNaN(num)) {
           // Invert: 1 → 0, 0.75 → 0.25, etc.
           components[def.component].scores.push({ label: def.pattern, value: def.invert ? 1 - num : num });
         }

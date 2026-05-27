@@ -8,6 +8,12 @@
  * more than 35% of mass for any polarity when ≥2 outlets are present.
  */
 
+import { CAP_EXEMPT_SOURCE_TYPES } from '../dataVoid/sourceChannels.js';
+
+function isCapExempt(signal) {
+  return CAP_EXEMPT_SOURCE_TYPES.has(signal?.source_type);
+}
+
 function aggregateMassByKey(polItems, keyFn) {
   const byKey = {};
   for (const it of polItems) {
@@ -45,17 +51,19 @@ function applyThresholdCapToPolarity(polItems, total, threshold, keyFn, layerNam
  * Bucket key is computed from each signal via `keyFn`.
  */
 export function capByGroup(items, keyFn, threshold, layerName = null) {
-  const distinctKeys = new Set(items.map((it) => keyFn(it.signal)));
+  const capItems = items.filter((it) => !isCapExempt(it.signal));
+  const exemptItems = items.filter((it) => isCapExempt(it.signal));
+  const distinctKeys = new Set(capItems.map((it) => keyFn(it.signal)));
   if (distinctKeys.size <= 1) return items;
 
-  const out = items.map((it) => ({ ...it }));
+  const out = capItems.map((it) => ({ ...it }));
   for (const polarity of ['+', '-']) {
     const polItems = out.filter((it) => it.polarity === polarity);
     const total = polItems.reduce((s, it) => s + it.contribution, 0);
     if (total === 0) continue;
     applyThresholdCapToPolarity(polItems, total, threshold, keyFn, layerName);
   }
-  return out;
+  return [...out, ...exemptItems.map((it) => ({ ...it }))];
 }
 
 /**

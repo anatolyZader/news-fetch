@@ -1,5 +1,6 @@
-import Fab from '@mui/material/Fab';
+import Button from '@mui/material/Button';
 import { alpha } from '@mui/material/styles';
+import { panelHeaderButtonSx, panelSectionRadius } from './panelChrome.js';
 import PropTypes from 'prop-types';
 
 export function ChatLauncher({
@@ -11,46 +12,44 @@ export function ChatLauncher({
 }) {
   const label = open ? openLabel : closedLabel;
   return (
-    <Fab
-      variant="extended"
-      size="medium"
+    <Button
+      type="button"
+      variant="outlined"
+      size="small"
       onClick={onClick}
       aria-label={label}
       aria-expanded={open}
       sx={(theme) => ({
+        ...panelHeaderButtonSx(theme),
         position: 'fixed',
         zIndex: theme.zIndex.tooltip + 10,
         right: position === 'bottom-right' ? theme.spacing(3) : 'auto',
         left:  position === 'bottom-left'  ? theme.spacing(3) : 'auto',
-        bottom: theme.spacing(3),
-        paddingTop: theme.spacing(0.75),
-        paddingBottom: theme.spacing(0.75),
-        paddingLeft: theme.spacing(1.25),
-        paddingRight: theme.spacing(1.25),
-        borderRadius: theme.custom.radius.pill,
-        border: theme.custom.border.hairline,
-        background: theme.palette.background.paper,
-        color: theme.palette.text.primary,
+        bottom: theme.spacing(2),
+        borderRadius: panelSectionRadius(theme),
+        border: `1px solid ${alpha(theme.palette.primary.main, 0.35)}`,
+        background: `linear-gradient(135deg, ${theme.palette.background.paper} 0%, ${alpha(theme.palette.primary.light, 0.55)} 100%)`,
+        color: theme.palette.primary.dark,
         fontWeight: theme.typography.button.fontWeight,
         boxShadow: theme.custom.elevation.hover,
         transition: theme.transitions.create(['transform', 'box-shadow', 'border-color'], {
           duration: theme.transitions.duration.short,
         }),
         '&:hover': {
-          background: theme.palette.background.paper,
+          background: `linear-gradient(135deg, ${alpha(theme.palette.primary.light, 0.7)} 0%, ${alpha(theme.palette.secondary.light, 0.5)} 100%)`,
           boxShadow: theme.custom.elevation.cta,
-          borderColor: alpha(theme.palette.primary.main, 0.4),
+          borderColor: theme.palette.primary.main,
           transform: 'translateY(-1px)',
         },
         [theme.breakpoints.down('sm')]: {
           right: position === 'bottom-right' ? theme.spacing(2) : 'auto',
           left:  position === 'bottom-left'  ? theme.spacing(2) : 'auto',
-          bottom: theme.spacing(2),
+          bottom: theme.spacing(1.5),
         },
       })}
     >
       {label}
-    </Fab>
+    </Button>
   );
 }
 

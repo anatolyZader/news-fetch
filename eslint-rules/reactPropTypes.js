@@ -30,22 +30,50 @@ function acceptsProps(params) {
   return Array.isArray(params) && params.length > 0;
 }
 
-function collectPropTypesNames(ast) {
-  const names = new Set();
+/**
+ * @param {import('estree').Program} ast
+ * @returns {Map<string, Set<string>>}
+ */
+function collectPropTypesKeys(ast) {
+  /** @type {Map<string, Set<string>>} */
+  const map = new Map();
   for (const node of ast.body) {
     if (node.type !== 'ExpressionStatement') continue;
     const expr = node.expression;
     if (
-      expr?.type === 'AssignmentExpression'
-      && expr.operator === '='
-      && expr.left?.type === 'MemberExpression'
-      && !expr.left.computed
-      && expr.left.property?.type === 'Identifier'
-      && expr.left.property.name === 'propTypes'
-      && expr.left.object?.type === 'Identifier'
+      expr?.type !== 'AssignmentExpression'
+      || expr.operator !== '='
+      || expr.left?.type !== 'MemberExpression'
+      || expr.left.computed
+      || expr.left.property?.type !== 'Identifier'
+      || expr.left.property.name !== 'propTypes'
+      || expr.left.object?.type !== 'Identifier'
+      || expr.right?.type !== 'ObjectExpression'
     ) {
-      names.add(expr.left.object.name);
+      continue;
     }
+    const keys = new Set(
+      expr.right.properties
+        .filter((p) => p.type === 'Property' && p.key?.type === 'Identifier')
+        .map((p) => p.key.name),
+    );
+    map.set(expr.left.object.name, keys);
+  }
+  return map;
+}
+
+/**
+ * @param {import('estree').Pattern} param
+ * @returns {string[]}
+ */
+function destructuredPropNames(param) {
+  if (param?.type !== 'ObjectPattern') return [];
+  /** @type {string[]} */
+  const names = [];
+  for (const prop of param.properties) {
+    if (prop.type === 'RestElement') continue;
+    if (prop.type !== 'Property' || prop.key?.type !== 'Identifier') continue;
+    names.push(prop.key.name);
   }
   return names;
 }
@@ -115,19 +143,34 @@ export const reactPropTypesRule = {
     messages: {
       missing:
         'Component "{{name}}" accepts props but is missing a {{name}}.propTypes definition.',
+      missingProp:
+        "'{{prop}}' is missing in props validation",
     },
   },
   create(context) {
     return {
       Program(node) {
-        const propTypesNames = collectPropTypesNames(node);
+        const propTypesByComponent = collectPropTypesKeys(node);
         for (const { name, node: componentNode } of getComponentCandidates(node)) {
-          if (propTypesNames.has(name)) continue;
-          context.report({
-            node: componentNode.id ?? componentNode,
-            messageId: 'missing',
-            data: { name },
-          });
+          const propKeys = propTypesByComponent.get(name);
+          const usedProps = destructuredPropNames(componentNode.params[0]);
+          if (!propKeys) {
+            if (usedProps.length === 0) continue;
+            context.report({
+              node: componentNode.id ?? componentNode,
+              messageId: 'missing',
+              data: { name },
+            });
+            continue;
+          }
+          for (const prop of usedProps) {
+            if (propKeys.has(prop)) continue;
+            context.report({
+              node: componentNode.params[0],
+              messageId: 'missingProp',
+              data: { prop },
+            });
+          }
         }
       },
     };

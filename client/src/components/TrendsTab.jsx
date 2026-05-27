@@ -128,7 +128,7 @@ export function TrendsTab() {
   const { t } = useLanguage();
   const theme = useTheme();
   const chart = theme.palette.chart;
-  const colorList = LINE_COLORS.map((k) => chart?.[k] ?? chart?.blue ?? '#2563eb');
+  const colorList = LINE_COLORS.map((k) => chart?.[k] ?? chart?.blue ?? '#8b9cf0');
   const filterRef = useRef(null);
 
   const [districtId, setDistrictId] = useState(readStoredDistrict);
@@ -289,7 +289,7 @@ export function TrendsTab() {
           width: `calc(100% + ${theme.spacing(6)})`,
           maxWidth: 'none',
           mx: theme.spacing(-3),
-          borderRadius: theme.custom.radius.lg,
+          borderRadius: `${theme.custom.radius.section}px`,
           overflow: 'hidden',
           border: theme.custom.border.hairline,
           borderColor: alpha(theme.palette.primary.main, 0.22),
@@ -417,9 +417,9 @@ export function TrendsTab() {
                 label={t(topic.labelKey)}
                 value={topic.latest ?? 0}
                 helper={
-                  topic.changePct != null
-                    ? t(changePctLabel).replace('{n}', String(topic.changePct))
-                    : undefined
+                  topic.changePct == null
+                    ? undefined
+                    : t(changePctLabel).replace('{n}', String(topic.changePct))
                 }
               />
             ))}
@@ -429,7 +429,7 @@ export function TrendsTab() {
             <Box sx={{ gridColumn: '1 / -1' }}>
               <ChartCard
                 title={t('trends.chart.interestOverTime')}
-                subtitle={groupLabel !== t('trends.group.all') ? groupLabel : undefined}
+                subtitle={groupLabel === t('trends.group.all') ? undefined : groupLabel}
               >
                 {lineChartData.length === 0 ? (
                   <EmptyState>{t('trends.empty')}</EmptyState>

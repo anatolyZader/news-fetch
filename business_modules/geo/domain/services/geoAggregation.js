@@ -4,7 +4,7 @@
  */
 
 /**
- * @param {Array<{ geo?: { kind?: string, pboSubregionId?: string, subregionId?: string } }>} items
+ * @param {Array<{ geo?: object }>} items
  * @returns {Record<string, typeof items>}
  */
 export function groupSignalsBySubregion(items) {
@@ -89,6 +89,8 @@ export function summarizeGeoQuality(items) {
   /** @type {Record<string, number>} */
   const byMatchMethod = {};
   /** @type {Record<string, number>} */
+  const byProvenance = {};
+  /** @type {Record<string, number>} */
   const unknownRawCounts = {};
   /** @type {string[]} */
   const fuzzyReviewSamples = [];
@@ -109,6 +111,8 @@ export function summarizeGeoQuality(items) {
 
     const method = g.resolution?.matchMethod ?? g.matchMethod ?? 'unknown';
     byMatchMethod[method] = (byMatchMethod[method] ?? 0) + 1;
+    const prov = g.resolution?.provenance ?? 'unknown';
+    byProvenance[prov] = (byProvenance[prov] ?? 0) + 1;
 
     const usable =
       g?.policy && typeof g.policy === 'object' && Object.prototype.hasOwnProperty.call(g.policy, 'usableForMetrics')
@@ -142,6 +146,7 @@ export function summarizeGeoQuality(items) {
     pctRequiresReview: Math.round((1000 * requiresReview) / resolvedDenom) / 10,
     bySourceType,
     byMatchMethod,
+    byProvenance,
     topUnknownRaw,
     fuzzyReviewSamples,
     resolvedCount,

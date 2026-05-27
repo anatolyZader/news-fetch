@@ -5,10 +5,11 @@ import {
   tokensForConceptId,
 } from './topicConceptNormalizer.js';
 
-export { normalizeTopicConcept, meaningfulTopicTokens } from './topicConceptNormalizer.js';
-
-/** @deprecated use TOPIC_PLACE_NAMES from topicConceptNormalizer */
-export const TOPIC_PLACES = TOPIC_PLACE_NAMES;
+export {
+  normalizeTopicConcept,
+  meaningfulTopicTokens,
+  TOPIC_PLACE_NAMES as TOPIC_PLACES,
+} from './topicConceptNormalizer.js';
 
 /**
  * @param {string} topic
@@ -62,7 +63,7 @@ function postHaystack(post) {
  */
 function hayIncludesAnyToken(hay, tokens) {
   return tokens.some((tok) => {
-    const t = String(tok).toLowerCase().replace(/"/g, '');
+    const t = String(tok).toLowerCase().replaceAll('"', '');
     return t.length >= 2 && hay.includes(t);
   });
 }
@@ -80,9 +81,7 @@ export function postMatchesTopic(post, topic) {
   const subjectIds = normalized.conceptIds.filter((id) => isSubjectConceptId(id));
 
   if (subjectIds.length > 0) {
-    const subjectMatch = subjectIds.some((id) => hayIncludesAnyToken(hay, tokensForConceptId(id, topic)));
-    if (!subjectMatch) return false;
-    return true;
+    return subjectIds.some((id) => hayIncludesAnyToken(hay, tokensForConceptId(id, topic)));
   }
 
   if (!normalized.matchTokens.length) return true;

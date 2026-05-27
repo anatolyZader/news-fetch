@@ -206,15 +206,15 @@ export function createEvidenceDraftStore(dbPath) {
       rawContent: typeof row.raw_content === 'string' ? row.raw_content : '',
       content: typeof row.content === 'string' ? row.content : '',
       category: typeof row.category === 'string' ? row.category : '',
-      detectedUrl: row.detected_url != null ? String(row.detected_url) : null,
+      detectedUrl: row.detected_url == null ? null : String(row.detected_url),
       ingestStatus: typeof row.ingest_status === 'string' ? row.ingest_status : 'queued',
-      ingestDetails: row.ingest_details != null ? String(row.ingest_details) : null,
+      ingestDetails: row.ingest_details == null ? null : String(row.ingest_details),
       analysisStatus: typeof row.analysis_status === 'string' ? row.analysis_status : 'queued',
-      analysisDetails: row.analysis_details != null ? String(row.analysis_details) : null,
+      analysisDetails: row.analysis_details == null ? null : String(row.analysis_details),
       analysisJson,
       extractedContentJson,
-      analyzedAt: row.analyzed_at != null ? String(row.analyzed_at) : null,
-      createdAt: row.created_at != null ? String(row.created_at) : null,
+      analyzedAt: row.analyzed_at == null ? null : String(row.analyzed_at),
+      createdAt: row.created_at == null ? null : String(row.created_at),
     };
   }
 
@@ -228,7 +228,7 @@ export function createEvidenceDraftStore(dbPath) {
       if (!row) return { content: '', updatedAt: null };
       return {
         content: typeof row.content === 'string' ? row.content : '',
-        updatedAt: row.updated_at != null ? String(row.updated_at) : null,
+        updatedAt: row.updated_at == null ? null : String(row.updated_at),
       };
     },
 
@@ -242,7 +242,7 @@ export function createEvidenceDraftStore(dbPath) {
       const row = getStmt.get(ownerKey);
       return {
         content: typeof row?.content === 'string' ? row.content : '',
-        updatedAt: row?.updated_at != null ? String(row.updated_at) : null,
+        updatedAt: row?.updated_at == null ? null : String(row.updated_at),
       };
     },
 
@@ -262,8 +262,8 @@ export function createEvidenceDraftStore(dbPath) {
         rawContent: typeof row?.raw_content === 'string' ? row.raw_content : content,
         content: typeof row?.content === 'string' ? row.content : content,
         category: typeof row?.category === 'string' ? row.category : category,
-        detectedUrl: row?.detected_url != null ? String(row.detected_url) : null,
-        createdAt: row?.created_at != null ? String(row.created_at) : null,
+        detectedUrl: row?.detected_url == null ? null : String(row.detected_url),
+        createdAt: row?.created_at == null ? null : String(row.created_at),
       };
     },
 
@@ -278,7 +278,7 @@ export function createEvidenceDraftStore(dbPath) {
      * @param {{ submissionId: number, ownerKey: string, status: 'queued'|'processed'|'failed', details?: string|null, analysisJson?: object|null }} p
      */
     setSubmissionAnalysisResult({ submissionId, ownerKey, status, details = null, analysisJson = null }) {
-      const json = analysisJson != null ? JSON.stringify(analysisJson) : null;
+      const json = analysisJson == null ? null : JSON.stringify(analysisJson);
       updateSubmissionAnalysisStmt.run(status, details, json, submissionId, ownerKey);
     },
 
@@ -286,7 +286,7 @@ export function createEvidenceDraftStore(dbPath) {
      * @param {{ submissionId: number, ownerKey: string, extractedContentJson: object|null }} p
      */
     setSubmissionExtractedContent({ submissionId, ownerKey, extractedContentJson }) {
-      const json = extractedContentJson != null ? JSON.stringify(extractedContentJson) : null;
+      const json = extractedContentJson == null ? null : JSON.stringify(extractedContentJson);
       updateSubmissionExtractedContentStmt.run(json, submissionId, ownerKey);
     },
 

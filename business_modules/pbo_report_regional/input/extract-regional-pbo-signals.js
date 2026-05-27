@@ -40,7 +40,7 @@ function stripFrontmatter(content) {
   for (const line of raw.slice(4, end).split('\n')) {
     const match = line.match(/^([A-Za-z0-9_-]+):\s*(.*)$/);
     if (!match) continue;
-    metadata[match[1].trim().toLowerCase()] = match[2].trim().replace(/^["']|["']$/g, '');
+    metadata[match[1].trim().toLowerCase()] = match[2].trim().replaceAll(/^["']|["']$/g, '');
   }
   return { metadata, body: raw.slice(end + 4).replace(/^\s+/, '') };
 }

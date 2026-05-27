@@ -1,15 +1,42 @@
 import { isNorthSubregionId } from '../value_objects/northSubregionId.js';
 
 /**
- * @param {{
- *   policy?: { usableForMetrics?: boolean, scopeConfidence?: string },
- *   classification?: { geoAreaTags?: string[], pboSubregionId?: string },
- *   usableForMetrics?: boolean,
- *   scopeConfidence?: string,
- *   geoAreaTags?: string[],
- *   pboSubregionId?: string,
- *   subregionId?: string,
- * }} g — resolved envelope (nested + flat fields)
+ * @param {object | null | undefined} g — resolved envelope (nested canonical; legacy flat tolerated)
+ * @returns {boolean | undefined}
+ */
+function readUsableForMetrics(g) {
+  if (g?.policy && typeof g.policy === 'object' && Object.prototype.hasOwnProperty.call(g.policy, 'usableForMetrics')) {
+    return g.policy.usableForMetrics;
+  }
+  return g?.usableForMetrics;
+}
+
+/**
+ * @param {object | null | undefined} g
+ * @returns {string | undefined}
+ */
+function readScopeConfidence(g) {
+  return g?.policy?.scopeConfidence ?? g?.scopeConfidence;
+}
+
+/**
+ * @param {object | null | undefined} g
+ * @returns {string | null}
+ */
+function readPboSubregionId(g) {
+  return g?.classification?.pboSubregionId ?? g?.pboSubregionId ?? g?.subregionId ?? null;
+}
+
+/**
+ * @param {object | null | undefined} g
+ * @returns {string[] | undefined}
+ */
+function readGeoAreaTags(g) {
+  return g?.classification?.geoAreaTags ?? g?.geoAreaTags;
+}
+
+/**
+ * @param {object | null | undefined} g — resolved envelope
  * @returns {{
  *   isNorthRelevant: boolean,
  *   source: 'geo' | 'geo_tags' | 'pbo_subregion' | 'unknown',
@@ -19,22 +46,17 @@ import { isNorthSubregionId } from '../value_objects/northSubregionId.js';
  * }}
  */
 export function northRelevanceFromResolvedGeo(g) {
-  const usable =
-    g?.policy && typeof g.policy === 'object' && Object.prototype.hasOwnProperty.call(g.policy, 'usableForMetrics')
-      ? g.policy.usableForMetrics
-      : g.usableForMetrics;
+  const usable = readUsableForMetrics(g);
   const usableBool = usable === true;
   const reasons = [];
   if (usable === false) {
     reasons.push('geo.usableForMetrics=false');
   }
 
-  const tags = g?.classification?.geoAreaTags ?? g.geoAreaTags;
+  const tags = readGeoAreaTags(g);
   if (Array.isArray(tags) && tags.includes('north')) {
     reasons.push('geoAreaTags includes north');
-    const rawConf = String(g?.policy?.scopeConfidence ?? g.scopeConfidence ?? 'medium')
-      .trim()
-      .toLowerCase();
+    const rawConf = String(readScopeConfidence(g) ?? 'medium').trim().toLowerCase();
     let confidence =
       rawConf === 'high' || rawConf === 'medium' || rawConf === 'low' ? rawConf : 'medium';
     if (!usableBool) confidence = 'low';
@@ -47,14 +69,10 @@ export function northRelevanceFromResolvedGeo(g) {
     };
   }
 
-  const id = String(g?.classification?.pboSubregionId ?? g.pboSubregionId ?? g.subregionId ?? '')
-    .trim()
-    .toLowerCase();
+  const id = String(readPboSubregionId(g) ?? '').trim().toLowerCase();
   if (isNorthSubregionId(id)) {
     reasons.push(`pboSubregionId=${id}`);
-    const rawConf = String(g?.policy?.scopeConfidence ?? g.scopeConfidence ?? 'medium')
-      .trim()
-      .toLowerCase();
+    const rawConf = String(readScopeConfidence(g) ?? 'medium').trim().toLowerCase();
     let confidence =
       rawConf === 'high' || rawConf === 'medium' || rawConf === 'low' ? rawConf : 'medium';
     if (!usableBool) confidence = 'low';

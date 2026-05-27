@@ -110,13 +110,13 @@ function ComponentTile({ id, series, t }) {
     <Box sx={(theme) => ({
       padding: theme.spacing(1.5),
       border: theme.custom.border.hairline,
-      borderRadius: theme.custom.radius.sm,
+      borderRadius: `${theme.custom.radius.section}px`,
       background: theme.palette.background.paper,
       minWidth: 260,
     })}>
       <Stack direction="row" justifyContent="space-between" alignItems="baseline">
         <Typography variant="cardTitle" sx={{ textTransform: 'capitalize' }}>
-          {t(`comp.${id}`) ?? id.replace(/_/g, ' ')}
+          {t(`comp.${id}`) ?? id.replaceAll('_', ' ')}
         </Typography>
         <Stack direction="row" spacing={0.75} alignItems="baseline">
           {last && (
@@ -171,7 +171,7 @@ function SignalVolumeBar({ days, t }) {
     <Box sx={(theme) => ({
       padding: theme.spacing(2),
       border: theme.custom.border.hairline,
-      borderRadius: theme.custom.radius.sm,
+      borderRadius: `${theme.custom.radius.section}px`,
       background: theme.palette.background.paper,
     })}>
       <Typography variant="cardTitle" sx={{ marginBottom: 1 }}>
@@ -260,7 +260,7 @@ export function ResilienceDriftPanel({ scope = 'national' }) {
               flex: 1,
               padding: theme.spacing(2),
               border: theme.custom.border.hairline,
-              borderRadius: theme.custom.radius.sm,
+              borderRadius: `${theme.custom.radius.section}px`,
               background: theme.palette.background.paper,
             })}>
               <Typography variant="cardTitle" sx={{ marginBottom: 1 }}>
@@ -277,7 +277,7 @@ export function ResilienceDriftPanel({ scope = 'national' }) {
               flex: 1,
               padding: theme.spacing(2),
               border: theme.custom.border.hairline,
-              borderRadius: theme.custom.radius.sm,
+              borderRadius: `${theme.custom.radius.section}px`,
               background: theme.palette.background.paper,
             })}>
               <Typography variant="cardTitle" sx={{ marginBottom: 1 }}>
@@ -294,7 +294,7 @@ export function ResilienceDriftPanel({ scope = 'national' }) {
               flex: 1,
               padding: theme.spacing(2),
               border: theme.custom.border.hairline,
-              borderRadius: theme.custom.radius.sm,
+              borderRadius: `${theme.custom.radius.section}px`,
               background: theme.palette.background.paper,
             })}>
               <Typography variant="cardTitle" sx={{ marginBottom: 1 }}>
@@ -318,7 +318,7 @@ export function ResilienceDriftPanel({ scope = 'national' }) {
               flex: 1,
               padding: theme.spacing(2),
               border: theme.custom.border.hairline,
-              borderRadius: theme.custom.radius.sm,
+              borderRadius: `${theme.custom.radius.section}px`,
               background: theme.palette.background.paper,
             })}>
               <Typography variant="cardTitle" sx={{ marginBottom: 1 }}>

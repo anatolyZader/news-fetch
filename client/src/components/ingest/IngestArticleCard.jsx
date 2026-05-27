@@ -7,6 +7,7 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import PropTypes from 'prop-types';
 import { alpha, useTheme } from '@mui/material/styles';
+import { formatPublishedDateTime } from '../../lib/date.js';
 import { translationFnPropType } from '../../lib/reportPropTypes.js';
 
 const BODY_PREVIEW_CHARS = 480;
@@ -28,12 +29,13 @@ export function IngestArticleCard({
   const preview = String(body ?? '').length > BODY_PREVIEW_CHARS
     ? `${String(body).slice(0, BODY_PREVIEW_CHARS)}…`
     : String(body ?? '');
+  const publishedLabel = publishedAt ? formatPublishedDateTime(publishedAt) : null;
 
   return (
     <Card
       variant="outlined"
       sx={{
-        borderRadius: 2,
+        borderRadius: `${theme.custom.radius.section}px`,
         borderColor: alpha(theme.palette.primary.main, 0.18),
       }}
     >
@@ -45,8 +47,8 @@ export function IngestArticleCard({
           <Stack direction="row" flexWrap="wrap" gap={0.75} alignItems="center">
             {source && <Chip size="small" label={source} />}
             {secondaryLabel && <Chip size="small" variant="outlined" label={secondaryLabel} />}
-            {publishedAt && (
-              <Chip size="small" variant="outlined" label={publishedAt} />
+            {publishedLabel && (
+              <Chip size="small" variant="outlined" label={publishedLabel} />
             )}
           </Stack>
           {preview && (

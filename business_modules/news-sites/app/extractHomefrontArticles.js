@@ -116,10 +116,10 @@ const FETCH_PREFILTER_SYSTEM_PROMPT =
   `Err on the side of inclusion: a false positive is filtered downstream; a false negative permanently loses behavioral evidence.\n\n` +
   `Return ONLY a JSON array of the article indices (the N from [N]): [1, 5, 12, ...]`;
 
-const PREFILTER_BATCH_SIZE = parseInt(process.env.PREFILTER_BATCH_SIZE || '400', 10);
+const PREFILTER_BATCH_SIZE = Number.parseInt(process.env.PREFILTER_BATCH_SIZE || '400', 10);
 
 function escapeMdHeading(s) {
-  return String(s).replace(/#/g, '\\#').replace(/\n/g, ' ');
+  return String(s).replaceAll('#', '\\#').replaceAll('\n', ' ');
 }
 
 async function preFilterBatch(anthropic, batch, batchOffset, batchNum, totalBatches, onUsage) {
@@ -221,7 +221,7 @@ export async function runExtractHomefrontArticles(opts = {}) {
   checkDailyBudget();
 
   const { onUsage, getTotal } = createCostTracker({
-    maxCostUsd: parseFloat(process.env.MAX_COST_USD ?? '1.00'),
+    maxCostUsd: Number.parseFloat(process.env.MAX_COST_USD ?? '1.00'),
     label: 'extract-homefront',
   });
 
@@ -243,13 +243,13 @@ export async function runExtractHomefrontArticles(opts = {}) {
     }
   }
 
-  const MAX_ARTICLES = parseInt(process.env.HOMEFRONT_MAX_ARTICLES || '300', 10);
+  const MAX_ARTICLES = Number.parseInt(process.env.HOMEFRONT_MAX_ARTICLES || '300', 10);
 
   const llmFiltered = await preFilterByLLM(allArticles, onUsage);
 
   const _seen = new Set();
   const deduped = llmFiltered.filter((a) => {
-    const key = a.title.replace(/[^\u0590-\u05FF\w]/g, '').slice(0, 40);
+    const key = a.title.replaceAll(/[^\u0590-\u05FF\w]/g, '').slice(0, 40);
     if (_seen.has(key)) return false;
     _seen.add(key);
     return true;
@@ -271,16 +271,8 @@ export async function runExtractHomefrontArticles(opts = {}) {
 
   for (let i = 0; i < articles.length; i++) {
     const a = articles[i];
-    sections.push(`## ${i + 1}. ${escapeMdHeading(a.title)}`);
-    sections.push('');
-    sections.push(`- **URL:** ${a.url}`);
-    sections.push(`- **Published:** ${a.publishedAt}`);
-    sections.push(`- **Source:** ${a.source}`);
-    sections.push('');
-    sections.push(a.body && a.body.trim() ? a.body.trim() : '_No full text available._');
-    sections.push('');
-    sections.push('---');
-    sections.push('');
+    sections.push(`## ${i + 1}. ${escapeMdHeading(a.title)}`, '', `- **URL:** ${a.url}`, `- **Published:** ${a.publishedAt}`, `- **Source:** ${a.source}`, '');
+    sections.push(a.body && a.body.trim() ? a.body.trim() : '_No full text available._', '', '---', '');
   }
 
   // Ensure the output directory exists (especially when using the default under business_modules/).

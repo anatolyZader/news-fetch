@@ -3,9 +3,9 @@
  */
 import { appendFileSync, existsSync, mkdirSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { LEARNING_CAPTURE_KINDS } from '../../../../cross-cut-modules/learningCapture/kinds.js';
 
-export { LEARNING_CAPTURE_KINDS };
+
+
 
 /**
  * @param {NodeJS.ProcessEnv} [env]
@@ -70,3 +70,5 @@ export function countOovCapturesForDate(date, reportsDir = 'reports') {
     return 0;
   }
 }
+
+export {LEARNING_CAPTURE_KINDS} from '../../../../cross-cut-modules/learningCapture/kinds.js';

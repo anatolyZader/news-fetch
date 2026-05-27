@@ -287,7 +287,7 @@ async function handleToolCall(toolName, input, pboLookup, reportData, evidenceSt
       reportData?.assessment?.date ??
       reportData?.reportDate ??
       null;
-    return lookupEvidenceText({ ...(input ?? {}), date: inferredDate }, evidenceStore);
+    return lookupEvidenceText({ ...input, date: inferredDate }, evidenceStore);
   }
 
   if (toolName === 'search_evidence') {
@@ -296,7 +296,7 @@ async function handleToolCall(toolName, input, pboLookup, reportData, evidenceSt
       reportData?.assessment?.date ??
       reportData?.reportDate ??
       null;
-    return searchEvidenceCandidates({ ...(input ?? {}), date: inferredDate }, evidenceStore);
+    return searchEvidenceCandidates({ ...input, date: inferredDate }, evidenceStore);
   }
 
   return 'Unknown tool';
@@ -452,5 +452,5 @@ export async function generateChatTitle(seedText) {
   });
   const out = response.content.filter((b) => b.type === 'text').map((b) => b.text).join('').trim();
   if (!out) return null;
-  return out.replace(/["'`]/g, '').replace(/[.。!！?？:：]+$/g, '').slice(0, 60).trim() || null;
+  return out.replaceAll(/["'`]/g, '').replaceAll(/[.。!！?？:：]+$/g, '').slice(0, 60).trim() || null;
 }

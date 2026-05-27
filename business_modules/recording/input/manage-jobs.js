@@ -69,13 +69,13 @@ function parseDays(str) {
   for (const part of parts) {
     if (part.includes('-')) {
       const [from, to] = part.split('-').map((s) => {
-        const n = parseInt(s, 10);
+        const n = Number.parseInt(s, 10);
         return Number.isNaN(n) ? DAY_NAMES.indexOf(s) : n;
       });
       if (from < 0 || to < 0 || from > 6 || to > 6) throw new Error(`Invalid day range: ${part}`);
       for (let d = from; d <= to; d++) days.add(d);
     } else {
-      const n = parseInt(part, 10);
+      const n = Number.parseInt(part, 10);
       const day = Number.isNaN(n) ? DAY_NAMES.indexOf(part) : n;
       if (day < 0 || day > 6) throw new Error(`Invalid day: ${part}`);
       days.add(day);
@@ -90,8 +90,8 @@ function parseScheduleSlot(slotStr) {
   if (parts.length !== 3) throw new Error(`Invalid slot "${slotStr}" — expected DAYS:HH:MM`);
   const [daysStr, hourStr, minStr] = parts;
   const dayOfWeek = parseDays(daysStr);
-  const hour = parseInt(hourStr, 10);
-  const minute = parseInt(minStr, 10);
+  const hour = Number.parseInt(hourStr, 10);
+  const minute = Number.parseInt(minStr, 10);
   if (hour < 0 || hour > 23 || minute < 0 || minute > 59) {
     throw new Error(`Invalid time ${hourStr}:${minStr}`);
   }
@@ -112,10 +112,10 @@ function parseSchedule(str) {
 /** Parse "30m", "1h", "90s", "1800" → seconds */
 function parseDuration(str) {
   const s = String(str).trim().toLowerCase();
-  if (s.endsWith('h')) return parseFloat(s) * 3600;
-  if (s.endsWith('m')) return parseFloat(s) * 60;
-  if (s.endsWith('s')) return parseFloat(s);
-  const n = parseInt(s, 10);
+  if (s.endsWith('h')) return Number.parseFloat(s) * 3600;
+  if (s.endsWith('m')) return Number.parseFloat(s) * 60;
+  if (s.endsWith('s')) return Number.parseFloat(s);
+  const n = Number.parseInt(s, 10);
   if (Number.isNaN(n)) throw new Error(`Invalid duration: ${str}`);
   return n;
 }

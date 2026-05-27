@@ -10,6 +10,17 @@ import { parseSurveyExcel } from '../infrastructure/adapters/surveyExcelLoader.j
 import { analyzeSurvey } from '../app/surveyEvaluator.js';
 import { writeMunicipalityReports } from '../app/surveyReportWriter.js';
 import { createCostTracker, appendCostLog, checkDailyBudget } from '../../../cross-cut-modules/budget/index.js';
+import {
+  distanceBand,
+  distanceKmToNorthBorder,
+  geoEntityType,
+  geoReferenceVersion,
+  isGolan,
+  pboSubregionId,
+  quality,
+  scopeConfidence,
+  usableForMetrics,
+} from '../../../cross-cut-modules/geo/geoEnvelopeAccess.js';
 
 /**
  * @param {{ geoEnrichmentPort?: { resolveLocalityName: (name: string|null|undefined) => object } }} [options]
@@ -80,7 +91,7 @@ export async function runAnalyzeSurveyCli(options = {}) {
   let skipped   = 0;
 
   for (const mun of toProcess) {
-    const slug     = mun.name.replace(/[/\\?%*:|"<> ]/g, '_');
+    const slug     = mun.name.replaceAll(/[/\\?%*:|"<> ]/g, '_');
     const outPath  = resolve('reports', `survey-report-${date}-${slug}`);
     const mdPath   = `${outPath}.md`;
 
@@ -101,8 +112,9 @@ export async function runAnalyzeSurveyCli(options = {}) {
         }
         const g = assessment.municipalities[0]?.geo;
         if (g?.kind === 'resolved') {
+          const km = distanceKmToNorthBorder(g);
           console.error(
-            `  Geo: entity=${g.geoEntityType} scope=${g.scopeConfidence} subregion=${g.pboSubregionId} band=${g.distanceBand} (~${g.distanceKmToNorthBorder.toFixed(1)} km) ref=${g.geoReferenceVersion} quality=${g.quality} metrics=${g.usableForMetrics} golan=${g.isGolan}`,
+            `  Geo: entity=${geoEntityType(g)} scope=${scopeConfidence(g)} subregion=${pboSubregionId(g)} band=${distanceBand(g)} (~${Number(km).toFixed(1)} km) ref=${geoReferenceVersion(g)} quality=${quality(g)} metrics=${usableForMetrics(g)} golan=${isGolan(g)}`,
           );
         } else if (g) {
           console.error(`  Geo: unknown (${g.reason ?? '?'}) raw=${JSON.stringify(g.rawName ?? '')}`);

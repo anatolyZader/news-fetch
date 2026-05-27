@@ -13,7 +13,7 @@ export function normalizeLocalityLookupKey(s) {
     .trim()
     .normalize('NFKC')
     .toLowerCase()
-    .replace(/\s+/g, ' ');
+    .replaceAll(/\s+/g, ' ');
 }
 
 /**
@@ -23,9 +23,9 @@ export function normalizeLocalityLookupKey(s) {
  */
 export function stripPunctuationForLookup(s) {
   return String(s ?? '')
-    .replace(/['"`׳״]/g, '')
-    .replace(/[.,;:!?()[\]{}]/g, ' ')
-    .replace(/\s+/g, ' ')
+    .replaceAll(/['"`׳״]/g, '')
+    .replaceAll(/[.,;:!?()[\]{}]/g, ' ')
+    .replaceAll(/\s+/g, ' ')
     .trim();
 }
 
@@ -61,7 +61,7 @@ export function buildLookupIndex(localities) {
     for (const name of row.names ?? []) {
       index.set(normalizeLocalityLookupKey(name), row);
     }
-    index.set(normalizeLocalityLookupKey(row.canonicalKey.replace(/_/g, ' ')), row);
+    index.set(normalizeLocalityLookupKey(row.canonicalKey.replaceAll('_', ' ')), row);
   }
   return index;
 }
@@ -79,7 +79,7 @@ export function buildFuzzyPrefixBuckets(localities) {
       const n = normalizeLocalityLookupKey(name);
       if (n) keys.add(n[0]);
     }
-    const ck = normalizeLocalityLookupKey(row.canonicalKey.replace(/_/g, ' '));
+    const ck = normalizeLocalityLookupKey(row.canonicalKey.replaceAll('_', ' '));
     if (ck) keys.add(ck[0]);
     for (const ch of keys) {
       if (!buckets.has(ch)) buckets.set(ch, []);
@@ -136,7 +136,7 @@ function scoreRowsForFuzzy(rows, q) {
       const sc = diceBigramSimilarity(q, n);
       if (sc > best) best = sc;
     }
-    const ck = normalizeLocalityLookupKey(row.canonicalKey.replace(/_/g, ' '));
+    const ck = normalizeLocalityLookupKey(row.canonicalKey.replaceAll('_', ' '));
     best = Math.max(best, diceBigramSimilarity(q, ck));
     if (best >= FUZZY_MIN_SCORE) scored.push({ row, score: best });
   }

@@ -17,6 +17,8 @@ export function FilterBar({ children, footer, centered = false }) {
       paddingBottom: theme.spacing(1.5),
       paddingLeft: theme.spacing(2),
       paddingRight: theme.spacing(2),
+      borderRadius: `${theme.custom.radius.section}px`,
+      overflow: 'hidden',
     })}>
       <Stack
         spacing={1}

@@ -8,6 +8,8 @@ import Typography from '@mui/material/Typography';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { ModalPanel } from '../ui/ModalPanel.jsx';
+import { PanelWindowShell } from '../ui/PanelWindowShell.jsx';
+import { panelHeaderButtonSx, panelInsetBoxSx, panelSectionRadius } from '../ui/panelChrome.js';
 import PropTypes from 'prop-types';
 
 function hasSourceBasisCue(text) {
@@ -62,8 +64,8 @@ function stripParentheticals(text) {
   const s = String(text ?? '');
   // Support ASCII parentheses () and fullwidth （）.
   const out = s
-    .replace(/\s*[(（][^)）]*[)）]\s*/g, ' ')
-    .replace(/\s+/g, ' ')
+    .replaceAll(/\s*[(（][^)）]*[)）]\s*/g, ' ')
+    .replaceAll(/\s+/g, ' ')
     .trim();
   return out;
 }
@@ -77,7 +79,7 @@ async function postJson(url, body, { token } = {}) {
   return data;
 }
 
-export function ReportBuildPanel({ open, onClose }) {
+export function ReportBuildPanel({ open, onClose, variant = 'modal' }) {
   const { getIdToken } = useAuth();
   const { t } = useLanguage();
   const tRef = useRef(t);
@@ -102,6 +104,7 @@ export function ReportBuildPanel({ open, onClose }) {
   const suggestLastAtRef = useRef(0);
   const typeTimerRef = useRef(null);
   const typeRunIdRef = useRef(0);
+  const sessionActiveRef = useRef(false);
 
   const heuristicQuestions = buildHeuristicQuestions(input);
   const llmQuestions = input.trim() ? liveQuestions : questions;
@@ -139,6 +142,11 @@ export function ReportBuildPanel({ open, onClose }) {
     }
   }, [getIdToken]);
 
+  const handlePanelClose = useCallback((event, reason) => {
+    sessionActiveRef.current = false;
+    onClose?.(event, reason);
+  }, [onClose]);
+
   const cancel = useCallback(async () => {
     setBusy(true);
     setError(null);
@@ -146,6 +154,7 @@ export function ReportBuildPanel({ open, onClose }) {
       const token = await getIdToken();
       await postJson('/api/report-build/cancel', {}, { token });
       resetUi();
+      sessionActiveRef.current = false;
       onClose?.();
     } catch (e) {
       setError(e?.message ?? tRef.current('reportBuild.errorCancel'));
@@ -191,10 +200,8 @@ export function ReportBuildPanel({ open, onClose }) {
         suggestAbortRef.current.abort();
         suggestAbortRef.current = null;
       }
-      void Promise.resolve().then(() => {
-        setSuggesting(false);
-        setLiveQuestions([]);
-      });
+      setSuggesting(false);
+      setLiveQuestions([]);
       return;
     }
 
@@ -280,6 +287,8 @@ export function ReportBuildPanel({ open, onClose }) {
 
   useEffect(() => {
     if (!open) return;
+    if (sessionActiveRef.current) return;
+    sessionActiveRef.current = true;
     void (async () => {
       resetUi();
       await start();
@@ -302,10 +311,8 @@ export function ReportBuildPanel({ open, onClose }) {
       typeTimerRef.current = null;
     }
 
-    void Promise.resolve().then(() => {
-      setTypedQuestions(questions.map(() => ''));
-      setTypedProgress({ qIdx: 0, chIdx: 0 });
-    });
+    setTypedQuestions(questions.map(() => ''));
+    setTypedProgress({ qIdx: 0, chIdx: 0 });
 
     if (!questions.length) return;
 
@@ -350,27 +357,31 @@ export function ReportBuildPanel({ open, onClose }) {
     };
   }, [open, preview, displayQuestionsKey]);
 
-  return (
-    <ModalPanel
-      open={open}
-      onClose={onClose}
-      title={t('app.writeReport')}
-      ariaLabel={t('app.writeReport')}
-      initialWidth={900}
-      initialHeight={640}
-      zIndex={65}
-      headerRight={(
-        <>
-          <Button variant="outlined" size="small" onClick={() => void start()} disabled={busy}>
-            {t('app.restart')}
-          </Button>
-          <Button variant="outlined" size="small" onClick={cancel} disabled={busy}>
-            {t('app.close')}
-          </Button>
-        </>
-      )}
-    >
-      <Stack spacing={1.4} sx={{ padding: '1rem 1.1rem 1.25rem' }}>
+  const headerRight = (
+    <>
+      <Button
+        variant="outlined"
+        size="small"
+        sx={panelHeaderButtonSx}
+        onClick={() => void start()}
+        disabled={busy}
+      >
+        {t('app.restart')}
+      </Button>
+      <Button
+        variant="outlined"
+        size="small"
+        sx={panelHeaderButtonSx}
+        onClick={cancel}
+        disabled={busy}
+      >
+        {t('app.close')}
+      </Button>
+    </>
+  );
+
+  const body = (
+    <Stack spacing={1.4} sx={{ padding: '1rem 1.1rem 1.25rem' }}>
         <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.55 }}>
           {t('reportBuild.intro')}
         </Typography>
@@ -386,14 +397,17 @@ export function ReportBuildPanel({ open, onClose }) {
           multiline
           minRows={6}
           fullWidth
+          sx={(theme) => ({
+            '& .MuiOutlinedInput-root': { borderRadius: panelSectionRadius(theme) },
+            '& .MuiOutlinedInput-notchedOutline': { borderRadius: panelSectionRadius(theme) },
+          })}
         />
 
         {displayQuestions.length > 0 && !preview && (
           <Box
             dir="rtl"
             sx={(theme) => ({
-              border: theme.custom.border.hairline,
-              borderRadius: theme.custom.radius.lg,
+              ...panelInsetBoxSx(theme),
               paddingTop: theme.spacing(1),
               paddingBottom: theme.spacing(1),
               paddingLeft: theme.spacing(1.25),
@@ -432,13 +446,14 @@ export function ReportBuildPanel({ open, onClose }) {
         <Stack direction="row" alignItems="center" spacing={1.2} useFlexGap flexWrap="wrap">
           <Button
             variant="contained"
+            sx={panelHeaderButtonSx}
             onClick={sendTurn}
             disabled={busy || !input.trim()}
           >
             {state === 'confirming' ? t('reportBuild.updateDraft') : t('reportBuild.next')}
           </Button>
           {preview && (
-            <Button variant="contained" onClick={confirmAndSubmit} disabled={busy}>
+            <Button variant="contained" sx={panelHeaderButtonSx} onClick={confirmAndSubmit} disabled={busy}>
               {t('reportBuild.confirmSubmit')}
             </Button>
           )}
@@ -451,8 +466,7 @@ export function ReportBuildPanel({ open, onClose }) {
             </Typography>
             <Box
               sx={(theme) => ({
-                border: theme.custom.border.hairline,
-                borderRadius: theme.custom.radius.lg,
+                ...panelInsetBoxSx(theme),
                 paddingTop: theme.spacing(1.25),
                 paddingBottom: theme.spacing(1.25),
                 paddingLeft: theme.spacing(1.5),
@@ -468,6 +482,37 @@ export function ReportBuildPanel({ open, onClose }) {
           </>
         )}
       </Stack>
+  );
+
+  if (variant === 'window') {
+    return (
+      <PanelWindowShell
+        title={t('app.writeReport')}
+        ariaLabel={t('app.writeReport')}
+        onClose={() => handlePanelClose(undefined, 'closeButtonClick')}
+        closeLabel={t('app.close')}
+        headerRight={headerRight}
+      >
+        {body}
+      </PanelWindowShell>
+    );
+  }
+
+  return (
+    <ModalPanel
+      open={open}
+      onClose={handlePanelClose}
+      title={t('app.writeReport')}
+      ariaLabel={t('app.writeReport')}
+      initialWidth={900}
+      initialHeight={640}
+      zIndex={65}
+      modeless
+      minimizeOnOutsideClick
+      disableBackdropClose
+      headerRight={headerRight}
+    >
+      {body}
     </ModalPanel>
   );
 }
@@ -475,4 +520,5 @@ export function ReportBuildPanel({ open, onClose }) {
 ReportBuildPanel.propTypes = {
   open: PropTypes.bool,
   onClose: PropTypes.func,
+  variant: PropTypes.oneOf(['modal', 'window']),
 };

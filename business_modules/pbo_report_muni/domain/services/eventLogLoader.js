@@ -43,7 +43,7 @@ export function parseEventLog(text, sourceName = 'stdin') {
     }
 
     // "EVENT LIST" marker
-    if (!inEvents && line.toUpperCase().replace(/\s+/g, ' ').includes('EVENT LIST')) {
+    if (!inEvents && line.toUpperCase().replaceAll(/\s+/g, ' ').includes('EVENT LIST')) {
       inEvents = true;
       continue;
     }

@@ -18,7 +18,7 @@ const VARIANT_STYLES = {
     },
     '& pre': {
       border: theme.custom.border.hairline,
-      borderRadius: theme.custom.radius.lg,
+      borderRadius: `${theme.custom.radius.section}px`,
       paddingTop: theme.spacing(1.25),
       paddingBottom: theme.spacing(1.25),
       paddingLeft: theme.spacing(1.5),
@@ -79,7 +79,7 @@ const VARIANT_STYLES = {
       paddingBottom: theme.spacing(0.15),
       paddingLeft: theme.spacing(0.4),
       paddingRight: theme.spacing(0.4),
-      borderRadius: theme.custom.radius.xs,
+      borderRadius: `${theme.custom.radius.section}px`,
     },
     '& pre': {
       background: theme.palette.background.default,
@@ -87,7 +87,7 @@ const VARIANT_STYLES = {
       paddingBottom: theme.spacing(1),
       paddingLeft: theme.spacing(1.5),
       paddingRight: theme.spacing(1.5),
-      borderRadius: theme.custom.radius.md,
+      borderRadius: `${theme.custom.radius.section}px`,
       overflowX: 'auto',
       fontSize: theme.typography.body2.fontSize,
     },
@@ -120,7 +120,7 @@ export function MarkdownArticle({
             backgroundColor:
               variant === 'report' ? theme.custom.surface.bannerSubtle : theme.custom.surface.code,
             border: theme.custom.border.hairline,
-            borderRadius: variant === 'report' ? theme.custom.radius.md : theme.custom.radius.lg,
+            borderRadius: `${theme.custom.radius.section}px`,
             color: theme.palette.text.secondary,
             fontSize: theme.typography.body2.fontSize,
             lineHeight: theme.typography.body2.lineHeight,

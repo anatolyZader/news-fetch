@@ -2,40 +2,67 @@ import ButtonBase from '@mui/material/ButtonBase';
 import { alpha } from '@mui/material/styles';
 import PropTypes from 'prop-types';
 
-export function SidebarItem({ active = false, className = '', children, ...props }) {
+/**
+ * Report nav row. Use inside a single bordered aside panel (`grouped`) so items
+ * do not render as separate pill-shaped chips.
+ */
+export function SidebarItem({
+  active = false,
+  grouped = false,
+  isLast = false,
+  className = '',
+  children,
+  ...props
+}) {
   return (
     <ButtonBase
       className={className}
-      sx={(theme) => ({
-        width: '100%',
-        textAlign: 'start',
-        justifyContent: 'flex-start',
-        paddingTop: theme.spacing(0.75),
-        paddingBottom: theme.spacing(0.75),
-        paddingLeft: theme.spacing(1),
-        paddingRight: theme.spacing(1),
-        borderRadius: theme.custom.radius.lg,
-        border: `1px solid ${active
-          ? alpha(theme.palette.primary.main, 0.55)
-          : theme.palette.divider}`,
-        background: active
-          ? theme.palette.background.paper
-          : alpha(theme.palette.background.paper, 0.92),
-        color: theme.palette.text.primary,
-        cursor: 'pointer',
-        fontSize: theme.typography.body2.fontSize,
-        fontWeight: 500,
-        lineHeight: theme.typography.pill.lineHeight,
-        boxShadow: active ? theme.custom.elevation.hover : theme.custom.elevation.subtle,
-        transition: theme.transitions.create(['background', 'border-color', 'transform'], {
-          duration: theme.transitions.duration.short,
-        }),
-        '&:hover': {
-          background: theme.palette.background.paper,
-          borderColor: alpha(theme.palette.primary.main, 0.25),
-          transform: 'translateY(-1px)',
-        },
-      })}
+      sx={(theme) => {
+        const sectionPx = theme.custom.radius.section;
+        return {
+          width: '100%',
+          textAlign: 'start',
+          justifyContent: 'flex-start',
+          paddingTop: theme.spacing(grouped ? 1.25 : 0.75),
+          paddingBottom: theme.spacing(grouped ? 1.25 : 0.75),
+          paddingLeft: theme.spacing(grouped ? 1.5 : 1),
+          paddingRight: theme.spacing(grouped ? 1.5 : 1),
+          borderRadius: grouped ? 0 : sectionPx,
+          border: grouped
+            ? 'none'
+            : `1px solid ${active
+              ? alpha(theme.palette.primary.main, 0.55)
+              : theme.palette.divider}`,
+          borderBottom: grouped && !isLast ? theme.custom.border.hairline : undefined,
+          background: grouped
+            ? (active ? alpha(theme.palette.primary.main, 0.08) : 'transparent')
+            : (active
+              ? theme.palette.background.paper
+              : alpha(theme.palette.background.paper, 0.92)),
+          color: theme.palette.text.primary,
+          cursor: 'pointer',
+          fontSize: theme.typography.body2.fontSize,
+          fontWeight: active ? 600 : 500,
+          lineHeight: theme.typography.body2.lineHeight,
+          boxShadow: grouped ? 'none' : (active ? theme.custom.elevation.hover : theme.custom.elevation.subtle),
+          borderInlineStart: grouped && active
+            ? `3px solid ${theme.palette.primary.main}`
+            : grouped
+              ? '3px solid transparent'
+              : undefined,
+          transition: theme.transitions.create(['background', 'border-color'], {
+            duration: theme.transitions.duration.short,
+          }),
+          '&:hover': grouped
+            ? {
+              background: alpha(theme.palette.primary.main, 0.06),
+            }
+            : {
+              background: theme.palette.background.paper,
+              borderColor: alpha(theme.palette.primary.main, 0.25),
+            },
+        };
+      }}
       {...props}
     >
       {children}
@@ -45,6 +72,8 @@ export function SidebarItem({ active = false, className = '', children, ...props
 
 SidebarItem.propTypes = {
   active: PropTypes.bool,
+  grouped: PropTypes.bool,
+  isLast: PropTypes.bool,
   className: PropTypes.string,
   children: PropTypes.node,
 };

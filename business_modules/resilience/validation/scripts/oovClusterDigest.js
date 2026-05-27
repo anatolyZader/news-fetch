@@ -3,14 +3,14 @@
  * Weekly cluster digest of OOV capture records.
  * Delegates to catalogLearning gap report (stdout summary).
  */
-import { catalogLearningService } from '../../catalogLearning/app/catalogLearningService.js';
-import { learningCaptureFsAdapter } from '../../catalogLearning/infrastructure/adapters/learningCaptureFsAdapter.js';
+import { CatalogLearningService } from '../../catalogLearning/app/catalogLearningService.js';
+import { LearningCaptureFsAdapter } from '../../catalogLearning/infrastructure/adapters/learningCaptureFsAdapter.js';
 
 const reportsDir = process.argv[2] ?? 'reports';
 
 async function main() {
-  const service = new catalogLearningService({
-    capturePort: new learningCaptureFsAdapter({ reportsDir }),
+  const service = new CatalogLearningService({
+    capturePort: new LearningCaptureFsAdapter({ reportsDir }),
   });
   const report = await service.buildGapReport({ maxDays: 14, topN: 20, minCount: 1 });
 

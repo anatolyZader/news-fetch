@@ -81,16 +81,7 @@ export function createWhatsAppIngestService({
 
       messages.forEach((msg, i) => {
         const senderLabel = msg.sender_name || msg.sender_phone;
-        lines.push(`## ${i + 1}. ${senderLabel}: ${msg.message_text.slice(0, 80)}`);
-        lines.push('');
-        lines.push(`- **URL:** whatsapp://msg/${msg.meta_msg_id}`);
-        lines.push(`- **Published:** ${msg.timestamp_utc}`);
-        lines.push(`- **Source:** WhatsApp`);
-        lines.push('');
-        lines.push(msg.message_text);
-        lines.push('');
-        lines.push('---');
-        lines.push('');
+        lines.push(`## ${i + 1}. ${senderLabel}: ${msg.message_text.slice(0, 80)}`, '', `- **URL:** whatsapp://msg/${msg.meta_msg_id}`, `- **Published:** ${msg.timestamp_utc}`, `- **Source:** WhatsApp`, '', msg.message_text, '', '---', '');
       });
 
       mkdirSync(resolve(DEFAULT_WHATSAPP_REPORT_DIR), { recursive: true });
@@ -328,7 +319,11 @@ export function createWhatsAppIngestService({
     // signals table reflects the final reviewed text (not an intermediate turn).
     if (resilienceAnalyzer && signalStore) {
       try {
-        const analysis = await resilienceAnalyzer.analyzeMessage(approved, normalized.displayName);
+        const analysis = await resilienceAnalyzer.analyzeMessage(approved, normalized.displayName, {
+          sourceType: 'field_whatsapp',
+          officerId: normalized.phoneNumber,
+          visitTimestamp: timestampUtc,
+        });
         if (analysis.signals.length > 0) {
           signalStore.insertSignals(normalized.metaMsgId, date, analysis.signals, normalized.phoneNumber);
           console.error(`WhatsApp DM signals extracted: ${analysis.signals.length} from draft ${draftId}`);

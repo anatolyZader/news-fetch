@@ -25,7 +25,9 @@ import {
   LoadingState,
   PageHeader,
   SectionHeading,
+  dateToggleGridSx,
 } from '../ui/index.js';
+import { panelSectionRadius } from '../ui/panelChrome.js';
 import { formatDate } from '../lib/date.js';
 import PropTypes from 'prop-types';
 import { translationFnPropType } from '../lib/reportPropTypes.js';
@@ -76,7 +78,7 @@ function formatPublished(ts, formatDateFn) {
 /** Inset panel: clean, subtle surface inside a card. */
 function visitInsetPanelSx(theme, accent) {
   return {
-    borderRadius: 8,
+    borderRadius: panelSectionRadius(theme),
     bgcolor: theme.palette.background.paper,
     border: `1px solid ${alpha(accent, 0.28)}`,
     boxShadow: `0 1px 0 ${alpha(theme.palette.common.black, 0.03)}`,
@@ -178,7 +180,7 @@ function VisitMunicipalityCard({
   /** Text direction for the whole card follows the app language switcher (not first-strong from content). */
   const presentationDir = lang === 'he' ? 'rtl' : 'ltr';
   const [bodyExpanded, setBodyExpanded] = useState(true);
-  const visitBodyId = `visit-card-body-${visit.id.replace(/[^a-zA-Z0-9_-]/g, '-')}`;
+  const visitBodyId = `visit-card-body-${visit.id.replaceAll(/[^a-zA-Z0-9_-]/g, '-')}`;
   const visitDateLabel = formatDate(visit.visitDate || batchDate);
   const publishedLabel = formatPublished(visit.published, formatDate);
   const signalsSorted = useMemo(() => {
@@ -220,7 +222,7 @@ function VisitMunicipalityCard({
       sx={{
         bgcolor: 'background.paper',
         border: `1px solid ${alpha(theme.palette.divider, 0.95)}`,
-        borderRadius: 10,
+        borderRadius: panelSectionRadius(theme),
         overflow: 'hidden',
         boxShadow: `0 1px 2px ${alpha(ink, 0.06)}, 0 10px 24px ${alpha(ink, 0.05)}`,
         height: '100%',
@@ -283,7 +285,7 @@ function VisitMunicipalityCard({
                 color: alpha(theme.palette.text.primary, 0.72),
                 bgcolor: alpha(theme.palette.common.white, 0.65),
                 border: `1px solid ${alpha(theme.palette.divider, 0.9)}`,
-                borderRadius: 1.25,
+                borderRadius: panelSectionRadius(theme),
                 '&:hover': {
                   bgcolor: alpha(theme.palette.common.white, 0.9),
                   color: alpha(theme.palette.text.primary, 0.9),
@@ -341,7 +343,7 @@ function VisitMunicipalityCard({
                         ...visitInsetPanelSx(theme, accent),
                       }}
                     >
-                      <VisitMetaRow label={t('visit.card.recordIndex')} value={visit.articleIndex != null ? `#${visit.articleIndex}` : null} />
+                      <VisitMetaRow label={t('visit.card.recordIndex')} value={visit.articleIndex == null ? null : `#${visit.articleIndex}`} />
                       <VisitMetaRow label={t('visit.card.municipality')} value={visit.municipality} />
                       <VisitMetaRow label={t('visit.card.region')} value={visit.region} />
                       <VisitMetaRow label={t('visit.card.visitDate')} value={visitDateLabel} />
@@ -559,17 +561,8 @@ export function VisitsTab() {
           onClick: () => setMuniFilter(new Set()),
         } : null}
       >
-        <Stack spacing={1}>
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: 1.5,
-              flexWrap: 'wrap',
-            }}
-          >
-            {(selectedDay?.municipalities ?? []).length > 0 ? (
+        <Stack spacing={1.5}>
+          {(selectedDay?.municipalities ?? []).length > 0 && (
               <Stack direction="row" alignItems="center" spacing={1.25} flexWrap="wrap" useFlexGap>
                 <IconButton
                   size="small"
@@ -580,7 +573,7 @@ export function VisitsTab() {
                   sx={(theme) => ({
                     color: 'primary.main',
                     border: `1px solid ${alpha(theme.palette.primary.main, 0.35)}`,
-                    borderRadius: 1,
+                    borderRadius: panelSectionRadius(theme),
                   })}
                 >
                   <MenuIcon fontSize="small" />
@@ -615,29 +608,26 @@ export function VisitsTab() {
                   </List>
                 </Popover>
               </Stack>
-            ) : (
-              <span />
-            )}
+          )}
 
-            <ToggleButtonGroup
-              value={selectedDate}
-              exclusive
-              size="small"
-              onChange={(_, next) => {
-                if (next) {
-                  setSelectedDate(next);
-                  setMuniFilter(new Set());
-                }
-              }}
-              sx={{ flexWrap: 'wrap', justifyContent: 'flex-end' }}
-            >
-              {data.days.map((day) => (
-                <ToggleButton key={day.date} value={day.date}>
-                  {formatDate(day.date)} ({day.visitCount})
-                </ToggleButton>
-              ))}
-            </ToggleButtonGroup>
-          </Box>
+          <ToggleButtonGroup
+            value={selectedDate}
+            exclusive
+            size="small"
+            onChange={(_, next) => {
+              if (next) {
+                setSelectedDate(next);
+                setMuniFilter(new Set());
+              }
+            }}
+            sx={(theme) => dateToggleGridSx(theme, { minColumnWidth: 132 })}
+          >
+            {data.days.map((day) => (
+              <ToggleButton key={day.date} value={day.date}>
+                {formatDate(day.date)} ({day.visitCount})
+              </ToggleButton>
+            ))}
+          </ToggleButtonGroup>
         </Stack>
       </FilterBar>
 

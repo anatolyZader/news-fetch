@@ -207,7 +207,7 @@ function _findLatestAvailableReport(today, store, { scope = 'national', reportsD
   }
 
   // Extract unique dates from report filenames, pick the latest one before today
-  const escapedPrefix = reportPrefixForScope(scope).replace(REGEX_SPECIAL_CHARS, String.raw`\$&`);
+  const escapedPrefix = reportPrefixForScope(scope).replaceAll(REGEX_SPECIAL_CHARS, String.raw`\$&`);
   const datePattern = new RegExp(String.raw`^${escapedPrefix}-(\d{4}-\d{2}-\d{2})`);
   const dates = [...new Set(
     names

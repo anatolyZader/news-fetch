@@ -15,6 +15,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { LanguageSelector } from './LanguageSelector.jsx';
 import { ModalPanel } from '../ui/ModalPanel.jsx';
+import { PanelWindowShell } from '../ui/PanelWindowShell.jsx';
 import PropTypes from 'prop-types';
 
 const LS_MAIL_EMAIL = 'vibes-witch:settings:mailingEmail';
@@ -98,7 +99,7 @@ Section.propTypes = {
   children: PropTypes.node,
 };
 
-export function SettingsPanel({ open, onClose, onOpenDocs }) {
+export function SettingsPanel({ open, onClose, onOpenDocs, variant = 'modal' }) {
   const { t, lang } = useLanguage();
   const { user, authRequired, logout, apiReady, getIdToken } = useAuth();
   const [mailingEmail, setMailingEmail] = useState('');
@@ -291,22 +292,8 @@ export function SettingsPanel({ open, onClose, onOpenDocs }) {
   const showLocalOnlyNote = !mailServerEnabled;
   const mailingActionsDisabled = !canUseMailing || mailPrefsLoading || saveBusy || sendBusy;
 
-  return (
-    <ModalPanel
-      open={open}
-      onClose={onClose}
-      title={t('settings.title')}
-      ariaLabel={t('settings.title')}
-      initialWidth={560}
-      initialHeight={720}
-      zIndex={64}
-      showCloseButton
-      closeLabel={t('app.close')}
-      modeless
-      minimizeOnOutsideClick
-      disableBackdropClose
-    >
-      <Stack spacing={2.5} sx={{ padding: '1rem 1.1rem 1.25rem' }}>
+  const body = (
+    <Stack spacing={2.5} sx={{ padding: '1rem 1.1rem 1.25rem' }}>
         {showLocalOnlyNote && (
           <Alert severity="info" variant="outlined" sx={{ alignItems: 'flex-start' }}>
             {t('settings.localOnly')}
@@ -479,6 +466,37 @@ export function SettingsPanel({ open, onClose, onOpenDocs }) {
           )}
         </Section>
       </Stack>
+  );
+
+  if (variant === 'window') {
+    return (
+      <PanelWindowShell
+        title={t('settings.title')}
+        ariaLabel={t('settings.title')}
+        onClose={() => onClose?.(undefined, 'closeButtonClick')}
+        closeLabel={t('app.close')}
+      >
+        {body}
+      </PanelWindowShell>
+    );
+  }
+
+  return (
+    <ModalPanel
+      open={open}
+      onClose={onClose}
+      title={t('settings.title')}
+      ariaLabel={t('settings.title')}
+      initialWidth={560}
+      initialHeight={720}
+      zIndex={64}
+      showCloseButton
+      closeLabel={t('app.close')}
+      modeless
+      minimizeOnOutsideClick
+      disableBackdropClose
+    >
+      {body}
     </ModalPanel>
   );
 }
@@ -487,4 +505,5 @@ SettingsPanel.propTypes = {
   open: PropTypes.bool,
   onClose: PropTypes.func,
   onOpenDocs: PropTypes.func,
+  variant: PropTypes.oneOf(['modal', 'window']),
 };

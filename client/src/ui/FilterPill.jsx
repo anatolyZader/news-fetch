@@ -1,7 +1,9 @@
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Chip from '@mui/material/Chip';
+import { alpha } from '@mui/material/styles';
 import PropTypes from 'prop-types';
+import { panelHeaderButtonSx, panelSectionRadius } from './panelChrome.js';
 
 export function FilterPill({
   active = false,
@@ -10,6 +12,9 @@ export function FilterPill({
   size = 'small',
   tone = 'primary',
 }) {
+  const toneMain = (theme) => theme.palette[tone]?.main ?? theme.palette.primary.main;
+  const toneDark = (theme) => theme.palette[tone]?.dark ?? theme.palette.primary.dark;
+
   return (
     <Chip
       clickable
@@ -17,21 +22,43 @@ export function FilterPill({
       onClick={onClick}
       size={size}
       variant={active ? 'filled' : 'outlined'}
-      color={active ? tone : 'default'}
+      color="default"
       sx={(theme) => ({
-        borderRadius: theme.custom.radius.pill,
-        fontWeight: theme.typography.pill.fontWeight,
+        ...panelHeaderButtonSx(theme),
+        borderRadius: `${panelSectionRadius(theme)} !important`,
+        fontWeight: active ? 600 : theme.typography.pill.fontWeight,
         fontSize: theme.typography.pill.fontSize,
         ...(active
-          ? {}
+          ? {
+            color: theme.palette.primary.contrastText,
+            backgroundColor: toneMain(theme),
+            borderColor: 'transparent',
+            boxShadow: theme.custom.elevation.subtle,
+            '& .MuiChip-label': {
+              color: 'inherit',
+              paddingLeft: theme.spacing(1.25),
+              paddingRight: theme.spacing(1.25),
+            },
+            '&:hover': {
+              color: theme.palette.primary.contrastText,
+              backgroundColor: toneDark(theme),
+            },
+          }
           : {
-              color: theme.palette.text.secondary,
-              borderColor: theme.palette.divider,
-              '&:hover': {
-                color: theme.palette[tone]?.main ?? theme.palette.primary.main,
-                borderColor: theme.palette[tone]?.main ?? theme.palette.primary.main,
-              },
-            }),
+            color: theme.palette.text.secondary,
+            backgroundColor: theme.palette.background.paper,
+            borderColor: theme.palette.divider,
+            '& .MuiChip-label': {
+              color: 'inherit',
+              paddingLeft: theme.spacing(1.25),
+              paddingRight: theme.spacing(1.25),
+            },
+            '&:hover': {
+              color: toneMain(theme),
+              borderColor: alpha(toneMain(theme), 0.45),
+              backgroundColor: alpha(toneMain(theme), 0.06),
+            },
+          }),
       })}
     />
   );

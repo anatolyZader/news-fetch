@@ -108,6 +108,16 @@ function normalizeLegacyEntry(entry) {
 
 /**
  * @param {unknown} entry
+ * @returns {string|undefined}
+ */
+function extractTitle(entry) {
+  if (entry.display_name) return String(entry.display_name);
+  if (entry.title) return String(entry.title);
+  return undefined;
+}
+
+/**
+ * @param {unknown} entry
  * @returns {TelegramChannelEntry|null}
  */
 function normalizeResearchEntry(entry) {
@@ -115,7 +125,7 @@ function normalizeResearchEntry(entry) {
   const username = extractUsername(entry);
   return finalizeEntry(entry, {
     username,
-    title: entry.display_name ? String(entry.display_name) : entry.title ? String(entry.title) : undefined,
+    title: extractTitle(entry),
     locality: extractLocality(entry),
     lang: extractLang(entry),
     collectEnabled: true,
@@ -128,17 +138,17 @@ function normalizeResearchEntry(entry) {
       ? String(entry.emergency_research_value)
       : undefined,
     coverageArea: Array.isArray(entry.coverage_area)
-      ? entry.coverage_area.map((a) => String(a))
+      ? entry.coverage_area.map(String)
       : [],
     exampleSearchTerms: Array.isArray(entry.example_search_terms)
-      ? entry.example_search_terms.map((t) => String(t))
+      ? entry.example_search_terms.map(String)
       : [],
     accessStatus: entry.access_status ? String(entry.access_status) : undefined,
     recommendedUse: Array.isArray(entry.recommended_use)
-      ? entry.recommended_use.map((t) => String(t))
+      ? entry.recommended_use.map(String)
       : [],
     doNotUseFor: Array.isArray(entry.do_not_use_for)
-      ? entry.do_not_use_for.map((t) => String(t))
+      ? entry.do_not_use_for.map(String)
       : [],
     collectionNotes: entry.collection_notes ? String(entry.collection_notes) : undefined,
   });

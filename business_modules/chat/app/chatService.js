@@ -75,12 +75,22 @@ function reportNamespace(reportData) {
   return `chat:${date}:${scope}`;
 }
 
+function signalCountFromReport(reportData) {
+  if (Array.isArray(reportData?.signals)) return reportData.signals.length;
+  const assessmentSignals = reportData?.assessment?.signals;
+  if (Array.isArray(assessmentSignals)) return assessmentSignals.length;
+  return 0;
+}
+
+function signalsFromReport(reportData, assessment) {
+  if (Array.isArray(reportData?.signals)) return reportData.signals;
+  if (Array.isArray(assessment?.signals)) return assessment.signals;
+  return [];
+}
+
 function fingerprintReport(reportData) {
   const a = reportData?.assessment ?? {};
-  const sigCount =
-    Array.isArray(reportData?.signals) ? reportData.signals.length
-      : Array.isArray(a?.signals) ? a.signals.length
-      : 0;
+  const sigCount = signalCountFromReport(reportData);
   const createdAt = reportData?.created_at ?? reportData?.createdAt ?? '';
   const scope = a?.report_scope?.id ?? 'national';
   return `${a?.date ?? ''}|scope=${scope}|signals=${sigCount}|created=${createdAt}`;
@@ -152,10 +162,7 @@ async function ensureIndexed(reportData, vectorIndexStore) {
     if (d) docs.push(d);
   }
 
-  const signals =
-    Array.isArray(reportData.signals) ? reportData.signals
-      : Array.isArray(a.signals) ? a.signals
-      : [];
+  const signals = signalsFromReport(reportData, a);
   for (let i = 0; i < signals.length; i++) {
     docs.push(signalToDoc(signals[i], i));
   }
@@ -190,7 +197,7 @@ async function buildRetrievalHint(userMessage, reportData, vectorIndexStore) {
   const lines = hits.map((h, i) => {
     const meta = h.meta ?? {};
     const url = meta.url ? `\n    source: ${meta.url}` : '';
-    const snippet = String(h.text ?? '').replace(/\s+/g, ' ').trim().slice(0, 260);
+    const snippet = String(h.text ?? '').replaceAll(/\s+/g, ' ').trim().slice(0, 260);
     return `[${i + 1}] (${h.kind}, sim=${h.sim.toFixed(2)}) ${snippet}${url}`;
   }).join('\n');
 

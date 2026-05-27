@@ -12,7 +12,9 @@ export function Button({
 }) {
   const muiVariant = variant === 'primary' ? 'contained' : 'outlined';
   const baseSx = (theme) => ({
-    borderRadius: rounded ? theme.custom.radius.pill : theme.custom.radius.md,
+    borderRadius: rounded
+      ? theme.custom.radius.pill
+      : `${theme.custom.radius.section}px`,
     fontSize: theme.typography.body2.fontSize,
     fontWeight: variant === 'primary' ? 600 : 500,
     minWidth: 0,

@@ -17,17 +17,17 @@ if (!authRequired) {
 }
 
 let ok = true;
-if (!projectId) {
+if (projectId) {
+  console.log('✓ FIREBASE_PROJECT_ID is set');
+} else {
   console.error('✗ FIREBASE_PROJECT_ID is missing (required when AUTH_REQUIRED=true).');
   ok = false;
-} else {
-  console.log('✓ FIREBASE_PROJECT_ID is set');
 }
 
-if (!gac) {
-  console.log('⚠ GOOGLE_APPLICATION_CREDENTIALS not set — OK on Cloud Run if the runtime SA has Identity Toolkit Admin.');
-} else {
+if (gac) {
   console.log('✓ GOOGLE_APPLICATION_CREDENTIALS is set (local / explicit key)');
+} else {
+  console.log('⚠ GOOGLE_APPLICATION_CREDENTIALS not set — OK on Cloud Run if the runtime SA has Identity Toolkit Admin.');
 }
 
 if (!ok) {

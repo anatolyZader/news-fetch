@@ -109,8 +109,8 @@ export function normalizeIsraelDistrictRefs(payload) {
       row && typeof row === 'object'
         ? {
             ...row,
-            districtId: row.districtId != null ? normalizeIsraelDistrictId(row.districtId) : row.districtId,
-            labelKey: row.labelKey != null ? normalizeIsraelDistrictLabelKey(row.labelKey) : row.labelKey,
+            districtId: row.districtId == null ? row.districtId : normalizeIsraelDistrictId(row.districtId),
+            labelKey: row.labelKey == null ? row.labelKey : normalizeIsraelDistrictLabelKey(row.labelKey),
           }
         : row;
     next.analytics = {

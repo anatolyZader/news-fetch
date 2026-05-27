@@ -95,7 +95,7 @@ function normalizeSuggestText(text) {
   return String(text ?? '')
     .trim()
     .toLowerCase()
-    .replace(/\s+/g, ' ');
+    .replaceAll(/\s+/g, ' ');
 }
 
 function sha1Hex(s) {

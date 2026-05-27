@@ -14,6 +14,7 @@ import {
   LoadingState,
   PageHeader,
   SectionHeading,
+  dateToggleGridSx,
 } from '../ui/index.js';
 import { formatDate } from '../lib/date.js';
 import { IngestArticleCard } from './ingest/IngestArticleCard.jsx';
@@ -60,7 +61,7 @@ export function NewsTab() {
         value={activeDate}
         onChange={(_, next) => { if (next) setSelectedDate(next); }}
         aria-label={t('news.selectDate')}
-        sx={{ flexWrap: 'wrap' }}
+        sx={(theme) => dateToggleGridSx(theme)}
       >
         {dates.map((d) => (
           <ToggleButton key={d.date} value={d.date}>

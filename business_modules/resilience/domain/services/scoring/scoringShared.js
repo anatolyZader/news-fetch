@@ -10,6 +10,8 @@ import {
   POLARITY_OVERRIDE_SIGNAL_TYPES,
 } from '../signalInstanceSchema.js';
 import { evaluateHighSalienceBypass } from '../highSalienceBypass.js';
+import { groundingWeightMultiplier } from '../groundingPolicy.js';
+import { applyFieldGeoDiscount, isFieldFamilySource } from '../fieldSignalPolicy.js';
 
 export const COMPONENT_IDS = [
   'narrative', 'information_communication', 'lifesaving_behavior',
@@ -49,6 +51,13 @@ export const DEFAULT_TUNING = { tanhK: 2.5, certM: 2 };
 
 export const BOOTSTRAP_SAMPLES = 200;
 export const BOOTSTRAP_SEED = 0x9e3779b1;
+
+const FIELD_SOURCE_TYPES = new Set(['field', 'field_whatsapp', 'pbo', 'pbo_regional', 'naftali']);
+
+function fieldSourceMultiplier() {
+  const raw = Number.parseFloat(process.env.RESILIENCE_FIELD_SOURCE_MULTIPLIER ?? '1.5');
+  return Number.isFinite(raw) && raw > 0 ? raw : 1.5;
+}
 
 const OUTLET_PRIOR_APPLIES_TO = new Set([
   'observational_reported_fact',
@@ -115,8 +124,8 @@ export function contributionForSignal(signal, baseWeight) {
   const signalType = signal.signal_type ?? signal.type;
   const priors = getScoringPriors(signalType);
   const effectiveWeight = effectiveWeightForSignal(signal, signalType, baseWeight);
-  const isField = signal.source_type === 'field';
-  const defaultScope = isField ? 'repeated_pattern' : 'single_case';
+  const isField = signal.source_type === 'field' || signal.source_type === 'field_whatsapp';
+  const defaultScope = isField || isFieldFamilySource(signal) ? 'repeated_pattern' : 'single_case';
   const scope = SCOPE_WEIGHT[signal.scope_level ?? defaultScope] ?? SCOPE_WEIGHT[defaultScope];
   const intensityKey = effectiveIntensityKey(signal, signalType);
   const intensity = INTENSITY_WEIGHT[intensityKey] ?? INTENSITY_WEIGHT.moderate;
@@ -141,8 +150,12 @@ export function contributionForSignal(signal, baseWeight) {
     }
   }
   const extractionConfidence = Math.min(1, Math.max(0, signal.extraction_confidence ?? 1));
-  return Math.abs(effectiveWeight) * scope * intensity * reliability * outletPrior
-    * dualBoost * temporal * phaseFactor * extractionConfidence;
+  const groundingFactor = groundingWeightMultiplier(signal.grounding_tier);
+  const fieldMult = FIELD_SOURCE_TYPES.has(signal.source_type) ? fieldSourceMultiplier() : 1;
+  let contribution = Math.abs(effectiveWeight) * scope * intensity * reliability * outletPrior
+    * dualBoost * temporal * phaseFactor * extractionConfidence * groundingFactor * fieldMult;
+  contribution = applyFieldGeoDiscount(signal, contribution);
+  return contribution;
 }
 
 /** Log-discounted factor for duplicate signal_type within one article (k = 1-based occurrence). */

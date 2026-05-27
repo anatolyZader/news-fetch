@@ -13,10 +13,11 @@ import Snackbar from '@mui/material/Snackbar';
 import CircularProgress from '@mui/material/CircularProgress';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
-import { useTheme } from '@mui/material/styles';
+import { useTheme, alpha } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { useTodayReport, readStoredReportView, writeStoredReportView } from './hooks/useAnalysis.js';
+import { usePanelPopups } from './hooks/usePanelPopups.js';
 import { useDisplayCapabilities } from './hooks/useDisplayCapabilities.js';
 import { useTranslatedReport } from './hooks/useTranslatedReport.js';
 import { useResilienceDrift } from './hooks/useResilienceDrift.js';
@@ -281,10 +282,8 @@ function AppShell() {
     try {
       localStorage.setItem(LS_REPORT_SCOPE, reportScope);
     } catch { /* */ }
-    void Promise.resolve().then(() => {
-      setOpenReportCompId(null);
-      setOpenReportEvidenceCompId(null);
-    });
+    setOpenReportCompId(null);
+    setOpenReportEvidenceCompId(null);
   }, [reportScope]);
 
   const [docsOpen, setDocsOpen] = useState(false);
@@ -293,7 +292,6 @@ function AppShell() {
   const [sendEvidenceOpen, setSendEvidenceOpen] = useState(false);
   const [evidenceNotice, setEvidenceNotice] = useState(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [settingsMinimized, setSettingsMinimized] = useState(false);
   const [moreMenuAnchor, setMoreMenuAnchor] = useState(null);
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
@@ -310,10 +308,41 @@ function AppShell() {
     setDocsOpen(false);
     setDocsInitialSlug('');
   }, []);
+  const { open: openPanelPopup, isOpen: isPanelPopupOpen } = usePanelPopups({
+    onEvidenceSubmissionComplete: (notice) => setEvidenceNotice({ ...notice, open: true }),
+    onOpenDocs: openDocs,
+  });
   const openSettings = useCallback(() => {
-    setSettingsMinimized(false);
+    if (isDesktop) {
+      openPanelPopup('settings');
+      return;
+    }
     setSettingsOpen(true);
+  }, [isDesktop, openPanelPopup]);
+  const openReportBuild = useCallback(() => {
+    if (isDesktop) {
+      openPanelPopup('report-build');
+      return;
+    }
+    setReportBuildOpen(true);
+  }, [isDesktop, openPanelPopup]);
+  const dismissReportBuild = useCallback(() => {
+    setReportBuildOpen(false);
   }, []);
+  const openSendEvidence = useCallback(() => {
+    if (isDesktop) {
+      openPanelPopup('send-evidence');
+      return;
+    }
+    setSendEvidenceOpen(true);
+  }, [isDesktop, openPanelPopup]);
+  const dismissSendEvidence = useCallback(() => {
+    setSendEvidenceOpen(false);
+  }, []);
+  const dismissSettings = useCallback(() => {
+    setSettingsOpen(false);
+  }, []);
+
   const { t, lang } = useLanguage();
   const { displayReport, translating, translateError } = useTranslatedReport(report, lang);
   const driftDays = 7;
@@ -327,10 +356,8 @@ function AppShell() {
 
   useEffect(() => {
     if (!canViewAnalyst && reportView === 'analyst') {
-      void Promise.resolve().then(() => {
-        setReportView('operator');
-        writeStoredReportView('operator');
-      });
+      setReportView('operator');
+      writeStoredReportView('operator');
     }
   }, [canViewAnalyst, reportView]);
 
@@ -415,31 +442,37 @@ function AppShell() {
     { id: 'education', label: t('tab.education') },
   ];
 
+  const headerChromeRadius = (th) => `${th.custom.radius.section}px`;
+
   const headerButtonSx = (th) => ({
-    paddingTop: th.spacing(0.5),
-    paddingBottom: th.spacing(0.5),
-    paddingLeft: th.spacing(1),
-    paddingRight: th.spacing(1),
+    minHeight: th.spacing(4.5),
+    paddingTop: th.spacing(0.75),
+    paddingBottom: th.spacing(0.75),
+    paddingLeft: th.spacing(1.25),
+    paddingRight: th.spacing(1.25),
     fontSize: th.typography.pill.fontSize,
-    borderRadius: th.custom.radius.sm,
-    color: th.palette.text.secondary,
-    borderColor: th.palette.divider,
+    borderRadius: headerChromeRadius(th),
+    color: th.palette.primary.dark,
+    borderColor: alpha(th.palette.primary.main, 0.45),
+    backgroundColor: alpha(th.palette.background.paper, 0.9),
     '&:hover': {
-      color: th.palette.text.primary,
-      borderColor: th.palette.divider,
-      background: 'transparent',
+      color: th.palette.primary.dark,
+      borderColor: th.palette.primary.main,
+      backgroundColor: th.custom.surface.roseWash,
     },
   });
 
   const moreIconButtonSx = (th) => ({
     border: `1px solid ${th.palette.divider}`,
-    borderRadius: th.custom.radius.sm,
+    borderRadius: headerChromeRadius(th),
+    width: th.spacing(4.5),
+    height: th.spacing(4.5),
     color: th.palette.text.secondary,
-    padding: th.spacing(0.5),
+    padding: 0,
     '&:hover': {
       color: th.palette.text.primary,
       borderColor: th.palette.divider,
-      background: 'transparent',
+      background: th.palette.action.hover,
     },
   });
 
@@ -459,8 +492,10 @@ function AppShell() {
       >
         <Button
           variant="outlined"
+          size="small"
           type="button"
-          onClick={() => setReportBuildOpen(true)}
+          onClick={openReportBuild}
+          aria-pressed={isDesktop ? isPanelPopupOpen('report-build') : reportBuildOpen}
           sx={headerButtonSx}
         >
           {t('app.writeReport')}
@@ -468,8 +503,10 @@ function AppShell() {
         {isDesktop && (
           <Button
             variant="outlined"
+            size="small"
             type="button"
-            onClick={() => setSendEvidenceOpen(true)}
+            onClick={openSendEvidence}
+            aria-pressed={isPanelPopupOpen('send-evidence')}
             sx={headerButtonSx}
           >
             {t('app.sendEvidence')}
@@ -500,7 +537,7 @@ function AppShell() {
           {!isDesktop && (
             <MenuItem
               onClick={() => {
-                setSendEvidenceOpen(true);
+                openSendEvidence();
                 closeMoreMenu();
               }}
             >
@@ -517,8 +554,7 @@ function AppShell() {
           </MenuItem>
           <MenuItem
             onClick={() => {
-              setSettingsMinimized(false);
-              setSettingsOpen(true);
+              openSettings();
               closeMoreMenu();
             }}
           >
@@ -547,7 +583,7 @@ function AppShell() {
               paddingBottom: theme.spacing(0.5),
               paddingLeft: theme.spacing(1),
               paddingRight: theme.spacing(1),
-              borderRadius: theme.custom.radius.pill,
+              borderRadius: `${theme.custom.radius.section}px`,
               background: theme.palette.background.paper,
               border: theme.custom.border.hairline,
               boxShadow: theme.custom.elevation.hover,
@@ -569,9 +605,8 @@ function AppShell() {
       header={header}
       footer={(
         <SiteFooter
-          reportDate={reportDate}
           onGoToAssessment={goToAssessment}
-          onSendEvidence={() => setSendEvidenceOpen(true)}
+          onSendEvidence={openSendEvidence}
           onNavigateTab={setActiveTab}
           onOpenDocs={openDocs}
           onOpenSettings={openSettings}
@@ -662,7 +697,7 @@ function AppShell() {
                   paddingRight: theme.spacing(2.5),
                   background: theme.palette.background.paper,
                   border: `1px dashed ${theme.palette.divider}`,
-                  borderRadius: theme.custom.radius.lg,
+                  borderRadius: `${theme.custom.radius.section}px`,
                 })}
               >
                 {t('app.noReportYet')}
@@ -687,13 +722,20 @@ function AppShell() {
                     position: 'sticky',
                     top: theme.spacing(1.5),
                     alignSelf: 'start',
+                    border: theme.custom.border.hairline,
+                    borderRadius: `${theme.custom.radius.section}px`,
+                    background: theme.palette.background.paper,
+                    boxShadow: theme.custom.elevation.subtle,
+                    overflow: 'hidden',
                     [theme.breakpoints.down('md')]: { display: 'none' },
                   })}
                 >
-                  <Stack spacing={0.5}>
-                    {reportContents.map((c) => (
+                  <Stack spacing={0}>
+                    {reportContents.map((c, index) => (
                       <SidebarItem
                         key={c.id}
+                        grouped
+                        isLast={index === reportContents.length - 1}
                         active={openReportCompId === c.id}
                         onClick={() => jumpToReportComponent(c.id)}
                       >
@@ -716,7 +758,8 @@ function AppShell() {
                   <Box
                     sx={(theme) => ({
                       border: theme.custom.border.hairline,
-                      borderRadius: theme.custom.radius.lg,
+                      borderRadius: `${theme.custom.radius.section}px`,
+                      overflow: 'hidden',
                       paddingTop: theme.spacing(3),
                       paddingBottom: theme.spacing(3),
                       paddingLeft: theme.spacing(3),
@@ -855,11 +898,12 @@ function AppShell() {
           sx={(theme) => ({
             position: 'fixed',
             right: theme.spacing(3),
-            bottom: theme.spacing(9.5),
+            bottom: theme.spacing(7),
             width: chatSize.w,
             height: chatSize.h,
             zIndex: theme.zIndex.tooltip + 5,
-            borderRadius: theme.custom.radius.xl,
+            borderRadius: `${theme.custom.radius.section}px`,
+            border: theme.custom.border.hairline,
             boxShadow: theme.custom.elevation.chat,
             overflow: 'hidden',
             pointerEvents: 'auto',
@@ -867,7 +911,7 @@ function AppShell() {
             flexDirection: 'column',
             [theme.breakpoints.down('sm')]: {
               right: theme.spacing(2),
-              bottom: theme.spacing(8),
+              bottom: theme.spacing(6),
             },
           })}
         >
@@ -888,17 +932,33 @@ function AppShell() {
       </Slide>
 
       <DocsPanel open={docsOpen} initialSlug={docsInitialSlug || undefined} onClose={closeDocs} />
-      <ReportBuildPanel open={reportBuildOpen} onClose={() => setReportBuildOpen(false)} />
-      <SendEvidencePanel
-        open={sendEvidenceOpen}
-        onClose={() => setSendEvidenceOpen(false)}
-        onSubmissionComplete={(notice) => setEvidenceNotice({ ...notice, open: true })}
-      />
+      {!isDesktop && (
+        <>
+          <ReportBuildPanel
+            open={reportBuildOpen}
+            onClose={dismissReportBuild}
+          />
+          <SendEvidencePanel
+            open={sendEvidenceOpen}
+            onClose={dismissSendEvidence}
+            onSubmissionComplete={(notice) => setEvidenceNotice({ ...notice, open: true })}
+          />
+          <SettingsPanel
+            open={settingsOpen}
+            onClose={dismissSettings}
+            onOpenDocs={() => {
+              dismissSettings();
+              openDocs();
+            }}
+          />
+        </>
+      )}
       <Snackbar
         open={Boolean(evidenceNotice?.open)}
         autoHideDuration={8000}
         onClose={() => setEvidenceNotice((current) => (current ? { ...current, open: false } : current))}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        sx={{ bottom: '16px !important' }}
       >
         <Alert
           severity={evidenceNotice?.severity ?? 'info'}
@@ -908,44 +968,6 @@ function AppShell() {
           {evidenceNotice?.message ?? ''}
         </Alert>
       </Snackbar>
-      <SettingsPanel
-        open={settingsOpen}
-        onClose={(event, reason) => {
-          const shouldMinimize = reason === 'outsidePointerDown';
-          if (shouldMinimize) {
-            setSettingsMinimized(true);
-          } else {
-            setSettingsMinimized(false);
-          }
-          setSettingsOpen(false);
-        }}
-        onOpenDocs={() => {
-          setSettingsMinimized(false);
-          setSettingsOpen(false);
-          openDocs();
-        }}
-      />
-      {settingsMinimized && !settingsOpen && (
-        <Button
-          type="button"
-          variant="contained"
-          size="small"
-          onClick={() => {
-            setSettingsMinimized(false);
-            setSettingsOpen(true);
-          }}
-          sx={(theme) => ({
-            position: 'fixed',
-            right: theme.spacing(3),
-            bottom: theme.spacing(3),
-            zIndex: theme.zIndex.tooltip + 20,
-            borderRadius: theme.custom.radius.pill,
-            boxShadow: theme.custom.elevation.hover,
-          })}
-        >
-          {t('settings.title')}
-        </Button>
-      )}
     </AppLayout>
   );
 }

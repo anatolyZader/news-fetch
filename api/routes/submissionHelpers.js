@@ -2,18 +2,48 @@
  * Helpers for evidence submission ingest and content review.
  */
 
-const URL_REGEX = /\bhttps?:\/\/[^\s<>"')\]]+/gi;
 const AUDIO_URL_HINT_REGEX = /\.(mp3|wav|m4a|aac|ogg|flac|opus|webm|mp4)(?:$|[?#])/i;
 const VIDEO_URL_HINT_REGEX = /\.(mp4|mov|mkv|webm|avi|m4v)(?:$|[?#])/i;
 const TITLE_TAG_RE = /<title[^>]*>([\s\S]*?)<\/title>/i;
 const SPEAKER_LINE_RE = /^\s*([A-Za-z_][A-Za-z0-9_ -]{1,40}):/;
+const URL_TERMINATOR_RE = /[\s<>"')\]]/;
 
 const LOCAL_VIDEO_EXT = new Set(['.mp4', '.mov', '.mkv', '.avi', '.m4v', '.webm']);
 const LOCAL_AUDIO_EXT = new Set(['.mp3', '.m4a', '.aac', '.wav', '.ogg', '.flac', '.opus']);
 
+function trimUrlTrailingPunctuation(url) {
+  let end = url.length;
+  while (end > 0 && '),.;!?'.includes(url[end - 1])) end -= 1;
+  return url.slice(0, end);
+}
+
+function nextUrlStart(text, from) {
+  const httpAt = text.indexOf('http://', from);
+  const httpsAt = text.indexOf('https://', from);
+  if (httpAt === -1) return httpsAt;
+  if (httpsAt === -1) return httpAt;
+  return Math.min(httpAt, httpsAt);
+}
+
+function extractUrlsFromText(text) {
+  /** @type {string[]} */
+  const urls = [];
+  let i = 0;
+  while (i < text.length) {
+    const start = nextUrlStart(text, i);
+    if (start === -1) break;
+
+    let end = start;
+    while (end < text.length && !URL_TERMINATOR_RE.test(text[end])) end += 1;
+    urls.push(trimUrlTrailingPunctuation(text.slice(start, end)));
+    i = end;
+  }
+  return urls;
+}
+
 export function extractUrls(text) {
   if (typeof text !== 'string' || !text) return [];
-  return Array.from(text.matchAll(URL_REGEX), (m) => m[0].replace(/[),.;!?]+$/g, ''));
+  return extractUrlsFromText(text);
 }
 
 export function isLikelyAudioDownloadUrl(url) {
@@ -61,15 +91,54 @@ export function isPathUnderUploadRoot(filePath, rootDir, resolveFn, sepChar) {
 
 function normalizeWhitespace(text) {
   return String(text ?? '')
-    .replace(/\s+/g, ' ')
+    .replaceAll(/\s+/g, ' ')
     .trim();
 }
 
+function stripTaggedHtmlBlocks(html, tagName) {
+  const openNeedle = `<${tagName}`;
+  const closeNeedle = `</${tagName}>`;
+  let result = '';
+  let i = 0;
+  while (i < html.length) {
+    const start = html.toLowerCase().indexOf(openNeedle, i);
+    if (start === -1) {
+      result += html.slice(i);
+      break;
+    }
+    result += html.slice(i, start);
+    const openEnd = html.indexOf('>', start);
+    if (openEnd === -1) break;
+    const closeStart = html.toLowerCase().indexOf(closeNeedle, openEnd);
+    if (closeStart === -1) break;
+    i = html.indexOf('>', closeStart);
+    if (i === -1) break;
+    i += 1;
+  }
+  return result;
+}
+
+function stripHtmlTags(html) {
+  let result = '';
+  let i = 0;
+  while (i < html.length) {
+    const open = html.indexOf('<', i);
+    if (open === -1) {
+      result += html.slice(i);
+      break;
+    }
+    result += html.slice(i, open);
+    const close = html.indexOf('>', open);
+    if (close === -1) break;
+    result += ' ';
+    i = close + 1;
+  }
+  return result;
+}
+
 function htmlToPlainText(html) {
-  const noScript = html
-    .replace(/<script[\s\S]*?<\/script>/gi, ' ')
-    .replace(/<style[\s\S]*?<\/style>/gi, ' ');
-  const noTags = noScript.replace(/<[^>]+>/g, ' ');
+  const noScript = stripTaggedHtmlBlocks(stripTaggedHtmlBlocks(html, 'script'), 'style');
+  const noTags = stripHtmlTags(noScript);
   return normalizeWhitespace(noTags);
 }
 
@@ -130,7 +199,7 @@ function buildTopicAndScenes(items) {
   const scenePoints = [];
   const topicFragments = [];
   for (const item of items) {
-    const compact = String(item.body ?? '').replace(/\s+/g, ' ').trim();
+    const compact = String(item.body ?? '').replaceAll(/\s+/g, ' ').trim();
     if (!compact) continue;
     topicFragments.push(compact);
     if (scenePoints.length < 6) {
@@ -162,7 +231,7 @@ export function buildExtractedContentReview(items, autoIngest) {
   const sourceTypes = [...new Set(items.map((i) => i.source_type).filter(Boolean))];
   const sources = [...new Set(items.map((i) => i.source_label).filter(Boolean))].slice(0, 6);
   const snippets = items.slice(0, 10).map((i) => {
-    const text = String(i.body ?? '').replace(/\s+/g, ' ').trim();
+    const text = String(i.body ?? '').replaceAll(/\s+/g, ' ').trim();
     return {
       title: i.title ?? '(untitled)',
       sourceType: i.source_type ?? 'unknown',

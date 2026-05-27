@@ -100,8 +100,7 @@ export function isSufficient(structuredState) {
   for (const f of DEFAULT_UNIVERSAL_REQUIRED) {
     if (!isFieldPresent(structuredState, f)) return false;
   }
-  if (listCandidateComponents(structuredState).length === 0) return false;
-  return true;
+  return listCandidateComponents(structuredState).length > 0;
 }
 
 function rankGap(gap) {
@@ -183,10 +182,10 @@ export function mergeStructured(prev, next) {
   if (!next || typeof next !== 'object') return prev ?? {};
   const base = prev ?? {};
   const merged = {
-    observation: { ...(base.observation ?? {}) },
-    interpretation: { ...(base.interpretation ?? {}) },
+    observation: { ...base.observation },
+    interpretation: { ...base.interpretation },
     componentLinks: Array.isArray(base.componentLinks) ? [...base.componentLinks] : [],
-    confidence: { ...(base.confidence ?? {}) },
+    confidence: { ...base.confidence },
   };
 
   if (next.observation && typeof next.observation === 'object') {
@@ -209,7 +208,7 @@ export function mergeStructured(prev, next) {
   if (Array.isArray(next.componentLinks) && next.componentLinks.length) {
     const byId = new Map(merged.componentLinks.map((l) => [l.componentId, l]));
     for (const link of next.componentLinks) {
-      if (link?.componentId) byId.set(link.componentId, { ...(byId.get(link.componentId) ?? {}), ...link });
+      if (link?.componentId) byId.set(link.componentId, { ...byId.get(link.componentId), ...link });
     }
     merged.componentLinks = Array.from(byId.values());
   }

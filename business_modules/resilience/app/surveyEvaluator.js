@@ -186,7 +186,7 @@ async function assessBatch(batch, batchNum, totalBatches, onUsage) {
 // ─── Checkpoint ───────────────────────────────────────────────────────────────
 
 function cpPath(date, sourceFile) {
-  const safe = sourceFile.replace(/[^\w\u0590-\u05FF.-]/g, '_');
+  const safe = sourceFile.replaceAll(/[^\w\u0590-\u05FF.-]/g, '_');
   return `reports/survey-checkpoint-${date}-${safe}.json`;
 }
 

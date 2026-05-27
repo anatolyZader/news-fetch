@@ -17,7 +17,7 @@ import TableContainer from '@mui/material/TableContainer';
 import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
-import { alpha, useTheme } from '@mui/material/styles';
+import { useTheme } from '@mui/material/styles';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import {
@@ -28,6 +28,7 @@ import {
   LineChartFrame,
   LoadingState,
   PageHeader,
+  dateToggleGridSx,
 } from '../ui/index.js';
 import { scoreBg01, scoreColor01 } from '../lib/score.js';
 import { formatDate } from '../lib/date.js';
@@ -35,7 +36,7 @@ import { useMunicipalitiesData } from '../hooks/useMunicipalitiesData.js';
 import PropTypes from 'prop-types';
 
 function pct(v) {
-  return v != null ? Math.round(v * 100) + '%' : '—';
+  return v == null ? '—' : Math.round(v * 100) + '%';
 }
 
 function ScoreBadge({ value, theme }) {
@@ -49,7 +50,7 @@ function ScoreBadge({ value, theme }) {
         paddingBottom: t.spacing(0.25),
         paddingLeft: t.spacing(0.75),
         paddingRight: t.spacing(0.75),
-        borderRadius: t.custom.radius.pill,
+        borderRadius: `${t.custom.radius.section}px`,
         fontSize: t.typography.body2.fontSize,
       })}
     >
@@ -72,7 +73,7 @@ function ScoreLabelPill({ label, value, surface = 'muted', theme }) {
       sx={(t) => ({
         background: surface === 'muted' ? t.palette.background.default : t.palette.background.paper,
         border: t.custom.border.hairline,
-        borderRadius: t.custom.radius.pill,
+        borderRadius: `${t.custom.radius.section}px`,
         paddingTop: t.spacing(0.25),
         paddingBottom: t.spacing(0.25),
         paddingLeft: t.spacing(0.75),
@@ -137,7 +138,7 @@ function buildSubquestionTrendData(muniAllDays, cid, labels) {
       const row = { day: formatDate(md.date), iso: md.date };
       labels.forEach((label, i) => {
         const sc = (comp.scores ?? []).find((s) => normalizeScoreLabel(s.label) === label);
-        row[`q${i}`] = sc?.value != null ? Math.round(sc.value * 100) : null;
+        row[`q${i}`] = sc?.value == null ? null : Math.round(sc.value * 100);
       });
       return row;
     })
@@ -218,14 +219,13 @@ export function MunicipalitiesTab() {
   const comps = data.componentsOrder;
 
   const dateTabSx = (t) => ({
-    borderRadius: `${t.custom.radius.pill}px !important`,
-    border: `1px solid ${t.palette.divider} !important`,
-    marginRight: t.spacing(0.25),
-    marginBottom: t.spacing(0.25),
     '&.Mui-selected': {
-      color: t.palette.primary.main,
+      color: t.palette.primary.contrastText,
       borderColor: `${t.palette.primary.main} !important`,
-      backgroundColor: alpha(t.palette.primary.main, 0.06),
+      background: `linear-gradient(135deg, ${t.palette.primary.main} 0%, ${t.palette.primary.dark} 100%)`,
+      '&:hover': {
+        color: t.palette.primary.contrastText,
+      },
     },
   });
 
@@ -239,11 +239,7 @@ export function MunicipalitiesTab() {
         size="small"
         onChange={(_, next) => { if (next) setSelectedDate(next); }}
         aria-label={isHe ? 'בחר תאריך' : 'Select date'}
-        sx={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          width: '100%',
-        }}
+        sx={(t) => dateToggleGridSx(t, { minColumnWidth: 128 })}
       >
         {data.days.map((d) => (
           <ToggleButton key={d.date} value={d.date} sx={dateTabSx}>

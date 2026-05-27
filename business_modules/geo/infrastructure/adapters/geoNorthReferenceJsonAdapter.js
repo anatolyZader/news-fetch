@@ -90,8 +90,8 @@ class GeoNorthReferenceJsonAdapter extends IGeoNorthReferencePort {
         lat,
         lon,
         subregionId,
-        officialHebrewName: row.officialHebrewName != null ? String(row.officialHebrewName).trim() : undefined,
-        municipalityType: row.municipalityType != null ? String(row.municipalityType).trim() : undefined,
+        officialHebrewName: row.officialHebrewName == null ? undefined : String(row.officialHebrewName).trim(),
+        municipalityType: row.municipalityType == null ? undefined : String(row.municipalityType).trim(),
         geoEntityType: row.geoEntityType != null && String(row.geoEntityType).trim() ? String(row.geoEntityType).trim() : undefined,
         parentCouncilKey:
           row.parentCouncilKey != null && String(row.parentCouncilKey).trim()

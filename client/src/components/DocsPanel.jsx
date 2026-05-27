@@ -183,7 +183,7 @@ export function DocsPanel({ open, onClose, initialSlug }) {
               paddingBottom: theme.spacing(0.5),
               paddingLeft: theme.spacing(0.75),
               paddingRight: theme.spacing(0.75),
-              borderRadius: theme.custom.radius.md,
+              borderRadius: `${theme.custom.radius.section}px`,
               '&:hover': { color: 'text.primary' },
             })}
           >
@@ -228,7 +228,7 @@ export function DocsPanel({ open, onClose, initialSlug }) {
               onClick={() => setShowAdvanced((v) => !v)}
               aria-pressed={showAdvanced}
               title={showAdvanced ? t('docsPanel.advHideTitle') : t('docsPanel.advShowTitle')}
-              sx={(theme) => ({ borderRadius: theme.custom.radius.pill, flexShrink: 0 })}
+              sx={(theme) => ({ borderRadius: `${theme.custom.radius.section}px`, flexShrink: 0 })}
             >
               {showAdvanced ? t('docsPanel.advOn') : t('docsPanel.advOff')}
             </Button>
@@ -265,7 +265,7 @@ export function DocsPanel({ open, onClose, initialSlug }) {
                   border: `1px solid ${selectedSlug === p.slug ? theme.palette.primary.main : 'transparent'}`,
                   background: 'transparent',
                   color: selectedSlug === p.slug ? theme.palette.text.primary : theme.palette.text.secondary,
-                  borderRadius: theme.custom.radius.lg,
+                  borderRadius: `${theme.custom.radius.section}px`,
                   paddingTop: theme.spacing(0.6),
                   paddingBottom: theme.spacing(0.6),
                   paddingLeft: theme.spacing(0.75),

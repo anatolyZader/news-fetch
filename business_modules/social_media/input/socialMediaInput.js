@@ -16,39 +16,44 @@ import { createSocialMediaService } from '../app/socialMediaService.js';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 config({ path: resolve(__dirname, '../../../.env') });
 
+const NUMERIC_OPTS = new Set(['--window-days', '--days', '--max-per-query', '--max-cost-usd']);
+const STRING_OPTS = {
+  '--date': 'date',
+  '--window-days': 'windowDays',
+  '--days': 'days',
+  '--max-per-query': 'maxPerQuery',
+  '--max-cost-usd': 'maxCostUsd',
+};
+const BOOL_OPTS = {
+  '--north': 'north',
+  '--execute': 'execute',
+  '--force': 'force',
+};
+
+function assignOptValue(opts, flag, raw) {
+  if (flag === '--platforms') {
+    opts.platforms = raw.split(',').map((p) => p.trim()).filter(Boolean);
+    return;
+  }
+  const key = STRING_OPTS[flag];
+  if (!key) return;
+  opts[key] = NUMERIC_OPTS.has(flag) ? Number(raw) : raw;
+}
+
 function parseArgs(argv) {
   const args = argv.slice(2);
   const cmd = args[0] ?? 'help';
   const opts = {};
   for (let i = 1; i < args.length; i += 1) {
     const a = args[i];
-    if (a === '--date' && args[i + 1]) {
-      opts.date = args[++i];
+    const boolKey = BOOL_OPTS[a];
+    if (boolKey) {
+      opts[boolKey] = true;
       continue;
     }
-    if (a === '--window-days' && args[i + 1]) {
-      opts.windowDays = Number(args[++i]);
-      continue;
+    if (STRING_OPTS[a] && args[i + 1]) {
+      assignOptValue(opts, a, args[++i]);
     }
-    if (a === '--days' && args[i + 1]) {
-      opts.days = Number(args[++i]);
-      continue;
-    }
-    if (a === '--max-per-query' && args[i + 1]) {
-      opts.maxPerQuery = Number(args[++i]);
-      continue;
-    }
-    if (a === '--max-cost-usd' && args[i + 1]) {
-      opts.maxCostUsd = Number(args[++i]);
-      continue;
-    }
-    if (a === '--platforms' && args[i + 1]) {
-      opts.platforms = args[++i].split(',').map((p) => p.trim()).filter(Boolean);
-      continue;
-    }
-    if (a === '--north') opts.north = true;
-    if (a === '--execute') opts.execute = true;
-    if (a === '--force') opts.force = true;
   }
   return { cmd, opts };
 }

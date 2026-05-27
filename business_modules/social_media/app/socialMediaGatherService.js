@@ -67,7 +67,7 @@ export function createSocialMediaGatherService({ persistencePort }) {
       const next = { ...bundle, findings: [...(bundle.findings ?? [])] };
       const verdict = evaluateCitizenVoiceCandidate(finding);
       if (!verdict.accepted) {
-        next.rejected = { ...(next.rejected ?? {}) };
+        next.rejected = { ...next.rejected };
         const key = verdict.reason ?? 'off_topic';
         next.rejected[key] = (next.rejected[key] ?? 0) + 1;
         next.rejected_examples = [

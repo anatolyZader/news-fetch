@@ -11,7 +11,7 @@ import {
 } from '../domain/services/oovClusterer.js';
 import { formatGapReportMarkdown } from '../domain/services/gapReportFormatter.js';
 
-export class catalogLearningService {
+export class CatalogLearningService {
   /**
    * @param {object} deps
    * @param {import('../domain/ports/ILearningCapturePort.js').ILearningCapturePort} deps.capturePort

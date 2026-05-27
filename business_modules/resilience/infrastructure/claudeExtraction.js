@@ -397,6 +397,7 @@ const SIGNAL_EXTRACTION_SYSTEM_PROMPT =
   `  "signal_type": "<one type from the closed vocabulary above>",\n` +
   `  "evidence_type": "direct_quote_named_person" | "named_survey_statistic" | "named_institutional_fact" | "observational_reported_fact",\n` +
   `  "evidence": "<exact quote or bare factual description — no journalist adjectives, max 300 chars>",\n` +
+  `  "evidence_span": { "start": <char offset in article body>, "end": <char offset> } (optional; REQUIRED for quotes under ~15 words),\n` +
   `  "scope_level": "single_case" | "repeated_pattern" | "quantified_or_broad",\n` +
   `  "evidence_basis": "present_in_text" | "paraphrased" | "inferred_absence",\n` +
   `  "extraction_confidence": <number 0-1>,\n` +

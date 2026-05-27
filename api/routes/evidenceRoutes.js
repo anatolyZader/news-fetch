@@ -390,7 +390,7 @@ export async function evidenceRoutes(app, opts) {
       for await (const part of request.parts()) {
         if (part.type === 'file' && (part.fieldname === 'files' || part.fieldname === 'file')) {
           const rawName = part.filename || 'upload.bin';
-          const safe = basename(rawName).replace(/[^a-zA-Z0-9._-]/g, '_') || 'file';
+          const safe = basename(rawName).replaceAll(/[^a-zA-Z0-9._-]/g, '_') || 'file';
           const dest = join(batchDir, `${savedPaths.length}-${safe}`);
           await pipeline(part.file, createWriteStream(dest));
           savedPaths.push(dest);

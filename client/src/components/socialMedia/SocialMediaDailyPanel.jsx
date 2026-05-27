@@ -15,6 +15,7 @@ import {
   KpiStrip,
   LoadingState,
   SectionHeading,
+  dateToggleGridSx,
 } from '../../ui/index.js';
 import { formatDate } from '../../lib/date.js';
 import { SocialMediaPostCard } from './SocialMediaPostCard.jsx';
@@ -65,7 +66,7 @@ export function SocialMediaDailyPanel() {
         value={activeDate}
         onChange={(_, next) => { if (next) setSelectedDate(next); }}
         aria-label={t('socialMedia.selectDate')}
-        sx={{ flexWrap: 'wrap' }}
+        sx={(theme) => dateToggleGridSx(theme)}
       >
         {dates.map((d) => (
           <ToggleButton key={d.date} value={d.date}>
@@ -91,7 +92,7 @@ export function SocialMediaDailyPanel() {
             value={selectedCategory}
             onChange={(_, next) => { if (next) setSelectedCategory(next); }}
             aria-label={t('socialMedia.daily.filterCategory')}
-            sx={{ flexWrap: 'wrap' }}
+            sx={(theme) => dateToggleGridSx(theme, { minColumnWidth: 120 })}
           >
             <ToggleButton value="all">{t('socialMedia.daily.allCategories')}</ToggleButton>
             {categories.map((c) => (

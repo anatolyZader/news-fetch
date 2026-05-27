@@ -51,16 +51,10 @@ function countPendingReviewItems(dir) {
 }
 
 /**
- * @param {object} [opts]
- * @param {string} [opts.rootDir]
- * @param {object} [opts.config]
+ * @param {string[]} recordFiles
+ * @param {string} recordsDir
  */
-export function summarizeValidationMaturity(opts = {}) {
-  const rootDir = opts.rootDir ?? process.cwd();
-  const config = opts.config ?? loadValidationConfig();
-  const paths = validationPaths(config, rootDir);
-
-  const recordFiles = listJsonFiles(paths.records);
+function aggregateRecordStats(recordFiles, recordsDir) {
   const dates = new Set();
   const scopes = new Set();
   let labeledComponentSlots = 0;
@@ -68,7 +62,7 @@ export function summarizeValidationMaturity(opts = {}) {
 
   for (const f of recordFiles) {
     try {
-      const rec = JSON.parse(readFileSync(join(paths.records, f), 'utf8'));
+      const rec = JSON.parse(readFileSync(join(recordsDir, f), 'utf8'));
       if (rec.date) dates.add(rec.date);
       if (rec.scope) scopes.add(rec.scope);
       for (const c of rec.components ?? []) {
@@ -81,6 +75,27 @@ export function summarizeValidationMaturity(opts = {}) {
       // skip
     }
   }
+
+  return { dates, scopes, labeledComponentSlots, filledExpertLabels };
+}
+
+/**
+ * @param {object} [opts]
+ * @param {string} [opts.rootDir]
+ * @param {object} [opts.config]
+ */
+export function summarizeValidationMaturity(opts = {}) {
+  const rootDir = opts.rootDir ?? process.cwd();
+  const config = opts.config ?? loadValidationConfig();
+  const paths = validationPaths(config, rootDir);
+
+  const recordFiles = listJsonFiles(paths.records);
+  const {
+    dates,
+    scopes,
+    labeledComponentSlots,
+    filledExpertLabels,
+  } = aggregateRecordStats(recordFiles, paths.records);
 
   const reviewStats = countPendingReviewItems(paths.reviewQueue);
   const criteria = config.acceptance_criteria ?? DEFAULT_VALIDATION_CONFIG.acceptance_criteria;

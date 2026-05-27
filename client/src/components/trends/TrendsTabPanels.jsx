@@ -65,7 +65,7 @@ QueryGroupBlock.propTypes = {
 export function QueriesIntelPanel({ queriesIntel, t }) {
   const onSuggest = useCallback((query) => {
     if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
-      void navigator.clipboard.writeText(query);
+      navigator.clipboard.writeText(query).catch(() => {});
     }
   }, []);
 

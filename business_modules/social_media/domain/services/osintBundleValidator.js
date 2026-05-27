@@ -19,13 +19,13 @@ export function validateOsintBundle(bundle) {
   if (!bundle.date || !/^\d{4}-\d{2}-\d{2}$/.test(String(bundle.date))) {
     errors.push('date must be YYYY-MM-DD');
   }
-  if (!Array.isArray(bundle.findings)) {
-    errors.push('findings must be an array');
-  } else {
+  if (Array.isArray(bundle.findings)) {
     for (const [i, f] of bundle.findings.entries()) {
       if (!f?.quote_original) errors.push(`findings[${i}] missing quote_original`);
       if (!f?.platform) errors.push(`findings[${i}] missing platform`);
     }
+  } else {
+    errors.push('findings must be an array');
   }
 
   return { valid: errors.length === 0, errors };

@@ -3,7 +3,7 @@
  * Full scores remain on disk; redaction applies at API/UI boundaries.
  */
 
-import { deriveThinEvidencePolicy, isThinEvidencePolicyEnabled } from './thinEvidencePolicy.js';
+import { deriveThinEvidencePolicy, isThinEvidencePolicyEnabled, deriveAssessmentEpistemicPolicy } from './thinEvidencePolicy.js';
 
 export const DISPLAY_VIEWS = Object.freeze({
   operator: 'operator',
@@ -74,9 +74,10 @@ export function canViewAnalystDisplay(email) {
 
 /**
  * @param {object} comp
+ * @param {object} [assessmentContext]
  * @returns {object}
  */
-export function deriveInstrumentState(comp) {
+export function deriveInstrumentState(comp, assessmentContext = {}) {
   const mass = Number(comp?.evidence_mass ?? 0);
   let evidence_sufficiency = 'adequate';
   if (mass < 1.5) evidence_sufficiency = 'thin';
@@ -93,8 +94,14 @@ export function deriveInstrumentState(comp) {
     && mass >= 1.5
     && mass < 4;
 
+  const assessmentEpistemic = assessmentContext.assessmentEpistemic
+    ?? deriveAssessmentEpistemicPolicy(
+      assessmentContext.dataVoid,
+      assessmentContext.epistemicStatus,
+    );
+
   const thinPolicy = isThinEvidencePolicyEnabled()
-    ? deriveThinEvidencePolicy(comp)
+    ? deriveThinEvidencePolicy(comp, { assessmentEpistemic })
     : null;
 
   return {
@@ -178,10 +185,14 @@ export function redactAssessmentForView(assessment, view) {
     const facets = Array.isArray(c.facets)
       ? c.facets.map(redactFacet)
       : c.facets;
+    const assessmentContext = {
+      dataVoid: assessment.data_void,
+      epistemicStatus: assessment.epistemic_status,
+    };
     return {
       ...base,
       facets,
-      instrument: deriveInstrumentState(c),
+      instrument: deriveInstrumentState(c, assessmentContext),
     };
   });
 

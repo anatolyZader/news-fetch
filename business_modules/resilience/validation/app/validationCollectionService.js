@@ -15,7 +15,7 @@ import { createValidationArtifactWriter } from '../infrastructure/validationArti
  * @param {() => object} [deps.loadConfig]
  * @param {typeof createValidationArtifactWriter} [deps.createWriter]
  */
-export function createValidationCollectionService(deps = {}) {
+function createValidationCollectionService(deps = {}) {
   const loadConfig = deps.loadConfig ?? loadValidationConfig;
   const createWriter = deps.createWriter ?? createValidationArtifactWriter;
 
@@ -119,4 +119,4 @@ function summarizeTopReasons(items) {
     .map(([code, count]) => ({ code, count }));
 }
 
-export { createValidationCollectionService as default };
+export default createValidationCollectionService;

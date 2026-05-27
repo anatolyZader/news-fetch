@@ -9,7 +9,7 @@ export function createDriftService({ reportsDir, historyReader } = {}) {
 
   function isoRangeInclusive(endIso, days) {
     const safeDays = Number.isFinite(days) && days > 0 ? Math.floor(days) : 1;
-    const [y, m, d] = String(endIso ?? '').split('-').map((s) => parseInt(s, 10));
+    const [y, m, d] = String(endIso ?? '').split('-').map((s) => Number.parseInt(s, 10));
     const end = Number.isFinite(y) && Number.isFinite(m) && Number.isFinite(d)
       ? new Date(Date.UTC(y, m - 1, d))
       : new Date();

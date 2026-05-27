@@ -6,6 +6,8 @@ import {
   shingles,
   jaccard,
   verifyEvidenceAgainstArticle,
+  verifySourceNativeQuote,
+  orderedSubsequenceContainment,
   signalDedupKey,
   dedupeSignalsWithinBatch,
   containsHebrew,
@@ -146,6 +148,48 @@ describe('verifyEvidenceAgainstArticle', () => {
     };
     const r = verifyEvidenceAgainstArticle(signal, article.body);
     assert.equal(r.ok, true);
+  });
+
+  it('passes via evidence_span when offsets match', () => {
+    const body = 'Residents entered shelter when siren sounded in Kiryat Shmona.';
+    const quote = 'entered shelter when siren sounded';
+    const start = body.indexOf(quote);
+    const signal = {
+      signal_type: 'compliance_enter_shelter',
+      evidence_type: 'observational_reported_fact',
+      evidence: quote,
+      evidence_span: { start, end: start + quote.length },
+    };
+    const r = verifyEvidenceAgainstArticle(signal, body);
+    assert.equal(r.ok, true);
+    assert.equal(r.reason, 'evidence_span');
+  });
+
+  it('passes short Hebrew crisis quote via ordered subsequence', () => {
+    const body = 'עזרה! אנחנו בוערים';
+    const signal = {
+      signal_type: 'panic_behavior',
+      evidence_type: 'observational_reported_fact',
+      evidence: 'אנחנו בוערים',
+    };
+    const r = verifyEvidenceAgainstArticle(signal, body);
+    assert.equal(r.ok, true);
+    assert.equal(r.reason, 'ordered_subsequence');
+  });
+});
+
+describe('verifySourceNativeQuote', () => {
+  it('matches verbatim short WhatsApp message', () => {
+    const r = verifySourceNativeQuote('שקט בקריית שמונה', 'שקט בקריית שמונה');
+    assert.equal(r.ok, true);
+  });
+});
+
+describe('orderedSubsequenceContainment', () => {
+  it('requires full match for 3-token evidence when threshold is 1', () => {
+    const ev = ['we', 'burning', 'help'];
+    const body = ['noise', 'we', 'are', 'burning', 'help'];
+    assert.equal(orderedSubsequenceContainment(ev, body), 1);
   });
 });
 

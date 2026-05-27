@@ -444,5 +444,21 @@ export async function createApp(options) {
     }
   });
 
+  app.setNotFoundHandler(async (req, reply) => {
+    const urlPath = String(req.url ?? '').split('?')[0];
+    if (urlPath.startsWith('/api/')) {
+      return reply.code(404).send({ error: 'Not found' });
+    }
+    if (/\.[a-zA-Z0-9]+$/.test(urlPath)) {
+      return reply.code(404).send({ error: 'Not found' });
+    }
+    try {
+      const html = await readFile(resolve(clientDist, 'index.html'), 'utf8');
+      return reply.type('text/html; charset=utf-8').send(html);
+    } catch {
+      return reply.code(404).send({ error: 'Not found' });
+    }
+  });
+
   return app;
 }

@@ -16,14 +16,19 @@ describe('findingToSignalMapper', () => {
     confidence: 'גבוהה',
   };
 
-  it('maps finding to resilience signal', () => {
+  it('maps finding to resilience signal with verbatim quote', () => {
     const signal = mapFindingToSignal(sampleFinding);
     assert.ok(signal);
     assert.equal(signal.signal_type, 'compliance_enter_shelter');
     assert.equal(signal.evidence_type, 'direct_quote_named_person');
     assert.equal(signal.scope_level, 'repeated_pattern');
     assert.equal(signal.source_type, 'social');
-    assert.match(signal.evidence, /ממ"ד/);
+    assert.equal(signal.evidence, sampleFinding.quote_original);
+    assert.equal(signal.evidence_quote, sampleFinding.quote_original);
+    assert.equal(signal.grounding_tier, 'grounded');
+    assert.equal(signal.locality, 'נהריה');
+    assert.equal(signal.behavior_note, sampleFinding.behavior_or_emotion);
+    assert.ok(!signal.evidence.includes('—'));
   });
 
   it('maps array of findings', () => {

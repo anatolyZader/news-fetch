@@ -35,7 +35,7 @@ const SITE_LABELS = {
 };
 
 function escapeMdHeading(s) {
-  return String(s).replace(/#/g, '\\#').replace(/\n/g, ' ');
+  return String(s).replaceAll('#', '\\#').replaceAll('\n', ' ');
 }
 
 /**
@@ -65,7 +65,7 @@ export async function runFetchArticlesToMd(opts = {}) {
   const rawArticles = await fetchArticlesForDay({ date });
   const _seen = new Set();
   const articles = rawArticles.filter((a) => {
-    const key = a.title.replace(/[^\u0590-\u05FF\w]/g, '').slice(0, 40);
+    const key = a.title.replaceAll(/[^\u0590-\u05FF\w]/g, '').slice(0, 40);
     if (_seen.has(key)) return false;
     _seen.add(key);
     return true;
@@ -81,16 +81,8 @@ export async function runFetchArticlesToMd(opts = {}) {
 
   for (let i = 0; i < articles.length; i++) {
     const a = articles[i];
-    sections.push(`## ${i + 1}. ${escapeMdHeading(a.title)}`);
-    sections.push('');
-    sections.push(`- **URL:** ${a.url}`);
-    sections.push(`- **Published:** ${a.publishedAt}`);
-    sections.push(`- **Source:** ${a.source}`);
-    sections.push('');
-    sections.push(a.body && a.body.trim() ? a.body.trim() : '_No full text available._');
-    sections.push('');
-    sections.push('---');
-    sections.push('');
+    sections.push(`## ${i + 1}. ${escapeMdHeading(a.title)}`, '', `- **URL:** ${a.url}`, `- **Published:** ${a.publishedAt}`, `- **Source:** ${a.source}`, '');
+    sections.push(a.body && a.body.trim() ? a.body.trim() : '_No full text available._', '', '---', '');
   }
 
   writeFileSync(outPath, sections.join('\n'), 'utf8');

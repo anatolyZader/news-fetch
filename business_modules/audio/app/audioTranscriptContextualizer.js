@@ -111,6 +111,38 @@ function chunkTurns(turns) {
 }
 
 /**
+ * Parse LLM JSON array response without backtracking-prone regexes.
+ * @param {string} text
+ * @returns {Array<object>}
+ */
+function parseSceneJsonArray(text) {
+  const fence = text.indexOf('```');
+  if (fence >= 0) {
+    const bodyStart = text.indexOf('\n', fence);
+    const fenceEnd = text.indexOf('```', bodyStart + 1);
+    if (bodyStart >= 0 && fenceEnd > bodyStart) {
+      try {
+        return JSON.parse(text.slice(bodyStart + 1, fenceEnd).trim());
+      } catch {
+        // fall through
+      }
+    }
+  }
+
+  const arrStart = text.indexOf('[');
+  const arrEnd = text.lastIndexOf(']');
+  if (arrStart >= 0 && arrEnd > arrStart) {
+    try {
+      return JSON.parse(text.slice(arrStart, arrEnd + 1));
+    } catch {
+      // fall through
+    }
+  }
+
+  return [];
+}
+
+/**
  * Call LLM to segment and contextualize one chunk of transcript turns.
  * @returns {Array<object>} scene objects
  */
@@ -130,23 +162,8 @@ async function segmentChunk(turns) {
   });
 
   const text = response.content[0]?.text ?? '';
-
-  // Extract JSON array
-  try {
-    const fenced = text.match(/```(?:json)?\s*\n([\s\S]+?)\n```/m);
-    if (fenced) return JSON.parse(fenced[1].trim());
-    const arrStart = text.indexOf('[');
-    if (arrStart >= 0) return JSON.parse(text.slice(arrStart));
-  } catch {
-    // partial recovery
-    const objects = [];
-    const re = /\{[\s\S]+?\}(?=\s*[,\]]|\s*$)/g;
-    let m;
-    while ((m = re.exec(text)) !== null) {
-      try { objects.push(JSON.parse(m[0])); } catch { /* skip */ }
-    }
-    if (objects.length > 0) return objects;
-  }
+  const parsed = parseSceneJsonArray(text);
+  if (parsed.length > 0) return parsed;
 
   console.error('  ⚠ audioTranscriptContextualizer: could not parse LLM response for chunk');
   return [];
@@ -188,8 +205,7 @@ function sceneToArticle(scene, index, station, program, sourceUrl) {
   ];
 
   if (scene.key_quotes?.length) {
-    lines.push('');
-    lines.push('Key quotes:');
+    lines.push('', 'Key quotes:');
     for (const q of scene.key_quotes) {
       lines.push(`- "${q}"`);
     }

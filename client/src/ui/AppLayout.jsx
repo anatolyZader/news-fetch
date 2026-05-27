@@ -2,14 +2,15 @@ import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
+import { alpha } from '@mui/material/styles';
 import PropTypes from 'prop-types';
 
 export function AppLayout({
   header,
   footer,
   children,
-  maxWidth = 1280,
-  contentSpacing = 4,
+  maxWidth = 1320,
+  contentSpacing = 5,
 }) {
   return (
     <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
@@ -19,8 +20,10 @@ export function AppLayout({
           color="inherit"
           elevation={0}
           sx={(theme) => ({
-            background: theme.palette.background.paper,
+            background: `linear-gradient(180deg, ${alpha(theme.palette.background.paper, 0.92)} 0%, ${theme.palette.background.paper} 100%)`,
+            backdropFilter: 'blur(12px)',
             borderBottom: theme.custom.border.hairline,
+            boxShadow: 'none',
           })}
         >
           <Toolbar
@@ -55,10 +58,10 @@ export function AppLayout({
           maxWidth: `${maxWidth}px !important`,
           marginLeft: 'auto',
           marginRight: 'auto',
-          paddingTop: `${theme.spacing(4)} !important`,
-          paddingBottom: `${theme.spacing(6)} !important`,
-          paddingLeft: `${theme.spacing(3)} !important`,
-          paddingRight: `${theme.spacing(3)} !important`,
+          paddingTop: `${theme.spacing(5)} !important`,
+          paddingBottom: `${theme.spacing(7)} !important`,
+          paddingLeft: `${theme.spacing(4)} !important`,
+          paddingRight: `${theme.spacing(4)} !important`,
           display: 'flex',
           flexDirection: 'column',
           gap: theme.spacing(contentSpacing),

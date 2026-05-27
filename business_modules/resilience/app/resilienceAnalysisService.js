@@ -14,10 +14,11 @@ import {
   annotateSignalsEpistemics,
   partitionMacroSignals,
 } from '../domain/services/evidenceEligibility.js';
-import { computeDataVoidIndex } from '../domain/services/dataVoidIndex.js';
+import { computeDataVoidIndex, applyEpistemicGate, attachEpistemicToAssessment } from '../domain/services/dataVoidIndex.js';
 import { salienceContextFromDataVoid } from '../domain/services/highSalienceBypass.js';
 import { countOovCapturesForDate } from '../domain/services/oovCapture.js';
 import { loadHistoricalSignalDays } from '../input/assessSignalsHelpers.js';
+import { loadConnectivityProbeSignals } from '../infrastructure/adapters/connectivityProbeFileAdapter.js';
 
 /** Aligned with infrastructure/mdReportsLoader.js body cap */
 export const MAX_BODY_CHARS = 2000;
@@ -39,7 +40,7 @@ function batchItemsToArticles(batch) {
 function dedupeArticlesByTitle(articles) {
   const seen = new Set();
   return articles.filter((a) => {
-    const key = a.title.replace(/[^\u0590-\u05FF\w]/g, '').slice(0, 40);
+    const key = a.title.replaceAll(/[^\u0590-\u05FF\w]/g, '').slice(0, 40);
     if (seen.has(key)) return false;
     seen.add(key);
     return true;
@@ -111,6 +112,11 @@ export async function runResilienceAssessment(batch, options = {}) {
     allSignals = [...allSignals, ...suppSignals];
   }
 
+  const probeSignals = loadConnectivityProbeSignals(batch.reportDate, reportScopeId);
+  if (probeSignals.length > 0) {
+    allSignals = [...allSignals, ...probeSignals];
+  }
+
   allSignals = filterSignalsForScope(allSignals, reportScopeId);
   allSignals = annotateSignalsEpistemics(allSignals, { reportScope: reportScopeId });
   const { metricsSignals, macroSignals } = partitionMacroSignals(allSignals, reportScopeId);
@@ -119,19 +125,36 @@ export async function runResilienceAssessment(batch, options = {}) {
   const totalArticles = articles.length + supplementaryArticles.length;
   const narrativeContentKind = supplementaryArticles.length > 0 ? 'mixed' : batch.contentKind;
 
+  const reportsDir = options.reportsDir ?? 'reports';
   const historicalSignalDays = loadHistoricalSignalDays(
     batch.reportDate,
-    options.reportsDir ?? 'reports',
+    reportsDir,
     7,
     reportScopeId,
   );
-  const dataVoid = computeDataVoidIndex(allSignals, historicalSignalDays, { reportScope: reportScopeId });
+  const dataVoid = computeDataVoidIndex(signalsForScoring, historicalSignalDays, {
+    reportScope: reportScopeId,
+  });
 
-  const scoredComponents = scoreComponents(signalsForScoring, {
+  let salienceContext = salienceContextFromDataVoid(dataVoid);
+  const digitalInclusiveScored = scoreComponents(signalsForScoring, {
     totalArticles,
     mediaSignals: allSignals,
-    salienceContext: salienceContextFromDataVoid(dataVoid),
+    salienceContext,
   });
+
+  const gateResult = applyEpistemicGate({
+    scoredFull: digitalInclusiveScored,
+    signalsForScoring,
+    dataVoid,
+    totalArticles,
+    mediaSignals: allSignals,
+    salienceContext,
+    digitalInclusiveScored,
+  });
+
+  const scoredComponents = gateResult.scoredFull;
+  salienceContext = gateResult.salienceContext;
   const oovCaptureCount = countOovCapturesForDate(batch.reportDate);
   const assessment = await llmPort.generateNarratives(
     scoredComponents,
@@ -150,6 +173,13 @@ export async function runResilienceAssessment(batch, options = {}) {
       oovCaptureCount,
     },
   );
+
+  attachEpistemicToAssessment(assessment, {
+    dataVoid,
+    epistemicStatus: gateResult.epistemicStatus,
+    assessmentMode: gateResult.assessmentMode,
+    staleDigitalScores: gateResult.staleDigitalScores,
+  });
 
   const allArticles = [...articles, ...supplementaryArticles];
   const sourceFilesForReport =

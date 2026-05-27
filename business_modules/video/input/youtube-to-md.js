@@ -199,11 +199,7 @@ try {
     let asrMd = '';
     if (needAudio) {
       const dl = await videoGrab.downloadFromUrl(url, tmpSubs);
-      if (!dl.ok) {
-        console.error('Audio download failed:', dl.error);
-        if (dl.stderr) console.error(dl.stderr.slice(0, 2000));
-        if (tr.segments.length === 0) process.exit(1);
-      } else {
+      if (dl.ok) {
         const asrResult = await audioIngest.ingestToMarkdown({
           filePath: dl.outputPath,
           date,
@@ -218,6 +214,10 @@ try {
         console.error(
           `Speech-to-text: ${asrResult.segmentCount} segment(s), ${asrResult.articleBlocks} block(s) (OpenAI)`,
         );
+      } else {
+        console.error('Audio download failed:', dl.error);
+        if (dl.stderr) console.error(dl.stderr.slice(0, 2000));
+        if (tr.segments.length === 0) process.exit(1);
       }
     }
 

@@ -52,7 +52,7 @@ class GeoLocalityOverridesSqliteAdapter extends IGeoLocalityOverridesPort {
     if (!row?.canonicalKey) return null;
     return {
       canonicalKey: String(row.canonicalKey),
-      geoEntityType: row.geoEntityType != null ? String(row.geoEntityType) : undefined,
+      geoEntityType: row.geoEntityType == null ? undefined : String(row.geoEntityType),
     };
   }
 }

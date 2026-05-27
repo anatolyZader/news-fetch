@@ -49,8 +49,8 @@ function ilTimeParts(date) {
 
   return {
     dateStr: `${numericParts.year}-${numericParts.month}-${numericParts.day}`,
-    hour: parseInt(numericParts.hour, 10),
-    minute: parseInt(numericParts.minute, 10),
+    hour: Number.parseInt(numericParts.hour, 10),
+    minute: Number.parseInt(numericParts.minute, 10),
     dayOfWeek, // 0=Sun … 6=Sat
   };
 }
@@ -84,8 +84,8 @@ function scheduledStartIfDue(slot, now) {
 function slugify(str) {
   return str
     .toLowerCase()
-    .replace(/[^a-z0-9א-ת]+/g, '-')
-    .replace(/^-+|-+$/g, '');
+    .replaceAll(/[^a-z0-9א-ת]+/g, '-')
+    .replaceAll(/^-+|-+$/g, '');
 }
 
 export function createRecordingScheduler({ store, adapter, onComplete, recordingsBaseDir }) {

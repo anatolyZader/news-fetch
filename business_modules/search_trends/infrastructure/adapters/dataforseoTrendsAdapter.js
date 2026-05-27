@@ -117,7 +117,7 @@ function findItem(items, type) {
 function mapQueriesList(list) {
   return (list ?? []).slice(0, 15).map((item) => ({
     query: String(item.query ?? item.topic_title ?? ''),
-    value: parseInt(String(item.value ?? '0').replace(/[^\d-]/g, ''), 10) || 0,
+    value: Number.parseInt(String(item.value ?? '0').replaceAll(/[^\d-]/g, ''), 10) || 0,
     formattedValue: String(item.value ?? ''),
   }));
 }

@@ -1,4 +1,5 @@
 import { SOURCE_TYPE_SOCIAL } from '../value_objects/socialPlatform.js';
+import { GROUNDING_TIER } from '../../../resilience/domain/services/groundingPolicy.js';
 
 const COMPONENT_DEFAULT_SIGNAL = Object.freeze({
   lifesaving_behavior: 'compliance_enter_shelter',
@@ -53,14 +54,16 @@ export function mapFindingToSignal(finding) {
 
   const location = String(finding?.location ?? '').trim();
   const behavior = String(finding?.behavior_or_emotion ?? '').trim();
-  const evidenceParts = [quote];
-  if (location) evidenceParts.push(`(${location})`);
-  if (behavior) evidenceParts.push(`— ${behavior}`);
 
   return {
     signal_type: defaultSignalTypeForComponent(component),
     evidence_type: confidence === 'high' ? 'direct_quote_named_person' : 'observational_reported_fact',
-    evidence: evidenceParts.join(' '),
+    evidence: quote,
+    evidence_quote: quote,
+    evidence_basis: 'present_in_text',
+    grounding_tier: GROUNDING_TIER.grounded,
+    grounding_reason: 'source_native_quote',
+    grounding_method: 'source_native',
     scope_level: confidence === 'high' ? 'repeated_pattern' : 'single_case',
     article_url: String(finding?.url ?? ''),
     article_source: String(finding?.platform ?? SOURCE_TYPE_SOCIAL),
@@ -68,7 +71,9 @@ export function mapFindingToSignal(finding) {
     osint_finding_id: String(finding?.id ?? ''),
     extraction_confidence: weight,
     source_type: SOURCE_TYPE_SOCIAL,
+    source_text: quote,
     ...(location ? { locality: location } : {}),
+    ...(behavior ? { behavior_note: behavior } : {}),
   };
 }
 

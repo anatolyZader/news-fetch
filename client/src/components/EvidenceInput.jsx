@@ -290,12 +290,12 @@ export function EvidenceInput() {
         }
         setAnalysisNote('8-component analysis in progress…');
         submissionPollRef.current.timerId = setTimeout(() => {
-          void pollSubmissionUntilDoneRef.current(submissionId);
+          pollSubmissionUntilDoneRef.current(submissionId);
         }, 2000);
       } catch (err) {
         setAnalysisNote(`Status check failed: ${err?.message ?? 'unknown error'}`);
         submissionPollRef.current.timerId = setTimeout(() => {
-          void pollSubmissionUntilDoneRef.current(submissionId);
+          pollSubmissionUntilDoneRef.current(submissionId);
         }, 3000);
       }
     },

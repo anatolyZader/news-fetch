@@ -7,7 +7,7 @@ const MAX_URL_LENGTH = 2048;
 
 /** @param {string} hostname */
 function isBlockedHostname(hostname) {
-  const h = hostname.toLowerCase().replace(/^\[|\]$/g, '');
+  const h = hostname.toLowerCase().replaceAll(/^\[|\]$/g, '');
   if (h === 'localhost' || h === '0') {
     return true;
   }

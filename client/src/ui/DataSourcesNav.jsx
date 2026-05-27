@@ -1,6 +1,7 @@
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
+import { panelHeaderButtonSx } from './panelChrome.js';
 import PropTypes from 'prop-types';
 import { alpha } from '@mui/material/styles';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -40,7 +41,7 @@ export function DataSourcesNav({
           paddingLeft: th.spacing(2),
           paddingRight: th.spacing(2),
           borderRight: th.custom.border.hairline,
-          backgroundColor: alpha(th.palette.divider, 0.35),
+          backgroundColor: alpha(th.palette.primary.light, 0.35),
           color: th.palette.text.secondary,
           ...th.typography.eyebrow,
           letterSpacing: '0.08em',
@@ -120,6 +121,7 @@ export function DataSourcesNav({
         startIcon={<ArrowBackIcon />}
         onClick={onGoToAssessment}
         sx={(th) => ({
+          ...panelHeaderButtonSx(th),
           alignSelf: 'flex-start',
           textTransform: 'none',
           fontWeight: 600,
@@ -129,7 +131,6 @@ export function DataSourcesNav({
           paddingBottom: th.spacing(1.25),
           paddingLeft: th.spacing(2),
           paddingRight: th.spacing(2.5),
-          borderRadius: th.custom.radius.lg,
           borderWidth: 1,
           borderColor: th.palette.divider,
           color: th.palette.text.primary,

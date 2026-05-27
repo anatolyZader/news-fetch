@@ -1,20 +1,33 @@
 import { createTheme, alpha } from '@mui/material/styles';
 
+/** Cool pastel palette — airy, modern, not warm/brown */
+const PASTEL = {
+  periwinkle:     '#8b9cf0',
+  periwinkleDark: '#6f82e8',
+  periwinkleLight:'#d8e0ff',
+  sky:            '#b8d9f5',
+  skyDeep:        '#7eb3e8',
+  lilac:          '#c8b8f5',
+  mint:           '#b8ebe0',
+  mintDeep:       '#7ecfc0',
+  canvas:         '#f4f7fc',
+  mist:           '#eef3fa',
+  cloud:          '#ffffff',
+};
+
 const NEUTRAL = {
-  ink:        '#1a1d2e',
-  inkSubtle:  '#6b7280',
-  inkSoft:    '#9ca3af',
-  paper:      '#ffffff',
-  // Slightly tinted background so the app doesn't feel washed out.
-  background: '#eef3f9',
-  // Darker divider for better separation.
-  divider:    '#cfd7e6',
+  ink:        '#2f3648',
+  inkSubtle:  '#6b7a94',
+  inkSoft:    '#9aa8bc',
+  paper:      PASTEL.cloud,
+  background: PASTEL.canvas,
+  divider:    '#e3eaf4',
 };
 
 const BRAND = {
-  // Stronger, clearer brand blue (still not neon).
-  primary:     '#2563eb',
-  primaryDark: '#1d4ed8',
+  primary:      PASTEL.periwinkle,
+  primaryDark:  PASTEL.periwinkleDark,
+  primaryLight: PASTEL.periwinkleLight,
 };
 
 const SCORE = {
@@ -37,54 +50,54 @@ const CHART = {
   amber: SCORE.moderate.main,
   orange: SCORE.alert.main,
   red: SCORE.critical.main,
-  blue: BRAND.primary,
-  purple: '#7c3aed',
+  blue: PASTEL.skyDeep,
+  purple: '#a78bfa',
   yellow: '#f59e0b',
   teal: '#059669',
   amberDark: '#d97706',
 };
 
 const SOURCE = {
-  field:   { main: BRAND.primary,    fg: BRAND.primary    },
-  radio:   { main: SCORE.alert.main, fg: '#c2410c'        },
-  naftali: { main: CHART.purple,     fg: '#6d28d9'        },
-  press:   { main: SCORE.good.main,  fg: '#15803d'        },
-  social:  { main: CHART.blue,       fg: '#1d4ed8'        },
-  pbo:     { main: SCORE.moderate.main, fg: '#a16207'     },
+  field:   { main: BRAND.primary,       fg: BRAND.primaryDark },
+  radio:   { main: SCORE.alert.main,    fg: '#c2410c' },
+  naftali: { main: CHART.purple,        fg: '#7c3aed' },
+  press:   { main: SCORE.good.main,     fg: '#15803d' },
+  social:  { main: PASTEL.skyDeep,      fg: '#4f8fc4' },
+  pbo:     { main: SCORE.moderate.main, fg: '#a16207' },
 };
 for (const key of Object.keys(SOURCE)) {
-  SOURCE[key].border = alpha(SOURCE[key].main, 0.25);
-  SOURCE[key].bg     = alpha(SOURCE[key].main, 0.10);
+  SOURCE[key].border = alpha(SOURCE[key].main, 0.22);
+  SOURCE[key].bg     = alpha(SOURCE[key].main, 0.08);
 }
 
 const TYPOGRAPHY = {
-  fontFamily: 'system-ui, -apple-system, sans-serif',
+  fontFamily: '"Inter", system-ui, -apple-system, "Segoe UI", sans-serif',
   h1:    { fontSize: '1.35rem', fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1.2 },
-  h2:    { fontSize: '1.05rem', fontWeight: 600, lineHeight: 1.3 },
-  h3:    { fontSize: '1rem',    fontWeight: 600, lineHeight: 1.3 },
-  body1: { fontSize: '0.95rem', lineHeight: 1.6 },
-  body2: { fontSize: '0.85rem', lineHeight: 1.55 },
-  caption: { fontSize: '0.75rem', lineHeight: 1.4 },
+  h2:    { fontSize: '1.05rem', fontWeight: 600, lineHeight: 1.35 },
+  h3:    { fontSize: '1rem',    fontWeight: 600, lineHeight: 1.35 },
+  body1: { fontSize: '0.95rem', lineHeight: 1.65 },
+  body2: { fontSize: '0.85rem', lineHeight: 1.6 },
+  caption: { fontSize: '0.75rem', lineHeight: 1.45 },
   button: { textTransform: 'none', fontWeight: 600 },
   eyebrow: {
     fontSize: '0.72rem',
     fontWeight: 700,
     textTransform: 'uppercase',
-    letterSpacing: '0.05em',
+    letterSpacing: '0.08em',
     lineHeight: 1.2,
   },
   sectionTitle: {
     fontSize: '0.9rem',
     fontWeight: 700,
     textTransform: 'uppercase',
-    letterSpacing: '0.06em',
+    letterSpacing: '0.1em',
     lineHeight: 1.2,
   },
   panelTitle: {
     fontSize: '1rem',
     fontWeight: 600,
     textTransform: 'uppercase',
-    letterSpacing: '0.05em',
+    letterSpacing: '0.06em',
     lineHeight: 1.3,
   },
   kpiValue: { fontSize: '1.05rem', fontWeight: 700, lineHeight: 1.2 },
@@ -92,18 +105,39 @@ const TYPOGRAPHY = {
   pill: { fontSize: '0.78rem', fontWeight: 500, lineHeight: 1.2 },
   meta: { fontSize: '0.8rem', fontWeight: 500, lineHeight: 1.4 },
   display: { fontSize: '1.8rem', fontWeight: 800, lineHeight: 1, letterSpacing: '-0.01em' },
-  chatBody: { fontSize: '0.9rem', fontWeight: 400, lineHeight: 1.5 },
+  chatBody: { fontSize: '0.9rem', fontWeight: 400, lineHeight: 1.55 },
 };
+
+/** Panels, alerts, cards — matches MuiAlert outlined. */
+const SECTION_RADIUS_PX = 10;
+/** Compact chips, nav rows, toggles — avoids pill look on short controls. */
+const CONTROL_RADIUS_PX = 6;
+
+const PAGE_GRADIENT = [
+  `radial-gradient(1200px 480px at 8% -12%, ${alpha(PASTEL.lilac, 0.38)} 0%, transparent 60%)`,
+  `radial-gradient(1000px 420px at 100% 0%, ${alpha(PASTEL.sky, 0.55)} 0%, transparent 58%)`,
+  `radial-gradient(900px 360px at 50% 110%, ${alpha(PASTEL.mint, 0.32)} 0%, transparent 55%)`,
+].join(', ');
 
 export function buildTheme(direction = 'ltr') {
   const base = createTheme({
     direction,
     spacing: 8,
-    // Keep corners almost square across the app.
-    shape: { borderRadius: 2 },
+    shape: { borderRadius: SECTION_RADIUS_PX },
     palette: {
       mode: 'light',
-      primary:    { main: BRAND.primary, dark: BRAND.primaryDark, contrastText: NEUTRAL.paper },
+      primary:    {
+        main: BRAND.primary,
+        light: BRAND.primaryLight,
+        dark: BRAND.primaryDark,
+        contrastText: NEUTRAL.paper,
+      },
+      secondary:  {
+        main: PASTEL.mintDeep,
+        light: PASTEL.mint,
+        dark: '#5bb8a8',
+        contrastText: NEUTRAL.paper,
+      },
       background: { default: NEUTRAL.background, paper: NEUTRAL.paper },
       text:       { primary: NEUTRAL.ink, secondary: NEUTRAL.inkSubtle },
       divider:    NEUTRAL.divider,
@@ -112,42 +146,49 @@ export function buildTheme(direction = 'ltr') {
       source: SOURCE,
     },
     typography: TYPOGRAPHY,
-    transitions: { duration: { shortest: 100, short: 150, standard: 200 } },
+    transitions: { duration: { shortest: 100, short: 150, standard: 220 } },
   });
 
   base.custom = {
+    pastel: PASTEL,
     radius: {
-      xs:   1,
-      sm:   2,
-      md:   2,
-      lg:   2,
-      xl:   2,
+      section: SECTION_RADIUS_PX,
+      control: CONTROL_RADIUS_PX,
+      xs: SECTION_RADIUS_PX,
+      sm: CONTROL_RADIUS_PX,
+      md: SECTION_RADIUS_PX,
+      lg: SECTION_RADIUS_PX,
+      xl: SECTION_RADIUS_PX,
       pill: 999,
     },
     elevation: {
-      subtle:  `0 1px 0 ${alpha(NEUTRAL.ink, 0.04)}`,
-      hover:   `0 8px 18px ${alpha(BRAND.primary, 0.10)}`,
-      panel:   `0 18px 48px ${alpha(NEUTRAL.ink, 0.22)}`,
-      modal:   `0 12px 50px ${alpha('#000000', 0.20)}`,
-      cta:     `0 8px 16px ${alpha(BRAND.primary, 0.18)}`,
-      chat:    `0 18px 50px ${alpha(NEUTRAL.ink, 0.14)}`,
+      subtle:  `0 1px 2px ${alpha(PASTEL.periwinkleDark, 0.06)}`,
+      hover:   `0 12px 32px ${alpha(PASTEL.periwinkle, 0.12)}`,
+      panel:   `0 20px 56px ${alpha(PASTEL.periwinkleDark, 0.1)}`,
+      modal:   `0 18px 52px ${alpha(PASTEL.periwinkleDark, 0.14)}`,
+      cta:     `0 8px 24px ${alpha(PASTEL.periwinkle, 0.2)}`,
+      chat:    `0 20px 48px ${alpha(PASTEL.skyDeep, 0.14)}`,
     },
     surface: {
       muted:        base.palette.background.default,
       raised:       base.palette.background.paper,
-      overlay:      alpha(NEUTRAL.ink, 0.06),
-      backdrop:     alpha('#000000', 0.35),
-      code:         alpha(NEUTRAL.ink, 0.05),
-      bannerSubtle: alpha(BRAND.primary, 0.06),
-      chatHeader:   alpha(base.palette.background.default, 0.9),
-      errorBg:      alpha(SCORE.critical.main, 0.10),
-      errorBorder:  alpha(SCORE.critical.main, 0.30),
+      overlay:      alpha(PASTEL.periwinkle, 0.05),
+      backdrop:     alpha(PASTEL.periwinkleDark, 0.12),
+      code:         alpha(PASTEL.lilac, 0.14),
+      bannerSubtle: alpha(PASTEL.sky, 0.4),
+      blush:        PASTEL.mist,
+      peachWash:    alpha(PASTEL.sky, 0.28),
+      roseWash:     alpha(PASTEL.periwinkle, 0.14),
+      sageWash:     alpha(PASTEL.mint, 0.22),
+      chatHeader:   alpha(PASTEL.mist, 0.95),
+      errorBg:      alpha(SCORE.critical.main, 0.08),
+      errorBorder:  alpha(SCORE.critical.main, 0.28),
       errorText:    SCORE.critical.main,
     },
     border: {
       hairline: `1px solid ${base.palette.divider}`,
-      strong:   `2px solid ${base.palette.divider}`,
-      focus:    `1px solid ${alpha(BRAND.primary, 0.55)}`,
+      strong:   `2px solid ${alpha(PASTEL.periwinkleLight, 0.9)}`,
+      focus:    `1px solid ${alpha(BRAND.primary, 0.5)}`,
     },
   };
 
@@ -158,28 +199,66 @@ export function buildTheme(direction = 'ltr') {
       MuiCssBaseline: {
         styleOverrides: {
           body: {
-            lineHeight: 1.6,
+            lineHeight: 1.65,
             backgroundColor: base.palette.background.default,
-            backgroundImage: `radial-gradient(900px 320px at 20% 0%, ${alpha(BRAND.primary, 0.12)} 0%, transparent 55%), radial-gradient(700px 260px at 95% 10%, ${alpha(CHART.purple, 0.10)} 0%, transparent 60%)`,
+            backgroundImage: PAGE_GRADIENT,
+            backgroundAttachment: 'fixed',
             color: base.palette.text.primary,
           },
+        },
+      },
+      MuiButtonBase: {
+        styleOverrides: {
+          root: { borderRadius: `${custom.radius.section}px` },
         },
       },
       MuiButton: {
         defaultProps: { disableElevation: true },
         styleOverrides: {
-          root: { borderRadius: custom.radius.md },
+          root: { borderRadius: `${custom.radius.section}px` },
           sizeSmall: {
-            paddingTop: base.spacing(0.5),
-            paddingBottom: base.spacing(0.5),
-            paddingLeft: base.spacing(1),
-            paddingRight: base.spacing(1),
+            borderRadius: `${custom.radius.section}px`,
+            paddingTop: base.spacing(0.625),
+            paddingBottom: base.spacing(0.625),
+            paddingLeft: base.spacing(1.25),
+            paddingRight: base.spacing(1.25),
             fontSize: TYPOGRAPHY.body2.fontSize,
+          },
+          outlined: {
+            color: BRAND.primaryDark,
+            borderColor: alpha(BRAND.primary, 0.4),
+            backgroundColor: alpha(PASTEL.mist, 0.85),
+            '&:hover': {
+              color: BRAND.primaryDark,
+              borderColor: BRAND.primary,
+              backgroundColor: alpha(PASTEL.periwinkleLight, 0.65),
+            },
+          },
+          outlinedPrimary: {
+            color: BRAND.primaryDark,
+            borderColor: alpha(BRAND.primary, 0.4),
+            backgroundColor: alpha(PASTEL.mist, 0.85),
+            '&:hover': {
+              color: BRAND.primaryDark,
+              borderColor: BRAND.primary,
+              backgroundColor: alpha(PASTEL.periwinkleLight, 0.65),
+            },
+          },
+          containedPrimary: {
+            background: `linear-gradient(135deg, ${BRAND.primary} 0%, ${PASTEL.skyDeep} 100%)`,
+            color: NEUTRAL.paper,
+            boxShadow: custom.elevation.cta,
+            '&:hover': {
+              background: `linear-gradient(135deg, ${BRAND.primaryDark} 0%, ${PASTEL.periwinkle} 100%)`,
+            },
           },
         },
       },
       MuiIconButton: {
-        styleOverrides: { root: { borderRadius: custom.radius.lg } },
+        styleOverrides: {
+          root: { borderRadius: `${custom.radius.section}px` },
+          sizeSmall: { borderRadius: `${custom.radius.section}px` },
+        },
       },
       MuiFab: {
         styleOverrides: {
@@ -191,25 +270,38 @@ export function buildTheme(direction = 'ltr') {
       },
       MuiPaper: {
         styleOverrides: {
-          rounded: { borderRadius: custom.radius.lg },
+          root: { borderRadius: `${custom.radius.section}px` },
+          rounded: { borderRadius: `${custom.radius.section}px` },
         },
       },
       MuiCard: {
         defaultProps: { variant: 'outlined' },
         styleOverrides: {
           root: {
-            borderRadius: custom.radius.lg,
-            borderColor: alpha(BRAND.primary, 0.18),
-            backgroundImage: `linear-gradient(180deg, ${alpha(BRAND.primary, 0.03)} 0%, transparent 55%)`,
+            borderRadius: `${custom.radius.section}px`,
+            borderColor: alpha(PASTEL.periwinkleLight, 0.85),
+            backgroundColor: NEUTRAL.paper,
+            backgroundImage: `linear-gradient(165deg, ${alpha(PASTEL.mist, 0.7)} 0%, ${NEUTRAL.paper} 48%)`,
+            boxShadow: custom.elevation.subtle,
           },
         },
       },
       MuiDialog: {
-        styleOverrides: { paper: { borderRadius: custom.radius.xl } },
+        styleOverrides: {
+          paper: {
+            borderRadius: `${custom.radius.section}px`,
+            overflow: 'hidden',
+          },
+        },
       },
       MuiAlert: {
         styleOverrides: {
-          root: { borderRadius: custom.radius.md, fontSize: TYPOGRAPHY.body2.fontSize },
+          root: { borderRadius: `${custom.radius.section}px`, fontSize: TYPOGRAPHY.body2.fontSize },
+          standardInfo: {
+            backgroundColor: alpha(PASTEL.sky, 0.35),
+            color: NEUTRAL.ink,
+            '& .MuiAlert-icon': { color: PASTEL.skyDeep },
+          },
         },
       },
       MuiAccordion: {
@@ -217,7 +309,7 @@ export function buildTheme(direction = 'ltr') {
         styleOverrides: {
           root: {
             border: custom.border.hairline,
-            borderRadius: `${custom.radius.md}px !important`,
+            borderRadius: `${custom.radius.section}px !important`,
             overflow: 'hidden',
             '&:before': { display: 'none' },
             '&.Mui-expanded': { margin: 0 },
@@ -227,21 +319,24 @@ export function buildTheme(direction = 'ltr') {
       MuiAccordionSummary: {
         styleOverrides: {
           root: {
-            backgroundColor: custom.surface.muted,
+            backgroundColor: alpha(PASTEL.mist, 0.6),
             paddingLeft: base.spacing(2),
             paddingRight: base.spacing(2),
             minHeight: 0,
-            '&.Mui-expanded': { backgroundColor: base.palette.background.paper, minHeight: 0 },
+            '&.Mui-expanded': {
+              backgroundColor: alpha(PASTEL.periwinkleLight, 0.35),
+              minHeight: 0,
+            },
           },
           content: {
-            marginTop: base.spacing(1.25),
-            marginBottom: base.spacing(1.25),
+            marginTop: base.spacing(1.5),
+            marginBottom: base.spacing(1.5),
             display: 'flex',
             alignItems: 'center',
             gap: base.spacing(1),
             '&.Mui-expanded': {
-              marginTop: base.spacing(1.25),
-              marginBottom: base.spacing(1.25),
+              marginTop: base.spacing(1.5),
+              marginBottom: base.spacing(1.5),
             },
           },
         },
@@ -249,16 +344,20 @@ export function buildTheme(direction = 'ltr') {
       MuiAccordionDetails: {
         styleOverrides: {
           root: {
-            padding: base.spacing(2),
+            padding: base.spacing(2.5),
             display: 'flex',
             flexDirection: 'column',
-            gap: base.spacing(1.25),
+            gap: base.spacing(1.5),
           },
         },
       },
       MuiTabs: {
         styleOverrides: {
-          indicator: { backgroundColor: base.palette.primary.main, height: 3 },
+          indicator: {
+            background: `linear-gradient(90deg, ${BRAND.primary} 0%, ${PASTEL.mintDeep} 100%)`,
+            height: 3,
+            borderRadius: `${custom.radius.section}px`,
+          },
         },
       },
       MuiTab: {
@@ -266,7 +365,7 @@ export function buildTheme(direction = 'ltr') {
           root: {
             textTransform: 'none',
             fontWeight: 600,
-            '&.Mui-selected': { color: base.palette.primary.main },
+            '&.Mui-selected': { color: BRAND.primaryDark },
           },
         },
       },
@@ -276,19 +375,24 @@ export function buildTheme(direction = 'ltr') {
             textTransform: 'none',
             fontSize: TYPOGRAPHY.body2.fontSize,
             fontWeight: 500,
-            paddingTop: base.spacing(0.5),
-            paddingBottom: base.spacing(0.5),
-            paddingLeft: base.spacing(1),
-            paddingRight: base.spacing(1),
+            paddingTop: base.spacing(0.625),
+            paddingBottom: base.spacing(0.625),
+            paddingLeft: base.spacing(1.25),
+            paddingRight: base.spacing(1.25),
             color: base.palette.text.secondary,
             borderColor: base.palette.divider,
+            borderRadius: `${custom.radius.section}px !important`,
+            '&:hover': {
+              backgroundColor: alpha(PASTEL.periwinkleLight, 0.45),
+            },
             '&.Mui-selected': {
-              color: base.palette.primary.contrastText,
-              backgroundColor: base.palette.primary.main,
+              color: NEUTRAL.paper,
+              background: `linear-gradient(135deg, ${BRAND.primary} 0%, ${PASTEL.skyDeep} 100%)`,
               fontWeight: 700,
-              borderColor: alpha(BRAND.primary, 0.55),
+              borderColor: 'transparent',
               '&:hover': {
-                backgroundColor: base.palette.primary.dark,
+                color: NEUTRAL.paper,
+                background: `linear-gradient(135deg, ${BRAND.primaryDark} 0%, ${PASTEL.periwinkle} 100%)`,
               },
             },
           },
@@ -296,7 +400,31 @@ export function buildTheme(direction = 'ltr') {
       },
       MuiChip: {
         styleOverrides: {
-          root: { fontWeight: 700, fontSize: TYPOGRAPHY.caption.fontSize },
+          root: {
+            fontWeight: 600,
+            fontSize: TYPOGRAPHY.caption.fontSize,
+            borderRadius: `${custom.radius.section}px`,
+          },
+        },
+      },
+      MuiToggleButtonGroup: {
+        styleOverrides: {
+          root: { borderRadius: `${custom.radius.section}px` },
+          grouped: {
+            '&:not(:first-of-type)': { borderRadius: `${custom.radius.section}px` },
+            '&:first-of-type': { borderRadius: `${custom.radius.section}px` },
+            '&:last-of-type': { borderRadius: `${custom.radius.section}px` },
+          },
+        },
+      },
+      MuiSnackbar: {
+        styleOverrides: {
+          root: { borderRadius: `${custom.radius.section}px` },
+        },
+      },
+      MuiSnackbarContent: {
+        styleOverrides: {
+          root: { borderRadius: `${custom.radius.section}px` },
         },
       },
       MuiTableCell: {
@@ -307,7 +435,19 @@ export function buildTheme(direction = 'ltr') {
       },
       MuiMenu: {
         styleOverrides: {
-          paper: { borderRadius: custom.radius.md },
+          paper: {
+            borderRadius: `${custom.radius.section}px`,
+            border: custom.border.hairline,
+            boxShadow: custom.elevation.hover,
+          },
+        },
+      },
+      MuiPopover: {
+        styleOverrides: {
+          paper: {
+            borderRadius: `${custom.radius.section}px`,
+            border: custom.border.hairline,
+          },
         },
       },
       MuiMenuItem: {
@@ -317,7 +457,13 @@ export function buildTheme(direction = 'ltr') {
       },
       MuiOutlinedInput: {
         styleOverrides: {
-          root: { borderRadius: custom.radius.md },
+          root: {
+            borderRadius: `${custom.radius.section}px`,
+            backgroundColor: alpha(PASTEL.mist, 0.5),
+          },
+          notchedOutline: {
+            borderRadius: `${custom.radius.section}px`,
+          },
         },
       },
     },

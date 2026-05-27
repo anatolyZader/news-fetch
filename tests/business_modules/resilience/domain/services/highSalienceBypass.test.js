@@ -12,6 +12,8 @@ import {
   THIN_EVIDENCE_INSTRUMENT,
 } from '../../../../../business_modules/resilience/domain/services/thinEvidencePolicy.js';
 import { scoreComponents } from '../../../../../business_modules/resilience/domain/services/behaviorSignals.js';
+import { contributionForSignal } from '../../../../../business_modules/resilience/domain/services/scoring/scoringShared.js';
+import { GROUNDING_TIER } from '../../../../../business_modules/resilience/domain/services/groundingPolicy.js';
 
 describe('highSalienceBypass', () => {
   it('is enabled by default', () => {
@@ -88,6 +90,22 @@ describe('highSalienceBypass', () => {
     assert.ok(CRITICAL_BYPASS_SIGNAL_TYPES.has('harm_to_population'));
     assert.ok(CRITICAL_BYPASS_SIGNAL_TYPES.has('early_warning_system_failure'));
   });
+
+  it('operatorCritical for Tier C unverified critical grounding', () => {
+    const items = [{
+      contribution: 0,
+      signal: {
+        signal_type: 'panic_behavior',
+        grounding_tier: 'unverified_critical',
+        evidence_type: 'observational_reported_fact',
+        source_type: 'whatsapp',
+      },
+    }];
+    const r = evaluateHighSalienceBypass(items, 0, 5);
+    assert.equal(r.operatorCritical, true);
+    assert.ok(r.reasons.includes('unverified_critical_grounding'));
+    assert.equal(r.skipFloor, false);
+  });
 });
 
 describe('thinEvidencePolicy — critical single signal', () => {
@@ -100,6 +118,18 @@ describe('thinEvidencePolicy — critical single signal', () => {
     });
     assert.equal(r.instrument, THIN_EVIDENCE_INSTRUMENT.critical_single_signal);
     assert.equal(r.operatorShowsScore, true);
+  });
+
+  it('hides score for unverified critical grounding', () => {
+    const r = deriveThinEvidencePolicy({
+      score: 4,
+      confidence: 'low',
+      evidence_mass: 0,
+      salience_critical: true,
+      salience_bypass_reasons: ['critical_signal', 'unverified_critical_grounding'],
+    });
+    assert.equal(r.instrument, THIN_EVIDENCE_INSTRUMENT.unverified_alert);
+    assert.equal(r.operatorShowsScore, false);
   });
 });
 
@@ -148,5 +178,30 @@ describe('scoreComponents — high-salience bypass integration', () => {
 
     assert.equal(scored.lifesaving_behavior.salience_critical, false);
     assert.ok(scored.lifesaving_behavior.score >= 3 && scored.lifesaving_behavior.score <= 8);
+  });
+
+  it('Tier C unverified critical contributes zero mass', () => {
+    const base = contributionForSignal(
+      {
+        signal_type: 'harm_to_population',
+        evidence_type: 'direct_quote_named_person',
+        scope_level: 'single_case',
+        extraction_confidence: 1,
+        grounding_tier: GROUNDING_TIER.grounded,
+      },
+      1,
+    );
+    const tierC = contributionForSignal(
+      {
+        signal_type: 'harm_to_population',
+        evidence_type: 'direct_quote_named_person',
+        scope_level: 'single_case',
+        extraction_confidence: 1,
+        grounding_tier: GROUNDING_TIER.unverified_critical,
+      },
+      1,
+    );
+    assert.ok(base > 0);
+    assert.equal(tierC, 0);
   });
 });

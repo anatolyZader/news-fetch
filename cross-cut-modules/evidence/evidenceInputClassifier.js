@@ -1,7 +1,7 @@
 const URL_REGEX = /\bhttps?:\/\/[^\s<>"')\]]+/gi;
 
 function sanitizeUrlCandidate(url) {
-  return url.replace(/[),.;!?]+$/g, '');
+  return url.replaceAll(/[),.;!?]+$/g, '');
 }
 
 /**
@@ -26,7 +26,7 @@ export function classifyEvidenceInput(rawInput) {
     return { category: 'single_evidence_piece', detectedUrl: null };
   }
 
-  const onlyUrlText = input.replace(URL_REGEX, '').trim();
+  const onlyUrlText = input.replaceAll(URL_REGEX, '').trim();
   if (onlyUrlText.length === 0) {
     return { category: 'url_to_important_evidence', detectedUrl: urlMatches[0] };
   }

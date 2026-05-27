@@ -16,7 +16,13 @@ import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import { alpha } from '@mui/material/styles';
 import { useChat } from '../hooks/useChat.js';
 import { useLanguage } from '../context/LanguageContext.jsx';
+import { panelHeaderButtonSx, panelSectionRadius } from '../ui/panelChrome.js';
 import PropTypes from 'prop-types';
+
+const chatFieldSx = (theme) => ({
+  '& .MuiOutlinedInput-root': { borderRadius: panelSectionRadius(theme) },
+  '& .MuiOutlinedInput-notchedOutline': { borderRadius: panelSectionRadius(theme) },
+});
 
 export function ChatPanel({ reportScope, onClose }) {
   const {
@@ -89,18 +95,14 @@ export function ChatPanel({ reportScope, onClose }) {
 
   return (
     <Box
-      sx={(theme) => ({
+      sx={{
         position: 'relative',
-        background: theme.palette.background.paper,
-        border: theme.custom.border.hairline,
-        boxShadow: theme.custom.elevation.chat,
-        borderRadius: theme.custom.radius.xl,
         display: 'flex',
         flexDirection: 'column',
         height: '100%',
         minHeight: 0,
         overflow: 'hidden',
-      })}
+      }}
     >
       <Stack
         direction="row"
@@ -122,6 +124,7 @@ export function ChatPanel({ reportScope, onClose }) {
           title="Menu"
           sx={(theme) => ({
             border: theme.custom.border.hairline,
+            borderRadius: panelSectionRadius(theme),
             color: theme.palette.text.secondary,
           })}
         >
@@ -132,7 +135,7 @@ export function ChatPanel({ reportScope, onClose }) {
           size="small"
           onClick={(e) => setHistoryAnchor(e.currentTarget)}
           sx={(theme) => ({
-            borderRadius: theme.custom.radius.pill,
+            ...panelHeaderButtonSx(theme),
             borderColor: theme.palette.divider,
           })}
         >
@@ -184,7 +187,7 @@ export function ChatPanel({ reportScope, onClose }) {
               right: theme.spacing(1.25),
               top: theme.spacing(6.5),
               maxWidth: 360,
-              borderRadius: theme.custom.radius.lg,
+              borderRadius: panelSectionRadius(theme),
               boxShadow: theme.custom.elevation.modal,
               background: theme.palette.background.paper,
               border: theme.custom.border.hairline,
@@ -214,6 +217,7 @@ export function ChatPanel({ reportScope, onClose }) {
                   type="button"
                   variant="outlined"
                   size="small"
+                  sx={panelHeaderButtonSx}
                   onClick={() => setCloseConfirmOpen(false)}
                   autoFocus
                 >
@@ -223,6 +227,7 @@ export function ChatPanel({ reportScope, onClose }) {
                   type="button"
                   variant="contained"
                   size="small"
+                  sx={panelHeaderButtonSx}
                   onClick={() => {
                     setCloseConfirmOpen(false);
                     onClose?.();
@@ -411,8 +416,8 @@ export function ChatPanel({ reportScope, onClose }) {
             size="small"
             fullWidth
             sx={(theme) => ({
+              ...chatFieldSx(theme),
               '& .MuiOutlinedInput-root': {
-                borderRadius: theme.custom.radius.pill,
                 background: theme.palette.background.default,
               },
             })}
@@ -421,7 +426,7 @@ export function ChatPanel({ reportScope, onClose }) {
             variant="outlined"
             size="small"
             onClick={() => setSearchOpen(false)}
-            sx={(theme) => ({ borderRadius: theme.custom.radius.pill })}
+            sx={panelHeaderButtonSx}
           >
             Close
           </Button>
@@ -453,8 +458,8 @@ export function ChatPanel({ reportScope, onClose }) {
           minRows={1}
           fullWidth
           sx={(theme) => ({
+            ...chatFieldSx(theme),
             '& .MuiOutlinedInput-root': {
-              borderRadius: theme.custom.radius.lg,
               background: theme.palette.background.paper,
               fontSize: theme.typography.chatBody.fontSize,
               lineHeight: theme.typography.chatBody.lineHeight,
@@ -467,6 +472,7 @@ export function ChatPanel({ reportScope, onClose }) {
             variant="contained"
             onClick={stop}
             sx={(theme) => ({
+              ...panelHeaderButtonSx(theme),
               backgroundColor: theme.palette.text.secondary,
               color: theme.palette.primary.contrastText,
               '&:hover': { backgroundColor: theme.palette.text.secondary, filter: 'brightness(0.95)' },
@@ -480,6 +486,7 @@ export function ChatPanel({ reportScope, onClose }) {
             variant="contained"
             disabled={!input.trim()}
             sx={(theme) => ({
+              ...panelHeaderButtonSx(theme),
               boxShadow: theme.custom.elevation.cta,
               '&:hover': { transform: 'translateY(-1px)' },
             })}
@@ -504,7 +511,7 @@ function ChatAvatar({ isUser }) {
       sx={(theme) => ({
         width: theme.spacing(3.5),
         height: theme.spacing(3.5),
-        borderRadius: theme.custom.radius.pill,
+        borderRadius: panelSectionRadius(theme),
         display: 'grid',
         placeItems: 'center',
         fontSize: theme.typography.eyebrow.fontSize,
@@ -535,7 +542,7 @@ function ChatActionButton({ onClick, color, children }) {
       onClick={onClick}
       color={color}
       sx={(theme) => ({
-        borderRadius: theme.custom.radius.pill,
+        ...panelHeaderButtonSx(theme),
         fontSize: theme.typography.caption.fontSize,
         fontWeight: 800,
         paddingTop: theme.spacing(0.25),
@@ -625,7 +632,7 @@ function ChatRow({ msg, streaming = false, activeSessionId, onCopy, onEdit, onDe
               paddingBottom: theme.spacing(0.15),
               paddingLeft: theme.spacing(0.4),
               paddingRight: theme.spacing(0.4),
-              borderRadius: theme.custom.radius.xs,
+              borderRadius: panelSectionRadius(theme),
               background: theme.custom.surface.code,
               border: theme.custom.border.hairline,
             },

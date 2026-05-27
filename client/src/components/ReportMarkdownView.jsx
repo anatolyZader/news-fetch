@@ -12,7 +12,7 @@ import PropTypes from 'prop-types';
 export function expandSourceCitationLinks(markdown) {
   if (typeof markdown !== 'string') return '';
   if (!markdown) return markdown;
-  return markdown.replace(/\[source\]\((https?:[^)\s]+)\)/gi, (_, url) => `[${url}](${url})`);
+  return markdown.replaceAll(/\[source\]\((https?:[^)\s]+)\)/gi, (_, url) => `[${url}](${url})`);
 }
 
 /** Legacy reports only had a one-line legend; inject the full glossary after `## Components`. */
@@ -29,8 +29,8 @@ function ensureComponentsTableGlossary(markdown) {
 /** Older exports used vague wording next to each Evidence level %. */
 function clarifyLegacyEvidenceLevelNotes(markdown) {
   if (!markdown?.includes('amount of relevant evidence found for this component')) return markdown;
-  return markdown.replace(
-    /\*\(amount of relevant evidence found for this component\)\*/g,
+  return markdown.replaceAll(
+    '*(amount of relevant evidence found for this component)*',
     `*(${EVIDENCE_LEVEL_INLINE_NOTE})*`,
   );
 }

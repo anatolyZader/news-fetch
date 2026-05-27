@@ -354,7 +354,7 @@ export function getSignalCatalogEntry(type) {
 export function getScoringPriors(type) {
   const entry = getSignalCatalogEntry(type);
   if (!entry) return { ...DEFAULT_SCORING_PRIORS };
-  return { ...DEFAULT_SCORING_PRIORS, ...(entry.scoringPriors ?? {}) };
+  return { ...DEFAULT_SCORING_PRIORS, ...entry.scoringPriors };
 }
 
 export const SIGNAL_TO_COMPONENTS = {

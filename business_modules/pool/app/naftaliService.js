@@ -47,11 +47,11 @@ function normalizeSeverity(val) {
 function excelSerialToDate(serial) {
   if (typeof serial === 'string') {
     const d = new Date(serial);
-    return isNaN(d.getTime()) ? null : d.toISOString().slice(0, 10);
+    return Number.isNaN(d.getTime()) ? null : d.toISOString().slice(0, 10);
   }
   if (typeof serial !== 'number') return null;
   const d = new Date((serial - 25569) * 86400000);
-  return isNaN(d.getTime()) ? null : d.toISOString().slice(0, 10);
+  return Number.isNaN(d.getTime()) ? null : d.toISOString().slice(0, 10);
 }
 
 function parseExcelFile(filePath) {
@@ -70,12 +70,12 @@ function parseExcelFile(filePath) {
       municipality: name,
       respondent: String(row[COL.respondentName] ?? '').trim(),
       vulnerable: {
-        physicalDisability: parseInt(row[COL.physicalDisability], 10) || 0,
-        mentalDisability:   parseInt(row[COL.mentalDisability],   10) || 0,
-        specialEducation:   parseInt(row[COL.specialEducation],   10) || 0,
-        domesticViolence:   parseInt(row[COL.domesticViolence],   10) || 0,
-        severeFinancial:    parseInt(row[COL.severeFinancial],    10) || 0,
-        singleParent:       parseInt(row[COL.singleParent],       10) || 0,
+        physicalDisability: Number.parseInt(row[COL.physicalDisability], 10) || 0,
+        mentalDisability:   Number.parseInt(row[COL.mentalDisability],   10) || 0,
+        specialEducation:   Number.parseInt(row[COL.specialEducation],   10) || 0,
+        domesticViolence:   Number.parseInt(row[COL.domesticViolence],   10) || 0,
+        severeFinancial:    Number.parseInt(row[COL.severeFinancial],    10) || 0,
+        singleParent:       Number.parseInt(row[COL.singleParent],       10) || 0,
       },
       evacuated: String(row[COL.evacuatedFamilies] ?? '').trim(),
       arrived:   String(row[COL.arrivedFamilies]   ?? '').trim(),

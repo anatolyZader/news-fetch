@@ -6,6 +6,7 @@ import Stack from '@mui/material/Stack';
 import IconButton from '@mui/material/IconButton';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import { ResizableFrame } from './ResizableFrame.jsx';
+import { panelSectionRadius } from './panelChrome.js';
 import PropTypes from 'prop-types';
 
 const browserWindow = globalThis.window;
@@ -23,6 +24,7 @@ function getInitialSize(initialWidth = 900, initialHeight = 640) {
 export function ModalPanel({
   open,
   onClose,
+  onMinimize,
   title,
   ariaLabel,
   initialWidth,
@@ -52,24 +54,44 @@ export function ModalPanel({
     });
   }, []);
 
+  const modelessMinimize = modeless && minimizeOnOutsideClick;
+
+  const requestMinimize = useCallback((event) => {
+    if (onMinimize) {
+      onMinimize(event);
+      return;
+    }
+    onClose?.(event, 'outsidePointerDown');
+  }, [onMinimize, onClose]);
+
   const handleClose = useCallback((event, reason) => {
-    if (disableBackdropClose && reason === 'backdropClick') return;
+    if (reason === 'backdropClick') {
+      if (modelessMinimize) {
+        requestMinimize(event);
+        return;
+      }
+      if (disableBackdropClose) return;
+    }
+    if (modelessMinimize && reason === 'escapeKeyDown') {
+      requestMinimize(event);
+      return;
+    }
     onClose?.(event, reason);
-  }, [disableBackdropClose, onClose]);
+  }, [disableBackdropClose, modelessMinimize, onClose, requestMinimize]);
 
   useEffect(() => {
-    if (!open || !modeless || !minimizeOnOutsideClick) return undefined;
+    if (!open || !modelessMinimize) return undefined;
 
     const handlePointerDown = (event) => {
       const paper = paperRef.current;
       const isInside = Boolean(paper && event.target instanceof Node && paper.contains(event.target));
       if (isInside) return;
-      handleClose(event, 'outsidePointerDown');
+      requestMinimize(event);
     };
 
     document.addEventListener('pointerdown', handlePointerDown, true);
     return () => document.removeEventListener('pointerdown', handlePointerDown, true);
-  }, [handleClose, minimizeOnOutsideClick, modeless, open]);
+  }, [modelessMinimize, open, requestMinimize]);
 
   return (
     <Dialog
@@ -78,15 +100,20 @@ export function ModalPanel({
       aria-label={ariaLabel ?? (typeof title === 'string' ? title : undefined)}
       maxWidth={false}
       scroll="paper"
-      hideBackdrop={modeless && !minimizeOnOutsideClick}
+      hideBackdrop={modeless}
       disableAutoFocus={modeless}
       disableEnforceFocus={modeless}
       disableRestoreFocus={modeless}
       sx={(theme) => ({
         zIndex: zIndex ?? theme.zIndex.modal,
-        pointerEvents: modeless && !minimizeOnOutsideClick ? 'none' : 'auto',
       })}
       slotProps={{
+        root: modeless
+          ? { sx: { pointerEvents: 'none' } }
+          : undefined,
+        container: modeless
+          ? { sx: { pointerEvents: 'none' } }
+          : undefined,
         paper: {
           ref: paperRef,
           sx: (theme) => ({
@@ -99,7 +126,7 @@ export function ModalPanel({
             marginBottom: theme.spacing(2),
             marginLeft: 'auto',
             marginRight: 'auto',
-            borderRadius: theme.custom.radius.xl,
+            borderRadius: panelSectionRadius(theme),
             border: theme.custom.border.hairline,
             boxShadow: theme.custom.elevation.modal,
             overflow: 'hidden',
@@ -112,9 +139,7 @@ export function ModalPanel({
         },
         backdrop: {
           sx: (theme) => ({
-            backgroundColor: modeless && minimizeOnOutsideClick
-              ? 'transparent'
-              : theme.custom.surface.backdrop,
+            backgroundColor: theme.custom.surface.backdrop,
           }),
         },
       }}
@@ -157,7 +182,7 @@ export function ModalPanel({
                   sx={(theme) => ({
                     width: 32,
                     height: 32,
-                    borderRadius: '50%',
+                    borderRadius: panelSectionRadius(theme),
                     border: theme.custom.border.hairline,
                     color: theme.palette.text.secondary,
                     backgroundColor: theme.palette.background.paper,
@@ -192,6 +217,7 @@ export function ModalPanel({
 ModalPanel.propTypes = {
   open: PropTypes.bool,
   onClose: PropTypes.func,
+  onMinimize: PropTypes.func,
   title: PropTypes.node,
   ariaLabel: PropTypes.string,
   initialWidth: PropTypes.number,

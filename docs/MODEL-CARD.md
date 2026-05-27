@@ -30,15 +30,35 @@ When `evidence_mass < 1.5`:
 
 | Condition | Operator sees |
 |-----------|----------------|
+| `salience_critical` (high-salience bypass) | `critical_single_signal` — **shows 1–10** with alert |
 | Raw score inside [3,8] | `limited_evidence_neutral` — no 1–10 scale |
 | Raw score outside [3,8] | `unverified_alert` — escalation, no scale |
 | Zero signals | `insufficient_data` |
 
+### High-salience bypass (Outlier Bypass)
+
+When `evidence_mass < 1.5`, a verified high-stakes single signal may bypass the min-mass floor and surface as operator-visible. Gates (all required): one dominant contributor (≥85% mass), critical signal type or severe `event`, plus a credibility booster (high-trust evidence, field/PBO source, dual-pass agreement, or elevated scope). Floor skip is **asymmetric**: raw scores below 3 may pass through; thin positive hype above 8 remains capped. Flags: `salience_critical`, `floor_bypassed`, `salience_bypass_reasons`. Disable with `RESILIENCE_HIGH_SALIENCE_BYPASS=0`.
+
 ## Data void / digital darkness
 
-Separate from component scores. Fires when digital streams drop to zero while field/PBO reports continue, or when `connectivity_outage` tags appear.
+Separate from component scores. Multi-channel EWMA baselines + z-score drop detection (`dataVoid/` module).
 
-Flag: `RESILIENCE_DATA_VOID=0` disables.
+**Critical triggers:** `digital_darkness` (digital silent, field/PBO/`field_whatsapp` active), `total_silence`, `partial_silence`, `connectivity_outage`, `infrastructure_probe` outage.
+
+**Epistemic gates (deterministic):**
+- `level >= elevated` (non-darkness) → **abstention**: all component scores null, `assessment_mode: abstained`, operator instrument `sampling_blind`
+- `digital_darkness` → **field-anchor-only**: re-score using field-family sources only; `assessment_mode: field_anchor_only`; stale digital-inclusive snapshot in `stale_digital_scores`
+- `level === warning` → scores kept; `epistemic_status.sampling_status: degraded`
+
+**Connectivity probes:** drop JSON/JSONL under `business_modules/resilience/data/connectivity-probes/`; ingested as `source_type: infrastructure_probe` (cap-exempt, high trust).
+
+Flag: `RESILIENCE_DATA_VOID=0` disables void index.
+
+| Env | Default | Effect |
+|-----|---------|--------|
+| `RESILIENCE_VOID_TOTAL_SILENCE_MIN_BASELINE` | 3 | Min expected digital volume for total-silence critical |
+| `RESILIENCE_FIELD_SOURCE_MULTIPLIER` | 1.5 | Contribution multiplier for field-family sources |
+| `RESILIENCE_FIELD_GEO_DISCOUNT` | 0.5 | Discount when field signal lacks geo/locality binding |
 
 ## Suppression transparency (analyst)
 
@@ -74,8 +94,9 @@ Flag: `RESILIENCE_DUAL_BASELINE=0` disables chronic metrics.
 | Flag | Default | Effect |
 |------|---------|--------|
 | `RESILIENCE_EPISTEMIC_GEO_V2` | on | Keyword/macro excluded from metrics |
-| `RESILIENCE_DATA_VOID` | on | Data void index |
+| `RESILIENCE_DATA_VOID` | on | Data void index + epistemic gates |
 | `RESILIENCE_THIN_EVIDENCE_POLICY` | on | Option C operator abstention |
+| `RESILIENCE_HIGH_SALIENCE_BYPASS` | on | High-salience bypass for verified critical single signals |
 | `RESILIENCE_DUAL_BASELINE` | on | Chronic baseline metrics |
 | `RESILIENCE_OOV_CAPTURE` | on | Log unknown signal types, uncertain self-check, zero-signal articles |
 | `RESILIENCE_RESIDUAL_CAPTURE` | off | LLM residual pass on zero-signal articles (extra cost) |

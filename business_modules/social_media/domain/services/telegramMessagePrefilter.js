@@ -3,7 +3,7 @@ const MIN_MESSAGE_LENGTH = 8;
 function normalizeDedupeKey(text) {
   return String(text ?? '')
     .toLowerCase()
-    .replace(/[^\p{L}\p{N}]+/gu, ' ')
+    .replaceAll(/[^\p{L}\p{N}]+/gu, ' ')
     .trim()
     .slice(0, 120);
 }

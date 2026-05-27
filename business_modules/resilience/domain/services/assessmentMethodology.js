@@ -169,7 +169,7 @@ export function buildAssessmentMethodology({
       signal_weights: 'author_set_not_ml_fitted',
       component_tuning: 'heuristic_tanhK_certM; see tuning_proposal when enough national history',
       north_geo_news:
-        'All pipeline sources receive resolved geo envelopes via geoService at extract/treat and assess; text keyword north scoping removed',
+        'All pipeline sources receive resolved geo envelopes via geoService at extract/treat and assess. Text-inferred locality on news/radio/social is north scope hint only (usableForMetrics=false); structured locality and always-north source types drive metrics.',
       always_north_source_types: [...PHASE1_ALWAYS_NORTH_SOURCE_TYPES],
       dual_pipeline:
         'Evidence submission analysis scores all signals without scope filter; north artifact requires assess-signals --scope north',

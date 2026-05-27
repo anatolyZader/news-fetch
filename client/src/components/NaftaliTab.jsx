@@ -308,7 +308,7 @@ export function NaftaliTab() {
             const muniSevData = SEVERITY_KEYS.map(dimKey => ({
               dimKey,
               data: m.weeks.map(w => ({
-                label: w.week != null ? `W${w.week}` : formatDate(w.dateFrom),
+                label: w.week == null ? formatDate(w.dateFrom) : `W${w.week}`,
                 [tSev('high')]:   w.severity[dimKey] === 'high'   ? 1 : 0,
                 [tSev('medium')]: w.severity[dimKey] === 'medium' ? 1 : 0,
                 [tSev('low')]:    w.severity[dimKey] === 'low'    ? 1 : 0,
@@ -338,7 +338,7 @@ export function NaftaliTab() {
                         label: t('naf.col.week'),
                         render: (w) => (
                           <Box sx={{ color: 'text.secondary', whiteSpace: 'nowrap' }}>
-                            {w.week != null ? `W${w.week}` : formatDate(w.dateFrom)}
+                            {w.week == null ? formatDate(w.dateFrom) : `W${w.week}`}
                           </Box>
                         ),
                       },

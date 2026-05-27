@@ -18,7 +18,7 @@ function stripFrontmatter(content) {
   for (const line of raw.slice(4, end).split('\n')) {
     const match = line.match(/^([A-Za-z0-9_-]+):\s*(.*)$/);
     if (!match) continue;
-    metadata[match[1].trim().toLowerCase()] = match[2].trim().replace(/^["']|["']$/g, '');
+    metadata[match[1].trim().toLowerCase()] = match[2].trim().replaceAll(/^["']|["']$/g, '');
   }
   return { metadata, body: raw.slice(end + 4).replace(/^\s+/, '') };
 }
@@ -29,7 +29,7 @@ function inferRegionId(fileName, metadata) {
 
   const lower = basename(fileName, extname(fileName)).toLowerCase();
   return REGIONAL_PBO_REGION_IDS.find((id) => {
-    const escaped = id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const escaped = id.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
     return new RegExp(`(^|[^a-z0-9])${escaped}([^a-z0-9]|$)`).test(lower);
   }) ?? null;
 }
@@ -49,8 +49,8 @@ function inferTitle(fileName, body, metadata) {
 
 function buildExcerpt(body) {
   return String(body ?? '')
-    .replace(/^#+\s+.+$/gm, '')
-    .replace(/\s+/g, ' ')
+    .replaceAll(/^#+\s+.+$/gm, '')
+    .replaceAll(/\s+/g, ' ')
     .trim()
     .slice(0, 280);
 }

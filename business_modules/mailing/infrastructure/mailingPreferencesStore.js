@@ -60,8 +60,8 @@ export function createMailingPreferencesStore(dbPath) {
       const existing = this.getByUid(uid);
       const p = products && typeof products === 'object' ? products : null;
       const next = {
-        email: email !== undefined ? String(email).trim() : (existing?.email ?? ''),
-        language: normalizeLanguage(language !== undefined ? language : existing?.language),
+        email: email === undefined ? (existing?.email ?? '') : String(email).trim(),
+        language: normalizeLanguage(language === undefined ? existing?.language : language),
         products: {
           report: p && p.report !== undefined ? Boolean(p.report) : (existing?.products.report ?? true),
           naftali: p && p.naftali !== undefined ? Boolean(p.naftali) : (existing?.products.naftali ?? true),

@@ -32,7 +32,12 @@
  */
 
 /**
- * Nested resolution payload (new contract direction; dual-written alongside flat fields).
+ * How the locality string was obtained before geoService resolve.
+ * @typedef {'structured' | 'text_inferred' | 'message_level' | 'direct'} GeoProvenance
+ */
+
+/**
+ * Nested resolution payload (canonical in v3 envelopes).
  * @typedef {{
  *   rawInput: string,
  *   normalizedInput: string,
@@ -43,6 +48,8 @@
  *   matchConfidence: number,
  *   candidateCount: number,
  *   geoEntityType: GeoEntityType,
+ *   provenance: GeoProvenance,
+ *   scope?: 'signal' | 'message',
  * }} GeoResolution
  */
 
@@ -92,34 +99,23 @@
  */
 
 /**
- * Resolved geo envelope. Field **`subregionId`** is deprecated: it duplicates **`pboSubregionId`** for backward compatibility; new code must use **`pboSubregionId`** and **`geoAreaTags`** only. When **`GEO_LEGACY_SUBREGION_ID`** is disabled, **`subregionId`** is omitted from emitted JSON.
+ * Resolved geo envelope (v3: nested groups canonical; flat root fields legacy read only).
  * @typedef {{
  *   kind: 'resolved',
+ *   envelopeSchemaVersion: string,
+ *   geoEntityType: GeoEntityType,
  *   resolution: GeoResolution,
  *   classification: GeoClassification,
  *   policy: GeoPolicy,
  *   audit: GeoAudit,
- *   scopeDecision: GeoScopeDecision,
- *   geoEntityType: GeoEntityType,
  *   matchEvidence: GeoMatchEvidence,
- *   scopeConfidence: 'high' | 'medium' | 'low',
- *   geoPolicyVersion: string,
- *   geoReferenceVersion: string,
- *   borderReferenceVersion: string | null,
- *   source: string,
- *   canonicalKey: string,
- *   matchedName: string,
- *   pboSubregionId: string,
+ *   scopeDecision: GeoScopeDecision,
  *   subregionId?: string,
- *   geoAreaTags: string[],
- *   distanceKmToNorthBorder: number,
- *   distanceBand: string,
- *   isGolan: boolean,
- *   matchMethod: 'exact' | 'punctuation' | 'hebrew_final' | 'alias' | 'manual_override' | 'fuzzy',
- *   matchConfidence: number,
- *   quality: 'high' | 'medium' | 'low',
- *   usableForMetrics: boolean,
- *   requiresReview: boolean,
+ *   pboSubregionId?: string,
+ *   geoReferenceVersion?: string,
+ *   matchMethod?: string,
+ *   quality?: 'high' | 'medium' | 'low',
+ *   usableForMetrics?: boolean,
  * }} GeoResolved
  */
 

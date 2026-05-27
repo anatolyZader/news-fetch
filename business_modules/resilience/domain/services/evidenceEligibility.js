@@ -10,7 +10,7 @@ export const SIGNAL_PROVENANCE = Object.freeze({
   unscoped: 'unscoped',
 });
 
-const ALWAYS_NORTH_SOURCE_TYPES = new Set(['field', 'pbo', 'pbo_regional', 'naftali', 'whatsapp']);
+const ALWAYS_NORTH_SOURCE_TYPES = new Set(['field', 'field_whatsapp', 'pbo', 'pbo_regional', 'naftali', 'whatsapp']);
 
 /** Bare macro terms — scope hint only, never metrics for regional reports (legacy reports only). */
 export const MACRO_NATIONAL_TERMS = [
@@ -35,7 +35,13 @@ export function deriveSignalProvenance(signal) {
   const g = signal?.geo;
   if (g?.kind === 'resolved') {
     const usable = g?.policy?.usableForMetrics ?? g?.usableForMetrics;
-    if (usable !== false && (scope?.source === 'geo' || scope?.source === 'geo_tags' || scope?.source === 'pbo_subregion')) {
+    const geoProv = g?.resolution?.provenance;
+    // Text-inferred geo on news/radio/social is scope hint only — never verified_geo for metrics.
+    if (
+      usable !== false
+      && geoProv !== 'text_inferred'
+      && (scope?.source === 'geo' || scope?.source === 'geo_tags' || scope?.source === 'pbo_subregion')
+    ) {
       return SIGNAL_PROVENANCE.verified_geo;
     }
   }
@@ -99,10 +105,10 @@ export function partitionMacroSignals(signals, reportScope = 'national') {
     const p = s?.signalProvenance ?? deriveSignalProvenance(s);
     if (p === SIGNAL_PROVENANCE.macro_national) {
       macroSignals.push(s);
-    } else if (s?.metricsEligible !== false) {
-      metricsSignals.push(s);
-    } else {
+    } else if (s?.metricsEligible === false) {
       macroSignals.push(s);
+    } else {
+      metricsSignals.push(s);
     }
   }
   return { metricsSignals, macroSignals };

@@ -6,7 +6,15 @@ function mergeSx(sx) {
   return Array.isArray(sx) ? sx : [sx];
 }
 
-export function PrimaryTab({ active = false, compact = false, className = '', sx, children, ...props }) {
+export const PrimaryTab = (props) => {
+  const {
+    active = false,
+    compact = false,
+    className = '',
+    sx,
+    children,
+    ...rest
+  } = props;
   return (
     <ButtonBase
       role="tab"
@@ -20,8 +28,12 @@ export function PrimaryTab({ active = false, compact = false, className = '', sx
           paddingRight: theme.spacing(1.5),
           fontSize: compact ? theme.typography.body2.fontSize : theme.typography.sectionTitle.fontSize,
           fontWeight: 500,
-          color: active ? theme.palette.text.primary : theme.palette.text.secondary,
-          borderBottom: `2px solid ${active ? theme.palette.primary.main : 'transparent'}`,
+          color: active ? theme.palette.primary.dark : theme.palette.text.secondary,
+          borderBottom: active
+            ? `2px solid ${theme.palette.primary.main}`
+            : '2px solid transparent',
+          backgroundColor: active ? theme.custom.surface.roseWash : 'transparent',
+          borderRadius: `${theme.custom.radius.section}px ${theme.custom.radius.section}px 0 0`,
           marginBottom: -1,
           cursor: 'pointer',
           background: 'none',
@@ -29,16 +41,19 @@ export function PrimaryTab({ active = false, compact = false, className = '', sx
           transition: theme.transitions.create(['color', 'border-color'], {
             duration: theme.transitions.duration.short,
           }),
-          '&:hover': { color: theme.palette.text.primary, background: 'transparent' },
+          '&:hover': {
+            color: theme.palette.primary.dark,
+            backgroundColor: theme.custom.surface.roseWash,
+          },
         }),
         ...mergeSx(sx),
       ]}
-      {...props}
+      {...rest}
     >
       {children}
     </ButtonBase>
   );
-}
+};
 
 PrimaryTab.propTypes = {
   active: PropTypes.bool,

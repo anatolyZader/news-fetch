@@ -3,6 +3,13 @@
  */
 
 /**
+ * @param {string[]} types
+ */
+function formatRelatedTypes(types) {
+  return types.map((t) => '`' + t + '`').join(', ');
+}
+
+/**
  * @param {object} report
  */
 export function formatGapReportMarkdown(report) {
@@ -26,26 +33,24 @@ export function formatGapReportMarkdown(report) {
 
   lines.push('', '## Top clusters (analyst review queue)', '');
 
-  if (!report.clusters?.length) {
-    lines.push('_No clusters met the minimum threshold._', '');
-  } else {
+  if (report.clusters?.length) {
     for (const [i, cluster] of report.clusters.entries()) {
-      lines.push(`### ${i + 1}. ${cluster.key} (priority ${cluster.priority_score}, n=${cluster.count})`);
-      lines.push('');
-      lines.push(`- Kinds: ${formatKinds(cluster.kinds)}`);
-      lines.push(`- Distinct sources: ${cluster.distinct_sources}`);
+      lines.push(`### ${i + 1}. ${cluster.key} (priority ${cluster.priority_score}, n=${cluster.count})`, '');
+      lines.push(`- Kinds: ${formatKinds(cluster.kinds)}`, `- Distinct sources: ${cluster.distinct_sources}`);
       if (cluster.related_types?.length) {
-        lines.push(`- Related types: ${cluster.related_types.map((t) => `\`${t}\``).join(', ')}`);
+        lines.push(`- Related types: ${formatRelatedTypes(cluster.related_types)}`);
       }
       if (cluster.high_novelty_count || cluster.medium_novelty_count) {
         lines.push(`- Novelty: ${cluster.high_novelty_count} high, ${cluster.medium_novelty_count} medium`);
       }
       lines.push('', 'Sample evidence:');
       for (const sample of cluster.sample_evidence ?? []) {
-        lines.push(`> ${sample.replace(/\n/g, ' ').slice(0, 280)}`);
+        lines.push(`> ${sample.replaceAll('\n', ' ').slice(0, 280)}`);
       }
       lines.push('');
     }
+  } else {
+    lines.push('_No clusters met the minimum threshold._', '');
   }
 
   lines.push(

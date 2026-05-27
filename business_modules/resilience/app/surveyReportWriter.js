@@ -13,6 +13,16 @@
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { RESILIENCE_COMPONENTS } from '../domain/resilienceComponents.js';
+import {
+  borderReferenceVersion,
+  geoEntityType,
+  geoReferenceVersion,
+  pboSubregionId,
+  quality,
+  requiresReview,
+  scopeConfidence,
+  usableForMetrics,
+} from '../../../cross-cut-modules/geo/geoEnvelopeAccess.js';
 
 const COMPONENT_MAP = Object.fromEntries(RESILIENCE_COMPONENTS.map((c) => [c.id, c]));
 
@@ -47,14 +57,8 @@ function buildMarkdown(assessment, sourceFile) {
     `**Municipalities:** ${municipalities.map((m) => m.name).join(', ')}`,
     ``,
     `---`,
-    ``,
-  );
-
-  // ── Regional executive summary ───────────────────────────────────────────────
-  lines.push(`## Regional Executive Summary`, ``, regional.executive_summary, ``, `---`, ``);
-
-  // ── Regional component coverage table ───────────────────────────────────────
-  lines.push(
+    ``, `## Regional Executive Summary`, ``, regional.executive_summary, ``, `---`, ``
+  , 
     `## Regional Analysis by Component`,
     ``,
     `| Component | עברית | Confidence | Coverage |`,
@@ -160,7 +164,7 @@ function buildMarkdown(assessment, sourceFile) {
 }
 
 function municiaplitySlug(name) {
-  return name.replace(/[/\\?%*:|"<> ]/g, '_');
+  return name.replaceAll(/[/\\?%*:|"<> ]/g, '_');
 }
 
 function buildMunicipalityMarkdown(mun, date, sourceFile) {
@@ -183,11 +187,11 @@ function buildMunicipalityMarkdown(mun, date, sourceFile) {
   if (mun.geo && typeof mun.geo === 'object') {
     lines.push(`## Geo enrichment`, ``);
     if (mun.geo.kind === 'resolved') {
-      const br = mun.geo.borderReferenceVersion ?? mun.geo.audit?.borderReferenceVersion ?? 'n/a';
-      const entity = mun.geo.resolution?.geoEntityType ?? mun.geo.geoEntityType;
+      const br = borderReferenceVersion(mun.geo) ?? 'n/a';
+      const entity = geoEntityType(mun.geo);
       const semantics = mun.geo.classification?.distanceSemantics;
       lines.push(
-        `*Reference version:* \`${String(mun.geo.geoReferenceVersion ?? mun.geo.audit?.geoReferenceVersion)}\` · *Border version:* \`${String(br)}\` · *Entity type:* \`${String(entity)}\` · *Scope confidence:* \`${String(mun.geo.scopeConfidence ?? mun.geo.policy?.scopeConfidence)}\` · *Quality:* \`${mun.geo.quality ?? mun.geo.policy?.quality}\` · *Usable for metrics:* ${mun.geo.usableForMetrics ?? mun.geo.policy?.usableForMetrics} · *Requires review:* ${mun.geo.requiresReview ?? mun.geo.policy?.requiresReview}`,
+        `*Reference version:* \`${String(geoReferenceVersion(mun.geo))}\` · *Border version:* \`${String(br)}\` · *Entity type:* \`${String(entity)}\` · *Scope confidence:* \`${String(scopeConfidence(mun.geo))}\` · *Quality:* \`${quality(mun.geo)}\` · *Usable for metrics:* ${usableForMetrics(mun.geo)} · *Requires review:* ${requiresReview(mun.geo)}`,
         ``,
       );
       if (
@@ -216,10 +220,7 @@ function buildMunicipalityMarkdown(mun, date, sourceFile) {
     const confIcon = CONFIDENCE_ICON[comp.confidence] ?? '🟡';
     lines.push(`| ${ICONS[comp.component_id] ?? '•'} ${def.name_en ?? comp.component_id} | ${def.name_he ?? ''} | ${confIcon} ${comp.confidence} |`);
   }
-  lines.push(``, `---`, ``);
-
-  // Per-component detail
-  lines.push(`## Findings by Component`, ``);
+  lines.push(``, `---`, ``, `## Findings by Component`, ``);
   for (const comp of mun.components ?? []) {
     const def = COMPONENT_MAP[comp.component_id] ?? {};
     const icon = ICONS[comp.component_id] ?? '•';

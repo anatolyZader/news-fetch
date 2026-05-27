@@ -20,7 +20,7 @@ export function SocialMediaPostCard({ post, t }) {
     <Card
       variant="outlined"
       sx={{
-        borderRadius: 2,
+        borderRadius: `${theme.custom.radius.section}px`,
         borderColor: alpha(theme.palette.primary.main, 0.18),
       }}
     >

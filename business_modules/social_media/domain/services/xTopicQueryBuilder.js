@@ -22,9 +22,9 @@ const LANG_CODES = Object.freeze(['he', 'ar', 'ru']);
 export function topicSlug(topic) {
   const ascii = String(topic ?? '')
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .replace(/-+/g, '-')
+    .replaceAll(/[^a-z0-9]+/g, '-')
+    .replaceAll(/^-+|-+$/g, '')
+    .replaceAll(/-+/g, '-')
     .slice(0, 32);
   if (ascii) return ascii;
   return `topic-${createHash('sha256').update(String(topic ?? '')).digest('hex').slice(0, 8)}`;
