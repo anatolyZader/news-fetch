@@ -25,7 +25,7 @@
  *   }
  */
 
-import { readFileSync } from 'fs';
+import { readFileSync } from 'node:fs';
 import * as _XLSX from 'xlsx';
 const XLSX = _XLSX.default ?? _XLSX;
 

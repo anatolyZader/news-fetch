@@ -1,8 +1,8 @@
 /**
  * Builds and sends resilience / pools digest emails via IMailingDeliveryPort.
  */
-import { existsSync, readFileSync, readdirSync } from 'fs';
-import { resolve } from 'path';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { createDefaultPoolService } from '../../pool/index.js';
 import { getMunicipalityDashboard } from '../../pbo_report_muni/app/pboMunicipalityService.js';
 import {

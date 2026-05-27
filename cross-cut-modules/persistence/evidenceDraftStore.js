@@ -2,8 +2,8 @@
  * SQLite persistence for user evidence drafts (Node built-in node:sqlite).
  * @see https://nodejs.org/api/sqlite.html
  */
-import { mkdirSync } from 'fs';
-import { dirname } from 'path';
+import { mkdirSync } from 'node:fs';
+import { dirname } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 
 const DDL = `

@@ -19,6 +19,7 @@ import {
   signOut,
 } from 'firebase/auth';
 import { getFirebaseWebConfig, isFirebaseClientConfigured } from '../lib/firebaseClient.js';
+import PropTypes from 'prop-types';
 
 const AuthContext = createContext(null);
 
@@ -180,6 +181,10 @@ export function AuthProvider({ children }) {
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
+
+AuthProvider.propTypes = {
+  children: PropTypes.node,
+};
 
 export function useAuth() {
   const ctx = useContext(AuthContext);

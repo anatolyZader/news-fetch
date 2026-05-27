@@ -3,7 +3,7 @@
  * Default adapter for business_modules/audio (implements IAudioTranscriptionPort behavior).
  */
 
-import { createReadStream } from 'fs';
+import { createReadStream } from 'node:fs';
 import OpenAI from 'openai';
 
 const RETRY_DELAYS_MS = [10_000, 30_000, 60_000]; // 3 attempts after first failure

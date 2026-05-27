@@ -12,9 +12,9 @@
  *   Optional OAuth (captions via API): YOUTUBE_OAUTH_CLIENT_ID, YOUTUBE_OAUTH_CLIENT_SECRET, YOUTUBE_OAUTH_REFRESH_TOKEN
  */
 import 'dotenv/config';
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'fs';
-import { tmpdir } from 'os';
-import { join, resolve } from 'path';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join, resolve } from 'node:path';
 import { createEvidenceStore } from '../../../cross-cut-modules/persistence/evidenceStore.js';
 
 import { createCostTracker, appendCostLog, checkDailyBudget } from '../../../cross-cut-modules/budget/index.js';
@@ -51,7 +51,7 @@ function transcriptSourceLabel(source) {
 
 /** @param {string} md */
 function stripLeadingAudioMarkdownIntro(md) {
-  const m = md.match(/\n## /);
+  const m = /\n## /.exec(md);
   if (!m || m.index == null) return md.trim();
   return md.slice(m.index + 1).trim();
 }

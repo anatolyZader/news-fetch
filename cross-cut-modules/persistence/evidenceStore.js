@@ -6,8 +6,8 @@
  *   evidence_items  — one row per article / audio scene from any source
  *   analysis_runs   — one row per completed resilience analysis
  */
-import { mkdirSync } from 'fs';
-import { dirname } from 'path';
+import { mkdirSync } from 'node:fs';
+import { dirname } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 
 const DDL = `

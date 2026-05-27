@@ -10,6 +10,7 @@ import CloudUploadOutlinedIcon from '@mui/icons-material/CloudUploadOutlined';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { ModalPanel } from '../ui/ModalPanel.jsx';
+import PropTypes from 'prop-types';
 
 const STORAGE_KEY = 'communityResilienceEvidenceDraft';
 const SAVE_DEBOUNCE_MS = 400;
@@ -528,3 +529,9 @@ export function SendEvidencePanel({ open, onClose, onSubmissionComplete }) {
     </ModalPanel>
   );
 }
+
+SendEvidencePanel.propTypes = {
+  open: PropTypes.bool,
+  onClose: PropTypes.func,
+  onSubmissionComplete: PropTypes.func,
+};

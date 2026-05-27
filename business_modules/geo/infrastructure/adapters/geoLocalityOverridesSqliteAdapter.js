@@ -1,5 +1,5 @@
-import { mkdirSync } from 'fs';
-import { dirname } from 'path';
+import { mkdirSync } from 'node:fs';
+import { dirname } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 
 import { IGeoLocalityOverridesPort } from '../../domain/ports/IGeoLocalityOverridesPort.js';

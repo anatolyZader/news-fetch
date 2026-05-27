@@ -174,7 +174,7 @@ This prints whether `AUTH_REQUIRED` / `FIREBASE_PROJECT_ID` / `GOOGLE_APPLICATIO
 
 Without `AUTH_REQUIRED=true`, the API stays public (same as before). To require JWT on:
 
-- `/api/report/today`, `/api/analyze`, `/api/chat`, `/api/video/*`, `/articles`
+- `/api/report/today`, `/api/chat`, `/api/video/*`, `/articles`
 
 set:
 

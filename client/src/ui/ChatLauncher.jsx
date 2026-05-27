@@ -1,5 +1,6 @@
 import Fab from '@mui/material/Fab';
 import { alpha } from '@mui/material/styles';
+import PropTypes from 'prop-types';
 
 export function ChatLauncher({
   open = false,
@@ -52,3 +53,11 @@ export function ChatLauncher({
     </Fab>
   );
 }
+
+ChatLauncher.propTypes = {
+  open: PropTypes.bool,
+  onClick: PropTypes.func,
+  openLabel: PropTypes.string,
+  closedLabel: PropTypes.string,
+  position: PropTypes.oneOf(['bottom-right', 'bottom-left']),
+};

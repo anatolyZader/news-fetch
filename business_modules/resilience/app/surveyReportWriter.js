@@ -10,8 +10,8 @@
  *   5. Analyst caveats
  */
 
-import { writeFileSync, mkdirSync } from 'fs';
-import { dirname } from 'path';
+import { writeFileSync, mkdirSync } from 'node:fs';
+import { dirname } from 'node:path';
 import { RESILIENCE_COMPONENTS } from '../domain/resilienceComponents.js';
 
 const COMPONENT_MAP = Object.fromEntries(RESILIENCE_COMPONENTS.map((c) => [c.id, c]));

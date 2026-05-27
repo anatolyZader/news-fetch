@@ -7,6 +7,7 @@ export const THIN_EVIDENCE_INSTRUMENT = Object.freeze({
   insufficient_data: 'insufficient_data',
   limited_evidence_neutral: 'limited_evidence_neutral',
   unverified_alert: 'unverified_alert',
+  critical_single_signal: 'critical_single_signal',
   adequate: 'adequate',
 });
 
@@ -22,6 +23,14 @@ export function deriveThinEvidencePolicy(comp) {
 
   if (confidence === 'insufficient_data' || comp?.score == null) {
     return { instrument: THIN_EVIDENCE_INSTRUMENT.insufficient_data, operatorShowsScore: false, contested_thin: false };
+  }
+
+  if (comp?.salience_critical === true) {
+    return {
+      instrument: THIN_EVIDENCE_INSTRUMENT.critical_single_signal,
+      operatorShowsScore: true,
+      contested_thin: false,
+    };
   }
 
   const contestedThin = comp?.polarization != null

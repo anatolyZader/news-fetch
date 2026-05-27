@@ -20,10 +20,10 @@
  */
 
 import 'dotenv/config';
-import { resolve, dirname } from 'path';
-import { fileURLToPath } from 'url';
-import { execFile } from 'child_process';
-import { promisify } from 'util';
+import { resolve, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 import { createRecordingJobStore } from '../infrastructure/recordingJobStore.js';
 import { createFfmpegDirectStreamAdapter } from '../infrastructure/adapters/ffmpegDirectStreamAdapter.js';
 import { createRecordingScheduler } from '../app/recordingScheduler.js';

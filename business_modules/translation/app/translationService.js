@@ -1,8 +1,8 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { jsonrepair } from 'jsonrepair';
-import { readFile, writeFile } from 'fs/promises';
-import { resolve, dirname } from 'path';
-import { fileURLToPath } from 'url';
+import { readFile, writeFile } from 'node:fs/promises';
+import { resolve, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { calcInvocationCostUsd, appendCostLog } from '../../../cross-cut-modules/budget/index.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -214,7 +214,7 @@ async function translateChunk(payload, lang, langName) {
   }
 
   const raw = message.content[0].text;
-  const match = raw.match(/\{[\s\S]*\}/);
+  const match = /\{[\s\S]*\}/.exec(raw);
   if (!match) throw new Error('Translation response contained no JSON');
 
   let result;
@@ -267,7 +267,7 @@ async function translateSocialChunk(payload, lang, langName) {
   }
 
   const raw = message.content[0].text;
-  const match = raw.match(/\{[\s\S]*\}/);
+  const match = /\{[\s\S]*\}/.exec(raw);
   if (!match) throw new Error('Social translation response contained no JSON');
 
   let result;
@@ -331,7 +331,7 @@ export async function getTranslatedReport(report, lang) {
     const meta = fromDisk?._translation_meta;
     const metaSaysSynthesisTranslated = meta?.fields?.cross_component_synthesis === true;
     const synthesisHead = String(fromDisk?.cross_component_synthesis ?? '').trim();
-    const looksLikeEnglish = synthesisHead.length > 0 && synthesisHead.charCodeAt(0) <= 0x7f;
+    const looksLikeEnglish = synthesisHead.length > 0 && (synthesisHead.codePointAt(0) ?? 0) <= 0x7f;
     const needsSynthesisUpgrade = !metaSaysSynthesisTranslated && looksLikeEnglish && (lang === 'he' || lang === 'ru');
 
     if (needsSynthesisUpgrade) {

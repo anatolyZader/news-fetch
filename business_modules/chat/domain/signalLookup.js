@@ -10,6 +10,8 @@ import {
 
 const SIGNALS_DIR = join(import.meta.dirname, '..', '..', '..', 'signals');
 const REPORTS_DIR = join(import.meta.dirname, '..', '..', '..', 'reports');
+const REPORT_DATE_RE = /resilience-report-(\d{4}-\d{2}-\d{2})/;
+const SIGNAL_FILE_RE = /signals-(.+?)-(\d{4}-\d{2}-\d{2})\.json/;
 
 /**
  * Load signals from JSON files, optionally filtered by date and/or source type.
@@ -129,7 +131,7 @@ export function loadReport(date) {
   }
   if (files.length === 0) return null;
   try {
-    return JSON.parse(readFileSync(join(REPORTS_DIR, files[files.length - 1]), 'utf-8'));
+    return JSON.parse(readFileSync(join(REPORTS_DIR, files.at(-1)), 'utf-8'));
   } catch {
     return null;
   }
@@ -150,7 +152,7 @@ export function listReportDates() {
   }
   const dates = new Set();
   for (const f of files) {
-    const m = f.match(/resilience-report-(\d{4}-\d{2}-\d{2})/);
+    const m = REPORT_DATE_RE.exec(f);
     if (m) dates.add(m[1]);
   }
   return [...dates].sort((a, b) => a.localeCompare(b));
@@ -170,7 +172,7 @@ export function listSignalMeta() {
   const types = new Set();
   const dates = new Set();
   for (const f of files) {
-    const m = f.match(/signals-(.+?)-(\d{4}-\d{2}-\d{2})\.json/);
+    const m = SIGNAL_FILE_RE.exec(f);
     if (m) {
       types.add(m[1]);
       dates.add(m[2]);
@@ -180,6 +182,83 @@ export function listSignalMeta() {
     sourceTypes: [...types].sort((a, b) => a.localeCompare(b)),
     signalDates: [...dates].sort((a, b) => a.localeCompare(b)),
   };
+}
+
+function formatDeltaArrow(delta) {
+  if (delta > 0) return '+';
+  if (delta < 0) return '';
+  return '=';
+}
+
+/**
+ * @param {string} dateA
+ * @param {string} dateB
+ * @param {object} reportA
+ * @param {object} reportB
+ * @param {boolean} includeScores
+ * @returns {string[]}
+ */
+function formatOverallComparison(dateA, dateB, reportA, reportB, includeScores) {
+  const header = [`Comparison: ${dateA} → ${dateB}\n`];
+  if (includeScores) {
+    header.push(
+      `Overall: ${reportA.assessment.overall_resilience_score}/10 → ${reportB.assessment.overall_resilience_score}/10`,
+    );
+  } else {
+    header.push(
+      `Summary A: ${operatorAssessmentSummary(reportA.assessment)}`,
+      `Summary B: ${operatorAssessmentSummary(reportB.assessment)}`,
+    );
+  }
+  header.push(
+    `Articles: ${reportA.assessment.total_articles_analyzed} → ${reportB.assessment.total_articles_analyzed}\n`,
+  );
+  return header;
+}
+
+/**
+ * @param {string} id
+ * @param {object|undefined} a
+ * @param {object} b
+ * @param {boolean} includeScores
+ * @returns {string|null}
+ */
+function formatComponentDelta(id, a, b, includeScores) {
+  if (a == null) {
+    if (includeScores && b.score != null) {
+      return `  ${id}: NEW ${b.score}/10 (${b.confidence})`;
+    }
+    const inst = b.instrument ?? deriveInstrumentState(b);
+    return `  ${id}: NEW (${inst.confidence}, ${inst.evidence_sufficiency})`;
+  }
+  if (includeScores && a.score != null && b.score != null) {
+    const delta = b.score - a.score;
+    const arrow = formatDeltaArrow(delta);
+    return `  ${id}: ${a.score} → ${b.score} (${arrow}${delta}) [${a.confidence} → ${b.confidence}]`;
+  }
+  const instA = a.instrument ?? deriveInstrumentState(a);
+  const instB = b.instrument ?? deriveInstrumentState(b);
+  return `  ${id}: [${instA.confidence}/${instA.evidence_sufficiency}] → [${instB.confidence}/${instB.evidence_sufficiency}]`;
+}
+
+/**
+ * @param {Record<string, object>} aComps
+ * @param {Record<string, object>} bComps
+ * @returns {string[]}
+ */
+function formatNarrativeChanges(aComps, bComps) {
+  const lines = ['\nKey narrative changes:'];
+  for (const [id, b] of Object.entries(bComps)) {
+    const a = aComps[id];
+    if (a == null) continue;
+    const aAbsent = new Set(a.manifestations_absent ?? []);
+    const bEvidenced = b.manifestations_evidenced ?? [];
+    const newlyEvidenced = bEvidenced.filter((m) => aAbsent.has(m));
+    if (newlyEvidenced.length > 0) {
+      lines.push(`  ${id}: newly evidenced — ${newlyEvidenced[0].slice(0, 150)}`);
+    }
+  }
+  return lines;
 }
 
 /**
@@ -193,9 +272,9 @@ export function compareReports(dateA, dateB, opts = {}) {
   const reportA = loadReport(dateA);
   const reportB = loadReport(dateB);
 
-  if (!reportA && !reportB) return `No reports found for ${dateA} or ${dateB}.`;
-  if (!reportA) return `No report found for ${dateA}. Available dates: ${listReportDates().join(', ')}`;
-  if (!reportB) return `No report found for ${dateB}. Available dates: ${listReportDates().join(', ')}`;
+  if (reportA == null && reportB == null) return `No reports found for ${dateA} or ${dateB}.`;
+  if (reportA == null) return `No report found for ${dateA}. Available dates: ${listReportDates().join(', ')}`;
+  if (reportB == null) return `No report found for ${dateB}. Available dates: ${listReportDates().join(', ')}`;
 
   const aComps = Object.fromEntries(
     (reportA.assessment.components ?? []).map((c) => [c.component_id, c]),
@@ -205,54 +284,14 @@ export function compareReports(dateA, dateB, opts = {}) {
   );
 
   const includeScores = opts.includeScores === true;
-  const lines = [`Comparison: ${dateA} → ${dateB}\n`];
-  if (includeScores) {
-    lines.push(
-      `Overall: ${reportA.assessment.overall_resilience_score}/10 → ${reportB.assessment.overall_resilience_score}/10`,
-    );
-  } else {
-    lines.push(`Summary A: ${operatorAssessmentSummary(reportA.assessment)}`);
-    lines.push(`Summary B: ${operatorAssessmentSummary(reportB.assessment)}`);
-  }
-  lines.push(`Articles: ${reportA.assessment.total_articles_analyzed} → ${reportB.assessment.total_articles_analyzed}\n`);
+  const componentLines = Object.entries(bComps).map(
+    ([id, b]) => formatComponentDelta(id, aComps[id], b, includeScores),
+  );
 
-  lines.push('Per-component deltas:');
-  for (const [id, b] of Object.entries(bComps)) {
-    const a = aComps[id];
-    if (!a) {
-      if (includeScores && b.score != null) {
-        lines.push(`  ${id}: NEW ${b.score}/10 (${b.confidence})`);
-      } else {
-        const inst = b.instrument ?? deriveInstrumentState(b);
-        lines.push(`  ${id}: NEW (${inst.confidence}, ${inst.evidence_sufficiency})`);
-      }
-      continue;
-    }
-    if (includeScores && a.score != null && b.score != null) {
-      const delta = b.score - a.score;
-      const arrow = delta > 0 ? '+' : delta < 0 ? '' : '=';
-      lines.push(`  ${id}: ${a.score} → ${b.score} (${arrow}${delta}) [${a.confidence} → ${b.confidence}]`);
-    } else {
-      const instA = a.instrument ?? deriveInstrumentState(a);
-      const instB = b.instrument ?? deriveInstrumentState(b);
-      lines.push(
-        `  ${id}: [${instA.confidence}/${instA.evidence_sufficiency}] → [${instB.confidence}/${instB.evidence_sufficiency}]`,
-      );
-    }
-  }
-
-  // Highlight key narrative differences
-  lines.push('\nKey narrative changes:');
-  for (const [id, b] of Object.entries(bComps)) {
-    const a = aComps[id];
-    if (!a) continue;
-    const aAbsent = new Set(a.manifestations_absent ?? []);
-    const bEvidenced = b.manifestations_evidenced ?? [];
-    const newlyEvidenced = bEvidenced.filter((m) => aAbsent.has(m));
-    if (newlyEvidenced.length > 0) {
-      lines.push(`  ${id}: newly evidenced — ${newlyEvidenced[0].slice(0, 150)}`);
-    }
-  }
-
-  return lines.join('\n');
+  return [
+    ...formatOverallComparison(dateA, dateB, reportA, reportB, includeScores),
+    'Per-component deltas:',
+    ...componentLines,
+    ...formatNarrativeChanges(aComps, bComps),
+  ].join('\n');
 }

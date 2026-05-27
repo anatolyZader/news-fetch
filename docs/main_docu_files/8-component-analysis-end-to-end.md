@@ -445,7 +445,7 @@ The pipeline is intentionally split into **auditable stages** so the LLM does pa
                                        ▼
 ┌──────────────────────────────────────────────────────────────────────────┐
 │ F. SERVE — REST API + React UI (`ReportView.jsx`, drift tab)             │
-│   /api/report/today, /api/resilience/drift, POST /api/analyze (SSE)      │
+│   /api/report/today, /api/resilience/drift                               │
 └──────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -1124,7 +1124,7 @@ Each `assess-signals` run writes `assessment.methodology` (phase label, scope-de
 | National daily report | `npm run assess-signals -- --date YYYY-MM-DD --days 3 --scope national` |
 | North daily report | `npm run assess-signals -- --date YYYY-MM-DD --days 3 --scope north` |
 | Advisory tanhK/certM from history | `npm run suggest-tuning` |
-| News-only experiment (no north artifact) | `npm run analyze-resilience` / API `runAnalysis` |
+| Quick news-only run | `npm run extract-signals` + `npm run assess-signals` |
 | Operator UI missing north | `GET /api/report/today?scope=north` → `hint: north_requires_assess_signals` when no `resilience-report-north-*` file exists |
 
 ---
@@ -1219,7 +1219,7 @@ All hermetic; wired into `npm test`.
 
 ### 15.5 Validation collection (operational calibration)
 
-`business_modules/resilience/validation/` — runs automatically at the end of every **`assess-signals.js`** run (not legacy `analyze-resilience`). Purpose: shadow/active collection of assessment snapshots and expert review queues during peacetime and crisis, tracking construct-validity maturity tiers.
+`business_modules/resilience/validation/` — runs automatically at the end of every **`assess-signals.js`** run. Purpose: shadow/active collection of assessment snapshots and expert review queues during peacetime and crisis, tracking construct-validity maturity tiers.
 
 | Item | Detail |
 |------|--------|
@@ -1542,9 +1542,7 @@ business_modules/
     │       ├── anthropicResilienceLlmAdapter.js
     │       └── surveyExcelLoader.js               # Field survey — Google Forms Excel → grouped answers
     └── input/
-        ├── analyze-resilience.js                  # All-in-one: news/radio MD → report
         ├── analyze-survey.js                      # Survey path
-        ├── analyzeResilienceInput.js
         ├── analyzeSurveyInput.js
         ├── assess-signals.js                      # Stage-2 CLI: combine signals + assess (+ validation)
         ├── assessSignalsHelpers.js                # crossSourceDedup, EWMA, delta-channel

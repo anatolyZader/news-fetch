@@ -34,6 +34,8 @@ import { ReportBotManualReportsTab } from './components/ReportBotManualReportsTa
 import { VisitsTab } from './components/VisitsTab.jsx';
 import { TrendsTab } from './components/TrendsTab.jsx';
 import { SocialMediaTab } from './components/SocialMediaTab.jsx';
+import { NewsTab } from './components/NewsTab.jsx';
+import { RadioTab } from './components/RadioTab.jsx';
 import { useLanguage } from './context/LanguageContext.jsx';
 import { LanguageSelector } from './components/LanguageSelector.jsx';
 import { useAuth } from './context/AuthContext.jsx';
@@ -55,7 +57,7 @@ const LS_POOL_TAB = 'vibes-witch:poolTab';
 const LS_PBO_TAB = 'vibes-witch:pboTab';
 const LS_PBO_REGION = 'vibes-witch:pboRegion';
 const LS_REPORT_SCOPE = 'vibes-witch:reportScope';
-const MAIN_TAB_IDS = new Set(['report', 'pbo-reports', 'report-bot', 'visits', 'pools', 'trends', 'social-media']);
+const MAIN_TAB_IDS = new Set(['report', 'pbo-reports', 'report-bot', 'visits', 'news', 'radio', 'pools', 'trends', 'social-media']);
 const PBO_TAB_IDS = new Set(['local', 'regional']);
 /** Northern PBO sub-regions (maps to divisions in regions.json; Galma ≈ Western Galilee / גלמ״ע). */
 const PBO_REGION_IDS_ORDER = ['naftali', 'golan', 'baram', 'hiram', 'galma'];
@@ -360,7 +362,7 @@ function AppShell() {
     const comps = displayReport?.components ?? [];
     return comps.map((c) => ({
       id: c.component_id,
-      label: t(`comp.${c.component_id}`) ?? c.component_id.replace(/_/g, ' '),
+      label: t(`comp.${c.component_id}`) ?? c.component_id.replaceAll('_', ' '),
     }));
   }, [displayReport, t]);
 
@@ -389,6 +391,8 @@ function AppShell() {
     { id: 'pbo-reports', label: t('tab.pboReports') },
     { id: 'report-bot', label: t('tab.reportBot') },
     { id: 'visits', label: t('tab.visits') },
+    { id: 'news', label: t('tab.news') },
+    { id: 'radio', label: t('tab.radio') },
     { id: 'social-media', label: t('tab.socialMedia') },
     { id: 'pools', label: t('tab.pools') },
     { id: 'trends', label: t('tab.trends') },
@@ -799,6 +803,10 @@ function AppShell() {
         {activeTab === 'report-bot' && <ReportBotManualReportsTab />}
 
         {activeTab === 'visits' && <VisitsTab />}
+
+        {activeTab === 'news' && <NewsTab />}
+
+        {activeTab === 'radio' && <RadioTab />}
 
         {activeTab === 'social-media' && <SocialMediaTab />}
 

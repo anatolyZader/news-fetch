@@ -1,5 +1,5 @@
-import { readFileSync } from 'fs';
-import { resolve } from 'path';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 import { collectRawLocalitiesFromNorthReferenceDoc } from '../../business_modules/geo/domain/services/northReferenceDocShape.js';
 import { normalizeLocalityLookupKey } from '../../business_modules/geo/domain/services/resolveLocalityMatch.js';

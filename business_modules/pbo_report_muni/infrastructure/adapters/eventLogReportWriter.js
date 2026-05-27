@@ -3,8 +3,8 @@
  * Parallel to reportWriter.js but adapted for event log fields.
  */
 
-import { writeFileSync, mkdirSync } from 'fs';
-import { dirname } from 'path';
+import { writeFileSync, mkdirSync } from 'node:fs';
+import { dirname } from 'node:path';
 import { RESILIENCE_COMPONENTS } from '../../../resilience/domain/resilienceComponents.js';
 
 const COMPONENT_MAP = Object.fromEntries(RESILIENCE_COMPONENTS.map((c) => [c.id, c]));

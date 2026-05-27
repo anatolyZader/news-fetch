@@ -2,6 +2,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import Box from '@mui/material/Box';
 import Alert from '@mui/material/Alert';
+import PropTypes from 'prop-types';
 
 const VARIANT_STYLES = {
   doc: (theme) => ({
@@ -136,3 +137,12 @@ export function MarkdownArticle({
     </Box>
   );
 }
+
+MarkdownArticle.propTypes = {
+  markdown: PropTypes.string,
+  banner: PropTypes.node,
+  bannerSeverity: PropTypes.string,
+  variant: PropTypes.oneOf(['doc', 'report']),
+  components: PropTypes.object,
+  maxWidth: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+};

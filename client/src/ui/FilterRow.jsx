@@ -1,6 +1,7 @@
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import PropTypes from 'prop-types';
 
 /**
  * Stateless single filter row: eyebrow label + flex-wrap children.
@@ -35,3 +36,10 @@ export function FilterRow({ label, children, labelMinWidth = 80, stackOnMobile =
     </Stack>
   );
 }
+
+FilterRow.propTypes = {
+  label: PropTypes.node,
+  children: PropTypes.node,
+  labelMinWidth: PropTypes.number,
+  stackOnMobile: PropTypes.bool,
+};

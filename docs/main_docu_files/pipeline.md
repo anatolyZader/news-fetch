@@ -54,17 +54,6 @@ Recommended entry points:
 | `/8comp-3-north` | Same + north scope + `social-media:gather-daily` (X + Telegram) |
 | `./scripts/daily-pipeline.sh` | Cron-friendly: transcribe → fetch news → extract all sources → assess (3-day) |
 
-### Legacy news-only path (still supported)
-
-Single-shot analysis from one markdown file — no intermediate signal JSON, no multi-source merge, no validation collection:
-
-```bash
-npm run homefront-to-md
-npm run analyze-resilience -- --date YYYY-MM-DD
-```
-
-Also used by `POST /api/analyze` (SSE maintainer trigger). Prefer `assess-signals` for production daily reports.
-
 ---
 
 ## Source toggles (`pipeline-config.json`)
@@ -266,7 +255,7 @@ Does not change daily scores — feeds analyst review of the closed `SIGNAL_CATA
 
 ## Validation collection (post-assess)
 
-Automatically invoked at the end of every `assess-signals` run (not legacy `analyze-resilience`).
+Automatically invoked at the end of every `assess-signals` run.
 
 **Module:** `business_modules/resilience/validation/`  
 **Config:** `business_modules/resilience/validation/validation-config.json`
@@ -373,7 +362,7 @@ North scope in UI requires a north report artifact — otherwise API returns `hi
 | Partial recovery | Truncated Haiku JSON salvaged when possible |
 | Unknown signal types | Dropped with warning — no score corruption |
 
-Typical legacy news-only run (`analyze-resilience`): ~$0.18–0.26. Multi-source runs scale with enabled sources and window size.
+Typical single-source extract + assess run: ~$0.18–0.26 for news-only. Multi-source runs scale with enabled sources and window size.
 
 ---
 
@@ -387,7 +376,6 @@ business_modules/news-sites/
 business_modules/resilience/
   input/extract-signals.js                Stage 1: per-source extraction
   input/assess-signals.js                 Stage 2: merge + score + narrate
-  input/analyze-resilience.js             Legacy all-in-one (news/audio)
   validation/                             Post-assess calibration collection
   domain/services/behaviorSignals.js      Scoring + SIGNAL_TO_COMPONENTS
   domain/services/dataVoidIndex.js        Digital darkness / data void index

@@ -116,6 +116,6 @@ export const EQUITY_RELEVANT_TYPES = new Set([
 
 export const INTENSITY_WEIGHT = {
   light: 0.6,
-  moderate: 1.0,
+  moderate: 1,
   severe: 1.4,
 };

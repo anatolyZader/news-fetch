@@ -1,0 +1,41 @@
+{
+  "topic": "test topic",
+  "topicNormalized": {
+    "conceptIds": [],
+    "matchTokens": [
+      "test",
+      "topic"
+    ],
+    "searchTermsByLang": {
+      "he": [],
+      "en": [
+        "\"test topic\""
+      ],
+      "ar": []
+    }
+  },
+  "platforms": [
+    "x"
+  ],
+  "lang": "en",
+  "fetchedAt": "2026-05-26T16:12:11.294Z",
+  "source": "test",
+  "mode": "dry_run",
+  "accessNotes": [],
+  "dryRun": null,
+  "estimate": null,
+  "posts": [
+    {
+      "id": "p1",
+      "platform": "x",
+      "text": "[en] טקסט בעברית",
+      "dedupeKey": "p1",
+      "translatedTo": "en"
+    }
+  ],
+  "stats": {
+    "matched": 1,
+    "afterDedup": 1,
+    "duplicatesRemoved": 0
+  }
+}

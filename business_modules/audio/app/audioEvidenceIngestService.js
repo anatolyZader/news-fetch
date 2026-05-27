@@ -1,7 +1,7 @@
-import { basename, join } from 'path';
-import { unlinkSync, rmdirSync } from 'fs';
-import { mkdtemp, readFile, rm } from 'fs/promises';
-import { tmpdir } from 'os';
+import { basename, join } from 'node:path';
+import { unlinkSync, rmdirSync } from 'node:fs';
+import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import { AudioIngestService } from './audioIngestService.js';
 import { contextualizeTranscript as defaultContextualizer } from './audioTranscriptContextualizer.js';
 

@@ -1,5 +1,5 @@
-import { existsSync, readFileSync, readdirSync, statSync } from 'fs';
-import { basename, extname, resolve } from 'path';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
+import { basename, extname, resolve } from 'node:path';
 import { IPboReportRegionalRepository } from '../../domain/ports/IPboReportRegionalRepository.js';
 import {
   REGIONAL_PBO_REGION_IDS,

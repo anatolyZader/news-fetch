@@ -1,6 +1,6 @@
 import { google } from 'googleapis';
-import { resolve, dirname } from 'path';
-import { fileURLToPath } from 'url';
+import { resolve, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 // Resolve the key file from an absolute path so GCP metadata service is bypassed

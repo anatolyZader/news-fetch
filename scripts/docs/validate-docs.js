@@ -1,5 +1,5 @@
-import { readFile, readdir } from 'fs/promises';
-import { resolve, relative, sep } from 'path';
+import { readFile, readdir } from 'node:fs/promises';
+import { resolve, relative, sep } from 'node:path';
 import Ajv from 'ajv/dist/2020.js';
 import YAML from 'yaml';
 
@@ -82,7 +82,7 @@ function isUserOrientedPage(meta) {
 }
 
 function hasAtLeastNh2Headings(body, n) {
-  const matches = body.match(/^##\s+/gm);
+  const matches = /^##\s+/gm.exec(body);
   return (matches?.length ?? 0) >= n;
 }
 

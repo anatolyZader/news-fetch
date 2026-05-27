@@ -8,7 +8,7 @@ let cachedMtimeMs = null;
 /**
  * Optional per-outlet reliability multiplier (N14 stub).
  * Reads `config/resilience-outlet-priors.json`: `{ "ynet.co.il": { "reliabilityMultiplier": 1.1 }, ... }`
- * Values are clamped to [0.5, 1.5]. Missing file or key → 1.0.
+ * Values are clamped to [0.5, 1.5]. Missing file or key → 1.
  *
  * C3 — mtime-aware cache: long-running processes (the watcher / dev server) used
  * to keep a stale cache after operators edited the priors file because the cache

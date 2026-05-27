@@ -2,6 +2,7 @@ import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
+import PropTypes from 'prop-types';
 
 /**
  * Card-bordered container for one or more <FilterRow> blocks.
@@ -52,3 +53,13 @@ export function FilterBar({ children, footer, centered = false }) {
     </Card>
   );
 }
+
+FilterBar.propTypes = {
+  children: PropTypes.node,
+  footer: PropTypes.shape({
+    message: PropTypes.string,
+    onClear: PropTypes.func,
+    clearLabel: PropTypes.string,
+  }),
+  centered: PropTypes.bool,
+};

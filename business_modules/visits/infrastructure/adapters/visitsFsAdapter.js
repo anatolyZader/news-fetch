@@ -1,9 +1,13 @@
-import { existsSync, readFileSync, readdirSync } from 'fs';
-import { basename, resolve } from 'path';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { basename, resolve } from 'node:path';
 import { IVisitsRepositoryPort } from '../../domain/ports/IVisitsRepositoryPort.js';
 
 const FIELD_REPORT_FILE_RE = /^articles-field-reports-(\d{4}-\d{2}-\d{2})\.md$/;
 const FIELD_SIGNAL_FILE_RE = /^signals-field-(\d{4}-\d{2}-\d{2})\.json$/;
+const VISIT_HEADING_RE = /^##\s+(\d+)\.\s+(.+)$/m;
+const VISIT_PUBLISHED_RE = /^- \*\*Published:\*\*\s*(.+)$/m;
+const VISIT_SOURCE_RE = /^- \*\*Source:\*\*\s*(.+)$/m;
+const VISIT_STAKEHOLDERS_RE = /^גורמים שנפגשו:\s*(.+)$/m;
 const INVALID_PLACEHOLDER_DATES = new Set(['1970-01-01']);
 
 function parseMarkdownVisits(fileName, content) {
@@ -11,19 +15,19 @@ function parseMarkdownVisits(fileName, content) {
   const blocks = content.split(/\n---\s*(?:\n|$)/);
 
   for (const block of blocks) {
-    const heading = block.match(/^##\s+(\d+)\.\s+(.+)$/m);
+    const heading = VISIT_HEADING_RE.exec(block);
     if (!heading) continue;
 
     const articleIndex = Number(heading[1]);
     const rawTitle = heading[2].trim();
     const title = rawTitle.replace(/\s*\(ביקור שטח\)\s*$/u, '').trim();
-    const published = block.match(/^- \*\*Published:\*\*\s*(.+)$/m)?.[1]?.trim() ?? null;
-    const source = block.match(/^- \*\*Source:\*\*\s*(.+)$/m)?.[1]?.trim() ?? null;
+    const published = VISIT_PUBLISHED_RE.exec(block)?.[1]?.trim() ?? null;
+    const source = VISIT_SOURCE_RE.exec(block)?.[1]?.trim() ?? null;
     const bodyStart = block.search(/^- \*\*Source:\*\*.*$/m);
     const body = bodyStart >= 0
       ? block.slice(bodyStart).replace(/^- \*\*Source:\*\*.*$/m, '').trim()
       : '';
-    const stakeholdersMatch = body.match(/^גורמים שנפגשו:\s*(.+)$/m);
+    const stakeholdersMatch = VISIT_STAKEHOLDERS_RE.exec(body);
     const notes = body.replace(/^גורמים שנפגשו:\s*.+\n*/m, '').trim();
     const [municipalityPart, regionPart] = title.split(/\s+—\s+/);
 
@@ -99,7 +103,7 @@ export class VisitsFsAdapter extends IVisitsRepositoryPort {
     const daysByDate = new Map();
 
     for (const file of reportFiles) {
-      const match = file.match(FIELD_REPORT_FILE_RE);
+      const match = FIELD_REPORT_FILE_RE.exec(file);
       if (!match) continue;
       const date = match[1];
       if (INVALID_PLACEHOLDER_DATES.has(date)) continue;
@@ -108,7 +112,7 @@ export class VisitsFsAdapter extends IVisitsRepositoryPort {
     }
 
     for (const [file, filePath] of [...signalPathByName.entries()].sort((a, b) => a[0].localeCompare(b[0]))) {
-      const match = file.match(FIELD_SIGNAL_FILE_RE);
+      const match = FIELD_SIGNAL_FILE_RE.exec(file);
       if (!match) continue;
       const date = match[1];
       if (INVALID_PLACEHOLDER_DATES.has(date)) continue;

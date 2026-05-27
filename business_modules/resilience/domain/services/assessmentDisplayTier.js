@@ -104,6 +104,8 @@ export function deriveInstrumentState(comp) {
     contested_thin: thinPolicy?.contested_thin ?? contestedThin === true,
     significant_delta: comp?.delta_flag === 'significant',
     floor_clamped: comp?.floor_clamped === true,
+    floor_bypassed: comp?.floor_bypassed === true,
+    salience_critical: comp?.salience_critical === true,
     ci_unstable: comp?.ci_unstable === true,
     source_cap_binding: comp?.source_cap_binding === true,
     signal_count: comp?.signal_count ?? 0,

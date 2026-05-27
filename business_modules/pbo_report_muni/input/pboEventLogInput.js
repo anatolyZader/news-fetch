@@ -2,8 +2,8 @@
  * CLI transport: stdin/file → runPboEventLogAnalysisFromParsed (dotenv, argv, stderr progress).
  */
 import 'dotenv/config';
-import { readFileSync } from 'fs';
-import { resolve, basename } from 'path';
+import { readFileSync } from 'node:fs';
+import { resolve, basename } from 'node:path';
 
 import { parseEventLog, inferDate } from '../domain/services/eventLogLoader.js';
 import { runPboEventLogAnalysisFromParsed } from '../app/pboEventLogAnalysisService.js';

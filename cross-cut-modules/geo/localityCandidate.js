@@ -1,5 +1,15 @@
 import { normalizeLocalityLookupKey } from '../../business_modules/geo/domain/services/resolveLocalityMatch.js';
 
+const ENGLISH_NAME_CHARS = String.raw`A-Za-z\s'.`;
+const ENGLISH_NAME_TAIL = `[${ENGLISH_NAME_CHARS}]{2,40}`;
+const HEBREW_LOCALITY_CHARS = String.raw`א-ת"׳' `;
+const HEBREW_LOCALITY_RE = new RegExp(
+  String.raw`(?:\bביישוב\b|\bבקיבוץ\b|\bבמושב\b|\bבעיר\b|\bבכפר\b|\bבקריית\b|\bב)\s*([${HEBREW_LOCALITY_CHARS}-]{2,28})`,
+);
+const HEBREW_BET_RE = new RegExp(String.raw`\bב([${HEBREW_LOCALITY_CHARS}-]{2,28})`);
+const BRACKET_LOCALITY_RE = /\[([^\]]{2,40})\]/;
+const ARTICLE_SOURCE_LOCALITY_RE = /^(?:pbo|naftali)-(.+)$/i;
+
 /**
  * @param {string|null|undefined} raw
  * @returns {string|null}
@@ -21,9 +31,7 @@ export function normalizeLocalityName(raw) {
 export function inferLocalityFromText(text) {
   const t = String(text ?? '').trim();
   if (!t) return null;
-  const m =
-    t.match(/(?:\bביישוב\b|\bבקיבוץ\b|\bבמושב\b|\bבעיר\b|\bבכפר\b|\bבקריית\b|\bב)\s*([א-ת"׳' -]{2,28})/) ??
-    t.match(/\bב([א-ת"׳'-]{2,28})/);
+  const m = HEBREW_LOCALITY_RE.exec(t) ?? HEBREW_BET_RE.exec(t);
   if (!m) return null;
   const cand = normalizeLocalityName(m[1]);
   if (!cand) return null;
@@ -37,7 +45,7 @@ export function inferLocalityFromText(text) {
  */
 export function extractBracketedLocality(evidence) {
   const t = String(evidence ?? '');
-  const m = t.match(/\[([^\]]{2,40})\]/);
+  const m = BRACKET_LOCALITY_RE.exec(t);
   if (!m) return null;
   return normalizeLocalityName(m[1]);
 }
@@ -49,13 +57,13 @@ export function extractBracketedLocality(evidence) {
 export function extractEnglishMunicipalityPhrase(evidence) {
   const t = String(evidence ?? '');
   const patterns = [
-    /\b([A-Za-z][A-Za-z\s'.-]{2,40})\s+municipality\b/i,
-    /\bmunicipality\s+of\s+([A-Za-z][A-Za-z\s'.-]{2,40})\b/i,
-    /\bin\s+([A-Za-z][A-Za-z\s'.-]{2,40})\s+(?:residents|hospital|beach|area)\b/i,
-    /\b(?:alert|alerts)\s+(?:sounded|activated)\s+in\s+([A-Za-z][A-Za-z\s'.-]{2,40})\b/i,
+    new RegExp(String.raw`\b([A-Za-z]${ENGLISH_NAME_TAIL})\s+municipality\b`, 'i'),
+    new RegExp(String.raw`\bmunicipality\s+of\s+([A-Za-z]${ENGLISH_NAME_TAIL})\b`, 'i'),
+    new RegExp(String.raw`\bin\s+([A-Za-z]${ENGLISH_NAME_TAIL})\s+(?:residents|hospital|beach|area)\b`, 'i'),
+    new RegExp(String.raw`\b(?:alert|alerts)\s+(?:sounded|activated)\s+in\s+([A-Za-z]${ENGLISH_NAME_TAIL})\b`, 'i'),
   ];
   for (const re of patterns) {
-    const m = t.match(re);
+    const m = re.exec(t);
     if (m?.[1]) {
       const cand = normalizeLocalityName(m[1]);
       if (cand && cand.length >= 3) return cand;
@@ -85,7 +93,7 @@ export function matchLongestReferenceNameInText(evidence, nameIndex) {
  */
 export function extractLocalityFromArticleSource(articleSource) {
   const s = String(articleSource ?? '').trim();
-  const m = s.match(/^(?:pbo|naftali)-(.+)$/i);
+  const m = ARTICLE_SOURCE_LOCALITY_RE.exec(s);
   if (!m?.[1]) return null;
   return normalizeLocalityName(m[1]);
 }

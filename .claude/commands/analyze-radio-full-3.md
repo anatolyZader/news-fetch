@@ -1,5 +1,5 @@
 ---
-allowed-tools: Bash(node business_modules/resilience/input/analyze-resilience.js*), Bash(node business_modules/resilience/input/extract-signals.js*), Bash(ls articles-audio-*)
+allowed-tools: Bash(npm run extract-signals:*), Bash(npm run assess-signals:*), Bash(ls articles-audio-*)
 description: Run 8-component resilience analysis on radio broadcast transcripts across the last 3 days combined
 ---
 
@@ -14,24 +14,20 @@ List all available radio transcript files:
 ls articles-audio-*.md 2>/dev/null
 ```
 
-From the results, select files dated within the last 3 days (today, yesterday, 2 days ago) relative to today's date from the context above. Collect them into a comma-separated list.
+From the results, select files dated within the last 3 days (today, yesterday, 2 days ago) relative to today's date from the context above.
 
 If no files are found, report that no transcripts are available and stop.
 
-**Step 2 — Analyse (3-day combined)**
+**Step 2 — Extract signals per date**
 
-Run with `--content-kind audio`, `--no-field-reports`, and all files found in Step 1. Pass `--date <today>` since audio filenames don't follow the homefront naming pattern:
+For each date that has transcript files, run extract-signals once per date. Group files by date (extract date from filename, e.g. `articles-audio-ashams-2026-04-01T09-00.md` → `2026-04-01`):
 ```
-node business_modules/resilience/input/analyze-resilience.js --content-kind audio --no-field-reports --files <comma-separated file list> --date <today's date>
+npm run extract-signals -- --source-type radio --files <files for that date> --date <YYYY-MM-DD>
 ```
 
-Note: temporal weighting (today=1.0, yesterday=0.85, 2 days ago=0.70) is not applied in explicit `--files` mode — all files are weighted equally. This is acceptable for radio analysis.
-
-**Step 3 — Extract signals per date**
-
-For each date that has transcript files, run extract-signals to save per-date intermediate signal files. Group files by date (extract date from filename, e.g. `articles-audio-ashams-2026-04-01T09-00.md` → `2026-04-01`) and run once per date:
+**Step 3 — Assess (3-day combined)**
 ```
-node business_modules/resilience/input/extract-signals.js --source-type radio --files <files for that date> --date <YYYY-MM-DD>
+npm run assess-signals -- --date <today's date> --days 3 --scope national
 ```
 
 After all steps complete, report:

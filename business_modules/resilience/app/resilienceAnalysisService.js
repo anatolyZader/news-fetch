@@ -15,6 +15,7 @@ import {
   partitionMacroSignals,
 } from '../domain/services/evidenceEligibility.js';
 import { computeDataVoidIndex } from '../domain/services/dataVoidIndex.js';
+import { salienceContextFromDataVoid } from '../domain/services/highSalienceBypass.js';
 import { countOovCapturesForDate } from '../domain/services/oovCapture.js';
 import { loadHistoricalSignalDays } from '../input/assessSignalsHelpers.js';
 
@@ -23,7 +24,7 @@ export const MAX_BODY_CHARS = 2000;
 
 /** Map batch items to the article shape expected by claudeEvaluator.extractSignals. */
 function batchItemsToArticles(batch) {
-  const sourceFile = batch.sourceRunId != null ? String(batch.sourceRunId) : 'content-batch';
+  const sourceFile = batch.sourceRunId == null ? 'content-batch' : String(batch.sourceRunId);
   return batch.items.map((item) => ({
     title: item.title,
     url: item.url ?? '',
@@ -31,7 +32,7 @@ function batchItemsToArticles(batch) {
     source: item.sourceLabel ?? 'batch',
     body: item.body.slice(0, MAX_BODY_CHARS),
     sourceFile,
-    temporal_weight: item.temporal_weight ?? 1.0,
+    temporal_weight: item.temporal_weight ?? 1,
   }));
 }
 
@@ -118,10 +119,6 @@ export async function runResilienceAssessment(batch, options = {}) {
   const totalArticles = articles.length + supplementaryArticles.length;
   const narrativeContentKind = supplementaryArticles.length > 0 ? 'mixed' : batch.contentKind;
 
-  const scoredComponents = scoreComponents(signalsForScoring, {
-    totalArticles,
-    mediaSignals: allSignals,
-  });
   const historicalSignalDays = loadHistoricalSignalDays(
     batch.reportDate,
     options.reportsDir ?? 'reports',
@@ -129,6 +126,12 @@ export async function runResilienceAssessment(batch, options = {}) {
     reportScopeId,
   );
   const dataVoid = computeDataVoidIndex(allSignals, historicalSignalDays, { reportScope: reportScopeId });
+
+  const scoredComponents = scoreComponents(signalsForScoring, {
+    totalArticles,
+    mediaSignals: allSignals,
+    salienceContext: salienceContextFromDataVoid(dataVoid),
+  });
   const oovCaptureCount = countOovCapturesForDate(batch.reportDate);
   const assessment = await llmPort.generateNarratives(
     scoredComponents,

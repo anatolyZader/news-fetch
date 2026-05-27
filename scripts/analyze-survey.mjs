@@ -3,8 +3,8 @@
  * Composition entry: wires geo + survey CLI without importing geo from resilience/.
  * @see business_modules/resilience/input/analyzeSurveyInput.js
  */
-import { dirname, resolve } from 'path';
-import { fileURLToPath } from 'url';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import { createGeoWiring } from '../cross-cut-modules/geo/createGeoWiring.js';
 import { runAnalyzeSurveyCli } from '../business_modules/resilience/input/analyzeSurveyInput.js';

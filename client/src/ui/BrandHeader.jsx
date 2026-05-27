@@ -1,6 +1,7 @@
 import ButtonBase from '@mui/material/ButtonBase';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import PropTypes from 'prop-types';
 
 const ALIGN_MAP = {
   start: { alignItems: 'flex-start', textAlign: 'left' },
@@ -53,3 +54,11 @@ export function BrandHeader({ title, subtitle, align = 'start', onHomeClick, hom
     </Stack>
   );
 }
+
+BrandHeader.propTypes = {
+  title: PropTypes.node.isRequired,
+  subtitle: PropTypes.node,
+  align: PropTypes.oneOf(['start', 'end', 'center']),
+  onHomeClick: PropTypes.func,
+  homeAriaLabel: PropTypes.string,
+};

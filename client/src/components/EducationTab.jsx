@@ -34,6 +34,8 @@ import {
   SummaryStack,
 } from '../ui/index.js';
 import { formatDate } from '../lib/date.js';
+import PropTypes from 'prop-types';
+import { translationFnPropType } from '../lib/reportPropTypes.js';
 
 const AGE_KEYS = ['toddlers', 'kindergarten', 'elementary', 'highschool'];
 
@@ -140,6 +142,13 @@ function CommentsTable({ comments, t, lang: _lang, showSettlement = true }) {
     <GridTable columns={columns} rows={comments} gridTemplateColumns={gridTemplateColumns} textAlign="right" />
   );
 }
+
+CommentsTable.propTypes = {
+  comments: PropTypes.arrayOf(PropTypes.object),
+  t: translationFnPropType,
+  lang: PropTypes.string,
+  showSettlement: PropTypes.bool,
+};
 
 export function EducationTab() {
   const { getIdToken, apiReady } = useAuth();

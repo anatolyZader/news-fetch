@@ -1,8 +1,8 @@
 /**
  * SQLite persistence for mailing preferences (per Firebase uid).
  */
-import { mkdirSync } from 'fs';
-import { dirname } from 'path';
+import { mkdirSync } from 'node:fs';
+import { dirname } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 
 const DDL = `

@@ -1,4 +1,5 @@
 import Typography from '@mui/material/Typography';
+import PropTypes from 'prop-types';
 
 const VARIANT_STYLES = {
   default: (theme) => ({
@@ -28,3 +29,10 @@ export function SectionHeading({ children, variant = 'default', as = 'h3', sx })
     </Typography>
   );
 }
+
+SectionHeading.propTypes = {
+  children: PropTypes.node,
+  variant: PropTypes.oneOf(['default', 'plain']),
+  as: PropTypes.string,
+  sx: PropTypes.oneOfType([PropTypes.object, PropTypes.func]),
+};

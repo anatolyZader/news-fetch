@@ -1,13 +1,26 @@
 import Alert from '@mui/material/Alert';
 import Typography from '@mui/material/Typography';
+import PropTypes from 'prop-types';
 
-export function LoadingState({ children = 'Loading...' }) {
+function MutedTypography({ children }) {
   return (
     <Typography variant="body2" color="text.secondary">
       {children}
     </Typography>
   );
 }
+
+MutedTypography.propTypes = {
+  children: PropTypes.node,
+};
+
+export function LoadingState({ children = 'Loading...' }) {
+  return <MutedTypography>{children}</MutedTypography>;
+}
+
+LoadingState.propTypes = {
+  children: PropTypes.node,
+};
 
 export function ErrorState({ children }) {
   return (
@@ -17,10 +30,14 @@ export function ErrorState({ children }) {
   );
 }
 
+ErrorState.propTypes = {
+  children: PropTypes.node,
+};
+
 export function EmptyState({ children }) {
-  return (
-    <Typography variant="body2" color="text.secondary">
-      {children}
-    </Typography>
-  );
+  return <MutedTypography>{children}</MutedTypography>;
 }
+
+EmptyState.propTypes = {
+  children: PropTypes.node,
+};

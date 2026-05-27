@@ -13,9 +13,9 @@
  */
 
 import 'dotenv/config';
-import { basename, dirname, extname, resolve } from 'path';
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
-import { fileURLToPath } from 'url';
+import { basename, dirname, extname, resolve } from 'node:path';
+import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 
 import { extractSignals } from '../../resilience/infrastructure/claudeEvaluator.js';
 import { createCostTracker, appendCostLog, checkDailyBudget } from '../../../cross-cut-modules/budget/index.js';

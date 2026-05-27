@@ -6,10 +6,10 @@
  * - turn_history: JSON array of {role:'officer'|'bot', text, ts}
  * - approved_draft: the Hebrew prose draft shown/approved by user
  */
-import { mkdirSync } from 'fs';
-import { dirname } from 'path';
+import { mkdirSync } from 'node:fs';
+import { dirname } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
-import { randomUUID } from 'crypto';
+import { randomUUID } from 'node:crypto';
 
 const DDL = `
 CREATE TABLE IF NOT EXISTS report_build_drafts (

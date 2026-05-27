@@ -1,6 +1,7 @@
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Chip from '@mui/material/Chip';
+import PropTypes from 'prop-types';
 
 export function FilterPill({
   active = false,
@@ -35,6 +36,14 @@ export function FilterPill({
     />
   );
 }
+
+FilterPill.propTypes = {
+  active: PropTypes.bool,
+  onClick: PropTypes.func,
+  children: PropTypes.node,
+  size: PropTypes.string,
+  tone: PropTypes.string,
+};
 
 export function FilterPillGroup({ children, label, spacing = 0.5, wrap = true, center = false }) {
   if (center) {
@@ -84,3 +93,11 @@ export function FilterPillGroup({ children, label, spacing = 0.5, wrap = true, c
     </Stack>
   );
 }
+
+FilterPillGroup.propTypes = {
+  children: PropTypes.node,
+  label: PropTypes.string,
+  spacing: PropTypes.number,
+  wrap: PropTypes.bool,
+  center: PropTypes.bool,
+};

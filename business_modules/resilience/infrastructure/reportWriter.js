@@ -2,245 +2,31 @@
  * Writes the resilience assessment as both a Markdown report and a JSON data file.
  */
 
-import { writeFileSync, mkdirSync } from 'fs';
-import { dirname } from 'path';
-import { RESILIENCE_COMPONENTS } from '../domain/resilienceComponents.js';
-import { summarizeConfidence } from '../domain/services/behaviorSignals.js';
-import {
-  COMPONENTS_TABLE_HELP_MARKDOWN,
-  EVIDENCE_LEVEL_INLINE_NOTE,
-} from '../../../shared/componentsTableGlossary.js';
+import { writeFileSync, mkdirSync } from 'node:fs';
+import { dirname } from 'node:path';
 import { collectGeoVersionsFromSignals } from '../../../cross-cut-modules/geo/signalGeoSummary.js';
-
-const COMPONENT_MAP = Object.fromEntries(RESILIENCE_COMPONENTS.map((c) => [c.id, c]));
+import {
+  appendReportHeader,
+  appendMethodologyBlock,
+  appendNorrisSection,
+  appendComponentsTable,
+  appendComponentDetails,
+  appendMacroAndCaveats,
+} from './reportWriterSections.js';
 
 function evidenceDirection(pos, neg) {
   const p = Math.round((pos ?? 0) * 10) / 10;
   const n = Math.round((neg ?? 0) * 10) / 10;
   if (p === 0 && n === 0) return 'no evidence';
-  const label = p > n ? 'more supporting than opposing' : p < n ? 'more opposing than supporting' : 'evenly split';
+  let label;
+  if (p > n) {
+    label = 'more supporting than opposing';
+  } else if (p < n) {
+    label = 'more opposing than supporting';
+  } else {
+    label = 'evenly split';
+  }
   return `${label} *(supporting: ${p}, opposing: ${n})*`;
-}
-
-/**
- * @param {object} assessment
- * @param {string[]} sourceFiles
- * @param {{ includeScores?: boolean }} [opts] When false, narrative-focused brief (no /10).
- */
-export function buildMarkdown(assessment, sourceFiles, { includeScores = true } = {}) {
-  const lines = [];
-
-  // ── Header ────────────────────────────────────────────────────────────────
-  const kind = assessment.content_kind ?? 'news';
-  lines.push(
-    `# Population Resilience Assessment`,
-    ``,
-    `| Field | Value |`,
-    `|-------|-------|`,
-    `| **Date** | ${assessment.date} |`,
-    `| **Scope** | ${assessment.report_scope?.label ?? 'National'} |`,
-    `| **Content kind** | ${kind} |`,
-    `| **Sources** | ${sourceFiles.join(', ')} |`,
-    `| **Articles analyzed** | ${assessment.total_articles_analyzed} |`,
-    ``,
-    `---`,
-    ``,
-  );
-
-  if (assessment.methodology) {
-    const m = assessment.methodology;
-    lines.push(
-      `## Methodology (phase 1)`,
-      ``,
-      `**Phase:** ${m.phase ?? 'national_and_north_only'}. **Weights:** ${m.scoring?.weights ?? 'author_set'} (not crisis-fitted). **Tuning:** ${m.scoring?.tuning ?? 'heuristic'} (advisory proposals only).`,
-      ``,
-      m.epistemic?.reliability_instruments ?? '',
-      ``,
-    );
-    if (!includeScores && m.governance?.headline_scores_are) {
-      lines.push(`> **Operator brief:** ${m.governance.headline_scores_are}`, ``);
-    }
-    if (!includeScores && m.norris_lens?.not_same_as) {
-      lines.push(
-        `> **Norris lens:** ${m.norris_lens.measures ?? ''}. Not the same as ${m.norris_lens.not_same_as}.`,
-        ``,
-      );
-    }
-    const sds = m.scope?.scope_decision_summary;
-    if (sds?.by_source) {
-      const parts = Object.entries(sds.by_source).map(([k, n]) => `${k}: ${n}`);
-      lines.push(`**Scope decisions:** ${parts.join('; ')}.`, ``);
-    }
-    lines.push(`---`, ``);
-  }
-
-  // ── Executive summary ─────────────────────────────────────────────────────
-  lines.push(`## Executive Summary`, ``, assessment.cross_component_synthesis, ``, `---`, ``);
-
-  // ── Norris capacities (additive layer) ────────────────────────────────────
-  if (Array.isArray(assessment.norris_capacities) && assessment.norris_capacities.length > 0) {
-    lines.push(
-      `## Norris capacities`,
-      ``,
-      `This section is an additive Norris et al. (2008) lens. It does not replace the 8-component scores.`,
-      ``,
-    );
-
-    for (const cap of assessment.norris_capacities) {
-      const certStr = cap.certainty != null ? `${Math.round(cap.certainty * 100)}%` : '—';
-      const massStr = cap.evidence_mass != null ? `${Math.round(cap.evidence_mass * 10) / 10}` : '—';
-
-      const diag = cap.diagnostics ?? {};
-      const robustness = diag.robustness != null ? diag.robustness.toFixed(2) : '—';
-      const redundancy = diag.redundancy != null ? diag.redundancy.toFixed(2) : '—';
-      const rapidity = diag.rapidity != null ? diag.rapidity.toFixed(2) : '—';
-
-      const headerMetrics = includeScores
-        ? `**Score:** ${cap.score != null ? `${cap.score.toFixed(1)}/10` : '—'}  |  **Evidence level:** ${certStr}  |  **Evidence mass:** ${massStr}`
-        : `**Evidence level:** ${certStr}  |  **Evidence mass:** ${massStr} *(numeric Norris scores omitted in brief)*`;
-
-      lines.push(
-        `### ${cap.label_en ?? cap.capacity_id}`,
-        `*${cap.label_he ?? ''}*`,
-        ``,
-        headerMetrics,
-        `**Diagnostics (4Rs indices):** robustness ${robustness}, redundancy ${redundancy}, rapidity ${rapidity}`,
-      );
-
-      if (cap.top_contributors?.length) {
-        lines.push(``, `**Top contributors:**`);
-        for (const t of cap.top_contributors.slice(0, 3)) {
-          const url = t.article_url ? ` ([source](${t.article_url}))` : '';
-          const c = t._contribution_raw != null ? `${t._contribution_raw.toFixed(2)}` : '—';
-          const comp = t.component_id ? ` (${t.component_id})` : '';
-          lines.push(`- \`${t.signal_type ?? 'unknown'}\`${comp}: "${t.evidence ?? ''}" — contribution ${c}${url}`);
-        }
-      }
-
-      lines.push(``, `---`, ``);
-    }
-  }
-
-  // ── Component overview table ───────────────────────────────────────────────
-  if (includeScores) {
-    lines.push(`## Components`, ``, COMPONENTS_TABLE_HELP_MARKDOWN, ``, `| # | Component | עברית | Assessment reliability | Evidence level | Evidence base | Article coverage |`,
-      `|---|-----------|-------|------------------------|----------------|---------------|------------------|`,
-    );
-  } else {
-    lines.push(`## Components`, ``, `| # | Component | עברית | Assessment reliability | Evidence base | Article coverage |`,
-      `|---|-----------|-------|------------------------|---------------|------------------|`,
-    );
-  }
-  (assessment.components ?? []).forEach((comp, i) => {
-    const def = COMPONENT_MAP[comp.component_id] ?? {};
-    const coveragePct = comp.coverage_ratio != null ? `${(comp.coverage_ratio * 100).toFixed(0)}%` : '—';
-    const certPct = comp.certainty != null ? `${(comp.certainty * 100).toFixed(0)}%` : '—';
-  if (includeScores) {
-    lines.push(
-      `| ${i + 1} | ${def.name_en ?? comp.component_id} | ${def.name_he ?? ''} | ${summarizeConfidence(comp.confidence)} | ${certPct} | ${comp.signal_count ?? 0} signals | ${comp.distinct_article_count ?? '—'}/${assessment.total_articles_analyzed} (${coveragePct}) |`,
-    );
-  } else {
-    lines.push(
-      `| ${i + 1} | ${def.name_en ?? comp.component_id} | ${def.name_he ?? ''} | ${summarizeConfidence(comp.confidence)} | ${comp.signal_count ?? 0} signals | ${comp.distinct_article_count ?? '—'}/${assessment.total_articles_analyzed} (${coveragePct}) |`,
-    );
-  }
-  });
-  lines.push(``, `---`, ``);
-
-  // ── Per-component detail ──────────────────────────────────────────────────
-  lines.push(`## Detailed Analysis`, ``);
-
-  for (const comp of assessment.components ?? []) {
-    const def = COMPONENT_MAP[comp.component_id] ?? {};
-
-    const coveragePct = comp.coverage_ratio != null ? `${(comp.coverage_ratio * 100).toFixed(1)}%` : '—';
-    const articleCoverage = `${comp.distinct_article_count ?? '—'} of ${assessment.total_articles_analyzed}`;
-    const certPct = comp.certainty != null ? `${(comp.certainty * 100).toFixed(0)}%` : '—';
-    const spreadLabel = (comp.dispersion ?? '—').replace(/_/g, ' ');
-
-    lines.push(
-      `### ${i18n(comp.component_id)} ${def.name_en ?? comp.component_id}`,
-      `*${def.name_he ?? ''}*`,
-      ``,
-    );
-
-    if (includeScores) {
-      const scoreCi = comp.score != null && comp.score_low != null && comp.score_high != null
-        ? `**Score:** ${comp.score}/10  *(90% CI: ${comp.score_low}–${comp.score_high})*`
-        : (comp.score != null ? `**Score:** ${comp.score}/10` : '');
-      if (scoreCi) lines.push(scoreCi, ``);
-      if (comp.score_smoothed != null && comp.score_smoothed !== comp.score) {
-        lines.push(`**Smoothed score (EWMA):** ${comp.score_smoothed}/10`, ``);
-      }
-    }
-
-    if (comp.floor_clamped === true) {
-      lines.push(includeScores
-        ? `> **Note — thin evidence:** the score is constrained to [3, 8] because total evidence mass for this component was below the floor threshold. Treat the headline cautiously.`
-        : `> **Note — thin evidence:** evidence mass is below the floor threshold; treat this component cautiously.`);
-    }
-    if (includeScores && comp.ci_unstable === true) {
-      lines.push(`> **Note — CI unstable:** more than 20% of bootstrap resamples produced no score; the displayed CI is a widened fallback.`);
-    }
-
-    const evidenceLevelPart = includeScores
-      ? ` | **Evidence level:** ${certPct} *(${EVIDENCE_LEVEL_INLINE_NOTE})*`
-      : '';
-    lines.push(
-      `**Assessment reliability:** ${summarizeConfidence(comp.confidence)} *(based on how much evidence was found and how broadly it appears across the sample)*${evidenceLevelPart}`,
-      `**Evidence base:** ${comp.signal_count ?? 0} behavioral signals found in ${articleCoverage} articles *(${coveragePct} of today's sample, ${spreadLabel} spread across sources)* | **Evidence direction:** ${evidenceDirection(comp.positive_evidence, comp.negative_evidence)}`,
-    );
-
-    if (comp.polarization != null && comp.polarization > 0.5 && (comp.evidence_mass ?? 0) > 4) {
-      lines.push(
-        includeScores
-          ? `> **Note — contested evidence:** positive and negative observations are split (polarization ${comp.polarization.toFixed(2)}); this score reflects an unresolved disagreement, not a single direction.`
-          : `> **Note — contested evidence:** positive and negative observations are split; narrative should reflect unresolved disagreement.`,
-      );
-    }
-
-    if (includeScores && comp.delta_score != null) {
-      const sign = comp.delta_score > 0 ? '+' : '';
-      const z = comp.delta_significance != null ? `, z=${comp.delta_significance.toFixed(2)}` : '';
-      const flag = comp.delta_flag === 'significant' ? '  **(significant vs 14-day baseline)**' : '';
-      lines.push(`**Δ vs prior day:** ${sign}${comp.delta_score}${z}${flag}`);
-    } else if (!includeScores && comp.delta_flag === 'significant') {
-      lines.push(`**Δ vs prior day:** significant change vs 14-day baseline *(magnitude hidden in brief)*`);
-    }
-
-    if (includeScores && comp.counterfactual_delta != null && Math.abs(comp.counterfactual_delta) >= 1) {
-      const cfSign = comp.counterfactual_delta > 0 ? '+' : '';
-      lines.push(
-        `**Sensitivity:** removing the dominant article would change this score by ${cfSign}${comp.counterfactual_delta} ` +
-        `*(article: ${comp.counterfactual_article_key ?? 'n/a'})*`,
-      );
-    }
-
-    if (comp.facets) {
-      const facetLines = Object.entries(comp.facets).map(([name, f]) => (
-        includeScores
-          ? `- *${name}:* ${f.score != null ? `${f.score}/10` : '—'} (${f.signal_count ?? 0} signals)`
-          : `- *${name}:* ${f.signal_count ?? 0} signals`
-      ));
-      if (facetLines.length > 0) {
-        lines.push(``, `**Facets:**`, ...facetLines);
-      }
-    }
-
-    lines.push(``, comp.narrative, ``);
-
-    if (comp.evidence?.length) {
-      comp.evidence.forEach((e) => lines.push(`- ${e}`));
-      lines.push(``);
-    }
-
-    lines.push(`---`, ``);
-  }
-
-  // ── Evidence Quality ──────────────────────────────────────────────────────
-  lines.push(`## Evidence Quality`, ``, assessment.evidence_quality_note ?? '', ``);
-
-  return lines.join('\n');
 }
 
 function i18n(componentId) {
@@ -258,6 +44,26 @@ function i18n(componentId) {
 }
 
 /**
+ * @param {object} assessment
+ * @param {string[]} sourceFiles
+ * @param {{ includeScores?: boolean }} [opts] When false, narrative-focused brief (no /10).
+ */
+export function buildMarkdown(assessment, sourceFiles, { includeScores = true } = {}) {
+  const lines = [];
+  const formatters = { evidenceDirection, i18n };
+
+  appendReportHeader(lines, assessment, sourceFiles);
+  appendMethodologyBlock(lines, assessment, includeScores);
+  lines.push(`## Executive Summary`, ``, assessment.cross_component_synthesis, ``, `---`, ``);
+  appendNorrisSection(lines, assessment, includeScores);
+  appendComponentsTable(lines, assessment, includeScores);
+  appendComponentDetails(lines, assessment, includeScores, formatters);
+  appendMacroAndCaveats(lines, assessment);
+
+  return lines.join('\n');
+}
+
+/**
  * Append a signal-level appendix with article links.
  */
 export function buildSignalAppendix(signals) {
@@ -265,14 +71,14 @@ export function buildSignalAppendix(signals) {
 
   const lines = [``, `---`, ``, `## Signal Evidence (with article links)`, ``];
 
-  // Group by signal type for readability
   const byType = {};
   for (const s of signals) {
     if (!byType[s.signal_type]) byType[s.signal_type] = [];
     byType[s.signal_type].push(s);
   }
 
-  for (const [type, items] of Object.entries(byType).sort()) {
+  const sortedTypes = Object.entries(byType).sort(([a], [b]) => a.localeCompare(b));
+  for (const [type, items] of sortedTypes) {
     lines.push(`### \`${type}\` (${items.length})`);
     for (const s of items) {
       const url = s.article_url && s.article_url !== '(no url)' && s.article_url !== 'null'

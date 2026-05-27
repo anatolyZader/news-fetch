@@ -6,16 +6,17 @@ import Stack from '@mui/material/Stack';
 import IconButton from '@mui/material/IconButton';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import { ResizableFrame } from './ResizableFrame.jsx';
+import PropTypes from 'prop-types';
 
-function getInitialSize(initialWidth, initialHeight) {
-  const iw = initialWidth ?? 900;
-  const ih = initialHeight ?? 640;
-  if (typeof window === 'undefined') {
-    return { w: iw, h: ih };
+const browserWindow = globalThis.window;
+
+function getInitialSize(initialWidth = 900, initialHeight = 640) {
+  if (browserWindow == null) {
+    return { w: initialWidth, h: initialHeight };
   }
   return {
-    w: Math.min(iw, window.innerWidth - 32),
-    h: Math.min(ih, Math.floor(window.innerHeight * 0.88)),
+    w: Math.min(initialWidth, browserWindow.innerWidth - 32),
+    h: Math.min(initialHeight, Math.floor(browserWindow.innerHeight * 0.88)),
   };
 }
 
@@ -39,12 +40,12 @@ export function ModalPanel({
   const paperRef = useRef(null);
 
   const clampSize = useCallback((next) => {
-    if (typeof window === 'undefined') {
+    if (browserWindow == null) {
       setSize({ w: next.width, h: next.height });
       return;
     }
-    const maxW = window.innerWidth - 32;
-    const maxH = Math.floor(window.innerHeight * 0.92);
+    const maxW = browserWindow.innerWidth - 32;
+    const maxH = Math.floor(browserWindow.innerHeight * 0.92);
     setSize({
       w: Math.max(400, Math.min(maxW, next.width)),
       h: Math.max(320, Math.min(maxH, next.height)),
@@ -179,11 +180,28 @@ export function ModalPanel({
           onSize={clampSize}
           minWidth={400}
           minHeight={320}
-          maxWidth={typeof window !== 'undefined' ? window.innerWidth - 32 : 2000}
-          maxHeight={typeof window !== 'undefined' ? Math.floor(window.innerHeight * 0.92) : 2000}
+          maxWidth={browserWindow ? browserWindow.innerWidth - 32 : 2000}
+          maxHeight={browserWindow ? Math.floor(browserWindow.innerHeight * 0.92) : 2000}
           zIndex={3}
         />
       </Box>
     </Dialog>
   );
 }
+
+ModalPanel.propTypes = {
+  open: PropTypes.bool,
+  onClose: PropTypes.func,
+  title: PropTypes.node,
+  ariaLabel: PropTypes.string,
+  initialWidth: PropTypes.number,
+  initialHeight: PropTypes.number,
+  zIndex: PropTypes.number,
+  headerRight: PropTypes.node,
+  showCloseButton: PropTypes.bool,
+  closeLabel: PropTypes.string,
+  modeless: PropTypes.bool,
+  minimizeOnOutsideClick: PropTypes.bool,
+  disableBackdropClose: PropTypes.bool,
+  children: PropTypes.node,
+};

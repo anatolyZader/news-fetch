@@ -1,8 +1,8 @@
 /**
  * SQLite persistence for signals extracted from real-time WhatsApp messages.
  */
-import { mkdirSync } from 'fs';
-import { dirname } from 'path';
+import { mkdirSync } from 'node:fs';
+import { dirname } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 
 import { denormalizedGeoColumns } from '../../../cross-cut-modules/geo/geoSqliteColumns.js';

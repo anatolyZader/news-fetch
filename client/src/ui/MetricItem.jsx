@@ -1,6 +1,7 @@
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import PropTypes from 'prop-types';
 
 /**
  * Single inline KPI: eyebrow label above a kpiValue.
@@ -23,6 +24,11 @@ export function MetricItem({ label, value }) {
   );
 }
 
+MetricItem.propTypes = {
+  label: PropTypes.node.isRequired,
+  value: PropTypes.node.isRequired,
+};
+
 /**
  * Horizontal stack of MetricItems with an optional trailing hairline.
  */
@@ -44,3 +50,11 @@ export function SummaryStack({ items, divider = true }) {
     </Stack>
   );
 }
+
+SummaryStack.propTypes = {
+  items: PropTypes.arrayOf(PropTypes.shape({
+    label: PropTypes.node.isRequired,
+    value: PropTypes.node.isRequired,
+  })).isRequired,
+  divider: PropTypes.bool,
+};

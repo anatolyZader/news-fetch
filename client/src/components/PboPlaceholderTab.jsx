@@ -1,6 +1,7 @@
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import { useLanguage } from '../context/LanguageContext.jsx';
+import PropTypes from 'prop-types';
 
 /** Placeholder body for PBO views that are not implemented yet. */
 export function PboPlaceholderTab({ messageKey, messageValues }) {
@@ -19,3 +20,8 @@ export function PboPlaceholderTab({ messageKey, messageValues }) {
     </Box>
   );
 }
+
+PboPlaceholderTab.propTypes = {
+  messageKey: PropTypes.string.isRequired,
+  messageValues: PropTypes.object,
+};

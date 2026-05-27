@@ -14,8 +14,8 @@
  * Each row becomes one source document for one municipal visit.
  */
 
-import { mkdirSync, readFileSync, writeFileSync } from 'fs';
-import { basename, dirname, resolve } from 'path';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { basename, dirname, resolve } from 'node:path';
 import { read, utils } from 'xlsx';
 
 const args = process.argv.slice(2);
@@ -34,7 +34,7 @@ let rows = utils.sheet_to_json(ws, { defval: '' });
 
 // If the first row's values look like column names (all __EMPTY_* keys), the real
 // header row is row 2 — re-parse starting from that row.
-if (rows.length > 0 && Object.keys(rows[0]).every((k) => /^__EMPTY/.test(k))) {
+if (rows.length > 0 && Object.keys(rows[0]).every((k) => k.startsWith('__EMPTY'))) {
   rows = utils.sheet_to_json(ws, { defval: '', range: 1 });
 }
 
@@ -45,13 +45,13 @@ if (rows.length === 0) {
 
 function parseDate(val) {
   if (!val) return null;
-  if (val instanceof Date) return isNaN(val) ? null : val;
+  if (val instanceof Date) return Number.isNaN(val.getTime()) ? null : val;
   // Excel stores dates as numeric serial numbers (days since 1899-12-30).
   if (typeof val === 'number' && val > 1000) {
     return new Date((val - 25569) * 86400 * 1000);
   }
   const d = new Date(val);
-  return isNaN(d) ? null : d;
+  return Number.isNaN(d.getTime()) ? null : d;
 }
 
 const allDates = rows.map((r) => parseDate(r.date)).filter(Boolean);
@@ -90,21 +90,24 @@ for (const row of rows) {
 
   if (!analysis) continue;
 
-  const title = `${municipality}${region ? ` — ${region}` : ''}`;
+  const regionSuffix = region ? ` — ${region}` : '';
+  const title = `${municipality}${regionSuffix}`;
   const source = team || 'field-team';
   const bodyParts = [];
   if (stakeholders) bodyParts.push(`גורמים שנפגשו: ${stakeholders}`);
   bodyParts.push(analysis);
 
-  lines.push(`## ${count + 1}. ${title}`);
-  lines.push(``);
-  lines.push(`- **Published:** ${visitDate}T12:00:00Z`);
-  lines.push(`- **Source:** ${source}`);
-  lines.push(``);
-  lines.push(bodyParts.join('\n\n'));
-  lines.push(``);
-  lines.push(`---`);
-  lines.push(``);
+  lines.push(
+    `## ${count + 1}. ${title}`,
+    '',
+    `- **Published:** ${visitDate}T12:00:00Z`,
+    `- **Source:** ${source}`,
+    '',
+    bodyParts.join('\n\n'),
+    '',
+    '---',
+    '',
+  );
   count++;
 }
 
@@ -112,4 +115,5 @@ mkdirSync(dirname(outputPath), { recursive: true });
 writeFileSync(outputPath, lines.join('\n'), 'utf-8');
 console.error(`Wrote ${count} field-report visits to ${outputPath}`);
 console.error(`  Latest visit date: ${latestDate}`);
-console.error(`  Run analysis with: npm run analyze-resilience -- --date YYYY-MM-DD --field-reports ${basename(outputPath)}`);
+console.error(`  Run analysis with: npm run extract-signals -- --source-type field --files ${basename(outputPath)} --date YYYY-MM-DD`);
+console.error(`  Then: npm run assess-signals -- --date YYYY-MM-DD --days 3 --scope north`);

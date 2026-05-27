@@ -1,33 +1,51 @@
 #!/usr/bin/env node
+/**
+ * Smoke test for the production pipeline: extract-signals → assess-signals.
+ * Requires ANTHROPIC_API_KEY and articles-homefront.md (run homefront-to-md first).
+ */
 import 'dotenv/config';
-import { runAnalysis } from '../api/analysisService.js';
-import { createEvidenceStore } from '../cross-cut-modules/persistence/evidenceStore.js';
+import { execSync } from 'node:child_process';
+import { existsSync } from 'node:fs';
+import { resolve } from 'node:path';
 
-const store = createEvidenceStore('data/app.sqlite');
-const today = '2026-03-22';
+import { getCachedReport } from '../api/analysisService.js';
 
-console.log('=== E2E test: DB-backed multi-source analysis ===');
-const items = store.getByDate(today);
-const types = [...new Set(items.map(i => i.source_type))];
-console.log(`DB: ${items.length} items | types: ${types.join(', ')}`);
+const newsFile = resolve('business_modules/news-sites/articles_extracted/articles-homefront.md');
+const today = new Date().toISOString().slice(0, 10);
 
-const { assessment, costUsd, date } = await runAnalysis({
-  store,
-  onProgress: (e) => {
-    if (e.type === 'progress') console.log(`[${e.step}] ${e.message}`);
-    else if (e.type === 'usage') console.log(`[cost] $${e.costUsd.toFixed(4)}`);
-  },
-});
+console.log('=== E2E test: extract-signals → assess-signals ===');
 
-console.log(`\n✅ Analysis complete for ${date}`);
-console.log(`Overall score: ${assessment.overallScore ?? assessment.overall_score}`);
-console.log(`Cost: $${costUsd.toFixed(4)}`);
-(assessment.components ?? []).forEach(c => console.log(`  ${c.id || c.name}: ${c.score}`));
-
-const run = store.getLatestRunForDate(today);
-console.log(`\nDB run saved: ${run ? 'yes' : 'NO — ERROR'}`);
-if (run) {
-  console.log(`  sourceTypes: ${run.sourceTypes?.join(', ')}`);
-  console.log(`  totalItems: ${run.totalItems}`);
-  console.log(`  totalSignals: ${run.totalSignals}`);
+if (!process.env.ANTHROPIC_API_KEY?.trim()) {
+  console.error('SKIP: ANTHROPIC_API_KEY not set');
+  process.exit(0);
 }
+
+if (!existsSync(newsFile)) {
+  console.error(`SKIP: ${newsFile} not found — run npm run homefront-to-md first`);
+  process.exit(0);
+}
+
+console.log(`Extracting signals from ${newsFile}...`);
+execSync(
+  `node business_modules/resilience/input/extract-signals.js --source-type news --files ${newsFile} --date ${today}`,
+  { stdio: 'inherit' },
+);
+
+console.log(`Assessing signals for ${today}...`);
+execSync(
+  `node business_modules/resilience/input/assess-signals.js --date ${today} --days 1 --scope national`,
+  { stdio: 'inherit' },
+);
+
+const cached = getCachedReport(null, { scope: 'national' });
+if (!cached?.assessment) {
+  console.error('NO report found after assess-signals');
+  process.exit(1);
+}
+
+const assessment = cached.assessment;
+console.log(`\n✅ Pipeline complete for ${cached.reportDate ?? today}`);
+console.log(`Overall score: ${assessment.overallScore ?? assessment.overall_score}`);
+(assessment.components ?? []).forEach((c) => {
+  console.log(`  ${c.id || c.name}: ${c.score}`);
+});

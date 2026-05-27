@@ -16,6 +16,7 @@ import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import { alpha } from '@mui/material/styles';
 import { useChat } from '../hooks/useChat.js';
 import { useLanguage } from '../context/LanguageContext.jsx';
+import PropTypes from 'prop-types';
 
 export function ChatPanel({ reportScope, onClose }) {
   const {
@@ -491,6 +492,11 @@ export function ChatPanel({ reportScope, onClose }) {
   );
 }
 
+ChatPanel.propTypes = {
+  reportScope: PropTypes.object,
+  onClose: PropTypes.func,
+};
+
 function ChatAvatar({ isUser }) {
   return (
     <Box
@@ -516,6 +522,10 @@ function ChatAvatar({ isUser }) {
   );
 }
 
+ChatAvatar.propTypes = {
+  isUser: PropTypes.bool,
+};
+
 function ChatActionButton({ onClick, color, children }) {
   return (
     <Button
@@ -539,6 +549,12 @@ function ChatActionButton({ onClick, color, children }) {
     </Button>
   );
 }
+
+ChatActionButton.propTypes = {
+  onClick: PropTypes.func,
+  color: PropTypes.string,
+  children: PropTypes.node,
+};
 
 function ChatRow({ msg, streaming = false, activeSessionId, onCopy, onEdit, onDelete }) {
   const isUser = msg.role === 'user';
@@ -643,3 +659,17 @@ function ChatRow({ msg, streaming = false, activeSessionId, onCopy, onEdit, onDe
     </Box>
   );
 }
+
+ChatRow.propTypes = {
+  msg: PropTypes.shape({
+    role: PropTypes.string,
+    content: PropTypes.string,
+    id: PropTypes.string,
+    error: PropTypes.bool,
+  }).isRequired,
+  streaming: PropTypes.bool,
+  activeSessionId: PropTypes.string,
+  onCopy: PropTypes.func,
+  onEdit: PropTypes.func,
+  onDelete: PropTypes.func,
+};

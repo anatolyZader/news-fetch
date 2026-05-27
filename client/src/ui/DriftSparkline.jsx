@@ -3,6 +3,7 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import { useTheme } from '@mui/material/styles';
 import { scoreColor10 } from '../lib/score.js';
+import PropTypes from 'prop-types';
 
 export function DriftSparkline({
   series,
@@ -54,7 +55,7 @@ export function DriftSparkline({
   function sx(x) { return padX + (x / xMax) * (W - 2 * padX); }
   function sy(y) { return plotH - padY - ((y - yMin) / (yMax - yMin)) * (plotH - 2 * padY); }
 
-  const last = points[points.length - 1];
+  const last = points.at(-1);
   const lastColor = variant === 'unit01'
     ? theme.palette.primary.main
     : scoreColor10(last.y, theme);
@@ -77,6 +78,12 @@ export function DriftSparkline({
   }
   if (seg.length > 0) segments.push(seg);
 
+  const pointFill = (p) => {
+    if (p.y == null || Number.isNaN(p.y)) return theme.palette.action.disabled;
+    if (variant === 'unit01') return theme.palette.text.secondary;
+    return scoreColor10(p.y, theme);
+  };
+
   return (
     <Box ref={containerRef} sx={{ width: '100%', minWidth: 0, display: 'block' }}>
       <svg
@@ -91,9 +98,9 @@ export function DriftSparkline({
         <line x1={padX} y1={plotH - padY} x2={W - padX} y2={plotH - padY} stroke={theme.palette.divider} strokeWidth={1} />
         <line x1={padX} y1={padY} x2={padX} y2={plotH - padY} stroke={theme.palette.divider} strokeWidth={1} />
 
-        {rows.map((p, idx) => (
+        {rows.map((p) => (
           <line
-            key={idx}
+            key={`tick-${p.date ?? p.x}`}
             x1={sx(p.x)}
             y1={plotH - padY}
             x2={sx(p.x)}
@@ -103,9 +110,9 @@ export function DriftSparkline({
           />
         ))}
 
-        {segments.map((s, i) => (
+        {segments.map((s) => (
           <polyline
-            key={i}
+            key={`seg-${s[0]?.date ?? s[0]?.x}-${s.length}`}
             points={s.map((p) => `${sx(p.x).toFixed(1)},${sy(p.y).toFixed(1)}`).join(' ')}
             fill="none"
             stroke={theme.palette.text.secondary}
@@ -113,24 +120,22 @@ export function DriftSparkline({
           />
         ))}
 
-        {rows.map((p, i) => {
+        {rows.map((p) => {
           const has = p.y != null && !Number.isNaN(p.y);
           const y = has ? sy(p.y) : (plotH - padY);
-          const fill = has
-            ? (variant === 'unit01' ? theme.palette.text.secondary : scoreColor10(p.y, theme))
-            : theme.palette.action.disabled;
+          const fill = pointFill(p);
           const r = has ? 2.5 : 2;
           const opacity = has ? 1 : 0.55;
           return (
-            <circle key={i} cx={sx(p.x)} cy={y} r={r} fill={fill} opacity={opacity} />
+            <circle key={`pt-${p.date ?? p.x}`} cx={sx(p.x)} cy={y} r={r} fill={fill} opacity={opacity} />
           );
         })}
 
         <circle cx={sx(last.x)} cy={sy(last.y)} r={4} fill={lastColor} />
 
-        {rows.map((p, i) => (
+        {rows.map((p) => (
           <text
-            key={`lbl-${i}`}
+            key={`lbl-${p.date ?? p.x}`}
             x={sx(p.x)}
             y={plotH + labelAreaH - 2}
             textAnchor="middle"
@@ -144,3 +149,11 @@ export function DriftSparkline({
     </Box>
   );
 }
+
+DriftSparkline.propTypes = {
+  series: PropTypes.arrayOf(PropTypes.object),
+  t: PropTypes.func,
+  valueKey: PropTypes.string,
+  variant: PropTypes.oneOf(['score10', 'unit01']),
+  height: PropTypes.number,
+};

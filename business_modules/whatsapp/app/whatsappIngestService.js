@@ -11,8 +11,8 @@
  *   Preserved unchanged from the pre-adaptive implementation.
  */
 
-import { mkdirSync, writeFileSync } from 'fs';
-import { resolve } from 'path';
+import { mkdirSync, writeFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { isAllowedGroup, isDmMessage, parseWebhookEntry } from '../domain/services/whatsappMessageFilter.js';
 import { buildAnalysisReply } from '../domain/services/hebrewResponseBuilder.js';
 import { normalizeInboundMessage } from '../domain/conversation/inboundMessageNormalizer.js';

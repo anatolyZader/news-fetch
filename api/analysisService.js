@@ -1,56 +1,16 @@
 /**
- * Analysis service — orchestrates the full resilience analysis pipeline via business_modules/resilience.
+ * Report cache service — loads persisted resilience assessments for the UI/API.
+ * Production runs use `extract-signals` → `assess-signals` (see docs/main_docu_files/pipeline.md).
  */
-import { readFileSync, existsSync, readdirSync, statSync } from 'fs';
-import { resolve, basename, dirname, isAbsolute, join } from 'path';
-import { fileURLToPath } from 'url';
+import { readFileSync, existsSync, readdirSync, statSync } from 'node:fs';
+import { resolve, dirname, isAbsolute, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-import { runResilienceAssessment } from '../business_modules/resilience/app/resilienceAnalysisService.js';
-import { contentBatchFromMdArticles } from '../business_modules/resilience/app/contentBatchFromMdArticles.js';
-import { createAnthropicResilienceLlmAdapter } from '../business_modules/resilience/infrastructure/adapters/anthropicResilienceLlmAdapter.js';
-import { createResilienceReportFsAdapter } from '../business_modules/resilience/infrastructure/adapters/resilienceReportFsAdapter.js';
+const REGEX_SPECIAL_CHARS = /[.*+?^${}()|[\]\\]/g;
 
 import { getTodayInTimezone } from '../utils/dateUtils.js';
-import { loadMdFiles } from '../business_modules/resilience/infrastructure/mdReportsLoader.js';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const DEFAULT_HOMEFRONT_MD = 'business_modules/news-sites/articles_extracted/articles-homefront.md';
-
-/** Same default as extractHomefrontArticles — single merged input for resilience. */
-function resolveHomefrontMdPath() {
-  const raw = (process.env.HOMEFRONT_MD || DEFAULT_HOMEFRONT_MD).trim();
-  return isAbsolute(raw) ? raw : resolve(ROOT, raw);
-}
-
-/** Dedup key aligned with evidence_store unique (url + title fingerprint). */
-function evidenceDedupKey(a) {
-  const u = (a.url ?? '').trim();
-  const t = (a.title ?? '').replace(/[^\u0590-\u05FF\w]/g, '').slice(0, 40);
-  return `${u}|${t}`;
-}
-
-/**
- * Prefer broad news file first, then add DB-only rows (e.g. audio/video) without duplicates.
- * @param {Array<{ title: string, body: string, url?: string, publishedAt?: string, source?: string, sourceFile?: string }>} fileArticles
- * @param {Array<{ title: string, body: string, url?: string, publishedAt?: string, source?: string, sourceFile?: string }>} dbArticles
- */
-function mergeHomefrontAndDbEvidence(fileArticles, dbArticles) {
-  const seen = new Set();
-  const out = [];
-  for (const a of fileArticles) {
-    const k = evidenceDedupKey(a);
-    if (seen.has(k)) continue;
-    seen.add(k);
-    out.push(a);
-  }
-  for (const a of dbArticles) {
-    const k = evidenceDedupKey(a);
-    if (seen.has(k)) continue;
-    seen.add(k);
-    out.push(a);
-  }
-  return out;
-}
 
 /**
  * Read cost-log.jsonl and return per-script totals for the given date.
@@ -78,21 +38,6 @@ function readCostBreakdownForDate(date) {
   }
 }
 
-function countUniqueByTitle(articles) {
-  const seen = new Set();
-  return articles.filter((a) => {
-    const key = a.title.replace(/[^\u0590-\u05FF\w]/g, '').slice(0, 40);
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  }).length;
-}
-
-const PRICING = {
-  'claude-haiku-4-5-20251001': { input: 0.80, output: 4.00 },
-  'claude-opus-4-6':           { input: 15.00, output: 75.00 },
-};
-
 function reportPrefixForScope(scope = 'national') {
   return scope === 'north' ? 'resilience-report-north' : 'resilience-report';
 }
@@ -102,11 +47,6 @@ function resolveReportsDir(opts = {}) {
   const fromEnv = process.env.REPORTS_DIR?.trim();
   if (fromEnv) return isAbsolute(fromEnv) ? fromEnv : resolve(ROOT, fromEnv);
   return resolve(ROOT, 'reports');
-}
-
-function reportPaths(date, { scope = 'national' } = {}) {
-  const base = resolve(ROOT, 'reports', `${reportPrefixForScope(scope)}-${date}`);
-  return { base, json: `${base}.json`, md: `${base}.md` };
 }
 
 function readAssessmentTotalArticles(jsonPath) {
@@ -196,29 +136,40 @@ export function getCachedReport(store, opts = {}) {
   return null;
 }
 
+/** Load markdown sidecar files adjacent to a report JSON path. */
+function _readMarkdownSidecars(jsonPath) {
+  const mdPath = jsonPath.replace(/\.json$/i, '.md');
+  const briefMdPath = jsonPath.replace(/\.json$/i, '-brief.md');
+  let markdown = null;
+  let markdown_brief = null;
+  if (existsSync(mdPath)) {
+    try {
+      markdown = readFileSync(mdPath, 'utf8');
+    } catch {
+      /* ignore */
+    }
+  }
+  if (existsSync(briefMdPath)) {
+    try {
+      markdown_brief = readFileSync(briefMdPath, 'utf8');
+    } catch {
+      /* ignore */
+    }
+  }
+  return { markdown, markdown_brief };
+}
+
 /** Load a report for a specific date from filesystem or store. Returns payload or null. */
 function _loadReportForDate(date, store, { scope = 'national', reportsDir } = {}) {
   const jsonPath = resolveReportJsonPathForDate(date, { scope, reportsDir });
   if (jsonPath && existsSync(jsonPath)) {
-    const parsed = JSON.parse(readFileSync(jsonPath, 'utf-8'));
-    const mdPath = jsonPath.replace(/\.json$/i, '.md');
-    const briefMdPath = jsonPath.replace(/\.json$/i, '-brief.md');
-    let markdown = null;
-    let markdown_brief = null;
-    if (existsSync(mdPath)) {
-      try {
-        markdown = readFileSync(mdPath, 'utf8');
-      } catch {
-        /* ignore */
-      }
+    let parsed;
+    try {
+      parsed = JSON.parse(readFileSync(jsonPath, 'utf-8'));
+    } catch {
+      return null;
     }
-    if (existsSync(briefMdPath)) {
-      try {
-        markdown_brief = readFileSync(briefMdPath, 'utf8');
-      } catch {
-        /* ignore */
-      }
-    }
+    const { markdown, markdown_brief } = _readMarkdownSidecars(jsonPath);
     const costBreakdown = readCostBreakdownForDate(date);
     return {
       ...parsed,
@@ -256,8 +207,8 @@ function _findLatestAvailableReport(today, store, { scope = 'national', reportsD
   }
 
   // Extract unique dates from report filenames, pick the latest one before today
-  const escapedPrefix = reportPrefixForScope(scope).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const datePattern = new RegExp(`^${escapedPrefix}-(\\d{4}-\\d{2}-\\d{2})`);
+  const escapedPrefix = reportPrefixForScope(scope).replace(REGEX_SPECIAL_CHARS, String.raw`\$&`);
+  const datePattern = new RegExp(String.raw`^${escapedPrefix}-(\d{4}-\d{2}-\d{2})`);
   const dates = [...new Set(
     names
       .map((f) => datePattern.exec(f)?.[1])
@@ -272,166 +223,4 @@ function _findLatestAvailableReport(today, store, { scope = 'national', reportsD
   }
 
   return null;
-}
-
-/**
- * Run full analysis pipeline, emitting progress via onProgress(event).
- * onProgress receives plain objects: { type, step?, message, ... }
- *
- * If `store` is provided and has rows for today: **merges** `articles-homefront.md` (or `HOMEFRONT_MD`)
- * with those rows when the file exists (news first, then DB-only items; deduped by URL/title).
- * If the file is missing, uses DB only. If DB is empty for today, loads the MD file only (same as before).
- *
- * Resolves with { assessment, costUsd, date }.
- * @param {{ onProgress?: Function, store?: object }} [opts]
- */
-export async function runAnalysis({ onProgress, store, scope = 'national' } = {}) {
-  if (!process.env.ANTHROPIC_API_KEY) throw new Error('ANTHROPIC_API_KEY not set');
-
-  const timezone = process.env.TZ_ARTICLES || 'Asia/Jerusalem';
-  const date = getTodayInTimezone(timezone);
-
-  let rawArticles;
-  let sourceFiles;
-  let sourceTypes;
-
-  // ── DB + optional homefront merge, else MD file only ───────────────────────
-  if (store && store.hasItemsForDate(date)) {
-    const rows = store.getByDate(date);
-    const typesFromDb = [...new Set(rows.map((r) => r.source_type))];
-    const dbArticles = rows.map((r) => ({
-      title: r.title ?? '(untitled)',
-      body: r.body,
-      url: r.source_url ?? '',
-      publishedAt: r.published_at,
-      source: r.source_label,
-      sourceFile: `db:${r.source_type}`,
-    }));
-
-    const homePath = resolveHomefrontMdPath();
-    let fileArticles = [];
-    if (existsSync(homePath)) {
-      try {
-        fileArticles = loadMdFiles([homePath]).articles;
-      } catch (err) {
-        onProgress?.({
-          type: 'progress',
-          step: 'load',
-          message: `Could not parse ${basename(homePath)}: ${err.message} — using DB only`,
-        });
-      }
-    }
-
-    if (fileArticles.length > 0) {
-      rawArticles = mergeHomefrontAndDbEvidence(fileArticles, dbArticles);
-      sourceTypes = [...new Set([...typesFromDb, 'news'])];
-      sourceFiles = [basename(homePath), ...typesFromDb.map((t) => `db:${t}`)];
-      onProgress?.({
-        type: 'progress',
-        step: 'load',
-        message: `Merged ${fileArticles.length} from ${basename(homePath)} + ${dbArticles.length} from DB → ${rawArticles.length} unique items (${typesFromDb.join(', ')})`,
-      });
-    } else {
-      rawArticles = dbArticles;
-      sourceTypes = typesFromDb;
-      sourceFiles = typesFromDb.map((t) => `db:${t}`);
-      onProgress?.({
-        type: 'progress',
-        step: 'load',
-        message: `Loading ${rows.length} items from DB only (${sourceTypes.join(', ')})${existsSync(homePath) ? ` — ${basename(homePath)} had no parseable articles` : ` — ${basename(homePath)} missing`}`,
-      });
-    }
-  } else {
-    const filePaths = [resolveHomefrontMdPath()];
-    if (!existsSync(filePaths[0])) {
-      throw new Error(
-        'articles-homefront.md not found. Run the home-front ingest (e.g. extract-homefront-articles) or set HOMEFRONT_MD.',
-      );
-    }
-    onProgress?.({ type: 'progress', step: 'load', message: `Loading articles from ${basename(filePaths[0])}...` });
-    const loaded = loadMdFiles(filePaths);
-    rawArticles = loaded.articles;
-    sourceFiles = filePaths.map((f) => basename(f));
-    sourceTypes = ['news'];
-  }
-
-  const uniqueCount = countUniqueByTitle(rawArticles);
-  onProgress?.({
-    type: 'progress',
-    step: 'loaded',
-    message: `${uniqueCount} unique items from ${sourceTypes.join(', ')}`,
-  });
-
-  let totalCostUsd = 0;
-  const onUsage = ({ label, model, usage }) => {
-    const p = PRICING[model];
-    const cost = p
-      ? (usage.input_tokens / 1_000_000) * p.input + (usage.output_tokens / 1_000_000) * p.output
-      : 0;
-    totalCostUsd += cost;
-    onProgress?.({ type: 'usage', label, costUsd: totalCostUsd });
-  };
-
-  const contentKind = sourceTypes.length === 1 && sourceTypes[0] === 'audio' ? 'audio' : 'news';
-
-  const batch = contentBatchFromMdArticles(rawArticles, {
-    reportDate: date,
-    contentKind,
-  });
-
-  const llmPort = createAnthropicResilienceLlmAdapter();
-  const reportWriterPort = createResilienceReportFsAdapter();
-  const { base } = reportPaths(date);
-
-  const { assessment, signals } = await runResilienceAssessment(batch, {
-    llmPort,
-    reportWriterPort,
-    dedupeTitles: true,
-    persist: true,
-    outputBase: base,
-    reportSourceFiles: sourceFiles,
-    onProgress,
-    onUsage,
-    scope,
-  });
-
-  // Save to DB (include Markdown body when the writer produced a sibling .md file)
-  if (store) {
-    try {
-      const mdPath = `${base}.md`;
-      const reportMd = existsSync(mdPath) ? readFileSync(mdPath, 'utf8') : null;
-      store.saveRun({
-        date,
-        reportJson: assessment,
-        reportMd,
-        sourceTypes,
-        totalItems: rawArticles.length,
-        totalSignals: signals.length,
-      });
-    } catch (err) {
-      console.error(`  ⚠ DB run save failed (continuing): ${err.message}`);
-    }
-  }
-
-  onProgress?.({
-    type: 'progress',
-    step: 'evidence_done',
-    message: `${signals.length} behavioral signals extracted`,
-  });
-
-  onProgress?.({ type: 'progress', step: 'done', message: `Report saved. Total cost: $${totalCostUsd.toFixed(4)}` });
-
-  return {
-    assessment,
-    costUsd: totalCostUsd,
-    date,
-    scope_artifacts: {
-      national: true,
-      north: false,
-      hint: 'north_requires_assess_signals',
-      note:
-        'This pipeline (runResilienceAssessment / API analyze) does not apply region scope filtering. '
-        + 'Run `npm run assess-signals -- --date DATE --scope north` after signal files exist for a north report.',
-    },
-  };
 }

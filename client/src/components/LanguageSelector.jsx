@@ -4,6 +4,7 @@ import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import { useLanguage } from '../context/LanguageContext.jsx';
+import PropTypes from 'prop-types';
 
 const LANGS = ['en', 'he', 'ru'];
 
@@ -75,3 +76,7 @@ export function LanguageSelector({ appearance = 'outlined' }) {
     </>
   );
 }
+
+LanguageSelector.propTypes = {
+  appearance: PropTypes.oneOf(['outlined', 'ghost']),
+};

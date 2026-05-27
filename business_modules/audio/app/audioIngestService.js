@@ -2,10 +2,10 @@
  * Orchestrates: audio file → transcription → articles-homefront-compatible markdown.
  */
 
-import { statSync, writeFileSync, mkdtempSync, unlinkSync, rmdirSync } from 'fs';
-import { execFileSync } from 'child_process';
-import { tmpdir } from 'os';
-import { join, basename, dirname } from 'path';
+import { statSync, writeFileSync, mkdtempSync, unlinkSync, rmdirSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { tmpdir } from 'node:os';
+import { join, basename, dirname } from 'node:path';
 
 import { calcTranscriptionCostUsd } from '../../../cross-cut-modules/budget/app/budgetCostTracker.js';
 import {

@@ -172,7 +172,7 @@ export function buildAssessmentMethodology({
         'All pipeline sources receive resolved geo envelopes via geoService at extract/treat and assess; text keyword north scoping removed',
       always_north_source_types: [...PHASE1_ALWAYS_NORTH_SOURCE_TYPES],
       dual_pipeline:
-        'runResilienceAssessment (API/news) scores all signals without scope filter; north artifact requires assess-signals --scope north',
+        'Evidence submission analysis scores all signals without scope filter; north artifact requires assess-signals --scope north',
       extraction_quality:
         'LLM extraction monitored via business_modules/resilience/tuning/golden (npm test golden-corpus); no production SLA',
       subgroup_coverage: summarizeSubgroupCoverage(signals),

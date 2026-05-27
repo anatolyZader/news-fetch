@@ -19,7 +19,7 @@ export function contentBatchFromMdArticles(rawArticles, meta) {
       ...(a.url ? { url: a.url } : {}),
       ...(a.publishedAt ? { publishedAt: a.publishedAt } : {}),
       ...(a.source ? { sourceLabel: a.source } : {}),
-      temporal_weight: a.temporal_weight ?? 1.0,
+      temporal_weight: a.temporal_weight ?? 1,
     })),
   };
 }

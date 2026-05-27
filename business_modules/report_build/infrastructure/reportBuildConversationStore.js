@@ -3,8 +3,8 @@
  *
  * WhatsApp has its own stores; this store is for the web UI flow keyed by `ownerKey` (uid).
  */
-import { mkdirSync } from 'fs';
-import { dirname } from 'path';
+import { mkdirSync } from 'node:fs';
+import { dirname } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 
 const DDL = `

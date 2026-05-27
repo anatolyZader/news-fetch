@@ -8,10 +8,10 @@
  * Legacy flat fields (location, description, scope, evidence_text) are kept for
  * backward-compat reads but are no longer written by the new flow.
  */
-import { mkdirSync } from 'fs';
-import { dirname } from 'path';
+import { mkdirSync } from 'node:fs';
+import { dirname } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
-import { randomUUID } from 'crypto';
+import { randomUUID } from 'node:crypto';
 
 const DDL = `
 CREATE TABLE IF NOT EXISTS whatsapp_report_drafts (

@@ -3,54 +3,35 @@
  * Produces a flat array of article objects for LLM analysis.
  */
 
-import { readFileSync } from 'fs';
-import { basename } from 'path';
+import { readFileSync } from 'node:fs';
+import { basename } from 'node:path';
+import {
+  parseSectionMeta,
+  splitNumberedSections,
+} from '../../../cross-cut-modules/markdown/markdownArticleSections.js';
 
-const MAX_BODY_CHARS = 2000; // Truncate bodies to keep token budget manageable
+const MAX_BODY_CHARS = 2000;
+const MD_HEADER_RE = /^#\s+(.+?)\s+articles\s+\((\d{4}-\d{2}-\d{2})\)/m;
+const HOMEFRONT_URL_RE = /\*\*URL:\*\*\s*(https?:\/\/\S+)/;
 
-/**
- * Parse one markdown file into structured articles.
- * Expected format:
- *   # Site articles (YYYY-MM-DD)
- *   Total: N articles
- *   ## 1. Title
- *   - **URL:** ...
- *   - **Published:** ...
- *   - **Source:** ...
- *   <body>
- *   ---
- */
 function parseMdFile(content, sourcePath) {
-  const headerMatch = content.match(/^#\s+(.+?)\s+articles\s+\((\d{4}-\d{2}-\d{2})\)/m);
+  const headerMatch = MD_HEADER_RE.exec(content);
   const siteName = headerMatch?.[1] ?? basename(sourcePath, '.md');
   const date = headerMatch?.[2] ?? null;
 
-  // Split on numbered article headers
-  const sections = content.split(/\n(?=## \d+\. )/);
+  const sections = splitNumberedSections(content);
   const articles = [];
 
   for (const section of sections) {
-    const titleMatch = section.match(/^## \d+\.\s+(.+)/m);
-    if (!titleMatch) continue;
-
-    const title = titleMatch[1].trim();
-    const urlMatch = section.match(/\*\*URL:\*\*\s*(https?:\/\/\S+)/);
-    const publishedMatch = section.match(/\*\*Published:\*\*\s*([^\n]+)/);
-    const sourceMatch = section.match(/\*\*Source:\*\*\s*([^\n]+)/);
-
-    // Body: everything after the last metadata line, before the trailing ---
-    const metaEnd = section.lastIndexOf('\n- **');
-    const afterMeta = metaEnd >= 0 ? section.slice(metaEnd) : section;
-    const bodyStart = afterMeta.indexOf('\n\n');
-    let body = bodyStart >= 0 ? afterMeta.slice(bodyStart).trim() : '';
-    body = body.replace(/\n---\s*$/, '').trim();
+    const meta = parseSectionMeta(section, { urlRe: HOMEFRONT_URL_RE });
+    if (!meta) continue;
 
     articles.push({
-      title,
-      url: urlMatch?.[1]?.trim() ?? '',
-      publishedAt: publishedMatch?.[1]?.trim() ?? '',
-      source: sourceMatch?.[1]?.trim() ?? siteName,
-      body: body.slice(0, MAX_BODY_CHARS),
+      title: meta.title,
+      url: meta.url,
+      publishedAt: meta.publishedAt,
+      source: meta.source || siteName,
+      body: meta.body.slice(0, MAX_BODY_CHARS),
       sourceFile: basename(sourcePath),
     });
   }
@@ -63,7 +44,7 @@ export function loadMdFile(filePath) {
   return parseMdFile(content, filePath);
 }
 
-const TEMPORAL_WEIGHTS = { 0: 1.00, 1: 0.85, 2: 0.70 };
+const TEMPORAL_WEIGHTS = { 0: 1, 1: 0.85, 2: 0.7 };
 
 /**
  * Load multiple MD files and merge all articles into one array.
@@ -79,7 +60,7 @@ export function loadMdFiles(filePaths, { dayOffsets = [] } = {}) {
   for (let i = 0; i < filePaths.length; i++) {
     const fp = filePaths[i];
     const dayOffset = dayOffsets[i] ?? 0;
-    const temporalWeight = TEMPORAL_WEIGHTS[dayOffset] ?? 1.00;
+    const temporalWeight = TEMPORAL_WEIGHTS[dayOffset] ?? 1;
     const { siteName, date, articles } = loadMdFile(fp);
     if (date) dates.add(date);
     siteNames.push(siteName);

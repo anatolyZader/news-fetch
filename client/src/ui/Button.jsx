@@ -1,4 +1,5 @@
 import MuiButton from '@mui/material/Button';
+import PropTypes from 'prop-types';
 
 export function Button({
   variant = 'default',
@@ -46,3 +47,12 @@ export function Button({
     </MuiButton>
   );
 }
+
+Button.propTypes = {
+  variant: PropTypes.oneOf(['default', 'primary']),
+  rounded: PropTypes.bool,
+  className: PropTypes.string,
+  type: PropTypes.string,
+  children: PropTypes.node,
+  sx: PropTypes.oneOfType([PropTypes.object, PropTypes.array, PropTypes.func]),
+};

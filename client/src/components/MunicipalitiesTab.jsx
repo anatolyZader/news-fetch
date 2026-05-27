@@ -32,6 +32,7 @@ import {
 import { scoreBg01, scoreColor01 } from '../lib/score.js';
 import { formatDate } from '../lib/date.js';
 import { useMunicipalitiesData } from '../hooks/useMunicipalitiesData.js';
+import PropTypes from 'prop-types';
 
 function pct(v) {
   return v != null ? Math.round(v * 100) + '%' : '—';
@@ -56,6 +57,11 @@ function ScoreBadge({ value, theme }) {
     </Box>
   );
 }
+
+ScoreBadge.propTypes = {
+  value: PropTypes.number,
+  theme: PropTypes.object.isRequired,
+};
 
 function ScoreLabelPill({ label, value, surface = 'muted', theme }) {
   return (
@@ -83,6 +89,13 @@ function ScoreLabelPill({ label, value, surface = 'muted', theme }) {
     </Stack>
   );
 }
+
+ScoreLabelPill.propTypes = {
+  label: PropTypes.string.isRequired,
+  value: PropTypes.number,
+  surface: PropTypes.oneOf(['muted', 'paper']),
+  theme: PropTypes.object.isRequired,
+};
 
 function normalizeScoreLabel(l) {
   return String(l ?? '').trim();

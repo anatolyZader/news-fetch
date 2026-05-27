@@ -1,6 +1,7 @@
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import PropTypes from 'prop-types';
 
 /**
  * Page-level header: title, subtitle, action slot.
@@ -41,3 +42,9 @@ export function PageHeader({ title, subtitle, action }) {
     </Stack>
   );
 }
+
+PageHeader.propTypes = {
+  title: PropTypes.node,
+  subtitle: PropTypes.node,
+  action: PropTypes.node,
+};

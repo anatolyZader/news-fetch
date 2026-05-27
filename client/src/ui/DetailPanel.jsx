@@ -1,4 +1,5 @@
 import Card from '@mui/material/Card';
+import PropTypes from 'prop-types';
 
 /**
  * Boxed detail panel: vertical flex Card with consistent padding/gap.
@@ -17,3 +18,7 @@ export function DetailPanel({ children }) {
     </Card>
   );
 }
+
+DetailPanel.propTypes = {
+  children: PropTypes.node,
+};

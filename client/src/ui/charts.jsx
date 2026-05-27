@@ -10,6 +10,7 @@ import {
   YAxis,
 } from 'recharts';
 import { useTheme } from '@mui/material/styles';
+import PropTypes from 'prop-types';
 
 const TICK_FONT_SIZE = 11;
 const LEGEND_FONT_SIZE = 11;
@@ -157,3 +158,39 @@ export function PieChartFrame({ height = 200, children }) {
     </ResponsiveContainer>
   );
 }
+
+BarChartFrame.propTypes = {
+  data: PropTypes.arrayOf(PropTypes.object).isRequired,
+  xKey: PropTypes.string,
+  height: PropTypes.number,
+  margin: PropTypes.object,
+  legend: PropTypes.bool,
+  yDomain: PropTypes.arrayOf(PropTypes.number),
+  children: PropTypes.node,
+};
+
+HorizontalBarChartFrame.propTypes = {
+  data: PropTypes.arrayOf(PropTypes.object).isRequired,
+  yKey: PropTypes.string,
+  height: PropTypes.number,
+  margin: PropTypes.object,
+  yWidth: PropTypes.number,
+  children: PropTypes.node,
+};
+
+LineChartFrame.propTypes = {
+  data: PropTypes.arrayOf(PropTypes.object).isRequired,
+  xKey: PropTypes.string,
+  height: PropTypes.number,
+  margin: PropTypes.object,
+  yDomain: PropTypes.arrayOf(PropTypes.number),
+  yTicks: PropTypes.arrayOf(PropTypes.number),
+  tooltipFormatter: PropTypes.func,
+  legend: PropTypes.bool,
+  children: PropTypes.node,
+};
+
+PieChartFrame.propTypes = {
+  height: PropTypes.number,
+  children: PropTypes.node,
+};

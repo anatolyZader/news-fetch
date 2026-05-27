@@ -9,7 +9,7 @@
  *   Regional synthesis per component across all municipalities.
  */
 
-import { writeFileSync, readFileSync, existsSync } from 'fs';
+import { writeFileSync, readFileSync, existsSync } from 'node:fs';
 import Anthropic from '@anthropic-ai/sdk';
 import { RESILIENCE_COMPONENTS } from '../domain/resilienceComponents.js';
 
@@ -26,17 +26,21 @@ const COMPONENT_NAMES = Object.fromEntries(
 
 // ─── JSON extraction ──────────────────────────────────────────────────────────
 
-function extractJson(text) {
-  const fenced = text.match(/^```(?:json)?\s*\n([\s\S]+?)\n```\s*$/m);
-  if (fenced) return JSON.parse(fenced[1].trim());
+const FENCED_JSON_RE = /^```(?:json)?\s*\n([\s\S]+?)\n```\s*$/m;
 
+function jsonStartIndex(text) {
   const arrIdx = text.indexOf('[');
   const objIdx = text.indexOf('{');
-  const start =
-    arrIdx === -1 ? objIdx
-    : objIdx === -1 ? arrIdx
-    : Math.min(arrIdx, objIdx);
+  if (arrIdx === -1) return objIdx;
+  if (objIdx === -1) return arrIdx;
+  return Math.min(arrIdx, objIdx);
+}
 
+function extractJson(text) {
+  const fenced = FENCED_JSON_RE.exec(text);
+  if (fenced) return JSON.parse(fenced[1].trim());
+
+  const start = jsonStartIndex(text);
   if (start !== -1) {
     const end = Math.max(text.lastIndexOf(']'), text.lastIndexOf('}'));
     if (end > start) return JSON.parse(text.slice(start, end + 1));

@@ -1,5 +1,5 @@
 ---
-allowed-tools: Bash(node business_modules/resilience/input/analyze-resilience.js*), Bash(node business_modules/resilience/input/extract-signals.js*), Bash(ls articles-audio-*)
+allowed-tools: Bash(npm run extract-signals:*), Bash(npm run assess-signals:*), Bash(ls articles-audio-*)
 description: Run 8-component resilience analysis on today's radio broadcast transcripts (ashams + tzafon)
 ---
 
@@ -18,18 +18,14 @@ Use today's date (YYYY-MM-DD) from the context above. Collect all matching files
 
 If no files are found for today, report that transcription hasn't run yet and stop.
 
-**Step 2 — Analyse**
-
-Run the resilience analysis with `--content-kind audio` and the files found in Step 1:
+**Step 2 — Extract signals**
 ```
-node business_modules/resilience/input/analyze-resilience.js --content-kind audio --no-field-reports --files <comma-separated file list> --date <today's date>
+npm run extract-signals -- --source-type radio --files <comma-separated file list> --date <today's date>
 ```
 
-**Step 3 — Extract signals**
-
-Save intermediate signals for use by `/8comp` and `/8comp-3`:
+**Step 3 — Assess**
 ```
-node business_modules/resilience/input/extract-signals.js --source-type radio --files <comma-separated file list from Step 1> --date <today's date>
+npm run assess-signals -- --date <today's date> --days 1 --scope national
 ```
 
 After all steps complete, report:

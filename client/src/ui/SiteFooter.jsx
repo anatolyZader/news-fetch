@@ -255,6 +255,14 @@ export function SiteFooter({
     onNavigateTab?.('trends');
   }, [onNavigateTab]);
 
+  const navigateToNews = useCallback(() => {
+    onNavigateTab?.('news');
+  }, [onNavigateTab]);
+
+  const navigateToRadio = useCallback(() => {
+    onNavigateTab?.('radio');
+  }, [onNavigateTab]);
+
   const navigateToSocialMedia = useCallback(() => {
     onNavigateTab?.('social-media');
   }, [onNavigateTab]);
@@ -387,6 +395,16 @@ export function SiteFooter({
             <FooterColumnItem>
               <FooterLink onClick={navigateToTrends}>
                 {t('tab.trends')}
+              </FooterLink>
+            </FooterColumnItem>
+            <FooterColumnItem>
+              <FooterLink onClick={navigateToNews}>
+                {t('tab.news')}
+              </FooterLink>
+            </FooterColumnItem>
+            <FooterColumnItem>
+              <FooterLink onClick={navigateToRadio}>
+                {t('tab.radio')}
               </FooterLink>
             </FooterColumnItem>
             <FooterColumnItem>

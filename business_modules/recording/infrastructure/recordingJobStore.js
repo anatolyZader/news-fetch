@@ -12,10 +12,10 @@
  *     { "dayOfWeek": [5],          "hour": 12, "minute": 0 }
  *   ]
  */
-import { mkdirSync } from 'fs';
-import { dirname } from 'path';
+import { mkdirSync } from 'node:fs';
+import { dirname } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
-import { randomUUID } from 'crypto';
+import { randomUUID } from 'node:crypto';
 
 const DDL = `
 CREATE TABLE IF NOT EXISTS recording_jobs (

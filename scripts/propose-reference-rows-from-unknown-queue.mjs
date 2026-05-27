@@ -7,7 +7,7 @@
  */
 import { readFileSync, existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
-import { fileURLToPath } from 'url';
+import { fileURLToPath } from 'node:url';
 
 import { normalizeLocalityLookupKey } from '../business_modules/geo/domain/services/resolveLocalityMatch.js';
 

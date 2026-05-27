@@ -15,8 +15,8 @@
  * Set MAILING_ENABLED=false to skip sends (script exits 0 without sending).
  */
 import 'dotenv/config';
-import { resolve, dirname } from 'path';
-import { fileURLToPath } from 'url';
+import { resolve, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { createMailingPreferencesStore } from '../infrastructure/mailingPreferencesStore.js';
 import { createMailingResendAdapter } from '../infrastructure/adapters/mailingResendAdapter.js';
 import { createMailingService } from '../app/mailingService.js';

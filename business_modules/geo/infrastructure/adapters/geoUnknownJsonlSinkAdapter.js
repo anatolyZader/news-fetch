@@ -1,5 +1,5 @@
-import { appendFileSync, mkdirSync } from 'fs';
-import { dirname } from 'path';
+import { appendFileSync, mkdirSync } from 'node:fs';
+import { dirname } from 'node:path';
 
 import { IGeoUnknownSinkPort } from '../../domain/ports/IGeoUnknownSinkPort.js';
 

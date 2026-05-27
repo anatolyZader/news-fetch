@@ -87,9 +87,11 @@ function readStoredTopicGroup() {
   return 'all';
 }
 
+const SHORT_DATE_LABEL_RE = /([A-Za-z]{3})\s+(\d{1,2})/;
+
 function shortDateLabel(raw) {
   const s = String(raw ?? '');
-  const m = s.match(/([A-Za-z]{3})\s+(\d{1,2})/);
+  const m = SHORT_DATE_LABEL_RE.exec(s);
   if (m) return `${m[1]} ${m[2]}`;
   if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s.slice(5);
   return s.length > 12 ? s.slice(0, 12) : s;

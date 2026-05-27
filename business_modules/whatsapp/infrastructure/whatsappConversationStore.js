@@ -2,8 +2,8 @@
  * SQLite persistence for per-sender WhatsApp conversation state.
  * Tracks where each user is in the chatbot wizard flow.
  */
-import { mkdirSync } from 'fs';
-import { dirname } from 'path';
+import { mkdirSync } from 'node:fs';
+import { dirname } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 
 const DDL = `

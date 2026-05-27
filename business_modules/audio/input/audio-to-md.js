@@ -9,7 +9,7 @@
  * Env: OPENAI_API_KEY (required). Optional: ffmpeg/ffprobe on PATH if file > 24MB.
  */
 import 'dotenv/config';
-import { resolve } from 'path';
+import { resolve } from 'node:path';
 
 import { createCostTracker, appendCostLog, checkDailyBudget } from '../../../cross-cut-modules/budget/index.js';
 import { OpenaiTranscriptionAdapter } from '../infrastructure/adapters/openaiTranscriptionAdapter.js';

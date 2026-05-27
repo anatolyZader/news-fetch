@@ -86,22 +86,6 @@ const sidebar: SidebarsConfig = {
     },
     {
       type: "category",
-      label: "Analysis",
-      link: {
-        type: "doc",
-        id: "api/generated/analysis",
-      },
-      items: [
-        {
-          type: "doc",
-          id: "api/generated/run-analysis-server-sent-events",
-          label: "Run analysis (Server-Sent Events).",
-          className: "api-method post",
-        },
-      ],
-    },
-    {
-      type: "category",
       label: "Video",
       link: {
         type: "doc",

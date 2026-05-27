@@ -4,6 +4,7 @@ import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { buildTheme } from './theme.js';
 import { getEmotionCache } from './createEmotionCache.js';
+import PropTypes from 'prop-types';
 
 export function AppProviders({ children }) {
   const cache = useMemo(() => getEmotionCache('ltr'), []);
@@ -18,3 +19,7 @@ export function AppProviders({ children }) {
     </CacheProvider>
   );
 }
+
+AppProviders.propTypes = {
+  children: PropTypes.node,
+};

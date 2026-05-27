@@ -11,15 +11,14 @@
  * Output: signals/signals-naftali-{date}.json per week (uses week end-date)
  */
 
-import { resolve, dirname } from 'path';
-import { writeFileSync, mkdirSync, existsSync } from 'fs';
-import { fileURLToPath } from 'url';
+import { resolve, dirname } from 'node:path';
+import { writeFileSync, mkdirSync, existsSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { getNaftaliDashboardSync } from '../app/naftaliService.js';
 import { enrichSignalsWithGeo } from '../../../cross-cut-modules/geo/enrichSignalsWithGeo.js';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 
-// Map severity dimensions → resilience signal types
 const SEVERITY_TO_SIGNAL = {
   financialRequests:     { pos: 'service_continuity',           neg: 'service_disruption' },
   schoolMentalHealth:    { pos: 'wellbeing_support_accessed',   neg: 'psychological_distress' },
@@ -29,10 +28,8 @@ const SEVERITY_TO_SIGNAL = {
   parentChildConflicts:  { pos: 'solidarity_help_others',       neg: 'psychological_distress' },
 };
 
-// Vulnerability counts map to wellbeing signals
 const VULN_SIGNAL = { pos: 'wellbeing_support_accessed', neg: 'psychological_distress' };
 
-// Free-text fields map to components
 const FREETEXT_TO_SIGNAL = {
   volunteerInitiatives:  'community_volunteering',
   volunteerNeeds:        'dependency_on_external_aid',
@@ -42,6 +39,134 @@ const FREETEXT_TO_SIGNAL = {
   urgentNeeds:           'service_disruption',
 };
 
+const DIMENSION_LABELS = {
+  financialRequests: 'Economic hardship requests',
+  schoolMentalHealth: 'School mental health referrals',
+  communityMentalHealth: 'Community mental health referrals',
+  parentalStress: 'Parental stress referrals',
+  coupleConflicts: 'Couple conflict referrals',
+  parentChildConflicts: 'Parent-child conflict referrals',
+};
+
+const VULN_LABELS = {
+  physicalDisability: 'Physical disability',
+  mentalDisability: 'Mental disability',
+  specialEducation: 'Special education',
+  domesticViolence: 'Domestic violence',
+  severeFinancial: 'Severe financial hardship',
+  singleParent: 'Single parent',
+};
+
+function pushSeveritySignals(signals, resp, articleIdx) {
+  for (const [key, mapping] of Object.entries(SEVERITY_TO_SIGNAL)) {
+    const sev = resp.severity[key];
+    if (sev === 'unknown') continue;
+
+    const isNegative = sev === 'high' || sev === 'medium';
+    const signalType = isNegative ? mapping.neg : mapping.pos;
+    const sevLabel = { high: 'High', medium: 'Medium', low: 'Low', none: 'None', qualitative: 'Qualitative' }[sev] ?? sev;
+
+    signals.push({
+      article_index: articleIdx,
+      article_url: null,
+      signal_type: signalType,
+      evidence_type: 'observational_reported_fact',
+      evidence: `[${resp.municipality}] ${DIMENSION_LABELS[key]}: ${sevLabel}`,
+      scope_level: 'single_case',
+      article_source: `naftali-${resp.municipality}`,
+      municipality: resp.municipality,
+      source_type: 'naftali',
+    });
+  }
+}
+
+function pushVulnerabilitySignals(signals, resp, articleIdx) {
+  const totalVuln = Object.values(resp.vulnerable).reduce((s, v) => s + v, 0);
+  if (totalVuln <= 0) return;
+
+  const parts = Object.entries(resp.vulnerable)
+    .filter(([, v]) => v > 0)
+    .map(([k, v]) => `${VULN_LABELS[k]}: ${v}`)
+    .join(', ');
+
+  signals.push({
+    article_index: articleIdx,
+    article_url: null,
+    signal_type: VULN_SIGNAL.neg,
+    evidence_type: 'observational_reported_fact',
+    evidence: `[${resp.municipality}] Vulnerable populations: ${parts} (total: ${totalVuln})`,
+    scope_level: 'quantified_or_broad',
+    article_source: `naftali-${resp.municipality}`,
+    municipality: resp.municipality,
+    source_type: 'naftali',
+  });
+}
+
+function pushFreeTextSignals(signals, resp, articleIdx) {
+  for (const [key, signalType] of Object.entries(FREETEXT_TO_SIGNAL)) {
+    const text = resp.freeText[key];
+    if (!text) continue;
+
+    signals.push({
+      article_index: articleIdx,
+      article_url: null,
+      signal_type: signalType,
+      evidence_type: 'observational_reported_fact',
+      evidence: `[${resp.municipality}] ${text}`,
+      scope_level: 'single_case',
+      article_source: `naftali-${resp.municipality}`,
+      municipality: resp.municipality,
+      source_type: 'naftali',
+    });
+  }
+}
+
+function buildSignalsForWeek(week) {
+  const signals = [];
+  let articleIdx = 0;
+
+  for (const resp of week.responses) {
+    articleIdx++;
+    pushSeveritySignals(signals, resp, articleIdx);
+    pushVulnerabilitySignals(signals, resp, articleIdx);
+    pushFreeTextSignals(signals, resp, articleIdx);
+  }
+
+  return signals;
+}
+
+function writeWeekBundle(week, outDir) {
+  const weekDate = week.dateTo ?? week.dateFrom;
+  if (!weekDate) return false;
+
+  const outPath = resolve(outDir, `signals-naftali-${weekDate}.json`);
+  if (existsSync(outPath)) {
+    console.error(`signals-naftali-${weekDate}.json  →  already exists, skipping`);
+    return true;
+  }
+
+  const signals = buildSignalsForWeek(week);
+  const { signals: geoSignals, resolved, unknown } = enrichSignalsWithGeo(signals, {
+    rootDir: REPO_ROOT,
+    unknownSourceType: 'extract-naftali',
+  });
+
+  writeFileSync(outPath, JSON.stringify({
+    source_type: 'naftali',
+    content_kind: 'naftali_questionnaire',
+    geographic_scope: 'Naftali sub-region only (1 of 5 northern Israel sub-regions)',
+    date: weekDate,
+    week: week.week,
+    extracted_at: new Date().toISOString(),
+    source_files: [week.file],
+    total_articles: week.responses.length,
+    signals: geoSignals,
+  }, null, 2), 'utf-8');
+
+  console.error(`signals-naftali-${weekDate}.json  →  ${geoSignals.length} signals from ${week.responses.length} municipalities (geo: ${resolved} resolved, ${unknown} unknown)`);
+  return true;
+}
+
 function run() {
   const data = getNaftaliDashboardSync();
   const outDir = resolve('signals');
@@ -50,121 +175,7 @@ function run() {
   let filesWritten = 0;
 
   for (const week of data.weeks) {
-    const signals = [];
-    let articleIdx = 0;
-    const weekDate = week.dateTo ?? week.dateFrom;
-    if (!weekDate) continue;
-
-    const outPath = resolve(outDir, `signals-naftali-${weekDate}.json`);
-    if (existsSync(outPath)) {
-      console.error(`signals-naftali-${weekDate}.json  →  already exists, skipping`);
-      filesWritten++;
-      continue;
-    }
-
-    for (const resp of week.responses) {
-      articleIdx++;
-
-      // Severity-based signals
-      for (const [key, mapping] of Object.entries(SEVERITY_TO_SIGNAL)) {
-        const sev = resp.severity[key];
-        if (sev === 'unknown') continue;
-
-        const isNegative = sev === 'high' || sev === 'medium';
-        const signalType = isNegative ? mapping.neg : mapping.pos;
-        const sevLabel = { high: 'High', medium: 'Medium', low: 'Low', none: 'None', qualitative: 'Qualitative' }[sev] ?? sev;
-
-        const dimensionLabels = {
-          financialRequests: 'Economic hardship requests',
-          schoolMentalHealth: 'School mental health referrals',
-          communityMentalHealth: 'Community mental health referrals',
-          parentalStress: 'Parental stress referrals',
-          coupleConflicts: 'Couple conflict referrals',
-          parentChildConflicts: 'Parent-child conflict referrals',
-        };
-
-        signals.push({
-          article_index: articleIdx,
-          article_url: null,
-          signal_type: signalType,
-          evidence_type: 'observational_reported_fact',
-          evidence: `[${resp.municipality}] ${dimensionLabels[key]}: ${sevLabel}`,
-          scope_level: 'single_case',
-          article_source: `naftali-${resp.municipality}`,
-          municipality: resp.municipality,
-          source_type: 'naftali',
-        });
-      }
-
-      // Vulnerable population signals (if any non-zero)
-      const totalVuln = Object.values(resp.vulnerable).reduce((s, v) => s + v, 0);
-      if (totalVuln > 0) {
-        const parts = Object.entries(resp.vulnerable)
-          .filter(([, v]) => v > 0)
-          .map(([k, v]) => {
-            const labels = {
-              physicalDisability: 'Physical disability',
-              mentalDisability: 'Mental disability',
-              specialEducation: 'Special education',
-              domesticViolence: 'Domestic violence',
-              severeFinancial: 'Severe financial hardship',
-              singleParent: 'Single parent',
-            };
-            return `${labels[k]}: ${v}`;
-          })
-          .join(', ');
-
-        signals.push({
-          article_index: articleIdx,
-          article_url: null,
-          signal_type: VULN_SIGNAL.neg,
-          evidence_type: 'observational_reported_fact',
-          evidence: `[${resp.municipality}] Vulnerable populations: ${parts} (total: ${totalVuln})`,
-          scope_level: 'quantified_or_broad',
-          article_source: `naftali-${resp.municipality}`,
-          municipality: resp.municipality,
-          source_type: 'naftali',
-        });
-      }
-
-      // Free-text signals
-      for (const [key, signalType] of Object.entries(FREETEXT_TO_SIGNAL)) {
-        const text = resp.freeText[key];
-        if (!text) continue;
-
-        signals.push({
-          article_index: articleIdx,
-          article_url: null,
-          signal_type: signalType,
-          evidence_type: 'observational_reported_fact',
-          evidence: `[${resp.municipality}] ${text}`,
-          scope_level: 'single_case',
-          article_source: `naftali-${resp.municipality}`,
-          municipality: resp.municipality,
-          source_type: 'naftali',
-        });
-      }
-    }
-
-    const { signals: geoSignals, attached, resolved, unknown } = enrichSignalsWithGeo(signals, {
-      rootDir: REPO_ROOT,
-      unknownSourceType: 'extract-naftali',
-    });
-
-    writeFileSync(outPath, JSON.stringify({
-      source_type: 'naftali',
-      content_kind: 'naftali_questionnaire',
-      geographic_scope: 'Naftali sub-region only (1 of 5 northern Israel sub-regions)',
-      date: weekDate,
-      week: week.week,
-      extracted_at: new Date().toISOString(),
-      source_files: [week.file],
-      total_articles: week.responses.length,
-      signals: geoSignals,
-    }, null, 2), 'utf-8');
-
-    console.error(`signals-naftali-${weekDate}.json  →  ${geoSignals.length} signals from ${week.responses.length} municipalities (geo: ${resolved} resolved, ${unknown} unknown)`);
-    filesWritten++;
+    if (writeWeekBundle(week, outDir)) filesWritten++;
   }
 
   if (filesWritten === 0) {

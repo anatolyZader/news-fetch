@@ -3,8 +3,8 @@
  * @see analyze-survey.js entry
  */
 import 'dotenv/config';
-import { existsSync } from 'fs';
-import { resolve, basename } from 'path';
+import { existsSync } from 'node:fs';
+import { resolve, basename } from 'node:path';
 
 import { parseSurveyExcel } from '../infrastructure/adapters/surveyExcelLoader.js';
 import { analyzeSurvey } from '../app/surveyEvaluator.js';

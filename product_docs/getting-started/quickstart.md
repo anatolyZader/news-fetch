@@ -119,7 +119,8 @@ The command fetches articles from NewsAPI.ai, asks an LLM to filter for homefron
 If you added `ANTHROPIC_API_KEY`:
 
 ```bash runnable
-npm run analyze-resilience
+npm run extract-signals -- --source-type news --files business_modules/news-sites/articles_extracted/articles-homefront.md --date $(date +%Y-%m-%d)
+npm run assess-signals -- --date $(date +%Y-%m-%d) --days 1 --scope national
 ```
 
 Expected: logs show signal extraction, then a scored assessment. The UI's Report tab picks this up on the next refresh.

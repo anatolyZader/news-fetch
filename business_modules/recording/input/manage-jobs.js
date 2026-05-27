@@ -44,9 +44,9 @@
  */
 
 import 'dotenv/config';
-import { resolve } from 'path';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
+import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { dirname } from 'node:path';
 import { createRecordingJobStore } from '../infrastructure/recordingJobStore.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));

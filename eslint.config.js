@@ -2,6 +2,7 @@ import js from '@eslint/js';
 import { defineConfig } from 'eslint/config';
 import reactHooks from 'eslint-plugin-react-hooks';
 import globals from 'globals';
+import { reactPropTypesPlugin } from './eslint-rules/reactPropTypes.js';
 
 export default defineConfig([
   {
@@ -55,9 +56,11 @@ export default defineConfig([
     },
     plugins: {
       'react-hooks': reactHooks,
+      local: reactPropTypesPlugin,
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
+      'local/prop-types': 'error',
     },
   },
 ]);

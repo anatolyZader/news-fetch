@@ -171,7 +171,7 @@ async function preFilterBatch(anthropic, batch, batchOffset, batchNum, totalBatc
     indices = JSON.parse(raw);
   } catch {
     // LLM sometimes returns multiple arrays or trailing text — extract first valid array
-    const m = raw.match(/\[[\d\s,]*\]/);
+    const m = /\[[\d\s,]*\]/.exec(raw);
     if (!m) throw new Error(`${label} returned unparseable JSON: ${raw.slice(0, 200)}`);
     indices = JSON.parse(m[0]);
   }

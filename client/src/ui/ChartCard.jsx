@@ -1,6 +1,7 @@
 import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import PropTypes from 'prop-types';
 
 const DENSITY = {
   comfortable: { px: 2, pt: 2, pb: 1 },
@@ -50,3 +51,11 @@ export function ChartCard({
     </Card>
   );
 }
+
+ChartCard.propTypes = {
+  title: PropTypes.node,
+  subtitle: PropTypes.node,
+  actions: PropTypes.node,
+  density: PropTypes.oneOf(['comfortable', 'dense']),
+  children: PropTypes.node,
+};

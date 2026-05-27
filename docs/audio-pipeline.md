@@ -1,6 +1,6 @@
 # Audio → resilience analysis pipeline
 
-Isolated from the news pipeline: **MP3 (or other audio) → OpenAI transcription (with speaker diarization) → `articles-audio.md` → same 8-component resilience analysis** as news.
+Isolated from the news pipeline: **MP3 (or other audio) → OpenAI transcription (with speaker diarization) → `articles-audio.md` → extract-signals → assess-signals** (same 8-component scoring as news).
 
 Sources are intentionally **generic** (broadcast, podcast, video rip, voice memo, interview). Add **adapters** under `business_modules/audio/infrastructure/adapters/` for URL fetch, platform-specific metadata, etc.
 
@@ -36,16 +36,11 @@ Outputs **`articles-audio.md`** (default path). Flags:
 
 Optional **known speaker** hints (future CLI): short reference clips can improve labeling when passed through `AudioIngestService` (`knownSpeakerNames` / `knownSpeakerReferences`).
 
-## Stage 2 — Analyze transcripts
+## Stage 2 — Extract and assess transcripts
 
 ```bash
-npm run analyze-audio
-```
-
-Equivalent to:
-
-```bash
-npm run analyze-resilience -- --content-kind audio --files articles-audio.md
+npm run extract-signals -- --source-type radio --files articles-audio.md --date 2026-03-21
+npm run assess-signals -- --date 2026-03-21 --days 1 --scope national
 ```
 
 - Uses **audio-transcript** prompts in `claudeEvaluator.js` (spoken text, speaker labels, selection bias).
@@ -59,6 +54,7 @@ npm run analyze-resilience -- --content-kind audio --files articles-audio.md
 | `business_modules/audio/infrastructure/adapters/openaiTranscriptionAdapter.js` | OpenAI Audio API (default adapter) |
 | `business_modules/audio/app/audioIngestService.js` | Split large files, transcribe, chunk text → markdown |
 | `business_modules/audio/input/audio-to-md.js` | CLI entry |
-| `business_modules/resilience/app/runResilienceAnalysis.js` | Shared runner for news + audio |
+| `business_modules/resilience/input/extract-signals.js` | Stage 1: per-source signal extraction |
+| `business_modules/resilience/input/assess-signals.js` | Stage 2: merge + score + narrate |
 
 Reports include **Content kind** = `audio` in the markdown header table when applicable.

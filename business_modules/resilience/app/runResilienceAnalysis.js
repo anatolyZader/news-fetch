@@ -2,7 +2,7 @@
  * Shared orchestration: load markdown article files → extract signals → score → narratives → ready for writeReport.
  */
 
-import { basename } from 'path';
+import { basename } from 'node:path';
 
 import { loadMdFiles } from '../infrastructure/mdReportsLoader.js';
 import { extractSignals, generateNarratives } from '../infrastructure/claudeEvaluator.js';

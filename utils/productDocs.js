@@ -1,5 +1,5 @@
-import { readdir, readFile, stat } from 'fs/promises';
-import { resolve, relative, sep } from 'path';
+import { readdir, readFile, stat } from 'node:fs/promises';
+import { resolve, relative, sep } from 'node:path';
 import YAML from 'yaml';
 
 const FRONTMATTER_BOUNDARY = '---';

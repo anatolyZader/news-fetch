@@ -9,9 +9,9 @@ import { resolve } from 'node:path';
 // ─── Pricing ($/1M tokens) ─────────────────────────────────────────────────
 
 export const PRICING = {
-  'claude-haiku-4-5-20251001': { input: 0.80,  output: 4.00  },
-  'claude-sonnet-4-6':         { input: 3.00,  output: 15.00 },
-  'claude-opus-4-6':           { input: 15.00, output: 75.00 },
+  'claude-haiku-4-5-20251001': { input: 0.8,  output: 4  },
+  'claude-sonnet-4-6':         { input: 3,  output: 15 },
+  'claude-opus-4-6':           { input: 15, output: 75 },
 };
 
 /** USD per minute of input audio (OpenAI speech-to-text; API does not return token usage on all formats). */
@@ -78,12 +78,12 @@ export function calcInvocationCostUsd(model, usage) {
  * Create a cost tracker for a single script run.
  *
  * @param {object} opts
- * @param {number} [opts.maxCostUsd]   Per-run cap in USD (default: MAX_COST_USD env or 3.00)
+ * @param {number} [opts.maxCostUsd]   Per-run cap in USD (default: MAX_COST_USD env or 3)
  * @param {string} [opts.label]        Human-readable label for log messages
  * @returns {{ onUsage, getTotal, printSummary }}
  */
 export function createCostTracker({ maxCostUsd, label: _label = 'run' } = {}) {
-  const cap = maxCostUsd ?? parseFloat(process.env.MAX_COST_USD ?? '3.00');
+  const cap = maxCostUsd ?? Number.parseFloat(process.env.MAX_COST_USD ?? '3');
   const usageLog = [];
   // C9 — stage instrumentation: stage events (verifier kills, self-check
   // verdicts) carry no LLM cost but are aggregated into the persistent log so
@@ -199,7 +199,7 @@ function summariseStageEvents(stageEvents = []) {
  * Append one run entry to cost-log.jsonl (JSONL format, one JSON object per line).
  *
  * @param {object} entry
- * @param {string} entry.script        Script name (e.g. 'analyze-resilience')
+ * @param {string} entry.script        Script name (e.g. 'extract-signals')
  * @param {string} entry.date          Report/article date (YYYY-MM-DD)
  * @param {number} entry.totalCostUsd
  * @param {Array}  entry.usageLog      Raw usage entries from createCostTracker
@@ -215,8 +215,10 @@ export function appendCostLog({ script, date, totalCostUsd, usageLog, stageEvent
     date,
     totalCostUsd,
     breakdown: { haiku: haikuCost, sonnet: sonnetCost, opus: opusCost, other: otherCost },
-    ...(articles != null ? { articles } : {}),
   };
+  if (articles != null) {
+    record.articles = articles;
+  }
 
   if (Array.isArray(stageEvents) && stageEvents.length > 0) {
     record.stages = summariseStageEvents(stageEvents);
@@ -236,7 +238,7 @@ export function appendCostLog({ script, date, totalCostUsd, usageLog, stageEvent
  * Call this at the start of any script before incurring API costs.
  */
 export function checkDailyBudget() {
-  const dailyBudget = parseFloat(process.env.DAILY_BUDGET_USD ?? '10.00');
+  const dailyBudget = Number.parseFloat(process.env.DAILY_BUDGET_USD ?? '10.00');
   const logPath = costLogPath();
   if (!existsSync(logPath)) return;
 

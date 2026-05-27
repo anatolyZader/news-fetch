@@ -1,5 +1,6 @@
 import Card from '@mui/material/Card';
 import Typography from '@mui/material/Typography';
+import PropTypes from 'prop-types';
 
 export function ResilienceSummaryCard({ statusText, statusColor, title }) {
   return (
@@ -21,3 +22,9 @@ export function ResilienceSummaryCard({ statusText, statusColor, title }) {
     </Card>
   );
 }
+
+ResilienceSummaryCard.propTypes = {
+  statusText: PropTypes.node.isRequired,
+  statusColor: PropTypes.string,
+  title: PropTypes.node.isRequired,
+};

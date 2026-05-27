@@ -1,4 +1,7 @@
 import Box from '@mui/material/Box';
+import PropTypes from 'prop-types';
+
+const browserWindow = globalThis.window;
 
 const CORNER = 8;
 
@@ -55,17 +58,17 @@ export function ResizableFrame({
     const cleanup = () => {
       if (finished) return;
       finished = true;
-      window.removeEventListener('pointermove', move, true);
-      window.removeEventListener('pointerup', cleanup, true);
-      window.removeEventListener('pointercancel', cleanup, true);
+      browserWindow?.removeEventListener('pointermove', move, true);
+      browserWindow?.removeEventListener('pointerup', cleanup, true);
+      browserWindow?.removeEventListener('pointercancel', cleanup, true);
       try {
         el.releasePointerCapture(pointerId);
       } catch { /* */ }
       document.body.style.removeProperty('user-select');
     };
-    window.addEventListener('pointermove', move, { capture: true, passive: true });
-    window.addEventListener('pointerup', cleanup, { capture: true });
-    window.addEventListener('pointercancel', cleanup, { capture: true });
+    browserWindow?.addEventListener('pointermove', move, { capture: true, passive: true });
+    browserWindow?.addEventListener('pointerup', cleanup, { capture: true });
+    browserWindow?.addEventListener('pointercancel', cleanup, { capture: true });
     document.body.style.userSelect = 'none';
     ev.preventDefault();
   };
@@ -166,3 +169,15 @@ export function ResizableFrame({
     </Box>
   );
 }
+
+ResizableFrame.propTypes = {
+  width: PropTypes.number.isRequired,
+  height: PropTypes.number.isRequired,
+  onSize: PropTypes.func.isRequired,
+  minWidth: PropTypes.number,
+  minHeight: PropTypes.number,
+  maxWidth: PropTypes.number,
+  maxHeight: PropTypes.number,
+  zIndex: PropTypes.number,
+  edges: PropTypes.arrayOf(PropTypes.string),
+};

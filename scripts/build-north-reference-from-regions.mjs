@@ -10,9 +10,9 @@
  * Reads:  regions.json (repo root)
  * Writes: business_modules/geo/data/north-reference.json (hierarchical subregions.*.localities; merges by canonicalKey)
  */
-import { readFileSync, writeFileSync } from 'fs';
-import { dirname, resolve } from 'path';
-import { fileURLToPath } from 'url';
+import { readFileSync, writeFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import {
   collectRawLocalitiesFromNorthReferenceDoc,
@@ -55,7 +55,7 @@ const MANUAL_COORDS = {
   'בועינה נוגידת': { lat: 32.8062, lon: 35.3649 },
 };
 
-const USER_AGENT = 'news-fetch-geo-build/1.0 (locality reference; contact: dev)';
+const USER_AGENT = 'news-fetch-geo-build/1 (locality reference; contact: dev)';
 
 function sleep(ms) {
   return new Promise((r) => setTimeout(r, ms));

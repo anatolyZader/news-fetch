@@ -1,6 +1,6 @@
-import { createWriteStream, mkdtempSync } from 'fs';
-import { tmpdir } from 'os';
-import { join } from 'path';
+import { createWriteStream, mkdtempSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { Readable } from 'stream';
 
 const AUDIO_EXTENSIONS = new Set(['.mp3', '.wav', '.m4a', '.aac', '.ogg', '.flac', '.opus', '.webm', '.mp4']);

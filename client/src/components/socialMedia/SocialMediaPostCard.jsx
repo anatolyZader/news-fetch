@@ -8,6 +8,8 @@ import Typography from '@mui/material/Typography';
 import { alpha, useTheme } from '@mui/material/styles';
 
 import { SOCIAL_MEDIA_CATEGORY_LABEL_KEYS } from '../../constants/socialMediaCategoryLabels.js';
+import PropTypes from 'prop-types';
+import { translationFnPropType } from '../../lib/reportPropTypes.js';
 
 export function SocialMediaPostCard({ post, t }) {
   const theme = useTheme();
@@ -76,3 +78,8 @@ export function SocialMediaPostCard({ post, t }) {
     </Card>
   );
 }
+
+SocialMediaPostCard.propTypes = {
+  post: PropTypes.object.isRequired,
+  t: translationFnPropType,
+};

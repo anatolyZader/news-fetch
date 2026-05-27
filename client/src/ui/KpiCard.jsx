@@ -2,6 +2,7 @@ import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Typography from '@mui/material/Typography';
 import { alpha } from '@mui/material/styles';
+import PropTypes from 'prop-types';
 
 const DENSITY = {
   comfortable: { px: 2, py: 1.5 },
@@ -61,6 +62,15 @@ export function KpiCard({
   );
 }
 
+KpiCard.propTypes = {
+  label: PropTypes.node.isRequired,
+  value: PropTypes.node.isRequired,
+  helper: PropTypes.node,
+  tone: PropTypes.string,
+  density: PropTypes.oneOf(['comfortable', 'dense']),
+  span: PropTypes.number,
+};
+
 export function KpiStrip({ children, minColumnWidth = 140, columns }) {
   return (
     <Box
@@ -76,3 +86,9 @@ export function KpiStrip({ children, minColumnWidth = 140, columns }) {
     </Box>
   );
 }
+
+KpiStrip.propTypes = {
+  children: PropTypes.node,
+  minColumnWidth: PropTypes.number,
+  columns: PropTypes.number,
+};

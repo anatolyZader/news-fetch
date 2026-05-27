@@ -1,4 +1,5 @@
 import ButtonBase from '@mui/material/ButtonBase';
+import PropTypes from 'prop-types';
 
 function mergeSx(sx) {
   if (sx == null) return [];
@@ -38,3 +39,11 @@ export function PrimaryTab({ active = false, compact = false, className = '', sx
     </ButtonBase>
   );
 }
+
+PrimaryTab.propTypes = {
+  active: PropTypes.bool,
+  compact: PropTypes.bool,
+  className: PropTypes.string,
+  sx: PropTypes.oneOfType([PropTypes.object, PropTypes.array, PropTypes.func]),
+  children: PropTypes.node,
+};

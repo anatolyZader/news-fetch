@@ -21,7 +21,7 @@
  *   scheduler.stop();
  */
 
-import { join } from 'path';
+import { join } from 'node:path';
 
 const POLL_INTERVAL_MS = 30_000;   // poll every 30 seconds
 const DETECTION_WINDOW_MIN = 5;    // consider a slot "due" for up to 5 minutes after HH:MM

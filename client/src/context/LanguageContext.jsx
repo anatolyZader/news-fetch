@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { translations } from '../i18n/translations.js';
+import PropTypes from 'prop-types';
 
 const LanguageContext = createContext(null);
 
@@ -26,6 +27,10 @@ export function LanguageProvider({ children }) {
     </LanguageContext.Provider>
   );
 }
+
+LanguageProvider.propTypes = {
+  children: PropTypes.node,
+};
 
 export function useLanguage() {
   return useContext(LanguageContext);

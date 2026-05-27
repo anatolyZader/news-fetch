@@ -13,9 +13,9 @@
  */
 
 import 'dotenv/config';
-import { resolve, basename, dirname } from 'path';
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
-import { fileURLToPath } from 'url';
+import { resolve, basename, dirname } from 'node:path';
+import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 
 import { loadMdFiles } from '../infrastructure/mdReportsLoader.js';
 import { extractSignals } from '../infrastructure/claudeEvaluator.js';

@@ -1,5 +1,5 @@
-import { existsSync, readFileSync, readdirSync, statSync } from 'fs';
-import { basename, extname, resolve, sep } from 'path';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
+import { basename, extname, resolve, sep } from 'node:path';
 import { IReportBotManualReportsPort } from '../../domain/ports/IReportBotManualReportsPort.js';
 
 const SNIPPET_BYTES = 1200;

@@ -1,0 +1,52 @@
+{
+  "topic": "ממ\"ד",
+  "topicNormalized": {
+    "conceptIds": [
+      "shelter"
+    ],
+    "matchTokens": [
+      "ממד",
+      "מקלט",
+      "מרחב מוגן",
+      "מקלטים",
+      "shelter",
+      "safe room",
+      "ملجأ",
+      "غرفة آمنة"
+    ],
+    "searchTermsByLang": {
+      "he": [
+        "מקלט",
+        "ממ\"ד",
+        "מרחב מוגן",
+        "מקלטים"
+      ],
+      "en": [
+        "shelter",
+        "safe room"
+      ],
+      "ar": [
+        "ملجأ",
+        "غرفة آمنة"
+      ]
+    }
+  },
+  "platforms": [
+    "x"
+  ],
+  "lang": "en",
+  "fetchedAt": "2026-05-27T10:37:32.381Z",
+  "source": "x_unconfigured",
+  "mode": "dry_run",
+  "accessNotes": [
+    "X_BEARER_TOKEN is not configured on the server. Set it in .env and restart to run live X fetch from the UI."
+  ],
+  "dryRun": null,
+  "estimate": null,
+  "posts": [],
+  "stats": {
+    "matched": 0,
+    "afterDedup": 0,
+    "duplicatesRemoved": 0
+  }
+}

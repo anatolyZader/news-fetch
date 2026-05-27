@@ -23,9 +23,9 @@
  *     Shoutcast/Icecast (commercial):   http://...   /stream  or  /live
  */
 
-import { resolve, join } from 'path';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
+import { resolve, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { dirname } from 'node:path';
 import { createFfmpegDirectStreamAdapter } from '../infrastructure/adapters/ffmpegDirectStreamAdapter.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));

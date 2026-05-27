@@ -11,7 +11,6 @@ tags:
   - name: Auth
   - name: Reports
   - name: Evidence
-  - name: Analysis
   - name: Video
   - name: Education
   - name: Municipalities
@@ -361,24 +360,6 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
-        "401":
-          description: Unauthorized
-          content:
-            application/json:
-              schema: { $ref: "#/components/schemas/Error" }
-
-  /api/analyze:
-    post:
-      tags: [Analysis]
-      summary: Run analysis (Server-Sent Events).
-      description: Returns `text/event-stream` events, ending with a `done` or `error` event.
-      responses:
-        "200":
-          description: SSE stream
-          content:
-            text/event-stream:
-              schema:
-                type: string
         "401":
           description: Unauthorized
           content:

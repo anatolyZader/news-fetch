@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import { MarkdownArticle } from '../ui/MarkdownArticle.jsx';
+import PropTypes from 'prop-types';
 
 function CopyablePre({ children }) {
   const [copied, setCopied] = useState(false);
@@ -48,6 +49,10 @@ function CopyablePre({ children }) {
   );
 }
 
+CopyablePre.propTypes = {
+  children: PropTypes.node,
+};
+
 export function MarkdownDocView({ markdown, banner }) {
   if (!markdown?.trim()) {
     return (
@@ -70,3 +75,8 @@ export function MarkdownDocView({ markdown, banner }) {
     />
   );
 }
+
+MarkdownDocView.propTypes = {
+  markdown: PropTypes.string,
+  banner: PropTypes.string,
+};

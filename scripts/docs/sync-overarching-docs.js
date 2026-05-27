@@ -2,10 +2,10 @@
  * Regenerate auto-synced sections in docs/main_docu_files/ and OpenAPI-derived product docs.
  * Run: npm run docs:sync
  */
-import { readFile, writeFile } from 'fs/promises';
-import { resolve } from 'path';
-import { spawnSync } from 'child_process';
-import { fileURLToPath } from 'url';
+import { readFile, writeFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 
 import { RESILIENCE_COMPONENTS } from '../../business_modules/resilience/domain/resilienceComponents.js';
 import { COMPONENT_FACETS } from '../../business_modules/resilience/domain/services/componentFacets.js';

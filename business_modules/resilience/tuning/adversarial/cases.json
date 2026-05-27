@@ -449,6 +449,30 @@
     },
 
     {
+      "id": "thin_critical_field_harm_salience",
+      "category": "thin_evidence",
+      "scenario": "One verified field harm report with thin mass; high-salience bypass surfaces operator-critical alert.",
+      "mock_extraction": [
+        {
+          "article_index": 1,
+          "article_source": "pbo-north",
+          "source_type": "field",
+          "signal_type": "harm_to_population",
+          "evidence_type": "direct_quote_named_person",
+          "scope_level": "single_case",
+          "intensity": "severe",
+          "evidence": "MDA paramedic: three civilians killed in direct strike on shelter.",
+          "extraction_confidence": 0.95,
+          "temporal_weight": 1.0
+        }
+      ],
+      "expectations": {
+        "salience_critical": {"wellbeing_at_risk": true},
+        "comment": "Verified high-stakes field harm must not be hidden behind thin-evidence abstention."
+      }
+    },
+
+    {
       "id": "digital_darkness_field_active",
       "category": "data_void",
       "scenario": "Digital channels silent while field reports continue — data void index must flag digital_darkness.",

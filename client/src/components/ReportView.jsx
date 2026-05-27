@@ -22,6 +22,18 @@ import { expandSourceCitationLinks } from './ReportMarkdownView.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { scoreColor10, scoreLabel10, scoreVariant10 } from '../lib/score.js';
 import { DriftSparkline, ResilienceSummaryCard, StatusTag, MarkdownArticle } from '../ui/index.js';
+import PropTypes from 'prop-types';
+import {
+  assessmentShape,
+  componentScoreShape,
+  driftByComponentShape,
+  facetsShape,
+  macroSignalShape,
+  scoreBySourceShape,
+  sourceKindPropType,
+  statusTagVariantPropType,
+  translationFnPropType,
+} from '../lib/reportPropTypes.js';
 
 const COMPONENT_ICONS = {
   narrative:                 MenuBookOutlinedIcon,
@@ -38,10 +50,10 @@ function getComponentIcon(componentId) {
   return COMPONENT_ICONS[componentId] ?? HelpOutlineOutlinedIcon;
 }
 
-const SOURCE_KINDS = ['field', 'radio', 'naftali', 'press', 'pbo', 'social'];
+const SOURCE_KINDS = new Set(['field', 'radio', 'naftali', 'press', 'pbo', 'social']);
 
 function SourceBadge({ kind, children }) {
-  const safeKind = SOURCE_KINDS.includes(kind) ? kind : 'field';
+  const safeKind = SOURCE_KINDS.has(kind) ? kind : 'field';
   return (
     <Box
       component="span"
@@ -116,6 +128,32 @@ function ReportSection({ title, children, ...props }) {
   );
 }
 
+function deltaToneColor(delta, theme) {
+  return delta > 0 ? theme.palette.success.main : theme.palette.error.main;
+}
+
+function deltaAdornmentBorder(delta, significant, theme) {
+  if (!significant) return `1px solid ${theme.palette.divider}`;
+  return `1.5px solid ${deltaToneColor(delta, theme)}`;
+}
+
+function facetBarColor(score) {
+  if (score == null) return 'inherit';
+  if (score <= 4) return 'error';
+  if (score <= 6) return 'warning';
+  return 'success';
+}
+
+function deltaLineColor(comp, theme) {
+  if (comp.delta_flag !== 'significant') return 'text.secondary';
+  return deltaToneColor(comp.delta_score, theme);
+}
+
+function formatNorrisRapidity(value) {
+  if (value == null) return '—';
+  return fmt01(value);
+}
+
 function DeltaAdornment({ delta, significant, t }) {
   if (delta == null || delta === 0) return null;
   const tpl = delta > 0 ? t('report.delta.up') : t('report.delta.down');
@@ -132,10 +170,8 @@ function DeltaAdornment({ delta, significant, t }) {
         fontSize: theme.typography.eyebrow.fontSize,
         fontWeight: 600,
         lineHeight: 1.2,
-        color: delta > 0 ? theme.palette.success.main : theme.palette.error.main,
-        border: significant
-          ? `1.5px solid ${delta > 0 ? theme.palette.success.main : theme.palette.error.main}`
-          : `1px solid ${theme.palette.divider}`,
+        color: deltaToneColor(delta, theme),
+        border: deltaAdornmentBorder(delta, significant, theme),
         background: theme.palette.background.paper,
       })}
     >
@@ -206,6 +242,12 @@ function InstrumentStateBadges({ instrument, t }) {
       )}
       {inst.thin_evidence_instrument === 'unverified_alert' && (
         <StatusTag variant="alert">{t('report.instrument.unverifiedAlert')}</StatusTag>
+      )}
+      {inst.thin_evidence_instrument === 'critical_single_signal' && (
+        <StatusTag variant="alert">{t('report.instrument.criticalSingleSignal')}</StatusTag>
+      )}
+      {inst.salience_critical && inst.floor_bypassed && (
+        <StatusTag variant="alert">{t('report.instrument.salienceFloorBypass')}</StatusTag>
       )}
       {inst.thin_evidence_instrument === 'limited_evidence_neutral' && (
         <StatusTag variant="neutral">{t('report.instrument.limitedNeutral')}</StatusTag>
@@ -319,12 +361,12 @@ function WhyThisScore({ comp, t }) {
         {top.map((s, i) => {
           const sign = s._polarity === '-' ? '−' : '+';
           const signColor = s._polarity === '-' ? 'error.main' : 'success.main';
-          const signalLabel = (s.signal_type ?? '').replace(/_/g, ' ');
+          const signalLabel = (s.signal_type ?? '').replaceAll('_', ' ');
           const preCap = s._contribution_pre_cap;
           const showPreCap = preCap != null && Math.abs(preCap - s._contribution) > 0.01;
           return (
             <Stack
-              key={i}
+              key={`${s.signal_type ?? 'signal'}-${i}`}
               direction="row"
               alignItems="baseline"
               spacing={0.75}
@@ -426,7 +468,7 @@ function FacetBars({ facets, t }) {
               <LinearProgress
                 variant="determinate"
                 value={pct}
-                color={f.score == null ? 'inherit' : (f.score <= 4 ? 'error' : f.score <= 6 ? 'warning' : 'success')}
+                color={facetBarColor(f.score)}
                 sx={{ height: 6, borderRadius: 3, opacity: f.score == null ? 0.3 : 1 }}
               />
             </Box>
@@ -449,9 +491,7 @@ function DeltaLine({ comp, t }) {
       sx={(theme) => ({
         display: 'block',
         marginTop: theme.spacing(0.25),
-        color: comp.delta_flag === 'significant'
-          ? (comp.delta_score > 0 ? theme.palette.success.main : theme.palette.error.main)
-          : 'text.secondary',
+        color: deltaLineColor(comp, theme),
         fontWeight: comp.delta_flag === 'significant' ? 600 : 400,
       })}
     >
@@ -481,8 +521,8 @@ function MacroSignalsSection({ macroSignals, t, isAnalyst }) {
       </Typography>
       <Stack spacing={0.75}>
         {list.slice(0, 12).map((s, i) => (
-          <Typography key={i} variant="body2" sx={{ fontSize: '0.85rem' }}>
-            <strong>{(s.signal_type ?? s.type ?? 'macro').replace(/_/g, ' ')}</strong>
+          <Typography key={`${s.signal_type ?? s.type ?? 'macro'}-${i}`} variant="body2" sx={{ fontSize: '0.85rem' }}>
+            <strong>{(s.signal_type ?? s.type ?? 'macro').replaceAll('_', ' ')}</strong>
             {' — '}
             {String(s.evidence ?? '').slice(0, 240)}
           </Typography>
@@ -505,7 +545,7 @@ function ComponentCard({
   onEvidenceToggle,
 }) {
   const isAnalyst = displayTier === 'analyst';
-  const label = t(`comp.${comp.component_id}`) ?? comp.component_id.replace(/_/g, ' ');
+  const label = t(`comp.${comp.component_id}`) ?? comp.component_id.replaceAll('_', ' ');
   const confidenceLabel = t(`confidence.${comp.confidence}`) ?? comp.confidence;
 
   const isFiltered = sourceSignals !== null && sourceSignals !== undefined;
@@ -591,8 +631,8 @@ function ComponentCard({
           <Box sx={(theme) => ({ marginTop: theme.spacing(1) })}>
             <Typography variant="meta" color="text.secondary">{t('report.manifestations.absent')}</Typography>
             <Box component="ul" sx={{ margin: 0, paddingLeft: 2 }}>
-              {comp.manifestations_absent.map((m, i) => (
-                <Typography component="li" variant="body2" key={i}>{m}</Typography>
+              {comp.manifestations_absent.map((m) => (
+                <Typography component="li" variant="body2" key={m}>{m}</Typography>
               ))}
             </Box>
           </Box>
@@ -644,7 +684,7 @@ function ComponentCard({
                   ? signals.map((s, i) => (
                     <Box
                       component="li"
-                      key={i}
+                      key={`${s.source_type ?? 'src'}-${s.article_source ?? i}-${i}`}
                       sx={(theme) => ({
                         display: 'block',
                         marginBottom: theme.spacing(1),
@@ -672,7 +712,7 @@ function ComponentCard({
                     </Box>
                   ))
                   : curatedEvidence.map((e, i) => (
-                    <Box component="li" key={i} sx={(theme) => ({ marginBottom: theme.spacing(0.75) })}>
+                    <Box component="li" key={`evidence-${i}-${String(e).slice(0, 32)}`} sx={(theme) => ({ marginBottom: theme.spacing(0.75) })}>
                       <MarkdownArticle variant="report" markdown={expandSourceCitationLinks(e)} />
                     </Box>
                   ))}
@@ -725,7 +765,6 @@ export function ReportView({
   const driftMap = driftByComponent ?? {};
   const methodology = assessment.methodology ?? null;
   const dataVoid = assessment.data_void ?? null;
-  const scopeSummary = methodology?.scope?.scope_decision_summary ?? null;
   const geoQuality = methodology?.scope?.geo_quality_summary ?? null;
   const geoMetricsSafePct = geoQuality?.pctUsableForMetrics ?? null;
 
@@ -831,7 +870,7 @@ export function ReportView({
             {components.map((c) => (
               <ComponentChip
                 key={c.component_id}
-                label={t(`comp.${c.component_id}`) ?? c.component_id.replace(/_/g, ' ')}
+                label={t(`comp.${c.component_id}`) ?? c.component_id.replaceAll('_', ' ')}
                 value={c.score}
                 variant={scoreVariant10(c.score)}
                 t={t}
@@ -897,7 +936,7 @@ export function ReportView({
                     {t('norris.diag.redundancy') ?? 'redundancy'} {fmt01(cap.diagnostics?.redundancy)}
                   </StatusTag>
                   <StatusTag variant="neutral">
-                    {t('norris.diag.rapidity') ?? 'rapidity'} {cap.diagnostics?.rapidity == null ? '—' : fmt01(cap.diagnostics?.rapidity)}
+                    {t('norris.diag.rapidity') ?? 'rapidity'} {formatNorrisRapidity(cap.diagnostics?.rapidity)}
                   </StatusTag>
                 </Stack>
 
@@ -984,3 +1023,97 @@ export function ReportView({
     </Stack>
   );
 }
+
+SourceBadge.propTypes = {
+  kind: sourceKindPropType,
+  children: PropTypes.node,
+};
+
+ReportSection.propTypes = {
+  title: PropTypes.string.isRequired,
+  children: PropTypes.node,
+};
+
+DeltaAdornment.propTypes = {
+  delta: PropTypes.number,
+  significant: PropTypes.bool,
+  t: translationFnPropType,
+};
+
+ComponentChip.propTypes = {
+  label: PropTypes.string.isRequired,
+  variant: statusTagVariantPropType,
+  value: PropTypes.number,
+  t: translationFnPropType,
+  comp: componentScoreShape,
+};
+
+InstrumentStateBadges.propTypes = {
+  instrument: PropTypes.object,
+  t: translationFnPropType,
+};
+
+ContestedBadge.propTypes = {
+  t: translationFnPropType,
+};
+
+ScoreWithInterval.propTypes = {
+  comp: componentScoreShape.isRequired,
+  t: translationFnPropType,
+};
+
+WhyThisScore.propTypes = {
+  comp: componentScoreShape.isRequired,
+  t: translationFnPropType,
+};
+
+CounterfactualHint.propTypes = {
+  comp: componentScoreShape.isRequired,
+  t: translationFnPropType,
+};
+
+FacetBars.propTypes = {
+  facets: facetsShape,
+  t: translationFnPropType,
+};
+
+DeltaLine.propTypes = {
+  comp: componentScoreShape.isRequired,
+  t: translationFnPropType,
+};
+
+MacroSignalsSection.propTypes = {
+  macroSignals: PropTypes.arrayOf(macroSignalShape),
+  t: translationFnPropType,
+  isAnalyst: PropTypes.bool,
+};
+
+ComponentCard.propTypes = {
+  comp: componentScoreShape.isRequired,
+  t: translationFnPropType,
+  sourceSignals: PropTypes.arrayOf(PropTypes.object),
+  driftSeries: PropTypes.array,
+  driftLoading: PropTypes.bool,
+  displayTier: PropTypes.oneOf(['operator', 'analyst']),
+  open: PropTypes.bool,
+  evidenceOpen: PropTypes.bool,
+  onToggle: PropTypes.func.isRequired,
+  onEvidenceToggle: PropTypes.func.isRequired,
+};
+
+ReportView.propTypes = {
+  assessment: assessmentShape.isRequired,
+  scoreBySource: scoreBySourceShape,
+  displayTier: PropTypes.oneOf(['operator', 'analyst']),
+  readOnly: PropTypes.bool,
+  translating: PropTypes.bool,
+  translateError: PropTypes.string,
+  reportDate: PropTypes.string,
+  reportScope: PropTypes.string,
+  driftByComponent: driftByComponentShape,
+  driftLoading: PropTypes.bool,
+  openCompId: PropTypes.string,
+  setOpenCompId: PropTypes.func,
+  openEvidenceCompId: PropTypes.string,
+  setOpenEvidenceCompId: PropTypes.func,
+};

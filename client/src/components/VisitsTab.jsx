@@ -27,6 +27,8 @@ import {
   SectionHeading,
 } from '../ui/index.js';
 import { formatDate } from '../lib/date.js';
+import PropTypes from 'prop-types';
+import { translationFnPropType } from '../lib/reportPropTypes.js';
 
 function stableHue(input) {
   const s = String(input ?? '');
@@ -126,6 +128,11 @@ function VisitMetaRow({ label, value }) {
   );
 }
 
+VisitMetaRow.propTypes = {
+  label: PropTypes.string.isRequired,
+  value: PropTypes.node,
+};
+
 function VisitSubsection({ title, children, theme, dense = false, accent = null }) {
   const a = accent ?? theme.palette.primary.main;
   const sp = dense ? 1 : 1.5;
@@ -151,6 +158,14 @@ function VisitSubsection({ title, children, theme, dense = false, accent = null 
     </Stack>
   );
 }
+
+VisitSubsection.propTypes = {
+  title: PropTypes.string,
+  children: PropTypes.node,
+  theme: PropTypes.object.isRequired,
+  dense: PropTypes.bool,
+  accent: PropTypes.string,
+};
 
 function VisitMunicipalityCard({
   visit,
@@ -443,6 +458,13 @@ function VisitMunicipalityCard({
     </Card>
   );
 }
+
+VisitMunicipalityCard.propTypes = {
+  visit: PropTypes.object.isRequired,
+  batchDate: PropTypes.string,
+  t: translationFnPropType,
+  formatDate: PropTypes.func.isRequired,
+};
 
 function compareVisitByRegionThenMunicipality(a, b) {
   const regionCmp = (a.region ?? '').localeCompare(b.region ?? '', 'he', { sensitivity: 'base' });

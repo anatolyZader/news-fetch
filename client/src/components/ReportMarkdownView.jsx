@@ -3,6 +3,7 @@ import {
   EVIDENCE_LEVEL_INLINE_NOTE,
 } from '../../../shared/componentsTableGlossary.js';
 import { MarkdownArticle } from '../ui/MarkdownArticle.jsx';
+import PropTypes from 'prop-types';
 
 /**
  * LLM output uses `[source](url)`; show the actual URL as link text so the browser matches
@@ -57,3 +58,8 @@ export function ReportMarkdownView({ markdown, readOnly }) {
     />
   );
 }
+
+ReportMarkdownView.propTypes = {
+  markdown: PropTypes.string,
+  readOnly: PropTypes.bool,
+};

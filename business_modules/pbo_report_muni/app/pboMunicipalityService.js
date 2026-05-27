@@ -6,8 +6,8 @@
  * to the 8 resilience components using header text matching.
  */
 
-import { readdirSync } from 'fs';
-import { resolve, basename } from 'path';
+import { readdirSync } from 'node:fs';
+import { resolve, basename } from 'node:path';
 import XLSX from 'xlsx';
 
 // ─── Column → component mapping ─────────────────────────────────────────────

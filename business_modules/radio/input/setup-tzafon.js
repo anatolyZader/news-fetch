@@ -20,14 +20,15 @@
  *   articles-audio-tzafon-1045-<YYYY-MM-DD>T<HH-MM>.md
  *
  * To analyze a morning's transcripts for resilience signals:
- *   npm run analyze-resilience -- --content-kind audio \
+ *   npm run extract-signals -- --source-type radio \
  *     --files articles-audio-tzafon-1045-<date>T06-00.md \
  *     --date <date>
+ *   npm run assess-signals -- --date <date> --days 1 --scope national
  */
 
 import 'dotenv/config';
-import { resolve, dirname } from 'path';
-import { fileURLToPath } from 'url';
+import { resolve, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { createRecordingJobStore } from '../../recording/infrastructure/recordingJobStore.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));

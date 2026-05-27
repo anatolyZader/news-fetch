@@ -11,6 +11,8 @@ import { useTheme } from '@mui/material/styles';
 import { useResilienceDrift } from '../hooks/useResilienceDrift.js';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { scoreColor10 } from '../lib/score.js';
+import PropTypes from 'prop-types';
+import { translationFnPropType } from '../lib/reportPropTypes.js';
 
 const COMPONENT_IDS = [
   'narrative', 'information_communication', 'lifesaving_behavior',
@@ -86,6 +88,15 @@ function Sparkline({ series, t, valueKey = 'score', variant = 'score10', yMin: y
   );
 }
 
+Sparkline.propTypes = {
+  series: PropTypes.arrayOf(PropTypes.object).isRequired,
+  t: translationFnPropType,
+  valueKey: PropTypes.string,
+  variant: PropTypes.oneOf(['score10', 'unit01']),
+  yMin: PropTypes.number,
+  yMax: PropTypes.number,
+};
+
 function ComponentTile({ id, series, t }) {
   const last = [...series].reverse().find((p) => p.score != null);
   const first = series.find((p) => p.score != null);
@@ -143,6 +154,12 @@ function ComponentTile({ id, series, t }) {
   );
 }
 
+ComponentTile.propTypes = {
+  id: PropTypes.string.isRequired,
+  series: PropTypes.arrayOf(PropTypes.object).isRequired,
+  t: translationFnPropType,
+};
+
 function SignalVolumeBar({ days, t }) {
   if (!Array.isArray(days) || days.length === 0) {
     return (
@@ -179,6 +196,11 @@ function SignalVolumeBar({ days, t }) {
     </Box>
   );
 }
+
+SignalVolumeBar.propTypes = {
+  days: PropTypes.arrayOf(PropTypes.object),
+  t: translationFnPropType,
+};
 
 export function ResilienceDriftPanel({ scope = 'national' }) {
   const { t } = useLanguage();
@@ -347,3 +369,7 @@ export function ResilienceDriftPanel({ scope = 'national' }) {
     </Stack>
   );
 }
+
+ResilienceDriftPanel.propTypes = {
+  scope: PropTypes.string,
+};

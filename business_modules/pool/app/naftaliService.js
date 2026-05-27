@@ -9,8 +9,8 @@
  * per-municipality breakdowns.
  */
 
-import { readdirSync } from 'fs';
-import { resolve } from 'path';
+import { readdirSync } from 'node:fs';
+import { resolve } from 'node:path';
 import XLSX from 'xlsx';
 import { fetchNaftaliResponses } from '../infrastructure/adapters/naftaliGoogleSheetsAdapter.js';
 

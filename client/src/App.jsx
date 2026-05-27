@@ -6,6 +6,7 @@ import { LanguageProvider } from './context/LanguageContext.jsx';
 import { LoginScreen } from './components/LoginScreen.jsx';
 import { MainApp } from './MainApp.jsx';
 import { AppProviders } from './theme/AppProviders.jsx';
+import PropTypes from 'prop-types';
 
 export default function App() {
   return (
@@ -35,6 +36,10 @@ function CenteredWrap({ children }) {
   );
 }
 
+CenteredWrap.propTypes = {
+  children: PropTypes.node,
+};
+
 function AuthGate() {
   const {
     configLoaded,
@@ -62,7 +67,7 @@ function AuthGate() {
           <Box component="code" sx={{ fontSize: '0.85em' }}>VITE_FIREBASE_API_KEY</Box>,{' '}
           <Box component="code" sx={{ fontSize: '0.85em' }}>VITE_FIREBASE_AUTH_DOMAIN</Box>, and{' '}
           <Box component="code" sx={{ fontSize: '0.85em' }}>VITE_FIREBASE_PROJECT_ID</Box> when building the client, and enable Email/Password and Google in
-          Firebase Console → Authentication.
+          Firebase Console {'→'} Authentication.
         </Alert>
       </CenteredWrap>
     );

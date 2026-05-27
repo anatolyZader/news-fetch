@@ -11,7 +11,7 @@
  */
 
 import 'dotenv/config';
-import { resolve } from 'path';
+import { resolve } from 'node:path';
 import { createWhatsAppMessageStore } from '../infrastructure/whatsappMessageStore.js';
 import { createWhatsAppIngestService } from '../app/whatsappIngestService.js';
 

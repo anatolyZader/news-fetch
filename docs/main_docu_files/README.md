@@ -12,7 +12,7 @@ Canonical, **overarching** reference documents for this repository. They are kep
 
 ### What each doc covers (current app state, 2026-05-25)
 
-- **pipeline.md** — Modern `extract-signals` + `assess-signals` path (production default), legacy `analyze-resilience`, seven toggled source types in `pipeline-config.json` (including **social** X + Telegram), **pbo_regional** assess-time discovery, validation collection, catalog learning gap reports, search trends UI, `daily-pipeline.sh`, slash commands (`/8comp-3`, `/8comp-3-north`).
+- **pipeline.md** — `extract-signals` + `assess-signals` daily pipeline, seven toggled source types in `pipeline-config.json` (including **social** X + Telegram), **pbo_regional** assess-time discovery, validation collection, catalog learning gap reports, search trends UI, `daily-pipeline.sh`, slash commands (`/8comp-3`, `/8comp-3-north`).
 - **8-component-analysis-end-to-end.md** — Full framework depth: multipass extraction, verification, deterministic scoring, epistemic scope partition, data void index, bootstrap/EWMA/polarization/chronic baseline, drift dashboard, golden corpus, adversarial tests, OOV/learning capture, operator vs analyst display tiers. Auto-synced component/facet tables from code.
 - **GEOGRAPHIC-ANALYSIS.md** — `IGeoEnrichmentPort`, envelope contract (nested + flat aliases), WhatsApp/survey/news geo attach, `scopeDecision` vs `geo.scopeDecision`, `regionSignalFilter`, unknown-locality review sinks.
 

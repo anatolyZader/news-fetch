@@ -1,6 +1,6 @@
-import { spawn } from 'child_process';
-import { mkdirSync } from 'fs';
-import { dirname } from 'path';
+import { spawn } from 'node:child_process';
+import { mkdirSync } from 'node:fs';
+import { dirname } from 'node:path';
 
 /**
  * Records a direct HTTP/HLS/RTSP audio stream to a file using FFmpeg.

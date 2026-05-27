@@ -1,5 +1,6 @@
 import ButtonBase from '@mui/material/ButtonBase';
 import { alpha } from '@mui/material/styles';
+import PropTypes from 'prop-types';
 
 export function SidebarItem({ active = false, className = '', children, ...props }) {
   return (
@@ -41,3 +42,9 @@ export function SidebarItem({ active = false, className = '', children, ...props
     </ButtonBase>
   );
 }
+
+SidebarItem.propTypes = {
+  active: PropTypes.bool,
+  className: PropTypes.string,
+  children: PropTypes.node,
+};

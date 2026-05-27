@@ -6,6 +6,8 @@ import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { ChartCard, ChartGrid, SectionHeading } from '../../ui/index.js';
+import PropTypes from 'prop-types';
+import { translationFnPropType } from '../../lib/reportPropTypes.js';
 
 function QueryGroupBlock({ title, groups, t, onSuggest }) {
   const groupOrder = ['emergency', 'services', 'psycho', 'other'];
@@ -53,6 +55,13 @@ function QueryGroupBlock({ title, groups, t, onSuggest }) {
   );
 }
 
+QueryGroupBlock.propTypes = {
+  title: PropTypes.string.isRequired,
+  groups: PropTypes.object,
+  t: translationFnPropType,
+  onSuggest: PropTypes.func.isRequired,
+};
+
 export function QueriesIntelPanel({ queriesIntel, t }) {
   const onSuggest = useCallback((query) => {
     if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
@@ -91,6 +100,11 @@ export function QueriesIntelPanel({ queriesIntel, t }) {
   );
 }
 
+QueriesIntelPanel.propTypes = {
+  queriesIntel: PropTypes.object,
+  t: translationFnPropType,
+};
+
 function MiniTopicChart({ local, national, color, nationalColor }) {
   const len = Math.max(local?.length ?? 0, national?.length ?? 0);
   const data = Array.from({ length: len }, (_, i) => ({
@@ -108,6 +122,13 @@ function MiniTopicChart({ local, national, color, nationalColor }) {
     </ResponsiveContainer>
   );
 }
+
+MiniTopicChart.propTypes = {
+  local: PropTypes.arrayOf(PropTypes.number),
+  national: PropTypes.arrayOf(PropTypes.number),
+  color: PropTypes.string,
+  nationalColor: PropTypes.string,
+};
 
 export function TopicDeepDivePanel({ dives, t, chartColor, nationalColor }) {
   if (!dives?.length) return null;
@@ -139,3 +160,10 @@ export function TopicDeepDivePanel({ dives, t, chartColor, nationalColor }) {
     </>
   );
 }
+
+TopicDeepDivePanel.propTypes = {
+  dives: PropTypes.arrayOf(PropTypes.object),
+  t: translationFnPropType,
+  chartColor: PropTypes.string,
+  nationalColor: PropTypes.string,
+};

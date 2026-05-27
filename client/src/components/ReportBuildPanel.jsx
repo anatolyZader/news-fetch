@@ -8,6 +8,7 @@ import Typography from '@mui/material/Typography';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { ModalPanel } from '../ui/ModalPanel.jsx';
+import PropTypes from 'prop-types';
 
 function hasSourceBasisCue(text) {
   const t = String(text ?? '').toLowerCase();
@@ -471,3 +472,7 @@ export function ReportBuildPanel({ open, onClose }) {
   );
 }
 
+ReportBuildPanel.propTypes = {
+  open: PropTypes.bool,
+  onClose: PropTypes.func,
+};

@@ -1,5 +1,6 @@
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
+import PropTypes from 'prop-types';
 
 /**
  * Stateless, theme-driven grid table.
@@ -39,7 +40,7 @@ export function GridTable({ columns, rows, gridTemplateColumns, textAlign = 'inh
       </Box>
       {rows.map((row, idx) => (
         <Box
-          key={idx}
+          key={row.id ?? row.key ?? `${idx}-${String(row[columns[0]?.key] ?? '')}`}
           sx={(theme) => ({
             display: 'grid',
             gridTemplateColumns,
@@ -65,3 +66,14 @@ export function GridTable({ columns, rows, gridTemplateColumns, textAlign = 'inh
     </Card>
   );
 }
+
+GridTable.propTypes = {
+  columns: PropTypes.arrayOf(PropTypes.shape({
+    key: PropTypes.string.isRequired,
+    label: PropTypes.string.isRequired,
+    render: PropTypes.func,
+  })).isRequired,
+  rows: PropTypes.arrayOf(PropTypes.object).isRequired,
+  gridTemplateColumns: PropTypes.string.isRequired,
+  textAlign: PropTypes.string,
+};

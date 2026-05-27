@@ -15,6 +15,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { LanguageSelector } from './LanguageSelector.jsx';
 import { ModalPanel } from '../ui/ModalPanel.jsx';
+import PropTypes from 'prop-types';
 
 const LS_MAIL_EMAIL = 'vibes-witch:settings:mailingEmail';
 
@@ -91,6 +92,11 @@ function Section({ title, children }) {
     </Box>
   );
 }
+
+Section.propTypes = {
+  title: PropTypes.string.isRequired,
+  children: PropTypes.node,
+};
 
 export function SettingsPanel({ open, onClose, onOpenDocs }) {
   const { t, lang } = useLanguage();
@@ -476,3 +482,9 @@ export function SettingsPanel({ open, onClose, onOpenDocs }) {
     </ModalPanel>
   );
 }
+
+SettingsPanel.propTypes = {
+  open: PropTypes.bool,
+  onClose: PropTypes.func,
+  onOpenDocs: PropTypes.func,
+};

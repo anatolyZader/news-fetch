@@ -14,6 +14,7 @@ import { EmptyState, ErrorState, LoadingState, PageHeader } from '../ui/index.js
 import { formatDate } from '../lib/date.js';
 import { MarkdownArticle } from '../ui/MarkdownArticle.jsx';
 import { useRegionalPboReports } from '../hooks/useRegionalPboReports.js';
+import PropTypes from 'prop-types';
 
 /** Daily markdown reports from one north regional PBO inbox. */
 export function PboRegionalDailyReports({ regionId }) {
@@ -138,3 +139,11 @@ export function PboRegionalDailyReports({ regionId }) {
     </Box>
   );
 }
+
+PboRegionalDailyReports.propTypes = {
+  regionId: PropTypes.string.isRequired,
+};
+
+PboRegionalDailyReports.propTypes = {
+  regionId: PropTypes.string.isRequired,
+};
