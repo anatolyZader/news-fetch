@@ -3,14 +3,13 @@
  */
 
 import {
-  isFieldSignal,
   isProbeSignal,
-  totalFieldVolume,
 } from './sourceChannels.js';
 import {
   computeVolumeBaselines,
   isBelowQuarterBaseline,
   totalSilenceMinBaseline,
+  meetsSilenceBaseline,
 } from './channelBaselines.js';
 import { computeClusterVoids, channelLevelVoids } from './clusterVoid.js';
 
@@ -113,21 +112,22 @@ export function computeDataVoidIndex(signals, historicalSignals = [], opts = {})
   } = baselines;
 
   const fieldActive = fieldToday > 0;
-  const digital_darkness = digitalDrop && fieldActive;
+  const minBaseline = totalSilenceMinBaseline();
+  const digital_darkness = fieldActive && digitalToday === 0 && expectedDigital >= 1 - 1e-6;
 
   const connectivityTags = list.filter((s) => s?.signal_type === 'connectivity_outage').length;
   const probeOutage = list.some(
     (s) => isProbeSignal(s) && (s.signal_type === 'connectivity_outage' || s.connectivity_outage === true),
   );
 
-  const minBaseline = totalSilenceMinBaseline();
   const total_silence = digitalToday === 0
     && fieldToday === 0
-    && expectedDigital >= minBaseline;
+    && meetsSilenceBaseline(expectedDigital, minBaseline);
 
-  const partial_silence = isBelowQuarterBaseline(digitalToday, expectedDigital)
+  const partial_silence = digitalToday > 0
+    && isBelowQuarterBaseline(digitalToday, expectedDigital)
     && isBelowQuarterBaseline(fieldToday, expectedField)
-    && expectedDigital >= minBaseline;
+    && meetsSilenceBaseline(expectedDigital, minBaseline);
 
   const { level, reason } = resolveVoidLevel({
     digital_darkness,
@@ -167,7 +167,7 @@ export function computeDataVoidIndex(signals, historicalSignals = [], opts = {})
     actual_digital_volume: digitalToday,
     expected_field_volume: Math.round(expectedField * 100) / 100,
     field_volume: fieldToday,
-    digital_z: digitalZ != null ? Math.round(digitalZ * 100) / 100 : null,
+    digital_z: digitalZ == null ? null : Math.round(digitalZ * 100) / 100,
     digital_ewma_7: Math.round(digitalEwma7 * 100) / 100,
     digital_ewma_14: Math.round(digitalEwma14 * 100) / 100,
     digital_ewma_30: Math.round(digitalEwma30 * 100) / 100,

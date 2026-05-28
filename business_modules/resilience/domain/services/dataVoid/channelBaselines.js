@@ -4,7 +4,7 @@
 
 import {
   DIGITAL_SOURCE_TYPES,
-  FIELD_SOURCE_TYPES,
+  
   channelVolumesToday,
   totalDigitalVolume,
   totalFieldVolume,
@@ -20,6 +20,11 @@ function parseEnvInt(name, fallback) {
 
 export function totalSilenceMinBaseline() {
   return parseEnvInt('RESILIENCE_VOID_TOTAL_SILENCE_MIN_BASELINE', 3);
+}
+
+/** Avoid EWMA float drift (e.g. 2.999… vs min 3) on threshold checks. */
+export function meetsSilenceBaseline(value, min = totalSilenceMinBaseline()) {
+  return Number(value) >= min - 1e-6;
 }
 
 /**
@@ -166,4 +171,6 @@ export function isBelowQuarterBaseline(today, baseline) {
   return today < baseline * 0.25;
 }
 
-export { DIGITAL_SOURCE_TYPES, FIELD_SOURCE_TYPES, Z_DROP_THRESHOLD };
+export {   Z_DROP_THRESHOLD };
+
+export {FIELD_SOURCE_TYPES, DIGITAL_SOURCE_TYPES} from './sourceChannels.js';

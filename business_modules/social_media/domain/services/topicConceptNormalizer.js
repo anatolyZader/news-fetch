@@ -12,7 +12,7 @@ export function meaningfulTopicTokens(topic) {
   return String(topic ?? '')
     .toLowerCase()
     .split(/\s+/)
-    .map((t) => t.replaceAll(/^['"]|['"]$/g, '').replace(/['']s$/i, ''))
+    .map((t) => t.replaceAll(/^['"]/g, '').replaceAll(/['"]$/g, '').replace(/(?:'|')s$/i, ''))
     .filter((t) => t.length >= 3 && !STOP_WORDS.has(t));
 }
 
@@ -132,6 +132,46 @@ function addClusterTerms(topic, terms, conceptIds) {
 }
 
 /**
+ * @param {string} original
+ * @param {string} lang
+ * @param {string[]} searchTermsByLang
+ */
+function pushUniqueTerms(terms, searchTermsByLang) {
+  for (const term of terms) {
+    if (!searchTermsByLang.includes(term)) searchTermsByLang.push(term);
+  }
+}
+
+function populateClusterSearchTerms(original, searchTermsByLang) {
+  for (const cluster of TOPIC_CONCEPT_CLUSTERS) {
+    if (!cluster.triggers.test(original)) continue;
+    for (const lang of ['he', 'en', 'ar']) {
+      pushUniqueTerms(cluster.terms[lang] ?? [], searchTermsByLang[lang]);
+    }
+  }
+}
+
+function populatePlaceSearchTerms(original, searchTermsByLang) {
+  const lower = original.toLowerCase();
+  for (const [key, names] of Object.entries(TOPIC_PLACE_NAMES)) {
+    if (!lower.includes(key)) continue;
+    for (const lang of ['he', 'en', 'ar']) {
+      const name = names[lang];
+      if (name) pushUniqueTerms([name], searchTermsByLang[lang]);
+    }
+  }
+}
+
+/**
+ * @param {string} original
+ * @param {{ he: string[], en: string[], ar: string[] }} searchTermsByLang
+ */
+function populateSearchTermsByLang(original, searchTermsByLang) {
+  populateClusterSearchTerms(original, searchTermsByLang);
+  populatePlaceSearchTerms(original, searchTermsByLang);
+}
+
+/**
  * @param {string} topic Raw UI / CLI input
  * @returns {{
  *   original: string,
@@ -154,23 +194,7 @@ export function normalizeTopicConcept(topic) {
 
   /** @type {{ he: string[], en: string[], ar: string[] }} */
   const searchTermsByLang = { he: [], en: [], ar: [] };
-
-  for (const cluster of TOPIC_CONCEPT_CLUSTERS) {
-    if (!cluster.triggers.test(original)) continue;
-    for (const lang of ['he', 'en', 'ar']) {
-      for (const term of cluster.terms[lang] ?? []) {
-        if (!searchTermsByLang[lang].includes(term)) searchTermsByLang[lang].push(term);
-      }
-    }
-  }
-
-  for (const [key, names] of Object.entries(TOPIC_PLACE_NAMES)) {
-    if (!original.toLowerCase().includes(key)) continue;
-    for (const lang of ['he', 'en', 'ar']) {
-      const name = names[lang];
-      if (name && !searchTermsByLang[lang].includes(name)) searchTermsByLang[lang].push(name);
-    }
-  }
+  populateSearchTermsByLang(original, searchTermsByLang);
 
   if (!conceptIds.length && original) {
     searchTermsByLang.en.push(`"${original}"`);

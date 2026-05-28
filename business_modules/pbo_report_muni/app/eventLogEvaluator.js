@@ -63,10 +63,10 @@ function extractJson(text) {
 
   const arrIdx = text.indexOf('[');
   const objIdx = text.indexOf('{');
-  const start =
-    arrIdx === -1 ? objIdx
-    : objIdx === -1 ? arrIdx
-    : Math.min(arrIdx, objIdx);
+  let start;
+  if (arrIdx === -1) start = objIdx;
+  else if (objIdx === -1) start = arrIdx;
+  else start = Math.min(arrIdx, objIdx);
 
   if (start !== -1) {
     const lastArr = text.lastIndexOf(']');

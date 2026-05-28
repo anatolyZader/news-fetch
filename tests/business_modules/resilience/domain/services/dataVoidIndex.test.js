@@ -84,7 +84,7 @@ describe('dataVoidIndex v2', () => {
     assert.equal(r.reason, 'partial_silence');
   });
 
-  it('north-scoped void: national digital does not mask north silence', () => {
+  it('north-scoped void: field-only today with north digital history → digital_darkness', () => {
     const northField = [
       {
         source_type: 'pbo',
@@ -93,10 +93,7 @@ describe('dataVoidIndex v2', () => {
         geo: { kind: 'resolved', classification: { pboSubregionId: 'golan', geoAreaTags: ['north'] } },
       },
     ];
-    const histNorth = histDigital.map((day) =>
-      day.filter((s) => s.source_type === 'pbo' || s.geo?.classification?.geoAreaTags?.includes('north')),
-    );
-    const r = computeDataVoidIndex(northField, histNorth, { reportScope: 'north' });
+    const r = computeDataVoidIndex(northField, histDigital, { reportScope: 'north' });
     assert.equal(r.digital_darkness, true);
   });
 

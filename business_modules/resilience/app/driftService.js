@@ -1,63 +1,63 @@
 import { readResilienceHistory } from '../infrastructure/reportHistoryReader.js';
 import { COMPONENT_IDS } from '../domain/services/behaviorSignals.js';
 
+function isoRangeInclusive(endIso, days) {
+  const safeDays = Number.isFinite(days) && days > 0 ? Math.floor(days) : 1;
+  const [y, m, d] = String(endIso ?? '').split('-').map((s) => Number.parseInt(s, 10));
+  const end = Number.isFinite(y) && Number.isFinite(m) && Number.isFinite(d)
+    ? new Date(Date.UTC(y, m - 1, d))
+    : new Date();
+  const out = [];
+  const start = new Date(end.getTime());
+  start.setUTCDate(start.getUTCDate() - (safeDays - 1));
+  for (let i = 0; i < safeDays; i++) {
+    const cur = new Date(start.getTime());
+    cur.setUTCDate(cur.getUTCDate() + i);
+    out.push(cur.toISOString().slice(0, 10));
+  }
+  return out;
+}
+
+/**
+ * Fill null scores between two known scores with linear steps (one gap ⇒ midpoint).
+ * Leading/trailing nulls stay null (no anchor on one side).
+ * @param {Array<{ date: string, score: number | null }>} points
+ */
+function interpolateScoreGaps(points) {
+  const arr = points.map((p) => ({ ...p }));
+  const n = arr.length;
+  let i = 0;
+  while (i < n) {
+    while (i < n && arr[i].score != null && !Number.isNaN(arr[i].score)) i++;
+    if (i >= n) break;
+    const gapStart = i;
+    while (i < n && (arr[i].score == null || Number.isNaN(arr[i].score))) i++;
+    const gapEnd = i - 1;
+    const prevIdx = gapStart - 1;
+    const nextIdx = i;
+    if (prevIdx < 0 || nextIdx >= n) continue;
+    const v0 = arr[prevIdx].score;
+    const v1 = arr[nextIdx].score;
+    if (v0 == null || v1 == null || Number.isNaN(v0) || Number.isNaN(v1)) continue;
+    const count = gapEnd - gapStart + 1;
+    for (let k = 1; k <= count; k++) {
+      const t = k / (count + 1);
+      const v = v0 + (v1 - v0) * t;
+      arr[gapStart + k - 1] = {
+        ...arr[gapStart + k - 1],
+        score: Math.round(v * 10) / 10,
+        score_interpolated: true,
+      };
+    }
+  }
+  return arr;
+}
+
 /**
  * Aggregates report history into the data shape consumed by the drift dashboard (N4).
  */
 export function createDriftService({ reportsDir, historyReader } = {}) {
   const reader = historyReader ?? readResilienceHistory;
-
-  function isoRangeInclusive(endIso, days) {
-    const safeDays = Number.isFinite(days) && days > 0 ? Math.floor(days) : 1;
-    const [y, m, d] = String(endIso ?? '').split('-').map((s) => Number.parseInt(s, 10));
-    const end = Number.isFinite(y) && Number.isFinite(m) && Number.isFinite(d)
-      ? new Date(Date.UTC(y, m - 1, d))
-      : new Date();
-    const out = [];
-    const start = new Date(end.getTime());
-    start.setUTCDate(start.getUTCDate() - (safeDays - 1));
-    for (let i = 0; i < safeDays; i++) {
-      const cur = new Date(start.getTime());
-      cur.setUTCDate(cur.getUTCDate() + i);
-      out.push(cur.toISOString().slice(0, 10));
-    }
-    return out;
-  }
-
-  /**
-   * Fill null scores between two known scores with linear steps (one gap ⇒ midpoint).
-   * Leading/trailing nulls stay null (no anchor on one side).
-   * @param {Array<{ date: string, score: number | null }>} points
-   */
-  function interpolateScoreGaps(points) {
-    const arr = points.map((p) => ({ ...p }));
-    const n = arr.length;
-    let i = 0;
-    while (i < n) {
-      while (i < n && arr[i].score != null && !Number.isNaN(arr[i].score)) i++;
-      if (i >= n) break;
-      const gapStart = i;
-      while (i < n && (arr[i].score == null || Number.isNaN(arr[i].score))) i++;
-      const gapEnd = i - 1;
-      const prevIdx = gapStart - 1;
-      const nextIdx = i;
-      if (prevIdx < 0 || nextIdx >= n) continue;
-      const v0 = arr[prevIdx].score;
-      const v1 = arr[nextIdx].score;
-      if (v0 == null || v1 == null || Number.isNaN(v0) || Number.isNaN(v1)) continue;
-      const count = gapEnd - gapStart + 1;
-      for (let k = 1; k <= count; k++) {
-        const t = k / (count + 1);
-        const v = v0 + (v1 - v0) * t;
-        arr[gapStart + k - 1] = {
-          ...arr[gapStart + k - 1],
-          score: Math.round(v * 10) / 10,
-          score_interpolated: true,
-        };
-      }
-    }
-    return arr;
-  }
 
   function compute({ scope = 'national', days = 30, endDate } = {}) {
     const historyRaw = reader({ scope, days, endDate, reportsDir });

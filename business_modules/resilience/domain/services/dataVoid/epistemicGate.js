@@ -76,7 +76,7 @@ export function applyEpistemicGate({
   scoredFull,
   signalsForScoring,
   dataVoid,
-  totalArticles,
+  totalArticles: _totalArticles,
   mediaSignals = null,
   salienceContext = {},
   digitalInclusiveScored = null,

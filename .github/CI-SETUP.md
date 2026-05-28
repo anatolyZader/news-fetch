@@ -513,6 +513,10 @@ Reference: [`docs/env.server.example`](../docs/env.server.example), [`docs/IDENT
 | `GOOGLE_APPLICATION_CREDENTIALS` | Local dev only (path to JSON); production uses workload identity |
 | `ANTHROPIC_API_KEY`, `OPENAI_API_KEY` | LLM / transcription pipelines |
 | `RESILIENCE_ANALYST_EMAILS` | Analyst-tier report view |
+| `GEO_ASSERT_ENVELOPE` | Validate geo envelope immediately after attach (`1` in CI test job) |
+| `GEO_LEGACY_SUBREGION_ID` | Set `1` only to emit deprecated flat `subregionId` duplicate (default off) |
+| `GEO_OVERRIDES_SQLITE` / `GEO_UNKNOWN_REVIEW_JSONL` / `GEO_UNKNOWN_REVIEW_SQLITE` | Geo ops review and manual override queues |
+| `RESILIENCE_EPISTEMIC_GEO_V2` | Exclude text-inferred / metrics-unsafe geo from component scores (default on; `=0` for legacy) |
 | Many others | See `docs/env.server.example` and module docs |
 
 **Do not** commit `.env` or `secrets/service-account.json`. **Do not** copy production server secrets into GitHub unless a specific job needs them.
@@ -656,7 +660,6 @@ npm run test:coverage  # CI Test job — writes coverage/lcov.info
 npm run client:build
 cd docs-site && npm run gen:api && npm run build
 node scripts/ci-audit.mjs
-npm run sync:north-terms:check   # must report new_count: 0
 ```
 
 ---
@@ -672,7 +675,6 @@ npm run sync:north-terms:check   # must report new_count: 0
 | OpenAPI lint fails | Invalid or breaking `openapi/openapi.yaml` | Run `npm run openapi:lint`; see [`redocly.yaml`](../redocly.yaml). |
 | Dependency review fails on PR | PR adds high-severity dependency | Update or remove the dependency; complements full-lockfile `ci-audit`. |
 | Security audit fails | High/critical in lockfile (except `xlsx`) | Run `npm audit fix`, commit lockfile; locally run `node scripts/ci-audit.mjs`. |
-| `NORTH_TERMS` check fails | `north-reference.json` ahead of `regionSignalFilter.js` | Run `npm run sync:north-terms -- --write` and commit. |
 | Integration tests skipped | No API keys in CI | Expected; add secrets only if you intentionally want live API tests in CI. |
 | Fork PR: docs out of date | Bot cannot push to fork | Maintainer or author runs `npm run docs:sync` and pushes. |
 | Infinite CI loops | Doc sync without `[skip ci]` | Commit message already includes `[skip ci]`; ensure branch protection does not re-trigger all jobs on bot commits unnecessarily. |

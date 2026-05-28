@@ -6,6 +6,8 @@
 **Framework:** Pikud HaOref / פיקוד העורף (Home Front Command) Community Resilience Model — based on Fran Norris (2008) and Israeli Civil Defense doctrine
 **Scope of this document:** the *complete* implementation reference — meaning of "community resilience" in this system, the eight components in depth, the full pipeline (data sources → ingestion → extraction → verification → deterministic scoring → reliability instruments → narration → reports → UI), the math, the operational guardrails, the QA harness, the practical reading guide for officers and reviewers, and the deferred-work backlog. Everything previously split across multiple notes is consolidated here.
 
+**Last updated:** 2026-05-27
+
 It is written to match — line for line where possible — the implementation in:
 
 - `business_modules/resilience/domain/resilienceComponents.js` (definitions + guiding questions + manifestations)
@@ -81,7 +83,7 @@ Stable IDs are used throughout JSON, code, and i18n keys.
 
 <!-- docs-sync:BEGIN components-at-a-glance -->
 
-> **Auto-synced** from `business_modules/resilience/domain/resilienceComponents.js` on 2026-05-25. Do not edit between sync markers.
+> **Auto-synced** from `business_modules/resilience/domain/resilienceComponents.js` on 2026-05-27. Do not edit between sync markers.
 
 | # | ID | English | Hebrew | What it measures (in one line) |
 |---|---|---|---|---|
@@ -102,7 +104,7 @@ Each component additionally exposes **2–4 facets** (defined in `business_modul
 
 <!-- docs-sync:BEGIN component-facets -->
 
-> **Auto-synced** from `business_modules/resilience/domain/services/componentFacets.js` on 2026-05-25. Do not edit between sync markers.
+> **Auto-synced** from `business_modules/resilience/domain/services/componentFacets.js` on 2026-05-27. Do not edit between sync markers.
 
 | Component | Facets |
 |---|---|
@@ -121,7 +123,7 @@ Every signal type listed in a facet must route into its parent component via `SI
 
 <!-- docs-sync:BEGIN components-detail -->
 
-> **Auto-synced** from `resilienceComponents.js + componentFacets.js` on 2026-05-25. Do not edit between sync markers.
+> **Auto-synced** from `resilienceComponents.js + componentFacets.js` on 2026-05-27. Do not edit between sync markers.
 
 
 Per-component reference below is regenerated from code. Extended narrative, signal-routing notes, and boundary rules in earlier manual sections may appear in pipeline stages §3+.
@@ -492,7 +494,7 @@ Each source produces a `signals/signals-{source}-{YYYY-MM-DD}.json` file (field 
 | **Social OSINT** | `social` | `business_modules/social_media` | X posts + Telegram channel messages | `social-media:gather-daily` → Haiku classify → `signals-social-{date}.json`; `social-media:treat` → `signals[]` | North-biased queries when `--north`; scope filter applies like news/radio |
 | **Survey** (optional) | (varies) | `business_modules/resilience` (survey Excel + writers under `app/` / `infrastructure/adapters/`) | Municipality survey Excel | `analyze-survey.js` (one-off analysis path) | Configurable |
 
-Two tags — `field`, `pbo`, `pbo_regional`, `naftali`, `whatsapp` — are also marked `ALWAYS_NORTH_SOURCE_TYPES` in `regionSignalFilter.js`, meaning their signals are *always* counted toward the north scope regardless of geographic terms in the evidence text. News, radio, and social signals use **geo-first north scoping** with a **text-evidence fallback** when coordinates are missing or not metrics-safe — see §12.
+Two tags — `field`, `pbo`, `pbo_regional`, `naftali`, `whatsapp` — are also marked `ALWAYS_NORTH_SOURCE_TYPES` in `regionSignalFilter.js`, meaning their signals are *always* counted toward the north scope regardless of geographic terms in the evidence text. News, radio, and social signals require **resolved north geo** for north scope (otherwise excluded); `text_inferred` geo may appear in narrative context but is metrics-ineligible under epistemic v2 — see §8.9 and §12.
 
 ### 4.1 Sample raw shape — field report (Hebrew)
 
@@ -811,7 +813,8 @@ When `RESILIENCE_EPISTEMIC_GEO_V2` is enabled (default; set `=0` for legacy):
 | Provenance | In component metrics? | In narrative? |
 |---|---|---|
 | `verified_geo` / `source_assigned` | Yes | Yes |
-| metrics-unsafe resolved geo (north scope, low confidence) | **No** — context only | Yes |
+| `resolution.provenance === 'text_inferred'` on news/radio/social | **No** — context only | Yes |
+| metrics-unsafe resolved geo (`usableForMetrics: false`, north scope, low confidence) | **No** — context only | Yes |
 | `macro_national` (legacy reports only) | **No** — `macro_signals[]` bucket | National backdrop in synthesis only |
 
 Implementation: `evidenceEligibility.js` → `annotateSignalsEpistemics`, `partitionMacroSignals`, `metricsEligible`. North scope scores only `metricsSignals`; macro/context signals appear in `assessment.macro_signals` (operator API redacts to `macro_signals_summary`).
@@ -976,9 +979,37 @@ Drift alerts: `long_term_degradation_warning` (z ≤ −2), `erosion_elevated` (
 
 ### 9.7 Data void / digital darkness (separate from scores)
 
-`dataVoidIndex.js` — not a component score. Fires when digital streams (`whatsapp`, `news`, `radio`, …) drop vs trailing report history while field/PBO remain active, or when `connectivity_outage` tags appear. Surfaces `assessment.data_void` with `level`, `digital_darkness`, `information_vacuum_index` (0–1). Operator red banner; narrator must not treat silence as stability.
+`business_modules/resilience/domain/services/dataVoid/` — not a component score. Multi-channel EWMA baselines (distinct `article_source` per digital channel), z-score drop detection, and per-cluster void via PBO subregion.
 
-Historical digital volume baseline: prior `reports/resilience-report-*.json` signal arrays via `loadHistoricalSignalDays()` (7-day lookback).
+**Void levels and triggers**
+
+| Level | Trigger | `reason` |
+|---|---|---|
+| `critical` | `digital_darkness`: digital volume = 0 while field/PBO/`field_whatsapp`/`naftali` active and historical digital baseline ≥ 1 | `digital_darkness` |
+| `critical` | `total_silence`: digital = 0 and field = 0 with established digital baseline (≥ `RESILIENCE_VOID_TOTAL_SILENCE_MIN_BASELINE`, default 3) | `total_silence` |
+| `critical` | `partial_silence`: digital > 0 but both digital and field below 25% of baseline | `partial_silence` |
+| `critical` | `connectivity_outage` signal or `infrastructure_probe` outage ingest | `connectivity_outage` / `probe_outage` |
+| `elevated` | Very sparse sampling (both channels quiet, &lt; 2 signals total) | `sparse_sampling` |
+| `warning` | Digital z-score drop or volume &lt; 25% baseline (non-zero digital still present) | `digital_volume_drop` / `digital_z_drop` |
+
+**Epistemic gates (deterministic — not narrator-only)**
+
+Computed in `epistemicGate.js` after scoring; attached as `assessment.epistemic_status` and `assessment.assessment_mode`:
+
+| Outcome | Scoring behavior | Operator view |
+|---|---|---|
+| `digital_darkness` | Re-score using **field-family sources only** (`field_anchor_only`); stash digital-inclusive scores in `stale_digital_scores` | Field-anchor scores shown; digital scores marked stale |
+| `level >= elevated` (non-darkness) | **Abstention**: all component `score` null, `confidence: insufficient_data`; instrument `sampling_blind` | No headline scores |
+| `level === warning` | Scores kept | `sampling_status: degraded` banner |
+| `level === none` | Normal scoring | `sampling_status: normal` |
+
+North scope: void index runs on **scope-filtered** signals (`signalsForScoring`), not the national pool — so Tel Aviv news cannot mask a north-specific digital void. Historical baseline from prior scope-matched reports via `loadHistoricalSignalDays()`.
+
+**Connectivity probes:** JSON/JSONL under `business_modules/resilience/data/connectivity-probes/` → `source_type: infrastructure_probe` (cap-exempt, forces critical void).
+
+Surfaces `assessment.data_void` with `level`, `digital_darkness`, `information_vacuum_index` (0–1), `affected_clusters[]`, channel baselines. Operator red banner + narrator must not treat silence as stability.
+
+Flag: `RESILIENCE_DATA_VOID=0` disables void index and gates.
 
 ### 9.8 Press repetition (`media_mention_mass`)
 
@@ -1057,11 +1088,15 @@ When `RESILIENCE_ANALYST_EMAILS` is non-empty, drift endpoints return **403** un
 
 ### 11.3 Web UI
 
-`client/src/components/ReportView.jsx` renders:
+`client/src/MainApp.jsx` splits navigation into **Daily Assessment** (report) and **data-source tabs** (`DataSourcesNav`): News, Radio, Social media, Trends, Visits, PBO reports, Pools (Naftali + Education), and Report bot.
+
+On **desktop**, footer actions and the chat launcher open **panel popups** (`client/src/lib/panelPopup.js`): Chat (SSE assistant), Write Report (`report_build`), Send Data (evidence upload), and Settings (mailing preferences). On smaller viewports, Chat uses an in-app slide-up panel instead.
+
+`client/src/components/ReportView.jsx` renders the assessment:
 
 **Operator mode (default):**
 
-1. **Epistemic banner** and optional **north text-evidence fallback** (degraded scope path) / **thin-evidence** warnings (from `assessment.methodology`).
+1. **Epistemic banner** and **thin-evidence** warnings (from `assessment.methodology`).
 2. **Evidence overview** (scope label, counts of adequate / thin / contested components).
 3. The **executive synthesis**.
 3. Eight **component cards** with **instrument badges** (no `/10`), narrative, optional absent-manifestation hints, and evidence accordion.
@@ -1096,6 +1131,12 @@ When `RESILIENCE_ANALYST_EMAILS` is non-empty, drift endpoints return **403** un
 | `POST /api/social-media/fetch-topic` | On-demand topic search (X / Telegram / Facebook). |
 | `GET /api/search-trends/dashboard?district=&days=&refresh=1` | Search interest dashboards (Trends tab; separate from assessment scoring). |
 | `GET /api/search-trends/districts`, `/topic-groups` | Trends tab metadata. |
+| `GET /api/news-sites`, `GET /api/news-sites/daily?date=` | News ingest dashboard + daily article feed (News tab). |
+| `GET /api/radio`, `GET /api/radio/daily?date=` | Radio ingest dashboard + daily transcript feed (Radio tab). |
+| `GET /api/geo/resolve?name=` | Debug locality resolve (see [GEOGRAPHIC-ANALYSIS.md](./GEOGRAPHIC-ANALYSIS.md)). |
+| `POST /api/chat` (SSE) | Evidence-aware chat assistant (desktop popup or mobile slide-up). |
+| `POST /api/report-build/*` | Write Report guided drafting flow. |
+| `GET /api/mail/preferences`, `POST /api/mail/send-digest` | Settings popup — mailing preferences and digest. |
 
 ---
 
@@ -1190,7 +1231,7 @@ All hermetic; wired into `npm test`.
 - Layer-1 source_type cap (news flood + lone radio).
 - Layer-2 article_source cap (Ynet flood + lone Maariv).
 - Wire-copy / military-framing / headline-echo geo duplications.
-- Epistemic geo: `metrics_unsafe_geo_excluded_from_metrics`.
+- Epistemic geo: `metrics_unsafe_geo_excluded_from_metrics`, `text_inferred_geo_excluded_from_metrics`.
 - Data void: `digital_darkness_field_active`.
 - Suppression: `ynet_flood_suppression_binding`.
 - Contested thin band: `contested_thin_balanced`.
@@ -1419,7 +1460,7 @@ Stable IDs (used in JSON, code, and i18n keys) and their English labels from `cl
 
 <!-- docs-sync:BEGIN appendix-ui-labels -->
 
-> **Auto-synced** from `client/src/i18n/translations.js (en + he)` on 2026-05-25. Do not edit between sync markers.
+> **Auto-synced** from `client/src/i18n/translations.js (en + he)` on 2026-05-27. Do not edit between sync markers.
 
 | ID | English UI label | Hebrew UI label |
 |---|---|---|
@@ -1444,14 +1485,18 @@ Hebrew UI strings are defined in parallel under the same `comp.*` keys in `trans
 business_modules/
 ├── news-sites/                                    # Source 1 — News
 │   ├── input/extract-homefront-articles.js        # CLI: fetch + LLM pre-filter → articles-homefront.md
+│   ├── input/newsSitesRoutes.js                   # GET /api/news-sites/*
 │   ├── app/extractHomefrontArticles.js            # Orchestration
+│   ├── app/newsSitesService.js                    # Ingest dashboard + daily feed
 │   ├── domain/services/homefrontKeywords.js       # Multilingual keyword list (social_media)
 │   ├── domain/mainNewsFilter.js                   # Main-news URL filter
 │   └── infrastructure/adapters/newsApi*Adapter.js # Per-outlet NewsAPI.ai adapters
 │
 ├── audio/                                         # Source 2 — Radio / audio
 │   ├── input/audio-to-md.js                       # CLI: Whisper → articles-audio-*.md
+│   ├── input/radioRoutes.js                       # GET /api/radio/*
 │   ├── app/audioIngestService.js
+│   ├── app/audioEvidenceIngestService.js          # Transcript feed for Radio tab
 │   ├── app/audioTranscriptContextualizer.js
 │   └── infrastructure/adapters/openaiTranscriptionAdapter.js
 │
@@ -1504,6 +1549,17 @@ business_modules/
 │   ├── input/generate-gap-report.js             # npm run catalog-learning:gap-report
 │   ├── app/catalogLearningService.js
 │   └── infrastructure/adapters/learningCaptureFsAdapter.js
+│
+├── chat/                                          # Evidence-aware assistant (desktop popup)
+│   └── infrastructure/chatStore.js              # Session persistence (SQLite)
+│
+├── report_build/                                  # Write Report popup
+│   ├── input/reportBuildRoutes.js               # POST /api/report-build/*
+│   └── app/reportBuildService.js
+│
+├── mailing/                                       # Settings popup — digest preferences
+│   ├── input/mailingRoutes.js                   # GET /api/mail/*
+│   └── app/mailingService.js
 │
 ├── resilience/                                    # The brain (+ field survey Excel → MD/JSON under app/survey*.js, input/analyze-survey.js)
     ├── domain/
@@ -1583,6 +1639,14 @@ config/
 └── resilience-outlet-priors.json                  # Optional per-outlet reliability prior
 
 pipeline-config.json                                # Source enable/disable toggles
+
+cross-cut-modules/geo/
+├── createGeoWiring.js                              # Composition factory (overrides + unknown sinks)
+├── enrichSignalsWithGeo.js                         # Pipeline geo attach at extract/assess
+└── geoEnvelopeAccess.js                            # v3 nested envelope read helpers
+
+api/routes/
+└── chatRoutes.js                                   # POST /api/chat (SSE)
 
 .claude/commands/
 ├── 8comp.md                                       # Full daily pipeline (national)

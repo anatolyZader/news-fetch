@@ -35,6 +35,65 @@ function pickMatchedDisplayName(row, rawInput) {
   return row.officialHebrewName || row.names[0];
 }
 
+function assertValidGeo(o) {
+  const v = validateGeoEnvelope(o);
+  if (!v.ok) {
+    throw new Error(`internal geo envelope invalid: ${v.errors.join('; ')}`);
+  }
+  return o;
+}
+
+/**
+ * Best-effort classification of obviously non-locality area terms.
+ * @param {string} s
+ * @returns {{ reason: string, geoEntityType: string } | null}
+ */
+function classifyNonLocalityTerm(s) {
+  const t = normalizeLocalityLookupKey(s);
+  if (!t) return null;
+  if (t === 'צפון' || t === 'הצפון' || t === 'north' || t === 'northern israel') {
+    return { reason: 'NON_LOCALITY_AREA_TERM', geoEntityType: 'area' };
+  }
+  if (t === 'הגליל' || t === 'גליל' || t === 'upper galilee' || t === 'western galilee' || t === 'galilee') {
+    return { reason: 'NON_LOCALITY_AREA_TERM', geoEntityType: 'area' };
+  }
+  if (t === 'גולן' || t === 'רמת הגולן' || t === 'golan' || t === 'golan heights') {
+    return { reason: 'NON_LOCALITY_AREA_TERM', geoEntityType: 'area' };
+  }
+  return null;
+}
+
+/**
+ * @param {{
+ *   referenceVersion: string,
+ *   referenceSource: string,
+ * }} ctx
+ */
+function buildUnknownGeo(ctx, reason, rawName, candidates, resolutionHint) {
+  const resolvedAt = new Date().toISOString();
+  /** @type {import('../domain/value_objects/geoEnrichment.js').GeoUnknown} */
+  const out = {
+    kind: 'unknown',
+    reason,
+    rawName: rawName == null ? null : String(rawName),
+    geoReferenceVersion: ctx.referenceVersion,
+    source: ctx.referenceSource,
+    envelopeSchemaVersion: GEO_ENVELOPE_SCHEMA_VERSION,
+  };
+  out.resolution = {
+    rawInput: out.rawName,
+    normalizedInput: resolutionHint?.normalizedInput ?? (out.rawName ? normalizeLocalityLookupKey(out.rawName) : null),
+    geoEntityType: resolutionHint?.geoEntityType ?? 'unknown',
+  };
+  out.audit = {
+    geoReferenceVersion: out.geoReferenceVersion,
+    source: out.source ?? null,
+    resolvedAt,
+  };
+  if (candidates?.length) out.candidates = candidates;
+  return assertValidGeo(out);
+}
+
 /**
  * @param {{
  *   northReferencePort: import('../domain/ports/IGeoNorthReferencePort.js').IGeoNorthReferencePort,
@@ -59,66 +118,9 @@ export function createGeoService({ northReferencePort, overridesPort = null }) {
   const distanceBandPolicy = loadDistanceBandPolicy();
   const legacySub = String(process.env.GEO_LEGACY_SUBREGION_ID ?? '0').trim().toLowerCase();
   const emitLegacySubregionId = legacySub === '1' || legacySub === 'true';
-
-  function assertValidGeo(o) {
-    const v = validateGeoEnvelope(o);
-    if (!v.ok) {
-      throw new Error(`internal geo envelope invalid: ${v.errors.join('; ')}`);
-    }
-    return o;
-  }
-
-  /**
-   * @param {string} reason
-   * @param {string|null} rawName
-   * @param {Array<{ canonicalKey: string, score: number }> | undefined} candidates
-   * @param {{ geoEntityType?: string, normalizedInput?: string | null } | undefined} [resolutionHint]
-   */
-  function unknown(reason, rawName, candidates, resolutionHint) {
-    const resolvedAt = new Date().toISOString();
-    /** @type {import('../domain/value_objects/geoEnrichment.js').GeoUnknown} */
-    const out = {
-      kind: 'unknown',
-      reason,
-      rawName: rawName == null ? null : String(rawName),
-      geoReferenceVersion: referenceVersion,
-      source: referenceSource,
-      envelopeSchemaVersion: GEO_ENVELOPE_SCHEMA_VERSION,
-    };
-    out.resolution = {
-      rawInput: out.rawName,
-      normalizedInput: resolutionHint?.normalizedInput ?? (out.rawName ? normalizeLocalityLookupKey(out.rawName) : null),
-      geoEntityType: resolutionHint?.geoEntityType ?? 'unknown',
-    };
-    out.audit = {
-      geoReferenceVersion: out.geoReferenceVersion,
-      source: out.source ?? null,
-      resolvedAt,
-    };
-    if (candidates?.length) out.candidates = candidates;
-    return assertValidGeo(out);
-  }
-
-  /**
-   * Best-effort classification of obviously non-locality area terms.
-   * @param {string} s
-   * @returns {{ reason: string, geoEntityType: string } | null}
-   */
-  function classifyNonLocalityTerm(s) {
-    const t = normalizeLocalityLookupKey(s);
-    if (!t) return null;
-    // Keep this intentionally conservative: only block clearly non-locality region terms.
-    if (t === 'צפון' || t === 'הצפון' || t === 'north' || t === 'northern israel') {
-      return { reason: 'NON_LOCALITY_AREA_TERM', geoEntityType: 'area' };
-    }
-    if (t === 'הגליל' || t === 'גליל' || t === 'upper galilee' || t === 'western galilee' || t === 'galilee') {
-      return { reason: 'NON_LOCALITY_AREA_TERM', geoEntityType: 'area' };
-    }
-    if (t === 'גולן' || t === 'רמת הגולן' || t === 'golan' || t === 'golan heights') {
-      return { reason: 'NON_LOCALITY_AREA_TERM', geoEntityType: 'area' };
-    }
-    return null;
-  }
+  const geoCtx = { referenceVersion, referenceSource };
+  const unknown = (reason, rawName, candidates, resolutionHint) =>
+    buildUnknownGeo(geoCtx, reason, rawName, candidates, resolutionHint);
 
   return {
     distanceBandForKm,

@@ -90,9 +90,8 @@ export function sortIssues(items) {
  * @param {boolean} [opts.inNewCode]
  * @param {string} [opts.branch]
  * @param {number} [opts.limit] max items (default: all)
- * @param {boolean} [opts.hotspots]
  */
-export async function fetchSonarCloudIssues(opts) {
+async function fetchIssuePages(opts) {
   const pageSize = 100;
   const maxItems = opts.limit ?? Number.POSITIVE_INFINITY;
   /** @type {Array<Record<string, unknown>>} */
@@ -117,26 +116,58 @@ export async function fetchSonarCloudIssues(opts) {
     if (page * pageSize >= total) break;
   }
 
-  /** @type {Array<Record<string, unknown>>} */
-  let hotspots = [];
-  if (opts.hotspots) {
-    for (let page = 1; hotspots.length < maxItems; page += 1) {
-      const q = new URLSearchParams({
-        projectKey: opts.projectKey,
-        status: 'TO_REVIEW',
-        ps: String(pageSize),
-        p: String(page),
-      });
-      if (opts.inNewCode) q.set('inNewCodePeriod', 'true');
-      if (opts.branch) q.set('branch', opts.branch);
+  return issues;
+}
 
-      const data = await sonarJson(opts.token, `${SONAR_API}/hotspots/search?${q}`);
-      const batch = data.hotspots ?? [];
-      if (!batch.length) break;
-      hotspots.push(...batch.map(normalizeHotspot));
-      if (page * pageSize >= (data.paging?.total ?? 0)) break;
-    }
+/**
+ * @param {object} opts
+ * @param {string} opts.token
+ * @param {string} opts.projectKey
+ * @param {boolean} [opts.inNewCode]
+ * @param {string} [opts.branch]
+ * @param {number} [opts.limit]
+ */
+async function fetchHotspotPages(opts) {
+  const pageSize = 100;
+  const maxItems = opts.limit ?? Number.POSITIVE_INFINITY;
+  /** @type {Array<Record<string, unknown>>} */
+  const hotspots = [];
+
+  for (let page = 1; hotspots.length < maxItems; page += 1) {
+    const q = new URLSearchParams({
+      projectKey: opts.projectKey,
+      status: 'TO_REVIEW',
+      ps: String(pageSize),
+      p: String(page),
+    });
+    if (opts.inNewCode) q.set('inNewCodePeriod', 'true');
+    if (opts.branch) q.set('branch', opts.branch);
+
+    const data = await sonarJson(opts.token, `${SONAR_API}/hotspots/search?${q}`);
+    const batch = data.hotspots ?? [];
+    if (!batch.length) break;
+    hotspots.push(...batch.map(normalizeHotspot));
+    if (page * pageSize >= (data.paging?.total ?? 0)) break;
   }
+
+  return hotspots;
+}
+
+/**
+ * @param {object} opts
+ * @param {string} opts.token
+ * @param {string} opts.projectKey
+ * @param {string} [opts.statuses]
+ * @param {string} [opts.types]
+ * @param {boolean} [opts.inNewCode]
+ * @param {string} [opts.branch]
+ * @param {number} [opts.limit] max items (default: all)
+ * @param {boolean} [opts.hotspots]
+ */
+export async function fetchSonarCloudIssues(opts) {
+  const maxItems = opts.limit ?? Number.POSITIVE_INFINITY;
+  const issues = await fetchIssuePages(opts);
+  const hotspots = opts.hotspots ? await fetchHotspotPages(opts) : [];
 
   const rows = sortIssues([
     ...issues.slice(0, maxItems),

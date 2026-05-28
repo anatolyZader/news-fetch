@@ -72,14 +72,13 @@ test('geo golden corpus', () => {
 
     assert.ok(isGeoResolved(out), `case=${c.name} expected resolved`);
     if (isGeoResolved(out)) {
-      if (c.expect.canonicalKey) assert.equal(out.canonicalKey, c.expect.canonicalKey, `case=${c.name}`);
+      if (c.expect.canonicalKey) assert.equal(out.resolution.canonicalKey, c.expect.canonicalKey, `case=${c.name}`);
       if (c.expect.geoEntityType) assert.equal(out.geoEntityType, c.expect.geoEntityType, `case=${c.name}`);
-      if (c.expect.matchMethod) assert.equal(out.matchMethod, c.expect.matchMethod, `case=${c.name}`);
-      if (c.expect.usableForMetrics != null) assert.equal(out.usableForMetrics, c.expect.usableForMetrics, `case=${c.name}`);
+      if (c.expect.matchMethod) assert.equal(out.resolution.matchMethod, c.expect.matchMethod, `case=${c.name}`);
+      if (c.expect.usableForMetrics != null) assert.equal(out.policy.usableForMetrics, c.expect.usableForMetrics, `case=${c.name}`);
       if (c.expect.distanceSemantics != null) {
         assert.equal(out.classification?.distanceSemantics, c.expect.distanceSemantics, `case=${c.name}`);
       }
     }
   }
 });
-

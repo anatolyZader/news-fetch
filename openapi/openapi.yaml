@@ -858,6 +858,12 @@ paths:
     get:
       tags: [Geo]
       summary: Resolve a locality name to deterministic geo envelope (internal).
+      description: |
+        Returns a versioned geo envelope (`geo-envelope-2026-05-v3` when resolved).
+        New resolves are **nested-only** (`resolution`, `classification`, `policy`, `audit`, `scopeDecision`, `matchEvidence`).
+        `resolution.provenance` is one of `structured`, `text_inferred`, `message_level`, or `direct`.
+        Text-inferred geo on news/radio/social sets `policy.usableForMetrics: false`.
+        Optional query params `sourceType`, `provenance`, `reporterSubregionHint` are accepted by the service but not exposed here yet.
       parameters:
         - in: query
           name: name

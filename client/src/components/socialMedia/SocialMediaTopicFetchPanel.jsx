@@ -106,7 +106,7 @@ export function SocialMediaTopicFetchPanel() {
     if (!id) return;
     if (result?.id === id && result?.lang === lang) return;
     let cancelled = false;
-    void (async () => {
+    (async () => {
       setRestoring(true);
       try {
         const out = await loadTopicFetchById({ id, lang, getIdToken });
@@ -119,7 +119,7 @@ export function SocialMediaTopicFetchPanel() {
       } finally {
         if (!cancelled) setRestoring(false);
       }
-    })();
+    })().catch(() => {});
     return () => { cancelled = true; };
   }, [apiReady, getIdToken, lang, activeSearchId, result?.id, result?.lang, applyFetchedResult]);
 
@@ -178,7 +178,7 @@ export function SocialMediaTopicFetchPanel() {
         </Typography>
         <SocialMediaPreviousSearchesMenu
           activeId={activeSearchId}
-          onSelect={(search) => void onLoadPreviousSearch(search)}
+          onSelect={(search) => { onLoadPreviousSearch(search).catch(() => {}); }}
           disabled={busy}
         />
       </Stack>
@@ -216,7 +216,7 @@ export function SocialMediaTopicFetchPanel() {
       <Box>
         <Button
           variant="contained"
-          onClick={() => void onFetch()}
+          onClick={() => { onFetch().catch(() => {}); }}
           disabled={busy || !topic.trim() || selectedPlatforms.length === 0}
         >
           {fetching ? t('socialMedia.topic.fetching') : t('socialMedia.topic.fetch')}

@@ -193,14 +193,57 @@ function logAssessmentHeader({ targetDate, days, reportScope, loadedFiles, allSi
   console.error(`Signals:  ${allSignals.length} total  Articles: ${totalArticles}\n`);
 }
 
+function logBuildScopedDiagnostics({
+  reportScopeId,
+  reportScope,
+  nationalSignals,
+  scopedSignals,
+  metricsSignals,
+  macroSignals,
+  dataVoid,
+  scopeLogLine,
+}) {
+  if (reportScopeId === 'north' && macroSignals.length > 0) {
+    console.error(`  → Epistemic partition: ${metricsSignals.length} metrics-eligible, ${macroSignals.length} macro/context-only`);
+  }
+  if (reportScopeId !== 'national') {
+    console.error(`  → Scope filter (${reportScope.label}): ${scopedSignals.length}/${nationalSignals.length} signals retained`);
+  }
+  if (dataVoid.level && dataVoid.level !== 'none') {
+    console.error(`  → Data void: level=${dataVoid.level} reason=${dataVoid.reason ?? 'n/a'} digital_darkness=${dataVoid.digital_darkness}`);
+  }
+  if (scopeLogLine) console.error(scopeLogLine);
+}
+
+function buildScoreBySource({
+  scopedSourceTypesSeen,
+  signalsForScoring,
+  reportScopeId,
+  loadedFiles,
+  salienceContext,
+}) {
+  const scoreBySource = {};
+  for (const sourceType of scopedSourceTypesSeen) {
+    const sourceSigs = signalsForScoring.filter((s) => s.source_type === sourceType);
+    const sourceArticles = reportScopeId === 'national'
+      ? loadedFiles
+        .filter((f) => f.sourceType === sourceType)
+        .reduce((sum, f) => sum + (f.data.total_articles ?? 0), 0)
+      : Math.max(new Set(sourceSigs.map((s) => s.article_url || (s.article_index ?? null)).filter((v) => v != null)).size, 1);
+    scoreBySource[sourceType] = scoreComponents(sourceSigs, {
+      totalArticles: sourceArticles,
+      salienceContext,
+    });
+  }
+  return scoreBySource;
+}
+
 function buildScopedScoring(targetDate, days, allSignals, totalArticles, reportScopeId, reportScope, loadedFiles) {
   const nationalSignals = allSignals;
   const historicalSignalDays = loadHistoricalSignalDays(targetDate, 'reports', 7, reportScopeId);
   const nationalHistoricalDays = reportScopeId === 'north'
     ? loadHistoricalSignalDays(targetDate, 'reports', 7, 'national')
     : historicalSignalDays;
-
-  let salienceContext = {};
 
   const historicalScores = loadHistoricalScores(targetDate, 'reports', 14, reportScopeId);
   if (Object.keys(historicalScores).length > 0) {
@@ -218,22 +261,21 @@ function buildScopedScoring(targetDate, days, allSignals, totalArticles, reportS
     ? computeDataVoidIndex(nationalSignals, nationalHistoricalDays, { reportScope: 'national' })
     : null;
 
-  salienceContext = salienceContextFromDataVoid(dataVoid);
+  let salienceContext = salienceContextFromDataVoid(dataVoid);
   const nationalScored = scoreComponents(nationalSignals, { totalArticles, salienceContext });
-
-  if (reportScopeId === 'north' && macroSignals.length > 0) {
-    console.error(`  → Epistemic partition: ${metricsSignals.length} metrics-eligible, ${macroSignals.length} macro/context-only`);
-  }
-  if (reportScopeId !== 'national') {
-    console.error(`  → Scope filter (${reportScope.label}): ${scopedSignals.length}/${nationalSignals.length} signals retained`);
-  }
-  if (dataVoid.level && dataVoid.level !== 'none') {
-    console.error(`  → Data void: level=${dataVoid.level} reason=${dataVoid.reason ?? 'n/a'} digital_darkness=${dataVoid.digital_darkness}`);
-  }
 
   const scopeMethodologyPreview = buildAssessmentMethodology({ signals: scopedSignals, reportScopeId });
   const scopeLogLine = formatScopeDecisionLogLine(scopeMethodologyPreview);
-  if (scopeLogLine) console.error(scopeLogLine);
+  logBuildScopedDiagnostics({
+    reportScopeId,
+    reportScope,
+    nationalSignals,
+    scopedSignals,
+    metricsSignals,
+    macroSignals,
+    dataVoid,
+    scopeLogLine,
+  });
 
   if (signalsForScoring.length === 0 && macroSignals.length === 0) {
     const suffix = formatDaysSuffix(days);
@@ -271,19 +313,13 @@ function buildScopedScoring(targetDate, days, allSignals, totalArticles, reportS
   salienceContext = gateResult.salienceContext;
   scoredFull = enrichWithDeltaChannel(scoredFull, historicalScores, { scopeId: reportScopeId });
 
-  const scoreBySource = {};
-  for (const sourceType of scopedSourceTypesSeen) {
-    const sourceSigs = signalsForScoring.filter((s) => s.source_type === sourceType);
-    const sourceArticles = reportScopeId === 'national'
-      ? loadedFiles
-        .filter((f) => f.sourceType === sourceType)
-        .reduce((sum, f) => sum + (f.data.total_articles ?? 0), 0)
-      : Math.max(new Set(sourceSigs.map((s) => s.article_url || (s.article_index ?? null)).filter((v) => v != null)).size, 1);
-    scoreBySource[sourceType] = scoreComponents(sourceSigs, {
-      totalArticles: sourceArticles,
-      salienceContext,
-    });
-  }
+  const scoreBySource = buildScoreBySource({
+    scopedSourceTypesSeen,
+    signalsForScoring,
+    reportScopeId,
+    loadedFiles,
+    salienceContext,
+  });
 
   return {
     nationalSignals,

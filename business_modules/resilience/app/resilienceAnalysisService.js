@@ -154,7 +154,6 @@ export async function runResilienceAssessment(batch, options = {}) {
   });
 
   const scoredComponents = gateResult.scoredFull;
-  salienceContext = gateResult.salienceContext;
   const oovCaptureCount = countOovCapturesForDate(batch.reportDate);
   const assessment = await llmPort.generateNarratives(
     scoredComponents,

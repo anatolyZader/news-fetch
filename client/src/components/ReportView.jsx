@@ -121,6 +121,11 @@ function GeoEpistemicBadge({ signal, t }) {
   );
 }
 
+GeoEpistemicBadge.propTypes = {
+  signal: PropTypes.object,
+  t: PropTypes.func.isRequired,
+};
+
 function scoreLabel(s, t) {
   return scoreLabel10(s, {
     critical: t('score.critical'),
@@ -134,6 +139,24 @@ function scoreLabel(s, t) {
 function fmt01(x) {
   if (x == null || Number.isNaN(x)) return '—';
   return `${Math.round(x * 100)}%`;
+}
+
+function flatAccordionSx(theme) {
+  return {
+    marginBottom: 0,
+    borderRadius: '0 !important',
+    border: 'none',
+    boxShadow: 'none',
+    backgroundColor: 'transparent',
+    '&:before': { display: 'none' },
+    '&.Mui-expanded': { margin: 0 },
+    '& .MuiAccordionSummary-root': {
+      backgroundColor: 'transparent',
+    },
+    '&.Mui-expanded .MuiAccordionSummary-root': {
+      backgroundColor: theme.palette.action.hover,
+    },
+  };
 }
 
 function ReportSection({ title, children, flat = false, ...props }) {
@@ -600,22 +623,6 @@ function ComponentCard({
     || (isAnalyst && comp.score == null);
   const isContested = comp.polarization != null && comp.polarization > 0.5
     && (comp.evidence_mass ?? 0) > 4;
-
-  const flatAccordionSx = (theme) => ({
-    marginBottom: 0,
-    borderRadius: '0 !important',
-    border: 'none',
-    boxShadow: 'none',
-    backgroundColor: 'transparent',
-    '&:before': { display: 'none' },
-    '&.Mui-expanded': { margin: 0 },
-    '& .MuiAccordionSummary-root': {
-      backgroundColor: 'transparent',
-    },
-    '&.Mui-expanded .MuiAccordionSummary-root': {
-      backgroundColor: theme.palette.action.hover,
-    },
-  });
 
   return (
     <Accordion

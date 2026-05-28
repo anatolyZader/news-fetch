@@ -10,7 +10,9 @@ function CopyablePre({ children }) {
   const text = useMemo(() => {
     const node = Array.isArray(children) ? children[0] : children;
     const raw = node?.props?.children;
-    return typeof raw === 'string' ? raw : Array.isArray(raw) ? raw.join('') : '';
+    if (typeof raw === 'string') return raw;
+    if (Array.isArray(raw)) return raw.join('');
+    return '';
   }, [children]);
 
   const onCopy = useCallback(async () => {

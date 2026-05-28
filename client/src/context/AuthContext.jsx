@@ -59,7 +59,7 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     if (!configLoaded) return;
     if (!authRequired || !isFirebaseClientConfigured()) {
-      setAuthLoading(false);
+      queueMicrotask(() => setAuthLoading(false));
       return;
     }
 

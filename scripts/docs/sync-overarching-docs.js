@@ -57,20 +57,21 @@ function formatSignalTypes(facets) {
   return [...types].sort((a, b) => a.localeCompare(b)).map((t) => `\`${t}\``).join(', ');
 }
 
+function parseTranslationBlock(block, out) {
+  if (!block) return;
+  for (const m of block[1].matchAll(/'comp\.([^']+)':\s*'([^']*)'/g)) {
+    out[m[1]] = m[2];
+  }
+}
+
 async function loadUiLabels() {
   const raw = await readFile(TRANSLATIONS_PATH, 'utf8');
   const en = {};
   const he = {};
   const enBlock = raw.match(/en:\s*\{([\s\S]*?)\n\s*he:\s*\{/);
   const heBlock = raw.match(/he:\s*\{([\s\S]*?)\n\s*ru:\s*\{/);
-  const parseBlock = (block, out) => {
-    if (!block) return;
-    for (const m of block[1].matchAll(/'comp\.([^']+)':\s*'([^']*)'/g)) {
-      out[m[1]] = m[2];
-    }
-  };
-  parseBlock(enBlock, en);
-  parseBlock(heBlock, he);
+  parseTranslationBlock(enBlock, en);
+  parseTranslationBlock(heBlock, he);
   return { en, he };
 }
 
@@ -111,11 +112,14 @@ function generateComponentDetailSections() {
 
   RESILIENCE_COMPONENTS.forEach((c, i) => {
     const section = i + 2;
-    parts.push('', `### 2.${section} \`${c.id}\` — ${c.name_en} (${c.name_he})`, '');
-    parts.push(`**What it measures:** ${c.description.trim()}`);
+    parts.push(
+      '',
+      `### 2.${section} \`${c.id}\` — ${c.name_en} (${c.name_he})`,
+      '',
+      `**What it measures:** ${c.description.trim()}`,
+    );
     if (c.principle) {
-      parts.push('');
-      parts.push(`**Principle:** ${c.principle.trim()}`);
+      parts.push('', `**Principle:** ${c.principle.trim()}`);
     }
     if (c.key_elements?.length) {
       parts.push('', '**Key elements:**');
@@ -136,8 +140,7 @@ function generateComponentDetailSections() {
         const sigCell = signals.map((s) => `\`${s}\``).join(', ');
         parts.push(`| \`${facetId}\` | ${sigCell} |`);
       }
-      parts.push('');
-      parts.push(`**All facet signal types for this component:** ${formatSignalTypes(facets)}`);
+      parts.push('', `**All facet signal types for this component:** ${formatSignalTypes(facets)}`);
     }
     parts.push('', '---');
   });

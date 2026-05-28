@@ -426,7 +426,37 @@
     },
 
     {
-      "id": "thin_extreme_floor_clamped",
+      "id": "text_inferred_geo_excluded_from_metrics",
+      "category": "epistemic_geo",
+      "scenario": "News signal with text-inferred geo (resolution.provenance=text_inferred) must not drive component scores.",
+      "mock_extraction": [
+        {
+          "article_index": 1,
+          "article_url": "https://ynet.co.il/ti1",
+          "article_source": "ynet.co.il",
+          "source_type": "news",
+          "signal_type": "panic_behavior",
+          "evidence_type": "observational_reported_fact",
+          "scope_level": "single_case",
+          "evidence": "Residents in Kiryat Shmona entered shelters after alerts.",
+          "extraction_confidence": 0.85,
+          "temporal_weight": 1.0,
+          "geo": {
+            "kind": "resolved",
+            "resolution": { "provenance": "text_inferred", "scope": "signal" },
+            "policy": { "usableForMetrics": false, "scopeConfidence": "low", "requiresReview": true },
+            "classification": { "pboSubregionId": "naftali", "geoAreaTags": ["north"] }
+          },
+          "scopeDecision": { "isNorthRelevant": true, "source": "geo_tags", "confidence": "low" }
+        }
+      ],
+      "expectations": {
+        "confidence": {"wellbeing_at_risk": "insufficient_data"},
+        "comment": "text_inferred + usableForMetrics=false excluded from scoring under epistemic geo v2."
+      }
+    },
+
+    {
       "category": "thin_evidence",
       "scenario": "Single extreme negative signal with mass<1.5 triggers floor_clamped.",
       "mock_extraction": [

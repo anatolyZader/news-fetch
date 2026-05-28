@@ -13,27 +13,27 @@ import { PRICING, calcInvocationCostUsd } from '../app/budgetCostTracker.js';
 
 const MAX_COST_USD = 2;
 
+function ratio(used, total) {
+  if (!total) return 'n/a';
+  return `${((used / total) * 100).toFixed(1)}%`;
+}
+
+function fmtEntry(e) {
+  const inputEfficiency = e.usage.output_tokens
+    ? ratio(e.usage.output_tokens, e.usage.input_tokens)
+    : '—';
+  return (
+    `  ${e.label.padEnd(38)}` +
+    `  in: ${String(e.usage.input_tokens).padStart(7)}` +
+    `  out: ${String(e.usage.output_tokens).padStart(6)}` +
+    `  out/in: ${inputEfficiency.padStart(6)}` +
+    `  cost: $${e.cost.toFixed(4)}`
+  );
+}
+
 export async function runTestTokenUsageCli() {
   const usageLog = [];
   let totalCostUsd = 0;
-
-  function ratio(used, total) {
-    if (!total) return 'n/a';
-    return `${((used / total) * 100).toFixed(1)}%`;
-  }
-
-  function fmtEntry(e) {
-    const inputEfficiency = e.usage.output_tokens
-      ? ratio(e.usage.output_tokens, e.usage.input_tokens)
-      : '—';
-    return (
-      `  ${e.label.padEnd(38)}` +
-      `  in: ${String(e.usage.input_tokens).padStart(7)}` +
-      `  out: ${String(e.usage.output_tokens).padStart(6)}` +
-      `  out/in: ${inputEfficiency.padStart(6)}` +
-      `  cost: $${e.cost.toFixed(4)}`
-    );
-  }
 
   function printSummary(assessmentOrNull) {
     const divider = '═'.repeat(90);

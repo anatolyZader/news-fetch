@@ -119,24 +119,34 @@ async function runGatherDaily(service, date, opts) {
   }
 }
 
+async function runCommand(cmd, service, date, opts) {
+  if (cmd === 'help' || cmd === '--help' || cmd === '-h') {
+    printHelp();
+    return;
+  }
+  if (cmd === 'init') {
+    await runInit(service, date, opts);
+    return;
+  }
+  if (cmd === 'treat') {
+    await runTreat(service, date);
+    return;
+  }
+  if (cmd === 'gather-daily') {
+    await runGatherDaily(service, date, opts);
+    return;
+  }
+  console.error(`Unknown command: ${cmd}`);
+  printHelp();
+  process.exit(1);
+}
+
 const { cmd, opts } = parseArgs(process.argv);
 const service = createSocialMediaService();
 const date = opts.date ?? todayJerusalem();
 
 try {
-  if (cmd === 'help' || cmd === '--help' || cmd === '-h') {
-    printHelp();
-  } else if (cmd === 'init') {
-    await runInit(service, date, opts);
-  } else if (cmd === 'treat') {
-    await runTreat(service, date);
-  } else if (cmd === 'gather-daily') {
-    await runGatherDaily(service, date, opts);
-  } else {
-    console.error(`Unknown command: ${cmd}`);
-    printHelp();
-    process.exit(1);
-  }
+  await runCommand(cmd, service, date, opts);
 } catch (err) {
   console.error(err.message ?? err);
   process.exit(1);

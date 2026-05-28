@@ -8,7 +8,7 @@
 
 **System:** Population Resilience Monitor  
 **Framework:** 8-Component Community Resilience (Pikud HaOref / פיקוד העורף)  
-**Last updated:** 2026-05-25
+**Last updated:** 2026-05-27
 
 ---
 
@@ -197,7 +197,7 @@ npm run extract-signals -- --source-type news --files articles-homefront-2026-05
 | Multipass | 3 grouped Haiku passes + 4th self-check pass (`RESILIENCE_EXTRACT_MULTIPASS=0` to disable) |
 | Verification | N-gram evidence containment; optional embedding rescue (`RESILIENCE_EMBEDDING_VERIFY=1`) |
 | Output | `signals/signals-{type}-{date}.json` (+ field/social paths as above) |
-| Geo | Set `GEO_ATTACH_ON_EXTRACT=1` to persist `geo` on written signal files |
+| Geo | Always attaches `geo` via `enrichSignalsWithGeo` → `localityCandidate` → `geoService` (written to signal JSON) |
 
 Full signal schema, domain groups, and source-specific prompts: [8-component doc §6](./8-component-analysis-end-to-end.md#6-stage-2--signal-extraction-llm-closed-vocabulary).
 
@@ -230,7 +230,7 @@ npm run assess-signals -- --date 2026-05-23 --days 3 --scope north
 |----------|---------|
 | `RESILIENCE_COST_CAP_USD` | Per-run LLM cost cap (default $3) |
 | `RESILIENCE_ANALYST_EMAILS` | Comma-separated emails for analyst-tier API/UI |
-| `RESILIENCE_EPISTEMIC_GEO_V2` | Geo-first north scope; keyword fallback excluded from metrics (default on) |
+| `RESILIENCE_EPISTEMIC_GEO_V2` | Excludes `text_inferred` geo and `usableForMetrics: false` envelopes from component scoring (default on) |
 | `RESILIENCE_DATA_VOID` | Data void / digital darkness index (default on) |
 | `RESILIENCE_OOV_CAPTURE` | Log unknown types, self-check uncertain, zero-signal articles (default on) |
 
@@ -339,14 +339,31 @@ JSON includes: all scores, narratives, manifestations, signal appendix with URLs
 
 ## Web UI and API
 
+Navigation splits **Daily Assessment** (the 8-component report) from **data-source review** tabs via `DataSourcesNav` in `client/src/MainApp.jsx`.
+
 | Tab / endpoint | Role |
 |----------------|------|
-| **Report** | Latest assessment (`GET /api/report/today?scope=&view=operator\|analyst`) |
+| **Daily Assessment** | Latest assessment (`GET /api/report/today?scope=&view=operator\|analyst`); national/north scope toggle |
 | **Report (analyst)** | Per-component **score sparklines** via `GET /api/resilience/drift` (embedded in Report cards; not a separate nav tab) |
+| **News** | Ingest review — homefront article exports (`GET /api/news-sites`, `GET /api/news-sites/daily?date=`) |
+| **Radio** | Ingest review — Whisper transcripts (`GET /api/radio`, `GET /api/radio/daily?date=`) |
 | **Social media** | Daily OSINT feed + topic fetch |
 | **Trends** | Search interest dashboards |
 | **Visits** | Field report dashboard |
-| **PBO reports** | Municipality/regional PBO views |
+| **PBO reports** | Municipality/regional PBO views (local + regional sub-tabs) |
+| **Pools** | Naftali questionnaire + Education sessions |
+| **Report bot** | Manual report submission tab |
+
+**Desktop panel popups** (footer / chat launcher; `client/src/lib/panelPopup.js`):
+
+| Popup | API / module | Role |
+|-------|--------------|------|
+| **Chat** | `POST /api/chat` (SSE), `business_modules/chat/` | Evidence-aware assistant scoped to current report |
+| **Write Report** | `POST /api/report-build/*`, `business_modules/report_build/` | Guided report drafting |
+| **Send Data** | Evidence upload flow | Submit new source material |
+| **Settings** | `GET /api/mail/preferences`, `business_modules/mailing/` | Mailing preferences and digest config |
+
+News and Radio tabs show a banner when the source is disabled in `pipeline-config.json` (existing exports remain visible for review).
 
 North scope in UI requires a north report artifact — otherwise API returns `hint: north_requires_assess_signals` (expected until `/8comp-3-north` has been run).
 
@@ -371,7 +388,19 @@ Typical single-source extract + assess run: ~$0.18–0.26 for news-only. Multi-s
 ```
 business_modules/news-sites/
   input/extract-homefront-articles.js     News fetch + LLM filter
+  input/newsSitesRoutes.js                GET /api/news-sites/*
+  app/newsSitesService.js                 Dashboard + daily feed
   articles_extracted/articles-homefront-{date}.md
+
+business_modules/audio/
+  input/audio-to-md.js                    Whisper transcription CLI
+  input/radioRoutes.js                    GET /api/radio/*
+  app/audioEvidenceIngestService.js       Transcript feed reader
+
+cross-cut-modules/geo/
+  createGeoWiring.js                      Composition factory (overrides + unknown sinks)
+  enrichSignalsWithGeo.js                 Pipeline geo attach
+  geoEnvelopeAccess.js                    v3 nested envelope read helpers
 
 business_modules/resilience/
   input/extract-signals.js                Stage 1: per-source extraction

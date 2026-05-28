@@ -46,7 +46,7 @@ export function SocialMediaPreviousSearchesMenu({ activeId, onSelect, disabled =
 
   const handleOpen = (event) => {
     setAnchorEl(event.currentTarget);
-    void reloadHistory();
+    reloadHistory().catch(() => {});
   };
 
   const handleClose = () => setAnchorEl(null);

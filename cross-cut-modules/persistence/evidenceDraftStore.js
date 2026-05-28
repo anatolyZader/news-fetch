@@ -32,6 +32,42 @@ CREATE TABLE IF NOT EXISTS evidence_submissions (
 `;
 
 /**
+ * @param {string | null | undefined} raw
+ * @returns {object | null}
+ */
+function parseJsonColumn(raw) {
+  if (typeof raw !== 'string' || raw.trim().length === 0) return null;
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * @param {Record<string, unknown> | undefined | null} row
+ */
+function rowToSubmission(row) {
+  if (!row) return null;
+  return {
+    id: Number(row.id),
+    ownerKey: String(row.owner_key),
+    rawContent: typeof row.raw_content === 'string' ? row.raw_content : '',
+    content: typeof row.content === 'string' ? row.content : '',
+    category: typeof row.category === 'string' ? row.category : '',
+    detectedUrl: row.detected_url == null ? null : String(row.detected_url),
+    ingestStatus: typeof row.ingest_status === 'string' ? row.ingest_status : 'queued',
+    ingestDetails: row.ingest_details == null ? null : String(row.ingest_details),
+    analysisStatus: typeof row.analysis_status === 'string' ? row.analysis_status : 'queued',
+    analysisDetails: row.analysis_details == null ? null : String(row.analysis_details),
+    analysisJson: parseJsonColumn(row.analysis_json),
+    extractedContentJson: parseJsonColumn(row.extracted_content_json),
+    analyzedAt: row.analyzed_at == null ? null : String(row.analyzed_at),
+    createdAt: row.created_at == null ? null : String(row.created_at),
+  };
+}
+
+/**
  * @param {string} dbPath Absolute path to SQLite file (parent dirs created if needed)
  */
 export function createEvidenceDraftStore(dbPath) {
@@ -181,42 +217,6 @@ export function createEvidenceDraftStore(dbPath) {
     ORDER BY id DESC
     LIMIT ?
   `);
-
-  function rowToSubmission(row) {
-    if (!row) return null;
-    let analysisJson = null;
-    if (typeof row.analysis_json === 'string' && row.analysis_json.trim().length > 0) {
-      try {
-        analysisJson = JSON.parse(row.analysis_json);
-      } catch {
-        analysisJson = null;
-      }
-    }
-    let extractedContentJson = null;
-    if (typeof row.extracted_content_json === 'string' && row.extracted_content_json.trim().length > 0) {
-      try {
-        extractedContentJson = JSON.parse(row.extracted_content_json);
-      } catch {
-        extractedContentJson = null;
-      }
-    }
-    return {
-      id: Number(row.id),
-      ownerKey: String(row.owner_key),
-      rawContent: typeof row.raw_content === 'string' ? row.raw_content : '',
-      content: typeof row.content === 'string' ? row.content : '',
-      category: typeof row.category === 'string' ? row.category : '',
-      detectedUrl: row.detected_url == null ? null : String(row.detected_url),
-      ingestStatus: typeof row.ingest_status === 'string' ? row.ingest_status : 'queued',
-      ingestDetails: row.ingest_details == null ? null : String(row.ingest_details),
-      analysisStatus: typeof row.analysis_status === 'string' ? row.analysis_status : 'queued',
-      analysisDetails: row.analysis_details == null ? null : String(row.analysis_details),
-      analysisJson,
-      extractedContentJson,
-      analyzedAt: row.analyzed_at == null ? null : String(row.analyzed_at),
-      createdAt: row.created_at == null ? null : String(row.created_at),
-    };
-  }
 
   return {
     /**

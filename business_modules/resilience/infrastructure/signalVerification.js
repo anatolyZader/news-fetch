@@ -172,6 +172,35 @@ const VERIFY_THRESHOLDS = {
 
 const DEFAULT_THRESHOLD = { containment: 0.4 };
 
+function bestWindowContainment(evTokens, bodyTokens, windowThreshold) {
+  const evSet = new Set(evTokens);
+  const W = Math.max(8, Math.min(evTokens.length * 2, 24));
+  let best = 0;
+  for (let i = 0; i + W <= bodyTokens.length; i++) {
+    const winSet = new Set(bodyTokens.slice(i, i + W));
+    const wc = containment(evSet, winSet);
+    if (wc > best) best = wc;
+    if (best >= windowThreshold) break;
+  }
+  return best;
+}
+
+function tryShortEvidenceMatch(evTokens, bodyTokens) {
+  const subseq = orderedSubsequenceContainment(evTokens, bodyTokens);
+  const subseqThreshold = evTokens.length <= 3 ? 1 : 0.8;
+  if (subseq >= subseqThreshold) {
+    return { ok: true, reason: 'ordered_subsequence', sim: subseq };
+  }
+  const bodySet = new Set(bodyTokens);
+  let hits = 0;
+  for (const t of evTokens) {
+    if (bodySet.has(t)) hits++;
+  }
+  const overlap = hits / evTokens.length;
+  if (overlap >= 0.6) return { ok: true, reason: 'short_overlap', sim: overlap };
+  return null;
+}
+
 function verifyShingleContainment(signal, articleBody, quoteText) {
   const evTokens = tokenize(quoteText);
   if (evTokens.length === 0) {
@@ -188,33 +217,15 @@ function verifyShingleContainment(signal, articleBody, quoteText) {
   if (sim >= cfg.containment) return { ok: true, reason: 'containment', sim };
 
   if (cfg.windowContainment != null && bodyTokens.length > 0) {
-    const evSet = new Set(evTokens);
-    const W = Math.max(8, Math.min(evTokens.length * 2, 24));
-    let best = 0;
-    for (let i = 0; i + W <= bodyTokens.length; i++) {
-      const winSet = new Set(bodyTokens.slice(i, i + W));
-      const wc = containment(evSet, winSet);
-      if (wc > best) best = wc;
-      if (best >= cfg.windowContainment) break;
-    }
+    const best = bestWindowContainment(evTokens, bodyTokens, cfg.windowContainment);
     if (best >= cfg.windowContainment) {
       return { ok: true, reason: 'window', sim: best };
     }
   }
 
   if (evTokens.length <= 8) {
-    const subseq = orderedSubsequenceContainment(evTokens, bodyTokens);
-    const subseqThreshold = evTokens.length <= 3 ? 1 : 0.8;
-    if (subseq >= subseqThreshold) {
-      return { ok: true, reason: 'ordered_subsequence', sim: subseq };
-    }
-    const bodySet = new Set(bodyTokens);
-    let hits = 0;
-    for (const t of evTokens) {
-      if (bodySet.has(t)) hits++;
-    }
-    const overlap = hits / evTokens.length;
-    if (overlap >= 0.6) return { ok: true, reason: 'short_overlap', sim: overlap };
+    const shortMatch = tryShortEvidenceMatch(evTokens, bodyTokens);
+    if (shortMatch) return shortMatch;
   }
 
   return { ok: false, reason: 'low_similarity', sim };

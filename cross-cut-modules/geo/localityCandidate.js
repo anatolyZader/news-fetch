@@ -1,8 +1,8 @@
 import { normalizeLocalityLookupKey } from '../../business_modules/geo/domain/services/resolveLocalityMatch.js';
 import { GEO_PROVENANCE, TEXT_INFERENCE_SOURCE_TYPES } from '../../business_modules/geo/domain/value_objects/geoProvenance.js';
 
-const ENGLISH_NAME_CHARS = String.raw`A-Za-z\s'.`;
-const ENGLISH_NAME_TAIL = `[${ENGLISH_NAME_CHARS}]{2,40}`;
+const ENGLISH_LOCALITY_WORD = String.raw`[A-Za-z][A-Za-z\-'.]{0,24}`;
+const ENGLISH_LOCALITY_PHRASE = String.raw`${ENGLISH_LOCALITY_WORD}(?:\s+${ENGLISH_LOCALITY_WORD}){0,3}`;
 const HEBREW_LOCALITY_CHARS = String.raw`א-ת"׳' `;
 const HEBREW_LOCALITY_RE = new RegExp(
   String.raw`(?:\bביישוב\b|\bבקיבוץ\b|\bבמושב\b|\bבעיר\b|\bבכפר\b|\bבקריית\b|\bב)\s*([${HEBREW_LOCALITY_CHARS}-]{2,28})`,
@@ -68,17 +68,59 @@ export function hasLocativeContext(evidence, displayName) {
   if (!t.trim()) return false;
   const name = String(displayName ?? '').trim();
   if (!name) return false;
+  const hasDiscourse = DISCOURSE_PATTERNS.some((re) => re.test(t));
 
   if (HEBREW_LOCATIVE_NEAR.test(t) && t.includes(name)) return true;
 
-  const englishPatterns = [
+  const strongEnglishPatterns = [
     new RegExp(String.raw`\b(?:residents|people|citizens)\s+(?:of|in)\s+${escapeRegExp(name)}\b`, 'i'),
-    new RegExp(String.raw`\bin\s+${escapeRegExp(name)}\s+(?:residents|hospital|beach|area|shelters?)\b`, 'i'),
     new RegExp(String.raw`\b(?:alert|alerts)\s+(?:sounded|activated)\s+in\s+${escapeRegExp(name)}\b`, 'i'),
     new RegExp(String.raw`\b${escapeRegExp(name)}\s+municipality\b`, 'i'),
     new RegExp(String.raw`\bmunicipality\s+of\s+${escapeRegExp(name)}\b`, 'i'),
   ];
-  return englishPatterns.some((re) => re.test(t));
+  if (strongEnglishPatterns.some((re) => re.test(t))) return true;
+
+  if (!hasDiscourse) {
+    const weakPatterns = [
+      new RegExp(String.raw`\bin\s+${escapeRegExp(name)}\s+(?:residents|hospital|beach|area|shelters?)\b`, 'i'),
+    ];
+    if (weakPatterns.some((re) => re.test(t))) return true;
+  }
+
+  return false;
+}
+
+/**
+ * @param {string|null|undefined} name
+ * @returns {boolean}
+ */
+function isPlausibleLocalityPhrase(name) {
+  const n = normalizeLocalityName(name);
+  if (!n || n.length < 2) return false;
+  const words = n.split(/\s+/);
+  if (words.length > 4) return false;
+  if (/\b(discussed|discussion|analysts|analyst|studio|debate|reported from)\b/i.test(n)) return false;
+  return true;
+}
+
+/**
+ * @param {string|null|undefined} evidence
+ * @param {string|null|undefined} candidate
+ * @returns {string|null}
+ */
+function stripTrailingLocativeNoise(name) {
+  const cleaned = String(name ?? '')
+    .replace(/\b(entered|shelters|after|during|amid|reported|said|alerts?)\b/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return normalizeLocalityName(cleaned);
+}
+
+function acceptTextInferredCandidate(evidence, candidate) {
+  const cand = stripTrailingLocativeNoise(candidate);
+  if (!cand || !isPlausibleLocalityPhrase(cand)) return null;
+  if (isDiscourseOnlyMention(evidence, cand)) return null;
+  return cand;
 }
 
 /**
@@ -128,15 +170,16 @@ export function extractBracketedLocality(evidence) {
 export function extractEnglishMunicipalityPhrase(evidence) {
   const t = String(evidence ?? '');
   const patterns = [
-    new RegExp(String.raw`\b([A-Za-z]${ENGLISH_NAME_TAIL})\s+municipality\b`, 'i'),
-    new RegExp(String.raw`\bmunicipality\s+of\s+([A-Za-z]${ENGLISH_NAME_TAIL})\b`, 'i'),
-    new RegExp(String.raw`\bin\s+([A-Za-z]${ENGLISH_NAME_TAIL})\s+(?:residents|hospital|beach|area|shelters?)\b`, 'i'),
-    new RegExp(String.raw`\b(?:alert|alerts)\s+(?:sounded|activated)\s+in\s+([A-Za-z]${ENGLISH_NAME_TAIL})\b`, 'i'),
+    new RegExp(String.raw`\b(${ENGLISH_LOCALITY_PHRASE})\s+municipality\b`, 'i'),
+    new RegExp(String.raw`\bmunicipality\s+of\s+(${ENGLISH_LOCALITY_PHRASE})\b`, 'i'),
+    new RegExp(String.raw`\b(?:residents|people|citizens)\s+(?:of|in)\s+(${ENGLISH_LOCALITY_PHRASE})\b`, 'i'),
+    new RegExp(String.raw`\bin\s+(${ENGLISH_LOCALITY_PHRASE})\s+(?:residents|hospital|beach|area|shelters?)\b`, 'i'),
+    new RegExp(String.raw`\b(?:alert|alerts)\s+(?:sounded|activated)\s+in\s+(${ENGLISH_LOCALITY_PHRASE})\b`, 'i'),
   ];
   for (const re of patterns) {
     const m = re.exec(t);
     if (m?.[1]) {
-      const cand = normalizeLocalityName(m[1]);
+      const cand = acceptTextInferredCandidate(t, m[1]);
       if (cand && cand.length >= 3) return cand;
     }
   }
@@ -228,7 +271,8 @@ export function inferLocalityCandidateForSignal(signal, opts = {}) {
     return { candidate: english, scope: 'signal', provenance: GEO_PROVENANCE.text_inferred };
   }
 
-  const hebrew = inferLocalityFromText(evidence);
+  const hebrewRaw = inferLocalityFromText(evidence);
+  const hebrew = acceptTextInferredCandidate(evidence, hebrewRaw);
   if (hebrew) {
     return { candidate: hebrew, scope: 'signal', provenance: GEO_PROVENANCE.text_inferred };
   }
@@ -237,8 +281,9 @@ export function inferLocalityCandidateForSignal(signal, opts = {}) {
     const ref = matchLongestReferenceNameInText(evidence, opts.nameIndex, {
       requireLocativeContext: requireLocativeForText,
     });
-    if (ref) {
-      return { candidate: ref, scope: 'signal', provenance: GEO_PROVENANCE.text_inferred };
+    const accepted = acceptTextInferredCandidate(evidence, ref);
+    if (accepted) {
+      return { candidate: accepted, scope: 'signal', provenance: GEO_PROVENANCE.text_inferred };
     }
   }
 

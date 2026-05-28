@@ -24,10 +24,24 @@ describe('evidenceEligibility', () => {
     const s = {
       source_type: 'news',
       scopeDecision: { isNorthRelevant: true, source: 'geo_tags', confidence: 'high' },
-      geo: { kind: 'resolved', policy: { usableForMetrics: true } },
+      geo: { kind: 'resolved', policy: { usableForMetrics: true }, resolution: { provenance: 'structured' } },
     };
     assert.equal(deriveSignalProvenance(s), SIGNAL_PROVENANCE.verified_geo);
     assert.equal(metricsEligible(s), true);
+  });
+
+  it('does not mark text_inferred geo as verified_geo', () => {
+    const s = {
+      source_type: 'news',
+      scopeDecision: { isNorthRelevant: true, source: 'geo_tags', confidence: 'low' },
+      geo: {
+        kind: 'resolved',
+        policy: { usableForMetrics: false },
+        resolution: { provenance: 'text_inferred' },
+      },
+    };
+    assert.notEqual(deriveSignalProvenance(s), SIGNAL_PROVENANCE.verified_geo);
+    assert.equal(metricsEligible(s), false);
   });
 
   it('marks field source as metricsEligible', () => {

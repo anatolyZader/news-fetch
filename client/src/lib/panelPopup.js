@@ -44,7 +44,7 @@ export function buildPopupFeatures(width, height, left, top) {
  * @param {number} height
  * @returns {{ left: number, top: number }}
  */
-export function computePopupPosition(width, height) {
+export function computePopupPosition(width, _height) {
   const win = globalThis.window;
   if (!win) return { left: 100, top: 80 };
   const left = win.screenX + Math.max(0, Math.floor((win.outerWidth - width) / 2));

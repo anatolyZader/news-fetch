@@ -103,8 +103,7 @@ export async function verifyLocalSonarFiles(files) {
   return { ok: all.length === 0, remaining: all.length, items: all };
 }
 
-async function main() {
-  const argv = process.argv.slice(2);
+function parseCliArgs(argv) {
   let limit = 50;
   let file = '';
   let rule = '';
@@ -137,21 +136,31 @@ async function main() {
     process.exit(1);
   }
 
+  return { limit, file, rule, json };
+}
+
+function printLocalIssues(payload) {
+  if (!payload.items.length) {
+    console.log('No local Sonar-style ESLint issues.');
+    return;
+  }
+  console.log(`Local Sonar-style issues (${payload.count} shown, ${payload.total} total):`);
+  for (const row of payload.items) {
+    const loc = row.line ? `${row.file}:${row.line}` : row.file;
+    console.log(`${row.rule} ${loc} — ${row.message}`);
+  }
+}
+
+async function main() {
+  const { limit, file, rule, json } = parseCliArgs(process.argv.slice(2));
+
   try {
     const payload = await listLocalSonarIssues({ limit, file, rule });
     if (json) {
       console.log(JSON.stringify(payload, null, 2));
       process.exit(0);
     }
-    if (!payload.items.length) {
-      console.log('No local Sonar-style ESLint issues.');
-      process.exit(0);
-    }
-    console.log(`Local Sonar-style issues (${payload.count} shown, ${payload.total} total):`);
-    for (const row of payload.items) {
-      const loc = row.line ? `${row.file}:${row.line}` : row.file;
-      console.log(`${row.rule} ${loc} — ${row.message}`);
-    }
+    printLocalIssues(payload);
   } catch (err) {
     console.error(err instanceof Error ? err.message : String(err));
     process.exit(1);

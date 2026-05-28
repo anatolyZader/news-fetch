@@ -318,34 +318,24 @@ North filtering is implemented by [`scopeDecisionForSignal`](../../business_modu
 flowchart TD
   sig[Incoming signal]
   st{source_type in ALWAYS_NORTH?}
-  geo{resolved geo and usableForMetrics not false?}
+  geo{resolved geo?}
   tags{geoAreaTags includes north or PBO north id?}
-  kw{NORTH_TERMS in haystack?}
   outY[isNorthRelevant true]
   outN[isNorthRelevant false]
   sig --> st
   st -->|field pbo pbo_regional naftali whatsapp| outY
   st -->|else| geo
-  geo -->|no| kw
+  geo -->|no| outN
   geo -->|yes| tags
   tags -->|yes| outY
-  tags -->|no| kw
-  kw -->|match| outY
-  kw -->|no match| outN
+  tags -->|no| outN
 ```
 
-**`ALWAYS_NORTH_SOURCE_TYPES`:** `field`, `pbo`, `pbo_regional`, `naftali`, `whatsapp` — these signals count as north **without** requiring a keyword hit (operational assumption: those channels are already north-scoped by collection or prompt design).
+**`ALWAYS_NORTH_SOURCE_TYPES`:** `field`, `pbo`, `pbo_regional`, `naftali`, `whatsapp` — these signals count as north **without** requiring resolved geo (operational assumption: those channels are already north-scoped by collection or prompt design).
 
-**Resolved geo path:** if `signal.geo.kind === 'resolved'` and **`usableForMetrics !== false`** (including nested `policy.usableForMetrics`), then:
+**Resolved geo path:** if `signal.geo.kind === 'resolved'`, north relevance comes from **`geoAreaTags`** containing **`north`** or **`pboSubregionId`** in `{naftali, golan, baram, hiram, galma}` via [`northRelevanceFromResolvedGeo`](../../cross-cut-modules/geo/northRelevanceFromResolvedGeo.js). This includes rows where **`usableForMetrics === false`** or **`resolution.provenance === 'text_inferred'`** — they may still be **north-scoped for narrative** but are excluded from component metrics under **`RESILIENCE_EPISTEMIC_GEO_V2`** (default on).
 
-- `geoAreaTags` containing **`north`**, **or**  
-- `pboSubregionId` (or legacy `subregionId`) in `{naftali, golan, baram, hiram, galma}`  
-
-→ north-relevant from **geo_tags** or **pbo_subregion** with confidence taken from geo policy / `scopeConfidence`.
-
-If **`usableForMetrics === false`**, geo **does not** count as verified north (`reasons` will include `geo.usableForMetrics=false`) — fuzzy or policy-downgraded rows fall through to **keyword** matching only.
-
-**Keyword fallback:** [`NORTH_TERMS`](../../business_modules/resilience/domain/services/regionSignalFilter.js) substring search over a **haystack** built from evidence, article metadata, municipality, region, etc. Confidence for this path is **low** by design.
+**No keyword fallback:** text substring north matching (`NORTH_TERMS`) was removed. News/radio/social without resolved north geo are **not** north-relevant.
 
 **`assess-signals` integration:** after optional dedup, the CLI always runs `filterSignalsForScope(allSignals, reportScopeId)` so every signal gains **`signal.scopeDecision`**. When `reportScopeId === 'north'`, the array is **filtered** to `isNorthRelevant` only; for `national`, all signals are retained. Scoring then uses the (possibly narrowed) list and recomputes `totalArticles` for coverage from **scoped** article keys when not national — see [`assess-signals.js`](../../business_modules/resilience/input/assess-signals.js).
 
@@ -376,7 +366,7 @@ Unknown or ambiguous localities can be routed to review sinks when configured (`
 **Phase-1 transparency (addressed in code, not eliminated):** Each assess run persists `assessment.methodology` (author-set weights manifest on disk, scope-decision counts, epistemic copy, advisory `tuning_proposal`). Operator UI shows epistemic banners and north keyword-fallback warnings; `GET /api/report/today?scope=north` returns `north_requires_assess_signals` when no north artifact exists. **Still deferred:** multi-district scope, fitted weights, auto-applied tanhK/certM, merging `runResilienceAssessment` with `filterSignalsForScope`.
 
 1. **Documentation drift:** [`docs/main_docu_files/pipeline.md`](../main_docu_files/pipeline.md) now points at `business_modules/resilience/`; keep other docs in sync when modules move.  
-2. **North scope without geo on news:** keyword fallback can **false positive** (generic “north” language) or **false negative** (hyperlocal Hebrew placenames missing from `NORTH_TERMS`). WhatsApp benefits from structured locality + geo; news less so.  
+2. **North scope without geo on news:** signals without resolved north geo are excluded from north scope (no keyword fallback). Hyperlocal placenames only count when geo attach succeeds — monitor `summarizeGeoCoverage` / unknown rates.  
 3. **Dual pipelines (`runResilienceAssessment` vs `assess-signals`):** easy to misconfigure if operators expect scope filtering in the API-run path when only national scoring ran.  
 4. **LLM brittleness:** model upgrades, prompt drift, and multilingual edge cases affect extraction rates; monitoring is mostly operational (logs, costs) rather than a packaged offline benchmark suite in-repo.  
 5. **Hand-tuned weights:** political and ethical tradeoffs are embedded in `SIGNAL_TO_COMPONENTS`; stakeholders may read scores as “objective” without seeing the normative choices.  
@@ -423,6 +413,7 @@ Non-exhaustive list of variables referenced across analysis, geo, and client-fac
 | `GEO_ASSERT_ENVELOPE` | Validate envelope immediately after WhatsApp attach. |
 | `GEO_OVERRIDES_SQLITE` | Enable SQLite-backed geo overrides (composition). |
 | `GEO_UNKNOWN_REVIEW_JSONL` / `GEO_UNKNOWN_REVIEW_SQLITE` | Unknown locality review sinks. |
+| `RESILIENCE_EPISTEMIC_GEO_V2` | Exclude text-inferred / metrics-unsafe geo from component scores (default on; `=0` for legacy). |
 | `TRANSLATION_ENABLED` | Gate server-side report translation. |
 | `AUTH_REQUIRED` | Gate API routes and docs pages. |
 | `RESILIENCE_DRIFT_*` | Drift alert thresholds (polarization window, etc.) — see client i18n help strings. |

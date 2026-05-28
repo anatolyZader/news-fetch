@@ -1,0 +1,36 @@
+{
+  "topic": "test topic history",
+  "topicNormalized": {
+    "conceptIds": [],
+    "matchTokens": [
+      "test",
+      "topic",
+      "history"
+    ],
+    "searchTermsByLang": {
+      "he": [],
+      "en": [
+        "\"test topic history\""
+      ],
+      "ar": []
+    }
+  },
+  "platforms": [
+    "x"
+  ],
+  "lang": "en",
+  "fetchedAt": "2026-05-27T16:09:25.516Z",
+  "source": "stub_osint_cache",
+  "mode": "dry_run",
+  "accessNotes": [
+    "No cached posts matched this topic on the selected platforms. Live fetch APIs are not yet connected."
+  ],
+  "dryRun": null,
+  "estimate": null,
+  "posts": [],
+  "stats": {
+    "matched": 0,
+    "afterDedup": 0,
+    "duplicatesRemoved": 0
+  }
+}

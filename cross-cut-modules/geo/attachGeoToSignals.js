@@ -13,7 +13,7 @@ function stampResolutionScope(geo, scope) {
   if (existing != null && typeof existing === 'object') {
     return { ...geo, resolution: { ...existing, scope } };
   }
-  return geo;
+  return { ...geo, resolution: { scope } };
 }
 
 /**

@@ -5,6 +5,8 @@ import { createGeoService } from '../../../../business_modules/geo/app/geoServic
 import { isGeoResolved } from '../../../../business_modules/geo/domain/value_objects/geoEnrichment.js';
 import { resolveByFuzzyBest } from '../../../../business_modules/geo/domain/services/resolveLocalityMatch.js';
 import { GEO_POLICY_VERSION } from '../../../../business_modules/geo/domain/services/geoQualityPolicy.js';
+import { GEO_PROVENANCE } from '../../../../business_modules/geo/domain/value_objects/geoProvenance.js';
+import { GEO_ENVELOPE_SCHEMA_VERSION } from '../../../../business_modules/geo/domain/value_objects/geoEnvelopeVersion.js';
 
 function mockBundle({ localities, border }) {
   return {
@@ -16,7 +18,7 @@ function mockBundle({ localities, border }) {
   };
 }
 
-test('geoService resolves known Hebrew locality', () => {
+test('geoService resolves known Hebrew locality (nested v3 envelope)', () => {
   const service = createGeoService({
     northReferencePort: {
       loadNorthGeoReference() {
@@ -42,31 +44,65 @@ test('geoService resolves known Hebrew locality', () => {
   const r = service.resolveLocalityName('קריית שמונה');
   assert.ok(isGeoResolved(r));
   if (isGeoResolved(r)) {
-    assert.equal(r.geoPolicyVersion, GEO_POLICY_VERSION);
+    assert.equal(r.envelopeSchemaVersion, GEO_ENVELOPE_SCHEMA_VERSION);
+    assert.equal(r.resolution.provenance, GEO_PROVENANCE.direct);
     assert.ok(r.resolution && r.classification && r.policy && r.audit);
     assert.equal(r.resolution.canonicalKey, 'kiryat_shmona');
     assert.equal(r.classification.pboSubregionId, 'naftali');
     assert.equal(r.classification.distanceSemantics, 'point_to_polyline');
     assert.equal(r.policy.geoPolicyVersion, GEO_POLICY_VERSION);
     assert.equal(r.subregionId, undefined);
-    assert.equal(r.pboSubregionId, 'naftali');
-    assert.equal(r.envelopeSchemaVersion, 'geo-envelope-2026-05-v1');
+    assert.equal(r.pboSubregionId, undefined);
     assert.equal(r.geoEntityType, 'locality');
-    assert.equal(r.scopeConfidence, 'high');
+    assert.equal(r.policy.scopeConfidence, 'high');
     assert.equal(r.matchEvidence.rawInput, 'קריית שמונה');
     assert.equal(r.matchEvidence.candidateCount, 1);
-    assert.equal(r.isGolan, false);
-    assert.ok(Array.isArray(r.geoAreaTags) && r.geoAreaTags.includes('north'));
-    assert.ok(Number.isFinite(r.distanceKmToNorthBorder));
-    assert.notEqual(r.distanceBand, 'unknown');
-    assert.equal(r.geoReferenceVersion, 'test-v1');
-    assert.equal(r.source, 'test-src');
-    assert.equal(r.quality, 'high');
-    assert.equal(r.usableForMetrics, true);
-    assert.equal(r.requiresReview, false);
+    assert.equal(r.classification.isGolan, false);
+    assert.ok(Array.isArray(r.classification.geoAreaTags) && r.classification.geoAreaTags.includes('north'));
+    assert.ok(Number.isFinite(r.classification.distanceKmToNorthBorder));
+    assert.notEqual(r.classification.distanceBand, 'unknown');
+    assert.equal(r.audit.geoReferenceVersion, 'test-v1');
+    assert.equal(r.audit.source, 'test-src');
+    assert.equal(r.policy.quality, 'high');
+    assert.equal(r.policy.usableForMetrics, true);
+    assert.equal(r.policy.requiresReview, false);
     assert.equal(r.scopeDecision.isNorthRelevant, true);
     assert.equal(r.scopeDecision.source, 'geo_tags');
     assert.ok(r.scopeDecision.reasons.some((x) => x.includes('geoAreaTags')));
+  }
+});
+
+test('geoService marks text_inferred news as not metrics-safe', () => {
+  const service = createGeoService({
+    northReferencePort: {
+      loadNorthGeoReference() {
+        return mockBundle({
+          localities: [
+            {
+              canonicalKey: 'kiryat_shmona',
+              names: ['קריית שמונה'],
+              lat: 33.2079,
+              lon: 35.5721,
+              subregionId: 'naftali',
+            },
+          ],
+          border: [{ lat: 33.1, lon: 35.4 }, { lat: 33.2, lon: 35.4 }],
+        });
+      },
+    },
+  });
+
+  const r = service.resolveLocalityName('קריית שמונה', {
+    sourceType: 'news',
+    provenance: GEO_PROVENANCE.text_inferred,
+    resolutionScope: 'signal',
+  });
+  assert.ok(isGeoResolved(r));
+  if (isGeoResolved(r)) {
+    assert.equal(r.resolution.provenance, GEO_PROVENANCE.text_inferred);
+    assert.equal(r.policy.usableForMetrics, false);
+    assert.ok(r.policy.decisionReasons.includes('text_inferred_source'));
+    assert.equal(r.scopeDecision.confidence, 'low');
   }
 });
 
@@ -99,7 +135,7 @@ test('geoService omits subregionId when GEO_LEGACY_SUBREGION_ID=false', () => {
     assert.ok(isGeoResolved(r));
     if (isGeoResolved(r)) {
       assert.equal(r.subregionId, undefined);
-      assert.equal(r.pboSubregionId, 'naftali');
+      assert.equal(r.classification.pboSubregionId, 'naftali');
     }
   } finally {
     if (prev === undefined) delete process.env.GEO_LEGACY_SUBREGION_ID;
@@ -138,11 +174,11 @@ test('geoService resolves Hebrew גולן to reference row as regional_council',
     assert.equal(r.geoEntityType, 'regional_council');
     assert.equal(r.resolution.geoEntityType, 'regional_council');
     assert.equal(r.classification.distanceSemantics, 'representative_centroid_to_polyline');
-    assert.equal(r.usableForMetrics, false);
-    assert.equal(r.requiresReview, true);
-    assert.equal(r.quality, 'medium');
+    assert.equal(r.policy.usableForMetrics, false);
+    assert.equal(r.policy.requiresReview, true);
+    assert.equal(r.policy.quality, 'medium');
     assert.ok(r.policy.decisionReasons?.includes('centroid_geometry_only'));
-    assert.equal(r.isGolan, true);
+    assert.equal(r.classification.isGolan, true);
     assert.equal(r.scopeDecision.isNorthRelevant, true);
     assert.equal(r.scopeDecision.source, 'geo_tags');
     assert.equal(r.scopeDecision.confidence, 'low');
@@ -217,8 +253,8 @@ test('geoService marks Golan subregion', () => {
   const r = service.resolveLocalityName('קצרין');
   assert.ok(isGeoResolved(r));
   if (isGeoResolved(r)) {
-    assert.equal(r.isGolan, true);
-    assert.ok(r.geoAreaTags.includes('golan_heights'));
+    assert.equal(r.classification.isGolan, true);
+    assert.ok(r.classification.geoAreaTags.includes('golan_heights'));
   }
 });
 
@@ -246,9 +282,9 @@ test('geoService uses overridesPort before fuzzy', () => {
   const r = service.resolveLocalityName('קרית שמונה');
   assert.ok(isGeoResolved(r));
   if (isGeoResolved(r)) {
-    assert.equal(r.canonicalKey, 'kiryat_shmona');
-    assert.equal(r.matchMethod, 'manual_override');
-    assert.equal(r.matchConfidence, 1);
+    assert.equal(r.resolution.canonicalKey, 'kiryat_shmona');
+    assert.equal(r.resolution.matchMethod, 'manual_override');
+    assert.equal(r.resolution.matchConfidence, 1);
   }
 });
 

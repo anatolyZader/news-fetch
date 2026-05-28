@@ -171,47 +171,68 @@ function addComponentContributorItems(flaggedComponents, upsertItem, assessment)
 }
 
 /**
+ * @param {object} signal
+ * @param {Record<string, number>} typeCounts
+ * @param {object} context
+ */
+function collectSignalFlagReasons(signal, typeCounts, context) {
+  const { lowConf, oovCaptureCount, dataVoidLevel } = context;
+  const reasons = [];
+  const conf = signal.extraction_confidence;
+  if (conf != null && conf < lowConf) {
+    reasons.push({ code: 'low_extraction_confidence', detail: conf });
+  }
+  const t = signal.signal_type ?? signal.type;
+  if (t && typeCounts[t] === 1) {
+    reasons.push({ code: 'rare_signal_type', detail: t });
+  }
+  const lowConfOrRare = (conf != null && conf < lowConf) || (t && typeCounts[t] === 1);
+  if (oovCaptureCount > 0 && lowConfOrRare) {
+    reasons.push({ code: 'oov_suggested', detail: oovCaptureCount });
+  }
+  if (dataVoidLevel === 'critical' || dataVoidLevel === 'elevated') {
+    reasons.push({ code: 'data_void_context', detail: dataVoidLevel });
+  }
+  return { reasons, signalType: t, confidence: conf };
+}
+
+/**
+ * @param {object} signal
+ * @param {Array<object>} reasons
+ * @param {string|null|undefined} signalType
+ * @param {number|null|undefined} confidence
+ */
+function flaggedSignalUpsertPatch(signal, reasons, signalType, confidence) {
+  return {
+    article_url: signal.article_url ?? null,
+    article_source: signal.article_source ?? null,
+    article_index: signal.article_index ?? null,
+    source_file: signal.source_file ?? null,
+    signal_types: signalType ? [signalType] : [],
+    reasons,
+    signals: [{
+      signal_type: signalType,
+      source_type: signal.source_type,
+      evidence: signal.evidence,
+      extraction_confidence: confidence,
+    }],
+  };
+}
+
+/**
  * @param {ReturnType<typeof createReviewItemUpserter>} upsertItem
  * @param {Array<object>} signalList
  * @param {Record<string, number>} typeCounts
  * @param {object} context
  */
 function addFlaggedSignalItems(upsertItem, signalList, typeCounts, context) {
-  const { lowConf, oovCaptureCount, dataVoidLevel } = context;
   for (const s of signalList) {
-    const reasons = [];
-    const conf = s.extraction_confidence;
-    if (conf != null && conf < lowConf) {
-      reasons.push({ code: 'low_extraction_confidence', detail: conf });
-    }
-    const t = s.signal_type ?? s.type;
-    if (t && typeCounts[t] === 1) {
-      reasons.push({ code: 'rare_signal_type', detail: t });
-    }
-    if (oovCaptureCount > 0 && (conf != null && conf < lowConf || (t && typeCounts[t] === 1))) {
-      reasons.push({ code: 'oov_suggested', detail: oovCaptureCount });
-    }
-    if (dataVoidLevel === 'critical' || dataVoidLevel === 'elevated') {
-      reasons.push({ code: 'data_void_context', detail: dataVoidLevel });
-    }
+    const { reasons, signalType, confidence } = collectSignalFlagReasons(s, typeCounts, context);
     if (!reasons.length) continue;
 
     const key = articleKeyForSignal(s);
     if (!key) continue;
-    upsertItem(key, {
-      article_url: s.article_url ?? null,
-      article_source: s.article_source ?? null,
-      article_index: s.article_index ?? null,
-      source_file: s.source_file ?? null,
-      signal_types: t ? [t] : [],
-      reasons,
-      signals: [{
-        signal_type: t,
-        source_type: s.source_type,
-        evidence: s.evidence,
-        extraction_confidence: conf,
-      }],
-    });
+    upsertItem(key, flaggedSignalUpsertPatch(s, reasons, signalType, confidence));
   }
 }
 

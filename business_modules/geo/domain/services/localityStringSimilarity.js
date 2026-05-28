@@ -4,6 +4,16 @@
  * @param {string} b normalized
  * @returns {number} in [0, 1]
  */
+
+function characterBigrams(s) {
+  const m = new Map();
+  for (let i = 0; i < s.length - 1; i++) {
+    const bg = s.slice(i, i + 2);
+    m.set(bg, (m.get(bg) ?? 0) + 1);
+  }
+  return m;
+}
+
 export function diceBigramSimilarity(a, b) {
   const sa = String(a ?? '');
   const sb = String(b ?? '');
@@ -12,16 +22,8 @@ export function diceBigramSimilarity(a, b) {
     if (!sa.length || !sb.length) return 0;
     return sa.includes(sb) || sb.includes(sa) ? 0.85 : 0;
   }
-  const bigrams = (s) => {
-    const m = new Map();
-    for (let i = 0; i < s.length - 1; i++) {
-      const bg = s.slice(i, i + 2);
-      m.set(bg, (m.get(bg) ?? 0) + 1);
-    }
-    return m;
-  };
-  const A = bigrams(sa);
-  const B = bigrams(sb);
+  const A = characterBigrams(sa);
+  const B = characterBigrams(sb);
   let inter = 0;
   let sumA = 0;
   for (const v of A.values()) sumA += v;

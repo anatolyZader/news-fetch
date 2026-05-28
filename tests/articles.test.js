@@ -12,6 +12,7 @@ describe('GET /api/auth/config', () => {
       apiKey: 'test-key',
       fetchArticlesForDay: mock.fn(),
       timezone: 'Asia/Jerusalem',
+      authRequired: false,
     });
     const res = await app.inject({ method: 'GET', url: '/api/auth/config' });
     assert.strictEqual(res.statusCode, 200);
@@ -32,6 +33,7 @@ describe('GET /articles', () => {
       apiKey: 'test-key',
       fetchArticlesForDay,
       timezone: 'Asia/Jerusalem',
+      authRequired: false,
     });
     const qs = new URLSearchParams(query).toString();
     const res = await app.inject({

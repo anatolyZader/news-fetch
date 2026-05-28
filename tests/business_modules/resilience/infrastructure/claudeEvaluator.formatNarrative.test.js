@@ -71,4 +71,30 @@ describe('formatScoredComponentsForNarrative — A2', () => {
     const text = formatScoredComponentsForNarrative(scored, 1);
     assert.ok(text.includes('conf:1.00'));
   });
+
+  it('includes geo audit tags when text-inferred geo is metrics-ineligible', () => {
+    const scored = {
+      narrative: comp({
+        signals: [
+          {
+            signal_type: 'panic_behavior',
+            scope_level: 'single_case',
+            evidence_type: 'observational_reported_fact',
+            extraction_confidence: 0.9,
+            evidence: 'Residents in Kiryat Shmona reported panic.',
+            metricsEligible: false,
+            geo: {
+              kind: 'resolved',
+              resolution: { provenance: 'text_inferred' },
+              policy: { usableForMetrics: false, scopeConfidence: 'low' },
+            },
+          },
+        ],
+      }),
+    };
+    const text = formatScoredComponentsForNarrative(scored, 1);
+    assert.ok(text.includes('geo:provenance=text_inferred'));
+    assert.ok(text.includes('metricsEligible=false'));
+    assert.ok(text.includes('scopeConfidence=low'));
+  });
 });

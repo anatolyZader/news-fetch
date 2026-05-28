@@ -17,7 +17,6 @@ import {
   borderReferenceVersion,
   geoEntityType,
   geoReferenceVersion,
-  pboSubregionId,
   quality,
   requiresReview,
   scopeConfidence,

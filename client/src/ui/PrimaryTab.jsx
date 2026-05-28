@@ -6,15 +6,14 @@ function mergeSx(sx) {
   return Array.isArray(sx) ? sx : [sx];
 }
 
-export const PrimaryTab = (props) => {
-  const {
-    active = false,
-    compact = false,
-    className = '',
-    sx,
-    children,
-    ...rest
-  } = props;
+export function PrimaryTab({
+  active = false,
+  compact = false,
+  className = '',
+  sx,
+  children,
+  ...rest
+}) {
   return (
     <ButtonBase
       role="tab"
@@ -53,7 +52,7 @@ export const PrimaryTab = (props) => {
       {children}
     </ButtonBase>
   );
-};
+}
 
 PrimaryTab.propTypes = {
   active: PropTypes.bool,

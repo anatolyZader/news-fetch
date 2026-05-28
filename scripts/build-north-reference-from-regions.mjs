@@ -129,6 +129,95 @@ function loadExistingReference() {
   }
 }
 
+function resolveCanonicalKey(hebrewName) {
+  const mapped = HEBREW_NAME_TO_CANONICAL[hebrewName];
+  if (mapped) return mapped;
+  const baseSlug = slugifyHebrewName(hebrewName);
+  let canonicalKey = baseSlug.toLowerCase().replaceAll(/[()]/g, '').replaceAll(/_+/g, '_');
+  if (!/^[a-z0-9_]/.test(canonicalKey)) {
+    canonicalKey = `he_${Buffer.from(hebrewName, 'utf8').toString('hex').slice(0, 24)}`;
+  }
+  return canonicalKey;
+}
+
+function buildFailedLocality(canonicalKey, hebrewName, subregionId, regionKey) {
+  return {
+    canonicalKey,
+    officialHebrewName: hebrewName,
+    names: [hebrewName],
+    lat: null,
+    lon: null,
+    subregionId,
+    municipalityType: 'unknown',
+    parentCouncilKey: null,
+    _geocodeFailed: true,
+    _regionKey: regionKey,
+  };
+}
+
+function buildGeocodedLocality(canonicalKey, hebrewName, subregionId, geo) {
+  const locality = {
+    canonicalKey,
+    officialHebrewName: hebrewName,
+    names: [hebrewName],
+    lat: Math.round(geo.lat * 1e6) / 1e6,
+    lon: Math.round(geo.lon * 1e6) / 1e6,
+    subregionId,
+    municipalityType: 'municipality',
+    parentCouncilKey: null,
+  };
+  if (REGIONAL_COUNCIL_NAMES.has(hebrewName)) {
+    locality.geoEntityType = 'regional_council';
+  }
+  const manual = MANUAL_COORDS[hebrewName];
+  if (manual?.note) locality.note = manual.note;
+  return locality;
+}
+
+async function processMunicipalityRow({ hebrewName, subregionId, regionKey }, byKey, built) {
+  const canonicalKey = resolveCanonicalKey(hebrewName);
+
+  if (byKey.has(canonicalKey)) {
+    const existing = byKey.get(canonicalKey);
+    if (existing.subregionId !== subregionId) {
+      console.warn(`Key collision or subregion mismatch: ${canonicalKey} (${hebrewName}) was ${existing.subregionId}, regions.json says ${subregionId}`);
+    }
+    built.push(existing);
+    return;
+  }
+
+  console.error(`Geocoding: ${hebrewName} (${subregionId}) …`);
+  const geo = await geocodeMunicipality(hebrewName, subregionId);
+  await sleep(1100);
+
+  if (!geo) {
+    console.error(`  FAILED: ${hebrewName}`);
+    built.push(buildFailedLocality(canonicalKey, hebrewName, subregionId, regionKey));
+    return;
+  }
+
+  const locality = buildGeocodedLocality(canonicalKey, hebrewName, subregionId, geo);
+  byKey.set(canonicalKey, locality);
+  built.push(locality);
+  console.error(`  OK: ${geo.lat}, ${geo.lon}`);
+}
+
+function buildNorthReferenceDoc(ref, merged) {
+  return {
+    version: ref.version || 'north-geo-generated',
+    source: ref.source || 'north-localities-v1',
+    description:
+      'Northern locality reference: municipalities from regions.json, geocoded via Nominatim. Bump version when editing rows.',
+    schema: 'north-reference-subregions-v1',
+    _meta: {
+      generated_from: 'regions.json',
+      nominatim: 'https://nominatim.openstreetmap.org',
+      generated_at: new Date().toISOString(),
+    },
+    subregions: groupLocalitiesIntoSubregionsForFile(merged),
+  };
+}
+
 function main() {
   const dryRun = process.argv.includes('--dry-run');
   const rows = loadRegions();
@@ -144,64 +233,8 @@ function main() {
 
   return (async () => {
     const built = [];
-    for (const { hebrewName, subregionId, regionKey } of rows) {
-      let canonicalKey = HEBREW_NAME_TO_CANONICAL[hebrewName];
-      if (!canonicalKey) {
-        const baseSlug = slugifyHebrewName(hebrewName);
-        canonicalKey = baseSlug.toLowerCase().replaceAll(/[()]/g, '').replaceAll(/_+/g, '_');
-        if (!/^[a-z0-9_]/.test(canonicalKey)) {
-          canonicalKey = `he_${Buffer.from(hebrewName, 'utf8').toString('hex').slice(0, 24)}`;
-        }
-      }
-
-      if (byKey.has(canonicalKey)) {
-        const existing = byKey.get(canonicalKey);
-        if (existing.subregionId !== subregionId) {
-          console.warn(`Key collision or subregion mismatch: ${canonicalKey} (${hebrewName}) was ${existing.subregionId}, regions.json says ${subregionId}`);
-        }
-        built.push(existing);
-        continue;
-      }
-
-      console.error(`Geocoding: ${hebrewName} (${subregionId}) …`);
-      const geo = await geocodeMunicipality(hebrewName, subregionId);
-      await sleep(1100);
-
-      if (!geo) {
-        console.error(`  FAILED: ${hebrewName}`);
-        built.push({
-          canonicalKey,
-          officialHebrewName: hebrewName,
-          names: [hebrewName],
-          lat: null,
-          lon: null,
-          subregionId,
-          municipalityType: 'unknown',
-          parentCouncilKey: null,
-          _geocodeFailed: true,
-          _regionKey: regionKey,
-        });
-        continue;
-      }
-
-      const locality = {
-        canonicalKey,
-        officialHebrewName: hebrewName,
-        names: [hebrewName],
-        lat: Math.round(geo.lat * 1e6) / 1e6,
-        lon: Math.round(geo.lon * 1e6) / 1e6,
-        subregionId,
-        municipalityType: 'municipality',
-        parentCouncilKey: null,
-      };
-      if (REGIONAL_COUNCIL_NAMES.has(hebrewName)) {
-        locality.geoEntityType = 'regional_council';
-      }
-      const m = MANUAL_COORDS[hebrewName];
-      if (m?.note) locality.note = m.note;
-      byKey.set(canonicalKey, locality);
-      built.push(locality);
-      console.error(`  OK: ${geo.lat}, ${geo.lon}`);
+    for (const row of rows) {
+      await processMunicipalityRow(row, byKey, built);
     }
 
     const merged = [...byKey.values()].filter((l) => l.lat != null && l.lon != null);
@@ -211,19 +244,7 @@ function main() {
       for (const f of failed) console.error(`  - ${f.officialHebrewName}`);
     }
 
-    const next = {
-      version: ref.version || 'north-geo-generated',
-      source: ref.source || 'north-localities-v1',
-      description:
-        'Northern locality reference: municipalities from regions.json, geocoded via Nominatim. Bump version when editing rows.',
-      schema: 'north-reference-subregions-v1',
-      _meta: {
-        generated_from: 'regions.json',
-        nominatim: 'https://nominatim.openstreetmap.org',
-        generated_at: new Date().toISOString(),
-      },
-      subregions: groupLocalitiesIntoSubregionsForFile(merged),
-    };
+    const next = buildNorthReferenceDoc(ref, merged);
 
     if (dryRun) {
       console.log(JSON.stringify(next, null, 2));

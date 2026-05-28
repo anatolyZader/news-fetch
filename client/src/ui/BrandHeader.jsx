@@ -1,3 +1,4 @@
+import Box from '@mui/material/Box';
 import ButtonBase from '@mui/material/ButtonBase';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
@@ -9,13 +10,62 @@ const ALIGN_MAP = {
   center:{ alignItems: 'center',     textAlign: 'center' },
 };
 
-export const BrandHeader = (props) => {
-  const { title, subtitle, align = 'start', onHomeClick, homeAriaLabel } = props;
+function BrandMark({ src, alt }) {
+  return (
+    <Box
+      component="img"
+      src={src}
+      alt={alt}
+      sx={(theme) => ({
+        flexShrink: 0,
+        height: theme.spacing(9),
+        width: 'auto',
+        maxHeight: theme.spacing(9),
+        display: 'block',
+        userSelect: 'none',
+      })}
+    />
+  );
+}
+
+BrandMark.propTypes = {
+  src: PropTypes.string.isRequired,
+  alt: PropTypes.string,
+};
+
+export function BrandHeader({
+  title,
+  subtitle,
+  align = 'start',
+  onHomeClick,
+  homeAriaLabel,
+  logoSrc,
+  logoAlt = '',
+}) {
   const alignSx = ALIGN_MAP[align] ?? ALIGN_MAP.start;
-  const titleNode = (
-    <Typography variant="h1" component="h1">
-      {title}
-    </Typography>
+
+  const titleBlock = (
+    <Stack
+      direction="row"
+      alignItems="center"
+      spacing={1.5}
+      sx={{
+        alignSelf: alignSx.alignItems,
+        '[dir="rtl"] &': { flexDirection: 'row-reverse' },
+      }}
+    >
+      {logoSrc && <BrandMark src={logoSrc} alt={logoAlt} />}
+      <Stack spacing={0.125} sx={{ minWidth: 0, textAlign: alignSx.textAlign }}>
+        <Typography variant="h1" component="h1" sx={{ lineHeight: 1.2 }}>
+          {title}
+        </Typography>
+        {subtitle && (
+          <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.35 }}>
+            {subtitle}
+          </Typography>
+        )}
+      </Stack>
+    </Stack>
   );
 
   return (
@@ -42,19 +92,14 @@ export const BrandHeader = (props) => {
             '&:hover': { background: theme.palette.action.hover },
           })}
         >
-          {titleNode}
+          {titleBlock}
         </ButtonBase>
       ) : (
-        titleNode
-      )}
-      {subtitle && (
-        <Typography variant="body2" color="text.secondary">
-          {subtitle}
-        </Typography>
+        titleBlock
       )}
     </Stack>
   );
-};
+}
 
 BrandHeader.propTypes = {
   title: PropTypes.node.isRequired,
@@ -62,4 +107,6 @@ BrandHeader.propTypes = {
   align: PropTypes.oneOf(['start', 'end', 'center']),
   onHomeClick: PropTypes.func,
   homeAriaLabel: PropTypes.string,
+  logoSrc: PropTypes.string,
+  logoAlt: PropTypes.string,
 };

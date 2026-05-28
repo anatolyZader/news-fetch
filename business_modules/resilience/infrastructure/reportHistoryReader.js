@@ -108,7 +108,7 @@ export function readResilienceHistory(opts = {}) {
     records.push(summarizeReport(date, scope, best));
   }
 
-  records.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+  records.sort((a, b) => a.date.localeCompare(b.date));
   return records;
 }
 

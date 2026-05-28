@@ -82,8 +82,91 @@ function isUserOrientedPage(meta) {
 }
 
 function hasAtLeastNh2Headings(body, n) {
-  const matches = /^##\s+/gm.exec(body);
+  const matches = body.match(/^##\s+/gm);
   return (matches?.length ?? 0) >= n;
+}
+
+function validateFrontmatter(rel, meta, validate, ajv, errors) {
+  if (!meta) {
+    errors.push(`${rel}: missing or invalid frontmatter`);
+    return;
+  }
+  if (!validate(meta)) {
+    errors.push(`${rel}: frontmatter schema invalid: ${ajv.errorsText(validate.errors)}`);
+  }
+}
+
+function validateRequiredSections(rel, body, sections, errors) {
+  for (const section of sections) {
+    if (!body.includes(section)) {
+      errors.push(`${rel}: missing required section heading: ${section}`);
+    }
+  }
+}
+
+function validateDocSections(rel, meta, body, errors) {
+  const intent = String(meta?.intent ?? '');
+  const isEngineering = ENGINEERING_INTENTS.has(intent) && !isUserOrientedPage(meta);
+  const isUserPage = isUserOrientedPage(meta);
+
+  if (isEngineering) {
+    validateRequiredSections(rel, body, ENGINEERING_SKELETON_SECTIONS, errors);
+    return { intent, isUserPage };
+  }
+  if (isUserPage) {
+    if (!body.includes('## Troubleshooting')) {
+      errors.push(`${rel}: user doc must include a '## Troubleshooting' section`);
+    }
+    if (!hasAtLeastNh2Headings(body, 3)) {
+      errors.push(`${rel}: user doc must include at least 3 H2 sections (## ...) for readability`);
+    }
+    return { intent, isUserPage };
+  }
+  validateRequiredSections(rel, body, ENGINEERING_SKELETON_SECTIONS, errors);
+  return { intent, isUserPage };
+}
+
+function validateWorkflowPage(rel, intent, isUserPage, body, errors) {
+  if (!WORKFLOW_INTENTS.has(intent) || isUserPage) return;
+  if (!hasRunnableSnippet(body)) {
+    errors.push(`${rel}: workflow page missing a runnable code block (add \`\`\`bash runnable\` etc.)`);
+  }
+  if (hasRunnableSnippet(body) && !body.includes('Expected:')) {
+    errors.push(`${rel}: runnable code block present but no 'Expected:' output described`);
+  }
+}
+
+function validateRelativeLinks(rel, body, knownFiles, errors) {
+  const links = extractRelativeMarkdownLinks(body);
+  for (const href of links) {
+    if (!href.endsWith('.md')) continue;
+    const target = toPosixPath(resolve('/', toPosixPath(resolve('/', toPosixPath(rel))).replace(/\/[^/]+$/, ''), href).slice(1));
+    if (!knownFiles.has(href) && !knownFiles.has(target)) {
+      errors.push(`${rel}: broken relative link: ${href}`);
+    }
+  }
+}
+
+async function validateAllRunnableSnippets(mdFiles, docsRoot, errors) {
+  for (const abs of mdFiles) {
+    const rel = toPosixPath(relative(docsRoot, abs));
+    const raw = await readFile(abs, 'utf8');
+    const body = parseFrontmatter(raw).body;
+    if (hasRunnableSnippet(body) && !body.includes('Expected:')) {
+      errors.push(`${rel}: runnable code block present but no 'Expected:' output described`);
+    }
+  }
+}
+
+async function validateDocFile(abs, docsRoot, validate, ajv, knownFiles, errors) {
+  const rel = toPosixPath(relative(docsRoot, abs));
+  const raw = await readFile(abs, 'utf8');
+  const { meta, body } = parseFrontmatter(raw);
+
+  validateFrontmatter(rel, meta, validate, ajv, errors);
+  const { intent, isUserPage } = validateDocSections(rel, meta, body, errors);
+  validateWorkflowPage(rel, intent, isUserPage, body, errors);
+  validateRelativeLinks(rel, body, knownFiles, errors);
 }
 
 async function main() {
@@ -108,76 +191,10 @@ async function main() {
   const knownFiles = new Set(mdFiles.map((f) => toPosixPath(relative(docsRoot, f))));
 
   for (const abs of mdFiles) {
-    const rel = toPosixPath(relative(docsRoot, abs));
-    const raw = await readFile(abs, 'utf8');
-    const { meta, body } = parseFrontmatter(raw);
-
-    if (!meta) {
-      errors.push(`${rel}: missing or invalid frontmatter`);
-    } else if (!validate(meta)) {
-      errors.push(`${rel}: frontmatter schema invalid: ${ajv.errorsText(validate.errors)}`);
-    }
-
-    const intent = String(meta?.intent ?? '');
-    const isEngineering = ENGINEERING_INTENTS.has(intent) && !isUserOrientedPage(meta);
-    const isUserPage = isUserOrientedPage(meta);
-
-    if (isEngineering) {
-      for (const section of ENGINEERING_SKELETON_SECTIONS) {
-        if (!body.includes(section)) {
-          errors.push(`${rel}: missing required section heading: ${section}`);
-        }
-      }
-    } else if (isUserPage) {
-      // User docs should read naturally (not as a filled template) but still be actionable.
-      if (!body.includes('## Troubleshooting')) {
-        errors.push(`${rel}: user doc must include a '## Troubleshooting' section`);
-      }
-      if (!hasAtLeastNh2Headings(body, 3)) {
-        errors.push(`${rel}: user doc must include at least 3 H2 sections (## ...) for readability`);
-      }
-    } else {
-      // Default: keep the full skeleton for non-user docs unless they are explicitly user-tagged.
-      for (const section of ENGINEERING_SKELETON_SECTIONS) {
-        if (!body.includes(section)) {
-          errors.push(`${rel}: missing required section heading: ${section}`);
-        }
-      }
-    }
-
-    // Workflow pages must include at least one runnable snippet and expected output.
-    if (WORKFLOW_INTENTS.has(intent) && !isUserPage) {
-      if (!hasRunnableSnippet(body)) {
-        errors.push(`${rel}: workflow page missing a runnable code block (add \`\`\`bash runnable\` etc.)`);
-      }
-      if (hasRunnableSnippet(body) && !body.includes('Expected:')) {
-        errors.push(`${rel}: runnable code block present but no 'Expected:' output described`);
-      }
-    }
-
-    // Basic relative link integrity (within product_docs).
-    const links = extractRelativeMarkdownLinks(body);
-    for (const href of links) {
-      if (!href.endsWith('.md')) continue;
-      const target = toPosixPath(resolve('/', toPosixPath(resolve('/', toPosixPath(rel))).replace(/\/[^/]+$/, ''), href).slice(1));
-      // The resolution above is intentionally conservative; we just ensure the path exists as written or as normalized.
-      if (!knownFiles.has(href) && !knownFiles.has(target)) {
-        errors.push(`${rel}: broken relative link: ${href}`);
-      }
-    }
+    await validateDocFile(abs, docsRoot, validate, ajv, knownFiles, errors);
   }
 
-  // Runnable snippets (lightweight contract):
-  // - Any fenced block annotated with "runnable" must be followed somewhere by "Expected:".
-  // (Handled above for workflow pages; still enforce for any page that contains runnable snippets.)
-  for (const abs of mdFiles) {
-    const rel = toPosixPath(relative(docsRoot, abs));
-    const raw = await readFile(abs, 'utf8');
-    const body = parseFrontmatter(raw).body;
-    if (hasRunnableSnippet(body) && !body.includes('Expected:')) {
-      errors.push(`${rel}: runnable code block present but no 'Expected:' output described`);
-    }
-  }
+  await validateAllRunnableSnippets(mdFiles, docsRoot, errors);
 
   if (errors.length > 0) {
     console.error(`Docs validation failed (${errors.length} issue(s)):\n- ${errors.join('\n- ')}`);

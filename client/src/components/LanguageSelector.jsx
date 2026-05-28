@@ -13,8 +13,7 @@ const LANG_LABELS = { en: 'EN', he: 'HE', ru: 'RU' };
 
 const MENU_ID = 'language-selector-menu';
 
-export const LanguageSelector = (props) => {
-  const { appearance = 'outlined' } = props;
+export function LanguageSelector({ appearance = 'outlined' }) {
   const { lang, setLang, t } = useLanguage();
   const [anchor, setAnchor] = useState(null);
   const open = Boolean(anchor);
@@ -77,7 +76,7 @@ export const LanguageSelector = (props) => {
       </Menu>
     </>
   );
-};
+}
 
 LanguageSelector.propTypes = {
   appearance: PropTypes.oneOf(['outlined', 'ghost']),

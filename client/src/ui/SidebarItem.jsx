@@ -2,6 +2,33 @@ import ButtonBase from '@mui/material/ButtonBase';
 import { alpha } from '@mui/material/styles';
 import PropTypes from 'prop-types';
 
+function sidebarBorder(grouped, active, theme) {
+  if (grouped) return 'none';
+  const color = active
+    ? alpha(theme.palette.primary.main, 0.55)
+    : theme.palette.divider;
+  return `1px solid ${color}`;
+}
+
+function sidebarBackground(grouped, active, theme) {
+  if (grouped) {
+    return active ? alpha(theme.palette.primary.main, 0.08) : 'transparent';
+  }
+  if (active) return theme.palette.background.paper;
+  return alpha(theme.palette.background.paper, 0.92);
+}
+
+function sidebarInlineStart(grouped, active, theme) {
+  if (!grouped) return undefined;
+  if (active) return `3px solid ${theme.palette.primary.main}`;
+  return '3px solid transparent';
+}
+
+function sidebarBoxShadow(grouped, active, theme) {
+  if (grouped) return 'none';
+  return active ? theme.custom.elevation.hover : theme.custom.elevation.subtle;
+}
+
 /**
  * Report nav row. Use inside a single bordered aside panel (`grouped`) so items
  * do not render as separate pill-shaped chips.
@@ -28,28 +55,16 @@ export function SidebarItem({
           paddingLeft: theme.spacing(grouped ? 1.5 : 1),
           paddingRight: theme.spacing(grouped ? 1.5 : 1),
           borderRadius: grouped ? 0 : sectionPx,
-          border: grouped
-            ? 'none'
-            : `1px solid ${active
-              ? alpha(theme.palette.primary.main, 0.55)
-              : theme.palette.divider}`,
+          border: sidebarBorder(grouped, active, theme),
           borderBottom: grouped && !isLast ? theme.custom.border.hairline : undefined,
-          background: grouped
-            ? (active ? alpha(theme.palette.primary.main, 0.08) : 'transparent')
-            : (active
-              ? theme.palette.background.paper
-              : alpha(theme.palette.background.paper, 0.92)),
+          background: sidebarBackground(grouped, active, theme),
           color: theme.palette.text.primary,
           cursor: 'pointer',
           fontSize: theme.typography.body2.fontSize,
           fontWeight: active ? 600 : 500,
           lineHeight: theme.typography.body2.lineHeight,
-          boxShadow: grouped ? 'none' : (active ? theme.custom.elevation.hover : theme.custom.elevation.subtle),
-          borderInlineStart: grouped && active
-            ? `3px solid ${theme.palette.primary.main}`
-            : grouped
-              ? '3px solid transparent'
-              : undefined,
+          boxShadow: sidebarBoxShadow(grouped, active, theme),
+          borderInlineStart: sidebarInlineStart(grouped, active, theme),
           transition: theme.transitions.create(['background', 'border-color'], {
             duration: theme.transitions.duration.short,
           }),

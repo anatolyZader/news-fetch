@@ -1,7 +1,7 @@
 # Geographic enrichment — developer guide
 
 **Location:** `docs/main_docu_files/` (canonical main documentation — see [README](./README.md))  
-**Last updated:** 2026-05-25
+**Last updated:** 2026-05-27
 
 This document describes **deterministic geographic enrichment** in the app: how localities are resolved to a canonical **`geo` envelope**, where that envelope is **attached** (WhatsApp signals, survey reports, APIs), how **versions** keep results auditable, and how this interacts with **north scoping** and evidence storage.
 
@@ -21,7 +21,7 @@ The **`geo`** business module turns a **free-text locality name** (Hebrew or Eng
 | **`IGeoEnrichmentPort`** ([`resilience/domain/ports/IGeoEnrichmentPort.js`](../business_modules/resilience/domain/ports/IGeoEnrichmentPort.js)) | Single method: `resolveLocalityName(rawName)` → envelope |
 | **`GeoEnrichmentAdapter`** ([`resilience/infrastructure/adapters/geoEnrichmentAdapter.js`](../business_modules/resilience/infrastructure/adapters/geoEnrichmentAdapter.js)) | Delegates to injected `geoService` |
 | **`NoOpGeoEnrichmentPort`** | Same port shape; always returns `kind: 'unknown', reason: 'GEO_DISABLED'` (e.g. tests or missing wiring) |
-| **Composition** | [`app.js`](../app.js): `geoService` + `geoEnrichmentPort` + `app.decorate('geoService', geoService)` + `registerGeoRoutes`; WhatsApp analyzer receives `geoEnrichmentPort` |
+| **Composition** | [`createGeoWiring.js`](../cross-cut-modules/geo/createGeoWiring.js) builds `geoService` + `geoEnrichmentPort` (overrides, unknown JSONL/SQLite sinks). Wired from [`app.js`](../app.js) (`app.decorate('geoService', geoService)` + `registerGeoRoutes`), [`scripts/analyze-survey.mjs`](../scripts/analyze-survey.mjs), and [`enrichSignalsWithGeo.js`](../cross-cut-modules/geo/enrichSignalsWithGeo.js). WhatsApp analyzer receives `geoEnrichmentPort`. |
 
 **Boundary rule:** resilience/whatsapp **must not** import `business_modules/geo` for enrichment. Use the port; build the adapter at the app or script entrypoint.
 
@@ -36,6 +36,7 @@ Every consumer should treat **`geo`** as an optional field. Shape is always eith
 ```json
 {
   "kind": "resolved",
+  "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
   "resolution": {
     "rawInput": "קריית שמונה",
     "normalizedInput": "קריית שמונה",
@@ -45,7 +46,9 @@ Every consumer should treat **`geo`** as an optional field. Shape is always eith
     "matchMethod": "exact",
     "matchConfidence": 1,
     "candidateCount": 1,
-    "geoEntityType": "locality"
+    "geoEntityType": "locality",
+    "provenance": "structured",
+    "scope": "signal"
   },
   "classification": {
     "pboSubregionId": "naftali",
@@ -56,7 +59,7 @@ Every consumer should treat **`geo`** as an optional field. Shape is always eith
     "distanceSemantics": "point_to_polyline"
   },
   "policy": {
-    "geoPolicyVersion": "geo-policy-2026-05-v2",
+    "geoPolicyVersion": "geo-policy-2026-05-v3",
     "quality": "high",
     "usableForMetrics": true,
     "requiresReview": false,
@@ -82,54 +85,40 @@ Every consumer should treat **`geo`** as an optional field. Shape is always eith
     "normalizedInput": "קריית שמונה",
     "matchedVariant": "קריית שמונה",
     "candidateCount": 1
-  },
-  "scopeConfidence": "high",
-  "geoPolicyVersion": "geo-policy-2026-05-v2",
-  "geoReferenceVersion": "north-geo-2026-05-10",
-  "borderReferenceVersion": "north-border-2026-05-10",
-  "source": "north-localities-v1",
-  "canonicalKey": "kiryat_shmona",
-  "matchedName": "קריית שמונה",
-  "pboSubregionId": "naftali",
-  "subregionId": "naftali",
-  "geoAreaTags": ["north", "upper_galilee_adjacent"],
-  "distanceKmToNorthBorder": 12.4,
-  "distanceBand": "10-25",
-  "isGolan": false,
-  "matchMethod": "exact",
-  "matchConfidence": 1,
-  "quality": "high",
-  "usableForMetrics": true,
-  "requiresReview": false
+  }
 }
 ```
 
-(**`subregionId`** is omitted from JSON when **`GEO_LEGACY_SUBREGION_ID`** is **`0`** or **`false`** — see below.)
+(**`subregionId`** and other flat duplicate keys are **not emitted** on new v3 resolves unless **`GEO_LEGACY_SUBREGION_ID=1`** — see below.)
 
-- **Nested contract (`resolution` / `classification` / `policy` / `audit` / `scopeDecision`)** — the app **dual-writes** grouped sub-objects while keeping flat fields for backward compatibility.
-  - **Nested fields are canonical.** Flat fields are **deprecated compatibility aliases** — do not read them in new code; do not add new consumers that depend on flat keys.
+- **Nested contract (`resolution` / `classification` / `policy` / `audit` / `scopeDecision` / `matchEvidence`)** — **v3 resolves are nested-only.** `geoService` no longer dual-writes flat aliases on new envelopes.
+  - **Nested fields are canonical.** Use [`geoEnvelopeAccess.js`](../cross-cut-modules/geo/geoEnvelopeAccess.js) for reads; legacy flat keys on **stored** envelopes are tolerated on read only inside that module.
   - **Migration (read path):**
 
 ```js
-// Preferred — nested only
-const pbo = geo?.classification?.pboSubregionId;
-const metricsOk = geo?.policy?.usableForMetrics;
-const refVer = geo?.audit?.geoReferenceVersion;
-const northFromGeo = geo?.scopeDecision;
+import { pboSubregionId, usableForMetrics, provenance, resolutionScope } from '../cross-cut-modules/geo/geoEnvelopeAccess.js';
 
-// Legacy only — do not copy this pattern into new modules
-const pboLegacy = geo?.pboSubregionId;
+const pbo = pboSubregionId(geo);
+const metricsOk = usableForMetrics(geo);
+const prov = provenance(geo); // structured | text_inferred | message_level | direct
+const scope = resolutionScope(geo); // signal | message
 ```
 
 - **Full `geoEntityType` enum** (validated in [`geoEnrichmentSchema.js`](../business_modules/geo/domain/value_objects/geoEnrichmentSchema.js)): `locality`, `municipality`, `regional_council`, `pbo_subregion`, `district`, `area`, `subregion`, `border_zone`, `facility`, `unknown`. Most resolves use **`locality`**; reference rows may set **`regional_council`** / **`municipality`**; macro unmatched strings may yield **`area`** in unknown resolution hints.
 - **Macro vs table** — broad area strings (e.g. **צפון**) become **`NON_LOCALITY_AREA_TERM`** only **after** there is no reference row match, so names present in **`north-reference.json`** (e.g. **גולן**) still resolve as reference rows.
 - **`classification.distanceSemantics`** (optional on envelope, always set for **resolved** today) — documents how **`distanceKmToNorthBorder`** was derived: **`point_to_polyline`** (locality pin) vs **`representative_centroid_to_polyline`** (administrative / area proxy pin). Distances remain numeric; semantics are for audit and downstream policy.
-- **`geoPolicyVersion`** — version string for *policy* (distinct from reference/border data versions). **`geo-policy-2026-05-v2`** tightens **`usableForMetrics`** / **`quality`** for **`regional_council`** (and related centroid-only entity types): deterministic matches to those types are capped at **`medium`** quality, **`usableForMetrics: false`**, **`requiresReview: true`**, and **`policy.decisionReasons`** includes **`centroid_geometry_only`** when applicable (see [`geoQualityPolicy.js`](../business_modules/geo/domain/services/geoQualityPolicy.js)).
+- **`geoPolicyVersion`** — version string for *policy* (distinct from reference/border data versions). **`geo-policy-2026-05-v3`** adds **provenance-aware** metrics policy: **`text_inferred`** geo on **`news`**, **`radio`**, or **`social`** sets **`usableForMetrics: false`**, **`requiresReview: true`**, **`scopeConfidence: low`**, and **`policy.decisionReasons`** includes **`text_inferred_source`**. v2 rules for **`regional_council`** centroid-only types still apply (`centroid_geometry_only`).
+- **`resolution.provenance`** — how the locality string was obtained before resolve:
+  - **`structured`** — explicit field (`locality`, `municipality`, PBO prefix, field title, bracketed place).
+  - **`text_inferred`** — extracted from evidence text with locative context (news/radio/social only; metrics-ineligible).
+  - **`message_level`** — WhatsApp observation fallback when per-signal locality is missing.
+  - **`direct`** — caller passed a raw name to `resolveLocalityName` (survey cell, API, tests).
+- **`resolution.scope`** — **`signal`** | **`message`**: whether the locality came from the signal row or message-level fallback (WhatsApp attach).
 - **`matchEvidence`** — deterministic audit for matching: **`rawInput`**, NFKC-normalized lookup key (**`normalizedInput`**), display **`matchedVariant`**, and **`candidateCount`** (for fuzzy wins: count of reference rows scoring above the fuzzy floor; **`1`** for exact / punctuation / Hebrew-final paths).
 - **`scopeConfidence`** — **`high`** | **`medium`** | **`low`**: trust for **north-scoped analytics**, separate from string **`matchConfidence`**. v1 is derived from **`usableForMetrics`** / **`requiresReview`** via [`deriveScopeConfidence`](../business_modules/geo/domain/services/geoQualityPolicy.js); later it may incorporate **`sourceType`** or reporter hints without overloading **`usableForMetrics`**.
 - **`pboSubregionId`** — administrative bucket aligned with PBO north regions (`naftali`, `golan`, `baram`, `hiram`, `galma`). Same values as [`regionalPboRegions.js`](../business_modules/pbo_report_regional/domain/value_objects/regionalPboRegions.js); parity is tested under `tests/business_modules/geo/`.
 - **`subregionId`** — **deprecated:** duplicate of `pboSubregionId`. **Default:** omitted (`GEO_LEGACY_SUBREGION_ID` defaults to off). Set **`GEO_LEGACY_SUBREGION_ID=1`** only for legacy consumers.
-- **`envelopeSchemaVersion`** — e.g. `geo-envelope-2026-05-v1` on all new envelopes.
+- **`envelopeSchemaVersion`** — e.g. `geo-envelope-2026-05-v3` on all new envelopes; v3 requires **`resolution.provenance`** on resolved rows.
 - **`geoAreaTags`** — derived tags (e.g. `north`, `golan_heights`, `galilee`); see [`geoAreaTagsForPboSubregion.js`](../business_modules/geo/domain/services/geoAreaTagsForPboSubregion.js). Prefer tags over **`isGolan`** alone for new logic.
 - **`geoReferenceVersion` / `borderReferenceVersion` / `source`** — reproducibility: which dataset and border snapshot produced this row.
 - **`quality`** — `high` | `medium` | `low`: derived from **`matchMethod`** and **`matchConfidence`** (see [`geoQualityPolicy.js`](../business_modules/geo/domain/services/geoQualityPolicy.js)).
@@ -138,7 +127,7 @@ const pboLegacy = geo?.pboSubregionId;
 
 ### Consumer rules (recommended)
 
-1. **Metrics and dashboards** — only count a resolved locality toward north metrics when **`usableForMetrics === true`**. Treat **`usableForMetrics === false`** as “geographic hint only” (do not drive hard KPIs).
+1. **Metrics and dashboards** — only count a resolved locality toward north metrics when **`usableForMetrics === true`**. Treat **`usableForMetrics === false`** or **`resolution.provenance === 'text_inferred'`** on news/radio/social as “geographic hint only” (scope/narrative context, not KPI mass). Under **`RESILIENCE_EPISTEMIC_GEO_V2`** (default on), such signals are excluded from component scoring via [`evidenceEligibility.js`](../business_modules/resilience/domain/services/evidenceEligibility.js).
 2. **North scope / filters** — prefer **`pboSubregionId`** and **`geoAreaTags`**; do not rely on **`subregionId`** (deprecated duplicate).
 3. **Unknowns** — preserve full **`geo`** on signals for audit; optionally enable the JSONL review sink (below) to accumulate raw names for **`north-reference.json`** expansion.
 4. **Envelope shape** — use **`validateGeoEnvelope()`** from [`geoEnrichmentSchema.js`](../business_modules/geo/domain/value_objects/geoEnrichmentSchema.js) (or the re-export in [`signalGeoSummary.js`](../cross-cut-modules/geo/signalGeoSummary.js)) in tests or when **`GEO_ASSERT_ENVELOPE=1`** in WhatsApp attach (catches drift before persist).
@@ -276,7 +265,7 @@ Order of attempts ([`resolveLocalityMatch.js`](../business_modules/geo/domain/se
 | `naftali` | [`extract-naftali-signals.js`](../business_modules/pool/input/extract-naftali-signals.js) + assess |
 | `social` | [`socialMediaTreatmentService.js`](../business_modules/social_media/app/socialMediaTreatmentService.js) + assess |
 
-Locality candidates come from structured fields (`locality`, `municipality`, `article_source` prefixes, field visit titles) and evidence patterns, then resolve through [`geoService`](../business_modules/geo/app/geoService.js) — not keyword north scoping.
+Locality candidates come from structured fields (`locality`, `municipality`, `article_source` prefixes, field visit titles) and **locative-context-gated** evidence patterns ([`localityCandidate.js`](../cross-cut-modules/geo/localityCandidate.js)), then resolve through [`geoService`](../business_modules/geo/app/geoService.js). **No candidate → no attach** (signal stays without `geo`; no `NO_LOCALITY` noise envelope).
 
 ### WhatsApp field signals
 
@@ -349,7 +338,7 @@ Pure helpers in [`geoAggregation.js`](../business_modules/geo/domain/services/ge
 - **`groupSignalsBySubregion(items)`** — groups by `pboSubregionId`, or `_unknown`, or `_no_geo` if the item has no `geo` field.
 - **`groupSignalsByDistanceBand(items)`** — groups by `distanceBand` when resolved.
 - **`summarizeGeoCoverage(items)`** — only considers items that **own** a **`geo`** property; reports `withGeoField`, `resolved`, `unknown`, **`pctResolved`**, and sample raw names for unknowns.
-- **`summarizeGeoQuality(items)`** — **`pctUsableForMetrics`**, **`pctRequiresReview`**, breakdowns by **`source_type`** / **`matchMethod`**, top unknown raw names.
+- **`summarizeGeoQuality(items)`** — **`pctUsableForMetrics`**, **`pctRequiresReview`**, breakdowns by **`source_type`** / **`matchMethod`** / **`provenance`**, top unknown raw names.
 
 [`assess-signals.js`](../business_modules/resilience/input/assess-signals.js) prints geo coverage and quality lines when signals carry **`geo`**. Report **`methodology.scope.geo_quality_summary`** is populated when any signal has **`geo`**.
 
@@ -472,6 +461,7 @@ The current **flat resolved envelope** is intentional for shipping speed. The fo
 | 2026-05 | Quality fields (`quality`, `usableForMetrics`, `requiresReview`), `validateGeoEnvelope`, report `geo_reference_versions_used` / `border_reference_versions_used`, deprecate **`subregionId`** for new consumers, optional JSONL unknown sink, `GEO_ASSERT_ENVELOPE` on WhatsApp attach, `usableForMetrics` gate in north-from-geo. |
 | 2026-05 | **`geoEntityType`**, **`matchEvidence`**, **`scopeConfidence`**; fuzzy **`candidateCount`**; **`GEO_LEGACY_SUBREGION_ID`** to omit deprecated **`subregionId`**; roadmap table for split envelope, SQLite columns, overrides, distance policy versioning, KPIs, and source-aware resolve. |
 | 2026-05 | **`geo.scopeDecision`** on resolved envelopes (geo-only north hint audit); stricter doc rule: nested fields canonical, flat deprecated; full **`geoEntityType`** enum called out in guide. |
-| 2026-05 | News/radio geo attach in **`assess-signals`**; **`GEO_ATTACH_ON_EXTRACT`**; per-signal WhatsApp geo; **`northRelevanceFromResolvedGeo`**; **`summarizeGeoQuality`**; transliteration pass; versioned distance-band policy; **`createGeoWiring`**; CI north-terms sync check; default omit **`subregionId`**. |
+| 2026-05 | News/radio geo attach in **`assess-signals`** and **`extract-signals`** (always on via `enrichSignalsWithGeo`); per-signal WhatsApp geo; **`northRelevanceFromResolvedGeo`**; **`summarizeGeoQuality`**; transliteration pass; versioned distance-band policy; **`createGeoWiring`**; CI north-terms sync check; default omit **`subregionId`**. |
 | 2026-05 | Doc sync: manual overrides, distance-band policy, and split envelope marked shipped; ops checklist **`GEO_LEGACY_SUBREGION_ID`** default corrected to off. |
 | 2026-05-25 | Removed text keyword fallback (`NORTH_TERMS`); north scope requires resolved geo or always-north source types. Geo attach enabled at extract for news/radio/social. |
+| 2026-05-27 | **Geo epistemic hardening (v3):** nested-only envelope writes (`geo-envelope-2026-05-v3`), **`resolution.provenance`**, text-inferred metrics exclusion, discourse-only mention skip, **`geoEnvelopeAccess`** read helpers, narrative/UI badges for text-inferred geo. |

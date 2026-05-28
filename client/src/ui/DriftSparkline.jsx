@@ -5,6 +5,12 @@ import { useTheme } from '@mui/material/styles';
 import { scoreColor10 } from '../lib/score.js';
 import PropTypes from 'prop-types';
 
+function sparklineTickLabel(d) {
+  const s = String(d ?? '');
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s.slice(5);
+  return s;
+}
+
 export function DriftSparkline({
   series,
   t,
@@ -59,12 +65,6 @@ export function DriftSparkline({
   const lastColor = variant === 'unit01'
     ? theme.palette.primary.main
     : scoreColor10(last.y, theme);
-
-  const tickLabel = (d) => {
-    const s = String(d ?? '');
-    if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s.slice(5);
-    return s;
-  };
 
   const segments = [];
   let seg = [];
@@ -142,7 +142,7 @@ export function DriftSparkline({
             fontSize="10"
             fill={theme.palette.text.disabled}
           >
-            {tickLabel(p.date)}
+            {sparklineTickLabel(p.date)}
           </text>
         ))}
       </svg>

@@ -102,6 +102,19 @@ function filterTopics(topics, groupId) {
   return topics.filter((t) => t.group === groupId);
 }
 
+function changePctLabelKey(days) {
+  if (days === 1) return 'trends.changePct.day';
+  if (days === 3) return 'trends.changePct.threeDays';
+  return 'trends.changePct.week';
+}
+
+function trendsSourceLabel(source, t) {
+  if (source === 'live') return t('trends.source.live');
+  if (source === 'cache') return t('trends.source.cache');
+  if (source === 'stale') return t('trends.source.stale');
+  return t('trends.source.demo');
+}
+
 function trendsFetchWarning(data, t) {
   if (data.source === 'demo' && !data.fetchError) {
     return t('trends.demoMode');
@@ -346,21 +359,8 @@ export function TrendsTab() {
       )}
 
       {data && (() => {
-        const changePctLabel =
-          days === 1
-            ? 'trends.changePct.day'
-            : days === 3
-              ? 'trends.changePct.threeDays'
-              : 'trends.changePct.week';
-
-        const sourceLabel =
-          data.source === 'live'
-            ? t('trends.source.live')
-            : data.source === 'cache'
-              ? t('trends.source.cache')
-              : data.source === 'stale'
-                ? t('trends.source.stale')
-                : t('trends.source.demo');
+        const changePctLabel = changePctLabelKey(days);
+        const sourceLabel = trendsSourceLabel(data.source, t);
 
         const fetchWarning = trendsFetchWarning(data, t);
 

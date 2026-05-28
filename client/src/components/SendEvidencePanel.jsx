@@ -51,6 +51,45 @@ function formatSavedTime(isoLike) {
   return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 }
 
+async function submitEvidenceUpload(authHeaders, content, files) {
+  const fd = new FormData();
+  fd.append('content', content);
+  for (const f of files) {
+    fd.append('files', f, f.name);
+  }
+  const r = await fetch('/api/evidence-upload', { method: 'POST', headers: authHeaders, body: fd });
+  if (!r.ok) {
+    const err = await r.json().catch(() => ({}));
+    throw new Error(err.error || `HTTP ${r.status}`);
+  }
+  return r.json();
+}
+
+async function submitEvidenceText(tok, content) {
+  const headers = new Headers({ 'Content-Type': 'application/json' });
+  if (tok) headers.set('Authorization', `Bearer ${tok}`);
+  const r = await fetch('/api/evidence-submit', {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ content }),
+  });
+  if (!r.ok) {
+    const err = await r.json().catch(() => ({}));
+    throw new Error(err.error || `HTTP ${r.status}`);
+  }
+  return r.json();
+}
+
+function applyQueuedSubmission(data, actions) {
+  if (!data?.queued || !Number.isFinite(Number(data?.submission?.id))) return;
+  const submissionId = Number(data.submission.id);
+  actions.setIngestNote(`Submission #${submissionId} queued for ingest.`);
+  actions.setAnalysisNote('8-component analysis queued…');
+  actions.cancelSubmissionPoll();
+  actions.handleClose();
+  actions.pollSubmissionUntilDone(submissionId);
+}
+
 export function SendEvidencePanel({ open, onClose, onSubmissionComplete, variant = 'modal' }) {
   const { getIdToken, apiReady } = useAuth();
   const { t } = useLanguage();
@@ -335,53 +374,26 @@ export function SendEvidencePanel({ open, onClose, onSubmissionComplete, variant
       const authHeaders = new Headers();
       if (tok) authHeaders.set('Authorization', `Bearer ${tok}`);
 
+      const queueActions = {
+        setIngestNote,
+        setAnalysisNote,
+        cancelSubmissionPoll,
+        handleClose,
+        pollSubmissionUntilDone,
+      };
+
       if (filesSnapshot.length > 0) {
-        const fd = new FormData();
-        fd.append('content', submittedContent);
-        for (const f of filesSnapshot) {
-          fd.append('files', f, f.name);
-        }
-        const r = await fetch('/api/evidence-upload', { method: 'POST', headers: authHeaders, body: fd });
-        if (!r.ok) {
-          const err = await r.json().catch(() => ({}));
-          throw new Error(err.error || `HTTP ${r.status}`);
-        }
-        const data = await r.json();
+        const data = await submitEvidenceUpload(authHeaders, submittedContent, filesSnapshot);
         lastSyncedRef.current = '';
         setLastServerSavedAt(data?.draft?.updatedAt ?? new Date().toISOString());
-        if (data?.queued && Number.isFinite(Number(data?.submission?.id))) {
-          const submissionId = Number(data.submission.id);
-          setIngestNote(`Submission #${submissionId} queued for ingest.`);
-          setAnalysisNote('8-component analysis queued…');
-          cancelSubmissionPoll();
-          handleClose();
-          void pollSubmissionUntilDone(submissionId);
-        }
+        applyQueuedSubmission(data, queueActions);
       } else {
-        const headers = new Headers({ 'Content-Type': 'application/json' });
-        if (tok) headers.set('Authorization', `Bearer ${tok}`);
-        const r = await fetch('/api/evidence-submit', {
-          method: 'POST',
-          headers,
-          body: JSON.stringify({ content: submittedContent }),
-        });
-        if (!r.ok) {
-          const err = await r.json().catch(() => ({}));
-          throw new Error(err.error || `HTTP ${r.status}`);
-        }
-        const data = await r.json();
+        const data = await submitEvidenceText(tok, submittedContent);
         if (typeof data?.draft?.content === 'string') {
           lastSyncedRef.current = '';
           setLastServerSavedAt(data?.draft?.updatedAt ?? new Date().toISOString());
         }
-        if (data?.queued && Number.isFinite(Number(data?.submission?.id))) {
-          const submissionId = Number(data.submission.id);
-          setIngestNote(`Submission #${submissionId} queued for ingest.`);
-          setAnalysisNote('8-component analysis queued…');
-          cancelSubmissionPoll();
-          handleClose();
-          void pollSubmissionUntilDone(submissionId);
-        }
+        applyQueuedSubmission(data, queueActions);
       }
       setSavedOk(true);
       setTimeout(() => setSavedOk(false), 2000);

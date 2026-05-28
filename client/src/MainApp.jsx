@@ -208,6 +208,10 @@ function readPboRegionTab() {
   return PBO_REGION_IDS_ORDER[0];
 }
 
+function headerChromeRadius(th) {
+  return `${th.custom.radius.section}px`;
+}
+
 function readReportScope() {
   if (typeof localStorage === 'undefined') return 'national';
   try {
@@ -282,8 +286,10 @@ function AppShell() {
     try {
       localStorage.setItem(LS_REPORT_SCOPE, reportScope);
     } catch { /* */ }
-    setOpenReportCompId(null);
-    setOpenReportEvidenceCompId(null);
+    queueMicrotask(() => {
+      setOpenReportCompId(null);
+      setOpenReportEvidenceCompId(null);
+    });
   }, [reportScope]);
 
   const [docsOpen, setDocsOpen] = useState(false);
@@ -356,8 +362,10 @@ function AppShell() {
 
   useEffect(() => {
     if (!canViewAnalyst && reportView === 'analyst') {
-      setReportView('operator');
-      writeStoredReportView('operator');
+      queueMicrotask(() => {
+        setReportView('operator');
+        writeStoredReportView('operator');
+      });
     }
   }, [canViewAnalyst, reportView]);
 
@@ -450,8 +458,6 @@ function AppShell() {
     { id: 'education', label: t('tab.education') },
   ];
 
-  const headerChromeRadius = (th) => `${th.custom.radius.section}px`;
-
   const headerButtonSx = (th) => ({
     minHeight: th.spacing(4.5),
     paddingTop: th.spacing(0.75),
@@ -489,6 +495,8 @@ function AppShell() {
       <BrandHeader
         title="Vibes Witch"
         subtitle="Community resilience · Daily Assessment"
+        logoSrc="/logo_srulik_1_no_text.png"
+        logoAlt=""
         onHomeClick={goToAssessment}
         homeAriaLabel={t('app.goToDailyAssessment')}
       />

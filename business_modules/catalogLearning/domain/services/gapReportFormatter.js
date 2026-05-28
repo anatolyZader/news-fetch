@@ -35,8 +35,12 @@ export function formatGapReportMarkdown(report) {
 
   if (report.clusters?.length) {
     for (const [i, cluster] of report.clusters.entries()) {
-      lines.push(`### ${i + 1}. ${cluster.key} (priority ${cluster.priority_score}, n=${cluster.count})`, '');
-      lines.push(`- Kinds: ${formatKinds(cluster.kinds)}`, `- Distinct sources: ${cluster.distinct_sources}`);
+      lines.push(
+        `### ${i + 1}. ${cluster.key} (priority ${cluster.priority_score}, n=${cluster.count})`,
+        '',
+        `- Kinds: ${formatKinds(cluster.kinds)}`,
+        `- Distinct sources: ${cluster.distinct_sources}`,
+      );
       if (cluster.related_types?.length) {
         lines.push(`- Related types: ${formatRelatedTypes(cluster.related_types)}`);
       }

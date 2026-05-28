@@ -200,8 +200,10 @@ export function ReportBuildPanel({ open, onClose, variant = 'modal' }) {
         suggestAbortRef.current.abort();
         suggestAbortRef.current = null;
       }
-      setSuggesting(false);
-      setLiveQuestions([]);
+      queueMicrotask(() => {
+        setSuggesting(false);
+        setLiveQuestions([]);
+      });
       return;
     }
 
@@ -311,8 +313,10 @@ export function ReportBuildPanel({ open, onClose, variant = 'modal' }) {
       typeTimerRef.current = null;
     }
 
-    setTypedQuestions(questions.map(() => ''));
-    setTypedProgress({ qIdx: 0, chIdx: 0 });
+    queueMicrotask(() => {
+      setTypedQuestions(questions.map(() => ''));
+      setTypedProgress({ qIdx: 0, chIdx: 0 });
+    });
 
     if (!questions.length) return;
 

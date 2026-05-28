@@ -132,7 +132,7 @@ Resolved means the input was matched to a reference row and geo classification f
 
 Key fields:
 
-- **Nested contract (dual-write)** — the service emits grouped objects alongside the flat fields:
+- **Nested contract (v3 nested-only writes)** — the service emits grouped objects; flat duplicate keys are omitted on new resolves unless `GEO_LEGACY_SUBREGION_ID=1`. Legacy stored envelopes may still carry flat keys — read via `geoEnvelopeAccess.js`.
   - `resolution` (raw input → identity, including `geoEntityType`)
   - `classification` (subregion, tags, distance, optional `distanceSemantics`)
   - `policy` (quality, metrics safety, `geoPolicyVersion`, `decisionReasons`, `scopeConfidence`)
@@ -173,7 +173,7 @@ Key fields:
 
 `subregionId` is a deprecated duplicate of `pboSubregionId`. It is controlled by:
 
-- `GEO_LEGACY_SUBREGION_ID` (default keeps emitting; `0`/`false` stops emitting)
+- `GEO_LEGACY_SUBREGION_ID` (default **off**; set `1` to emit deprecated duplicate; `0`/`false` omits)
 
 New consumers must use **`pboSubregionId`** and tags only.
 
@@ -447,7 +447,7 @@ The intent is to keep geo deterministic and contract-stable as it propagates thr
 
 ## 12) Known limitations and next evolution direction
 
-The codebase originally shipped a “flat envelope” contract for speed; it now **dual-writes a nested contract** while keeping flat fields for backward compatibility. The main long-term risk remains **semantic drift**: locality vs municipality vs regional council vs vague area strings.
+The codebase originally shipped a “flat envelope” contract for speed; v3 resolves are **nested-only** with **`resolution.provenance`** for epistemic policy. Legacy flat keys on stored blobs are read-tolerated via **`geoEnvelopeAccess.js`**. The main long-term risk remains **semantic drift**: locality vs municipality vs regional council vs vague area strings.
 
 The direction that keeps auditability high is:
 
