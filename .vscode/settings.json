@@ -6,7 +6,7 @@
   "javascript.updateImportsOnFileMove.enabled": "never",
 
   "sonarlint.automaticAnalysis": false,
-  "sonarlint.analysisExcludesStandalone": "**/node_modules/**,**/client/dist/**,**/docs-site/**,**/coverage/**,**/articles_extracted/**,**/reports/**,**/signals/**,**/product_docs/api/generated/**,**/*.md,**/business_modules/**/data/**,**/tests/fixtures/**",
+  "sonarlint.analysisExcludesStandalone": "**/node_modules/**,**/client/dist/**,**/docs/docs-site/**,**/coverage/**,**/articles_extracted/**,**/reports/**,**/signals/**,**/docs/product_docs/api/generated/**,**/*.md,**/business_modules/**/data/**,**/tests/fixtures/**",
   "sonarlint.analyzerProperties": {
     "sonar.javascript.node.maxspace": "1024"
   },

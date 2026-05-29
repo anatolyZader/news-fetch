@@ -44,5 +44,5 @@ export async function docsRoutes(app, opts) {
 }
 
 export function resolveProductDocsRoot(dirname) {
-  return resolve(dirname, 'product_docs');
+  return resolve(dirname, 'docs', 'product_docs');
 }

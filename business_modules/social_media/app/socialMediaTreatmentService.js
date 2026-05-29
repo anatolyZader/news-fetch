@@ -1,6 +1,8 @@
 import { mapFindingsToSignals } from '../domain/services/findingToSignalMapper.js';
 import { validateOsintBundle } from '../domain/services/osintBundleValidator.js';
 import { enrichSignalsWithGeo } from '../../../cross-cut-modules/geo/enrichSignalsWithGeo.js';
+import { archiveSocialFindings, stampSocialSignalSourceIds } from '../../../cross-cut-modules/source_archive/archiveSocialFindings.js';
+import { createSourceArchive } from '../../../cross-cut-modules/source_archive/createSourceArchive.js';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -59,9 +61,27 @@ export function createSocialMediaTreatmentService({ persistencePort }) {
         throw new Error(`Invalid OSINT bundle: ${errors.join('; ')}`);
       }
 
-      const { path } = await persistencePort.saveBundle(date, treated);
-      const report = await persistencePort.saveReport(date, treated);
-      return { path, reportPath: report.path, signalCount: signals.length, bundle: treated };
+      let stampedSignals = signals;
+      try {
+        const sqlitePath = process.env.SQLITE_PATH?.trim()
+          ? resolve(process.env.SQLITE_PATH.trim())
+          : resolve(REPO_ROOT, 'data', 'app.sqlite');
+        const archive = createSourceArchive(sqlitePath);
+        const moduleRef = `business_modules/social_media/data/signals-social-${date}.json`;
+        const { archived, idMap } = archiveSocialFindings(archive, treated.findings, date, { moduleRef });
+        archive.close();
+        stampedSignals = stampSocialSignalSourceIds(signals, treated.findings, idMap);
+        if (archived > 0) {
+          console.error(`  → ${archived} social original(s) archived (${sqlitePath})`);
+        }
+      } catch (err) {
+        console.error(`  ⚠ Social archive skipped: ${err.message}`);
+      }
+
+      const bundleToSave = { ...treated, signals: stampedSignals };
+      const { path } = await persistencePort.saveBundle(date, bundleToSave);
+      const report = await persistencePort.saveReport(date, bundleToSave);
+      return { path, reportPath: report.path, signalCount: stampedSignals.length, bundle: bundleToSave };
     },
   };
 }

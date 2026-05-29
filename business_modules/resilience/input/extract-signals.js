@@ -22,6 +22,7 @@ import { extractSignals } from '../infrastructure/claudeEvaluator.js';
 import { createCostTracker, appendCostLog, checkDailyBudget } from '../../../cross-cut-modules/budget/index.js';
 import { enrichSignalsWithGeo } from '../../../cross-cut-modules/geo/enrichSignalsWithGeo.js';
 import { archiveMarkdownFiles } from '../app/archiveMarkdownFromMd.js';
+import { attachSourceIdsToSignals } from '../../../cross-cut-modules/source_archive/attachSourceIds.js';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 
@@ -117,6 +118,8 @@ async function run() {
   if (attached > 0) {
     console.error(`  → Geo attach: ${attached} signals, ${resolved} resolved, ${unknown} unknown`);
   }
+
+  signals = attachSourceIdsToSignals(signals, filePaths, REPO_ROOT);
 
   console.error(`\n→ ${signals.length} signals extracted`);
 

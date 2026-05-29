@@ -7,7 +7,7 @@
 | Document | Use when you need |
 |----------|-------------------|
 | [Daily pipeline (news)](../main_docu_files/pipeline.md) | Fetch-to-markdown and classic news analysis flow; canonical code under `business_modules/resilience/`. |
-| [System overview](../../product_docs/architecture/system-overview.md) | Subsystem map, constraints, “where do I change X?” |
+| [System overview](../product_docs/architecture/system-overview.md) | Subsystem map, constraints, “where do I change X?” |
 | [Geographic analysis — developer guide](../main_docu_files/GEOGRAPHIC-ANALYSIS.md) | `geo` envelope contract, consumer rules, wiring. |
 | [Geographic analysis — implementation review](./geographic-analysis-implementation.md) | Match stages, fuzzy policy, unknown sink, audit fields. |
 
@@ -146,7 +146,7 @@ The table below lists **primary entrypoints** (npm scripts reference [`package.j
 | **Survey (Excel)** | `npm run analyze-survey` → [`scripts/analyze-survey.mjs`](../../scripts/analyze-survey.mjs) | `--responses` `.xlsx`, mapping JSON, `ANTHROPIC_API_KEY` | Per-municipality MD reports under `reports/`; **geo** on municipality name when `geoEnrichmentPort` is constructed in the script. |
 | **Naftali pool** | `business_modules/pool/input/extract-naftali-signals.js` (see package or module docs) | Pool-specific inputs | Signals with explicit geographic scope in prompts. |
 
-**SQLite:** Evidence and artifacts are persisted using helpers under `cross-cut-modules/`; path controlled by `SQLITE_PATH` (see [system overview](../../product_docs/architecture/system-overview.md)).
+**SQLite:** Evidence and artifacts are persisted using helpers under `cross-cut-modules/`; path controlled by `SQLITE_PATH` (see [system overview](../product_docs/architecture/system-overview.md)).
 
 **Merge behavior in `runAnalysis`:** When a **store** is passed and contains rows for “today”, home-front markdown articles are **merged** with DB-only items (news first, then DB-only), deduped by URL/title fingerprint — see `mergeHomefrontAndDbEvidence` in [`analysisService.js`](../../api/analysisService.js).
 

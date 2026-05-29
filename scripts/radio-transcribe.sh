@@ -10,6 +10,8 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
+RECORDINGS_DIR="${RECORDINGS_DIR:-business_modules/recording/data}"
+
 # ── Resolve dates ──────────────────────────────────────────────────────────
 resolve_dates() {
   if [[ $# -eq 0 ]]; then
@@ -109,9 +111,10 @@ for dt in $DATES; do
     [[ -z "$mp3" ]] && continue
     ((found++))
 
-    # Parse path: recordings/{station}/{date}/{program-slug}/{uuid}/recording.mp3
-    station=$(echo "$mp3" | cut -d/ -f2)
-    program_slug=$(echo "$mp3" | cut -d/ -f4)
+    # Parse path: {RECORDINGS_DIR}/{station}/{date}/{program-slug}/{uuid}/recording.mp3
+    rel="${mp3#*${RECORDINGS_DIR}/}"
+    station="${rel%%/*}"
+    program_slug=$(echo "$rel" | cut -d/ -f3)
 
     # Extract start time from slug (last pair of NN-NN before the end time)
     # e.g. "משדרי-הבוקר-אשמס-09-00-11-00" → "09-00"
@@ -149,7 +152,7 @@ for dt in $DATES; do
       ((failed++))
     fi
 
-  done < <(find "recordings"/*/"$dt" -name "recording.mp3" 2>/dev/null || true)
+  done < <(find "${RECORDINGS_DIR}"/*/"$dt" -name "recording.mp3" 2>/dev/null || true)
 done
 
 # ── Summary ────────────────────────────────────────────────────────────────

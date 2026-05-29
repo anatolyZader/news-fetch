@@ -99,6 +99,50 @@ describe('sourceArchiveStore', () => {
     assert.ok(hits[0].snippet.includes('shelter'));
   });
 
+  it('search allows query-less when source_type is set', () => {
+    store.upsert({
+      source_id: buildMdSourceId('b.md', 1),
+      date: '2026-01-04',
+      source_type: 'pbo',
+      title: 'Haifa PBO',
+      body: 'Observer notes.',
+    });
+    const hits = store.search({
+      date: '2026-01-04',
+      source_type: 'pbo',
+      limit: 5,
+    });
+    assert.equal(hits.length, 1);
+    assert.equal(hits[0].source_type, 'pbo');
+  });
+
+  it('listByDateRange filters by type and date span', () => {
+    store.upsert({
+      source_id: buildMdSourceId('c.md', 1),
+      date: '2026-01-05',
+      source_type: 'naftali',
+      body: 'week1',
+    });
+    store.upsert({
+      source_id: buildMdSourceId('c.md', 2),
+      date: '2026-01-07',
+      source_type: 'naftali',
+      body: 'week2',
+    });
+    store.upsert({
+      source_id: buildMdSourceId('c.md', 3),
+      date: '2026-01-07',
+      source_type: 'news',
+      body: 'news',
+    });
+    const rows = store.listByDateRange({
+      date_from: '2026-01-05',
+      date_to: '2026-01-07',
+      source_type: 'naftali',
+    });
+    assert.equal(rows.length, 2);
+  });
+
   it('purgeEphemeralBeforeDate deletes only news/radio/social before cutoff', () => {
     store.upsert({
       source_id: buildMdSourceId('old-news.md', 1),

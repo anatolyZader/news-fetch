@@ -68,9 +68,11 @@ import {
 } from '../domain/services/pipelineStageTelemetry.js';
 import createValidationCollectionService from '../validation/app/validationCollectionService.js';
 import { summarizeValidationMaturity } from '../validation/domain/validationStatus.js';
-import { loadConnectivityProbeSignals } from '../infrastructure/adapters/connectivityProbeFileAdapter.js';
+import { loadConnectivityProbeSignals, loadProbeRecordsForDate } from '../infrastructure/adapters/connectivityProbeFileAdapter.js';
 import { enrichProbeSignalsInList } from '../domain/services/probeCorroborationPolicy.js';
 import { createDefaultPboReportReviewService } from '../../pbo_report_review/input/createPboReviewWiring.js';
+import { createSourceArchive } from '../../../cross-cut-modules/source_archive/createSourceArchive.js';
+import { archiveProbeRecords } from '../../../cross-cut-modules/source_archive/archiveProbeRecords.js';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 
@@ -156,6 +158,16 @@ async function loadPreparedSignals(targetDate, days) {
     allSignals = [...allSignals, ...probeSignals];
     sourceTypesSeen.add('infrastructure_probe');
     console.error(`  → Connectivity probes: ${probeSignals.length} signal(s) merged`);
+  }
+  try {
+    const sqlitePath = process.env.SQLITE_PATH?.trim() || resolve(REPO_ROOT, 'data', 'app.sqlite');
+    const archive = createSourceArchive(sqlitePath);
+    const records = loadProbeRecordsForDate(targetDate, 'national');
+    const n = archiveProbeRecords(archive, records, targetDate);
+    archive.close();
+    if (n > 0) console.error(`  → ${n} probe original(s) archived`);
+  } catch (err) {
+    console.error(`  ⚠ Probe archive skipped: ${err.message}`);
   }
   allSignals = enrichProbeSignalsInList(allSignals);
   allSignals = dedupWithinSource(allSignals);

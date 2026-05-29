@@ -82,27 +82,27 @@ jobs:
 
       - uses: ./.github/actions/setup-npm-ci
         with:
-          working-directory: docs-site
+          working-directory: docs/docs-site
           min-release-age-days: ${{ steps.release_age.outputs.days }}
 
       - name: Regenerate main_docu_files and API docs
         run: npm run docs:sync
 
-      - name: Validate product_docs
+      - name: Validate docs/product_docs
         run: npm run docs:check
 
       - name: Commit documentation updates (PR branches only)
         env:
           BRANCH: ${{ github.head_ref || github.ref_name }}
         run: |
-          git add docs/main_docu_files product_docs/api/generated
+          git add docs/main_docu_files docs/product_docs/api/generated
           if git diff --staged --quiet; then
             echo "Main documentation already up to date."
             exit 0
           fi
           if [ "${{ github.event_name }}" != "pull_request" ]; then
             echo "::error::Documentation drift after docs:sync. On protected branches, commit locally:"
-            echo "  npm run docs:sync && git add docs/main_docu_files product_docs/api/generated && git commit"
+            echo "  npm run docs:sync && git add docs/main_docu_files docs/product_docs/api/generated && git commit"
             git diff --staged --stat
             exit 1
           fi
@@ -118,8 +118,8 @@ jobs:
 
       - name: Build docs site
         run: |
-          npm run gen:api --prefix docs-site
-          npm run build --prefix docs-site
+          npm run gen:api --prefix docs/docs-site
+          npm run build --prefix docs/docs-site
 
   lint:
     name: Lint

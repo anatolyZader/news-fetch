@@ -1,4 +1,4 @@
-import { buildChatPanelPath, isKnownPanelId, panelPathForId } from './panelRoutes.js';
+import { buildChatPanelPath, buildDocsPanelPath, isKnownPanelId, panelPathForId } from './panelRoutes.js';
 
 /** @type {Record<string, { width: number, height: number }>} */
 const PANEL_SPECS = Object.freeze({
@@ -6,6 +6,7 @@ const PANEL_SPECS = Object.freeze({
   'send-evidence': { width: 920, height: 680 },
   settings: { width: 720, height: 640 },
   chat: { width: 480, height: 720 },
+  docs: { width: 1120, height: 740 },
 });
 
 /**
@@ -55,7 +56,7 @@ export function computePopupPosition(width, _height) {
 /**
  * @param {string} panelId
  * @param {Window | null | undefined} existingWindow
- * @param {{ reportScope?: { type?: string, id?: string, label?: string } }} [options]
+ * @param {{ reportScope?: { type?: string, id?: string, label?: string }, reportGeoScope?: string, slug?: string }} [options]
  * @returns {Window | null}
  */
 export function openPanelPopup(panelId, existingWindow, options = {}) {
@@ -64,9 +65,12 @@ export function openPanelPopup(panelId, existingWindow, options = {}) {
     existingWindow.focus();
     return existingWindow;
   }
-  const path = panelId === 'chat'
-    ? buildChatPanelPath(options.reportScope)
-    : panelPathForId(panelId);
+  let path = panelPathForId(panelId);
+  if (panelId === 'chat') {
+    path = buildChatPanelPath(options.reportScope, options.reportGeoScope);
+  } else if (panelId === 'docs') {
+    path = buildDocsPanelPath(options.slug);
+  }
   const spec = PANEL_SPECS[panelId];
   if (!path || !spec) return null;
   const { left, top } = computePopupPosition(spec.width, spec.height);

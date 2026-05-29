@@ -14,6 +14,7 @@ export function createSourceArchive(dbPath) {
     getBySourceId: (sourceId, opts) => store.getBySourceId(sourceId, opts),
     search: (input) => store.search(input),
     listByDate: (date) => store.listByDate(date),
+    listByDateRange: (input) => store.listByDateRange(input),
     purgeEphemeralBeforeDate: (cutoff) => store.purgeEphemeralBeforeDate(cutoff),
     purgeBeforeDate: (cutoff) => store.purgeBeforeDate(cutoff),
   };

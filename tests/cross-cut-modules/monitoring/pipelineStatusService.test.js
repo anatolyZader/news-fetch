@@ -11,6 +11,7 @@ describe('pipelineStatusService', () => {
 
   beforeEach(() => {
     rootDir = join(tmpdir(), `pipeline-status-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+    process.env.COST_LOG_PATH = join(rootDir, 'cost-log.jsonl');
     mkdirSync(join(rootDir, 'signals'), { recursive: true });
     mkdirSync(join(rootDir, 'reports'), { recursive: true });
     mkdirSync(join(rootDir, 'business_modules/news-sites/articles_extracted'), { recursive: true });
@@ -49,6 +50,7 @@ describe('pipelineStatusService', () => {
   });
 
   afterEach(() => {
+    delete process.env.COST_LOG_PATH;
     rmSync(rootDir, { recursive: true, force: true });
   });
 

@@ -1,20 +1,26 @@
 # Repository documentation
 
+All documentation for this repo lives under **`docs/`**.
+
+## Product docs (`product_docs/`)
+
+Customer-facing guides, concepts, API reference (generated), and architecture pages. Served in-app (`/api/docs/*`) and published via [docs-site](./docs-site/).
+
+- Validated with `npm run docs:check`
+- Regenerated API pages: `npm run docs:sync` (via Docusaurus `gen:api`)
+
 ## Canonical references (`main_docu_files/`)
 
-Overarching, maintained reference documents live in **[main_docu_files/](./main_docu_files/)**. They are auto-synced from code in CI (`npm run docs:sync`). Start there for the resilience model, geographic enrichment, and daily pipeline.
+Overarching, maintained reference documents auto-synced from code in CI (`npm run docs:sync`). Start here for the resilience model, geographic enrichment, and daily pipeline.
 
-## Working documentation (this folder)
-
-Everything else under `docs/` is supporting material: specs, reviews, checklists, and environment examples. These are **not** auto-synced unless noted otherwise.
+## Working documentation
 
 | Area | Purpose |
 |------|---------|
 | [specs/](./specs/) | Feature and module specifications |
 | [reviews/](./reviews/) | Deep dives, audits, NotebookLM primers |
-| `*.md` at repo root of `docs/` | Ad-hoc guides (audio, identity, UI, etc.) |
-
-Product-facing user docs are in [product_docs/](../product_docs/) (validated with `npm run docs:check`).
+| [docs-site/](./docs-site/) | Docusaurus site (reads `product_docs/`) |
+| `*.md` at this level | Ad-hoc guides (audio, identity, UI, env examples) |
 
 ## CI / GitHub Actions
 

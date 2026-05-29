@@ -171,7 +171,7 @@ async function validateDocFile(abs, docsRoot, validate, ajv, knownFiles, errors)
 
 async function main() {
   const repoRoot = resolve(process.cwd());
-  const docsRoot = resolve(repoRoot, 'product_docs');
+  const docsRoot = resolve(repoRoot, 'docs', 'product_docs');
   const schemaPath = resolve(docsRoot, 'frontmatter.schema.json');
   const schema = JSON.parse(await readFile(schemaPath, 'utf8'));
 

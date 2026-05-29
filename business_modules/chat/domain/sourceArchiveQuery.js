@@ -1,5 +1,5 @@
 /**
- * Unified source archive search/get for chat tools.
+ * Unified source archive search/get/list for chat tools.
  */
 import { readFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -9,11 +9,14 @@ import {
   legacyDbSourceId,
 } from '../../../cross-cut-modules/source_archive/sourceId.js';
 import {
-  loadHomefrontArticlesForDate,
   parseMarkdownArticles,
   REPO_ROOT,
 } from '../../../cross-cut-modules/source_archive/markdownArticles.js';
 import { buildMdSourceIdFromPath } from '../../../cross-cut-modules/source_archive/sourceId.js';
+import {
+  loadFilesystemCandidates,
+  getFilesystemSourceById,
+} from '../../../cross-cut-modules/source_archive/filesystemFallbacks.js';
 
 function normalize(s) {
   return String(s ?? '').replaceAll(/\s+/g, ' ').trim();
@@ -23,6 +26,13 @@ function clip(text, maxChars) {
   const s = String(text ?? '');
   if (!Number.isFinite(maxChars) || maxChars <= 0) return '';
   return s.length > maxChars ? `${s.slice(0, maxChars)}…` : s;
+}
+
+function resolveDateRange(input) {
+  const date = normalize(input?.date);
+  const dateFrom = normalize(input?.date_from) || date;
+  const dateTo = normalize(input?.date_to) || dateFrom;
+  return { dateFrom, dateTo };
 }
 
 function formatCandidates(rows) {
@@ -49,37 +59,76 @@ function formatFullSource(row, maxChars) {
   );
 }
 
-function mdFallbackCandidates(date, filters, limit, snippetChars, seenIds) {
-  const articles = loadHomefrontArticlesForDate(date);
-  const out = [];
-  for (const article of articles) {
-    if (out.length >= limit) break;
-    const source_id = buildMdSourceIdFromPath(REPO_ROOT, article.sourceFile, article.idx1);
-    if (seenIds.has(source_id)) continue;
-    const row = {
-      title: article.title,
-      source_url: article.url,
-      source_type: 'news',
-      source_label: article.source,
-      body: article.body,
-    };
-    const hay = `${row.title}\n${row.source_url}\n${row.body}`.toLowerCase();
-    if (filters.q && !hay.includes(filters.q)) continue;
-    if (filters.url && normalize(row.source_url) !== filters.url) continue;
-    if (filters.title && !normalize(row.title).toLowerCase().includes(filters.title)) continue;
-    if (filters.sourceType && row.source_type !== filters.sourceType) continue;
-    out.push({
-      source_id,
-      title: normalize(row.title),
-      url: normalize(row.source_url),
-      source_type: 'news',
-      source_label: normalize(row.source_label),
-      published_at: normalize(article.publishedAt),
-      snippet: clip(row.body, snippetChars),
-    });
-    seenIds.add(source_id);
+function mergeArchiveAndFilesystem(input, sourceArchive, opts = {}) {
+  const { dateFrom, dateTo } = resolveDateRange(input);
+  if (!dateFrom || !dateTo) return { error: 'date was missing and could not be inferred.' };
+
+  const limit = Math.min(Number(input?.limit ?? 7) || 7, 25);
+  const snippetChars = Math.min(Number(input?.snippet_chars ?? 350) || 350, 1200);
+  const filters = {
+    q: normalize(input?.query).toLowerCase(),
+    url: normalize(input?.url),
+    title: normalize(input?.title).toLowerCase(),
+    sourceType: normalize(input?.source_type),
+  };
+
+  const needsTextFilter = !opts.allowEmptyQuery
+    && !filters.q && !filters.url && !filters.title && !filters.sourceType;
+
+  if (needsTextFilter) {
+    return { error: 'provide at least one of query, url, title, or source_type.' };
   }
-  return out;
+
+  const archiveHits = sourceArchive.search({
+    date: dateFrom,
+    date_from: dateFrom,
+    date_to: dateTo,
+    query: input?.query,
+    url: input?.url,
+    title: input?.title,
+    source_type: input?.source_type,
+    limit,
+    snippet_chars: snippetChars,
+    allow_empty_query: opts.allowEmptyQuery || Boolean(filters.sourceType),
+  });
+
+  const seenIds = new Set(archiveHits.map((h) => h.source_id));
+  const out = [...archiveHits];
+  if (out.length < limit) {
+    out.push(...loadFilesystemCandidates(dateFrom, dateTo, {
+      sourceType: filters.sourceType || undefined,
+      q: filters.q,
+      url: filters.url,
+      title: filters.title,
+      limit: limit - out.length,
+      snippetChars,
+      seenIds,
+    }));
+  }
+
+  return { out, dateFrom, dateTo };
+}
+
+/**
+ * @param {object} input
+ * @param {ReturnType<import('../../../cross-cut-modules/source_archive/createSourceArchive.js').createSourceArchive>|null} sourceArchive
+ */
+export function listSources(input, sourceArchive) {
+  const date = normalize(input?.date);
+  if (!date) return 'list_sources: date was missing and could not be inferred.';
+  if (!sourceArchive) return 'list_sources: source archive is not available.';
+
+  const result = mergeArchiveAndFilesystem(
+    { ...input, date_to: input?.date_to ?? input?.date },
+    sourceArchive,
+    { allowEmptyQuery: true },
+  );
+  if (result.error) return `list_sources: ${result.error}`;
+
+  if (result.out.length === 0) {
+    return `No sources found for ${result.dateFrom}${result.dateTo !== result.dateFrom ? `–${result.dateTo}` : ''}.`;
+  }
+  return formatCandidates(result.out);
 }
 
 /**
@@ -91,39 +140,17 @@ export function searchSources(input, sourceArchive) {
   if (!date) return 'search_sources: date was missing and could not be inferred.';
   if (!sourceArchive) return 'search_sources: source archive is not available.';
 
-  const limit = Math.min(Number(input?.limit ?? 7) || 7, 25);
-  const snippetChars = Math.min(Number(input?.snippet_chars ?? 350) || 350, 1200);
-  const filters = {
-    q: normalize(input?.query).toLowerCase(),
-    url: normalize(input?.url),
-    title: normalize(input?.title).toLowerCase(),
-    sourceType: normalize(input?.source_type),
-  };
+  const result = mergeArchiveAndFilesystem(
+    { ...input, date_to: input?.date_to ?? input?.date },
+    sourceArchive,
+    { allowEmptyQuery: Boolean(normalize(input?.source_type)) },
+  );
+  if (result.error) return `search_sources: ${result.error}`;
 
-  if (!filters.q && !filters.url && !filters.title) {
-    return 'search_sources: provide at least one of query, url, or title.';
-  }
-
-  const archiveHits = sourceArchive.search({
-    date,
-    query: input?.query,
-    url: input?.url,
-    title: input?.title,
-    source_type: input?.source_type,
-    limit,
-    snippet_chars: snippetChars,
-  });
-
-  const seenIds = new Set(archiveHits.map((h) => h.source_id));
-  const out = [...archiveHits];
-  if (out.length < limit) {
-    out.push(...mdFallbackCandidates(date, filters, limit - out.length, snippetChars, seenIds));
-  }
-
-  if (out.length === 0) {
+  if (result.out.length === 0) {
     return 'No matching sources found. Try a different date, loosen the query, or provide the exact URL.';
   }
-  return formatCandidates(out);
+  return formatCandidates(result.out);
 }
 
 function lookupMdByParsed(mdParsed, maxChars) {
@@ -135,12 +162,20 @@ function lookupMdByParsed(mdParsed, maxChars) {
   return formatFullSource({
     source_id: buildMdSourceIdFromPath(REPO_ROOT, abs, article.idx1),
     title: article.title,
-    source_type: 'news',
+    source_type: inferTypeFromMdPath(mdParsed.sourceFile),
     source_label: article.source,
     source_url: article.url,
     published_at: article.publishedAt,
     body: article.body,
   }, maxChars);
+}
+
+function inferTypeFromMdPath(relPath) {
+  if (relPath.includes('homefront') || relPath.includes('news-sites')) return 'news';
+  if (relPath.includes('field-reports') || relPath.includes('visits')) return 'field';
+  if (relPath.includes('articles-audio')) return 'radio';
+  if (relPath.includes('whatsapp')) return 'whatsapp';
+  return 'manual';
 }
 
 function lookupLegacyDb(dbId, evidenceStore, maxChars) {
@@ -194,11 +229,24 @@ export function getSource(input, sourceArchive, evidenceStore = null) {
     if (leg) return leg;
   }
 
+  const fsRow = getFilesystemSourceById(sourceId, maxChars);
+  if (fsRow) {
+    return formatFullSource({
+      source_id: fsRow.source_id,
+      title: fsRow.title,
+      source_type: fsRow.source_type,
+      source_label: fsRow.source_label,
+      source_url: fsRow.source_url,
+      published_at: fsRow.published_at,
+      body: fsRow.body,
+    }, maxChars);
+  }
+
   const date = normalize(input?.date);
-  if (date && (input?.query || input?.url || input?.title)) {
+  if (date && (input?.query || input?.url || input?.title || input?.source_type)) {
     const searchText = searchSources({ ...input, date, limit: 1 }, sourceArchive);
     if (!searchText.startsWith('No matching')) return `${searchText}\n\n(Use get_source with source_id from above.)`;
   }
 
-  return `No source found for source_id=${sourceId}. Try search_sources first.`;
+  return `No source found for source_id=${sourceId}. Try search_sources or list_sources first.`;
 }

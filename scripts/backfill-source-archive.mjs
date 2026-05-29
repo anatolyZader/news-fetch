@@ -1,19 +1,21 @@
 #!/usr/bin/env node
 /**
- * Backfill source_archive from evidence_items and homefront markdown (idempotent).
- * Field/visits/whatsapp rows backfilled here are permanent (not purged by archive:purge).
+ * Backfill source_archive from evidence_items, markdown exports, and signal bundles (idempotent).
  *
  * Usage: node scripts/backfill-source-archive.mjs [--days 14]
  */
 import 'dotenv/config';
-import { resolve, dirname } from 'node:path';
+import { resolve, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { createSourceArchive } from '../cross-cut-modules/source_archive/createSourceArchive.js';
 import { createEvidenceStore } from '../cross-cut-modules/persistence/evidenceStore.js';
 import { persistOriginalSources } from '../cross-cut-modules/source_archive/persistOriginals.js';
-import { buildArchiveSourceId, legacyDbSourceId, buildMdSourceIdFromPath } from '../cross-cut-modules/source_archive/sourceId.js';
+import { buildMdSourceIdFromPath, legacyDbSourceId } from '../cross-cut-modules/source_archive/sourceId.js';
 import { loadMarkdownArticlesFromFile } from '../cross-cut-modules/source_archive/markdownArticles.js';
+import { archiveSocialFindings } from '../cross-cut-modules/source_archive/archiveSocialFindings.js';
+import { archiveProbeRecords } from '../cross-cut-modules/source_archive/archiveProbeRecords.js';
+import { loadProbeRecordsForDate } from '../business_modules/resilience/infrastructure/adapters/connectivityProbeFileAdapter.js';
 import { getTodayInTimezone } from '../utils/dateUtils.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -57,40 +59,16 @@ function backfillEvidenceItems(archive, evidenceStore, dates) {
   return n;
 }
 
-function backfillHomefrontMd(archive, dates) {
-  const dir = resolve(repoRoot, 'business_modules/news-sites/articles_extracted');
+function backfillMdDir(archive, dates, { dir, pattern, source_type }) {
   let n = 0;
   for (const date of dates) {
-    const dated = resolve(dir, `articles-homefront-${date}.md`);
-    if (!existsSync(dated)) continue;
-    const articles = loadMarkdownArticlesFromFile(dated);
-    const items = articles.map((a) => ({
-      source_id: buildMdSourceIdFromPath(repoRoot, dated, a.idx1),
-      date,
-      source_type: 'news',
-      source_label: a.source,
-      source_url: a.url,
-      title: a.title,
-      body: a.body,
-      published_at: a.publishedAt || date,
-      module_ref: dated,
-    }));
-    n += persistOriginalSources(archive, items).archived;
-  }
-  return n;
-}
-
-function backfillFieldMd(archive, dates) {
-  const dir = resolve(repoRoot, 'business_modules/visits/data');
-  let n = 0;
-  for (const date of dates) {
-    const p = resolve(dir, `articles-field-reports-${date}.md`);
+    const p = resolve(dir, pattern(date));
     if (!existsSync(p)) continue;
     const articles = loadMarkdownArticlesFromFile(p);
     const items = articles.map((a) => ({
       source_id: buildMdSourceIdFromPath(repoRoot, p, a.idx1),
       date,
-      source_type: 'field',
+      source_type,
       source_label: a.source,
       source_url: a.url,
       title: a.title,
@@ -99,6 +77,58 @@ function backfillFieldMd(archive, dates) {
       module_ref: p,
     }));
     n += persistOriginalSources(archive, items).archived;
+  }
+  return n;
+}
+
+function backfillRadioMd(archive, dates) {
+  let n = 0;
+  let names = [];
+  try {
+    names = readdirSync(repoRoot);
+  } catch {
+    return n;
+  }
+  for (const date of dates) {
+    const files = names.filter((f) => f.startsWith('articles-audio-') && f.includes(date) && f.endsWith('.md'));
+    for (const f of files) {
+      const p = join(repoRoot, f);
+      const articles = loadMarkdownArticlesFromFile(p);
+      const items = articles.map((a) => ({
+        source_id: buildMdSourceIdFromPath(repoRoot, p, a.idx1),
+        date,
+        source_type: 'radio',
+        source_label: a.source,
+        source_url: a.url,
+        title: a.title,
+        body: a.body,
+        published_at: a.publishedAt || date,
+        module_ref: p,
+      }));
+      n += persistOriginalSources(archive, items).archived;
+    }
+  }
+  return n;
+}
+
+function backfillSocialBundles(archive, dates) {
+  let n = 0;
+  for (const date of dates) {
+    const p = resolve(repoRoot, 'business_modules/social_media/data', `signals-social-${date}.json`);
+    if (!existsSync(p)) continue;
+    try {
+      const bundle = JSON.parse(readFileSync(p, 'utf8'));
+      n += archiveSocialFindings(archive, bundle.findings, date, { moduleRef: p }).archived;
+    } catch { /* skip */ }
+  }
+  return n;
+}
+
+function backfillProbes(archive, dates) {
+  let n = 0;
+  for (const date of dates) {
+    const records = loadProbeRecordsForDate(date, 'national');
+    n += archiveProbeRecords(archive, records, date);
   }
   return n;
 }
@@ -116,13 +146,33 @@ async function main() {
   const evidenceStore = createEvidenceStore(sqlitePath);
 
   const fromDb = backfillEvidenceItems(archive, evidenceStore, dates);
-  const fromNews = backfillHomefrontMd(archive, dates);
-  const fromField = backfillFieldMd(archive, dates);
+  const fromNews = backfillMdDir(archive, dates, {
+    dir: resolve(repoRoot, 'business_modules/news-sites/articles_extracted'),
+    pattern: (d) => `articles-homefront-${d}.md`,
+    source_type: 'news',
+  });
+  const fromField = backfillMdDir(archive, dates, {
+    dir: resolve(repoRoot, 'business_modules/visits/data'),
+    pattern: (d) => `articles-field-reports-${d}.md`,
+    source_type: 'field',
+  });
+  const fromWhatsapp = backfillMdDir(archive, dates, {
+    dir: resolve(repoRoot, 'business_modules/whatsapp/reports'),
+    pattern: (d) => `whatsapp_reports-${d}.md`,
+    source_type: 'whatsapp',
+  });
+  const fromRadio = backfillRadioMd(archive, dates);
+  const fromSocial = backfillSocialBundles(archive, dates);
+  const fromProbes = backfillProbes(archive, dates);
 
   archive.close();
   evidenceStore.close();
 
-  console.log(`backfill-source-archive: days=${days} evidence=${fromDb} homefront=${fromNews} field=${fromField} total=${fromDb + fromNews + fromField}`);
+  const total = fromDb + fromNews + fromField + fromWhatsapp + fromRadio + fromSocial + fromProbes;
+  console.log(
+    `backfill-source-archive: days=${days} evidence=${fromDb} news=${fromNews} field=${fromField} ` +
+    `whatsapp=${fromWhatsapp} radio=${fromRadio} social=${fromSocial} probes=${fromProbes} total=${total}`,
+  );
 }
 
 main().catch((err) => {

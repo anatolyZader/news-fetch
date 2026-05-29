@@ -4,6 +4,7 @@
 import { buildReportContext } from '../domain/reportContext.js';
 import { streamChatResponse } from '../infrastructure/claudeChat.js';
 import { embeddingsEnabled } from '../../../cross-cut-modules/vector_index/index.js';
+import { collectFilesystemDocsForDate } from '../../../cross-cut-modules/source_archive/filesystemFallbacks.js';
 import {
   DISPLAY_VIEWS,
   redactReportPayload,
@@ -12,6 +13,7 @@ import {
 
 const MAX_HISTORY_MESSAGES = 20;
 const INDEXED_NAMESPACES = new Map(); // namespace -> fingerprint string
+const ARCHIVE_INDEXED_NAMESPACES = new Map();
 
 /**
  * Stream a chat response about the current resilience report.
@@ -36,7 +38,12 @@ export async function streamChat(message, history, rawReply, getReportData, opts
   const reportData = chatReportData(getReportData());
   const includeScores = reportData?.display_view === DISPLAY_VIEWS.analyst;
   const { context: baseContext, pboLookup } = buildReportContext(reportData, { includeScores });
-  const retrievalHint = await buildRetrievalHint(message, reportData, opts.vectorIndexStore ?? null);
+  const retrievalHint = await buildRetrievalHint(
+    message,
+    reportData,
+    opts.vectorIndexStore ?? null,
+    opts.sourceArchive ?? null,
+  );
   const context =
     String(baseContext ?? '') +
     (opts.systemHint ? `\n\n${opts.systemHint}` : '') +
@@ -173,7 +180,104 @@ async function ensureIndexed(reportData, vectorIndexStore) {
   INDEXED_NAMESPACES.set(ns, fp);
 }
 
-async function buildRetrievalHint(userMessage, reportData, vectorIndexStore) {
+  await vectorIndexStore.upsertDocuments({ namespace: ns, documents: docs });
+  INDEXED_NAMESPACES.set(ns, fp);
+}
+
+function archiveNamespace(reportData) {
+  const date =
+    reportData?.assessment?.date ??
+    reportData?.reportDate ??
+    'unknown-date';
+  return `archive:${date}`;
+}
+
+function fingerprintArchive(reportData, sourceArchive) {
+  const date = reportData?.assessment?.date ?? reportData?.reportDate ?? '';
+  const sqliteCount = sourceArchive?.listByDate?.(date)?.length ?? 0;
+  return `${date}|sqlite=${sqliteCount}`;
+}
+
+async function ensureArchiveIndexed(reportData, sourceArchive, vectorIndexStore) {
+  if (process.env.CHAT_ARCHIVE_RAG_ENABLED === '0') return;
+  if (!vectorIndexStore || typeof vectorIndexStore.upsertDocuments !== 'function') return;
+  if (!embeddingsEnabled()) return;
+  if (!reportData?.assessment || !sourceArchive) return;
+
+  const date = reportData.assessment.date ?? reportData.reportDate;
+  if (!date) return;
+
+  const ns = archiveNamespace(reportData);
+  const fp = fingerprintArchive(reportData, sourceArchive);
+  if (ARCHIVE_INDEXED_NAMESPACES.get(ns) === fp) return;
+
+  const docs = [];
+  const seen = new Set();
+  for (const row of sourceArchive.listByDate(date) ?? []) {
+    if (seen.has(row.source_id)) continue;
+    seen.add(row.source_id);
+    docs.push({
+      docId: row.source_id,
+      kind: 'archive',
+      text: `${row.title ?? ''}\n${row.body ?? ''}`.trim(),
+      meta: {
+        source_id: row.source_id,
+        source_type: row.source_type,
+        url: row.source_url,
+        date,
+      },
+    });
+  }
+  for (const doc of collectFilesystemDocsForDate(date)) {
+    if (seen.has(doc.docId)) continue;
+    seen.add(doc.docId);
+    docs.push(doc);
+  }
+  if (docs.length === 0) return;
+
+  await vectorIndexStore.upsertDocuments({ namespace: ns, documents: docs });
+  ARCHIVE_INDEXED_NAMESPACES.set(ns, fp);
+}
+
+async function buildArchiveRetrievalHint(userMessage, reportData, sourceArchive, vectorIndexStore) {
+  if (process.env.CHAT_RAG_ENABLED === '0') return '';
+  if (process.env.CHAT_ARCHIVE_RAG_ENABLED === '0') return '';
+  if (!vectorIndexStore || typeof vectorIndexStore.querySimilar !== 'function') return '';
+  if (!embeddingsEnabled()) return '';
+  if (!reportData?.assessment || !sourceArchive) return '';
+
+  try {
+    await ensureArchiveIndexed(reportData, sourceArchive, vectorIndexStore);
+  } catch {
+    return '';
+  }
+
+  const ns = archiveNamespace(reportData);
+  const topK = Math.max(4, Math.min(14, Number.parseInt(process.env.CHAT_RAG_TOPK ?? '10', 10) || 10));
+  const minSim = Number.parseFloat(process.env.CHAT_RAG_MIN_SIM ?? '0.25');
+  const hits = await vectorIndexStore.querySimilar({
+    namespace: ns,
+    queryText: userMessage,
+    topK,
+    minSim: Number.isFinite(minSim) ? minSim : 0.25,
+  });
+  if (!hits?.length) return '';
+
+  const lines = hits.map((h, i) => {
+    const meta = h.meta ?? {};
+    const sid = meta.source_id ? `\n    source_id: ${meta.source_id}` : '';
+    const url = meta.url ? `\n    url: ${meta.url}` : '';
+    const snippet = String(h.text ?? '').replaceAll(/\s+/g, ' ').trim().slice(0, 260);
+    return `[${i + 1}] (${h.kind}, sim=${h.sim.toFixed(2)}) ${snippet}${sid}${url}`;
+  }).join('\n');
+
+  return (
+    `RETRIEVED ARCHIVE (semantic search over original sources; use get_source with source_id for full text):\n` +
+    `${lines}`
+  );
+}
+
+async function buildRetrievalHint(userMessage, reportData, vectorIndexStore, sourceArchive) {
   if (process.env.CHAT_RAG_ENABLED === '0') return '';
   if (!vectorIndexStore || typeof vectorIndexStore.querySimilar !== 'function') return '';
   if (!embeddingsEnabled()) return '';
@@ -194,18 +298,30 @@ async function buildRetrievalHint(userMessage, reportData, vectorIndexStore) {
     topK,
     minSim: Number.isFinite(minSim) ? minSim : 0.25,
   });
-  if (!hits?.length) return '';
 
-  const lines = hits.map((h, i) => {
+  const archiveHint = await buildArchiveRetrievalHint(
+    userMessage,
+    reportData,
+    sourceArchive,
+    vectorIndexStore,
+  );
+
+  if (!hits?.length && !archiveHint) return '';
+
+  const lines = (hits ?? []).map((h, i) => {
     const meta = h.meta ?? {};
     const url = meta.url ? `\n    source: ${meta.url}` : '';
     const snippet = String(h.text ?? '').replaceAll(/\s+/g, ' ').trim().slice(0, 260);
     return `[${i + 1}] (${h.kind}, sim=${h.sim.toFixed(2)}) ${snippet}${url}`;
   }).join('\n');
 
-  return (
-    `RETRIEVED EVIDENCE (semantic search; cite these when relevant):\n` +
-    `${lines}\n\n` +
-    `If you need more detail or exact quotes, use search_sources → get_source (originals) or lookup_signals (behavioral index).`
-  );
+  const reportBlock = lines
+    ? (
+      `RETRIEVED EVIDENCE (semantic search; cite these when relevant):\n` +
+      `${lines}\n\n` +
+      `If you need more detail or exact quotes, use list_sources / search_sources → get_source (originals) or lookup_signals (behavioral index).`
+    )
+    : '';
+
+  return [reportBlock, archiveHint].filter(Boolean).join('\n\n');
 }

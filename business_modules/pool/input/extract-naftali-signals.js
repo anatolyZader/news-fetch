@@ -16,6 +16,11 @@ import { writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { getNaftaliDashboardSync } from '../app/naftaliService.js';
 import { enrichSignalsWithGeo } from '../../../cross-cut-modules/geo/enrichSignalsWithGeo.js';
+import { createSourceArchive } from '../../../cross-cut-modules/source_archive/createSourceArchive.js';
+import {
+  archiveNaftaliWeek,
+  stampNaftaliSignalSourceIds,
+} from '../../../cross-cut-modules/source_archive/archiveNaftaliWeek.js';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 
@@ -146,7 +151,22 @@ function writeWeekBundle(week, outDir) {
   }
 
   const signals = buildSignalsForWeek(week);
-  const { signals: geoSignals, resolved, unknown } = enrichSignalsWithGeo(signals, {
+  let stampedSignals = signals;
+
+  try {
+    const sqlitePath = process.env.SQLITE_PATH?.trim()
+      ? resolve(process.env.SQLITE_PATH.trim())
+      : resolve(REPO_ROOT, 'data', 'app.sqlite');
+    const archive = createSourceArchive(sqlitePath);
+    const { archived, responseMap } = archiveNaftaliWeek(archive, week);
+    archive.close();
+    stampedSignals = stampNaftaliSignalSourceIds(signals, responseMap);
+    if (archived > 0) console.error(`  → ${archived} Naftali original(s) archived`);
+  } catch (err) {
+    console.error(`  ⚠ Naftali archive skipped: ${err.message}`);
+  }
+
+  const { signals: geoSignals, resolved, unknown } = enrichSignalsWithGeo(stampedSignals, {
     rootDir: REPO_ROOT,
     unknownSourceType: 'extract-naftali',
   });

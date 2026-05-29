@@ -38,7 +38,7 @@ Usually **do not** require **Sync main documentation** — it may push a follow-
 ## Dependency and lockfile policy
 
 - All installs in CI use `npm ci` (never `npm install`).
-- Lockfiles are required: root, `client/`, and `docs-site/`.
+- Lockfiles are required: root, `client/`, and `docs/docs-site/`.
 - Dependency changes go through PR review; see [docs/DEPENDENCIES.md](docs/DEPENDENCIES.md).
 - Dependabot opens grouped weekly PRs; merge after CI passes.
 - CI enforces **min-release-age = 7 days** for npm packages (see below).

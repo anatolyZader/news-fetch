@@ -207,16 +207,16 @@ function relativePath(abs) {
 }
 
 function runGenApi() {
-  const result = spawnSync('npm', ['run', 'gen:api', '--prefix', 'docs-site'], {
+  const result = spawnSync('npm', ['run', 'gen:api', '--prefix', 'docs/docs-site'], {
     cwd: REPO_ROOT,
     stdio: 'inherit',
   });
   if (result.status !== 0) {
     throw new Error(
-      'docs-site gen:api failed (run: npm ci --prefix docs-site)',
+      'docs/docs-site gen:api failed (run: npm ci --prefix docs/docs-site)',
     );
   }
-  console.log('Regenerated product_docs/api/generated from openapi/openapi.yaml');
+  console.log('Regenerated docs/product_docs/api/generated from openapi/openapi.yaml');
 }
 
 async function main() {

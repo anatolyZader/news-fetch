@@ -3,7 +3,7 @@ import { openPanelPopup } from '../lib/panelPopup.js';
 import { isKnownPanelId } from '../lib/panelRoutes.js';
 import { parsePanelMessage, PANEL_MESSAGE_TYPES } from '../lib/panelMessages.js';
 
-const TRACKED_PANEL_IDS = ['report-build', 'send-evidence', 'settings', 'chat'];
+const TRACKED_PANEL_IDS = ['report-build', 'send-evidence', 'settings', 'chat', 'docs'];
 
 function emptyOpenState() {
   return {
@@ -11,6 +11,7 @@ function emptyOpenState() {
     'send-evidence': false,
     settings: false,
     chat: false,
+    docs: false,
   };
 }
 
@@ -27,6 +28,7 @@ export function usePanelPopups({ onEvidenceSubmissionComplete, onOpenDocs } = {}
     'send-evidence': null,
     settings: null,
     chat: null,
+    docs: null,
   });
   const [openPanels, setOpenPanels] = useState(emptyOpenState);
 

@@ -9,7 +9,7 @@
  * Env:
  *   SQLITE_PATH       (default: ./data/app.sqlite)
  *   OPENAI_API_KEY    (required for transcription after recording)
- *   RECORDINGS_DIR    (default: ./recordings)
+ *   RECORDINGS_DIR    (default: business_modules/recording/data)
  *
  * The scheduler:
  *   1. Polls every 30s for jobs whose scheduled time has come (Israel timezone).
@@ -27,6 +27,7 @@ import { promisify } from 'node:util';
 import { createRecordingJobStore } from '../infrastructure/recordingJobStore.js';
 import { createFfmpegDirectStreamAdapter } from '../infrastructure/adapters/ffmpegDirectStreamAdapter.js';
 import { createRecordingScheduler } from '../app/recordingScheduler.js';
+import { defaultRecordingsDir } from '../infrastructure/recordingDataPaths.js';
 import { OpenaiTranscriptionAdapter } from '../../audio/infrastructure/adapters/openaiTranscriptionAdapter.js';
 import { AudioIngestService } from '../../audio/app/audioIngestService.js';
 
@@ -40,7 +41,7 @@ const sqlitePath = process.env.SQLITE_PATH?.trim()
 
 const recordingsBaseDir = process.env.RECORDINGS_DIR?.trim()
   ? resolve(process.env.RECORDINGS_DIR.trim())
-  : resolve(__dirname, '..', '..', '..', 'recordings');
+  : defaultRecordingsDir();
 
 // ---------------------------------------------------------------------------
 // Wire dependencies

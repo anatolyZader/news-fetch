@@ -5,8 +5,9 @@ import Alert from '@mui/material/Alert';
 import { ReportBuildPanel } from './components/ReportBuildPanel.jsx';
 import { SendEvidencePanel } from './components/SendEvidencePanel.jsx';
 import { SettingsPanel } from './components/SettingsPanel.jsx';
+import { DocsPanel } from './components/DocsPanel.jsx';
 import { ChatPanel } from './components/ChatPanel.jsx';
-import { isKnownPanelId, parseChatReportScope } from './lib/panelRoutes.js';
+import { isKnownPanelId, parseChatReportScope, parseDocsSlug } from './lib/panelRoutes.js';
 import { createPanelMessage, PANEL_MESSAGE_TYPES, postToOpener } from './lib/panelMessages.js';
 import PropTypes from 'prop-types';
 
@@ -54,11 +55,24 @@ export function PanelWindowApp({ panelId }) {
   }
 
   if (panelId === 'chat') {
-    const reportScope = parseChatReportScope(globalThis.location?.search);
+    const parsed = parseChatReportScope(globalThis.location?.search);
     return (
       <ChatPanel
         variant="window"
-        reportScope={reportScope}
+        reportScope={parsed}
+        reportGeoScope={parsed.reportGeoScope ?? 'national'}
+        onClose={handleClose}
+      />
+    );
+  }
+
+  if (panelId === 'docs') {
+    const initialSlug = parseDocsSlug(globalThis.location?.search) ?? 'index';
+    return (
+      <DocsPanel
+        variant="window"
+        open
+        initialSlug={initialSlug}
         onClose={handleClose}
       />
     );

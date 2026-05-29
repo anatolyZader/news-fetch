@@ -133,6 +133,7 @@ export function formatSignals(signals) {
   return signals.map((s, i) =>
     `[${i + 1}] id=${s.signal_id ?? 'unknown'} — ${s.signal_type} (${s.source_type}, ${s.date})` +
     `${s.article_source ? ' — ' + s.article_source : ''}` +
+    `${s.source_id ? `\n    source_id=${s.source_id}` : ''}` +
     `\n    ${s.evidence?.slice(0, 300)}` +
     (s.article_url ? `\n    ${s.article_url}` : ''),
   ).join('\n\n');

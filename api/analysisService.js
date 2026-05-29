@@ -14,33 +14,12 @@ import {
   normalizeReportScopeId,
   reportFilePrefix,
 } from '../cross-cut-modules/geo/reportScopeIds.js';
+import { readCostBreakdownForDate as readCostBreakdownForDateFromLog } from '../cross-cut-modules/log/index.js';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
-/**
- * Read cost-log.jsonl and return per-script totals for the given date.
- * Returns null if no entries found.
- * @param {string} date YYYY-MM-DD
- * @returns {Record<string, number> | null}
- */
 function readCostBreakdownForDate(date) {
-  const logPath = resolve(ROOT, 'cost-log.jsonl');
-  if (!existsSync(logPath)) return null;
-  try {
-    const lines = readFileSync(logPath, 'utf8').trim().split('\n').filter(Boolean);
-    const byScript = {};
-    for (const line of lines) {
-      try {
-        const entry = JSON.parse(line);
-        if (entry.date === date) {
-          byScript[entry.script] = (byScript[entry.script] ?? 0) + (entry.totalCostUsd ?? 0);
-        }
-      } catch { /* skip malformed */ }
-    }
-    return Object.keys(byScript).length > 0 ? byScript : null;
-  } catch {
-    return null;
-  }
+  return readCostBreakdownForDateFromLog(date, ROOT);
 }
 
 function reportPrefixForScope(scope = 'national') {

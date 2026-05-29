@@ -10,6 +10,7 @@ import { resolve } from 'node:path';
 
 import { createYtDlpYoutubeAdapter } from '../infrastructure/adapters/ytDlpYoutubeAdapter.js';
 import { createLocalVideoFileAdapter } from '../infrastructure/adapters/localVideoFileAdapter.js';
+import { defaultVideoDownloadDir } from '../infrastructure/videoDataPaths.js';
 import { VideoGrabService } from '../app/videoGrabService.js';
 
 const args = process.argv.slice(2);
@@ -19,7 +20,7 @@ const getArg = (flag, def = null) => {
 };
 
 const url = getArg('--url');
-const outDir = resolve(getArg('--out-dir', resolve('downloads', 'video')));
+const outDir = resolve(getArg('--out-dir', defaultVideoDownloadDir()));
 
 if (!url) {
   console.error('Usage: node business_modules/video/input/video-grab-url.js --url <https://...> [--out-dir <dir>]');

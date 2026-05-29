@@ -4,7 +4,7 @@ import { unlinkSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'os';
 import { createSourceArchive } from '../../../../cross-cut-modules/source_archive/createSourceArchive.js';
-import { searchSources, getSource } from '../../../../business_modules/chat/domain/sourceArchiveQuery.js';
+import { searchSources, getSource, listSources } from '../../../../business_modules/chat/domain/sourceArchiveQuery.js';
 import { buildArchiveSourceId } from '../../../../cross-cut-modules/source_archive/sourceId.js';
 
 describe('sourceArchiveQuery', () => {
@@ -40,6 +40,23 @@ describe('sourceArchiveQuery', () => {
     const out = searchSources({ date: '2026-02-01', query: 'shelter' }, archive);
     assert.match(out, /source_id=/);
     assert.match(out, /Shelter story/);
+  });
+
+  it('listSources browses by date and source_type', () => {
+    archive.upsert({
+      source_id: buildArchiveSourceId({
+        source_type: 'pbo',
+        date: '2026-02-01',
+        title: 'Haifa PBO',
+        body: 'Observer notes for Haifa.',
+      }),
+      date: '2026-02-01',
+      source_type: 'pbo',
+      title: 'Haifa PBO',
+      body: 'Observer notes for Haifa.',
+    });
+    const out = listSources({ date: '2026-02-01', source_type: 'pbo' }, archive);
+    assert.match(out, /Haifa PBO/);
   });
 
   it('getSource returns full body', () => {

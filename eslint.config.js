@@ -10,7 +10,7 @@ export default defineConfig([
       '**/node_modules/**',
       'client/node_modules/**',
       'client/dist/**',
-      'docs-site/**',
+      'docs/docs-site/**',
       'analyst-site/**',
       'dist/**',
       '.cursor/**',

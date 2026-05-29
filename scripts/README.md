@@ -20,6 +20,7 @@ Finds radio recordings that don't have a corresponding `.md` transcript and tran
 ./scripts/radio-transcribe.sh 2026-04-08
 ```
 
+- Reads MP3s from `business_modules/recording/data/` (override with `RECORDINGS_DIR`)
 - Automatically skips recordings that already have a transcript file
 - Matches each recording to its program name from the recording jobs DB
 - Uses `--contextualize` (LLM filtering of ads/music)
@@ -57,7 +58,7 @@ cd ~/news
 To run in background (survives SSH disconnect):
 
 ```bash
-nohup ./scripts/daily-pipeline.sh > logs/pipeline-$(date +%Y-%m-%d).log 2>&1 &
+nohup ./scripts/daily-pipeline.sh > cross-cut-modules/log/data/pipeline-$(date +%Y-%m-%d).log 2>&1 &
 ```
 
 ### Option B: Scheduled via cron
@@ -72,13 +73,13 @@ Add a daily run at 15:00 Israel time (12:00 UTC in winter, 13:00 UTC in summer):
 
 ```cron
 # Daily resilience pipeline — runs at 15:00 Israel time (UTC+3)
-0 12 * * 0-4  cd /home/eventstorm1/news && ./scripts/daily-pipeline.sh >> logs/pipeline-cron.log 2>&1
+0 12 * * 0-4  cd /home/eventstorm1/news && ./scripts/daily-pipeline.sh >> cross-cut-modules/log/data/pipeline-cron.log 2>&1
 ```
 
 Notes:
 - Schedule `0-4` = Sunday–Thursday (Israeli work week)
 - Choose a time after all recordings finish (check your recording jobs schedule)
-- The `logs/` directory must exist: `mkdir -p ~/news/logs`
+- Log output goes under `cross-cut-modules/log/data/` (created automatically on first write)
 
 ### Option C: Via PM2
 
@@ -110,7 +111,7 @@ If running via cron, make sure the env vars are available. Easiest way:
 
 ```bash
 # In crontab, source the env file before running
-0 12 * * 0-4  cd /home/eventstorm1/news && source .env && ./scripts/daily-pipeline.sh >> logs/pipeline-cron.log 2>&1
+0 12 * * 0-4  cd /home/eventstorm1/news && source .env && ./scripts/daily-pipeline.sh >> cross-cut-modules/log/data/pipeline-cron.log 2>&1
 ```
 
 ## Monitoring
@@ -119,7 +120,7 @@ Check the latest pipeline run:
 
 ```bash
 # If using cron
-tail -100 ~/news/logs/pipeline-cron.log
+tail -100 ~/news/cross-cut-modules/log/data/pipeline-cron.log
 
 # If using PM2
 pm2 logs daily-pipeline --lines 100

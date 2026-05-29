@@ -305,18 +305,25 @@ function AppShell() {
     setActiveTab('report');
     reportTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, []);
-  const openDocs = useCallback((slug) => {
-    setDocsInitialSlug(slug ?? '');
-    setDocsOpen(true);
-  }, []);
   const closeDocs = useCallback(() => {
     setDocsOpen(false);
     setDocsInitialSlug('');
   }, []);
+  const openDocsRef = useRef(() => {});
   const { open: openPanelPopup, isOpen: isPanelPopupOpen } = usePanelPopups({
     onEvidenceSubmissionComplete: (notice) => setEvidenceNotice({ ...notice, open: true }),
-    onOpenDocs: openDocs,
+    onOpenDocs: (slug) => openDocsRef.current(slug ?? ''),
   });
+  const openDocs = useCallback((slug) => {
+    const normalized = slug ?? '';
+    if (isDesktop) {
+      openPanelPopup('docs', { slug: normalized });
+      return;
+    }
+    setDocsInitialSlug(normalized);
+    setDocsOpen(true);
+  }, [isDesktop, openPanelPopup]);
+  openDocsRef.current = openDocs;
   const openSettings = useCallback(() => {
     if (isDesktop) {
       openPanelPopup('settings');
@@ -399,11 +406,11 @@ function AppShell() {
   }, []);
   const openChat = useCallback(() => {
     if (isDesktop) {
-      openPanelPopup('chat', { reportScope: chatReportScope });
+      openPanelPopup('chat', { reportScope: chatReportScope, reportGeoScope: reportScope });
       return;
     }
     setChatOpen(true);
-  }, [isDesktop, openPanelPopup, chatReportScope]);
+  }, [isDesktop, openPanelPopup, chatReportScope, reportScope]);
   const chatPopupOpen = isDesktop && isPanelPopupOpen('chat');
 
   function jumpToReportComponent(compId) {
@@ -918,13 +925,19 @@ function AppShell() {
             zIndex={2}
           />
           <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-            <ChatPanel reportScope={chatReportScope} onClose={handleChatPanelClose} />
+            <ChatPanel
+              reportScope={chatReportScope}
+              reportGeoScope={reportScope}
+              onClose={handleChatPanelClose}
+            />
           </Box>
         </Paper>
       </Slide>
       )}
 
-      <DocsPanel open={docsOpen} initialSlug={docsInitialSlug || undefined} onClose={closeDocs} />
+      {!isDesktop && (
+        <DocsPanel open={docsOpen} initialSlug={docsInitialSlug || undefined} onClose={closeDocs} />
+      )}
       {!isDesktop && (
         <>
           <ReportBuildPanel

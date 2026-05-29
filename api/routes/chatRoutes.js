@@ -74,7 +74,7 @@ export async function chatRoutes(app, opts) {
   });
 
   app.post('/api/chat', authHook, async (request, reply) => {
-    const { sessionId, message, action, scope } = request.body ?? {};
+    const { sessionId, message, action, scope, reportGeoScope } = request.body ?? {};
 
     const uid = chatOwnerUid(request);
     const sid = String(sessionId ?? '').trim();
@@ -115,7 +115,9 @@ export async function chatRoutes(app, opts) {
       userMessage,
       history,
       reply.raw,
-      () => getCachedReport(evidenceStore),
+      () => getCachedReport(evidenceStore, {
+        scope: reportGeoScope === 'north' ? 'north' : 'national',
+      }),
       {
         sourceArchive,
         evidenceStore,

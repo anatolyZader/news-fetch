@@ -24,7 +24,7 @@ const chatFieldSx = (theme) => ({
   '& .MuiOutlinedInput-notchedOutline': { borderRadius: panelSectionRadius(theme) },
 });
 
-export function ChatPanel({ reportScope, onClose, variant = 'embedded' }) {
+export function ChatPanel({ reportScope, reportGeoScope = 'national', onClose, variant = 'embedded' }) {
   const {
     sessions,
     activeSessionId,
@@ -79,7 +79,7 @@ export function ChatPanel({ reportScope, onClose, variant = 'embedded' }) {
   function submit(e) {
     e.preventDefault();
     if (!input.trim() || streaming) return;
-    send(input.trim(), { scope: reportScope ?? { type: 'all' } });
+    send(input.trim(), { scope: reportScope ?? { type: 'all' }, reportGeoScope });
     setInput('');
   }
 
@@ -307,7 +307,7 @@ export function ChatPanel({ reportScope, onClose, variant = 'embedded' }) {
         <MenuItem
           disabled={!activeSessionId || streaming}
           onClick={async () => {
-            await regenerateLast();
+            await regenerateLast({ reportGeoScope });
             closeMenu();
           }}
         >
@@ -510,6 +510,7 @@ export function ChatPanel({ reportScope, onClose, variant = 'embedded' }) {
 
 ChatPanel.propTypes = {
   reportScope: PropTypes.object,
+  reportGeoScope: PropTypes.string,
   onClose: PropTypes.func,
   variant: PropTypes.oneOf(['embedded', 'window']),
 };

@@ -28,4 +28,4 @@ npm run docs:sync
 
 Do not hand-edit content between those markers. Edit the source modules instead.
 
-API reference pages under `product_docs/api/generated/` are regenerated from `openapi/openapi.yaml` as part of the same sync. The spec includes **SocialMedia** (7 routes) and **SearchTrends** (3 routes) tags alongside existing modules.
+API reference pages under `docs/product_docs/api/generated/` are regenerated from `openapi/openapi.yaml` as part of the same sync. The spec includes **SocialMedia** (7 routes) and **SearchTrends** (3 routes) tags alongside existing modules.

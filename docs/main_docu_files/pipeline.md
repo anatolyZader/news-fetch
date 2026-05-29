@@ -114,7 +114,7 @@ npm run homefront-to-md -- YYYY-MM-DD
 npm run audio-to-md -- --file <path> --date YYYY-MM-DD --station … --program …
 ```
 
-Whisper transcription → `articles-audio-{station}-{program}-{date}.md`. Optional `--contextualize` for speaker labels. Daily pipeline runs `scripts/radio-transcribe.sh` for missing recordings.
+Whisper transcription → `articles-audio-{station}-{program}-{date}.md`. Optional `--contextualize` for speaker labels. Scheduled captures land in `business_modules/recording/data/`; daily pipeline runs `scripts/radio-transcribe.sh` for missing transcripts.
 
 ### WhatsApp (`source_type: whatsapp`)
 

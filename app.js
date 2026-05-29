@@ -14,6 +14,7 @@ import { YoutubeEvidenceIngestService } from './business_modules/video/app/youtu
 import { createYtDlpYoutubeAdapter } from './business_modules/video/infrastructure/adapters/ytDlpYoutubeAdapter.js';
 import { createYoutubeDataApiCaptionsAdapter } from './business_modules/video/infrastructure/adapters/youtubeDataApiCaptionsAdapter.js';
 import { createLocalVideoFileAdapter } from './business_modules/video/infrastructure/adapters/localVideoFileAdapter.js';
+import { defaultVideoDownloadDir } from './business_modules/video/infrastructure/videoDataPaths.js';
 import { initFirebaseAdminForAuth } from './cross-cut-modules/auth/firebaseAdmin.js';
 import { requireAuthPreHandler } from './cross-cut-modules/auth/requireAuthPreHandler.js';
 import { tryAuthPreHandler } from './cross-cut-modules/auth/tryAuthPreHandler.js';
@@ -201,7 +202,7 @@ function getAudioEvidenceIngestService() {
 function createVideoServices() {
   const videoDownloadDir = process.env.VIDEO_DOWNLOAD_DIR?.trim()
     ? resolve(process.env.VIDEO_DOWNLOAD_DIR)
-    : resolve(__dirname, 'downloads', 'video');
+    : defaultVideoDownloadDir();
 
   const ytDlpAdapter = createYtDlpYoutubeAdapter();
   const videoGrabService = new VideoGrabService({

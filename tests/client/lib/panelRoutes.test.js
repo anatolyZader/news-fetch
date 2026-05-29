@@ -8,6 +8,8 @@ import {
   PANEL_PATHS,
   buildChatPanelPath,
   parseChatReportScope,
+  buildDocsPanelPath,
+  parseDocsSlug,
 } from '../../../client/src/lib/panelRoutes.js';
 
 describe('panelRoutes', () => {
@@ -16,6 +18,7 @@ describe('panelRoutes', () => {
     assert.equal(parsePanelPath('/panel/send-evidence'), 'send-evidence');
     assert.equal(parsePanelPath('/panel/settings'), 'settings');
     assert.equal(parsePanelPath('/panel/chat'), 'chat');
+    assert.equal(parsePanelPath('/panel/docs'), 'docs');
     assert.equal(parsePanelPath('/panel/report-build/'), 'report-build');
   });
 
@@ -29,7 +32,8 @@ describe('panelRoutes', () => {
   it('isKnownPanelId validates ids', () => {
     assert.equal(isKnownPanelId('report-build'), true);
     assert.equal(isKnownPanelId('settings'), true);
-    assert.equal(isKnownPanelId('docs'), false);
+    assert.equal(isKnownPanelId('docs'), true);
+    assert.equal(isKnownPanelId('missing'), false);
   });
 
   it('panelPathForId maps ids to paths', () => {
@@ -54,5 +58,20 @@ describe('panelRoutes', () => {
       label: 'Belonging',
     });
     assert.deepEqual(parseChatReportScope(''), { type: 'all' });
+  });
+
+  it('buildDocsPanelPath encodes slug', () => {
+    assert.equal(buildDocsPanelPath(''), '/panel/docs');
+    assert.equal(buildDocsPanelPath('index'), '/panel/docs?slug=index');
+    assert.equal(
+      buildDocsPanelPath('getting-started/get-started'),
+      '/panel/docs?slug=getting-started%2Fget-started',
+    );
+  });
+
+  it('parseDocsSlug reads slug from search params', () => {
+    assert.equal(parseDocsSlug(''), null);
+    assert.equal(parseDocsSlug('?slug=index'), 'index');
+    assert.equal(parseDocsSlug('?slug=getting-started/using-the-app'), 'getting-started/using-the-app');
   });
 });

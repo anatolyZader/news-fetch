@@ -10,10 +10,10 @@ dist/
 client/dist/
 analyst-site/node_modules/
 analyst-site/dist/
-docs-site/node_modules/
-docs-site/build/
-docs-site/.docusaurus/
-docs-site/.cache/
+docs/docs-site/node_modules/
+docs/docs-site/build/
+docs/docs-site/.docusaurus/
+docs/docs-site/.cache/
 
 # Env / secrets
 .env
@@ -22,22 +22,27 @@ client/.env.local
 secrets/
 .local/
 
-# Logs / cost
+# Logs / cost (see cross-cut-modules/log/data/)
 *.log
-cost-log.jsonl
 
 # Google Trends API cache (6h TTL)
 business_modules/search_trends/data/cache/*.json
 
-# Data + downloads + recordings + reports (runtime/generated)
+# Data + reports (runtime/generated)
 # Root-only: do not ignore e.g. business_modules/geo/data/ (versioned reference JSON).
 /data/
-downloads/
-recordings/
+# Video fetches (yt-dlp MP3, subtitles, retained audio) — keep .gitkeep only
+business_modules/video/data/**
+!business_modules/video/data/.gitkeep
+# Stream captures (scheduled radio) — keep .gitkeep only
+business_modules/recording/data/**
+!business_modules/recording/data/.gitkeep
 reports/
 /validation/
 business_modules/resilience/validation/artifacts/
-logs/
+# Application logs (cost JSONL, pipeline text) — keep .gitkeep only
+cross-cut-modules/log/data/**
+!cross-cut-modules/log/data/.gitkeep
 
 # Local DB files
 *.sqlite

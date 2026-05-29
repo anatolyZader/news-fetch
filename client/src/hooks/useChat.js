@@ -136,7 +136,13 @@ export function useChat() {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers,
-        body: JSON.stringify({ sessionId: activeSessionId, message, action: 'send', scope: opts.scope ?? null }),
+        body: JSON.stringify({
+          sessionId: activeSessionId,
+          message,
+          action: 'send',
+          scope: opts.scope ?? null,
+          reportGeoScope: opts.reportGeoScope ?? 'national',
+        }),
         signal: controller.signal,
       });
 
@@ -204,7 +210,7 @@ export function useChat() {
     }
   }
 
-  async function regenerateLast() {
+  async function regenerateLast(opts = {}) {
     if (streaming) return;
     if (!activeSessionId) return;
     setStreaming(true);
@@ -217,7 +223,12 @@ export function useChat() {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers,
-        body: JSON.stringify({ sessionId: activeSessionId, action: 'regenerate', scope: null }),
+        body: JSON.stringify({
+          sessionId: activeSessionId,
+          action: 'regenerate',
+          scope: null,
+          reportGeoScope: opts.reportGeoScope ?? 'national',
+        }),
         signal: controller.signal,
       });
       if (!res.ok) {

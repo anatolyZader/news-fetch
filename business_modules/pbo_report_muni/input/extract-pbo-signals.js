@@ -21,6 +21,11 @@ import { getMunicipalityDashboard } from '../app/pboMunicipalityService.js';
 import { enrichSignalsWithGeo } from '../../../cross-cut-modules/geo/enrichSignalsWithGeo.js';
 import { listPboDistrictIds } from '../../../cross-cut-modules/pbo/pboDistrictRegistry.js';
 import { loadReviewMetadataMapForDate, shouldForcePboSignalRewrite } from '../../pbo_report_review/input/createPboReviewWiring.js';
+import { createSourceArchive } from '../../../cross-cut-modules/source_archive/createSourceArchive.js';
+import {
+  archivePboMunicipalityDay,
+  stampPboSignalSourceIds,
+} from '../../../cross-cut-modules/source_archive/archivePboMunicipality.js';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 const SQLITE_PATH = process.env.SQLITE_PATH?.trim()
@@ -115,7 +120,25 @@ function writeDayBundle(day, districtId, outDir, componentsOrder, componentNames
   }
 
   const reviewMetaByMuni = loadReviewMetadataMapForDate(day.date, SQLITE_PATH);
-  const signals = buildSignalsForDay(day, componentsOrder, componentNames, reviewMetaByMuni);
+  let signals = buildSignalsForDay(day, componentsOrder, componentNames, reviewMetaByMuni);
+
+  try {
+    const archive = createSourceArchive(SQLITE_PATH);
+    const { archived, muniMap } = archivePboMunicipalityDay(
+      archive,
+      day,
+      componentsOrder,
+      componentNames,
+      reviewMetaByMuni,
+      { districtId, sourceFile: day.file },
+    );
+    archive.close();
+    signals = stampPboSignalSourceIds(signals, muniMap);
+    if (archived > 0) console.error(`  → ${archived} PBO municipality original(s) archived`);
+  } catch (err) {
+    console.error(`  ⚠ PBO archive skipped: ${err.message}`);
+  }
+
   const { signals: geoSignals, resolved, unknown } = enrichSignalsWithGeo(signals, {
     rootDir: REPO_ROOT,
     unknownSourceType: 'extract-pbo',

@@ -20,6 +20,9 @@ import { fileURLToPath } from 'node:url';
 import { extractSignals } from '../../resilience/infrastructure/claudeEvaluator.js';
 import { createCostTracker, appendCostLog, checkDailyBudget } from '../../../cross-cut-modules/budget/index.js';
 import { enrichSignalsWithGeo } from '../../../cross-cut-modules/geo/enrichSignalsWithGeo.js';
+import { createSourceArchive } from '../../../cross-cut-modules/source_archive/createSourceArchive.js';
+import { persistOriginalSources } from '../../../cross-cut-modules/source_archive/persistOriginals.js';
+import { buildArchiveSourceId } from '../../../cross-cut-modules/source_archive/sourceId.js';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 
@@ -125,6 +128,37 @@ async function run() {
 
   const rawSignals = await extractSignals(articles, { onUsage, contentKind: 'field_report' });
   let signals = rawSignals.map((s) => ({ ...s, source_type: 'pbo_regional' }));
+
+  try {
+    const sqlitePath = process.env.SQLITE_PATH?.trim() || resolve(REPO_ROOT, 'data', 'app.sqlite');
+    const archive = createSourceArchive(sqlitePath);
+    const indexToSourceId = new Map();
+    const items = articles.map((a, i) => {
+      const item = {
+        date,
+        source_type: 'pbo_regional',
+        source_label: a.source,
+        source_url: a.url || null,
+        title: a.title,
+        body: a.body,
+        published_at: a.publishedAt ?? date,
+        module_ref: a.sourceFile,
+      };
+      item.source_id = buildArchiveSourceId(item);
+      indexToSourceId.set(i + 1, item.source_id);
+      return item;
+    });
+    const { archived } = persistOriginalSources(archive, items);
+    archive.close();
+    signals = signals.map((s) => {
+      const sid = s.article_index != null ? indexToSourceId.get(Number(s.article_index)) : null;
+      return sid ? { ...s, source_id: sid } : s;
+    });
+    if (archived > 0) console.error(`  → ${archived} regional PBO original(s) archived`);
+  } catch (err) {
+    console.error(`  ⚠ Regional PBO archive skipped: ${err.message}`);
+  }
+
   const { signals: geoSignals, attached, resolved, unknown } = enrichSignalsWithGeo(signals, {
     rootDir: REPO_ROOT,
     unknownSourceType: 'extract-pbo_regional',

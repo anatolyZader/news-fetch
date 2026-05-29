@@ -3,8 +3,8 @@
  * All business modules that spend on APIs should import from here.
  */
 
-import { appendFileSync, existsSync, readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { readTodayCostSpend, resolveCostLogPath } from '../../log/index.js';
+import { existsSync } from 'node:fs';
 
 // ─── Pricing ($/1M tokens) ─────────────────────────────────────────────────
 
@@ -159,107 +159,20 @@ export function createCostTracker({ maxCostUsd, label: _label = 'run' } = {}) {
   return { onUsage, getTotal, getStageEvents, printSummary };
 }
 
-// ─── Persistent cost log ───────────────────────────────────────────────────
-
-function costLogPath() {
-  return resolve(process.env.COST_LOG_PATH ?? 'cost-log.jsonl');
-}
-
-/**
- * Aggregate C9 stage events (verifier / self-check / etc.) into a compact
- * per-stage summary suitable for the persistent log. Returns { perStage,
- * totals } shaped like:
- *   { perStage: { evidence_verifier: { kept, dropped, input, reason_counts } },
- *     totals:   { kept, dropped, input } }
- */
-function summariseStageEvents(stageEvents = []) {
-  const perStage = {};
-  const totals = { kept: 0, dropped: 0, input: 0 };
-  for (const ev of stageEvents) {
-    const stage = ev.stage ?? 'unknown';
-    const stats = ev.stats ?? {};
-    if (!perStage[stage]) {
-      perStage[stage] = { kept: 0, dropped: 0, input: 0, reason_counts: {} };
-    }
-    const bucket = perStage[stage];
-    bucket.kept += stats.kept ?? 0;
-    bucket.dropped += stats.dropped ?? 0;
-    bucket.input += stats.input ?? 0;
-    for (const [reason, count] of Object.entries(stats.reason_counts ?? {})) {
-      bucket.reason_counts[reason] = (bucket.reason_counts[reason] || 0) + count;
-    }
-    totals.kept += stats.kept ?? 0;
-    totals.dropped += stats.dropped ?? 0;
-    totals.input += stats.input ?? 0;
-  }
-  return { perStage, totals };
-}
-
-/**
- * Append one run entry to cost-log.jsonl (JSONL format, one JSON object per line).
- *
- * @param {object} entry
- * @param {string} entry.script        Script name (e.g. 'extract-signals')
- * @param {string} entry.date          Report/article date (YYYY-MM-DD)
- * @param {number} entry.totalCostUsd
- * @param {Array}  entry.usageLog      Raw usage entries from createCostTracker
- * @param {Array}  [entry.stageEvents] C9 stage events from createCostTracker
- * @param {number} [entry.articles]    Article count processed
- */
-export function appendCostLog({ script, date, totalCostUsd, usageLog, stageEvents, articles }) {
-  const { haiku: haikuCost, sonnet: sonnetCost, opus: opusCost, other: otherCost } = breakdownFromUsageLog(usageLog);
-
-  const record = {
-    timestamp: new Date().toISOString(),
-    script,
-    date,
-    totalCostUsd,
-    breakdown: { haiku: haikuCost, sonnet: sonnetCost, opus: opusCost, other: otherCost },
-  };
-  if (articles != null) {
-    record.articles = articles;
-  }
-
-  if (Array.isArray(stageEvents) && stageEvents.length > 0) {
-    record.stages = summariseStageEvents(stageEvents);
-  }
-
-  try {
-    appendFileSync(costLogPath(), JSON.stringify(record) + '\n', 'utf8');
-  } catch (err) {
-    console.error(`⚠ Could not write cost log: ${err.message}`);
-  }
-}
-
 // ─── Daily budget check ────────────────────────────────────────────────────
 
 /**
- * Read today's cost-log.jsonl entries and abort if the daily budget is exceeded.
+ * Read today's cost log and abort if the daily budget is exceeded.
  * Call this at the start of any script before incurring API costs.
  */
 export function checkDailyBudget() {
   const dailyBudget = Number.parseFloat(process.env.DAILY_BUDGET_USD ?? '10.00');
-  const logPath = costLogPath();
+  const logPath = resolveCostLogPath();
   if (!existsSync(logPath)) return;
 
-  const today = new Date().toISOString().slice(0, 10);
   let todaySpend = 0;
-
   try {
-    const lines = readFileSync(logPath, 'utf8')
-      .trim()
-      .split('\n')
-      .filter(Boolean);
-    for (const line of lines) {
-      try {
-        const entry = JSON.parse(line);
-        if (entry.timestamp?.startsWith(today)) {
-          todaySpend += entry.totalCostUsd ?? 0;
-        }
-      } catch {
-        // skip malformed lines
-      }
-    }
+    todaySpend = readTodayCostSpend();
   } catch (err) {
     console.error(`⚠ Could not read cost log: ${err.message}`);
     return;
@@ -267,7 +180,7 @@ export function checkDailyBudget() {
 
   if (todaySpend >= dailyBudget) {
     console.error(`\n🛑  Daily budget $${dailyBudget} exceeded (today's spend: $${todaySpend.toFixed(4)}) — terminating.`);
-    console.error(`    Set DAILY_BUDGET_USD to raise the limit, or clear cost-log.jsonl to reset.`);
+    console.error(`    Set DAILY_BUDGET_USD to raise the limit, or clear the cost log under cross-cut-modules/log/data/ to reset.`);
     process.exit(1);
   }
 

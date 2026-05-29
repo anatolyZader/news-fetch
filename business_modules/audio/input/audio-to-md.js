@@ -9,11 +9,15 @@
  * Env: OPENAI_API_KEY (required). Optional: ffmpeg/ffprobe on PATH if file > 24MB.
  */
 import 'dotenv/config';
-import { resolve } from 'node:path';
+import { resolve, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import { createCostTracker, appendCostLog, checkDailyBudget } from '../../../cross-cut-modules/budget/index.js';
 import { OpenaiTranscriptionAdapter } from '../infrastructure/adapters/openaiTranscriptionAdapter.js';
 import { AudioIngestService } from '../app/audioIngestService.js';
+import { archiveMarkdownFiles } from '../../resilience/app/archiveMarkdownFromMd.js';
+
+const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 
 const args = process.argv.slice(2);
 const getArg = (flag, def = null) => {
@@ -59,6 +63,18 @@ try {
     onUsage,
   });
   console.error(`Wrote ${result.articleBlocks} transcript block(s) (${result.segmentCount} segments) → ${result.outPath}`);
+  try {
+    const sqlitePath = process.env.SQLITE_PATH?.trim() || resolve(REPO_ROOT, 'data', 'app.sqlite');
+    const n = archiveMarkdownFiles([result.outPath], {
+      date,
+      source_type: 'radio',
+      repoRoot: REPO_ROOT,
+      sqlitePath,
+    });
+    console.error(`  → ${n} original(s) archived (${sqlitePath})`);
+  } catch (err) {
+    console.error(`  ⚠ Source archive skipped: ${err.message}`);
+  }
   printSummary();
   const { totalCostUsd, usageLog } = getTotal();
   appendCostLog({

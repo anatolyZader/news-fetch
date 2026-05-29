@@ -92,6 +92,14 @@ export function createSourceArchiveStore(dbPath) {
     ORDER BY source_id ASC
   `);
 
+  const listByDateRangeStmt = db.prepare(`
+    SELECT source_id, date, source_type, source_label, source_url, title, body,
+           published_at, module_ref
+    FROM source_archive
+    WHERE date >= ? AND date <= ?
+    ORDER BY date ASC, source_id ASC
+  `);
+
   const purgeEphemeralStmt = db.prepare(`
     DELETE FROM source_archive
     WHERE date < ? AND source_type IN ('news', 'radio', 'social')
@@ -141,15 +149,37 @@ export function createSourceArchiveStore(dbPath) {
      * @param {string} date YYYY-MM-DD
      */
     listByDate(date) {
-      return listByDateStmt.all(date);
+      return listByDateStmt.all(String(date ?? '').trim());
     },
 
     /**
-     * @param {{ date: string, query?: string, source_type?: string, url?: string, title?: string, limit?: number, snippet_chars?: number }} input
+     * @param {{ date_from: string, date_to: string, source_type?: string, limit?: number }} input
+     */
+    listByDateRange(input) {
+      const dateFrom = String(input?.date_from ?? '').trim();
+      const dateTo = String(input?.date_to ?? input?.date_from ?? '').trim();
+      if (!dateFrom || !dateTo) return [];
+      const sourceType = normalize(input?.source_type);
+      const limit = Math.min(Math.max(Number.parseInt(String(input?.limit ?? 100), 10) || 100, 1), 500);
+      const rows = listByDateRangeStmt.all(dateFrom, dateTo);
+      const out = [];
+      for (const row of rows) {
+        if (out.length >= limit) break;
+        if (sourceType && row.source_type !== sourceType) continue;
+        out.push(row);
+      }
+      return out;
+    },
+
+    /**
+     * @param {{ date?: string, date_from?: string, date_to?: string, query?: string, source_type?: string, url?: string, title?: string, limit?: number, snippet_chars?: number, allow_empty_query?: boolean }} input
      */
     search(input) {
       const date = String(input?.date ?? '').trim();
-      if (!date) return [];
+      const dateFrom = String(input?.date_from ?? date).trim();
+      const dateTo = String(input?.date_to ?? date).trim();
+      if (!dateFrom || !dateTo) return [];
+
       const limit = Math.min(Math.max(Number.parseInt(String(input?.limit ?? 7), 10) || 7, 1), 25);
       const snippetChars = Math.min(
         Math.max(Number.parseInt(String(input?.snippet_chars ?? 350), 10) || 350, 80),
@@ -159,8 +189,17 @@ export function createSourceArchiveStore(dbPath) {
       const url = normalize(input?.url);
       const title = safeLower(input?.title);
       const sourceType = normalize(input?.source_type);
+      const allowEmptyQuery = input?.allow_empty_query === true
+        || Boolean(sourceType)
+        || Boolean(url)
+        || Boolean(title);
 
-      const rows = listByDateStmt.all(date);
+      if (!allowEmptyQuery && !q && !url && !title) return [];
+
+      const rows = dateFrom === dateTo
+        ? listByDateStmt.all(dateFrom)
+        : listByDateRangeStmt.all(dateFrom, dateTo);
+
       const out = [];
       for (const row of rows) {
         if (out.length >= limit) break;

@@ -91,6 +91,17 @@ export function createConnectivityProbeFileAdapter(opts = {}) {
 /**
  * @param {string} date
  * @param {string} [scope]
+ * @param {{ probesDir?: string }} [opts]
+ * @returns {object[]}
+ */
+export function loadProbeRecordsForDate(date, scope = 'national', opts = {}) {
+  const adapter = createConnectivityProbeFileAdapter(opts);
+  return adapter.loadProbesForDate(date, scope);
+}
+
+/**
+ * @param {string} date
+ * @param {string} [scope]
  * @param {{ probesDir?: string, anchorSignals?: Array<object> }} [opts]
  * @returns {object[]}
  */

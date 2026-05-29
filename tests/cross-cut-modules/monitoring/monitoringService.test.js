@@ -13,6 +13,7 @@ describe('monitoringService', () => {
 
   beforeEach(() => {
     rootDir = join(tmpdir(), `monitoring-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+    process.env.COST_LOG_PATH = join(rootDir, 'cost-log.jsonl');
     mkdirSync(join(rootDir, 'signals'), { recursive: true });
     mkdirSync(join(rootDir, 'reports'), { recursive: true });
     mkdirSync(join(rootDir, 'data'), { recursive: true });
@@ -46,6 +47,7 @@ describe('monitoringService', () => {
   });
 
   afterEach(() => {
+    delete process.env.COST_LOG_PATH;
     rmSync(rootDir, { recursive: true, force: true });
   });
 

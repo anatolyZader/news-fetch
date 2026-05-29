@@ -2,9 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
-import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
-import Link from '@mui/material/Link';
 import Chip from '@mui/material/Chip';
 import Alert from '@mui/material/Alert';
 import Paper from '@mui/material/Paper';
@@ -18,7 +16,9 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { MarkdownDocView } from './MarkdownDocView.jsx';
 import { ModalPanel } from '../ui/ModalPanel.jsx';
+import { PanelWindowShell } from '../ui/PanelWindowShell.jsx';
 import { SidebarItem } from '../ui/SidebarItem.jsx';
+import { OpenFullDocsStickyLink } from './OpenFullDocsStickyLink.jsx';
 import { getDocsBaseUrl } from '../lib/docsUrl.js';
 
 function canonicalFromMeta(meta) {
@@ -26,25 +26,74 @@ function canonicalFromMeta(meta) {
   return typeof raw === 'string' && raw.startsWith('http') ? raw : null;
 }
 
-const INTENT_ORDER = [
+const NAV_GROUP_ORDER = [
   'getting-started',
+  'data-sources',
+  'where-to-start',
+  'trust',
   'guides',
   'operations',
+  'troubleshooting',
 ];
+
+const DATA_SOURCE_DOC_SLUGS = [
+  'getting-started/data-sources',
+  'getting-started/data-sources/news',
+  'getting-started/data-sources/whatsapp',
+  'getting-started/data-sources/audio-radio',
+  'getting-started/data-sources/pbo-reports',
+  'getting-started/data-sources/report-bot',
+  'getting-started/data-sources/visits',
+  'getting-started/data-sources/social-media',
+  'getting-started/data-sources/pools',
+  'getting-started/data-sources/google-trends',
+  'getting-started/data-sources/send-data',
+];
+
+function buildDocsNavPriority() {
+  const priority = new Map([
+    ['index', -3],
+    ['getting-started/get-started', -2],
+    ['getting-started/using-the-app', -1],
+    ['guides/operator-workflow', 20],
+    ['guides/when-not-to-act', 21],
+    ['guides/whatsapp-integration', 22],
+    ['guides/news-ingestion', 23],
+    ['guides/operating-daily-pipeline', 24],
+    ['operations/common-failures', 25],
+    ['trust/how-the-system-stays-trustworthy', 15],
+    ['where-to-start/where-should-i-start', 12],
+    ['troubleshooting/in-app-and-full-docs', 30],
+  ]);
+  DATA_SOURCE_DOC_SLUGS.forEach((slug, idx) => {
+    priority.set(slug, idx);
+  });
+  return priority;
+}
 
 function isUserGuidePage(page) {
   const intent = String(page.intent ?? '');
   const slug = String(page.slug ?? '');
   const tags = Array.isArray(page.tags) ? page.tags.map(String) : [];
-  const isUserIntent = intent === 'getting-started' || intent === 'guides' || intent === 'operations';
+  const isUserIntent = intent === 'getting-started' || intent === 'where-to-start' || intent === 'trust' || intent === 'troubleshooting' || intent === 'guides' || intent === 'operations';
   const isDevOnly = tags.includes('local-dev') || slug.includes('install-and-run') || slug.includes('deploy');
   return isUserIntent && !isDevOnly;
 }
 
-function intentSectionKey(intent) {
-  const slug = String(intent ?? 'other').trim().toLowerCase();
+function navGroupKey(page) {
+  const slug = String(page.slug ?? '');
+  if (DATA_SOURCE_DOC_SLUGS.includes(slug)) return 'data-sources';
+  return String(page.intent ?? 'other');
+}
+
+function navSectionKey(groupKey) {
+  const slug = String(groupKey ?? 'other').trim().toLowerCase();
   const map = {
     'getting-started': 'docsPanel.sectionGettingStarted',
+    'data-sources': 'docsPanel.sectionDataSources',
+    'where-to-start': 'docsPanel.sectionWhereToStart',
+    trust: 'docsPanel.sectionTrust',
+    troubleshooting: 'docsPanel.sectionTroubleshooting',
     guides: 'docsPanel.sectionGuides',
     operations: 'docsPanel.sectionOperations',
     concepts: 'docsPanel.sectionConcepts',
@@ -59,16 +108,35 @@ function filterUserGuidePages(pages) {
   return pages.filter(isUserGuidePage);
 }
 
-function groupPagesByIntent(pages) {
+function sortPagesInNavGroup(groupKey, pages) {
+  if (groupKey === 'data-sources') {
+    const order = new Map(DATA_SOURCE_DOC_SLUGS.map((slug, idx) => [slug, idx]));
+    return [...pages].sort(
+      (a, b) => (order.get(a.slug) ?? 99) - (order.get(b.slug) ?? 99),
+    );
+  }
+  const priority = buildDocsNavPriority();
+  return [...pages].sort((a, b) => {
+    const pa = priority.has(a.slug) ? priority.get(a.slug) : 100;
+    const pb = priority.has(b.slug) ? priority.get(b.slug) : 100;
+    if (pa !== pb) return pa - pb;
+    return String(a.slug).localeCompare(String(b.slug));
+  });
+}
+
+function groupPagesByNavGroup(pages) {
   const groups = new Map();
   for (const page of pages) {
-    const intent = String(page.intent ?? 'other');
-    if (!groups.has(intent)) groups.set(intent, []);
-    groups.get(intent).push(page);
+    const key = navGroupKey(page);
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(page);
+  }
+  for (const [key, list] of groups) {
+    groups.set(key, sortPagesInNavGroup(key, list));
   }
   return [...groups.entries()].sort(([a], [b]) => {
-    const ia = INTENT_ORDER.indexOf(a);
-    const ib = INTENT_ORDER.indexOf(b);
+    const ia = NAV_GROUP_ORDER.indexOf(a);
+    const ib = NAV_GROUP_ORDER.indexOf(b);
     const pa = ia === -1 ? 100 : ia;
     const pb = ib === -1 ? 100 : ib;
     if (pa !== pb) return pa - pb;
@@ -76,7 +144,8 @@ function groupPagesByIntent(pages) {
   });
 }
 
-export function DocsPanel({ open, onClose, initialSlug }) {
+export function DocsPanel({ open, onClose, initialSlug, variant = 'modal' }) {
+  const isActive = variant === 'window' || open;
   const { getIdToken, authRequired, user } = useAuth();
   const { t } = useLanguage();
   const [index, setIndex] = useState([]);
@@ -151,18 +220,18 @@ export function DocsPanel({ open, onClose, initialSlug }) {
   );
 
   useEffect(() => {
-    if (!open) return;
+    if (!isActive) return;
     void (async () => {
       await loadIndex();
     })();
-  }, [open, loadIndex]);
+  }, [isActive, loadIndex]);
 
   useEffect(() => {
-    if (!open) return;
+    if (!isActive) return;
     void (async () => {
       await loadPage(selectedSlug);
     })();
-  }, [open, selectedSlug, loadPage]);
+  }, [isActive, selectedSlug, loadPage]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -175,17 +244,7 @@ export function DocsPanel({ open, onClose, initialSlug }) {
       : userGuide;
 
     if (!q) {
-      const priority = new Map([
-        ['getting-started/decision-support', -2],
-        ['getting-started/get-started', -1],
-        ['getting-started/using-the-app', 0],
-        ['guides/operator-workflow', 1],
-        ['guides/when-not-to-act', 2],
-        ['guides/whatsapp-integration', 3],
-        ['guides/news-ingestion', 4],
-        ['guides/operating-daily-pipeline', 5],
-        ['operations/common-failures', 6],
-      ]);
+      const priority = buildDocsNavPriority();
       return [...base].sort((a, b) => {
         const pa = priority.has(a.slug) ? priority.get(a.slug) : 100;
         const pb = priority.has(b.slug) ? priority.get(b.slug) : 100;
@@ -197,7 +256,7 @@ export function DocsPanel({ open, onClose, initialSlug }) {
     return base;
   }, [index, query]);
 
-  const groupedPages = useMemo(() => groupPagesByIntent(filtered), [filtered]);
+  const groupedPages = useMemo(() => groupPagesByNavGroup(filtered), [filtered]);
 
   const selectedMeta = useMemo(() => {
     const fromPage = page?.meta ?? {};
@@ -219,49 +278,18 @@ export function DocsPanel({ open, onClose, initialSlug }) {
     return slugPath ? `${docsBaseUrl}/${slugPath}` : docsBaseUrl;
   }, [page?.meta, index, selectedSlug]);
 
-  return (
-    <ModalPanel
-      open={open}
-      onClose={onClose}
-      title={t('app.docs')}
-      ariaLabel={t('app.documentation')}
-      initialWidth={1120}
-      initialHeight={740}
-      zIndex={60}
-      headerRight={(
-        <>
-          <Link
-            href={fullDocsUrl}
-            target="_blank"
-            rel="noreferrer"
-            underline="none"
-            sx={(theme) => ({
-              fontSize: theme.typography.body2.fontSize,
-              color: 'text.secondary',
-              border: theme.custom.border.hairline,
-              paddingTop: theme.spacing(0.5),
-              paddingBottom: theme.spacing(0.5),
-              paddingLeft: theme.spacing(0.75),
-              paddingRight: theme.spacing(0.75),
-              borderRadius: `${theme.custom.radius.section}px`,
-              backgroundColor: alpha(theme.custom.pastel.mist, 0.65),
-              '&:hover': { color: 'text.primary', backgroundColor: alpha(theme.custom.pastel.periwinkleLight, 0.55) },
-            })}
-          >
-            {t('app.openFullDocs')}
-          </Link>
-          <Button variant="outlined" size="small" onClick={onClose}>
-            {t('app.close')}
-          </Button>
-        </>
-      )}
-    >
+  const body = (
       <Box
         sx={(theme) => ({
           flex: 1,
+          position: 'relative',
           display: 'grid',
           gridTemplateColumns: { xs: '1fr', md: '300px 1fr' },
+          gridTemplateRows: 'minmax(0, 1fr)',
+          height: '100%',
           minHeight: 0,
+          maxHeight: '100%',
+          overflow: 'hidden',
           background: `linear-gradient(180deg, ${alpha(theme.custom.pastel.mist, 0.55)} 0%, ${theme.palette.background.default} 42%)`,
         })}
       >
@@ -273,6 +301,7 @@ export function DocsPanel({ open, onClose, initialSlug }) {
             borderBottom: { xs: theme.custom.border.hairline, md: 'none' },
             padding: theme.spacing(1.5),
             minHeight: 0,
+            overflow: 'hidden',
           })}
         >
           <Paper
@@ -340,8 +369,8 @@ export function DocsPanel({ open, onClose, initialSlug }) {
               boxShadow: theme.custom.elevation.subtle,
             })}
           >
-            {groupedPages.map(([intent, pages]) => (
-              <Box key={intent}>
+            {groupedPages.map(([groupKey, pages]) => (
+              <Box key={groupKey}>
                 <Typography
                   variant="eyebrow"
                   color="text.secondary"
@@ -352,7 +381,7 @@ export function DocsPanel({ open, onClose, initialSlug }) {
                     paddingRight: theme.spacing(1.5),
                   })}
                 >
-                  {intentSectionKey(intent) ? t(intentSectionKey(intent)) : intent.replaceAll('-', ' ')}
+                  {navSectionKey(groupKey) ? t(navSectionKey(groupKey)) : groupKey.replaceAll('-', ' ')}
                 </Typography>
                 {pages.map((p, idx) => (
                   <SidebarItem
@@ -385,12 +414,29 @@ export function DocsPanel({ open, onClose, initialSlug }) {
         <Box
           component="section"
           aria-label={t('docsPanel.contentAria')}
-          sx={(theme) => ({
-            padding: theme.spacing(2),
-            overflow: 'auto',
+          sx={{
+            position: 'relative',
             minHeight: 0,
-          })}
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
+          }}
         >
+          <OpenFullDocsStickyLink
+            href={fullDocsUrl}
+            label={t('app.openFullDocs')}
+            active={isActive}
+            pin={variant === 'window' ? 'fixed' : 'overlay'}
+          />
+          <Box
+            sx={(theme) => ({
+              flex: 1,
+              minHeight: 0,
+              padding: theme.spacing(2),
+              paddingTop: theme.spacing(5.5),
+              overflow: 'auto',
+            })}
+          >
           {error && (
             <Alert
               severity="info"
@@ -477,14 +523,44 @@ export function DocsPanel({ open, onClose, initialSlug }) {
               </Paper>
             </Stack>
           )}
+          </Box>
         </Box>
+      </Box>
+  );
+
+  if (variant === 'window') {
+    return (
+      <PanelWindowShell
+        title={t('app.docs')}
+        ariaLabel={t('app.documentation')}
+      >
+        <Box sx={{ height: '100%', minHeight: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+          {body}
+        </Box>
+      </PanelWindowShell>
+    );
+  }
+
+  return (
+    <ModalPanel
+      open={open}
+      onClose={onClose}
+      title={t('app.docs')}
+      ariaLabel={t('app.documentation')}
+      initialWidth={1120}
+      initialHeight={740}
+      zIndex={60}
+    >
+      <Box sx={{ height: '100%', minHeight: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+        {body}
       </Box>
     </ModalPanel>
   );
 }
 
 DocsPanel.propTypes = {
-  open: PropTypes.bool.isRequired,
+  open: PropTypes.bool,
   onClose: PropTypes.func.isRequired,
   initialSlug: PropTypes.string,
+  variant: PropTypes.oneOf(['modal', 'window']),
 };

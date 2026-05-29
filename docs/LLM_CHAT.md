@@ -10,15 +10,19 @@ The chat is designed to answer questions **about the current resilience report**
 - **Raw behavioral signals** (search by component/source/date/municipality/keyword)
 - **Compare two report dates** (per-component deltas + narrative shifts)
 - **Generate a formatted brief** for a target audience
-- **Original sources** (full article/transcript text via `search_sources` → `get_source` on the `source_archive`)
+- **Original sources** (full text via `list_sources` / `search_sources` → `get_source` on the `source_archive`, with filesystem fallbacks when SQLite rows are purged)
 
 ### Source archive (originals only)
 
 - **Store**: SQLite `source_archive` via [`cross-cut-modules/persistence/sourceArchiveStore.js`](../cross-cut-modules/persistence/sourceArchiveStore.js) and [`createSourceArchive`](../cross-cut-modules/source_archive/createSourceArchive.js).
-- **Contents**: Full original text from ingest (news homefront export, radio/field/whatsapp MD, evidence API uploads, YouTube scenes). **Not** extracted signal JSON rows (those remain in `signals/` + report JSON; use `lookup_signals`).
+- **Contents**: Full original text from all ingest paths: news, radio, field, whatsapp, video, evidence API, **social OSINT**, **PBO municipal/regional**, **Naftali**, **connectivity probes**. **Not** extracted signal JSON rows (use `lookup_signals`; signals may include `source_id` for one-hop `get_source`).
 - **Stable IDs**: `md:{relativePath}#{articleIndex}` or `archive:{source_type}:{hash}`; legacy `db:evidence_items:{id}` still accepted by `get_source`.
-- **Retention (SQLite only)**: `npm run archive:purge` removes **only** `source_type` in `news`, `radio`, `social` with `date` older than 14 days (`SOURCE_ARCHIVE_RETENTION_DAYS`). **Permanent in SQLite**: field, visits, whatsapp, manual, audio, video, etc. **Filesystem**: all extracted `.md` exports are kept forever; purge never deletes files on disk. Old news remains reachable via homefront MD fallback in chat search. Backfill: `npm run archive:backfill`.
-- **Chat tools**: `search_sources`, `get_source` (replaces `search_evidence` / `lookup_evidence`). Aliases kept in the tool handler for one release.
+- **Filesystem fallbacks**: When ephemeral SQLite rows are purged, chat still finds news/radio/field/whatsapp/social via on-disk exports ([`filesystemFallbacks.js`](../cross-cut-modules/source_archive/filesystemFallbacks.js)).
+- **Retention (SQLite only)**: `npm run archive:purge` removes **only** `news`, `radio`, `social` older than 14 days. **Permanent in SQLite**: field, pbo, naftali, probe, whatsapp, manual, video, etc. **Filesystem**: never deleted by purge.
+- **Chat tools**: `list_sources` (browse by date/type), `search_sources` (text/url/title/range), `get_source`. Legacy `search_evidence` / `lookup_evidence` aliases kept one release.
+- **Report scope**: Client sends `reportGeoScope` (`national` | `north`) so chat anchors the same report as the UI toggle. Component focus still uses `scope` body field.
+- **Archive RAG**: When embeddings enabled (`CHAT_RAG_ENABLED`), optional semantic pre-fetch over original bodies (`archive:{date}` namespace). Disable archive-only RAG with `CHAT_ARCHIVE_RAG_ENABLED=0`.
+- **Backfill**: `npm run archive:backfill -- --days 14` (evidence, news, field, whatsapp, radio, social, probes).
 
 ### High-level request flow
 

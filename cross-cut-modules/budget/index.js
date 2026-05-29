@@ -4,6 +4,7 @@ export {
   calcInvocationCostUsd,
   calcTranscriptionCostUsd,
   createCostTracker,
-  appendCostLog,
   checkDailyBudget,
 } from './app/budgetCostTracker.js';
+
+export { appendCostLog } from '../log/index.js';

@@ -8,7 +8,12 @@ import {
   operatorAssessmentSummary,
   DISPLAY_VIEWS,
 } from '../../resilience/domain/services/assessmentDisplayTier.js';
-import { searchSources, getSource } from '../domain/sourceArchiveQuery.js';
+import { searchSources, getSource, listSources } from '../domain/sourceArchiveQuery.js';
+
+const SOURCE_TYPE_ENUM = [
+  'news', 'radio', 'field', 'pbo', 'pbo_regional', 'naftali', 'whatsapp',
+  'social', 'audio', 'manual', 'video', 'probe',
+];
 
 const client = new Anthropic();
 
@@ -49,7 +54,7 @@ const LOOKUP_SIGNALS_TOOL = {
       },
       source_type: {
         type: 'string',
-        enum: ['news', 'radio', 'field', 'pbo', 'naftali', 'whatsapp', 'social'],
+        enum: ['news', 'radio', 'field', 'pbo', 'pbo_regional', 'naftali', 'whatsapp', 'social'],
         description: 'Filter by data source type (optional).',
       },
       municipality: {
@@ -149,29 +154,60 @@ const GET_SOURCE_TOOL = {
   },
 };
 
-const SEARCH_SOURCES_TOOL = {
-  name: 'search_sources',
+const LIST_SOURCES_TOOL = {
+  name: 'list_sources',
   description:
-    'Find original source documents in the archive before quoting. ' +
-    'Returns candidates with source_id, title, url, source_type, and snippet. ' +
-    'Then call get_source with source_id for full text.',
+    'Browse original source documents for a date without a text query. ' +
+    'Returns source_id, title, url, source_type, and snippet. Use get_source for full text.',
   input_schema: {
     type: 'object',
     properties: {
       date: {
         type: 'string',
-        description: 'Date YYYY-MM-DD (defaults to current assessment date when omitted).',
+        description: 'Start date YYYY-MM-DD (defaults to current assessment date when omitted).',
+      },
+      date_to: {
+        type: 'string',
+        description: 'Optional end date YYYY-MM-DD for a range browse.',
+      },
+      source_type: {
+        type: 'string',
+        enum: SOURCE_TYPE_ENUM,
+        description: 'Optional source_type filter.',
+      },
+      limit: { type: 'number', description: 'Max candidates (default 7, max 25).' },
+      snippet_chars: { type: 'number', description: 'Max snippet length (default 350).' },
+    },
+  },
+};
+
+const SEARCH_SOURCES_TOOL = {
+  name: 'search_sources',
+  description:
+    'Find original source documents in the archive before quoting. ' +
+    'Returns candidates with source_id, title, url, source_type, and snippet. ' +
+    'Then call get_source with source_id for full text. Query optional when source_type is set.',
+  input_schema: {
+    type: 'object',
+    properties: {
+      date: {
+        type: 'string',
+        description: 'Start date YYYY-MM-DD (defaults to current assessment date when omitted).',
+      },
+      date_to: {
+        type: 'string',
+        description: 'Optional end date YYYY-MM-DD for range search.',
       },
       query: {
         type: 'string',
-        description: 'Free-text search (title/url/body).',
+        description: 'Free-text search (title/url/body). Optional when source_type is set.',
       },
       url: { type: 'string', description: 'Exact URL match.' },
       title: { type: 'string', description: 'Title substring.' },
       source_type: {
         type: 'string',
-        enum: ['news', 'radio', 'field', 'pbo', 'naftali', 'whatsapp', 'audio', 'manual', 'video'],
-        description: 'Optional source_type filter.',
+        enum: SOURCE_TYPE_ENUM,
+        description: 'Optional source_type filter (allows search without query).',
       },
       limit: { type: 'number', description: 'Max candidates (default 7, max 25).' },
       snippet_chars: { type: 'number', description: 'Max snippet length (default 350).' },
@@ -184,6 +220,7 @@ const ALL_TOOLS = [
   LOOKUP_SIGNALS_TOOL,
   COMPARE_DATES_TOOL,
   GENERATE_BRIEF_TOOL,
+  LIST_SOURCES_TOOL,
   SEARCH_SOURCES_TOOL,
   GET_SOURCE_TOOL,
 ];
@@ -196,11 +233,12 @@ const SYSTEM_TEMPLATE =
   `- lookup_signals: search raw behavioral signals by component, source, municipality, date, or keyword\n` +
   `- compare_dates: compare two assessment dates (score deltas + narrative shifts)\n` +
   `- generate_brief: produce a formatted brief for a specific audience (commander/analyst/public)\n` +
+  `- list_sources: browse originals for a date/type without a text query\n` +
   `- search_sources: find original documents in the archive (returns source_id)\n` +
   `- get_source: retrieve full original text by source_id\n` +
-  `- lookup_signals: behavioral signal index (derived); use search_sources/get_source to validate against originals\n\n` +
+  `- lookup_signals returns source_id when available — use get_source for full original text\n\n` +
   `GUIDELINES:\n` +
-  `- When citing findings, use lookup_signals for signal-level evidence, then search_sources → get_source for original text when validating.\n` +
+  `- When citing findings, use lookup_signals for signal-level evidence; when source_id is present, call get_source for verbatim quotes.\n` +
   `- Default to evidence-first answers: include a short quote and source_id or url when available.\n` +
   `- If the user mentions a site/source but you cannot locate the item, use search_sources first, then get_source by source_id.\n` +
   `- For exact wording or quotes, use get_source on the original document before answering.\n` +
@@ -248,6 +286,15 @@ async function handleToolCall(toolName, input, pboLookup, reportData, sourceArch
 
   if (toolName === 'generate_brief') {
     return await generateBrief(input, reportData, pboLookup);
+  }
+
+  if (toolName === 'list_sources') {
+    const inferredDate =
+      input?.date ??
+      reportData?.assessment?.date ??
+      reportData?.reportDate ??
+      null;
+    return listSources({ ...input, date: inferredDate }, sourceArchive);
   }
 
   if (toolName === 'get_source' || toolName === 'lookup_evidence') {

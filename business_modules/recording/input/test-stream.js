@@ -2,7 +2,7 @@
 /**
  * Step 2 of MVP: verify a stream URL works end-to-end before scheduling it.
  *
- * Records a stream for N seconds, writes to ./recordings/test/ and prints
+ * Records a stream for N seconds, writes to business_modules/recording/data/test/ and prints
  * the output path.  No DB, no transcription — pure "does FFmpeg capture this?".
  *
  * Usage:
@@ -27,6 +27,7 @@ import { resolve, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { dirname } from 'node:path';
 import { createFfmpegDirectStreamAdapter } from '../infrastructure/adapters/ffmpegDirectStreamAdapter.js';
+import { defaultRecordingsDir } from '../infrastructure/recordingDataPaths.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -38,7 +39,7 @@ const getArg = (flag, def = null) => {
 
 const streamUrl  = getArg('--url');
 const durationSec = Number.parseInt(getArg('--duration', '30'), 10);
-const defaultOut = join(__dirname, '..', '..', '..', 'recordings', 'test', `test-${Date.now()}.mp3`);
+const defaultOut = join(defaultRecordingsDir(), 'test', `test-${Date.now()}.mp3`);
 const outputPath = resolve(getArg('--out', defaultOut));
 
 if (!streamUrl) {
