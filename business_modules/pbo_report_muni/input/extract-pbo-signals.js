@@ -8,10 +8,10 @@
  * discover and include.
  *
  * Usage:
- *   node extract-pbo-signals.js [--date YYYY-MM-DD]
+ *   node extract-pbo-signals.js [--date YYYY-MM-DD] [--district north|south|…] [--all-districts] [--force]
  *
- * If --date is omitted, processes all available Excel files.
- * Output: signals/signals-pbo-{date}.json per file
+ * If --date is omitted, processes all available Excel files for the district(s).
+ * Output: signals/signals-pbo-{date}.json (north) or signals/signals-pbo-{district}-{date}.json
  */
 
 import { resolve, dirname } from 'node:path';
@@ -19,8 +19,13 @@ import { fileURLToPath } from 'node:url';
 import { writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { getMunicipalityDashboard } from '../app/pboMunicipalityService.js';
 import { enrichSignalsWithGeo } from '../../../cross-cut-modules/geo/enrichSignalsWithGeo.js';
+import { listPboDistrictIds } from '../../../cross-cut-modules/pbo/pboDistrictRegistry.js';
+import { loadReviewMetadataMapForDate, shouldForcePboSignalRewrite } from '../../pbo_report_review/input/createPboReviewWiring.js';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
+const SQLITE_PATH = process.env.SQLITE_PATH?.trim()
+  ? resolve(process.env.SQLITE_PATH.trim())
+  : resolve(REPO_ROOT, 'data', 'app.sqlite');
 
 const COMPONENT_TO_SIGNAL_TYPE = {
   narrative:                 'resilience_narrative_positive',
@@ -44,12 +49,20 @@ const COMPONENT_TO_NEG_SIGNAL = {
   wellbeing_at_risk:          'psychological_distress',
 };
 
-function buildSignalsForDay(day, componentsOrder, componentNames) {
+function buildSignalsForDay(day, componentsOrder, componentNames, reviewMetaByMuni) {
   const signals = [];
   let articleIdx = 0;
 
   for (const muni of day.municipalities) {
     articleIdx++;
+    const meta = reviewMetaByMuni.get(muni.name) ?? {
+      pbo_completeness: 'incomplete',
+      pbo_review_status: 'open',
+      pbo_evidence_thin: true,
+      supplementalTexts: {},
+    };
+    const supplemental = meta.supplementalTexts ?? {};
+
     for (const cid of componentsOrder) {
       const c = muni.components[cid];
       if (c.avg == null) continue;
@@ -58,7 +71,10 @@ function buildSignalsForDay(day, componentsOrder, componentNames) {
       const signalType = isPositive ? COMPONENT_TO_SIGNAL_TYPE[cid] : COMPONENT_TO_NEG_SIGNAL[cid];
       const scoreParts = c.scores.map((s) => Math.round(s.value * 100) + '%').join(', ');
       const textParts = c.texts.filter(Boolean).join(' | ');
-      const evidence = `[${muni.name}] ${componentNames.he[cid]}: avg=${Math.round(c.avg * 100)}% (${scoreParts})${textParts ? ' — ' + textParts : ''}`;
+      const supplement = String(supplemental[cid] ?? '').trim();
+      let evidence = `[${muni.name}] ${componentNames.he[cid]}: avg=${Math.round(c.avg * 100)}% (${scoreParts})`;
+      if (textParts) evidence += ` — ${textParts}`;
+      if (supplement) evidence += ` — [PBO follow-up] ${supplement}`;
       const scope = c.scores.length >= 3 ? 'quantified_or_broad' : 'single_case';
 
       signals.push({
@@ -71,6 +87,9 @@ function buildSignalsForDay(day, componentsOrder, componentNames) {
         article_source: `pbo-${muni.name}`,
         municipality: muni.name,
         source_type: 'pbo',
+        pbo_completeness: meta.pbo_completeness,
+        pbo_review_status: meta.pbo_review_status,
+        pbo_evidence_thin: meta.pbo_evidence_thin,
       });
     }
   }
@@ -78,14 +97,25 @@ function buildSignalsForDay(day, componentsOrder, componentNames) {
   return signals;
 }
 
-function writeDayBundle(day, outDir, componentsOrder, componentNames) {
-  const outPath = resolve(outDir, `signals-pbo-${day.date}.json`);
-  if (existsSync(outPath)) {
-    console.error(`signals-pbo-${day.date}.json  →  already exists, skipping`);
-    return true;
+function outputFileName(districtId, date) {
+  return districtId === 'north'
+    ? `signals-pbo-${date}.json`
+    : `signals-pbo-${districtId}-${date}.json`;
+}
+
+function writeDayBundle(day, districtId, outDir, componentsOrder, componentNames, { force = false } = {}) {
+  const outPath = resolve(outDir, outputFileName(districtId, day.date));
+  const effectiveForce = force || shouldForcePboSignalRewrite(day.date, SQLITE_PATH);
+  if (existsSync(outPath) && !effectiveForce) {
+    console.error(`${outputFileName(districtId, day.date)}  →  already exists, skipping`);
+    return false;
+  }
+  if (existsSync(outPath) && effectiveForce && !force) {
+    console.error(`${outputFileName(districtId, day.date)}  →  re-extracting (replies or resolved review)`);
   }
 
-  const signals = buildSignalsForDay(day, componentsOrder, componentNames);
+  const reviewMetaByMuni = loadReviewMetadataMapForDate(day.date, SQLITE_PATH);
+  const signals = buildSignalsForDay(day, componentsOrder, componentNames, reviewMetaByMuni);
   const { signals: geoSignals, resolved, unknown } = enrichSignalsWithGeo(signals, {
     rootDir: REPO_ROOT,
     unknownSourceType: 'extract-pbo',
@@ -94,6 +124,7 @@ function writeDayBundle(day, outDir, componentsOrder, componentNames) {
   writeFileSync(outPath, JSON.stringify({
     source_type: 'pbo',
     content_kind: 'pbo_municipality',
+    district_id: districtId,
     date: day.date,
     extracted_at: new Date().toISOString(),
     source_files: [day.file],
@@ -101,30 +132,42 @@ function writeDayBundle(day, outDir, componentsOrder, componentNames) {
     signals: geoSignals,
   }, null, 2), 'utf-8');
 
-  console.error(`signals-pbo-${day.date}.json  →  ${geoSignals.length} signals from ${day.municipalities.length} municipalities (geo: ${resolved} resolved, ${unknown} unknown)`);
+  console.error(`${outputFileName(districtId, day.date)}  →  ${geoSignals.length} signals from ${day.municipalities.length} municipalities (geo: ${resolved} resolved, ${unknown} unknown)`);
   return true;
+}
+
+function runDistrict(districtId, filterDate, outDir, force) {
+  const data = getMunicipalityDashboard(districtId, { rootDir: REPO_ROOT });
+  let filesWritten = 0;
+
+  for (const day of data.days) {
+    if (filterDate && day.date !== filterDate) continue;
+    if (writeDayBundle(day, data.districtId, outDir, data.componentsOrder, data.componentNames, { force })) {
+      filesWritten++;
+    }
+  }
+
+  if (filesWritten === 0) {
+    console.error(filterDate
+      ? `No PBO data found for district=${data.districtId} date=${filterDate}`
+      : `No PBO Excel files found for district=${data.districtId}`);
+  }
 }
 
 function run() {
   const args = process.argv.slice(2);
   const getArg = (flag) => { const i = args.indexOf(flag); return i >= 0 ? args[i + 1] : null; };
   const filterDate = getArg('--date');
+  const allDistricts = args.includes('--all-districts');
+  const districtArg = getArg('--district') ?? 'north';
+  const force = args.includes('--force');
 
-  const data = getMunicipalityDashboard();
   const outDir = resolve('signals');
   mkdirSync(outDir, { recursive: true });
 
-  let filesWritten = 0;
-
-  for (const day of data.days) {
-    if (filterDate && day.date !== filterDate) continue;
-    if (writeDayBundle(day, outDir, data.componentsOrder, data.componentNames)) filesWritten++;
-  }
-
-  if (filesWritten === 0) {
-    console.error(filterDate
-      ? `No PBO data found for ${filterDate}`
-      : 'No PBO Excel files found');
+  const districts = allDistricts ? listPboDistrictIds() : [districtArg];
+  for (const districtId of districts) {
+    runDistrict(districtId, filterDate, outDir, force);
   }
 }
 

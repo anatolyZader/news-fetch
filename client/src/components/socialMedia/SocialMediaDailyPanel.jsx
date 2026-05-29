@@ -20,12 +20,13 @@ import {
 import { formatDate } from '../../lib/date.js';
 import { SocialMediaPostCard } from './SocialMediaPostCard.jsx';
 
-export function SocialMediaDailyPanel() {
+export function SocialMediaDailyPanel({ operatorScope = 'national' }) {
   const { t, lang } = useLanguage();
   const { apiReady, getIdToken } = useAuth();
   const { data: dashboard, loading: dashLoading, error: dashError } = useSocialMediaDashboard({
     getIdToken,
     apiReady,
+    operatorScope,
   });
 
   const dates = useMemo(
@@ -43,6 +44,7 @@ export function SocialMediaDailyPanel() {
     lang,
     getIdToken,
     apiReady,
+    operatorScope,
   });
 
   if (dashLoading) return <LoadingState>{t('socialMedia.loading')}</LoadingState>;

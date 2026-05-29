@@ -473,8 +473,8 @@
         }
       ],
       "expectations": {
-        "score_range": {"functional_continuity": [3, 8]},
-        "comment": "Min-mass floor keeps thin single-signal score in [3,8]."
+        "floor_clamped": {"functional_continuity": false},
+        "comment": "Min-mass floor removed — thin single-signal shows raw score."
       }
     },
 
@@ -557,6 +557,91 @@
       "expectations": {
         "data_void": {"total_silence": true, "level": "critical", "reason": "total_silence"},
         "comment": "Complete sampling blackout must not downgrade to elevated."
+      }
+    },
+
+    {
+      "id": "connectivity_outage_telegram_flood_field_active",
+      "category": "data_void",
+      "scenario": "Connectivity outage with telegram bot flood while field reports continue — field-only scoring partition.",
+      "mock_extraction": [
+        {
+          "article_index": 1,
+          "article_source": "pbo-north",
+          "source_type": "pbo",
+          "signal_type": "service_continuity",
+          "evidence_type": "observational_reported_fact",
+          "scope_level": "single_case",
+          "evidence": "Officers report continued shelter operations despite connectivity loss.",
+          "extraction_confidence": 0.9,
+          "temporal_weight": 1.0
+        },
+        {
+          "article_index": 2,
+          "article_source": "connectivity-probe",
+          "source_type": "infrastructure_probe",
+          "signal_type": "connectivity_outage",
+          "evidence_type": "named_institutional_fact",
+          "scope_level": "quantified_or_broad",
+          "evidence": "Regional connectivity probe reports outage in northern cluster.",
+          "extraction_confidence": 1.0,
+          "temporal_weight": 1.0
+        },
+        {
+          "article_index": 3,
+          "article_source": "tg-panic-1",
+          "source_type": "telegram",
+          "signal_type": "fear_expression",
+          "evidence_type": "observational_reported_fact",
+          "scope_level": "repeated_pattern",
+          "evidence": "Telegram channel reports mass panic and drone sightings.",
+          "extraction_confidence": 0.85,
+          "temporal_weight": 1.0
+        },
+        {
+          "article_index": 4,
+          "article_source": "tg-panic-2",
+          "source_type": "telegram",
+          "signal_type": "fear_expression",
+          "evidence_type": "observational_reported_fact",
+          "scope_level": "repeated_pattern",
+          "evidence": "Telegram users report connectivity loss and evacuation chaos.",
+          "extraction_confidence": 0.85,
+          "temporal_weight": 1.0
+        }
+      ],
+      "expectations": {
+        "data_void": {"level": "critical", "probe_outage": true, "connectivity_outage_signals": 0},
+        "scoring_partition": {
+          "assessmentMode": "field_anchor_only",
+          "min_quarantined_count": 1
+        },
+        "pipeline": {
+          "assessment_mode": "field_anchor_only",
+          "field_score_present": true
+        },
+        "comment": "Poisoned telegram flood must not enter component scores when field is active during connectivity outage."
+      }
+    },
+
+    {
+      "id": "osint_bot_flood_auto_quarantine",
+      "category": "osint_quarantine",
+      "scenario": "Polarized telegram+social bot flood without connectivity outage — OSINT auto-excluded from scoring.",
+      "mock_extraction": [
+        {"article_index": 1, "article_source": "tg-1", "source_type": "telegram", "signal_type": "fear_expression", "evidence_type": "observational_reported_fact", "scope_level": "repeated_pattern", "evidence": "Mass panic reports.", "extraction_confidence": 0.9, "temporal_weight": 1.0},
+        {"article_index": 2, "article_source": "tg-2", "source_type": "telegram", "signal_type": "fear_expression", "evidence_type": "observational_reported_fact", "scope_level": "repeated_pattern", "evidence": "Evacuation chaos.", "extraction_confidence": 0.9, "temporal_weight": 1.0},
+        {"article_index": 3, "article_source": "tg-3", "source_type": "telegram", "signal_type": "fear_expression", "evidence_type": "observational_reported_fact", "scope_level": "repeated_pattern", "evidence": "Drone sightings.", "extraction_confidence": 0.9, "temporal_weight": 1.0},
+        {"article_index": 4, "article_source": "tg-4", "source_type": "telegram", "signal_type": "fear_expression", "evidence_type": "observational_reported_fact", "scope_level": "repeated_pattern", "evidence": "Shelter overcrowding.", "extraction_confidence": 0.9, "temporal_weight": 1.0},
+        {"article_index": 5, "article_source": "social-1", "source_type": "social", "signal_type": "calm_confidence", "evidence_type": "observational_reported_fact", "scope_level": "repeated_pattern", "evidence": "Officials say situation stable.", "extraction_confidence": 0.9, "temporal_weight": 1.0},
+        {"article_index": 6, "article_source": "social-2", "source_type": "social", "signal_type": "calm_confidence", "evidence_type": "observational_reported_fact", "scope_level": "repeated_pattern", "evidence": "Calm messaging.", "extraction_confidence": 0.9, "temporal_weight": 1.0},
+        {"article_index": 7, "article_source": "social-3", "source_type": "social", "signal_type": "calm_confidence", "evidence_type": "observational_reported_fact", "scope_level": "repeated_pattern", "evidence": "Reassurance posts.", "extraction_confidence": 0.9, "temporal_weight": 1.0},
+        {"article_index": 8, "article_source": "social-4", "source_type": "social", "signal_type": "calm_confidence", "evidence_type": "observational_reported_fact", "scope_level": "repeated_pattern", "evidence": "All under control.", "extraction_confidence": 0.9, "temporal_weight": 1.0},
+        {"article_index": 9, "article_source": "ynet", "source_type": "news", "signal_type": "service_continuity", "evidence_type": "named_institutional_fact", "scope_level": "quantified_or_broad", "evidence": "Services continue.", "extraction_confidence": 0.9, "temporal_weight": 1.0}
+      ],
+      "expectations": {
+        "data_void": {"level": "none"},
+        "comment": "OSINT auto-quarantine tested in socialChannelQuarantine.test.js; news-only mass should score without telegram/social."
       }
     },
 

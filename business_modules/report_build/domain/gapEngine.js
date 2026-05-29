@@ -34,6 +34,10 @@ function obsValue(structuredState, field) {
 
 function isFieldPresent(structuredState, field) {
   if (OBSERVATION_FIELD_KEYS[field]) {
+    if (field === 'locality') {
+      const key = structuredState?.observation?.localityKey;
+      if (typeof key === 'string' && key.trim()) return true;
+    }
     const v = obsValue(structuredState, field);
     if (v == null || v === '') return false;
     if (field === 'spread') return ALLOWED_SPREAD.has(v);

@@ -3,7 +3,7 @@
  */
 
 import { scoreComponents } from '../behaviorSignals.js';
-import { filterFieldAnchorSignals } from './sourceChannels.js';
+import { filterAnchorSignals } from './sourceChannels.js';
 import { buildEpistemicStatus } from './epistemicStatus.js';
 
 const ELEVATED_OR_ABOVE = new Set(['elevated', 'critical']);
@@ -25,6 +25,10 @@ export function applyScoreAbstention(scored) {
       score_abstained: comp.score,
       score: null,
       score_smoothed: null,
+      score_low: null,
+      score_high: null,
+      ci_epistemic_invalid: true,
+      ci_unstable: false,
       confidence: 'insufficient_data',
       epistemic_abstention: true,
     };
@@ -34,9 +38,10 @@ export function applyScoreAbstention(scored) {
 
 /**
  * @param {Record<string, object>} scored
+ * @param {string} [reason]
  * @returns {object|null}
  */
-export function snapshotScoresForStale(scored) {
+export function snapshotScoresForStale(scored, reason = 'digital_darkness') {
   if (!scored || typeof scored !== 'object') return null;
   /** @type {Record<string, { score: number|null, confidence: string|null }>} */
   const components = {};
@@ -49,7 +54,7 @@ export function snapshotScoresForStale(scored) {
   return {
     scored_at: new Date().toISOString(),
     components,
-    reason: 'digital_darkness',
+    reason,
   };
 }
 
@@ -64,12 +69,15 @@ export function snapshotScoresForStale(scored) {
  * @param {Array<object>} [params.mediaSignals]
  * @param {object} [params.salienceContext]
  * @param {Record<string, object>} [params.digitalInclusiveScored] pre-gate full score for stale reference
+ * @param {object|null} [params.scoringPartition] from resolveScoringPartition
+ * @param {object|null} [params.quarantinedDigital] summarizeQuarantinedSignals output
  * @returns {{
  *   scoredFull: Record<string, object>,
  *   assessmentMode: string,
  *   epistemicStatus: object,
  *   staleDigitalScores: object|null,
  *   salienceContext: object,
+ *   quarantinedDigital: object|null,
  * }}
  */
 export function applyEpistemicGate({
@@ -80,6 +88,8 @@ export function applyEpistemicGate({
   mediaSignals = null,
   salienceContext = {},
   digitalInclusiveScored = null,
+  scoringPartition = null,
+  quarantinedDigital = null,
 }) {
   const voidLevel = dataVoid?.level ?? 'none';
   const salienceCtx = {
@@ -88,8 +98,46 @@ export function applyEpistemicGate({
     digitalDarkness: dataVoid?.digital_darkness === true,
   };
 
-  if (dataVoid?.digital_darkness === true) {
-    const fieldSignals = filterFieldAnchorSignals(signalsForScoring);
+  const partitionApplied = scoringPartition?.partitionApplied === true;
+
+  if (partitionApplied && scoringPartition.assessmentMode === 'field_anchor_only') {
+    const staleReason = scoringPartition.quarantineReason ?? 'digital_darkness';
+    const staleDigitalScores = digitalInclusiveScored
+      ? snapshotScoresForStale(digitalInclusiveScored, staleReason)
+      : null;
+
+    const epistemicStatus = buildEpistemicStatus(dataVoid, {
+      assessmentMode: 'field_anchor_only',
+    });
+
+    return {
+      scoredFull,
+      assessmentMode: 'field_anchor_only',
+      epistemicStatus,
+      staleDigitalScores,
+      salienceContext: { ...salienceCtx, fieldAnchorOnly: true },
+      quarantinedDigital,
+    };
+  }
+
+  if (partitionApplied && scoringPartition.assessmentMode === 'abstained') {
+    const abstained = applyScoreAbstention(scoredFull);
+    const epistemicStatus = buildEpistemicStatus(dataVoid, {
+      assessmentMode: 'abstained',
+    });
+
+    return {
+      scoredFull: abstained,
+      assessmentMode: 'abstained',
+      epistemicStatus,
+      staleDigitalScores: null,
+      salienceContext: { ...salienceCtx, voidAbstention: true },
+      quarantinedDigital: null,
+    };
+  }
+
+  if (!partitionApplied && dataVoid?.digital_darkness === true) {
+    const fieldSignals = filterAnchorSignals(signalsForScoring);
     const fieldScored = scoreComponents(fieldSignals, {
       totalArticles: Math.max(fieldSignals.length, 1),
       mediaSignals,
@@ -98,6 +146,7 @@ export function applyEpistemicGate({
 
     const staleDigitalScores = snapshotScoresForStale(
       digitalInclusiveScored ?? scoredFull,
+      'digital_darkness',
     );
 
     const epistemicStatus = buildEpistemicStatus(dataVoid, {
@@ -110,10 +159,11 @@ export function applyEpistemicGate({
       epistemicStatus,
       staleDigitalScores,
       salienceContext: salienceCtx,
+      quarantinedDigital,
     };
   }
 
-  if (ELEVATED_OR_ABOVE.has(voidLevel)) {
+  if (!partitionApplied && ELEVATED_OR_ABOVE.has(voidLevel)) {
     const abstained = applyScoreAbstention(scoredFull);
     const epistemicStatus = buildEpistemicStatus(dataVoid, {
       assessmentMode: 'abstained',
@@ -125,6 +175,7 @@ export function applyEpistemicGate({
       epistemicStatus,
       staleDigitalScores: null,
       salienceContext: { ...salienceCtx, voidAbstention: true },
+      quarantinedDigital: null,
     };
   }
 
@@ -138,6 +189,7 @@ export function applyEpistemicGate({
     epistemicStatus,
     staleDigitalScores: null,
     salienceContext: salienceCtx,
+    quarantinedDigital: null,
   };
 }
 
@@ -151,6 +203,8 @@ export function attachEpistemicToAssessment(assessment, {
   epistemicStatus,
   assessmentMode,
   staleDigitalScores,
+  quarantinedDigital,
+  digitalQuarantineState,
 }) {
   if (!assessment || typeof assessment !== 'object') return assessment;
   assessment.data_void = dataVoid;
@@ -158,6 +212,12 @@ export function attachEpistemicToAssessment(assessment, {
   assessment.assessment_mode = assessmentMode;
   if (staleDigitalScores) {
     assessment.stale_digital_scores = staleDigitalScores;
+  }
+  if (quarantinedDigital && quarantinedDigital.count > 0) {
+    assessment.quarantined_digital = quarantinedDigital;
+  }
+  if (digitalQuarantineState?.active === true) {
+    assessment.digital_quarantine_state = digitalQuarantineState;
   }
   return assessment;
 }

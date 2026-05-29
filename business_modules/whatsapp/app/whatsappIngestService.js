@@ -14,12 +14,14 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { isAllowedGroup, isDmMessage, parseWebhookEntry } from '../domain/services/whatsappMessageFilter.js';
+import { isDmPhoneAllowed } from '../../resilience/domain/services/signalGamingPolicy.js';
 import { buildAnalysisReply } from '../domain/services/hebrewResponseBuilder.js';
 import { normalizeInboundMessage } from '../domain/conversation/inboundMessageNormalizer.js';
 import { transition } from '../domain/conversation/conversationStateMachine.js';
 import {
   buildExpiredSession, buildWelcomeMenu, buildFollowupQuestions, buildDraftPreview,
 } from '../domain/conversation/outboundMessageFactory.js';
+import { persistOriginalSources } from '../../../cross-cut-modules/source_archive/persistOriginals.js';
 
 const CONVERSATION_TTL_MINUTES = 60;
 
@@ -28,7 +30,7 @@ const DEFAULT_WHATSAPP_REPORT_BASENAME = 'whatsapp_reports';
 
 /**
  * @param {{
- *   messageStore, apiAdapter, evidenceStore,
+ *   messageStore, apiAdapter, evidenceStore, sourceArchive,
  *   signalStore?, resilienceAnalyzer?,
  *   draftGenerator?,
  *   reportBuildService?,
@@ -36,8 +38,24 @@ const DEFAULT_WHATSAPP_REPORT_BASENAME = 'whatsapp_reports';
  *   allowedGroupIds: string[]
  * }} deps
  */
+function archiveWhatsAppBody(sourceArchive, evidenceStore, item) {
+  if (!sourceArchive) {
+    try {
+      evidenceStore?.insertItems?.([item]);
+    } catch (err) {
+      if (!err.message?.includes('UNIQUE constraint')) throw err;
+    }
+    return;
+  }
+  try {
+    persistOriginalSources(sourceArchive, [item], { evidenceStore });
+  } catch (err) {
+    if (!err.message?.includes('UNIQUE constraint')) throw err;
+  }
+}
+
 export function createWhatsAppIngestService({
-  messageStore, apiAdapter, evidenceStore, signalStore,
+  messageStore, apiAdapter, evidenceStore, sourceArchive, signalStore,
   resilienceAnalyzer, draftGenerator,
   reportBuildService,
   conversationStore, draftStore, allowedGroupIds,
@@ -98,6 +116,11 @@ export function createWhatsAppIngestService({
   // ── DM flow (adaptive chatbot) ─────────────────────────────────────────
 
   async function handleDmMessage(msg) {
+    if (!isDmPhoneAllowed(msg.senderPhone)) {
+      console.error(`  → [whatsapp] DM from ${msg.senderPhone} rejected (not in allowlist)`);
+      return;
+    }
+
     const normalized = normalizeInboundMessage(msg, msg.rawMessage);
 
     if (messageStore.hasMsgId(msg.metaMsgId)) return;
@@ -301,19 +324,15 @@ export function createWhatsAppIngestService({
 
     const approved = draft.approved_draft ?? composeFallbackNarrative(draft);
 
-    try {
-      evidenceStore.insertItems([{
-        date,
-        source_type: 'whatsapp_dm',
-        source_label: 'whatsapp-dm',
-        source_url: '',
-        title: `WhatsApp DM: ${normalized.displayName || normalized.phoneNumber} — ${approved.slice(0, 60)}`,
-        body: approved,
-        published_at: timestampUtc,
-      }]);
-    } catch (err) {
-      if (!err.message?.includes('UNIQUE constraint')) throw err;
-    }
+    archiveWhatsAppBody(sourceArchive, evidenceStore, {
+      date,
+      source_type: 'whatsapp',
+      source_label: 'whatsapp-dm',
+      source_url: '',
+      title: `WhatsApp DM: ${normalized.displayName || normalized.phoneNumber} — ${approved.slice(0, 60)}`,
+      body: approved,
+      published_at: timestampUtc,
+    });
 
     // Run one more extraction on the approved narrative so the downstream
     // signals table reflects the final reviewed text (not an intermediate turn).
@@ -356,19 +375,15 @@ export function createWhatsAppIngestService({
 
     if (!inserted) return;
 
-    try {
-      evidenceStore.insertItems([{
-        date,
-        source_type: 'whatsapp',
-        source_label: 'whatsapp-group',
-        source_url: '',
-        title: `WhatsApp: ${msg.senderName || msg.senderPhone} — ${msg.text.slice(0, 60)}`,
-        body: msg.text,
-        published_at: timestampUtc,
-      }]);
-    } catch (err) {
-      if (!err.message?.includes('UNIQUE constraint')) throw err;
-    }
+    archiveWhatsAppBody(sourceArchive, evidenceStore, {
+      date,
+      source_type: 'whatsapp',
+      source_label: 'whatsapp-group',
+      source_url: '',
+      title: `WhatsApp: ${msg.senderName || msg.senderPhone} — ${msg.text.slice(0, 60)}`,
+      body: msg.text,
+      published_at: timestampUtc,
+    });
 
     if (resilienceAnalyzer && signalStore) {
       try {

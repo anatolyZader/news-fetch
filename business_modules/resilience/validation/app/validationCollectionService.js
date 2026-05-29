@@ -9,15 +9,29 @@ import {
 import { buildReviewQueue } from '../domain/reviewQueueBuilder.js';
 import { buildValidationRecord } from '../domain/validationRecordBuilder.js';
 import { createValidationArtifactWriter } from '../infrastructure/validationArtifactAdapter.js';
+import {
+  createValidationReviewSqliteStore,
+  isValidationReviewSqliteEnabled,
+} from '../infrastructure/adapters/validationReviewSqliteStore.js';
+import { resolve } from 'node:path';
 
 /**
  * @param {object} [deps]
  * @param {() => object} [deps.loadConfig]
  * @param {typeof createValidationArtifactWriter} [deps.createWriter]
+ * @param {import('../domain/ports/IValidationReviewStorePort.js').IValidationReviewStorePort} [deps.validationReviewStore]
  */
 export default function createValidationCollectionService(deps = {}) {
   const loadConfig = deps.loadConfig ?? loadValidationConfig;
   const createWriter = deps.createWriter ?? createValidationArtifactWriter;
+  const validationReviewStore = deps.validationReviewStore
+    ?? (isValidationReviewSqliteEnabled()
+      ? createValidationReviewSqliteStore(
+        process.env.SQLITE_PATH?.trim()
+          ? resolve(process.env.SQLITE_PATH.trim())
+          : resolve(process.cwd(), 'data', 'app.sqlite'),
+      )
+      : null);
 
   /**
    * @param {object} input
@@ -57,6 +71,18 @@ export default function createValidationCollectionService(deps = {}) {
       });
       reviewQueue.operational_phase = config.operational_phase;
       reviewQueuePath = writer.writeReviewQueue(reviewQueue);
+      if (validationReviewStore && reviewQueue.date) {
+        validationReviewStore.upsertQueueItems(
+          reviewQueue.date,
+          reviewQueue.scope ?? 'national',
+          reviewQueue.items,
+          {
+            generated_at: reviewQueue.generated_at,
+            catalog_version: reviewQueue.catalog_version,
+            scoring_model_version: reviewQueue.scoring_model_version,
+          },
+        );
+      }
     }
 
     const reviewQueueSummary = reviewQueue

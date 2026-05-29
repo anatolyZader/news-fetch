@@ -96,7 +96,7 @@ export function ChatPanel({ reportScope, onClose, variant = 'embedded' }) {
   useEffect(() => {
     if (variant !== 'window') return undefined;
     const previous = document.title;
-    document.title = `${t('chat.ariaDialog')} · Vibes Witch`;
+    document.title = `${t('chat.ariaDialog')} · Srulik\'s lab`;
     return () => {
       document.title = previous;
     };

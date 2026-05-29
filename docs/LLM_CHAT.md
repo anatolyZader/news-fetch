@@ -1,4 +1,4 @@
-## LLM Chat (vibeswitch.ai) — Current Implementation
+## LLM Chat (srulik.ai) — Current Implementation
 
 This document describes the **LLM-based chat functionality as implemented now**: the UI/UX, backend API route, streaming protocol, prompt grounding, tool use, auth behavior, and where the data comes from.
 
@@ -10,6 +10,15 @@ The chat is designed to answer questions **about the current resilience report**
 - **Raw behavioral signals** (search by component/source/date/municipality/keyword)
 - **Compare two report dates** (per-component deltas + narrative shifts)
 - **Generate a formatted brief** for a target audience
+- **Original sources** (full article/transcript text via `search_sources` → `get_source` on the `source_archive`)
+
+### Source archive (originals only)
+
+- **Store**: SQLite `source_archive` via [`cross-cut-modules/persistence/sourceArchiveStore.js`](../cross-cut-modules/persistence/sourceArchiveStore.js) and [`createSourceArchive`](../cross-cut-modules/source_archive/createSourceArchive.js).
+- **Contents**: Full original text from ingest (news homefront export, radio/field/whatsapp MD, evidence API uploads, YouTube scenes). **Not** extracted signal JSON rows (those remain in `signals/` + report JSON; use `lookup_signals`).
+- **Stable IDs**: `md:{relativePath}#{articleIndex}` or `archive:{source_type}:{hash}`; legacy `db:evidence_items:{id}` still accepted by `get_source`.
+- **Retention (SQLite only)**: `npm run archive:purge` removes **only** `source_type` in `news`, `radio`, `social` with `date` older than 14 days (`SOURCE_ARCHIVE_RETENTION_DAYS`). **Permanent in SQLite**: field, visits, whatsapp, manual, audio, video, etc. **Filesystem**: all extracted `.md` exports are kept forever; purge never deletes files on disk. Old news remains reachable via homefront MD fallback in chat search. Backfill: `npm run archive:backfill`.
+- **Chat tools**: `search_sources`, `get_source` (replaces `search_evidence` / `lookup_evidence`). Aliases kept in the tool handler for one release.
 
 ### High-level request flow
 
@@ -19,8 +28,8 @@ The chat is designed to answer questions **about the current resilience report**
 - **Client hook**: `client/src/hooks/useChat.js`
   - Appends the user’s message to local history.
   - `POST`s to `POST /api/chat` and parses a streaming SSE-like response.
-- **Server route**: `app.js` (`createApp`)
-  - Defines `POST /api/chat` (optionally protected by JWT).
+- **Server route**: [`api/routes/chatRoutes.js`](../api/routes/chatRoutes.js) (registered from `app.js`)
+  - Session APIs + `POST /api/chat` (JWT when `AUTH_REQUIRED=true`).
   - Responds as a `text/event-stream` and calls the chat module to stream events.
 - **Chat module**: `business_modules/chat/app/chatService.js`
   - Builds report-grounded context.
@@ -164,7 +173,7 @@ Important: the report context is only as good as the `reportData` passed into `b
 The server uses `getCachedReport()` from `api/analysisService.js` in two different ways:
 
 - `GET /api/report/today` calls `getCachedReport(evidenceStore)` (DB-aware fallback).
-- `POST /api/chat` currently passes `getCachedReport` as a callback, and the chat module calls it **without providing `evidenceStore`**.
+- Chat now calls `getCachedReport(evidenceStore)` so DB-backed reports work when JSON is missing on disk.
 
 Effect:
 
@@ -300,7 +309,11 @@ Backend behavior:
   - recent signals mentioning that municipality
 - Calls Claude once (non-streamed) and returns the resulting text as the tool output.
 
-#### `lookup_evidence`
+#### `search_sources` / `get_source`
+
+Unified access to the **source archive** (and homefront MD fallback when a row is missing). Use `search_sources` to find `source_id`, then `get_source` for full text. See [`sourceArchiveQuery.js`](../business_modules/chat/domain/sourceArchiveQuery.js).
+
+#### `lookup_evidence` (deprecated — use `get_source`)
 
 - **Purpose**: Retrieve full stored evidence/article text *on demand* (not included in the main prompt).
 - **Input**:
@@ -333,7 +346,7 @@ Implementation:
 - Tool handler: `business_modules/chat/infrastructure/claudeChat.js`
 - Lookup logic: `business_modules/chat/domain/evidenceLookup.js`
 
-#### `search_evidence`
+#### `search_evidence` (deprecated — use `search_sources`)
 
 - **Purpose**: Find the right evidence source before pulling full text. Returns candidates with `evidence_id`.
 - **Input**:

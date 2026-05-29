@@ -32,6 +32,8 @@ export function isFieldFamilySource(signal) {
 export function hasFieldGeoBinding(signal) {
   const fp = signal?.field_provenance;
   if (fp?.visit_locality) return true;
+  if (fp?.officer_id) return true;
+  if (signal?.structured?.observation?.localityKey || signal?.localityKey) return true;
   const g = signal?.geo;
   return g?.kind === 'resolved';
 }

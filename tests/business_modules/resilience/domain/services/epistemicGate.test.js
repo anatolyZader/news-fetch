@@ -63,10 +63,53 @@ describe('epistemicGate', () => {
     assert.ok(result.staleDigitalScores?.components?.narrative);
   });
 
-  it('applyScoreAbstention preserves score_abstained', () => {
-    const out = applyScoreAbstention({ narrative: { score: 8, confidence: 'high' } });
+  it('applyScoreAbstention preserves score_abstained and clears CI', () => {
+    const out = applyScoreAbstention({
+      narrative: {
+        score: 8,
+        confidence: 'high',
+        score_low: 5,
+        score_high: 9,
+        ci_unstable: false,
+      },
+    });
     assert.equal(out.narrative.score, null);
     assert.equal(out.narrative.score_abstained, 8);
+    assert.equal(out.narrative.score_low, null);
+    assert.equal(out.narrative.score_high, null);
+    assert.equal(out.narrative.ci_epistemic_invalid, true);
+  });
+
+  it('connectivity outage with field uses field_anchor via partition', () => {
+    process.env.RESILIENCE_SCORING_PARTITION = '1';
+    const fieldScored = mockScored(6);
+    const quarantinedDigital = {
+      count: 2,
+      reason: 'connectivity_isolation',
+      by_source_type: { telegram: 2 },
+      sample_evidence: ['panic'],
+    };
+    const result = applyEpistemicGate({
+      scoredFull: fieldScored,
+      signalsForScoring: [{ source_type: 'pbo', evidence: 'field ok' }],
+      dataVoid: {
+        level: 'critical',
+        connectivity_outage_signals: 1,
+        field_volume: 1,
+      },
+      totalArticles: 1,
+      digitalInclusiveScored: mockScored(3),
+      scoringPartition: {
+        assessmentMode: 'field_anchor_only',
+        partitionApplied: true,
+        quarantineReason: 'connectivity_isolation',
+      },
+      quarantinedDigital,
+    });
+    assert.equal(result.assessmentMode, 'field_anchor_only');
+    assert.equal(result.scoredFull.narrative.score, 6);
+    assert.equal(result.quarantinedDigital.count, 2);
+    assert.equal(result.staleDigitalScores?.reason, 'connectivity_isolation');
   });
 });
 

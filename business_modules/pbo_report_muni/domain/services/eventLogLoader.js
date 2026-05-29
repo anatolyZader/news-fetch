@@ -13,6 +13,53 @@
 
 const EXPECTED_COLUMNS = ['time', 'actor', 'behavior', 'category', 'context', 'source'];
 
+function isTitleLine(line) {
+  return line.toUpperCase().includes('INCIDENT EVENT LOG');
+}
+
+function isColumnHeaderLine(line) {
+  return line.toLowerCase().includes('time') && line.includes('|');
+}
+
+function isEventListMarker(line) {
+  return line.toUpperCase().replaceAll(/\s+/g, ' ').includes('EVENT LIST');
+}
+
+function isSkippableLine(line) {
+  return /^[-=]+$/.test(line) || line.toLowerCase() === 'format';
+}
+
+function parseEventRow(line, columns) {
+  const parts = line.split('|').map((p) => p.trim());
+  if (parts.length < 2) return null;
+
+  const event = {};
+  columns.forEach((col, i) => {
+    event[col] = parts[i] ?? '';
+  });
+  if (event.time?.toLowerCase() === 'time') return null;
+  return event;
+}
+
+function parseEventLogLine(line, ctx) {
+  if (!ctx.inEvents && isTitleLine(line)) {
+    ctx.title = line;
+    return;
+  }
+  if (!ctx.inEvents && isColumnHeaderLine(line)) {
+    ctx.columns = line.split('|').map((c) => c.trim().toLowerCase());
+    return;
+  }
+  if (!ctx.inEvents && isEventListMarker(line)) {
+    ctx.inEvents = true;
+    return;
+  }
+  if (isSkippableLine(line) || !ctx.inEvents) return;
+
+  const event = parseEventRow(line, ctx.columns);
+  if (event) ctx.events.push(event);
+}
+
 /**
  * Parse raw text of an event log.
  * Accepts text from a file or from stdin.
@@ -24,54 +71,19 @@ const EXPECTED_COLUMNS = ['time', 'actor', 'behavior', 'category', 'context', 's
 export function parseEventLog(text, sourceName = 'stdin') {
   const lines = text.split('\n').map((l) => l.trim()).filter(Boolean);
 
-  let title = 'PBO Incident Event Log';
-  let columns = EXPECTED_COLUMNS;
-  const events = [];
-  let inEvents = false;
+  /** @type {{ title: string, columns: string[], events: object[], inEvents: boolean }} */
+  const ctx = {
+    title: 'PBO Incident Event Log',
+    columns: EXPECTED_COLUMNS,
+    events: [],
+    inEvents: false,
+  };
 
   for (const line of lines) {
-    // Header title (first non-empty line that isn't a separator)
-    if (!inEvents && line.toUpperCase().includes('INCIDENT EVENT LOG')) {
-      title = line;
-      continue;
-    }
-
-    // Column header row: contains pipe-separated column names
-    if (!inEvents && line.toLowerCase().includes('time') && line.includes('|')) {
-      columns = line.split('|').map((c) => c.trim().toLowerCase());
-      continue;
-    }
-
-    // "EVENT LIST" marker
-    if (!inEvents && line.toUpperCase().replaceAll(/\s+/g, ' ').includes('EVENT LIST')) {
-      inEvents = true;
-      continue;
-    }
-
-    // Separator lines like "---" or "==="
-    if (/^[-=]+$/.test(line)) continue;
-
-    // Skip "Format" label line
-    if (line.toLowerCase() === 'format') continue;
-
-    if (!inEvents) continue;
-
-    // Parse event row
-    const parts = line.split('|').map((p) => p.trim());
-    if (parts.length < 2) continue;
-
-    const event = {};
-    columns.forEach((col, i) => {
-      event[col] = parts[i] ?? '';
-    });
-
-    // Skip rows that look like header repetitions
-    if (event.time?.toLowerCase() === 'time') continue;
-
-    events.push(event);
+    parseEventLogLine(line, ctx);
   }
 
-  return { title, columns, events, rawText: text, sourceName };
+  return { title: ctx.title, columns: ctx.columns, events: ctx.events, rawText: text, sourceName };
 }
 
 /**

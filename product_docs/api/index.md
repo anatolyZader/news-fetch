@@ -4,21 +4,21 @@ description: "Generated API reference from OpenAPI (single source of truth)."
 intent: api
 audience: ["public", "customer"]
 stability: beta
-canonical: "https://docs.vibeswitch.ai/api"
+canonical: "https://docs.srulik.ai/api"
 version: "current"
 tags: ["api"]
 slug: /api
 ---
 
 ## Purpose
-Give integrators a single place to find the API contract, explore endpoints interactively, and understand the contract-first philosophy behind VibeSwitch's HTTP surface. The endpoint-by-endpoint reference itself is generated from `openapi/openapi.yaml` — this page is your orientation to how to read and use it.
+Give integrators a single place to find the API contract, explore endpoints interactively, and understand the contract-first philosophy behind Srulik's lab's HTTP surface. The endpoint-by-endpoint reference itself is generated from `openapi/openapi.yaml` — this page is your orientation to how to read and use it.
 
 ## Prerequisites
-- **Required**: A reachable VibeSwitch instance (local or deployed).
+- **Required**: A reachable Srulik's lab instance (local or deployed).
 - **Useful**: Comfort reading OpenAPI specs, or willingness to click around in Swagger UI.
 
 ## Inputs
-- **HTTP requests** to the VibeSwitch API. Every endpoint, request shape, and response shape is defined in `openapi/openapi.yaml`.
+- **HTTP requests** to the Srulik's lab API. Every endpoint, request shape, and response shape is defined in `openapi/openapi.yaml`.
 - **An ID token** (if `AUTH_REQUIRED=true`) passed as `Authorization: Bearer <idToken>` for protected endpoints. See [Auth model](../concepts/auth-model.md).
 
 ## Outputs
@@ -101,7 +101,7 @@ Don't hand-edit the generated pages — your changes will be overwritten.
   - **Fix**: update the YAML and rebuild the docs site. Don't patch the generated markdown directly.
 - **Swagger UI is blank**
   - **Check**: `/api/openapi.json` returns valid JSON.
-  - **Fix**: confirm the spec file exists on the server; see [Common failures](https://docs.vibeswitch.ai/operations/common-failures).
+  - **Fix**: confirm the spec file exists on the server; see [Common failures](https://docs.srulik.ai/operations/common-failures).
 - **401 from every endpoint**
   - **Check**: `/api/auth/config` — if `authRequired: true`, you need a Bearer token.
   - **Fix**: sign in via the UI or mint an ID token via Firebase to use directly. See [Auth model](../concepts/auth-model.md).

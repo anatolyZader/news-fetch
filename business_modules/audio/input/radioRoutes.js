@@ -4,14 +4,17 @@
  * @param {import('fastify').FastifyInstance} app
  * @param {{ radioIngestReadService?: ReturnType<import('../app/radioIngestReadService.js').createRadioIngestReadService>, authPreHandler?: any }} opts
  */
+import { checkOptionalDistrictQueryAccess } from '../../../cross-cut-modules/auth/checkOptionalDistrictQueryAccess.js';
+
 export async function radioRoutes(app, opts) {
   const radioIngestReadService = opts?.radioIngestReadService ?? null;
   const preHandler = opts?.authPreHandler ? { preHandler: opts.authPreHandler } : {};
 
-  app.get('/api/radio', preHandler, async (_request, reply) => {
+  app.get('/api/radio', preHandler, async (request, reply) => {
     if (!radioIngestReadService) {
       return reply.code(503).send({ error: 'radio ingest service not configured' });
     }
+    if (!checkOptionalDistrictQueryAccess(request, reply)) return;
     try {
       return reply.send(radioIngestReadService.getDashboard());
     } catch (err) {
@@ -23,6 +26,7 @@ export async function radioRoutes(app, opts) {
     if (!radioIngestReadService) {
       return reply.code(503).send({ error: 'radio ingest service not configured' });
     }
+    if (!checkOptionalDistrictQueryAccess(request, reply)) return;
     const date = String(request.query?.date ?? '').trim();
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
       return reply.code(400).send({ error: 'date query param required (YYYY-MM-DD)' });

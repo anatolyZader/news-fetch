@@ -533,7 +533,7 @@ function signalTotalsByDate(sourceType, sourceFiles) {
 
   try {
     for (const file of readdirSync(signalsDir)) {
-      const match = new RegExp(`^signals-${sourceType}-(\\d{4}-\\d{2}-\\d{2})\\.json$`).exec(file);
+      const match = new RegExp(String.raw`^signals-${sourceType}-(\d{4}-\d{2}-\d{2})\.json$`).exec(file);
       if (!match) continue;
       const data = JSON.parse(readFileSync(resolve(signalsDir, file), 'utf8'));
       const included = (data.source_files ?? []).some((f) => wantedFiles.has(String(f)));
@@ -971,6 +971,44 @@ function getAssessmentFromCache(cached) {
   return null;
 }
 
+function appendDashboardErrorParts(title, msg, partsText, partsHtml) {
+  partsText.push(`=== ${title} ===\n(Error: ${msg})`);
+  partsHtml.push(`<h2>${escapeHtml(title)}</h2><p style="color:#b00">Error: ${escapeHtml(msg)}</p>`);
+}
+
+async function appendDashboardParts({ enabled, loadDashboard, buildText, buildHtml, title, labels, lang, dir, parts }) {
+  if (!enabled) return;
+  const { text: partsText, html: partsHtml } = parts;
+  try {
+    const dash = await loadDashboard();
+    partsText.push(buildText(dash, labels, lang));
+    partsHtml.push(buildHtml(dash, labels, lang, dir));
+  } catch (e) {
+    appendDashboardErrorParts(title, e?.message ?? 'failed to load', partsText, partsHtml);
+  }
+}
+
+async function appendReportDigestParts({ products, lang, labels, dir, parts, getCachedReport, translateReport }) {
+  if (!products.report) return;
+  const { text: partsText, html: partsHtml } = parts;
+  const cached = getCachedReport();
+  let assessment = getAssessmentFromCache(cached);
+  if (lang !== 'en' && assessment && translateReport) {
+    try {
+      assessment = await translateReport(assessment, lang);
+    } catch {
+      // Translation failures should not block digest delivery; fall back to source language.
+    }
+  }
+  if (assessment) {
+    partsText.push(buildReportText({ cached, assessment, labels, lang }));
+    partsHtml.push(buildReportHtml({ cached, assessment, labels, lang, dir }));
+    return;
+  }
+  partsText.push(`=== ${labels.reportTitle} ===\n(${labels.noReport})`);
+  partsHtml.push(`<h2>${escapeHtml(labels.reportTitle)}</h2><p><em>${escapeHtml(labels.noReport)}</em></p>`);
+}
+
 /**
  * @param {object} opts
  * @param {import('../domain/ports/IMailingDeliveryPort.js').IMailingDeliveryPort} opts.deliveryPort
@@ -1005,48 +1043,35 @@ export function createMailingService({
     const partsText = [];
     const partsHtml = [];
 
-    if (products.report) {
-      const cached = getCachedReport();
-      let assessment = getAssessmentFromCache(cached);
-      if (lang !== 'en' && assessment && translateReport) {
-        try {
-          assessment = await translateReport(assessment, lang);
-        } catch {
-          // Translation failures should not block digest delivery; fall back to source language.
-        }
-      }
-      if (assessment) {
-        partsText.push(buildReportText({ cached, assessment, labels, lang }));
-        partsHtml.push(buildReportHtml({ cached, assessment, labels, lang, dir }));
-      } else {
-        partsText.push(`=== ${labels.reportTitle} ===\n(${labels.noReport})`);
-        partsHtml.push(`<h2>${escapeHtml(labels.reportTitle)}</h2><p><em>${escapeHtml(labels.noReport)}</em></p>`);
-      }
-    }
+    const parts = { text: partsText, html: partsHtml };
 
-    if (products.naftali) {
-      try {
-        const dash = await poolService.getNaftaliDashboard({ forceRefresh: false });
-        partsText.push(buildNaftaliText(dash, labels, lang));
-        partsHtml.push(buildNaftaliHtml(dash, labels, lang, dir));
-      } catch (e) {
-        const msg = e?.message ?? 'failed to load';
-        partsText.push(`=== ${labels.naftaliTitle} ===\n(Error: ${msg})`);
-        partsHtml.push(`<h2>${escapeHtml(labels.naftaliTitle)}</h2><p style="color:#b00">Error: ${escapeHtml(msg)}</p>`);
-      }
-    }
+    await appendReportDigestParts({
+      products, lang, labels, dir, parts, getCachedReport, translateReport,
+    });
 
-    if (products.education) {
-      try {
-        const dash = await poolService.getEducationDashboard({ forceRefresh: false });
-        partsText.push(buildEducationText(dash, labels, lang));
-        partsHtml.push(buildEducationHtml(dash, labels, lang, dir));
-      } catch (e) {
-        const msg = e?.message ?? 'failed to load';
-        partsText.push(`=== ${labels.educationTitle} ===\n(Error: ${msg})`);
-        partsHtml.push(`<h2>${escapeHtml(labels.educationTitle)}</h2><p style="color:#b00">Error: ${escapeHtml(msg)}</p>`);
-      }
-    }
+    await appendDashboardParts({
+      enabled: products.naftali,
+      loadDashboard: () => poolService.getNaftaliDashboard({ forceRefresh: false }),
+      buildText: buildNaftaliText,
+      buildHtml: buildNaftaliHtml,
+      title: labels.naftaliTitle,
+      labels,
+      lang,
+      dir,
+      parts,
+    });
+
+    await appendDashboardParts({
+      enabled: products.education,
+      loadDashboard: () => poolService.getEducationDashboard({ forceRefresh: false }),
+      buildText: buildEducationText,
+      buildHtml: buildEducationHtml,
+      title: labels.educationTitle,
+      labels,
+      lang,
+      dir,
+      parts,
+    });
 
     if (products.platform) {
       const note = 'Product and operational notices: none configured for this digest. This section may include non-data announcements in the future.';

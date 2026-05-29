@@ -3,6 +3,8 @@
  * @param {import('fastify').FastifyInstance} app
  * @param {{ authPreHandler?: import('fastify').preHandlerHookHandler, poolService?: { getEducationDashboard: Function, getNaftaliDashboard: Function } }} [opts]
  */
+import { checkOptionalDistrictQueryAccess } from '../../../cross-cut-modules/auth/checkOptionalDistrictQueryAccess.js';
+
 export async function registerPoolRoutes(app, opts = {}) {
   const pre = opts.authPreHandler ? { preHandler: opts.authPreHandler } : {};
 
@@ -11,6 +13,7 @@ export async function registerPoolRoutes(app, opts = {}) {
     if (!poolSvc?.getEducationDashboard) {
       return reply.code(503).send({ error: 'pool service not available' });
     }
+    if (!checkOptionalDistrictQueryAccess(request, reply)) return;
     const forceRefresh = request.query?.refresh === '1';
     try {
       const data = await poolSvc.getEducationDashboard({ forceRefresh });
@@ -25,6 +28,7 @@ export async function registerPoolRoutes(app, opts = {}) {
     if (!poolSvc?.getNaftaliDashboard) {
       return reply.code(503).send({ error: 'pool service not available' });
     }
+    if (!checkOptionalDistrictQueryAccess(request, reply)) return;
     const forceRefresh = request.query?.refresh === '1';
     try {
       const data = await poolSvc.getNaftaliDashboard({ forceRefresh });

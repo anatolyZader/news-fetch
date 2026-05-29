@@ -1,6 +1,6 @@
-## VibeSwitch docs site (Docusaurus)
+## Srulik's lab docs site (Docusaurus)
 
-This site is the **primary** docs surface for `docs.vibeswitch.ai`.
+This site is the **primary** docs surface for `docs.srulik.ai`.
 
 ### Source of truth
 - Human-written docs live in `../product_docs/`
@@ -22,4 +22,3 @@ npm run start
 
 ### Notes
 - Replace `editUrl` in `docusaurus.config.js` with your real repo URL.
-

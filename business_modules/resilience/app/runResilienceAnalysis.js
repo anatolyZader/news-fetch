@@ -7,15 +7,16 @@ import { existsSync } from 'node:fs';
 
 import { loadMdFiles } from '../infrastructure/mdReportsLoader.js';
 import { extractSignals, generateNarratives } from '../infrastructure/claudeEvaluator.js';
-import { scoreComponents } from '../domain/services/behaviorSignals.js';
 import {
-  computeDataVoidIndex,
-  applyEpistemicGate,
   attachEpistemicToAssessment,
 } from '../domain/services/dataVoidIndex.js';
 import { salienceContextFromDataVoid } from '../domain/services/highSalienceBypass.js';
-import { loadHistoricalSignalDays } from '../input/assessSignalsHelpers.js';
+import { loadHistoricalScores } from '../input/assessSignalsHelpers.js';
+import { summarizeValidationMaturity } from '../validation/domain/validationStatus.js';
 import { loadConnectivityProbeSignals } from '../infrastructure/adapters/connectivityProbeFileAdapter.js';
+import { enrichProbeSignalsInList } from '../domain/services/probeCorroborationPolicy.js';
+import { runScoringPipeline } from './scoringPipelinePrep.js';
+import { prepareScoringSignals } from './prepareScoringSignals.js';
 
 /**
  * @param {object} opts
@@ -58,47 +59,77 @@ export async function runResilienceAnalysis({
   if (probeSignals.length > 0) {
     signals = [...signals, ...probeSignals];
   }
+  signals = enrichProbeSignalsInList(signals);
 
   const hasReportsDir = existsSync(reportsDir);
-  const historicalSignalDays = hasReportsDir
-    ? loadHistoricalSignalDays(reportDate, reportsDir, 7, 'national')
-    : [];
+  const historicalScores = hasReportsDir
+    ? loadHistoricalScores(reportDate, reportsDir, 14, 'national')
+    : {};
 
   const voidStatus = hasReportsDir ? 'active' : 'unavailable';
-  const dataVoid = computeDataVoidIndex(signals, historicalSignalDays, {
-    reportScope: 'national',
-    voidStatus,
-  });
-
-  let salienceContext = salienceContextFromDataVoid(dataVoid);
-  const digitalInclusiveScored = scoreComponents(signals, {
-    totalArticles,
-    salienceContext,
-  });
-
-  const gateResult = applyEpistemicGate({
-    scoredFull: digitalInclusiveScored,
+  const prepared = await prepareScoringSignals({
     signalsForScoring: signals,
-    dataVoid,
-    totalArticles,
-    salienceContext,
-    digitalInclusiveScored,
+    reportDate,
+    reportScopeId: 'national',
+    reportsDir,
+    digitalDarknessHint: false,
   });
 
-  const assessment = await generateNarratives(gateResult.scoredFull, signals, reportDate, totalArticles, {
-    onUsage,
-    priorReports,
-    contentKind,
+  if (voidStatus === 'unavailable') {
+    prepared.dataVoid.void_status = 'unavailable';
+  }
+
+  const dataVoid = prepared.dataVoid;
+  const salienceContext = salienceContextFromDataVoid(dataVoid);
+  const validationMaturity = summarizeValidationMaturity({ rootDir: reportsDir });
+
+  const pipelineResult = runScoringPipeline({
+    signalsForScoring: prepared.signalsForScoring,
     dataVoid,
-    salienceContext: gateResult.salienceContext,
+    totalArticles,
+    mediaSignals: signals,
+    salienceContext,
+    historicalScores,
+    scopeId: 'national',
+    validationMaturity,
+    priorQuarantine: prepared.priorQuarantine,
+    reportDate,
   });
+
+  signals = pipelineResult.scoringSignals;
+
+  const assessment = await generateNarratives(
+    pipelineResult.scoredFull,
+    signals,
+    reportDate,
+    totalArticles,
+    {
+      onUsage,
+      priorReports,
+      contentKind,
+      dataVoid,
+      salienceContext: pipelineResult.salienceContext,
+      quarantinedDigital: pipelineResult.quarantinedDigital,
+    },
+  );
 
   attachEpistemicToAssessment(assessment, {
     dataVoid,
-    epistemicStatus: gateResult.epistemicStatus,
-    assessmentMode: gateResult.assessmentMode,
-    staleDigitalScores: gateResult.staleDigitalScores,
+    epistemicStatus: pipelineResult.epistemicStatus,
+    assessmentMode: pipelineResult.assessmentMode,
+    staleDigitalScores: pipelineResult.staleDigitalScores,
+    quarantinedDigital: pipelineResult.quarantinedDigital,
+    digitalQuarantineState: pipelineResult.digitalQuarantineState,
   });
+
+  assessment.oov_burst = prepared.oovBurst;
+  if (prepared.oovScoringApplied) {
+    assessment.oov_scoring_applied = prepared.oovScoringApplied;
+  }
+
+  if (pipelineResult.epistemicEnrichment.overall_score_calibrated != null) {
+    assessment.overall_score_calibrated = pipelineResult.epistemicEnrichment.overall_score_calibrated;
+  }
 
   return {
     assessment,

@@ -4,13 +4,13 @@ description: "How budgets, retries, and caps keep automated runs safe."
 intent: operations
 audience: ["internal"]
 stability: beta
-canonical: "https://docs.vibeswitch.ai/operations/cost-controls"
+canonical: "https://docs.srulik.ai/operations/cost-controls"
 version: "current"
 tags: ["operations", "cost", "budgets"]
 ---
 
 ## Purpose
-Keep LLM spend predictable. VibeSwitch touches three paid providers — Anthropic (extraction and narrative), OpenAI (audio transcription), and NewsAPI.ai (news fetches) — and the cost of each is a function of input size, which changes day to day. This guide explains what drives cost, where the budget caps live, and how to catch an unexpected spike before it compounds.
+Keep LLM spend predictable. Srulik's lab touches three paid providers — Anthropic (extraction and narrative), OpenAI (audio transcription), and NewsAPI.ai (news fetches) — and the cost of each is a function of input size, which changes day to day. This guide explains what drives cost, where the budget caps live, and how to catch an unexpected spike before it compounds.
 
 ## Prerequisites
 - **Required**: Basic understanding that LLM calls incur variable, token-based cost.

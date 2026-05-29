@@ -4,9 +4,10 @@ description: "Copy this file to create a new page."
 intent: concepts
 audience: ["public"]
 stability: beta
-canonical: "https://docs.vibeswitch.ai/<path>"
+canonical: "https://docs.srulik.ai/<path>"
 version: "current"
 tags: []
+# Optional: judgmentSupport: true — page helps operators decide (documentation convention)
 llm:
   chunkHint: "Keep sections short and self-contained."
 ---

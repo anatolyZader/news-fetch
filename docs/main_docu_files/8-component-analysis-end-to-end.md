@@ -6,7 +6,7 @@
 **Framework:** Pikud HaOref / פיקוד העורף (Home Front Command) Community Resilience Model — based on Fran Norris (2008) and Israeli Civil Defense doctrine
 **Scope of this document:** the *complete* implementation reference — meaning of "community resilience" in this system, the eight components in depth, the full pipeline (data sources → ingestion → extraction → verification → deterministic scoring → reliability instruments → narration → reports → UI), the math, the operational guardrails, the QA harness, the practical reading guide for officers and reviewers, and the deferred-work backlog. Everything previously split across multiple notes is consolidated here.
 
-**Last updated:** 2026-05-27
+**Last updated:** 2026-05-28
 
 It is written to match — line for line where possible — the implementation in:
 
@@ -34,7 +34,7 @@ It is written to match — line for line where possible — the implementation i
 9. [Stage 5 — Reliability instruments (bootstrap, counterfactual, EWMA, polarization)](#9-stage-5--reliability-instruments-bootstrap-counterfactual-ewma-polarization)
 10. [Stage 6 — Narrative generation (LLM, no re-scoring)](#10-stage-6--narrative-generation-llm-no-re-scoring)
 11. [Stage 7 — Report writing and UI rendering](#11-stage-7--report-writing-and-ui-rendering)
-12. [Geographic scoping (national vs north)](#12-geographic-scoping-national-vs-north)
+12. [Geographic scoping (national + regional districts)](#12-geographic-scoping-national--five-regional-districts)
 13. [Reviewer overrides (removed in phase 1)](#13-reviewer-overrides-removed-in-phase-1)
 14. [Drift dashboard, alerts, and history](#14-drift-dashboard-alerts-and-history)
 15. [Quality assurance (golden corpus, adversarial regression, calibration)](#15-quality-assurance-golden-corpus-adversarial-regression-calibration)
@@ -83,7 +83,7 @@ Stable IDs are used throughout JSON, code, and i18n keys.
 
 <!-- docs-sync:BEGIN components-at-a-glance -->
 
-> **Auto-synced** from `business_modules/resilience/domain/resilienceComponents.js` on 2026-05-27. Do not edit between sync markers.
+> **Auto-synced** from `business_modules/resilience/domain/resilienceComponents.js` on 2026-05-28. Do not edit between sync markers.
 
 | # | ID | English | Hebrew | What it measures (in one line) |
 |---|---|---|---|---|
@@ -104,7 +104,7 @@ Each component additionally exposes **2–4 facets** (defined in `business_modul
 
 <!-- docs-sync:BEGIN component-facets -->
 
-> **Auto-synced** from `business_modules/resilience/domain/services/componentFacets.js` on 2026-05-27. Do not edit between sync markers.
+> **Auto-synced** from `business_modules/resilience/domain/services/componentFacets.js` on 2026-05-28. Do not edit between sync markers.
 
 | Component | Facets |
 |---|---|
@@ -123,7 +123,7 @@ Every signal type listed in a facet must route into its parent component via `SI
 
 <!-- docs-sync:BEGIN components-detail -->
 
-> **Auto-synced** from `resilienceComponents.js + componentFacets.js` on 2026-05-27. Do not edit between sync markers.
+> **Auto-synced** from `resilienceComponents.js + componentFacets.js` on 2026-05-28. Do not edit between sync markers.
 
 
 Per-component reference below is regenerated from code. Extended narrative, signal-routing notes, and boundary rules in earlier manual sections may appear in pipeline stages §3+.
@@ -494,7 +494,7 @@ Each source produces a `signals/signals-{source}-{YYYY-MM-DD}.json` file (field 
 | **Social OSINT** | `social` | `business_modules/social_media` | X posts + Telegram channel messages | `social-media:gather-daily` → Haiku classify → `signals-social-{date}.json`; `social-media:treat` → `signals[]` | North-biased queries when `--north`; scope filter applies like news/radio |
 | **Survey** (optional) | (varies) | `business_modules/resilience` (survey Excel + writers under `app/` / `infrastructure/adapters/`) | Municipality survey Excel | `analyze-survey.js` (one-off analysis path) | Configurable |
 
-Two tags — `field`, `pbo`, `pbo_regional`, `naftali`, `whatsapp` — are also marked `ALWAYS_NORTH_SOURCE_TYPES` in `regionSignalFilter.js`, meaning their signals are *always* counted toward the north scope regardless of geographic terms in the evidence text. News, radio, and social signals require **resolved north geo** for north scope (otherwise excluded); `text_inferred` geo may appear in narrative context but is metrics-ineligible under epistemic v2 — see §8.9 and §12.
+Structured north-theater feeds (`field`, `pbo`, `pbo_regional`, `naftali`, `field_whatsapp`) default to district `north` via `config/collectionScope.json`. News, radio, and social signals require **resolved geo** matching the target district for regional scope (otherwise excluded); `text_inferred` geo may appear in narrative context but is metrics-ineligible under epistemic v2 — see §8.9 and §12.
 
 ### 4.1 Sample raw shape — field report (Hebrew)
 
@@ -579,6 +579,15 @@ The signal-extraction prompt then explicitly instructs the LLM to be **highly se
 - Reads exported messages (configurable source) and renders them as one MD bundle per date: `articles-whatsapp-{date}.md`.
 - An ingest service path also exists for live webhook intake (`webhook-routes.js` + `whatsappIngestService.js`).
 - Treated as a *north* source by default.
+
+**Live webhook — group vs DM:**
+
+| Path | Behavior |
+|------|----------|
+| **Group messages** | One-shot extract via `whatsappResilienceAnalyzer.js` → Hebrew reply |
+| **DM (direct messages)** | Adaptive chatbot: [`conversationStateMachine.js`](../business_modules/whatsapp/domain/conversation/conversationStateMachine.js) tracks wizard state per phone; [`gapEngine.js`](../business_modules/whatsapp/domain/conversation/gapEngine.js) identifies missing evidence; draft generation → user confirm → [`reportBuildService.recompute()`](../business_modules/report_build/app/reportBuildService.js) when wired from [`app.js`](../app.js); signal extraction on approval |
+
+DM flow persists conversation state in SQLite (`whatsappConversationStore.js`). Group export path feeds the daily pipeline like any other source.
 
 ### 5.4 Field reports (`source_type: 'field'`)
 
@@ -830,6 +839,16 @@ Implementation: `evidenceEligibility.js` → `annotateSignalsEpistemics`, `parti
 | `suppression_breakdown.min_mass_floor` | Effect of thin-evidence `[3,8]` floor |
 | `counterfactual_no_caps` | Same as raw score (explicit alias) |
 
+### 8.10.1 Calibration deficit and weight sensitivity (analyst)
+
+| Field | Meaning |
+|---|---|
+| `score_calibrated` | Headline score shrunk toward 5.5 by `calibration_trust` (headline `score` unchanged) |
+| `calibration_trust` / `calibration_deficit` | Trust in author-set weights from validation maturity (Tier 3–5) |
+| `weight_sensitivity` | Shadow ±12% weight band (Tier 3+): `perturbed_low`, `perturbed_high`, `band_width`, `fragile` |
+
+Sonnet narrative prompts include `SUPPRESSION_TRACE` tokens when caps/floors move the headline score (see `claudeNarratives.js`). Trace also emits when `|source_cap_effect|≥0.5` or `|thin_evidence_floor|≥0.5` even without `source_cap_binding`. Prompts include `dominant_outlet_key`, top contributors (raw→capped), and a required `data_quality_caveat` field when suppression applies; deterministic `validateSuppressionCompliance()` enforces caveat + no psych speculation.
+
 ### 8.11 Operator thin-evidence policy (Option C)
 
 When `RESILIENCE_THIN_EVIDENCE_POLICY` is on (default) and `evidence_mass < 1.5`:
@@ -1019,37 +1038,71 @@ Pre-cap press-only mention mass per component — information-environment metric
 
 ## 10) Stage 6 — Narrative generation (LLM, no re-scoring)
 
-`generateNarratives()` in `claudeEvaluator.js`, model `RESILIENCE_NARRATIVE_MODEL` (default `claude-sonnet-4-6`). The narrator LLM receives:
+`generateNarratives()` in `claudeNarratives.js`, model `RESILIENCE_NARRATIVE_MODEL` (default `claude-sonnet-4-6`). The narrator receives pre-scored components, signal evidence with stable refs (`[S1] ref=type@url:…`), co-occurrence constraints, and optional prior-report trend tags.
 
-- The **fixed scores and metadata** for all 8 components (including positive/negative mass, polarization, delta-significance, top-3 contributors, facets).
-- All extracted signals bucketed by component.
-- Optional **prior reports** (the previous 1–2 daily assessments) for narrative continuity.
-- Optional **source-mix metadata** (which source types contributed) and an optional **`comparison_scores`** payload (when scope=north, the national scores are provided for explicit comparison).
+### 10.1 Narrative grounding stack (default ON)
 
-Sonnet's only job is **labeling and quoting**. It produces, per component:
+Pipeline:
 
-| Field | Description |
-|---|---|
-| `narrative` | 3–5 sentence behavioral description (what people are doing/saying — not abstract assessments). |
-| `manifestations_evidenced` | Which of the component's behavioral manifestations have evidence today. |
-| `manifestations_absent` | Which manifestations have no evidence today (deliberately surfaced — absence is explicit). |
-| `supporting_evidence` | Up to 3 evidence quotes supporting the score. |
-| `weakening_evidence` | Up to 3 evidence quotes working against the score. |
+1. **Signal ref registry** — stable `[S#]` refs per signal (`business_modules/resilience/domain/services/narrativeGrounding/`).
+2. **Haiku facts-pass** (`narrativeFactsExtract.js`) — extracts `narrative_claims[]` before Sonnet (unless disabled).
+3. **Sonnet polish** — evidence-first workflow; preserves claim refs; writes `narrative`, `evidence[]`, `cross_component_synthesis`.
+4. **Schema validation** (`validateNarrativeOutput`) — manifestations subset, evidence required, ref validity, relation tags, synthesis URL cap.
+5. **Haiku relation judge** (`narrativeRelationJudge.js`) — flags `invented_relation` per claim.
+6. **Deterministic sentence grounding** (`sentenceGroundingChecker`) — per-component and synthesis scores; sets `interpretive_summary` when score &lt; threshold.
 
-And at the top level:
+Retry loop (up to 3 attempts): validation or judge failures append feedback to the user message.
+
+**New assessment fields:**
 
 | Field | Description |
 |---|---|
-| `cross_component_synthesis` | 2-paragraph behavioral summary across all 8 components. |
-| `evidence_quality_note` | 1 sentence on the proportion of direct quotes vs reported facts today. |
-| `national_comparison` | Only when scope=north: `{ overall_resilience_score, total_signals }` of the national run. |
+| `narrative_claims[]` | `{ text, signal_refs, relation }` atomic claims (analyst view) |
+| `narrative_grounding_score` | 0–1 sentence overlap with cited evidence |
+| `grounding_issues[]` | Ungrounded sentences (analyst view) |
+| `interpretive_summary` | true when grounding weak — operator sees warning banner |
+| `narrative_grounding_summary` | Assessment-level `{ mean_score, components_below_threshold }` |
 
-The narrative prompt contains hard rules:
+**Env flags** (default `1` = enabled; set `0` to disable):
 
-- **Do not re-score.** Scores are already final; the LLM must justify them, not change them.
-- **Trace to evidence.** Every claim must trace to a signal in the payload (no journalist generalisation).
-- **Mention significant shifts.** When a component carries `delta_flag === 'significant'`, the narrative must mention "a notable shift vs the 14-day baseline" without inventing magnitude.
-- **Distinguish boundary cases.** Officials performing leadership communication ≠ civilian mood ≠ service continuity facts. These boundary rules live in the prompt itself.
+| Variable | Effect |
+|---|---|
+| `RESILIENCE_NARRATIVE_GROUNDING` | Master switch for validation + grounding scores |
+| `RESILIENCE_NARRATIVE_FACTS_PASS` | Haiku claims extraction before Sonnet |
+| `RESILIENCE_NARRATIVE_JUDGE` | Haiku invented_relation judge |
+| `RESILIENCE_NARRATIVE_GROUNDING_MIN` | Threshold for `interpretive_summary` (default `0.6`) |
+| `RESILIENCE_NARRATIVE_SYNTHESIS_MAX_URLS` | Synthesis URL cap (default `8`) |
+
+Adversarial CI: `tests/business_modules/resilience/narrativeGrounding.adversarial.test.js` (deterministic, no live LLM).
+
+### 10.2 Sonnet output (per component)
+
+| Field | Description |
+|---|---|
+| `data_quality_caveat` | 1–2 sentence methodological note on score/data limits (required when `SUPPRESSION_TRACE` applies). Shown to operator and analyst; excluded from narrative grounding overlap check. |
+| `narrative` | 3–5 sentence behavioral description grounded in claims/evidence. |
+| `narrative_claims` | Atomic claims with signal refs and relation tags. |
+| `manifestations_evidenced` | Which behavioral manifestations have evidence today. |
+| `manifestations_absent` | Manifestations with no evidence (explicit absence). |
+| `evidence` | Curated evidence items with source links when URLs exist. |
+
+Top level:
+
+| Field | Description |
+|---|---|
+| `cross_component_synthesis` | Bullet list + explicit non-claims; max 8 distinct URLs. |
+| `evidence_quality_note` | 1 sentence on direct quotes vs reported facts. |
+
+Hard rules in prompt:
+
+- **Do not re-score.** Scores are final.
+- **Suppression / data quality:** when `SUPPRESSION_TRACE` present, fill `data_quality_caveat` first; name source cap, floor, or dominant outlet; forbid psych speculation to explain score gaps.
+- **Anti-relationship:** co-occurrence ≠ connection; forbidden causal connectives across unrelated refs.
+- **Evidence-first:** fill `data_quality_caveat` (if required), then `evidence[]` and `narrative_claims`, then prose.
+- **Prior reports:** trend tags only — no factual import from earlier narratives.
+- **Trace to evidence.** No outside world knowledge.
+
+Post-parse validation includes `validateSuppressionCompliance()` (caveat required, no hidden-anxiety framing). Narrative grounding scores apply to behavioral `narrative` only, not `data_quality_caveat`. Operator UI shows `source_cap_binding` instrument badge and the caveat caption.
 
 ---
 
@@ -1090,6 +1143,8 @@ When `RESILIENCE_ANALYST_EMAILS` is non-empty, drift endpoints return **403** un
 
 `client/src/MainApp.jsx` splits navigation into **Daily Assessment** (report) and **data-source tabs** (`DataSourcesNav`): News, Radio, Social media, Trends, Visits, PBO reports, Pools (Naftali + Education), and Report bot.
 
+**District scope:** `DistrictScopeSwitcher` on Daily Assessment and on data-source tabs (News, Radio, Social media, Report bot, Visits) — scopes: `national | north | south | jerusalem | dan | haifa`. Regional reports use prefix `resilience-report-{scopeId}-*`.
+
 On **desktop**, footer actions and the chat launcher open **panel popups** (`client/src/lib/panelPopup.js`): Chat (SSE assistant), Write Report (`report_build`), Send Data (evidence upload), and Settings (mailing preferences). On smaller viewports, Chat uses an in-app slide-up panel instead.
 
 `client/src/components/ReportView.jsx` renders the assessment:
@@ -1099,11 +1154,12 @@ On **desktop**, footer actions and the chat launcher open **panel popups** (`cli
 1. **Epistemic banner** and **thin-evidence** warnings (from `assessment.methodology`).
 2. **Evidence overview** (scope label, counts of adequate / thin / contested components).
 3. The **executive synthesis**.
-3. Eight **component cards** with **instrument badges** (no `/10`), narrative, optional absent-manifestation hints, and evidence accordion.
+4. Eight **component cards** with **instrument badges** (no `/10`), narrative, optional absent-manifestation hints, and evidence accordion.
 
 **Analyst mode** (toggle in report header when allowlisted):
 
-1. **Overall resilience** (`assessment.overall_resilience_score`) with the same 1–10 label bands as components (`scoreLabel10` thresholds).
+1. **`ValidationReviewPanel`** — embedded review queue for flagged extraction articles (`GET/POST /api/validation/review-queue/*`); scroll target from Attention panel.
+2. **Overall resilience** (`assessment.overall_resilience_score`) with the same 1–10 label bands as components (`scoreLabel10` thresholds).
 2. A row of **component chips** (score + band label, with `Δ+1`/`Δ−1` adornments highlighted when significant).
 3. The **executive synthesis**.
 4. Eight **component cards**, each containing:
@@ -1123,9 +1179,16 @@ On **desktop**, footer actions and the chat launcher open **panel popups** (`cli
 
 | Endpoint | Description |
 |---|---|
-| `GET /api/report/today?view=operator\|analyst&scope=national\|north` | Latest assessment redacted per tier. Operator view uses `-brief.md` when on disk (no `/10`). Response includes `display_view`; `analyst_denied: true` when analyst was requested but not allowlisted. |
+| `GET /api/report/today?view=operator\|analyst&scope=national\|north\|south\|jerusalem\|dan\|haifa` | Latest assessment redacted per tier. Operator view uses `-brief.md` when on disk (no `/10`). Response includes `display_view`; `analyst_denied: true` when analyst was requested but not allowlisted. |
 | `GET /api/resilience/display-capabilities` | `{ canViewAnalyst: boolean }` for the signed-in user (optional Bearer token). |
-| `GET /api/resilience/drift?scope=national\|north&days=30` | Analyst-gated when `RESILIENCE_ANALYST_EMAILS` is set. Feeds **per-component score sparklines** in Report (analyst mode). Response also includes signal volume, polarization/certainty/erosion series, and `alerts` (max 90 days). Full multi-chart drift dashboard UI (`ResilienceDriftPanel`) is implemented but **not mounted** in the current client — use API or re-wire the component if you need the standalone dashboard. |
+| `GET /api/validation/review-queue?date=&scope=` | Analyst-only review queue items (flagged articles; requires `RESILIENCE_ANALYST_EMAILS`). |
+| `GET /api/validation/review-queue/{date}/{scope}/{articleKey}` | Single queue item detail (analyst-only). |
+| `POST /api/validation/review-queue/{date}/{scope}/{articleKey}/decision` | Submit analyst label/decision (analyst-only). |
+| `GET /api/pbo/municipal-reviews?date=` | Municipal PBO completeness review list (PBO reports → Local sub-tab). |
+| `GET/POST /api/pbo/municipal-reviews/{date}/{municipality}/*` | Review detail and officer reply thread. |
+| `GET /api/districts` | List of report scope ids for UI (`national` + five regional districts). |
+| `GET /api/operator/district-access` | Operator district registration check (regional access control). |
+| `GET /api/resilience/drift?scope=national\|north\|south\|jerusalem\|dan\|haifa&days=30` | Analyst-gated when `RESILIENCE_ANALYST_EMAILS` is set. Feeds **per-component score sparklines** in Report (analyst mode). Response also includes signal volume, polarization/certainty/erosion series, and `alerts` (max 90 days). Full multi-chart drift dashboard UI (`ResilienceDriftPanel`) is implemented but **not mounted** in the current client — use API or re-wire the component if you need the standalone dashboard. |
 | `GET /api/visits/...` | Field-reports dashboard (days, signals, municipalities). |
 | `GET /api/social-media/daily?date=&category=&lang=` | Social OSINT daily feed (`findings[]`). |
 | `POST /api/social-media/fetch-topic` | On-demand topic search (X / Telegram / Facebook). |
@@ -1137,39 +1200,46 @@ On **desktop**, footer actions and the chat launcher open **panel popups** (`cli
 | `POST /api/chat` (SSE) | Evidence-aware chat assistant (desktop popup or mobile slide-up). |
 | `POST /api/report-build/*` | Write Report guided drafting flow. |
 | `GET /api/mail/preferences`, `POST /api/mail/send-digest` | Settings popup — mailing preferences and digest. |
+| `POST /api/translate` | Batch translation (reports, social OSINT UI) via `business_modules/translation/app/translationService.js` (route in `api/routes/reportRoutes.js`). |
+| `POST /api/video/download-url`, `POST /api/video/local-file` | Video/YouTube evidence ingest helpers via `business_modules/video/` (routes in `api/routes/reportRoutes.js`). |
+| `POST /api/evidence-submit`, `GET /api/evidence-submissions/*` | Send Data popup — on-demand analysis via `resilienceAnalysisService` (auxiliary path, not daily pipeline). |
+| `GET /api/monitoring/health` | Public health probe (no analyst gate). |
+| `GET /api/monitoring/pipeline`, `GET /api/monitoring/summary` | Analyst-gated pipeline status and run summaries (`cross-cut-modules/monitoring/`). |
 
 ---
 
-## 12) Geographic scoping (national vs north)
+## 12) Geographic scoping (national + five regional districts)
 
-`assess-signals.js --scope national|north`. The filter is applied **after** the national score is computed (so the north report can include a `national_comparison` block).
+**Report scopes:** `national | north | south | jerusalem | dan | haifa`. Legacy aliases normalize via `normalizeIsraelDistrictId` (e.g. `center` → `jerusalem`, `tel_aviv` → `dan`). There is no `center` district in the registry.
 
-`regionSignalFilter.js` attaches an explainable **`scopeDecision`** per signal (`source`, `confidence`, `reasons`). North relevance is evaluated in order:
+`assess-signals.js --scope <scopeId>`. For any **regional** scope, filtering runs **after** the national score is computed so the report can include a `national_comparison` block (when source mix is comparable — see below).
 
-1. **`ALWAYS_NORTH_SOURCE_TYPES`**: `field`, `pbo`, `pbo_regional`, `naftali`, `whatsapp` — always north (`confidence: high`).
-2. **Resolved geo** (`signal.geo.kind === 'resolved'`): north when PBO subregion / tags match the north reference via `northRelevanceFromResolvedGeo`. Scope uses geo tags even when `usableForMetrics === false` (`confidence: low`); such signals are excluded from component metrics under epistemic v2.
+`regionSignalFilter.js` attaches an explainable **`scopeDecision`** per signal (`isScopeRelevant`, backward-compat `isNorthRelevant` when target scope is `north`, plus `source`, `confidence`, `reasons`, `homeFrontDistricts`). Scope relevance is evaluated in order:
 
-Text keyword fallback (`NORTH_TERMS`) was removed. News/radio/social signals without resolved north geo are excluded from north scope. All pipeline sources receive geo envelopes via `enrichSignalsWithGeo` → `localityCandidate` → `geoService` at extract/treat and assess. Full geo contract: [`GEOGRAPHIC-ANALYSIS.md`](GEOGRAPHIC-ANALYSIS.md).
+1. **Collection metadata** (`config/collectionScope.json` via `collectionScope.js`): structured north-theater feeds (`field`, `pbo`, `pbo_regional`, `naftali`, `field_whatsapp`) default to district `north`; unstructured `whatsapp` defaults to `north` without structured tier. Collection district tags are merged with geo-derived districts in `deriveHomeFrontDistricts`.
+2. **Resolved geo** (`signal.geo.kind === 'resolved'`): district match when `geo.classification.geoAreaTags` includes the target scope id (via `districtRelevanceFromResolvedGeo`; north PBO subregion logic preserved in `northRelevanceFromResolvedGeo`). Scope uses geo tags even when `usableForMetrics === false` (`confidence: low`); such signals are excluded from component metrics under epistemic v2.
 
-For north scope, `total_articles` becomes `max(scopedArticleCount, 1)` so the coverage ratio reflects the north corpus, not the national one.
+Text keyword fallback was removed. News/radio/social signals without resolved geo matching the target district are excluded from regional scope. Non-north localities resolve via [`homefront-district-stubs.json`](../business_modules/geo/data/homefront-district-stubs.json) when `north-reference.json` has no match — see [GEOGRAPHIC-ANALYSIS.md § Non-north district stubs](./GEOGRAPHIC-ANALYSIS.md#non-north-district-stubs-homefront-district-stubsjson). Full geo contract: [`GEOGRAPHIC-ANALYSIS.md`](GEOGRAPHIC-ANALYSIS.md).
 
-### Phase 1 scope model (national + north only)
+For regional scope, `total_articles` becomes `max(scopedArticleCount, 1)` so the coverage ratio reflects the regional corpus, not the national one.
 
-**Now:** Production and UI support only `national` and `north` report scopes. North is the **only** regional slice; `regionSignalFilter.js` hardcodes north terms and `ALWAYS_NORTH_SOURCE_TYPES` as a **collection contract** for north-theater ingestion—not a generic district model.
+### Phase 2 scope model (multi-district)
 
-**Later (Phase 2):** Additional districts require a first-class `report_scope.id` per district, per-district report prefixes, and collection metadata per channel. Do **not** add more hardcoded regional scopes on top of `north`; generalize `filterSignalsForScope(districtId)` instead.
+**Now:** Production and UI support six report scopes (national + five regional districts). `filterSignalsForScope(scopeId)` is generic; collection metadata decouples **ingestion theater** from **geo resolution**. Report filenames use `reportFilePrefix(scopeId)` — `resilience-report-{id}-*` for regional scopes; national history excludes all regional prefixes.
 
-Each `assess-signals` run writes `assessment.methodology` (phase label, scope-decision counts, epistemic copy, optional advisory `tuning_proposal`). Full `scoring_model` manifest is on disk for analysts; operator API redaction keeps non-numeric `epistemic` and `scope_decision_summary` only.
+**Comparison guard (SMNI):** Regional reports attach `assessment.comparison_context` with source-mix comparability (`sourceMixIndex.js`). Headline `national_comparison` is populated only when `comparable: true` (default threshold on structured-share delta). Operator display surfaces incomparability warnings via `assessmentDisplayTier.js`.
 
-### Operational runbook (phase 1)
+Each `assess-signals` run writes `assessment.methodology` (phase label `multi_district_phase2`, scope-decision counts, `collection_scope_by_source_type`, epistemic copy, optional advisory `tuning_proposal`). Full `scoring_model` manifest is on disk for analysts; operator API redaction keeps non-numeric `epistemic` and `scope_decision_summary` only.
+
+### Operational runbook (phase 2)
 
 | Goal | Command / path |
 |------|----------------|
 | National daily report | `npm run assess-signals -- --date YYYY-MM-DD --days 3 --scope national` |
-| North daily report | `npm run assess-signals -- --date YYYY-MM-DD --days 3 --scope north` |
+| Regional daily report | `npm run assess-signals -- --date YYYY-MM-DD --days 3 --scope north\|south\|jerusalem\|dan\|haifa` |
 | Advisory tanhK/certM from history | `npm run suggest-tuning` |
 | Quick news-only run | `npm run extract-signals` + `npm run assess-signals` |
-| Operator UI missing north | `GET /api/report/today?scope=north` → `hint: north_requires_assess_signals` when no `resilience-report-north-*` file exists |
+| Operator UI missing regional report | `GET /api/report/today?scope=<id>` → `hint: regional_requires_assess_signals` when no `resilience-report-{id}-*` file exists |
 
 ---
 
@@ -1183,7 +1253,7 @@ Reviewer score challenges (`challenge_score` / `dispute_evidence`, `/api/resilie
 
 `business_modules/resilience/infrastructure/reportHistoryReader.js` walks `reports/`, picks the canonical run per date (highest `total_articles_analyzed`, tie-break on mtime) for the requested scope. `app/driftService.js` aggregates and `input/driftRoutes.js` exposes:
 
-`GET /api/resilience/drift?scope=national|north&days=30` (max 90).
+`GET /api/resilience/drift?scope=national|north|south|jerusalem|dan|haifa&days=30` (max 90).
 
 Response:
 
@@ -1247,6 +1317,8 @@ All hermetic; wired into `npm test`.
   npm run suggest-tuning -- --diff    # diff only (suppresses unchanged rows)
   ```
 - `business_modules/resilience/domain/services/signalWeightsFit.js` — **shadow RGR** when ≥30 report records exist (`fitSignalWeightsRidgeMock` returns advisory payload; production weights unchanged until Tier 5 labeled scores). Optional overlay: `tuning/shadow-weights.json`.
+- **`calibrationPenalty.js`** — `score_calibrated` shrinks headline scores toward 5.5 using `calibration_trust` from validation record count + expert label fill rate.
+- **`weightSensitivity.js`** — Tier-3-gated shadow ±12% perturbation bands on `SIGNAL_TO_COMPONENTS`; analyst field `weight_sensitivity.fragile` when `band_width ≥ 2`.
 - **OOV / learning capture** (extraction hooks, default on via `RESILIENCE_OOV_CAPTURE`):
   - `reports/oov-capture-{date}.jsonl` — unknown `signal_type`, self-check uncertain, zero-signal articles.
   - Optional `RESILIENCE_RESIDUAL_CAPTURE=1` — open-vocab residual observations for zero-signal articles (`learningCapture.js`).
@@ -1274,7 +1346,7 @@ All hermetic; wired into `npm test`.
 
 **Operational phases:** `baseline` (default shadow collection) → `elevated` → `acute`. Auto-elevation from signal volume is **advisory only** (`auto_elevation.advisory_only: true`) — never auto-applied.
 
-**Review queue:** up to 15 flagged articles/day (high delta significance, counterfactual leverage, polarization, low extraction confidence). No dedicated UI tab — operators use CLI + JSONL artifacts.
+**Review queue:** up to 15 flagged articles/day (high delta significance, counterfactual leverage, polarization, low extraction confidence, OOV suggested). **Analyst UI:** `ValidationReviewPanel` embedded in Report (analyst mode). **Ops:** CLI + JSONL artifacts under `validation/artifacts/review-queue/`.
 
 **Acceptance tiers** (from config): Tier 1 = CI golden (`micro_F1 ≥ 0.55`, `macro_κ ≥ 0.40` in `golden-corpus.test.js`) + adversarial; Tier 2 = operational extraction targets (`micro_f1_min: 0.65`, `macro_kappa_min: 0.5` in config); Tier 3 = 30+ daily records → `npm run suggest-tuning`; Tier 4 = expert labels (Spearman ≥ 0.6); Tier 5 = shadow ridge weight fit (`signalWeightsFit.js`).
 
@@ -1460,7 +1532,7 @@ Stable IDs (used in JSON, code, and i18n keys) and their English labels from `cl
 
 <!-- docs-sync:BEGIN appendix-ui-labels -->
 
-> **Auto-synced** from `client/src/i18n/translations.js (en + he)` on 2026-05-27. Do not edit between sync markers.
+> **Auto-synced** from `client/src/i18n/translations.js (en + he)` on 2026-05-28. Do not edit between sync markers.
 
 | ID | English UI label | Hebrew UI label |
 |---|---|---|
@@ -1502,10 +1574,24 @@ business_modules/
 │
 ├── whatsapp/                                      # Source 3 — WhatsApp
 │   ├── input/whatsapp-to-md.js                    # CLI: export → articles-whatsapp-*.md
-│   ├── input/webhook-routes.js                    # Live ingest
-│   ├── app/whatsappIngestService.js
-│   └── app/whatsappResilienceAnalyzer.js
+│   ├── input/webhook-routes.js                    # Live ingest (group + DM)
+│   ├── app/whatsappIngestService.js               # DM adaptive chatbot + group routing
+│   ├── app/whatsappResilienceAnalyzer.js
+│   └── domain/conversation/                       # gapEngine, state machine, outbound messages
 │
+├── pbo_report_review/                             # Municipal PBO completeness (pipeline step 7b)
+│   ├── input/runMunicipalPboReview.js           # Daily gap check + Resend follow-up
+│   ├── input/pboReviewRoutes.js                 # GET/POST /api/pbo/municipal-reviews/*
+│   └── app/pboReportReviewService.js
+│
+├── video/                                         # YouTube/video evidence ingest
+│   └── app/videoGrabService.js                  # POST /api/video/* (api/routes/reportRoutes.js)
+│
+├── translation/                                   # Report + social OSINT batch translation
+│   └── app/translationService.js                # POST /api/translate (api/routes/reportRoutes.js)
+│
+├── recording/                                     # Radio stream capture (FFmpeg schedule)
+│   └── infrastructure/adapters/recordingSqliteAdapter.js
 ├── visits/                                        # Source 4 — Field reports
 │   ├── data/articles-field-reports-*.md           # Raw field-officer markdown (one per visit day)
 │   ├── data/signals/signals-field-*.json          # Extracted signals
@@ -1540,9 +1626,9 @@ business_modules/
 │   └── data/cache/dashboard-{district}-{days}d.json
 │
 ├── geo/                                           # Deterministic locality resolve (no direct imports from resilience)
-│   ├── data/north-reference.json, north-border.json
+│   ├── data/north-reference.json, north-border.json, homefront-district-stubs.json
 │   ├── app/geoService.js
-│   ├── domain/services/resolveLocalityMatch.js, geoQualityPolicy.js
+│   ├── domain/services/resolveLocalityMatch.js, geoQualityPolicy.js, homefrontDistrictStubs.js
 │   └── input/geoRoutes.js                       # GET /api/geo/resolve
 │
 ├── catalogLearning/                               # OOV cluster gap reports (analyst)
@@ -1571,7 +1657,7 @@ business_modules/
     │       ├── componentFacets.js                 # Per-component facet decomposition
     │       ├── extractionMetrics.js               # P/R/F1 + Cohen's κ for golden corpus
     │       ├── outletReliabilityPriors.js         # Per-outlet reliability multiplier
-    │       ├── regionSignalFilter.js              # National vs north scope filter
+    │       ├── regionSignalFilter.js              # National + five regional district scope filter
     │       ├── resilienceBatchValidation.js
     │       ├── resilienceScoring.js               # Re-export of scoreComponents
     │       ├── assessmentDisplayTier.js           # Operator vs analyst redaction
@@ -1585,8 +1671,8 @@ business_modules/
     │   ├── surveyReportWriter.js                  # Field survey — MD/JSON output
     │   ├── contentBatchFromMdArticles.js
     │   ├── driftService.js                        # /api/resilience/drift aggregation
-    │   ├── resilienceAnalysisService.js           # End-to-end batch orchestration
-    │   └── runResilienceAnalysis.js               # Shared news/audio orchestration
+    │   ├── resilienceAnalysisService.js           # Evidence-submit auxiliary path (api/routes/evidenceRoutes.js)
+    │   └── runResilienceAnalysis.js               # Shared news/audio batch helper (not daily pipeline CLI)
     ├── infrastructure/
     │   ├── claudeEvaluator.js                     # extractSignals + generateNarratives (Haiku + Sonnet)
     │   ├── dualModelExtract.js                    # E3 dual-pass merge + agreement boost
@@ -1608,8 +1694,9 @@ business_modules/
         ├── driftRoutes.js                         # /api/resilience/drift
         └── extract-signals.js                     # Stage-1 CLI: extract per source
     └── validation/                                # Post-assess calibration collection
-        ├── validation-config.json               # under business_modules/resilience/validation/
-        ├── app/validationCollectionService.js
+        ├── validation-config.json
+        ├── app/validationCollectionService.js, validationReviewService.js
+        ├── input/validationReviewRoutes.js        # GET/POST /api/validation/review-queue/*
         ├── domain/validationRecordBuilder.js
         ├── scripts/validationStatus.js            # npm run validation:status
         └── artifacts/records|review-queue|phase-log/
@@ -1617,7 +1704,7 @@ business_modules/
 reports/
 ├── resilience-report-{date}-{HHMM}.{md,json}
 ├── resilience-report-{date}-{HHMM}-brief.md      # Operator brief (no scores)
-├── resilience-report-north-{date}-{HHMM}.{md,json}
+├── resilience-report-{scopeId}-{date}-{HHMM}.{md,json}  # Regional scopes
 ├── oov-capture-{date}.jsonl                     # Learning capture (when enabled)
 └── catalog-gap-report.md                          # catalog-learning:gap-report output
 
@@ -1646,7 +1733,8 @@ cross-cut-modules/geo/
 └── geoEnvelopeAccess.js                            # v3 nested envelope read helpers
 
 api/routes/
-└── chatRoutes.js                                   # POST /api/chat (SSE)
+├── chatRoutes.js                                   # POST /api/chat (SSE)
+└── evidenceRoutes.js                               # POST /api/evidence-submit (auxiliary analysis)
 
 .claude/commands/
 ├── 8comp.md                                       # Full daily pipeline (national)

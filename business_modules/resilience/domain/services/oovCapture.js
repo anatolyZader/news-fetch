@@ -54,6 +54,11 @@ export function getOovRunCount() {
   return runBuffer.length;
 }
 
+/** @returns {Array<object>} shallow copy of in-memory captures for current run */
+export function getOovRunBuffer() {
+  return [...runBuffer];
+}
+
 /**
  * Count JSONL lines in today's (or given date's) OOV capture file.
  * @param {string} date YYYY-MM-DD

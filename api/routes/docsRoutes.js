@@ -17,10 +17,6 @@ export async function docsRoutes(app, opts) {
     openapiDocument,
   } = opts;
 
-  app.get('/api/auth/config', async (_req, reply) => {
-    return reply.send({ authRequired });
-  });
-
   app.get('/api/docs/index', tryAuthHook, async (request, reply) => {
     const index = await buildProductDocsIndex({ docsRootDir: productDocsRoot });
     const isAuthed = !authRequired || !!request.user;

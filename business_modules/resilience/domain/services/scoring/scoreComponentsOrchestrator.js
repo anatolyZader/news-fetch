@@ -1,4 +1,3 @@
-import { SIGNAL_TO_COMPONENTS } from '../signalCatalog.js';
 import { metricsEligible } from '../evidenceEligibility.js';
 import { applySourceCap } from './applyEvidenceCaps.js';
 import { bootstrapScoreCI } from './bootstrapScoreCI.js';
@@ -20,6 +19,13 @@ import {
   sourceCapWasApplied,
   tuningFor,
 } from './scoringShared.js';
+import {
+  defaultComponentTuning,
+  defaultSignalWeights,
+  resolveComponentTuning,
+  resolveSignalWeights,
+} from './scoringOverrides.js';
+import { evaluatePresenceGates } from '../presenceGates.js';
 
 const PRESS_SOURCE_TYPES = new Set(['news', 'radio']);
 
@@ -42,12 +48,12 @@ function insufficientDataResult(componentId, batchMassByType, totalArticles) {
 }
 
 /** Pre-dedup press-only mention mass per component (information environment metric). */
-function computeMediaMentionMass(allSignals) {
+function computeMediaMentionMass(allSignals, signalWeights) {
   const byComp = Object.fromEntries(COMPONENT_IDS.map((id) => [id, 0]));
   for (const signal of allSignals ?? []) {
     if (PRESS_SOURCE_TYPES.has(signal?.source_type) === false) continue;
     const signalType = signal.signal_type ?? signal.type;
-    const mapping = SIGNAL_TO_COMPONENTS[signalType];
+    const mapping = signalWeights[signalType];
     if (mapping == null) continue;
     for (const [compId, w] of Object.entries(mapping)) {
       if (compId in byComp) {
@@ -69,9 +75,7 @@ function computeSuppressionBreakdown(scRaw, scCapNoFloor, sc) {
     source_cap: (scRaw?.score != null && scCapNoFloor?.score != null)
       ? scCapNoFloor.score - scRaw.score
       : null,
-    min_mass_floor: (scCapNoFloor?.score != null && sc?.score != null)
-      ? sc.score - scCapNoFloor.score
-      : null,
+    min_mass_floor: null,
   };
 }
 
@@ -88,6 +92,7 @@ function buildComponentScoreResult({
   sourceSet,
   enrichedSignals,
   sourceCapBinding,
+  tuningTable,
 }) {
   const scoreRaw = scRaw?.score ?? null;
   const scoreHeadline = sc?.score ?? null;
@@ -95,7 +100,7 @@ function buildComponentScoreResult({
     ? scoreRaw - scoreHeadline
     : null;
 
-  const tuning = tuningFor(id);
+  const tuning = tuningFor(id, tuningTable);
   const certainty = 1 - Math.exp(-sc.evidenceMass / tuning.certM);
   const polarization = sc.evidenceMass > 0
     ? 1 - Math.abs(sc.netEvidence) / sc.evidenceMass
@@ -111,6 +116,8 @@ function buildComponentScoreResult({
     sc.score,
     applySourceCap,
   );
+
+  const presence = evaluatePresenceGates(id, cappedItems);
 
   return {
     score: sc.score,
@@ -141,6 +148,11 @@ function buildComponentScoreResult({
     salience_critical:       sc.salienceCritical === true,
     salience_bypass_reasons: sc.salienceBypassReasons ?? [],
     salience_dominant_signal_type: sc.salienceDominantSignalType ?? null,
+    presence_gate_triggered: presence.triggered === true,
+    presence_gate: presence.triggered
+      ? { rule_id: presence.rule_id, signal_type: presence.signal_type }
+      : null,
+    operator_status: presence.triggered ? 'critical_failure' : null,
     counterfactual_article_key: cf.counterfactual_article_key,
     counterfactual_delta:    cf.counterfactual_delta,
     counterfactual_no_caps:  scoreRaw,
@@ -155,11 +167,21 @@ function buildComponentScoreResult({
   };
 }
 
-function scoreSingleComponent(id, scoringSignals, duplicateIndex, batchMassByType, totalArticles, salienceContext) {
+function scoreSingleComponent({
+  id,
+  scoringSignals,
+  duplicateIndex,
+  batchMassByType,
+  totalArticles,
+  salienceContext,
+  signalWeights,
+  tuningTable,
+}) {
   const { items, articleSet, sourceSet } = collectComponentItems(
     id,
     scoringSignals,
     duplicateIndex,
+    signalWeights,
   );
 
   if (items.length === 0) {
@@ -168,7 +190,7 @@ function scoreSingleComponent(id, scoringSignals, duplicateIndex, batchMassByTyp
 
   const cappedItems = applySourceCap(items);
   const sourceCapBinding = sourceCapWasApplied(items, cappedItems);
-  const scoreOpts = { salienceContext };
+  const scoreOpts = { salienceContext, tuningTable };
   const scRaw = scoreFromItems(items, id, totalArticles, articleSet, sourceSet, {
     ...scoreOpts,
     applyFloor: false,
@@ -181,7 +203,7 @@ function scoreSingleComponent(id, scoringSignals, duplicateIndex, batchMassByTyp
     ...scoreOpts,
     applyFloor: true,
   });
-  const enrichedSignals = enrichCappedSignals(cappedItems, items, id);
+  const enrichedSignals = enrichCappedSignals(cappedItems, items, id, signalWeights);
 
   if (sc == null) {
     return insufficientDataResult(id, batchMassByType, totalArticles);
@@ -200,10 +222,11 @@ function scoreSingleComponent(id, scoringSignals, duplicateIndex, batchMassByTyp
     sourceSet,
     enrichedSignals,
     sourceCapBinding,
+    tuningTable,
   });
 }
 
-function enrichCappedSignals(cappedItems, items, componentId) {
+function enrichCappedSignals(cappedItems, items, componentId, signalWeights) {
   return cappedItems.map((cappedIt, idx) => {
     let capScaleFactor = 1;
     if (cappedIt._cap_scale_factor != null) {
@@ -220,7 +243,7 @@ function enrichCappedSignals(cappedItems, items, componentId) {
       _weight: effectiveWeightForSignal(
         cappedIt.signal,
         signalType,
-        SIGNAL_TO_COMPONENTS[signalType]?.[componentId] ?? 0,
+        signalWeights[signalType]?.[componentId] ?? 0,
       ),
       _polarity: cappedIt.polarity,
     };
@@ -233,6 +256,8 @@ function enrichCappedSignals(cappedItems, items, componentId) {
  * @param {Array}  signals
  * @param {object} opts
  * @param {number} opts.totalArticles
+ * @param {object} [opts.weightOverlay]
+ * @param {object} [opts.tuningOverlay]
  * @returns {Object}
  */
 export function scoreComponents(signals, {
@@ -240,7 +265,12 @@ export function scoreComponents(signals, {
   epistemicGeoV2,
   mediaSignals = null,
   salienceContext = null,
+  weightOverlay = null,
+  tuningOverlay = null,
 } = {}) {
+  const signalWeights = resolveSignalWeights(defaultSignalWeights(), weightOverlay);
+  const tuningTable = resolveComponentTuning(defaultComponentTuning(), tuningOverlay);
+
   const results = {};
   const duplicateIndex = buildDuplicateOccurrenceIndex(signals);
 
@@ -250,20 +280,22 @@ export function scoreComponents(signals, {
     return metricsEligible(s, { epistemicGeoV2 });
   });
 
-  const batchMassByType = buildBatchPreCapMassByType(scoringSignals, duplicateIndex);
+  const batchMassByType = buildBatchPreCapMassByType(scoringSignals, duplicateIndex, signalWeights);
 
   for (const id of COMPONENT_IDS) {
-    results[id] = scoreSingleComponent(
+    results[id] = scoreSingleComponent({
       id,
       scoringSignals,
       duplicateIndex,
       batchMassByType,
       totalArticles,
       salienceContext,
-    );
+      signalWeights,
+      tuningTable,
+    });
   }
 
-  const mediaMass = computeMediaMentionMass(mediaSignals ?? signals);
+  const mediaMass = computeMediaMentionMass(mediaSignals ?? signals, signalWeights);
 
   for (const id of COMPONENT_IDS) {
     if (results[id]) {
@@ -273,3 +305,6 @@ export function scoreComponents(signals, {
 
   return results;
 }
+
+export { COMPONENT_TUNING } from './scoringShared.js';
+export { resolveSignalWeights, resolveComponentTuning } from './scoringOverrides.js';

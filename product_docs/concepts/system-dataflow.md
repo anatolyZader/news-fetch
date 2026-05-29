@@ -4,7 +4,7 @@ description: "End-to-end mental model: inputs → evidence → signals → scori
 intent: concepts
 audience: ["public", "customer"]
 stability: beta
-canonical: "https://docs.vibeswitch.ai/concepts/system-dataflow"
+canonical: "https://docs.srulik.ai/concepts/system-dataflow"
 version: "current"
 tags: ["concepts", "architecture", "dataflow"]
 ---
@@ -14,7 +14,7 @@ Give you a mental model of how a piece of text — a news article, a WhatsApp me
 
 ## Prerequisites
 - **Required**: None — this is the conceptual entry point.
-- **Useful**: Skimming the [Quickstart](https://docs.vibeswitch.ai/getting-started/quickstart) first so "ingest" and "report" aren't abstract.
+- **Useful**: Skimming the [Quickstart](https://docs.srulik.ai/getting-started/quickstart) first so "ingest" and "report" aren't abstract.
 
 ## Inputs
 - **News**: articles fetched from NewsAPI.ai and filtered for homefront relevance.
@@ -72,7 +72,7 @@ Given the same dated exports and the same code version, rerunning steps 3–5 pr
 ## Troubleshooting
 - **Report looks correct but evidence feels missing**
   - **Check**: whether the dated exports for that day contain the expected content.
-  - **Fix**: rerun ingestion for the missing source/date, then regenerate the assessment. See [Operate the daily pipeline](https://docs.vibeswitch.ai/guides/operating-daily-pipeline).
+  - **Fix**: rerun ingestion for the missing source/date, then regenerate the assessment. See [Operate the daily pipeline](https://docs.srulik.ai/guides/operating-daily-pipeline).
 - **Signals exist but scoring surprises you**
   - **Check**: the signal→component mapping and the weights table.
   - **Fix**: treat mapping changes as deliberate, documented decisions; don't silently tune weights to get a target score. See [Scoring model](scoring-model.md).

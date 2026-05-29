@@ -1,4 +1,5 @@
 import { basename } from 'node:path';
+import { checkOptionalDistrictQueryAccess } from '../../../cross-cut-modules/auth/checkOptionalDistrictQueryAccess.js';
 
 /**
  * @param {import('fastify').FastifyInstance} app
@@ -8,10 +9,11 @@ export async function reportBotManualReportsRoutes(app, opts) {
   const service = opts?.service ?? null;
   const preHandler = opts?.authPreHandler ? { preHandler: opts.authPreHandler } : {};
 
-  app.get('/api/report-bot/manual-reports', preHandler, async (_request, reply) => {
+  app.get('/api/report-bot/manual-reports', preHandler, async (request, reply) => {
     if (!service) {
       return reply.code(503).send({ error: 'report bot manual reports service not configured' });
     }
+    if (!checkOptionalDistrictQueryAccess(request, reply)) return;
     try {
       return reply.send(service.getDashboard());
     } catch (err) {
@@ -23,6 +25,7 @@ export async function reportBotManualReportsRoutes(app, opts) {
     if (!service) {
       return reply.code(503).send({ error: 'report bot manual reports service not configured' });
     }
+    if (!checkOptionalDistrictQueryAccess(request, reply)) return;
     const name = String(request.query?.name ?? '').trim();
     if (!name) {
       return reply.code(400).send({ error: 'name query parameter is required' });

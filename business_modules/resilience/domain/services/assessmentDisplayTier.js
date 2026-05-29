@@ -4,6 +4,8 @@
  */
 
 import { deriveThinEvidencePolicy, isThinEvidencePolicyEnabled, deriveAssessmentEpistemicPolicy } from './thinEvidencePolicy.js';
+import { narrativeGroundingMinScore } from './narrativeGrounding/groundingConfig.js';
+import { canViewAnalystDisplay } from '../../../../cross-cut-modules/auth/userAccess.js';
 
 export const DISPLAY_VIEWS = Object.freeze({
   operator: 'operator',
@@ -35,15 +37,12 @@ const SCORE_KEYS_COMPONENT = [
   'score_headline',
   'suppression_delta',
   'suppression_breakdown',
+  'score_calibrated',
+  'calibration_trust',
+  'calibration_deficit',
+  'weight_sensitivity',
+  'weight_sensitivity_note',
 ];
-
-function parseAnalystAllowlist() {
-  const raw = process.env.RESILIENCE_ANALYST_EMAILS ?? '';
-  return raw
-    .split(',')
-    .map((e) => e.trim().toLowerCase())
-    .filter(Boolean);
-}
 
 /**
  * @param {{ queryView?: string, userEmail?: string | null }} opts
@@ -54,22 +53,7 @@ export function resolveDisplayView({ queryView, userEmail } = {}) {
   if (requested !== DISPLAY_VIEWS.analyst) {
     return DISPLAY_VIEWS.operator;
   }
-  const email = String(userEmail ?? '').trim().toLowerCase();
-  if (!email) return DISPLAY_VIEWS.operator;
-  const allowlist = parseAnalystAllowlist();
-  if (allowlist.length === 0) return DISPLAY_VIEWS.operator;
-  return allowlist.includes(email) ? DISPLAY_VIEWS.analyst : DISPLAY_VIEWS.operator;
-}
-
-/**
- * @param {string | null | undefined} email
- * @returns {boolean}
- */
-export function canViewAnalystDisplay(email) {
-  const normalized = String(email ?? '').trim().toLowerCase();
-  if (!normalized) return false;
-  const allowlist = parseAnalystAllowlist();
-  return allowlist.length > 0 && allowlist.includes(normalized);
+  return canViewAnalystDisplay(userEmail) ? DISPLAY_VIEWS.analyst : DISPLAY_VIEWS.operator;
 }
 
 /**
@@ -104,6 +88,10 @@ export function deriveInstrumentState(comp, assessmentContext = {}) {
     ? deriveThinEvidencePolicy(comp, { assessmentEpistemic })
     : null;
 
+  const groundingScore = comp?.narrative_grounding_score;
+  const interpretiveSummary = comp?.interpretive_summary === true
+    || (groundingScore != null && groundingScore < narrativeGroundingMinScore());
+
   return {
     confidence: comp?.confidence ?? 'insufficient_data',
     evidence_sufficiency,
@@ -113,6 +101,9 @@ export function deriveInstrumentState(comp, assessmentContext = {}) {
     floor_clamped: comp?.floor_clamped === true,
     floor_bypassed: comp?.floor_bypassed === true,
     salience_critical: comp?.salience_critical === true,
+    presence_gate_triggered: comp?.presence_gate_triggered === true,
+    operator_status: comp?.operator_status ?? null,
+    contested_evidence: contested === true,
     ci_unstable: comp?.ci_unstable === true,
     source_cap_binding: comp?.source_cap_binding === true,
     signal_count: comp?.signal_count ?? 0,
@@ -120,6 +111,9 @@ export function deriveInstrumentState(comp, assessmentContext = {}) {
     thin_evidence_instrument: thinPolicy?.instrument ?? null,
     operator_shows_score: thinPolicy?.operatorShowsScore ?? (mass >= 1.5),
     suppression_delta: comp?.suppression_delta ?? null,
+    calibration_limited: (comp?.calibration_deficit ?? 0) >= 0.5,
+    interpretive_summary: interpretiveSummary === true,
+    narrative_grounding_score: groundingScore ?? null,
   };
 }
 
@@ -142,10 +136,14 @@ export function operatorAssessmentSummary(assessment) {
     if (inst.significant_delta) significant += 1;
   }
   const scope = assessment?.report_scope?.label ?? assessment?.report_scope?.id ?? 'national';
-  return (
+  let summary =
     `Scope: ${scope}; components with adequate evidence: ${adequate}/${comps.length}; ` +
-    `thin: ${thin}; contested: ${contested}; significant shifts: ${significant}`
-  );
+    `thin: ${thin}; contested: ${contested}; significant shifts: ${significant}`;
+  if (assessment?.comparison_context?.comparable === false
+    || assessment?.national_comparison?.comparable === false) {
+    summary += '; national comparison not comparable (source mix mismatch)';
+  }
+  return summary;
 }
 
 function omitKeys(obj, keys) {
@@ -172,9 +170,6 @@ function redactNorrisCap(cap) {
  */
 export function redactAssessmentForView(assessment, view) {
   if (!assessment || typeof assessment !== 'object') return assessment;
-  if (view === DISPLAY_VIEWS.analyst) {
-    return { ...assessment, display_view: DISPLAY_VIEWS.analyst };
-  }
 
   const components = (assessment.components ?? []).map((c) => {
     const base = omitKeys(c, SCORE_KEYS_COMPONENT);
@@ -182,6 +177,12 @@ export function redactAssessmentForView(assessment, view) {
     delete base.counterfactual_article_key;
     delete base.dispersion;
     delete base.reviewer_score_adjusted;
+    if (view === DISPLAY_VIEWS.operator) {
+      delete base.narrative_claims;
+      delete base.grounding_issues;
+      delete base.narrative_grounding_score;
+      delete base.interpretive_summary;
+    }
     const facets = Array.isArray(c.facets)
       ? c.facets.map(redactFacet)
       : c.facets;
@@ -202,12 +203,12 @@ export function redactAssessmentForView(assessment, view) {
 
   const out = {
     ...assessment,
-    display_view: DISPLAY_VIEWS.operator,
+    display_view: view,
     components,
     norris_capacities: norris,
   };
   delete out.overall_resilience_score;
-  if (Array.isArray(out.macro_signals) && out.macro_signals.length > 0) {
+  if (view === DISPLAY_VIEWS.operator && Array.isArray(out.macro_signals) && out.macro_signals.length > 0) {
     out.macro_signals_summary = {
       count: out.macro_signals.length,
       signal_types: [...new Set(out.macro_signals.map((s) => s.signal_type ?? s.type).filter(Boolean))],
@@ -229,7 +230,6 @@ export function redactAssessmentForView(assessment, view) {
  */
 export function redactScoreBySource(scoreBySource, view) {
   if (!scoreBySource || typeof scoreBySource !== 'object') return scoreBySource;
-  if (view === DISPLAY_VIEWS.analyst) return scoreBySource;
 
   const out = {};
   for (const [sourceKey, byComponent] of Object.entries(scoreBySource)) {
@@ -276,28 +276,6 @@ export function redactReportPayload(payload, view) {
     out.markdown = payload.markdown_brief;
   }
   return out;
-}
-
-/**
- * Fastify helper: 403 unless request may use analyst view.
- * @param {import('fastify').FastifyRequest} request
- * @param {import('fastify').FastifyReply} reply
- * @returns {boolean} true if allowed
- */
-export function requireAnalystView(request, reply) {
-  const view = resolveDisplayView({
-    queryView: 'analyst',
-    userEmail: request.user?.email,
-  });
-  if (view !== DISPLAY_VIEWS.analyst) {
-    reply.code(403).send({
-      error: 'Forbidden',
-      code: 'analyst_view_required',
-      message: 'Analyst display tier required (RESILIENCE_ANALYST_EMAILS + authenticated email).',
-    });
-    return false;
-  }
-  return true;
 }
 
 /**

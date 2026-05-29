@@ -4,7 +4,7 @@ description: "High-level architecture: ingestion, storage, analysis, and UI."
 intent: architecture
 audience: ["customer", "internal"]
 stability: beta
-canonical: "https://docs.vibeswitch.ai/architecture/system-overview"
+canonical: "https://docs.srulik.ai/architecture/system-overview"
 version: "current"
 tags: ["architecture"]
 llm:
@@ -12,7 +12,9 @@ llm:
 ---
 
 ## Purpose
-Give an operator- or integrator-level understanding of VibeSwitch's major subsystems, what each owns, and how data moves between them. After reading this you should be able to locate any behavior of the running system to a subsystem, and reason about the blast radius of a change before you make it.
+Give an operator- or integrator-level understanding of Srulik's lab's major subsystems, what each owns, and how data moves between them. **Architecture serves operator judgment loops**—ingestion and scoring exist to support scan → proof → decide → feedback, not to replace human operators.
+
+After reading this you should be able to locate any behavior of the running system to a subsystem, and reason about the blast radius of a change before you make it.
 
 ## Prerequisites
 - **Required**: Familiarity with Node.js services and a React frontend.
@@ -78,12 +80,12 @@ Each arrow crosses a file boundary. Each stage is restartable from the last arti
 ## Troubleshooting
 - **Reports stop updating**
   - **Check**: ingestion sources, background job exit codes, API keys, and budget caps.
-  - **Fix**: verify environment variables and inspect server logs for upstream failures. Start with [Observability](https://docs.vibeswitch.ai/operations/observability).
+  - **Fix**: verify environment variables and inspect server logs for upstream failures. Start with [Observability](https://docs.srulik.ai/operations/observability).
 - **A change to the UI surfaces analysis differently but the numbers are the same**
   - **Check**: is the code in `client/` reshaping data, or is an analysis module changing values?
   - **Fix**: keep analysis in `business_modules/resilience/`; keep presentation in `client/`. Data mutations in the UI are a code smell.
 - **Docs panel doesn't show a page that exists on disk**
-  - **Check**: the page's frontmatter (especially `intent` and `gated`) against the panel's filtering logic.
-  - **Fix**: fix frontmatter; re-check with the "Advanced" toggle on.
+  - **Check**: the page's frontmatter (especially `intent` and `gated`) against the in-app panel's user-guide filter.
+  - **Fix**: fix frontmatter, or confirm the page appears on [full docs](https://docs.srulik.ai/).
 
 See [Module map](module-map.md) for the "where do I add code?" view, and [Storage model](storage.md) for persistence specifics.

@@ -1,9 +1,9 @@
 openapi: 3.1.0
 info:
-  title: VibeSwitch API
+  title: Srulik's lab API
   version: 0.1.0
   description: >
-    HTTP API for the VibeSwitch backend. This spec is the single source of truth for
+    HTTP API for the Srulik's lab backend. This spec is the single source of truth for
     the generated API reference.
 servers:
   - url: /

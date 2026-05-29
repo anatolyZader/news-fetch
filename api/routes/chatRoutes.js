@@ -19,6 +19,7 @@ export async function chatRoutes(app, opts) {
     chatOwnerUid,
     timezone,
     evidenceStore,
+    sourceArchive,
     vectorIndexStore,
   } = opts;
 
@@ -110,14 +111,21 @@ export async function chatRoutes(app, opts) {
     });
 
     let assistantText = '';
-    await streamChat(userMessage, history, reply.raw, getCachedReport, {
-      evidenceStore,
-      vectorIndexStore,
-      systemHint,
-      onSend: (event) => {
-        if (event?.type === 'text' && typeof event.text === 'string') assistantText += event.text;
+    await streamChat(
+      userMessage,
+      history,
+      reply.raw,
+      () => getCachedReport(evidenceStore),
+      {
+        sourceArchive,
+        evidenceStore,
+        vectorIndexStore,
+        systemHint,
+        onSend: (event) => {
+          if (event?.type === 'text' && typeof event.text === 'string') assistantText += event.text;
+        },
       },
-    });
+    );
     if (assistantText) {
       chatStore.addMessage({ sessionId: sid, role: 'assistant', content: assistantText, meta: null });
       chatStore.touchSession({ ownerUid: uid, sessionId: sid });

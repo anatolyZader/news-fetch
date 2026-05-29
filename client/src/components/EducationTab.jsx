@@ -36,6 +36,7 @@ import {
 import { formatDate } from '../lib/date.js';
 import PropTypes from 'prop-types';
 import { translationFnPropType } from '../lib/reportPropTypes.js';
+import { withOperatorDistrictQuery } from '../lib/clampOperatorDistrictScope.js';
 
 const AGE_KEYS = ['toddlers', 'kindergarten', 'elementary', 'highschool'];
 
@@ -150,7 +151,7 @@ CommentsTable.propTypes = {
   showSettlement: PropTypes.bool,
 };
 
-export function EducationTab() {
+export function EducationTab({ operatorScope = 'national' }) {
   const { getIdToken, apiReady } = useAuth();
   const { lang, t } = useLanguage();
   const theme = useTheme();
@@ -190,7 +191,8 @@ export function EducationTab() {
       const headers = new Headers();
       const token = await getIdToken();
       if (token) headers.set('Authorization', `Bearer ${token}`);
-      const r = await fetch(forceRefresh ? '/api/education-sessions?refresh=1' : '/api/education-sessions', { headers });
+      const base = forceRefresh ? '/api/education-sessions?refresh=1' : '/api/education-sessions';
+      const r = await fetch(withOperatorDistrictQuery(base, operatorScope), { headers });
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       setData(await r.json());
     } catch (e) {
@@ -198,14 +200,14 @@ export function EducationTab() {
     } finally {
       setLoading(false);
     }
-  }, [getIdToken]);
+  }, [getIdToken, operatorScope]);
 
   useEffect(() => {
     if (!apiReady) return;
     void (async () => {
       await load();
     })();
-  }, [apiReady, load]);
+  }, [apiReady, load, operatorScope]);
 
   const { trends, dist, filteredCount } = useMemo(() => {
     if (!data?.sessions) return { trends: [], dist: {}, filteredCount: 0 };

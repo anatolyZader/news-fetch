@@ -3,6 +3,7 @@ import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
+import Autocomplete from '@mui/material/Autocomplete';
 import Alert from '@mui/material/Alert';
 import Typography from '@mui/material/Typography';
 import { useAuth } from '../context/AuthContext.jsx';
@@ -98,6 +99,8 @@ export function ReportBuildPanel({ open, onClose, variant = 'modal' }) {
   const [, setSuggesting] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState('');
+  const [localityOptions, setLocalityOptions] = useState([]);
+  const [localityInput, setLocalityInput] = useState('');
 
   const suggestAbortRef = useRef(null);
   const suggestTimerRef = useRef(null);
@@ -112,6 +115,7 @@ export function ReportBuildPanel({ open, onClose, variant = 'modal' }) {
 
   const displayQuestions = rawDisplayQuestions.map(stripParentheticals).filter(Boolean);
   const displayQuestionsKey = displayQuestions.join('\n');
+  const needsLocalityPicker = displayQuestions.some((q) => q.includes('בחר יישוב'));
 
   const resetUi = useCallback(() => {
     setInput('');
@@ -263,6 +267,27 @@ export function ReportBuildPanel({ open, onClose, variant = 'modal' }) {
     };
   }, [open, input, busy, preview, state, getIdToken]);
 
+  useEffect(() => {
+    if (!open || !needsLocalityPicker) return;
+    const controller = new AbortController();
+    void (async () => {
+      try {
+        const token = await getIdToken();
+        const headers = new Headers();
+        if (token) headers.set('Authorization', `Bearer ${token}`);
+        const res = await fetch(
+          `/api/geo/localities?q=${encodeURIComponent(localityInput.trim())}&scope=north`,
+          { headers, signal: controller.signal },
+        );
+        const data = await res.json().catch(() => ({}));
+        setLocalityOptions(Array.isArray(data?.localities) ? data.localities : []);
+      } catch (e) {
+        if (e?.name !== 'AbortError') setLocalityOptions([]);
+      }
+    })();
+    return () => controller.abort();
+  }, [open, needsLocalityPicker, localityInput, getIdToken]);
+
   const confirmAndSubmit = useCallback(async () => {
     if (busy) return;
     setBusy(true);
@@ -392,6 +417,30 @@ export function ReportBuildPanel({ open, onClose, variant = 'modal' }) {
 
         {error && <Alert severity="error">{error}</Alert>}
         {success && <Alert severity="success">{success}</Alert>}
+
+        {needsLocalityPicker && state === 'collecting' && (
+          <Autocomplete
+            options={localityOptions}
+            getOptionLabel={(opt) => opt?.displayName ?? ''}
+            inputValue={localityInput}
+            onInputChange={(_, value) => setLocalityInput(value)}
+            onChange={(_, value) => {
+              if (!value) return;
+              const idx = localityOptions.findIndex((o) => o.canonicalKey === value.canonicalKey);
+              setInput(idx >= 0 ? String(idx + 1) : value.displayName);
+            }}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label={t('reportBuild.localityPicker') ?? 'Locality'}
+                placeholder={t('reportBuild.localityPickerHint') ?? 'Search north localities'}
+                disabled={busy}
+              />
+            )}
+            disabled={busy}
+            fullWidth
+          />
+        )}
 
         <TextField
           value={input}

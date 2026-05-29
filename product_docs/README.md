@@ -1,4 +1,4 @@
-## VibeSwitch product documentation
+## Srulik's lab product documentation
 
 This directory is the **single source of truth** for product documentation content.
 

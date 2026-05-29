@@ -17,6 +17,10 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { basename, dirname, resolve } from 'node:path';
 import { read, utils } from 'xlsx';
+import { createSourceArchive } from '../../../cross-cut-modules/source_archive/createSourceArchive.js';
+import { persistOriginalSources } from '../../../cross-cut-modules/source_archive/persistOriginals.js';
+import { articlesToArchiveItems } from '../../../cross-cut-modules/source_archive/articlesToArchiveItems.js';
+import { loadMarkdownArticlesFromFile } from '../../../cross-cut-modules/source_archive/markdownArticles.js';
 
 const args = process.argv.slice(2);
 const getArg = (flag) => { const idx = args.indexOf(flag); return idx >= 0 ? args[idx + 1] : null; };
@@ -114,6 +118,24 @@ for (const row of rows) {
 mkdirSync(dirname(outputPath), { recursive: true });
 writeFileSync(outputPath, lines.join('\n'), 'utf-8');
 console.error(`Wrote ${count} field-report visits to ${outputPath}`);
+
+try {
+  const repoRoot = resolve(dirname(outputPath), '../../..');
+  const sqlitePath = process.env.SQLITE_PATH?.trim() || resolve(repoRoot, 'data', 'app.sqlite');
+  const parsed = loadMarkdownArticlesFromFile(resolve(outputPath));
+  const archive = createSourceArchive(sqlitePath);
+  const items = articlesToArchiveItems(parsed, {
+    date: latestDate,
+    source_type: 'field',
+    repoRoot,
+    module_ref: outputPath,
+  });
+  const { archived } = persistOriginalSources(archive, items);
+  archive.close();
+  console.error(`  → ${archived} field report(s) archived`);
+} catch (err) {
+  console.error(`  ⚠ Source archive failed (continuing): ${err.message}`);
+}
 console.error(`  Latest visit date: ${latestDate}`);
 console.error(`  Run analysis with: npm run extract-signals -- --source-type field --files ${basename(outputPath)} --date YYYY-MM-DD`);
 console.error(`  Then: npm run assess-signals -- --date YYYY-MM-DD --days 3 --scope north`);

@@ -4,7 +4,7 @@ description: "Day-to-day workflow for ingesting sources, extracting signals, and
 intent: guides
 audience: ["internal"]
 stability: beta
-canonical: "https://docs.vibeswitch.ai/guides/operating-daily-pipeline"
+canonical: "https://docs.srulik.ai/guides/operating-daily-pipeline"
 version: "current"
 tags: ["guides", "operations", "pipeline", "user"]
 ---

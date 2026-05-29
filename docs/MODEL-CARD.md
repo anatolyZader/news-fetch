@@ -74,10 +74,28 @@ Flag: `RESILIENCE_DATA_VOID=0` disables void index.
 
 Flag: `RESILIENCE_DUAL_BASELINE=0` disables chronic metrics.
 
+## Presence gates
+
+When `RESILIENCE_PRESENCE_GATES` is on (default), verified **grounded** signals of curated types force `operator_status: critical_failure` on mapped components (e.g. `infrastructure_damage_acute` → `functional_continuity`), independent of aggregate score. Operator instrument: `critical_presence_failure` (no 1–10). Flags: `presence_gate_triggered`, `presence_gate.rule_id`, `presence_gate.signal_type`.
+
+## OOV burst (operator)
+
+`assessment.oov_burst` evaluates `reports/oov-capture-{date}.jsonl` unknown-type records **before scoring**. Operator attention when total ≥ `RESILIENCE_OOV_OPERATOR_MIN` (default 5) or largest cluster ≥ threshold.
+
+**OOV scoring (default on):** alerting clusters synthesize `novel_behavior_observed` signals at reduced weight (`RESILIENCE_OOV_SCORE_WEIGHT`, default 0.4). `assessment.oov_scoring_applied` records synthetic count. Disable with `RESILIENCE_OOV_SCORING=0`.
+
+## OSINT channel quarantine (auto)
+
+Detect high polarization on `source_type=social` and `telegram` (`RESILIENCE_SOCIAL_QUARANTINE`, default on). When thresholds fire, **auto-exclude** OSINT from metrics (`RESILIENCE_OSINT_QUARANTINE_AUTO`, default on). Analyst **dismiss_social_quarantine** in validation UI suppresses auto-exclusion for that date+scope. Confirm remains for audit.
+
+## Digital quarantine persistence
+
+When partition quarantines digital signals, `assessment.digital_quarantine_state` persists until end of UTC day. Subsequent same-day assess runs reload prior state and block digital re-ingestion even if void index alone would not re-trigger.
+
 ## Known limits
 
 - Digital survivorship bias — people who do not post are invisible (mitigated by data_void + field priority)
-- Closed vocabulary — novel behaviors captured via OOV log (`reports/oov-capture-*.jsonl`), not scored
+- Closed vocabulary — novel behaviors logged to OOV; `novel_behavior_observed` adds low-weight scoring mass when clusters alert
 - Residual capture (opt-in `RESILIENCE_RESIDUAL_CAPTURE=1`) — open-vocab observations for zero-signal articles
 - Catalog gap report — `npm run catalog-learning:gap-report` clusters captures for analyst review
 - Heuristic weights — author-set; RGR calibration via `signalWeightsFit.js` when ≥30 labeled reports
@@ -99,5 +117,22 @@ Flag: `RESILIENCE_DUAL_BASELINE=0` disables chronic metrics.
 | `RESILIENCE_HIGH_SALIENCE_BYPASS` | on | High-salience bypass for verified critical single signals |
 | `RESILIENCE_DUAL_BASELINE` | on | Chronic baseline metrics |
 | `RESILIENCE_OOV_CAPTURE` | on | Log unknown signal types, uncertain self-check, zero-signal articles |
+| `RESILIENCE_OOV_OPERATOR_MIN` | 5 | OOV burst critical threshold (unknown-type count) |
+| `RESILIENCE_PRESENCE_GATES` | on | Verified presence → critical_failure operator state |
+| `RESILIENCE_SOCIAL_QUARANTINE` | on | Detect polarized OSINT (social + telegram) |
+| `RESILIENCE_OSINT_QUARANTINE_AUTO` | on | Auto-exclude OSINT from metrics when polarized |
+| `RESILIENCE_SOCIAL_QUARANTINE_MIN_SIGNALS` | 4 | Min OSINT signals to evaluate quarantine |
+| `RESILIENCE_OOV_SCORING` | on | Synthesize `novel_behavior_observed` from OOV clusters |
+| `RESILIENCE_OOV_SCORE_WEIGHT` | 0.4 | Contribution multiplier for OOV synthetic signals |
 | `RESILIENCE_RESIDUAL_CAPTURE` | off | LLM residual pass on zero-signal articles (extra cost) |
 | `RESILIENCE_SUPPRESSION_DELTA` | on | (always computed in scorer) |
+| `RESILIENCE_EMBEDDING_SKIP_TYPES` | quote types | Skip embedding rescue for literal evidence types |
+| `RESILIENCE_DUAL_REQUIRE_AGREEMENT` | on | When second extract enabled, keep intersection-only signals |
+| `RESILIENCE_PROBE_SOURCE_ALLOWLIST` | (empty) | Allowed probe_source values; empty = allow all |
+| `RESILIENCE_PROBE_MIN_CORROBORATION` | 2 | Min probes for critical probe_outage |
+| `RESILIENCE_PROBE_HMAC_SECRET` | (unset) | Optional HMAC verification for probe JSON files |
+| `RESILIENCE_WHATSAPP_MAX_SIGNALS_PER_SENDER` | 20 | Daily cap per WhatsApp sender |
+| `RESILIENCE_WHATSAPP_HOURLY_TYPE_CAP` | 5 | Same-type hourly cap per sender |
+| `WHATSAPP_ALLOWED_DM_PHONES` | (empty) | DM allowlist; empty = allow all |
+| `RESILIENCE_OUTLET_DECAY` | on | Dynamic outlet reputation from verification/dedup |
+| `RESILIENCE_GEO_EXACT_ONLY` | off | Skip fuzzy geo; unmatched → NO_CONFIDENT_MATCH |

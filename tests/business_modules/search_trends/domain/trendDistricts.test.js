@@ -7,16 +7,15 @@ import {
 } from '../../../../business_modules/search_trends/domain/trendDistricts.js';
 
 describe('trendDistricts', () => {
-  it('lists six regional districts plus national', () => {
+  it('lists five regional districts plus national', () => {
     const regional = TREND_DISTRICTS.filter((d) => d.id !== 'national').map((d) => d.id);
-    assert.deepEqual(regional, ['north', 'south', 'jerusalem', 'haifa', 'center', 'dan']);
+    assert.deepEqual(regional, ['north', 'south', 'jerusalem', 'haifa', 'dan']);
     assert.deepEqual(TREND_DISTRICT_FILTER_ORDER, [
       'national',
       'north',
       'south',
       'jerusalem',
       'haifa',
-      'center',
       'dan',
     ]);
   });
@@ -24,5 +23,9 @@ describe('trendDistricts', () => {
   it('resolves legacy tel_aviv id to dan', () => {
     assert.equal(resolveTrendDistrict('tel_aviv').id, 'dan');
     assert.equal(resolveTrendDistrict('dan').labelKey, 'district.dan');
+  });
+
+  it('resolves legacy center id to jerusalem', () => {
+    assert.equal(resolveTrendDistrict('center').id, 'jerusalem');
   });
 });

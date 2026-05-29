@@ -4,7 +4,7 @@ description: "Fetch and pre-filter main news into homefront markdown exports for
 intent: guides
 audience: ["public", "customer"]
 stability: beta
-canonical: "https://docs.vibeswitch.ai/guides/news-ingestion"
+canonical: "https://docs.srulik.ai/guides/news-ingestion"
 version: "current"
 tags: ["guides", "ingestion", "news", "user"]
 ---
@@ -31,5 +31,5 @@ Operators maintain an internal, auditable export for each day (so they can valid
   - **Fix**: unset it and rerun.
 - **Costs jumped**
   - **Cause**: the number of candidate articles grew; filtering cost scales with candidates.
-  - **Fix**: tighten the upstream query and review caps (see [Cost controls](https://docs.vibeswitch.ai/operations/cost-controls)).
+  - **Fix**: tighten the upstream query and review caps (see [Cost controls](https://docs.srulik.ai/operations/cost-controls)).
 

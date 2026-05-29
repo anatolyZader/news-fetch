@@ -1,16 +1,16 @@
 ---
 title: "Deploy (production)"
-description: "Deploy VibeSwitch safely with correct env, auth, and build outputs."
+description: "Deploy Srulik's lab safely with correct env, auth, and build outputs."
 intent: getting-started
 audience: ["internal"]
 stability: beta
-canonical: "https://docs.vibeswitch.ai/getting-started/deploy"
+canonical: "https://docs.srulik.ai/getting-started/deploy"
 version: "current"
 tags: ["deploy", "operations", "auth"]
 ---
 
 ## Purpose
-Deploy VibeSwitch to a real environment — a VM, a container, Cloud Run, or a Node.js-capable PaaS — with sensible defaults for auth, secrets, and the SPA build. This guide covers what runs, what serves what, which environment variables matter, and where things typically break in production that don't break locally.
+Deploy Srulik's lab to a real environment — a VM, a container, Cloud Run, or a Node.js-capable PaaS — with sensible defaults for auth, secrets, and the SPA build. This guide covers what runs, what serves what, which environment variables matter, and where things typically break in production that don't break locally.
 
 ## Prerequisites
 - **Required**: A runtime that can run Node.js 20+ (container, VM, Cloud Run, Render, Fly, etc.).
@@ -18,6 +18,16 @@ Deploy VibeSwitch to a real environment — a VM, a container, Cloud Run, or a N
 - **Required**: A way to route traffic to the server (a reverse proxy or your platform's built-in router).
 - **Strongly recommended**: Google Identity Platform / Firebase Auth if the app is reachable from the public internet.
 - **Optional**: A custom domain and TLS cert (usually supplied by your platform or a proxy like Cloudflare).
+
+### Source archive retention (chat originals)
+
+Chat validation text lives in SQLite `source_archive`. Nightly purge removes **only ephemeral types** (`news`, `radio`, `social`) with `date` older than 14 days. **Field, visits, whatsapp, manual, audio, video, and all other types are kept forever in SQLite.** Extracted article `.md` files on disk are **never** deleted by this job.
+
+```bash
+0 3 * * * cd /path/to/news && node business_modules/source_archive/input/purgeSourceArchive.js >> /var/log/source-archive-purge.log 2>&1
+```
+
+Env: `SOURCE_ARCHIVE_RETENTION_DAYS` (default `14`, applies to news/radio/social SQLite rows only), `SQLITE_PATH`, `TZ_ARTICLES`. One-time backfill: `npm run archive:backfill -- --days 14`.
 
 ## Inputs
 - **Server env** (at runtime, not in the image):

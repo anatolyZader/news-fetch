@@ -9,6 +9,8 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { fetchSonarCloudIssues } from './sonar-cloud-client.mjs';
+import { resolveSonarBranch } from './sonar-git-branch.mjs';
+import { FIX_SONAR_BATCH_SIZE } from './sonar-defaults.mjs';
 
 dotenv.config();
 
@@ -22,6 +24,7 @@ Commands:
   (default)     Fetch full remote queue JSON (--all-issues)
   --init        Reset progress and cache full queue in state file
   --next        Print next unfixed issue JSON (uses cached queue + progress)
+  --next-batch  Print next batch of unfixed issues (default: 500; loop until queue empty)
   --mark-fixed <key>   Mark issue key as fixed
   --mark-skipped <key> [--reason text]  Mark issue skipped
   --status      Print progress counts JSON
@@ -30,7 +33,10 @@ Commands:
 
 Options:
   --local-only  Use profile-aligned local queue instead of SonarCloud
-  --branch <name>
+  --branch <name>             SonarCloud branch (default: current git branch)
+  --in-new-code               Only issues in the new-code period (remote)
+  --hotspots                  Include TO_REVIEW security hotspots (remote)
+  --limit <n>                 Cap --next-batch size (default: 500 from sonar-defaults.mjs)
   --json        JSON output (default for --next and --status)`);
 }
 
@@ -65,20 +71,25 @@ async function fetchQueue(opts) {
   const payload = await fetchSonarCloudIssues({
     token,
     projectKey,
-    branch: opts.branch || undefined,
+    branch: resolveSonarBranch(opts.branch),
+    inNewCode: opts.inNewCode,
+    hotspots: opts.hotspots,
     limit: Number.POSITIVE_INFINITY,
   });
   return payload.items;
 }
 
-/** @type {{ command: string, localOnly: boolean, branch: string, key: string, reason: string, verifyArgs: string[] }} */
+/** @type {{ command: string, localOnly: boolean, branch: string, inNewCode: boolean, hotspots: boolean, key: string, reason: string, verifyArgs: string[] }} */
 const opts = {
   command: 'fetch',
   localOnly: false,
   branch: '',
+  inNewCode: false,
+  hotspots: false,
   key: '',
   reason: '',
   verifyArgs: [],
+  batchLimit: FIX_SONAR_BATCH_SIZE,
 };
 
 const argv = process.argv.slice(2);
@@ -94,6 +105,10 @@ for (let i = 0; i < argv.length; i += 1) {
   }
   if (arg === '--next') {
     opts.command = 'next';
+    continue;
+  }
+  if (arg === '--next-batch') {
+    opts.command = 'next-batch';
     continue;
   }
   if (arg === '--status') {
@@ -129,6 +144,18 @@ for (let i = 0; i < argv.length; i += 1) {
   }
   if (arg === '--branch' && argv[i + 1]) {
     opts.branch = argv[++i];
+    continue;
+  }
+  if (arg === '--in-new-code') {
+    opts.inNewCode = true;
+    continue;
+  }
+  if (arg === '--hotspots') {
+    opts.hotspots = true;
+    continue;
+  }
+  if (arg === '--limit' && argv[i + 1]) {
+    opts.batchLimit = Number(argv[++i]);
     continue;
   }
   console.error(`Unknown argument: ${arg}`);
@@ -201,12 +228,24 @@ try {
     process.exit(0);
   }
 
-  if (opts.command === 'next') {
+  if (opts.command === 'next' || opts.command === 'next-batch') {
     if (!remaining.length) {
       console.log(JSON.stringify({ done: true, remaining: 0 }, null, 2));
       process.exit(0);
     }
-    console.log(JSON.stringify({ issue: remaining[0], remaining: remaining.length }, null, 2));
+    if (opts.command === 'next') {
+      console.log(JSON.stringify({ issue: remaining[0], remaining: remaining.length }, null, 2));
+      process.exit(0);
+    }
+    const cap = Number.isFinite(opts.batchLimit) && opts.batchLimit > 0
+      ? opts.batchLimit
+      : remaining.length;
+    const batch = remaining.slice(0, cap);
+    console.log(JSON.stringify({
+      issues: batch,
+      batchSize: batch.length,
+      remaining: remaining.length,
+    }, null, 2));
     process.exit(0);
   }
 

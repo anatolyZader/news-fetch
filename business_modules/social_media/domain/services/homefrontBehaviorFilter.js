@@ -47,7 +47,8 @@ const PURE_ALERT_START_RE = /^(🚨|✈️|\s)*(אזעקה|ירי|ירי רקט�
 
 /** IDF / military operational reporting — not population-behavior evidence. */
 const MILITARY_OPS_NEWS_RES = [
-  /\b(מחבל|מחבלים|חיסול|חוסל|חוסלו|אביר לילה|מטוס קרב|מטוסי קרב|גדוד \d+|אוגדה \d+|תא"ל|חדירת מחבל|תצפיות צה"ל|terrorist|eliminated|infiltration|airstrike|fighter jet)\b/i,
+  /\b(מחבל|מחבלים|חיסול|חוסל|חוסלו|אביר לילה|מטוס קרב|מטוסי קרב|גדוד \d+|אוגדה \d+|תא"ל|חדירת מחבל|תצפיות צה"ל)\b/i,
+  /\b(terrorist|eliminated|infiltration|airstrike|fighter jet)\b/i,
   /^פרטים חדשים על/i,
   /\bNews \d+\s*\|/i,
 ];
@@ -56,6 +57,9 @@ const MILITARY_OPS_NEWS_RES = [
 const EXCLUDE_NON_BEHAVIOR_RES = [
   /^(דובר|הודעה רשמית|הודעת דובר|משרד ה|ועדת|הכנסת|ממשלה)\b/i,
 ];
+
+const RESIDENT_VOICE_RE = /\b(תושב|תושבים מדווחים|דיווח|ראיתי|שומע|שכנ|שאל|חושש)\b/i;
+const ATTACK_ALERT_BEHAVIOR_EXCLUSION_RE = /\b(תושב|תושבים|אזרח|מקלט|מרחב מוגן|חרדה|פחד|נכנס|יוצא|מפונ|ראיתי|שומע)\b/i;
 
 /** Channels flagged in registry as news/editorial — require resident voice, not reposts. */
 function channelRequiresStrictBehaviorFilter(channel = {}) {
@@ -100,9 +104,7 @@ export function isAttackAlertOnly(text) {
     return false;
   }
   if (hasPopulationBehaviorSignal(body)) return false;
-  if (/\b(תושב|תושבים|אזרח|מקלט|מרחב מוגן|חרדה|פחד|נכנס|יוצא|מפונ|ראיתי|שומע)\b/i.test(body)) {
-    return false;
-  }
+  if (ATTACK_ALERT_BEHAVIOR_EXCLUSION_RE.test(body)) return false;
   return true;
 }
 
@@ -127,6 +129,46 @@ export function isPureAlertTemplate(text) {
 }
 
 /**
+ * @param {string} body
+ */
+function hasResidentVoice(body) {
+  return RESIDENT_VOICE_RE.test(body);
+}
+
+/**
+ * @param {string} body
+ * @param {string[]} conceptIds
+ */
+function passesUavTopicGate(body, conceptIds) {
+  const uavTopic = conceptIds.includes('uav_drone');
+  if (!uavTopic || !isUavMention(body) || hasPopulationBehaviorSignal(body)) return true;
+  return hasResidentVoice(body);
+}
+
+/**
+ * @param {string} body
+ * @param {import('./telegramChannelRegistry.js').TelegramChannelEntry} channel
+ */
+function passesVoiceAndBehaviorGates(body, channel) {
+  const category = String(channel.sourceCategory ?? '');
+  const citizenLevel = String(channel.citizenVoiceLevel ?? '');
+  const isOfficialOrLowVoice = /official|municipal|security_updates|regional_updates/i.test(category)
+    || citizenLevel === 'low';
+  const strictChannel = channelRequiresStrictBehaviorFilter(channel);
+  const hasBehavior = hasPopulationBehaviorSignal(body);
+  const residentVoice = hasResidentVoice(body);
+
+  if (strictChannel && !residentVoice) return false;
+  if (isOfficialOrLowVoice && !hasBehavior) return false;
+  if (!isOfficialOrLowVoice && !hasBehavior && !residentVoice) return false;
+
+  for (const re of EXCLUDE_NON_BEHAVIOR_RES) {
+    if (re.test(body) && !hasBehavior && !residentVoice) return false;
+  }
+  return true;
+}
+
+/**
  * @param {string} text
  * @param {import('./telegramChannelRegistry.js').TelegramChannelEntry} [channel]
  * @param {{ topic?: string }} [options]
@@ -140,39 +182,14 @@ export function isHomefrontBehaviorRelevant(text, channel = {}, options = {}) {
   if (isMilitaryOperationsNews(body)) return false;
 
   const conceptIds = topicConceptIds(options.topic);
+  if (!passesUavTopicGate(body, conceptIds)) return false;
+
   const uavTopic = conceptIds.includes('uav_drone');
-
-  if (uavTopic && isUavMention(body) && !hasPopulationBehaviorSignal(body)) {
-    const hasResidentVoice = /\b(תושב|תושבים מדווחים|דיווח|ראיתי|שומע|שכנ|שאל|חושש)\b/i.test(body);
-    if (!hasResidentVoice) return false;
-  }
-
   if (!isHomefrontRelevant('', body) && !(uavTopic && hasPopulationBehaviorSignal(body))) {
     return false;
   }
 
-  const category = String(channel.sourceCategory ?? '');
-  const citizenLevel = String(channel.citizenVoiceLevel ?? '');
-  const isOfficialOrLowVoice = /official|municipal|security_updates|regional_updates/i.test(category)
-    || citizenLevel === 'low';
-  const strictChannel = channelRequiresStrictBehaviorFilter(channel);
-
-  const hasBehavior = hasPopulationBehaviorSignal(body);
-  const hasResidentVoice = /\b(תושב|תושבים מדווחים|דיווח|ראיתי|שומע|שכנ|שאל|חושש)\b/i.test(body);
-
-  if (strictChannel && !hasResidentVoice) return false;
-
-  if (isOfficialOrLowVoice) {
-    if (!hasBehavior) return false;
-  } else if (!hasBehavior && !hasResidentVoice) {
-    return false;
-  }
-
-  for (const re of EXCLUDE_NON_BEHAVIOR_RES) {
-    if (re.test(body) && !hasBehavior && !hasResidentVoice) return false;
-  }
-
-  return true;
+  return passesVoiceAndBehaviorGates(body, channel);
 }
 
 /**

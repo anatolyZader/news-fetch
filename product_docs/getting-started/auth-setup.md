@@ -4,7 +4,7 @@ description: "Enable sign-in and protect the API with Firebase ID tokens."
 intent: getting-started
 audience: ["internal"]
 stability: beta
-canonical: "https://docs.vibeswitch.ai/getting-started/auth-setup"
+canonical: "https://docs.srulik.ai/getting-started/auth-setup"
 version: "current"
 tags: ["auth", "getting-started"]
 ---

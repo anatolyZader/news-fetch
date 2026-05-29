@@ -21,3 +21,9 @@ export {
 
 export { applyEpistemicGate, attachEpistemicToAssessment, applyScoreAbstention } from './dataVoid/epistemicGate.js';
 export { buildEpistemicStatus } from './dataVoid/epistemicStatus.js';
+export {
+  resolveScoringPartition,
+  summarizeQuarantinedSignals,
+  isScoringPartitionEnabled,
+  QUARANTINE_REASON,
+} from './dataVoid/scoringPartition.js';

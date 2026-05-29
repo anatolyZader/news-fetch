@@ -14,11 +14,14 @@ import { YoutubeEvidenceIngestService } from './business_modules/video/app/youtu
 import { createYtDlpYoutubeAdapter } from './business_modules/video/infrastructure/adapters/ytDlpYoutubeAdapter.js';
 import { createYoutubeDataApiCaptionsAdapter } from './business_modules/video/infrastructure/adapters/youtubeDataApiCaptionsAdapter.js';
 import { createLocalVideoFileAdapter } from './business_modules/video/infrastructure/adapters/localVideoFileAdapter.js';
-import { initFirebaseAdminForAuth } from './auth/firebaseAdmin.js';
-import { requireAuthPreHandler } from './auth/requireAuthPreHandler.js';
-import { tryAuthPreHandler } from './auth/tryAuthPreHandler.js';
+import { initFirebaseAdminForAuth } from './cross-cut-modules/auth/firebaseAdmin.js';
+import { requireAuthPreHandler } from './cross-cut-modules/auth/requireAuthPreHandler.js';
+import { tryAuthPreHandler } from './cross-cut-modules/auth/tryAuthPreHandler.js';
+import { hasPrivilegedUserAccessConfigured } from './cross-cut-modules/auth/userAccess.js';
+import { requireAnalystView } from './cross-cut-modules/auth/requireAnalystAccess.js';
 import { createEvidenceDraftStore } from './cross-cut-modules/persistence/evidenceDraftStore.js';
 import { createEvidenceStore } from './cross-cut-modules/persistence/evidenceStore.js';
+import { createSourceArchive } from './cross-cut-modules/source_archive/createSourceArchive.js';
 import { createChatStore } from './business_modules/chat/infrastructure/chatStore.js';
 import { AudioEvidenceIngestService } from './business_modules/audio/app/audioEvidenceIngestService.js';
 import { contextualizeTranscript } from './business_modules/audio/app/audioTranscriptContextualizer.js';
@@ -26,6 +29,10 @@ import { OpenaiTranscriptionAdapter } from './business_modules/audio/infrastruct
 import { createHttpAudioDownloadAdapter } from './business_modules/audio/infrastructure/adapters/httpAudioDownloadAdapter.js';
 import { createDriftService } from './business_modules/resilience/app/driftService.js';
 import { registerDriftRoutes } from './business_modules/resilience/input/driftRoutes.js';
+import {
+  createMonitoringService,
+  registerMonitoringRoutes,
+} from './cross-cut-modules/monitoring/index.js';
 import {
   createSearchTrendsService,
   registerSearchTrendsRoutes,
@@ -76,10 +83,17 @@ import { createMailingPreferencesStore } from './business_modules/mailing/infras
 import { createMailingResendAdapter } from './business_modules/mailing/infrastructure/adapters/mailingResendAdapter.js';
 import { createMailingService } from './business_modules/mailing/app/mailingService.js';
 import { mailingRoutes } from './business_modules/mailing/input/mailingRoutes.js';
+import { createDefaultPboReportReviewService } from './business_modules/pbo_report_review/input/createPboReviewWiring.js';
+import { pboReviewRoutes } from './business_modules/pbo_report_review/input/pboReviewRoutes.js';
 import { createVectorIndexStore } from './cross-cut-modules/vector_index/index.js';
 import { evidenceRoutes } from './api/routes/evidenceRoutes.js';
 import { chatRoutes } from './api/routes/chatRoutes.js';
 import { reportRoutes } from './api/routes/reportRoutes.js';
+import { authRoutes } from './cross-cut-modules/auth/authRoutes.js';
+import { operatorRoutes } from './api/routes/operatorRoutes.js';
+import { createValidationReviewSqliteStore } from './business_modules/resilience/validation/infrastructure/adapters/validationReviewSqliteStore.js';
+import { createValidationReviewService } from './business_modules/resilience/validation/app/validationReviewService.js';
+import { validationReviewRoutes } from './business_modules/resilience/validation/input/validationReviewRoutes.js';
 import { docsRoutes, resolveProductDocsRoot } from './api/routes/docsRoutes.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -93,6 +107,7 @@ const sqlitePath = process.env.SQLITE_PATH?.trim()
 
 const evidenceDraftStore = createEvidenceDraftStore(sqlitePath);
 const evidenceStore = createEvidenceStore(sqlitePath);
+const sourceArchive = createSourceArchive(sqlitePath);
 const chatStore = createChatStore(sqlitePath);
 const vectorIndexStore = createVectorIndexStore(sqlitePath);
 const mailingPrefsStore = createMailingPreferencesStore(sqlitePath);
@@ -123,9 +138,8 @@ const reportBotManualReportsService = createReportBotManualReportsService({
 });
 
 const pboRegionalDailyService = createPboRegionalDailyService({
-  repository: createPboReportRegionalFsAdapter({
-    dataDir: resolve(__dirname, 'business_modules', 'pbo_report_regional', 'data'),
-  }),
+  repository: createPboReportRegionalFsAdapter(),
+  rootDir: __dirname,
 });
 
 const poolService = createDefaultPoolService();
@@ -152,6 +166,17 @@ const mailingService = isMailingConfigured()
     poolService,
   })
   : null;
+
+const pboReportReviewService = createDefaultPboReportReviewService({
+  repoRoot: __dirname,
+  sqlitePath,
+});
+
+const validationReviewStore = createValidationReviewSqliteStore(sqlitePath);
+const validationReviewService = createValidationReviewService({
+  store: validationReviewStore,
+  evidenceStore,
+});
 
 let audioEvidenceIngestService = null;
 
@@ -213,6 +238,7 @@ function createReportBuildServiceIfConfigured() {
     }),
     conversationStore: createReportBuildConversationStore(sqlitePath),
     draftStore: createReportBuildDraftStore(sqlitePath),
+    geoLocalityPort: geoService,
   });
 }
 
@@ -240,6 +266,7 @@ async function registerWhatsappWebhook(app, reportBuildService) {
     messageStore: whatsappMessageStore,
     apiAdapter: whatsappApiAdapter,
     evidenceStore,
+    sourceArchive,
     signalStore: whatsappSignalStore,
     resilienceAnalyzer: whatsappResilienceAnalyzer,
     draftGenerator: whatsappDraftGenerator,
@@ -249,6 +276,7 @@ async function registerWhatsappWebhook(app, reportBuildService) {
         draftGeneratorPort: whatsappDraftGenerator,
         conversationStore: whatsappConversationStore,
         draftStore: whatsappDraftStore,
+        geoLocalityPort: geoService,
       })
       : null,
     conversationStore: whatsappConversationStore,
@@ -279,7 +307,12 @@ export async function createApp(options) {
     (process.env.AUTH_REQUIRED === 'true' && !!process.env.FIREBASE_PROJECT_ID?.trim());
 
   const firebaseProjectId = process.env.FIREBASE_PROJECT_ID?.trim();
-  const needsFirebase = (authRequired || !!process.env.RESILIENCE_MAINTAINER_EMAILS?.trim()) && firebaseProjectId;
+  const needsFirebase = (
+    authRequired
+    || !!process.env.RESILIENCE_MAINTAINER_EMAILS?.trim()
+    || !!process.env.RESILIENCE_ANALYST_EMAILS?.trim()
+    || hasPrivilegedUserAccessConfigured()
+  ) && firebaseProjectId;
   if (needsFirebase) {
     initFirebaseAdminForAuth(firebaseProjectId);
   }
@@ -326,6 +359,8 @@ export async function createApp(options) {
     openapiDocument,
   });
 
+  await authRoutes(app, { authRequired });
+
   await reportRoutes(app, {
     authHook,
     tryAuthPreHandler,
@@ -337,10 +372,29 @@ export async function createApp(options) {
     fetchArticlesForDay,
   });
 
+  await app.register(validationReviewRoutes, {
+    validationReviewService,
+    authPreHandler: authHook?.preHandler,
+  });
+
+  await operatorRoutes(app);
+
   const driftService = createDriftService({});
   await registerDriftRoutes(app, {
     driftService,
     authPreHandler: authHook?.preHandler,
+  });
+
+  const monitoringService = createMonitoringService({
+    rootDir: __dirname,
+    timezone,
+    sqlitePath,
+  });
+  await registerMonitoringRoutes(app, {
+    monitoringService,
+    authPreHandler: authHook?.preHandler,
+    requireAnalystView,
+    timezone,
   });
 
   const searchTrendsService = createSearchTrendsService({});
@@ -366,6 +420,7 @@ export async function createApp(options) {
     authHook,
     evidenceDraftStore,
     evidenceStore,
+    sourceArchive,
     maxEvidenceDraftChars: MAX_EVIDENCE_DRAFT_CHARS,
     evidenceUserUploadsRoot,
     videoDownloadDir,
@@ -381,6 +436,7 @@ export async function createApp(options) {
     chatOwnerUid,
     timezone,
     evidenceStore,
+    sourceArchive,
     vectorIndexStore,
   });
 
@@ -395,6 +451,11 @@ export async function createApp(options) {
     tryAuthPreHandler,
     isMailingConfigured,
     allowAnonymous: !authRequired,
+  });
+
+  await app.register(pboReviewRoutes, {
+    pboReportReviewService,
+    authPreHandler: authHook?.preHandler,
   });
 
   await app.register(visitsRoutes, {

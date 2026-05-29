@@ -35,7 +35,24 @@ const SITE_LABELS = {
 };
 
 function escapeMdHeading(s) {
-  return String(s).replaceAll('#', '\\#').replaceAll('\n', ' ');
+  return String(s).replaceAll('#', String.raw`\#`).replaceAll('\n', ' ');
+}
+
+/** @param {string[]} sections @param {number} index @param {object} article */
+function appendArticleSections(sections, index, article) {
+  const body = article.body?.trim();
+  sections.push(
+    `## ${index + 1}. ${escapeMdHeading(article.title)}`,
+    '',
+    `- **URL:** ${article.url}`,
+    `- **Published:** ${article.publishedAt}`,
+    `- **Source:** ${article.source}`,
+    '',
+    body || '_No full text available._',
+    '',
+    '---',
+    '',
+  );
 }
 
 /**
@@ -80,9 +97,7 @@ export async function runFetchArticlesToMd(opts = {}) {
   ];
 
   for (let i = 0; i < articles.length; i++) {
-    const a = articles[i];
-    sections.push(`## ${i + 1}. ${escapeMdHeading(a.title)}`, '', `- **URL:** ${a.url}`, `- **Published:** ${a.publishedAt}`, `- **Source:** ${a.source}`, '');
-    sections.push(a.body && a.body.trim() ? a.body.trim() : '_No full text available._', '', '---', '');
+    appendArticleSections(sections, i, articles[i]);
   }
 
   writeFileSync(outPath, sections.join('\n'), 'utf8');

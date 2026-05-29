@@ -116,6 +116,37 @@ export function totalFieldVolume(signals) {
 }
 
 /**
+ * @param {object} signal
+ * @returns {boolean}
+ */
+export function isAnchorSignal(signal) {
+  return isFieldSignal(signal) || isProbeSignal(signal);
+}
+
+/**
+ * Filter signals to trusted anchor family (field + infrastructure probes).
+ * @param {Array<object>} signals
+ * @returns {Array<object>}
+ */
+export function filterAnchorSignals(signals) {
+  return (signals ?? []).filter((s) => isAnchorSignal(s));
+}
+
+/**
+ * @param {Array<object>} signals
+ * @returns {number}
+ */
+export function totalAnchorVolume(signals) {
+  const keys = new Set();
+  for (const s of signals ?? []) {
+    if (!isAnchorSignal(s)) continue;
+    const key = s.article_source ?? s.article_url ?? s.article_index ?? `_sig_${keys.size}`;
+    keys.add(String(key));
+  }
+  return keys.size;
+}
+
+/**
  * Filter signals to field-anchor family only.
  * @param {Array<object>} signals
  * @returns {Array<object>}

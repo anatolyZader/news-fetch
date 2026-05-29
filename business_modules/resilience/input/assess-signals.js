@@ -3,7 +3,7 @@
  * Stage-2 CLI: load pre-extracted signal files, score per-source + full, narrate once, write report.
  *
  * Usage:
- *   node assess-signals.js --date YYYY-MM-DD [--days N] [--scope national|north] [--output <path-without-ext>]
+ *   node assess-signals.js --date YYYY-MM-DD [--days N] [--scope national|north|south|jerusalem|dan|haifa] [--output <path-without-ext>]
  *
  * All sources—including field, PBO, and Naftali—may only load bundles whose basename date `YYYY-MM-DD` is:
  * - on or before `--date` (no forward leakage from later calendar days when replaying history), and
@@ -24,6 +24,9 @@ import { fileURLToPath } from 'node:url';
 
 import { overallScore, scoreComponents } from '../domain/services/behaviorSignals.js';
 import { filterSignalsForScope } from '../domain/services/regionSignalFilter.js';
+import { buildComparisonContext } from '../domain/services/sourceMixIndex.js';
+import { isRegionalReportScope, reportFilePrefix } from '../../../cross-cut-modules/geo/reportScopeIds.js';
+import { ISRAEL_NATIONAL_DISTRICT_ID } from '../../../cross-cut-modules/geo/israelDistricts.js';
 import { generateNarratives } from '../infrastructure/claudeEvaluator.js';
 import { writeReport } from '../infrastructure/reportWriter.js';
 import { createCostTracker, appendCostLog, checkDailyBudget } from '../../../cross-cut-modules/budget/index.js';
@@ -31,7 +34,6 @@ import {
   crossSourceDedupSemantic,
   loadHistoricalScores,
   loadHistoricalSignalDays,
-  enrichWithDeltaChannel,
   parseAssessCliArgs,
   discoverSignalBundles,
   loadPipelineConfig,
@@ -47,9 +49,14 @@ import {
   formatScopeDecisionLogLine,
   formatSubgroupCoverageLogLine,
 } from '../domain/services/assessmentMethodology.js';
-import { computeDataVoidIndex, applyEpistemicGate, attachEpistemicToAssessment } from '../domain/services/dataVoidIndex.js';
+import { computeDataVoidIndex, attachEpistemicToAssessment } from '../domain/services/dataVoidIndex.js';
+import { runScoringPipeline } from '../app/scoringPipelinePrep.js';
+import { prepareScoringSignals } from '../app/prepareScoringSignals.js';
 import { salienceContextFromDataVoid } from '../domain/services/highSalienceBypass.js';
 import { countOovCapturesForDate } from '../domain/services/oovCapture.js';
+import {
+  getSocialQuarantineDecision,
+} from '../domain/services/socialQuarantineOverrides.js';
 import {
   annotateSignalsEpistemics,
   partitionMacroSignals,
@@ -60,7 +67,10 @@ import {
   readCostLogStagesForDate,
 } from '../domain/services/pipelineStageTelemetry.js';
 import createValidationCollectionService from '../validation/app/validationCollectionService.js';
+import { summarizeValidationMaturity } from '../validation/domain/validationStatus.js';
 import { loadConnectivityProbeSignals } from '../infrastructure/adapters/connectivityProbeFileAdapter.js';
+import { enrichProbeSignalsInList } from '../domain/services/probeCorroborationPolicy.js';
+import { createDefaultPboReportReviewService } from '../../pbo_report_review/input/createPboReviewWiring.js';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 
@@ -147,6 +157,7 @@ async function loadPreparedSignals(targetDate, days) {
     sourceTypesSeen.add('infrastructure_probe');
     console.error(`  → Connectivity probes: ${probeSignals.length} signal(s) merged`);
   }
+  allSignals = enrichProbeSignalsInList(allSignals);
   allSignals = dedupWithinSource(allSignals);
 
   const beforeCrossSource = allSignals.length;
@@ -203,10 +214,10 @@ function logBuildScopedDiagnostics({
   dataVoid,
   scopeLogLine,
 }) {
-  if (reportScopeId === 'north' && macroSignals.length > 0) {
+  if (isRegionalReportScope(reportScopeId) && macroSignals.length > 0) {
     console.error(`  → Epistemic partition: ${metricsSignals.length} metrics-eligible, ${macroSignals.length} macro/context-only`);
   }
-  if (reportScopeId !== 'national') {
+  if (reportScopeId !== ISRAEL_NATIONAL_DISTRICT_ID) {
     console.error(`  → Scope filter (${reportScope.label}): ${scopedSignals.length}/${nationalSignals.length} signals retained`);
   }
   if (dataVoid.level && dataVoid.level !== 'none') {
@@ -225,7 +236,7 @@ function buildScoreBySource({
   const scoreBySource = {};
   for (const sourceType of scopedSourceTypesSeen) {
     const sourceSigs = signalsForScoring.filter((s) => s.source_type === sourceType);
-    const sourceArticles = reportScopeId === 'national'
+    const sourceArticles = reportScopeId === ISRAEL_NATIONAL_DISTRICT_ID
       ? loadedFiles
         .filter((f) => f.sourceType === sourceType)
         .reduce((sum, f) => sum + (f.data.total_articles ?? 0), 0)
@@ -238,12 +249,11 @@ function buildScoreBySource({
   return scoreBySource;
 }
 
-function buildScopedScoring(targetDate, days, allSignals, totalArticles, reportScopeId, reportScope, loadedFiles) {
+async function buildScopedScoring(targetDate, days, allSignals, totalArticles, reportScopeId, reportScope, loadedFiles) {
   const nationalSignals = allSignals;
-  const historicalSignalDays = loadHistoricalSignalDays(targetDate, 'reports', 7, reportScopeId);
-  const nationalHistoricalDays = reportScopeId === 'north'
-    ? loadHistoricalSignalDays(targetDate, 'reports', 7, 'national')
-    : historicalSignalDays;
+  const nationalHistoricalDays = isRegionalReportScope(reportScopeId)
+    ? loadHistoricalSignalDays(targetDate, 'reports', 7, ISRAEL_NATIONAL_DISTRICT_ID)
+    : loadHistoricalSignalDays(targetDate, 'reports', 7, reportScopeId);
 
   const historicalScores = loadHistoricalScores(targetDate, 'reports', 14, reportScopeId);
   if (Object.keys(historicalScores).length > 0) {
@@ -253,12 +263,24 @@ function buildScopedScoring(targetDate, days, allSignals, totalArticles, reportS
   let scopedSignals = filterSignalsForScope(allSignals, reportScopeId);
   scopedSignals = annotateSignalsEpistemics(scopedSignals, { reportScope: reportScopeId });
   const { metricsSignals, macroSignals } = partitionMacroSignals(scopedSignals, reportScopeId);
-  const signalsForScoring = reportScopeId === 'north' ? metricsSignals : scopedSignals;
+  let baseSignalsForScoring = isRegionalReportScope(reportScopeId) ? metricsSignals : scopedSignals;
 
-  const voidInputSignals = signalsForScoring;
-  const dataVoid = computeDataVoidIndex(voidInputSignals, historicalSignalDays, { reportScope: reportScopeId });
-  const nationalDataVoid = reportScopeId === 'north'
-    ? computeDataVoidIndex(nationalSignals, nationalHistoricalDays, { reportScope: 'national' })
+  const prepared = await prepareScoringSignals({
+    signalsForScoring: baseSignalsForScoring,
+    reportDate: targetDate,
+    reportScopeId,
+    reportsDir: 'reports',
+  });
+
+  let signalsForScoring = prepared.signalsForScoring;
+  const dataVoid = prepared.dataVoid;
+  const osintChannelQuarantine = prepared.osintChannelQuarantine;
+  const oovBurst = prepared.oovBurst;
+  const oovScoringApplied = prepared.oovScoringApplied;
+  const priorQuarantine = prepared.priorQuarantine;
+
+  const nationalDataVoid = isRegionalReportScope(reportScopeId)
+    ? computeDataVoidIndex(nationalSignals, nationalHistoricalDays, { reportScope: ISRAEL_NATIONAL_DISTRICT_ID })
     : null;
 
   let salienceContext = salienceContextFromDataVoid(dataVoid);
@@ -288,34 +310,32 @@ function buildScopedScoring(targetDate, days, allSignals, totalArticles, reportS
       .map((s) => s.article_url || (s.article_index ?? null))
       .filter((v) => v != null),
   );
-  const scopedTotalArticles = reportScopeId === 'national'
+  const scopedTotalArticles = reportScopeId === ISRAEL_NATIONAL_DISTRICT_ID
     ? totalArticles
     : Math.max(scopedArticleKeys.size, 1);
   const scopedSourceTypesSeen = new Set(signalsForScoring.map((s) => s.source_type).filter(Boolean));
 
-  const digitalInclusiveScored = scoreComponents(signalsForScoring, {
-    totalArticles: scopedTotalArticles,
-    mediaSignals: scopedSignals,
-    salienceContext,
-  });
-
-  const gateResult = applyEpistemicGate({
-    scoredFull: digitalInclusiveScored,
+  const validationMaturity = summarizeValidationMaturity({ rootDir: REPO_ROOT });
+  const pipelineResult = runScoringPipeline({
     signalsForScoring,
     dataVoid,
     totalArticles: scopedTotalArticles,
     mediaSignals: scopedSignals,
     salienceContext,
-    digitalInclusiveScored,
+    historicalScores,
+    scopeId: reportScopeId,
+    validationMaturity,
+    priorQuarantine,
+    reportDate: targetDate,
   });
 
-  let scoredFull = gateResult.scoredFull;
-  salienceContext = gateResult.salienceContext;
-  scoredFull = enrichWithDeltaChannel(scoredFull, historicalScores, { scopeId: reportScopeId });
+  let scoredFull = pipelineResult.scoredFull;
+  salienceContext = pipelineResult.salienceContext;
+  const metricsSignalsForNarrative = pipelineResult.scoringSignals;
 
   const scoreBySource = buildScoreBySource({
     scopedSourceTypesSeen,
-    signalsForScoring,
+    signalsForScoring: metricsSignalsForNarrative,
     reportScopeId,
     loadedFiles,
     salienceContext,
@@ -326,16 +346,23 @@ function buildScopedScoring(targetDate, days, allSignals, totalArticles, reportS
     nationalScored,
     nationalDataVoid,
     scopedSignals,
-    signalsForScoring,
+    signalsForScoring: metricsSignalsForNarrative,
     macroSignals,
     scopedTotalArticles,
     scopedSourceTypesSeen,
     scoredFull,
     scoreBySource,
     dataVoid,
-    assessmentMode: gateResult.assessmentMode,
-    epistemicStatus: gateResult.epistemicStatus,
-    staleDigitalScores: gateResult.staleDigitalScores,
+    assessmentMode: pipelineResult.assessmentMode,
+    epistemicStatus: pipelineResult.epistemicStatus,
+    staleDigitalScores: pipelineResult.staleDigitalScores,
+    quarantinedDigital: pipelineResult.quarantinedDigital,
+    validationMaturity,
+    epistemicEnrichment: pipelineResult.epistemicEnrichment,
+    osintChannelQuarantine,
+    oovBurst,
+    oovScoringApplied,
+    digitalQuarantineState: pipelineResult.digitalQuarantineState,
   };
 }
 
@@ -360,7 +387,7 @@ function logScoringResults(scopedSignals, signalsForScoring, scoredFull) {
 function resolveOutputBase(reportScopeId, targetDate, getArg) {
   const now = new Date();
   const timeSuffix = now.toTimeString().slice(0, 5).replace(':', '');
-  const outputPrefix = reportScopeId === 'north' ? 'resilience-report-north' : 'resilience-report';
+  const outputPrefix = reportFilePrefix(reportScopeId);
   const cliOutputBase = getArg('--output')?.replace(/\.(md|json)$/, '');
   return cliOutputBase ?? resolve('reports', `${outputPrefix}-${targetDate}-${timeSuffix}`);
 }
@@ -428,6 +455,11 @@ async function finalizeAndWriteReport({
     assessmentMode,
     epistemicStatus,
     staleDigitalScores,
+    quarantinedDigital,
+    validationMaturity,
+    epistemicEnrichment,
+    oovScoringApplied,
+    digitalQuarantineState,
   } = scoring;
 
   const priorReports = loadPriorReports(targetDate);
@@ -435,18 +467,25 @@ async function finalizeAndWriteReport({
     console.error(`\nPrior context: ${priorReports.map((r) => r.date).join(', ')}`);
   }
 
+  const comparisonContext = isRegionalReportScope(reportScopeId)
+    ? buildComparisonContext(signalsForScoring, nationalSignals, reportScopeId)
+    : null;
+
   const assessment = await generateNarratives(scoredFull, signalsForScoring, targetDate, scopedTotalArticles, {
     onUsage,
     priorReports,
     contentKind,
     sourceTypes: scopedSourceTypesSeen,
     reportScope,
-    comparisonScores: reportScopeId === 'north' ? nationalScored : null,
-    comparisonLabel: reportScopeId === 'north' ? 'national' : null,
+    comparisonScores: comparisonContext?.comparable ? nationalScored : null,
+    comparisonLabel: isRegionalReportScope(reportScopeId) ? 'national' : null,
+    comparisonComparable: comparisonContext?.comparable !== false,
     macroSignals,
     allScopedSignals: scopedSignals,
     dataVoid,
     oovCaptureCount: countOovCapturesForDate(targetDate),
+    socialChannelQuarantine: scoring.osintChannelQuarantine ?? null,
+    quarantinedDigital: quarantinedDigital ?? null,
   });
 
   attachEpistemicToAssessment(assessment, {
@@ -454,17 +493,53 @@ async function finalizeAndWriteReport({
     epistemicStatus,
     assessmentMode,
     staleDigitalScores,
+    quarantinedDigital,
+    digitalQuarantineState,
   });
+
+  assessment.oov_burst = scoring.oovBurst ?? null;
+  if (oovScoringApplied) {
+    assessment.oov_scoring_applied = oovScoringApplied;
+  }
+  if (scoring.osintChannelQuarantine) {
+    const decision = scoring.osintChannelQuarantine.active
+      ? getSocialQuarantineDecision(targetDate, reportScopeId)
+      : null;
+    assessment.social_channel_quarantine = {
+      ...scoring.osintChannelQuarantine,
+      ...(decision?.created_at ? { confirmed_at: decision.created_at } : {}),
+    };
+  }
+
+  if (epistemicEnrichment?.overall_score_calibrated != null) {
+    assessment.overall_score_calibrated = epistemicEnrichment.overall_score_calibrated;
+  }
 
   const outputBase = resolveOutputBase(reportScopeId, targetDate, getArg);
 
-  if (reportScopeId === 'north') {
-    assessment.national_comparison = {
-      overall_resilience_score: overallScore(nationalScored),
-      total_signals: nationalSignals.length,
-      national_data_void: nationalDataVoid,
-      ...(staleDigitalScores ? { stale_at: staleDigitalScores.scored_at } : {}),
-    };
+  if (isRegionalReportScope(reportScopeId)) {
+    assessment.comparison_context = comparisonContext;
+    if (comparisonContext?.comparable) {
+      assessment.national_comparison = {
+        overall_resilience_score: overallScore(nationalScored),
+        total_signals: nationalSignals.length,
+        national_data_void: nationalDataVoid,
+        comparable: true,
+        comparability_index: comparisonContext.comparability_index,
+        ...(staleDigitalScores ? { stale_at: staleDigitalScores.scored_at } : {}),
+      };
+    } else {
+      assessment.national_comparison = {
+        overall_resilience_score: null,
+        total_signals: nationalSignals.length,
+        national_data_void: nationalDataVoid,
+        comparable: false,
+        comparability_index: comparisonContext?.comparability_index ?? null,
+        structured_share_delta: comparisonContext?.structured_share_delta ?? null,
+        warning: 'Source mix differs from national baseline — direct score comparison invalid.',
+        ...(staleDigitalScores ? { stale_at: staleDigitalScores.scored_at } : {}),
+      };
+    }
   }
 
   const { totalCostUsd, usageLog, stageEvents } = getTotal();
@@ -478,6 +553,8 @@ async function finalizeAndWriteReport({
     reportScopeId,
     scoringModelManifest: buildScoringModelManifest(),
     tuningProposal,
+    validationMaturity,
+    epistemicEnrichment,
     extractionTelemetry: {
       assess: assessStages,
       extract: costLogStages['extract-signals'] ?? null,
@@ -496,6 +573,18 @@ async function finalizeAndWriteReport({
     pipelineConfig,
     tuningProposal,
   );
+
+  try {
+    const pboReviewService = createDefaultPboReportReviewService({
+      repoRoot: REPO_ROOT,
+      sqlitePath: process.env.SQLITE_PATH?.trim()
+        ? resolve(process.env.SQLITE_PATH.trim())
+        : resolve(REPO_ROOT, 'data', 'app.sqlite'),
+    });
+    assessment.pbo_municipal_completeness = await pboReviewService.buildAssessmentSummary(targetDate);
+  } catch (err) {
+    console.error(`[assess-signals] PBO completeness summary skipped: ${err.message}`);
+  }
 
   writeReport(assessment, scopedSignals, [...new Set(sourceFiles)], outputBase, { scoreBySource });
 
@@ -523,7 +612,7 @@ async function run() {
   logAssessmentHeader({ targetDate, days, reportScope, ...prepared });
 
   const { onUsage, getTotal, printSummary } = createCostTracker({ label: 'assess-signals' });
-  const scoring = buildScopedScoring(
+  const scoring = await buildScopedScoring(
     targetDate,
     days,
     prepared.allSignals,

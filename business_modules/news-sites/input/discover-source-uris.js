@@ -63,7 +63,9 @@ async function probeUriVariants(label, variants) {
       const data = await getArticles({ sourceUri: [uri] });
       const total = data?.articles?.totalResults ?? 0;
       const sample = (data?.articles?.results ?? [])[0];
-      console.log(`  ${uri} => totalResults: ${total}${sample ? `, sample source.uri: ${sample.source?.uri ?? '—'}` : ''}`);
+      const sampleUri = sample?.source?.uri ?? '—';
+      const sampleSuffix = sample ? `, sample source.uri: ${sampleUri}` : '';
+      console.log(`  ${uri} => totalResults: ${total}${sampleSuffix}`);
     } catch (e) {
       console.log(`  ${uri} => error: ${e.message}`);
     }

@@ -1,11 +1,16 @@
 import { computeGaps, mergeStructured } from '../domain/gapEngine.js';
 import { EVIDENCE_REQUIREMENTS } from '../domain/evidenceRequirements.js';
+import {
+  buildLocalityPickerMessage,
+  parseLocalityPickerReply,
+  needsStructuredLocality,
+} from '../domain/localityPicker.js';
 import { createHash } from 'node:crypto';
 
 const MAX_COLLECTING_TURNS = 6;
 const SUGGEST_CACHE_TTL_MS = 90_000;
 
-function fallbackQuestionsFromGaps(rankedGaps) {
+function fallbackQuestionsFromGaps(rankedGaps, geoLocalityPort) {
   if (!rankedGaps?.length) return [];
   const seen = new Set();
   const result = [];
@@ -24,7 +29,12 @@ function fallbackQuestionsFromGaps(rankedGaps) {
     } else if (gap.field === 'locality') {
       if (!seen.has('locality')) {
         seen.add('locality');
-        result.push('באיזה יישוב או אזור מדובר?');
+        if (geoLocalityPort?.searchLocalities) {
+          const options = geoLocalityPort.searchLocalities('', { scope: 'north', limit: 10 });
+          result.push(buildLocalityPickerMessage(options));
+        } else {
+          result.push('באיזה יישוב או אזור מדובר?');
+        }
       }
     } else if (gap.field === 'sourceBasis') {
       if (!seen.has('sourceBasis')) {
@@ -102,11 +112,11 @@ function sha1Hex(s) {
   return createHash('sha1').update(s).digest('hex');
 }
 
-function pickQuestionsFromAnalysisOrGaps(analysis, rankedGaps) {
+function pickQuestionsFromAnalysisOrGaps(analysis, rankedGaps, geoLocalityPort) {
   const qs =
     Array.isArray(analysis?.assessment?.topQuestions) && analysis.assessment.topQuestions.length
       ? analysis.assessment.topQuestions
-      : fallbackQuestionsFromGaps(rankedGaps);
+      : fallbackQuestionsFromGaps(rankedGaps, geoLocalityPort);
   if (qs.length) return qs.slice(0, 3);
 
   // Edge case: report is insufficient but gap ranking yields no actionable
@@ -129,6 +139,7 @@ function pickQuestionsFromAnalysisOrGaps(analysis, rankedGaps) {
  *   draftGeneratorPort: { generate: Function },
  *   conversationStore: { get: Function, upsert: Function, reset: Function },
  *   draftStore: { create: Function, get: Function, updateStructured: Function, appendTurn: Function, setApprovedDraft: Function, markSubmitted?: Function, deleteById?: Function },
+ *   geoLocalityPort?: { searchLocalities?: Function, resolveLocalityName?: Function },
  *   maxCollectingTurns?: number,
  * }} deps
  */
@@ -138,6 +149,7 @@ export function createReportBuildService({
   draftGeneratorPort,
   conversationStore,
   draftStore,
+  geoLocalityPort = null,
   maxCollectingTurns = MAX_COLLECTING_TURNS,
 }) {
   if (!analyzerPort) throw new Error('reportBuildService: analyzerPort is required');
@@ -190,6 +202,22 @@ export function createReportBuildService({
       if (!draft) throw new Error('draft not found');
 
       draftStore.appendTurn(draftId, { role, text: clean, ts: nowIso() });
+
+      if (geoLocalityPort?.searchLocalities && needsStructuredLocality(draft?.structured_state)) {
+        const options = geoLocalityPort.searchLocalities('', { scope: 'north', limit: 10 });
+        const picked = parseLocalityPickerReply(clean, options);
+        if (picked) {
+          draftStore.updateStructured(draftId, {
+            ...(draft?.structured_state ?? {}),
+            observation: {
+              ...(draft?.structured_state?.observation ?? {}),
+              localityKey: picked.canonicalKey,
+              locality: picked.displayName,
+            },
+          });
+        }
+      }
+
       return await recomputeInternal({ ownerKey, displayName, draftId });
     },
 
@@ -233,7 +261,7 @@ export function createReportBuildService({
 
       const value = sufficient
         ? { sufficient: true, followupQuestions: [] }
-        : { sufficient: false, followupQuestions: pickQuestionsFromAnalysisOrGaps(analysis, rankedGaps) };
+        : { sufficient: false, followupQuestions: pickQuestionsFromAnalysisOrGaps(analysis, rankedGaps, geoLocalityPort) };
 
       suggestCache.set(key, { expiresAt: now + SUGGEST_CACHE_TTL_MS, value });
       // Best-effort pruning (keep memory bounded).
@@ -303,7 +331,7 @@ export function createReportBuildService({
       conversationStore.upsert(ownerKey, 'collecting', draftId);
       return {
         state: 'collecting',
-        followupQuestions: pickQuestionsFromAnalysisOrGaps(analysis, rankedGaps),
+        followupQuestions: pickQuestionsFromAnalysisOrGaps(analysis, rankedGaps, geoLocalityPort),
         structuredState: merged,
       };
     }

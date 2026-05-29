@@ -13,7 +13,10 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { EmptyState, ErrorState, LoadingState, PageHeader } from '../ui/index.js';
 import { formatDate } from '../lib/date.js';
+import PropTypes from 'prop-types';
 import { useReportBotManualReports } from '../hooks/useReportBotManualReports.js';
+import { withOperatorDistrictQuery } from '../lib/clampOperatorDistrictScope.js';
+import { DistrictScopeSwitcher } from './DistrictScopeSwitcher.jsx';
 
 function formatBytes(n) {
   const v = typeof n === 'number' ? n : 0;
@@ -22,13 +25,18 @@ function formatBytes(n) {
   return `${Math.round(v / (1024 * 1024) * 10) / 10} MB`;
 }
 
-export function ReportBotManualReportsTab() {
+export function ReportBotManualReportsTab({
+  operatorScope = 'national',
+  onOperatorScopeChange,
+  districtAccess = null,
+}) {
   const theme = useTheme();
   const { t } = useLanguage();
   const { apiReady, getIdToken } = useAuth();
   const { data, loading, error } = useReportBotManualReports({
     getIdToken,
     apiReady,
+    operatorScope,
   });
   const [expanded, setExpanded] = useState(null);
   const [fullByName, setFullByName] = useState(() => /** @type {Record<string, string>} */ ({}));
@@ -37,6 +45,14 @@ export function ReportBotManualReportsTab() {
 
   const title = t('tab.reportBot');
   const subtitle = t('reportBotManual.subtitle');
+
+  const districtScope = onOperatorScopeChange ? (
+    <DistrictScopeSwitcher
+      value={operatorScope}
+      onChange={onOperatorScopeChange}
+      districtAccess={districtAccess}
+    />
+  ) : null;
 
   const sorted = useMemo(
     () => [...(data?.files ?? [])].sort((a, b) => (b.mtimeMs ?? 0) - (a.mtimeMs ?? 0)),
@@ -52,7 +68,10 @@ export function ReportBotManualReportsTab() {
         const token = await getIdToken();
         if (token) headers.set('Authorization', `Bearer ${token}`);
         const q = new URLSearchParams({ name: fileName });
-        const res = await fetch(`/api/report-bot/manual-reports/file?${q.toString()}`, { headers });
+        const res = await fetch(
+          withOperatorDistrictQuery(`/api/report-bot/manual-reports/file?${q.toString()}`, operatorScope),
+          { headers },
+        );
         const text = await res.text();
         if (!res.ok) {
           let detail = `HTTP ${res.status}`;
@@ -77,7 +96,7 @@ export function ReportBotManualReportsTab() {
         setFullLoading(null);
       }
     },
-    [getIdToken, t],
+    [getIdToken, t, operatorScope],
   );
 
   const onAccordionChange =
@@ -90,7 +109,7 @@ export function ReportBotManualReportsTab() {
   if (!apiReady || loading) {
     return (
       <Box sx={{ paddingTop: 2, paddingX: 2 }}>
-        <PageHeader title={title} subtitle={subtitle} />
+        <PageHeader title={title} subtitle={subtitle} scope={districtScope} />
         <Box sx={{ marginTop: 2 }}>
           <LoadingState>{t('reportBotManual.loading')}</LoadingState>
         </Box>
@@ -101,7 +120,7 @@ export function ReportBotManualReportsTab() {
   if (error) {
     return (
       <Box sx={{ paddingTop: 2, paddingX: 2 }}>
-        <PageHeader title={title} subtitle={subtitle} />
+        <PageHeader title={title} subtitle={subtitle} scope={districtScope} />
         <Box sx={{ marginTop: 2 }}>
           <ErrorState>{error}</ErrorState>
         </Box>
@@ -112,7 +131,7 @@ export function ReportBotManualReportsTab() {
   if (!sorted.length) {
     return (
       <Box sx={{ paddingTop: 2, paddingX: 2 }}>
-        <PageHeader title={title} subtitle={subtitle} />
+        <PageHeader title={title} subtitle={subtitle} scope={districtScope} />
         <Box sx={{ marginTop: 2 }}>
           <EmptyState>{t('reportBotManual.empty')}</EmptyState>
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
@@ -125,7 +144,7 @@ export function ReportBotManualReportsTab() {
 
   return (
     <Box sx={{ paddingTop: 2, paddingX: 2, paddingBottom: 3 }}>
-      <PageHeader title={title} subtitle={subtitle} />
+      <PageHeader title={title} subtitle={subtitle} scope={districtScope} />
       <Typography variant="body2" color="text.secondary" sx={{ mt: 1, mb: 0.5 }}>
         {t('reportBotManual.inboxHint').replace('{path}', data?.inboxRelative ?? 'report_bot')}
       </Typography>
@@ -204,3 +223,9 @@ export function ReportBotManualReportsTab() {
     </Box>
   );
 }
+
+ReportBotManualReportsTab.propTypes = {
+  operatorScope: PropTypes.string,
+  onOperatorScopeChange: PropTypes.func,
+  districtAccess: PropTypes.object,
+};

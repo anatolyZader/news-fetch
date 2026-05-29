@@ -1,13 +1,11 @@
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { basename, extname, resolve } from 'node:path';
 import { IPboReportRegionalRepository } from '../../domain/ports/IPboReportRegionalRepository.js';
-import {
-  REGIONAL_PBO_REGION_IDS,
-  REGIONAL_PBO_REGION_SET,
-} from '../../domain/value_objects/regionalPboRegions.js';
 
 const MARKDOWN_EXTENSIONS = new Set(['.md', '.markdown']);
 const DATE_RE = /\b(\d{4}-\d{2}-\d{2})\b/;
+const FRONTMATTER_LINE_RE = /^([A-Za-z0-9_-]+):\s*(.*)$/;
+const HEADING_RE = /^#\s+(.+)$/m;
 
 function stripFrontmatter(content) {
   const raw = String(content ?? '');
@@ -16,34 +14,40 @@ function stripFrontmatter(content) {
   if (end < 0) return { metadata: {}, body: raw };
   const metadata = {};
   for (const line of raw.slice(4, end).split('\n')) {
-    const match = line.match(/^([A-Za-z0-9_-]+):\s*(.*)$/);
+    const match = FRONTMATTER_LINE_RE.exec(line);
     if (!match) continue;
     metadata[match[1].trim().toLowerCase()] = match[2].trim().replaceAll(/^["']|["']$/g, '');
   }
   return { metadata, body: raw.slice(end + 4).replace(/^\s+/, '') };
 }
 
-function inferRegionId(fileName, metadata) {
+function inferRegionId(fileName, metadata, allowedRegionIds) {
+  const allowed = allowedRegionIds instanceof Set ? allowedRegionIds : new Set(allowedRegionIds ?? []);
   const fromMetadata = String(metadata.region ?? metadata.regionid ?? '').trim().toLowerCase();
-  if (REGIONAL_PBO_REGION_SET.has(fromMetadata)) return fromMetadata;
+  if (allowed.has(fromMetadata)) return fromMetadata;
 
   const lower = basename(fileName, extname(fileName)).toLowerCase();
-  return REGIONAL_PBO_REGION_IDS.find((id) => {
-    const escaped = id.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    return new RegExp(`(^|[^a-z0-9])${escaped}([^a-z0-9]|$)`).test(lower);
-  }) ?? null;
+  for (const id of allowed) {
+    const escaped = id.replaceAll(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
+    const regionPattern = new RegExp(`(^|[^a-z0-9])${escaped}([^a-z0-9]|$)`);
+    if (regionPattern.exec(lower)) return id;
+  }
+  return null;
 }
 
 function inferDate(fileName, metadata) {
   const fromMetadata = String(metadata.date ?? '').trim();
-  if (DATE_RE.test(fromMetadata)) return fromMetadata.match(DATE_RE)[1];
-  return basename(fileName).match(DATE_RE)?.[1] ?? null;
+  const metadataMatch = DATE_RE.exec(fromMetadata);
+  if (metadataMatch) return metadataMatch[1];
+  const fileMatch = DATE_RE.exec(basename(fileName));
+  return fileMatch?.[1] ?? null;
 }
 
 function inferTitle(fileName, body, metadata) {
   const fromMetadata = String(metadata.title ?? '').trim();
   if (fromMetadata) return fromMetadata;
-  const heading = String(body ?? '').match(/^#\s+(.+)$/m)?.[1]?.trim();
+  const headingMatch = HEADING_RE.exec(String(body ?? ''));
+  const heading = headingMatch?.[1]?.trim();
   return heading || basename(fileName, extname(fileName));
 }
 
@@ -56,20 +60,23 @@ function buildExcerpt(body) {
 }
 
 export class PboReportRegionalFsAdapter extends IPboReportRegionalRepository {
-  constructor({ dataDir }) {
+  constructor({ dataDir } = {}) {
     super();
-    this.dataDir = resolve(dataDir);
+    this.defaultDataDir = dataDir ? resolve(dataDir) : null;
   }
 
-  listReports({ regionId }) {
-    if (!existsSync(this.dataDir)) return [];
+  listReports({ regionId, inboxDir, allowedRegionIds }) {
+    const dir = resolve(inboxDir ?? this.defaultDataDir ?? '');
+    if (!dir || !existsSync(dir)) return [];
+
+    const allowed = new Set(allowedRegionIds ?? [regionId].filter(Boolean));
 
     const reports = [];
-    for (const ent of readdirSync(this.dataDir, { withFileTypes: true })) {
+    for (const ent of readdirSync(dir, { withFileTypes: true })) {
       if (!ent.isFile() || ent.name.startsWith('.')) continue;
       if (!MARKDOWN_EXTENSIONS.has(extname(ent.name).toLowerCase())) continue;
 
-      const fullPath = resolve(this.dataDir, ent.name);
+      const fullPath = resolve(dir, ent.name);
       let stat;
       let content;
       try {
@@ -81,7 +88,7 @@ export class PboReportRegionalFsAdapter extends IPboReportRegionalRepository {
       }
 
       const { metadata, body } = stripFrontmatter(content);
-      const reportRegionId = inferRegionId(ent.name, metadata);
+      const reportRegionId = inferRegionId(ent.name, metadata, allowed);
       if (reportRegionId !== regionId) continue;
 
       reports.push({

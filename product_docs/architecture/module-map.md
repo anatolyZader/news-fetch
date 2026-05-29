@@ -4,7 +4,7 @@ description: "Where to extend the system: business modules, cross-cutting module
 intent: architecture
 audience: ["public", "customer"]
 stability: beta
-canonical: "https://docs.vibeswitch.ai/architecture/module-map"
+canonical: "https://docs.srulik.ai/architecture/module-map"
 version: "current"
 tags: ["architecture", "internals"]
 ---

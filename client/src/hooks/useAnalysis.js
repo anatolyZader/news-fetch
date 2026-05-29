@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
+import { normalizeReportScopeId } from '../lib/reportScopes.js';
 import { useAuth } from '../context/AuthContext.jsx';
 
 const LS_REPORT_VIEW = 'resilienceReportView';
 
 /**
  * Loads today's cached report from GET /api/report/today (requires auth when enabled).
- * @param {'national'|'north'} scope
+ * @param {string} scope report scope id (national | north | south | …)
  * @param {'operator'|'analyst'} [view]
  */
 export function useTodayReport(scope = 'national', view = 'operator') {
@@ -19,6 +20,7 @@ export function useTodayReport(scope = 'national', view = 'operator') {
   /** False until the first GET /api/report/today attempt finishes (success or failure). */
   const [initialReportLoadDone, setInitialReportLoadDone] = useState(false);
   const [reportMissingHint, setReportMissingHint] = useState(null);
+  const [attentionItems, setAttentionItems] = useState(null);
 
   useEffect(() => {
     if (!apiReady) return;
@@ -33,6 +35,7 @@ export function useTodayReport(scope = 'national', view = 'operator') {
       setDisplayView(view);
       setInitialReportLoadDone(false);
       setReportMissingHint(null);
+      setAttentionItems(null);
 
       const headers = new Headers();
       const t = await getIdToken();
@@ -40,7 +43,7 @@ export function useTodayReport(scope = 'national', view = 'operator') {
       if (t) headers.set('Authorization', `Bearer ${t}`);
       try {
         const params = new URLSearchParams();
-        if (scope === 'north') params.set('scope', 'north');
+        if (scope !== 'national') params.set('scope', scope);
         if (view === 'analyst') params.set('view', 'analyst');
         const qs = params.toString() ? `?${params.toString()}` : '';
         const r = await fetch(`/api/report/today${qs}`, { headers });
@@ -52,6 +55,7 @@ export function useTodayReport(scope = 'national', view = 'operator') {
           setScoreBySource(data.score_by_source && typeof data.score_by_source === 'object' ? data.score_by_source : null);
           setReportDate(typeof data.reportDate === 'string' ? data.reportDate : null);
           setDisplayView(data.display_view === 'analyst' ? 'analyst' : 'operator');
+          setAttentionItems(Array.isArray(data.attention_items) ? data.attention_items : []);
           setReportMissingHint(null);
         } else if (!data.found && data.hint) {
           setReportMissingHint(data.hint);
@@ -81,6 +85,7 @@ export function useTodayReport(scope = 'national', view = 'operator') {
     refreshReport,
     initialReportLoadDone,
     reportMissingHint,
+    attentionItems,
   };
 }
 

@@ -1,6 +1,5 @@
 import { describe, it } from 'node:test';
-import assert from 'node:assert';
-
+import assert from 'node:assert/strict';
 import {
   filterSignalsForScope,
   isNorthSignal,
@@ -18,6 +17,7 @@ describe('regionSignalFilter', () => {
     const out = filterSignalsForScope(signals, 'national');
     assert.equal(out.length, 2);
     assert.ok(out[0].scopeDecision);
+    assert.equal(out[0].scopeDecision.isScopeRelevant, true);
   });
 
   it('does not scope news by place name without resolved geo', () => {
@@ -27,12 +27,12 @@ describe('regionSignalFilter', () => {
     );
   });
 
-  it('treats field and PBO signals as northern source data', () => {
+  it('treats collection-scoped field and PBO signals as north when scope is north', () => {
     assert.equal(isNorthSignal({ source_type: 'field', evidence: 'Local team active.' }), true);
     assert.equal(isNorthSignal({ source_type: 'pbo', evidence: '[כרמיאל] רציפות תפקודית' }), true);
   });
 
-  it('treats pbo_regional signals as northern even without geography in evidence (A3)', () => {
+  it('treats pbo_regional signals as north via collection scope', () => {
     assert.equal(
       isNorthSignal({ source_type: 'pbo_regional', evidence: 'volunteers reported steady attendance' }),
       true,
@@ -55,6 +55,23 @@ describe('regionSignalFilter', () => {
     );
   });
 
+  it('scopes south from geoAreaTags', () => {
+    const d = scopeDecisionForSignal(
+      {
+        source_type: 'news',
+        evidence: 'Beer Sheva update',
+        geo: {
+          kind: 'resolved',
+          classification: { geoAreaTags: ['south'] },
+          policy: { usableForMetrics: true, scopeConfidence: 'high' },
+        },
+      },
+      'south',
+    );
+    assert.equal(d.isScopeRelevant, true);
+    assert.equal(d.source, 'geo_tags');
+  });
+
   it('scopes north from resolved geo even when usableForMetrics is false', () => {
     const d = scopeDecisionForSignal({
       source_type: 'news',
@@ -65,8 +82,8 @@ describe('regionSignalFilter', () => {
         geoAreaTags: ['north', 'golan_heights'],
         policy: { usableForMetrics: false, scopeConfidence: 'low' },
       },
-    });
-    assert.equal(d.isNorthRelevant, true);
+    }, 'north');
+    assert.equal(d.isScopeRelevant, true);
     assert.equal(d.source, 'geo_tags');
     assert.equal(d.confidence, 'low');
   });
@@ -80,63 +97,22 @@ describe('regionSignalFilter', () => {
         geo: {
           kind: 'resolved',
           policy: { usableForMetrics: true, scopeConfidence: 'high' },
-          classification: { pboSubregionId: 'haifa', geoAreaTags: ['north', 'haifa'] },
+          classification: { geoAreaTags: ['haifa'] },
         },
       },
       { source_type: 'naftali', evidence: 'Weekly municipality report.' },
     ];
 
     const out = filterSignalsForScope(signals, 'north');
-    assert.deepEqual(out.map((s) => s.evidence), [signals[1].evidence, signals[2].evidence]);
-    assert.equal(out[0].scopeDecision.isNorthRelevant, true);
+    assert.deepEqual(out.map((s) => s.evidence), [signals[2].evidence]);
+    assert.equal(out[0].scopeDecision.isScopeRelevant, true);
+    assert.equal(out[0].scopeDecision.source, 'collection_scope');
   });
 
   it('normalizes unknown scopes to national', () => {
     assert.equal(normalizeReportScope('north'), 'north');
+    assert.equal(normalizeReportScope('south'), 'south');
     assert.equal(normalizeReportScope('unknown'), 'national');
-  });
-
-  it('uses resolved geo for reference locality in evidence', () => {
-    const d = filterSignalsForScope(
-      [
-        {
-          source_type: 'news',
-          evidence: 'תושבי יבנאל דיווחו על לחץ ביומיום.',
-          geo: {
-            kind: 'resolved',
-            policy: { usableForMetrics: true, scopeConfidence: 'high' },
-            classification: { pboSubregionId: 'galma', geoAreaTags: ['north', 'galilee'] },
-          },
-        },
-      ],
-      'north',
-    )[0]?.scopeDecision;
-    assert.equal(d?.isNorthRelevant, true);
-    assert.equal(d?.source, 'geo_tags');
-  });
-
-  it('does not match bare "north" without resolved geo', () => {
-    assert.equal(
-      isNorthSignal({ source_type: 'news', evidence: 'Policy shift in the north discussed nationally.' }),
-      false,
-    );
-  });
-
-  it('does not scope "northern israel" macro language without resolved geo', () => {
-    const d = scopeDecisionForSignal({
-      source_type: 'news',
-      evidence: 'Compensation for northern israel communities debated.',
-    });
-    assert.equal(d?.isNorthRelevant, false);
-    assert.equal(d?.source, 'unknown');
-  });
-
-  it('excludes news with only text locality and no geo envelope', () => {
-    const d = scopeDecisionForSignal({
-      source_type: 'news',
-      evidence: 'תושבי יבנאל דיווחו על לחץ ביומיום.',
-    });
-    assert.equal(d?.isNorthRelevant, false);
-    assert.equal(d?.source, 'unknown');
+    assert.equal(normalizeReportScope('center'), 'jerusalem');
   });
 });

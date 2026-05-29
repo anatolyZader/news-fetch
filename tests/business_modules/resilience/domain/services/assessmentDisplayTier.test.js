@@ -4,7 +4,6 @@ import assert from 'node:assert/strict';
 import {
   DISPLAY_VIEWS,
   resolveDisplayView,
-  canViewAnalystDisplay,
   deriveInstrumentState,
   operatorAssessmentSummary,
   redactAssessmentForView,
@@ -12,6 +11,11 @@ import {
   redactReportPayload,
   narrativeIncludesScores,
 } from '../../../../../business_modules/resilience/domain/services/assessmentDisplayTier.js';
+import {
+  canViewAnalystDisplay,
+  resetUserAccessCache,
+  setUserAccessConfigForTests,
+} from '../../../../../cross-cut-modules/auth/userAccess.js';
 
 describe('assessmentDisplayTier', () => {
   let prevEmails;
@@ -20,6 +24,8 @@ describe('assessmentDisplayTier', () => {
   beforeEach(() => {
     prevEmails = process.env.RESILIENCE_ANALYST_EMAILS;
     prevNarrativeScores = process.env.RESILIENCE_NARRATIVE_INCLUDE_SCORES;
+    resetUserAccessCache();
+    setUserAccessConfigForTests({ operatorDistrictEnforcementEnabled: false, users: [] });
   });
 
   afterEach(() => {
@@ -27,6 +33,7 @@ describe('assessmentDisplayTier', () => {
     else process.env.RESILIENCE_ANALYST_EMAILS = prevEmails;
     if (prevNarrativeScores === undefined) delete process.env.RESILIENCE_NARRATIVE_INCLUDE_SCORES;
     else process.env.RESILIENCE_NARRATIVE_INCLUDE_SCORES = prevNarrativeScores;
+    resetUserAccessCache();
   });
 
   it('resolveDisplayView defaults to operator', () => {
@@ -83,6 +90,25 @@ describe('assessmentDisplayTier', () => {
     assert.match(line, /adequate evidence: 1\/2/);
   });
 
+  it('redactAssessmentForView strips scores for analyst too', () => {
+    const assessment = {
+      date: '2026-05-10',
+      overall_resilience_score: 7,
+      components: [{
+        component_id: 'narrative',
+        score: 8,
+        narrative: 'text',
+        evidence_mass: 5,
+        confidence: 'high',
+      }],
+    };
+    const out = redactAssessmentForView(assessment, DISPLAY_VIEWS.analyst);
+    assert.equal(out.display_view, DISPLAY_VIEWS.analyst);
+    assert.equal(out.overall_resilience_score, undefined);
+    assert.equal(out.components[0].score, undefined);
+    assert.equal(out.components[0].instrument.evidence_sufficiency, 'adequate');
+  });
+
   it('redactAssessmentForView strips scores for operator', () => {
     const assessment = {
       date: '2026-05-10',
@@ -111,11 +137,12 @@ describe('assessmentDisplayTier', () => {
     assert.equal(out.norris_capacities[0].score, undefined);
   });
 
-  it('redactAssessmentForView passes through for analyst', () => {
-    const assessment = { overall_resilience_score: 5, components: [] };
+
+  it('redactAssessmentForView passes through narrative for analyst', () => {
+    const assessment = { overall_resilience_score: 5, components: [{ component_id: 'n', score: 6, narrative: 'keep' }] };
     const out = redactAssessmentForView(assessment, DISPLAY_VIEWS.analyst);
-    assert.equal(out.overall_resilience_score, 5);
-    assert.equal(out.display_view, DISPLAY_VIEWS.analyst);
+    assert.equal(out.components[0].narrative, 'keep');
+    assert.equal(out.components[0].score, undefined);
   });
 
   it('redactAssessmentForView summarizes macro_signals for operator', () => {

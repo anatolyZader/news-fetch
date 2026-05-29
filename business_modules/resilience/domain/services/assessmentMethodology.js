@@ -10,8 +10,14 @@ import {
   SIGNAL_TYPES,
   EQUITY_RELEVANT_TYPES,
 } from './behaviorSignals.js';
+import { buildCalibrationMethodology } from './scoring/calibrationPenalty.js';
 import { extractionTelemetryForOperator } from './pipelineStageTelemetry.js';
 import { summarizeGeoQuality } from '../../../../cross-cut-modules/geo/signalGeoSummary.js';
+import {
+  ISRAEL_REGIONAL_DISTRICT_ORDER,
+} from '../../../../cross-cut-modules/geo/israelDistricts.js';
+import { isRegionalReportScope, normalizeReportScopeId } from '../../../../cross-cut-modules/geo/reportScopeIds.js';
+import { getCollectionScopeBySourceType } from './collectionScope.js';
 
 export const SCORING_MODEL_VERSION = 'v5';
 
@@ -39,8 +45,8 @@ export const PHASE1_ALWAYS_NORTH_SOURCE_TYPES = [
   'whatsapp',
 ];
 
-const NORTH_COLLECTION_NOTE =
-  'Signals from these source types are treated as north-relevant because ingestion is north-theater scoped in phase 1. A future district model will replace this assumption.';
+const COLLECTION_SCOPE_NOTE =
+  'Structured source types carry a defaultDistrictId from config/collectionScope.json (north theater today). Scope filtering uses collection metadata plus resolved geo tags—not source_type alone.';
 
 /**
  * Report-quality metric: how often equity-relevant signals name an affected_subgroup.
@@ -76,14 +82,14 @@ export function summarizeSubgroupCoverage(signals) {
 export function summarizeScopeDecisionSources(signals, opts = {}) {
   const list = Array.isArray(signals) ? signals : [];
   const bySource = {};
-  let northRelevant = 0;
+  let scopeRelevant = 0;
 
   for (const s of list) {
     const src = s?.scopeDecision?.source ?? 'unset';
     bySource[src] = (bySource[src] ?? 0) + 1;
 
-    if (s?.scopeDecision?.isNorthRelevant) {
-      northRelevant += 1;
+    if (s?.scopeDecision?.isScopeRelevant) {
+      scopeRelevant += 1;
     }
   }
 
@@ -93,8 +99,12 @@ export function summarizeScopeDecisionSources(signals, opts = {}) {
     by_source: bySource,
   };
 
-  if (opts.reportScopeId === 'north' || northRelevant > 0) {
-    summary.north_relevant_signals = northRelevant;
+  const scopeId = normalizeReportScopeId(opts.reportScopeId);
+  if (isRegionalReportScope(scopeId) || scopeRelevant > 0) {
+    summary.scope_relevant_signals = scopeRelevant;
+    if (scopeId === 'north') {
+      summary.north_relevant_signals = scopeRelevant;
+    }
   }
 
   return summary;
@@ -132,12 +142,16 @@ export function buildAssessmentMethodology({
   reportScopeId = 'national',
   scoringModelManifest = null,
   tuningProposal = null,
+  validationMaturity = null,
+  epistemicEnrichment = null,
   extractionTelemetry = null,
 } = {}) {
-  const scopeId = reportScopeId === 'north' ? 'north' : 'national';
+  const scopeId = normalizeReportScopeId(reportScopeId);
+  const calibration = epistemicEnrichment?.calibration
+    ?? (validationMaturity ? buildCalibrationMethodology(validationMaturity) : null);
 
   return {
-    phase: 'national_and_north_only',
+    phase: 'multi_district_phase2',
     scoring: {
       weights: 'author_set',
       tuning: 'heuristic',
@@ -145,12 +159,10 @@ export function buildAssessmentMethodology({
       scoring_model_version: SCORING_MODEL_VERSION,
     },
     scope: {
-      regional_slices: ['north'],
+      regional_slices: [...ISRAEL_REGIONAL_DISTRICT_ORDER],
       active_scope: scopeId,
-      north_collection_contract: {
-        always_north_source_types: [...PHASE1_ALWAYS_NORTH_SOURCE_TYPES],
-        note: NORTH_COLLECTION_NOTE,
-      },
+      collection_scope_by_source_type: getCollectionScopeBySourceType(),
+      collection_scope_note: COLLECTION_SCOPE_NOTE,
       scope_decision_summary: summarizeScopeDecisionSources(signals, { reportScopeId: scopeId }),
       ...(Array.isArray(signals) && signals.some((s) => s && 'geo' in s)
         ? { geo_quality_summary: summarizeGeoQuality(signals) }
@@ -168,11 +180,11 @@ export function buildAssessmentMethodology({
     limitations: {
       signal_weights: 'author_set_not_ml_fitted',
       component_tuning: 'heuristic_tanhK_certM; see tuning_proposal when enough national history',
-      north_geo_news:
-        'All pipeline sources receive resolved geo envelopes via geoService at extract/treat and assess. Text-inferred locality on news/radio/social is north scope hint only (usableForMetrics=false); structured locality and always-north source types drive metrics.',
-      always_north_source_types: [...PHASE1_ALWAYS_NORTH_SOURCE_TYPES],
+      regional_geo_news:
+        'All pipeline sources receive resolved geo envelopes via geoService. Text-inferred locality on news/radio/social is scope hint only (usableForMetrics=false); structured locality and collection_scope drive regional metrics.',
+      collection_scope_by_source_type: getCollectionScopeBySourceType(),
       dual_pipeline:
-        'Evidence submission analysis scores all signals without scope filter; north artifact requires assess-signals --scope north',
+        'Evidence submission analysis scores all signals without scope filter; regional artifacts require assess-signals --scope <districtId>',
       extraction_quality:
         'LLM extraction monitored via business_modules/resilience/tuning/golden (npm test golden-corpus); no production SLA',
       subgroup_coverage: summarizeSubgroupCoverage(signals),
@@ -195,6 +207,13 @@ export function buildAssessmentMethodology({
       reliability_instruments:
         'Bootstrap, entropy, and caps quantify instability and dominance; they do not validate ground-truth resilience.',
     },
+    ...(calibration ? { calibration } : {}),
+    ...(epistemicEnrichment?.weight_sensitivity_summary
+      ? { weight_sensitivity_summary: epistemicEnrichment.weight_sensitivity_summary }
+      : {}),
+    ...(epistemicEnrichment?.weight_sensitivity_note
+      ? { weight_sensitivity_note: epistemicEnrichment.weight_sensitivity_note }
+      : {}),
     scoring_model: scoringModelManifest ?? undefined,
     tuning_proposal: tuningProposal ?? null,
   };
@@ -222,6 +241,14 @@ export function methodologyForOperatorView(methodology) {
       present: true,
       report_count: out.tuning_proposal.report_count ?? null,
       skipped_reason: out.tuning_proposal.skipped_reason ?? null,
+    };
+  }
+  if (out.calibration) {
+    out.calibration = {
+      trust: out.calibration.trust,
+      deficit: out.calibration.deficit,
+      tier3_ready: out.calibration.tier3_ready,
+      note: out.calibration.note,
     };
   }
   return out;

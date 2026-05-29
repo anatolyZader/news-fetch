@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { withOperatorDistrictQuery } from '../lib/clampOperatorDistrictScope.js';
 
 async function authFetch(url, { getIdToken, method = 'GET', body } = {}) {
   const headers = new Headers({ 'Content-Type': 'application/json' });
@@ -14,8 +15,8 @@ async function authFetch(url, { getIdToken, method = 'GET', body } = {}) {
   return data;
 }
 
-/** @param {{ getIdToken: () => Promise<string|null>, apiReady: boolean }} opts */
-export function useRadioDashboard({ getIdToken, apiReady }) {
+/** @param {{ getIdToken: () => Promise<string|null>, apiReady: boolean, operatorScope?: string }} opts */
+export function useRadioDashboard({ getIdToken, apiReady, operatorScope = 'national' }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -24,13 +25,13 @@ export function useRadioDashboard({ getIdToken, apiReady }) {
     setLoading(true);
     setError(null);
     try {
-      setData(await authFetch('/api/radio', { getIdToken }));
+      setData(await authFetch(withOperatorDistrictQuery('/api/radio', operatorScope), { getIdToken }));
     } catch (e) {
       setError(e?.message ?? 'Failed');
     } finally {
       setLoading(false);
     }
-  }, [getIdToken]);
+  }, [getIdToken, operatorScope]);
 
   useEffect(() => {
     if (!apiReady) return;
@@ -39,7 +40,7 @@ export function useRadioDashboard({ getIdToken, apiReady }) {
       setLoading(true);
       setError(null);
       try {
-        const out = await authFetch('/api/radio', { getIdToken });
+        const out = await authFetch(withOperatorDistrictQuery('/api/radio', operatorScope), { getIdToken });
         if (!cancelled) setData(out);
       } catch (e) {
         if (!cancelled) setError(e?.message ?? 'Failed');
@@ -48,13 +49,13 @@ export function useRadioDashboard({ getIdToken, apiReady }) {
       }
     })();
     return () => { cancelled = true; };
-  }, [apiReady, getIdToken]);
+  }, [apiReady, getIdToken, operatorScope]);
 
   return { data, loading, error, reload };
 }
 
-/** @param {{ date: string, getIdToken: () => Promise<string|null>, apiReady: boolean }} opts */
-export function useRadioDailyFeed({ date, getIdToken, apiReady }) {
+/** @param {{ date: string, getIdToken: () => Promise<string|null>, apiReady: boolean, operatorScope?: string }} opts */
+export function useRadioDailyFeed({ date, getIdToken, apiReady, operatorScope = 'national' }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -67,7 +68,8 @@ export function useRadioDailyFeed({ date, getIdToken, apiReady }) {
       setError(null);
       try {
         const q = new URLSearchParams({ date });
-        const out = await authFetch(`/api/radio/daily?${q.toString()}`, { getIdToken });
+        const base = withOperatorDistrictQuery(`/api/radio/daily?${q.toString()}`, operatorScope);
+        const out = await authFetch(base, { getIdToken });
         if (!cancelled) setData(out);
       } catch (e) {
         if (!cancelled) {
@@ -79,7 +81,7 @@ export function useRadioDailyFeed({ date, getIdToken, apiReady }) {
       }
     })();
     return () => { cancelled = true; };
-  }, [date, apiReady, getIdToken]);
+  }, [date, apiReady, getIdToken, operatorScope]);
 
   return { data, loading, error };
 }

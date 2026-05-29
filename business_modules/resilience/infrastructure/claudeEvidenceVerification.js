@@ -15,6 +15,7 @@ import {
   isCriticalForGrounding,
   isGroundingTieredVerifyEnabled,
 } from '../domain/services/groundingPolicy.js';
+import { recordOutletTelemetry } from '../domain/services/outletReputationDecay.js';
 
 const client = new Anthropic();
 const DEFAULT_SELF_CHECK_MODEL = process.env.RESILIENCE_SELF_CHECK_MODEL ?? 'claude-haiku-4-5-20251001';
@@ -209,9 +210,11 @@ export async function applyEvidenceVerifier(signals, articles, sourceLabel, usag
 
   for (const s of signals) {
     const outcome = await verifyOneSignal(s, articles, sourceLabel);
+    const outlet = s.article_source;
     if (outcome.status === 'verified') {
       kept.push(outcome.signal);
       tierCounts.tier_a++;
+      if (outlet) recordOutletTelemetry(outlet, { verified: 1 });
       continue;
     }
     if (outcome.status === 'borderline') {
@@ -223,10 +226,12 @@ export async function applyEvidenceVerifier(signals, articles, sourceLabel, usag
       logTieredEvidence(sourceLabel, outcome.signal, outcome.meta);
       if (outcome.meta.tier === GROUNDING_TIER.unverified_critical) tierCounts.tier_c++;
       else tierCounts.tier_b++;
+      if (outlet) recordOutletTelemetry(outlet, { verified: 1 });
       continue;
     }
     dropped++;
     reasonCounts[outcome.reason] = (reasonCounts[outcome.reason] || 0) + 1;
+    if (outlet) recordOutletTelemetry(outlet, { dropped: 1 });
     logDroppedEvidence(sourceLabel, outcome.result, s);
   }
 
@@ -236,14 +241,17 @@ export async function applyEvidenceVerifier(signals, articles, sourceLabel, usag
       if (out.kept) {
         kept.push(out.signal);
         tierCounts.tier_a++;
+        if (out.signal?.article_source) recordOutletTelemetry(out.signal.article_source, { verified: 1 });
       } else if (out.tiered) {
         kept.push(out.signal);
         logTieredEvidence(sourceLabel, out.signal, out.meta);
         if (out.meta.tier === GROUNDING_TIER.unverified_critical) tierCounts.tier_c++;
         else tierCounts.tier_b++;
+        if (out.signal?.article_source) recordOutletTelemetry(out.signal.article_source, { verified: 1 });
       } else {
         dropped++;
         reasonCounts.entailment_reject = (reasonCounts.entailment_reject || 0) + 1;
+        if (out.signal?.article_source) recordOutletTelemetry(out.signal.article_source, { dropped: 1 });
       }
     }
   }

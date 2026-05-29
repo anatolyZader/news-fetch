@@ -1,6 +1,6 @@
 /**
  * Canonical Israel home-front districts for UI, APIs, and search trends.
- * Regional ids: north, south, jerusalem, haifa, center, dan (+ national aggregate).
+ * Regional ids: north, south, jerusalem, haifa, dan (+ national aggregate).
  */
 
 export const ISRAEL_NATIONAL_DISTRICT_ID = 'national';
@@ -8,6 +8,7 @@ export const ISRAEL_NATIONAL_DISTRICT_ID = 'national';
 /** @type {Readonly<Record<string, string>>} */
 export const ISRAEL_DISTRICT_LEGACY_ALIASES = Object.freeze({
   tel_aviv: 'dan',
+  center: 'jerusalem',
 });
 
 /** Sub-national districts in display order */
@@ -16,7 +17,6 @@ export const ISRAEL_REGIONAL_DISTRICT_ORDER = Object.freeze([
   'south',
   'jerusalem',
   'haifa',
-  'center',
   'dan',
 ]);
 

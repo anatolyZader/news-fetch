@@ -1,6 +1,10 @@
 import { useCallback, useMemo, useState } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
+import Typography from '@mui/material/Typography';
+import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
+import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
+import { alpha } from '@mui/material/styles';
 import { MarkdownArticle } from '../ui/MarkdownArticle.jsx';
 import PropTypes from 'prop-types';
 
@@ -26,27 +30,62 @@ function CopyablePre({ children }) {
   }, [text]);
 
   return (
-    <Box>
+    <Box
+      sx={(theme) => ({
+        margin: `${theme.spacing(1.5)} 0`,
+        border: theme.custom.border.hairline,
+        borderRadius: `${theme.custom.radius.section}px`,
+        overflow: 'hidden',
+        background: alpha(theme.custom.pastel.lilac, 0.1),
+      })}
+    >
       <Box
         sx={(theme) => ({
           display: 'flex',
-          justifyContent: 'flex-end',
-          marginTop: theme.spacing(-0.75),
-          marginBottom: theme.spacing(0.5),
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: theme.spacing(1),
+          paddingTop: theme.spacing(0.5),
+          paddingBottom: theme.spacing(0.5),
+          paddingLeft: theme.spacing(1.25),
+          paddingRight: theme.spacing(0.75),
+          borderBottom: theme.custom.border.hairline,
+          background: alpha(theme.custom.pastel.mist, 0.75),
         })}
       >
+        <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+          Code
+        </Typography>
         <Button
           type="button"
           onClick={onCopy}
           disabled={!text}
-          variant="outlined"
+          variant="text"
           size="small"
-          sx={{ color: 'text.secondary', '&:hover': { color: 'text.primary' } }}
+          startIcon={copied ? <CheckRoundedIcon fontSize="inherit" /> : <ContentCopyRoundedIcon fontSize="inherit" />}
+          sx={{ color: 'text.secondary', minWidth: 0, '&:hover': { color: 'text.primary' } }}
         >
           {copied ? 'Copied' : 'Copy'}
         </Button>
       </Box>
-      <pre>{children}</pre>
+      <Box
+        component="pre"
+        sx={(theme) => ({
+          margin: 0,
+          border: 'none',
+          borderRadius: 0,
+          paddingTop: theme.spacing(1.25),
+          paddingBottom: theme.spacing(1.25),
+          paddingLeft: theme.spacing(1.5),
+          paddingRight: theme.spacing(1.5),
+          overflow: 'auto',
+          background: 'transparent',
+          fontSize: theme.typography.body2.fontSize,
+          lineHeight: 1.55,
+        })}
+      >
+        {children}
+      </Box>
     </Box>
   );
 }

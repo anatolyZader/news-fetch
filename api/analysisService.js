@@ -9,6 +9,11 @@ import { fileURLToPath } from 'node:url';
 const REGEX_SPECIAL_CHARS = /[.*+?^${}()|[\]\\]/g;
 
 import { getTodayInTimezone } from '../utils/dateUtils.js';
+import {
+  isRegionalReportFilename,
+  normalizeReportScopeId,
+  reportFilePrefix,
+} from '../cross-cut-modules/geo/reportScopeIds.js';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -39,7 +44,7 @@ function readCostBreakdownForDate(date) {
 }
 
 function reportPrefixForScope(scope = 'national') {
-  return scope === 'north' ? 'resilience-report-north' : 'resilience-report';
+  return reportFilePrefix(normalizeReportScopeId(scope));
 }
 
 function resolveReportsDir(opts = {}) {
@@ -123,7 +128,7 @@ export function resolveReportJsonPathForDate(date, opts = {}) {
 export function getCachedReport(store, opts = {}) {
   const timezone = process.env.TZ_ARTICLES || 'Asia/Jerusalem';
   const today = getTodayInTimezone(timezone);
-  const scope = opts.scope === 'north' ? 'north' : 'national';
+  const scope = normalizeReportScopeId(opts.scope);
   const reportsDir = resolveReportsDir(opts);
 
   const todayResult = _loadReportForDate(today, store, { scope, reportsDir });

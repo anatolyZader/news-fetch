@@ -26,6 +26,8 @@ import {
   SummaryStack,
 } from '../ui/index.js';
 import { formatDate } from '../lib/date.js';
+import PropTypes from 'prop-types';
+import { withOperatorDistrictQuery } from '../lib/clampOperatorDistrictScope.js';
 
 function buildSeverityColors(chart) {
   return {
@@ -57,7 +59,7 @@ function formatWeekLabel(trend) {
   return '?';
 }
 
-export function NaftaliTab() {
+export function NaftaliTab({ operatorScope = 'national' }) {
   const { getIdToken, apiReady } = useAuth();
   const { t } = useLanguage();
   const theme = useTheme();
@@ -109,7 +111,7 @@ export function NaftaliTab() {
       const headers = new Headers();
       const token = await getIdToken();
       if (token) headers.set('Authorization', `Bearer ${token}`);
-      const r = await fetch('/api/naftali', { headers });
+      const r = await fetch(withOperatorDistrictQuery('/api/naftali', operatorScope), { headers });
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       setData(await r.json());
     } catch (e) {
@@ -117,14 +119,14 @@ export function NaftaliTab() {
     } finally {
       setLoading(false);
     }
-  }, [getIdToken]);
+  }, [getIdToken, operatorScope]);
 
   useEffect(() => {
     if (!apiReady) return;
     void (async () => {
       await load();
     })();
-  }, [apiReady, load]);
+  }, [apiReady, load, operatorScope]);
 
   const filteredTrends = useMemo(() => {
     if (!data?.weeks || muniFilter.size === 0) return data?.trends ?? [];

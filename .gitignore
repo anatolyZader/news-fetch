@@ -8,6 +8,8 @@ eslint-report.json
 # Build outputs
 dist/
 client/dist/
+analyst-site/node_modules/
+analyst-site/dist/
 docs-site/node_modules/
 docs-site/build/
 docs-site/.docusaurus/

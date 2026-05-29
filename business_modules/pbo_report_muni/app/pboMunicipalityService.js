@@ -6,9 +6,15 @@
  * to the 8 resilience components using header text matching.
  */
 
-import { readdirSync } from 'node:fs';
-import { resolve, basename } from 'node:path';
+import { resolve, basename, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import XLSX from 'xlsx';
+import {
+  normalizePboDistrictId,
+  resolveLocalExcelPaths,
+} from '../../../cross-cut-modules/pbo/pboDistrictRegistry.js';
+
+const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 
 // ─── Column → component mapping ─────────────────────────────────────────────
 // Each entry: { pattern: substring to match in Hebrew header, component, kind: 'score'|'text' }
@@ -96,19 +102,34 @@ function buildColumnIndex(headers) {
   return mapping;
 }
 
+const PBO_FILENAME_DATE_RE = /_(\d{1,2})_(\d{1,2})\.xlsx$/;
+const SLICER_YEAR_RE = /SlicerDate\s+הוא\s+\d{2}\/\d{2}\/(\d{4})/;
+const SLICER_DATE_RE = /SlicerDate\s+הוא\s+(\d{2})\/(\d{2})\/(\d{4})/;
+
+function applyScoreColumn(components, def, val) {
+  const num = Number.parseFloat(val);
+  if (Number.isNaN(num)) return;
+  components[def.component].scores.push({ label: def.pattern, value: def.invert ? 1 - num : num });
+}
+
+function applyTextColumn(components, def, val) {
+  const txt = String(val ?? '').trim();
+  if (txt) components[def.component].texts.push(txt);
+}
+
 /**
  * Extract date from filename pattern "north_{day}_{month}.xlsx".
  * Falls back to the SlicerDate row inside the sheet if filename doesn't match.
  */
 function extractDate(rows, fileName) {
   // Primary: derive from filename (e.g. "north_5_4.xlsx" → 2026-04-05)
-  const fnMatch = fileName?.match(/_(\d{1,2})_(\d{1,2})\.xlsx$/);
+  const fnMatch = PBO_FILENAME_DATE_RE.exec(fileName ?? '');
   if (fnMatch) {
     // Need the year — grab it from the SlicerDate row
     let year = new Date().getFullYear();
     for (let i = rows.length - 1; i >= Math.max(0, rows.length - 5); i--) {
       const cell = String(rows[i]?.[0] ?? '');
-      const sm = cell.match(/SlicerDate\s+הוא\s+\d{2}\/\d{2}\/(\d{4})/);
+      const sm = SLICER_YEAR_RE.exec(cell);
       if (sm) { year = sm[1]; break; }
     }
     const day = fnMatch[1].padStart(2, '0');
@@ -118,10 +139,46 @@ function extractDate(rows, fileName) {
   // Fallback: SlicerDate inside the sheet
   for (let i = rows.length - 1; i >= Math.max(0, rows.length - 5); i--) {
     const cell = String(rows[i]?.[0] ?? '');
-    const m = cell.match(/SlicerDate\s+הוא\s+(\d{2})\/(\d{2})\/(\d{4})/);
+    const m = SLICER_DATE_RE.exec(cell);
     if (m) return `${m[3]}-${m[2]}-${m[1]}`; // YYYY-MM-DD
   }
   return null;
+}
+
+function createEmptyComponents() {
+  const components = {};
+  for (const cid of COMPONENTS_ORDER) {
+    components[cid] = { scores: [], texts: [], avg: null };
+  }
+  return components;
+}
+
+function fillComponentsFromRow(row, colMap, components) {
+  for (let c = 1; c < row.length; c++) {
+    const def = colMap[c];
+    if (!def) continue;
+    if (def.kind === 'score') {
+      applyScoreColumn(components, def, row[c]);
+    } else if (def.kind === 'text') {
+      applyTextColumn(components, def, row[c]);
+    }
+  }
+}
+
+function finalizeComponentAverages(components) {
+  for (const cid of COMPONENTS_ORDER) {
+    const s = components[cid].scores;
+    components[cid].avg = s.length > 0 ? +(s.reduce((a, b) => a + b.value, 0) / s.length).toFixed(3) : null;
+  }
+}
+
+function parseMunicipalityRow(row, colMap) {
+  const name = String(row[0] ?? '').trim();
+  if (!name || name.startsWith('מסננים')) return null;
+  const components = createEmptyComponents();
+  fillComponentsFromRow(row, colMap, components);
+  finalizeComponentAverages(components);
+  return { name, components };
 }
 
 /**
@@ -137,44 +194,16 @@ function parseOneFile(filePath) {
   const headers = rows[0];
   const colMap = buildColumnIndex(headers);
   const date = extractDate(rows, basename(filePath));
-
   const municipalities = [];
 
-  // Data rows start at index 2 (0=headers, 1=sub-header "רשות / value הראשון")
   for (let r = 2; r < rows.length; r++) {
-    const row = rows[r];
-    const name = String(row[0] ?? '').trim();
-    // Skip filter/metadata rows
-    if (!name || name.startsWith('מסננים')) break;
-
-    const components = {};
-    for (const cid of COMPONENTS_ORDER) {
-      components[cid] = { scores: [], texts: [], avg: null };
+    const parsed = parseMunicipalityRow(rows[r], colMap);
+    if (!parsed) {
+      const name = String(rows[r][0] ?? '').trim();
+      if (name.startsWith('מסננים')) break;
+      continue;
     }
-
-    for (let c = 1; c < row.length; c++) {
-      const def = colMap[c];
-      if (!def) continue;
-      const val = row[c];
-      if (def.kind === 'score') {
-        const num = Number.parseFloat(val);
-        if (!Number.isNaN(num)) {
-          // Invert: 1 → 0, 0.75 → 0.25, etc.
-          components[def.component].scores.push({ label: def.pattern, value: def.invert ? 1 - num : num });
-        }
-      } else if (def.kind === 'text') {
-        const txt = String(val ?? '').trim();
-        if (txt) components[def.component].texts.push(txt);
-      }
-    }
-
-    // Compute averages
-    for (const cid of COMPONENTS_ORDER) {
-      const s = components[cid].scores;
-      components[cid].avg = s.length > 0 ? +(s.reduce((a, b) => a + b.value, 0) / s.length).toFixed(3) : null;
-    }
-
-    municipalities.push({ name, components });
+    municipalities.push(parsed);
   }
 
   return { date, file: basename(filePath), municipalities };
@@ -186,17 +215,21 @@ export function parsePboNorthExcelFile(filePath) {
 }
 
 /**
- * Scan the pbo_report_muni directory for all .xlsx files, parse them, return all days.
+ * Scan district Excel files, parse them, return all days.
+ * @param {string} [districtId]
+ * @param {{ rootDir?: string }} [opts]
  */
-export function getMunicipalityDashboard() {
-  const dir = resolve(import.meta.dirname, '..');
-  const files = readdirSync(dir).filter((f) => f.endsWith('.xlsx')).sort();
+export function getMunicipalityDashboard(districtId = 'north', opts = {}) {
+  const id = normalizePboDistrictId(districtId);
+  const rootDir = opts.rootDir ?? REPO_ROOT;
+  const filePaths = resolveLocalExcelPaths(rootDir, id);
+  const files = filePaths.map((p) => basename(p));
 
   const days = [];
-  for (const f of files) {
-    const parsed = parseOneFile(resolve(dir, f));
+  for (const filePath of filePaths) {
+    const parsed = parseOneFile(filePath);
     if (parsed && parsed.municipalities.length > 0) {
-      days.push(parsed);
+      days.push({ ...parsed, file: basename(filePath) });
     }
   }
 
@@ -204,7 +237,7 @@ export function getMunicipalityDashboard() {
   days.sort((a, b) => (a.date ?? '').localeCompare(b.date ?? ''));
 
   // Aggregate: list of all unique municipality names
-  const allMunis = [...new Set(days.flatMap((d) => d.municipalities.map((m) => m.name)))].sort();
+  const allMunis = [...new Set(days.flatMap((d) => d.municipalities.map((m) => m.name)))].sort((a, b) => a.localeCompare(b));
 
   // Compute district-wide averages per component per day
   const districtTrend = days.map((day) => {
@@ -217,10 +250,12 @@ export function getMunicipalityDashboard() {
   });
 
   return {
+    districtId: id,
     componentsOrder: COMPONENTS_ORDER,
     componentNames: { en: COMPONENT_NAMES_EN, he: COMPONENT_NAMES_HE },
     municipalities: allMunis,
     days,
     districtTrend,
+    sourceFiles: files,
   };
 }

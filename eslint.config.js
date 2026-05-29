@@ -11,6 +11,7 @@ export default defineConfig([
       'client/node_modules/**',
       'client/dist/**',
       'docs-site/**',
+      'analyst-site/**',
       'dist/**',
       '.cursor/**',
       '**/*.min.js',

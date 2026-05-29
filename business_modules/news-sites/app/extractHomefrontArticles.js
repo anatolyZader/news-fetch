@@ -8,14 +8,16 @@
  */
 import { config } from 'dotenv';
 import { fileURLToPath } from 'node:url';
-import { dirname, join, resolve as resolvePath } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { mkdirSync, writeFileSync } from 'node:fs';
+import { relative } from 'node:path';
 
 import Anthropic from '@anthropic-ai/sdk';
-import { resolve } from 'node:path';
 import { getTodayInTimezone } from '../../../utils/dateUtils.js';
 import { createCostTracker, appendCostLog, checkDailyBudget } from '../../../cross-cut-modules/budget/index.js';
-import { createEvidenceStore } from '../../../cross-cut-modules/persistence/evidenceStore.js';
+import { createSourceArchive } from '../../../cross-cut-modules/source_archive/createSourceArchive.js';
+import { persistOriginalSources } from '../../../cross-cut-modules/source_archive/persistOriginals.js';
+import { buildMdSourceIdFromPath } from '../../../cross-cut-modules/source_archive/sourceId.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(__dirname, '../../..');
@@ -119,11 +121,28 @@ const FETCH_PREFILTER_SYSTEM_PROMPT =
 const PREFILTER_BATCH_SIZE = Number.parseInt(process.env.PREFILTER_BATCH_SIZE || '400', 10);
 
 function escapeMdHeading(s) {
-  return String(s).replaceAll('#', '\\#').replaceAll('\n', ' ');
+  return String(s).replaceAll('#', String.raw`\#`).replaceAll('\n', ' ');
 }
 
-async function preFilterBatch(anthropic, batch, batchOffset, batchNum, totalBatches, onUsage) {
-  const titleList = batch
+/** @param {string[]} sections @param {number} index @param {object} article */
+function appendArticleSections(sections, index, article) {
+  const body = article.body?.trim();
+  sections.push(
+    `## ${index + 1}. ${escapeMdHeading(article.title)}`,
+    '',
+    `- **URL:** ${article.url}`,
+    `- **Published:** ${article.publishedAt}`,
+    `- **Source:** ${article.source}`,
+    '',
+    body || '_No full text available._',
+    '',
+    '---',
+    '',
+  );
+}
+
+function buildBatchTitleList(batch, batchOffset) {
+  return batch
     .map((a, i) => {
       const snippet = a.body?.trim().slice(0, 200);
       return snippet
@@ -131,21 +150,19 @@ async function preFilterBatch(anthropic, batch, batchOffset, batchNum, totalBatc
         : `[${batchOffset + i + 1}] ${a.title}`;
     })
     .join('\n');
+}
 
-  const model = 'claude-haiku-4-5-20251001';
-  const label = totalBatches > 1 ? `[pre-filter batch ${batchNum}/${totalBatches}]` : '[pre-filter]';
+async function createAnthropicMessageWithRetry(anthropic, { model, label, batch, titleList }) {
   const retries = 3;
-  let message;
-  for (let attempt = 1; attempt <= retries; attempt++) {
+  for (let attempt = 1; attempt <= retries; attempt += 1) {
     try {
-      message = await anthropic.messages.create({
+      return await anthropic.messages.create({
         model,
         max_tokens: 8192,
         temperature: 0,
         system: FETCH_PREFILTER_SYSTEM_PROMPT,
         messages: [{ role: 'user', content: `Classify these ${batch.length} article titles:\n\n${titleList}` }],
       });
-      break;
     } catch (err) {
       if (attempt === retries) throw err;
       const is429 = err.message?.includes('429') || err.status === 429;
@@ -154,6 +171,31 @@ async function preFilterBatch(anthropic, batch, batchOffset, batchNum, totalBatc
       await new Promise((r) => setTimeout(r, wait));
     }
   }
+  throw new Error(`${label} failed after ${retries} attempts`);
+}
+
+function parsePrefilterIndices(text, label) {
+  const arrStart = text.indexOf('[');
+  const arrEnd = text.lastIndexOf(']');
+  if (arrStart === -1 || arrEnd === -1) throw new Error(`${label} returned no JSON array`);
+  const raw = text.slice(arrStart, arrEnd + 1);
+  let indices;
+  try {
+    indices = JSON.parse(raw);
+  } catch {
+    const m = /\[[\d\s,]*\]/.exec(raw);
+    if (!m) throw new Error(`${label} returned unparseable JSON: ${raw.slice(0, 200)}`);
+    indices = JSON.parse(m[0]);
+  }
+  if (!Array.isArray(indices)) throw new Error(`${label}: expected JSON array of indices`);
+  return new Set(indices.map(Number));
+}
+
+async function preFilterBatch(anthropic, batch, batchOffset, batchNum, totalBatches, onUsage) {
+  const titleList = buildBatchTitleList(batch, batchOffset);
+  const model = 'claude-haiku-4-5-20251001';
+  const label = totalBatches > 1 ? `[pre-filter batch ${batchNum}/${totalBatches}]` : '[pre-filter]';
+  const message = await createAnthropicMessageWithRetry(anthropic, { model, label, batch, titleList });
 
   if (message.stop_reason === 'max_tokens') {
     throw new Error(`${label} output truncated (max_tokens) — increase max_tokens`);
@@ -162,22 +204,7 @@ async function preFilterBatch(anthropic, batch, batchOffset, batchNum, totalBatc
   onUsage({ label, model, usage: message.usage });
 
   const text = message.content.find((b) => b.type === 'text')?.text ?? '';
-  const arrStart = text.indexOf('[');
-  const arrEnd = text.lastIndexOf(']');
-  if (arrStart === -1 || arrEnd === -1) throw new Error(`${label} returned no JSON array`);
-  let raw = text.slice(arrStart, arrEnd + 1);
-  let indices;
-  try {
-    indices = JSON.parse(raw);
-  } catch {
-    // LLM sometimes returns multiple arrays or trailing text — extract first valid array
-    const m = /\[[\d\s,]*\]/.exec(raw);
-    if (!m) throw new Error(`${label} returned unparseable JSON: ${raw.slice(0, 200)}`);
-    indices = JSON.parse(m[0]);
-  }
-  if (!Array.isArray(indices)) throw new Error(`${label}: expected JSON array of indices`);
-
-  return new Set(indices.map(Number));
+  return parsePrefilterIndices(text, label);
 }
 
 async function preFilterByLLM(articles, onUsage) {
@@ -270,35 +297,37 @@ export async function runExtractHomefrontArticles(opts = {}) {
   ];
 
   for (let i = 0; i < articles.length; i++) {
-    const a = articles[i];
-    sections.push(`## ${i + 1}. ${escapeMdHeading(a.title)}`, '', `- **URL:** ${a.url}`, `- **Published:** ${a.publishedAt}`, `- **Source:** ${a.source}`, '');
-    sections.push(a.body && a.body.trim() ? a.body.trim() : '_No full text available._', '', '---', '');
+    appendArticleSections(sections, i, articles[i]);
   }
 
   // Ensure the output directory exists (especially when using the default under business_modules/).
-  mkdirSync(dirname(resolvePath(repoRoot, outPath)), { recursive: true });
+  mkdirSync(dirname(resolve(repoRoot, outPath)), { recursive: true });
 
   writeFileSync(outPath, sections.join('\n'), 'utf8');
   const datedOutPath = outPath.replace(/\.md$/, '') + `-${date}.md`;
   writeFileSync(datedOutPath, sections.join('\n'), 'utf8');
   console.log(`Wrote ${articles.length} home-front–relevant articles to ${outPath} and ${datedOutPath} (from ${allArticles.length} total)`);
 
-  // Persist to DB
   const sqlitePath = process.env.SQLITE_PATH?.trim() || resolve(repoRoot, 'data', 'app.sqlite');
   try {
-    const store = createEvidenceStore(sqlitePath);
-    const inserted = store.insertItems(articles.map((a) => ({
+    const archive = createSourceArchive(sqlitePath);
+    const relMd = relative(repoRoot, datedOutPath).replaceAll('\\', '/');
+    const items = articles.map((a, i) => ({
+      source_id: buildMdSourceIdFromPath(repoRoot, datedOutPath, i + 1),
       date,
       source_type: 'news',
       source_label: a.source,
       source_url: a.url,
       title: a.title,
-      body: a.body && a.body.trim() ? a.body.trim() : '',
+      body: a.body?.trim() ? a.body.trim() : '',
       published_at: a.publishedAt,
-    })));
-    console.log(`  → ${inserted} new item(s) written to DB (${sqlitePath})`);
+      module_ref: relMd,
+    }));
+    const { archived } = persistOriginalSources(archive, items);
+    archive.close();
+    console.log(`  → ${archived} source(s) archived (${sqlitePath})`);
   } catch (err) {
-    console.error(`  ⚠ DB write failed (continuing): ${err.message}`);
+    console.error(`  ⚠ Source archive write failed (continuing): ${err.message}`);
   }
 
   const { totalCostUsd, usageLog } = getTotal();

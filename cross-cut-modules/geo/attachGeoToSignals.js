@@ -89,28 +89,34 @@ export function attachGeoToSignals(signals, geoEnrichmentPort, opts = {}) {
  * @param {{ sourceType?: string, reporterSubregionHint?: string, nameIndex?: object }} [opts]
  */
 export function attachGeoToSignalsAndStructured(signals, structured, geoEnrichmentPort, opts = {}) {
-  const messageLocality =
-    structured?.observation?.locality == null
-      ? null
-      : String(structured.observation.locality).trim() || null;
+  const messageLocalityKey = structured?.observation?.localityKey;
+  const messageLocality = structured?.observation?.locality == null
+    ? null
+    : String(structured.observation.locality).trim() || null;
+  const geoInput = messageLocalityKey
+    ? String(messageLocalityKey).replaceAll('_', ' ')
+    : messageLocality;
 
   const { signals: withGeo } = attachGeoToSignals(signals, geoEnrichmentPort, {
     ...opts,
-    messageLocality,
+    messageLocality: geoInput,
   });
 
-  const obsGeo = messageLocality
-    ? geoEnrichmentPort.resolveLocalityName(messageLocality, {
+  const obsGeo = geoInput
+    ? geoEnrichmentPort.resolveLocalityName(geoInput, {
         sourceType: opts.sourceType,
         reporterSubregionHint: opts.reporterSubregionHint,
-        provenance: GEO_PROVENANCE.message_level,
+        provenance: messageLocalityKey ? GEO_PROVENANCE.structured : GEO_PROVENANCE.message_level,
         resolutionScope: 'message',
       })
     : withGeo.find((s) => s?.geo)?.geo ?? null;
 
   const observation = {
     ...structured.observation,
-    ...(obsGeo ? { geo: stampResolutionScope(obsGeo, messageLocality ? 'message' : 'signal') } : {}),
+    ...(obsGeo?.kind === 'resolved' && obsGeo.resolution?.canonicalKey
+      ? { localityKey: obsGeo.resolution.canonicalKey }
+      : {}),
+    ...(obsGeo ? { geo: stampResolutionScope(obsGeo, geoInput ? 'message' : 'signal') } : {}),
   };
 
   return {

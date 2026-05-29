@@ -15,7 +15,8 @@ import 'dotenv/config';
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { createEvidenceStore } from '../../../cross-cut-modules/persistence/evidenceStore.js';
+import { createSourceArchive } from '../../../cross-cut-modules/source_archive/createSourceArchive.js';
+import { persistOriginalSources } from '../../../cross-cut-modules/source_archive/persistOriginals.js';
 
 import { createCostTracker, appendCostLog, checkDailyBudget } from '../../../cross-cut-modules/budget/index.js';
 import { OpenaiTranscriptionAdapter } from '../../audio/infrastructure/adapters/openaiTranscriptionAdapter.js';
@@ -185,9 +186,11 @@ try {
 
     // Persist to DB
     try {
-      const store = createEvidenceStore(resolve(process.cwd(), process.env.SQLITE_PATH?.trim() || 'data/app.sqlite'));
-      const inserted = store.insertItems(result.items);
-      console.error(`  → ${inserted} new scene(s) written to DB`);
+      const sqlitePath = resolve(process.cwd(), process.env.SQLITE_PATH?.trim() || 'data/app.sqlite');
+      const archive = createSourceArchive(sqlitePath);
+      const { archived } = persistOriginalSources(archive, result.items);
+      archive.close();
+      console.error(`  → ${archived} scene(s) archived`);
     } catch (err) {
       console.error(`  ⚠ DB write failed (continuing): ${err.message}`);
     }

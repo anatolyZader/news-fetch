@@ -4,16 +4,16 @@ const { themes: prismThemes } = require('prism-react-renderer');
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: 'VibeSwitch Docs',
-  tagline: 'Production-grade documentation for VibeSwitch',
-  url: 'https://docs.vibeswitch.ai',
+  title: "Srulik's lab docs",
+  tagline: "Documentation for Srulik's lab — homefront decision support",
+  url: 'https://docs.srulik.ai',
   baseUrl: '/',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'throw',
   favicon: 'img/favicon.ico',
 
-  organizationName: 'vibeswitch',
-  projectName: 'vibeswitch-docs',
+  organizationName: 'srulik',
+  projectName: 'srulik-docs',
 
   i18n: {
     defaultLocale: 'en',
@@ -83,18 +83,40 @@ const config = {
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
       navbar: {
-        title: 'VibeSwitch',
+        title: "Srulik's lab",
         items: [
           { to: '/getting-started/using-the-app', label: 'Getting Started', position: 'left' },
           { to: '/concepts/system-dataflow', label: 'Concepts', position: 'left' },
           { to: '/guides/news-ingestion', label: 'Guides', position: 'left' },
           { to: '/api', label: 'API', position: 'left' },
-          { href: 'https://vibeswitch.ai', label: 'Product', position: 'right' },
+          { href: 'https://srulik.ai', label: 'Product', position: 'right' },
         ],
       },
       colorMode: {
-        defaultMode: 'dark',
+        defaultMode: 'light',
         respectPrefersColorScheme: true,
+        disableSwitch: false,
+      },
+      footer: {
+        style: 'light',
+        links: [
+          {
+            title: 'Docs',
+            items: [
+              { label: 'Getting started', to: '/getting-started/using-the-app' },
+              { label: 'Guides', to: '/guides/operator-workflow' },
+              { label: 'API reference', to: '/api' },
+            ],
+          },
+          {
+            title: 'Product',
+            items: [
+              { label: "Srulik's lab app", href: 'https://srulik.ai' },
+              { label: 'Decision support model', to: '/concepts/decision-support-model' },
+            ],
+          },
+        ],
+        copyright: `© ${new Date().getFullYear()} srulik.ai — Srulik's lab documentation.`,
       },
       prism: {
         theme: prismThemes.github,
@@ -104,4 +126,3 @@ const config = {
 };
 
 module.exports = config;
-

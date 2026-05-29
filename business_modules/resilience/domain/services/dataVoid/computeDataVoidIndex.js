@@ -32,6 +32,7 @@ function resolveVoidLevel(ctx) {
     digital_darkness,
     connectivityTags,
     probeOutage,
+    probeOutageUnconfirmed,
     total_silence,
     partial_silence,
     digitalToday,
@@ -44,10 +45,24 @@ function resolveVoidLevel(ctx) {
   if (digital_darkness) {
     return { level: 'critical', reason: 'digital_darkness', digital_darkness: true };
   }
-  if (connectivityTags > 0 || probeOutage) {
+  if (probeOutage) {
     return {
       level: 'critical',
-      reason: probeOutage ? 'probe_outage' : 'connectivity_outage',
+      reason: 'probe_outage',
+      digital_darkness: false,
+    };
+  }
+  if (probeOutageUnconfirmed) {
+    return {
+      level: 'warning',
+      reason: 'probe_unconfirmed',
+      digital_darkness: false,
+    };
+  }
+  if (connectivityTags > 0) {
+    return {
+      level: 'critical',
+      reason: 'connectivity_outage',
       digital_darkness: false,
     };
   }
@@ -115,10 +130,14 @@ export function computeDataVoidIndex(signals, historicalSignals = [], opts = {})
   const minBaseline = totalSilenceMinBaseline();
   const digital_darkness = fieldActive && digitalToday === 0 && expectedDigital >= 1 - 1e-6;
 
-  const connectivityTags = list.filter((s) => s?.signal_type === 'connectivity_outage').length;
-  const probeOutage = list.some(
+  const connectivityTags = list.filter(
+    (s) => s?.signal_type === 'connectivity_outage' && !isProbeSignal(s),
+  ).length;
+  const probeSignals = list.filter(
     (s) => isProbeSignal(s) && (s.signal_type === 'connectivity_outage' || s.connectivity_outage === true),
   );
+  const probeOutage = probeSignals.some((s) => s.probe_corroborated === true);
+  const probeOutageUnconfirmed = probeSignals.length > 0 && !probeOutage;
 
   const total_silence = digitalToday === 0
     && fieldToday === 0
@@ -133,6 +152,7 @@ export function computeDataVoidIndex(signals, historicalSignals = [], opts = {})
     digital_darkness,
     connectivityTags,
     probeOutage,
+    probeOutageUnconfirmed,
     total_silence,
     partial_silence,
     digitalToday,
@@ -163,6 +183,8 @@ export function computeDataVoidIndex(signals, historicalSignals = [], opts = {})
     information_vacuum_index: vacuumIndexForLevel(level, digitalToday, expectedDigital),
     connectivity_outage_signals: connectivityTags,
     probe_outage: probeOutage,
+    probe_outage_unconfirmed: probeOutageUnconfirmed,
+    probe_corroboration_count: probeSignals.length,
     expected_digital_volume: Math.round(expectedDigital * 100) / 100,
     actual_digital_volume: digitalToday,
     expected_field_volume: Math.round(expectedField * 100) / 100,

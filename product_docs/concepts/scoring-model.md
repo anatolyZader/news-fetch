@@ -4,13 +4,13 @@ description: "How deterministic scoring works and how confidence is computed."
 intent: concepts
 audience: ["public", "customer"]
 stability: beta
-canonical: "https://docs.vibeswitch.ai/concepts/scoring-model"
+canonical: "https://docs.srulik.ai/concepts/scoring-model"
 version: "current"
 tags: ["concepts", "scoring"]
 ---
 
 ## Purpose
-Explain how VibeSwitch turns a bag of typed signals into bounded component scores and calibrated confidence values — entirely in code, without an LLM in the scoring loop. This page covers the formula, the reasons for that boundary, and what changes in scoring vs. what stays fixed.
+Explain how Srulik's lab turns a bag of typed signals into bounded component scores and calibrated confidence values — entirely in code, without an LLM in the scoring loop. This page covers the formula, the reasons for that boundary, and what changes in scoring vs. what stays fixed.
 
 ## Prerequisites
 - **Required**: Understanding of signals as typed evidence objects with intensity and confidence. See [Signal taxonomy](signal-taxonomy.md).

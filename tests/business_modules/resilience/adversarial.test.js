@@ -4,9 +4,12 @@ import { readFileSync } from 'node:fs';
 
 import { scoreComponents } from '../../../business_modules/resilience/domain/services/behaviorSignals.js';
 import { computeDataVoidIndex } from '../../../business_modules/resilience/domain/services/dataVoidIndex.js';
+import { resolveScoringPartition } from '../../../business_modules/resilience/domain/services/dataVoid/scoringPartition.js';
+import { runScoringPipeline } from '../../../business_modules/resilience/app/scoringPipelinePrep.js';
 import { dedupeSignalsWithinBatch, verifyEvidenceAgainstArticle }
   from '../../../business_modules/resilience/infrastructure/signalVerification.js';
 import { crossSourceDedup } from '../../../business_modules/resilience/input/assessSignalsHelpers.js';
+import { enrichProbeSignalsInList } from '../../../business_modules/resilience/domain/services/probeCorroborationPolicy.js';
 
 import { ADVERSARIAL_CASES_PATH } from '../../../business_modules/resilience/tuning/goldenPaths.js';
 
@@ -84,6 +87,25 @@ function generateSaturationPositiveCalm() {
       scope_level: 'quantified_or_broad',
       evidence: `quantified calm ${i}`,
       extraction_confidence: 1, temporal_weight: 1,
+    });
+  }
+  return out;
+}
+
+function generateTelegramFloodWithField(baseSignals) {
+  const out = [...(baseSignals ?? [])];
+  for (let i = 0; i < 8; i++) {
+    out.push({
+      article_index: 100 + i,
+      article_url: `https://t.me/panic${i}`,
+      article_source: `tg-panic-${i}`,
+      source_type: 'telegram',
+      signal_type: 'fear_expression',
+      evidence_type: 'observational_reported_fact',
+      scope_level: 'repeated_pattern',
+      evidence: `Telegram panic message about connectivity and mass evacuation ${i}`,
+      extraction_confidence: 0.85,
+      temporal_weight: 1,
     });
   }
   return out;
@@ -326,13 +348,68 @@ function assertEvidenceMassExpectations(c, exp, scored) {
   }
 }
 
+function assertScoringPartitionExpectations(c, exp, signals) {
+  if (!exp.scoring_partition && !exp.pipeline) return;
+
+  process.env.RESILIENCE_SCORING_PARTITION = '1';
+  process.env.RESILIENCE_EWMA_FREEZE_ON_EPISTEMIC = '1';
+
+  const dv = computeDataVoidIndex(signals, c.historical_signals ?? []);
+  if (exp.data_void) {
+    for (const [key, want] of Object.entries(exp.data_void)) {
+      assert.equal(dv[key], want, `${c.id}: data_void.${key}`);
+    }
+  }
+
+  if (exp.scoring_partition) {
+    const partition = resolveScoringPartition(signals, dv);
+    if (exp.scoring_partition.assessmentMode) {
+      assert.equal(partition.assessmentMode, exp.scoring_partition.assessmentMode,
+        `${c.id}: scoring_partition.assessmentMode`);
+    }
+    if (exp.scoring_partition.min_quarantined_count != null) {
+      assert.ok(partition.quarantinedSignals.length >= exp.scoring_partition.min_quarantined_count,
+        `${c.id}: expected >= ${exp.scoring_partition.min_quarantined_count} quarantined`);
+    }
+  }
+
+  if (exp.pipeline) {
+    const pipeline = runScoringPipeline({
+      signalsForScoring: signals,
+      dataVoid: dv,
+      totalArticles: Math.max(signals.length, 1),
+      salienceContext: {},
+      historicalScores: {},
+      scopeId: 'national',
+      validationMaturity: null,
+    });
+    if (exp.pipeline.assessment_mode) {
+      assert.equal(pipeline.assessmentMode, exp.pipeline.assessment_mode,
+        `${c.id}: pipeline.assessment_mode`);
+    }
+    if (exp.pipeline.field_score_present === true) {
+      const hasScore = Object.values(pipeline.scoredFull ?? {}).some((comp) => comp?.score != null);
+      assert.ok(hasScore, `${c.id}: expected at least one non-null field-derived score`);
+    }
+    if (exp.pipeline.min_quarantined_count != null) {
+      assert.ok((pipeline.quarantinedDigital?.count ?? 0) >= exp.pipeline.min_quarantined_count,
+        `${c.id}: pipeline quarantined count`);
+    }
+  }
+}
+
 function runPipelineCase(c, exp) {
   const signals = resolveSignals(c);
   const dedupedWithin = dedupeSignalsWithinBatch(signals);
-  const dedupedAll = crossSourceDedup(dedupedWithin);
+  const dedupedAll = enrichProbeSignalsInList(crossSourceDedup(dedupedWithin));
   assertDedupCounts(c, exp, dedupedWithin, dedupedAll);
 
-  if (exp.data_void) {
+  if (exp.scoring_partition || exp.pipeline) {
+    assertScoringPartitionExpectations(c, exp, dedupedAll);
+    if (!exp.score_range && !exp.all_components_insufficient) return;
+  }
+
+  if (exp.data_void && !exp.scoring_partition && !exp.pipeline) {
     const dv = computeDataVoidIndex(dedupedAll, c.historical_signals ?? []);
     for (const [key, want] of Object.entries(exp.data_void)) {
       assert.equal(dv[key], want, `${c.id}: data_void.${key}`);

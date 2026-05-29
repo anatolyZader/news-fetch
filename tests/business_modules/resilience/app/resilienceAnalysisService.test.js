@@ -241,7 +241,7 @@ describe('runResilienceAssessment', () => {
         return [s2];
       },
       generateNarratives: async (_sc, signals, date, total, opts) => {
-        assert.equal(signals.length, 2);
+        assert.equal(signals.length, 1, 'veto mode keeps only cross-pass agreed signals');
         return minimalAssessment(date, total, opts.contentKind);
       },
     };

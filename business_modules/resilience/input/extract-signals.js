@@ -21,6 +21,7 @@ import { loadMdFiles } from '../infrastructure/mdReportsLoader.js';
 import { extractSignals } from '../infrastructure/claudeEvaluator.js';
 import { createCostTracker, appendCostLog, checkDailyBudget } from '../../../cross-cut-modules/budget/index.js';
 import { enrichSignalsWithGeo } from '../../../cross-cut-modules/geo/enrichSignalsWithGeo.js';
+import { archiveMarkdownFiles } from '../app/archiveMarkdownFromMd.js';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 
@@ -84,6 +85,19 @@ async function run() {
 
   const { onUsage, getTotal } = createCostTracker({ label: 'extract-signals' });
   const { articles } = loadMdFiles(filePaths, { dayOffsets: filePaths.map(() => 0) });
+
+  try {
+    const sqlitePath = process.env.SQLITE_PATH?.trim() || resolve(REPO_ROOT, 'data', 'app.sqlite');
+    const n = archiveMarkdownFiles(filePaths, {
+      date,
+      source_type: sourceType,
+      repoRoot: REPO_ROOT,
+      sqlitePath,
+    });
+    console.error(`  → ${n} original(s) archived for ${date}`);
+  } catch (err) {
+    console.error(`  ⚠ Source archive skipped: ${err.message}`);
+  }
 
   console.error(`\nSignal Extraction  source=${sourceType}  kind=${contentKind}`);
   console.error(`===================`);

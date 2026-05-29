@@ -147,6 +147,16 @@ describe('enrichWithDeltaChannel', () => {
       'significance still computed against >=5 non-null prior days in baseline');
   });
 
+  it('freezeTemporal skips EWMA blend and delta fields', () => {
+    const scored = { narrative: { score: 7, certainty: 0.8 } };
+    const history = { narrative: [5, 5, 5, 5, 5, 5, 5, 5, 5] };
+    const out = enrichWithDeltaChannel(scored, history, { freezeTemporal: true });
+    assert.equal(out.narrative.score_smoothed, 7);
+    assert.equal(out.narrative.delta_score, null);
+    assert.equal(out.narrative.delta_significance, null);
+    assert.equal(out.narrative.delta_flag, null);
+  });
+
   it('preserves untouched fields on the component', () => {
     const scored = { narrative: { score: 7, certainty: 0.5, signals: [{ x: 1 }], polarization: 0.3 } };
     const out = enrichWithDeltaChannel(scored, {});

@@ -13,6 +13,10 @@ describe('israelDistricts', () => {
     assert.equal(normalizeIsraelDistrictLabelKey('trends.district.telAviv'), 'district.dan');
   });
 
+  it('normalizes legacy center to jerusalem', () => {
+    assert.equal(normalizeIsraelDistrictId('center'), 'jerusalem');
+  });
+
   it('rewrites cached dashboard region breakdown', () => {
     const out = normalizeIsraelDistrictRefs({
       district: { id: 'national', labelKey: 'trends.district.national' },
@@ -25,7 +29,7 @@ describe('israelDistricts', () => {
     assert.equal(out.district.labelKey, 'district.national');
     assert.deepEqual(
       ISRAEL_DISTRICT_FILTER_ORDER,
-      ['national', 'north', 'south', 'jerusalem', 'haifa', 'center', 'dan'],
+      ['national', 'north', 'south', 'jerusalem', 'haifa', 'dan'],
     );
   });
 });

@@ -8,7 +8,7 @@
 
 **System:** Population Resilience Monitor  
 **Framework:** 8-Component Community Resilience (Pikud HaOref / פיקוד העורף)  
-**Last updated:** 2026-05-27
+**Last updated:** 2026-05-28
 
 ---
 
@@ -16,12 +16,18 @@
 
 The app produces a **daily 8-component community resilience assessment** for Israeli civilian populations under emergency conditions. Evidence comes from **multiple channels** (news, radio, WhatsApp, field visits, PBO reports, Naftali questionnaires, social OSINT). Each channel is ingested and extracted independently; a combined assessment merges all enabled sources within a configurable date window.
 
-Two scopes are supported:
+Six report scopes are supported (`--scope` on `assess-signals`, `DistrictScopeSwitcher` in UI):
 
 | Scope | Report prefix | Typical use |
 |-------|---------------|-------------|
 | **National** | `resilience-report-{date}-{HHMM}` | Country-wide population behavior |
 | **North** | `resilience-report-north-{date}-{HHMM}` | Galilee / Golan / northern border belt |
+| **South** | `resilience-report-south-{date}-{HHMM}` | Negev / southern districts |
+| **Jerusalem** | `resilience-report-jerusalem-{date}-{HHMM}` | Jerusalem area |
+| **Dan** | `resilience-report-dan-{date}-{HHMM}` | Tel Aviv metro (Dan) |
+| **Haifa** | `resilience-report-haifa-{date}-{HHMM}` | Haifa / Carmel coast |
+
+Regional scopes require resolved geo (or always-in-scope source types) matching the target district. See [GEOGRAPHIC-ANALYSIS.md](./GEOGRAPHIC-ANALYSIS.md) and [8-component doc §12](./8-component-analysis-end-to-end.md#12-geographic-scoping-national--five-regional-districts).
 
 A key design principle: **LLM extracts, code scores**. The LLM finds behavioral evidence and classifies it into a fixed signal vocabulary (`SIGNAL_CATALOG`, ~165 types). A deterministic algorithm maps those signals to component scores — the LLM does not decide the scores.
 
@@ -38,7 +44,7 @@ Split into auditable stages so signals are reusable and comparable across days:
         ↓
 [assess-signals.js] → merge + scope filter + deterministic scoring + LLM narrative
         ↓
-reports/resilience-report[-north]-{date}-{HHMM}.{md,json}
+reports/resilience-report[-{scopeId}]-{date}-{HHMM}.{md,json}
         ↓
 validation artifacts (records + review queue)
 ```
@@ -116,7 +122,14 @@ Whisper transcription → `articles-audio-{station}-{program}-{date}.md`. Option
 npm run whatsapp-to-md -- --date YYYY-MM-DD
 ```
 
-Export → `business_modules/whatsapp/reports/whatsapp_reports-{date}.md`. Live webhook ingest also available. Always counted as north scope. Geo attached via `IGeoEnrichmentPort` (see geographic doc).
+Export → `business_modules/whatsapp/reports/whatsapp_reports-{date}.md`. Live webhook ingest also available (`webhook-routes.js` + `whatsappIngestService.js`). Always counted as north scope. Geo attached via `IGeoEnrichmentPort` (see geographic doc).
+
+**Webhook routing (live ingest):**
+
+| Channel | Flow |
+|---------|------|
+| **Group** | One-shot resilience extract + Hebrew reply via `whatsappResilienceAnalyzer.js` |
+| **DM** | Adaptive chatbot: conversation state machine → `gapEngine` (missing evidence) → draft → user confirm → `reportBuildService.recompute()` → signal extraction on approval. See `business_modules/whatsapp/domain/conversation/` and `whatsappIngestService.js` |
 
 ### Field reports (`source_type: field`)
 
@@ -129,6 +142,25 @@ node business_modules/pbo_report_muni/input/extract-pbo-signals.js
 ```
 
 Excel `north_<day>_4.xlsx` → `signals/signals-pbo-{date}.json` (structured conversion, no extraction LLM).
+
+### PBO municipal completeness review (`pbo_report_review`)
+
+Runs **before** PBO signal extraction in the daily pipeline (step 7b). Not a signal source — operational follow-up on missing/incomplete municipal Excel reports.
+
+```bash
+node business_modules/pbo_report_review/input/runMunicipalPboReview.js --date YYYY-MM-DD [--force] [--dry-run]
+```
+
+**Module:** `business_modules/pbo_report_review/`
+
+| Step | What happens |
+|------|--------------|
+| Gap detection | Compare expected municipalities vs received Excel for the date |
+| Officer directory | Match gaps to contacts in `data/officers.json` |
+| Follow-up email | Resend outbound when configured; parse inbound replies |
+| UI | PBO reports → **Local** sub-tab (`MunicipalitiesTab`) — review status, reply thread (`PboMunicipalReviewPanel.jsx`) |
+
+**API:** `GET /api/pbo/municipal-reviews`, `GET/POST /api/pbo/municipal-reviews/{date}/{municipality}/*`, `POST /api/pbo/review/inbound-email`
 
 ### PBO regional (`source_type: pbo_regional`)
 
@@ -215,10 +247,10 @@ npm run assess-signals -- --date 2026-05-23 --days 3 --scope north
 1. Discovers signal JSON for all **enabled** sources within `{date, date−1, …}` (up to `--days`, max 14).
 2. Applies **temporal weights** (T=1.0, T−1=0.85, T−2=0.70, then geometric decay to floor 0.50 for older days in the window).
 3. **Within-source dedup** and **cross-source dedup** on `(signal_type | source | evidence)`.
-4. Attaches **geo** to news/radio signals; applies **north scope filter** when `--scope north`.
+4. Re-attaches **geo** to any signal still missing it; applies **regional scope filter** when `--scope` is a district id (`filterSignalsForScope`).
 5. **Deterministic scoring** via `scoreComponents()` — sigmoid to 1–10, bootstrap CI, counterfactual, EWMA, polarization, facets.
 6. **LLM narrative** (Sonnet) — writes behavioral text only; does not re-score.
-7. Writes `reports/resilience-report[-north]-{date}-{HHMM}.{md,json}` (+ `-brief.md` for operators).
+7. Writes `reports/resilience-report[-{scopeId}]-{date}-{HHMM}.{md,json}` (+ `-brief.md` for operators).
 8. Runs **validation collection** (see below).
 9. Emits **methodology** (`assessment.methodology`) — epistemic scope counts, scope-decision summary, optional advisory `tuning_proposal` from `suggest-tuning` history.
 10. Computes **data void index** (`assessment.data_void`) when digital channels drop while field/PBO remain active (`dataVoidIndex.js`; disable with `RESILIENCE_DATA_VOID=0`).
@@ -279,7 +311,7 @@ npm run validation:set-phase -- elevated [--note "…"]
 | `review-queue/{date}-{scope}.jsonl` | Up to 15 flagged articles/day for expert review |
 | `phase-log/phase-changes.jsonl` | Manual phase transitions |
 
-Acceptance tiers are defined in config: **CI** golden corpus enforces `micro_F1 ≥ 0.55` / `macro_κ ≥ 0.40` in tests; **operational tier 2** in config targets `0.65` / `0.5` once hand-reviewed articles exist. No dedicated UI tab — CLI + artifact files.
+Acceptance tiers are defined in config: **CI** golden corpus enforces `micro_F1 ≥ 0.55` / `macro_κ ≥ 0.40` in tests; **operational tier 2** in config targets `0.65` / `0.5` once hand-reviewed articles exist. **Analyst UI:** `ValidationReviewPanel` in Daily Assessment (analyst mode). **Ops:** CLI + JSONL artifacts under `validation/artifacts/review-queue/`.
 
 ---
 
@@ -288,7 +320,7 @@ Acceptance tiers are defined in config: **CI** golden corpus enforces `micro_F1 
 **Module:** `business_modules/search_trends/`  
 **Tab:** Trends (main nav)
 
-Google Trends–style interest dashboards for 8 Israel districts × 1/3/7-day windows. DataForSEO primary, `google-trends-api` fallback, 6-hour file cache.
+Google Trends–style interest dashboards for **six districts** (national + five regional) × 1/3/7-day windows. DataForSEO primary, `google-trends-api` fallback, 6-hour file cache.
 
 ```bash
 npm run trends:warm-cache
@@ -315,6 +347,7 @@ Steps (last 3 calendar days):
 4. Extract radio signals
 5. WhatsApp export + extract
 6. Field report extract (last 3 files)
+7b. Municipal PBO completeness review + follow-up email (`runMunicipalPboReview.js`)
 7. PBO municipality extract
 8. Regional PBO extract
 9. Naftali extract
@@ -331,7 +364,7 @@ Social OSINT is **not** in this shell script — run via `/8comp-3-north` or `so
 | `reports/resilience-report-{date}-{HHMM}.md` | Full markdown (analyst) |
 | `reports/resilience-report-{date}-{HHMM}.json` | Structured data + API |
 | `reports/resilience-report-{date}-{HHMM}-brief.md` | Operator brief (no numeric scores) |
-| `reports/resilience-report-north-{date}-{HHMM}.*` | North scope variants |
+| `reports/resilience-report-{scopeId}-{date}-{HHMM}.*` | Regional scope variants (`north`, `south`, `jerusalem`, `dan`, `haifa`) |
 
 JSON includes: all scores, narratives, manifestations, signal appendix with URLs, methodology block, geo reference versions, reliability instruments per component.
 
@@ -343,7 +376,7 @@ Navigation splits **Daily Assessment** (the 8-component report) from **data-sour
 
 | Tab / endpoint | Role |
 |----------------|------|
-| **Daily Assessment** | Latest assessment (`GET /api/report/today?scope=&view=operator\|analyst`); national/north scope toggle |
+| **Daily Assessment** | Latest assessment (`GET /api/report/today?scope=&view=operator\|analyst`); `DistrictScopeSwitcher` — scopes: `national \| north \| south \| jerusalem \| dan \| haifa`. Analyst validation review via `ValidationReviewPanel` (embedded in Report) |
 | **Report (analyst)** | Per-component **score sparklines** via `GET /api/resilience/drift` (embedded in Report cards; not a separate nav tab) |
 | **News** | Ingest review — homefront article exports (`GET /api/news-sites`, `GET /api/news-sites/daily?date=`) |
 | **Radio** | Ingest review — Whisper transcripts (`GET /api/radio`, `GET /api/radio/daily?date=`) |
@@ -365,7 +398,7 @@ Navigation splits **Daily Assessment** (the 8-component report) from **data-sour
 
 News and Radio tabs show a banner when the source is disabled in `pipeline-config.json` (existing exports remain visible for review).
 
-North scope in UI requires a north report artifact — otherwise API returns `hint: north_requires_assess_signals` (expected until `/8comp-3-north` has been run).
+Regional scope in UI requires a matching report artifact (`resilience-report-{scopeId}-*`) — otherwise API returns `hint: regional_requires_assess_signals` (expected until `assess-signals --scope <id>` has been run for that district).
 
 ---
 
@@ -417,6 +450,10 @@ business_modules/catalogLearning/
 
 business_modules/pbo_report_regional/
   input/extract-regional-pbo-signals.js   → signals-pbo_regional-{date}.json
+
+business_modules/pbo_report_review/
+  input/runMunicipalPboReview.js          Daily step 7b — completeness + follow-up
+  input/pboReviewRoutes.js                GET/POST /api/pbo/municipal-reviews/*
 
 business_modules/geo/                     Reference data + IGeoEnrichmentPort impl
 

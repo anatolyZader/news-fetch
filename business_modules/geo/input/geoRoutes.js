@@ -6,6 +6,17 @@
 export async function registerGeoRoutes(app, opts = {}) {
   const pre = opts.authPreHandler ? { preHandler: opts.authPreHandler } : {};
 
+  app.get('/api/geo/localities', pre, async (request, reply) => {
+    const q = typeof request.query?.q === 'string' ? request.query.q : '';
+    const scope = typeof request.query?.scope === 'string' ? request.query.scope : 'north';
+    const geoService = app.geoService;
+    if (!geoService?.searchLocalities) {
+      return reply.code(503).send({ error: 'geo service not available' });
+    }
+    const localities = geoService.searchLocalities(q, { scope, limit: 20 });
+    return reply.send({ localities });
+  });
+
   app.get('/api/geo/resolve', pre, async (request, reply) => {
     const raw = request.query?.name ?? request.query?.q;
     if (typeof raw !== 'string' || !raw.trim()) {

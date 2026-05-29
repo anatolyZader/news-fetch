@@ -1,5 +1,6 @@
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { decayedOutletMultiplier, isOutletDecayEnabled } from './outletReputationDecay.js';
 
 let cached = null;
 let cachedPath = null;
@@ -51,7 +52,9 @@ export function getOutletReliabilityMultiplier(articleSource, configPath) {
   const entry = cached[articleSource];
   const m = entry?.reliabilityMultiplier ?? entry?.multiplier;
   if (typeof m !== 'number' || Number.isNaN(m)) return 1;
-  return Math.min(1.5, Math.max(0.5, m));
+  const base = Math.min(1.5, Math.max(0.5, m));
+  if (!isOutletDecayEnabled()) return base;
+  return decayedOutletMultiplier(articleSource, base);
 }
 
 /** Test hook: reset module cache */

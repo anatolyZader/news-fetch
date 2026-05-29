@@ -8,6 +8,7 @@ import { ESLint } from 'eslint';
 import { resolve, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { toSonarRule } from './sonar-eslint-map.mjs';
+import { SONAR_LIST_DEFAULT_LIMIT } from './sonar-defaults.mjs';
 
 const ROOT = resolve(fileURLToPath(new URL('..', import.meta.url)));
 
@@ -73,7 +74,9 @@ export async function listLocalSonarIssues(opts) {
   }
 
   items.sort((a, b) => {
-    const fc = String(a.file).localeCompare(String(b.file));
+    const fileA = typeof a.file === 'string' ? a.file : '';
+    const fileB = typeof b.file === 'string' ? b.file : '';
+    const fc = fileA.localeCompare(fileB);
     if (fc !== 0) return fc;
     return (Number(a.line) || 0) - (Number(b.line) || 0);
   });
@@ -97,14 +100,14 @@ export async function verifyLocalSonarFiles(files) {
   /** @type {object[]} */
   const all = [];
   for (const file of files) {
-    const result = await listLocalSonarIssues({ limit: 500, file });
+    const result = await listLocalSonarIssues({ limit: SONAR_LIST_DEFAULT_LIMIT, file });
     all.push(...result.items);
   }
   return { ok: all.length === 0, remaining: all.length, items: all };
 }
 
 function parseCliArgs(argv) {
-  let limit = 50;
+  let limit = SONAR_LIST_DEFAULT_LIMIT;
   let file = '';
   let rule = '';
   let json = false;
@@ -147,11 +150,14 @@ function printLocalIssues(payload) {
   console.log(`Local Sonar-style issues (${payload.count} shown, ${payload.total} total):`);
   for (const row of payload.items) {
     const loc = row.line ? `${row.file}:${row.line}` : row.file;
-    console.log(`${row.rule} ${loc} — ${row.message}`);
+    const rule = typeof row.rule === 'string' ? row.rule : '';
+    const message = typeof row.message === 'string' ? row.message : '';
+    console.log(`${rule} ${loc} — ${message}`);
   }
 }
 
-async function main() {
+const isMainModule = process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1]);
+if (isMainModule) {
   const { limit, file, rule, json } = parseCliArgs(process.argv.slice(2));
 
   try {
@@ -165,8 +171,4 @@ async function main() {
     console.error(err instanceof Error ? err.message : String(err));
     process.exit(1);
   }
-}
-
-if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1])) {
-  main();
 }

@@ -18,6 +18,14 @@ import {
   resolveReferenceGeoEntityType,
 } from '../domain/services/referenceGeoEntityType.js';
 import { buildGeoScopeDecision } from '../domain/services/geoScopeDecisionFromResolved.js';
+import {
+  isGeoExactOnlyEnabled,
+  searchLocalities as searchLocalitiesFn,
+} from '../domain/services/searchLocalities.js';
+import {
+  matchHomefrontDistrictStub,
+  buildResolvedGeoFromDistrictStub,
+} from '../domain/services/homefrontDistrictStubs.js';
 import { validateGeoEnvelope } from '../domain/value_objects/geoEnrichmentSchema.js';
 import { isGolanSubregionId } from '../domain/value_objects/northSubregionId.js';
 import { GEO_PROVENANCE } from '../domain/value_objects/geoProvenance.js';
@@ -69,6 +77,228 @@ function classifyNonLocalityTerm(s) {
  *   referenceSource: string,
  * }} ctx
  */
+/**
+ * @param {string} trimmed
+ * @param {{ lookupOverride?: (raw: string, normalized: string) => ({ canonicalKey: string, geoEntityType?: string } | null) } | null} overridesPort
+ * @param {Map<string, import('../domain/value_objects/geoEnrichment.js').NorthLocalityRow>} byCanonicalKey
+ * @returns {{ row: import('../domain/value_objects/geoEnrichment.js').NorthLocalityRow, matchMethod: string, matchConfidence: number, overrideGeoEntityType?: string } | null}
+ */
+function lookupManualOverrideHit(trimmed, overridesPort, byCanonicalKey) {
+  const normalizedInput = normalizeLocalityLookupKey(trimmed);
+  const ov = overridesPort?.lookupOverride?.(trimmed, normalizedInput) ?? null;
+  if (!ov || typeof ov.canonicalKey !== 'string' || !ov.canonicalKey.trim()) return null;
+  const key = ov.canonicalKey.trim();
+  if (!byCanonicalKey.has(key)) return null;
+  return {
+    row: byCanonicalKey.get(key),
+    matchMethod: 'manual_override',
+    matchConfidence: 1,
+    overrideGeoEntityType: ov.geoEntityType,
+  };
+}
+
+/**
+ * @param {string} trimmed
+ * @param {string | undefined} preferSubregionId
+ * @param {object} deps
+ * @returns {{
+ *   hit: { row: import('../domain/value_objects/geoEnrichment.js').NorthLocalityRow, matchMethod: string, matchConfidence: number, overrideGeoEntityType?: string } | null,
+ *   fuzzyCandidateCount?: number,
+ *   fuzzyTopCandidates?: Array<{ canonicalKey: string, score: number }>,
+ *   unknown?: import('../domain/value_objects/geoEnrichment.js').GeoUnknown,
+ * }}
+ */
+function resolveFuzzyLocalityHit(trimmed, preferSubregionId, deps) {
+  const { localities, fuzzyPrefixBuckets, byCanonicalKey, unknown } = deps;
+  const fuzzy = resolveByFuzzyBest(localities, trimmed, {
+    preferSubregionId,
+    prefixBuckets: fuzzyPrefixBuckets,
+  });
+  if ('row' in fuzzy) {
+    return {
+      hit: { row: fuzzy.row, matchMethod: fuzzy.matchMethod, matchConfidence: fuzzy.matchConfidence },
+      fuzzyCandidateCount: fuzzy.candidateCount,
+      fuzzyTopCandidates: fuzzy.topCandidates,
+    };
+  }
+  if (!fuzzy.candidates?.length) {
+    return { hit: null };
+  }
+  const hinted = preferSubregionId
+    ? pickCandidateInSubregion(fuzzy.candidates, byCanonicalKey, preferSubregionId)
+    : null;
+  if (!hinted) {
+    return {
+      hit: null,
+      unknown: unknown('NO_CONFIDENT_MATCH', trimmed, fuzzy.candidates, {
+        geoEntityType: 'unknown',
+        normalizedInput: normalizeLocalityLookupKey(trimmed),
+      }),
+    };
+  }
+  const top = fuzzy.candidates.find((c) => c.canonicalKey === hinted.canonicalKey);
+  return {
+    hit: {
+      row: hinted,
+      matchMethod: 'fuzzy',
+      matchConfidence: top?.score ?? FUZZY_METRICS_MIN_CONFIDENCE,
+    },
+    fuzzyCandidateCount: fuzzy.candidates.length,
+    fuzzyTopCandidates: fuzzy.candidates,
+  };
+}
+
+/**
+ * @param {string} trimmed
+ * @param {{ provenance: string, sourceType?: string, resolutionScope?: string }} options
+ * @param {(reason: string, rawName: string, candidates: unknown, hint: object) => import('../domain/value_objects/geoEnrichment.js').GeoUnknown} unknown
+ */
+function resolveUnmatchedLocality(trimmed, options, unknown) {
+  const { provenance, sourceType, resolutionScope } = options;
+  const stub = matchHomefrontDistrictStub(trimmed);
+  if (stub) {
+    const stubResolved = buildResolvedGeoFromDistrictStub(trimmed, stub, {
+      provenance,
+      sourceType,
+      resolutionScope,
+    });
+    stubResolved.scopeDecision = buildGeoScopeDecision(stubResolved);
+    return assertValidGeo(stubResolved);
+  }
+  const nonLoc = classifyNonLocalityTerm(trimmed);
+  if (nonLoc) {
+    return unknown(nonLoc.reason, trimmed, undefined, {
+      geoEntityType: nonLoc.geoEntityType,
+      normalizedInput: normalizeLocalityLookupKey(trimmed),
+    });
+  }
+  return unknown('NO_MATCH', trimmed, undefined, {
+    geoEntityType: 'unknown',
+    normalizedInput: normalizeLocalityLookupKey(trimmed),
+  });
+}
+
+/**
+ * @param {string} trimmed
+ * @param {{ row: import('../domain/value_objects/geoEnrichment.js').NorthLocalityRow, matchMethod: string, matchConfidence: number, overrideGeoEntityType?: string }} hit
+ * @param {{ fuzzyCandidateCount?: number, fuzzyTopCandidates?: Array<{ canonicalKey: string, score: number }> }} fuzzyMeta
+ * @param {object} ctx
+ */
+function buildResolvedGeoFromLocalityHit(trimmed, hit, fuzzyMeta, ctx) {
+  const {
+    border,
+    distanceBandPolicy,
+    referenceVersion,
+    borderVersion,
+    referenceSource,
+    provenance,
+    sourceType,
+    resolutionScope,
+    emitLegacySubregionId,
+    unknown,
+  } = ctx;
+  const row = hit.row;
+  const matchMethod =
+    hit.matchMethod === 'exact' ||
+    hit.matchMethod === 'punctuation' ||
+    hit.matchMethod === 'hebrew_final' ||
+    hit.matchMethod === 'manual_override' ||
+    hit.matchMethod === 'fuzzy'
+      ? hit.matchMethod
+      : 'exact';
+  const matchConfidence = hit.matchConfidence;
+
+  if (matchMethod === 'fuzzy' && Number.isFinite(matchConfidence) && matchConfidence < FUZZY_METRICS_MIN_CONFIDENCE) {
+    return unknown('NO_CONFIDENT_MATCH', trimmed, fuzzyMeta.fuzzyTopCandidates ?? undefined, {
+      geoEntityType: 'unknown',
+      normalizedInput: normalizeLocalityLookupKey(trimmed),
+    });
+  }
+
+  const distanceKmToNorthBorder = distanceKmToPolyline(row.lat, row.lon, border);
+  const pboSubregionId = row.subregionId;
+  const fromReference = resolveReferenceGeoEntityType(row);
+  const geoEntityType = coalesceGeoEntityTypeHint(hit.overrideGeoEntityType, fromReference);
+  const distanceSemantics = distanceSemanticsForGeoEntityType(geoEntityType);
+  const { quality, usableForMetrics, requiresReview, policyReasons } = deriveGeoQualityFields({
+    matchMethod,
+    matchConfidence,
+    geoEntityType,
+    provenance,
+    sourceType,
+  });
+  const scopeConfidence = deriveScopeConfidence({ usableForMetrics, requiresReview });
+  const matchedVariant = pickMatchedDisplayName(row, trimmed);
+  const candidateCount =
+    matchMethod === 'fuzzy' && Number.isFinite(fuzzyMeta.fuzzyCandidateCount)
+      ? fuzzyMeta.fuzzyCandidateCount
+      : 1;
+  const resolvedAt = new Date().toISOString();
+  const decisionReasons = [...policyReasons];
+  if (matchMethod === 'manual_override') {
+    decisionReasons.length = 0;
+    decisionReasons.push('manual_override');
+  }
+
+  const band = distanceBandForKm(distanceKmToNorthBorder, distanceBandPolicy);
+  const resolution = {
+    rawInput: trimmed,
+    normalizedInput: normalizeLocalityLookupKey(trimmed),
+    canonicalKey: row.canonicalKey,
+    matchedName: matchedVariant,
+    matchedVariant,
+    matchMethod,
+    matchConfidence,
+    candidateCount,
+    geoEntityType,
+    provenance,
+  };
+  if (resolutionScope === 'signal' || resolutionScope === 'message') {
+    resolution.scope = resolutionScope;
+  }
+
+  const resolved = {
+    kind: 'resolved',
+    envelopeSchemaVersion: GEO_ENVELOPE_SCHEMA_VERSION,
+    geoEntityType,
+    resolution,
+    classification: {
+      pboSubregionId,
+      geoAreaTags: geoAreaTagsForPboSubregion(pboSubregionId),
+      isGolan: isGolanSubregionId(pboSubregionId),
+      distanceKmToNorthBorder,
+      distanceBand: band,
+      distanceSemantics,
+      distancePolicyVersion: distanceBandPolicy.version,
+    },
+    policy: {
+      geoPolicyVersion: GEO_POLICY_VERSION,
+      quality,
+      usableForMetrics,
+      requiresReview,
+      scopeConfidence,
+      decisionReasons,
+    },
+    audit: {
+      geoReferenceVersion: referenceVersion,
+      borderReferenceVersion: borderVersion,
+      source: referenceSource,
+      resolvedAt,
+    },
+    matchEvidence: {
+      rawInput: trimmed,
+      normalizedInput: normalizeLocalityLookupKey(trimmed),
+      matchedVariant,
+      candidateCount,
+    },
+  };
+  if (emitLegacySubregionId) {
+    resolved.subregionId = pboSubregionId;
+  }
+  resolved.scopeDecision = buildGeoScopeDecision(resolved);
+  return assertValidGeo(resolved);
+}
+
 function buildUnknownGeo(ctx, reason, rawName, candidates, resolutionHint) {
   const resolvedAt = new Date().toISOString();
   /** @type {import('../domain/value_objects/geoEnrichment.js').GeoUnknown} */
@@ -145,176 +375,62 @@ export function createGeoService({ northReferencePort, overridesPort = null }) {
         return unknown('NO_LOCALITY', null, undefined, { geoEntityType: 'unknown', normalizedInput: null });
       }
 
-      const exact = resolveByExactStages(index, trimmed);
-      /** @type {{ row: import('../domain/value_objects/geoEnrichment.js').NorthLocalityRow, matchMethod: string, matchConfidence: number, overrideGeoEntityType?: string } | null} */
-      let hit = exact;
-      /** @type {number | undefined} */
+      let hit = resolveByExactStages(index, trimmed);
       let fuzzyCandidateCount;
-      /** @type {Array<{ canonicalKey: string, score: number }> | undefined} */
       let fuzzyTopCandidates;
+
       if (!hit) {
-        // Deterministic manual override (operator-approved alias) before fuzzy.
-        const normalizedInput = normalizeLocalityLookupKey(trimmed);
-        const ov = overridesPort?.lookupOverride?.(trimmed, normalizedInput) ?? null;
-        if (ov && typeof ov.canonicalKey === 'string' && ov.canonicalKey.trim() && byCanonicalKey.has(ov.canonicalKey.trim())) {
-          const row = byCanonicalKey.get(ov.canonicalKey.trim());
-          hit = {
-            row,
-            matchMethod: 'manual_override',
-            matchConfidence: 1,
-            overrideGeoEntityType: ov.geoEntityType,
-          };
-        }
+        hit = lookupManualOverrideHit(trimmed, overridesPort, byCanonicalKey);
       }
-      if (!hit) {
-        const fuzzy = resolveByFuzzyBest(localities, trimmed, {
-          preferSubregionId,
-          prefixBuckets: fuzzyPrefixBuckets,
+      if (!hit && !isGeoExactOnlyEnabled()) {
+        const fuzzyResult = resolveFuzzyLocalityHit(trimmed, preferSubregionId, {
+          localities,
+          fuzzyPrefixBuckets,
+          byCanonicalKey,
+          unknown,
         });
-        if ('row' in fuzzy) {
-          fuzzyCandidateCount = fuzzy.candidateCount;
-          fuzzyTopCandidates = fuzzy.topCandidates;
-          hit = { row: fuzzy.row, matchMethod: fuzzy.matchMethod, matchConfidence: fuzzy.matchConfidence };
-        } else if (fuzzy.candidates?.length) {
-          const hinted = preferSubregionId
-            ? pickCandidateInSubregion(fuzzy.candidates, byCanonicalKey, preferSubregionId)
-            : null;
-          if (hinted) {
-            const top = fuzzy.candidates.find((c) => c.canonicalKey === hinted.canonicalKey);
-            hit = {
-              row: hinted,
-              matchMethod: 'fuzzy',
-              matchConfidence: top?.score ?? FUZZY_METRICS_MIN_CONFIDENCE,
-            };
-            fuzzyCandidateCount = fuzzy.candidates.length;
-            fuzzyTopCandidates = fuzzy.candidates;
-          } else {
-            return unknown('NO_CONFIDENT_MATCH', trimmed, fuzzy.candidates, {
-              geoEntityType: 'unknown',
-              normalizedInput: normalizeLocalityLookupKey(trimmed),
-            });
-          }
-        }
+        if (fuzzyResult.unknown) return fuzzyResult.unknown;
+        hit = fuzzyResult.hit;
+        fuzzyCandidateCount = fuzzyResult.fuzzyCandidateCount;
+        fuzzyTopCandidates = fuzzyResult.fuzzyTopCandidates;
       }
 
       if (!hit) {
-        const nonLoc = classifyNonLocalityTerm(trimmed);
-        if (nonLoc) {
-          return unknown(nonLoc.reason, trimmed, undefined, {
-            geoEntityType: nonLoc.geoEntityType,
+        if (isGeoExactOnlyEnabled()) {
+          return unknown('NO_CONFIDENT_MATCH', trimmed, undefined, {
+            geoEntityType: 'unknown',
             normalizedInput: normalizeLocalityLookupKey(trimmed),
           });
         }
-        return unknown('NO_MATCH', trimmed, undefined, {
-          geoEntityType: 'unknown',
-          normalizedInput: normalizeLocalityLookupKey(trimmed),
-        });
+        return resolveUnmatchedLocality(trimmed, { provenance, sourceType, resolutionScope }, unknown);
       }
 
-      const row = hit.row;
-      const distanceKmToNorthBorder = distanceKmToPolyline(row.lat, row.lon, border);
-      const pboSubregionId = row.subregionId;
-
-      const matchMethod =
-        hit.matchMethod === 'exact' ||
-        hit.matchMethod === 'punctuation' ||
-        hit.matchMethod === 'hebrew_final' ||
-        hit.matchMethod === 'manual_override' ||
-        hit.matchMethod === 'fuzzy'
-          ? hit.matchMethod
-          : 'exact';
-      const matchConfidence = hit.matchConfidence;
-
-      // Stricter fuzzy: below metrics threshold, do not auto-resolve; emit candidates instead.
-      if (matchMethod === 'fuzzy' && Number.isFinite(matchConfidence) && matchConfidence < FUZZY_METRICS_MIN_CONFIDENCE) {
-        return unknown('NO_CONFIDENT_MATCH', trimmed, fuzzyTopCandidates ?? undefined, {
-          geoEntityType: 'unknown',
-          normalizedInput: normalizeLocalityLookupKey(trimmed),
-        });
-      }
-
-      const fromReference = resolveReferenceGeoEntityType(row);
-      const geoEntityType = coalesceGeoEntityTypeHint(hit.overrideGeoEntityType, fromReference);
-      const distanceSemantics = distanceSemanticsForGeoEntityType(geoEntityType);
-
-      const { quality, usableForMetrics, requiresReview, policyReasons } = deriveGeoQualityFields({
-        matchMethod,
-        matchConfidence,
-        geoEntityType,
-        provenance,
-        sourceType,
-      });
-      const scopeConfidence = deriveScopeConfidence({ usableForMetrics, requiresReview });
-      const matchedVariant = pickMatchedDisplayName(row, trimmed);
-      const candidateCount =
-        matchMethod === 'fuzzy' && Number.isFinite(fuzzyCandidateCount) ? fuzzyCandidateCount : 1;
-      const resolvedAt = new Date().toISOString();
-      const decisionReasons = [...policyReasons];
-      if (matchMethod === 'manual_override') {
-        decisionReasons.length = 0;
-        decisionReasons.push('manual_override');
-      }
-
-      /** @type {import('../domain/value_objects/geoEnrichment.js').GeoResolved} */
-      const band = distanceBandForKm(distanceKmToNorthBorder, distanceBandPolicy);
-
-      /** @type {import('../domain/value_objects/geoEnrichment.js').GeoResolution} */
-      const resolution = {
-        rawInput: trimmed,
-        normalizedInput: normalizeLocalityLookupKey(trimmed),
-        canonicalKey: row.canonicalKey,
-        matchedName: matchedVariant,
-        matchedVariant,
-        matchMethod,
-        matchConfidence,
-        candidateCount,
-        geoEntityType,
-        provenance,
-      };
-      if (resolutionScope === 'signal' || resolutionScope === 'message') {
-        resolution.scope = resolutionScope;
-      }
-
-      const resolved = {
-        kind: 'resolved',
-        envelopeSchemaVersion: GEO_ENVELOPE_SCHEMA_VERSION,
-        geoEntityType,
-        resolution,
-        classification: {
-          pboSubregionId,
-          geoAreaTags: geoAreaTagsForPboSubregion(pboSubregionId),
-          isGolan: isGolanSubregionId(pboSubregionId),
-          distanceKmToNorthBorder,
-          distanceBand: band,
-          distanceSemantics,
-          distancePolicyVersion: distanceBandPolicy.version,
+      return buildResolvedGeoFromLocalityHit(
+        trimmed,
+        hit,
+        { fuzzyCandidateCount, fuzzyTopCandidates },
+        {
+          border,
+          distanceBandPolicy,
+          referenceVersion,
+          borderVersion,
+          referenceSource,
+          provenance,
+          sourceType,
+          resolutionScope,
+          emitLegacySubregionId,
+          unknown,
         },
-        policy: {
-          geoPolicyVersion: GEO_POLICY_VERSION,
-          quality,
-          usableForMetrics,
-          requiresReview,
-          scopeConfidence,
-          decisionReasons,
-        },
-        audit: {
-          geoReferenceVersion: referenceVersion,
-          borderReferenceVersion: borderVersion,
-          source: referenceSource,
-          resolvedAt,
-        },
-        matchEvidence: {
-          rawInput: trimmed,
-          normalizedInput: normalizeLocalityLookupKey(trimmed),
-          matchedVariant,
-          candidateCount,
-        },
-      };
-      if (emitLegacySubregionId) {
-        resolved.subregionId = pboSubregionId;
-      }
-      resolved.scopeDecision = buildGeoScopeDecision(resolved);
-      return assertValidGeo(resolved);
+      );
+    },
+
+    /**
+     * @param {string} [query]
+     * @param {{ scope?: string, limit?: number }} [opts]
+     * @returns {{ canonicalKey: string, displayName: string, subregionId: string }[]}
+     */
+    searchLocalities(query = '', opts = {}) {
+      return searchLocalitiesFn(localities, query, opts);
     },
   };
 }

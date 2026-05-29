@@ -1,0 +1,50 @@
+{
+  "version": "homefront-district-stubs-v1",
+  "description": "Starter localities for non-north home-front district scoping (digital-only pilots).",
+  "districts": {
+    "south": {
+      "localities": [
+        { "canonicalKey": "beer_sheva", "names": ["באר שבע", "Beer Sheva", "Beersheba"] },
+        { "canonicalKey": "ashkelon", "names": ["אשקלון", "Ashkelon"] },
+        { "canonicalKey": "ashdod", "names": ["אשדוד", "Ashdod"] },
+        { "canonicalKey": "eilat", "names": ["אילת", "Eilat"] },
+        { "canonicalKey": "ofakim", "names": ["אופקים", "Ofakim"] },
+        { "canonicalKey": "netivot", "names": ["נתיבות", "Netivot"] },
+        { "canonicalKey": "sderot", "names": ["שדרות", "Sderot"] },
+        { "canonicalKey": "kiryat_gat", "names": ["קריית גת", "Kiryat Gat"] }
+      ]
+    },
+    "jerusalem": {
+      "localities": [
+        { "canonicalKey": "jerusalem", "names": ["ירושלים", "Jerusalem"] },
+        { "canonicalKey": "bethlehem_area", "names": ["בית לחם", "Bethlehem"] },
+        { "canonicalKey": "maale_adumim", "names": ["מעלה אדומים", "Maale Adumim"] },
+        { "canonicalKey": "beitar_illit", "names": ["ביתר עילית", "Beitar Illit"] },
+        { "canonicalKey": "givat_zev", "names": ["גבעת זאב", "Givat Zeev"] }
+      ]
+    },
+    "dan": {
+      "localities": [
+        { "canonicalKey": "tel_aviv", "names": ["תל אביב", "Tel Aviv", "Tel-Aviv"] },
+        { "canonicalKey": "ramat_gan", "names": ["רמת גן", "Ramat Gan"] },
+        { "canonicalKey": "givatayim", "names": ["גבעתיים", "Givatayim"] },
+        { "canonicalKey": "bnei_brak", "names": ["בני ברק", "Bnei Brak"] },
+        { "canonicalKey": "holon", "names": ["חולון", "Holon"] },
+        { "canonicalKey": "bat_yam", "names": ["בת ים", "Bat Yam"] },
+        { "canonicalKey": "petah_tikva", "names": ["פתח תקווה", "Petah Tikva"] },
+        { "canonicalKey": "rishon_lezion", "names": ["ראשון לציון", "Rishon LeZion", "Rishon Lezion"] }
+      ]
+    },
+    "haifa": {
+      "localities": [
+        { "canonicalKey": "haifa", "names": ["חיפה", "Haifa"] },
+        { "canonicalKey": "acre", "names": ["עכו", "Acre", "Akko"] },
+        { "canonicalKey": "kiryat_ata", "names": ["קריית אתא", "Kiryat Ata"] },
+        { "canonicalKey": "kiryat_bialik", "names": ["קריית ביאליק", "Kiryat Bialik"] },
+        { "canonicalKey": "nesher", "names": ["נשר", "Nesher"] },
+        { "canonicalKey": "tirat_carmel", "names": ["טירת כרמל", "Tirat Carmel"] },
+        { "canonicalKey": "hadera", "names": ["חדרה", "Hadera"] }
+      ]
+    }
+  }
+}

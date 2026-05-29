@@ -4,13 +4,13 @@ description: "Run the API + UI locally and verify the system end-to-end."
 intent: getting-started
 audience: ["internal"]
 stability: beta
-canonical: "https://docs.vibeswitch.ai/getting-started/install-and-run"
+canonical: "https://docs.srulik.ai/getting-started/install-and-run"
 version: "current"
 tags: ["getting-started", "local-dev"]
 ---
 
 ## Purpose
-Stand up VibeSwitch on a developer workstation and confirm every major surface works: the Fastify API, the Vite-served React UI, Swagger, the in-app Docs panel, and at least one ingestion command. This guide assumes you've read the [Quickstart](quickstart.md); it goes deeper into the moving parts, options, and things that usually trip people up.
+Stand up Srulik's lab on a developer workstation and confirm every major surface works: the Fastify API, the Vite-served React UI, Swagger, the in-app Docs panel, and at least one ingestion command. This guide assumes you've read the [Quickstart](quickstart.md); it goes deeper into the moving parts, options, and things that usually trip people up.
 
 ## Prerequisites
 - **Required**: Node.js 20+ and npm 10+.
@@ -26,7 +26,7 @@ Stand up VibeSwitch on a developer workstation and confirm every major surface w
   - `OPENAI_API_KEY` (required only for audio transcription)
   - `AUTH_REQUIRED=false` (recommended for local dev unless you're testing auth)
   - `SQLITE_PATH` (optional — defaults to a path under the repo)
-  - **Mailing (Resend)**: `RESEND_API_KEY` and `MAIL_FROM` (e.g. `Vibes Witch <reports@yourdomain.com>`) — enables `/api/mail/*` send path and Settings UI; optional `MAILING_ENABLED=false` to disable; `npm run mail:digest` for cron-based daily sends
+  - **Mailing (Resend)**: `RESEND_API_KEY` and `MAIL_FROM` (e.g. `Srulik's lab <reports@yourdomain.com>`) — enables `/api/mail/*` send path and Settings UI; optional `MAILING_ENABLED=false` to disable; `npm run mail:digest` for cron-based daily sends
 - **`client/.env.local`** (only if you're enabling auth):
   - `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAIN`, `VITE_FIREBASE_PROJECT_ID`
 
@@ -82,7 +82,7 @@ Expected: server starts and logs a line like `Server listening on http://0.0.0.0
 npm run client:dev
 ```
 
-Expected: Vite prints `Local: http://localhost:5173/`. Open that URL in a browser. The header should read **Vibes Witch — Home Front Command · Daily Assessment**.
+Expected: Vite prints `Local: http://localhost:5173/`. Open that URL in a browser. The header should read **Srulik's lab — Home Front Command · Daily Assessment**.
 
 ### Verify Swagger and OpenAPI
 

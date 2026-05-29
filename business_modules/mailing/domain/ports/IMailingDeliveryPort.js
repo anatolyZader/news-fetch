@@ -9,6 +9,7 @@
  * @property {string} subject
  * @property {string} text  Plain text body
  * @property {string} [html] Optional HTML body
+ * @property {string} [replyTo] Optional Reply-To address
  * @property {Record<string, string>} [headers] Optional provider-supported email headers
  */
 

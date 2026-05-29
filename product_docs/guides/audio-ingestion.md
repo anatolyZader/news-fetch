@@ -4,7 +4,7 @@ description: "Transcribe audio into markdown and run the same resilience analysi
 intent: guides
 audience: ["public", "customer"]
 stability: beta
-canonical: "https://docs.vibeswitch.ai/guides/audio-ingestion"
+canonical: "https://docs.srulik.ai/guides/audio-ingestion"
 version: "current"
 tags: ["guides", "audio", "ingestion", "user"]
 ---

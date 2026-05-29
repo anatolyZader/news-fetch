@@ -5,6 +5,12 @@
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { resolve, join } from 'node:path';
 
+import {
+  applyProbeCorroborationPolicy,
+  filterValidProbeRecords,
+} from '../../domain/services/probeCorroborationPolicy.js';
+import { totalAnchorVolume } from '../../domain/services/dataVoid/sourceChannels.js';
+
 const DEFAULT_DIR = resolve('business_modules', 'resilience', 'data', 'connectivity-probes');
 
 /**
@@ -27,8 +33,9 @@ export function probeRecordToSignal(record) {
     article_date: record.date,
     connectivity_outage: true,
     probe_region: record.region ?? null,
+    probe_source: record.probe_source ?? 'connectivity-probe',
     temporal_weight: 1,
-    extraction_confidence: 1,
+    extraction_confidence: 0.85,
   };
 }
 
@@ -84,11 +91,26 @@ export function createConnectivityProbeFileAdapter(opts = {}) {
 /**
  * @param {string} date
  * @param {string} [scope]
- * @param {{ probesDir?: string }} [opts]
+ * @param {{ probesDir?: string, anchorSignals?: Array<object> }} [opts]
  * @returns {object[]}
  */
 export function loadConnectivityProbeSignals(date, scope = 'national', opts = {}) {
   const adapter = createConnectivityProbeFileAdapter(opts);
-  const records = adapter.loadProbesForDate(date, scope);
-  return records.map(probeRecordToSignal).filter(Boolean);
+  const rawRecords = adapter.loadProbesForDate(date, scope);
+  const filtered = filterValidProbeRecords(rawRecords);
+  if (filtered.rejected > 0) {
+    console.error(
+      `  → [probes] rejected ${filtered.rejected} record(s): ${JSON.stringify(filtered.reject_reasons)}`,
+    );
+  }
+  const probeSignals = filtered.records.map(probeRecordToSignal).filter(Boolean);
+  const anchorSignals = opts.anchorSignals ?? [];
+  const policy = applyProbeCorroborationPolicy(probeSignals, anchorSignals);
+  if (policy.probe_outage_unconfirmed) {
+    console.error(
+      `  → [probes] ${probeSignals.length} outage signal(s) unconfirmed ` +
+      `(corroboration=${policy.probe_corroboration_count}, field_active=${totalAnchorVolume(anchorSignals) > 0})`,
+    );
+  }
+  return policy.signals;
 }

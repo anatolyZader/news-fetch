@@ -12,6 +12,7 @@ import {
 import { evaluateHighSalienceBypass } from '../highSalienceBypass.js';
 import { groundingWeightMultiplier } from '../groundingPolicy.js';
 import { applyFieldGeoDiscount, isFieldFamilySource } from '../fieldSignalPolicy.js';
+import { gamingContributionMultiplier, fieldProvenanceComplete } from '../signalGamingPolicy.js';
 
 export const COMPONENT_IDS = [
   'narrative', 'information_communication', 'lifesaving_behavior',
@@ -92,8 +93,9 @@ function temporalDecayMultiplier(signal, priors) {
   return 1;
 }
 
-export function tuningFor(componentId) {
-  return COMPONENT_TUNING[componentId] ?? DEFAULT_TUNING;
+export function tuningFor(componentId, tuningTable) {
+  const table = tuningTable ?? COMPONENT_TUNING;
+  return table[componentId] ?? DEFAULT_TUNING;
 }
 
 export function round3(n) { return Math.round(n * 1000) / 1000; }
@@ -137,7 +139,9 @@ export function contributionForSignal(signal, baseWeight) {
   const outletPrior = OUTLET_PRIOR_APPLIES_TO.has(reliabilityKey)
     ? getOutletReliabilityMultiplier(signal.article_source)
     : 1;
-  const dualBoostRaw = signal._dual_pass_agreement
+  const dualVetoOn = process.env.RESILIENCE_SECOND_EXTRACT === '1'
+    && process.env.RESILIENCE_DUAL_REQUIRE_AGREEMENT !== '0';
+  const dualBoostRaw = !dualVetoOn && signal._dual_pass_agreement
     ? Number.parseFloat(process.env.RESILIENCE_DUAL_AGREEMENT_BOOST ?? '1.05')
     : 1;
   const dualBoost = Number.isFinite(dualBoostRaw) ? Math.min(1.2, Math.max(1, dualBoostRaw)) : 1;
@@ -154,7 +158,14 @@ export function contributionForSignal(signal, baseWeight) {
   const fieldMult = FIELD_SOURCE_TYPES.has(signal.source_type) ? fieldSourceMultiplier() : 1;
   let contribution = Math.abs(effectiveWeight) * scope * intensity * reliability * outletPrior
     * dualBoost * temporal * phaseFactor * extractionConfidence * groundingFactor * fieldMult;
+  contribution *= gamingContributionMultiplier(signal);
   contribution = applyFieldGeoDiscount(signal, contribution);
+  if (signal.oov_synthetic === true) {
+    const w = Number.isFinite(signal.oov_score_weight)
+      ? signal.oov_score_weight
+      : Number.parseFloat(process.env.RESILIENCE_OOV_SCORE_WEIGHT ?? '0.4');
+    contribution *= Number.isFinite(w) && w > 0 ? w : 0.4;
+  }
   return contribution;
 }
 
@@ -299,18 +310,8 @@ function computeTypeDiversity(items) {
 }
 
 function applyThinEvidenceFloor(score, evidenceMass, applyFloor, salienceBypass) {
-  if (applyFloor === false || evidenceMass >= 1.5) {
-    return { score, floorClamped: false, floorBypassed: false };
-  }
-  if (salienceBypass.skipFloor) {
-    return { score, floorClamped: false, floorBypassed: true };
-  }
-  const clamped = Math.max(3, Math.min(8, score));
-  return {
-    score: clamped,
-    floorClamped: clamped !== score,
-    floorBypassed: false,
-  };
+  // Min-mass [3,8] clamp removed — thin evidence shows raw scores; salience bypass unchanged.
+  return { score, floorClamped: false, floorBypassed: salienceBypass.skipFloor === true };
 }
 
 /**
@@ -323,7 +324,7 @@ export function scoreFromItems(items, componentId, totalArticles, articleSet, so
   if (evidenceMass === 0) return null;
 
   const netEvidence = positive - negative;
-  const tuning = tuningFor(componentId);
+  const tuning = tuningFor(componentId, opts.tuningTable);
   const strength = Math.tanh(netEvidence / tuning.tanhK);
 
   const { coverageRatio, coverageAdjustment, sourceDiversityFactor } =

@@ -21,7 +21,7 @@ const NEUTRAL_EVIDENCE = { source_type: 'news', evidence: 'general municipal upd
 test('northRelevanceFromResolvedGeo matches scopeDecisionForSignal when only geo path applies', () => {
   for (const geo of [METRICS_SAFE_GOLAN, METRICS_UNSAFE_GOLAN]) {
     const fromGeo = northRelevanceFromResolvedGeo(geo);
-    const fromSignal = scopeDecisionForSignal({ ...NEUTRAL_EVIDENCE, geo });
+    const fromSignal = scopeDecisionForSignal({ ...NEUTRAL_EVIDENCE, geo }, 'north');
     assert.equal(fromSignal.isNorthRelevant, fromGeo.isNorthRelevant, `isNorthRelevant geo=${JSON.stringify(geo.policy)}`);
     assert.equal(fromSignal.source, fromGeo.source);
   }
@@ -32,7 +32,7 @@ test('metrics-unsafe geo still scopes north from geo tags without keyword fallba
     source_type: 'news',
     evidence: 'Residents in Kiryat Shmona entered shelters.',
     geo: METRICS_UNSAFE_GOLAN,
-  });
+  }, 'north');
   assert.equal(d.isNorthRelevant, true);
   assert.equal(d.source, 'geo_tags');
   assert.equal(d.confidence, 'low');

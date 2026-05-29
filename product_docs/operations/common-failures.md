@@ -4,7 +4,7 @@ description: "Symptoms → checks → fixes for the most common operational fail
 intent: operations
 audience: ["internal"]
 stability: beta
-canonical: "https://docs.vibeswitch.ai/operations/common-failures"
+canonical: "https://docs.srulik.ai/operations/common-failures"
 version: "current"
 tags: ["operations", "troubleshooting", "user"]
 ---

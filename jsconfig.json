@@ -1,0 +1,34 @@
+{
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "target": "ES2022",
+    "checkJs": false,
+    "jsx": "react-jsx"
+  },
+  "include": [
+    "app.js",
+    "server.js",
+    "business_modules",
+    "cross-cut-modules",
+    "api",
+    "utils",
+    "shared",
+    "scripts",
+    "tests"
+  ],
+  "exclude": [
+    "node_modules",
+    "client",
+    "docs-site",
+    "analyst-site",
+    "coverage",
+    "reports",
+    "signals",
+    "articles_extracted",
+    "downloads",
+    "logs",
+    "**/data/**",
+    "product_docs/api/generated"
+  ]
+}

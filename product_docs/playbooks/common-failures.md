@@ -4,7 +4,7 @@ description: "Operational playbook for frequent failure modes and how to resolve
 intent: playbooks
 audience: ["customer", "internal"]
 stability: beta
-canonical: "https://docs.vibeswitch.ai/playbooks/common-failures"
+canonical: "https://docs.srulik.ai/playbooks/common-failures"
 version: "current"
 tags: ["playbooks", "operations", "troubleshooting"]
 llm:
@@ -12,7 +12,7 @@ llm:
 ---
 
 ## Purpose
-The gated operator playbook for recovering from the most frequent production incidents in VibeSwitch. This page assumes you're on call, you can SSH (or the equivalent) to the server, you can reach the provider consoles (Firebase, NewsAPI.ai, Meta, OpenAI, Anthropic), and you're authorized to rotate secrets and restart the service. If you're a user rather than an operator, see the public [Common failures](https://docs.vibeswitch.ai/operations/common-failures) page instead — it covers the same symptoms without the operator-level steps.
+The gated operator playbook for recovering from the most frequent production incidents in Srulik's lab. This page assumes you're on call, you can SSH (or the equivalent) to the server, you can reach the provider consoles (Firebase, NewsAPI.ai, Meta, OpenAI, Anthropic), and you're authorized to rotate secrets and restart the service. If you're a user rather than an operator, see the public [Common failures](https://docs.srulik.ai/operations/common-failures) page instead — it covers the same symptoms without the operator-level steps.
 
 ## Prerequisites
 - **Required**: Access to server logs (stdout / platform log viewer) and the ability to restart the service.
@@ -87,7 +87,7 @@ Each step halves the possible causes. Don't skip ahead.
 **Symptom**: ingestion or extraction fails with 5xx or connection errors.
 
 - **Check**: the provider's status page and your account dashboard (quota, billing).
-- **Fix**: pause the affected stage, wait for upstream recovery, then replay the date. Don't spin retries indefinitely — each failed attempt burns cost. See [Cost controls](https://docs.vibeswitch.ai/operations/cost-controls).
+- **Fix**: pause the affected stage, wait for upstream recovery, then replay the date. Don't spin retries indefinitely — each failed attempt burns cost. See [Cost controls](https://docs.srulik.ai/operations/cost-controls).
 
 #### P6 — WhatsApp webhook stops delivering
 
@@ -135,7 +135,7 @@ Put these on a calendar, don't wait for breakage:
 
 ## Troubleshooting
 - **The symptom doesn't match anything listed above**
-  - **Check**: run the fast triage sequence to narrow to a stage. Then consult [Common failures](https://docs.vibeswitch.ai/operations/common-failures) and [Observability](https://docs.vibeswitch.ai/operations/observability).
+  - **Check**: run the fast triage sequence to narrow to a stage. Then consult [Common failures](https://docs.srulik.ai/operations/common-failures) and [Observability](https://docs.srulik.ai/operations/observability).
   - **Fix**: if none of those match either, capture logs + symptom + date and escalate.
 - **A fix "worked" but I don't know why**
   - **Check**: what *exactly* changed between the failing and succeeding states.

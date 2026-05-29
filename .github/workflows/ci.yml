@@ -217,6 +217,32 @@ jobs:
 
       - run: npm run client:build
 
+  build-analyst-site:
+    name: Build analyst site
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+          cache-dependency-path: analyst-site/package-lock.json
+
+      - name: Resolve min-release-age policy
+        id: release_age
+        env:
+          INPUT_SKIP_RELEASE_AGE: ${{ github.event_name == 'workflow_dispatch' && inputs.skip_release_age || 'false' }}
+          PR_LABELS_JSON: ${{ toJson(github.event.pull_request.labels.*.name) }}
+        run: bash .github/scripts/resolve-min-release-age.sh
+
+      - uses: ./.github/actions/setup-npm-ci
+        with:
+          working-directory: analyst-site
+          min-release-age-days: ${{ steps.release_age.outputs.days }}
+
+      - run: npm run analyst:build
+
   security-audit:
     name: Security audit
     runs-on: ubuntu-latest

@@ -4,7 +4,7 @@ description: "Core mental model: signals → scoring → outputs."
 intent: concepts
 audience: ["public", "customer"]
 stability: beta
-canonical: "https://docs.vibeswitch.ai/concepts/resilience-model"
+canonical: "https://docs.srulik.ai/concepts/resilience-model"
 version: "current"
 tags: ["concepts", "signals", "scoring"]
 llm:
@@ -12,7 +12,9 @@ llm:
 ---
 
 ## Purpose
-Explain the core abstraction VibeSwitch is built around: *resilience* as a set of measurable components, each fed by typed signals drawn from concrete evidence, aggregated into bounded scores with calibrated confidence. This page defines what resilience means in this system, why we break it into components, and how the scoring turns into the daily assessment users see.
+Explain the core abstraction Srulik's lab is built around: *resilience* as a set of measurable components, each fed by typed signals drawn from concrete evidence, aggregated into bounded scores with calibrated confidence—**within a decision-support frame**. Read [Decision support model](decision-support-model.md) first for operator vs system responsibilities.
+
+This page defines what resilience means in this system, why we break it into components, and how the scoring turns into the daily assessment users see.
 
 ## Prerequisites
 - **Required**: Familiarity with your input sources (news, WhatsApp, audio).

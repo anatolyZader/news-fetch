@@ -20,7 +20,8 @@ const INDEXED_NAMESPACES = new Map(); // namespace -> fingerprint string
  * @param {object} rawReply - Node writable stream (reply.raw)
  * @param {function} getReportData - returns cached report data
  * @param {object} [opts]
- * @param {object} [opts.evidenceStore] - SQLite evidence store (createEvidenceStore return)
+ * @param {object} [opts.sourceArchive] - source archive (createSourceArchive return)
+ * @param {object} [opts.evidenceStore] - legacy evidence store (bridge for old ids)
  * @param {object} [opts.vectorIndexStore] - createVectorIndexStore(sqlitePath) return (optional)
  * @param {(event: any) => void} [opts.onSend] - called for each streamed SSE event object
  * @param {string} [opts.systemHint] - appended to the system context (Anthropic requires system to be top-level)
@@ -58,6 +59,7 @@ export async function streamChat(message, history, rawReply, getReportData, opts
 
   try {
     await streamChatResponse(context, pboLookup, messages, send, reportData, {
+      sourceArchive: opts.sourceArchive ?? null,
       evidenceStore: opts.evidenceStore ?? null,
     });
     send({ type: 'done' });
@@ -204,6 +206,6 @@ async function buildRetrievalHint(userMessage, reportData, vectorIndexStore) {
   return (
     `RETRIEVED EVIDENCE (semantic search; cite these when relevant):\n` +
     `${lines}\n\n` +
-    `If you need more detail or exact quotes, use the tools (lookup_signals / search_evidence / lookup_evidence).`
+    `If you need more detail or exact quotes, use search_sources → get_source (originals) or lookup_signals (behavioral index).`
   );
 }

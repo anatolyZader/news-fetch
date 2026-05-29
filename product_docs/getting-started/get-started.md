@@ -4,13 +4,13 @@ description: "Short guide for new users: open the app, read today's report, and 
 intent: getting-started
 audience: ["public", "customer"]
 stability: beta
-canonical: "https://docs.vibeswitch.ai/getting-started/get-started"
+canonical: "https://docs.srulik.ai/getting-started/get-started"
 version: "current"
 tags: ["getting-started", "user"]
 ---
 
 ## Who this is for
-You open Vibes Witch to **read today's homefront assessment** — not to run code or configure servers. This page tells you where to click and what each area shows.
+You open Srulik's lab to **read today's homefront assessment** — not to run code or configure servers. This page tells you where to click and what each area shows.
 
 ## Open the app
 1. Open the link your organization gave you.

@@ -4,7 +4,7 @@ description: "Get to first success in under 10 minutes."
 intent: getting-started
 audience: ["internal"]
 stability: beta
-canonical: "https://docs.vibeswitch.ai/getting-started/quickstart"
+canonical: "https://docs.srulik.ai/getting-started/quickstart"
 version: "current"
 tags: ["quickstart"]
 llm:
@@ -12,7 +12,7 @@ llm:
 ---
 
 ## Purpose
-Get a working VibeSwitch instance running on your machine in under ten minutes. By the end you'll have:
+Get a working Srulik's lab instance running on your machine in under ten minutes. By the end you'll have:
 
 1. The API server running and serving the SPA.
 2. The Vite dev server running (for live UI edits).

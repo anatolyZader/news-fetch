@@ -8,7 +8,7 @@ import {
   operatorAssessmentSummary,
   DISPLAY_VIEWS,
 } from '../../resilience/domain/services/assessmentDisplayTier.js';
-import { lookupEvidenceText, searchEvidenceCandidates } from '../domain/evidenceLookup.js';
+import { searchSources, getSource } from '../domain/sourceArchiveQuery.js';
 
 const client = new Anthropic();
 
@@ -49,7 +49,7 @@ const LOOKUP_SIGNALS_TOOL = {
       },
       source_type: {
         type: 'string',
-        enum: ['news', 'radio', 'field', 'pbo', 'naftali', 'whatsapp'],
+        enum: ['news', 'radio', 'field', 'pbo', 'naftali', 'whatsapp', 'social'],
         description: 'Filter by data source type (optional).',
       },
       municipality: {
@@ -122,91 +122,59 @@ const GENERATE_BRIEF_TOOL = {
   },
 };
 
-const LOOKUP_EVIDENCE_TOOL = {
-  name: 'lookup_evidence',
+const GET_SOURCE_TOOL = {
+  name: 'get_source',
   description:
-    'Retrieve full stored evidence/article text on demand (not in the main prompt). ' +
-    'Searches the SQLite evidence store for a given date and/or the homefront markdown export for that date. ' +
-    'Use when you need the full original text to answer precisely or quote. ' +
-    'If date is omitted, it will default to the current assessment date.',
+    'Retrieve full original source text from the source archive (articles, transcripts, field reports, etc.). ' +
+    'Use source_id from search_sources. Legacy evidence_id values (db:evidence_items:N, md:path#N) are also accepted.',
   input_schema: {
     type: 'object',
     properties: {
+      source_id: {
+        type: 'string',
+        description: 'Stable source_id from search_sources (preferred).',
+      },
       date: {
         type: 'string',
-        description: 'Date YYYY-MM-DD to search (usually the current report date).',
+        description: 'Date YYYY-MM-DD (optional; used when falling back to search).',
       },
-      evidence_id: {
-        type: 'string',
-        description: 'Exact evidence identifier returned by search_evidence (preferred).',
-      },
-      query: {
-        type: 'string',
-        description: 'Free-text search term (matches title/url/body). Optional if url/title is provided.',
-      },
-      url: {
-        type: 'string',
-        description: 'Exact URL to retrieve (preferred when available).',
-      },
-      title: {
-        type: 'string',
-        description: 'Title substring to match.',
-      },
-      source_type: {
-        type: 'string',
-        enum: ['news', 'radio', 'field', 'pbo', 'naftali', 'whatsapp', 'audio', 'manual'],
-        description: 'Optional filter for DB evidence_items source_type.',
-      },
-      limit: {
-        type: 'number',
-        description: 'Max items to return (default 3, max 10).',
-      },
+      query: { type: 'string', description: 'Optional fallback search if source_id missing.' },
+      url: { type: 'string', description: 'Optional fallback URL match.' },
+      title: { type: 'string', description: 'Optional fallback title match.' },
       max_chars: {
         type: 'number',
-        description: 'Max characters of body per item (default 8000, max 25000).',
+        description: 'Max characters of body (default 8000, max 25000).',
       },
     },
   },
 };
 
-const SEARCH_EVIDENCE_TOOL = {
-  name: 'search_evidence',
+const SEARCH_SOURCES_TOOL = {
+  name: 'search_sources',
   description:
-    'Find the right evidence/article source before retrieving full text. ' +
-    'Returns candidate evidence items (evidence_id, title, url, source, snippet). ' +
-    'Then use lookup_evidence with evidence_id to retrieve the full text for quoting.',
+    'Find original source documents in the archive before quoting. ' +
+    'Returns candidates with source_id, title, url, source_type, and snippet. ' +
+    'Then call get_source with source_id for full text.',
   input_schema: {
     type: 'object',
     properties: {
       date: {
         type: 'string',
-        description: 'Date YYYY-MM-DD to search (defaults to the current assessment date when omitted).',
+        description: 'Date YYYY-MM-DD (defaults to current assessment date when omitted).',
       },
       query: {
         type: 'string',
-        description: 'Free-text search term (matches title/url/body). Optional if url/title is provided.',
+        description: 'Free-text search (title/url/body).',
       },
-      url: {
-        type: 'string',
-        description: 'Exact URL to match (preferred when available).',
-      },
-      title: {
-        type: 'string',
-        description: 'Title substring to match.',
-      },
+      url: { type: 'string', description: 'Exact URL match.' },
+      title: { type: 'string', description: 'Title substring.' },
       source_type: {
         type: 'string',
-        enum: ['news', 'radio', 'field', 'pbo', 'naftali', 'whatsapp', 'audio', 'manual'],
-        description: 'Optional filter for DB evidence_items source_type.',
+        enum: ['news', 'radio', 'field', 'pbo', 'naftali', 'whatsapp', 'audio', 'manual', 'video'],
+        description: 'Optional source_type filter.',
       },
-      limit: {
-        type: 'number',
-        description: 'Max candidates (default 7, max 25).',
-      },
-      snippet_chars: {
-        type: 'number',
-        description: 'Max snippet characters (default 350, max 1200).',
-      },
+      limit: { type: 'number', description: 'Max candidates (default 7, max 25).' },
+      snippet_chars: { type: 'number', description: 'Max snippet length (default 350).' },
     },
   },
 };
@@ -216,8 +184,8 @@ const ALL_TOOLS = [
   LOOKUP_SIGNALS_TOOL,
   COMPARE_DATES_TOOL,
   GENERATE_BRIEF_TOOL,
-  SEARCH_EVIDENCE_TOOL,
-  LOOKUP_EVIDENCE_TOOL,
+  SEARCH_SOURCES_TOOL,
+  GET_SOURCE_TOOL,
 ];
 
 const SYSTEM_TEMPLATE =
@@ -228,13 +196,14 @@ const SYSTEM_TEMPLATE =
   `- lookup_signals: search raw behavioral signals by component, source, municipality, date, or keyword\n` +
   `- compare_dates: compare two assessment dates (score deltas + narrative shifts)\n` +
   `- generate_brief: produce a formatted brief for a specific audience (commander/analyst/public)\n` +
-  `- search_evidence: find candidate evidence items (returns evidence_id)\n` +
-  `- lookup_evidence: retrieve full stored article/evidence text on demand\n\n` +
+  `- search_sources: find original documents in the archive (returns source_id)\n` +
+  `- get_source: retrieve full original text by source_id\n` +
+  `- lookup_signals: behavioral signal index (derived); use search_sources/get_source to validate against originals\n\n` +
   `GUIDELINES:\n` +
-  `- When citing findings, use the lookup_signals tool to back claims with specific evidence.\n` +
-  `- Default to evidence-first answers: when making factual claims, include a short quote and a source (url + evidence_id when available).\n` +
-  `- If the user provides a snippet or mentions a site/source but you cannot locate the exact item, use search_evidence first, then lookup_evidence by evidence_id.\n` +
-  `- When a question requires details that are only in the original article/evidence text (quotes, exact wording, who said what, specific instructions), use lookup_evidence before answering.\n` +
+  `- When citing findings, use lookup_signals for signal-level evidence, then search_sources → get_source for original text when validating.\n` +
+  `- Default to evidence-first answers: include a short quote and source_id or url when available.\n` +
+  `- If the user mentions a site/source but you cannot locate the item, use search_sources first, then get_source by source_id.\n` +
+  `- For exact wording or quotes, use get_source on the original document before answering.\n` +
   `- When the user asks "what changed" or "why did X drop/rise", use compare_dates.\n` +
   `- When the user asks for a summary, brief, or output for someone else, use generate_brief.\n` +
   `- Be specific — cite municipality names, scores, dates, and observer notes.\n` +
@@ -244,7 +213,7 @@ const SYSTEM_TEMPLATE =
 /**
  * Handle a tool call and return the result string.
  */
-async function handleToolCall(toolName, input, pboLookup, reportData, evidenceStore) {
+async function handleToolCall(toolName, input, pboLookup, reportData, sourceArchive, evidenceStore) {
   if (toolName === 'lookup_pbo') {
     const muniName = input?.municipality ?? '';
     let result = pboLookup[muniName];
@@ -281,25 +250,62 @@ async function handleToolCall(toolName, input, pboLookup, reportData, evidenceSt
     return await generateBrief(input, reportData, pboLookup);
   }
 
-  if (toolName === 'lookup_evidence') {
+  if (toolName === 'get_source' || toolName === 'lookup_evidence') {
     const inferredDate =
       input?.date ??
       reportData?.assessment?.date ??
       reportData?.reportDate ??
       null;
-    return lookupEvidenceText({ ...input, date: inferredDate }, evidenceStore);
+    const source_id = input?.source_id ?? input?.evidence_id;
+    return getSource({ ...input, source_id, date: inferredDate }, sourceArchive, evidenceStore);
   }
 
-  if (toolName === 'search_evidence') {
+  if (toolName === 'search_sources' || toolName === 'search_evidence') {
     const inferredDate =
       input?.date ??
       reportData?.assessment?.date ??
       reportData?.reportDate ??
       null;
-    return searchEvidenceCandidates({ ...input, date: inferredDate }, evidenceStore);
+    return searchSources({ ...input, date: inferredDate }, sourceArchive);
   }
 
   return 'Unknown tool';
+}
+
+function formatComponentBriefLine(component, includeScores) {
+  if (includeScores && component.score != null) {
+    return `${component.component_id}: ${component.score}/10 (${component.confidence}) — ${component.narrative?.slice(0, 400) ?? ''}\n\n`;
+  }
+  const inst = component.instrument ?? deriveInstrumentState(component);
+  return `${component.component_id}: (${inst.confidence}, ${inst.evidence_sufficiency}) — ${component.narrative?.slice(0, 400) ?? ''}\n\n`;
+}
+
+function buildAssessmentBriefContext(reportData, opts = {}) {
+  if (!reportData?.assessment) return '';
+  const assessment = reportData.assessment;
+  const includeScores = opts.includeScores === true;
+  let context = `Assessment date: ${assessment.date}\n`;
+  context += includeScores
+    ? `Overall score: ${assessment.overall_resilience_score}/10\n`
+    : `${operatorAssessmentSummary(assessment)}\n`;
+  context += `Executive summary: ${assessment.cross_component_synthesis?.slice(0, 2000) ?? 'N/A'}\n\n`;
+  for (const component of assessment.components ?? []) {
+    context += formatComponentBriefLine(component, includeScores);
+  }
+  return context;
+}
+
+function appendMunicipalityBriefContext(context, scope, municipality, pboLookup) {
+  if (scope !== 'municipality' || !municipality) return context;
+  let next = context;
+  const muniData = pboLookup[municipality]
+    ?? pboLookup[Object.keys(pboLookup).find((k) => k.includes(municipality) || municipality.includes(k))] ?? '';
+  if (muniData) next += `\nPBO data for ${municipality}:\n${muniData}\n`;
+
+  const signals = loadSignals({});
+  const matches = searchSignals(signals, { municipality, limit: 15 });
+  if (matches.length > 0) next += `\nRecent signals for ${municipality}:\n${formatSignals(matches)}\n`;
+  return next;
 }
 
 /**
@@ -308,40 +314,8 @@ async function handleToolCall(toolName, input, pboLookup, reportData, evidenceSt
 async function generateBrief(input, reportData, pboLookup) {
   const { scope, municipality, audience, language } = input;
 
-  // Gather context
-  let briefContext = '';
-  if (reportData?.assessment) {
-    const a = reportData.assessment;
-    const includeScores = reportData?.display_view === DISPLAY_VIEWS.analyst;
-    briefContext += `Assessment date: ${a.date}\n`;
-    if (includeScores) {
-      briefContext += `Overall score: ${a.overall_resilience_score}/10\n`;
-    } else {
-      briefContext += `${operatorAssessmentSummary(a)}\n`;
-    }
-    briefContext += `Executive summary: ${a.cross_component_synthesis?.slice(0, 2000) ?? 'N/A'}\n\n`;
-    for (const c of a.components ?? []) {
-      if (includeScores && c.score != null) {
-        briefContext += `${c.component_id}: ${c.score}/10 (${c.confidence}) — ${c.narrative?.slice(0, 400) ?? ''}\n\n`;
-      } else {
-        const inst = c.instrument ?? deriveInstrumentState(c);
-        briefContext +=
-          `${c.component_id}: (${inst.confidence}, ${inst.evidence_sufficiency}) — ${c.narrative?.slice(0, 400) ?? ''}\n\n`;
-      }
-    }
-  }
-
-  if (scope === 'municipality' && municipality) {
-    // Add PBO data
-    const muniData = pboLookup[municipality] ??
-      pboLookup[Object.keys(pboLookup).find((k) => k.includes(municipality) || municipality.includes(k))] ?? '';
-    if (muniData) briefContext += `\nPBO data for ${municipality}:\n${muniData}\n`;
-
-    // Add matching signals
-    const signals = loadSignals({});
-    const matches = searchSignals(signals, { municipality, limit: 15 });
-    if (matches.length > 0) briefContext += `\nRecent signals for ${municipality}:\n${formatSignals(matches)}\n`;
-  }
+  let briefContext = buildAssessmentBriefContext(reportData);
+  briefContext = appendMunicipalityBriefContext(briefContext, scope, municipality, pboLookup);
 
   const audienceInstructions = {
     commander: 'Write for a military/civil defense commander: concise, action-oriented, focus on operational gaps and recommended interventions. Use bullet points.',
@@ -382,12 +356,13 @@ async function generateBrief(input, reportData, pboLookup) {
  * @param {Array} messages - conversation messages
  * @param {function} send - callback for SSE events: send({ type, ... })
  * @param {object} reportData - raw report data for brief generation
- * @param {{ evidenceStore?: object|null }} [opts]
+ * @param {{ sourceArchive?: object|null, evidenceStore?: object|null }} [opts]
  */
 export async function streamChatResponse(systemContext, pboLookup, messages, send, reportData, opts = {}) {
   const system = SYSTEM_TEMPLATE + systemContext;
   const MAX_TOOL_ROUNDS = 5;
   let currentMessages = messages;
+  const sourceArchive = opts.sourceArchive ?? null;
   const evidenceStore = opts.evidenceStore ?? null;
 
   for (let round = 0; round <= MAX_TOOL_ROUNDS; round++) {
@@ -412,7 +387,7 @@ export async function streamChatResponse(systemContext, pboLookup, messages, sen
 
     const toolResults = [];
     for (const tu of toolUseBlocks) {
-      const result = await handleToolCall(tu.name, tu.input, pboLookup, reportData, evidenceStore);
+      const result = await handleToolCall(tu.name, tu.input, pboLookup, reportData, sourceArchive, evidenceStore);
       toolResults.push({
         type: 'tool_result',
         tool_use_id: tu.id,

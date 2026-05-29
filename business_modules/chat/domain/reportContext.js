@@ -29,8 +29,7 @@ function formatComponentBlock(c, { includeScores }) {
 export function buildReportContext(reportData, opts = {}) {
   if (!reportData) return { context: 'No resilience report is available for today yet.', pboLookup: {} };
   const a = reportData.assessment;
-  const includeScores = opts.includeScores === true
-    || reportData.display_view === DISPLAY_VIEWS.analyst;
+  const includeScores = opts.includeScores === true;
 
   const { index: pboIndex, lookup: pboLookup } = buildPboIndex(reportData.signals ?? a.signals);
 

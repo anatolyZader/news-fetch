@@ -97,6 +97,12 @@ Sparkline.propTypes = {
   yMax: PropTypes.number,
 };
 
+function driftBandLabel(score, t) {
+  if (score == null || Number.isNaN(score)) return t('drift.band.blind') ?? 'blind';
+  if (score < 5) return t('drift.band.thin') ?? 'thin';
+  return t('drift.band.adequate') ?? 'adequate';
+}
+
 function ComponentTile({ id, series, t }) {
   const last = [...series].reverse().find((p) => p.score != null);
   const first = series.find((p) => p.score != null);
@@ -120,19 +126,8 @@ function ComponentTile({ id, series, t }) {
         </Typography>
         <Stack direction="row" spacing={0.75} alignItems="baseline">
           {last && (
-            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-              {last.score}/10
-            </Typography>
-          )}
-          {change != null && change !== 0 && (
-            <Typography
-              variant="caption"
-              sx={(theme) => ({
-                color: change > 0 ? theme.palette.success.main : theme.palette.error.main,
-                fontWeight: 600,
-              })}
-            >
-              {change > 0 ? '+' : ''}{change}
+            <Typography variant="caption" sx={{ color: 'text.secondary', textTransform: 'capitalize' }}>
+              {driftBandLabel(last.score, t)}
             </Typography>
           )}
           {lastChronic && lastChronic.z_score_chronic <= -1.5 && (

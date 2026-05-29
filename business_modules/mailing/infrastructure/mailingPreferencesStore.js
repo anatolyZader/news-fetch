@@ -58,17 +58,7 @@ export function createMailingPreferencesStore(dbPath) {
       const uid = String(userUid ?? '').trim();
       if (!uid) throw new Error('userUid required');
       const existing = this.getByUid(uid);
-      const p = products && typeof products === 'object' ? products : null;
-      const next = {
-        email: email === undefined ? (existing?.email ?? '') : String(email).trim(),
-        language: normalizeLanguage(language === undefined ? existing?.language : language),
-        products: {
-          report: p && p.report !== undefined ? Boolean(p.report) : (existing?.products.report ?? true),
-          naftali: p && p.naftali !== undefined ? Boolean(p.naftali) : (existing?.products.naftali ?? true),
-          education: p && p.education !== undefined ? Boolean(p.education) : (existing?.products.education ?? true),
-          platform: p && p.platform !== undefined ? Boolean(p.platform) : (existing?.products.platform ?? false),
-        },
-      };
+      const next = mergePrefsForUpsert(existing, email, language, products);
 
       db.prepare(`
         INSERT INTO mailing_preferences (user_uid, email, product_report, product_naftali, product_education, product_platform, language, updated_at)
@@ -109,6 +99,25 @@ export function createMailingPreferencesStore(dbPath) {
         userUid: row.user_uid,
         ...rowToPrefs(row),
       }));
+    },
+  };
+}
+
+function resolveProductFlag(products, key, existing, defaultValue) {
+  if (products?.[key] !== undefined) return Boolean(products[key]);
+  return existing?.products[key] ?? defaultValue;
+}
+
+function mergePrefsForUpsert(existing, email, language, products) {
+  const p = products && typeof products === 'object' ? products : null;
+  return {
+    email: email === undefined ? (existing?.email ?? '') : String(email).trim(),
+    language: normalizeLanguage(language === undefined ? existing?.language : language),
+    products: {
+      report: resolveProductFlag(p, 'report', existing, true),
+      naftali: resolveProductFlag(p, 'naftali', existing, true),
+      education: resolveProductFlag(p, 'education', existing, true),
+      platform: resolveProductFlag(p, 'platform', existing, false),
     },
   };
 }

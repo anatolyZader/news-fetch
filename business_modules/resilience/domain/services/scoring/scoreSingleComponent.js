@@ -1,4 +1,3 @@
-import { SIGNAL_TO_COMPONENTS } from '../signalCatalog.js';
 import {
   contributionForSignal,
   duplicateArticleFactor,
@@ -12,16 +11,17 @@ import {
  * @param {string} componentId
  * @param {Array} scoringSignals
  * @param {WeakMap} duplicateIndex
+ * @param {object} signalWeights resolved SIGNAL_TO_COMPONENTS (or overlay)
  * @returns {{ items: Array, articleSet: Set, sourceSet: Set }}
  */
-export function collectComponentItems(componentId, scoringSignals, duplicateIndex) {
+export function collectComponentItems(componentId, scoringSignals, duplicateIndex, signalWeights) {
   const items = [];
   const articleSet = new Set();
   const sourceSet = new Set();
 
   for (const signal of scoringSignals) {
     const signalType = signal.signal_type ?? signal.type;
-    const mapping = SIGNAL_TO_COMPONENTS[signalType];
+    const mapping = signalWeights[signalType];
     if (mapping == null || (componentId in mapping) === false) continue;
     const baseWeight = mapping[componentId];
     const effectiveWeight = effectiveWeightForSignal(signal, signalType, baseWeight);
@@ -48,13 +48,14 @@ export function collectComponentItems(componentId, scoringSignals, duplicateInde
  *
  * @param {Array} scoringSignals
  * @param {WeakMap} duplicateIndex
+ * @param {object} signalWeights
  * @returns {Record<string, number>}
  */
-export function buildBatchPreCapMassByType(scoringSignals, duplicateIndex) {
+export function buildBatchPreCapMassByType(scoringSignals, duplicateIndex, signalWeights) {
   const batchPreCapItems = [];
   for (const signal of scoringSignals) {
     const signalType = signal.signal_type ?? signal.type;
-    const mapping = SIGNAL_TO_COMPONENTS[signalType];
+    const mapping = signalWeights[signalType];
     if (mapping == null) continue;
     const firstComponent = Object.keys(mapping)[0];
     const baseWeight = mapping[firstComponent];

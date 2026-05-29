@@ -4,8 +4,26 @@ import { summarizeConfidence, overallScore, scoreComponents } from '../domain/se
 import { salienceContextFromDataVoid } from '../domain/services/highSalienceBypass.js';
 import { computeNorrisCapacities } from '../domain/services/norrisCapacities.js';
 import { narrativeIncludesScores } from '../domain/services/assessmentDisplayTier.js';
+import {
+  buildSignalRefRegistry,
+  formatCoOccurrenceForPrompt,
+  formatSignalWithRef,
+  formatSuppressionDataQualityBlock,
+  formatSuppressionTraceTag,
+  formatSignalContributionSuffix,
+  validateNarrativeOutput,
+  formatValidationFeedback,
+  validateSuppressionCompliance,
+  formatSuppressionFeedback,
+  computeGroundingScores,
+  isNarrativeGroundingEnabled,
+  isNarrativeFactsPassEnabled,
+  isNarrativeJudgeEnabled,
+} from '../domain/services/narrativeGrounding/index.js';
 import { extractJson } from './claudeJsonHelpers.js';
 import { streamWithProgress } from './claudeExtraction.js';
+import { extractNarrativeFacts } from './narrativeFactsExtract.js';
+import { judgeNarrativeRelations, formatJudgeFeedback } from './narrativeRelationJudge.js';
 
 const client = new Anthropic();
 const DEFAULT_NARRATIVE_MODEL = process.env.RESILIENCE_NARRATIVE_MODEL ?? 'claude-sonnet-4-6';
@@ -19,6 +37,7 @@ function evidenceSufficiencyLabel(mass) {
 }
 
 function instrumentFloorTag(scored) {
+  if (scored.presence_gate_triggered) return '  critical_presence_gate';
   if (scored.floor_clamped) return '  thin_evidence_floor';
   if (scored.salience_critical) return '  critical_single_signal';
   return '';
@@ -44,11 +63,12 @@ function narrativeInstrumentLine(scored, totalArticles) {
     polTag = '  contested';
   }
   const deltaTag = scored.delta_flag === 'significant' ? '  SIGNIFICANT_vs_baseline' : '';
+  const suppressTag = suppressionTracePromptTag(scored);
   return (
     `Instrument: certainty=${certaintyPct}  direction=${strengthDirectionLabel(scored.strength)}` +
     `  evidence_sufficiency=${evidenceSufficiencyLabel(mass)}` +
     `  (${scored.distinct_article_count ?? 0}/${totalArticles} articles, ${scored.signal_count ?? 0} signals)` +
-    `${polTag}${deltaTag}${instrumentFloorTag(scored)}`
+    `${polTag}${deltaTag}${instrumentFloorTag(scored)}${suppressTag}`
   );
 }
 
@@ -80,13 +100,15 @@ function saliencePromptTag(scored) {
     : '  critical_single_signal';
 }
 
+export function suppressionTracePromptTag(scored) {
+  return formatSuppressionTraceTag(scored);
+}
+
 function formatScoredMetricsWithScores(scored, totalArticles) {
   if (scored?.score == null) return 'Score: insufficient data';
   const ciTag = scored.score_low != null && scored.score_high != null
     ? `  CI: ${scored.score_low}-${scored.score_high}` : '';
-  const suppressTag = scored.suppression_delta != null && Math.abs(scored.suppression_delta) >= 1
-    ? `  suppression: raw=${scored.score_raw ?? scored.score} headline=${scored.score_headline ?? scored.score} (Δ=${scored.suppression_delta})`
-    : '';
+  const suppressTag = suppressionTracePromptTag(scored);
   const mediaTag = scored.media_mention_mass != null && scored.media_mention_mass > 0
     ? `  press_mention_mass=${scored.media_mention_mass}`
     : '';
@@ -112,14 +134,17 @@ function geoAuditTagsForSignal(s) {
   return parts.length ? `\n  Geo audit: ${parts.join(' ')}` : '';
 }
 
-function formatSignalBlock(signals) {
+function formatSignalBlock(signals, registryEntries) {
+  if (registryEntries?.length) {
+    return registryEntries.map((e) => formatSignalWithRef(e.signal, e)).join('\n\n');
+  }
   return (signals ?? []).map((s) => {
     const fd = s.signal_file_date ? `  Source bundle date: ${s.signal_file_date}\n` : '';
     const urlLine = s.article_url ? `\n  URL: ${s.article_url}` : '';
     const geoTags = geoAuditTagsForSignal(s);
     return (
       `  [${s.signal_type}] (scope:${s.scope_level ?? 'single_case'}, ev:${s.evidence_type ?? 'unknown'}, conf:${(s.extraction_confidence ?? 1).toFixed(2)})\n` +
-      `${fd}  Evidence: "${s.evidence}"${urlLine}${geoTags}`
+      `${fd}  Evidence: "${s.evidence}"${urlLine}${geoTags}${formatSignalContributionSuffix(s)}`
     );
   }).join('\n');
 }
@@ -132,19 +157,23 @@ function formatSignalBlock(signals) {
  */
 export function formatScoredComponentsForNarrative(scoredComponents, totalArticles, opts = {}) {
   const includeScores = opts.includeScores ?? narrativeIncludesScores();
+  const registry = opts.registry ?? null;
   return RESILIENCE_COMPONENTS.map((compDef) => {
     const scored = scoredComponents[compDef.id];
     const conf = summarizeConfidence(scored?.confidence);
-    const signalText = formatSignalBlock(scored?.signals);
+    const registryEntries = registry?.byComponent?.[compDef.id] ?? null;
+    const signalText = formatSignalBlock(scored?.signals, registryEntries);
     const metricsSummary = includeScores
       ? formatScoredMetricsWithScores(scored, totalArticles)
       : narrativeInstrumentLine(scored, totalArticles);
+    const suppressionContext = formatSuppressionDataQualityBlock(scored);
     const manifestations = compDef.behavioral_manifestations?.map((m, i) => `  ${i + 1}. ${m}`).join('\n')
       ?? '(none defined)';
 
     return (
       `**${compDef.id}** — ${compDef.name_en}\n` +
       `Confidence: ${conf}  ${metricsSummary}\n` +
+      (suppressionContext ? `${suppressionContext}\n` : '') +
       `Behavioral manifestations:\n${manifestations}\n` +
       `Signals extracted (${scored?.signal_count ?? 0}):\n${signalText || '  (none)'}`
     );
@@ -202,14 +231,23 @@ function formatPriorReportsContext(priorReports, { includeScores } = {}) {
   return (
     `━━━ PRIOR DAYS' CONTEXT (TREND ONLY) ━━━\n` +
     `${trajectoryNote} Use ONLY for trend wording (improving / declining / stable vs prior days).\n` +
-    `Do NOT reuse factual geopolitical situations, timelines, treaty/ceasefire claims, battles, diplomacy, etc. from those days unless the SAME fact appears in TODAY's Evidence lines below.\n` +
-    `Do not summarize or import earlier executive summaries.\n\n` +
+    `FORBIDDEN from prior reports: narratives, actors, places, events, timelines, treaty/ceasefire claims, battles, diplomacy — unless the SAME fact appears verbatim in TODAY's Evidence lines below.\n` +
+    `Do not summarize or import earlier executive summaries or component narratives.\n` +
+    `Prior context supplies trend tags only — never factual content for today's narrative.\n\n` +
     `${sections.join('\n\n')}\n\n`
   );
 }
 
-function formatComparisonScoresContext(scopeLabel, scoredComponents, { includeScores } = {}) {
+function formatComparisonScoresContext(scopeLabel, scoredComponents, { includeScores, comparable = true } = {}) {
   if (!scopeLabel || !scoredComponents) return '';
+  if (comparable === false) {
+    return (
+      `━━━ COMPARISON CONTEXT: ${String(scopeLabel).toUpperCase()} (NOT COMPARABLE) ━━━\n` +
+      `Regional and national source mixes differ too much for valid score comparison. ` +
+      `Do NOT cite national comparison scores or imply regional/national parity. ` +
+      `Describe scoped evidence only.\n\n`
+    );
+  }
   const useScores = includeScores ?? narrativeIncludesScores();
   const compScores = RESILIENCE_COMPONENTS.map((def) => {
     const c = scoredComponents[def.id] ?? {};
@@ -266,6 +304,22 @@ function formatMacroSignalsContext(macroSignals) {
   );
 }
 
+const NARRATIVE_ANTI_RELATIONSHIP_BLOCK =
+  `━━━ ANTI-RELATIONSHIP RULES (CO-OCCURRENCE ≠ CONNECTION) ━━━\n` +
+  `- Signals sharing a theme or appearing in the same component do NOT imply a causal or explanatory link.\n` +
+  `- FORBIDDEN connectives linking unrelated refs: because, therefore, as a result, led to, driven by, in response to, despite, due to, consequently, thus, hence.\n` +
+  `- ALLOWED phrasing: "Separately…", "In parallel…", "One report describes… while another describes…", "No shared evidence links…"\n` +
+  `- relation=same_article_only requires all cited signal_refs to share the same article_url.\n` +
+  `- Epistemic framing by evidence_type: direct_quote → attributed quote; institutional → "According to…"; observational → "Reporting describes…"\n\n` +
+  `FEW-SHOT (bad → good):\n` +
+  `BAD: "Residents expressed fear because compliance with shelter instructions was high" (links fear@url:A with compliance@url:B)\n` +
+  `GOOD: "One report describes residents expressing fear ([S1]). Separately, another describes shelter compliance ([S2]). No shared evidence links these observations."\n\n` +
+  `EVIDENCE-FIRST WORKFLOW:\n` +
+  `1. Fill evidence[] (≥70% overlap with Evidence lines; cite [S#]).\n` +
+  `2. Fill narrative_claims (≥1 signal_ref each; correct relation tag).\n` +
+  `3. Write narrative from claims/evidence only; delete unsupported sentences.\n` +
+  `4. Write cross_component_synthesis per bullet rules.\n\n`;
+
 const NARRATIVE_RULES_BLOCK =
   `━━━ NARRATIVE RULES ━━━\n` +
   `- Describe what people ARE DOING, SAYING, or EXPERIENCING — not abstract assessments\n` +
@@ -294,8 +348,13 @@ const NARRATIVE_RULES_BLOCK =
   `  Use information_actionable_effective signals to evidence the presence-effectiveness link; use information_effectiveness_gap signals to evidence the gap.\n` +
   `- BASELINE VS ELEVATED SERVICE FUNCTIONING: Baseline service operation (ambulance responded, hospital treated) is neutral, not positive evidence. Only cite service functioning as strong when it demonstrably performed despite disruption or elevated demand.\n` +
   `- DELTA + CONTESTED EVIDENCE TAGS: When a component's pre-computed line shows "SIGNIFICANT" or "SIGNIFICANT_vs_baseline", include a brief trend phrase ("a notable shift vs the 14-day baseline"). When it shows "contested", note that the evidence is split between supporting and opposing observations rather than collapsing to a single verdict. Do not invent direction or magnitude beyond what the instrument tags say.\n` +
-  `- THIN EVIDENCE / ABSTENTION: When instrument tags include thin_evidence_floor, limited_evidence_neutral, or unverified_alert, do NOT use stability language ("calm", "stable", "normal"). For unverified_alert, lead with "a single unverified report suggests…" and recommend corroboration. For critical_single_signal, lead with "one verified high-stakes report indicates…", state corroboration is still limited, and do NOT treat the situation as stable.\n` +
-  `- SUPPRESSION: When suppression_delta is large (|Δ|≥1), note that raw signal stream differed from the headline-adjusted assessment and explain why (e.g. single-source concentration).\n` +
+  `- THIN EVIDENCE / ABSTENTION: When instrument tags include thin_evidence_floor, limited_evidence_neutral, or unverified_alert, do NOT use stability language ("calm", "stable", "normal"). For unverified_alert, lead with "a single unverified report suggests…" and recommend corroboration. For critical_single_signal, lead with "one verified high-stakes report indicates…", state corroboration is still limited, and do NOT treat the situation as stable. For critical_presence_gate, lead with "verified evidence of a critical failure mode is present…", name the signal type if known, do NOT balance with positive news, and do NOT use stability language.\n` +
+  `- SUPPRESSION / DATA QUALITY (when SUPPRESSION_TRACE present on component line):\n` +
+  `  Step 0 — fill data_quality_caveat FIRST (1–2 sentences, methodological only; NOT behavioral claims).\n` +
+  `  Required: name the concrete limiter from trace tokens (source_cap_effect, thin_evidence_floor, SOURCE_CAP_BINDING, dominant_outlet from Data quality context).\n` +
+  `  FORBIDDEN: inventing hidden/subconscious negative states ("hidden anxiety", "suppressed pessimism", "beneath the surface", "latent fear") to explain why headline score differs from signal tone.\n` +
+  `  When data-quality framing conflicts with behavioral narrative, data-quality wins — do NOT resolve the gap with psych speculation.\n` +
+  `  Then write behavioral narrative from evidence only; it must not contradict the caveat.\n` +
   `- TEXT-INFERRED GEO: When Geo audit tags show geo:provenance=text_inferred or metricsEligible=false, treat the signal as geographic context only — do NOT describe it as on-the-ground behavioral evidence at that locality.\n` +
   `- SCOPE DISCIPLINE: Never use "the only", "the one exception", "uniquely", or similar exclusive claims.\n` +
   `  The inputs are a sample, not a census. Something appearing once in the data means it was reported once — not that it is the sole instance.\n` +
@@ -327,13 +386,81 @@ function buildDataVoidContext(dataVoid) {
   );
 }
 
-function buildScopeContext(reportScope) {
-  if (reportScope?.id !== 'north') return '';
+function buildSocialQuarantineContext(socialQuarantine) {
+  if (!socialQuarantine?.suggested && !socialQuarantine?.active) return '';
+  if (socialQuarantine.active === true) {
+    return (
+      `━━━ SOCIAL CHANNEL QUARANTINE (ACTIVE) ━━━\n` +
+      `Analyst confirmed exclusion of social OSINT from component metrics for this assessment.\n` +
+      `Headline scores exclude source_type=social; social signals may still appear in evidence for context.\n` +
+      `Note this methodological limit in evidence_quality_note or data_quality_caveat where relevant.\n\n`
+    );
+  }
   return (
-    `━━━ REPORT SCOPE: NORTHERN ISRAEL ━━━\n` +
-    `Write this assessment as a northern-region report, focused on civilians and communities in northern Israel. ` +
-    `Use national context only as comparison. Be explicit when evidence is from a sub-region such as Naftali and avoid generalizing it to the whole north.\n\n`
+    `━━━ SOCIAL CHANNEL QUARANTINE (SUGGESTED) ━━━\n` +
+    `Social OSINT shows high polarization (pol≈${socialQuarantine.social_polarization ?? 'n/a'}, n=${socialQuarantine.social_signal_count ?? 0}).\n` +
+    `Scores still include social until analyst review; add a brief data_quality caveat that social-channel evidence is contested and under review.\n\n`
   );
+}
+
+function buildScopeContext(reportScope) {
+  const id = reportScope?.id;
+  if (!id || id === 'national') return '';
+  const label = reportScope?.label ?? id;
+  return (
+    `━━━ REPORT SCOPE: ${String(label).toUpperCase()} ━━━\n` +
+    `Write this assessment as a regional report scoped to ${label}. ` +
+    `Use national context only when comparison is analytically valid. ` +
+    `Be explicit when evidence is from a sub-region and avoid generalizing beyond the scoped geography.\n\n`
+  );
+}
+
+function formatClaimsBlockForPrompt(claimsByComponent) {
+  if (!claimsByComponent || Object.keys(claimsByComponent).length === 0) return '';
+  const lines = ['━━━ PRE-FILLED NARRATIVE_CLAIMS (preserve refs; rewrite prose only) ━━━'];
+  for (const def of RESILIENCE_COMPONENTS) {
+    const claims = claimsByComponent[def.id] ?? [];
+    if (claims.length === 0) continue;
+    lines.push(`**${def.id}**:`);
+    for (const c of claims) {
+      lines.push(`  - "${c.text}" refs=[${(c.signal_refs ?? []).join(', ')}] relation=${c.relation ?? 'parallel'}`);
+    }
+  }
+  lines.push('Sonnet: you may adjust claim text for prose quality but MUST NOT add signal_refs or merge unrelated claims.\n');
+  return `${lines.join('\n')}\n\n`;
+}
+
+function buildNarrativeUserMessage(date, totalArticles, feedback = '') {
+  const steps =
+    `Assessment anchor date: ${date}\nTotal articles counted for coverage: ${totalArticles}\n\n` +
+    `Follow this order:\n` +
+    `0. When a component has SUPPRESSION_TRACE, fill data_quality_caveat first (methodological limits; name source cap/floor/dominant outlet).\n` +
+    `1. Fill evidence[] for each component (≥70% token overlap with Evidence lines; cite [S#] refs).\n` +
+    `2. Fill or preserve narrative_claims (≥1 signal_ref each; use correct relation tag).\n` +
+    `3. Write narrative prose from claims/evidence only; delete any sentence without support; no psych speculation when suppression applies.\n` +
+    `4. Write cross_component_synthesis: Para 1 = bullet list (- component_id: "snippet" ([S#])); Para 2 = explicit non-claims ("No shared evidence links …"). Max 8 distinct URLs.\n`;
+  if (feedback) {
+    return `${steps}\n━━━ FIX THESE ISSUES FROM PRIOR ATTEMPT ━━━\n${feedback}\n`;
+  }
+  return steps;
+}
+
+function mergeNarrativeClaims(narratives, claimsByComponent) {
+  if (!claimsByComponent) return narratives;
+  const out = { ...narratives, components: [...(narratives.components ?? [])] };
+  for (const def of RESILIENCE_COMPONENTS) {
+    const haikuClaims = claimsByComponent[def.id];
+    if (!haikuClaims?.length) continue;
+    let comp = out.components.find((c) => c.component_id === def.id);
+    if (!comp) {
+      comp = { component_id: def.id };
+      out.components.push(comp);
+    }
+    if (!comp.narrative_claims?.length) {
+      comp.narrative_claims = haikuClaims;
+    }
+  }
+  return out;
 }
 
 function buildNarrativeSystemPrompt({
@@ -345,23 +472,31 @@ function buildNarrativeSystemPrompt({
   comparisonContext,
   scopeContext,
   dataVoidContext,
+  socialQuarantineContext,
   contentKind,
   sourceTypes,
   macroSignals,
+  registry,
+  coOccurrenceBlock,
+  claimsByComponent,
 }) {
   const scoreIntro = includeScoresInPrompt
     ? `The component SCORES are already computed — do not re-score. Your job is to write clear, behavioral narratives.\n\n`
     : `Component instrument tags (certainty, direction, sufficiency) are pre-computed — do not invent numeric 1–10 ratings. Your job is to write clear, behavioral narratives grounded in Evidence lines.\n\n`;
   const componentsBlock = formatScoredComponentsForNarrative(scoredComponents, totalArticles, {
     includeScores: includeScoresInPrompt,
+    registry,
   });
   const metricsLabel = includeScoresInPrompt ? 'scores' : 'instrument tags';
+  const claimsBlock = formatClaimsBlockForPrompt(claimsByComponent);
+  const coOccurrence = coOccurrenceBlock ?? '';
 
   return (
     `You are a community resilience analyst writing behavioral narratives for a structured report.\n` +
     scoreIntro +
     scopeContext +
     dataVoidContext +
+    (socialQuarantineContext ?? '') +
     formatMacroSignalsContext(macroSignals) +
     (contentKind === 'audio' ? AUDIO_NARRATIVE_CONTEXT : '') +
     (sourceTypes.has('field') ? FIELD_REPORT_NARRATIVE_CONTEXT : '') +
@@ -369,21 +504,28 @@ function buildNarrativeSystemPrompt({
     (priorContext || '') +
     (comparisonContext || '') +
     buildGroundingContext(date) +
+    coOccurrence +
+    NARRATIVE_ANTI_RELATIONSHIP_BLOCK +
     NARRATIVE_RULES_BLOCK +
+    claimsBlock +
     `━━━ THE 8 COMPONENTS (with pre-computed ${metricsLabel} and signals) ━━━\n\n` +
     `${componentsBlock}\n\n` +
     `━━━ OUTPUT FORMAT ━━━\n` +
     `Return ONLY valid JSON:\n` +
     `{\n` +
-    `  "cross_component_synthesis": "<2 paragraphs — behavioral summary across all 8 components. Must satisfy GROUND TRUTH & DATE DISCIPLINE: only facts supported by Evidence lines in this run; no outside knowledge. When choosing illustrative examples, select only those that are analytically distinctive: they represent a different population type, behavior mode, or structural condition not already covered by another example. Do not include examples that are emotionally striking but analytically equivalent to many other signals (e.g., a single shelter-compliance instance when dozens exist). Prefer examples that illuminate a structural split, a failure mode, or a population otherwise absent from reporting.>",\n` +
+    `  "cross_component_synthesis": "<Para 1: bullet list (- component_id: \\"snippet\\" ([S#])). Para 2: explicit non-claims (No shared evidence links …). Max 8 distinct URLs; every line cites [S#] or URL. Only facts from Evidence lines.>",\n` +
     `  "evidence_quality_note": "<1 sentence on signal quality today: proportion of direct quotes vs reported facts>",\n` +
     `  "components": [\n` +
     `    {\n` +
     `      "component_id": "<id>",\n` +
     `      "manifestations_evidenced": ["<manifestation string>", ...],\n` +
     `      "manifestations_absent": ["<manifestation string> (informative absence | likely reporting gap)", ...],\n` +
-    `      "evidence": ["<all behavioral evidence items for this component, each with ([source](URL)) if a URL is available>", ...],\n` +
-    `      "narrative": "<3–5 sentence behavioral narrative>"\n` +
+    `      "evidence": ["<behavioral evidence items, each with ([source](URL)) if URL available; cite [S#]>", ...],\n` +
+    `      "narrative_claims": [\n` +
+    `        { "text": "<atomic claim>", "signal_refs": ["type@url:…"], "relation": "parallel|same_article_only|none" }\n` +
+    `      ],\n` +
+    `      "data_quality_caveat": "<1–2 sentences on score/data limits; REQUIRED when SUPPRESSION_TRACE present; methodological only>",\n` +
+    `      "narrative": "<3–5 sentence behavioral narrative derived from narrative_claims and evidence only>"\n` +
     `    }, ...\n` +
     `  ]\n` +
     `}`
@@ -411,7 +553,10 @@ function topContributorsFromScored(scored) {
     }));
 }
 
-function buildAssessmentComponent(def, scored, narr) {
+function buildAssessmentComponent(def, scored, narr, groundingMeta) {
+  const compGrounding = groundingMeta?.byComponent?.[def.id] ?? {};
+  const interpretive = compGrounding.interpretive_summary === true
+    || narr.interpretive_summary === true;
   return {
     component_id: def.id,
     score: scored.score ?? null,
@@ -447,6 +592,9 @@ function buildAssessmentComponent(def, scored, narr) {
     salience_critical: scored.salience_critical === true,
     salience_bypass_reasons: scored.salience_bypass_reasons ?? [],
     salience_dominant_signal_type: scored.salience_dominant_signal_type ?? null,
+    presence_gate_triggered: scored.presence_gate_triggered === true,
+    presence_gate: scored.presence_gate ?? null,
+    operator_status: scored.operator_status ?? null,
     ci_unstable: scored.ci_unstable === true,
     source_cap_binding: scored.source_cap_binding === true,
     derived_indicators: scored.derived_indicators ?? null,
@@ -460,23 +608,33 @@ function buildAssessmentComponent(def, scored, narr) {
     cumulative_deficit: scored.cumulative_deficit ?? null,
     media_mention_mass: scored.media_mention_mass ?? null,
     suppression_breakdown: scored.suppression_breakdown ?? null,
+    score_calibrated: scored.score_calibrated ?? null,
+    calibration_trust: scored.calibration_trust ?? null,
+    calibration_deficit: scored.calibration_deficit ?? null,
+    weight_sensitivity: scored.weight_sensitivity ?? null,
+    weight_sensitivity_note: scored.weight_sensitivity_note ?? null,
     facets: scored.facets ?? null,
     top_contributors: topContributorsFromScored(scored),
     manifestations_evidenced: narr.manifestations_evidenced ?? [],
     manifestations_absent: narr.manifestations_absent ?? [],
     evidence: narr.evidence ?? [],
+    narrative_claims: narr.narrative_claims ?? [],
+    data_quality_caveat: narr.data_quality_caveat ?? '',
     narrative: narr.narrative ?? '',
+    narrative_grounding_score: compGrounding.score ?? narr.narrative_grounding_score ?? null,
+    grounding_issues: compGrounding.issues ?? narr.grounding_issues ?? [],
+    interpretive_summary: interpretive,
   };
 }
 
-function buildAssessmentPayload(narratives, scoredComponents, meta) {
+function buildAssessmentPayload(narratives, scoredComponents, meta, groundingSummary = null) {
   const componentMap = Object.fromEntries(
     (narratives.components ?? []).map((c) => [c.component_id, c]),
   );
   const components = RESILIENCE_COMPONENTS.map((def) => {
     const scored = scoredComponents[def.id] ?? {};
     const narr = componentMap[def.id] ?? {};
-    return buildAssessmentComponent(def, scored, narr);
+    return buildAssessmentComponent(def, scored, narr, groundingSummary);
   });
 
   return {
@@ -484,14 +642,25 @@ function buildAssessmentPayload(narratives, scoredComponents, meta) {
     ...(meta.reportScope ? { report_scope: meta.reportScope } : {}),
     total_articles_analyzed: meta.totalArticles,
     overall_resilience_score: overallScore(scoredComponents),
+    overall_score_calibrated: overallScore(
+      Object.fromEntries(
+        Object.entries(scoredComponents).map(([id, c]) => [id, {
+          score: c.score_calibrated,
+          certainty: c.certainty ?? 0,
+        }]),
+      ),
+    ),
     content_kind: meta.contentKind,
     cross_component_synthesis: narratives.cross_component_synthesis ?? '',
     evidence_quality_note: narratives.evidence_quality_note ?? '',
+    ...(groundingSummary?.summary ? { narrative_grounding_summary: groundingSummary.summary } : {}),
     norris_capacities: computeNorrisCapacities(scoredComponents, scoredComponents),
     components,
     ...(meta.macroSignals?.length ? { macro_signals: meta.macroSignals.slice(0, 50) } : {}),
     ...(meta.dataVoid ? { data_void: meta.dataVoid } : {}),
     ...(meta.oovCaptureCount > 0 ? { oov_capture_count: meta.oovCaptureCount } : {}),
+    ...(meta.socialChannelQuarantine ? { social_channel_quarantine: meta.socialChannelQuarantine } : {}),
+    ...(meta.quarantinedDigital?.count > 0 ? { quarantined_digital: meta.quarantinedDigital } : {}),
     ...(meta.allScopedSignals ? { scoped_signal_count: meta.allScopedSignals.length } : {}),
   };
 }
@@ -510,17 +679,30 @@ export async function generateNarratives(
     reportScope = null,
     comparisonScores = null,
     comparisonLabel = null,
+    comparisonComparable = true,
     macroSignals = [],
     allScopedSignals = null,
     dataVoid = null,
     oovCaptureCount = 0,
+    socialChannelQuarantine = null,
   } = {},
 ) {
   const includeScoresInPrompt = narrativeIncludesScores();
   const priorContext = formatPriorReportsContext(priorReports, { includeScores: includeScoresInPrompt });
   const comparisonContext = formatComparisonScoresContext(comparisonLabel, comparisonScores, {
     includeScores: includeScoresInPrompt,
+    comparable: comparisonComparable,
   });
+  const registry = buildSignalRefRegistry(scoredComponents);
+  const coOccurrenceBlock = isNarrativeGroundingEnabled()
+    ? formatCoOccurrenceForPrompt(registry)
+    : '';
+
+  let claimsByComponent = null;
+  if (isNarrativeFactsPassEnabled()) {
+    claimsByComponent = await extractNarrativeFacts(scoredComponents, { onUsage });
+  }
+
   const systemPrompt = buildNarrativeSystemPrompt({
     includeScoresInPrompt,
     scoredComponents,
@@ -530,13 +712,15 @@ export async function generateNarratives(
     comparisonContext,
     scopeContext: buildScopeContext(reportScope),
     dataVoidContext: buildDataVoidContext(dataVoid),
+    socialQuarantineContext: buildSocialQuarantineContext(socialChannelQuarantine),
     contentKind,
     sourceTypes,
     macroSignals,
+    registry,
+    coOccurrenceBlock,
+    claimsByComponent,
   });
-  const userContent =
-    `Assessment anchor date: ${date}\nTotal articles counted for coverage: ${totalArticles}\n\n` +
-    `Write behavioral narratives for all 8 components based on the signals above. Facts must trace to Evidence text in this payload only.\n`;
+
   const meta = {
     date,
     reportScope,
@@ -545,13 +729,17 @@ export async function generateNarratives(
     macroSignals,
     dataVoid,
     oovCaptureCount,
+    socialChannelQuarantine,
     allScopedSignals,
   };
 
   const MAX_RETRIES = 3;
+  let feedback = '';
+
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
       const label = attempt > 1 ? `[Step 2 — Narratives] (retry ${attempt})` : '[Step 2 — Narratives]';
+      const userContent = buildNarrativeUserMessage(date, totalArticles, feedback);
       const stream = client.messages.stream({
         model: DEFAULT_NARRATIVE_MODEL,
         max_tokens: 16000,
@@ -563,10 +751,69 @@ export async function generateNarratives(
       if (onUsage) onUsage({ label: '[Step 2 — Narratives]', model: DEFAULT_NARRATIVE_MODEL, usage: message.usage });
       const textBlock = message.content.find((b) => b.type === 'text');
       if (!textBlock) throw new Error('Step 2: no text block');
-      const narratives = extractJson(textBlock.text);
+
+      let narratives = extractJson(textBlock.text);
+      narratives = mergeNarrativeClaims(narratives, claimsByComponent);
+
+      if (isNarrativeGroundingEnabled()) {
+        const validation = validateNarrativeOutput(narratives, { scoredComponents, registry });
+        if (!validation.ok) {
+          feedback = formatValidationFeedback(validation);
+          if (attempt === MAX_RETRIES) {
+            console.error(`  ⚠ Narrative validation failed after ${MAX_RETRIES} attempts — proceeding with warnings`);
+          } else {
+            throw new Error(`Validation failed: ${validation.errors.join('; ')}`);
+          }
+        }
+
+        const suppressResult = validateSuppressionCompliance(narratives, scoredComponents);
+        if (!suppressResult.ok) {
+          const suppressFeedback = formatSuppressionFeedback(suppressResult);
+          feedback = feedback ? `${feedback}\n\n${suppressFeedback}` : suppressFeedback;
+          if (attempt === MAX_RETRIES) {
+            console.error(`  ⚠ Suppression compliance failed after ${MAX_RETRIES} attempts — proceeding`);
+          } else {
+            throw new Error(`Suppression compliance failed: ${suppressResult.errors.join('; ')}`);
+          }
+        }
+
+        if (isNarrativeJudgeEnabled()) {
+          const judgeResult = await judgeNarrativeRelations(narratives, registry, { onUsage });
+          if (!judgeResult.ok) {
+            feedback = formatJudgeFeedback(judgeResult.failures);
+            if (attempt === MAX_RETRIES) {
+              console.error(`  ⚠ Relation judge flagged claims after ${MAX_RETRIES} attempts — proceeding`);
+            } else {
+              throw new Error(`Judge rejected: ${judgeResult.failures.length} invented relation(s)`);
+            }
+          }
+        }
+
+        const grounding = computeGroundingScores(narratives, scoredComponents, registry);
+        if (onUsage) {
+          onUsage({
+            label: '[Step 2 — Grounding]',
+            model: 'deterministic',
+            usage: { input_tokens: 0, output_tokens: 0 },
+          });
+        }
+        for (const def of RESILIENCE_COMPONENTS) {
+          const comp = (narratives.components ?? []).find((c) => c.component_id === def.id);
+          if (!comp) continue;
+          const g = grounding.byComponent[def.id];
+          if (g) {
+            comp.narrative_grounding_score = g.score;
+            comp.grounding_issues = g.issues;
+            comp.interpretive_summary = g.interpretive_summary;
+          }
+        }
+        return buildAssessmentPayload(narratives, scoredComponents, meta, grounding);
+      }
+
       return buildAssessmentPayload(narratives, scoredComponents, meta);
     } catch (err) {
       if (attempt === MAX_RETRIES) throw err;
+      if (!feedback) feedback = err.message;
       console.error(`  ⚠ Step 2 attempt ${attempt} failed (${err.message}) — retrying in ${5 * attempt}s...`);
       await new Promise((r) => setTimeout(r, 5000 * attempt));
     }

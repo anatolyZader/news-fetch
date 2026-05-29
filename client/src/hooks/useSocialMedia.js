@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { withOperatorDistrictQuery } from '../lib/clampOperatorDistrictScope.js';
 
 async function authFetch(url, { getIdToken, method = 'GET', body } = {}) {
   const headers = new Headers({ 'Content-Type': 'application/json' });
@@ -14,8 +15,8 @@ async function authFetch(url, { getIdToken, method = 'GET', body } = {}) {
   return data;
 }
 
-/** @param {{ getIdToken: () => Promise<string|null>, apiReady: boolean }} opts */
-export function useSocialMediaDashboard({ getIdToken, apiReady }) {
+/** @param {{ getIdToken: () => Promise<string|null>, apiReady: boolean, operatorScope?: string }} opts */
+export function useSocialMediaDashboard({ getIdToken, apiReady, operatorScope = 'national' }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -24,13 +25,13 @@ export function useSocialMediaDashboard({ getIdToken, apiReady }) {
     setLoading(true);
     setError(null);
     try {
-      setData(await authFetch('/api/social-media', { getIdToken }));
+      setData(await authFetch(withOperatorDistrictQuery('/api/social-media', operatorScope), { getIdToken }));
     } catch (e) {
       setError(e?.message ?? 'Failed');
     } finally {
       setLoading(false);
     }
-  }, [getIdToken]);
+  }, [getIdToken, operatorScope]);
 
   useEffect(() => {
     if (!apiReady) return;
@@ -39,7 +40,7 @@ export function useSocialMediaDashboard({ getIdToken, apiReady }) {
       setLoading(true);
       setError(null);
       try {
-        const out = await authFetch('/api/social-media', { getIdToken });
+        const out = await authFetch(withOperatorDistrictQuery('/api/social-media', operatorScope), { getIdToken });
         if (!cancelled) setData(out);
       } catch (e) {
         if (!cancelled) setError(e?.message ?? 'Failed');
@@ -48,13 +49,13 @@ export function useSocialMediaDashboard({ getIdToken, apiReady }) {
       }
     })();
     return () => { cancelled = true; };
-  }, [apiReady, getIdToken]);
+  }, [apiReady, getIdToken, operatorScope]);
 
   return { data, loading, error, reload };
 }
 
-/** @param {{ date: string, categoryId?: string, lang?: string, getIdToken: () => Promise<string|null>, apiReady: boolean }} opts */
-export function useSocialMediaDailyFeed({ date, categoryId, lang, getIdToken, apiReady }) {
+/** @param {{ date: string, categoryId?: string, lang?: string, getIdToken: () => Promise<string|null>, apiReady: boolean, operatorScope?: string }} opts */
+export function useSocialMediaDailyFeed({ date, categoryId, lang, getIdToken, apiReady, operatorScope = 'national' }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -69,7 +70,8 @@ export function useSocialMediaDailyFeed({ date, categoryId, lang, getIdToken, ap
         const q = new URLSearchParams({ date });
         if (categoryId) q.set('category', categoryId);
         if (lang) q.set('lang', lang);
-        const out = await authFetch(`/api/social-media/daily?${q.toString()}`, { getIdToken });
+        const base = withOperatorDistrictQuery(`/api/social-media/daily?${q.toString()}`, operatorScope);
+        const out = await authFetch(base, { getIdToken });
         if (!cancelled) setData(out);
       } catch (e) {
         if (!cancelled) {
@@ -81,7 +83,7 @@ export function useSocialMediaDailyFeed({ date, categoryId, lang, getIdToken, ap
       }
     })();
     return () => { cancelled = true; };
-  }, [date, categoryId, lang, apiReady, getIdToken]);
+  }, [date, categoryId, lang, apiReady, getIdToken, operatorScope]);
 
   return { data, loading, error };
 }

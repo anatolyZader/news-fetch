@@ -31,6 +31,8 @@ import { panelSectionRadius } from '../ui/panelChrome.js';
 import { formatDate } from '../lib/date.js';
 import PropTypes from 'prop-types';
 import { translationFnPropType } from '../lib/reportPropTypes.js';
+import { withOperatorDistrictQuery } from '../lib/clampOperatorDistrictScope.js';
+import { DistrictScopeSwitcher } from './DistrictScopeSwitcher.jsx';
 
 function stableHue(input) {
   const s = String(input ?? '');
@@ -474,7 +476,11 @@ function compareVisitByRegionThenMunicipality(a, b) {
   return (a.municipality ?? '').localeCompare(b.municipality ?? '', 'he', { sensitivity: 'base' });
 }
 
-export function VisitsTab() {
+export function VisitsTab({
+  operatorScope = 'national',
+  onOperatorScopeChange,
+  districtAccess = null,
+}) {
   const { getIdToken, apiReady } = useAuth();
   const { t } = useLanguage();
   const [data, setData] = useState(null);
@@ -491,7 +497,7 @@ export function VisitsTab() {
       const headers = new Headers();
       const token = await getIdToken();
       if (token) headers.set('Authorization', `Bearer ${token}`);
-      const response = await fetch('/api/visits', { headers });
+      const response = await fetch(withOperatorDistrictQuery('/api/visits', operatorScope), { headers });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const json = await response.json();
       setData(json);
@@ -504,7 +510,7 @@ export function VisitsTab() {
     } finally {
       setLoading(false);
     }
-  }, [getIdToken]);
+  }, [getIdToken, operatorScope]);
 
   useEffect(() => {
     if (!apiReady) return;
@@ -544,11 +550,20 @@ export function VisitsTab() {
     { label: t('visit.kpi.signals'), value: summary.totalSignals ?? 0 },
   ];
 
+  const districtScope = onOperatorScopeChange ? (
+    <DistrictScopeSwitcher
+      value={operatorScope}
+      onChange={onOperatorScopeChange}
+      districtAccess={districtAccess}
+    />
+  ) : null;
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, pb: 2 }}>
       <PageHeader
         title={t('visit.title')}
         subtitle={t('visit.subtitle')}
+        scope={districtScope}
       />
 
       <KpiStrip>
@@ -665,3 +680,9 @@ export function VisitsTab() {
     </Box>
   );
 }
+
+VisitsTab.propTypes = {
+  operatorScope: PropTypes.string,
+  onOperatorScopeChange: PropTypes.func,
+  districtAccess: PropTypes.object,
+};

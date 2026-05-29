@@ -4,14 +4,17 @@
  * @param {import('fastify').FastifyInstance} app
  * @param {{ visitsService: ReturnType<import('../app/visitsService.js').createVisitsService>, authPreHandler?: any }} opts
  */
+import { checkOptionalDistrictQueryAccess } from '../../../cross-cut-modules/auth/checkOptionalDistrictQueryAccess.js';
+
 export async function visitsRoutes(app, opts) {
   const visitsService = opts?.visitsService ?? null;
   const preHandler = opts?.authPreHandler ? { preHandler: opts.authPreHandler } : {};
 
-  app.get('/api/visits', preHandler, async (_request, reply) => {
+  app.get('/api/visits', preHandler, async (request, reply) => {
     if (!visitsService) {
       return reply.code(503).send({ error: 'visits service not configured' });
     }
+    if (!checkOptionalDistrictQueryAccess(request, reply)) return;
 
     try {
       return reply.send(visitsService.getDashboard());

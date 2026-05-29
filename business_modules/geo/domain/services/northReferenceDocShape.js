@@ -1,5 +1,10 @@
 import { NORTH_SUBREGION_IDS, isNorthSubregionId } from '../value_objects/northSubregionId.js';
 
+/** @param {unknown} value */
+function localityKeyLabel(value) {
+  return typeof value === 'string' ? value : '';
+}
+
 /**
  * True when doc uses hierarchical subregions with at least one locality.
  * @param {unknown} doc
@@ -10,10 +15,38 @@ export function northReferenceDocUsesSubregions(doc) {
   if (!sub || typeof sub !== 'object' || Array.isArray(sub)) return false;
   for (const id of NORTH_SUBREGION_IDS) {
     const bucket = sub[id];
-    const list = Array.isArray(bucket) ? bucket : bucket?.localities;
+    const list = localityListFromBucket(bucket);
     if (Array.isArray(list) && list.length > 0) return true;
   }
   return false;
+}
+
+function localityListFromBucket(bucket) {
+  return Array.isArray(bucket) ? bucket : bucket?.localities;
+}
+
+function resolveSubregionIdFromRow(row, bucketId) {
+  const fromRow = row?.subregionId != null && String(row.subregionId).trim()
+    ? String(row.subregionId).trim().toLowerCase()
+    : bucketId;
+  if (fromRow !== bucketId) {
+    throw new Error(
+      `north-reference: locality "${localityKeyLabel(row?.canonicalKey)}" has subregionId "${fromRow}" but is under bucket "${bucketId}"`,
+    );
+  }
+  return bucketId;
+}
+
+function collectSubregionLocalities(subregions) {
+  const raw = [];
+  for (const subregionId of NORTH_SUBREGION_IDS) {
+    const list = localityListFromBucket(subregions[subregionId]);
+    if (!Array.isArray(list)) continue;
+    for (const row of list) {
+      raw.push({ ...row, subregionId: resolveSubregionIdFromRow(row, subregionId) });
+    }
+  }
+  return raw;
 }
 
 /**
@@ -25,26 +58,7 @@ export function northReferenceDocUsesSubregions(doc) {
  */
 export function collectRawLocalitiesFromNorthReferenceDoc(doc) {
   if (northReferenceDocUsesSubregions(doc)) {
-    const sub = doc.subregions;
-    const raw = [];
-    for (const subregionId of NORTH_SUBREGION_IDS) {
-      const bucket = sub[subregionId];
-      const list = Array.isArray(bucket) ? bucket : bucket?.localities;
-      if (!Array.isArray(list)) continue;
-      for (const row of list) {
-        const fromRow =
-          row?.subregionId != null && String(row.subregionId).trim()
-            ? String(row.subregionId).trim().toLowerCase()
-            : subregionId;
-        if (fromRow !== subregionId) {
-          throw new Error(
-            `north-reference: locality "${String(row?.canonicalKey)}" has subregionId "${fromRow}" but is under bucket "${subregionId}"`,
-          );
-        }
-        raw.push({ ...row, subregionId });
-      }
-    }
-    return raw;
+    return collectSubregionLocalities(doc.subregions);
   }
 
   if (Array.isArray(doc?.localities) && doc.localities.length > 0) {
@@ -73,14 +87,15 @@ export function groupLocalitiesIntoSubregionsForFile(localities) {
       .trim()
       .toLowerCase();
     if (!isNorthSubregionId(subregionId)) {
-      throw new Error(`Invalid subregionId on locality "${String(row.canonicalKey)}": ${subregionId}`);
+      throw new Error(`Invalid subregionId on locality "${localityKeyLabel(row.canonicalKey)}": ${subregionId}`);
     }
-    const { subregionId: _drop, ...rest } = row;
+    const rest = { ...row };
+    delete rest.subregionId;
     subregions[subregionId].localities.push(rest);
   }
   for (const id of NORTH_SUBREGION_IDS) {
     subregions[id].localities.sort((a, b) =>
-      String(a.canonicalKey ?? '').localeCompare(String(b.canonicalKey ?? '')),
+      localityKeyLabel(a.canonicalKey).localeCompare(localityKeyLabel(b.canonicalKey)),
     );
   }
   return subregions;

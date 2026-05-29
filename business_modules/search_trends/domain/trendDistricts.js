@@ -19,7 +19,6 @@ const GEO_BY_DISTRICT_ID = Object.freeze({
   south: 'IL-D',
   jerusalem: 'IL-JM',
   haifa: 'IL-HA',
-  center: 'IL-M',
   dan: 'IL-TA',
 });
 

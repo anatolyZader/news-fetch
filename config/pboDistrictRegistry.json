@@ -1,0 +1,35 @@
+{
+  "districts": {
+    "north": {
+      "localDataDir": "business_modules/pbo_report_muni/data/north",
+      "legacyModuleRoot": "business_modules/pbo_report_muni",
+      "localFilenamePrefix": "north_",
+      "regionalSubregions": ["naftali", "golan", "baram", "hiram", "galma"],
+      "regionalInboxDir": "business_modules/pbo_report_regional/data"
+    },
+    "south": {
+      "localDataDir": "business_modules/pbo_report_muni/data/south",
+      "localFilenamePrefix": "south_",
+      "regionalSubregions": [],
+      "regionalInboxDir": "business_modules/pbo_report_regional/data/south"
+    },
+    "jerusalem": {
+      "localDataDir": "business_modules/pbo_report_muni/data/jerusalem",
+      "localFilenamePrefix": "jerusalem_",
+      "regionalSubregions": [],
+      "regionalInboxDir": "business_modules/pbo_report_regional/data/jerusalem"
+    },
+    "haifa": {
+      "localDataDir": "business_modules/pbo_report_muni/data/haifa",
+      "localFilenamePrefix": "haifa_",
+      "regionalSubregions": [],
+      "regionalInboxDir": "business_modules/pbo_report_regional/data/haifa"
+    },
+    "dan": {
+      "localDataDir": "business_modules/pbo_report_muni/data/dan",
+      "localFilenamePrefix": "dan_",
+      "regionalSubregions": [],
+      "regionalInboxDir": "business_modules/pbo_report_regional/data/dan"
+    }
+  }
+}

@@ -6,7 +6,7 @@ import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import { panelSectionRadius } from './panelChrome.js';
 import PropTypes from 'prop-types';
 
-const APP_TITLE_SUFFIX = 'Vibes Witch';
+const APP_TITLE_SUFFIX = 'Srulik\'s lab';
 
 export function PanelWindowShell({
   title,

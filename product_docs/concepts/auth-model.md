@@ -4,13 +4,13 @@ description: "How authentication works, when it is required, and how tokens flow
 intent: concepts
 audience: ["public", "customer"]
 stability: beta
-canonical: "https://docs.vibeswitch.ai/concepts/auth-model"
+canonical: "https://docs.srulik.ai/concepts/auth-model"
 version: "current"
 tags: ["auth", "concepts"]
 ---
 
 ## Purpose
-Explain how VibeSwitch's authentication works as a system: who issues tokens, who verifies them, what's public, what's protected, and what changes between public and protected deployments. The conceptual view here is the counterpart to the step-by-step setup in [Auth setup](https://docs.vibeswitch.ai/getting-started/auth-setup).
+Explain how Srulik's lab's authentication works as a system: who issues tokens, who verifies them, what's public, what's protected, and what changes between public and protected deployments. The conceptual view here is the counterpart to the step-by-step setup in [Auth setup](https://docs.srulik.ai/getting-started/auth-setup).
 
 ## Prerequisites
 - **Required**: Basic understanding of Bearer JWT authorization (an access token carried in the `Authorization` header).
@@ -96,4 +96,4 @@ Protected when `AUTH_REQUIRED=true`:
 - **Everyone shares one account because everyone uses one browser profile**
   - That's expected — the session is browser-scoped. If you need per-user attribution, sign each user into their own browser profile, and consider adding user metadata to the submissions they create.
 
-See [Auth setup](https://docs.vibeswitch.ai/getting-started/auth-setup) for concrete wiring steps.
+See [Auth setup](https://docs.srulik.ai/getting-started/auth-setup) for concrete wiring steps.

@@ -31,6 +31,17 @@ updates:
           - "*"
 
   - package-ecosystem: npm
+    directory: /analyst-site
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      analyst-site:
+        patterns:
+          - "*"
+
+  - package-ecosystem: npm
     directory: /docs-site
     schedule:
       interval: weekly

@@ -3,14 +3,15 @@
  * @see docs/MODEL-CARD.md (epistemic tiers)
  */
 
+import { isRegionalReportScope } from '../../../../cross-cut-modules/geo/reportScopeIds.js';
+import { collectionDistrictForSourceType } from './collectionScope.js';
+
 export const SIGNAL_PROVENANCE = Object.freeze({
   verified_geo: 'verified_geo',
   source_assigned: 'source_assigned',
   macro_national: 'macro_national',
   unscoped: 'unscoped',
 });
-
-const ALWAYS_NORTH_SOURCE_TYPES = new Set(['field', 'field_whatsapp', 'pbo', 'pbo_regional', 'naftali', 'whatsapp']);
 
 /** Bare macro terms — scope hint only, never metrics for regional reports (legacy reports only). */
 export const MACRO_NATIONAL_TERMS = [
@@ -29,14 +30,13 @@ export const MACRO_NATIONAL_TERMS = [
 export function deriveSignalProvenance(signal) {
   const scope = signal?.scopeDecision;
   if (scope?.macro_scope === 'national') return SIGNAL_PROVENANCE.macro_national;
-  if (ALWAYS_NORTH_SOURCE_TYPES.has(signal?.source_type)) {
+  if (collectionDistrictForSourceType(signal?.source_type)) {
     return SIGNAL_PROVENANCE.source_assigned;
   }
   const g = signal?.geo;
   if (g?.kind === 'resolved') {
     const usable = g?.policy?.usableForMetrics ?? g?.usableForMetrics;
     const geoProv = g?.resolution?.provenance;
-    // Text-inferred geo on news/radio/social is scope hint only — never verified_geo for metrics.
     if (
       usable !== false
       && geoProv !== 'text_inferred'
@@ -45,7 +45,7 @@ export function deriveSignalProvenance(signal) {
       return SIGNAL_PROVENANCE.verified_geo;
     }
   }
-  if (scope?.isNorthRelevant || scope?.source === 'source_type') {
+  if (scope?.isScopeRelevant || scope?.isNorthRelevant || scope?.source === 'collection_scope') {
     return SIGNAL_PROVENANCE.source_assigned;
   }
   return SIGNAL_PROVENANCE.unscoped;
@@ -91,12 +91,12 @@ export function annotateSignalsEpistemics(signals, opts = {}) {
 }
 
 /**
- * Split macro-only north signals into macro bucket for narrative context.
+ * Split macro/context-only signals for regional report scopes.
  * @param {Array<object>} signals
  * @param {string} reportScope
  */
 export function partitionMacroSignals(signals, reportScope = 'national') {
-  if (reportScope !== 'north') {
+  if (!isRegionalReportScope(reportScope)) {
     return { metricsSignals: signals ?? [], macroSignals: [] };
   }
   const metricsSignals = [];

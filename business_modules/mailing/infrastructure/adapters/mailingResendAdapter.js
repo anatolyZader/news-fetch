@@ -16,7 +16,7 @@ export function createMailingResendAdapter({ apiKey, fetchImpl = fetch }) {
   }
 
   return {
-    async sendTransactional({ from, to, subject, text, html, headers }) {
+    async sendTransactional({ from, to, subject, text, html, headers, replyTo }) {
       const body = {
         from: String(from),
         to: [String(to)],
@@ -25,6 +25,9 @@ export function createMailingResendAdapter({ apiKey, fetchImpl = fetch }) {
       };
       if (html && String(html).trim()) {
         body.html = String(html);
+      }
+      if (replyTo && String(replyTo).trim()) {
+        body.reply_to = String(replyTo).trim();
       }
       if (headers && typeof headers === 'object') {
         body.headers = headers;

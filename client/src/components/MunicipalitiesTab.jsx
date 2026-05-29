@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, Fragment } from 'react';
 import { Line } from 'recharts';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
@@ -17,6 +17,9 @@ import TableContainer from '@mui/material/TableContainer';
 import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
+import Chip from '@mui/material/Chip';
+import Collapse from '@mui/material/Collapse';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { useTheme } from '@mui/material/styles';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
@@ -33,6 +36,13 @@ import {
 import { scoreBg01, scoreColor01 } from '../lib/score.js';
 import { formatDate } from '../lib/date.js';
 import { useMunicipalitiesData } from '../hooks/useMunicipalitiesData.js';
+import {
+  reviewStatusLabel,
+  reviewStatusTone,
+  useMunicipalPboReviews,
+} from '../hooks/useMunicipalPboReviews.js';
+import { PboMunicipalReviewPanel } from './PboMunicipalReviewPanel.jsx';
+import { normalizeIsraelDistrictId } from '../lib/israelDistricts.js';
 import PropTypes from 'prop-types';
 
 function pct(v) {
@@ -123,7 +133,7 @@ function buildAvgTrendData(muniAllDays, cid) {
   return muniAllDays
     .map((md) => {
       const comp = md.components?.[cid];
-      if (!comp || comp.avg == null) return null;
+      if (comp?.avg == null) return null;
       return { day: formatDate(md.date), iso: md.date, pct: Math.round(comp.avg * 100) };
     })
     .filter(Boolean)
@@ -187,11 +197,263 @@ function muniTrendStrokes(th) {
   return raw.map((c) => c || p.primary.main);
 }
 
-export function MunicipalitiesTab() {
+function buildDaysWithChange(muniAllDays, cid) {
+  return muniAllDays.map((md, idx) => {
+    const mc = md.components[cid];
+    const prev = idx > 0 ? muniAllDays[idx - 1].components[cid] : null;
+    const changed = !prev
+      || mc.avg !== prev.avg
+      || mc.texts.join('|') !== prev.texts.join('|');
+    return { ...md, mc, changed };
+  });
+}
+
+function formatSubTrendTooltip(subLabels, value, name, item) {
+  const row = item?.payload;
+  const idx = subLabels.indexOf(name);
+  if (row && idx >= 0 && row[`q${idx}_raw`] != null) {
+    const rawPct = row[`q${idx}_raw`];
+    return [`${rawPct}%`, name];
+  }
+  const v = value == null || Number.isNaN(Number(value)) ? null : Math.round(Number(value));
+  return [v == null ? '—' : `${v}%`, name];
+}
+
+function MunicipalityDayComparisonRow({ md, changed, theme, isHe }) {
+  const { mc } = md;
+  const mdTexts = mc.texts.filter((txt) => txt.length > 0);
+  return (
+    <Box
+      key={md.date}
+      sx={(t) => ({
+        paddingTop: t.spacing(0.75),
+        borderTop: `1px dashed ${t.palette.divider}`,
+        opacity: changed ? 1 : 0.7,
+        marginTop: t.spacing(0.5),
+        '&:first-of-type': { borderTop: 'none', marginTop: 0, paddingTop: 0 },
+      })}
+    >
+      <Stack direction="row" alignItems="center" spacing={1}>
+        <Typography variant="caption" color="text.secondary">
+          {formatDate(md.date)}
+        </Typography>
+        <Typography variant="cardTitle" sx={{ color: scoreColor01(mc.avg, theme) }}>
+          {pct(mc.avg)}
+        </Typography>
+        {!changed && (
+          <Typography variant="caption" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+            {isHe ? 'ללא שינוי' : 'unchanged'}
+          </Typography>
+        )}
+      </Stack>
+      {changed && (
+        <>
+          {mdTexts.length > 0
+            ? mdTexts.map((txt) => (
+              <Typography
+                key={`${md.date}-${txt}`}
+                variant="body2"
+                sx={(t) => ({ marginTop: t.spacing(0.5) })}
+              >
+                {txt}
+              </Typography>
+            ))
+            : (
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={(t) => ({ fontStyle: 'italic', marginTop: t.spacing(0.5) })}
+              >
+                {isHe ? 'אין התייחסות' : 'No text'}
+              </Typography>
+            )}
+          {mc.scores.length > 0 && (
+            <Stack
+              direction="row"
+              useFlexGap
+              flexWrap="wrap"
+              spacing={0.7}
+              sx={(t) => ({ marginTop: t.spacing(0.5) })}
+            >
+              {mc.scores.map((s) => (
+                <ScoreLabelPill
+                  key={`${md.date}-${normalizeScoreLabel(s.label)}`}
+                  label={s.label}
+                  value={s.value}
+                  surface="raised"
+                  theme={theme}
+                />
+              ))}
+            </Stack>
+          )}
+        </>
+      )}
+    </Box>
+  );
+}
+
+MunicipalityDayComparisonRow.propTypes = {
+  md: PropTypes.shape({
+    date: PropTypes.string.isRequired,
+    mc: PropTypes.shape({
+      avg: PropTypes.number,
+      texts: PropTypes.arrayOf(PropTypes.string).isRequired,
+      scores: PropTypes.arrayOf(PropTypes.shape({
+        label: PropTypes.string,
+        value: PropTypes.number,
+      })).isRequired,
+    }).isRequired,
+  }).isRequired,
+  changed: PropTypes.bool.isRequired,
+  theme: PropTypes.object.isRequired,
+  isHe: PropTypes.bool.isRequired,
+};
+
+function MunicipalityComponentCompareAccordion({
+  cid,
+  c,
+  muniAllDays,
+  compNames,
+  theme,
+  isHe,
+  t,
+}) {
+  const daysWithChange = buildDaysWithChange(muniAllDays, cid);
+  const anyChange = daysWithChange.some((d, i) => i > 0 && d.changed);
+  const subLabels = collectSubquestionLabelOrder(muniAllDays, cid, c.scores);
+  const useSubTrend = subLabels.length > 0;
+  const rawTrendRows = useSubTrend
+    ? buildSubquestionTrendData(muniAllDays, cid, subLabels)
+    : buildAvgTrendData(muniAllDays, cid);
+  const nudgeResult = useSubTrend
+    ? nudgeSubquestionRowsForDisplay(rawTrendRows, subLabels)
+    : { rows: rawTrendRows, nudged: false };
+  const trendData = nudgeResult.rows;
+  const subTrendNudged = nudgeResult.nudged;
+  const hasMultiSub = subLabels.length > 1;
+  const trendStrokes = muniTrendStrokes(theme);
+  const tooltipFormatter = (value, name, item) => formatSubTrendTooltip(subLabels, value, name, item);
+
+  return (
+    <Accordion>
+      <AccordionSummary>
+        <Typography variant="cardTitle" component="span">
+          {isHe ? 'השוואה בין ימים' : 'Compare across days'}
+        </Typography>
+        {!anyChange && (
+          <Typography
+            component="span"
+            color="text.secondary"
+            sx={(th) => ({ marginInlineStart: th.spacing(0.5), fontWeight: 400 })}
+          >
+            {isHe ? '— ללא שינוי' : '— no change'}
+          </Typography>
+        )}
+      </AccordionSummary>
+      <AccordionDetails>
+        {trendData.length > 0 && (
+          <Box
+            component="section"
+            aria-label={t('muni.trendTitle')}
+            sx={(th) => ({ width: '100%', marginBottom: th.spacing(2) })}
+          >
+            <Typography
+              variant="eyebrow"
+              color="text.secondary"
+              sx={(th) => ({ marginBottom: th.spacing(1) })}
+            >
+              {t('muni.trendTitle')}
+            </Typography>
+            {useSubTrend ? (
+              <LineChartFrame
+                data={trendData}
+                xKey="day"
+                yDomain={hasMultiSub && subTrendNudged ? [-1.2, 101.2] : [0, 100]}
+                yTicks={hasMultiSub && subTrendNudged ? [0, 25, 50, 75, 100] : undefined}
+                height={subLabels.length > 2 ? 300 : 260}
+                margin={{ top: 8, right: 12, left: 4, bottom: 4 }}
+                legend
+                tooltipFormatter={tooltipFormatter}
+              >
+                {subLabels.map((label, i) => (
+                  <Line
+                    key={`${cid}-q${i}-${label}`}
+                    type="monotone"
+                    dataKey={`q${i}`}
+                    name={label}
+                    stroke={trendStrokes[i % trendStrokes.length]}
+                    strokeWidth={2 + (i % 2) * 0.35}
+                    strokeLinecap="round"
+                    dot={{
+                      r: 2.4 + (i % 3) * 0.4,
+                      strokeWidth: 1,
+                      fill: theme.palette.background.paper,
+                    }}
+                    activeDot={{ r: 3.5 }}
+                    connectNulls
+                  />
+                ))}
+              </LineChartFrame>
+            ) : (
+              <LineChartFrame
+                data={trendData}
+                xKey="day"
+                yDomain={[0, 100]}
+                height={200}
+                margin={{ top: 8, right: 12, left: 4, bottom: 8 }}
+                tooltipFormatter={(value) => [`${value}%`, compNames[cid]]}
+              >
+                <Line
+                  type="monotone"
+                  dataKey="pct"
+                  name={compNames[cid]}
+                  stroke={theme.palette.primary.main}
+                  strokeWidth={2}
+                  dot={{
+                    r: 3,
+                    strokeWidth: 1,
+                    fill: theme.palette.background.paper,
+                  }}
+                  activeDot={{ r: 4 }}
+                  connectNulls
+                />
+              </LineChartFrame>
+            )}
+          </Box>
+        )}
+        {daysWithChange.map((md) => (
+          <MunicipalityDayComparisonRow
+            key={md.date}
+            md={md}
+            changed={md.changed}
+            theme={theme}
+            isHe={isHe}
+          />
+        ))}
+      </AccordionDetails>
+    </Accordion>
+  );
+}
+
+MunicipalityComponentCompareAccordion.propTypes = {
+  cid: PropTypes.string.isRequired,
+  c: PropTypes.shape({
+    scores: PropTypes.array,
+    texts: PropTypes.array,
+  }).isRequired,
+  muniAllDays: PropTypes.array.isRequired,
+  compNames: PropTypes.object.isRequired,
+  theme: PropTypes.object.isRequired,
+  isHe: PropTypes.bool.isRequired,
+  t: PropTypes.func.isRequired,
+};
+
+export function MunicipalitiesTab({ districtId = 'north' }) {
   const { getIdToken, apiReady } = useAuth();
   const { lang, t } = useLanguage();
   const theme = useTheme();
   const isHe = lang === 'he';
+  const scopedDistrict = normalizeIsraelDistrictId(districtId);
   const {
     data,
     loading,
@@ -202,10 +464,18 @@ export function MunicipalitiesTab() {
     setSelectedMuni,
     day,
     muniAllDays,
-    muniDay,
     districtAvg,
     visibleMunicipalities,
-  } = useMunicipalitiesData({ getIdToken, apiReady });
+  } = useMunicipalitiesData({ districtId: scopedDistrict, getIdToken, apiReady });
+
+  const {
+    reviewsByMuni,
+    reload: reloadReviews,
+  } = useMunicipalPboReviews({
+    date: selectedDate,
+    getIdToken,
+    apiReady,
+  });
 
   const compNames = useMemo(() => {
     if (!data) return {};
@@ -214,9 +484,16 @@ export function MunicipalitiesTab() {
 
   if (loading) return <LoadingState>{isHe ? 'טוען נתונים...' : 'Loading data...'}</LoadingState>;
   if (error) return <ErrorState>{`${isHe ? 'שגיאה' : 'Error'}: ${error}`}</ErrorState>;
-  if (!data?.days?.length) return <EmptyState>{isHe ? 'אין נתוני רשויות' : 'No municipality data available.'}</EmptyState>;
+  if (!data?.days?.length) {
+    return (
+      <EmptyState>
+        {t('pbo.local.empty', { district: t(`district.${scopedDistrict}`) })}
+      </EmptyState>
+    );
+  }
 
   const comps = data.componentsOrder;
+  const colSpan = 2 + comps.length;
 
   const dateTabSx = (t) => ({
     '&.Mui-selected': {
@@ -270,35 +547,184 @@ export function MunicipalitiesTab() {
             <TableHead>
               <TableRow>
                 <TableCell sx={{ fontWeight: 600 }}>{isHe ? 'רשות' : 'Municipality'}</TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>{t('pboReview.column')}</TableCell>
                 {comps.map((cid) => (
                   <TableCell key={cid} sx={{ fontWeight: 600 }}>{compNames[cid]}</TableCell>
                 ))}
               </TableRow>
             </TableHead>
             <TableBody>
-              {visibleMunicipalities.map((m) => (
-                <TableRow
-                  key={m.name}
-                  hover
-                  selected={selectedMuni === m.name}
-                  onClick={() => setSelectedMuni(selectedMuni === m.name ? null : m.name)}
-                  sx={{ cursor: 'pointer' }}
-                >
-                  <TableCell>{m.name}</TableCell>
-                  {comps.map((cid) => (
-                    <TableCell
-                      key={cid}
-                      sx={{
-                        fontWeight: 600,
-                        color: scoreColor01(m.components[cid].avg, theme),
-                        background: scoreBg01(m.components[cid].avg, theme),
-                      }}
+              {visibleMunicipalities.map((m) => {
+                const reviewSummary = reviewsByMuni[m.name];
+                const expanded = selectedMuni === m.name;
+                const reviewOpenByDefault = reviewSummary
+                  && !reviewSummary.sufficient
+                  && reviewSummary.status !== 'resolved';
+
+                function selectMunicipality() {
+                  setSelectedMuni(expanded ? null : m.name);
+                }
+
+                return (
+                  <Fragment key={m.name}>
+                    <TableRow
+                      key={m.name}
+                      hover
+                      selected={expanded}
+                      onClick={selectMunicipality}
+                      sx={{ cursor: 'pointer' }}
                     >
-                      {pct(m.components[cid].avg)}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))}
+                      <TableCell>{m.name}</TableCell>
+                      <TableCell>
+                        <Chip
+                          size="small"
+                          label={reviewStatusLabel(reviewSummary, t)}
+                          color={reviewStatusTone(reviewSummary)}
+                          variant={reviewSummary ? 'filled' : 'outlined'}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            selectMunicipality();
+                          }}
+                          sx={{ cursor: 'pointer' }}
+                        />
+                      </TableCell>
+                      {comps.map((cid) => (
+                        <TableCell
+                          key={cid}
+                          sx={{
+                            fontWeight: 600,
+                            color: scoreColor01(m.components[cid].avg, theme),
+                            background: scoreBg01(m.components[cid].avg, theme),
+                          }}
+                        >
+                          {pct(m.components[cid].avg)}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                    <TableRow key={`${m.name}-report`}>
+                      <TableCell
+                        colSpan={colSpan}
+                        sx={(th) => ({
+                          padding: 0,
+                          borderBottom: expanded ? undefined : 'none',
+                          background: th.palette.background.default,
+                        })}
+                      >
+                        <Collapse in={expanded} timeout="auto" unmountOnExit>
+                          <Box
+                            id={`muni-report-${m.name}`}
+                            sx={(th) => ({
+                              padding: th.spacing(2),
+                              borderTop: th.custom.border.hairline,
+                            })}
+                          >
+                            <PageHeader
+                              title={`${m.name} — ${formatDate(selectedDate)}`}
+                              action={(
+                                <Button variant="outlined" size="small" onClick={() => setSelectedMuni(null)}>
+                                  {isHe ? 'סגור' : 'Close'}
+                                </Button>
+                              )}
+                            />
+
+                            <Accordion defaultExpanded={reviewOpenByDefault ?? true} disableGutters>
+                              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                                <Stack direction="row" spacing={1} alignItems="center" useFlexGap flexWrap="wrap">
+                                  <Typography variant="cardTitle" component="span">
+                                    {t('pboReview.reportSection')}
+                                  </Typography>
+                                  <Chip
+                                    size="small"
+                                    label={reviewStatusLabel(reviewSummary, t)}
+                                    color={reviewStatusTone(reviewSummary)}
+                                  />
+                                </Stack>
+                              </AccordionSummary>
+                              <AccordionDetails>
+                                <PboMunicipalReviewPanel
+                                  date={selectedDate}
+                                  municipality={m.name}
+                                  getIdToken={getIdToken}
+                                  apiReady={apiReady}
+                                  summary={reviewSummary}
+                                  onSubmitted={() => { void reloadReviews(); }}
+                                />
+                              </AccordionDetails>
+                            </Accordion>
+
+                            <Stack spacing={1.2} sx={(th) => ({ marginTop: th.spacing(1.5) })}>
+                              {comps.map((cid) => {
+                                const c = m.components[cid];
+                                const avg = c.avg;
+                                const hasText = c.texts.some((txt) => txt.length > 0);
+                                const muniDays = selectedMuni === m.name ? muniAllDays : [];
+
+                                return (
+                                  <Card
+                                    key={cid}
+                                    sx={(t) => ({
+                                      borderInlineStartWidth: 4,
+                                      borderInlineStartStyle: 'solid',
+                                      borderInlineStartColor: scoreColor01(avg, theme),
+                                      paddingTop: t.spacing(1),
+                                      paddingBottom: t.spacing(1),
+                                      paddingLeft: t.spacing(1.5),
+                                      paddingRight: t.spacing(1.5),
+                                      display: 'flex',
+                                      flexDirection: 'column',
+                                      gap: t.spacing(0.75),
+                                    })}
+                                  >
+                                    <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
+                                      <Typography variant="cardTitle" component="h3">{compNames[cid]}</Typography>
+                                      <ScoreBadge value={avg} theme={theme} />
+                                    </Stack>
+
+                                    {hasText
+                                      ? c.texts.map((txt) => (
+                                        <Typography key={`${cid}-text-${txt}`} variant="body2">{txt}</Typography>
+                                      ))
+                                      : (
+                                        <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                                          {isHe ? 'אין התייחסות מילולית' : 'No verbal reference provided'}
+                                        </Typography>
+                                      )}
+
+                                    {c.scores.length > 0 && (
+                                      <Stack direction="row" useFlexGap flexWrap="wrap" spacing={1}>
+                                        {c.scores.map((s) => (
+                                          <ScoreLabelPill
+                                            key={`${cid}-${normalizeScoreLabel(s.label)}`}
+                                            label={s.label}
+                                            value={s.value}
+                                            theme={theme}
+                                          />
+                                        ))}
+                                      </Stack>
+                                    )}
+
+                                    {muniDays.length > 1 && (
+                                      <MunicipalityComponentCompareAccordion
+                                        cid={cid}
+                                        c={c}
+                                        muniAllDays={muniDays}
+                                        compNames={compNames}
+                                        theme={theme}
+                                        isHe={isHe}
+                                        t={t}
+                                      />
+                                    )}
+                                  </Card>
+                                );
+                              })}
+                            </Stack>
+                          </Box>
+                        </Collapse>
+                      </TableCell>
+                    </TableRow>
+                  </Fragment>
+                );
+              })}
             </TableBody>
             {districtAvg && (
               <TableFooter>
@@ -306,6 +732,7 @@ export function MunicipalitiesTab() {
                   <TableCell sx={{ fontWeight: 600, color: 'text.primary' }}>
                     {t('district.avgLabel')}
                   </TableCell>
+                  <TableCell />
                   {comps.map((cid) => (
                     <TableCell key={cid} sx={{ fontWeight: 700, color: scoreColor01(districtAvg[cid], theme) }}>
                       {pct(districtAvg[cid])}
@@ -317,264 +744,10 @@ export function MunicipalitiesTab() {
           </Table>
         </TableContainer>
       )}
-
-      {selectedMuni && muniDay && (
-        <Stack spacing={1.2}>
-          <PageHeader
-            title={`${selectedMuni} — ${formatDate(selectedDate)}`}
-            action={(
-              <Button variant="outlined" size="small" onClick={() => setSelectedMuni(null)}>
-                {isHe ? 'סגור' : 'Close'}
-              </Button>
-            )}
-          />
-
-          {comps.map((cid) => {
-            const c = muniDay.components[cid];
-            const avg = c.avg;
-            const hasText = c.texts.some((t) => t.length > 0);
-            return (
-              <Card
-                key={cid}
-                sx={(t) => ({
-                  borderInlineStartWidth: 4,
-                  borderInlineStartStyle: 'solid',
-                  borderInlineStartColor: scoreColor01(avg, theme),
-                  paddingTop: t.spacing(1),
-                  paddingBottom: t.spacing(1),
-                  paddingLeft: t.spacing(1.5),
-                  paddingRight: t.spacing(1.5),
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: t.spacing(0.75),
-                })}
-              >
-                <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
-                  <Typography variant="cardTitle" component="h3">{compNames[cid]}</Typography>
-                  <ScoreBadge value={avg} theme={theme} />
-                </Stack>
-
-                {hasText
-                  ? c.texts.map((txt, i) => (
-                    <Typography key={i} variant="body2">{txt}</Typography>
-                  ))
-                  : (
-                    <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
-                      {isHe ? 'אין התייחסות מילולית' : 'No verbal reference provided'}
-                    </Typography>
-                  )}
-
-                {c.scores.length > 0 && (
-                  <Stack direction="row" useFlexGap flexWrap="wrap" spacing={1}>
-                    {c.scores.map((s, i) => (
-                      <ScoreLabelPill key={i} label={s.label} value={s.value} theme={theme} />
-                    ))}
-                  </Stack>
-                )}
-
-                {muniAllDays.length > 1 && (() => {
-                  const daysWithChange = muniAllDays.map((md, idx) => {
-                    const mc = md.components[cid];
-                    const prev = idx > 0 ? muniAllDays[idx - 1].components[cid] : null;
-                    const changed = !prev
-                      || mc.avg !== prev.avg
-                      || mc.texts.join('|') !== prev.texts.join('|');
-                    return { ...md, mc, changed };
-                  });
-                  const anyChange = daysWithChange.some((d, i) => i > 0 && d.changed);
-                  const subLabels = collectSubquestionLabelOrder(muniAllDays, cid, c.scores);
-                  const useSubTrend = subLabels.length > 0;
-                  const rawTrendRows = useSubTrend
-                    ? buildSubquestionTrendData(muniAllDays, cid, subLabels)
-                    : buildAvgTrendData(muniAllDays, cid);
-                  const nudgeResult = useSubTrend
-                    ? nudgeSubquestionRowsForDisplay(rawTrendRows, subLabels)
-                    : { rows: rawTrendRows, nudged: false };
-                  const trendData = nudgeResult.rows;
-                  const subTrendNudged = nudgeResult.nudged;
-                  const hasMultiSub = subLabels.length > 1;
-                  const trendStrokes = muniTrendStrokes(theme);
-                  return (
-                    <Accordion>
-                      <AccordionSummary>
-                        <Typography variant="cardTitle" component="span">
-                          {isHe ? 'השוואה בין ימים' : 'Compare across days'}
-                        </Typography>
-                        {!anyChange && (
-                          <Typography
-                            component="span"
-                            color="text.secondary"
-                            sx={(th) => ({ marginInlineStart: th.spacing(0.5), fontWeight: 400 })}
-                          >
-                            {isHe ? '— ללא שינוי' : '— no change'}
-                          </Typography>
-                        )}
-                      </AccordionSummary>
-                      <AccordionDetails>
-                        {trendData.length > 0 && (
-                          <Box
-                            component="section"
-                            aria-label={t('muni.trendTitle')}
-                            sx={(th) => ({ width: '100%', marginBottom: th.spacing(2) })}
-                          >
-                            <Typography
-                              variant="eyebrow"
-                              color="text.secondary"
-                              sx={(th) => ({ marginBottom: th.spacing(1) })}
-                            >
-                              {t('muni.trendTitle')}
-                            </Typography>
-                            {useSubTrend ? (
-                              <LineChartFrame
-                                data={trendData}
-                                xKey="day"
-                                yDomain={hasMultiSub && subTrendNudged ? [-1.2, 101.2] : [0, 100]}
-                                yTicks={hasMultiSub && subTrendNudged ? [0, 25, 50, 75, 100] : undefined}
-                                height={subLabels.length > 2 ? 300 : 260}
-                                margin={{ top: 8, right: 12, left: 4, bottom: 4 }}
-                                legend
-                                tooltipFormatter={(value, name, item) => {
-                                  const row = item?.payload;
-                                  const idx = subLabels.findIndex((l) => l === name);
-                                  if (row && idx >= 0 && row[`q${idx}_raw`] != null) {
-                                    return [`${row[`q${idx}_raw`]}%`, name];
-                                  }
-                                  const v = value == null || Number.isNaN(Number(value))
-                                    ? null
-                                    : Math.round(Number(value));
-                                  return [v == null ? '—' : `${v}%`, name];
-                                }}
-                              >
-                                {subLabels.map((label, i) => (
-                                  <Line
-                                    key={`${cid}-q${i}`}
-                                    type="monotone"
-                                    dataKey={`q${i}`}
-                                    name={label}
-                                    stroke={trendStrokes[i % trendStrokes.length]}
-                                    strokeWidth={2 + (i % 2) * 0.35}
-                                    strokeLinecap="round"
-                                    dot={{
-                                      r: 2.4 + (i % 3) * 0.4,
-                                      strokeWidth: 1,
-                                      fill: theme.palette.background.paper,
-                                    }}
-                                    activeDot={{ r: 3.5 }}
-                                    connectNulls
-                                  />
-                                ))}
-                              </LineChartFrame>
-                            ) : (
-                              <LineChartFrame
-                                data={trendData}
-                                xKey="day"
-                                yDomain={[0, 100]}
-                                height={200}
-                                margin={{ top: 8, right: 12, left: 4, bottom: 8 }}
-                                tooltipFormatter={(value) => [`${value}%`, compNames[cid]]}
-                              >
-                                <Line
-                                  type="monotone"
-                                  dataKey="pct"
-                                  name={compNames[cid]}
-                                  stroke={theme.palette.primary.main}
-                                  strokeWidth={2}
-                                  dot={{
-                                    r: 3,
-                                    strokeWidth: 1,
-                                    fill: theme.palette.background.paper,
-                                  }}
-                                  activeDot={{ r: 4 }}
-                                  connectNulls
-                                />
-                              </LineChartFrame>
-                            )}
-                          </Box>
-                        )}
-                        {daysWithChange.map((md) => {
-                          const { mc, changed } = md;
-                          const mdTexts = mc.texts.filter((t) => t.length > 0);
-                          return (
-                            <Box
-                              key={md.date}
-                              sx={(t) => ({
-                                paddingTop: t.spacing(0.75),
-                                borderTop: `1px dashed ${t.palette.divider}`,
-                                opacity: changed ? 1 : 0.7,
-                                marginTop: t.spacing(0.5),
-                                '&:first-of-type': { borderTop: 'none', marginTop: 0, paddingTop: 0 },
-                              })}
-                            >
-                              <Stack direction="row" alignItems="center" spacing={1}>
-                                <Typography variant="caption" color="text.secondary">
-                                  {formatDate(md.date)}
-                                </Typography>
-                                <Typography
-                                  variant="cardTitle"
-                                  sx={{ color: scoreColor01(mc.avg, theme) }}
-                                >
-                                  {pct(mc.avg)}
-                                </Typography>
-                                {!changed && (
-                                  <Typography variant="caption" color="text.secondary" sx={{ fontStyle: 'italic' }}>
-                                    {isHe ? 'ללא שינוי' : 'unchanged'}
-                                  </Typography>
-                                )}
-                              </Stack>
-                              {changed && (
-                                <>
-                                  {mdTexts.length > 0
-                                    ? mdTexts.map((txt, i) => (
-                                      <Typography
-                                        key={i}
-                                        variant="body2"
-                                        sx={(t) => ({ marginTop: t.spacing(0.5) })}
-                                      >
-                                        {txt}
-                                      </Typography>
-                                    ))
-                                    : (
-                                      <Typography
-                                        variant="body2"
-                                        color="text.secondary"
-                                        sx={(t) => ({ fontStyle: 'italic', marginTop: t.spacing(0.5) })}
-                                      >
-                                        {isHe ? 'אין התייחסות' : 'No text'}
-                                      </Typography>
-                                    )}
-                                  {mc.scores.length > 0 && (
-                                    <Stack
-                                      direction="row"
-                                      useFlexGap
-                                      flexWrap="wrap"
-                                      spacing={0.7}
-                                      sx={(t) => ({ marginTop: t.spacing(0.5) })}
-                                    >
-                                      {mc.scores.map((s, i) => (
-                                        <ScoreLabelPill
-                                          key={i}
-                                          label={s.label}
-                                          value={s.value}
-                                          surface="raised"
-                                          theme={theme}
-                                        />
-                                      ))}
-                                    </Stack>
-                                  )}
-                                </>
-                              )}
-                            </Box>
-                          );
-                        })}
-                      </AccordionDetails>
-                    </Accordion>
-                  );
-                })()}
-              </Card>
-            );
-          })}
-        </Stack>
-      )}
     </Box>
   );
 }
+
+MunicipalitiesTab.propTypes = {
+  districtId: PropTypes.string,
+};

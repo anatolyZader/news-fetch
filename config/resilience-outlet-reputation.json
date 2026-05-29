@@ -1,0 +1,44 @@
+{
+  "ynet.co.il": {
+    "dropped": 0,
+    "verified": 0,
+    "dedup_hits": 32,
+    "last_updated": "2026-05-29T13:56:54.988Z"
+  },
+  "maariv.co.il": {
+    "dropped": 0,
+    "verified": 0,
+    "dedup_hits": 32,
+    "last_updated": "2026-05-29T13:56:55.032Z"
+  },
+  "channel14.co.il": {
+    "dropped": 0,
+    "verified": 0,
+    "dedup_hits": 24,
+    "last_updated": "2026-05-29T13:56:55.040Z"
+  },
+  "haaretz.co.il": {
+    "dropped": 0,
+    "verified": 0,
+    "dedup_hits": 16,
+    "last_updated": "2026-05-29T13:56:55.040Z"
+  },
+  "kan.org.il": {
+    "dropped": 0,
+    "verified": 0,
+    "dedup_hits": 8,
+    "last_updated": "2026-05-29T13:56:55.030Z"
+  },
+  "maariv": {
+    "dropped": 0,
+    "verified": 0,
+    "dedup_hits": 1,
+    "last_updated": "2026-05-29T13:56:58.672Z"
+  },
+  "ynet": {
+    "dropped": 0,
+    "verified": 0,
+    "dedup_hits": 1,
+    "last_updated": "2026-05-29T13:56:58.674Z"
+  }
+}

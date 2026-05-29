@@ -1,36 +1,42 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { normalizeIsraelDistrictId } from '../lib/israelDistricts.js';
 
-export function useMunicipalitiesData({ getIdToken, apiReady }) {
+/**
+ * @param {{ districtId?: string, getIdToken?: () => Promise<string|null>, apiReady?: boolean }} [opts]
+ */
+export function useMunicipalitiesData({ districtId = 'north', getIdToken, apiReady } = {}) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedDate, setSelectedDateState] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(null);
   const [selectedMuni, setSelectedMuni] = useState(null);
+  const district = normalizeIsraelDistrictId(districtId);
+  const scopedDistrict = district === 'national' ? 'north' : district;
 
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const headers = new Headers();
-      const token = await getIdToken();
+      const token = await getIdToken?.();
       if (token) headers.set('Authorization', `Bearer ${token}`);
-      const response = await fetch('/api/municipalities', { headers });
+      const params = new URLSearchParams({ district: scopedDistrict });
+      const response = await fetch(`/api/municipalities?${params.toString()}`, { headers });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const json = await response.json();
       setData(json);
-      if (json.days?.length) setSelectedDateState(json.days[json.days.length - 1].date);
+      if (json.days?.length) setSelectedDate(json.days[json.days.length - 1].date);
+      else setSelectedDate(null);
     } catch (e) {
       setError(e?.message ?? 'Failed to load');
     } finally {
       setLoading(false);
     }
-  }, [getIdToken]);
+  }, [getIdToken, scopedDistrict]);
 
   useEffect(() => {
     if (!apiReady) return;
-    void (async () => {
-      await load();
-    })();
+    void load();
   }, [apiReady, load]);
 
   const day = useMemo(() => {
@@ -65,8 +71,8 @@ export function useMunicipalitiesData({ getIdToken, apiReady }) {
     });
   }, [day]);
 
-  const setSelectedDate = useCallback((date) => {
-    setSelectedDateState(date);
+  const selectDate = useCallback((date) => {
+    setSelectedDate(date);
     setSelectedMuni(null);
   }, []);
 
@@ -75,7 +81,7 @@ export function useMunicipalitiesData({ getIdToken, apiReady }) {
     loading,
     error,
     selectedDate,
-    setSelectedDate,
+    setSelectedDate: selectDate,
     selectedMuni,
     setSelectedMuni,
     day,

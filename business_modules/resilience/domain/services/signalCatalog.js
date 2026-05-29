@@ -308,6 +308,7 @@ export const SIGNAL_CATALOG = [
   { type: 'innovation_under_constraint', domain: 'adaptation', signal_class: 'behavior', label: 'Community invents new method on the fly beyond routine adaptation', defaultPolarity: 'positive', mirror: 'adaptive_practice' },
   { type: 'failure_to_adapt', domain: 'adaptation', signal_class: 'structural_state', label: 'Community or authority sticks with failing approach despite visible evidence', defaultPolarity: 'negative', mirror: 'adaptive_practice' },
   { type: 'cross_event_learning', domain: 'adaptation', signal_class: 'structural_state', label: 'Explicit application of lessons from a prior emergency round', defaultPolarity: 'positive', mirror: 'lessons_learned_uptake' },
+  { type: 'novel_behavior_observed', domain: 'adaptation', signal_class: 'behavior', label: 'Repeated novel behavior pattern detected outside catalog (OOV cluster)', defaultPolarity: 'negative' },
   // Children & Education
   { type: 'educational_continuity', domain: 'education', signal_class: 'structural_state', label: 'Schools or childcare operate (in-person or protected remote) during emergency', defaultPolarity: 'positive' },
   { type: 'educational_disruption', domain: 'education', signal_class: 'structural_state', label: 'Schools, kindergartens, or youth programs closed or severely disrupted', defaultPolarity: 'negative' },
@@ -467,6 +468,7 @@ export const SIGNAL_TO_COMPONENTS = {
   mistrusted_information_source: { information_communication: -0.9, leadership: -0.4, narrative: -0.3 },
   moral_injury_narrative: { narrative: -0.8, wellbeing_at_risk: -0.6 },
   near_miss_reported: { lifesaving_behavior: -0.6, narrative: -0.3, wellbeing_at_risk: -0.5 },
+  novel_behavior_observed: { wellbeing_at_risk: -0.35, community_capital: -0.25, information_communication: -0.2 },
   news_avoidance_behavior: { information_communication: -0.6, lifesaving_behavior: -0.3 },
   non_compliance_due_to_distrust: { lifesaving_behavior: -0.9, information_communication: -0.5, leadership: -0.4 },
   non_compliance_exit_early: { lifesaving_behavior: -1.2 },

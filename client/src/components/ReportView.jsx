@@ -21,7 +21,12 @@ import HelpOutlineOutlinedIcon from '@mui/icons-material/HelpOutlineOutlined';
 import { expandSourceCitationLinks } from './ReportMarkdownView.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { scoreColor10, scoreLabel10, scoreVariant10 } from '../lib/score.js';
-import { DriftSparkline, ResilienceSummaryCard, StatusTag, MarkdownArticle } from '../ui/index.js';
+import { DriftSparkline, StatusTag, MarkdownArticle } from '../ui/index.js';
+import { AttentionPanel } from './AttentionPanel.jsx';
+import { EpistemicStatusBanner } from './EpistemicStatusBanner.jsx';
+import { EvidenceOverviewPanel } from './EvidenceOverviewPanel.jsx';
+import { ValidationReviewPanel } from './ValidationReviewPanel.jsx';
+import { OovAnomalyClustersPanel } from './OovAnomalyClustersPanel.jsx';
 import PropTypes from 'prop-types';
 import {
   assessmentShape,
@@ -293,6 +298,9 @@ function InstrumentStateBadges({ instrument, t }) {
       </StatusTag>
       <StatusTag variant="neutral">{t(suffKey)}</StatusTag>
       {inst.contested && <ContestedBadge t={t} />}
+      {inst.contested_evidence && !inst.contested && (
+        <StatusTag variant="alert">{t('report.instrument.contestedEvidence')}</StatusTag>
+      )}
       {inst.significant_delta && (
         <StatusTag variant="alert">{t('report.delta.significant')}</StatusTag>
       )}
@@ -308,6 +316,9 @@ function InstrumentStateBadges({ instrument, t }) {
       {inst.thin_evidence_instrument === 'unverified_alert' && (
         <StatusTag variant="alert">{t('report.instrument.unverifiedAlert')}</StatusTag>
       )}
+      {inst.thin_evidence_instrument === 'critical_presence_failure' && (
+        <StatusTag variant="critical">{t('report.instrument.criticalPresenceFailure')}</StatusTag>
+      )}
       {inst.thin_evidence_instrument === 'critical_single_signal' && (
         <StatusTag variant="alert">{t('report.instrument.criticalSingleSignal')}</StatusTag>
       )}
@@ -316,6 +327,12 @@ function InstrumentStateBadges({ instrument, t }) {
       )}
       {inst.thin_evidence_instrument === 'limited_evidence_neutral' && (
         <StatusTag variant="neutral">{t('report.instrument.limitedNeutral')}</StatusTag>
+      )}
+      {inst.interpretive_summary && (
+        <StatusTag variant="warning">{t('report.instrument.interpretiveSummary')}</StatusTag>
+      )}
+      {inst.source_cap_binding && (
+        <StatusTag variant="warning">{t('report.instrument.sourceCapBinding')}</StatusTag>
       )}
     </Stack>
   );
@@ -518,6 +535,7 @@ function FacetBars({ facets, t }) {
           const labelKey = `report.facet.${name}`;
           const facetLabel = t(labelKey) === labelKey ? name : t(labelKey);
           const pct = f.score == null ? 0 : (f.score / 10) * 100;
+          const showScore = f.score != null;
           return (
             <Box key={name}>
               <Stack direction="row" justifyContent="space-between" alignItems="center">
@@ -525,17 +543,18 @@ function FacetBars({ facets, t }) {
                   {facetLabel}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
-                  {f.score == null ? '—' : `${f.score}/10`}
-                  {' · '}
+                  {showScore ? `${f.score}/10 · ` : ''}
                   {f.signal_count ?? 0}
                 </Typography>
               </Stack>
-              <LinearProgress
-                variant="determinate"
-                value={pct}
-                color={facetBarColor(f.score)}
-                sx={{ height: 6, borderRadius: 3, opacity: f.score == null ? 0.3 : 1 }}
-              />
+              {showScore && (
+                <LinearProgress
+                  variant="determinate"
+                  value={pct}
+                  color={facetBarColor(f.score)}
+                  sx={{ height: 6, borderRadius: 3, opacity: f.score == null ? 0.3 : 1 }}
+                />
+              )}
             </Box>
           );
         })}
@@ -619,8 +638,8 @@ function ComponentCard({
   const curatedEvidence = isFiltered ? null : (comp.evidence ?? []);
   const evidenceCount = isFiltered ? signals.length : curatedEvidence.length;
   const isInsufficient = comp.confidence === 'insufficient_data'
-    || (!isAnalyst && comp.instrument?.operator_shows_score === false)
-    || (isAnalyst && comp.score == null);
+    || comp.instrument?.operator_shows_score === false
+    || comp.score == null;
   const isContested = comp.polarization != null && comp.polarization > 0.5
     && (comp.evidence_mass ?? 0) > 4;
 
@@ -659,22 +678,13 @@ function ComponentCard({
           spacing={1}
           sx={{ flexShrink: 0, marginLeft: 'auto', textAlign: 'right', maxWidth: '55%' }}
         >
-          {isAnalyst ? (
-            <>
-              <ScoreWithInterval comp={comp} t={t} />
-              <DeltaAdornment
-                delta={comp.delta_score}
-                significant={comp.delta_flag === 'significant'}
-                t={t}
-              />
-              <Tooltip title="Confidence level">
-                <Typography variant="caption" color="text.secondary">
-                  Confidence: {confidenceLabel}
-                </Typography>
-              </Tooltip>
-            </>
-          ) : (
-            <InstrumentStateBadges instrument={comp.instrument} t={t} />
+          <InstrumentStateBadges instrument={comp.instrument} t={t} />
+          {isAnalyst && (
+            <DeltaAdornment
+              delta={comp.delta_score}
+              significant={comp.delta_flag === 'significant'}
+              t={t}
+            />
           )}
         </Stack>
       </AccordionSummary>
@@ -692,39 +702,11 @@ function ComponentCard({
         {isAnalyst && <WhyThisScore comp={comp} t={t} />}
         {isAnalyst && <DeltaLine comp={comp} t={t} />}
         {isAnalyst && <CounterfactualHint comp={comp} t={t} />}
-        <MarkdownArticle variant="report" markdown={expandSourceCitationLinks(comp.narrative ?? '')} />
-        {Array.isArray(comp.manifestations_absent) && comp.manifestations_absent.length > 0 && (
-          <Box sx={(theme) => ({ marginTop: theme.spacing(1) })}>
-            <Typography variant="meta" color="text.secondary">{t('report.manifestations.absent')}</Typography>
-            <Box component="ul" sx={{ margin: 0, paddingLeft: 2 }}>
-              {comp.manifestations_absent.map((m) => (
-                <Typography component="li" variant="body2" key={m}>{m}</Typography>
-              ))}
-            </Box>
-          </Box>
-        )}
-        {isAnalyst && comp.media_mention_mass != null && comp.media_mention_mass > 0 && (
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', marginTop: 0.5 }}>
-            {t('report.mediaMentionMass').replace('{value}', comp.media_mention_mass.toFixed(2))}
+        {comp.data_quality_caveat && String(comp.data_quality_caveat).trim() && (
+          <Typography variant="caption" color="info.main" sx={{ display: 'block', marginBottom: 1 }}>
+            {t('report.dataQualityCaveat')}: {comp.data_quality_caveat}
           </Typography>
         )}
-        {isAnalyst && comp.suppression_delta != null && Math.abs(comp.suppression_delta) >= 1 && (
-          <Typography variant="caption" color="warning.main" sx={{ display: 'block', marginTop: 1 }}>
-            {t('report.suppression.delta')
-              .replace('{raw}', String(comp.score_raw ?? '—'))
-              .replace('{headline}', String(comp.score_headline ?? comp.score ?? '—'))}
-            {comp.suppression_breakdown && (
-              <>
-                {' · '}
-                {t('report.suppression.breakdown')
-                  .replace('{cap}', comp.suppression_breakdown.source_cap ?? '—')
-                  .replace('{floor}', comp.suppression_breakdown.min_mass_floor ?? '—')}
-              </>
-            )}
-          </Typography>
-        )}
-        {isAnalyst && <FacetBars facets={comp.facets} t={t} />}
-
         {evidenceCount > 0 && (
           <Accordion
             expanded={evidenceOpen}
@@ -738,7 +720,7 @@ function ComponentCard({
                 boxShadow: 'none',
                 backgroundColor: 'transparent',
               }
-              : { borderRadius: `${theme.custom.radius.section}px !important` })}
+              : { borderRadius: `${theme.custom.radius.section}px !important`, marginBottom: theme.spacing(1) })}
           >
             <AccordionSummary sx={(theme) => ({
               color: theme.palette.text.secondary,
@@ -796,6 +778,63 @@ function ComponentCard({
             </AccordionDetails>
           </Accordion>
         )}
+        <MarkdownArticle variant="report" markdown={expandSourceCitationLinks(comp.narrative ?? '')} />
+        {(comp.interpretive_summary || comp.instrument?.interpretive_summary) && (
+          <Typography variant="caption" color="warning.main" sx={{ display: 'block', marginTop: 1 }}>
+            {t('report.narrative.interpretiveSummary')}
+          </Typography>
+        )}
+        {isAnalyst && comp.narrative_grounding_score != null && comp.narrative_grounding_score < 1 && (
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', marginTop: 0.5 }}>
+            {t('report.narrative.groundingScore').replace('{score}', String(comp.narrative_grounding_score))}
+          </Typography>
+        )}
+        {Array.isArray(comp.manifestations_absent) && comp.manifestations_absent.length > 0 && (
+          <Box sx={(theme) => ({ marginTop: theme.spacing(1) })}>
+            <Typography variant="meta" color="text.secondary">{t('report.manifestations.absent')}</Typography>
+            <Box component="ul" sx={{ margin: 0, paddingLeft: 2 }}>
+              {comp.manifestations_absent.map((m) => (
+                <Typography component="li" variant="body2" key={m}>{m}</Typography>
+              ))}
+            </Box>
+          </Box>
+        )}
+        {isAnalyst && comp.media_mention_mass != null && comp.media_mention_mass > 0 && (
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', marginTop: 0.5 }}>
+            {t('report.mediaMentionMass').replace('{value}', comp.media_mention_mass.toFixed(2))}
+          </Typography>
+        )}
+        {isAnalyst && comp.suppression_delta != null && Math.abs(comp.suppression_delta) >= 1 && (
+          <Typography variant="caption" color="warning.main" sx={{ display: 'block', marginTop: 1 }}>
+            {t('report.suppression.delta')
+              .replace('{raw}', String(comp.score_raw ?? '—'))
+              .replace('{headline}', String(comp.score_headline ?? comp.score ?? '—'))}
+            {comp.suppression_breakdown && (
+              <>
+                {' · '}
+                {t('report.suppression.breakdown')
+                  .replace('{cap}', comp.suppression_breakdown.source_cap ?? '—')
+                  .replace('{floor}', comp.suppression_breakdown.min_mass_floor ?? '—')}
+              </>
+            )}
+          </Typography>
+        )}
+        {isAnalyst && comp.score_calibrated != null && (comp.calibration_trust ?? 1) < 1 && (
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', marginTop: 0.5 }}>
+            {t('report.calibration.component')
+              .replace('{score}', String(comp.score_calibrated))
+              .replace('{trust}', String(Math.round((comp.calibration_trust ?? 0) * 100)))}
+          </Typography>
+        )}
+        {isAnalyst && comp.weight_sensitivity?.reliable && comp.weight_sensitivity?.band_width != null && (
+          <Typography variant="caption" color={comp.weight_sensitivity.fragile ? 'warning.main' : 'text.secondary'} sx={{ display: 'block', marginTop: 0.5 }}>
+            {t('report.weightSensitivity.band')
+              .replace('{low}', String(comp.weight_sensitivity.perturbed_low ?? '—'))
+              .replace('{high}', String(comp.weight_sensitivity.perturbed_high ?? '—'))
+              .replace('{width}', String(comp.weight_sensitivity.band_width))}
+          </Typography>
+        )}
+        {isAnalyst && <FacetBars facets={comp.facets} t={t} />}
 
         {isFiltered && signals.length === 0 && (
           <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
@@ -814,22 +853,26 @@ export function ReportView({
   readOnly = false,
   translating,
   translateError,
-  reportDate: _reportDate,
-  reportScope: _reportScope,
+  reportDate,
+  reportScope,
   driftByComponent,
   driftLoading,
+  attentionItems,
+  driftAlerts,
+  onJumpToComponent,
   openCompId: openCompIdProp,
   setOpenCompId: setOpenCompIdProp,
   openEvidenceCompId: openEvidenceCompIdProp,
   setOpenEvidenceCompId: setOpenEvidenceCompIdProp,
+  showValidationReview = false,
 }) {
   const isAnalyst = displayTier === 'analyst';
   const { t } = useLanguage();
   const theme = useTheme();
-  const overall = assessment.overall_resilience_score;
   const [openCompIdInternal, setOpenCompIdInternal] = useState(null);
   const [openEvidenceCompIdInternal, setOpenEvidenceCompIdInternal] = useState(null);
   const compRefs = useRef({});
+  const validationReviewRef = useRef(null);
 
   const openCompId = openCompIdProp ?? openCompIdInternal;
   const setOpenCompId = setOpenCompIdProp ?? setOpenCompIdInternal;
@@ -840,12 +883,6 @@ export function ReportView({
   const norrisCaps = assessment.norris_capacities ?? [];
   const driftMap = driftByComponent ?? {};
   const methodology = assessment.methodology ?? null;
-  const dataVoid = assessment.data_void ?? null;
-  const epistemicStatus = assessment.epistemic_status ?? null;
-  const assessmentMode = assessment.assessment_mode ?? 'normal';
-  const staleDigital = assessment.stale_digital_scores ?? null;
-  const geoQuality = methodology?.scope?.geo_quality_summary ?? null;
-  const geoMetricsSafePct = geoQuality?.pctUsableForMetrics ?? null;
 
   function getSourceSignals(compId) {
     if (!scoreBySource) return null;
@@ -882,99 +919,45 @@ export function ReportView({
         </Alert>
       )}
 
-      {dataVoid?.level && dataVoid.level !== 'none' && (
-        <Alert severity="error" variant="filled">
-          {t('report.dataVoid.banner')
-            .replace('{level}', dataVoid.level)
-            .replace('{digital}', dataVoid.digital_darkness ? 'yes' : 'no')}
-          {dataVoid.information_vacuum_index != null && (
-            <> · {t('report.dataVoid.vacuumIndex').replace('{value}', dataVoid.information_vacuum_index.toFixed(2))}</>
-          )}
-          {epistemicStatus?.sampling_status && (
-            <> · {t('report.epistemicStatus.sampling').replace('{status}', epistemicStatus.sampling_status)}</>
-          )}
-          {dataVoid.reason && (
-            <> · {t('report.epistemicStatus.reason').replace('{reason}', dataVoid.reason)}</>
-          )}
-        </Alert>
-      )}
+      <EpistemicStatusBanner
+        assessment={assessment}
+        displayTier={displayTier}
+        attentionItems={attentionItems}
+      />
 
-      {assessmentMode === 'field_anchor_only' && (
-        <Alert severity="warning" variant="outlined">
-          {t('report.epistemicStatus.fieldAnchorOnly')}
-          {staleDigital?.scored_at && (
-            <> · {t('report.epistemicStatus.staleAt').replace('{at}', staleDigital.scored_at)}</>
-          )}
-        </Alert>
-      )}
+      <EvidenceOverviewPanel
+        assessment={assessment}
+        reportScope={reportScope}
+        displayTier={displayTier}
+      />
 
-      {epistemicStatus?.sampling_status === 'blind' && assessmentMode === 'abstained' && (
-        <Alert severity="warning" variant="filled">
-          {t('report.epistemicStatus.samplingBlind')}
-        </Alert>
-      )}
+      <AttentionPanel
+        items={attentionItems}
+        driftAlerts={driftAlerts}
+        displayTier={displayTier}
+        onJumpToComponent={onJumpToComponent}
+        onScrollToValidationReview={showValidationReview ? () => {
+          validationReviewRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } : undefined}
+      />
 
-      {Array.isArray(dataVoid?.affected_clusters) && dataVoid.affected_clusters.length > 0 && (
-        <Alert severity="info" variant="outlined">
-          {t('report.dataVoid.clusters').replace('{n}', String(dataVoid.affected_clusters.length))}
-        </Alert>
-      )}
+      <OovAnomalyClustersPanel
+        oovBurst={assessment.oov_burst}
+        oovCaptureCount={assessment.oov_capture_count}
+        oovScoringApplied={assessment.oov_scoring_applied}
+        isAnalyst={isAnalyst}
+      />
 
-      {Array.isArray(assessment.macro_signals) && assessment.macro_signals.length > 0 && (
-        <Alert severity="info" variant="outlined">
-          {t('report.macroSignals.banner').replace('{n}', String(assessment.macro_signals.length))}
-        </Alert>
-      )}
-      {!Array.isArray(assessment.macro_signals) && assessment.macro_signals_summary?.count > 0 && (
-        <Alert severity="info" variant="outlined">
-          {t('report.macroSignals.banner').replace('{n}', String(assessment.macro_signals_summary.count))}
-        </Alert>
-      )}
-
-      {isAnalyst && assessment.oov_capture_count > 0 && (
-        <Alert severity="warning" variant="outlined">
-          {t('report.oovCapture.count').replace('{n}', String(assessment.oov_capture_count))}
-        </Alert>
-      )}
-
-      {geoMetricsSafePct != null && geoMetricsSafePct < 75 && _reportScope === 'north' && (
-        <Alert severity="warning" variant="outlined">
-          {t('report.methodology.northGeoQualityWarning').replace('{pct}', String(Math.round(geoMetricsSafePct)))}
-        </Alert>
+      {showValidationReview && (
+        <ValidationReviewPanel
+          ref={validationReviewRef}
+          reportDate={reportDate}
+          reportScope={reportScope}
+          enabled={showValidationReview}
+        />
       )}
 
       <MacroSignalsSection macroSignals={assessment.macro_signals} t={t} isAnalyst={isAnalyst} />
-
-      {isAnalyst && (
-        <>
-          <ResilienceSummaryCard
-            statusText={scoreLabel(overall, t)}
-            statusColor={scoreColor10(overall, theme)}
-            title={t('report.overallLabel')}
-            flat={readOnly}
-          />
-          <Box
-            sx={(theme) => ({
-              display: 'flex',
-              flexDirection: 'row',
-              flexWrap: 'wrap',
-              gap: theme.spacing(0.5),
-              minWidth: 0,
-            })}
-          >
-            {components.map((c) => (
-              <ComponentChip
-                key={c.component_id}
-                label={t(`comp.${c.component_id}`) ?? c.component_id.replaceAll('_', ' ')}
-                value={c.score}
-                variant={scoreVariant10(c.score)}
-                t={t}
-                comp={c}
-              />
-            ))}
-          </Box>
-        </>
-      )}
 
       {isAnalyst && Array.isArray(norrisCaps) && norrisCaps.length > 0 && (
         <ReportSection flat={readOnly} title={t('report.norris.title') ?? 'Norris capacities'}>
@@ -1025,8 +1008,8 @@ export function ReportView({
                   </Box>
 
                   <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
-                    <StatusTag variant={scoreVariant10(cap.score)}>
-                      {cap.score == null ? '—' : `${cap.score.toFixed(1)}/10`}
+                    <StatusTag variant={cap.score == null ? 'neutral' : scoreVariant10(cap.score)}>
+                      {cap.score == null ? (t('report.insufficientData') ?? 'insufficient data') : t(`confidence.${cap.confidence ?? 'medium'}`)}
                     </StatusTag>
                     <Typography variant="body2" color="text.secondary">
                       {t('norris.evidenceLevel') ?? 'Evidence level'}: {cap.certainty == null ? '—' : `${Math.round(cap.certainty * 100)}%`}
@@ -1243,8 +1226,12 @@ ReportView.propTypes = {
   reportScope: PropTypes.string,
   driftByComponent: driftByComponentShape,
   driftLoading: PropTypes.bool,
+  attentionItems: PropTypes.arrayOf(PropTypes.object),
+  driftAlerts: PropTypes.arrayOf(PropTypes.object),
+  onJumpToComponent: PropTypes.func,
   openCompId: PropTypes.string,
   setOpenCompId: PropTypes.func,
   openEvidenceCompId: PropTypes.string,
   setOpenEvidenceCompId: PropTypes.func,
+  showValidationReview: PropTypes.bool,
 };

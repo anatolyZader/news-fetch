@@ -16,11 +16,11 @@ import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import { useTheme, alpha } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
-import { useTodayReport, readStoredReportView, writeStoredReportView } from './hooks/useAnalysis.js';
+import { useTodayReport } from './hooks/useAnalysis.js';
 import { usePanelPopups } from './hooks/usePanelPopups.js';
 import { useDisplayCapabilities } from './hooks/useDisplayCapabilities.js';
 import { useTranslatedReport } from './hooks/useTranslatedReport.js';
-import { useResilienceDrift } from './hooks/useResilienceDrift.js';
+import { getAnalystSiteUrl } from './lib/analystSiteUrl.js';
 import { ReportView } from './components/ReportView.jsx';
 import { ChatPanel } from './components/ChatPanel.jsx';
 import { DocsPanel } from './components/DocsPanel.jsx';
@@ -223,17 +223,16 @@ function readReportScope() {
 
 function AppShell() {
   const { logout, authRequired, user } = useAuth();
-  const [reportScope, setReportScope] = useState(() => readReportScope());
-  const [reportView, setReportView] = useState(() => readStoredReportView());
   const { canViewAnalyst } = useDisplayCapabilities();
+  const analystSiteUrl = getAnalystSiteUrl();
+  const [reportScope, setReportScope] = useState(() => readReportScope());
   const {
     report,
     scoreBySource,
     reportDate,
-    displayView,
     initialReportLoadDone,
     reportMissingHint,
-  } = useTodayReport(reportScope, reportView);
+  } = useTodayReport(reportScope);
   const [activeTab, setActiveTab] = useState(() => readMainTab());
   const [activePoolTab, setActivePoolTab] = useState(() => readPoolTab());
   const [activePboTab, setActivePboTab] = useState(() => readPboTab());
@@ -351,23 +350,6 @@ function AppShell() {
 
   const { t, lang } = useLanguage();
   const { displayReport, translating, translateError } = useTranslatedReport(report, lang);
-  const driftDays = 7;
-  const analystUi = canViewAnalyst && reportView === 'analyst' && displayView === 'analyst';
-  const { data: driftData, loading: driftLoading } = useResilienceDrift({
-    scope: reportScope,
-    days: driftDays,
-    endDate: reportDate || '',
-    enabled: analystUi,
-  });
-
-  useEffect(() => {
-    if (!canViewAnalyst && reportView === 'analyst') {
-      queueMicrotask(() => {
-        setReportView('operator');
-        writeStoredReportView('operator');
-      });
-    }
-  }, [canViewAnalyst, reportView]);
 
   useEffect(() => {
     const applyDeepLink = () => {
@@ -576,6 +558,17 @@ function AppShell() {
           >
             {t('app.settings')}
           </MenuItem>
+          {user && canViewAnalyst && (
+            <MenuItem
+              component="a"
+              href={analystSiteUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={closeMoreMenu}
+            >
+              {t('app.analystView')}
+            </MenuItem>
+          )}
           {authRequired && (
             <MenuItem
               onClick={() => {
@@ -670,22 +663,6 @@ function AppShell() {
                     <ToggleButton value="national">{t('report.scope.national')}</ToggleButton>
                     <ToggleButton value="north">{t('report.scope.north')}</ToggleButton>
                   </ToggleButtonGroup>
-                  {canViewAnalyst && (
-                    <ToggleButtonGroup
-                      exclusive
-                      size="small"
-                      value={reportView}
-                      onChange={(_, next) => {
-                        if (!next) return;
-                        setReportView(next);
-                        writeStoredReportView(next);
-                      }}
-                      aria-label={t('report.view.label')}
-                    >
-                      <ToggleButton value="operator">{t('report.view.operator')}</ToggleButton>
-                      <ToggleButton value="analyst">{t('report.view.analyst')}</ToggleButton>
-                    </ToggleButtonGroup>
-                  )}
                 </Box>
               )}
             />
@@ -787,14 +764,12 @@ function AppShell() {
                     <ReportView
                       assessment={displayReport}
                       scoreBySource={displayReport?.score_by_source ?? scoreBySource}
-                      displayTier={analystUi ? 'analyst' : 'operator'}
+                      displayTier="operator"
                       readOnly
                       translating={translating}
                       translateError={translateError}
                       reportDate={reportDate}
                       reportScope={reportScope}
-                      driftByComponent={driftData?.per_component ?? null}
-                      driftLoading={driftLoading}
                       openCompId={openReportCompId}
                       setOpenCompId={setOpenReportCompId}
                       openEvidenceCompId={openReportEvidenceCompId}

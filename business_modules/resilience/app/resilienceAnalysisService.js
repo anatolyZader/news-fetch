@@ -3,7 +3,6 @@
  * Reuses resilience domain scoring and LLM pipeline via injected ports.
  */
 import { assertValidResilienceContentBatch } from '../domain/services/resilienceBatchValidation.js';
-import { scoreComponents } from '../domain/services/resilienceScoring.js';
 import { mergeDualExtractionSignals } from '../infrastructure/dualModelExtract.js';
 import {
   filterSignalsForScope,
@@ -14,11 +13,19 @@ import {
   annotateSignalsEpistemics,
   partitionMacroSignals,
 } from '../domain/services/evidenceEligibility.js';
-import { computeDataVoidIndex, applyEpistemicGate, attachEpistemicToAssessment } from '../domain/services/dataVoidIndex.js';
+import { attachEpistemicToAssessment } from '../domain/services/dataVoidIndex.js';
 import { salienceContextFromDataVoid } from '../domain/services/highSalienceBypass.js';
 import { countOovCapturesForDate } from '../domain/services/oovCapture.js';
-import { loadHistoricalSignalDays } from '../input/assessSignalsHelpers.js';
+import {
+  getSocialQuarantineDecision,
+} from '../domain/services/socialQuarantineOverrides.js';
+import { loadHistoricalScores } from '../input/assessSignalsHelpers.js';
+import { runScoringPipeline } from './scoringPipelinePrep.js';
+import { prepareScoringSignals } from './prepareScoringSignals.js';
 import { loadConnectivityProbeSignals } from '../infrastructure/adapters/connectivityProbeFileAdapter.js';
+import { enrichProbeSignalsInList } from '../domain/services/probeCorroborationPolicy.js';
+import { summarizeValidationMaturity } from '../validation/domain/validationStatus.js';
+import { isRegionalReportScope } from '../../../cross-cut-modules/geo/reportScopeIds.js';
 
 /** Aligned with infrastructure/mdReportsLoader.js body cap */
 export const MAX_BODY_CHARS = 2000;
@@ -102,7 +109,14 @@ export async function runResilienceAssessment(batch, options = {}) {
       ...llmOpts,
       extractModel: secondModel,
     });
-    allSignals = mergeDualExtractionSignals(allSignals, pass2);
+    const requireAgreement = process.env.RESILIENCE_DUAL_REQUIRE_AGREEMENT !== '0';
+    const merged = mergeDualExtractionSignals(allSignals, pass2, { requireAgreement });
+    if (merged.dual_veto_dropped > 0) {
+      console.error(
+        `  → dual extract veto dropped ${merged.dual_veto_dropped} signal(s) without cross-pass agreement`,
+      );
+    }
+    allSignals = merged.signals;
   }
 
   // Extract signals from supplementary batch (field reports) separately using their own prompt
@@ -117,43 +131,51 @@ export async function runResilienceAssessment(batch, options = {}) {
     allSignals = [...allSignals, ...probeSignals];
   }
 
+  allSignals = enrichProbeSignalsInList(allSignals);
   allSignals = filterSignalsForScope(allSignals, reportScopeId);
   allSignals = annotateSignalsEpistemics(allSignals, { reportScope: reportScopeId });
   const { metricsSignals, macroSignals } = partitionMacroSignals(allSignals, reportScopeId);
-  const signalsForScoring = reportScopeId === 'north' ? metricsSignals : allSignals;
+  const baseSignalsForScoring = isRegionalReportScope(reportScopeId) ? metricsSignals : allSignals;
+
+  const reportsDir = options.reportsDir ?? 'reports';
+  const prepared = await prepareScoringSignals({
+    signalsForScoring: baseSignalsForScoring,
+    reportDate: batch.reportDate,
+    reportScopeId,
+    reportsDir,
+  });
+
+  let signalsForScoring = prepared.signalsForScoring;
+  const dataVoid = prepared.dataVoid;
+  const osintChannelQuarantine = prepared.osintChannelQuarantine;
+  const oovBurst = prepared.oovBurst;
+  const oovScoringApplied = prepared.oovScoringApplied;
+  const priorQuarantine = prepared.priorQuarantine;
 
   const totalArticles = articles.length + supplementaryArticles.length;
   const narrativeContentKind = supplementaryArticles.length > 0 ? 'mixed' : batch.contentKind;
 
-  const reportsDir = options.reportsDir ?? 'reports';
-  const historicalSignalDays = loadHistoricalSignalDays(
-    batch.reportDate,
-    reportsDir,
-    7,
-    reportScopeId,
-  );
-  const dataVoid = computeDataVoidIndex(signalsForScoring, historicalSignalDays, {
-    reportScope: reportScopeId,
+  const salienceContext = salienceContextFromDataVoid(dataVoid);
+  const validationMaturity = summarizeValidationMaturity({
+    rootDir: options.reportsDir ?? process.cwd(),
   });
+  const historicalScores = loadHistoricalScores(batch.reportDate, reportsDir, 14, reportScopeId);
 
-  let salienceContext = salienceContextFromDataVoid(dataVoid);
-  const digitalInclusiveScored = scoreComponents(signalsForScoring, {
-    totalArticles,
-    mediaSignals: allSignals,
-    salienceContext,
-  });
-
-  const gateResult = applyEpistemicGate({
-    scoredFull: digitalInclusiveScored,
+  const pipelineResult = runScoringPipeline({
     signalsForScoring,
     dataVoid,
     totalArticles,
     mediaSignals: allSignals,
     salienceContext,
-    digitalInclusiveScored,
+    historicalScores,
+    scopeId: reportScopeId,
+    validationMaturity,
+    priorQuarantine,
+    reportDate: batch.reportDate,
   });
 
-  const scoredComponents = gateResult.scoredFull;
+  const scoredComponents = pipelineResult.scoredFull;
+  signalsForScoring = pipelineResult.scoringSignals;
   const oovCaptureCount = countOovCapturesForDate(batch.reportDate);
   const assessment = await llmPort.generateNarratives(
     scoredComponents,
@@ -170,15 +192,37 @@ export async function runResilienceAssessment(batch, options = {}) {
       allScopedSignals: allSignals,
       dataVoid,
       oovCaptureCount,
+      socialChannelQuarantine: osintChannelQuarantine,
+      quarantinedDigital: pipelineResult.quarantinedDigital,
     },
   );
 
   attachEpistemicToAssessment(assessment, {
     dataVoid,
-    epistemicStatus: gateResult.epistemicStatus,
-    assessmentMode: gateResult.assessmentMode,
-    staleDigitalScores: gateResult.staleDigitalScores,
+    epistemicStatus: pipelineResult.epistemicStatus,
+    assessmentMode: pipelineResult.assessmentMode,
+    staleDigitalScores: pipelineResult.staleDigitalScores,
+    quarantinedDigital: pipelineResult.quarantinedDigital,
+    digitalQuarantineState: pipelineResult.digitalQuarantineState,
   });
+
+  assessment.oov_burst = oovBurst;
+  if (oovScoringApplied) {
+    assessment.oov_scoring_applied = oovScoringApplied;
+  }
+  if (osintChannelQuarantine) {
+    const decision = osintChannelQuarantine.active
+      ? getSocialQuarantineDecision(batch.reportDate, reportScopeId)
+      : null;
+    assessment.social_channel_quarantine = {
+      ...osintChannelQuarantine,
+      ...(decision?.created_at ? { confirmed_at: decision.created_at } : {}),
+    };
+  }
+
+  if (pipelineResult.epistemicEnrichment.overall_score_calibrated != null) {
+    assessment.overall_score_calibrated = pipelineResult.epistemicEnrichment.overall_score_calibrated;
+  }
 
   const allArticles = [...articles, ...supplementaryArticles];
   const sourceFilesForReport =

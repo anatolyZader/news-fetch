@@ -9,8 +9,8 @@ import { useLanguage } from '../context/LanguageContext.jsx';
 import { LanguageSelector } from '../components/LanguageSelector.jsx';
 import { getDocsBaseUrl, getSupportEmail, joinDocsPath } from '../lib/docsUrl.js';
 
-const COPYRIGHT = '© 2026 VibesWitch.ai';
-const BRAND_NAME = 'Vibes Witch';
+const COPYRIGHT = '© 2026 srulik.ai';
+const BRAND_NAME = 'Srulik\'s lab';
 
 const FOOTER_ROOT_SX = (theme) => ({
   width: '100%',

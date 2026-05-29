@@ -104,6 +104,13 @@ else
 fi
 echo ""
 
+# ── Step 7b: Municipal PBO completeness review + follow-up email ───────────
+echo "── Step 7b: Municipal PBO completeness review ──"
+node business_modules/pbo_report_review/input/runMunicipalPboReview.js --date "$TODAY" 2>/dev/null \
+  && echo "  Done" \
+  || echo "  SKIP (review failed or no data)"
+echo ""
+
 # ── Step 7: Extract PBO municipality signals ──────────────────────────────
 echo "── Step 7: PBO municipality signals ──"
 node business_modules/pbo_report_muni/input/extract-pbo-signals.js 2>/dev/null \

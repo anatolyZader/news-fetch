@@ -1,0 +1,24 @@
+{
+  "operatorDistrictEnforcementEnabled": false,
+  "users": [
+    {
+      "email": "myzader@gmail.com",
+      "level": "analyst"
+    },
+    {
+      "email": "example.north@example.com",
+      "level": "operator",
+      "districtIds": ["north"]
+    },
+    {
+      "email": "example.multi@example.com",
+      "level": "operator",
+      "districtIds": ["north", "south"]
+    },
+    {
+      "email": "example.admin@example.com",
+      "level": "operator",
+      "allDistricts": true
+    }
+  ]
+}

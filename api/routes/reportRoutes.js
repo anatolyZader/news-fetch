@@ -7,13 +7,16 @@ import { getTodayInTimezone, validateDate } from '../../utils/dateUtils.js';
 import { getCachedReport } from '../analysisService.js';
 import { getTranslatedReport } from '../../business_modules/translation/app/translationService.js';
 import { getMunicipalityDashboard } from '../../business_modules/pbo_report_muni/app/pboMunicipalityService.js';
+import { requireOperatorDistrictAccess } from '../../cross-cut-modules/auth/operatorDistrictAccess.js';
 import {
   resolveDisplayView,
   redactReportPayload,
   redactScoreBySource,
-  canViewAnalystDisplay,
   DISPLAY_VIEWS,
 } from '../../business_modules/resilience/domain/services/assessmentDisplayTier.js';
+import { normalizeReportScope } from '../../business_modules/resilience/domain/services/regionSignalFilter.js';
+import { isRegionalReportScope } from '../../cross-cut-modules/geo/reportScopeIds.js';
+import { buildAttentionItems } from '../../business_modules/resilience/domain/services/attentionItems.js';
 
 /**
  * @param {import('fastify').FastifyInstance} app
@@ -31,17 +34,18 @@ export async function reportRoutes(app, opts) {
   } = opts;
 
   app.get('/api/report/today', authHook, async (request, reply) => {
-    const scope = request.query?.scope === 'north' ? 'north' : 'national';
+    const scope = normalizeReportScope(request.query?.scope ?? 'national');
     const requestedView = String(request.query?.view ?? 'operator').trim().toLowerCase();
     const data = getCachedReport(evidenceStore, { scope });
     if (!data) {
-      if (scope === 'north') {
+      if (isRegionalReportScope(scope)) {
         return reply.send({
           found: false,
-          code: 'north_requires_assess_signals',
-          hint: 'north_requires_assess_signals',
+          code: 'regional_requires_assess_signals',
+          hint: 'regional_requires_assess_signals',
+          scope,
           message:
-            'No north-scoped report found. Run assess-signals with --scope north (news-only analysis does not produce a north artifact).',
+            `No ${scope}-scoped report found. Run assess-signals with --scope ${scope} after signal files exist.`,
         });
       }
       return reply.send({ found: false });
@@ -53,18 +57,17 @@ export async function reportRoutes(app, opts) {
     const analyst_denied = requestedView === DISPLAY_VIEWS.analyst
       && display_view !== DISPLAY_VIEWS.analyst;
     const redacted = redactReportPayload(data, display_view);
+    const attention_items = buildAttentionItems(redacted.assessment, {
+      view: display_view,
+      reportScopeId: scope,
+    });
+
     return reply.send({
       found: true,
       display_view,
+      attention_items,
       ...(analyst_denied ? { analyst_denied: true, requested_view: DISPLAY_VIEWS.analyst } : {}),
       ...redacted,
-    });
-  });
-
-  app.get('/api/resilience/display-capabilities', async (request, reply) => {
-    await opts.tryAuthPreHandler(request, reply);
-    return reply.send({
-      canViewAnalyst: canViewAnalystDisplay(request.user?.email),
     });
   });
 
@@ -102,19 +105,47 @@ export async function reportRoutes(app, opts) {
     return reply.send({ success: true, outputPath: result.outputPath });
   });
 
-  app.get('/api/municipalities', authHook, async (_request, reply) => {
+  app.get('/api/municipalities', authHook, async (request, reply) => {
     try {
-      const data = getMunicipalityDashboard();
+      const district = String(request.query?.district ?? 'north').trim();
+      if (!requireOperatorDistrictAccess(request, reply, district)) return;
+      const data = getMunicipalityDashboard(district);
       return reply.send(data);
     } catch (err) {
       return reply.code(502).send({ error: err?.message ?? 'Failed to load municipality data' });
     }
   });
 
+  app.get('/api/pbo/districts', authHook, async (_request, reply) => {
+    try {
+      return reply.send(pboRegionalDailyService.listPboDistricts());
+    } catch (err) {
+      return reply.code(502).send({ error: err?.message ?? 'Failed to load PBO districts' });
+    }
+  });
+
+  app.get('/api/pbo/regional-report-days/:districtId/:regionId', authHook, async (request, reply) => {
+    const { districtId, regionId } = request.params ?? {};
+    if (!requireOperatorDistrictAccess(request, reply, String(districtId ?? ''))) return;
+    try {
+      const data = pboRegionalDailyService.getRegionalPboReportDays(
+        String(districtId ?? ''),
+        String(regionId ?? ''),
+      );
+      return reply.send(data);
+    } catch (err) {
+      if (err?.code === 'UNKNOWN_REGION') {
+        return reply.code(400).send({ error: err.message, code: 'UNKNOWN_REGION' });
+      }
+      return reply.code(502).send({ error: err?.message ?? 'Failed to load regional PBO reports' });
+    }
+  });
+
   app.get('/api/pbo/regional-report-days/:regionId', authHook, async (request, reply) => {
     const { regionId } = request.params ?? {};
+    if (!requireOperatorDistrictAccess(request, reply, 'north')) return;
     try {
-      const data = pboRegionalDailyService.getRegionalPboReportDays(String(regionId ?? ''));
+      const data = pboRegionalDailyService.getRegionalPboReportDays('north', String(regionId ?? ''));
       return reply.send(data);
     } catch (err) {
       if (err?.code === 'UNKNOWN_REGION') {
@@ -130,7 +161,7 @@ export async function reportRoutes(app, opts) {
     if (process.env.TRANSLATION_ENABLED !== 'true') return reply.send({ report });
     try {
       if (!report.score_by_source) {
-        const scope = report.report_scope?.id === 'north' ? 'north' : 'national';
+        const scope = normalizeReportScope(report.report_scope?.id ?? 'national');
         const cached = getCachedReport(evidenceStore, { scope });
         if (cached?.score_by_source) {
           const view = report.display_view === DISPLAY_VIEWS.analyst

@@ -8,8 +8,15 @@
 import dotenv from 'dotenv';
 import { fetchSonarCloudIssues } from './sonar-cloud-client.mjs';
 import { listLocalSonarIssues } from './list-sonar-issues-local.mjs';
+import { resolveSonarBranch } from './sonar-git-branch.mjs';
+import { SONAR_LIST_DEFAULT_LIMIT } from './sonar-defaults.mjs';
 
 dotenv.config();
+
+/** @param {unknown} value */
+function sonarText(value) {
+  return typeof value === 'string' ? value : '';
+}
 
 function usage() {
   console.error(`Usage: node scripts/list-sonar-issues.mjs [options]
@@ -22,8 +29,8 @@ Options:
   --status OPEN,CONFIRMED     Comma-separated issue statuses (default: OPEN,CONFIRMED,REOPENED)
   --types BUG,CODE_SMELL      Comma-separated issue types (default: BUG,CODE_SMELL,VULNERABILITY)
   --in-new-code               Only issues in the new-code period (remote only)
-  --branch <name>             Filter to issues on a branch (SonarCloud branch param)
-  --limit <n>                 Max issues to return (default: 50, or all with --all-issues)
+  --branch <name>             Filter to issues on a branch (default: current git branch)
+  --limit <n>                 Max issues to return (default: ${SONAR_LIST_DEFAULT_LIMIT}, or all with --all-issues)
   --file <path>               Limit local analysis to one file (--local-only)
   --rule <javascript:Sxxxx>   Filter by Sonar rule key (--local-only)
   --json                      Output JSON (default: human-readable lines)
@@ -39,7 +46,7 @@ const opts = {
   types: 'BUG,CODE_SMELL,VULNERABILITY',
   inNewCode: false,
   branch: '',
-  limit: 50,
+  limit: SONAR_LIST_DEFAULT_LIMIT,
   allIssues: false,
   next: false,
   file: '',
@@ -151,14 +158,30 @@ if (opts.localOnly) {
     }
     console.log(`Local Sonar-style issues (${payload.count} shown, ${payload.total} total):`);
     for (const row of payload.items) {
-      const loc = row.line ? `${row.file}:${row.line}` : row.file;
-      console.log(`${row.rule} ${loc} — ${row.message}`);
+      console.log(formatIssueLine(row));
     }
     process.exit(0);
   } catch (err) {
     console.error(err instanceof Error ? err.message : String(err));
     process.exit(1);
   }
+}
+
+function formatIssueLine(row) {
+  const file = String(row.file ?? '');
+  const line = row.line == null ? '' : String(row.line);
+  const loc = line === '' ? file : `${file}:${line}`;
+  return `${sonarText(row.rule)} ${loc} — ${sonarText(row.message)}`;
+}
+
+function formatRemoteIssueLine(row) {
+  const file = String(row.file ?? '');
+  const line = row.line == null ? '' : String(row.line);
+  const loc = line === '' ? file : `${file}:${line}`;
+  const kind = String(row.kind ?? '');
+  const type = String(row.type ?? '');
+  const severity = String(row.severity ?? '');
+  return `[${kind}] ${type}/${severity} ${loc} — ${String(row.message ?? '')}`;
 }
 
 const token = process.env.SONAR_TOKEN;
@@ -171,13 +194,14 @@ if (!token || !projectKey) {
 }
 
 try {
+  const branch = resolveSonarBranch(opts.branch);
   const payload = await fetchSonarCloudIssues({
     token,
     projectKey,
     statuses: opts.status,
     types: opts.types,
     inNewCode: opts.inNewCode,
-    branch: opts.branch || undefined,
+    branch,
     limit: effectiveLimit,
     hotspots: opts.hotspots,
   });
@@ -192,11 +216,11 @@ try {
     process.exit(0);
   }
 
-  console.log(`SonarCloud issues (${payload.count} shown, project ${projectKey}):`);
+  const branchSuffix = branch ? `, branch ${branch}` : '';
+  console.log(`SonarCloud issues (${payload.count} shown, project ${projectKey}${branchSuffix}):`);
   for (const row of payload.items) {
-    const loc = row.line ? `${row.file}:${row.line}` : row.file;
-    console.log(`[${row.kind}] ${row.type}/${row.severity} ${loc} — ${row.message}`);
-    console.log(`  rule=${row.rule} key=${row.key}`);
+    console.log(formatRemoteIssueLine(row));
+    console.log(`  rule=${sonarText(row.rule)} key=${sonarText(row.key)}`);
   }
 } catch (err) {
   console.error(err instanceof Error ? err.message : String(err));

@@ -8,40 +8,64 @@ import {
   operatorAssessmentSummary,
 } from '../../resilience/domain/services/assessmentDisplayTier.js';
 
-const SIGNALS_DIR = join(import.meta.dirname, '..', '..', '..', 'signals');
-const REPORTS_DIR = join(import.meta.dirname, '..', '..', '..', 'reports');
+const REPO_ROOT = join(import.meta.dirname, '..', '..', '..');
+const SIGNALS_DIRS = [
+  join(REPO_ROOT, 'signals'),
+  join(REPO_ROOT, 'business_modules', 'visits', 'data', 'signals'),
+  join(REPO_ROOT, 'business_modules', 'social_media', 'data'),
+];
+const REPORTS_DIR = join(REPO_ROOT, 'reports');
 const REPORT_DATE_RE = /resilience-report-(\d{4}-\d{2}-\d{2})/;
 const SIGNAL_FILE_RE = /signals-(.+?)-(\d{4}-\d{2}-\d{2})\.json/;
 
+function listSignalJsonFiles({ date, sourceType } = {}) {
+  const seen = new Set();
+  const files = [];
+  for (const dir of SIGNALS_DIRS) {
+    let names;
+    try {
+      names = readdirSync(dir).filter((f) => f.endsWith('.json'));
+    } catch {
+      continue;
+    }
+    for (const f of names) {
+      if (!f.startsWith('signals-') && !f.startsWith('signals-social-')) continue;
+      if (sourceType) {
+        const prefix = sourceType === 'social' ? 'signals-social-' : `signals-${sourceType}-`;
+        if (!f.startsWith(prefix)) continue;
+      }
+      if (date && !f.includes(date)) continue;
+      const key = `${dir}/${f}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      files.push({ dir, name: f });
+    }
+  }
+  files.sort((a, b) => `${a.dir}/${a.name}`.localeCompare(`${b.dir}/${b.name}`));
+  return files;
+}
+
 /**
  * Load signals from JSON files, optionally filtered by date and/or source type.
+ * Scans root signals/, visits/data/signals/, and social_media/data/.
  * @param {{ date?: string, sourceType?: string }} opts
  * @returns {Array} flat array of signal objects with file-level metadata merged in
  */
 export function loadSignals({ date, sourceType } = {}) {
-  let files;
-  try {
-    files = readdirSync(SIGNALS_DIR).filter((f) => f.endsWith('.json')).sort((a, b) => a.localeCompare(b));
-  } catch {
-    return [];
-  }
-
-  if (sourceType) {
-    files = files.filter((f) => f.startsWith(`signals-${sourceType}-`));
-  }
-  if (date) {
-    files = files.filter((f) => f.includes(date));
-  }
-
+  const fileEntries = listSignalJsonFiles({ date, sourceType });
   const results = [];
-  for (const f of files) {
+  for (const { dir, name: f } of fileEntries) {
     try {
-      const raw = JSON.parse(readFileSync(join(SIGNALS_DIR, f), 'utf-8'));
-      const meta = { source_type: raw.source_type, date: raw.date, file: f };
+      const raw = JSON.parse(readFileSync(join(dir, f), 'utf-8'));
+      const meta = {
+        source_type: raw.source_type ?? (f.startsWith('signals-social-') ? 'social' : undefined),
+        date: raw.date,
+        file: f,
+        signal_dir: dir,
+      };
       const sigs = raw.signals ?? [];
       for (let i = 0; i < sigs.length; i++) {
         const sig = sigs[i];
-        // Stable per-signal ID so the chat can reference/cite a specific signal.
         const signal_id = `${f}#${i + 1}`;
         results.push({ ...meta, signal_id, ...sig });
       }
@@ -163,10 +187,9 @@ export function listReportDates() {
  * @returns {{ sourceTypes: string[], signalDates: string[] }}
  */
 export function listSignalMeta() {
-  let files;
-  try {
-    files = readdirSync(SIGNALS_DIR).filter((f) => f.endsWith('.json')).sort((a, b) => a.localeCompare(b));
-  } catch {
+  const entries = listSignalJsonFiles();
+  const files = entries.map((e) => e.name);
+  if (files.length === 0) {
     return { sourceTypes: [], signalDates: [] };
   }
   const types = new Set();

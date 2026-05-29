@@ -49,7 +49,8 @@ const DEFAULT_ASSESSMENT = () => ({
 
 const EMPTY_STRUCTURED = () => ({
   observation: {
-    locality: null, timeframe: null, behavior: null, affectedPopulation: null,
+    locality: null, localityKey: null, localityHint: null,
+    timeframe: null, behavior: null, affectedPopulation: null,
     spread: null, sourceBasis: null, comparisonToPrior: null,
   },
   interpretation: { possibleDrivers: [], alternatives: [] },
@@ -212,7 +213,15 @@ function postNormalizeStructured(structured, rawText) {
   const out = structured && typeof structured === 'object' ? structured : EMPTY_STRUCTURED();
   const obs = out.observation && typeof out.observation === 'object' ? out.observation : {};
 
-  obs.locality = normalizeLocalityName(obs.locality) ?? inferLocalityFromText(rawText);
+  const modelLocality = normalizeLocalityName(obs.locality);
+  const inferred = inferLocalityFromText(rawText);
+  if (modelLocality) {
+    obs.locality = modelLocality;
+  } else {
+    obs.locality = null;
+    obs.localityHint = inferred ?? obs.localityHint ?? null;
+  }
+
   obs.timeframe =
     (typeof obs.timeframe === 'string' && obs.timeframe.trim() ? obs.timeframe.trim().slice(0, 80) : null) ??
     inferTimeframeFromText(rawText);
@@ -376,7 +385,8 @@ export function createWhatsAppResilienceAnalyzer({ anthropicApiKey, geoEnrichmen
       const withProvenance = sigGeo.map((s) => enrichFieldProvenance(s, {
         officer_id: senderName,
         visit_timestamp: lastTs,
-        visit_locality: structuredNorm?.observation?.locality ?? null,
+        visit_locality: structuredNorm?.observation?.locality ?? structuredNorm?.observation?.localityHint ?? null,
+        visit_locality_key: structuredNorm?.observation?.localityKey ?? null,
       }));
 
       return { signals: withProvenance, structured, assessment };

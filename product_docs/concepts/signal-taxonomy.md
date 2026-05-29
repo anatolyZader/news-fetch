@@ -4,13 +4,13 @@ description: "Closed vocabulary of signals, structure, and extraction constraint
 intent: concepts
 audience: ["public", "customer"]
 stability: beta
-canonical: "https://docs.vibeswitch.ai/concepts/signal-taxonomy"
+canonical: "https://docs.srulik.ai/concepts/signal-taxonomy"
 version: "current"
 tags: ["concepts", "signals"]
 ---
 
 ## Purpose
-Define what a "signal" is in VibeSwitch, why we use a closed vocabulary, and the rules that extraction must follow. If the taxonomy is sharp, extraction is comparable across days, sources, and operators. If it's fuzzy, scores drift in ways no one can explain.
+Define what a "signal" is in Srulik's lab, why we use a closed vocabulary, and the rules that extraction must follow. If the taxonomy is sharp, extraction is comparable across days, sources, and operators. If it's fuzzy, scores drift in ways no one can explain.
 
 ## Prerequisites
 - **Required**: You've read [Resilience model](resilience-model.md) and understand that signals feed components.

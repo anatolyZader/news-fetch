@@ -16,12 +16,13 @@ import { MarkdownArticle } from '../ui/MarkdownArticle.jsx';
 import { useRegionalPboReports } from '../hooks/useRegionalPboReports.js';
 import PropTypes from 'prop-types';
 
-/** Daily markdown reports from one north regional PBO inbox. */
-export function PboRegionalDailyReports({ regionId }) {
+/** Daily markdown reports from one regional PBO inbox within a home-front district. */
+export function PboRegionalDailyReports({ districtId = 'north', regionId }) {
   const theme = useTheme();
   const { t } = useLanguage();
   const { apiReady, getIdToken } = useAuth();
   const { data, loading, error, reload } = useRegionalPboReports({
+    districtId,
     regionId,
     getIdToken,
     apiReady,
@@ -141,9 +142,6 @@ export function PboRegionalDailyReports({ regionId }) {
 }
 
 PboRegionalDailyReports.propTypes = {
-  regionId: PropTypes.string.isRequired,
-};
-
-PboRegionalDailyReports.propTypes = {
+  districtId: PropTypes.string,
   regionId: PropTypes.string.isRequired,
 };

@@ -1,4 +1,5 @@
-import { requireAnalystView } from '../domain/services/assessmentDisplayTier.js';
+import { requireAnalystView } from '../../../cross-cut-modules/auth/requireAnalystAccess.js';
+import { normalizeReportScope } from '../domain/services/regionSignalFilter.js';
 
 /**
  * Fastify routes for the resilience drift dashboard (N4).
@@ -18,7 +19,7 @@ export async function registerDriftRoutes(app, opts) {
     if (!driftService) {
       return reply.code(503).send({ error: 'drift service not configured' });
     }
-    const scope = request.query?.scope === 'north' ? 'north' : 'national';
+    const scope = normalizeReportScope(request.query?.scope ?? 'national');
     const daysRaw = request.query?.days;
     const endDateRaw = request.query?.end_date ?? request.query?.endDate ?? null;
     const days = (() => {

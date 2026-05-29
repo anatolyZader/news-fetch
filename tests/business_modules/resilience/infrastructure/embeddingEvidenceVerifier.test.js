@@ -1,7 +1,7 @@
 import { describe, it, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { maybeRescueEvidenceWithEmbedding } from '../../../../business_modules/resilience/infrastructure/embeddingEvidenceVerifier.js';
+import { maybeRescueEvidenceWithEmbedding, isEmbeddingRescueSkippedForType } from '../../../../business_modules/resilience/infrastructure/embeddingEvidenceVerifier.js';
 
 describe('maybeRescueEvidenceWithEmbedding', () => {
   const prevKey = process.env.OPENAI_API_KEY;
@@ -28,6 +28,31 @@ describe('maybeRescueEvidenceWithEmbedding', () => {
     );
     assert.equal(r.skipped, true);
     assert.equal(r.ok, false);
+  });
+
+  it('skips embedding rescue for direct_quote_named_person', async () => {
+    process.env.OPENAI_API_KEY = 'test-key';
+    process.env.RESILIENCE_EMBED_BORDERLINE_LOW = '0.25';
+    globalThis.fetch = async () => {
+      throw new Error('embedding should not be called');
+    };
+    const r = await maybeRescueEvidenceWithEmbedding(
+      { evidence_type: 'direct_quote_named_person', evidence: 'quote text here' },
+      'article body',
+      { ok: false, sim: 0.32 },
+    );
+    assert.equal(r.skipped, true);
+    assert.equal(r.reason, 'embedding_skipped_type');
+    assert.equal(r.ok, false);
+    delete process.env.RESILIENCE_EMBED_BORDERLINE_LOW;
+  });
+
+  it('isEmbeddingRescueSkippedForType respects env override', () => {
+    assert.equal(isEmbeddingRescueSkippedForType('direct_quote_named_person'), true);
+    assert.equal(isEmbeddingRescueSkippedForType('observational_reported_fact'), false);
+    process.env.RESILIENCE_EMBEDDING_SKIP_TYPES = '';
+    assert.equal(isEmbeddingRescueSkippedForType('direct_quote_named_person'), false);
+    delete process.env.RESILIENCE_EMBEDDING_SKIP_TYPES;
   });
 
   it('rescues borderline failure when cosine is high', async () => {

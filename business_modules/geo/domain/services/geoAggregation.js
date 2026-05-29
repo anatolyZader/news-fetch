@@ -77,58 +77,62 @@ export function summarizeGeoCoverage(items) {
   };
 }
 
+function incrementCount(map, key, amount = 1) {
+  map[key] = (map[key] ?? 0) + amount;
+}
+
+function recordUnknownRawName(geo, unknownRawCounts) {
+  const raw = geo?.rawName ?? geo?.resolution?.rawInput;
+  if (typeof raw !== 'string' || !raw.trim()) return;
+  incrementCount(unknownRawCounts, raw.trim());
+}
+
+function policyFlag(geo, policyKey, legacyKey) {
+  if (geo?.policy && typeof geo.policy === 'object' && Object.hasOwn(geo.policy, policyKey)) {
+    return geo.policy[policyKey];
+  }
+  return geo[legacyKey];
+}
+
+function recordResolvedGeoMetrics(geo, counters, fuzzyReviewSamples) {
+  const method = geo.resolution?.matchMethod ?? geo.matchMethod ?? 'unknown';
+  incrementCount(counters.byMatchMethod, method);
+  incrementCount(counters.byProvenance, geo.resolution?.provenance ?? 'unknown');
+
+  if (policyFlag(geo, 'usableForMetrics', 'usableForMetrics') === true) counters.metricsSafe += 1;
+  if (policyFlag(geo, 'requiresReview', 'requiresReview') !== true) return;
+
+  counters.requiresReview += 1;
+  if (method === 'fuzzy' && fuzzyReviewSamples.length < 15) {
+    fuzzyReviewSamples.push(geo.resolution?.matchedVariant ?? geo.matchedName ?? '');
+  }
+}
+
 /**
  * @param {Array<{ geo?: object, source_type?: string }>} items
  */
 export function summarizeGeoQuality(items) {
   const list = Array.isArray(items) ? items.filter((s) => s && 'geo' in s && s.geo) : [];
-  let metricsSafe = 0;
-  let requiresReview = 0;
-  /** @type {Record<string, number>} */
-  const bySourceType = {};
-  /** @type {Record<string, number>} */
-  const byMatchMethod = {};
-  /** @type {Record<string, number>} */
-  const byProvenance = {};
+  const counters = {
+    metricsSafe: 0,
+    requiresReview: 0,
+    bySourceType: {},
+    byMatchMethod: {},
+    byProvenance: {},
+  };
   /** @type {Record<string, number>} */
   const unknownRawCounts = {};
   /** @type {string[]} */
   const fuzzyReviewSamples = [];
 
   for (const item of list) {
-    const g = item.geo;
-    const st = String(item.source_type ?? '_unknown');
-    bySourceType[st] = (bySourceType[st] ?? 0) + 1;
-
-    if (g?.kind !== 'resolved') {
-      const raw = g?.rawName ?? g?.resolution?.rawInput;
-      if (typeof raw === 'string' && raw.trim()) {
-        const k = raw.trim();
-        unknownRawCounts[k] = (unknownRawCounts[k] ?? 0) + 1;
-      }
+    incrementCount(counters.bySourceType, String(item.source_type ?? '_unknown'));
+    const geo = item.geo;
+    if (geo?.kind !== 'resolved') {
+      recordUnknownRawName(geo, unknownRawCounts);
       continue;
     }
-
-    const method = g.resolution?.matchMethod ?? g.matchMethod ?? 'unknown';
-    byMatchMethod[method] = (byMatchMethod[method] ?? 0) + 1;
-    const prov = g.resolution?.provenance ?? 'unknown';
-    byProvenance[prov] = (byProvenance[prov] ?? 0) + 1;
-
-    const usable =
-      g?.policy && typeof g.policy === 'object' && Object.prototype.hasOwnProperty.call(g.policy, 'usableForMetrics')
-        ? g.policy.usableForMetrics
-        : g.usableForMetrics;
-    if (usable === true) metricsSafe++;
-    const review =
-      g?.policy && typeof g.policy === 'object' && Object.prototype.hasOwnProperty.call(g.policy, 'requiresReview')
-        ? g.policy.requiresReview
-        : g.requiresReview;
-    if (review === true) {
-      requiresReview++;
-      if (method === 'fuzzy' && fuzzyReviewSamples.length < 15) {
-        fuzzyReviewSamples.push(g.resolution?.matchedVariant ?? g.matchedName ?? '');
-      }
-    }
+    recordResolvedGeoMetrics(geo, counters, fuzzyReviewSamples);
   }
 
   const resolvedCount = list.filter((s) => s.geo?.kind === 'resolved').length;
@@ -142,11 +146,11 @@ export function summarizeGeoQuality(items) {
 
   return {
     withGeoField: list.length,
-    pctUsableForMetrics: Math.round((1000 * metricsSafe) / resolvedDenom) / 10,
-    pctRequiresReview: Math.round((1000 * requiresReview) / resolvedDenom) / 10,
-    bySourceType,
-    byMatchMethod,
-    byProvenance,
+    pctUsableForMetrics: Math.round((1000 * counters.metricsSafe) / resolvedDenom) / 10,
+    pctRequiresReview: Math.round((1000 * counters.requiresReview) / resolvedDenom) / 10,
+    bySourceType: counters.bySourceType,
+    byMatchMethod: counters.byMatchMethod,
+    byProvenance: counters.byProvenance,
     topUnknownRaw,
     fuzzyReviewSamples,
     resolvedCount,

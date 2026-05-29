@@ -22,8 +22,14 @@ import {
   toAnalysisArticle,
   webPageToEvidenceItem,
 } from './submissionHelpers.js';
+import { persistOriginalSources } from '../../cross-cut-modules/source_archive/persistOriginals.js';
 
 const SUBMISSION_JOB_TIMEOUT_MS = 20 * 60 * 1000;
+
+function archivePersistItems(sourceArchive, evidenceStore, items) {
+  if (!sourceArchive || items.length === 0) return 0;
+  return persistOriginalSources(sourceArchive, items, { evidenceStore }).archived;
+}
 
 async function ingestUrlByKind({
   url,
@@ -33,6 +39,7 @@ async function ingestUrlByKind({
   youtubeEvidenceIngestService,
   videoGrabService,
   videoDownloadDir,
+  sourceArchive,
   evidenceStore,
   autoIngest,
   analysisEvidenceItems,
@@ -40,7 +47,7 @@ async function ingestUrlByKind({
   if (kind === 'audio_download_url') {
     const items = await ingestService.ingestAudioUrlToEvidenceItems({ url, date: reportDate });
     if (items.length > 0) {
-      autoIngest.insertedItems += evidenceStore.insertItems(items);
+      autoIngest.insertedItems += archivePersistItems(sourceArchive, evidenceStore, items);
       analysisEvidenceItems.push(...items);
     }
     return;
@@ -55,7 +62,7 @@ async function ingestUrlByKind({
     });
     const items = result.items;
     if (items.length > 0) {
-      autoIngest.insertedItems += evidenceStore.insertItems(items);
+      autoIngest.insertedItems += archivePersistItems(sourceArchive, evidenceStore, items);
       analysisEvidenceItems.push(...items);
     }
     return;
@@ -73,13 +80,13 @@ async function ingestUrlByKind({
       sourceLabel: 'video-download-url',
     });
     if (items.length > 0) {
-      autoIngest.insertedItems += evidenceStore.insertItems(items);
+      autoIngest.insertedItems += archivePersistItems(sourceArchive, evidenceStore, items);
       analysisEvidenceItems.push(...items);
     }
     return;
   }
   const item = await webPageToEvidenceItem(url, reportDate);
-  autoIngest.insertedItems += evidenceStore.insertItems([item]);
+  autoIngest.insertedItems += archivePersistItems(sourceArchive, evidenceStore, [item]);
   analysisEvidenceItems.push(item);
 }
 
@@ -121,7 +128,11 @@ async function ingestLocalFiles(localFilePaths, ctx) {
         sourceLabel: label,
       });
       if (items.length > 0) {
-        ctx.autoIngest.insertedItems += ctx.evidenceStore.insertItems(items);
+        ctx.autoIngest.insertedItems += archivePersistItems(
+          ctx.sourceArchive,
+          ctx.evidenceStore,
+          items,
+        );
         ctx.analysisEvidenceItems.push(...items);
       }
     } catch (err) {
@@ -140,7 +151,7 @@ async function storeManualEvidence(content, ctx) {
     body: content,
     published_at: ctx.reportDate,
   };
-  ctx.evidenceStore.insertItems([manualItem]);
+  archivePersistItems(ctx.sourceArchive, ctx.evidenceStore, [manualItem]);
   ctx.evidenceDraftStore.setSubmissionAnalysisResult({
     submissionId: ctx.submissionId,
     ownerKey: ctx.ownerKey,
@@ -187,6 +198,7 @@ async function processSubmissionJob(deps, { submissionId, ownerKey, content, loc
     reportDate,
     ingestService,
     evidenceStore: deps.evidenceStore,
+    sourceArchive: deps.sourceArchive,
     evidenceDraftStore: deps.evidenceDraftStore,
     youtubeEvidenceIngestService: deps.youtubeEvidenceIngestService,
     videoGrabService: deps.videoGrabService,
@@ -301,6 +313,7 @@ export async function evidenceRoutes(app, opts) {
     authHook,
     evidenceDraftStore,
     evidenceStore,
+    sourceArchive,
     maxEvidenceDraftChars,
     evidenceUserUploadsRoot,
     videoDownloadDir,
@@ -313,6 +326,7 @@ export async function evidenceRoutes(app, opts) {
   const { enqueueSubmissionJob } = createSubmissionQueue({
     evidenceDraftStore,
     evidenceStore,
+    sourceArchive,
     videoDownloadDir,
     videoGrabService,
     youtubeEvidenceIngestService,

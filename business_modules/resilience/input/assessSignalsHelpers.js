@@ -18,20 +18,30 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { createHash } from 'node:crypto';
 import { getPeaceTimeAnchor, isDualBaselineEnabled } from '../domain/services/peaceTimeAnchors.js';
+import { recordOutletTelemetry } from '../domain/services/outletReputationDecay.js';
+import { enrichWithCalibrationPenalty } from '../domain/services/scoring/calibrationPenalty.js';
+import { enrichWithWeightSensitivity } from '../domain/services/scoring/weightSensitivity.js';
 import { embedText, embeddingsEnabled, embeddingModelId } from '../../../cross-cut-modules/vector_index/index.js';
 import { normalizeReportScope, reportScopeMetadata } from '../domain/services/regionSignalFilter.js';
+import {
+  isRegionalReportFilename,
+  normalizeReportScopeId,
+  reportFilePrefix,
+} from '../../../cross-cut-modules/geo/reportScopeIds.js';
 
 export const MAX_ASSESSMENT_DAYS = 14;
 
 const SIGNAL_FILE_PATTERN = /^signals-(\w+)-(\d{4}-\d{2}-\d{2})\.json$/;
 
 function matchesReportScope(f, dStr, scope) {
-  if (scope === 'north') {
-    return f.startsWith(`resilience-report-north-${dStr}`) && f.endsWith('.json');
+  const scopeId = normalizeReportScopeId(scope);
+  const prefix = reportFilePrefix(scopeId);
+  if (scopeId === 'national') {
+    return f.startsWith(`${prefix}-${dStr}`)
+      && !isRegionalReportFilename(f)
+      && f.endsWith('.json');
   }
-  return f.startsWith(`resilience-report-${dStr}`)
-    && !f.startsWith(`resilience-report-north-`)
-    && f.endsWith('.json');
+  return f.startsWith(`${prefix}-${dStr}`) && f.endsWith('.json');
 }
 
 function findLatestReportFile(allFiles, dStr, scope) {
@@ -432,7 +442,12 @@ export function crossSourceDedup(signals) {
     }
     const sw = (s.temporal_weight ?? 1) + reliabilityRank(s) * 0.01;
     const ew = (existing.temporal_weight ?? 1) + reliabilityRank(existing) * 0.01;
-    if (sw > ew) seen.set(key, s);
+    if (sw > ew) {
+      if (existing.article_source) recordOutletTelemetry(existing.article_source, { dedupHits: 1 });
+      seen.set(key, s);
+    } else if (s.article_source) {
+      recordOutletTelemetry(s.article_source, { dedupHits: 1 });
+    }
   }
   return [...seen.values()];
 }
@@ -633,13 +648,30 @@ function computeDualBaselineExtras(c, componentId, scoreSmoothed, baseline, scop
 }
 
 /**
+ * @param {NodeJS.ProcessEnv} [env]
+ */
+export function isEwmaFreezeOnEpistemicEnabled(env = process.env) {
+  return env.RESILIENCE_EWMA_FREEZE_ON_EPISTEMIC !== '0';
+}
+
+/**
  * Enrich the scoreComponents() result with `score_smoothed`, `delta_score`,
  * `delta_significance`, `delta_flag` for each component, using `history`
  * returned by loadHistoricalScores().
  *
  * Returns a NEW object (does not mutate the input).
  */
-function enrichOneComponent(id, c, history, scopeId) {
+function enrichOneComponent(id, c, history, scopeId, freezeTemporal = false) {
+  if (freezeTemporal) {
+    return {
+      ...c,
+      score_smoothed: c.score,
+      delta_score: null,
+      delta_significance: null,
+      delta_flag: null,
+    };
+  }
+
   const series = history[id] ?? [];
   const yesterday = series[0] ?? null;
   const baseline = series.slice(0, 14);
@@ -662,9 +694,39 @@ function enrichOneComponent(id, c, history, scopeId) {
 
 export function enrichWithDeltaChannel(scoredComponents, history = {}, opts = {}) {
   const scopeId = opts.scopeId ?? 'national';
+  const freezeTemporal = opts.freezeTemporal === true;
   const out = {};
   for (const [id, c] of Object.entries(scoredComponents)) {
-    out[id] = enrichOneComponent(id, c, history, scopeId);
+    out[id] = enrichOneComponent(id, c, history, scopeId, freezeTemporal);
   }
   return out;
+}
+
+/**
+ * Post-scoring epistemic enrichment: calibration deficit + shadow weight sensitivity.
+ * @param {Record<string, object>} scoredComponents
+ * @param {Array<object>} signalsForScoring
+ * @param {object} scoreOpts options for scoreComponents (totalArticles, salienceContext, mediaSignals)
+ * @param {object|null|undefined} validationMaturity summarizeValidationMaturity() output
+ */
+export function enrichScoredComponentsEpistemic(
+  scoredComponents,
+  signalsForScoring,
+  scoreOpts,
+  validationMaturity,
+) {
+  const calResult = enrichWithCalibrationPenalty(scoredComponents, validationMaturity);
+  const wsResult = enrichWithWeightSensitivity(
+    calResult.scored,
+    signalsForScoring,
+    scoreOpts,
+    { validationMaturity },
+  );
+  return {
+    scored: wsResult.scored,
+    calibration: calResult.calibration,
+    overall_score_calibrated: calResult.overall_score_calibrated,
+    weight_sensitivity_summary: wsResult.weight_sensitivity_summary,
+    weight_sensitivity_note: wsResult.weight_sensitivity_note,
+  };
 }

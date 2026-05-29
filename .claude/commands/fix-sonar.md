@@ -15,7 +15,8 @@ Fix **every** open SonarQube issue for this project in **one run**. Process issu
 | *(none)* | Full loop: all open SonarCloud issues until queue empty |
 | `--dry-run` | List full queue only; do not edit files |
 | `--local-only` | Offline fallback: profile-aligned local ESLint queue (not default) |
-| `--branch <name>` | SonarCloud branch filter (remote queue) |
+| `--branch <name>` | SonarCloud branch filter (default: current git branch) |
+| `--in-new-code` | Restrict remote queue to new-code period |
 | `--hotspots` | Include `TO_REVIEW` security hotspots in remote queue |
 
 Examples: `/fix-sonar`, `/fix-sonar --dry-run`, `/fix-sonar --local-only`
@@ -37,11 +38,11 @@ Use --local-only for offline profile-aligned ESLint queue.
 
 ### Step 1 — Fetch full queue
 
-Initialize the loop driver and fetch **all** open issues:
+Initialize the loop driver and fetch **all** open issues on the **current git branch**:
 
 ```
-node scripts/fix-sonar-loop.mjs --init
-node scripts/list-sonar-issues.mjs --all-issues --json
+node scripts/fix-sonar-loop.mjs --init [--in-new-code] [--branch <name>]
+node scripts/list-sonar-issues.mjs --all-issues --json [--in-new-code] [--branch <name>]
 ```
 
 (or `--local-only` on both commands when offline)
@@ -59,8 +60,10 @@ If `--dry-run`, print the full list grouped by file and stop.
 Repeat until no remaining issues:
 
 ```
-node scripts/fix-sonar-loop.mjs --next
+node scripts/fix-sonar-loop.mjs --next-batch
 ```
+
+Process **every issue in the batch** before fetching the next batch. Default: **500 issues per batch** (`FIX_SONAR_BATCH_SIZE` in `scripts/sonar-defaults.mjs`); keep looping until `{ "done": true }`. Do **not** stop after 10 or 50 issues.
 
 For each `{ issue }`:
 

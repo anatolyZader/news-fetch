@@ -70,8 +70,8 @@ describe('searchTrendsService', () => {
       return orig(opts);
     };
     const summary = await svc.warmCache({ delayMs: 0 });
-    assert.equal(summary.total, 21);
-    assert.equal(summary.ok, 21);
-    assert.equal(calls, 21);
+    assert.equal(summary.total, 18);
+    assert.equal(summary.ok, 18);
+    assert.equal(calls, 18);
   });
 });

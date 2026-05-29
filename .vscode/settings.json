@@ -1,0 +1,14 @@
+{
+  "typescript.tsserver.maxTsServerMemory": 4096,
+  "javascript.tsserver.maxTsServerMemory": 4096,
+  "typescript.tsserver.useSyntaxServer": "auto",
+  "typescript.tsserver.experimental.enableProjectDiagnostics": false,
+  "javascript.updateImportsOnFileMove.enabled": "never",
+
+  "sonarlint.automaticAnalysis": false,
+  "sonarlint.analysisExcludesStandalone": "**/node_modules/**,**/client/dist/**,**/docs-site/**,**/coverage/**,**/articles_extracted/**,**/reports/**,**/signals/**,**/product_docs/api/generated/**,**/*.md,**/business_modules/**/data/**,**/tests/fixtures/**",
+  "sonarlint.analyzerProperties": {
+    "sonar.javascript.node.maxspace": "1024"
+  },
+  "sonarlint.ls.vmargs": "-Xmx512m"
+}

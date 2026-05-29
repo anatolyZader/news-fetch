@@ -6,9 +6,9 @@ export function joinDocsPath(baseUrl, slug = '') {
 
 export function getDocsBaseUrl() {
   const raw = import.meta?.env?.VITE_DOCS_BASE_URL;
-  if (typeof raw !== 'string') return 'https://docs.vibeswitch.ai';
+  if (typeof raw !== 'string') return 'https://docs.srulik.ai';
   const trimmed = raw.trim().replace(/\/+$/, '');
-  return trimmed || 'https://docs.vibeswitch.ai';
+  return trimmed || 'https://docs.srulik.ai';
 }
 
 export function getSupportEmail() {

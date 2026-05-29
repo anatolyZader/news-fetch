@@ -306,8 +306,8 @@ describe('scoreComponents — per-source cap (4f)', () => {
   });
 });
 
-describe('scoreComponents — minimum-mass floor (4f)', () => {
-  it('clamps a thin single-signal score into [3, 8]', () => {
+describe('scoreComponents — minimum-mass floor removed (4f)', () => {
+  it('returns raw score for thin single-signal (no [3,8] clamp)', () => {
     const single = [
       makeSignal({
         signal_type: 'resilience_narrative_negative',
@@ -317,11 +317,11 @@ describe('scoreComponents — minimum-mass floor (4f)', () => {
     ];
     const scored = scoreComponents(single, { totalArticles: 1 });
     assert.ok(scored.narrative.evidence_mass < 1.5);
-    assert.ok(scored.narrative.score >= 3 && scored.narrative.score <= 8,
-      `expected score in [3,8], got ${scored.narrative.score}`);
+    assert.ok(scored.narrative.score >= 1 && scored.narrative.score <= 10);
+    assert.equal(scored.narrative.floor_clamped, false);
   });
 
-  it('C7: surfaces floor_clamped when the floor actually constrains the score', () => {
+  it('floor_clamped is always false after floor removal', () => {
     const single = [
       makeSignal({
         signal_type: 'resilience_narrative_negative',
@@ -330,11 +330,10 @@ describe('scoreComponents — minimum-mass floor (4f)', () => {
       }),
     ];
     const scored = scoreComponents(single, { totalArticles: 1 });
-    assert.ok(scored.narrative.evidence_mass < 1.5);
-    assert.equal(typeof scored.narrative.floor_clamped, 'boolean');
+    assert.equal(scored.narrative.floor_clamped, false);
   });
 
-  it('C7: floor_clamped is false when the score sits inside the [3,8] band naturally', () => {
+  it('floor_clamped stays false with adequate mass', () => {
     const sigs = repeat(8, (i) => makeSignal({
       article_url: `https://x.com/fc/${i}`,
       article_index: i + 1,

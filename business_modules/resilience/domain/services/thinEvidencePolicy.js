@@ -10,6 +10,7 @@ export const THIN_EVIDENCE_INSTRUMENT = Object.freeze({
   limited_evidence_neutral: 'limited_evidence_neutral',
   unverified_alert: 'unverified_alert',
   critical_single_signal: 'critical_single_signal',
+  critical_presence_failure: 'critical_presence_failure',
   adequate: 'adequate',
   sampling_blind: 'sampling_blind',
 });
@@ -72,6 +73,14 @@ export function deriveThinEvidencePolicy(comp, ctx = {}) {
 
   if (comp?.epistemic_abstention === true || confidence === 'insufficient_data' || comp?.score == null) {
     return { instrument: THIN_EVIDENCE_INSTRUMENT.insufficient_data, operatorShowsScore: false, contested_thin: false };
+  }
+
+  if (comp?.presence_gate_triggered === true || comp?.operator_status === 'critical_failure') {
+    return {
+      instrument: THIN_EVIDENCE_INSTRUMENT.critical_presence_failure,
+      operatorShowsScore: false,
+      contested_thin: false,
+    };
   }
 
   if (comp?.salience_critical === true) {

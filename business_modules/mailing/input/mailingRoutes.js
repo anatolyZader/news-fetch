@@ -1,6 +1,42 @@
 /**
  * Fastify routes for mailing preferences and on-demand digest send.
- *
+ */
+
+const DEFAULT_DIGEST_PRODUCTS = {
+  report: true,
+  naftali: true,
+  education: true,
+  platform: false,
+};
+
+/** @returns {{ to: string } | { error: string }} */
+function resolveDigestRecipient({ bodyTo, jwtEmail, savedEmail, anonymous }) {
+  if (bodyTo) {
+    if (bodyTo !== jwtEmail && bodyTo !== savedEmail) {
+      return {
+        error: anonymous
+          ? 'Recipient must match the saved mailing address'
+          : 'Recipient must match your account email or saved mailing address',
+      };
+    }
+    return { to: bodyTo };
+  }
+  const to = savedEmail || jwtEmail;
+  if (!to) {
+    return {
+      error: 'No destination email — set mailing address in settings or sign in with an email account',
+    };
+  }
+  return { to };
+}
+
+/** @returns {number} */
+function digestErrorStatus(err) {
+  const status = err?.status >= 400 && err?.status < 600 ? err.status : 502;
+  return status === 422 ? 502 : status;
+}
+
+/**
  * @param {import('fastify').FastifyInstance} app
  * @param {{
  *   prefsStore: ReturnType<import('../infrastructure/mailingPreferencesStore.js').createMailingPreferencesStore>,
@@ -57,7 +93,7 @@ export async function mailingRoutes(app, opts) {
     const uid = request.user.uid;
     const body = request.body ?? {};
     let emailArg;
-    if (Object.prototype.hasOwnProperty.call(body, 'email')) {
+    if (Object.hasOwn(body, 'email')) {
       const raw = String(body.email ?? '').trim();
       if (raw !== '' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(raw)) {
         return reply.code(400).send({ error: 'Invalid email address' });
@@ -66,7 +102,7 @@ export async function mailingRoutes(app, opts) {
     }
     const products = body.products && typeof body.products === 'object' ? body.products : undefined;
     let languageArg;
-    if (Object.prototype.hasOwnProperty.call(body, 'language')) {
+    if (Object.hasOwn(body, 'language')) {
       const rawLang = String(body.language ?? '').trim().toLowerCase();
       if (!['en', 'he', 'ru'].includes(rawLang)) {
         return reply.code(400).send({ error: 'Invalid digest language' });
@@ -94,44 +130,26 @@ export async function mailingRoutes(app, opts) {
     const jwtEmail = String(request.user.email ?? '').trim().toLowerCase();
     const body = request.body ?? {};
     const bodyTo = body.to == null ? '' : String(body.to).trim().toLowerCase();
-
     const prefs = prefsStore.getByUid(uid);
     const savedEmail = String(prefs?.email ?? '').trim().toLowerCase();
-
-    let to;
-    if (bodyTo) {
-      if (bodyTo !== jwtEmail && bodyTo !== savedEmail) {
-        return reply.code(400).send({
-          error: request.user.anonymous
-            ? 'Recipient must match the saved mailing address'
-            : 'Recipient must match your account email or saved mailing address',
-        });
-      }
-      to = bodyTo;
-    } else {
-      to = savedEmail || jwtEmail;
+    const recipient = resolveDigestRecipient({
+      bodyTo,
+      jwtEmail,
+      savedEmail,
+      anonymous: request.user.anonymous,
+    });
+    if (recipient.error) {
+      return reply.code(400).send({ error: recipient.error });
     }
 
-    if (!to) {
-      return reply.code(400).send({
-        error: 'No destination email — set mailing address in settings or sign in with an email account',
-      });
-    }
-
-    const products = prefs?.products ?? {
-      report: true,
-      naftali: true,
-      education: true,
-      platform: false,
-    };
+    const products = prefs?.products ?? DEFAULT_DIGEST_PRODUCTS;
     const language = prefs?.language ?? 'en';
 
     try {
-      const result = await mailingService.sendDigest({ to, products, language });
+      const result = await mailingService.sendDigest({ to: recipient.to, products, language });
       return reply.send({ ok: true, id: result.id ?? null });
     } catch (err) {
-      const status = err?.status >= 400 && err?.status < 600 ? err.status : 502;
-      return reply.code(status === 422 ? 502 : status).send({
+      return reply.code(digestErrorStatus(err)).send({
         error: err?.message ?? 'Send failed',
       });
     }

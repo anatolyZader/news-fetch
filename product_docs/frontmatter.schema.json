@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "VibeSwitch product docs frontmatter",
+  "title": "Srulik's lab product docs frontmatter",
   "type": "object",
   "additionalProperties": true,
   "required": ["title", "intent", "audience", "stability"],

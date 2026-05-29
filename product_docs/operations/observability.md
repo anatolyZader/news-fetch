@@ -4,13 +4,13 @@ description: "Where to look when things fail: logs, endpoints, and debug flow."
 intent: operations
 audience: ["internal"]
 stability: beta
-canonical: "https://docs.vibeswitch.ai/operations/observability"
+canonical: "https://docs.srulik.ai/operations/observability"
 version: "current"
 tags: ["operations", "debugging"]
 ---
 
 ## Purpose
-Get from "something's broken" to "I know what's broken" quickly. This page lists the endpoints and log signals VibeSwitch exposes, and a debug flow that narrows a failure to a specific stage (ingest, extract, assess, auth, UI) before you start changing anything.
+Get from "something's broken" to "I know what's broken" quickly. This page lists the endpoints and log signals Srulik's lab exposes, and a debug flow that narrows a failure to a specific stage (ingest, extract, assess, auth, UI) before you start changing anything.
 
 ## Prerequisites
 - **Required**: Access to server logs (stdout locally, your platform's log viewer in production).

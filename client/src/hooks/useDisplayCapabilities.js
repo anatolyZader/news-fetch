@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext.jsx';
  * Whether the signed-in user may request analyst display (`?view=analyst`).
  */
 export function useDisplayCapabilities() {
-  const { getIdToken, apiReady } = useAuth();
+  const { getIdToken, apiReady, user } = useAuth();
   const [canViewAnalyst, setCanViewAnalyst] = useState(false);
   const [ready, setReady] = useState(false);
 
@@ -13,6 +13,7 @@ export function useDisplayCapabilities() {
     if (!apiReady) return;
     let cancelled = false;
     (async () => {
+      setReady(false);
       const headers = new Headers();
       const token = await getIdToken();
       if (cancelled) return;
@@ -22,15 +23,17 @@ export function useDisplayCapabilities() {
         if (res.ok) {
           const body = await res.json();
           if (!cancelled) setCanViewAnalyst(body.canViewAnalyst === true);
+        } else if (!cancelled) {
+          setCanViewAnalyst(false);
         }
       } catch {
-        /* ignore */
+        if (!cancelled) setCanViewAnalyst(false);
       } finally {
         if (!cancelled) setReady(true);
       }
     })();
     return () => { cancelled = true; };
-  }, [apiReady, getIdToken]);
+  }, [apiReady, getIdToken, user?.email]);
 
   return { canViewAnalyst, ready };
 }

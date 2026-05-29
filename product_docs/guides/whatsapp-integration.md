@@ -4,7 +4,7 @@ description: "Ingest WhatsApp conversations and produce behavioral signals and r
 intent: guides
 audience: ["public", "customer"]
 stability: beta
-canonical: "https://docs.vibeswitch.ai/guides/whatsapp-integration"
+canonical: "https://docs.srulik.ai/guides/whatsapp-integration"
 version: "current"
 tags: ["whatsapp", "integration", "guides", "user"]
 llm:

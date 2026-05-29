@@ -4,13 +4,13 @@ description: "What is stored, where it lives, and how persistence interacts with
 intent: architecture
 audience: ["public", "customer"]
 stability: beta
-canonical: "https://docs.vibeswitch.ai/architecture/storage"
+canonical: "https://docs.srulik.ai/architecture/storage"
 version: "current"
 tags: ["architecture", "storage"]
 ---
 
 ## Purpose
-Explain what VibeSwitch persists, where those bytes live, how persistence interacts with ingestion and analysis, and what operators need to know to keep data safe across restarts and deploys. Understanding the storage model is prerequisite for productionizing the app.
+Explain what Srulik's lab persists, where those bytes live, how persistence interacts with ingestion and analysis, and what operators need to know to keep data safe across restarts and deploys. Understanding the storage model is prerequisite for productionizing the app.
 
 ## Prerequisites
 - **Required**: Understanding that SQLite is a single-file database served in-process by the application. There is no separate database daemon.
@@ -50,7 +50,7 @@ Explain what VibeSwitch persists, where those bytes live, how persistence intera
 ### Point SQLite at a persistent path
 
 ```bash runnable
-export SQLITE_PATH=/var/lib/vibeswitch/app.sqlite
+export SQLITE_PATH=/var/lib/srulik/app.sqlite
 ```
 
 Expected: once set and the server is restarted, all reads and writes go to this file. Make sure the parent directory exists and is writable by the process user.
@@ -81,8 +81,8 @@ A naïve `cp` of a busy SQLite file can capture a mid-write snapshot and produce
 
 ```bash
 # DO NOT DO THIS
-SQLITE_PATH=/shared/vibeswitch.sqlite npm run start   # on host A
-SQLITE_PATH=/shared/vibeswitch.sqlite npm run start   # on host B
+SQLITE_PATH=/shared/srulik.sqlite npm run start   # on host A
+SQLITE_PATH=/shared/srulik.sqlite npm run start   # on host B
 ```
 
 Two writers against the same SQLite file produces sporadic `SQLITE_BUSY` errors and, eventually, corruption. If you need multi-writer, move off SQLite.

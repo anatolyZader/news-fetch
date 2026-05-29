@@ -5,6 +5,25 @@
 
 const DEFAULT_EMBED_MODEL = 'text-embedding-3-small';
 
+/** Evidence types that require literal grounding — no embedding cosine rescue. */
+export const DEFAULT_EMBEDDING_SKIP_TYPES = new Set([
+  'direct_quote_named_person',
+  'named_survey_statistic',
+  'named_institutional_fact',
+]);
+
+/**
+ * @param {string} evidenceType
+ * @param {NodeJS.ProcessEnv} [env]
+ */
+export function isEmbeddingRescueSkippedForType(evidenceType, env = process.env) {
+  const raw = env.RESILIENCE_EMBEDDING_SKIP_TYPES;
+  const skipSet = raw == null
+    ? DEFAULT_EMBEDDING_SKIP_TYPES
+    : new Set(String(raw).split(',').map((s) => s.trim()).filter(Boolean));
+  return skipSet.has(evidenceType);
+}
+
 function embeddingApiKey() {
   return process.env.RESILIENCE_EMBEDDING_API_KEY ?? process.env.OPENAI_API_KEY ?? '';
 }
@@ -72,6 +91,9 @@ export async function maybeRescueEvidenceWithEmbedding(signal, articleBody, prim
     return { ok: true, reason: 'primary_ok' };
   }
   const evidenceType = signal?.evidence_type ?? 'observational_reported_fact';
+  if (isEmbeddingRescueSkippedForType(evidenceType)) {
+    return { ok: false, reason: 'embedding_skipped_type', skipped: true };
+  }
   const thresholds = {
     direct_quote_named_person: 0.7,
     named_survey_statistic: 0.5,

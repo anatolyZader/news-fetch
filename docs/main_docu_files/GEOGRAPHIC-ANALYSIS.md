@@ -1,9 +1,9 @@
 # Geographic enrichment — developer guide
 
 **Location:** `docs/main_docu_files/` (canonical main documentation — see [README](./README.md))  
-**Last updated:** 2026-05-27
+**Last updated:** 2026-05-28
 
-This document describes **deterministic geographic enrichment** in the app: how localities are resolved to a canonical **`geo` envelope**, where that envelope is **attached** (WhatsApp signals, survey reports, APIs), how **versions** keep results auditable, and how this interacts with **north scoping** and evidence storage.
+This document describes **deterministic geographic enrichment** in the app: how localities are resolved to a canonical **`geo` envelope**, where that envelope is **attached** (WhatsApp signals, survey reports, APIs), how **versions** keep results auditable, and how this interacts with **district scoping** (national + five regional districts) and evidence storage.
 
 ---
 
@@ -249,6 +249,23 @@ Order of attempts ([`resolveLocalityMatch.js`](../business_modules/geo/domain/se
 
 **Distance bands** ([`distanceBand.js`](../business_modules/geo/domain/services/distanceBand.js) + [`distance-band-policy.json`](../business_modules/geo/data/distance-band-policy.json)): `0-10`, `10-25`, `25+` km to the border polyline, or `unknown` if the distance is non-finite. Resolved envelopes include **`classification.distancePolicyVersion`**.
 
+### Non-north district stubs (`homefront-district-stubs.json`)
+
+When a locality string does **not** match [`north-reference.json`](#north-referencejson-primary), [`homefrontDistrictStubs.js`](../business_modules/geo/domain/services/homefrontDistrictStubs.js) checks [`business_modules/geo/data/homefront-district-stubs.json`](../business_modules/geo/data/homefront-district-stubs.json) before returning unknown.
+
+| Field | Purpose |
+|-------|---------|
+| `version` | e.g. `homefront-district-stubs-v1` |
+| `districts.{south,jerusalem,dan,haifa}.localities[]` | Starter locality rows for non-north regional scoping pilots |
+
+A stub match produces a **minimal resolved envelope** via `buildResolvedGeoFromDistrictStub()`:
+
+- **`classification.geoAreaTags`** includes the target district id (`south`, `jerusalem`, `dan`, `haifa`)
+- **`classification.distanceKmToNorthBorder`** uses a sentinel (500 km) — metrics and scope use tags, not distance
+- **`policy.usableForMetrics`** follows the same provenance rules as north resolves
+
+This enables **multi-district regional reports** for news/radio/social signals whose localities are outside the north reference table. Full north-theater detail still comes from `north-reference.json`. See also [8-component doc §12](./8-component-analysis-end-to-end.md#12-geographic-scoping-national--five-regional-districts).
+
 ---
 
 ## Where `geo` is attached today
@@ -305,29 +322,31 @@ Use this for debugging, admin tools, or future UI — not as a public geocoder.
 
 ---
 
-## North scope: `regionSignalFilter`
+## District scoping: `regionSignalFilter`
 
-[`regionSignalFilter.js`](../business_modules/resilience/domain/services/regionSignalFilter.js) decides whether a signal counts as **north** for scoped reporting:
+Report scopes: **`national | north | south | jerusalem | dan | haifa`**. [`regionSignalFilter.js`](../business_modules/resilience/domain/services/regionSignalFilter.js) (`filterSignalsForScope(scopeId)`) decides whether a signal counts for a **regional** assessment:
 
-1. Certain **`source_type`** values are always north (field, PBO, WhatsApp, etc.).
-2. If **`signal.geo.kind === 'resolved'`** and tags / PBO id indicate the configured north set, the signal is **north** — including when **`usableForMetrics`** is **`false`** (scope only; excluded from metrics under epistemic v2).
-3. Otherwise the signal is **not north** (no text keyword fallback).
+1. **Collection metadata** — [`config/collectionScope.json`](../config/collectionScope.json) via [`collectionScope.js`](../business_modules/resilience/domain/services/collectionScope.js): structured north-theater feeds (`field`, `pbo`, `pbo_regional`, `naftali`, `field_whatsapp`) default to district `north`; unstructured `whatsapp` defaults to `north`. Tags merge with geo-derived districts in [`deriveHomeFrontDistricts`](../business_modules/resilience/domain/services/deriveHomeFrontDistricts.js).
+2. **Always-in-scope source types** — field, PBO, WhatsApp, etc. per scope configuration.
+3. **Resolved geo** — district match via [`districtRelevanceFromResolvedGeo.js`](../business_modules/geo/domain/services/districtRelevanceFromResolvedGeo.js) (north PBO subregion logic in [`northRelevanceFromResolvedGeo`](../business_modules/resilience/domain/services/northRelevanceFromResolvedGeo.js)). Scope uses geo tags even when **`usableForMetrics === false`** (metrics-ineligible under epistemic v2).
+4. Otherwise the signal is **excluded** from the regional scope (no text keyword fallback).
 
-Geo attach runs at extract/treat time for all pipeline sources (news, radio, social, whatsapp, field, pbo, pbo_regional, naftali) and again at assess for any signal still missing `geo`. Resolution uses structured locality fields and `geoService` — not text keyword north scoping.
+Geo attach runs at extract/treat time for all pipeline sources and again at assess for any signal still missing `geo`. Resolution uses structured locality fields and `geoService` — not text keyword scoping.
 
 ### `scopeDecision`: geo envelope vs signal
 
-- **`geo.scopeDecision`** (resolved envelopes only) — built by [`buildGeoScopeDecision`](../business_modules/geo/domain/services/geoScopeDecisionFromResolved.js) inside `geoService`. Explains north relevance **from tags + PBO id + `usableForMetrics` only** (`source`: `geo` | `geo_tags` | `pbo_subregion` | `unknown`). Persisted on `signal.geo` so a stored geo blob answers “was this geo, on its own, allowed to count as north-from-geo?”
-- **`signal.scopeDecision`** — attached by [`filterSignalsForScope`](../business_modules/resilience/domain/services/regionSignalFilter.js): north filter from **`source_type`** and resolved geo only.
+- **`geo.scopeDecision`** (resolved envelopes only) — built by [`buildGeoScopeDecision`](../business_modules/geo/domain/services/geoScopeDecisionFromResolved.js) inside `geoService`. Explains district relevance **from tags + PBO id + `usableForMetrics` only** (`source`: `geo` | `geo_tags` | `pbo_subregion` | `unknown`). Persisted on `signal.geo` so a stored geo blob answers “was this geo, on its own, allowed to count as in-scope for the target district?”
+- **`signal.scopeDecision`** — attached by [`filterSignalsForScope`](../business_modules/resilience/domain/services/regionSignalFilter.js): scope filter from **`source_type`**, collection metadata, and resolved geo.
 
 `filterSignalsForScope()` maps each signal to include **`signal.scopeDecision`**:
 
-- `isNorthRelevant`
-- `source`: `source_type` | `geo_tags` | `pbo_subregion` | `geo` | `unknown`
+- `isScopeRelevant` (backward-compat `isNorthRelevant` when target scope is `north`)
+- `source`: `source_type` | `geo_tags` | `pbo_subregion` | `geo` | `collection_scope` | `unknown`
 - `confidence`: `high` | `medium` | `low`
 - `reasons`: short list of strings describing the decision
+- `homeFrontDistricts`: merged collection + geo district tags
 
-This makes north scoping explainable in dashboards and during audits.
+This makes district scoping explainable in dashboards and during audits.
 
 ---
 
@@ -383,7 +402,7 @@ When **`GEO_OVERRIDES_SQLITE=1`**, composition wires a SQLite-backed overrides a
 |---------|------|
 | **PBO regional daily files** | Five region ids + markdown on disk under `pbo_report_regional/data` |
 | **Resilience LLM prompts** | Narrative scope (Israel-only, Naftali vs whole north, etc.) — policy, not metrics |
-| **Geo attach (`localityCandidate` → `geoService`)** | Sole path for news/radio/social north scope besides always-north source types |
+| **Geo attach (`localityCandidate` → `geoService`)** | Sole path for news/radio/social regional scope besides always-in-scope source types and collection metadata |
 
 ---
 
@@ -461,7 +480,8 @@ The current **flat resolved envelope** is intentional for shipping speed. The fo
 | 2026-05 | Quality fields (`quality`, `usableForMetrics`, `requiresReview`), `validateGeoEnvelope`, report `geo_reference_versions_used` / `border_reference_versions_used`, deprecate **`subregionId`** for new consumers, optional JSONL unknown sink, `GEO_ASSERT_ENVELOPE` on WhatsApp attach, `usableForMetrics` gate in north-from-geo. |
 | 2026-05 | **`geoEntityType`**, **`matchEvidence`**, **`scopeConfidence`**; fuzzy **`candidateCount`**; **`GEO_LEGACY_SUBREGION_ID`** to omit deprecated **`subregionId`**; roadmap table for split envelope, SQLite columns, overrides, distance policy versioning, KPIs, and source-aware resolve. |
 | 2026-05 | **`geo.scopeDecision`** on resolved envelopes (geo-only north hint audit); stricter doc rule: nested fields canonical, flat deprecated; full **`geoEntityType`** enum called out in guide. |
-| 2026-05 | News/radio geo attach in **`assess-signals`** and **`extract-signals`** (always on via `enrichSignalsWithGeo`); per-signal WhatsApp geo; **`northRelevanceFromResolvedGeo`**; **`summarizeGeoQuality`**; transliteration pass; versioned distance-band policy; **`createGeoWiring`**; CI north-terms sync check; default omit **`subregionId`**. |
+| 2026-05 | News/radio geo attach in **`assess-signals`** and **`extract-signals`** (always on via `enrichSignalsWithGeo`); per-signal WhatsApp geo; **`northRelevanceFromResolvedGeo`**; **`summarizeGeoQuality`**; transliteration pass; versioned distance-band policy; **`createGeoWiring`**; default omit **`subregionId`**. |
 | 2026-05 | Doc sync: manual overrides, distance-band policy, and split envelope marked shipped; ops checklist **`GEO_LEGACY_SUBREGION_ID`** default corrected to off. |
 | 2026-05-25 | Removed text keyword fallback (`NORTH_TERMS`); north scope requires resolved geo or always-north source types. Geo attach enabled at extract for news/radio/social. |
 | 2026-05-27 | **Geo epistemic hardening (v3):** nested-only envelope writes (`geo-envelope-2026-05-v3`), **`resolution.provenance`**, text-inferred metrics exclusion, discourse-only mention skip, **`geoEnvelopeAccess`** read helpers, narrative/UI badges for text-inferred geo. |
+| 2026-05-28 | **`homefront-district-stubs.json`** for south/jerusalem/dan/haifa pilots; multi-district scope model documented; **`collectionScope.json`** + **`districtRelevanceFromResolvedGeo`** cross-refs; removed obsolete north-terms sync note from revision history. |

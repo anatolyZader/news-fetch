@@ -4,6 +4,7 @@
 
 import { CATALOG_VERSION } from '../../domain/services/signalCatalog.js';
 import { SCORING_MODEL_VERSION } from '../../domain/services/assessmentMethodology.js';
+import { SOCIAL_QUARANTINE_ARTICLE_KEY } from '../../domain/services/socialChannelQuarantine.js';
 
 /**
  * Stable article key for deduplication.
@@ -67,6 +68,14 @@ function componentFlags(comp, thresholds) {
     });
   }
 
+  const ws = comp.weight_sensitivity;
+  if (ws?.reliable === true && ws?.fragile === true) {
+    reasons.push({
+      code: 'weight_sensitivity_fragile',
+      detail: ws.band_width,
+    });
+  }
+
   return reasons;
 }
 
@@ -81,6 +90,8 @@ function priorityScore(reasons) {
     contested_polarization: 6,
     contested_thin: 5,
     suppression_binding: 5,
+    weight_sensitivity_fragile: 6,
+    social_quarantine_suggested: 7,
     oov_suggested: 4,
     low_extraction_confidence: 4,
     rare_signal_type: 3,
@@ -306,6 +317,29 @@ export function buildReviewQueue({
     dataVoidLevel,
   });
   addRandomControlItems(upsertItem, byArticle, signalList, controlRate, random);
+
+  const socialQ = assessment?.social_channel_quarantine;
+  if (socialQ?.suggested === true && !socialQ?.active) {
+    const socialTypes = [...new Set(
+      signalList.filter((s) => s?.source_type === 'social').map((s) => s.signal_type ?? s.type).filter(Boolean),
+    )].slice(0, 12);
+    upsertItem(SOCIAL_QUARANTINE_ARTICLE_KEY, {
+      article_key: SOCIAL_QUARANTINE_ARTICLE_KEY,
+      article_url: null,
+      article_source: 'social',
+      signal_types: socialTypes,
+      component_ids: [],
+      reasons: [{
+        code: 'social_quarantine_suggested',
+        detail: {
+          social_signal_count: socialQ.social_signal_count,
+          social_polarization: socialQ.social_polarization,
+          social_share: socialQ.social_share,
+        },
+      }],
+      signals: [],
+    });
+  }
 
   const items = [...byArticle.values()]
     .sort((a, b) => b.priority - a.priority || String(a.article_key).localeCompare(b.article_key))

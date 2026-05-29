@@ -106,15 +106,31 @@ describe('dataVoidIndex v2', () => {
     assert.ok(r.field_volume >= 1);
   });
 
-  it('infrastructure_probe outage forces critical', () => {
+  it('infrastructure_probe outage forces critical when corroborated', () => {
+    const probe = {
+      ...probeRecordToSignal({
+        date: '2026-05-01',
+        probe_source: 'netblocks-manual',
+        outage_detected: true,
+        evidence: 'Nationwide mobile blackout',
+      }),
+      probe_corroborated: true,
+    };
+    const r = computeDataVoidIndex([probe], []);
+    assert.equal(r.level, 'critical');
+    assert.equal(r.probe_outage, true);
+  });
+
+  it('single unconfirmed probe yields warning not critical', () => {
     const probe = probeRecordToSignal({
       date: '2026-05-01',
       probe_source: 'netblocks-manual',
       outage_detected: true,
-      evidence: 'Nationwide mobile blackout',
+      evidence: 'Unconfirmed outage',
     });
     const r = computeDataVoidIndex([probe], []);
-    assert.equal(r.level, 'critical');
-    assert.equal(r.probe_outage, true);
+    assert.equal(r.level, 'warning');
+    assert.equal(r.reason, 'probe_unconfirmed');
+    assert.equal(r.probe_outage_unconfirmed, true);
   });
 });

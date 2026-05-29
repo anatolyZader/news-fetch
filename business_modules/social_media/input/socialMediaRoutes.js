@@ -4,14 +4,17 @@
  * @param {import('fastify').FastifyInstance} app
  * @param {{ socialMediaService?: ReturnType<import('../app/socialMediaService.js').createSocialMediaService>, authPreHandler?: any }} opts
  */
+import { checkOptionalDistrictQueryAccess } from '../../../cross-cut-modules/auth/checkOptionalDistrictQueryAccess.js';
+
 export async function socialMediaRoutes(app, opts) {
   const socialMediaService = opts?.socialMediaService ?? null;
   const preHandler = opts?.authPreHandler ? { preHandler: opts.authPreHandler } : {};
 
-  app.get('/api/social-media', preHandler, async (_request, reply) => {
+  app.get('/api/social-media', preHandler, async (request, reply) => {
     if (!socialMediaService) {
       return reply.code(503).send({ error: 'social media service not configured' });
     }
+    if (!checkOptionalDistrictQueryAccess(request, reply)) return;
     try {
       return reply.send(await socialMediaService.getDashboard());
     } catch (err) {
@@ -30,6 +33,7 @@ export async function socialMediaRoutes(app, opts) {
     if (!socialMediaService) {
       return reply.code(503).send({ error: 'social media service not configured' });
     }
+    if (!checkOptionalDistrictQueryAccess(request, reply)) return;
     const date = String(request.query?.date ?? '').trim();
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
       return reply.code(400).send({ error: 'date query param required (YYYY-MM-DD)' });

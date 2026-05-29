@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { mkdtempSync, rmSync, writeFileSync } from 'fs';
-import { tmpdir } from 'os';
-import { join } from 'path';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { createPboReportRegionalFsAdapter } from '../../../../../business_modules/pbo_report_regional/infrastructure/adapters/pboReportRegionalFsAdapter.js';
 
 function withTempDir(fn) {
@@ -33,7 +33,11 @@ test('regional PBO FS adapter lists markdown reports by frontmatter region', () 
     writeFileSync(join(dir, 'golan-2026-05-03.md'), '# Golan status\n\nSeparate report.', 'utf8');
 
     const adapter = createPboReportRegionalFsAdapter({ dataDir: dir });
-    const reports = adapter.listReports({ regionId: 'naftali' });
+    const reports = adapter.listReports({
+      regionId: 'naftali',
+      inboxDir: dir,
+      allowedRegionIds: ['naftali', 'golan', 'baram', 'hiram', 'galma'],
+    });
 
     assert.equal(reports.length, 1);
     assert.equal(reports[0].file, '2026-05-03-north.md');
@@ -50,7 +54,11 @@ test('regional PBO FS adapter infers region and date from filename', () => {
     writeFileSync(join(dir, '2026-05-02-hiram.md'), '# Hiram report\n\nStable situation.', 'utf8');
 
     const adapter = createPboReportRegionalFsAdapter({ dataDir: dir });
-    const reports = adapter.listReports({ regionId: 'hiram' });
+    const reports = adapter.listReports({
+      regionId: 'hiram',
+      inboxDir: dir,
+      allowedRegionIds: ['naftali', 'golan', 'baram', 'hiram', 'galma'],
+    });
 
     assert.equal(reports.length, 1);
     assert.equal(reports[0].date, '2026-05-02');
