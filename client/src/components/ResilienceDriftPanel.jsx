@@ -63,9 +63,9 @@ function Sparkline({ series, t, valueKey = 'score', variant = 'score10', yMin: y
           stroke={theme.palette.text.secondary}
           strokeWidth={1.5}
         />
-        {points.map((p, i) => (
+        {points.map((p) => (
           <circle
-            key={i}
+            key={`${p.date}-${p.x}`}
             cx={sx(p.x)} cy={sy(p.y)}
             r={2.5}
             fill={variant === 'unit01' ? theme.palette.text.secondary : scoreColor10(p.y, theme)}
@@ -105,10 +105,6 @@ function driftBandLabel(score, t) {
 
 function ComponentTile({ id, series, t }) {
   const last = [...series].reverse().find((p) => p.score != null);
-  const first = series.find((p) => p.score != null);
-  const change = (last && first && last !== first)
-    ? last.score - first.score
-    : null;
   const lastChronic = [...series].reverse().find((p) => p.z_score_chronic != null);
   const lastErosion = [...series].reverse().find((p) => p.erosion_index != null);
 
@@ -173,9 +169,9 @@ function SignalVolumeBar({ days, t }) {
         {t('drift.signalVolume')}
       </Typography>
       <Stack direction="row" alignItems="flex-end" spacing={0.25} sx={{ height: 80 }}>
-        {days.map((d, i) => (
+        {days.map((d) => (
           <Box
-            key={i}
+            key={d.date}
             title={`${d.date}: ${d.total}`}
             sx={(theme) => ({
               flex: 1,
@@ -337,8 +333,8 @@ export function ResilienceDriftPanel({ scope = 'national' }) {
                 {t('drift.alertsTitle')}
               </Typography>
               <Stack spacing={1}>
-                {data.alerts.map((a, i) => (
-                  <Alert key={i} severity={a.level === 'error' ? 'error' : 'warning'}>
+                {data.alerts.map((a) => (
+                  <Alert key={`${a.level}-${a.message}`} severity={a.level === 'error' ? 'error' : 'warning'}>
                     {a.message}
                   </Alert>
                 ))}
@@ -358,7 +354,7 @@ export function ResilienceDriftPanel({ scope = 'national' }) {
         </>
       )}
 
-      {!loading && !error && data && data.dates.length === 0 && (
+      {!loading && !error && data?.dates?.length === 0 && (
         <Alert severity="info">{t('drift.noData')}</Alert>
       )}
     </Stack>

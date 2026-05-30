@@ -1,5 +1,5 @@
 /**
- * Port: list and read manual reports dropped in the server `report_bot/` directory.
+ * Port: list and read manual reports dropped in `business_modules/report_bot/data/`.
  *
  * @typedef {{ fileName: string, size: number, mtimeMs: number, extension: string, snippet: string }} ReportBotManualReportFile
  */

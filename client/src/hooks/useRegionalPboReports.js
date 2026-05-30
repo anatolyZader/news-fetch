@@ -74,8 +74,14 @@ export function useRegionalPboReports({ districtId = 'north', regionId, getIdTok
   }, [getIdToken, districtId, regionId]);
 
   useEffect(() => {
-    if (!apiReady) return;
-    void reload();
+    if (!apiReady) return undefined;
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) void reload();
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [apiReady, reload]);
 
   return { data, loading, error, reload };

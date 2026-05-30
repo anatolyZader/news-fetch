@@ -170,7 +170,7 @@ export function checkDailyBudget() {
   const logPath = resolveCostLogPath();
   if (!existsSync(logPath)) return;
 
-  let todaySpend = 0;
+  let todaySpend;
   try {
     todaySpend = readTodayCostSpend();
   } catch (err) {

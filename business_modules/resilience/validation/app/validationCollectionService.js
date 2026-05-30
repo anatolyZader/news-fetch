@@ -29,7 +29,7 @@ export default function createValidationCollectionService(deps = {}) {
       ? createValidationReviewSqliteStore(
         process.env.SQLITE_PATH?.trim()
           ? resolve(process.env.SQLITE_PATH.trim())
-          : resolve(process.cwd(), 'data', 'app.sqlite'),
+          : resolve(process.cwd(), 'db', 'app.sqlite'),
       )
       : null);
 

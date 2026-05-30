@@ -1,6 +1,6 @@
 /**
  * CLI: analyse field survey responses (Google Forms Excel) for population resilience.
- * @see analyze-survey.js entry
+ * @see cross-cut-modules/geo/input/runAnalyzeSurvey.js
  */
 import 'dotenv/config';
 import { existsSync } from 'node:fs';

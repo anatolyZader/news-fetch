@@ -9,10 +9,10 @@ import { resolve, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { eslintRulesForSonar } from './sonar-eslint-map.mjs';
 
-const ROOT = resolve(fileURLToPath(new URL('..', import.meta.url)));
+const ROOT = resolve(fileURLToPath(new URL('../..', import.meta.url)));
 
 function usage() {
-  console.error(`Usage: node scripts/verify-sonar-issue.mjs --file <path> --line <n> --rule <javascript:Sxxxx>
+  console.error(`Usage: node scripts/sonar/verify-sonar-issue.mjs --file <path> --line <n> --rule <javascript:Sxxxx>
 
 Exit codes:
   0  No ESLint report at line for the mapped rule(s) — issue cleared locally

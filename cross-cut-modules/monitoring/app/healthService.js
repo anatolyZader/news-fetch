@@ -22,7 +22,7 @@ function isReadable(path) {
 export function createHealthService(deps) {
   function getHealth() {
     const rootDir = deps.rootDir;
-    const sqlitePath = deps.sqlitePath ?? join(rootDir, 'data', 'app.sqlite');
+    const sqlitePath = deps.sqlitePath ?? join(rootDir, 'db', 'app.sqlite');
     const costLogPath = resolveCostLogPath(rootDir);
     const reportsDir = join(rootDir, 'reports');
     const signalsDir = join(rootDir, 'signals');

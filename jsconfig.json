@@ -27,6 +27,7 @@
     "signals",
     "articles_extracted",
     "**/data/**",
+    "db/**",
     "docs/product_docs/api/generated"
   ]
 }

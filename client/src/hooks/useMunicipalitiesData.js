@@ -35,8 +35,14 @@ export function useMunicipalitiesData({ districtId = 'north', getIdToken, apiRea
   }, [getIdToken, scopedDistrict]);
 
   useEffect(() => {
-    if (!apiReady) return;
-    void load();
+    if (!apiReady) return undefined;
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) void load();
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [apiReady, load]);
 
   const day = useMemo(() => {

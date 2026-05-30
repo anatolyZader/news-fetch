@@ -30,7 +30,7 @@ import {
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 const SQLITE_PATH = process.env.SQLITE_PATH?.trim()
   ? resolve(process.env.SQLITE_PATH.trim())
-  : resolve(REPO_ROOT, 'data', 'app.sqlite');
+  : resolve(REPO_ROOT, 'db', 'app.sqlite');
 
 const COMPONENT_TO_SIGNAL_TYPE = {
   narrative:                 'resilience_narrative_positive',

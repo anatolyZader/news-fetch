@@ -37,7 +37,13 @@ export function useValidationReviewQueue(date, scope, opts = {}) {
   }, [apiReady, date, scope, enabled, getIdToken]);
 
   useEffect(() => {
-    load();
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) void load();
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [load]);
 
   const submitDecision = useCallback(async (articleKey, action, payload = {}) => {

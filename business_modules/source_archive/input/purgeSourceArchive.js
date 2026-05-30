@@ -33,7 +33,7 @@ async function main() {
   const cutoff = cutoffDate(today, retentionDays);
   const sqlitePath = process.env.SQLITE_PATH?.trim()
     ? resolve(process.env.SQLITE_PATH.trim())
-    : resolve(repoRoot, 'data', 'app.sqlite');
+    : resolve(repoRoot, 'db', 'app.sqlite');
 
   const archive = createSourceArchive(sqlitePath);
   const { deleted } = archive.purgeEphemeralBeforeDate(cutoff);

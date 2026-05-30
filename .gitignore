@@ -28,9 +28,9 @@ secrets/
 # Google Trends API cache (6h TTL)
 business_modules/search_trends/data/cache/*.json
 
-# Data + reports (runtime/generated)
+# DB + reports (runtime/generated)
 # Root-only: do not ignore e.g. business_modules/geo/data/ (versioned reference JSON).
-/data/
+/db/
 # Video fetches (yt-dlp MP3, subtitles, retained audio) — keep .gitkeep only
 business_modules/video/data/**
 !business_modules/video/data/.gitkeep
@@ -43,6 +43,9 @@ business_modules/resilience/validation/artifacts/
 # Application logs (cost JSONL, pipeline text) — keep .gitkeep only
 cross-cut-modules/log/data/**
 !cross-cut-modules/log/data/.gitkeep
+# Report bot manual-report inbox — keep .gitkeep only
+business_modules/report_bot/data/**
+!business_modules/report_bot/data/.gitkeep
 
 # Local DB files
 *.sqlite

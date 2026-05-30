@@ -1,8 +1,6 @@
 /**
  * Trilingual municipal PBO follow-up email templates via IMailingDeliveryPort.
  */
-import { IPboReviewMailPort } from '../../domain/ports/IPboReviewMailPort.js';
-
 const LABELS = {
   en: {
     subject: 'Daily PBO report — information needed',
@@ -92,7 +90,7 @@ export function createPboReviewMailingAdapter({ deliveryPort, mailFrom, appBaseU
       });
       lines.push('', `${labels.openInApp}: ${appLink}`, '', labels.replyHint);
 
-      const htmlParts = questions.map((q, i) => {
+      const htmlParts = questions.map((q) => {
         const prefix = q.label ? `<strong>${escapeHtml(q.label)}</strong> — ` : '';
         return `<li>${prefix}${escapeHtml(q.text)}</li>`;
       });

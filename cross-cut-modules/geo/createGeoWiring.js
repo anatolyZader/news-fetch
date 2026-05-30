@@ -15,7 +15,7 @@ import { createGeoEnrichmentAdapter } from '../../business_modules/resilience/in
  */
 export function createGeoWiring({ rootDir, unknownSourceType = 'app', sqlitePath }) {
   const dataDir = resolve(rootDir, 'business_modules', 'geo', 'data');
-  const dbPath = sqlitePath ?? resolve(rootDir, 'data', 'app.sqlite');
+  const dbPath = sqlitePath ?? resolve(rootDir, 'db', 'app.sqlite');
 
   const geoOverridesPort =
     process.env.GEO_OVERRIDES_SQLITE === '1'

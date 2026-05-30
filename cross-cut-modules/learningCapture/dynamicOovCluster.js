@@ -10,6 +10,7 @@ import {
   evidenceTextForRecord,
   inferDominantSourceClass,
 } from './recordHelpers.js';
+import { clusterByEmbedding, clusterByPrefix } from './oovClusterer.js';
 
 const STOP_WORDS = new Set([
   'the', 'and', 'for', 'are', 'was', 'were', 'with', 'that', 'this', 'from',
@@ -18,7 +19,24 @@ const STOP_WORDS = new Set([
 ]);
 
 /** Terms that lower cluster threshold (critical-stakes OOV). */
-const OOV_SALIENCE_PATTERN = /\b(collapse|breach|mass\s+casualt|fatalit|insulin|medicine|medication|drone|delivery|system\s+failure|catastroph|evacuat|shelter\s+fail|water\s+shortage|starvation|outbreak)\b/i;
+const SALIENCE_SUBSTRINGS = [
+  'collapse',
+  'breach',
+  'mass casualt',
+  'fatalit',
+  'insulin',
+  'medicine',
+  'medication',
+  'drone',
+  'delivery',
+  'system failure',
+  'catastroph',
+  'evacuat',
+  'shelter fail',
+  'water shortage',
+  'starvation',
+  'outbreak',
+];
 
 const SOURCE_CLUSTER_MIN = Object.freeze({
   field: 4,
@@ -46,7 +64,8 @@ export function filterRecordsInWindow(records, windowHours, anchorMs = Date.now(
  * @param {string} text
  */
 export function evidenceHasHighSalience(text) {
-  return OOV_SALIENCE_PATTERN.test(String(text ?? ''));
+  const normalized = String(text ?? '').toLowerCase();
+  return SALIENCE_SUBSTRINGS.some((term) => normalized.includes(term));
 }
 
 /**
@@ -143,6 +162,39 @@ function emptyResult(windowHours, clusteringMethod = 'none') {
   };
 }
 
+async function resolveUnknownClusters(unknowns, opts, embedThreshold) {
+  if (typeof opts.embedFn === 'function' && unknowns.length >= 2) {
+    try {
+      const embeddings = await Promise.all(
+        unknowns.map((rec) => opts.embedFn(evidenceTextForRecord(rec))),
+      );
+      return {
+        clusters: clusterByEmbedding(unknowns, embeddings, embedThreshold).map(annotateCluster),
+        clusteringMethod: 'embedding',
+      };
+    } catch {
+      return {
+        clusters: clusterByPrefix(unknowns).map(annotateCluster),
+        clusteringMethod: 'prefix (embedding failed)',
+      };
+    }
+  }
+  return {
+    clusters: clusterByPrefix(unknowns).map(annotateCluster),
+    clusteringMethod: opts.embedFn ? 'prefix' : 'prefix (no embedding key)',
+  };
+}
+
+function computeOovAlertLevel(unknowns, top, clusterMin, salienceBypass, operatorMin) {
+  if (unknowns.length >= operatorMin) {
+    return { alert: true, level: 'critical' };
+  }
+  if ((top?.count ?? 0) >= clusterMin) {
+    return { alert: true, level: salienceBypass ? 'critical' : 'warning' };
+  }
+  return { alert: false, level: 'none' };
+}
+
 /**
  * @param {Array<object>} records
  * @param {object} [opts]
@@ -171,25 +223,7 @@ export async function evaluateDynamicOovClusters(records, opts = {}) {
     return emptyResult(windowHours);
   }
 
-  let clusters;
-  let clusteringMethod = 'prefix';
-
-  if (typeof opts.embedFn === 'function' && unknowns.length >= 2) {
-    try {
-      const embeddings = await Promise.all(
-        unknowns.map((rec) => opts.embedFn(evidenceTextForRecord(rec))),
-      );
-      clusters = clusterByEmbedding(unknowns, embeddings, embedThreshold).map(annotateCluster);
-      clusteringMethod = 'embedding';
-    } catch {
-      clusters = clusterByPrefix(unknowns).map(annotateCluster);
-      clusteringMethod = 'prefix (embedding failed)';
-    }
-  } else {
-    clusters = clusterByPrefix(unknowns).map(annotateCluster);
-    clusteringMethod = opts.embedFn ? 'prefix' : 'prefix (no embedding key)';
-  }
-
+  const { clusters, clusteringMethod } = await resolveUnknownClusters(unknowns, opts, embedThreshold);
   const top = clusters[0] ?? null;
   const dominantSource = inferDominantSourceClass(top?.records ?? unknowns);
   let clusterMin = clusterMinThresholdForSource(dominantSource, {
@@ -203,16 +237,7 @@ export async function evaluateDynamicOovClusters(records, opts = {}) {
     clusterMin = Math.min(clusterMin, salienceMin);
   }
 
-  let alert = false;
-  let level = 'none';
-
-  if (unknowns.length >= operatorMin) {
-    alert = true;
-    level = 'critical';
-  } else if ((top?.count ?? 0) >= clusterMin) {
-    alert = true;
-    level = salienceBypass ? 'critical' : 'warning';
-  }
+  const { alert, level } = computeOovAlertLevel(unknowns, top, clusterMin, salienceBypass, operatorMin);
 
   return {
     alert,

@@ -4,7 +4,7 @@ import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { AudioIngestService } from './audioIngestService.js';
 import { contextualizeTranscript as defaultContextualizer } from './audioTranscriptContextualizer.js';
 
-const APP_TEMP_ROOT = resolve(process.cwd(), 'data', '.tmp');
+const APP_TEMP_ROOT = resolve(process.cwd(), 'db', '.tmp');
 
 function ensureAppTempRoot() {
   mkdirSync(APP_TEMP_ROOT, { recursive: true });

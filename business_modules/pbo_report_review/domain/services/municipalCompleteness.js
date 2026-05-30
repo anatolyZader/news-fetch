@@ -93,6 +93,103 @@ const UNIVERSAL_LOCALITY_QUESTION = {
   ru: 'К какому населённому пункту или району относится этот отчёт?',
 };
 
+const GAP_QUESTION_TEXT = {
+  [GAP_KINDS.missing_score]: {
+    en: 'Please provide a score and brief observation for this component.',
+    ru: 'Пожалуйста, укажите оценку и краткое наблюдение по этому компоненту.',
+    he: 'נא להשלים ציון והתייחסות קצרה למרכיב זה.',
+  },
+  [GAP_KINDS.missing_verbal_text]: {
+    en: 'Please add a verbal reference describing what you observed for this component.',
+    ru: 'Добавьте текстовое описание наблюдений по этому компоненту.',
+    he: 'נא להוסיף התייחסות מילולית לתצפית במרכיב זה.',
+  },
+  [GAP_KINDS.thin_officer_coverage]: {
+    en: 'Only one or two officer scores were recorded — can you add another officer observation or clarify scope?',
+    ru: 'Записана оценка одного–двух офицеров — добавьте наблюдение ещё одного офицера или уточните масштаб.',
+    he: 'נרשמו ציונים של מעט קב"טים — האם ניתן להוסיף תצפית נוספת או לפרט את ההיקף?',
+  },
+  [GAP_KINDS.sparse_row]: {
+    en: 'Most components are empty — please complete scores for all eight resilience components.',
+    ru: 'Большинство компонентов пусты — заполните оценки по всем восьми компонентам устойчивости.',
+    he: 'רוב המרכיבים ריקים — נא להשלים ציונים לכל שמונה מרכיבי החוסן.',
+  },
+};
+
+/**
+ * @param {string} lang
+ * @param {string} kind
+ * @returns {string}
+ */
+function defaultQuestionText(lang, kind) {
+  const templates = GAP_QUESTION_TEXT[kind];
+  if (!templates) return '';
+  return templates[lang] ?? templates.he ?? '';
+}
+
+/**
+ * @param {string} language
+ * @returns {string}
+ */
+function normalizeLanguage(language) {
+  return ['en', 'he', 'ru'].includes(language) ? language : 'he';
+}
+
+/**
+ * @param {object} componentNames
+ * @param {string} lang
+ */
+function componentLabelsForLanguage(componentNames, lang) {
+  const labelLang = lang === 'ru' ? 'en' : lang;
+  return componentNames?.[labelLang] ?? componentNames?.he ?? {};
+}
+
+/**
+ * @param {Array<object>} gaps
+ * @param {number} missingScoreCount
+ * @param {Set<string>} seen
+ * @param {string} lang
+ * @returns {Array<object>}
+ */
+function buildUniversalLocalityQuestion(missingScoreCount, seen, lang) {
+  if (missingScoreCount < 2 || seen.has('locality')) return [];
+  seen.add('locality');
+  return [{
+    gapId: 'locality',
+    componentId: null,
+    kind: 'universal',
+    label: '',
+    text: UNIVERSAL_LOCALITY_QUESTION[lang] ?? UNIVERSAL_LOCALITY_QUESTION.he,
+  }];
+}
+
+/**
+ * @param {object} gap
+ * @param {object|null} req
+ * @param {string} lang
+ * @returns {string}
+ */
+function resolveQuestionText(gap, req, lang) {
+  const fallback = req?.fallbackQuestions?.[0];
+  if (fallback) return String(fallback).trim();
+  return defaultQuestionText(lang, gap.kind);
+}
+
+/**
+ * @param {object} gap
+ * @param {Record<string, string>} labels
+ * @param {string} text
+ */
+function gapQuestionRecord(gap, labels, text) {
+  return {
+    gapId: gap.id,
+    componentId: gap.componentId,
+    kind: gap.kind,
+    label: gap.componentId ? (labels[gap.componentId] ?? gap.componentId) : '',
+    text: String(text ?? '').trim(),
+  };
+}
+
 /**
  * @param {Array<object>} gaps
  * @param {object} evidenceRequirements  EVIDENCE_REQUIREMENTS map
@@ -101,63 +198,18 @@ const UNIVERSAL_LOCALITY_QUESTION = {
  * @returns {Array<{ gapId: string, componentId: string|null, kind: string, label: string, text: string }>}
  */
 export function buildQuestionsFromGaps(gaps, evidenceRequirements, componentNames, language = 'he') {
-  const lang = ['en', 'he', 'ru'].includes(language) ? language : 'he';
-  const labels = componentNames?.[lang === 'ru' ? 'en' : lang] ?? componentNames?.he ?? {};
+  const lang = normalizeLanguage(language);
+  const labels = componentLabelsForLanguage(componentNames, lang);
   const seen = new Set();
-  const questions = [];
-
   const missingScoreCount = gaps.filter((g) => g.kind === GAP_KINDS.missing_score).length;
-  if (missingScoreCount >= 2 && !seen.has('locality')) {
-    seen.add('locality');
-    questions.push({
-      gapId: 'locality',
-      componentId: null,
-      kind: 'universal',
-      label: '',
-      text: UNIVERSAL_LOCALITY_QUESTION[lang] ?? UNIVERSAL_LOCALITY_QUESTION.he,
-    });
-  }
+  const questions = buildUniversalLocalityQuestion(missingScoreCount, seen, lang);
 
   for (const gap of gaps) {
     if (seen.has(gap.id)) continue;
     const req = gap.componentId ? evidenceRequirements?.[gap.componentId] : null;
-    const fallback = req?.fallbackQuestions?.[0];
-    let text = fallback;
-    if (!text) {
-      if (gap.kind === GAP_KINDS.missing_score) {
-        text = lang === 'en'
-          ? 'Please provide a score and brief observation for this component.'
-          : lang === 'ru'
-            ? 'Пожалуйста, укажите оценку и краткое наблюдение по этому компоненту.'
-            : 'נא להשלים ציון והתייחסות קצרה למרכיב זה.';
-      } else if (gap.kind === GAP_KINDS.missing_verbal_text) {
-        text = lang === 'en'
-          ? 'Please add a verbal reference describing what you observed for this component.'
-          : lang === 'ru'
-            ? 'Добавьте текстовое описание наблюдений по этому компоненту.'
-            : 'נא להוסיף התייחסות מילולית לתצפית במרכיב זה.';
-      } else if (gap.kind === GAP_KINDS.thin_officer_coverage) {
-        text = lang === 'en'
-          ? 'Only one or two officer scores were recorded — can you add another officer observation or clarify scope?'
-          : lang === 'ru'
-            ? 'Записана оценка одного–двух офицеров — добавьте наблюдение ещё одного офицера или уточните масштаб.'
-            : 'נרשמו ציונים של מעט קב"טים — האם ניתן להוסיף תצפית נוספת או לפרט את ההיקף?';
-      } else if (gap.kind === GAP_KINDS.sparse_row) {
-        text = lang === 'en'
-          ? 'Most components are empty — please complete scores for all eight resilience components.'
-          : lang === 'ru'
-            ? 'Большинство компонентов пусты — заполните оценки по всем восьми компонентам устойчивости.'
-            : 'רוב המרכיבים ריקים — נא להשלים ציונים לכל שמונה מרכיבי החוסן.';
-      }
-    }
+    const text = resolveQuestionText(gap, req, lang);
     seen.add(gap.id);
-    questions.push({
-      gapId: gap.id,
-      componentId: gap.componentId,
-      kind: gap.kind,
-      label: gap.componentId ? (labels[gap.componentId] ?? gap.componentId) : '',
-      text: String(text ?? '').trim(),
-    });
+    questions.push(gapQuestionRecord(gap, labels, text));
   }
 
   return questions.filter((q) => q.text);
@@ -168,7 +220,7 @@ export function buildQuestionsFromGaps(gaps, evidenceRequirements, componentName
  * @returns {string}
  */
 export function computeGapsHash(gaps) {
-  const keys = gaps.map((g) => g.id).sort();
+  const keys = gaps.map((g) => g.id).sort((a, b) => a.localeCompare(b));
   return createHash('sha256').update(keys.join('|')).digest('hex').slice(0, 16);
 }
 

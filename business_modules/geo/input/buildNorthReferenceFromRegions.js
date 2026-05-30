@@ -4,8 +4,8 @@
  * Geocodes via Nominatim (OSM) — respect https://operations.osmfoundation.org/policies/nominatim/ (1 req/s, valid User-Agent).
  *
  * Usage:
- *   node scripts/build-north-reference-from-regions.mjs
- *   node scripts/build-north-reference-from-regions.mjs --dry-run   # print only, no write
+ *   npm run build:north-reference
+ *   node business_modules/geo/input/buildNorthReferenceFromRegions.js --dry-run
  *
  * Reads:  regions.json (repo root)
  * Writes: business_modules/geo/data/north-reference.json (hierarchical subregions.*.localities; merges by canonicalKey)
@@ -17,10 +17,10 @@ import { fileURLToPath } from 'node:url';
 import {
   collectRawLocalitiesFromNorthReferenceDoc,
   groupLocalitiesIntoSubregionsForFile,
-} from '../business_modules/geo/domain/services/northReferenceDocShape.js';
+} from '../domain/services/northReferenceDocShape.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const root = resolve(__dirname, '..');
+const root = resolve(__dirname, '../../..');
 const REGIONS_PATH = resolve(root, 'regions.json');
 const REF_PATH = resolve(root, 'business_modules', 'geo', 'data', 'north-reference.json');
 

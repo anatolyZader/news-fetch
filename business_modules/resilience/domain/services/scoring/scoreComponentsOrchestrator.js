@@ -70,7 +70,7 @@ function assignConfidence(certainty, distinctArticleCount) {
   return 'high';
 }
 
-function computeSuppressionBreakdown(scRaw, scCapNoFloor, sc) {
+function computeSuppressionBreakdown(scRaw, scCapNoFloor, _sc) {
   return {
     source_cap: (scRaw?.score != null && scCapNoFloor?.score != null)
       ? scCapNoFloor.score - scRaw.score

@@ -361,3 +361,7 @@ export function NaftaliTab({ operatorScope = 'national' }) {
     </Box>
   );
 }
+
+NaftaliTab.propTypes = {
+  operatorScope: PropTypes.string,
+};

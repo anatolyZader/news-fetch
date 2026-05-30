@@ -1,6 +1,12 @@
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
-import { basename, extname, resolve, sep } from 'node:path';
+import { basename, dirname, extname, resolve, sep } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { IReportBotManualReportsPort } from '../../domain/ports/IReportBotManualReportsPort.js';
+
+const DEFAULT_INBOX_DIR = resolve(
+  dirname(fileURLToPath(import.meta.url)),
+  '../../data',
+);
 
 const SNIPPET_BYTES = 1200;
 const ALLOWED_EXT = new Set(['.md', '.markdown', '.txt', '.json', '.html', '.htm']);
@@ -26,11 +32,11 @@ function textSnippet(buf) {
 
 export class ReportBotManualReportsFsAdapter extends IReportBotManualReportsPort {
   /**
-   * @param {{ rootDir: string }} opts — repo root; reads `rootDir/report_bot/`
+   * @param {{ inboxDir?: string }} [opts] — defaults to `business_modules/report_bot/data/`
    */
-  constructor({ rootDir }) {
+  constructor({ inboxDir } = {}) {
     super();
-    this.inboxDir = resolve(rootDir, 'report_bot');
+    this.inboxDir = resolve(inboxDir ?? DEFAULT_INBOX_DIR);
   }
 
   listReports() {

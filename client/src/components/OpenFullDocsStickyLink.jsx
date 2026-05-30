@@ -24,13 +24,26 @@ function prefersReducedMotion() {
   return globalThis.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
+function scheduleFlashEnd(setAnimating, timersRef) {
+  const offId = setTimeout(() => setAnimating(false), FLASH_MS);
+  timersRef.current.push(offId);
+}
+
+function runFlashAnimation(setAnimating, timersRef) {
+  setAnimating(false);
+  const startId = requestAnimationFrame(() => {
+    setAnimating(true);
+    scheduleFlashEnd(setAnimating, timersRef);
+  });
+  timersRef.current.push(startId);
+}
+
 function useFullDocsFlash(active) {
   const [animating, setAnimating] = useState(false);
   const timersRef = useRef([]);
 
   useEffect(() => {
     if (!active) {
-      setAnimating(false);
       timersRef.current.forEach(cancelAnimationFrame);
       timersRef.current.forEach(clearTimeout);
       timersRef.current.forEach(clearInterval);
@@ -51,13 +64,7 @@ function useFullDocsFlash(active) {
 
     const triggerFlash = () => {
       if (reducedMotion) return;
-      setAnimating(false);
-      const startId = requestAnimationFrame(() => {
-        setAnimating(true);
-        const offId = setTimeout(() => setAnimating(false), FLASH_MS);
-        timersRef.current.push(offId);
-      });
-      timersRef.current.push(startId);
+      runFlashAnimation(setAnimating, timersRef);
     };
 
     triggerFlash();
@@ -70,7 +77,7 @@ function useFullDocsFlash(active) {
     };
   }, [active]);
 
-  return animating;
+  return active ? animating : false;
 }
 
 export function OpenFullDocsStickyLink({ href, label, active, pin = 'overlay' }) {

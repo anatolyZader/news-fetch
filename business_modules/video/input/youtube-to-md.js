@@ -186,7 +186,7 @@ try {
 
     // Persist to DB
     try {
-      const sqlitePath = resolve(process.cwd(), process.env.SQLITE_PATH?.trim() || 'data/app.sqlite');
+      const sqlitePath = resolve(process.cwd(), process.env.SQLITE_PATH?.trim() || 'db/app.sqlite');
       const archive = createSourceArchive(sqlitePath);
       const { archived } = persistOriginalSources(archive, result.items);
       archive.close();

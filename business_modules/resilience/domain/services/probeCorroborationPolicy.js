@@ -27,7 +27,7 @@ export function probeSourceAllowlist(env = process.env) {
 /**
  * @param {NodeJS.ProcessEnv} [env]
  */
-export function probeMinCorroboration(env = process.env) {
+export function probeMinCorroboration(_env = process.env) {
   return parseEnvInt('RESILIENCE_PROBE_MIN_CORROBORATION', DEFAULT_MIN_CORROBORATION);
 }
 
@@ -44,7 +44,8 @@ export function verifyProbeRecordHmac(record, env = process.env) {
   if (!hmac || typeof hmac !== 'string') {
     return { ok: false, reason: 'missing_hmac' };
   }
-  const { hmac: _drop, ...payload } = record;
+  const payload = { ...record };
+  delete payload.hmac;
   const body = JSON.stringify(payload);
   const expected = createHmac('sha256', secret).update(body).digest('hex');
   try {

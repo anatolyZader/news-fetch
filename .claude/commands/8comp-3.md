@@ -112,7 +112,7 @@ Skip dates where the signals file already exists. Skip dates with no transcripts
 
 **Step 4 — Export WhatsApp (local SQLite) and extract signals** *(skip if `whatsapp` is disabled)*
 
-`whatsapp-to-md.js` reads from `data/app.sqlite` — it is **not** a network fetch, so it is safe to use for past dates.
+`whatsapp-to-md.js` reads from `db/app.sqlite` — it is **not** a network fetch, so it is safe to use for past dates.
 
 For each window date:
 - If `signals/signals-whatsapp-<date>.json` exists, reuse it — skip export and extraction.

@@ -10,7 +10,6 @@ const REGEX_SPECIAL_CHARS = /[.*+?^${}()|[\]\\]/g;
 
 import { getTodayInTimezone } from '../utils/dateUtils.js';
 import {
-  isRegionalReportFilename,
   normalizeReportScopeId,
   reportFilePrefix,
 } from '../cross-cut-modules/geo/reportScopeIds.js';

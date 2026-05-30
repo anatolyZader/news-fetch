@@ -5,7 +5,7 @@ export function createReportBotManualReportsService({ repository }) {
     getDashboard() {
       const files = repository.listReports();
       return {
-        inboxRelative: 'report_bot',
+        inboxRelative: 'business_modules/report_bot/data',
         files,
       };
     },

@@ -18,6 +18,7 @@ import {
   dateToggleGridSx,
 } from '../../ui/index.js';
 import { formatDate } from '../../lib/date.js';
+import PropTypes from 'prop-types';
 import { SocialMediaPostCard } from './SocialMediaPostCard.jsx';
 
 export function SocialMediaDailyPanel({ operatorScope = 'national' }) {
@@ -139,3 +140,7 @@ export function SocialMediaDailyPanel({ operatorScope = 'national' }) {
     </Stack>
   );
 }
+
+SocialMediaDailyPanel.propTypes = {
+  operatorScope: PropTypes.string,
+};

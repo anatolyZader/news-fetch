@@ -194,7 +194,7 @@ export class ValidationReviewSqliteStore extends IValidationReviewStorePort {
       LIMIT 1
     `).get(String(date), String(scope), String(articleKey));
     if (!row) return null;
-    let payload = {};
+    let payload;
     try {
       payload = JSON.parse(row.payload_json || '{}');
     } catch {

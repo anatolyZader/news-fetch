@@ -19,7 +19,7 @@ const args = process.argv.slice(2);
 const getArg = (flag) => { const i = args.indexOf(flag); return i >= 0 ? args[i + 1] : null; };
 
 const date = getArg('--date') ?? new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jerusalem' });
-const sqlitePath = resolve(import.meta.dirname, '../../../data/app.sqlite');
+const sqlitePath = resolve(import.meta.dirname, '../../../db/app.sqlite');
 
 const messageStore = createWhatsAppMessageStore(sqlitePath);
 

@@ -40,8 +40,9 @@ Orient an integrator or developer to the repo's top-level layout so they can ans
 ├── docs/
 │   ├── product_docs/          # Customer docs (in-app + public site)
 │   └── docs-site/             # Docusaurus (reads product_docs)
-├── scripts/                   # Shell wrappers + validators
+├── scripts/                   # Shell wrappers, CI helpers, Sonar tooling
 │   ├── daily-pipeline.sh      # End-to-end daily run
+│   ├── sonar/                 # SonarCloud queue + /fix-sonar loop
 │   └── docs/validate-docs.js  # `npm run docs:check`
 ├── business_modules/
 │   ├── news-sites/            # NewsAPI.ai + homefront extractor

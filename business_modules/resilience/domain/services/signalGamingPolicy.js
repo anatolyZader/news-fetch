@@ -2,7 +2,6 @@
  * Anti-gaming policy for citizen-sourced and high-volume signals.
  */
 
-import { getSignalCatalogEntry } from './signalCatalog.js';
 import { CRITICAL_BYPASS_SIGNAL_TYPES } from './highSalienceBypass.js';
 import { GROUNDING_TIER } from './groundingPolicy.js';
 
@@ -18,11 +17,11 @@ export function isGamingPolicyEnabled(env = process.env) {
   return env.RESILIENCE_GAMING_POLICY !== '0';
 }
 
-export function whatsappDailyCap(env = process.env) {
+export function whatsappDailyCap(_env = process.env) {
   return parseEnvInt('RESILIENCE_WHATSAPP_MAX_SIGNALS_PER_SENDER', DEFAULT_DAILY_CAP);
 }
 
-export function whatsappHourlyTypeCap(env = process.env) {
+export function whatsappHourlyTypeCap(_env = process.env) {
   return parseEnvInt('RESILIENCE_WHATSAPP_HOURLY_TYPE_CAP', DEFAULT_HOURLY_TYPE_CAP);
 }
 
@@ -65,7 +64,6 @@ export function applyWhatsappSenderCaps(signals, env = process.env) {
     const dayKey = String(sender);
     dailyCount[dayKey] = (dailyCount[dayKey] ?? 0) + 1;
 
-    const hourBucket = Math.floor(Date.now() / (60 * 60 * 1000));
     const typeKey = s?.signal_type ?? s?.type ?? 'unknown';
     if (!hourlyTypeCount[dayKey]) hourlyTypeCount[dayKey] = {};
     const ht = hourlyTypeCount[dayKey];

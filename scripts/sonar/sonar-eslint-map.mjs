@@ -55,7 +55,7 @@ export function eslintRuleToSonarKey() {
 
   try {
     const md = readFileSync(
-      resolve(__dirname, '../node_modules/eslint-plugin-sonarjs/README.md'),
+      resolve(__dirname, '../../../node_modules/eslint-plugin-sonarjs/README.md'),
       'utf8',
     );
     const sonarjsRe = /\| \[([^\]]+)\].*?rspec\/S(\d+)\/javascript\)/g;

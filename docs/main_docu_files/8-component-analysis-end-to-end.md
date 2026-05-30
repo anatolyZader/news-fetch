@@ -492,7 +492,7 @@ Each source produces a `signals/signals-{source}-{YYYY-MM-DD}.json` file (field 
 | **PBO regional** | `pbo_regional` | `business_modules/pbo_report_regional` | Excel per regional cluster (`baram`, `galma`, `golan`, `hiram`, `naftali`) | Similar conversion path | Always `north` |
 | **Naftali** | `naftali` | `business_modules/pool` | Weekly municipal questionnaire | `pool/input/extract-naftali-signals.js` maps severity dimensions and free-text fields → signals | Always `north` |
 | **Social OSINT** | `social` | `business_modules/social_media` | X posts + Telegram channel messages | `social-media:gather-daily` → Haiku classify → `signals-social-{date}.json`; `social-media:treat` → `signals[]` | North-biased queries when `--north`; scope filter applies like news/radio |
-| **Survey** (optional) | (varies) | `business_modules/resilience` (survey Excel + writers under `app/` / `infrastructure/adapters/`) | Municipality survey Excel | `analyze-survey.js` (one-off analysis path) | Configurable |
+| **Survey** (optional) | (varies) | `business_modules/resilience` (survey Excel + writers under `app/` / `infrastructure/adapters/`) | Municipality survey Excel | `npm run analyze-survey` → `runAnalyzeSurvey.js` | Configurable |
 
 Structured north-theater feeds (`field`, `pbo`, `pbo_regional`, `naftali`, `field_whatsapp`) default to district `north` via `config/collectionScope.json`. News, radio, and social signals require **resolved geo** matching the target district for regional scope (otherwise excluded); `text_inferred` geo may appear in narrative context but is metrics-ineligible under epistemic v2 — see §8.9 and §12.
 
@@ -635,7 +635,7 @@ DM flow persists conversation state in SQLite (`whatsappConversationStore.js`). 
 
 ### 5.9 Survey (one-off path)
 
-Field survey analysis lives under **`business_modules/resilience`** (`surveyExcelLoader`, `surveyEvaluator`, `surveyReportWriter`, and `resilience/input/analyze-survey.js`) and covers a separate, ad-hoc municipality-survey analysis flow that produces its own report alongside the daily one.
+Field survey analysis lives under **`business_modules/resilience`** (`surveyExcelLoader`, `surveyEvaluator`, `surveyReportWriter`, and `resilience/input/analyzeSurveyInput.js`) and covers a separate, ad-hoc municipality-survey analysis flow that produces its own report alongside the daily one. Entry: **`npm run analyze-survey`** (`cross-cut-modules/geo/input/runAnalyzeSurvey.js`).
 
 ---
 
@@ -1647,7 +1647,7 @@ business_modules/
 │   ├── input/mailingRoutes.js                   # GET /api/mail/*
 │   └── app/mailingService.js
 │
-├── resilience/                                    # The brain (+ field survey Excel → MD/JSON under app/survey*.js, input/analyze-survey.js)
+├── resilience/                                    # The brain (+ field survey Excel → MD/JSON under app/survey*.js, input/analyzeSurveyInput.js)
     ├── domain/
     │   ├── resilienceComponents.js                # 8 component definitions, principles, manifestations
     │   ├── ports/IResilienceLlmPort.js
@@ -1687,8 +1687,8 @@ business_modules/
     │       ├── anthropicResilienceLlmAdapter.js
     │       └── surveyExcelLoader.js               # Field survey — Google Forms Excel → grouped answers
     └── input/
-        ├── analyze-survey.js                      # Survey path
-        ├── analyzeSurveyInput.js
+        ├── analyzeSurveyInput.js                  # Survey CLI logic
+        ├── backfillReportBriefMd.js               # Regenerate -brief.md from report JSON
         ├── assess-signals.js                      # Stage-2 CLI: combine signals + assess (+ validation)
         ├── assessSignalsHelpers.js                # crossSourceDedup, EWMA, delta-channel
         ├── driftRoutes.js                         # /api/resilience/drift

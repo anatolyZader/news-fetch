@@ -5,7 +5,7 @@
 import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 
-const DEFAULT_PATH = resolve('config', 'resilience-outlet-reputation.json');
+const DEFAULT_PATH = resolve('business_modules/news-sites/data/resilience-outlet-reputation.json');
 const DECAY_CLAMP_MIN = 0.1;
 const DECAY_CLAMP_MAX = 1.5;
 

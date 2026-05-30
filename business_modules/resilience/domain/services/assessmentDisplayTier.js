@@ -228,7 +228,7 @@ export function redactAssessmentForView(assessment, view) {
  * @param {Record<string, Record<string, object>> | null | undefined} scoreBySource
  * @param {'operator' | 'analyst'} view
  */
-export function redactScoreBySource(scoreBySource, view) {
+export function redactScoreBySource(scoreBySource, _view) {
   if (!scoreBySource || typeof scoreBySource !== 'object') return scoreBySource;
 
   const out = {};

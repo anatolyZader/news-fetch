@@ -30,7 +30,7 @@ describe('recordAndTranscribe', { timeout: 1_800_000 }, () => {
   const adapter = createFfmpegDirectStreamAdapter();
 
   // Read production jobs for station/stream info
-  const prodDbPath = join(import.meta.dirname, '..', '..', '..', 'data', 'app.sqlite');
+  const prodDbPath = join(import.meta.dirname, '..', '..', '..', 'db', 'app.sqlite');
   const prodStore = createRecordingJobStore(prodDbPath);
   const prodJobs = prodStore.getEnabledJobs();
 

@@ -469,13 +469,13 @@ export function DocsPanel({ open, onClose, initialSlug, variant = 'modal' }) {
                     <Typography
                       variant="h1"
                       component="h1"
-                      sx={(theme) => ({
+                      sx={{
                         margin: 0,
                         fontSize: '1.5rem',
                         fontWeight: 700,
                         letterSpacing: '-0.02em',
                         lineHeight: 1.25,
-                      })}
+                      }}
                     >
                       {selectedMeta.title}
                     </Typography>

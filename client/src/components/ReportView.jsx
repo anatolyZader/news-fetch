@@ -7,7 +7,6 @@ import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import Alert from '@mui/material/Alert';
 import LinearProgress from '@mui/material/LinearProgress';
-import Tooltip from '@mui/material/Tooltip';
 import { useTheme } from '@mui/material/styles';
 import MenuBookOutlinedIcon from '@mui/icons-material/MenuBookOutlined';
 import CellTowerOutlinedIcon from '@mui/icons-material/CellTowerOutlined';
@@ -20,7 +19,7 @@ import MonitorHeartOutlinedIcon from '@mui/icons-material/MonitorHeartOutlined';
 import HelpOutlineOutlinedIcon from '@mui/icons-material/HelpOutlineOutlined';
 import { expandSourceCitationLinks } from './ReportMarkdownView.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
-import { scoreColor10, scoreLabel10, scoreVariant10 } from '../lib/score.js';
+import { scoreLabel10, scoreVariant10 } from '../lib/score.js';
 import { DriftSparkline, StatusTag, MarkdownArticle } from '../ui/index.js';
 import { AttentionPanel } from './AttentionPanel.jsx';
 import { EpistemicStatusBanner } from './EpistemicStatusBanner.jsx';
@@ -631,7 +630,6 @@ function ComponentCard({
 }) {
   const isAnalyst = displayTier === 'analyst';
   const label = t(`comp.${comp.component_id}`) ?? comp.component_id.replaceAll('_', ' ');
-  const confidenceLabel = t(`confidence.${comp.confidence}`) ?? comp.confidence;
 
   const isFiltered = sourceSignals !== null && sourceSignals !== undefined;
   const signals = isFiltered ? (sourceSignals ?? []) : null;
@@ -879,10 +877,8 @@ export function ReportView({
   const openEvidenceCompId = openEvidenceCompIdProp ?? openEvidenceCompIdInternal;
   const setOpenEvidenceCompId = setOpenEvidenceCompIdProp ?? setOpenEvidenceCompIdInternal;
 
-  const components = assessment.components ?? [];
   const norrisCaps = assessment.norris_capacities ?? [];
   const driftMap = driftByComponent ?? {};
-  const methodology = assessment.methodology ?? null;
 
   function getSourceSignals(compId) {
     if (!scoreBySource) return null;

@@ -16,13 +16,13 @@ describe('monitoringService', () => {
     process.env.COST_LOG_PATH = join(rootDir, 'cost-log.jsonl');
     mkdirSync(join(rootDir, 'signals'), { recursive: true });
     mkdirSync(join(rootDir, 'reports'), { recursive: true });
-    mkdirSync(join(rootDir, 'data'), { recursive: true });
+    mkdirSync(join(rootDir, 'db'), { recursive: true });
     mkdirSync(join(rootDir, 'business_modules/news-sites/articles_extracted'), { recursive: true });
 
     writeFileSync(join(rootDir, 'pipeline-config.json'), JSON.stringify({
       sources: { news: { enabled: true } },
     }));
-    writeFileSync(join(rootDir, 'data/app.sqlite'), '');
+    writeFileSync(join(rootDir, 'db/app.sqlite'), '');
     writeFileSync(join(rootDir, 'signals/signals-news-2026-05-27.json'), JSON.stringify({
       date: '2026-05-27',
       total_articles: 5,
@@ -54,7 +54,7 @@ describe('monitoringService', () => {
   it('getSummary bundles pipeline, health, cost, and stage telemetry', async () => {
     const svc = createMonitoringService({
       rootDir,
-      sqlitePath: join(rootDir, 'data/app.sqlite'),
+      sqlitePath: join(rootDir, 'db/app.sqlite'),
       timezone: 'Asia/Jerusalem',
     });
     const summary = await svc.getSummary({ date: '2026-05-27', scope: 'national' });
@@ -72,12 +72,12 @@ describe('monitoringService', () => {
 describe('healthService', () => {
   it('returns degraded when reports dir missing', () => {
     const rootDir = join(tmpdir(), `health-${Date.now()}`);
-    mkdirSync(join(rootDir, 'data'), { recursive: true });
-    writeFileSync(join(rootDir, 'data/app.sqlite'), '');
+    mkdirSync(join(rootDir, 'db'), { recursive: true });
+    writeFileSync(join(rootDir, 'db/app.sqlite'), '');
 
     const svc = createHealthService({
       rootDir,
-      sqlitePath: join(rootDir, 'data/app.sqlite'),
+      sqlitePath: join(rootDir, 'db/app.sqlite'),
     });
     const health = svc.getHealth();
     assert.equal(health.status, 'degraded');

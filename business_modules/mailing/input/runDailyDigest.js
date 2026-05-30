@@ -11,7 +11,7 @@
  *   0 7 * * * cd /path/to/news && /usr/bin/env node business_modules/mailing/input/runDailyDigest.js >> /var/log/vibes-witch-mail.log 2>&1
  *
  * Ensure the same environment as the API process: RESEND_API_KEY, MAIL_FROM,
- * optional SQLITE_PATH (defaults to ./data/app.sqlite under repo root when unset).
+ * optional SQLITE_PATH (defaults to ./db/app.sqlite under repo root when unset).
  * Set MAILING_ENABLED=false to skip sends (script exits 0 without sending).
  */
 import 'dotenv/config';
@@ -28,7 +28,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, '../../..');
 const sqlitePath = process.env.SQLITE_PATH?.trim()
   ? resolve(process.env.SQLITE_PATH.trim())
-  : resolve(repoRoot, 'data', 'app.sqlite');
+  : resolve(repoRoot, 'db', 'app.sqlite');
 
 function isMailingConfigured() {
   if (process.env.MAILING_ENABLED === 'false') return false;

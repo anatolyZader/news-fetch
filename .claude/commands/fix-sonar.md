@@ -41,8 +41,8 @@ Use --local-only for offline profile-aligned ESLint queue.
 Initialize the loop driver and fetch **all** open issues on the **current git branch**:
 
 ```
-node scripts/fix-sonar-loop.mjs --init [--in-new-code] [--branch <name>]
-node scripts/list-sonar-issues.mjs --all-issues --json [--in-new-code] [--branch <name>]
+node scripts/sonar/fix-sonar-loop.mjs --init [--in-new-code] [--branch <name>]
+node scripts/sonar/list-sonar-issues.mjs --all-issues --json [--in-new-code] [--branch <name>]
 ```
 
 (or `--local-only` on both commands when offline)
@@ -60,10 +60,10 @@ If `--dry-run`, print the full list grouped by file and stop.
 Repeat until no remaining issues:
 
 ```
-node scripts/fix-sonar-loop.mjs --next-batch
+node scripts/sonar/fix-sonar-loop.mjs --next-batch
 ```
 
-Process **every issue in the batch** before fetching the next batch. Default: **500 issues per batch** (`FIX_SONAR_BATCH_SIZE` in `scripts/sonar-defaults.mjs`); keep looping until `{ "done": true }`. Do **not** stop after 10 or 50 issues.
+Process **every issue in the batch** before fetching the next batch. Default: **500 issues per batch** (`FIX_SONAR_BATCH_SIZE` in `scripts/sonar/sonar-defaults.mjs`); keep looping until `{ "done": true }`. Do **not** stop after 10 or 50 issues.
 
 For each `{ issue }`:
 
@@ -72,11 +72,11 @@ For each `{ issue }`:
 3. Verify **this specific issue** (not whole-file clean):
 
 ```
-node scripts/verify-sonar-issue.mjs --file <path> --line <n> --rule <javascript:Sxxxx>
+node scripts/sonar/verify-sonar-issue.mjs --file <path> --line <n> --rule <javascript:Sxxxx>
 ```
 
-- Exit 0 → mark fixed: `node scripts/fix-sonar-loop.mjs --mark-fixed <issue.key>`
-- Exit 1 → skip with reason, move to end: `node scripts/fix-sonar-loop.mjs --mark-skipped <issue.key> --reason "<why>"`
+- Exit 0 → mark fixed: `node scripts/sonar/fix-sonar-loop.mjs --mark-fixed <issue.key>`
+- Exit 1 → skip with reason, move to end: `node scripts/sonar/fix-sonar-loop.mjs --mark-skipped <issue.key> --reason "<why>"`
 
 4. Optional: `npm test -- <related test>` when practical; `npm run client:build` for client JSX changes.
 
@@ -93,7 +93,7 @@ Do **not** require the entire file to have zero issues — only that **this** ru
 ### Step 3 — Report
 
 ```
-node scripts/fix-sonar-loop.mjs --status
+node scripts/sonar/fix-sonar-loop.mjs --status
 ```
 
 Report:

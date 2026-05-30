@@ -64,7 +64,7 @@ export function textOverlapScore(text, evidenceText) {
  * @param {string[]} evidenceTexts
  * @param {number} [minOverlap]
  */
-export function bestEvidenceOverlap(text, evidenceTexts, minOverlap = 0) {
+export function bestEvidenceOverlap(text, evidenceTexts, _minOverlap = 0) {
   let best = 0;
   for (const ev of evidenceTexts ?? []) {
     if (!ev) continue;

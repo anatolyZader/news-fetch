@@ -6,7 +6,6 @@ import { listReportDates, listSignalMeta } from './signalLookup.js';
 import {
   deriveInstrumentState,
   operatorAssessmentSummary,
-  DISPLAY_VIEWS,
 } from '../../resilience/domain/services/assessmentDisplayTier.js';
 
 function formatComponentBlock(c, { includeScores }) {

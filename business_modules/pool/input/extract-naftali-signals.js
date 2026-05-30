@@ -156,7 +156,7 @@ function writeWeekBundle(week, outDir) {
   try {
     const sqlitePath = process.env.SQLITE_PATH?.trim()
       ? resolve(process.env.SQLITE_PATH.trim())
-      : resolve(REPO_ROOT, 'data', 'app.sqlite');
+      : resolve(REPO_ROOT, 'db', 'app.sqlite');
     const archive = createSourceArchive(sqlitePath);
     const { archived, responseMap } = archiveNaftaliWeek(archive, week);
     archive.close();

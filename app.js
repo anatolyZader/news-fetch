@@ -104,7 +104,7 @@ const MAX_EVIDENCE_DRAFT_CHARS = 500_000;
 
 const sqlitePath = process.env.SQLITE_PATH?.trim()
   ? resolve(process.env.SQLITE_PATH.trim())
-  : resolve(__dirname, 'data', 'app.sqlite');
+  : resolve(__dirname, 'db', 'app.sqlite');
 
 const evidenceDraftStore = createEvidenceDraftStore(sqlitePath);
 const evidenceStore = createEvidenceStore(sqlitePath);
@@ -135,7 +135,7 @@ const radioIngestReadService = createRadioIngestReadService({
 });
 
 const reportBotManualReportsService = createReportBotManualReportsService({
-  repository: createReportBotManualReportsFsAdapter({ rootDir: __dirname }),
+  repository: createReportBotManualReportsFsAdapter(),
 });
 
 const pboRegionalDailyService = createPboRegionalDailyService({
@@ -349,7 +349,7 @@ export async function createApp(options) {
     });
   }
 
-  const evidenceUserUploadsRoot = resolve(__dirname, 'data', 'evidence-uploads');
+  const evidenceUserUploadsRoot = resolve(__dirname, 'db', 'evidence-uploads');
   const { videoDownloadDir, videoGrabService, youtubeEvidenceIngestService } = createVideoServices();
   const reportBuildService = createReportBuildServiceIfConfigured();
 

@@ -1,7 +1,7 @@
 # Pipeline Scripts
 
-Shell scripts that run the resilience analysis pipeline without Claude Code.  
-Use these for scheduled/automated runs on the GCP VM.
+Shell scripts and repo-level tooling for scheduled runs, CI, and SonarCloud workflows.  
+Domain-specific CLIs live under `business_modules/*/input/` (or `cross-cut-modules/geo/input/` for composition entries).
 
 ## Scripts
 
@@ -144,3 +144,12 @@ The script logs a WARNING and continues. Missing signals for one date won't bloc
 
 **Assessment fails**  
 Usually means no signal files exist at all. Check `ls signals/signals-*-$(date +%Y-%m-%d).json`.
+
+## Other tooling (same folder)
+
+| Path | Purpose |
+|---|---|
+| `docs/validate-docs.js`, `docs/sync-overarching-docs.js` | Product docs validation and sync (`npm run docs:check`, `docs:sync`) |
+| `ci-audit.mjs`, `check-node-engines.mjs`, `audit-dependencies.mjs` | CI and dependency hygiene |
+| `ci-sonar-review-hotspots.mjs` | CI Sonar hotspot triage |
+| `sonar/*.mjs` | SonarCloud issue queue and `/fix-sonar` loop (`npm run sonar:*`) |

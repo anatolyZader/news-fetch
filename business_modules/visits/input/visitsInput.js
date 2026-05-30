@@ -121,7 +121,7 @@ console.error(`Wrote ${count} field-report visits to ${outputPath}`);
 
 try {
   const repoRoot = resolve(dirname(outputPath), '../../..');
-  const sqlitePath = process.env.SQLITE_PATH?.trim() || resolve(repoRoot, 'data', 'app.sqlite');
+  const sqlitePath = process.env.SQLITE_PATH?.trim() || resolve(repoRoot, 'db', 'app.sqlite');
   const parsed = loadMarkdownArticlesFromFile(resolve(outputPath));
   const archive = createSourceArchive(sqlitePath);
   const items = articlesToArchiveItems(parsed, {

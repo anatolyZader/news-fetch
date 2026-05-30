@@ -135,7 +135,10 @@ export function ReportBotManualReportsTab({
         <Box sx={{ marginTop: 2 }}>
           <EmptyState>{t('reportBotManual.empty')}</EmptyState>
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-            {t('reportBotManual.inboxHint').replace('{path}', data?.inboxRelative ?? 'report_bot')}
+            {t('reportBotManual.inboxHint').replace(
+              '{path}',
+              data?.inboxRelative ?? 'business_modules/report_bot/data',
+            )}
           </Typography>
         </Box>
       </Box>
@@ -146,7 +149,10 @@ export function ReportBotManualReportsTab({
     <Box sx={{ paddingTop: 2, paddingX: 2, paddingBottom: 3 }}>
       <PageHeader title={title} subtitle={subtitle} scope={districtScope} />
       <Typography variant="body2" color="text.secondary" sx={{ mt: 1, mb: 0.5 }}>
-        {t('reportBotManual.inboxHint').replace('{path}', data?.inboxRelative ?? 'report_bot')}
+        {t('reportBotManual.inboxHint').replace(
+          '{path}',
+          data?.inboxRelative ?? 'business_modules/report_bot/data',
+        )}
       </Typography>
 
       <Stack component="nav" spacing={1.25} sx={{ mt: 1 }} aria-label={t('reportBotManual.listAria')}>

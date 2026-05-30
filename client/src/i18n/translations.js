@@ -24,11 +24,11 @@ export const translations = {
     'pbo.regionDay.inboxLocation': 'Inbox',
     'tab.reportBot': 'Report bot',
     'reportBotManual.subtitle':
-      'Manual reports from the WhatsApp bot or srulik.ai “send report”; files live in the server `report_bot` inbox.',
+      'Manual reports from the WhatsApp bot or srulik.ai “send report”; files live in `business_modules/report_bot/data/`.',
     'reportBotManual.loading': 'Loading manual reports…',
     'reportBotManual.empty':
       'No matching files yet. Add .md, .txt, .json, or .html reports under `{path}` on the server.',
-    'reportBotManual.inboxHint': 'Inbox folder (repo root): `{path}`',
+    'reportBotManual.inboxHint': 'Inbox folder: `{path}`',
     'reportBotManual.listAria': 'Report bot manual reports',
     'reportBotManual.updated': 'Modified',
     'reportBotManual.loadFailed': 'Could not load the full file.',
@@ -800,11 +800,11 @@ export const translations = {
     'pbo.regionDay.inboxLocation': 'תיקיית קליטה',
     'tab.reportBot': 'בוט דוחות',
     'reportBotManual.subtitle':
-      'דוחות ידניות מבוט הווטסאפ או מהאתר (שליחת דוח); הקבצים נמצאים בתיקיית report_bot בשרת.',
+      'דוחות ידניות מבוט הווטסאפ או מהאתר (שליחת דוח); הקבצים ב-business_modules/report_bot/data/.',
     'reportBotManual.loading': 'טוען דוחות ידניים…',
     'reportBotManual.empty':
       'אין עדיין קבצים מתאימים. יש למקם דוחות ‎.md‎ / ‎.txt‎ / ‎.json‎ / ‎.html‎ תחת `{path}` בשרת.',
-    'reportBotManual.inboxHint': 'תיקייה בשרת (שורש הפרויקט): `{path}`',
+    'reportBotManual.inboxHint': 'תיקיית inbox: `{path}`',
     'reportBotManual.listAria': 'דוחות ידניים מבוט הדוחות',
     'reportBotManual.updated': 'עודכן',
     'reportBotManual.loadFailed': 'לא ניתן לטעון את הקובץ במלואו.',
@@ -1540,11 +1540,11 @@ export const translations = {
     'pbo.regionDay.inboxLocation': 'Папка',
     'tab.reportBot': 'Бот отчётов',
     'reportBotManual.subtitle':
-      'Ручные отчёты из WhatsApp-бота или с сайта (отправка отчёта); файлы лежат в папке report_bot на сервере.',
+      'Ручные отчёты из WhatsApp-бота или с сайта (отправка отчёта); файлы в business_modules/report_bot/data/.',
     'reportBotManual.loading': 'Загрузка ручных отчётов…',
     'reportBotManual.empty':
       'Подходящих файлов пока нет. Поместите отчёты .md / .txt / .json / .html в `{path}` на сервере.',
-    'reportBotManual.inboxHint': 'Каталог на сервере (корень репозитория): `{path}`',
+    'reportBotManual.inboxHint': 'Каталог inbox: `{path}`',
     'reportBotManual.listAria': 'Ручные отчёты бота',
     'reportBotManual.updated': 'Изменён',
     'reportBotManual.loadFailed': 'Не удалось загрузить файл полностью.',

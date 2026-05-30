@@ -7,7 +7,7 @@
  *   node business_modules/recording/input/start-scheduler.js
  *
  * Env:
- *   SQLITE_PATH       (default: ./data/app.sqlite)
+ *   SQLITE_PATH       (default: ./db/app.sqlite)
  *   OPENAI_API_KEY    (required for transcription after recording)
  *   RECORDINGS_DIR    (default: business_modules/recording/data)
  *
@@ -37,7 +37,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const sqlitePath = process.env.SQLITE_PATH?.trim()
   ? resolve(process.env.SQLITE_PATH.trim())
-  : resolve(__dirname, '..', '..', '..', 'data', 'app.sqlite');
+  : resolve(__dirname, '..', '..', '..', 'db', 'app.sqlite');
 
 const recordingsBaseDir = process.env.RECORDINGS_DIR?.trim()
   ? resolve(process.env.RECORDINGS_DIR.trim())

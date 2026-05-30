@@ -14,11 +14,11 @@ import { FIX_SONAR_BATCH_SIZE } from './sonar-defaults.mjs';
 
 dotenv.config();
 
-const ROOT = resolve(fileURLToPath(new URL('..', import.meta.url)));
+const ROOT = resolve(fileURLToPath(new URL('../..', import.meta.url)));
 const STATE_PATH = resolve(ROOT, '.cursor/sonar-fix-progress.json');
 
 function usage() {
-  console.error(`Usage: node scripts/fix-sonar-loop.mjs [command] [options]
+  console.error(`Usage: node scripts/sonar/fix-sonar-loop.mjs [command] [options]
 
 Commands:
   (default)     Fetch full remote queue JSON (--all-issues)
@@ -166,7 +166,7 @@ for (let i = 0; i < argv.length; i += 1) {
 if (opts.command === 'verify') {
   const result = spawnSync(
     process.execPath,
-    [resolve(ROOT, 'scripts/verify-sonar-issue.mjs'), ...opts.verifyArgs],
+    [resolve(ROOT, 'scripts/sonar/verify-sonar-issue.mjs'), ...opts.verifyArgs],
     { stdio: 'inherit', cwd: ROOT },
   );
   process.exit(result.status ?? 1);

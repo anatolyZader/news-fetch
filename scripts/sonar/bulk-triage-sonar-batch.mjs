@@ -8,7 +8,7 @@ import { spawnSync } from 'node:child_process';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 
 /** @param {string[]} args @returns {{ status: number, stdout: string }} */
 function runNode(script, args) {
@@ -21,7 +21,7 @@ function runNode(script, args) {
 
 /** @param {object} issue */
 function triageIssue(issue) {
-  const verify = runNode('scripts/verify-sonar-issue.mjs', [
+  const verify = runNode('scripts/sonar/verify-sonar-issue.mjs', [
     '--file', issue.file,
     '--line', String(issue.line),
     '--rule', issue.rule,
@@ -29,7 +29,7 @@ function triageIssue(issue) {
   ]);
 
   if (verify.status === 0) {
-    runNode('scripts/fix-sonar-loop.mjs', ['--mark-fixed', issue.key]);
+    runNode('scripts/sonar/fix-sonar-loop.mjs', ['--mark-fixed', issue.key]);
     return 'fixed';
   }
 
@@ -42,7 +42,7 @@ function triageIssue(issue) {
   }
 
   if (reason === 'no-eslint-mapping') {
-    runNode('scripts/fix-sonar-loop.mjs', ['--mark-skipped', issue.key, '--reason', 'no-eslint-mapping']);
+    runNode('scripts/sonar/fix-sonar-loop.mjs', ['--mark-skipped', issue.key, '--reason', 'no-eslint-mapping']);
     return 'skipped';
   }
 
@@ -60,7 +60,7 @@ function parseArgs(argv) {
 }
 
 const { batchLimit } = parseArgs(process.argv.slice(2));
-const batchOut = runNode('scripts/fix-sonar-loop.mjs', ['--next-batch', '--limit', String(batchLimit)]);
+const batchOut = runNode('scripts/sonar/fix-sonar-loop.mjs', ['--next-batch', '--limit', String(batchLimit)]);
 const batch = JSON.parse(batchOut.stdout);
 if (batch.done) {
   console.log(JSON.stringify({ done: true, remaining: 0 }, null, 2));
@@ -77,5 +77,5 @@ for (const issue of batch.issues) {
   if (result === 'needs-fix' && needsFix.length < 40) needsFix.push(issue);
 }
 
-const status = JSON.parse(runNode('scripts/fix-sonar-loop.mjs', ['--status']).stdout);
+const status = JSON.parse(runNode('scripts/sonar/fix-sonar-loop.mjs', ['--status']).stdout);
 console.log(JSON.stringify({ counts, batchSize: batch.batchSize, status, needsFixSample: needsFix }, null, 2));

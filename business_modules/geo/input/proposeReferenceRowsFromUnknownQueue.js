@@ -2,16 +2,16 @@
 /**
  * Aggregate unknown locality review queue into proposed north-reference rows (human review only).
  *
- *   node scripts/propose-reference-rows-from-unknown-queue.mjs
- *   node scripts/propose-reference-rows-from-unknown-queue.mjs --jsonl business_modules/geo/data/review/unknown-localities.jsonl
+ *   node business_modules/geo/input/proposeReferenceRowsFromUnknownQueue.js
+ *   node business_modules/geo/input/proposeReferenceRowsFromUnknownQueue.js --jsonl business_modules/geo/data/review/unknown-localities.jsonl
  */
 import { readFileSync, existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { normalizeLocalityLookupKey } from '../business_modules/geo/domain/services/resolveLocalityMatch.js';
+import { normalizeLocalityLookupKey } from '../domain/services/resolveLocalityMatch.js';
 
-const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const root = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 const jsonlArg = process.argv.includes('--jsonl')
   ? process.argv[process.argv.indexOf('--jsonl') + 1]
   : resolve(root, 'business_modules/geo/data/review/unknown-localities.jsonl');

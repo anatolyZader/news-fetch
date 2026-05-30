@@ -96,7 +96,7 @@ export function ChatPanel({ reportScope, reportGeoScope = 'national', onClose, v
   useEffect(() => {
     if (variant !== 'window') return undefined;
     const previous = document.title;
-    document.title = `${t('chat.ariaDialog')} · Srulik\'s lab`;
+    document.title = `${t('chat.ariaDialog')} · Srulik's lab`;
     return () => {
       document.title = previous;
     };
@@ -293,7 +293,7 @@ export function ChatPanel({ reportScope, reportGeoScope = 'national', onClose, v
         </MenuItem>
         <MenuItem
           onClick={() => {
-            const sel = window.getSelection?.()?.toString?.() ?? '';
+            const sel = globalThis.getSelection?.()?.toString?.() ?? '';
             const text = String(sel).trim();
             if (text) {
               const quoted = text.split('\n').map((l) => `> ${l}`).join('\n');
@@ -327,7 +327,7 @@ export function ChatPanel({ reportScope, reportGeoScope = 'national', onClose, v
           onClick={async () => {
             if (!activeSessionId) return;
             const current = sessions.find((s) => s.id === activeSessionId)?.title ?? '';
-            const next = window.prompt('Rename chat', current);
+            const next = globalThis.prompt('Rename chat', current);
             if (next == null) return;
             await renameSession({ sessionId: activeSessionId, title: next });
             closeMenu();
@@ -340,7 +340,7 @@ export function ChatPanel({ reportScope, reportGeoScope = 'national', onClose, v
           sx={{ color: 'error.main', fontWeight: 600 }}
           onClick={async () => {
             if (!activeSessionId) return;
-            const ok = window.confirm('Delete this chat?');
+            const ok = globalThis.confirm('Delete this chat?');
             if (!ok) return;
             await deleteSession({ sessionId: activeSessionId });
             closeMenu();
@@ -375,16 +375,16 @@ export function ChatPanel({ reportScope, reportGeoScope = 'national', onClose, v
             {t('chat.placeholder')}
           </Typography>
         )}
-        {visibleHistory.map((msg, i) => (
+        {visibleHistory.map((msg) => (
           <ChatRow
-            key={i}
+            key={msg.id ?? `${msg.role}-${String(msg.content ?? '').slice(0, 48)}`}
             msg={msg}
             activeSessionId={activeSessionId}
             onCopy={() => navigator.clipboard?.writeText(msg.content ?? '')}
             onEdit={() => setInput(msg.content ?? '')}
             onDelete={async () => {
               if (!msg.id || !activeSessionId) return;
-              const ok = window.confirm('Delete this message?');
+              const ok = globalThis.confirm('Delete this message?');
               if (!ok) return;
               await deleteMessage({ sessionId: activeSessionId, messageId: msg.id });
             }}

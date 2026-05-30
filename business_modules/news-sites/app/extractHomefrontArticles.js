@@ -308,7 +308,7 @@ export async function runExtractHomefrontArticles(opts = {}) {
   writeFileSync(datedOutPath, sections.join('\n'), 'utf8');
   console.log(`Wrote ${articles.length} home-front–relevant articles to ${outPath} and ${datedOutPath} (from ${allArticles.length} total)`);
 
-  const sqlitePath = process.env.SQLITE_PATH?.trim() || resolve(repoRoot, 'data', 'app.sqlite');
+  const sqlitePath = process.env.SQLITE_PATH?.trim() || resolve(repoRoot, 'db', 'app.sqlite');
   try {
     const archive = createSourceArchive(sqlitePath);
     const relMd = relative(repoRoot, datedOutPath).replaceAll('\\', '/');

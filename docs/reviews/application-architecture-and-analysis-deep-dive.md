@@ -143,7 +143,7 @@ The table below lists **primary entrypoints** (npm scripts reference [`package.j
 | **WhatsApp** | `npm run whatsapp-to-md` plus server routes | Meta WhatsApp Cloud API, `ANTHROPIC_API_KEY` | Messages analyzed with [`whatsappResilienceAnalyzer.js`](../../business_modules/whatsapp/app/whatsappResilienceAnalyzer.js); **geo** attached when port is wired in `app.js`. |
 | **Field visits** | `npm run ingest-field-reports` | Visit ingest module | Feeds evidence store / MD depending on configuration. |
 | **PBO municipal event log** | `npm run analyze-event-log` | Event log adapter | Specialized municipal reporting. |
-| **Survey (Excel)** | `npm run analyze-survey` → [`scripts/analyze-survey.mjs`](../../scripts/analyze-survey.mjs) | `--responses` `.xlsx`, mapping JSON, `ANTHROPIC_API_KEY` | Per-municipality MD reports under `reports/`; **geo** on municipality name when `geoEnrichmentPort` is constructed in the script. |
+| **Survey (Excel)** | `npm run analyze-survey` → [`cross-cut-modules/geo/input/runAnalyzeSurvey.js`](../../cross-cut-modules/geo/input/runAnalyzeSurvey.js) | `--responses` `.xlsx`, mapping JSON, `ANTHROPIC_API_KEY` | Per-municipality MD reports under `reports/`; **geo** on municipality name when `geoEnrichmentPort` is constructed in the script. |
 | **Naftali pool** | `business_modules/pool/input/extract-naftali-signals.js` (see package or module docs) | Pool-specific inputs | Signals with explicit geographic scope in prompts. |
 
 **SQLite:** Evidence and artifacts are persisted using helpers under `cross-cut-modules/`; path controlled by `SQLITE_PATH` (see [system overview](../product_docs/architecture/system-overview.md)).
@@ -288,7 +288,7 @@ Geographic capability is deliberately **non-LLM**: a deterministic resolver turn
 
 - **Domain port (consumer side):** [`IGeoEnrichmentPort`](../../business_modules/resilience/domain/ports/IGeoEnrichmentPort.js) — `resolveLocalityName(rawName)`.  
 - **Adapter:** [`geoEnrichmentAdapter.js`](../../business_modules/resilience/infrastructure/adapters/geoEnrichmentAdapter.js) delegates to `createGeoService` from [`business_modules/geo`](../../business_modules/geo/app/geoService.js).  
-- **Composition:** real adapter in [`app.js`](../../app.js) (server) and [`scripts/analyze-survey.mjs`](../../scripts/analyze-survey.mjs) (CLI). Tests or missing wiring use **`NoOpGeoEnrichmentPort`** (`kind: 'unknown', reason: 'GEO_DISABLED'`).
+- **Composition:** real adapter in [`app.js`](../../app.js) (server) and [`runAnalyzeSurvey.js`](../../cross-cut-modules/geo/input/runAnalyzeSurvey.js) (CLI). Tests or missing wiring use **`NoOpGeoEnrichmentPort`** (`kind: 'unknown', reason: 'GEO_DISABLED'`).
 
 ### 6.2 Reference data and math
 

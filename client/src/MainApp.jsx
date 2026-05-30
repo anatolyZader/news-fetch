@@ -314,16 +314,17 @@ function AppShell() {
     onEvidenceSubmissionComplete: (notice) => setEvidenceNotice({ ...notice, open: true }),
     onOpenDocs: (slug) => openDocsRef.current(slug ?? ''),
   });
-  const openDocs = useCallback((slug) => {
-    const normalized = slug ?? '';
+  const openDocs = useCallback((slug = '') => {
     if (isDesktop) {
-      openPanelPopup('docs', { slug: normalized });
+      openPanelPopup('docs', { slug });
       return;
     }
-    setDocsInitialSlug(normalized);
+    setDocsInitialSlug(slug);
     setDocsOpen(true);
   }, [isDesktop, openPanelPopup]);
-  openDocsRef.current = openDocs;
+  useEffect(() => {
+    openDocsRef.current = openDocs;
+  }, [openDocs]);
   const openSettings = useCallback(() => {
     if (isDesktop) {
       openPanelPopup('settings');

@@ -12,7 +12,7 @@ import {
 import { evaluateHighSalienceBypass } from '../highSalienceBypass.js';
 import { groundingWeightMultiplier } from '../groundingPolicy.js';
 import { applyFieldGeoDiscount, isFieldFamilySource } from '../fieldSignalPolicy.js';
-import { gamingContributionMultiplier, fieldProvenanceComplete } from '../signalGamingPolicy.js';
+import { gamingContributionMultiplier } from '../signalGamingPolicy.js';
 
 export const COMPONENT_IDS = [
   'narrative', 'information_communication', 'lifesaving_behavior',
@@ -76,23 +76,6 @@ function effectiveIntensityKey(signal, signalType) {
   return key;
 }
 
-/** Half-life decay from article_date (YYYY-MM-DD) or batch_report_date on signal. */
-function temporalDecayMultiplier(signal, priors) {
-  const halfLife = priors.temporal_half_life_days;
-  if (halfLife == null || halfLife <= 0) return 1;
-  const ref = signal.batch_report_date ?? signal.report_date;
-  const articleDate = signal.article_date;
-  if (ref && articleDate) {
-    const refMs = Date.parse(ref);
-    const artMs = Date.parse(articleDate);
-    if (Number.isFinite(refMs) && Number.isFinite(artMs)) {
-      const days = Math.max(0, (refMs - artMs) / 86400000);
-      return Math.pow(0.5, days / halfLife);
-    }
-  }
-  return 1;
-}
-
 export function tuningFor(componentId, tuningTable) {
   const table = tuningTable ?? COMPONENT_TUNING;
   return table[componentId] ?? DEFAULT_TUNING;
@@ -121,6 +104,48 @@ export function effectiveWeightForSignal(signal, signalType, baseWeight) {
   return baseWeight;
 }
 
+/** Half-life decay from article_date (YYYY-MM-DD) or batch_report_date on signal. */
+function temporalDecayMultiplier(signal, priors) {
+  const halfLife = priors.temporal_half_life_days;
+  if (halfLife == null || halfLife <= 0) return 1;
+  const ref = signal.batch_report_date ?? signal.report_date;
+  const articleDate = signal.article_date;
+  if (ref && articleDate) {
+    const refMs = Date.parse(ref);
+    const artMs = Date.parse(articleDate);
+    if (Number.isFinite(refMs) && Number.isFinite(artMs)) {
+      const days = Math.max(0, (refMs - artMs) / 86400000);
+      return Math.pow(0.5, days / halfLife);
+    }
+  }
+  return 1;
+}
+
+function dualAgreementBoost(signal) {
+  const dualVetoOn = process.env.RESILIENCE_SECOND_EXTRACT === '1'
+    && process.env.RESILIENCE_DUAL_REQUIRE_AGREEMENT !== '0';
+  if (dualVetoOn || !signal._dual_pass_agreement) return 1;
+  const dualBoostRaw = Number.parseFloat(process.env.RESILIENCE_DUAL_AGREEMENT_BOOST ?? '1.05');
+  return Number.isFinite(dualBoostRaw) ? Math.min(1.2, Math.max(1, dualBoostRaw)) : 1;
+}
+
+function phaseMismatchFactor(signal, priors) {
+  if (!signal.phase || !Array.isArray(priors.expected_phases) || priors.expected_phases.length === 0) {
+    return 1;
+  }
+  return priors.expected_phases.includes(signal.phase)
+    ? 1
+    : (priors.phase_mismatch_discount ?? 1);
+}
+
+function applyOovSyntheticDiscount(signal, contribution) {
+  if (signal.oov_synthetic !== true) return contribution;
+  const w = Number.isFinite(signal.oov_score_weight)
+    ? signal.oov_score_weight
+    : Number.parseFloat(process.env.RESILIENCE_OOV_SCORE_WEIGHT ?? '0.4');
+  return contribution * (Number.isFinite(w) && w > 0 ? w : 0.4);
+}
+
 /** Per-signal contribution before per-source capping (excludes duplicate-article discount). */
 export function contributionForSignal(signal, baseWeight) {
   const signalType = signal.signal_type ?? signal.type;
@@ -139,34 +164,17 @@ export function contributionForSignal(signal, baseWeight) {
   const outletPrior = OUTLET_PRIOR_APPLIES_TO.has(reliabilityKey)
     ? getOutletReliabilityMultiplier(signal.article_source)
     : 1;
-  const dualVetoOn = process.env.RESILIENCE_SECOND_EXTRACT === '1'
-    && process.env.RESILIENCE_DUAL_REQUIRE_AGREEMENT !== '0';
-  const dualBoostRaw = !dualVetoOn && signal._dual_pass_agreement
-    ? Number.parseFloat(process.env.RESILIENCE_DUAL_AGREEMENT_BOOST ?? '1.05')
-    : 1;
-  const dualBoost = Number.isFinite(dualBoostRaw) ? Math.min(1.2, Math.max(1, dualBoostRaw)) : 1;
   let temporal = signal.temporal_weight ?? 1;
   temporal *= temporalDecayMultiplier(signal, priors);
-  let phaseFactor = 1;
-  if (signal.phase && Array.isArray(priors.expected_phases) && priors.expected_phases.length > 0) {
-    if (priors.expected_phases.includes(signal.phase) === false) {
-      phaseFactor = priors.phase_mismatch_discount ?? 1;
-    }
-  }
   const extractionConfidence = Math.min(1, Math.max(0, signal.extraction_confidence ?? 1));
   const groundingFactor = groundingWeightMultiplier(signal.grounding_tier);
   const fieldMult = FIELD_SOURCE_TYPES.has(signal.source_type) ? fieldSourceMultiplier() : 1;
   let contribution = Math.abs(effectiveWeight) * scope * intensity * reliability * outletPrior
-    * dualBoost * temporal * phaseFactor * extractionConfidence * groundingFactor * fieldMult;
+    * dualAgreementBoost(signal) * temporal * phaseMismatchFactor(signal, priors)
+    * extractionConfidence * groundingFactor * fieldMult;
   contribution *= gamingContributionMultiplier(signal);
   contribution = applyFieldGeoDiscount(signal, contribution);
-  if (signal.oov_synthetic === true) {
-    const w = Number.isFinite(signal.oov_score_weight)
-      ? signal.oov_score_weight
-      : Number.parseFloat(process.env.RESILIENCE_OOV_SCORE_WEIGHT ?? '0.4');
-    contribution *= Number.isFinite(w) && w > 0 ? w : 0.4;
-  }
-  return contribution;
+  return applyOovSyntheticDiscount(signal, contribution);
 }
 
 /** Log-discounted factor for duplicate signal_type within one article (k = 1-based occurrence). */

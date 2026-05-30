@@ -92,7 +92,7 @@ function generateSaturationPositiveCalm() {
   return out;
 }
 
-function generateTelegramFloodWithField(baseSignals) {
+function _generateTelegramFloodWithField(baseSignals) {
   const out = [...(baseSignals ?? [])];
   for (let i = 0; i < 8; i++) {
     out.push({
@@ -348,6 +348,39 @@ function assertEvidenceMassExpectations(c, exp, scored) {
   }
 }
 
+function assertDataVoidExpectations(c, exp, dv) {
+  if (!exp.data_void) return;
+  for (const [key, want] of Object.entries(exp.data_void)) {
+    assert.equal(dv[key], want, `${c.id}: data_void.${key}`);
+  }
+}
+
+function assertPartitionExpectations(c, exp, partition) {
+  if (exp.scoring_partition.assessmentMode) {
+    assert.equal(partition.assessmentMode, exp.scoring_partition.assessmentMode,
+      `${c.id}: scoring_partition.assessmentMode`);
+  }
+  if (exp.scoring_partition.min_quarantined_count != null) {
+    assert.ok(partition.quarantinedSignals.length >= exp.scoring_partition.min_quarantined_count,
+      `${c.id}: expected >= ${exp.scoring_partition.min_quarantined_count} quarantined`);
+  }
+}
+
+function assertPipelineExpectations(c, exp, pipeline) {
+  if (exp.pipeline.assessment_mode) {
+    assert.equal(pipeline.assessmentMode, exp.pipeline.assessment_mode,
+      `${c.id}: pipeline.assessment_mode`);
+  }
+  if (exp.pipeline.field_score_present === true) {
+    const hasScore = Object.values(pipeline.scoredFull ?? {}).some((comp) => comp?.score != null);
+    assert.ok(hasScore, `${c.id}: expected at least one non-null field-derived score`);
+  }
+  if (exp.pipeline.min_quarantined_count != null) {
+    assert.ok((pipeline.quarantinedDigital?.count ?? 0) >= exp.pipeline.min_quarantined_count,
+      `${c.id}: pipeline quarantined count`);
+  }
+}
+
 function assertScoringPartitionExpectations(c, exp, signals) {
   if (!exp.scoring_partition && !exp.pipeline) return;
 
@@ -355,26 +388,14 @@ function assertScoringPartitionExpectations(c, exp, signals) {
   process.env.RESILIENCE_EWMA_FREEZE_ON_EPISTEMIC = '1';
 
   const dv = computeDataVoidIndex(signals, c.historical_signals ?? []);
-  if (exp.data_void) {
-    for (const [key, want] of Object.entries(exp.data_void)) {
-      assert.equal(dv[key], want, `${c.id}: data_void.${key}`);
-    }
-  }
+  assertDataVoidExpectations(c, exp, dv);
 
   if (exp.scoring_partition) {
-    const partition = resolveScoringPartition(signals, dv);
-    if (exp.scoring_partition.assessmentMode) {
-      assert.equal(partition.assessmentMode, exp.scoring_partition.assessmentMode,
-        `${c.id}: scoring_partition.assessmentMode`);
-    }
-    if (exp.scoring_partition.min_quarantined_count != null) {
-      assert.ok(partition.quarantinedSignals.length >= exp.scoring_partition.min_quarantined_count,
-        `${c.id}: expected >= ${exp.scoring_partition.min_quarantined_count} quarantined`);
-    }
+    assertPartitionExpectations(c, exp, resolveScoringPartition(signals, dv));
   }
 
   if (exp.pipeline) {
-    const pipeline = runScoringPipeline({
+    assertPipelineExpectations(c, exp, runScoringPipeline({
       signalsForScoring: signals,
       dataVoid: dv,
       totalArticles: Math.max(signals.length, 1),
@@ -382,19 +403,7 @@ function assertScoringPartitionExpectations(c, exp, signals) {
       historicalScores: {},
       scopeId: 'national',
       validationMaturity: null,
-    });
-    if (exp.pipeline.assessment_mode) {
-      assert.equal(pipeline.assessmentMode, exp.pipeline.assessment_mode,
-        `${c.id}: pipeline.assessment_mode`);
-    }
-    if (exp.pipeline.field_score_present === true) {
-      const hasScore = Object.values(pipeline.scoredFull ?? {}).some((comp) => comp?.score != null);
-      assert.ok(hasScore, `${c.id}: expected at least one non-null field-derived score`);
-    }
-    if (exp.pipeline.min_quarantined_count != null) {
-      assert.ok((pipeline.quarantinedDigital?.count ?? 0) >= exp.pipeline.min_quarantined_count,
-        `${c.id}: pipeline quarantined count`);
-    }
+    }));
   }
 }
 

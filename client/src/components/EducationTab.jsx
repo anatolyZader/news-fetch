@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Bar, Cell, Line, Pie } from 'recharts';
+import { Bar, Line, Pie } from 'recharts';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
@@ -86,7 +86,7 @@ function aggregateSessions(sessions) {
     if (!byDate[s.date]) byDate[s.date] = [];
     byDate[s.date].push(s);
   }
-  const dates = Object.keys(byDate).sort();
+  const dates = Object.keys(byDate).sort((a, b) => a.localeCompare(b));
   const trends = dates.map(date => {
     const rows = byDate[date];
     return {
@@ -236,7 +236,7 @@ export function EducationTab({ operatorScope = 'national' }) {
   if (!data?.summary) return <EmptyState>{t('edu.noData')}</EmptyState>;
 
   const { summary, recentComments, communityActivitiesComments = [], bySettlement = {} } = data;
-  const settlementNames = Object.keys(bySettlement).sort();
+  const settlementNames = Object.keys(bySettlement).sort((a, b) => a.localeCompare(b));
 
   const kpis = [
     { label: t('edu.kpi.total'),       value: summary.totalResponses },
@@ -277,7 +277,7 @@ export function EducationTab({ operatorScope = 'national' }) {
       [tKey('no')]: PALETTES.intervention.no,
       [tKey('maybe')]: PALETTES.intervention.maybe,
     };
-    return { ...item, color: keyMap[item.name] || PALETTES.intervention.unknown };
+    return { ...item, fill: keyMap[item.name] || PALETTES.intervention.unknown };
   });
 
   const copingBars = Object.entries(PALETTES.coping).map(([k, color]) => (
@@ -384,11 +384,7 @@ export function EducationTab({ operatorScope = 'national' }) {
       <ChartGrid>
         <ChartCard title={t('edu.chart.intervention')}>
           <PieChartFrame>
-            <Pie data={interventionData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} label={({ name, percent }) => `${name} ${Math.round(percent * 100)}%`}>
-              {interventionData.map((entry, i) => (
-                <Cell key={i} fill={entry.color} />
-              ))}
-            </Pie>
+            <Pie data={interventionData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} label={({ name, percent }) => `${name} ${Math.round(percent * 100)}%`} />
           </PieChartFrame>
         </ChartCard>
       </ChartGrid>
@@ -544,3 +540,7 @@ export function EducationTab({ operatorScope = 'national' }) {
     </Box>
   );
 }
+
+EducationTab.propTypes = {
+  operatorScope: PropTypes.string,
+};

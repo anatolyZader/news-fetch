@@ -19,7 +19,7 @@ function sonarText(value) {
 }
 
 function usage() {
-  console.error(`Usage: node scripts/list-sonar-issues.mjs [options]
+  console.error(`Usage: node scripts/sonar/list-sonar-issues.mjs [options]
 
 Options:
   --remote                    List issues from SonarCloud API (default)

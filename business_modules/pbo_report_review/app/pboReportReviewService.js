@@ -11,6 +11,10 @@ import {
   GAP_KINDS,
 } from '../domain/services/municipalCompleteness.js';
 import { parseInboundEmailPayload } from '../domain/services/inboundEmailParser.js';
+import {
+  collectSupplementalTextsFromReplies,
+  pboCompletenessLabel,
+} from '../domain/services/reviewSupplementalTexts.js';
 
 const MODULE_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -25,25 +29,15 @@ function resolvePboReviewRecipient(officerEmail) {
   return String(officerEmail ?? '').trim();
 }
 
-function collectSupplementalFromReplies(replies) {
-  const merged = {};
-  for (const reply of replies ?? []) {
-    for (const ans of reply.answers ?? []) {
-      const gapId = ans.gapId;
-      const text = String(ans.text ?? '').trim();
-      if (!text || !gapId.includes(':')) continue;
-      const componentId = gapId.split(':')[0];
-      if (!componentId) continue;
-      merged[componentId] = merged[componentId] ? `${merged[componentId]} | ${text}` : text;
-    }
-    if (reply.rawText && reply.channel === 'email') {
-      const fallback = String(reply.rawText).trim();
-      if (fallback && !Object.keys(merged).length) {
-        merged._email_body = fallback;
-      }
-    }
+function applyEmailBodyToOpenGaps(supplementalTexts, openGaps) {
+  if (!supplementalTexts._email_body || !openGaps.length) return supplementalTexts;
+  const first = openGaps.find((g) => g.componentId) ?? openGaps[0];
+  const next = { ...supplementalTexts };
+  if (first?.componentId) {
+    next[first.componentId] = next._email_body;
   }
-  return merged;
+  delete next._email_body;
+  return next;
 }
 
 /**
@@ -115,7 +109,7 @@ export function createPboReportReviewService(deps) {
     if (!municipality) return null;
 
     const replies = await reviewStore.listReplies(date, municipalityName);
-    let supplementalTexts = collectSupplementalFromReplies(replies);
+    let supplementalTexts = collectSupplementalTextsFromReplies(replies);
 
     const openGaps = reviewMunicipalityRow(
       municipality,
@@ -125,13 +119,7 @@ export function createPboReportReviewService(deps) {
       'he',
     ).gaps;
 
-    if (supplementalTexts._email_body && openGaps.length) {
-      const first = openGaps.find((g) => g.componentId) ?? openGaps[0];
-      if (first?.componentId) {
-        supplementalTexts[first.componentId] = supplementalTexts._email_body;
-      }
-      delete supplementalTexts._email_body;
-    }
+    supplementalTexts = applyEmailBodyToOpenGaps(supplementalTexts, openGaps);
 
     const review = buildReviewForMunicipality(day, municipality, supplementalTexts);
     const existing = await reviewStore.getReview(date, municipalityName);
@@ -141,6 +129,92 @@ export function createPboReportReviewService(deps) {
       emailSentAt: existing?.emailSentAt,
       emailMessageId: existing?.emailMessageId,
     });
+  }
+
+  async function persistReviewWithExisting(review, existing) {
+    return reviewStore.upsertReview({
+      ...review,
+      reviewToken: existing?.reviewToken,
+      emailSentAt: existing?.emailSentAt,
+      emailMessageId: existing?.emailMessageId,
+    });
+  }
+
+  async function sendFollowUpEmail(municipality, review, stored) {
+    const officer = officerDirectory.lookup(municipality.name);
+    if (!officer?.email) {
+      console.error(`[pbo-review] No officer email for ${municipality.name}, skipping send`);
+      return { emailSent: false, emailSkipped: true, emailError: null, stored };
+    }
+
+    try {
+      const recipient = resolvePboReviewRecipient(officer.email);
+      const sendResult = await mailPort.sendMunicipalFollowUp({
+        to: recipient,
+        language: officer.language ?? review.language,
+        date: review.date,
+        municipality: review.municipality,
+        questions: review.questions,
+        reviewToken: stored.reviewToken,
+      });
+      const updated = await reviewStore.upsertReview({
+        ...review,
+        reviewToken: stored.reviewToken,
+        emailSentAt: new Date().toISOString(),
+        emailMessageId: sendResult?.id ?? null,
+      });
+      appendAudit({
+        event: 'email_sent',
+        date: review.date,
+        municipality: review.municipality,
+        gapsHash: review.gapsHash,
+        to: recipient,
+        officerEmail: officer.email,
+      });
+      return { emailSent: true, emailSkipped: false, emailError: null, stored: updated };
+    } catch (err) {
+      const emailError = err?.message ?? String(err);
+      console.error(`[pbo-review] Email failed for ${municipality.name}:`, emailError);
+      return { emailSent: false, emailSkipped: false, emailError, stored };
+    }
+  }
+
+  async function reviewMunicipalityForDay(day, municipality, reviewDate, { force, dryRun }) {
+    const existing = await reviewStore.getReview(reviewDate, municipality.name);
+    const replies = await reviewStore.listReplies(reviewDate, municipality.name);
+    const supplementalTexts = collectSupplementalTextsFromReplies(replies);
+    const review = buildReviewForMunicipality(day, municipality, supplementalTexts);
+
+    if (review.sufficient) {
+      await persistReviewWithExisting(review, existing);
+      return { municipality: municipality.name, sufficient: true, emailSent: false };
+    }
+
+    const sameHash = existing?.gapsHash === review.gapsHash && existing?.emailSentAt;
+    const shouldSend = !dryRun && mailingConfigured && mailPort && (force || !sameHash);
+    let stored = await persistReviewWithExisting(review, existing);
+
+    let emailSent = false;
+    let emailSkipped = false;
+    let emailError = null;
+
+    if (shouldSend) {
+      const sendOutcome = await sendFollowUpEmail(municipality, review, stored);
+      emailSent = sendOutcome.emailSent;
+      emailSkipped = sendOutcome.emailSkipped;
+      emailError = sendOutcome.emailError;
+    } else if (sameHash && !force) {
+      emailSkipped = true;
+    }
+
+    return {
+      municipality: municipality.name,
+      sufficient: false,
+      gapCount: review.gaps.length,
+      emailSent,
+      emailSkipped,
+      emailError,
+    };
   }
 
   return {
@@ -159,89 +233,7 @@ export function createPboReportReviewService(deps) {
 
       const results = [];
       for (const municipality of day.municipalities) {
-        const existing = await reviewStore.getReview(date, municipality.name);
-        const replies = await reviewStore.listReplies(date, municipality.name);
-        const supplementalTexts = collectSupplementalFromReplies(replies);
-        const review = buildReviewForMunicipality(day, municipality, supplementalTexts);
-
-        let emailSent = false;
-        let emailSkipped = false;
-        let emailError = null;
-
-        if (review.sufficient) {
-          await reviewStore.upsertReview({
-            ...review,
-            reviewToken: existing?.reviewToken,
-            emailSentAt: existing?.emailSentAt,
-            emailMessageId: existing?.emailMessageId,
-          });
-          results.push({ municipality: municipality.name, sufficient: true, emailSent: false });
-          continue;
-        }
-
-        const sameHash = existing?.gapsHash === review.gapsHash && existing?.emailSentAt;
-        const shouldSend = !dryRun && mailingConfigured && mailPort && (force || !sameHash);
-
-        let stored = existing;
-        if (!stored) {
-          stored = await reviewStore.upsertReview(review);
-        } else {
-          stored = await reviewStore.upsertReview({
-            ...review,
-            reviewToken: existing.reviewToken,
-            emailSentAt: existing.emailSentAt,
-            emailMessageId: existing.emailMessageId,
-          });
-        }
-
-        if (shouldSend) {
-          const officer = officerDirectory.lookup(municipality.name);
-          if (!officer?.email) {
-            emailSkipped = true;
-            console.error(`[pbo-review] No officer email for ${municipality.name}, skipping send`);
-          } else {
-            try {
-              const recipient = resolvePboReviewRecipient(officer.email);
-              const sendResult = await mailPort.sendMunicipalFollowUp({
-                to: recipient,
-                language: officer.language ?? review.language,
-                date: review.date,
-                municipality: review.municipality,
-                questions: review.questions,
-                reviewToken: stored.reviewToken,
-              });
-              stored = await reviewStore.upsertReview({
-                ...review,
-                reviewToken: stored.reviewToken,
-                emailSentAt: new Date().toISOString(),
-                emailMessageId: sendResult?.id ?? null,
-              });
-              emailSent = true;
-              appendAudit({
-                event: 'email_sent',
-                date: review.date,
-                municipality: review.municipality,
-                gapsHash: review.gapsHash,
-                to: recipient,
-                officerEmail: officer.email,
-              });
-            } catch (err) {
-              emailError = err?.message ?? String(err);
-              console.error(`[pbo-review] Email failed for ${municipality.name}:`, emailError);
-            }
-          }
-        } else if (sameHash && !force) {
-          emailSkipped = true;
-        }
-
-        results.push({
-          municipality: municipality.name,
-          sufficient: false,
-          gapCount: review.gaps.length,
-          emailSent,
-          emailSkipped,
-          emailError,
-        });
+        results.push(await reviewMunicipalityForDay(day, municipality, date, { force, dryRun }));
       }
 
       return { date, reviewed: results.length, results };
@@ -323,8 +315,8 @@ export function createPboReportReviewService(deps) {
       const review = await reviewStore.getReview(date, municipality);
       if (!review) return null;
       const replies = await reviewStore.listReplies(date, municipality);
-      const supplementalTexts = collectSupplementalFromReplies(replies);
-      const pboCompleteness = review.sufficient || review.status === 'resolved' ? 'complete' : 'incomplete';
+      const supplementalTexts = collectSupplementalTextsFromReplies(replies);
+      const pboCompleteness = pboCompletenessLabel(review);
       return {
         pbo_completeness: pboCompleteness,
         pbo_review_status: review.status,
@@ -337,7 +329,7 @@ export function createPboReportReviewService(deps) {
       const reviews = await reviewStore.listReviewsForDate(date);
       const municipalities = reviews.map((r) => ({
         name: r.municipality,
-        pbo_completeness: r.sufficient || r.status === 'resolved' ? 'complete' : 'incomplete',
+        pbo_completeness: pboCompletenessLabel(r),
         pbo_review_status: r.status,
       }));
       return {

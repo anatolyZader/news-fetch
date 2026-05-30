@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url';
 import { toSonarRule } from './sonar-eslint-map.mjs';
 import { SONAR_LIST_DEFAULT_LIMIT } from './sonar-defaults.mjs';
 
-const ROOT = resolve(fileURLToPath(new URL('..', import.meta.url)));
+const ROOT = resolve(fileURLToPath(new URL('../..', import.meta.url)));
 
 /** @param {string} p */
 function relPath(p) {

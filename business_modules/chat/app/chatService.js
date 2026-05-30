@@ -180,10 +180,6 @@ async function ensureIndexed(reportData, vectorIndexStore) {
   INDEXED_NAMESPACES.set(ns, fp);
 }
 
-  await vectorIndexStore.upsertDocuments({ namespace: ns, documents: docs });
-  INDEXED_NAMESPACES.set(ns, fp);
-}
-
 function archiveNamespace(reportData) {
   const date =
     reportData?.assessment?.date ??

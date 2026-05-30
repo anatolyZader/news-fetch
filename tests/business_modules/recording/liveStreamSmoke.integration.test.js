@@ -29,7 +29,7 @@ describe('liveStreamSmoke', () => {
   const adapter = createFfmpegDirectStreamAdapter();
 
   // Collect all unique station→streamUrl pairs from the production database
-  const prodDbPath = join(import.meta.dirname, '..', '..', '..', 'data', 'app.sqlite');
+  const prodDbPath = join(import.meta.dirname, '..', '..', '..', 'db', 'app.sqlite');
   const prodStore = createRecordingJobStore(prodDbPath);
   const prodJobs = prodStore.getEnabledJobs();
 

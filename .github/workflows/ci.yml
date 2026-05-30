@@ -179,7 +179,7 @@ jobs:
 
       - name: Verify Node built-in sqlite (node:sqlite)
         run: node -e "import('node:sqlite').then(()=>console.log('node:sqlite OK')).catch(e=>{console.error(e);process.exit(1)})"
-      - name: Run tests with coverage (serial — shared SQLite at data/app.sqlite)
+      - name: Run tests with coverage (serial — shared SQLite at db/app.sqlite)
         run: npm run test:coverage
         env:
           GEO_ASSERT_ENVELOPE: '1'

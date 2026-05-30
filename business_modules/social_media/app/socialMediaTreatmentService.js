@@ -65,7 +65,7 @@ export function createSocialMediaTreatmentService({ persistencePort }) {
       try {
         const sqlitePath = process.env.SQLITE_PATH?.trim()
           ? resolve(process.env.SQLITE_PATH.trim())
-          : resolve(REPO_ROOT, 'data', 'app.sqlite');
+          : resolve(REPO_ROOT, 'db', 'app.sqlite');
         const archive = createSourceArchive(sqlitePath);
         const moduleRef = `business_modules/social_media/data/signals-social-${date}.json`;
         const { archived, idMap } = archiveSocialFindings(archive, treated.findings, date, { moduleRef });

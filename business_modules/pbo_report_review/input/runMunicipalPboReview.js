@@ -24,21 +24,19 @@ function parseArgs(argv) {
   };
 }
 
-async function main() {
-  const { date, force, dryRun } = parseArgs(process.argv.slice(2));
-  const sqlitePath = process.env.SQLITE_PATH?.trim()
-    ? resolve(process.env.SQLITE_PATH.trim())
-    : resolve(repoRoot, 'data', 'app.sqlite');
+const { date, force, dryRun } = parseArgs(process.argv.slice(2));
+const sqlitePath = process.env.SQLITE_PATH?.trim()
+  ? resolve(process.env.SQLITE_PATH.trim())
+  : resolve(repoRoot, 'db', 'app.sqlite');
 
+try {
   const service = createDefaultPboReportReviewService({ repoRoot, sqlitePath });
   const result = await service.reviewDay(date, { force, dryRun });
   console.error(JSON.stringify(result, null, 2));
   if (result.skipped) process.exit(0);
   const failed = (result.results ?? []).filter((r) => r.emailError);
   process.exit(failed.length ? 1 : 0);
-}
-
-main().catch((err) => {
+} catch (err) {
   console.error('runMunicipalPboReview failed:', err.message);
   process.exit(1);
-});
+}

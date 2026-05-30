@@ -66,7 +66,7 @@ function loadFieldArticlesForDate(date) {
 
 function loadRadioArticlesForDate(date) {
   const out = [];
-  let names = [];
+  let names;
   try {
     names = readdirSync(REPO_ROOT).filter(
       (f) => f.startsWith('articles-audio-') && f.includes(date) && f.endsWith('.md'),
@@ -74,7 +74,7 @@ function loadRadioArticlesForDate(date) {
   } catch {
     return out;
   }
-  for (const name of names.sort()) {
+  for (const name of names.sort((a, b) => a.localeCompare(b))) {
     const p = join(REPO_ROOT, name);
     for (const a of loadMarkdownArticlesFromFile(p)) {
       out.push({
@@ -169,6 +169,33 @@ export function loadFilesystemRowsForDate(date, sourceType) {
   return rows;
 }
 
+function enumerateDates(from, to) {
+  const out = [];
+  const startMs = Date.parse(`${from}T12:00:00`);
+  const endMs = Date.parse(`${to}T12:00:00`);
+  if (!Number.isFinite(startMs) || !Number.isFinite(endMs)) return out;
+  const dayMs = 86400000;
+  for (let currentMs = startMs; currentMs <= endMs; currentMs += dayMs) {
+    out.push(new Date(currentMs).toISOString().slice(0, 10));
+  }
+  return out;
+}
+
+function rowMatchesQuery(row, filters, allowEmptyQuery) {
+  if (allowEmptyQuery || !filters.q) return true;
+  const hay = `${row.title}\n${row.source_url}\n${row.body}`.toLowerCase();
+  return hay.includes(filters.q);
+}
+
+function collectCandidatesForDate(date, filters, allowEmptyQuery, out, seenIds, limit, snippetChars) {
+  const rows = loadFilesystemRowsForDate(date, filters.sourceType || undefined);
+  for (const row of rows) {
+    if (out.length >= limit) break;
+    if (!rowMatchesQuery(row, filters, allowEmptyQuery)) continue;
+    pushCandidate(out, seenIds, row, snippetChars, limit, filters);
+  }
+}
+
 /**
  * @param {string} dateFrom
  * @param {string} dateTo
@@ -187,30 +214,9 @@ export function loadFilesystemCandidates(dateFrom, dateTo, opts = {}) {
   const allowEmptyQuery = Boolean(filters.sourceType) || Boolean(filters.url) || Boolean(filters.title) || !filters.q;
 
   const out = [];
-
-  const dates = enumerateDates(dateFrom, dateTo);
-  for (const date of dates) {
+  for (const date of enumerateDates(dateFrom, dateTo)) {
     if (out.length >= limit) break;
-    const rows = loadFilesystemRowsForDate(date, filters.sourceType || undefined);
-    for (const row of rows) {
-      if (out.length >= limit) break;
-      if (!allowEmptyQuery && filters.q) {
-        const hay = `${row.title}\n${row.source_url}\n${row.body}`.toLowerCase();
-        if (!hay.includes(filters.q)) continue;
-      }
-      pushCandidate(out, seenIds, row, snippetChars, limit, filters);
-    }
-  }
-  return out;
-}
-
-function enumerateDates(from, to) {
-  const out = [];
-  const start = new Date(`${from}T12:00:00`);
-  const end = new Date(`${to}T12:00:00`);
-  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return out;
-  for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-    out.push(d.toISOString().slice(0, 10));
+    collectCandidatesForDate(date, filters, allowEmptyQuery, out, seenIds, limit, snippetChars);
   }
   return out;
 }
@@ -254,7 +260,7 @@ function inferTypeFromPath(relPath) {
 
 function searchFilesystemByArchiveId(sourceId, maxChars) {
   const dataDir = resolve(REPO_ROOT, 'business_modules/social_media/data');
-  let bundleFiles = [];
+  let bundleFiles;
   try {
     bundleFiles = readdirSync(dataDir).filter((f) => f.startsWith('signals-social-') && f.endsWith('.json'));
   } catch {

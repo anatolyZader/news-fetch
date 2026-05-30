@@ -6,16 +6,16 @@
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { createGeoWiring } from '../cross-cut-modules/geo/createGeoWiring.js';
-import { runAnalyzeSurveyCli } from '../business_modules/resilience/input/analyzeSurveyInput.js';
+import { createGeoWiring } from '../createGeoWiring.js';
+import { runAnalyzeSurveyCli } from '../../../business_modules/resilience/input/analyzeSurveyInput.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const rootDir = resolve(__dirname, '..');
+const rootDir = resolve(__dirname, '../../..');
 
 const { geoEnrichmentPort } = createGeoWiring({
   rootDir,
   unknownSourceType: 'survey',
-  sqlitePath: resolve(rootDir, 'data', 'app.sqlite'),
+  sqlitePath: resolve(rootDir, 'db', 'app.sqlite'),
 });
 
 runAnalyzeSurveyCli({ geoEnrichmentPort }).catch((err) => {

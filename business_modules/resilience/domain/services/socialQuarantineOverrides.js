@@ -20,7 +20,7 @@ export const SOCIAL_QUARANTINE_DISMISS_ACTION = 'dismiss_social_quarantine';
 export function defaultValidationDbPath(env = process.env) {
   const custom = env.SQLITE_PATH?.trim();
   if (custom) return resolve(custom);
-  return resolve(process.cwd(), 'data', 'app.sqlite');
+  return resolve(process.cwd(), 'db', 'app.sqlite');
 }
 
 /**

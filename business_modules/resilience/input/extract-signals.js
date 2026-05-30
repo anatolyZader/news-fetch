@@ -88,7 +88,7 @@ async function run() {
   const { articles } = loadMdFiles(filePaths, { dayOffsets: filePaths.map(() => 0) });
 
   try {
-    const sqlitePath = process.env.SQLITE_PATH?.trim() || resolve(REPO_ROOT, 'data', 'app.sqlite');
+    const sqlitePath = process.env.SQLITE_PATH?.trim() || resolve(REPO_ROOT, 'db', 'app.sqlite');
     const n = archiveMarkdownFiles(filePaths, {
       date,
       source_type: sourceType,

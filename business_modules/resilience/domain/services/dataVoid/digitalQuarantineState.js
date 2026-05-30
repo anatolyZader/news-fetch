@@ -34,13 +34,15 @@ function escapeRegExpPrefix(prefix) {
 function findLatestReportForDate(reportsDir, scopeId, date) {
   if (!existsSync(reportsDir)) return null;
   const prefix = reportFilePrefix(normalizeReportScopeId(scopeId));
-  const pattern = new RegExp(`^${escapeRegExpPrefix(prefix)}-${date}(?:-(\\d{4}))?\\.json$`);
+  const pattern = new RegExp(
+    String.raw`^${escapeRegExpPrefix(prefix)}-${date}(?:-(\d{4}))?\.json$`,
+  );
   let best = null;
   let bestMtime = -1;
   for (const f of readdirSync(reportsDir)) {
     if (!pattern.test(f)) continue;
     const fullPath = join(reportsDir, f);
-    let mtime = 0;
+    let mtime;
     try { mtime = statSync(fullPath).mtimeMs; } catch { continue; }
     if (mtime > bestMtime) {
       bestMtime = mtime;

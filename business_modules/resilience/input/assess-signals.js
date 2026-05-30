@@ -160,7 +160,7 @@ async function loadPreparedSignals(targetDate, days) {
     console.error(`  → Connectivity probes: ${probeSignals.length} signal(s) merged`);
   }
   try {
-    const sqlitePath = process.env.SQLITE_PATH?.trim() || resolve(REPO_ROOT, 'data', 'app.sqlite');
+    const sqlitePath = process.env.SQLITE_PATH?.trim() || resolve(REPO_ROOT, 'db', 'app.sqlite');
     const archive = createSourceArchive(sqlitePath);
     const records = loadProbeRecordsForDate(targetDate, 'national');
     const n = archiveProbeRecords(archive, records, targetDate);
@@ -591,7 +591,7 @@ async function finalizeAndWriteReport({
       repoRoot: REPO_ROOT,
       sqlitePath: process.env.SQLITE_PATH?.trim()
         ? resolve(process.env.SQLITE_PATH.trim())
-        : resolve(REPO_ROOT, 'data', 'app.sqlite'),
+        : resolve(REPO_ROOT, 'db', 'app.sqlite'),
     });
     assessment.pbo_municipal_completeness = await pboReviewService.buildAssessmentSummary(targetDate);
   } catch (err) {

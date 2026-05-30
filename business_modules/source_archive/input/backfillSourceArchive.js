@@ -2,24 +2,24 @@
 /**
  * Backfill source_archive from evidence_items, markdown exports, and signal bundles (idempotent).
  *
- * Usage: node scripts/backfill-source-archive.mjs [--days 14]
+ * Usage: node business_modules/source_archive/input/backfillSourceArchive.js [--days 14]
  */
 import 'dotenv/config';
 import { resolve, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
-import { createSourceArchive } from '../cross-cut-modules/source_archive/createSourceArchive.js';
-import { createEvidenceStore } from '../cross-cut-modules/persistence/evidenceStore.js';
-import { persistOriginalSources } from '../cross-cut-modules/source_archive/persistOriginals.js';
-import { buildMdSourceIdFromPath, legacyDbSourceId } from '../cross-cut-modules/source_archive/sourceId.js';
-import { loadMarkdownArticlesFromFile } from '../cross-cut-modules/source_archive/markdownArticles.js';
-import { archiveSocialFindings } from '../cross-cut-modules/source_archive/archiveSocialFindings.js';
-import { archiveProbeRecords } from '../cross-cut-modules/source_archive/archiveProbeRecords.js';
-import { loadProbeRecordsForDate } from '../business_modules/resilience/infrastructure/adapters/connectivityProbeFileAdapter.js';
-import { getTodayInTimezone } from '../utils/dateUtils.js';
+import { createSourceArchive } from '../../../cross-cut-modules/source_archive/createSourceArchive.js';
+import { createEvidenceStore } from '../../../cross-cut-modules/persistence/evidenceStore.js';
+import { persistOriginalSources } from '../../../cross-cut-modules/source_archive/persistOriginals.js';
+import { buildMdSourceIdFromPath, legacyDbSourceId } from '../../../cross-cut-modules/source_archive/sourceId.js';
+import { loadMarkdownArticlesFromFile } from '../../../cross-cut-modules/source_archive/markdownArticles.js';
+import { archiveSocialFindings } from '../../../cross-cut-modules/source_archive/archiveSocialFindings.js';
+import { archiveProbeRecords } from '../../../cross-cut-modules/source_archive/archiveProbeRecords.js';
+import { loadProbeRecordsForDate } from '../../resilience/infrastructure/adapters/connectivityProbeFileAdapter.js';
+import { getTodayInTimezone } from '../../../utils/dateUtils.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const repoRoot = resolve(__dirname, '..');
+const repoRoot = resolve(__dirname, '../../..');
 
 function parseArgs() {
   const args = process.argv.slice(2);
@@ -83,7 +83,7 @@ function backfillMdDir(archive, dates, { dir, pattern, source_type }) {
 
 function backfillRadioMd(archive, dates) {
   let n = 0;
-  let names = [];
+  let names;
   try {
     names = readdirSync(repoRoot);
   } catch {
@@ -133,14 +133,14 @@ function backfillProbes(archive, dates) {
   return n;
 }
 
-async function main() {
+try {
   const { days } = parseArgs();
   const timezone = process.env.TZ_ARTICLES || 'Asia/Jerusalem';
   const today = getTodayInTimezone(timezone);
   const dates = datesInWindow(today, days);
   const sqlitePath = process.env.SQLITE_PATH?.trim()
     ? resolve(process.env.SQLITE_PATH.trim())
-    : resolve(repoRoot, 'data', 'app.sqlite');
+    : resolve(repoRoot, 'db', 'app.sqlite');
 
   const archive = createSourceArchive(sqlitePath);
   const evidenceStore = createEvidenceStore(sqlitePath);
@@ -173,9 +173,7 @@ async function main() {
     `backfill-source-archive: days=${days} evidence=${fromDb} news=${fromNews} field=${fromField} ` +
     `whatsapp=${fromWhatsapp} radio=${fromRadio} social=${fromSocial} probes=${fromProbes} total=${total}`,
   );
-}
-
-main().catch((err) => {
+} catch (err) {
   console.error(err);
   process.exit(1);
-});
+}

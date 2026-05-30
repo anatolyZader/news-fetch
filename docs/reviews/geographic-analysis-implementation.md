@@ -57,7 +57,7 @@ Geo is enabled when composition injects a real `geoEnrichmentPort`.
   - Passes the port into WhatsApp analyzer/ingest paths
   - Registers geo HTTP routes and decorates Fastify with `geoService`
 
-- **Survey CLI**: `scripts/analyze-survey.mjs`
+- **Survey CLI**: `cross-cut-modules/geo/input/runAnalyzeSurvey.js`
   - Builds the same wiring so survey runs produce `mun.geo`
 
 When geo is not wired, WhatsApp analysis defaults to a no-op port returning `kind: 'unknown', reason: 'GEO_DISABLED'`.
@@ -402,7 +402,7 @@ Behavior:
 
 ### 9.3 Wiring and trigger
 
-In composition (`app.js`, `scripts/analyze-survey.mjs`):
+In composition (`app.js`, `cross-cut-modules/geo/input/runAnalyzeSurvey.js`):
 
 - If `GEO_UNKNOWN_REVIEW_JSONL=1`, create the sink and inject it into `GeoEnrichmentAdapter`
 - If `GEO_UNKNOWN_REVIEW_SQLITE=1`, also wire the SQLite-backed queue adapter (durable review backlog)

@@ -2,17 +2,17 @@
 /**
  * Regenerate operator -brief.md from existing report JSON files.
  *
- *   node scripts/backfill-report-brief-md.mjs
- *   node scripts/backfill-report-brief-md.mjs --force
- *   node scripts/backfill-report-brief-md.mjs --all-scopes
+ *   npm run backfill:report-brief
+ *   node business_modules/resilience/input/backfillReportBriefMd.js --force
+ *   node business_modules/resilience/input/backfillReportBriefMd.js --all-scopes
  */
 import { readdirSync, readFileSync, writeFileSync, statSync, existsSync } from 'node:fs';
 import { resolve, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { buildMarkdown, buildSignalAppendix } from '../business_modules/resilience/infrastructure/reportWriter.js';
+import { buildMarkdown, buildSignalAppendix } from '../infrastructure/reportWriter.js';
 
-const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const root = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 const reportsDir = resolve(root, 'reports');
 const force = process.argv.includes('--force');
 const allScopes = process.argv.includes('--all-scopes');

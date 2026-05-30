@@ -1,6 +1,6 @@
 import { describe, it, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, rmSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 
@@ -36,8 +36,8 @@ describe('outletReputationDecay', () => {
   it('decays multiplier with drop rate and dedup hits', () => {
     recordOutletTelemetry('ynet.co.il', { dropped: 4, verified: 6 });
     recordOutletTelemetry('ynet.co.il', { dedupHits: 2 });
-    const m = decayedOutletMultiplier('ynet.co.il', 1.0);
-    assert.ok(m < 1.0);
+    const m = decayedOutletMultiplier('ynet.co.il', 1);
+    assert.ok(m < 1);
     assert.ok(m >= DECAY_CLAMP_MIN);
     assert.ok(m <= DECAY_CLAMP_MAX);
   });
@@ -45,7 +45,7 @@ describe('outletReputationDecay', () => {
   it('clamps to [0.1, 1.5]', () => {
     recordOutletTelemetry('bad.co.il', { dropped: 50, verified: 0 });
     assert.ok(decayedOutletMultiplier('bad.co.il', 0.5) >= DECAY_CLAMP_MIN);
-    assert.equal(decayedOutletMultiplier('good.co.il', 2.0), DECAY_CLAMP_MAX);
+    assert.equal(decayedOutletMultiplier('good.co.il', 2), DECAY_CLAMP_MAX);
   });
 
   it('integrates with getOutletReliabilityMultiplier when decay enabled', () => {

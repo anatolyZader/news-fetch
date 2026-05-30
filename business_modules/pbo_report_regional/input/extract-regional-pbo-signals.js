@@ -130,7 +130,7 @@ async function run() {
   let signals = rawSignals.map((s) => ({ ...s, source_type: 'pbo_regional' }));
 
   try {
-    const sqlitePath = process.env.SQLITE_PATH?.trim() || resolve(REPO_ROOT, 'data', 'app.sqlite');
+    const sqlitePath = process.env.SQLITE_PATH?.trim() || resolve(REPO_ROOT, 'db', 'app.sqlite');
     const archive = createSourceArchive(sqlitePath);
     const indexToSourceId = new Map();
     const items = articles.map((a, i) => {

@@ -2,21 +2,20 @@
  * Taxonomy gap audit: production signal frequency, golden coverage, zero-hit types.
  *
  * Usage:
- *   node scripts/taxonomy-gap-audit.mjs
- *   node scripts/taxonomy-gap-audit.mjs --days 30
+ *   npm run taxonomy:gap-audit
+ *   node business_modules/resilience/tuning/scripts/taxonomyGapAudit.mjs --days=30
  */
 
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
-import { resolve, join } from 'node:path';
+import { resolve, join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   CATALOG_VERSION,
   SIGNAL_CATALOG,
   SIGNAL_TYPES,
-} from '../business_modules/resilience/domain/services/signalCatalog.js';
+} from '../../domain/services/signalCatalog.js';
 
-const __dirname = resolve(fileURLToPath(import.meta.url), '..');
-const ROOT = resolve(__dirname, '..');
+const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../../..');
 const SIGNALS_DIR = resolve(ROOT, 'signals');
 const GOLDEN_SNAPSHOT = resolve(
   ROOT,

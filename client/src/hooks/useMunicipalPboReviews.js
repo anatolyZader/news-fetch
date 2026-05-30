@@ -43,8 +43,14 @@ export function useMunicipalPboReviews({ date, getIdToken, apiReady }) {
   }, [date, getIdToken]);
 
   useEffect(() => {
-    if (!apiReady) return;
-    void reload();
+    if (!apiReady) return undefined;
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) void reload();
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [apiReady, reload]);
 
   return { reviewsByMuni, loading, error, reload };
@@ -84,8 +90,14 @@ export function useMunicipalPboReviewDetail({ date, municipality, getIdToken, ap
   }, [date, municipality, getIdToken]);
 
   useEffect(() => {
-    if (!apiReady) return;
-    void reload();
+    if (!apiReady) return undefined;
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) void reload();
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [apiReady, reload]);
 
   const submitReply = useCallback(async (answers) => {

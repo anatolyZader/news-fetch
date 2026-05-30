@@ -31,7 +31,7 @@ function readReportFileNames(reportsDir) {
  * @param {object} ctx
  */
 function indexReportCandidatesByDate(names, ctx) {
-  const { reportsDir, prefix, scope, startDate, endDate, datePattern } = ctx;
+  const { reportsDir, scope, startDate, endDate, datePattern } = ctx;
   const candidatesByDate = new Map();
   for (const f of names) {
     if (scope === 'national' && isRegionalReportFilename(f)) continue;
@@ -100,7 +100,7 @@ export function readResilienceHistory(opts = {}) {
   const names = readReportFileNames(reportsDir);
   const prefix = prefixFor(scope);
   const datePattern = new RegExp(
-    `^${escapeRegExpPrefix(prefix)}-(\\d{4}-\\d{2}-\\d{2})(?:-(\\d{4}))?\\.json$`,
+    String.raw`^${escapeRegExpPrefix(prefix)}-(\d{4}-\d{2}-\d{2})(?:-(\d{4}))?\.json$`,
   );
   const startDate = daysAgoIsoFromAnchor(endDate, days - 1);
   const candidatesByDate = indexReportCandidatesByDate(names, {

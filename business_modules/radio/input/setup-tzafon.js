@@ -35,7 +35,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const sqlitePath = process.env.SQLITE_PATH?.trim()
   ? resolve(process.env.SQLITE_PATH.trim())
-  : resolve(__dirname, '..', '..', '..', 'data', 'app.sqlite');
+  : resolve(__dirname, '..', '..', '..', 'db', 'app.sqlite');
 
 const STATION    = 'tzafon-1045';
 const STREAM_URL = 'https://radio.streamgates.net/stream/1045fm';

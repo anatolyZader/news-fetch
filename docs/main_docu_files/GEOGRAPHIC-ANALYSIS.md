@@ -9,7 +9,7 @@ This document describes **deterministic geographic enrichment** in the app: how 
 
 ## What this system does (in one paragraph)
 
-The **`geo`** business module turns a **free-text locality name** (Hebrew or English, survey Excel cell, WhatsApp extraction, etc.) into a **structured, versioned object**: PBO subregion, optional geographic tags, approximate **distance to a simplified north border polyline**, distance **band**, and metadata about **how** the string was matched (exact, punctuation-normalized, Hebrew finals, or fuzzy). Other application code does **not** import `geo` directly; it uses the **`IGeoEnrichmentPort`** from resilience, implemented by **`GeoEnrichmentAdapter`** and **wired only from composition** ([`app.js`](../app.js), [`scripts/analyze-survey.mjs`](../scripts/analyze-survey.mjs)).
+The **`geo`** business module turns a **free-text locality name** (Hebrew or English, survey Excel cell, WhatsApp extraction, etc.) into a **structured, versioned object**: PBO subregion, optional geographic tags, approximate **distance to a simplified north border polyline**, distance **band**, and metadata about **how** the string was matched (exact, punctuation-normalized, Hebrew finals, or fuzzy). Other application code does **not** import `geo` directly; it uses the **`IGeoEnrichmentPort`** from resilience, implemented by **`GeoEnrichmentAdapter`** and **wired only from composition** ([`app.js`](../app.js), [`runAnalyzeSurvey.js`](../cross-cut-modules/geo/input/runAnalyzeSurvey.js)).
 
 ---
 
@@ -21,7 +21,7 @@ The **`geo`** business module turns a **free-text locality name** (Hebrew or Eng
 | **`IGeoEnrichmentPort`** ([`resilience/domain/ports/IGeoEnrichmentPort.js`](../business_modules/resilience/domain/ports/IGeoEnrichmentPort.js)) | Single method: `resolveLocalityName(rawName)` → envelope |
 | **`GeoEnrichmentAdapter`** ([`resilience/infrastructure/adapters/geoEnrichmentAdapter.js`](../business_modules/resilience/infrastructure/adapters/geoEnrichmentAdapter.js)) | Delegates to injected `geoService` |
 | **`NoOpGeoEnrichmentPort`** | Same port shape; always returns `kind: 'unknown', reason: 'GEO_DISABLED'` (e.g. tests or missing wiring) |
-| **Composition** | [`createGeoWiring.js`](../cross-cut-modules/geo/createGeoWiring.js) builds `geoService` + `geoEnrichmentPort` (overrides, unknown JSONL/SQLite sinks). Wired from [`app.js`](../app.js) (`app.decorate('geoService', geoService)` + `registerGeoRoutes`), [`scripts/analyze-survey.mjs`](../scripts/analyze-survey.mjs), and [`enrichSignalsWithGeo.js`](../cross-cut-modules/geo/enrichSignalsWithGeo.js). WhatsApp analyzer receives `geoEnrichmentPort`. |
+| **Composition** | [`createGeoWiring.js`](../cross-cut-modules/geo/createGeoWiring.js) builds `geoService` + `geoEnrichmentPort` (overrides, unknown JSONL/SQLite sinks). Wired from [`app.js`](../app.js) (`app.decorate('geoService', geoService)` + `registerGeoRoutes`), [`runAnalyzeSurvey.js`](../cross-cut-modules/geo/input/runAnalyzeSurvey.js), and [`enrichSignalsWithGeo.js`](../cross-cut-modules/geo/enrichSignalsWithGeo.js). WhatsApp analyzer receives `geoEnrichmentPort`. |
 
 **Boundary rule:** resilience/whatsapp **must not** import `business_modules/geo` for enrichment. Use the port; build the adapter at the app or script entrypoint.
 
@@ -300,11 +300,11 @@ Persisted WhatsApp JSON on disk will include **`geo`** on each signal object whe
 
 ### Survey (field survey CLI)
 
-1. **`npm run analyze-survey`** runs [`scripts/analyze-survey.mjs`](../scripts/analyze-survey.mjs), which builds `geoService` + **`createGeoEnrichmentAdapter`** and calls **`runAnalyzeSurveyCli({ geoEnrichmentPort })`**.
+1. **`npm run analyze-survey`** runs [`runAnalyzeSurvey.js`](../cross-cut-modules/geo/input/runAnalyzeSurvey.js), which builds `geoService` + **`createGeoEnrichmentAdapter`** and calls **`runAnalyzeSurveyCli({ geoEnrichmentPort })`**.
 2. [`analyzeSurveyInput.js`](../business_modules/resilience/input/analyzeSurveyInput.js) attaches **`m.geo`** to each municipality in **`assessment.municipalities`** after the LLM run, logs a one-line summary to stderr, then writes reports.
 3. [`surveyReportWriter.js`](../business_modules/resilience/app/surveyReportWriter.js) adds a **“Geo enrichment”** section when **`mun.geo`** is present. For **`kind: 'resolved'`**, it first emits a short **Markdown summary line** (italic) with **`geoReferenceVersion`**, **`borderReferenceVersion`** (or `n/a`), **`quality`**, **`usableForMetrics`**, and **`requiresReview`** — same audit dimensions as resilience report JSON (see below), optimized for a quick human skim. It then prints a fenced **`json`** block with the **full envelope**. For **`kind: 'unknown'`**, only the **`json`** block is printed (no summary line).
 
-Running **`node business_modules/resilience/input/analyze-survey.js`** directly does **not** inject the port (no geo in output unless you add a composition script).
+Use **`npm run analyze-survey`** (not `analyzeSurveyInput.js` directly) so geo enrichment is wired.
 
 ### HTTP: internal resolve API
 
@@ -376,7 +376,7 @@ Use these when a report mixes evidence from different ingest runs or after bumpi
 
 ## Unknown locality review sink (optional)
 
-When **`GEO_UNKNOWN_REVIEW_JSONL=1`**, [`app.js`](../app.js) and [`scripts/analyze-survey.mjs`](../scripts/analyze-survey.mjs) wire a JSONL sink ([`geoUnknownJsonlSinkAdapter.js`](../business_modules/geo/infrastructure/adapters/geoUnknownJsonlSinkAdapter.js)) into **`GeoEnrichmentAdapter`**. Each **`NO_MATCH`** / **`NO_CONFIDENT_MATCH`** resolution appends one JSON line under **`business_modules/geo/data/review/unknown-localities.jsonl`** (directory created on first write). Implement **`IGeoUnknownSinkPort`** for other backends (e.g. SQLite) if you need dashboards.
+When **`GEO_UNKNOWN_REVIEW_JSONL=1`**, [`app.js`](../app.js) and [`runAnalyzeSurvey.js`](../cross-cut-modules/geo/input/runAnalyzeSurvey.js) wire a JSONL sink ([`geoUnknownJsonlSinkAdapter.js`](../business_modules/geo/infrastructure/adapters/geoUnknownJsonlSinkAdapter.js)) into **`GeoEnrichmentAdapter`**. Each **`NO_MATCH`** / **`NO_CONFIDENT_MATCH`** resolution appends one JSON line under **`business_modules/geo/data/review/unknown-localities.jsonl`** (directory created on first write). Implement **`IGeoUnknownSinkPort`** for other backends (e.g. SQLite) if you need dashboards.
 
 ### SQLite review queue (recommended for ops)
 

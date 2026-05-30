@@ -2,10 +2,13 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   filterSignalsForScope,
-  isNorthSignal,
   normalizeReportScope,
   scopeDecisionForSignal,
 } from '../../../../../business_modules/resilience/domain/services/regionSignalFilter.js';
+
+function northScopeRelevant(signal) {
+  return scopeDecisionForSignal(signal, 'north').isScopeRelevant;
+}
 
 describe('regionSignalFilter', () => {
   it('keeps national scope unfiltered', () => {
@@ -22,26 +25,26 @@ describe('regionSignalFilter', () => {
 
   it('does not scope news by place name without resolved geo', () => {
     assert.equal(
-      isNorthSignal({ source_type: 'news', evidence: 'Kiryat Shmona residents entered shelters.' }),
+      northScopeRelevant({ source_type: 'news', evidence: 'Kiryat Shmona residents entered shelters.' }),
       false,
     );
   });
 
   it('treats collection-scoped field and PBO signals as north when scope is north', () => {
-    assert.equal(isNorthSignal({ source_type: 'field', evidence: 'Local team active.' }), true);
-    assert.equal(isNorthSignal({ source_type: 'pbo', evidence: '[כרמיאל] רציפות תפקודית' }), true);
+    assert.equal(northScopeRelevant({ source_type: 'field', evidence: 'Local team active.' }), true);
+    assert.equal(northScopeRelevant({ source_type: 'pbo', evidence: '[כרמיאל] רציפות תפקודית' }), true);
   });
 
   it('treats pbo_regional signals as north via collection scope', () => {
     assert.equal(
-      isNorthSignal({ source_type: 'pbo_regional', evidence: 'volunteers reported steady attendance' }),
+      northScopeRelevant({ source_type: 'pbo_regional', evidence: 'volunteers reported steady attendance' }),
       true,
     );
   });
 
   it('treats resolved geo envelope as north without keyword haystack', () => {
     assert.equal(
-      isNorthSignal({
+      northScopeRelevant({
         source_type: 'news',
         evidence: 'general municipal update',
         geo: {
