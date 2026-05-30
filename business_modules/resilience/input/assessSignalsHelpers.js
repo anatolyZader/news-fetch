@@ -22,16 +22,51 @@ import { recordOutletTelemetry } from '../domain/services/outletReputationDecay.
 import { enrichWithCalibrationPenalty } from '../domain/services/scoring/calibrationPenalty.js';
 import { enrichWithWeightSensitivity } from '../domain/services/scoring/weightSensitivity.js';
 import { embedText, embeddingsEnabled, embeddingModelId } from '../../../cross-cut-modules/vector_index/index.js';
+import { resilienceDedupClusterEnabled } from '../../../cross-cut-modules/retrieval/ragConfig.js';
 import { normalizeReportScope, reportScopeMetadata } from '../domain/services/regionSignalFilter.js';
 import {
   isRegionalReportFilename,
   normalizeReportScopeId,
   reportFilePrefix,
 } from '../../../cross-cut-modules/geo/reportScopeIds.js';
+import {
+  ISRAEL_REGIONAL_DISTRICT_ORDER,
+  normalizeIsraelDistrictId,
+} from '../../../cross-cut-modules/geo/israelDistricts.js';
 
 export const MAX_ASSESSMENT_DAYS = 14;
 
-const SIGNAL_FILE_PATTERN = /^signals-(\w+)-(\d{4}-\d{2}-\d{2})\.json$/;
+const PBO_BUNDLE_FILENAME_PATTERN =
+  /^signals-pbo-(?:(north|south|jerusalem|haifa|dan)-)?(\d{4}-\d{2}-\d{2})\.json$/;
+const STANDARD_BUNDLE_FILENAME_PATTERN = /^signals-(\w+)-(\d{4}-\d{2}-\d{2})\.json$/;
+
+/**
+ * @param {string} filename
+ * @returns {{ sourceType: string, fileDate: string, districtId: string | null } | null}
+ */
+export function parseSignalBundleFilename(filename) {
+  const base = String(filename ?? '').trim();
+  const pbo = PBO_BUNDLE_FILENAME_PATTERN.exec(base);
+  if (pbo) {
+    return {
+      sourceType: 'pbo',
+      fileDate: pbo[2],
+      districtId: pbo[1] ?? 'north',
+    };
+  }
+  const std = STANDARD_BUNDLE_FILENAME_PATTERN.exec(base);
+  if (!std) return null;
+  const sourceType = std[1];
+  if (sourceType === 'pbo') return null;
+  return {
+    sourceType,
+    fileDate: std[2],
+    districtId: null,
+  };
+}
+
+/** @deprecated use parseSignalBundleFilename */
+export const SIGNAL_FILE_PATTERN = STANDARD_BUNDLE_FILENAME_PATTERN;
 
 function matchesReportScope(f, dStr, scope) {
   const scopeId = normalizeReportScopeId(scope);
@@ -51,20 +86,28 @@ function findLatestReportFile(allFiles, dStr, scope) {
     .at(-1);
 }
 
-function buildRecencySource(sortedFiles, pattern, targetDate, targetDates, retainLast) {
-  return signalBundlesInAssessmentWindow(sortedFiles, pattern, targetDate, targetDates, retainLast);
+function buildRecencySource(sortedFiles, sourceType, targetDate, targetDates, retainLast) {
+  const inWindow = [];
+  for (const f of sortedFiles) {
+    const parsed = parseSignalBundleFilename(f);
+    if (!parsed || parsed.sourceType !== sourceType) continue;
+    if (parsed.fileDate > targetDate || !targetDates.has(parsed.fileDate)) continue;
+    inWindow.push(f);
+  }
+  const pick = retainLast == null ? inWindow : inWindow.slice(-retainLast);
+  return new Set(pick);
 }
 
 function buildRecencySources(sortedField, sortedRoot, sortedSocial, targetDate, targetDates, bundleCap) {
   return {
-    field: buildRecencySource(sortedField, /^signals-field-(\d{4}-\d{2}-\d{2})\.json$/, targetDate, targetDates, bundleCap),
-    pbo: buildRecencySource(sortedRoot, /^signals-pbo-(\d{4}-\d{2}-\d{2})\.json$/, targetDate, targetDates, bundleCap),
-    pbo_regional: buildRecencySource(sortedRoot, /^signals-pbo_regional-(\d{4}-\d{2}-\d{2})\.json$/, targetDate, targetDates, bundleCap),
-    naftali: buildRecencySource(sortedRoot, /^signals-naftali-(\d{4}-\d{2}-\d{2})\.json$/, targetDate, targetDates, 1),
-    news: buildRecencySource(sortedRoot, /^signals-news-(\d{4}-\d{2}-\d{2})\.json$/, targetDate, targetDates, bundleCap),
-    radio: buildRecencySource(sortedRoot, /^signals-radio-(\d{4}-\d{2}-\d{2})\.json$/, targetDate, targetDates, bundleCap),
-    whatsapp: buildRecencySource(sortedRoot, /^signals-whatsapp-(\d{4}-\d{2}-\d{2})\.json$/, targetDate, targetDates, bundleCap),
-    social: buildRecencySource(sortedSocial, /^signals-social-(\d{4}-\d{2}-\d{2})\.json$/, targetDate, targetDates, bundleCap),
+    field: buildRecencySource(sortedField, 'field', targetDate, targetDates, bundleCap),
+    pbo: buildRecencySource(sortedRoot, 'pbo', targetDate, targetDates, bundleCap),
+    pbo_regional: buildRecencySource(sortedRoot, 'pbo_regional', targetDate, targetDates, bundleCap),
+    naftali: buildRecencySource(sortedRoot, 'naftali', targetDate, targetDates, 1),
+    news: buildRecencySource(sortedRoot, 'news', targetDate, targetDates, bundleCap),
+    radio: buildRecencySource(sortedRoot, 'radio', targetDate, targetDates, bundleCap),
+    whatsapp: buildRecencySource(sortedRoot, 'whatsapp', targetDate, targetDates, bundleCap),
+    social: buildRecencySource(sortedSocial, 'social', targetDate, targetDates, bundleCap),
   };
 }
 
@@ -283,9 +326,9 @@ export function loadAssessSignalFiles({
   const loadedFiles = [];
 
   function tryLoadSignalFile(file, baseDir) {
-    const m = SIGNAL_FILE_PATTERN.exec(file);
-    if (!m) return;
-    const [, sourceType, fileDate] = m;
+    const parsed = parseSignalBundleFilename(file);
+    if (!parsed) return;
+    const { sourceType, fileDate, districtId: fileDistrictId } = parsed;
     if (fileDate > targetDate || !targetDates.has(fileDate)) return;
     if (enabledSources && !enabledSources.has(sourceType) && sourceType !== 'pbo_regional') return;
     const recencySet = recencySources[sourceType];
@@ -294,22 +337,22 @@ export function loadAssessSignalFiles({
       const data = JSON.parse(readFileSync(resolve(baseDir, file), 'utf8'));
       const offset = dateOffset(fileDate, targetDate);
       const weight = temporalWeightForOffset(offset);
-      loadedFiles.push({ file, sourceType, fileDate, weight, data });
+      loadedFiles.push({ file, sourceType, fileDate, fileDistrictId, weight, data });
     } catch (e) {
       console.error(`  ⚠ Could not load ${file}: ${e.message}`);
     }
   }
 
   for (const file of [...rootFiles].sort((a, b) => a.localeCompare(b))) {
-    const m = SIGNAL_FILE_PATTERN.exec(file);
-    if (!m) continue;
-    if (m[1] === 'field' || m[1] === 'social') continue;
+    const parsed = parseSignalBundleFilename(file);
+    if (!parsed) continue;
+    if (parsed.sourceType === 'field' || parsed.sourceType === 'social') continue;
     tryLoadSignalFile(file, signalsDir);
   }
 
   for (const file of [...fieldDirFiles].sort((a, b) => a.localeCompare(b))) {
-    const m = SIGNAL_FILE_PATTERN.exec(file);
-    if (m?.[1] !== 'field') continue;
+    const parsed = parseSignalBundleFilename(file);
+    if (parsed?.sourceType !== 'field') continue;
     tryLoadSignalFile(file, fieldSignalsDir);
   }
 
@@ -327,12 +370,21 @@ export function mergeLoadedSignalFiles(loadedFiles) {
   const sourceFiles = [];
   const sourceTypesSeen = new Set();
 
-  for (const { weight, data, sourceType, fileDate } of loadedFiles) {
+  for (const { weight, data, sourceType, fileDate, fileDistrictId } of loadedFiles) {
+    const rawBundleDistrict = data.district_id ?? fileDistrictId;
+    const bundleDistrict = rawBundleDistrict == null
+      ? null
+      : normalizeIsraelDistrictId(String(rawBundleDistrict));
+    const bundleDistrictId = bundleDistrict
+      && ISRAEL_REGIONAL_DISTRICT_ORDER.includes(bundleDistrict)
+      ? bundleDistrict
+      : null;
     const weighted = (data.signals ?? []).map((s) => ({
       ...s,
       temporal_weight: weight,
       source_type: sourceType,
       signal_file_date: fileDate,
+      ...(s.district_id == null && bundleDistrictId ? { district_id: bundleDistrictId } : {}),
     }));
     allSignals = allSignals.concat(weighted);
     totalArticles += data.total_articles ?? 0;
@@ -464,6 +516,21 @@ function semanticDedupEnabled() {
  * Keeps the highest (temporal_weight, reliability) tuple, matching the intent
  * of crossSourceDedup. Marks the kept item with `_semantic_dedup_count`.
  */
+/**
+ * Cross-source dedup via persistent story-cluster index (replaces pairwise semantic scan when enabled).
+ * @param {Array<object>} signals
+ * @param {{ storyClusterIndex?: object|null }} [opts]
+ */
+export async function crossSourceDedupClustered(signals, opts = {}) {
+  const base = crossSourceDedup(signals);
+  const index = opts.storyClusterIndex;
+  if (!resilienceDedupClusterEnabled() || !index?.upsertSignals) {
+    return crossSourceDedupSemantic(signals);
+  }
+  await index.upsertSignals(base);
+  return index.collapseSignals(base);
+}
+
 export async function crossSourceDedupSemantic(signals) {
   // First run the deterministic dedup.
   const base = crossSourceDedup(signals);
@@ -489,6 +556,39 @@ export async function crossSourceDedupSemantic(signals) {
   return out;
 }
 
+function loadDailyScorePayload(dir, allFiles, targetTime, dayOffset, scope, knownComponents) {
+  const d = new Date(targetTime);
+  d.setUTCDate(d.getUTCDate() - dayOffset);
+  const dStr = d.toISOString().slice(0, 10);
+  const match = findLatestReportFile(allFiles, dStr, scope);
+  if (!match) return null;
+  try {
+    const json = JSON.parse(readFileSync(resolve(dir, match), 'utf8'));
+    const components = json.assessment?.components ?? [];
+    const byId = {};
+    for (const c of components) {
+      knownComponents.add(c.component_id);
+      byId[c.component_id] = c.score ?? null;
+    }
+    return byId;
+  } catch {
+    return null;
+  }
+}
+
+function seriesFromDailyPayload(dailyPayload, knownComponents, days) {
+  const seriesByComponent = {};
+  for (const id of knownComponents) seriesByComponent[id] = [];
+  for (let i = 0; i < days; i++) {
+    const payload = dailyPayload[i];
+    for (const id of knownComponents) {
+      const v = payload == null || !(id in payload) ? null : payload[id];
+      seriesByComponent[id].push(v);
+    }
+  }
+  return seriesByComponent;
+}
+
 /**
  * Walk reports dir and return per-component score history for the trailing
  * `days` days BEFORE `targetDate` (i.e. excluding `targetDate` itself).
@@ -502,42 +602,12 @@ export function loadHistoricalScores(targetDate, reportsDir = 'reports', days = 
   const targetTime = new Date(targetDate).getTime();
   if (Number.isNaN(targetTime)) return {};
 
-  const seriesByComponent = {};
   const knownComponents = new Set();
-
-  // First pass: collect the union of component_ids that appear anywhere in the
-  // window so we can pad missing days with `null` for every component, not just
-  // the ones that happened to score yesterday.
   const dailyPayload = new Array(days).fill(null);
   for (let i = 1; i <= days; i++) {
-    const d = new Date(targetTime);
-    d.setUTCDate(d.getUTCDate() - i);
-    const dStr = d.toISOString().slice(0, 10);
-    const match = findLatestReportFile(allFiles, dStr, scope);
-    if (!match) continue;
-    try {
-      const json = JSON.parse(readFileSync(resolve(dir, match), 'utf8'));
-      const components = json.assessment?.components ?? [];
-      const byId = {};
-      for (const c of components) {
-        knownComponents.add(c.component_id);
-        byId[c.component_id] = c.score ?? null;
-      }
-      dailyPayload[i - 1] = byId;
-    } catch {
-      // leave dailyPayload[i-1] as null
-    }
+    dailyPayload[i - 1] = loadDailyScorePayload(dir, allFiles, targetTime, i, scope, knownComponents);
   }
-
-  for (const id of knownComponents) seriesByComponent[id] = [];
-  for (let i = 0; i < days; i++) {
-    const payload = dailyPayload[i];
-    for (const id of knownComponents) {
-      const v = payload == null || !(id in payload) ? null : payload[id];
-      seriesByComponent[id].push(v);
-    }
-  }
-  return seriesByComponent;
+  return seriesFromDailyPayload(dailyPayload, knownComponents, days);
 }
 
 /**

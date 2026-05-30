@@ -1,0 +1,170 @@
+[
+  {
+    "id": "hfc",
+    "he": "פיקוד העורף",
+    "en": "Home Front Command",
+    "ru": "Командование тыла",
+    "aliases": ["HFC", "פיקוד העורף", "Home Front Command"]
+  },
+  {
+    "id": "shelter",
+    "he": "מרחב מוגן / ממ\"ד",
+    "en": "protected space / shelter",
+    "ru": "защитное укрытие",
+    "aliases": ["shelter", "מקלט", "מרחב מוגן", "ממ\"ד"]
+  },
+  {
+    "id": "evacuation",
+    "he": "פינוי",
+    "en": "evacuation",
+    "ru": "эвакуация",
+    "aliases": ["evacuation", "פינוי", "displaced residents", "תושבים מפונים"]
+  },
+  {
+    "id": "resilience",
+    "he": "חוסן / חוסן קהילתי",
+    "en": "resilience / community resilience",
+    "ru": "устойчивость / жизнестойкость",
+    "aliases": ["resilience", "community resilience", "חוסן", "חוסן קהילתי"]
+  },
+  {
+    "id": "protective_guidelines",
+    "he": "הנחיות מגן",
+    "en": "protective guidelines",
+    "ru": "защитные инструкции",
+    "aliases": ["protective guidelines", "הנחיות מגן"]
+  },
+  {
+    "id": "lifesaving_behavior",
+    "he": "התנהגות אפקטיבית להצלת חיים",
+    "en": "Effective Life-Saving Behavior",
+    "ru": "Эффективное жизнеспасающее поведение",
+    "aliases": ["lifesaving", "life-saving behavior", "התנהגות אפקטיבית"]
+  },
+  {
+    "id": "functional_continuity",
+    "he": "רציפות תפקודית",
+    "en": "Functional Continuity",
+    "ru": "Функциональная непрерывность",
+    "aliases": ["functional continuity", "רציפות תפקודית"]
+  },
+  {
+    "id": "community_capital",
+    "he": "הון ומשאבי קהילה",
+    "en": "Community Capital and Resources",
+    "ru": "Общественный капитал и ресурсы",
+    "aliases": ["community capital", "הון קהילתי"]
+  },
+  {
+    "id": "leadership",
+    "he": "מנהיגות",
+    "en": "Leadership",
+    "ru": "Лидерство",
+    "aliases": ["leadership", "מנהיגות"]
+  },
+  {
+    "id": "belonging_solidarity",
+    "he": "שייכות וסולידריות",
+    "en": "Belonging and Solidarity",
+    "ru": "Принадлежность и солидарность",
+    "aliases": ["belonging", "solidarity", "שייכות"]
+  },
+  {
+    "id": "wellbeing_at_risk",
+    "he": "רווחה פיזית ונפשית / אוכלוסיות סיכון",
+    "en": "Physical and Mental Wellbeing (At-Risk Populations)",
+    "ru": "Физическое и психическое благополучие",
+    "aliases": ["at-risk populations", "אוכלוסיות סיכון"]
+  },
+  {
+    "id": "narrative_component",
+    "he": "נרטיב",
+    "en": "Narrative",
+    "ru": "Нарратив",
+    "aliases": ["Narrative", "נרטיב"]
+  },
+  {
+    "id": "information_sharing",
+    "he": "מידע, תקשורת ושיתוף",
+    "en": "Information, Communication, and Sharing",
+    "ru": "Информация, коммуникация и обмен",
+    "aliases": ["information sharing", "תקשורת ושיתוף"]
+  },
+  {
+    "id": "coping",
+    "he": "התמודדות",
+    "en": "coping",
+    "ru": "совладание",
+    "aliases": ["coping", "התמודדות"]
+  },
+  {
+    "id": "mutual_aid",
+    "he": "עזרה הדדית",
+    "en": "mutual aid",
+    "ru": "взаимопомощь",
+    "aliases": ["mutual aid", "עזרה הדדית"]
+  },
+  {
+    "id": "collective_efficacy",
+    "he": "אפקטיביות קולקטיבית",
+    "en": "collective efficacy",
+    "ru": "коллективная эффективность",
+    "aliases": ["collective efficacy"]
+  },
+  {
+    "id": "local_authority",
+    "he": "רשות מקומית",
+    "en": "local authority",
+    "ru": "местная власть / муниципалитет",
+    "aliases": ["local authority", "רשות מקומית", "municipality"]
+  },
+  {
+    "id": "alert_siren",
+    "he": "אזעקה / צפירה",
+    "en": "alert / siren",
+    "ru": "тревога / сирена",
+    "aliases": ["alert", "siren", "אזעקה", "צפירה"]
+  },
+  {
+    "id": "data_void",
+    "he": "חוסר נתונים / void",
+    "en": "data void",
+    "ru": "пробел в данных",
+    "aliases": ["data void", "חוסר נתונים"]
+  },
+  {
+    "id": "operator_abstention",
+    "he": "הימנעות מפעולה / abstention",
+    "en": "operator abstention",
+    "ru": "воздержание оператора",
+    "aliases": ["abstention", "הימנעות", "operator abstention"]
+  },
+  {
+    "id": "scoring_model",
+    "he": "מודל ניקוד",
+    "en": "scoring model",
+    "ru": "модель оценки",
+    "aliases": ["scoring model", "מודל ניקוד", "score"]
+  },
+  {
+    "id": "pbo",
+    "he": "דוח פיקוד עורף ברמת רשות",
+    "en": "PBO report",
+    "ru": "отчёт ПОО",
+    "aliases": ["PBO", "pbo report"]
+  },
+  {
+    "id": "signal_catalog",
+    "he": "קטלוג אותות",
+    "en": "signal catalog",
+    "ru": "каталог сигналов",
+    "aliases": ["signal catalog", "catalog gap"]
+  },
+  {
+    "id": "validation_review",
+    "he": "ביקורת אימות",
+    "en": "validation review",
+    "ru": "проверка валидации",
+    "aliases": ["validation review", "אימות"]
+  }
+]

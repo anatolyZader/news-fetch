@@ -39,6 +39,38 @@ describe('socialCandidateClassifier', () => {
     assert.equal(rows[0].handle, 'user1');
   });
 
+  it('prepends few-shot block when retrieval returns examples', async () => {
+    process.env.SOCIAL_CLASSIFY_RAG_ENABLED = '1';
+    let userMessage = '';
+    const anthropicClient = {
+      messages: {
+        create: async (req) => {
+          userMessage = req.messages[0].content;
+          return {
+            usage: { input_tokens: 10, output_tokens: 10 },
+            content: [{ type: 'text', text: '[]' }],
+          };
+        },
+      },
+    };
+    await classifySocialCandidates(
+      [{ id: 'x-1', platform: 'x', text: 'מקלט תושבים', url: 'https://x.com/a/1' }],
+      {
+        skipBudgetCheck: true,
+        skipCostLog: true,
+        anthropicClient,
+        retrieval: {
+          hybridRetrieve: async () => [{
+            text: 'keep: true\nquote: shelter',
+            kind: 'social_keep',
+            parentId: 'social_example:keep:2026-05-01:1',
+          }],
+        },
+      },
+    );
+    assert.match(userMessage, /FEW-SHOT EXAMPLES/);
+  });
+
   it('classifySocialCandidates keeps included rows and tallies rejections', async () => {
     const response = JSON.stringify([
       {

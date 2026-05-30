@@ -1,0 +1,41 @@
+{
+  "description": "Gold analyst questions for offline tool-selection eval (no live Anthropic in CI).",
+  "cases": [
+    {
+      "id": "validation_queue_list",
+      "question": "What validation items are pending for 2026-05-30?",
+      "toolProfile": "validation",
+      "expectedTools": ["list_validation_queue"]
+    },
+    {
+      "id": "validation_explain",
+      "question": "Why was url:https://example.com/x flagged?",
+      "toolProfile": "validation",
+      "expectedTools": ["explain_validation_item", "get_validation_item"]
+    },
+    {
+      "id": "validation_propose_skip",
+      "question": "Propose skipping this validation item after review.",
+      "toolProfile": "validation",
+      "expectedTools": ["propose_validation_decision"]
+    },
+    {
+      "id": "sources_search",
+      "question": "Find original news sources about shelters.",
+      "toolProfile": "sources",
+      "expectedTools": ["search_sources", "list_sources"]
+    },
+    {
+      "id": "default_brief",
+      "question": "Generate a commander brief for today.",
+      "toolProfile": "default",
+      "expectedTools": ["generate_brief"]
+    },
+    {
+      "id": "default_compare",
+      "question": "What changed between 2026-05-28 and 2026-05-30?",
+      "toolProfile": "default",
+      "expectedTools": ["compare_dates"]
+    }
+  ]
+}

@@ -39,15 +39,29 @@ Env: `SOURCE_ARCHIVE_RETENTION_DAYS` (default `14`, applies to news/radio/social
   - `SQLITE_PATH` — point this at a persistent volume.
   - `PORT` — the port to bind (most platforms set this automatically).
   - `WHATSAPP_VERIFY_TOKEN`, `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_ALLOWED_GROUP_IDS` — only if WhatsApp ingestion is enabled.
+  - `WHATSAPP_APP_SECRET` — required for signed webhook POST verification when webhooks are enabled.
+  - `TRUST_PROXY=true` — **required in production** when behind nginx/Caddy/Cloud Run.
+  - `ENABLE_HSTS=true` — **required in production** when TLS terminates at the edge.
+  - `SECURITY_CONTACT_EMAIL` — **required in production**; served at `/.well-known/security.txt`.
+  - `SECURITY_POLICY_URL` — optional vulnerability disclosure policy URL.
+  - `HOST=127.0.0.1` — default bind in production (localhost only); set `ALLOW_PUBLIC_BIND=true` only if the platform requires `0.0.0.0`.
+  - `ENABLE_SWAGGER` — must not be `true` in production (startup fails).
+  - `RESILIENCE_PROBE_HMAC_SECRET` — required in production for connectivity probe trust.
+  - `APP_CHECK_ENFORCE=true` — **required in production**; requires client `VITE_APP_CHECK_SITE_KEY`.
+  - `DAILY_BUDGET_USD` — daily LLM spend cap; costly API routes return 429 when exceeded.
+  - `EVIDENCE_ANALYSIS_DAILY_LIMIT` — optional per-user daily LLM analysis cap (non-maintainers); persisted in SQLite.
+  - Rate limit overrides: `RATE_LIMIT_GLOBAL_MAX`, `RATE_LIMIT_CHAT_MAX`, `RATE_LIMIT_EVIDENCE_SUBMIT_MAX`, `RATE_LIMIT_REPORT_BUILD_*`, `RATE_LIMIT_CATALOG_GENERATE_MAX`, `RATE_LIMIT_VIDEO_DOWNLOAD_MAX`, `RATE_LIMIT_WEBHOOK_MAX`, etc. (see [edge-security.md](../operations/edge-security.md)).
 - **Client build env** (build-time only, baked into the bundle):
   - `VITE_FIREBASE_API_KEY`
   - `VITE_FIREBASE_AUTH_DOMAIN`
   - `VITE_FIREBASE_PROJECT_ID`
+  - `VITE_APP_CHECK_SITE_KEY` — **required for production client build** when `APP_CHECK_ENFORCE=true`
+  - `VITE_APP_CHECK_DEBUG_TOKEN` — local dev only
 - **ADC credentials**: a runtime service account attached to the workload so the server can verify Firebase tokens. Avoid JSON key files in production.
 
 ## Outputs
 - **A single Node process** serving both `/api/*` and the static SPA from `client/dist/`.
-- **Explicit auth posture**: either `AUTH_REQUIRED=false` (public) or `AUTH_REQUIRED=true` with working Firebase wiring.
+- **Explicit auth posture**: `NODE_ENV=production` requires `AUTH_REQUIRED=true` + `FIREBASE_PROJECT_ID` (server exits on misconfiguration).
 - **A persistent SQLite file** at `SQLITE_PATH`, on a volume that survives restarts.
 - **Observable endpoints**: `/api/openapi.json`, `/api/auth/config`, `/api/docs/index` all respond with `200` to unauthenticated callers.
 
@@ -57,6 +71,7 @@ Env: `SOURCE_ARCHIVE_RETENTION_DAYS` (default `14`, applies to news/radio/social
 - **SQLite needs a real disk.** Containers without a mounted volume lose the DB on every restart. Mount a persistent volume (EBS, Cloud Run with attached volume, Fly volumes, etc.) and point `SQLITE_PATH` at it.
 - **CI should not ship keys.** Your deploy pipeline should pull secrets from a secret manager, not from CI variables for long-lived keys.
 - **One writer per SQLite file.** Don't horizontally scale behind the same volume — pick a single instance, or migrate off SQLite first (outside this guide's scope).
+- **Production cutover:** complete [production-cutover-checklist.md](../operations/production-cutover-checklist.md) before exposing a public VM.
 
 ## Examples
 

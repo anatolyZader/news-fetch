@@ -9,10 +9,13 @@ import { loadMdFile } from '../infrastructure/mdReportsLoader.js';
 
 /**
  * @param {string[]} filePaths
- * @param {{ date: string, source_type: string, repoRoot: string, sqlitePath: string }} opts
+ * @param {{ date: string, source_type: string, repoRoot: string, sqlitePath: string, retrievalIndexer?: object|null }} opts
  */
-export function archiveMarkdownFiles(filePaths, opts) {
-  const archive = createSourceArchive(opts.sqlitePath);
+export async function archiveMarkdownFiles(filePaths, opts) {
+  const indexer = opts.retrievalIndexer ?? null;
+  const archive = createSourceArchive(opts.sqlitePath, {
+    retrievalIndexer: indexer ? null : undefined,
+  });
   let archived = 0;
   for (const fp of filePaths) {
     const abs = resolve(fp);
@@ -31,7 +34,14 @@ export function archiveMarkdownFiles(filePaths, opts) {
         published_at: a.publishedAt ?? date,
         module_ref: abs,
       }));
-    archived += persistOriginalSources(archive, items).archived;
+    const r = persistOriginalSources(archive, items);
+    archived += r.archived;
+    if (indexer?.indexArchiveRow) {
+      for (const item of items) {
+        await indexer.indexArchiveRow(item);
+      }
+      if (indexer.rebuildFts) indexer.rebuildFts();
+    }
   }
   archive.close();
   return archived;

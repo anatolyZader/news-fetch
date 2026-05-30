@@ -1,5 +1,7 @@
 import { computeGaps, mergeStructured } from '../domain/gapEngine.js';
 import { EVIDENCE_REQUIREMENTS } from '../domain/evidenceRequirements.js';
+import { buildReportBuildRagContext } from '../../../cross-cut-modules/retrieval/fieldRetrieval.js';
+import { persistOriginalSources } from '../../../cross-cut-modules/source_archive/persistOriginals.js';
 import {
   buildLocalityPickerMessage,
   parseLocalityPickerReply,
@@ -140,6 +142,8 @@ function pickQuestionsFromAnalysisOrGaps(analysis, rankedGaps, geoLocalityPort) 
  *   conversationStore: { get: Function, upsert: Function, reset: Function },
  *   draftStore: { create: Function, get: Function, updateStructured: Function, appendTurn: Function, setApprovedDraft: Function, markSubmitted?: Function, deleteById?: Function },
  *   geoLocalityPort?: { searchLocalities?: Function, resolveLocalityName?: Function },
+ *   retrievalService?: object|null,
+ *   sourceArchive?: object|null,
  *   maxCollectingTurns?: number,
  * }} deps
  */
@@ -150,6 +154,8 @@ export function createReportBuildService({
   conversationStore,
   draftStore,
   geoLocalityPort = null,
+  retrievalService = null,
+  sourceArchive = null,
   maxCollectingTurns = MAX_COLLECTING_TURNS,
 }) {
   if (!analyzerPort) throw new Error('reportBuildService: analyzerPort is required');
@@ -289,6 +295,24 @@ export function createReportBuildService({
       }
       const draft = draftStore.get(draftId);
       const draftText = String(draft?.approved_draft ?? '').trim();
+      if (draftText && sourceArchive) {
+        const date = new Date().toISOString().slice(0, 10);
+        try {
+          persistOriginalSources(sourceArchive, [{
+            date,
+            source_type: 'field',
+            source_label: 'report_build-web',
+            source_url: '',
+            title: `Field report (web): ${draftText.slice(0, 60)}`,
+            body: draftText,
+            published_at: new Date().toISOString(),
+          }]);
+        } catch (err) {
+          if (!err.message?.includes('UNIQUE constraint')) {
+            console.error('report_build archive failed:', err.message);
+          }
+        }
+      }
       if (draftStore.markSubmitted) {
         try {
           draftStore.markSubmitted(draftId);
@@ -320,7 +344,12 @@ export function createReportBuildService({
     const turnHistory = Array.isArray(updated?.turn_history) ? updated.turn_history : [];
     const officerTurnCount = turnHistory.filter((t) => t.role === 'officer').length;
 
-    const analysis = await analyzerPort.analyzeTurnHistory(turnHistory, displayName);
+    const analyzeRag = await buildReportBuildRagContext(
+      updated?.structured_state ?? {},
+      turnHistory,
+      { retrievalService, mode: 'analyze' },
+    );
+    const analysis = await analyzerPort.analyzeTurnHistory(turnHistory, displayName, analyzeRag);
     const merged = mergeStructured(updated?.structured_state ?? {}, analysis.structured ?? {});
     draftStore.updateStructured(draftId, merged);
 
@@ -336,7 +365,11 @@ export function createReportBuildService({
       };
     }
 
-    const draftText = await draftGeneratorPort.generate(merged, turnHistory);
+    const draftRag = await buildReportBuildRagContext(merged, turnHistory, {
+      retrievalService,
+      mode: 'draft',
+    });
+    const draftText = await draftGeneratorPort.generate(merged, turnHistory, draftRag);
     if (draftText) {
       draftStore.setApprovedDraft(draftId, draftText);
     }

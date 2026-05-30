@@ -80,4 +80,19 @@ describe('validationReviewRoutes', () => {
     assert.equal(res.statusCode, 200);
     assert.equal(res.json().item.review_status, 'skipped');
   });
+
+  it('GET context returns item and rag shape for analyst', async () => {
+    const key = encodeURIComponent('url:https://example.com/x');
+    const res = await app.inject({
+      method: 'GET',
+      url: `/api/validation/review-queue/2026-05-28/national/${key}/context`,
+    });
+    assert.equal(res.statusCode, 200);
+    const body = res.json();
+    assert.ok(body.item);
+    assert.ok(body.rag);
+    assert.ok(Array.isArray(body.rag.similar_articles));
+    assert.ok(Array.isArray(body.rag.prior_decisions));
+    assert.ok(Array.isArray(body.rag.article_chunks));
+  });
 });

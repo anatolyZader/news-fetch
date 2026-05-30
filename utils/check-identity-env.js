@@ -4,12 +4,25 @@
  * Run: npm run check-identity-env
  */
 import 'dotenv/config';
+import { validateProductionSecurity } from '../cross-cut-modules/security/app/validateProductionSecurity.js';
 
 const authRequired = process.env.AUTH_REQUIRED === 'true';
 const projectId = (process.env.FIREBASE_PROJECT_ID ?? '').trim();
 const gac = (process.env.GOOGLE_APPLICATION_CREDENTIALS ?? '').trim();
+const nodeEnv = (process.env.NODE_ENV ?? '').trim();
 
+console.log('NODE_ENV:', nodeEnv || '(unset)');
 console.log('AUTH_REQUIRED:', authRequired);
+
+if (nodeEnv === 'production') {
+  try {
+    validateProductionSecurity();
+    console.log('✓ Production security validation passed');
+  } catch (err) {
+    console.error(err?.message ?? err);
+    process.exit(1);
+  }
+}
 
 if (!authRequired) {
   console.log('→ API routes are public (no JWT). Set AUTH_REQUIRED=true to enforce Identity Platform.');

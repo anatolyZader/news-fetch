@@ -1,7 +1,8 @@
 import { createWriteStream, mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { Readable } from 'stream';
+import { Readable } from 'node:stream';
+import { safeFetch } from '../../../../cross-cut-modules/security/infrastructure/safeFetch.js';
 
 const AUDIO_EXTENSIONS = new Set(['.mp3', '.wav', '.m4a', '.aac', '.ogg', '.flac', '.opus', '.webm', '.mp4']);
 
@@ -31,7 +32,7 @@ export function createHttpAudioDownloadAdapter() {
      * @returns {Promise<{ filePath: string, contentType: string | null }>}
      */
     async downloadToTempFile({ url }) {
-      const response = await fetch(url, { redirect: 'follow' });
+      const response = await safeFetch(url);
       if (!response.ok) {
         throw new Error(`Audio download failed (${response.status})`);
       }

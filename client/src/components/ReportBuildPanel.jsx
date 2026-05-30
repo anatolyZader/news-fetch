@@ -7,6 +7,7 @@ import Autocomplete from '@mui/material/Autocomplete';
 import Alert from '@mui/material/Alert';
 import Typography from '@mui/material/Typography';
 import { useAuth } from '../context/AuthContext.jsx';
+import { buildAuthHeaders } from '../lib/authFetch.js';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { ModalPanel } from '../ui/ModalPanel.jsx';
 import { PanelWindowShell } from '../ui/PanelWindowShell.jsx';
@@ -71,9 +72,9 @@ function stripParentheticals(text) {
   return out;
 }
 
-async function postJson(url, body, { token } = {}) {
-  const headers = new Headers({ 'Content-Type': 'application/json' });
-  if (token) headers.set('Authorization', `Bearer ${token}`);
+async function postJson(url, body, { getIdToken, getAppCheckToken } = {}) {
+  const headers = await buildAuthHeaders({ getIdToken, getAppCheckToken });
+  headers.set('Content-Type', 'application/json');
   const res = await fetch(url, { method: 'POST', headers, body: JSON.stringify(body ?? {}) });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`);
@@ -81,7 +82,7 @@ async function postJson(url, body, { token } = {}) {
 }
 
 export function ReportBuildPanel({ open, onClose, variant = 'modal' }) {
-  const { getIdToken } = useAuth();
+  const { getIdToken, getAppCheckToken } = useAuth();
   const { t } = useLanguage();
   const tRef = useRef(t);
   useLayoutEffect(() => {
@@ -134,8 +135,7 @@ export function ReportBuildPanel({ open, onClose, variant = 'modal' }) {
     setError(null);
     setSuccess('');
     try {
-      const token = await getIdToken();
-      await postJson('/api/report-build/start', {}, { token });
+      await postJson('/api/report-build/start', {}, { getIdToken, getAppCheckToken });
       setState('collecting');
       setQuestions([]);
       setPreview('');
@@ -144,7 +144,7 @@ export function ReportBuildPanel({ open, onClose, variant = 'modal' }) {
     } finally {
       setBusy(false);
     }
-  }, [getIdToken]);
+  }, [getIdToken, getAppCheckToken]);
 
   const handlePanelClose = useCallback((event, reason) => {
     sessionActiveRef.current = false;
@@ -155,8 +155,7 @@ export function ReportBuildPanel({ open, onClose, variant = 'modal' }) {
     setBusy(true);
     setError(null);
     try {
-      const token = await getIdToken();
-      await postJson('/api/report-build/cancel', {}, { token });
+      await postJson('/api/report-build/cancel', {}, { getIdToken, getAppCheckToken });
       resetUi();
       sessionActiveRef.current = false;
       onClose?.();
@@ -174,8 +173,7 @@ export function ReportBuildPanel({ open, onClose, variant = 'modal' }) {
     setError(null);
     setSuccess('');
     try {
-      const token = await getIdToken({ forceRefresh: true });
-      const out = await postJson('/api/report-build/turn', { text }, { token });
+      const out = await postJson('/api/report-build/turn', { text }, { getIdToken, getAppCheckToken });
       setInput('');
       setState(out?.state ?? 'collecting');
       setQuestions(Array.isArray(out?.followupQuestions) ? out.followupQuestions : []);
@@ -228,9 +226,8 @@ export function ReportBuildPanel({ open, onClose, variant = 'modal' }) {
       void (async () => {
         try {
           suggestLastAtRef.current = Date.now();
-          const token = await getIdToken();
-          const headers = new Headers({ 'Content-Type': 'application/json' });
-          if (token) headers.set('Authorization', `Bearer ${token}`);
+          const headers = await buildAuthHeaders({ getIdToken, getAppCheckToken });
+          headers.set('Content-Type', 'application/json');
 
           const res = await fetch('/api/report-build/suggest', {
             method: 'POST',
@@ -265,16 +262,14 @@ export function ReportBuildPanel({ open, onClose, variant = 'modal' }) {
         suggestAbortRef.current = null;
       }
     };
-  }, [open, input, busy, preview, state, getIdToken]);
+  }, [open, input, busy, preview, state, getIdToken, getAppCheckToken]);
 
   useEffect(() => {
     if (!open || !needsLocalityPicker) return;
     const controller = new AbortController();
     void (async () => {
       try {
-        const token = await getIdToken();
-        const headers = new Headers();
-        if (token) headers.set('Authorization', `Bearer ${token}`);
+        const headers = await buildAuthHeaders({ getIdToken, getAppCheckToken });
         const res = await fetch(
           `/api/geo/localities?q=${encodeURIComponent(localityInput.trim())}&scope=north`,
           { headers, signal: controller.signal },
@@ -286,7 +281,7 @@ export function ReportBuildPanel({ open, onClose, variant = 'modal' }) {
       }
     })();
     return () => controller.abort();
-  }, [open, needsLocalityPicker, localityInput, getIdToken]);
+  }, [open, needsLocalityPicker, localityInput, getIdToken, getAppCheckToken]);
 
   const confirmAndSubmit = useCallback(async () => {
     if (busy) return;
@@ -294,12 +289,11 @@ export function ReportBuildPanel({ open, onClose, variant = 'modal' }) {
     setError(null);
     setSuccess('');
     try {
-      const token = await getIdToken();
-      const confirmed = await postJson('/api/report-build/confirm', {}, { token });
+      const confirmed = await postJson('/api/report-build/confirm', {}, { getIdToken, getAppCheckToken });
       const draftText = String(confirmed?.draftText ?? '').trim();
       if (!draftText) throw new Error(tRef.current('reportBuild.errorNoDraft'));
 
-      await postJson('/api/evidence-submit', { content: draftText }, { token });
+      await postJson('/api/evidence-submit', { content: draftText }, { getIdToken, getAppCheckToken });
 
       setSuccess(tRef.current('reportBuild.successSubmitted'));
       setQuestions([]);

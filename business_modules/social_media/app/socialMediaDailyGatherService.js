@@ -35,6 +35,7 @@ const POST_COST = 0.005;
  *   defaultMaxCostUsd?: number,
  *   candidateCap?: number,
  *   classifyCandidates?: typeof import('./socialCandidateClassifier.js').classifySocialCandidates,
+ *   retrievalService?: object|null,
  * }} deps
  */
 export function createSocialMediaDailyGatherService({
@@ -48,6 +49,7 @@ export function createSocialMediaDailyGatherService({
   defaultMaxCostUsd = 5,
   candidateCap = 100,
   classifyCandidates = classifySocialCandidates,
+  retrievalService = null,
 }) {
   if (!persistencePort) throw new Error('persistencePort is required');
   if (!gatherService) throw new Error('gatherService is required');
@@ -167,6 +169,7 @@ export function createSocialMediaDailyGatherService({
   async function persistFindings(ctx) {
     const { findings, rejected, rejected_examples } = await classifyCandidates(
       postsToClassifierCandidates(ctx.behaviorPosts),
+      { retrieval: retrievalService?.retrieval ?? null },
     );
     const byDate = groupFindingsByDate(findings);
     const bundlePaths = [];

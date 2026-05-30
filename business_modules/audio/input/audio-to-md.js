@@ -65,7 +65,7 @@ try {
   console.error(`Wrote ${result.articleBlocks} transcript block(s) (${result.segmentCount} segments) → ${result.outPath}`);
   try {
     const sqlitePath = process.env.SQLITE_PATH?.trim() || resolve(REPO_ROOT, 'db', 'app.sqlite');
-    const n = archiveMarkdownFiles([result.outPath], {
+    const n = await archiveMarkdownFiles([result.outPath], {
       date,
       source_type: 'radio',
       repoRoot: REPO_ROOT,

@@ -12,9 +12,10 @@ import { config } from 'dotenv';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createSocialMediaService } from '../app/socialMediaService.js';
+import { createRetrievalService } from '../../../cross-cut-modules/retrieval/createRetrievalService.js';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-config({ path: resolve(__dirname, '../../../.env') });
+const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
+config({ path: resolve(REPO_ROOT, '.env') });
 
 const NUMERIC_OPTS = new Set(['--window-days', '--days', '--max-per-query', '--max-cost-usd']);
 const STRING_OPTS = {
@@ -142,12 +143,26 @@ async function runCommand(cmd, service, date, opts) {
 }
 
 const { cmd, opts } = parseArgs(process.argv);
-const service = createSocialMediaService();
+const sqlitePath = process.env.SQLITE_PATH?.trim() || resolve(REPO_ROOT, 'db', 'app.sqlite');
+let retrievalService = null;
+if (cmd === 'gather-daily') {
+  retrievalService = createRetrievalService({ dbPath: sqlitePath });
+}
+const service = createSocialMediaService({ retrievalService });
 const date = opts.date ?? todayJerusalem();
 
 try {
   await runCommand(cmd, service, date, opts);
+  if (retrievalService) {
+    if (process.env.SOCIAL_EXAMPLES_AUTO_REINDEX === '1') {
+      const r = await retrievalService.socialExamplesIndexWriter.reindexSocialExamples({ days: 30 });
+      retrievalService.rebuildFts();
+      console.error(`Social examples auto-reindex: ${r.chunks} chunk(s)`);
+    }
+    retrievalService.close();
+  }
 } catch (err) {
+  if (retrievalService) retrievalService.close();
   console.error(err.message ?? err);
   process.exit(1);
 }

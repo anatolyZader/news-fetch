@@ -11,7 +11,7 @@ Customer-facing guides, concepts, API reference (generated), and architecture pa
 
 ## Canonical references (`main_docu_files/`)
 
-Overarching, maintained reference documents auto-synced from code in CI (`npm run docs:sync`). Start here for the resilience model, geographic enrichment, and daily pipeline.
+Overarching, maintained reference documents auto-synced from code in CI (`npm run docs:sync`). Start here for the resilience model, geographic enrichment, daily pipeline, and [in-app LLM chat](./main_docu_files/LLM_CHAT.md).
 
 ## Working documentation
 

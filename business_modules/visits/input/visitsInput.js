@@ -19,6 +19,7 @@ import { basename, dirname, resolve } from 'node:path';
 import { read, utils } from 'xlsx';
 import { createSourceArchive } from '../../../cross-cut-modules/source_archive/createSourceArchive.js';
 import { persistOriginalSources } from '../../../cross-cut-modules/source_archive/persistOriginals.js';
+import { createRetrievalService } from '../../../cross-cut-modules/retrieval/createRetrievalService.js';
 import { articlesToArchiveItems } from '../../../cross-cut-modules/source_archive/articlesToArchiveItems.js';
 import { loadMarkdownArticlesFromFile } from '../../../cross-cut-modules/source_archive/markdownArticles.js';
 
@@ -131,6 +132,13 @@ try {
     module_ref: outputPath,
   });
   const { archived } = persistOriginalSources(archive, items);
+  const retrievalService = createRetrievalService({ dbPath: sqlitePath });
+  for (const item of items) {
+    const row = archive.getBySourceId(item.source_id, { includeBody: true });
+    if (row) await retrievalService.indexArchiveRow(row);
+  }
+  retrievalService.rebuildFts();
+  retrievalService.close();
   archive.close();
   console.error(`  → ${archived} field report(s) archived`);
 } catch (err) {

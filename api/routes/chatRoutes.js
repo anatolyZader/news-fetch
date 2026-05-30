@@ -1,5 +1,5 @@
 /**
- * Chat session and streaming routes.
+ * Chat session, streaming, and confirm-action routes.
  */
 
 import { getTodayInTimezone } from '../../utils/dateUtils.js';
@@ -7,6 +7,12 @@ import { streamChat } from '../../business_modules/chat/app/chatService.js';
 import { generateChatTitle } from '../../business_modules/chat/infrastructure/claudeChat.js';
 import { getCachedReport } from '../analysisService.js';
 import { buildChatSystemHint } from './submissionHelpers.js';
+import { requireMaintainerAccess } from '../../cross-cut-modules/auth/maintainerAccess.js';
+import { canViewAnalystDisplay } from '../../cross-cut-modules/auth/userAccess.js';
+import { auditFromRequest } from '../../cross-cut-modules/security/input/auditLog.js';
+import { costlyRoutePreHandlers } from '../../cross-cut-modules/security/input/costlyRoutePreHandlers.js';
+import { resolveDisplayView } from '../../business_modules/resilience/domain/services/assessmentDisplayTier.js';
+import { executePendingAction } from '../../business_modules/chat/app/executePendingAction.js';
 
 /**
  * @param {import('fastify').FastifyInstance} app
@@ -21,6 +27,14 @@ export async function chatRoutes(app, opts) {
     evidenceStore,
     sourceArchive,
     vectorIndexStore,
+    retrievalService,
+    pendingActionStore,
+    validationReviewService,
+    pboHistoricalSearchService,
+    pboReportReviewService,
+    driftService,
+    catalogProposalService,
+    geoUnknownReviewService,
   } = opts;
 
   app.get('/api/chat/sessions', authHook, async (request, reply) => {
@@ -73,8 +87,68 @@ export async function chatRoutes(app, opts) {
     return reply.send({ ok });
   });
 
-  app.post('/api/chat', authHook, async (request, reply) => {
-    const { sessionId, message, action, scope, reportGeoScope } = request.body ?? {};
+  app.post('/api/chat/confirm-action', authHook, async (request, reply) => {
+    const { sessionId, actionId, confirmed } = request.body ?? {};
+    const uid = chatOwnerUid(request);
+    const sid = String(sessionId ?? '').trim();
+    const aid = String(actionId ?? '').trim();
+    if (!sid || !aid) return reply.code(400).send({ error: 'sessionId and actionId required' });
+
+    const session = chatStore.getSession(sid);
+    if (!session || session.owner_uid !== uid) {
+      return reply.code(404).send({ error: 'session not found' });
+    }
+    if (!pendingActionStore) {
+      return reply.code(503).send({ error: 'Pending actions not configured' });
+    }
+
+    const pending = pendingActionStore.getPending(aid);
+    if (!pending || pending.ownerUid !== uid || pending.sessionId !== sid) {
+      return reply.code(404).send({ error: 'action not found' });
+    }
+    if (pending.consumedAt) {
+      return reply.code(409).send({ error: 'action already consumed' });
+    }
+    if (pendingActionStore.isExpired(pending)) {
+      pendingActionStore.markConsumed(aid);
+      return reply.code(410).send({ error: 'action expired' });
+    }
+
+    if (!canViewAnalystDisplay(request.user?.email)) {
+      return reply.code(403).send({ error: 'Analyst access required', code: 'analyst_view_required' });
+    }
+
+    pendingActionStore.markConsumed(aid);
+
+    if (confirmed !== true) {
+      auditFromRequest(request, 'chat.confirm_action_rejected', '/api/chat/confirm-action', { actionId: aid });
+      return reply.send({ ok: true, rejected: true });
+    }
+
+    try {
+      auditFromRequest(request, 'chat.confirm_action', '/api/chat/confirm-action', {
+        actionId: aid,
+        toolName: pending.toolName,
+      });
+      const result = await executePendingAction(pending, {
+        userEmail: request.user?.email ?? '',
+        validationReviewService,
+        geoUnknownReviewService,
+        catalogProposalService,
+      });
+      return reply.send({ ok: true, result });
+    } catch (err) {
+      return reply.code(400).send({ error: err.message });
+    }
+  });
+
+  app.post('/api/chat', costlyRoutePreHandlers(authHook.preHandler ? [authHook.preHandler] : []), async (request, reply) => {
+    if (process.env.CHAT_MAINTAINER_ONLY === 'true' && !requireMaintainerAccess(request, reply)) {
+      return;
+    }
+
+    auditFromRequest(request, 'chat.post', '/api/chat');
+    const { sessionId, message, action, scope, reportGeoScope, view, toolProfile } = request.body ?? {};
 
     const uid = chatOwnerUid(request);
     const sid = String(sessionId ?? '').trim();
@@ -85,6 +159,11 @@ export async function chatRoutes(app, opts) {
     const existing = chatStore.listMessages({ sessionId: sid });
     const history = existing.map((m) => ({ role: m.role, content: m.content }));
     const systemHint = buildChatSystemHint(scope);
+
+    const display_view = resolveDisplayView({
+      queryView: view,
+      userEmail: request.user?.email,
+    });
 
     const act = String(action ?? 'send');
     let userMessage = String(message ?? '').trim();
@@ -111,18 +190,37 @@ export async function chatRoutes(app, opts) {
     });
 
     let assistantText = '';
+    const geoScope = reportGeoScope === 'north' ? 'north' : 'national';
+
     await streamChat(
       userMessage,
       history,
       reply.raw,
-      () => getCachedReport(evidenceStore, {
-        scope: reportGeoScope === 'north' ? 'north' : 'national',
-      }),
+      () => {
+        const raw = getCachedReport(evidenceStore, { scope: geoScope });
+        if (raw && typeof raw === 'object') {
+          return { ...raw, display_view };
+        }
+        return raw;
+      },
       {
         sourceArchive,
         evidenceStore,
         vectorIndexStore,
+        retrievalService,
         systemHint,
+        reportGeoScope: geoScope,
+        userEmail: request.user?.email ?? '',
+        ownerUid: uid,
+        sessionId: sid,
+        pendingActionStore,
+        validationReviewService,
+        pboHistoricalSearchService,
+        pboReportReviewService,
+        driftService,
+        catalogProposalService,
+        geoUnknownReviewService,
+        toolProfile: String(toolProfile ?? 'default').trim() || 'default',
         onSend: (event) => {
           if (event?.type === 'text' && typeof event.text === 'string') assistantText += event.text;
         },

@@ -22,7 +22,7 @@ function formatFetchedAt(iso) {
 /** @param {{ activeId?: string|null, onSelect: (search: object) => void, disabled?: boolean }} props */
 export function SocialMediaPreviousSearchesMenu({ activeId, onSelect, disabled = false }) {
   const { t } = useLanguage();
-  const { apiReady, getIdToken } = useAuth();
+  const { apiReady, getIdToken, getAppCheckToken } = useAuth();
   const [anchorEl, setAnchorEl] = useState(null);
   const [searches, setSearches] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -35,7 +35,7 @@ export function SocialMediaPreviousSearchesMenu({ activeId, onSelect, disabled =
     setLoading(true);
     setLoadError(null);
     try {
-      setSearches(await fetchTopicFetchHistory({ getIdToken }));
+      setSearches(await fetchTopicFetchHistory({ getIdToken, getAppCheckToken }));
     } catch (e) {
       setLoadError(e?.message ?? t('socialMedia.topic.historyFailed'));
       setSearches([]);

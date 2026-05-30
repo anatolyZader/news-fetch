@@ -85,13 +85,21 @@ describe('reportBuildService', () => {
       },
     };
 
+    let draftRagReceived = null;
     const draftGeneratorPort = {
-      async generate() {
+      async generate(_structured, _turns, ragContext) {
+        draftRagReceived = ragContext;
         return 'טיוטה קצרה בעברית.';
       },
     };
 
-    const svc = createReportBuildService({ analyzerPort, draftGeneratorPort, conversationStore, draftStore });
+    const svc = createReportBuildService({
+      analyzerPort,
+      draftGeneratorPort,
+      conversationStore,
+      draftStore,
+      retrievalService: null,
+    });
 
     svc.startSession({ ownerKey: 'u1' });
     const first = await svc.applyTurn({ ownerKey: 'u1', text: 'ראיתי משהו', displayName: 'User' });
@@ -103,6 +111,7 @@ describe('reportBuildService', () => {
     assert.strictEqual(second.state, 'confirming');
     assert.strictEqual(typeof second.draftPreview, 'string');
     assert.ok(second.draftPreview.includes('טיוטה'));
+    assert.ok(draftRagReceived === null || typeof draftRagReceived.blockText === 'string');
   });
 
   it('suggestFromText returns questions without persisting turns or conversation', async () => {

@@ -29,6 +29,13 @@ CREATE TABLE IF NOT EXISTS evidence_submissions (
   analyzed_at TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+
+CREATE TABLE IF NOT EXISTS evidence_analysis_daily (
+  owner_key TEXT NOT NULL,
+  day TEXT NOT NULL,
+  count INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (owner_key, day)
+);
 `;
 
 /**
@@ -217,6 +224,14 @@ export function createEvidenceDraftStore(dbPath) {
     ORDER BY id DESC
     LIMIT ?
   `);
+  const getDailyAnalysisCountStmt = db.prepare(`
+    SELECT count FROM evidence_analysis_daily WHERE owner_key = ? AND day = ?
+  `);
+  const upsertDailyAnalysisCountStmt = db.prepare(`
+    INSERT INTO evidence_analysis_daily (owner_key, day, count)
+    VALUES (?, ?, 1)
+    ON CONFLICT(owner_key, day) DO UPDATE SET count = count + 1
+  `);
 
   return {
     /**
@@ -309,6 +324,15 @@ export function createEvidenceDraftStore(dbPath) {
     getRecentSubmissions({ ownerKey, limit = 10 }) {
       const rows = getRecentSubmissionsStmt.all(ownerKey, limit);
       return rows.map(rowToSubmission);
+    },
+
+    getDailyAnalysisCount(ownerKey, day) {
+      const row = getDailyAnalysisCountStmt.get(ownerKey, day);
+      return row?.count != null ? Number(row.count) : 0;
+    },
+
+    incrementDailyAnalysisCount(ownerKey, day) {
+      upsertDailyAnalysisCountStmt.run(ownerKey, day);
     },
   };
 }

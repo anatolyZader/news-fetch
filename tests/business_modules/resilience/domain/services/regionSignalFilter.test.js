@@ -30,16 +30,51 @@ describe('regionSignalFilter', () => {
     );
   });
 
-  it('treats collection-scoped field and PBO signals as north when scope is north', () => {
+  it('treats legacy structured field and PBO signals as north when scope is north', () => {
     assert.equal(northScopeRelevant({ source_type: 'field', evidence: 'Local team active.' }), true);
     assert.equal(northScopeRelevant({ source_type: 'pbo', evidence: '[כרמיאל] רציפות תפקודית' }), true);
   });
 
-  it('treats pbo_regional signals as north via collection scope', () => {
+  it('treats explicit district_id field signals as signal_district', () => {
+    const d = scopeDecisionForSignal(
+      { source_type: 'field', district_id: 'north', evidence: 'Local team active.' },
+      'north',
+    );
+    assert.equal(d.isScopeRelevant, true);
+    assert.equal(d.source, 'signal_district');
+  });
+
+  it('treats pbo_regional signals as north via legacy fallback', () => {
     assert.equal(
       northScopeRelevant({ source_type: 'pbo_regional', evidence: 'volunteers reported steady attendance' }),
       true,
     );
+  });
+
+  it('excludes south PBO from north scope when district_id is south', () => {
+    const signal = { source_type: 'pbo', district_id: 'south', evidence: '[Beer Sheva] continuity' };
+    assert.equal(northScopeRelevant(signal), false);
+    const south = scopeDecisionForSignal(signal, 'south');
+    assert.equal(south.isScopeRelevant, true);
+    assert.equal(south.source, 'signal_district');
+  });
+
+  it('includes south PBO in north scope when resolved geo matches north', () => {
+    const d = scopeDecisionForSignal(
+      {
+        source_type: 'pbo',
+        district_id: 'south',
+        evidence: 'cross-district edge case',
+        geo: {
+          kind: 'resolved',
+          classification: { geoAreaTags: ['north'] },
+          policy: { usableForMetrics: true, scopeConfidence: 'high' },
+        },
+      },
+      'north',
+    );
+    assert.equal(d.isScopeRelevant, true);
+    assert.equal(d.source, 'geo_tags');
   });
 
   it('treats resolved geo envelope as north without keyword haystack', () => {
@@ -109,7 +144,7 @@ describe('regionSignalFilter', () => {
     const out = filterSignalsForScope(signals, 'north');
     assert.deepEqual(out.map((s) => s.evidence), [signals[2].evidence]);
     assert.equal(out[0].scopeDecision.isScopeRelevant, true);
-    assert.equal(out[0].scopeDecision.source, 'collection_scope');
+    assert.equal(out[0].scopeDecision.source, 'legacy_north_fallback');
   });
 
   it('normalizes unknown scopes to national', () => {

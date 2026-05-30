@@ -331,7 +331,7 @@ export function createWhatsAppResilienceAnalyzer({ anthropicApiKey, geoEnrichmen
      * @param {Array<{role:'officer'|'bot', text:string, ts?:string}>} turnHistory
      * @param {string} senderName
      */
-    async analyzeTurnHistory(turnHistory, senderName) {
+    async analyzeTurnHistory(turnHistory, senderName, ragContext = null) {
       if (!Array.isArray(turnHistory) || turnHistory.length === 0) {
         return {
           signals: [],
@@ -339,9 +339,11 @@ export function createWhatsAppResilienceAnalyzer({ anthropicApiKey, geoEnrichmen
           assessment: DEFAULT_ASSESSMENT(),
         };
       }
-      const userContent =
+      let userContent =
         `Analyze this ongoing WhatsApp dialogue with an Israeli field officer:\n\n` +
         `[1] ${formatTurnHistory(turnHistory, senderName)}\n`;
+      const ragBlock = String(ragContext?.blockText ?? '').trim();
+      if (ragBlock) userContent += `\n${ragBlock}\n`;
 
       const responseText = await callModel({
         system: interactiveSystemPrompt,
@@ -382,7 +384,10 @@ export function createWhatsAppResilienceAnalyzer({ anthropicApiKey, geoEnrichmen
       );
 
       const lastTs = [...turnHistory].reverse().find((t) => t.role !== 'bot')?.ts ?? null;
-      const withProvenance = sigGeo.map((s) => enrichFieldProvenance(s, {
+      const withProvenance = sigGeo.map((s) => enrichFieldProvenance({
+        ...s,
+        district_id: s?.district_id ?? 'north',
+      }, {
         officer_id: senderName,
         visit_timestamp: lastTs,
         visit_locality: structuredNorm?.observation?.locality ?? structuredNorm?.observation?.localityHint ?? null,

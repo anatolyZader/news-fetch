@@ -60,7 +60,7 @@ const LS_PBO_REGION = 'vibes-witch:pboRegion';
 const LS_REPORT_SCOPE = 'vibes-witch:reportScope';
 const MAIN_TAB_IDS = new Set(['report', 'pbo-reports', 'report-bot', 'visits', 'news', 'radio', 'pools', 'trends', 'social-media']);
 const PBO_TAB_IDS = new Set(['local', 'regional']);
-/** Northern PBO sub-regions (maps to divisions in regions.json; Galma ≈ Western Galilee / גלמ״ע). */
+/** Northern PBO sub-regions (maps to divisions in business_modules/geo/data/regions.json; Galma ≈ Western Galilee / גלמ״ע). */
 const PBO_REGION_IDS_ORDER = ['naftali', 'golan', 'baram', 'hiram', 'galma'];
 const PBO_REGION_IDS = new Set(PBO_REGION_IDS_ORDER);
 
@@ -836,7 +836,10 @@ function AppShell() {
                     </PrimaryTab>
                   ))}
                 </Stack>
-                <PboRegionalDailyReports regionId={activePboRegionTab} />
+                <PboRegionalDailyReports
+                  regionId={activePboRegionTab}
+                  showHistoricalSearch={canViewAnalyst}
+                />
               </>
             )}
           </>

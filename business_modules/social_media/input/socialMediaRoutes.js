@@ -5,6 +5,14 @@
  * @param {{ socialMediaService?: ReturnType<import('../app/socialMediaService.js').createSocialMediaService>, authPreHandler?: any }} opts
  */
 import { checkOptionalDistrictQueryAccess } from '../../../cross-cut-modules/auth/checkOptionalDistrictQueryAccess.js';
+import { canRunAnalysisDisplay, canViewAnalystDisplay } from '../../../cross-cut-modules/auth/userAccess.js';
+import { auditFromRequest } from '../../../cross-cut-modules/security/input/auditLog.js';
+import { costlyRoutePreHandlers } from '../../../cross-cut-modules/security/input/costlyRoutePreHandlers.js';
+
+function socialFetchAllowed(request) {
+  if (canRunAnalysisDisplay(request.user?.email)) return true;
+  return process.env.SOCIAL_FETCH_ANALYST_OK === 'true' && canViewAnalystDisplay(request.user?.email);
+}
 
 export async function socialMediaRoutes(app, opts) {
   const socialMediaService = opts?.socialMediaService ?? null;
@@ -49,7 +57,14 @@ export async function socialMediaRoutes(app, opts) {
     }
   });
 
-  app.post('/api/social-media/fetch-topic', preHandler, async (request, reply) => {
+  app.post('/api/social-media/fetch-topic', costlyRoutePreHandlers(preHandler.preHandler ? [preHandler.preHandler] : []), async (request, reply) => {
+    if (!socialFetchAllowed(request)) {
+      return reply.code(403).send({
+        error: 'Forbidden',
+        code: 'maintainer_required',
+        message: 'fetch-topic requires maintainer access (or SOCIAL_FETCH_ANALYST_OK with analyst role).',
+      });
+    }
     if (!socialMediaService) {
       return reply.code(503).send({ error: 'social media service not configured' });
     }
@@ -58,6 +73,10 @@ export async function socialMediaRoutes(app, opts) {
       return reply.code(400).send({ error: 'topic is required' });
     }
     try {
+      auditFromRequest(request, 'social.fetch_topic', '/api/social-media/fetch-topic', {
+        topic: topic.trim(),
+        execute: Boolean(execute),
+      });
       const result = await socialMediaService.fetchByTopic({
         topic,
         platforms,

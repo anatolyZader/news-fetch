@@ -1,0 +1,62 @@
+[
+  {
+    "type": "good_observation",
+    "componentId": "lifesaving_behavior",
+    "hebrew_text": "בשעת האזעקה ראיתי כ-15 תושבים נכנסים לממ\"ד בבניין מגורים ברחוב הרצל; חלק נשארו בחוץ עד שהשכן צעק.",
+    "notes": "Concrete behavior, place, scale, direct observation."
+  },
+  {
+    "type": "bad_interpretation",
+    "componentId": "lifesaving_behavior",
+    "hebrew_text": "התושבים לא מאמינים בפיקוד העורף ולכן לא נכנסים למקלטים.",
+    "notes": "Interpretation without observed behavior or source basis."
+  },
+  {
+    "type": "good_observation",
+    "componentId": "information_communication",
+    "hebrew_text": "תושבים בקבוצת וואטסאפ מקומית שואלים אם ההנחיה לעבוד מהבית עדיין בתוקף; מישהו העלה צילום מסך מהודעת עירייה.",
+    "notes": "Channel, confusion, artifact cited."
+  },
+  {
+    "type": "bad_interpretation",
+    "componentId": "information_communication",
+    "hebrew_text": "יש כאוס תקשורתי בעיר.",
+    "notes": "Vague label without channel or evidence."
+  },
+  {
+    "type": "good_observation",
+    "componentId": "community_capital",
+    "hebrew_text": "שכנים חילקו מזון לקשישים שלא יכלו לצאת מהבית במהלך האזעקה; העירייה לא הייתה מעורבת לפי דיווח תושב.",
+    "notes": "Mutual aid, who led, source basis."
+  },
+  {
+    "type": "bad_interpretation",
+    "componentId": "community_capital",
+    "hebrew_text": "הקהילה חזקה מאוד.",
+    "notes": "Score-like judgment, no concrete action."
+  },
+  {
+    "type": "good_observation",
+    "componentId": "wellbeing_at_risk",
+    "hebrew_text": "צוות רווחה דיווח על עלייה בפניות של הורים לילדים עם מצוקה; מדובר בכ-8 פניות בשבוע האחרון.",
+    "notes": "Vulnerable group, response type, scale from staff."
+  },
+  {
+    "type": "bad_interpretation",
+    "componentId": "wellbeing_at_risk",
+    "hebrew_text": "המצב הנפשי קשה בעיר.",
+    "notes": "No group, no response, no numbers."
+  },
+  {
+    "type": "good_observation",
+    "componentId": "narrative",
+    "hebrew_text": "בשיחות עם תושבים נשמע סיפור של \"נחזיק מעמד יחד\" לצד חשש מפני עייפות ארוכה; אין סיפור מתחרה דומיננטי אחר.",
+    "notes": "Dominant narrative with competing nuance."
+  },
+  {
+    "type": "bad_interpretation",
+    "componentId": "functional_continuity",
+    "hebrew_text": "הכל משובש בגלל המלחמה.",
+    "notes": "No domain (work/school/services), no observed disruption."
+  }
+]

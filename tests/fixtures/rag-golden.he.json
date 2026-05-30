@@ -1,0 +1,12 @@
+[
+  {
+    "query": "מקלטים ציבוריים חיפה",
+    "fixture_source_id": "archive:news:test1",
+    "body": "תושבים נכנסו למקלטים ציבוריים בעיר חיפה במהלך האזעקה."
+  },
+  {
+    "query": "shelter evacuation Haifa",
+    "fixture_source_id": "archive:news:test2",
+    "body": "Residents entered public shelters in Haifa during the alert."
+  }
+]

@@ -17,6 +17,12 @@ import {
 import { normalizeReportScope } from '../../business_modules/resilience/domain/services/regionSignalFilter.js';
 import { isRegionalReportScope } from '../../cross-cut-modules/geo/reportScopeIds.js';
 import { buildAttentionItems } from '../../business_modules/resilience/domain/services/attentionItems.js';
+import { auditFromRequest } from '../../cross-cut-modules/security/input/auditLog.js';
+import {
+  assertResolvedHostSafe,
+  validateUserFetchUrl,
+} from '../../cross-cut-modules/security/domain/services/ssrfGuard.js';
+import { costlyRoutePreHandlers } from '../../cross-cut-modules/security/input/costlyRoutePreHandlers.js';
 
 /**
  * @param {import('fastify').FastifyInstance} app
@@ -71,15 +77,24 @@ export async function reportRoutes(app, opts) {
     });
   });
 
-  app.post('/api/video/download-url', authHook, async (request, reply) => {
+  app.post('/api/video/download-url', costlyRoutePreHandlers(authHook.preHandler ? [authHook.preHandler] : []), async (request, reply) => {
     const { url } = request.body ?? {};
     if (url == null || typeof url !== 'string' || !url.trim()) {
       return reply.code(400).send({ error: 'url is required' });
     }
 
+    let safeUrl;
+    try {
+      safeUrl = validateUserFetchUrl(url.trim());
+      const hostname = new URL(safeUrl).hostname;
+      await assertResolvedHostSafe(hostname);
+    } catch (err) {
+      return reply.code(400).send({ error: err?.message ?? 'Invalid URL' });
+    }
+
     await mkdir(videoDownloadDir, { recursive: true });
 
-    const result = await videoGrabService.downloadFromUrl(url, videoDownloadDir);
+    const result = await videoGrabService.downloadFromUrl(safeUrl, videoDownloadDir);
     if (!result.ok) {
       return reply.code(502).send({
         ok: false,
@@ -155,7 +170,10 @@ export async function reportRoutes(app, opts) {
     }
   });
 
-  app.post('/api/translate', authHook, async (request, reply) => {
+  app.post('/api/translate', costlyRoutePreHandlers(authHook.preHandler ? [authHook.preHandler] : []), async (request, reply) => {
+    auditFromRequest(request, 'translate.post', '/api/translate', {
+      lang: request.body?.lang ?? null,
+    });
     const { report, lang } = request.body ?? {};
     if (!report || !lang || lang === 'en') return reply.send({ report: report ?? null });
     if (process.env.TRANSLATION_ENABLED !== 'true') return reply.send({ report });

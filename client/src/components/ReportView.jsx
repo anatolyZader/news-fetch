@@ -25,6 +25,7 @@ import { AttentionPanel } from './AttentionPanel.jsx';
 import { EpistemicStatusBanner } from './EpistemicStatusBanner.jsx';
 import { EvidenceOverviewPanel } from './EvidenceOverviewPanel.jsx';
 import { ValidationReviewPanel } from './ValidationReviewPanel.jsx';
+import { CatalogProposalPanel } from './CatalogProposalPanel.jsx';
 import { OovAnomalyClustersPanel } from './OovAnomalyClustersPanel.jsx';
 import PropTypes from 'prop-types';
 import {
@@ -871,6 +872,7 @@ export function ReportView({
   const [openEvidenceCompIdInternal, setOpenEvidenceCompIdInternal] = useState(null);
   const compRefs = useRef({});
   const validationReviewRef = useRef(null);
+  const catalogProposalsRef = useRef(null);
 
   const openCompId = openCompIdProp ?? openCompIdInternal;
   const setOpenCompId = setOpenCompIdProp ?? setOpenCompIdInternal;
@@ -942,6 +944,11 @@ export function ReportView({
         oovCaptureCount={assessment.oov_capture_count}
         oovScoringApplied={assessment.oov_scoring_applied}
         isAnalyst={isAnalyst}
+        onReviewCatalogProposals={
+          showValidationReview && isAnalyst
+            ? () => catalogProposalsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+            : undefined
+        }
       />
 
       {showValidationReview && (
@@ -951,6 +958,12 @@ export function ReportView({
           reportScope={reportScope}
           enabled={showValidationReview}
         />
+      )}
+
+      {showValidationReview && (
+        <Box ref={catalogProposalsRef}>
+          <CatalogProposalPanel enabled={showValidationReview} />
+        </Box>
       )}
 
       <MacroSignalsSection macroSignals={assessment.macro_signals} t={t} isAnalyst={isAnalyst} />

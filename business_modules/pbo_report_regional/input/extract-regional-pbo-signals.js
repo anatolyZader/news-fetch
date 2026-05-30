@@ -23,6 +23,7 @@ import { enrichSignalsWithGeo } from '../../../cross-cut-modules/geo/enrichSigna
 import { createSourceArchive } from '../../../cross-cut-modules/source_archive/createSourceArchive.js';
 import { persistOriginalSources } from '../../../cross-cut-modules/source_archive/persistOriginals.js';
 import { buildArchiveSourceId } from '../../../cross-cut-modules/source_archive/sourceId.js';
+import { createRetrievalService } from '../../../cross-cut-modules/retrieval/createRetrievalService.js';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 
@@ -131,7 +132,8 @@ async function run() {
 
   try {
     const sqlitePath = process.env.SQLITE_PATH?.trim() || resolve(REPO_ROOT, 'db', 'app.sqlite');
-    const archive = createSourceArchive(sqlitePath);
+    const retrievalService = createRetrievalService({ dbPath: sqlitePath });
+    const archive = createSourceArchive(sqlitePath, { retrievalIndexer: retrievalService });
     const indexToSourceId = new Map();
     const items = articles.map((a, i) => {
       const item = {
@@ -143,12 +145,21 @@ async function run() {
         body: a.body,
         published_at: a.publishedAt ?? date,
         module_ref: a.sourceFile,
+        scope_id: 'north',
       };
       item.source_id = buildArchiveSourceId(item);
       indexToSourceId.set(i + 1, item.source_id);
       return item;
     });
-    const { archived } = persistOriginalSources(archive, items);
+    for (const item of items) {
+      archive.upsert(item);
+      if (retrievalService.indexArchiveRow) {
+        await retrievalService.indexArchiveRow(item);
+      }
+    }
+    retrievalService.rebuildFts();
+    retrievalService.close();
+    const archived = items.length;
     archive.close();
     signals = signals.map((s) => {
       const sid = s.article_index != null ? indexToSourceId.get(Number(s.article_index)) : null;
@@ -163,7 +174,8 @@ async function run() {
     rootDir: REPO_ROOT,
     unknownSourceType: 'extract-pbo_regional',
   });
-  signals = geoSignals;
+  const districtId = 'north';
+  signals = geoSignals.map((s) => ({ ...s, district_id: districtId }));
 
   console.error(`\n→ ${signals.length} signals extracted`);
   if (attached > 0) {
@@ -180,6 +192,7 @@ async function run() {
       {
         source_type: 'pbo_regional',
         content_kind: 'field_report',
+        district_id: districtId,
         date,
         extracted_at: new Date().toISOString(),
         source_files: articles.map((a) => a.sourceFile),

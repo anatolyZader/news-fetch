@@ -1,6 +1,9 @@
 /**
  * Application service: validation review queue for analysts.
  */
+import { buildValidationReviewContext } from '../../../../cross-cut-modules/retrieval/analystRetrieval.js';
+import { validationReviewRagEnabled } from '../../../../cross-cut-modules/retrieval/ragConfig.js';
+import { explainValidationItem } from './validationReviewExplain.js';
 
 const ACTION_STATUS = {
   label: 'done',
@@ -12,9 +15,24 @@ const ACTION_STATUS = {
 };
 
 /**
- * @param {{ store: import('../domain/ports/IValidationReviewStorePort.js').IValidationReviewStorePort, evidenceStore?: object }} deps
+ * @param {{
+ *   store: import('../domain/ports/IValidationReviewStorePort.js').IValidationReviewStorePort,
+ *   evidenceStore?: object|null,
+ *   sourceArchive?: object|null,
+ *   retrievalService?: object|null,
+ *   storyClusterIndex?: object|null,
+ *   reportsDir?: string,
+ * }} deps
  */
-export function createValidationReviewService({ store, evidenceStore = null }) {
+export function createValidationReviewService(deps) {
+  const {
+    store,
+    evidenceStore = null,
+    sourceArchive = null,
+    retrievalService = null,
+    storyClusterIndex = null,
+    reportsDir = 'reports',
+  } = deps;
   if (!store) throw new Error('store is required');
 
   function listQueue(date, scope, opts = {}) {
@@ -22,7 +40,18 @@ export function createValidationReviewService({ store, evidenceStore = null }) {
     return { date, scope, item_count: items.length, items };
   }
 
-  function resolveArticleExcerpt(date, articleUrl) {
+  function resolveArticleExcerpt(date, articleUrl, sourceId = null) {
+    if (sourceId && sourceArchive?.getBySourceId) {
+      const row = sourceArchive.getBySourceId(sourceId, { includeBody: true });
+      if (row?.body) {
+        return {
+          title: row.title ?? null,
+          url: row.source_url ?? articleUrl,
+          excerpt: String(row.body).slice(0, 1200),
+          source_id: sourceId,
+        };
+      }
+    }
     if (!evidenceStore || !articleUrl) return null;
     const items = evidenceStore.getByDate(date) ?? [];
     const match = items.find((row) => {
@@ -44,6 +73,42 @@ export function createValidationReviewService({ store, evidenceStore = null }) {
     return { ...item, article: resolveArticleExcerpt(date, item.article_url) };
   }
 
+  async function getItemContext(date, scope, articleKey) {
+    const item = store.getItem(date, scope, articleKey);
+    if (!item) return null;
+
+    let article = null;
+    let rag = {
+      similar_articles: [],
+      same_story: null,
+      prior_decisions: [],
+      oov_neighbors: null,
+      article_chunks: [],
+    };
+
+    if (validationReviewRagEnabled()) {
+      rag = await buildValidationReviewContext(item, {
+        retrievalService,
+        sourceArchive,
+        storyClusterIndex,
+        store,
+        reportsDir,
+      });
+      article = resolveArticleExcerpt(date, item.article_url, rag.source_id);
+    } else {
+      article = resolveArticleExcerpt(date, item.article_url);
+    }
+
+    return { item, article, rag };
+  }
+
+  async function explainItem(date, scope, articleKey, question) {
+    const ctx = await getItemContext(date, scope, articleKey);
+    if (!ctx) return null;
+    const result = await explainValidationItem(ctx.item, ctx.rag, question);
+    return { ...result, item: ctx.item };
+  }
+
   function submitDecision(date, scope, articleKey, reviewer, { action, payload }) {
     const act = String(action ?? 'skip');
     const status = ACTION_STATUS[act] ?? 'done';
@@ -58,5 +123,11 @@ export function createValidationReviewService({ store, evidenceStore = null }) {
     return store.updateItemStatus(date, scope, articleKey, status);
   }
 
-  return { listQueue, getItemDetail, submitDecision };
+  return {
+    listQueue,
+    getItemDetail,
+    getItemContext,
+    explainItem,
+    submitDecision,
+  };
 }

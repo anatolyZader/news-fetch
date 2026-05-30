@@ -76,6 +76,81 @@ export function useValidationReviewQueue(date, scope, opts = {}) {
     }
   }, [date, scope, getIdToken]);
 
+  const fetchContext = useCallback(async (articleKey) => {
+    if (!apiReady || !date || !articleKey) return null;
+    try {
+      const headers = new Headers();
+      const token = await getIdToken();
+      if (token) headers.set('Authorization', `Bearer ${token}`);
+      const encKey = encodeURIComponent(articleKey);
+      const encScope = encodeURIComponent(scope ?? 'national');
+      const res = await fetch(
+        `/api/validation/review-queue/${encodeURIComponent(date)}/${encScope}/${encKey}/context`,
+        { headers },
+      );
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error ?? `HTTP ${res.status}`);
+      return data;
+    } catch {
+      return null;
+    }
+  }, [apiReady, date, scope, getIdToken]);
+
+  const explainItem = useCallback(async (articleKey, question) => {
+    if (!apiReady || !date || !articleKey) return null;
+    try {
+      const headers = new Headers({ 'Content-Type': 'application/json' });
+      const token = await getIdToken();
+      if (token) headers.set('Authorization', `Bearer ${token}`);
+      const encKey = encodeURIComponent(articleKey);
+      const encScope = encodeURIComponent(scope ?? 'national');
+      const res = await fetch(
+        `/api/validation/review-queue/${encodeURIComponent(date)}/${encScope}/${encKey}/explain`,
+        {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ question: question || 'Why was this flagged?' }),
+        },
+      );
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error ?? `HTTP ${res.status}`);
+      return data;
+    } catch (err) {
+      setError(err?.message ?? 'Explain failed');
+      return null;
+    }
+  }, [apiReady, date, scope, getIdToken]);
+
+  const agentTurn = useCallback(async (articleKey, messages, opts = {}) => {
+    if (!apiReady || !date || !articleKey) return null;
+    try {
+      const headers = new Headers({ 'Content-Type': 'application/json' });
+      const token = await getIdToken();
+      if (token) headers.set('Authorization', `Bearer ${token}`);
+      const encKey = encodeURIComponent(articleKey);
+      const encScope = encodeURIComponent(scope ?? 'national');
+      let payloadMessages = messages ?? [];
+      const followUp = String(opts.followUp ?? '').trim();
+      if (followUp) {
+        payloadMessages = [...payloadMessages, { role: 'user', content: followUp }];
+      }
+      const res = await fetch(
+        `/api/validation/review-queue/${encodeURIComponent(date)}/${encScope}/${encKey}/agent`,
+        {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ messages: payloadMessages }),
+        },
+      );
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error ?? `HTTP ${res.status}`);
+      return data;
+    } catch (err) {
+      setError(err?.message ?? 'Agent failed');
+      return null;
+    }
+  }, [apiReady, date, scope, getIdToken]);
+
   return {
     items,
     loading,
@@ -83,5 +158,8 @@ export function useValidationReviewQueue(date, scope, opts = {}) {
     savingKey,
     reload: load,
     submitDecision,
+    fetchContext,
+    explainItem,
+    agentTurn,
   };
 }

@@ -4,7 +4,7 @@
  */
 
 import { isRegionalReportScope } from '../../../../cross-cut-modules/geo/reportScopeIds.js';
-import { collectionDistrictForSourceType } from './collectionScope.js';
+import { signalDistrictId } from './signalDistrictId.js';
 
 export const SIGNAL_PROVENANCE = Object.freeze({
   verified_geo: 'verified_geo',
@@ -30,7 +30,7 @@ export const MACRO_NATIONAL_TERMS = [
 export function deriveSignalProvenance(signal) {
   const scope = signal?.scopeDecision;
   if (scope?.macro_scope === 'national') return SIGNAL_PROVENANCE.macro_national;
-  if (collectionDistrictForSourceType(signal?.source_type)) {
+  if (signalDistrictId(signal)) {
     return SIGNAL_PROVENANCE.source_assigned;
   }
   const g = signal?.geo;
@@ -45,7 +45,12 @@ export function deriveSignalProvenance(signal) {
       return SIGNAL_PROVENANCE.verified_geo;
     }
   }
-  if (scope?.isScopeRelevant || scope?.isNorthRelevant || scope?.source === 'collection_scope') {
+  if (
+    scope?.isScopeRelevant
+    || scope?.isNorthRelevant
+    || scope?.source === 'signal_district'
+    || scope?.source === 'legacy_north_fallback'
+  ) {
     return SIGNAL_PROVENANCE.source_assigned;
   }
   return SIGNAL_PROVENANCE.unscoped;

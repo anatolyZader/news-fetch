@@ -1,10 +1,24 @@
 /**
  * Internal Fastify routes for geo resolution (auth when app uses authHook).
+ */
+import { canViewAnalystDisplay } from '../../../cross-cut-modules/auth/userAccess.js';
+import { auditFromRequest } from '../../../cross-cut-modules/security/input/auditLog.js';
+
+function requireAnalyst(request, reply) {
+  if (!canViewAnalystDisplay(request.user?.email)) {
+    reply.code(403).send({ error: 'Forbidden', code: 'analyst_view_required' });
+    return false;
+  }
+  return true;
+}
+
+/**
  * @param {import('fastify').FastifyInstance} app
- * @param {{ authPreHandler?: import('fastify').preHandlerHookHandler }} [opts]
+ * @param {{ authPreHandler?: import('fastify').preHandlerHookHandler, geoUnknownReviewService?: object }} [opts]
  */
 export async function registerGeoRoutes(app, opts = {}) {
   const pre = opts.authPreHandler ? { preHandler: opts.authPreHandler } : {};
+  const geoUnknownReviewService = opts.geoUnknownReviewService ?? null;
 
   app.get('/api/geo/localities', pre, async (request, reply) => {
     const q = typeof request.query?.q === 'string' ? request.query.q : '';
@@ -28,5 +42,36 @@ export async function registerGeoRoutes(app, opts = {}) {
     }
     const result = geoService.resolveLocalityName(raw.trim());
     return reply.send(result);
+  });
+
+  app.get('/api/geo/unknown-queue', pre, async (request, reply) => {
+    if (!requireAnalyst(request, reply)) return;
+    if (!geoUnknownReviewService?.list) {
+      return reply.code(503).send({ error: 'Geo unknown review not configured' });
+    }
+    const status = request.query?.status ? String(request.query.status) : 'new';
+    const limit = request.query?.limit ? Number(request.query.limit) : 20;
+    return reply.send({ items: geoUnknownReviewService.list({ status, limit }) });
+  });
+
+  app.post('/api/geo/unknown-queue/:id/status', pre, async (request, reply) => {
+    if (!requireAnalyst(request, reply)) return;
+    if (!geoUnknownReviewService?.updateStatus) {
+      return reply.code(503).send({ error: 'Geo unknown review not configured' });
+    }
+    const id = Number.parseInt(String(request.params.id), 10);
+    const { status, note } = request.body ?? {};
+    if (!status) return reply.code(400).send({ error: 'status required' });
+    auditFromRequest(request, 'geo.unknown_update', request.url, { status });
+    try {
+      const result = geoUnknownReviewService.updateStatus(id, {
+        status,
+        reviewerNote: note ?? '',
+        reviewer: request.user?.email ?? '',
+      });
+      return reply.send(result);
+    } catch (err) {
+      return reply.code(400).send({ error: err.message });
+    }
   });
 }

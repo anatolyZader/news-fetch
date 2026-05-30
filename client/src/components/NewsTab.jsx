@@ -24,9 +24,10 @@ import { IngestArticleCard } from './ingest/IngestArticleCard.jsx';
 
 export function NewsTab({ reportScope = 'national', onReportScopeChange }) {
   const { t } = useLanguage();
-  const { apiReady, getIdToken } = useAuth();
+  const { apiReady, getIdToken, getAppCheckToken } = useAuth();
   const { data: dashboard, loading: dashLoading, error: dashError } = useNewsSitesDashboard({
     getIdToken,
+    getAppCheckToken,
     apiReady,
   });
 
@@ -41,6 +42,7 @@ export function NewsTab({ reportScope = 'national', onReportScopeChange }) {
   const { data: feed, loading: feedLoading, error: feedError } = useNewsSitesDailyFeed({
     date: activeDate,
     getIdToken,
+    getAppCheckToken,
     apiReady,
   });
 

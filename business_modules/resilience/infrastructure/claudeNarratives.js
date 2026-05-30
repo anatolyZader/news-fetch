@@ -23,6 +23,7 @@ import {
 import { extractJson } from './claudeJsonHelpers.js';
 import { streamWithProgress } from './claudeExtraction.js';
 import { extractNarrativeFacts } from './narrativeFactsExtract.js';
+import { buildNarrativeRetrievalContext } from './narrativeRetrievalContext.js';
 import { judgeNarrativeRelations, formatJudgeFeedback } from './narrativeRelationJudge.js';
 
 const client = new Anthropic();
@@ -479,6 +480,7 @@ function buildNarrativeSystemPrompt({
   registry,
   coOccurrenceBlock,
   claimsByComponent,
+  retrievedSpansBlock,
 }) {
   const scoreIntro = includeScoresInPrompt
     ? `The component SCORES are already computed — do not re-score. Your job is to write clear, behavioral narratives.\n\n`
@@ -507,6 +509,7 @@ function buildNarrativeSystemPrompt({
     coOccurrence +
     NARRATIVE_ANTI_RELATIONSHIP_BLOCK +
     NARRATIVE_RULES_BLOCK +
+    (retrievedSpansBlock || '') +
     claimsBlock +
     `━━━ THE 8 COMPONENTS (with pre-computed ${metricsLabel} and signals) ━━━\n\n` +
     `${componentsBlock}\n\n` +
@@ -665,6 +668,146 @@ function buildAssessmentPayload(narratives, scoredComponents, meta, groundingSum
   };
 }
 
+async function buildNarrativeGenerationContext(scoredComponents, date, totalArticles, opts) {
+  const includeScoresInPrompt = narrativeIncludesScores();
+  const priorContext = formatPriorReportsContext(opts.priorReports, { includeScores: includeScoresInPrompt });
+  const comparisonContext = formatComparisonScoresContext(opts.comparisonLabel, opts.comparisonScores, {
+    includeScores: includeScoresInPrompt,
+    comparable: opts.comparisonComparable,
+  });
+  const registry = buildSignalRefRegistry(scoredComponents);
+  const coOccurrenceBlock = isNarrativeGroundingEnabled()
+    ? formatCoOccurrenceForPrompt(registry)
+    : '';
+  const { block: retrievedSpansBlock } = await buildNarrativeRetrievalContext(scoredComponents, {
+    retrievalService: opts.retrievalService,
+    reportDate: date,
+  });
+  let claimsByComponent = null;
+  if (isNarrativeFactsPassEnabled()) {
+    claimsByComponent = await extractNarrativeFacts(scoredComponents, {
+      onUsage: opts.onUsage,
+      retrievedSpansBlock,
+    });
+  }
+  const systemPrompt = buildNarrativeSystemPrompt({
+    includeScoresInPrompt,
+    scoredComponents,
+    totalArticles,
+    date,
+    priorContext,
+    comparisonContext,
+    scopeContext: buildScopeContext(opts.reportScope),
+    dataVoidContext: buildDataVoidContext(opts.dataVoid),
+    socialQuarantineContext: buildSocialQuarantineContext(opts.socialChannelQuarantine),
+    contentKind: opts.contentKind,
+    sourceTypes: opts.sourceTypes,
+    macroSignals: opts.macroSignals,
+    registry,
+    coOccurrenceBlock,
+    claimsByComponent,
+    retrievedSpansBlock,
+  });
+  const meta = {
+    date,
+    reportScope: opts.reportScope,
+    totalArticles,
+    contentKind: opts.contentKind,
+    macroSignals: opts.macroSignals,
+    dataVoid: opts.dataVoid,
+    oovCaptureCount: opts.oovCaptureCount,
+    socialChannelQuarantine: opts.socialChannelQuarantine,
+    allScopedSignals: opts.allScopedSignals,
+  };
+  return { systemPrompt, meta, claimsByComponent, registry };
+}
+
+async function fetchNarrativeJson(systemPrompt, date, totalArticles, feedback, attempt, onUsage, claimsByComponent) {
+  const label = attempt > 1 ? `[Step 2 — Narratives] (retry ${attempt})` : '[Step 2 — Narratives]';
+  const userContent = buildNarrativeUserMessage(date, totalArticles, feedback);
+  const stream = client.messages.stream({
+    model: DEFAULT_NARRATIVE_MODEL,
+    max_tokens: 16000,
+    system: systemPrompt,
+    messages: [{ role: 'user', content: userContent }],
+  });
+  await streamWithProgress(stream, label);
+  const message = await stream.finalMessage();
+  if (onUsage) onUsage({ label: '[Step 2 — Narratives]', model: DEFAULT_NARRATIVE_MODEL, usage: message.usage });
+  const textBlock = message.content.find((b) => b.type === 'text');
+  if (!textBlock) throw new Error('Step 2: no text block');
+  let narratives = extractJson(textBlock.text);
+  return mergeNarrativeClaims(narratives, claimsByComponent);
+}
+
+function groundingExhaustedMessage(kind, maxRetries) {
+  console.error(`  ⚠ ${kind} failed after ${maxRetries} attempts — proceeding`);
+}
+
+async function applyNarrativeGroundingChecks(narratives, scoredComponents, registry, attempt, maxRetries, onUsage) {
+  let feedback = '';
+  const validation = validateNarrativeOutput(narratives, { scoredComponents, registry });
+  if (!validation.ok) {
+    feedback = formatValidationFeedback(validation);
+    if (attempt < maxRetries) throw new Error(`Validation failed: ${validation.errors.join('; ')}`);
+    groundingExhaustedMessage('Narrative validation', maxRetries);
+  }
+  const suppressResult = validateSuppressionCompliance(narratives, scoredComponents);
+  if (!suppressResult.ok) {
+    const suppressFeedback = formatSuppressionFeedback(suppressResult);
+    feedback = feedback ? `${feedback}\n\n${suppressFeedback}` : suppressFeedback;
+    if (attempt < maxRetries) throw new Error(`Suppression compliance failed: ${suppressResult.errors.join('; ')}`);
+    groundingExhaustedMessage('Suppression compliance', maxRetries);
+  }
+  if (isNarrativeJudgeEnabled()) {
+    const judgeResult = await judgeNarrativeRelations(narratives, registry, { onUsage });
+    if (!judgeResult.ok) {
+      feedback = formatJudgeFeedback(judgeResult.failures);
+      if (attempt < maxRetries) {
+        throw new Error(`Judge rejected: ${judgeResult.failures.length} invented relation(s)`);
+      }
+      groundingExhaustedMessage('Relation judge', maxRetries);
+    }
+  }
+  return feedback;
+}
+
+function mergeGroundingIntoNarratives(narratives, grounding) {
+  for (const def of RESILIENCE_COMPONENTS) {
+    const comp = (narratives.components ?? []).find((c) => c.component_id === def.id);
+    if (!comp) continue;
+    const g = grounding.byComponent[def.id];
+    if (g) {
+      comp.narrative_grounding_score = g.score;
+      comp.grounding_issues = g.issues;
+      comp.interpretive_summary = g.interpretive_summary;
+    }
+  }
+}
+
+async function processNarrativeAttempt(ctx, attempt, maxRetries) {
+  const { systemPrompt, meta, claimsByComponent, registry, scoredComponents, date, totalArticles, onUsage } = ctx;
+  let narratives = await fetchNarrativeJson(
+    systemPrompt, date, totalArticles, ctx.feedback, attempt, onUsage, claimsByComponent,
+  );
+  if (!isNarrativeGroundingEnabled()) {
+    return buildAssessmentPayload(narratives, scoredComponents, meta);
+  }
+  ctx.feedback = await applyNarrativeGroundingChecks(
+    narratives, scoredComponents, registry, attempt, maxRetries, onUsage,
+  );
+  const grounding = computeGroundingScores(narratives, scoredComponents, registry);
+  if (onUsage) {
+    onUsage({
+      label: '[Step 2 — Grounding]',
+      model: 'deterministic',
+      usage: { input_tokens: 0, output_tokens: 0 },
+    });
+  }
+  mergeGroundingIntoNarratives(narratives, grounding);
+  return buildAssessmentPayload(narratives, scoredComponents, meta, grounding);
+}
+
 export async function generateNarratives(
   scoredComponents,
   _allSignals,
@@ -685,135 +828,35 @@ export async function generateNarratives(
     dataVoid = null,
     oovCaptureCount = 0,
     socialChannelQuarantine = null,
+    retrievalService = null,
   } = {},
 ) {
-  const includeScoresInPrompt = narrativeIncludesScores();
-  const priorContext = formatPriorReportsContext(priorReports, { includeScores: includeScoresInPrompt });
-  const comparisonContext = formatComparisonScoresContext(comparisonLabel, comparisonScores, {
-    includeScores: includeScoresInPrompt,
-    comparable: comparisonComparable,
-  });
-  const registry = buildSignalRefRegistry(scoredComponents);
-  const coOccurrenceBlock = isNarrativeGroundingEnabled()
-    ? formatCoOccurrenceForPrompt(registry)
-    : '';
-
-  let claimsByComponent = null;
-  if (isNarrativeFactsPassEnabled()) {
-    claimsByComponent = await extractNarrativeFacts(scoredComponents, { onUsage });
-  }
-
-  const systemPrompt = buildNarrativeSystemPrompt({
-    includeScoresInPrompt,
-    scoredComponents,
-    totalArticles,
-    date,
-    priorContext,
-    comparisonContext,
-    scopeContext: buildScopeContext(reportScope),
-    dataVoidContext: buildDataVoidContext(dataVoid),
-    socialQuarantineContext: buildSocialQuarantineContext(socialChannelQuarantine),
+  const setup = await buildNarrativeGenerationContext(scoredComponents, date, totalArticles, {
+    onUsage,
+    priorReports,
     contentKind,
     sourceTypes,
-    macroSignals,
-    registry,
-    coOccurrenceBlock,
-    claimsByComponent,
-  });
-
-  const meta = {
-    date,
     reportScope,
-    totalArticles,
-    contentKind,
+    comparisonScores,
+    comparisonLabel,
+    comparisonComparable,
     macroSignals,
+    allScopedSignals,
     dataVoid,
     oovCaptureCount,
     socialChannelQuarantine,
-    allScopedSignals,
-  };
+    retrievalService,
+  });
 
   const MAX_RETRIES = 3;
-  let feedback = '';
+  const ctx = { ...setup, scoredComponents, date, totalArticles, onUsage, feedback: '' };
 
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
-      const label = attempt > 1 ? `[Step 2 — Narratives] (retry ${attempt})` : '[Step 2 — Narratives]';
-      const userContent = buildNarrativeUserMessage(date, totalArticles, feedback);
-      const stream = client.messages.stream({
-        model: DEFAULT_NARRATIVE_MODEL,
-        max_tokens: 16000,
-        system: systemPrompt,
-        messages: [{ role: 'user', content: userContent }],
-      });
-      await streamWithProgress(stream, label);
-      const message = await stream.finalMessage();
-      if (onUsage) onUsage({ label: '[Step 2 — Narratives]', model: DEFAULT_NARRATIVE_MODEL, usage: message.usage });
-      const textBlock = message.content.find((b) => b.type === 'text');
-      if (!textBlock) throw new Error('Step 2: no text block');
-
-      let narratives = extractJson(textBlock.text);
-      narratives = mergeNarrativeClaims(narratives, claimsByComponent);
-
-      if (isNarrativeGroundingEnabled()) {
-        const validation = validateNarrativeOutput(narratives, { scoredComponents, registry });
-        if (!validation.ok) {
-          feedback = formatValidationFeedback(validation);
-          if (attempt === MAX_RETRIES) {
-            console.error(`  ⚠ Narrative validation failed after ${MAX_RETRIES} attempts — proceeding with warnings`);
-          } else {
-            throw new Error(`Validation failed: ${validation.errors.join('; ')}`);
-          }
-        }
-
-        const suppressResult = validateSuppressionCompliance(narratives, scoredComponents);
-        if (!suppressResult.ok) {
-          const suppressFeedback = formatSuppressionFeedback(suppressResult);
-          feedback = feedback ? `${feedback}\n\n${suppressFeedback}` : suppressFeedback;
-          if (attempt === MAX_RETRIES) {
-            console.error(`  ⚠ Suppression compliance failed after ${MAX_RETRIES} attempts — proceeding`);
-          } else {
-            throw new Error(`Suppression compliance failed: ${suppressResult.errors.join('; ')}`);
-          }
-        }
-
-        if (isNarrativeJudgeEnabled()) {
-          const judgeResult = await judgeNarrativeRelations(narratives, registry, { onUsage });
-          if (!judgeResult.ok) {
-            feedback = formatJudgeFeedback(judgeResult.failures);
-            if (attempt === MAX_RETRIES) {
-              console.error(`  ⚠ Relation judge flagged claims after ${MAX_RETRIES} attempts — proceeding`);
-            } else {
-              throw new Error(`Judge rejected: ${judgeResult.failures.length} invented relation(s)`);
-            }
-          }
-        }
-
-        const grounding = computeGroundingScores(narratives, scoredComponents, registry);
-        if (onUsage) {
-          onUsage({
-            label: '[Step 2 — Grounding]',
-            model: 'deterministic',
-            usage: { input_tokens: 0, output_tokens: 0 },
-          });
-        }
-        for (const def of RESILIENCE_COMPONENTS) {
-          const comp = (narratives.components ?? []).find((c) => c.component_id === def.id);
-          if (!comp) continue;
-          const g = grounding.byComponent[def.id];
-          if (g) {
-            comp.narrative_grounding_score = g.score;
-            comp.grounding_issues = g.issues;
-            comp.interpretive_summary = g.interpretive_summary;
-          }
-        }
-        return buildAssessmentPayload(narratives, scoredComponents, meta, grounding);
-      }
-
-      return buildAssessmentPayload(narratives, scoredComponents, meta);
+      return await processNarrativeAttempt(ctx, attempt, MAX_RETRIES);
     } catch (err) {
       if (attempt === MAX_RETRIES) throw err;
-      if (!feedback) feedback = err.message;
+      if (!ctx.feedback) ctx.feedback = err.message;
       console.error(`  ⚠ Step 2 attempt ${attempt} failed (${err.message}) — retrying in ${5 * attempt}s...`);
       await new Promise((r) => setTimeout(r, 5000 * attempt));
     }

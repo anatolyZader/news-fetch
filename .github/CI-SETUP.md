@@ -287,6 +287,20 @@ Use **repository secret** name `NEWSAPI_API_KEY` (or align with whatever env nam
 
 **Cost warning:** Integration tests hit real OpenAI APIs. Prefer a separate scheduled workflow (like live LLM), not every PR, unless you accept cost and flakiness.
 
+Also used for **RAG dense embeddings** (`cross-cut-modules/retrieval/`) when `VECTOR_INDEX_EMBEDDINGS` is not `0`.
+
+---
+
+#### `COHERE_API_KEY`
+
+| Item | Detail |
+|------|--------|
+| **Purpose** | Chat RAG reranking (`cross-cut-modules/retrieval/cohereRerankAdapter.js`) |
+| **Source** | [dashboard.cohere.com](https://dashboard.cohere.com/) → API keys |
+| **CI today** | Not required; retrieval tests run FTS-only or skip rerank when missing |
+
+Without this key, hybrid retrieval still works (RRF ordering only; one stderr notice per process).
+
 ---
 
 ### 2.4 Secrets vs variables — quick reference
@@ -310,7 +324,8 @@ In workflow YAML: `${{ secrets.NAME }}` vs `${{ vars.NAME }}`.
 | `SONAR_PROJECT_KEY` | Yes (with Sonar) | same | Sonar fails if token set but key wrong |
 | `ANTHROPIC_API_KEY` | Yes (optional) | `resilience-live-llm.yml` | Live LLM workflow skipped |
 | `NEWSAPI_API_KEY` | No | — | Integration test skipped (default) |
-| `OPENAI_API_KEY` | No | — | Integration tests skipped (default) |
+| `OPENAI_API_KEY` | No | — | Integration tests skipped (default); RAG uses FTS-only |
+| `COHERE_API_KEY` | No | — | Chat RAG skips Cohere rerank (RRF fallback) |
 | `VITE_FIREBASE_API_KEY` | No | — | Client build still succeeds (see Part 4) |
 
 ---
@@ -511,7 +526,7 @@ Reference: [`docs/env.server.example`](../docs/env.server.example), [`docs/IDENT
 | `NEWSAPI_API_KEY` | News ingestion |
 | `AUTH_REQUIRED`, `FIREBASE_PROJECT_ID` | API auth |
 | `GOOGLE_APPLICATION_CREDENTIALS` | Local dev only (path to JSON); production uses workload identity |
-| `ANTHROPIC_API_KEY`, `OPENAI_API_KEY` | LLM / transcription pipelines |
+| `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `COHERE_API_KEY` | LLM / transcription / chat RAG rerank |
 | `RESILIENCE_ANALYST_EMAILS` | Analyst-tier report view |
 | `GEO_ASSERT_ENVELOPE` | Validate geo envelope immediately after attach (`1` in CI test job) |
 | `GEO_LEGACY_SUBREGION_ID` | Set `1` only to emit deprecated flat `subregionId` duplicate (default off) |

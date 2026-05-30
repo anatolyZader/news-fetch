@@ -2,6 +2,8 @@
  * Helpers for evidence submission ingest and content review.
  */
 
+import { safeFetch } from '../../cross-cut-modules/security/infrastructure/safeFetch.js';
+
 const AUDIO_URL_HINT_REGEX = /\.(mp3|wav|m4a|aac|ogg|flac|opus|webm|mp4)(?:$|[?#])/i;
 const VIDEO_URL_HINT_REGEX = /\.(mp4|mov|mkv|webm|avi|m4v)(?:$|[?#])/i;
 const TITLE_TAG_RE = /<title[^>]*>([\s\S]*?)<\/title>/i;
@@ -143,7 +145,7 @@ function htmlToPlainText(html) {
 }
 
 export async function webPageToEvidenceItem(url, date) {
-  const response = await fetch(url, { redirect: 'follow' });
+  const response = await safeFetch(url);
   if (!response.ok) throw new Error(`Web page fetch failed (${response.status})`);
   const html = await response.text();
   const titleMatch = TITLE_TAG_RE.exec(html);

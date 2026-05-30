@@ -36,8 +36,8 @@ describe('sourceArchiveQuery', () => {
     try { if (existsSync(dbPath)) unlinkSync(dbPath); } catch { /* ignore */ }
   });
 
-  it('searchSources finds archived row', () => {
-    const out = searchSources({ date: '2026-02-01', query: 'shelter' }, archive);
+  it('searchSources finds archived row', async () => {
+    const out = await searchSources({ date: '2026-02-01', query: 'shelter' }, archive);
     assert.match(out, /source_id=/);
     assert.match(out, /Shelter story/);
   });
@@ -59,14 +59,14 @@ describe('sourceArchiveQuery', () => {
     assert.match(out, /Haifa PBO/);
   });
 
-  it('getSource returns full body', () => {
+  it('getSource returns full body', async () => {
     const sid = buildArchiveSourceId({
       source_type: 'news',
       date: '2026-02-01',
       source_url: 'https://example.com/a',
       title: 'Shelter story',
     });
-    const out = getSource({ source_id: sid }, archive);
+    const out = await getSource({ source_id: sid }, archive);
     assert.match(out, /public shelters/);
   });
 });

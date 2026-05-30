@@ -209,14 +209,16 @@ export function createAnthropicReportBuildAnalyzerAdapter({ anthropicApiKey }) {
   }
 
   return {
-    async analyzeTurnHistory(turnHistory, senderName) {
+    async analyzeTurnHistory(turnHistory, senderName, ragContext = null) {
       if (!Array.isArray(turnHistory) || turnHistory.length === 0) {
         return { signals: [], structured: EMPTY_STRUCTURED(), assessment: DEFAULT_ASSESSMENT() };
       }
 
-      const userContent =
+      let userContent =
         `Analyze this ongoing field-report dialogue with an Israeli field officer:\n\n` +
         `[1] ${formatTurnHistory(turnHistory, senderName)}\n`;
+      const ragBlock = String(ragContext?.blockText ?? '').trim();
+      if (ragBlock) userContent += `\n${ragBlock}\n`;
 
       const responseText = await callModel({
         system: interactiveSystemPrompt,

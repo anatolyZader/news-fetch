@@ -51,5 +51,5 @@ export function createGeoWiring({ rootDir, unknownSourceType = 'app', sqlitePath
 
   const geoEnrichmentPort = createGeoEnrichmentAdapter({ geoService, unknownSink: geoUnknownSink });
 
-  return { geoService, geoEnrichmentPort };
+  return { geoService, geoEnrichmentPort, geoUnknownReviewQueue };
 }

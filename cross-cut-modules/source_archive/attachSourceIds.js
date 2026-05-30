@@ -40,3 +40,21 @@ export function attachSourceIdsToSignals(signals, filePaths, repoRoot) {
     return source_id ? { ...s, source_id } : s;
   });
 }
+
+/**
+ * Attach stable source_id to each article in the flat list produced by loadMdFiles.
+ * @param {Array<object>} articles
+ * @param {string[]} filePaths
+ * @param {string} repoRoot
+ * @returns {Array<object>}
+ */
+export function attachSourceIdsToArticles(articles, filePaths, repoRoot) {
+  const map = buildArticleIndexSourceIdMap(filePaths, repoRoot);
+  let idx = 0;
+  return (articles ?? []).map((a) => {
+    if (!String(a.body ?? '').trim()) return a;
+    idx += 1;
+    const source_id = map.get(idx);
+    return source_id ? { ...a, source_id } : a;
+  });
+}

@@ -48,5 +48,10 @@ export function createHealthService(deps) {
     };
   }
 
-  return { getHealth };
+  function getPublicHealth() {
+    const full = getHealth();
+    return { status: full.status };
+  }
+
+  return { getHealth, getPublicHealth };
 }

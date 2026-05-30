@@ -31,7 +31,7 @@ import { generateNarratives } from '../infrastructure/claudeEvaluator.js';
 import { writeReport } from '../infrastructure/reportWriter.js';
 import { createCostTracker, appendCostLog, checkDailyBudget } from '../../../cross-cut-modules/budget/index.js';
 import {
-  crossSourceDedupSemantic,
+  crossSourceDedupClustered,
   loadHistoricalScores,
   loadHistoricalSignalDays,
   parseAssessCliArgs,
@@ -73,6 +73,7 @@ import { enrichProbeSignalsInList } from '../domain/services/probeCorroborationP
 import { createDefaultPboReportReviewService } from '../../pbo_report_review/input/createPboReviewWiring.js';
 import { createSourceArchive } from '../../../cross-cut-modules/source_archive/createSourceArchive.js';
 import { archiveProbeRecords } from '../../../cross-cut-modules/source_archive/archiveProbeRecords.js';
+import { createRetrievalService } from '../../../cross-cut-modules/retrieval/createRetrievalService.js';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 
@@ -172,8 +173,18 @@ async function loadPreparedSignals(targetDate, days) {
   allSignals = enrichProbeSignalsInList(allSignals);
   allSignals = dedupWithinSource(allSignals);
 
+  const sqlitePath = process.env.SQLITE_PATH?.trim() || resolve(REPO_ROOT, 'db', 'app.sqlite');
+  let retrievalService = null;
+  try {
+    retrievalService = createRetrievalService({ dbPath: sqlitePath });
+  } catch (err) {
+    console.error(`  ⚠ Retrieval service unavailable: ${err.message}`);
+  }
+
   const beforeCrossSource = allSignals.length;
-  allSignals = await crossSourceDedupSemantic(allSignals);
+  allSignals = await crossSourceDedupClustered(allSignals, {
+    storyClusterIndex: retrievalService?.storyClusterIndex ?? null,
+  });
   if (allSignals.length < beforeCrossSource) {
     console.error(`  Cross-source merged: ${beforeCrossSource} → ${allSignals.length} (${beforeCrossSource - allSignals.length} cross-outlet duplicates collapsed)`);
   }
@@ -198,6 +209,7 @@ async function loadPreparedSignals(targetDate, days) {
     totalArticles,
     sourceFiles,
     sourceTypesSeen,
+    retrievalService,
     pipelineConfig,
     contentKind: contentKindFromSourceTypes(sourceTypesSeen),
   };
@@ -437,6 +449,108 @@ function collectValidation(assessment, allSignals, outputBase, signalPaths, pipe
   }
 }
 
+function enrichAssessmentMetadata(assessment, { scoring, targetDate, reportScopeId, epistemicEnrichment, epistemic }) {
+  attachEpistemicToAssessment(assessment, epistemic);
+  assessment.oov_burst = scoring.oovBurst ?? null;
+  if (scoring.oovScoringApplied) assessment.oov_scoring_applied = scoring.oovScoringApplied;
+  if (scoring.osintChannelQuarantine) {
+    const decision = scoring.osintChannelQuarantine.active
+      ? getSocialQuarantineDecision(targetDate, reportScopeId)
+      : null;
+    assessment.social_channel_quarantine = {
+      ...scoring.osintChannelQuarantine,
+      ...(decision?.created_at ? { confirmed_at: decision.created_at } : {}),
+    };
+  }
+  if (epistemicEnrichment?.overall_score_calibrated != null) {
+    assessment.overall_score_calibrated = epistemicEnrichment.overall_score_calibrated;
+  }
+}
+
+function attachRegionalNationalComparison(assessment, {
+  reportScopeId,
+  comparisonContext,
+  nationalScored,
+  nationalSignals,
+  nationalDataVoid,
+  staleDigitalScores,
+}) {
+  if (!isRegionalReportScope(reportScopeId)) return;
+  assessment.comparison_context = comparisonContext;
+  const stale = staleDigitalScores ? { stale_at: staleDigitalScores.scored_at } : {};
+  const base = {
+    total_signals: nationalSignals.length,
+    national_data_void: nationalDataVoid,
+    ...stale,
+  };
+  if (comparisonContext?.comparable) {
+    assessment.national_comparison = {
+      ...base,
+      overall_resilience_score: overallScore(nationalScored),
+      comparable: true,
+      comparability_index: comparisonContext.comparability_index,
+    };
+    return;
+  }
+  assessment.national_comparison = {
+    ...base,
+    overall_resilience_score: null,
+    comparable: false,
+    comparability_index: comparisonContext?.comparability_index ?? null,
+    structured_share_delta: comparisonContext?.structured_share_delta ?? null,
+    warning: 'Source mix differs from national baseline — direct score comparison invalid.',
+  };
+}
+
+function buildReportMethodology(assessment, { scopedSignals, reportScopeId, validationMaturity, epistemicEnrichment, targetDate, getTotal }) {
+  const { stageEvents } = getTotal();
+  const assessStages = summarizeStageEvents(stageEvents);
+  const costLogStages = readCostLogStagesForDate(targetDate, {
+    scripts: ['extract-signals', 'assess-signals'],
+  });
+  const tuningProposal = proposeComponentTuningFromReportFiles(resolve('reports'), { minReports: 10 });
+  assessment.methodology = buildAssessmentMethodology({
+    signals: scopedSignals,
+    reportScopeId,
+    scoringModelManifest: buildScoringModelManifest(),
+    tuningProposal,
+    validationMaturity,
+    epistemicEnrichment,
+    extractionTelemetry: {
+      assess: assessStages,
+      extract: costLogStages['extract-signals'] ?? null,
+      assess_log: costLogStages['assess-signals'] ?? null,
+    },
+  });
+  return tuningProposal;
+}
+
+async function attachPboCompletenessSummary(assessment, targetDate) {
+  try {
+    const pboReviewService = createDefaultPboReportReviewService({
+      repoRoot: REPO_ROOT,
+      sqlitePath: process.env.SQLITE_PATH?.trim()
+        ? resolve(process.env.SQLITE_PATH.trim())
+        : resolve(REPO_ROOT, 'db', 'app.sqlite'),
+    });
+    assessment.pbo_municipal_completeness = await pboReviewService.buildAssessmentSummary(targetDate);
+  } catch (err) {
+    console.error(`[assess-signals] PBO completeness summary skipped: ${err.message}`);
+  }
+}
+
+function logAssessmentOutputs(assessment, outputBase, printSummary) {
+  console.error(`\n=== Resilience Components ===`);
+  for (const comp of assessment.components ?? []) {
+    console.error(`  ${comp.component_id.padEnd(28)} (${comp.confidence}, ${comp.signal_count ?? 0} signals)`);
+  }
+  printSummary();
+  console.error(`\nReports written:`);
+  console.error(`  ${outputBase}.md (analyst/full scores)`);
+  console.error(`  ${outputBase}-brief.md (operator brief, no /10)`);
+  console.error(`  ${outputBase}.json`);
+}
+
 async function finalizeAndWriteReport({
   targetDate,
   reportScopeId,
@@ -451,6 +565,7 @@ async function finalizeAndWriteReport({
   totalArticles,
   pipelineConfig,
   scoring,
+  retrievalService = null,
 }) {
   const {
     nationalSignals,
@@ -470,7 +585,6 @@ async function finalizeAndWriteReport({
     quarantinedDigital,
     validationMaturity,
     epistemicEnrichment,
-    oovScoringApplied,
     digitalQuarantineState,
   } = scoring;
 
@@ -498,82 +612,44 @@ async function finalizeAndWriteReport({
     oovCaptureCount: countOovCapturesForDate(targetDate),
     socialChannelQuarantine: scoring.osintChannelQuarantine ?? null,
     quarantinedDigital: quarantinedDigital ?? null,
+    retrievalService,
   });
 
-  attachEpistemicToAssessment(assessment, {
-    dataVoid,
-    epistemicStatus,
-    assessmentMode,
-    staleDigitalScores,
-    quarantinedDigital,
-    digitalQuarantineState,
-  });
+  retrievalService?.close();
 
-  assessment.oov_burst = scoring.oovBurst ?? null;
-  if (oovScoringApplied) {
-    assessment.oov_scoring_applied = oovScoringApplied;
-  }
-  if (scoring.osintChannelQuarantine) {
-    const decision = scoring.osintChannelQuarantine.active
-      ? getSocialQuarantineDecision(targetDate, reportScopeId)
-      : null;
-    assessment.social_channel_quarantine = {
-      ...scoring.osintChannelQuarantine,
-      ...(decision?.created_at ? { confirmed_at: decision.created_at } : {}),
-    };
-  }
-
-  if (epistemicEnrichment?.overall_score_calibrated != null) {
-    assessment.overall_score_calibrated = epistemicEnrichment.overall_score_calibrated;
-  }
-
-  const outputBase = resolveOutputBase(reportScopeId, targetDate, getArg);
-
-  if (isRegionalReportScope(reportScopeId)) {
-    assessment.comparison_context = comparisonContext;
-    if (comparisonContext?.comparable) {
-      assessment.national_comparison = {
-        overall_resilience_score: overallScore(nationalScored),
-        total_signals: nationalSignals.length,
-        national_data_void: nationalDataVoid,
-        comparable: true,
-        comparability_index: comparisonContext.comparability_index,
-        ...(staleDigitalScores ? { stale_at: staleDigitalScores.scored_at } : {}),
-      };
-    } else {
-      assessment.national_comparison = {
-        overall_resilience_score: null,
-        total_signals: nationalSignals.length,
-        national_data_void: nationalDataVoid,
-        comparable: false,
-        comparability_index: comparisonContext?.comparability_index ?? null,
-        structured_share_delta: comparisonContext?.structured_share_delta ?? null,
-        warning: 'Source mix differs from national baseline — direct score comparison invalid.',
-        ...(staleDigitalScores ? { stale_at: staleDigitalScores.scored_at } : {}),
-      };
-    }
-  }
-
-  const { totalCostUsd, usageLog, stageEvents } = getTotal();
-  const assessStages = summarizeStageEvents(stageEvents);
-  const costLogStages = readCostLogStagesForDate(targetDate, {
-    scripts: ['extract-signals', 'assess-signals'],
-  });
-  const tuningProposal = proposeComponentTuningFromReportFiles(resolve('reports'), { minReports: 10 });
-  assessment.methodology = buildAssessmentMethodology({
-    signals: scopedSignals,
+  enrichAssessmentMetadata(assessment, {
+    scoring,
+    targetDate,
     reportScopeId,
-    scoringModelManifest: buildScoringModelManifest(),
-    tuningProposal,
-    validationMaturity,
     epistemicEnrichment,
-    extractionTelemetry: {
-      assess: assessStages,
-      extract: costLogStages['extract-signals'] ?? null,
-      assess_log: costLogStages['assess-signals'] ?? null,
+    epistemic: {
+      dataVoid,
+      epistemicStatus,
+      assessmentMode,
+      staleDigitalScores,
+      quarantinedDigital,
+      digitalQuarantineState,
     },
   });
 
+  const outputBase = resolveOutputBase(reportScopeId, targetDate, getArg);
+  attachRegionalNationalComparison(assessment, {
+    reportScopeId,
+    comparisonContext,
+    nationalScored,
+    nationalSignals,
+    nationalDataVoid,
+    staleDigitalScores,
+  });
+
+  const tuningProposal = buildReportMethodology(assessment, {
+    scopedSignals,
+    reportScopeId,
+    validationMaturity,
+    epistemicEnrichment,
+    targetDate,
+    getTotal,
+  });
   const subgroupLogLine = formatSubgroupCoverageLogLine(assessment.methodology);
   if (subgroupLogLine) console.error(subgroupLogLine);
 
@@ -586,31 +662,11 @@ async function finalizeAndWriteReport({
     tuningProposal,
   );
 
-  try {
-    const pboReviewService = createDefaultPboReportReviewService({
-      repoRoot: REPO_ROOT,
-      sqlitePath: process.env.SQLITE_PATH?.trim()
-        ? resolve(process.env.SQLITE_PATH.trim())
-        : resolve(REPO_ROOT, 'db', 'app.sqlite'),
-    });
-    assessment.pbo_municipal_completeness = await pboReviewService.buildAssessmentSummary(targetDate);
-  } catch (err) {
-    console.error(`[assess-signals] PBO completeness summary skipped: ${err.message}`);
-  }
-
+  await attachPboCompletenessSummary(assessment, targetDate);
   writeReport(assessment, scopedSignals, [...new Set(sourceFiles)], outputBase, { scoreBySource });
+  logAssessmentOutputs(assessment, outputBase, printSummary);
 
-  console.error(`\n=== Resilience Components ===`);
-  for (const comp of assessment.components ?? []) {
-    console.error(`  ${comp.component_id.padEnd(28)} (${comp.confidence}, ${comp.signal_count ?? 0} signals)`);
-  }
-
-  printSummary();
-  console.error(`\nReports written:`);
-  console.error(`  ${outputBase}.md (analyst/full scores)`);
-  console.error(`  ${outputBase}-brief.md (operator brief, no /10)`);
-  console.error(`  ${outputBase}.json`);
-
+  const { totalCostUsd, usageLog, stageEvents } = getTotal();
   appendCostLog({ script: 'assess-signals', date: targetDate, totalCostUsd, usageLog, stageEvents, articles: totalArticles });
 }
 
@@ -650,6 +706,7 @@ async function run() {
     totalArticles: prepared.totalArticles,
     pipelineConfig: prepared.pipelineConfig,
     scoring,
+    retrievalService: prepared.retrievalService,
   });
 }
 

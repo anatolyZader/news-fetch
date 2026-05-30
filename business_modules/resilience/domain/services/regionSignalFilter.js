@@ -7,17 +7,21 @@ import {
   districtRelevanceFromResolvedGeo,
   homeFrontDistrictIdsFromResolvedGeo,
 } from '../../../../business_modules/geo/domain/services/districtRelevanceFromResolvedGeo.js';
-import { collectionDistrictForSourceType } from './collectionScope.js';
+import {
+  assignedDistrictScopeMatch,
+  hasExplicitSignalDistrictId,
+  signalDistrictId,
+} from './signalDistrictId.js';
 
 /**
- * District ids implied by collection config and resolved geo on a signal.
+ * District ids implied by signal district assignment and resolved geo.
  * @param {object} signal
  * @returns {string[]}
  */
 export function deriveHomeFrontDistricts(signal) {
   const ids = new Set();
-  const collectionDistrict = collectionDistrictForSourceType(signal?.source_type);
-  if (collectionDistrict) ids.add(collectionDistrict);
+  const assigned = signalDistrictId(signal);
+  if (assigned) ids.add(assigned);
   if (signal?.geo?.kind === 'resolved') {
     for (const id of homeFrontDistrictIdsFromResolvedGeo(signal.geo)) {
       ids.add(id);
@@ -55,13 +59,16 @@ export function scopeDecisionForSignal(signal, targetScopeId = ISRAEL_NATIONAL_D
     };
   }
 
-  const collectionDistrict = collectionDistrictForSourceType(signal?.source_type);
-  if (collectionDistrict === scopeId) {
-    reasons.push(`collection_scope source_type=${signal?.source_type} district=${collectionDistrict}`);
+  const assigned = assignedDistrictScopeMatch(signal, scopeId);
+  if (assigned) {
+    const explicit = hasExplicitSignalDistrictId(signal);
+    reasons.push(
+      `signal_district=${assigned.districtId}${explicit ? '' : ' (legacy_north_fallback)'}`,
+    );
     return {
       isScopeRelevant: true,
       isNorthRelevant: scopeId === 'north',
-      source: 'collection_scope',
+      source: assigned.source,
       confidence: 'high',
       reasons,
       homeFrontDistricts,
@@ -82,7 +89,7 @@ export function scopeDecisionForSignal(signal, targetScopeId = ISRAEL_NATIONAL_D
     };
   }
 
-  reasons.push('no collection_scope or resolved geo for target scope');
+  reasons.push('no signal_district or resolved geo for target scope');
   return {
     isScopeRelevant: false,
     isNorthRelevant: false,

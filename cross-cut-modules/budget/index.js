@@ -6,5 +6,8 @@ export {
   createCostTracker,
   checkDailyBudget,
 } from './app/budgetCostTracker.js';
-
+export {
+  getDailyBudgetStatus,
+  httpDailyBudgetPreHandler,
+} from './app/httpDailyBudget.js';
 export { appendCostLog } from '../log/index.js';

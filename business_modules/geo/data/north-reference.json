@@ -1,10 +1,10 @@
 {
   "version": "north-geo-2026-05-10",
   "source": "north-localities-v1",
-  "description": "Northern locality reference: municipalities from regions.json, geocoded via Nominatim. Bump version when editing rows.",
+  "description": "Northern locality reference: municipalities from business_modules/geo/data/regions.json, geocoded via Nominatim. Bump version when editing rows.",
   "schema": "north-reference-subregions-v1",
   "_meta": {
-    "generated_from": "regions.json",
+    "generated_from": "business_modules/geo/data/regions.json",
     "nominatim": "https://nominatim.openstreetmap.org",
     "generated_at": "2026-05-12T10:31:28.987Z"
   },

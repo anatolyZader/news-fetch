@@ -12,6 +12,7 @@ import MenuItem from '@mui/material/MenuItem';
 import Divider from '@mui/material/Divider';
 import Typography from '@mui/material/Typography';
 import ClickAwayListener from '@mui/material/ClickAwayListener';
+import Alert from '@mui/material/Alert';
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import { alpha } from '@mui/material/styles';
 import { useChat } from '../hooks/useChat.js';
@@ -39,6 +40,8 @@ export function ChatPanel({ reportScope, reportGeoScope = 'national', onClose, v
     regenerateLast,
     stop,
     deleteMessage,
+    pendingActions,
+    confirmAction,
   } = useChat();
   const { t } = useLanguage();
   const [input, setInput] = useState('');
@@ -439,6 +442,30 @@ export function ChatPanel({ reportScope, reportGeoScope = 'national', onClose, v
           >
             Close
           </Button>
+        </Stack>
+      )}
+
+      {pendingActions.length > 0 && (
+        <Stack spacing={1} sx={(theme) => ({ padding: theme.spacing(1, 1.25) })}>
+          {pendingActions.map((action) => (
+            <Alert
+              key={action.actionId}
+              severity="warning"
+              variant="outlined"
+              action={(
+                <Stack direction="row" spacing={0.5}>
+                  <Button size="small" color="inherit" onClick={() => confirmAction(action.actionId, false)}>
+                    Dismiss
+                  </Button>
+                  <Button size="small" variant="contained" onClick={() => confirmAction(action.actionId, true)}>
+                    Confirm
+                  </Button>
+                </Stack>
+              )}
+            >
+              {action.summary || action.toolName}
+            </Alert>
+          ))}
         </Stack>
       )}
 

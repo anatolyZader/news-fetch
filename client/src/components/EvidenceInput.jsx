@@ -7,6 +7,7 @@ import Button from '@mui/material/Button';
 import Alert from '@mui/material/Alert';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
+import { authFetch } from '../lib/authFetch.js';
 
 const STORAGE_KEY = 'communityResilienceEvidenceDraft';
 const SAVE_DEBOUNCE_MS = 400;
@@ -58,7 +59,7 @@ function formatSavedTime(isoLike) {
 
 
 export function EvidenceInput() {
-  const { getIdToken, apiReady } = useAuth();
+  const { getIdToken, getAppCheckToken, apiReady } = useAuth();
   const { t } = useLanguage();
   const [value, setValue] = useState(readDraft);
   const [hydrated, setHydrated] = useState(false);
@@ -320,21 +321,12 @@ export function EvidenceInput() {
     lastSyncedRef.current = '';
     clearDraftCache();
     try {
-      const headers = new Headers({ 'Content-Type': 'application/json' });
-      const t = await getIdToken();
-      if (t) headers.set('Authorization', `Bearer ${t}`);
-
-      const r = await fetch('/api/evidence-submit', {
+      const data = await authFetch('/api/evidence-submit', {
+        getIdToken,
+        getAppCheckToken,
         method: 'POST',
-        headers,
-        body: JSON.stringify({ content: submittedContent }),
+        body: { content: submittedContent },
       });
-      if (!r.ok) {
-        const err = await r.json().catch(() => ({}));
-        throw new Error(err.error || `HTTP ${r.status}`);
-      }
-
-      const data = await r.json();
       if (typeof data?.draft?.content === 'string') {
         // Keep input cleared after send.
         lastSyncedRef.current = '';

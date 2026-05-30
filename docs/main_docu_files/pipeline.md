@@ -392,7 +392,10 @@ Navigation splits **Daily Assessment** (the 8-component report) from **data-sour
 | Popup | API / module | Role |
 |-------|--------------|------|
 | **Chat** | `POST /api/chat` (SSE), `business_modules/chat/` | Evidence-aware assistant scoped to current report |
-| **Write Report** | `POST /api/report-build/*`, `business_modules/report_build/` | Guided report drafting |
+| **Write Report** | `POST /api/report-build/*`, `business_modules/report_build/` | Guided report drafting; Tier 4 RAG at draft time (`fieldRetrieval.js`, `rag:reindex-field-examples`, `rag:reindex-hfc`) |
+| **Docs panel** | `GET /api/docs/search`, in-app `DocsPanel` | Tier 5 product-docs RAG (`docs` namespace); run `npm run rag:reindex-docs` after `docs:sync` on deploy |
+| **Social gather** | `social-media:gather-daily` | Haiku classify; optional few-shot RAG (`rag:reindex-social-examples`) |
+| **Audio contextualize** | `audio-to-md --contextualize` | Prior radio-scene RAG when `AUDIO_CONTEXTUALIZER_RAG_ENABLED` |
 | **Send Data** | Evidence upload flow | Submit new source material |
 | **Settings** | `GET /api/mail/preferences`, `business_modules/mailing/` | Mailing preferences and digest config |
 

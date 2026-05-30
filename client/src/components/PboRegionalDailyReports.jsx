@@ -1,8 +1,14 @@
+import { useState } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import TextField from '@mui/material/TextField';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemText from '@mui/material/ListItemText';
+import Alert from '@mui/material/Alert';
 import Accordion from '@mui/material/Accordion';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import AccordionSummary from '@mui/material/AccordionSummary';
@@ -14,13 +20,19 @@ import { EmptyState, ErrorState, LoadingState, PageHeader } from '../ui/index.js
 import { formatDate } from '../lib/date.js';
 import { MarkdownArticle } from '../ui/MarkdownArticle.jsx';
 import { useRegionalPboReports } from '../hooks/useRegionalPboReports.js';
+import { usePboHistoricalSearch } from '../hooks/usePboHistoricalSearch.js';
 import PropTypes from 'prop-types';
 
 /** Daily markdown reports from one regional PBO inbox within a home-front district. */
-export function PboRegionalDailyReports({ districtId = 'north', regionId }) {
+export function PboRegionalDailyReports({ districtId = 'north', regionId, showHistoricalSearch = false }) {
   const theme = useTheme();
   const { t } = useLanguage();
   const { apiReady, getIdToken } = useAuth();
+  const { hits: historyHits, loading: historyLoading, error: historyError, search: searchHistory } = usePboHistoricalSearch({
+    getIdToken,
+    apiReady,
+  });
+  const [historyQuery, setHistoryQuery] = useState('');
   const { data, loading, error, reload } = useRegionalPboReports({
     districtId,
     regionId,
@@ -68,9 +80,51 @@ export function PboRegionalDailyReports({ districtId = 'north', regionId }) {
     );
   }
 
+  async function handleHistorySearch(event) {
+    event.preventDefault();
+    if (!historyQuery.trim()) return;
+    await searchHistory({
+      query: historyQuery,
+      district: districtId,
+      region: regionId,
+    });
+  }
+
   return (
     <Box sx={{ paddingTop: 2, paddingX: 2, paddingBottom: 3 }}>
       <PageHeader title={regionTitle} subtitle={sub} />
+
+      {showHistoricalSearch && (
+        <Box component="form" onSubmit={(e) => { void handleHistorySearch(e); }} sx={{ mt: 2 }}>
+          <Stack direction="row" spacing={1} useFlexGap>
+            <TextField
+              size="small"
+              fullWidth
+              placeholder={t('pboReview.historicalSearchPlaceholder')}
+              value={historyQuery}
+              onChange={(e) => setHistoryQuery(e.target.value)}
+            />
+            <Button type="submit" size="small" variant="outlined" disabled={historyLoading}>
+              {historyLoading ? '…' : t('pboReview.historicalSearchSubmit')}
+            </Button>
+          </Stack>
+          {historyError && <Alert severity="warning" sx={{ mt: 1 }}>{historyError}</Alert>}
+          {historyHits.length > 0 && (
+            <List dense sx={{ mt: 1 }}>
+              {historyHits.map((h) => (
+                <ListItem key={`${h.source_id}:${h.chunk_index}`} disablePadding>
+                  <ListItemText
+                    primary={`[${h.date ?? ''}] ${h.title ?? h.source_id}`}
+                    secondary={h.snippet}
+                    primaryTypographyProps={{ variant: 'caption', fontWeight: 600 }}
+                    secondaryTypographyProps={{ variant: 'caption' }}
+                  />
+                </ListItem>
+              ))}
+            </List>
+          )}
+        </Box>
+      )}
 
       <Stack component="nav" spacing={1.25} sx={{ mt: 2 }} aria-label={t('pbo.regionDaily.listAria')}>
         {days.map((row, idx) => (
@@ -144,4 +198,5 @@ export function PboRegionalDailyReports({ districtId = 'north', regionId }) {
 PboRegionalDailyReports.propTypes = {
   districtId: PropTypes.string,
   regionId: PropTypes.string.isRequired,
+  showHistoricalSearch: PropTypes.bool,
 };

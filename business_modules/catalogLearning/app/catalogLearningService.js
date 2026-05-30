@@ -10,6 +10,8 @@ import {
   rankClusters,
 } from '../domain/services/oovClusterer.js';
 import { formatGapReportMarkdown } from '../domain/services/gapReportFormatter.js';
+import { retrieveCatalogNeighbors } from '../../../cross-cut-modules/retrieval/analystRetrieval.js';
+import { catalogLearningRagEnabled } from '../../../cross-cut-modules/retrieval/ragConfig.js';
 
 export class CatalogLearningService {
   /**
@@ -53,6 +55,18 @@ export class CatalogLearningService {
     }
 
     const ranked = rankClusters(clusters, { minCount }).slice(0, topN);
+
+    if (catalogLearningRagEnabled() && opts.retrieval?.hybridRetrieve) {
+      for (const cluster of ranked) {
+        const sample = cluster.sample_evidence?.[0] ?? cluster.key ?? '';
+        const { nearest_catalog, counterexamples } = await retrieveCatalogNeighbors(
+          sample,
+          opts.retrieval,
+        );
+        cluster.nearest_catalog = nearest_catalog;
+        cluster.counterexamples = counterexamples;
+      }
+    }
 
     return {
       generated_at: new Date().toISOString(),

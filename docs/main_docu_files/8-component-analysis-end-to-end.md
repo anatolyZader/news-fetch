@@ -494,7 +494,7 @@ Each source produces a `signals/signals-{source}-{YYYY-MM-DD}.json` file (field 
 | **Social OSINT** | `social` | `business_modules/social_media` | X posts + Telegram channel messages | `social-media:gather-daily` → Haiku classify → `signals-social-{date}.json`; `social-media:treat` → `signals[]` | North-biased queries when `--north`; scope filter applies like news/radio |
 | **Survey** (optional) | (varies) | `business_modules/resilience` (survey Excel + writers under `app/` / `infrastructure/adapters/`) | Municipality survey Excel | `npm run analyze-survey` → `runAnalyzeSurvey.js` | Configurable |
 
-Structured north-theater feeds (`field`, `pbo`, `pbo_regional`, `naftali`, `field_whatsapp`) default to district `north` via `config/collectionScope.json`. News, radio, and social signals require **resolved geo** matching the target district for regional scope (otherwise excluded); `text_inferred` geo may appear in narrative context but is metrics-ineligible under epistemic v2 — see §8.9 and §12.
+Structured north-theater feeds (`field`, `pbo`, `pbo_regional`, `naftali`, `field_whatsapp`, `whatsapp`) stamp `district_id` at extract (or inherit from bundle at assess); legacy bundles without `district_id` fall back to `north` in code. News, radio, and social signals require **resolved geo** matching the target district for regional scope (otherwise excluded); `text_inferred` geo may appear in narrative context but is metrics-ineligible under epistemic v2 — see §8.9 and §12.
 
 ### 4.1 Sample raw shape — field report (Hebrew)
 
@@ -732,6 +732,8 @@ Whatsapp uses the news prompt (the channel typically carries operator-authored b
 
 Before sending each article body to the LLM, `extractTopKParagraphsByRelevance(body, 6)` selects the most behaviorally relevant paragraphs by counting Hebrew + English keyword hits ("מקלט", "פינוי", "shelter", "evacuee", "anxiety", "volunteer", "siren", "ממ\"ד", "אזעקה", …). This concentrates LLM tokens on paragraphs likely to carry behavioral evidence and keeps the body cap (`MAX_BODY_CHARS = 2000`) effective.
 
+When `RESILIENCE_EXTRACT_RAG_ENABLED` (see [`LLM_CHAT.md`](LLM_CHAT.md) Tier 2 table), `extract-signals.js` archives with ingest-time chunk indexing, attaches stable `source_id` per article, and `selectArticlePromptSpans` retrieves hybrid archive chunks (domain A/B/C intent + 7–14 day window) before Haiku. Keyword / inline semantic selection remains the fallback.
+
 ### 6.7 Optional dual-model agreement (E3)
 
 When `RESILIENCE_SECOND_EXTRACT=1`, `resilienceAnalysisService.js` runs a *second* `extractSignals` pass (optionally with a different model, via `RESILIENCE_SECOND_EXTRACT_MODEL`). `mergeDualExtractionSignals` flags signals that survive both passes with `_dual_pass_agreement: true`, and `contributionForSignal` then multiplies their evidence by `RESILIENCE_DUAL_AGREEMENT_BOOST` (default `1.05`, clamped to `[1, 1.2]`).
@@ -772,6 +774,8 @@ In `assess-signals.js`, when multiple bundles of the same source type are loaded
 `crossSourceDedup` (in `assessSignalsHelpers.js`) collapses the same primary quote republished by multiple outlets — so when Ynet, Maariv, and Walla all carry the same Magen David Adom statistic, the system counts one signal, not three. Without this step `coverage_ratio` would inflate purely from wire-copy republication.
 
 The dedup key is **`source_type | signal_type | normalised_evidence`** (A4). Keying *within* `source_type` means a press quote and a field-team observation describing the same fact are no longer collapsed: the diversity layer (`source_diversity_factor` + the source-type cap) needs both channels to remain visible. Empty-evidence signals are passed through keyed by article identity so they cannot collide with substantive signals.
+
+When `RESILIENCE_DEDUP_CLUSTER_ENABLED`, `crossSourceDedupClustered` indexes evidence into `rag_story_clusters` and collapses by `story_cluster_id` instead of pairwise embedding scans at assess time.
 
 ### 7.6 Outlet reliability priors (T-style)
 
@@ -1216,7 +1220,7 @@ On **desktop**, footer actions and the chat launcher open **panel popups** (`cli
 
 `regionSignalFilter.js` attaches an explainable **`scopeDecision`** per signal (`isScopeRelevant`, backward-compat `isNorthRelevant` when target scope is `north`, plus `source`, `confidence`, `reasons`, `homeFrontDistricts`). Scope relevance is evaluated in order:
 
-1. **Collection metadata** (`config/collectionScope.json` via `collectionScope.js`): structured north-theater feeds (`field`, `pbo`, `pbo_regional`, `naftali`, `field_whatsapp`) default to district `north`; unstructured `whatsapp` defaults to `north` without structured tier. Collection district tags are merged with geo-derived districts in `deriveHomeFrontDistricts`.
+1. **Signal district** (`signal.district_id` via extract + [`signalDistrictId.js`](../business_modules/resilience/domain/services/signalDistrictId.js)): structured feeds carry an explicit district; legacy bundles without `district_id` fall back to `north` in code for structured source types. District tags merge with geo-derived districts in `deriveHomeFrontDistricts`.
 2. **Resolved geo** (`signal.geo.kind === 'resolved'`): district match when `geo.classification.geoAreaTags` includes the target scope id (via `districtRelevanceFromResolvedGeo`; north PBO subregion logic preserved in `northRelevanceFromResolvedGeo`). Scope uses geo tags even when `usableForMetrics === false` (`confidence: low`); such signals are excluded from component metrics under epistemic v2.
 
 Text keyword fallback was removed. News/radio/social signals without resolved geo matching the target district are excluded from regional scope. Non-north localities resolve via [`homefront-district-stubs.json`](../business_modules/geo/data/homefront-district-stubs.json) when `north-reference.json` has no match — see [GEOGRAPHIC-ANALYSIS.md § Non-north district stubs](./GEOGRAPHIC-ANALYSIS.md#non-north-district-stubs-homefront-district-stubsjson). Full geo contract: [`GEOGRAPHIC-ANALYSIS.md`](GEOGRAPHIC-ANALYSIS.md).
@@ -1229,7 +1233,7 @@ For regional scope, `total_articles` becomes `max(scopedArticleCount, 1)` so the
 
 **Comparison guard (SMNI):** Regional reports attach `assessment.comparison_context` with source-mix comparability (`sourceMixIndex.js`). Headline `national_comparison` is populated only when `comparable: true` (default threshold on structured-share delta). Operator display surfaces incomparability warnings via `assessmentDisplayTier.js`.
 
-Each `assess-signals` run writes `assessment.methodology` (phase label `multi_district_phase2`, scope-decision counts, `collection_scope_by_source_type`, epistemic copy, optional advisory `tuning_proposal`). Full `scoring_model` manifest is on disk for analysts; operator API redaction keeps non-numeric `epistemic` and `scope_decision_summary` only.
+Each `assess-signals` run writes `assessment.methodology` (phase label `multi_district_phase2`, scope-decision counts, `legacy_north_structured_source_types`, epistemic copy, optional advisory `tuning_proposal`). Full `scoring_model` manifest is on disk for analysts; operator API redaction keeps non-numeric `epistemic` and `scope_decision_summary` only.
 
 ### Operational runbook (phase 2)
 
@@ -1696,7 +1700,7 @@ business_modules/
     └── validation/                                # Post-assess calibration collection
         ├── validation-config.json
         ├── app/validationCollectionService.js, validationReviewService.js
-        ├── input/validationReviewRoutes.js        # GET/POST /api/validation/review-queue/*
+        ├── input/validationReviewRoutes.js        # review queue + GET …/context + POST …/explain (Tier 3 RAG)
         ├── domain/validationRecordBuilder.js
         ├── scripts/validationStatus.js            # npm run validation:status
         └── artifacts/records|review-queue|phase-log/
@@ -1706,7 +1710,16 @@ reports/
 ├── resilience-report-{date}-{HHMM}-brief.md      # Operator brief (no scores)
 ├── resilience-report-{scopeId}-{date}-{HHMM}.{md,json}  # Regional scopes
 ├── oov-capture-{date}.jsonl                     # Learning capture (when enabled)
-└── catalog-gap-report.md                          # catalog-learning:gap-report output
+└── catalog-gap-report.md                          # catalog-learning:gap-report (+ nearest_catalog RAG)
+
+cross-cut-modules/retrieval/
+├── analystRetrieval.js                            # validation / catalog / PBO hybrid helpers
+├── catalogIndexWriter.js                          # SIGNAL_CATALOG → namespace=catalog
+└── (Tier 1–2: chunkStore, pipelineRetrieval, storyClusterIndex)
+
+business_modules/pbo_report_review/
+├── app/pboHistoricalSearchService.js
+└── input/pboReviewRoutes.js                     # GET /api/pbo/historical-search
 
 signals/
 ├── signals-news-{date}.json

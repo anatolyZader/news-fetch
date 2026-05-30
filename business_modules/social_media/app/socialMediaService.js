@@ -20,6 +20,7 @@ import { createSocialMediaDailyGatherService } from './socialMediaDailyGatherSer
  *   telegramClient?: object | null,
  *   xFetchAdapter?: { fetchByTopic: Function } | null,
  *   telegramFetchAdapter?: { fetchByTopic: Function } | null,
+ *   retrievalService?: object|null,
  * }} [opts]
  */
 export function createSocialMediaService(opts = {}) {
@@ -62,6 +63,7 @@ export function createSocialMediaService(opts = {}) {
     xApiClient: bearerToken ? createXApiClient({ bearerToken }) : null,
     telegramFetchAdapter,
     dataDir,
+    retrievalService: opts.retrievalService ?? null,
   });
 
   return {

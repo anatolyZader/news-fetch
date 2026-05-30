@@ -3,8 +3,11 @@
  */
 
 import { tryAuthPreHandler } from './tryAuthPreHandler.js';
+import { requireAuthPreHandler } from './requireAuthPreHandler.js';
+import { requireAnalystView } from './requireAnalystAccess.js';
 import { listConfiguredUsers, userAccessForApi } from './userAccess.js';
 import { operatorDistrictAccessForApi } from './operatorDistrictAccess.js';
+import { auditFromRequest } from '../security/input/auditLog.js';
 
 /**
  * @param {import('fastify').FastifyInstance} app
@@ -27,7 +30,9 @@ export async function authRoutes(app, opts = {}) {
     });
   });
 
-  app.get('/api/auth/users', async (_request, reply) => {
+  app.get('/api/auth/users', { preHandler: requireAuthPreHandler }, async (request, reply) => {
+    if (!requireAnalystView(request, reply)) return;
+    auditFromRequest(request, 'auth.users.list', '/api/auth/users');
     return reply.send({
       users: listConfiguredUsers().map((u) => ({
         email: u.email,

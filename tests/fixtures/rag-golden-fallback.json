@@ -1,0 +1,8 @@
+[
+  {
+    "query": "filesystem fallback archive only",
+    "fixture_source_id": "archive:news:fallback-only",
+    "body": "This row exists only on filesystem fallback path for eval documentation.",
+    "expect": "skip"
+  }
+]

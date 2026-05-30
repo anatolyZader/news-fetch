@@ -15,15 +15,18 @@ import { createYtDlpYoutubeAdapter } from './business_modules/video/infrastructu
 import { createYoutubeDataApiCaptionsAdapter } from './business_modules/video/infrastructure/adapters/youtubeDataApiCaptionsAdapter.js';
 import { createLocalVideoFileAdapter } from './business_modules/video/infrastructure/adapters/localVideoFileAdapter.js';
 import { defaultVideoDownloadDir } from './business_modules/video/infrastructure/videoDataPaths.js';
-import { initFirebaseAdminForAuth } from './cross-cut-modules/auth/firebaseAdmin.js';
+import { buildSecurityTxt } from './cross-cut-modules/security/app/buildSecurityTxt.js';
 import { requireAuthPreHandler } from './cross-cut-modules/auth/requireAuthPreHandler.js';
 import { tryAuthPreHandler } from './cross-cut-modules/auth/tryAuthPreHandler.js';
+import { initFirebaseAdminForAuth } from './cross-cut-modules/auth/firebaseAdmin.js';
 import { hasPrivilegedUserAccessConfigured } from './cross-cut-modules/auth/userAccess.js';
 import { requireAnalystView } from './cross-cut-modules/auth/requireAnalystAccess.js';
 import { createEvidenceDraftStore } from './cross-cut-modules/persistence/evidenceDraftStore.js';
 import { createEvidenceStore } from './cross-cut-modules/persistence/evidenceStore.js';
 import { createSourceArchive } from './cross-cut-modules/source_archive/createSourceArchive.js';
+import { createRetrievalService } from './cross-cut-modules/retrieval/index.js';
 import { createChatStore } from './business_modules/chat/infrastructure/chatStore.js';
+import { createChatPendingActionStore } from './business_modules/chat/infrastructure/chatPendingActionStore.js';
 import { AudioEvidenceIngestService } from './business_modules/audio/app/audioEvidenceIngestService.js';
 import { contextualizeTranscript } from './business_modules/audio/app/audioTranscriptContextualizer.js';
 import { OpenaiTranscriptionAdapter } from './business_modules/audio/infrastructure/adapters/openaiTranscriptionAdapter.js';
@@ -85,6 +88,7 @@ import { createMailingResendAdapter } from './business_modules/mailing/infrastru
 import { createMailingService } from './business_modules/mailing/app/mailingService.js';
 import { mailingRoutes } from './business_modules/mailing/input/mailingRoutes.js';
 import { createDefaultPboReportReviewService } from './business_modules/pbo_report_review/input/createPboReviewWiring.js';
+import { createPboHistoricalSearchService } from './business_modules/pbo_report_review/app/pboHistoricalSearchService.js';
 import { pboReviewRoutes } from './business_modules/pbo_report_review/input/pboReviewRoutes.js';
 import { createVectorIndexStore } from './cross-cut-modules/vector_index/index.js';
 import { evidenceRoutes } from './api/routes/evidenceRoutes.js';
@@ -95,7 +99,16 @@ import { operatorRoutes } from './api/routes/operatorRoutes.js';
 import { createValidationReviewSqliteStore } from './business_modules/resilience/validation/infrastructure/adapters/validationReviewSqliteStore.js';
 import { createValidationReviewService } from './business_modules/resilience/validation/app/validationReviewService.js';
 import { validationReviewRoutes } from './business_modules/resilience/validation/input/validationReviewRoutes.js';
+import { createCatalogProposalSqliteStore } from './business_modules/catalogLearning/infrastructure/adapters/catalogProposalSqliteStore.js';
+import { createCatalogProposalService } from './business_modules/catalogLearning/app/catalogProposalService.js';
+import { catalogLearningRoutes } from './business_modules/catalogLearning/input/catalogLearningRoutes.js';
+import { createGeoUnknownReviewService } from './business_modules/geo/app/geoUnknownReviewService.js';
 import { docsRoutes, resolveProductDocsRoot } from './api/routes/docsRoutes.js';
+import {
+  registerSecurityPlugins,
+  registerWhatsappRawBodyHook,
+} from './cross-cut-modules/security/input/registerSecurityPlugins.js';
+import { registerEarlyAuthForRateLimit } from './cross-cut-modules/security/input/earlyAuthForRateLimit.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -108,8 +121,24 @@ const sqlitePath = process.env.SQLITE_PATH?.trim()
 
 const evidenceDraftStore = createEvidenceDraftStore(sqlitePath);
 const evidenceStore = createEvidenceStore(sqlitePath);
-const sourceArchive = createSourceArchive(sqlitePath);
+const articleTimezone = process.env.TZ_ARTICLES || 'Asia/Jerusalem';
+const retrievalService = createRetrievalService({
+  dbPath: sqlitePath,
+  timezone: articleTimezone,
+});
+
+function contextualizeTranscriptWithRag(segments, opts = {}) {
+  return contextualizeTranscript(segments, {
+    ...opts,
+    retrievalService,
+  });
+}
+
+const sourceArchive = createSourceArchive(sqlitePath, {
+  retrievalIndexer: retrievalService,
+});
 const chatStore = createChatStore(sqlitePath);
+const chatPendingActionStore = createChatPendingActionStore(sqlitePath);
 const vectorIndexStore = createVectorIndexStore(sqlitePath);
 const mailingPrefsStore = createMailingPreferencesStore(sqlitePath);
 const visitsService = createVisitsService({
@@ -122,6 +151,7 @@ const visitsService = createVisitsService({
 
 const socialMediaService = createSocialMediaService({
   dataDir: resolve(__dirname, 'business_modules', 'social_media', 'data'),
+  retrievalService,
 });
 
 const newsSitesService = createNewsSitesService({
@@ -145,10 +175,20 @@ const pboRegionalDailyService = createPboRegionalDailyService({
 
 const poolService = createDefaultPoolService();
 
-const { geoService, geoEnrichmentPort } = createGeoWiring({
+const { geoService, geoEnrichmentPort, geoUnknownReviewQueue } = createGeoWiring({
   rootDir: __dirname,
   unknownSourceType: 'whatsapp',
   sqlitePath,
+});
+
+const geoUnknownReviewService = createGeoUnknownReviewService({
+  queueAdapter: geoUnknownReviewQueue,
+});
+
+const catalogProposalStore = createCatalogProposalSqliteStore(sqlitePath);
+const catalogProposalService = createCatalogProposalService({
+  proposalStore: catalogProposalStore,
+  retrievalService,
 });
 
 function isMailingConfigured() {
@@ -172,11 +212,18 @@ const pboReportReviewService = createDefaultPboReportReviewService({
   repoRoot: __dirname,
   sqlitePath,
 });
+const pboHistoricalSearchService = createPboHistoricalSearchService({
+  retrievalService,
+});
 
 const validationReviewStore = createValidationReviewSqliteStore(sqlitePath);
 const validationReviewService = createValidationReviewService({
   store: validationReviewStore,
   evidenceStore,
+  sourceArchive,
+  retrievalService,
+  storyClusterIndex: retrievalService.storyClusterIndex,
+  reportsDir: resolve(__dirname, 'reports'),
 });
 
 let audioEvidenceIngestService = null;
@@ -219,7 +266,7 @@ function createVideoServices() {
       ingestAudioFileToEvidenceItems: (...args) =>
         getAudioEvidenceIngestService().ingestAudioFileToEvidenceItems(...args),
     },
-    contextualizeTranscript,
+    contextualizeTranscript: contextualizeTranscriptWithRag,
   });
 
   return { videoDownloadDir, videoGrabService, youtubeEvidenceIngestService };
@@ -240,6 +287,8 @@ function createReportBuildServiceIfConfigured() {
     conversationStore: createReportBuildConversationStore(sqlitePath),
     draftStore: createReportBuildDraftStore(sqlitePath),
     geoLocalityPort: geoService,
+    retrievalService,
+    sourceArchive,
   });
 }
 
@@ -278,6 +327,8 @@ async function registerWhatsappWebhook(app, reportBuildService) {
         conversationStore: whatsappConversationStore,
         draftStore: whatsappDraftStore,
         geoLocalityPort: geoService,
+        retrievalService,
+        sourceArchive,
       })
       : null,
     conversationStore: whatsappConversationStore,
@@ -288,6 +339,7 @@ async function registerWhatsappWebhook(app, reportBuildService) {
     ingestService: whatsappIngestService,
     apiAdapter: whatsappApiAdapter,
     verifyToken: process.env.WHATSAPP_VERIFY_TOKEN,
+    appSecret: process.env.WHATSAPP_APP_SECRET,
   });
 }
 
@@ -321,10 +373,21 @@ export async function createApp(options) {
   const authHook = authRequired ? { preHandler: requireAuthPreHandler } : {};
   const tryAuthHook = authRequired ? { preHandler: tryAuthPreHandler } : {};
 
-  const app = Fastify({ logger: false, bodyLimit: 10 * 1024 * 1024 /* 10 MB */ });
+  const trustProxy =
+    process.env.TRUST_PROXY === 'true' || process.env.NODE_ENV === 'production';
+
+  const app = Fastify({
+    logger: false,
+    bodyLimit: 10 * 1024 * 1024 /* 10 MB */,
+    trustProxy,
+  });
 
   app.decorate('geoService', geoService);
   app.decorate('poolService', poolService);
+
+  registerWhatsappRawBodyHook(app);
+  registerEarlyAuthForRateLimit(app, { authRequired });
+  await registerSecurityPlugins(app, { authRequired });
 
   await app.register(multipart, {
     limits: {
@@ -343,10 +406,14 @@ export async function createApp(options) {
 
   if (openapiDocument) {
     await app.register(fastifySwagger, { openapi: openapiDocument });
-    await app.register(fastifySwaggerUi, {
-      routePrefix: '/api/swagger',
-      uiConfig: { docExpansion: 'list' },
-    });
+    const enableSwaggerUi =
+      process.env.ENABLE_SWAGGER === 'true' || process.env.NODE_ENV !== 'production';
+    if (enableSwaggerUi) {
+      await app.register(fastifySwaggerUi, {
+        routePrefix: '/api/swagger',
+        uiConfig: { docExpansion: 'list' },
+      });
+    }
   }
 
   const evidenceUserUploadsRoot = resolve(__dirname, 'db', 'evidence-uploads');
@@ -354,6 +421,7 @@ export async function createApp(options) {
   const reportBuildService = createReportBuildServiceIfConfigured();
 
   await docsRoutes(app, {
+    retrievalService,
     authRequired,
     tryAuthHook,
     productDocsRoot: resolveProductDocsRoot(__dirname),
@@ -376,11 +444,35 @@ export async function createApp(options) {
   await app.register(validationReviewRoutes, {
     validationReviewService,
     authPreHandler: authHook?.preHandler,
+    retrievalService,
   });
 
   await operatorRoutes(app);
 
   const driftService = createDriftService({});
+
+  await app.register(catalogLearningRoutes, {
+    catalogProposalService,
+    authPreHandler: authHook?.preHandler,
+  });
+
+  await chatRoutes(app, {
+    authHook,
+    chatStore,
+    chatOwnerUid,
+    timezone,
+    evidenceStore,
+    sourceArchive,
+    vectorIndexStore,
+    retrievalService,
+    pendingActionStore: chatPendingActionStore,
+    validationReviewService,
+    pboHistoricalSearchService,
+    pboReportReviewService,
+    driftService,
+    catalogProposalService,
+    geoUnknownReviewService,
+  });
   await registerDriftRoutes(app, {
     driftService,
     authPreHandler: authHook?.preHandler,
@@ -410,6 +502,7 @@ export async function createApp(options) {
 
   await registerGeoRoutes(app, {
     authPreHandler: authHook?.preHandler,
+    geoUnknownReviewService,
   });
 
   await registerPoolRoutes(app, {
@@ -431,16 +524,6 @@ export async function createApp(options) {
     evidenceOwnerKey,
   });
 
-  await chatRoutes(app, {
-    authHook,
-    chatStore,
-    chatOwnerUid,
-    timezone,
-    evidenceStore,
-    sourceArchive,
-    vectorIndexStore,
-  });
-
   await app.register(reportBuildRoutes, {
     reportBuildService,
     authPreHandler: authHook?.preHandler,
@@ -456,6 +539,7 @@ export async function createApp(options) {
 
   await app.register(pboReviewRoutes, {
     pboReportReviewService,
+    pboHistoricalSearchService,
     authPreHandler: authHook?.preHandler,
   });
 
@@ -485,6 +569,19 @@ export async function createApp(options) {
   });
 
   await registerWhatsappWebhook(app, reportBuildService);
+
+  app.get('/.well-known/security.txt', async (_req, reply) => {
+    if (process.env.NODE_ENV === 'production') {
+      const txt = buildSecurityTxt();
+      return reply.type('text/plain; charset=utf-8').send(txt);
+    }
+    try {
+      const txt = await readFile(resolve(__dirname, '.well-known', 'security.txt'), 'utf8');
+      return reply.type('text/plain; charset=utf-8').send(txt);
+    } catch {
+      return reply.code(404).send('Not found');
+    }
+  });
 
   const clientDist = resolve(__dirname, 'client', 'dist');
   await app.register(fastifyStatic, { root: clientDist, prefix: '/' });

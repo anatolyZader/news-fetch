@@ -26,3 +26,7 @@ export function isFirebaseClientConfigured() {
   const c = getFirebaseWebConfig();
   return Boolean(c.apiKey && c.authDomain && c.projectId);
 }
+
+export function isAppCheckConfigured() {
+  return Boolean(import.meta.env.VITE_APP_CHECK_SITE_KEY?.trim());
+}

@@ -51,13 +51,14 @@ describe('panelRoutes', () => {
   });
 
   it('parseChatReportScope reads scope from search params', () => {
-    assert.deepEqual(parseChatReportScope('?scope=all'), { type: 'all' });
+    assert.deepEqual(parseChatReportScope('?scope=all'), { type: 'all', reportGeoScope: 'national' });
     assert.deepEqual(parseChatReportScope('?scope=component&id=belonging_solidarity&label=Belonging'), {
       type: 'component',
       id: 'belonging_solidarity',
       label: 'Belonging',
+      reportGeoScope: 'national',
     });
-    assert.deepEqual(parseChatReportScope(''), { type: 'all' });
+    assert.deepEqual(parseChatReportScope(''), { type: 'all', reportGeoScope: 'national' });
   });
 
   it('buildDocsPanelPath encodes slug', () => {

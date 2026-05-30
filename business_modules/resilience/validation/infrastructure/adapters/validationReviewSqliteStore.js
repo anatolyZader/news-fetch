@@ -45,6 +45,49 @@ CREATE INDEX IF NOT EXISTS idx_validation_review_decisions_lookup
   ON validation_review_decisions(date, scope, article_key);
 `;
 
+function normalizeEvidenceForMatch(signalsJson) {
+  return String(signalsJson ?? '').toLowerCase().replaceAll(/[^\w\u0590-\u05FF]/g, '');
+}
+
+function isExcludedPriorRow(row, excludeDate) {
+  return Boolean(excludeDate && row.date === excludeDate);
+}
+
+function priorRowMatches(row, { articleUrl, prefix }) {
+  if (articleUrl && row.article_url && String(row.article_url) === articleUrl) return true;
+  if (prefix.length < 20) return false;
+  return normalizeEvidenceForMatch(row.signals_json).includes(prefix);
+}
+
+function collectPriorDecisions(rows, { prefix, articleUrl, excludeDate, limit }) {
+  const out = [];
+  for (const row of rows) {
+    if (isExcludedPriorRow(row, excludeDate)) continue;
+    if (!priorRowMatches(row, { articleUrl, prefix })) continue;
+    out.push(formatPriorDecisionRow(row));
+    if (out.length >= limit) break;
+  }
+  return out;
+}
+
+function formatPriorDecisionRow(row) {
+  let payload = {};
+  try {
+    payload = JSON.parse(row.payload_json || '{}');
+  } catch { /* ignore */ }
+  return {
+    date: row.date,
+    scope: row.scope,
+    article_key: row.article_key,
+    action: row.action,
+    reviewer_email: row.reviewer_email,
+    created_at: row.created_at,
+    article_url: row.article_url,
+    article_source: row.article_source,
+    payload,
+  };
+}
+
 function rowToItem(row) {
   if (!row) return null;
   return {
@@ -183,6 +226,36 @@ export class ValidationReviewSqliteStore extends IValidationReviewStorePort {
       ...decision,
       createdAt: new Date().toISOString(),
     };
+  }
+
+  /**
+   * Cross-day prior analyst decisions with similar evidence or same URL.
+   * @param {string} evidencePrefix normalized evidence prefix (≥20 chars)
+   * @param {{ limit?: number, excludeDate?: string|null, articleUrl?: string|null }} [opts]
+   */
+  listPriorDecisionsByEvidencePrefix(evidencePrefix, opts = {}) {
+    const prefix = String(evidencePrefix ?? '').trim();
+    const articleUrl = opts.articleUrl ? String(opts.articleUrl) : null;
+    if (!prefix && !articleUrl) return [];
+
+    const rows = this.db.prepare(`
+      SELECT d.action, d.payload_json, d.created_at, d.reviewer_email,
+             d.date, d.scope, d.article_key,
+             i.article_url, i.article_source, i.signals_json
+      FROM validation_review_decisions d
+      LEFT JOIN validation_review_items i
+        ON i.date = d.date AND i.scope = d.scope AND i.article_key = d.article_key
+      WHERE d.action IN ('label', 'gold_signal', 'skip', 'defer')
+      ORDER BY d.id DESC
+      LIMIT 200
+    `).all();
+
+    return collectPriorDecisions(rows, {
+      prefix,
+      articleUrl,
+      excludeDate: opts.excludeDate ? String(opts.excludeDate) : null,
+      limit: Math.min(20, opts.limit ?? 5),
+    });
   }
 
   getLatestDecision(date, scope, articleKey) {

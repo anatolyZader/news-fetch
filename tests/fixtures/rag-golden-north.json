@@ -1,0 +1,8 @@
+[
+  {
+    "query": "shelters kiryat shmona north district",
+    "fixture_source_id": "archive:news:north-eval-1",
+    "scope_id": "north",
+    "body": "Residents in Kiryat Shmona entered public shelters during the alert in the northern district."
+  }
+]

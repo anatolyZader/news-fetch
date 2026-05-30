@@ -7,8 +7,14 @@
  */
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
+import 'dotenv/config';
+import { resolve, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { CatalogLearningService } from '../app/catalogLearningService.js';
 import { LearningCaptureFsAdapter } from '../infrastructure/adapters/learningCaptureFsAdapter.js';
+import { createRetrievalService } from '../../../cross-cut-modules/retrieval/createRetrievalService.js';
+
+const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 
 function parseArgs(argv) {
   const positional = [];
@@ -43,7 +49,19 @@ async function main() {
     capturePort: new LearningCaptureFsAdapter({ reportsDir }),
   });
 
-  const markdown = await service.generateGapReportMarkdown({ maxDays: days, topN });
+  const sqlitePath = process.env.SQLITE_PATH?.trim() || resolve(REPO_ROOT, 'db', 'app.sqlite');
+  let retrieval = null;
+  try {
+    const svc = createRetrievalService({ dbPath: sqlitePath });
+    retrieval = svc.retrieval;
+    await svc.catalogIndexWriter.reindexCatalog();
+    svc.rebuildFts();
+    svc.close();
+  } catch (err) {
+    console.error(`  ⚠ Catalog RAG index skipped: ${err.message}`);
+  }
+
+  const markdown = await service.generateGapReportMarkdown({ maxDays: days, topN, retrieval });
   const outPath = resolve(out);
   mkdirSync(dirname(outPath), { recursive: true });
   writeFileSync(outPath, markdown, 'utf8');

@@ -1,0 +1,7 @@
+Contact: mailto:security@example.com
+Expires: 2027-12-31T23:59:59.000Z
+Preferred-Languages: en, he
+Policy: https://github.com/your-org/news/security/policy
+
+# Security contact
+# Replace security@example.com and policy URL before production deploy.

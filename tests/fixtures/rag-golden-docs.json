@@ -1,0 +1,12 @@
+[
+  {
+    "query": "data void operator abstention",
+    "fixture_slug": "scoring-and-abstention",
+    "body": "When evidence is thin, operators may abstain from scoring. Data voids are documented explicitly in the scoring model."
+  },
+  {
+    "query": "scoring model resilience components",
+    "fixture_slug": "concepts/scoring-model",
+    "body": "The scoring model maps signals to component scores. Report JSON remains the source of truth; RAG only grounds explanations."
+  }
+]

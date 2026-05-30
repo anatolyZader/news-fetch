@@ -134,11 +134,30 @@ export function listSources(input, sourceArchive) {
 /**
  * @param {object} input
  * @param {ReturnType<import('../../../cross-cut-modules/source_archive/createSourceArchive.js').createSourceArchive>|null} sourceArchive
+ * @param {{ retrieval?: { searchArchiveChunks: Function } }|null} [retrievalService]
  */
-export function searchSources(input, sourceArchive) {
+export async function searchSources(input, sourceArchive, retrievalService = null) {
   const date = normalize(input?.date);
   if (!date) return 'search_sources: date was missing and could not be inferred.';
   if (!sourceArchive) return 'search_sources: source archive is not available.';
+
+  const q = normalize(input?.query);
+  if (q && retrievalService?.retrieval?.searchArchiveChunks) {
+    try {
+      const ragHits = await retrievalService.retrieval.searchArchiveChunks({
+        query: q,
+        date,
+        date_from: input?.date_from,
+        date_to: input?.date_to ?? date,
+        source_type: input?.source_type,
+        limit: Math.min(Number(input?.limit ?? 7) || 7, 25),
+        snippet_chars: input?.snippet_chars,
+      });
+      if (ragHits?.length) return formatCandidates(ragHits);
+    } catch (err) {
+      console.error('searchSources RAG:', err.message);
+    }
+  }
 
   const result = mergeArchiveAndFilesystem(
     { ...input, date_to: input?.date_to ?? input?.date },
@@ -198,7 +217,7 @@ function lookupLegacyDb(dbId, evidenceStore, maxChars) {
  * @param {ReturnType<import('../../../cross-cut-modules/source_archive/createSourceArchive.js').createSourceArchive>|null} sourceArchive
  * @param {object|null} [evidenceStore] legacy bridge
  */
-export function getSource(input, sourceArchive, evidenceStore = null) {
+export async function getSource(input, sourceArchive, evidenceStore = null) {
   const sourceId = normalize(input?.source_id);
   const maxChars = Math.min(Number(input?.max_chars ?? 8000) || 8000, 25_000);
 
@@ -244,7 +263,7 @@ export function getSource(input, sourceArchive, evidenceStore = null) {
 
   const date = normalize(input?.date);
   if (date && (input?.query || input?.url || input?.title || input?.source_type)) {
-    const searchText = searchSources({ ...input, date, limit: 1 }, sourceArchive);
+    const searchText = await searchSources({ ...input, date, limit: 1 }, sourceArchive);
     if (!searchText.startsWith('No matching')) return `${searchText}\n\n(Use get_source with source_id from above.)`;
   }
 

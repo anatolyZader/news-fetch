@@ -1,36 +1,24 @@
 import { useCallback, useEffect, useState } from 'react';
+import { authFetch } from '../lib/authFetch.js';
 
-async function authFetch(url, { getIdToken, method = 'GET', body } = {}) {
-  const headers = new Headers({ 'Content-Type': 'application/json' });
-  const token = await getIdToken();
-  if (token) headers.set('Authorization', `Bearer ${token}`);
-  const res = await fetch(url, {
-    method,
-    headers,
-    body: body == null ? undefined : JSON.stringify(body),
-  });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`);
-  return data;
-}
-
-/** @param {{ getIdToken: () => Promise<string|null>, apiReady: boolean }} opts */
-export function useNewsSitesDashboard({ getIdToken, apiReady }) {
+/** @param {{ getIdToken: () => Promise<string|null>, getAppCheckToken?: () => Promise<string|null>, apiReady: boolean }} opts */
+export function useNewsSitesDashboard({ getIdToken, getAppCheckToken, apiReady }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const auth = { getIdToken, getAppCheckToken };
 
   const reload = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      setData(await authFetch('/api/news-sites', { getIdToken }));
+      setData(await authFetch('/api/news-sites', auth));
     } catch (e) {
       setError(e?.message ?? 'Failed');
     } finally {
       setLoading(false);
     }
-  }, [getIdToken]);
+  }, [getIdToken, getAppCheckToken]);
 
   useEffect(() => {
     if (!apiReady) return;
@@ -39,7 +27,7 @@ export function useNewsSitesDashboard({ getIdToken, apiReady }) {
       setLoading(true);
       setError(null);
       try {
-        const out = await authFetch('/api/news-sites', { getIdToken });
+        const out = await authFetch('/api/news-sites', auth);
         if (!cancelled) setData(out);
       } catch (e) {
         if (!cancelled) setError(e?.message ?? 'Failed');
@@ -48,13 +36,13 @@ export function useNewsSitesDashboard({ getIdToken, apiReady }) {
       }
     })();
     return () => { cancelled = true; };
-  }, [apiReady, getIdToken]);
+  }, [apiReady, getIdToken, getAppCheckToken]);
 
   return { data, loading, error, reload };
 }
 
-/** @param {{ date: string, getIdToken: () => Promise<string|null>, apiReady: boolean }} opts */
-export function useNewsSitesDailyFeed({ date, getIdToken, apiReady }) {
+/** @param {{ date: string, getIdToken: () => Promise<string|null>, getAppCheckToken?: () => Promise<string|null>, apiReady: boolean }} opts */
+export function useNewsSitesDailyFeed({ date, getIdToken, getAppCheckToken, apiReady }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -66,8 +54,10 @@ export function useNewsSitesDailyFeed({ date, getIdToken, apiReady }) {
       setLoading(true);
       setError(null);
       try {
-        const q = new URLSearchParams({ date });
-        const out = await authFetch(`/api/news-sites/daily?${q.toString()}`, { getIdToken });
+        const out = await authFetch(`/api/news-sites/daily?date=${encodeURIComponent(date)}`, {
+          getIdToken,
+          getAppCheckToken,
+        });
         if (!cancelled) setData(out);
       } catch (e) {
         if (!cancelled) {
@@ -79,7 +69,7 @@ export function useNewsSitesDailyFeed({ date, getIdToken, apiReady }) {
       }
     })();
     return () => { cancelled = true; };
-  }, [date, apiReady, getIdToken]);
+  }, [date, apiReady, getIdToken, getAppCheckToken]);
 
   return { data, loading, error };
 }

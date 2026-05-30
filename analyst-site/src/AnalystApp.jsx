@@ -282,6 +282,7 @@ export function AnalystApp({ logout, user, authRequired }) {
                     driftLoading={driftLoading}
                     attentionItems={attentionItems ?? []}
                     driftAlerts={driftData?.alerts ?? null}
+                    showValidationReview
                   />
                 </Box>
               </>

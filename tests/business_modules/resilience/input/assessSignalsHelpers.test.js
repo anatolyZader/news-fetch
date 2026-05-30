@@ -10,6 +10,8 @@ import {
   ewmaScore,
   deltaSignificance,
   enrichWithDeltaChannel,
+  mergeLoadedSignalFiles,
+  parseSignalBundleFilename,
 } from '../../../../business_modules/resilience/input/assessSignalsHelpers.js';
 
 describe('crossSourceDedup', () => {
@@ -238,5 +240,45 @@ describe('loadHistoricalScores', () => {
     const out = loadHistoricalScores('2026-05-03', dir, 5);
     assert.equal(out.narrative.length, 5);
     assert.deepEqual(out.narrative, [1, 2, 3, 4, 5]);
+  });
+});
+
+describe('parseSignalBundleFilename', () => {
+  it('parses standard and multi-district PBO bundle names', () => {
+    assert.deepEqual(parseSignalBundleFilename('signals-news-2026-05-01.json'), {
+      sourceType: 'news',
+      fileDate: '2026-05-01',
+      districtId: null,
+    });
+    assert.deepEqual(parseSignalBundleFilename('signals-pbo-2026-05-01.json'), {
+      sourceType: 'pbo',
+      fileDate: '2026-05-01',
+      districtId: 'north',
+    });
+    assert.deepEqual(parseSignalBundleFilename('signals-pbo-south-2026-05-01.json'), {
+      sourceType: 'pbo',
+      fileDate: '2026-05-01',
+      districtId: 'south',
+    });
+  });
+});
+
+describe('mergeLoadedSignalFiles', () => {
+  it('copies bundle district_id onto signals when missing', () => {
+    const { allSignals } = mergeLoadedSignalFiles([
+      {
+        weight: 1,
+        sourceType: 'pbo',
+        fileDate: '2026-05-01',
+        fileDistrictId: 'south',
+        data: {
+          district_id: 'south',
+          signals: [{ evidence: 'a' }, { evidence: 'b', district_id: 'south' }],
+        },
+      },
+    ]);
+    assert.equal(allSignals.length, 2);
+    assert.equal(allSignals[0].district_id, 'south');
+    assert.equal(allSignals[1].district_id, 'south');
   });
 });

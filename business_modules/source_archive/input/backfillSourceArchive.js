@@ -9,6 +9,7 @@ import { resolve, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { createSourceArchive } from '../../../cross-cut-modules/source_archive/createSourceArchive.js';
+import { createRetrievalService } from '../../../cross-cut-modules/retrieval/index.js';
 import { createEvidenceStore } from '../../../cross-cut-modules/persistence/evidenceStore.js';
 import { persistOriginalSources } from '../../../cross-cut-modules/source_archive/persistOriginals.js';
 import { buildMdSourceIdFromPath, legacyDbSourceId } from '../../../cross-cut-modules/source_archive/sourceId.js';
@@ -25,7 +26,8 @@ function parseArgs() {
   const args = process.argv.slice(2);
   const i = args.indexOf('--days');
   const days = i >= 0 ? Number.parseInt(args[i + 1], 10) : 14;
-  return { days: Number.isFinite(days) ? days : 14 };
+  const reindexRag = !args.includes('--no-reindex-rag');
+  return { days: Number.isFinite(days) ? days : 14, reindexRag };
 }
 
 function datesInWindow(today, days) {
@@ -133,8 +135,18 @@ function backfillProbes(archive, dates) {
   return n;
 }
 
-try {
-  const { days } = parseArgs();
+async function reindexRagForDates(archive, retrievalService, dates) {
+  let chunks = 0;
+  for (const date of dates) {
+    const rows = archive.listByDate(date) ?? [];
+    const r = await retrievalService.indexWriter.reindexArchiveRows(rows);
+    chunks += r.chunks;
+  }
+  return chunks;
+}
+
+async function main() {
+  const { days, reindexRag } = parseArgs();
   const timezone = process.env.TZ_ARTICLES || 'Asia/Jerusalem';
   const today = getTodayInTimezone(timezone);
   const dates = datesInWindow(today, days);
@@ -142,7 +154,8 @@ try {
     ? resolve(process.env.SQLITE_PATH.trim())
     : resolve(repoRoot, 'db', 'app.sqlite');
 
-  const archive = createSourceArchive(sqlitePath);
+  const retrievalService = createRetrievalService({ dbPath: sqlitePath, timezone });
+  const archive = createSourceArchive(sqlitePath, { retrievalIndexer: retrievalService });
   const evidenceStore = createEvidenceStore(sqlitePath);
 
   const fromDb = backfillEvidenceItems(archive, evidenceStore, dates);
@@ -165,15 +178,25 @@ try {
   const fromSocial = backfillSocialBundles(archive, dates);
   const fromProbes = backfillProbes(archive, dates);
 
+  let ragChunks = 0;
+  if (reindexRag) {
+    ragChunks = await reindexRagForDates(archive, retrievalService, dates);
+    retrievalService.rebuildFts();
+  }
+
   archive.close();
   evidenceStore.close();
+  retrievalService.close();
 
   const total = fromDb + fromNews + fromField + fromWhatsapp + fromRadio + fromSocial + fromProbes;
   console.log(
     `backfill-source-archive: days=${days} evidence=${fromDb} news=${fromNews} field=${fromField} ` +
-    `whatsapp=${fromWhatsapp} radio=${fromRadio} social=${fromSocial} probes=${fromProbes} total=${total}`,
+    `whatsapp=${fromWhatsapp} radio=${fromRadio} social=${fromSocial} probes=${fromProbes} total=${total}` +
+    (reindexRag ? ` rag_chunks=${ragChunks}` : ' rag_skipped'),
   );
-} catch (err) {
+}
+
+main().catch((err) => {
   console.error(err);
   process.exit(1);
-}
+});

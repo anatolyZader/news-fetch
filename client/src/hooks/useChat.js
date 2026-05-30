@@ -1,23 +1,26 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
+import { buildAuthHeaders } from '../lib/authFetch.js';
 
 export function useChat() {
-  const { getIdToken } = useAuth();
+  const { getIdToken, getAppCheckToken } = useAuth();
   const [sessions, setSessions] = useState([]); // [{ id, title, report_date, created_at, updated_at }]
   const [activeSessionId, setActiveSessionId] = useState(null);
   const [history, setHistory] = useState([]); // [{ id?, role, content, error? }]
   const [streaming, setStreaming] = useState(false);
   const [draft, setDraft] = useState(''); // assistant reply being streamed
+  const [pendingActions, setPendingActions] = useState([]);
   const abortRef = useRef(null);
 
   const todayStr = useMemo(() => new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jerusalem' }), []);
 
   const authedHeaders = useCallback(async () => {
-    const headers = new Headers({ 'Content-Type': 'application/json' });
-    const t = await getIdToken();
-    if (t) headers.set('Authorization', `Bearer ${t}`);
+    const headers = await buildAuthHeaders({ getIdToken, getAppCheckToken });
+    if (!headers.has('Content-Type')) {
+      headers.set('Content-Type', 'application/json');
+    }
     return headers;
-  }, [getIdToken]);
+  }, [getIdToken, getAppCheckToken]);
 
   const loadSessions = useCallback(async () => {
     const headers = await authedHeaders();
@@ -117,6 +120,27 @@ export function useChat() {
     loadMessages(activeSessionId).catch(() => {});
   }, [activeSessionId, loadMessages]);
 
+  function handleChatStreamEvent(event, accumulatedRef) {
+    if (event.type === 'text') {
+      accumulatedRef.value += event.text;
+      setDraft(accumulatedRef.value);
+      return null;
+    }
+    if (event.type === 'action_proposed') {
+      setPendingActions((prev) => [
+        ...prev.filter((a) => a.actionId !== event.actionId),
+        {
+          actionId: event.actionId,
+          toolName: event.toolName,
+          summary: event.summary,
+          expiresAt: event.expiresAt,
+        },
+      ]);
+      return null;
+    }
+    return event.type;
+  }
+
   async function send(message, opts = {}) {
     if (streaming || !message.trim()) return;
     if (!activeSessionId) return;
@@ -129,6 +153,7 @@ export function useChat() {
     const controller = new AbortController();
     abortRef.current = controller;
     let accumulated = '';
+    const accRef = { value: accumulated };
 
     try {
       const headers = await authedHeaders();
@@ -169,16 +194,16 @@ export function useChat() {
           if (!line.startsWith('data: ')) continue;
           try {
             const event = JSON.parse(line.slice(6));
-            if (event.type === 'text') {
-              accumulated += event.text;
-              setDraft(accumulated);
-            } else if (event.type === 'done') {
+            const terminal = handleChatStreamEvent(event, accRef);
+            accumulated = accRef.value;
+            if (terminal === 'done') {
               setHistory((h) => [...h, { role: 'assistant', content: accumulated }]);
               setDraft('');
               setStreaming(false);
               loadSessions().catch(() => {});
               return;
-            } else if (event.type === 'error') {
+            }
+            if (terminal === 'error') {
               setHistory((h) => [...h, { role: 'assistant', content: event.message || 'An error occurred', error: true }]);
               setDraft('');
               setStreaming(false);
@@ -218,6 +243,7 @@ export function useChat() {
     const controller = new AbortController();
     abortRef.current = controller;
     let accumulated = '';
+    const accRef = { value: accumulated };
     try {
       const headers = await authedHeaders();
       const res = await fetch('/api/chat', {
@@ -250,16 +276,16 @@ export function useChat() {
           if (!line.startsWith('data: ')) continue;
           try {
             const event = JSON.parse(line.slice(6));
-            if (event.type === 'text') {
-              accumulated += event.text;
-              setDraft(accumulated);
-            } else if (event.type === 'done') {
+            const terminal = handleChatStreamEvent(event, accRef);
+            accumulated = accRef.value;
+            if (terminal === 'done') {
               setHistory((h) => [...h, { role: 'assistant', content: accumulated }]);
               setDraft('');
               setStreaming(false);
               loadSessions().catch(() => {});
               return;
-            } else if (event.type === 'error') {
+            }
+            if (terminal === 'error') {
               setHistory((h) => [...h, { role: 'assistant', content: event.message || 'An error occurred', error: true }]);
               setDraft('');
               setStreaming(false);
@@ -283,6 +309,23 @@ export function useChat() {
     abortRef.current?.abort();
   }
 
+  async function confirmAction(actionId, confirmed) {
+    if (!activeSessionId || !actionId) return null;
+    try {
+      const headers = await authedHeaders();
+      const res = await fetch('/api/chat/confirm-action', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ sessionId: activeSessionId, actionId, confirmed }),
+      });
+      const data = await res.json();
+      setPendingActions((prev) => prev.filter((a) => a.actionId !== actionId));
+      return data;
+    } catch {
+      return null;
+    }
+  }
+
   return {
     sessions: displaySessions,
     activeSessionId,
@@ -294,6 +337,8 @@ export function useChat() {
     history,
     streaming,
     draft,
+    pendingActions,
+    confirmAction,
     send,
     regenerateLast,
     stop,

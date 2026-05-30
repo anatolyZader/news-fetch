@@ -156,6 +156,9 @@ export function DocsPanel({ open, onClose, initialSlug, variant = 'modal' }) {
     setSelectedSlug(initialSlug);
   }
   const [query, setQuery] = useState('');
+  const [ragHits, setRagHits] = useState([]);
+  const [ragEnabled, setRagEnabled] = useState(false);
+  const [ragLoading, setRagLoading] = useState(false);
   const [loadingIndex, setLoadingIndex] = useState(false);
   const [loadingPage, setLoadingPage] = useState(false);
   const [error, setError] = useState(null);
@@ -232,6 +235,46 @@ export function DocsPanel({ open, onClose, initialSlug, variant = 'modal' }) {
       await loadPage(selectedSlug);
     })();
   }, [isActive, selectedSlug, loadPage]);
+
+  useEffect(() => {
+    if (!isActive) return undefined;
+    const q = query.trim();
+    if (q.length < 2) {
+      setRagHits([]);
+      setRagEnabled(false);
+      setRagLoading(false);
+      return undefined;
+    }
+
+    let cancelled = false;
+    setRagLoading(true);
+    const timer = setTimeout(() => {
+      void (async () => {
+        try {
+          const token = await getIdToken();
+          const data = await fetchJson(
+            `/api/docs/search?query=${encodeURIComponent(q)}&limit=8`,
+            { token },
+          );
+          if (cancelled) return;
+          setRagEnabled(Boolean(data?.enabled));
+          setRagHits(Array.isArray(data?.hits) ? data.hits : []);
+        } catch {
+          if (!cancelled) {
+            setRagEnabled(false);
+            setRagHits([]);
+          }
+        } finally {
+          if (!cancelled) setRagLoading(false);
+        }
+      })();
+    }, 300);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [isActive, query, getIdToken, fetchJson]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -355,6 +398,53 @@ export function DocsPanel({ open, onClose, initialSlug, variant = 'modal' }) {
               }}
             />
           </Paper>
+
+          {query.trim().length >= 2 && (ragLoading || ragHits.length > 0 || ragEnabled) && (
+            <Paper
+              variant="outlined"
+              sx={(theme) => ({
+                padding: theme.spacing(1.25),
+                borderColor: alpha(theme.custom.pastel.periwinkleLight, 0.85),
+                background: alpha(theme.palette.background.paper, 0.92),
+              })}
+            >
+              <Typography variant="eyebrow" color="text.secondary" sx={{ marginBottom: 0.75 }}>
+                {ragLoading ? t('docsPanel.ragSearching') : t('docsPanel.ragResults')}
+              </Typography>
+              {ragLoading && (
+                <Stack direction="row" alignItems="center" spacing={1}>
+                  <CircularProgress size={16} />
+                  <Typography variant="caption" color="text.secondary">
+                    {t('docsPanel.ragSearching')}
+                  </Typography>
+                </Stack>
+              )}
+              {!ragLoading && ragHits.length === 0 && ragEnabled && (
+                <Typography variant="body2" color="text.secondary">
+                  {t('docsPanel.ragNoResults')}
+                </Typography>
+              )}
+              {!ragLoading &&
+                ragHits.map((hit) => (
+                  <SidebarItem
+                    key={`rag-${hit.slug}`}
+                    active={selectedSlug === hit.slug}
+                    onClick={() => setSelectedSlug(hit.slug)}
+                  >
+                    <Stack spacing={0.25} sx={{ width: '100%', minWidth: 0 }}>
+                      <Typography variant="body2" sx={{ fontWeight: 600, margin: 0 }}>
+                        {hit.title ?? hit.slug}
+                      </Typography>
+                      {hit.snippet && (
+                        <Typography variant="caption" color="text.secondary" sx={{ margin: 0 }}>
+                          {hit.snippet}
+                        </Typography>
+                      )}
+                    </Stack>
+                  </SidebarItem>
+                ))}
+            </Paper>
+          )}
 
           <Paper
             variant="outlined"

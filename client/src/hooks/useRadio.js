@@ -1,37 +1,25 @@
 import { useCallback, useEffect, useState } from 'react';
 import { withOperatorDistrictQuery } from '../lib/clampOperatorDistrictScope.js';
+import { authFetch } from '../lib/authFetch.js';
 
-async function authFetch(url, { getIdToken, method = 'GET', body } = {}) {
-  const headers = new Headers({ 'Content-Type': 'application/json' });
-  const token = await getIdToken();
-  if (token) headers.set('Authorization', `Bearer ${token}`);
-  const res = await fetch(url, {
-    method,
-    headers,
-    body: body == null ? undefined : JSON.stringify(body),
-  });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`);
-  return data;
-}
-
-/** @param {{ getIdToken: () => Promise<string|null>, apiReady: boolean, operatorScope?: string }} opts */
-export function useRadioDashboard({ getIdToken, apiReady, operatorScope = 'national' }) {
+/** @param {{ getIdToken: () => Promise<string|null>, getAppCheckToken?: () => Promise<string|null>, apiReady: boolean, operatorScope?: string }} opts */
+export function useRadioDashboard({ getIdToken, getAppCheckToken, apiReady, operatorScope = 'national' }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const auth = { getIdToken, getAppCheckToken };
 
   const reload = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      setData(await authFetch(withOperatorDistrictQuery('/api/radio', operatorScope), { getIdToken }));
+      setData(await authFetch(withOperatorDistrictQuery('/api/radio', operatorScope), auth));
     } catch (e) {
       setError(e?.message ?? 'Failed');
     } finally {
       setLoading(false);
     }
-  }, [getIdToken, operatorScope]);
+  }, [getIdToken, getAppCheckToken, operatorScope]);
 
   useEffect(() => {
     if (!apiReady) return;
@@ -40,7 +28,7 @@ export function useRadioDashboard({ getIdToken, apiReady, operatorScope = 'natio
       setLoading(true);
       setError(null);
       try {
-        const out = await authFetch(withOperatorDistrictQuery('/api/radio', operatorScope), { getIdToken });
+        const out = await authFetch(withOperatorDistrictQuery('/api/radio', operatorScope), auth);
         if (!cancelled) setData(out);
       } catch (e) {
         if (!cancelled) setError(e?.message ?? 'Failed');
@@ -49,13 +37,13 @@ export function useRadioDashboard({ getIdToken, apiReady, operatorScope = 'natio
       }
     })();
     return () => { cancelled = true; };
-  }, [apiReady, getIdToken, operatorScope]);
+  }, [apiReady, getIdToken, getAppCheckToken, operatorScope]);
 
   return { data, loading, error, reload };
 }
 
-/** @param {{ date: string, getIdToken: () => Promise<string|null>, apiReady: boolean, operatorScope?: string }} opts */
-export function useRadioDailyFeed({ date, getIdToken, apiReady, operatorScope = 'national' }) {
+/** @param {{ date: string, getIdToken: () => Promise<string|null>, getAppCheckToken?: () => Promise<string|null>, apiReady: boolean, operatorScope?: string }} opts */
+export function useRadioDailyFeed({ date, getIdToken, getAppCheckToken, apiReady, operatorScope = 'national' }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -67,9 +55,8 @@ export function useRadioDailyFeed({ date, getIdToken, apiReady, operatorScope = 
       setLoading(true);
       setError(null);
       try {
-        const q = new URLSearchParams({ date });
-        const base = withOperatorDistrictQuery(`/api/radio/daily?${q.toString()}`, operatorScope);
-        const out = await authFetch(base, { getIdToken });
+        const base = withOperatorDistrictQuery(`/api/radio/daily?date=${encodeURIComponent(date)}`, operatorScope);
+        const out = await authFetch(base, { getIdToken, getAppCheckToken });
         if (!cancelled) setData(out);
       } catch (e) {
         if (!cancelled) {
@@ -81,7 +68,7 @@ export function useRadioDailyFeed({ date, getIdToken, apiReady, operatorScope = 
       }
     })();
     return () => { cancelled = true; };
-  }, [date, apiReady, getIdToken, operatorScope]);
+  }, [date, apiReady, getIdToken, getAppCheckToken, operatorScope]);
 
   return { data, loading, error };
 }

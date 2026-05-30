@@ -23,6 +23,12 @@ import {
   webPageToEvidenceItem,
 } from './submissionHelpers.js';
 import { persistOriginalSources } from '../../cross-cut-modules/source_archive/persistOriginals.js';
+import { auditFromRequest } from '../../cross-cut-modules/security/input/auditLog.js';
+import { costlyRoutePreHandlers } from '../../cross-cut-modules/security/input/costlyRoutePreHandlers.js';
+import {
+  canRunEvidenceLlmAnalysis,
+  recordEvidenceLlmAnalysis,
+} from './evidenceAnalysisAccess.js';
 
 const SUBMISSION_JOB_TIMEOUT_MS = 20 * 60 * 1000;
 
@@ -183,7 +189,7 @@ async function runSubmissionAnalysis(ctx) {
   });
 }
 
-async function processSubmissionJob(deps, { submissionId, ownerKey, content, localFilePaths = [] }) {
+async function processSubmissionJob(deps, { submissionId, ownerKey, content, localFilePaths = [], allowLlmAnalysis = false }) {
   const autoIngest = { attempted: false, insertedItems: 0, errors: [], kinds: [] };
   const analysisEvidenceItems = [];
   const safeLocalPaths = Array.isArray(localFilePaths) ? localFilePaths : [];
@@ -232,6 +238,17 @@ async function processSubmissionJob(deps, { submissionId, ownerKey, content, loc
     ownerKey,
     extractedContentJson: buildExtractedContentReview(analysisEvidenceItems, autoIngest),
   });
+
+  if (!allowLlmAnalysis) {
+    deps.evidenceDraftStore.setSubmissionAnalysisResult({
+      submissionId,
+      ownerKey,
+      status: 'processed',
+      details: 'ingested without LLM analysis (maintainer or quota required)',
+      analysisJson: null,
+    });
+    return;
+  }
 
   try {
     const result = await runSubmissionAnalysis(ctx);
@@ -354,7 +371,7 @@ export async function evidenceRoutes(app, opts) {
     return reply.send({ content: row.content, updatedAt: row.updatedAt });
   });
 
-  app.post('/api/evidence-submit', authHook, async (request, reply) => {
+  app.post('/api/evidence-submit', costlyRoutePreHandlers(authHook.preHandler ? [authHook.preHandler] : []), async (request, reply) => {
     const body = request.body ?? {};
     const content = body.content;
     if (typeof content !== 'string') {
@@ -378,7 +395,22 @@ export async function evidenceRoutes(app, opts) {
       classification.category,
       classification.detectedUrl,
     );
-    enqueueSubmissionJob({ submissionId: submission.id, ownerKey, content, localFilePaths: [] });
+    const allowLlmAnalysis = canRunEvidenceLlmAnalysis(request, evidenceDraftStore);
+    if (allowLlmAnalysis) {
+      recordEvidenceLlmAnalysis(request, evidenceDraftStore);
+    }
+    enqueueSubmissionJob({
+      submissionId: submission.id,
+      ownerKey,
+      content,
+      localFilePaths: [],
+      allowLlmAnalysis,
+    });
+
+    auditFromRequest(request, 'evidence.submit', '/api/evidence-submit', {
+      submissionId: submission.id,
+      allowLlmAnalysis,
+    });
 
     return reply.code(202).send({
       submission,
@@ -387,7 +419,7 @@ export async function evidenceRoutes(app, opts) {
     });
   });
 
-  app.post('/api/evidence-upload', authHook, async (request, reply) => {
+  app.post('/api/evidence-upload', costlyRoutePreHandlers(authHook.preHandler ? [authHook.preHandler] : []), async (request, reply) => {
     if (!request.isMultipart()) {
       return reply.code(400).send({
         error: 'use multipart/form-data with field "content" and optional file fields "files"',
@@ -436,11 +468,22 @@ export async function evidenceRoutes(app, opts) {
       classification.detectedUrl,
     );
     const jobText = textContent.trim() || (savedPaths.length ? `[File upload: ${savedPaths.length} file(s)]` : ' ');
+    const allowLlmAnalysis = canRunEvidenceLlmAnalysis(request, evidenceDraftStore);
+    if (allowLlmAnalysis) {
+      recordEvidenceLlmAnalysis(request, evidenceDraftStore);
+    }
     enqueueSubmissionJob({
       submissionId: submission.id,
       ownerKey,
       content: jobText,
       localFilePaths: savedPaths,
+      allowLlmAnalysis,
+    });
+
+    auditFromRequest(request, 'evidence.upload', '/api/evidence-upload', {
+      submissionId: submission.id,
+      fileCount: savedPaths.length,
+      allowLlmAnalysis,
     });
 
     return reply.code(202).send({

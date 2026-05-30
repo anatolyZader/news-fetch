@@ -18,7 +18,8 @@ import {
   sendPasswordResetEmail,
   signOut,
 } from 'firebase/auth';
-import { getFirebaseWebConfig, isFirebaseClientConfigured } from '../lib/firebaseClient.js';
+import { getFirebaseWebConfig, isFirebaseClientConfigured, isAppCheckConfigured } from '../lib/firebaseClient.js';
+import { getAppCheckToken as fetchAppCheckToken } from '../lib/appCheckClient.js';
 import PropTypes from 'prop-types';
 
 const AuthContext = createContext(null);
@@ -102,6 +103,12 @@ export function AuthProvider({ children }) {
     return p;
   }, [authRequired]);
 
+  const getAppCheckToken = useCallback(async (opts = {}) => {
+    if (!isAppCheckConfigured()) return null;
+    getOrInitApp();
+    return fetchAppCheckToken(Boolean(opts?.forceRefresh));
+  }, []);
+
   /** Ready to call protected APIs: server open, or user signed in */
   const apiReady = useMemo(() => {
     if (!configLoaded) return false;
@@ -157,6 +164,7 @@ export function AuthProvider({ children }) {
       setAuthError,
       apiReady,
       getIdToken,
+      getAppCheckToken,
       signInEmail,
       signUpEmail,
       signInGoogle,
@@ -171,6 +179,7 @@ export function AuthProvider({ children }) {
       authError,
       apiReady,
       getIdToken,
+      getAppCheckToken,
       signInEmail,
       signUpEmail,
       signInGoogle,

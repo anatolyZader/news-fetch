@@ -4,13 +4,17 @@
  * Auth is required (relies on request.user.uid set by existing auth hook).
  */
 
+import { costlyRoutePreHandlers } from '../../../cross-cut-modules/security/input/costlyRoutePreHandlers.js';
+
 /**
  * @param {import('fastify').FastifyInstance} app
  * @param {{ reportBuildService: any, authPreHandler?: any }} opts
  */
 export async function reportBuildRoutes(app, opts) {
   const reportBuildService = opts?.reportBuildService ?? null;
-  const preHandler = opts?.authPreHandler ? { preHandler: opts.authPreHandler } : {};
+  const authHooks = opts?.authPreHandler ? [opts.authPreHandler] : [];
+  const costlyRoute = costlyRoutePreHandlers(authHooks);
+  const authOnly = authHooks.length ? { preHandler: authHooks } : {};
 
   function requireService(reply) {
     if (reportBuildService) return true;
@@ -18,7 +22,7 @@ export async function reportBuildRoutes(app, opts) {
     return false;
   }
 
-  app.post('/api/report-build/start', preHandler, async (request, reply) => {
+  app.post('/api/report-build/start', costlyRoute, async (request, reply) => {
     if (!requireService(reply)) return;
     const ownerKey = request.user?.uid;
     if (!ownerKey) return reply.code(401).send({ error: 'Unauthorized' });
@@ -26,7 +30,7 @@ export async function reportBuildRoutes(app, opts) {
     return reply.send(out);
   });
 
-  app.post('/api/report-build/turn', preHandler, async (request, reply) => {
+  app.post('/api/report-build/turn', costlyRoute, async (request, reply) => {
     if (!requireService(reply)) return;
     const ownerKey = request.user?.uid;
     if (!ownerKey) return reply.code(401).send({ error: 'Unauthorized' });
@@ -39,7 +43,7 @@ export async function reportBuildRoutes(app, opts) {
     return reply.send(out);
   });
 
-  app.post('/api/report-build/suggest', preHandler, async (request, reply) => {
+  app.post('/api/report-build/suggest', costlyRoute, async (request, reply) => {
     if (!requireService(reply)) return;
     const ownerKey = request.user?.uid;
     if (!ownerKey) return reply.code(401).send({ error: 'Unauthorized' });
@@ -52,7 +56,7 @@ export async function reportBuildRoutes(app, opts) {
     return reply.send(out);
   });
 
-  app.post('/api/report-build/confirm', preHandler, async (request, reply) => {
+  app.post('/api/report-build/confirm', authOnly, async (request, reply) => {
     if (!requireService(reply)) return;
     const ownerKey = request.user?.uid;
     if (!ownerKey) return reply.code(401).send({ error: 'Unauthorized' });
@@ -60,7 +64,7 @@ export async function reportBuildRoutes(app, opts) {
     return reply.send(out);
   });
 
-  app.post('/api/report-build/cancel', preHandler, async (request, reply) => {
+  app.post('/api/report-build/cancel', authOnly, async (request, reply) => {
     if (!requireService(reply)) return;
     const ownerKey = request.user?.uid;
     if (!ownerKey) return reply.code(401).send({ error: 'Unauthorized' });

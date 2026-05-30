@@ -10,6 +10,10 @@
  */
 
 import Anthropic from '@anthropic-ai/sdk';
+import {
+  retrieveAudioSceneContext,
+  formatAudioSceneContextBlock,
+} from '../../../cross-cut-modules/retrieval/fieldRetrieval.js';
 
 const client = new Anthropic();
 
@@ -146,8 +150,12 @@ function parseSceneJsonArray(text) {
  * Call LLM to segment and contextualize one chunk of transcript turns.
  * @returns {Array<object>} scene objects
  */
-async function segmentChunk(turns) {
+async function segmentChunk(turns, ragBlock = '') {
   const transcript = formatTranscriptForLlm(turns);
+  let userBody = `Transcript:\n\n${transcript}`;
+  if (ragBlock) {
+    userBody = `${ragBlock}\n\n${userBody}`;
+  }
 
   const response = await client.messages.create({
     model: MODEL,
@@ -156,7 +164,7 @@ async function segmentChunk(turns) {
     messages: [
       {
         role: 'user',
-        content: `Transcript:\n\n${transcript}`,
+        content: userBody,
       },
     ],
   });
@@ -229,10 +237,27 @@ function sceneToArticle(scene, index, station, program, sourceUrl) {
  * @param {{ station: string, program: string, sourceUrl?: string, onUsage?: Function }} opts
  * @returns {Promise<Array<{title: string, body: string, url: string|null}>>}
  */
-export async function contextualizeTranscript(segments, { station, program, sourceUrl, onUsage } = {}) {
+export async function contextualizeTranscript(segments, {
+  station,
+  program,
+  sourceUrl,
+  onUsage,
+  locality = null,
+  retrievalService = null,
+} = {}) {
   // Stage 1: clean
   const merged = cleanAndMergeSegments(segments);
   if (merged.length === 0) return [];
+
+  let ragBlock = '';
+  const retrieval = retrievalService?.retrieval ?? retrievalService;
+  if (retrieval) {
+    const audioCtx = await retrieveAudioSceneContext(
+      { station, program, locality },
+      retrieval,
+    );
+    ragBlock = formatAudioSceneContextBlock(audioCtx);
+  }
 
   // Stage 2: LLM segmentation per chunk
   const chunks = chunkTurns(merged);
@@ -240,7 +265,7 @@ export async function contextualizeTranscript(segments, { station, program, sour
 
   for (let i = 0; i < chunks.length; i++) {
     process.stderr.write(`  [contextualize chunk ${i + 1}/${chunks.length}] `);
-    const scenes = await segmentChunk(chunks[i]);
+    const scenes = await segmentChunk(chunks[i], ragBlock);
     process.stderr.write(`${scenes.length} scene(s)\n`);
 
     if (onUsage) {

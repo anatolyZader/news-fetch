@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import Collapse from '@mui/material/Collapse';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
@@ -12,6 +13,7 @@ import ListItemText from '@mui/material/ListItemText';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { LoadingState, ErrorState } from '../ui/index.js';
 import { reviewStatusLabel, reviewStatusTone, useMunicipalPboReviewDetail } from '../hooks/useMunicipalPboReviews.js';
+import { usePboHistoricalSearch } from '../hooks/usePboHistoricalSearch.js';
 import PropTypes from 'prop-types';
 
 function gapKindLabel(kind, t) {
@@ -38,12 +40,20 @@ ReviewMetaRow.propTypes = {
 export function PboMunicipalReviewPanel({
   date,
   municipality,
+  districtId,
   getIdToken,
   apiReady,
   onSubmitted,
   summary = null,
+  showHistoricalSearch = false,
 }) {
   const { t } = useLanguage();
+  const { hits: historyHits, loading: historyLoading, error: historyError, search: searchHistory } = usePboHistoricalSearch({
+    getIdToken,
+    apiReady,
+  });
+  const [historyQuery, setHistoryQuery] = useState('');
+  const [historyOpen, setHistoryOpen] = useState(false);
   const { detail, loading, error, submitReply } = useMunicipalPboReviewDetail({
     date,
     municipality,
@@ -104,8 +114,55 @@ export function PboMunicipalReviewPanel({
     }
   }
 
+  async function handleHistorySearch(event) {
+    event.preventDefault();
+    if (!historyQuery.trim()) return;
+    setHistoryOpen(true);
+    await searchHistory({
+      query: historyQuery,
+      date,
+      municipality,
+      district: districtId,
+    });
+  }
+
   return (
     <Stack spacing={2} component="section" aria-label={t('pboReview.reportSection')}>
+      {showHistoricalSearch && (
+        <Box component="form" onSubmit={(e) => { void handleHistorySearch(e); }}>
+          <Typography variant="eyebrow" color="text.secondary" sx={{ marginBottom: 0.75 }}>
+            {t('pboReview.historicalSearchTitle')}
+          </Typography>
+          <Stack direction="row" spacing={1} useFlexGap>
+            <TextField
+              size="small"
+              fullWidth
+              placeholder={t('pboReview.historicalSearchPlaceholder')}
+              value={historyQuery}
+              onChange={(e) => setHistoryQuery(e.target.value)}
+            />
+            <Button type="submit" size="small" variant="outlined" disabled={historyLoading}>
+              {historyLoading ? '…' : t('pboReview.historicalSearchSubmit')}
+            </Button>
+          </Stack>
+          {historyError && <Alert severity="warning" sx={{ mt: 1 }}>{historyError}</Alert>}
+          <Collapse in={historyOpen && historyHits.length > 0}>
+            <List dense sx={{ mt: 1 }}>
+              {historyHits.map((h) => (
+                <ListItem key={`${h.source_id}:${h.chunk_index}`} disablePadding sx={{ py: 0.5 }}>
+                  <ListItemText
+                    primary={`[${h.date ?? ''}] ${h.title ?? h.source_id}`}
+                    secondary={h.snippet}
+                    primaryTypographyProps={{ variant: 'caption', fontWeight: 600 }}
+                    secondaryTypographyProps={{ variant: 'caption' }}
+                  />
+                </ListItem>
+              ))}
+            </List>
+          </Collapse>
+        </Box>
+      )}
+
       <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
         <Chip
           size="small"
@@ -245,8 +302,10 @@ export function PboMunicipalReviewPanel({
 PboMunicipalReviewPanel.propTypes = {
   date: PropTypes.string,
   municipality: PropTypes.string,
+  districtId: PropTypes.string,
   getIdToken: PropTypes.func,
   apiReady: PropTypes.bool,
   onSubmitted: PropTypes.func,
   summary: PropTypes.object,
+  showHistoricalSearch: PropTypes.bool,
 };

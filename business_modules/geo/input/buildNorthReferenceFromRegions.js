@@ -7,7 +7,7 @@
  *   npm run build:north-reference
  *   node business_modules/geo/input/buildNorthReferenceFromRegions.js --dry-run
  *
- * Reads:  regions.json (repo root)
+ * Reads:  business_modules/geo/data/regions.json
  * Writes: business_modules/geo/data/north-reference.json (hierarchical subregions.*.localities; merges by canonicalKey)
  */
 import { readFileSync, writeFileSync } from 'node:fs';
@@ -21,7 +21,7 @@ import {
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = resolve(__dirname, '../../..');
-const REGIONS_PATH = resolve(root, 'regions.json');
+const REGIONS_PATH = resolve(__dirname, '../data/regions.json');
 const REF_PATH = resolve(root, 'business_modules', 'geo', 'data', 'north-reference.json');
 
 /** Hebrew region key in regions.json → geo subregionId */
@@ -207,10 +207,10 @@ function buildNorthReferenceDoc(ref, merged) {
     version: ref.version || 'north-geo-generated',
     source: ref.source || 'north-localities-v1',
     description:
-      'Northern locality reference: municipalities from regions.json, geocoded via Nominatim. Bump version when editing rows.',
+      'Northern locality reference: municipalities from business_modules/geo/data/regions.json, geocoded via Nominatim. Bump version when editing rows.',
     schema: 'north-reference-subregions-v1',
     _meta: {
-      generated_from: 'regions.json',
+      generated_from: 'business_modules/geo/data/regions.json',
       nominatim: 'https://nominatim.openstreetmap.org',
       generated_at: new Date().toISOString(),
     },

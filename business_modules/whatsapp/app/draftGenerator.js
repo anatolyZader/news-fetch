@@ -10,6 +10,7 @@
  */
 
 import Anthropic from '@anthropic-ai/sdk';
+import { buildDraftUserContent } from '../../report_build/domain/reportBuildPrompt.js';
 
 const SYSTEM_PROMPT =
   `You are an Israeli community resilience field-report drafter.\n` +
@@ -41,8 +42,8 @@ export function createDraftGenerator({ anthropicApiKey }) {
      * @param {Array<{role, text}>} turnHistory  Raw officer↔bot turns.
      * @returns {Promise<string>} Hebrew prose draft.
      */
-    async generate(structuredState, turnHistory) {
-      const userContent = buildUserContent(structuredState, turnHistory);
+    async generate(structuredState, turnHistory, ragContext = null) {
+      const userContent = buildDraftUserContent(structuredState, turnHistory, ragContext);
       const response = await client.messages.create({
         model: 'claude-haiku-4-5-20251001',
         max_tokens: 800,
@@ -55,20 +56,4 @@ export function createDraftGenerator({ anthropicApiKey }) {
       return text;
     },
   };
-}
-
-function buildUserContent(structuredState, turnHistory) {
-  const turns = Array.isArray(turnHistory) ? turnHistory : [];
-  const turnLines = turns.map((t) => {
-    const role = t.role === 'bot' ? '[bot]' : '[officer]';
-    return `${role} ${(t.text ?? '').trim()}`;
-  }).join('\n');
-
-  return (
-    `Structured summary (authoritative — draft must reflect only these fields):\n` +
-    `${JSON.stringify(structuredState ?? {}, null, 2)}\n\n` +
-    `Raw dialogue (for tone and phrasing; do not introduce new facts):\n` +
-    `${turnLines}\n\n` +
-    `Write the Hebrew prose draft now.`
-  );
 }

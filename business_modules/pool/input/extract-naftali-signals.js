@@ -170,20 +170,23 @@ function writeWeekBundle(week, outDir) {
     rootDir: REPO_ROOT,
     unknownSourceType: 'extract-naftali',
   });
+  const districtId = 'north';
+  const stampedGeoSignals = geoSignals.map((s) => ({ ...s, district_id: districtId }));
 
   writeFileSync(outPath, JSON.stringify({
     source_type: 'naftali',
     content_kind: 'naftali_questionnaire',
+    district_id: districtId,
     geographic_scope: 'Naftali sub-region only (1 of 5 northern Israel sub-regions)',
     date: weekDate,
     week: week.week,
     extracted_at: new Date().toISOString(),
     source_files: [week.file],
     total_articles: week.responses.length,
-    signals: geoSignals,
+    signals: stampedGeoSignals,
   }, null, 2), 'utf-8');
 
-  console.error(`signals-naftali-${weekDate}.json  →  ${geoSignals.length} signals from ${week.responses.length} municipalities (geo: ${resolved} resolved, ${unknown} unknown)`);
+  console.error(`signals-naftali-${weekDate}.json  →  ${stampedGeoSignals.length} signals from ${week.responses.length} municipalities (geo: ${resolved} resolved, ${unknown} unknown)`);
   return true;
 }
 

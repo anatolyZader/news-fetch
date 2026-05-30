@@ -7,6 +7,11 @@ import {
   createCostTracker,
 } from '../../../cross-cut-modules/budget/index.js';
 import { findingDateFromPostedAt } from '../domain/services/osintBundleMerge.js';
+import {
+  retrieveSocialFewShotExamples,
+  formatSocialFewShotBlock,
+} from '../../../cross-cut-modules/retrieval/fieldRetrieval.js';
+import { socialClassifyRagEnabled } from '../../../cross-cut-modules/retrieval/ragConfig.js';
 
 const MODEL = 'claude-haiku-4-5-20251001';
 const BATCH_SIZE = 25;
@@ -69,16 +74,30 @@ export async function classifySocialCandidates(candidates, opts = {}) {
   const rejected = {};
   const rejected_examples = [];
 
+  const retrieval = opts.retrieval ?? null;
+  let fewShotBlock = '';
+  if (socialClassifyRagEnabled() && retrieval?.hybridRetrieve && candidates.length > 0) {
+    const sampleQ = candidates
+      .slice(0, 3)
+      .map((c) => String(c.text ?? '').slice(0, 120))
+      .join(' ');
+    const examples = await retrieveSocialFewShotExamples(sampleQ, retrieval);
+    fewShotBlock = formatSocialFewShotBlock(examples);
+  }
+
   for (let offset = 0; offset < candidates.length; offset += BATCH_SIZE) {
     const batch = candidates.slice(offset, offset + BATCH_SIZE);
     const prompt = batch.map((c, i) => candidateToPromptRow(c, i)).join('\n');
+    const userContent = fewShotBlock
+      ? `${fewShotBlock}\nClassify these ${batch.length} posts:\n\n${prompt}`
+      : `Classify these ${batch.length} posts:\n\n${prompt}`;
 
     const message = await anthropic.messages.create({
       model: MODEL,
       max_tokens: 8192,
       temperature: 0,
       system: CLASSIFIER_SYSTEM,
-      messages: [{ role: 'user', content: `Classify these ${batch.length} posts:\n\n${prompt}` }],
+      messages: [{ role: 'user', content: userContent }],
     });
 
     const cost = calcInvocationCostUsd(MODEL, message.usage);

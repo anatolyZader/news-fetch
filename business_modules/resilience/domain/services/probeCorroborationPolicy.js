@@ -37,9 +37,18 @@ export function probeMinCorroboration(_env = process.env) {
  * @param {NodeJS.ProcessEnv} [env]
  * @returns {{ ok: boolean, reason?: string }}
  */
+function probeHmacRequired(env = process.env) {
+  return env.NODE_ENV === 'production' || env.RESILIENCE_PROBE_REQUIRE_HMAC === 'true';
+}
+
 export function verifyProbeRecordHmac(record, env = process.env) {
   const secret = env.RESILIENCE_PROBE_HMAC_SECRET;
-  if (!secret || String(secret).trim() === '') return { ok: true };
+  if (!secret || String(secret).trim() === '') {
+    if (probeHmacRequired(env)) {
+      return { ok: false, reason: 'missing_hmac_secret' };
+    }
+    return { ok: true };
+  }
   const hmac = record?.hmac;
   if (!hmac || typeof hmac !== 'string') {
     return { ok: false, reason: 'missing_hmac' };

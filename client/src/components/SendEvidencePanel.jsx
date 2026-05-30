@@ -9,6 +9,7 @@ import Chip from '@mui/material/Chip';
 import CloudUploadOutlinedIcon from '@mui/icons-material/CloudUploadOutlined';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
+import { authFetch, authFetchFormData, buildAuthHeaders } from '../lib/authFetch.js';
 import { ModalPanel } from '../ui/ModalPanel.jsx';
 import { PanelWindowShell } from '../ui/PanelWindowShell.jsx';
 import { panelHeaderButtonSx, panelInsetBoxSx, panelSectionRadius } from '../ui/panelChrome.js';
@@ -51,33 +52,21 @@ function formatSavedTime(isoLike) {
   return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 }
 
-async function submitEvidenceUpload(authHeaders, content, files) {
+async function submitEvidenceUpload(auth, content, files) {
   const fd = new FormData();
   fd.append('content', content);
   for (const f of files) {
     fd.append('files', f, f.name);
   }
-  const r = await fetch('/api/evidence-upload', { method: 'POST', headers: authHeaders, body: fd });
-  if (!r.ok) {
-    const err = await r.json().catch(() => ({}));
-    throw new Error(err.error || `HTTP ${r.status}`);
-  }
-  return r.json();
+  return authFetchFormData('/api/evidence-upload', fd, auth);
 }
 
-async function submitEvidenceText(tok, content) {
-  const headers = new Headers({ 'Content-Type': 'application/json' });
-  if (tok) headers.set('Authorization', `Bearer ${tok}`);
-  const r = await fetch('/api/evidence-submit', {
+async function submitEvidenceText(auth, content) {
+  return authFetch('/api/evidence-submit', {
+    ...auth,
     method: 'POST',
-    headers,
-    body: JSON.stringify({ content }),
+    body: { content },
   });
-  if (!r.ok) {
-    const err = await r.json().catch(() => ({}));
-    throw new Error(err.error || `HTTP ${r.status}`);
-  }
-  return r.json();
 }
 
 function applyQueuedSubmission(data, actions) {
@@ -91,7 +80,8 @@ function applyQueuedSubmission(data, actions) {
 }
 
 export function SendEvidencePanel({ open, onClose, onSubmissionComplete, variant = 'modal' }) {
-  const { getIdToken, apiReady } = useAuth();
+  const { getIdToken, getAppCheckToken, apiReady } = useAuth();
+  const auth = { getIdToken, getAppCheckToken };
   const { t } = useLanguage();
   const [value, setValue] = useState(readDraft);
   const [pendingFiles, setPendingFiles] = useState([]);
@@ -370,10 +360,6 @@ export function SendEvidencePanel({ open, onClose, onSubmissionComplete, variant
     clearDraftCache();
     setPendingFiles([]);
     try {
-      const tok = await getIdToken();
-      const authHeaders = new Headers();
-      if (tok) authHeaders.set('Authorization', `Bearer ${tok}`);
-
       const queueActions = {
         setIngestNote,
         setAnalysisNote,
@@ -381,14 +367,13 @@ export function SendEvidencePanel({ open, onClose, onSubmissionComplete, variant
         handleClose,
         pollSubmissionUntilDone,
       };
-
       if (filesSnapshot.length > 0) {
-        const data = await submitEvidenceUpload(authHeaders, submittedContent, filesSnapshot);
+        const data = await submitEvidenceUpload(auth, submittedContent, filesSnapshot);
         lastSyncedRef.current = '';
         setLastServerSavedAt(data?.draft?.updatedAt ?? new Date().toISOString());
         applyQueuedSubmission(data, queueActions);
       } else {
-        const data = await submitEvidenceText(tok, submittedContent);
+        const data = await submitEvidenceText(auth, submittedContent);
         if (typeof data?.draft?.content === 'string') {
           lastSyncedRef.current = '';
           setLastServerSavedAt(data?.draft?.updatedAt ?? new Date().toISOString());
@@ -412,6 +397,8 @@ export function SendEvidencePanel({ open, onClose, onSubmissionComplete, variant
     value,
     pendingFiles,
     getIdToken,
+    getAppCheckToken,
+    auth,
     cancelSubmissionPoll,
     pollSubmissionUntilDone,
     handleClose,

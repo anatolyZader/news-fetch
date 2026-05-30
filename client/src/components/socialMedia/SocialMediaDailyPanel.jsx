@@ -23,9 +23,10 @@ import { SocialMediaPostCard } from './SocialMediaPostCard.jsx';
 
 export function SocialMediaDailyPanel({ operatorScope = 'national' }) {
   const { t, lang } = useLanguage();
-  const { apiReady, getIdToken } = useAuth();
+  const { apiReady, getIdToken, getAppCheckToken } = useAuth();
   const { data: dashboard, loading: dashLoading, error: dashError } = useSocialMediaDashboard({
     getIdToken,
+    getAppCheckToken,
     apiReady,
     operatorScope,
   });
@@ -44,6 +45,7 @@ export function SocialMediaDailyPanel({ operatorScope = 'national' }) {
     categoryId: selectedCategory === 'all' ? undefined : selectedCategory,
     lang,
     getIdToken,
+    getAppCheckToken,
     apiReady,
     operatorScope,
   });

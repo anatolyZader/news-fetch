@@ -28,9 +28,10 @@ export function RadioTab({
   districtAccess = null,
 }) {
   const { t } = useLanguage();
-  const { apiReady, getIdToken } = useAuth();
+  const { apiReady, getIdToken, getAppCheckToken } = useAuth();
   const { data: dashboard, loading: dashLoading, error: dashError } = useRadioDashboard({
     getIdToken,
+    getAppCheckToken,
     apiReady,
     operatorScope,
   });
@@ -46,6 +47,7 @@ export function RadioTab({
   const { data: feed, loading: feedLoading, error: feedError } = useRadioDailyFeed({
     date: activeDate,
     getIdToken,
+    getAppCheckToken,
     apiReady,
     operatorScope,
   });

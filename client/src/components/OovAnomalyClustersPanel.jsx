@@ -2,6 +2,7 @@ import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import Alert from '@mui/material/Alert';
+import Button from '@mui/material/Button';
 import PropTypes from 'prop-types';
 
 import { useLanguage } from '../context/LanguageContext.jsx';
@@ -88,7 +89,13 @@ ClusterCard.propTypes = {
   t: PropTypes.func.isRequired,
 };
 
-export function OovAnomalyClustersPanel({ oovBurst, oovCaptureCount, oovScoringApplied, isAnalyst }) {
+export function OovAnomalyClustersPanel({
+  oovBurst,
+  oovCaptureCount,
+  oovScoringApplied,
+  isAnalyst,
+  onReviewCatalogProposals,
+}) {
   const { t } = useLanguage();
 
   if (!shouldShowPanel(oovBurst, isAnalyst)) return null;
@@ -160,6 +167,16 @@ export function OovAnomalyClustersPanel({ oovBurst, oovCaptureCount, oovScoringA
           </Typography>
         )}
 
+        {isAnalyst && typeof onReviewCatalogProposals === 'function' && (
+          <Button
+            size="small"
+            variant="outlined"
+            onClick={onReviewCatalogProposals}
+          >
+            {t('report.oovClusters.reviewCatalogProposals')}
+          </Button>
+        )}
+
         {isAnalyst && (oovCaptureCount ?? 0) > 0 && (
           <Typography variant="caption" color="text.secondary">
             {formatTemplate(t('report.oovCapture.count'), { n: oovCaptureCount })}
@@ -187,4 +204,5 @@ OovAnomalyClustersPanel.propTypes = {
   }),
   oovCaptureCount: PropTypes.number,
   isAnalyst: PropTypes.bool,
+  onReviewCatalogProposals: PropTypes.func,
 };

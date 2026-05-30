@@ -43,7 +43,7 @@ function buildFactsSystemPrompt() {
   );
 }
 
-function formatFactsUserMessage(registry) {
+function formatFactsUserMessage(registry, retrievedSpansBlock = '') {
   const blocks = RESILIENCE_COMPONENTS.map((def) => {
     const entries = registry.byComponent[def.id] ?? [];
     if (entries.length === 0) {
@@ -52,7 +52,8 @@ function formatFactsUserMessage(registry) {
     const signalLines = entries.map((e) => formatSignalWithRef(e.signal, e)).join('\n\n');
     return `**${def.id}**\n${signalLines}`;
   });
-  return `Extract narrative_claims for each component.\n\n${blocks.join('\n\n---\n\n')}`;
+  const prefix = retrievedSpansBlock ? `${retrievedSpansBlock}\n` : '';
+  return `${prefix}Extract narrative_claims for each component.\n\n${blocks.join('\n\n---\n\n')}`;
 }
 
 function validateFactsOutput(parsed, registry) {
@@ -77,7 +78,7 @@ function validateFactsOutput(parsed, registry) {
  * @param {{ onUsage?: Function }} [opts]
  * @returns {Promise<Record<string, object[]>>}
  */
-export async function extractNarrativeFacts(scoredComponents, { onUsage } = {}) {
+export async function extractNarrativeFacts(scoredComponents, { onUsage, retrievedSpansBlock = '' } = {}) {
   const registry = buildSignalRefRegistry(scoredComponents);
   if (registry.refCount === 0) return {};
 
@@ -86,7 +87,7 @@ export async function extractNarrativeFacts(scoredComponents, { onUsage } = {}) 
     max_tokens: 8000,
     temperature: 0,
     system: buildFactsSystemPrompt(),
-    messages: [{ role: 'user', content: formatFactsUserMessage(registry) }],
+    messages: [{ role: 'user', content: formatFactsUserMessage(registry, retrievedSpansBlock) }],
   });
   await streamWithProgress(stream, '[Step 2 — Facts]');
   const message = await stream.finalMessage();

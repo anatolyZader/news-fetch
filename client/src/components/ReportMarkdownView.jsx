@@ -1,7 +1,7 @@
 import {
   COMPONENTS_TABLE_HELP_MARKDOWN,
   EVIDENCE_LEVEL_INLINE_NOTE,
-} from '../../../shared/componentsTableGlossary.js';
+} from '../../../business_modules/resilience/domain/copy/componentsTableGlossary.js';
 import { MarkdownArticle } from '../ui/MarkdownArticle.jsx';
 import PropTypes from 'prop-types';
 

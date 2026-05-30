@@ -1,5 +1,6 @@
 import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
+import { buildAuthHeaders } from '../lib/authFetch.js';
 
 /**
  * Returns a translated version of the report when lang !== 'en'.
@@ -10,12 +11,13 @@ import { useAuth } from '../context/AuthContext.jsx';
  * cancel an in-flight translation fetch.
  */
 export function useTranslatedReport(report, lang) {
-  const { getIdToken } = useAuth();
-  // Keep unstable references in refs so they never re-trigger the effect
+  const { getIdToken, getAppCheckToken } = useAuth();
   const getIdTokenRef = useRef(getIdToken);
+  const getAppCheckTokenRef = useRef(getAppCheckToken);
   const reportRef = useRef(report);
   useLayoutEffect(() => {
     getIdTokenRef.current = getIdToken;
+    getAppCheckTokenRef.current = getAppCheckToken;
     reportRef.current = report;
   });
 
@@ -43,9 +45,11 @@ export function useTranslatedReport(report, lang) {
       setTranslating(true);
 
       try {
-        const headers = new Headers({ 'Content-Type': 'application/json' });
-        const token = await getIdTokenRef.current();
-        if (token) headers.set('Authorization', `Bearer ${token}`);
+        const headers = await buildAuthHeaders({
+          getIdToken: () => getIdTokenRef.current(),
+          getAppCheckToken: () => getAppCheckTokenRef.current(),
+        });
+        headers.set('Content-Type', 'application/json');
 
         const r = await fetch('/api/translate', {
           method: 'POST',

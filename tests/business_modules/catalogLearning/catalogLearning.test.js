@@ -63,6 +63,32 @@ describe('gapReportFormatter', () => {
     assert.match(md, /Catalog Gap Report/);
     assert.match(md, /barter_economy/);
   });
+
+  it('renders nearest catalog and counterexample sections', () => {
+    const md = formatGapReportMarkdown({
+      generated_at: '2026-05-24T00:00:00.000Z',
+      file_count: 1,
+      total_records: 2,
+      clustering_method: 'prefix',
+      kind_counts: { unknown_type: 2 },
+      clusters: [{
+        key: 'barter_economy',
+        count: 2,
+        priority_score: 10,
+        kinds: { unknown_type: 2 },
+        distinct_sources: 2,
+        related_types: [],
+        high_novelty_count: 0,
+        medium_novelty_count: 0,
+        sample_evidence: ['trade goods'],
+        nearest_catalog: [{ type: 'self_organization', label: 'Self-organization', snippet: 'community mutual aid' }],
+        counterexamples: [{ type: 'self_organization', reject_snippet: 'pure political rally' }],
+      }],
+    });
+    assert.match(md, /Nearest catalog entries/);
+    assert.match(md, /Counterexamples/);
+    assert.match(md, /self_organization/);
+  });
 });
 
 describe('learning capture helpers', () => {

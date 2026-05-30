@@ -19,6 +19,8 @@ The in-app docs panel covers everyday use — not install, deploy, or API refere
 
 **Fix** — search within the panel, or open [full docs](https://docs.vibeswitch.ai/) for the complete library.
 
+**Semantic search (suggested topics)** — requires the `docs` RAG index. Operators run `npm run rag:reindex-docs` after product docs change (typically post-`docs:sync` on deploy). When `DOCS_RAG_ENABLED=0`, the panel falls back to title/tag filtering only.
+
 ## Something is broken in the product
 For operator-level recovery (auth, pipeline, ingestion), see [Common failures](../operations/common-failures.md) on full docs, or ask your deployment operator.
 

@@ -327,7 +327,7 @@ export function createWhatsAppIngestService({
     archiveWhatsAppBody(sourceArchive, evidenceStore, {
       date,
       source_type: 'whatsapp',
-      source_label: 'whatsapp-dm',
+      source_label: 'field_whatsapp',
       source_url: '',
       title: `WhatsApp DM: ${normalized.displayName || normalized.phoneNumber} — ${approved.slice(0, 60)}`,
       body: approved,

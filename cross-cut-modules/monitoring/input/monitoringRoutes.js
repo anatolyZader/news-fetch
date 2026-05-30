@@ -38,6 +38,20 @@ export async function registerMonitoringRoutes(app, opts) {
       return reply.code(503).send({ error: 'monitoring service not configured' });
     }
     try {
+      const data = await monitoringService.getPublicHealth();
+      const code = data.status === 'unhealthy' ? 503 : 200;
+      return reply.code(code).send(data);
+    } catch (err) {
+      return reply.code(500).send({ error: err?.message ?? 'failed to compute health' });
+    }
+  });
+
+  app.get('/api/monitoring/health/detail', analystPreHandler, async (request, reply) => {
+    if (requireAnalystView && !requireAnalystView(request, reply)) return;
+    if (!monitoringService) {
+      return reply.code(503).send({ error: 'monitoring service not configured' });
+    }
+    try {
       const data = await monitoringService.getHealth();
       const code = data.status === 'unhealthy' ? 503 : 200;
       return reply.code(code).send(data);

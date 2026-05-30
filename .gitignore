@@ -15,9 +15,15 @@ docs/docs-site/build/
 docs/docs-site/.docusaurus/
 docs/docs-site/.cache/
 
-# Env / secrets
+# Env / secrets — never commit; see .cursorignore for LLM indexing
 .env
+.env.*
 .env.local
+**/.env
+**/.env.*
+**/.env.local
+client/.env
+client/.env.*
 client/.env.local
 secrets/
 .local/

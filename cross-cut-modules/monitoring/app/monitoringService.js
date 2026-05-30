@@ -47,6 +47,13 @@ export function createMonitoringService(deps) {
     });
   }
 
+  async function getPublicHealth() {
+    return tracePort.startActiveSpan('monitoring.getPublicHealth', () => {
+      metricsPort.increment('monitoring.health.public_requests');
+      return health.getPublicHealth();
+    });
+  }
+
   async function getCostTelemetry({ date } = {}) {
     const logPath = resolveCostLogPath(deps.rootDir);
     const cost = readCostForDate(logPath, date);
@@ -98,6 +105,7 @@ export function createMonitoringService(deps) {
   return {
     getSummary,
     getHealth,
+    getPublicHealth,
     getPipelineStatus,
     getCostTelemetry,
     getStageTelemetry,

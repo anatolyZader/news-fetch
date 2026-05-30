@@ -25,6 +25,9 @@ import {
 import { extractJsonArray } from './claudeJsonHelpers.js';
 import { validateSignalsFromCall } from './claudeSignalValidation.js';
 import { applyEvidenceVerifier, splitParagraphs } from './claudeEvidenceVerification.js';
+import { DOMAIN_INTENT_QUERIES } from '../../../cross-cut-modules/retrieval/domainIntentQueries.js';
+import { selectArticlePromptSpans } from '../../../cross-cut-modules/retrieval/pipelineRetrieval.js';
+import { resilienceExtractRagEnabled } from '../../../cross-cut-modules/retrieval/ragConfig.js';
 
 const client = new Anthropic();
 const DEFAULT_EXTRACT_MODEL = process.env.RESILIENCE_EXTRACT_MODEL ?? 'claude-haiku-4-5-20251001';
@@ -102,21 +105,21 @@ function extractTopKParagraphsByRelevance(body, k = 3) {
 function formatArticlesForPrompt(preparedArticles) {
   return preparedArticles
     .map(
-      (a, i) =>
-        `### [${i + 1}] ${a.title}\n` +
-        `Source: ${a.source} | Published: ${a.publishedAt}\n` +
-        `URL: ${a.url || '(no url)'}\n\n` +
-        (a.promptBody || extractTopKParagraphsByRelevance(a.body, 6) || '(no body text)'),
+      (a, i) => {
+        const sourceIdLine = a.source_id ? `Source ID: ${a.source_id}\n` : '';
+        return (
+          `### [${i + 1}] ${a.title}\n` +
+          `Source: ${a.source} | Published: ${a.publishedAt}\n` +
+          sourceIdLine +
+          `URL: ${a.url || '(no url)'}\n\n` +
+          (a.promptBody || extractTopKParagraphsByRelevance(a.body, 6) || '(no body text)')
+        );
+      },
     )
     .join('\n\n---\n\n');
 }
 
-const DOMAIN_INTENT_QUERIES = Object.freeze({
-  // Keep these short and behavior-focused; they’re only used to retrieve relevant spans.
-  A: 'civilian protective behavior: shelter use, compliance with instructions, evacuation, injuries, risk, alerts',
-  B: 'institutional response: guidance and communication, service continuity/disruption (schools, hospitals, transport), leadership actions',
-  C: 'social fabric & wellbeing: volunteering, mutual aid, solidarity, morale/narratives, resources/shortages, mental health, vulnerable groups',
-});
+export { DOMAIN_INTENT_QUERIES };
 
 const SEMANTIC_SELECT_CACHE = new Map(); // key -> Float32Array
 
@@ -173,26 +176,48 @@ async function extractTopKParagraphsBySemanticRelevance(body, domainGroupKey, k 
     score: cosine(qv, vecs[idx]),
   }));
 
-  const topK = scored
-    .sort((a, b) => b.score - a.score || a.idx - b.idx)
-    .slice(0, k)
-    .sort((a, b) => a.idx - b.idx);
+  const byScore = scored.toSorted((a, b) => b.score - a.score || a.idx - b.idx);
+  const topK = byScore.slice(0, k).toSorted((a, b) => a.idx - b.idx);
 
   return topK.map((x) => x.p).join('\n\n');
 }
 
-async function prepareArticlesForPrompt(articles, { contentKind = 'news', domainGroupKey = null } = {}) {
-  const useSemantic = semanticSelectionEnabled() && contentKind !== 'whatsapp_realtime' && contentKind !== 'whatsapp_interactive';
+async function resolveArticlePromptBody(article, { useRag, useSemantic, retrievalService, domainGroupKey, reportDate }) {
+  if (useRag) {
+    try {
+      const ragBody = await selectArticlePromptSpans(article, {
+        retrieval: retrievalService.retrieval,
+        domainGroupKey,
+        reportDate,
+      });
+      if (ragBody) return ragBody;
+    } catch {
+      /* fall through to semantic */
+    }
+  }
+  if (useSemantic) {
+    try {
+      return await extractTopKParagraphsBySemanticRelevance(article.body, domainGroupKey, 6);
+    } catch {
+      return '';
+    }
+  }
+  return '';
+}
+
+async function prepareArticlesForPrompt(articles, {
+  contentKind = 'news',
+  domainGroupKey = null,
+  retrievalService = null,
+  reportDate = null,
+} = {}) {
+  const skipInteractive = contentKind === 'whatsapp_realtime' || contentKind === 'whatsapp_interactive';
+  const useRag = !skipInteractive && resilienceExtractRagEnabled() && retrievalService?.retrieval;
+  const useSemantic = !skipInteractive && !useRag && semanticSelectionEnabled();
+  const spanOpts = { useRag, useSemantic, retrievalService, domainGroupKey, reportDate };
   const out = [];
   for (const a of articles) {
-    let promptBody = '';
-    if (useSemantic) {
-      try {
-        promptBody = await extractTopKParagraphsBySemanticRelevance(a.body, domainGroupKey, 6);
-      } catch {
-        promptBody = '';
-      }
-    }
+    const promptBody = await resolveArticlePromptBody(a, spanOpts);
     out.push({ ...a, promptBody });
   }
   return out;
@@ -545,12 +570,25 @@ async function fetchHaikuSignalsOnce(batchLabel, modelId, system, userContent, u
   return signals;
 }
 
-async function callHaikuExtraction(articles, batchLabel, retries, usageCallback, contentKind, domainGroupKey, extractModel) {
+async function callHaikuExtraction(articles, {
+  batchLabel,
+  retries,
+  usageCallback,
+  contentKind,
+  domainGroupKey = null,
+  extractModel = null,
+  extractOpts = {},
+}) {
   const baseSystem = buildSignalExtractionSystemPrompt(contentKind);
   const system = domainGroupKey
     ? `${baseSystem}\n\n${buildDomainScopeSuffix(domainGroupKey)}`
     : baseSystem;
-  const prepared = await prepareArticlesForPrompt(articles, { contentKind, domainGroupKey });
+  const prepared = await prepareArticlesForPrompt(articles, {
+    contentKind,
+    domainGroupKey,
+    retrievalService: extractOpts.retrievalService ?? null,
+    reportDate: extractOpts.reportDate ?? null,
+  });
   const userContent =
     `Extract all behavioral signals from these Israeli ${extractUserLabelForSignals(contentKind)}:\n\n` +
     formatArticlesForPrompt(prepared);
@@ -642,7 +680,7 @@ async function runSelfCheck(signals, batchLabel, usageCallback) {
   }
 }
 
-async function extractSignalsBatch(articles, batchLabel, retries = 3, usageCallback = null, contentKind = 'news', extractModel = null) {
+async function extractSignalsBatch(articles, batchLabel, retries = 3, usageCallback = null, contentKind = 'news', extractModel = null, extractOpts = {}) {
   const useMultipass = isMultipassEnabled() &&
     contentKind !== 'whatsapp_realtime' &&
     contentKind !== 'whatsapp_interactive';
@@ -652,14 +690,27 @@ async function extractSignalsBatch(articles, batchLabel, retries = 3, usageCallb
     const groupKeys = Object.keys(DOMAIN_GROUPS);
     for (const key of groupKeys) {
       const passLabel = `${batchLabel} pass-${key}`;
-      const passSignals = await callHaikuExtraction(
-        articles, passLabel, retries, usageCallback, contentKind, key, extractModel,
-      );
+      const passSignals = await callHaikuExtraction(articles, {
+        batchLabel: passLabel,
+        retries,
+        usageCallback,
+        contentKind,
+        domainGroupKey: key,
+        extractModel,
+        extractOpts,
+      });
       console.error(`  → ${passLabel}: ${passSignals.length} candidate(s)`);
       raw = raw.concat(passSignals);
     }
   } else {
-    raw = await callHaikuExtraction(articles, batchLabel, retries, usageCallback, contentKind, null, extractModel);
+    raw = await callHaikuExtraction(articles, {
+      batchLabel,
+      retries,
+      usageCallback,
+      contentKind,
+      extractModel,
+      extractOpts,
+    });
   }
 
   const beforeDedup = raw.length;
@@ -759,7 +810,7 @@ async function dedupeSignalsBySemanticEvidence(signals, { contentKind = 'news' }
  * @param {Array} articles   Flat array from loadMdFiles()
  * @returns {Array}          Signal objects: { article_index, article_url, signal_type, evidence_class, scope_level, confidence, evidence }
  */
-async function extractSignalsInBatches(batches, onUsage, onProgress, contentKind, extractModel) {
+async function extractSignalsInBatches(batches, onUsage, onProgress, contentKind, extractModel, extractOpts = {}) {
   console.error(`  → splitting into ${batches.length} batches of ≤${EVIDENCE_BATCH_SIZE}`);
   let allSignals = [];
   for (let i = 0; i < batches.length; i++) {
@@ -773,22 +824,30 @@ async function extractSignalsInBatches(batches, onUsage, onProgress, contentKind
       message: `Extracting signals (batch ${i + 1}/${batches.length})...`,
     });
     const label = `[Step 1 — batch ${i + 1}/${batches.length}]`;
-    const signals = await extractSignalsBatch(batches[i], label, 3, onUsage, contentKind, extractModel);
+    const signals = await extractSignalsBatch(batches[i], label, 3, onUsage, contentKind, extractModel, extractOpts);
     console.error(`  → ${signals.length} signals from batch ${i + 1}`);
     allSignals = allSignals.concat(signals);
   }
   return allSignals;
 }
 
-export async function extractSignals(articles, { onUsage, onProgress, contentKind = 'news', extractModel = null } = {}) {
+export async function extractSignals(articles, {
+  onUsage,
+  onProgress,
+  contentKind = 'news',
+  extractModel = null,
+  retrievalService = null,
+  reportDate = null,
+} = {}) {
+  const extractOpts = { retrievalService, reportDate };
   if (articles.length <= EVIDENCE_BATCH_SIZE) {
     onProgress?.({ type: 'progress', step: 'extract', message: 'Extracting behavioral signals...' });
-    return extractSignalsBatch(articles, '[Step 1 — Signal extraction]', 3, onUsage, contentKind, extractModel);
+    return extractSignalsBatch(articles, '[Step 1 — Signal extraction]', 3, onUsage, contentKind, extractModel, extractOpts);
   }
 
   const batches = [];
   for (let i = 0; i < articles.length; i += EVIDENCE_BATCH_SIZE) {
     batches.push(articles.slice(i, i + EVIDENCE_BATCH_SIZE));
   }
-  return extractSignalsInBatches(batches, onUsage, onProgress, contentKind, extractModel);
+  return extractSignalsInBatches(batches, onUsage, onProgress, contentKind, extractModel, extractOpts);
 }

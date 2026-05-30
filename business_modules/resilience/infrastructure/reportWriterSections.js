@@ -7,7 +7,7 @@ import { summarizeConfidence } from '../domain/services/behaviorSignals.js';
 import {
   COMPONENTS_TABLE_HELP_MARKDOWN,
   EVIDENCE_LEVEL_INLINE_NOTE,
-} from '../../../shared/componentsTableGlossary.js';
+} from '../domain/copy/componentsTableGlossary.js';
 import {
   dashIfNull,
   formatComponentScoreLine,

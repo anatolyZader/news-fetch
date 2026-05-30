@@ -44,6 +44,18 @@ export function formatGapReportMarkdown(report) {
       if (cluster.related_types?.length) {
         lines.push(`- Related types: ${formatRelatedTypes(cluster.related_types)}`);
       }
+      if (cluster.nearest_catalog?.length) {
+        lines.push('- Nearest catalog entries:');
+        for (const e of cluster.nearest_catalog) {
+          lines.push(`  - \`${e.type}\` (${e.label ?? ''}): ${String(e.snippet ?? '').slice(0, 120)}`);
+        }
+      }
+      if (cluster.counterexamples?.length) {
+        lines.push('- Counterexamples (do not merge if reject patterns apply):');
+        for (const c of cluster.counterexamples) {
+          lines.push(`  - \`${c.type}\`: ${c.reject_snippet}`);
+        }
+      }
       if (cluster.high_novelty_count || cluster.medium_novelty_count) {
         lines.push(`- Novelty: ${cluster.high_novelty_count} high, ${cluster.medium_novelty_count} medium`);
       }

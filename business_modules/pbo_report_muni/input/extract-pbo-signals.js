@@ -26,6 +26,7 @@ import {
   archivePboMunicipalityDay,
   stampPboSignalSourceIds,
 } from '../../../cross-cut-modules/source_archive/archivePboMunicipality.js';
+import { createRetrievalService } from '../../../cross-cut-modules/retrieval/createRetrievalService.js';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 const SQLITE_PATH = process.env.SQLITE_PATH?.trim()
@@ -54,6 +55,31 @@ const COMPONENT_TO_NEG_SIGNAL = {
   wellbeing_at_risk:          'psychological_distress',
 };
 
+function buildPboComponentSignal(muni, cid, c, articleIdx, componentNames, meta, supplemental) {
+  const isPositive = c.avg >= 0.5;
+  const signalType = isPositive ? COMPONENT_TO_SIGNAL_TYPE[cid] : COMPONENT_TO_NEG_SIGNAL[cid];
+  const scoreParts = c.scores.map((s) => Math.round(s.value * 100) + '%').join(', ');
+  const textParts = c.texts.filter(Boolean).join(' | ');
+  const supplement = String(supplemental[cid] ?? '').trim();
+  let evidence = `[${muni.name}] ${componentNames.he[cid]}: avg=${Math.round(c.avg * 100)}% (${scoreParts})`;
+  if (textParts) evidence += ` — ${textParts}`;
+  if (supplement) evidence += ` — [PBO follow-up] ${supplement}`;
+  return {
+    article_index: articleIdx,
+    article_url: null,
+    signal_type: signalType,
+    evidence_type: 'observational_reported_fact',
+    evidence,
+    scope_level: c.scores.length >= 3 ? 'quantified_or_broad' : 'single_case',
+    article_source: `pbo-${muni.name}`,
+    municipality: muni.name,
+    source_type: 'pbo',
+    pbo_completeness: meta.pbo_completeness,
+    pbo_review_status: meta.pbo_review_status,
+    pbo_evidence_thin: meta.pbo_evidence_thin,
+  };
+}
+
 function buildSignalsForDay(day, componentsOrder, componentNames, reviewMetaByMuni) {
   const signals = [];
   let articleIdx = 0;
@@ -71,31 +97,7 @@ function buildSignalsForDay(day, componentsOrder, componentNames, reviewMetaByMu
     for (const cid of componentsOrder) {
       const c = muni.components[cid];
       if (c.avg == null) continue;
-
-      const isPositive = c.avg >= 0.5;
-      const signalType = isPositive ? COMPONENT_TO_SIGNAL_TYPE[cid] : COMPONENT_TO_NEG_SIGNAL[cid];
-      const scoreParts = c.scores.map((s) => Math.round(s.value * 100) + '%').join(', ');
-      const textParts = c.texts.filter(Boolean).join(' | ');
-      const supplement = String(supplemental[cid] ?? '').trim();
-      let evidence = `[${muni.name}] ${componentNames.he[cid]}: avg=${Math.round(c.avg * 100)}% (${scoreParts})`;
-      if (textParts) evidence += ` — ${textParts}`;
-      if (supplement) evidence += ` — [PBO follow-up] ${supplement}`;
-      const scope = c.scores.length >= 3 ? 'quantified_or_broad' : 'single_case';
-
-      signals.push({
-        article_index: articleIdx,
-        article_url: null,
-        signal_type: signalType,
-        evidence_type: 'observational_reported_fact',
-        evidence,
-        scope_level: scope,
-        article_source: `pbo-${muni.name}`,
-        municipality: muni.name,
-        source_type: 'pbo',
-        pbo_completeness: meta.pbo_completeness,
-        pbo_review_status: meta.pbo_review_status,
-        pbo_evidence_thin: meta.pbo_evidence_thin,
-      });
+      signals.push(buildPboComponentSignal(muni, cid, c, articleIdx, componentNames, meta, supplemental));
     }
   }
 
@@ -123,6 +125,7 @@ function writeDayBundle(day, districtId, outDir, componentsOrder, componentNames
   let signals = buildSignalsForDay(day, componentsOrder, componentNames, reviewMetaByMuni);
 
   try {
+    const retrievalService = createRetrievalService({ dbPath: SQLITE_PATH });
     const archive = createSourceArchive(SQLITE_PATH);
     const { archived, muniMap } = archivePboMunicipalityDay(
       archive,
@@ -132,6 +135,14 @@ function writeDayBundle(day, districtId, outDir, componentsOrder, componentNames
       reviewMetaByMuni,
       { districtId, sourceFile: day.file },
     );
+    for (const sourceId of muniMap.values()) {
+      const row = archive.getBySourceId(sourceId, { includeBody: true });
+      if (row) {
+        await retrievalService.indexArchiveRow({ ...row, scope_id: districtId });
+      }
+    }
+    retrievalService.rebuildFts();
+    retrievalService.close();
     archive.close();
     signals = stampPboSignalSourceIds(signals, muniMap);
     if (archived > 0) console.error(`  → ${archived} PBO municipality original(s) archived`);
@@ -143,6 +154,7 @@ function writeDayBundle(day, districtId, outDir, componentsOrder, componentNames
     rootDir: REPO_ROOT,
     unknownSourceType: 'extract-pbo',
   });
+  const stampedSignals = geoSignals.map((s) => ({ ...s, district_id: districtId }));
 
   writeFileSync(outPath, JSON.stringify({
     source_type: 'pbo',
@@ -152,10 +164,10 @@ function writeDayBundle(day, districtId, outDir, componentsOrder, componentNames
     extracted_at: new Date().toISOString(),
     source_files: [day.file],
     total_articles: day.municipalities.length,
-    signals: geoSignals,
+    signals: stampedSignals,
   }, null, 2), 'utf-8');
 
-  console.error(`${outputFileName(districtId, day.date)}  →  ${geoSignals.length} signals from ${day.municipalities.length} municipalities (geo: ${resolved} resolved, ${unknown} unknown)`);
+  console.error(`${outputFileName(districtId, day.date)}  →  ${stampedSignals.length} signals from ${day.municipalities.length} municipalities (geo: ${resolved} resolved, ${unknown} unknown)`);
   return true;
 }
 

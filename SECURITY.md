@@ -70,3 +70,23 @@ Do not auto-skip this check for Dependabot or other bots.
 ## Reporting vulnerabilities
 
 If you discover a security issue, contact the repository maintainers privately rather than opening a public issue with exploit details.
+
+- **security.txt**: `/.well-known/security.txt` (also at [.well-known/security.txt](.well-known/security.txt) in the repo — update contact email before production).
+- **Production hardening**: see [docs/product_docs/operations/edge-security.md](docs/product_docs/operations/edge-security.md), [siem-alerts.md](docs/product_docs/operations/siem-alerts.md), and [backup-restore.md](docs/product_docs/operations/backup-restore.md).
+
+## Application security controls (production)
+
+When `NODE_ENV=production`, the server enforces:
+
+- `AUTH_REQUIRED=true`, `FIREBASE_PROJECT_ID`, `TRUST_PROXY=true`, `ENABLE_HSTS=true` (startup validation)
+- `SECURITY_CONTACT_EMAIL` (dynamic `/.well-known/security.txt`)
+- `ENABLE_SWAGGER` must not be `true` (startup fails)
+- Default bind `127.0.0.1` unless `HOST` or `ALLOW_PUBLIC_BIND=true`
+- Helmet security headers, `@fastify/rate-limit`, SSRF guard on user URL fetches
+- WhatsApp webhook `X-Hub-Signature-256` (required in production when webhooks enabled)
+- Firebase App Check required on costly routes (`APP_CHECK_ENFORCE=true` in production)
+- HTTP daily budget gate on LLM/OSINT API routes (`DAILY_BUDGET_USD`)
+- Evidence LLM analysis quota in SQLite (`EVIDENCE_ANALYSIS_DAILY_LIMIT`, optional)
+- DNS-aware SSRF checks on outbound `safeFetch` and video download URL resolution
+- Per-route rate limits including report-build, catalog generate, video download, and WhatsApp webhooks
+- SBOM artifact generated in CI (`SBOM` job)

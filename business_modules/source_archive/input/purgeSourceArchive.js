@@ -11,6 +11,7 @@ import 'dotenv/config';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createSourceArchive } from '../../../cross-cut-modules/source_archive/createSourceArchive.js';
+import { createRetrievalService } from '../../../cross-cut-modules/retrieval/index.js';
 import { EPHEMERAL_SOURCE_TYPES } from '../../../cross-cut-modules/source_archive/retentionPolicy.js';
 import { getTodayInTimezone } from '../../../utils/dateUtils.js';
 
@@ -35,13 +36,17 @@ async function main() {
     ? resolve(process.env.SQLITE_PATH.trim())
     : resolve(repoRoot, 'db', 'app.sqlite');
 
-  const archive = createSourceArchive(sqlitePath);
+  const retrievalService = createRetrievalService({ dbPath: sqlitePath, timezone });
+  const archive = createSourceArchive(sqlitePath, { retrievalIndexer: retrievalService });
   const { deleted } = archive.purgeEphemeralBeforeDate(cutoff);
+  const ragDeleted = retrievalService.deleteEphemeralBeforeDate(cutoff, EPHEMERAL_SOURCE_TYPES);
   archive.close();
+  retrievalService.close();
   const types = EPHEMERAL_SOURCE_TYPES.join('|');
   console.log(
     `source_archive purge: deleted=${deleted} ephemeral rows only (${types}) with date < ${cutoff} ` +
-    `(retention=${retentionDays}d, today=${today}); field/visits/whatsapp/manual/audio/video and filesystem exports are never purged`,
+    `(retention=${retentionDays}d, today=${today}); rag_chunks deleted=${ragDeleted}; ` +
+    'field/visits/whatsapp/manual/audio/video and filesystem exports are never purged',
   );
 }
 

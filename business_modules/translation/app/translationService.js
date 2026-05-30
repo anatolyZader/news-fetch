@@ -3,7 +3,11 @@ import { jsonrepair } from 'jsonrepair';
 import { readFile, writeFile } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { calcInvocationCostUsd, appendCostLog } from '../../../cross-cut-modules/budget/index.js';
+import { calcInvocationCostUsd } from '../../../cross-cut-modules/budget/index.js';
+import { appendCostLog } from '../../../cross-cut-modules/log/index.js';
+import { translationTermRagEnabled } from '../../../cross-cut-modules/retrieval/ragConfig.js';
+import { buildTranslationTermBlock } from '../../../cross-cut-modules/retrieval/translationTermRetrieval.js';
+import { createRetrievalService } from '../../../cross-cut-modules/retrieval/createRetrievalService.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPORTS_DIR = resolve(__dirname, '../../../reports');
@@ -12,6 +16,34 @@ const client = new Anthropic();
 
 /** In-memory cache to avoid disk reads on repeat requests */
 const memCache = new Map();
+
+let translationRetrievalSvc = null;
+
+function getTranslationRetrieval() {
+  if (!translationTermRagEnabled()) return null;
+  if (!translationRetrievalSvc) {
+    const sqlitePath = process.env.SQLITE_PATH?.trim()
+      ? resolve(process.env.SQLITE_PATH.trim())
+      : resolve(__dirname, '../../../db/app.sqlite');
+    translationRetrievalSvc = createRetrievalService({ dbPath: sqlitePath });
+  }
+  return translationRetrievalSvc;
+}
+
+async function translationSystemPrompt(lang, queryHint) {
+  let system = SYSTEM_PROMPT[lang];
+  const svc = getTranslationRetrieval();
+  if (!svc) return system;
+  const hint = String(queryHint ?? '').trim().slice(0, 600);
+  if (!hint) return system;
+  try {
+    const block = await buildTranslationTermBlock(lang, hint, { retrieval: svc.retrieval });
+    if (block) system += block;
+  } catch {
+    // non-fatal
+  }
+  return system;
+}
 
 const LANG_NAMES = { en: 'English', he: 'Hebrew', ru: 'Russian' };
 
@@ -198,11 +230,12 @@ async function writeDiskCache(report, lang, translatedReport) {
 /**
  * Send one small JSON payload to Claude and return the parsed result + usage.
  */
-async function translateChunk(payload, lang, langName) {
+async function translateChunk(payload, lang, langName, queryHint = '') {
+  const system = await translationSystemPrompt(lang, queryHint || JSON.stringify(payload).slice(0, 500));
   const message = await client.messages.create({
     model: 'claude-sonnet-4-6',
     max_tokens: 8000,
-    system: SYSTEM_PROMPT[lang],
+    system,
     messages: [{
       role: 'user',
       content: `Translate the following JSON into ${langName}. Return ONLY valid JSON with the exact same structure.\n\n${JSON.stringify(payload)}`,
@@ -227,11 +260,11 @@ async function translateChunk(payload, lang, langName) {
   return { result, usage: message.usage };
 }
 
-async function translateChunkWithRetry(payload, lang, langName) {
+async function translateChunkWithRetry(payload, lang, langName, queryHint = '') {
   const MAX_ATTEMPTS = 3;
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
     try {
-      return await translateChunk(payload, lang, langName);
+      return await translateChunk(payload, lang, langName, queryHint);
     } catch (err) {
       const status = getErrStatus(err);
       const transient = isTransientTranslateError(err);
@@ -354,6 +387,7 @@ export async function getTranslatedReport(report, lang) {
 
   const langName = LANG_NAMES[lang] ?? lang;
   const components = report.components ?? [];
+  const translationQueryHint = String(report.cross_component_synthesis ?? '').slice(0, 600);
 
   // Many parallel translation calls can trigger upstream gateway timeouts.
   // Keep concurrency modest and retry transient failures (524/5xx/429).
@@ -362,12 +396,12 @@ export async function getTranslatedReport(report, lang) {
   // Translate the executive summary (general resume) as well.
   const synthesisChunk = await translateChunkWithRetry({
     cross_component_synthesis: report.cross_component_synthesis ?? '',
-  }, lang, langName);
+  }, lang, langName, translationQueryHint);
 
   const componentChunks = await runWithConcurrencyLimit(
     components.map((c) => () => translateChunkWithRetry({
       narrative: c.narrative ?? '',
-    }, lang, langName)),
+    }, lang, langName, `${translationQueryHint} ${c.component_id ?? ''} ${c.narrative ?? ''}`.slice(0, 600))),
     CONCURRENCY_COMPONENTS,
   );
 

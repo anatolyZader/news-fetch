@@ -21,9 +21,30 @@ function verifyResendWebhook(rawBody, signature, secret) {
  * @param {import('fastify').preHandlerHookHandler} [opts.authPreHandler]
  */
 export async function pboReviewRoutes(app, opts) {
-  const { pboReportReviewService, authPreHandler } = opts;
+  const { pboReportReviewService, pboHistoricalSearchService, authPreHandler } = opts;
   if (!pboReportReviewService) {
     throw new Error('pboReportReviewService is required');
+  }
+
+  if (pboHistoricalSearchService) {
+    app.get('/api/pbo/historical-search', {
+      preHandler: authPreHandler,
+    }, async (request, reply) => {
+      const query = String(request.query?.query ?? '').trim();
+      if (!query) {
+        return reply.code(400).send({ error: 'query parameter is required' });
+      }
+      const result = await pboHistoricalSearchService.search({
+        query,
+        date: request.query?.date,
+        district: request.query?.district,
+        municipality: request.query?.municipality,
+        region: request.query?.region,
+        days: request.query?.days ? Number(request.query.days) : undefined,
+        limit: request.query?.limit ? Number(request.query.limit) : undefined,
+      });
+      return reply.send(result);
+    });
   }
 
   app.get('/api/pbo/municipal-reviews', {
