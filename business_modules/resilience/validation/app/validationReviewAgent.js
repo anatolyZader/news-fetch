@@ -1,19 +1,17 @@
 /**
  * Multi-turn validation review agent loop (read-only tools + recommendation).
  */
-import Anthropic from '@anthropic-ai/sdk';
+import { getDefaultLlmPort, createAnthropicLlmPort } from '../../../../cross-cut-modules/llm/anthropicLlmAdapter.js';
 import {
   validationAgentEnabledFlag,
   validationExplainEnabled,
 } from '../../../../cross-cut-modules/retrieval/ragConfig.js';
-import { retrieveSimilarArticles } from '../../../../cross-cut-modules/retrieval/analystRetrieval.js';
 import {
   buildValidationExplainSystemPrompt,
   buildValidationExplainUserBlock,
 } from '../domain/services/validationExplainPrompt.js';
-import { runToolLoop } from '../../../../cross-cut-modules/llm/runToolLoop.js';
+import { executeValidationTool } from './validationToolExecutor.js';
 
-const defaultClient = new Anthropic();
 const MODEL = process.env.RESILIENCE_VALIDATION_EXPLAIN_MODEL
   ?? process.env.RESILIENCE_SELF_CHECK_MODEL
   ?? 'claude-haiku-4-5-20251001';
@@ -75,6 +73,11 @@ function normalizeIncomingMessages(messages) {
  *   client?: object,
  * }} params
  */
+function validationAgentMaxRounds() {
+  const n = Number.parseInt(process.env.VALIDATION_AGENT_MAX_TOOL_ROUNDS ?? '3', 10);
+  return Number.isFinite(n) && n >= 0 ? Math.min(n, 10) : 3;
+}
+
 export async function runValidationAgent({
   validationReviewService,
   retrievalService = null,
@@ -82,8 +85,11 @@ export async function runValidationAgent({
   scope,
   articleKey,
   messages,
-  client = defaultClient,
+  client = null,
+  llmPort = null,
+  onUsage = null,
 }) {
+  const port = llmPort ?? (client ? createAnthropicLlmPort({ client }) : getDefaultLlmPort());
   if (!validationAgentEnabledFlag() || !validationExplainEnabled()) {
     return { error: 'Validation agent is disabled.', messages: messages ?? [] };
   }
@@ -113,46 +119,31 @@ export async function runValidationAgent({
   }
 
   const retrieval = retrievalService?.retrieval ?? null;
+  const getItemCtx = () => itemCtx;
+  const setItemCtx = (ctx) => { itemCtx = ctx; };
+  const setRecommendation = (rec) => { recommendation = rec; };
 
-  const loopResult = await runToolLoop({
-    client,
+  const loopResult = await port.runToolLoop({
     model: MODEL,
     maxTokens: 2000,
+    maxRounds: validationAgentMaxRounds(),
     system,
     messages: currentMessages,
     tools: AGENT_TOOLS,
     agentKind: 'validation',
-    executeTool: async (name, input) => {
-      if (name === 'get_validation_context') {
-        itemCtx = await validationReviewService.getItemContext(date, scope, articleKey);
-        return buildValidationExplainUserBlock(
-          itemCtx.item,
-          itemCtx.rag,
-          'Refreshed context',
-        );
-      }
-      if (name === 'search_similar_articles') {
-        const q = input?.query ?? '';
-        const hits = retrieval?.hybridRetrieve
-          ? await retrieveSimilarArticles(q, {
-            retrieval,
-            reportDate: date,
-            topK: input?.top_k ?? 5,
-          })
-          : (itemCtx.rag?.similar_articles ?? []);
-        return (hits ?? []).slice(0, 5).map((h) =>
-          `- ${h.title ?? '?'}: ${String(h.snippet ?? '').slice(0, 200)}`,
-        ).join('\n') || 'No similar articles.';
-      }
-      if (name === 'propose_decision') {
-        recommendation = {
-          action: input?.action,
-          rationale: input?.rationale ?? '',
-        };
-        return `Recommendation recorded: ${recommendation.action}. Human must confirm via decision button or chat propose tool.`;
-      }
-      return 'Unknown tool';
-    },
+    onUsage: onUsage
+      ? (p) => onUsage({ label: p.label, model: p.model, usage: p.usage })
+      : undefined,
+    executeTool: async (name, input) => executeValidationTool(name, input, {
+      validationReviewService,
+      retrieval,
+      date,
+      scope,
+      articleKey,
+      getItemCtx,
+      setItemCtx,
+      setRecommendation,
+    }),
   });
 
   return {

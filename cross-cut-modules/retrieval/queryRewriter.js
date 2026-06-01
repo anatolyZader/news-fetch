@@ -12,7 +12,7 @@ const defaultClient = new Anthropic();
  *  history?: Array<{ role: string, content: string }>,
  *  systemHint?: string,
  * }} input
- * @param {{ client?: import('@anthropic-ai/sdk').default }} [deps]
+ * @param {{ client?: import('@anthropic-ai/sdk').default, onUsage?: (p: object) => void }} [deps]
  * @returns {Promise<string>}
  */
 export async function rewriteQueryForRetrieval(input, deps = {}) {
@@ -39,16 +39,25 @@ export async function rewriteQueryForRetrieval(input, deps = {}) {
     (transcript ? `Conversation:\n${transcript}\n\n` : '') +
     `Latest user message: ${message}\n\nRewrite as a search query.`;
 
+  const model = 'claude-haiku-4-5-20251001';
   try {
     const response = await client.messages.create({
-      model: 'claude-haiku-4-5-20251001',
+      model,
       max_tokens: 200,
       temperature: 0,
       system,
       messages: [{ role: 'user', content: user }],
     });
+    if (deps.onUsage && response.usage) {
+      deps.onUsage({
+        label: 'rag:query-rewrite',
+        model,
+        usage: response.usage,
+      });
+    }
     const text = response.content.find((b) => b.type === 'text')?.text ?? '';
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    const jsonPattern = /\{[\s\S]*\}/;
+    const jsonMatch = jsonPattern.exec(text);
     if (jsonMatch) {
       const parsed = JSON.parse(jsonMatch[0]);
       const q = String(parsed?.query ?? '').trim();

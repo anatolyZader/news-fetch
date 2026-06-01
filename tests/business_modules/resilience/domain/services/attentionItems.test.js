@@ -48,6 +48,30 @@ describe('attentionItems', () => {
     assert.equal(hit?.code, 'critical_single_signal');
   });
 
+  it('includes contested adequate-mass attention item', () => {
+    const items = buildAttentionItems({
+      components: [{
+        component_id: 'narrative',
+        instrument: { contested: true, contested_thin: false, evidence_sufficiency: 'adequate' },
+      }],
+    });
+    assert.ok(items.some((i) => i.code === 'contested_evidence'));
+  });
+
+  it('includes pending operator recommendation items', () => {
+    const items = buildAttentionItems({
+      operator_recommendations: [{
+        id: 'rec:information_vacuum_rumor',
+        pattern_code: 'information_vacuum_rumor',
+        level: 'warning',
+        status: 'pending',
+        title_key: 'attention.pattern.informationVacuumRumor',
+      }],
+      components: [],
+    });
+    assert.ok(items.some((i) => i.recommendation_id === 'rec:information_vacuum_rumor'));
+  });
+
   it('includes oov_burst for operator when alert', () => {
     const items = buildAttentionItems({
       oov_burst: {

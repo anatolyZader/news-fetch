@@ -9,7 +9,7 @@
  * beyond what's in the input. It may only phrase.
  */
 
-import Anthropic from '@anthropic-ai/sdk';
+import { createAnthropicLlmPort } from '../../../cross-cut-modules/llm/anthropicLlmAdapter.js';
 import { buildDraftUserContent } from '../../report_build/domain/reportBuildPrompt.js';
 
 const SYSTEM_PROMPT =
@@ -34,7 +34,7 @@ const SYSTEM_PROMPT =
  * @param {{ anthropicApiKey: string }} deps
  */
 export function createDraftGenerator({ anthropicApiKey }) {
-  const client = new Anthropic({ apiKey: anthropicApiKey });
+  const llmPort = createAnthropicLlmPort({ apiKey: anthropicApiKey });
 
   return {
     /**
@@ -44,7 +44,7 @@ export function createDraftGenerator({ anthropicApiKey }) {
      */
     async generate(structuredState, turnHistory, ragContext = null) {
       const userContent = buildDraftUserContent(structuredState, turnHistory, ragContext);
-      const response = await client.messages.create({
+      const response = await llmPort.createMessage({
         model: 'claude-haiku-4-5-20251001',
         max_tokens: 800,
         temperature: 0.2,

@@ -23,7 +23,7 @@
     "docs/docs-site",
     "analyst-site",
     "coverage",
-    "reports",
+    "daily_reports",
     "signals",
     "articles_extracted",
     "**/data/**",

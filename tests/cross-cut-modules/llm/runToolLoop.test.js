@@ -1,5 +1,8 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
+import { mkdtempSync } from 'node:fs';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
 import { runToolLoop } from '../../../cross-cut-modules/llm/runToolLoop.js';
 
 function fakeClient(script) {
@@ -32,6 +35,7 @@ describe('runToolLoop', () => {
       },
     ]);
 
+    const auditDir = mkdtempSync(join(tmpdir(), 'run-tool-loop-test-'));
     const toolsCalled = [];
     const result = await runToolLoop({
       client,
@@ -40,7 +44,7 @@ describe('runToolLoop', () => {
       messages: [{ role: 'user', content: 'go' }],
       tools: [{ name: 'lookup', input_schema: { type: 'object', properties: {} } }],
       agentKind: 'test',
-      auditLogPath: '/tmp/run-tool-loop-test-audit.jsonl',
+      auditLogPath: join(auditDir, 'audit.jsonl'),
       executeTool: async (name, input) => {
         toolsCalled.push({ name, input });
         return 'tool output';
@@ -71,5 +75,29 @@ describe('runToolLoop', () => {
     });
 
     assert.equal(result.lastAssistantText, 'Direct reply');
+  });
+
+  it('invokes onUsage after each model call', async () => {
+    const client = fakeClient([
+      {
+        stop_reason: 'end_turn',
+        content: [{ type: 'text', text: 'ok' }],
+        usage: { input_tokens: 5, output_tokens: 3 },
+      },
+    ]);
+    const usages = [];
+    await runToolLoop({
+      client,
+      model: 'claude-haiku-4-5-20251001',
+      system: 'sys',
+      messages: [{ role: 'user', content: 'hi' }],
+      tools: [],
+      agentKind: 'test',
+      onUsage: (p) => usages.push(p),
+      executeTool: async () => 'unused',
+    });
+    assert.equal(usages.length, 1);
+    assert.equal(usages[0].label, 'test:round-0');
+    assert.equal(usages[0].model, 'claude-haiku-4-5-20251001');
   });
 });

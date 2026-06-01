@@ -1,4 +1,4 @@
-import Anthropic from '@anthropic-ai/sdk';
+import { getDefaultLlmPort, createAnthropicLlmPort } from '../../../cross-cut-modules/llm/anthropicLlmAdapter.js';
 import { jsonrepair } from 'jsonrepair';
 import {
   appendCostLog,
@@ -66,7 +66,7 @@ export async function classifySocialCandidates(candidates, opts = {}) {
   }
 
   if (!opts.skipBudgetCheck) checkDailyBudget();
-  const anthropic = opts.anthropicClient ?? new Anthropic();
+  const llmPort = opts.llmPort ?? (opts.anthropicClient ? createAnthropicLlmPort({ client: opts.anthropicClient }) : getDefaultLlmPort());
   const tracker = createCostTracker({ label: 'social-gather-classify' });
 
   /** @type {object[]} */
@@ -92,7 +92,7 @@ export async function classifySocialCandidates(candidates, opts = {}) {
       ? `${fewShotBlock}\nClassify these ${batch.length} posts:\n\n${prompt}`
       : `Classify these ${batch.length} posts:\n\n${prompt}`;
 
-    const message = await anthropic.messages.create({
+    const message = await llmPort.createMessage({
       model: MODEL,
       max_tokens: 8192,
       temperature: 0,

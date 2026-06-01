@@ -8,6 +8,12 @@ import {
 import { LEARNING_CAPTURE_KINDS } from '../../../cross-cut-modules/learningCapture/kinds.js';
 import { formatGapReportMarkdown } from '../../../business_modules/catalogLearning/domain/services/gapReportFormatter.js';
 import { buildResidualCapturePrompt } from '../../../business_modules/resilience/infrastructure/extractionPasses.js';
+import { buildResidualExtractionPrompt } from '../../../business_modules/signals_extraction/domain/services/openExtractionPrompts.js';
+import { ObservationCaptureAdapter } from '../../../business_modules/catalogLearning/infrastructure/adapters/observationCaptureAdapter.js';
+import { CompositeLearningCaptureAdapter } from '../../../business_modules/catalogLearning/infrastructure/adapters/compositeLearningCaptureAdapter.js';
+import { mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
 import { extractTopKParagraphsForLearning } from '../../../business_modules/resilience/infrastructure/learningCaptureText.js';
 import {
   isLearningCaptureEnabled,
@@ -100,6 +106,14 @@ describe('learning capture helpers', () => {
     assert.match(user, /barter market/);
   });
 
+  it('buildResidualExtractionPrompt aligns with signals_extraction residual profile', () => {
+    const { system } = buildResidualExtractionPrompt([
+      { body: 'Residents organized a barter market.' },
+    ]);
+    assert.match(system, /RESIDUAL/);
+    assert.match(system, /nearest_existing_types/);
+  });
+
   it('extractTopKParagraphsForLearning picks relevant paragraphs', () => {
     const body = 'Political analysis only.\n\nResidents entered the shelter during the siren alert.';
     const out = extractTopKParagraphsForLearning(body, 1);
@@ -109,5 +123,37 @@ describe('learning capture helpers', () => {
   it('capture flags respect env', () => {
     assert.equal(isLearningCaptureEnabled({ RESILIENCE_OOV_CAPTURE: '0' }), false);
     assert.equal(isResidualCaptureEnabled({ RESILIENCE_RESIDUAL_CAPTURE: '1' }), true);
+  });
+});
+
+describe('observationCaptureAdapter', () => {
+  it('loads open observations as capture records', async () => {
+    const dir = join(tmpdir(), `obs-capture-${Date.now()}`);
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(join(dir, 'observations-exploratory-2026-05-27.json'), JSON.stringify({
+      profile: 'exploratory',
+      date: '2026-05-27',
+      extracted_at: new Date().toISOString(),
+      observations: [
+        { evidence: 'local fact', behavioral_description: 'fact', suggested_catalog_types: [] },
+      ],
+    }));
+
+    const adapter = new ObservationCaptureAdapter({ dataDir: dir });
+    const { records } = await adapter.loadCaptureRecords({ maxDays: 14 });
+    assert.equal(records.length, 1);
+    assert.equal(records[0].capture_kind, LEARNING_CAPTURE_KINDS.OPEN_OBSERVATION);
+
+    rmSync(dir, { recursive: true, force: true });
+  });
+
+  it('composite adapter merges record lists', async () => {
+    const composite = new CompositeLearningCaptureAdapter([
+      { async loadCaptureRecords() { return { records: [{ capture_kind: 'a', evidence: 'x' }], files: ['a.jsonl'] }; } },
+      { async loadCaptureRecords() { return { records: [{ capture_kind: 'b', evidence: 'y' }], files: ['b.json'] }; } },
+    ]);
+    const { records, files } = await composite.loadCaptureRecords();
+    assert.equal(records.length, 2);
+    assert.equal(files.length, 2);
   });
 });

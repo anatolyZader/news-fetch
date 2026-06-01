@@ -12,7 +12,16 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { SiteFooter } from '../ui/SiteFooter.jsx';
 
 export function LoginScreen() {
-  const { signInEmail, signUpEmail, signInGoogle, resetPassword, authError, setAuthError } = useAuth();
+  const {
+    signInEmail,
+    signUpEmail,
+    signInGoogle,
+    resetPassword,
+    authError,
+    setAuthError,
+    disableSignup,
+    membershipDenied,
+  } = useAuth();
   const [mode, setMode] = useState('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -92,7 +101,14 @@ export function LoginScreen() {
               <Typography variant="h1" sx={{ textAlign: 'center' }}>Sign in</Typography>
               <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
                 Uses Google <strong>Identity Platform</strong> (Firebase Auth): email/password and Google account.
+                {disableSignup ? ' Access is invite-only.' : ''}
               </Typography>
+
+              {membershipDenied && (
+                <Alert severity="warning">
+                  Your account is not authorized for this application. Contact an administrator.
+                </Alert>
+              )}
 
               <Button
                 type="button"
@@ -157,35 +173,37 @@ export function LoginScreen() {
                 </Stack>
               </Box>
 
-              <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
-                {mode === 'signin' ? (
-                  <>
-                    No account?{' '}
-                    <Button
-                      type="button"
-                      variant="text"
-                      size="small"
-                      onClick={() => setMode('signup')}
-                      sx={{ p: 0, minWidth: 0, verticalAlign: 'baseline' }}
-                    >
-                      Register
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    Already registered?{' '}
-                    <Button
-                      type="button"
-                      variant="text"
-                      size="small"
-                      onClick={() => setMode('signin')}
-                      sx={{ p: 0, minWidth: 0, verticalAlign: 'baseline' }}
-                    >
-                      Sign in
-                    </Button>
-                  </>
-                )}
-              </Typography>
+              {!disableSignup && (
+                <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
+                  {mode === 'signin' ? (
+                    <>
+                      No account?{' '}
+                      <Button
+                        type="button"
+                        variant="text"
+                        size="small"
+                        onClick={() => setMode('signup')}
+                        sx={{ p: 0, minWidth: 0, verticalAlign: 'baseline' }}
+                      >
+                        Register
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      Already registered?{' '}
+                      <Button
+                        type="button"
+                        variant="text"
+                        size="small"
+                        onClick={() => setMode('signin')}
+                        sx={{ p: 0, minWidth: 0, verticalAlign: 'baseline' }}
+                      >
+                        Sign in
+                      </Button>
+                    </>
+                  )}
+                </Typography>
+              )}
             </Stack>
           </Paper>
         </Container>

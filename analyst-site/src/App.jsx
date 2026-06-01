@@ -51,6 +51,7 @@ CenteredWrap.propTypes = {
 function AnalystGate() {
   const {
     configLoaded,
+    configError,
     authRequired,
     firebaseConfigured,
     user,
@@ -58,6 +59,16 @@ function AnalystGate() {
     logout,
   } = useAuth();
   const { canViewAnalyst, ready: capabilitiesReady } = useDisplayCapabilities();
+
+  if (configLoaded && configError) {
+    return (
+      <CenteredWrap>
+        <Alert severity="error" variant="outlined" sx={{ maxWidth: '36rem' }}>
+          Cannot reach the server auth configuration ({configError}). Check network connectivity and reload.
+        </Alert>
+      </CenteredWrap>
+    );
+  }
 
   if (!configLoaded || (authRequired && firebaseConfigured && authLoading)) {
     return (

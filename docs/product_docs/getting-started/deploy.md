@@ -24,7 +24,7 @@ Deploy Srulik's lab to a real environment — a VM, a container, Cloud Run, or a
 Chat validation text lives in SQLite `source_archive`. Nightly purge removes **only ephemeral types** (`news`, `radio`, `social`) with `date` older than 14 days. **Field, visits, whatsapp, manual, audio, video, and all other types are kept forever in SQLite.** Extracted article `.md` files on disk are **never** deleted by this job.
 
 ```bash
-0 3 * * * cd /path/to/news && node business_modules/source_archive/input/purgeSourceArchive.js >> /var/log/source-archive-purge.log 2>&1
+0 3 * * * cd /path/to/news && node db/input/purgeSourceArchive.js >> /var/log/source-archive-purge.log 2>&1
 ```
 
 Env: `SOURCE_ARCHIVE_RETENTION_DAYS` (default `14`, applies to news/radio/social SQLite rows only), `SQLITE_PATH`, `TZ_ARTICLES`. One-time backfill (news, field, whatsapp, radio, social, probes, evidence): `npm run archive:backfill -- --days 14`.

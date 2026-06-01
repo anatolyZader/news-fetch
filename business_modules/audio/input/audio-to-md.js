@@ -15,7 +15,7 @@ import { fileURLToPath } from 'node:url';
 import { createCostTracker, appendCostLog, checkDailyBudget } from '../../../cross-cut-modules/budget/index.js';
 import { OpenaiTranscriptionAdapter } from '../infrastructure/adapters/openaiTranscriptionAdapter.js';
 import { AudioIngestService } from '../app/audioIngestService.js';
-import { archiveMarkdownFiles } from '../../resilience/app/archiveMarkdownFromMd.js';
+import { archiveMarkdownFiles } from '../../resilience/index.js';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 

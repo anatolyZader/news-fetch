@@ -5,6 +5,8 @@
  */
 
 import { costlyRoutePreHandlers } from '../../../cross-cut-modules/security/input/costlyRoutePreHandlers.js';
+import { normalizeAuthPreHandlers } from '../../../cross-cut-modules/auth/buildAuthHooks.js';
+import { createHttpCostRecorder } from '../../../cross-cut-modules/budget/index.js';
 
 /**
  * @param {import('fastify').FastifyInstance} app
@@ -12,7 +14,7 @@ import { costlyRoutePreHandlers } from '../../../cross-cut-modules/security/inpu
  */
 export async function reportBuildRoutes(app, opts) {
   const reportBuildService = opts?.reportBuildService ?? null;
-  const authHooks = opts?.authPreHandler ? [opts.authPreHandler] : [];
+  const authHooks = normalizeAuthPreHandlers(opts?.authPreHandler);
   const costlyRoute = costlyRoutePreHandlers(authHooks);
   const authOnly = authHooks.length ? { preHandler: authHooks } : {};
 
@@ -39,8 +41,23 @@ export async function reportBuildRoutes(app, opts) {
       return reply.code(400).send({ error: 'text is required' });
     }
     const displayName = request.user?.name ?? request.user?.email ?? '';
-    const out = await reportBuildService.applyTurn({ ownerKey, text, displayName, role: 'officer' });
-    return reply.send(out);
+    const costRecorder = createHttpCostRecorder({
+      script: 'http:report-build-turn',
+      ownerUid: ownerKey,
+      route: '/api/report-build/turn',
+    });
+    try {
+      const out = await reportBuildService.applyTurn({
+        ownerKey,
+        text,
+        displayName,
+        role: 'officer',
+        costRecorder,
+      });
+      return reply.send(out);
+    } finally {
+      costRecorder.flush();
+    }
   });
 
   app.post('/api/report-build/suggest', costlyRoute, async (request, reply) => {
@@ -52,8 +69,22 @@ export async function reportBuildRoutes(app, opts) {
       return reply.code(400).send({ error: 'text is required' });
     }
     const displayName = request.user?.name ?? request.user?.email ?? '';
-    const out = await reportBuildService.suggestFromText({ ownerKey, text, displayName });
-    return reply.send(out);
+    const costRecorder = createHttpCostRecorder({
+      script: 'http:report-build-suggest',
+      ownerUid: ownerKey,
+      route: '/api/report-build/suggest',
+    });
+    try {
+      const out = await reportBuildService.suggestFromText({
+        ownerKey,
+        text,
+        displayName,
+        costRecorder,
+      });
+      return reply.send(out);
+    } finally {
+      costRecorder.flush();
+    }
   });
 
   app.post('/api/report-build/confirm', authOnly, async (request, reply) => {

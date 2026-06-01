@@ -13,16 +13,18 @@ import {
   redactReportPayload,
   redactScoreBySource,
   DISPLAY_VIEWS,
-} from '../../business_modules/resilience/domain/services/assessmentDisplayTier.js';
-import { normalizeReportScope } from '../../business_modules/resilience/domain/services/regionSignalFilter.js';
+  normalizeReportScope,
+  buildAttentionItems,
+  updateOperatorRecommendationStatus,
+} from '../../business_modules/resilience/index.js';
 import { isRegionalReportScope } from '../../cross-cut-modules/geo/reportScopeIds.js';
-import { buildAttentionItems } from '../../business_modules/resilience/domain/services/attentionItems.js';
 import { auditFromRequest } from '../../cross-cut-modules/security/input/auditLog.js';
 import {
   assertResolvedHostSafe,
   validateUserFetchUrl,
 } from '../../cross-cut-modules/security/domain/services/ssrfGuard.js';
 import { costlyRoutePreHandlers } from '../../cross-cut-modules/security/input/costlyRoutePreHandlers.js';
+import { authPreHandlerList } from '../../cross-cut-modules/auth/buildAuthHooks.js';
 
 /**
  * @param {import('fastify').FastifyInstance} app
@@ -41,6 +43,9 @@ export async function reportRoutes(app, opts) {
 
   app.get('/api/report/today', authHook, async (request, reply) => {
     const scope = normalizeReportScope(request.query?.scope ?? 'national');
+    if (isRegionalReportScope(scope)) {
+      if (!requireOperatorDistrictAccess(request, reply, scope)) return;
+    }
     const requestedView = String(request.query?.view ?? 'operator').trim().toLowerCase();
     const data = getCachedReport(evidenceStore, { scope });
     if (!data) {
@@ -77,7 +82,48 @@ export async function reportRoutes(app, opts) {
     });
   });
 
-  app.post('/api/video/download-url', costlyRoutePreHandlers(authHook.preHandler ? [authHook.preHandler] : []), async (request, reply) => {
+  app.post('/api/report/recommendations/:id/acknowledge', authHook, async (request, reply) => {
+    const recommendationId = String(request.params?.id ?? '').trim();
+    const scope = normalizeReportScope(request.body?.scope ?? request.query?.scope ?? 'national');
+    const reportDate = String(request.body?.date ?? request.query?.date ?? '').trim();
+    const action = String(request.body?.action ?? 'acknowledge').trim().toLowerCase();
+    const rationale = String(request.body?.rationale ?? '').trim();
+
+    if (!recommendationId) {
+      return reply.code(400).send({ error: 'recommendation id required' });
+    }
+    if (action !== 'acknowledge' && action !== 'dismiss') {
+      return reply.code(400).send({ error: 'action must be acknowledge or dismiss' });
+    }
+
+    const data = getCachedReport(evidenceStore, { scope });
+    const date = reportDate || data?.reportDate || data?.assessment?.date;
+    if (!date) {
+      return reply.code(404).send({ error: 'report_not_found' });
+    }
+
+    const result = updateOperatorRecommendationStatus(
+      date,
+      scope,
+      recommendationId,
+      { action, userEmail: request.user?.email ?? null, rationale },
+    );
+
+    if (!result.ok) {
+      return reply.code(result.error === 'recommendation_not_found' ? 404 : 400).send({ error: result.error });
+    }
+
+    auditFromRequest(request, 'report.recommendation_ack', '/api/report/recommendations/:id/acknowledge', {
+      recommendationId,
+      action,
+      scope,
+      date,
+    });
+
+    return reply.send({ ok: true, recommendation: result.recommendation });
+  });
+
+  app.post('/api/video/download-url', costlyRoutePreHandlers(authPreHandlerList(authHook)), async (request, reply) => {
     const { url } = request.body ?? {};
     if (url == null || typeof url !== 'string' || !url.trim()) {
       return reply.code(400).send({ error: 'url is required' });
@@ -170,7 +216,7 @@ export async function reportRoutes(app, opts) {
     }
   });
 
-  app.post('/api/translate', costlyRoutePreHandlers(authHook.preHandler ? [authHook.preHandler] : []), async (request, reply) => {
+  app.post('/api/translate', costlyRoutePreHandlers(authPreHandlerList(authHook)), async (request, reply) => {
     auditFromRequest(request, 'translate.post', '/api/translate', {
       lang: request.body?.lang ?? null,
     });

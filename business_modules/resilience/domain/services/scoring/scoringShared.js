@@ -4,7 +4,7 @@ import {
   SIGNAL_TO_COMPONENTS,
   getScoringPriors,
   getSignalCatalogEntry,
-} from '../signalCatalog.js';
+} from '../signalRouter.js';
 import {
   INTENSITY_WEIGHT,
   POLARITY_OVERRIDE_SIGNAL_TYPES,
@@ -323,11 +323,9 @@ function applyThinEvidenceFloor(score, evidenceMass, applyFloor, salienceBypass)
 }
 
 /**
- * Compute final 1-10 score for one component from its capped contribution items
- * and pre-computed strength/coverage/diversity factors.
+ * Pure component score from contribution items (no high-salience bypass).
  */
 export function scoreFromItems(items, componentId, totalArticles, articleSet, sourceSet, opts = {}) {
-  const applyFloor = opts.applyFloor !== false;
   const { positive, negative, evidenceMass } = sumPolarityMass(items);
   if (evidenceMass === 0) return null;
 
@@ -341,17 +339,7 @@ export function scoreFromItems(items, componentId, totalArticles, articleSet, so
 
   const adjustedStrength = strength * coverageAdjustment * sourceDiversityFactor * typeDiversityFactor;
   const rawScore = Math.round(5.5 + 4.5 * adjustedStrength);
-  let score = Math.max(1, Math.min(10, rawScore));
-
-  const salienceBypass = evaluateHighSalienceBypass(
-    items,
-    evidenceMass,
-    score,
-    opts.salienceContext ?? {},
-  );
-
-  const floorResult = applyThinEvidenceFloor(score, evidenceMass, applyFloor, salienceBypass);
-  score = floorResult.score;
+  const score = Math.max(1, Math.min(10, rawScore));
 
   return {
     score,
@@ -366,6 +354,26 @@ export function scoreFromItems(items, componentId, totalArticles, articleSet, so
     typeDiversityFactor,
     signalTypeEntropy,
     adjustedStrength,
+  };
+}
+
+/**
+ * Post-scoring policy: thin-evidence floor flags and high-salience bypass metadata.
+ * @param {ReturnType<typeof scoreFromItems>} base
+ */
+export function applySaliencePostScoringPolicy(base, items, opts = {}) {
+  if (!base) return null;
+  const applyFloor = opts.applyFloor !== false;
+  const salienceBypass = evaluateHighSalienceBypass(
+    items,
+    base.evidenceMass,
+    base.score,
+    opts.salienceContext ?? {},
+  );
+  const floorResult = applyThinEvidenceFloor(base.score, base.evidenceMass, applyFloor, salienceBypass);
+  return {
+    ...base,
+    score: floorResult.score,
     floorClamped: floorResult.floorClamped,
     floorBypassed: floorResult.floorBypassed,
     salienceCritical: salienceBypass.operatorCritical === true,
@@ -410,7 +418,11 @@ export function counterfactualLargestArticle(items, componentId, totalArticles, 
     if (it.signal.source_type) sourceSet.add(it.signal.source_type);
   }
   const capped = applySourceCap(remaining);
-  const sc = scoreFromItems(capped, componentId, totalArticles, articleSet, sourceSet);
+  const sc = applySaliencePostScoringPolicy(
+    scoreFromItems(capped, componentId, totalArticles, articleSet, sourceSet),
+    capped,
+    { applyFloor: true },
+  );
   if (sc) {
     return {
       counterfactual_article_key: topKey,

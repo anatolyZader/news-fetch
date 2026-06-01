@@ -122,6 +122,34 @@ export const CORE_CHAT_TOOLS = [
       },
     },
   },
+  {
+    name: 'list_attention_items',
+    description:
+      'List ranked attention items for today\'s assessment (data void, patterns, thin evidence, recommendations).',
+    input_schema: {
+      type: 'object',
+      properties: {
+        limit: { type: 'number', description: 'Max items (default 15, max 25).' },
+      },
+    },
+  },
+  {
+    name: 'list_operator_recommendations',
+    description:
+      'List operator recommendations from today\'s assessment (pending, acknowledged, dismissed).',
+    input_schema: {
+      type: 'object',
+      properties: {
+        status: { type: 'string', enum: ['pending', 'acknowledged', 'dismissed', 'all'], description: 'Default pending.' },
+      },
+    },
+  },
+  {
+    name: 'get_decision_brief',
+    description:
+      'Get the batch-generated operator decision brief (summary and priority items) for today\'s assessment.',
+    input_schema: { type: 'object', properties: {} },
+  },
 ];
 
 export const ANALYST_READ_TOOLS = [
@@ -250,6 +278,19 @@ export const ANALYST_READ_TOOLS = [
       },
     },
   },
+  {
+    name: 'search_similar_articles',
+    description: 'Search the source archive for articles similar to a query (analyst / validation investigate).',
+    input_schema: {
+      type: 'object',
+      properties: {
+        query: { type: 'string' },
+        top_k: { type: 'number' },
+        date: { type: 'string', description: 'Report date YYYY-MM-DD (optional).' },
+      },
+      required: ['query'],
+    },
+  },
 ];
 
 export const PROPOSE_TOOLS = [
@@ -302,6 +343,26 @@ export const PROPOSE_TOOLS = [
   },
 ];
 
+export const OPERATOR_PROPOSE_TOOLS = [
+  {
+    name: 'propose_operator_recommendation',
+    description:
+      'Propose acknowledging or dismissing a pending operator recommendation from today\'s assessment ' +
+      '(requires user confirmation in UI). Does NOT execute immediately.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        recommendation_id: { type: 'string', description: 'ID from operator_recommendations (e.g. rec:information_vacuum_rumor).' },
+        scope: { type: 'string', description: 'Report scope (national, north, …).' },
+        date: { type: 'string', description: 'Assessment date YYYY-MM-DD.' },
+        action: { type: 'string', enum: ['acknowledge', 'dismiss'] },
+        rationale: { type: 'string', description: 'Optional note for audit log.' },
+      },
+      required: ['recommendation_id', 'action'],
+    },
+  },
+];
+
 /** Tool name subsets for scoped chat modes. null profile = full default set. */
 export const TOOL_PROFILES = {
   default: null,
@@ -312,6 +373,7 @@ export const TOOL_PROFILES = {
     'lookup_signals',
     'search_sources',
     'get_source',
+    'search_similar_articles',
     'propose_validation_decision',
   ],
   sources: [
@@ -331,6 +393,9 @@ function filterToolsByProfile(tools, profile) {
 export function buildChatToolList(opts = {}) {
   const profile = opts.toolProfile ?? 'default';
   let tools = [...CORE_CHAT_TOOLS];
+  if (opts.confirmActionsEnabled) {
+    tools.push(...OPERATOR_PROPOSE_TOOLS);
+  }
   if (opts.analystToolsEnabled && opts.isAnalyst) {
     tools.push(...ANALYST_READ_TOOLS);
     if (opts.confirmActionsEnabled) {
@@ -351,6 +416,7 @@ export function buildSystemTemplateToolList(opts = {}) {
       '- explain_validation_item: one-shot explanation of a flagged item',
       '- lookup_signals: behavioral signal evidence',
       '- search_sources / get_source: original archive documents',
+      '- search_similar_articles: archive similarity search',
     ];
     if (opts.confirmActionsEnabled) {
       lines.push(
@@ -370,7 +436,15 @@ export function buildSystemTemplateToolList(opts = {}) {
     '- compare_dates: compare two assessment dates',
     '- generate_brief: formatted brief for an audience',
     '- list_sources / search_sources / get_source: original archive documents',
+    '- list_attention_items: ranked what-needs-attention queue',
+    '- list_operator_recommendations: pending suggested actions',
+    '- get_decision_brief: batch operator decision brief',
   ];
+  if (opts.confirmActionsEnabled) {
+    core.push(
+      '- propose_operator_recommendation: acknowledge/dismiss pending operator recommendations (user must confirm)',
+    );
+  }
   if (opts.analystToolsEnabled && opts.isAnalyst) {
     core.push(
       '- search_pbo_history / list_pbo_reviews / get_pbo_review: PBO analyst tools',
@@ -378,6 +452,7 @@ export function buildSystemTemplateToolList(opts = {}) {
       '- list_validation_queue / get_validation_item / explain_validation_item: validation review queue',
       '- list_geo_unknown: geo unknown locality queue',
       '- list_catalog_proposals / get_catalog_gap_summary: OOV catalog proposals',
+      '- search_similar_articles: archive similarity for validation investigate',
     );
     if (opts.confirmActionsEnabled) {
       core.push(

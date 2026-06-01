@@ -2,9 +2,9 @@
  * Read analyst confirmation for social channel quarantine from validation store.
  */
 
+import { getDefaultStateStore } from '../../../../cross-cut-modules/persistence/infrastructure/fsStateStoreAdapter.js';
+const stateStore = getDefaultStateStore();
 import { resolve } from 'node:path';
-import { existsSync } from 'node:fs';
-
 import { createValidationReviewSqliteStore } from '../../validation/infrastructure/adapters/validationReviewSqliteStore.js';
 import { isValidationReviewSqliteEnabled } from '../../validation/infrastructure/adapters/validationReviewSqliteStore.js';
 import {
@@ -30,7 +30,7 @@ export function defaultValidationDbPath(env = process.env) {
 export function tryOpenValidationStore(env = process.env) {
   if (!isValidationReviewSqliteEnabled(env)) return null;
   const dbPath = defaultValidationDbPath(env);
-  if (!existsSync(dbPath)) return null;
+  if (!stateStore.existsSync(dbPath)) return null;
   try {
     return createValidationReviewSqliteStore(dbPath);
   } catch {

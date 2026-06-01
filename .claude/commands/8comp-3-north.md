@@ -79,8 +79,8 @@ node business_modules/resilience/input/assess-signals.js --date <target date> --
 This writes a separate report file named like:
 
 ```
-reports/resilience-report-north-<target date>-<HHMM>.json
-reports/resilience-report-north-<target date>-<HHMM>.md
+daily_reports/resilience-report-north-<target date>-<HHMM>.json
+daily_reports/resilience-report-north-<target date>-<HHMM>.md
 ```
 
 `pipeline-config.json` must have `"social": { "enabled": true }` so social bundles enter the assessment.

@@ -49,7 +49,7 @@ export async function runPboEventLogCli() {
   const reportDate = dateArg ?? inferDate(parsedLog, new Date().toISOString().slice(0, 10));
   const outputBase =
     outputArg?.replace(/\.(md|json)$/, '') ??
-    resolve('reports', `event-report-${reportDate}`);
+    resolve('daily_reports', `event-report-${reportDate}`);
 
   console.error(`\nPBO Event Log Resilience Analysis`);
   console.error(`==================================`);

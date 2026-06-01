@@ -78,6 +78,34 @@ describe('assessmentDisplayTier', () => {
     );
   });
 
+  it('deriveInstrumentState exposes raw metrics on instrument', () => {
+    const inst = deriveInstrumentState({
+      evidence_mass: 5.2,
+      polarization: 0.72,
+      certainty: 0.8,
+      source_diversity: 3,
+      source_cap_binding: true,
+      suppression_delta: 1.2,
+      distinct_article_count: 4,
+      signal_count: 6,
+    });
+    assert.equal(inst.evidence_mass, 5.2);
+    assert.equal(inst.polarization_band, 'contested');
+    assert.equal(inst.suppression_active, true);
+    assert.equal(inst.distinct_article_count, 4);
+  });
+
+  it('deriveInstrumentState includes analyst top_contributors only for analyst view', () => {
+    const comp = {
+      evidence_mass: 5,
+      signals: [{ signal_type: 'rumor_spread', evidence: 'x', _contribution_raw: 1.2 }],
+    };
+    const op = deriveInstrumentState(comp, { view: 'operator' });
+    const an = deriveInstrumentState(comp, { view: 'analyst' });
+    assert.equal(op.top_contributors, undefined);
+    assert.equal(an.top_contributors?.length, 1);
+  });
+
   it('operatorAssessmentSummary has no /10', () => {
     const line = operatorAssessmentSummary({
       report_scope: { label: 'National' },

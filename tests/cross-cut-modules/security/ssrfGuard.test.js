@@ -71,6 +71,7 @@ describe('validateProductionSecurity', () => {
     APP_CHECK_ENFORCE: 'true',
     TRUST_PROXY: 'true',
     ENABLE_HSTS: 'true',
+    ENABLE_STRICT_CSP: 'true',
     SECURITY_CONTACT_EMAIL: 'security@example.org',
     RESILIENCE_PROBE_HMAC_SECRET: 'secret',
   };
@@ -145,8 +146,13 @@ describe('validateProductionSecurity', () => {
     );
   });
 
-  it('returns no production warnings', () => {
-    assert.deepEqual(productionSecurityWarnings({ NODE_ENV: 'production', ENABLE_SWAGGER: 'true' }), []);
+  it('warns when claims sync on start is disabled in production', () => {
+    const warnings = productionSecurityWarnings({ NODE_ENV: 'production' });
+    assert.ok(warnings.some((w) => w.includes('SYNC_USER_CLAIMS_ON_START')));
+    assert.deepEqual(
+      productionSecurityWarnings({ NODE_ENV: 'production', SYNC_USER_CLAIMS_ON_START: 'true' }),
+      [],
+    );
   });
 });
 

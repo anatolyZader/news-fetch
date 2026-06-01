@@ -48,7 +48,7 @@ Run these first, in order:
 2. `curl -sS http://SERVER/api/auth/config` — what's the auth posture?
 3. `curl -sS -o /dev/null -w "%{http_code}\n" http://SERVER/api/docs/index` — is `docs/product_docs/` deployed?
 4. `curl -sS -o /dev/null -w "%{http_code}\n" http://SERVER/api/report/today` — is today's report cached?
-5. `ls signals/ reports/ business_modules/news-sites/articles_extracted/` — which stages produced artifacts today?
+5. `ls signals/ daily_reports/ business_modules/news-sites/articles_extracted/` — which stages produced artifacts today?
 
 Each step halves the possible causes. Don't skip ahead.
 
@@ -65,7 +65,7 @@ Each step halves the possible causes. Don't skip ahead.
 
 **Symptom**: UI Report tab shows yesterday's date with a yellow banner.
 
-- **Check**: `ls signals/signals-*-$(date +%F).json reports/*$(date +%F)*` — did today's pipeline run?
+- **Check**: `ls signals/signals-*-$(date +%F).json daily_reports/*$(date +%F)*` — did today's pipeline run?
 - **Fix**: run `./scripts/daily-pipeline.sh`. If it failed mid-stage, run the missing stage explicitly. Hard-refresh the UI after the assessment completes.
 
 #### P3 — Every `/api/*` returns 401

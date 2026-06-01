@@ -9,7 +9,7 @@ import Chip from '@mui/material/Chip';
 import CloudUploadOutlinedIcon from '@mui/icons-material/CloudUploadOutlined';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
-import { authFetch, authFetchFormData, buildAuthHeaders } from '../lib/authFetch.js';
+import { authFetch, authFetchFormData } from '../lib/authFetch.js';
 import { ModalPanel } from '../ui/ModalPanel.jsx';
 import { PanelWindowShell } from '../ui/PanelWindowShell.jsx';
 import { panelHeaderButtonSx, panelInsetBoxSx, panelSectionRadius } from '../ui/panelChrome.js';
@@ -321,6 +321,10 @@ export function SendEvidencePanel({ open, onClose, onSubmissionComplete, variant
     });
   }, []);
 
+  const removePendingFile = useCallback((file) => {
+    setPendingFiles((prev) => prev.filter((x) => x !== file));
+  }, []);
+
   const onDrop = useCallback(
     (e) => {
       e.preventDefault();
@@ -470,7 +474,7 @@ export function SendEvidencePanel({ open, onClose, onSubmissionComplete, variant
                 key={`${f.name}-${f.size}`}
                 size="small"
                 label={f.name}
-                onDelete={() => setPendingFiles((prev) => prev.filter((x) => x !== f))}
+                onDelete={() => removePendingFile(f)}
               />
             ))}
             <Button size="small" sx={panelHeaderButtonSx} onClick={() => setPendingFiles([])}>
@@ -529,8 +533,6 @@ export function SendEvidencePanel({ open, onClose, onSubmissionComplete, variant
       <PanelWindowShell
         title={t('app.sendEvidence')}
         ariaLabel={t('app.sendEvidence')}
-        onClose={() => handleClose(undefined, 'closeButtonClick')}
-        closeLabel={t('app.close')}
       >
         {body}
       </PanelWindowShell>

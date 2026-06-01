@@ -17,7 +17,7 @@ Explain how Srulik's lab's authentication works as a system: who issues tokens, 
 - **Useful**: Familiarity with Firebase Auth / Google Identity Platform, though the concept works the same with any OIDC-style provider.
 
 ## Inputs
-- **Server env**: `AUTH_REQUIRED`, `FIREBASE_PROJECT_ID` (and, in production, a runtime service account).
+- **Server env**: `AUTH_REQUIRED`, `FIREBASE_PROJECT_ID`, `AUTH_REQUIRE_LISTED_USER`, `APP_CHECK_ENFORCE`, `SYNC_USER_CLAIMS_ON_START` (and, in production, a runtime service account).
 - **Client env** (build-time): `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAIN`, `VITE_FIREBASE_PROJECT_ID`.
 - **Requests**: protected endpoints expect `Authorization: Bearer <idToken>` from signed-in users.
 
@@ -31,7 +31,8 @@ Explain how Srulik's lab's authentication works as a system: who issues tokens, 
 - **The browser never sees server credentials.** It holds only Firebase web config (API key, auth domain, project ID), which is intentionally public — identity, not authority.
 - **Build-time vs. runtime.** Client config is baked into the JS bundle at build time. Server config is read at runtime. Rotations affect different things: changing `VITE_FIREBASE_*` means rebuild + redeploy; changing server env means restart.
 - **Tokens expire.** The client SDK refreshes ID tokens before expiry automatically. The server accepts any valid non-expired token from the configured project.
-- **Authorization (who can do what) is out of scope here.** This page is about authentication (is the caller signed in?). Role-based authorization is a separate concern; today, the system is effectively flat.
+- **Membership gate:** When `AUTH_REQUIRE_LISTED_USER` is true (default in production), the email on the JWT must appear in `config/userAccess.json` or `RESILIENCE_*_EMAILS` env overrides. Otherwise the API returns `403` with `forbidden_not_invited`.
+- **Authorization (roles)** uses the same registry: operator / analyst / maintainer, plus optional operator district scoping.
 
 ## How a request actually flows
 

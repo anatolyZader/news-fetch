@@ -17,12 +17,12 @@ import { basename, dirname, extname, resolve } from 'node:path';
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
-import { extractSignals } from '../../resilience/infrastructure/claudeEvaluator.js';
+import { getDefaultResilienceLlmPort } from '../../resilience/index.js';
 import { createCostTracker, appendCostLog, checkDailyBudget } from '../../../cross-cut-modules/budget/index.js';
 import { enrichSignalsWithGeo } from '../../../cross-cut-modules/geo/enrichSignalsWithGeo.js';
-import { createSourceArchive } from '../../../cross-cut-modules/source_archive/createSourceArchive.js';
-import { persistOriginalSources } from '../../../cross-cut-modules/source_archive/persistOriginals.js';
-import { buildArchiveSourceId } from '../../../cross-cut-modules/source_archive/sourceId.js';
+import { createSourceArchive } from '../../../db/source_archive/createSourceArchive.js';
+import { persistOriginalSources } from '../../../db/source_archive/persistOriginals.js';
+import { buildArchiveSourceId } from '../../../db/source_archive/sourceId.js';
 import { createRetrievalService } from '../../../cross-cut-modules/retrieval/createRetrievalService.js';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
@@ -127,7 +127,7 @@ async function run() {
   console.error(`Files: ${filePaths.map((f) => basename(f)).join(', ')}`);
   console.error(`Articles loaded: ${articles.length}\n`);
 
-  const rawSignals = await extractSignals(articles, { onUsage, contentKind: 'field_report' });
+  const rawSignals = await getDefaultResilienceLlmPort().extractSignals(articles, { onUsage, contentKind: 'field_report' });
   let signals = rawSignals.map((s) => ({ ...s, source_type: 'pbo_regional' }));
 
   try {

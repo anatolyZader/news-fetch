@@ -1,5 +1,5 @@
 /**
- * Filesystem adapter for reports/oov-capture-*.jsonl
+ * Filesystem adapter for daily_reports/oov-capture-*.jsonl
  */
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
@@ -13,7 +13,7 @@ export class LearningCaptureFsAdapter extends ILearningCapturePort {
    */
   constructor(opts = {}) {
     super();
-    this.reportsDir = opts.reportsDir ?? 'reports';
+    this.reportsDir = opts.reportsDir ?? 'daily_reports';
   }
 
   /**

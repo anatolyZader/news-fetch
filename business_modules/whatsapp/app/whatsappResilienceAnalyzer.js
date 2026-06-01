@@ -12,18 +12,21 @@
  *                 structured{ observation, interpretation, componentLinks, confidence } }.
  */
 
-import Anthropic from '@anthropic-ai/sdk';
+import { createAnthropicLlmPort } from '../../../cross-cut-modules/llm/anthropicLlmAdapter.js';
 import { attachGeoToSignalsAndStructured } from '../../../cross-cut-modules/geo/attachGeoToSignals.js';
 import {
   inferLocalityFromText,
   normalizeLocalityName,
 } from '../../../cross-cut-modules/geo/localityCandidate.js';
-import { buildSignalExtractionSystemPrompt, extractJsonArray } from '../../resilience/infrastructure/claudeEvaluator.js';
-import { applySourceNativeGrounding } from '../../resilience/infrastructure/sourceNativeGrounding.js';
-import { createNoOpGeoEnrichmentPort } from '../../resilience/infrastructure/adapters/geoEnrichmentAdapter.js';
-import { enrichFieldProvenance } from '../../resilience/domain/services/fieldSignalPolicy.js';
+import {
+  buildSignalExtractionSystemPrompt,
+  extractJsonArray,
+  applySourceNativeGrounding,
+  createNoOpGeoEnrichmentPort,
+  enrichFieldProvenance,
+  SIGNAL_TYPES,
+} from '../../resilience/index.js';
 import { COMPONENT_IDS, SPREAD_VALUES, SOURCE_BASIS_VALUES, COMPARISON_VALUES, DIRECTION_VALUES, CONFIDENCE_LEVELS } from '../domain/evidenceRequirements.js';
-import { SIGNAL_TYPES } from '../../resilience/domain/services/behaviorSignals.js';
 
 const VALID_SIGNAL_TYPES = new Set(SIGNAL_TYPES);
 const VALID_EVIDENCE_TYPES = new Set([
@@ -237,12 +240,12 @@ function postNormalizeStructured(structured, rawText) {
  */
 export function createWhatsAppResilienceAnalyzer({ anthropicApiKey, geoEnrichmentPort }) {
   const geoPort = geoEnrichmentPort ?? createNoOpGeoEnrichmentPort();
-  const client = new Anthropic({ apiKey: anthropicApiKey });
+  const llmPort = createAnthropicLlmPort({ apiKey: anthropicApiKey });
   const realtimeSystemPrompt = buildSignalExtractionSystemPrompt('whatsapp_realtime');
   const interactiveSystemPrompt = buildSignalExtractionSystemPrompt('whatsapp_interactive');
 
   async function callModel({ system, userContent, maxTokens }) {
-    const response = await client.messages.create({
+    const response = await llmPort.createMessage({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: maxTokens,
       temperature: 0,

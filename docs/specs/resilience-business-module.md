@@ -78,7 +78,7 @@ All upstream modules map their output into this shape (or the composition root m
 | `signals` | Array of extracted behavioral signals (type, polarity, evidence, url, …) — **same schema as current pipeline**. |
 | `provenance` | `contentKind`, `itemCount`, optional `sourceRunId`, list of logical source labels. |
 
-**Persistence** (optional port): write Markdown + JSON under `reports/` (or path from config) — **same filenames/convention as today** unless a later spec changes storage.
+**Persistence** (optional port): write Markdown + JSON under `daily_reports/` (or path from config) — **same filenames/convention as today** unless a later spec changes storage.
 
 ---
 
@@ -123,7 +123,7 @@ runAssessment(batch: ResilienceContentBatch, options?: {
 | Adapter | Implements | Notes |
 |---------|------------|--------|
 | `anthropicResilienceLlmAdapter.js` | `IResilienceLlmPort` | Wraps current Haiku/Opus calls from legacy `claudeEvaluator.js`. |
-| `resilienceReportFsAdapter.js` | `IResilienceReportWriterPort` | Writes `.md` + `.json` under configured root (`reports/`). |
+| `resilienceReportFsAdapter.js` | `IResilienceReportWriterPort` | Writes `.md` + `.json` under configured root (`daily_reports/`). |
 
 Secrets (e.g. `ANTHROPIC_API_KEY`) are read only in infrastructure or bootstrap, not in domain.
 

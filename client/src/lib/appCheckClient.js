@@ -6,9 +6,11 @@ import { getApps } from 'firebase/app';
 import { initializeAppCheck, ReCaptchaEnterpriseProvider, getToken } from 'firebase/app-check';
 
 let appCheckInstance = null;
+let appCheckInitError = null;
 
-function getOrInitAppCheck() {
+export function ensureAppCheckInitialized() {
   if (appCheckInstance) return appCheckInstance;
+  if (appCheckInitError) return null;
   const apps = getApps();
   if (apps.length === 0) return null;
 
@@ -20,11 +22,20 @@ function getOrInitAppCheck() {
     globalThis.FIREBASE_APPCHECK_DEBUG_TOKEN = debugToken;
   }
 
-  appCheckInstance = initializeAppCheck(apps[0], {
-    provider: new ReCaptchaEnterpriseProvider(siteKey),
-    isTokenAutoRefreshEnabled: true,
-  });
-  return appCheckInstance;
+  try {
+    appCheckInstance = initializeAppCheck(apps[0], {
+      provider: new ReCaptchaEnterpriseProvider(siteKey),
+      isTokenAutoRefreshEnabled: true,
+    });
+    return appCheckInstance;
+  } catch (err) {
+    appCheckInitError = err;
+    return null;
+  }
+}
+
+function getOrInitAppCheck() {
+  return ensureAppCheckInitialized();
 }
 
 export async function getAppCheckToken(forceRefresh = false) {
@@ -33,7 +44,12 @@ export async function getAppCheckToken(forceRefresh = false) {
   try {
     const result = await getToken(check, forceRefresh);
     return result?.token ?? null;
-  } catch {
+  } catch (err) {
+    appCheckInitError = err;
     return null;
   }
+}
+
+export function getAppCheckLastError() {
+  return appCheckInitError;
 }

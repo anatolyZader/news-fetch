@@ -1,5 +1,6 @@
 import helmet from '@fastify/helmet';
 import rateLimit from '@fastify/rate-limit';
+import { registerSecurityAuditHooks } from './auditLog.js';
 
 function envInt(name, fallback) {
   const raw = process.env[name];
@@ -8,12 +9,32 @@ function envInt(name, fallback) {
   return Number.isFinite(n) && n > 0 ? n : fallback;
 }
 
+/** CSP additions for Firebase App Check + reCAPTCHA Enterprise (invisible). */
+function appCheckCspDirectives() {
+  if (process.env.APP_CHECK_ENFORCE !== 'true') {
+    return { scriptSrc: [], frameSrc: [] };
+  }
+  return {
+    scriptSrc: [
+      'https://www.google.com',
+      'https://www.gstatic.com',
+      'https://apis.google.com',
+    ],
+    frameSrc: [
+      'https://www.google.com',
+      'https://recaptcha.google.com',
+    ],
+  };
+}
+
 /**
  * @param {import('fastify').FastifyInstance} app
  * @param {{ authRequired?: boolean }} [opts]
  */
 export async function registerSecurityPlugins(app, _opts = {}) {
+  registerSecurityAuditHooks(app);
   const enableHsts = process.env.ENABLE_HSTS === 'true';
+  const appCheckCsp = appCheckCspDirectives();
 
   await app.register(helmet, {
     global: true,
@@ -22,11 +43,12 @@ export async function registerSecurityPlugins(app, _opts = {}) {
       : {
           directives: {
             defaultSrc: ["'self'"],
-            scriptSrc: ["'self'", "'unsafe-inline'"],
+            scriptSrc: ["'self'", "'unsafe-inline'", ...appCheckCsp.scriptSrc],
             styleSrc: ["'self'", "'unsafe-inline'"],
             imgSrc: ["'self'", 'data:', 'https:'],
             connectSrc: ["'self'", 'https:'],
             fontSrc: ["'self'", 'https:', 'data:'],
+            frameSrc: ["'self'", ...appCheckCsp.frameSrc],
             objectSrc: ["'none'"],
             frameAncestors: ["'self'"],
           },
@@ -110,6 +132,30 @@ export async function registerSecurityPlugins(app, _opts = {}) {
     },
     {
       method: 'POST',
+      url: '/api/validation/review-queue/:date/:scope/:articleKey/explain',
+      max: envInt('RATE_LIMIT_VALIDATION_EXPLAIN_MAX', 10),
+      key: 'uid',
+    },
+    {
+      method: 'POST',
+      url: '/api/validation/review-queue/:date/:scope/:articleKey/agent',
+      max: envInt('RATE_LIMIT_VALIDATION_AGENT_MAX', 8),
+      key: 'uid',
+    },
+    {
+      method: 'GET',
+      url: '/api/validation/review-queue/:date/:scope/:articleKey/context',
+      max: envInt('RATE_LIMIT_VALIDATION_CONTEXT_MAX', 30),
+      key: 'uid',
+    },
+    {
+      method: 'GET',
+      url: '/api/docs/search',
+      max: envInt('RATE_LIMIT_DOCS_SEARCH_MAX', 30),
+      key: 'uidOrIp',
+    },
+    {
+      method: 'POST',
       url: '/api/video/download-url',
       max: envInt('RATE_LIMIT_VIDEO_DOWNLOAD_MAX', 5),
       key: 'uid',
@@ -154,7 +200,7 @@ export async function registerSecurityPlugins(app, _opts = {}) {
       routeOptions.config = {
         ...routeOptions.config,
         rateLimit: {
-          max: envInt('RATE_LIMIT_AUTH_MAX', 30),
+          max: envInt('RATE_LIMIT_AUTH_MAX', 15),
           timeWindow: envInt('RATE_LIMIT_ROUTE_WINDOW_MS', 60_000),
           keyGenerator: (request) => request.ip,
           ...(typeof existing === 'object' ? existing : {}),

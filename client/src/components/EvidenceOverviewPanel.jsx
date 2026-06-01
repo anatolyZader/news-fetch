@@ -13,11 +13,8 @@ function formatTemplate(template, params = {}) {
   );
 }
 
-export function EvidenceOverviewPanel({ assessment, reportScope, displayTier }) {
+export function EvidenceOverviewPanel({ assessment, reportScope, displayTier: _displayTier }) {
   const { t } = useLanguage();
-
-  if (displayTier === 'analyst') return null;
-
   const counts = deriveEvidenceOverviewCounts(assessment);
   if (counts.total === 0) return null;
 

@@ -36,13 +36,14 @@ Explain what Srulik's lab persists, where those bytes live, how persistence inte
 
 | Data | Storage | Notes |
 |---|---|---|
-| Evidence items | SQLite | Normalized rows with provenance |
+| Evidence items | SQLite (`db/persistence/evidenceStore.js`) | Normalized rows with provenance |
+| Source archive (original full text) | SQLite (`db/persistence/sourceArchiveStore.js`, `db/source_archive/`) | Stable `source_id`; ops CLIs under `db/input/` |
 | WhatsApp messages | SQLite | Stored as received, with media references |
 | User submissions | SQLite | Manual evidence from the UI |
 | Drafts | SQLite | Optional; only populated if draft generation is enabled |
-| Reports (today, per date) | Filesystem (`reports/`) + cache | JSON/MD artifacts served via API |
+| Reports (today, per date) | Filesystem (`daily_reports/`) + cache | JSON/MD artifacts served via API |
 | Signals (per source, per date) | Filesystem (`signals/`) | `signals-<source>-YYYY-MM-DD.json` |
-| Source exports | Filesystem (`business_modules/*/articles_extracted/` or `reports/`) | Dated markdown |
+| Source exports | Filesystem (`business_modules/*/articles_extracted/`, module-specific dirs such as `whatsapp/reports/`) | Dated markdown |
 | Cost log | Filesystem (`cross-cut-modules/log/data/cost-log.jsonl`) | Append-only audit |
 
 ## Examples

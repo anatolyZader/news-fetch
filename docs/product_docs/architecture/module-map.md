@@ -59,10 +59,15 @@ Orient an integrator or developer to the repo's top-level layout so they can ans
 │   ├── pbo_report_muni/       # Municipality data
 │   ├── naftali/               # Political figure activity
 │   └── docs/                  # In-app docs surface helpers (if present)
+├── db/                        # SQLite file (gitignored) + persistence + source archive + ops CLIs
+│   ├── persistence/           # evidence, drafts, quota, source_archive table stores
+│   ├── source_archive/        # Original full-text upsert, IDs, retention, filesystem fallbacks
+│   └── input/                 # archive:backfill, archive:purge, rag:reindex, rag:eval
 ├── cross-cut-modules/
 │   ├── budget/                # Cost accounting, caps (writes via log/)
 │   ├── log/                   # Cost JSONL, pipeline logs, createLogger
-│   └── ...                    # Persistence helpers, LLM clients, shared utils
+│   ├── retrieval/             # RAG chunks (same SQLite DB as db/)
+│   └── ...                    # LLM clients, shared utils (legacy re-exports under persistence/ → db/)
 ├── client/
 │   └── src/                   # React SPA (Docs panel, dashboards, tabs)
 ├── tests/                     # node --test suite
@@ -73,7 +78,7 @@ Orient an integrator or developer to the repo's top-level layout so they can ans
 
 ### I want to add a new ingestion source
 
-1. Create `business_modules/<source>/` with `input/` for CLI entry points and a `reports/` or `articles_extracted/` dir for dated markdown exports.
+1. Create `business_modules/<source>/` with `input/` for CLI entry points and an `articles_extracted/` dir for dated markdown exports.
 2. Match the markdown format downstream extraction expects — look at `business_modules/news-sites/articles_extracted/` for a reference.
 3. Add an `npm run` script in `package.json` pointing at your entry point.
 4. (If using an LLM) route calls through the cross-cut LLM client so budget tracking works out of the box.

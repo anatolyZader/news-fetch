@@ -77,12 +77,23 @@ async function postJson(url, body, { getIdToken, getAppCheckToken } = {}) {
   headers.set('Content-Type', 'application/json');
   const res = await fetch(url, { method: 'POST', headers, body: JSON.stringify(body ?? {}) });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`);
+  if (!res.ok) {
+    const err = new Error(data?.error || `HTTP ${res.status}`);
+    err.code = data?.code;
+    throw err;
+  }
   return data;
 }
 
 export function ReportBuildPanel({ open, onClose, variant = 'modal' }) {
-  const { getIdToken, getAppCheckToken } = useAuth();
+  const {
+    getIdToken,
+    getAppCheckToken,
+    apiReady,
+    appCheckRequired,
+    appCheckError,
+    costlyRouteReady,
+  } = useAuth();
   const { t } = useLanguage();
   const tRef = useRef(t);
   useLayoutEffect(() => {
@@ -139,8 +150,14 @@ export function ReportBuildPanel({ open, onClose, variant = 'modal' }) {
       setState('collecting');
       setQuestions([]);
       setPreview('');
+      return true;
     } catch (e) {
-      setError(e?.message ?? tRef.current('reportBuild.errorStart'));
+      const code = e?.code;
+      const msg = code === 'missing_app_check' || code === 'invalid_app_check'
+        ? tRef.current('reportBuild.errorAppCheck')
+        : (e?.message ?? tRef.current('reportBuild.errorStart'));
+      setError(msg);
+      return false;
     } finally {
       setBusy(false);
     }
@@ -165,6 +182,16 @@ export function ReportBuildPanel({ open, onClose, variant = 'modal' }) {
       setBusy(false);
     }
   }, [getIdToken, onClose, resetUi]);
+
+  useEffect(() => {
+    if (variant !== 'window') return undefined;
+    const onPageHide = () => {
+      if (!sessionActiveRef.current) return;
+      void postJson('/api/report-build/cancel', {}, { getIdToken, getAppCheckToken }).catch(() => {});
+    };
+    globalThis.addEventListener('pagehide', onPageHide);
+    return () => globalThis.removeEventListener('pagehide', onPageHide);
+  }, [variant, getIdToken, getAppCheckToken]);
 
   const sendTurn = useCallback(async () => {
     const text = input.trim();
@@ -307,14 +334,19 @@ export function ReportBuildPanel({ open, onClose, variant = 'modal' }) {
   }, [busy, getIdToken]);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      sessionActiveRef.current = false;
+      return;
+    }
+    if (!apiReady || !costlyRouteReady) return;
     if (sessionActiveRef.current) return;
     sessionActiveRef.current = true;
     void (async () => {
       resetUi();
-      await start();
+      const ok = await start();
+      if (!ok) sessionActiveRef.current = false;
     })();
-  }, [open, resetUi, start]);
+  }, [open, apiReady, costlyRouteReady, resetUi, start]);
 
   // Typewriter effect for follow-up questions (fast).
   useEffect(() => {
@@ -380,7 +412,17 @@ export function ReportBuildPanel({ open, onClose, variant = 'modal' }) {
     };
   }, [open, preview, displayQuestionsKey]);
 
-  const headerRight = (
+  const headerRight = variant === 'window' ? (
+    <Button
+      variant="outlined"
+      size="small"
+      sx={panelHeaderButtonSx}
+      onClick={() => void start()}
+      disabled={busy}
+    >
+      {t('app.restart')}
+    </Button>
+  ) : (
     <>
       <Button
         variant="outlined"
@@ -410,6 +452,12 @@ export function ReportBuildPanel({ open, onClose, variant = 'modal' }) {
         </Typography>
 
         {error && <Alert severity="error">{error}</Alert>}
+        {!error && appCheckError && (
+          <Alert severity="error">{t('reportBuild.errorAppCheck')}</Alert>
+        )}
+        {!error && !appCheckError && appCheckRequired && !costlyRouteReady && (
+          <Alert severity="info">{t('reportBuild.preparingSecurity')}</Alert>
+        )}
         {success && <Alert severity="success">{success}</Alert>}
 
         {needsLocalityPicker && state === 'collecting' && (
@@ -536,8 +584,6 @@ export function ReportBuildPanel({ open, onClose, variant = 'modal' }) {
       <PanelWindowShell
         title={t('app.writeReport')}
         ariaLabel={t('app.writeReport')}
-        onClose={() => handlePanelClose(undefined, 'closeButtonClick')}
-        closeLabel={t('app.close')}
         headerRight={headerRight}
       >
         {body}

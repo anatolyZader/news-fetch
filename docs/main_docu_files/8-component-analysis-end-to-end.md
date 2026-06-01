@@ -6,7 +6,7 @@
 **Framework:** Pikud HaOref / פיקוד העורף (Home Front Command) Community Resilience Model — based on Fran Norris (2008) and Israeli Civil Defense doctrine
 **Scope of this document:** the *complete* implementation reference — meaning of "community resilience" in this system, the eight components in depth, the full pipeline (data sources → ingestion → extraction → verification → deterministic scoring → reliability instruments → narration → reports → UI), the math, the operational guardrails, the QA harness, the practical reading guide for officers and reviewers, and the deferred-work backlog. Everything previously split across multiple notes is consolidated here.
 
-**Last updated:** 2026-05-28
+**Last updated:** 2026-05-30
 
 It is written to match — line for line where possible — the implementation in:
 
@@ -14,7 +14,7 @@ It is written to match — line for line where possible — the implementation i
 - `business_modules/resilience/domain/services/behaviorSignals.js` (signal taxonomy + deterministic scoring)
 - `business_modules/resilience/domain/services/componentFacets.js` (per-component facets)
 - `business_modules/resilience/domain/services/regionSignalFilter.js` (geographic scoping)
-- `business_modules/resilience/infrastructure/claudeEvaluator.js` (LLM extraction + narrative synthesis constraints)
+- `business_modules/resilience/infrastructure/claudeExtraction.js` + `claudeNarratives.js` (barrel: `claudeEvaluator.js`)
 - `business_modules/resilience/infrastructure/signalVerification.js` (evidence verifier)
 - `business_modules/resilience/input/{extract-signals,assess-signals}.js` (CLIs)
 - `client/src/components/ReportView.jsx` (how the report is presented)
@@ -83,7 +83,7 @@ Stable IDs are used throughout JSON, code, and i18n keys.
 
 <!-- docs-sync:BEGIN components-at-a-glance -->
 
-> **Auto-synced** from `business_modules/resilience/domain/resilienceComponents.js` on 2026-05-28. Do not edit between sync markers.
+> **Auto-synced** from `business_modules/resilience/domain/resilienceComponents.js` on 2026-05-30. Do not edit between sync markers.
 
 | # | ID | English | Hebrew | What it measures (in one line) |
 |---|---|---|---|---|
@@ -104,7 +104,7 @@ Each component additionally exposes **2–4 facets** (defined in `business_modul
 
 <!-- docs-sync:BEGIN component-facets -->
 
-> **Auto-synced** from `business_modules/resilience/domain/services/componentFacets.js` on 2026-05-28. Do not edit between sync markers.
+> **Auto-synced** from `business_modules/resilience/domain/services/componentFacets.js` on 2026-05-30. Do not edit between sync markers.
 
 | Component | Facets |
 |---|---|
@@ -123,7 +123,7 @@ Every signal type listed in a facet must route into its parent component via `SI
 
 <!-- docs-sync:BEGIN components-detail -->
 
-> **Auto-synced** from `resilienceComponents.js + componentFacets.js` on 2026-05-28. Do not edit between sync markers.
+> **Auto-synced** from `resilienceComponents.js + componentFacets.js` on 2026-05-30. Do not edit between sync markers.
 
 
 Per-component reference below is regenerated from code. Extended narrative, signal-routing notes, and boundary rules in earlier manual sections may appear in pipeline stages §3+.
@@ -440,7 +440,7 @@ The pipeline is intentionally split into **auditable stages** so the LLM does pa
                                        │
                                        ▼
 ┌──────────────────────────────────────────────────────────────────────────┐
-│ E. WRITE — `reports/resilience-report-DATE-HHMM.{md,json}`               │
+│ E. WRITE — `daily_reports/resilience-report-DATE-HHMM.{md,json}`               │
 │   Markdown for humans, JSON for the web client / drift / API.            │
 └──────────────────────────────────────────────────────────────────────────┘
                                        │
@@ -642,7 +642,7 @@ Field survey analysis lives under **`business_modules/resilience`** (`surveyExce
 ## 6) Stage 2 — Signal extraction (LLM, closed vocabulary)
 
 Driver: `business_modules/resilience/input/extract-signals.js`
-Core logic: `business_modules/resilience/infrastructure/claudeEvaluator.js` (with `infrastructure/extractionPasses.js` for multipass and `infrastructure/signalVerification.js` for evidence checks).
+Core logic: `business_modules/resilience/infrastructure/claudeExtraction.js` (barrel re-export via `claudeEvaluator.js`; multipass in `extractionPasses.js`; verification in `signalVerification.js`).
 
 ### 6.1 The signal data model
 
@@ -650,7 +650,7 @@ Every emitted signal carries:
 
 | Field | Description |
 |---|---|
-| `signal_type` | One of ~40+ closed-vocabulary types in `SIGNAL_CATALOG` (see §6.2). |
+| `signal_type` | One of ~166 closed-vocabulary types in `SIGNAL_CATALOG` (see §6.2). |
 | `evidence` | A short verbatim/near-verbatim quote, observable action, or named statistic. *No journalist characterisations.* |
 | `evidence_type` | `direct_quote_named_person` \| `named_survey_statistic` \| `named_institutional_fact` \| `observational_reported_fact`. Closed enum. Drives the reliability weight. |
 | `scope_level` | `single_case` (0.35) \| `repeated_pattern` (0.65) \| `quantified_or_broad` (1.00). |
@@ -720,7 +720,7 @@ After the grouped passes, a 4th cheap Haiku call sends each candidate signal bac
 
 ### 6.5 Source-specific prompts
 
-Three prompt prefixes specialise the extraction by content kind, defined in `claudeEvaluator.js`:
+Three prompt prefixes specialise the extraction by content kind, defined in `claudeExtraction.js`:
 
 - **News** — default; emphasises atomic extraction, no journalist framing, preference for verbatim quotes.
 - **Radio** (`AUDIO_SIGNAL_EXTRACTION_PREFIX`) — explicit, very strict allow-list ("ONLY extract for civilians coping with the emergency, services operating or failing, community-level emergency response, emergency-caused economic hardship, psychological impact"); explicit deny-list of geopolitical analysis, military appointments, political punditry, Israeli-Palestinian commentary, criminal/accident investigations.
@@ -736,7 +736,7 @@ When `RESILIENCE_EXTRACT_RAG_ENABLED` (see [`LLM_CHAT.md`](LLM_CHAT.md) Tier 2 t
 
 ### 6.7 Optional dual-model agreement (E3)
 
-When `RESILIENCE_SECOND_EXTRACT=1`, `resilienceAnalysisService.js` runs a *second* `extractSignals` pass (optionally with a different model, via `RESILIENCE_SECOND_EXTRACT_MODEL`). `mergeDualExtractionSignals` flags signals that survive both passes with `_dual_pass_agreement: true`, and `contributionForSignal` then multiplies their evidence by `RESILIENCE_DUAL_AGREEMENT_BOOST` (default `1.05`, clamped to `[1, 1.2]`).
+**Not the daily pipeline default.** When `RESILIENCE_SECOND_EXTRACT=1`, the **evidence-submit auxiliary path** (`resilienceAnalysisService.js` via `POST /api/evidence-submit`) runs a second `extractSignals` pass (optionally with `RESILIENCE_SECOND_EXTRACT_MODEL`). Daily `extract-signals.js` CLI uses single-pass extraction unless you call the auxiliary service. `mergeDualExtractionSignals` flags signals that survive both passes with `_dual_pass_agreement: true`, and `contributionForSignal` multiplies their evidence by `RESILIENCE_DUAL_AGREEMENT_BOOST` (default `1.05`, clamped to `[1, 1.2]`).
 
 ---
 
@@ -759,7 +759,7 @@ Failures are dropped with an audit-log line. This eliminates the largest halluci
 
 ### 7.2 Embedding evidence rescue (N8)
 
-When `OPENAI_API_KEY` (or `RESILIENCE_EMBEDDING_API_KEY`) is set and `RESILIENCE_EMBEDDING_VERIFY=1` (default on with key), borderline failures from the n-gram verifier may be rescued by an OpenAI-embedding cosine similarity check. Tunables: `RESILIENCE_EMBEDDING_SIM_THRESHOLD` (default `0.82`), `RESILIENCE_EMBED_BORDERLINE_LOW`, `RESILIENCE_EMBEDDING_MODEL`. Single choke-point in `applyEvidenceVerifier` inside `claudeEvaluator.js` (NOT inside `assess-signals.js`).
+When `OPENAI_API_KEY` (or `RESILIENCE_EMBEDDING_API_KEY`) is set and `RESILIENCE_EMBEDDING_VERIFY=1` (default on with key), borderline failures from the n-gram verifier may be rescued by an OpenAI-embedding cosine similarity check. Tunables: `RESILIENCE_EMBEDDING_SIM_THRESHOLD` (default `0.82`), `RESILIENCE_EMBED_BORDERLINE_LOW`, `RESILIENCE_EMBEDDING_MODEL`. Single choke-point in `applyEvidenceVerifier` inside `claudeExtraction.js` (NOT inside `assess-signals.js`).
 
 ### 7.3 Within-batch dedup
 
@@ -830,7 +830,7 @@ When `RESILIENCE_EPISTEMIC_GEO_V2` is enabled (default; set `=0` for legacy):
 | metrics-unsafe resolved geo (`usableForMetrics: false`, north scope, low confidence) | **No** — context only | Yes |
 | `macro_national` (legacy reports only) | **No** — `macro_signals[]` bucket | National backdrop in synthesis only |
 
-Implementation: `evidenceEligibility.js` → `annotateSignalsEpistemics`, `partitionMacroSignals`, `metricsEligible`. North scope scores only `metricsSignals`; macro/context signals appear in `assessment.macro_signals` (operator API redacts to `macro_signals_summary`).
+Implementation: `evidenceEligibility.js` → `annotateSignalsEpistemics`, `partitionMacroSignals`, `metricsEligible`. **Regional scope** (`isRegionalReportScope`) scores only `metricsSignals`; macro/context signals appear in `assessment.macro_signals` (operator API redacts to `macro_signals_summary`).
 
 ### 8.10 Suppression transparency (analyst)
 
@@ -965,7 +965,7 @@ These five numbers are computed alongside the headline score and surfaced both i
 score_smoothed  = round(α · score_today + (1 − α) · score_yesterday)
 ```
 
-High-certainty days move the smoothed line faster; thin-evidence days nudge it slightly. Reads up to 14 trailing days of `reports/resilience-report-*.json` for context.
+High-certainty days move the smoothed line faster; thin-evidence days nudge it slightly. Reads up to 14 trailing days of `daily_reports/resilience-report-*.json` for context.
 
 **Calendar alignment (A6)**. The history series returned by `loadHistoricalScores` is now strictly **calendar-aligned**: it has length = `days` (default 14) for every known component, with `null` slots at calendar positions where the report was missing OR the component had `insufficient_data` on that day. `series[0]` therefore *always* means "yesterday" rather than "the most recent non-null prior day". When yesterday is `null`, EWMA falls back to today (no smoothing nudge) and `delta_score` is `null` — both via the `null` guards in `ewmaScore` / `enrichWithDeltaChannel`. The smoothed value is rendered in the UI as *"smoothed: N/10 (EWMA over recent days)"* whenever it differs from today's headline.
 
@@ -1114,7 +1114,7 @@ Post-parse validation includes `validateSuppressionCompliance()` (caveat require
 
 ### 11.1 Report writer
 
-`business_modules/resilience/infrastructure/reportWriter.js` writes three files to `reports/`:
+`business_modules/resilience/infrastructure/reportWriter.js` writes three files to `daily_reports/`:
 
 - `resilience-report-{date}-{HHMM}.md` — full markdown (scores, CIs) for analysts and offline audit.
 - `resilience-report-{date}-{HHMM}-brief.md` — operator-oriented markdown (narratives + evidence; no `/10`).
@@ -1133,66 +1133,65 @@ The markdown report contains:
 
 ### 11.2 Display tiers (operator vs analyst)
 
-Scoring still runs in code for every report (full JSON on disk under `reports/`). **What users see** is controlled by display tier logic in `business_modules/resilience/domain/services/assessmentDisplayTier.js`.
+Scoring still runs in code for every report (full JSON on disk under `daily_reports/`). **What users see** is controlled by display tier logic in `business_modules/resilience/domain/services/assessmentDisplayTier.js`.
 
 | Tier | Audience | API / UI | Contents |
 |------|----------|----------|----------|
-| **Operator (default)** | Field, municipal | `GET /api/report/today` (default) | Narratives, evidence lists, `instrument` flags per component (confidence, evidence sufficiency, contested, significant delta). **No** headline 1–10 scores, CIs, or drift sparklines. |
+| **Operator (default)** | Field, municipal | `GET /api/report/today` (default) | Attention queue, operator recommendations (HITL), component lenses filter, narratives, evidence, expanded `instrument` metrics (mass, polarization band, suppression). **No** headline 1–10 scores. |
 | **Internal (pipeline)** | Narrative LLM | `generateNarratives` prompt | Instrument tags by default (`RESILIENCE_NARRATIVE_INCLUDE_SCORES=false`). Set env to `true` to include numeric scores in the prompt again. |
-| **Analyst** | Calibration / reviewers | `GET /api/report/today?view=analyst` when authenticated email ∈ `RESILIENCE_ANALYST_EMAILS` | Full scores, CIs, EWMA, facets, drift (`GET /api/resilience/drift`). UI toggle appears only when `GET /api/resilience/display-capabilities` returns `canViewAnalyst: true`. |
+| **Analyst** | Calibration / reviewers | `GET /api/report/today?view=analyst` when `canViewAnalystDisplay(email)` is true | Same redacted API as operator (scores stripped at boundary); calibration uses **`GET /api/resilience/drift`** (instrument series default; score history toggle). Validation and catalog tools on analyst SPA. |
 
-When `RESILIENCE_ANALYST_EMAILS` is non-empty, drift endpoints return **403** unless the caller is an allowlisted signed-in user.
+Analyst access: `config/userAccess.json` levels `analyst` / `maintainer`, or env overrides `RESILIENCE_ANALYST_EMAILS` / `RESILIENCE_MAINTAINER_EMAILS` (`cross-cut-modules/auth/userAccess.js`). When analyst gating is active, drift and validation routes return **403** unless the caller qualifies.
 
 ### 11.3 Web UI
 
-`client/src/MainApp.jsx` splits navigation into **Daily Assessment** (report) and **data-source tabs** (`DataSourcesNav`): News, Radio, Social media, Trends, Visits, PBO reports, Pools (Naftali + Education), and Report bot.
+**Operator app** — `client/src/MainApp.jsx` splits navigation into **Daily Assessment** (report) and **data-source tabs** (`DataSourcesNav`): News, Radio, Social media, Trends, Visits, PBO reports, Pools (Naftali + Education), and Report bot. Daily Assessment renders `ReportView` with **`displayTier="operator"`** (instrument badges, no `/10` scores). Allowlisted analysts see an **Analyst view** link in the header (`getAnalystSiteUrl()` → separate SPA).
+
+**Analyst app** — `analyst-site/src/AnalystApp.jsx` is a dedicated analyst SPA (same shared `ReportView` component). It passes **`displayTier="analyst"`**, **`showValidationReview`**, drift sparklines, attention items, and **`CatalogProposalPanel`**. This is where validation review, catalog proposals, and full numeric scores live in the UI — not on the operator Daily Assessment tab.
 
 **District scope:** `DistrictScopeSwitcher` on Daily Assessment and on data-source tabs (News, Radio, Social media, Report bot, Visits) — scopes: `national | north | south | jerusalem | dan | haifa`. Regional reports use prefix `resilience-report-{scopeId}-*`.
 
-On **desktop**, footer actions and the chat launcher open **panel popups** (`client/src/lib/panelPopup.js`): Chat (SSE assistant), Write Report (`report_build`), Send Data (evidence upload), and Settings (mailing preferences). On smaller viewports, Chat uses an in-app slide-up panel instead.
+On **desktop**, footer actions and the chat launcher open **panel popups** (`client/src/lib/panelPopup.js`): Chat (SSE assistant), Write Report (`report_build`), Send Data (evidence upload), Docs, and Settings (mailing preferences). On smaller viewports, Chat uses an in-app slide-up panel instead.
 
-`client/src/components/ReportView.jsx` renders the assessment:
+`client/src/components/ReportView.jsx` renders the assessment (operator or analyst tier):
 
-**Operator mode (default):**
+**Operator mode** (main app default):
 
-1. **Epistemic banner** and **thin-evidence** warnings (from `assessment.methodology`).
-2. **Evidence overview** (scope label, counts of adequate / thin / contested components).
-3. The **executive synthesis**.
-4. Eight **component cards** with **instrument badges** (no `/10`), narrative, optional absent-manifestation hints, and evidence accordion.
+1. **Epistemic banner** and **evidence overview** (adequate / thin / contested counts).
+2. **What needs attention** — unified attention items (data void, presence gates, pattern-driven recommendations).
+3. **Decision brief** — batch LLM synthesis on `assessment.decision_brief` (`RESILIENCE_DECISION_BRIEF_ENABLED`; no 1–10 scores).
+4. **Suggested actions** — pending `operator_recommendations` with acknowledge/dismiss (also via chat `propose_operator_recommendation`).
+5. **Component lenses** filter bar (all / needs attention / thin / contested / per-component chips).
+6. **Executive synthesis** and eight **component cards** with instrument badges + raw metrics, narrative, evidence accordion.
 
-**Analyst mode** (toggle in report header when allowlisted):
+**Analyst mode** (`analyst-site` / `displayTier="analyst"`):
 
-1. **`ValidationReviewPanel`** — embedded review queue for flagged extraction articles (`GET/POST /api/validation/review-queue/*`); scroll target from Attention panel.
-2. **Overall resilience** (`assessment.overall_resilience_score`) with the same 1–10 label bands as components (`scoreLabel10` thresholds).
-2. A row of **component chips** (score + band label, with `Δ+1`/`Δ−1` adornments highlighted when significant).
-3. The **executive synthesis**.
-4. Eight **component cards**, each containing:
-   - Title + score with bootstrap CI underneath (e.g. `7 (CI: 6–8)`).
-   - **EWMA-smoothed score** annotation when `score_smoothed` differs from the headline (*"smoothed: N/10 (EWMA over recent days)"*).
-   - **Thin-evidence annotation** when `floor_clamped: true` (*"thin evidence — score floored into [3, 8]"*) — a visible warning that the headline is constrained by the min-mass floor.
-   - **CI-unstable annotation** when `ci_unstable: true` (*"CI unstable — bootstrap resamples often empty"*) — the displayed CI is a widened fallback rather than a tight resample distribution.
-   - **Top contributors** (top-3 `_contribution`-ordered signals): the fastest "why is this score what it is?" check. Each contributor signal also carries `_contribution_raw` (pre-cap mass) alongside `_contribution` (post-cap mass) so reviewers can see *what evidence really mattered* even after the source/article cap.
-   - The **markdown narrative**.
-   - **Facet bars** (2–4 per component, when defined).
-   - An **evidence accordion**:
-     - When `scoreBySource` is present: raw signals grouped from `score_by_source` (badges for `field`, `radio`, `naftali`, `press/news`, `pbo`).
-     - Otherwise: curated evidence strings from `comp.evidence`.
-5. Per-component **score sparklines** (from drift API) when analyst mode — see §14.
+1. **`ValidationReviewPanel`** and **`CatalogProposalPanel`**.
+2. Same decision-support surfaces as operator (attention, recommendations, filters) plus **Norris diagnostic lens** (4R diagnostics, no headline score tag).
+3. Per-component **polarization drift sparkline** by default; optional **score history** toggle for calibration.
+4. **Top contributors** (from `instrument.top_contributors` when scores redacted) for weight audit.
+5. Full numeric history on **`ResilienceDriftPanel`** (polarization default; score calibration toggle).
 
 ### 11.4 API surface
 
 | Endpoint | Description |
 |---|---|
-| `GET /api/report/today?view=operator\|analyst&scope=national\|north\|south\|jerusalem\|dan\|haifa` | Latest assessment redacted per tier. Operator view uses `-brief.md` when on disk (no `/10`). Response includes `display_view`; `analyst_denied: true` when analyst was requested but not allowlisted. |
+| `GET /api/report/today?view=operator\|analyst&scope=national\|north\|south\|jerusalem\|dan\|haifa` | Latest assessment redacted per tier. Operator view uses `-brief.md` when on disk (no `/10`). Response includes `display_view`, `attention_items`; `analyst_denied: true` when analyst was requested but not allowlisted. |
+| `POST /api/report/recommendations/:id/acknowledge` | Acknowledge or dismiss a pending `operator_recommendation` (persists to report JSON). |
 | `GET /api/resilience/display-capabilities` | `{ canViewAnalyst: boolean }` for the signed-in user (optional Bearer token). |
-| `GET /api/validation/review-queue?date=&scope=` | Analyst-only review queue items (flagged articles; requires `RESILIENCE_ANALYST_EMAILS`). |
+| `GET /api/validation/review-queue?date=&scope=` | Analyst-only review queue items (SQLite default + JSONL export). |
 | `GET /api/validation/review-queue/{date}/{scope}/{articleKey}` | Single queue item detail (analyst-only). |
-| `POST /api/validation/review-queue/{date}/{scope}/{articleKey}/decision` | Submit analyst label/decision (analyst-only). |
+| `GET /api/validation/review-queue/{date}/{scope}/{articleKey}/context` | RAG context bundle for review item. |
+| `POST /api/validation/review-queue/{date}/{scope}/{articleKey}/explain` | One-shot Haiku explain from frozen context. |
+| `POST /api/validation/review-queue/{date}/{scope}/{articleKey}/agent` | Multi-turn investigate agent (see [AGENTIC_MECHANISMS.md](./AGENTIC_MECHANISMS.md)). |
+| `POST /api/validation/review-queue/{date}/{scope}/{articleKey}/decision` | Submit analyst label/decision (incl. social quarantine confirm/dismiss). |
+| `GET /api/catalog-learning/proposals`, `GET …/proposals/:id` | Catalog proposal list/detail (analyst). |
+| `POST /api/catalog-learning/proposals/generate`, `POST …/proposals/:id/review` | LLM draft proposals + analyst review. |
 | `GET /api/pbo/municipal-reviews?date=` | Municipal PBO completeness review list (PBO reports → Local sub-tab). |
 | `GET/POST /api/pbo/municipal-reviews/{date}/{municipality}/*` | Review detail and officer reply thread. |
 | `GET /api/districts` | List of report scope ids for UI (`national` + five regional districts). |
 | `GET /api/operator/district-access` | Operator district registration check (regional access control). |
-| `GET /api/resilience/drift?scope=national\|north\|south\|jerusalem\|dan\|haifa&days=30` | Analyst-gated when `RESILIENCE_ANALYST_EMAILS` is set. Feeds **per-component score sparklines** in Report (analyst mode). Response also includes signal volume, polarization/certainty/erosion series, and `alerts` (max 90 days). Full multi-chart drift dashboard UI (`ResilienceDriftPanel`) is implemented but **not mounted** in the current client — use API or re-wire the component if you need the standalone dashboard. |
+| `GET /api/resilience/drift?scope=national\|north\|south\|jerusalem\|dan\|haifa&days=30` | Analyst-gated via `canViewAnalystDisplay`. Feeds **per-component score sparklines** in Report (analyst mode). Response also includes signal volume, polarization/certainty/erosion series, and `alerts` (max 90 days). Full multi-chart drift dashboard UI (`ResilienceDriftPanel`) is implemented but **not mounted** in the current client — use API or re-wire the component if you need the standalone dashboard. |
 | `GET /api/visits/...` | Field-reports dashboard (days, signals, municipalities). |
 | `GET /api/social-media/daily?date=&category=&lang=` | Social OSINT daily feed (`findings[]`). |
 | `POST /api/social-media/fetch-topic` | On-demand topic search (X / Telegram / Facebook). |
@@ -1201,8 +1200,13 @@ On **desktop**, footer actions and the chat launcher open **panel popups** (`cli
 | `GET /api/news-sites`, `GET /api/news-sites/daily?date=` | News ingest dashboard + daily article feed (News tab). |
 | `GET /api/radio`, `GET /api/radio/daily?date=` | Radio ingest dashboard + daily transcript feed (Radio tab). |
 | `GET /api/geo/resolve?name=` | Debug locality resolve (see [GEOGRAPHIC-ANALYSIS.md](./GEOGRAPHIC-ANALYSIS.md)). |
-| `POST /api/chat` (SSE) | Evidence-aware chat assistant (desktop popup or mobile slide-up). |
-| `POST /api/report-build/*` | Write Report guided drafting flow. |
+| `GET /api/geo/localities?q=&scope=` | Locality typeahead (report build). |
+| `GET /api/geo/unknown-queue`, `POST …/unknown-queue/:id/status` | Analyst unknown-locality review queue. |
+| `GET /api/chat/sessions*`, `POST /api/chat/sessions` | Chat session CRUD (SQLite-backed). |
+| `POST /api/chat` (SSE) | Evidence-aware chat assistant; body requires `sessionId`. |
+| `POST /api/chat/confirm-action` | HITL confirm for chat propose tools (analyst). |
+| `GET /api/docs/search?query=` | Product docs RAG (Docs panel). |
+| `POST /api/report-build/start`, `/turn`, `/suggest`, `/confirm`, `/cancel` | Write Report guided drafting flow. |
 | `GET /api/mail/preferences`, `POST /api/mail/send-digest` | Settings popup — mailing preferences and digest. |
 | `POST /api/translate` | Batch translation (reports, social OSINT UI) via `business_modules/translation/app/translationService.js` (route in `api/routes/reportRoutes.js`). |
 | `POST /api/video/download-url`, `POST /api/video/local-file` | Video/YouTube evidence ingest helpers via `business_modules/video/` (routes in `api/routes/reportRoutes.js`). |
@@ -1249,13 +1253,13 @@ Each `assess-signals` run writes `assessment.methodology` (phase label `multi_di
 
 ## 13) Reviewer overrides (removed in phase 1)
 
-Reviewer score challenges (`challenge_score` / `dispute_evidence`, `/api/resilience/overrides`, drift override-rate) were **removed** for the population-behavior officer rollout. Headline scores now always reflect deterministic `scoreComponents()` output with no post-hoc blend. Legacy `reports/overrides/*.jsonl` files on disk are ignored.
+Reviewer score challenges (`challenge_score` / `dispute_evidence`, `/api/resilience/overrides`, drift override-rate) were **removed** for the population-behavior officer rollout. Headline scores now always reflect deterministic `scoreComponents()` output with no post-hoc blend. Legacy `daily_reports/overrides/*.jsonl` files on disk are ignored.
 
 ---
 
 ## 14) Drift dashboard, alerts, and history
 
-`business_modules/resilience/infrastructure/reportHistoryReader.js` walks `reports/`, picks the canonical run per date (highest `total_articles_analyzed`, tie-break on mtime) for the requested scope. `app/driftService.js` aggregates and `input/driftRoutes.js` exposes:
+`business_modules/resilience/infrastructure/reportHistoryReader.js` walks `daily_reports/`, picks the canonical run per date (highest `total_articles_analyzed`, tie-break on mtime) for the requested scope. `app/driftService.js` aggregates and `input/driftRoutes.js` exposes:
 
 `GET /api/resilience/drift?scope=national|north|south|jerusalem|dan|haifa&days=30` (max 90).
 
@@ -1315,7 +1319,7 @@ All hermetic; wired into `npm test`.
 
 ### 15.3 Calibration
 
-- `npm run suggest-tuning` (or `node business_modules/resilience/tuning/scripts/suggestComponentTuning.js`) — scans national `reports/resilience-report-*.json`, fits per-component (`tanhK`, `certM`) by inverting the scoring math row-by-row and taking the median (B5 / Tier 7). Output is **advisory only**: `COMPONENT_TUNING` defaults stay in `behaviorSignals.js` untouched until a human edits them. Pass `--diff` to print only the components whose proposal moves by more than ±0.05 from current.
+- `npm run suggest-tuning` (or `node business_modules/resilience/tuning/scripts/suggestComponentTuning.js`) — scans national `daily_reports/resilience-report-*.json`, fits per-component (`tanhK`, `certM`) by inverting the scoring math row-by-row and taking the median (B5 / Tier 7). Output is **advisory only**: `COMPONENT_TUNING` defaults stay in `behaviorSignals.js` untouched until a human edits them. Pass `--diff` to print only the components whose proposal moves by more than ±0.05 from current.
   ```bash
   npm run suggest-tuning              # current and proposed for every component
   npm run suggest-tuning -- --diff    # diff only (suppresses unchanged rows)
@@ -1324,12 +1328,12 @@ All hermetic; wired into `npm test`.
 - **`calibrationPenalty.js`** — `score_calibrated` shrinks headline scores toward 5.5 using `calibration_trust` from validation record count + expert label fill rate.
 - **`weightSensitivity.js`** — Tier-3-gated shadow ±12% perturbation bands on `SIGNAL_TO_COMPONENTS`; analyst field `weight_sensitivity.fragile` when `band_width ≥ 2`.
 - **OOV / learning capture** (extraction hooks, default on via `RESILIENCE_OOV_CAPTURE`):
-  - `reports/oov-capture-{date}.jsonl` — unknown `signal_type`, self-check uncertain, zero-signal articles.
+  - `daily_reports/oov-capture-{date}.jsonl` — unknown `signal_type`, self-check uncertain, zero-signal articles.
   - Optional `RESILIENCE_RESIDUAL_CAPTURE=1` — open-vocab residual observations for zero-signal articles (`learningCapture.js`).
   - `assessment.oov_capture_count` on each assess run; validation review queue reason `oov_suggested`.
   - Cluster digest: `validation/scripts/oovClusterDigest.js`.
 - **Catalog learning** (`business_modules/catalogLearning/`):
-  - `npm run catalog-learning:gap-report` — clusters JSONL captures (prefix or embedding when `OPENAI_API_KEY` / vector index enabled) → `reports/catalog-gap-report.md`.
+  - `npm run catalog-learning:gap-report` — clusters JSONL captures (prefix or embedding when `OPENAI_API_KEY` / vector index enabled) → `daily_reports/catalog-gap-report.md`.
   - `ILearningCapturePort` + `learningCaptureFsAdapter`; kinds shared via `cross-cut-modules/learningCapture/`.
 - **Model card:** `docs/MODEL-CARD.md` — operator instruments, epistemic tiers, feature flags, known limits.
 
@@ -1350,7 +1354,7 @@ All hermetic; wired into `npm test`.
 
 **Operational phases:** `baseline` (default shadow collection) → `elevated` → `acute`. Auto-elevation from signal volume is **advisory only** (`auto_elevation.advisory_only: true`) — never auto-applied.
 
-**Review queue:** up to 15 flagged articles/day (high delta significance, counterfactual leverage, polarization, low extraction confidence, OOV suggested). **Analyst UI:** `ValidationReviewPanel` embedded in Report (analyst mode). **Ops:** CLI + JSONL artifacts under `validation/artifacts/review-queue/`.
+**Review queue:** up to 15 flagged articles/day (high delta significance, counterfactual leverage, polarization, low extraction confidence, OOV suggested). **Analyst UI:** `ValidationReviewPanel` on **`analyst-site`** (`AnalystApp.jsx`, `showValidationReview`). **Storage:** SQLite review queue default (`ValidationReviewSqliteStore` when `VALIDATION_REVIEW_SQLITE !== '0'`) plus JSONL export mirrors under `validation/artifacts/review-queue/`.
 
 **Acceptance tiers** (from config): Tier 1 = CI golden (`micro_F1 ≥ 0.55`, `macro_κ ≥ 0.40` in `golden-corpus.test.js`) + adversarial; Tier 2 = operational extraction targets (`micro_f1_min: 0.65`, `macro_kappa_min: 0.5` in config); Tier 3 = 30+ daily records → `npm run suggest-tuning`; Tier 4 = expert labels (Spearman ≥ 0.6); Tier 5 = shadow ridge weight fit (`signalWeightsFit.js`).
 
@@ -1364,6 +1368,7 @@ All hermetic; wired into `npm test`.
 - **`createCostTracker({ label })`** wraps every LLM call with token + cost accounting. Rolls up into `cost-log.jsonl` at run end.
 - Default per-run **cost cap**: ~$3.00. Typical news-only run: ~$0.18–0.26 (Haiku pre-filter ~$0.01; Haiku extraction ~$0.07–0.10; Sonnet narrative ~$0.10–0.15).
 - **Stage instrumentation (C9)**: `applyEvidenceVerifier` and `runSelfCheck` emit per-stage stats events (`{ kept, dropped, input, reason_counts }`) into the cost tracker. `appendCostLog` aggregates them under a `stages` block in `cost-log.jsonl`, so we can later inspect per-stage kill rates without rerunning the pipeline (lets us decide whether the self-check earns its tokens).
+- **HTTP + interactive spend**: Chat, validation explain/agent, and report-build also append to the same log (`http:*` scripts) so `DAILY_BUDGET_USD` applies to UI traffic. Narrative relation judge is batched per component by default. See [COST_CONTROLS.md](./COST_CONTROLS.md).
 - **`pipeline-config.json` honoured at both stages (C1)**: `extract-signals.js` now reads the same config `assess-signals.js` does and exits 0 with a log line when the requested `--source-type` is disabled. The slash-command flow stays idempotent regardless of whether sources are toggled off mid-flight.
 
 Retry / recovery:
@@ -1392,7 +1397,8 @@ Required env vars:
 | `TELEGRAM_API_ID`, `TELEGRAM_API_HASH`, `TELEGRAM_SESSION` | Telegram MTProto for social OSINT |
 | `DATAFORSEO_LOGIN`, `DATAFORSEO_PASSWORD` | Search trends live fetch (Trends tab) |
 | `TRENDS_DEMO_MODE` | `1` = synthetic trends data, no live API |
-| `RESILIENCE_ANALYST_EMAILS` | Comma-separated emails allowed `?view=analyst` and analyst-only API routes (when non-empty) |
+| `RESILIENCE_ANALYST_EMAILS` | Env override: comma-separated emails for analyst tier (primary gate: `config/userAccess.json`) |
+| `RESILIENCE_MAINTAINER_EMAILS` | Env override for maintainer tier |
 | `RESILIENCE_NARRATIVE_INCLUDE_SCORES` | Default `false` — include 1–10 lines in narrative LLM prompt when `true` |
 | `RESILIENCE_EMBEDDING_VERIFY` | `0` to disable embedding rescue |
 | `RESILIENCE_EMBEDDING_SIM_THRESHOLD` | Default `0.82` |
@@ -1448,7 +1454,7 @@ node business_modules/resilience/input/assess-signals.js \
   --date 2026-05-04 --days 3 --scope north
 ```
 
-This loads up to 3 days each of news/radio/field/pbo/pbo_regional bundles within `{2026-05-04, 2026-05-03, 2026-05-02}`, applies temporal weights `{1.0, 0.85, 0.70}`, scope-filters signals to the north (always-north source types are kept unconditionally), runs `scoreComponents`, generates the narrative with a `national_comparison` block, and writes `reports/resilience-report-north-2026-05-04-HHMM.{md,json}`.
+This loads up to 3 days each of news/radio/field/pbo/pbo_regional bundles within `{2026-05-04, 2026-05-03, 2026-05-02}`, applies temporal weights `{1.0, 0.85, 0.70}`, scope-filters signals to the north (always-north source types are kept unconditionally), runs `scoreComponents`, generates the narrative with a `national_comparison` block, and writes `daily_reports/resilience-report-north-2026-05-04-HHMM.{md,json}`.
 
 ### 17.3 Slash command (recommended)
 
@@ -1521,7 +1527,7 @@ These items were proposed during the v3 sensitivity/reliability redesign but req
 
 ### 19.2 Requires score history (collected automatically; rerun in 30 days)
 
-- **Per-component K/m calibration (full 4c).** The `tanhK_c` / `certM_c` values in §8.3 are author-set heuristics. Once 30+ days of `reports/resilience-report-*.json` exist, fit `K`/`m` per component to actual evidence-mass distributions.
+- **Per-component K/m calibration (full 4c).** The `tanhK_c` / `certM_c` values in §8.3 are author-set heuristics. Once 30+ days of `daily_reports/resilience-report-*.json` exist, fit `K`/`m` per component to actual evidence-mass distributions.
 - **Data-driven weight tuning (T5).** Ridge regression with sign constraints on `SIGNAL_TO_COMPONENTS` weights against expert-labeled per-component scores. Stub: `business_modules/resilience/domain/services/signalWeightsFit.js` (`fitSignalWeightsRidgeMock` returns `null` until labelled data exists).
 
 ### 19.3 Requires an additional model run
@@ -1536,7 +1542,7 @@ Stable IDs (used in JSON, code, and i18n keys) and their English labels from `cl
 
 <!-- docs-sync:BEGIN appendix-ui-labels -->
 
-> **Auto-synced** from `client/src/i18n/translations.js (en + he)` on 2026-05-28. Do not edit between sync markers.
+> **Auto-synced** from `client/src/i18n/translations.js (en + he)` on 2026-05-30. Do not edit between sync markers.
 
 | ID | English UI label | Hebrew UI label |
 |---|---|---|
@@ -1644,7 +1650,7 @@ business_modules/
 │   └── infrastructure/chatStore.js              # Session persistence (SQLite)
 │
 ├── report_build/                                  # Write Report popup
-│   ├── input/reportBuildRoutes.js               # POST /api/report-build/*
+│   ├── input/reportBuildRoutes.js               # POST /api/report-build/start|turn|suggest|confirm|cancel
 │   └── app/reportBuildService.js
 │
 ├── mailing/                                       # Settings popup — digest preferences
@@ -1678,13 +1684,15 @@ business_modules/
     │   ├── resilienceAnalysisService.js           # Evidence-submit auxiliary path (api/routes/evidenceRoutes.js)
     │   └── runResilienceAnalysis.js               # Shared news/audio batch helper (not daily pipeline CLI)
     ├── infrastructure/
-    │   ├── claudeEvaluator.js                     # extractSignals + generateNarratives (Haiku + Sonnet)
+    │   ├── claudeExtraction.js                    # Haiku signal extraction
+    │   ├── claudeNarratives.js                    # Sonnet narrative synthesis
+    │   ├── claudeEvaluator.js                     # Barrel re-export of extraction + narratives
     │   ├── dualModelExtract.js                    # E3 dual-pass merge + agreement boost
     │   ├── embeddingEvidenceVerifier.js           # N8 embedding rescue
     │   ├── extractionPasses.js                    # Multipass domain groups + self-check prompt
     │   ├── learningCapture.js                     # Residual / zero-signal / uncertain capture hooks
     │   ├── mdReportsLoader.js                     # Parse articles-*.md → article objects
-    │   ├── reportHistoryReader.js                 # Walks reports/, picks canonical per-date run
+    │   ├── reportHistoryReader.js                 # Walks daily_reports/, picks canonical per-date run
     │   ├── reportWriter.js                        # Markdown + JSON output
     │   ├── signalVerification.js                  # n-gram containment + within-batch dedup
     │   └── adapters/
@@ -1700,12 +1708,12 @@ business_modules/
     └── validation/                                # Post-assess calibration collection
         ├── validation-config.json
         ├── app/validationCollectionService.js, validationReviewService.js
-        ├── input/validationReviewRoutes.js        # review queue + GET …/context + POST …/explain (Tier 3 RAG)
+        ├── input/validationReviewRoutes.js        # review queue + context + explain + agent
         ├── domain/validationRecordBuilder.js
         ├── scripts/validationStatus.js            # npm run validation:status
         └── artifacts/records|review-queue|phase-log/
 
-reports/
+daily_reports/
 ├── resilience-report-{date}-{HHMM}.{md,json}
 ├── resilience-report-{date}-{HHMM}-brief.md      # Operator brief (no scores)
 ├── resilience-report-{scopeId}-{date}-{HHMM}.{md,json}  # Regional scopes
@@ -1746,7 +1754,7 @@ cross-cut-modules/geo/
 └── geoEnvelopeAccess.js                            # v3 nested envelope read helpers
 
 api/routes/
-├── chatRoutes.js                                   # POST /api/chat (SSE)
+├── chatRoutes.js                                   # Session CRUD + POST /api/chat + confirm-action
 └── evidenceRoutes.js                               # POST /api/evidence-submit (auxiliary analysis)
 
 .claude/commands/

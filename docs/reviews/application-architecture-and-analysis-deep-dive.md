@@ -135,7 +135,7 @@ The table below lists **primary entrypoints** (npm scripts reference [`package.j
 |---------|----------------|------------|---------------------|
 | **News (home front)** | `npm run homefront-to-md` → [`extract-homefront-articles.js`](../../business_modules/news-sites/input/extract-homefront-articles.js) | `NEWSAPI_AI_KEY` or `NEWSAPI_API_KEY`, `TZ_ARTICLES`, `HOMEFRONT_MD` | Markdown article file (default under `business_modules/news-sites/articles_extracted/articles-homefront.md`); consumed by analysis and [`runAnalysis`](../../api/analysisService.js). |
 | **News (generic fetch)** | `npm run articles-to-md` | Same API keys | Broader MD exports for tooling. |
-| **Resilience from MD files** | `npm run analyze-resilience` → [`analyze-resilience.js`](../../business_modules/resilience/input/analyze-resilience.js) | Paths via CLI, `ANTHROPIC_API_KEY` | Signals and reports under `reports/` (depends on CLI flags). |
+| **Resilience from MD files** | `npm run analyze-resilience` → [`analyze-resilience.js`](../../business_modules/resilience/input/analyze-resilience.js) | Paths via CLI, `ANTHROPIC_API_KEY` | Signals and reports under `daily_reports/` (depends on CLI flags). |
 | **Signals only** | `npm run extract-signals` | MD inputs | Signal JSON for downstream assess. |
 | **Multi-source assess** | `npm run assess-signals` | Prior signal files, scope flags, `ANTHROPIC_API_KEY` | Scoped JSON or MD via report writer; uses `filterSignalsForScope`. |
 | **Server full run** | Internal: `runAnalysis` in [`analysisService.js`](../../api/analysisService.js) | `ANTHROPIC_API_KEY`, optional evidence **store** for DB merge, `HOMEFRONT_MD` | Assessment + cost; persists via resilience report adapter when configured. |
@@ -143,7 +143,7 @@ The table below lists **primary entrypoints** (npm scripts reference [`package.j
 | **WhatsApp** | `npm run whatsapp-to-md` plus server routes | Meta WhatsApp Cloud API, `ANTHROPIC_API_KEY` | Messages analyzed with [`whatsappResilienceAnalyzer.js`](../../business_modules/whatsapp/app/whatsappResilienceAnalyzer.js); **geo** attached when port is wired in `app.js`. |
 | **Field visits** | `npm run ingest-field-reports` | Visit ingest module | Feeds evidence store / MD depending on configuration. |
 | **PBO municipal event log** | `npm run analyze-event-log` | Event log adapter | Specialized municipal reporting. |
-| **Survey (Excel)** | `npm run analyze-survey` → [`cross-cut-modules/geo/input/runAnalyzeSurvey.js`](../../cross-cut-modules/geo/input/runAnalyzeSurvey.js) | `--responses` `.xlsx`, mapping JSON, `ANTHROPIC_API_KEY` | Per-municipality MD reports under `reports/`; **geo** on municipality name when `geoEnrichmentPort` is constructed in the script. |
+| **Survey (Excel)** | `npm run analyze-survey` → [`cross-cut-modules/geo/input/runAnalyzeSurvey.js`](../../cross-cut-modules/geo/input/runAnalyzeSurvey.js) | `--responses` `.xlsx`, mapping JSON, `ANTHROPIC_API_KEY` | Per-municipality MD reports under `daily_reports/`; **geo** on municipality name when `geoEnrichmentPort` is constructed in the script. |
 | **Naftali pool** | `business_modules/pool/input/extract-naftali-signals.js` (see package or module docs) | Pool-specific inputs | Signals with explicit geographic scope in prompts. |
 
 **SQLite:** Evidence and artifacts are persisted using helpers under `cross-cut-modules/`; path controlled by `SQLITE_PATH` (see [system overview](../product_docs/architecture/system-overview.md)).

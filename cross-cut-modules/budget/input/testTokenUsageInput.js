@@ -6,8 +6,8 @@ import 'dotenv/config';
 import { resolve, isAbsolute } from 'node:path';
 import { existsSync as fsExists } from 'node:fs';
 
-import { loadMdFiles } from '../../../business_modules/resilience/infrastructure/mdReportsLoader.js';
-import { extractEvidence, synthesizeComponents } from '../../../business_modules/resilience/infrastructure/claudeEvaluator.js';
+import { loadMdFiles } from '../../../business_modules/resilience/index.js';
+import { extractEvidence, synthesizeComponents } from '../../../business_modules/resilience/index.js';
 import { getTodayInTimezone } from '../../../utils/dateUtils.js';
 import { PRICING, calcInvocationCostUsd } from '../app/budgetCostTracker.js';
 

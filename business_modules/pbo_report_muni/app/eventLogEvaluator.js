@@ -7,11 +7,10 @@
  *           Uses adaptive thinking — complex temporal reasoning task.
  */
 
-import Anthropic from '@anthropic-ai/sdk';
-import { RESILIENCE_COMPONENTS } from '../../resilience/domain/resilienceComponents.js';
+import { getDefaultLlmPort } from '../../../cross-cut-modules/llm/anthropicLlmAdapter.js';
+import { RESILIENCE_COMPONENTS } from '../../resilience/index.js';
 import { formatEventsAsTable, CATEGORY_COMPONENT_HINTS } from '../domain/services/eventLogLoader.js';
 
-const client = new Anthropic();
 
 // ─── Prompt helpers ───────────────────────────────────────────────────────────
 
@@ -136,7 +135,7 @@ export async function classifyEvents(parsedLog, options = {}) {
     `EVENT TABLE:\n${table}\n\n` +
     `Classify every event against the 8 resilience components.`;
 
-  const stream = client.messages.stream({
+  const stream = getDefaultLlmPort().stream({
     model: MODEL_CLASSIFY,
     max_tokens: 16000,
     system: systemPrompt,
@@ -209,7 +208,7 @@ export async function synthesizeFromEvents(parsedLog, classifications, date, opt
     `CLASSIFIED EVENTS:\n${JSON.stringify(classifications)}\n\n` +
     `Produce a complete 8-component resilience assessment.`;
 
-  const stream = client.messages.stream({
+  const stream = getDefaultLlmPort().stream({
     model: MODEL_SYNTHESIZE,
     max_tokens: 16000,
     thinking: { type: 'adaptive' },

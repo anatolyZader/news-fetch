@@ -12,12 +12,12 @@ import { dirname, join, resolve } from 'node:path';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { relative } from 'node:path';
 
-import Anthropic from '@anthropic-ai/sdk';
+import { getDefaultLlmPort } from '../../../cross-cut-modules/llm/anthropicLlmAdapter.js';
 import { getTodayInTimezone } from '../../../utils/dateUtils.js';
 import { createCostTracker, appendCostLog, checkDailyBudget } from '../../../cross-cut-modules/budget/index.js';
-import { createSourceArchive } from '../../../cross-cut-modules/source_archive/createSourceArchive.js';
-import { persistOriginalSources } from '../../../cross-cut-modules/source_archive/persistOriginals.js';
-import { buildMdSourceIdFromPath } from '../../../cross-cut-modules/source_archive/sourceId.js';
+import { createSourceArchive } from '../../../db/source_archive/createSourceArchive.js';
+import { persistOriginalSources } from '../../../db/source_archive/persistOriginals.js';
+import { buildMdSourceIdFromPath } from '../../../db/source_archive/sourceId.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(__dirname, '../../..');
@@ -156,7 +156,7 @@ async function createAnthropicMessageWithRetry(anthropic, { model, label, batch,
   const retries = 3;
   for (let attempt = 1; attempt <= retries; attempt += 1) {
     try {
-      return await anthropic.messages.create({
+      return await getDefaultLlmPort().createMessage({
         model,
         max_tokens: 8192,
         temperature: 0,
@@ -210,7 +210,7 @@ async function preFilterBatch(anthropic, batch, batchOffset, batchNum, totalBatc
 async function preFilterByLLM(articles, onUsage) {
   if (articles.length === 0) return articles;
 
-  const anthropic = new Anthropic();
+  
   const batches = [];
   for (let i = 0; i < articles.length; i += PREFILTER_BATCH_SIZE) {
     batches.push({ batch: articles.slice(i, i + PREFILTER_BATCH_SIZE), offset: i });

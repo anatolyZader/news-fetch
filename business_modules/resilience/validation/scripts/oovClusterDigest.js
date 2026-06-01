@@ -6,7 +6,7 @@
 import { CatalogLearningService } from '../../catalogLearning/app/catalogLearningService.js';
 import { LearningCaptureFsAdapter } from '../../catalogLearning/infrastructure/adapters/learningCaptureFsAdapter.js';
 
-const reportsDir = process.argv[2] ?? 'reports';
+const reportsDir = process.argv[2] ?? 'daily_reports';
 
 async function main() {
   const service = new CatalogLearningService({

@@ -17,11 +17,11 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { basename, dirname, resolve } from 'node:path';
 import { read, utils } from 'xlsx';
-import { createSourceArchive } from '../../../cross-cut-modules/source_archive/createSourceArchive.js';
-import { persistOriginalSources } from '../../../cross-cut-modules/source_archive/persistOriginals.js';
+import { createSourceArchive } from '../../../db/source_archive/createSourceArchive.js';
+import { persistOriginalSources } from '../../../db/source_archive/persistOriginals.js';
 import { createRetrievalService } from '../../../cross-cut-modules/retrieval/createRetrievalService.js';
-import { articlesToArchiveItems } from '../../../cross-cut-modules/source_archive/articlesToArchiveItems.js';
-import { loadMarkdownArticlesFromFile } from '../../../cross-cut-modules/source_archive/markdownArticles.js';
+import { articlesToArchiveItems } from '../../../db/source_archive/articlesToArchiveItems.js';
+import { loadMarkdownArticlesFromFile } from '../../../db/source_archive/markdownArticles.js';
 
 const args = process.argv.slice(2);
 const getArg = (flag) => { const idx = args.indexOf(flag); return idx >= 0 ? args[idx + 1] : null; };

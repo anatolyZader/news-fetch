@@ -97,7 +97,7 @@ export function createPipelineStatusService(deps = {}) {
         enabled: true,
         status: 'missing',
         kind: 'assess',
-        path: `reports/${reportFilePrefix(scopeId)}-${targetDate}.json`,
+        path: `daily_reports/${reportFilePrefix(scopeId)}-${targetDate}.json`,
       });
     }
 

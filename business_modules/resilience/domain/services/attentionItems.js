@@ -10,6 +10,7 @@ import {
   addGeoAttentionItems,
   addMacroAttentionItems,
   addOovAttentionItems,
+  addOperatorRecommendationItems,
   addSocialQuarantineAttentionItems,
   createAttentionPush,
   DISPLAY_VIEWS,
@@ -89,6 +90,7 @@ export function buildAttentionItems(assessment, opts = {}) {
   addSocialQuarantineAttentionItems(push, item, assessment.social_channel_quarantine ?? null);
   addMacroAttentionItems(push, item, assessment);
   addOovAttentionItems(push, item, assessment, isAnalyst, methodology);
+  addOperatorRecommendationItems(push, item, assessment.operator_recommendations);
 
   items.sort(compareAttentionItems);
   return items;

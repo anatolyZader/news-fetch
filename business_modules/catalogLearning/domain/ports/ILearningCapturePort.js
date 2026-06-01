@@ -1,5 +1,5 @@
 /**
- * Read learning-capture JSONL files from reports/.
+ * Read learning-capture JSONL files from daily_reports/.
  */
 export class ILearningCapturePort {
   constructor() {

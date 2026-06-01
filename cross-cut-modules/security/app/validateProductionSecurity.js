@@ -16,6 +16,10 @@ export function validateProductionSecurity(env = process.env) {
     errors.push('AUTH_REQUIRED must be "true" when NODE_ENV=production');
   }
 
+  if (env.AUTH_REQUIRE_LISTED_USER === 'false') {
+    errors.push('AUTH_REQUIRE_LISTED_USER must not be "false" in production');
+  }
+
   if (!(env.FIREBASE_PROJECT_ID ?? '').trim()) {
     errors.push('FIREBASE_PROJECT_ID is required when NODE_ENV=production');
   }
@@ -34,6 +38,14 @@ export function validateProductionSecurity(env = process.env) {
 
   if (env.ENABLE_HSTS !== 'true') {
     errors.push('ENABLE_HSTS must be "true" when NODE_ENV=production');
+  }
+
+  if (env.ENABLE_STRICT_CSP !== 'true') {
+    errors.push('ENABLE_STRICT_CSP must be "true" when NODE_ENV=production');
+  }
+
+  if (env.AUTH_DISABLE_SIGNUP === 'false') {
+    errors.push('AUTH_DISABLE_SIGNUP must not be "false" in production (open registration)');
   }
 
   if (env.ENABLE_SWAGGER === 'true') {
@@ -69,6 +81,12 @@ export function validateProductionSecurity(env = process.env) {
  * @param {NodeJS.ProcessEnv} [env]
  * @returns {string[]}
  */
-export function productionSecurityWarnings(_env = process.env) {
-  return [];
+export function productionSecurityWarnings(env = process.env) {
+  const warnings = [];
+  if ((env.NODE_ENV ?? '').trim() === 'production' && env.SYNC_USER_CLAIMS_ON_START !== 'true') {
+    warnings.push(
+      'SYNC_USER_CLAIMS_ON_START is not "true" — Firebase custom claims may be stale until POST /api/auth/sync-claims',
+    );
+  }
+  return warnings;
 }

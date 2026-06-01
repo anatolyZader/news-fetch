@@ -1,7 +1,7 @@
 import { computeGaps, mergeStructured } from '../domain/gapEngine.js';
 import { EVIDENCE_REQUIREMENTS } from '../domain/evidenceRequirements.js';
 import { buildReportBuildRagContext } from '../../../cross-cut-modules/retrieval/fieldRetrieval.js';
-import { persistOriginalSources } from '../../../cross-cut-modules/source_archive/persistOriginals.js';
+import { persistOriginalSources } from '../../../db/source_archive/persistOriginals.js';
 import {
   buildLocalityPickerMessage,
   parseLocalityPickerReply,
@@ -191,7 +191,7 @@ export function createReportBuildService({
      * Apply one user/officer text turn and return next UI state.
      * @param {{ ownerKey: string, text: string, displayName?: string, role?: 'officer'|'bot' }} params
      */
-    async applyTurn({ ownerKey, text, displayName = '', role = 'officer' }) {
+    async applyTurn({ ownerKey, text, displayName = '', role = 'officer', costRecorder = null }) {
       if (!ownerKey) throw new Error('ownerKey required');
       const clean = safeText(text);
       if (!clean) return { state: 'collecting', followupQuestions: [] };
@@ -224,7 +224,7 @@ export function createReportBuildService({
         }
       }
 
-      return await recomputeInternal({ ownerKey, displayName, draftId });
+      return await recomputeInternal({ ownerKey, displayName, draftId, costRecorder });
     },
 
     /**
@@ -247,7 +247,7 @@ export function createReportBuildService({
      *
      * @param {{ ownerKey: string, text: string, displayName?: string }} params
      */
-    async suggestFromText({ ownerKey, text, displayName = '' }) {
+    async suggestFromText({ ownerKey, text, displayName = '', costRecorder = null }) {
       if (!ownerKey) throw new Error('ownerKey required');
       const clean = safeText(text);
       if (!clean) return { sufficient: false, followupQuestions: [] };
@@ -261,7 +261,10 @@ export function createReportBuildService({
 
       const scratchTurns = [{ role: 'officer', text: clean, ts: nowIso() }];
       const analyzer = suggestAnalyzerPort ?? analyzerPort;
-      const analysis = await analyzer.analyzeTurnHistory(scratchTurns, displayName);
+      const onUsage = costRecorder
+        ? (p) => costRecorder.onUsage(p)
+        : null;
+      const analysis = await analyzer.analyzeTurnHistory(scratchTurns, displayName, null, { onUsage });
       const structured = conservativeStructuredForSuggest(clean, analysis?.structured ?? {});
       const { sufficient, rankedGaps } = computeGaps(structured);
 
@@ -339,7 +342,7 @@ export function createReportBuildService({
     },
   };
 
-  async function recomputeInternal({ ownerKey, displayName, draftId }) {
+  async function recomputeInternal({ ownerKey, displayName, draftId, costRecorder = null }) {
     const updated = draftStore.get(draftId);
     const turnHistory = Array.isArray(updated?.turn_history) ? updated.turn_history : [];
     const officerTurnCount = turnHistory.filter((t) => t.role === 'officer').length;
@@ -349,7 +352,10 @@ export function createReportBuildService({
       turnHistory,
       { retrievalService, mode: 'analyze' },
     );
-    const analysis = await analyzerPort.analyzeTurnHistory(turnHistory, displayName, analyzeRag);
+    const onUsage = costRecorder
+      ? (p) => costRecorder.onUsage(p)
+      : null;
+    const analysis = await analyzerPort.analyzeTurnHistory(turnHistory, displayName, analyzeRag, { onUsage });
     const merged = mergeStructured(updated?.structured_state ?? {}, analysis.structured ?? {});
     draftStore.updateStructured(draftId, merged);
 
@@ -369,7 +375,7 @@ export function createReportBuildService({
       retrievalService,
       mode: 'draft',
     });
-    const draftText = await draftGeneratorPort.generate(merged, turnHistory, draftRag);
+    const draftText = await draftGeneratorPort.generate(merged, turnHistory, draftRag, { onUsage });
     if (draftText) {
       draftStore.setApprovedDraft(draftId, draftText);
     }

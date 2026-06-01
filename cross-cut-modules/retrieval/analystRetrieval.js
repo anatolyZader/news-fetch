@@ -127,7 +127,7 @@ export function retrievePriorDecisions(store, { evidence, articleUrl, limit = 5,
  * @param {{ maxDays?: number, reportsDir?: string }} [opts]
  */
 export async function retrieveOovNeighbors(evidence, opts = {}) {
-  const adapter = new LearningCaptureFsAdapter({ reportsDir: opts.reportsDir ?? 'reports' });
+  const adapter = new LearningCaptureFsAdapter({ reportsDir: opts.reportsDir ?? 'daily_reports' });
   const { records } = await adapter.loadCaptureRecords({ maxDays: opts.maxDays ?? 14 });
   if (!records.length) return [];
 

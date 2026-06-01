@@ -16,6 +16,7 @@ import {
   ragContextSnippetChars,
 } from './ragConfig.js';
 import { getTodayInTimezone } from '../../utils/dateUtils.js';
+import { chatRetrievalCacheKey } from './chatRetrievalCache.js';
 
 function dateWindowEnd(reportDate, timezone) {
   const d = String(reportDate ?? '').trim();
@@ -120,6 +121,69 @@ function applyRetrievalHitFilters(hits, filters) {
   return filtered;
 }
 
+function loadCachedRetrievalState(retrievalCache, sessionId, cacheQuery, geoScope, dateKey) {
+  if (!retrievalCache || !sessionId) return null;
+  const cached = retrievalCache.get(chatRetrievalCacheKey(sessionId, cacheQuery, geoScope, dateKey));
+  if (!cached) return null;
+  if (cached.hintText) return { earlyReturn: cached.hintText };
+  if (cached.rewrittenQuery && cached.hits) {
+    return { rewritten: cached.rewrittenQuery, hits: cached.hits };
+  }
+  return null;
+}
+
+async function indexReportIfNeeded(reportData, indexWriterHelpers, indexWriter) {
+  if (!reportData?.assessment || !indexWriterHelpers) return;
+  try {
+    await indexWriter.indexReport(reportData, indexWriterHelpers);
+  } catch (err) {
+    console.error('rag indexReport:', err.message);
+  }
+}
+
+function formatRetrievalHintLines(hits, snippetChars) {
+  return hits.map((h, i) => {
+    const parent = h.parentId ?? h.chunkId;
+    const title = h.title ? ` title="${clipSnippet(h.title, 80)}"` : '';
+    const url = h.sourceUrl ? `\n    url: ${h.sourceUrl}` : '';
+    const score = h.relevanceScore == null
+      ? `rrf=${(h.rrfScore ?? 0).toFixed(4)}`
+      : `relevance=${h.relevanceScore.toFixed(3)}`;
+    return (
+      `[${i + 1}] source_id=${parent} chunk=c${h.chunkIndex ?? 0} (${h.kind ?? 'chunk'}, ${score})${title}\n` +
+      `    ${clipSnippet(h.text, snippetChars)}${url}`
+    );
+  }).join('\n');
+}
+
+function buildRetrievalHintText(hits, rewritten, snippetChars) {
+  const lines = formatRetrievalHintLines(hits, snippetChars);
+  return (
+    `RETRIEVED CONTEXT (hybrid search + rerank; cite source_id; use get_source for full text):\n` +
+    `${lines}\n\n` +
+    `Search query used: ${rewritten}`
+  );
+}
+
+function persistRetrievalCache(retrievalCache, sessionId, rewritten, geoScope, dateKey, hits, hintText) {
+  if (!retrievalCache || !sessionId) return;
+  const cacheKey = chatRetrievalCacheKey(sessionId, rewritten, geoScope, dateKey);
+  const byParent = hits.map((h) => ({
+    source_id: h.parentId ?? h.chunkId,
+    title: h.title,
+    url: h.sourceUrl,
+    source_type: h.sourceType,
+    published_at: null,
+    snippet: clipSnippet(h.text, 350),
+  }));
+  retrievalCache.set(cacheKey, {
+    rewrittenQuery: rewritten,
+    hits,
+    hintText,
+    searchHits: byParent,
+  });
+}
+
 /**
  * @param {ReturnType<import('./chunkStore.js').createChunkStore>} chunkStore
  * @param {ReturnType<import('./indexWriter.js').createIndexWriter>} indexWriter
@@ -198,43 +262,50 @@ export function createRetrievalOrchestrator(chunkStore, indexWriter, opts = {}) 
       const systemHint = input?.systemHint ?? '';
       const reportData = input?.reportData;
 
-      if (reportData?.assessment && input?.indexWriterHelpers) {
-        try {
-          await indexWriter.indexReport(reportData, input.indexWriterHelpers);
-        } catch (err) {
-          console.error('rag indexReport:', err.message);
+      await indexReportIfNeeded(reportData, input?.indexWriterHelpers, indexWriter);
+
+      const sessionId = String(input?.sessionId ?? '').trim();
+      const retrievalCache = input?.retrievalCache ?? null;
+      const geoScope = input?.reportGeoScope === 'north' ? 'north' : 'national';
+      const dateKey = String(reportData?.assessment?.date ?? reportData?.reportDate ?? '');
+
+      let rewritten = message;
+      let hits = [];
+
+      const preCached = loadCachedRetrievalState(retrievalCache, sessionId, message, geoScope, dateKey);
+      if (preCached?.earlyReturn) return preCached.earlyReturn;
+      if (preCached?.hits) {
+        rewritten = preCached.rewritten ?? rewritten;
+        hits = preCached.hits;
+      }
+
+      if (hits.length === 0) {
+        rewritten = await rewriteQueryForRetrieval(
+          { message, history, systemHint },
+          { onUsage: input?.onUsage ?? undefined },
+        );
+        const postCached = loadCachedRetrievalState(retrievalCache, sessionId, rewritten, geoScope, dateKey);
+        if (postCached?.earlyReturn) return postCached.earlyReturn;
+        if (postCached?.hits) {
+          hits = postCached.hits;
+          rewritten = postCached.rewritten ?? rewritten;
+        }
+        if (hits.length === 0) {
+          hits = await this.retrieve({
+            query: rewritten,
+            reportData,
+            reportGeoScope: input?.reportGeoScope,
+            dateWindowDays: input?.dateWindowDays,
+          });
         }
       }
 
-      const rewritten = await rewriteQueryForRetrieval({ message, history, systemHint });
-      const hits = await this.retrieve({
-        query: rewritten,
-        reportData,
-        reportGeoScope: input?.reportGeoScope,
-        dateWindowDays: input?.dateWindowDays,
-      });
-
-      if (!hits.length) return '';
+      if (hits.length === 0) return '';
 
       const snippetChars = ragContextSnippetChars();
-      const lines = hits.map((h, i) => {
-        const parent = h.parentId ?? h.chunkId;
-        const title = h.title ? ` title="${clipSnippet(h.title, 80)}"` : '';
-        const url = h.sourceUrl ? `\n    url: ${h.sourceUrl}` : '';
-        const score = h.relevanceScore == null
-          ? `rrf=${(h.rrfScore ?? 0).toFixed(4)}`
-          : `relevance=${h.relevanceScore.toFixed(3)}`;
-        return (
-          `[${i + 1}] source_id=${parent} chunk=c${h.chunkIndex ?? 0} (${h.kind ?? 'chunk'}, ${score})${title}\n` +
-          `    ${clipSnippet(h.text, snippetChars)}${url}`
-        );
-      }).join('\n');
-
-      return (
-        `RETRIEVED CONTEXT (hybrid search + rerank; cite source_id; use get_source for full text):\n` +
-        `${lines}\n\n` +
-        `Search query used: ${rewritten}`
-      );
+      const hintText = buildRetrievalHintText(hits, rewritten, snippetChars);
+      persistRetrievalCache(retrievalCache, sessionId, rewritten, geoScope, dateKey, hits, hintText);
+      return hintText;
     },
 
     /**

@@ -1,20 +1,10 @@
 /**
  * HTTP routes for catalog learning proposals (analyst-only).
  */
-import { canViewAnalystDisplay } from '../../../cross-cut-modules/auth/userAccess.js';
+import { requireAnalystView } from '../../../cross-cut-modules/auth/requireAnalystAccess.js';
 import { auditFromRequest } from '../../../cross-cut-modules/security/input/auditLog.js';
 import { costlyRoutePreHandlers } from '../../../cross-cut-modules/security/input/costlyRoutePreHandlers.js';
-
-function requireAnalyst(request, reply) {
-  if (!canViewAnalystDisplay(request.user?.email)) {
-    reply.code(403).send({
-      error: 'Forbidden',
-      code: 'analyst_view_required',
-    });
-    return false;
-  }
-  return true;
-}
+import { normalizeAuthPreHandlers } from '../../../cross-cut-modules/auth/buildAuthHooks.js';
 
 /**
  * @param {import('fastify').FastifyInstance} app
@@ -27,7 +17,7 @@ export async function catalogLearningRoutes(app, opts) {
   app.get('/api/catalog-learning/proposals', {
     preHandler: authPreHandler,
   }, async (request, reply) => {
-    if (!requireAnalyst(request, reply)) return;
+    if (!requireAnalystView(request, reply)) return;
     const status = request.query?.status ? String(request.query.status) : 'draft';
     const limit = request.query?.limit ? Number(request.query.limit) : 20;
     const proposals = await catalogProposalService.listProposals({ status, limit });
@@ -37,14 +27,14 @@ export async function catalogLearningRoutes(app, opts) {
   app.get('/api/catalog-learning/proposals/:id', {
     preHandler: authPreHandler,
   }, async (request, reply) => {
-    if (!requireAnalyst(request, reply)) return;
+    if (!requireAnalystView(request, reply)) return;
     const proposal = catalogProposalService.getProposal(String(request.params.id));
     if (!proposal) return reply.code(404).send({ error: 'Not found' });
     return reply.send(proposal);
   });
 
-  app.post('/api/catalog-learning/proposals/generate', costlyRoutePreHandlers(authPreHandler ? [authPreHandler] : []), async (request, reply) => {
-    if (!requireAnalyst(request, reply)) return;
+  app.post('/api/catalog-learning/proposals/generate', costlyRoutePreHandlers(normalizeAuthPreHandlers(authPreHandler)), async (request, reply) => {
+    if (!requireAnalystView(request, reply)) return;
     auditFromRequest(request, 'catalog.generate_proposals', '/api/catalog-learning/proposals/generate');
     const { maxDays, topN } = request.body ?? {};
     const result = await catalogProposalService.generateProposals({ maxDays, topN });
@@ -54,7 +44,7 @@ export async function catalogLearningRoutes(app, opts) {
   app.post('/api/catalog-learning/proposals/:id/review', {
     preHandler: authPreHandler,
   }, async (request, reply) => {
-    if (!requireAnalyst(request, reply)) return;
+    if (!requireAnalystView(request, reply)) return;
     auditFromRequest(request, 'catalog.review_proposal', '/api/catalog-learning/proposals/:id/review');
     const { status, note } = request.body ?? {};
     if (!status) return reply.code(400).send({ error: 'status required' });

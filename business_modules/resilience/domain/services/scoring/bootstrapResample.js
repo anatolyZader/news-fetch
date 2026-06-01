@@ -1,5 +1,5 @@
 import { applySourceCap } from './applyEvidenceCaps.js';
-import { scoreFromItems } from './scoringShared.js';
+import { scoreFromItems, applySaliencePostScoringPolicy } from './scoringShared.js';
 
 export function buildBootstrapSample(items, n, rng) {
   const sample = new Array(n);
@@ -18,7 +18,11 @@ export function scoreBootstrapSample(sample, componentId, totalArticles) {
     if (it.signal.source_type) sourceSet.add(it.signal.source_type);
   }
   const capped = applySourceCap(sample);
-  return scoreFromItems(capped, componentId, totalArticles, articleSet, sourceSet);
+  return applySaliencePostScoringPolicy(
+    scoreFromItems(capped, componentId, totalArticles, articleSet, sourceSet),
+    capped,
+    { applyFloor: true },
+  );
 }
 
 export function percentile(sorted, p) {

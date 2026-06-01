@@ -2,9 +2,9 @@
  * Archive original articles from markdown export files into source_archive.
  */
 import { resolve } from 'node:path';
-import { createSourceArchive } from '../../../cross-cut-modules/source_archive/createSourceArchive.js';
-import { persistOriginalSources } from '../../../cross-cut-modules/source_archive/persistOriginals.js';
-import { buildMdSourceIdFromPath } from '../../../cross-cut-modules/source_archive/sourceId.js';
+import { createSourceArchive } from '../../../db/source_archive/createSourceArchive.js';
+import { persistOriginalSources } from '../../../db/source_archive/persistOriginals.js';
+import { buildMdSourceIdFromPath } from '../../../db/source_archive/sourceId.js';
 import { loadMdFile } from '../infrastructure/mdReportsLoader.js';
 
 /**

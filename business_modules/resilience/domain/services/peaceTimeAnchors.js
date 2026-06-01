@@ -1,7 +1,8 @@
 /**
  * Peace-time / crisis-day score anchors for chronic baseline (dual baseline monitoring).
  */
-import { existsSync, readFileSync } from 'node:fs';
+import { getDefaultStateStore } from '../../../../cross-cut-modules/persistence/infrastructure/fsStateStoreAdapter.js';
+const stateStore = getDefaultStateStore();
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -17,13 +18,13 @@ let cached = null;
  */
 export function loadPeaceTimeAnchors(configPath = process.env.RESILIENCE_PEACE_ANCHORS_PATH ?? DEFAULT_PATH) {
   if (cached && configPath === DEFAULT_PATH) return cached;
-  if (!existsSync(configPath)) {
+  if (!stateStore.existsSync(configPath)) {
     const empty = { national: {}, north: {} };
     if (configPath === DEFAULT_PATH) cached = empty;
     return empty;
   }
   try {
-    const parsed = JSON.parse(readFileSync(configPath, 'utf8'));
+    const parsed = JSON.parse(stateStore.readFileSync(configPath, 'utf8'));
     const out = {
       national: parsed.national ?? parsed.components ?? {},
       north: parsed.north ?? parsed.north_components ?? {},

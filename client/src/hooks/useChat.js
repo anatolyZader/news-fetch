@@ -2,6 +2,34 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
 import { buildAuthHeaders } from '../lib/authFetch.js';
 
+async function consumeChatSseStream(response, onEvent) {
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buf = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buf += decoder.decode(value, { stream: true });
+    const lines = buf.split('\n');
+    buf = lines.pop();
+
+    for (const line of lines) {
+      if (!line.startsWith('data: ')) continue;
+      try {
+        const event = JSON.parse(line.slice(6));
+        const terminal = onEvent(event);
+        if (terminal === 'done' || terminal === 'error') {
+          return { terminal, event };
+        }
+      } catch {
+        /* skip malformed SSE line */
+      }
+    }
+  }
+  return { terminal: null, event: null };
+}
+
 export function useChat() {
   const { getIdToken, getAppCheckToken } = useAuth();
   const [sessions, setSessions] = useState([]); // [{ id, title, report_date, created_at, updated_at }]
@@ -141,168 +169,115 @@ export function useChat() {
     return event.type;
   }
 
-  async function send(message, opts = {}) {
-    if (streaming || !message.trim()) return;
-    if (!activeSessionId) return;
+  function buildChatRequestBody(partial, opts = {}) {
+    const body = {
+      sessionId: activeSessionId,
+      reportGeoScope: opts.reportGeoScope ?? 'national',
+      scope: opts.scope ?? null,
+      toolProfile: opts.toolProfile ?? 'default',
+      view: opts.view ?? 'operator',
+      ...partial,
+    };
+    const hint = opts.systemHint ?? null;
+    if (hint && String(hint).trim()) {
+      body.systemHint = String(hint).trim();
+    }
+    return body;
+  }
 
-    const userMsg = { role: 'user', content: message };
-    setHistory((h) => [...h, userMsg]);
-    setStreaming(true);
+  function finishStreaming() {
     setDraft('');
+    setStreaming(false);
+  }
 
+  function completeSseOutcome(outcome, accumulated) {
+    if (outcome.terminal === 'done') {
+      setHistory((h) => [...h, { role: 'assistant', content: accumulated }]);
+      finishStreaming();
+      loadSessions().catch(() => {});
+      return true;
+    }
+    if (outcome.terminal === 'error') {
+      setHistory((h) => [
+        ...h,
+        { role: 'assistant', content: outcome.event?.message || 'An error occurred', error: true },
+      ]);
+      finishStreaming();
+      loadSessions().catch(() => {});
+      return true;
+    }
+    return false;
+  }
+
+  async function runChatStreamRequest(bodyPartial, opts, { onAbort } = {}) {
     const controller = new AbortController();
     abortRef.current = controller;
-    let accumulated = '';
-    const accRef = { value: accumulated };
+    const accRef = { value: '' };
 
     try {
       const headers = await authedHeaders();
-
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers,
-        body: JSON.stringify({
-          sessionId: activeSessionId,
-          message,
-          action: 'send',
-          scope: opts.scope ?? null,
-          reportGeoScope: opts.reportGeoScope ?? 'national',
-        }),
+        body: JSON.stringify(buildChatRequestBody(bodyPartial, opts)),
         signal: controller.signal,
       });
 
       if (!res.ok) {
         const errText = await res.text().catch(() => res.statusText);
         setHistory((h) => [...h, { role: 'assistant', content: errText || 'Request failed', error: true }]);
-        setStreaming(false);
+        finishStreaming();
         return;
       }
 
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let buf = '';
+      const outcome = await consumeChatSseStream(res, (event) => handleChatStreamEvent(event, accRef));
+      const accumulated = accRef.value;
+      if (completeSseOutcome(outcome, accumulated)) return;
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buf += decoder.decode(value, { stream: true });
-
-        const lines = buf.split('\n');
-        buf = lines.pop();
-
-        for (const line of lines) {
-          if (!line.startsWith('data: ')) continue;
-          try {
-            const event = JSON.parse(line.slice(6));
-            const terminal = handleChatStreamEvent(event, accRef);
-            accumulated = accRef.value;
-            if (terminal === 'done') {
-              setHistory((h) => [...h, { role: 'assistant', content: accumulated }]);
-              setDraft('');
-              setStreaming(false);
-              loadSessions().catch(() => {});
-              return;
-            }
-            if (terminal === 'error') {
-              setHistory((h) => [...h, { role: 'assistant', content: event.message || 'An error occurred', error: true }]);
-              setDraft('');
-              setStreaming(false);
-              loadSessions().catch(() => {});
-              return;
-            }
-          } catch {
-            /* skip malformed SSE line */
-          }
-        }
-      }
-
-      // Stream ended without a done/error event — treat accumulated text as final
       if (accumulated) {
         setHistory((h) => [...h, { role: 'assistant', content: accumulated }]);
       }
-      setDraft('');
-      setStreaming(false);
+      finishStreaming();
     } catch (err) {
-      if (err.name === 'AbortError') {
-        if (accumulated) {
-          setHistory((h) => [...h, { role: 'assistant', content: accumulated + ' [stopped]' }]);
-        }
-      } else {
-        setHistory((h) => [...h, { role: 'assistant', content: 'Connection error — please try again.', error: true }]);
-      }
-      setDraft('');
-      setStreaming(false);
+      onAbort?.(err, accRef.value);
+      finishStreaming();
     }
   }
 
-  async function regenerateLast(opts = {}) {
-    if (streaming) return;
-    if (!activeSessionId) return;
+  async function send(message, opts = {}) {
+    if (streaming || !message.trim() || !activeSessionId) return;
+
+    setHistory((h) => [...h, { role: 'user', content: message }]);
     setStreaming(true);
     setDraft('');
-    const controller = new AbortController();
-    abortRef.current = controller;
-    let accumulated = '';
-    const accRef = { value: accumulated };
-    try {
-      const headers = await authedHeaders();
-      const res = await fetch('/api/chat', {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
-          sessionId: activeSessionId,
-          action: 'regenerate',
-          scope: null,
-          reportGeoScope: opts.reportGeoScope ?? 'national',
-        }),
-        signal: controller.signal,
-      });
-      if (!res.ok) {
-        const errText = await res.text().catch(() => res.statusText);
-        setHistory((h) => [...h, { role: 'assistant', content: errText || 'Request failed', error: true }]);
-        setStreaming(false);
-        return;
-      }
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let buf = '';
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buf += decoder.decode(value, { stream: true });
-        const lines = buf.split('\n');
-        buf = lines.pop();
-        for (const line of lines) {
-          if (!line.startsWith('data: ')) continue;
-          try {
-            const event = JSON.parse(line.slice(6));
-            const terminal = handleChatStreamEvent(event, accRef);
-            accumulated = accRef.value;
-            if (terminal === 'done') {
-              setHistory((h) => [...h, { role: 'assistant', content: accumulated }]);
-              setDraft('');
-              setStreaming(false);
-              loadSessions().catch(() => {});
-              return;
-            }
-            if (terminal === 'error') {
-              setHistory((h) => [...h, { role: 'assistant', content: event.message || 'An error occurred', error: true }]);
-              setDraft('');
-              setStreaming(false);
-              loadSessions().catch(() => {});
-              return;
-            }
-          } catch { /* skip */ }
+
+    await runChatStreamRequest({ message, action: 'send' }, opts, {
+      onAbort(err, accumulated) {
+        if (err.name === 'AbortError') {
+          if (accumulated) {
+            setHistory((h) => [...h, { role: 'assistant', content: `${accumulated} [stopped]` }]);
+          }
+          return;
         }
-      }
-      if (accumulated) setHistory((h) => [...h, { role: 'assistant', content: accumulated }]);
-      setDraft('');
-      setStreaming(false);
-    } catch (err) {
-      setHistory((h) => [...h, { role: 'assistant', content: err?.name === 'AbortError' ? 'Cancelled.' : 'Connection error — please try again.', error: true }]);
-      setDraft('');
-      setStreaming(false);
-    }
+        setHistory((h) => [
+          ...h,
+          { role: 'assistant', content: 'Connection error — please try again.', error: true },
+        ]);
+      },
+    });
+  }
+
+  async function regenerateLast(opts = {}) {
+    if (streaming || !activeSessionId) return;
+    setStreaming(true);
+    setDraft('');
+
+    await runChatStreamRequest({ action: 'regenerate', scope: null }, opts, {
+      onAbort(err) {
+        const content = err?.name === 'AbortError' ? 'Cancelled.' : 'Connection error — please try again.';
+        setHistory((h) => [...h, { role: 'assistant', content, error: true }]);
+      },
+    });
   }
 
   function stop() {

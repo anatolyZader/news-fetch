@@ -3,4 +3,4 @@
  * Re-exports for backward compatibility in tests and legacy callers.
  */
 export { searchSources as searchEvidenceCandidates, getSource as lookupEvidenceText } from './sourceArchiveQuery.js';
-export { parseMarkdownArticles as parseHomefrontMd, loadHomefrontArticlesForDate } from '../../../cross-cut-modules/source_archive/markdownArticles.js';
+export { parseMarkdownArticles as parseHomefrontMd, loadHomefrontArticlesForDate } from '../../../db/source_archive/markdownArticles.js';

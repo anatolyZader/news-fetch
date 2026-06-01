@@ -103,8 +103,8 @@ function driftBandLabel(score, t) {
   return t('drift.band.adequate') ?? 'adequate';
 }
 
-function ComponentTile({ id, series, t }) {
-  const last = [...series].reverse().find((p) => p.score != null);
+function ComponentTile({ id, series, t, showScoreHistory = false }) {
+  const lastPol = [...series].reverse().find((p) => p.polarization != null);
   const lastChronic = [...series].reverse().find((p) => p.z_score_chronic != null);
   const lastErosion = [...series].reverse().find((p) => p.erosion_index != null);
 
@@ -121,9 +121,9 @@ function ComponentTile({ id, series, t }) {
           {t(`comp.${id}`) ?? id.replaceAll('_', ' ')}
         </Typography>
         <Stack direction="row" spacing={0.75} alignItems="baseline">
-          {last && (
-            <Typography variant="caption" sx={{ color: 'text.secondary', textTransform: 'capitalize' }}>
-              {driftBandLabel(last.score, t)}
+          {lastPol && !showScoreHistory && (
+            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+              P={lastPol.polarization.toFixed(2)}
             </Typography>
           )}
           {lastChronic && lastChronic.z_score_chronic <= -1.5 && (
@@ -139,7 +139,12 @@ function ComponentTile({ id, series, t }) {
         </Stack>
       </Stack>
       <Box sx={{ marginTop: 0.5 }}>
-        <Sparkline series={series} t={t} />
+        <Sparkline
+          series={series}
+          t={t}
+          valueKey={showScoreHistory ? 'score' : 'polarization'}
+          variant={showScoreHistory ? 'score10' : 'unit01'}
+        />
       </Box>
     </Box>
   );
@@ -149,6 +154,7 @@ ComponentTile.propTypes = {
   id: PropTypes.string.isRequired,
   series: PropTypes.arrayOf(PropTypes.object).isRequired,
   t: translationFnPropType,
+  showScoreHistory: PropTypes.bool,
 };
 
 function SignalVolumeBar({ days, t }) {
@@ -196,6 +202,7 @@ SignalVolumeBar.propTypes = {
 export function ResilienceDriftPanel({ scope = 'national' }) {
   const { t } = useLanguage();
   const [days, setDays] = useState(30);
+  const [showScoreHistory, setShowScoreHistory] = useState(false);
   const { data, loading, error } = useResilienceDrift({ scope, days });
 
   const perComponent = useMemo(() => data?.per_component ?? {}, [data]);
@@ -218,6 +225,14 @@ export function ResilienceDriftPanel({ scope = 'national' }) {
             </ToggleButton>
           ))}
         </ToggleButtonGroup>
+        <ToggleButton
+          size="small"
+          value="score"
+          selected={showScoreHistory}
+          onClick={() => setShowScoreHistory((v) => !v)}
+        >
+          {showScoreHistory ? t('drift.hideScoreCalibration') : t('drift.showScoreCalibration')}
+        </ToggleButton>
       </Stack>
 
       {error && <Alert severity="error">{error}</Alert>}
@@ -236,6 +251,7 @@ export function ResilienceDriftPanel({ scope = 'national' }) {
                 id={id}
                 series={perComponent[id]?.series ?? []}
                 t={t}
+                showScoreHistory={showScoreHistory}
               />
             ))}
           </Box>

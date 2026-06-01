@@ -1,4 +1,5 @@
-import { existsSync, readFileSync, statSync } from 'node:fs';
+import { getDefaultStateStore } from '../../../../cross-cut-modules/persistence/infrastructure/fsStateStoreAdapter.js';
+const stateStore = getDefaultStateStore();
 import { resolve } from 'node:path';
 import { decayedOutletMultiplier, isOutletDecayEnabled } from './outletReputationDecay.js';
 
@@ -23,9 +24,9 @@ export function getOutletReliabilityMultiplier(articleSource, configPath) {
     ?? resolve(process.cwd(), 'config', 'resilience-outlet-priors.json');
 
   let currentMtime = null;
-  if (existsSync(path)) {
+  if (stateStore.existsSync(path)) {
     try {
-      currentMtime = statSync(path).mtimeMs;
+      currentMtime = stateStore.statSync(path).mtimeMs;
     } catch {
       currentMtime = null;
     }
@@ -40,7 +41,7 @@ export function getOutletReliabilityMultiplier(articleSource, configPath) {
       cached = {};
     } else {
       try {
-        const raw = JSON.parse(readFileSync(path, 'utf8'));
+        const raw = JSON.parse(stateStore.readFileSync(path, 'utf8'));
         cached = raw && typeof raw === 'object' ? raw : {};
       } catch {
         cached = {};

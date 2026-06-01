@@ -24,7 +24,7 @@ function readAssessmentTotalArticles(jsonPath) {
  * @returns {string | null} absolute path
  */
 export function resolveReportJsonPathForDate(rootDir, date, scope) {
-  const reportsDir = join(rootDir, 'reports');
+  const reportsDir = join(rootDir, 'daily_reports');
   if (!existsSync(reportsDir)) return null;
 
   const prefixBase = reportFilePrefix(normalizeReportScopeId(scope));

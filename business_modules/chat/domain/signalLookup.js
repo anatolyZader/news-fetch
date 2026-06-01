@@ -1,12 +1,13 @@
 /**
  * Signal and report lookup utilities for chat tools.
  */
-import { readFileSync, readdirSync } from 'node:fs';
+import { getDefaultStateStore } from '../../../cross-cut-modules/persistence/infrastructure/fsStateStoreAdapter.js';
+const stateStore = getDefaultStateStore();
 import { join } from 'node:path';
 import {
   deriveInstrumentState,
   operatorAssessmentSummary,
-} from '../../resilience/domain/services/assessmentDisplayTier.js';
+} from '../../resilience/index.js';
 
 const REPO_ROOT = join(import.meta.dirname, '..', '..', '..');
 const SIGNALS_DIRS = [
@@ -14,27 +15,41 @@ const SIGNALS_DIRS = [
   join(REPO_ROOT, 'business_modules', 'visits', 'data', 'signals'),
   join(REPO_ROOT, 'business_modules', 'social_media', 'data'),
 ];
-const REPORTS_DIR = join(REPO_ROOT, 'reports');
+const OBSERVATIONS_DIR = join(REPO_ROOT, 'business_modules', 'signals_extraction', 'data');
+const REPORTS_DIR = join(REPO_ROOT, 'daily_reports');
 const REPORT_DATE_RE = /resilience-report-(\d{4}-\d{2}-\d{2})/;
 const SIGNAL_FILE_RE = /signals-(.+?)-(\d{4}-\d{2}-\d{2})\.json/;
+
+function readSignalDirNames(dir) {
+  try {
+    return stateStore.readdirSync(dir).filter((f) => f.endsWith('.json'));
+  } catch {
+    return null;
+  }
+}
+
+function isSignalBundleFile(name) {
+  return name.startsWith('signals-') || name.startsWith('signals-social-');
+}
+
+function matchesSignalFilters(name, { date, sourceType }) {
+  if (sourceType) {
+    const prefix = sourceType === 'social' ? 'signals-social-' : `signals-${sourceType}-`;
+    if (!name.startsWith(prefix)) return false;
+  }
+  if (date && !name.includes(date)) return false;
+  return true;
+}
 
 function listSignalJsonFiles({ date, sourceType } = {}) {
   const seen = new Set();
   const files = [];
+  const filters = { date, sourceType };
   for (const dir of SIGNALS_DIRS) {
-    let names;
-    try {
-      names = readdirSync(dir).filter((f) => f.endsWith('.json'));
-    } catch {
-      continue;
-    }
+    const names = readSignalDirNames(dir);
+    if (!names) continue;
     for (const f of names) {
-      if (!f.startsWith('signals-') && !f.startsWith('signals-social-')) continue;
-      if (sourceType) {
-        const prefix = sourceType === 'social' ? 'signals-social-' : `signals-${sourceType}-`;
-        if (!f.startsWith(prefix)) continue;
-      }
-      if (date && !f.includes(date)) continue;
+      if (!isSignalBundleFile(f) || !matchesSignalFilters(f, filters)) continue;
       const key = `${dir}/${f}`;
       if (seen.has(key)) continue;
       seen.add(key);
@@ -56,7 +71,7 @@ export function loadSignals({ date, sourceType } = {}) {
   const results = [];
   for (const { dir, name: f } of fileEntries) {
     try {
-      const raw = JSON.parse(readFileSync(join(dir, f), 'utf-8'));
+      const raw = JSON.parse(stateStore.readFileSync(join(dir, f), 'utf-8'));
       const meta = {
         source_type: raw.source_type ?? (f.startsWith('signals-social-') ? 'social' : undefined),
         date: raw.date,
@@ -70,6 +85,47 @@ export function loadSignals({ date, sourceType } = {}) {
         results.push({ ...meta, signal_id, ...sig });
       }
     } catch { /* skip corrupt files */ }
+  }
+  return results;
+}
+
+/**
+ * Load open observations (unmapped) from signals_extraction bundles for analyst lookup.
+ * @param {{ date?: string, profile?: string, limit?: number }} [opts]
+ * @returns {Array<object>}
+ */
+export function loadObservations({ date, profile, limit = 50 } = {}) {
+  let names;
+  try {
+    names = stateStore.readdirSync(OBSERVATIONS_DIR).filter((f) =>
+      f.startsWith('observations-') && f.endsWith('.json'),
+    );
+  } catch {
+    return [];
+  }
+
+  const results = [];
+  for (const f of names) {
+    if (date && !f.includes(date)) continue;
+    if (profile && !f.startsWith(`observations-${profile}-`)) continue;
+    try {
+      const raw = JSON.parse(stateStore.readFileSync(join(OBSERVATIONS_DIR, f), 'utf-8'));
+      for (const obs of raw.observations ?? []) {
+        results.push({
+          observation_id: obs.observation_id,
+          profile: raw.profile,
+          date: raw.date,
+          source_type: raw.source_type,
+          file: f,
+          behavioral_description: obs.behavioral_description,
+          evidence: obs.evidence,
+          suggested_catalog_types: obs.suggested_catalog_types ?? [],
+          polarity: obs.polarity,
+          confidence: obs.confidence,
+        });
+        if (results.length >= limit) return results;
+      }
+    } catch { /* skip */ }
   }
   return results;
 }
@@ -125,18 +181,21 @@ export function searchSignals(signals, { query, component, sourceType, municipal
   return filtered.slice(0, limit);
 }
 
+function formatSignalLine(s, i) {
+  let line = `[${i + 1}] id=${s.signal_id ?? 'unknown'} — ${s.signal_type} (${s.source_type}, ${s.date})`;
+  if (s.article_source) line += ` — ${s.article_source}`;
+  if (s.source_id) line += `\n    source_id=${s.source_id}`;
+  line += `\n    ${s.evidence?.slice(0, 300)}`;
+  if (s.article_url) line += `\n    ${s.article_url}`;
+  return line;
+}
+
 /**
  * Format signals for tool output (concise, readable).
  */
 export function formatSignals(signals) {
   if (signals.length === 0) return 'No matching signals found.';
-  return signals.map((s, i) =>
-    `[${i + 1}] id=${s.signal_id ?? 'unknown'} — ${s.signal_type} (${s.source_type}, ${s.date})` +
-    `${s.article_source ? ' — ' + s.article_source : ''}` +
-    `${s.source_id ? `\n    source_id=${s.source_id}` : ''}` +
-    `\n    ${s.evidence?.slice(0, 300)}` +
-    (s.article_url ? `\n    ${s.article_url}` : ''),
-  ).join('\n\n');
+  return signals.map((s, i) => formatSignalLine(s, i)).join('\n\n');
 }
 
 /**
@@ -148,7 +207,7 @@ export function formatSignals(signals) {
 export function loadReport(date) {
   let files;
   try {
-    files = readdirSync(REPORTS_DIR)
+    files = stateStore.readdirSync(REPORTS_DIR)
       .filter((f) => f.startsWith(`resilience-report-${date}`) && f.endsWith('.json'))
       .sort((a, b) => a.localeCompare(b));
   } catch {
@@ -156,7 +215,7 @@ export function loadReport(date) {
   }
   if (files.length === 0) return null;
   try {
-    return JSON.parse(readFileSync(join(REPORTS_DIR, files.at(-1)), 'utf-8'));
+    return JSON.parse(stateStore.readFileSync(join(REPORTS_DIR, files.at(-1)), 'utf-8'));
   } catch {
     return null;
   }
@@ -169,7 +228,7 @@ export function loadReport(date) {
 export function listReportDates() {
   let files;
   try {
-    files = readdirSync(REPORTS_DIR)
+    files = stateStore.readdirSync(REPORTS_DIR)
       .filter((f) => f.startsWith('resilience-report-') && f.endsWith('.json'))
       .sort((a, b) => a.localeCompare(b));
   } catch {

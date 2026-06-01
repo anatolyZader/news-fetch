@@ -36,6 +36,24 @@
       "question": "What changed between 2026-05-28 and 2026-05-30?",
       "toolProfile": "default",
       "expectedTools": ["compare_dates"]
+    },
+    {
+      "id": "hub_attention",
+      "question": "What should I focus on today?",
+      "toolProfile": "default",
+      "expectedTools": ["list_attention_items", "get_decision_brief"]
+    },
+    {
+      "id": "hub_decision_brief",
+      "question": "Summarize the decision brief and pending recommendations.",
+      "toolProfile": "default",
+      "expectedTools": ["get_decision_brief", "list_operator_recommendations"]
+    },
+    {
+      "id": "validation_similar",
+      "question": "Find similar archive articles about rumor spread in the north.",
+      "toolProfile": "validation",
+      "expectedTools": ["search_similar_articles"]
     }
   ]
 }

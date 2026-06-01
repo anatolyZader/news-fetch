@@ -6,6 +6,7 @@ import {
   computePopupPosition,
   openPanelPopup,
   popupWindowName,
+  reloadPopupIfBundleStale,
 } from '../../../client/src/lib/panelPopup.js';
 
 describe('panelPopup', () => {
@@ -49,9 +50,21 @@ describe('panelPopup', () => {
 
   it('openPanelPopup refocuses an existing window', () => {
     let openCalls = 0;
+    let reloaded = false;
     const existing = {
       closed: false,
+      location: { pathname: '/panel/report-build', search: '', assign() {}, reload() { reloaded = true; } },
+      document: {
+        querySelector() {
+          return { getAttribute: () => '/assets/index-old.js' };
+        },
+      },
       focus() {},
+    };
+    globalThis.document = {
+      querySelector() {
+        return { getAttribute: () => '/assets/index-new.js' };
+      },
     };
     globalThis.window = {
       screenX: 0,
@@ -64,6 +77,26 @@ describe('panelPopup', () => {
     const result = openPanelPopup('report-build', /** @type {Window} */ (existing));
     assert.equal(result, existing);
     assert.equal(openCalls, 0);
+    assert.equal(reloaded, true);
+  });
+
+  it('reloadPopupIfBundleStale reloads when bundle hashes differ', () => {
+    let reloaded = false;
+    const popup = {
+      document: {
+        querySelector() {
+          return { getAttribute: () => '/assets/index-a.js' };
+        },
+      },
+      location: { reload() { reloaded = true; } },
+    };
+    globalThis.document = {
+      querySelector() {
+        return { getAttribute: () => '/assets/index-b.js' };
+      },
+    };
+    reloadPopupIfBundleStale(/** @type {Window} */ (popup));
+    assert.equal(reloaded, true);
   });
 
   it('openPanelPopup opens a new window with panel path', () => {

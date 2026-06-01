@@ -16,6 +16,9 @@ export function clusterKeyForRecord(record) {
   if (record.capture_kind === LEARNING_CAPTURE_KINDS.RESIDUAL_OBSERVATION) {
     return String(record.behavioral_description ?? record.evidence ?? 'residual').slice(0, 80);
   }
+  if (record.capture_kind === LEARNING_CAPTURE_KINDS.OPEN_OBSERVATION) {
+    return String(record.behavioral_description ?? record.evidence ?? 'open').slice(0, 80);
+  }
   return String(record.evidence ?? record.snippet ?? record.suggested_type ?? 'unknown').slice(0, 80);
 }
 

@@ -23,6 +23,8 @@ import { buildChatToolList } from '../domain/tools/chatToolSchemas.js';
  * @param {string} [deps.ownerUid]
  * @param {string} [deps.sessionId]
  * @param {function} [deps.onActionProposed]
+ * @param {object} [deps.costRecorder]
+ * @param {object} [deps.retrievalCache]
  */
 export function createChatToolContext(deps = {}) {
   const userEmail = deps.userEmail ?? '';
@@ -40,6 +42,8 @@ export function createChatToolContext(deps = {}) {
     sourceArchive: deps.sourceArchive ?? null,
     evidenceStore: deps.evidenceStore ?? null,
     retrievalService: deps.retrievalService ?? null,
+    retrievalCache: deps.retrievalCache ?? null,
+    costRecorder: deps.costRecorder ?? null,
     validationReviewService: deps.validationReviewService ?? null,
     pboHistoricalSearchService: deps.pboHistoricalSearchService ?? null,
     pboReportReviewService: deps.pboReportReviewService ?? null,

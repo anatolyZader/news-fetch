@@ -1,22 +1,24 @@
 /**
  * Unified source archive search/get/list for chat tools.
  */
-import { readFileSync, existsSync } from 'node:fs';
+import { getDefaultStateStore } from '../../../cross-cut-modules/persistence/infrastructure/fsStateStoreAdapter.js';
+const stateStore = getDefaultStateStore();
 import { resolve } from 'node:path';
 import {
   parseMdSourceId,
   parseLegacyDbSourceId,
   legacyDbSourceId,
-} from '../../../cross-cut-modules/source_archive/sourceId.js';
+  buildMdSourceIdFromPath,
+} from '../../../db/source_archive/sourceId.js';
 import {
   parseMarkdownArticles,
   REPO_ROOT,
-} from '../../../cross-cut-modules/source_archive/markdownArticles.js';
-import { buildMdSourceIdFromPath } from '../../../cross-cut-modules/source_archive/sourceId.js';
+} from '../../../db/source_archive/markdownArticles.js';
 import {
   loadFilesystemCandidates,
   getFilesystemSourceById,
-} from '../../../cross-cut-modules/source_archive/filesystemFallbacks.js';
+} from '../../../db/source_archive/filesystemFallbacks.js';
+import { chatRetrievalCacheKey } from '../../../cross-cut-modules/retrieval/chatRetrievalCache.js';
 
 function normalize(s) {
   return String(s ?? '').replaceAll(/\s+/g, ' ').trim();
@@ -109,9 +111,14 @@ function mergeArchiveAndFilesystem(input, sourceArchive, opts = {}) {
   return { out, dateFrom, dateTo };
 }
 
+function formatDateRangeLabel(dateFrom, dateTo) {
+  if (dateTo === dateFrom) return dateFrom;
+  return `${dateFrom}–${dateTo}`;
+}
+
 /**
  * @param {object} input
- * @param {ReturnType<import('../../../cross-cut-modules/source_archive/createSourceArchive.js').createSourceArchive>|null} sourceArchive
+ * @param {ReturnType<import('../../../db/source_archive/createSourceArchive.js').createSourceArchive>|null} sourceArchive
  */
 export function listSources(input, sourceArchive) {
   const date = normalize(input?.date);
@@ -126,38 +133,76 @@ export function listSources(input, sourceArchive) {
   if (result.error) return `list_sources: ${result.error}`;
 
   if (result.out.length === 0) {
-    return `No sources found for ${result.dateFrom}${result.dateTo !== result.dateFrom ? `–${result.dateTo}` : ''}.`;
+    return `No sources found for ${formatDateRangeLabel(result.dateFrom, result.dateTo)}.`;
   }
   return formatCandidates(result.out);
 }
 
+function tryCachedSearchHits(q, date, retrievalCache) {
+  if (!q || !retrievalCache) return null;
+  const cacheKey = chatRetrievalCacheKey(
+    retrievalCache.sessionId ?? '',
+    q,
+    'national',
+    date,
+  );
+  const cached = retrievalCache.get(cacheKey);
+  if (!cached?.searchHits?.length) return null;
+  return formatCandidates(cached.searchHits);
+}
+
+function cacheSearchHits(retrievalCache, q, date, ragHits) {
+  if (!retrievalCache) return;
+  const cacheKey = chatRetrievalCacheKey(
+    retrievalCache.sessionId ?? '',
+    q,
+    'national',
+    date,
+  );
+  const prev = retrievalCache.get(cacheKey) ?? {};
+  retrievalCache.set(cacheKey, { ...prev, searchHits: ragHits });
+}
+
+async function tryRagSearch(input, q, date, retrievalService, retrievalCache) {
+  if (!q || !retrievalService?.retrieval?.searchArchiveChunks) return null;
+  try {
+    const ragHits = await retrievalService.retrieval.searchArchiveChunks({
+      query: q,
+      date,
+      date_from: input?.date_from,
+      date_to: input?.date_to ?? date,
+      source_type: input?.source_type,
+      limit: Math.min(Number(input?.limit ?? 7) || 7, 25),
+      snippet_chars: input?.snippet_chars,
+    });
+    if (!ragHits?.length) return null;
+    cacheSearchHits(retrievalCache, q, date, ragHits);
+    return formatCandidates(ragHits);
+  } catch (err) {
+    console.error('searchSources RAG:', err.message);
+    return null;
+  }
+}
+
 /**
  * @param {object} input
- * @param {ReturnType<import('../../../cross-cut-modules/source_archive/createSourceArchive.js').createSourceArchive>|null} sourceArchive
+ * @param {ReturnType<import('../../../db/source_archive/createSourceArchive.js').createSourceArchive>|null} sourceArchive
  * @param {{ retrieval?: { searchArchiveChunks: Function } }|null} [retrievalService]
+ * @param {{ retrievalCache?: ReturnType<import('../../../cross-cut-modules/retrieval/chatRetrievalCache.js').createChatRetrievalCache> }|null} [opts]
  */
-export async function searchSources(input, sourceArchive, retrievalService = null) {
+export async function searchSources(input, sourceArchive, retrievalService = null, opts = {}) {
   const date = normalize(input?.date);
   if (!date) return 'search_sources: date was missing and could not be inferred.';
   if (!sourceArchive) return 'search_sources: source archive is not available.';
 
   const q = normalize(input?.query);
-  if (q && retrievalService?.retrieval?.searchArchiveChunks) {
-    try {
-      const ragHits = await retrievalService.retrieval.searchArchiveChunks({
-        query: q,
-        date,
-        date_from: input?.date_from,
-        date_to: input?.date_to ?? date,
-        source_type: input?.source_type,
-        limit: Math.min(Number(input?.limit ?? 7) || 7, 25),
-        snippet_chars: input?.snippet_chars,
-      });
-      if (ragHits?.length) return formatCandidates(ragHits);
-    } catch (err) {
-      console.error('searchSources RAG:', err.message);
-    }
-  }
+  const retrievalCache = opts?.retrievalCache ?? null;
+
+  const cachedResult = tryCachedSearchHits(q, date, retrievalCache);
+  if (cachedResult) return cachedResult;
+
+  const ragResult = await tryRagSearch(input, q, date, retrievalService, retrievalCache);
+  if (ragResult) return ragResult;
 
   const result = mergeArchiveAndFilesystem(
     { ...input, date_to: input?.date_to ?? input?.date },
@@ -174,8 +219,8 @@ export async function searchSources(input, sourceArchive, retrievalService = nul
 
 function lookupMdByParsed(mdParsed, maxChars) {
   const abs = resolve(REPO_ROOT, mdParsed.sourceFile);
-  if (!existsSync(abs)) return `Markdown file missing for source_id=md:${mdParsed.sourceFile}#${mdParsed.idx1}.`;
-  const article = parseMarkdownArticles(readFileSync(abs, 'utf8'), abs)
+  if (!stateStore.existsSync(abs)) return `Markdown file missing for source_id=md:${mdParsed.sourceFile}#${mdParsed.idx1}.`;
+  const article = parseMarkdownArticles(stateStore.readFileSync(abs, 'utf8'), abs)
     .find((x) => x.idx1 === mdParsed.idx1);
   if (!article) return `No article found for source_id=md:${mdParsed.sourceFile}#${mdParsed.idx1}.`;
   return formatFullSource({
@@ -214,7 +259,7 @@ function lookupLegacyDb(dbId, evidenceStore, maxChars) {
 
 /**
  * @param {object} input
- * @param {ReturnType<import('../../../cross-cut-modules/source_archive/createSourceArchive.js').createSourceArchive>|null} sourceArchive
+ * @param {ReturnType<import('../../../db/source_archive/createSourceArchive.js').createSourceArchive>|null} sourceArchive
  * @param {object|null} [evidenceStore] legacy bridge
  */
 export async function getSource(input, sourceArchive, evidenceStore = null) {

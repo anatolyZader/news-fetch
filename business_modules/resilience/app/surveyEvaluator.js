@@ -10,10 +10,9 @@
  */
 
 import { writeFileSync, readFileSync, existsSync } from 'node:fs';
-import Anthropic from '@anthropic-ai/sdk';
+import { getDefaultLlmPort } from '../../../cross-cut-modules/llm/anthropicLlmAdapter.js';
 import { RESILIENCE_COMPONENTS } from '../domain/resilienceComponents.js';
 
-const client = new Anthropic();
 
 const MODEL_SURVEY_HAIKU = 'claude-haiku-4-5-20251001';
 
@@ -157,7 +156,7 @@ async function assessBatch(batch, batchNum, totalBatches, onUsage) {
     munBlocks +
     `\n\nAssess each municipality qualitatively across all available components.`;
 
-  const stream = client.messages.stream({
+  const stream = getDefaultLlmPort().stream({
     model: MODEL_SURVEY_HAIKU,
     max_tokens: 8000,
     system: systemPrompt,
@@ -187,7 +186,7 @@ async function assessBatch(batch, batchNum, totalBatches, onUsage) {
 
 function cpPath(date, sourceFile) {
   const safe = sourceFile.replaceAll(/[^\w\u0590-\u05FF.-]/g, '_');
-  return `reports/survey-checkpoint-${date}-${safe}.json`;
+  return `daily_reports/survey-checkpoint-${date}-${safe}.json`;
 }
 
 function loadCheckpoint(path) {
@@ -242,7 +241,7 @@ async function synthesizeRegional(munAssessments, date, onUsage) {
     `PER-MUNICIPALITY FINDINGS:\n${JSON.stringify(munAssessments)}\n\n` +
     `Produce a regional qualitative synthesis.`;
 
-  const stream = client.messages.stream({
+  const stream = getDefaultLlmPort().stream({
     model: MODEL_SURVEY_HAIKU,
     max_tokens: 8000,
     system: systemPrompt,

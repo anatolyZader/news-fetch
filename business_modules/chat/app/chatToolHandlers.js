@@ -1,20 +1,21 @@
 /**
  * Chat tool handlers — (toolName, input, ctx) => string | Promise<string>
  */
-import Anthropic from '@anthropic-ai/sdk';
+import { getDefaultLlmPort } from '../../../cross-cut-modules/llm/anthropicLlmAdapter.js';
 import { loadSignals, searchSignals, formatSignals, compareReports } from '../domain/signalLookup.js';
 import {
   deriveInstrumentState,
   operatorAssessmentSummary,
   DISPLAY_VIEWS,
-} from '../../resilience/domain/services/assessmentDisplayTier.js';
+  normalizeReportScope,
+  buildAttentionItems,
+  formatSimilarArticlesForChat,
+} from '../../resilience/index.js';
 import { searchSources, getSource, listSources } from '../domain/sourceArchiveQuery.js';
 import { pboReviewRagEnabled } from '../../../cross-cut-modules/retrieval/ragConfig.js';
-import { normalizeReportScope } from '../../resilience/domain/services/regionSignalFilter.js';
 import { requireAnalyst } from './createChatToolContext.js';
-import { PROPOSE_TOOL_NAMES } from '../domain/chatConfig.js';
+import { PROPOSE_TOOL_NAMES, OPERATOR_PROPOSE_TOOL_NAMES } from '../domain/chatConfig.js';
 
-const briefClient = new Anthropic();
 
 const VALIDATION_ACTIONS = new Set([
   'label', 'skip', 'defer', 'gold_signal', 'confirm_social_quarantine', 'dismiss_social_quarantine',
@@ -51,8 +52,11 @@ function formatDriftSummary(data) {
 }
 
 async function handleProposeTool(toolName, input, ctx) {
-  const gate = requireAnalyst(ctx, toolName);
-  if (gate) return gate;
+  const isOperatorPropose = OPERATOR_PROPOSE_TOOL_NAMES.has(toolName);
+  if (!isOperatorPropose) {
+    const gate = requireAnalyst(ctx, toolName);
+    if (gate) return gate;
+  }
   if (!ctx.confirmActionsEnabled) {
     return 'Confirm-gated actions are disabled (CHAT_CONFIRM_ACTIONS_ENABLED=0).';
   }
@@ -71,6 +75,12 @@ async function handleProposeTool(toolName, input, ctx) {
     summary = `Geo unknown #${input.id} → ${input.status}`;
   } else if (toolName === 'propose_catalog_proposal_review') {
     summary = `Catalog proposal ${input.proposal_id} → ${input.status}`;
+  } else if (toolName === 'propose_operator_recommendation') {
+    const action = String(input?.action ?? '');
+    if (action !== 'acknowledge' && action !== 'dismiss') {
+      return 'Invalid action. Use acknowledge or dismiss.';
+    }
+    summary = `Operator recommendation ${input.recommendation_id}: ${action}`;
   }
 
   const { id, expiresAt } = ctx.pendingActionStore.createPending({
@@ -130,7 +140,7 @@ function appendMunicipalityBriefContext(context, scope, municipality, pboLookup)
   return next;
 }
 
-async function generateBrief(input, reportData, pboLookup) {
+async function generateBrief(input, reportData, pboLookup, costRecorder = null) {
   const { scope, municipality, audience, language } = input;
   let briefContext = buildAssessmentBriefContext(reportData, {
     includeScores: reportData?.display_view === DISPLAY_VIEWS.analyst,
@@ -147,8 +157,9 @@ async function generateBrief(input, reportData, pboLookup) {
     ? `Focus the brief on the municipality: ${municipality}.`
     : 'Produce an overall situation brief covering all components.';
 
-  const response = await briefClient.messages.create({
-    model: 'claude-haiku-4-5-20251001',
+  const model = 'claude-haiku-4-5-20251001';
+  const response = await getDefaultLlmPort().createMessage({
+    model,
     max_tokens: 3000,
     system: 'You are a resilience assessment brief writer.',
     messages: [{
@@ -158,6 +169,9 @@ async function generateBrief(input, reportData, pboLookup) {
         `${langInstructions}\n${scopeInstructions}\n\nDATA:\n${briefContext}`,
     }],
   });
+  if (costRecorder && response.usage) {
+    costRecorder.onUsage({ label: 'chat:generate_brief', model, usage: response.usage });
+  }
   const text = response.content.filter((b) => b.type === 'text').map((b) => b.text).join('');
   return text || 'Brief generation returned empty.';
 }
@@ -209,6 +223,7 @@ function handleSearchSources(input, ctx) {
     { ...input, date: inferredDate(input, ctx.reportData) },
     ctx.sourceArchive,
     ctx.retrievalService,
+    { retrievalCache: ctx.retrievalCache ?? null },
   );
 }
 
@@ -286,6 +301,11 @@ async function handleExplainValidationItem(toolName, input, ctx) {
     scope,
     input.article_key,
     input.question ?? '',
+    {
+      onUsage: ctx.costRecorder
+        ? (p) => ctx.costRecorder.onUsage(p)
+        : undefined,
+    },
   );
   if (!result) return `Item not found: ${input.article_key}`;
   return result.answer ?? 'No explanation returned.';
@@ -343,11 +363,73 @@ async function handleGetCatalogGapSummary(toolName, input, ctx) {
   ].join('\n');
 }
 
+function handleListAttentionItems(_toolName, input, ctx) {
+  const a = ctx.reportData?.assessment;
+  if (!a) return 'No assessment loaded.';
+  const scopeId = normalizeReportScope(
+    ctx.reportData?.report_scope?.id ?? a.report_scope?.id ?? 'national',
+  );
+  const limit = Math.min(Math.max(input?.limit ?? 15, 1), 25);
+  const items = buildAttentionItems(a, {
+    view: DISPLAY_VIEWS.operator,
+    reportScopeId: scopeId,
+  }).slice(0, limit);
+  if (!items.length) return 'No attention items for this assessment.';
+  return items.map((it) => {
+    const componentPart = it.component_id ? ` component=${it.component_id}` : '';
+    const titlePart = it.title_key ? ` title=${it.title_key}` : '';
+    return `- [${it.id}] ${it.level} ${it.code}${componentPart}${titlePart}`;
+  }).join('\n');
+}
+
+function handleListOperatorRecommendations(_toolName, input, ctx) {
+  const a = ctx.reportData?.assessment;
+  if (!a) return 'No assessment loaded.';
+  const statusFilter = input?.status ?? 'pending';
+  let recs = a.operator_recommendations ?? [];
+  if (statusFilter !== 'all') {
+    recs = recs.filter((r) => r.status === statusFilter);
+  }
+  if (!recs.length) return `No operator recommendations (status=${statusFilter}).`;
+  return recs.map((r) => {
+    const actionType = r.recommended_action?.type ?? 'n/a';
+    const channels = (r.recommended_action?.channels ?? []).join(', ');
+    const channelsPart = channels ? ` channels=${channels}` : '';
+    return (
+      `- [${r.id}] ${r.pattern_code} level=${r.level} status=${r.status} action=${actionType}` +
+      `${channelsPart} component=${r.component_id ?? 'n/a'}`
+    );
+  }).join('\n');
+}
+
+function handleGetDecisionBrief(_toolName, _input, ctx) {
+  const brief = ctx.reportData?.assessment?.decision_brief;
+  if (!brief) {
+    return 'No decision brief on this report (run assess-signals with RESILIENCE_DECISION_BRIEF_ENABLED).';
+  }
+  return JSON.stringify(brief, null, 2).slice(0, 12000);
+}
+
+async function handleSearchSimilarArticles(toolName, input, ctx) {
+  const gate = requireAnalyst(ctx, toolName);
+  if (gate) return gate;
+  const q = String(input?.query ?? '').trim();
+  if (!q) return 'query required';
+  const retrieval = ctx.retrievalService?.retrieval ?? null;
+  const date = inferredDate(input, ctx.reportData);
+  return formatSimilarArticlesForChat(q, {
+    retrieval,
+    reportDate: date,
+    topK: input?.top_k ?? 5,
+  });
+}
+
 const CHAT_TOOL_HANDLERS = {
   lookup_pbo: (_toolName, input, ctx) => handleLookupPbo(input, ctx),
   lookup_signals: (_toolName, input) => handleLookupSignals(input),
   compare_dates: (_toolName, input, ctx) => handleCompareDates(input, ctx),
-  generate_brief: (_toolName, input, ctx) => generateBrief(input, ctx.reportData, ctx.pboLookup),
+  generate_brief: (_toolName, input, ctx) =>
+    generateBrief(input, ctx.reportData, ctx.pboLookup, ctx.costRecorder),
   list_sources: (_toolName, input, ctx) => handleListSources(input, ctx),
   get_source: (_toolName, input, ctx) => handleGetSource(input, ctx),
   lookup_evidence: (_toolName, input, ctx) => handleGetSource(input, ctx),
@@ -363,6 +445,10 @@ const CHAT_TOOL_HANDLERS = {
   list_geo_unknown: handleListGeoUnknown,
   list_catalog_proposals: handleListCatalogProposals,
   get_catalog_gap_summary: handleGetCatalogGapSummary,
+  list_attention_items: handleListAttentionItems,
+  list_operator_recommendations: handleListOperatorRecommendations,
+  get_decision_brief: handleGetDecisionBrief,
+  search_similar_articles: handleSearchSimilarArticles,
 };
 
 /**

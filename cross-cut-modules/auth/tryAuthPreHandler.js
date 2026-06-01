@@ -1,14 +1,15 @@
-import { verifyIdTokenFromAuthorizationHeader } from './firebaseAdmin.js';
+import { getDefaultAuthPort } from './infrastructure/firebaseAuthAdapter.js';
+import { attachRequestUser } from './attachRequestUser.js';
 
 /**
- * Fastify preHandler: best-effort auth. If a valid Firebase ID token is present,
- * attach `request.user`; otherwise proceed unauthenticated.
+ * Fastify preHandler: best-effort auth. Valid listed user → `request.user`; otherwise unauthenticated.
  */
 export async function tryAuthPreHandler(request, _reply) {
-  const result = await verifyIdTokenFromAuthorizationHeader(request.headers.authorization);
+  const result = await getDefaultAuthPort().verifyToken(request.headers.authorization);
   if (!result.decoded) return;
-  request.user = {
-    uid: result.decoded.uid,
-    email: result.decoded.email ?? null,
-  };
+
+  const attached = attachRequestUser(request, result.decoded, { requireListed: true });
+  if (!attached.ok) {
+    return;
+  }
 }

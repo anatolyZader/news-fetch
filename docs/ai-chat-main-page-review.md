@@ -56,7 +56,7 @@ It also builds a `system` instruction that includes report context:
 
 Important behavior:
 
-- `getCachedReport()` (in `api/analysisService.js`) prefers filesystem JSON reports under `reports/`.
+- `getCachedReport()` (in `api/analysisService.js`) prefers filesystem JSON reports under `daily_reports/`.
 - It only consults the DB store when `getCachedReport(store)` is called with a store.
 - In `streamChat()`, the code calls `getCachedReport()` **without** providing `evidenceStore`, which can produce `null` context even when the UI is showing a report (if the UI path used the DB-backed version).
 

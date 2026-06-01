@@ -37,7 +37,7 @@ export async function runAnalyzeSurveyCli(options = {}) {
   const hasFlag = (flag) => args.includes(flag);
 
   const responsesArg   = getArg('--responses');
-  const mappingArg     = getArg('--mapping') ?? 'reports/survey-question-mapping.json';
+  const mappingArg     = getArg('--mapping') ?? 'daily_reports/survey-question-mapping.json';
   const municipalityArg = getArg('--municipality');
   const dateArg        = getArg('--date');
   const listMode       = hasFlag('--list');
@@ -92,7 +92,7 @@ export async function runAnalyzeSurveyCli(options = {}) {
 
   for (const mun of toProcess) {
     const slug     = mun.name.replaceAll(/[/\\?%*:|"<> ]/g, '_');
-    const outPath  = resolve('reports', `survey-report-${date}-${slug}`);
+    const outPath  = resolve('daily_reports', `survey-report-${date}-${slug}`);
     const mdPath   = `${outPath}.md`;
 
     if (existsSync(mdPath)) {
@@ -121,7 +121,7 @@ export async function runAnalyzeSurveyCli(options = {}) {
         }
       }
 
-      writeMunicipalityReports(assessment.municipalities, date, sourceFile, 'reports', assessment.regional);
+      writeMunicipalityReports(assessment.municipalities, date, sourceFile, 'daily_reports', assessment.regional);
 
       console.error(`  ✓ Written → ${mdPath}`);
       completed++;

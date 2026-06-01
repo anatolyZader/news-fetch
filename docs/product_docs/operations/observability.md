@@ -15,7 +15,7 @@ Get from "something's broken" to "I know what's broken" quickly. This page lists
 ## Prerequisites
 - **Required**: Access to server logs (stdout locally, your platform's log viewer in production).
 - **Required**: Ability to make HTTP requests to the server (curl, Postman, or the Swagger UI).
-- **Useful**: Access to the `reports/`, `signals/`, and source export directories so you can tell whether each stage's artifact exists for a given date.
+- **Useful**: Access to the `daily_reports/`, `signals/`, and source export directories so you can tell whether each stage's artifact exists for a given date.
 
 ## Inputs
 - **A symptom**: UI error, missing report, pipeline log line, unexpected number.
@@ -36,7 +36,7 @@ Get from "something's broken" to "I know what's broken" quickly. This page lists
 2. **Is auth required?** `curl /api/auth/config` → response tells the UI whether to prompt.
 3. **Are docs served?** `curl /api/docs/index` → `200` with a non-empty array means `docs/product_docs/` is deployed.
 4. **Is there a report for today?** `curl /api/report/today` → `200` means yes, `404` means assessment hasn't run.
-5. **Do today's artifacts exist?** `ls signals/signals-*-$(date -u +%F).json reports/*.json` → you can tell stage-by-stage which ones completed.
+5. **Do today's artifacts exist?** `ls signals/signals-*-$(date -u +%F).json daily_reports/*.json` → you can tell stage-by-stage which ones completed.
 6. **Server logs** for the first error in today's pipeline run.
 
 Each step narrows the possible causes roughly in half. Do them in order.
@@ -79,7 +79,7 @@ Expected: `200` once today's assessment completes. `404` is the normal state ear
 
 ```bash runnable
 ls -1 signals/ | tail -n 10
-ls -1 reports/ 2>/dev/null | tail -n 10
+ls -1 daily_reports/ 2>/dev/null | tail -n 10
 ls -1 business_modules/news-sites/articles_extracted/ | tail -n 10
 ```
 

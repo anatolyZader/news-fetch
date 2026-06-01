@@ -18,6 +18,7 @@ describe('GET /api/auth/config', () => {
     assert.strictEqual(res.statusCode, 200);
     const body = JSON.parse(res.body);
     assert.strictEqual(body.authRequired, false);
+    assert.strictEqual(body.appCheckEnforced, process.env.APP_CHECK_ENFORCE === 'true');
   });
 });
 

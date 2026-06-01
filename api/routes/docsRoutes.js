@@ -6,6 +6,7 @@ import { resolve } from 'node:path';
 import { buildProductDocsIndex, loadProductDocPage } from '../../utils/productDocs.js';
 import { searchProductDocs } from '../../cross-cut-modules/retrieval/docsRetrieval.js';
 import { docsRagEnabled } from '../../cross-cut-modules/retrieval/ragConfig.js';
+import { httpDailyBudgetPreHandler } from '../../cross-cut-modules/budget/app/httpDailyBudget.js';
 
 /**
  * @param {import('fastify').FastifyInstance} app
@@ -30,7 +31,12 @@ export async function docsRoutes(app, opts) {
     return reply.send({ pages });
   });
 
-  app.get('/api/docs/search', tryAuthHook, async (request, reply) => {
+  const docsSearchHooks = [httpDailyBudgetPreHandler];
+  if (tryAuthHook?.preHandler) docsSearchHooks.unshift(tryAuthHook.preHandler);
+
+  app.get('/api/docs/search', {
+    preHandler: docsSearchHooks,
+  }, async (request, reply) => {
     const query = String(request.query?.query ?? '').trim();
     if (!query) {
       return reply.code(400).send({ error: 'query parameter is required' });

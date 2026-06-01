@@ -3,6 +3,11 @@
  */
 import { buildValidationReviewContext } from '../../../../cross-cut-modules/retrieval/analystRetrieval.js';
 import { validationReviewRagEnabled } from '../../../../cross-cut-modules/retrieval/ragConfig.js';
+import {
+  getValidationRagCache,
+  setValidationRagCache,
+  validationRagCacheKey,
+} from '../../../../cross-cut-modules/retrieval/validationRagContextCache.js';
 import { explainValidationItem } from './validationReviewExplain.js';
 
 const ACTION_STATUS = {
@@ -31,7 +36,7 @@ export function createValidationReviewService(deps) {
     sourceArchive = null,
     retrievalService = null,
     storyClusterIndex = null,
-    reportsDir = 'reports',
+    reportsDir = 'daily_reports',
   } = deps;
   if (!store) throw new Error('store is required');
 
@@ -73,9 +78,17 @@ export function createValidationReviewService(deps) {
     return { ...item, article: resolveArticleExcerpt(date, item.article_url) };
   }
 
-  async function getItemContext(date, scope, articleKey) {
+  async function getItemContext(date, scope, articleKey, opts = {}) {
     const item = store.getItem(date, scope, articleKey);
     if (!item) return null;
+
+    const cacheKey = validationRagCacheKey(date, scope, articleKey);
+    if (!opts.forceRefresh && validationReviewRagEnabled()) {
+      const cached = getValidationRagCache(cacheKey);
+      if (cached) {
+        return { item, article: cached.article, rag: cached.rag };
+      }
+    }
 
     let article = null;
     let rag = {
@@ -95,6 +108,7 @@ export function createValidationReviewService(deps) {
         reportsDir,
       });
       article = resolveArticleExcerpt(date, item.article_url, rag.source_id);
+      setValidationRagCache(cacheKey, { rag, article });
     } else {
       article = resolveArticleExcerpt(date, item.article_url);
     }
@@ -102,10 +116,12 @@ export function createValidationReviewService(deps) {
     return { item, article, rag };
   }
 
-  async function explainItem(date, scope, articleKey, question) {
-    const ctx = await getItemContext(date, scope, articleKey);
+  async function explainItem(date, scope, articleKey, question, opts = {}) {
+    const ctx = await getItemContext(date, scope, articleKey, opts);
     if (!ctx) return null;
-    const result = await explainValidationItem(ctx.item, ctx.rag, question);
+    const result = await explainValidationItem(ctx.item, ctx.rag, question, {
+      onUsage: opts.onUsage ?? null,
+    });
     return { ...result, item: ctx.item };
   }
 

@@ -2,7 +2,8 @@
  * Operator-visible OOV burst detection — dynamic semantic clustering in a rolling window.
  */
 
-import { existsSync, readFileSync } from 'node:fs';
+import { getDefaultStateStore } from '../../../../cross-cut-modules/persistence/infrastructure/fsStateStoreAdapter.js';
+const stateStore = getDefaultStateStore();
 import { resolve } from 'node:path';
 
 import { evaluateDynamicOovClusters } from '../../../../cross-cut-modules/learningCapture/dynamicOovCluster.js';
@@ -15,12 +16,12 @@ import { isLearningCaptureEnabled, getOovRunBuffer } from './oovCapture.js';
  * @param {string} [reportsDir]
  * @returns {Array<object>}
  */
-export function loadOovCaptureRecordsForDate(date, reportsDir = 'reports') {
+export function loadOovCaptureRecordsForDate(date, reportsDir = 'daily_reports') {
   if (!isLearningCaptureEnabled()) return [];
   const path = resolve(reportsDir, `oov-capture-${date}.jsonl`);
-  if (!existsSync(path)) return [];
+  if (!stateStore.existsSync(path)) return [];
   try {
-    const text = readFileSync(path, 'utf8');
+    const text = stateStore.readFileSync(path, 'utf8');
     return text
       .split('\n')
       .filter((line) => line.trim())

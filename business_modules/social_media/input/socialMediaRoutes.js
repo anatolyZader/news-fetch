@@ -8,6 +8,8 @@ import { checkOptionalDistrictQueryAccess } from '../../../cross-cut-modules/aut
 import { canRunAnalysisDisplay, canViewAnalystDisplay } from '../../../cross-cut-modules/auth/userAccess.js';
 import { auditFromRequest } from '../../../cross-cut-modules/security/input/auditLog.js';
 import { costlyRoutePreHandlers } from '../../../cross-cut-modules/security/input/costlyRoutePreHandlers.js';
+import { normalizeAuthPreHandlers } from '../../../cross-cut-modules/auth/buildAuthHooks.js';
+import { assertService, dateParam } from '../../../cross-cut-modules/security/app/httpGuards.js';
 
 function socialFetchAllowed(request) {
   if (canRunAnalysisDisplay(request.user?.email)) return true;
@@ -19,9 +21,7 @@ export async function socialMediaRoutes(app, opts) {
   const preHandler = opts?.authPreHandler ? { preHandler: opts.authPreHandler } : {};
 
   app.get('/api/social-media', preHandler, async (request, reply) => {
-    if (!socialMediaService) {
-      return reply.code(503).send({ error: 'social media service not configured' });
-    }
+    if (!assertService(socialMediaService, reply, 'social media service not configured')) return;
     if (!checkOptionalDistrictQueryAccess(request, reply)) return;
     try {
       return reply.send(await socialMediaService.getDashboard());
@@ -31,21 +31,15 @@ export async function socialMediaRoutes(app, opts) {
   });
 
   app.get('/api/social-media/platforms', preHandler, async (_request, reply) => {
-    if (!socialMediaService) {
-      return reply.code(503).send({ error: 'social media service not configured' });
-    }
+    if (!assertService(socialMediaService, reply, 'social media service not configured')) return;
     return reply.send(socialMediaService.getPlatforms());
   });
 
   app.get('/api/social-media/daily', preHandler, async (request, reply) => {
-    if (!socialMediaService) {
-      return reply.code(503).send({ error: 'social media service not configured' });
-    }
+    if (!assertService(socialMediaService, reply, 'social media service not configured')) return;
     if (!checkOptionalDistrictQueryAccess(request, reply)) return;
-    const date = String(request.query?.date ?? '').trim();
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-      return reply.code(400).send({ error: 'date query param required (YYYY-MM-DD)' });
-    }
+    const date = dateParam(request.query?.date, reply);
+    if (date === null) return;
     const categoryId = String(request.query?.category ?? '').trim() || undefined;
     const lang = String(request.query?.lang ?? '').trim() || undefined;
     try {
@@ -57,7 +51,7 @@ export async function socialMediaRoutes(app, opts) {
     }
   });
 
-  app.post('/api/social-media/fetch-topic', costlyRoutePreHandlers(preHandler.preHandler ? [preHandler.preHandler] : []), async (request, reply) => {
+  app.post('/api/social-media/fetch-topic', costlyRoutePreHandlers(normalizeAuthPreHandlers(opts?.authPreHandler)), async (request, reply) => {
     if (!socialFetchAllowed(request)) {
       return reply.code(403).send({
         error: 'Forbidden',
@@ -65,9 +59,7 @@ export async function socialMediaRoutes(app, opts) {
         message: 'fetch-topic requires maintainer access (or SOCIAL_FETCH_ANALYST_OK with analyst role).',
       });
     }
-    if (!socialMediaService) {
-      return reply.code(503).send({ error: 'social media service not configured' });
-    }
+    if (!assertService(socialMediaService, reply, 'social media service not configured')) return;
     const { topic, platforms, execute, maxCostUsd, maxPerQuery, lang } = request.body ?? {};
     if (typeof topic !== 'string' || !topic.trim()) {
       return reply.code(400).send({ error: 'topic is required' });
@@ -94,9 +86,7 @@ export async function socialMediaRoutes(app, opts) {
   });
 
   app.get('/api/social-media/topic-fetches', preHandler, async (request, reply) => {
-    if (!socialMediaService) {
-      return reply.code(503).send({ error: 'social media service not configured' });
-    }
+    if (!assertService(socialMediaService, reply, 'social media service not configured')) return;
     const limit = Math.min(Math.max(Number(request.query?.limit ?? 30), 1), 100);
     try {
       const searches = await socialMediaService.listTopicFetchHistory(limit);
@@ -107,9 +97,7 @@ export async function socialMediaRoutes(app, opts) {
   });
 
   app.get('/api/social-media/topic-fetches/:id', preHandler, async (request, reply) => {
-    if (!socialMediaService) {
-      return reply.code(503).send({ error: 'social media service not configured' });
-    }
+    if (!assertService(socialMediaService, reply, 'social media service not configured')) return;
     const id = String(request.params?.id ?? '').trim();
     const lang = String(request.query?.lang ?? '').trim() || undefined;
     try {
@@ -122,13 +110,9 @@ export async function socialMediaRoutes(app, opts) {
   });
 
   app.get('/api/social-media/report', preHandler, async (request, reply) => {
-    if (!socialMediaService) {
-      return reply.code(503).send({ error: 'social media service not configured' });
-    }
-    const date = String(request.query?.date ?? '').trim();
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-      return reply.code(400).send({ error: 'date query param required (YYYY-MM-DD)' });
-    }
+    if (!assertService(socialMediaService, reply, 'social media service not configured')) return;
+    const date = dateParam(request.query?.date, reply);
+    if (date === null) return;
     try {
       const report = await socialMediaService.getReport(date);
       if (!report) return reply.code(404).send({ error: 'Report not found' });

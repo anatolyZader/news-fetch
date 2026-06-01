@@ -10,4 +10,5 @@ export {
   getDailyBudgetStatus,
   httpDailyBudgetPreHandler,
 } from './app/httpDailyBudget.js';
+export { createHttpCostRecorder } from './app/httpCostRecorder.js';
 export { appendCostLog } from '../log/index.js';

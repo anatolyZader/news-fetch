@@ -4,14 +4,14 @@
  * @param {import('fastify').FastifyInstance} app
  * @param {{ newsSitesService?: ReturnType<import('../app/newsSitesService.js').createNewsSitesService>, authPreHandler?: any }} opts
  */
+import { assertService, dateParam } from '../../../cross-cut-modules/security/app/httpGuards.js';
+
 export async function newsSitesRoutes(app, opts) {
   const newsSitesService = opts?.newsSitesService ?? null;
   const preHandler = opts?.authPreHandler ? { preHandler: opts.authPreHandler } : {};
 
   app.get('/api/news-sites', preHandler, async (_request, reply) => {
-    if (!newsSitesService) {
-      return reply.code(503).send({ error: 'news sites service not configured' });
-    }
+    if (!assertService(newsSitesService, reply, 'news sites service not configured')) return;
     try {
       return reply.send(newsSitesService.getDashboard());
     } catch (err) {
@@ -20,13 +20,9 @@ export async function newsSitesRoutes(app, opts) {
   });
 
   app.get('/api/news-sites/daily', preHandler, async (request, reply) => {
-    if (!newsSitesService) {
-      return reply.code(503).send({ error: 'news sites service not configured' });
-    }
-    const date = String(request.query?.date ?? '').trim();
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-      return reply.code(400).send({ error: 'date query param required (YYYY-MM-DD)' });
-    }
+    if (!assertService(newsSitesService, reply, 'news sites service not configured')) return;
+    const date = dateParam(request.query?.date, reply);
+    if (date === null) return;
     try {
       const feed = newsSitesService.getDailyFeed(date);
       if (!feed) return reply.code(404).send({ error: 'Daily news feed not found' });

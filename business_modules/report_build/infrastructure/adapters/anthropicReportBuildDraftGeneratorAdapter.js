@@ -26,15 +26,19 @@ export function createAnthropicReportBuildDraftGeneratorAdapter({ anthropicApiKe
   const client = new Anthropic({ apiKey: anthropicApiKey });
 
   return {
-    async generate(structuredState, turnHistory, ragContext = null) {
+    async generate(structuredState, turnHistory, ragContext = null, opts = {}) {
+      const model = 'claude-haiku-4-5-20251001';
       const userContent = buildDraftUserContent(structuredState, turnHistory, ragContext);
       const response = await client.messages.create({
-        model: 'claude-haiku-4-5-20251001',
+        model,
         max_tokens: 800,
         temperature: 0.2,
         system: SYSTEM_PROMPT,
         messages: [{ role: 'user', content: userContent }],
       });
+      if (opts.onUsage && response.usage) {
+        opts.onUsage({ label: 'report-build:draft', model, usage: response.usage });
+      }
       const textBlock = response.content.find((b) => b.type === 'text');
       return textBlock ? textBlock.text.trim() : '';
     },

@@ -13,7 +13,7 @@ import { fileURLToPath } from 'node:url';
 import { buildMarkdown, buildSignalAppendix } from '../infrastructure/reportWriter.js';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
-const reportsDir = resolve(root, 'reports');
+const reportsDir = resolve(root, 'daily_reports');
 const force = process.argv.includes('--force');
 const allScopes = process.argv.includes('--all-scopes');
 

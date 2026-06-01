@@ -1,8 +1,8 @@
 import { mapFindingsToSignals } from '../domain/services/findingToSignalMapper.js';
 import { validateOsintBundle } from '../domain/services/osintBundleValidator.js';
 import { enrichSignalsWithGeo } from '../../../cross-cut-modules/geo/enrichSignalsWithGeo.js';
-import { archiveSocialFindings, stampSocialSignalSourceIds } from '../../../cross-cut-modules/source_archive/archiveSocialFindings.js';
-import { createSourceArchive } from '../../../cross-cut-modules/source_archive/createSourceArchive.js';
+import { archiveSocialFindings, stampSocialSignalSourceIds } from '../../../db/source_archive/archiveSocialFindings.js';
+import { createSourceArchive } from '../../../db/source_archive/createSourceArchive.js';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 

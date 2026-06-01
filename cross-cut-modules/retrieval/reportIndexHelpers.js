@@ -1,7 +1,7 @@
 /**
  * Map report JSON to indexable documents (shared by chat + retrieval).
  */
-import { deriveInstrumentState } from '../../business_modules/resilience/domain/services/assessmentDisplayTier.js';
+import { deriveInstrumentState } from '../../business_modules/resilience/index.js';
 
 export function signalCountFromReport(reportData) {
   if (Array.isArray(reportData?.signals)) return reportData.signals.length;

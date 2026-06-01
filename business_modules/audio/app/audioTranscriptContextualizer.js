@@ -9,13 +9,12 @@
  *   Stage 3 — Format as resilience-ready articles (title + body)
  */
 
-import Anthropic from '@anthropic-ai/sdk';
+import { getDefaultLlmPort } from '../../../cross-cut-modules/llm/anthropicLlmAdapter.js';
 import {
   retrieveAudioSceneContext,
   formatAudioSceneContextBlock,
 } from '../../../cross-cut-modules/retrieval/fieldRetrieval.js';
 
-const client = new Anthropic();
 
 /** Max chars per LLM chunk (roughly 15 min of dialogue). */
 const CHUNK_CHARS = 8000;
@@ -157,7 +156,7 @@ async function segmentChunk(turns, ragBlock = '') {
     userBody = `${ragBlock}\n\n${userBody}`;
   }
 
-  const response = await client.messages.create({
+  const response = await getDefaultLlmPort().createMessage({
     model: MODEL,
     max_tokens: 4096,
     system: SCENE_PROMPT,

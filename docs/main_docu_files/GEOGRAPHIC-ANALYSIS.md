@@ -1,7 +1,7 @@
 # Geographic enrichment — developer guide
 
 **Location:** `docs/main_docu_files/` (canonical main documentation — see [README](./README.md))  
-**Last updated:** 2026-05-28
+**Last updated:** 2026-05-30
 
 This document describes **deterministic geographic enrichment** in the app: how localities are resolved to a canonical **`geo` envelope**, where that envelope is **attached** (WhatsApp signals, survey reports, APIs), how **versions** keep results auditable, and how this interacts with **district scoping** (national + five regional districts) and evidence storage.
 
@@ -306,15 +306,22 @@ Persisted WhatsApp JSON on disk will include **`geo`** on each signal object whe
 
 Use **`npm run analyze-survey`** (not `analyzeSurveyInput.js` directly) so geo enrichment is wired.
 
-### HTTP: internal resolve API
+### HTTP APIs
 
-- **Route:** `GET /api/geo/resolve?name=...` or **`?q=...`**
-- **Plugin:** [`business_modules/geo/input/geoRoutes.js`](../business_modules/geo/input/geoRoutes.js)
-- **Handler:** uses **`request.server.geoService`** (same instance as `createGeoService` in `app.js`).
-- **Auth:** uses the same optional **`authPreHandler`** pattern as drift and report routes when Firebase auth is enabled.
-- **OpenAPI:** [`openapi/openapi.yaml`](../openapi/openapi.yaml), tag **Geo**.
+All routes in [`business_modules/geo/input/geoRoutes.js`](../business_modules/geo/input/geoRoutes.js), registered from [`app.js`](../app.js). Auth uses the same optional Firebase pre-handler as other API routes when enabled. Analyst-only routes require `canViewAnalystDisplay(email)` (`config/userAccess.json` or env overrides).
 
-Use this for debugging, admin tools, or future UI — not as a public geocoder.
+| Method | Path | Auth | Purpose |
+|--------|------|------|---------|
+| `GET` | `/api/geo/resolve?name=` or `?q=` | Optional | Debug locality resolve — returns full v3 envelope |
+| `GET` | `/api/geo/localities?q=&scope=` | Optional | Typeahead for report build / locality picker (default scope `north`) |
+| `GET` | `/api/geo/unknown-queue?status=&limit=` | Analyst | List unresolved localities from SQLite queue |
+| `POST` | `/api/geo/unknown-queue/:id/status` | Analyst | Update review status `{ status, note? }` |
+
+OpenAPI tag: **Geo** ([`openapi/openapi.yaml`](../openapi/openapi.yaml)).
+
+**Chat integration:** analysts can list unknowns via chat tool `list_geo_unknown` and propose updates via `propose_geo_unknown_update` → `POST /api/chat/confirm-action`. See [AGENTIC_MECHANISMS.md](./AGENTIC_MECHANISMS.md).
+
+Use `/api/geo/resolve` for debugging and admin tools — not as a public geocoder.
 
 ### Fastify decoration
 
@@ -390,7 +397,7 @@ When **`GEO_OVERRIDES_SQLITE=1`**, composition wires a SQLite-backed overrides a
 
 ## Evidence SQLite (not yet extended)
 
-[`evidenceStore.js`](../cross-cut-modules/persistence/evidenceStore.js) **`evidence_items`** rows do **not** include a `geo_json` column. Strategy: **`geo` on signal JSON** (and eventually rich blobs like `report_json`) first.
+[`evidenceStore.js`](../db/persistence/evidenceStore.js) **`evidence_items`** rows do **not** include a `geo_json` column. Strategy: **`geo` on signal JSON** (and eventually rich blobs like `report_json`) first.
 
 **When to add extracted SQLite columns** (e.g. `geo_kind`, `geo_pbo_subregion_id`, `geo_distance_band`): only when you have a concrete need for **SQL-level time-series**, filtering, or joins on geo fields that cannot be satisfied by loading signal JSON or report JSON. Until then, keep **signals-first** evidence and use report **`geo_reference_versions_used`** for version audit.
 
@@ -419,10 +426,14 @@ business_modules/geo/
 │   └── services/ (distance, matching, aggregation, area tags)
 ├── infrastructure/adapters/
 │   ├── geoNorthReferenceJsonAdapter.js
-│   └── geoUnknownJsonlSinkAdapter.js   # optional review backlog (GEO_UNKNOWN_REVIEW_JSONL=1)
+│   ├── geoUnknownJsonlSinkAdapter.js       # optional JSONL backlog (GEO_UNKNOWN_REVIEW_JSONL=1)
+│   ├── geoUnknownSqliteQueueAdapter.js     # SQLite review queue (GEO_UNKNOWN_REVIEW_SQLITE=1)
+│   └── geoLocalityOverridesSqliteAdapter.js
+├── app/geoUnknownReviewService.js          # HTTP + chat unknown-queue service
 ├── data/north-reference.json
+├── data/homefront-district-stubs.json
 ├── data/north-border.json
-└── input/geoRoutes.js          # Fastify routes
+└── input/geoRoutes.js                      # Fastify routes (resolve, localities, unknown-queue)
 ```
 
 ---
@@ -448,7 +459,7 @@ Run **`npm test`** from the repository root.
 2. **Change border geometry** — edit `north-border.json` coordinates and bump its **`version`**.
 3. **Wire new consumers** — inject **`IGeoEnrichmentPort`** (adapter or NoOp) from `app.js` or a thin `scripts/*.mjs` entry; do not import `geo` from other business modules.
 4. **Debug a name** — `GET /api/geo/resolve?name=...` (with auth if enabled) or a small Node snippet using `createGeoService` + the JSON adapter.
-5. **Collect unknown localities for review** — set **`GEO_UNKNOWN_REVIEW_JSONL=1`** when running the app or **`npm run analyze-survey`** so **`NO_MATCH`** / **`NO_CONFIDENT_MATCH`** rows append to **`business_modules/geo/data/review/unknown-localities.jsonl`** (see [Unknown locality review sink](#unknown-locality-review-sink-optional)).
+5. **Collect unknown localities for review** — preferred: set **`GEO_UNKNOWN_REVIEW_SQLITE=1`** in production (`app.js` wires [`geoUnknownReviewService`](../business_modules/geo/app/geoUnknownReviewService.js)); use **`GET /api/geo/unknown-queue`** or chat tool `list_geo_unknown`. Optional JSONL sink: **`GEO_UNKNOWN_REVIEW_JSONL=1`** appends to **`business_modules/geo/data/review/unknown-localities.jsonl`**. Maintainer script: `proposeReferenceRowsFromUnknownQueue.js` aggregates JSONL → proposed reference rows.
 6. **Legacy `subregionId` on envelopes** — **`GEO_LEGACY_SUBREGION_ID` defaults to off** (`0` / omitted). New code must read **`pboSubregionId`** from **`classification.pboSubregionId`** only. Set **`GEO_LEGACY_SUBREGION_ID=1`** only when an external consumer still requires the deprecated flat **`subregionId`** field.
 
 ---
@@ -485,3 +496,4 @@ The current **flat resolved envelope** is intentional for shipping speed. The fo
 | 2026-05-25 | Removed text keyword fallback (`NORTH_TERMS`); north scope requires resolved geo or always-north source types. Geo attach enabled at extract for news/radio/social. |
 | 2026-05-27 | **Geo epistemic hardening (v3):** nested-only envelope writes (`geo-envelope-2026-05-v3`), **`resolution.provenance`**, text-inferred metrics exclusion, discourse-only mention skip, **`geoEnvelopeAccess`** read helpers, narrative/UI badges for text-inferred geo. |
 | 2026-05-28 | **`homefront-district-stubs.json`** for south/jerusalem/dan/haifa pilots; multi-district scope model documented; **`signal.district_id`** + **`districtRelevanceFromResolvedGeo`** cross-refs; removed obsolete north-terms sync note from revision history. |
+| 2026-05-30 | HTTP **`/api/geo/localities`**, **`/api/geo/unknown-queue`** (+ status POST); SQLite unknown queue as production review path; chat tools `list_geo_unknown` / `propose_geo_unknown_update`. |

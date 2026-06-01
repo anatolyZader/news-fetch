@@ -23,7 +23,7 @@ export default defineConfig([
       '.cursor/**',
       '**/*.min.js',
       'articles_extracted/**',
-      'reports/**',
+      'daily_reports/**',
       'signals/**',
       'docs/product_docs/api/generated/**',
       'business_modules/**/data/**',

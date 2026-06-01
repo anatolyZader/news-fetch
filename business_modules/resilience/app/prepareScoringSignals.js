@@ -37,7 +37,7 @@ export async function prepareScoringSignals({
   signalsForScoring,
   reportDate,
   reportScopeId,
-  reportsDir = 'reports',
+  reportsDir = 'daily_reports',
   digitalDarknessHint = false,
 }) {
   const dismissed = isSocialQuarantineDismissed(reportDate, reportScopeId);

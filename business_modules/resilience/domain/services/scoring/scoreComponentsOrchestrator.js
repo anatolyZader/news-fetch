@@ -16,6 +16,7 @@ import {
   effectiveWeightForSignal,
   round3,
   scoreFromItems,
+  applySaliencePostScoringPolicy,
   sourceCapWasApplied,
   tuningFor,
 } from './scoringShared.js';
@@ -191,18 +192,21 @@ function scoreSingleComponent({
   const cappedItems = applySourceCap(items);
   const sourceCapBinding = sourceCapWasApplied(items, cappedItems);
   const scoreOpts = { salienceContext, tuningTable };
-  const scRaw = scoreFromItems(items, id, totalArticles, articleSet, sourceSet, {
-    ...scoreOpts,
-    applyFloor: false,
-  });
-  const scCapNoFloor = scoreFromItems(cappedItems, id, totalArticles, articleSet, sourceSet, {
-    ...scoreOpts,
-    applyFloor: false,
-  });
-  const sc = scoreFromItems(cappedItems, id, totalArticles, articleSet, sourceSet, {
-    ...scoreOpts,
-    applyFloor: true,
-  });
+  const scRaw = applySaliencePostScoringPolicy(
+    scoreFromItems(items, id, totalArticles, articleSet, sourceSet, scoreOpts),
+    items,
+    { ...scoreOpts, applyFloor: false },
+  );
+  const scCapNoFloor = applySaliencePostScoringPolicy(
+    scoreFromItems(cappedItems, id, totalArticles, articleSet, sourceSet, scoreOpts),
+    cappedItems,
+    { ...scoreOpts, applyFloor: false },
+  );
+  const sc = applySaliencePostScoringPolicy(
+    scoreFromItems(cappedItems, id, totalArticles, articleSet, sourceSet, scoreOpts),
+    cappedItems,
+    { ...scoreOpts, applyFloor: true },
+  );
   const enrichedSignals = enrichCappedSignals(cappedItems, items, id, signalWeights);
 
   if (sc == null) {

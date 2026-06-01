@@ -83,6 +83,81 @@ function mirrorMailingToLocalStorage(email, products) {
   }
 }
 
+function mirrorLocalMailingFallback(lang) {
+  return {
+    savedMailingEmail: readString(LS_MAIL_EMAIL),
+    mailingEmail: '',
+    mailingLanguage: lang,
+    products: loadProductsFromStorage(),
+  };
+}
+
+function parseProductsFromApi(data) {
+  return {
+    report: Boolean(data.products?.report),
+    naftali: Boolean(data.products?.naftali),
+    education: Boolean(data.products?.education),
+    platform: Boolean(data.products?.platform),
+  };
+}
+
+async function loadMailingPreferences({ user, authRequired, apiReady, getIdToken, lang }) {
+  let mailServerEnabled = false;
+  try {
+    const cfgR = await fetch('/api/mail/config');
+    const cfg = await cfgR.json().catch(() => ({}));
+    mailServerEnabled = Boolean(cfg.enabled);
+  } catch {
+    mailServerEnabled = false;
+  }
+
+  const canLoadServerPrefs = Boolean(user) || !authRequired;
+  if (!canLoadServerPrefs || !apiReady) {
+    return { mailServerEnabled, ...mirrorLocalMailingFallback(lang) };
+  }
+
+  const headers = new Headers();
+  const tok = await getIdToken();
+  if (tok) headers.set('Authorization', `Bearer ${tok}`);
+  const r = await fetch('/api/mail/preferences', { headers });
+  if (!r.ok) {
+    return { mailServerEnabled, ...mirrorLocalMailingFallback(lang) };
+  }
+
+  const data = await r.json();
+  const localEmail = readString(LS_MAIL_EMAIL);
+  const localProducts = loadProductsFromStorage();
+  let email = typeof data.email === 'string' ? data.email : '';
+  let digestLang = ['en', 'he', 'ru'].includes(data.language) ? data.language : lang;
+  let pro = parseProductsFromApi(data);
+
+  if (!email && localEmail.trim() && tok) {
+    const putR = await fetch('/api/mail/preferences', {
+      method: 'PUT',
+      headers: new Headers({
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${tok}`,
+      }),
+      body: JSON.stringify({ email: localEmail.trim(), language: digestLang, products: localProducts }),
+    });
+    if (putR.ok) {
+      const migrated = await putR.json();
+      email = migrated.email ?? localEmail.trim();
+      digestLang = ['en', 'he', 'ru'].includes(migrated.language) ? migrated.language : digestLang;
+      pro = parseProductsFromApi(migrated);
+    }
+  }
+
+  mirrorMailingToLocalStorage(email, pro);
+  return {
+    mailServerEnabled,
+    savedMailingEmail: email,
+    mailingEmail: '',
+    mailingLanguage: digestLang,
+    products: pro,
+  };
+}
+
 function Section({ title, children }) {
   return (
     <Box component="section" aria-label={title}>
@@ -120,80 +195,15 @@ export function SettingsPanel({ open, onClose, onOpenDocs, variant = 'modal' }) 
 
     (async () => {
       setMailFeedback(null);
-      try {
-        const cfgR = await fetch('/api/mail/config');
-        const cfg = await cfgR.json().catch(() => ({}));
-        if (!cancelled) setMailServerEnabled(Boolean(cfg.enabled));
-      } catch {
-        if (!cancelled) setMailServerEnabled(false);
-      }
-
-      const canLoadServerPrefs = Boolean(user) || !authRequired;
-      if (!canLoadServerPrefs || !apiReady) {
-        if (!cancelled) {
-            setSavedMailingEmail(readString(LS_MAIL_EMAIL));
-            setMailingEmail('');
-            setMailingLanguage(lang);
-          setProducts(loadProductsFromStorage());
-        }
-        return;
-      }
-
       setMailPrefsLoading(true);
       try {
-        const headers = new Headers();
-        const tok = await getIdToken();
-        if (tok) headers.set('Authorization', `Bearer ${tok}`);
-        const r = await fetch('/api/mail/preferences', { headers });
-        if (!r.ok) {
-          if (!cancelled) {
-            setSavedMailingEmail(readString(LS_MAIL_EMAIL));
-            setMailingEmail('');
-            setMailingLanguage(lang);
-            setProducts(loadProductsFromStorage());
-          }
-          return;
-        }
-        const data = await r.json();
-        const localEmail = readString(LS_MAIL_EMAIL);
-        const localProducts = loadProductsFromStorage();
-        let email = typeof data.email === 'string' ? data.email : '';
-        let digestLang = ['en', 'he', 'ru'].includes(data.language) ? data.language : lang;
-        let pro = {
-          report: Boolean(data.products?.report),
-          naftali: Boolean(data.products?.naftali),
-          education: Boolean(data.products?.education),
-          platform: Boolean(data.products?.platform),
-        };
-
-        if (!email && localEmail.trim() && tok) {
-          const putR = await fetch('/api/mail/preferences', {
-            method: 'PUT',
-            headers: new Headers({
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${tok}`,
-            }),
-            body: JSON.stringify({ email: localEmail.trim(), language: digestLang, products: localProducts }),
-          });
-          if (putR.ok) {
-            const migrated = await putR.json();
-            email = migrated.email ?? localEmail.trim();
-            digestLang = ['en', 'he', 'ru'].includes(migrated.language) ? migrated.language : digestLang;
-            pro = {
-              report: Boolean(migrated.products?.report),
-              naftali: Boolean(migrated.products?.naftali),
-              education: Boolean(migrated.products?.education),
-              platform: Boolean(migrated.products?.platform),
-            };
-          }
-        }
-
+        const prefs = await loadMailingPreferences({ user, authRequired, apiReady, getIdToken, lang });
         if (!cancelled) {
-          setSavedMailingEmail(email);
-          setMailingEmail('');
-          setMailingLanguage(digestLang);
-          setProducts(pro);
-          mirrorMailingToLocalStorage(email, pro);
+          setMailServerEnabled(prefs.mailServerEnabled);
+          setSavedMailingEmail(prefs.savedMailingEmail);
+          setMailingEmail(prefs.mailingEmail);
+          setMailingLanguage(prefs.mailingLanguage);
+          setProducts(prefs.products);
         }
       } finally {
         if (!cancelled) setMailPrefsLoading(false);
@@ -436,7 +446,7 @@ export function SettingsPanel({ open, onClose, onOpenDocs, variant = 'modal' }) 
                   </Box>
                 </Typography>
               )}
-              <Button variant="outlined" size="small" sx={{ alignSelf: 'flex-start' }} onClick={() => void logout()}>
+              <Button variant="outlined" size="small" sx={{ alignSelf: 'flex-start' }} onClick={() => { logout(); }}>
                 {t('settings.signOut')}
               </Button>
             </Stack>
@@ -473,8 +483,6 @@ export function SettingsPanel({ open, onClose, onOpenDocs, variant = 'modal' }) 
       <PanelWindowShell
         title={t('settings.title')}
         ariaLabel={t('settings.title')}
-        onClose={() => onClose?.(undefined, 'closeButtonClick')}
-        closeLabel={t('app.close')}
       >
         {body}
       </PanelWindowShell>

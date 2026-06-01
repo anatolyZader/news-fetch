@@ -36,7 +36,7 @@ export async function runResilienceAnalysis({
   dedupeTitles = true,
   onUsage,
   priorReports = [],
-  reportsDir = 'reports',
+  reportsDir = 'daily_reports',
 }) {
   const { articles: rawArticles, date: parsedDate, totalCount } = loadMdFiles(filePaths);
   const reportDate = reportDateOpt ?? parsedDate;

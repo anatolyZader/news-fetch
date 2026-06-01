@@ -21,7 +21,7 @@ This document is the **canonical reference for LLM agent behavior** in this repo
 
 An **agent** is defined as:
 
-> **Claude Haiku** (Anthropic Messages API) + a **bounded tool-use loop** implemented by [`runToolLoop`](../../cross-cut-modules/llm/runToolLoop.js), with at most **5 tool rounds** per user turn.
+> **Claude Haiku** (Anthropic Messages API) + a **bounded tool-use loop** implemented by [`runToolLoop`](../../cross-cut-modules/llm/runToolLoop.js), with at most **`CHAT_MAX_TOOL_ROUNDS`** tool rounds per user turn (default **3**). See [COST_CONTROLS.md](./COST_CONTROLS.md).
 
 Anything that is a **single** `messages.create()` call without tools is **LLM-assisted** but **not** an agent (validation one-shot explain, catalog proposal drafts, chat title generation, pipeline extract/narratives).
 
@@ -40,7 +40,7 @@ There is **no multi-agent** architecture (no researcher/writer/supervisor split)
 | **Mutations require human confirm** | Write paths use `propose_*` tools + second HTTP call (chat) or explicit panel button (validation). The model must never claim a mutation succeeded until the human confirms. |
 | **Single agent, scoped tools** | Prefer `toolProfile: 'validation'` over a second agent process. Validation panel keeps a dedicated `/agent` route for UX, not for multi-agent complexity. |
 | **Evidence-first** | System prompts instruct cite-from-retrieval behavior; validation prompts forbid inventing quotes. |
-| **Bounded cost** | Max 5 tool rounds; pending actions expire after 15 minutes; chat is behind costly-route pre-handlers. |
+| **Bounded cost** | Configurable tool rounds (default 3); HTTP spend logged to `cost-log.jsonl` (`http:chat`, `http:validation-*`); pending actions expire after 15 minutes; costly-route pre-handlers + validation daily quotas. |
 
 ### 1.3 High-level architecture
 
@@ -275,8 +275,11 @@ Handlers: [`chatToolHandlers.js`](../../business_modules/chat/app/chatToolHandle
 | `list_sources` | Browse source archive by date/type without text query | No |
 | `search_sources` | Text/url/title search; returns `source_id` for `get_source` | No |
 | `get_source` | Full original document text by `source_id` | No |
+| `list_attention_items` | Ranked attention queue from today's assessment | No |
+| `list_operator_recommendations` | Pending/acknowledged operator recommendations | No |
+| `get_decision_brief` | Batch-generated `assessment.decision_brief` (Variant B) | No |
 
-Legacy aliases (one release): `search_evidence`, `lookup_evidence` → same as source tools.
+Runtime aliases (not in schema): `search_evidence` → `search_sources`, `lookup_evidence` → `get_source` in [`chatToolHandlers.js`](../../business_modules/chat/app/chatToolHandlers.js).
 
 #### Analyst read tools (`canViewAnalystDisplay` + `CHAT_ANALYST_TOOLS_ENABLED`)
 
@@ -292,6 +295,7 @@ Legacy aliases (one release): `search_evidence`, `lookup_evidence` → same as s
 | `list_geo_unknown` | Geo unknown locality review queue |
 | `list_catalog_proposals` | OOV catalog draft proposals |
 | `get_catalog_gap_summary` | Recent OOV cluster summary |
+| `search_similar_articles` | Archive similarity search (shared with validation executor) |
 
 #### Confirm-gated propose tools (`CHAT_CONFIRM_ACTIONS_ENABLED`)
 
@@ -310,7 +314,7 @@ Defined in `TOOL_PROFILES` in [`chatToolSchemas.js`](../../business_modules/chat
 | Profile | Tool names exposed | Typical use |
 |---------|-------------------|-------------|
 | `default` | Core + analyst read + propose (when flags allow) | General report Q&A |
-| `validation` | `list_validation_queue`, `get_validation_item`, `explain_validation_item`, `lookup_signals`, `search_sources`, `get_source`, `propose_validation_decision` | Validation-focused chat without unrelated tools |
+| `validation` | `list_validation_queue`, `get_validation_item`, `explain_validation_item`, `lookup_signals`, `search_sources`, `get_source`, `search_similar_articles`, `propose_validation_decision` | Validation-focused chat without unrelated tools |
 | `sources` | `list_sources`, `search_sources`, `get_source` | Archive-only drill-down |
 
 When `toolProfile === 'validation'`, [`claudeChat.js`](../../business_modules/chat/infrastructure/claudeChat.js) adds a system guideline:
@@ -329,7 +333,7 @@ When `toolProfile === 'validation'`, [`claudeChat.js`](../../business_modules/ch
 | Confirm actions flag | `CHAT_CONFIRM_ACTIONS_ENABLED !== '0'` |
 | Display tier | `resolveDisplayView` — analysts get full scores in report context for `compare_dates` / briefs |
 | Maintainer-only mode | `CHAT_MAINTAINER_ONLY=true` restricts `POST /api/chat` |
-| Cost control | `costlyRoutePreHandlers` on streaming chat route |
+| Cost control | `costlyRoutePreHandlers` on chat, validation explain/agent, report-build; `createHttpCostRecorder` → `cost-log.jsonl` |
 
 Non-analysts calling analyst tools receive a string error from the handler (not a thrown exception).
 
@@ -346,7 +350,23 @@ The chat agent streams Server-Sent Events during `POST /api/chat`. Event types:
 
 Full protocol details: [LLM_CHAT.md § Streaming](./LLM_CHAT.md).
 
-**Note:** `toolProfile` is accepted by the server but the default client (`useChat.js`) does not yet send it on every request; callers can pass it when integrating validation-scoped chat.
+**Client:** `useChat.js` sends `toolProfile`, `view`, and optional `systemHint` on every `POST /api/chat`. `ChatPanel` supports seeded `initialMessage` for validation investigate entry. Analyst SPA: **Open in chat** on `ValidationReviewPanel` opens the hub with `toolProfile: validation`.
+
+### 3.7 Batch decision brief (non-agent)
+
+After `assess-signals` / `resilienceAnalysisService` scoring and `buildOperatorRecommendations`, **`attachDecisionBrief`** runs a single Haiku call (no tool loop) and stores `assessment.decision_brief` on the report JSON.
+
+| File | Role |
+|------|------|
+| [`decisionBriefPrompt.js`](../../business_modules/resilience/domain/services/decisionBriefPrompt.js) | Frozen payload + prompts |
+| [`decisionBriefGenerator.js`](../../business_modules/resilience/infrastructure/decisionBriefGenerator.js) | `messages.create` + JSON parse |
+| [`attachDecisionBrief.js`](../../business_modules/resilience/app/attachDecisionBrief.js) | Pipeline hook |
+
+Flag: `RESILIENCE_DECISION_BRIEF_ENABLED` (default on). UI: `DecisionBriefPanel` on `ReportView`; chat reads via `get_decision_brief`.
+
+### 3.8 Shared validation tool executor
+
+[`validationToolExecutor.js`](../../business_modules/resilience/validation/app/validationToolExecutor.js) implements `get_validation_context`, `search_similar_articles`, and `propose_decision` for both the validation `/agent` route and chat `search_similar_articles`.
 
 ---
 
@@ -509,7 +529,7 @@ Calls `runToolLoop` with `agentKind: 'validation'`, `maxTokens: 2000`.
 | `search_similar_articles` | `{ query, top_k? }` | `retrieveSimilarArticles` via hybrid retrieval, or fallback to cached similar list |
 | `propose_decision` | `{ action, rationale }` | Sets `recommendation` side effect; returns acknowledgment string |
 
-Allowed `action` values: `label`, `skip`, `defer`, `gold_signal`, `confirm_social_quarantine`, `dismiss_social_quarantine`.
+Allowed `action` values: `label`, `skip`, `defer`, `gold_signal`, `confirm_social_quarantine`, `dismiss_social_quarantine`. Social quarantine flags are raised at assess time — see [pipeline.md](./pipeline.md) Stage 3.
 
 ### 5.4 Multi-turn client UX
 
@@ -585,7 +605,7 @@ These use Anthropic (or other LLMs) but **must not** be confused with agents. **
 | Surface | File | Agent-related behavior |
 |---------|------|------------------------|
 | **ChatPanel** | [`client/src/components/ChatPanel.jsx`](../../client/src/components/ChatPanel.jsx) | Full chat agent; pending action Confirm/Dismiss |
-| **ValidationReviewPanel** | [`client/src/components/ValidationReviewPanel.jsx`](../../client/src/components/ValidationReviewPanel.jsx) | Explain (one-shot), Investigate (agent), decision buttons |
+| **ValidationReviewPanel** | [`client/src/components/ValidationReviewPanel.jsx`](../../client/src/components/ValidationReviewPanel.jsx) | Explain (one-shot), Investigate (agent), decision buttons — mounted on **`analyst-site`** (`AnalystApp.jsx`) |
 | **CatalogProposalPanel** | [`client/src/components/CatalogProposalPanel.jsx`](../../client/src/components/CatalogProposalPanel.jsx) | LLM draft generation + human review |
 | **OovAnomalyClustersPanel** | [`client/src/components/OovAnomalyClustersPanel.jsx`](../../client/src/components/OovAnomalyClustersPanel.jsx) | Link **Review catalog proposals** → scroll to catalog panel |
 | **ReportView** | [`client/src/components/ReportView.jsx`](../../client/src/components/ReportView.jsx) | Wires validation + catalog panels; `catalogProposalsRef` for scroll |
@@ -620,7 +640,7 @@ Defined in [`business_modules/chat/domain/chatConfig.js`](../../business_modules
 | Validation model | `RESILIENCE_VALIDATION_EXPLAIN_MODEL` or fallback Haiku |
 | `ANTHROPIC_API_KEY` | Required for all agent and LLM-assist paths |
 | Pending action TTL | 15 minutes (`PENDING_ACTION_TTL_MS`) |
-| Max tool rounds | 5 (both agents) |
+| Max tool rounds | Chat: `CHAT_MAX_TOOL_ROUNDS` (default 3). Validation agent: `VALIDATION_AGENT_MAX_TOOL_ROUNDS` (default 3). |
 | Max chat history | 20 messages (`MAX_HISTORY_MESSAGES`) |
 
 ### 8.3 Analyst access
@@ -636,10 +656,12 @@ Analyst capabilities require `canViewAnalystDisplay(email)`:
 
 ### 9.1 Authorization layers
 
-1. **Firebase authentication** on all API routes.
-2. **Session ownership** — chat sessions and pending actions scoped to `owner_uid`.
-3. **Analyst gate** — validation routes and analyst chat tools check `canViewAnalystDisplay`.
-4. **Confirm gate** — mutations require explicit second request or panel click.
+1. **Firebase authentication** on all API routes when `AUTH_REQUIRED=true`.
+2. **Firebase App Check** — when `APP_CHECK_ENFORCE=true`, costly routes require a valid App Check token via [`appCheckPreHandler.js`](../../cross-cut-modules/security/input/appCheckPreHandler.js). Client sends token through [`buildAuthHeaders`](../../client/src/lib/authFetch.js).
+3. **HTTP daily budget** — [`httpDailyBudgetPreHandler`](../../cross-cut-modules/budget/app/httpDailyBudget.js) on costly LLM/OSINT routes (composed in [`costlyRoutePreHandlers`](../../cross-cut-modules/security/input/costlyRoutePreHandlers.js)).
+4. **Session ownership** — chat sessions and pending actions scoped to `owner_uid`.
+5. **Analyst gate** — validation routes and analyst chat tools check `canViewAnalystDisplay`.
+6. **Confirm gate** — mutations require explicit second request or panel click.
 
 ### 9.2 Prompt safety
 
@@ -770,8 +792,13 @@ business_modules/chat/
   infrastructure/chatStore.js
   infrastructure/chatPendingActionStore.js
 
-business_modules/resilience/validation/
+business_modules/resilience/
+  app/attachDecisionBrief.js
+  domain/services/decisionBriefPrompt.js
+  infrastructure/decisionBriefGenerator.js
+  validation/
   app/validationReviewAgent.js
+  app/validationToolExecutor.js
   app/validationReviewExplain.js
   app/validationReviewService.js
   domain/services/validationExplainPrompt.js

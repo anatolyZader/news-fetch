@@ -16,11 +16,11 @@ import { writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { getNaftaliDashboardSync } from '../app/naftaliService.js';
 import { enrichSignalsWithGeo } from '../../../cross-cut-modules/geo/enrichSignalsWithGeo.js';
-import { createSourceArchive } from '../../../cross-cut-modules/source_archive/createSourceArchive.js';
+import { createSourceArchive } from '../../../db/source_archive/createSourceArchive.js';
 import {
   archiveNaftaliWeek,
   stampNaftaliSignalSourceIds,
-} from '../../../cross-cut-modules/source_archive/archiveNaftaliWeek.js';
+} from '../../../db/source_archive/archiveNaftaliWeek.js';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 

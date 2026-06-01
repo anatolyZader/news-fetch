@@ -10,7 +10,7 @@ import {
   resilienceNarrativeRagTopK,
   ragPipelineEnabled,
 } from './ragConfig.js';
-import { RESILIENCE_COMPONENTS } from '../../business_modules/resilience/domain/resilienceComponents.js';
+import { RESILIENCE_COMPONENTS } from '../../business_modules/resilience/index.js';
 
 const MAX_PROMPT_BODY_CHARS = 2000;
 

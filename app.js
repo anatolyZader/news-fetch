@@ -16,14 +16,16 @@ import { createYoutubeDataApiCaptionsAdapter } from './business_modules/video/in
 import { createLocalVideoFileAdapter } from './business_modules/video/infrastructure/adapters/localVideoFileAdapter.js';
 import { defaultVideoDownloadDir } from './business_modules/video/infrastructure/videoDataPaths.js';
 import { buildSecurityTxt } from './cross-cut-modules/security/app/buildSecurityTxt.js';
-import { requireAuthPreHandler } from './cross-cut-modules/auth/requireAuthPreHandler.js';
+import { buildAuthHook, buildTryAuthHook, getProtectedAuthPreHandlers } from './cross-cut-modules/auth/buildAuthHooks.js';
 import { tryAuthPreHandler } from './cross-cut-modules/auth/tryAuthPreHandler.js';
 import { initFirebaseAdminForAuth } from './cross-cut-modules/auth/firebaseAdmin.js';
+import { syncAllUserAccessClaims } from './cross-cut-modules/auth/userAccessClaims.js';
 import { hasPrivilegedUserAccessConfigured } from './cross-cut-modules/auth/userAccess.js';
 import { requireAnalystView } from './cross-cut-modules/auth/requireAnalystAccess.js';
-import { createEvidenceDraftStore } from './cross-cut-modules/persistence/evidenceDraftStore.js';
-import { createEvidenceStore } from './cross-cut-modules/persistence/evidenceStore.js';
-import { createSourceArchive } from './cross-cut-modules/source_archive/createSourceArchive.js';
+import { createEvidenceDraftStore } from './db/persistence/evidenceDraftStore.js';
+import { createLlmDailyQuotaStore } from './db/persistence/llmDailyQuotaStore.js';
+import { createEvidenceStore } from './db/persistence/evidenceStore.js';
+import { createSourceArchive } from './db/source_archive/createSourceArchive.js';
 import { createRetrievalService } from './cross-cut-modules/retrieval/index.js';
 import { createChatStore } from './business_modules/chat/infrastructure/chatStore.js';
 import { createChatPendingActionStore } from './business_modules/chat/infrastructure/chatPendingActionStore.js';
@@ -31,7 +33,7 @@ import { AudioEvidenceIngestService } from './business_modules/audio/app/audioEv
 import { contextualizeTranscript } from './business_modules/audio/app/audioTranscriptContextualizer.js';
 import { OpenaiTranscriptionAdapter } from './business_modules/audio/infrastructure/adapters/openaiTranscriptionAdapter.js';
 import { createHttpAudioDownloadAdapter } from './business_modules/audio/infrastructure/adapters/httpAudioDownloadAdapter.js';
-import { createDriftService } from './business_modules/resilience/app/driftService.js';
+import { createDriftService } from './business_modules/resilience/index.js';
 import { registerDriftRoutes } from './business_modules/resilience/input/driftRoutes.js';
 import {
   createMonitoringService,
@@ -96,9 +98,11 @@ import { chatRoutes } from './api/routes/chatRoutes.js';
 import { reportRoutes } from './api/routes/reportRoutes.js';
 import { authRoutes } from './cross-cut-modules/auth/authRoutes.js';
 import { operatorRoutes } from './api/routes/operatorRoutes.js';
-import { createValidationReviewSqliteStore } from './business_modules/resilience/validation/infrastructure/adapters/validationReviewSqliteStore.js';
-import { createValidationReviewService } from './business_modules/resilience/validation/app/validationReviewService.js';
-import { validationReviewRoutes } from './business_modules/resilience/validation/input/validationReviewRoutes.js';
+import {
+  createValidationReviewSqliteStore,
+  createValidationReviewService,
+  validationReviewRoutes,
+} from './business_modules/resilience/index.js';
 import { createCatalogProposalSqliteStore } from './business_modules/catalogLearning/infrastructure/adapters/catalogProposalSqliteStore.js';
 import { createCatalogProposalService } from './business_modules/catalogLearning/app/catalogProposalService.js';
 import { catalogLearningRoutes } from './business_modules/catalogLearning/input/catalogLearningRoutes.js';
@@ -109,8 +113,13 @@ import {
   registerWhatsappRawBodyHook,
 } from './cross-cut-modules/security/input/registerSecurityPlugins.js';
 import { registerEarlyAuthForRateLimit } from './cross-cut-modules/security/input/earlyAuthForRateLimit.js';
+import { createAnthropicLlmPort, setSharedLlmPort } from './cross-cut-modules/llm/anthropicLlmAdapter.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+
+/** Shared LLM transport port for chat, validation, and app-layer services (P2.5). */
+const sharedLlmPort = createAnthropicLlmPort();
+setSharedLlmPort(sharedLlmPort);
 
 /** Max characters stored for evidence draft (SQLite TEXT + API body). */
 const MAX_EVIDENCE_DRAFT_CHARS = 500_000;
@@ -120,6 +129,7 @@ const sqlitePath = process.env.SQLITE_PATH?.trim()
   : resolve(__dirname, 'db', 'app.sqlite');
 
 const evidenceDraftStore = createEvidenceDraftStore(sqlitePath);
+const llmDailyQuotaStore = createLlmDailyQuotaStore(sqlitePath);
 const evidenceStore = createEvidenceStore(sqlitePath);
 const articleTimezone = process.env.TZ_ARTICLES || 'Asia/Jerusalem';
 const retrievalService = createRetrievalService({
@@ -223,7 +233,7 @@ const validationReviewService = createValidationReviewService({
   sourceArchive,
   retrievalService,
   storyClusterIndex: retrievalService.storyClusterIndex,
-  reportsDir: resolve(__dirname, 'reports'),
+  reportsDir: resolve(__dirname, 'daily_reports'),
 });
 
 let audioEvidenceIngestService = null;
@@ -370,8 +380,23 @@ export async function createApp(options) {
     initFirebaseAdminForAuth(firebaseProjectId);
   }
 
-  const authHook = authRequired ? { preHandler: requireAuthPreHandler } : {};
-  const tryAuthHook = authRequired ? { preHandler: tryAuthPreHandler } : {};
+  const authHook = buildAuthHook(authRequired);
+  const tryAuthHook = buildTryAuthHook(authRequired);
+  const protectedAuthPreHandler = getProtectedAuthPreHandlers(authRequired);
+
+  if (process.env.SYNC_USER_CLAIMS_ON_START === 'true' && needsFirebase) {
+    try {
+      const claimResults = await syncAllUserAccessClaims();
+      const failed = claimResults.filter((r) => !r.ok);
+      if (failed.length > 0) {
+        console.warn(`[auth] custom claims sync: ${failed.length} failed`, failed.slice(0, 5));
+      } else {
+        console.log(`[auth] custom claims synced for ${claimResults.length} users`);
+      }
+    } catch (err) {
+      console.warn('[auth] custom claims sync on start failed:', err?.message ?? err);
+    }
+  }
 
   const trustProxy =
     process.env.TRUST_PROXY === 'true' || process.env.NODE_ENV === 'production';
@@ -443,8 +468,9 @@ export async function createApp(options) {
 
   await app.register(validationReviewRoutes, {
     validationReviewService,
-    authPreHandler: authHook?.preHandler,
+    authPreHandler: protectedAuthPreHandler,
     retrievalService,
+    llmQuotaStore: llmDailyQuotaStore,
   });
 
   await operatorRoutes(app);
@@ -453,7 +479,7 @@ export async function createApp(options) {
 
   await app.register(catalogLearningRoutes, {
     catalogProposalService,
-    authPreHandler: authHook?.preHandler,
+    authPreHandler: protectedAuthPreHandler,
   });
 
   await chatRoutes(app, {
@@ -472,10 +498,11 @@ export async function createApp(options) {
     driftService,
     catalogProposalService,
     geoUnknownReviewService,
+    llmPort: sharedLlmPort,
   });
   await registerDriftRoutes(app, {
     driftService,
-    authPreHandler: authHook?.preHandler,
+    authPreHandler: protectedAuthPreHandler,
   });
 
   const monitoringService = createMonitoringService({
@@ -485,7 +512,7 @@ export async function createApp(options) {
   });
   await registerMonitoringRoutes(app, {
     monitoringService,
-    authPreHandler: authHook?.preHandler,
+    authPreHandler: protectedAuthPreHandler,
     requireAnalystView,
     timezone,
   });
@@ -493,7 +520,7 @@ export async function createApp(options) {
   const searchTrendsService = createSearchTrendsService({});
   await registerSearchTrendsRoutes(app, {
     searchTrendsService,
-    authPreHandler: authHook?.preHandler,
+    authPreHandler: protectedAuthPreHandler,
   });
 
   app.get('/api/districts', authHook, async (_request, reply) => {
@@ -501,12 +528,12 @@ export async function createApp(options) {
   });
 
   await registerGeoRoutes(app, {
-    authPreHandler: authHook?.preHandler,
+    authPreHandler: protectedAuthPreHandler,
     geoUnknownReviewService,
   });
 
   await registerPoolRoutes(app, {
-    authPreHandler: authHook?.preHandler,
+    authPreHandler: protectedAuthPreHandler,
     poolService,
   });
 
@@ -526,7 +553,7 @@ export async function createApp(options) {
 
   await app.register(reportBuildRoutes, {
     reportBuildService,
-    authPreHandler: authHook?.preHandler,
+    authPreHandler: protectedAuthPreHandler,
   });
 
   await app.register(mailingRoutes, {
@@ -540,32 +567,32 @@ export async function createApp(options) {
   await app.register(pboReviewRoutes, {
     pboReportReviewService,
     pboHistoricalSearchService,
-    authPreHandler: authHook?.preHandler,
+    authPreHandler: protectedAuthPreHandler,
   });
 
   await app.register(visitsRoutes, {
     visitsService,
-    authPreHandler: authHook?.preHandler,
+    authPreHandler: protectedAuthPreHandler,
   });
 
   await app.register(socialMediaRoutes, {
     socialMediaService,
-    authPreHandler: authHook?.preHandler,
+    authPreHandler: protectedAuthPreHandler,
   });
 
   await app.register(newsSitesRoutes, {
     newsSitesService,
-    authPreHandler: authHook?.preHandler,
+    authPreHandler: protectedAuthPreHandler,
   });
 
   await app.register(radioRoutes, {
     radioIngestReadService,
-    authPreHandler: authHook?.preHandler,
+    authPreHandler: protectedAuthPreHandler,
   });
 
   await app.register(reportBotManualReportsRoutes, {
     service: reportBotManualReportsService,
-    authPreHandler: authHook?.preHandler,
+    authPreHandler: protectedAuthPreHandler,
   });
 
   await registerWhatsappWebhook(app, reportBuildService);

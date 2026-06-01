@@ -1,12 +1,26 @@
 {
-  "typescript.tsserver.maxTsServerMemory": 4096,
-  "javascript.tsserver.maxTsServerMemory": 4096,
+  "typescript.tsserver.maxTsServerMemory": 8192,
+  "javascript.tsserver.maxTsServerMemory": 8192,
   "typescript.tsserver.useSyntaxServer": "auto",
   "typescript.tsserver.experimental.enableProjectDiagnostics": false,
+  "typescript.disableAutomaticTypeAcquisition": true,
   "javascript.updateImportsOnFileMove.enabled": "never",
 
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/client/dist/**": true,
+    "**/client/node_modules/**": true,
+    "**/docs/docs-site/**": true,
+    "**/coverage/**": true,
+    "**/daily_reports/**": true,
+    "**/signals/**": true,
+    "**/articles_extracted/**": true,
+    "**/db/**": true,
+    "**/business_modules/**/data/**": true
+  },
+
   "sonarlint.automaticAnalysis": false,
-  "sonarlint.analysisExcludesStandalone": "**/node_modules/**,**/client/dist/**,**/docs/docs-site/**,**/coverage/**,**/articles_extracted/**,**/reports/**,**/signals/**,**/docs/product_docs/api/generated/**,**/*.md,**/business_modules/**/data/**,**/tests/fixtures/**",
+  "sonarlint.analysisExcludesStandalone": "**/node_modules/**,**/client/dist/**,**/docs/docs-site/**,**/coverage/**,**/articles_extracted/**,**/daily_reports/**,**/signals/**,**/docs/product_docs/api/generated/**,**/*.md,**/business_modules/**/data/**,**/tests/fixtures/**",
   "sonarlint.analyzerProperties": {
     "sonar.javascript.node.maxspace": "1024"
   },

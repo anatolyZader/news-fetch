@@ -15,8 +15,8 @@ import 'dotenv/config';
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { createSourceArchive } from '../../../cross-cut-modules/source_archive/createSourceArchive.js';
-import { persistOriginalSources } from '../../../cross-cut-modules/source_archive/persistOriginals.js';
+import { createSourceArchive } from '../../../db/source_archive/createSourceArchive.js';
+import { persistOriginalSources } from '../../../db/source_archive/persistOriginals.js';
 
 import { createCostTracker, appendCostLog, checkDailyBudget } from '../../../cross-cut-modules/budget/index.js';
 import { OpenaiTranscriptionAdapter } from '../../audio/infrastructure/adapters/openaiTranscriptionAdapter.js';

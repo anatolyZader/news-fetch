@@ -2,7 +2,8 @@
  * Same-day digital quarantine persistence — block re-ingestion on re-assess.
  */
 
-import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import { getDefaultStateStore } from '../../../../../cross-cut-modules/persistence/infrastructure/fsStateStoreAdapter.js';
+const stateStore = getDefaultStateStore();
 import { join, resolve } from 'node:path';
 
 import {
@@ -32,18 +33,18 @@ function escapeRegExpPrefix(prefix) {
  * @param {string} date
  */
 function findLatestReportForDate(reportsDir, scopeId, date) {
-  if (!existsSync(reportsDir)) return null;
+  if (!stateStore.existsSync(reportsDir)) return null;
   const prefix = reportFilePrefix(normalizeReportScopeId(scopeId));
   const pattern = new RegExp(
     String.raw`^${escapeRegExpPrefix(prefix)}-${date}(?:-(\d{4}))?\.json$`,
   );
   let best = null;
   let bestMtime = -1;
-  for (const f of readdirSync(reportsDir)) {
+  for (const f of stateStore.readdirSync(reportsDir)) {
     if (!pattern.test(f)) continue;
     const fullPath = join(reportsDir, f);
     let mtime;
-    try { mtime = statSync(fullPath).mtimeMs; } catch { continue; }
+    try { mtime = stateStore.statSync(fullPath).mtimeMs; } catch { continue; }
     if (mtime > bestMtime) {
       bestMtime = mtime;
       best = fullPath;
@@ -51,7 +52,7 @@ function findLatestReportForDate(reportsDir, scopeId, date) {
   }
   if (!best) return null;
   try {
-    return JSON.parse(readFileSync(best, 'utf8'));
+    return JSON.parse(stateStore.readFileSync(best, 'utf8'));
   } catch {
     return null;
   }
@@ -63,7 +64,7 @@ function findLatestReportForDate(reportsDir, scopeId, date) {
  * @param {string} [reportsDir]
  * @returns {object|null}
  */
-export function loadActiveQuarantine(date, scopeId, reportsDir = 'reports') {
+export function loadActiveQuarantine(date, scopeId, reportsDir = 'daily_reports') {
   const dir = resolve(reportsDir);
   const parsed = findLatestReportForDate(dir, scopeId, date);
   const state = parsed?.assessment?.digital_quarantine_state ?? null;

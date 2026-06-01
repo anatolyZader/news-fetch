@@ -1,4 +1,5 @@
 import { forwardRef, useState } from 'react';
+import PropTypes from 'prop-types';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
@@ -22,8 +23,8 @@ function formatTemplate(template, params = {}) {
 }
 
 export const ValidationReviewPanel = forwardRef(function ValidationReviewPanel(
-  /** @type {{ reportDate?: string, reportScope?: string, enabled?: boolean }} */
-  { reportDate, reportScope, enabled },
+  /** @type {{ reportDate?: string, reportScope?: string, enabled?: boolean, onOpenInChat?: Function }} */
+  { reportDate, reportScope, enabled, onOpenInChat },
   ref,
 ) {
   const { t } = useLanguage();
@@ -124,6 +125,23 @@ export const ValidationReviewPanel = forwardRef(function ValidationReviewPanel(
 
   async function handleInvestigate(articleKey) {
     await runAgentTurn(articleKey);
+  }
+
+  function handleOpenInChat(item) {
+    if (!onOpenInChat) return;
+    const reasons = (item.reasons ?? []).map((r) => r.code).join(', ') || 'review';
+    onOpenInChat({
+      date: reportDate,
+      scope: reportScope,
+      articleKey: item.article_key,
+      systemHint:
+        `Validation item context:\n` +
+        `article_key=${item.article_key}\n` +
+        `url=${item.article_url ?? 'n/a'}\n` +
+        `reasons=${reasons}\n`,
+      initialMessage:
+        `Investigate validation item ${item.article_key} and recommend a decision if appropriate.`,
+    });
   }
 
   async function handleAgentFollowUp(articleKey) {
@@ -338,16 +356,27 @@ export const ValidationReviewPanel = forwardRef(function ValidationReviewPanel(
                         )}
                         {reviewModeByKey[item.article_key] === 'investigate' && (
                           <Box sx={{ marginTop: 1 }}>
-                            <Button
-                              size="small"
-                              variant="outlined"
-                              disabled={agentLoadingKey === item.article_key}
-                              onClick={() => handleInvestigate(item.article_key)}
-                            >
-                              {agentLoadingKey === item.article_key
-                                ? '…'
-                                : t('validationReview.investigate.run')}
-                            </Button>
+                            <Stack direction="row" spacing={0.5} flexWrap="wrap">
+                              <Button
+                                size="small"
+                                variant="outlined"
+                                disabled={agentLoadingKey === item.article_key}
+                                onClick={() => handleInvestigate(item.article_key)}
+                              >
+                                {agentLoadingKey === item.article_key
+                                  ? '…'
+                                  : t('validationReview.investigate.run')}
+                              </Button>
+                              {onOpenInChat && (
+                                <Button
+                                  size="small"
+                                  variant="text"
+                                  onClick={() => handleOpenInChat(item)}
+                                >
+                                  {t('validationReview.investigate.openInChat')}
+                                </Button>
+                              )}
+                            </Stack>
                             {(agentMessagesByKey[item.article_key] ?? []).length > 0 && (
                               <Box sx={{ marginTop: 1 }}>
                                 {simplifyMessagesForDisplay(agentMessagesByKey[item.article_key]).map((turn, idx) => (
@@ -487,3 +516,10 @@ export const ValidationReviewPanel = forwardRef(function ValidationReviewPanel(
     </Box>
   );
 });
+
+ValidationReviewPanel.propTypes = {
+  reportDate: PropTypes.string,
+  reportScope: PropTypes.string,
+  enabled: PropTypes.bool,
+  onOpenInChat: PropTypes.func,
+};

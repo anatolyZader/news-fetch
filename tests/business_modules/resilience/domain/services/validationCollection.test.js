@@ -181,7 +181,7 @@ describe('validationCollectionService', () => {
         evidence: 'Residents anxious',
         extraction_confidence: 0.4,
       }],
-      reportJsonPath: join(root, 'reports', 'resilience-report-2026-05-23.json'),
+      reportJsonPath: join(root, 'daily_reports', 'resilience-report-2026-05-23.json'),
       signalPaths: [join(root, 'signals', 'signals-news-2026-05-23.json')],
       pipelineConfig: { sources: { news: { enabled: true } } },
       rootDir: root,

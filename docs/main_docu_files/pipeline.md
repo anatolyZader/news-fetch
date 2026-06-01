@@ -2,13 +2,13 @@
 
 **Location:** `docs/main_docu_files/` (canonical main documentation — see [README](./README.md))
 
-> **Deep reference:** For the full 8-component framework, signal catalog (~165 types), scoring math, reliability instruments, UI tiers, and QA harness, see [8-component-analysis-end-to-end.md](./8-component-analysis-end-to-end.md).
+> **Deep reference:** For the full 8-component framework, signal catalog (~166 types), scoring math, reliability instruments, UI tiers, and QA harness, see [8-component-analysis-end-to-end.md](./8-component-analysis-end-to-end.md).
 >
 > **Geographic enrichment:** See [GEOGRAPHIC-ANALYSIS.md](./GEOGRAPHIC-ANALYSIS.md).
 
 **System:** Population Resilience Monitor  
 **Framework:** 8-Component Community Resilience (Pikud HaOref / פיקוד העורף)  
-**Last updated:** 2026-05-28
+**Last updated:** 2026-05-30
 
 ---
 
@@ -29,7 +29,7 @@ Six report scopes are supported (`--scope` on `assess-signals`, `DistrictScopeSw
 
 Regional scopes require resolved geo (or always-in-scope source types) matching the target district. See [GEOGRAPHIC-ANALYSIS.md](./GEOGRAPHIC-ANALYSIS.md) and [8-component doc §12](./8-component-analysis-end-to-end.md#12-geographic-scoping-national--five-regional-districts).
 
-A key design principle: **LLM extracts, code scores**. The LLM finds behavioral evidence and classifies it into a fixed signal vocabulary (`SIGNAL_CATALOG`, ~165 types). A deterministic algorithm maps those signals to component scores — the LLM does not decide the scores.
+A key design principle: **LLM extracts, code scores**. The LLM finds behavioral evidence and classifies it into a fixed signal vocabulary (`SIGNAL_CATALOG`, ~166 types). A deterministic algorithm maps those signals to component scores — the LLM does not decide the scores.
 
 ---
 
@@ -44,13 +44,13 @@ Split into auditable stages so signals are reusable and comparable across days:
         ↓
 [assess-signals.js] → merge + scope filter + deterministic scoring + LLM narrative
         ↓
-reports/resilience-report[-{scopeId}]-{date}-{HHMM}.{md,json}
+daily_reports/resilience-report[-{scopeId}]-{date}-{HHMM}.{md,json}
         ↓
 validation artifacts (records + review queue)
 ```
 
 **Stage 1 — extract:** `npm run extract-signals -- --source-type <type> --files … --date YYYY-MM-DD`  
-**Stage 2 — assess:** `npm run assess-signals -- --date YYYY-MM-DD --days N [--scope national|north]`
+**Stage 2 — assess:** `npm run assess-signals -- --date YYYY-MM-DD --days N [--scope national|north|south|jerusalem|dan|haifa]`
 
 Recommended entry points:
 
@@ -59,6 +59,24 @@ Recommended entry points:
 | `/8comp-3` | 3-day national window (news, whatsapp, field, PBO, … per config) |
 | `/8comp-3-north` | Same + north scope + `social-media:gather-daily` (X + Telegram) |
 | `./scripts/daily-pipeline.sh` | Cron-friendly: transcribe → fetch news → extract all sources → assess (3-day) |
+
+### Open observations path (research / catalog learning)
+
+Tabula-rasa extraction does **not** use `SIGNAL_CATALOG` at extract time. Observations are stored under `business_modules/signals_extraction/data/observations-{profile}-{date}.json`. Optional assess maps them to closed types before scoring.
+
+```
+[Markdown / document pack] → npm run extract-observations -- --profile exploratory|document_pack …
+        ↓
+business_modules/signals_extraction/data/observations-*.json
+        ↓
+npm run assess-signals -- --bundle-source observations [--observations-profile exploratory]
+        ↓
+daily_reports/resilience-report-… (only observations with valid suggested_catalog_types / nearest_existing_types)
+```
+
+Profiles: `exploratory`, `document_pack`, `residual` (zero-signal articles after closed extract when `RESILIENCE_RESIDUAL_CAPTURE=1`). Catalog gap reports merge OOV JSONL + open observations via `catalog-learning:gap-report`. See `business_modules/signals_extraction/README.md`.
+
+Production daily pipeline remains **closed** `extract-signals` → `signals/`.
 
 ---
 
@@ -189,8 +207,9 @@ npm run social-media:treat -- --date YYYY-MM-DD   # usually auto-run by gather-d
 
 | Step | What happens |
 |------|--------------|
-| X gather | Cluster queries (`xHomefrontClusterQueries.js`) → counts + search → raw JSON → behavior filter → Haiku classifier |
+| X gather | Cluster queries (`xHomefrontClusterQueries.js`) — clusters A/B × langs `he`/`ar`/`ru`; count-then-search slots with cost cap; optional `--north` adds locality clauses |
 | Telegram gather | MTProto client → public channels (`telegram-public-channels.json`) → raw JSONL → same classify path |
+| Classify | Haiku classifier; optional few-shot RAG from `social_examples` when `SOCIAL_CLASSIFY_RAG_ENABLED` |
 | Treat | `findings[]` → resilience `signals[]` via `findingToSignalMapper.js` |
 | Output | `business_modules/social_media/data/signals-social-{date}.json`, `social-osint-report-{date}.md` |
 
@@ -201,6 +220,7 @@ npm run social-media:treat -- --date YYYY-MM-DD   # usually auto-run by gather-d
 | `X_BEARER_TOKEN` | X API v2 |
 | `TELEGRAM_API_ID`, `TELEGRAM_API_HASH`, `TELEGRAM_SESSION` | Telegram MTProto |
 | `ANTHROPIC_API_KEY` | Haiku classifier in gather-daily |
+| `SOCIAL_CLASSIFY_RAG_ENABLED` | Few-shot examples from `social_examples` RAG index |
 
 One-time Telegram setup: `npm run social-media:telegram-session`
 
@@ -220,14 +240,15 @@ Municipality survey Excel → separate report with geo enrichment. See resilienc
 npm run extract-signals -- --source-type news --files articles-homefront-2026-05-23.md --date 2026-05-23
 ```
 
-**Core:** `business_modules/resilience/infrastructure/claudeEvaluator.js`
+**Core:** `business_modules/resilience/infrastructure/claudeExtraction.js` (barrel re-export: [`claudeEvaluator.js`](../../business_modules/resilience/infrastructure/claudeEvaluator.js))
 
 | Feature | Detail |
 |---------|--------|
 | Model | `claude-haiku-4-5-20251001` |
-| Vocabulary | ~165 closed `signal_type` values in `SIGNAL_CATALOG` (`domain/services/signalCatalog.js`) |
+| Vocabulary | ~166 closed `signal_type` values in `SIGNAL_CATALOG` (`domain/services/signalCatalog.js`) |
 | Multipass | 3 grouped Haiku passes + 4th self-check pass (`RESILIENCE_EXTRACT_MULTIPASS=0` to disable) |
 | Verification | N-gram evidence containment; optional embedding rescue (`RESILIENCE_EMBEDDING_VERIFY=1`) |
+| Archive + RAG | Upserts to SQLite `source_archive` via [`db/source_archive/`](../../db/source_archive/createSourceArchive.js) and indexes `rag_chunks` when `RESILIENCE_EXTRACT_RAG_ENABLED` (follows `RAG_PIPELINE_ENABLED`) |
 | Output | `signals/signals-{type}-{date}.json` (+ field/social paths as above) |
 | Geo | Always attaches `geo` via `enrichSignalsWithGeo` → `localityCandidate` → `geoService` (written to signal JSON) |
 
@@ -245,24 +266,26 @@ npm run assess-signals -- --date 2026-05-23 --days 3 --scope north
 **What it does:**
 
 1. Discovers signal JSON for all **enabled** sources within `{date, date−1, …}` (up to `--days`, max 14).
-2. Applies **temporal weights** (T=1.0, T−1=0.85, T−2=0.70, then geometric decay to floor 0.50 for older days in the window).
-3. **Within-source dedup** and **cross-source dedup** on `(signal_type | source | evidence)`.
-4. Re-attaches **geo** to any signal still missing it; applies **regional scope filter** when `--scope` is a district id (`filterSignalsForScope`).
-5. **Deterministic scoring** via `scoreComponents()` — sigmoid to 1–10, bootstrap CI, counterfactual, EWMA, polarization, facets.
-6. **LLM narrative** (Sonnet) — writes behavioral text only; does not re-score.
-7. Writes `reports/resilience-report[-{scopeId}]-{date}-{HHMM}.{md,json}` (+ `-brief.md` for operators).
-8. Runs **validation collection** (see below).
-9. Emits **methodology** (`assessment.methodology`) — epistemic scope counts, scope-decision summary, optional advisory `tuning_proposal` from `suggest-tuning` history.
-10. Computes **data void index** (`assessment.data_void`) when digital channels drop while field/PBO remain active (`dataVoidIndex.js`; disable with `RESILIENCE_DATA_VOID=0`).
-11. Counts **OOV captures** for the run date (`reports/oov-capture-{date}.jsonl` when `RESILIENCE_OOV_CAPTURE=1`).
+2. Merges **connectivity probe** signals from `business_modules/resilience/data/connectivity-probes/` (`source_type: infrastructure_probe`; CLI: `ingest-connectivity-probes.js`).
+3. Applies **temporal weights** (T=1.0, T−1=0.85, T−2=0.70, then geometric decay to floor 0.50 for older days in the window).
+4. **Within-source dedup** and **cross-source dedup** on `(signal_type | source | evidence)`.
+5. Re-attaches **geo** to any signal still missing it; applies **regional scope filter** when `--scope` is a district id (`filterSignalsForScope` → per-signal `scopeDecision`).
+6. **Epistemic partition** (`evidenceEligibility.js`): separates metrics-eligible signals from context-only / macro bucket under `RESILIENCE_EPISTEMIC_GEO_V2` (default on).
+7. **Deterministic scoring** via `scoreComponents()` — sigmoid to 1–10, bootstrap CI, counterfactual, EWMA, polarization, facets.
+8. **Social channel quarantine** — flags suspicious social clusters for analyst confirm/dismiss via validation review (`confirm_social_quarantine` / `dismiss_social_quarantine`).
+9. **LLM narrative** (Sonnet) — writes behavioral text only; does not re-score.
+10. Writes `daily_reports/resilience-report[-{scopeId}]-{date}-{HHMM}.{md,json}` (+ `-brief.md` for operators).
+11. Runs **validation collection** (SQLite queue + JSONL artifacts; see below).
+12. Emits **methodology** (`assessment.methodology`, phase `multi_district_phase2`) — epistemic scope counts, `scope_decision_summary`, optional advisory `tuning_proposal`.
+13. Computes **data void index** (`assessment.data_void`) when digital channels drop while field/PBO remain active.
+14. Counts **OOV captures** for the run date (`daily_reports/oov-capture-{date}.jsonl` when `RESILIENCE_OOV_CAPTURE=1`).
 
-**Display tiers:** operator API/UI omits headline 1–10 scores by default; analysts use `?view=analyst` when allowlisted (`RESILIENCE_ANALYST_EMAILS`). See [8-component doc §11.2](./8-component-analysis-end-to-end.md#112-display-tiers-operator-vs-analyst).
+**Display tiers:** operator API/UI omits headline 1–10 scores by default; analysts use `?view=analyst` when `canViewAnalystDisplay(email)` is true (`config/userAccess.json` levels `analyst`/`maintainer`, or env `RESILIENCE_ANALYST_EMAILS` / `RESILIENCE_MAINTAINER_EMAILS`). See [8-component doc §11.2](./8-component-analysis-end-to-end.md#112-display-tiers-operator-vs-analyst).
 
 | Variable | Purpose |
 |----------|---------|
 | `RESILIENCE_COST_CAP_USD` | Per-run LLM cost cap (default $3) |
-| `RESILIENCE_ANALYST_EMAILS` | Comma-separated emails for analyst-tier API/UI |
-| `RESILIENCE_EPISTEMIC_GEO_V2` | Excludes `text_inferred` geo and `usableForMetrics: false` envelopes from component scoring (default on) |
+| `RESILIENCE_EPISTEMIC_GEO_V2` | Excludes `text_inferred` geo and `usableForMetrics: false` from component scoring (default on) |
 | `RESILIENCE_DATA_VOID` | Data void / digital darkness index (default on) |
 | `RESILIENCE_OOV_CAPTURE` | Log unknown types, self-check uncertain, zero-signal articles (default on) |
 
@@ -270,16 +293,21 @@ npm run assess-signals -- --date 2026-05-23 --days 3 --scope north
 
 ## Catalog learning & OOV capture (analyst tooling)
 
-During **extract**, optional learning capture writes JSONL under `reports/` (kinds: unknown signal types, self-check uncertain, zero-signal articles; optional residual observations when `RESILIENCE_RESIDUAL_CAPTURE=1`).
+During **extract**, optional learning capture writes JSONL under `daily_reports/` (kinds: unknown signal types, self-check uncertain, zero-signal articles; optional residual observations when `RESILIENCE_RESIDUAL_CAPTURE=1`).
 
 **Gap report** — clusters recent captures for catalog expansion review:
 
 ```bash
 npm run catalog-learning:gap-report
-# optional: --days 14 --out reports/catalog-gap-report.md
+# optional: --days 14 --out daily_reports/catalog-gap-report.md
+npm run rag:reindex-catalog
 ```
 
-**Module:** `business_modules/catalogLearning/` (`catalogLearningService`, `learningCaptureFsAdapter`). Shared capture kinds live in `cross-cut-modules/learningCapture/`. Extraction hooks: `resilience/infrastructure/learningCapture.js` + `domain/services/oovCapture.js`. Cluster digest CLI: `validation/scripts/oovClusterDigest.js`.
+**HTTP API** (analyst-only): `GET /api/catalog-learning/proposals`, `GET …/proposals/:id`, `POST …/proposals/generate`, `POST …/proposals/:id/review` — [`catalogLearningRoutes.js`](../../business_modules/catalogLearning/input/catalogLearningRoutes.js).
+
+**UI:** `CatalogProposalPanel` embedded in analyst Report view (`ReportView.jsx`).
+
+**Module:** `business_modules/catalogLearning/` (`catalogLearningService`, `catalogProposalService`, SQLite store `catalogProposalSqliteStore.js`). Shared capture kinds live in `cross-cut-modules/learningCapture/`. Extraction hooks: `resilience/infrastructure/learningCapture.js` + `domain/services/oovCapture.js`. Cluster digest CLI: `validation/scripts/oovClusterDigest.js`.
 
 Does not change daily scores — feeds analyst review of the closed `SIGNAL_CATALOG` vocabulary.
 
@@ -308,10 +336,12 @@ npm run validation:set-phase -- elevated [--note "…"]
 | Path | Content |
 |------|---------|
 | `records/{date}-{scope}.json` | Daily immutable validation record |
-| `review-queue/{date}-{scope}.jsonl` | Up to 15 flagged articles/day for expert review |
+| `review-queue/{date}-{scope}.jsonl` | Up to 15 flagged articles/day (export mirror) |
 | `phase-log/phase-changes.jsonl` | Manual phase transitions |
 
-Acceptance tiers are defined in config: **CI** golden corpus enforces `micro_F1 ≥ 0.55` / `macro_κ ≥ 0.40` in tests; **operational tier 2** in config targets `0.65` / `0.5` once hand-reviewed articles exist. **Analyst UI:** `ValidationReviewPanel` in Daily Assessment (analyst mode). **Ops:** CLI + JSONL artifacts under `validation/artifacts/review-queue/`.
+**SQLite review queue (default):** `ValidationReviewSqliteStore` wired in `app.js` when `VALIDATION_REVIEW_SQLITE !== '0'`. Upserts queue items on every assess run. Analyst UI: `ValidationReviewPanel` with list/detail/decision plus RAG **context**, Haiku **explain**, and multi-turn **agent** investigate routes — see [AGENTIC_MECHANISMS.md](./AGENTIC_MECHANISMS.md).
+
+Acceptance tiers are defined in config: **CI** golden corpus enforces `micro_F1 ≥ 0.55` / `macro_κ ≥ 0.40` in tests; **operational tier 2** in config targets `0.65` / `0.5` once hand-reviewed articles exist.
 
 ---
 
@@ -361,10 +391,10 @@ Social OSINT is **not** in this shell script — run via `/8comp-3-north` or `so
 
 | File | Audience |
 |------|----------|
-| `reports/resilience-report-{date}-{HHMM}.md` | Full markdown (analyst) |
-| `reports/resilience-report-{date}-{HHMM}.json` | Structured data + API |
-| `reports/resilience-report-{date}-{HHMM}-brief.md` | Operator brief (no numeric scores) |
-| `reports/resilience-report-{scopeId}-{date}-{HHMM}.*` | Regional scope variants (`north`, `south`, `jerusalem`, `dan`, `haifa`) |
+| `daily_reports/resilience-report-{date}-{HHMM}.md` | Full markdown (analyst) |
+| `daily_reports/resilience-report-{date}-{HHMM}.json` | Structured data + API |
+| `daily_reports/resilience-report-{date}-{HHMM}-brief.md` | Operator brief (no numeric scores) |
+| `daily_reports/resilience-report-{scopeId}-{date}-{HHMM}.*` | Regional scope variants (`north`, `south`, `jerusalem`, `dan`, `haifa`) |
 
 JSON includes: all scores, narratives, manifestations, signal appendix with URLs, methodology block, geo reference versions, reliability instruments per component.
 
@@ -376,8 +406,8 @@ Navigation splits **Daily Assessment** (the 8-component report) from **data-sour
 
 | Tab / endpoint | Role |
 |----------------|------|
-| **Daily Assessment** | Latest assessment (`GET /api/report/today?scope=&view=operator\|analyst`); `DistrictScopeSwitcher` — scopes: `national \| north \| south \| jerusalem \| dan \| haifa`. Analyst validation review via `ValidationReviewPanel` (embedded in Report) |
-| **Report (analyst)** | Per-component **score sparklines** via `GET /api/resilience/drift` (embedded in Report cards; not a separate nav tab) |
+| **Daily Assessment** | Latest assessment (`GET /api/report/today?scope=&view=operator`); `DistrictScopeSwitcher` — scopes: `national \| north \| south \| jerusalem \| dan \| haifa`. Operator tier in main app; allowlisted users link to **analyst-site** for full scores + validation review |
+| **Report (analyst-site)** | Full analyst Report (`analyst-site/src/AnalystApp.jsx`): scores, drift sparklines, `ValidationReviewPanel`, `CatalogProposalPanel`, `OovAnomalyClustersPanel`; scopes via `DistrictScopeSwitcher` |
 | **News** | Ingest review — homefront article exports (`GET /api/news-sites`, `GET /api/news-sites/daily?date=`) |
 | **Radio** | Ingest review — Whisper transcripts (`GET /api/radio`, `GET /api/radio/daily?date=`) |
 | **Social media** | Daily OSINT feed + topic fetch |
@@ -391,8 +421,8 @@ Navigation splits **Daily Assessment** (the 8-component report) from **data-sour
 
 | Popup | API / module | Role |
 |-------|--------------|------|
-| **Chat** | `POST /api/chat` (SSE), `business_modules/chat/` | Evidence-aware assistant scoped to current report |
-| **Write Report** | `POST /api/report-build/*`, `business_modules/report_build/` | Guided report drafting; Tier 4 RAG at draft time (`fieldRetrieval.js`, `rag:reindex-field-examples`, `rag:reindex-hfc`) |
+| **Chat** | Session APIs + `POST /api/chat` (SSE), `POST /api/chat/confirm-action`, `business_modules/chat/` | Evidence-aware assistant scoped to current report |
+| **Write Report** | `POST /api/report-build/start`, `/turn`, `/suggest`, `/confirm`, `/cancel`, `business_modules/report_build/` | Guided report drafting with locality picker; Tier 4 RAG at draft time |
 | **Docs panel** | `GET /api/docs/search`, in-app `DocsPanel` | Tier 5 product-docs RAG (`docs` namespace); run `npm run rag:reindex-docs` after `docs:sync` on deploy |
 | **Social gather** | `social-media:gather-daily` | Haiku classify; optional few-shot RAG (`rag:reindex-social-examples`) |
 | **Audio contextualize** | `audio-to-md --contextualize` | Prior radio-scene RAG when `AUDIO_CONTEXTUALIZER_RAG_ENABLED` |
@@ -434,22 +464,33 @@ business_modules/audio/
   app/audioEvidenceIngestService.js       Transcript feed reader
 
 cross-cut-modules/geo/
-  createGeoWiring.js                      Composition factory (overrides + unknown sinks)
+  createGeoWiring.js                      Composition factory (overrides + unknown SQLite/JSONL sinks)
   enrichSignalsWithGeo.js                 Pipeline geo attach
   geoEnvelopeAccess.js                    v3 nested envelope read helpers
 
 business_modules/resilience/
   input/extract-signals.js                Stage 1: per-source extraction
   input/assess-signals.js                 Stage 2: merge + score + narrate
-  validation/                             Post-assess calibration collection
+  input/ingest-connectivity-probes.js     Probe JSON/JSONL → assess merge
+  validation/                             Post-assess calibration + SQLite review queue
   domain/services/behaviorSignals.js      Scoring + SIGNAL_TO_COMPONENTS
   domain/services/dataVoidIndex.js        Digital darkness / data void index
   domain/services/oovCapture.js           OOV + learning-capture buffer
-  infrastructure/claudeEvaluator.js       LLM extraction + narratives
+  infrastructure/claudeExtraction.js      LLM signal extraction (barrel: claudeEvaluator.js)
+  infrastructure/claudeNarratives.js      Sonnet narrative synthesis
   infrastructure/learningCapture.js       Residual / zero-signal capture hooks
 
 business_modules/catalogLearning/
   input/generate-gap-report.js            npm run catalog-learning:gap-report
+  input/catalogLearningRoutes.js          GET/POST /api/catalog-learning/proposals/*
+  infrastructure/adapters/catalogProposalSqliteStore.js
+
+business_modules/report_build/
+  input/reportBuildRoutes.js              POST /api/report-build/start|turn|suggest|confirm|cancel
+
+business_modules/geo/
+  infrastructure/adapters/geoUnknownSqliteQueueAdapter.js
+  input/geoRoutes.js                      GET /api/geo/* (resolve, localities, unknown-queue)
 
 business_modules/pbo_report_regional/
   input/extract-regional-pbo-signals.js   → signals-pbo_regional-{date}.json
@@ -457,8 +498,6 @@ business_modules/pbo_report_regional/
 business_modules/pbo_report_review/
   input/runMunicipalPboReview.js          Daily step 7b — completeness + follow-up
   input/pboReviewRoutes.js                GET/POST /api/pbo/municipal-reviews/*
-
-business_modules/geo/                     Reference data + IGeoEnrichmentPort impl
 
 business_modules/social_media/
   input/socialMediaInput.js               gather-daily | treat | init
@@ -474,7 +513,7 @@ pipeline-config.json                      Source enable/disable toggles
 
 .claude/commands/
   8comp-3.md, 8comp-3-north.md            Recommended daily runbooks
-  analyze-news.md                         Legacy news-only shortcut
+  analyze-news.md                         Legacy news-only shortcut (not production default)
 ```
 
 ---
@@ -482,7 +521,7 @@ pipeline-config.json                      Source enable/disable toggles
 ## Design principles
 
 1. **LLM extracts, code scores.** Scoring is deterministic and auditable.
-2. **Closed vocabulary.** ~165 fixed signal types; trends comparable across days.
+2. **Closed vocabulary.** ~166 fixed signal types; trends comparable across days.
 3. **Behavioral signals only.** Concrete quotes, actions, or statistics — not journalist characterizations.
 4. **Atomic signals.** One signal = one behavioral fact.
 5. **Many-to-many mapping.** One signal can affect multiple components.

@@ -175,8 +175,27 @@ function addSingleComponentAttentionItems(push, item, comp, isAnalyst, assessmen
     }));
   }
 
-  if (!isAnalyst) return;
+  if (inst.contested === true && inst.contested_thin !== true) {
+    push(item('watch', `component:${componentId}:contested`, 'contested_evidence', 'attention.component.contestedEvidence', {
+      component_id: componentId,
+      detail_key: 'attention.component.contestedEvidenceDetail',
+      detail_params: { component_id: componentId },
+      suggested_action_key: 'attention.suggested.reviewComponent',
+    }));
+  }
 
+  if (isAnalyst) {
+    addAnalystComponentAttentionItems(push, item, comp, componentId);
+  }
+}
+
+/**
+ * @param {Function} push
+ * @param {Function} item
+ * @param {object} comp
+ * @param {string} componentId
+ */
+function addAnalystComponentAttentionItems(push, item, comp, componentId) {
   const deltaZ = comp.delta_significance;
   if (typeof deltaZ === 'number' && Math.abs(deltaZ) >= 2 && comp.delta_flag !== 'significant') {
     push(item('watch', `component:${componentId}:delta_z`, 'high_delta_z', 'attention.component.highDeltaZ', {
@@ -365,3 +384,39 @@ export function addOovAttentionItems(push, item, assessment, isAnalyst, methodol
 }
 
 export { DISPLAY_VIEWS } from './assessmentDisplayTier.js';
+
+/**
+ * @param {Function} push
+ * @param {Function} item
+ * @param {Array<object>} patternAlerts
+ */
+export function addPatternAttentionItems(push, item, patternAlerts) {
+  for (const p of patternAlerts ?? []) {
+    if (!p?.id || !p.pattern_code) continue;
+    push(item(p.level ?? 'watch', p.id, p.pattern_code, p.title_key, {
+      component_id: p.component_id ?? undefined,
+      detail_key: p.detail_key ?? null,
+      detail_params: p.detail_params ?? {},
+      suggested_action_key: p.suggested_action_key ?? null,
+      recommendation_id: `rec:${p.pattern_code}`,
+    }));
+  }
+}
+
+/**
+ * @param {Function} push
+ * @param {Function} item
+ * @param {Array<object>} recommendations
+ */
+export function addOperatorRecommendationItems(push, item, recommendations) {
+  for (const rec of recommendations ?? []) {
+    if (rec.status !== 'pending') continue;
+    push(item(rec.level ?? 'warning', `recommendation:${rec.id}`, rec.pattern_code, rec.title_key, {
+      component_id: rec.component_id ?? undefined,
+      detail_key: rec.detail_key ?? null,
+      detail_params: rec.detail_params ?? {},
+      suggested_action_key: rec.suggested_action_key ?? 'attention.suggested.commsClarification',
+      recommendation_id: rec.id,
+    }));
+  }
+}

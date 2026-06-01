@@ -54,6 +54,47 @@ export function computePopupPosition(width, _height) {
 }
 
 /**
+ * @param {Document | null | undefined} doc
+ * @returns {string | null}
+ */
+function readIndexBundleScript(doc) {
+  if (!doc) return null;
+  const script = doc.querySelector('script[type="module"][src*="/assets/index-"]');
+  return script?.getAttribute('src') ?? null;
+}
+
+/**
+ * Reload a popup that still runs an older JS bundle after a deploy.
+ * @param {Window} popup
+ */
+export function reloadPopupIfBundleStale(popup) {
+  try {
+    const openerBundle = readIndexBundleScript(globalThis.document);
+    const popupBundle = readIndexBundleScript(popup.document);
+    if (openerBundle && popupBundle && openerBundle !== popupBundle) {
+      popup.location.reload();
+    }
+  } catch {
+    // Popup document may be inaccessible while loading.
+  }
+}
+
+/**
+ * @param {string} panelId
+ * @param {{ reportScope?: { type?: string, id?: string, label?: string }, reportGeoScope?: string, slug?: string }} [options]
+ * @returns {string | null}
+ */
+function resolvePanelPath(panelId, options = {}) {
+  let path = panelPathForId(panelId);
+  if (panelId === 'chat') {
+    path = buildChatPanelPath(options.reportScope, options.reportGeoScope);
+  } else if (panelId === 'docs') {
+    path = buildDocsPanelPath(options.slug);
+  }
+  return path;
+}
+
+/**
  * @param {string} panelId
  * @param {Window | null | undefined} existingWindow
  * @param {{ reportScope?: { type?: string, id?: string, label?: string }, reportGeoScope?: string, slug?: string }} [options]
@@ -61,22 +102,25 @@ export function computePopupPosition(width, _height) {
  */
 export function openPanelPopup(panelId, existingWindow, options = {}) {
   if (!isKnownPanelId(panelId)) return null;
-  if (existingWindow && !existingWindow.closed) {
-    existingWindow.focus();
-    return existingWindow;
+  const path = resolvePanelPath(panelId, options);
+  if (!existingWindow || existingWindow.closed) {
+    const spec = PANEL_SPECS[panelId];
+    if (!path || !spec) return null;
+    const { left, top } = computePopupPosition(spec.width, spec.height);
+    const features = buildPopupFeatures(spec.width, spec.height, left, top);
+    const name = popupWindowName(panelId);
+    return globalThis.window?.open(path, name, features) ?? null;
   }
-  let path = panelPathForId(panelId);
-  if (panelId === 'chat') {
-    path = buildChatPanelPath(options.reportScope, options.reportGeoScope);
-  } else if (panelId === 'docs') {
-    path = buildDocsPanelPath(options.slug);
+  if (path) {
+    const current = `${existingWindow.location.pathname}${existingWindow.location.search}`;
+    if (current === path) {
+      reloadPopupIfBundleStale(existingWindow);
+    } else {
+      existingWindow.location.assign(path);
+    }
   }
-  const spec = PANEL_SPECS[panelId];
-  if (!path || !spec) return null;
-  const { left, top } = computePopupPosition(spec.width, spec.height);
-  const features = buildPopupFeatures(spec.width, spec.height, left, top);
-  const name = popupWindowName(panelId);
-  return globalThis.window?.open(path, name, features) ?? null;
+  existingWindow.focus();
+  return existingWindow;
 }
 
 export { PANEL_SPECS };

@@ -48,6 +48,7 @@ CenteredWrap.propTypes = {
 function AuthGate() {
   const {
     configLoaded,
+    configError,
     authRequired,
     firebaseConfigured,
     user,
@@ -55,6 +56,16 @@ function AuthGate() {
   } = useAuth();
 
   const panelId = parsePanelPath(globalThis.location?.pathname);
+
+  if (configLoaded && configError) {
+    return (
+      <CenteredWrap>
+        <Alert severity="error" variant="outlined" sx={{ maxWidth: '36rem' }}>
+          Cannot reach the server auth configuration ({configError}). Check network connectivity and reload.
+        </Alert>
+      </CenteredWrap>
+    );
+  }
 
   if (!configLoaded || (authRequired && firebaseConfigured && authLoading)) {
     if (panelId) return <PanelWindowLoading />;

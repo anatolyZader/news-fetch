@@ -232,6 +232,7 @@ function AppShell() {
     reportDate,
     initialReportLoadDone,
     reportMissingHint,
+    attentionItems,
   } = useTodayReport(reportScope);
   const [activeTab, setActiveTab] = useState(() => readMainTab());
   const [activePoolTab, setActivePoolTab] = useState(() => readPoolTab());
@@ -417,6 +418,12 @@ function AppShell() {
   function jumpToReportComponent(compId) {
     setOpenReportCompId((prev) => (prev === compId ? null : compId));
     // Sidebar jump should show narrative + top of the card, not the nested evidence list.
+    setOpenReportEvidenceCompId(null);
+  }
+
+  function openReportComponent(compId) {
+    if (!compId) return;
+    setOpenReportCompId(compId);
     setOpenReportEvidenceCompId(null);
   }
 
@@ -778,6 +785,8 @@ function AppShell() {
                       translateError={translateError}
                       reportDate={reportDate}
                       reportScope={reportScope}
+                      attentionItems={attentionItems ?? []}
+                      onJumpToComponent={openReportComponent}
                       openCompId={openReportCompId}
                       setOpenCompId={setOpenReportCompId}
                       openEvidenceCompId={openReportEvidenceCompId}

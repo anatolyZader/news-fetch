@@ -48,6 +48,16 @@ The RAG platform provides **hybrid dense + lexical retrieval** over a Hebrew/Eng
 
 As of May 30, 2026, the default SQLite path is **`db/app.sqlite`** (previously `data/app.sqlite`). Set `SQLITE_PATH` to override.
 
+**Source archive code** (original full-text persistence, retention, filesystem fallbacks, ops CLIs) lives beside the database file:
+
+| Path | Role |
+|------|------|
+| [`db/persistence/sourceArchiveStore.js`](../../db/persistence/sourceArchiveStore.js) | SQLite `source_archive` table |
+| [`db/source_archive/`](../../db/source_archive/createSourceArchive.js) | Facade, IDs, `persistOriginalSources`, type-specific archivers |
+| [`db/input/`](../../db/input/backfillSourceArchive.js) | `archive:backfill`, `archive:purge`, `rag:reindex`, `rag:eval` |
+
+Legacy imports under `cross-cut-modules/persistence/` and `cross-cut-modules/source_archive/` re-export from `db/` for compatibility.
+
 ---
 
 ## 2. Platform architecture
@@ -292,7 +302,7 @@ Set `VECTOR_INDEX_EMBEDDINGS=0` for FTS-only mode (used in CI when no API key).
 
 | Namespace | Index writer | Source corpus | `parent_id` pattern | Index date | Reindex command |
 |-----------|-------------|---------------|---------------------|------------|-----------------|
-| `archive` | `indexWriter.indexArchiveRow` | [`source_archive`](../../cross-cut-modules/source_archive/createSourceArchive.js) — news, radio, field, whatsapp, social, PBO, Naftali, probes | `source_id` (e.g. `archive:news:…`, `md:path#1`) | Row date | Auto on upsert; `npm run rag:reindex` |
+| `archive` | `indexWriter.indexArchiveRow` | [`source_archive`](../../db/source_archive/createSourceArchive.js) — news, radio, field, whatsapp, social, PBO, Naftali, probes | `source_id` (e.g. `archive:news:…`, `md:path#1`) | Row date | Auto on upsert; `npm run rag:reindex` |
 | `report` | `indexWriter.indexReport` | Assessment report JSON (signals, components, synthesis) | `report:{date}:{scope}:{docId}` | Assessment date | Auto on chat open |
 | `docs` | [`docsIndexWriter.js`](../../cross-cut-modules/retrieval/docsIndexWriter.js) | `docs/product_docs/` (skips `api/generated/**`) | `docs:{slug}` | `2099-01-01` | `npm run rag:reindex-docs` |
 | `catalog` | [`catalogIndexWriter.js`](../../cross-cut-modules/retrieval/catalogIndexWriter.js) | `SIGNAL_CATALOG` taxonomy | `catalog:{type}` | `2099-01-01` | `npm run rag:reindex-catalog` |
@@ -366,7 +376,7 @@ sequenceDiagram
   Claude->>Claude: get_source for full text
 ```
 
-When a text query is present, `searchSources` tries `searchArchiveChunks` first; on empty/error, falls back to archive FTS + [`filesystemFallbacks.js`](../../cross-cut-modules/source_archive/filesystemFallbacks.js).
+When a text query is present, `searchSources` tries `searchArchiveChunks` first; on empty/error, falls back to archive FTS + [`filesystemFallbacks.js`](../../db/source_archive/filesystemFallbacks.js).
 
 **Grounding flow:** System context receives retrieval hint → model uses `lookup_signals` / `search_sources` / `get_source` for drill-down.
 
@@ -483,7 +493,7 @@ Docs search filters gated content unless `includeGated: true`. Client-side index
 
 ### Auto-index on upsert
 
-[`createSourceArchive.js`](../../cross-cut-modules/source_archive/createSourceArchive.js) accepts `retrievalIndexer` (the `createRetrievalService` return value). Every `upsert` schedules `indexArchiveRow` asynchronously.
+[`createSourceArchive.js`](../../db/source_archive/createSourceArchive.js) accepts `retrievalIndexer` (the `createRetrievalService` return value). Every `upsert` schedules `indexArchiveRow` asynchronously.
 
 Wired in [`app.js`](../../app.js):
 
@@ -494,7 +504,7 @@ const sourceArchive = createSourceArchive(sqlitePath, { retrievalIndexer: retrie
 
 ### Backfill CLI (added May 30, 2026)
 
-[`backfillSourceArchive.js`](../../business_modules/source_archive/input/backfillSourceArchive.js):
+[`backfillSourceArchive.js`](../../db/input/backfillSourceArchive.js):
 
 ```bash
 npm run archive:backfill -- --days 14
@@ -516,7 +526,7 @@ Each upsert triggers RAG indexing unless `--no-reindex-rag`.
 npm run rag:reindex -- --days 14
 ```
 
-Script: [`reindexRag.js`](../../business_modules/source_archive/input/reindexRag.js).
+Script: [`reindexRag.js`](../../db/input/reindexRag.js).
 
 ### Purge and fallbacks
 
@@ -528,7 +538,7 @@ npm run archive:purge
 - **Permanent in SQLite:** field, pbo, naftali, probe, whatsapp, manual, video, etc.
 - **Filesystem:** never deleted by purge.
 
-When SQLite rows are purged, chat tools still find content via [`filesystemFallbacks.js`](../../cross-cut-modules/source_archive/filesystemFallbacks.js) (refactored May 30, 2026 with safer `enumerateDates` and extracted `rowMatchesQuery` / `collectCandidatesForDate`).
+When SQLite rows are purged, chat tools still find content via [`filesystemFallbacks.js`](../../db/source_archive/filesystemFallbacks.js) (refactored May 30, 2026 with safer `enumerateDates` and extracted `rowMatchesQuery` / `collectCandidatesForDate`).
 
 ### Stable source IDs
 
@@ -716,7 +726,7 @@ All RAG toggles live in [`ragConfig.js`](../../cross-cut-modules/retrieval/ragCo
 
 ### Eval runner
 
-[`ragEval.js`](../../business_modules/source_archive/input/ragEval.js):
+[`ragEval.js`](../../db/input/ragEval.js):
 
 ```bash
 npm run rag:eval
@@ -787,6 +797,21 @@ This repo does not integrate Pinecone, Chroma, Qdrant, FAISS, Weaviate, or pgvec
 
 ## 14. Recent improvements (May 29–30, 2026)
 
+### May 30 — commit `6cabdc7`
+
+**Production security hardening, agentic chat, and GCP/Cloudflare cutover ops.**
+
+RAG-relevant changes:
+
+| Change | Impact on RAG |
+|--------|---------------|
+| **Session-based chat** | Chat history no longer sent in POST body; RAG hint still injected per turn via `buildChatRetrievalHint` |
+| **`costlyRoutePreHandlers`** | `POST /api/chat`, validation explain/agent, report-build, and `GET /api/docs/search`: auth → optional App Check → daily HTTP budget (see [COST_CONTROLS.md](./COST_CONTROLS.md)) |
+| **Chat retrieval cache** | `CHAT_RETRIEVAL_CACHE_TTL_MS` — one hybrid search per session/query can serve system hint + `search_sources` tool |
+| **Validation RAG cache** | `VALIDATION_RAG_CACHE_TTL_MS` — caches `buildValidationReviewContext` per queue item |
+| **Analyst chat tools** | Validation/catalog/geo tools reuse same `rag_chunks` indexes as panel workflows |
+| **Security audit trail** | `agent.tool_round` + chat confirm events logged via `auditLog.js` |
+
 ### May 30 — commit `8e15f03`
 
 **Reorganize persistence path, scripts layout, and module data locations.**
@@ -796,10 +821,10 @@ RAG-relevant changes (no changes to core `cross-cut-modules/retrieval/` logic):
 | Change | Impact on RAG |
 |--------|---------------|
 | SQLite default `data/` → `db/` | `SQLITE_PATH` default is now `db/app.sqlite`; `rag_chunks` lives in same DB |
-| **New [`backfillSourceArchive.js`](../../business_modules/source_archive/input/backfillSourceArchive.js)** | Idempotent CLI to populate `source_archive` from evidence DB, markdown exports, social bundles, probes — feeds the archive RAG corpus; triggers chunk index on each upsert |
-| **[`filesystemFallbacks.js`](../../cross-cut-modules/source_archive/filesystemFallbacks.js) refactor** | Safer date iteration (`enumerateDates`); extracted `rowMatchesQuery` / `collectCandidatesForDate` — used when SQLite archive rows are purged but chat tools still need retrieval |
+| **New [`backfillSourceArchive.js`](../../db/input/backfillSourceArchive.js)** | Idempotent CLI to populate `source_archive` from evidence DB, markdown exports, social bundles, probes — feeds the archive RAG corpus; triggers chunk index on each upsert |
+| **[`filesystemFallbacks.js`](../../db/source_archive/filesystemFallbacks.js) refactor** | Safer date iteration (`enumerateDates`); extracted `rowMatchesQuery` / `collectCandidatesForDate` — used when SQLite archive rows are purged but chat tools still need retrieval |
 | **[`chatService.js`](../../business_modules/chat/app/chatService.js) bugfix** | Removed orphaned duplicate code block after report indexing path |
-| **[`purgeSourceArchive.js`](../../business_modules/source_archive/input/purgeSourceArchive.js)** | Updated default SQLite path to `db/app.sqlite` |
+| **[`purgeSourceArchive.js`](../../db/input/purgeSourceArchive.js)** | Updated default SQLite path to `db/app.sqlite` |
 
 ### May 29 — commits `ef18d69`, `ef51e4b`
 
@@ -860,15 +885,15 @@ RAG-relevant changes (no changes to core `cross-cut-modules/retrieval/` logic):
 
 | File | npm script |
 |------|------------|
-| `business_modules/source_archive/input/reindexRag.js` | `rag:reindex` |
+| `db/input/reindexRag.js` | `rag:reindex` |
 | `business_modules/catalogLearning/input/reindex-catalog.js` | `rag:reindex-catalog` |
 | `business_modules/report_build/input/reindex-field-examples.js` | `rag:reindex-field-examples` |
 | `cross-cut-modules/retrieval/input/reindex-hfc.js` | `rag:reindex-hfc` |
 | `business_modules/social_media/input/reindex-social-examples.js` | `rag:reindex-social-examples` |
 | `cross-cut-modules/retrieval/input/reindex-docs.js` | `rag:reindex-docs` |
 | `cross-cut-modules/retrieval/input/reindex-terms.js` | `rag:reindex-terms` |
-| `business_modules/source_archive/input/ragEval.js` | `rag:eval` |
-| `business_modules/source_archive/input/backfillSourceArchive.js` | `archive:backfill` |
+| `db/input/ragEval.js` | `rag:eval` |
+| `db/input/backfillSourceArchive.js` | `archive:backfill` |
 
 ### Port / infrastructure
 
@@ -876,8 +901,8 @@ RAG-relevant changes (no changes to core `cross-cut-modules/retrieval/` logic):
 |------|------|
 | `cross-cut-modules/retrieval/domain/ports/IRetrievalPort.js` | Port interface |
 | `cross-cut-modules/retrieval/infrastructure/retrievalPortAdapter.js` | Adapter |
-| `cross-cut-modules/source_archive/createSourceArchive.js` | Auto-index hook |
-| `cross-cut-modules/source_archive/filesystemFallbacks.js` | Purge fallbacks |
+| `db/source_archive/createSourceArchive.js` | Auto-index hook |
+| `db/source_archive/filesystemFallbacks.js` | Purge fallbacks |
 | `cross-cut-modules/vector_index/openaiEmbeddingAdapter.js` | Embeddings |
 | `cross-cut-modules/vector_index/vectorMath.js` | Vector math |
 
@@ -956,4 +981,4 @@ RAG-relevant changes (no changes to core `cross-cut-modules/retrieval/` logic):
 
 ---
 
-*Last updated: 2026-05-30 — reflects commit `8e15f03` and May 29 archive/chat RAG migration.*
+*Last updated: 2026-05-30 — reflects commits `6cabdc7`, `8e15f03`, and May 29 archive/chat RAG migration.*

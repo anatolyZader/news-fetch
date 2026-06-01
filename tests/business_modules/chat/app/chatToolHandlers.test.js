@@ -36,6 +36,70 @@ describe('chatToolHandlers', () => {
     );
     assert.match(result, /analyst access/i);
   });
+
+  it('list_attention_items returns ranked items from assessment', async () => {
+    const result = await handleChatToolCall('list_attention_items', { limit: 5 }, {
+      reportData: {
+        assessment: {
+          date: '2026-05-30',
+          components: [],
+          operator_recommendations: [],
+        },
+      },
+    });
+    assert.equal(typeof result, 'string');
+  });
+
+  it('get_decision_brief returns brief JSON', async () => {
+    const result = await handleChatToolCall('get_decision_brief', {}, {
+      reportData: {
+        assessment: {
+          decision_brief: { summary: 'Focus on field corroboration.', priority_items: [] },
+        },
+      },
+    });
+    assert.match(result, /Focus on field/);
+  });
+
+  it('list_operator_recommendations filters pending', async () => {
+    const result = await handleChatToolCall('list_operator_recommendations', { status: 'pending' }, {
+      reportData: {
+        assessment: {
+          operator_recommendations: [{
+            id: 'rec:test',
+            pattern_code: 'active_rumor_cluster',
+            level: 'watch',
+            status: 'pending',
+            recommended_action: { type: 'monitor_rumors' },
+          }],
+        },
+      },
+    });
+    assert.match(result, /rec:test/);
+    assert.match(result, /monitor_rumors/);
+  });
+
+  it('propose_operator_recommendation available for operators', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'chat-pending-op-'));
+    const store = createChatPendingActionStore(join(dir, 'test.sqlite'));
+    const proposed = [];
+    const result = await handleChatToolCall(
+      'propose_operator_recommendation',
+      { recommendation_id: 'rec:test', action: 'acknowledge', rationale: 'done' },
+      {
+        isAnalyst: false,
+        analystToolsEnabled: true,
+        confirmActionsEnabled: true,
+        pendingActionStore: store,
+        ownerUid: 'u1',
+        sessionId: 's1',
+        onActionProposed: (p) => proposed.push(p),
+      },
+    );
+    assert.match(result, /Action proposed/);
+    assert.equal(proposed.length, 1);
+    rmSync(dir, { recursive: true, force: true });
+  });
 });
 
 describe('chatPendingActionStore', () => {

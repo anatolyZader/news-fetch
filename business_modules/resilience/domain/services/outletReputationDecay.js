@@ -2,7 +2,8 @@
  * Dynamic outlet reputation decay from verification drops and dedup collisions.
  */
 
-import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
+import { getDefaultStateStore } from '../../../../cross-cut-modules/persistence/infrastructure/fsStateStoreAdapter.js';
+const stateStore = getDefaultStateStore();
 import { dirname, resolve } from 'node:path';
 
 const DEFAULT_PATH = resolve('business_modules/news-sites/data/resilience-outlet-reputation.json');
@@ -28,9 +29,9 @@ export function reputationStorePath(env = process.env) {
 }
 
 function loadStats(path) {
-  if (!existsSync(path)) return {};
+  if (!stateStore.existsSync(path)) return {};
   try {
-    const raw = JSON.parse(readFileSync(path, 'utf8'));
+    const raw = JSON.parse(stateStore.readFileSync(path, 'utf8'));
     return raw && typeof raw === 'object' ? raw : {};
   } catch {
     return {};
@@ -38,15 +39,15 @@ function loadStats(path) {
 }
 
 function persistStats(path, stats) {
-  mkdirSync(dirname(path), { recursive: true });
-  writeFileSync(path, `${JSON.stringify(stats, null, 2)}\n`, 'utf8');
+  stateStore.mkdirSync(dirname(path), { recursive: true });
+  stateStore.writeFileSync(path, `${JSON.stringify(stats, null, 2)}\n`, 'utf8');
 }
 
 function getStats(path) {
   let currentMtime = null;
-  if (existsSync(path)) {
+  if (stateStore.existsSync(path)) {
     try {
-      currentMtime = statSync(path).mtimeMs;
+      currentMtime = stateStore.statSync(path).mtimeMs;
     } catch {
       currentMtime = null;
     }
@@ -82,7 +83,7 @@ export function recordOutletTelemetry(outlet, delta, env = process.env) {
   stats[outlet] = row;
   cachedStats = stats;
   cachedPath = path;
-  cachedMtime = existsSync(path) ? statSync(path).mtimeMs : null;
+  cachedMtime = stateStore.existsSync(path) ? stateStore.statSync(path).mtimeMs : null;
   persistStats(path, stats);
 }
 

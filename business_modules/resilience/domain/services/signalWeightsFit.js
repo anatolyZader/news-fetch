@@ -6,7 +6,8 @@
  * meets tier3_tuning.min_reports (default 30).
  */
 
-import { readFileSync, existsSync } from 'node:fs';
+import { getDefaultStateStore } from '../../../../cross-cut-modules/persistence/infrastructure/fsStateStoreAdapter.js';
+const stateStore = getDefaultStateStore();
 import { resolve } from 'node:path';
 import {
   CATALOG_VERSION,
@@ -51,9 +52,9 @@ export function getCalibrationSnapshot() {
  */
 export function loadShadowWeights(rootDir = process.cwd()) {
   const path = resolve(rootDir, 'business_modules/resilience/tuning/shadow-weights.json');
-  if (!existsSync(path)) return null;
+  if (!stateStore.existsSync(path)) return null;
   try {
-    return JSON.parse(readFileSync(path, 'utf8'));
+    return JSON.parse(stateStore.readFileSync(path, 'utf8'));
   } catch {
     return null;
   }

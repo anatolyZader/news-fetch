@@ -6,6 +6,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { isOperatorDistrictEnforcementForced } from './authPolicy.js';
 
 export const ACCESS_LEVELS = Object.freeze({
   operator: 'operator',
@@ -114,6 +115,9 @@ export function listConfiguredUsers(configPath = DEFAULT_CONFIG_PATH) {
  * @returns {boolean}
  */
 export function isOperatorDistrictEnforcementEnabled() {
+  if (isOperatorDistrictEnforcementForced()) {
+    return Object.keys(operatorDistrictEntriesFromUserAccess()).length > 0;
+  }
   const cfg = loadConfig();
   return cfg.operatorDistrictEnforcementEnabled === true
     && Object.keys(operatorDistrictEntriesFromUserAccess()).length > 0;

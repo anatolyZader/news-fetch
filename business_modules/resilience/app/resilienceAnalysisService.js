@@ -22,6 +22,9 @@ import {
 import { loadHistoricalScores } from '../input/assessSignalsHelpers.js';
 import { runScoringPipeline } from './scoringPipelinePrep.js';
 import { prepareScoringSignals } from './prepareScoringSignals.js';
+import { detectSemanticPatterns } from '../domain/services/patternDetection/semanticPatternAlerts.js';
+import { buildOperatorRecommendations } from '../domain/services/patternDetection/operatorRecommendations.js';
+import { attachDecisionBrief } from './attachDecisionBrief.js';
 import { loadConnectivityProbeSignals } from '../infrastructure/adapters/connectivityProbeFileAdapter.js';
 import { enrichProbeSignalsInList } from '../domain/services/probeCorroborationPolicy.js';
 import { summarizeValidationMaturity } from '../validation/domain/validationStatus.js';
@@ -59,6 +62,114 @@ function uniqueSourceLabels(articles) {
 }
 
 /**
+ * @param {object} params
+ * @param {object} params.batch
+ * @param {object[]} params.articles
+ * @param {import('../domain/ports/IResilienceLlmPort.js').IResilienceLlmPort} params.llmPort
+ * @param {object[]} [params.supplementaryArticles]
+ * @param {string} [params.supplementaryContentKind]
+ * @param {Function} [params.onUsage]
+ * @param {Function} [params.onProgress]
+ * @param {string} params.reportScopeId
+ */
+async function extractBatchSignals({
+  batch,
+  articles,
+  llmPort,
+  supplementaryArticles,
+  supplementaryContentKind,
+  onUsage,
+  onProgress,
+  reportScopeId,
+}) {
+  const llmOpts = { onUsage, onProgress, contentKind: batch.contentKind };
+  let allSignals = await llmPort.extractSignals(articles, llmOpts);
+  if (process.env.RESILIENCE_SECOND_EXTRACT === '1') {
+    const secondModel = process.env.RESILIENCE_SECOND_EXTRACT_MODEL
+      ?? process.env.RESILIENCE_SECOND_MODEL
+      ?? undefined;
+    const pass2 = await llmPort.extractSignals(articles, {
+      ...llmOpts,
+      extractModel: secondModel,
+    });
+    const requireAgreement = process.env.RESILIENCE_DUAL_REQUIRE_AGREEMENT !== '0';
+    const merged = mergeDualExtractionSignals(allSignals, pass2, { requireAgreement });
+    if (merged.dual_veto_dropped > 0) {
+      console.error(
+        `  → dual extract veto dropped ${merged.dual_veto_dropped} signal(s) without cross-pass agreement`,
+      );
+    }
+    allSignals = merged.signals;
+  }
+
+  if (supplementaryArticles.length > 0) {
+    const suppOpts = { onUsage, onProgress, contentKind: supplementaryContentKind };
+    const suppSignals = await llmPort.extractSignals(supplementaryArticles, suppOpts);
+    allSignals = [...allSignals, ...suppSignals];
+  }
+
+  const probeSignals = loadConnectivityProbeSignals(batch.reportDate, reportScopeId);
+  if (probeSignals.length > 0) {
+    allSignals = [...allSignals, ...probeSignals];
+  }
+
+  allSignals = enrichProbeSignalsInList(allSignals);
+  allSignals = filterSignalsForScope(allSignals, reportScopeId);
+  allSignals = annotateSignalsEpistemics(allSignals, { reportScope: reportScopeId });
+  const { metricsSignals, macroSignals } = partitionMacroSignals(allSignals, reportScopeId);
+  const baseSignalsForScoring = isRegionalReportScope(reportScopeId) ? metricsSignals : allSignals;
+  return { allSignals, baseSignalsForScoring, macroSignals };
+}
+
+/**
+ * @param {object} assessment
+ * @param {object} ctx
+ */
+function applyAssessmentPostScoring(assessment, ctx) {
+  const {
+    pipelineResult,
+    dataVoid,
+    oovBurst,
+    oovScoringApplied,
+    osintChannelQuarantine,
+    batch,
+    reportScopeId,
+    allSignals,
+  } = ctx;
+
+  attachEpistemicToAssessment(assessment, {
+    dataVoid,
+    epistemicStatus: pipelineResult.epistemicStatus,
+    assessmentMode: pipelineResult.assessmentMode,
+    staleDigitalScores: pipelineResult.staleDigitalScores,
+    quarantinedDigital: pipelineResult.quarantinedDigital,
+    digitalQuarantineState: pipelineResult.digitalQuarantineState,
+  });
+
+  assessment.oov_burst = oovBurst;
+  if (oovScoringApplied) {
+    assessment.oov_scoring_applied = oovScoringApplied;
+  }
+  if (osintChannelQuarantine) {
+    const decision = osintChannelQuarantine.active
+      ? getSocialQuarantineDecision(batch.reportDate, reportScopeId)
+      : null;
+    assessment.social_channel_quarantine = {
+      ...osintChannelQuarantine,
+      ...(decision?.created_at ? { confirmed_at: decision.created_at } : {}),
+    };
+  }
+
+  if (pipelineResult.epistemicEnrichment.overall_score_calibrated != null) {
+    assessment.overall_score_calibrated = pipelineResult.epistemicEnrichment.overall_score_calibrated;
+  }
+
+  const patterns = detectSemanticPatterns(allSignals);
+  assessment.pattern_alerts = patterns;
+  assessment.operator_recommendations = buildOperatorRecommendations(patterns);
+}
+
+/**
  * @param {object} batch  ResilienceContentBatch
  * @param {object} [options]
  * @param {import('../domain/ports/IResilienceLlmPort.js').IResilienceLlmPort} [options.llmPort]
@@ -70,6 +181,82 @@ function uniqueSourceLabels(articles) {
  * @param {string} [options.outputBase]  Path without extension when persist is true
  * @param {string[]} [options.reportSourceFiles]  Basenames for report header (e.g. articles-homefront.md); default from batch items
  */
+/**
+ * Scoring phase: prepare signals (data-void / quarantine / OOV), then run the
+ * scoring pipeline. Returns the scored components plus the side-channel state
+ * the downstream narrative/post-scoring steps consume.
+ */
+async function scoreBatchSignals({
+  baseSignalsForScoring,
+  allSignals,
+  batch,
+  reportScopeId,
+  reportsDir,
+  totalArticles,
+  rootDir,
+}) {
+  const prepared = await prepareScoringSignals({
+    signalsForScoring: baseSignalsForScoring,
+    reportDate: batch.reportDate,
+    reportScopeId,
+    reportsDir,
+  });
+
+  const salienceContext = salienceContextFromDataVoid(prepared.dataVoid);
+  const validationMaturity = summarizeValidationMaturity({ rootDir });
+  const historicalScores = loadHistoricalScores(batch.reportDate, reportsDir, 14, reportScopeId);
+
+  const pipelineResult = runScoringPipeline({
+    signalsForScoring: prepared.signalsForScoring,
+    dataVoid: prepared.dataVoid,
+    totalArticles,
+    mediaSignals: allSignals,
+    salienceContext,
+    historicalScores,
+    scopeId: reportScopeId,
+    validationMaturity,
+    priorQuarantine: prepared.priorQuarantine,
+    reportDate: batch.reportDate,
+  });
+
+  return {
+    scoredComponents: pipelineResult.scoredFull,
+    signalsForScoring: pipelineResult.scoringSignals,
+    dataVoid: prepared.dataVoid,
+    osintChannelQuarantine: prepared.osintChannelQuarantine,
+    oovBurst: prepared.oovBurst,
+    oovScoringApplied: prepared.oovScoringApplied,
+    pipelineResult,
+  };
+}
+
+/**
+ * Persistence phase: write the report via the writer port when persist is on.
+ * Validates required options, mirroring the previous inline guard.
+ */
+function persistReportIfRequested({
+  persist,
+  reportWriterPort,
+  outputBase,
+  assessment,
+  allSignals,
+  sourceFiles,
+}) {
+  if (!persist) return;
+  if (!reportWriterPort) {
+    throw new Error('reportWriterPort is required when persist is true');
+  }
+  if (!outputBase || typeof outputBase !== 'string') {
+    throw new Error('outputBase is required when persist is true');
+  }
+  reportWriterPort.writeReport({
+    assessment,
+    signals: allSignals,
+    sourceFiles,
+    outputBase,
+  });
+}
+
 export async function runResilienceAssessment(batch, options = {}) {
   const {
     llmPort,
@@ -99,83 +286,39 @@ export async function runResilienceAssessment(batch, options = {}) {
     articles = dedupeArticlesByTitle(articles);
   }
 
-  const llmOpts = { onUsage, onProgress, contentKind: batch.contentKind };
-  let allSignals = await llmPort.extractSignals(articles, llmOpts);
-  if (process.env.RESILIENCE_SECOND_EXTRACT === '1') {
-    const secondModel = process.env.RESILIENCE_SECOND_EXTRACT_MODEL
-      ?? process.env.RESILIENCE_SECOND_MODEL
-      ?? undefined;
-    const pass2 = await llmPort.extractSignals(articles, {
-      ...llmOpts,
-      extractModel: secondModel,
-    });
-    const requireAgreement = process.env.RESILIENCE_DUAL_REQUIRE_AGREEMENT !== '0';
-    const merged = mergeDualExtractionSignals(allSignals, pass2, { requireAgreement });
-    if (merged.dual_veto_dropped > 0) {
-      console.error(
-        `  → dual extract veto dropped ${merged.dual_veto_dropped} signal(s) without cross-pass agreement`,
-      );
-    }
-    allSignals = merged.signals;
-  }
-
-  // Extract signals from supplementary batch (field reports) separately using their own prompt
-  if (supplementaryArticles.length > 0) {
-    const suppOpts = { onUsage, onProgress, contentKind: supplementaryContentKind };
-    const suppSignals = await llmPort.extractSignals(supplementaryArticles, suppOpts);
-    allSignals = [...allSignals, ...suppSignals];
-  }
-
-  const probeSignals = loadConnectivityProbeSignals(batch.reportDate, reportScopeId);
-  if (probeSignals.length > 0) {
-    allSignals = [...allSignals, ...probeSignals];
-  }
-
-  allSignals = enrichProbeSignalsInList(allSignals);
-  allSignals = filterSignalsForScope(allSignals, reportScopeId);
-  allSignals = annotateSignalsEpistemics(allSignals, { reportScope: reportScopeId });
-  const { metricsSignals, macroSignals } = partitionMacroSignals(allSignals, reportScopeId);
-  const baseSignalsForScoring = isRegionalReportScope(reportScopeId) ? metricsSignals : allSignals;
-
-  const reportsDir = options.reportsDir ?? 'reports';
-  const prepared = await prepareScoringSignals({
-    signalsForScoring: baseSignalsForScoring,
-    reportDate: batch.reportDate,
+  const { allSignals, baseSignalsForScoring, macroSignals } = await extractBatchSignals({
+    batch,
+    articles,
+    llmPort,
+    supplementaryArticles,
+    supplementaryContentKind,
+    onUsage,
+    onProgress,
     reportScopeId,
-    reportsDir,
   });
 
-  let signalsForScoring = prepared.signalsForScoring;
-  const dataVoid = prepared.dataVoid;
-  const osintChannelQuarantine = prepared.osintChannelQuarantine;
-  const oovBurst = prepared.oovBurst;
-  const oovScoringApplied = prepared.oovScoringApplied;
-  const priorQuarantine = prepared.priorQuarantine;
-
+  const reportsDir = options.reportsDir ?? 'daily_reports';
   const totalArticles = articles.length + supplementaryArticles.length;
   const narrativeContentKind = supplementaryArticles.length > 0 ? 'mixed' : batch.contentKind;
 
-  const salienceContext = salienceContextFromDataVoid(dataVoid);
-  const validationMaturity = summarizeValidationMaturity({
-    rootDir: options.reportsDir ?? process.cwd(),
-  });
-  const historicalScores = loadHistoricalScores(batch.reportDate, reportsDir, 14, reportScopeId);
-
-  const pipelineResult = runScoringPipeline({
+  const {
+    scoredComponents,
     signalsForScoring,
     dataVoid,
+    osintChannelQuarantine,
+    oovBurst,
+    oovScoringApplied,
+    pipelineResult,
+  } = await scoreBatchSignals({
+    baseSignalsForScoring,
+    allSignals,
+    batch,
+    reportScopeId,
+    reportsDir,
     totalArticles,
-    mediaSignals: allSignals,
-    salienceContext,
-    historicalScores,
-    scopeId: reportScopeId,
-    validationMaturity,
-    priorQuarantine,
-    reportDate: batch.reportDate,
+    rootDir: options.reportsDir ?? process.cwd(),
   });
 
-  const scoredComponents = pipelineResult.scoredFull;
-  signalsForScoring = pipelineResult.scoringSignals;
   const oovCaptureCount = countOovCapturesForDate(batch.reportDate);
   const assessment = await llmPort.generateNarratives(
     scoredComponents,
@@ -197,32 +340,21 @@ export async function runResilienceAssessment(batch, options = {}) {
     },
   );
 
-  attachEpistemicToAssessment(assessment, {
+  applyAssessmentPostScoring(assessment, {
+    pipelineResult,
     dataVoid,
-    epistemicStatus: pipelineResult.epistemicStatus,
-    assessmentMode: pipelineResult.assessmentMode,
-    staleDigitalScores: pipelineResult.staleDigitalScores,
-    quarantinedDigital: pipelineResult.quarantinedDigital,
-    digitalQuarantineState: pipelineResult.digitalQuarantineState,
+    oovBurst,
+    oovScoringApplied,
+    osintChannelQuarantine,
+    batch,
+    reportScopeId,
+    allSignals,
   });
 
-  assessment.oov_burst = oovBurst;
-  if (oovScoringApplied) {
-    assessment.oov_scoring_applied = oovScoringApplied;
-  }
-  if (osintChannelQuarantine) {
-    const decision = osintChannelQuarantine.active
-      ? getSocialQuarantineDecision(batch.reportDate, reportScopeId)
-      : null;
-    assessment.social_channel_quarantine = {
-      ...osintChannelQuarantine,
-      ...(decision?.created_at ? { confirmed_at: decision.created_at } : {}),
-    };
-  }
-
-  if (pipelineResult.epistemicEnrichment.overall_score_calibrated != null) {
-    assessment.overall_score_calibrated = pipelineResult.epistemicEnrichment.overall_score_calibrated;
-  }
+  await attachDecisionBrief(assessment, {
+    reportScopeId,
+    onUsage,
+  });
 
   const allArticles = [...articles, ...supplementaryArticles];
   const sourceFilesForReport =
@@ -230,20 +362,14 @@ export async function runResilienceAssessment(batch, options = {}) {
       ? reportSourceFiles
       : [...new Set(allArticles.map((a) => a.sourceFile))];
 
-  if (persist) {
-    if (!reportWriterPort) {
-      throw new Error('reportWriterPort is required when persist is true');
-    }
-    if (!outputBase || typeof outputBase !== 'string') {
-      throw new Error('outputBase is required when persist is true');
-    }
-    reportWriterPort.writeReport({
-      assessment,
-      signals: allSignals,
-      sourceFiles: sourceFilesForReport,
-      outputBase,
-    });
-  }
+  persistReportIfRequested({
+    persist,
+    reportWriterPort,
+    outputBase,
+    assessment,
+    allSignals,
+    sourceFiles: sourceFilesForReport,
+  });
 
   return {
     assessment,

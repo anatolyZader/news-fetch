@@ -1,16 +1,8 @@
 /**
  * Internal Fastify routes for geo resolution (auth when app uses authHook).
  */
-import { canViewAnalystDisplay } from '../../../cross-cut-modules/auth/userAccess.js';
+import { requireAnalystView } from '../../../cross-cut-modules/auth/requireAnalystAccess.js';
 import { auditFromRequest } from '../../../cross-cut-modules/security/input/auditLog.js';
-
-function requireAnalyst(request, reply) {
-  if (!canViewAnalystDisplay(request.user?.email)) {
-    reply.code(403).send({ error: 'Forbidden', code: 'analyst_view_required' });
-    return false;
-  }
-  return true;
-}
 
 /**
  * @param {import('fastify').FastifyInstance} app
@@ -45,7 +37,7 @@ export async function registerGeoRoutes(app, opts = {}) {
   });
 
   app.get('/api/geo/unknown-queue', pre, async (request, reply) => {
-    if (!requireAnalyst(request, reply)) return;
+    if (!requireAnalystView(request, reply)) return;
     if (!geoUnknownReviewService?.list) {
       return reply.code(503).send({ error: 'Geo unknown review not configured' });
     }
@@ -55,7 +47,7 @@ export async function registerGeoRoutes(app, opts = {}) {
   });
 
   app.post('/api/geo/unknown-queue/:id/status', pre, async (request, reply) => {
-    if (!requireAnalyst(request, reply)) return;
+    if (!requireAnalystView(request, reply)) return;
     if (!geoUnknownReviewService?.updateStatus) {
       return reply.code(503).send({ error: 'Geo unknown review not configured' });
     }

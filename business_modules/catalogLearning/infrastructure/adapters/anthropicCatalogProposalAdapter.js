@@ -3,7 +3,7 @@
  */
 import Anthropic from '@anthropic-ai/sdk';
 import { catalogProposalLlmEnabled } from '../../../../cross-cut-modules/retrieval/ragConfig.js';
-import { extractJson } from '../../../resilience/infrastructure/claudeJsonHelpers.js';
+import { extractJson } from '../../../resilience/index.js';
 
 const client = new Anthropic();
 const MODEL = 'claude-haiku-4-5-20251001';

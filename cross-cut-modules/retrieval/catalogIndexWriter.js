@@ -1,7 +1,7 @@
 /**
  * Index closed signal catalog entries for taxonomy RAG.
  */
-import { SIGNAL_CATALOG, CATALOG_VERSION } from '../../business_modules/resilience/domain/services/signalCatalog.js';
+import { SIGNAL_CATALOG, CATALOG_VERSION } from '../../business_modules/resilience/index.js';
 const CATALOG_INDEX_DATE = '2099-01-01';
 
 function formatCatalogEntryText(entry) {

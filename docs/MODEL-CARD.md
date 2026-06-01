@@ -80,7 +80,7 @@ When `RESILIENCE_PRESENCE_GATES` is on (default), verified **grounded** signals 
 
 ## OOV burst (operator)
 
-`assessment.oov_burst` evaluates `reports/oov-capture-{date}.jsonl` unknown-type records **before scoring**. Operator attention when total ≥ `RESILIENCE_OOV_OPERATOR_MIN` (default 5) or largest cluster ≥ threshold.
+`assessment.oov_burst` evaluates `daily_reports/oov-capture-{date}.jsonl` unknown-type records **before scoring**. Operator attention when total ≥ `RESILIENCE_OOV_OPERATOR_MIN` (default 5) or largest cluster ≥ threshold.
 
 **OOV scoring (default on):** alerting clusters synthesize `novel_behavior_observed` signals at reduced weight (`RESILIENCE_OOV_SCORE_WEIGHT`, default 0.4). `assessment.oov_scoring_applied` records synthetic count. Disable with `RESILIENCE_OOV_SCORING=0`.
 
@@ -114,6 +114,8 @@ When partition quarantines digital signals, `assessment.digital_quarantine_state
 | `RESILIENCE_EPISTEMIC_GEO_V2` | on | Keyword/macro excluded from metrics |
 | `RESILIENCE_DATA_VOID` | on | Data void index + epistemic gates |
 | `RESILIENCE_THIN_EVIDENCE_POLICY` | on | Option C operator abstention |
+| `RESILIENCE_DECISION_BRIEF_ENABLED` | on | Batch Haiku decision brief on `assessment.decision_brief` after assess |
+| `RESILIENCE_DECISION_BRIEF_MODEL` | Haiku fallback | Model for decision brief generation |
 | `RESILIENCE_HIGH_SALIENCE_BYPASS` | on | High-salience bypass for verified critical single signals |
 | `RESILIENCE_DUAL_BASELINE` | on | Chronic baseline metrics |
 | `RESILIENCE_OOV_CAPTURE` | on | Log unknown signal types, uncertain self-check, zero-signal articles |

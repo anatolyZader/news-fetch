@@ -1,4 +1,4 @@
-import Anthropic from '@anthropic-ai/sdk';
+import { getDefaultLlmPort } from '../../../cross-cut-modules/llm/anthropicLlmAdapter.js';
 import { jsonrepair } from 'jsonrepair';
 import { readFile, writeFile } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
@@ -10,9 +10,8 @@ import { buildTranslationTermBlock } from '../../../cross-cut-modules/retrieval/
 import { createRetrievalService } from '../../../cross-cut-modules/retrieval/createRetrievalService.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const REPORTS_DIR = resolve(__dirname, '../../../reports');
+const REPORTS_DIR = resolve(__dirname, '../../../daily_reports');
 
-const client = new Anthropic();
 
 /** In-memory cache to avoid disk reads on repeat requests */
 const memCache = new Map();
@@ -232,7 +231,7 @@ async function writeDiskCache(report, lang, translatedReport) {
  */
 async function translateChunk(payload, lang, langName, queryHint = '') {
   const system = await translationSystemPrompt(lang, queryHint || JSON.stringify(payload).slice(0, 500));
-  const message = await client.messages.create({
+  const message = await getDefaultLlmPort().createMessage({
     model: 'claude-sonnet-4-6',
     max_tokens: 8000,
     system,
@@ -285,7 +284,7 @@ async function translateSocialChunk(payload, lang, langName) {
   const system = SOCIAL_POST_SYSTEM_PROMPT[lang];
   if (!system) throw new Error(`Unsupported social translation language: ${lang}`);
 
-  const message = await client.messages.create({
+  const message = await getDefaultLlmPort().createMessage({
     model: 'claude-sonnet-4-6',
     max_tokens: 8000,
     system,

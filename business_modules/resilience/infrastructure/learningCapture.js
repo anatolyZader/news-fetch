@@ -2,37 +2,13 @@
  * Learning-capture hooks during signal extraction (OOV, near-miss, residual).
  */
 
-import Anthropic from '@anthropic-ai/sdk';
-import { jsonrepair } from 'jsonrepair';
 import {
   bufferOovCapture,
   isLearningCaptureEnabled,
   isResidualCaptureEnabled,
   LEARNING_CAPTURE_KINDS,
 } from '../domain/services/oovCapture.js';
-import { buildResidualCapturePrompt } from './extractionPasses.js';
 import { extractTopKParagraphsForLearning } from './learningCaptureText.js';
-
-const client = new Anthropic();
-
-const DEFAULT_RESIDUAL_MODEL = process.env.RESILIENCE_RESIDUAL_MODEL
-  ?? process.env.RESILIENCE_SELF_CHECK_MODEL
-  ?? 'claude-haiku-4-5-20251001';
-
-/**
- * @param {string} text
- */
-function extractJsonArray(text) {
-  const arrStart = text.indexOf('[');
-  const arrEnd = text.lastIndexOf(']');
-  if (arrStart === -1 || arrEnd === -1) throw new Error('No JSON array in response');
-  const raw = text.slice(arrStart, arrEnd + 1);
-  try {
-    return JSON.parse(raw);
-  } catch {
-    return JSON.parse(jsonrepair(raw));
-  }
-}
 
 /**
  * @param {object} signal
@@ -94,46 +70,47 @@ export async function runResidualCapture(articles, batchLabel, usageCallback = n
     return 0;
   }
 
-  const { system, user } = buildResidualCapturePrompt(articles);
-  const model = DEFAULT_RESIDUAL_MODEL;
-
   try {
-    const response = await client.messages.create({
-      model,
-      max_tokens: Math.min(4000, 400 + articles.length * 120),
-      temperature: 0,
-      system,
-      messages: [{ role: 'user', content: user }],
+    const { createDefaultSignalsExtractionService } = await import(
+      '../../signals_extraction/app/signalsExtractionService.js'
+    );
+    const service = createDefaultSignalsExtractionService();
+    const date = new Date().toISOString().slice(0, 10);
+    const { observations, path } = await service.extractResidual(articles, {
+      date,
+      batchLabel,
+      onUsage: usageCallback,
     });
-    if (usageCallback) {
-      usageCallback({ label: `${batchLabel} residual-capture`, model, usage: response.usage });
-    }
-    const textBlock = response.content.find((b) => b.type === 'text');
-    if (!textBlock) return 0;
-    const observations = extractJsonArray(textBlock.text);
-    if (!Array.isArray(observations)) return 0;
 
     let n = 0;
     for (const obs of observations) {
-      if (!obs || typeof obs !== 'object') continue;
       const evidence = String(obs.evidence ?? '').trim();
       if (!evidence) continue;
-      bufferOovCapture({
-        capture_kind: LEARNING_CAPTURE_KINDS.RESIDUAL_OBSERVATION,
+      const ts = new Date().toISOString();
+      const base = {
         behavioral_description: obs.behavioral_description ?? null,
         evidence,
-        nearest_existing_types: Array.isArray(obs.nearest_existing_types)
-          ? obs.nearest_existing_types.slice(0, 5)
-          : [],
+        nearest_existing_types: obs.nearest_existing_types ?? obs.suggested_catalog_types ?? [],
         novelty_hint: obs.novelty_hint ?? null,
         article_index: obs.article_index ?? null,
         source_label: batchLabel,
-        timestamp: new Date().toISOString(),
+        timestamp: ts,
+      };
+      bufferOovCapture({
+        capture_kind: LEARNING_CAPTURE_KINDS.RESIDUAL_OBSERVATION,
+        ...base,
+      });
+      bufferOovCapture({
+        capture_kind: LEARNING_CAPTURE_KINDS.OPEN_OBSERVATION,
+        observation_profile: 'residual',
+        suggested_type: obs.suggested_catalog_types?.[0] ?? null,
+        ...base,
       });
       n += 1;
     }
     if (n > 0) {
-      console.error(`  → [${batchLabel}] residual capture: ${n} observation(s)`);
+      const pathNote = path ? ` → ${path}` : '';
+      console.error(`  → [${batchLabel}] residual capture: ${n} observation(s)${pathNote}`);
     }
     return n;
   } catch (err) {

@@ -28,4 +28,9 @@ export const PROPOSE_TOOL_NAMES = new Set([
   'propose_validation_decision',
   'propose_geo_unknown_update',
   'propose_catalog_proposal_review',
+  'propose_operator_recommendation',
+]);
+
+export const OPERATOR_PROPOSE_TOOL_NAMES = new Set([
+  'propose_operator_recommendation',
 ]);

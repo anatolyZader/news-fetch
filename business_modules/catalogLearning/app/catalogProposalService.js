@@ -2,7 +2,7 @@
  * Catalog proposal service — human-in-the-loop OOV draft proposals.
  */
 import { CatalogLearningService } from './catalogLearningService.js';
-import { LearningCaptureFsAdapter } from '../infrastructure/adapters/learningCaptureFsAdapter.js';
+import { createDefaultLearningCapturePort } from '../infrastructure/createLearningCapturePort.js';
 import { buildDraftProposalFromCluster } from '../domain/services/draftProposalBuilder.js';
 import { generateCatalogProposalFields } from '../infrastructure/adapters/anthropicCatalogProposalAdapter.js';
 import { catalogLearningRagEnabled } from '../../../cross-cut-modules/retrieval/ragConfig.js';
@@ -18,7 +18,7 @@ export function createCatalogProposalService(deps) {
   const { proposalStore, capturePort, retrievalService = null } = deps;
   if (!proposalStore) throw new Error('proposalStore is required');
 
-  const capture = capturePort ?? new LearningCaptureFsAdapter();
+  const capture = capturePort ?? createDefaultLearningCapturePort();
   const catalogLearning = new CatalogLearningService({ capturePort: capture });
 
   return {

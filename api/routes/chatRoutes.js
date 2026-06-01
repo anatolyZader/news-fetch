@@ -4,15 +4,17 @@
 
 import { getTodayInTimezone } from '../../utils/dateUtils.js';
 import { streamChat } from '../../business_modules/chat/app/chatService.js';
-import { generateChatTitle } from '../../business_modules/chat/infrastructure/claudeChat.js';
+import { createChatSessionService } from '../../business_modules/chat/app/chatSessionService.js';
 import { getCachedReport } from '../analysisService.js';
-import { buildChatSystemHint } from './submissionHelpers.js';
 import { requireMaintainerAccess } from '../../cross-cut-modules/auth/maintainerAccess.js';
 import { canViewAnalystDisplay } from '../../cross-cut-modules/auth/userAccess.js';
 import { auditFromRequest } from '../../cross-cut-modules/security/input/auditLog.js';
 import { costlyRoutePreHandlers } from '../../cross-cut-modules/security/input/costlyRoutePreHandlers.js';
-import { resolveDisplayView } from '../../business_modules/resilience/domain/services/assessmentDisplayTier.js';
+import { authPreHandlerList } from '../../cross-cut-modules/auth/buildAuthHooks.js';
+import { createHttpCostRecorder } from '../../cross-cut-modules/budget/index.js';
+import { createChatRetrievalCache } from '../../cross-cut-modules/retrieval/chatRetrievalCache.js';
 import { executePendingAction } from '../../business_modules/chat/app/executePendingAction.js';
+import { OPERATOR_PROPOSE_TOOL_NAMES } from '../../business_modules/chat/domain/chatConfig.js';
 
 /**
  * @param {import('fastify').FastifyInstance} app
@@ -35,7 +37,10 @@ export async function chatRoutes(app, opts) {
     driftService,
     catalogProposalService,
     geoUnknownReviewService,
+    llmPort,
   } = opts;
+
+  const chatSessionService = createChatSessionService({ chatStore, timezone });
 
   app.get('/api/chat/sessions', authHook, async (request, reply) => {
     const uid = chatOwnerUid(request);
@@ -114,7 +119,8 @@ export async function chatRoutes(app, opts) {
       return reply.code(410).send({ error: 'action expired' });
     }
 
-    if (!canViewAnalystDisplay(request.user?.email)) {
+    if (!canViewAnalystDisplay(request.user?.email)
+      && !OPERATOR_PROPOSE_TOOL_NAMES.has(pending.toolName)) {
       return reply.code(403).send({ error: 'Analyst access required', code: 'analyst_view_required' });
     }
 
@@ -142,45 +148,28 @@ export async function chatRoutes(app, opts) {
     }
   });
 
-  app.post('/api/chat', costlyRoutePreHandlers(authHook.preHandler ? [authHook.preHandler] : []), async (request, reply) => {
+  app.post('/api/chat', costlyRoutePreHandlers(authPreHandlerList(authHook)), async (request, reply) => {
     if (process.env.CHAT_MAINTAINER_ONLY === 'true' && !requireMaintainerAccess(request, reply)) {
       return;
     }
 
     auditFromRequest(request, 'chat.post', '/api/chat');
-    const { sessionId, message, action, scope, reportGeoScope, view, toolProfile } = request.body ?? {};
+    const body = request.body ?? {};
+    const { toolProfile } = body;
 
     const uid = chatOwnerUid(request);
-    const sid = String(sessionId ?? '').trim();
-    if (!sid) return reply.code(400).send({ error: 'sessionId required' });
-    const session = chatStore.getSession(sid);
-    if (!session || session.owner_uid !== uid) return reply.code(404).send({ error: 'session not found' });
-
-    const existing = chatStore.listMessages({ sessionId: sid });
-    const history = existing.map((m) => ({ role: m.role, content: m.content }));
-    const systemHint = buildChatSystemHint(scope);
-
-    const display_view = resolveDisplayView({
-      queryView: view,
-      userEmail: request.user?.email,
+    const sid = String(body.sessionId ?? '').trim();
+    const prepared = chatSessionService.prepareTurn({
+      ownerUid: uid,
+      sessionId: sid,
+      body,
+      userEmail: request.user?.email ?? '',
     });
-
-    const act = String(action ?? 'send');
-    let userMessage = String(message ?? '').trim();
-    const shouldPersistUser =
-      act === 'send' || act === 'continue' || act === 'edit_resend';
-
-    if (act === 'regenerate') {
-      const lastUser = [...existing].reverse().find((m) => m.role === 'user');
-      userMessage = String(lastUser?.content ?? '').trim();
+    if (prepared.error) {
+      return reply.code(prepared.code).send({ error: prepared.error });
     }
 
-    if (!userMessage) return reply.code(400).send({ error: 'message required' });
-
-    if (shouldPersistUser) {
-      chatStore.addMessage({ sessionId: sid, role: 'user', content: userMessage, meta: { action: act } });
-      chatStore.touchSession({ ownerUid: uid, sessionId: sid });
-    }
+    const { history, systemHint, display_view, userMessage, geoScope } = prepared;
 
     reply.hijack();
     reply.raw.writeHead(200, {
@@ -190,57 +179,61 @@ export async function chatRoutes(app, opts) {
     });
 
     let assistantText = '';
-    const geoScope = reportGeoScope === 'north' ? 'north' : 'national';
-
-    await streamChat(
-      userMessage,
-      history,
-      reply.raw,
-      () => {
-        const raw = getCachedReport(evidenceStore, { scope: geoScope });
-        if (raw && typeof raw === 'object') {
-          return { ...raw, display_view };
-        }
-        return raw;
-      },
-      {
-        sourceArchive,
-        evidenceStore,
-        vectorIndexStore,
-        retrievalService,
-        systemHint,
-        reportGeoScope: geoScope,
-        userEmail: request.user?.email ?? '',
-        ownerUid: uid,
-        sessionId: sid,
-        pendingActionStore,
-        validationReviewService,
-        pboHistoricalSearchService,
-        pboReportReviewService,
-        driftService,
-        catalogProposalService,
-        geoUnknownReviewService,
-        toolProfile: String(toolProfile ?? 'default').trim() || 'default',
-        onSend: (event) => {
-          if (event?.type === 'text' && typeof event.text === 'string') assistantText += event.text;
-        },
-      },
-    );
-    if (assistantText) {
-      chatStore.addMessage({ sessionId: sid, role: 'assistant', content: assistantText, meta: null });
-      chatStore.touchSession({ ownerUid: uid, sessionId: sid });
-    }
+    const costRecorder = createHttpCostRecorder({
+      script: 'http:chat',
+      ownerUid: uid,
+      route: '/api/chat',
+    });
+    const retrievalCache = createChatRetrievalCache(sid);
 
     try {
-      const current = chatStore.getSession(sid);
-      if (current && current.owner_uid === uid && !String(current.title ?? '').trim()) {
-        const seed = chatStore.getFirstUserMessage({ sessionId: sid }) ?? userMessage;
-        const title = await generateChatTitle(seed);
-        if (title) chatStore.renameSession({ ownerUid: uid, sessionId: sid, title });
-      }
-    } catch {
-      // Ignore title generation failures; chat still works.
+      await streamChat(
+        userMessage,
+        history,
+        reply.raw,
+        () => {
+          const raw = getCachedReport(evidenceStore, { scope: geoScope });
+          if (raw && typeof raw === 'object') {
+            return { ...raw, display_view };
+          }
+          return raw;
+        },
+        {
+          sourceArchive,
+          evidenceStore,
+          vectorIndexStore,
+          retrievalService,
+          systemHint,
+          reportGeoScope: geoScope,
+          userEmail: request.user?.email ?? '',
+          ownerUid: uid,
+          sessionId: sid,
+          pendingActionStore,
+          validationReviewService,
+          pboHistoricalSearchService,
+          pboReportReviewService,
+          driftService,
+          catalogProposalService,
+          geoUnknownReviewService,
+          toolProfile: String(toolProfile ?? 'default').trim() || 'default',
+          costRecorder,
+          retrievalCache,
+          llmPort,
+          onSend: (event) => {
+            if (event?.type === 'text' && typeof event.text === 'string') assistantText += event.text;
+          },
+        },
+      );
+      await chatSessionService.finalizeTurn({
+        ownerUid: uid,
+        sessionId: sid,
+        assistantText,
+        userMessage,
+        costRecorder,
+      });
+    } finally {
+      costRecorder.flush();
+      reply.raw.end();
     }
-    reply.raw.end();
   });
 }

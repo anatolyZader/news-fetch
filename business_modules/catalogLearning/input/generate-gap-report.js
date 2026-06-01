@@ -3,15 +3,14 @@
  * Generate a catalog gap report from learning-capture JSONL files.
  *
  * Usage:
- *   node business_modules/catalogLearning/input/generate-gap-report.js [reportsDir] [--days 14] [--out reports/catalog-gap-report.md]
+ *   node business_modules/catalogLearning/input/generate-gap-report.js [reportsDir] [--days 14] [--out daily_reports/catalog-gap-report.md]
  */
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import 'dotenv/config';
-import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { CatalogLearningService } from '../app/catalogLearningService.js';
-import { LearningCaptureFsAdapter } from '../infrastructure/adapters/learningCaptureFsAdapter.js';
+import { createDefaultLearningCapturePort } from '../infrastructure/createLearningCapturePort.js';
 import { createRetrievalService } from '../../../cross-cut-modules/retrieval/createRetrievalService.js';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
@@ -19,7 +18,7 @@ const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 function parseArgs(argv) {
   const positional = [];
   let days = 14;
-  let out = 'reports/catalog-gap-report.md';
+  let out = 'daily_reports/catalog-gap-report.md';
   let topN = 15;
 
   for (let i = 0; i < argv.length; i++) {
@@ -36,7 +35,7 @@ function parseArgs(argv) {
   }
 
   return {
-    reportsDir: positional[0] ?? 'reports',
+    reportsDir: positional[0] ?? 'daily_reports',
     days,
     out,
     topN,
@@ -46,7 +45,7 @@ function parseArgs(argv) {
 async function main() {
   const { reportsDir, days, out, topN } = parseArgs(process.argv.slice(2));
   const service = new CatalogLearningService({
-    capturePort: new LearningCaptureFsAdapter({ reportsDir }),
+    capturePort: createDefaultLearningCapturePort({ reportsDir }),
   });
 
   const sqlitePath = process.env.SQLITE_PATH?.trim() || resolve(REPO_ROOT, 'db', 'app.sqlite');
@@ -69,7 +68,9 @@ async function main() {
   console.log(`Catalog gap report written to ${outPath}`);
 }
 
-main().catch((err) => {
+try {
+  await main();
+} catch (err) {
   console.error(err);
   process.exit(1);
-});
+}

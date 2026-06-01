@@ -14,14 +14,14 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { isAllowedGroup, isDmMessage, parseWebhookEntry } from '../domain/services/whatsappMessageFilter.js';
-import { isDmPhoneAllowed } from '../../resilience/domain/services/signalGamingPolicy.js';
+import { isDmPhoneAllowed } from '../../resilience/index.js';
 import { buildAnalysisReply } from '../domain/services/hebrewResponseBuilder.js';
 import { normalizeInboundMessage } from '../domain/conversation/inboundMessageNormalizer.js';
 import { transition } from '../domain/conversation/conversationStateMachine.js';
 import {
   buildExpiredSession, buildWelcomeMenu, buildFollowupQuestions, buildDraftPreview,
 } from '../domain/conversation/outboundMessageFactory.js';
-import { persistOriginalSources } from '../../../cross-cut-modules/source_archive/persistOriginals.js';
+import { persistOriginalSources } from '../../../db/source_archive/persistOriginals.js';
 
 const CONVERSATION_TTL_MINUTES = 60;
 

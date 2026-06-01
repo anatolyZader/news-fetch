@@ -25,7 +25,16 @@ const chatFieldSx = (theme) => ({
   '& .MuiOutlinedInput-notchedOutline': { borderRadius: panelSectionRadius(theme) },
 });
 
-export function ChatPanel({ reportScope, reportGeoScope = 'national', onClose, variant = 'embedded' }) {
+export function ChatPanel({
+  reportScope,
+  reportGeoScope = 'national',
+  onClose,
+  variant = 'embedded',
+  toolProfile = 'default',
+  systemHint = null,
+  initialMessage = null,
+  displayTier = 'operator',
+}) {
   const {
     sessions,
     activeSessionId,
@@ -43,6 +52,7 @@ export function ChatPanel({ reportScope, reportGeoScope = 'national', onClose, v
     pendingActions,
     confirmAction,
   } = useChat();
+  const seededInitialRef = useRef(false);
   const { t } = useLanguage();
   const [input, setInput] = useState('');
   const [search, setSearch] = useState('');
@@ -79,10 +89,29 @@ export function ChatPanel({ reportScope, reportGeoScope = 'national', onClose, v
     return history.filter((m) => String(m.content ?? '').toLowerCase().includes(q));
   }, [history, search]);
 
+  const chatSendOpts = useMemo(() => ({
+    reportGeoScope,
+    toolProfile,
+    view: displayTier === 'analyst' ? 'analyst' : 'operator',
+    systemHint,
+    scope: reportScope?.type === 'component' ? reportScope.id : null,
+  }), [reportGeoScope, toolProfile, displayTier, systemHint, reportScope]);
+
+  useEffect(() => {
+    seededInitialRef.current = false;
+  }, [initialMessage, toolProfile, systemHint]);
+
+  useEffect(() => {
+    const msg = String(initialMessage ?? '').trim();
+    if (!msg || !activeSessionId || streaming || seededInitialRef.current) return;
+    seededInitialRef.current = true;
+    send(msg, chatSendOpts);
+  }, [initialMessage, activeSessionId, streaming, send, chatSendOpts]);
+
   function submit(e) {
     e.preventDefault();
     if (!input.trim() || streaming) return;
-    send(input.trim(), { scope: reportScope ?? { type: 'all' }, reportGeoScope });
+    send(input.trim(), chatSendOpts);
     setInput('');
   }
 
@@ -154,30 +183,32 @@ export function ChatPanel({ reportScope, reportGeoScope = 'national', onClose, v
           History
         </Button>
         <Box sx={{ flex: 1 }} />
-        <IconButton
-          ref={closeChatButtonRef}
-          size="small"
-          aria-label="Close chat"
-          title="Close chat"
-          onClick={() => {
-            if (closeConfirmOpen) {
-              setCloseConfirmOpen(false);
-              return;
-            }
-            setMenuAnchor(null);
-            setHistoryAnchor(null);
-            setCloseConfirmOpen(true);
-          }}
-          sx={(theme) => ({
-            color: theme.palette.text.secondary,
-            '&:hover': { color: theme.palette.text.primary },
-          })}
-        >
-          <CancelOutlinedIcon fontSize="small" />
-        </IconButton>
+        {variant !== 'window' && (
+          <IconButton
+            ref={closeChatButtonRef}
+            size="small"
+            aria-label="Close chat"
+            title="Close chat"
+            onClick={() => {
+              if (closeConfirmOpen) {
+                setCloseConfirmOpen(false);
+                return;
+              }
+              setMenuAnchor(null);
+              setHistoryAnchor(null);
+              setCloseConfirmOpen(true);
+            }}
+            sx={(theme) => ({
+              color: theme.palette.text.secondary,
+              '&:hover': { color: theme.palette.text.primary },
+            })}
+          >
+            <CancelOutlinedIcon fontSize="small" />
+          </IconButton>
+        )}
       </Stack>
 
-      {closeConfirmOpen && (
+      {variant !== 'window' && closeConfirmOpen && (
         <ClickAwayListener
           onClickAway={(e) => {
             const t = e?.target;
@@ -310,7 +341,7 @@ export function ChatPanel({ reportScope, reportGeoScope = 'national', onClose, v
         <MenuItem
           disabled={!activeSessionId || streaming}
           onClick={async () => {
-            await regenerateLast({ reportGeoScope });
+            await regenerateLast(chatSendOpts);
             closeMenu();
           }}
         >
@@ -540,6 +571,10 @@ ChatPanel.propTypes = {
   reportGeoScope: PropTypes.string,
   onClose: PropTypes.func,
   variant: PropTypes.oneOf(['embedded', 'window']),
+  toolProfile: PropTypes.string,
+  systemHint: PropTypes.string,
+  initialMessage: PropTypes.string,
+  displayTier: PropTypes.oneOf(['operator', 'analyst']),
 };
 
 function ChatAvatar({ isUser }) {

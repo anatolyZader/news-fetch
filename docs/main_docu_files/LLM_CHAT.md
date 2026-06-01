@@ -18,12 +18,12 @@ The chat is designed to answer questions **about the current resilience report**
 
 ### Source archive (originals only)
 
-- **Store**: SQLite `source_archive` via [`cross-cut-modules/persistence/sourceArchiveStore.js`](../../cross-cut-modules/persistence/sourceArchiveStore.js) and [`createSourceArchive`](../../cross-cut-modules/source_archive/createSourceArchive.js).
+- **Store**: SQLite `source_archive` via [`db/persistence/sourceArchiveStore.js`](../../db/persistence/sourceArchiveStore.js) and [`createSourceArchive`](../../db/source_archive/createSourceArchive.js).
 - **Contents**: Full original text from all ingest paths: news, radio, field, whatsapp, video, evidence API, **social OSINT**, **PBO municipal/regional**, **Naftali**, **connectivity probes**. **Not** extracted signal JSON rows (use `lookup_signals`; signals may include `source_id` for one-hop `get_source`).
 - **Stable IDs**: `md:{relativePath}#{articleIndex}` or `archive:{source_type}:{hash}`; legacy `db:evidence_items:{id}` still accepted by `get_source`.
-- **Filesystem fallbacks**: When ephemeral SQLite rows are purged, chat still finds news/radio/field/whatsapp/social via on-disk exports ([`filesystemFallbacks.js`](../../cross-cut-modules/source_archive/filesystemFallbacks.js)).
+- **Filesystem fallbacks**: When ephemeral SQLite rows are purged, chat still finds news/radio/field/whatsapp/social via on-disk exports ([`filesystemFallbacks.js`](../../db/source_archive/filesystemFallbacks.js)).
 - **Retention (SQLite only)**: `npm run archive:purge` removes **only** `news`, `radio`, `social` older than 14 days. **Permanent in SQLite**: field, pbo, naftali, probe, whatsapp, manual, video, etc. **Filesystem**: never deleted by purge.
-- **Chat tools**: `list_sources` (browse by date/type), `search_sources` (text/url/title/range), `get_source`. Legacy `search_evidence` / `lookup_evidence` aliases kept one release.
+- **Chat tools**: `list_sources` (browse by date/type), `search_sources` (text/url/title/range), `get_source`. Runtime aliases `search_evidence` / `lookup_evidence` in [`chatToolHandlers.js`](../../business_modules/chat/app/chatToolHandlers.js) map to the same handlers but are not in the tool schema.
 - **Report scope**: Client sends `reportGeoScope` (`national` | `north`) so chat anchors the same report as the UI toggle. Component focus still uses `scope` body field.
 - **Production RAG** ([`cross-cut-modules/retrieval/`](../../cross-cut-modules/retrieval/)): ingest-time chunk index (`rag_chunks` + FTS5), hybrid dense+lexical retrieval (RRF), Cohere rerank, Haiku session query rewrite. Injected into system context before tools; `search_sources` uses the same index when a text query is present. See **[RAG.md](./RAG.md)** for the full platform reference (all namespaces, tiers, config, and ops).
 - **Indexing**: Automatic on every `source_archive` upsert; backfill/reindex via `npm run archive:backfill` (default `--reindex-rag`) or `npm run rag:reindex -- --days 14`.
@@ -49,7 +49,7 @@ Shared helpers in [`analystRetrieval.js`](../../cross-cut-modules/retrieval/anal
 
 | Workflow | Behavior |
 |----------|----------|
-| **Validation review** | `GET /api/validation/review-queue/:date/:scope/:articleKey/context` returns similar archive articles, story cluster, prior analyst decisions, OOV neighbors, and indexed article chunks. `POST …/explain` (Haiku) answers from chunks + reasons only. Analyst UI: `ValidationReviewPanel` on the analyst site (`showValidationReview`). |
+| **Validation review** | `GET /api/validation/review-queue/:date/:scope/:articleKey/context` returns similar archive articles, story cluster, prior analyst decisions, OOV neighbors, and indexed article chunks. `POST …/explain` (Haiku) answers from chunks + reasons only. Analyst UI: `ValidationReviewPanel` on **`analyst-site/src/AnalystApp.jsx`** (`showValidationReview`; shared `ReportView` component). |
 | **Catalog gap report** | `namespace=catalog` index from [`catalogIndexWriter.js`](../../cross-cut-modules/retrieval/catalogIndexWriter.js); `npm run rag:reindex-catalog`. Gap clusters get `nearest_catalog` + `counterexamples` in `catalog-learning:gap-report`. |
 | **PBO historical search** | Municipal (`extract-pbo-signals.js`) and regional MD (`extract-regional-pbo-signals.js`) rows indexed as `pbo` / `pbo_regional`. `GET /api/pbo/historical-search?query=…&district=&municipality=&region=&days=30`. CLI: `node business_modules/pbo_report_review/input/runMunicipalPboReview.js --query "…"`. |
 
@@ -85,29 +85,32 @@ Operator help in the in-app **Docs** panel uses a separate `docs` namespace so p
 
 **Env** (default: follow `RAG_PIPELINE_ENABLED`): `DOCS_RAG_ENABLED`, `DOCS_RAG_TOPK` (6), `DOCS_RAG_VERSION` (corpus `scopeId` on chunks).
 
-**Ops:** `npm run rag:reindex-docs` after `docs:sync` on deploy. Eval suite: `node business_modules/source_archive/input/ragEval.js` (archive + docs + north fixtures; fallback fixture documented as SKIP).
+**Ops:** `npm run rag:reindex-docs` after `docs:sync` on deploy. Eval suite: `node db/input/ragEval.js` (archive + docs + north fixtures; fallback fixture documented as SKIP).
 
 **Optional translation glossary:** `config/resilience-translation-glossary.json`, `npm run rag:reindex-terms`, `TRANSLATION_TERM_RAG_ENABLED=1` prepends top-3 term hits to translation system prompts (default off).
 
 **Principles:** Report JSON and scoring outputs remain authoritative; RAG returns top-k snippets only — no multi-day originals dump, no parallel retrieval stack.
 
+**Last updated:** 2026-05-30
+
 ### High-level request flow
 
 - **UI**: `client/src/components/ChatPanel.jsx`
-  - Renders a chat panel with input + send/stop button.
-  - Displays prior `history` and the streaming assistant `draft`.
+  - Session list, message thread, send/stop/regenerate, and confirm cards for pending analyst actions.
+  - Displays local `history` (loaded from server) and the streaming assistant `draft`.
 - **Client hook**: `client/src/hooks/useChat.js`
-  - Appends the user’s message to local history.
-  - `POST`s to `POST /api/chat` and parses a streaming SSE-like response.
-- **Server route**: [`api/routes/chatRoutes.js`](../../api/routes/chatRoutes.js) (registered from `app.js`)
-  - Session APIs + `POST /api/chat` (JWT when `AUTH_REQUIRED=true`).
-  - Responds as a `text/event-stream` and calls the chat module to stream events.
+  - Manages SQLite-backed sessions via `/api/chat/sessions*`.
+  - `POST`s to `/api/chat` with `sessionId` (not client-sent history) and parses SSE events.
+  - Handles `action_proposed` → `POST /api/chat/confirm-action`.
+- **Server routes**: [`api/routes/chatRoutes.js`](../../api/routes/chatRoutes.js) (registered from `app.js`)
+  - Session CRUD, streaming chat, confirm-action.
+  - `costlyRoutePreHandlers`: auth → optional App Check → daily HTTP budget on `POST /api/chat`. Spend is recorded as `http:chat` in `cost-log.jsonl` (see [COST_CONTROLS.md](./COST_CONTROLS.md)).
 - **Chat module**: `business_modules/chat/app/chatService.js`
-  - Builds report-grounded context.
-  - Calls Anthropic (Claude) and streams back partial text events.
+  - Builds report-grounded context + optional RAG hint.
+  - Calls Anthropic via shared `runToolLoop` and streams partial text events.
 - **LLM provider + tools**: `business_modules/chat/infrastructure/claudeChat.js`
-  - Uses `@anthropic-ai/sdk` and a tool-use loop.
-  - Implements the tool handlers (PBO lookup, signal search, report compare, brief generation).
+  - Uses `@anthropic-ai/sdk` and delegates tool rounds to `cross-cut-modules/llm/runToolLoop.js`.
+  - Tool handlers in `business_modules/chat/app/chatToolHandlers.js`.
 
 ### UI behavior and UX
 
@@ -122,12 +125,29 @@ Operator help in the in-app **Docs** panel uses a separate `docs` namespace so p
 
 `useChat()` maintains:
 
-- **history**: array of `{ role, content, error? }` where role is typically `user` or `assistant`
+- **sessions** / **activeSessionId**: SQLite-backed chat sessions for today’s report date
+- **history**: array of `{ id?, role, content, error? }` loaded from `GET /api/chat/sessions/:id/messages`
 - **streaming**: boolean (true while a response is streaming)
 - **draft**: the assistant message being streamed (concatenated token chunks)
+- **pendingActions**: analyst confirm cards from SSE `action_proposed`
 - **stop()**: aborts the in-flight request via `AbortController`
 
 File: `client/src/hooks/useChat.js`
+
+### Session API
+
+All session routes require auth when `AUTH_REQUIRED=true`. Sessions are scoped to `owner_uid` (Firebase UID).
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| `GET` | `/api/chat/sessions?date=` | List sessions for report date (default: today in `TZ_ARTICLES`) |
+| `POST` | `/api/chat/sessions` | Create session `{ date?, title? }` → `{ id }` |
+| `PUT` | `/api/chat/sessions/:id` | Rename `{ title }` |
+| `DELETE` | `/api/chat/sessions/:id` | Delete session |
+| `GET` | `/api/chat/sessions/:id/messages` | Load message thread |
+| `DELETE` | `/api/chat/sessions/:id/messages/:messageId` | Hide a message |
+
+Implementation: [`chatRoutes.js`](../../api/routes/chatRoutes.js), store: [`chatStore.js`](../../business_modules/chat/infrastructure/chatStore.js) (SQLite `chat_sessions` / `chat_messages`).
 
 ### API: `POST /api/chat`
 
@@ -135,73 +155,70 @@ File: `client/src/hooks/useChat.js`
 
 - **Method**: `POST`
 - **Path**: `/api/chat`
+- **Pre-handlers**: `costlyRoutePreHandlers` (auth → optional `APP_CHECK_ENFORCE` → daily HTTP budget)
 - **Body** (JSON):
 
 ```json
 {
+  "sessionId": "uuid",
   "message": "string",
-  "history": [{ "role": "user|assistant", "content": "string" }]
+  "action": "send|regenerate|continue|edit_resend",
+  "scope": { "type": "all|component", "id": "..." },
+  "reportGeoScope": "national|north",
+  "view": "operator|analyst",
+  "toolProfile": "default|validation|sources"
 }
 ```
 
 Notes:
 
-- The **client sends the full local `history`** on every request.
-- The server further caps the incoming history (see “History cap” below).
+- **`sessionId` is required.** History is loaded from SQLite (`chatStore.listMessages`), not sent by the client.
+- **`action`**: `regenerate` reuses the last user message; `send` / `continue` / `edit_resend` persist the new user message before streaming.
+- **`reportGeoScope`**: anchors report context to `national` or `north`. The UI district switcher exposes six scopes, but chat report anchoring today only passes `national` or `north` ([`chatRoutes.js`](../../api/routes/chatRoutes.js), [`panelRoutes.js`](../../client/src/lib/panelRoutes.js)).
+- **`toolProfile`**: optional; default React client does not send it (full tool set). See [AGENTIC_MECHANISMS.md](./AGENTIC_MECHANISMS.md) §4.
+- **`CHAT_MAINTAINER_ONLY=true`**: restricts `POST /api/chat` to maintainers.
 
 #### Authentication
 
-`POST /api/chat` is protected only when auth is enabled:
+When auth is enabled (`AUTH_REQUIRED=true` + `FIREBASE_PROJECT_ID`):
 
-- **Auth toggle**: `AUTH_REQUIRED=true`
-- **Auth verification**: Firebase/Identity Platform via:
-  - `auth/requireAuthPreHandler.js`
-  - `auth/firebaseAdmin.js`
-- **Client token**: `useChat()` attaches `Authorization: Bearer <idToken>` if available from `useAuth()`.
+- **Client**: [`buildAuthHeaders`](../../client/src/lib/authFetch.js) sends `Authorization: Bearer <idToken>` and optional Firebase App Check token.
+- **Server**: Firebase Admin via `cross-cut-modules/auth/`.
 
-When auth is required and a request lacks a valid token, the server returns:
+Missing or invalid token → `401` with `{ error: 'Unauthorized', code: 'missing_token'|'invalid_token' }`.
 
-- `401` with JSON `{ error: 'Unauthorized', code: 'missing_token'|'invalid_token' }`
+Rate limit: `RATE_LIMIT_CHAT_MAX` on `POST /api/chat`.
 
-#### Response: streaming events (SSE-like)
+#### Response: streaming events (SSE)
 
-The server uses an SSE-like framing:
+Headers: `Content-Type: text/event-stream`, `Cache-Control: no-cache`, `Connection: keep-alive`.
 
-- Headers:
-  - `Content-Type: text/event-stream`
-  - `Cache-Control: no-cache`
-  - `Connection: keep-alive`
-- Each event is written as a single line:
-  - `data: <json>\n\n`
+Each event: `data: <json>\n\n`
 
-The client parses the response stream line-by-line and expects event objects like:
+| Event | Meaning |
+|-------|---------|
+| `{ "type": "text", "text": "..." }` | Assistant token chunk |
+| `{ "type": "action_proposed", "actionId", "toolName", "summary", "expiresAt" }` | HITL confirm card (analyst) |
+| `{ "type": "done" }` | Stream complete |
+| `{ "type": "error", "message": "..." }` | Terminal error |
 
-- **Text chunk**:
+After streaming, the server persists the assistant message and auto-titles empty sessions via `generateChatTitle`.
 
-```json
-{ "type": "text", "text": "..." }
-```
+**Cost-related env (see [COST_CONTROLS.md](./COST_CONTROLS.md)):** `CHAT_MAX_TOOL_ROUNDS` (default `3`), `CHAT_RETRIEVAL_CACHE_TTL_MS` (default `600000`), `DAILY_BUDGET_USD`, `RAG_QUERY_REWRITE_ENABLED`.
 
-- **Terminal completion**:
+Backend: [`chatRoutes.js`](../../api/routes/chatRoutes.js) → [`chatService.js`](../../business_modules/chat/app/chatService.js) (`streamChat`).
 
-```json
-{ "type": "done" }
-```
+Client: [`useChat.js`](../../client/src/hooks/useChat.js).
 
-- **Terminal error**:
+### API: `POST /api/chat/confirm-action`
+
+Analyst-only. Executes or rejects a pending `propose_*` action.
 
 ```json
-{ "type": "error", "message": "..." }
+{ "sessionId": "uuid", "actionId": "uuid", "confirmed": true|false }
 ```
 
-Backend implementation:
-
-- Route: `app.js` (`POST /api/chat`)
-- Streaming orchestration: `business_modules/chat/app/chatService.js` (`streamChat`)
-
-Client implementation:
-
-- Streaming + parsing: `client/src/hooks/useChat.js`
+Pending actions expire after 15 minutes (`PENDING_ACTION_TTL_MS`). Store: [`chatPendingActionStore.js`](../../business_modules/chat/infrastructure/chatPendingActionStore.js).
 
 ### Server-side orchestration (`streamChat`)
 
@@ -210,16 +227,14 @@ File: `business_modules/chat/app/chatService.js`
 Key behavior:
 
 - **Report context**:
-  - Pulls report data via the injected `getReportData` callback (currently passed as `getCachedReport` from `api/analysisService.js`).
-  - Builds a large system-context string using `buildReportContext(reportData)`.
+  - Injected callback calls `getCachedReport(evidenceStore, { scope: reportGeoScope })` from `api/analysisService.js` (filesystem-first, SQLite fallback when JSON missing).
+  - Builds system context via `buildReportContext(reportData)`; applies `resolveDisplayView` for operator vs analyst redaction.
+- **RAG hint**: `retrievalService.buildChatRetrievalHint` when `RAG_PIPELINE_ENABLED` + `CHAT_RAG_ENABLED`.
 - **History cap**:
-  - `MAX_HISTORY_MESSAGES = 20`
-  - Only the last 20 history messages are kept to reduce context growth.
-- **Message payload passed to the LLM**:
-  - `trimmedHistory` (mapped to `{ role, content }`)
-  - plus the newest `{ role: 'user', content: message }`
+  - `MAX_HISTORY_MESSAGES = 20` on SQLite-loaded history before the new user turn.
 - **Streaming semantics**:
   - Emits `{ type: 'text', text: ... }` as Claude returns text blocks.
+  - Emits `{ type: 'action_proposed', ... }` for confirm-gated propose tools.
   - On success emits `{ type: 'done' }`.
   - On errors emits `{ type: 'error', message }`.
 
@@ -239,26 +254,7 @@ The system context contains:
 
 Important: the report context is only as good as the `reportData` passed into `buildReportContext()`.
 
-#### Where the report data comes from (and a current mismatch to be aware of)
-
-The server uses `getCachedReport()` from `api/analysisService.js` in two different ways:
-
-- `GET /api/report/today` calls `getCachedReport(evidenceStore)` (DB-aware fallback).
-- Chat now calls `getCachedReport(evidenceStore)` so DB-backed reports work when JSON is missing on disk.
-
-Effect:
-
-- `getCachedReport()` is **filesystem-first** (reads `reports/resilience-report-*.json` and sibling `.md`).
-- Without `evidenceStore`, it will **not** fall back to SQLite when there is no report JSON on disk.
-
-So it is possible for the UI to show a report (DB-backed) while chat builds context from disk only (or shows “No resilience report is available…”).
-
-Reference:
-
-- `api/analysisService.js` (`getCachedReport(store)`)
-- `app.js`:
-  - `GET /api/report/today` passes the store
-  - `POST /api/chat` does not
+Chat uses the same `getCachedReport(evidenceStore, { scope })` path as the report API, so DB-backed reports work when JSON is missing on disk. Reference: [`chatRoutes.js`](../../api/routes/chatRoutes.js) L200, [`analysisService.js`](../../api/analysisService.js).
 
 ### LLM provider: Anthropic (Claude)
 
@@ -368,7 +364,7 @@ Backend behavior:
 
 Backend behavior:
 
-- Reads report JSON files from `reports/`.
+- Reads report JSON files from `daily_reports/`.
 - Produces:
   - Overall score delta
   - Total articles delta
@@ -402,74 +398,11 @@ Backend behavior:
   - recent signals mentioning that municipality
 - Calls Claude once (non-streamed) and returns the resulting text as the tool output.
 
-#### `search_sources` / `get_source`
+#### `search_sources` / `get_source` / `list_sources`
 
-Unified access to the **source archive** (and homefront MD fallback when a row is missing). Use `search_sources` to find `source_id`, then `get_source` for full text. See [`sourceArchiveQuery.js`](../../business_modules/chat/domain/sourceArchiveQuery.js).
+Unified access to the **source archive** (RAG-first when a text query is present, then archive FTS + filesystem fallbacks). Use `search_sources` to find `source_id`, then `get_source` for full text. Implementation: [`sourceArchiveQuery.js`](../../business_modules/chat/domain/sourceArchiveQuery.js).
 
-#### `lookup_evidence` (deprecated — use `get_source`)
-
-- **Purpose**: Retrieve full stored evidence/article text *on demand* (not included in the main prompt).
-- **Input**:
-
-```json
-{
-  "date": "YYYY-MM-DD",
-  "evidence_id": "string",
-  "query": "string",
-  "url": "string",
-  "title": "string",
-  "source_type": "news|radio|field|pbo|naftali|whatsapp|audio|manual",
-  "limit": 3,
-  "max_chars": 8000
-}
-```
-
-Notes:
-
-- `date` is optional in practice: when omitted, the server defaults it to the **current assessment date**.
-
-Backend behavior:
-
-- Searches **SQLite evidence items** for the given `date` (when available).
-- Also searches the **homefront markdown export** for that date (`articles-homefront-YYYY-MM-DD.md` preferred, falling back to `articles-homefront.md`) without the analysis-time truncation.
-- Returns up to `limit` matches, each including metadata plus a body clipped to `max_chars`.
-
-Implementation:
-
-- Tool handler: `business_modules/chat/infrastructure/claudeChat.js`
-- Lookup logic: `business_modules/chat/domain/evidenceLookup.js`
-
-#### `search_evidence` (deprecated — use `search_sources`)
-
-- **Purpose**: Find the right evidence source before pulling full text. Returns candidates with `evidence_id`.
-- **Input**:
-
-```json
-{
-  "date": "YYYY-MM-DD",
-  "query": "string",
-  "url": "string",
-  "title": "string",
-  "source_type": "news|radio|field|pbo|naftali|whatsapp|audio|manual",
-  "limit": 7,
-  "snippet_chars": 350
-}
-```
-
-Notes:
-
-- `date` is optional in practice: when omitted, the server defaults it to the **current assessment date**.
-
-Backend behavior:
-
-- Searches DB evidence first (so results have stable DB-backed `evidence_id`).
-- Falls back to homefront markdown export for that date if needed.
-- Intended usage is: `search_evidence` → choose `evidence_id` → `lookup_evidence` to retrieve full text.
-
-Implementation:
-
-- Tool handler: `business_modules/chat/infrastructure/claudeChat.js`
-- Lookup logic: `business_modules/chat/domain/evidenceLookup.js`
+Runtime aliases (not in schema): `search_evidence` → `search_sources`, `lookup_evidence` → `get_source` in [`chatToolHandlers.js`](../../business_modules/chat/app/chatToolHandlers.js).
 
 ### Data dependencies (on-disk sources used by chat tools)
 
@@ -478,7 +411,7 @@ The chat module reads data from the repo filesystem:
 - **Signals** directory: `signals/`
   - Files: `signals-<sourceType>-<YYYY-MM-DD>.json`
   - Loaded by: `business_modules/chat/domain/signalLookup.js` (`loadSignals`)
-- **Reports** directory: `reports/`
+- **Reports** directory: `daily_reports/`
   - Files: `resilience-report-<YYYY-MM-DD>.json` or `resilience-report-<YYYY-MM-DD>-<HHMM>.json`
   - Loaded by: `business_modules/chat/domain/signalLookup.js` (`loadReport`, `listReportDates`, `compareReports`)
 - **PBO index**:
@@ -486,16 +419,24 @@ The chat module reads data from the repo filesystem:
 
 ### Environment variables used by chat
 
-Backend:
+| Variable | Effect |
+|----------|--------|
+| `ANTHROPIC_API_KEY` | Required for chat (Claude SDK) |
+| `AUTH_REQUIRED` | When `true`, JWT on all `/api/*` routes |
+| `FIREBASE_PROJECT_ID` | Required when auth enabled |
+| `APP_CHECK_ENFORCE` | When `true`, App Check token required on costly routes |
+| `CHAT_ANALYST_TOOLS_ENABLED` | Analyst read tools (default on) |
+| `CHAT_CONFIRM_ACTIONS_ENABLED` | Propose + confirm-action (default on) |
+| `CHAT_MAINTAINER_ONLY` | Restrict `POST /api/chat` to maintainers |
+| `RATE_LIMIT_CHAT_MAX` | Per-window chat rate limit |
+| `CHAT_MAX_TOOL_ROUNDS` | Max agent tool rounds per message (default `3`) |
+| `CHAT_RETRIEVAL_CACHE_TTL_MS` | Session retrieval cache TTL (default 10 min) |
+| `DAILY_BUDGET_USD` | Daily spend cap for costly HTTP routes (see [COST_CONTROLS.md](./COST_CONTROLS.md)) |
+| `TZ_ARTICLES` | “Today” for session list and report selection |
+| `SQLITE_PATH` | Chat sessions + source archive DB (default `db/app.sqlite`) |
+| RAG vars | See [RAG.md](./RAG.md) — `RAG_PIPELINE_ENABLED`, `CHAT_RAG_ENABLED`, etc. |
 
-- **`ANTHROPIC_API_KEY`**: required for chat to function (used by `@anthropic-ai/sdk`).
-- **`AUTH_REQUIRED`**: when `true`, protects `/api/*` routes (including `/api/chat`) with JWT verification.
-- **`FIREBASE_PROJECT_ID`**: required when `AUTH_REQUIRED=true` to initialize Firebase Admin for token verification.
-
-Other runtime vars that influence what chat can see:
-
-- **`TZ_ARTICLES`**: affects what “today” means for report selection (used by `getCachedReport()`).
-- **`SQLITE_PATH`**: affects DB location (but chat currently does not pass the store to `getCachedReport()`).
+Full agent/HITL flags: [AGENTIC_MECHANISMS.md](./AGENTIC_MECHANISMS.md) §8.
 
 ### Failure modes and current semantics
 
@@ -505,7 +446,7 @@ Other runtime vars that influence what chat can see:
 
 - `{ type: 'error', message: err.message }`
 
-The route then ends the response (see `app.js`).
+The route ends the hijacked SSE response (see [`chatRoutes.js`](../../api/routes/chatRoutes.js)).
 
 #### Client error handling
 
@@ -518,12 +459,17 @@ The route then ends the response (see `app.js`).
 ### Key source files (quick links)
 
 - **UI**: `client/src/components/ChatPanel.jsx`
-- **Client streaming hook**: `client/src/hooks/useChat.js`
-- **Route**: `app.js` (`POST /api/chat`)
-- **Chat service orchestration**: `business_modules/chat/app/chatService.js`
-- **LLM + tools implementation**: `business_modules/chat/infrastructure/claudeChat.js`
+- **Client hook**: `client/src/hooks/useChat.js`
+- **Routes**: `api/routes/chatRoutes.js` (registered from `app.js`)
+- **Chat service**: `business_modules/chat/app/chatService.js`
+- **LLM + tool loop**: `business_modules/chat/infrastructure/claudeChat.js`, `cross-cut-modules/llm/runToolLoop.js`
+- **Tool handlers**: `business_modules/chat/app/chatToolHandlers.js`, `business_modules/chat/app/executePendingAction.js`
+- **Source archive queries**: `business_modules/chat/domain/sourceArchiveQuery.js` (reads [`db/source_archive/`](../../db/source_archive/createSourceArchive.js), [`db/persistence/sourceArchiveStore.js`](../../db/persistence/sourceArchiveStore.js))
+- **Source archive persistence**: `db/source_archive/`, `db/persistence/`, ops `db/input/`
 - **Prompt context**: `business_modules/chat/domain/reportContext.js`
 - **Signals/reports utilities**: `business_modules/chat/domain/signalLookup.js`
-- **Auth**: `auth/requireAuthPreHandler.js`, `auth/firebaseAdmin.js`
-- **Report cache source**: `api/analysisService.js` (`getCachedReport`)
+- **Stores**: `business_modules/chat/infrastructure/chatStore.js`, `chatPendingActionStore.js`
+- **Auth**: `cross-cut-modules/auth/`, `client/src/lib/authFetch.js`
+- **Report cache**: `api/analysisService.js` (`getCachedReport`)
+- **Agent architecture**: [AGENTIC_MECHANISMS.md](./AGENTIC_MECHANISMS.md)
 

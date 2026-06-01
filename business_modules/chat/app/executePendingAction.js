@@ -2,7 +2,9 @@
  * Execute a confirmed pending chat action.
  */
 import { canViewAnalystDisplay } from '../../../cross-cut-modules/auth/userAccess.js';
-import { PROPOSE_TOOL_NAMES } from '../domain/chatConfig.js';
+import { PROPOSE_TOOL_NAMES, OPERATOR_PROPOSE_TOOL_NAMES } from '../domain/chatConfig.js';
+import { updateOperatorRecommendationStatus, normalizeReportScope } from '../../resilience/index.js';
+import { getTodayInTimezone } from '../../../utils/dateUtils.js';
 
 const VALIDATION_ACTIONS = new Set([
   'label', 'skip', 'defer', 'gold_signal', 'confirm_social_quarantine', 'dismiss_social_quarantine',
@@ -54,10 +56,35 @@ async function executeCatalogProposalReview(params, ctx) {
   return { ok: true, message: `Catalog proposal ${params.proposal_id} marked ${status}.` };
 }
 
+async function executeOperatorRecommendation(params, ctx) {
+  const action = String(params.action ?? '');
+  if (action !== 'acknowledge' && action !== 'dismiss') {
+    throw new Error(`Invalid operator recommendation action: ${action}`);
+  }
+  const timezone = process.env.TZ_ARTICLES || 'Asia/Jerusalem';
+  const reportDate = String(params.date ?? '').trim() || getTodayInTimezone(timezone);
+  const scope = normalizeReportScope(params.scope ?? 'national');
+  const result = updateOperatorRecommendationStatus(
+    reportDate,
+    scope,
+    params.recommendation_id,
+    { action, userEmail: ctx.userEmail, rationale: params.rationale ?? params.note ?? '' },
+  );
+  if (!result.ok) {
+    throw new Error(result.error ?? 'Failed to update recommendation');
+  }
+  return {
+    ok: true,
+    message: `Operator recommendation "${params.recommendation_id}" marked ${action}.`,
+    recommendation: result.recommendation,
+  };
+}
+
 const PENDING_EXECUTORS = {
   propose_validation_decision: executeValidationDecision,
   propose_geo_unknown_update: executeGeoUnknownUpdate,
   propose_catalog_proposal_review: executeCatalogProposalReview,
+  propose_operator_recommendation: executeOperatorRecommendation,
 };
 
 /**
@@ -65,7 +92,8 @@ const PENDING_EXECUTORS = {
  * @param {object} ctx services + userEmail
  */
 export async function executePendingAction(pending, ctx) {
-  if (!canViewAnalystDisplay(ctx.userEmail)) {
+  const isOperatorTool = OPERATOR_PROPOSE_TOOL_NAMES.has(pending.toolName);
+  if (!isOperatorTool && !canViewAnalystDisplay(ctx.userEmail)) {
     throw new Error('Analyst access required');
   }
   if (!PROPOSE_TOOL_NAMES.has(pending.toolName)) {

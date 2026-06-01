@@ -1,6 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { buildSignalExtractionSystemPrompt, extractJsonArray } from '../../../resilience/infrastructure/claudeEvaluator.js';
-import { SIGNAL_TYPES } from '../../../resilience/domain/services/behaviorSignals.js';
+import { buildSignalExtractionSystemPrompt, extractJsonArray, SIGNAL_TYPES } from '../../../resilience/index.js';
 import {
   COMPONENT_IDS,
   SPREAD_VALUES,
@@ -196,20 +195,25 @@ export function createAnthropicReportBuildAnalyzerAdapter({ anthropicApiKey }) {
   const client = new Anthropic({ apiKey: anthropicApiKey });
   const interactiveSystemPrompt = buildSignalExtractionSystemPrompt('whatsapp_interactive');
 
-  async function callModel({ system, userContent, maxTokens }) {
+  const model = 'claude-haiku-4-5-20251001';
+
+  async function callModel({ system, userContent, maxTokens, onUsage, label }) {
     const response = await client.messages.create({
-      model: 'claude-haiku-4-5-20251001',
+      model,
       max_tokens: maxTokens,
       temperature: 0,
       system,
       messages: [{ role: 'user', content: userContent }],
     });
+    if (onUsage && response.usage) {
+      onUsage({ label: label ?? 'report-build:analyze', model, usage: response.usage });
+    }
     const textBlock = response.content.find((b) => b.type === 'text');
     return textBlock ? textBlock.text : '';
   }
 
   return {
-    async analyzeTurnHistory(turnHistory, senderName, ragContext = null) {
+    async analyzeTurnHistory(turnHistory, senderName, ragContext = null, opts = {}) {
       if (!Array.isArray(turnHistory) || turnHistory.length === 0) {
         return { signals: [], structured: EMPTY_STRUCTURED(), assessment: DEFAULT_ASSESSMENT() };
       }
@@ -224,6 +228,8 @@ export function createAnthropicReportBuildAnalyzerAdapter({ anthropicApiKey }) {
         system: interactiveSystemPrompt,
         userContent,
         maxTokens: 3000,
+        onUsage: opts.onUsage ?? null,
+        label: 'report-build:analyze-turn',
       });
 
       if (!responseText) {

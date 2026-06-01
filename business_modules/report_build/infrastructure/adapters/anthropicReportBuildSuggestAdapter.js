@@ -98,14 +98,15 @@ export function createAnthropicReportBuildSuggestAdapter({ anthropicApiKey }) {
      * Duck-type compatible with analyzerPort: analyzeTurnHistory(turnHistory, senderName)
      * We only care about the latest officer text for suggestions.
      */
-    async analyzeTurnHistory(turnHistory) {
+    async analyzeTurnHistory(turnHistory, _senderName = '', _ragContext = null, opts = {}) {
       const turns = Array.isArray(turnHistory) ? turnHistory : [];
       const last = turns[turns.length - 1];
       const text = String(last?.text ?? '').trim();
       if (!text) return emptyOutput();
 
+      const model = 'claude-haiku-4-5-20251001';
       const response = await client.messages.create({
-        model: 'claude-haiku-4-5-20251001',
+        model,
         max_tokens: 650,
         temperature: 0,
         system: SYSTEM_PROMPT,
@@ -120,6 +121,9 @@ export function createAnthropicReportBuildSuggestAdapter({ anthropicApiKey }) {
           },
         ],
       });
+      if (opts.onUsage && response.usage) {
+        opts.onUsage({ label: 'report-build:suggest', model, usage: response.usage });
+      }
 
       const textBlock = response.content.find((b) => b.type === 'text');
       const parsed = safeJsonParse(textBlock?.text ?? '');

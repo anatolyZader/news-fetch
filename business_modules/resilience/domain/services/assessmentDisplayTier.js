@@ -57,24 +57,50 @@ export function resolveDisplayView({ queryView, userEmail } = {}) {
 }
 
 /**
+ * @param {number|null|undefined} polarization
+ * @param {number} mass
+ * @returns {'one_sided'|'mixed'|'contested'|null}
+ */
+export function derivePolarizationBand(polarization, mass) {
+  if (polarization == null || !Number.isFinite(polarization)) return null;
+  if (polarization > 0.5 && mass > 4) return 'contested';
+  if (polarization > 0.5) return 'mixed';
+  return 'one_sided';
+}
+
+/**
+ * @param {number|null|undefined} certainty
+ * @returns {'low'|'medium'|'high'|null}
+ */
+export function deriveCertaintyBand(certainty) {
+  if (certainty == null || !Number.isFinite(certainty)) return null;
+  if (certainty < 0.35) return 'low';
+  if (certainty < 0.65) return 'medium';
+  return 'high';
+}
+
+/**
  * @param {object} comp
  * @param {object} [assessmentContext]
  * @returns {object}
  */
 export function deriveInstrumentState(comp, assessmentContext = {}) {
+  const view = assessmentContext.view ?? DISPLAY_VIEWS.operator;
+  const isAnalyst = view === DISPLAY_VIEWS.analyst;
   const mass = Number(comp?.evidence_mass ?? 0);
   let evidence_sufficiency = 'adequate';
   if (mass < 1.5) evidence_sufficiency = 'thin';
   else if (mass < 4) evidence_sufficiency = 'moderate';
 
+  const polarization = comp?.polarization ?? null;
   const contested =
-    comp?.polarization != null
-    && comp.polarization > 0.5
+    polarization != null
+    && polarization > 0.5
     && mass > 4;
 
   const contestedThin =
-    comp?.polarization != null
-    && comp.polarization > 0.5
+    polarization != null
+    && polarization > 0.5
     && mass >= 1.5
     && mass < 4;
 
@@ -92,14 +118,17 @@ export function deriveInstrumentState(comp, assessmentContext = {}) {
   const interpretiveSummary = comp?.interpretive_summary === true
     || (groundingScore != null && groundingScore < narrativeGroundingMinScore());
 
-  return {
+  const suppressionDelta = comp?.suppression_delta ?? null;
+  const suppressionActive =
+    comp?.source_cap_binding === true
+    || (suppressionDelta != null && Math.abs(suppressionDelta) >= 1);
+
+  const instrument = {
     confidence: comp?.confidence ?? 'insufficient_data',
     evidence_sufficiency,
     contested: contested === true,
     contested_thin: thinPolicy?.contested_thin ?? contestedThin === true,
     significant_delta: comp?.delta_flag === 'significant',
-    floor_clamped: comp?.floor_clamped === true,
-    floor_bypassed: comp?.floor_bypassed === true,
     salience_critical: comp?.salience_critical === true,
     presence_gate_triggered: comp?.presence_gate_triggered === true,
     operator_status: comp?.operator_status ?? null,
@@ -108,13 +137,34 @@ export function deriveInstrumentState(comp, assessmentContext = {}) {
     source_cap_binding: comp?.source_cap_binding === true,
     signal_count: comp?.signal_count ?? 0,
     distinct_article_count: comp?.distinct_article_count ?? 0,
+    evidence_mass: mass > 0 ? Math.round(mass * 10) / 10 : 0,
+    polarization: polarization == null ? null : Math.round(polarization * 100) / 100,
+    polarization_band: derivePolarizationBand(polarization, mass),
+    certainty_band: deriveCertaintyBand(comp?.certainty),
+    source_diversity: comp?.source_diversity ?? 0,
+    suppression_active: suppressionActive,
     thin_evidence_instrument: thinPolicy?.instrument ?? null,
     operator_shows_score: thinPolicy?.operatorShowsScore ?? (mass >= 1.5),
-    suppression_delta: comp?.suppression_delta ?? null,
     calibration_limited: (comp?.calibration_deficit ?? 0) >= 0.5,
     interpretive_summary: interpretiveSummary === true,
     narrative_grounding_score: groundingScore ?? null,
+    delta_flag: comp?.delta_flag === 'significant',
   };
+
+  if (isAnalyst) {
+    instrument.suppression_delta = suppressionDelta;
+    const contributors = comp?.top_contributors ?? comp?.signals ?? [];
+    instrument.top_contributors = (Array.isArray(contributors) ? contributors : [])
+      .slice(0, 3)
+      .map((s) => ({
+        signal_type: s.signal_type ?? s.type ?? null,
+        source_type: s.source_type ?? null,
+        evidence: s.evidence ? String(s.evidence).slice(0, 120) : null,
+        _contribution_raw: s._contribution_raw ?? s._contribution ?? null,
+      }));
+  }
+
+  return instrument;
 }
 
 /**
@@ -189,6 +239,7 @@ export function redactAssessmentForView(assessment, view) {
     const assessmentContext = {
       dataVoid: assessment.data_void,
       epistemicStatus: assessment.epistemic_status,
+      view,
     };
     return {
       ...base,

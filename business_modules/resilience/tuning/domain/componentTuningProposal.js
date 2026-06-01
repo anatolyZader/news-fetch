@@ -3,7 +3,8 @@
  * Does not modify COMPONENT_TUNING in code.
  */
 
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { getDefaultStateStore } from '../../../../cross-cut-modules/persistence/infrastructure/fsStateStoreAdapter.js';
+const stateStore = getDefaultStateStore();
 import { resolve } from 'node:path';
 import { COMPONENT_TUNING } from '../../domain/services/behaviorSignals.js';
 
@@ -31,8 +32,8 @@ function clampNum(v, lo, hi) {
 }
 
 function loadNationalReportFiles(reportsDir) {
-  if (!existsSync(reportsDir)) return [];
-  return readdirSync(reportsDir).filter(
+  if (!stateStore.existsSync(reportsDir)) return [];
+  return stateStore.readdirSync(reportsDir).filter(
     (f) => f.startsWith('resilience-report-') && f.endsWith('.json') && !f.includes('-north-'),
   );
 }
@@ -143,7 +144,7 @@ function buildProposalsFromRows(rowsByComponent) {
  * @returns {null | { status: string, report_count: number, skipped_reason?: string, components: object }}
  */
 export function proposeComponentTuningFromReportFiles(reportsDir, opts = {}) {
-  const dir = reportsDir ? resolve(reportsDir) : resolve(process.cwd(), 'reports');
+  const dir = reportsDir ? resolve(reportsDir) : resolve(process.cwd(), 'daily_reports');
   const minReports = opts.minReports ?? 10;
   const files = loadNationalReportFiles(dir);
 
@@ -160,7 +161,7 @@ export function proposeComponentTuningFromReportFiles(reportsDir, opts = {}) {
   for (const f of files) {
     let j;
     try {
-      j = JSON.parse(readFileSync(resolve(dir, f), 'utf8'));
+      j = JSON.parse(stateStore.readFileSync(resolve(dir, f), 'utf8'));
     } catch {
       continue;
     }

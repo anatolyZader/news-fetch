@@ -35,9 +35,7 @@ import {
   loadHistoricalScores,
   loadHistoricalSignalDays,
   parseAssessCliArgs,
-  discoverSignalBundles,
   loadPipelineConfig,
-  loadAssessSignalFiles,
   mergeLoadedSignalFiles,
   dedupWithinSource,
 } from './assessSignalsHelpers.js';
@@ -51,6 +49,9 @@ import {
 } from '../domain/services/assessmentMethodology.js';
 import { computeDataVoidIndex, attachEpistemicToAssessment } from '../domain/services/dataVoidIndex.js';
 import { runScoringPipeline } from '../app/scoringPipelinePrep.js';
+import { detectSemanticPatterns } from '../domain/services/patternDetection/semanticPatternAlerts.js';
+import { buildOperatorRecommendations } from '../domain/services/patternDetection/operatorRecommendations.js';
+import { attachDecisionBrief } from '../app/attachDecisionBrief.js';
 import { prepareScoringSignals } from '../app/prepareScoringSignals.js';
 import { salienceContextFromDataVoid } from '../domain/services/highSalienceBypass.js';
 import { countOovCapturesForDate } from '../domain/services/oovCapture.js';
@@ -71,9 +72,10 @@ import { summarizeValidationMaturity } from '../validation/domain/validationStat
 import { loadConnectivityProbeSignals, loadProbeRecordsForDate } from '../infrastructure/adapters/connectivityProbeFileAdapter.js';
 import { enrichProbeSignalsInList } from '../domain/services/probeCorroborationPolicy.js';
 import { createDefaultPboReportReviewService } from '../../pbo_report_review/input/createPboReviewWiring.js';
-import { createSourceArchive } from '../../../cross-cut-modules/source_archive/createSourceArchive.js';
-import { archiveProbeRecords } from '../../../cross-cut-modules/source_archive/archiveProbeRecords.js';
+import { createSourceArchive } from '../../../db/source_archive/createSourceArchive.js';
+import { archiveProbeRecords } from '../../../db/source_archive/archiveProbeRecords.js';
 import { createRetrievalService } from '../../../cross-cut-modules/retrieval/createRetrievalService.js';
+import { createSignalBundlePort } from './createSignalBundlePort.js';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 
@@ -94,7 +96,7 @@ function contentKindFromSourceTypes(sourceTypesSeen) {
 }
 
 function loadPriorReports(targetDate, n = 2) {
-  const dir = resolve('reports');
+  const dir = resolve('daily_reports');
   if (!existsSync(dir)) return [];
   const allFiles = readdirSync(dir);
   const prior = [];
@@ -123,43 +125,38 @@ function assertApiKey() {
   }
 }
 
-async function loadPreparedSignals(targetDate, days) {
-  const discovery = discoverSignalBundles({ targetDate, days, ...SIGNAL_DIRS });
-
-  if (!discovery.anyDirExists) {
+function exitIfNoSignalBundles(bundlePort, discovery, useObservations) {
+  if (bundlePort.hasAnySource(discovery)) return;
+  if (useObservations) {
+    console.error('No observation bundles found. Run: npm run extract-observations -- ...');
+  } else {
     console.error('No signals directories found. Run extract-signals.js first.');
-    process.exit(1);
   }
+  process.exit(1);
+}
 
-  const { enabledSources, pipelineConfig } = loadPipelineConfig(resolve('pipeline-config.json'));
-
-  const loadedFiles = loadAssessSignalFiles({
-    rootFiles: discovery.rootFiles,
-    fieldDirFiles: discovery.fieldDirFiles,
-    socialDirFiles: discovery.socialDirFiles,
-    signalsDir: discovery.signalsDir,
-    fieldSignalsDir: discovery.fieldSignalsDir,
-    socialSignalsDir: discovery.socialSignalsDir,
-    targetDate,
-    targetDates: discovery.targetDates,
-    recencySources: discovery.recencySources,
-    enabledSources,
-  });
-
-  if (loadedFiles.length === 0) {
-    const suffix = formatDaysSuffix(days);
+function exitIfNoLoadedSignalFiles(loadedFiles, useObservations, targetDate, days) {
+  if (loadedFiles.length > 0) return;
+  const suffix = formatDaysSuffix(days);
+  if (useObservations) {
+    console.error(`No mapped observation bundles for ${targetDate}${suffix}.`);
+    console.error('Ensure observations have suggested_catalog_types matching SIGNAL_CATALOG.');
+  } else {
     console.error(`No signal files found for ${targetDate}${suffix}.`);
     console.error(`Expected files like: signals/signals-news-${targetDate}.json`);
-    process.exit(1);
   }
+  process.exit(1);
+}
 
-  let { allSignals, totalArticles, sourceFiles, sourceTypesSeen } = mergeLoadedSignalFiles(loadedFiles);
+function mergeConnectivityProbeSignals(allSignals, sourceTypesSeen, targetDate) {
   const probeSignals = loadConnectivityProbeSignals(targetDate, 'national');
-  if (probeSignals.length > 0) {
-    allSignals = [...allSignals, ...probeSignals];
-    sourceTypesSeen.add('infrastructure_probe');
-    console.error(`  → Connectivity probes: ${probeSignals.length} signal(s) merged`);
-  }
+  if (probeSignals.length === 0) return allSignals;
+  sourceTypesSeen.add('infrastructure_probe');
+  console.error(`  → Connectivity probes: ${probeSignals.length} signal(s) merged`);
+  return [...allSignals, ...probeSignals];
+}
+
+function archiveProbeRecordsForDate(targetDate) {
   try {
     const sqlitePath = process.env.SQLITE_PATH?.trim() || resolve(REPO_ROOT, 'db', 'app.sqlite');
     const archive = createSourceArchive(sqlitePath);
@@ -170,38 +167,74 @@ async function loadPreparedSignals(targetDate, days) {
   } catch (err) {
     console.error(`  ⚠ Probe archive skipped: ${err.message}`);
   }
+}
+
+function createRetrievalServiceSafe() {
+  try {
+    const sqlitePath = process.env.SQLITE_PATH?.trim() || resolve(REPO_ROOT, 'db', 'app.sqlite');
+    return createRetrievalService({ dbPath: sqlitePath });
+  } catch (err) {
+    console.error(`  ⚠ Retrieval service unavailable: ${err.message}`);
+    return null;
+  }
+}
+
+async function dedupSignalsCrossSource(allSignals, retrievalService) {
+  const beforeCrossSource = allSignals.length;
+  const deduped = await crossSourceDedupClustered(allSignals, {
+    storyClusterIndex: retrievalService?.storyClusterIndex ?? null,
+  });
+  if (deduped.length < beforeCrossSource) {
+    console.error(`  Cross-source merged: ${beforeCrossSource} → ${deduped.length} (${beforeCrossSource - deduped.length} cross-outlet duplicates collapsed)`);
+  }
+  return deduped;
+}
+
+function enrichSignalsGeoIfNeeded(allSignals) {
+  const needGeoCount = allSignals.filter((s) => !(s && 'geo' in s && s.geo != null)).length;
+  if (needGeoCount === 0) return allSignals;
+  const { signals: enriched, attached, resolved, unknown } = enrichSignalsWithGeo(allSignals, {
+    rootDir: REPO_ROOT,
+    unknownSourceType: 'assess-signals',
+  });
+  if (attached > 0) {
+    console.error(
+      `  → Geo attach (all sources): ${attached} signals, ${resolved} resolved, ${unknown} unknown`,
+    );
+  }
+  return enriched;
+}
+
+async function loadPreparedSignals(targetDate, days, bundleOpts = {}) {
+  const bundlePort = await createSignalBundlePort({
+    bundleSource: bundleOpts.bundleSource ?? 'closed',
+    observationsProfile: bundleOpts.observationsProfile ?? null,
+    signalDirs: SIGNAL_DIRS,
+  });
+
+  const { enabledSources: configSources, pipelineConfig } = loadPipelineConfig(
+    resolve('pipeline-config.json'),
+  );
+  const useObservations = (bundleOpts.bundleSource ?? 'closed') === 'observations';
+  const enabledSources = useObservations ? null : configSources;
+
+  const discovery = bundlePort.discoverBundles({ targetDate, days, enabledSources });
+
+  exitIfNoSignalBundles(bundlePort, discovery, useObservations);
+
+  const loadedFiles = bundlePort.loadBundles(discovery, { targetDate, enabledSources });
+
+  exitIfNoLoadedSignalFiles(loadedFiles, useObservations, targetDate, days);
+
+  let { allSignals, totalArticles, sourceFiles, sourceTypesSeen } = mergeLoadedSignalFiles(loadedFiles);
+  allSignals = mergeConnectivityProbeSignals(allSignals, sourceTypesSeen, targetDate);
+  archiveProbeRecordsForDate(targetDate);
   allSignals = enrichProbeSignalsInList(allSignals);
   allSignals = dedupWithinSource(allSignals);
 
-  const sqlitePath = process.env.SQLITE_PATH?.trim() || resolve(REPO_ROOT, 'db', 'app.sqlite');
-  let retrievalService = null;
-  try {
-    retrievalService = createRetrievalService({ dbPath: sqlitePath });
-  } catch (err) {
-    console.error(`  ⚠ Retrieval service unavailable: ${err.message}`);
-  }
-
-  const beforeCrossSource = allSignals.length;
-  allSignals = await crossSourceDedupClustered(allSignals, {
-    storyClusterIndex: retrievalService?.storyClusterIndex ?? null,
-  });
-  if (allSignals.length < beforeCrossSource) {
-    console.error(`  Cross-source merged: ${beforeCrossSource} → ${allSignals.length} (${beforeCrossSource - allSignals.length} cross-outlet duplicates collapsed)`);
-  }
-
-  const needGeoCount = allSignals.filter((s) => !(s && 'geo' in s && s.geo != null)).length;
-  if (needGeoCount > 0) {
-    const { signals: enriched, attached, resolved, unknown } = enrichSignalsWithGeo(allSignals, {
-      rootDir: REPO_ROOT,
-      unknownSourceType: 'assess-signals',
-    });
-    allSignals = enriched;
-    if (attached > 0) {
-      console.error(
-        `  → Geo attach (all sources): ${attached} signals, ${resolved} resolved, ${unknown} unknown`,
-      );
-    }
-  }
+  const retrievalService = createRetrievalServiceSafe();
+  allSignals = await dedupSignalsCrossSource(allSignals, retrievalService);
+  allSignals = enrichSignalsGeoIfNeeded(allSignals);
 
   return {
     loadedFiles,
@@ -276,10 +309,10 @@ function buildScoreBySource({
 async function buildScopedScoring(targetDate, days, allSignals, totalArticles, reportScopeId, reportScope, loadedFiles) {
   const nationalSignals = allSignals;
   const nationalHistoricalDays = isRegionalReportScope(reportScopeId)
-    ? loadHistoricalSignalDays(targetDate, 'reports', 7, ISRAEL_NATIONAL_DISTRICT_ID)
-    : loadHistoricalSignalDays(targetDate, 'reports', 7, reportScopeId);
+    ? loadHistoricalSignalDays(targetDate, 'daily_reports', 7, ISRAEL_NATIONAL_DISTRICT_ID)
+    : loadHistoricalSignalDays(targetDate, 'daily_reports', 7, reportScopeId);
 
-  const historicalScores = loadHistoricalScores(targetDate, 'reports', 14, reportScopeId);
+  const historicalScores = loadHistoricalScores(targetDate, 'daily_reports', 14, reportScopeId);
   if (Object.keys(historicalScores).length > 0) {
     console.error(`  Loaded historical score series for ${Object.keys(historicalScores).length} components`);
   }
@@ -293,7 +326,7 @@ async function buildScopedScoring(targetDate, days, allSignals, totalArticles, r
     signalsForScoring: baseSignalsForScoring,
     reportDate: targetDate,
     reportScopeId,
-    reportsDir: 'reports',
+    reportsDir: 'daily_reports',
   });
 
   let signalsForScoring = prepared.signalsForScoring;
@@ -413,11 +446,14 @@ function resolveOutputBase(reportScopeId, targetDate, getArg) {
   const timeSuffix = now.toTimeString().slice(0, 5).replace(':', '');
   const outputPrefix = reportFilePrefix(reportScopeId);
   const cliOutputBase = getArg('--output')?.replace(/\.(md|json)$/, '');
-  return cliOutputBase ?? resolve('reports', `${outputPrefix}-${targetDate}-${timeSuffix}`);
+  return cliOutputBase ?? resolve('daily_reports', `${outputPrefix}-${targetDate}-${timeSuffix}`);
 }
 
 function buildSignalPaths(loadedFiles) {
-  return loadedFiles.map(({ file, sourceType }) => {
+  return loadedFiles.map(({ file, sourceType, data }) => {
+    if (data?._from_observations) {
+      return resolve('business_modules/signals_extraction/data', file);
+    }
     if (sourceType === 'field') return resolve(SIGNAL_DIRS.fieldSignalsDir, file);
     if (sourceType === 'social') return resolve(SIGNAL_DIRS.socialSignalsDir, file);
     return resolve(SIGNAL_DIRS.signalsDir, file);
@@ -449,7 +485,7 @@ function collectValidation(assessment, allSignals, outputBase, signalPaths, pipe
   }
 }
 
-function enrichAssessmentMetadata(assessment, { scoring, targetDate, reportScopeId, epistemicEnrichment, epistemic }) {
+function enrichAssessmentMetadata(assessment, { scoring, targetDate, reportScopeId, epistemicEnrichment, epistemic, scopedSignals }) {
   attachEpistemicToAssessment(assessment, epistemic);
   assessment.oov_burst = scoring.oovBurst ?? null;
   if (scoring.oovScoringApplied) assessment.oov_scoring_applied = scoring.oovScoringApplied;
@@ -465,6 +501,10 @@ function enrichAssessmentMetadata(assessment, { scoring, targetDate, reportScope
   if (epistemicEnrichment?.overall_score_calibrated != null) {
     assessment.overall_score_calibrated = epistemicEnrichment.overall_score_calibrated;
   }
+
+  const patterns = detectSemanticPatterns(scopedSignals ?? scoring.scopedSignals ?? []);
+  assessment.pattern_alerts = patterns;
+  assessment.operator_recommendations = buildOperatorRecommendations(patterns);
 }
 
 function attachRegionalNationalComparison(assessment, {
@@ -508,7 +548,7 @@ function buildReportMethodology(assessment, { scopedSignals, reportScopeId, vali
   const costLogStages = readCostLogStagesForDate(targetDate, {
     scripts: ['extract-signals', 'assess-signals'],
   });
-  const tuningProposal = proposeComponentTuningFromReportFiles(resolve('reports'), { minReports: 10 });
+  const tuningProposal = proposeComponentTuningFromReportFiles(resolve('daily_reports'), { minReports: 10 });
   assessment.methodology = buildAssessmentMethodology({
     signals: scopedSignals,
     reportScopeId,
@@ -630,6 +670,12 @@ async function finalizeAndWriteReport({
       quarantinedDigital,
       digitalQuarantineState,
     },
+    scopedSignals,
+  });
+
+  await attachDecisionBrief(assessment, {
+    reportScopeId,
+    onUsage,
   });
 
   const outputBase = resolveOutputBase(reportScopeId, targetDate, getArg);
@@ -671,12 +717,23 @@ async function finalizeAndWriteReport({
 }
 
 async function run() {
-  const { targetDate, days, reportScopeId, reportScope, getArg } = parseAssessCliArgs(process.argv.slice(2));
+  const {
+    targetDate,
+    days,
+    reportScopeId,
+    reportScope,
+    getArg,
+    bundleSource,
+    observationsProfile,
+  } = parseAssessCliArgs(process.argv.slice(2));
 
   assertApiKey();
   checkDailyBudget();
 
-  const prepared = await loadPreparedSignals(targetDate, days);
+  const prepared = await loadPreparedSignals(targetDate, days, {
+    bundleSource,
+    observationsProfile,
+  });
   logAssessmentHeader({ targetDate, days, reportScope, ...prepared });
 
   const { onUsage, getTotal, printSummary } = createCostTracker({ label: 'assess-signals' });

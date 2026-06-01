@@ -21,7 +21,7 @@ import { createMailingPreferencesStore } from '../infrastructure/mailingPreferen
 import { createMailingResendAdapter } from '../infrastructure/adapters/mailingResendAdapter.js';
 import { createMailingService } from '../app/mailingService.js';
 import { getCachedReport } from '../../../api/analysisService.js';
-import { createEvidenceStore } from '../../../cross-cut-modules/persistence/evidenceStore.js';
+import { createEvidenceStore } from '../../../db/persistence/evidenceStore.js';
 import { getTranslatedReport } from '../../translation/app/translationService.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));

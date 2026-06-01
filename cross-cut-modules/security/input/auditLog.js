@@ -31,11 +31,13 @@ export function resolveAuditLogPath(rootDir = process.cwd()) {
 export function appendAuditEvent(entry, logPath = resolveAuditLogPath()) {
   const row = {
     ts: new Date().toISOString(),
+    severity: entry.severity ?? 'info',
     action: entry.action,
     resource: entry.resource ?? null,
     userEmail: entry.userEmail ?? null,
     uid: entry.uid ?? null,
     ip: entry.ip ?? null,
+    userAgent: entry.userAgent ?? null,
     meta: entry.meta ?? null,
   };
   mkdirSync(dirname(logPath), { recursive: true });
@@ -56,13 +58,38 @@ export function clientIpFromRequest(request) {
  * @param {string} [resource]
  * @param {object} [meta]
  */
-export function auditFromRequest(request, action, resource, meta) {
+export function auditFromRequest(request, action, resource, meta, severity = 'info') {
   appendAuditEvent({
     action,
     resource,
+    severity,
     userEmail: request.user?.email ?? null,
     uid: request.user?.uid ?? null,
     ip: clientIpFromRequest(request),
+    userAgent: request.headers['user-agent']?.toString?.() ?? null,
     meta,
+  });
+}
+
+/**
+ * Log failed authz/authn on API routes (security monitoring).
+ * @param {import('fastify').FastifyInstance} app
+ */
+export function registerSecurityAuditHooks(app) {
+  app.addHook('onResponse', async (request, reply) => {
+    const path = String(request.url ?? '').split('?')[0];
+    if (!path.startsWith('/api/')) return;
+    const status = reply.statusCode;
+    if (status !== 401 && status !== 403) return;
+    appendAuditEvent({
+      severity: 'warn',
+      action: status === 401 ? 'auth.denied' : 'auth.forbidden',
+      resource: path,
+      userEmail: request.user?.email ?? null,
+      uid: request.user?.uid ?? null,
+      ip: clientIpFromRequest(request),
+      userAgent: request.headers['user-agent']?.toString?.() ?? null,
+      meta: { statusCode: status, method: request.method },
+    });
   });
 }

@@ -1,10 +1,14 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Link from '@mui/material/Link';
+import Paper from '@mui/material/Paper';
+import Slide from '@mui/material/Slide';
+import Fab from '@mui/material/Fab';
+import ChatOutlinedIcon from '@mui/icons-material/ChatOutlined';
 import PropTypes from 'prop-types';
 
 import { useTodayReport } from '@client/hooks/useAnalysis.js';
@@ -15,6 +19,7 @@ import { useLanguage } from '@client/context/LanguageContext.jsx';
 import { ResilienceDriftPanel } from '@client/components/ResilienceDriftPanel.jsx';
 import { PipelineStatusPanel } from '@client/components/PipelineStatusPanel.jsx';
 import { ReportView } from '@client/components/ReportView.jsx';
+import { ChatPanel } from '@client/components/ChatPanel.jsx';
 import { DistrictScopeSwitcher } from '@client/components/DistrictScopeSwitcher.jsx';
 import { LanguageSelector } from '@client/components/LanguageSelector.jsx';
 import {
@@ -56,6 +61,23 @@ export function AnalystApp({ logout, user, authRequired }) {
   const { t, lang } = useLanguage();
   const [scope, setScope] = useState(() => readStoredScope());
   const [activeSection, setActiveSection] = useState(() => readStoredSection());
+  const [openCompId, setOpenCompId] = useState(null);
+  const [openEvidenceCompId, setOpenEvidenceCompId] = useState(null);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatHub, setChatHub] = useState({
+    toolProfile: 'default',
+    systemHint: null,
+    initialMessage: null,
+  });
+
+  const handleOpenValidationInChat = useCallback((payload) => {
+    setChatHub({
+      toolProfile: 'validation',
+      systemHint: payload?.systemHint ?? null,
+      initialMessage: payload?.initialMessage ?? null,
+    });
+    setChatOpen(true);
+  }, []);
 
   const {
     report,
@@ -113,6 +135,12 @@ export function AnalystApp({ logout, user, authRequired }) {
       localStorage.setItem(LS_ANALYST_SECTION, next);
     } catch { /* */ }
   };
+
+  function openReportComponent(compId) {
+    if (!compId) return;
+    setOpenCompId(compId);
+    setOpenEvidenceCompId(null);
+  }
 
   const header = (
     <>
@@ -282,7 +310,13 @@ export function AnalystApp({ logout, user, authRequired }) {
                     driftLoading={driftLoading}
                     attentionItems={attentionItems ?? []}
                     driftAlerts={driftData?.alerts ?? null}
+                    onJumpToComponent={openReportComponent}
+                    openCompId={openCompId}
+                    setOpenCompId={setOpenCompId}
+                    openEvidenceCompId={openEvidenceCompId}
+                    setOpenEvidenceCompId={setOpenEvidenceCompId}
                     showValidationReview
+                    onOpenValidationInChat={handleOpenValidationInChat}
                   />
                 </Box>
               </>
@@ -290,6 +324,49 @@ export function AnalystApp({ logout, user, authRequired }) {
           </Stack>
         )}
       </Stack>
+
+      <Fab
+        color="primary"
+        aria-label={t('chat.ariaDialog')}
+        onClick={() => setChatOpen((o) => !o)}
+        sx={(theme) => ({
+          position: 'fixed',
+          right: theme.spacing(2),
+          bottom: theme.spacing(2),
+          zIndex: theme.zIndex.speedDial,
+        })}
+      >
+        <ChatOutlinedIcon />
+      </Fab>
+
+      <Slide direction="up" in={chatOpen} mountOnEnter unmountOnExit>
+        <Paper
+          elevation={8}
+          sx={(theme) => ({
+            position: 'fixed',
+            right: theme.spacing(2),
+            bottom: theme.spacing(10),
+            width: 420,
+            maxWidth: 'calc(100vw - 32px)',
+            height: 520,
+            maxHeight: 'calc(100vh - 120px)',
+            zIndex: theme.zIndex.modal,
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden',
+          })}
+        >
+          <ChatPanel
+            reportScope={{ type: 'all' }}
+            reportGeoScope={scope}
+            displayTier="analyst"
+            toolProfile={chatHub.toolProfile}
+            systemHint={chatHub.systemHint}
+            initialMessage={chatHub.initialMessage}
+            onClose={() => setChatOpen(false)}
+          />
+        </Paper>
+      </Slide>
     </AppLayout>
   );
 }

@@ -26,7 +26,7 @@ After reading this you should be able to locate any behavior of the running syst
 
 ## Outputs
 - **Persisted evidence** in SQLite, with provenance for every row.
-- **Assessment artifacts** on disk (`reports/`, `signals/`, source exports) that the API serves.
+- **Assessment artifacts** on disk (`daily_reports/`, `signals/`, source exports) that the API serves.
 - **UI surfaces**: the Report tab, the four domain tabs (Submissions, Education, Municipalities, Naftali), the Docs panel, and the evidence submission bar.
 
 ## Constraints
@@ -37,9 +37,9 @@ After reading this you should be able to locate any behavior of the running syst
 
 ## The subsystems
 
-**Ingestion** (`business_modules/{news-sites,whatsapp,audio,video,recording,radio}/`) — one module per source, each with an `input/` directory containing CLI entry points and an `output/` or `reports/` directory where dated markdown exports land. Ingestion modules normalize source-specific quirks into a shared markdown format that downstream stages can parse.
+**Ingestion** (`business_modules/{news-sites,whatsapp,audio,video,recording,radio}/`) — one module per source, each with an `input/` directory containing CLI entry points and an `output/` or `articles_extracted/` directory where dated markdown exports land. Ingestion modules normalize source-specific quirks into a shared markdown format that downstream stages can parse.
 
-**Storage** (`cross-cut-modules/` + SQLite) — a small SQLite database holds evidence, messages, drafts, submissions, and artifacts. The path is controlled by `SQLITE_PATH`. Only the server writes; stages that need persisted data go through the cross-cut helpers rather than opening the DB directly.
+**Storage** (`db/` + SQLite) — default database file `db/app.sqlite` (`SQLITE_PATH`). Raw persistence (evidence, source archive originals, drafts, quotas) is implemented under [`db/persistence/`](../../../db/persistence/) and [`db/source_archive/`](../../../db/source_archive/); ops CLIs under [`db/input/`](../../../db/input/). RAG chunk indexes live in the same SQLite file via [`cross-cut-modules/retrieval/`](../../../cross-cut-modules/retrieval/). Only the server writes; stages use these modules rather than opening the DB directly.
 
 **Analysis** (`business_modules/resilience/`) — the scoring pipeline. `extract-signals` reads dated exports and emits typed signals; `assess-signals` applies the weight table and produces reports. Prompts and the taxonomy are kept in this module.
 

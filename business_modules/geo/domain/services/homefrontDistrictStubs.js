@@ -1,4 +1,5 @@
-import { readFileSync, existsSync } from 'node:fs';
+import { getDefaultStateStore } from '../../../../cross-cut-modules/persistence/infrastructure/fsStateStoreAdapter.js';
+const stateStore = getDefaultStateStore();
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { normalizeLocalityLookupKey } from '../services/resolveLocalityMatch.js';
@@ -23,12 +24,12 @@ let lookupIndex = null;
 function loadStubIndex(stubsPath = DEFAULT_PATH) {
   if (lookupIndex && stubsPath === DEFAULT_PATH) return lookupIndex;
   const index = new Map();
-  if (!existsSync(stubsPath)) {
+  if (!stateStore.existsSync(stubsPath)) {
     lookupIndex = index;
     return index;
   }
   try {
-    const doc = JSON.parse(readFileSync(stubsPath, 'utf8'));
+    const doc = JSON.parse(stateStore.readFileSync(stubsPath, 'utf8'));
     for (const [districtId, block] of Object.entries(doc?.districts ?? {})) {
       for (const loc of block?.localities ?? []) {
         const canonicalKey = String(loc?.canonicalKey ?? '').trim();

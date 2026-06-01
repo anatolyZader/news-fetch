@@ -7,7 +7,7 @@ import {
   createGeoUnknownSqliteQueueAdapter,
 } from '../../business_modules/geo/index.js';
 import { createGeoUnknownJsonlSinkAdapter } from '../../business_modules/geo/infrastructure/adapters/geoUnknownJsonlSinkAdapter.js';
-import { createGeoEnrichmentAdapter } from '../../business_modules/resilience/infrastructure/adapters/geoEnrichmentAdapter.js';
+import { createGeoEnrichmentAdapter } from '../../business_modules/resilience/index.js';
 
 /**
  * @param {{ rootDir: string, unknownSourceType?: string, sqlitePath?: string }} opts

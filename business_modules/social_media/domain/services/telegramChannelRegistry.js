@@ -1,4 +1,5 @@
-import { readFileSync, existsSync } from 'node:fs';
+import { getDefaultStateStore } from '../../../../cross-cut-modules/persistence/infrastructure/fsStateStoreAdapter.js';
+const stateStore = getDefaultStateStore();
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -174,10 +175,10 @@ export function parseTelegramChannelRegistry(parsed) {
  */
 export function loadTelegramChannels(moduleRoot = DEFAULT_MODULE_ROOT) {
   const path = resolve(moduleRoot, CHANNELS_FILENAME);
-  if (!existsSync(path)) return [];
+  if (!stateStore.existsSync(path)) return [];
   let parsed;
   try {
-    parsed = JSON.parse(readFileSync(path, 'utf8'));
+    parsed = JSON.parse(stateStore.readFileSync(path, 'utf8'));
   } catch {
     return [];
   }

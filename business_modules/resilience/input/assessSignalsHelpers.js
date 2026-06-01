@@ -215,6 +215,11 @@ export function parseAssessCliArgs(argv) {
   if (outputArg != null) {
     parsed.outputBase = outputArg.replace(/\.(md|json)$/, '');
   }
+  const bundleSource = getArg('--bundle-source')
+    ?? process.env.ASSESS_BUNDLE_SOURCE
+    ?? 'closed';
+  parsed.bundleSource = bundleSource;
+  parsed.observationsProfile = getArg('--observations-profile');
   return parsed;
 }
 
@@ -595,7 +600,7 @@ function seriesFromDailyPayload(dailyPayload, knownComponents, days) {
  *
  * @param {string} scope  'national' | 'north' — selects report file prefix
  */
-export function loadHistoricalScores(targetDate, reportsDir = 'reports', days = 14, scope = 'national') {
+export function loadHistoricalScores(targetDate, reportsDir = 'daily_reports', days = 14, scope = 'national') {
   const dir = resolve(reportsDir);
   if (!existsSync(dir)) return {};
   const allFiles = readdirSync(dir);
@@ -620,7 +625,7 @@ export function loadHistoricalScores(targetDate, reportsDir = 'reports', days = 
  * @param {'national'|'north'} [scope]
  * @returns {Array<Array<object>>}
  */
-export function loadHistoricalSignalDays(targetDate, reportsDir = 'reports', days = 7, scope = 'national') {
+export function loadHistoricalSignalDays(targetDate, reportsDir = 'daily_reports', days = 7, scope = 'national') {
   const dir = resolve(reportsDir);
   if (!existsSync(dir)) return [];
   const allFiles = readdirSync(dir);

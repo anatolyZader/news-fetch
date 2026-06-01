@@ -367,7 +367,7 @@ export function overallScore(componentScores) {
 
 ### 10.2 Report writer
 
-`reportWriter.js` emits paired **`.md` + `.json`** under `reports/` with prefixes `resilience-report-` vs `resilience-report-north-`.
+`reportWriter.js` emits paired **`.md` + `.json`** under `daily_reports/` with prefixes `resilience-report-` vs `resilience-report-north-`.
 
 ### 10.3 Web UI highlights
 
@@ -398,7 +398,7 @@ Interactive / API batch assembly may call `runResilienceAssessment` (`resilience
 | Delta history | `assessSignalsHelpers.js` (`loadHistoricalScores`, `enrichWithDeltaChannel`) | Smoothed + delta fields |
 | Narrate | `claudeEvaluator.js` | `assessment` object |
 | Norris lens | `norrisCapacities.js` | `norris_capacities` block |
-| Persist | `reportWriter.js` | `reports/*.md`, `reports/*.json` |
+| Persist | `reportWriter.js` | `daily_reports/*.md`, `daily_reports/*.json` |
 | Serve | Server routes under resilience + `ReportView.jsx` | API + SPA |
 
 ---

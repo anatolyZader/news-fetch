@@ -29,7 +29,7 @@ function resolveReportsDir(opts = {}) {
   if (opts.reportsDir) return opts.reportsDir;
   const fromEnv = process.env.REPORTS_DIR?.trim();
   if (fromEnv) return isAbsolute(fromEnv) ? fromEnv : resolve(ROOT, fromEnv);
-  return resolve(ROOT, 'reports');
+  return resolve(ROOT, 'daily_reports');
 }
 
 function readAssessmentTotalArticles(jsonPath) {
@@ -48,11 +48,11 @@ function readAssessmentTotalArticles(jsonPath) {
  * When several timestamped files exist for the same day, prefer the one with the largest
  * `assessment.total_articles_analyzed` (full merge beats a later slim/audio-only run); tie-break on newest mtime.
  * @param {string} date YYYY-MM-DD
- * @param {{ reportsDir?: string, scope?: 'national'|'north' }} [opts] `reportsDir` overrides the default `reports/` (for tests).
+ * @param {{ reportsDir?: string, scope?: 'national'|'north' }} [opts] `reportsDir` overrides the default `daily_reports/` (for tests).
  * @returns {string | null} absolute path
  */
 export function resolveReportJsonPathForDate(date, opts = {}) {
-  const reportsDir = opts.reportsDir ?? resolve(ROOT, 'reports');
+  const reportsDir = opts.reportsDir ?? resolve(ROOT, 'daily_reports');
   const prefixBase = reportPrefixForScope(opts.scope);
   if (!existsSync(reportsDir)) return null;
 
@@ -96,11 +96,11 @@ export function resolveReportJsonPathForDate(date, opts = {}) {
 /**
  * Return today's cached report payload `{ assessment, signals?, markdown?, ... }`, or null if none exists.
  *
- * **Filesystem first:** the best `resilience-report-{date}-*.json` under `reports/` (highest
+ * **Filesystem first:** the best `resilience-report-{date}-*.json` under `daily_reports/` (highest
  * `total_articles_analyzed`, then newest mtime; sibling `.md` loaded when present) is the canonical rich export.
  * SQLite is used only when no JSON exists for that date.
  *
- * @param {import('../cross-cut-modules/persistence/evidenceStore.js').ReturnType<createEvidenceStore>} [store]
+ * @param {import('../db/persistence/evidenceStore.js').ReturnType<createEvidenceStore>} [store]
  * @param {{ scope?: 'national'|'north' }} [opts]
  */
 export function getCachedReport(store, opts = {}) {

@@ -3,9 +3,9 @@ import assert from 'node:assert/strict';
 import { unlinkSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'os';
-import { createSourceArchive } from '../../../../cross-cut-modules/source_archive/createSourceArchive.js';
+import { createSourceArchive } from '../../../../db/source_archive/createSourceArchive.js';
 import { searchSources, getSource, listSources } from '../../../../business_modules/chat/domain/sourceArchiveQuery.js';
-import { buildArchiveSourceId } from '../../../../cross-cut-modules/source_archive/sourceId.js';
+import { buildArchiveSourceId } from '../../../../db/source_archive/sourceId.js';
 
 describe('sourceArchiveQuery', () => {
   let archive;

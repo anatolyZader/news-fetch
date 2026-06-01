@@ -129,7 +129,7 @@ pm2 logs daily-pipeline --lines 100
 Check if today's report was generated:
 
 ```bash
-ls -la reports/resilience-report-$(date +%Y-%m-%d)*.json
+ls -la daily_reports/resilience-report-$(date +%Y-%m-%d)*.json
 ```
 
 ## Troubleshooting

@@ -7,7 +7,7 @@ import {
 } from '../../../cross-cut-modules/geo/reportScopeIds.js';
 
 /**
- * Walks `reports/resilience-report-{scope}-{date}[-{HHMM}].json`, picks the canonical file per date.
+ * Walks `daily_reports/resilience-report-{scope}-{date}[-{HHMM}].json`, picks the canonical file per date.
  */
 
 function prefixFor(scope) {
@@ -83,14 +83,14 @@ function daysAgoIso(days) {
  * Read the canonical report files for a window of dates.
  *
  * @param {object} opts
- * @param {string} [opts.reportsDir] absolute path; defaults to `<cwd>/reports`
+ * @param {string} [opts.reportsDir] absolute path; defaults to `<cwd>/daily_reports`
  * @param {string} [opts.scope='national']
  * @param {number} [opts.days=30]
  * @param {string} [opts.endDate] YYYY-MM-DD; defaults to today (UTC)
  * @returns {Array} chronologically-sorted history records (oldest first), one per date
  */
 export function readResilienceHistory(opts = {}) {
-  const reportsDir = opts.reportsDir ?? resolve(process.cwd(), 'reports');
+  const reportsDir = opts.reportsDir ?? resolve(process.cwd(), 'daily_reports');
   const scope = normalizeReportScopeId(opts.scope);
   const days = Number.isFinite(opts.days) && opts.days > 0 ? Math.floor(opts.days) : 30;
   const endDate = opts.endDate ?? new Date().toISOString().slice(0, 10);

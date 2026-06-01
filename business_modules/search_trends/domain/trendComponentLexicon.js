@@ -3,7 +3,7 @@
  * No extra Trends API calls — pattern match only.
  */
 
-import { COMPONENT_IDS } from '../../resilience/domain/services/behaviorSignals.js';
+import { COMPONENT_IDS } from '../../resilience/index.js';
 
 /** @type {Record<string, readonly string[]>} */
 export const COMPONENT_LEXICON_PATTERNS = Object.freeze({

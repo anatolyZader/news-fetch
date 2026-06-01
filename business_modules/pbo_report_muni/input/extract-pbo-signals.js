@@ -21,11 +21,11 @@ import { getMunicipalityDashboard } from '../app/pboMunicipalityService.js';
 import { enrichSignalsWithGeo } from '../../../cross-cut-modules/geo/enrichSignalsWithGeo.js';
 import { listPboDistrictIds } from '../../../cross-cut-modules/pbo/pboDistrictRegistry.js';
 import { loadReviewMetadataMapForDate, shouldForcePboSignalRewrite } from '../../pbo_report_review/input/createPboReviewWiring.js';
-import { createSourceArchive } from '../../../cross-cut-modules/source_archive/createSourceArchive.js';
+import { createSourceArchive } from '../../../db/source_archive/createSourceArchive.js';
 import {
   archivePboMunicipalityDay,
   stampPboSignalSourceIds,
-} from '../../../cross-cut-modules/source_archive/archivePboMunicipality.js';
+} from '../../../db/source_archive/archivePboMunicipality.js';
 import { createRetrievalService } from '../../../cross-cut-modules/retrieval/createRetrievalService.js';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');

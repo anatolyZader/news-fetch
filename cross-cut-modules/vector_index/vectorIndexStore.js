@@ -11,8 +11,10 @@ import { dirname } from 'node:path';
 import { createHash } from 'node:crypto';
 import { DatabaseSync } from 'node:sqlite';
 
-import { embedText, embeddingsEnabled, embeddingModelId } from './openaiEmbeddingAdapter.js';
+import { getDefaultEmbeddingPort } from './infrastructure/openaiEmbeddingPortAdapter.js';
 import { bufferToFloat32, cosineSim, float32ToBuffer } from './vectorMath.js';
+
+const embeddingPort = getDefaultEmbeddingPort();
 
 const DDL = `
 CREATE TABLE IF NOT EXISTS vector_documents (
@@ -113,7 +115,7 @@ export function createVectorIndexStore(dbPath) {
     if (row?.embedding) {
       return { vector: bufferToFloat32(row.embedding), dim: row.dim, model, textHash: hash, cached: true };
     }
-    const emb = await embedText(clean, { model });
+    const emb = await embeddingPort.embed(clean, { model });
     insertCacheStmt.run(model, hash, float32ToBuffer(emb.vector), emb.dim);
     return { vector: emb.vector, dim: emb.dim, model, textHash: hash, cached: false };
   }
@@ -132,8 +134,8 @@ export function createVectorIndexStore(dbPath) {
       if (!ns) throw new Error('vectorIndexStore.upsertDocuments: namespace required');
       if (!Array.isArray(documents) || documents.length === 0) return { upserted: 0, embedded: 0, skipped: 0 };
 
-      const usedModel = model ?? embeddingModelId();
-      const doEmbed = embeddingsEnabled();
+      const usedModel = model ?? embeddingPort.getModelId();
+      const doEmbed = embeddingPort.enabled();
 
       let upserted = 0;
       let embedded = 0;
@@ -191,9 +193,9 @@ export function createVectorIndexStore(dbPath) {
       if (!ns) throw new Error('vectorIndexStore.querySimilar: namespace required');
       const text = String(queryText ?? '').trim();
       if (!text) return [];
-      if (!embeddingsEnabled()) return [];
+      if (!embeddingPort.enabled()) return [];
 
-      const usedModel = model ?? embeddingModelId();
+      const usedModel = model ?? embeddingPort.getModelId();
       const q = await embedWithCache(text, usedModel);
       const qv = q.vector;
 

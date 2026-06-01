@@ -22,7 +22,7 @@ import { extractSignals } from '../infrastructure/claudeEvaluator.js';
 import { createCostTracker, appendCostLog, checkDailyBudget } from '../../../cross-cut-modules/budget/index.js';
 import { enrichSignalsWithGeo } from '../../../cross-cut-modules/geo/enrichSignalsWithGeo.js';
 import { archiveMarkdownFiles } from '../app/archiveMarkdownFromMd.js';
-import { attachSourceIdsToSignals, attachSourceIdsToArticles } from '../../../cross-cut-modules/source_archive/attachSourceIds.js';
+import { attachSourceIdsToSignals, attachSourceIdsToArticles } from '../../../db/source_archive/attachSourceIds.js';
 import { createRetrievalService } from '../../../cross-cut-modules/retrieval/createRetrievalService.js';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');

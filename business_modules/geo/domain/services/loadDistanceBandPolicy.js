@@ -1,4 +1,5 @@
-import { readFileSync } from 'node:fs';
+import { getDefaultStateStore } from '../../../../cross-cut-modules/persistence/infrastructure/fsStateStoreAdapter.js';
+const stateStore = getDefaultStateStore();
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -18,7 +19,7 @@ const DEFAULT_POLICY = {
 export function loadDistanceBandPolicy(dataDir) {
   try {
     const base = dataDir ?? resolve(dirname(fileURLToPath(import.meta.url)), '../../data');
-    const raw = JSON.parse(readFileSync(resolve(base, 'distance-band-policy.json'), 'utf8'));
+    const raw = JSON.parse(stateStore.readFileSync(resolve(base, 'distance-band-policy.json'), 'utf8'));
     if (typeof raw.version === 'string' && Array.isArray(raw.bands) && raw.bands.length > 0) {
       return raw;
     }
