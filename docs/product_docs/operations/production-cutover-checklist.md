@@ -11,7 +11,41 @@ tags: ["security", "deploy", "cutover"]
 
 Run this checklist **once** before the first public production cutover and after major infra changes. Application startup validation (`validateProductionSecurity`) covers many items; this guide covers **edge and network** controls the app cannot enforce alone.
 
-See also: [edge-security.md](./edge-security.md), [deploy.md](../getting-started/deploy.md), [SECURITY.md](../../../SECURITY.md).
+See also: [edge-security.md](./edge-security.md), [deploy.md](../getting-started/deploy.md) (security env table).
+
+## Prerequisites
+
+- Production domain and TLS termination configured ([edge-security](./edge-security.md)).
+- Firebase project, App Check, and server secrets in place ([deploy](../getting-started/deploy.md)).
+- Client built with `VITE_*` keys for production.
+
+## Inputs
+
+- Server `.env` / secret manager values (see table below).
+- GCP firewall rules and reverse-proxy config.
+- Optional: Cloudflare or Cloud Armor policies.
+
+## Outputs
+
+- Node process listening on `127.0.0.1:3000` only, reachable via HTTPS on 443.
+- Public `GET /api/monitoring/health` returns `200`.
+- `/.well-known/security.txt` shows production contact email.
+
+## Constraints
+
+- Do not set `ENABLE_SWAGGER=true` or `ALLOW_PUBLIC_BIND=true` in production without explicit approval.
+- Application validation runs at startup — fix env before exposing the VM publicly.
+- Edge WAF does not replace app rate limits; keep both enabled.
+
+## Examples
+
+### Verify startup
+
+```bash runnable
+node -e "process.env.NODE_ENV='production'; console.log('ok')"
+```
+
+Expected: `ok` (full `npm run start` still requires secrets on the host).
 
 ## 1. Application env (server)
 
@@ -106,6 +140,15 @@ curl -sS -o /dev/null -w "%{http_code}\n" https://YOUR_DOMAIN/
 ```
 
 Log in via SPA; confirm costly actions work with App Check (chat, evidence submit).
+
+## Troubleshooting
+
+| Symptom | Action |
+|---------|--------|
+| `Production security validation failed` on start | Compare env to [deploy](../getting-started/deploy.md); fix `SECURITY_CONTACT_EMAIL`, `APP_CHECK_ENFORCE`, probe HMAC |
+| `:3000` reachable from internet | Set `HOST=127.0.0.1`, deny firewall 3000, confirm proxy only |
+| `security.txt` shows example email | Set `SECURITY_CONTACT_EMAIL` and restart |
+| Health `200` but SPA 401 | Rebuild client with correct `VITE_FIREBASE_*` / App Check site key |
 
 ## Related
 

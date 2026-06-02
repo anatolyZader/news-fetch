@@ -11,18 +11,44 @@ tags: ["backup", "sqlite", "dr"]
 
 Quarterly restore drills ensure SQLite and uploaded evidence can be recovered after VM failure or operator error.
 
-## Backup script
+## Prerequisites
+
+- SSH access to the production VM (or restore host).
+- `sqlite3` CLI installed for verification queries.
+- Off-box storage for `backup-*.tar.gz` archives (GCS or equivalent).
+
+## Inputs
+
+- `SQLITE_PATH` — default `db/app.sqlite`
+- `EVIDENCE_UPLOADS_ROOT` — default `db/evidence-uploads`
+- A recent `backup-*.tar.gz` from `scripts/backup-db.sh`
+
+## Outputs
+
+- Timestamped archive: `db/backups/backup-<UTC>.tar.gz` (or custom directory)
+- Drill log entry: date, archive id, row counts, pass/fail
+
+## Constraints
+
+- Never restore directly over production without stopping the Node process first.
+- Backups are point-in-time; WAL mode means use `sqlite3 .backup` (script does this).
+- Evidence uploads can be large — ensure disk space before running on-VM backups.
+
+## Examples
+
+### Backup script
+
+```bash runnable
+test -x scripts/backup-db.sh && echo "backup script present"
+```
+
+Expected: `backup script present`
 
 ```bash
 chmod +x scripts/backup-db.sh
 ./scripts/backup-db.sh                    # writes db/backups/backup-<UTC>.tar.gz
 ./scripts/backup-db.sh /mnt/backups/news  # custom output directory
 ```
-
-Env overrides:
-
-- `SQLITE_PATH` — default `db/app.sqlite`
-- `EVIDENCE_UPLOADS_ROOT` — default `db/evidence-uploads`
 
 Archive contents:
 
@@ -37,7 +63,7 @@ Schedule on the VM (example cron, daily 02:00 UTC):
 
 Copy archives off-box (GCS bucket, another region) — the script only creates local tarballs.
 
-## Restore drill (quarterly)
+### Restore drill (quarterly)
 
 1. Pick a recent `backup-*.tar.gz` from off-box storage.
 2. Restore to a **temp directory**, not production:
@@ -48,13 +74,23 @@ Copy archives off-box (GCS bucket, another region) — the script only creates l
 
 3. Verify row counts:
 
-   ```bash
-   sqlite3 /tmp/news-restore/app.sqlite "SELECT COUNT(*) FROM evidence_items;"
-   sqlite3 /tmp/news-restore/app.sqlite "SELECT COUNT(*) FROM source_archive;"
+   ```bash runnable
+   sqlite3 /tmp/news-restore/app.sqlite "SELECT COUNT(*) FROM evidence_items;" 2>/dev/null || echo "run after restore"
    ```
+
+   Expected: a non-negative integer after a real restore; on a fresh drill host without a restore, the message reminds you to run post-restore.
 
 4. Spot-check a few `evidence-uploads` files exist and match expected sizes.
 5. Log drill date and outcome in your ops runbook.
+
+## Troubleshooting
+
+| Symptom | Check |
+|---------|--------|
+| `backup-db.sh` permission denied | `chmod +x scripts/backup-db.sh` |
+| Archive empty or tiny | `SQLITE_PATH` points at the live DB; disk full |
+| Restore sqlite errors | Extract to empty dir; do not overwrite running `db/app.sqlite` while app is up |
+| Row counts zero after restore | Wrong tarball or corrupt download — re-fetch from off-box storage |
 
 ## Production cutover (emergency only)
 

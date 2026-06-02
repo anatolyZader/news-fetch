@@ -11,6 +11,37 @@ tags: ["security", "tls", "nginx", "caddy", "cloud-run"]
 
 Document how to terminate TLS, forward client IP metadata, and optionally add WAF/bot protection in front of the Node app. Application-level controls (Helmet, rate limits, auth) are configured via env vars — this guide covers the **edge** layer.
 
+## Prerequisites
+
+- Production domain and TLS certificate (Let's Encrypt or Cloudflare).
+- Node app configured per [deploy](../getting-started/deploy.md) with `TRUST_PROXY=true`.
+
+## Inputs
+
+- Reverse-proxy config (Caddy, nginx, or Cloud Run URL mapping).
+- Optional WAF (Cloudflare, Cloud Armor).
+- Server env vars in the table below.
+
+## Outputs
+
+- HTTPS termination at the edge; Fastify on `127.0.0.1:3000`.
+- Correct `X-Forwarded-*` headers for rate limits and audit IP.
+- Optional WAF rules on `/api/webhooks/*`.
+
+## Constraints
+
+- Never expose Fastify on `0.0.0.0:3000` in production without `ALLOW_PUBLIC_BIND`.
+- Edge rate limits complement but do not replace `@fastify/rate-limit`.
+- Subprocess egress (`yt-dlp`) needs VM-level policy — app SSRF guards are not enough.
+
+## Examples
+
+```bash runnable
+grep -E '^TRUST_PROXY=|^ENABLE_HSTS=' .env 2>/dev/null || echo "set TRUST_PROXY and ENABLE_HSTS on the server"
+```
+
+Expected: `TRUST_PROXY=true` and `ENABLE_HSTS=true` in production `.env`, or the reminder line on a dev machine.
+
 ## Application env (both deployments)
 
 | Variable | Production default | Role |
@@ -149,6 +180,15 @@ iptables/nftables on a bare VM: default-drop egress except 443 to approved desti
 
 Example scripts in repo: [`scripts/ops/gcp-egress-firewall.example.sh`](../../../scripts/ops/gcp-egress-firewall.example.sh), [`scripts/ops/iptables-egress.example.sh`](../../../scripts/ops/iptables-egress.example.sh).
 
+## Troubleshooting
+
+| Symptom | Check |
+|---------|--------|
+| Rate limits use wrong IP | `TRUST_PROXY=true` and proxy sends `X-Forwarded-For` |
+| HSTS not applied | `ENABLE_HSTS=true` and responses served over HTTPS |
+| Webhooks blocked by WAF | Allow Meta IP ranges / tune `/api/webhooks/*` rule |
+| `curl :3000` works from internet | Firewall deny 3000; bind `HOST=127.0.0.1` |
+
 ## Related
 
 - [Production cutover checklist](./production-cutover-checklist.md)
@@ -156,4 +196,4 @@ Example scripts in repo: [`scripts/ops/gcp-egress-firewall.example.sh`](../../..
 - [Deploy guide](../getting-started/deploy.md)
 - [Backup / restore](./backup-restore.md)
 - [SIEM alerts](./siem-alerts.md)
-- Root [SECURITY.md](../../../SECURITY.md)
+- [Deploy guide — security env](../getting-started/deploy.md)

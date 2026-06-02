@@ -6,7 +6,7 @@ import { dirname } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { bufferToFloat32, cosineSim, float32ToBuffer } from '../vector_index/vectorMath.js';
 
-const DDL = `
+const BASE_DDL = `
 CREATE TABLE IF NOT EXISTS rag_chunks (
   chunk_id       TEXT PRIMARY KEY NOT NULL,
   namespace      TEXT NOT NULL,
@@ -34,7 +34,9 @@ CREATE INDEX IF NOT EXISTS idx_rag_chunks_parent
   ON rag_chunks(parent_id);
 CREATE INDEX IF NOT EXISTS idx_rag_chunks_date
   ON rag_chunks(date);
+`;
 
+const FTS_DDL = `
 CREATE VIRTUAL TABLE IF NOT EXISTS rag_chunks_fts USING fts5(
   chunk_id UNINDEXED,
   chunk_text,
@@ -42,6 +44,20 @@ CREATE VIRTUAL TABLE IF NOT EXISTS rag_chunks_fts USING fts5(
   tokenize='unicode61'
 );
 `;
+
+/** Node built-in sqlite on some CI runners lacks the fts5 extension. */
+function detectFts5Support() {
+  const probe = new DatabaseSync(':memory:');
+  try {
+    probe.exec('CREATE VIRTUAL TABLE fts_probe USING fts5(content)');
+    probe.exec('DROP TABLE fts_probe');
+    return true;
+  } catch {
+    return false;
+  } finally {
+    probe.close();
+  }
+}
 
 function safeJsonStringify(obj) {
   try {
@@ -57,8 +73,77 @@ function safeJsonStringify(obj) {
 export function createChunkStore(dbPath) {
   mkdirSync(dirname(dbPath), { recursive: true });
   const db = new DatabaseSync(dbPath);
-  db.exec(DDL);
+  const fts5Enabled = detectFts5Support();
+  db.exec(BASE_DDL);
+  if (fts5Enabled) {
+    try {
+      db.exec(FTS_DDL);
+    } catch {
+      /* fts5 unavailable at runtime despite probe */
+    }
+  }
   try { db.exec('PRAGMA journal_mode = WAL;'); } catch { /* ignore */ }
+
+  function ftsSearchLike(p) {
+    const q = String(p.query ?? '').trim();
+    if (!q) return [];
+    const ns = String(p.namespace ?? '').trim();
+    const dateFrom = String(p.dateFrom ?? '').trim();
+    const dateTo = String(p.dateTo ?? dateFrom).trim();
+    const sourceType = p.sourceType ? String(p.sourceType).trim() : null;
+    const topK = Math.max(1, Math.min(100, p.topK ?? 50));
+    const terms = q
+      .replace(/[^\p{L}\p{N}\s]+/gu, ' ')
+      .split(/\s+/)
+      .filter((t) => t.length >= 2)
+      .slice(0, 12);
+    if (terms.length === 0) return [];
+    const likeClauses = terms.map(() => '(LOWER(c.chunk_text) LIKE ? OR LOWER(COALESCE(c.title, \'\')) LIKE ?)').join(' OR ');
+    const binds = terms.flatMap((t) => {
+      const pat = `%${t.toLowerCase()}%`;
+      return [pat, pat];
+    });
+    const sql = sourceType
+      ? `
+        SELECT c.chunk_id, c.namespace, c.parent_id, c.chunk_index, c.date, c.source_type,
+               c.title, c.source_url, c.kind, c.scope_id, c.chunk_text
+        FROM rag_chunks c
+        WHERE c.namespace = ?
+          AND c.date >= ? AND c.date <= ?
+          AND c.source_type = ?
+          AND (${likeClauses})
+        LIMIT ?
+      `
+      : `
+        SELECT c.chunk_id, c.namespace, c.parent_id, c.chunk_index, c.date, c.source_type,
+               c.title, c.source_url, c.kind, c.scope_id, c.chunk_text
+        FROM rag_chunks c
+        WHERE c.namespace = ?
+          AND c.date >= ? AND c.date <= ?
+          AND (${likeClauses})
+        LIMIT ?
+      `;
+    const rows = sourceType
+      ? db.prepare(sql).all(ns, dateFrom, dateTo, sourceType, ...binds, topK)
+      : db.prepare(sql).all(ns, dateFrom, dateTo, ...binds, topK);
+    return rows.map((r, idx) => ({
+      chunkId: r.chunk_id,
+      namespace: r.namespace,
+      parentId: r.parent_id,
+      chunkIndex: r.chunk_index,
+      date: r.date,
+      sourceType: r.source_type,
+      title: r.title,
+      sourceUrl: r.source_url,
+      kind: r.kind,
+      scopeId: r.scope_id,
+      text: r.chunk_text,
+      ftsRank: idx + 1,
+      sim: 0,
+      rankSource: 'fts',
+      ftsPosition: idx + 1,
+    }));
+  }
 
   const deleteByParentStmt = db.prepare('DELETE FROM rag_chunks WHERE parent_id = ?');
   const insertChunkStmt = db.prepare(`
@@ -125,6 +210,7 @@ export function createChunkStore(dbPath) {
   const deleteFtsChunkStmt = db.prepare('DELETE FROM rag_chunks_fts WHERE chunk_id = ?');
 
   function rebuildFts() {
+    if (!fts5Enabled) return;
     db.exec('DELETE FROM rag_chunks_fts');
     db.exec(`
       INSERT INTO rag_chunks_fts(chunk_id, chunk_text, title)
@@ -248,6 +334,7 @@ export function createChunkStore(dbPath) {
      * }} p
      */
     ftsSearch(p) {
+      if (!fts5Enabled) return ftsSearchLike(p);
       const q = String(p.query ?? '').trim();
       if (!q) return [];
       const ns = String(p.namespace ?? '').trim();

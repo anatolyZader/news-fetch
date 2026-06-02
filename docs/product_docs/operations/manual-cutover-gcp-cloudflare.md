@@ -7,6 +7,10 @@ stability: beta
 tags: ["security", "deploy", "gcp", "cloudflare", "nginx", "cutover"]
 ---
 
+## Purpose
+
+Step-by-step operator runbook for first production cutover on GCP VM + nginx + Cloudflare: DNS, TLS, proxy, firewall, and verification with rollback notes.
+
 ## Architecture (target state)
 
 ```text
@@ -33,6 +37,32 @@ See also: [production-cutover-checklist.md](./production-cutover-checklist.md), 
 - [ ] Client built with `VITE_*` in `client/.env.local`, `npm run client:build`
 - [ ] Domain pointed at Cloudflare (or at VM IP if not using Cloudflare yet)
 - [ ] SSH access to the GCP VM
+
+## Inputs
+
+- GCP project, VM instance, static IP, firewall tags.
+- Cloudflare zone and API token (if using scripted cutover).
+- Domain TLS certificates (origin cert or Let's Encrypt on nginx).
+
+## Outputs
+
+- Public HTTPS to the SPA and `/api/*` via Cloudflare → VM → nginx → Fastify.
+- GCP firewall: allow 80/443, deny 3000 from internet.
+- Documented rollback: DNS grey-cloud or revert A record to previous target.
+
+## Constraints
+
+- Fastify must stay on `127.0.0.1:3000` until proxy and firewall are verified.
+- Run webhook smoke tests after Cloudflare rate-limit rules — Meta traffic must not be blocked.
+- Keep app rate limits enabled when edge WAF is on.
+
+## Examples
+
+```bash runnable
+test -f scripts/ops/cloudflare-cutover.sh && echo "cutover script present"
+```
+
+Expected: `cutover script present`
 
 ---
 
@@ -473,6 +503,15 @@ Use the minimum rollback needed. Never combine “open `:3000` to the internet�
 | **Full revert** | Return to pre-cutover | Grey-cloud DNS → rollback nginx → keep `:3000` blocked → restore old deploy | Combine rows above in reverse order of §6 |
 
 **After any rollback:** Document what broke, fix root cause, then re-run the failed §6 step and its verify gate.
+
+## Troubleshooting
+
+| Symptom | Likely cause | Fix |
+|---------|----------------|-----|
+| 502 from Cloudflare | nginx down or wrong upstream | `sudo nginx -t`; confirm `proxy_pass http://127.0.0.1:3000` |
+| Webhooks fail after cutover | WAF rate limit | Tune `/api/webhooks/*` rule; see §4 |
+| `curl :3000` works publicly | Missing deny firewall | Re-run `gcp-ingress-firewall.sh` deny rule |
+| SSL handshake error | Full (strict) without origin cert | Install origin cert or use Cloudflare origin CA |
 
 ---
 

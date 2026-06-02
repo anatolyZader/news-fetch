@@ -11,6 +11,35 @@ tags: ["siem", "logging", "alerts"]
 
 Structured signals for auth failures, rate limits, budget caps, and audit events — same queries work on **GCP VM (Ops Agent → Cloud Logging)** and **Cloud Run (native logging)**.
 
+## Prerequisites
+
+- Log shipping configured (Ops Agent on VM or Cloud Run default logging).
+- Access to Cloud Logging / your SIEM with JSON field search.
+
+## Inputs
+
+- `cross-cut-modules/log/data/audit.jsonl` and `cost-log.jsonl` on the host (or exported to GCS).
+- HTTP access logs from the reverse proxy (optional).
+- Alert thresholds (401/429 rates, budget env vars).
+
+## Outputs
+
+- Log-based metrics and alert policies in Cloud Logging (or forwarded SIEM).
+- On-call notifications when thresholds breach.
+
+## Constraints
+
+- Audit JSONL on VM disk is not durable across reprovision — export for long retention.
+- Tune thresholds per environment; staging traffic should not page production on-call.
+
+## Examples
+
+```bash runnable
+test -f cross-cut-modules/log/data/audit.jsonl && echo "audit log exists" || echo "no audit log yet"
+```
+
+Expected: `audit log exists` after the app has served authenticated actions, or `no audit log yet` on a fresh install.
+
 ## Log sources
 
 | Source | Path / stream | Format |
@@ -79,6 +108,14 @@ App logs or resilience ingest: `missing_hmac_secret`, `hmac_mismatch` in probe v
 ## Cloud Run
 
 Same Logging filters — `resource.type="cloud_run_revision"`. Export audit JSONL to GCS via scheduled job if long retention is required (Cloud Run disks are ephemeral).
+
+## Troubleshooting
+
+| Symptom | Check |
+|---------|--------|
+| No audit events in SIEM | File path in Ops Agent config; app `AUTH_REQUIRED` and real user actions |
+| Alert noise on 401 | Bot scans — raise threshold or add geo filter at edge |
+| Cost alerts never fire | `BUDGET_*` env and `cost-log.jsonl` rotation / permissions |
 
 ## Related
 
