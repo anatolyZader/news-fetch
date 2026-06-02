@@ -180,7 +180,7 @@ Each completed tool round writes a structured row to the audit log via [`appendA
 }
 ```
 
-- Default log path: `log/data/audit.jsonl` (override with `AUDIT_LOG_PATH`).
+- Default log path: `cross-cut-modules/log/data/audit.jsonl` (override with `AUDIT_LOG_PATH`).
 - Audit failure is swallowed so logging never breaks the agent loop.
 - Validation agent POST also calls `auditFromRequest(request, 'validation.agent', …)` at route level.
 

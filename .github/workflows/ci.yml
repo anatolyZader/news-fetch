@@ -238,6 +238,11 @@ jobs:
 
       - uses: ./.github/actions/setup-npm-ci
         with:
+          working-directory: client
+          min-release-age-days: ${{ steps.release_age.outputs.days }}
+
+      - uses: ./.github/actions/setup-npm-ci
+        with:
           working-directory: analyst-site
           min-release-age-days: ${{ steps.release_age.outputs.days }}
 
