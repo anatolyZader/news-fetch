@@ -1,5 +1,4 @@
-import { validateGeoEnvelope } from '../../business_modules/geo/domain/value_objects/geoEnrichmentSchema.js';
-import { GEO_PROVENANCE } from '../../business_modules/geo/domain/value_objects/geoProvenance.js';
+import { validateGeoEnvelope, GEO_PROVENANCE } from '../../business_modules/geo/index.js';
 import { inferLocalityCandidateForSignal } from './localityCandidate.js';
 
 /**

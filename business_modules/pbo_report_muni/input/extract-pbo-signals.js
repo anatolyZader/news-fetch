@@ -14,13 +14,17 @@
  * Output: signals/signals-pbo-{date}.json (north) or signals/signals-pbo-{district}-{date}.json
  */
 
+import { bootstrapDefaultStateStore } from '../../../cross-cut-modules/persistence/bootstrapStateStore.js';
+
+bootstrapDefaultStateStore();
+
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { getMunicipalityDashboard } from '../app/pboMunicipalityService.js';
 import { enrichSignalsWithGeo } from '../../../cross-cut-modules/geo/enrichSignalsWithGeo.js';
 import { listPboDistrictIds } from '../../../cross-cut-modules/pbo/pboDistrictRegistry.js';
-import { loadReviewMetadataMapForDate, shouldForcePboSignalRewrite } from '../../pbo_report_review/input/createPboReviewWiring.js';
+import { loadReviewMetadataMapForDate, shouldForcePboSignalRewrite } from '../../pbo_report_review/index.js';
 import { createSourceArchive } from '../../../db/source_archive/createSourceArchive.js';
 import {
   archivePboMunicipalityDay,

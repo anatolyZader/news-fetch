@@ -3,7 +3,10 @@
  * Requires NEWSAPI_API_KEY in .env or env.
  */
 import 'dotenv/config';
+import { bootstrapDefaultStateStore } from './cross-cut-modules/persistence/bootstrapStateStore.js';
 import { createApp } from './app.js';
+
+bootstrapDefaultStateStore();
 import { createNewsApiArticlesFetcher } from './business_modules/news-sites/infrastructure/adapters/newsApiYnetAdapter.js';
 import {
   validateProductionSecurity,

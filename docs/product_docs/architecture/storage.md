@@ -45,6 +45,11 @@ Explain what Srulik's lab persists, where those bytes live, how persistence inte
 | Signals (per source, per date) | Filesystem (`signals/`) | `signals-<source>-YYYY-MM-DD.json` |
 | Source exports | Filesystem (`business_modules/*/articles_extracted/`, module-specific dirs such as `whatsapp/reports/`) | Dated markdown |
 | Cost log | Filesystem (`cross-cut-modules/log/data/cost-log.jsonl`) | Append-only audit |
+| Outbox events | SQLite (`db/persistence/outboxStore.js`) | Transactional domain event queue |
+| Processed event handlers | SQLite (`db/persistence/processedEventStore.js`) | Idempotency ledger for bus handlers |
+| Pipeline run metadata | SQLite (`db/persistence/pipelineRunStore.js`) | Stage timestamps per date/scope |
+
+**Ownership:** All new SQLite stores belong under `db/persistence/`. Legacy re-exports in `cross-cut-modules/persistence/` are deprecated; use `db/persistence/*` from composition root.
 
 ## Examples
 

@@ -10,7 +10,7 @@
  */
 
 import { createAnthropicLlmPort } from '../../../cross-cut-modules/llm/anthropicLlmAdapter.js';
-import { buildDraftUserContent } from '../../report_build/domain/reportBuildPrompt.js';
+import { buildDraftUserContent } from '../../report_build/index.js';
 
 const SYSTEM_PROMPT =
   `You are an Israeli community resilience field-report drafter.\n` +

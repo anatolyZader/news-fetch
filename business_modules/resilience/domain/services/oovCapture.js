@@ -1,8 +1,11 @@
 /**
  * Capture out-of-vocabulary signal suggestions for catalog evolution.
  */
-import { getDefaultStateStore } from '../../../../cross-cut-modules/persistence/infrastructure/fsStateStoreAdapter.js';
-const stateStore = getDefaultStateStore();
+import { resolveStateStore } from '../../../../cross-cut-modules/persistence/domain/resolveStateStore.js';
+
+function getStore(deps = {}) {
+  return resolveStateStore(deps);
+}
 import { resolve } from 'node:path';
 
 
@@ -31,10 +34,10 @@ export function isResidualCaptureEnabled(env = process.env) {
 export function appendOovCapture(record, reportsDir = 'daily_reports') {
   if (!isLearningCaptureEnabled()) return;
   const dir = resolve(reportsDir);
-  stateStore.mkdirSync(dir, { recursive: true });
+  getStore().mkdirSync(dir, { recursive: true });
   const date = record.timestamp?.slice(0, 10) ?? new Date().toISOString().slice(0, 10);
   const path = resolve(dir, `oov-capture-${date}.jsonl`);
-  stateStore.appendFileSync(path, `${JSON.stringify(record)}\n`, 'utf8');
+  getStore().appendFileSync(path, `${JSON.stringify(record)}\n`, 'utf8');
 }
 
 /** @type {Array<object>} in-memory buffer for current run */
@@ -68,9 +71,9 @@ export function getOovRunBuffer() {
 export function countOovCapturesForDate(date, reportsDir = 'daily_reports') {
   if (!isLearningCaptureEnabled()) return 0;
   const path = resolve(reportsDir, `oov-capture-${date}.jsonl`);
-  if (!stateStore.existsSync(path)) return 0;
+  if (!getStore().existsSync(path)) return 0;
   try {
-    const text = stateStore.readFileSync(path, 'utf8');
+    const text = getStore().readFileSync(path, 'utf8');
     return text.split('\n').filter((line) => line.trim()).length;
   } catch {
     return 0;

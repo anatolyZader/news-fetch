@@ -1,4 +1,5 @@
 export { createReportBuildService } from './app/reportBuildService.js';
+export { buildDraftUserContent } from './domain/reportBuildPrompt.js';
 
 export { computeGaps, isSufficient, mergeStructured } from './domain/gapEngine.js';
 export {

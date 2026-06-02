@@ -14,16 +14,20 @@ import { createTranslationGlossaryIndexWriter } from './translationGlossaryIndex
 import { createRetrievalPortAdapter } from './infrastructure/retrievalPortAdapter.js';
 
 /**
- * @param {{ dbPath: string, timezone?: string }} opts
+ * @param {{ dbPath: string, timezone?: string, tracePort?: object, metricsPort?: object, onUsage?: Function|null }} opts
  */
 export function createRetrievalService(opts) {
   const dbPath = String(opts?.dbPath ?? '').trim();
   if (!dbPath) throw new Error('createRetrievalService: dbPath required');
 
-  const chunkStore = createChunkStore(dbPath);
-  const indexWriter = createIndexWriter(chunkStore);
+  let onUsage = opts.onUsage ?? null;
+
+  const chunkStore = createChunkStore(dbPath, { metricsPort: opts.metricsPort ?? null });
+  const indexWriter = createIndexWriter(chunkStore, { getOnUsage: () => onUsage });
   const retrieval = createRetrievalOrchestrator(chunkStore, indexWriter, {
     timezone: opts.timezone,
+    tracePort: opts.tracePort ?? null,
+    getOnUsage: () => onUsage,
   });
   const storyClusterIndex = createStoryClusterIndex(dbPath);
   const catalogIndexWriter = createCatalogIndexWriter(indexWriter);
@@ -48,6 +52,9 @@ export function createRetrievalService(opts) {
   });
 
   return {
+    setOnUsage(fn) {
+      onUsage = typeof fn === 'function' ? fn : null;
+    },
     close() {
       storyClusterIndex.close();
       chunkStore.close();

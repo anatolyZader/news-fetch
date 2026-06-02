@@ -1,5 +1,6 @@
 import { createNoopMetricsPort } from '../domain/ports/IMetricsPort.js';
 import { createNoopTracePort } from '../domain/ports/ITracePort.js';
+import { METRIC } from '../domain/metricNames.js';
 import { createPipelineStatusService } from './pipelineStatusService.js';
 import { createHealthService } from './healthService.js';
 import {
@@ -34,14 +35,14 @@ export function createMonitoringService(deps) {
   });
 
   async function getPipelineStatus(opts = {}) {
-    return tracePort.startActiveSpan('monitoring.getPipelineStatus', () => {
+    return tracePort.startActiveSpan(METRIC.MONITORING_GET_PIPELINE_STATUS, () => {
       metricsPort.increment('monitoring.pipeline.requests');
       return pipelineStatus.getStatus(opts);
     });
   }
 
   async function getHealth() {
-    return tracePort.startActiveSpan('monitoring.getHealth', () => {
+    return tracePort.startActiveSpan(METRIC.MONITORING_GET_HEALTH, () => {
       metricsPort.increment('monitoring.health.requests');
       return health.getHealth();
     });
@@ -71,8 +72,19 @@ export function createMonitoringService(deps) {
     return summarizeStageDropRates(byScript);
   }
 
+  function metricsSnapshot() {
+    if (typeof metricsPort.snapshot === 'function') {
+      return metricsPort.snapshot();
+    }
+    return null;
+  }
+
+  function metricsPortKind() {
+    return typeof metricsPort.snapshot === 'function' ? 'in_process' : 'noop';
+  }
+
   async function getSummary({ date, scope = 'national' } = {}) {
-    return tracePort.startActiveSpan('monitoring.getSummary', async (span) => {
+    return tracePort.startActiveSpan(METRIC.MONITORING_GET_SUMMARY, async (span) => {
       span.setAttribute('monitoring.scope', scope);
       if (date) span.setAttribute('monitoring.date', date);
 
@@ -83,6 +95,7 @@ export function createMonitoringService(deps) {
 
       metricsPort.gauge('monitoring.pipeline.overall', pipeline.overall === 'complete' ? 1 : 0);
 
+      const latency = metricsSnapshot();
       return {
         date: pipeline.date,
         scope: pipeline.scope,
@@ -96,8 +109,9 @@ export function createMonitoringService(deps) {
         },
         cost,
         stage_telemetry,
-        metrics_port: 'noop',
-        trace_port: 'noop',
+        metrics_port: metricsPortKind(),
+        trace_port: metricsPortKind(),
+        ...(latency ? { latency } : {}),
       };
     });
   }

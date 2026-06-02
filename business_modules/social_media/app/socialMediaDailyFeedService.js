@@ -3,7 +3,7 @@ import {
   EMERGENCY_CATEGORY_IDS,
 } from '../domain/value_objects/emergencyCategories.js';
 import { findingsToDedupedPosts } from '../domain/services/postNormalizer.js';
-import { translateSocialPosts } from '../../translation/app/translationService.js';
+import { translateSocialPosts } from '../../translation/index.js';
 
 /**
  * @param {{

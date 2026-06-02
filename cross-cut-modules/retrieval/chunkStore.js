@@ -69,8 +69,15 @@ function safeJsonStringify(obj) {
 
 /**
  * @param {string} dbPath
+ * @param {{ metricsPort?: { histogram: (name: string, ms: number) => void }|null }} [opts]
  */
-export function createChunkStore(dbPath) {
+export function createChunkStore(dbPath, opts = {}) {
+  const metricsPort = opts.metricsPort ?? null;
+
+  function recordDuration(name, startMs) {
+    if (!metricsPort) return;
+    metricsPort.histogram(name, performance.now() - startMs);
+  }
   mkdirSync(dirname(dbPath), { recursive: true });
   const db = new DatabaseSync(dbPath);
   db.exec(BASE_DDL);
@@ -298,41 +305,46 @@ export function createChunkStore(dbPath) {
      * }} p
      */
     denseSearch(p) {
-      const ns = String(p.namespace ?? '').trim();
-      const dateFrom = String(p.dateFrom ?? '').trim();
-      const dateTo = String(p.dateTo ?? dateFrom).trim();
-      const sourceType = p.sourceType ? String(p.sourceType).trim() : null;
-      const qv = p.queryVector;
-      if (!qv?.length) return [];
+      const t0 = performance.now();
+      try {
+        const ns = String(p.namespace ?? '').trim();
+        const dateFrom = String(p.dateFrom ?? '').trim();
+        const dateTo = String(p.dateTo ?? dateFrom).trim();
+        const sourceType = p.sourceType ? String(p.sourceType).trim() : null;
+        const qv = p.queryVector;
+        if (!qv?.length) return [];
 
-      const rows = selectForDenseStmt.all(ns, dateFrom, dateTo, sourceType, sourceType);
-      const scored = [];
-      const minSim = p.minSim ?? 0;
-      for (const r of rows) {
-        if (!r.embedding) continue;
-        const dv = bufferToFloat32(r.embedding);
-        if (!dv.length) continue;
-        const sim = cosineSim(qv, dv);
-        if (sim >= minSim) {
-          scored.push({
-            chunkId: r.chunk_id,
-            namespace: r.namespace,
-            parentId: r.parent_id,
-            chunkIndex: r.chunk_index,
-            date: r.date,
-            sourceType: r.source_type,
-            title: r.title,
-            sourceUrl: r.source_url,
-            kind: r.kind,
-            scopeId: r.scope_id,
-            text: r.chunk_text,
-            sim,
-            rankSource: 'dense',
-          });
+        const rows = selectForDenseStmt.all(ns, dateFrom, dateTo, sourceType, sourceType);
+        const scored = [];
+        const minSim = p.minSim ?? 0;
+        for (const r of rows) {
+          if (!r.embedding) continue;
+          const dv = bufferToFloat32(r.embedding);
+          if (!dv.length) continue;
+          const sim = cosineSim(qv, dv);
+          if (sim >= minSim) {
+            scored.push({
+              chunkId: r.chunk_id,
+              namespace: r.namespace,
+              parentId: r.parent_id,
+              chunkIndex: r.chunk_index,
+              date: r.date,
+              sourceType: r.source_type,
+              title: r.title,
+              sourceUrl: r.source_url,
+              kind: r.kind,
+              scopeId: r.scope_id,
+              text: r.chunk_text,
+              sim,
+              rankSource: 'dense',
+            });
+          }
         }
+        scored.sort((a, b) => b.sim - a.sim);
+        return scored.slice(0, Math.max(1, Math.min(100, p.topK ?? 50)));
+      } finally {
+        recordDuration('sqlite.dense_search.duration_ms', t0);
       }
-      scored.sort((a, b) => b.sim - a.sim);
-      return scored.slice(0, Math.max(1, Math.min(100, p.topK ?? 50)));
     },
 
     /**
@@ -347,26 +359,28 @@ export function createChunkStore(dbPath) {
      * }} p
      */
     ftsSearch(p) {
-      if (!ftsReady) return ftsSearchLike(p);
-      const q = String(p.query ?? '').trim();
-      if (!q) return [];
-      const ns = String(p.namespace ?? '').trim();
-      const dateFrom = String(p.dateFrom ?? '').trim();
-      const dateTo = String(p.dateTo ?? dateFrom).trim();
-      const sourceType = p.sourceType ? String(p.sourceType).trim() : null;
-      const topK = Math.max(1, Math.min(100, p.topK ?? 50));
-
-      const terms = q
-        .replace(/[^\p{L}\p{N}\s]+/gu, ' ')
-        .split(/\s+/)
-        .filter((t) => t.length >= 2)
-        .slice(0, 12);
-      if (terms.length === 0) return [];
-
-      const ftsQuery = terms.map((t) => `"${t.replaceAll('"', '')}"`).join(' OR ');
-      let rows;
+      const t0 = performance.now();
       try {
-        const sql = sourceType
+        if (!ftsReady) return ftsSearchLike(p);
+        const q = String(p.query ?? '').trim();
+        if (!q) return [];
+        const ns = String(p.namespace ?? '').trim();
+        const dateFrom = String(p.dateFrom ?? '').trim();
+        const dateTo = String(p.dateTo ?? dateFrom).trim();
+        const sourceType = p.sourceType ? String(p.sourceType).trim() : null;
+        const topK = Math.max(1, Math.min(100, p.topK ?? 50));
+
+        const terms = q
+          .replace(/[^\p{L}\p{N}\s]+/gu, ' ')
+          .split(/\s+/)
+          .filter((t) => t.length >= 2)
+          .slice(0, 12);
+        if (terms.length === 0) return [];
+
+        const ftsQuery = terms.map((t) => `"${t.replaceAll('"', '')}"`).join(' OR ');
+        let rows;
+        try {
+          const sql = sourceType
           ? `
           SELECT c.chunk_id, c.namespace, c.parent_id, c.chunk_index, c.date, c.source_type,
                  c.title, c.source_url, c.kind, c.scope_id, c.chunk_text,

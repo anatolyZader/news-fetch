@@ -3,7 +3,7 @@
  */
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { getMunicipalityDashboard } from '../../pbo_report_muni/app/pboMunicipalityService.js';
+import { getMunicipalityDashboard } from '../../pbo_report_muni/index.js';
 import {
   deriveInstrumentState,
   operatorAssessmentSummary,

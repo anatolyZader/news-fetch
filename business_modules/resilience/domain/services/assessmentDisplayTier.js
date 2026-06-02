@@ -5,7 +5,6 @@
 
 import { deriveThinEvidencePolicy, isThinEvidencePolicyEnabled, deriveAssessmentEpistemicPolicy } from './thinEvidencePolicy.js';
 import { narrativeGroundingMinScore } from './narrativeGrounding/groundingConfig.js';
-import { canViewAnalystDisplay } from '../../../../cross-cut-modules/auth/userAccess.js';
 
 export const DISPLAY_VIEWS = Object.freeze({
   operator: 'operator',
@@ -45,15 +44,15 @@ const SCORE_KEYS_COMPONENT = [
 ];
 
 /**
- * @param {{ queryView?: string, userEmail?: string | null }} opts
+ * @param {{ queryView?: string, canViewAnalyst?: boolean }} opts
  * @returns {'operator' | 'analyst'}
  */
-export function resolveDisplayView({ queryView, userEmail } = {}) {
+export function resolveDisplayView({ queryView, canViewAnalyst = false } = {}) {
   const requested = String(queryView ?? 'operator').trim().toLowerCase();
   if (requested !== DISPLAY_VIEWS.analyst) {
     return DISPLAY_VIEWS.operator;
   }
-  return canViewAnalystDisplay(userEmail) ? DISPLAY_VIEWS.analyst : DISPLAY_VIEWS.operator;
+  return canViewAnalyst ? DISPLAY_VIEWS.analyst : DISPLAY_VIEWS.operator;
 }
 
 /**

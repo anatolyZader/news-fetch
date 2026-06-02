@@ -4,7 +4,7 @@ import { mkdtempSync, writeFileSync, rmSync, utimesSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
 
-import { resolveReportJsonPathForDate } from '../../api/analysisService.js';
+import { resolveReportJsonPathForDate } from '../../business_modules/resilience/index.js';
 
 function miniReport(totalArticles) {
   return JSON.stringify({

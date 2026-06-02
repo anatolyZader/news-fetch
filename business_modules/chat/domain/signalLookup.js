@@ -1,8 +1,11 @@
 /**
  * Signal and report lookup utilities for chat tools.
  */
-import { getDefaultStateStore } from '../../../cross-cut-modules/persistence/infrastructure/fsStateStoreAdapter.js';
-const stateStore = getDefaultStateStore();
+import { resolveStateStore } from '../../../cross-cut-modules/persistence/domain/resolveStateStore.js';
+
+function getStore(deps = {}) {
+  return resolveStateStore(deps);
+}
 import { join } from 'node:path';
 import {
   deriveInstrumentState,
@@ -22,7 +25,7 @@ const SIGNAL_FILE_RE = /signals-(.+?)-(\d{4}-\d{2}-\d{2})\.json/;
 
 function readSignalDirNames(dir) {
   try {
-    return stateStore.readdirSync(dir).filter((f) => f.endsWith('.json'));
+    return getStore().readdirSync(dir).filter((f) => f.endsWith('.json'));
   } catch {
     return null;
   }
@@ -71,7 +74,7 @@ export function loadSignals({ date, sourceType } = {}) {
   const results = [];
   for (const { dir, name: f } of fileEntries) {
     try {
-      const raw = JSON.parse(stateStore.readFileSync(join(dir, f), 'utf-8'));
+      const raw = JSON.parse(getStore().readFileSync(join(dir, f), 'utf-8'));
       const meta = {
         source_type: raw.source_type ?? (f.startsWith('signals-social-') ? 'social' : undefined),
         date: raw.date,
@@ -97,7 +100,7 @@ export function loadSignals({ date, sourceType } = {}) {
 export function loadObservations({ date, profile, limit = 50 } = {}) {
   let names;
   try {
-    names = stateStore.readdirSync(OBSERVATIONS_DIR).filter((f) =>
+    names = getStore().readdirSync(OBSERVATIONS_DIR).filter((f) =>
       f.startsWith('observations-') && f.endsWith('.json'),
     );
   } catch {
@@ -109,7 +112,7 @@ export function loadObservations({ date, profile, limit = 50 } = {}) {
     if (date && !f.includes(date)) continue;
     if (profile && !f.startsWith(`observations-${profile}-`)) continue;
     try {
-      const raw = JSON.parse(stateStore.readFileSync(join(OBSERVATIONS_DIR, f), 'utf-8'));
+      const raw = JSON.parse(getStore().readFileSync(join(OBSERVATIONS_DIR, f), 'utf-8'));
       for (const obs of raw.observations ?? []) {
         results.push({
           observation_id: obs.observation_id,
@@ -207,7 +210,7 @@ export function formatSignals(signals) {
 export function loadReport(date) {
   let files;
   try {
-    files = stateStore.readdirSync(REPORTS_DIR)
+    files = getStore().readdirSync(REPORTS_DIR)
       .filter((f) => f.startsWith(`resilience-report-${date}`) && f.endsWith('.json'))
       .sort((a, b) => a.localeCompare(b));
   } catch {
@@ -215,7 +218,7 @@ export function loadReport(date) {
   }
   if (files.length === 0) return null;
   try {
-    return JSON.parse(stateStore.readFileSync(join(REPORTS_DIR, files.at(-1)), 'utf-8'));
+    return JSON.parse(getStore().readFileSync(join(REPORTS_DIR, files.at(-1)), 'utf-8'));
   } catch {
     return null;
   }
@@ -228,7 +231,7 @@ export function loadReport(date) {
 export function listReportDates() {
   let files;
   try {
-    files = stateStore.readdirSync(REPORTS_DIR)
+    files = getStore().readdirSync(REPORTS_DIR)
       .filter((f) => f.startsWith('resilience-report-') && f.endsWith('.json'))
       .sort((a, b) => a.localeCompare(b));
   } catch {

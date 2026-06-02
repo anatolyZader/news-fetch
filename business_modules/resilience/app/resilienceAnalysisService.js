@@ -5,14 +5,10 @@
 import { assertValidResilienceContentBatch } from '../domain/services/resilienceBatchValidation.js';
 import { mergeDualExtractionSignals } from '../infrastructure/dualModelExtract.js';
 import {
-  filterSignalsForScope,
   normalizeReportScope,
   reportScopeMetadata,
 } from '../domain/services/regionSignalFilter.js';
-import {
-  annotateSignalsEpistemics,
-  partitionMacroSignals,
-} from '../domain/services/evidenceEligibility.js';
+import { scopeAndPartitionSignals } from './assessmentPipeline.js';
 import { attachEpistemicToAssessment } from '../domain/services/dataVoidIndex.js';
 import { salienceContextFromDataVoid } from '../domain/services/highSalienceBypass.js';
 import { countOovCapturesForDate } from '../domain/services/oovCapture.js';
@@ -28,7 +24,10 @@ import { attachDecisionBrief } from './attachDecisionBrief.js';
 import { loadConnectivityProbeSignals } from '../infrastructure/adapters/connectivityProbeFileAdapter.js';
 import { enrichProbeSignalsInList } from '../domain/services/probeCorroborationPolicy.js';
 import { summarizeValidationMaturity } from '../validation/domain/validationStatus.js';
+import { resolve } from 'node:path';
 import { isRegionalReportScope } from '../../../cross-cut-modules/geo/reportScopeIds.js';
+import { createPipelineRunStore } from '../../../db/persistence/pipelineRunStore.js';
+import { createPipelineRunTracker } from './pipelineRunTracker.js';
 
 /** Aligned with infrastructure/mdReportsLoader.js body cap */
 export const MAX_BODY_CHARS = 2000;
@@ -114,11 +113,12 @@ async function extractBatchSignals({
   }
 
   allSignals = enrichProbeSignalsInList(allSignals);
-  allSignals = filterSignalsForScope(allSignals, reportScopeId);
-  allSignals = annotateSignalsEpistemics(allSignals, { reportScope: reportScopeId });
-  const { metricsSignals, macroSignals } = partitionMacroSignals(allSignals, reportScopeId);
-  const baseSignalsForScoring = isRegionalReportScope(reportScopeId) ? metricsSignals : allSignals;
-  return { allSignals, baseSignalsForScoring, macroSignals };
+  const partitioned = scopeAndPartitionSignals(allSignals, reportScopeId);
+  return {
+    allSignals: partitioned.scopedSignals,
+    baseSignalsForScoring: partitioned.baseSignalsForScoring,
+    macroSignals: partitioned.macroSignals,
+  };
 }
 
 /**
@@ -281,21 +281,44 @@ export async function runResilienceAssessment(batch, options = {}) {
     throw new Error('llmPort is required');
   }
 
+  const pipelineStore = options.pipelineRunStore ?? (process.env.PIPELINE_RUN_TRACKING === '0'
+    ? null
+    : createPipelineRunStore(
+      process.env.SQLITE_PATH?.trim()
+        ? resolve(process.env.SQLITE_PATH.trim())
+        : resolve(process.cwd(), 'db', 'app.sqlite'),
+    ));
+  const pipeline = createPipelineRunTracker(pipelineStore, {
+    reportDate: batch.reportDate,
+    reportScopeId,
+  });
+  pipeline.completeStage('INGEST');
+  pipeline.completeStage('NORMALIZE');
+
   let articles = batchItemsToArticles(batch);
   if (dedupeTitles) {
     articles = dedupeArticlesByTitle(articles);
   }
 
-  const { allSignals, baseSignalsForScoring, macroSignals } = await extractBatchSignals({
-    batch,
-    articles,
-    llmPort,
-    supplementaryArticles,
-    supplementaryContentKind,
-    onUsage,
-    onProgress,
-    reportScopeId,
-  });
+  let allSignals;
+  let baseSignalsForScoring;
+  let macroSignals;
+  try {
+    ({ allSignals, baseSignalsForScoring, macroSignals } = await extractBatchSignals({
+      batch,
+      articles,
+      llmPort,
+      supplementaryArticles,
+      supplementaryContentKind,
+      onUsage,
+      onProgress,
+      reportScopeId,
+    }));
+    pipeline.completeStage('EXTRACT');
+  } catch (err) {
+    pipeline.failStage('EXTRACT', err);
+    throw err;
+  }
 
   const reportsDir = options.reportsDir ?? 'daily_reports';
   const totalArticles = articles.length + supplementaryArticles.length;
@@ -318,6 +341,7 @@ export async function runResilienceAssessment(batch, options = {}) {
     totalArticles,
     rootDir: options.reportsDir ?? process.cwd(),
   });
+  pipeline.completeStage('SCORE');
 
   const oovCaptureCount = countOovCapturesForDate(batch.reportDate);
   const assessment = await llmPort.generateNarratives(
@@ -339,6 +363,8 @@ export async function runResilienceAssessment(batch, options = {}) {
       quarantinedDigital: pipelineResult.quarantinedDigital,
     },
   );
+
+  pipeline.completeStage('NARRATE');
 
   applyAssessmentPostScoring(assessment, {
     pipelineResult,
@@ -370,6 +396,9 @@ export async function runResilienceAssessment(batch, options = {}) {
     allSignals,
     sourceFiles: sourceFilesForReport,
   });
+  if (persist) {
+    pipeline.completeStage('PERSIST');
+  }
 
   return {
     assessment,

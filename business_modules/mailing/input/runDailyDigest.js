@@ -15,14 +15,17 @@
  * Set MAILING_ENABLED=false to skip sends (script exits 0 without sending).
  */
 import 'dotenv/config';
+import { bootstrapDefaultStateStore } from '../../../cross-cut-modules/persistence/bootstrapStateStore.js';
+
+bootstrapDefaultStateStore();
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createMailingPreferencesStore } from '../infrastructure/mailingPreferencesStore.js';
 import { createMailingResendAdapter } from '../infrastructure/adapters/mailingResendAdapter.js';
 import { createMailingService } from '../app/mailingService.js';
-import { getCachedReport } from '../../../api/analysisService.js';
+import { getCachedReport } from '../../resilience/index.js';
 import { createEvidenceStore } from '../../../db/persistence/evidenceStore.js';
-import { getTranslatedReport } from '../../translation/app/translationService.js';
+import { getTranslatedReport } from '../../translation/index.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, '../../..');

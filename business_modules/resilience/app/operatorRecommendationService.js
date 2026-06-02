@@ -3,7 +3,30 @@
  */
 
 import { readFileSync, writeFileSync } from 'node:fs';
-import { resolveReportJsonPathForDate } from '../../../api/analysisService.js';
+import { normalizeReportScope } from '../domain/services/regionSignalFilter.js';
+import { parseRecommendationAction } from '../domain/value_objects/recommendationAction.js';
+import { resolveReportJsonPathForDate } from './reportCacheService.js';
+
+/**
+ * @param {{ id?: string, scope?: string, date?: string, action?: string, rationale?: string }} input
+ * @returns {{ ok: true, recommendationId: string, scope: string, reportDate: string, action: 'acknowledge'|'dismiss', rationale: string } | { ok: false, error: string, statusCode: number }}
+ */
+export function parseOperatorRecommendationRequest(input = {}) {
+  const recommendationId = String(input.id ?? '').trim();
+  const scope = normalizeReportScope(input.scope ?? 'national');
+  const reportDate = String(input.date ?? '').trim();
+  const action = parseRecommendationAction(input.action ?? 'acknowledge');
+  const rationale = String(input.rationale ?? '').trim();
+
+  if (!recommendationId) {
+    return { ok: false, error: 'recommendation id required', statusCode: 400 };
+  }
+  if (!action) {
+    return { ok: false, error: 'action must be acknowledge or dismiss', statusCode: 400 };
+  }
+
+  return { ok: true, recommendationId, scope, reportDate, action, rationale };
+}
 
 /**
  * @param {string} reportDate YYYY-MM-DD
@@ -38,8 +61,16 @@ export function updateOperatorRecommendationStatus(
     return { ok: false, error: 'recommendation_not_found' };
   }
 
+  const existing = recs[idx];
+  if (update.action === 'acknowledge' && existing.status === 'acknowledged') {
+    return { ok: true, recommendation: existing };
+  }
+  if (update.action === 'dismiss' && existing.status === 'dismissed') {
+    return { ok: true, recommendation: existing };
+  }
+
   const now = new Date().toISOString();
-  const rec = { ...recs[idx] };
+  const rec = { ...existing };
   if (update.action === 'acknowledge') {
     rec.status = 'acknowledged';
     rec.acknowledged_at = now;

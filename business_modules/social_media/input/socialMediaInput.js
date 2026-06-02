@@ -9,6 +9,9 @@
  */
 
 import { config } from 'dotenv';
+import { bootstrapDefaultStateStore } from '../../../cross-cut-modules/persistence/bootstrapStateStore.js';
+
+bootstrapDefaultStateStore();
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createSocialMediaService } from '../app/socialMediaService.js';

@@ -3,8 +3,11 @@
  * Does not modify COMPONENT_TUNING in code.
  */
 
-import { getDefaultStateStore } from '../../../../cross-cut-modules/persistence/infrastructure/fsStateStoreAdapter.js';
-const stateStore = getDefaultStateStore();
+import { resolveStateStore } from '../../../../cross-cut-modules/persistence/domain/resolveStateStore.js';
+
+function getStore(deps = {}) {
+  return resolveStateStore(deps);
+}
 import { resolve } from 'node:path';
 import { COMPONENT_TUNING } from '../../domain/services/behaviorSignals.js';
 
@@ -32,8 +35,8 @@ function clampNum(v, lo, hi) {
 }
 
 function loadNationalReportFiles(reportsDir) {
-  if (!stateStore.existsSync(reportsDir)) return [];
-  return stateStore.readdirSync(reportsDir).filter(
+  if (!getStore().existsSync(reportsDir)) return [];
+  return getStore().readdirSync(reportsDir).filter(
     (f) => f.startsWith('resilience-report-') && f.endsWith('.json') && !f.includes('-north-'),
   );
 }
@@ -161,7 +164,7 @@ export function proposeComponentTuningFromReportFiles(reportsDir, opts = {}) {
   for (const f of files) {
     let j;
     try {
-      j = JSON.parse(stateStore.readFileSync(resolve(dir, f), 'utf8'));
+      j = JSON.parse(getStore().readFileSync(resolve(dir, f), 'utf8'));
     } catch {
       continue;
     }

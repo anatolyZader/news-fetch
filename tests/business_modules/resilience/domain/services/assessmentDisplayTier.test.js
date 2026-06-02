@@ -41,18 +41,13 @@ describe('assessmentDisplayTier', () => {
     assert.equal(resolveDisplayView({ queryView: 'operator' }), DISPLAY_VIEWS.operator);
   });
 
-  it('resolveDisplayView grants analyst only for allowlisted email', () => {
-    process.env.RESILIENCE_ANALYST_EMAILS = 'Analyst@Example.com, other@test.io';
+  it('resolveDisplayView grants analyst only when canViewAnalyst is true', () => {
     assert.equal(
-      resolveDisplayView({ queryView: 'analyst', userEmail: 'analyst@example.com' }),
+      resolveDisplayView({ queryView: 'analyst', canViewAnalyst: true }),
       DISPLAY_VIEWS.analyst,
     );
     assert.equal(
-      resolveDisplayView({ queryView: 'analyst', userEmail: 'stranger@test.io' }),
-      DISPLAY_VIEWS.operator,
-    );
-    assert.equal(
-      resolveDisplayView({ queryView: 'analyst', userEmail: null }),
+      resolveDisplayView({ queryView: 'analyst', canViewAnalyst: false }),
       DISPLAY_VIEWS.operator,
     );
   });

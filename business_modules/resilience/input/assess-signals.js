@@ -18,12 +18,17 @@
  */
 
 import 'dotenv/config';
+import { bootstrapDefaultStateStore } from '../../../cross-cut-modules/persistence/bootstrapStateStore.js';
+import { EVENT_TYPES, publishDomainEvent } from '../../../cross-cut-modules/messaging/index.js';
+
+bootstrapDefaultStateStore();
+
 import { resolve, dirname } from 'node:path';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 import { overallScore, scoreComponents } from '../domain/services/behaviorSignals.js';
-import { filterSignalsForScope } from '../domain/services/regionSignalFilter.js';
+import { scopeAndPartitionSignals } from '../app/assessmentPipeline.js';
 import { buildComparisonContext } from '../domain/services/sourceMixIndex.js';
 import { isRegionalReportScope, reportFilePrefix } from '../../../cross-cut-modules/geo/reportScopeIds.js';
 import { ISRAEL_NATIONAL_DISTRICT_ID } from '../../../cross-cut-modules/geo/israelDistricts.js';
@@ -58,10 +63,6 @@ import { countOovCapturesForDate } from '../domain/services/oovCapture.js';
 import {
   getSocialQuarantineDecision,
 } from '../domain/services/socialQuarantineOverrides.js';
-import {
-  annotateSignalsEpistemics,
-  partitionMacroSignals,
-} from '../domain/services/evidenceEligibility.js';
 import { proposeComponentTuningFromReportFiles } from '../tuning/domain/componentTuningProposal.js';
 import {
   summarizeStageEvents,
@@ -71,7 +72,7 @@ import createValidationCollectionService from '../validation/app/validationColle
 import { summarizeValidationMaturity } from '../validation/domain/validationStatus.js';
 import { loadConnectivityProbeSignals, loadProbeRecordsForDate } from '../infrastructure/adapters/connectivityProbeFileAdapter.js';
 import { enrichProbeSignalsInList } from '../domain/services/probeCorroborationPolicy.js';
-import { createDefaultPboReportReviewService } from '../../pbo_report_review/input/createPboReviewWiring.js';
+import { createDefaultPboReportReviewService } from '../../pbo_report_review/index.js';
 import { createSourceArchive } from '../../../db/source_archive/createSourceArchive.js';
 import { archiveProbeRecords } from '../../../db/source_archive/archiveProbeRecords.js';
 import { createRetrievalService } from '../../../cross-cut-modules/retrieval/createRetrievalService.js';
@@ -317,10 +318,12 @@ async function buildScopedScoring(targetDate, days, allSignals, totalArticles, r
     console.error(`  Loaded historical score series for ${Object.keys(historicalScores).length} components`);
   }
 
-  let scopedSignals = filterSignalsForScope(allSignals, reportScopeId);
-  scopedSignals = annotateSignalsEpistemics(scopedSignals, { reportScope: reportScopeId });
-  const { metricsSignals, macroSignals } = partitionMacroSignals(scopedSignals, reportScopeId);
-  let baseSignalsForScoring = isRegionalReportScope(reportScopeId) ? metricsSignals : scopedSignals;
+  const {
+    scopedSignals,
+    metricsSignals,
+    macroSignals,
+    baseSignalsForScoring,
+  } = scopeAndPartitionSignals(allSignals, reportScopeId);
 
   const prepared = await prepareScoringSignals({
     signalsForScoring: baseSignalsForScoring,
@@ -710,6 +713,18 @@ async function finalizeAndWriteReport({
 
   await attachPboCompletenessSummary(assessment, targetDate);
   writeReport(assessment, scopedSignals, [...new Set(sourceFiles)], outputBase, { scoreBySource });
+  try {
+    await publishDomainEvent({
+      eventType: EVENT_TYPES.RESILIENCE_REPORT_WRITTEN,
+      payload: {
+        date: targetDate,
+        scope: reportScopeId,
+        jsonPath: `${outputBase}.json`,
+      },
+    });
+  } catch (err) {
+    console.error(`  ⚠ Event publish failed: ${err?.message ?? err}`);
+  }
   logAssessmentOutputs(assessment, outputBase, printSummary);
 
   const { totalCostUsd, usageLog, stageEvents } = getTotal();

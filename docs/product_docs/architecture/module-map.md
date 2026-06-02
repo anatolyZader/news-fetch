@@ -36,7 +36,9 @@ For role and scope terminology, see the repo glossary at `docs/architecture/ubiq
 
 ```
 /
-├── app.js, server.js          # Fastify app + entry point
+├── app.js                     # Re-exports composition/createApp.js
+├── composition/               # Composition root registrars
+├── server.js                  # Process entry point
 ├── package.json               # Scripts + deps
 ├── openapi/openapi.yaml       # API contract (source of truth)
 ├── docs/

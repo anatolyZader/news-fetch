@@ -1,5 +1,8 @@
-import { normalizeLocalityLookupKey } from '../../business_modules/geo/domain/services/resolveLocalityMatch.js';
-import { GEO_PROVENANCE, TEXT_INFERENCE_SOURCE_TYPES } from '../../business_modules/geo/domain/value_objects/geoProvenance.js';
+import {
+  normalizeLocalityLookupKey,
+  GEO_PROVENANCE,
+  TEXT_INFERENCE_SOURCE_TYPES,
+} from '../../business_modules/geo/index.js';
 
 const ENGLISH_LOCALITY_WORD = String.raw`[A-Za-z][A-Za-z\-'.]{0,24}`;
 const ENGLISH_LOCALITY_PHRASE = String.raw`${ENGLISH_LOCALITY_WORD}(?:\s+${ENGLISH_LOCALITY_WORD}){0,3}`;

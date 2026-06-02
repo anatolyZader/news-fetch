@@ -1,8 +1,8 @@
 /**
  * @typedef {object} IAuthPort
- * @property {(projectId: string) => void} initAuth
- * @property {(decoded: object) => boolean} isEmailVerified
- * @property {(bearerHeader: string | undefined, opts?: { checkRevoked?: boolean }) => Promise<{ decoded?: object, error?: string }>} verifyToken
+ * @property {(projectId: string) => void} init
+ * @property {(bearerHeader: string, checkRevoked?: boolean) => Promise<object|null>} verifyToken
+ * @property {(email: string) => Promise<boolean>} isEmailVerified
  */
 
 export {};

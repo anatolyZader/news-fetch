@@ -1,4 +1,4 @@
-import { normalizeLocalityLookupKey } from '../../geo/domain/services/resolveLocalityMatch.js';
+import { normalizeLocalityLookupKey } from '../../geo/index.js';
 
 /**
  * @param {{ canonicalKey: string, displayName: string }[]} localities

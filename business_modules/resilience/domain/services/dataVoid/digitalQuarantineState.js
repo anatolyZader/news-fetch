@@ -2,8 +2,11 @@
  * Same-day digital quarantine persistence — block re-ingestion on re-assess.
  */
 
-import { getDefaultStateStore } from '../../../../../cross-cut-modules/persistence/infrastructure/fsStateStoreAdapter.js';
-const stateStore = getDefaultStateStore();
+import { resolveStateStore } from '../../../../../cross-cut-modules/persistence/domain/resolveStateStore.js';
+
+function getStore(deps = {}) {
+  return resolveStateStore(deps);
+}
 import { join, resolve } from 'node:path';
 
 import {
@@ -33,18 +36,18 @@ function escapeRegExpPrefix(prefix) {
  * @param {string} date
  */
 function findLatestReportForDate(reportsDir, scopeId, date) {
-  if (!stateStore.existsSync(reportsDir)) return null;
+  if (!getStore().existsSync(reportsDir)) return null;
   const prefix = reportFilePrefix(normalizeReportScopeId(scopeId));
   const pattern = new RegExp(
     String.raw`^${escapeRegExpPrefix(prefix)}-${date}(?:-(\d{4}))?\.json$`,
   );
   let best = null;
   let bestMtime = -1;
-  for (const f of stateStore.readdirSync(reportsDir)) {
+  for (const f of getStore().readdirSync(reportsDir)) {
     if (!pattern.test(f)) continue;
     const fullPath = join(reportsDir, f);
     let mtime;
-    try { mtime = stateStore.statSync(fullPath).mtimeMs; } catch { continue; }
+    try { mtime = getStore().statSync(fullPath).mtimeMs; } catch { continue; }
     if (mtime > bestMtime) {
       bestMtime = mtime;
       best = fullPath;
@@ -52,7 +55,7 @@ function findLatestReportForDate(reportsDir, scopeId, date) {
   }
   if (!best) return null;
   try {
-    return JSON.parse(stateStore.readFileSync(best, 'utf8'));
+    return JSON.parse(getStore().readFileSync(best, 'utf8'));
   } catch {
     return null;
   }

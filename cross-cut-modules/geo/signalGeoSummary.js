@@ -7,6 +7,6 @@ export {
   groupSignalsBySubregion,
   summarizeGeoCoverage,
   summarizeGeoQuality,
-} from '../../business_modules/geo/domain/services/geoAggregation.js';
-export { collectGeoVersionsFromSignals } from '../../business_modules/geo/domain/services/geoReportDiagnostics.js';
-export { validateGeoEnvelope } from '../../business_modules/geo/domain/value_objects/geoEnrichmentSchema.js';
+  collectGeoVersionsFromSignals,
+  validateGeoEnvelope,
+} from '../../business_modules/geo/index.js';

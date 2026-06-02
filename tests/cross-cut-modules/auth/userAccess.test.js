@@ -74,17 +74,23 @@ describe('userAccess', () => {
     });
   });
 
-  it('resolveDisplayView grants analyst only for allowlisted email', () => {
+  it('resolveDisplayView grants analyst when canViewAnalyst is true', () => {
     setUserAccessConfigForTests({
       operatorDistrictEnforcementEnabled: false,
       users: [{ email: 'analyst@example.com', level: 'analyst' }],
     });
     assert.equal(
-      resolveDisplayView({ queryView: 'analyst', userEmail: 'analyst@example.com' }),
+      resolveDisplayView({
+        queryView: 'analyst',
+        canViewAnalyst: canViewAnalystDisplay('analyst@example.com'),
+      }),
       DISPLAY_VIEWS.analyst,
     );
     assert.equal(
-      resolveDisplayView({ queryView: 'analyst', userEmail: 'stranger@test.io' }),
+      resolveDisplayView({
+        queryView: 'analyst',
+        canViewAnalyst: canViewAnalystDisplay('stranger@test.io'),
+      }),
       DISPLAY_VIEWS.operator,
     );
   });

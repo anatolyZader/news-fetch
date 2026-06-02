@@ -14,6 +14,13 @@ import {
 let defaultLlmPort = null;
 
 /**
+ * @param {import('../domain/ports/IResilienceLlmPort.js').IResilienceLlmPort} port
+ */
+export function setDefaultResilienceLlmPort(port) {
+  defaultLlmPort = port;
+}
+
+/**
  * @returns {import('../domain/ports/IResilienceLlmPort.js').IResilienceLlmPort}
  */
 export function getDefaultResilienceLlmPort() {
@@ -21,6 +28,25 @@ export function getDefaultResilienceLlmPort() {
     defaultLlmPort = createAnthropicResilienceLlmAdapter();
   }
   return defaultLlmPort;
+}
+
+/** Reset cached LLM port (tests). */
+export function resetDefaultResilienceLlmPortForTests() {
+  defaultLlmPort = null;
+}
+
+/**
+ * @param {{ llmPort?: import('../domain/ports/IResilienceLlmPort.js').IResilienceLlmPort }} [deps]
+ */
+export function createResilienceLlmCapability(deps = {}) {
+  const llmPort = deps.llmPort ?? createAnthropicResilienceLlmAdapter();
+  return {
+    llmPort,
+    buildSignalExtractionSystemPrompt,
+    extractJsonArray,
+    extractEvidence,
+    synthesizeComponents,
+  };
 }
 
 export { buildSignalExtractionSystemPrompt, extractJsonArray, extractEvidence, synthesizeComponents };

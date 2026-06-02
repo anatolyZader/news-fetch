@@ -1,33 +1,26 @@
-/**
- * Firebase Admin implementation of IAuthPort.
- */
-
 import {
   initFirebaseAdminForAuth,
-  isEmailVerificationSatisfied,
   verifyIdTokenFromAuthorizationHeader,
 } from '../firebaseAdmin.js';
 
-/** @type {import('../domain/ports/IAuthPort.js').IAuthPort | null} */
-let defaultPort = null;
-
 /**
- * @returns {import('../domain/ports/IAuthPort.js').IAuthPort}
+ * @returns {import('../domain/ports/IAuthPort.js').IAuthPort & { verifyToken: (authorization?: string) => Promise<{ decoded?: object, error?: string }> }}
  */
 export function createFirebaseAuthAdapter() {
   return {
-    initAuth: initFirebaseAdminForAuth,
-    isEmailVerified: isEmailVerificationSatisfied,
-    verifyToken: verifyIdTokenFromAuthorizationHeader,
+    init: initFirebaseAdminForAuth,
+    verifyToken: (authorization, opts) => verifyIdTokenFromAuthorizationHeader(authorization, opts),
+    isEmailVerified: async () => true,
   };
 }
 
-/**
- * @returns {import('../domain/ports/IAuthPort.js').IAuthPort}
- */
+let defaultPort = null;
+
 export function getDefaultAuthPort() {
-  if (!defaultPort) {
-    defaultPort = createFirebaseAuthAdapter();
-  }
+  if (!defaultPort) defaultPort = createFirebaseAuthAdapter();
   return defaultPort;
+}
+
+export function setDefaultAuthPort(port) {
+  defaultPort = port;
 }

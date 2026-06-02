@@ -2,8 +2,11 @@
  * Roll up validation artifact maturity for analysts (Tier 2–5 readiness).
  */
 
-import { getDefaultStateStore } from '../../../../cross-cut-modules/persistence/infrastructure/fsStateStoreAdapter.js';
-const stateStore = getDefaultStateStore();
+import { resolveStateStore } from '../../../../cross-cut-modules/persistence/domain/resolveStateStore.js';
+
+function getStore(deps = {}) {
+  return resolveStateStore(deps);
+}
 import { join } from 'node:path';
 
 import {
@@ -16,8 +19,8 @@ import {
  * @param {string} dir
  */
 function listJsonFiles(dir) {
-  if (!stateStore.existsSync(dir)) return [];
-  return stateStore.readdirSync(dir)
+  if (!getStore().existsSync(dir)) return [];
+  return getStore().readdirSync(dir)
     .filter((f) => f.endsWith('.json'))
     .sort();
 }
@@ -26,15 +29,15 @@ function listJsonFiles(dir) {
  * @param {string} dir
  */
 function countPendingReviewItems(dir) {
-  if (!stateStore.existsSync(dir)) return { files: 0, pending: 0 };
+  if (!getStore().existsSync(dir)) return { files: 0, pending: 0 };
   let pending = 0;
   let files = 0;
-  for (const f of stateStore.readdirSync(dir)) {
+  for (const f of getStore().readdirSync(dir)) {
     if (!f.endsWith('.jsonl') && !f.endsWith('.json')) continue;
     files += 1;
     const full = join(dir, f);
     try {
-      const raw = stateStore.readFileSync(full, 'utf8').trim();
+      const raw = getStore().readFileSync(full, 'utf8').trim();
       if (f.endsWith('.jsonl')) {
         for (const line of raw.split('\n').filter(Boolean)) {
           const row = JSON.parse(line);
@@ -63,7 +66,7 @@ function aggregateRecordStats(recordFiles, recordsDir) {
 
   for (const f of recordFiles) {
     try {
-      const rec = JSON.parse(stateStore.readFileSync(join(recordsDir, f), 'utf8'));
+      const rec = JSON.parse(getStore().readFileSync(join(recordsDir, f), 'utf8'));
       if (rec.date) dates.add(rec.date);
       if (rec.scope) scopes.add(rec.scope);
       for (const c of rec.components ?? []) {

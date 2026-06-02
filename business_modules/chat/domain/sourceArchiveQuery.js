@@ -1,8 +1,11 @@
 /**
  * Unified source archive search/get/list for chat tools.
  */
-import { getDefaultStateStore } from '../../../cross-cut-modules/persistence/infrastructure/fsStateStoreAdapter.js';
-const stateStore = getDefaultStateStore();
+import { resolveStateStore } from '../../../cross-cut-modules/persistence/domain/resolveStateStore.js';
+
+function getStore(deps = {}) {
+  return resolveStateStore(deps);
+}
 import { resolve } from 'node:path';
 import {
   parseMdSourceId,
@@ -219,8 +222,8 @@ export async function searchSources(input, sourceArchive, retrievalService = nul
 
 function lookupMdByParsed(mdParsed, maxChars) {
   const abs = resolve(REPO_ROOT, mdParsed.sourceFile);
-  if (!stateStore.existsSync(abs)) return `Markdown file missing for source_id=md:${mdParsed.sourceFile}#${mdParsed.idx1}.`;
-  const article = parseMarkdownArticles(stateStore.readFileSync(abs, 'utf8'), abs)
+  if (!getStore().existsSync(abs)) return `Markdown file missing for source_id=md:${mdParsed.sourceFile}#${mdParsed.idx1}.`;
+  const article = parseMarkdownArticles(getStore().readFileSync(abs, 'utf8'), abs)
     .find((x) => x.idx1 === mdParsed.idx1);
   if (!article) return `No article found for source_id=md:${mdParsed.sourceFile}#${mdParsed.idx1}.`;
   return formatFullSource({

@@ -2,8 +2,11 @@
  * Dynamic outlet reputation decay from verification drops and dedup collisions.
  */
 
-import { getDefaultStateStore } from '../../../../cross-cut-modules/persistence/infrastructure/fsStateStoreAdapter.js';
-const stateStore = getDefaultStateStore();
+import { resolveStateStore } from '../../../../cross-cut-modules/persistence/domain/resolveStateStore.js';
+
+function getStore(deps = {}) {
+  return resolveStateStore(deps);
+}
 import { dirname, resolve } from 'node:path';
 
 const DEFAULT_PATH = resolve('business_modules/news-sites/data/resilience-outlet-reputation.json');
@@ -29,9 +32,9 @@ export function reputationStorePath(env = process.env) {
 }
 
 function loadStats(path) {
-  if (!stateStore.existsSync(path)) return {};
+  if (!getStore().existsSync(path)) return {};
   try {
-    const raw = JSON.parse(stateStore.readFileSync(path, 'utf8'));
+    const raw = JSON.parse(getStore().readFileSync(path, 'utf8'));
     return raw && typeof raw === 'object' ? raw : {};
   } catch {
     return {};
@@ -39,15 +42,15 @@ function loadStats(path) {
 }
 
 function persistStats(path, stats) {
-  stateStore.mkdirSync(dirname(path), { recursive: true });
-  stateStore.writeFileSync(path, `${JSON.stringify(stats, null, 2)}\n`, 'utf8');
+  getStore().mkdirSync(dirname(path), { recursive: true });
+  getStore().writeFileSync(path, `${JSON.stringify(stats, null, 2)}\n`, 'utf8');
 }
 
 function getStats(path) {
   let currentMtime = null;
-  if (stateStore.existsSync(path)) {
+  if (getStore().existsSync(path)) {
     try {
-      currentMtime = stateStore.statSync(path).mtimeMs;
+      currentMtime = getStore().statSync(path).mtimeMs;
     } catch {
       currentMtime = null;
     }
@@ -83,7 +86,7 @@ export function recordOutletTelemetry(outlet, delta, env = process.env) {
   stats[outlet] = row;
   cachedStats = stats;
   cachedPath = path;
-  cachedMtime = stateStore.existsSync(path) ? stateStore.statSync(path).mtimeMs : null;
+  cachedMtime = getStore().existsSync(path) ? getStore().statSync(path).mtimeMs : null;
   persistStats(path, stats);
 }
 

@@ -1,8 +1,10 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-import { collectRawLocalitiesFromNorthReferenceDoc } from '../../business_modules/geo/domain/services/northReferenceDocShape.js';
-import { normalizeLocalityLookupKey } from '../../business_modules/geo/domain/services/resolveLocalityMatch.js';
+import {
+  collectRawLocalitiesFromNorthReferenceDoc,
+  normalizeLocalityLookupKey,
+} from '../../business_modules/geo/index.js';
 
 /** Macro terms — skip as longest-match candidates (aligned with geoService classifyNonLocalityTerm). */
 const SKIP_NORMALIZED = new Set([

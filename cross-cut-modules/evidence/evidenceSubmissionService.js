@@ -9,6 +9,7 @@ import {
   runResilienceAssessment,
   contentBatchFromMdArticles,
   createAnthropicResilienceLlmAdapter,
+  normalizeReportScope,
 } from '../../business_modules/resilience/index.js';
 import { persistOriginalSources } from '../../db/source_archive/persistOriginals.js';
 import {
@@ -19,7 +20,8 @@ import {
   isPathUnderUploadRoot,
   toAnalysisArticle,
   webPageToEvidenceItem,
-} from '../../api/routes/submissionHelpers.js';
+} from './input/submissionHelpers.js';
+import { EVENT_TYPES, publishDomainEvent } from '../messaging/index.js';
 
 const DEFAULT_JOB_TIMEOUT_MS = 20 * 60 * 1000;
 
@@ -177,10 +179,18 @@ async function runSubmissionAnalysis(ctx, deps) {
     llmPort,
     dedupeTitles: true,
     persist: false,
+    scope: ctx.reportScopeId,
   });
 }
 
-async function processSubmissionJob(deps, { submissionId, ownerKey, content, localFilePaths = [], allowLlmAnalysis = false }) {
+async function processSubmissionJob(deps, {
+  submissionId,
+  ownerKey,
+  content,
+  localFilePaths = [],
+  allowLlmAnalysis = false,
+  reportScopeId = 'national',
+}) {
   const autoIngest = { attempted: false, insertedItems: 0, errors: [], kinds: [] };
   const analysisEvidenceItems = [];
   const safeLocalPaths = Array.isArray(localFilePaths) ? localFilePaths : [];
@@ -193,6 +203,7 @@ async function processSubmissionJob(deps, { submissionId, ownerKey, content, loc
     autoIngest,
     analysisEvidenceItems,
     reportDate,
+    reportScopeId: normalizeReportScope(reportScopeId),
     ingestService,
     evidenceStore: deps.evidenceStore,
     sourceArchive: deps.sourceArchive,
@@ -250,6 +261,12 @@ async function processSubmissionJob(deps, { submissionId, ownerKey, content, loc
       details: `signals=${result.signals.length}; items=${ctx.analysisEvidenceItems.length}`,
       analysisJson: result.assessment,
     });
+    await publishDomainEvent({
+      eventType: EVENT_TYPES.EVIDENCE_SUBMISSION_COMPLETED,
+      payload: { submissionId, ownerKey, status: 'completed' },
+      outbox: deps.outboxStore ?? null,
+      bus: deps.eventBus ?? null,
+    });
   } catch (err) {
     deps.evidenceDraftStore.setSubmissionAnalysisResult({
       submissionId,
@@ -258,6 +275,16 @@ async function processSubmissionJob(deps, { submissionId, ownerKey, content, loc
       details: (err?.message ?? 'submission analysis failed').slice(0, 4000),
       analysisJson: null,
     });
+    try {
+      await publishDomainEvent({
+        eventType: EVENT_TYPES.EVIDENCE_SUBMISSION_COMPLETED,
+        payload: { submissionId, ownerKey, status: 'failed' },
+        outbox: deps.outboxStore ?? null,
+        bus: deps.eventBus ?? null,
+      });
+    } catch {
+      /* non-fatal */
+    }
   }
 }
 
@@ -290,6 +317,8 @@ export function createEvidenceSubmissionService(opts) {
     contentBatchFromMdArticles: opts.contentBatchFromMdArticles ?? contentBatchFromMdArticles,
     createAnthropicResilienceLlmAdapter:
       opts.createAnthropicResilienceLlmAdapter ?? createAnthropicResilienceLlmAdapter,
+    outboxStore: opts.outboxStore ?? null,
+    eventBus: opts.eventBus ?? null,
   };
 
   const submissionQueue = [];

@@ -5,9 +5,13 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { calcInvocationCostUsd } from '../../../cross-cut-modules/budget/index.js';
 import { appendCostLog } from '../../../cross-cut-modules/log/index.js';
-import { translationTermRagEnabled } from '../../../cross-cut-modules/retrieval/ragConfig.js';
-import { buildTranslationTermBlock } from '../../../cross-cut-modules/retrieval/translationTermRetrieval.js';
-import { createRetrievalService } from '../../../cross-cut-modules/retrieval/createRetrievalService.js';
+import {
+  getErrStatus,
+  isTransientTranslateError,
+  runWithConcurrencyLimit,
+  sleep,
+} from './translationTranslateUtils.js';
+import { translationSystemPrompt } from './translationTermRag.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPORTS_DIR = resolve(__dirname, '../../../daily_reports');
@@ -15,34 +19,6 @@ const REPORTS_DIR = resolve(__dirname, '../../../daily_reports');
 
 /** In-memory cache to avoid disk reads on repeat requests */
 const memCache = new Map();
-
-let translationRetrievalSvc = null;
-
-function getTranslationRetrieval() {
-  if (!translationTermRagEnabled()) return null;
-  if (!translationRetrievalSvc) {
-    const sqlitePath = process.env.SQLITE_PATH?.trim()
-      ? resolve(process.env.SQLITE_PATH.trim())
-      : resolve(__dirname, '../../../db/app.sqlite');
-    translationRetrievalSvc = createRetrievalService({ dbPath: sqlitePath });
-  }
-  return translationRetrievalSvc;
-}
-
-async function translationSystemPrompt(lang, queryHint) {
-  let system = SYSTEM_PROMPT[lang];
-  const svc = getTranslationRetrieval();
-  if (!svc) return system;
-  const hint = String(queryHint ?? '').trim().slice(0, 600);
-  if (!hint) return system;
-  try {
-    const block = await buildTranslationTermBlock(lang, hint, { retrieval: svc.retrieval });
-    if (block) system += block;
-  } catch {
-    // non-fatal
-  }
-  return system;
-}
 
 const LANG_NAMES = { en: 'English', he: 'Hebrew', ru: 'Russian' };
 
@@ -54,48 +30,6 @@ const SOCIAL_POST_SYSTEM_PROMPT = {
 
 function isSocialTranslationEnabled() {
   return process.env.TRANSLATION_ENABLED === 'true' || Boolean(process.env.ANTHROPIC_API_KEY);
-}
-
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-function getErrStatus(err) {
-  return err?.status ?? err?.statusCode ?? err?.response?.status ?? err?.cause?.status;
-}
-
-function isTransientTranslateError(err) {
-  const status = getErrStatus(err);
-  if (status === 429 || status === 500 || status === 502 || status === 503 || status === 504 || status === 524) return true;
-  const msg = String(err?.message ?? '');
-  return (
-    /\b524\b/.test(msg) ||
-    /\b502\b/.test(msg) ||
-    /\b503\b/.test(msg) ||
-    /\b504\b/.test(msg) ||
-    /\btimeout\b/i.test(msg) ||
-    /\betimedout\b/i.test(msg) ||
-    /\beconnreset\b/i.test(msg)
-  );
-}
-
-async function runWithConcurrencyLimit(taskFns, limit) {
-  const n = taskFns.length;
-  if (n === 0) return [];
-  const results = new Array(n);
-  let nextIdx = 0;
-
-  const workers = new Array(Math.min(limit, n)).fill(0).map(async () => {
-    while (true) {
-      const idx = nextIdx;
-      nextIdx += 1;
-      if (idx >= n) break;
-      results[idx] = await taskFns[idx]();
-    }
-  });
-
-  await Promise.all(workers);
-  return results;
 }
 
 const GLOSSARY = {
@@ -230,7 +164,11 @@ async function writeDiskCache(report, lang, translatedReport) {
  * Send one small JSON payload to Claude and return the parsed result + usage.
  */
 async function translateChunk(payload, lang, langName, queryHint = '') {
-  const system = await translationSystemPrompt(lang, queryHint || JSON.stringify(payload).slice(0, 500));
+  const system = await translationSystemPrompt(
+    lang,
+    SYSTEM_PROMPT,
+    queryHint || JSON.stringify(payload).slice(0, 500),
+  );
   const message = await getDefaultLlmPort().createMessage({
     model: 'claude-sonnet-4-6',
     max_tokens: 8000,

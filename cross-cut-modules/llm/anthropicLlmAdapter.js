@@ -7,6 +7,7 @@
  */
 import Anthropic from '@anthropic-ai/sdk';
 import { runToolLoop as sharedRunToolLoop } from './runToolLoop.js';
+import { withSpan } from '../observability/withSpan.js';
 
 /**
  * @param {{ apiKey?: string, defaultModel?: string, client?: object }} [cfg]
@@ -17,9 +18,14 @@ export function createAnthropicLlmPort(cfg = {}) {
     cfg.client ?? (cfg.apiKey ? new Anthropic({ apiKey: cfg.apiKey }) : new Anthropic());
 
   return {
-    createMessage: (opts) => client.messages.create(opts),
-    stream: (opts) => client.messages.stream(opts),
-    runToolLoop: (opts) => sharedRunToolLoop({ ...opts, client }),
+    createMessage: (opts) =>
+      withSpan('llm.createMessage', { model: opts?.model ?? 'default' }, () =>
+        client.messages.create(opts)),
+    stream: (opts) =>
+      withSpan('llm.stream', { model: opts?.model ?? 'default' }, () =>
+        client.messages.stream(opts)),
+    runToolLoop: (opts) =>
+      withSpan('llm.runToolLoop', {}, () => sharedRunToolLoop({ ...opts, client })),
     defaultModel: cfg.defaultModel,
   };
 }

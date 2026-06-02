@@ -2,7 +2,7 @@
  * Chat turn preparation and post-stream persistence (non-SSE).
  */
 
-import { buildChatSystemHint } from '../../../api/routes/submissionHelpers.js';
+import { buildChatSystemHint } from '../../../cross-cut-modules/evidence/input/submissionHelpers.js';
 import { resolveDisplayView } from '../../resilience/index.js';
 import { generateChatTitle } from '../infrastructure/claudeChat.js';
 
@@ -42,7 +42,7 @@ export function createChatSessionService(opts) {
 
     const display_view = resolveDisplayView({
       queryView: body.view,
-      userEmail,
+      canViewAnalyst: Boolean(opts.canViewAnalyst?.(userEmail)),
     });
 
     const act = String(body.action ?? 'send');

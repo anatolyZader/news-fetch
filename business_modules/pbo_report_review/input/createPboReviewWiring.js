@@ -2,9 +2,8 @@
  * Shared DI wiring for PBO report review (app, CLI, assess-signals).
  */
 import { resolve } from 'node:path';
-import { getMunicipalityDashboard } from '../../pbo_report_muni/app/pboMunicipalityService.js';
-import { EVIDENCE_REQUIREMENTS } from '../../report_build/domain/evidenceRequirements.js';
-import { createMailingResendAdapter } from '../../mailing/infrastructure/adapters/mailingResendAdapter.js';
+import { getMunicipalityDashboard } from '../../pbo_report_muni/index.js';
+import { EVIDENCE_REQUIREMENTS } from '../../report_build/index.js';
 import { createPboReportReviewService } from '../app/pboReportReviewService.js';
 import { createPboOfficerDirectoryJsonAdapter } from '../infrastructure/adapters/pboOfficerDirectoryJsonAdapter.js';
 import { createPboReviewMailingAdapter } from '../infrastructure/adapters/pboReviewMailingAdapter.js';
@@ -20,15 +19,14 @@ export function isPboReviewMailingConfigured() {
 }
 
 /**
- * @param {{ repoRoot: string, sqlitePath: string }} opts
+ * @param {{ repoRoot: string, sqlitePath: string, mailingDeliveryPort?: import('../domain/ports/IMailingDeliveryPort.js').IMailingDeliveryPort }} opts
  */
-export function createDefaultPboReportReviewService({ repoRoot, sqlitePath }) {
+export function createDefaultPboReportReviewService({ repoRoot, sqlitePath, mailingDeliveryPort = null }) {
   const mailingConfigured = isPboReviewMailingConfigured();
   let mailPort = null;
-  if (mailingConfigured) {
-    const deliveryPort = createMailingResendAdapter({ apiKey: process.env.RESEND_API_KEY.trim() });
+  if (mailingConfigured && mailingDeliveryPort) {
     mailPort = createPboReviewMailingAdapter({
-      deliveryPort,
+      deliveryPort: mailingDeliveryPort,
       mailFrom: process.env.MAIL_FROM.trim(),
       appBaseUrl: process.env.APP_BASE_URL?.trim() || 'https://vibeswitch.ai',
       inboundDomain: process.env.PBO_INBOUND_DOMAIN?.trim() || '',

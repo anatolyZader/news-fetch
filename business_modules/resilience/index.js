@@ -38,7 +38,14 @@ export { enrichFieldProvenance } from './domain/services/fieldSignalPolicy.js';
 export { isDmPhoneAllowed } from './domain/services/signalGamingPolicy.js';
 
 // --- Application services ---
-export { updateOperatorRecommendationStatus } from './app/operatorRecommendationService.js';
+export {
+  getCachedReport,
+  resolveReportJsonPathForDate,
+} from './app/reportCacheService.js';
+export {
+  updateOperatorRecommendationStatus,
+  parseOperatorRecommendationRequest,
+} from './app/operatorRecommendationService.js';
 export { archiveMarkdownFiles } from './app/archiveMarkdownFromMd.js';
 export { createDriftService } from './app/driftService.js';
 export { formatSimilarArticlesForChat } from './validation/app/validationToolExecutor.js';
@@ -56,6 +63,9 @@ export {
 // --- Resilience LLM capability (sibling modules use this, not claudeEvaluator directly) ---
 export {
   getDefaultResilienceLlmPort,
+  setDefaultResilienceLlmPort,
+  resetDefaultResilienceLlmPortForTests,
+  createResilienceLlmCapability,
   buildSignalExtractionSystemPrompt,
   extractJsonArray,
   extractEvidence,

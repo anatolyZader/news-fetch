@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import { normalizePlatformSelection, SELECTABLE_PLATFORMS } from '../domain/value_objects/socialPlatform.js';
 import { normalizeTopicConcept } from '../domain/services/topicConceptNormalizer.js';
-import { translateSocialPosts } from '../../translation/app/translationService.js';
+import { translateSocialPosts } from '../../translation/index.js';
 
 function slugifyTopic(topic) {
   const base = String(topic ?? '').trim().toLowerCase().slice(0, 40);

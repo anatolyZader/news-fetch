@@ -1,0 +1,9 @@
+{
+  "type": "evidence.submission.completed",
+  "payload": {
+    "eventVersion": 1,
+    "submissionId": "sub-1",
+    "ownerKey": "user-1",
+    "status": "completed"
+  }
+}

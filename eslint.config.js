@@ -19,6 +19,31 @@ export default defineConfig([
   },
   js.configs.recommended,
   {
+    files: ['business_modules/**/*.{js,mjs,cjs}'],
+    ignores: ['business_modules/**/index.js', 'tests/**', 'scripts/**'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: [
+                '**/business_modules/*/app/**',
+                '**/business_modules/*/domain/**',
+                '**/business_modules/*/infrastructure/**',
+                '**/business_modules/*/input/**',
+                '**/business_modules/*/validation/**',
+                '**/business_modules/*/tuning/**',
+              ],
+              message:
+                'Import other business modules only via their index.js facade (e.g. business_modules/foo/index.js).',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     files: ['**/*.{js,mjs,cjs,jsx}'],
     languageOptions: {
       ecmaVersion: 2024,
@@ -41,6 +66,28 @@ export default defineConfig([
       globals: {
         ...globals.node,
       },
+    },
+  },
+  {
+    files: ['**/*.{js,mjs,cjs}'],
+    ignores: ['business_modules/geo/**', 'tests/**', 'scripts/**'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: [
+                '**/geo/domain/**',
+                '**/geo/app/**',
+                '**/geo/infrastructure/**',
+              ],
+              message:
+                'Import geo capabilities from business_modules/geo/index.js (the module facade), not its internals.',
+            },
+          ],
+        },
+      ],
     },
   },
   {

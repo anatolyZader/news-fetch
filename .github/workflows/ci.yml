@@ -184,12 +184,42 @@ jobs:
         env:
           GEO_ASSERT_ENVELOPE: '1'
 
+      - name: Golden extraction regression (offline)
+        run: npm run golden:eval
+
       - name: Upload coverage for SonarCloud
         uses: actions/upload-artifact@v4
         with:
           name: coverage-lcov
           path: coverage/lcov.info
           if-no-files-found: error
+
+  api-only-smoke:
+    name: API-only smoke
+    runs-on: ubuntu-latest
+    needs: [validate]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+      - uses: ./.github/actions/setup-npm-ci
+      - name: Verify createApp loads in API-only mode
+        env:
+          SERVE_STATIC: 'false'
+          NEWSAPI_API_KEY: 'smoke-test-key'
+        run: |
+          node --input-type=module -e "
+            process.env.SERVE_STATIC = 'false';
+            const { createApp } = await import('./composition/createApp.js');
+            const app = await createApp({
+              apiKey: 'smoke',
+              fetchArticlesForDay: async () => [],
+            });
+            await app.close();
+            console.log('api-only createApp OK');
+          "
 
   build-client:
     name: Build client
