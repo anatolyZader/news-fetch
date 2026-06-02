@@ -73,13 +73,14 @@ function safeJsonStringify(obj) {
 export function createChunkStore(dbPath) {
   mkdirSync(dirname(dbPath), { recursive: true });
   const db = new DatabaseSync(dbPath);
-  const fts5Enabled = detectFts5Support();
   db.exec(BASE_DDL);
-  if (fts5Enabled) {
+  let ftsReady = false;
+  if (detectFts5Support()) {
     try {
       db.exec(FTS_DDL);
+      ftsReady = true;
     } catch {
-      /* fts5 unavailable at runtime despite probe */
+      /* fts5 unavailable on this runtime despite probe */
     }
   }
   try { db.exec('PRAGMA journal_mode = WAL;'); } catch { /* ignore */ }
@@ -196,21 +197,27 @@ export function createChunkStore(dbPath) {
     ORDER BY chunk_index ASC
   `);
 
-  const deleteFtsByParentStmt = db.prepare(`
+  const deleteFtsByParentStmt = ftsReady
+    ? db.prepare(`
     DELETE FROM rag_chunks_fts WHERE chunk_id IN (
       SELECT chunk_id FROM rag_chunks WHERE parent_id = ?
     )
-  `);
+  `)
+    : null;
 
-  const insertFtsStmt = db.prepare(`
+  const insertFtsStmt = ftsReady
+    ? db.prepare(`
     INSERT INTO rag_chunks_fts(chunk_id, chunk_text, title)
     VALUES (?, ?, ?)
-  `);
+  `)
+    : null;
 
-  const deleteFtsChunkStmt = db.prepare('DELETE FROM rag_chunks_fts WHERE chunk_id = ?');
+  const deleteFtsChunkStmt = ftsReady
+    ? db.prepare('DELETE FROM rag_chunks_fts WHERE chunk_id = ?')
+    : null;
 
   function rebuildFts() {
-    if (!fts5Enabled) return;
+    if (!ftsReady) return;
     db.exec('DELETE FROM rag_chunks_fts');
     db.exec(`
       INSERT INTO rag_chunks_fts(chunk_id, chunk_text, title)
@@ -227,7 +234,9 @@ export function createChunkStore(dbPath) {
 
     deleteByParentId(parentId) {
       const pid = String(parentId ?? '').trim();
-      try { deleteFtsByParentStmt.run(pid); } catch { /* ignore */ }
+      if (deleteFtsByParentStmt) {
+        try { deleteFtsByParentStmt.run(pid); } catch { /* ignore */ }
+      }
       const result = deleteByParentStmt.run(pid);
       return result.changes ?? 0;
     },
@@ -247,7 +256,9 @@ export function createChunkStore(dbPath) {
         dim = emb.vector.length;
         modelId = emb.model ?? null;
       }
-      try { deleteFtsChunkStmt.run(chunkId); } catch { /* ignore */ }
+      if (deleteFtsChunkStmt) {
+        try { deleteFtsChunkStmt.run(chunkId); } catch { /* ignore */ }
+      }
       const result = insertChunkStmt.run(
         chunkId,
         String(row.namespace ?? 'archive'),
@@ -267,9 +278,11 @@ export function createChunkStore(dbPath) {
         modelId,
         String(row.text_hash ?? ''),
       );
-      try {
-        insertFtsStmt.run(chunkId, String(row.chunk_text ?? ''), String(row.title ?? ''));
-      } catch { /* ignore fts errors */ }
+      if (insertFtsStmt) {
+        try {
+          insertFtsStmt.run(chunkId, String(row.chunk_text ?? ''), String(row.title ?? ''));
+        } catch { /* ignore fts errors */ }
+      }
       return result.changes ?? 0;
     },
 
@@ -334,7 +347,7 @@ export function createChunkStore(dbPath) {
      * }} p
      */
     ftsSearch(p) {
-      if (!fts5Enabled) return ftsSearchLike(p);
+      if (!ftsReady) return ftsSearchLike(p);
       const q = String(p.query ?? '').trim();
       if (!q) return [];
       const ns = String(p.namespace ?? '').trim();
