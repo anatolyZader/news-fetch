@@ -39,7 +39,7 @@ After reading this you should be able to locate any behavior of the running syst
 
 **Ingestion** (`business_modules/{news-sites,whatsapp,audio,video,scheduled_stream_capture,radio}/`) — one module per source, each with an `input/` directory containing CLI entry points and an `output/` or `articles_extracted/` directory where dated markdown exports land. Ingestion modules normalize source-specific quirks into a shared markdown format that downstream stages can parse.
 
-**Storage** (`db/` + SQLite) — default database file `db/app.sqlite` (`SQLITE_PATH`). Raw persistence (evidence, source archive originals, drafts, quotas) is implemented under [`db/persistence/`](../../../db/persistence/) and [`db/source_archive/`](../../../db/source_archive/); ops CLIs under [`db/input/`](../../../db/input/). RAG chunk indexes live in the same SQLite file via [`cross-cut-modules/retrieval/`](../../../cross-cut-modules/retrieval/). Only the server writes; stages use these modules rather than opening the DB directly.
+**Storage** (`db/` + SQLite) — default database file `db/app.sqlite` (`SQLITE_PATH`). Raw persistence (evidence, source archive originals, drafts, quotas) lives under `db/persistence/` and `db/source_archive/`; ops CLIs under `db/input/`. RAG chunk indexes use the same SQLite file via `cross-cut-modules/retrieval/`. Only the server writes; stages use these modules rather than opening the DB directly. See [Storage model](storage.md) and the [Module map](module-map.md#top-level-layout) for directory layout.
 
 **Analysis** (`business_modules/resilience/`) — the scoring pipeline. `extract-signals` reads dated exports and emits typed signals; `assess-signals` applies the weight table and produces reports. Prompts and the taxonomy are kept in this module.
 

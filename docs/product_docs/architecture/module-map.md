@@ -12,6 +12,8 @@ tags: ["architecture", "internals"]
 ## Purpose
 Orient an integrator or developer to the repo's top-level layout so they can answer "where does this change belong?" in under a minute. This is the companion to [System overview](system-overview.md), but at the directory level rather than the subsystem level.
 
+For role and scope terminology, see the repo glossary at `docs/architecture/ubiquitous-language.md` (not published on this docs site).
+
 ## Prerequisites
 - **Required**: Familiarity with Node.js + React project layouts.
 - **Useful**: A local clone of the repo to tab through while reading.
