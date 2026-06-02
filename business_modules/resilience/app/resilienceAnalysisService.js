@@ -99,7 +99,7 @@ async function extractBatchSignals({
         `  → dual extract veto dropped ${merged.dual_veto_dropped} signal(s) without cross-pass agreement`,
       );
     }
-    allSignals = merged.signals;
+    allSignals = merged.signals.length > 0 ? merged.signals : allSignals;
   }
 
   if (supplementaryArticles.length > 0) {

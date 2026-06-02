@@ -90,7 +90,7 @@ export function createValidationReviewService(deps) {
       }
     }
 
-    let article = null;
+    let article;
     let rag = {
       similar_articles: [],
       same_story: null,

@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createGeoService } from '../../../../business_modules/geo/app/geoService.js';
-import { searchLocalities, isGeoExactOnlyEnabled } from '../../../../business_modules/geo/domain/services/searchLocalities.js';
+import { createGeoService } from '../../../../../business_modules/geo/app/geoService.js';
+import { searchLocalities, isGeoExactOnlyEnabled } from '../../../../../business_modules/geo/domain/services/searchLocalities.js';
 
 function mockBundle({ localities, border }) {
   return {

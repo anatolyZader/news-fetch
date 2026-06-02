@@ -30,9 +30,16 @@ secrets/
 
 # Logs / cost (see cross-cut-modules/log/data/)
 *.log
+log/data/audit.jsonl
 
 # Google Trends API cache (6h TTL)
 business_modules/search_trends/data/cache/*.json
+
+# Social media topic fetch snapshots (runtime/generated)
+business_modules/social_media/data/topic-fetches/*.json
+
+# Outlet reputation telemetry (runtime-generated)
+business_modules/news-sites/data/resilience-outlet-reputation.json
 
 # SQLite runtime files (db/ source code is versioned)
 /db/*.sqlite
@@ -81,5 +88,10 @@ business_modules/report_bot/data/**
 *.wav
 *.m4a
 *.webm
+
+# Generated test fixtures (runtime captures)
+tests/business_modules/social_media/data/telegram-raw-*.jsonl
+tests/business_modules/social_media/data/telegram-raw-daily-*.jsonl
+tests/business_modules/social_media/data/x-spend-log-*.jsonl
 
 **/service-account*.json

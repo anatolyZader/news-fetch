@@ -152,7 +152,7 @@ function buildBatchTitleList(batch, batchOffset) {
     .join('\n');
 }
 
-async function createAnthropicMessageWithRetry(anthropic, { model, label, batch, titleList }) {
+async function createAnthropicMessageWithRetry({ model, label, batch, titleList }) {
   const retries = 3;
   for (let attempt = 1; attempt <= retries; attempt += 1) {
     try {
@@ -191,11 +191,11 @@ function parsePrefilterIndices(text, label) {
   return new Set(indices.map(Number));
 }
 
-async function preFilterBatch(anthropic, batch, batchOffset, batchNum, totalBatches, onUsage) {
+async function preFilterBatch(batch, batchOffset, batchNum, totalBatches, onUsage) {
   const titleList = buildBatchTitleList(batch, batchOffset);
   const model = 'claude-haiku-4-5-20251001';
   const label = totalBatches > 1 ? `[pre-filter batch ${batchNum}/${totalBatches}]` : '[pre-filter]';
-  const message = await createAnthropicMessageWithRetry(anthropic, { model, label, batch, titleList });
+  const message = await createAnthropicMessageWithRetry({ model, label, batch, titleList });
 
   if (message.stop_reason === 'max_tokens') {
     throw new Error(`${label} output truncated (max_tokens) — increase max_tokens`);
@@ -222,7 +222,7 @@ async function preFilterByLLM(articles, onUsage) {
   for (let b = 0; b < batches.length; b++) {
     if (b > 0) await new Promise((r) => setTimeout(r, 5000));
     const { batch, offset } = batches[b];
-    const batchSelected = await preFilterBatch(anthropic, batch, offset, b + 1, batches.length, onUsage);
+    const batchSelected = await preFilterBatch(batch, offset, b + 1, batches.length, onUsage);
     for (const idx of batchSelected) selectedSet.add(idx);
   }
 

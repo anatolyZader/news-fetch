@@ -7,8 +7,7 @@
  *     [--content-kind news|field_report|document_pack|mixed] [--source-type adhoc|news|social_exploratory]
  */
 import 'dotenv/config';
-import { existsSync, resolve, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { existsSync, resolve } from 'node:path';
 import { loadMdFiles } from '../../resilience/index.js';
 import {
   createCostTracker,
@@ -17,8 +16,6 @@ import {
 } from '../../../cross-cut-modules/budget/index.js';
 import { createDefaultSignalsExtractionService } from '../app/signalsExtractionService.js';
 import { isValidProfile, OBSERVATION_PROFILES } from '../domain/services/observationSchema.js';
-
-const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 
 function parseCli(argv) {
   const getArg = (flag) => {

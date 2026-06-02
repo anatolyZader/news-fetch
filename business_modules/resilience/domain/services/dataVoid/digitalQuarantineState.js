@@ -71,7 +71,8 @@ export function loadActiveQuarantine(date, scopeId, reportsDir = 'daily_reports'
   if (!state?.active) return null;
 
   const expires = state.expires ?? endOfUtcDayIso(date);
-  if (Date.now() > Date.parse(expires)) return null;
+  const today = new Date().toISOString().slice(0, 10);
+  if (date === today && Date.now() > Date.parse(expires)) return null;
 
   return state;
 }

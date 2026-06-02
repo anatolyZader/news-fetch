@@ -12,12 +12,10 @@ test('rewriteQueryForRetrieval parses JSON query from mocked client', async () =
       systemHint: 'archive search',
     },
     {
-      client: {
-        messages: {
-          create: async () => ({
-            content: [{ type: 'text', text: '{"query":"מקלטים חיפה מרץ 2026"}' }],
-          }),
-        },
+      llmPort: {
+        createMessage: async () => ({
+          content: [{ type: 'text', text: '{"query":"מקלטים חיפה מרץ 2026"}' }],
+        }),
       },
     },
   );

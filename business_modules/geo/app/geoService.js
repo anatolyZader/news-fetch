@@ -374,6 +374,12 @@ export function createGeoService({ northReferencePort, overridesPort = null }) {
       if (!trimmed) {
         return unknown('NO_LOCALITY', null, undefined, { geoEntityType: 'unknown', normalizedInput: null });
       }
+      if (isGeoExactOnlyEnabled() && /[A-Za-z]/.test(trimmed)) {
+        return unknown('NO_CONFIDENT_MATCH', trimmed, undefined, {
+          geoEntityType: 'unknown',
+          normalizedInput: normalizeLocalityLookupKey(trimmed),
+        });
+      }
 
       let hit = resolveByExactStages(index, trimmed);
       let fuzzyCandidateCount;

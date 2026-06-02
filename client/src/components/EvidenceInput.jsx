@@ -359,7 +359,7 @@ export function EvidenceInput() {
     } finally {
       setSending(false);
     }
-  }, [sending, hydrated, value, getIdToken, cancelRetry, cancelSubmissionPoll, pollSubmissionUntilDone]);
+  }, [sending, hydrated, value, getIdToken, getAppCheckToken, cancelRetry, cancelSubmissionPoll, pollSubmissionUntilDone]);
 
 
   return (

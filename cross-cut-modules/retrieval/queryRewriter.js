@@ -1,10 +1,8 @@
 /**
  * Session-aware query rewriting for retrieval (Haiku).
  */
-import Anthropic from '@anthropic-ai/sdk';
 import { ragQueryRewriteEnabled } from './ragConfig.js';
-
-const defaultClient = new Anthropic();
+import { getDefaultLlmPort } from '../llm/anthropicLlmAdapter.js';
 
 /**
  * @param {{
@@ -12,11 +10,11 @@ const defaultClient = new Anthropic();
  *  history?: Array<{ role: string, content: string }>,
  *  systemHint?: string,
  * }} input
- * @param {{ client?: import('@anthropic-ai/sdk').default, onUsage?: (p: object) => void }} [deps]
+ * @param {{ llmPort?: import('../llm/ILlmPort.js').ILlmPort, onUsage?: (p: object) => void }} [deps]
  * @returns {Promise<string>}
  */
 export async function rewriteQueryForRetrieval(input, deps = {}) {
-  const client = deps.client ?? defaultClient;
+  const llmPort = deps.llmPort ?? getDefaultLlmPort();
   const message = String(input?.message ?? '').trim();
   if (!message) return '';
   if (!ragQueryRewriteEnabled()) return message;
@@ -41,10 +39,9 @@ export async function rewriteQueryForRetrieval(input, deps = {}) {
 
   const model = 'claude-haiku-4-5-20251001';
   try {
-    const response = await client.messages.create({
+    const response = await llmPort.createMessage({
       model,
       max_tokens: 200,
-      temperature: 0,
       system,
       messages: [{ role: 'user', content: user }],
     });
@@ -55,7 +52,7 @@ export async function rewriteQueryForRetrieval(input, deps = {}) {
         usage: response.usage,
       });
     }
-    const text = response.content.find((b) => b.type === 'text')?.text ?? '';
+    const text = response.content?.find((b) => b.type === 'text')?.text ?? '';
     const jsonPattern = /\{[\s\S]*\}/;
     const jsonMatch = jsonPattern.exec(text);
     if (jsonMatch) {

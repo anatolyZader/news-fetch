@@ -110,7 +110,7 @@ function outputFileName(districtId, date) {
     : `signals-pbo-${districtId}-${date}.json`;
 }
 
-function writeDayBundle(day, districtId, outDir, componentsOrder, componentNames, { force = false } = {}) {
+async function writeDayBundle(day, districtId, outDir, componentsOrder, componentNames, { force = false } = {}) {
   const outPath = resolve(outDir, outputFileName(districtId, day.date));
   const effectiveForce = force || shouldForcePboSignalRewrite(day.date, SQLITE_PATH);
   if (existsSync(outPath) && !effectiveForce) {
@@ -171,14 +171,15 @@ function writeDayBundle(day, districtId, outDir, componentsOrder, componentNames
   return true;
 }
 
-function runDistrict(districtId, filterDate, outDir, force) {
+async function runDistrict(districtId, filterDate, outDir, force) {
   const data = getMunicipalityDashboard(districtId, { rootDir: REPO_ROOT });
   let filesWritten = 0;
 
   for (const day of data.days) {
     if (filterDate && day.date !== filterDate) continue;
-    if (writeDayBundle(day, data.districtId, outDir, data.componentsOrder, data.componentNames, { force })) {
-      filesWritten++;
+    // eslint-disable-next-line no-await-in-loop
+    if (await writeDayBundle(day, data.districtId, outDir, data.componentsOrder, data.componentNames, { force })) {
+      filesWritten += 1;
     }
   }
 
@@ -189,7 +190,7 @@ function runDistrict(districtId, filterDate, outDir, force) {
   }
 }
 
-function run() {
+async function run() {
   const args = process.argv.slice(2);
   const getArg = (flag) => { const i = args.indexOf(flag); return i >= 0 ? args[i + 1] : null; };
   const filterDate = getArg('--date');
@@ -202,8 +203,9 @@ function run() {
 
   const districts = allDistricts ? listPboDistrictIds() : [districtArg];
   for (const districtId of districts) {
-    runDistrict(districtId, filterDate, outDir, force);
+    // eslint-disable-next-line no-await-in-loop
+    await runDistrict(districtId, filterDate, outDir, force);
   }
 }
 
-run();
+void run();

@@ -43,5 +43,5 @@ export function needsStructuredLocality(structured) {
   const obs = structured?.observation;
   if (!obs || typeof obs !== 'object') return true;
   if (typeof obs.localityKey === 'string' && obs.localityKey.trim()) return false;
-  return !obs.locality || !String(obs.locality).trim();
+  return true;
 }

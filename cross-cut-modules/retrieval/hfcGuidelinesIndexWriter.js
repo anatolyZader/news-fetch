@@ -40,7 +40,7 @@ export function createHfcGuidelinesIndexWriter(indexWriter, opts = {}) {
       try {
         md = readFileSync(guidelinesPath, 'utf8');
       } catch (err) {
-        throw new Error(`hfc guidelines not found at ${guidelinesPath}: ${err.message}`);
+        throw new Error(`hfc guidelines not found at ${guidelinesPath}: ${err.message}`, { cause: err });
       }
 
       const sections = splitMarkdownSections(md);

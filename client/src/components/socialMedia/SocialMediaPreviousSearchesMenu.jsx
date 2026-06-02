@@ -42,7 +42,7 @@ export function SocialMediaPreviousSearchesMenu({ activeId, onSelect, disabled =
     } finally {
       setLoading(false);
     }
-  }, [apiReady, getIdToken, t]);
+  }, [apiReady, getIdToken, getAppCheckToken, t]);
 
   const handleOpen = (event) => {
     setAnchorEl(event.currentTarget);

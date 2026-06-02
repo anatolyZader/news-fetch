@@ -145,7 +145,7 @@ export function useChat() {
   }, []);
 
   useEffect(() => {
-    loadMessages(activeSessionId).catch(() => {});
+    queueMicrotask(() => { loadMessages(activeSessionId).catch(() => {}); });
   }, [activeSessionId, loadMessages]);
 
   function handleChatStreamEvent(event, accumulatedRef) {

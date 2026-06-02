@@ -11,7 +11,7 @@ import { readTodayCostSpend } from '../../log/index.js';
 export function getDailyBudgetStatus(env = process.env) {
   const limit = Number.parseFloat(env.DAILY_BUDGET_USD ?? '10.00');
   const dailyBudget = Number.isFinite(limit) && limit > 0 ? limit : 10;
-  let spent = 0;
+  let spent;
   try {
     spent = readTodayCostSpend();
   } catch {

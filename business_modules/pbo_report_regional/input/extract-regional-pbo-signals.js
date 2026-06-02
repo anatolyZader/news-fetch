@@ -21,7 +21,6 @@ import { getDefaultResilienceLlmPort } from '../../resilience/index.js';
 import { createCostTracker, appendCostLog, checkDailyBudget } from '../../../cross-cut-modules/budget/index.js';
 import { enrichSignalsWithGeo } from '../../../cross-cut-modules/geo/enrichSignalsWithGeo.js';
 import { createSourceArchive } from '../../../db/source_archive/createSourceArchive.js';
-import { persistOriginalSources } from '../../../db/source_archive/persistOriginals.js';
 import { buildArchiveSourceId } from '../../../db/source_archive/sourceId.js';
 import { createRetrievalService } from '../../../cross-cut-modules/retrieval/createRetrievalService.js';
 

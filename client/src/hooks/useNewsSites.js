@@ -6,13 +6,12 @@ export function useNewsSitesDashboard({ getIdToken, getAppCheckToken, apiReady }
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const auth = { getIdToken, getAppCheckToken };
 
   const reload = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      setData(await authFetch('/api/news-sites', auth));
+      setData(await authFetch('/api/news-sites', { getIdToken, getAppCheckToken }));
     } catch (e) {
       setError(e?.message ?? 'Failed');
     } finally {
@@ -27,7 +26,7 @@ export function useNewsSitesDashboard({ getIdToken, getAppCheckToken, apiReady }
       setLoading(true);
       setError(null);
       try {
-        const out = await authFetch('/api/news-sites', auth);
+        const out = await authFetch('/api/news-sites', { getIdToken, getAppCheckToken });
         if (!cancelled) setData(out);
       } catch (e) {
         if (!cancelled) setError(e?.message ?? 'Failed');

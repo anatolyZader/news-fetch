@@ -9,7 +9,6 @@ import {
   operatorAssessmentSummary,
 } from '../../resilience/index.js';
 import {
-  LABELS,
   COMPONENT_LABELS,
   POOL_COLORS,
   POOL_LABELS,

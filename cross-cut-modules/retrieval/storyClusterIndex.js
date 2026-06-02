@@ -99,7 +99,7 @@ export function createStoryClusterIndex(dbPath) {
       if (!withEvidence.length) return { indexed: 0 };
 
       const texts = withEvidence.map((s) => String(s.evidence).trim());
-      let embeddings = [];
+      let embeddings;
       try {
         embeddings = await embedTexts(texts, { model });
       } catch (err) {

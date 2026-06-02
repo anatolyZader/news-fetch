@@ -97,7 +97,7 @@ Sparkline.propTypes = {
   yMax: PropTypes.number,
 };
 
-function driftBandLabel(score, t) {
+function _driftBandLabel(score, t) {
   if (score == null || Number.isNaN(score)) return t('drift.band.blind') ?? 'blind';
   if (score < 5) return t('drift.band.thin') ?? 'thin';
   return t('drift.band.adequate') ?? 'adequate';

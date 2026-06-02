@@ -84,7 +84,7 @@ class GeoUnknownSqliteQueueAdapter extends IGeoUnknownSinkPort {
     const limit = Math.min(Math.max(opts.limit ?? 20, 1), 100);
     const rows = this.listStmt.all(status, status, limit);
     return rows.map((row) => {
-      let candidates = [];
+      let candidates;
       try {
         candidates = row.last_candidates_json ? JSON.parse(row.last_candidates_json) : [];
       } catch {

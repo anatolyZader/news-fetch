@@ -50,6 +50,7 @@ function chatMaxToolRounds() {
 }
 
 export async function streamChatResponse(systemContext, pboLookup, messages, send, reportData, opts = {}) {
+  const costRecorder = opts.costRecorder ?? null;
   const toolCtx = createChatToolContext({
     userEmail: opts.userEmail ?? '',
     reportData,
@@ -58,7 +59,7 @@ export async function streamChatResponse(systemContext, pboLookup, messages, sen
     evidenceStore: opts.evidenceStore ?? null,
     retrievalService: opts.retrievalService ?? null,
     retrievalCache: opts.retrievalCache ?? null,
-    costRecorder: opts.costRecorder ?? null,
+    costRecorder,
     validationReviewService: opts.validationReviewService ?? null,
     pboHistoricalSearchService: opts.pboHistoricalSearchService ?? null,
     pboReportReviewService: opts.pboReportReviewService ?? null,

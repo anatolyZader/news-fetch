@@ -121,7 +121,7 @@ export function SocialMediaTopicFetchPanel() {
       }
     })().catch(() => {});
     return () => { cancelled = true; };
-  }, [apiReady, getIdToken, lang, activeSearchId, result?.id, result?.lang, applyFetchedResult]);
+  }, [apiReady, getIdToken, getAppCheckToken, lang, activeSearchId, result?.id, result?.lang, applyFetchedResult]);
 
   const togglePlatform = useCallback((id) => {
     setSelectedPlatforms((prev) => {
@@ -143,7 +143,7 @@ export function SocialMediaTopicFetchPanel() {
     } finally {
       setRestoring(false);
     }
-  }, [restoring, fetching, getIdToken, lang, applyFetchedResult, t]);
+  }, [restoring, fetching, getIdToken, getAppCheckToken, lang, applyFetchedResult, t]);
 
   const onFetch = useCallback(async () => {
     const q = topic.trim();
@@ -167,7 +167,7 @@ export function SocialMediaTopicFetchPanel() {
     } finally {
       setFetching(false);
     }
-  }, [topic, fetching, selectedPlatforms, executeLiveFetch, lang, getIdToken, t, applyFetchedResult]);
+  }, [topic, fetching, selectedPlatforms, executeLiveFetch, lang, getIdToken, getAppCheckToken, t, applyFetchedResult]);
 
   const busy = fetching || restoring;
 

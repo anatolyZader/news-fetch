@@ -163,21 +163,27 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     if (!apiReady) {
-      setCostlyRouteReady(false);
-      setAppCheckError(null);
+      queueMicrotask(() => {
+        setCostlyRouteReady(false);
+        setAppCheckError(null);
+      });
       return undefined;
     }
     if (!appCheckRequired) {
-      setCostlyRouteReady(true);
-      setAppCheckError(null);
+      queueMicrotask(() => {
+        setCostlyRouteReady(true);
+        setAppCheckError(null);
+      });
       return undefined;
     }
     if (!isAppCheckConfigured()) {
-      setCostlyRouteReady(false);
-      setAppCheckError('missing_site_key');
+      queueMicrotask(() => {
+        setCostlyRouteReady(false);
+        setAppCheckError('missing_site_key');
+      });
       return undefined;
     }
-    setAppCheckError(null);
+    queueMicrotask(() => { setAppCheckError(null); });
     ensureAppCheckInitialized();
     let cancelled = false;
     void (async () => {

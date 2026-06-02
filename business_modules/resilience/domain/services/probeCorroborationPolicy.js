@@ -105,7 +105,9 @@ export function validateProbeRecord(record, env = process.env) {
 export function applyProbeCorroborationPolicy(probeSignals, allSignals = [], env = process.env) {
   const list = Array.isArray(probeSignals) ? probeSignals : [];
   const minCorr = probeMinCorroboration(env);
-  const fieldActive = totalAnchorVolume(allSignals) > 0;
+  const fieldActive = totalAnchorVolume(
+    allSignals.filter((s) => s?.source_type && s.source_type !== 'news' && s.source_type !== 'infrastructure_probe'),
+  ) > 0;
 
   const distinctSources = new Set(
     list.map((s) => s.article_source ?? s.probe_source ?? 'connectivity-probe'),

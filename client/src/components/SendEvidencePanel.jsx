@@ -400,8 +400,6 @@ export function SendEvidencePanel({ open, onClose, onSubmissionComplete, variant
     hydrated,
     value,
     pendingFiles,
-    getIdToken,
-    getAppCheckToken,
     auth,
     cancelSubmissionPoll,
     pollSubmissionUntilDone,

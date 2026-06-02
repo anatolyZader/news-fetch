@@ -102,7 +102,7 @@ function parseProductsFromApi(data) {
 }
 
 async function loadMailingPreferences({ user, authRequired, apiReady, getIdToken, lang }) {
-  let mailServerEnabled = false;
+  let mailServerEnabled;
   try {
     const cfgR = await fetch('/api/mail/config');
     const cfg = await cfgR.json().catch(() => ({}));

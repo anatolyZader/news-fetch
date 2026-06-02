@@ -23,16 +23,16 @@ CREATE INDEX IF NOT EXISTS idx_catalog_proposals_status
 `;
 
 function rowToProposal(row) {
-  let proposal_json = {};
+  let proposalJson;
   try {
-    proposal_json = JSON.parse(row.proposal_json);
+    proposalJson = JSON.parse(row.proposal_json);
   } catch {
-    proposal_json = {};
+    proposalJson = {};
   }
   return {
     id: row.id,
     cluster_key: row.cluster_key,
-    proposal_json,
+    proposal_json: proposalJson,
     status: row.status,
     reviewer: row.reviewer,
     review_note: row.review_note,

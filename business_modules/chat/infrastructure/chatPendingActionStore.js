@@ -58,7 +58,7 @@ export function createChatPendingActionStore(dbPath) {
         FROM chat_pending_actions WHERE id = ?
       `).get(id);
       if (!row) return null;
-      let params = {};
+      let params;
       try {
         params = JSON.parse(row.params_json);
       } catch {

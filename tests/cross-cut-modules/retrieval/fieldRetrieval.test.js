@@ -8,8 +8,6 @@ import { createRetrievalService } from '../../../cross-cut-modules/retrieval/cre
 import {
   buildFieldReportQuery,
   retrieveSimilarFieldReports,
-  retrieveFieldTaxonomyExamples,
-  retrieveHfcGuidelines,
   buildReportBuildRagContext,
   formatFieldContextBlock,
 } from '../../../cross-cut-modules/retrieval/fieldRetrieval.js';

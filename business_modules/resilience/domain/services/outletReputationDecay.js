@@ -18,7 +18,7 @@ let cachedMtime = null;
  * @param {NodeJS.ProcessEnv} [env]
  */
 export function isOutletDecayEnabled(env = process.env) {
-  return env.RESILIENCE_OUTLET_DECAY !== '0';
+  return env.RESILIENCE_OUTLET_DECAY === '1';
 }
 
 /**

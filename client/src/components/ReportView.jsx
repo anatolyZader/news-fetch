@@ -812,9 +812,6 @@ export function ReportView({
   const [openCompIdInternal, setOpenCompIdInternal] = useState(null);
   const [openEvidenceCompIdInternal, setOpenEvidenceCompIdInternal] = useState(null);
   const [componentFilter, setComponentFilter] = useState(() => readReportComponentFilter(reportScope ?? 'national'));
-  const [recommendations, setRecommendations] = useState(
-    () => assessment?.operator_recommendations ?? [],
-  );
   const compRefs = useRef({});
   const validationReviewRef = useRef(null);
   const catalogProposalsRef = useRef(null);
@@ -827,8 +824,12 @@ export function ReportView({
   const norrisCaps = assessment.norris_capacities ?? [];
   const driftMap = driftByComponent ?? {};
 
+  const [recommendations, setRecommendations] = useState(
+    () => assessment?.operator_recommendations ?? [],
+  );
+
   useEffect(() => {
-    setRecommendations(assessment?.operator_recommendations ?? []);
+    queueMicrotask(() => { setRecommendations(assessment?.operator_recommendations ?? []); });
   }, [assessment?.operator_recommendations, assessment?.date]);
 
   const visibleComponents = filterReportComponents(assessment.components ?? [], {

@@ -61,7 +61,6 @@ export class ObservationFsAdapter extends IObservationStorePort {
     for (const name of names) {
       const m = /^observations-(.+)-(\d{4}-\d{2}-\d{2})\.json$/.exec(name);
       if (!m) continue;
-      const profile = m[1].replace(/_/g, '_');
       const fileDate = m[2];
       if (fileDate < minStr || fileDate > endDate) continue;
       if (opts.profile && !name.startsWith(`observations-${opts.profile}-`)) {

@@ -43,7 +43,7 @@ export function CatalogProposalPanel({ enabled = false }) {
   }, [apiReady, enabled, getIdToken]);
 
   useEffect(() => {
-    void load();
+    queueMicrotask(() => { load().catch(() => {}); });
   }, [load]);
 
   async function generateProposals() {

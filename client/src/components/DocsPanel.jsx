@@ -240,14 +240,16 @@ export function DocsPanel({ open, onClose, initialSlug, variant = 'modal' }) {
     if (!isActive) return undefined;
     const q = query.trim();
     if (q.length < 2) {
-      setRagHits([]);
-      setRagEnabled(false);
-      setRagLoading(false);
+      queueMicrotask(() => {
+        setRagHits([]);
+        setRagEnabled(false);
+        setRagLoading(false);
+      });
       return undefined;
     }
 
     let cancelled = false;
-    setRagLoading(true);
+    queueMicrotask(() => { setRagLoading(true); });
     const timer = setTimeout(() => {
       void (async () => {
         try {

@@ -181,7 +181,7 @@ export function ReportBuildPanel({ open, onClose, variant = 'modal' }) {
     } finally {
       setBusy(false);
     }
-  }, [getIdToken, onClose, resetUi]);
+  }, [getIdToken, getAppCheckToken, onClose, resetUi]);
 
   useEffect(() => {
     if (variant !== 'window') return undefined;
@@ -211,7 +211,7 @@ export function ReportBuildPanel({ open, onClose, variant = 'modal' }) {
     } finally {
       setBusy(false);
     }
-  }, [input, busy, getIdToken]);
+  }, [input, busy, getIdToken, getAppCheckToken]);
 
   useEffect(() => {
     if (!open) return;
@@ -331,7 +331,7 @@ export function ReportBuildPanel({ open, onClose, variant = 'modal' }) {
     } finally {
       setBusy(false);
     }
-  }, [busy, getIdToken]);
+  }, [busy, getIdToken, getAppCheckToken]);
 
   useEffect(() => {
     if (!open) {
