@@ -1,6 +1,6 @@
 /**
  * SQLite persistence for incoming WhatsApp messages.
- * Uses the same node:sqlite pattern as recordingJobStore.js.
+ * Uses the same node:sqlite pattern as scheduledStreamCaptureJobStore.js.
  */
 import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';

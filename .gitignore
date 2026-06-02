@@ -44,8 +44,8 @@ business_modules/search_trends/data/cache/*.json
 business_modules/video/data/**
 !business_modules/video/data/.gitkeep
 # Stream captures (scheduled radio) — keep .gitkeep only
-business_modules/recording/data/**
-!business_modules/recording/data/.gitkeep
+business_modules/scheduled_stream_capture/data/**
+!business_modules/scheduled_stream_capture/data/.gitkeep
 business_modules/signals_extraction/data/**
 !business_modules/signals_extraction/data/.gitkeep
 daily_reports/

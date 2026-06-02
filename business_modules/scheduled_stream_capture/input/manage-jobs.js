@@ -47,7 +47,7 @@ import 'dotenv/config';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { dirname } from 'node:path';
-import { createRecordingJobStore } from '../infrastructure/recordingJobStore.js';
+import { createScheduledStreamCaptureJobStore } from '../infrastructure/scheduledStreamCaptureJobStore.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -55,7 +55,7 @@ const sqlitePath = process.env.SQLITE_PATH?.trim()
   ? resolve(process.env.SQLITE_PATH.trim())
   : resolve(__dirname, '..', '..', '..', 'db', 'app.sqlite');
 
-const store = createRecordingJobStore(sqlitePath);
+const store = createScheduledStreamCaptureJobStore(sqlitePath);
 
 // ---------------------------------------------------------------------------
 // Parsing helpers

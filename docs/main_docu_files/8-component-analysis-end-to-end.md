@@ -1600,8 +1600,8 @@ business_modules/
 ├── translation/                                   # Report + social OSINT batch translation
 │   └── app/translationService.js                # POST /api/translate (api/routes/reportRoutes.js)
 │
-├── recording/                                     # Radio stream capture (FFmpeg schedule)
-│   └── infrastructure/adapters/recordingSqliteAdapter.js
+├── scheduled_stream_capture/                        # Radio stream capture (FFmpeg schedule)
+│   └── infrastructure/scheduledStreamCaptureJobStore.js
 ├── visits/                                        # Source 4 — Field reports
 │   ├── data/articles-field-reports-*.md           # Raw field-officer markdown (one per visit day)
 │   ├── data/signals/signals-field-*.json          # Extracted signals

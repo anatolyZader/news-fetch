@@ -5,7 +5,7 @@
  * Requires OPENAI_API_KEY in env.
  *
  * Run:
- *   node --test tests/business_modules/recording/recordAndTranscribe.integration.test.js
+ *   node --test tests/business_modules/scheduled_stream_capture/recordAndTranscribe.integration.test.js
  */
 
 import 'dotenv/config';
@@ -14,9 +14,9 @@ import assert from 'node:assert/strict';
 import { existsSync, statSync, rmSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
-import { createRecordingJobStore } from '../../../business_modules/recording/infrastructure/recordingJobStore.js';
-import { createRecordingScheduler } from '../../../business_modules/recording/app/recordingScheduler.js';
-import { createFfmpegDirectStreamAdapter } from '../../../business_modules/recording/infrastructure/adapters/ffmpegDirectStreamAdapter.js';
+import { createScheduledStreamCaptureJobStore } from '../../../business_modules/scheduled_stream_capture/infrastructure/scheduledStreamCaptureJobStore.js';
+import { createScheduledStreamCaptureScheduler } from '../../../business_modules/scheduled_stream_capture/app/scheduledStreamCaptureScheduler.js';
+import { createFfmpegDirectStreamAdapter } from '../../../business_modules/scheduled_stream_capture/infrastructure/adapters/ffmpegDirectStreamAdapter.js';
 import { AudioIngestService } from '../../../business_modules/audio/app/audioIngestService.js';
 import { OpenaiTranscriptionAdapter } from '../../../business_modules/audio/infrastructure/adapters/openaiTranscriptionAdapter.js';
 
@@ -26,12 +26,12 @@ const SETTLE_TIMEOUT_MS = 720_000; // 12 min max wait
 describe('recordAndTranscribe', { timeout: 1_800_000 }, () => {
   const testDbPath = join(tmpdir(), `rec-trans-${Date.now()}.sqlite`);
   const testRecDir = join(tmpdir(), `rec-trans-out-${Date.now()}`);
-  const testStore = createRecordingJobStore(testDbPath);
+  const testStore = createScheduledStreamCaptureJobStore(testDbPath);
   const adapter = createFfmpegDirectStreamAdapter();
 
   // Read production jobs for station/stream info
   const prodDbPath = join(import.meta.dirname, '..', '..', '..', 'db', 'app.sqlite');
-  const prodStore = createRecordingJobStore(prodDbPath);
+  const prodStore = createScheduledStreamCaptureJobStore(prodDbPath);
   const prodJobs = prodStore.getEnabledJobs();
 
   // Deduplicate by stream_url
@@ -96,11 +96,11 @@ describe('recordAndTranscribe', { timeout: 1_800_000 }, () => {
     console.log(`\n  Phase 1: Recording ${CLIP_DURATION_SEC}s from ${stationStreams.size} stations in parallel...`);
 
     const completions = [];
-    const scheduler = createRecordingScheduler({
+    const scheduler = createScheduledStreamCaptureScheduler({
       store: testStore,
       adapter,
       onComplete: (info) => completions.push(info),
-      recordingsBaseDir: testRecDir,
+      capturesBaseDir: testRecDir,
     });
 
     await scheduler.pollNow();

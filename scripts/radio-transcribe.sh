@@ -10,7 +10,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-RECORDINGS_DIR="${RECORDINGS_DIR:-business_modules/recording/data}"
+RECORDINGS_DIR="${RECORDINGS_DIR:-business_modules/scheduled_stream_capture/data}"
 
 # ── Resolve dates ──────────────────────────────────────────────────────────
 resolve_dates() {
@@ -59,7 +59,7 @@ while IFS= read -r line; do
       current_station="" ; current_program="" ; current_language=""
     fi
   fi
-done < <(node business_modules/recording/input/manage-jobs.js list 2>/dev/null; echo "")
+done < <(node business_modules/scheduled_stream_capture/input/manage-jobs.js list 2>/dev/null; echo "")
 # Flush last entry
 if [[ -n "${current_station:-}" && -n "${current_program:-}" ]]; then
   slug=$(echo "$current_program" | sed 's/ /-/g; s/:/-/g')

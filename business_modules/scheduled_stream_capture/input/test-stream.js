@@ -2,11 +2,11 @@
 /**
  * Step 2 of MVP: verify a stream URL works end-to-end before scheduling it.
  *
- * Records a stream for N seconds, writes to business_modules/recording/data/test/ and prints
+ * Records a stream for N seconds, writes to business_modules/scheduled_stream_capture/data/test/ and prints
  * the output path.  No DB, no transcription — pure "does FFmpeg capture this?".
  *
  * Usage:
- *   node business_modules/recording/input/test-stream.js \
+ *   node business_modules/scheduled_stream_capture/input/test-stream.js \
  *     --url <stream-url> \
  *     [--duration 30] \
  *     [--out /tmp/test-recording.mp3]
@@ -27,7 +27,7 @@ import { resolve, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { dirname } from 'node:path';
 import { createFfmpegDirectStreamAdapter } from '../infrastructure/adapters/ffmpegDirectStreamAdapter.js';
-import { defaultRecordingsDir } from '../infrastructure/recordingDataPaths.js';
+import { defaultStreamCapturesDir } from '../infrastructure/scheduledStreamCaptureDataPaths.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -39,7 +39,7 @@ const getArg = (flag, def = null) => {
 
 const streamUrl  = getArg('--url');
 const durationSec = Number.parseInt(getArg('--duration', '30'), 10);
-const defaultOut = join(defaultRecordingsDir(), 'test', `test-${Date.now()}.mp3`);
+const defaultOut = join(defaultStreamCapturesDir(), 'test', `test-${Date.now()}.mp3`);
 const outputPath = resolve(getArg('--out', defaultOut));
 
 if (!streamUrl) {
@@ -67,7 +67,7 @@ try {
   console.log('\nNext steps:');
   console.log('  1. Play the file to confirm audio quality.');
   console.log('  2. Add it as a scheduled job:');
-  console.log(`     node business_modules/recording/input/manage-jobs.js add \\`);
+  console.log(`     node business_modules/scheduled_stream_capture/input/manage-jobs.js add \\`);
   console.log(`       --station "your-station" \\`);
   console.log(`       --url "${streamUrl}" \\`);
   console.log(`       --program "Program Name" \\`);

@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS recording_runs (
 /**
  * @param {string} dbPath  Absolute path to SQLite file (parent dirs created if needed)
  */
-export function createRecordingJobStore(dbPath) {
+export function createScheduledStreamCaptureJobStore(dbPath) {
   mkdirSync(dirname(dbPath), { recursive: true });
   const db = new DatabaseSync(dbPath);
   db.exec(DDL);

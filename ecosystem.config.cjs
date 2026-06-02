@@ -29,7 +29,7 @@ module.exports = {
     },
     {
       name:         'radio-scheduler',
-      script:       'business_modules/recording/input/start-scheduler.js',
+      script:       'business_modules/scheduled_stream_capture/input/start-scheduler.js',
       cwd:          __dirname,
       interpreter:  'node',
       restart_delay: 5000,   // wait 5s before restarting on crash

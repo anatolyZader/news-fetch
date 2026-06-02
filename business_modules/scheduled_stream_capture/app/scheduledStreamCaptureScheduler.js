@@ -1,5 +1,5 @@
 /**
- * Polls the recording_jobs table every POLL_INTERVAL_MS and starts any due recordings.
+ * Polls the recording_jobs table every POLL_INTERVAL_MS and starts any due stream captures.
  *
  * Schedule resolution is done in Israel time (Asia/Jerusalem).  A job slot is
  * considered "due" when the current Israel time is within DETECTION_WINDOW_MIN
@@ -8,14 +8,14 @@
  * poller fires multiple times in the same minute only one run is ever created.
  *
  * Dependency injection:
- *   store   — createRecordingJobStore(...)
+ *   store   — createScheduledStreamCaptureJobStore(...)
  *   adapter — createFfmpegDirectStreamAdapter()
  *   onComplete({ job, runId, outputPath, date }) — called after FFmpeg exits cleanly;
  *              wire this to AudioIngestService.ingestToMarkdown() in the entry point.
- *   recordingsBaseDir — absolute path where output files are written
+ *   capturesBaseDir — absolute path where output files are written
  *
  * Usage:
- *   const scheduler = createRecordingScheduler({ store, adapter, onComplete, recordingsBaseDir });
+ *   const scheduler = createScheduledStreamCaptureScheduler({ store, adapter, onComplete, capturesBaseDir });
  *   scheduler.start();
  *   // later:
  *   scheduler.stop();
@@ -26,10 +26,10 @@ import { join } from 'node:path';
 const POLL_INTERVAL_MS = 30_000;   // poll every 30 seconds
 const DETECTION_WINDOW_MIN = 5;    // consider a slot "due" for up to 5 minutes after HH:MM
 const IL_TZ = 'Asia/Jerusalem';
+const LOG_PREFIX = '[stream-capture]';
 
 /** Returns Israel-time components for the given Date. */
 function ilTimeParts(date) {
-  // Use a more reliable approach: separate calls for numeric parts vs weekday
   const numericParts = Object.fromEntries(
     new Intl.DateTimeFormat('en-CA', {
       timeZone: IL_TZ,
@@ -38,12 +38,10 @@ function ilTimeParts(date) {
     }).formatToParts(date).map((p) => [p.type, p.value]),
   );
 
-  // Day-of-week: use JS Date shifted to Israel local midnight to get getDay()
-  // Simpler: format as a known weekday abbreviation via 'en-US' which gives Sun/Mon/...
   const dowStr = new Intl.DateTimeFormat('en-US', {
     timeZone: IL_TZ,
     weekday: 'short',
-  }).format(date); // "Sun", "Mon", ...
+  }).format(date);
   const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   const dayOfWeek = DOW.indexOf(dowStr);
 
@@ -51,17 +49,14 @@ function ilTimeParts(date) {
     dateStr: `${numericParts.year}-${numericParts.month}-${numericParts.day}`,
     hour: Number.parseInt(numericParts.hour, 10),
     minute: Number.parseInt(numericParts.minute, 10),
-    dayOfWeek, // 0=Sun … 6=Sat
+    dayOfWeek,
   };
 }
 
 /**
- * Checks whether `now` falls within [slot_time, slot_time + DETECTION_WINDOW_MIN).
- * Returns the canonical scheduled_start_at key if due, otherwise null.
- *
  * @param {{ dayOfWeek: number[], hour: number, minute: number }} slot
  * @param {Date} now
- * @returns {string|null}  e.g. "2026-03-24T18:00"
+ * @returns {string|null}
  */
 function scheduledStartIfDue(slot, now) {
   const { dateStr, hour, minute, dayOfWeek } = ilTimeParts(now);
@@ -77,10 +72,6 @@ function scheduledStartIfDue(slot, now) {
   return `${dateStr}T${String(slot.hour).padStart(2, '0')}:${String(slot.minute).padStart(2, '0')}`;
 }
 
-/**
- * Derive a filesystem-safe directory name from the program label.
- * e.g. "Evening News (18:00)" → "evening-news-18-00"
- */
 function slugify(str) {
   return str
     .toLowerCase()
@@ -88,15 +79,15 @@ function slugify(str) {
     .replaceAll(/^-+|-+$/g, '');
 }
 
-export function createRecordingScheduler({ store, adapter, onComplete, recordingsBaseDir }) {
-  const activeRecordings = new Map(); // runId → handle
+export function createScheduledStreamCaptureScheduler({ store, adapter, onComplete, capturesBaseDir }) {
+  const activeCaptures = new Map();
   let pollTimer = null;
   let running = false;
 
-  async function startRecording({ job, runId, scheduledStart }) {
-    const date = scheduledStart.slice(0, 10); // YYYY-MM-DD
+  async function startCapture({ job, runId, scheduledStart }) {
+    const date = scheduledStart.slice(0, 10);
     const outputPath = join(
-      recordingsBaseDir,
+      capturesBaseDir,
       job.station,
       date,
       slugify(job.program),
@@ -110,26 +101,26 @@ export function createRecordingScheduler({ store, adapter, onComplete, recording
       output_path: outputPath,
     });
 
-    console.log(`[recording] START  job=${job.id} run=${runId} station=${job.station} program="${job.program}" duration=${job.duration_sec}s`);
+    console.log(`${LOG_PREFIX} START  job=${job.id} run=${runId} station=${job.station} program="${job.program}" duration=${job.duration_sec}s`);
 
     const handle = adapter.record({
       streamUrl: job.stream_url,
       outputPath,
       durationSec: job.duration_sec,
     });
-    activeRecordings.set(runId, handle);
+    activeCaptures.set(runId, handle);
 
     try {
       await handle.done;
       const endedAt = new Date().toISOString();
       store.updateRun(runId, { status: 'completed', actual_end_at: endedAt });
-      console.log(`[recording] DONE   run=${runId} → ${outputPath}`);
+      console.log(`${LOG_PREFIX} DONE   run=${runId} → ${outputPath}`);
 
       if (onComplete) {
         try {
           await onComplete({ job, runId, outputPath, date, scheduledStart });
         } catch (err) {
-          console.error(`[recording] onComplete error for run ${runId}:`, err.message);
+          console.error(`${LOG_PREFIX} onComplete error for run ${runId}:`, err.message);
         }
       }
     } catch (err) {
@@ -138,9 +129,9 @@ export function createRecordingScheduler({ store, adapter, onComplete, recording
         actual_end_at: new Date().toISOString(),
         error_msg: err.message,
       });
-      console.error(`[recording] FAILED run=${runId}:`, err.message);
+      console.error(`${LOG_PREFIX} FAILED run=${runId}:`, err.message);
     } finally {
-      activeRecordings.delete(runId);
+      activeCaptures.delete(runId);
     }
   }
 
@@ -150,7 +141,7 @@ export function createRecordingScheduler({ store, adapter, onComplete, recording
     try {
       jobs = store.getEnabledJobs();
     } catch (err) {
-      console.error('[recording] poll error reading jobs:', err.message);
+      console.error(`${LOG_PREFIX} poll error reading jobs:`, err.message);
       return;
     }
 
@@ -163,17 +154,13 @@ export function createRecordingScheduler({ store, adapter, onComplete, recording
         try {
           run = store.createRunIfNotExists({ jobId: job.id, scheduledStartAt: scheduledStart });
         } catch (err) {
-          console.error(`[recording] failed to create run for job ${job.id}:`, err.message);
+          console.error(`${LOG_PREFIX} failed to create run for job ${job.id}:`, err.message);
           continue;
         }
 
-        if (!run.created) {
-          // run already exists — either in progress or completed; skip
-          continue;
-        }
+        if (!run.created) continue;
 
-        // Fire-and-forget; errors are caught inside startRecording
-        startRecording({ job, runId: run.id, scheduledStart }).catch(() => {});
+        startCapture({ job, runId: run.id, scheduledStart }).catch(() => {});
       }
     }
   }
@@ -182,8 +169,7 @@ export function createRecordingScheduler({ store, adapter, onComplete, recording
     start() {
       if (running) return;
       running = true;
-      console.log(`[recording] Scheduler started (poll every ${POLL_INTERVAL_MS / 1000}s, timezone: ${IL_TZ})`);
-      // Run immediately, then on interval
+      console.log(`${LOG_PREFIX} Scheduler started (poll every ${POLL_INTERVAL_MS / 1000}s, timezone: ${IL_TZ})`);
       poll().catch(() => {});
       pollTimer = setInterval(() => poll().catch(() => {}), POLL_INTERVAL_MS);
     },
@@ -193,17 +179,15 @@ export function createRecordingScheduler({ store, adapter, onComplete, recording
       running = false;
       clearInterval(pollTimer);
       pollTimer = null;
-      // Stop any in-flight recordings gracefully
-      for (const [runId, handle] of activeRecordings) {
-        console.log(`[recording] Stopping in-flight recording run=${runId}`);
+      for (const [runId, handle] of activeCaptures) {
+        console.log(`${LOG_PREFIX} Stopping in-flight capture run=${runId}`);
         handle.stop();
       }
-      console.log('[recording] Scheduler stopped.');
+      console.log(`${LOG_PREFIX} Scheduler stopped.`);
     },
 
-    /** For testing: trigger one poll cycle immediately. */
     pollNow: () => poll(),
 
-    activeCount: () => activeRecordings.size,
+    activeCount: () => activeCaptures.size,
   };
 }

@@ -50,7 +50,7 @@ Orient an integrator or developer to the repo's top-level layout so they can ans
 │   ├── social_media/          # OSINT citizen-voice; data/ holds signals-social-*.json + reports
 │   ├── audio/                 # Whisper transcription + markdown export
 │   ├── video/                 # YouTube / video ingest; data/ for yt-dlp downloads
-│   ├── recording/             # Scheduled stream recorders; data/ for captured MP3s
+│   ├── scheduled_stream_capture/  # Scheduled live-stream capture (FFmpeg); data/ for MP3s
 │   ├── radio/                 # Radio station specifics
 │   ├── resilience/            # Signal extraction + assessment; field survey Excel → reports (app/survey*.js, infrastructure/adapters/surveyExcelLoader.js)
 │   ├── translation/           # On-demand report translation

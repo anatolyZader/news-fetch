@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Idempotent setup: registers רדיו צפון 104.5FM morning broadcast jobs
- * in the SQLite recording scheduler.
+ * in the scheduled stream capture scheduler.
  *
  * Run once (or re-run safely — skips if already configured):
  *   npm run radio:setup
@@ -13,8 +13,8 @@
  * Stream: https://radio.streamgates.net/stream/1045fm  (128 kbps MP3, Icecast)
  * Fallback stream: https://cdn.cybercdn.live/Tzafon_NonStop/Live_Audio/icecast.audio
  *
- * After setup, start the recording scheduler daemon:
- *   npm run record:start
+ * After setup, start the capture scheduler daemon:
+ *   npm run capture:start
  *
  * Each completed recording is automatically transcribed and written to:
  *   articles-audio-tzafon-1045-<YYYY-MM-DD>T<HH-MM>.md
@@ -29,7 +29,7 @@
 import 'dotenv/config';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { createRecordingJobStore } from '../../recording/infrastructure/recordingJobStore.js';
+import { createScheduledStreamCaptureJobStore } from '../../scheduled_stream_capture/infrastructure/scheduledStreamCaptureJobStore.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -58,7 +58,7 @@ const MORNING_JOBS = [
 
 const DAY_ABBR = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-const store = createRecordingJobStore(sqlitePath);
+const store = createScheduledStreamCaptureJobStore(sqlitePath);
 
 // ── Idempotency check ──────────────────────────────────────────────────────
 
@@ -99,4 +99,4 @@ for (const job of MORNING_JOBS) {
 console.log(`Station  : ${STATION}`);
 console.log(`Stream   : ${STREAM_URL}`);
 console.log('\nSetup complete. Start the scheduler daemon to begin recording:');
-console.log('  npm run record:start');
+console.log('  npm run capture:start');

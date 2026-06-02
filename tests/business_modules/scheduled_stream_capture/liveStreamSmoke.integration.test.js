@@ -7,7 +7,7 @@
  *   node --test --test-name-pattern '(?!liveStreamSmoke)' ...
  *
  * Run only this test:
- *   node --test tests/business_modules/recording/liveStreamSmoke.integration.test.js
+ *   node --test tests/business_modules/scheduled_stream_capture/liveStreamSmoke.integration.test.js
  */
 
 import { describe, it, after } from 'node:test';
@@ -15,9 +15,9 @@ import assert from 'node:assert/strict';
 import { unlinkSync, existsSync, statSync, rmSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
-import { createRecordingJobStore } from '../../../business_modules/recording/infrastructure/recordingJobStore.js';
-import { createRecordingScheduler } from '../../../business_modules/recording/app/recordingScheduler.js';
-import { createFfmpegDirectStreamAdapter } from '../../../business_modules/recording/infrastructure/adapters/ffmpegDirectStreamAdapter.js';
+import { createScheduledStreamCaptureJobStore } from '../../../business_modules/scheduled_stream_capture/infrastructure/scheduledStreamCaptureJobStore.js';
+import { createScheduledStreamCaptureScheduler } from '../../../business_modules/scheduled_stream_capture/app/scheduledStreamCaptureScheduler.js';
+import { createFfmpegDirectStreamAdapter } from '../../../business_modules/scheduled_stream_capture/infrastructure/adapters/ffmpegDirectStreamAdapter.js';
 
 const CLIP_DURATION_SEC = 10;
 const SETTLE_TIMEOUT_MS = 30_000; // max wait for all recordings to finish
@@ -25,12 +25,12 @@ const SETTLE_TIMEOUT_MS = 30_000; // max wait for all recordings to finish
 describe('liveStreamSmoke', () => {
   const testDbPath = join(tmpdir(), `rec-smoke-${Date.now()}.sqlite`);
   const testRecDir = join(tmpdir(), `rec-smoke-out-${Date.now()}`);
-  const testStore = createRecordingJobStore(testDbPath);
+  const testStore = createScheduledStreamCaptureJobStore(testDbPath);
   const adapter = createFfmpegDirectStreamAdapter();
 
   // Collect all unique station→streamUrl pairs from the production database
   const prodDbPath = join(import.meta.dirname, '..', '..', '..', 'db', 'app.sqlite');
-  const prodStore = createRecordingJobStore(prodDbPath);
+  const prodStore = createScheduledStreamCaptureJobStore(prodDbPath);
   const prodJobs = prodStore.getEnabledJobs();
 
   // Deduplicate by stream_url (multiple jobs on the same station share a URL)
@@ -89,11 +89,11 @@ describe('liveStreamSmoke', () => {
     const completions = [];
     const failures = [];
 
-    const scheduler = createRecordingScheduler({
+    const scheduler = createScheduledStreamCaptureScheduler({
       store: testStore,
       adapter,
       onComplete: (info) => completions.push(info),
-      recordingsBaseDir: testRecDir,
+      capturesBaseDir: testRecDir,
     });
 
     // Trigger a single poll cycle — this fires off all recordings concurrently

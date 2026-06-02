@@ -37,7 +37,7 @@ After reading this you should be able to locate any behavior of the running syst
 
 ## The subsystems
 
-**Ingestion** (`business_modules/{news-sites,whatsapp,audio,video,recording,radio}/`) — one module per source, each with an `input/` directory containing CLI entry points and an `output/` or `articles_extracted/` directory where dated markdown exports land. Ingestion modules normalize source-specific quirks into a shared markdown format that downstream stages can parse.
+**Ingestion** (`business_modules/{news-sites,whatsapp,audio,video,scheduled_stream_capture,radio}/`) — one module per source, each with an `input/` directory containing CLI entry points and an `output/` or `articles_extracted/` directory where dated markdown exports land. Ingestion modules normalize source-specific quirks into a shared markdown format that downstream stages can parse.
 
 **Storage** (`db/` + SQLite) — default database file `db/app.sqlite` (`SQLITE_PATH`). Raw persistence (evidence, source archive originals, drafts, quotas) is implemented under [`db/persistence/`](../../../db/persistence/) and [`db/source_archive/`](../../../db/source_archive/); ops CLIs under [`db/input/`](../../../db/input/). RAG chunk indexes live in the same SQLite file via [`cross-cut-modules/retrieval/`](../../../cross-cut-modules/retrieval/). Only the server writes; stages use these modules rather than opening the DB directly.
 

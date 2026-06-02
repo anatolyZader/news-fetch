@@ -3,11 +3,11 @@ import assert from 'node:assert/strict';
 import { unlinkSync, existsSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
-import { createRecordingJobStore } from '../../../business_modules/recording/infrastructure/recordingJobStore.js';
+import { createScheduledStreamCaptureJobStore } from '../../../business_modules/scheduled_stream_capture/infrastructure/scheduledStreamCaptureJobStore.js';
 
-describe('recordingJobStore', () => {
+describe('scheduledStreamCaptureJobStore', () => {
   const dbPath = join(tmpdir(), `rec-store-test-${Date.now()}.sqlite`);
-  const store = createRecordingJobStore(dbPath);
+  const store = createScheduledStreamCaptureJobStore(dbPath);
 
   after(() => {
     try { if (existsSync(dbPath)) unlinkSync(dbPath); } catch { /* ignore */ }

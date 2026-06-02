@@ -20,7 +20,7 @@ Finds radio recordings that don't have a corresponding `.md` transcript and tran
 ./scripts/radio-transcribe.sh 2026-04-08
 ```
 
-- Reads MP3s from `business_modules/recording/data/` (override with `RECORDINGS_DIR`)
+- Reads MP3s from `business_modules/scheduled_stream_capture/data/` (override with `RECORDINGS_DIR`)
 - Automatically skips recordings that already have a transcript file
 - Matches each recording to its program name from the recording jobs DB
 - Uses `--contextualize` (LLM filtering of ads/music)

@@ -3,12 +3,12 @@ import assert from 'node:assert/strict';
 import { unlinkSync, existsSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
-import { createRecordingJobStore } from '../../../business_modules/recording/infrastructure/recordingJobStore.js';
-import { createRecordingScheduler } from '../../../business_modules/recording/app/recordingScheduler.js';
+import { createScheduledStreamCaptureJobStore } from '../../../business_modules/scheduled_stream_capture/infrastructure/scheduledStreamCaptureJobStore.js';
+import { createScheduledStreamCaptureScheduler } from '../../../business_modules/scheduled_stream_capture/app/scheduledStreamCaptureScheduler.js';
 
-describe('recordingScheduler', () => {
+describe('scheduledStreamCaptureScheduler', () => {
   const dbPath = join(tmpdir(), `rec-sched-test-${Date.now()}.sqlite`);
-  const store = createRecordingJobStore(dbPath);
+  const store = createScheduledStreamCaptureJobStore(dbPath);
   const recordingsDir = join(tmpdir(), `rec-sched-out-${Date.now()}`);
 
   after(() => {
@@ -63,11 +63,11 @@ describe('recordingScheduler', () => {
       };
 
       const completions = [];
-      const scheduler = createRecordingScheduler({
+      const scheduler = createScheduledStreamCaptureScheduler({
         store,
         adapter: mockAdapter,
         onComplete: (info) => completions.push(info),
-        recordingsBaseDir: recordingsDir,
+        capturesBaseDir: recordingsDir,
       });
 
       await scheduler.pollNow();
@@ -112,8 +112,8 @@ describe('recordingScheduler', () => {
         },
       };
 
-      const scheduler = createRecordingScheduler({
-        store, adapter: mockAdapter, recordingsBaseDir: recordingsDir,
+      const scheduler = createScheduledStreamCaptureScheduler({
+        store, adapter: mockAdapter, capturesBaseDir: recordingsDir,
       });
       await scheduler.pollNow();
       await new Promise((r) => setTimeout(r, 50));
@@ -143,8 +143,8 @@ describe('recordingScheduler', () => {
         },
       };
 
-      const scheduler = createRecordingScheduler({
-        store, adapter: mockAdapter, recordingsBaseDir: recordingsDir,
+      const scheduler = createScheduledStreamCaptureScheduler({
+        store, adapter: mockAdapter, capturesBaseDir: recordingsDir,
       });
       await scheduler.pollNow();
       await new Promise((r) => setTimeout(r, 50));
@@ -179,8 +179,8 @@ describe('recordingScheduler', () => {
         },
       };
 
-      const scheduler = createRecordingScheduler({
-        store, adapter: mockAdapter, recordingsBaseDir: recordingsDir,
+      const scheduler = createScheduledStreamCaptureScheduler({
+        store, adapter: mockAdapter, capturesBaseDir: recordingsDir,
       });
 
       await scheduler.pollNow();
@@ -215,8 +215,8 @@ describe('recordingScheduler', () => {
         },
       };
 
-      const scheduler = createRecordingScheduler({
-        store, adapter: mockAdapter, recordingsBaseDir: recordingsDir,
+      const scheduler = createScheduledStreamCaptureScheduler({
+        store, adapter: mockAdapter, capturesBaseDir: recordingsDir,
       });
       await scheduler.pollNow();
       await new Promise((r) => setTimeout(r, 50));
@@ -249,8 +249,8 @@ describe('recordingScheduler', () => {
         },
       };
 
-      const scheduler = createRecordingScheduler({
-        store, adapter: mockAdapter, recordingsBaseDir: recordingsDir,
+      const scheduler = createScheduledStreamCaptureScheduler({
+        store, adapter: mockAdapter, capturesBaseDir: recordingsDir,
       });
       await scheduler.pollNow();
       await new Promise((r) => setTimeout(r, 100));
@@ -270,8 +270,8 @@ describe('recordingScheduler', () => {
           return { stop: () => {}, pid: 999, done: Promise.resolve({ outputPath: '' }) };
         },
       };
-      const scheduler = createRecordingScheduler({
-        store, adapter: mockAdapter, recordingsBaseDir: recordingsDir,
+      const scheduler = createScheduledStreamCaptureScheduler({
+        store, adapter: mockAdapter, capturesBaseDir: recordingsDir,
       });
       scheduler.start();
       assert.strictEqual(scheduler.activeCount(), 0);
