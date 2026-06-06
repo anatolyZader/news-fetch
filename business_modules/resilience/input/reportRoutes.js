@@ -35,6 +35,7 @@ import { authPreHandlerList } from '../../../cross-cut-modules/auth/buildAuthHoo
 export async function reportRoutes(app, opts) {
   const {
     authHook,
+    readAuthHook,
     evidenceStore,
     reportReadPort,
     videoDownloadDir,
@@ -47,7 +48,9 @@ export async function reportRoutes(app, opts) {
   const getCachedReport = (store, readOpts) =>
     (reportReadPort?.getCachedReport ?? getCachedReportDefault)(store, readOpts);
 
-  app.get('/api/report/today', authHook, async (request, reply) => {
+  const todayAuthHook = readAuthHook ?? authHook;
+
+  app.get('/api/report/today', todayAuthHook, async (request, reply) => {
     const scope = normalizeReportScope(request.query?.scope ?? 'national');
     if (isRegionalReportScope(scope)) {
       if (!requireOperatorDistrictAccess(request, reply, scope)) return;

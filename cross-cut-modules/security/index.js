@@ -2,6 +2,12 @@ export { validateUserFetchUrl, validateRemoteVideoUrl, isBlockedHostname } from 
 export { safeFetch } from './infrastructure/safeFetch.js';
 export { validateProductionSecurity, productionSecurityWarnings } from './app/validateProductionSecurity.js';
 export { appendAuditEvent, auditFromRequest, resolveAuditLogPath } from './input/auditLog.js';
-export { appCheckPreHandler, withAppCheck } from './input/appCheckPreHandler.js';
+export {
+  appCheckPreHandler,
+  appCheckSoftPreHandler,
+  reportTodayAppCheckSoftPreHandler,
+  setAppCheckSoftMetricsPort,
+  withAppCheck,
+} from './input/appCheckPreHandler.js';
 export { registerSecurityPlugins, registerWhatsappRawBodyHook } from './input/registerSecurityPlugins.js';
 export { verifyWhatsAppWebhookSignature } from './infrastructure/whatsappSignature.js';

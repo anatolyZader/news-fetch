@@ -59,7 +59,8 @@ function formatSavedTime(isoLike) {
 
 
 export function EvidenceInput() {
-  const { getIdToken, getAppCheckToken, apiReady } = useAuth();
+  const { getIdToken, getAppCheckToken, apiReady, appCheckRequired, costlyRouteReady } = useAuth();
+  const protectedReady = apiReady && (!appCheckRequired || costlyRouteReady);
   const { t } = useLanguage();
   const [value, setValue] = useState(readDraft);
   const [hydrated, setHydrated] = useState(false);
@@ -78,34 +79,20 @@ export function EvidenceInput() {
   const submissionPollRef = useRef({ timerId: null, submissionId: null });
 
   const fetchEvidence = useCallback(async () => {
-    const headers = new Headers();
-    const t = await getIdToken();
-    if (t) headers.set('Authorization', `Bearer ${t}`);
-    const r = await fetch('/api/evidence-draft', { headers });
-    if (!r.ok) {
-      const err = await r.json().catch(() => ({}));
-      throw new Error(err.error || `HTTP ${r.status}`);
-    }
-    return r.json();
-  }, [getIdToken]);
+    return authFetch('/api/evidence-draft', {
+      getIdToken,
+      getAppCheckToken,
+    });
+  }, [getIdToken, getAppCheckToken]);
 
   const putEvidence = useCallback(
-    async (content) => {
-      const headers = new Headers({ 'Content-Type': 'application/json' });
-      const t = await getIdToken();
-      if (t) headers.set('Authorization', `Bearer ${t}`);
-      const r = await fetch('/api/evidence-draft', {
-        method: 'PUT',
-        headers,
-        body: JSON.stringify({ content }),
-      });
-      if (!r.ok) {
-        const err = await r.json().catch(() => ({}));
-        throw new Error(err.error || `HTTP ${r.status}`);
-      }
-      return r.json();
-    },
-    [getIdToken],
+    async (content) => authFetch('/api/evidence-draft', {
+      getIdToken,
+      getAppCheckToken,
+      method: 'PUT',
+      body: { content },
+    }),
+    [getIdToken, getAppCheckToken],
   );
 
   const cancelRetry = useCallback(() => {
@@ -176,7 +163,7 @@ export function EvidenceInput() {
   }, [value, hydrated]);
 
   useEffect(() => {
-    if (!apiReady) return;
+    if (!protectedReady) return;
     let cancelled = false;
 
     (async () => {
@@ -210,10 +197,10 @@ export function EvidenceInput() {
     return () => {
       cancelled = true;
     };
-  }, [apiReady, fetchEvidence, persistDraft]);
+  }, [protectedReady, fetchEvidence, persistDraft]);
 
   useEffect(() => {
-    if (!apiReady || !hydrated) return;
+    if (!protectedReady || !hydrated) return;
     if (value.length > MAX_CHARS) return;
 
     const id = setTimeout(() => {
@@ -225,7 +212,7 @@ export function EvidenceInput() {
     }, SAVE_DEBOUNCE_MS);
 
     return () => clearTimeout(id);
-  }, [value, apiReady, hydrated, persistDraft, scheduleRetry]);
+  }, [value, protectedReady, hydrated, persistDraft, scheduleRetry]);
 
   useEffect(() => {
     if (!hydrated) return;

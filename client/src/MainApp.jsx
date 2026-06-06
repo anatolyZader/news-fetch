@@ -234,6 +234,7 @@ function AppShell() {
     reportDate,
     initialReportLoadDone,
     reportMissingHint,
+    reportLoadError,
     attentionItems,
   } = useTodayReport(reportScope);
   const [activeTab, setActiveTab] = useState(() => readMainTab());
@@ -699,13 +700,21 @@ function AppShell() {
               </Typography>
             )}
 
-            {initialReportLoadDone && !report && reportMissingHint === 'north_requires_assess_signals' && (
+            {initialReportLoadDone && reportLoadError && (
+              <Alert severity="warning" variant="outlined" sx={(theme) => ({ marginBottom: theme.spacing(1) })}>
+                {reportLoadError}
+              </Alert>
+            )}
+
+            {initialReportLoadDone && !report && !reportLoadError
+              && (reportMissingHint === 'regional_requires_assess_signals'
+                || reportMissingHint === 'north_requires_assess_signals') && (
               <Alert severity="info" variant="outlined" sx={(theme) => ({ marginBottom: theme.spacing(1) })}>
                 {t('app.northReportMissingHint')}
               </Alert>
             )}
 
-            {initialReportLoadDone && !report && (
+            {initialReportLoadDone && !report && !reportLoadError && !reportMissingHint && (
               <Typography
                 variant="body2"
                 color="text.secondary"

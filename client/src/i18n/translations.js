@@ -263,6 +263,7 @@ export const translations = {
     'app.ariaMainSections': 'Main sections',
     'app.ariaReportContents': 'Report contents',
     'app.reportLoading':  'Loading report…',
+    'app.reportSecurityCheck': 'Verifying browser security…',
     'app.noReportYet':    'No assessment is available yet. Generate one on the server and refresh this page.',
     'app.runNationalAnalysis': 'Run national analysis',
     'app.analyzeRunning': 'Analyzing…',
@@ -1118,6 +1119,7 @@ export const translations = {
     'app.ariaMainSections': 'אזורי ניווט ראשיים',
     'app.ariaReportContents': 'תוכן הדוח',
     'app.reportLoading':  'טוען דוח…',
+    'app.reportSecurityCheck': 'מאמת אבטחת דפדפן…',
     'app.noReportYet':
       'אין הערכה זמינה עדיין. יש ליצור הערכה בשרת ולרענן את הדף.',
     'app.runNationalAnalysis': 'הרץ הערכה לאומית',
@@ -1864,6 +1866,7 @@ export const translations = {
     'app.ariaMainSections': 'Основные разделы',
     'app.ariaReportContents': 'Содержание отчёта',
     'app.reportLoading':  'Загрузка отчёта…',
+    'app.reportSecurityCheck': 'Проверка безопасности браузера…',
     'app.noReportYet':
       'Оценка пока недоступна. Создайте её на сервере и обновите страницу.',
     'app.runNationalAnalysis': 'Запустить общенациональный анализ',

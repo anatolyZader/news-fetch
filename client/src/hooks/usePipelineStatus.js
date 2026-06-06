@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
+import { authFetch } from '../lib/authFetch.js';
 import { normalizeReportScopeId } from '../lib/reportScopes.js';
 
 /**
@@ -14,14 +15,16 @@ export function useMonitoringSummary(opts = {}) {
     typeof opts.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(opts.date.trim())
       ? opts.date.trim()
       : '';
-  const { getIdToken, apiReady } = useAuth();
+  const { getIdToken, getAppCheckToken, apiReady, appCheckRequired, costlyRouteReady } = useAuth();
 
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  const protectedReady = apiReady && (!appCheckRequired || costlyRouteReady);
+
   useEffect(() => {
-    if (!apiReady || !enabled) return;
+    if (!protectedReady || !enabled) return;
 
     let cancelled = false;
 
@@ -30,16 +33,12 @@ export function useMonitoringSummary(opts = {}) {
       setError(null);
       setData(null);
 
-      const headers = new Headers();
-      const token = await getIdToken();
-      if (cancelled) return;
-      if (token) headers.set('Authorization', `Bearer ${token}`);
-
       try {
         const qs = new URLSearchParams({ scope, ...(date ? { date } : null) });
-        const res = await fetch(`/api/monitoring/summary?${qs.toString()}`, { headers });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const body = await res.json();
+        const body = await authFetch(`/api/monitoring/summary?${qs.toString()}`, {
+          getIdToken,
+          getAppCheckToken,
+        });
         if (cancelled) return;
         setData(body);
       } catch (err) {
@@ -50,7 +49,7 @@ export function useMonitoringSummary(opts = {}) {
     })();
 
     return () => { cancelled = true; };
-  }, [apiReady, getIdToken, scope, date, enabled]);
+  }, [protectedReady, getIdToken, getAppCheckToken, scope, date, enabled]);
 
   return { data, loading, error };
 }

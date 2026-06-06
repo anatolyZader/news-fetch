@@ -16,9 +16,11 @@ import { dispatchOutboxBatch } from '../cross-cut-modules/messaging/app/outboxDi
 import { buildSecurityTxt } from '../cross-cut-modules/security/app/buildSecurityTxt.js';
 import {
   buildAuthHook,
+  buildReadAuthHook,
   buildTryAuthHook,
   getProtectedAuthPreHandlers,
 } from '../cross-cut-modules/auth/buildAuthHooks.js';
+import { setAppCheckSoftMetricsPort } from '../cross-cut-modules/security/input/appCheckPreHandler.js';
 import { tryAuthPreHandler } from '../cross-cut-modules/auth/tryAuthPreHandler.js';
 import { initFirebaseAdminForAuth } from '../cross-cut-modules/auth/firebaseAdmin.js';
 import { syncAllUserAccessClaims } from '../cross-cut-modules/auth/userAccessClaims.js';
@@ -91,6 +93,8 @@ export async function createApp(options) {
   }
 
   const authHook = buildAuthHook(authRequired);
+  const readAuthHook = buildReadAuthHook(authRequired);
+  setAppCheckSoftMetricsPort(w.metricsPort);
   const tryAuthHook = buildTryAuthHook(authRequired);
   const protectedAuthPreHandler = getProtectedAuthPreHandlers(authRequired);
 
@@ -185,6 +189,7 @@ export async function createApp(options) {
 
   await reportRoutes(app, {
     authHook,
+    readAuthHook,
     tryAuthPreHandler,
     evidenceStore: w.evidenceStore,
     reportReadPort: createReportReadPort(),

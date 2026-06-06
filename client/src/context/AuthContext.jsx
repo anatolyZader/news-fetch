@@ -19,7 +19,7 @@ import {
   signOut,
 } from 'firebase/auth';
 import { getFirebaseWebConfig, isFirebaseClientConfigured, isAppCheckConfigured } from '../lib/firebaseClient.js';
-import { getAppCheckToken as fetchAppCheckToken, ensureAppCheckInitialized } from '../lib/appCheckClient.js';
+import { getAppCheckToken as fetchAppCheckToken, ensureAppCheckInitialized, resetAppCheckClient } from '../lib/appCheckClient.js';
 import PropTypes from 'prop-types';
 
 const AuthContext = createContext(null);
@@ -27,6 +27,7 @@ const AuthContext = createContext(null);
 /** Unblock auth gate if Firebase never resolves (network / SDK hang). */
 const AUTH_BOOTSTRAP_TIMEOUT_MS = 8000;
 const AUTH_CONFIG_FETCH_TIMEOUT_MS = 10000;
+const TOKEN_WARM_TIMEOUT_MS = 12_000;
 
 function getOrInitApp() {
   if (getApps().length > 0) return getApps()[0];
@@ -43,9 +44,11 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [authError, setAuthError] = useState(null);
+  const [accessToken, setAccessToken] = useState(null);
+  const [tokenWarmFailed, setTokenWarmFailed] = useState(false);
   const tokenCacheRef = useRef({ token: null, expiresAt: 0, inflight: null });
 
-  // Warm Firebase while auth config loads so onAuthStateChanged can fire sooner.
+  // Warm Firebase only — App Check must start after sign-in (conflicts with Google popup).
   useEffect(() => {
     if (isFirebaseClientConfigured()) {
       getOrInitApp();
@@ -92,6 +95,22 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     if (!configLoaded) return undefined;
+    if (!authRequired) {
+      queueMicrotask(() => {
+        setAccessToken(null);
+        setTokenWarmFailed(false);
+      });
+      return undefined;
+    }
+    queueMicrotask(() => {
+      setAccessToken(null);
+      setTokenWarmFailed(false);
+    });
+    return undefined;
+  }, [configLoaded, authRequired]);
+
+  useEffect(() => {
+    if (!configLoaded) return undefined;
     if (!authRequired || !isFirebaseClientConfigured()) {
       queueMicrotask(() => setAuthLoading(false));
       return undefined;
@@ -110,12 +129,37 @@ export function AuthProvider({ children }) {
       setMembershipDenied(false);
       if (!u) {
         setUser(null);
+        setAccessToken(null);
+        setTokenWarmFailed(false);
+        tokenCacheRef.current = { token: null, expiresAt: 0, inflight: null };
         setAuthLoading(false);
         return;
       }
-      // Show the app immediately; verify invite list in the background.
+      setAccessToken(null);
+      setTokenWarmFailed(false);
       setUser(u);
       setAuthLoading(false);
+
+      const warmTimeoutId = setTimeout(() => {
+        if (!tokenCacheRef.current.token) setTokenWarmFailed(true);
+      }, TOKEN_WARM_TIMEOUT_MS);
+
+      void u.getIdToken().then((tok) => {
+        clearTimeout(warmTimeoutId);
+        if (tok) {
+          tokenCacheRef.current.token = tok;
+          tokenCacheRef.current.expiresAt = Date.now() + 60_000;
+          setAccessToken(tok);
+          setTokenWarmFailed(false);
+        } else {
+          setTokenWarmFailed(true);
+        }
+        tokenCacheRef.current.inflight = null;
+      }).catch(() => {
+        clearTimeout(warmTimeoutId);
+        tokenCacheRef.current.inflight = null;
+        setTokenWarmFailed(true);
+      });
       void (async () => {
         try {
           const tok = await u.getIdToken();
@@ -160,6 +204,7 @@ export function AuthProvider({ children }) {
       tokenCacheRef.current.token = tok ?? null;
       tokenCacheRef.current.expiresAt = Date.now() + 60_000;
       tokenCacheRef.current.inflight = null;
+      if (tok) setAccessToken(tok);
       return tok ?? null;
     }).catch(() => {
       tokenCacheRef.current.inflight = null;
@@ -183,10 +228,11 @@ export function AuthProvider({ children }) {
     return !!user;
   }, [configLoaded, authRequired, user]);
 
-  const appCheckRequired = appCheckEnforced || isAppCheckConfigured();
-  const [costlyRouteReady, setCostlyRouteReady] = useState(() => !appCheckRequired);
+  const appCheckRequired = configLoaded && (appCheckEnforced || isAppCheckConfigured());
+  const [costlyRouteReady, setCostlyRouteReady] = useState(false);
   const [appCheckError, setAppCheckError] = useState(null);
 
+  // App Check after sign-in only — initializing earlier breaks Google sign-in (auth/internal-error).
   useEffect(() => {
     if (!apiReady) {
       queueMicrotask(() => {
@@ -209,11 +255,12 @@ export function AuthProvider({ children }) {
       });
       return undefined;
     }
+    resetAppCheckClient();
     queueMicrotask(() => { setAppCheckError(null); });
     ensureAppCheckInitialized();
     let cancelled = false;
     void (async () => {
-      for (let attempt = 0; attempt < 48; attempt += 1) {
+      for (let attempt = 0; attempt < 60; attempt += 1) {
         const tok = await fetchAppCheckToken(attempt > 0);
         if (cancelled) return;
         if (tok) {
@@ -221,7 +268,7 @@ export function AuthProvider({ children }) {
           setAppCheckError(null);
           return;
         }
-        await new Promise((resolve) => setTimeout(resolve, 250));
+        await new Promise((resolve) => setTimeout(resolve, 500));
       }
       if (!cancelled) {
         setCostlyRouteReady(false);
@@ -266,6 +313,12 @@ export function AuthProvider({ children }) {
 
   const logout = useCallback(async () => {
     setAuthError(null);
+    resetAppCheckClient();
+    setCostlyRouteReady(false);
+    setAppCheckError(null);
+    setAccessToken(null);
+    setTokenWarmFailed(false);
+    tokenCacheRef.current = { token: null, expiresAt: 0, inflight: null };
     if (!isFirebaseClientConfigured()) return;
     getOrInitApp();
     const auth = getAuth();
@@ -285,6 +338,8 @@ export function AuthProvider({ children }) {
       authError,
       setAuthError,
       apiReady,
+      accessToken,
+      tokenWarmFailed,
       appCheckEnforced,
       appCheckRequired,
       appCheckError,
@@ -307,6 +362,8 @@ export function AuthProvider({ children }) {
       authLoading,
       authError,
       apiReady,
+      accessToken,
+      tokenWarmFailed,
       appCheckEnforced,
       appCheckRequired,
       appCheckError,

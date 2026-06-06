@@ -7,6 +7,8 @@ import {
   operatorDistrictEntriesFromUserAccess,
   resetUserAccessCache,
   setUserAccessConfigForTests,
+  resolveUserAccessLevel,
+  ACCESS_LEVELS,
 } from './userAccess.js';
 
 /** Reset cached config (tests). */
@@ -44,6 +46,16 @@ export function resolveOperatorDistrictAccess(email) {
   }
 
   const normalized = String(email ?? '').trim().toLowerCase();
+  const level = resolveUserAccessLevel(normalized);
+  if (level === ACCESS_LEVELS.analyst || level === ACCESS_LEVELS.maintainer) {
+    return {
+      enforcementEnabled: true,
+      unrestricted: true,
+      districtIds: allRegional,
+      allowedReportScopes: allReportScopes,
+    };
+  }
+
   if (!normalized) {
     return {
       enforcementEnabled: true,

@@ -61,6 +61,23 @@ test('allDistricts flag grants unrestricted access under enforcement', () => {
   assert.equal(canOperatorAccessDistrict('admin@example.com', 'haifa'), true);
 });
 
+test('analyst and maintainer bypass district limits when enforcement is on', () => {
+  resetOperatorDistrictAccessCache();
+  setOperatorDistrictAccessConfigForTests({
+    operatorDistrictEnforcementEnabled: true,
+    users: [
+      { email: 'reviewer@example.com', level: 'analyst' },
+      { email: 'ops@example.com', level: 'maintainer' },
+    ],
+  });
+  for (const email of ['reviewer@example.com', 'ops@example.com']) {
+    const access = resolveOperatorDistrictAccess(email);
+    assert.equal(access.unrestricted, true, email);
+    assert.equal(canOperatorAccessDistrict(email, 'north'), true, email);
+    assert.equal(canOperatorAccessDistrict(email, 'haifa'), true, email);
+  }
+});
+
 test('enforcement requires at least one configured operator', () => {
   resetOperatorDistrictAccessCache();
   setOperatorDistrictAccessConfigForTests({ operatorDistrictEnforcementEnabled: true, users: [] });

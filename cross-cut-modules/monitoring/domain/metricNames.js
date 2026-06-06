@@ -7,6 +7,7 @@ export const METRIC = Object.freeze({
   MONITORING_GET_SUMMARY: 'monitoring.getSummary',
   MONITORING_GET_PIPELINE_STATUS: 'monitoring.getPipelineStatus',
   MONITORING_GET_HEALTH: 'monitoring.getHealth',
+  APP_CHECK_SOFT: 'security.app_check.soft',
   SQLITE_HYBRID_RETRIEVE: 'sqlite.hybrid_retrieve',
   SQLITE_DENSE_SEARCH: 'sqlite.dense_search',
   SQLITE_FTS_SEARCH: 'sqlite.fts_search',

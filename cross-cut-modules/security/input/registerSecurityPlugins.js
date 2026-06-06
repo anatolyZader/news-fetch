@@ -1,5 +1,6 @@
 import helmet from '@fastify/helmet';
 import rateLimit from '@fastify/rate-limit';
+import { buildContentSecurityPolicyDirectives } from '../app/buildContentSecurityPolicy.js';
 import { registerSecurityAuditHooks } from './auditLog.js';
 
 function envInt(name, fallback) {
@@ -9,24 +10,6 @@ function envInt(name, fallback) {
   return Number.isFinite(n) && n > 0 ? n : fallback;
 }
 
-/** CSP additions for Firebase App Check + reCAPTCHA Enterprise (invisible). */
-function appCheckCspDirectives() {
-  if (process.env.APP_CHECK_ENFORCE !== 'true') {
-    return { scriptSrc: [], frameSrc: [] };
-  }
-  return {
-    scriptSrc: [
-      'https://www.google.com',
-      'https://www.gstatic.com',
-      'https://apis.google.com',
-    ],
-    frameSrc: [
-      'https://www.google.com',
-      'https://recaptcha.google.com',
-    ],
-  };
-}
-
 /**
  * @param {import('fastify').FastifyInstance} app
  * @param {{ authRequired?: boolean }} [opts]
@@ -34,25 +17,13 @@ function appCheckCspDirectives() {
 export async function registerSecurityPlugins(app, _opts = {}) {
   registerSecurityAuditHooks(app);
   const enableHsts = process.env.ENABLE_HSTS === 'true';
-  const appCheckCsp = appCheckCspDirectives();
+  const useCsp = process.env.ENABLE_STRICT_CSP === 'true' || process.env.NODE_ENV !== 'production';
 
   await app.register(helmet, {
     global: true,
-    contentSecurityPolicy: process.env.ENABLE_STRICT_CSP === 'true'
-      ? undefined
-      : {
-          directives: {
-            defaultSrc: ["'self'"],
-            scriptSrc: ["'self'", "'unsafe-inline'", ...appCheckCsp.scriptSrc],
-            styleSrc: ["'self'", "'unsafe-inline'"],
-            imgSrc: ["'self'", 'data:', 'https:'],
-            connectSrc: ["'self'", 'https:'],
-            fontSrc: ["'self'", 'https:', 'data:'],
-            frameSrc: ["'self'", ...appCheckCsp.frameSrc],
-            objectSrc: ["'none'"],
-            frameAncestors: ["'self'"],
-          },
-        },
+    contentSecurityPolicy: useCsp
+      ? { directives: buildContentSecurityPolicyDirectives() }
+      : false,
     strictTransportSecurity: enableHsts
       ? { maxAge: 31536000, includeSubDomains: true }
       : false,

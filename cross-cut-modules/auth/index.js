@@ -12,7 +12,14 @@ export {
   shouldCheckRevokedTokens,
 } from './authPolicy.js';
 export { buildRequestUserFromDecoded, attachRequestUser } from './attachRequestUser.js';
-export { buildAuthHook, buildTryAuthHook, getAuthPreHandler, authPreHandlerList } from './buildAuthHooks.js';
+export {
+  buildAuthHook,
+  buildReadAuthHook,
+  buildJwtAuthHook,
+  buildTryAuthHook,
+  getAuthPreHandler,
+  authPreHandlerList,
+} from './buildAuthHooks.js';
 export { syncAllUserAccessClaims, syncUserAccessClaimsForEmail, claimsForConfiguredUser } from './userAccessClaims.js';
 export {
   resolveOperatorDistrictAccess,

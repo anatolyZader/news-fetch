@@ -80,8 +80,9 @@ function applyQueuedSubmission(data, actions) {
 }
 
 export function SendEvidencePanel({ open, onClose, onSubmissionComplete, variant = 'modal' }) {
-  const { getIdToken, getAppCheckToken, apiReady } = useAuth();
+  const { getIdToken, getAppCheckToken, apiReady, appCheckRequired, costlyRouteReady } = useAuth();
   const auth = { getIdToken, getAppCheckToken };
+  const protectedReady = apiReady && (!appCheckRequired || costlyRouteReady);
   const { t } = useLanguage();
   const [value, setValue] = useState(readDraft);
   const [pendingFiles, setPendingFiles] = useState([]);
@@ -99,35 +100,16 @@ export function SendEvidencePanel({ open, onClose, onSubmissionComplete, variant
   const submissionPollRef = useRef({ timerId: null });
 
   const fetchEvidence = useCallback(async () => {
-    const headers = new Headers();
-    const tok = await getIdToken();
-    if (tok) headers.set('Authorization', `Bearer ${tok}`);
-    const r = await fetch('/api/evidence-draft', { headers });
-    if (!r.ok) {
-      const err = await r.json().catch(() => ({}));
-      throw new Error(err.error || `HTTP ${r.status}`);
-    }
-    const data = await r.json();
-    return data;
-  }, [getIdToken]);
+    return authFetch('/api/evidence-draft', auth);
+  }, [getIdToken, getAppCheckToken]);
 
   const putEvidence = useCallback(
-    async (content) => {
-      const headers = new Headers({ 'Content-Type': 'application/json' });
-      const tok = await getIdToken();
-      if (tok) headers.set('Authorization', `Bearer ${tok}`);
-      const r = await fetch('/api/evidence-draft', {
-        method: 'PUT',
-        headers,
-        body: JSON.stringify({ content }),
-      });
-      if (!r.ok) {
-        const err = await r.json().catch(() => ({}));
-        throw new Error(err.error || `HTTP ${r.status}`);
-      }
-      return r.json();
-    },
-    [getIdToken],
+    async (content) => authFetch('/api/evidence-draft', {
+      ...auth,
+      method: 'PUT',
+      body: { content },
+    }),
+    [getIdToken, getAppCheckToken],
   );
 
   const clearInputAndDraft = useCallback(() => {
@@ -142,7 +124,7 @@ export function SendEvidencePanel({ open, onClose, onSubmissionComplete, variant
     setLastServerSavedAt('');
     lastSyncedRef.current = '';
     clearDraftCache();
-    if (apiReady) {
+    if (protectedReady) {
       putEvidence('')
         .then((saved) => {
           if (draftGenerationRef.current !== clearGeneration) return;
@@ -153,7 +135,7 @@ export function SendEvidencePanel({ open, onClose, onSubmissionComplete, variant
           // Closing the panel should still clear the visible draft even if server sync retries later.
         });
     }
-  }, [apiReady, putEvidence]);
+  }, [protectedReady, putEvidence]);
 
   const handleClose = useCallback(
     (event, reason) => {
@@ -235,7 +217,7 @@ export function SendEvidencePanel({ open, onClose, onSubmissionComplete, variant
   });
 
   useEffect(() => {
-    if (!apiReady) return;
+    if (!protectedReady) return;
     let cancelled = false;
     (async () => {
       setSyncError(null);
@@ -268,7 +250,7 @@ export function SendEvidencePanel({ open, onClose, onSubmissionComplete, variant
     return () => {
       cancelled = true;
     };
-  }, [apiReady, fetchEvidence, putEvidence]);
+  }, [protectedReady, fetchEvidence, putEvidence]);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -278,7 +260,7 @@ export function SendEvidencePanel({ open, onClose, onSubmissionComplete, variant
   }, [value, hydrated]);
 
   useEffect(() => {
-    if (!apiReady || !hydrated) return;
+    if (!protectedReady || !hydrated) return;
     if (value.length > MAX_CHARS) return;
     const generation = draftGenerationRef.current;
     const id = setTimeout(() => {
@@ -302,7 +284,7 @@ export function SendEvidencePanel({ open, onClose, onSubmissionComplete, variant
       })();
     }, SAVE_DEBOUNCE_MS);
     return () => clearTimeout(id);
-  }, [value, apiReady, hydrated, putEvidence]);
+  }, [value, protectedReady, hydrated, putEvidence]);
 
   const addFiles = useCallback((fileList) => {
     setPendingFiles((prev) => {

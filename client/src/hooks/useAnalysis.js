@@ -1,19 +1,52 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
 
 const LS_REPORT_VIEW = 'resilienceReportView';
+const REPORT_FETCH_TIMEOUT_MS = 15_000;
+const TOKEN_REFRESH_RETRY_MS = 5_000;
 
-async function fetchTodayReportPayload(scope, view, getIdToken) {
-  const headers = new Headers();
-  const token = await getIdToken();
-  if (token) headers.set('Authorization', `Bearer ${token}`);
+const RETRY_AUTH_CODES = new Set(['missing_token', 'invalid_token', 'token_revoked']);
 
+async function fetchTodayReportPayload(scope, view, accessToken, getIdToken, signal) {
   const params = new URLSearchParams();
   if (scope !== 'national') params.set('scope', scope);
   if (view === 'analyst') params.set('view', 'analyst');
   const qs = params.toString() ? `?${params.toString()}` : '';
-  const r = await fetch(`/api/report/today${qs}`, { headers });
-  return r.json();
+
+  async function attempt(bearerToken) {
+    const headers = new Headers();
+    if (bearerToken) headers.set('Authorization', `Bearer ${bearerToken}`);
+    if (signal?.aborted) {
+      const err = new Error('Aborted');
+      err.name = 'AbortError';
+      throw err;
+    }
+    const r = await fetch(`/api/report/today${qs}`, { headers, signal });
+    const body = await r.json().catch(() => ({}));
+    return { r, body };
+  }
+
+  let bearerToken = accessToken;
+  let { r, body } = await attempt(bearerToken);
+  if (r.status === 401 && RETRY_AUTH_CODES.has(body?.code) && getIdToken) {
+    bearerToken = await Promise.race([
+      getIdToken({ forceRefresh: true }),
+      new Promise((resolve) => { setTimeout(() => resolve(null), TOKEN_REFRESH_RETRY_MS); }),
+    ]);
+    if (bearerToken) {
+      ({ r, body } = await attempt(bearerToken));
+    }
+  }
+
+  if (!r.ok) {
+    const err = new Error(
+      body?.message || body?.error || `HTTP ${r.status}`,
+    );
+    err.status = r.status;
+    err.code = body?.code;
+    throw err;
+  }
+  return body;
 }
 
 function applyFoundReport(data, setters) {
@@ -24,6 +57,7 @@ function applyFoundReport(data, setters) {
   setters.setDisplayView(data.display_view === 'analyst' ? 'analyst' : 'operator');
   setters.setAttentionItems(Array.isArray(data.attention_items) ? data.attention_items : []);
   setters.setReportMissingHint(null);
+  setters.setReportLoadError(null);
 }
 
 function applyTodayReportPayload(data, setters) {
@@ -36,39 +70,54 @@ function applyTodayReportPayload(data, setters) {
   }
 }
 
-function resetTodayReportState(setters, view) {
-  setters.setReport(null);
-  setters.setMarkdown(null);
-  setters.setScoreBySource(null);
-  setters.setReportDate(null);
-  setters.setDisplayView(view);
-  setters.setInitialReportLoadDone(false);
-  setters.setReportMissingHint(null);
-  setters.setAttentionItems(null);
-}
-
 /**
  * Loads today's cached report from GET /api/report/today (requires auth when enabled).
  * @param {string} scope report scope id (national | north | south | …)
  * @param {'operator'|'analyst'} [view]
  */
 export function useTodayReport(scope = 'national', view = 'operator') {
-  const { getIdToken, apiReady } = useAuth();
+  const {
+    getIdToken,
+    apiReady,
+    authRequired,
+    accessToken,
+    tokenWarmFailed,
+  } = useAuth();
+  const getIdTokenRef = useRef(getIdToken);
+  getIdTokenRef.current = getIdToken;
+  const accessTokenRef = useRef(accessToken);
+  accessTokenRef.current = accessToken;
+  const loadGenRef = useRef(0);
+
+  const reportFetchReady = apiReady && (!authRequired || accessToken || tokenWarmFailed);
+
   const [report, setReport] = useState(null);
   const [markdown, setMarkdown] = useState(null);
   const [scoreBySource, setScoreBySource] = useState(null);
   const [reportDate, setReportDate] = useState(null);
   const [displayView, setDisplayView] = useState(view);
   const [refreshTick, setRefreshTick] = useState(0);
-  /** False until the first GET /api/report/today attempt finishes (success or failure). */
   const [initialReportLoadDone, setInitialReportLoadDone] = useState(false);
   const [reportMissingHint, setReportMissingHint] = useState(null);
+  const [reportLoadError, setReportLoadError] = useState(null);
   const [attentionItems, setAttentionItems] = useState(null);
 
   useEffect(() => {
-    if (!apiReady) return undefined;
+    if (!reportFetchReady) return undefined;
 
-    let cancelled = false;
+    const loadGen = loadGenRef.current + 1;
+    loadGenRef.current = loadGen;
+
+    setReport(null);
+    setMarkdown(null);
+    setScoreBySource(null);
+    setReportDate(null);
+    setDisplayView(view);
+    setInitialReportLoadDone(false);
+    setReportMissingHint(null);
+    setAttentionItems(null);
+    setReportLoadError(null);
+
     const setters = {
       setReport,
       setMarkdown,
@@ -78,26 +127,54 @@ export function useTodayReport(scope = 'national', view = 'operator') {
       setInitialReportLoadDone,
       setReportMissingHint,
       setAttentionItems,
+      setReportLoadError,
     };
 
-    resetTodayReportState(setters, view);
+    if (authRequired && tokenWarmFailed && !accessTokenRef.current) {
+      setReportLoadError('Could not obtain a session token. Refresh and sign in again.');
+      setInitialReportLoadDone(true);
+      return undefined;
+    }
 
-    (async () => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), REPORT_FETCH_TIMEOUT_MS);
+
+    void (async () => {
       try {
-        const data = await fetchTodayReportPayload(scope, view, getIdToken);
-        if (cancelled) return;
+        const data = await fetchTodayReportPayload(
+          scope,
+          view,
+          accessTokenRef.current,
+          (...args) => getIdTokenRef.current(...args),
+          controller.signal,
+        );
+        if (loadGen !== loadGenRef.current) return;
         applyTodayReportPayload(data, setters);
-      } catch {
-        /* offline / error — empty state below */
+      } catch (err) {
+        if (loadGen !== loadGenRef.current) return;
+        if (err?.name === 'AbortError') {
+          setReportLoadError('Report request timed out. Try refreshing the page.');
+        } else if (err?.code === 'missing_token' || err?.code === 'invalid_token' || err?.code === 'token_revoked') {
+          setReportLoadError('Session expired or not signed in. Refresh and sign in again.');
+        } else if (err?.status === 403) {
+          setReportLoadError(err?.message ?? 'You do not have access to this report scope.');
+        } else if (err?.code === 'invalid_app_check') {
+          setReportLoadError('Security verification failed. Refresh the page and try again.');
+        } else {
+          setReportLoadError(err?.message ?? 'Could not load the report.');
+        }
       } finally {
-        if (!cancelled) setInitialReportLoadDone(true);
+        clearTimeout(timeoutId);
+        if (loadGen === loadGenRef.current) {
+          setInitialReportLoadDone(true);
+        }
       }
     })();
 
     return () => {
-      cancelled = true;
+      controller.abort();
     };
-  }, [apiReady, getIdToken, scope, view, refreshTick]);
+  }, [reportFetchReady, authRequired, accessToken, tokenWarmFailed, scope, view, refreshTick]);
 
   const refreshReport = useCallback(() => {
     setRefreshTick((t) => t + 1);
@@ -112,6 +189,7 @@ export function useTodayReport(scope = 'national', view = 'operator') {
     refreshReport,
     initialReportLoadDone,
     reportMissingHint,
+    reportLoadError,
     attentionItems,
   };
 }

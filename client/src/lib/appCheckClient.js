@@ -8,6 +8,12 @@ import { initializeAppCheck, ReCaptchaEnterpriseProvider, getToken } from 'fireb
 let appCheckInstance = null;
 let appCheckInitError = null;
 
+/** Call after sign-out so the next session can re-initialize App Check. */
+export function resetAppCheckClient() {
+  appCheckInstance = null;
+  appCheckInitError = null;
+}
+
 export function ensureAppCheckInitialized() {
   if (appCheckInstance) return appCheckInstance;
   if (appCheckInitError) return null;

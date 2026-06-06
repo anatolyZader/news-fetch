@@ -1,6 +1,40 @@
 /**
- * Attach Firebase Auth JWT and optional App Check token to API requests.
+ * @template T
+ * @param {() => Promise<T>} fn
+ * @param {number} ms
+ * @param {T} fallback
+ * @returns {Promise<T>}
  */
+export function withTimeout(fn, ms, fallback) {
+  return Promise.race([
+    fn().catch(() => fallback),
+    new Promise((resolve) => { setTimeout(() => resolve(fallback), ms); }),
+  ]);
+}
+
+/**
+ * Headers for bootstrap GET reads (e.g. /api/report/today) under soft App Check.
+ * JWT only — never waits on App Check so reCAPTCHA cannot block the dashboard.
+ *
+ * @param {{
+ *   getIdToken?: (opts?: { forceRefresh?: boolean }) => Promise<string|null>,
+ * }} auth
+ * @param {{ idTokenWaitMs?: number }} [opts]
+ * @returns {Promise<Headers>}
+ */
+export async function buildBootstrapReadHeaders(auth = {}, opts = {}) {
+  const idTokenWaitMs = opts.idTokenWaitMs ?? 15_000;
+  const headers = new Headers();
+  if (auth.getIdToken) {
+    const token = await withTimeout(
+      () => auth.getIdToken(),
+      idTokenWaitMs,
+      null,
+    );
+    if (token) headers.set('Authorization', `Bearer ${token}`);
+  }
+  return headers;
+}
 
 /**
  * @param {{

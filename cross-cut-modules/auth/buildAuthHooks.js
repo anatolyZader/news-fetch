@@ -1,19 +1,39 @@
 import { requireAuthPreHandler } from './requireAuthPreHandler.js';
 import { tryAuthPreHandler } from './tryAuthPreHandler.js';
-import { appCheckPreHandler } from '../security/input/appCheckPreHandler.js';
+import {
+  appCheckPreHandler,
+  reportTodayAppCheckSoftPreHandler,
+} from '../security/input/appCheckPreHandler.js';
 
 /**
- * Protected API routes: JWT (+ listed user) and App Check when enforced.
+ * Protected API routes: JWT (+ listed user) and optionally App Check when enforced.
  * @param {boolean} authRequired
+ * @param {{ requireAppCheck?: boolean | 'soft' }} [opts]
+ *   - `true` (default): hard App Check when APP_CHECK_ENFORCE=true
+ *   - `false`: JWT only
+ *   - `'soft'`: verify App Check when header present; allow when absent
  * @returns {{ preHandler?: import('fastify').preHandlerHookHandler[] }}
  */
-export function buildAuthHook(authRequired) {
+export function buildAuthHook(authRequired, opts = {}) {
+  const { requireAppCheck = true } = opts;
   if (!authRequired) return {};
   const chain = [requireAuthPreHandler];
-  if (process.env.APP_CHECK_ENFORCE === 'true') {
+  if (requireAppCheck === 'soft' && process.env.APP_CHECK_ENFORCE === 'true') {
+    chain.push(reportTodayAppCheckSoftPreHandler);
+  } else if (requireAppCheck !== false && process.env.APP_CHECK_ENFORCE === 'true') {
     chain.push(appCheckPreHandler);
   }
   return { preHandler: chain };
+}
+
+/** JWT + soft App Check — bootstrap reads (GET /api/report/today). */
+export function buildReadAuthHook(authRequired) {
+  return buildAuthHook(authRequired, { requireAppCheck: 'soft' });
+}
+
+/** @deprecated Use {@link buildReadAuthHook} — kept as alias. */
+export function buildJwtAuthHook(authRequired) {
+  return buildReadAuthHook(authRequired);
 }
 
 /**
