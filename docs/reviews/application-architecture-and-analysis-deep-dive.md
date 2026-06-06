@@ -6,9 +6,9 @@
 
 | Document | Use when you need |
 |----------|-------------------|
-| [Daily pipeline](./main_docu_files/PIPELINE-AND-SOURCES.md) | Ingest → extract → assess; canonical code under `business_modules/resilience/`. |
+| [Daily pipeline](../main_docu_files/PIPELINE-AND-SOURCES.md) | Ingest → extract → assess; canonical code under `business_modules/resilience/`. |
 | [System overview](../../cross-cut-modules/docs/content/pages/architecture/system-overview.md) | Subsystem map, constraints, “where do I change X?” |
-| [Geographic analysis — developer guide](./main_docu_files/GEOGRAPHIC-ANALYSIS.md) | `geo` envelope contract, consumer rules, wiring. |
+| [Geographic analysis — developer guide](../main_docu_files/GEOGRAPHIC-ANALYSIS.md) | `geo` envelope contract, consumer rules, wiring. |
 | [Geographic analysis — implementation review](./geographic-analysis-implementation.md) | Match stages, fuzzy policy, unknown sink, audit fields. |
 
 ---
@@ -40,10 +40,10 @@ Evidence is drawn from **multiple channels** (news sites via NewsAPI.ai, optiona
 
 ### 1.2 Design mantra: “LLM extracts, code scores”
 
-- The LLM classifies evidence into types from `SIGNAL_CATALOG` in [`behaviorSignals.js`](../../business_modules/resilience/domain/services/behaviorSignals.js). Unknown types are dropped by validation.  
+- The LLM classifies evidence into types from `SIGNAL_CATALOG` in [`cross-cut-modules/resilience-contracts/signalCatalog.js`](../../cross-cut-modules/resilience-contracts/signalCatalog.js) (re-exported via [`behaviorSignals.js`](../../business_modules/resilience/domain/services/behaviorSignals.js)). Unknown types are dropped by validation.  
 - A fixed many-to-many map `SIGNAL_TO_COMPONENTS` defines how each signal type moves the eight component scores.  
-- Component scores, confidence, coverage, diversity, bootstrap intervals, counterfactuals, and facets are computed in code (`scoreComponents` and helpers in the same module).  
-- A second LLM pass generates human-readable narratives conditioned on those numbers.
+- Component scores, confidence, coverage, diversity, bootstrap intervals, counterfactuals, and facets are computed in code (`scoreComponents` in [`scoreComponentsOrchestrator.js`](../../business_modules/resilience/domain/services/scoring/scoreComponentsOrchestrator.js) and helpers).  
+- A second LLM pass generates human-readable narratives conditioned on those numbers. Default operator UI **redacts** headline scores at the API boundary ([`assessmentDisplayTier.js`](../../business_modules/resilience/domain/services/assessmentDisplayTier.js)).
 
 ### 1.3 End-to-end dataflow (conceptual)
 
@@ -64,7 +64,7 @@ flowchart TB
   end
   subgraph analyze [Analyze]
     ext[LLM signal extraction]
-    score[scoreComponents v3]
+    score[scoreComponents v4]
     narr[LLM narratives plus Norris lens]
   end
   subgraph out [Outputs]
@@ -101,10 +101,11 @@ The workspace follows a **hexagonal / DDD-style** layout:
 | [`business_modules/`](../../business_modules/) | One folder per business capability (`resilience`, `geo`, `news-sites`, `whatsapp`, `audio`, `survey`, PBO modules, etc.). Each module uses `app/`, `domain/`, `infrastructure/adapters/`, and optional `input/` for CLI or HTTP entrypoints. |
 | [`cross-cut-modules/`](../../cross-cut-modules/) | Persistence, budget, shared adapters, and helpers used by multiple modules (e.g. `signalGeoSummary.js` re-exports geo helpers for report code that must not deep-import geo internals). |
 | [`reportCacheService.js`](../../business_modules/resilience/app/reportCacheService.js) | Report path resolution by **scope** (national vs north) and cached report reads (`getCachedReport`, `resolveReportJsonPathForDate`). |
-| [`app.js`](../../app.js) / [`server.js`](../../server.js) | Fastify shell: auth, routes, **composition root** (wires `geoService`, `geoEnrichmentPort`, WhatsApp analyzer, drift routes, cached report readers). |
-| [`client/`](../../client/) | React SPA: report scope toggle, dashboards, docs panel. |
+| [`composition/createApp.js`](../../composition/createApp.js) / [`composition/wireApplication.js`](../../composition/wireApplication.js) | Fastify shell: auth, routes, **composition root** (wires `geoService`, `geoEnrichmentPort`, WhatsApp analyzer, drift routes, cached report readers). |
+| [`client/`](../../client/) | Operator React SPA: report scope toggle, dashboards, docs panel. |
+| [`analyst-site/`](../../analyst-site/) | Analyst SPA: drift, validation review, catalog proposals (separate origin). |
 
-**Composition rule:** business modules do not import each other arbitrarily; shared abstractions are expressed as **ports** (e.g. `IGeoEnrichmentPort`) and implemented by adapters wired only from `app.js` or dedicated scripts.
+**Composition rule:** business modules do not import each other arbitrarily; shared abstractions are expressed as **ports** (e.g. `IGeoEnrichmentPort`) and implemented by adapters wired only from `composition/createApp.js` / `wireApplication.js` or dedicated scripts.
 
 ### 2.2 Two important analysis entrypoints
 
@@ -119,11 +120,11 @@ Readers often conflate these; they serve different operational models.
 
 ### 2.3 Client and API contract for scope and display tier
 
-- [`GET /api/report/today`](../../app.js) accepts `?scope=north` or default national, and `?view=operator` (default) or `?view=analyst` (only when the authenticated user’s email is listed in `RESILIENCE_ANALYST_EMAILS`).  
+- [`GET /api/report/today`](../../business_modules/resilience/input/reportRoutes.js) accepts `?scope=north` or default national, and `?view=operator` (default) or `?view=analyst` (when `canViewAnalystDisplay(email)` — `config/userAccess.json` or `RESILIENCE_ANALYST_EMAILS`).  
 - Responses include `display_view` and redact numeric scores for operator tier via [`assessmentDisplayTier.js`](../../business_modules/resilience/domain/services/assessmentDisplayTier.js).  
-- [`GET /api/resilience/display-capabilities`](../../app.js) returns `{ canViewAnalyst }` for the optional signed-in user.  
+- [`GET /api/resilience/display-capabilities`](../../business_modules/resilience/input/reportRoutes.js) returns `{ canViewAnalyst }` for the optional signed-in user.  
 - [`useTodayReport(scope, view)`](../../client/src/hooks/useAnalysis.js) passes scope and view query params.  
-- [`MainApp.jsx`](../../client/src/MainApp.jsx) shows an **Analyst** toggle when `canViewAnalyst` is true; drift APIs are gated when the allowlist is configured.
+- [`MainApp.jsx`](../../client/src/MainApp.jsx) links to the **analyst SPA** (`getAnalystSiteUrl()`) when `canViewAnalyst` is true — not an in-app tier toggle. Drift APIs are gated to analyst/maintainer.
 
 ---
 
@@ -140,7 +141,7 @@ The table below lists **primary entrypoints** (npm scripts reference [`package.j
 | **Multi-source assess** | `npm run assess-signals` | Prior signal files, scope flags, `ANTHROPIC_API_KEY` | Scoped JSON or MD via report writer; uses `filterSignalsForScope`. |
 | **Server full run** | Internal: [`runResilienceAssessment`](../../business_modules/resilience/app/resilienceAnalysisService.js) | `ANTHROPIC_API_KEY`, optional evidence **store** for DB merge, `HOMEFRONT_MD` | Assessment + cost; persists via resilience report adapter when configured. |
 | **Audio / radio** | `npm run audio-to-md`, `npm run analyze-audio` | Audio pipelines, then same resilience CLI with `--content-kind audio` | MD then same extraction stack. |
-| **WhatsApp** | `npm run whatsapp-to-md` plus server routes | Meta WhatsApp Cloud API, `ANTHROPIC_API_KEY` | Messages analyzed with [`whatsappResilienceAnalyzer.js`](../../business_modules/whatsapp/app/whatsappResilienceAnalyzer.js); **geo** attached when port is wired in `app.js`. |
+| **WhatsApp** | `npm run whatsapp-to-md` plus server routes | Meta WhatsApp Cloud API, `ANTHROPIC_API_KEY` | Messages analyzed with [`whatsappResilienceAnalyzer.js`](../../business_modules/whatsapp/app/whatsappResilienceAnalyzer.js); **geo** attached when port is wired in composition. |
 | **Field visits** | `npm run ingest-field-reports` | Visit ingest module | Feeds evidence store / MD depending on configuration. |
 | **PBO municipal event log** | `npm run analyze-event-log` | Event log adapter | Specialized municipal reporting. |
 | **Survey (Excel)** | `npm run analyze-survey` → [`cross-cut-modules/geo/input/runAnalyzeSurvey.js`](../../cross-cut-modules/geo/input/runAnalyzeSurvey.js) | `--responses` `.xlsx`, mapping JSON, `ANTHROPIC_API_KEY` | Per-municipality MD reports under `daily_reports/`; **geo** on municipality name when `geoEnrichmentPort` is constructed in the script. |
@@ -168,7 +169,7 @@ The table below lists **primary entrypoints** (npm scripts reference [`package.j
 
 ### 4.3 Deterministic scoring
 
-- [`scoreComponents`](../../business_modules/resilience/domain/services/behaviorSignals.js) implements **v3** scoring (see §5).  
+- [`scoreComponents`](../../business_modules/resilience/domain/services/scoring/scoreComponentsOrchestrator.js) implements **v4** scoring (see §5).  
 - [`overallScore`](../../business_modules/resilience/domain/services/behaviorSignals.js) aggregates an overall index as a **certainty-weighted mean** of component scores.
 
 ### 4.4 Narratives and additive lenses
@@ -204,6 +205,8 @@ Where:
 | \(\delta\) | **Dual-pass boost** in \([1, 1.2]\) when two extractions agree (`RESILIENCE_DUAL_AGREEMENT_BOOST`, default 1.05). |
 | \(\tau\) | **Temporal weight** (`temporal_weight`, default 1.0) from article or batch metadata. |
 | \(\gamma\) | **Extraction confidence** clamped to \([0,1]\) (`extraction_confidence`, default 1.0). |
+
+**v4 add-ons (not in the baseline formula above):** the live path in [`scoringShared.js`](../../business_modules/resilience/domain/services/scoring/scoringShared.js) also multiplies by **intensity** (`INTENSITY_WEIGHT`), **grounding tier** (`groundingWeightMultiplier`), **field source multiplier**, **gaming caps**, **phase mismatch discount**, and optional **half-life decay** on `article_date`. Only **metrics-eligible** signals contribute when `RESILIENCE_EPISTEMIC_GEO_V2` is on (`metricsEligible` in `scoreComponentsOrchestrator.js`). Post-score: **salience policy**, **presence gates**, **epistemic gate + EWMA** in [`scoringPipelinePrep.js`](../../business_modules/resilience/app/scoringPipelinePrep.js). Operator-facing presentation: [`assessmentDisplayTier.js`](../../business_modules/resilience/domain/services/assessmentDisplayTier.js) — see [RESILIENCE-ENGINE-REFERENCE.md](../main_docu_files/RESILIENCE-ENGINE-REFERENCE.md) §3–§5.
 
 Polarity is tracked separately: positive vs negative mass is accumulated from contributions whose base weight sign is positive vs negative.
 
@@ -288,7 +291,7 @@ Geographic capability is deliberately **non-LLM**: a deterministic resolver turn
 
 - **Domain port (consumer side):** [`IGeoEnrichmentPort`](../../business_modules/resilience/domain/ports/IGeoEnrichmentPort.js) — `resolveLocalityName(rawName)`.  
 - **Adapter:** [`geoEnrichmentAdapter.js`](../../business_modules/resilience/infrastructure/adapters/geoEnrichmentAdapter.js) delegates to `createGeoService` from [`business_modules/geo`](../../business_modules/geo/app/geoService.js).  
-- **Composition:** real adapter in [`app.js`](../../app.js) (server) and [`runAnalyzeSurvey.js`](../../cross-cut-modules/geo/input/runAnalyzeSurvey.js) (CLI). Tests or missing wiring use **`NoOpGeoEnrichmentPort`** (`kind: 'unknown', reason: 'GEO_DISABLED'`).
+- **Composition:** real adapter in [`composition/createApp.js`](../../composition/createApp.js) (server) and [`runAnalyzeSurvey.js`](../../cross-cut-modules/geo/input/runAnalyzeSurvey.js) (CLI). Tests or missing wiring use **`NoOpGeoEnrichmentPort`** (`kind: 'unknown', reason: 'GEO_DISABLED'`).
 
 ### 6.2 Reference data and math
 
@@ -303,41 +306,38 @@ Geographic capability is deliberately **non-LLM**: a deterministic resolver turn
 |----------|-------------------|------|
 | **WhatsApp** | After extraction / structured locality normalization; **same envelope** copied onto **every signal** from the message and onto `structured.observation.geo`. Optional `GEO_ASSERT_ENVELOPE=1` validates against schema. | [`whatsappResilienceAnalyzer.js`](../../business_modules/whatsapp/app/whatsappResilienceAnalyzer.js) `attachGeoToSignalsAndStructured` |
 | **Survey** | After per-municipality LLM assessment; **`m.geo`** from resolving **`m.name`**. | [`analyzeSurveyInput.js`](../../business_modules/resilience/input/analyzeSurveyInput.js); rendered in [`surveyReportWriter.js`](../../business_modules/resilience/app/surveyReportWriter.js) |
-| **News / generic MD extraction** | Signals produced by [`claudeEvaluator.js`](../../business_modules/resilience/infrastructure/claudeEvaluator.js) **do not** automatically receive per-article `geo` resolution today. North scoping for those signals relies on **keyword fallback** and **`source_type`** rules (§6.5). |
+| **News / generic MD extraction** | Signals may receive `geo` via [`enrichSignalsWithGeo.js`](../../cross-cut-modules/geo/enrichSignalsWithGeo.js) during extract/assess when locality strings are present. Without resolved geo matching the target district, news/radio/social signals are **not** regional-scope-relevant (no substring fallback). |
 
 ### 6.4 Two different “scope decisions” (do not confuse them)
 
-1. **`geo.scopeDecision`** (on resolved envelopes inside `geoService`): “From **this geo object alone**, is north-from-geo allowed?” Built by `buildGeoScopeDecision` — sources restricted to `geo` | `geo_tags` | `pbo_subregion` | `unknown` (see schema in [`geoEnrichmentSchema.js`](../../business_modules/geo/domain/value_objects/geoEnrichmentSchema.js)).  
-2. **`signal.scopeDecision`** (attached in [`regionSignalFilter.js`](../../business_modules/resilience/domain/services/regionSignalFilter.js)): full **north filter trace** for analytics and UI explainability, including **`source_type`** bypass and **`keyword_fallback`**.
+1. **`geo.scopeDecision`** (on resolved envelopes inside `geoService`): district relevance implied by the geo envelope alone.  
+2. **`signal.scopeDecision`** (attached in [`regionSignalFilter.js`](../../business_modules/resilience/domain/services/regionSignalFilter.js)): full scope filter trace — explicit `signal_district`, **`legacy_north_fallback`** for structured source types ([`signalDistrictId.js`](../../business_modules/resilience/domain/services/signalDistrictId.js)), or geo-derived district match.
 
 ### 6.5 How geography enters **main** north-scoped analysis
 
-North filtering is implemented by [`scopeDecisionForSignal`](../../business_modules/resilience/domain/services/regionSignalFilter.js) and applied by [`filterSignalsForScope`](../../business_modules/resilience/domain/services/regionSignalFilter.js):
+Regional filtering is implemented by [`scopeDecisionForSignal`](../../business_modules/resilience/domain/services/regionSignalFilter.js) and applied by [`filterSignalsForScope`](../../business_modules/resilience/domain/services/regionSignalFilter.js):
 
 ```mermaid
 flowchart TD
   sig[Incoming signal]
-  st{source_type in ALWAYS_NORTH?}
-  geo{resolved geo?}
-  tags{geoAreaTags includes north or PBO north id?}
-  outY[isNorthRelevant true]
-  outN[isNorthRelevant false]
-  sig --> st
-  st -->|field pbo pbo_regional naftali whatsapp| outY
-  st -->|else| geo
+  district{assignedDistrictScopeMatch?}
+  geo{resolved geo district match?}
+  outY[isScopeRelevant true]
+  outN[isScopeRelevant false]
+  sig --> district
+  district -->|signal_district or legacy_north_fallback| outY
+  district -->|no| geo
+  geo -->|yes| outY
   geo -->|no| outN
-  geo -->|yes| tags
-  tags -->|yes| outY
-  tags -->|no| outN
 ```
 
-**`ALWAYS_NORTH_SOURCE_TYPES`:** `field`, `pbo`, `pbo_regional`, `naftali`, `whatsapp` — these signals count as north **without** requiring resolved geo (operational assumption: those channels are already north-scoped by collection or prompt design).
+**Structured sources (`LEGACY_NORTH_STRUCTURED_SOURCE_TYPES`):** `field`, `field_whatsapp`, `pbo`, `pbo_regional`, `naftali`, `whatsapp` — when `district_id` is absent, assign **`legacy_north_fallback`** (defaults to `north`) via [`signalDistrictId.js`](../../business_modules/resilience/domain/services/signalDistrictId.js).
 
-**Resolved geo path:** if `signal.geo.kind === 'resolved'`, north relevance comes from **`geoAreaTags`** containing **`north`** or **`pboSubregionId`** in `{naftali, golan, baram, hiram, galma}` via [`northRelevanceFromResolvedGeo`](../../cross-cut-modules/geo/northRelevanceFromResolvedGeo.js). This includes rows where **`usableForMetrics === false`** or **`resolution.provenance === 'text_inferred'`** — they may still be **north-scoped for narrative** but are excluded from component metrics under **`RESILIENCE_EPISTEMIC_GEO_V2`** (default on).
+**Resolved geo path:** if `signal.geo.kind === 'resolved'`, district relevance comes from [`districtRelevanceFromResolvedGeo`](../../business_modules/geo/domain/services/districtRelevanceFromResolvedGeo.js) (home-front district tags / mapping). Text-inferred or metrics-unsafe geo may still affect **scope** for narrative context but can be excluded from component metrics under **`RESILIENCE_EPISTEMIC_GEO_V2`** (default on).
 
-**No keyword fallback:** text substring north matching (`NORTH_TERMS`) was removed. News/radio/social without resolved north geo are **not** north-relevant.
+**No keyword fallback:** substring north matching (`NORTH_TERMS`) was removed. News/radio/social without resolved geo matching the target district are **not** scope-relevant.
 
-**`assess-signals` integration:** after optional dedup, the CLI always runs `filterSignalsForScope(allSignals, reportScopeId)` so every signal gains **`signal.scopeDecision`**. When `reportScopeId === 'north'`, the array is **filtered** to `isNorthRelevant` only; for `national`, all signals are retained. Scoring then uses the (possibly narrowed) list and recomputes `totalArticles` for coverage from **scoped** article keys when not national — see [`assess-signals.js`](../../business_modules/resilience/input/assess-signals.js).
+**`assess-signals` integration:** after optional dedup, the CLI runs `filterSignalsForScope(allSignals, reportScopeId)` so every signal gains **`signal.scopeDecision`**. When `reportScopeId !== national`, the array is **filtered** to `isScopeRelevant` only. Scoring uses the (possibly narrowed) list and recomputes `totalArticles` for coverage from **scoped** article keys — see [`assess-signals.js`](../../business_modules/resilience/input/assess-signals.js).
 
 ### 6.6 How this interacts with `runAnalysis` / cached reports
 
@@ -346,7 +346,7 @@ flowchart TD
 
 ### 6.7 Operational feedback loop
 
-Unknown or ambiguous localities can be routed to review sinks when configured (`GEO_UNKNOWN_REVIEW_JSONL`, `GEO_UNKNOWN_REVIEW_SQLITE`, overrides via `GEO_OVERRIDES_SQLITE`) — see [`app.js`](../../app.js) wiring and the implementation review §9. That closes the loop between **field reality** and **reference table** updates.
+Unknown or ambiguous localities can be routed to review sinks when configured (`GEO_UNKNOWN_REVIEW_JSONL`, `GEO_UNKNOWN_REVIEW_SQLITE`, overrides via `GEO_OVERRIDES_SQLITE`) — see [`composition/createApp.js`](../../composition/createApp.js) wiring and the implementation review §9. That closes the loop between **field reality** and **reference table** updates.
 
 ---
 
@@ -363,7 +363,7 @@ Unknown or ambiguous localities can be routed to review sinks when configured (`
 
 ## 8. Weaknesses and risks
 
-**Phase-1 transparency (addressed in code, not eliminated):** Each assess run persists `assessment.methodology` (author-set weights manifest on disk, scope-decision counts, epistemic copy, advisory `tuning_proposal`). Operator UI shows epistemic banners and north keyword-fallback warnings; `GET /api/report/today?scope=north` returns `north_requires_assess_signals` when no north artifact exists. **Still deferred:** multi-district scope, fitted weights, auto-applied tanhK/certM, merging `runResilienceAssessment` with `filterSignalsForScope`.
+**Phase-1 transparency (addressed in code, not eliminated):** Each assess run persists `assessment.methodology` (author-set weights manifest on disk, scope-decision counts, epistemic copy, advisory `tuning_proposal`). Operator UI shows epistemic banners (data void, sampling blind, thin evidence); `GET /api/report/today?scope=north` returns `north_requires_assess_signals` when no north artifact exists. **Still deferred:** multi-district scope beyond phase-1 districts, fitted weights, auto-applied tanhK/certM, merging `runResilienceAssessment` with `filterSignalsForScope`.
 
 1. **Documentation drift:** [`docs/main_docu_files/PIPELINE-AND-SOURCES.md`](../main_docu_files/PIPELINE-AND-SOURCES.md) points at `business_modules/resilience/`; keep other docs in sync when modules move.  
 2. **North scope without geo on news:** signals without resolved north geo are excluded from north scope (no keyword fallback). Hyperlocal placenames only count when geo attach succeeds — monitor `summarizeGeoCoverage` / unknown rates.  
@@ -380,14 +380,14 @@ Unknown or ambiguous localities can be routed to review sinks when configured (`
 2. **News + controlled geo:** extract candidate place names from titles or first paragraphs → `resolveLocalityName` with **strict** `usableForMetrics` rules and human review for new aliases.  
 3. **Gold-set evaluation:** periodic labeled audit set for extraction precision/recall by `signal_type` and by language.  
 4. **Calibration study:** treat `COMPONENT_TUNING` and selected weights as parameters fit with constraints (monotonicity, max sensitivity per day).  
-5. **Telemetry:** `assessment.methodology.scope.scope_decision_summary` on each assess run; operator UI warns when north keyword-fallback share is high.  
+5. **Telemetry:** `assessment.methodology.scope.scope_decision_summary` on each assess run; monitor geo unknown-queue rates and `summarizeGeoCoverage` for news without resolved district geo.  
 6. **Single mental model for scope:** either document-only clarity (status quo) or add an optional `scope` parameter to server-side assessment that applies `filterSignalsForScope` before scoring — product tradeoff between **one** national signal file vs **two** artifacts.
 
 ---
 
 ## 10. Future functionality
 
-- **Time-series and drift:** drift routes and services already exist (`registerDriftRoutes` in `app.js`); extend with automated anomaly detection on component scores.  
+- **Time-series and drift:** drift routes and services already exist (`registerDriftRoutes` in [`driftRoutes.js`](../../business_modules/resilience/input/driftRoutes.js), wired from `createApp.js`); extend with automated anomaly detection on component scores.  
 - **Stronger temporal modeling:** explicit half-life decay by `publishedAt` instead of only `temporal_weight` where present.  
 - **Geo review UI:** operational queue for unknowns feeding reference JSON builders (`npm run build:north-reference` pipeline).  
 - **Multilingual normalization:** cross-lingual dedup and translation-gated extraction for Arabic and Russian sources where licenses permit.  
@@ -428,7 +428,7 @@ Always treat this table as **hints**; authoritative behavior is the code path th
 
 | Concern | File |
 |---------|------|
-| v3 scoring | [`business_modules/resilience/domain/services/behaviorSignals.js`](../../business_modules/resilience/domain/services/behaviorSignals.js) |
+| v4 scoring | [`scoreComponentsOrchestrator.js`](../../business_modules/resilience/domain/services/scoring/scoreComponentsOrchestrator.js), [`scoringShared.js`](../../business_modules/resilience/domain/services/scoring/scoringShared.js) |
 | North filter | [`business_modules/resilience/domain/services/regionSignalFilter.js`](../../business_modules/resilience/domain/services/regionSignalFilter.js) |
 | LLM extract + narratives | [`business_modules/resilience/infrastructure/claudeEvaluator.js`](../../business_modules/resilience/infrastructure/claudeEvaluator.js) |
 | Server batch orchestration | [`business_modules/resilience/app/resilienceAnalysisService.js`](../../business_modules/resilience/app/resilienceAnalysisService.js) |
@@ -440,7 +440,7 @@ Always treat this table as **hints**; authoritative behavior is the code path th
 | Survey CLI | [`business_modules/resilience/input/analyzeSurveyInput.js`](../../business_modules/resilience/input/analyzeSurveyInput.js) |
 | Survey Excel parse | [`business_modules/survey/infrastructure/adapters/surveyExcelLoader.js`](../../business_modules/survey/infrastructure/adapters/surveyExcelLoader.js) |
 | Client report fetch | [`client/src/hooks/useAnalysis.js`](../../client/src/hooks/useAnalysis.js) |
-| App composition | [`app.js`](../../app.js) |
+| App composition | [`composition/createApp.js`](../../composition/createApp.js), [`composition/wireApplication.js`](../../composition/wireApplication.js) |
 
 ---
 

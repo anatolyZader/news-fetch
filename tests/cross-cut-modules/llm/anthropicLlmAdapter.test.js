@@ -35,7 +35,7 @@ describe('createAnthropicLlmPort', () => {
     const client = fakeClient();
     const port = createAnthropicLlmPort({ client });
     const opts = { model: 'claude-opus-4-6', max_tokens: 50, thinking: { type: 'adaptive' }, messages: [] };
-    const stream = port.stream(opts);
+    const stream = await port.stream(opts);
     assert.deepEqual(client.calls.stream[0], opts, 'thinking and all opts preserved');
     const final = await stream.finalMessage();
     assert.equal(final.content[0].text, 'streamed');

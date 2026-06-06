@@ -179,15 +179,15 @@ Stable IDs (used in JSON, code, and i18n):
 
 | Channel | Typical `source_type` | Native form | Path / artifact | Extraction | Geographic default |
 |---------|----------------------|-------------|-----------------|------------|-------------------|
-| Homefront news | `news` | NewsAPI.ai article JSON | `signals/signals-news-YYYY-MM-DD.json` (after `extract-signals`) | LLM from `articles-homefront.md` | National; text-based **north** filter when scope = north |
-| Radio / audio | `radio` | mp3/mp4 | `signals/signals-radio-*.json` | Transcribe → MD → LLM | National; north by text |
-| WhatsApp | `whatsapp` | Export | `signals/signals-whatsapp-*.json` | MD → LLM | **Always north** (curated channel) |
-| Field visits | `field` | Hebrew visit notes (MD) | `business_modules/visits/data/signals/signals-field-*.json` | LLM | **Always north** |
-| PBO municipality | `pbo` | Excel | `signals/signals-pbo-*.json` | **Direct** signal emission (no extraction LLM) | **Always north** |
-| PBO regional | `pbo_regional` | Excel | `signals/signals-pbo_regional-*.json` | **Direct** | **Always north** |
-| Naftali | `naftali` | Weekly questionnaire | `signals/signals-naftali-*.json` | Mapper (structured → signals) | **Always north** |
+| Homefront news | `news` | NewsAPI.ai article JSON | `business_modules/signals_extraction/data/signals/signals-news-YYYY-MM-DD.json` (after `extract-signals`) | LLM from `articles-homefront.md` | National; **north** only when resolved geo matches target district |
+| Radio / audio | `radio` | mp3/mp4 | `business_modules/signals_extraction/data/signals/signals-radio-*.json` | Transcribe → MD → LLM | National; regional scope requires resolved geo |
+| WhatsApp (groups) | `whatsapp` | Export | `business_modules/signals_extraction/data/signals/signals-whatsapp-*.json` | MD → LLM | **`legacy_north_fallback`** when `district_id` absent (see `signalDistrictId.js`) |
+| Field visits | `field` | Hebrew visit notes (MD) | `business_modules/visits/data/signals/signals-field-*.json` | LLM | **`legacy_north_fallback`** when `district_id` absent |
+| PBO municipality | `pbo` | Excel | `business_modules/signals_extraction/data/signals/signals-pbo-*.json` | **Direct** signal emission (no extraction LLM) | **`legacy_north_fallback`** when `district_id` absent |
+| PBO regional | `pbo_regional` | Excel | `business_modules/signals_extraction/data/signals/signals-pbo_regional-*.json` | **Direct** | **`legacy_north_fallback`** when `district_id` absent |
+| Naftali | `naftali` | Weekly questionnaire | `business_modules/signals_extraction/data/signals/signals-naftali-*.json` | Mapper (structured → signals) | **`legacy_north_fallback`** when `district_id` absent |
 
-**Always-north types** are enforced in `business_modules/resilience/domain/services/regionSignalFilter.js` (`ALWAYS_NORTH_SOURCE_TYPES`): those signals count toward the **north** scope even if the literal text lacks north geography.
+**Structured sources (`LEGACY_NORTH_STRUCTURED_SOURCE_TYPES` in [`signalDistrictId.js`](../../business_modules/resilience/domain/services/signalDistrictId.js)):** `field`, `field_whatsapp`, `pbo`, `pbo_regional`, `naftali`, `whatsapp` — when `district_id` is absent, default to **`legacy_north_fallback`** (north). Explicit `district_id` on the signal overrides this.
 
 **Structured PBO path (intuition).** Municipal spreadsheets already carry **numeric component-level posture**; the extractor **polarity-splits** around 0.5 and emits canonical signal types with traceable evidence strings (see canonical doc §4.2). This is **not** a second scoring engine — it is **evidence shaped like every other signal**.
 
@@ -259,7 +259,9 @@ Order of operations (important for **north** reports):
 
 ## 7. Deterministic scoring: from signals to 1–10
 
-**Driver.** `scoreComponents(signals, { totalArticles })` in `business_modules/resilience/domain/services/behaviorSignals.js` (re-exported via `resilienceScoring.js`).
+**Driver.** `scoreComponents(signals, { totalArticles })` in [`scoreComponentsOrchestrator.js`](../../business_modules/resilience/domain/services/scoring/scoreComponentsOrchestrator.js) (re-exported via `behaviorSignals.js` / `resilienceScoring.js`).
+
+**v4 note:** Canonical stage detail and epistemic/display policy are in [RESILIENCE-ENGINE-REFERENCE.md](../main_docu_files/RESILIENCE-ENGINE-REFERENCE.md) §6.3. The baseline formula below omits v4 multipliers: **grounding tier**, **intensity**, **field multiplier**, **gaming caps**, **phase mismatch**, **half-life decay**, and **metrics eligibility** (`RESILIENCE_EPISTEMIC_GEO_V2`).
 
 ### 7.1 Routing and contributions
 
@@ -268,7 +270,7 @@ For each component `c`, collect every signal whose `signal_type` maps to `c` wit
 **Contribution (per signal, per component)**
 
 \[
-\text{contrib} = |w| \times \text{scope} \times \text{reliability} \times \text{outletPrior} \times \text{dualBoost} \times \text{temporal} \times \text{extractionConfidence}
+\text{contrib} = |w| \times \text{scope} \times \text{reliability} \times \text{outletPrior} \times \text{dualBoost} \times \text{temporal} \times \text{extractionConfidence} \times \text{grounding} \times \text{intensity} \times \cdots
 \]
 
 - **scope:** `single_case` 0.35 · `repeated_pattern` 0.65 · `quantified_or_broad` 1.00 (field signals default to `repeated_pattern` when missing — see `contributionForSignal` comment B2).
@@ -326,7 +328,7 @@ The **overall headline** is **not** a straight average of the eight integers.
 
 **Implementation.** `overallScore` in `behaviorSignals.js` keeps only components with **non-null** `score` and **strictly positive** `certainty`, then computes a **certainty-weighted mean** and **rounds** to an integer:
 
-```768:772:business_modules/resilience/domain/services/behaviorSignals.js
+```62:67:business_modules/resilience/domain/services/behaviorSignals.js
 export function overallScore(componentScores) {
   const scored = Object.values(componentScores).filter((c) => c.score !== null && c.certainty > 0);
   if (scored.length === 0) return null;
@@ -372,13 +374,20 @@ export function overallScore(componentScores) {
 
 ### 10.3 Web UI highlights
 
-`client/src/components/ReportView.jsx` surfaces:
+**Operator tier (default)** — `ReportView.jsx` with `displayTier="operator"`:
 
-- Overall score + bands consistent with components.
-- Component chips with **Δ adornments** when `delta_flag` is meaningful.
-- **Bootstrap CI**, **EWMA annotation**, **`floor_clamped` thin-evidence warnings**, **`ci_unstable`** warnings.
-- **Top contributors** (post-cap sorting; raw mass still visible).
-- Evidence accordions grouped by **`scoreBySource`** when present (`assess-signals.js` emits per–`source_type` score maps for mixed-run explainability).
+- Epistemic banner, attention queue, evidence overview, instrument badges (sufficiency, contested, significant delta)
+- Component narratives and cited evidence — **no headline 1–10 scores** (redacted at API via `assessmentDisplayTier.js`)
+
+**Analyst tier** — separate `analyst-site/` SPA or `?view=analyst` on report fetch:
+
+- Drift sparklines, validation review, catalog proposals when enabled
+- Many numeric score fields still API-redacted; full scores on disk in `daily_reports/*.json` for calibration
+
+**On-disk / analyst diagnostics** (when present in JSON, not default operator UI):
+
+- Bootstrap CI, EWMA `score_smoothed`, `floor_clamped`, `ci_unstable`, top contributors (post-cap)
+- Evidence accordions grouped by **`scoreBySource`** when present (`assess-signals.js` emits per–`source_type` score maps)
 
 ### 10.4 In-process orchestration mirror
 
@@ -391,8 +400,8 @@ Interactive / API batch assembly may call `runResilienceAssessment` (`resilience
 | Stage | Primary implementation | Artifact / outcome |
 |-------|-------------------------|-------------------|
 | Source ingest (news/audio/whatsapp) | `business_modules/news-sites/`, `business_modules/audio/`, `business_modules/whatsapp/` | Markdown corpora |
-| Structured → signals | `extract-pbo-signals.js`, Naftali mappers (`business_modules/naftali/`, etc.) | `signals-*.json` |
-| Extract (LLM) | `business_modules/resilience/infrastructure/claudeEvaluator.js`, `input/extract-signals.js` | `signals-{type}-{date}.json` |
+| Structured → signals | `extract-pbo-signals.js`, Naftali mappers (`business_modules/pool/`, etc.) | `business_modules/signals_extraction/data/signals/signals-*.json` |
+| Extract (LLM) | `business_modules/resilience/infrastructure/claudeEvaluator.js`, `input/extract-signals.js` | `business_modules/signals_extraction/data/signals/signals-{type}-{date}.json` |
 | Verify | `signalVerification.js` | Validated signals only |
 | Merge / dedupe / scope | `input/assess-signals.js`, `assessSignalsHelpers.js`, `regionSignalFilter.js` | Single in-memory signal array per run |
 | Score | `domain/services/behaviorSignals.js` | `scoredComponents` map |

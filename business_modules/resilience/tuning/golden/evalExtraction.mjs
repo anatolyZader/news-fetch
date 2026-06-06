@@ -38,7 +38,7 @@ for (const row of rows) {
 }
 
 const coveragePath = join(__dirname, 'type-coverage-snapshot.jsonl');
-let baselineTypes = null;
+let baselineTypes;
 try {
   const coverageRows = loadJsonl(coveragePath);
   baselineTypes = new Set(coverageRows.map((r) => r.signal_type).filter(Boolean));

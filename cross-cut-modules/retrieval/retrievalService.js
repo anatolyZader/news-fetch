@@ -5,7 +5,7 @@ import { embedText, embeddingsEnabled, embeddingModelId } from '../vector_index/
 import { reciprocalRankFusion } from './hybridSearch.js';
 import { cohereRerank } from './cohereRerankAdapter.js';
 import { rewriteQueryForRetrieval } from './queryRewriter.js';
-import { calcEmbeddingCostUsd, calcRerankCostUsd } from '../budget/app/budgetCostTracker.js';
+import { calcEmbeddingCostUsd } from '../budget/app/budgetCostTracker.js';
 import {
   ragPipelineEnabled,
   chatRagHintsEnabled,

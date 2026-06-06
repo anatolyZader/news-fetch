@@ -63,3 +63,23 @@ export function jaccard(a, b) {
   const union = a.size + b.size - inter;
   return union === 0 ? 0 : inter / union;
 }
+
+/** k-gram shingle set over a token array. */
+export function shingles(tokens, k = 3) {
+  if (!Array.isArray(tokens) || tokens.length === 0) return new Set();
+  if (tokens.length < k) return new Set([tokens.join(' ')]);
+  const out = new Set();
+  for (let i = 0; i <= tokens.length - k; i++) {
+    out.add(tokens.slice(i, i + k).join(' '));
+  }
+  return out;
+}
+
+/** Containment of A in B = |A ∩ B| / |A|. */
+export function containment(a, b) {
+  if (!(a instanceof Set) || !(b instanceof Set)) return 0;
+  if (a.size === 0) return 0;
+  let inter = 0;
+  for (const x of a) if (b.has(x)) inter++;
+  return inter / a.size;
+}

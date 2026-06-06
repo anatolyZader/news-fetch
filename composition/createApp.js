@@ -132,12 +132,18 @@ export async function createApp(options) {
   });
 
   const outboxIntervalMs = w.config?.outboxDispatchIntervalMs ?? 5000;
+  let outboxTimer = null;
   if (w.outboxStore && outboxIntervalMs > 0) {
-    setInterval(() => {
+    outboxTimer = setInterval(() => {
       void dispatchOutboxBatch(w.outboxStore, eventBus);
     }, outboxIntervalMs);
+    if (typeof outboxTimer?.unref === 'function') outboxTimer.unref();
     void dispatchOutboxBatch(w.outboxStore, eventBus);
   }
+
+  app.addHook('onClose', async () => {
+    if (outboxTimer) clearInterval(outboxTimer);
+  });
 
   app.decorate('geoService', w.geoService);
   app.decorate('poolService', w.poolService);

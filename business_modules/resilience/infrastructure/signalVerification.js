@@ -1,7 +1,9 @@
 import {
+  containment,
   normalizeForMatch,
   orderedSubsequenceContainment,
   resolveQuoteText,
+  shingles,
   tokenize,
 } from '../domain/services/textSimilarity.js';
 
@@ -75,30 +77,16 @@ export function verifySourceNativeQuote(quoteText, sourceText) {
   return { ok: false, reason: 'source_native_miss', sim: subseq };
 }
 
-/** k-gram shingle set over a token array. */
-export function shingles(tokens, k = 3) {
-  if (!Array.isArray(tokens) || tokens.length === 0) return new Set();
-  if (tokens.length < k) return new Set([tokens.join(' ')]);
-  const out = new Set();
-  for (let i = 0; i <= tokens.length - k; i++) {
-    out.add(tokens.slice(i, i + k).join(' '));
-  }
-  return out;
-}
-
-/** Jaccard similarity between two sets. Re-exported from domain textSimilarity. */
-export { jaccard, tokenize, normalizeForMatch, orderedSubsequenceContainment, resolveQuoteText } from '../domain/services/textSimilarity.js';
-
-/**
- * Containment of A in B = |A ∩ B| / |A|.
- */
-export function containment(a, b) {
-  if (!(a instanceof Set) || !(b instanceof Set)) return 0;
-  if (a.size === 0) return 0;
-  let inter = 0;
-  for (const x of a) if (b.has(x)) inter++;
-  return inter / a.size;
-}
+/** k-gram shingle set over a token array. Re-exported from domain textSimilarity. */
+export {
+  containment,
+  jaccard,
+  shingles,
+  tokenize,
+  normalizeForMatch,
+  orderedSubsequenceContainment,
+  resolveQuoteText,
+} from '../domain/services/textSimilarity.js';
 
 const VERIFY_THRESHOLDS = {
   direct_quote_named_person:   { containment: 0.7, windowContainment: 0.8 },

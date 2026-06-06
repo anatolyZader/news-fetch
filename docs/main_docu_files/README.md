@@ -22,9 +22,22 @@ Plus [README.md](./README.md) (this file) — **8 markdown files** in this direc
 
 ## NotebookLM upload bundle
 
-Self-contained set for high-quality review — upload **these 8 files** plus [`docs/MODEL-CARD.md`](../MODEL-CARD.md) and [`cross-cut-modules/docs/content/pages/concepts/decision-support-model.md`](../../cross-cut-modules/docs/content/pages/concepts/decision-support-model.md).
+### Core (decision-support + pipeline)
 
-Optional companion (may lag behind code): [`docs/reviews/8-component-resilience-pipeline-notebooklm.md`](../reviews/8-component-resilience-pipeline-notebooklm.md).
+Upload **these 8 files** plus [`docs/MODEL-CARD.md`](../MODEL-CARD.md) and [`cross-cut-modules/docs/content/pages/concepts/decision-support-model.md`](../../cross-cut-modules/docs/content/pages/concepts/decision-support-model.md).
+
+### Recommended for technical review (+4)
+
+Add these for scoring math, architecture synthesis, and terminology (aligned with current code):
+
+| File | Role |
+|------|------|
+| [`docs/architecture/ubiquitous-language.md`](../architecture/ubiquitous-language.md) | Shared glossary |
+| [`docs/reviews/application-architecture-and-analysis-deep-dive.md`](../reviews/application-architecture-and-analysis-deep-dive.md) | End-to-end synthesis, strengths/weaknesses, scoring baseline |
+| [`docs/reviews/8-component-resilience-pipeline-notebooklm.md`](../reviews/8-component-resilience-pipeline-notebooklm.md) | NotebookLM-optimized pipeline primer + study prompts |
+| [`docs/reviews/geographic-analysis-implementation.md`](../reviews/geographic-analysis-implementation.md) | Optional — geo matching, unknown queue (skip if geo is out of scope) |
+
+For epistemic policy and display redaction detail, prefer [RESILIENCE-ENGINE-REFERENCE.md](./RESILIENCE-ENGINE-REFERENCE.md) over the review docs.
 
 ## Auto-sync
 

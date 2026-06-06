@@ -15,7 +15,7 @@ This review complements (and links to) the developer guide: [`docs/main_docu_fil
 
 The **`geo`** business module deterministically enriches free-text location inputs into a **versioned `geo` envelope**. That envelope is attached to WhatsApp-derived signals, survey outputs, and report JSON so downstream code can:
 
-- **Scope** signals (especially “north” relevance) using deterministic tags and subregion IDs rather than only keyword heuristics.
+- **Scope** signals (especially regional relevance) using explicit `district_id`, structured-source defaults, and deterministic geo district tags — not substring keyword matching.
 - **Audit** which reference datasets and border snapshots were used.
 - **Control quality** centrally (what is safe to count in metrics vs what needs review).
 - **Operate** a feedback loop: unknown/ambiguous localities → review backlog → reference dataset updates.
@@ -51,7 +51,7 @@ This keeps the dependency direction clean:
 
 Geo is enabled when composition injects a real `geoEnrichmentPort`.
 
-- **Server**: `app.js`
+- **Server**: `composition/createApp.js` / `composition/wireApplication.js`
   - Builds `geoService` via `createGeoService(...)`
   - Wires `geoEnrichmentPort = createGeoEnrichmentAdapter({ geoService, unknownSink? })`
   - Passes the port into WhatsApp analyzer/ingest paths
@@ -137,7 +137,7 @@ Key fields:
   - `classification` (subregion, tags, distance, optional `distanceSemantics`)
   - `policy` (quality, metrics safety, `geoPolicyVersion`, `decisionReasons`, `scopeConfidence`)
   - `audit` (reference/border versions + `resolvedAt`)
-  - **`scopeDecision`** — north relevance **implied by this geo envelope only** (tags + PBO id + `usableForMetrics` gate). For full-signal north scoping (e.g. `source_type`, keyword fallback), see **`signal.scopeDecision`** from `filterSignalsForScope` in §8.
+  - **`scopeDecision`** — district relevance **implied by this geo envelope only** (tags + PBO id + district mapping). For full-signal scoping (explicit `district_id`, `legacy_north_fallback` for structured sources, or geo), see **`signal.scopeDecision`** from `filterSignalsForScope` in §8.
   - **Nested fields are canonical.** Flat duplicates exist only for backward compatibility — **new code must read nested objects first**; do not add new readers of flat fields.
 - **Resolution identity**
   - `canonicalKey`
@@ -354,32 +354,30 @@ Derived by scanning `signals[].geo` where `geo.kind === 'resolved'`.
 
 ---
 
-## 8) North scoping logic (geo-first, keyword fallback)
+## 8) North scoping logic (district assignment and geo)
 
-North scoping is implemented in:
+Regional scoping is implemented in:
 
-- `business_modules/resilience/domain/services/regionSignalFilter.js`
+- `business_modules/resilience/domain/services/regionSignalFilter.js` — `scopeDecisionForSignal`, `filterSignalsForScope`
+- `business_modules/resilience/domain/services/signalDistrictId.js` — `signalDistrictId`, `assignedDistrictScopeMatch`, `LEGACY_NORTH_STRUCTURED_SOURCE_TYPES`
 
-Decision outline:
+Decision outline (for a target scope such as `north`):
 
-1. Certain `source_type` values are always treated as north.
-2. If a signal has resolved geo, it can be treated as north from tags or subregion id **when** `usableForMetrics` is not `false` (same gate as `geo.scopeDecision` on the envelope).
-3. Otherwise the existing `NORTH_TERMS` substring list is used (legacy fallback).
+1. **`assignedDistrictScopeMatch`** — if `signal.district_id` matches the target scope, or the signal’s `source_type` is in `LEGACY_NORTH_STRUCTURED_SOURCE_TYPES` (`field`, `field_whatsapp`, `pbo`, `pbo_regional`, `naftali`, `whatsapp`) and no explicit district is set, assign **`legacy_north_fallback`** (defaults to `north`).
+2. **`districtRelevanceFromResolvedGeo`** — if `signal.geo.kind === 'resolved'`, district relevance comes from geo tags / home-front district mapping via `districtRelevanceFromResolvedGeo(scopeId, geo)`.
+3. Otherwise the signal is **not scope-relevant** for regional runs. There is **no** substring / `NORTH_TERMS` keyword fallback.
 
 **Two `scopeDecision` shapes:**
 
-- **`geo.scopeDecision`** (on resolved `signal.geo`) — emitted by `geoService` / `buildGeoScopeDecision`: answers “from this geo object alone, is the north-from-geo path allowed, and why?” Sources are a subset: `geo` (metrics ineligible), `geo_tags`, `pbo_subregion`, `unknown`.
-- **`signal.scopeDecision`** (attached by `filterSignalsForScope`) — full north filter trace, including `source_type` and `keyword_fallback` sources. Use this when explaining why a signal entered a **north-scoped report**.
+- **`geo.scopeDecision`** (on resolved `signal.geo`) — emitted by `geoService` / `buildGeoScopeDecision`: answers “from this geo object alone, what district relevance is implied?”
+- **`signal.scopeDecision`** (attached by `filterSignalsForScope`) — full filter trace including `signal_district`, `legacy_north_fallback`, or geo-derived sources. Use this when explaining why a signal entered a **regional report**.
 
-Additional rules in code:
+**Epistemic note:** `usableForMetrics === false` or text-inferred geo may still affect **scope** for narrative context while being excluded from component metrics under `RESILIENCE_EPISTEMIC_GEO_V2` (see [RESILIENCE-ENGINE-REFERENCE.md](../main_docu_files/RESILIENCE-ENGINE-REFERENCE.md) §3).
 
-- If `geo.usableForMetrics` is `false`, geo alone does not count as verified north relevance (aligned with `geo.scopeDecision`).
-- If geo is absent/unknown/not decisive, fallback to keyword matching (`NORTH_TERMS`) for legacy payloads.
+The design intent:
 
-The design intent is:
-
-- Prefer **deterministic geo** when available and metrics-safe
-- Preserve a legacy path for older data and edge cases
+- Prefer **explicit district assignment** and **deterministic geo** when available
+- Default structured field/PBO/WhatsApp bundles to north only when `district_id` is absent (legacy bundles)
 
 ---
 
@@ -402,7 +400,7 @@ Behavior:
 
 ### 9.3 Wiring and trigger
 
-In composition (`app.js`, `cross-cut-modules/geo/input/runAnalyzeSurvey.js`):
+In composition (`composition/createApp.js`, `cross-cut-modules/geo/input/runAnalyzeSurvey.js`):
 
 - If `GEO_UNKNOWN_REVIEW_JSONL=1`, create the sink and inject it into `GeoEnrichmentAdapter`
 - If `GEO_UNKNOWN_REVIEW_SQLITE=1`, also wire the SQLite-backed queue adapter (durable review backlog)
@@ -425,7 +423,7 @@ Geo is also exposed via HTTP for debugging:
 
 - `GET /api/geo/resolve?name=...` (or `q=...`)
 
-It uses `request.server.geoService` (Fastify decoration in `app.js`) rather than importing geo inside routes.
+It uses `request.server.geoService` (Fastify decoration wired from `composition/createApp.js`) rather than importing geo inside routes.
 
 ---
 
