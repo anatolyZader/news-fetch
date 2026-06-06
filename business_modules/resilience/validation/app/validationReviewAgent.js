@@ -3,6 +3,12 @@
  */
 import { getDefaultLlmPort, createAnthropicLlmPort } from '../../../../cross-cut-modules/llm/anthropicLlmAdapter.js';
 import {
+  createAgentKernel,
+  validationAgentMaxRounds,
+  HAIKU_MODEL,
+} from '../../../../cross-cut-modules/agent/index.js';
+import { VALIDATION_TOOLS } from '../../../../cross-cut-modules/agent/profiles/validation.profile.js';
+import {
   validationAgentEnabledFlag,
   validationExplainEnabled,
 } from '../../../../cross-cut-modules/retrieval/ragConfig.js';
@@ -14,42 +20,9 @@ import { executeValidationTool } from './validationToolExecutor.js';
 
 const MODEL = process.env.RESILIENCE_VALIDATION_EXPLAIN_MODEL
   ?? process.env.RESILIENCE_SELF_CHECK_MODEL
-  ?? 'claude-haiku-4-5-20251001';
+  ?? HAIKU_MODEL;
 
-const AGENT_TOOLS = [
-  {
-    name: 'get_validation_context',
-    description: 'Refresh validation item context (RAG bundle).',
-    input_schema: { type: 'object', properties: {} },
-  },
-  {
-    name: 'search_similar_articles',
-    description: 'Search archive for articles similar to a query related to this item.',
-    input_schema: {
-      type: 'object',
-      properties: {
-        query: { type: 'string' },
-        top_k: { type: 'number' },
-      },
-      required: ['query'],
-    },
-  },
-  {
-    name: 'propose_decision',
-    description: 'Recommend a validation decision (does NOT submit — human must confirm).',
-    input_schema: {
-      type: 'object',
-      properties: {
-        action: {
-          type: 'string',
-          enum: ['label', 'skip', 'defer', 'gold_signal', 'confirm_social_quarantine', 'dismiss_social_quarantine'],
-        },
-        rationale: { type: 'string' },
-      },
-      required: ['action', 'rationale'],
-    },
-  },
-];
+const AGENT_TOOLS = VALIDATION_TOOLS;
 
 /**
  * Normalize incoming messages for Anthropic API (preserve array content).
@@ -73,11 +46,6 @@ function normalizeIncomingMessages(messages) {
  *   client?: object,
  * }} params
  */
-function validationAgentMaxRounds() {
-  const n = Number.parseInt(process.env.VALIDATION_AGENT_MAX_TOOL_ROUNDS ?? '3', 10);
-  return Number.isFinite(n) && n >= 0 ? Math.min(n, 10) : 3;
-}
-
 export async function runValidationAgent({
   validationReviewService,
   retrievalService = null,
@@ -87,9 +55,11 @@ export async function runValidationAgent({
   messages,
   client = null,
   llmPort = null,
+  agentKernel = null,
   onUsage = null,
 }) {
   const port = llmPort ?? (client ? createAnthropicLlmPort({ client }) : getDefaultLlmPort());
+  const kernel = agentKernel ?? createAgentKernel({ llmPort: port });
   if (!validationAgentEnabledFlag() || !validationExplainEnabled()) {
     return { error: 'Validation agent is disabled.', messages: messages ?? [] };
   }
@@ -123,14 +93,15 @@ export async function runValidationAgent({
   const setItemCtx = (ctx) => { itemCtx = ctx; };
   const setRecommendation = (rec) => { recommendation = rec; };
 
-  const loopResult = await port.runToolLoop({
+  const loopResult = await kernel.run({
+    profile: 'validation',
+    agentKind: 'validation',
     model: MODEL,
     maxTokens: 2000,
     maxRounds: validationAgentMaxRounds(),
     system,
     messages: currentMessages,
     tools: AGENT_TOOLS,
-    agentKind: 'validation',
     onUsage: onUsage
       ? (p) => onUsage({ label: p.label, model: p.model, usage: p.usage })
       : undefined,

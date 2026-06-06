@@ -24,6 +24,7 @@ export async function validationReviewRoutes(app, opts) {
     authPreHandler,
     retrievalService,
     llmQuotaStore = null,
+    agentKernel = null,
   } = opts;
   if (!validationReviewService) {
     throw new Error('validationReviewService is required');
@@ -132,6 +133,7 @@ export async function validationReviewRoutes(app, opts) {
         scope,
         articleKey: decodeURIComponent(String(articleKey)),
         messages,
+        agentKernel,
         onUsage: (p) => costRecorder.onUsage(p),
       });
       if (result.error && !result.item) {

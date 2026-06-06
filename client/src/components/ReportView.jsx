@@ -28,6 +28,8 @@ import { CatalogProposalPanel } from './CatalogProposalPanel.jsx';
 import { OovAnomalyClustersPanel } from './OovAnomalyClustersPanel.jsx';
 import { OperatorRecommendationsPanel } from './OperatorRecommendationsPanel.jsx';
 import { DecisionBriefPanel } from './DecisionBriefPanel.jsx';
+import { EvidenceTreePanel } from './EvidenceTreePanel.jsx';
+import { AgentDivergencePanel } from './AgentDivergencePanel.jsx';
 import { InstrumentMetricsBadges } from './InstrumentMetricsBadges.jsx';
 import { ReportComponentFilterBar, readReportComponentFilter } from './ReportComponentFilterBar.jsx';
 import { filterReportComponents } from '../lib/reportComponentFilter.js';
@@ -647,6 +649,11 @@ function ComponentCard({
           </Typography>
         )}
         <MarkdownArticle variant="report" markdown={expandSourceCitationLinks(comp.narrative ?? '')} />
+        <EvidenceTreePanel
+          evidenceTree={comp.evidence_tree}
+          reasoningTraceId={comp.reasoning_trace_id}
+          isAnalyst={isAnalyst}
+        />
         {(comp.interpretive_summary || comp.instrument?.interpretive_summary) && (
           <Typography variant="caption" color="warning.main" sx={{ display: 'block', marginTop: 1 }}>
             {t('report.narrative.interpretiveSummary')}
@@ -901,7 +908,16 @@ export function ReportView({
         } : undefined}
       />
 
-      <DecisionBriefPanel decisionBrief={assessment?.decision_brief} />
+      {isAnalyst && (
+        <AgentDivergencePanel
+          reportDate={reportDate ?? assessment?.date}
+          reportScope={reportScope?.id ?? assessment?.report_scope?.id ?? 'national'}
+        />
+      )}
+      <DecisionBriefPanel
+        decisionBrief={assessment?.decision_brief}
+        retrievalGaps={assessment?.retrieval_gaps}
+      />
 
       <OperatorRecommendationsPanel
         recommendations={recommendations}

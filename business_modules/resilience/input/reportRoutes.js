@@ -3,6 +3,7 @@
  */
 
 import { mkdir } from 'node:fs/promises';
+import { resolve } from 'node:path';
 import { getTodayInTimezone, validateDate } from '../../../utils/dateUtils.js';
 import { getTranslatedReport } from '../../translation/index.js';
 import { buildMunicipalityDashboardDto } from '../../pbo_report_muni/index.js';
@@ -43,12 +44,88 @@ export async function reportRoutes(app, opts) {
     pboRegionalDailyService,
     timezone,
     fetchArticlesForDay,
+    sqlitePath,
   } = opts;
 
   const getCachedReport = (store, readOpts) =>
     (reportReadPort?.getCachedReport ?? getCachedReportDefault)(store, readOpts);
 
   const todayAuthHook = readAuthHook ?? authHook;
+
+  app.get('/api/report/agent-trace/:traceId', todayAuthHook, async (request, reply) => {
+    if (!canViewAnalystDisplay(request.user?.email)) {
+      return reply.code(403).send({ error: 'analyst_only' });
+    }
+    const { createTraceStore } = await import('../../../cross-cut-modules/agent/index.js');
+    const traceStore = createTraceStore(resolve(process.cwd(), 'daily_reports'));
+    const events = traceStore.readAll(String(request.params?.traceId ?? ''));
+    if (!events.length) return reply.code(404).send({ error: 'trace_not_found' });
+    return reply.send({ trace_id: request.params.traceId, events });
+  });
+
+  app.post('/api/report/claim-feedback', {
+    ...authHook,
+    schema: {
+      body: {
+        type: 'object',
+        required: ['date', 'component_id', 'claim_text', 'action'],
+        properties: {
+          date: { type: 'string' },
+          component_id: { type: 'string' },
+          claim_text: { type: 'string' },
+          action: { type: 'string', enum: ['reject', 'accept'] },
+          rationale: { type: 'string' },
+          scope: { type: 'string' },
+        },
+      },
+    },
+  }, async (request, reply) => {
+    if (!canViewAnalystDisplay(request.user?.email)) {
+      return reply.code(403).send({ error: 'analyst_only' });
+    }
+    const { date, component_id, claim_text, action, rationale, scope = 'national' } = request.body ?? {};
+    if (action === 'reject' && claim_text) {
+      try {
+        const { createInstitutionalMemoryService } = await import('../../resilience_assessment/infrastructure/institutionalMemoryService.js');
+        const { createRetrievalService } = await import('../../../cross-cut-modules/retrieval/createRetrievalService.js');
+        const svc = createRetrievalService({ dbPath: sqlitePath ?? opts.sqlitePath });
+        const memory = createInstitutionalMemoryService({
+          chunkStore: svc.chunkStore,
+          rebuildFts: () => svc.rebuildFts(),
+          reportsDir: resolve(process.cwd(), 'daily_reports'),
+        });
+        await memory.indexAnalystCorrection({
+          date,
+          componentId: component_id,
+          claimText: claim_text,
+          rationale: rationale ?? '',
+          analystEmail: request.user?.email,
+        });
+        svc.close();
+      } catch (err) {
+        return reply.code(500).send({ error: err?.message ?? 'index_failed' });
+      }
+    }
+    auditFromRequest(request, 'report.claim_feedback', '/api/report/claim-feedback', {
+      date, component_id, action, scope,
+    });
+    return reply.send({ ok: true });
+  });
+
+  app.get('/api/report/divergence', todayAuthHook, async (request, reply) => {
+    if (!canViewAnalystDisplay(request.user?.email)) {
+      return reply.code(403).send({ error: 'analyst_only' });
+    }
+    const scope = normalizeReportScope(request.query?.scope ?? 'national');
+    const date = String(request.query?.date ?? '').trim()
+      || getCachedReport(evidenceStore, { scope })?.reportDate;
+    if (!date) return reply.code(404).send({ error: 'date_required' });
+    const { readFileSync, existsSync } = await import('node:fs');
+    const { join } = await import('node:path');
+    const path = join(process.cwd(), 'daily_reports', `divergence-${scope}-${date}.json`);
+    if (!existsSync(path)) return reply.code(404).send({ error: 'divergence_not_found' });
+    return reply.send(JSON.parse(readFileSync(path, 'utf8')));
+  });
 
   app.get('/api/report/today', todayAuthHook, async (request, reply) => {
     const scope = normalizeReportScope(request.query?.scope ?? 'national');

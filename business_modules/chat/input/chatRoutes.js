@@ -46,6 +46,7 @@ export async function chatRoutes(app, opts) {
     tracePort,
     reportReadPort,
     reportDisplayPort,
+    agentKernel,
     chatLlmPort,
   } = opts;
 
@@ -241,6 +242,7 @@ export async function chatRoutes(app, opts) {
           costRecorder,
           retrievalCache,
           llmPort,
+          agentKernel: agentKernel ?? null,
           tracePort: tracePort ?? null,
           abortSignal: abortController.signal,
           onSend: (event) => {

@@ -1,0 +1,69 @@
+[
+  {
+    "id": "grounding-1",
+    "component_assessment": {
+      "component_id": "leadership",
+      "severity": "moderate",
+      "confidence": "medium",
+      "claims": [
+        {
+          "text": "Field reports note coordination gaps",
+          "evidence_refs": ["leadership_gap@article:1"]
+        }
+      ],
+      "narrative": "Field reports note coordination gaps in district responses."
+    },
+    "expect": { "all_claims_have_refs": true }
+  },
+  {
+    "id": "abstention-1",
+    "epistemic_profile": {
+      "by_component": {
+        "leadership": { "evidence_mass": 0.8, "thin_evidence": true }
+      }
+    },
+    "component_assessment": {
+      "component_id": "leadership",
+      "severity": "abstain",
+      "confidence": "low",
+      "claims": [],
+      "narrative": "Insufficient evidence."
+    },
+    "expect": { "must_abstain": true }
+  },
+  {
+    "id": "contested-1",
+    "epistemic_profile": {
+      "by_component": {
+        "leadership": { "contested": true, "evidence_mass": 6, "polarization": 0.7 }
+      }
+    },
+    "component_assessment": {
+      "component_id": "leadership",
+      "severity": "moderate",
+      "confidence": "medium",
+      "dissent_summary": "Mixed field and news signals",
+      "claims": [{ "text": "Mixed signals", "evidence_refs": ["a@1"] }],
+      "narrative": "Evidence is contested across sources."
+    },
+    "expect": { "has_dissent_summary": true }
+  },
+  {
+    "id": "dominance-1",
+    "epistemic_profile": {
+      "by_component": {
+        "leadership": {
+          "dominance_warnings": [{ "layer": "source_type", "key": "telegram", "message": "telegram exceeds cap" }]
+        }
+      }
+    },
+    "component_assessment": {
+      "component_id": "leadership",
+      "severity": "moderate",
+      "confidence": "medium",
+      "claims": [{ "text": "Telegram-heavy picture", "evidence_refs": ["t@1"] }],
+      "narrative": "Note: telegram exceeds cap for source diversity."
+    },
+    "expect": { "mentions_dominance": true }
+  }
+]

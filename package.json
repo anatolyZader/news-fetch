@@ -99,6 +99,7 @@
     "rag:reindex-docs": "node cross-cut-modules/retrieval/input/reindex-docs.js",
     "rag:reindex-terms": "node cross-cut-modules/retrieval/input/reindex-terms.js",
     "rag:eval": "node db/input/ragEval.js",
+    "agent:eval": "node db/input/agentEval.js",
     "trends:warm-cache": "node business_modules/search_trends/input/warmTrendsCache.js",
     "social-media:init": "node business_modules/social_media/input/socialMediaInput.js init",
     "social-media:gather-daily": "node business_modules/social_media/input/socialMediaInput.js gather-daily",

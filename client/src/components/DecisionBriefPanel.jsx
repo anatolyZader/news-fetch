@@ -16,7 +16,7 @@ const LEVEL_VARIANT = {
 /**
  * Batch agent decision brief (operator-safe; no 1–10 scores).
  */
-export function DecisionBriefPanel({ decisionBrief }) {
+export function DecisionBriefPanel({ decisionBrief, retrievalGaps = [] }) {
   const { t } = useLanguage();
 
   if (!decisionBrief?.summary && (decisionBrief?.priority_items?.length ?? 0) <= 0) {
@@ -90,6 +90,19 @@ export function DecisionBriefPanel({ decisionBrief }) {
             })}
           </Stack>
         )}
+
+        {(retrievalGaps?.length ?? 0) > 0 && (
+          <Box>
+            <Typography variant="meta" color="text.secondary" sx={{ mb: 0.5 }}>
+              {t('decisionBrief.priorityInvestigations')}
+            </Typography>
+            <Box component="ul" sx={{ m: 0, pl: 2 }}>
+              {retrievalGaps.map((gap) => (
+                <Typography component="li" variant="body2" key={gap}>{gap}</Typography>
+              ))}
+            </Box>
+          </Box>
+        )}
       </Stack>
     </Box>
   );
@@ -108,4 +121,5 @@ DecisionBriefPanel.propTypes = {
     generated_at: PropTypes.string,
     source: PropTypes.string,
   }),
+  retrievalGaps: PropTypes.arrayOf(PropTypes.string),
 };

@@ -14,6 +14,30 @@ export async function registerDriftRoutes(app, opts) {
   const driftService = opts?.driftService ?? null;
   const preHandler = opts?.authPreHandler ? { preHandler: opts.authPreHandler } : {};
 
+  app.get('/api/resilience/drift/agent-severity', preHandler, async (request, reply) => {
+    if (!requireAnalystView(request, reply)) return;
+    const scope = normalizeReportScope(request.query?.scope ?? 'national');
+    const days = Math.min(Number.parseInt(request.query?.days ?? '30', 10) || 30, 90);
+    const { readdirSync, readFileSync, existsSync } = await import('node:fs');
+    const { join } = await import('node:path');
+    const dir = join(process.cwd(), 'daily_reports');
+    if (!existsSync(dir)) return reply.send({ series: [] });
+    const points = [];
+    for (const f of readdirSync(dir).filter((n) => n.startsWith('divergence-'))) {
+      try {
+        const data = JSON.parse(readFileSync(join(dir, f), 'utf8'));
+        if (data.scopeId !== scope && data.scope !== scope) continue;
+        points.push({
+          date: data.date,
+          alignment_rate: data.alignment_rate,
+          by_component: data.by_component,
+        });
+      } catch { /* skip */ }
+    }
+    points.sort((a, b) => String(a.date).localeCompare(String(b.date)));
+    return reply.send({ scope, days, series: points.slice(-days) });
+  });
+
   app.get('/api/resilience/drift', preHandler, async (request, reply) => {
     if (!requireAnalystView(request, reply)) return;
     if (!driftService) {

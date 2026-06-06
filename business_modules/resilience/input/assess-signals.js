@@ -78,6 +78,7 @@ import { createSourceArchive } from '../../../db/source_archive/createSourceArch
 import { archiveProbeRecords } from '../../../db/source_archive/archiveProbeRecords.js';
 import { createRetrievalService } from '../../../cross-cut-modules/retrieval/createRetrievalService.js';
 import { createSignalBundlePort } from './createSignalBundlePort.js';
+import { produceAssessmentWithShadow } from '../app/produceAssessmentWithShadow.js';
 import { defaultClosedSignalsDir } from '../../signals_extraction/infrastructure/signalsDataPaths.js';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
@@ -169,6 +170,16 @@ function archiveProbeRecordsForDate(targetDate) {
     if (n > 0) console.error(`  → ${n} probe original(s) archived`);
   } catch (err) {
     console.error(`  ⚠ Probe archive skipped: ${err.message}`);
+  }
+}
+
+function createSourceArchiveSafe() {
+  try {
+    const sqlitePath = process.env.SQLITE_PATH?.trim() || resolve(REPO_ROOT, 'db', 'app.sqlite');
+    return createSourceArchive(sqlitePath);
+  } catch (err) {
+    console.error(`  ⚠ Source archive unavailable: ${err.message}`);
+    return null;
   }
 }
 
@@ -611,6 +622,7 @@ async function finalizeAndWriteReport({
   pipelineConfig,
   scoring,
   retrievalService = null,
+  sourceArchive = null,
 }) {
   const {
     nationalSignals,
@@ -642,25 +654,38 @@ async function finalizeAndWriteReport({
     ? buildComparisonContext(signalsForScoring, nationalSignals, reportScopeId)
     : null;
 
-  const assessment = await generateNarratives(scoredFull, signalsForScoring, targetDate, scopedTotalArticles, {
-    onUsage,
-    priorReports,
-    contentKind,
-    sourceTypes: scopedSourceTypesSeen,
-    reportScope,
-    comparisonScores: comparisonContext?.comparable ? nationalScored : null,
-    comparisonLabel: isRegionalReportScope(reportScopeId) ? 'national' : null,
-    comparisonComparable: comparisonContext?.comparable !== false,
-    macroSignals,
-    allScopedSignals: scopedSignals,
+  const assessment = await produceAssessmentWithShadow({
+    targetDate,
+    reportScopeId,
+    signalsForScoring,
+    scopedSignals,
+    scoredFull,
+    scopedTotalArticles,
     dataVoid,
-    oovCaptureCount: countOovCapturesForDate(targetDate),
-    socialChannelQuarantine: scoring.osintChannelQuarantine ?? null,
-    quarantinedDigital: quarantinedDigital ?? null,
+    assessmentMode,
+    epistemicStatus,
     retrievalService,
+    sourceArchive,
+    oovBurst: scoring.oovBurst ?? null,
+    onUsage,
+    legacyNarrativeOpts: {
+      priorReports,
+      contentKind,
+      sourceTypes: scopedSourceTypesSeen,
+      reportScope,
+      comparisonScores: comparisonContext?.comparable ? nationalScored : null,
+      comparisonLabel: isRegionalReportScope(reportScopeId) ? 'national' : null,
+      comparisonComparable: comparisonContext?.comparable !== false,
+      macroSignals,
+      allScopedSignals: scopedSignals,
+      oovCaptureCount: countOovCapturesForDate(targetDate),
+      socialChannelQuarantine: scoring.osintChannelQuarantine ?? null,
+      quarantinedDigital: quarantinedDigital ?? null,
+    },
   });
 
   retrievalService?.close();
+  sourceArchive?.close?.();
 
   enrichAssessmentMetadata(assessment, {
     scoring,
@@ -781,6 +806,7 @@ async function run() {
     pipelineConfig: prepared.pipelineConfig,
     scoring,
     retrievalService: prepared.retrievalService,
+    sourceArchive: createSourceArchiveSafe(),
   });
 }
 

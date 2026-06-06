@@ -112,6 +112,7 @@ export async function streamChat(message, history, rawReply, getReportData, opts
       geoUnknownReviewService: opts.geoUnknownReviewService ?? null,
       toolProfile: opts.toolProfile ?? 'default',
       llmPort: opts.llmPort ?? null,
+      agentKernel: opts.agentKernel ?? null,
       abortSignal,
     });
 

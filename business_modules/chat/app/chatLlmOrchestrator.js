@@ -2,6 +2,7 @@
  * Chat LLM orchestration (app layer) — tool loop with Claude Haiku.
  */
 import { getDefaultLlmPort, createAnthropicLlmPort } from '../../../cross-cut-modules/llm/anthropicLlmAdapter.js';
+import { createAgentKernel, chatMaxToolRounds, HAIKU_MODEL } from '../../../cross-cut-modules/agent/index.js';
 import { handleChatToolCall } from './chatToolHandlers.js';
 import { createChatToolContext } from './createChatToolContext.js';
 import { buildSystemTemplateToolList } from '../domain/tools/chatToolSchemas.js';
@@ -40,11 +41,6 @@ function buildSystemTemplate(ctx) {
   );
 }
 
-function chatMaxToolRounds() {
-  const n = Number.parseInt(process.env.CHAT_MAX_TOOL_ROUNDS ?? '3', 10);
-  return Number.isFinite(n) && n >= 0 ? Math.min(n, 10) : 3;
-}
-
 export async function streamChatResponse(systemContext, pboLookup, messages, send, reportData, opts = {}) {
   const costRecorder = opts.costRecorder ?? null;
   const toolCtx = createChatToolContext({
@@ -71,18 +67,21 @@ export async function streamChatResponse(systemContext, pboLookup, messages, sen
 
   const system = buildSystemTemplate(toolCtx) + systemContext;
 
-  const port = opts.llmPort ?? (opts.client ? createAnthropicLlmPort({ client: opts.client }) : getDefaultLlmPort());
-  await port.runToolLoop({
-    model: 'claude-haiku-4-5-20251001',
+  const llmPort = opts.llmPort ?? (opts.client ? createAnthropicLlmPort({ client: opts.client }) : getDefaultLlmPort());
+  const agentKernel = opts.agentKernel ?? createAgentKernel({ llmPort });
+  await agentKernel.run({
+    profile: 'chat',
+    agentKind: 'chat',
+    model: HAIKU_MODEL,
     maxTokens: 4000,
     maxRounds: chatMaxToolRounds(),
     system,
     messages,
     tools: toolCtx.tools,
-    agentKind: 'chat',
     executeTool: (name, input) => handleChatToolCall(name, input, toolCtx),
     onTextBlock: (text) => send({ type: 'text', text }),
-    abortSignal: opts.abortSignal ?? null,
+      agentKernel: opts.agentKernel ?? null,
+      abortSignal: opts.abortSignal ?? null,
     onUsage: costRecorder
       ? (p) => costRecorder.onUsage({ label: p.label, model: p.model, usage: p.usage })
       : undefined,

@@ -205,6 +205,7 @@ export async function createApp(options) {
     pboRegionalDailyService: w.pboRegionalDailyService,
     timezone,
     fetchArticlesForDay,
+    sqlitePath: w.sqlitePath,
   });
 
   await app.register(validationReviewRoutes, {
@@ -212,6 +213,7 @@ export async function createApp(options) {
     authPreHandler: protectedAuthPreHandler,
     retrievalService: w.retrievalService,
     llmQuotaStore: w.llmDailyQuotaStore,
+    agentKernel: w.agentKernel,
   });
 
   await operatorRoutes(app);
@@ -240,6 +242,7 @@ export async function createApp(options) {
     catalogProposalService: w.catalogProposalService,
     geoUnknownReviewService: w.geoUnknownReviewService,
     llmPort: w.sharedLlmPort,
+    agentKernel: w.agentKernel,
     tracePort: w.tracePort,
     reportReadPort: createReportReadPort(),
     reportDisplayPort: createReportDisplayPort(),

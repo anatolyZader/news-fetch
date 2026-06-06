@@ -21,3 +21,8 @@ export {
   COMPONENTS_TABLE_HELP_MARKDOWN,
   EVIDENCE_LEVEL_INLINE_NOTE,
 } from './componentsTableGlossary.js';
+export {
+  ASSESSMENT_SCHEMA_VERSION,
+  validateAssessmentV2,
+  createEmptyAssessmentV2,
+} from './assessmentV2.js';

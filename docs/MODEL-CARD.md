@@ -92,6 +92,20 @@ Detect high polarization on `source_type=social` and `telegram` (`RESILIENCE_SOC
 
 When partition quarantines digital signals, `assessment.digital_quarantine_state` persists until end of UTC day. Subsequent same-day assess runs reload prior state and block digital re-ingestion even if void index alone would not re-trigger.
 
+## Assessment agent (v2, Option B)
+
+Default pipeline (`RESILIENCE_ASSESSMENT_AGENT=1`): planner → component specialists → critic → synthesizer produce **assessment.v2** with evidence refs and trace JSONL. Legacy scoring runs as **shadow** (`RESILIENCE_SHADOW_SCORING=1`) → `shadow-scores-*.json`, `divergence-*.json`. Escape hatch: `RESILIENCE_ASSESSMENT_AGENT=0` restores legacy narratives.
+
+| Env | Default | Effect |
+|-----|---------|--------|
+| `RESILIENCE_ASSESSMENT_AGENT` | `1` | Agent v2 primary assess path |
+| `RESILIENCE_SHADOW_SCORING` | `1` | Write shadow score + divergence artifacts |
+| `RESILIENCE_SHADOW_NARRATIVES` | `0` | Optional legacy narrative shadow |
+| `RESILIENCE_ASSESSMENT_AGENT_MAX_USD` | `2.50` | Per-report agent budget |
+| `RESILIENCE_ASSESSMENT_AGENT_MAX_ROUNDS` | `24` | Tool round cap |
+
+Eval: `npm run agent:eval`. Trace replay: `GET /api/report/agent-trace/:traceId` (analyst).
+
 ## Known limits
 
 - Digital survivorship bias — people who do not post are invisible (mitigated by data_void + field priority)

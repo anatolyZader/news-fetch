@@ -1,0 +1,104 @@
+/**
+ * Synthesizer agent — cross-component narrative and attention items.
+ */
+import {
+  createAgentKernel,
+  SONNET_MODEL,
+  PROMPT_VERSION,
+} from '../../../cross-cut-modules/agent/index.js';
+import {
+  SYNTHESIZER_TOOLS,
+  ASSESSMENT_SYNTHESIZER_PROFILE,
+} from '../../../cross-cut-modules/agent/profiles/assessment.profile.js';
+import { buildAttentionItems } from '../../resilience/domain/services/attentionItems.js';
+
+function buildSynthesizerSystem(componentAssessments, epistemicProfile) {
+  return (
+    'Synthesize cross-component resilience assessment. Use submit_synthesis tool. ' +
+    'Do not invent facts not present in component assessments.\n\n' +
+    `COMPONENT ASSESSMENTS:\n${JSON.stringify(componentAssessments, null, 2)}\n\n` +
+    `EPISTEMIC PROFILE:\n${JSON.stringify(epistemicProfile?.by_component ?? {}, null, 2)}`
+  );
+}
+
+function defaultSynthesis(componentAssessments, epistemicProfile) {
+  const focus = componentAssessments.filter((c) =>
+    c.severity === 'high' || c.severity === 'critical');
+  const summary = focus.length
+    ? `Today's assessment highlights ${focus.map((c) => c.component_id).join(', ')} as areas requiring attention.`
+    : 'Overall resilience indicators remain within typical ranges based on available evidence.';
+  const retrieval_gaps = componentAssessments.flatMap((c) => c.retrieval_gaps ?? []);
+  return {
+    cross_component_synthesis: summary,
+    attention_items: [],
+    decision_brief_summary: summary,
+    retrieval_gaps: [...new Set(retrieval_gaps)],
+  };
+}
+
+/**
+ * @param {object} params
+ */
+export async function runSynthesizerAgent(params) {
+  const {
+    componentAssessments,
+    epistemicProfile,
+    llmPort,
+    agentKernel,
+    onUsage,
+    budget,
+    traceId,
+    partialAssessment = null,
+  } = params;
+
+  const kernel = agentKernel ?? createAgentKernel({ llmPort });
+  let synthesis = null;
+
+  const result = await kernel.run({
+    profile: ASSESSMENT_SYNTHESIZER_PROFILE,
+    agentKind: 'synthesizer',
+    model: SONNET_MODEL,
+    maxRounds: 2,
+    maxTokens: 4000,
+    system: buildSynthesizerSystem(componentAssessments, epistemicProfile),
+    messages: [{
+      role: 'user',
+      content: 'Produce cross-component synthesis and priority attention themes.',
+    }],
+    tools: SYNTHESIZER_TOOLS,
+    budget,
+    traceId: `${traceId}:synth`,
+    onUsage,
+    executeTool: async (name, input) => {
+      if (name === 'submit_synthesis') {
+        synthesis = input;
+        return JSON.stringify({ ok: true });
+      }
+      return JSON.stringify({ error: 'unknown_tool' });
+    },
+  });
+
+  const submitted = result.submitPayloads.find((p) => p.tool === 'submit_synthesis');
+  synthesis = submitted?.payload ?? synthesis ?? defaultSynthesis(componentAssessments, epistemicProfile);
+
+  const draftAssessment = {
+    ...(partialAssessment ?? {}),
+    components: componentAssessments,
+    cross_component_synthesis: synthesis.cross_component_synthesis,
+    retrieval_gaps: synthesis.retrieval_gaps ?? [],
+  };
+  const attention_items = synthesis.attention_items?.length
+    ? synthesis.attention_items
+    : buildAttentionItems(draftAssessment, { view: 'operator' });
+
+  return {
+    cross_component_synthesis: synthesis.cross_component_synthesis,
+    attention_items,
+    decision_brief: synthesis.decision_brief_summary
+      ? { summary: synthesis.decision_brief_summary, priority_items: [], source: 'agent_v2' }
+      : null,
+    retrieval_gaps: synthesis.retrieval_gaps ?? [],
+    traceId: result.traceId,
+    prompt_version: PROMPT_VERSION,
+  };
+}

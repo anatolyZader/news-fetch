@@ -72,6 +72,17 @@ function formatComponentBlock(c, { includeScores }) {
   return `### ${id} (${instLine})\n${c.narrative ?? ''}`;
 }
 
+function formatV2ContextBlock(assessment) {
+  if (assessment?.schema_version !== '2.0') return '';
+  const gaps = (assessment.retrieval_gaps ?? []).slice(0, 6);
+  let block = `Assessment v2 (agent trace: ${assessment.agent_trace_id ?? 'n/a'})\n`;
+  if (gaps.length) block += `Retrieval gaps: ${gaps.join('; ')}\n`;
+  if (assessment.epistemic_profile_ref) {
+    block += `Epistemic profile: ${assessment.epistemic_profile_ref}\n`;
+  }
+  return `${block}\n`;
+}
+
 /**
  * @param {object | null | undefined} reportData
  * @param {{ includeScores?: boolean, reportScopeId?: string }} [opts]
@@ -107,6 +118,7 @@ export function buildReportContext(reportData, opts = {}) {
   }
 
   const context =
+    formatV2ContextBlock(a) +
     header +
     formatAttentionItemsSummary(a, reportScopeId) +
     formatDecisionBriefSummary(a) +

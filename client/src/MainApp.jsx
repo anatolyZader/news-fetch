@@ -491,8 +491,8 @@ function AppShell() {
   const header = (
     <>
       <BrandHeader
-        title="Vibes Witch"
-        subtitle="Community resilience · Daily Assessment"
+        title="Srulik's lab"
+        subtitle="Home Front Command · Daily Assessment"
         logoSrc="/logo_srulik_1_no_text.png"
         logoAlt=""
         onHomeClick={goToAssessment}

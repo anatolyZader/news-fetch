@@ -22,6 +22,7 @@ import { prepareScoringSignals } from './prepareScoringSignals.js';
 import { detectSemanticPatterns } from '../domain/services/patternDetection/semanticPatternAlerts.js';
 import { buildOperatorRecommendations } from '../domain/services/patternDetection/operatorRecommendations.js';
 import { attachDecisionBrief } from './attachDecisionBrief.js';
+import { produceAssessmentWithShadow } from './produceAssessmentWithShadow.js';
 import { loadConnectivityProbeSignals } from '../infrastructure/adapters/connectivityProbeFileAdapter.js';
 import { enrichProbeSignalsInList } from '../domain/services/probeCorroborationPolicy.js';
 import { summarizeValidationMaturity } from '../validation/domain/validationStatus.js';
@@ -344,25 +345,34 @@ export async function runResilienceAssessment(batch, options = {}) {
   pipeline.completeStage('SCORE');
 
   const oovCaptureCount = countOovCapturesForDate(batch.reportDate);
-  const assessment = await llmPort.generateNarratives(
-    scoredComponents,
+  const assessment = await produceAssessmentWithShadow({
+    targetDate: batch.reportDate,
+    reportScopeId,
     signalsForScoring,
-    batch.reportDate,
-    totalArticles,
-    {
-      onUsage,
+    scopedSignals: allSignals,
+    scoredFull: scoredComponents,
+    scopedTotalArticles: totalArticles,
+    dataVoid,
+    assessmentMode: pipelineResult.assessmentMode,
+    epistemicStatus: pipelineResult.epistemicStatus,
+    retrievalService: options.retrievalService ?? null,
+    sourceArchive: options.sourceArchive ?? null,
+    evidenceStore: options.evidenceStore ?? null,
+    oovBurst,
+    onUsage,
+    reportsDir,
+    legacyNarrativeOpts: {
       onProgress,
       priorReports: batch.priorAssessments ?? [],
       contentKind: narrativeContentKind,
       reportScope,
       macroSignals,
       allScopedSignals: allSignals,
-      dataVoid,
       oovCaptureCount,
       socialChannelQuarantine: osintChannelQuarantine,
       quarantinedDigital: pipelineResult.quarantinedDigital,
     },
-  );
+  });
 
   pipeline.completeStage('NARRATE');
 
