@@ -2,8 +2,11 @@
  * Anti-gaming policy for citizen-sourced and high-volume signals.
  */
 
+import { isDmPhoneAllowed as isDmPhoneAllowedContract } from '../../../../cross-cut-modules/resilience-contracts/gamingPolicy.js';
 import { CRITICAL_BYPASS_SIGNAL_TYPES } from './highSalienceBypass.js';
 import { GROUNDING_TIER } from './groundingPolicy.js';
+
+export { isDmPhoneAllowedContract as isDmPhoneAllowed };
 
 const DEFAULT_DAILY_CAP = 20;
 const DEFAULT_HOURLY_TYPE_CAP = 5;
@@ -23,17 +26,6 @@ export function whatsappDailyCap(_env = process.env) {
 
 export function whatsappHourlyTypeCap(_env = process.env) {
   return parseEnvInt('RESILIENCE_WHATSAPP_HOURLY_TYPE_CAP', DEFAULT_HOURLY_TYPE_CAP);
-}
-
-/**
- * @param {string|null|undefined} phone
- * @param {NodeJS.ProcessEnv} [env]
- */
-export function isDmPhoneAllowed(phone, env = process.env) {
-  const raw = env.WHATSAPP_ALLOWED_DM_PHONES;
-  if (raw == null || String(raw).trim() === '') return true;
-  const allow = new Set(String(raw).split(',').map((s) => s.trim()).filter(Boolean));
-  return phone != null && allow.has(String(phone));
 }
 
 /**

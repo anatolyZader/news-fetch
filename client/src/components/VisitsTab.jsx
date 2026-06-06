@@ -32,6 +32,7 @@ import { formatDate } from '../lib/date.js';
 import PropTypes from 'prop-types';
 import { translationFnPropType } from '../lib/reportPropTypes.js';
 import { withOperatorDistrictQuery } from '../lib/clampOperatorDistrictScope.js';
+import { authFetch } from '../lib/authFetch.js';
 import { DistrictScopeSwitcher } from './DistrictScopeSwitcher.jsx';
 
 function stableHue(input) {
@@ -481,7 +482,7 @@ export function VisitsTab({
   onOperatorScopeChange,
   districtAccess = null,
 }) {
-  const { getIdToken, apiReady } = useAuth();
+  const { getIdToken, getAppCheckToken, apiReady } = useAuth();
   const { t } = useLanguage();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -494,12 +495,10 @@ export function VisitsTab({
     setLoading(true);
     setError(null);
     try {
-      const headers = new Headers();
-      const token = await getIdToken();
-      if (token) headers.set('Authorization', `Bearer ${token}`);
-      const response = await fetch(withOperatorDistrictQuery('/api/visits', operatorScope), { headers });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const json = await response.json();
+      const json = await authFetch(withOperatorDistrictQuery('/api/visits', operatorScope), {
+        getIdToken,
+        getAppCheckToken,
+      });
       setData(json);
       if (json.days?.length) {
         const latestWithVisits = [...json.days].reverse().find((day) => day.visitCount > 0);
@@ -510,7 +509,7 @@ export function VisitsTab({
     } finally {
       setLoading(false);
     }
-  }, [getIdToken, operatorScope]);
+  }, [getIdToken, getAppCheckToken, operatorScope]);
 
   useEffect(() => {
     if (!apiReady) return;

@@ -19,14 +19,17 @@ import {
   normalizeLocalityName,
 } from '../../../cross-cut-modules/geo/localityCandidate.js';
 import {
-  buildSignalExtractionSystemPrompt,
   extractJsonArray,
-  applySourceNativeGrounding,
-  createNoOpGeoEnrichmentPort,
-  enrichFieldProvenance,
   SIGNAL_TYPES,
-} from '../../resilience/index.js';
-import { COMPONENT_IDS, SPREAD_VALUES, SOURCE_BASIS_VALUES, COMPARISON_VALUES, DIRECTION_VALUES, CONFIDENCE_LEVELS } from '../domain/evidenceRequirements.js';
+} from '../../../cross-cut-modules/resilience-contracts/index.js';
+import { COMPONENT_IDS } from '../../../cross-cut-modules/resilience-contracts/componentIds.js';
+import {
+  SPREAD_VALUES,
+  SOURCE_BASIS_VALUES,
+  COMPARISON_VALUES,
+  DIRECTION_VALUES,
+  CONFIDENCE_LEVELS,
+} from '../domain/evidenceRequirements.js';
 
 const VALID_SIGNAL_TYPES = new Set(SIGNAL_TYPES);
 const VALID_EVIDENCE_TYPES = new Set([
@@ -236,9 +239,26 @@ function postNormalizeStructured(structured, rawText) {
 // ── Public factory ─────────────────────────────────────────────────────────
 
 /**
- * @param {{ anthropicApiKey: string, geoEnrichmentPort?: { resolveLocalityName: (raw: string|null|undefined) => object } }} deps
+ * @param {{
+ *   anthropicApiKey: string,
+ *   geoEnrichmentPort?: { resolveLocalityName: (raw: string|null|undefined) => object },
+ *   buildSignalExtractionSystemPrompt: (kind: string) => string,
+ *   applySourceNativeGrounding: Function,
+ *   createNoOpGeoEnrichmentPort: () => object,
+ *   enrichFieldProvenance: Function,
+ * }} deps
  */
-export function createWhatsAppResilienceAnalyzer({ anthropicApiKey, geoEnrichmentPort }) {
+export function createWhatsAppResilienceAnalyzer({
+  anthropicApiKey,
+  geoEnrichmentPort,
+  buildSignalExtractionSystemPrompt,
+  applySourceNativeGrounding,
+  createNoOpGeoEnrichmentPort,
+  enrichFieldProvenance,
+}) {
+  if (!buildSignalExtractionSystemPrompt || !applySourceNativeGrounding || !createNoOpGeoEnrichmentPort || !enrichFieldProvenance) {
+    throw new Error('createWhatsAppResilienceAnalyzer requires resilience extraction ports');
+  }
   const geoPort = geoEnrichmentPort ?? createNoOpGeoEnrichmentPort();
   const llmPort = createAnthropicLlmPort({ apiKey: anthropicApiKey });
   const realtimeSystemPrompt = buildSignalExtractionSystemPrompt('whatsapp_realtime');

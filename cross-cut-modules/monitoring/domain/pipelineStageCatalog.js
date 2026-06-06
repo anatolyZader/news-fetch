@@ -14,12 +14,12 @@ export function buildPipelineStageDefinitions(date) {
       },
     ],
     signalStages: [
-      { id: 'signals_news', key: 'news', label: 'News signals', kind: 'signals', relativePath: `signals/signals-news-${date}.json` },
-      { id: 'signals_radio', key: 'radio', label: 'Radio signals', kind: 'signals', relativePath: `signals/signals-radio-${date}.json` },
-      { id: 'signals_whatsapp', key: 'whatsapp', label: 'WhatsApp signals', kind: 'signals', relativePath: `signals/signals-whatsapp-${date}.json` },
-      { id: 'signals_pbo', key: 'pbo', label: 'PBO signals', kind: 'signals', relativePath: `signals/signals-pbo-${date}.json` },
-      { id: 'signals_pbo_regional', key: 'pbo_regional', label: 'Regional PBO signals', kind: 'signals', relativePath: `signals/signals-pbo_regional-${date}.json` },
-      { id: 'signals_naftali', key: 'naftali', label: 'Naftali signals', kind: 'signals', relativePath: `signals/signals-naftali-${date}.json` },
+      { id: 'signals_news', key: 'news', label: 'News signals', kind: 'signals', relativePath: `business_modules/signals_extraction/data/signals/signals-news-${date}.json` },
+      { id: 'signals_radio', key: 'radio', label: 'Radio signals', kind: 'signals', relativePath: `business_modules/signals_extraction/data/signals/signals-radio-${date}.json` },
+      { id: 'signals_whatsapp', key: 'whatsapp', label: 'WhatsApp signals', kind: 'signals', relativePath: `business_modules/signals_extraction/data/signals/signals-whatsapp-${date}.json` },
+      { id: 'signals_pbo', key: 'pbo', label: 'PBO signals', kind: 'signals', relativePath: `business_modules/signals_extraction/data/signals/signals-pbo-${date}.json` },
+      { id: 'signals_pbo_regional', key: 'pbo_regional', label: 'Regional PBO signals', kind: 'signals', relativePath: `business_modules/signals_extraction/data/signals/signals-pbo_regional-${date}.json` },
+      { id: 'signals_naftali', key: 'naftali', label: 'Naftali signals', kind: 'signals', relativePath: `business_modules/signals_extraction/data/signals/signals-naftali-${date}.json` },
       {
         id: 'signals_field',
         key: 'field',

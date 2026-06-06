@@ -5,7 +5,7 @@
  * Verified, high-stakes single signals may bypass that floor (asymmetric: low
  * scores only) and always surface as operator-visible critical alerts.
  *
- * @see docs/main_docu_files/8-component-analysis-end-to-end.md §8.5
+ * @see docs/main_docu_files/RESILIENCE-ENGINE-REFERENCE.md §4 (Operator instruments)
  */
 
 import { getSignalCatalogEntry } from './signalCatalog.js';

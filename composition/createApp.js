@@ -6,7 +6,8 @@ import { resolve } from 'node:path';
 import fastifySwagger from '@fastify/swagger';
 import fastifySwaggerUi from '@fastify/swagger-ui';
 import YAML from 'yaml';
-import { createReportReadPort } from '../business_modules/resilience/infrastructure/adapters/reportReadPortAdapter.js';
+import { createReportReadPort, createReportDisplayPort } from '../business_modules/resilience/index.js';
+import { createClaudeChatAdapter } from '../business_modules/chat/infrastructure/adapters/claudeChatAdapter.js';
 import { registerAppErrorHandler } from '../cross-cut-modules/errors/index.js';
 import {
   getDefaultEventBus,
@@ -48,7 +49,7 @@ import { reportBuildRoutes } from '../business_modules/report_build/input/report
 import { mailingRoutes } from '../business_modules/mailing/input/mailingRoutes.js';
 import { pboReviewRoutes } from '../business_modules/pbo_report_review/input/pboReviewRoutes.js';
 import { validationReviewRoutes } from '../business_modules/resilience/index.js';
-import { catalogLearningRoutes } from '../business_modules/catalogLearning/index.js';
+import { signalCatalogEvolutionRoutes } from '../business_modules/signal_catalog_evolution/index.js';
 import { evidenceRoutes } from '../cross-cut-modules/evidence/input/evidenceRoutes.js';
 import { chatRoutes } from '../business_modules/chat/input/chatRoutes.js';
 import { reportRoutes } from '../business_modules/resilience/input/reportRoutes.js';
@@ -211,7 +212,7 @@ export async function createApp(options) {
 
   const driftService = driftServiceForEvents;
 
-  await app.register(catalogLearningRoutes, {
+  await app.register(signalCatalogEvolutionRoutes, {
     catalogProposalService: w.catalogProposalService,
     authPreHandler: protectedAuthPreHandler,
   });
@@ -234,6 +235,9 @@ export async function createApp(options) {
     geoUnknownReviewService: w.geoUnknownReviewService,
     llmPort: w.sharedLlmPort,
     tracePort: w.tracePort,
+    reportReadPort: createReportReadPort(),
+    reportDisplayPort: createReportDisplayPort(),
+    chatLlmPort: createClaudeChatAdapter(),
   });
   await registerDriftRoutes(app, {
     driftService,

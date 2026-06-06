@@ -2,21 +2,16 @@
  * Filesystem store for observation bundles under module data/.
  */
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { dirname, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { resolve } from 'node:path';
 import { IObservationStorePort } from '../../domain/ports/IObservationStorePort.js';
 import {
   observationBundleFilename,
   validateObservationBundle,
 } from '../../domain/services/observationSchema.js';
+import { defaultSignalsExtractionDataDir } from './signalsDataPaths.js';
 
-const MODULE_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
-
-/**
- * @param {{ dataDir?: string }} [opts]
- */
 export function defaultObservationDataDir(opts = {}) {
-  return opts.dataDir ?? resolve(MODULE_ROOT, 'data');
+  return defaultSignalsExtractionDataDir(opts);
 }
 
 export class ObservationFsAdapter extends IObservationStorePort {

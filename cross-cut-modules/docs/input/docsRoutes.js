@@ -76,5 +76,5 @@ export async function docsRoutes(app, opts) {
 }
 
 export function resolveProductDocsRoot(dirname) {
-  return resolve(dirname, 'docs', 'product_docs');
+  return resolve(dirname, 'cross-cut-modules', 'docs', 'content', 'pages');
 }

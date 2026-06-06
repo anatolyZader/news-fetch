@@ -1,12 +1,14 @@
 import { useCallback, useState } from 'react';
+import { authFetch } from '../lib/authFetch.js';
 import { useAuth } from '../context/AuthContext.jsx';
 
 /**
- * Analyst PBO historical search via /api/pbo/historical-search.
+ * PBO historical search via /api/pbo/historical-search.
  */
-export function usePboHistoricalSearch({ getIdToken, apiReady } = {}) {
+export function usePboHistoricalSearch({ getIdToken, getAppCheckToken, apiReady } = {}) {
   const auth = useAuth();
   const tokenFn = getIdToken ?? auth.getIdToken;
+  const appCheckFn = getAppCheckToken ?? auth.getAppCheckToken;
   const ready = apiReady ?? auth.apiReady;
 
   const [hits, setHits] = useState([]);
@@ -19,7 +21,6 @@ export function usePboHistoricalSearch({ getIdToken, apiReady } = {}) {
     setLoading(true);
     setError(null);
     try {
-      const token = await tokenFn?.();
       const qs = new URLSearchParams({ query });
       if (params?.date) qs.set('date', params.date);
       if (params?.district) qs.set('district', params.district);
@@ -27,14 +28,10 @@ export function usePboHistoricalSearch({ getIdToken, apiReady } = {}) {
       if (params?.region) qs.set('region', params.region);
       if (params?.days != null) qs.set('days', String(params.days));
 
-      const res = await fetch(`/api/pbo/historical-search?${qs}`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      const data = await authFetch(`/api/pbo/historical-search?${qs}`, {
+        getIdToken: tokenFn,
+        getAppCheckToken: appCheckFn,
       });
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body.error ?? res.statusText);
-      }
-      const data = await res.json();
       const next = data.hits ?? [];
       setHits(next);
       return data;
@@ -45,7 +42,7 @@ export function usePboHistoricalSearch({ getIdToken, apiReady } = {}) {
     } finally {
       setLoading(false);
     }
-  }, [ready, tokenFn]);
+  }, [ready, tokenFn, appCheckFn]);
 
   return { hits, loading, error, search, clear: () => { setHits([]); setError(null); } };
 }

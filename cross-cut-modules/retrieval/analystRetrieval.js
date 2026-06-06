@@ -4,10 +4,10 @@
 import { embedText, embeddingsEnabled } from '../vector_index/index.js';
 import { clusterByPrefix, clusterByEmbedding } from '../learningCapture/oovClusterer.js';
 import { evidenceTextForRecord } from '../learningCapture/recordHelpers.js';
-import { LearningCaptureFsAdapter } from '../../business_modules/catalogLearning/infrastructure/adapters/learningCaptureFsAdapter.js';
+import { LearningCaptureFsAdapter } from '../../business_modules/signal_catalog_evolution/infrastructure/adapters/learningCaptureFsAdapter.js';
 import {
   validationReviewRagEnabled,
-  catalogLearningRagEnabled,
+  signalCatalogEvolutionRagEnabled,
   catalogRagTopK,
   pboReviewRagEnabled,
   pboRagRetentionDays,
@@ -226,7 +226,7 @@ export async function buildValidationReviewContext(item, deps = {}) {
  * @param {object} retrieval orchestrator
  */
 export async function retrieveCatalogNeighbors(text, retrieval) {
-  if (!catalogLearningRagEnabled() || !retrieval?.hybridRetrieve) {
+  if (!signalCatalogEvolutionRagEnabled() || !retrieval?.hybridRetrieve) {
     return { nearest_catalog: [], counterexamples: [] };
   }
   const q = String(text ?? '').trim();

@@ -14,11 +14,7 @@ import { groundingWeightMultiplier } from '../groundingPolicy.js';
 import { applyFieldGeoDiscount, isFieldFamilySource } from '../fieldSignalPolicy.js';
 import { gamingContributionMultiplier } from '../signalGamingPolicy.js';
 
-export const COMPONENT_IDS = [
-  'narrative', 'information_communication', 'lifesaving_behavior',
-  'functional_continuity', 'community_capital', 'leadership',
-  'belonging_solidarity', 'wellbeing_at_risk',
-];
+export { COMPONENT_IDS } from '../../../../../cross-cut-modules/resilience-contracts/componentIds.js';
 
 export const RELIABILITY_WEIGHT = {
   direct_quote_named_person:   1,

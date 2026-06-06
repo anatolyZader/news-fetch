@@ -61,11 +61,11 @@ test('visits fs adapter parses raw field reports and attaches signals', () => {
   }
 });
 
-test('visits fs adapter loads field signals from repo root signals/ when missing from module dir', () => {
+test('visits fs adapter loads field signals from signals_extraction data when missing from module dir', () => {
   const rootDir = mkdtempSync(join(tmpdir(), 'visits-'));
   const reportsDir = join(rootDir, 'reports');
   const moduleSignalsDir = join(rootDir, 'business_modules', 'visits', 'data', 'signals');
-  const legacySignalsDir = join(rootDir, 'signals');
+  const legacySignalsDir = join(rootDir, 'business_modules', 'signals_extraction', 'data', 'signals');
   mkdirSync(reportsDir, { recursive: true });
   mkdirSync(legacySignalsDir, { recursive: true });
 

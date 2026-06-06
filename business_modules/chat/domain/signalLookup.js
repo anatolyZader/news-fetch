@@ -14,7 +14,7 @@ import {
 
 const REPO_ROOT = join(import.meta.dirname, '..', '..', '..');
 const SIGNALS_DIRS = [
-  join(REPO_ROOT, 'signals'),
+  join(REPO_ROOT, 'business_modules', 'signals_extraction', 'data', 'signals'),
   join(REPO_ROOT, 'business_modules', 'visits', 'data', 'signals'),
   join(REPO_ROOT, 'business_modules', 'social_media', 'data'),
 ];
@@ -65,7 +65,7 @@ function listSignalJsonFiles({ date, sourceType } = {}) {
 
 /**
  * Load signals from JSON files, optionally filtered by date and/or source type.
- * Scans root signals/, visits/data/signals/, and social_media/data/.
+ * Scans signals_extraction/data/signals/, visits/data/signals/, and social_media/data/.
  * @param {{ date?: string, sourceType?: string }} opts
  * @returns {Array} flat array of signal objects with file-level metadata merged in
  */

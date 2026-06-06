@@ -3,10 +3,10 @@
  */
 import { buildPboIndex } from './pboIndex.js';
 import { listReportDates, listSignalMeta } from './signalLookup.js';
+import { DISPLAY_VIEWS } from '../../../cross-cut-modules/resilience-contracts/index.js';
 import {
   deriveInstrumentState,
   operatorAssessmentSummary,
-  DISPLAY_VIEWS,
   buildAttentionItems,
 } from '../../resilience/index.js';
 

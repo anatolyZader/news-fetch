@@ -1,5 +1,5 @@
 import { SOURCE_TYPE_SOCIAL } from '../value_objects/socialPlatform.js';
-import { GROUNDING_TIER } from '../../../resilience/index.js';
+import { GROUNDING_TIER } from '../../../../cross-cut-modules/resilience-contracts/index.js';
 
 const COMPONENT_DEFAULT_SIGNAL = Object.freeze({
   lifesaving_behavior: 'compliance_enter_shelter',

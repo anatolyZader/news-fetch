@@ -6,9 +6,9 @@
 
 | Document | Use when you need |
 |----------|-------------------|
-| [Daily pipeline (news)](../main_docu_files/pipeline.md) | Fetch-to-markdown and classic news analysis flow; canonical code under `business_modules/resilience/`. |
-| [System overview](../product_docs/architecture/system-overview.md) | Subsystem map, constraints, “where do I change X?” |
-| [Geographic analysis — developer guide](../main_docu_files/GEOGRAPHIC-ANALYSIS.md) | `geo` envelope contract, consumer rules, wiring. |
+| [Daily pipeline](./main_docu_files/PIPELINE-AND-SOURCES.md) | Ingest → extract → assess; canonical code under `business_modules/resilience/`. |
+| [System overview](../../cross-cut-modules/docs/content/pages/architecture/system-overview.md) | Subsystem map, constraints, “where do I change X?” |
+| [Geographic analysis — developer guide](./main_docu_files/GEOGRAPHIC-ANALYSIS.md) | `geo` envelope contract, consumer rules, wiring. |
 | [Geographic analysis — implementation review](./geographic-analysis-implementation.md) | Match stages, fuzzy policy, unknown sink, audit fields. |
 
 ---
@@ -100,7 +100,7 @@ The workspace follows a **hexagonal / DDD-style** layout:
 |------|------------------|
 | [`business_modules/`](../../business_modules/) | One folder per business capability (`resilience`, `geo`, `news-sites`, `whatsapp`, `audio`, `survey`, PBO modules, etc.). Each module uses `app/`, `domain/`, `infrastructure/adapters/`, and optional `input/` for CLI or HTTP entrypoints. |
 | [`cross-cut-modules/`](../../cross-cut-modules/) | Persistence, budget, shared adapters, and helpers used by multiple modules (e.g. `signalGeoSummary.js` re-exports geo helpers for report code that must not deep-import geo internals). |
-| [`api/analysisService.js`](../../api/analysisService.js) | Server-side orchestration of “run full analysis” for news-style batches (MD plus optional DB merge), cost tracking, and report path resolution by **scope** (national vs north). |
+| [`reportCacheService.js`](../../business_modules/resilience/app/reportCacheService.js) | Report path resolution by **scope** (national vs north) and cached report reads (`getCachedReport`, `resolveReportJsonPathForDate`). |
 | [`app.js`](../../app.js) / [`server.js`](../../server.js) | Fastify shell: auth, routes, **composition root** (wires `geoService`, `geoEnrichmentPort`, WhatsApp analyzer, drift routes, cached report readers). |
 | [`client/`](../../client/) | React SPA: report scope toggle, dashboards, docs panel. |
 
@@ -112,7 +112,7 @@ Readers often conflate these; they serve different operational models.
 
 | Entry | Typical use | Scope handling |
 |-------|-------------|----------------|
-| [`runResilienceAssessment`](../../business_modules/resilience/app/resilienceAnalysisService.js) | Used by `api/analysisService.js` `runAnalysis`: one **content batch** → extract → score **all** returned signals → narratives → optional persist via injected report writer. | Does **not** call `filterSignalsForScope`. National vs north for the UI is served by **loading different saved artifacts** (`resilience-report-{date}` vs `resilience-report-north-{date}`) via [`getCachedReport`](../../api/analysisService.js). |
+| [`runResilienceAssessment`](../../business_modules/resilience/app/resilienceAnalysisService.js) | One **content batch** → extract → score **all** returned signals → narratives → optional persist via injected report writer. | Does **not** call `filterSignalsForScope`. National vs north for the UI is served by **loading different saved artifacts** (`resilience-report-{date}` vs `resilience-report-north-{date}`) via [`getCachedReport`](../../business_modules/resilience/app/reportCacheService.js). |
 | [`assess-signals.js`](../../business_modules/resilience/input/assess-signals.js) CLI (`npm run assess-signals`) | Multi-day, multi-file signal merge, optional semantic cross-source dedup, **14-day historical scores** for delta enrichment, **per–`source_type` scores**, and explicit **scope** for the run. | Scores the **full unscoped** signal list once (`nationalScored`) so north runs can pass **`comparisonScores`** into `generateNarratives`; then applies **`filterSignalsForScope`**; then **`scoreComponents`** on the scoped subset and **`enrichWithDeltaChannel`**; exits if the scoped set is empty. For `north`, also emits `assessment.national_comparison` using the unscoped overall score. |
 
 **Implication:** “North” in the product is primarily **a filtered view of evidence** persisted as a **separate report artifact**, not a post-hoc filter applied inside `runResilienceAssessment` unless your operational pipeline always produces both files.
@@ -133,12 +133,12 @@ The table below lists **primary entrypoints** (npm scripts reference [`package.j
 
 | Channel | Script / entry | Key inputs | Outputs / consumers |
 |---------|----------------|------------|---------------------|
-| **News (home front)** | `npm run homefront-to-md` → [`extract-homefront-articles.js`](../../business_modules/news-sites/input/extract-homefront-articles.js) | `NEWSAPI_AI_KEY` or `NEWSAPI_API_KEY`, `TZ_ARTICLES`, `HOMEFRONT_MD` | Markdown article file (default under `business_modules/news-sites/articles_extracted/articles-homefront.md`); consumed by analysis and [`runAnalysis`](../../api/analysisService.js). |
+| **News (home front)** | `npm run homefront-to-md` → [`extract-homefront-articles.js`](../../business_modules/news-sites/input/extract-homefront-articles.js) | `NEWSAPI_AI_KEY` or `NEWSAPI_API_KEY`, `TZ_ARTICLES`, `HOMEFRONT_MD` | Markdown article file (default under `business_modules/news-sites/articles_extracted/articles-homefront.md`); consumed by analysis and [`runResilienceAssessment`](../../business_modules/resilience/app/resilienceAnalysisService.js). |
 | **News (generic fetch)** | `npm run articles-to-md` | Same API keys | Broader MD exports for tooling. |
 | **Resilience from MD files** | `npm run analyze-resilience` → [`analyze-resilience.js`](../../business_modules/resilience/input/analyze-resilience.js) | Paths via CLI, `ANTHROPIC_API_KEY` | Signals and reports under `daily_reports/` (depends on CLI flags). |
 | **Signals only** | `npm run extract-signals` | MD inputs | Signal JSON for downstream assess. |
 | **Multi-source assess** | `npm run assess-signals` | Prior signal files, scope flags, `ANTHROPIC_API_KEY` | Scoped JSON or MD via report writer; uses `filterSignalsForScope`. |
-| **Server full run** | Internal: `runAnalysis` in [`analysisService.js`](../../api/analysisService.js) | `ANTHROPIC_API_KEY`, optional evidence **store** for DB merge, `HOMEFRONT_MD` | Assessment + cost; persists via resilience report adapter when configured. |
+| **Server full run** | Internal: [`runResilienceAssessment`](../../business_modules/resilience/app/resilienceAnalysisService.js) | `ANTHROPIC_API_KEY`, optional evidence **store** for DB merge, `HOMEFRONT_MD` | Assessment + cost; persists via resilience report adapter when configured. |
 | **Audio / radio** | `npm run audio-to-md`, `npm run analyze-audio` | Audio pipelines, then same resilience CLI with `--content-kind audio` | MD then same extraction stack. |
 | **WhatsApp** | `npm run whatsapp-to-md` plus server routes | Meta WhatsApp Cloud API, `ANTHROPIC_API_KEY` | Messages analyzed with [`whatsappResilienceAnalyzer.js`](../../business_modules/whatsapp/app/whatsappResilienceAnalyzer.js); **geo** attached when port is wired in `app.js`. |
 | **Field visits** | `npm run ingest-field-reports` | Visit ingest module | Feeds evidence store / MD depending on configuration. |
@@ -146,9 +146,9 @@ The table below lists **primary entrypoints** (npm scripts reference [`package.j
 | **Survey (Excel)** | `npm run analyze-survey` → [`cross-cut-modules/geo/input/runAnalyzeSurvey.js`](../../cross-cut-modules/geo/input/runAnalyzeSurvey.js) | `--responses` `.xlsx`, mapping JSON, `ANTHROPIC_API_KEY` | Per-municipality MD reports under `daily_reports/`; **geo** on municipality name when `geoEnrichmentPort` is constructed in the script. |
 | **Naftali pool** | `business_modules/pool/input/extract-naftali-signals.js` (see package or module docs) | Pool-specific inputs | Signals with explicit geographic scope in prompts. |
 
-**SQLite:** Evidence and artifacts are persisted using helpers under `cross-cut-modules/`; path controlled by `SQLITE_PATH` (see [system overview](../product_docs/architecture/system-overview.md)).
+**SQLite:** Evidence and artifacts are persisted using helpers under `cross-cut-modules/`; path controlled by `SQLITE_PATH` (see [system overview](../../cross-cut-modules/docs/content/pages/architecture/system-overview.md)).
 
-**Merge behavior in `runAnalysis`:** When a **store** is passed and contains rows for “today”, home-front markdown articles are **merged** with DB-only items (news first, then DB-only), deduped by URL/title fingerprint — see `mergeHomefrontAndDbEvidence` in [`analysisService.js`](../../api/analysisService.js).
+**Merge behavior in assessment runs:** When a **store** is passed and contains rows for “today”, home-front markdown articles are **merged** with DB-only items (news first, then DB-only), deduped by URL/title fingerprint — see resilience analysis orchestration in [`resilienceAnalysisService.js`](../../business_modules/resilience/app/resilienceAnalysisService.js).
 
 ---
 
@@ -341,7 +341,7 @@ flowchart TD
 
 ### 6.6 How this interacts with `runAnalysis` / cached reports
 
-- The HTTP reader [`getCachedReport`](../../api/analysisService.js) picks **`resilience-report-{date}`** vs **`resilience-report-north-{date}`** using [`reportPrefixForScope`](../../api/analysisService.js).  
+- The HTTP reader [`getCachedReport`](../../business_modules/resilience/app/reportCacheService.js) picks **`resilience-report-{date}`** vs **`resilience-report-north-{date}`** using [`reportPrefixForScope`](../../business_modules/resilience/app/reportCacheService.js).  
 - Therefore, operations that need a north dashboard must **produce** the north-prefixed JSON (typically via `assess-signals` or an equivalent pipeline), not assume `runResilienceAssessment` alone filtered signals.
 
 ### 6.7 Operational feedback loop
@@ -365,7 +365,7 @@ Unknown or ambiguous localities can be routed to review sinks when configured (`
 
 **Phase-1 transparency (addressed in code, not eliminated):** Each assess run persists `assessment.methodology` (author-set weights manifest on disk, scope-decision counts, epistemic copy, advisory `tuning_proposal`). Operator UI shows epistemic banners and north keyword-fallback warnings; `GET /api/report/today?scope=north` returns `north_requires_assess_signals` when no north artifact exists. **Still deferred:** multi-district scope, fitted weights, auto-applied tanhK/certM, merging `runResilienceAssessment` with `filterSignalsForScope`.
 
-1. **Documentation drift:** [`docs/main_docu_files/pipeline.md`](../main_docu_files/pipeline.md) now points at `business_modules/resilience/`; keep other docs in sync when modules move.  
+1. **Documentation drift:** [`docs/main_docu_files/PIPELINE-AND-SOURCES.md`](../main_docu_files/PIPELINE-AND-SOURCES.md) points at `business_modules/resilience/`; keep other docs in sync when modules move.  
 2. **North scope without geo on news:** signals without resolved north geo are excluded from north scope (no keyword fallback). Hyperlocal placenames only count when geo attach succeeds — monitor `summarizeGeoCoverage` / unknown rates.  
 3. **Dual pipelines (`runResilienceAssessment` vs `assess-signals`):** easy to misconfigure if operators expect scope filtering in the API-run path when only national scoring ran.  
 4. **LLM brittleness:** model upgrades, prompt drift, and multilingual edge cases affect extraction rates; monitoring is mostly operational (logs, costs) rather than a packaged offline benchmark suite in-repo.  
@@ -376,7 +376,7 @@ Unknown or ambiguous localities can be routed to review sinks when configured (`
 
 ## 9. Recommended improvements
 
-1. **Doc alignment:** canonical paths callout added to [`docs/main_docu_files/pipeline.md`](../main_docu_files/pipeline.md); keep other specs in sync when modules move.  
+1. **Doc alignment:** canonical paths callout added to [`docs/main_docu_files/PIPELINE-AND-SOURCES.md`](../main_docu_files/PIPELINE-AND-SOURCES.md); keep other specs in sync when modules move.  
 2. **News + controlled geo:** extract candidate place names from titles or first paragraphs → `resolveLocalityName` with **strict** `usableForMetrics` rules and human review for new aliases.  
 3. **Gold-set evaluation:** periodic labeled audit set for extraction precision/recall by `signal_type` and by language.  
 4. **Calibration study:** treat `COMPONENT_TUNING` and selected weights as parameters fit with constraints (monotonicity, max sensitivity per day).  
@@ -432,7 +432,7 @@ Always treat this table as **hints**; authoritative behavior is the code path th
 | North filter | [`business_modules/resilience/domain/services/regionSignalFilter.js`](../../business_modules/resilience/domain/services/regionSignalFilter.js) |
 | LLM extract + narratives | [`business_modules/resilience/infrastructure/claudeEvaluator.js`](../../business_modules/resilience/infrastructure/claudeEvaluator.js) |
 | Server batch orchestration | [`business_modules/resilience/app/resilienceAnalysisService.js`](../../business_modules/resilience/app/resilienceAnalysisService.js) |
-| API run + cached paths | [`api/analysisService.js`](../../api/analysisService.js) |
+| Cached report paths | [`reportCacheService.js`](../../business_modules/resilience/app/reportCacheService.js) |
 | Multi-source CLI | [`business_modules/resilience/input/assess-signals.js`](../../business_modules/resilience/input/assess-signals.js) |
 | Report files | [`business_modules/resilience/infrastructure/reportWriter.js`](../../business_modules/resilience/infrastructure/reportWriter.js) |
 | Geo service | [`business_modules/geo/app/geoService.js`](../../business_modules/geo/app/geoService.js) |

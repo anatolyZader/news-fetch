@@ -164,7 +164,7 @@ Optional Fastify plugin or thin handlers that:
 
 ## Migration notes (from current repo)
 
-- Legacy orchestration maps to **`app/resilienceAnalysisService.js`** + **`api/analysisService.js`** (host); canonical code is under `business_modules/resilience/`.
+- Legacy orchestration maps to **`app/resilienceAnalysisService.js`** + **`app/reportCacheService.js`**; canonical code is under `business_modules/resilience/`.
 - `loadMdFiles` (markdown → article DTOs) remains a **host-side** concern that **builds `ResilienceContentBatch`** until all callers pass DTOs explicitly.
 
 ---
@@ -172,5 +172,5 @@ Optional Fastify plugin or thin handlers that:
 ## References
 
 - Component definitions: `business_modules/resilience/domain/resilienceComponents.js`.
-- Pipeline overview: `docs/main_docu_files/pipeline.md`, `docs/audio-pipeline.md`.
+- Pipeline overview: `docs/main_docu_files/PIPELINE-AND-SOURCES.md`, `docs/audio-pipeline.md`.
 - Module layout rules: `.cursor/skills/create-business-module/SKILL.md` / `.cursor/rules/module-structure.mdc`.

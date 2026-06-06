@@ -1,5 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { buildSignalExtractionSystemPrompt, extractJsonArray, SIGNAL_TYPES } from '../../../resilience/index.js';
+import { extractJsonArray, SIGNAL_TYPES } from '../../../../cross-cut-modules/resilience-contracts/index.js';
 import {
   COMPONENT_IDS,
   SPREAD_VALUES,
@@ -191,7 +191,10 @@ function formatTurnHistory(turnHistory, senderName) {
 /**
  * @param {{ anthropicApiKey: string }} deps
  */
-export function createAnthropicReportBuildAnalyzerAdapter({ anthropicApiKey }) {
+export function createAnthropicReportBuildAnalyzerAdapter({ anthropicApiKey, buildSignalExtractionSystemPrompt }) {
+  if (!buildSignalExtractionSystemPrompt) {
+    throw new Error('createAnthropicReportBuildAnalyzerAdapter requires buildSignalExtractionSystemPrompt');
+  }
   const client = new Anthropic({ apiKey: anthropicApiKey });
   const interactiveSystemPrompt = buildSignalExtractionSystemPrompt('whatsapp_interactive');
 

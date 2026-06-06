@@ -62,7 +62,7 @@ test('retrieveSimilarArticles excludes same parent and returns archive hits', as
 
 test('retrieveCatalogNeighbors returns nearest catalog entries', async () => {
   process.env.RAG_PIPELINE_ENABLED = '1';
-  process.env.CATALOG_LEARNING_RAG_ENABLED = '1';
+  process.env.SIGNAL_CATALOG_EVOLUTION_RAG_ENABLED = '1';
   process.env.VECTOR_INDEX_EMBEDDINGS = '0';
   delete process.env.COHERE_API_KEY;
 

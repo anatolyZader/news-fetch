@@ -97,7 +97,7 @@ When partition quarantines digital signals, `assessment.digital_quarantine_state
 - Digital survivorship bias — people who do not post are invisible (mitigated by data_void + field priority)
 - Closed vocabulary — novel behaviors logged to OOV; `novel_behavior_observed` adds low-weight scoring mass when clusters alert
 - Residual capture (opt-in `RESILIENCE_RESIDUAL_CAPTURE=1`) — open-vocab observations for zero-signal articles
-- Catalog gap report — `npm run catalog-learning:gap-report` clusters captures for analyst review
+- Catalog gap report — `npm run signal-catalog-evolution:gap-report` clusters captures for analyst review
 - Heuristic weights — author-set; RGR calibration via `signalWeightsFit.js` when ≥30 labeled reports
 - Media repetition tracked separately as `media_mention_mass` — not merged into behavioral headline score
 

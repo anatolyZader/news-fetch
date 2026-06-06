@@ -43,7 +43,6 @@ import {
 } from '../hooks/useMunicipalPboReviews.js';
 import { PboMunicipalReviewPanel } from './PboMunicipalReviewPanel.jsx';
 import { normalizeIsraelDistrictId } from '../lib/israelDistricts.js';
-import { useDisplayCapabilities } from '../hooks/useDisplayCapabilities.js';
 import PropTypes from 'prop-types';
 
 function pct(v) {
@@ -450,9 +449,8 @@ MunicipalityComponentCompareAccordion.propTypes = {
 };
 
 export function MunicipalitiesTab({ districtId = 'north' }) {
-  const { getIdToken, apiReady } = useAuth();
+  const { getIdToken, getAppCheckToken, apiReady } = useAuth();
   const { lang, t } = useLanguage();
-  const { canViewAnalyst } = useDisplayCapabilities();
   const theme = useTheme();
   const isHe = lang === 'he';
   const scopedDistrict = normalizeIsraelDistrictId(districtId);
@@ -468,7 +466,12 @@ export function MunicipalitiesTab({ districtId = 'north' }) {
     muniAllDays,
     districtAvg,
     visibleMunicipalities,
-  } = useMunicipalitiesData({ districtId: scopedDistrict, getIdToken, apiReady });
+  } = useMunicipalitiesData({
+    districtId: scopedDistrict,
+    getIdToken,
+    getAppCheckToken,
+    apiReady,
+  });
 
   const {
     reviewsByMuni,
@@ -476,12 +479,13 @@ export function MunicipalitiesTab({ districtId = 'north' }) {
   } = useMunicipalPboReviews({
     date: selectedDate,
     getIdToken,
+    getAppCheckToken,
     apiReady,
   });
 
   const compNames = useMemo(() => {
-    if (!data) return {};
-    return isHe ? data.componentNames.he : data.componentNames.en;
+    if (!data?.componentNames) return {};
+    return isHe ? (data.componentNames.he ?? {}) : (data.componentNames.en ?? {});
   }, [data, isHe]);
 
   if (loading) return <LoadingState>{isHe ? 'טוען נתונים...' : 'Loading data...'}</LoadingState>;
@@ -648,9 +652,10 @@ export function MunicipalitiesTab({ districtId = 'north' }) {
                                   municipality={m.name}
                                   districtId={scopedDistrict}
                                   getIdToken={getIdToken}
+                                  getAppCheckToken={getAppCheckToken}
                                   apiReady={apiReady}
                                   summary={reviewSummary}
-                                  showHistoricalSearch={canViewAnalyst}
+                                  showHistoricalSearch
                                   onSubmitted={() => { void reloadReviews(); }}
                                 />
                               </AccordionDetails>

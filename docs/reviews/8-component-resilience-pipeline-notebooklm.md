@@ -6,7 +6,8 @@
 
 **Relationship to the canonical reference.** Exhaustive implementation detail (per-component essays, full prompt rules, QA harness, API tables) lives in:
 
-- [docs/main_docu_files/8-component-analysis-end-to-end.md](../main_docu_files/8-component-analysis-end-to-end.md)
+- [docs/main_docu_files/RESILIENCE-ENGINE-REFERENCE.md](../main_docu_files/RESILIENCE-ENGINE-REFERENCE.md)
+- [docs/main_docu_files/SYSTEM-AND-OPERATOR-MODEL.md](../main_docu_files/SYSTEM-AND-OPERATOR-MODEL.md)
 
 Use this NotebookLM file for **end-to-end flow, definitions, and study-style Q&A**; use the canonical doc when you need **line-level spec parity** with the codebase.
 
@@ -20,7 +21,7 @@ Use this NotebookLM file for **end-to-end flow, definitions, and study-style Q&A
 
 **How to use this file in NotebookLM**
 
-1. Upload **this file** as a source; optionally add [docs/main_docu_files/8-component-analysis-end-to-end.md](../main_docu_files/8-component-analysis-end-to-end.md) for deeper follow-up.
+1. Upload **this file** as a source; optionally add [RESILIENCE-ENGINE-REFERENCE.md](../main_docu_files/RESILIENCE-ENGINE-REFERENCE.md) and [SYSTEM-AND-OPERATOR-MODEL.md](../main_docu_files/SYSTEM-AND-OPERATOR-MODEL.md) for deeper follow-up.
 2. In notebook instructions, ask the model to **cite section numbers** and to treat **deterministic scoring** (code) as authoritative over natural-language paraphrases.
 3. For “where is X implemented?”, rely on **Section 11 (traceability)** first.
 
@@ -59,7 +60,7 @@ Use this NotebookLM file for **end-to-end flow, definitions, and study-style Q&A
 - **Narratives** (LLM-generated) that **do not re-score**; they explain and quote evidence while treating scores as fixed inputs.
 - **Persisted reports** (Markdown + JSON) and **API/UI** consumption.
 
-**Operator-facing UI (default):** The web app and `GET /api/report/today` default to **operator tier** — narratives, evidence, and instrument flags (sufficiency, contested, significant delta) **without** showing headline 1–10 scores. Full scores remain in on-disk JSON and in **analyst tier** (`?view=analyst` + `RESILIENCE_ANALYST_EMAILS`). See [8-component-analysis-end-to-end.md §11.2](../main_docu_files/8-component-analysis-end-to-end.md).
+**Operator-facing UI (default):** The web app and `GET /api/report/today` default to **operator tier** — narratives, evidence, and instrument flags (sufficiency, contested, significant delta) **without** showing headline 1–10 scores. Full scores remain in on-disk JSON and in **analyst tier** (`?view=analyst` + `RESILIENCE_ANALYST_EMAILS`). See [SYSTEM-AND-OPERATOR-MODEL.md](../main_docu_files/SYSTEM-AND-OPERATOR-MODEL.md).
 
 **Design invariants (non-negotiable in code).**
 
@@ -461,6 +462,6 @@ Use these prompts directly against a notebook containing this file.
 
 ## 14. Limitations and disclaimer pointer
 
-Operational limits, backlog items, QA boundaries, and the product disclaimer are maintained in **[docs/main_docu_files/8-component-analysis-end-to-end.md §19 (Known limitations and deferred work) and §23 (Disclaimer)](../main_docu_files/8-component-analysis-end-to-end.md)**. This NotebookLM primer does **not** restate legal or operational policy beyond pointing to those sections.
+Operational limits, backlog items, QA boundaries, and the product disclaimer are maintained in **[docs/MODEL-CARD.md](../MODEL-CARD.md)** and **[RESILIENCE-ENGINE-REFERENCE.md](../main_docu_files/RESILIENCE-ENGINE-REFERENCE.md)**. This NotebookLM primer does **not** restate legal or operational policy beyond pointing to those documents.
 
 Scores are **assessment-support outputs** bounded by ingestion coverage, linguistic bias, outlet mix, extraction errors, and deliberate caps that favor **robustness over headline volatility**. Always pair numeric outputs with **evidence appendix review** before high-stakes actions.

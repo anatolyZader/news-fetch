@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { randomUUID } from 'node:crypto';
 import { createRetrievalService } from '../../../cross-cut-modules/retrieval/createRetrievalService.js';
+import { DEFAULT_GUIDELINES_PATH } from '../../../cross-cut-modules/retrieval/hfcGuidelinesIndexWriter.js';
 import {
   buildFieldReportQuery,
   retrieveSimilarFieldReports,
@@ -15,6 +16,10 @@ import {
 function cleanup(dbPath) {
   try { if (existsSync(dbPath)) unlinkSync(dbPath); } catch { /* ignore */ }
 }
+
+test('HFC guidelines corpus exists at DEFAULT_GUIDELINES_PATH', () => {
+  assert.ok(existsSync(DEFAULT_GUIDELINES_PATH));
+});
 
 test('buildFieldReportQuery combines locality and behavior', () => {
   const q = buildFieldReportQuery(

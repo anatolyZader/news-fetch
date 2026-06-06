@@ -15,6 +15,7 @@ import { countOovCapturesForDate } from '../domain/services/oovCapture.js';
 import {
   getSocialQuarantineDecision,
 } from '../domain/services/socialQuarantineOverrides.js';
+import { tryOpenValidationStore } from './socialQuarantineWiring.js';
 import { loadHistoricalScores } from '../input/assessSignalsHelpers.js';
 import { runScoringPipeline } from './scoringPipelinePrep.js';
 import { prepareScoringSignals } from './prepareScoringSignals.js';
@@ -25,7 +26,6 @@ import { loadConnectivityProbeSignals } from '../infrastructure/adapters/connect
 import { enrichProbeSignalsInList } from '../domain/services/probeCorroborationPolicy.js';
 import { summarizeValidationMaturity } from '../validation/domain/validationStatus.js';
 import { resolve } from 'node:path';
-import { isRegionalReportScope } from '../../../cross-cut-modules/geo/reportScopeIds.js';
 import { createPipelineRunStore } from '../../../db/persistence/pipelineRunStore.js';
 import { createPipelineRunTracker } from './pipelineRunTracker.js';
 
@@ -152,7 +152,7 @@ function applyAssessmentPostScoring(assessment, ctx) {
   }
   if (osintChannelQuarantine) {
     const decision = osintChannelQuarantine.active
-      ? getSocialQuarantineDecision(batch.reportDate, reportScopeId)
+      ? getSocialQuarantineDecision(batch.reportDate, reportScopeId, tryOpenValidationStore())
       : null;
     assessment.social_channel_quarantine = {
       ...osintChannelQuarantine,

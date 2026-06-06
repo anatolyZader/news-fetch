@@ -11,8 +11,8 @@
  * So `--date D --days 14` uses D through D−13. Up to `--days` bundles per channel may load within the window;
  * Naftali at most one within the window.
  *
- * Auto-discovers signals/signals-{type}-{date}.json (root), field signals under
- * business_modules/visits/data/signals/, and social OSINT under
+ * Auto-discovers business_modules/signals_extraction/data/signals/signals-{type}-{date}.json,
+ * field signals under business_modules/visits/data/signals/, and social OSINT under
  * business_modules/social_media/data/ for the requested date window.
  * Temporal weights: T=1, T-1=0.85, T-2=0.70, then geometric decay (floor 0.50).
  */
@@ -63,6 +63,7 @@ import { countOovCapturesForDate } from '../domain/services/oovCapture.js';
 import {
   getSocialQuarantineDecision,
 } from '../domain/services/socialQuarantineOverrides.js';
+import { tryOpenValidationStore } from '../app/socialQuarantineWiring.js';
 import { proposeComponentTuningFromReportFiles } from '../tuning/domain/componentTuningProposal.js';
 import {
   summarizeStageEvents,
@@ -77,11 +78,12 @@ import { createSourceArchive } from '../../../db/source_archive/createSourceArch
 import { archiveProbeRecords } from '../../../db/source_archive/archiveProbeRecords.js';
 import { createRetrievalService } from '../../../cross-cut-modules/retrieval/createRetrievalService.js';
 import { createSignalBundlePort } from './createSignalBundlePort.js';
+import { defaultClosedSignalsDir } from '../../signals_extraction/infrastructure/signalsDataPaths.js';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 
 const SIGNAL_DIRS = {
-  signalsDir: resolve('signals'),
+  signalsDir: defaultClosedSignalsDir(),
   fieldSignalsDir: resolve('business_modules', 'visits', 'data', 'signals'),
   socialSignalsDir: resolve('business_modules', 'social_media', 'data'),
 };
@@ -494,7 +496,7 @@ function enrichAssessmentMetadata(assessment, { scoring, targetDate, reportScope
   if (scoring.oovScoringApplied) assessment.oov_scoring_applied = scoring.oovScoringApplied;
   if (scoring.osintChannelQuarantine) {
     const decision = scoring.osintChannelQuarantine.active
-      ? getSocialQuarantineDecision(targetDate, reportScopeId)
+      ? getSocialQuarantineDecision(targetDate, reportScopeId, tryOpenValidationStore())
       : null;
     assessment.social_channel_quarantine = {
       ...scoring.osintChannelQuarantine,

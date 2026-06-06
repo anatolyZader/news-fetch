@@ -38,7 +38,7 @@ Usually **do not** require **Sync main documentation** — it may push a follow-
 ## Dependency and lockfile policy
 
 - All installs in CI use `npm ci` (never `npm install`).
-- Lockfiles are required: root, `client/`, and `docs/docs-site/`.
+- Lockfiles are required: root, `client/`, and `tools/docs-site/`.
 - Dependency changes go through PR review; see [docs/DEPENDENCIES.md](docs/DEPENDENCIES.md).
 - Dependabot opens grouped weekly PRs; merge after CI passes.
 - CI enforces **min-release-age = 7 days** for npm packages (see below).
@@ -72,7 +72,7 @@ Do not auto-skip this check for Dependabot or other bots.
 If you discover a security issue, contact the repository maintainers privately rather than opening a public issue with exploit details.
 
 - **security.txt**: `/.well-known/security.txt` (also at [.well-known/security.txt](.well-known/security.txt) in the repo — update contact email before production).
-- **Production hardening**: see [docs/product_docs/operations/edge-security.md](docs/product_docs/operations/edge-security.md), [siem-alerts.md](docs/product_docs/operations/siem-alerts.md), and [backup-restore.md](docs/product_docs/operations/backup-restore.md).
+- **Production hardening**: see [cross-cut-modules/docs/content/pages/operations/edge-security.md](cross-cut-modules/docs/content/pages/operations/edge-security.md), [siem-alerts.md](cross-cut-modules/docs/content/pages/operations/siem-alerts.md), and [backup-restore.md](cross-cut-modules/docs/content/pages/operations/backup-restore.md).
 
 ## Application security controls (production)
 

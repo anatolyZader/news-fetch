@@ -10,10 +10,10 @@ dist/
 client/dist/
 analyst-site/node_modules/
 analyst-site/dist/
-docs/docs-site/node_modules/
-docs/docs-site/build/
-docs/docs-site/.docusaurus/
-docs/docs-site/.cache/
+tools/docs-site/node_modules/
+tools/docs-site/build/
+tools/docs-site/.docusaurus/
+tools/docs-site/.cache/
 
 # Env / secrets — never commit; see .cursorignore for LLM indexing
 .env

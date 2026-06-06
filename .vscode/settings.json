@@ -10,7 +10,7 @@
     "**/node_modules/**": true,
     "**/client/dist/**": true,
     "**/client/node_modules/**": true,
-    "**/docs/docs-site/**": true,
+    "**/tools/docs-site/**": true,
     "**/coverage/**": true,
     "**/daily_reports/**": true,
     "**/signals/**": true,
@@ -20,7 +20,7 @@
   },
 
   "sonarlint.automaticAnalysis": false,
-  "sonarlint.analysisExcludesStandalone": "**/node_modules/**,**/client/dist/**,**/docs/docs-site/**,**/coverage/**,**/articles_extracted/**,**/daily_reports/**,**/signals/**,**/docs/product_docs/api/generated/**,**/*.md,**/business_modules/**/data/**,**/tests/fixtures/**",
+  "sonarlint.analysisExcludesStandalone": "**/node_modules/**,**/client/dist/**,**/tools/docs-site/**,**/coverage/**,**/articles_extracted/**,**/daily_reports/**,**/signals/**,**/cross-cut-modules/docs/content/pages/api/generated/**,**/*.md,**/business_modules/**/data/**,**/tests/fixtures/**",
   "sonarlint.analyzerProperties": {
     "sonar.javascript.node.maxspace": "1024"
   },

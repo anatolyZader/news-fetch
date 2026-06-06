@@ -6,6 +6,7 @@ import {
 } from '../business_modules/pbo_report_regional/index.js';
 import { createVisitsFsAdapter, createVisitsService } from '../business_modules/visits/index.js';
 import { createSocialMediaService } from '../business_modules/social_media/index.js';
+import { createNewsPipelineConfigAdapter } from '../business_modules/news-sites/infrastructure/adapters/newsPipelineConfigAdapter.js';
 import {
   createNewsSitesFsAdapter,
   createNewsSitesService,
@@ -38,7 +39,7 @@ export function registerIngestion(opts) {
 
   const newsSitesService = createNewsSitesService({
     repository: createNewsSitesFsAdapter({ rootDir: opts.repoRoot }),
-    rootDir: opts.repoRoot,
+    pipelineConfigPort: createNewsPipelineConfigAdapter({ rootDir: opts.repoRoot }),
   });
 
   const radioIngestReadService = createRadioIngestReadService({

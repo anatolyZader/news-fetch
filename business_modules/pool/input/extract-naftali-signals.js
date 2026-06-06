@@ -8,7 +8,7 @@
  * Usage:
  *   node business_modules/pool/input/extract-naftali-signals.js
  *
- * Output: signals/signals-naftali-{date}.json per week (uses week end-date)
+ * Output: business_modules/signals_extraction/data/signals/signals-naftali-{date}.json per week (uses week end-date)
  */
 
 import { resolve, dirname } from 'node:path';
@@ -21,6 +21,7 @@ import {
   archiveNaftaliWeek,
   stampNaftaliSignalSourceIds,
 } from '../../../db/source_archive/archiveNaftaliWeek.js';
+import { defaultClosedSignalsDir } from '../../signals_extraction/infrastructure/signalsDataPaths.js';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 
@@ -192,7 +193,7 @@ function writeWeekBundle(week, outDir) {
 
 function run() {
   const data = getNaftaliDashboardSync();
-  const outDir = resolve('signals');
+  const outDir = defaultClosedSignalsDir();
   mkdirSync(outDir, { recursive: true });
 
   let filesWritten = 0;

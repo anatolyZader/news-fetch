@@ -5,7 +5,6 @@
 import { getTodayInTimezone } from '../../../utils/dateUtils.js';
 import { streamChat } from '../app/chatService.js';
 import { createChatSessionService } from '../app/chatSessionService.js';
-import { getCachedReport } from '../../resilience/index.js';
 import { requireMaintainerAccess } from '../../../cross-cut-modules/auth/maintainerAccess.js';
 import { canViewAnalystDisplay } from '../../../cross-cut-modules/auth/userAccess.js';
 import { auditFromRequest } from '../../../cross-cut-modules/security/input/auditLog.js';
@@ -45,10 +44,14 @@ export async function chatRoutes(app, opts) {
     geoUnknownReviewService,
     llmPort,
     tracePort,
+    reportReadPort,
+    reportDisplayPort,
+    chatLlmPort,
   } = opts;
 
   const chatSessionService = createChatSessionService({
     chatStore,
+    chatLlmPort,
     timezone,
     canViewAnalyst: canViewAnalystDisplay,
   });
@@ -207,13 +210,17 @@ export async function chatRoutes(app, opts) {
         history,
         reply.raw,
         () => {
-          const raw = getCachedReport(evidenceStore, { scope: geoScope });
+          const raw = reportReadPort?.getCachedReport
+            ? reportReadPort.getCachedReport(evidenceStore, { scope: geoScope })
+            : null;
           if (raw && typeof raw === 'object') {
             return { ...raw, display_view };
           }
           return raw;
         },
         {
+          chatLlmPort,
+          redactReportPayload: reportDisplayPort?.redactReportPayload ?? null,
           sourceArchive,
           evidenceStore,
           vectorIndexStore,

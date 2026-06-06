@@ -26,10 +26,10 @@ import { EvidenceOverviewPanel } from './EvidenceOverviewPanel.jsx';
 import { ValidationReviewPanel } from './ValidationReviewPanel.jsx';
 import { CatalogProposalPanel } from './CatalogProposalPanel.jsx';
 import { OovAnomalyClustersPanel } from './OovAnomalyClustersPanel.jsx';
-import { ReportComponentFilterBar, readReportComponentFilter } from './ReportComponentFilterBar.jsx';
 import { OperatorRecommendationsPanel } from './OperatorRecommendationsPanel.jsx';
 import { DecisionBriefPanel } from './DecisionBriefPanel.jsx';
 import { InstrumentMetricsBadges } from './InstrumentMetricsBadges.jsx';
+import { ReportComponentFilterBar, readReportComponentFilter } from './ReportComponentFilterBar.jsx';
 import { filterReportComponents } from '../lib/reportComponentFilter.js';
 import PropTypes from 'prop-types';
 import {
@@ -604,7 +604,7 @@ function ComponentCard({
         </Stack>
       </AccordionSummary>
       <AccordionDetails>
-        <InstrumentMetricsBadges instrument={comp.instrument} t={t} />
+        {isAnalyst && <InstrumentMetricsBadges instrument={comp.instrument} t={t} />}
         {isAnalyst && (
           <Box sx={(theme) => ({ marginTop: theme.spacing(0.5), marginBottom: theme.spacing(0.75) })}>
             {driftLoading && (
@@ -811,7 +811,9 @@ export function ReportView({
   const theme = useTheme();
   const [openCompIdInternal, setOpenCompIdInternal] = useState(null);
   const [openEvidenceCompIdInternal, setOpenEvidenceCompIdInternal] = useState(null);
-  const [componentFilter, setComponentFilter] = useState(() => readReportComponentFilter(reportScope ?? 'national'));
+  const [componentFilter, setComponentFilter] = useState(() => (
+    isAnalyst ? readReportComponentFilter(reportScope ?? 'national') : { preset: 'all', selectedComponentIds: null }
+  ));
   const compRefs = useRef({});
   const validationReviewRef = useRef(null);
   const catalogProposalsRef = useRef(null);
@@ -832,11 +834,13 @@ export function ReportView({
     queueMicrotask(() => { setRecommendations(assessment?.operator_recommendations ?? []); });
   }, [assessment?.operator_recommendations, assessment?.date]);
 
-  const visibleComponents = filterReportComponents(assessment.components ?? [], {
-    preset: componentFilter.preset,
-    selectedComponentIds: componentFilter.selectedComponentIds,
-    attentionItems: attentionItems ?? [],
-  });
+  const visibleComponents = isAnalyst
+    ? filterReportComponents(assessment.components ?? [], {
+      preset: componentFilter.preset,
+      selectedComponentIds: componentFilter.selectedComponentIds,
+      attentionItems: attentionItems ?? [],
+    })
+    : (assessment.components ?? []);
 
   function getSourceSignals(compId) {
     if (!scoreBySource) return null;
@@ -879,11 +883,13 @@ export function ReportView({
         attentionItems={attentionItems}
       />
 
-      <EvidenceOverviewPanel
-        assessment={assessment}
-        reportScope={reportScope}
-        displayTier={displayTier}
-      />
+      {isAnalyst && (
+        <EvidenceOverviewPanel
+          assessment={assessment}
+          reportScope={reportScope}
+          displayTier={displayTier}
+        />
+      )}
 
       <AttentionPanel
         items={attentionItems}
@@ -906,11 +912,13 @@ export function ReportView({
         }}
       />
 
-      <ReportComponentFilterBar
-        reportScope={reportScope ?? assessment?.report_scope?.id ?? 'national'}
-        filterState={componentFilter}
-        onFilterChange={setComponentFilter}
-      />
+      {isAnalyst && (
+        <ReportComponentFilterBar
+          reportScope={reportScope ?? assessment?.report_scope?.id ?? 'national'}
+          filterState={componentFilter}
+          onFilterChange={setComponentFilter}
+        />
+      )}
 
       <OovAnomalyClustersPanel
         oovBurst={assessment.oov_burst}

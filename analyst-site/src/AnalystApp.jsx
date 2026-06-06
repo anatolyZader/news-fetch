@@ -46,12 +46,12 @@ function readStoredScope() {
 }
 
 function readStoredSection() {
-  if (typeof localStorage === 'undefined') return 'drift';
+  if (typeof localStorage === 'undefined') return 'assessment';
   try {
     const v = localStorage.getItem(LS_ANALYST_SECTION);
     if (v && SECTION_IDS.has(v)) return v;
   } catch { /* */ }
-  return 'drift';
+  return 'assessment';
 }
 
 /**
@@ -109,14 +109,14 @@ export function AnalystApp({ logout, user, authRequired }) {
   } = usePipelineStatus({
     scope,
     date: pipelineStatusDate,
-    enabled: activeSection === 'pipeline' || activeSection === 'assessment',
+    enabled: true,
   });
 
   const isOutdated = reportDate && reportDate !== todayStr;
 
   const sections = useMemo(() => ([
-    { id: 'drift', label: t('drift.title') },
     { id: 'assessment', label: t('nav.dailyAssessment') },
+    { id: 'drift', label: t('drift.title') },
     { id: 'pipeline', label: t('pipeline.panelTitle') },
   ]), [t]);
 

@@ -35,7 +35,7 @@ DRY_RUN="${DRY_RUN:-0}"
 
 if [[ -z "${CLOUDFLARE_API_TOKEN:-}" ]]; then
   echo "ERROR: Set CLOUDFLARE_API_TOKEN (Zone:Edit, DNS:Edit, Zone Settings:Edit, Bot Fight:Edit, WAF:Edit)"
-  echo "Dashboard fallback: docs/product_docs/operations/manual-cutover-gcp-cloudflare.md §4"
+  echo "Dashboard fallback: cross-cut-modules/docs/content/pages/operations/manual-cutover-gcp-cloudflare.md §4"
   exit 1
 fi
 

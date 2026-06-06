@@ -1,5 +1,5 @@
 /**
- * Regenerate auto-synced sections in docs/main_docu_files/ and OpenAPI-derived product docs.
+ * Regenerate auto-synced sections in docs/main_docu_files/RESILIENCE-ENGINE-REFERENCE.md and OpenAPI-derived product docs.
  * Run: npm run docs:sync
  */
 import { readFile, writeFile } from 'node:fs/promises';
@@ -13,7 +13,7 @@ import { COMPONENT_FACETS } from '../../business_modules/resilience/domain/servi
 const __dirname = resolve(fileURLToPath(import.meta.url), '..');
 const REPO_ROOT = resolve(__dirname, '../..');
 const MAIN_DOCU_DIR = resolve(REPO_ROOT, 'docs/main_docu_files');
-const EIGHT_COMPONENT_DOC = resolve(MAIN_DOCU_DIR, '8-component-analysis-end-to-end.md');
+const RESILIENCE_ENGINE_DOC = resolve(MAIN_DOCU_DIR, 'RESILIENCE-ENGINE-REFERENCE.md');
 const TRANSLATIONS_PATH = resolve(REPO_ROOT, 'client/src/i18n/translations.js');
 
 const SYNC_NOTE = (source) =>
@@ -23,17 +23,17 @@ function replaceRegion(content, regionId, body) {
   const begin = `<!-- docs-sync:BEGIN ${regionId} -->`;
   const end = `<!-- docs-sync:END ${regionId} -->`;
   const pattern = new RegExp(
-    `${escapeRegExp(begin)}[\\s\\S]*?${escapeRegExp(end)}`,
+    String.raw`${escapeRegExp(begin)}[\s\S]*?${escapeRegExp(end)}`,
     'm',
   );
   if (!pattern.test(content)) {
-    throw new Error(`Missing sync region "${regionId}" in ${EIGHT_COMPONENT_DOC}`);
+    throw new Error(`Missing sync region "${regionId}" in ${RESILIENCE_ENGINE_DOC}`);
   }
   return content.replace(pattern, `${begin}\n\n${body.trim()}\n\n${end}`);
 }
 
 function escapeRegExp(s) {
-  return s.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return s.replaceAll(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
 }
 
 function oneLineSummary(description) {
@@ -68,8 +68,8 @@ async function loadUiLabels() {
   const raw = await readFile(TRANSLATIONS_PATH, 'utf8');
   const en = {};
   const he = {};
-  const enBlock = raw.match(/en:\s*\{([\s\S]*?)\n\s*he:\s*\{/);
-  const heBlock = raw.match(/he:\s*\{([\s\S]*?)\n\s*ru:\s*\{/);
+  const enBlock = /en:\s*\{([\s\S]*?)\n\s*he:\s*\{/.exec(raw);
+  const heBlock = /he:\s*\{([\s\S]*?)\n\s*ru:\s*\{/.exec(raw);
   parseTranslationBlock(enBlock, en);
   parseTranslationBlock(heBlock, he);
   return { en, he };
@@ -188,8 +188,8 @@ function ensureSyncMarkers(content) {
   return content;
 }
 
-async function syncEightComponentDoc() {
-  let content = await readFile(EIGHT_COMPONENT_DOC, 'utf8');
+async function syncResilienceEngineDoc() {
+  let content = await readFile(RESILIENCE_ENGINE_DOC, 'utf8');
   content = ensureSyncMarkers(content);
 
   const { en, he } = await loadUiLabels();
@@ -198,8 +198,8 @@ async function syncEightComponentDoc() {
   content = replaceRegion(content, 'components-detail', generateComponentDetailSections());
   content = replaceRegion(content, 'appendix-ui-labels', generateAppendixUiLabels(en, he));
 
-  await writeFile(EIGHT_COMPONENT_DOC, content, 'utf8');
-  console.log(`Synced ${relativePath(EIGHT_COMPONENT_DOC)}`);
+  await writeFile(RESILIENCE_ENGINE_DOC, content, 'utf8');
+  console.log(`Synced ${relativePath(RESILIENCE_ENGINE_DOC)}`);
 }
 
 function relativePath(abs) {
@@ -207,25 +207,25 @@ function relativePath(abs) {
 }
 
 function runGenApi() {
-  const result = spawnSync('npm', ['run', 'gen:api', '--prefix', 'docs/docs-site'], {
+  const result = spawnSync('npm', ['run', 'gen:api', '--prefix', 'tools/docs-site'], {
     cwd: REPO_ROOT,
     stdio: 'inherit',
   });
   if (result.status !== 0) {
     throw new Error(
-      'docs/docs-site gen:api failed (run: npm ci --prefix docs/docs-site)',
+      'tools/docs-site gen:api failed (run: npm ci --prefix tools/docs-site)',
     );
   }
-  console.log('Regenerated docs/product_docs/api/generated from openapi/openapi.yaml');
+  console.log(
+    'Regenerated cross-cut-modules/docs/content/pages/api/generated from openapi/openapi.yaml',
+  );
 }
 
-async function main() {
-  await syncEightComponentDoc();
+try {
+  await syncResilienceEngineDoc();
   runGenApi();
   console.log('docs:sync complete');
-}
-
-main().catch((err) => {
+} catch (err) {
   console.error(err);
   process.exit(1);
-});
+}

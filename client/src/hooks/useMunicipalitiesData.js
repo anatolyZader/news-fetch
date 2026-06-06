@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { authFetch } from '../lib/authFetch.js';
 import { normalizeIsraelDistrictId } from '../lib/israelDistricts.js';
 
 /**
- * @param {{ districtId?: string, getIdToken?: () => Promise<string|null>, apiReady?: boolean }} [opts]
+ * @param {{ districtId?: string, getIdToken?: () => Promise<string|null>, getAppCheckToken?: () => Promise<string|null>, apiReady?: boolean }} [opts]
  */
-export function useMunicipalitiesData({ districtId = 'north', getIdToken, apiReady } = {}) {
+export function useMunicipalitiesData({ districtId = 'north', getIdToken, getAppCheckToken, apiReady } = {}) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -17,13 +18,11 @@ export function useMunicipalitiesData({ districtId = 'north', getIdToken, apiRea
     setLoading(true);
     setError(null);
     try {
-      const headers = new Headers();
-      const token = await getIdToken?.();
-      if (token) headers.set('Authorization', `Bearer ${token}`);
       const params = new URLSearchParams({ district: scopedDistrict });
-      const response = await fetch(`/api/municipalities?${params.toString()}`, { headers });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const json = await response.json();
+      const json = await authFetch(`/api/municipalities?${params.toString()}`, {
+        getIdToken,
+        getAppCheckToken,
+      });
       setData(json);
       if (json.days?.length) setSelectedDate(json.days[json.days.length - 1].date);
       else setSelectedDate(null);
@@ -32,7 +31,7 @@ export function useMunicipalitiesData({ districtId = 'north', getIdToken, apiRea
     } finally {
       setLoading(false);
     }
-  }, [getIdToken, scopedDistrict]);
+  }, [getIdToken, getAppCheckToken, scopedDistrict]);
 
   useEffect(() => {
     if (!apiReady) return undefined;

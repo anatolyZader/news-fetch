@@ -1,6 +1,6 @@
 /**
  * Report cache service — loads persisted resilience assessments for the UI/API.
- * Production runs use `extract-signals` → `assess-signals` (see docs/main_docu_files/pipeline.md).
+ * Production runs use `extract-signals` → `assess-signals` (see docs/main_docu_files/PIPELINE-AND-SOURCES.md).
  */
 import { readFileSync, existsSync, readdirSync, statSync } from 'node:fs';
 import { resolve, dirname, isAbsolute, join } from 'node:path';

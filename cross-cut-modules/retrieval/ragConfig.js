@@ -111,9 +111,9 @@ export function validationExplainEnabled() {
   return validationReviewRagEnabled();
 }
 
-export function catalogLearningRagEnabled() {
-  if (process.env.CATALOG_LEARNING_RAG_ENABLED === '0') return false;
-  if (process.env.CATALOG_LEARNING_RAG_ENABLED === '1') return true;
+export function signalCatalogEvolutionRagEnabled() {
+  if (process.env.SIGNAL_CATALOG_EVOLUTION_RAG_ENABLED === '0') return false;
+  if (process.env.SIGNAL_CATALOG_EVOLUTION_RAG_ENABLED === '1') return true;
   return ragPipelineEnabled();
 }
 

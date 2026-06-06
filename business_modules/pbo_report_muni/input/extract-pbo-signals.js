@@ -11,7 +11,7 @@
  *   node extract-pbo-signals.js [--date YYYY-MM-DD] [--district north|south|…] [--all-districts] [--force]
  *
  * If --date is omitted, processes all available Excel files for the district(s).
- * Output: signals/signals-pbo-{date}.json (north) or signals/signals-pbo-{district}-{date}.json
+ * Output: business_modules/signals_extraction/data/signals/signals-pbo-{date}.json (north) or signals-pbo-{district}-{date}.json
  */
 
 import { bootstrapDefaultStateStore } from '../../../cross-cut-modules/persistence/bootstrapStateStore.js';
@@ -31,6 +31,7 @@ import {
   stampPboSignalSourceIds,
 } from '../../../db/source_archive/archivePboMunicipality.js';
 import { createRetrievalService } from '../../../cross-cut-modules/retrieval/createRetrievalService.js';
+import { defaultClosedSignalsDir } from '../../signals_extraction/infrastructure/signalsDataPaths.js';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 const SQLITE_PATH = process.env.SQLITE_PATH?.trim()
@@ -194,22 +195,18 @@ async function runDistrict(districtId, filterDate, outDir, force) {
   }
 }
 
-async function run() {
-  const args = process.argv.slice(2);
-  const getArg = (flag) => { const i = args.indexOf(flag); return i >= 0 ? args[i + 1] : null; };
-  const filterDate = getArg('--date');
-  const allDistricts = args.includes('--all-districts');
-  const districtArg = getArg('--district') ?? 'north';
-  const force = args.includes('--force');
+const args = process.argv.slice(2);
+const getArg = (flag) => { const i = args.indexOf(flag); return i >= 0 ? args[i + 1] : null; };
+const filterDate = getArg('--date');
+const allDistricts = args.includes('--all-districts');
+const districtArg = getArg('--district') ?? 'north';
+const force = args.includes('--force');
 
-  const outDir = resolve('signals');
-  mkdirSync(outDir, { recursive: true });
+const outDir = defaultClosedSignalsDir();
+mkdirSync(outDir, { recursive: true });
 
-  const districts = allDistricts ? listPboDistrictIds() : [districtArg];
-  for (const districtId of districts) {
-    // eslint-disable-next-line no-await-in-loop
-    await runDistrict(districtId, filterDate, outDir, force);
-  }
+const districts = allDistricts ? listPboDistrictIds() : [districtArg];
+for (const districtId of districts) {
+  // eslint-disable-next-line no-await-in-loop
+  await runDistrict(districtId, filterDate, outDir, force);
 }
-
-void run();

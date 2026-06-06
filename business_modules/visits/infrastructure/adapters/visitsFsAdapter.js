@@ -68,10 +68,10 @@ function readJson(filePath) {
   }
 }
 
-/** Prefer module data dir; fall back to repo root `signals/` for older deployments or copies left after migration. */
+/** Prefer module data dir; fall back to signals_extraction data for older deployments or copies left after migration. */
 function collectFieldSignalPaths(primaryDir, rootDir) {
   const byFile = new Map();
-  const legacyDir = resolve(rootDir, 'signals');
+  const legacyDir = resolve(rootDir, 'business_modules', 'signals_extraction', 'data', 'signals');
   const tryDir = (dir) => {
     if (!existsSync(dir)) return;
     for (const name of readdirSync(dir)) {

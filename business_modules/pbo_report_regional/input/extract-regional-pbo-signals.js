@@ -9,7 +9,7 @@
  *   node extract-regional-pbo-signals.js --files <f1.md,f2.md,...> --date YYYY-MM-DD
  *
  * Output:
- *   signals/signals-pbo_regional-YYYY-MM-DD.json
+ *   business_modules/signals_extraction/data/signals/signals-pbo_regional-YYYY-MM-DD.json
  */
 
 import 'dotenv/config';
@@ -23,6 +23,7 @@ import { enrichSignalsWithGeo } from '../../../cross-cut-modules/geo/enrichSigna
 import { createSourceArchive } from '../../../db/source_archive/createSourceArchive.js';
 import { buildArchiveSourceId } from '../../../db/source_archive/sourceId.js';
 import { createRetrievalService } from '../../../cross-cut-modules/retrieval/createRetrievalService.js';
+import { defaultClosedSignalsDir } from '../../signals_extraction/infrastructure/signalsDataPaths.js';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 
@@ -181,7 +182,7 @@ async function run() {
     console.error(`  → Geo attach: ${attached} signals, ${resolved} resolved, ${unknown} unknown`);
   }
 
-  const outDir = resolve('signals');
+  const outDir = defaultClosedSignalsDir();
   mkdirSync(outDir, { recursive: true });
   const outPath = resolve(outDir, `signals-pbo_regional-${date}.json`);
 

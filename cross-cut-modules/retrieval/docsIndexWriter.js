@@ -1,5 +1,5 @@
 /**
- * Index product_docs markdown into rag_chunks (namespace=docs).
+ * Index product doc pages into rag_chunks (namespace=docs).
  */
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -50,7 +50,7 @@ function formatDocIndexText(meta, body, slug, gated) {
  * @param {{ docsRootDir?: string }} [opts]
  */
 export function createDocsIndexWriter(indexWriter, opts = {}) {
-  const defaultDocsRoot = resolve(REPO_ROOT, 'docs', 'product_docs');
+  const defaultDocsRoot = resolve(REPO_ROOT, 'cross-cut-modules', 'docs', 'content', 'pages');
 
   return {
     async reindexDocs(reindexOpts = {}) {

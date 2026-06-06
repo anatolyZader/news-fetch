@@ -3,18 +3,19 @@
  */
 
 import { buildChatSystemHint } from '../../../cross-cut-modules/evidence/input/submissionHelpers.js';
-import { resolveDisplayView } from '../../resilience/index.js';
-import { generateChatTitle } from '../infrastructure/claudeChat.js';
+import { resolveDisplayView } from '../../../cross-cut-modules/resilience-contracts/index.js';
 
 /**
  * @param {object} opts
- * @param {import('../infrastructure/chatStore.js').ChatStore} opts.chatStore
+ * @param {import('../domain/ports/IChatSessionStorePort.js').IChatSessionStorePort} opts.chatStore
+ * @param {import('../domain/ports/IChatLlmPort.js').IChatLlmPort} [opts.chatLlmPort]
  * @param {string} [opts.timezone]
- * @param {typeof generateChatTitle} [opts.generateChatTitle]
  */
 export function createChatSessionService(opts) {
   const chatStore = opts.chatStore;
-  const generateTitle = opts.generateChatTitle ?? generateChatTitle;
+  const chatLlmPort = opts.chatLlmPort;
+  const generateTitle = chatLlmPort?.generateChatTitle
+    ?? (async () => null);
 
   /**
    * @param {object} args

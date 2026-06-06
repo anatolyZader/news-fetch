@@ -1,39 +1,41 @@
 # Main documentation (`main_docu_files`)
 
-Canonical, **overarching** reference documents for this repository. They are kept separate from working notes under `docs/reviews/`, `docs/specs/`, and other ad-hoc files in `docs/`.
+Engineering reference for **Srulik's lab** — a homefront **decision-support** system, not a scoring dashboard.
 
-## Files in this directory
+**Not an oracle.** The product narrows operator attention with evidence-backed narratives and instrument flags (sufficiency, contested, significant change). Humans decide under explicit uncertainty. Deterministic scores still run for calibration and on-disk artifacts, but the **default operator UI and API hide headline 1–10 scores**.
 
-| File | Role | Start here if… |
-|------|------|----------------|
-| [pipeline.md](./pipeline.md) | **Operational overview** — multi-source daily pipeline, source toggles, CLI commands, validation, social OSINT, trends tab, file map | You need to run or operate the daily pipeline |
-| [8-component-analysis-end-to-end.md](./8-component-analysis-end-to-end.md) | **Implementation reference** — 8 components, ~166 signal types, scoring math, reliability instruments, UI reading guide, QA harness | You need to understand scoring, signals, or change resilience logic |
-| [GEOGRAPHIC-ANALYSIS.md](./GEOGRAPHIC-ANALYSIS.md) | **Geographic enrichment** — `geo` envelope, district scoping (national + five regional districts), reference data, matching pipeline | You work on locality resolution or regional filters |
-| [RAG.md](./RAG.md) | **RAG platform** — unified hybrid retrieval (`rag_chunks`), eight namespaces, five consumption tiers, config, ops, eval | You work on retrieval, indexing, embeddings, or any RAG consumer |
-| [LLM_CHAT.md](./LLM_CHAT.md) | **In-app report chat** — SQLite sessions, SSE streaming, confirm-action HITL, source archive tools, production RAG | You work on chat UX, retrieval, or `/api/chat*` |
-| [AGENTIC_MECHANISMS.md](./AGENTIC_MECHANISMS.md) | **Agent architecture** — shared `runToolLoop`, HITL confirm, validation investigate, tool profiles, observability, non-agent boundaries | You extend or audit LLM agent behavior |
+Companion policy summary: [`docs/MODEL-CARD.md`](../MODEL-CARD.md). Product-facing anchor: [`cross-cut-modules/docs/content/pages/concepts/decision-support-model.md`](../../cross-cut-modules/docs/content/pages/concepts/decision-support-model.md).
 
-### What each doc covers (current app state, 2026-05-30)
+## Reading order
 
-- **RAG.md** — Unified SQLite hybrid RAG platform (`rag_chunks` + FTS5 + OpenAI embeddings + RRF + Cohere rerank): eight namespaces, five consumption tiers (chat, pipeline, analyst, field ops, docs), source archive lifecycle, env/config reference, ops scripts, eval fixtures, May 29–30 recent changes (incl. session chat + security pre-handlers).
-- **pipeline.md** — `extract-signals` + `assess-signals` daily pipeline, seven toggled source types in `pipeline-config.json` (including **social** X + Telegram), **connectivity probes** at assess, **social channel quarantine**, **pbo_regional** assess-time discovery, **PBO municipal completeness review** (daily step 7b), **WhatsApp DM adaptive chatbot**, validation collection (**SQLite review queue default**), catalog learning HTTP + gap reports, report-build routes, search trends UI, **News/Radio ingest review tabs**, **multi-district** `DistrictScopeSwitcher` (six scopes), **operator main app** + separate **analyst-site** SPA for validation/catalog/drift UI, desktop panel popups, `daily-pipeline.sh`, slash commands (`/8comp-3`, `/8comp-3-north`).
-- **8-component-analysis-end-to-end.md** — Full framework depth: multipass extraction (~166 signal types), verification, deterministic scoring, epistemic scope partition (including **text-inferred geo exclusion**), data void index, bootstrap/EWMA/polarization/chronic baseline, drift dashboard, narrative grounding, golden corpus, adversarial tests, OOV/learning capture, operator vs analyst display tiers, **ValidationReviewPanel** (context/explain/agent routes), full UI/API surface. Auto-synced component/facet tables from code.
-- **GEOGRAPHIC-ANALYSIS.md** — `IGeoEnrichmentPort`, **v3 nested-only** envelope contract (`geo-envelope-2026-05-v3`), `resolution.provenance`, WhatsApp/survey/news geo attach, **`homefront-district-stubs.json`**, `scopeDecision` vs `geo.scopeDecision`, `regionSignalFilter` + **`signal.district_id`**, HTTP **`/api/geo/localities`** + **`/api/geo/unknown-queue`**, chat geo tools.
-- **LLM_CHAT.md** — Session-based chat (SQLite `chat_sessions`), `POST /api/chat` with `sessionId` (not client history), SSE + `action_proposed`, confirm-action HITL, source archive tools + hybrid RAG, App Check + daily budget on costly routes.
-- **AGENTIC_MECHANISMS.md** — Canonical agent reference: `runToolLoop` tool-use loop (chat + validation investigate), HITL confirm protocol, tool profiles, validation multi-turn UX, audit `agent.tool_round`, security layers (App Check, HTTP budget), and explicit boundaries vs one-shot LLM and batch pipeline.
+| # | File | When you need… |
+|---|------|----------------|
+| 1 | [SYSTEM-AND-OPERATOR-MODEL.md](./SYSTEM-AND-OPERATOR-MODEL.md) | What operators see, scan → proof → decide, operator vs analyst apps |
+| 2 | [PIPELINE-AND-SOURCES.md](./PIPELINE-AND-SOURCES.md) | Daily ingest, extract, assess, artifacts on disk, guided report |
+| 3 | [RESILIENCE-ENGINE-REFERENCE.md](./RESILIENCE-ENGINE-REFERENCE.md) | Epistemic gates, instruments, pipeline stages, scoring machinery |
+| 4 | [GEOGRAPHIC-ANALYSIS.md](./GEOGRAPHIC-ANALYSIS.md) | Geo envelope, district scoping, unknown queue |
+| 5 | [RAG.md](./RAG.md) | Hybrid retrieval, namespaces, reindex commands |
+| 6 | [LLM-CHAT-AND-AGENTS.md](./LLM-CHAT-AND-AGENTS.md) | Report chat, tool loop, HITL confirm, validation agent |
+| 7 | [COST-CONTROLS.md](./COST-CONTROLS.md) | Daily HTTP budget, costly routes |
 
-Production cutover ops (GCP/Cloudflare): [`docs/product_docs/operations/manual-cutover-gcp-cloudflare.md`](../product_docs/operations/manual-cutover-gcp-cloudflare.md).
+Plus [README.md](./README.md) (this file) — **8 markdown files** in this directory.
 
-Operator-facing instruments and feature flags are summarized in [`docs/MODEL-CARD.md`](../MODEL-CARD.md) (companion to the 8-component doc, not duplicated here).
+## NotebookLM upload bundle
+
+Self-contained set for high-quality review — upload **these 8 files** plus [`docs/MODEL-CARD.md`](../MODEL-CARD.md) and [`cross-cut-modules/docs/content/pages/concepts/decision-support-model.md`](../../cross-cut-modules/docs/content/pages/concepts/decision-support-model.md).
+
+Optional companion (may lag behind code): [`docs/reviews/8-component-resilience-pipeline-notebooklm.md`](../reviews/8-component-resilience-pipeline-notebooklm.md).
 
 ## Auto-sync
 
-Sections marked with `<!-- docs-sync:BEGIN … -->` / `<!-- docs-sync:END … -->` in **8-component-analysis-end-to-end.md** are regenerated from code (`resilienceComponents.js`, `componentFacets.js`, UI translations) on every CI run and via:
+Sections between `<!-- docs-sync:BEGIN … -->` / `<!-- docs-sync:END … -->` in **[RESILIENCE-ENGINE-REFERENCE.md](./RESILIENCE-ENGINE-REFERENCE.md)** (Appendix only) are regenerated from code on CI and via:
 
 ```bash
 npm run docs:sync
 ```
 
-Do not hand-edit content between those markers. Edit the source modules instead.
+Sources: `business_modules/resilience/domain/resilienceComponents.js`, `componentFacets.js`, `client/src/i18n/translations.js`. Do not hand-edit content between those markers.
 
-API reference pages under `docs/product_docs/api/generated/` are regenerated from `openapi/openapi.yaml` as part of the same sync. The spec includes **SocialMedia** (7 routes) and **SearchTrends** (3 routes) tags alongside existing modules.
+## Terminology
+
+See [`docs/architecture/ubiquitous-language.md`](../architecture/ubiquitous-language.md) for **Operator**, **Analyst**, **Maintainer**, **Report scope**, **Principal**, and related terms.

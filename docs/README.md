@@ -1,26 +1,35 @@
-# Repository documentation
+# Repository documentation (`/docs`)
 
-All documentation for this repo lives under **`docs/`**.
+**Rule:** Everything under **`docs/`** is optional engineering and reference material. You can remove this tree without breaking server startup or core API behavior.
 
-## Product docs (`product_docs/`)
+Runtime content the app **does** depend on lives elsewhere:
 
-Customer-facing guides, concepts, API reference (generated), and architecture pages. Served in-app (`/api/docs/*`) and published via [docs-site](./docs-site/).
+| Purpose | Location |
+|---------|----------|
+| In-app Docs panel + public product pages | [`cross-cut-modules/docs/content/pages/`](../cross-cut-modules/docs/content/pages/) |
+| HFC field-report RAG corpus | [`business_modules/report_build/data/hfc-field-guidelines.md`](../business_modules/report_build/data/hfc-field-guidelines.md) |
+| Public docs site (Docusaurus) | [`tools/docs-site/`](../tools/docs-site/) |
 
-- Validated with `npm run docs:check`
-- Regenerated API pages: `npm run docs:sync` (via Docusaurus `gen:api`)
-
-## Canonical references (`main_docu_files/`)
-
-Overarching, maintained reference documents auto-synced from code in CI (`npm run docs:sync`). Start here for the resilience model, geographic enrichment, daily pipeline, and [in-app LLM chat](./main_docu_files/LLM_CHAT.md).
-
-## Working documentation
+## What's in `/docs`
 
 | Area | Purpose |
 |------|---------|
-| [specs/](./specs/) | Feature and module specifications |
-| [reviews/](./reviews/) | Deep dives, audits, NotebookLM primers |
-| [docs-site/](./docs-site/) | Docusaurus site (reads `product_docs/`) |
-| `*.md` at this level | Ad-hoc guides (audio, identity, UI, env examples) |
+| [`main_docu_files/`](./main_docu_files/) | Decision-support engineering reference (operator model, pipeline, resilience engine, RAG, chat, cost) — component tables auto-synced in `RESILIENCE-ENGINE-REFERENCE.md` via `npm run docs:sync` |
+| [`architecture/decisions/`](./architecture/decisions/) | Architecture decision records (ADRs) |
+| [`specs/`](./specs/) | Feature and module specifications |
+| [`reviews/`](./reviews/) | Audits, deep dives, NotebookLM primers |
+| `*.md` at this level | Ad-hoc guides (audio, identity, UI, dependencies) |
+
+## Commands (product content + validation)
+
+These operate on **runtime product pages**, not on `/docs` itself:
+
+- `npm run docs:check` — validate `cross-cut-modules/docs/content/pages/`
+- `npm run docs:sync` — regenerate synced appendix in `main_docu_files/RESILIENCE-ENGINE-REFERENCE.md` and OpenAPI-derived API pages
+- `npm run rag:reindex-docs` — index product pages for Docs-panel search
+- `npm run rag:reindex-hfc` — index HFC guidelines for report-build RAG
+
+Build the public site: `npm ci --prefix tools/docs-site && npm run gen:api --prefix tools/docs-site && npm run build --prefix tools/docs-site`
 
 ## CI / GitHub Actions
 

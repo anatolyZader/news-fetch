@@ -27,8 +27,8 @@ After extraction, map observations to closed signals and assess:
 npm run assess-signals -- --date 2026-05-23 --bundle-source observations --observations-profile exploratory
 ```
 
-Production daily pipeline still uses closed `extract-signals` → `signals/`.
+Production daily pipeline still uses closed `extract-signals` → `business_modules/signals_extraction/data/signals/`.
 
 ## Residual capture
 
-When `RESILIENCE_RESIDUAL_CAPTURE=1`, closed `extract-signals` delegates zero-signal articles to this module's residual profile (also appends catalog-learning captures).
+When `RESILIENCE_RESIDUAL_CAPTURE=1`, closed `extract-signals` delegates zero-signal articles to this module's residual profile (also appends signal catalog evolution captures).

@@ -1,29 +1,19 @@
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
-
 /**
- * @param {{ repository: ReturnType<import('../infrastructure/adapters/newsSitesFsAdapter.js').createNewsSitesFsAdapter>, rootDir: string }} opts
+ * @param {{
+ *   repository: ReturnType<import('../infrastructure/adapters/newsSitesFsAdapter.js').createNewsSitesFsAdapter>,
+ *   pipelineConfigPort?: import('../domain/ports/INewsPipelineConfigPort.js').INewsPipelineConfigPort,
+ * }} opts
  */
 export function createNewsSitesService(opts) {
-  const { repository, rootDir } = opts;
+  const { repository, pipelineConfigPort } = opts;
   if (!repository) throw new Error('repository is required');
-
-  function readPipelineEnabled() {
-    try {
-      const raw = readFileSync(resolve(rootDir, 'pipeline-config.json'), 'utf8');
-      const cfg = JSON.parse(raw);
-      return cfg?.sources?.news?.enabled !== false;
-    } catch {
-      return true;
-    }
-  }
 
   return {
     getDashboard() {
       const dates = repository.listAvailableDates();
       const totalArticles = dates.reduce((sum, d) => sum + (d.articleCount ?? 0), 0);
       return {
-        enabled: readPipelineEnabled(),
+        enabled: pipelineConfigPort?.isNewsPipelineEnabled?.() ?? true,
         summary: {
           totalDays: dates.length,
           totalArticles,

@@ -1,5 +1,5 @@
 import { resolve } from 'node:path';
-import { getCachedReport } from '../business_modules/resilience/index.js';
+import { createReportReadPort } from '../business_modules/resilience/index.js';
 import {
   createValidationReviewSqliteStore,
   createValidationReviewService,
@@ -7,7 +7,7 @@ import {
 import {
   createCatalogProposalSqliteStore,
   createCatalogProposalService,
-} from '../business_modules/catalogLearning/index.js';
+} from '../business_modules/signal_catalog_evolution/index.js';
 import { createDefaultPboReportReviewService } from '../business_modules/pbo_report_review/input/createPboReviewWiring.js';
 import { createPboHistoricalSearchService } from '../business_modules/pbo_report_review/app/pboHistoricalSearchService.js';
 import { createMailingResendAdapter } from '../business_modules/mailing/infrastructure/adapters/mailingResendAdapter.js';
@@ -47,11 +47,13 @@ export function registerAnalysis(opts) {
     reportsDir: resolve(opts.repoRoot, 'daily_reports'),
   });
 
+  const reportReadPort = createReportReadPort();
+
   const mailingService = isMailingConfigured()
     ? createMailingService({
       deliveryPort: createMailingResendAdapter({ apiKey: process.env.RESEND_API_KEY.trim() }),
       mailFrom: process.env.MAIL_FROM.trim(),
-      getCachedReport: () => getCachedReport(opts.evidenceStore),
+      getCachedReport: () => reportReadPort.getCachedReport(opts.evidenceStore),
       translateReport: getTranslatedReport,
       poolService: opts.poolService,
     })

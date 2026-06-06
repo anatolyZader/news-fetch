@@ -35,4 +35,8 @@ export {
   TEXT_INFERENCE_SOURCE_TYPES,
 } from './domain/value_objects/geoProvenance.js';
 export { northRelevanceFromResolvedGeo } from './domain/services/northRelevanceFromResolvedGeo.js';
+export {
+  districtRelevanceFromResolvedGeo,
+  homeFrontDistrictIdsFromResolvedGeo,
+} from './domain/services/districtRelevanceFromResolvedGeo.js';
 export { collectRawLocalitiesFromNorthReferenceDoc } from './domain/services/northReferenceDocShape.js';

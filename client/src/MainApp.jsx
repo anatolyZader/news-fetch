@@ -17,13 +17,11 @@ import { useTheme, alpha } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { useTodayReport } from './hooks/useAnalysis.js';
-import { useMonitoringSummary } from './hooks/usePipelineStatus.js';
 import { usePanelPopups } from './hooks/usePanelPopups.js';
 import { useDisplayCapabilities } from './hooks/useDisplayCapabilities.js';
 import { useTranslatedReport } from './hooks/useTranslatedReport.js';
 import { getAnalystSiteUrl } from './lib/analystSiteUrl.js';
 import { ReportView } from './components/ReportView.jsx';
-import { PipelineStatusPanel } from './components/PipelineStatusPanel.jsx';
 import { ChatPanel } from './components/ChatPanel.jsx';
 import { DocsPanel } from './components/DocsPanel.jsx';
 import { ReportBuildPanel } from './components/ReportBuildPanel.jsx';
@@ -237,17 +235,8 @@ function AppShell() {
     reportLoadError,
     attentionItems,
   } = useTodayReport(reportScope);
-  const [activeTab, setActiveTab] = useState(() => readMainTab());
   const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jerusalem' });
-  const {
-    data: monitoringSummary,
-    loading: monitoringLoading,
-    error: monitoringError,
-  } = useMonitoringSummary({
-    scope: reportScope,
-    date: reportDate || todayStr,
-    enabled: canViewAnalyst && activeTab === 'report',
-  });
+  const [activeTab, setActiveTab] = useState(() => readMainTab());
   const [activePoolTab, setActivePoolTab] = useState(() => readPoolTab());
   const [activePboTab, setActivePboTab] = useState(() => readPboTab());
   const [activePboRegionTab, setActivePboRegionTab] = useState(() => readPboRegionTab());
@@ -734,14 +723,6 @@ function AppShell() {
 
             {initialReportLoadDone && report && (
               <Stack spacing={2}>
-                {canViewAnalyst && (
-                  <PipelineStatusPanel
-                    data={monitoringSummary}
-                    loading={monitoringLoading}
-                    error={monitoringError}
-                    defaultOpen={false}
-                  />
-                )}
               <Box
                 sx={(theme) => ({
                   display: 'grid',
@@ -877,7 +858,7 @@ function AppShell() {
                 </Stack>
                 <PboRegionalDailyReports
                   regionId={activePboRegionTab}
-                  showHistoricalSearch={canViewAnalyst}
+                  showHistoricalSearch
                 />
               </>
             )}

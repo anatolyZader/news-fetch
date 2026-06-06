@@ -12,6 +12,9 @@ export function buildMunicipalityDashboardDto(districtId, opts = {}) {
     updatedAt: raw?.updatedAt ?? null,
     municipalities: raw?.municipalities ?? [],
     componentsOrder: raw?.componentsOrder ?? [],
+    componentNames: raw?.componentNames ?? { en: {}, he: {} },
+    days: raw?.days ?? [],
+    districtTrend: raw?.districtTrend ?? [],
     summary: raw?.summary ?? null,
   };
 }

@@ -6,7 +6,7 @@ import { normalizeReportScopeId } from '../../../../cross-cut-modules/geo/report
 import {
   districtRelevanceFromResolvedGeo,
   homeFrontDistrictIdsFromResolvedGeo,
-} from '../../../../business_modules/geo/domain/services/districtRelevanceFromResolvedGeo.js';
+} from '../../../../business_modules/geo/index.js';
 import {
   assignedDistrictScopeMatch,
   hasExplicitSignalDistrictId,

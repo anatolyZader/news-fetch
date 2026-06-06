@@ -169,9 +169,9 @@ async function validateDocFile(abs, docsRoot, validate, ajv, knownFiles, errors)
   validateRelativeLinks(rel, body, knownFiles, errors);
 }
 
-async function main() {
+try {
   const repoRoot = resolve(process.cwd());
-  const docsRoot = resolve(repoRoot, 'docs', 'product_docs');
+  const docsRoot = resolve(repoRoot, 'cross-cut-modules', 'docs', 'content', 'pages');
   const schemaPath = resolve(docsRoot, 'frontmatter.schema.json');
   const schema = JSON.parse(await readFile(schemaPath, 'utf8'));
 
@@ -202,10 +202,8 @@ async function main() {
   }
 
   console.log(`Docs validation OK (${mdFiles.length} pages).`);
-}
-
-main().catch((err) => {
+} catch (err) {
   console.error(err);
   process.exit(1);
-});
+}
 

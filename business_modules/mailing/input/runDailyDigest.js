@@ -23,7 +23,7 @@ import { fileURLToPath } from 'node:url';
 import { createMailingPreferencesStore } from '../infrastructure/mailingPreferencesStore.js';
 import { createMailingResendAdapter } from '../infrastructure/adapters/mailingResendAdapter.js';
 import { createMailingService } from '../app/mailingService.js';
-import { getCachedReport } from '../../resilience/index.js';
+import { createReportReadPort } from '../../resilience/index.js';
 import { createEvidenceStore } from '../../../db/persistence/evidenceStore.js';
 import { getTranslatedReport } from '../../translation/index.js';
 
@@ -48,10 +48,11 @@ async function main() {
 
   const evidenceStore = createEvidenceStore(sqlitePath);
   const prefsStore = createMailingPreferencesStore(sqlitePath);
+  const reportReadPort = createReportReadPort();
   const mailingService = createMailingService({
     deliveryPort: createMailingResendAdapter({ apiKey: process.env.RESEND_API_KEY.trim() }),
     mailFrom: process.env.MAIL_FROM.trim(),
-    getCachedReport: () => getCachedReport(evidenceStore),
+    getCachedReport: () => reportReadPort.getCachedReport(evidenceStore),
     translateReport: getTranslatedReport,
   });
 

@@ -1,5 +1,5 @@
 /**
- * Closed-vocabulary signal bundles from signals/ + field + social dirs.
+ * Closed-vocabulary signal bundles from signals_extraction/data/signals + field + social dirs.
  */
 import { ISignalBundlePort } from '../../domain/ports/ISignalBundlePort.js';
 import {

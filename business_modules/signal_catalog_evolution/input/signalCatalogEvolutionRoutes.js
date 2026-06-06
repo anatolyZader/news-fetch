@@ -1,0 +1,62 @@
+/**
+ * HTTP routes for signal catalog evolution proposals (analyst-only).
+ */
+import { requireAnalystView } from '../../../cross-cut-modules/auth/requireAnalystAccess.js';
+import { auditFromRequest } from '../../../cross-cut-modules/security/input/auditLog.js';
+import { costlyRoutePreHandlers } from '../../../cross-cut-modules/security/input/costlyRoutePreHandlers.js';
+import { normalizeAuthPreHandlers } from '../../../cross-cut-modules/auth/buildAuthHooks.js';
+
+/**
+ * @param {import('fastify').FastifyInstance} app
+ * @param {object} opts
+ */
+export async function signalCatalogEvolutionRoutes(app, opts) {
+  const { catalogProposalService, authPreHandler } = opts;
+  if (!catalogProposalService) throw new Error('catalogProposalService is required');
+
+  app.get('/api/signal-catalog-evolution/proposals', {
+    preHandler: authPreHandler,
+  }, async (request, reply) => {
+    if (!requireAnalystView(request, reply)) return;
+    const status = request.query?.status ? String(request.query.status) : 'draft';
+    const limit = request.query?.limit ? Number(request.query.limit) : 20;
+    const proposals = await catalogProposalService.listProposals({ status, limit });
+    return reply.send({ proposals });
+  });
+
+  app.get('/api/signal-catalog-evolution/proposals/:id', {
+    preHandler: authPreHandler,
+  }, async (request, reply) => {
+    if (!requireAnalystView(request, reply)) return;
+    const proposal = catalogProposalService.getProposal(String(request.params.id));
+    if (!proposal) return reply.code(404).send({ error: 'Not found' });
+    return reply.send(proposal);
+  });
+
+  app.post('/api/signal-catalog-evolution/proposals/generate', costlyRoutePreHandlers(normalizeAuthPreHandlers(authPreHandler)), async (request, reply) => {
+    if (!requireAnalystView(request, reply)) return;
+    auditFromRequest(request, 'catalog.generate_proposals', '/api/signal-catalog-evolution/proposals/generate');
+    const { maxDays, topN } = request.body ?? {};
+    const result = await catalogProposalService.generateProposals({ maxDays, topN });
+    return reply.send(result);
+  });
+
+  app.post('/api/signal-catalog-evolution/proposals/:id/review', {
+    preHandler: authPreHandler,
+  }, async (request, reply) => {
+    if (!requireAnalystView(request, reply)) return;
+    auditFromRequest(request, 'catalog.review_proposal', '/api/signal-catalog-evolution/proposals/:id/review');
+    const { status, note } = request.body ?? {};
+    if (!status) return reply.code(400).send({ error: 'status required' });
+    try {
+      const updated = await catalogProposalService.reviewProposal(String(request.params.id), {
+        status,
+        note: note ?? '',
+        reviewer: request.user?.email ?? '',
+      });
+      return reply.send(updated);
+    } catch (err) {
+      return reply.code(400).send({ error: err.message });
+    }
+  });
+}

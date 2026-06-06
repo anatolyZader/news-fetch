@@ -44,7 +44,7 @@ console.log(`Root production dependencies: ${direct.length}\n`);
 /** @type {string[]} */
 const unused = [];
 
-for (const name of direct.sort((a, b) => a.localeCompare(b))) {
+for (const name of direct.toSorted((a, b) => a.localeCompare(b))) {
   const patterns = [
     `from '${name}'`,
     `from "${name}"`,
@@ -72,5 +72,5 @@ if (unused.length > 0) {
   console.log('\nAll direct production dependencies appear referenced in scanned paths.');
 }
 
-console.log('\nAlso review: client/package.json, docs/docs-site/package.json (separate lockfiles).');
+console.log('\nAlso review: client/package.json, tools/docs-site/package.json (separate lockfiles).');
 console.log('See docs/DEPENDENCIES.md for the full inventory.');

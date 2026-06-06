@@ -7,7 +7,10 @@ import { fileURLToPath } from 'node:url';
 
 const HFC_INDEX_DATE = '2099-01-01';
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
-const DEFAULT_GUIDELINES_PATH = resolve(REPO_ROOT, 'docs/corpora/hfc-field-guidelines.md');
+const DEFAULT_GUIDELINES_PATH = resolve(
+  REPO_ROOT,
+  'business_modules/report_build/data/hfc-field-guidelines.md',
+);
 
 /**
  * Split markdown into sections by ## headings.

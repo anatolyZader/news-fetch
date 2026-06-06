@@ -42,6 +42,7 @@ export function PboMunicipalReviewPanel({
   municipality,
   districtId,
   getIdToken,
+  getAppCheckToken,
   apiReady,
   onSubmitted,
   summary = null,
@@ -50,6 +51,7 @@ export function PboMunicipalReviewPanel({
   const { t } = useLanguage();
   const { hits: historyHits, loading: historyLoading, error: historyError, search: searchHistory } = usePboHistoricalSearch({
     getIdToken,
+    getAppCheckToken,
     apiReady,
   });
   const [historyQuery, setHistoryQuery] = useState('');
@@ -58,6 +60,7 @@ export function PboMunicipalReviewPanel({
     date,
     municipality,
     getIdToken,
+    getAppCheckToken,
     apiReady,
   });
   const [answers, setAnswers] = useState({});
@@ -304,6 +307,7 @@ PboMunicipalReviewPanel.propTypes = {
   municipality: PropTypes.string,
   districtId: PropTypes.string,
   getIdToken: PropTypes.func,
+  getAppCheckToken: PropTypes.func,
   apiReady: PropTypes.bool,
   onSubmitted: PropTypes.func,
   summary: PropTypes.object,

@@ -1,9 +1,9 @@
 {
   "_meta": {
     "title": "Northern Israel municipality-to-region mapping (PBO divisions)",
-    "source": "nafot_muni.jpeg — April 2026 distribution",
+    "source": "business_modules/geo/data/nafot_muni.jpeg — April 2026 distribution",
     "last_verified": "2026-04-15",
-    "note": "Extracted from nafot_hq.jpeg, corrected by user 2026-04-15",
+    "note": "Extracted from business_modules/geo/data/nafot_hq.jpeg, corrected by user 2026-04-15",
     "geo_reference": "Lat/lon for these names are maintained in business_modules/geo/data/north-reference.json (rebuild: npm run build:north-reference). Region keys map to geo subregionId: גלמ\"ע→galma, חירם→hiram, בראם→baram, נפתלי→naftali, גולן→golan."
   },
   "regions": {

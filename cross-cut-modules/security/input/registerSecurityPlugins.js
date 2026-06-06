@@ -97,7 +97,7 @@ export async function registerSecurityPlugins(app, _opts = {}) {
     },
     {
       method: 'POST',
-      url: '/api/catalog-learning/proposals/generate',
+      url: '/api/signal-catalog-evolution/proposals/generate',
       max: envInt('RATE_LIMIT_CATALOG_GENERATE_MAX', 5),
       key: 'uid',
     },

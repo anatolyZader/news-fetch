@@ -10,7 +10,7 @@ export default defineConfig([
       '**/node_modules/**',
       'client/node_modules/**',
       'client/dist/**',
-      'docs/docs-site/**',
+      'tools/docs-site/**',
       'analyst-site/**',
       'dist/**',
       '.cursor/**',
@@ -137,7 +137,12 @@ export default defineConfig([
   },
   {
     files: ['**/domain/**/*.{js,mjs,cjs}'],
-    ignores: ['**/infrastructure/**', 'tests/**', 'scripts/**'],
+    ignores: [
+      '**/infrastructure/**',
+      'tests/**',
+      'scripts/**',
+      'cross-cut-modules/persistence/**',
+    ],
     rules: {
       'no-restricted-imports': [
         'error',
@@ -150,6 +155,12 @@ export default defineConfig([
             {
               name: 'fs',
               message: 'Domain layer must use cross-cut-modules/persistence ports, not fs directly.',
+            },
+          ],
+          patterns: [
+            {
+              group: ['**/infrastructure/**', '**/app/**'],
+              message: 'Domain layer must not import from infrastructure or app layers.',
             },
           ],
         },

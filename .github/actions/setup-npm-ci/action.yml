@@ -2,7 +2,7 @@ name: Setup npm for CI
 description: Pin npm 11.10+ and run npm ci with optional min-release-age (supply-chain policy).
 inputs:
   working-directory:
-    description: Optional directory for npm ci (--prefix), e.g. client or docs/docs-site
+    description: Optional directory for npm ci (--prefix), e.g. client or tools/docs-site
     required: false
     default: ''
   min-release-age-days:

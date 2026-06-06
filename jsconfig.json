@@ -20,7 +20,7 @@
   "exclude": [
     "node_modules",
     "client",
-    "docs/docs-site",
+    "tools/docs-site",
     "analyst-site",
     "coverage",
     "daily_reports",
@@ -28,6 +28,6 @@
     "articles_extracted",
     "**/data/**",
     "db/**",
-    "docs/product_docs/api/generated"
+    "cross-cut-modules/docs/content/pages/api/generated"
   ]
 }

@@ -30,7 +30,7 @@ export function CatalogProposalPanel({ enabled = false }) {
       const headers = new Headers();
       const token = await getIdToken();
       if (token) headers.set('Authorization', `Bearer ${token}`);
-      const res = await fetch('/api/catalog-learning/proposals?status=draft', { headers });
+      const res = await fetch('/api/signal-catalog-evolution/proposals?status=draft', { headers });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error ?? `HTTP ${res.status}`);
       setProposals(Array.isArray(data.proposals) ? data.proposals : []);
@@ -52,7 +52,7 @@ export function CatalogProposalPanel({ enabled = false }) {
     try {
       const headers = await buildAuthHeaders({ getIdToken, getAppCheckToken });
       headers.set('Content-Type', 'application/json');
-      const res = await fetch('/api/catalog-learning/proposals/generate', {
+      const res = await fetch('/api/signal-catalog-evolution/proposals/generate', {
         method: 'POST',
         headers,
         body: JSON.stringify({ maxDays: 14, topN: 10 }),
@@ -73,7 +73,7 @@ export function CatalogProposalPanel({ enabled = false }) {
       const headers = new Headers({ 'Content-Type': 'application/json' });
       const token = await getIdToken();
       if (token) headers.set('Authorization', `Bearer ${token}`);
-      const res = await fetch(`/api/catalog-learning/proposals/${encodeURIComponent(id)}/review`, {
+      const res = await fetch(`/api/signal-catalog-evolution/proposals/${encodeURIComponent(id)}/review`, {
         method: 'POST',
         headers,
         body: JSON.stringify({ status, note: '' }),

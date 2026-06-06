@@ -3,13 +3,14 @@
  * Full scores remain on disk; redaction applies at API/UI boundaries.
  */
 
+import {
+  DISPLAY_VIEWS,
+  resolveDisplayView as resolveDisplayViewContract,
+} from '../../../../cross-cut-modules/resilience-contracts/displayViews.js';
 import { deriveThinEvidencePolicy, isThinEvidencePolicyEnabled, deriveAssessmentEpistemicPolicy } from './thinEvidencePolicy.js';
 import { narrativeGroundingMinScore } from './narrativeGrounding/groundingConfig.js';
 
-export const DISPLAY_VIEWS = Object.freeze({
-  operator: 'operator',
-  analyst: 'analyst',
-});
+export { DISPLAY_VIEWS, resolveDisplayViewContract as resolveDisplayView };
 
 const SCORE_KEYS_COMPONENT = [
   'score',
@@ -42,18 +43,6 @@ const SCORE_KEYS_COMPONENT = [
   'weight_sensitivity',
   'weight_sensitivity_note',
 ];
-
-/**
- * @param {{ queryView?: string, canViewAnalyst?: boolean }} opts
- * @returns {'operator' | 'analyst'}
- */
-export function resolveDisplayView({ queryView, canViewAnalyst = false } = {}) {
-  const requested = String(queryView ?? 'operator').trim().toLowerCase();
-  if (requested !== DISPLAY_VIEWS.analyst) {
-    return DISPLAY_VIEWS.operator;
-  }
-  return canViewAnalyst ? DISPLAY_VIEWS.analyst : DISPLAY_VIEWS.operator;
-}
 
 /**
  * @param {number|null|undefined} polarization

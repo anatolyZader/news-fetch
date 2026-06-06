@@ -1,7 +1,12 @@
+import { useState } from 'react';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import Link from '@mui/material/Link';
+import Collapse from '@mui/material/Collapse';
+import IconButton from '@mui/material/IconButton';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import PropTypes from 'prop-types';
 
 import { useLanguage } from '../context/LanguageContext.jsx';
@@ -111,8 +116,10 @@ export function AttentionPanel({
   displayTier = 'operator',
   onJumpToComponent,
   onScrollToValidationReview,
+  defaultOpen = false,
 }) {
   const { t } = useLanguage();
+  const [open, setOpen] = useState(defaultOpen);
   const isAnalyst = displayTier === 'analyst';
   const allItems = mergeAttentionItems(items, driftAlerts, isAnalyst);
 
@@ -137,13 +144,24 @@ export function AttentionPanel({
         alignItems="center"
         justifyContent="space-between"
         spacing={1}
+        role="button"
+        tabIndex={0}
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            setOpen((v) => !v);
+          }
+        }}
         sx={(theme) => ({
           paddingTop: theme.spacing(1.25),
           paddingBottom: theme.spacing(1.25),
           paddingLeft: theme.spacing(1.5),
-          paddingRight: theme.spacing(1.5),
-          borderBottom: theme.custom.border.hairline,
+          paddingRight: theme.spacing(0.5),
+          borderBottom: open ? theme.custom.border.hairline : 'none',
           background: theme.palette.action.hover,
+          cursor: 'pointer',
         })}
       >
         <Typography variant="cardTitle">{t('attention.panelTitle')}</Typography>
@@ -156,13 +174,20 @@ export function AttentionPanel({
           <Typography variant="caption" color="text.secondary">
             {t('attention.itemCount').replace('{n}', String(allItems.length))}
           </Typography>
+          <IconButton
+            size="small"
+            aria-label={open ? t('attention.collapse') : t('attention.expand')}
+          >
+            {open ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+          </IconButton>
         </Stack>
       </Stack>
 
+      <Collapse in={open}>
       <Stack spacing={0} divider={null}>
         {allItems.map((entry) => {
           const title = t(entry.title_key);
-          const detailParams = { ...(entry.detail_params ?? {}) };
+          const detailParams = { ...entry.detail_params };
           if (entry.component_id && detailParams.component_id) {
             detailParams.component_label = componentLabel(entry.component_id, t);
           }
@@ -229,6 +254,7 @@ export function AttentionPanel({
           );
         })}
       </Stack>
+      </Collapse>
     </Box>
   );
 }
@@ -239,4 +265,5 @@ AttentionPanel.propTypes = {
   displayTier: PropTypes.oneOf(['operator', 'analyst']),
   onJumpToComponent: PropTypes.func,
   onScrollToValidationReview: PropTypes.func,
+  defaultOpen: PropTypes.bool,
 };

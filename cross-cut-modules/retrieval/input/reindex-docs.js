@@ -6,9 +6,10 @@ import { createRetrievalService } from '../createRetrievalService.js';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 
-async function main() {
+try {
   const sqlitePath = process.env.SQLITE_PATH?.trim() || resolve(REPO_ROOT, 'db', 'app.sqlite');
-  const docsRoot = process.env.DOCS_ROOT?.trim() || resolve(REPO_ROOT, 'docs', 'product_docs');
+  const docsRoot = process.env.DOCS_ROOT?.trim()
+    || resolve(REPO_ROOT, 'cross-cut-modules', 'docs', 'content', 'pages');
   const svc = createRetrievalService({ dbPath: sqlitePath });
   const r = await svc.docsIndexWriter.reindexDocs({ docsRootDir: docsRoot });
   svc.rebuildFts();
@@ -16,9 +17,7 @@ async function main() {
   console.error(
     `Docs RAG reindex: ${r.chunks} chunk(s) from ${r.pages} page(s), version ${r.corpus_version}`,
   );
-}
-
-main().catch((err) => {
+} catch (err) {
   console.error('reindex-docs failed:', err.message);
   process.exit(1);
-});
+}

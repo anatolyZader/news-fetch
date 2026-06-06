@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 /**
  * Stage-1 CLI: extract behavioral signals from one source type and persist JSON artifacts
- * (root `signals/` for most sources; visits module for `field`).
+ * (signals_extraction module data for most sources; visits module for `field`).
  * Run this separately for each source type; then run assess-signals.js to combine and assess.
  *
  * Usage:
  *   node extract-signals.js --source-type news|radio|field|whatsapp --files <f1.md,f2.md,...> --date YYYY-MM-DD
  *
  * Output:
- *   signals/signals-{source-type}-{date}.json  (news, radio, whatsapp, …)
+ *   business_modules/signals_extraction/data/signals/signals-{source-type}-{date}.json  (news, radio, whatsapp, …)
  *   business_modules/visits/data/signals/signals-field-{date}.json  (field)
  */
 
@@ -24,6 +24,7 @@ import { enrichSignalsWithGeo } from '../../../cross-cut-modules/geo/enrichSigna
 import { archiveMarkdownFiles } from '../app/archiveMarkdownFromMd.js';
 import { attachSourceIdsToSignals, attachSourceIdsToArticles } from '../../../db/source_archive/attachSourceIds.js';
 import { createRetrievalService } from '../../../cross-cut-modules/retrieval/createRetrievalService.js';
+import { defaultClosedSignalsDir } from '../../signals_extraction/infrastructure/signalsDataPaths.js';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 
@@ -129,7 +130,7 @@ async function enrichExtractedSignals(rawSignals, sourceType, filePaths) {
 function writeSignalsBundle({ sourceType, contentKind, date, filePaths, articles, signals, bundleDistrictId }) {
   const outDir = sourceType === 'field'
     ? resolve('business_modules', 'visits', 'data', 'signals')
-    : resolve('signals');
+    : defaultClosedSignalsDir();
   mkdirSync(outDir, { recursive: true });
   const outPath = resolve(outDir, `signals-${sourceType}-${date}.json`);
   writeFileSync(

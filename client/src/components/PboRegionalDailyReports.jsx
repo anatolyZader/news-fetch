@@ -27,9 +27,10 @@ import PropTypes from 'prop-types';
 export function PboRegionalDailyReports({ districtId = 'north', regionId, showHistoricalSearch = false }) {
   const theme = useTheme();
   const { t } = useLanguage();
-  const { apiReady, getIdToken } = useAuth();
+  const { apiReady, getIdToken, getAppCheckToken } = useAuth();
   const { hits: historyHits, loading: historyLoading, error: historyError, search: searchHistory } = usePboHistoricalSearch({
     getIdToken,
+    getAppCheckToken,
     apiReady,
   });
   const [historyQuery, setHistoryQuery] = useState('');
@@ -37,6 +38,7 @@ export function PboRegionalDailyReports({ districtId = 'north', regionId, showHi
     districtId,
     regionId,
     getIdToken,
+    getAppCheckToken,
     apiReady,
   });
 

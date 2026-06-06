@@ -29,6 +29,12 @@ import { createWhatsAppReportDraftStore } from '../business_modules/whatsapp/inf
 import { createMetaCloudApiAdapter } from '../business_modules/whatsapp/infrastructure/adapters/metaCloudApiAdapter.js';
 import { createWhatsAppIngestService } from '../business_modules/whatsapp/app/whatsappIngestService.js';
 import { createWhatsAppResilienceAnalyzer } from '../business_modules/whatsapp/app/whatsappResilienceAnalyzer.js';
+import {
+  buildSignalExtractionSystemPrompt,
+  applySourceNativeGrounding,
+  createNoOpGeoEnrichmentPort,
+  enrichFieldProvenance,
+} from '../business_modules/resilience/index.js';
 import { createDraftGenerator } from '../business_modules/whatsapp/app/draftGenerator.js';
 import { whatsappWebhookPlugin } from '../business_modules/whatsapp/input/webhook-routes.js';
 import { createReportBuildService as createReportBuildServiceFromWa } from '../business_modules/report_build/app/reportBuildService.js';
@@ -87,6 +93,7 @@ export function createMediaHelpers(deps) {
     return createReportBuildService({
       analyzerPort: createAnthropicReportBuildAnalyzerAdapter({
         anthropicApiKey: process.env.ANTHROPIC_API_KEY.trim(),
+        buildSignalExtractionSystemPrompt,
       }),
       suggestAnalyzerPort: createAnthropicReportBuildSuggestAdapter({
         anthropicApiKey: process.env.ANTHROPIC_API_KEY.trim(),
@@ -117,6 +124,10 @@ export function createMediaHelpers(deps) {
       ? createWhatsAppResilienceAnalyzer({
         anthropicApiKey: process.env.ANTHROPIC_API_KEY.trim(),
         geoEnrichmentPort: deps.geoEnrichmentPort,
+        buildSignalExtractionSystemPrompt,
+        applySourceNativeGrounding,
+        createNoOpGeoEnrichmentPort,
+        enrichFieldProvenance,
       })
       : null;
     const whatsappDraftGenerator = process.env.ANTHROPIC_API_KEY?.trim()

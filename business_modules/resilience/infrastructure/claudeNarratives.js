@@ -864,7 +864,7 @@ export async function generateNarratives(
 }
 
 // Backwards-compat: synthesizeComponents wraps the new two-step (score + narrate)
-// so that api/analysisService.js and cross-cut-modules/budget token audit continue to work.
+// so that report cache readers and cross-cut-modules/budget token audit continue to work.
 
 export async function synthesizeComponents(signals, date, totalArticles, {
   onUsage,

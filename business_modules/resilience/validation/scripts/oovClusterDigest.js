@@ -1,15 +1,15 @@
 #!/usr/bin/env node
 /**
  * Weekly cluster digest of OOV capture records.
- * Delegates to catalogLearning gap report (stdout summary).
+ * Delegates to signal catalog evolution gap report (stdout summary).
  */
-import { CatalogLearningService } from '../../catalogLearning/app/catalogLearningService.js';
-import { LearningCaptureFsAdapter } from '../../catalogLearning/infrastructure/adapters/learningCaptureFsAdapter.js';
+import { SignalCatalogEvolutionService } from '../../signal_catalog_evolution/app/signalCatalogEvolutionService.js';
+import { LearningCaptureFsAdapter } from '../../signal_catalog_evolution/infrastructure/adapters/learningCaptureFsAdapter.js';
 
 const reportsDir = process.argv[2] ?? 'daily_reports';
 
 async function main() {
-  const service = new CatalogLearningService({
+  const service = new SignalCatalogEvolutionService({
     capturePort: new LearningCaptureFsAdapter({ reportsDir }),
   });
   const report = await service.buildGapReport({ maxDays: 14, topN: 20, minCount: 1 });

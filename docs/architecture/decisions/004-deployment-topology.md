@@ -12,5 +12,5 @@ Accepted
 
 ## Consequences
 
-- See [deployment-split.md](../../product_docs/operations/deployment-split.md) for cutover steps.
+- See [deployment-split.md](../../cross-cut-modules/docs/content/pages/operations/deployment-split.md) for cutover steps.
 - Single SQLite writer per environment remains required.

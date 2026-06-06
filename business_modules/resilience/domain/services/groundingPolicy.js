@@ -2,17 +2,13 @@
  * Probabilistic grounding tiers for evidence verification.
  * Tier C (unverified_critical) contributes zero mass — operator alert only (Option A).
  *
- * @see docs/main_docu_files/8-component-analysis-end-to-end.md §7.1
+ * @see docs/main_docu_files/RESILIENCE-ENGINE-REFERENCE.md §3 (Epistemic tiers and abstention)
  */
 
+import { GROUNDING_TIER } from '../../../../cross-cut-modules/resilience-contracts/groundingTier.js';
 import { CRITICAL_BYPASS_SIGNAL_TYPES } from './highSalienceBypass.js';
 
-export const GROUNDING_TIER = Object.freeze({
-  grounded: 'grounded',
-  weak: 'weak',
-  unverified_critical: 'unverified_critical',
-  rejected: 'rejected',
-});
+export { GROUNDING_TIER };
 
 const DEFAULT_WEAK_WEIGHT = 0.35;
 

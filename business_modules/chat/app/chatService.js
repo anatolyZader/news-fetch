@@ -2,20 +2,17 @@
  * Chat application service — orchestrates report context and Claude streaming.
  */
 import { buildReportContext } from '../domain/reportContext.js';
-import { streamChatResponse } from '../infrastructure/claudeChat.js';
 import { ragPipelineEnabled } from '../../../cross-cut-modules/retrieval/index.js';
 import { reportIndexHelpers } from '../../../cross-cut-modules/retrieval/reportIndexHelpers.js';
 import { METRIC } from '../../../cross-cut-modules/monitoring/domain/metricNames.js';
-import {
-  DISPLAY_VIEWS,
-  redactReportPayload,
-} from '../../resilience/index.js';
+import { DISPLAY_VIEWS } from '../../../cross-cut-modules/resilience-contracts/index.js';
 
 const MAX_HISTORY_MESSAGES = 20;
 
-function chatReportData(raw) {
+function chatReportData(raw, redactReportPayload) {
   if (!raw) return raw;
   if (raw.display_view === DISPLAY_VIEWS.analyst) return raw;
+  if (!redactReportPayload) return raw;
   return redactReportPayload(raw, DISPLAY_VIEWS.operator);
 }
 
@@ -44,7 +41,12 @@ function throwIfAborted(abortSignal) {
  * @param {object} [opts.tracePort]
  */
 export async function streamChat(message, history, rawReply, getReportData, opts = {}) {
-  const reportData = chatReportData(getReportData());
+  const redactReportPayload = opts.redactReportPayload ?? null;
+  const chatLlmPort = opts.chatLlmPort;
+  if (!chatLlmPort?.streamChatResponse) {
+    throw new Error('streamChat requires chatLlmPort with streamChatResponse');
+  }
+  const reportData = chatReportData(getReportData(), redactReportPayload);
   const includeScores = reportData?.display_view === DISPLAY_VIEWS.analyst;
   const reportScopeId = opts.reportGeoScope
     ?? reportData?.assessment?.report_scope?.id
@@ -92,7 +94,7 @@ export async function streamChat(message, history, rawReply, getReportData, opts
   };
 
   try {
-    const runLlm = () => streamChatResponse(context, pboLookup, messages, send, reportData, {
+    const runLlm = () => chatLlmPort.streamChatResponse(context, pboLookup, messages, send, reportData, {
       sourceArchive: opts.sourceArchive ?? null,
       evidenceStore: opts.evidenceStore ?? null,
       retrievalService: opts.retrievalService ?? null,
