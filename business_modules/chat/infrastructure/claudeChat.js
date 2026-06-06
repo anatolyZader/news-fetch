@@ -86,6 +86,7 @@ export async function streamChatResponse(systemContext, pboLookup, messages, sen
     agentKind: 'chat',
     executeTool: (name, input) => handleChatToolCall(name, input, toolCtx),
     onTextBlock: (text) => send({ type: 'text', text }),
+    abortSignal: opts.abortSignal ?? null,
     onUsage: costRecorder
       ? (p) => costRecorder.onUsage({ label: p.label, model: p.model, usage: p.usage })
       : undefined,

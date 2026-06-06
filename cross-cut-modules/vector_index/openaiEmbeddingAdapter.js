@@ -65,7 +65,9 @@ export async function embedText(text, opts = {}) {
     return { vector: new Float32Array(DEFAULT_DIM_HINT), model, dim: DEFAULT_DIM_HINT };
   }
   const data = await embeddingRequest(model, clean.slice(0, 8000));
-  return parseEmbeddingVector(data?.data?.[0]?.embedding, model);
+  const usage = data?.usage ?? null;
+  const parsed = parseEmbeddingVector(data?.data?.[0]?.embedding, model);
+  return { ...parsed, usage };
 }
 
 const DEFAULT_BATCH_SIZE = 64;
@@ -86,15 +88,19 @@ export async function embedTexts(texts, opts = {}) {
     const batch = list.slice(i, i + batchSize);
     const inputs = batch.map((t) => (t || ' '));
     const data = await embeddingRequest(model, inputs);
+    const batchUsage = data?.usage ?? null;
     const items = data?.data ?? [];
     items.sort((a, b) => (a.index ?? 0) - (b.index ?? 0));
     for (let j = 0; j < batch.length; j++) {
       const item = items[j];
       const vec = item?.embedding;
       if (Array.isArray(vec) && vec.length) {
-        out.push(parseEmbeddingVector(vec, model));
+        out.push({
+          ...parseEmbeddingVector(vec, model),
+          usage: batchUsage && j === 0 ? batchUsage : null,
+        });
       } else {
-        out.push({ vector: new Float32Array(DEFAULT_DIM_HINT), model, dim: DEFAULT_DIM_HINT });
+        out.push({ vector: new Float32Array(DEFAULT_DIM_HINT), model, dim: DEFAULT_DIM_HINT, usage: null });
       }
     }
   }

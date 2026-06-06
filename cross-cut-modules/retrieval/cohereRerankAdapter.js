@@ -2,13 +2,14 @@
  * Cohere Rerank API adapter for post-retrieval ranking.
  */
 import { cohereApiKey, cohereRerankModel, cohereRerankEnabled } from './ragConfig.js';
+import { calcRerankCostUsd } from '../budget/app/budgetCostTracker.js';
 
 let warnedNoKey = false;
 
 /**
  * @param {string} query
  * @param {Array<{ chunkId: string, text: string }>} documents
- * @param {{ topN?: number }} [opts]
+ * @param {{ topN?: number, onUsage?: (p: { model?: string, costUsd?: number }) => void }} [opts]
  * @returns {Promise<Array<{ chunkId: string, relevanceScore: number, index: number }>>}
  */
 export async function cohereRerank(query, documents, opts = {}) {
@@ -36,6 +37,14 @@ export async function cohereRerank(query, documents, opts = {}) {
     documents: documents.map((d) => String(d.text ?? '').slice(0, 4000)),
     topN,
   });
+
+  const model = cohereRerankModel();
+  if (opts.onUsage) {
+    opts.onUsage({
+      model,
+      costUsd: calcRerankCostUsd(model, { documentCount: documents.length }),
+    });
+  }
 
   const results = response?.results ?? [];
   return results.map((r) => ({

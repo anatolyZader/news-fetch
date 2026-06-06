@@ -93,7 +93,18 @@ export async function runToolLoop(opts) {
   let stopReason = null;
   let lastUsage = null;
 
+  function throwIfAborted() {
+    const signal = opts.abortSignal;
+    if (!signal?.aborted) return;
+    const reason = signal.reason;
+    const message = reason instanceof Error ? reason.message : String(reason ?? 'Aborted');
+    const err = new Error(message);
+    err.name = 'AbortError';
+    throw err;
+  }
+
   for (let round = 0; round <= maxRounds; round++) {
+    throwIfAborted();
     const response = await client.messages.create({
       model,
       max_tokens: maxTokens,

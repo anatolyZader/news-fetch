@@ -15,6 +15,12 @@ import { createHttpCostRecorder } from '../../../cross-cut-modules/budget/index.
 import { createChatRetrievalCache } from '../../../cross-cut-modules/retrieval/chatRetrievalCache.js';
 import { executePendingAction } from '../app/executePendingAction.js';
 import { OPERATOR_PROPOSE_TOOL_NAMES } from '../domain/chatConfig.js';
+import { METRIC } from '../../../cross-cut-modules/monitoring/domain/metricNames.js';
+
+function chatRequestTimeoutMs() {
+  const n = Number.parseInt(process.env.CHAT_REQUEST_TIMEOUT_MS ?? '270000', 10);
+  return Number.isFinite(n) && n > 0 ? n : 270_000;
+}
 
 /**
  * @param {import('fastify').FastifyInstance} app
@@ -38,6 +44,7 @@ export async function chatRoutes(app, opts) {
     catalogProposalService,
     geoUnknownReviewService,
     llmPort,
+    tracePort,
   } = opts;
 
   const chatSessionService = createChatSessionService({
@@ -189,8 +196,12 @@ export async function chatRoutes(app, opts) {
       route: '/api/chat',
     });
     const retrievalCache = createChatRetrievalCache(sid);
+    const abortController = new AbortController();
+    const timeoutId = setTimeout(() => {
+      abortController.abort(new Error('Chat request timed out'));
+    }, chatRequestTimeoutMs());
 
-    try {
+    const runChatTurn = async () => {
       await streamChat(
         userMessage,
         history,
@@ -223,6 +234,8 @@ export async function chatRoutes(app, opts) {
           costRecorder,
           retrievalCache,
           llmPort,
+          tracePort: tracePort ?? null,
+          abortSignal: abortController.signal,
           onSend: (event) => {
             if (event?.type === 'text' && typeof event.text === 'string') assistantText += event.text;
           },
@@ -235,7 +248,16 @@ export async function chatRoutes(app, opts) {
         userMessage,
         costRecorder,
       });
+    };
+
+    try {
+      if (tracePort) {
+        await tracePort.startActiveSpan(METRIC.CHAT_REQUEST, runChatTurn);
+      } else {
+        await runChatTurn();
+      }
     } finally {
+      clearTimeout(timeoutId);
       costRecorder.flush();
       reply.raw.end();
     }

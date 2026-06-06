@@ -5,6 +5,7 @@ import { createHash } from 'node:crypto';
 import { chunkText, buildChunkId } from './chunkText.js';
 import { ragChunkTargetChars, ragChunkOverlapRatio } from './ragConfig.js';
 import { embeddingsEnabled, embedTexts, embeddingModelId } from '../vector_index/index.js';
+import { calcEmbeddingCostUsd } from '../budget/app/budgetCostTracker.js';
 
 function textHash(text) {
   return createHash('sha256').update(String(text ?? ''), 'utf8').digest('hex');
@@ -12,8 +13,13 @@ function textHash(text) {
 
 /**
  * @param {ReturnType<import('./chunkStore.js').createChunkStore>} chunkStore
+ * @param {{ getOnUsage?: () => Function|null }} [opts]
  */
-export function createIndexWriter(chunkStore) {
+export function createIndexWriter(chunkStore, opts = {}) {
+  const resolveOnUsage = () => {
+    const fn = opts.getOnUsage?.();
+    return typeof fn === 'function' ? fn : null;
+  };
   const reportFingerprints = new Map();
 
   async function indexChunksForParent({
@@ -44,6 +50,21 @@ export function createIndexWriter(chunkStore) {
     if (embeddingsEnabled()) {
       try {
         embeddings = await embedTexts(segments.map((s) => s.text), { model });
+        const onUsage = resolveOnUsage();
+        if (onUsage) {
+          let totalTokens = 0;
+          for (const emb of embeddings) {
+            totalTokens += emb.usage?.total_tokens ?? emb.usage?.prompt_tokens ?? 0;
+          }
+          if (totalTokens > 0) {
+            onUsage({
+              label: 'rag:index-embed',
+              model,
+              costUsd: calcEmbeddingCostUsd(model, { total_tokens: totalTokens }),
+              usage: { input_tokens: totalTokens, output_tokens: 0 },
+            });
+          }
+        }
       } catch (err) {
         console.error(`rag indexWriter: embed failed for ${pid}:`, err.message);
       }

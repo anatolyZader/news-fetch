@@ -19,7 +19,7 @@ All tracked spend is appended to **`cross-cut-modules/log/data/cost-log.jsonl`**
 
 Batch scripts use `checkDailyBudget()` at startup with the same log.
 
-**Not yet in ledger:** OpenAI embedding and Cohere rerank (retrieval only). Disable RAG or set `COHERE_API_KEY` unset to skip rerank cost.
+**Retrieval embedding / rerank** (OpenAI `text-embedding-3-*`, Cohere rerank) are recorded in the same ledger via `onUsage` labels `rag:query-embed`, `rag:index-embed`, and `rag:rerank`. Pricing defaults: `EMBEDDING_USD_PER_MTOK` (default `0.02` per 1M tokens), `RERANK_USD_PER_SEARCH` (default `0.002` per rerank call). Disable RAG or unset `COHERE_API_KEY` to skip rerank cost entirely.
 
 ## Quality mode (intentionally expensive defaults)
 

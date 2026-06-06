@@ -24,6 +24,10 @@ import PropTypes from 'prop-types';
 
 const AuthContext = createContext(null);
 
+/** Unblock auth gate if Firebase never resolves (network / SDK hang). */
+const AUTH_BOOTSTRAP_TIMEOUT_MS = 8000;
+const AUTH_CONFIG_FETCH_TIMEOUT_MS = 10000;
+
 function getOrInitApp() {
   if (getApps().length > 0) return getApps()[0];
   return initializeApp(getFirebaseWebConfig());
@@ -41,11 +45,20 @@ export function AuthProvider({ children }) {
   const [authError, setAuthError] = useState(null);
   const tokenCacheRef = useRef({ token: null, expiresAt: 0, inflight: null });
 
+  // Warm Firebase while auth config loads so onAuthStateChanged can fire sooner.
+  useEffect(() => {
+    if (isFirebaseClientConfigured()) {
+      getOrInitApp();
+    }
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
     (async () => {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), AUTH_CONFIG_FETCH_TIMEOUT_MS);
       try {
-        const res = await fetch('/api/auth/config');
+        const res = await fetch('/api/auth/config', { signal: controller.signal });
         if (!res.ok) {
           throw new Error(`HTTP ${res.status}`);
         }
@@ -61,10 +74,14 @@ export function AuthProvider({ children }) {
         }
       } catch (err) {
         if (!cancelled) {
-          setConfigError(err?.message ?? 'Could not load auth configuration');
+          const message = err?.name === 'AbortError'
+            ? 'Auth configuration request timed out'
+            : (err?.message ?? 'Could not load auth configuration');
+          setConfigError(message);
           setAuthRequired(true);
         }
       } finally {
+        clearTimeout(timeoutId);
         if (!cancelled) setConfigLoaded(true);
       }
     })();
@@ -74,45 +91,54 @@ export function AuthProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    if (!configLoaded) return;
+    if (!configLoaded) return undefined;
     if (!authRequired || !isFirebaseClientConfigured()) {
       queueMicrotask(() => setAuthLoading(false));
-      return;
+      return undefined;
     }
 
-    const app = getOrInitApp();
-    const auth = getAuth(app);
-    ensureAppCheckInitialized();
+    const auth = getAuth(getOrInitApp());
+    let authResolved = false;
 
-    const unsub = onAuthStateChanged(auth, async (u) => {
+    const bootstrapTimeout = setTimeout(() => {
+      if (!authResolved) setAuthLoading(false);
+    }, AUTH_BOOTSTRAP_TIMEOUT_MS);
+
+    const unsub = onAuthStateChanged(auth, (u) => {
+      authResolved = true;
+      clearTimeout(bootstrapTimeout);
       setMembershipDenied(false);
       if (!u) {
         setUser(null);
         setAuthLoading(false);
         return;
       }
-      try {
-        const tok = await u.getIdToken();
-        const meRes = await fetch('/api/auth/me', {
-          headers: { Authorization: `Bearer ${tok}` },
-        });
-        const me = await meRes.json().catch(() => ({}));
-        if (meRes.status === 403 && me?.code === 'forbidden_not_invited') {
-          setMembershipDenied(true);
-          setAuthError(me?.message ?? 'Account is not authorized for this application.');
-          await signOut(auth);
-          setUser(null);
-          setAuthLoading(false);
-          return;
-        }
-      } catch {
-        /* proceed — API may be unreachable in dev */
-      }
+      // Show the app immediately; verify invite list in the background.
       setUser(u);
       setAuthLoading(false);
+      void (async () => {
+        try {
+          const tok = await u.getIdToken();
+          const meRes = await fetch('/api/auth/me', {
+            headers: { Authorization: `Bearer ${tok}` },
+          });
+          const me = await meRes.json().catch(() => ({}));
+          if (meRes.status === 403 && me?.code === 'forbidden_not_invited') {
+            setMembershipDenied(true);
+            setAuthError(me?.message ?? 'Account is not authorized for this application.');
+            await signOut(auth);
+            setUser(null);
+          }
+        } catch {
+          /* proceed — API may be unreachable in dev */
+        }
+      })();
     });
 
-    return () => unsub();
+    return () => {
+      clearTimeout(bootstrapTimeout);
+      unsub();
+    };
   }, [configLoaded, authRequired]);
 
   const getIdToken = useCallback(async (opts = {}) => {

@@ -1,8 +1,12 @@
 export {
   PRICING,
+  EMBEDDING_USD_PER_MTOK,
   TRANSCRIPTION_USD_PER_MINUTE,
   calcInvocationCostUsd,
+  calcEmbeddingCostUsd,
+  calcRerankCostUsd,
   calcTranscriptionCostUsd,
+  rerankUsdPerSearch,
   createCostTracker,
   checkDailyBudget,
 } from './app/budgetCostTracker.js';

@@ -5,6 +5,7 @@ import { buildReportContext } from '../domain/reportContext.js';
 import { streamChatResponse } from '../infrastructure/claudeChat.js';
 import { ragPipelineEnabled } from '../../../cross-cut-modules/retrieval/index.js';
 import { reportIndexHelpers } from '../../../cross-cut-modules/retrieval/reportIndexHelpers.js';
+import { METRIC } from '../../../cross-cut-modules/monitoring/domain/metricNames.js';
 import {
   DISPLAY_VIEWS,
   redactReportPayload,
@@ -16,6 +17,15 @@ function chatReportData(raw) {
   if (!raw) return raw;
   if (raw.display_view === DISPLAY_VIEWS.analyst) return raw;
   return redactReportPayload(raw, DISPLAY_VIEWS.operator);
+}
+
+function throwIfAborted(abortSignal) {
+  if (!abortSignal?.aborted) return;
+  const reason = abortSignal.reason;
+  const message = reason instanceof Error ? reason.message : String(reason ?? 'Chat request aborted');
+  const err = new Error(message);
+  err.name = 'AbortError';
+  throw err;
 }
 
 /**
@@ -30,6 +40,8 @@ function chatReportData(raw) {
  * @param {object} [opts.driftService]
  * @param {object} [opts.catalogProposalService]
  * @param {object} [opts.geoUnknownReviewService]
+ * @param {AbortSignal} [opts.abortSignal]
+ * @param {object} [opts.tracePort]
  */
 export async function streamChat(message, history, rawReply, getReportData, opts = {}) {
   const reportData = chatReportData(getReportData());
@@ -42,12 +54,23 @@ export async function streamChat(message, history, rawReply, getReportData, opts
     reportScopeId,
   });
 
-  const retrievalHint = await buildRetrievalHint(message, history, reportData, {
+  const tracePort = opts.tracePort ?? null;
+  const abortSignal = opts.abortSignal ?? null;
+
+  throwIfAborted(abortSignal);
+
+  const buildHint = () => buildRetrievalHint(message, history, reportData, {
     ...opts,
     onUsage: opts.costRecorder
       ? (p) => opts.costRecorder.onUsage(p)
       : undefined,
   });
+
+  const retrievalHint = tracePort
+    ? await tracePort.startActiveSpan(METRIC.CHAT_RETRIEVAL_HINT, buildHint)
+    : await buildHint();
+
+  throwIfAborted(abortSignal);
 
   const context =
     String(baseContext ?? '') +
@@ -69,7 +92,7 @@ export async function streamChat(message, history, rawReply, getReportData, opts
   };
 
   try {
-    await streamChatResponse(context, pboLookup, messages, send, reportData, {
+    const runLlm = () => streamChatResponse(context, pboLookup, messages, send, reportData, {
       sourceArchive: opts.sourceArchive ?? null,
       evidenceStore: opts.evidenceStore ?? null,
       retrievalService: opts.retrievalService ?? null,
@@ -87,10 +110,18 @@ export async function streamChat(message, history, rawReply, getReportData, opts
       geoUnknownReviewService: opts.geoUnknownReviewService ?? null,
       toolProfile: opts.toolProfile ?? 'default',
       llmPort: opts.llmPort ?? null,
+      abortSignal,
     });
+
+    if (tracePort) {
+      await tracePort.startActiveSpan(METRIC.CHAT_LLM_STREAM, runLlm);
+    } else {
+      await runLlm();
+    }
     send({ type: 'done' });
   } catch (err) {
-    send({ type: 'error', message: err.message });
+    send({ type: 'error', message: err?.message ?? 'Chat failed' });
+    send({ type: 'done', error: true });
   }
 }
 

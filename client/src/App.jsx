@@ -1,15 +1,18 @@
+import { lazy, Suspense } from 'react';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Alert from '@mui/material/Alert';
 import { AuthProvider, useAuth } from './context/AuthContext.jsx';
 import { LanguageProvider } from './context/LanguageContext.jsx';
-import { LoginScreen } from './components/LoginScreen.jsx';
-import { MainApp } from './MainApp.jsx';
-import { PanelWindowApp, PanelWindowLoading } from './PanelWindowApp.jsx';
+import { BootstrapLoading } from './ui/BootstrapLoading.jsx';
 import { parsePanelPath } from './lib/panelRoutes.js';
 import { AppProviders } from './theme/AppProviders.jsx';
 import { AppErrorBoundary } from './components/AppErrorBoundary.jsx';
 import PropTypes from 'prop-types';
+
+const LoginScreen = lazy(() => import('./components/LoginScreen.jsx').then((m) => ({ default: m.LoginScreen })));
+const MainApp = lazy(() => import('./MainApp.jsx').then((m) => ({ default: m.MainApp })));
+const PanelWindowApp = lazy(() => import('./PanelWindowApp.jsx').then((m) => ({ default: m.PanelWindowApp })));
 
 export default function App() {
   return (
@@ -68,7 +71,7 @@ function AuthGate() {
   }
 
   if (!configLoaded || (authRequired && firebaseConfigured && authLoading)) {
-    if (panelId) return <PanelWindowLoading />;
+    if (panelId) return <BootstrapLoading />;
     return (
       <CenteredWrap>
         <Typography variant="body2" color="text.secondary" sx={{ maxWidth: '36rem' }}>
@@ -93,12 +96,28 @@ function AuthGate() {
   }
 
   if (authRequired && !user) {
-    return <LoginScreen />;
+    return (
+      <Suspense fallback={<AppLoadingFallback />}>
+        <LoginScreen />
+      </Suspense>
+    );
   }
 
   if (panelId) {
-    return <PanelWindowApp panelId={panelId} />;
+    return (
+      <Suspense fallback={<BootstrapLoading />}>
+        <PanelWindowApp panelId={panelId} />
+      </Suspense>
+    );
   }
 
-  return <MainApp />;
+  return (
+    <Suspense fallback={<AppLoadingFallback />}>
+      <MainApp />
+    </Suspense>
+  );
+}
+
+function AppLoadingFallback() {
+  return <BootstrapLoading />;
 }

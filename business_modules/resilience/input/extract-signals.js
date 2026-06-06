@@ -90,10 +90,10 @@ function resolveExtractFilePaths(filesArg) {
   return filePaths;
 }
 
-async function archiveExtractSources(filePaths, { date, sourceType, sqlitePath }) {
+async function archiveExtractSources(filePaths, { date, sourceType, sqlitePath, onUsage }) {
   let retrievalService = null;
   try {
-    retrievalService = createRetrievalService({ dbPath: sqlitePath });
+    retrievalService = createRetrievalService({ dbPath: sqlitePath, onUsage: onUsage ?? null });
     const n = await archiveMarkdownFiles(filePaths, {
       date,
       source_type: sourceType,
@@ -174,11 +174,16 @@ async function run() {
   const filePaths = resolveExtractFilePaths(filesArg);
 
   const { onUsage, getTotal } = createCostTracker({ label: 'extract-signals' });
+  const sqlitePath = process.env.SQLITE_PATH?.trim() || resolve(REPO_ROOT, 'db', 'app.sqlite');
+  const retrievalService = await archiveExtractSources(filePaths, {
+    date,
+    sourceType,
+    sqlitePath,
+    onUsage,
+  });
+
   let articles = loadMdFiles(filePaths, { dayOffsets: filePaths.map(() => 0) }).articles;
   articles = attachSourceIdsToArticles(articles, filePaths, REPO_ROOT);
-
-  const sqlitePath = process.env.SQLITE_PATH?.trim() || resolve(REPO_ROOT, 'db', 'app.sqlite');
-  const retrievalService = await archiveExtractSources(filePaths, { date, sourceType, sqlitePath });
 
   console.error(`\nSignal Extraction  source=${sourceType}  kind=${contentKind}`);
   console.error(`===================`);

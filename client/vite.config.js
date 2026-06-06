@@ -17,6 +17,17 @@ export default defineConfig({
       '@israel-districts': path.resolve(__dirname, '../cross-cut-modules/geo/israelDistricts.js'),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules/firebase')) return 'firebase';
+          if (id.includes('node_modules/@mui') || id.includes('node_modules/@emotion')) return 'mui';
+          if (id.includes('node_modules')) return 'vendor';
+        },
+      },
+    },
+  },
   server: {
     proxy: {
       '/api': 'http://localhost:3000',

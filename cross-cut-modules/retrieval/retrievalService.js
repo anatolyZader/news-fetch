@@ -1,10 +1,11 @@
 /**
  * RAG retrieval orchestrator: rewrite → hybrid → rerank → format.
  */
-import { embedText, embeddingsEnabled } from '../vector_index/index.js';
+import { embedText, embeddingsEnabled, embeddingModelId } from '../vector_index/index.js';
 import { reciprocalRankFusion } from './hybridSearch.js';
 import { cohereRerank } from './cohereRerankAdapter.js';
 import { rewriteQueryForRetrieval } from './queryRewriter.js';
+import { calcEmbeddingCostUsd, calcRerankCostUsd } from '../budget/app/budgetCostTracker.js';
 import {
   ragPipelineEnabled,
   chatRagHintsEnabled,
@@ -36,10 +37,19 @@ function clipSnippet(text, maxChars) {
   return s.length > n ? `${s.slice(0, n)}…` : s;
 }
 
-async function embedQueryVector(query) {
+async function embedQueryVector(query, onUsage) {
   if (!embeddingsEnabled()) return null;
   try {
     const emb = await embedText(query);
+    if (onUsage && emb.usage?.total_tokens) {
+      const model = emb.model ?? embeddingModelId();
+      onUsage({
+        label: 'rag:query-embed',
+        model,
+        costUsd: calcEmbeddingCostUsd(model, emb.usage),
+        usage: { input_tokens: emb.usage.total_tokens, output_tokens: 0 },
+      });
+    }
     return emb.vector;
   } catch (err) {
     console.error('rag retrieve: embed query failed:', err.message);
@@ -84,12 +94,17 @@ function hitsWithoutRerank(pool, topK) {
   }));
 }
 
-async function hitsWithRerank(pool, q, topK) {
+async function hitsWithRerank(pool, q, topK, onUsage) {
   const docs = pool.map((f) => ({
     chunkId: f.chunkId,
     text: String(f.hit?.text ?? '').slice(0, 4000),
   }));
-  const reranked = await cohereRerank(q, docs, { topN: topK });
+  const reranked = await cohereRerank(q, docs, {
+    topN: topK,
+    onUsage: onUsage
+      ? (payload) => onUsage({ label: 'rag:rerank', ...payload })
+      : undefined,
+  });
   const byId = new Map(pool.map((f) => [f.chunkId, f]));
   return reranked.map((r) => {
     const f = byId.get(r.chunkId);
@@ -187,34 +202,46 @@ function persistRetrievalCache(retrievalCache, sessionId, rewritten, geoScope, d
 /**
  * @param {ReturnType<import('./chunkStore.js').createChunkStore>} chunkStore
  * @param {ReturnType<import('./indexWriter.js').createIndexWriter>} indexWriter
- * @param {{ timezone?: string }} [opts]
+ * @param {{ timezone?: string, tracePort?: object, getOnUsage?: () => Function|null }} [opts]
  */
 export function createRetrievalOrchestrator(chunkStore, indexWriter, opts = {}) {
   const timezone = opts.timezone ?? process.env.TZ_ARTICLES ?? 'Asia/Jerusalem';
+  const tracePort = opts.tracePort ?? null;
+  const resolveOnUsage = () => {
+    const fn = opts.getOnUsage?.();
+    return typeof fn === 'function' ? fn : null;
+  };
 
   async function hybridRetrieve(query, filters) {
-    const q = String(query ?? '').trim();
-    if (!q) return [];
+    const run = async () => {
+      const q = String(query ?? '').trim();
+      if (!q) return [];
 
-    const namespaces = filters.namespaces ?? ['archive', 'report'];
-    const dateTo = filters.dateTo ?? dateWindowEnd(filters.reportDate, timezone);
-    const dateFrom = filters.dateFrom ?? dateWindowStart(dateTo, filters.dateWindowDays ?? ragRetrievalDays());
-    const candidates = filters.candidatePool ?? ragHybridCandidates();
-    const scopeId = filters.scopeId ?? null;
-    const queryVector = await embedQueryVector(q);
-    const perNs = Math.ceil(candidates / namespaces.length);
-    const searchCtx = { q, queryVector, perNs, dateFrom, dateTo, filters, scopeId };
+      const onUsage = filters.onUsage ?? resolveOnUsage();
 
-    const fusedAll = namespaces.flatMap((namespace) => fuseNamespaceHits(chunkStore, namespace, searchCtx));
-    fusedAll.sort((a, b) => b.rrfScore - a.rrfScore);
-    const pool = fusedAll.slice(0, candidates);
+      const namespaces = filters.namespaces ?? ['archive', 'report'];
+      const dateTo = filters.dateTo ?? dateWindowEnd(filters.reportDate, timezone);
+      const dateFrom = filters.dateFrom ?? dateWindowStart(dateTo, filters.dateWindowDays ?? ragRetrievalDays());
+      const candidates = filters.candidatePool ?? ragHybridCandidates();
+      const scopeId = filters.scopeId ?? null;
+      const queryVector = await embedQueryVector(q, onUsage);
+      const perNs = Math.ceil(candidates / namespaces.length);
+      const searchCtx = { q, queryVector, perNs, dateFrom, dateTo, filters, scopeId };
 
-    const topK = filters.topKFinal ?? ragFinalTopK();
-    let hits = filters.skipRerank
-      ? hitsWithoutRerank(pool, topK)
-      : await hitsWithRerank(pool, q, topK);
-    hits = applyRetrievalHitFilters(hits, filters);
-    return hits.slice(0, topK);
+      const fusedAll = namespaces.flatMap((namespace) => fuseNamespaceHits(chunkStore, namespace, searchCtx));
+      fusedAll.sort((a, b) => b.rrfScore - a.rrfScore);
+      const pool = fusedAll.slice(0, candidates);
+
+      const topK = filters.topKFinal ?? ragFinalTopK();
+      let hits = filters.skipRerank
+        ? hitsWithoutRerank(pool, topK)
+        : await hitsWithRerank(pool, q, topK, onUsage);
+      hits = applyRetrievalHitFilters(hits, filters);
+      return hits.slice(0, topK);
+    };
+
+    if (!tracePort) return run();
+    return tracePort.startActiveSpan('sqlite.hybrid_retrieve', run);
   }
 
   return {
@@ -248,6 +275,7 @@ export function createRetrievalOrchestrator(chunkStore, indexWriter, opts = {}) 
         scopeId,
         sourceType: input?.sourceType ?? null,
         topKFinal: input?.topKFinal ?? ragFinalTopK(),
+        onUsage: input?.onUsage ?? resolveOnUsage(),
       });
     },
 
@@ -296,6 +324,7 @@ export function createRetrievalOrchestrator(chunkStore, indexWriter, opts = {}) 
             reportData,
             reportGeoScope: input?.reportGeoScope,
             dateWindowDays: input?.dateWindowDays,
+            onUsage: input?.onUsage ?? resolveOnUsage(),
           });
         }
       }

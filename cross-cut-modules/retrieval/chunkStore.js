@@ -432,6 +432,9 @@ export function createChunkStore(dbPath, opts = {}) {
         rankSource: 'fts',
         ftsPosition: idx + 1,
       }));
+      } finally {
+        recordDuration('sqlite.fts_search.duration_ms', t0);
+      }
     },
 
     listChunksByParent(namespace, parentId) {

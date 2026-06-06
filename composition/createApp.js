@@ -228,6 +228,7 @@ export async function createApp(options) {
     catalogProposalService: w.catalogProposalService,
     geoUnknownReviewService: w.geoUnknownReviewService,
     llmPort: w.sharedLlmPort,
+    tracePort: w.tracePort,
   });
   await registerDriftRoutes(app, {
     driftService,

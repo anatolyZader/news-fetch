@@ -91,21 +91,3 @@ export function PanelWindowApp({ panelId }) {
 PanelWindowApp.propTypes = {
   panelId: PropTypes.string.isRequired,
 };
-
-export function PanelWindowLoading() {
-  return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: 4,
-      }}
-    >
-      <Typography variant="body2" color="text.secondary">
-        Loading…
-      </Typography>
-    </Box>
-  );
-}

@@ -7,7 +7,12 @@
     <title>Srulik's lab</title>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <p style="margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;font-family:Inter,system-ui,sans-serif;font-size:0.875rem;color:#64748b;">
+        Loading…
+      </p>
+    </div>
+    <link rel="preload" href="/api/auth/config" as="fetch" crossorigin />
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

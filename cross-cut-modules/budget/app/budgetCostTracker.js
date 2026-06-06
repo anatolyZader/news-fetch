@@ -14,6 +14,40 @@ export const PRICING = {
   'claude-opus-4-6':           { input: 15, output: 75 },
 };
 
+/** USD per 1M embedding tokens (OpenAI text-embedding-3-*). */
+export const EMBEDDING_USD_PER_MTOK = Number.parseFloat(
+  process.env.EMBEDDING_USD_PER_MTOK ?? '0.02',
+);
+
+/** USD per Cohere rerank API call (estimate when usage not returned). */
+export function rerankUsdPerSearch() {
+  const n = Number.parseFloat(process.env.RERANK_USD_PER_SEARCH ?? '0.002');
+  return Number.isFinite(n) && n >= 0 ? n : 0.002;
+}
+
+/**
+ * @param {string} _model
+ * @param {{ total_tokens?: number, prompt_tokens?: number }} [usage]
+ * @returns {number}
+ */
+export function calcEmbeddingCostUsd(_model, usage) {
+  const tokens = usage?.total_tokens ?? usage?.prompt_tokens ?? 0;
+  if (!Number.isFinite(tokens) || tokens <= 0) return 0;
+  return (tokens / 1_000_000) * EMBEDDING_USD_PER_MTOK;
+}
+
+/**
+ * @param {string} model
+ * @param {{ documentCount?: number }} [opts]
+ * @returns {number}
+ */
+export function calcRerankCostUsd(model, opts = {}) {
+  const count = opts.documentCount ?? 0;
+  if (count <= 0) return 0;
+  void model;
+  return rerankUsdPerSearch();
+}
+
 /** USD per minute of input audio (OpenAI speech-to-text; API does not return token usage on all formats). */
 export const TRANSCRIPTION_USD_PER_MINUTE = {
   'gpt-4o-transcribe-diarize': 0.006,

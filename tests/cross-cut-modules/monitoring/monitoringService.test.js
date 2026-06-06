@@ -6,6 +6,8 @@ import { tmpdir } from 'node:os';
 
 import { createMonitoringService } from '../../../cross-cut-modules/monitoring/app/monitoringService.js';
 import { createHealthService } from '../../../cross-cut-modules/monitoring/app/healthService.js';
+import { createInProcessMetricsPort } from '../../../cross-cut-modules/monitoring/infrastructure/adapters/inProcessMetricsPort.js';
+import { createTracingMetricsPort } from '../../../cross-cut-modules/monitoring/infrastructure/adapters/tracingMetricsPort.js';
 import { summarizeStageDropRates } from '../../../cross-cut-modules/monitoring/infrastructure/adapters/costLogReader.js';
 
 describe('monitoringService', () => {
@@ -66,6 +68,25 @@ describe('monitoringService', () => {
     assert.equal(summary.cost.by_script['extract-signals'], 0.5);
     assert.equal(summary.stage_telemetry.totals.dropped, 2);
     assert.equal(summary.stage_telemetry.per_stage.evidence_verifier.dropped, 2);
+  });
+
+  it('getSummary includes latency snapshot with in-process metrics', async () => {
+    const metricsPort = createInProcessMetricsPort();
+    const tracePort = createTracingMetricsPort({ metricsPort });
+    metricsPort.histogram('chat.request.duration_ms', 42);
+
+    const svc = createMonitoringService({
+      rootDir,
+      sqlitePath: join(rootDir, 'db/app.sqlite'),
+      timezone: 'Asia/Jerusalem',
+      metricsPort,
+      tracePort,
+    });
+    const summary = await svc.getSummary({ date: '2026-05-27', scope: 'national' });
+
+    assert.equal(summary.metrics_port, 'in_process');
+    assert.ok(summary.latency);
+    assert.equal(summary.latency['chat.request.duration_ms'].count, 1);
   });
 });
 

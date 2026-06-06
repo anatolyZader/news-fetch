@@ -47,6 +47,7 @@ function normalizeSummary(data) {
       cost: data.cost,
       health: data.health,
       stage_telemetry: data.stage_telemetry,
+      latency: data.latency ?? null,
     };
   }
   return {
@@ -57,6 +58,7 @@ function normalizeSummary(data) {
     cost: data.cost,
     health: data.health ?? null,
     stage_telemetry: data.stage_telemetry ?? null,
+    latency: data.latency ?? null,
   };
 }
 
@@ -101,6 +103,22 @@ StageDropRow.propTypes = {
   stageName: PropTypes.string.isRequired,
   stats: PropTypes.object.isRequired,
   t: PropTypes.func.isRequired,
+};
+
+function LatencyRow({ metricName, stats }) {
+  const p50 = stats?.p50 ?? 0;
+  const p95 = stats?.p95 ?? 0;
+  const count = stats?.count ?? 0;
+  return (
+    <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+      {metricName}: n={count}, p50={Math.round(p50)}ms, p95={Math.round(p95)}ms
+    </Typography>
+  );
+}
+
+LatencyRow.propTypes = {
+  metricName: PropTypes.string.isRequired,
+  stats: PropTypes.object.isRequired,
 };
 
 export function PipelineStatusPanel({ data, loading, error, defaultOpen = false }) {
@@ -200,6 +218,19 @@ export function PipelineStatusPanel({ data, loading, error, defaultOpen = false 
               {Object.entries(summary.stage_telemetry?.per_stage ?? {}).map(([stageName, stats]) => (
                 stats.dropped > 0 ? (
                   <StageDropRow key={stageName} stageName={stageName} stats={stats} t={t} />
+                ) : null
+              ))}
+            </Box>
+          )}
+
+          {summary.latency && Object.keys(summary.latency).length > 0 && (
+            <Box sx={{ mb: 1 }}>
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontWeight: 600 }}>
+                Latency (since process start)
+              </Typography>
+              {Object.entries(summary.latency).map(([metricName, stats]) => (
+                (stats?.count ?? 0) > 0 ? (
+                  <LatencyRow key={metricName} metricName={metricName} stats={stats} />
                 ) : null
               ))}
             </Box>

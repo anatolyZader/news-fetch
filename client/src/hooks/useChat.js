@@ -30,6 +30,12 @@ async function consumeChatSseStream(response, onEvent) {
   return { terminal: null, event: null };
 }
 
+function chatClientTimeoutMs() {
+  const raw = import.meta.env.VITE_CHAT_CLIENT_TIMEOUT_MS;
+  const n = Number.parseInt(raw ?? '270000', 10);
+  return Number.isFinite(n) && n > 0 ? n : 270_000;
+}
+
 export function useChat() {
   const { getIdToken, getAppCheckToken } = useAuth();
   const [sessions, setSessions] = useState([]); // [{ id, title, report_date, created_at, updated_at }]
@@ -192,6 +198,19 @@ export function useChat() {
 
   function completeSseOutcome(outcome, accumulated) {
     if (outcome.terminal === 'done') {
+      if (outcome.event?.error) {
+        setHistory((h) => [
+          ...h,
+          {
+            role: 'assistant',
+            content: outcome.event?.message || accumulated || 'An error occurred',
+            error: true,
+          },
+        ]);
+        finishStreaming();
+        loadSessions().catch(() => {});
+        return true;
+      }
       setHistory((h) => [...h, { role: 'assistant', content: accumulated }]);
       finishStreaming();
       loadSessions().catch(() => {});
@@ -213,6 +232,7 @@ export function useChat() {
     const controller = new AbortController();
     abortRef.current = controller;
     const accRef = { value: '' };
+    const timeoutId = setTimeout(() => controller.abort(new Error('Chat request timed out')), chatClientTimeoutMs());
 
     try {
       const headers = await authedHeaders();
@@ -236,11 +256,20 @@ export function useChat() {
 
       if (accumulated) {
         setHistory((h) => [...h, { role: 'assistant', content: accumulated }]);
+        finishStreaming();
+        return;
       }
+
+      setHistory((h) => [
+        ...h,
+        { role: 'assistant', content: 'Connection ended unexpectedly.', error: true },
+      ]);
       finishStreaming();
     } catch (err) {
       onAbort?.(err, accRef.value);
       finishStreaming();
+    } finally {
+      clearTimeout(timeoutId);
     }
   }
 
