@@ -1,8 +1,6 @@
 /**
  * Shadow scoring + divergence metrics (Option B).
  */
-import { writeFileSync, mkdirSync } from 'node:fs';
-import { dirname, join } from 'node:path';
 
 const SEVERITY_TO_BAND = {
   low: [6, 8],
@@ -45,35 +43,4 @@ export function computeDivergence(agentAssessment, shadowScored) {
     alignment_rate: total ? alignedCount / total : null,
     by_component: byComponent,
   };
-}
-
-/**
- * @param {object} params
- */
-export function writeShadowArtifacts(params) {
-  const {
-    reportsDir = 'daily_reports',
-    scopeId = 'national',
-    date,
-    shadowScored,
-    shadowNarratives = null,
-    divergence,
-  } = params;
-
-  mkdirSync(reportsDir, { recursive: true });
-  const base = join(reportsDir, `${scopeId}-${date}`);
-
-  const scoresPath = join(reportsDir, `shadow-scores-${scopeId}-${date}.json`);
-  writeFileSync(scoresPath, JSON.stringify({ date, scopeId, scored: shadowScored }, null, 2));
-
-  const divPath = join(reportsDir, `divergence-${scopeId}-${date}.json`);
-  writeFileSync(divPath, JSON.stringify({ date, scopeId, ...divergence }, null, 2));
-
-  let narrativesPath = null;
-  if (shadowNarratives) {
-    narrativesPath = join(reportsDir, `shadow-narratives-${scopeId}-${date}.json`);
-    writeFileSync(narrativesPath, JSON.stringify({ date, scopeId, assessment: shadowNarratives }, null, 2));
-  }
-
-  return { scoresPath, divPath, narrativesPath, base };
 }

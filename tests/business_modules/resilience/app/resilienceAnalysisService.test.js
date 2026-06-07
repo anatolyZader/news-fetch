@@ -1,4 +1,4 @@
-import { describe, it, mock } from 'node:test';
+import { describe, it, mock, before, after } from 'node:test';
 import assert from 'node:assert';
 
 import { RESILIENCE_COMPONENTS } from '../../../../business_modules/resilience/domain/resilienceComponents.js';
@@ -50,6 +50,18 @@ const validSignal = {
 };
 
 describe('runResilienceAssessment', () => {
+  let prevAssessmentAgent;
+
+  before(() => {
+    prevAssessmentAgent = process.env.RESILIENCE_ASSESSMENT_AGENT;
+    process.env.RESILIENCE_ASSESSMENT_AGENT = '0';
+  });
+
+  after(() => {
+    if (prevAssessmentAgent === undefined) delete process.env.RESILIENCE_ASSESSMENT_AGENT;
+    else process.env.RESILIENCE_ASSESSMENT_AGENT = prevAssessmentAgent;
+  });
+
   it('throws when llmPort is missing', async () => {
     await assert.rejects(
       () =>

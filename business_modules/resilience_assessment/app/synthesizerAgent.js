@@ -21,7 +21,7 @@ function buildSynthesizerSystem(componentAssessments, epistemicProfile) {
   );
 }
 
-function defaultSynthesis(componentAssessments, epistemicProfile) {
+function defaultSynthesis(componentAssessments, _epistemicProfile) {
   const focus = componentAssessments.filter((c) =>
     c.severity === 'high' || c.severity === 'critical');
   const summary = focus.length

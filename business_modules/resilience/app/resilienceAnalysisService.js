@@ -361,6 +361,7 @@ export async function runResilienceAssessment(batch, options = {}) {
     oovBurst,
     onUsage,
     reportsDir,
+    llmPort,
     legacyNarrativeOpts: {
       onProgress,
       priorReports: batch.priorAssessments ?? [],

@@ -90,7 +90,6 @@ function buildRetrievalPolicies(byComponent) {
  * @param {{ totalArticles?: number, historicalMass?: Record<string, number[]>, reportDate?: string }} [ctx]
  */
 export function computeEpistemicProfile(signals, ctx = {}) {
-  const totalArticles = ctx.totalArticles ?? 0;
   const signalWeights = resolveSignalWeights(defaultSignalWeights(), ctx.weightOverlay ?? null);
   const duplicateIndex = buildDuplicateOccurrenceIndex(signals ?? []);
   const byComponent = {};

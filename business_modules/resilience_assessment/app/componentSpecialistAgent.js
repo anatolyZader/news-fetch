@@ -3,8 +3,6 @@
  */
 import {
   createAgentKernel,
-  HAIKU_MODEL,
-  SONNET_MODEL,
   resolveModelForStage,
 } from '../../../cross-cut-modules/agent/index.js';
 import {
@@ -74,13 +72,11 @@ export async function runComponentSpecialist(params) {
   }
 
   const ep = epistemicProfile?.by_component?.[componentId] ?? {};
-  if (ep.presence_gate_triggered) {
-    escalate = true;
-  }
+  const shouldEscalate = escalate || Boolean(ep.presence_gate_triggered);
 
   const kernel = agentKernel ?? createAgentKernel({ llmPort });
   const model = resolveModelForStage('specialist', {
-    escalate,
+    escalate: shouldEscalate,
     salienceCritical: ep.salience_critical,
     presenceGate: ep.presence_gate_triggered,
   });

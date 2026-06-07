@@ -33,11 +33,14 @@ export async function produceAssessmentWithShadow(params) {
     retrievalService,
     onUsage,
     reportsDir = 'daily_reports',
+    llmPort = null,
     legacyNarrativeOpts = {},
   } = params;
 
+  const narrate = llmPort?.generateNarratives ?? generateNarratives;
+
   if (!assessmentAgentEnabled()) {
-    return generateNarratives(scoredFull, signalsForScoring, targetDate, scopedTotalArticles, {
+    return narrate(scoredFull, signalsForScoring, targetDate, scopedTotalArticles, {
       onUsage,
       ...legacyNarrativeOpts,
       dataVoid,
@@ -56,7 +59,7 @@ export async function produceAssessmentWithShadow(params) {
   });
   epistemicService.persistProfile(epistemicProfile, { scopeId: reportScopeId, date: targetDate });
 
-  const llmPort = getDefaultLlmPort();
+  const llmPortForAgent = llmPort ?? getDefaultLlmPort();
   const { assessment, assessmentV2, traceId } = await runAssessmentAgent({
     signals: signalsForScoring,
     epistemicProfile,
@@ -65,7 +68,7 @@ export async function produceAssessmentWithShadow(params) {
     reportScopeId,
     totalArticles: scopedTotalArticles,
     assessmentMode,
-    llmPort,
+    llmPort: llmPortForAgent,
     onUsage,
     dataVoid,
     epistemicStatus,
@@ -89,7 +92,7 @@ export async function produceAssessmentWithShadow(params) {
     let shadowNarratives = null;
     if (shadowNarrativesEnabled()) {
       try {
-        shadowNarratives = await generateNarratives(
+        shadowNarratives = await narrate(
           scoredFull,
           signalsForScoring,
           targetDate,

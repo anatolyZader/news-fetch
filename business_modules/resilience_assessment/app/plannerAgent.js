@@ -6,7 +6,6 @@ import { PLANNER_TOOLS, ASSESSMENT_PLANNER_PROFILE } from '../../../cross-cut-mo
 import { COMPONENT_IDS } from '../../../cross-cut-modules/resilience-contracts/componentIds.js';
 import {
   buildGapClosureTasks,
-  buildPlannerContext,
   gapPlannerEnabled,
 } from '../../../cross-cut-modules/retrieval/plannerContextBuilder.js';
 

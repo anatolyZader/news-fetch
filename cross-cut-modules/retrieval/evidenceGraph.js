@@ -288,8 +288,8 @@ function buildClaimsForComponent(compId, compSignals, hits, profile, registry, t
       epistemic_flags: profile.thin_evidence ? ['thin_evidence', 'rag_seed'] : ['rag_seed'],
     });
   }
-  for (const w of profile.dominance_warnings ?? []) {
-    if (claims[0]) claims[0].epistemic_flags.push('single_source_dominance');
+  if ((profile.dominance_warnings ?? []).length > 0 && claims[0]) {
+    claims[0].epistemic_flags.push('single_source_dominance');
   }
   return claims;
 }

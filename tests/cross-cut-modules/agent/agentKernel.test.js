@@ -29,7 +29,6 @@ describe('schemaValidator', () => {
 
 describe('agentKernel', () => {
   it('records submit payloads from tool loop', async () => {
-    const calls = [];
     const llmPort = {
       runToolLoop: async (opts) => {
         await opts.executeTool('submit_plan', {

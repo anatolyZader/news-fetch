@@ -32,7 +32,6 @@ import { scopeAndPartitionSignals } from '../app/assessmentPipeline.js';
 import { buildComparisonContext } from '../domain/services/sourceMixIndex.js';
 import { isRegionalReportScope, reportFilePrefix } from '../../../cross-cut-modules/geo/reportScopeIds.js';
 import { ISRAEL_NATIONAL_DISTRICT_ID } from '../../../cross-cut-modules/geo/israelDistricts.js';
-import { generateNarratives } from '../infrastructure/claudeEvaluator.js';
 import { writeReport } from '../infrastructure/reportWriter.js';
 import { createCostTracker, appendCostLog, checkDailyBudget } from '../../../cross-cut-modules/budget/index.js';
 import {
