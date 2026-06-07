@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useLayoutEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
 
 const LS_REPORT_VIEW = 'resilienceReportView';
@@ -84,10 +84,13 @@ export function useTodayReport(scope = 'national', view = 'operator') {
     tokenWarmFailed,
   } = useAuth();
   const getIdTokenRef = useRef(getIdToken);
-  getIdTokenRef.current = getIdToken;
   const accessTokenRef = useRef(accessToken);
-  accessTokenRef.current = accessToken;
   const loadGenRef = useRef(0);
+
+  useLayoutEffect(() => {
+    getIdTokenRef.current = getIdToken;
+    accessTokenRef.current = accessToken;
+  });
 
   const reportFetchReady = apiReady && (!authRequired || accessToken || tokenWarmFailed);
 
@@ -108,16 +111,6 @@ export function useTodayReport(scope = 'national', view = 'operator') {
     const loadGen = loadGenRef.current + 1;
     loadGenRef.current = loadGen;
 
-    setReport(null);
-    setMarkdown(null);
-    setScoreBySource(null);
-    setReportDate(null);
-    setDisplayView(view);
-    setInitialReportLoadDone(false);
-    setReportMissingHint(null);
-    setAttentionItems(null);
-    setReportLoadError(null);
-
     const setters = {
       setReport,
       setMarkdown,
@@ -130,16 +123,26 @@ export function useTodayReport(scope = 'national', view = 'operator') {
       setReportLoadError,
     };
 
-    if (authRequired && tokenWarmFailed && !accessTokenRef.current) {
-      setReportLoadError('Could not obtain a session token. Refresh and sign in again.');
-      setInitialReportLoadDone(true);
-      return undefined;
-    }
-
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), REPORT_FETCH_TIMEOUT_MS);
 
     void (async () => {
+      setReport(null);
+      setMarkdown(null);
+      setScoreBySource(null);
+      setReportDate(null);
+      setDisplayView(view);
+      setInitialReportLoadDone(false);
+      setReportMissingHint(null);
+      setAttentionItems(null);
+      setReportLoadError(null);
+
+      if (authRequired && tokenWarmFailed && !accessTokenRef.current) {
+        setReportLoadError('Could not obtain a session token. Refresh and sign in again.');
+        setInitialReportLoadDone(true);
+        return;
+      }
+
       try {
         const data = await fetchTodayReportPayload(
           scope,
@@ -173,6 +176,7 @@ export function useTodayReport(scope = 'national', view = 'operator') {
 
     return () => {
       controller.abort();
+      clearTimeout(timeoutId);
     };
   }, [reportFetchReady, authRequired, accessToken, tokenWarmFailed, scope, view, refreshTick]);
 
