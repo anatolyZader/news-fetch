@@ -22,7 +22,7 @@ function makeSignal(overrides = {}) {
     evidence_type: 'observational_reported_fact',
     evidence: 'Officials posted clear shelter instructions.',
     scope_level: 'repeated_pattern',
-    temporal_weight: 1.0,
+    temporal_weight: 1,
     ...overrides,
   };
 }
@@ -560,14 +560,14 @@ describe('scoreComponents — facets (T4)', () => {
   });
 });
 
-describe('scoreComponents — per-article-source cap (4f extension N5)', () => {
-  function narrativeSignal(overrides = {}) {
-    return makeSignal({
-      signal_type: 'resilience_narrative_positive',
-      ...overrides,
-    });
-  }
+function narrativeSignal(overrides = {}) {
+  return makeSignal({
+    signal_type: 'resilience_narrative_positive',
+    ...overrides,
+  });
+}
 
+describe('scoreComponents — per-article-source cap (4f extension N5)', () => {
   it('caps a single outlet that exceeds 35% even when source_types are diverse', () => {
     // 8 ynet (news) + 1 maariv (news) + 1 kan (radio) — both news outlets share source_type=news,
     // so the source-type cap (50%) does not fire (news is exactly 90% which would fire it actually).
@@ -696,7 +696,7 @@ describe('scoreComponents — extraction_confidence (E4 backend hook)', () => {
       article_index: i + 1,
       source_type: ['news', 'radio'][i % 2],
       signal_type: 'resilience_narrative_positive',
-      extraction_confidence: 1.0,
+      extraction_confidence: 1,
     }));
     const low = high.map((s) => ({ ...s, extraction_confidence: 0.4 }));
     const scoredHigh = scoreComponents(high, { totalArticles: 6 });

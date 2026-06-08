@@ -348,7 +348,7 @@ You do **not** configure these in the GitHub UI:
 |-----|----------|-------|
 | `validate` | — | `npm run check:engines`, `npm run openapi:lint` (Redocly). |
 | `sync-main-docs` | `BRANCH` (step env) | Branch to push doc commits to (`head_ref` on PRs, else ref name). |
-| `lint` | — | `npm run lint` (ESLint). |
+| `lint` | — | `npx eslint . -f json -o eslint-report.json` (Sonar-aligned rules; uploads report for SonarCloud). |
 | `test` | `GEO_ASSERT_ENVELOPE=1` | `npm run test:coverage` → LCOV artifact for SonarCloud. |
 | `build-client` | — | Vite build does not require `VITE_*` at build time (see below). |
 | `build-docs-site` | — | Docusaurus build only; no API keys. |
@@ -628,12 +628,30 @@ To **block merges** on Quality Gate failure: GitHub → **Settings → Branches*
 Coverage is wired end-to-end:
 
 1. **Test** job runs `npm run test:coverage` and uploads `coverage/lcov.info`.
-2. **Lint** job runs ESLint and uploads `eslint-report.json` for SonarCloud.
-3. **SonarCloud** job downloads both artifacts and scans with `sonar.qualitygate.wait=true` so the CI job **fails** when the SonarCloud Quality Gate fails.
+2. **Lint** job runs a single ESLint pass (`npx eslint . -f json -o eslint-report.json`) and uploads `eslint-report.json` for SonarCloud. Local `npm run lint` uses the same Sonar-aligned rules (SonarJS + Unicorn in [`eslint.config.js`](../eslint.config.js)).
+3. **SonarCloud** job downloads both artifacts and scans with `sonar.qualitygate.wait=true` so the scan step **fails** when the Quality Gate fails. A follow-up step prints gate conditions, new bugs, and unreviewed security hotspots on failure.
 
-Sources analyzed include backend code (`business_modules`, `api`, `utils`, `shared`, `scripts`) and the React client (`client/src`). Client code is excluded from coverage expectations until client tests exist (`sonar.coverage.exclusions` in [`sonar-project.properties`](../sonar-project.properties)).
+Sources analyzed include `business_modules`, `cross-cut-modules`, `composition`, `db`, `utils`, `scripts`, entrypoints (`app.js`, `server.js`), and the React client (`client/src`). Client code is excluded from coverage expectations until client tests exist (`sonar.coverage.exclusions` in [`sonar-project.properties`](../sonar-project.properties)).
 
 In SonarCloud → **Project Settings → Quality Gate**, prefer conditions on **new code** (bugs, vulnerabilities, coverage) so legacy gaps do not block every PR. **New code** is measured against the main branch (`dev`); confirm that under **Project Settings → Branches and Pull Requests**.
+
+Security hotspots must be reviewed in SonarCloud (or via PR discussion)—CI does not auto-mark them SAFE.
+
+### 8.7 Disable Automatic Analysis
+
+When CI is the source of truth for coverage and ESLint import, disable **Automatic Analysis** in SonarCloud:
+
+**Project Settings → Administration → Analysis Method** → turn off automatic analysis.
+
+Otherwise SonarCloud may run a second analysis without `lcov.info` or `eslint-report.json`, producing inconsistent metrics.
+
+### 8.8 SonarLint Connected Mode (local IDE)
+
+1. Install the [SonarLint](https://marketplace.visualstudio.com/items?itemName=SonarSource.sonarlint-vscode) extension (recommended in [`.vscode/extensions.json`](../.vscode/extensions.json)).
+2. In VS Code/Cursor: **SonarLint: Connect to SonarCloud** → bind to the same organization and project key as CI secrets.
+3. Connected Mode shows server-aligned issues in the editor. [`sonarlint.automaticAnalysis`](../.vscode/settings.json) is `false` intentionally—analysis runs on save via Connected Mode, not on every keystroke.
+
+Optional local queue (no API): `npm run sonar:issues:local` uses the same ESLint profile as `npm run lint`.
 
 ---
 
@@ -670,6 +688,7 @@ npm run openapi:lint     # Redocly — same as CI Validate job
 npm ci --prefix tools/docs-site
 npm run docs:sync      # same as CI doc regeneration
 npm run docs:check     # cross-cut-modules/docs/content/pages validation
+npm run lint           # Sonar-aligned ESLint (same rules as CI Lint job)
 npm test               # fast local run (no coverage)
 npm run test:coverage  # CI Test job — writes coverage/lcov.info
 npm run client:build

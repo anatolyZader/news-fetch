@@ -1,3 +1,20 @@
+const YOUTUBE_ID_RE = /^[\w-]{11}$/;
+
+function isValidYoutubeId(id) {
+  return id && YOUTUBE_ID_RE.test(id) ? id : null;
+}
+
+function extractFromYoutubeCom(u) {
+  const v = u.searchParams.get('v');
+  if (v && YOUTUBE_ID_RE.test(v)) return v;
+  const pathPatterns = [/^\/embed\/([\w-]{11})/, /^\/shorts\/([\w-]{11})/, /^\/live\/([\w-]{11})/];
+  for (const pattern of pathPatterns) {
+    const match = u.pathname.match(pattern);
+    if (match) return match[1];
+  }
+  return null;
+}
+
 /**
  * Extract YouTube video id from common watch / embed / shorts URLs.
  * @param {string} rawUrl
@@ -15,17 +32,10 @@ export function extractYoutubeVideoId(rawUrl) {
   const host = u.hostname.toLowerCase().replace(/^www\./, '');
   if (host === 'youtu.be') {
     const id = u.pathname.replace(/^\//, '').split('/')[0];
-    return id && /^[\w-]{11}$/.test(id) ? id : null;
+    return isValidYoutubeId(id);
   }
   if (host === 'youtube.com' || host === 'm.youtube.com' || host === 'music.youtube.com') {
-    const v = u.searchParams.get('v');
-    if (v && /^[\w-]{11}$/.test(v)) return v;
-    const embed = u.pathname.match(/^\/embed\/([\w-]{11})/);
-    if (embed) return embed[1];
-    const shorts = u.pathname.match(/^\/shorts\/([\w-]{11})/);
-    if (shorts) return shorts[1];
-    const live = u.pathname.match(/^\/live\/([\w-]{11})/);
-    if (live) return live[1];
+    return extractFromYoutubeCom(u);
   }
   return null;
 }

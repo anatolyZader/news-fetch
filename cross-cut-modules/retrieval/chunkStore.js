@@ -101,7 +101,7 @@ export function createChunkStore(dbPath, opts = {}) {
     const sourceType = p.sourceType ? String(p.sourceType).trim() : null;
     const topK = Math.max(1, Math.min(100, p.topK ?? 50));
     const terms = q
-      .replace(/[^\p{L}\p{N}\s]+/gu, ' ')
+      .replaceAll(/[^\p{L}\p{N}\s]+/gu, ' ')
       .split(/\s+/)
       .filter((t) => t.length >= 2)
       .slice(0, 12);
@@ -371,7 +371,7 @@ export function createChunkStore(dbPath, opts = {}) {
         const topK = Math.max(1, Math.min(100, p.topK ?? 50));
 
         const terms = q
-          .replace(/[^\p{L}\p{N}\s]+/gu, ' ')
+          .replaceAll(/[^\p{L}\p{N}\s]+/gu, ' ')
           .split(/\s+/)
           .filter((t) => t.length >= 2)
           .slice(0, 12);

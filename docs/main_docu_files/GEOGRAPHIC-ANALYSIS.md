@@ -14,7 +14,7 @@
 | Domain | `domain/services/` — match, quality, scope, distance bands |
 | Ports | `domain/ports/IGeoNorthReferencePort.js`, `IGeoLocalityOverridesPort.js`, `IGeoUnknownSinkPort.js`, `IGeoUnknownReviewPort.js` |
 | Adapters | `infrastructure/adapters/` — JSON reference, SQLite overrides/queue |
-| Data | `data/north-reference.json`, `north-border.json`, `regions.json`, `homefront-district-stubs.json`, `distance-band-policy.json` |
+| Data | `data/north-reference.json`, `north-border.json`, `regions.json`, `homefront-district-stubs.json`, `landmark-gazetteer.json`, `distance-band-policy.json` |
 | HTTP | `input/geoRoutes.js` |
 
 Wiring: composition root registers `geoService` and `IGeoEnrichmentPort` for resilience ingest.
@@ -35,6 +35,13 @@ Wiring: composition root registers `geoService` and `IGeoEnrichmentPort` for res
 
 - `reason`, optional `candidates`, audit fields
 - Recorded to unknown queue for analyst review
+
+**Provisional** (`kind: 'provisional'`) — landmark gazetteer fallback:
+
+- Matched via `landmarkGazetteer.js` + `data/landmark-gazetteer.json` when fuzzy resolution fails (flag `GEO_LANDMARK_GAZETTEER`, default on)
+- Required: `probableDistrict`, `probableSubregionId`, `resolutionMethod: 'landmark_gazetteer'`, low `matchConfidence` (~0.6)
+- **Policy:** `usableForMetrics: false`, `requiresReview: true`, `quality: 'low'` — context-only; does **not** enable component scoring
+- Still recorded to unknown queue with `reason: 'PROVISIONAL_LANDMARK'` for analyst review
 
 **Provenance** (`geoProvenance.js`): `structured`, `text_inferred`, `message_level`, `direct` — affects epistemic metrics eligibility when geo v2 enabled.
 

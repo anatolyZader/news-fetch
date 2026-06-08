@@ -8,9 +8,8 @@ import { createChatSessionService } from '../app/chatSessionService.js';
 import { requireMaintainerAccess } from '../../../cross-cut-modules/auth/maintainerAccess.js';
 import { canViewAnalystDisplay } from '../../../cross-cut-modules/auth/userAccess.js';
 import { auditFromRequest } from '../../../cross-cut-modules/security/input/auditLog.js';
-import { costlyRoutePreHandlers } from '../../../cross-cut-modules/security/input/costlyRoutePreHandlers.js';
 import { authPreHandlerList } from '../../../cross-cut-modules/auth/buildAuthHooks.js';
-import { createHttpCostRecorder } from '../../../cross-cut-modules/budget/index.js';
+import { createHttpCostRecorder, createHttpChatBudgetPreHandler } from '../../../cross-cut-modules/budget/index.js';
 import { createChatRetrievalCache } from '../../../cross-cut-modules/retrieval/chatRetrievalCache.js';
 import { executePendingAction } from '../app/executePendingAction.js';
 import { OPERATOR_PROPOSE_TOOL_NAMES } from '../domain/chatConfig.js';
@@ -48,7 +47,10 @@ export async function chatRoutes(app, opts) {
     reportDisplayPort,
     agentKernel,
     chatLlmPort,
+    crisisBudgetService = null,
   } = opts;
+
+  const chatBudgetPreHandler = createHttpChatBudgetPreHandler({ crisisBudgetService });
 
   const chatSessionService = createChatSessionService({
     chatStore,
@@ -163,14 +165,14 @@ export async function chatRoutes(app, opts) {
     }
   });
 
-  app.post('/api/chat', costlyRoutePreHandlers(authPreHandlerList(authHook)), async (request, reply) => {
+  app.post('/api/chat', { preHandler: [...authPreHandlerList(authHook), chatBudgetPreHandler] }, async (request, reply) => {
     if (process.env.CHAT_MAINTAINER_ONLY === 'true' && !requireMaintainerAccess(request, reply)) {
       return;
     }
 
     auditFromRequest(request, 'chat.post', '/api/chat');
     const body = request.body ?? {};
-    const { toolProfile } = body;
+    const { toolProfile, economy } = body;
 
     const uid = chatOwnerUid(request);
     const sid = String(body.sessionId ?? '').trim();
@@ -195,7 +197,7 @@ export async function chatRoutes(app, opts) {
 
     let assistantText = '';
     const costRecorder = createHttpCostRecorder({
-      script: 'http:chat',
+      script: request.useCrisisChatBudget ? 'http:chat:crisis' : 'http:chat',
       ownerUid: uid,
       route: '/api/chat',
     });
@@ -239,12 +241,14 @@ export async function chatRoutes(app, opts) {
           catalogProposalService,
           geoUnknownReviewService,
           toolProfile: String(toolProfile ?? 'default').trim() || 'default',
+          economy: economy == null ? 'default' : String(economy).trim(),
           costRecorder,
           retrievalCache,
           llmPort,
           agentKernel: agentKernel ?? null,
           tracePort: tracePort ?? null,
           abortSignal: abortController.signal,
+          budgetDegraded: request.budgetDegraded === true,
           onSend: (event) => {
             if (event?.type === 'text' && typeof event.text === 'string') assistantText += event.text;
           },

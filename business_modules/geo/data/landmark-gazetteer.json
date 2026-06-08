@@ -1,0 +1,138 @@
+{
+  "version": "landmark-gazetteer-v1",
+  "landmarks": [
+    {
+      "id": "highway_6_south",
+      "displayName": "Highway 6 south section",
+      "landmarkType": "highway",
+      "probableDistrict": "north",
+      "probableSubregionId": "zfat_galilee_peninsula",
+      "names": [
+        "כביש 6",
+        "כביש שש",
+        "highway 6",
+        "near highway 6",
+        "ליד כביש 6",
+        "צומת כביש 6"
+      ]
+    },
+    {
+      "id": "highway_85",
+      "displayName": "Highway 85 (Amiad–Yesud HaMaala)",
+      "landmarkType": "highway",
+      "probableDistrict": "north",
+      "probableSubregionId": "zfat_galilee_peninsula",
+      "names": [
+        "כביש 85",
+        "highway 85",
+        "כביש צפת-טבריה",
+        "ליד כביש 85"
+      ]
+    },
+    {
+      "id": "rosh_hanikra_area",
+      "displayName": "Rosh Hanikra area",
+      "landmarkType": "border",
+      "probableDistrict": "north",
+      "probableSubregionId": "western_galilee_coast",
+      "names": [
+        "ראש הנקרה",
+        "rosh hanikra",
+        "near rosh hanikra",
+        "ליד ראש הנקרה"
+      ]
+    },
+    {
+      "id": "kiryat_shmona_industrial",
+      "displayName": "Kiryat Shmona industrial zone",
+      "landmarkType": "industrial",
+      "probableDistrict": "north",
+      "probableSubregionId": "zfat_galilee_peninsula",
+      "names": [
+        "אזור תעשייה קרית שמונה",
+        "קרית שמונה תעשייה",
+        "kiryat shmona industrial",
+        "near kiryat shmona factory"
+      ]
+    },
+    {
+      "id": "nahariya_coast",
+      "displayName": "Nahariya coast",
+      "landmarkType": "coast",
+      "probableDistrict": "north",
+      "probableSubregionId": "western_galilee_coast",
+      "names": [
+        "חוף nahariya",
+        "חוף נהריה",
+        "nahariya beach",
+        "near nahariya coast",
+        "ליד חוף נהריה"
+      ]
+    },
+    {
+      "id": "safed_old_city",
+      "displayName": "Safed old city",
+      "landmarkType": "historic",
+      "probableDistrict": "north",
+      "probableSubregionId": "zfat_galilee_peninsula",
+      "names": [
+        "עיר העתיקה צפת",
+        "safed old city",
+        "old city safed",
+        "ליד העיר העתיקה צפת"
+      ]
+    },
+    {
+      "id": "karmiel_mall",
+      "displayName": "Karmiel mall area",
+      "landmarkType": "commercial",
+      "probableDistrict": "north",
+      "probableSubregionId": "zfat_galilee_peninsula",
+      "names": [
+        "קניון כרמiel",
+        "karmiel mall",
+        "near karmiel mall",
+        "ליד קניון כרמiel"
+      ]
+    },
+    {
+      "id": "metula_border",
+      "displayName": "Metula border area",
+      "landmarkType": "border",
+      "probableDistrict": "north",
+      "probableSubregionId": "zfat_galilee_peninsula",
+      "names": [
+        "מטולה",
+        "metula border",
+        "near metula",
+        "ליד מטולה"
+      ]
+    },
+    {
+      "id": "haifa_port_north",
+      "displayName": "Haifa port north",
+      "landmarkType": "port",
+      "probableDistrict": "north",
+      "probableSubregionId": "western_galilee_coast",
+      "names": [
+        "נמל חיפה",
+        "haifa port",
+        "near haifa port",
+        "ליד נמל חיפה"
+      ]
+    },
+    {
+      "id": "golan_observation",
+      "displayName": "Golan observation area",
+      "landmarkType": "area",
+      "probableDistrict": "north",
+      "probableSubregionId": "golan",
+      "names": [
+        "מצפה גolan",
+        "golan heights lookout",
+        "רמת הגולן",
+        "near golan road"
+      ]
+    }
+  ]
+}

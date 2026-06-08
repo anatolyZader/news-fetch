@@ -43,7 +43,7 @@ describe('getOutletReliabilityMultiplier', () => {
   it('clamps to [0.5, 1.5]', () => {
     writeFileSync(configPath, JSON.stringify({
       'too-low.co.il':  { reliabilityMultiplier: 0.1 },
-      'too-high.co.il': { reliabilityMultiplier: 5.0 },
+      'too-high.co.il': { reliabilityMultiplier: 5 },
     }));
     assert.equal(getOutletReliabilityMultiplier('too-low.co.il', configPath), 0.5);
     assert.equal(getOutletReliabilityMultiplier('too-high.co.il', configPath), 1.5);
@@ -64,39 +64,39 @@ describe('getOutletReliabilityMultiplier', () => {
   });
 });
 
+function outletPriorObsSignal(idx, source = 'ynet.co.il') {
+  return {
+    article_index: idx,
+    article_url: `https://${source}/o${idx}`,
+    article_source: source,
+    source_type: 'news',
+    signal_type: 'compliance_enter_shelter',
+    evidence_type: 'observational_reported_fact',
+    scope_level: 'single_case',
+    evidence: `obs evidence ${idx} ${source}`,
+    extraction_confidence: 0.9,
+    temporal_weight: 1,
+  };
+}
+
+function outletPriorQuoteSignal(idx, source = 'biased.co.il') {
+  return {
+    article_index: idx,
+    article_url: `https://${source}/q${idx}`,
+    article_source: source,
+    source_type: 'news',
+    signal_type: 'leadership_clear_guidance',
+    evidence_type: 'direct_quote_named_person',
+    scope_level: 'single_case',
+    evidence: `Mayor Cohen said: "Today we open schools." (case ${idx} ${source})`,
+    extraction_confidence: 0.9,
+    temporal_weight: 1,
+  };
+}
+
 describe('outlet priors propagate through scoreComponents only for reported/institutional facts', () => {
-  function obs(idx, source = 'ynet.co.il') {
-    return {
-      article_index: idx,
-      article_url: `https://${source}/o${idx}`,
-      article_source: source,
-      source_type: 'news',
-      signal_type: 'compliance_enter_shelter',
-      evidence_type: 'observational_reported_fact',
-      scope_level: 'single_case',
-      evidence: `obs evidence ${idx} ${source}`,
-      extraction_confidence: 0.9,
-      temporal_weight: 1.0,
-    };
-  }
-
-  function quote(idx, source = 'biased.co.il') {
-    return {
-      article_index: idx,
-      article_url: `https://${source}/q${idx}`,
-      article_source: source,
-      source_type: 'news',
-      signal_type: 'leadership_clear_guidance',
-      evidence_type: 'direct_quote_named_person',
-      scope_level: 'single_case',
-      evidence: `Mayor Cohen said: "Today we open schools." (case ${idx} ${source})`,
-      extraction_confidence: 0.9,
-      temporal_weight: 1.0,
-    };
-  }
-
   it('observational_reported_fact: prior=0.5 reduces evidence_mass vs prior=1.0', () => {
-    const signals = [obs(1), obs(2), obs(3)];
+    const signals = [outletPriorObsSignal(1), outletPriorObsSignal(2), outletPriorObsSignal(3)];
 
     writeFileSync(configPath, JSON.stringify({}));
     process.env.RESILIENCE_OUTLET_PRIORS_PATH = configPath;
@@ -117,7 +117,7 @@ describe('outlet priors propagate through scoreComponents only for reported/inst
   });
 
   it('direct_quote_named_person: prior on the outlet does NOT change evidence_mass', () => {
-    const signals = [quote(1), quote(2)];
+    const signals = [outletPriorQuoteSignal(1), outletPriorQuoteSignal(2)];
 
     writeFileSync(configPath, JSON.stringify({}));
     process.env.RESILIENCE_OUTLET_PRIORS_PATH = configPath;

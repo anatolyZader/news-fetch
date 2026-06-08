@@ -9,30 +9,32 @@ import {
   validateProbeRecord,
 } from '../../../../../business_modules/resilience/domain/services/probeCorroborationPolicy.js';
 
-describe('probeCorroborationPolicy', () => {
-  const probe = (source) => ({
+function probeSignal(source) {
+  return {
     source_type: 'infrastructure_probe',
     signal_type: 'connectivity_outage',
     article_source: source,
     connectivity_outage: true,
-  });
+  };
+}
 
+describe('probeCorroborationPolicy', () => {
   it('requires two distinct probe sources for confirmation without field', () => {
-    const r = applyProbeCorroborationPolicy([probe('a'), probe('b')], []);
+    const r = applyProbeCorroborationPolicy([probeSignal('a'), probeSignal('b')], []);
     assert.equal(r.probe_outage_confirmed, true);
     assert.equal(r.signals[0].extraction_confidence, 1);
   });
 
   it('confirms single probe when field anchor active', () => {
     const r = applyProbeCorroborationPolicy(
-      [probe('a')],
+      [probeSignal('a')],
       [{ source_type: 'pbo', evidence: 'field ok' }],
     );
     assert.equal(r.probe_outage_confirmed, true);
   });
 
   it('marks single probe unconfirmed without field', () => {
-    const r = applyProbeCorroborationPolicy([probe('a')], []);
+    const r = applyProbeCorroborationPolicy([probeSignal('a')], []);
     assert.equal(r.probe_outage_unconfirmed, true);
     assert.equal(r.signals[0].extraction_confidence, 0.85);
   });
@@ -64,7 +66,7 @@ describe('probeCorroborationPolicy', () => {
 
   it('enrichProbeSignalsInList updates probe flags in mixed list', () => {
     const list = [
-      probe('only-one'),
+      probeSignal('only-one'),
       { source_type: 'news', evidence: 'x' },
     ];
     const out = enrichProbeSignalsInList(list);

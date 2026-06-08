@@ -11,7 +11,7 @@ describe('thinEvidencePolicy', () => {
     const r = deriveThinEvidencePolicy({
       score: 3,
       confidence: 'low',
-      evidence_mass: 1.0,
+      evidence_mass: 1,
       floor_clamped: true,
     });
     assert.equal(r.instrument, THIN_EVIDENCE_INSTRUMENT.unverified_alert);

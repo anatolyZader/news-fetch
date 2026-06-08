@@ -178,3 +178,20 @@ export function readTodayCostSpend(rootDir) {
   }
   return todaySpend;
 }
+
+/**
+ * @param {string[]} scripts
+ * @param {string} [rootDir]
+ * @returns {number}
+ */
+export function readTodayCostSpendForScripts(scripts, rootDir) {
+  const want = new Set(scripts);
+  const today = new Date().toISOString().slice(0, 10);
+  let total = 0;
+  for (const entry of readJsonlRecords(resolveCostLogPath(rootDir))) {
+    if (!entry.timestamp?.startsWith(today)) continue;
+    if (!want.has(entry.script)) continue;
+    total += entry.totalCostUsd ?? 0;
+  }
+  return total;
+}

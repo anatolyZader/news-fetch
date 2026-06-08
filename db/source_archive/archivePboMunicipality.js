@@ -19,11 +19,14 @@ export function formatPboMunicipalityBody(muni, componentsOrder, componentNames,
     const scoreParts = (c.scores ?? []).map((s) => Math.round(s.value * 100) + '%').join(', ');
     const textParts = (c.texts ?? []).filter(Boolean).join(' | ');
     const supplement = String(supplementalTexts[cid] ?? '').trim();
-    lines.push(`## ${label}`);
-    lines.push(`Average: ${Math.round(c.avg * 100)}% (${scoreParts})`);
-    if (textParts) lines.push(`Observations: ${textParts}`);
-    if (supplement) lines.push(`Follow-up: ${supplement}`);
-    lines.push('');
+    const componentLines = [
+      `## ${label}`,
+      `Average: ${Math.round(c.avg * 100)}% (${scoreParts})`,
+    ];
+    if (textParts) componentLines.push(`Observations: ${textParts}`);
+    if (supplement) componentLines.push(`Follow-up: ${supplement}`);
+    componentLines.push('');
+    lines.push(...componentLines);
   }
   return lines.join('\n').trim();
 }

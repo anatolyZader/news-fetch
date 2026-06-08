@@ -1,4 +1,4 @@
-import Anthropic from '@anthropic-ai/sdk';
+import { getDefaultLlmPort } from '../../../cross-cut-modules/llm/anthropicLlmAdapter.js';
 import {
   verifyEvidenceAgainstArticle,
   tokenize,
@@ -17,7 +17,6 @@ import {
 } from '../domain/services/groundingPolicy.js';
 import { recordOutletTelemetry } from '../domain/services/outletReputationDecay.js';
 
-const client = new Anthropic();
 const DEFAULT_SELF_CHECK_MODEL = process.env.RESILIENCE_SELF_CHECK_MODEL ?? 'claude-haiku-4-5-20251001';
 
 const ENTAILMENT_THRESHOLDS = {
@@ -201,60 +200,74 @@ async function verifyOneSignal(s, articles, _sourceLabel) {
   return { status: 'tiered', signal: s, meta: resolved.meta };
 }
 
+function recordTieredSignal(kept, tierCounts, sourceLabel, signal, meta, outlet) {
+  kept.push(signal);
+  logTieredEvidence(sourceLabel, signal, meta);
+  if (meta.tier === GROUNDING_TIER.unverified_critical) tierCounts.tier_c++;
+  else tierCounts.tier_b++;
+  if (outlet) recordOutletTelemetry(outlet, { verified: 1 });
+}
+
+function applyVerifyOutcome(outcome, outlet, sourceLabel, signal, ctx) {
+  if (outcome.status === 'verified') {
+    ctx.kept.push(outcome.signal);
+    ctx.tierCounts.tier_a++;
+    if (outlet) recordOutletTelemetry(outlet, { verified: 1 });
+    return;
+  }
+  if (outcome.status === 'borderline') {
+    ctx.borderline.push({ s: outcome.signal, artBody: outcome.artBody, primary: outcome.primary });
+    return;
+  }
+  if (outcome.status === 'tiered') {
+    recordTieredSignal(ctx.kept, ctx.tierCounts, sourceLabel, outcome.signal, outcome.meta, outlet);
+    return;
+  }
+  ctx.dropped++;
+  ctx.reasonCounts[outcome.reason] = (ctx.reasonCounts[outcome.reason] || 0) + 1;
+  if (outlet) recordOutletTelemetry(outlet, { dropped: 1 });
+  logDroppedEvidence(sourceLabel, outcome.result, signal);
+}
+
+function applyEntailmentOutcome(out, sourceLabel, ctx) {
+  const outlet = out.signal?.article_source;
+  if (out.kept) {
+    ctx.kept.push(out.signal);
+    ctx.tierCounts.tier_a++;
+    if (outlet) recordOutletTelemetry(outlet, { verified: 1 });
+    return;
+  }
+  if (out.tiered) {
+    recordTieredSignal(ctx.kept, ctx.tierCounts, sourceLabel, out.signal, out.meta, outlet);
+    return;
+  }
+  ctx.dropped++;
+  ctx.reasonCounts.entailment_reject = (ctx.reasonCounts.entailment_reject || 0) + 1;
+  if (outlet) recordOutletTelemetry(outlet, { dropped: 1 });
+}
+
 export async function applyEvidenceVerifier(signals, articles, sourceLabel, usageCallback = null) {
-  const kept = [];
-  const borderline = [];
-  let dropped = 0;
-  const reasonCounts = {};
-  const tierCounts = { tier_a: 0, tier_b: 0, tier_c: 0 };
+  const ctx = {
+    kept: [],
+    borderline: [],
+    dropped: 0,
+    reasonCounts: {},
+    tierCounts: { tier_a: 0, tier_b: 0, tier_c: 0 },
+  };
 
   for (const s of signals) {
     const outcome = await verifyOneSignal(s, articles, sourceLabel);
-    const outlet = s.article_source;
-    if (outcome.status === 'verified') {
-      kept.push(outcome.signal);
-      tierCounts.tier_a++;
-      if (outlet) recordOutletTelemetry(outlet, { verified: 1 });
-      continue;
-    }
-    if (outcome.status === 'borderline') {
-      borderline.push({ s: outcome.signal, artBody: outcome.artBody, primary: outcome.primary });
-      continue;
-    }
-    if (outcome.status === 'tiered') {
-      kept.push(outcome.signal);
-      logTieredEvidence(sourceLabel, outcome.signal, outcome.meta);
-      if (outcome.meta.tier === GROUNDING_TIER.unverified_critical) tierCounts.tier_c++;
-      else tierCounts.tier_b++;
-      if (outlet) recordOutletTelemetry(outlet, { verified: 1 });
-      continue;
-    }
-    dropped++;
-    reasonCounts[outcome.reason] = (reasonCounts[outcome.reason] || 0) + 1;
-    if (outlet) recordOutletTelemetry(outlet, { dropped: 1 });
-    logDroppedEvidence(sourceLabel, outcome.result, s);
+    applyVerifyOutcome(outcome, s.article_source, sourceLabel, s, ctx);
   }
 
-  if (borderline.length > 0) {
-    const entailmentOutcomes = await runEntailmentVerifier(borderline, sourceLabel, usageCallback);
+  if (ctx.borderline.length > 0) {
+    const entailmentOutcomes = await runEntailmentVerifier(ctx.borderline, sourceLabel, usageCallback);
     for (const out of entailmentOutcomes) {
-      if (out.kept) {
-        kept.push(out.signal);
-        tierCounts.tier_a++;
-        if (out.signal?.article_source) recordOutletTelemetry(out.signal.article_source, { verified: 1 });
-      } else if (out.tiered) {
-        kept.push(out.signal);
-        logTieredEvidence(sourceLabel, out.signal, out.meta);
-        if (out.meta.tier === GROUNDING_TIER.unverified_critical) tierCounts.tier_c++;
-        else tierCounts.tier_b++;
-        if (out.signal?.article_source) recordOutletTelemetry(out.signal.article_source, { verified: 1 });
-      } else {
-        dropped++;
-        reasonCounts.entailment_reject = (reasonCounts.entailment_reject || 0) + 1;
-        if (out.signal?.article_source) recordOutletTelemetry(out.signal.article_source, { dropped: 1 });
-      }
+      applyEntailmentOutcome(out, sourceLabel, ctx);
     }
   }
+
+  const { kept, dropped, reasonCounts, tierCounts } = ctx;
 
   if (dropped > 0) {
     console.error(`  → [${sourceLabel}] verifier dropped ${dropped}/${signals.length} signal(s)`);
@@ -332,12 +345,13 @@ export async function runEntailmentVerifier(borderlineItems, sourceLabel, usageC
   const user = `Evaluate these cases:\n\n${lines}\n\nReturn only the JSON array.`;
 
   try {
-    const response = await client.messages.create({
+    const response = await getDefaultLlmPort().createMessage({
       model,
       max_tokens: Math.min(2500, 200 + items.length * 60),
       temperature: 0,
       system,
       messages: [{ role: 'user', content: user }],
+      callContext: { feature: 'evidence_entailment', purpose: `${sourceLabel} entailment` },
     });
     const textBlock = response.content.find((b) => b.type === 'text');
     const text = textBlock ? textBlock.text : '';

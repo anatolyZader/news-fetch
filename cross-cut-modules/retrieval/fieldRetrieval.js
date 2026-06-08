@@ -333,8 +333,7 @@ export function formatAudioSceneContextBlock(audioCtx) {
     lines.push('');
   }
   if (audioCtx.place_hints?.length) {
-    lines.push(`KNOWN PLACE NAMES: ${audioCtx.place_hints.join(', ')}`);
-    lines.push('');
+    lines.push(`KNOWN PLACE NAMES: ${audioCtx.place_hints.join(', ')}`, '');
   }
   return lines.join('\n');
 }

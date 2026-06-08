@@ -182,7 +182,7 @@ async function runDistrict(districtId, filterDate, outDir, force) {
 
   for (const day of data.days) {
     if (filterDate && day.date !== filterDate) continue;
-    // eslint-disable-next-line no-await-in-loop
+     
     if (await writeDayBundle(day, data.districtId, outDir, data.componentsOrder, data.componentNames, { force })) {
       filesWritten += 1;
     }
@@ -207,6 +207,6 @@ mkdirSync(outDir, { recursive: true });
 
 const districts = allDistricts ? listPboDistrictIds() : [districtArg];
 for (const districtId of districts) {
-  // eslint-disable-next-line no-await-in-loop
+   
   await runDistrict(districtId, filterDate, outDir, force);
 }

@@ -67,6 +67,7 @@ export function logLlmInvocation(payload) {
     route: ctx.route ?? null,
     ownerUid: ctx.userId ?? null,
     cacheHit: ctx.cacheHit ?? null,
+    promptCacheApplied: ctx.promptCacheApplied === true ? true : null,
   });
 }
 
@@ -78,13 +79,24 @@ export function logLlmInvocation(payload) {
 export function readLlmTelemetryForDate(datePrefix, rootDir) {
   const path = resolveLlmInvocationsPath(rootDir);
   const byFeature = {};
+  const byFeatureCache = {};
   let totalUsd = 0;
   let count = 0;
+  let cachedInputTotal = 0;
+  let cacheCreationTotal = 0;
 
   for (const row of readJsonlRecords(path)) {
     if (!row.timestamp?.startsWith(datePrefix)) continue;
     const feature = row.feature ?? 'unknown';
     byFeature[feature] = (byFeature[feature] ?? 0) + (row.costUsd ?? 0);
+    if (!byFeatureCache[feature]) {
+      byFeatureCache[feature] = { cachedInputTokens: 0, cacheCreationTokens: 0, count: 0 };
+    }
+    byFeatureCache[feature].cachedInputTokens += row.cachedInputTokens ?? 0;
+    byFeatureCache[feature].cacheCreationTokens += row.cacheCreationTokens ?? 0;
+    byFeatureCache[feature].count += 1;
+    cachedInputTotal += row.cachedInputTokens ?? 0;
+    cacheCreationTotal += row.cacheCreationTokens ?? 0;
     totalUsd += row.costUsd ?? 0;
     count += 1;
   }
@@ -92,8 +104,11 @@ export function readLlmTelemetryForDate(datePrefix, rootDir) {
   return {
     total_usd: Math.round(totalUsd * 1e6) / 1e6,
     invocation_count: count,
+    cached_input_tokens_total: cachedInputTotal,
+    cache_creation_tokens_total: cacheCreationTotal,
     by_feature: Object.fromEntries(
       Object.entries(byFeature).map(([k, v]) => [k, Math.round(v * 1e6) / 1e6]),
     ),
+    cache_by_feature: byFeatureCache,
   };
 }

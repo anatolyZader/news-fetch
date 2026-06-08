@@ -53,7 +53,7 @@ test('vector index: upsert + querySimilar returns closest docs', async () => {
     namespace: 't',
     queryText: 'evacuation after rocket strike',
     topK: 2,
-    minSim: 0.0,
+    minSim: 0,
   });
 
   assert.equal(hits.length, 2);

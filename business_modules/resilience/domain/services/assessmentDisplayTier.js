@@ -5,12 +5,12 @@
 
 import {
   DISPLAY_VIEWS,
-  resolveDisplayView as resolveDisplayViewContract,
+  
 } from '../../../../cross-cut-modules/resilience-contracts/displayViews.js';
 import { deriveThinEvidencePolicy, isThinEvidencePolicyEnabled, deriveAssessmentEpistemicPolicy } from './thinEvidencePolicy.js';
 import { narrativeGroundingMinScore } from './narrativeGrounding/groundingConfig.js';
 
-export { DISPLAY_VIEWS, resolveDisplayViewContract as resolveDisplayView };
+
 
 const SCORE_KEYS_COMPONENT = [
   'score',
@@ -324,3 +324,5 @@ export function narrativeIncludesScores() {
   const v = String(process.env.RESILIENCE_NARRATIVE_INCLUDE_SCORES ?? 'false').trim().toLowerCase();
   return v === '1' || v === 'true' || v === 'yes';
 }
+
+export {resolveDisplayView, DISPLAY_VIEWS} from '../../../../cross-cut-modules/resilience-contracts/displayViews.js';

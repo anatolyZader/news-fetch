@@ -72,7 +72,7 @@ if (!eslintRuleIds.length) {
 
 const eslint = new ESLint({
   cwd: ROOT,
-  overrideConfigFile: resolve(ROOT, 'eslint.sonar.config.js'),
+    overrideConfigFile: resolve(ROOT, 'eslint.config.js'),
 });
 
 const absFile = resolve(ROOT, opts.file);

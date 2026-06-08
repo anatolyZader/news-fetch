@@ -14,7 +14,12 @@ import {
 import { searchSources, getSource, listSources } from '../domain/sourceArchiveQuery.js';
 import { pboReviewRagEnabled } from '../../../cross-cut-modules/retrieval/ragConfig.js';
 import { requireAnalyst } from './createChatToolContext.js';
-import { PROPOSE_TOOL_NAMES, OPERATOR_PROPOSE_TOOL_NAMES } from '../domain/chatConfig.js';
+import {
+  PROPOSE_TOOL_NAMES,
+  OPERATOR_PROPOSE_TOOL_NAMES,
+  chatCompressToolsEnabled,
+} from '../domain/chatConfig.js';
+import { compressChatToolResult } from '../domain/chatToolCompress.js';
 
 
 const VALIDATION_ACTIONS = new Set([
@@ -211,8 +216,9 @@ function handleListSources(input, ctx) {
 
 function handleGetSource(input, ctx) {
   const source_id = input?.source_id ?? input?.evidence_id;
+  const max_chars = Math.min(Number(input?.max_chars ?? 8000) || 8000, 8000);
   return getSource(
-    { ...input, source_id, date: inferredDate(input, ctx.reportData) },
+    { ...input, source_id, max_chars, date: inferredDate(input, ctx.reportData) },
     ctx.sourceArchive,
     ctx.evidenceStore,
   );
@@ -463,7 +469,11 @@ export async function handleChatToolCall(toolName, input, ctx) {
 
   const handler = CHAT_TOOL_HANDLERS[toolName];
   if (!handler) return 'Unknown tool';
-  return handler(toolName, input, ctx);
+  const raw = await handler(toolName, input, ctx);
+  return compressChatToolResult(toolName, raw, {
+    enabled: chatCompressToolsEnabled(),
+    economyOverride: ctx.economyOverride,
+  });
 }
 
 export { generateBrief, buildAssessmentBriefContext };

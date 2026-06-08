@@ -25,8 +25,35 @@ import { persistOriginalSources } from '../../../db/source_archive/persistOrigin
 
 const CONVERSATION_TTL_MINUTES = 60;
 
+function isConversationExpired(updatedAt) {
+  if (!updatedAt) return true;
+  const updated = new Date(updatedAt + 'Z'); // SQLite datetime is UTC
+  const now = new Date();
+  return (now - updated) > CONVERSATION_TTL_MINUTES * 60 * 1000;
+}
+
 const DEFAULT_WHATSAPP_REPORT_DIR = 'business_modules/whatsapp/reports';
 const DEFAULT_WHATSAPP_REPORT_BASENAME = 'whatsapp_reports';
+
+function dmMessageTimestamps(msg) {
+  const msgDate = new Date(Number(msg.timestamp) * 1000);
+  return {
+    date: msgDate.toLocaleDateString('en-CA', { timeZone: 'Asia/Jerusalem' }),
+    timestampUtc: msgDate.toISOString(),
+  };
+}
+
+function persistInboundDmMessage(messageStore, msg, normalized, date, timestampUtc) {
+  messageStore.insert({
+    metaMsgId: msg.metaMsgId,
+    groupJid: null,
+    senderPhone: msg.senderPhone,
+    senderName: msg.senderName,
+    messageText: normalized.text ?? '',
+    timestampUtc,
+    date,
+  });
+}
 
 /**
  * @param {{
@@ -115,6 +142,94 @@ export function createWhatsAppIngestService({
 
   // ── DM flow (adaptive chatbot) ─────────────────────────────────────────
 
+  async function resetExpiredDmConversation(conv, phoneNumber) {
+    if (conv.draft_id) {
+      try { draftStore.deleteById(conv.draft_id); } catch { /* ok */ }
+    }
+    conversationStore.reset(phoneNumber);
+    await sendReply(phoneNumber, buildExpiredSession());
+    await sendReply(phoneNumber, buildWelcomeMenu());
+  }
+
+  async function applyExtractorLoopEffect(effectCtx) {
+    const outcome = await runExtractorLoop({
+      draftId: effectCtx.activeDraftId,
+      normalized: effectCtx.normalized,
+      timestampUtc: effectCtx.timestampUtc,
+    });
+    effectCtx.nextState = outcome.nextState;
+    effectCtx.result.replies.push(...outcome.replies);
+    if (!outcome.askDraftGenerator) return;
+    const generated = await runDraftGenerator({ draftId: effectCtx.activeDraftId });
+    effectCtx.result.replies.push(...generated.replies);
+    effectCtx.nextState = generated.nextState;
+  }
+
+  async function applyDmSideEffect(effect, effectCtx) {
+    switch (effect.type) {
+      case 'create_draft':
+        effectCtx.activeDraftId = draftStore.create(effectCtx.normalized.phoneNumber);
+        break;
+      case 'append_turn_officer':
+        if (effectCtx.activeDraftId) {
+          draftStore.appendTurn(effectCtx.activeDraftId, {
+            role: 'officer', text: effect.text, ts: effectCtx.timestampUtc,
+          });
+        }
+        break;
+      case 'append_turn_bot':
+        if (effectCtx.activeDraftId) {
+          draftStore.appendTurn(effectCtx.activeDraftId, {
+            role: 'bot', text: effect.text, ts: new Date().toISOString(),
+          });
+        }
+        break;
+      case 'run_extractor_loop':
+        await applyExtractorLoopEffect(effectCtx);
+        break;
+      case 'submit_draft':
+        if (effectCtx.activeDraftId) {
+          await submitDraft(
+            effectCtx.activeDraftId,
+            effectCtx.normalized,
+            effectCtx.date,
+            effectCtx.timestampUtc,
+          );
+          effectCtx.forceSubmit = true;
+        }
+        effectCtx.activeDraftId = null;
+        break;
+      case 'delete_draft':
+        if (effectCtx.activeDraftId) {
+          try { draftStore.deleteById(effectCtx.activeDraftId); } catch { /* ok */ }
+        }
+        effectCtx.activeDraftId = null;
+        break;
+      default:
+        break;
+    }
+  }
+
+  function persistDmConversationState(phoneNumber, nextState, forceSubmit, activeDraftId) {
+    if (nextState === 'idle' || forceSubmit) {
+      conversationStore.reset(phoneNumber);
+    } else {
+      conversationStore.upsert(phoneNumber, nextState, activeDraftId);
+    }
+  }
+
+  async function sendDmReplies(phoneNumber, replies, activeDraftId) {
+    for (const reply of replies) {
+      await sendReply(phoneNumber, reply);
+      if (!activeDraftId || !reply?.body) continue;
+      try {
+        draftStore.appendTurn(activeDraftId, {
+          role: 'bot', text: summarizeOutboundForTurn(reply), ts: new Date().toISOString(),
+        });
+      } catch { /* ok */ }
+    }
+  }
+
   async function handleDmMessage(msg) {
     if (!isDmPhoneAllowed(msg.senderPhone)) {
       console.error(`  → [whatsapp] DM from ${msg.senderPhone} rejected (not in allowlist)`);
@@ -122,121 +237,45 @@ export function createWhatsAppIngestService({
     }
 
     const normalized = normalizeInboundMessage(msg, msg.rawMessage);
-
     if (messageStore.hasMsgId(msg.metaMsgId)) return;
 
-    const msgDate = new Date(Number(msg.timestamp) * 1000);
-    const date = msgDate.toLocaleDateString('en-CA', { timeZone: 'Asia/Jerusalem' });
-    const timestampUtc = msgDate.toISOString();
+    const { date, timestampUtc } = dmMessageTimestamps(msg);
+    persistInboundDmMessage(messageStore, msg, normalized, date, timestampUtc);
 
-    messageStore.insert({
-      metaMsgId: msg.metaMsgId,
-      groupJid: null,
-      senderPhone: msg.senderPhone,
-      senderName: msg.senderName,
-      messageText: normalized.text ?? '',
-      timestampUtc,
-      date,
-    });
-
-    // Load conversation + expiry handling
-    let conv = conversationStore.get(normalized.phoneNumber);
-    let currentState = conv?.state ?? 'idle';
-
-    if (conv && isExpired(conv.updated_at)) {
-      if (conv.draft_id) {
-        try { draftStore.deleteById(conv.draft_id); } catch { /* ok */ }
-      }
-      conversationStore.reset(normalized.phoneNumber);
-      await sendReply(normalized.phoneNumber, buildExpiredSession());
-      await sendReply(normalized.phoneNumber, buildWelcomeMenu());
+    const conv = conversationStore.get(normalized.phoneNumber);
+    const currentState = conv?.state ?? 'idle';
+    if (conv && isConversationExpired(conv.updated_at)) {
+      await resetExpiredDmConversation(conv, normalized.phoneNumber);
       return;
     }
 
-    let activeDraftId = conv?.draft_id ?? null;
-    let draft = activeDraftId ? draftStore.get(activeDraftId) : null;
-
-    // ── Step 1: run the pure state machine to route the message ─────────
+    const activeDraftId = conv?.draft_id ?? null;
+    const draft = activeDraftId ? draftStore.get(activeDraftId) : null;
     const result = transition(currentState, normalized, draft);
-
-    // ── Step 2: apply side effects ──────────────────────────────────────
-    let nextState = result.nextState;
-    let forceSubmit = false;
+    const effectCtx = {
+      normalized,
+      date,
+      timestampUtc,
+      result,
+      activeDraftId,
+      nextState: result.nextState,
+      forceSubmit: false,
+    };
 
     for (const effect of result.sideEffects) {
-      switch (effect.type) {
-        case 'create_draft': {
-          activeDraftId = draftStore.create(normalized.phoneNumber);
-          break;
-        }
-        case 'append_turn_officer': {
-          if (activeDraftId) {
-            draftStore.appendTurn(activeDraftId, {
-              role: 'officer', text: effect.text, ts: timestampUtc,
-            });
-          }
-          break;
-        }
-        case 'append_turn_bot': {
-          if (activeDraftId) {
-            draftStore.appendTurn(activeDraftId, {
-              role: 'bot', text: effect.text, ts: new Date().toISOString(),
-            });
-          }
-          break;
-        }
-        case 'run_extractor_loop': {
-          const outcome = await runExtractorLoop({
-            draftId: activeDraftId, normalized, timestampUtc,
-          });
-          nextState = outcome.nextState;
-          for (const reply of outcome.replies) result.replies.push(reply);
-          if (outcome.askDraftGenerator) {
-            const generated = await runDraftGenerator({ draftId: activeDraftId });
-            for (const reply of generated.replies) result.replies.push(reply);
-            nextState = generated.nextState;
-          }
-          break;
-        }
-        case 'submit_draft': {
-          if (activeDraftId) {
-            await submitDraft(activeDraftId, normalized, date, timestampUtc);
-            forceSubmit = true;
-          }
-          activeDraftId = null;
-          break;
-        }
-        case 'delete_draft': {
-          if (activeDraftId) {
-            try { draftStore.deleteById(activeDraftId); } catch { /* ok */ }
-          }
-          activeDraftId = null;
-          break;
-        }
-      }
+      await applyDmSideEffect(effect, effectCtx);
     }
 
-    // ── Step 3: persist conversation state ──────────────────────────────
-    if (nextState === 'idle' || forceSubmit) {
-      conversationStore.reset(normalized.phoneNumber);
-    } else {
-      conversationStore.upsert(normalized.phoneNumber, nextState, activeDraftId);
-    }
-
-    // ── Step 4: send replies (and record bot turns) ─────────────────────
-    for (const reply of result.replies) {
-      await sendReply(normalized.phoneNumber, reply);
-      if (activeDraftId && reply?.body) {
-        try {
-          draftStore.appendTurn(activeDraftId, {
-            role: 'bot', text: summarizeOutboundForTurn(reply), ts: new Date().toISOString(),
-          });
-        } catch { /* ok */ }
-      }
-    }
+    persistDmConversationState(
+      normalized.phoneNumber,
+      effectCtx.nextState,
+      effectCtx.forceSubmit,
+      effectCtx.activeDraftId,
+    );
+    await sendDmReplies(normalized.phoneNumber, result.replies, effectCtx.activeDraftId);
 
     console.error(
-      `WhatsApp DM processed: ${msg.metaMsgId} from ${msg.senderPhone} [${currentState} → ${nextState}]`,
+      `WhatsApp DM processed: ${msg.metaMsgId} from ${msg.senderPhone} [${currentState} → ${effectCtx.nextState}]`,
     );
   }
 
@@ -414,13 +453,6 @@ export function createWhatsAppIngestService({
   }
 
   // ── Helpers ────────────────────────────────────────────────────────────
-
-  function isExpired(updatedAt) {
-    if (!updatedAt) return true;
-    const updated = new Date(updatedAt + 'Z'); // SQLite datetime is UTC
-    const now = new Date();
-    return (now - updated) > CONVERSATION_TTL_MINUTES * 60 * 1000;
-  }
 
   async function sendReply(phoneNumber, outboundMsg) {
     try {

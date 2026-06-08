@@ -1,6 +1,8 @@
 /**
  * Extraction prompt versioning and stable prompt blocks (cache-friendly layout).
  */
+import { promptCacheEnabledForFeature } from '../llm/promptCacheConfig.js';
+
 export const EXTRACT_PROMPT_VERSION = 'extract-v2';
 export const EXTRACT_PROMPT_ID = 'signal-extraction';
 
@@ -20,7 +22,7 @@ export function selfCheckMaxTokensCap() {
 }
 
 export function extractPromptCacheEnabled() {
-  return process.env.RESILIENCE_EXTRACT_PROMPT_CACHE === '1';
+  return promptCacheEnabledForFeature('extract');
 }
 
 export function extractBatchEnabled() {
@@ -65,4 +67,26 @@ export const LEGACY_STABLE_PREFIX_CHAR_BASELINE = 10_500;
 
 export function coreExtractionStablePrefixCharBudget() {
   return Math.floor(LEGACY_STABLE_PREFIX_CHAR_BASELINE * 0.75);
+}
+
+/**
+ * Cache-friendly extraction system split: stable catalog block vs dynamic content-kind prefix.
+ * @param {string} contentKind
+ * @param {{
+ *   formatDisambiguationBlock: () => string,
+ *   formatSignalCatalog: () => string,
+ *   contentKindPrefix?: string,
+ *   passScopeSuffix?: string,
+ * }} opts
+ */
+export function buildExtractionSystemParts(_contentKind, opts) {
+  let stable = buildCoreExtractionSystemPrompt(
+    opts.formatDisambiguationBlock,
+    opts.formatSignalCatalog,
+  );
+  if (opts.passScopeSuffix) {
+    stable += `\n\n${opts.passScopeSuffix}`;
+  }
+  const dynamic = String(opts.contentKindPrefix ?? '');
+  return { stable, dynamic };
 }

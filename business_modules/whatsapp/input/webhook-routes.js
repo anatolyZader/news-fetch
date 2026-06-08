@@ -6,6 +6,34 @@
 
 import { verifyWhatsAppWebhookSignature } from '../../../cross-cut-modules/security/infrastructure/whatsappSignature.js';
 
+function toRawBodyBuffer(rawBody) {
+  if (rawBody === null || rawBody === undefined) return null;
+  return Buffer.isBuffer(rawBody) ? rawBody : Buffer.from(String(rawBody));
+}
+
+function verifyWebhookSignature(request, secret) {
+  const raw = toRawBodyBuffer(request.rawBody);
+  if (!raw) {
+    return { ok: false, code: 'missing_raw_body' };
+  }
+  const sig = request.headers['x-hub-signature-256'];
+  const verified = verifyWhatsAppWebhookSignature(raw.toString('utf8'), sig, secret);
+  if (!verified.ok) {
+    return { ok: false, code: verified.reason ?? 'invalid_signature' };
+  }
+  return { ok: true };
+}
+
+async function processWebhookEntries(entries, ingestService) {
+  for (const entry of entries) {
+    try {
+      await ingestService.handleIncomingMessage(entry);
+    } catch (err) {
+      console.error('WhatsApp webhook processing error:', err);
+    }
+  }
+}
+
 /**
  * @param {import('fastify').FastifyInstance} fastify
  * @param {{ ingestService, apiAdapter, verifyToken: string, appSecret?: string }} opts
@@ -27,38 +55,17 @@ export async function whatsappWebhookPlugin(fastify, { ingestService, apiAdapter
   });
 
   fastify.post('/api/webhooks/whatsapp', async (request, reply) => {
-    const rawBody = request.rawBody;
     if (verifyTokenConfigured && !secret) {
       return reply.code(403).send({ error: 'Forbidden', code: 'missing_app_secret' });
     }
     if (secret) {
-      const sig = request.headers['x-hub-signature-256'];
-      let raw = null;
-      if (rawBody !== null && rawBody !== undefined) {
-        if (Buffer.isBuffer(rawBody)) {
-          raw = rawBody;
-        } else {
-          raw = Buffer.from(String(rawBody));
-        }
-      }
-      if (!raw) {
-        return reply.code(403).send({ error: 'Forbidden', code: 'missing_raw_body' });
-      }
-      const verified = verifyWhatsAppWebhookSignature(raw.toString('utf8'), sig, secret);
+      const verified = verifyWebhookSignature(request, secret);
       if (!verified.ok) {
-        return reply.code(403).send({ error: 'Forbidden', code: verified.reason ?? 'invalid_signature' });
+        return reply.code(403).send({ error: 'Forbidden', code: verified.code });
       }
     }
 
     reply.code(200).send('EVENT_RECEIVED');
-
-    const entries = request.body?.entry ?? [];
-    for (const entry of entries) {
-      try {
-        await ingestService.handleIncomingMessage(entry);
-      } catch (err) {
-        console.error('WhatsApp webhook processing error:', err);
-      }
-    }
+    await processWebhookEntries(request.body?.entry ?? [], ingestService);
   });
 }

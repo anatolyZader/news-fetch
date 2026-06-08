@@ -1,4 +1,4 @@
-import Anthropic from '@anthropic-ai/sdk';
+import { getDefaultLlmPort } from '../../../cross-cut-modules/llm/anthropicLlmAdapter.js';
 import { RESILIENCE_COMPONENTS } from '../domain/resilienceComponents.js';
 import { summarizeConfidence, overallScore, scoreComponents } from '../domain/services/behaviorSignals.js';
 import { salienceContextFromDataVoid } from '../domain/services/highSalienceBypass.js';
@@ -26,7 +26,6 @@ import { extractNarrativeFacts } from './narrativeFactsExtract.js';
 import { buildNarrativeRetrievalContext } from './narrativeRetrievalContext.js';
 import { judgeNarrativeRelations, formatJudgeFeedback } from './narrativeRelationJudge.js';
 
-const client = new Anthropic();
 const DEFAULT_NARRATIVE_MODEL = process.env.RESILIENCE_NARRATIVE_MODEL ?? 'claude-sonnet-4-6';
 
 // ─── Step 2: Narrative generation ─────────────────────────────────────────────
@@ -722,14 +721,15 @@ async function buildNarrativeGenerationContext(scoredComponents, date, totalArti
   return { systemPrompt, meta, claimsByComponent, registry };
 }
 
-async function fetchNarrativeJson(systemPrompt, date, totalArticles, feedback, attempt, onUsage, claimsByComponent) {
+async function fetchNarrativeJson(systemPrompt, date, totalArticles, feedback, attempt, onUsage, claimsByComponent, llmPort) {
   const label = attempt > 1 ? `[Step 2 — Narratives] (retry ${attempt})` : '[Step 2 — Narratives]';
   const userContent = buildNarrativeUserMessage(date, totalArticles, feedback);
-  const stream = client.messages.stream({
+  const stream = await llmPort.stream({
     model: DEFAULT_NARRATIVE_MODEL,
     max_tokens: 16000,
     system: systemPrompt,
     messages: [{ role: 'user', content: userContent }],
+    callContext: { feature: 'narrative_polish', purpose: label },
   });
   await streamWithProgress(stream, label);
   const message = await stream.finalMessage();
@@ -786,9 +786,9 @@ function mergeGroundingIntoNarratives(narratives, grounding) {
 }
 
 async function processNarrativeAttempt(ctx, attempt, maxRetries) {
-  const { systemPrompt, meta, claimsByComponent, registry, scoredComponents, date, totalArticles, onUsage } = ctx;
+  const { systemPrompt, meta, claimsByComponent, registry, scoredComponents, date, totalArticles, onUsage, llmPort } = ctx;
   let narratives = await fetchNarrativeJson(
-    systemPrompt, date, totalArticles, ctx.feedback, attempt, onUsage, claimsByComponent,
+    systemPrompt, date, totalArticles, ctx.feedback, attempt, onUsage, claimsByComponent, llmPort,
   );
   if (!isNarrativeGroundingEnabled()) {
     return buildAssessmentPayload(narratives, scoredComponents, meta);
@@ -815,6 +815,7 @@ export async function generateNarratives(
   totalArticles,
   {
     onUsage,
+    llmPort,
     _onProgress,
     priorReports,
     contentKind = 'news',
@@ -849,7 +850,15 @@ export async function generateNarratives(
   });
 
   const MAX_RETRIES = 3;
-  const ctx = { ...setup, scoredComponents, date, totalArticles, onUsage, feedback: '' };
+  const ctx = {
+    ...setup,
+    scoredComponents,
+    date,
+    totalArticles,
+    onUsage,
+    llmPort: llmPort ?? getDefaultLlmPort(),
+    feedback: '',
+  };
 
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {

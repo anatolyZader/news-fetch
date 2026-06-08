@@ -55,6 +55,15 @@ function safeJsonParse(text, fallback) {
   try { return JSON.parse(text); } catch { return fallback; }
 }
 
+function hydrateWhatsAppReportDraftRow(row) {
+  if (!row) return null;
+  return {
+    ...row,
+    structured_state: safeJsonParse(row.structured_state, {}),
+    turn_history: safeJsonParse(row.turn_history, []),
+  };
+}
+
 /**
  * @param {string} dbPath  Absolute path to SQLite file
  */
@@ -104,15 +113,6 @@ export function createWhatsAppReportDraftStore(dbPath) {
     `DELETE FROM whatsapp_report_drafts WHERE id = ?`,
   );
 
-  function hydrate(row) {
-    if (!row) return null;
-    return {
-      ...row,
-      structured_state: safeJsonParse(row.structured_state, {}),
-      turn_history: safeJsonParse(row.turn_history, []),
-    };
-  }
-
   return {
     /** Create a new draft. @returns {string} the draft id */
     create(phoneNumber) {
@@ -122,11 +122,11 @@ export function createWhatsAppReportDraftStore(dbPath) {
     },
 
     get(id) {
-      return hydrate(getStmt.get(id) ?? null);
+      return hydrateWhatsAppReportDraftRow(getStmt.get(id) ?? null);
     },
 
     getActiveDraft(phoneNumber) {
-      return hydrate(getActiveStmt.get(phoneNumber) ?? null);
+      return hydrateWhatsAppReportDraftRow(getActiveStmt.get(phoneNumber) ?? null);
     },
 
     /**

@@ -22,7 +22,7 @@ export function createSourceArchive(dbPath, opts = {}) {
       body: item.body,
       source_url: item.source_url ?? item.url,
     };
-    void retrievalIndexer.indexArchiveRow(row).catch((err) => {
+    retrievalIndexer.indexArchiveRow(row).catch((err) => {
       console.error(`rag index after archive upsert (${sourceId}):`, err.message);
     });
   }

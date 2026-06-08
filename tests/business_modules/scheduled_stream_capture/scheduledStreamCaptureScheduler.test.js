@@ -6,6 +6,26 @@ import { tmpdir } from 'os';
 import { createScheduledStreamCaptureJobStore } from '../../../business_modules/scheduled_stream_capture/infrastructure/scheduledStreamCaptureJobStore.js';
 import { createScheduledStreamCaptureScheduler } from '../../../business_modules/scheduled_stream_capture/app/scheduledStreamCaptureScheduler.js';
 
+/** Returns Israel-time day-of-week and HH:MM for a given Date. */
+function ilNow(date) {
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Jerusalem',
+      year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', hour12: false,
+    }).formatToParts(date).map((p) => [p.type, p.value]),
+  );
+  const dowStr = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Jerusalem', weekday: 'short',
+  }).format(date);
+  const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  return {
+    dayOfWeek: DOW.indexOf(dowStr),
+    hour: Number.parseInt(parts.hour, 10),
+    minute: Number.parseInt(parts.minute, 10),
+  };
+}
+
 describe('scheduledStreamCaptureScheduler', () => {
   const dbPath = join(tmpdir(), `rec-sched-test-${Date.now()}.sqlite`);
   const store = createScheduledStreamCaptureJobStore(dbPath);
@@ -14,26 +34,6 @@ describe('scheduledStreamCaptureScheduler', () => {
   after(() => {
     try { if (existsSync(dbPath)) unlinkSync(dbPath); } catch { /* ignore */ }
   });
-
-  /** Returns Israel-time day-of-week and HH:MM for a given Date. */
-  function ilNow(date) {
-    const parts = Object.fromEntries(
-      new Intl.DateTimeFormat('en-CA', {
-        timeZone: 'Asia/Jerusalem',
-        year: 'numeric', month: '2-digit', day: '2-digit',
-        hour: '2-digit', minute: '2-digit', hour12: false,
-      }).formatToParts(date).map((p) => [p.type, p.value]),
-    );
-    const dowStr = new Intl.DateTimeFormat('en-US', {
-      timeZone: 'Asia/Jerusalem', weekday: 'short',
-    }).format(date);
-    const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    return {
-      dayOfWeek: DOW.indexOf(dowStr),
-      hour: parseInt(parts.hour, 10),
-      minute: parseInt(parts.minute, 10),
-    };
-  }
 
   describe('poll detection', () => {
     it('detects a due job and calls adapter.record()', async () => {

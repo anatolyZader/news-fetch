@@ -5,7 +5,7 @@ import { COMPONENT_IDS } from '../resilience-contracts/componentIds.js';
 import { classifyGap } from './evidenceGraph.js';
 import { detectArchiveAnomalies } from './archiveEpistemicHints.js';
 
-const MEDIA_MASS_THRESHOLD = 2.0;
+const MEDIA_MASS_THRESHOLD = 2;
 const LOW_EVIDENCE_THRESHOLD = 1.5;
 const MAX_EXPLORATION_CANDIDATES = 2;
 const EXPLORATION_MODES = new Set(['normal', 'degraded']);

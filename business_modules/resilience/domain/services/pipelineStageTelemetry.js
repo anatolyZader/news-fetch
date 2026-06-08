@@ -1,12 +1,9 @@
 /**
  * Aggregate C9 stage events from in-memory runs and the cost log.
  */
-import {
-  readCostLogStagesForDate,
-  summarizeStageEvents,
-} from '../../../../cross-cut-modules/log/index.js';
 
-export { summarizeStageEvents, readCostLogStagesForDate };
+
+
 
 /**
  * Operator-safe rollup (no reason_counts detail).
@@ -30,3 +27,5 @@ export function extractionTelemetryForOperator(blocks) {
   }
   return out;
 }
+
+export {readCostLogStagesForDate, summarizeStageEvents} from '../../../../cross-cut-modules/log/index.js';

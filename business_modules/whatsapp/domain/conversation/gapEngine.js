@@ -110,22 +110,8 @@ function rankGap(gap) {
   return kindScore;
 }
 
-/**
- * Compute a ranked list of gaps to close next.
- *
- * @param {object} structuredState
- * @param {object} [opts]
- * @param {object} [opts.requirements]        EVIDENCE_REQUIREMENTS override (for tests).
- * @param {string[]} [opts.universalRequired] UNIVERSAL_REQUIRED override (for tests).
- * @returns {{ sufficient: boolean, rankedGaps: Array<object> }}
- */
-export function computeGaps(structuredState, opts = {}) {
-  const requirements = opts.requirements ?? DEFAULT_REQUIREMENTS;
-  const universalRequired = opts.universalRequired ?? DEFAULT_UNIVERSAL_REQUIRED;
-
+function collectUniversalGaps(structuredState, universalRequired) {
   const gaps = [];
-
-  // 1) Universal required fields
   for (const field of universalRequired) {
     if (!isFieldPresent(structuredState, field)) {
       gaps.push({
@@ -136,15 +122,16 @@ export function computeGaps(structuredState, opts = {}) {
       });
     }
   }
+  return gaps;
+}
 
-  // 2) Per-candidate-component required + disambiguation
-  const candidateIds = listCandidateComponents(structuredState);
-  for (const componentId of candidateIds) {
+function collectComponentGaps(structuredState, requirements, universalRequired) {
+  const gaps = [];
+  for (const componentId of listCandidateComponents(structuredState)) {
     const req = requirements[componentId];
     if (!req) continue;
 
     for (const field of req.required) {
-      // Skip fields that are already satisfied by the universal pass
       if (universalRequired.includes(field)) continue;
       if (!isFieldPresent(structuredState, field)) {
         gaps.push({
@@ -165,12 +152,62 @@ export function computeGaps(structuredState, opts = {}) {
       });
     }
   }
+  return gaps;
+}
 
-  // Stable sort by rank
+/**
+ * Compute a ranked list of gaps to close next.
+ *
+ * @param {object} structuredState
+ * @param {object} [opts]
+ * @param {object} [opts.requirements]        EVIDENCE_REQUIREMENTS override (for tests).
+ * @param {string[]} [opts.universalRequired] UNIVERSAL_REQUIRED override (for tests).
+ * @returns {{ sufficient: boolean, rankedGaps: Array<object> }}
+ */
+export function computeGaps(structuredState, opts = {}) {
+  const requirements = opts.requirements ?? DEFAULT_REQUIREMENTS;
+  const universalRequired = opts.universalRequired ?? DEFAULT_UNIVERSAL_REQUIRED;
+
+  const gaps = [
+    ...collectUniversalGaps(structuredState, universalRequired),
+    ...collectComponentGaps(structuredState, requirements, universalRequired),
+  ];
   gaps.sort((a, b) => rankGap(a) - rankGap(b));
 
-  const sufficient = isSufficient(structuredState);
-  return { sufficient, rankedGaps: gaps };
+  return { sufficient: isSufficient(structuredState), rankedGaps: gaps };
+}
+
+function mergeObservationFields(target, source) {
+  if (!source || typeof source !== 'object') return;
+  for (const [k, v] of Object.entries(source)) {
+    if (v == null) continue;
+    if (typeof v === 'string' && v.trim() === '') continue;
+    target[k] = v;
+  }
+}
+
+function mergeInterpretationFields(target, source) {
+  if (!source || typeof source !== 'object') return;
+  if (Array.isArray(source.possibleDrivers) && source.possibleDrivers.length) {
+    target.possibleDrivers = source.possibleDrivers;
+  }
+  if (Array.isArray(source.alternatives) && source.alternatives.length) {
+    target.alternatives = source.alternatives;
+  }
+}
+
+function mergeComponentLinkFields(existing, incoming) {
+  const byId = new Map(existing.map((l) => [l.componentId, l]));
+  for (const link of incoming) {
+    if (link?.componentId) byId.set(link.componentId, { ...byId.get(link.componentId), ...link });
+  }
+  return Array.from(byId.values());
+}
+
+function mergeConfidenceFields(target, source) {
+  if (!source || typeof source !== 'object') return;
+  if (source.level) target.level = source.level;
+  if (source.basis) target.basis = source.basis;
 }
 
 /**
@@ -188,35 +225,12 @@ export function mergeStructured(prev, next) {
     confidence: { ...base.confidence },
   };
 
-  if (next.observation && typeof next.observation === 'object') {
-    for (const [k, v] of Object.entries(next.observation)) {
-      if (v == null) continue;
-      if (typeof v === 'string' && v.trim() === '') continue;
-      merged.observation[k] = v;
-    }
-  }
-
-  if (next.interpretation && typeof next.interpretation === 'object') {
-    if (Array.isArray(next.interpretation.possibleDrivers) && next.interpretation.possibleDrivers.length) {
-      merged.interpretation.possibleDrivers = next.interpretation.possibleDrivers;
-    }
-    if (Array.isArray(next.interpretation.alternatives) && next.interpretation.alternatives.length) {
-      merged.interpretation.alternatives = next.interpretation.alternatives;
-    }
-  }
-
+  mergeObservationFields(merged.observation, next.observation);
+  mergeInterpretationFields(merged.interpretation, next.interpretation);
   if (Array.isArray(next.componentLinks) && next.componentLinks.length) {
-    const byId = new Map(merged.componentLinks.map((l) => [l.componentId, l]));
-    for (const link of next.componentLinks) {
-      if (link?.componentId) byId.set(link.componentId, { ...byId.get(link.componentId), ...link });
-    }
-    merged.componentLinks = Array.from(byId.values());
+    merged.componentLinks = mergeComponentLinkFields(merged.componentLinks, next.componentLinks);
   }
-
-  if (next.confidence && typeof next.confidence === 'object') {
-    if (next.confidence.level) merged.confidence.level = next.confidence.level;
-    if (next.confidence.basis) merged.confidence.basis = next.confidence.basis;
-  }
+  mergeConfidenceFields(merged.confidence, next.confidence);
 
   return merged;
 }

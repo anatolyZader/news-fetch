@@ -2,6 +2,11 @@
  * Chat application service — orchestrates report context and Claude streaming.
  */
 import { buildReportContext } from '../domain/reportContext.js';
+import {
+  resolveChatContextTier,
+  resolveChatEconomyMode,
+} from '../domain/chatContextTier.js';
+import { runDeterministicChatFallback } from './chatDeterministicFallback.js';
 import { ragPipelineEnabled } from '../../../cross-cut-modules/retrieval/index.js';
 import { reportIndexHelpers } from '../../../cross-cut-modules/retrieval/reportIndexHelpers.js';
 import { METRIC } from '../../../cross-cut-modules/monitoring/domain/metricNames.js';
@@ -51,15 +56,73 @@ export async function streamChat(message, history, rawReply, getReportData, opts
   const reportScopeId = opts.reportGeoScope
     ?? reportData?.assessment?.report_scope?.id
     ?? 'national';
+
+  const economy = resolveChatEconomyMode(message, {
+    economy: opts.economy,
+    toolProfile: opts.toolProfile,
+  });
+  const tierResult = economy.tieringEnabled
+    ? resolveChatContextTier(message, {
+      toolProfile: opts.toolProfile,
+      forceFull: economy.forceFull,
+    })
+    : { tier: 'full', reason: 'tiering_disabled' };
+
   const { context: baseContext, pboLookup } = buildReportContext(reportData, {
     includeScores,
     reportScopeId,
+    tier: tierResult.tier,
+    componentId: tierResult.componentId,
   });
+
+  const chatEconomyMeta = {
+    context_tier: tierResult.tier,
+    compact_tool_loop: economy.compactToolLoop,
+    tiering_enabled: economy.tieringEnabled,
+    economy_override: economy.economyOverride,
+    tier_reason: tierResult.reason,
+  };
 
   const tracePort = opts.tracePort ?? null;
   const abortSignal = opts.abortSignal ?? null;
 
   throwIfAborted(abortSignal);
+
+  const send = (data) => {
+    try { opts.onSend?.(data); } catch { /* ignore */ }
+    rawReply.write(`data: ${JSON.stringify(data)}\n\n`);
+  };
+
+  if (opts.budgetDegraded) {
+    try {
+      const fallbackText = await runDeterministicChatFallback({
+        message,
+        reportData,
+        pboLookup,
+        tier: tierResult.tier,
+        tierReason: tierResult.reason,
+        toolContextDeps: {
+          userEmail: opts.userEmail ?? '',
+          sourceArchive: opts.sourceArchive ?? null,
+          evidenceStore: opts.evidenceStore ?? null,
+          retrievalService: opts.retrievalService ?? null,
+          retrievalCache: opts.retrievalCache ?? null,
+          toolProfile: opts.toolProfile ?? 'default',
+        },
+      });
+      send({ type: 'text', text: fallbackText });
+      send({
+        type: 'done',
+        mode: 'deterministic_fallback',
+        budget_degraded: true,
+        chat_economy: chatEconomyMeta,
+      });
+    } catch (err) {
+      send({ type: 'error', message: err?.message ?? 'Deterministic fallback failed' });
+      send({ type: 'done', error: true, mode: 'deterministic_fallback' });
+    }
+    return;
+  }
 
   const buildHint = () => buildRetrievalHint(message, history, reportData, {
     ...opts,
@@ -79,6 +142,26 @@ export async function streamChat(message, history, rawReply, getReportData, opts
     (opts.systemHint ? `\n\n${opts.systemHint}` : '') +
     (retrievalHint ? `\n\n${retrievalHint}` : '');
 
+  console.error(
+    `chat economy tier=${chatEconomyMeta.context_tier} compact=${chatEconomyMeta.compact_tool_loop ? 1 : 0} ` +
+    `context_chars=${context.length} override=${chatEconomyMeta.economy_override}`,
+  );
+
+  if (opts.costRecorder) {
+    opts.costRecorder.onUsage({
+      label: 'http:chat',
+      stage: 'chat_economy',
+      stats: {
+        tier: chatEconomyMeta.context_tier,
+        compact_tool_loop: chatEconomyMeta.compact_tool_loop,
+        context_chars: context.length,
+        tiering_enabled: chatEconomyMeta.tiering_enabled,
+        economy_override: chatEconomyMeta.economy_override,
+        tier_reason: chatEconomyMeta.tier_reason,
+      },
+    });
+  }
+
   const trimmedHistory = history.length > MAX_HISTORY_MESSAGES
     ? history.slice(-MAX_HISTORY_MESSAGES)
     : history;
@@ -87,11 +170,6 @@ export async function streamChat(message, history, rawReply, getReportData, opts
     ...trimmedHistory.map((h) => ({ role: h.role, content: h.content })),
     { role: 'user', content: message },
   ];
-
-  const send = (data) => {
-    try { opts.onSend?.(data); } catch { /* ignore */ }
-    rawReply.write(`data: ${JSON.stringify(data)}\n\n`);
-  };
 
   try {
     const runLlm = () => chatLlmPort.streamChatResponse(context, pboLookup, messages, send, reportData, {
@@ -114,6 +192,7 @@ export async function streamChat(message, history, rawReply, getReportData, opts
       llmPort: opts.llmPort ?? null,
       agentKernel: opts.agentKernel ?? null,
       abortSignal,
+      economy: chatEconomyMeta,
     });
 
     if (tracePort) {
@@ -121,7 +200,7 @@ export async function streamChat(message, history, rawReply, getReportData, opts
     } else {
       await runLlm();
     }
-    send({ type: 'done' });
+    send({ type: 'done', chat_economy: chatEconomyMeta });
   } catch (err) {
     send({ type: 'error', message: err?.message ?? 'Chat failed' });
     send({ type: 'done', error: true });

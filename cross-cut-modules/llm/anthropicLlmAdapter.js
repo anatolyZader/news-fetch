@@ -9,6 +9,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { runToolLoop as sharedRunToolLoop } from './runToolLoop.js';
 import { withSpan } from '../observability/withSpan.js';
 import { createLlmGateway } from './llmGateway.js';
+import { prepareAnthropicRequest, resolvePromptCacheFeature } from './promptCache.js';
 
 /**
  * @param {{ apiKey?: string, defaultModel?: string, client?: object }} [cfg]
@@ -20,11 +21,18 @@ export function createAnthropicLlmPort(cfg = {}) {
 
   return {
     createMessage: (opts) =>
-      withSpan('llm.createMessage', { model: opts?.model ?? 'default' }, () =>
-        client.messages.create(opts)),
-    stream: (opts) =>
-      withSpan('llm.stream', { model: opts?.model ?? 'default' }, () =>
-        client.messages.stream(opts)),
+      withSpan('llm.createMessage', { model: opts?.model ?? 'default' }, () => {
+        const prepared = prepareAnthropicRequest(opts, {
+          feature: resolvePromptCacheFeature(opts),
+        });
+        return client.messages.create(prepared);
+      }),
+    stream: (opts) => {
+      const prepared = prepareAnthropicRequest(opts, {
+        feature: resolvePromptCacheFeature(opts),
+      });
+      return client.messages.stream(prepared);
+    },
     runToolLoop: (opts) =>
       withSpan('llm.runToolLoop', {}, () => sharedRunToolLoop({ ...opts, client })),
     defaultModel: cfg.defaultModel,
@@ -52,3 +60,5 @@ export function getDefaultLlmPort() {
   }
   return defaultPort;
 }
+
+export { resolveLlmPort } from './resolveLlmPort.js';

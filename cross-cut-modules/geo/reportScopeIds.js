@@ -9,7 +9,7 @@ import {
   normalizeIsraelDistrictId,
 } from './israelDistricts.js';
 
-export { ISRAEL_REGIONAL_DISTRICT_ORDER as REGIONAL_REPORT_SCOPE_IDS };
+
 
 /** @param {string} [scopeId] */
 export function normalizeReportScopeId(scopeId) {
@@ -40,3 +40,5 @@ export function isRegionalReportFilename(filename) {
   const f = String(filename ?? '');
   return ISRAEL_REGIONAL_DISTRICT_ORDER.some((id) => f.startsWith(`resilience-report-${id}-`));
 }
+
+export {ISRAEL_REGIONAL_DISTRICT_ORDER as REGIONAL_REPORT_SCOPE_IDS} from './israelDistricts.js';

@@ -136,7 +136,7 @@ describe('driftService.compute', () => {
         date: '2026-04-29', scope: 'national',
         total_articles_analyzed: 12, overall_score: 6,
         components: [
-          { component_id: 'narrative', score: 7, confidence: 'high', certainty: 0.5, polarization: 0.20, evidence_mass: 8, signal_count: 5 },
+          { component_id: 'narrative', score: 7, confidence: 'high', certainty: 0.5, polarization: 0.2, evidence_mass: 8, signal_count: 5 },
         ],
         signal_counts: { fear_expression: 1 }, source_type_mass: { news: 1 },
       },
@@ -144,7 +144,7 @@ describe('driftService.compute', () => {
         date: '2026-04-30', scope: 'national',
         total_articles_analyzed: 12, overall_score: 6,
         components: [
-          { component_id: 'narrative', score: 7, confidence: 'high', certainty: 0.5, polarization: 0.30, evidence_mass: 8, signal_count: 5 },
+          { component_id: 'narrative', score: 7, confidence: 'high', certainty: 0.5, polarization: 0.3, evidence_mass: 8, signal_count: 5 },
         ],
         signal_counts: { fear_expression: 1 }, source_type_mass: { news: 1 },
       },

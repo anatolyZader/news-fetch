@@ -15,7 +15,7 @@ function sleep(ms) {
   return new Promise((r) => setTimeout(r, ms));
 }
 
-function mergeSeries(primary, secondary, topics) {
+function initSeriesByDate(primary, secondary) {
   const byDate = new Map();
   for (const row of primary.series) {
     byDate.set(row.date, { date: row.date });
@@ -23,20 +23,23 @@ function mergeSeries(primary, secondary, topics) {
   for (const row of secondary.series) {
     if (!byDate.has(row.date)) byDate.set(row.date, { date: row.date });
   }
-  for (const row of primary.series) {
+  return byDate;
+}
+
+function applyTopicValues(byDate, series, topics) {
+  for (const row of series) {
     const entry = byDate.get(row.date);
-    for (const topic of topics.slice(0, 5)) {
+    for (const topic of topics) {
       const v = row.values[topic.keyword];
       if (v != null) entry[topic.id] = v;
     }
   }
-  for (const row of secondary.series) {
-    const entry = byDate.get(row.date);
-    for (const topic of topics.slice(5)) {
-      const v = row.values[topic.keyword];
-      if (v != null) entry[topic.id] = v;
-    }
-  }
+}
+
+function mergeSeries(primary, secondary, topics) {
+  const byDate = initSeriesByDate(primary, secondary);
+  applyTopicValues(byDate, primary.series, topics.slice(0, 5));
+  applyTopicValues(byDate, secondary.series, topics.slice(5));
   return [...byDate.values()].sort((a, b) => String(a.date).localeCompare(String(b.date)));
 }
 
@@ -120,6 +123,26 @@ async function loadDistrictSnapshots(cache, days) {
   return out;
 }
 
+async function resolveNationalDashboard(payload, cache, days) {
+  if (payload.district?.id === 'national') {
+    return payload;
+  }
+  const cached = await cache.read('national', days);
+  if (cached) {
+    return cached;
+  }
+  if (typeof cache.readStale === 'function') {
+    const stale = await cache.readStale('national', days);
+    if (stale) {
+      return stale;
+    }
+  }
+  if (payload.source === 'demo') {
+    return buildDemoDashboard(resolveTrendDistrict('national'), days);
+  }
+  return null;
+}
+
 /**
  * @param {object} payload
  * @param {ReturnType<typeof createTrendsDashboardCacheAdapter>} cache
@@ -134,14 +157,7 @@ async function finalizeDashboard(payload, cache, days) {
       topics: buildDemoDashboard(d, days).topics,
     }));
   }
-  const nationalDashboard =
-    payload.district?.id === 'national'
-      ? payload
-      : (await cache.read('national', days))
-        ?? (typeof cache.readStale === 'function'
-          ? await cache.readStale('national', days)
-          : null)
-        ?? (payload.source === 'demo' ? buildDemoDashboard(resolveTrendDistrict('national'), days) : null);
+  const nationalDashboard = await resolveNationalDashboard(payload, cache, days);
 
   return normalizeIsraelDistrictRefs({
     ...payload,

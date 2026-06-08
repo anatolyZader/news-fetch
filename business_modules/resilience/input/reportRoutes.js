@@ -17,6 +17,8 @@ import {
   DISPLAY_VIEWS,
   normalizeReportScope,
   buildAttentionItems,
+  buildActionCompass,
+  buildAnomalyStrip,
   updateOperatorRecommendationStatus,
   parseOperatorRecommendationRequest,
 } from '../index.js';
@@ -45,6 +47,7 @@ export async function reportRoutes(app, opts) {
     timezone,
     fetchArticlesForDay,
     sqlitePath,
+    crisisBudgetService = null,
   } = opts;
 
   const getCachedReport = (store, readOpts) =>
@@ -158,11 +161,19 @@ export async function reportRoutes(app, opts) {
       view: display_view,
       reportScopeId: scope,
     });
+    const action_compass = buildActionCompass(redacted.assessment, attention_items);
+    const anomaly_strip = buildAnomalyStrip(redacted.assessment);
+    const budget_status = crisisBudgetService?.getChatBudgetStatus?.() ?? null;
+    const suggest_crisis_budget = crisisBudgetService?.shouldSuggestCrisisBudget?.(redacted.assessment) ?? false;
 
     return reply.send({
       found: true,
       display_view,
       attention_items,
+      action_compass,
+      anomaly_strip,
+      budget_status,
+      suggest_crisis_budget,
       ...(analyst_denied ? { analyst_denied: true, requested_view: DISPLAY_VIEWS.analyst } : {}),
       ...redacted,
     });

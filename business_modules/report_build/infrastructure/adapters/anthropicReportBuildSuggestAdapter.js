@@ -1,4 +1,5 @@
-import Anthropic from '@anthropic-ai/sdk';
+import { createAnthropicLlmPort } from '../../../../cross-cut-modules/llm/anthropicLlmAdapter.js';
+import { createLlmGateway } from '../../../../cross-cut-modules/llm/llmGateway.js';
 
 const SYSTEM_PROMPT =
   `You help an Israeli field officer write a short structured field report.\n` +
@@ -91,7 +92,7 @@ function normalizeAssessment(raw) {
  * @param {{ anthropicApiKey: string }} deps
  */
 export function createAnthropicReportBuildSuggestAdapter({ anthropicApiKey }) {
-  const client = new Anthropic({ apiKey: anthropicApiKey });
+  const port = createLlmGateway(createAnthropicLlmPort({ apiKey: anthropicApiKey }));
 
   return {
     /**
@@ -105,11 +106,12 @@ export function createAnthropicReportBuildSuggestAdapter({ anthropicApiKey }) {
       if (!text) return emptyOutput();
 
       const model = 'claude-haiku-4-5-20251001';
-      const response = await client.messages.create({
+      const response = await port.createMessage({
         model,
         max_tokens: 650,
         temperature: 0,
         system: SYSTEM_PROMPT,
+        callContext: { feature: 'report_build', purpose: 'report-build:suggest' },
         messages: [
           {
             role: 'user',

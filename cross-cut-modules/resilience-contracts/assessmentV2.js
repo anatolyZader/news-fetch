@@ -10,6 +10,23 @@ export const OPERATOR_STATUS_VALUES = Object.freeze([
   'stable', 'watch', 'critical_failure', 'insufficient_data',
 ]);
 
+function validateComponentClaims(component, componentIndex, errors) {
+  for (const [j, claim] of (component.claims ?? []).entries()) {
+    if (!claim.text) errors.push(`components[${componentIndex}].claims[${j}].text required`);
+    if (!Array.isArray(claim.evidence_refs) || claim.evidence_refs.length === 0) {
+      errors.push(`components[${componentIndex}].claims[${j}].evidence_refs required`);
+    }
+  }
+}
+
+function validateComponent(component, index, errors) {
+  if (!component.component_id) errors.push(`components[${index}].component_id required`);
+  if (component.severity && !SEVERITY_VALUES.includes(component.severity)) {
+    errors.push(`components[${index}].severity invalid`);
+  }
+  validateComponentClaims(component, index, errors);
+}
+
 /**
  * @param {object} assessment
  * @returns {{ valid: boolean, errors: string[] }}
@@ -23,20 +40,12 @@ export function validateAssessmentV2(assessment) {
     errors.push(`schema_version must be ${ASSESSMENT_SCHEMA_VERSION}`);
   }
   if (!assessment.date) errors.push('date required');
-  if (!Array.isArray(assessment.components)) errors.push('components array required');
-  else {
+  if (Array.isArray(assessment.components)) {
     for (const [i, c] of assessment.components.entries()) {
-      if (!c.component_id) errors.push(`components[${i}].component_id required`);
-      if (c.severity && !SEVERITY_VALUES.includes(c.severity)) {
-        errors.push(`components[${i}].severity invalid`);
-      }
-      for (const [j, claim] of (c.claims ?? []).entries()) {
-        if (!claim.text) errors.push(`components[${i}].claims[${j}].text required`);
-        if (!Array.isArray(claim.evidence_refs) || claim.evidence_refs.length === 0) {
-          errors.push(`components[${i}].claims[${j}].evidence_refs required`);
-        }
-      }
+      validateComponent(c, i, errors);
     }
+  } else {
+    errors.push('components array required');
   }
   return { valid: errors.length === 0, errors };
 }

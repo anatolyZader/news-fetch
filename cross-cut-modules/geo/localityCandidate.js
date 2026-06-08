@@ -113,8 +113,8 @@ function isPlausibleLocalityPhrase(name) {
  */
 function stripTrailingLocativeNoise(name) {
   const cleaned = String(name ?? '')
-    .replace(/\b(entered|shelters|after|during|amid|reported|said|alerts?)\b/gi, ' ')
-    .replace(/\s+/g, ' ')
+    .replaceAll(/\b(entered|shelters|after|during|amid|reported|said|alerts?)\b/gi, ' ')
+    .replaceAll(/\s+/g, ' ')
     .trim();
   return normalizeLocalityName(cleaned);
 }

@@ -74,9 +74,7 @@ export function compressCrossSourceCompare(raw, opts = {}) {
   const maxPerType = opts.maxHitsPerType ?? (opts.escalated ? 5 : 3);
   const entries = Object.entries(raw ?? {}).slice(0, maxTypes);
   const out = {};
-  let total = 0;
   for (const [st, hits] of entries) {
-    total += (hits ?? []).length;
     out[st] = compressHitList(hits ?? [], { maxHits: maxPerType });
   }
   const allTypes = Object.keys(raw ?? {});

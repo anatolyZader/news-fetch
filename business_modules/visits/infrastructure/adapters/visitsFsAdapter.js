@@ -84,6 +84,43 @@ function collectFieldSignalPaths(primaryDir, rootDir) {
   return byFile;
 }
 
+function attachSignalsToVisits(day, signals) {
+  const visitsByIndex = new Map(day.visits.map((visit) => [visit.articleIndex, visit]));
+  for (const signal of signals) {
+    const visit = visitsByIndex.get(Number(signal.article_index));
+    if (visit) visit.signals.push(signal);
+  }
+}
+
+function summarizeVisitSignals(day) {
+  for (const visit of day.visits) {
+    const signalTypes = new Map();
+    for (const signal of visit.signals) {
+      const type = signal.signal_type || 'unknown';
+      signalTypes.set(type, (signalTypes.get(type) ?? 0) + 1);
+    }
+    visit.signalCount = visit.signals.length;
+    visit.signalTypes = Array.from(signalTypes, ([type, count]) => ({ type, count }))
+      .sort((a, b) => b.count - a.count || a.type.localeCompare(b.type));
+  }
+}
+
+function mergeSignalFileIntoDays(daysByDate, file, filePath) {
+  const match = FIELD_SIGNAL_FILE_RE.exec(file);
+  if (!match) return;
+  const date = match[1];
+  if (INVALID_PLACEHOLDER_DATES.has(date)) return;
+  const signalDoc = readJson(filePath);
+  const signals = Array.isArray(signalDoc?.signals) ? signalDoc.signals : [];
+  const day = daysByDate.get(date) ?? { date, file: null, visits: [], signalCount: 0 };
+  attachSignalsToVisits(day, signals);
+  summarizeVisitSignals(day);
+  day.signalFile = file;
+  day.signalCount = signals.length;
+  day.totalArticles = signalDoc?.total_articles ?? day.visits.length;
+  daysByDate.set(date, day);
+}
+
 export class VisitsFsAdapter extends IVisitsRepositoryPort {
   constructor({
     rootDir = resolve('.'),
@@ -112,37 +149,7 @@ export class VisitsFsAdapter extends IVisitsRepositoryPort {
     }
 
     for (const [file, filePath] of [...signalPathByName.entries()].sort((a, b) => a[0].localeCompare(b[0]))) {
-      const match = FIELD_SIGNAL_FILE_RE.exec(file);
-      if (!match) continue;
-      const date = match[1];
-      if (INVALID_PLACEHOLDER_DATES.has(date)) continue;
-      const signalDoc = readJson(filePath);
-      const signals = Array.isArray(signalDoc?.signals) ? signalDoc.signals : [];
-      const day = daysByDate.get(date) ?? { date, file: null, visits: [], signalCount: 0 };
-      const visitsByIndex = new Map(day.visits.map((visit) => [visit.articleIndex, visit]));
-
-      for (const signal of signals) {
-        const articleIndex = Number(signal.article_index);
-        const visit = visitsByIndex.get(articleIndex);
-        if (!visit) continue;
-        visit.signals.push(signal);
-      }
-
-      for (const visit of day.visits) {
-        const signalTypes = new Map();
-        for (const signal of visit.signals) {
-          const type = signal.signal_type || 'unknown';
-          signalTypes.set(type, (signalTypes.get(type) ?? 0) + 1);
-        }
-        visit.signalCount = visit.signals.length;
-        visit.signalTypes = Array.from(signalTypes, ([type, count]) => ({ type, count }))
-          .sort((a, b) => b.count - a.count || a.type.localeCompare(b.type));
-      }
-
-      day.signalFile = file;
-      day.signalCount = signals.length;
-      day.totalArticles = signalDoc?.total_articles ?? day.visits.length;
-      daysByDate.set(date, day);
+      mergeSignalFileIntoDays(daysByDate, file, filePath);
     }
 
     return Array.from(daysByDate.values())

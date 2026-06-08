@@ -3,19 +3,17 @@
  * Default: one batched call per component (RESILIENCE_NARRATIVE_JUDGE_BATCH=0 for per-claim).
  */
 
-import Anthropic from '@anthropic-ai/sdk';
+import { resolveLlmPort } from '../../../cross-cut-modules/llm/resolveLlmPort.js';
 import { extractJson } from './claudeJsonHelpers.js';
 import { streamWithProgress } from './claudeExtraction.js';
 import { resolveRef } from '../domain/services/narrativeGrounding/index.js';
 
-const client = new Anthropic();
 const DEFAULT_JUDGE_MODEL = process.env.RESILIENCE_NARRATIVE_JUDGE_MODEL
   ?? process.env.RESILIENCE_SELF_CHECK_MODEL
   ?? 'claude-haiku-4-5-20251001';
 
 function batchJudgeEnabled() {
-  if (process.env.RESILIENCE_NARRATIVE_JUDGE_BATCH === '0') return false;
-  return true;
+  return process.env.RESILIENCE_NARRATIVE_JUDGE_BATCH !== '0';
 }
 
 function buildJudgeSystemPrompt() {
@@ -69,7 +67,12 @@ function parseBatchVerdicts(text, claimCount) {
   } catch {
     return null;
   }
-  const list = Array.isArray(parsed?.verdicts) ? parsed.verdicts : (Array.isArray(parsed) ? parsed : null);
+  let list = null;
+  if (Array.isArray(parsed?.verdicts)) {
+    list = parsed.verdicts;
+  } else if (Array.isArray(parsed)) {
+    list = parsed;
+  }
   if (!list) return null;
   const byIndex = new Map();
   for (const v of list) {
@@ -87,7 +90,7 @@ function parseBatchVerdicts(text, claimCount) {
  * @param {{ onUsage?: Function }} [opts]
  */
 async function judgeComponentClaimsBatch(claims, comp, registry, opts = {}) {
-  const apiClient = opts.client ?? client;
+  const port = resolveLlmPort(opts);
   if (!claims.length) return [];
 
   const blocks = claims.map((claim, i) => formatClaimForJudge(claim, registry, i)).join('\n\n---\n\n');
@@ -97,12 +100,13 @@ async function judgeComponentClaimsBatch(claims, comp, registry, opts = {}) {
     blocks;
 
   const maxTokens = Math.min(4000, 200 + claims.length * 80);
-  const stream = apiClient.messages.stream({
+  const stream = await port.stream({
     model: DEFAULT_JUDGE_MODEL,
     max_tokens: maxTokens,
     temperature: 0,
     system: buildJudgeSystemPrompt(),
     messages: [{ role: 'user', content: userContent }],
+    callContext: { feature: 'narrative_judge', purpose: `[Step 2 — Judge batch ${comp.component_id}]` },
   });
   if (!opts.skipProgress) await streamWithProgress(stream, `[Step 2 — Judge batch ${comp.component_id}]`);
   const message = await stream.finalMessage();
@@ -141,14 +145,15 @@ async function judgeComponentClaimsBatch(claims, comp, registry, opts = {}) {
  */
 async function judgeOneNarrativeClaim(claim, comp, registry, opts = {}) {
   if (!claim?.text) return null;
-  const apiClient = opts.client ?? client;
+  const port = resolveLlmPort(opts);
   const userContent = formatClaimForJudge(claim, registry);
-  const stream = apiClient.messages.stream({
+  const stream = await port.stream({
     model: DEFAULT_JUDGE_MODEL,
     max_tokens: 512,
     temperature: 0,
     system: buildPerClaimSystemPrompt(),
     messages: [{ role: 'user', content: userContent }],
+    callContext: { feature: 'narrative_judge', purpose: '[Step 2 — Judge]' },
   });
   if (!opts.skipProgress) await streamWithProgress(stream, '[Step 2 — Judge]');
   const message = await stream.finalMessage();

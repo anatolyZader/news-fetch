@@ -10,6 +10,7 @@
  */
 
 import { createAnthropicLlmPort } from '../../../cross-cut-modules/llm/anthropicLlmAdapter.js';
+import { createLlmGateway } from '../../../cross-cut-modules/llm/llmGateway.js';
 import { buildDraftUserContent } from '../../report_build/index.js';
 
 const SYSTEM_PROMPT =
@@ -34,7 +35,7 @@ const SYSTEM_PROMPT =
  * @param {{ anthropicApiKey: string }} deps
  */
 export function createDraftGenerator({ anthropicApiKey }) {
-  const llmPort = createAnthropicLlmPort({ apiKey: anthropicApiKey });
+  const llmPort = createLlmGateway(createAnthropicLlmPort({ apiKey: anthropicApiKey }));
 
   return {
     /**
@@ -50,6 +51,7 @@ export function createDraftGenerator({ anthropicApiKey }) {
         temperature: 0.2,
         system: SYSTEM_PROMPT,
         messages: [{ role: 'user', content: userContent }],
+        callContext: { feature: 'whatsapp_extract', purpose: 'whatsapp:draft' },
       });
       const textBlock = response.content.find((b) => b.type === 'text');
       const text = textBlock ? textBlock.text.trim() : '';

@@ -33,9 +33,9 @@ export function AgentDivergencePanel({ reportDate, reportScope = 'national' }) {
 
   if (error || !data) return null;
 
-  const rate = data.alignment_rate != null
-    ? `${Math.round(data.alignment_rate * 100)}%`
-    : '—';
+  const rate = data.alignment_rate == null
+    ? '—'
+    : `${Math.round(data.alignment_rate * 100)}%`;
 
   return (
     <Box

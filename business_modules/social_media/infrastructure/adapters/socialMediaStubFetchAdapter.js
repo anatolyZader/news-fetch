@@ -2,6 +2,44 @@ import { findingToPost } from '../../domain/services/postNormalizer.js';
 import { postMatchesTopic } from '../../domain/services/topicMatcher.js';
 
 /**
+ * @param {object} finding
+ * @param {string} date
+ * @param {string} topicText
+ * @param {Set<string>} platformSet
+ * @param {Set<string>} seen
+ */
+function tryMatchFinding(finding, date, topicText, platformSet, seen) {
+  const post = findingToPost(finding);
+  if (platformSet.size && !platformSet.has(post.platform)) return null;
+  if (!postMatchesTopic(post, topicText)) return null;
+  if (seen.has(post.dedupeKey)) return null;
+  seen.add(post.dedupeKey);
+  return { ...post, sourceDate: date };
+}
+
+/**
+ * @param {import('../domain/ports/ISocialMediaPersistencePort.js').ISocialMediaPersistencePort} persistencePort
+ * @param {string} topicText
+ * @param {Set<string>} platformSet
+ * @param {number} maxResults
+ */
+async function collectPostsFromBundles(persistencePort, topicText, platformSet, maxResults) {
+  const dates = persistencePort.listAvailableDates?.() ?? [];
+  const posts = [];
+  const seen = new Set();
+
+  for (const date of dates) {
+    const bundle = await persistencePort.loadBundle(date);
+    for (const finding of bundle?.findings ?? []) {
+      const matched = tryMatchFinding(finding, date, topicText, platformSet, seen);
+      if (matched) posts.push(matched);
+      if (posts.length >= maxResults) return posts;
+    }
+  }
+  return posts;
+}
+
+/**
  * Stub fetch adapter: searches persisted OSINT findings until live platform APIs are wired.
  *
  * @param {{ persistencePort: import('../domain/ports/ISocialMediaPersistencePort.js').ISocialMediaPersistencePort }} deps
@@ -17,23 +55,7 @@ export function createSocialMediaStubFetchAdapter({ persistencePort }) {
       }
 
       const platformSet = new Set(platforms ?? []);
-      const dates = persistencePort.listAvailableDates?.() ?? [];
-      const posts = [];
-      const seen = new Set();
-
-      for (const date of dates) {
-        const bundle = await persistencePort.loadBundle(date);
-        for (const finding of bundle?.findings ?? []) {
-          const post = findingToPost(finding);
-          if (platformSet.size && !platformSet.has(post.platform)) continue;
-          if (!postMatchesTopic(post, topicText)) continue;
-          if (seen.has(post.dedupeKey)) continue;
-          seen.add(post.dedupeKey);
-          posts.push({ ...post, sourceDate: date });
-          if (posts.length >= maxResults) break;
-        }
-        if (posts.length >= maxResults) break;
-      }
+      const posts = await collectPostsFromBundles(persistencePort, topicText, platformSet, maxResults);
 
       return {
         posts,

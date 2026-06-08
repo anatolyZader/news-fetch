@@ -127,6 +127,6 @@ export function validateObservationBundle(bundle) {
  * @param {string} date
  */
 export function observationBundleFilename(profile, date) {
-  const safe = String(profile ?? 'exploratory').replace(/[^a-z0-9_-]/gi, '_');
+  const safe = String(profile ?? 'exploratory').replaceAll(/[^a-z0-9_-]/gi, '_');
   return `observations-${safe}-${date}.json`;
 }

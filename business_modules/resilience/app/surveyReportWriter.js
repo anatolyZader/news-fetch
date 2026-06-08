@@ -38,11 +38,7 @@ const ICONS = {
   wellbeing_at_risk: '❤️',
 };
 
-function buildMarkdown(assessment, sourceFile) {
-  const lines = [];
-  const { regional, municipalities } = assessment;
-
-  // ── Header ──────────────────────────────────────────────────────────────────
+function appendRegionalHeader(lines, assessment, sourceFile, municipalities) {
   lines.push(
     `# Population Resilience Assessment — Field Survey`,
     ``,
@@ -56,13 +52,21 @@ function buildMarkdown(assessment, sourceFile) {
     `**Municipalities:** ${municipalities.map((m) => m.name).join(', ')}`,
     ``,
     `---`,
-    ``, `## Regional Executive Summary`, ``, regional.executive_summary, ``, `---`, ``
-  , 
+    ``,
+    `## Regional Executive Summary`,
+    ``,
+    assessment.regional.executive_summary,
+    ``,
+    `---`,
+    ``,
     `## Regional Analysis by Component`,
     ``,
     `| Component | עברית | Confidence | Coverage |`,
     `|-----------|-------|------------|---------|`,
   );
+}
+
+function appendRegionalComponentTable(lines, regional, municipalities) {
   for (const comp of regional.components ?? []) {
     const def = COMPONENT_MAP[comp.component_id] ?? {};
     const icon = CONFIDENCE_ICON[comp.confidence] ?? '🟡';
@@ -74,13 +78,13 @@ function buildMarkdown(assessment, sourceFile) {
     );
   }
   lines.push(``, `---`, ``);
+}
 
-  // ── Regional component detail ────────────────────────────────────────────────
+function appendRegionalComponentDetails(lines, regional) {
   for (const comp of regional.components ?? []) {
     const def = COMPONENT_MAP[comp.component_id] ?? {};
     const icon = ICONS[comp.component_id] ?? '•';
     const confIcon = CONFIDENCE_ICON[comp.confidence] ?? '🟡';
-
     lines.push(
       `### ${icon} ${def.name_en ?? comp.component_id}`,
       `*${def.name_he ?? ''}* &nbsp;|&nbsp; Confidence: ${confIcon} ${comp.confidence}`,
@@ -88,77 +92,76 @@ function buildMarkdown(assessment, sourceFile) {
       comp.narrative,
       ``,
     );
-
     if (comp.regional_strengths?.length) {
       lines.push(`**Regional strengths:**`);
       comp.regional_strengths.forEach((s) => lines.push(`- ${s}`));
       lines.push(``);
     }
-
     if (comp.regional_concerns?.length) {
       lines.push(`**Regional concerns:**`);
       comp.regional_concerns.forEach((s) => lines.push(`- ${s}`));
       lines.push(``);
     }
-
     if (comp.inter_municipality_variation) {
       lines.push(`**Variation across municipalities:** ${comp.inter_municipality_variation}`, ``);
     }
-
     lines.push(`---`, ``);
   }
+}
 
-  // ── Per-municipality section ─────────────────────────────────────────────────
+function appendMunicipalityComponentTable(lines, components) {
+  lines.push(`| Component | עברית | Confidence |`, `|-----------|-------|------------|`);
+  for (const comp of components) {
+    const def = COMPONENT_MAP[comp.component_id] ?? {};
+    const confIcon = CONFIDENCE_ICON[comp.confidence] ?? '🟡';
+    lines.push(`| ${ICONS[comp.component_id] ?? '•'} ${def.name_en ?? comp.component_id} | ${def.name_he ?? ''} | ${confIcon} ${comp.confidence} |`);
+  }
+  lines.push(``);
+}
+
+function appendMunicipalityComponentDetails(lines, components) {
+  for (const comp of components) {
+    const def = COMPONENT_MAP[comp.component_id] ?? {};
+    const icon = ICONS[comp.component_id] ?? '•';
+    lines.push(`#### ${icon} ${def.name_en ?? comp.component_id}`, ``);
+    if (comp.narrative) lines.push(comp.narrative, ``);
+    if (comp.strengths?.length) {
+      lines.push(`**Strengths:**`);
+      comp.strengths.forEach((s) => lines.push(`- ${s}`));
+      lines.push(``);
+    }
+    if (comp.concerns?.length) {
+      lines.push(`**Concerns:**`);
+      comp.concerns.forEach((s) => lines.push(`- ${s}`));
+      lines.push(``);
+    }
+  }
+}
+
+function appendSingleMunicipalityFinding(lines, mun) {
+  lines.push(`### ${mun.name}`, ``);
+  if (!mun.components?.length) {
+    lines.push(`*No assessment data available.*`, ``, `---`, ``);
+    return;
+  }
+  appendMunicipalityComponentTable(lines, mun.components);
+  appendMunicipalityComponentDetails(lines, mun.components);
+  lines.push(`---`, ``);
+}
+
+function appendMunicipalityFindings(lines, municipalities) {
   lines.push(`## Per-Municipality Findings`, ``);
+  for (const mun of municipalities ?? []) appendSingleMunicipalityFinding(lines, mun);
+}
 
-  for (const mun of municipalities ?? []) {
-    lines.push(`### ${mun.name}`, ``);
-
-    if (!mun.components?.length) {
-      lines.push(`*No assessment data available.*`, ``, `---`, ``);
-      continue;
-    }
-
-    // Component summary table for this municipality
-    lines.push(
-      `| Component | עברית | Confidence |`,
-      `|-----------|-------|------------|`,
-    );
-    for (const comp of mun.components) {
-      const def = COMPONENT_MAP[comp.component_id] ?? {};
-      const confIcon = CONFIDENCE_ICON[comp.confidence] ?? '🟡';
-      lines.push(`| ${ICONS[comp.component_id] ?? '•'} ${def.name_en ?? comp.component_id} | ${def.name_he ?? ''} | ${confIcon} ${comp.confidence} |`);
-    }
-    lines.push(``);
-
-    // Per-component findings
-    for (const comp of mun.components) {
-      const def = COMPONENT_MAP[comp.component_id] ?? {};
-      const icon = ICONS[comp.component_id] ?? '•';
-
-      lines.push(`#### ${icon} ${def.name_en ?? comp.component_id}`, ``);
-
-      if (comp.narrative) lines.push(comp.narrative, ``);
-
-      if (comp.strengths?.length) {
-        lines.push(`**Strengths:**`);
-        comp.strengths.forEach((s) => lines.push(`- ${s}`));
-        lines.push(``);
-      }
-
-      if (comp.concerns?.length) {
-        lines.push(`**Concerns:**`);
-        comp.concerns.forEach((s) => lines.push(`- ${s}`));
-        lines.push(``);
-      }
-    }
-
-    lines.push(`---`, ``);
-  }
-
-  // ── Caveats ──────────────────────────────────────────────────────────────────
+function buildMarkdown(assessment, sourceFile) {
+  const lines = [];
+  const { regional, municipalities } = assessment;
+  appendRegionalHeader(lines, assessment, sourceFile, municipalities);
+  appendRegionalComponentTable(lines, regional, municipalities);
+  appendRegionalComponentDetails(lines, regional);
+  appendMunicipalityFindings(lines, municipalities);
   lines.push(`## Analyst Caveats`, ``, regional.analyst_caveats, ``);
-
   return lines.join('\n');
 }
 

@@ -5,6 +5,10 @@ import { mergeLlmCallContext } from './llmCallContext.js';
 import { logLlmInvocation } from './llmInvocationLog.js';
 import { calcLlmCostUsd } from './llmPricing.js';
 
+function emitUsage(onUsage, payload) {
+  if (typeof onUsage === 'function') onUsage(payload);
+}
+
 /**
  * @param {import('./ILlmPort.js').LlmPort} innerPort
  * @param {{ defaultCallContext?: Partial<import('./llmCallContext.js').LlmCallContext> }} [cfg]
@@ -15,10 +19,6 @@ export function createLlmGateway(innerPort, cfg = {}) {
 
   function resolveContext(partial) {
     return mergeLlmCallContext(defaultCtx, partial ?? {});
-  }
-
-  function emitUsage(onUsage, payload) {
-    if (typeof onUsage === 'function') onUsage(payload);
   }
 
   async function createMessage(opts) {
@@ -52,7 +52,7 @@ export function createLlmGateway(innerPort, cfg = {}) {
   async function stream(opts) {
     const callContext = resolveContext(opts?.callContext);
     const started = Date.now();
-    const streamObj = await innerPort.stream(opts);
+    const streamObj = innerPort.stream(opts);
     const wrapped = streamObj;
 
     if (typeof streamObj.finalMessage === 'function') {
@@ -86,30 +86,31 @@ export function createLlmGateway(innerPort, cfg = {}) {
 
   async function runToolLoop(opts) {
     const baseContext = resolveContext(opts?.callContext);
-    const onUsage = opts?.onUsage;
+    const userOnUsage = opts?.onUsage;
 
     return innerPort.runToolLoop({
       ...opts,
       callContext: baseContext,
-      onUsage: onUsage
-        ? (p) => {
-            logLlmInvocation({
-              callContext: mergeLlmCallContext(baseContext, {
-                agentName: opts?.agentKind ?? baseContext.agentName,
-                purpose: p.label,
-              }),
-              model: p.model,
-              usage: p.usage,
-              stopReason: p.stopReason ?? null,
-              label: p.label,
-            });
-            onUsage({
-              ...p,
-              feature: baseContext.feature,
-              costUsd: calcLlmCostUsd(p.model, p.usage),
-            });
-          }
-        : undefined,
+      onUsage: (p) => {
+        logLlmInvocation({
+          callContext: mergeLlmCallContext(baseContext, {
+            agentName: opts?.agentKind ?? baseContext.agentName,
+            purpose: p.label,
+            promptCacheApplied: p.promptCacheApplied === true ? true : undefined,
+          }),
+          model: p.model,
+          usage: p.usage,
+          stopReason: p.stopReason ?? null,
+          label: p.label,
+        });
+        if (userOnUsage) {
+          userOnUsage({
+            ...p,
+            feature: baseContext.feature,
+            costUsd: calcLlmCostUsd(p.model, p.usage),
+          });
+        }
+      },
     });
   }
 

@@ -1,15 +1,13 @@
 /**
  * Single-shot LLM generation for operator decision brief JSON.
  */
-import Anthropic from '@anthropic-ai/sdk';
+import { resolveLlmPort } from '../../../cross-cut-modules/llm/resolveLlmPort.js';
 import { extractJson } from './claudeJsonHelpers.js';
 import {
   buildDecisionBriefSystemPrompt,
   buildDecisionBriefUserPrompt,
   buildDecisionBriefPayload,
 } from '../domain/services/decisionBriefPrompt.js';
-
-const defaultClient = new Anthropic();
 
 const SCORE_IN_TEXT_RE = /\b([1-9]|10)\s*\/\s*10\b|\bscore\s*[:=]\s*[1-9]\d?\b/i;
 
@@ -72,9 +70,9 @@ export async function generateDecisionBrief(assessment, opts = {}) {
     ?? 'national';
   const payload = buildDecisionBriefPayload(assessment, reportScopeId);
   const model = decisionBriefModel();
-  const client = opts.client ?? defaultClient;
+  const port = resolveLlmPort(opts);
 
-  const response = await client.messages.create({
+  const response = await port.createMessage({
     model,
     max_tokens: 2000,
     temperature: 0,
@@ -83,6 +81,7 @@ export async function generateDecisionBrief(assessment, opts = {}) {
       role: 'user',
       content: buildDecisionBriefUserPrompt(payload),
     }],
+    callContext: { feature: 'decision_brief', purpose: 'decision-brief' },
   });
 
   if (opts.onUsage && response.usage) {

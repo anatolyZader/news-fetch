@@ -15,36 +15,45 @@ function loadFixtures() {
   return JSON.parse(readFileSync(path, 'utf8'));
 }
 
+function checkClaimsHaveRefs(assessment, errors) {
+  for (const c of assessment.claims ?? []) {
+    if (!c.evidence_refs?.length) errors.push('missing evidence_refs');
+  }
+}
+
+function checkMustAbstain(fx, assessment, epistemic, errors) {
+  if (fx.expect.must_abstain && assessment.severity !== 'abstain') {
+    errors.push(`expected abstain got ${assessment.severity}`);
+  }
+  const critic = runCriticChecks(assessment, epistemic);
+  if (fx.expect.must_abstain && critic.issues.some((i) => i.type === 'thin_evidence_strong_claim')) {
+    errors.push('critic flagged thin_evidence_strong_claim');
+  }
+}
+
+function checkDissentSummary(fx, assessment, errors) {
+  if (fx.expect.has_dissent_summary && !assessment.dissent_summary) {
+    errors.push('missing dissent_summary for contested');
+  }
+}
+
+function checkDominanceMention(fx, assessment, errors) {
+  if (!fx.expect.mentions_dominance) return;
+  const narrative = String(assessment.narrative ?? '').toLowerCase();
+  if (!narrative.includes('telegram') && !narrative.includes('source') && !narrative.includes('cap')) {
+    errors.push('dominance not mentioned in narrative');
+  }
+}
+
 function evalFixture(fx) {
   const errors = [];
   const assessment = fx.component_assessment;
   const epistemic = fx.epistemic_profile ?? { by_component: {} };
 
-  if (fx.expect.all_claims_have_refs) {
-    for (const c of assessment.claims ?? []) {
-      if (!c.evidence_refs?.length) errors.push('missing evidence_refs');
-    }
-  }
-
-  if (fx.expect.must_abstain && assessment.severity !== 'abstain') {
-    errors.push(`expected abstain got ${assessment.severity}`);
-  }
-
-  if (fx.expect.has_dissent_summary && !assessment.dissent_summary) {
-    errors.push('missing dissent_summary for contested');
-  }
-
-  if (fx.expect.mentions_dominance) {
-    const narrative = String(assessment.narrative ?? '').toLowerCase();
-    if (!narrative.includes('telegram') && !narrative.includes('source') && !narrative.includes('cap')) {
-      errors.push('dominance not mentioned in narrative');
-    }
-  }
-
-  const critic = runCriticChecks(assessment, epistemic);
-  if (fx.expect.must_abstain && critic.issues.some((i) => i.type === 'thin_evidence_strong_claim')) {
-    errors.push('critic flagged thin_evidence_strong_claim');
-  }
+  if (fx.expect.all_claims_have_refs) checkClaimsHaveRefs(assessment, errors);
+  checkMustAbstain(fx, assessment, epistemic, errors);
+  checkDissentSummary(fx, assessment, errors);
+  checkDominanceMention(fx, assessment, errors);
 
   return errors;
 }
@@ -69,7 +78,9 @@ async function main() {
   if (fail > 0) process.exit(1);
 }
 
-main().catch((err) => {
+try {
+  await main();
+} catch (err) {
   console.error(err);
   process.exit(1);
-});
+}

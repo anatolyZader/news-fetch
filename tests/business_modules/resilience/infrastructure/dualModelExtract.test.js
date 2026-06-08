@@ -81,24 +81,24 @@ describe('mergeDualExtractionSignals', () => {
   });
 });
 
-describe('dual-pass agreement reliability bump', () => {
-  function obs(idx) {
-    return {
-      article_index: idx,
-      article_url: `https://ynet.co.il/o${idx}`,
-      article_source: 'ynet.co.il',
-      source_type: 'news',
-      signal_type: 'compliance_enter_shelter',
-      evidence_type: 'observational_reported_fact',
-      scope_level: 'single_case',
-      evidence: `obs evidence ${idx}`,
-      extraction_confidence: 0.85,
-      temporal_weight: 1.0,
-    };
-  }
+function dualModelObsSignal(idx) {
+  return {
+    article_index: idx,
+    article_url: `https://ynet.co.il/o${idx}`,
+    article_source: 'ynet.co.il',
+    source_type: 'news',
+    signal_type: 'compliance_enter_shelter',
+    evidence_type: 'observational_reported_fact',
+    scope_level: 'single_case',
+    evidence: `obs evidence ${idx}`,
+    extraction_confidence: 0.85,
+    temporal_weight: 1,
+  };
+}
 
+describe('dual-pass agreement reliability bump', () => {
   it('agreed signals produce a higher evidence_mass than non-agreed (default boost)', () => {
-    const single = [obs(1), obs(2), obs(3)];
+    const single = [dualModelObsSignal(1), dualModelObsSignal(2), dualModelObsSignal(3)];
     const agreed = single.map((s) => ({ ...s, _dual_pass_agreement: true }));
 
     const a = scoreComponents(single, { totalArticles: 3 });
@@ -110,7 +110,7 @@ describe('dual-pass agreement reliability bump', () => {
   });
 
   it('respects RESILIENCE_DUAL_AGREEMENT_BOOST and clamps to [1, 1.2]', () => {
-    const agreed = [obs(1), obs(2)].map((s) => ({ ...s, _dual_pass_agreement: true }));
+    const agreed = [dualModelObsSignal(1), dualModelObsSignal(2)].map((s) => ({ ...s, _dual_pass_agreement: true }));
     const prev = process.env.RESILIENCE_DUAL_AGREEMENT_BOOST;
     process.env.RESILIENCE_DUAL_AGREEMENT_BOOST = '0.5';
     let clampedDown;
@@ -123,7 +123,7 @@ describe('dual-pass agreement reliability bump', () => {
       if (prev === undefined) delete process.env.RESILIENCE_DUAL_AGREEMENT_BOOST;
       else process.env.RESILIENCE_DUAL_AGREEMENT_BOOST = prev;
     }
-    const baseline = scoreComponents([obs(1), obs(2)], { totalArticles: 2 });
+    const baseline = scoreComponents([dualModelObsSignal(1), dualModelObsSignal(2)], { totalArticles: 2 });
     assert.equal(
       clampedDown.lifesaving_behavior.evidence_mass,
       baseline.lifesaving_behavior.evidence_mass,

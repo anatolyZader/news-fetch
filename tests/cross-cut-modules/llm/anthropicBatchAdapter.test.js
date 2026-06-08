@@ -12,7 +12,7 @@ function mockBatchClient() {
           assert.equal(requests.length, 1);
           return { id: 'batch_123' };
         },
-        retrieve: async (batchId) => {
+        retrieve: async (_batchId) => {
           retrieveCount++;
           if (retrieveCount < 2) {
             return { processing_status: 'in_progress' };

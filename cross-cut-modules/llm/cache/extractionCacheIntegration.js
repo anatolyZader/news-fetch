@@ -50,7 +50,10 @@ export function partitionArticlesByExtractCache(articles, opts) {
       multipassMode,
     });
     const cached = store.getCachedSignals(cacheKey);
-    if (cached != null) {
+    if (cached == null) {
+      missArticles.push(art);
+      origIndexByMiss.push(i);
+    } else {
       logLlmCacheHit({
         feature: 'extract',
         purpose: `cache_hit:${domainGroup ?? 'single'}`,
@@ -65,9 +68,6 @@ export function partitionArticlesByExtractCache(articles, opts) {
           article_source: s.article_source ?? art.source,
         });
       }
-    } else {
-      missArticles.push(art);
-      origIndexByMiss.push(i);
     }
   }
 

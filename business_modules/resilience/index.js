@@ -31,6 +31,8 @@ export {
 
 // --- Attention items & scope (domain) ---
 export { buildAttentionItems } from './domain/services/attentionItems.js';
+export { buildActionCompass, actionCompassEnabled } from './domain/services/actionCompass.js';
+export { buildAnomalyStrip } from './domain/services/anomalyStrip.js';
 
 // --- Policies (domain) ---
 export { enrichFieldProvenance } from './domain/services/fieldSignalPolicy.js';

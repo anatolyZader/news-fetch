@@ -144,4 +144,44 @@ describe('runToolLoop', () => {
     assert.ok(result.messages.length <= 5, `expected bounded history, got ${result.messages.length}`);
     assert.match(result.messages[1].content, /COMPACT WORKING MEMORY/);
   });
+
+  it('forwards cached system blocks on each model call', async () => {
+    const systems = [];
+    const client = {
+      messages: {
+        create: async (opts) => {
+          systems.push(opts.system);
+          return {
+            stop_reason: 'end_turn',
+            content: [{ type: 'text', text: 'ok' }],
+            usage: { input_tokens: 1, output_tokens: 1 },
+          };
+        },
+      },
+    };
+    const prevMaster = process.env.LLM_PROMPT_CACHE;
+    const prevChat = process.env.CHAT_PROMPT_CACHE;
+    process.env.LLM_PROMPT_CACHE = '1';
+    process.env.CHAT_PROMPT_CACHE = '1';
+    try {
+      await runToolLoop({
+        client,
+        model: 'test-model',
+        system: { stable: 'S'.repeat(3000), dynamic: 'report context' },
+        messages: [{ role: 'user', content: 'hi' }],
+        tools: [],
+        agentKind: 'chat',
+        callContext: { feature: 'chat' },
+        executeTool: async () => 'unused',
+      });
+      assert.equal(systems.length, 1);
+      assert.ok(Array.isArray(systems[0]));
+      assert.equal(systems[0][0].cache_control?.type, 'ephemeral');
+    } finally {
+      if (prevMaster == null) delete process.env.LLM_PROMPT_CACHE;
+      else process.env.LLM_PROMPT_CACHE = prevMaster;
+      if (prevChat == null) delete process.env.CHAT_PROMPT_CACHE;
+      else process.env.CHAT_PROMPT_CACHE = prevChat;
+    }
+  });
 });

@@ -1,8 +1,8 @@
 /**
  * Haiku open-vocabulary observation extraction.
  */
-import Anthropic from '@anthropic-ai/sdk';
 import { jsonrepair } from 'jsonrepair';
+import { resolveLlmPort } from '../../../../cross-cut-modules/llm/resolveLlmPort.js';
 import { IOpenExtractionPort } from '../../domain/ports/IOpenExtractionPort.js';
 import {
   buildOpenExtractionPrompt,
@@ -38,7 +38,7 @@ export class AnthropicOpenExtractionAdapter extends IOpenExtractionPort {
    */
   constructor(opts = {}) {
     super();
-    this.client = opts.client ?? new Anthropic();
+    this.llmPort = resolveLlmPort(opts);
     this.model = opts.model ?? DEFAULT_MODEL;
   }
 
@@ -71,12 +71,13 @@ export class AnthropicOpenExtractionAdapter extends IOpenExtractionPort {
       ? buildResidualExtractionPrompt(articles)
       : buildOpenExtractionPrompt(articles, profile);
 
-    const response = await this.client.messages.create({
+    const response = await this.llmPort.createMessage({
       model: this.model,
       max_tokens: Math.min(8000, 600 + articles.length * 200),
       temperature: 0,
       system,
       messages: [{ role: 'user', content: user }],
+      callContext: { feature: 'open_extraction', purpose: batchLabel },
     });
 
     if (onUsage) {

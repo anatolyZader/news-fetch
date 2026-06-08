@@ -31,7 +31,8 @@ export async function searchTranslationTerms(query, opts = {}) {
     const id = String(h.parentId ?? '').replace(/^terms:/, '');
     const text = String(h.text ?? '');
     const pick = (key) => {
-      const m = text.match(new RegExp(`${key}:\\s*(.+)$`, 'm'));
+      const re = new RegExp(String.raw`${key}:\s*(.+)$`, 'm');
+      const m = re.exec(text);
       return m ? m[1].trim() : '';
     };
     return {
@@ -44,6 +45,12 @@ export async function searchTranslationTerms(query, opts = {}) {
   });
 }
 
+function translationTermForLang(term, lang) {
+  if (lang === 'he') return term.he;
+  if (lang === 'ru') return term.ru;
+  return term.en;
+}
+
 /**
  * @param {string} lang
  * @param {string} queryHint
@@ -54,7 +61,7 @@ export async function buildTranslationTermBlock(lang, queryHint, opts = {}) {
   if (!terms.length) return '';
 
   const lines = terms.map((t) => {
-    const target = lang === 'he' ? t.he : lang === 'ru' ? t.ru : t.en;
+    const target = translationTermForLang(t, lang);
     return `- ${t.en || t.id}: ${target || t.snippet}`;
   });
   return `\nRetrieved glossary terms (use exact translations):\n${lines.join('\n')}\n`;

@@ -77,12 +77,8 @@ function rankGap(gap) {
  * @param {object} [opts.requirements]
  * @param {string[]} [opts.universalRequired]
  */
-export function computeGaps(structuredState, opts = {}) {
-  const requirements = opts.requirements ?? DEFAULT_REQUIREMENTS;
-  const universalRequired = opts.universalRequired ?? DEFAULT_UNIVERSAL_REQUIRED;
-
+function collectUniversalGaps(structuredState, universalRequired) {
   const gaps = [];
-
   for (const field of universalRequired) {
     if (!isFieldPresent(structuredState, field)) {
       gaps.push({
@@ -93,8 +89,11 @@ export function computeGaps(structuredState, opts = {}) {
       });
     }
   }
+  return gaps;
+}
 
-  const candidateIds = listCandidateComponents(structuredState);
+function collectComponentGaps(structuredState, candidateIds, requirements, universalRequired) {
+  const gaps = [];
   for (const componentId of candidateIds) {
     const req = requirements[componentId];
     if (!req) continue;
@@ -121,11 +120,53 @@ export function computeGaps(structuredState, opts = {}) {
       });
     }
   }
+  return gaps;
+}
 
+export function computeGaps(structuredState, opts = {}) {
+  const requirements = opts.requirements ?? DEFAULT_REQUIREMENTS;
+  const universalRequired = opts.universalRequired ?? DEFAULT_UNIVERSAL_REQUIRED;
+  const candidateIds = listCandidateComponents(structuredState);
+  const gaps = [
+    ...collectUniversalGaps(structuredState, universalRequired),
+    ...collectComponentGaps(structuredState, candidateIds, requirements, universalRequired),
+  ];
   gaps.sort((a, b) => rankGap(a) - rankGap(b));
+  return { sufficient: isSufficient(structuredState), rankedGaps: gaps };
+}
 
-  const sufficient = isSufficient(structuredState);
-  return { sufficient, rankedGaps: gaps };
+function mergeObservationFields(target, observation) {
+  if (!observation || typeof observation !== 'object') return;
+  for (const [k, v] of Object.entries(observation)) {
+    if (v == null) continue;
+    if (typeof v === 'string' && v.trim() === '') continue;
+    target.observation[k] = v;
+  }
+}
+
+function mergeInterpretationFields(target, interpretation) {
+  if (!interpretation || typeof interpretation !== 'object') return;
+  if (Array.isArray(interpretation.possibleDrivers) && interpretation.possibleDrivers.length) {
+    target.interpretation.possibleDrivers = interpretation.possibleDrivers;
+  }
+  if (Array.isArray(interpretation.alternatives) && interpretation.alternatives.length) {
+    target.interpretation.alternatives = interpretation.alternatives;
+  }
+}
+
+function mergeComponentLinks(target, componentLinks) {
+  if (!Array.isArray(componentLinks) || !componentLinks.length) return;
+  const byId = new Map(target.componentLinks.map((l) => [l.componentId, l]));
+  for (const link of componentLinks) {
+    if (link?.componentId) byId.set(link.componentId, { ...byId.get(link.componentId), ...link });
+  }
+  target.componentLinks = Array.from(byId.values());
+}
+
+function mergeConfidenceFields(target, confidence) {
+  if (!confidence || typeof confidence !== 'object') return;
+  if (confidence.level) target.confidence.level = confidence.level;
+  if (confidence.basis) target.confidence.basis = confidence.basis;
 }
 
 export function mergeStructured(prev, next) {
@@ -138,35 +179,10 @@ export function mergeStructured(prev, next) {
     confidence: { ...base.confidence },
   };
 
-  if (next.observation && typeof next.observation === 'object') {
-    for (const [k, v] of Object.entries(next.observation)) {
-      if (v == null) continue;
-      if (typeof v === 'string' && v.trim() === '') continue;
-      merged.observation[k] = v;
-    }
-  }
-
-  if (next.interpretation && typeof next.interpretation === 'object') {
-    if (Array.isArray(next.interpretation.possibleDrivers) && next.interpretation.possibleDrivers.length) {
-      merged.interpretation.possibleDrivers = next.interpretation.possibleDrivers;
-    }
-    if (Array.isArray(next.interpretation.alternatives) && next.interpretation.alternatives.length) {
-      merged.interpretation.alternatives = next.interpretation.alternatives;
-    }
-  }
-
-  if (Array.isArray(next.componentLinks) && next.componentLinks.length) {
-    const byId = new Map(merged.componentLinks.map((l) => [l.componentId, l]));
-    for (const link of next.componentLinks) {
-      if (link?.componentId) byId.set(link.componentId, { ...byId.get(link.componentId), ...link });
-    }
-    merged.componentLinks = Array.from(byId.values());
-  }
-
-  if (next.confidence && typeof next.confidence === 'object') {
-    if (next.confidence.level) merged.confidence.level = next.confidence.level;
-    if (next.confidence.basis) merged.confidence.basis = next.confidence.basis;
-  }
+  mergeObservationFields(merged, next.observation);
+  mergeInterpretationFields(merged, next.interpretation);
+  mergeComponentLinks(merged, next.componentLinks);
+  mergeConfidenceFields(merged, next.confidence);
 
   return merged;
 }

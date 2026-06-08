@@ -21,7 +21,7 @@ export function setOperatorDistrictAccessConfigForTests(cfg) {
   setUserAccessConfigForTests(cfg);
 }
 
-export { isOperatorDistrictEnforcementEnabled };
+
 
 /**
  * @param {string | null | undefined} email
@@ -141,3 +141,5 @@ export function operatorDistrictAccessForApi(email) {
     allowedReportScopes: access.allowedReportScopes,
   };
 }
+
+export {isOperatorDistrictEnforcementEnabled} from './userAccess.js';

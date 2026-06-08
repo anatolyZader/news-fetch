@@ -4,6 +4,30 @@
 
 const SUBMIT_TOOL_PREFIX = 'submit_';
 
+function validateSubmitPlan(payload, errors) {
+  if (!Array.isArray(payload.focus_components)) errors.push('focus_components required');
+  if (!Array.isArray(payload.investigation_tasks)) errors.push('investigation_tasks required');
+}
+
+function validateSubmitComponentAssessment(payload, errors) {
+  if (!payload.component_id) errors.push('component_id required');
+  if (!payload.severity) errors.push('severity required');
+  if (!Array.isArray(payload.claims)) {
+    errors.push('claims array required');
+    return;
+  }
+  for (const [i, c] of payload.claims.entries()) {
+    if (!c?.text) errors.push(`claims[${i}].text required`);
+    if (!Array.isArray(c?.evidence_refs) || c.evidence_refs.length === 0) {
+      errors.push(`claims[${i}].evidence_refs required`);
+    }
+  }
+}
+
+function validateSubmitSynthesis(payload, errors) {
+  if (!payload.cross_component_synthesis) errors.push('cross_component_synthesis required');
+}
+
 /**
  * @param {string} toolName
  * @param {unknown} payload
@@ -18,28 +42,9 @@ export function validateSubmitToolPayload(toolName, payload) {
     return { valid: false, errors: ['payload must be an object'] };
   }
 
-  if (toolName === 'submit_plan') {
-    if (!Array.isArray(payload.focus_components)) errors.push('focus_components required');
-    if (!Array.isArray(payload.investigation_tasks)) errors.push('investigation_tasks required');
-  }
-
-  if (toolName === 'submit_component_assessment') {
-    if (!payload.component_id) errors.push('component_id required');
-    if (!payload.severity) errors.push('severity required');
-    if (!Array.isArray(payload.claims)) errors.push('claims array required');
-    else {
-      for (const [i, c] of payload.claims.entries()) {
-        if (!c?.text) errors.push(`claims[${i}].text required`);
-        if (!Array.isArray(c?.evidence_refs) || c.evidence_refs.length === 0) {
-          errors.push(`claims[${i}].evidence_refs required`);
-        }
-      }
-    }
-  }
-
-  if (toolName === 'submit_synthesis') {
-    if (!payload.cross_component_synthesis) errors.push('cross_component_synthesis required');
-  }
+  if (toolName === 'submit_plan') validateSubmitPlan(payload, errors);
+  if (toolName === 'submit_component_assessment') validateSubmitComponentAssessment(payload, errors);
+  if (toolName === 'submit_synthesis') validateSubmitSynthesis(payload, errors);
 
   return { valid: errors.length === 0, errors };
 }

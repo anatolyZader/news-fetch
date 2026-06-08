@@ -45,6 +45,19 @@ import { PboMunicipalReviewPanel } from './PboMunicipalReviewPanel.jsx';
 import { normalizeIsraelDistrictId } from '../lib/israelDistricts.js';
 import PropTypes from 'prop-types';
 
+function dateTabSx(t) {
+  return {
+    '&.Mui-selected': {
+      color: t.palette.primary.contrastText,
+      borderColor: `${t.palette.primary.main} !important`,
+      background: `linear-gradient(135deg, ${t.palette.primary.main} 0%, ${t.palette.primary.dark} 100%)`,
+      '&:hover': {
+        color: t.palette.primary.contrastText,
+      },
+    },
+  };
+}
+
 function pct(v) {
   return v == null ? '—' : Math.round(v * 100) + '%';
 }
@@ -500,17 +513,6 @@ export function MunicipalitiesTab({ districtId = 'north' }) {
 
   const comps = data.componentsOrder;
   const colSpan = 2 + comps.length;
-
-  const dateTabSx = (t) => ({
-    '&.Mui-selected': {
-      color: t.palette.primary.contrastText,
-      borderColor: `${t.palette.primary.main} !important`,
-      background: `linear-gradient(135deg, ${t.palette.primary.main} 0%, ${t.palette.primary.dark} 100%)`,
-      '&:hover': {
-        color: t.palette.primary.contrastText,
-      },
-    },
-  });
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>

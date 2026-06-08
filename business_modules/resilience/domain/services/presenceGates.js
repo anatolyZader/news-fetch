@@ -81,6 +81,34 @@ function meetsMinIntensity(intensity, minIntensity) {
   return got >= need;
 }
 
+const EMPTY_PRESENCE_GATE = {
+  triggered: false,
+  rule_id: null,
+  signal_type: null,
+  evidence_snippet: null,
+};
+
+/**
+ * @param {object} signal
+ * @param {typeof PRESENCE_GATE_RULES} rulesForComponent
+ */
+function matchPresenceGateRule(signal, rulesForComponent) {
+  const type = signal.signal_type ?? signal.type;
+  if (!type) return null;
+
+  for (const rule of rulesForComponent) {
+    if (!rule.signalTypes.includes(type)) continue;
+    if (!meetsMinIntensity(signal.intensity, rule.minIntensity)) continue;
+    return {
+      triggered: true,
+      rule_id: rule.id,
+      signal_type: type,
+      evidence_snippet: String(signal.evidence ?? '').slice(0, 200) || null,
+    };
+  }
+  return null;
+}
+
 /**
  * @param {string} componentId
  * @param {Array<{ signal: object, contribution?: number }>} cappedItems
@@ -92,36 +120,17 @@ function meetsMinIntensity(intensity, minIntensity) {
  * }}
  */
 export function evaluatePresenceGates(componentId, cappedItems) {
-  const empty = {
-    triggered: false,
-    rule_id: null,
-    signal_type: null,
-    evidence_snippet: null,
-  };
-  if (!isPresenceGatesEnabled()) return empty;
+  if (!isPresenceGatesEnabled()) return EMPTY_PRESENCE_GATE;
 
   const rulesForComponent = ALL_RULES.filter((r) => r.componentIds.includes(componentId));
-  if (rulesForComponent.length === 0) return empty;
+  if (rulesForComponent.length === 0) return EMPTY_PRESENCE_GATE;
 
   for (const it of cappedItems ?? []) {
     const signal = it?.signal;
-    if (!signal) continue;
-    if (signal.grounding_tier !== GROUNDING_TIER.grounded) continue;
-
-    const type = signal.signal_type ?? signal.type;
-    if (!type) continue;
-
-    for (const rule of rulesForComponent) {
-      if (!rule.signalTypes.includes(type)) continue;
-      if (!meetsMinIntensity(signal.intensity, rule.minIntensity)) continue;
-      return {
-        triggered: true,
-        rule_id: rule.id,
-        signal_type: type,
-        evidence_snippet: String(signal.evidence ?? '').slice(0, 200) || null,
-      };
-    }
+    if (!signal || signal.grounding_tier !== GROUNDING_TIER.grounded) continue;
+    const match = matchPresenceGateRule(signal, rulesForComponent);
+    if (match) return match;
   }
 
-  return empty;
+  return EMPTY_PRESENCE_GATE;
 }

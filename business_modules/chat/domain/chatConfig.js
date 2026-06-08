@@ -22,6 +22,10 @@ export function geoUnknownReviewReadEnabled() {
   return process.env.GEO_UNKNOWN_REVIEW_READ_ENABLED !== '0';
 }
 
+export function chatCompressToolsEnabled() {
+  return process.env.CHAT_COMPRESS_TOOLS !== '0';
+}
+
 export const PENDING_ACTION_TTL_MS = 15 * 60 * 1000;
 
 export const PROPOSE_TOOL_NAMES = new Set([

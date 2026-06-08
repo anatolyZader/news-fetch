@@ -13,12 +13,13 @@ function formatTemplate(template, params = {}) {
   );
 }
 
-export function EpistemicStatusBanner({ assessment, displayTier, attentionItems }) {
+export function EpistemicStatusBanner({ assessment, displayTier, attentionItems, suggestCrisisBudget }) {
   const { t } = useLanguage();
   const attentionItemIds = (attentionItems ?? []).map((item) => item.id).filter(Boolean);
   const messages = deriveEpistemicBannerMessages(assessment, {
     displayTier,
     attentionItemIds,
+    suggestCrisisBudget,
   });
 
   if (messages.length === 0) return null;
@@ -38,4 +39,5 @@ EpistemicStatusBanner.propTypes = {
   assessment: PropTypes.object,
   displayTier: PropTypes.oneOf(['operator', 'analyst']),
   attentionItems: PropTypes.arrayOf(PropTypes.object),
+  suggestCrisisBudget: PropTypes.bool,
 };

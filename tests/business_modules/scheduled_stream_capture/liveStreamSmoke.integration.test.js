@@ -56,8 +56,8 @@ describe('liveStreamSmoke', () => {
     const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     return {
       dayOfWeek: DOW.indexOf(dowStr),
-      hour: parseInt(parts.hour, 10),
-      minute: parseInt(parts.minute, 10),
+      hour: Number.parseInt(parts.hour, 10),
+      minute: Number.parseInt(parts.minute, 10),
     };
   }
 

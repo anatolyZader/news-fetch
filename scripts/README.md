@@ -151,5 +151,4 @@ Usually means no signal files exist at all. Check `ls signals/signals-*-$(date +
 |---|---|
 | `docs/validate-docs.js`, `docs/sync-overarching-docs.js` | Product docs validation and sync (`npm run docs:check`, `docs:sync`) |
 | `ci-audit.mjs`, `check-node-engines.mjs`, `audit-dependencies.mjs` | CI and dependency hygiene |
-| `ci-sonar-review-hotspots.mjs` | CI Sonar hotspot triage |
 | `sonar/*.mjs` | SonarCloud issue queue and `/fix-sonar` loop (`npm run sonar:*`) |

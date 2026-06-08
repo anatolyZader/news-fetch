@@ -1,4 +1,5 @@
-import Anthropic from '@anthropic-ai/sdk';
+import { createAnthropicLlmPort } from '../../../../cross-cut-modules/llm/anthropicLlmAdapter.js';
+import { createLlmGateway } from '../../../../cross-cut-modules/llm/llmGateway.js';
 import { extractJsonArray, SIGNAL_TYPES } from '../../../../cross-cut-modules/resilience-contracts/index.js';
 import {
   COMPONENT_IDS,
@@ -39,93 +40,103 @@ const EMPTY_STRUCTURED = () => ({
   confidence: { level: null, basis: null },
 });
 
-function parseEmbeddedJsonObject(responseText, key) {
-  const anchor = `"${key}"`;
-  const anchorIdx = responseText.indexOf(anchor);
-  if (anchorIdx === -1) return null;
-  let start = -1;
+function findObjectStartBeforeAnchor(responseText, anchorIdx) {
   for (let i = anchorIdx; i >= 0; i--) {
-    if (responseText[i] === '{') {
-      start = i;
-      break;
-    }
+    if (responseText[i] === '{') return i;
   }
-  if (start === -1) return null;
+  return -1;
+}
 
-  let depth = 0;
-  let inString = false;
-  let escape = false;
+function advanceJsonBraceState(ch, state) {
+  if (state.escape) {
+    state.escape = false;
+    return null;
+  }
+  if (ch === '\\') {
+    state.escape = true;
+    return null;
+  }
+  if (ch === '"') {
+    state.inString = !state.inString;
+    return null;
+  }
+  if (state.inString) return null;
+  if (ch === '{') {
+    state.depth++;
+    return null;
+  }
+  if (ch !== '}') return null;
+  state.depth--;
+  return state.depth === 0;
+}
+
+function tryParseEmbeddedValue(responseText, start, key) {
+  const state = { depth: 0, inString: false, escape: false };
   for (let i = start; i < responseText.length; i++) {
-    const ch = responseText[i];
-    if (escape) {
-      escape = false;
-      continue;
-    }
-    if (ch === '\\') {
-      escape = true;
-      continue;
-    }
-    if (ch === '"') {
-      inString = !inString;
-      continue;
-    }
-    if (inString) continue;
-    if (ch === '{') depth++;
-    else if (ch === '}') {
-      depth--;
-      if (depth === 0) {
-        const slice = responseText.slice(start, i + 1);
-        try {
-          const parsed = JSON.parse(slice);
-          return parsed[key] ?? null;
-        } catch {
-          return null;
-        }
-      }
+    if (!advanceJsonBraceState(responseText[i], state)) continue;
+    try {
+      const parsed = JSON.parse(responseText.slice(start, i + 1));
+      return parsed[key] ?? null;
+    } catch {
+      return null;
     }
   }
   return null;
+}
+
+function parseEmbeddedJsonObject(responseText, key) {
+  const anchorIdx = responseText.indexOf(`"${key}"`);
+  if (anchorIdx === -1) return null;
+  const start = findObjectStartBeforeAnchor(responseText, anchorIdx);
+  if (start === -1) return null;
+  return tryParseEmbeddedValue(responseText, start, key);
 }
 
 function validateSignals(signals) {
   return signals.filter((s) => VALID_SIGNAL_TYPES.has(s?.signal_type));
 }
 
+function trimStringOrNull(value) {
+  return typeof value === 'string' && value.trim() ? value.trim() : null;
+}
+
+function normalizeObservationFields(target, observation) {
+  if (!observation || typeof observation !== 'object') return;
+  target.locality = trimStringOrNull(observation.locality);
+  target.timeframe = trimStringOrNull(observation.timeframe);
+  target.behavior = trimStringOrNull(observation.behavior);
+  target.affectedPopulation = trimStringOrNull(observation.affectedPopulation);
+  target.spread = VALID_SPREAD.has(observation.spread) ? observation.spread : null;
+  target.sourceBasis = VALID_SOURCE_BASIS.has(observation.sourceBasis) ? observation.sourceBasis : null;
+  target.comparisonToPrior = VALID_COMPARISON.has(observation.comparisonToPrior) ? observation.comparisonToPrior : null;
+}
+
+function normalizeStringList(value, maxItems) {
+  return Array.isArray(value)
+    ? value.filter((x) => typeof x === 'string' && x.trim()).slice(0, maxItems)
+    : [];
+}
+
+function normalizeComponentLinks(componentLinks) {
+  if (!Array.isArray(componentLinks)) return [];
+  return componentLinks
+    .filter((l) => l && VALID_COMPONENT_IDS.has(l.componentId))
+    .map((l) => ({
+      componentId: l.componentId,
+      direction: VALID_DIRECTION.has(l.direction) ? l.direction : 'mixed',
+      rationale: typeof l.rationale === 'string' ? l.rationale.slice(0, 300) : '',
+    }))
+    .slice(0, 6);
+}
+
 function normalizeStructured(raw) {
   const out = EMPTY_STRUCTURED();
   if (!raw || typeof raw !== 'object') return out;
 
-  if (raw.observation && typeof raw.observation === 'object') {
-    const o = raw.observation;
-    out.observation.locality = typeof o.locality === 'string' && o.locality.trim() ? o.locality.trim() : null;
-    out.observation.timeframe = typeof o.timeframe === 'string' && o.timeframe.trim() ? o.timeframe.trim() : null;
-    out.observation.behavior = typeof o.behavior === 'string' && o.behavior.trim() ? o.behavior.trim() : null;
-    out.observation.affectedPopulation =
-      typeof o.affectedPopulation === 'string' && o.affectedPopulation.trim() ? o.affectedPopulation.trim() : null;
-    out.observation.spread = VALID_SPREAD.has(o.spread) ? o.spread : null;
-    out.observation.sourceBasis = VALID_SOURCE_BASIS.has(o.sourceBasis) ? o.sourceBasis : null;
-    out.observation.comparisonToPrior = VALID_COMPARISON.has(o.comparisonToPrior) ? o.comparisonToPrior : null;
-  }
-
-  if (raw.interpretation && typeof raw.interpretation === 'object') {
-    out.interpretation.possibleDrivers = Array.isArray(raw.interpretation.possibleDrivers)
-      ? raw.interpretation.possibleDrivers.filter((x) => typeof x === 'string' && x.trim()).slice(0, 8)
-      : [];
-    out.interpretation.alternatives = Array.isArray(raw.interpretation.alternatives)
-      ? raw.interpretation.alternatives.filter((x) => typeof x === 'string' && x.trim()).slice(0, 5)
-      : [];
-  }
-
-  if (Array.isArray(raw.componentLinks)) {
-    out.componentLinks = raw.componentLinks
-      .filter((l) => l && VALID_COMPONENT_IDS.has(l.componentId))
-      .map((l) => ({
-        componentId: l.componentId,
-        direction: VALID_DIRECTION.has(l.direction) ? l.direction : 'mixed',
-        rationale: typeof l.rationale === 'string' ? l.rationale.slice(0, 300) : '',
-      }))
-      .slice(0, 6);
-  }
+  normalizeObservationFields(out.observation, raw.observation);
+  out.interpretation.possibleDrivers = normalizeStringList(raw.interpretation?.possibleDrivers, 8);
+  out.interpretation.alternatives = normalizeStringList(raw.interpretation?.alternatives, 5);
+  out.componentLinks = normalizeComponentLinks(raw.componentLinks);
 
   if (raw.confidence && typeof raw.confidence === 'object') {
     out.confidence.level = VALID_CONFIDENCE.has(raw.confidence.level) ? raw.confidence.level : null;
@@ -179,7 +190,8 @@ function parseCommonOutput(responseText) {
 }
 
 function formatTurnHistory(turnHistory, senderName) {
-  const header = `[dialogue with field officer${senderName ? ` ${senderName}` : ''}]`;
+  const officerSuffix = senderName ? ' ' + senderName : '';
+  const header = '[dialogue with field officer' + officerSuffix + ']';
   const lines = turnHistory.map((t) => {
     const role = t.role === 'bot' ? '[bot]' : '[officer]';
     const text = (t.text ?? '').trim();
@@ -195,18 +207,19 @@ export function createAnthropicReportBuildAnalyzerAdapter({ anthropicApiKey, bui
   if (!buildSignalExtractionSystemPrompt) {
     throw new Error('createAnthropicReportBuildAnalyzerAdapter requires buildSignalExtractionSystemPrompt');
   }
-  const client = new Anthropic({ apiKey: anthropicApiKey });
+  const port = createLlmGateway(createAnthropicLlmPort({ apiKey: anthropicApiKey }));
   const interactiveSystemPrompt = buildSignalExtractionSystemPrompt('whatsapp_interactive');
 
   const model = 'claude-haiku-4-5-20251001';
 
   async function callModel({ system, userContent, maxTokens, onUsage, label }) {
-    const response = await client.messages.create({
+    const response = await port.createMessage({
       model,
       max_tokens: maxTokens,
       temperature: 0,
       system,
       messages: [{ role: 'user', content: userContent }],
+      callContext: { feature: 'report_build', purpose: label ?? 'report-build:analyze' },
     });
     if (onUsage && response.usage) {
       onUsage({ label: label ?? 'report-build:analyze', model, usage: response.usage });

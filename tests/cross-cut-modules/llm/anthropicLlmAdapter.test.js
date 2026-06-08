@@ -3,6 +3,19 @@ import assert from 'node:assert/strict';
 
 import { createAnthropicLlmPort } from '../../../cross-cut-modules/llm/anthropicLlmAdapter.js';
 
+const saved = {};
+function setEnv(key, value) {
+  if (!(key in saved)) saved[key] = process.env[key];
+  if (value == null) delete process.env[key];
+  else process.env[key] = value;
+}
+function restoreEnv() {
+  for (const [k, v] of Object.entries(saved)) {
+    if (v == null) delete process.env[k];
+    else process.env[k] = v;
+  }
+}
+
 function fakeClient() {
   const calls = { create: [], stream: [] };
   return {
@@ -35,7 +48,7 @@ describe('createAnthropicLlmPort', () => {
     const client = fakeClient();
     const port = createAnthropicLlmPort({ client });
     const opts = { model: 'claude-opus-4-6', max_tokens: 50, thinking: { type: 'adaptive' }, messages: [] };
-    const stream = await port.stream(opts);
+    const stream = port.stream(opts);
     assert.deepEqual(client.calls.stream[0], opts, 'thinking and all opts preserved');
     const final = await stream.finalMessage();
     assert.equal(final.content[0].text, 'streamed');
@@ -62,5 +75,28 @@ describe('createAnthropicLlmPort', () => {
     assert.equal(port.defaultModel, 'claude-sonnet-4-6');
     await port.createMessage({ model: 'claude-haiku-4-5-20251001', messages: [] });
     assert.equal(client.calls.create[0].model, 'claude-haiku-4-5-20251001', 'defaultModel not auto-injected');
+  });
+
+  it('applies prompt cache blocks for chat feature when enabled', async () => {
+    setEnv('LLM_PROMPT_CACHE', '1');
+    setEnv('CHAT_PROMPT_CACHE', '1');
+    try {
+      const client = fakeClient();
+      const port = createAnthropicLlmPort({ client });
+      const stable = 'S'.repeat(3000);
+      await port.createMessage({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 100,
+        system: { stable, dynamic: 'report ctx' },
+        messages: [{ role: 'user', content: 'hi' }],
+        callContext: { feature: 'chat' },
+      });
+      const sent = client.calls.create[0];
+      assert.ok(Array.isArray(sent.system));
+      assert.equal(sent.system[0].cache_control?.type, 'ephemeral');
+      assert.equal(sent.callContext.promptCacheApplied, true);
+    } finally {
+      restoreEnv();
+    }
   });
 });

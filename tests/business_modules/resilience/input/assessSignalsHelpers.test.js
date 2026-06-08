@@ -17,7 +17,7 @@ import {
 describe('crossSourceDedup', () => {
   it('collapses identical evidence republished by multiple outlets within the same source_type', () => {
     const sigs = [
-      { signal_type: 'compliance_enter_shelter', source_type: 'news', evidence: 'residents went to shelter', article_source: 'ynet', temporal_weight: 1.0, evidence_type: 'observational_reported_fact' },
+      { signal_type: 'compliance_enter_shelter', source_type: 'news', evidence: 'residents went to shelter', article_source: 'ynet', temporal_weight: 1, evidence_type: 'observational_reported_fact' },
       { signal_type: 'compliance_enter_shelter', source_type: 'news', evidence: 'Residents went to shelter.', article_source: 'maariv', temporal_weight: 0.85, evidence_type: 'observational_reported_fact' },
       { signal_type: 'compliance_enter_shelter', source_type: 'news', evidence: 'Different evidence here', article_source: 'kan', temporal_weight: 0.7, evidence_type: 'observational_reported_fact' },
     ];
@@ -30,8 +30,8 @@ describe('crossSourceDedup', () => {
 
   it('does NOT collapse identical evidence across different source_types (A4)', () => {
     const sigs = [
-      { signal_type: 'compliance_enter_shelter', source_type: 'news', evidence: 'residents entered shelters', article_source: 'ynet', temporal_weight: 1.0, evidence_type: 'observational_reported_fact' },
-      { signal_type: 'compliance_enter_shelter', source_type: 'field', evidence: 'Residents entered shelters.', article_source: 'field-team-2', temporal_weight: 1.0, evidence_type: 'observational_reported_fact' },
+      { signal_type: 'compliance_enter_shelter', source_type: 'news', evidence: 'residents entered shelters', article_source: 'ynet', temporal_weight: 1, evidence_type: 'observational_reported_fact' },
+      { signal_type: 'compliance_enter_shelter', source_type: 'field', evidence: 'Residents entered shelters.', article_source: 'field-team-2', temporal_weight: 1, evidence_type: 'observational_reported_fact' },
     ];
     const out = crossSourceDedup(sigs);
     assert.equal(out.length, 2, 'press quote and field observation must both survive');
@@ -41,8 +41,8 @@ describe('crossSourceDedup', () => {
 
   it('does not collapse different signal_types even with same evidence', () => {
     const sigs = [
-      { signal_type: 'service_continuity', source_type: 'news', evidence: 'same wording', article_source: 'a', temporal_weight: 1.0, evidence_type: 'observational_reported_fact' },
-      { signal_type: 'service_disruption', source_type: 'news', evidence: 'same wording', article_source: 'b', temporal_weight: 1.0, evidence_type: 'observational_reported_fact' },
+      { signal_type: 'service_continuity', source_type: 'news', evidence: 'same wording', article_source: 'a', temporal_weight: 1, evidence_type: 'observational_reported_fact' },
+      { signal_type: 'service_disruption', source_type: 'news', evidence: 'same wording', article_source: 'b', temporal_weight: 1, evidence_type: 'observational_reported_fact' },
     ];
     assert.equal(crossSourceDedup(sigs).length, 2);
   });
@@ -74,8 +74,8 @@ describe('ewmaScore', () => {
   });
 
   it('clamps alpha into [0,1]', () => {
-    assert.equal(ewmaScore(10, 0, 2.0), 10);
-    assert.equal(ewmaScore(10, 0, -1.0), 0);
+    assert.equal(ewmaScore(10, 0, 2), 10);
+    assert.equal(ewmaScore(10, 0, -1), 0);
   });
 });
 
@@ -100,7 +100,7 @@ describe('deltaSignificance', () => {
     // history: 4,5,6,5,4,5,6 → mean=5, sd≈0.816 (n-1)
     const z = deltaSignificance(7, [4, 5, 6, 5, 4, 5, 6]);
     assert.ok(z !== null);
-    assert.ok(z > 2.0 && z < 3.0, `expected z roughly 2.4, got ${z}`);
+    assert.ok(z > 2 && z < 3, `expected z roughly 2.4, got ${z}`);
   });
 });
 

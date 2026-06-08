@@ -13,6 +13,10 @@ import {
 } from '../../../../business_modules/resilience/infrastructure/extractionPasses.js';
 import { SIGNAL_CATALOG } from '../../../../business_modules/resilience/domain/services/behaviorSignals.js';
 
+function intersectDomainGroups(a, b) {
+  return a.filter((x) => b.includes(x));
+}
+
 describe('DOMAIN_GROUPS', () => {
   it('partitions all SIGNAL_CATALOG domains across the 3 groups', () => {
     const groupedDomains = new Set([...DOMAIN_GROUPS.A, ...DOMAIN_GROUPS.B, ...DOMAIN_GROUPS.C]);
@@ -23,10 +27,9 @@ describe('DOMAIN_GROUPS', () => {
   });
 
   it('has no overlap between groups', () => {
-    const inter = (a, b) => a.filter((x) => b.includes(x));
-    assert.equal(inter(DOMAIN_GROUPS.A, DOMAIN_GROUPS.B).length, 0);
-    assert.equal(inter(DOMAIN_GROUPS.A, DOMAIN_GROUPS.C).length, 0);
-    assert.equal(inter(DOMAIN_GROUPS.B, DOMAIN_GROUPS.C).length, 0);
+    assert.equal(intersectDomainGroups(DOMAIN_GROUPS.A, DOMAIN_GROUPS.B).length, 0);
+    assert.equal(intersectDomainGroups(DOMAIN_GROUPS.A, DOMAIN_GROUPS.C).length, 0);
+    assert.equal(intersectDomainGroups(DOMAIN_GROUPS.B, DOMAIN_GROUPS.C).length, 0);
   });
 });
 

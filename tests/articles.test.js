@@ -6,6 +6,10 @@ import { describe, it, mock, beforeEach } from 'node:test';
 import assert from 'node:assert';
 import { createApp } from '../app.js';
 
+function buildArticlesPath(queryString) {
+  return queryString ? '/articles?' + queryString : '/articles';
+}
+
 describe('GET /api/auth/config', () => {
   it('returns authRequired false by default (no AUTH_REQUIRED in test env)', async () => {
     const app = await createApp({
@@ -39,7 +43,7 @@ describe('GET /articles', () => {
     const qs = new URLSearchParams(query).toString();
     const res = await app.inject({
       method: 'GET',
-      url: `/articles${qs ? `?${qs}` : ''}`,
+      url: buildArticlesPath(qs),
     });
     return res;
   }

@@ -15,6 +15,20 @@ import {
 } from '../infrastructure/adapters/validationReviewSqliteStore.js';
 import { resolve } from 'node:path';
 
+function resolveValidationReviewStore(deps) {
+  if (deps.validationReviewStore) {
+    return deps.validationReviewStore;
+  }
+  if (!isValidationReviewSqliteEnabled()) {
+    return null;
+  }
+  const sqlitePath = process.env.SQLITE_PATH?.trim();
+  const dbPath = sqlitePath
+    ? resolve(sqlitePath)
+    : resolve(process.cwd(), 'db', 'app.sqlite');
+  return createValidationReviewSqliteStore(dbPath);
+}
+
 /**
  * @param {object} [deps]
  * @param {() => object} [deps.loadConfig]
@@ -24,14 +38,7 @@ import { resolve } from 'node:path';
 export default function createValidationCollectionService(deps = {}) {
   const loadConfig = deps.loadConfig ?? loadValidationConfig;
   const createWriter = deps.createWriter ?? createValidationArtifactWriter;
-  const validationReviewStore = deps.validationReviewStore
-    ?? (isValidationReviewSqliteEnabled()
-      ? createValidationReviewSqliteStore(
-        process.env.SQLITE_PATH?.trim()
-          ? resolve(process.env.SQLITE_PATH.trim())
-          : resolve(process.cwd(), 'db', 'app.sqlite'),
-      )
-      : null);
+  const validationReviewStore = resolveValidationReviewStore(deps);
 
   /**
    * @param {object} input

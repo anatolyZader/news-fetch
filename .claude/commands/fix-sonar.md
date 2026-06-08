@@ -108,4 +108,4 @@ Report:
 
 - **IDE panel:** Fixed issues disappear on save when SonarLint passes the rule at that line.
 - **SonarCloud API / quality gate:** Remote queue may lag CI until next scan; local verify drives IDE feedback.
-- **Local lint:** `eslint.config.js` is unchanged; `eslint.sonar.config.js` is profile-aligned for Sonar verify only.
+- **Local lint:** `eslint.config.js` includes Sonar-aligned rules (SonarJS + Unicorn); `eslint.sonar.config.js` re-exports it for verify scripts.

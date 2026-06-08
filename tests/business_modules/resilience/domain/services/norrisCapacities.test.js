@@ -42,7 +42,7 @@ describe('computeNorrisCapacities', () => {
       wellbeing_at_risk: makeComp({ score: 4, certainty: 0.1 }),
       community_capital: makeComp({ score: 6, certainty: 0.5 }),
       belonging_solidarity: makeComp({ score: 6, certainty: 0.5 }),
-      information_communication: makeComp({ score: 7, certainty: 1.0 }),
+      information_communication: makeComp({ score: 7, certainty: 1 }),
       narrative: makeComp({ score: 3, certainty: 0.2 }),
       leadership: makeComp({ score: 5, certainty: 0.8 }),
     };

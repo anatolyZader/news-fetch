@@ -2,6 +2,22 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createMailingResendAdapter } from '../../../../business_modules/mailing/infrastructure/adapters/mailingResendAdapter.js';
 
+async function mockResendSuccessFetch(_url, _init) {
+  return {
+    ok: true,
+    status: 200,
+    text: async () => JSON.stringify({ id: 're_123' }),
+  };
+}
+
+async function mockResend422Fetch() {
+  return {
+    ok: false,
+    status: 422,
+    text: async () => JSON.stringify({ message: 'Invalid from address' }),
+  };
+}
+
 test('createMailingResendAdapter throws without api key', () => {
   assert.throws(() => createMailingResendAdapter({ apiKey: '' }), /apiKey is required/);
 });
@@ -10,11 +26,7 @@ test('sendTransactional posts JSON and returns id on success', async () => {
   const calls = [];
   const fetchImpl = async (url, init) => {
     calls.push({ url, init });
-    return {
-      ok: true,
-      status: 200,
-      text: async () => JSON.stringify({ id: 're_123' }),
-    };
+    return mockResendSuccessFetch(url, init);
   };
   const adapter = createMailingResendAdapter({ apiKey: 're_test', fetchImpl });
   const out = await adapter.sendTransactional({
@@ -35,12 +47,7 @@ test('sendTransactional posts JSON and returns id on success', async () => {
 });
 
 test('sendTransactional throws with Resend error message on 422', async () => {
-  const fetchImpl = async () => ({
-    ok: false,
-    status: 422,
-    text: async () => JSON.stringify({ message: 'Invalid from address' }),
-  });
-  const adapter = createMailingResendAdapter({ apiKey: 're_test', fetchImpl });
+  const adapter = createMailingResendAdapter({ apiKey: 're_test', fetchImpl: mockResend422Fetch });
   await assert.rejects(
     () => adapter.sendTransactional({
       from: 'bad',

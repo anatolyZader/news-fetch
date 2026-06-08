@@ -22,6 +22,7 @@ import { useDisplayCapabilities } from './hooks/useDisplayCapabilities.js';
 import { useTranslatedReport } from './hooks/useTranslatedReport.js';
 import { getAnalystSiteUrl } from './lib/analystSiteUrl.js';
 import { ReportView } from './components/ReportView.jsx';
+import { CrisisBudgetPanel } from './components/CrisisBudgetPanel.jsx';
 import { ChatPanel } from './components/ChatPanel.jsx';
 import { DocsPanel } from './components/DocsPanel.jsx';
 import { ReportBuildPanel } from './components/ReportBuildPanel.jsx';
@@ -212,6 +213,42 @@ function headerChromeRadius(th) {
   return `${th.custom.radius.section}px`;
 }
 
+function headerButtonSx(th) {
+  return {
+    minHeight: th.spacing(4.5),
+    paddingTop: th.spacing(0.75),
+    paddingBottom: th.spacing(0.75),
+    paddingLeft: th.spacing(1.25),
+    paddingRight: th.spacing(1.25),
+    fontSize: th.typography.pill.fontSize,
+    borderRadius: headerChromeRadius(th),
+    color: th.palette.primary.dark,
+    borderColor: alpha(th.palette.primary.main, 0.45),
+    backgroundColor: alpha(th.palette.background.paper, 0.9),
+    '&:hover': {
+      color: th.palette.primary.dark,
+      borderColor: th.palette.primary.main,
+      backgroundColor: th.custom.surface.roseWash,
+    },
+  };
+}
+
+function moreIconButtonSx(th) {
+  return {
+    border: `1px solid ${th.palette.divider}`,
+    borderRadius: headerChromeRadius(th),
+    width: th.spacing(4.5),
+    height: th.spacing(4.5),
+    color: th.palette.text.secondary,
+    padding: 0,
+    '&:hover': {
+      color: th.palette.text.primary,
+      borderColor: th.palette.divider,
+      background: th.palette.action.hover,
+    },
+  };
+}
+
 function readReportScope() {
   if (typeof localStorage === 'undefined') return 'national';
   try {
@@ -234,6 +271,11 @@ function AppShell() {
     reportMissingHint,
     reportLoadError,
     attentionItems,
+    actionCompass,
+    anomalyStrip,
+    budgetStatus,
+    suggestCrisisBudget,
+    refreshReport,
   } = useTodayReport(reportScope);
   const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jerusalem' });
   const [activeTab, setActiveTab] = useState(() => readMainTab());
@@ -455,38 +497,6 @@ function AppShell() {
     { id: 'naftali',   label: t('tab.naftali') },
     { id: 'education', label: t('tab.education') },
   ];
-
-  const headerButtonSx = (th) => ({
-    minHeight: th.spacing(4.5),
-    paddingTop: th.spacing(0.75),
-    paddingBottom: th.spacing(0.75),
-    paddingLeft: th.spacing(1.25),
-    paddingRight: th.spacing(1.25),
-    fontSize: th.typography.pill.fontSize,
-    borderRadius: headerChromeRadius(th),
-    color: th.palette.primary.dark,
-    borderColor: alpha(th.palette.primary.main, 0.45),
-    backgroundColor: alpha(th.palette.background.paper, 0.9),
-    '&:hover': {
-      color: th.palette.primary.dark,
-      borderColor: th.palette.primary.main,
-      backgroundColor: th.custom.surface.roseWash,
-    },
-  });
-
-  const moreIconButtonSx = (th) => ({
-    border: `1px solid ${th.palette.divider}`,
-    borderRadius: headerChromeRadius(th),
-    width: th.spacing(4.5),
-    height: th.spacing(4.5),
-    color: th.palette.text.secondary,
-    padding: 0,
-    '&:hover': {
-      color: th.palette.text.primary,
-      borderColor: th.palette.divider,
-      background: th.palette.action.hover,
-    },
-  });
 
   const header = (
     <>
@@ -786,6 +796,13 @@ function AppShell() {
                       boxShadow: theme.custom.elevation.subtle,
                     })}
                   >
+                    {canViewAnalyst && (
+                      <CrisisBudgetPanel
+                        budgetStatus={budgetStatus}
+                        suggestCrisisBudget={suggestCrisisBudget}
+                        onUpdated={() => refreshReport()}
+                      />
+                    )}
                     <ReportView
                       assessment={displayReport}
                       scoreBySource={displayReport?.score_by_source ?? scoreBySource}
@@ -796,6 +813,9 @@ function AppShell() {
                       reportDate={reportDate}
                       reportScope={reportScope}
                       attentionItems={attentionItems ?? []}
+                      actionCompass={actionCompass}
+                      anomalyStrip={anomalyStrip}
+                      suggestCrisisBudget={suggestCrisisBudget}
                       onJumpToComponent={openReportComponent}
                       openCompId={openReportCompId}
                       setOpenCompId={setOpenReportCompId}

@@ -9,6 +9,15 @@ import { createSocialMediaTopicFetchService } from '../../../../business_modules
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../../../..');
 const dataDir = resolve(repoRoot, 'business_modules/social_media/data');
 
+async function translatePostsForTest(posts, lang) {
+  return posts.map((p) => ({
+    ...p,
+    textOriginal: p.textOriginal ?? p.text,
+    text: '[' + lang + '] ' + (p.textOriginal ?? p.text),
+    translatedTo: lang,
+  }));
+}
+
 describe('socialMediaTopicFetchService', () => {
   it('fetches posts matching topic from cached OSINT', async () => {
     const persistencePort = createSocialMediaFsAdapter({ dataDir });
@@ -118,13 +127,7 @@ describe('socialMediaTopicFetchService', () => {
         };
       },
     };
-    const translatePosts = async (posts, lang) => posts.map((p) => ({
-      ...p,
-      textOriginal: p.textOriginal ?? p.text,
-      text: `[${lang}] ${p.textOriginal ?? p.text}`,
-      translatedTo: lang,
-    }));
-    const topic = createSocialMediaTopicFetchService({ persistencePort, fetchPort, translatePosts });
+    const topic = createSocialMediaTopicFetchService({ persistencePort, fetchPort, translatePosts: translatePostsForTest });
 
     const saved = await topic.fetchByTopic({
       topic: 'test topic retranslate',

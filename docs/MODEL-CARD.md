@@ -82,7 +82,15 @@ When `RESILIENCE_PRESENCE_GATES` is on (default), verified **grounded** signals 
 
 `assessment.oov_burst` evaluates `daily_reports/oov-capture-{date}.jsonl` unknown-type records **before scoring**. Operator attention when total ≥ `RESILIENCE_OOV_OPERATOR_MIN` (default 5) or largest cluster ≥ threshold.
 
+During **abstention** (`sampling_blind`, `digital_darkness`, elevated `data_void`), the **anomaly strip** (`anomaly_strip` on report API) lowers the operator visibility threshold to cluster count ≥ 1 — surfaced in `OovAnomalyClustersPanel` with label “not in synthesis summary.”
+
+**Synthesizer OOV coverage:** slim synthesizer mode retains `oov_claims`; `synthesisOovChecks.js` appends deterministic bullets and attention items when OOV clusters are missing from cross-component narrative.
+
 **OOV scoring (default on):** alerting clusters synthesize `novel_behavior_observed` signals at reduced weight (`RESILIENCE_OOV_SCORE_WEIGHT`, default 0.4). `assessment.oov_scoring_applied` records synthetic count. Disable with `RESILIENCE_OOV_SCORING=0`.
+
+## Action compass (operator, abstention)
+
+When assessment abstains or epistemic instruments fire, `action_compass` on `GET /api/report/today` provides ordinal **uncertainty bands** (`unknown` | `watch` | `elevated` | `critical`) and ranked suggested actions — **no numeric 1–10 scores**. Sources: attention items, decision brief, gap closure tasks, void-specific defaults. UI: `ActionCompassPanel.jsx`. Flag: `RESILIENCE_ACTION_COMPASS` (default on).
 
 ## OSINT channel quarantine (auto)
 
@@ -121,6 +129,9 @@ Default pipeline (`RESILIENCE_ASSESSMENT_AGENT=1`): planner → component specia
 | `RESILIENCE_ASSESS_GLOBAL_TOPK` | `8` | Global retrieve final top-K (was 20) |
 | `RESILIENCE_ASSESS_OPEN_RAG` | `1` | Per-component RAG seeding (set `0` to disable all) |
 | `RESILIENCE_ASSESS_COMPACT_TOOL_LOOP` | `1` | Compact tool-loop message history via working memory |
+| `RESILIENCE_ASSESS_PROMPT_CACHE` | `1` | Ephemeral cache on assess agent stable system blocks |
+| `RESILIENCE_ASSESS_SLIM_PLANNER` | `1` | Compact planner epistemic profile + gap context |
+| `RESILIENCE_ASSESS_SLIM_SYNTH` | `1` | Compact synthesizer component assessment payloads |
 
 Report metadata: `investigation_plan.planner_source` (`deterministic`|`llm`|`replan`), `synthesis_mode`, per-component `specialist_tier`, `cross_component_issues`, `investigation_enrichment`.
 
@@ -134,7 +145,10 @@ Eval: `npm run agent:eval`. Trace replay: `GET /api/report/agent-trace/:traceId`
 | `RESILIENCE_EXTRACT_MULTIPASS` | `1` | `0` off; `1` three-pass; `2` two-pass (AB + C) |
 | `RESILIENCE_EXTRACT_MAX_TOKENS` | `5000` | Lower default output cap vs legacy 12000 |
 | `RESILIENCE_EXTRACT_BATCH` | off | Batch API for offline cron extract (`RESILIENCE_EXTRACT_BATCH=1`) |
-| `RESILIENCE_EXTRACT_PROMPT_CACHE` | off | Ephemeral cache on stable extract system blocks |
+| `RESILIENCE_EXTRACT_PROMPT_CACHE` | `1` | Ephemeral cache on stable extract system blocks |
+| `LLM_PROMPT_CACHE` | `1` | Master prompt-cache gate (all features) |
+| `CHAT_PROMPT_CACHE` | `1` | Cache chat tool template across tool rounds |
+| `CHAT_COMPRESS_TOOLS` | `1` | Compress chat tool outputs returned to the model |
 | `HOMEFRONT_PREFILTER_MODE` | `keyword` | Keyword/behavior prefilter; `llm` restores Haiku prefilter |
 
 Prompt version: **`extract-v2`** (`cross-cut-modules/resilience-contracts/extractionPrompt.js`). Cache invalidates on bump.

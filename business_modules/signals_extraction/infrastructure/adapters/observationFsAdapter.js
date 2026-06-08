@@ -59,7 +59,7 @@ export class ObservationFsAdapter extends IObservationStorePort {
       const fileDate = m[2];
       if (fileDate < minStr || fileDate > endDate) continue;
       if (opts.profile && !name.startsWith(`observations-${opts.profile}-`)) {
-        const profileSlug = String(opts.profile).replace(/[^a-z0-9_-]/gi, '_');
+        const profileSlug = String(opts.profile).replaceAll(/[^a-z0-9_-]/gi, '_');
         if (!name.startsWith(`observations-${profileSlug}-`)) continue;
       }
       if (opts.date && fileDate !== opts.date) continue;

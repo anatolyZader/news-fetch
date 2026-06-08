@@ -4,6 +4,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { logLlmInvocation } from './llmInvocationLog.js';
 import { calcLlmCostUsd } from './llmPricing.js';
+import { prepareAnthropicRequest } from './promptCache.js';
 
 /**
  * @param {{ apiKey?: string, client?: object }} [cfg]
@@ -13,10 +14,16 @@ export function createAnthropicBatchAdapter(cfg = {}) {
 
   async function submitBatch(requests) {
     const batch = await client.messages.batches.create({
-      requests: requests.map((r) => ({
-        custom_id: r.custom_id,
-        params: r.params,
-      })),
+      requests: requests.map((r) => {
+        const feature = r.callContext?.feature ?? 'extract';
+        const prepared = prepareAnthropicRequest(
+          { ...r.params, callContext: r.callContext },
+          { feature },
+        );
+        const params = { ...prepared };
+        delete params.callContext;
+        return { custom_id: r.custom_id, params };
+      }),
     });
     return batch.id;
   }

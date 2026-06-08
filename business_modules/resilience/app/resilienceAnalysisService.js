@@ -33,6 +33,20 @@ import { createPipelineRunTracker } from './pipelineRunTracker.js';
 /** Aligned with infrastructure/mdReportsLoader.js body cap */
 export const MAX_BODY_CHARS = 2000;
 
+function resolvePipelineRunStore(options) {
+  if (options.pipelineRunStore !== undefined) {
+    return options.pipelineRunStore;
+  }
+  if (process.env.PIPELINE_RUN_TRACKING === '0') {
+    return null;
+  }
+  const sqlitePath = process.env.SQLITE_PATH?.trim();
+  const dbPath = sqlitePath
+    ? resolve(sqlitePath)
+    : resolve(process.cwd(), 'db', 'app.sqlite');
+  return createPipelineRunStore(dbPath);
+}
+
 /** Map batch items to the article shape expected by claudeEvaluator.extractSignals. */
 function batchItemsToArticles(batch) {
   const sourceFile = batch.sourceRunId == null ? 'content-batch' : String(batch.sourceRunId);
@@ -282,13 +296,7 @@ export async function runResilienceAssessment(batch, options = {}) {
     throw new Error('llmPort is required');
   }
 
-  const pipelineStore = options.pipelineRunStore ?? (process.env.PIPELINE_RUN_TRACKING === '0'
-    ? null
-    : createPipelineRunStore(
-      process.env.SQLITE_PATH?.trim()
-        ? resolve(process.env.SQLITE_PATH.trim())
-        : resolve(process.cwd(), 'db', 'app.sqlite'),
-    ));
+  const pipelineStore = resolvePipelineRunStore(options);
   const pipeline = createPipelineRunTracker(pipelineStore, {
     reportDate: batch.reportDate,
     reportScopeId,

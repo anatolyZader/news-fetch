@@ -2,6 +2,7 @@
  * Critic agent — deterministic checks + optional LLM contested pass.
  */
 import { scoreTextGrounding } from '../../resilience/domain/services/narrativeGrounding/sentenceGroundingChecker.js';
+import { checkComponentOovInNarrative, repairComponentOovInNarrative } from '../domain/services/synthesisOovChecks.js';
 
 function claimHasOovFlag(claim) {
   const flags = claim.epistemic_flags ?? claim.flags ?? [];
@@ -14,20 +15,19 @@ function gapWasAttempted(gapText, retrievalGaps) {
     String(g).startsWith('attempted:') && String(g).includes(base.slice(0, 40)));
 }
 
-/**
- * @param {object} assessment — component assessment
- * @param {object} epistemicProfile
- * @returns {{ passed: boolean, issues: object[], requiresRepair: boolean }}
- */
-export function runCriticChecks(assessment, epistemicProfile) {
-  const issues = [];
-  const compId = assessment.component_id;
-  const ep = epistemicProfile?.by_component?.[compId] ?? {};
+const REPAIR_ISSUE_TYPES = new Set([
+  'missing_evidence_refs',
+  'thin_evidence_strong_claim',
+  'contested_without_dissent',
+  'lookup_only_no_retrieval',
+  'gap_unaddressed',
+  'oov_critical_severity',
+  'oov_unaddressed_in_narrative',
+]);
 
+function collectClaimIssues(assessment, issues) {
   for (const [i, claim] of (assessment.claims ?? []).entries()) {
-    if (!claim.text) {
-      issues.push({ type: 'missing_claim_text', index: i });
-    }
+    if (!claim.text) issues.push({ type: 'missing_claim_text', index: i });
     if (!Array.isArray(claim.evidence_refs) || claim.evidence_refs.length === 0) {
       issues.push({ type: 'missing_evidence_refs', index: i, claim_id: claim.claim_id });
     }
@@ -35,22 +35,24 @@ export function runCriticChecks(assessment, epistemicProfile) {
       issues.push({ type: 'oov_critical_severity', index: i });
     }
   }
+}
 
+function collectEpistemicIssues(assessment, ep, issues) {
   if (ep.thin_evidence && assessment.severity !== 'abstain' && assessment.confidence === 'high') {
     issues.push({ type: 'thin_evidence_strong_claim', severity: assessment.severity });
   }
-
   if (ep.contested && !assessment.dissent_summary) {
     issues.push({ type: 'contested_without_dissent' });
   }
-
+  const narrative = String(assessment.narrative ?? '').toLowerCase();
   for (const w of ep.dominance_warnings ?? []) {
-    const narrative = String(assessment.narrative ?? '').toLowerCase();
     if (w.layer === 'source_type' && !narrative.includes('source') && assessment.severity !== 'abstain') {
       issues.push({ type: 'dominance_unacknowledged', warning: w.message });
     }
   }
+}
 
+function collectToolUsageIssues(assessment, issues) {
   const toolUsage = assessment.tool_usage ?? {};
   if (
     assessment.severity !== 'abstain'
@@ -60,44 +62,93 @@ export function runCriticChecks(assessment, epistemicProfile) {
   ) {
     issues.push({ type: 'lookup_only_no_retrieval' });
   }
+}
 
+function collectGapClosureIssues(assessment, issues) {
   for (const task of assessment.gap_closure_tasks ?? []) {
     if (task.gap_type !== 'investigation') continue;
     if (!gapWasAttempted(task.action, assessment.retrieval_gaps)) {
-      issues.push({
-        type: 'gap_unaddressed',
-        gap_id: task.gap_id,
-        action: task.action,
-      });
+      issues.push({ type: 'gap_unaddressed', gap_id: task.gap_id, action: task.action });
     }
   }
+}
+
+/**
+ * @param {object} assessment — component assessment
+ * @param {object} epistemicProfile
+ * @returns {{ passed: boolean, issues: object[], requiresRepair: boolean }}
+ */
+export function runCriticChecks(assessment, epistemicProfile) {
+  const issues = [];
+  const ep = epistemicProfile?.by_component?.[assessment.component_id] ?? {};
+
+  collectClaimIssues(assessment, issues);
+  collectEpistemicIssues(assessment, ep, issues);
+  collectToolUsageIssues(assessment, issues);
+  collectGapClosureIssues(assessment, issues);
+  const oovNarr = checkComponentOovInNarrative(assessment);
+  for (const i of oovNarr.issues) issues.push(i);
 
   const evidenceTexts = (assessment.claims ?? []).map((c) => c.text);
-  const { score, issues: groundingIssues } = scoreTextGrounding(
-    assessment.narrative ?? '',
-    evidenceTexts,
-  );
+  const { score, issues: groundingIssues } = scoreTextGrounding(assessment.narrative ?? '', evidenceTexts);
   assessment.grounding_score = score;
-  for (const gi of groundingIssues) {
-    issues.push({ type: 'grounding', ...gi });
-  }
+  for (const gi of groundingIssues) issues.push({ type: 'grounding', ...gi });
 
   const passed = issues.filter((i) => i.type !== 'grounding').length === 0 && score >= 0.5;
   return {
     passed,
     issues,
-    requiresRepair: !passed && issues.some((i) =>
-      [
-        'missing_evidence_refs',
-        'thin_evidence_strong_claim',
-        'contested_without_dissent',
-        'lookup_only_no_retrieval',
-        'gap_unaddressed',
-        'oov_critical_severity',
-      ].includes(i.type)),
+    requiresRepair: !passed && issues.some((i) => REPAIR_ISSUE_TYPES.has(i.type)),
     grounding_score: score,
   };
 }
+
+const CRITIC_REPAIR_HANDLERS = {
+  thin_evidence_strong_claim(assessment, issue, repairLog) {
+    assessment.severity = 'abstain';
+    assessment.confidence = 'low';
+    assessment.operator_status = 'insufficient_data';
+    repairLog.push({ issue: issue.type, action: 'downgraded_to_abstain' });
+  },
+  lookup_only_no_retrieval(assessment, issue, repairLog) {
+    assessment.confidence = 'medium';
+    repairLog.push({ issue: issue.type, action: 'downgraded_confidence' });
+  },
+  oov_critical_severity(assessment, issue, repairLog) {
+    assessment.severity = 'moderate';
+    assessment.operator_status = 'watch';
+    repairLog.push({ issue: issue.type, action: 'downgraded_oov_severity' });
+  },
+  contested_without_dissent(assessment, issue, repairLog) {
+    assessment.dissent_summary = assessment.dissent_summary
+      || 'Evidence shows mixed supporting and weakening signals across sources.';
+    repairLog.push({ issue: issue.type, action: 'added_dissent_summary' });
+  },
+  missing_evidence_refs(assessment, issue, repairLog) {
+    const claim = assessment.claims?.[issue.index];
+    if (claim && !claim.evidence_refs?.length) {
+      claim.evidence_refs = [`synthetic:${assessment.component_id}:${issue.index}`];
+      repairLog.push({ issue: issue.type, action: 'added_synthetic_ref', index: issue.index });
+    }
+  },
+  dominance_unacknowledged(assessment, issue, repairLog) {
+    assessment.narrative = `${assessment.narrative}\n\nNote: ${issue.warning}`;
+    repairLog.push({ issue: issue.type, action: 'appended_dominance_note' });
+  },
+  gap_unaddressed(assessment, issue, repairLog) {
+    const note = `Gap not fully resolved: ${issue.action}`;
+    assessment.retrieval_gaps = [...(assessment.retrieval_gaps ?? []), note];
+    if (!String(assessment.narrative ?? '').includes('Gap not fully resolved')) {
+      assessment.narrative = `${assessment.narrative}\n\n${note}`;
+    }
+    repairLog.push({ issue: issue.type, action: 'noted_open_gap', gap_id: issue.gap_id });
+  },
+  oov_unaddressed_in_narrative(assessment, issue, repairLog) {
+    const repaired = repairComponentOovInNarrative(assessment, [issue]);
+    assessment.narrative = repaired.narrative;
+    repairLog.push({ issue: issue.type, action: 'appended_oov_note', claim_id: issue.claim_id });
+  },
+};
 
 /**
  * @param {object} assessment
@@ -106,45 +157,7 @@ export function runCriticChecks(assessment, epistemicProfile) {
 export function applyCriticRepair(assessment, issues) {
   const repair_log = [...(assessment.repair_log ?? [])];
   for (const issue of issues) {
-    if (issue.type === 'thin_evidence_strong_claim') {
-      assessment.severity = 'abstain';
-      assessment.confidence = 'low';
-      assessment.operator_status = 'insufficient_data';
-      repair_log.push({ issue: issue.type, action: 'downgraded_to_abstain' });
-    }
-    if (issue.type === 'lookup_only_no_retrieval') {
-      assessment.confidence = 'medium';
-      repair_log.push({ issue: issue.type, action: 'downgraded_confidence' });
-    }
-    if (issue.type === 'oov_critical_severity') {
-      assessment.severity = 'moderate';
-      assessment.operator_status = 'watch';
-      repair_log.push({ issue: issue.type, action: 'downgraded_oov_severity' });
-    }
-    if (issue.type === 'contested_without_dissent') {
-      assessment.dissent_summary = assessment.dissent_summary
-        || 'Evidence shows mixed supporting and weakening signals across sources.';
-      repair_log.push({ issue: issue.type, action: 'added_dissent_summary' });
-    }
-    if (issue.type === 'missing_evidence_refs') {
-      const claim = assessment.claims?.[issue.index];
-      if (claim && !claim.evidence_refs?.length) {
-        claim.evidence_refs = [`synthetic:${assessment.component_id}:${issue.index}`];
-        repair_log.push({ issue: issue.type, action: 'added_synthetic_ref', index: issue.index });
-      }
-    }
-    if (issue.type === 'dominance_unacknowledged') {
-      assessment.narrative = `${assessment.narrative}\n\nNote: ${issue.warning}`;
-      repair_log.push({ issue: issue.type, action: 'appended_dominance_note' });
-    }
-    if (issue.type === 'gap_unaddressed') {
-      const note = `Gap not fully resolved: ${issue.action}`;
-      assessment.retrieval_gaps = [...(assessment.retrieval_gaps ?? []), note];
-      if (!String(assessment.narrative ?? '').includes('Gap not fully resolved')) {
-        assessment.narrative = `${assessment.narrative}\n\n${note}`;
-      }
-      repair_log.push({ issue: issue.type, action: 'noted_open_gap', gap_id: issue.gap_id });
-    }
+    CRITIC_REPAIR_HANDLERS[issue.type]?.(assessment, issue, repair_log);
   }
   assessment.repair_log = repair_log;
   return assessment;

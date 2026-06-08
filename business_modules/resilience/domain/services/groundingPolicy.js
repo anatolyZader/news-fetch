@@ -8,7 +8,7 @@
 import { GROUNDING_TIER } from '../../../../cross-cut-modules/resilience-contracts/groundingTier.js';
 import { CRITICAL_BYPASS_SIGNAL_TYPES } from './highSalienceBypass.js';
 
-export { GROUNDING_TIER };
+
 
 const DEFAULT_WEAK_WEIGHT = 0.35;
 
@@ -118,3 +118,5 @@ export function groundingMetaFromEntailmentFail(signal) {
 }
 
 export const UNVERIFIED_CRITICAL_GROUNDING_REASON = 'unverified_critical_grounding';
+
+export {GROUNDING_TIER} from '../../../../cross-cut-modules/resilience-contracts/groundingTier.js';

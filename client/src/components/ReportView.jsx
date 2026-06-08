@@ -21,6 +21,7 @@ import { expandSourceCitationLinks } from './ReportMarkdownView.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { DriftSparkline, StatusTag, MarkdownArticle } from '../ui/index.js';
 import { AttentionPanel } from './AttentionPanel.jsx';
+import { ActionCompassPanel } from './ActionCompassPanel.jsx';
 import { EpistemicStatusBanner } from './EpistemicStatusBanner.jsx';
 import { EvidenceOverviewPanel } from './EvidenceOverviewPanel.jsx';
 import { ValidationReviewPanel } from './ValidationReviewPanel.jsx';
@@ -804,6 +805,9 @@ export function ReportView({
   driftByComponent,
   driftLoading,
   attentionItems,
+  actionCompass,
+  anomalyStrip,
+  suggestCrisisBudget,
   driftAlerts,
   onJumpToComponent,
   openCompId: openCompIdProp,
@@ -888,6 +892,25 @@ export function ReportView({
         assessment={assessment}
         displayTier={displayTier}
         attentionItems={attentionItems}
+        suggestCrisisBudget={suggestCrisisBudget}
+      />
+
+      <ActionCompassPanel
+        actionCompass={actionCompass}
+        onJumpToComponent={onJumpToComponent}
+      />
+
+      <OovAnomalyClustersPanel
+        oovBurst={assessment?.oov_burst}
+        anomalyStrip={anomalyStrip}
+        oovCaptureCount={assessment?.oov_capture_count}
+        oovScoringApplied={assessment?.oov_scoring_applied}
+        isAnalyst={isAnalyst}
+        onReviewCatalogProposals={
+          showValidationReview && isAnalyst
+            ? () => catalogProposalsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+            : undefined
+        }
       />
 
       {isAnalyst && (
@@ -935,18 +958,6 @@ export function ReportView({
           onFilterChange={setComponentFilter}
         />
       )}
-
-      <OovAnomalyClustersPanel
-        oovBurst={assessment.oov_burst}
-        oovCaptureCount={assessment.oov_capture_count}
-        oovScoringApplied={assessment.oov_scoring_applied}
-        isAnalyst={isAnalyst}
-        onReviewCatalogProposals={
-          showValidationReview && isAnalyst
-            ? () => catalogProposalsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-            : undefined
-        }
-      />
 
       {showValidationReview && (
         <ValidationReviewPanel
@@ -1217,6 +1228,15 @@ ReportView.propTypes = {
   driftByComponent: driftByComponentShape,
   driftLoading: PropTypes.bool,
   attentionItems: PropTypes.arrayOf(PropTypes.object),
+  actionCompass: PropTypes.shape({
+    uncertainty_band: PropTypes.string,
+    actions: PropTypes.arrayOf(PropTypes.object),
+  }),
+  anomalyStrip: PropTypes.shape({
+    level: PropTypes.string,
+    clusters: PropTypes.arrayOf(PropTypes.object),
+    show_operator: PropTypes.bool,
+  }),
   driftAlerts: PropTypes.arrayOf(PropTypes.object),
   onJumpToComponent: PropTypes.func,
   openCompId: PropTypes.string,

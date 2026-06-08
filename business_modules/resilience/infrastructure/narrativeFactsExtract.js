@@ -2,7 +2,7 @@
  * Haiku facts-pass: extract narrative_claims from signals before Sonnet polish.
  */
 
-import Anthropic from '@anthropic-ai/sdk';
+import { resolveLlmPort } from '../../../cross-cut-modules/llm/resolveLlmPort.js';
 import { RESILIENCE_COMPONENTS } from '../domain/resilienceComponents.js';
 import { extractJson } from './claudeJsonHelpers.js';
 import { streamWithProgress } from './claudeExtraction.js';
@@ -12,7 +12,6 @@ import {
   resolveRef,
 } from '../domain/services/narrativeGrounding/index.js';
 
-const client = new Anthropic();
 const DEFAULT_FACTS_MODEL = process.env.RESILIENCE_NARRATIVE_FACTS_MODEL
   ?? process.env.RESILIENCE_SELF_CHECK_MODEL
   ?? 'claude-haiku-4-5-20251001';
@@ -75,19 +74,22 @@ function validateFactsOutput(parsed, registry) {
 
 /**
  * @param {Record<string, object>} scoredComponents
- * @param {{ onUsage?: Function }} [opts]
+ * @param {{ onUsage?: Function, llmPort?: object, client?: object }} [opts]
  * @returns {Promise<Record<string, object[]>>}
  */
-export async function extractNarrativeFacts(scoredComponents, { onUsage, retrievedSpansBlock = '' } = {}) {
+export async function extractNarrativeFacts(scoredComponents, opts = {}) {
+  const { onUsage, retrievedSpansBlock = '' } = opts;
   const registry = buildSignalRefRegistry(scoredComponents);
   if (registry.refCount === 0) return {};
 
-  const stream = client.messages.stream({
+  const port = resolveLlmPort(opts);
+  const stream = await port.stream({
     model: DEFAULT_FACTS_MODEL,
     max_tokens: 8000,
     temperature: 0,
     system: buildFactsSystemPrompt(),
     messages: [{ role: 'user', content: formatFactsUserMessage(registry, retrievedSpansBlock) }],
+    callContext: { feature: 'narrative_facts', purpose: '[Step 2 — Facts]' },
   });
   await streamWithProgress(stream, '[Step 2 — Facts]');
   const message = await stream.finalMessage();
@@ -100,4 +102,6 @@ export async function extractNarrativeFacts(scoredComponents, { onUsage, retriev
   return validateFactsOutput(parsed, registry);
 }
 
-export { buildSignalRefRegistry as buildFactsRegistry };
+
+
+export {buildSignalRefRegistry as buildFactsRegistry} from '../domain/services/narrativeGrounding/index.js';

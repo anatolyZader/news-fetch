@@ -43,6 +43,30 @@ function isSubstantiveText(text) {
   return true;
 }
 
+function handleGlobalCommand(state, msg, draft, textLower, replies, sideEffects) {
+  if (msg.type !== 'text' && msg.type !== 'button_reply') return null;
+
+  const cmd = textLower;
+  if (cmd === 'עזרה' || cmd === 'help' || msg.buttonReplyId === 'help') {
+    replies.push(buildHelpMessage(), buildWelcomeMenu());
+    return { nextState: state === 'idle' ? 'idle' : state, replies, sideEffects };
+  }
+  if (cmd === 'תפריט' || cmd === 'menu') {
+    replies.push(buildWelcomeMenu());
+    return { nextState: 'idle', replies, sideEffects };
+  }
+  if (cmd === 'סטטוס' || cmd === 'status' || msg.buttonReplyId === 'status') {
+    replies.push(buildStatusMessage(draft, state));
+    return { nextState: state, replies, sideEffects };
+  }
+  if (cmd === 'איפוס' || cmd === 'reset' || cmd === 'ביטול' || cmd === 'cancel') {
+    if (draft) sideEffects.push({ type: 'delete_draft' });
+    replies.push(buildCancelConfirm());
+    return { nextState: 'idle', replies, sideEffects };
+  }
+  return null;
+}
+
 /**
  * @param {string} state  Current conversation state
  * @param {import('./inboundMessageNormalizer.js').NormalizedInbound} msg
@@ -55,32 +79,8 @@ export function transition(state, msg, draft) {
   const text = (msg.text ?? '').trim();
   const textLower = text.toLowerCase();
 
-  // ── Global commands (from any state) ───────────────────────────────────
-  if (msg.type === 'text' || msg.type === 'button_reply') {
-    const cmd = textLower;
-
-    if (cmd === 'עזרה' || cmd === 'help' || msg.buttonReplyId === 'help') {
-      replies.push(buildHelpMessage());
-      replies.push(buildWelcomeMenu());
-      return { nextState: state === 'idle' ? 'idle' : state, replies, sideEffects };
-    }
-
-    if (cmd === 'תפריט' || cmd === 'menu') {
-      replies.push(buildWelcomeMenu());
-      return { nextState: 'idle', replies, sideEffects };
-    }
-
-    if (cmd === 'סטטוס' || cmd === 'status' || msg.buttonReplyId === 'status') {
-      replies.push(buildStatusMessage(draft, state));
-      return { nextState: state, replies, sideEffects };
-    }
-
-    if (cmd === 'איפוס' || cmd === 'reset' || cmd === 'ביטול' || cmd === 'cancel') {
-      if (draft) sideEffects.push({ type: 'delete_draft' });
-      replies.push(buildCancelConfirm());
-      return { nextState: 'idle', replies, sideEffects };
-    }
-  }
+  const globalResult = handleGlobalCommand(state, msg, draft, textLower, replies, sideEffects);
+  if (globalResult) return globalResult;
 
   // ── Media without text, outside collecting ─────────────────────────────
   if (msg.type === 'media' && !text && state !== 'collecting') {

@@ -5,7 +5,12 @@ import {
   createAgentKernel,
   SONNET_MODEL,
   PROMPT_VERSION,
+  slimSynthPromptsEnabled,
 } from '../../../cross-cut-modules/agent/index.js';
+import {
+  compactComponentAssessmentsForSynth,
+  compactEpistemicByComponentForSynth,
+} from '../../../cross-cut-modules/retrieval/compactAssessPrompts.js';
 import {
   SYNTHESIZER_TOOLS,
   ASSESSMENT_SYNTHESIZER_PROFILE,
@@ -13,13 +18,29 @@ import {
 import { buildAttentionItems } from '../../resilience/domain/services/attentionItems.js';
 import { needsLlmSynthesis } from '../domain/services/synthesisPolicy.js';
 
-function buildSynthesizerSystem(componentAssessments, epistemicProfile) {
-  return (
+function buildSynthesizerSystem(componentAssessments, epistemicProfile, oovClusters = []) {
+  const slim = slimSynthPromptsEnabled();
+  const assessments = slim
+    ? compactComponentAssessmentsForSynth(componentAssessments)
+    : componentAssessments;
+  const epistemic = slim
+    ? compactEpistemicByComponentForSynth(epistemicProfile)
+    : (epistemicProfile?.by_component ?? {});
+
+  const stable =
     'Synthesize cross-component resilience assessment. Use submit_synthesis tool. ' +
-    'Do not invent facts not present in component assessments.\n\n' +
-    `COMPONENT ASSESSMENTS:\n${JSON.stringify(componentAssessments, null, 2)}\n\n` +
-    `EPISTEMIC PROFILE:\n${JSON.stringify(epistemicProfile?.by_component ?? {}, null, 2)}`
-  );
+    'Do not invent facts not present in component assessments. ' +
+    'Address any OOV clusters and unverified repeated phrasing in your synthesis.';
+
+  let dynamic =
+    `\n\nCOMPONENT ASSESSMENTS:\n${JSON.stringify(assessments, null, 2)}\n\n` +
+    `EPISTEMIC PROFILE:\n${JSON.stringify(epistemic, null, 2)}`;
+
+  if (oovClusters.length) {
+    dynamic += `\n\nOOV CLUSTERS (must mention in synthesis if material):\n${JSON.stringify(oovClusters.slice(0, 5), null, 2)}`;
+  }
+
+  return { stable, dynamic };
 }
 
 function defaultSynthesis(componentAssessments, _epistemicProfile) {
@@ -50,12 +71,13 @@ export async function runSynthesizerAgent(params) {
     budget,
     traceId,
     partialAssessment = null,
+    oovClusters = [],
   } = params;
 
   if (!needsLlmSynthesis({ componentAssessments, epistemicProfile })) {
     const synthesis = defaultSynthesis(componentAssessments, epistemicProfile);
     const draftAssessment = {
-      ...(partialAssessment ?? {}),
+      ...partialAssessment,
       components: componentAssessments,
       cross_component_synthesis: synthesis.cross_component_synthesis,
       retrieval_gaps: synthesis.retrieval_gaps ?? [],
@@ -83,7 +105,7 @@ export async function runSynthesizerAgent(params) {
     model: SONNET_MODEL,
     maxRounds: 2,
     maxTokens: 4000,
-    system: buildSynthesizerSystem(componentAssessments, epistemicProfile),
+    system: buildSynthesizerSystem(componentAssessments, epistemicProfile, oovClusters),
     messages: [{
       role: 'user',
       content: 'Produce cross-component synthesis and priority attention themes.',
@@ -105,7 +127,7 @@ export async function runSynthesizerAgent(params) {
   synthesis = submitted?.payload ?? synthesis ?? defaultSynthesis(componentAssessments, epistemicProfile);
 
   const draftAssessment = {
-    ...(partialAssessment ?? {}),
+    ...partialAssessment,
     components: componentAssessments,
     cross_component_synthesis: synthesis.cross_component_synthesis,
     retrieval_gaps: synthesis.retrieval_gaps ?? [],

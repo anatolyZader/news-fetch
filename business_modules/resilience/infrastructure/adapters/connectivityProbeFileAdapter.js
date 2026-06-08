@@ -54,6 +54,46 @@ function readProbeFile(filePath) {
 }
 
 /**
+ * @param {object} row
+ * @param {string} date
+ * @param {string} scope
+ */
+function normalizeProbeRow(row, date, scope) {
+  if (row.date && row.date !== date) return null;
+  if (row.scope && row.scope !== scope && scope !== 'national') return null;
+  return row.date ? row : { ...row, date };
+}
+
+/**
+ * @param {string} probesDir
+ * @param {string} date
+ * @param {string} scope
+ */
+function loadProbeRecordsFromDir(probesDir, date, scope) {
+  if (!existsSync(probesDir)) return [];
+
+  const files = readdirSync(probesDir).filter(
+    (f) => (f.endsWith('.json') || f.endsWith('.jsonl'))
+      && (f.includes(date) || f === 'probes.json' || f === 'probes.jsonl'),
+  );
+
+  /** @type {object[]} */
+  const records = [];
+  for (const f of files) {
+    try {
+      const rows = readProbeFile(join(probesDir, f));
+      for (const row of rows) {
+        const normalized = normalizeProbeRow(row, date, scope);
+        if (normalized) records.push(normalized);
+      }
+    } catch {
+      // skip unreadable probe file
+    }
+  }
+  return records;
+}
+
+/**
  * @param {{ probesDir?: string }} [opts]
  * @returns {import('../../domain/ports/IConnectivityProbePort.js').IConnectivityProbePort}
  */
@@ -62,28 +102,7 @@ export function createConnectivityProbeFileAdapter(opts = {}) {
 
   return {
     loadProbesForDate(date, scope = 'national') {
-      if (!existsSync(probesDir)) return [];
-
-      const files = readdirSync(probesDir).filter(
-        (f) => (f.endsWith('.json') || f.endsWith('.jsonl'))
-          && (f.includes(date) || f === 'probes.json' || f === 'probes.jsonl'),
-      );
-
-      /** @type {object[]} */
-      const records = [];
-      for (const f of files) {
-        try {
-          const rows = readProbeFile(join(probesDir, f));
-          for (const row of rows) {
-            if (row.date && row.date !== date) continue;
-            if (row.scope && row.scope !== scope && scope !== 'national') continue;
-            records.push(row.date ? row : { ...row, date });
-          }
-        } catch {
-          // skip unreadable probe file
-        }
-      }
-      return records;
+      return loadProbeRecordsFromDir(probesDir, date, scope);
     },
   };
 }

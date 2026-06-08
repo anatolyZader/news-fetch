@@ -28,7 +28,8 @@ function levelToTagVariant(level) {
   return 'neutral';
 }
 
-function shouldShowPanel(oovBurst, isAnalyst) {
+function shouldShowPanel(oovBurst, isAnalyst, anomalyStrip) {
+  if (anomalyStrip?.show_operator === true) return true;
   if (!oovBurst || typeof oovBurst !== 'object') return false;
   if (oovBurst.alert === true) return true;
   return isAnalyst && (oovBurst.total ?? 0) > 0 && Array.isArray(oovBurst.top_clusters) && oovBurst.top_clusters.length > 0;
@@ -91,6 +92,7 @@ ClusterCard.propTypes = {
 
 export function OovAnomalyClustersPanel({
   oovBurst,
+  anomalyStrip,
   oovCaptureCount,
   oovScoringApplied,
   isAnalyst,
@@ -98,11 +100,15 @@ export function OovAnomalyClustersPanel({
 }) {
   const { t } = useLanguage();
 
-  if (!shouldShowPanel(oovBurst, isAnalyst)) return null;
+  if (!shouldShowPanel(oovBurst, isAnalyst, anomalyStrip)) return null;
 
-  const clusters = Array.isArray(oovBurst.top_clusters) ? oovBurst.top_clusters : [];
-  const severity = levelToSeverity(oovBurst.level);
-  const tagVariant = levelToTagVariant(oovBurst.level);
+  const stripClusters = Array.isArray(anomalyStrip?.clusters) ? anomalyStrip.clusters : [];
+  const burstClusters = Array.isArray(oovBurst?.top_clusters) ? oovBurst.top_clusters : [];
+  const clusters = stripClusters.length ? stripClusters : burstClusters;
+  const panelLevel = anomalyStrip?.level ?? oovBurst?.level ?? 'info';
+  const severity = levelToSeverity(panelLevel);
+  const tagVariant = levelToTagVariant(panelLevel);
+  const salienceSignals = anomalyStrip?.salience_signals ?? [];
 
   return (
     <Alert
@@ -119,22 +125,38 @@ export function OovAnomalyClustersPanel({
           <Typography variant="cardTitle" component="div">
             {t('report.oovClusters.title')}
           </Typography>
-          {oovBurst.alert === true && (
+          {oovBurst?.alert === true && (
             <StatusTag variant={tagVariant}>
-              {t(`attention.level.${oovBurst.level === 'critical' ? 'critical' : 'warning'}`)}
+              {t(`attention.level.${panelLevel === 'critical' ? 'critical' : 'warning'}`)}
             </StatusTag>
           )}
         </Stack>
 
-        <Typography variant="body2" color="text.secondary">
-          {formatTemplate(t('report.oovClusters.summary'), {
-            total: oovBurst.total ?? 0,
-            window_hours: oovBurst.window_hours ?? 2,
-            method: oovBurst.clustering_method ?? 'prefix',
-          })}
+        <Typography variant="caption" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+          {t('report.oovClusters.notInSynthesis')}
         </Typography>
 
-        {oovBurst.top_cluster_key && oovBurst.alert === true && (
+        {salienceSignals.length > 0 && (
+          <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+            {salienceSignals.map((sig) => (
+              <StatusTag key={sig.component_id} variant="critical">
+                {`${sig.component_id}: ${t('report.oovClusters.highSalience')}`}
+              </StatusTag>
+            ))}
+          </Stack>
+        )}
+
+        {oovBurst && (
+          <Typography variant="body2" color="text.secondary">
+            {formatTemplate(t('report.oovClusters.summary'), {
+              total: oovBurst.total ?? anomalyStrip?.total_count ?? 0,
+              window_hours: oovBurst.window_hours ?? 2,
+              method: oovBurst.clustering_method ?? 'prefix',
+            })}
+          </Typography>
+        )}
+
+        {oovBurst?.top_cluster_key && oovBurst.alert === true && (
           <Typography variant="body2">
             {formatTemplate(t('report.oovClusters.topCluster'), {
               cluster: oovBurst.top_cluster_key,
@@ -147,8 +169,12 @@ export function OovAnomalyClustersPanel({
           <Stack spacing={1}>
             {clusters.map((cluster, idx) => (
               <ClusterCard
-                key={cluster.key ?? cluster.label ?? `cluster-${idx}`}
-                cluster={cluster}
+                key={cluster.cluster_key ?? cluster.key ?? cluster.label ?? `cluster-${idx}`}
+                cluster={{
+                  ...cluster,
+                  key: cluster.cluster_key ?? cluster.key,
+                  label: cluster.cluster_key ?? cluster.key,
+                }}
                 t={t}
               />
             ))}
@@ -197,6 +223,12 @@ OovAnomalyClustersPanel.propTypes = {
     top_cluster_key: PropTypes.string,
     top_cluster_count: PropTypes.number,
     top_clusters: PropTypes.arrayOf(PropTypes.object),
+  }),
+  anomalyStrip: PropTypes.shape({
+    level: PropTypes.string,
+    clusters: PropTypes.arrayOf(PropTypes.object),
+    salience_signals: PropTypes.arrayOf(PropTypes.object),
+    show_operator: PropTypes.bool,
   }),
   oovScoringApplied: PropTypes.shape({
     synthetic_count: PropTypes.number,

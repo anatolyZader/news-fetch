@@ -85,6 +85,64 @@ function buildRetrievalPolicies(byComponent) {
   return { diversify, boost, require_corroboration };
 }
 
+function emptyComponentProfile(id, ctx) {
+  return {
+    evidence_mass: 0,
+    thin_evidence: true,
+    contested: false,
+    certainty_band: 'low',
+    polarization_band: null,
+    dominance_warnings: [],
+    delta_significance: null,
+    media_mention_mass: round3(ctx.scoredComponents?.[id]?.media_mention_mass ?? 0),
+  };
+}
+
+function certaintyBandFor(certainty) {
+  if (certainty >= 0.65) return 'high';
+  if (certainty >= 0.35) return 'medium';
+  return 'low';
+}
+
+function polarizationBandFor(polarization, evidenceMass) {
+  if (polarization > 0.5 && evidenceMass > 4) return 'contested';
+  if (polarization > 0.5) return 'mixed';
+  return 'one_sided';
+}
+
+function buildComponentProfile(id, items, articleSet, sourceSet, ctx) {
+  const cappedItems = applySourceCap(items);
+  const mass = sumPolarityMass(cappedItems);
+  const tuning = tuningFor(id);
+  const certainty = mass.evidenceMass > 0
+    ? 1 - Math.exp(-mass.evidenceMass / tuning.certM)
+    : 0;
+  const polarization = mass.evidenceMass > 0
+    ? 1 - Math.abs(mass.netEvidence) / mass.evidenceMass
+    : 0;
+
+  return {
+    evidence_mass: round3(mass.evidenceMass),
+    positive_mass: round3(mass.positive),
+    negative_mass: round3(mass.negative),
+    net_mass: round3(mass.netEvidence),
+    certainty: round3(certainty),
+    certainty_band: certaintyBandFor(certainty),
+    polarization: round3(polarization),
+    polarization_band: polarizationBandFor(polarization, mass.evidenceMass),
+    thin_evidence: mass.evidenceMass < 1.5,
+    contested: polarization > 0.5 && mass.evidenceMass > 4,
+    source_cap_applied: sourceCapWasApplied(items, cappedItems),
+    dominance_warnings: dominanceWarnings(cappedItems),
+    distinct_article_count: articleSet.size,
+    source_diversity: sourceSet.size,
+    media_mention_mass: round3(ctx.scoredComponents?.[id]?.media_mention_mass ?? 0),
+    delta_significance: ctx.historicalMass?.[id]
+      ? inferDeltaSignificance(mass.evidenceMass, ctx.historicalMass[id])
+      : null,
+  };
+}
+
 /**
  * @param {object[]} signals
  * @param {{ totalArticles?: number, historicalMass?: Record<string, number[]>, reportDate?: string }} [ctx]
@@ -101,60 +159,9 @@ export function computeEpistemicProfile(signals, ctx = {}) {
       duplicateIndex,
       signalWeights,
     );
-    if (items.length === 0) {
-      byComponent[id] = {
-        evidence_mass: 0,
-        thin_evidence: true,
-        contested: false,
-        certainty_band: 'low',
-        polarization_band: null,
-        dominance_warnings: [],
-        delta_significance: null,
-        media_mention_mass: round3(ctx.scoredComponents?.[id]?.media_mention_mass ?? 0),
-      };
-      continue;
-    }
-
-    const cappedItems = applySourceCap(items);
-    const mass = sumPolarityMass(cappedItems);
-    const tuning = tuningFor(id);
-    const certainty = mass.evidenceMass > 0
-      ? 1 - Math.exp(-mass.evidenceMass / tuning.certM)
-      : 0;
-    const polarization = mass.evidenceMass > 0
-      ? 1 - Math.abs(mass.netEvidence) / mass.evidenceMass
-      : 0;
-
-    const thin = mass.evidenceMass < 1.5;
-    const contested = polarization > 0.5 && mass.evidenceMass > 4;
-    const warnings = dominanceWarnings(cappedItems);
-
-    let certaintyBand = 'low';
-    if (certainty >= 0.65) certaintyBand = 'high';
-    else if (certainty >= 0.35) certaintyBand = 'medium';
-
-    let polarizationBand = 'one_sided';
-    if (polarization > 0.5 && mass.evidenceMass > 4) polarizationBand = 'contested';
-    else if (polarization > 0.5) polarizationBand = 'mixed';
-
-    byComponent[id] = {
-      evidence_mass: round3(mass.evidenceMass),
-      positive_mass: round3(mass.positive),
-      negative_mass: round3(mass.negative),
-      net_mass: round3(mass.netEvidence),
-      certainty: round3(certainty),
-      certainty_band: certaintyBand,
-      polarization: round3(polarization),
-      polarization_band: polarizationBand,
-      thin_evidence: thin,
-      contested,
-      source_cap_applied: sourceCapWasApplied(items, cappedItems),
-      dominance_warnings: warnings,
-      distinct_article_count: articleSet.size,
-      source_diversity: sourceSet.size,
-      media_mention_mass: round3(ctx.scoredComponents?.[id]?.media_mention_mass ?? 0),
-      delta_significance: ctx.historicalMass?.[id] ? inferDeltaSignificance(mass.evidenceMass, ctx.historicalMass[id]) : null,
-    };
+    byComponent[id] = items.length === 0
+      ? emptyComponentProfile(id, ctx)
+      : buildComponentProfile(id, items, articleSet, sourceSet, ctx);
   }
 
   const retrieval_policies = buildRetrievalPolicies(byComponent);

@@ -50,4 +50,51 @@ describe('agentKernel', () => {
     assert.equal(result.submitPayloads.length, 1);
     assert.equal(result.submitPayloads[0].tool, 'submit_plan');
   });
+
+  it('chat profile uses chat compact flag by default', async () => {
+    const prevChat = process.env.CHAT_COMPACT_TOOL_LOOP;
+    const prevAssess = process.env.RESILIENCE_ASSESS_COMPACT_TOOL_LOOP;
+    process.env.CHAT_COMPACT_TOOL_LOOP = '0';
+    process.env.RESILIENCE_ASSESS_COMPACT_TOOL_LOOP = '1';
+    let captured = null;
+    const llmPort = {
+      runToolLoop: async (opts) => {
+        captured = opts;
+        return { messages: [], lastAssistantText: 'ok', stopReason: 'end_turn', usage: null };
+      },
+    };
+    const kernel = createAgentKernel({ llmPort });
+    await kernel.run({
+      profile: 'chat',
+      model: 'claude-haiku-4-5-20251001',
+      system: 'test',
+      messages: [],
+      executeTool: async () => '{}',
+    });
+    assert.equal(captured.compactHistoryAfterRound, false);
+
+    process.env.CHAT_COMPACT_TOOL_LOOP = '1';
+    await kernel.run({
+      profile: 'chat',
+      model: 'claude-haiku-4-5-20251001',
+      system: 'test',
+      messages: [],
+      executeTool: async () => '{}',
+    });
+    assert.equal(captured.compactHistoryAfterRound, true);
+
+    await kernel.run({
+      profile: 'assessment_planner',
+      model: 'claude-haiku-4-5-20251001',
+      system: 'test',
+      messages: [],
+      executeTool: async () => '{}',
+    });
+    assert.equal(captured.compactHistoryAfterRound, true);
+
+    if (prevChat === undefined) delete process.env.CHAT_COMPACT_TOOL_LOOP;
+    else process.env.CHAT_COMPACT_TOOL_LOOP = prevChat;
+    if (prevAssess === undefined) delete process.env.RESILIENCE_ASSESS_COMPACT_TOOL_LOOP;
+    else process.env.RESILIENCE_ASSESS_COMPACT_TOOL_LOOP = prevAssess;
+  });
 });

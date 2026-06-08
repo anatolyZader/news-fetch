@@ -23,19 +23,46 @@ const fixture = {
 
 describe('buildReportContext', () => {
   it('operator context has no /10', () => {
-    const { context } = buildReportContext(fixture, { includeScores: false });
+    const { context } = buildReportContext(fixture, { includeScores: false, tier: 'full' });
     assert.ok(!context.includes('/10'));
     assert.match(context, /adequate evidence/);
     assert.match(context, /Narrative body/);
+    assert.match(context, /\[Chat context tier: full/);
   });
 
   it('analyst context may include scores', () => {
     const { context } = buildReportContext(
       { ...fixture, display_view: DISPLAY_VIEWS.analyst },
-      { includeScores: true },
+      { includeScores: true, tier: 'full' },
     );
     assert.match(context, /8\/10/);
     assert.match(context, /Overall score: 7\/10/);
+  });
+
+  it('standard tier omits full Components detail section', () => {
+    const { context } = buildReportContext(fixture, { includeScores: false, tier: 'standard' });
+    assert.ok(!context.includes('Components detail:'));
+    assert.match(context, /Component summaries \(truncated/);
+    assert.match(context, /Narrative body/);
+    assert.match(context, /\[Chat context tier: standard/);
+  });
+
+  it('component tier includes one full component block', () => {
+    const { context } = buildReportContext(fixture, {
+      includeScores: false,
+      tier: 'component',
+      componentId: 'narrative',
+    });
+    assert.match(context, /Component detail:/);
+    assert.match(context, /Narrative body/);
+    assert.match(context, /\[Chat context tier: component/);
+  });
+
+  it('minimal tier is header-only plus footer', () => {
+    const { context } = buildReportContext(fixture, { includeScores: false, tier: 'minimal' });
+    assert.ok(!context.includes('Executive summary:'));
+    assert.ok(!context.includes('Components detail:'));
+    assert.match(context, /\[Chat context tier: minimal/);
   });
 });
 

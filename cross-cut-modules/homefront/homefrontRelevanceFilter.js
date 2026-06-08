@@ -90,7 +90,7 @@ async function passesEmbeddingGate(title, body) {
  * @param {object[]} articles
  * @param {{ onUsage?: Function }} [opts]
  */
-export async function preFilterByRelevance(articles, opts = {}) {
+export async function preFilterByRelevance(articles, _opts = {}) {
   if (articles.length === 0) return articles;
   const mode = homefrontPrefilterMode();
   const useEmbed = mode === 'embedding' || mode === 'keyword+embedding';
@@ -111,6 +111,5 @@ export async function preFilterByRelevance(articles, opts = {}) {
   }
 
   console.error(`  → relevance pre-filter (${mode}): ${selected.length}/${articles.length} articles selected`);
-  void opts.onUsage;
   return selected;
 }

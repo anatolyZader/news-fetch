@@ -1,37 +1,28 @@
 /**
  * Derive epistemic status banner messages for the report UI.
  * @param {object | null | undefined} assessment
- * @param {{ displayTier?: 'operator' | 'analyst', attentionItemIds?: Set<string> | string[] }} [opts]
+ * @param {{ displayTier?: 'operator' | 'analyst', attentionItemIds?: Set<string> | string[], suggestCrisisBudget?: boolean }} [opts]
  * @returns {Array<{ id: string, severity: 'info' | 'warning' | 'error', messageKey: string, params?: Record<string, string|number|null> }>}
  */
-export function deriveEpistemicBannerMessages(assessment, opts = {}) {
-  if (!assessment || typeof assessment !== 'object') return [];
 
-  const displayTier = opts.displayTier === 'analyst' ? 'analyst' : 'operator';
-  const isAnalyst = displayTier === 'analyst';
-  const attentionIds = new Set(
-    Array.isArray(opts.attentionItemIds)
-      ? opts.attentionItemIds
-      : opts.attentionItemIds instanceof Set
-        ? [...opts.attentionItemIds]
-        : [],
-  );
+function resolveAttentionIds(attentionItemIds) {
+  if (Array.isArray(attentionItemIds)) return new Set(attentionItemIds);
+  if (attentionItemIds instanceof Set) return new Set(attentionItemIds);
+  return new Set();
+}
 
+function createBannerCollector() {
   const messages = [];
   const seen = new Set();
-
-  function push(entry) {
+  const push = (entry) => {
     if (!entry?.id || seen.has(entry.id)) return;
     seen.add(entry.id);
     messages.push(entry);
-  }
+  };
+  return { messages, push };
+}
 
-  const methodology = assessment.methodology ?? null;
-  const dataVoid = assessment.data_void ?? null;
-  const epistemicStatus = assessment.epistemic_status ?? null;
-  const assessmentMode = assessment.assessment_mode ?? 'normal';
-  const voidLevel = dataVoid?.level ?? 'none';
-
+function addMethodologyBanner(push, isAnalyst) {
   if (!isAnalyst) {
     push({
       id: 'methodology:epistemic',
@@ -39,21 +30,25 @@ export function deriveEpistemicBannerMessages(assessment, opts = {}) {
       messageKey: 'report.methodology.epistemicBanner',
     });
   }
+}
 
-  if (!isAnalyst && (voidLevel === 'elevated' || voidLevel === 'critical' || dataVoid?.digital_darkness === true)) {
-    if (!attentionIds.has('data_void:critical') && !attentionIds.has(`data_void:${voidLevel}`)) {
-      push({
-        id: 'data_void:banner',
-        severity: voidLevel === 'critical' || dataVoid?.digital_darkness ? 'error' : 'warning',
-        messageKey: 'report.dataVoid.banner',
-        params: {
-          level: voidLevel,
-          digital: dataVoid?.digital_darkness ? 'yes' : 'no',
-        },
-      });
-    }
-  }
+function addDataVoidBanner(push, isAnalyst, dataVoid, voidLevel, attentionIds) {
+  if (isAnalyst) return;
+  const elevated = voidLevel === 'elevated' || voidLevel === 'critical' || dataVoid?.digital_darkness === true;
+  if (!elevated) return;
+  if (attentionIds.has('data_void:critical') || attentionIds.has(`data_void:${voidLevel}`)) return;
+  push({
+    id: 'data_void:banner',
+    severity: voidLevel === 'critical' || dataVoid?.digital_darkness ? 'error' : 'warning',
+    messageKey: 'report.dataVoid.banner',
+    params: {
+      level: voidLevel,
+      digital: dataVoid?.digital_darkness ? 'yes' : 'no',
+    },
+  });
+}
 
+function addAssessmentModeBanners(push, assessmentMode, epistemicStatus, attentionIds) {
   if (assessmentMode === 'field_anchor_only' && !attentionIds.has('epistemic:field_anchor_only')) {
     push({
       id: 'epistemic:field_anchor_only',
@@ -70,25 +65,30 @@ export function deriveEpistemicBannerMessages(assessment, opts = {}) {
         messageKey: 'report.epistemicStatus.samplingBlind',
       });
     }
-  } else if (epistemicStatus?.sampling_status === 'degraded') {
-    push({
-      id: 'epistemic:sampling_degraded',
-      severity: 'warning',
-      messageKey: 'report.epistemicStatus.sampling',
-      params: { status: epistemicStatus.sampling_status },
-    });
-    if (epistemicStatus.reason) {
-      push({
-        id: 'epistemic:reason',
-        severity: 'warning',
-        messageKey: 'report.epistemicStatus.reason',
-        params: { reason: epistemicStatus.reason },
-      });
-    }
+    return;
   }
 
-  const socialQ = assessment.social_channel_quarantine ?? null;
-  if (socialQ?.auto_excluded === true && !attentionIds.has('social:quarantine_auto')) {
+  if (epistemicStatus?.sampling_status !== 'degraded') return;
+  push({
+    id: 'epistemic:sampling_degraded',
+    severity: 'warning',
+    messageKey: 'report.epistemicStatus.sampling',
+    params: { status: epistemicStatus.sampling_status },
+  });
+  if (epistemicStatus.reason) {
+    push({
+      id: 'epistemic:reason',
+      severity: 'warning',
+      messageKey: 'report.epistemicStatus.reason',
+      params: { reason: epistemicStatus.reason },
+    });
+  }
+}
+
+function addSocialQuarantineBanners(push, socialQ, attentionIds) {
+  if (!socialQ) return;
+
+  if (socialQ.auto_excluded === true && !attentionIds.has('social:quarantine_auto')) {
     push({
       id: 'social:quarantine_auto',
       severity: 'warning',
@@ -98,7 +98,7 @@ export function deriveEpistemicBannerMessages(assessment, opts = {}) {
         polarization: socialQ.osint_polarization ?? socialQ.social_polarization ?? null,
       },
     });
-  } else if (socialQ?.suggested === true && !socialQ?.active && !attentionIds.has('social:quarantine_suggested')) {
+  } else if (socialQ.suggested === true && !socialQ.active && !attentionIds.has('social:quarantine_suggested')) {
     push({
       id: 'social:quarantine_suggested',
       severity: 'warning',
@@ -109,14 +109,17 @@ export function deriveEpistemicBannerMessages(assessment, opts = {}) {
       },
     });
   }
-  if (socialQ?.active === true && !attentionIds.has('social:quarantine_active')) {
+
+  if (socialQ.active === true && !attentionIds.has('social:quarantine_active')) {
     push({
       id: 'social:quarantine_active',
       severity: 'warning',
       messageKey: 'report.socialQuarantine.active',
     });
   }
+}
 
+function addDigitalQuarantineBanners(push, assessment, attentionIds) {
   if (assessment.stale_digital_scores?.scored_at && !attentionIds.has('epistemic:field_anchor_only')) {
     push({
       id: 'epistemic:stale_digital',
@@ -148,59 +151,93 @@ export function deriveEpistemicBannerMessages(assessment, opts = {}) {
       params: { reason: persistedQ.reason ?? 'prior_quarantine' },
     });
   }
+}
 
-  const components = assessment.components ?? [];
-  if (!isAnalyst && components.length > 0) {
-    let thin = 0;
-    for (const c of components) {
-      const suff = c.instrument?.evidence_sufficiency;
-      if (suff === 'thin') thin += 1;
-    }
-    if (thin > components.length / 2) {
-      push({
-        id: 'methodology:thin_evidence',
-        severity: 'warning',
-        messageKey: 'report.methodology.thinEvidenceWarning',
-      });
-    }
+function addThinEvidenceBanner(push, isAnalyst, components) {
+  if (isAnalyst || components.length === 0) return;
+  const thin = components.filter((c) => c.instrument?.evidence_sufficiency === 'thin').length;
+  if (thin > components.length / 2) {
+    push({
+      id: 'methodology:thin_evidence',
+      severity: 'warning',
+      messageKey: 'report.methodology.thinEvidenceWarning',
+    });
   }
+}
 
-  const geoQuality = methodology?.scope?.geo_quality_summary ?? null;
-  const geoMetricsSafePct = geoQuality?.pctUsableForMetrics ?? null;
+function addGeoQualityBanner(push, isAnalyst, methodology, assessment, attentionIds) {
+  const geoMetricsSafePct = methodology?.scope?.geo_quality_summary?.pctUsableForMetrics ?? null;
   const scopeId = assessment.report_scope?.id ?? 'national';
   if (
-    !isAnalyst
-    && geoMetricsSafePct != null
-    && geoMetricsSafePct < 75
-    && scopeId !== 'national'
-    && !attentionIds.has('geo:low_metrics_safe')
+    isAnalyst
+    || geoMetricsSafePct == null
+    || geoMetricsSafePct >= 75
+    || scopeId === 'national'
+    || attentionIds.has('geo:low_metrics_safe')
   ) {
-    push({
-      id: 'geo:low_metrics_safe',
-      severity: 'warning',
-      messageKey: 'report.methodology.northGeoQualityWarning',
-      params: { pct: Math.round(geoMetricsSafePct) },
-    });
+    return;
   }
+  push({
+    id: 'geo:low_metrics_safe',
+    severity: 'warning',
+    messageKey: 'report.methodology.northGeoQualityWarning',
+    params: { pct: Math.round(geoMetricsSafePct) },
+  });
+}
 
+function addCalibrationBanner(push, methodology) {
   const calibration = methodology?.calibration ?? null;
-  if (calibration?.deficit != null && calibration.deficit >= 0.5) {
-    push({
-      id: 'calibration:limited',
-      severity: 'info',
-      messageKey: 'report.calibration.banner',
-      params: {
-        trust: Math.round((calibration.trust ?? 0) * 100),
-        deficit: Math.round((calibration.deficit ?? 0) * 100),
-      },
-    });
-  }
+  if (calibration?.deficit == null || calibration.deficit < 0.5) return;
+  push({
+    id: 'calibration:limited',
+    severity: 'info',
+    messageKey: 'report.calibration.banner',
+    params: {
+      trust: Math.round((calibration.trust ?? 0) * 100),
+      deficit: Math.round((calibration.deficit ?? 0) * 100),
+    },
+  });
+}
 
+function addNorrisDisclaimer(push, isAnalyst, assessment) {
   if (isAnalyst && Array.isArray(assessment.norris_capacities) && assessment.norris_capacities.length > 0) {
     push({
       id: 'methodology:norris_disclaimer',
       severity: 'info',
       messageKey: 'report.methodology.norrisDisclaimer',
+    });
+  }
+}
+
+export function deriveEpistemicBannerMessages(assessment, opts = {}) {
+  if (!assessment || typeof assessment !== 'object') return [];
+
+  const displayTier = opts.displayTier === 'analyst' ? 'analyst' : 'operator';
+  const isAnalyst = displayTier === 'analyst';
+  const attentionIds = resolveAttentionIds(opts.attentionItemIds);
+  const { messages, push } = createBannerCollector();
+
+  const methodology = assessment.methodology ?? null;
+  const dataVoid = assessment.data_void ?? null;
+  const epistemicStatus = assessment.epistemic_status ?? null;
+  const assessmentMode = assessment.assessment_mode ?? 'normal';
+  const voidLevel = dataVoid?.level ?? 'none';
+
+  addMethodologyBanner(push, isAnalyst);
+  addDataVoidBanner(push, isAnalyst, dataVoid, voidLevel, attentionIds);
+  addAssessmentModeBanners(push, assessmentMode, epistemicStatus, attentionIds);
+  addSocialQuarantineBanners(push, assessment.social_channel_quarantine ?? null, attentionIds);
+  addDigitalQuarantineBanners(push, assessment, attentionIds);
+  addThinEvidenceBanner(push, isAnalyst, assessment.components ?? []);
+  addGeoQualityBanner(push, isAnalyst, methodology, assessment, attentionIds);
+  addCalibrationBanner(push, methodology);
+  addNorrisDisclaimer(push, isAnalyst, assessment);
+
+  if (!isAnalyst && opts.suggestCrisisBudget === true) {
+    push({
+      id: 'budget:crisis_suggest',
+      severity: 'warning',
+      messageKey: 'crisisBudget.operatorBanner',
     });
   }
 

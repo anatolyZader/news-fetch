@@ -47,6 +47,14 @@ export function slimPromptsEnabled() {
   return envFlagEnabled('RESILIENCE_ASSESS_SLIM_PROMPTS');
 }
 
+export function slimPlannerPromptsEnabled() {
+  return envFlagEnabled('RESILIENCE_ASSESS_SLIM_PLANNER');
+}
+
+export function slimSynthPromptsEnabled() {
+  return envFlagEnabled('RESILIENCE_ASSESS_SLIM_SYNTH');
+}
+
 export function compressToolsEnabled() {
   return envFlagEnabled('RESILIENCE_ASSESS_COMPRESS_TOOLS');
 }
@@ -56,7 +64,8 @@ export function compactToolLoopEnabled() {
 }
 
 export function chatCompactToolLoopEnabled() {
-  return process.env.CHAT_COMPACT_TOOL_LOOP === '1';
+  const v = process.env.CHAT_COMPACT_TOOL_LOOP;
+  return v !== '0' && v !== 'false';
 }
 
 export function tieredSpecialistsEnabled() {

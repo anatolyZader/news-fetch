@@ -1,4 +1,5 @@
-import Anthropic from '@anthropic-ai/sdk';
+import { createAnthropicLlmPort } from '../../../../cross-cut-modules/llm/anthropicLlmAdapter.js';
+import { createLlmGateway } from '../../../../cross-cut-modules/llm/llmGateway.js';
 import { buildDraftUserContent } from '../../domain/reportBuildPrompt.js';
 
 const SYSTEM_PROMPT =
@@ -23,18 +24,19 @@ const SYSTEM_PROMPT =
  * @param {{ anthropicApiKey: string }} deps
  */
 export function createAnthropicReportBuildDraftGeneratorAdapter({ anthropicApiKey }) {
-  const client = new Anthropic({ apiKey: anthropicApiKey });
+  const port = createLlmGateway(createAnthropicLlmPort({ apiKey: anthropicApiKey }));
 
   return {
     async generate(structuredState, turnHistory, ragContext = null, opts = {}) {
       const model = 'claude-haiku-4-5-20251001';
       const userContent = buildDraftUserContent(structuredState, turnHistory, ragContext);
-      const response = await client.messages.create({
+      const response = await port.createMessage({
         model,
         max_tokens: 800,
         temperature: 0.2,
         system: SYSTEM_PROMPT,
         messages: [{ role: 'user', content: userContent }],
+        callContext: { feature: 'report_build', purpose: 'report-build:draft' },
       });
       if (opts.onUsage && response.usage) {
         opts.onUsage({ label: 'report-build:draft', model, usage: response.usage });

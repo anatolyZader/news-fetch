@@ -35,6 +35,15 @@ function safeJsonParse(text, fallback) {
   }
 }
 
+function hydrateReportBuildDraftRow(row) {
+  if (!row) return null;
+  return {
+    ...row,
+    structured_state: safeJsonParse(row.structured_state, {}),
+    turn_history: safeJsonParse(row.turn_history, []),
+  };
+}
+
 /**
  * @param {string} dbPath Absolute path to SQLite file
  */
@@ -68,15 +77,6 @@ export function createReportBuildDraftStore(dbPath) {
 
   const deleteStmt = db.prepare(`DELETE FROM report_build_drafts WHERE id = ?`);
 
-  function hydrate(row) {
-    if (!row) return null;
-    return {
-      ...row,
-      structured_state: safeJsonParse(row.structured_state, {}),
-      turn_history: safeJsonParse(row.turn_history, []),
-    };
-  }
-
   return {
     create(ownerKey) {
       const id = randomUUID();
@@ -84,7 +84,7 @@ export function createReportBuildDraftStore(dbPath) {
       return id;
     },
     get(id) {
-      return hydrate(getStmt.get(id) ?? null);
+      return hydrateReportBuildDraftRow(getStmt.get(id) ?? null);
     },
     updateStructured(id, structuredState) {
       updateStructuredStmt.run(JSON.stringify(structuredState ?? {}), id);

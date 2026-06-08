@@ -29,6 +29,8 @@ const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 
 const MAX_BODY_CHARS = 2000;
 const DATE_RE = /\b(\d{4}-\d{2}-\d{2})\b/;
+const FRONTMATTER_LINE_RE = /^([A-Za-z0-9_-]+):\s*(.*)$/;
+const HEADING_RE = /^#\s+(.+)$/m;
 
 function getArg(args, flag) {
   const i = args.indexOf(flag);
@@ -42,7 +44,7 @@ function stripFrontmatter(content) {
   if (end < 0) return { metadata: {}, body: raw };
   const metadata = {};
   for (const line of raw.slice(4, end).split('\n')) {
-    const match = line.match(/^([A-Za-z0-9_-]+):\s*(.*)$/);
+    const match = FRONTMATTER_LINE_RE.exec(line);
     if (!match) continue;
     metadata[match[1].trim().toLowerCase()] = match[2].trim().replaceAll(/^["']|["']$/g, '');
   }
@@ -51,14 +53,16 @@ function stripFrontmatter(content) {
 
 function inferDateFromName(fileName, metadata, filterDate) {
   const fromMeta = String(metadata.date ?? '').trim();
-  if (DATE_RE.test(fromMeta)) return fromMeta.match(DATE_RE)[1];
-  const fromName = basename(fileName).match(DATE_RE)?.[1] ?? null;
-  if (fromName) return fromName;
+  const metaMatch = DATE_RE.exec(fromMeta);
+  if (metaMatch) return metaMatch[1];
+  const nameMatch = DATE_RE.exec(basename(fileName));
+  if (nameMatch) return nameMatch[1];
   return filterDate;
 }
 
 function inferTitle(body, fileName) {
-  const heading = String(body ?? '').match(/^#\s+(.+)$/m)?.[1]?.trim();
+  const headingMatch = HEADING_RE.exec(String(body ?? ''));
+  const heading = headingMatch?.[1]?.trim();
   return heading || basename(fileName, extname(fileName));
 }
 
@@ -82,11 +86,9 @@ function loadRegionalPboArticle(filePath, filterDate) {
   };
 }
 
-async function run() {
-  const args = process.argv.slice(2);
+function parseRunArgs(args) {
   const filesArg = getArg(args, '--files');
   const date = getArg(args, '--date') ?? new Date().toISOString().slice(0, 10);
-
   if (!filesArg) {
     console.error('Usage: extract-regional-pbo-signals.js --files <f1.md,f2.md,...> --date YYYY-MM-DD');
     process.exit(1);
@@ -95,9 +97,10 @@ async function run() {
     console.error('Error: ANTHROPIC_API_KEY is not set');
     process.exit(1);
   }
+  return { filesArg, date };
+}
 
-  checkDailyBudget();
-
+function resolveAndValidateFilePaths(filesArg) {
   const filePaths = filesArg.split(',').map((f) => resolve(f.trim())).filter(Boolean);
   for (const fp of filePaths) {
     if (!existsSync(fp)) {
@@ -105,7 +108,10 @@ async function run() {
       process.exit(1);
     }
   }
+  return filePaths;
+}
 
+function loadArticlesForDate(filePaths, date) {
   const articles = [];
   for (const fp of filePaths) {
     const ext = extname(fp).toLowerCase();
@@ -113,79 +119,60 @@ async function run() {
     const article = loadRegionalPboArticle(fp, date);
     if (article) articles.push(article);
   }
-
   if (articles.length === 0) {
     console.error(`No regional PBO markdown matched date=${date}`);
     process.exit(0);
   }
+  return articles;
+}
 
-  const { onUsage, getTotal } = createCostTracker({ label: 'extract-regional-pbo-signals' });
-
-  console.error(`\nSignal Extraction  source=pbo_regional  kind=field_report`);
-  console.error(`===================`);
-  console.error(`Date: ${date}`);
-  console.error(`Files: ${filePaths.map((f) => basename(f)).join(', ')}`);
-  console.error(`Articles loaded: ${articles.length}\n`);
-
-  const rawSignals = await getDefaultResilienceLlmPort().extractSignals(articles, { onUsage, contentKind: 'field_report' });
-  let signals = rawSignals.map((s) => ({ ...s, source_type: 'pbo_regional' }));
-
-  try {
-    const sqlitePath = process.env.SQLITE_PATH?.trim() || resolve(REPO_ROOT, 'db', 'app.sqlite');
-    const retrievalService = createRetrievalService({ dbPath: sqlitePath });
-    const archive = createSourceArchive(sqlitePath, { retrievalIndexer: retrievalService });
-    const indexToSourceId = new Map();
-    const items = articles.map((a, i) => {
-      const item = {
-        date,
-        source_type: 'pbo_regional',
-        source_label: a.source,
-        source_url: a.url || null,
-        title: a.title,
-        body: a.body,
-        published_at: a.publishedAt ?? date,
-        module_ref: a.sourceFile,
-        scope_id: 'north',
-      };
-      item.source_id = buildArchiveSourceId(item);
-      indexToSourceId.set(i + 1, item.source_id);
-      return item;
-    });
-    for (const item of items) {
-      archive.upsert(item);
-      if (retrievalService.indexArchiveRow) {
-        await retrievalService.indexArchiveRow(item);
-      }
-    }
-    retrievalService.rebuildFts();
-    retrievalService.close();
-    const archived = items.length;
-    archive.close();
-    signals = signals.map((s) => {
-      const sid = s.article_index != null ? indexToSourceId.get(Number(s.article_index)) : null;
-      return sid ? { ...s, source_id: sid } : s;
-    });
-    if (archived > 0) console.error(`  → ${archived} regional PBO original(s) archived`);
-  } catch (err) {
-    console.error(`  ⚠ Regional PBO archive skipped: ${err.message}`);
-  }
-
-  const { signals: geoSignals, attached, resolved, unknown } = enrichSignalsWithGeo(signals, {
-    rootDir: REPO_ROOT,
-    unknownSourceType: 'extract-pbo_regional',
+function buildArchiveItems(articles, date) {
+  const indexToSourceId = new Map();
+  const items = articles.map((a, i) => {
+    const item = {
+      date,
+      source_type: 'pbo_regional',
+      source_label: a.source,
+      source_url: a.url || null,
+      title: a.title,
+      body: a.body,
+      published_at: a.publishedAt ?? date,
+      module_ref: a.sourceFile,
+      scope_id: 'north',
+    };
+    item.source_id = buildArchiveSourceId(item);
+    indexToSourceId.set(i + 1, item.source_id);
+    return item;
   });
-  const districtId = 'north';
-  signals = geoSignals.map((s) => ({ ...s, district_id: districtId }));
+  return { items, indexToSourceId };
+}
 
-  console.error(`\n→ ${signals.length} signals extracted`);
-  if (attached > 0) {
-    console.error(`  → Geo attach: ${attached} signals, ${resolved} resolved, ${unknown} unknown`);
+async function archiveRegionalPboArticles(articles, date, signals) {
+  const sqlitePath = process.env.SQLITE_PATH?.trim() || resolve(REPO_ROOT, 'db', 'app.sqlite');
+  const retrievalService = createRetrievalService({ dbPath: sqlitePath });
+  const archive = createSourceArchive(sqlitePath, { retrievalIndexer: retrievalService });
+  const { items, indexToSourceId } = buildArchiveItems(articles, date);
+  for (const item of items) {
+    archive.upsert(item);
+    if (retrievalService.indexArchiveRow) {
+      await retrievalService.indexArchiveRow(item);
+    }
   }
+  retrievalService.rebuildFts();
+  retrievalService.close();
+  archive.close();
+  const enriched = signals.map((s) => {
+    const sid = s.article_index == null ? null : indexToSourceId.get(Number(s.article_index));
+    return sid ? { ...s, source_id: sid } : s;
+  });
+  if (items.length > 0) console.error(`  → ${items.length} regional PBO original(s) archived`);
+  return enriched;
+}
 
+function writeSignalsOutput({ date, articles, signals, districtId }) {
   const outDir = defaultClosedSignalsDir();
   mkdirSync(outDir, { recursive: true });
   const outPath = resolve(outDir, `signals-pbo_regional-${date}.json`);
-
   writeFileSync(
     outPath,
     JSON.stringify(
@@ -204,14 +191,54 @@ async function run() {
     ),
     'utf-8',
   );
-
   console.error(`\nSignal file written: ${outPath}`);
+}
+
+async function run() {
+  const args = process.argv.slice(2);
+  const { filesArg, date } = parseRunArgs(args);
+  checkDailyBudget();
+
+  const filePaths = resolveAndValidateFilePaths(filesArg);
+  const articles = loadArticlesForDate(filePaths, date);
+  const { onUsage, getTotal } = createCostTracker({ label: 'extract-regional-pbo-signals' });
+
+  console.error(`\nSignal Extraction  source=pbo_regional  kind=field_report`);
+  console.error(`===================`);
+  console.error(`Date: ${date}`);
+  console.error(`Files: ${filePaths.map((f) => basename(f)).join(', ')}`);
+  console.error(`Articles loaded: ${articles.length}\n`);
+
+  const rawSignals = await getDefaultResilienceLlmPort().extractSignals(articles, { onUsage, contentKind: 'field_report' });
+  let signals = rawSignals.map((s) => ({ ...s, source_type: 'pbo_regional' }));
+
+  try {
+    signals = await archiveRegionalPboArticles(articles, date, signals);
+  } catch (err) {
+    console.error(`  ⚠ Regional PBO archive skipped: ${err.message}`);
+  }
+
+  const { signals: geoSignals, attached, resolved, unknown } = enrichSignalsWithGeo(signals, {
+    rootDir: REPO_ROOT,
+    unknownSourceType: 'extract-pbo_regional',
+  });
+  const districtId = 'north';
+  signals = geoSignals.map((s) => ({ ...s, district_id: districtId }));
+
+  console.error(`\n→ ${signals.length} signals extracted`);
+  if (attached > 0) {
+    console.error(`  → Geo attach: ${attached} signals, ${resolved} resolved, ${unknown} unknown`);
+  }
+
+  writeSignalsOutput({ date, articles, signals, districtId });
 
   const { totalCostUsd, usageLog } = getTotal();
   appendCostLog({ script: 'extract-regional-pbo-signals', date, totalCostUsd, usageLog, articles: articles.length });
 }
 
-run().catch((err) => {
+try {
+  await run();
+} catch (err) {
   console.error('extract-regional-pbo-signals failed:', err.message);
   process.exit(1);
-});
+}

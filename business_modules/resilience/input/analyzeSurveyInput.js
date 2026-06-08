@@ -22,11 +22,66 @@ import {
   usableForMetrics,
 } from '../../../cross-cut-modules/geo/geoEnvelopeAccess.js';
 
+function resolveMunicipalitiesToProcess(parsed, municipalityArg) {
+  if (!municipalityArg) return parsed.municipalities;
+  const toProcess = parsed.municipalities.filter((m) => m.name === municipalityArg);
+  if (toProcess.length === 0) {
+    console.error(`Municipality "${municipalityArg}" not found. Run with --list to see available names.`);
+    process.exit(1);
+  }
+  return toProcess;
+}
+
+function logGeoEnrichment(assessment, geoEnrichmentPort) {
+  if (!geoEnrichmentPort) return;
+  for (const m of assessment.municipalities) {
+    m.geo = geoEnrichmentPort.resolveLocalityName(m.name, { sourceType: 'survey' });
+  }
+  const g = assessment.municipalities[0]?.geo;
+  if (g?.kind === 'resolved') {
+    const km = distanceKmToNorthBorder(g);
+    console.error(
+      `  Geo: entity=${geoEntityType(g)} scope=${scopeConfidence(g)} subregion=${pboSubregionId(g)} band=${distanceBand(g)} (~${Number(km).toFixed(1)} km) ref=${geoReferenceVersion(g)} quality=${quality(g)} metrics=${usableForMetrics(g)} golan=${isGolan(g)}`,
+    );
+  } else if (g) {
+    console.error(`  Geo: unknown (${g.reason ?? '?'}) raw=${JSON.stringify(g.rawName ?? '')}`);
+  }
+}
+
+/**
+ * @param {object} mun
+ * @param {string} date
+ * @param {string} sourceFile
+ * @param {Function} onUsage
+ * @param {{ geoEnrichmentPort?: { resolveLocalityName: (name: string|null|undefined) => object } }} options
+ */
+async function processSurveyMunicipality(mun, date, sourceFile, onUsage, options) {
+  const slug = mun.name.replaceAll(/[/\\?%*:|"<> ]/g, '_');
+  const outPath = resolve('daily_reports', `survey-report-${date}-${slug}`);
+  const mdPath = `${outPath}.md`;
+
+  if (existsSync(mdPath)) {
+    console.error(`  ⏭  ${mun.name} — already exists, skipping`);
+    return { completed: 0, skipped: 1 };
+  }
+
+  console.error(`\n── ${mun.name} ──`);
+  try {
+    const assessment = await analyzeSurvey([mun], date, `${slug}.xlsx`, { onUsage });
+    logGeoEnrichment(assessment, options.geoEnrichmentPort);
+    writeMunicipalityReports(assessment.municipalities, date, sourceFile, 'daily_reports', assessment.regional);
+    console.error(`  ✓ Written → ${mdPath}`);
+    return { completed: 1, skipped: 0 };
+  } catch (err) {
+    console.error(`  ✗ Failed: ${err.message}`);
+    return { completed: 0, skipped: 0 };
+  }
+}
+
 /**
  * @param {{ geoEnrichmentPort?: { resolveLocalityName: (name: string|null|undefined) => object } }} [options]
  */
 export async function runAnalyzeSurveyCli(options = {}) {
-  const { geoEnrichmentPort } = options;
   if (!process.env.ANTHROPIC_API_KEY) {
     console.error('Error: ANTHROPIC_API_KEY is not set.');
     process.exit(1);
@@ -69,16 +124,7 @@ export async function runAnalyzeSurveyCli(options = {}) {
   checkDailyBudget();
   const { onUsage, getTotal, printSummary } = createCostTracker({ label: 'analyze-survey' });
 
-  let toProcess;
-  if (municipalityArg) {
-    toProcess = parsed.municipalities.filter((m) => m.name === municipalityArg);
-    if (toProcess.length === 0) {
-      console.error(`Municipality "${municipalityArg}" not found. Run with --list to see available names.`);
-      process.exit(1);
-    }
-  } else {
-    toProcess = parsed.municipalities;
-  }
+  const toProcess = resolveMunicipalitiesToProcess(parsed, municipalityArg);
 
   console.error(`\nField Survey Resilience Analysis — per municipality`);
   console.error(`===================================================`);
@@ -90,46 +136,13 @@ export async function runAnalyzeSurveyCli(options = {}) {
   let completed = 0;
   let skipped   = 0;
 
-  for (const mun of toProcess) {
-    const slug     = mun.name.replaceAll(/[/\\?%*:|"<> ]/g, '_');
-    const outPath  = resolve('daily_reports', `survey-report-${date}-${slug}`);
-    const mdPath   = `${outPath}.md`;
-
-    if (existsSync(mdPath)) {
-      console.error(`  ⏭  ${mun.name} — already exists, skipping`);
-      skipped++;
-      continue;
-    }
-
-    console.error(`\n── ${mun.name} (${completed + skipped + 1}/${toProcess.length}) ──`);
-
-    try {
-      const assessment = await analyzeSurvey([mun], date, `${slug}.xlsx`, { onUsage });
-
-      if (geoEnrichmentPort) {
-        for (const m of assessment.municipalities) {
-          m.geo = geoEnrichmentPort.resolveLocalityName(m.name, { sourceType: 'survey' });
-        }
-        const g = assessment.municipalities[0]?.geo;
-        if (g?.kind === 'resolved') {
-          const km = distanceKmToNorthBorder(g);
-          console.error(
-            `  Geo: entity=${geoEntityType(g)} scope=${scopeConfidence(g)} subregion=${pboSubregionId(g)} band=${distanceBand(g)} (~${Number(km).toFixed(1)} km) ref=${geoReferenceVersion(g)} quality=${quality(g)} metrics=${usableForMetrics(g)} golan=${isGolan(g)}`,
-          );
-        } else if (g) {
-          console.error(`  Geo: unknown (${g.reason ?? '?'}) raw=${JSON.stringify(g.rawName ?? '')}`);
-        }
-      }
-
-      writeMunicipalityReports(assessment.municipalities, date, sourceFile, 'daily_reports', assessment.regional);
-
-      console.error(`  ✓ Written → ${mdPath}`);
-      completed++;
-    } catch (err) {
-      console.error(`  ✗ Failed: ${err.message}`);
-    }
-
-    if (completed + skipped < toProcess.length) {
+  for (let i = 0; i < toProcess.length; i++) {
+    const mun = toProcess[i];
+    console.error(`\n── ${mun.name} (${i + 1}/${toProcess.length}) ──`);
+    const result = await processSurveyMunicipality(mun, date, sourceFile, onUsage, options);
+    completed += result.completed;
+    skipped += result.skipped;
+    if (i < toProcess.length - 1) {
       await new Promise((r) => setTimeout(r, 3000));
     }
   }

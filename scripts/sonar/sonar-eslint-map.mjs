@@ -96,7 +96,7 @@ export function eslintRulesForSonar(sonarRule) {
     .map(([eslintId]) => eslintId);
 }
 
-/** Curated eslint rules enabled in eslint.sonar.config.js (profile-aligned). */
+/** Curated eslint rules enabled in eslint.config.js (Sonar profile-aligned). */
 export const PROFILE_ESLINT_RULES = [
   ...new Set(Object.values(SONAR_TO_ESLINT).flat()),
 ];

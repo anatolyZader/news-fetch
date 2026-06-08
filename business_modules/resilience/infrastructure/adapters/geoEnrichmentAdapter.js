@@ -13,12 +13,26 @@ export class GeoEnrichmentAdapter extends IGeoEnrichmentPort {
 
   resolveLocalityName(rawName, options) {
     const r = this._geoService.resolveLocalityName(rawName, options);
-    if (
-      this._unknownSink &&
-      r?.kind === 'unknown' &&
-      (r.reason === 'NO_MATCH' || r.reason === 'NO_CONFIDENT_MATCH')
-    ) {
+    if (this._unknownSink && r?.kind === 'unknown' &&
+      (r.reason === 'NO_MATCH' || r.reason === 'NO_CONFIDENT_MATCH')) {
       this._unknownSink.recordUnknown(r);
+    }
+    if (this._unknownSink && r?.kind === 'provisional') {
+      this._unknownSink.recordUnknown({
+        kind: 'unknown',
+        reason: 'PROVISIONAL_LANDMARK',
+        rawName: r.resolution?.rawInput ?? null,
+        geoReferenceVersion: r.audit?.geoReferenceVersion ?? null,
+        source: r.audit?.source ?? null,
+        envelopeSchemaVersion: r.envelopeSchemaVersion,
+        resolution: r.resolution,
+        audit: r.audit,
+        candidates: [{
+          canonicalKey: r.resolution?.landmarkId ?? 'landmark',
+          displayName: r.resolution?.matchedName,
+          probableSubregionId: r.resolution?.probableSubregionId,
+        }],
+      });
     }
     return r;
   }

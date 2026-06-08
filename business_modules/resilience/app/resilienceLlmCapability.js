@@ -49,4 +49,6 @@ export function createResilienceLlmCapability(deps = {}) {
   };
 }
 
-export { buildSignalExtractionSystemPrompt, extractJsonArray, extractEvidence, synthesizeComponents };
+
+
+export {buildSignalExtractionSystemPrompt, extractJsonArray, extractEvidence, synthesizeComponents} from '../infrastructure/claudeEvaluator.js';

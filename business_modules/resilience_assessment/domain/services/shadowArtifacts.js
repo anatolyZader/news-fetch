@@ -33,7 +33,7 @@ export function computeDivergence(agentAssessment, shadowScored) {
       severity_score_delta: severityScoreDelta,
       shadow_evidence_mass: shadow.evidence_mass ?? null,
       agent_confidence: comp.confidence ?? null,
-      aligned: severityScoreDelta != null ? Math.abs(severityScoreDelta) <= 2 : null,
+      aligned: severityScoreDelta == null ? null : Math.abs(severityScoreDelta) <= 2,
     };
   }
   const alignedCount = Object.values(byComponent).filter((c) => c.aligned === true).length;

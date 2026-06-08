@@ -1,12 +1,5 @@
 import { createHash } from 'node:crypto';
 import {
-  AFFECTED_SUBGROUPS,
-  AFFECTED_SYSTEMS,
-  POLARITY_OVERRIDE_SIGNAL_TYPES,
-  AFFECTED_SYSTEM_SIGNAL_TYPES,
-} from '../domain/services/behaviorSignals.js';
-import {
-  DOMAIN_GROUPS,
   isMultipassEnabled,
   getMultipassGroupKeys,
   buildPassScopeSuffix,
@@ -35,7 +28,7 @@ import {
   extractMaxTokens,
   selfCheckMaxTokensCap,
   extractBatchEnabled,
-  buildCoreExtractionSystemPrompt,
+  buildExtractionSystemParts,
 } from '../../../cross-cut-modules/resilience-contracts/extractionPrompt.js';
 import { runExtractionBatchCalls } from './extractionBatchRunner.js';
 import {
@@ -56,10 +49,11 @@ export async function streamWithProgress(stream, label) {
   process.stderr.write(`${label} `);
   let dots = 0;
   for await (const event of stream) {
+    dots += 1;
     if (
       event.type === 'content_block_delta' &&
       event.delta.type === 'text_delta' &&
-      ++dots % 200 === 0
+      dots % 200 === 0
     ) {
       process.stderr.write('.');
     }
@@ -133,7 +127,7 @@ function formatArticlesForPrompt(preparedArticles) {
     .join('\n\n---\n\n');
 }
 
-export { DOMAIN_INTENT_QUERIES };
+
 
 const SEMANTIC_SELECT_CACHE = new Map(); // key -> Float32Array
 
@@ -291,163 +285,6 @@ const FIELD_REPORT_SIGNAL_EXTRACTION_PREFIX =
   `  → 4 separate signals: leadership_visible_presence + community_volunteering, resource_mobilization,\n` +
   `    service_continuity, wellbeing_support_accessed.\n\n`;
 
-const SIGNAL_EXTRACTION_SYSTEM_PROMPT =
-  `You are a behavioral signal extractor for community resilience analysis in Israel.\n` +
-  `Extract atomic behavioral signals from news articles using a closed vocabulary of signal types.\n\n` +
-
-  `━━━ EVIDENCE TYPE ━━━\n` +
-  `Every signal must be assigned one of these four evidence_type values (closed vocabulary).\n` +
-  `Choose the most specific type that applies. This determines scoring weight — be accurate.\n\n` +
-
-  `"direct_quote_named_person"   — a named individual is quoted directly. You can answer WHO said this.\n` +
-  `  ACCEPT: 'A resident of Kiryat Shmona said: "I haven't slept in three nights"'\n` +
-  `  ACCEPT: named official/role with a direct quote or attributed action\n` +
-  `  REJECT: paraphrase, journalist summary, vague attribution ("residents say")\n` +
-  `  ⚠ fear_expression / calm_confidence: this type ONLY — individual emotions require a named subject.\n` +
-  `  ⚠ resilience_narrative_positive / resilience_narrative_negative: also accept "observational_reported_fact"\n` +
-  `     when a host, reporter, or caller characterises collective mood or community-wide narrative\n` +
-  `     (e.g. "people in our region say they won't leave", "the spirit in the north has broken down").\n` +
-  `     The evidence text MUST contain mood/spirit/coping-identity language — not just condition descriptions.\n` +
-  `     REJECT: field-observer summaries or abstract labels ("overall resilience present", "strong settlement",\n` +
-  `     "population coping", "community functioning"). Split into specific factual signal types or discard.\n` +
-  `     REJECT: descriptions of services or frameworks ("protected space for children", "employment program").\n` +
-  `     These are service_continuity or service_disruption, not narrative signals.\n\n` +
-
-  `"named_survey_statistic"      — a named study, survey, or institution reports a measured finding.\n` +
-  `  ACCEPT: 'Bar-Ilan survey: 68% of northern residents report sleep disruption'\n` +
-  `  ACCEPT: 'Magen David Adom: 790 people injured reaching shelters'\n` +
-  `  REJECT: journalist estimates, vague statistics without a named source\n\n` +
-
-  `"named_institutional_fact"    — a named institution takes a concrete, datable action.\n` +
-  `  ACCEPT: municipality announced schools closed through Thursday\n` +
-  `  ACCEPT: hospital operating at emergency capacity from Sunday\n` +
-  `  REJECT: general descriptions of institutional state without a specific action\n\n` +
-
-  `"observational_reported_fact" — a verifiable structural condition or observable behavioral pattern\n` +
-  `  reported as fact, without a named speaker, grounded in a specific, dateable event.\n` +
-  `  ACCEPT: evacuation of a named community; shelter infrastructure absent in a named location\n` +
-  `  ACCEPT: school/clinic/business closed or opened in a named location\n` +
-  `  REJECT: journalist assessments of mood, atmosphere, or spirit without concrete facts\n` +
-  `  REJECT: "many residents feel..." / inferred emotion (missile struck → therefore people are scared)\n\n` +
-
-  `━━━ EXTRACTION RULES (apply to both classes) ━━━\n` +
-  `1. ATOMIC: Each signal is one single behavioral fact — one verb, one meaning. Split compound behaviors.\n` +
-  `   A single quote may yield multiple signals if it contains multiple distinct facts. Extract each separately.\n` +
-  `   Example: "I rushed to find my children; on the way I saw injured neighbors" → two signals:\n` +
-  `     (a) evacuation/family reunification → compliance_enter_shelter or lifesaving_behavior domain\n` +
-  `     (b) witnessing injured population → harm_to_population\n` +
-  `   Do NOT collapse this into one solidarity signal just because neighbors are mentioned.\n` +
-  `2. CLOSED VOCABULARY: You MUST choose signal type from the list below. Never invent new types.\n` +
-  `3. DO NOT EXTRACT: political/military/diplomatic content — unless it contains a direct civilian behavioral response.\n` +
-  `   This includes: political punditry, ideological debates, democratic discourse, comparisons to other countries'\n` +
-  `   political systems (e.g. Hungary, Poland), coalition politics, constitutional debates, party strategy analysis.\n` +
-  `   These are NOT resilience signals even if they mention "anxiety" or "concern" — general political worry is\n` +
-  `   not crisis-coping behavior. Only extract when civilians describe how the emergency/war directly affects\n` +
-  `   their daily life, safety, services, or ability to cope.\n` +
-  `   SCOPE: We measure resilience of the Israeli civilian population in the context of EMERGENCY/WAR ONLY.\n` +
-  `   Do NOT extract signals about: enemy combatants, foreign populations, military personnel morale/behavior\n` +
-  `   in operational theatres, or general peacetime political/social discourse unrelated to the crisis.\n` +
-  `   ⚠ MILITARY EVENTS & PERSONNEL IN OPERATIONAL THEATRES — DO NOT EXTRACT:\n` +
-  `     ALL of the following are OUT OF SCOPE and must NOT produce any signal:\n` +
-  `     • IDF soldiers wounded, injured, or killed in operational/combat theatres (Lebanon, Gaza, Syria, etc.)\n` +
-  `       — including named fallen soldiers, Paratroopers/reserve casualties, drone/rocket wounds to troops,\n` +
-  `       battalion commander injuries during combat.\n` +
-  `     • Comrade eulogies / testimonials by fellow soldiers about a fallen soldier ("he was the spirit of\n` +
-  `       our company", "he always volunteered first") — this is intra-military remembrance, not civilian\n` +
-  `       resilience. Do NOT classify as solidarity_help_others or resilience_narrative_*.\n` +
-  `     • Soldier reflections, philosophical statements, or mutual-support quotes from within operational\n` +
-  `       units ("we must watch over each other", "who is protecting whom") — military personnel morale is\n` +
-  `       out of scope regardless of sentiment.\n` +
-  `     • Military unit activities, operational briefings, personnel decisions, appointments, internal\n` +
-  `       military debates about strategy or organization.\n` +
-  `     EXCEPTION: extract ONLY when the article reports a direct CIVILIAN reaction INSIDE ISRAEL — e.g. a\n` +
-  `     named bereaved family member (mother, sibling, spouse — not fellow soldiers) expressing grief/coping,\n` +
-  `     a community's solidarity response to a fallen soldier from their town, civilians attending a funeral.\n` +
-  `     Even then, classify the signal by the civilian behavior (solidarity_help_others, psychological_distress,\n` +
-  `     resilience_narrative_*) — not by the military event itself. A quote from a comrade is NOT a civilian reaction.\n` +
-  `   GEOGRAPHIC SCOPE: Only extract signals about people INSIDE ISRAEL. Skip diaspora events, antisemitism\n` +
-  `   abroad, Jewish community life in other countries, and solidarity visits from foreign delegations —\n` +
-  `   unless the article describes the direct impact on Israeli civilians (e.g. returning evacuees).\n` +
-  `   Diaspora Ministry reports about antisemitism in Australia, Europe, US, etc. → DO NOT EXTRACT.\n` +
-  `   Holocaust-survivor speeches at state ceremonies → extract only if they characterise current Israeli\n` +
-  `   community coping (resilience_narrative_*); not for historical references.\n` +
-  `4. DO NOT EXTRACT: global indices, international rankings, or pre-crisis baseline surveys.\n` +
-  `5. NON-EMERGENCY CIVILIAN HARM — DO NOT EXTRACT as harm_to_population:\n` +
-  `   harm_to_population is for CIVILIAN harm CAUSED BY THE WAR/EMERGENCY (rocket/missile/drone strikes on\n` +
-  `   civilian areas, terror attacks on civilians, shrapnel injuries from Hezbollah/Hamas/Iranian fire).\n` +
-  `   DO NOT EXTRACT the following as harm_to_population or any resilience signal:\n` +
-  `     • Traffic accidents (car crashes, motorcyclist killed by stolen car, multi-vehicle collisions)\n` +
-  `     • Hiking/nature accidents (cliff falls, drowning, lost hikers, rescue of yeshiva students)\n` +
-  `     • Medical incidents unrelated to attack (brain hemorrhage on vacation, food poisoning, routine births)\n` +
-  `     • Off-duty domestic crime/violence (off-duty soldier fare dispute, civilian assaults, burglary)\n` +
-  `     • Ordinary hospital operations (births, non-emergency admissions) unless hospital was struck or overloaded\n` +
-  `     These are not war-caused civilian harm and do not measure community resilience to the emergency.\n` +
-  `   ACCEPT as harm_to_population: "61-year-old injured by shrapnel in Tamra from Hezbollah rocket barrage";\n` +
-  `     "civilian in his 80s rescued from rubble after Iranian missile strike on Haifa"; "Gershowitz family\n` +
-  `     members killed in missile strike". These are direct war-caused civilian harm.\n\n` +
-
-  `━━━ CLASSIFICATION BOUNDARIES (read before choosing signal type) ━━━\n` +
-  `${formatDisambiguationBlock()}\n` +
-  `Supplemental rules (cross-cutting, not duplicated in catalog metadata above):\n` +
-  `- community_volunteering: organized or spontaneous volunteering (distinct from one-off solidarity_help_others).\n` +
-  `- psychological_distress vs fear_expression vs child_distress: PTSD/chronic grief → psychological_distress;\n` +
-  `  situational safety fear → fear_expression; children-specific symptoms → child_distress.\n` +
-  `- population_survey_finding: named survey/institutional measured finding (use evidence_type named_survey_statistic).\n` +
-  `- self_evacuation_unauthorized vs evacuation_displacement: residents leave without official order vs institutional evacuation.\n` +
-  `- early_warning_system_* vs information_*: siren/app/HFC timing failures or successes → preparedness domain types.\n` +
-  `- connectivity_outage: telecom/internet/mobile failure (set affected_system: telecom when applicable).\n` +
-  `- STATE ADMINISTRATIVE CONTINUITY → service_continuity; ACTIVE AID MOBILIZATION → resource_mobilization.\n` +
-  `- COMMERCIAL TRANSPORT suspensions/resumptions → service_disruption / service_continuity.\n` +
-  `- צח"י: extract leadership_visible_presence/absence AND community_volunteering/resource_shortage when mentioned.\n` +
-  `- system_overload vs resource_shortage: overloaded capacity vs absent supplies.\n` +
-  `- trust types (interpersonal/institutional/media/inter_group): use polarity_override negative when evidence shows erosion.\n` +
-  `- domestic_violence_indicator / suicide_self_harm_indicator: explicit reported fact only — never infer.\n` +
-  `- FIELD REPORTS: classify observable facts; resilience_narrative_* only when quoting residents' collective story.\n\n` +
-
-  `━━━ SIGNAL TYPES (closed vocabulary) ━━━\n` +
-  `${formatSignalCatalogForPrompt()}\n\n` +
-
-  `━━━ SCOPE LEVEL (choose one — rates evidence breadth, not emotional vividness) ━━━\n` +
-  `"single_case"          — a single behavioral instance or quote from one actor\n` +
-  `"repeated_pattern"     — more than one instance, or article explicitly describes recurrence or a pattern\n` +
-  `"quantified_or_broad"  — a count, percentage, named survey result, or institutional action with system-wide scope\n\n` +
-
-  `━━━ INFORMATIVE ABSENCE (rare; cap 3 per batch) ━━━\n` +
-  `Most signals must come from explicit text. EXCEPTION: when an article reports a routine state\n` +
-  `that, given the emergency context, is itself a behavioral fact (e.g. "school year started normally\n` +
-  `in Kiryat Shmona this morning" → routine_maintenance / service_continuity). In that case, set\n` +
-  `evidence_basis = "inferred_absence" so the evidence verifier knows not to expect a direct quote.\n` +
-  `Limit yourself to at most 3 inferred-absence signals across the entire batch — they are weak\n` +
-  `evidence and should not dominate.\n\n` +
-
-  `━━━ OPTIONAL INSTANCE FIELDS (omit when not applicable) ━━━\n` +
-  `  "intensity": "light" | "moderate" | "severe" — severity of this instance (default moderate if omitted)\n` +
-  `  "phase": "anticipation" | "response" | "recovery" — event timeline phase\n` +
-  `  "affected_subgroup": one of [${AFFECTED_SUBGROUPS.join(', ')}] — when equity/disparity targets a subgroup\n` +
-  `  "affected_system": one of [${AFFECTED_SYSTEMS.join(', ')}] — ONLY for: ${[...AFFECTED_SYSTEM_SIGNAL_TYPES].join(', ')}\n` +
-  `  "polarity_override": "positive" | "negative" — ONLY for: ${[...POLARITY_OVERRIDE_SIGNAL_TYPES].join(', ')}\n` +
-  `    when context clearly reverses the default reading\n\n` +
-
-  `━━━ OUTPUT SCHEMA ━━━\n` +
-  `For each behavioral signal found, output a JSON object:\n` +
-  `{\n` +
-  `  "article_index": <N from [N]>,\n` +
-  `  "article_url": "<URL from the article header, or null>",\n` +
-  `  "signal_type": "<one type from the closed vocabulary above>",\n` +
-  `  "evidence_type": "direct_quote_named_person" | "named_survey_statistic" | "named_institutional_fact" | "observational_reported_fact",\n` +
-  `  "evidence": "<exact quote or bare factual description — no journalist adjectives, max 300 chars>",\n` +
-  `  "evidence_span": { "start": <char offset in article body>, "end": <char offset> } (optional; REQUIRED for quotes under ~15 words),\n` +
-  `  "scope_level": "single_case" | "repeated_pattern" | "quantified_or_broad",\n` +
-  `  "evidence_basis": "present_in_text" | "paraphrased" | "inferred_absence",\n` +
-  `  "extraction_confidence": <number 0-1>,\n` +
-  `  "intensity": "light" | "moderate" | "severe" (optional),\n` +
-  `  "phase": "anticipation" | "response" | "recovery" (optional),\n` +
-  `  "affected_subgroup": "<enum>" (optional),\n` +
-  `  "affected_system": "<enum>" (optional, continuity signals only),\n` +
-  `  "polarity_override": "positive" | "negative" (optional, whitelist only)\n` +
-  `}\n\n` +
-  `Return ONLY a valid JSON array. One article can yield multiple signals. Skip articles with no extractable behavioral evidence.`;
-
 const WHATSAPP_REALTIME_SIGNAL_EXTRACTION_PREFIX =
   `━━━ SOURCE: WHATSAPP FIELD REPORT (SINGLE MESSAGE, REAL-TIME) ━━━\n` +
   `Input is a single short WhatsApp message from an Israeli field worker reporting conditions\n` +
@@ -523,33 +360,58 @@ const WHATSAPP_INTERACTIVE_SIGNAL_EXTRACTION_PREFIX =
   `- Never ask something the officer already answered across prior turns.\n` +
   `- Keep each question to one sentence.\n\n`;
 
-export function buildSignalExtractionSystemPrompt(contentKind) {
-  const base = buildCoreExtractionSystemPrompt(formatDisambiguationBlock, formatSignalCatalogForPrompt);
+function applyContentKindStableAdjustments(stable, contentKind) {
   if (contentKind === 'audio') {
-    return AUDIO_SIGNAL_EXTRACTION_PREFIX + base.replace(
+    return stable.replace(
       'Extract ATOMIC signals',
       'Extract ATOMIC signals from spoken-audio transcripts (same rules as news text)',
     );
   }
   if (contentKind === 'field_report') {
-    return FIELD_REPORT_SIGNAL_EXTRACTION_PREFIX + base.replace(
+    return stable.replace(
       'Extract ATOMIC signals',
       'Extract ATOMIC signals from expert field report documents (same signal vocabulary)',
     );
   }
   if (contentKind === 'whatsapp_realtime') {
-    return WHATSAPP_REALTIME_SIGNAL_EXTRACTION_PREFIX + base.replace(
+    return stable.replace(
       'Extract ATOMIC signals',
       'Extract ATOMIC signals from a single WhatsApp field report',
     );
   }
   if (contentKind === 'whatsapp_interactive') {
-    return WHATSAPP_INTERACTIVE_SIGNAL_EXTRACTION_PREFIX + base.replace(
+    return stable.replace(
       'Extract ATOMIC signals',
       'Extract ATOMIC signals from a multi-turn WhatsApp officer dialogue',
     );
   }
-  return base;
+  return stable;
+}
+
+function buildExtractionContentKindPrefix(contentKind) {
+  if (contentKind === 'audio') return AUDIO_SIGNAL_EXTRACTION_PREFIX;
+  if (contentKind === 'field_report') return FIELD_REPORT_SIGNAL_EXTRACTION_PREFIX;
+  if (contentKind === 'whatsapp_realtime') return WHATSAPP_REALTIME_SIGNAL_EXTRACTION_PREFIX;
+  if (contentKind === 'whatsapp_interactive') return WHATSAPP_INTERACTIVE_SIGNAL_EXTRACTION_PREFIX;
+  return '';
+}
+
+export function buildExtractionSystemForCall(contentKind, domainGroupKey = null) {
+  const parts = buildExtractionSystemParts(contentKind, {
+    formatDisambiguationBlock,
+    formatSignalCatalog: formatSignalCatalogForPrompt,
+    contentKindPrefix: buildExtractionContentKindPrefix(contentKind),
+    passScopeSuffix: domainGroupKey ? buildPassScopeSuffix(domainGroupKey) : '',
+  });
+  return {
+    stable: applyContentKindStableAdjustments(parts.stable, contentKind),
+    dynamic: parts.dynamic,
+  };
+}
+
+export function buildSignalExtractionSystemPrompt(contentKind) {
+  const parts = buildExtractionSystemForCall(contentKind, null);
+  return `${parts.dynamic}${parts.stable}`;
 }
 
 function extractUserLabelForSignals(contentKind) {
@@ -597,6 +459,43 @@ async function fetchHaikuSignalsOnce(batchLabel, modelId, system, userContent, u
   return signals;
 }
 
+async function fetchMissArticlesSignals({
+  missArticles, origIndexByMiss, articles, batchLabel, retries, usageCallback,
+  contentKind, domainGroupKey, modelId, extractOpts,
+}) {
+  const system = buildExtractionSystemForCall(contentKind, domainGroupKey);
+  const prepared = await prepareArticlesForPrompt(missArticles, {
+    contentKind,
+    domainGroupKey,
+    retrievalService: extractOpts.retrievalService ?? null,
+    reportDate: extractOpts.reportDate ?? null,
+  });
+  const userContent =
+    `Extract all behavioral signals from these Israeli ${extractUserLabelForSignals(contentKind)}:\n\n` +
+    formatArticlesForPrompt(prepared);
+
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const label = attempt > 1 ? `${batchLabel} (retry ${attempt})` : batchLabel;
+      const raw = await fetchHaikuSignalsOnce(label, modelId, system, userContent, usageCallback);
+      const llmSignals = remapMissBatchIndices(raw, origIndexByMiss);
+      persistArticleExtractCache(llmSignals, articles, {
+        model: modelId,
+        contentKind,
+        domainGroupKey,
+        cacheDbPath: extractOpts.cacheDbPath,
+      });
+      return llmSignals;
+    } catch (err) {
+      if (attempt === retries) throw err;
+      const wait = haikuRetryWaitMs(err, attempt);
+      console.error(`  ⚠ ${batchLabel} attempt ${attempt} failed (${err.message}) — retrying in ${wait / 1000}s...`);
+      await new Promise((r) => setTimeout(r, wait));
+    }
+  }
+  return [];
+}
+
 async function callHaikuExtraction(articles, {
   batchLabel,
   retries,
@@ -621,42 +520,12 @@ async function callHaikuExtraction(articles, {
     console.error(`  → ${batchLabel}: ${cachedSignals.length} cached signal(s) from ${articles.length - missArticles.length} article(s)`);
   }
 
-  let llmSignals = [];
-  if (missArticles.length > 0) {
-    const baseSystem = buildSignalExtractionSystemPrompt(contentKind);
-    const system = domainGroupKey
-      ? `${baseSystem}\n\n${buildPassScopeSuffix(domainGroupKey)}`
-      : baseSystem;
-    const prepared = await prepareArticlesForPrompt(missArticles, {
-      contentKind,
-      domainGroupKey,
-      retrievalService: extractOpts.retrievalService ?? null,
-      reportDate: extractOpts.reportDate ?? null,
-    });
-    const userContent =
-      `Extract all behavioral signals from these Israeli ${extractUserLabelForSignals(contentKind)}:\n\n` +
-      formatArticlesForPrompt(prepared);
-
-    for (let attempt = 1; attempt <= retries; attempt++) {
-      try {
-        const label = attempt > 1 ? `${batchLabel} (retry ${attempt})` : batchLabel;
-        const raw = await fetchHaikuSignalsOnce(label, modelId, system, userContent, usageCallback);
-        llmSignals = remapMissBatchIndices(raw, origIndexByMiss);
-        persistArticleExtractCache(llmSignals, articles, {
-          model: modelId,
-          contentKind,
-          domainGroupKey,
-          cacheDbPath: extractOpts.cacheDbPath,
-        });
-        break;
-      } catch (err) {
-        if (attempt === retries) throw err;
-        const wait = haikuRetryWaitMs(err, attempt);
-        console.error(`  ⚠ ${batchLabel} attempt ${attempt} failed (${err.message}) — retrying in ${wait / 1000}s...`);
-        await new Promise((r) => setTimeout(r, wait));
-      }
-    }
-  }
+  const llmSignals = missArticles.length > 0
+    ? await fetchMissArticlesSignals({
+      missArticles, origIndexByMiss, articles, batchLabel, retries, usageCallback,
+      contentKind, domainGroupKey, modelId, extractOpts,
+    })
+    : [];
 
   return [...cachedSignals, ...llmSignals];
 }
@@ -688,6 +557,25 @@ function collectSelfCheckVerdicts(verdicts) {
 function reportSelfCheckStats(batchLabel, usageCallback, stats) {
   if (!usageCallback) return;
   usageCallback({ label: `${batchLabel} self-check`, stage: 'self_check', stats });
+}
+
+function applySelfCheckVerdicts(signals, verdicts, batchLabel, usageCallback) {
+  const { noSet, uncertainSet, reasonCounts } = collectSelfCheckVerdicts(verdicts);
+  for (const idx of uncertainSet) {
+    if (signals[idx]) logSelfCheckUncertain(signals[idx], batchLabel);
+  }
+  if (noSet.size === 0) {
+    reportSelfCheckStats(batchLabel, usageCallback, {
+      kept: signals.length, dropped: 0, input: signals.length, reason_counts: {},
+    });
+    return signals;
+  }
+  const survivors = signals.filter((_, i) => !noSet.has(i));
+  console.error(`  → [${batchLabel}] self-check dropped ${noSet.size}/${signals.length} signal(s)`);
+  reportSelfCheckStats(batchLabel, usageCallback, {
+    kept: survivors.length, dropped: noSet.size, input: signals.length, reason_counts: reasonCounts,
+  });
+  return survivors;
 }
 
 async function runSelfCheck(signals, batchLabel, usageCallback) {
@@ -722,101 +610,95 @@ async function runSelfCheck(signals, batchLabel, usageCallback) {
     if (!textBlock) return signals;
     const verdicts = extractJsonArray(textBlock.text);
     if (!Array.isArray(verdicts)) return signals;
-
-    const { noSet, uncertainSet, reasonCounts } = collectSelfCheckVerdicts(verdicts);
-    for (const idx of uncertainSet) {
-      if (signals[idx]) logSelfCheckUncertain(signals[idx], batchLabel);
-    }
-    if (noSet.size === 0) {
-      reportSelfCheckStats(batchLabel, usageCallback, {
-        kept: signals.length, dropped: 0, input: signals.length, reason_counts: {},
-      });
-      return signals;
-    }
-    const survivors = signals.filter((_, i) => !noSet.has(i));
-    console.error(`  → [${batchLabel}] self-check dropped ${noSet.size}/${signals.length} signal(s)`);
-    reportSelfCheckStats(batchLabel, usageCallback, {
-      kept: survivors.length, dropped: noSet.size, input: signals.length, reason_counts: reasonCounts,
-    });
-    return survivors;
+    return applySelfCheckVerdicts(signals, verdicts, batchLabel, usageCallback);
   } catch (err) {
     console.error(`  ⚠ ${batchLabel} self-check failed (${err.message}) — keeping all signals`);
     return signals;
   }
 }
 
-async function extractMultipassRaw(articles, batchLabel, retries, usageCallback, contentKind, extractModel, extractOpts) {
-  const groupKeys = getMultipassGroupKeys();
-  const modelId = extractModel ?? DEFAULT_EXTRACT_MODEL;
+async function buildMultipassBatchCall(articles, batchLabel, key, modelId, contentKind, extractOpts) {
+  const passLabel = `${batchLabel} pass-${key}`;
+  const { missArticles, origIndexByMiss, cachedSignals } = partitionArticlesByExtractCache(
+    articles,
+    { model: modelId, contentKind, domainGroupKey: key, cacheDbPath: extractOpts.cacheDbPath },
+  );
+  if (!missArticles.length) return { cachedSignals, batchCall: null };
+  const system = buildExtractionSystemForCall(contentKind, key);
+  const prepared = await prepareArticlesForPrompt(missArticles, {
+    contentKind,
+    domainGroupKey: key,
+    retrievalService: extractOpts.retrievalService ?? null,
+    reportDate: extractOpts.reportDate ?? null,
+  });
+  const userContent =
+    `Extract all behavioral signals from these Israeli ${extractUserLabelForSignals(contentKind)}:\n\n` +
+    formatArticlesForPrompt(prepared);
+  return {
+    cachedSignals,
+    batchCall: {
+      customId: passLabel,
+      model: modelId,
+      system,
+      userContent,
+      label: passLabel,
+      meta: { key, origIndexByMiss, missArticles },
+    },
+  };
+}
 
-  if (extractBatchEnabled() && groupKeys.length > 0) {
-    const batchCalls = [];
-    const cachedAccum = [];
-    for (const key of groupKeys) {
-      const passLabel = `${batchLabel} pass-${key}`;
-      const { missArticles, origIndexByMiss, cachedSignals } = partitionArticlesByExtractCache(
-        articles,
-        { model: modelId, contentKind, domainGroupKey: key, cacheDbPath: extractOpts.cacheDbPath },
-      );
-      cachedAccum.push(...cachedSignals);
-      if (!missArticles.length) continue;
-      const baseSystem = buildSignalExtractionSystemPrompt(contentKind);
-      const system = `${baseSystem}\n\n${buildPassScopeSuffix(key)}`;
-      const prepared = await prepareArticlesForPrompt(missArticles, {
-        contentKind,
-        domainGroupKey: key,
-        retrievalService: extractOpts.retrievalService ?? null,
-        reportDate: extractOpts.reportDate ?? null,
-      });
-      const userContent =
-        `Extract all behavioral signals from these Israeli ${extractUserLabelForSignals(contentKind)}:\n\n` +
-        formatArticlesForPrompt(prepared);
-      batchCalls.push({
-        customId: passLabel,
-        model: modelId,
-        system,
-        userContent,
-        label: passLabel,
-        meta: { key, origIndexByMiss, missArticles },
-      });
-    }
-
-    if (batchCalls.length > 0) {
-      const batchResults = await runExtractionBatchCalls(batchCalls);
-      let raw = [...cachedAccum];
-      for (const call of batchCalls) {
-        const result = batchResults.get(call.customId);
-        if (!result?.ok) {
-          console.error(`  ⚠ batch pass failed (${result?.error}) — sync fallback for ${call.customId}`);
-          raw = raw.concat(await callHaikuExtraction(articles, {
-            batchLabel: call.customId,
-            retries,
-            usageCallback,
-            contentKind,
-            domainGroupKey: call.meta.key,
-            extractModel,
-            extractOpts,
-          }));
-          continue;
-        }
-        if (usageCallback && result.usage) {
-          usageCallback({ label: call.label, model: modelId, usage: result.usage });
-        }
-        const remapped = remapMissBatchIndices(result.signals, call.meta.origIndexByMiss);
-        persistArticleExtractCache(remapped, articles, {
-          model: modelId,
-          contentKind,
-          domainGroupKey: call.meta.key,
-          cacheDbPath: extractOpts.cacheDbPath,
-        });
-        raw = raw.concat(remapped);
-        console.error(`  → ${call.customId}: ${remapped.length} candidate(s) [batch]`);
-      }
-      return raw;
-    }
-    return cachedAccum;
+async function processBatchCallResult(call, result, articles, raw, {
+  retries, usageCallback, contentKind, extractModel, extractOpts, modelId,
+}) {
+  if (!result?.ok) {
+    console.error(`  ⚠ batch pass failed (${result?.error}) — sync fallback for ${call.customId}`);
+    return raw.concat(await callHaikuExtraction(articles, {
+      batchLabel: call.customId,
+      retries,
+      usageCallback,
+      contentKind,
+      domainGroupKey: call.meta.key,
+      extractModel,
+      extractOpts,
+    }));
   }
+  if (usageCallback && result.usage) {
+    usageCallback({ label: call.label, model: modelId, usage: result.usage });
+  }
+  const remapped = remapMissBatchIndices(result.signals, call.meta.origIndexByMiss);
+  persistArticleExtractCache(remapped, articles, {
+    model: modelId,
+    contentKind,
+    domainGroupKey: call.meta.key,
+    cacheDbPath: extractOpts.cacheDbPath,
+  });
+  console.error(`  → ${call.customId}: ${remapped.length} candidate(s) [batch]`);
+  return raw.concat(remapped);
+}
 
+async function extractMultipassViaBatch(articles, batchLabel, retries, usageCallback, contentKind, extractModel, extractOpts, groupKeys, modelId) {
+  const batchCalls = [];
+  const cachedAccum = [];
+  for (const key of groupKeys) {
+    const { cachedSignals, batchCall } = await buildMultipassBatchCall(
+      articles, batchLabel, key, modelId, contentKind, extractOpts,
+    );
+    cachedAccum.push(...cachedSignals);
+    if (batchCall) batchCalls.push(batchCall);
+  }
+  if (batchCalls.length === 0) return cachedAccum;
+
+  const batchResults = await runExtractionBatchCalls(batchCalls);
+  let raw = [...cachedAccum];
+  for (const call of batchCalls) {
+    raw = await processBatchCallResult(call, batchResults.get(call.customId), articles, raw, {
+      retries, usageCallback, contentKind, extractModel, extractOpts, modelId,
+    });
+  }
+  return raw;
+}
+
+async function extractMultipassSequential(articles, batchLabel, retries, usageCallback, contentKind, extractModel, extractOpts, groupKeys) {
   let raw = [];
   for (const key of groupKeys) {
     const passLabel = `${batchLabel} pass-${key}`;
@@ -835,16 +717,29 @@ async function extractMultipassRaw(articles, batchLabel, retries, usageCallback,
   return raw;
 }
 
+async function extractMultipassRaw(articles, batchLabel, retries, usageCallback, contentKind, extractModel, extractOpts) {
+  const groupKeys = getMultipassGroupKeys();
+  const modelId = extractModel ?? DEFAULT_EXTRACT_MODEL;
+
+  if (extractBatchEnabled() && groupKeys.length > 0) {
+    return extractMultipassViaBatch(
+      articles, batchLabel, retries, usageCallback, contentKind, extractModel, extractOpts, groupKeys, modelId,
+    );
+  }
+
+  return extractMultipassSequential(
+    articles, batchLabel, retries, usageCallback, contentKind, extractModel, extractOpts, groupKeys,
+  );
+}
+
 async function extractSignalsBatch(articles, batchLabel, retries = 3, usageCallback = null, contentKind = 'news', extractModel = null, extractOpts = {}) {
   const useMultipass = isMultipassEnabled() &&
     contentKind !== 'whatsapp_realtime' &&
     contentKind !== 'whatsapp_interactive';
 
-  let raw = [];
-  if (useMultipass) {
-    raw = await extractMultipassRaw(articles, batchLabel, retries, usageCallback, contentKind, extractModel, extractOpts);
-  } else {
-    raw = await callHaikuExtraction(articles, {
+  let raw = useMultipass
+    ? await extractMultipassRaw(articles, batchLabel, retries, usageCallback, contentKind, extractModel, extractOpts)
+    : await callHaikuExtraction(articles, {
       batchLabel,
       retries,
       usageCallback,
@@ -852,7 +747,6 @@ async function extractSignalsBatch(articles, batchLabel, retries = 3, usageCallb
       extractModel,
       extractOpts,
     });
-  }
 
   const beforeDedup = raw.length;
   raw = dedupeSignalsWithinBatch(raw);
@@ -992,3 +886,5 @@ export async function extractSignals(articles, {
   }
   return extractSignalsInBatches(batches, onUsage, onProgress, contentKind, extractModel, extractOpts);
 }
+
+export {DOMAIN_INTENT_QUERIES} from '../../../cross-cut-modules/retrieval/domainIntentQueries.js';

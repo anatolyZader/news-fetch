@@ -1,5 +1,50 @@
 import { normalizeLocalityLookupKey } from './resolveLocalityMatch.js';
 
+function displayNameForRow(row) {
+  return row.officialHebrewName
+    || row.names?.[0]
+    || String(row.canonicalKey ?? '').replaceAll('_', ' ');
+}
+
+function namesForRow(row, displayName) {
+  return [
+    displayName,
+    ...(row.names ?? []),
+    String(row.canonicalKey ?? '').replaceAll('_', ' '),
+  ].filter(Boolean);
+}
+
+function scoreNameAgainstQuery(q, name) {
+  const n = normalizeLocalityLookupKey(name);
+  if (!n) return 0;
+  if (!q) return 0.01;
+  if (n === q) return 3;
+  if (n.startsWith(q)) return 2 + q.length / Math.max(n.length, 1);
+  if (n.includes(q)) return 1 + q.length / Math.max(n.length, 1);
+  return 0;
+}
+
+function scoreLocalityRow(row, q) {
+  const displayName = displayNameForRow(row);
+  const names = namesForRow(row, displayName);
+  let score = q ? 0 : 0.01;
+  for (const name of names) {
+    const nameScore = scoreNameAgainstQuery(q, name);
+    if (!q) {
+      score = nameScore;
+      break;
+    }
+    score = Math.max(score, nameScore);
+  }
+  if (score <= 0) return null;
+  return {
+    canonicalKey: row.canonicalKey,
+    displayName,
+    subregionId: row.subregionId ?? '',
+    score,
+  };
+}
+
 /**
  * Search north-reference localities for structured picker / autocomplete.
  * @param {import('../value_objects/geoEnrichment.js').NorthLocalityRow[]} localities
@@ -14,35 +59,8 @@ export function searchLocalities(localities, query = '', opts = {}) {
   const scored = [];
 
   for (const row of localities ?? []) {
-    const displayName = row.officialHebrewName
-      || row.names?.[0]
-      || String(row.canonicalKey ?? '').replaceAll('_', ' ');
-    const names = [
-      displayName,
-      ...(row.names ?? []),
-      String(row.canonicalKey ?? '').replaceAll('_', ' '),
-    ].filter(Boolean);
-
-    let score = q ? 0 : 0.01;
-    for (const name of names) {
-      const n = normalizeLocalityLookupKey(name);
-      if (!n) continue;
-      if (!q) {
-        score = 0.01;
-        break;
-      }
-      if (n === q) score = Math.max(score, 3);
-      else if (n.startsWith(q)) score = Math.max(score, 2 + q.length / Math.max(n.length, 1));
-      else if (n.includes(q)) score = Math.max(score, 1 + q.length / Math.max(n.length, 1));
-    }
-    if (score > 0) {
-      scored.push({
-        canonicalKey: row.canonicalKey,
-        displayName,
-        subregionId: row.subregionId ?? '',
-        score,
-      });
-    }
+    const entry = scoreLocalityRow(row, q);
+    if (entry) scored.push(entry);
   }
 
   scored.sort((a, b) => {

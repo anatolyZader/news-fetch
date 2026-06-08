@@ -112,15 +112,14 @@ export function createPipelineStatusService(deps = {}) {
       enabled: true,
       status: extractCost != null && extractCost > 0 ? 'ok' : 'missing',
       kind: 'cost',
-      meta: extractCost != null ? { totalCostUsd: extractCost } : undefined,
-    });
-    stages.push({
+      meta: extractCost == null ? undefined : { totalCostUsd: extractCost },
+    }, {
       id: 'cost_assess',
       label: 'Assess signals (cost)',
       enabled: true,
       status: assessCost != null && assessCost > 0 ? 'ok' : 'missing',
       kind: 'cost',
-      meta: assessCost != null ? { totalCostUsd: assessCost } : undefined,
+      meta: assessCost == null ? undefined : { totalCostUsd: assessCost },
     });
 
     const reportMeta = reportPath ? readReportMeta(reportPath) : null;

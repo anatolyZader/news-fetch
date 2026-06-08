@@ -7,7 +7,7 @@ describe('plannerContextBuilder', () => {
     by_component: {
       information_communication: {
         evidence_mass: 0.5,
-        media_mention_mass: 3.0,
+        media_mention_mass: 3,
         thin_evidence: true,
       },
       leadership: {

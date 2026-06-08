@@ -26,7 +26,7 @@ function relPath(p) {
 export async function listLocalSonarIssues(opts) {
   const eslint = new ESLint({
     cwd: ROOT,
-    overrideConfigFile: resolve(ROOT, 'eslint.sonar.config.js'),
+    overrideConfigFile: resolve(ROOT, 'eslint.config.js'),
     errorOnUnmatchedPattern: false,
   });
 
@@ -35,10 +35,9 @@ export async function listLocalSonarIssues(opts) {
     : [
       'business_modules/**/*.{js,mjs,cjs,jsx}',
       'cross-cut-modules/**/*.{js,mjs,cjs,jsx}',
-      'api/**/*.{js,mjs,cjs,jsx}',
-      'auth/**/*.{js,mjs,cjs,jsx}',
+      'composition/**/*.{js,mjs,cjs,jsx}',
+      'db/**/*.{js,mjs,cjs,jsx}',
       'utils/**/*.{js,mjs,cjs,jsx}',
-      'shared/**/*.{js,mjs,cjs,jsx}',
       'scripts/**/*.{js,mjs,cjs,jsx}',
       'client/src/**/*.{js,jsx}',
       'app.js',

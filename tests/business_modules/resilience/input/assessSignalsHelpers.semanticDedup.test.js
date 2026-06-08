@@ -37,7 +37,7 @@ test('crossSourceDedupSemantic collapses paraphrased duplicates within same sour
       source_type: 'news',
       signal_type: 'service_disruption',
       evidence_type: 'observational_reported_fact',
-      temporal_weight: 1.0,
+      temporal_weight: 1,
       evidence: 'Schools were closed in Nahariya due to rocket fire.',
       article_url: 'u1',
       article_source: 'A',

@@ -2,17 +2,20 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { createSearchTrendsService } from '../../../../business_modules/search_trends/app/searchTrendsService.js';
 
-function mockPort() {
-  const mkSeries = (keywords) => ({
+function mkTrendSeries(keywords) {
+  return {
     series: [
       { date: 'May 10, 2026', values: Object.fromEntries(keywords.map((k, i) => [k, 10 + i])) },
       { date: 'May 11, 2026', values: Object.fromEntries(keywords.map((k, i) => [k, 20 + i])) },
     ],
     keywords,
-  });
+  };
+}
+
+function mockPort() {
   return {
     async interestOverTime({ keywords }) {
-      return mkSeries(keywords);
+      return mkTrendSeries(keywords);
     },
     async relatedQueries() {
       return {

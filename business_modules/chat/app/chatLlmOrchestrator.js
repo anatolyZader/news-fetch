@@ -2,7 +2,7 @@
  * Chat LLM orchestration (app layer) — tool loop with Claude Haiku.
  */
 import { getDefaultLlmPort, createAnthropicLlmPort } from '../../../cross-cut-modules/llm/anthropicLlmAdapter.js';
-import { createAgentKernel, chatMaxToolRounds, HAIKU_MODEL } from '../../../cross-cut-modules/agent/index.js';
+import { createAgentKernel, chatMaxToolRounds, chatCompactToolLoopEnabled, HAIKU_MODEL } from '../../../cross-cut-modules/agent/index.js';
 import { handleChatToolCall } from './chatToolHandlers.js';
 import { createChatToolContext } from './createChatToolContext.js';
 import { buildSystemTemplateToolList } from '../domain/tools/chatToolSchemas.js';
@@ -43,6 +43,7 @@ function buildSystemTemplate(ctx) {
 
 export async function streamChatResponse(systemContext, pboLookup, messages, send, reportData, opts = {}) {
   const costRecorder = opts.costRecorder ?? null;
+  const economyOverride = opts.economy?.economy_override ?? 'default';
   const toolCtx = createChatToolContext({
     userEmail: opts.userEmail ?? '',
     reportData,
@@ -63,12 +64,18 @@ export async function streamChatResponse(systemContext, pboLookup, messages, sen
     sessionId: opts.sessionId ?? '',
     onActionProposed: (event) => send(event),
     toolProfile: opts.toolProfile ?? 'default',
+    economyOverride,
   });
 
-  const system = buildSystemTemplate(toolCtx) + systemContext;
+  const system = {
+    stable: buildSystemTemplate(toolCtx),
+    dynamic: systemContext,
+  };
 
   const llmPort = opts.llmPort ?? (opts.client ? createAnthropicLlmPort({ client: opts.client }) : getDefaultLlmPort());
   const agentKernel = opts.agentKernel ?? createAgentKernel({ llmPort });
+  const compactToolLoop = opts.economy?.compact_tool_loop ?? chatCompactToolLoopEnabled();
+
   await agentKernel.run({
     profile: 'chat',
     agentKind: 'chat',
@@ -80,8 +87,9 @@ export async function streamChatResponse(systemContext, pboLookup, messages, sen
     tools: toolCtx.tools,
     executeTool: (name, input) => handleChatToolCall(name, input, toolCtx),
     onTextBlock: (text) => send({ type: 'text', text }),
-      agentKernel: opts.agentKernel ?? null,
-      abortSignal: opts.abortSignal ?? null,
+    agentKernel: opts.agentKernel ?? null,
+    abortSignal: opts.abortSignal ?? null,
+    compactHistoryAfterRound: compactToolLoop,
     onUsage: costRecorder
       ? (p) => costRecorder.onUsage({ label: p.label, model: p.model, usage: p.usage })
       : undefined,

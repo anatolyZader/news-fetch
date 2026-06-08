@@ -3,6 +3,7 @@ import { defineConfig } from 'eslint/config';
 import reactHooks from 'eslint-plugin-react-hooks';
 import globals from 'globals';
 import { reactPropTypesPlugin } from './eslint-rules/reactPropTypes.js';
+import { sonarProfilePlugins, sonarProfileRules } from './eslint-rules/sonarProfile.js';
 
 export default defineConfig([
   {
@@ -15,6 +16,12 @@ export default defineConfig([
       'dist/**',
       '.cursor/**',
       '**/*.min.js',
+      'articles_extracted/**',
+      'daily_reports/**',
+      'signals/**',
+      'cross-cut-modules/docs/content/pages/api/generated/**',
+      'business_modules/**/data/**',
+      'tests/fixtures/**',
     ],
   },
   js.configs.recommended,
@@ -45,6 +52,7 @@ export default defineConfig([
   },
   {
     files: ['**/*.{js,mjs,cjs,jsx}'],
+    plugins: sonarProfilePlugins,
     languageOptions: {
       ecmaVersion: 2024,
       sourceType: 'module',
@@ -58,6 +66,7 @@ export default defineConfig([
           caughtErrorsIgnorePattern: '^_',
         },
       ],
+      ...sonarProfileRules,
     },
   },
   {

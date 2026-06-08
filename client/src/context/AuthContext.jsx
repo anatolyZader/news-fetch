@@ -34,6 +34,51 @@ function getOrInitApp() {
   return initializeApp(getFirebaseWebConfig());
 }
 
+function warmUserIdToken(u, warmTimeoutId, tokenCacheRef, setAccessToken, setTokenWarmFailed) {
+  u.getIdToken().then((tok) => {
+    clearTimeout(warmTimeoutId);
+    if (tok) {
+      tokenCacheRef.current.token = tok;
+      tokenCacheRef.current.expiresAt = Date.now() + 60_000;
+      setAccessToken(tok);
+      setTokenWarmFailed(false);
+    } else {
+      setTokenWarmFailed(true);
+    }
+    tokenCacheRef.current.inflight = null;
+  }).catch(() => {
+    clearTimeout(warmTimeoutId);
+    tokenCacheRef.current.inflight = null;
+    setTokenWarmFailed(true);
+  });
+}
+
+async function readResponseJson(res) {
+  try {
+    return await res.json();
+  } catch {
+    return {};
+  }
+}
+
+async function verifyUserMembership(u, auth, setMembershipDenied, setAuthError, setUser) {
+  try {
+    const tok = await u.getIdToken();
+    const meRes = await fetch('/api/auth/me', {
+      headers: { Authorization: `Bearer ${tok}` },
+    });
+    const me = await readResponseJson(meRes);
+    if (meRes.status === 403 && me?.code === 'forbidden_not_invited') {
+      setMembershipDenied(true);
+      setAuthError(me?.message ?? 'Account is not authorized for this application.');
+      await signOut(auth);
+      setUser(null);
+    }
+  } catch {
+    /* proceed — API may be unreachable in dev */
+  }
+}
+
 export function AuthProvider({ children }) {
   const [configLoaded, setConfigLoaded] = useState(false);
   const [configError, setConfigError] = useState(null);
@@ -144,39 +189,8 @@ export function AuthProvider({ children }) {
         if (!tokenCacheRef.current.token) setTokenWarmFailed(true);
       }, TOKEN_WARM_TIMEOUT_MS);
 
-      void u.getIdToken().then((tok) => {
-        clearTimeout(warmTimeoutId);
-        if (tok) {
-          tokenCacheRef.current.token = tok;
-          tokenCacheRef.current.expiresAt = Date.now() + 60_000;
-          setAccessToken(tok);
-          setTokenWarmFailed(false);
-        } else {
-          setTokenWarmFailed(true);
-        }
-        tokenCacheRef.current.inflight = null;
-      }).catch(() => {
-        clearTimeout(warmTimeoutId);
-        tokenCacheRef.current.inflight = null;
-        setTokenWarmFailed(true);
-      });
-      void (async () => {
-        try {
-          const tok = await u.getIdToken();
-          const meRes = await fetch('/api/auth/me', {
-            headers: { Authorization: `Bearer ${tok}` },
-          });
-          const me = await meRes.json().catch(() => ({}));
-          if (meRes.status === 403 && me?.code === 'forbidden_not_invited') {
-            setMembershipDenied(true);
-            setAuthError(me?.message ?? 'Account is not authorized for this application.');
-            await signOut(auth);
-            setUser(null);
-          }
-        } catch {
-          /* proceed — API may be unreachable in dev */
-        }
-      })();
+      warmUserIdToken(u, warmTimeoutId, tokenCacheRef, setAccessToken, setTokenWarmFailed);
+      verifyUserMembership(u, auth, setMembershipDenied, setAuthError, setUser);
     });
 
     return () => {

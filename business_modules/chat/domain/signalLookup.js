@@ -40,8 +40,7 @@ function matchesSignalFilters(name, { date, sourceType }) {
     const prefix = sourceType === 'social' ? 'signals-social-' : `signals-${sourceType}-`;
     if (!name.startsWith(prefix)) return false;
   }
-  if (date && !name.includes(date)) return false;
-  return true;
+  return !date || name.includes(date);
 }
 
 function listSignalJsonFiles({ date, sourceType } = {}) {

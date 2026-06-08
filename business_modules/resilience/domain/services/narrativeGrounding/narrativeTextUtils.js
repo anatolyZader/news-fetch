@@ -79,5 +79,5 @@ export function bestEvidenceOverlap(text, evidenceTexts, _minOverlap = 0) {
  * @param {string} text
  */
 export function stripMarkdownLinks(text) {
-  return String(text ?? '').replace(/\(\[[^\]]*\]\([^)]*\)\)/g, '').trim();
+  return String(text ?? '').replaceAll(/\(\[[^\]]*\]\([^)]*\)\)/g, '').trim();
 }

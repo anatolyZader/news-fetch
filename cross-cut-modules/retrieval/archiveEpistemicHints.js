@@ -34,7 +34,7 @@ export function computeArchiveMentionMass(hits = []) {
  * @param {{ archiveThreshold?: number, evidenceThreshold?: number }} [opts]
  */
 export function detectArchiveAnomalies(epistemicProfile, archiveMentionMass, opts = {}) {
-  const archiveThreshold = opts.archiveThreshold ?? 2.0;
+  const archiveThreshold = opts.archiveThreshold ?? 2;
   const evidenceThreshold = opts.evidenceThreshold ?? 1.5;
   const anomalies = [];
 

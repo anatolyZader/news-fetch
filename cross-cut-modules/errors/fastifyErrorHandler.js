@@ -13,7 +13,7 @@ export function registerAppErrorHandler(app) {
       return reply.code(err.statusCode).send({
         error: err.message,
         code: err.code,
-        ...(err.details != null ? { details: err.details } : {}),
+        ...(err.details == null ? {} : { details: err.details }),
       });
     }
     const statusCode = err?.statusCode ?? err?.status ?? 500;

@@ -26,6 +26,10 @@ import {
   matchHomefrontDistrictStub,
   buildResolvedGeoFromDistrictStub,
 } from '../domain/services/homefrontDistrictStubs.js';
+import {
+  matchLandmarkGazetteer,
+  buildProvisionalGeoFromLandmark,
+} from '../domain/services/landmarkGazetteer.js';
 import { validateGeoEnvelope } from '../domain/value_objects/geoEnrichmentSchema.js';
 import { isGolanSubregionId } from '../domain/value_objects/northSubregionId.js';
 import { GEO_PROVENANCE } from '../domain/value_objects/geoProvenance.js';
@@ -153,7 +157,7 @@ function resolveFuzzyLocalityHit(trimmed, preferSubregionId, deps) {
  * @param {{ provenance: string, sourceType?: string, resolutionScope?: string }} options
  * @param {(reason: string, rawName: string, candidates: unknown, hint: object) => import('../domain/value_objects/geoEnrichment.js').GeoUnknown} unknown
  */
-function resolveUnmatchedLocality(trimmed, options, unknown) {
+function resolveUnmatchedLocality(trimmed, options, unknown, geoCtx) {
   const { provenance, sourceType, resolutionScope } = options;
   const stub = matchHomefrontDistrictStub(trimmed);
   if (stub) {
@@ -164,6 +168,16 @@ function resolveUnmatchedLocality(trimmed, options, unknown) {
     });
     stubResolved.scopeDecision = buildGeoScopeDecision(stubResolved);
     return assertValidGeo(stubResolved);
+  }
+  const landmark = matchLandmarkGazetteer(trimmed);
+  if (landmark) {
+    const provisional = buildProvisionalGeoFromLandmark(trimmed, landmark, {
+      provenance,
+      resolutionScope,
+      referenceVersion: geoCtx?.referenceVersion,
+      referenceSource: geoCtx?.referenceSource,
+    });
+    return assertValidGeo(provisional);
   }
   const nonLoc = classifyNonLocalityTerm(trimmed);
   if (nonLoc) {
@@ -408,7 +422,7 @@ export function createGeoService({ northReferencePort, overridesPort = null }) {
             normalizedInput: normalizeLocalityLookupKey(trimmed),
           });
         }
-        return resolveUnmatchedLocality(trimmed, { provenance, sourceType, resolutionScope }, unknown);
+        return resolveUnmatchedLocality(trimmed, { provenance, sourceType, resolutionScope }, unknown, geoCtx);
       }
 
       return buildResolvedGeoFromLocalityHit(

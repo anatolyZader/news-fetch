@@ -6,10 +6,10 @@
 import { readTodayCostSpend, resolveCostLogPath } from '../../log/index.js';
 import { existsSync } from 'node:fs';
 
-import { calcLlmCostUsd, LLM_PRICING } from '../../llm/llmPricing.js';
+import { calcLlmCostUsd,  } from '../../llm/llmPricing.js';
 
 // Re-export for backward compatibility
-export const PRICING = LLM_PRICING;
+
 
 /** USD per 1M embedding tokens (OpenAI text-embedding-3-*). */
 export const EMBEDDING_USD_PER_MTOK = Number.parseFloat(
@@ -38,10 +38,9 @@ export function calcEmbeddingCostUsd(_model, usage) {
  * @param {{ documentCount?: number }} [opts]
  * @returns {number}
  */
-export function calcRerankCostUsd(model, opts = {}) {
+export function calcRerankCostUsd(_model, opts = {}) {
   const count = opts.documentCount ?? 0;
   if (count <= 0) return 0;
-  void model;
   return rerankUsdPerSearch();
 }
 
@@ -214,3 +213,5 @@ export function checkDailyBudget() {
     console.error(`  📊 Today's spend so far: $${todaySpend.toFixed(4)} / $${dailyBudget} daily budget`);
   }
 }
+
+export {LLM_PRICING as PRICING} from '../../llm/llmPricing.js';

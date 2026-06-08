@@ -54,6 +54,7 @@ export function createChatToolContext(deps = {}) {
     ownerUid: deps.ownerUid ?? '',
     sessionId: deps.sessionId ?? '',
     onActionProposed: deps.onActionProposed ?? null,
+    economyOverride: deps.economyOverride ?? 'default',
     tools: buildChatToolList({
       analystToolsEnabled,
       isAnalyst,

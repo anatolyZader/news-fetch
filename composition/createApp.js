@@ -52,6 +52,7 @@ import { validationReviewRoutes } from '../business_modules/resilience/index.js'
 import { signalCatalogEvolutionRoutes } from '../business_modules/signal_catalog_evolution/index.js';
 import { evidenceRoutes } from '../cross-cut-modules/evidence/input/evidenceRoutes.js';
 import { chatRoutes } from '../business_modules/chat/input/chatRoutes.js';
+import { registerCrisisBudgetRoutes } from '../cross-cut-modules/budget/index.js';
 import { reportRoutes } from '../business_modules/resilience/input/reportRoutes.js';
 import { authRoutes } from '../cross-cut-modules/auth/authRoutes.js';
 import { operatorRoutes } from '../cross-cut-modules/monitoring/input/operatorRoutes.js';
@@ -65,72 +66,32 @@ import { wireApplication } from './wireApplication.js';
 import { MAX_EVIDENCE_DRAFT_CHARS } from './registerPlatform.js';
 import { chatOwnerUid, evidenceOwnerKey } from './registerMedia.js';
 
-/**
- * @param {{ apiKey: string, fetchArticlesForDay: (opts: { date: string }) => Promise<Array>, timezone?: string, authRequired?: boolean }} options
- */
-export async function createApp(options) {
-  const w = wireApplication();
-  const apiKey = options?.apiKey?.trim?.() ?? '';
-  if (!apiKey) {
-    throw new Error('API key is required (set NEWSAPI_API_KEY in .env)');
+async function loadOpenApiDocument(repoRoot) {
+  const openapiPath = resolve(repoRoot, 'openapi', 'openapi.yaml');
+  try {
+    return YAML.parse(await readFile(openapiPath, 'utf8'));
+  } catch {
+    return null;
   }
+}
 
-  const timezone = options.timezone || w.articleTimezone;
-  const fetchArticlesForDay = options.fetchArticlesForDay;
+async function registerOpenApi(app, repoRoot) {
+  const openapiDocument = await loadOpenApiDocument(repoRoot);
+  if (!openapiDocument) return null;
 
-  const authRequired =
-    options.authRequired ??
-    (process.env.AUTH_REQUIRED === 'true' && !!process.env.FIREBASE_PROJECT_ID?.trim());
-
-  const firebaseProjectId = process.env.FIREBASE_PROJECT_ID?.trim();
-  const needsFirebase = (
-    authRequired
-    || !!process.env.RESILIENCE_MAINTAINER_EMAILS?.trim()
-    || !!process.env.RESILIENCE_ANALYST_EMAILS?.trim()
-    || hasPrivilegedUserAccessConfigured()
-  ) && firebaseProjectId;
-  if (needsFirebase) {
-    initFirebaseAdminForAuth(firebaseProjectId);
+  await app.register(fastifySwagger, { openapi: openapiDocument });
+  const enableSwaggerUi =
+    process.env.ENABLE_SWAGGER === 'true' || process.env.NODE_ENV !== 'production';
+  if (enableSwaggerUi) {
+    await app.register(fastifySwaggerUi, {
+      routePrefix: '/api/swagger',
+      uiConfig: { docExpansion: 'list' },
+    });
   }
+  return openapiDocument;
+}
 
-  const authHook = buildAuthHook(authRequired);
-  const readAuthHook = buildReadAuthHook(authRequired);
-  setAppCheckSoftMetricsPort(w.metricsPort);
-  const tryAuthHook = buildTryAuthHook(authRequired);
-  const protectedAuthPreHandler = getProtectedAuthPreHandlers(authRequired);
-
-  if (process.env.SYNC_USER_CLAIMS_ON_START === 'true' && needsFirebase) {
-    try {
-      const claimResults = await syncAllUserAccessClaims();
-      const failed = claimResults.filter((r) => !r.ok);
-      if (failed.length > 0) {
-        console.warn(`[auth] custom claims sync: ${failed.length} failed`, failed.slice(0, 5));
-      } else {
-        console.log(`[auth] custom claims synced for ${claimResults.length} users`);
-      }
-    } catch (err) {
-      console.warn('[auth] custom claims sync on start failed:', err?.message ?? err);
-    }
-  }
-
-  const trustProxy = w.config?.trustProxy
-    ?? (process.env.TRUST_PROXY === 'true' || process.env.NODE_ENV === 'production');
-
-  const app = Fastify({
-    logger: false,
-    bodyLimit: 10 * 1024 * 1024 /* 10 MB */,
-    trustProxy,
-  });
-
-  registerAppErrorHandler(app);
-  const eventBus = getDefaultEventBus();
-  const driftServiceForEvents = createDriftService({});
-  registerModuleHandlers(eventBus, {
-    processedEvents: w.processedEventStore,
-    retrievalService: w.retrievalService,
-    driftService: driftServiceForEvents,
-  });
-
+function setupOutboxDispatcher(app, w, eventBus) {
   const outboxIntervalMs = w.config?.outboxDispatchIntervalMs ?? 5000;
   let outboxTimer = null;
   if (w.outboxStore && outboxIntervalMs > 0) {
@@ -140,49 +101,121 @@ export async function createApp(options) {
     if (typeof outboxTimer?.unref === 'function') outboxTimer.unref();
     void dispatchOutboxBatch(w.outboxStore, eventBus);
   }
-
   app.addHook('onClose', async () => {
     if (outboxTimer) clearInterval(outboxTimer);
   });
+}
 
-  app.decorate('geoService', w.geoService);
-  app.decorate('poolService', w.poolService);
+async function syncUserClaimsOnStart(needsFirebase) {
+  if (process.env.SYNC_USER_CLAIMS_ON_START !== 'true' || !needsFirebase) return;
+  try {
+    const claimResults = await syncAllUserAccessClaims();
+    const failed = claimResults.filter((r) => !r.ok);
+    if (failed.length > 0) {
+      console.warn(`[auth] custom claims sync: ${failed.length} failed`, failed.slice(0, 5));
+    } else {
+      console.log(`[auth] custom claims synced for ${claimResults.length} users`);
+    }
+  } catch (err) {
+    console.warn('[auth] custom claims sync on start failed:', err?.message ?? err);
+  }
+}
 
-  registerWhatsappRawBodyHook(app);
-  registerEarlyAuthForRateLimit(app, { authRequired });
-  await registerSecurityPlugins(app, { authRequired });
+async function registerSecurityTxtRoute(app, repoRoot) {
+  app.get('/.well-known/security.txt', async (_req, reply) => {
+    if (process.env.NODE_ENV === 'production') {
+      const txt = buildSecurityTxt();
+      return reply.type('text/plain; charset=utf-8').send(txt);
+    }
+    try {
+      const txt = await readFile(resolve(repoRoot, '.well-known', 'security.txt'), 'utf8');
+      return reply.type('text/plain; charset=utf-8').send(txt);
+    } catch {
+      return reply.code(404).send('Not found');
+    }
+  });
+}
 
-  await app.register(multipart, {
-    limits: {
-      fileSize: Number(process.env.EVIDENCE_MAX_FILE_BYTES) || 100 * 1024 * 1024,
-      files: 25,
-    },
+async function registerStaticServing(app, repoRoot, serveStatic) {
+  const clientDist = resolve(repoRoot, 'client', 'dist');
+  if (serveStatic) {
+    await app.register(fastifyStatic, { root: clientDist, prefix: '/' });
+
+    app.get('/', async (_req, reply) => {
+      try {
+        const html = await readFile(resolve(clientDist, 'index.html'), 'utf8');
+        return reply.type('text/html; charset=utf-8').send(html);
+      } catch {
+        return reply.send({
+          ok: true,
+          service: 'news',
+          endpoints: {
+            swagger: '/api/swagger',
+            openapi: '/api/openapi.json',
+            docsIndex: '/api/docs/index',
+          },
+        });
+      }
+    });
+
+    app.setNotFoundHandler(async (req, reply) => {
+      const urlPath = String(req.url ?? '').split('?')[0];
+      if (urlPath.startsWith('/api/')) {
+        return reply.code(404).send({ error: 'Not found' });
+      }
+      if (/\.[a-zA-Z0-9]+$/.test(urlPath)) {
+        return reply.code(404).send({ error: 'Not found' });
+      }
+      try {
+        const html = await readFile(resolve(clientDist, 'index.html'), 'utf8');
+        return reply.type('text/html; charset=utf-8').send(html);
+      } catch {
+        return reply.code(404).send({ error: 'Not found' });
+      }
+    });
+    return;
+  }
+
+  app.get('/', async (_req, reply) => {
+    return reply.send({
+      ok: true,
+      service: 'news-api',
+      mode: 'api-only',
+      endpoints: {
+        swagger: '/api/swagger',
+        openapi: '/api/openapi.json',
+        docsIndex: '/api/docs/index',
+      },
+    });
   });
 
-  const openapiPath = resolve(w.repoRoot, 'openapi', 'openapi.yaml');
-  let openapiDocument = null;
-  try {
-    openapiDocument = YAML.parse(await readFile(openapiPath, 'utf8'));
-  } catch {
-    /* OpenAPI optional */
-  }
-
-  if (openapiDocument) {
-    await app.register(fastifySwagger, { openapi: openapiDocument });
-    const enableSwaggerUi =
-      process.env.ENABLE_SWAGGER === 'true' || process.env.NODE_ENV !== 'production';
-    if (enableSwaggerUi) {
-      await app.register(fastifySwaggerUi, {
-        routePrefix: '/api/swagger',
-        uiConfig: { docExpansion: 'list' },
-      });
+  app.setNotFoundHandler(async (req, reply) => {
+    const urlPath = String(req.url ?? '').split('?')[0];
+    if (urlPath.startsWith('/api/')) {
+      return reply.code(404).send({ error: 'Not found' });
     }
-  }
+    return reply.code(404).send({ error: 'Not found' });
+  });
+}
 
-  const evidenceUserUploadsRoot = resolve(w.repoRoot, 'db', 'evidence-uploads');
-  const { videoDownloadDir, videoGrabService, youtubeEvidenceIngestService } =
-    w.media.createVideoServices();
-  const reportBuildService = w.media.createReportBuildServiceIfConfigured();
+async function registerApplicationRoutes(app, ctx) {
+  const {
+    w,
+    authRequired,
+    authHook,
+    readAuthHook,
+    tryAuthHook,
+    protectedAuthPreHandler,
+    timezone,
+    fetchArticlesForDay,
+    openapiDocument,
+    evidenceUserUploadsRoot,
+    videoDownloadDir,
+    videoGrabService,
+    youtubeEvidenceIngestService,
+    reportBuildService,
+    driftService,
+  } = ctx;
 
   await docsRoutes(app, {
     retrievalService: w.retrievalService,
@@ -206,6 +239,7 @@ export async function createApp(options) {
     timezone,
     fetchArticlesForDay,
     sqlitePath: w.sqlitePath,
+    crisisBudgetService: w.crisisBudgetService ?? null,
   });
 
   await app.register(validationReviewRoutes, {
@@ -217,8 +251,6 @@ export async function createApp(options) {
   });
 
   await operatorRoutes(app);
-
-  const driftService = driftServiceForEvents;
 
   await app.register(signalCatalogEvolutionRoutes, {
     catalogProposalService: w.catalogProposalService,
@@ -247,7 +279,14 @@ export async function createApp(options) {
     reportReadPort: createReportReadPort(),
     reportDisplayPort: createReportDisplayPort(),
     chatLlmPort: createClaudeChatAdapter(),
+    crisisBudgetService: w.crisisBudgetService ?? null,
   });
+
+  await registerCrisisBudgetRoutes(app, {
+    authHook,
+    crisisBudgetService: w.crisisBudgetService ?? null,
+  });
+
   await registerDriftRoutes(app, {
     driftService,
     authPreHandler: protectedAuthPreHandler,
@@ -347,80 +386,107 @@ export async function createApp(options) {
   });
 
   await w.media.registerWhatsappWebhook(app, reportBuildService);
+}
 
-  app.get('/.well-known/security.txt', async (_req, reply) => {
-    if (process.env.NODE_ENV === 'production') {
-      const txt = buildSecurityTxt();
-      return reply.type('text/plain; charset=utf-8').send(txt);
-    }
-    try {
-      const txt = await readFile(resolve(w.repoRoot, '.well-known', 'security.txt'), 'utf8');
-      return reply.type('text/plain; charset=utf-8').send(txt);
-    } catch {
-      return reply.code(404).send('Not found');
-    }
+/**
+ * @param {{ apiKey: string, fetchArticlesForDay: (opts: { date: string }) => Promise<Array>, timezone?: string, authRequired?: boolean }} options
+ */
+export async function createApp(options) {
+  const w = wireApplication();
+  const apiKey = options?.apiKey?.trim?.() ?? '';
+  if (!apiKey) {
+    throw new Error('API key is required (set NEWSAPI_API_KEY in .env)');
+  }
+
+  const timezone = options.timezone || w.articleTimezone;
+  const fetchArticlesForDay = options.fetchArticlesForDay;
+
+  const authRequired =
+    options.authRequired ??
+    (process.env.AUTH_REQUIRED === 'true' && !!process.env.FIREBASE_PROJECT_ID?.trim());
+
+  const firebaseProjectId = process.env.FIREBASE_PROJECT_ID?.trim();
+  const needsFirebase = (
+    authRequired
+    || !!process.env.RESILIENCE_MAINTAINER_EMAILS?.trim()
+    || !!process.env.RESILIENCE_ANALYST_EMAILS?.trim()
+    || hasPrivilegedUserAccessConfigured()
+  ) && firebaseProjectId;
+  if (needsFirebase) {
+    initFirebaseAdminForAuth(firebaseProjectId);
+  }
+
+  const authHook = buildAuthHook(authRequired);
+  const readAuthHook = buildReadAuthHook(authRequired);
+  setAppCheckSoftMetricsPort(w.metricsPort);
+  const tryAuthHook = buildTryAuthHook(authRequired);
+  const protectedAuthPreHandler = getProtectedAuthPreHandlers(authRequired);
+
+  await syncUserClaimsOnStart(needsFirebase);
+
+  const trustProxy = w.config?.trustProxy
+    ?? (process.env.TRUST_PROXY === 'true' || process.env.NODE_ENV === 'production');
+
+  const app = Fastify({
+    logger: false,
+    bodyLimit: 10 * 1024 * 1024 /* 10 MB */,
+    trustProxy,
   });
 
+  registerAppErrorHandler(app);
+  const eventBus = getDefaultEventBus();
+  const driftServiceForEvents = createDriftService({});
+  registerModuleHandlers(eventBus, {
+    processedEvents: w.processedEventStore,
+    retrievalService: w.retrievalService,
+    driftService: driftServiceForEvents,
+  });
+
+  setupOutboxDispatcher(app, w, eventBus);
+
+  app.decorate('geoService', w.geoService);
+  app.decorate('poolService', w.poolService);
+
+  registerWhatsappRawBodyHook(app);
+  registerEarlyAuthForRateLimit(app, { authRequired });
+  await registerSecurityPlugins(app, { authRequired });
+
+  await app.register(multipart, {
+    limits: {
+      fileSize: Number(process.env.EVIDENCE_MAX_FILE_BYTES) || 100 * 1024 * 1024,
+      files: 25,
+    },
+  });
+
+  const openapiDocument = await registerOpenApi(app, w.repoRoot);
+
+  const evidenceUserUploadsRoot = resolve(w.repoRoot, 'db', 'evidence-uploads');
+  const { videoDownloadDir, videoGrabService, youtubeEvidenceIngestService } =
+    w.media.createVideoServices();
+  const reportBuildService = w.media.createReportBuildServiceIfConfigured();
+
+  await registerApplicationRoutes(app, {
+    w,
+    authRequired,
+    authHook,
+    readAuthHook,
+    tryAuthHook,
+    protectedAuthPreHandler,
+    timezone,
+    fetchArticlesForDay,
+    openapiDocument,
+    evidenceUserUploadsRoot,
+    videoDownloadDir,
+    videoGrabService,
+    youtubeEvidenceIngestService,
+    reportBuildService,
+    driftService: driftServiceForEvents,
+  });
+
+  await registerSecurityTxtRoute(app, w.repoRoot);
+
   const serveStatic = w.config?.serveStatic !== false;
-  const clientDist = resolve(w.repoRoot, 'client', 'dist');
-
-  if (serveStatic) {
-    await app.register(fastifyStatic, { root: clientDist, prefix: '/' });
-
-    app.get('/', async (_req, reply) => {
-      try {
-        const html = await readFile(resolve(clientDist, 'index.html'), 'utf8');
-        return reply.type('text/html; charset=utf-8').send(html);
-      } catch {
-        return reply.send({
-          ok: true,
-          service: 'news',
-          endpoints: {
-            swagger: '/api/swagger',
-            openapi: '/api/openapi.json',
-            docsIndex: '/api/docs/index',
-          },
-        });
-      }
-    });
-
-    app.setNotFoundHandler(async (req, reply) => {
-      const urlPath = String(req.url ?? '').split('?')[0];
-      if (urlPath.startsWith('/api/')) {
-        return reply.code(404).send({ error: 'Not found' });
-      }
-      if (/\.[a-zA-Z0-9]+$/.test(urlPath)) {
-        return reply.code(404).send({ error: 'Not found' });
-      }
-      try {
-        const html = await readFile(resolve(clientDist, 'index.html'), 'utf8');
-        return reply.type('text/html; charset=utf-8').send(html);
-      } catch {
-        return reply.code(404).send({ error: 'Not found' });
-      }
-    });
-  } else {
-    app.get('/', async (_req, reply) => {
-      return reply.send({
-        ok: true,
-        service: 'news-api',
-        mode: 'api-only',
-        endpoints: {
-          swagger: '/api/swagger',
-          openapi: '/api/openapi.json',
-          docsIndex: '/api/docs/index',
-        },
-      });
-    });
-
-    app.setNotFoundHandler(async (req, reply) => {
-      const urlPath = String(req.url ?? '').split('?')[0];
-      if (urlPath.startsWith('/api/')) {
-        return reply.code(404).send({ error: 'Not found' });
-      }
-      return reply.code(404).send({ error: 'Not found' });
-    });
-  }
+  await registerStaticServing(app, w.repoRoot, serveStatic);
 
   return app;
 }

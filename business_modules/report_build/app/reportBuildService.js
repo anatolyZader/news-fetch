@@ -12,6 +12,39 @@ import { createHash } from 'node:crypto';
 const MAX_COLLECTING_TURNS = 6;
 const SUGGEST_CACHE_TTL_MS = 90_000;
 
+const FIELD_GAP_QUESTIONS = {
+  sourceBasis: 'האם זו תצפית ישירה שלך, דיווח מצוות מקומי, או מה שתושבים סיפרו?',
+  spread: 'זה מקרה בודד, תופעה באזור מוגדר, או רחבה יותר?',
+  observedBehavior: 'מה בדיוק ראית או שמעת? כמה דוגמאות קונקרטיות.',
+};
+
+function appendComponentFallbackQuestions(gap, seen, result) {
+  const req = EVIDENCE_REQUIREMENTS[gap.componentId];
+  if (!req?.fallbackQuestions?.length) return;
+  for (const q of req.fallbackQuestions) {
+    if (seen.has(q)) continue;
+    seen.add(q);
+    result.push(q);
+    if (result.length >= 3) break;
+  }
+}
+
+function appendFieldGapQuestion(gap, seen, result, geoLocalityPort) {
+  if (seen.has(gap.field)) return;
+  seen.add(gap.field);
+  if (gap.field === 'locality') {
+    if (geoLocalityPort?.searchLocalities) {
+      const options = geoLocalityPort.searchLocalities('', { scope: 'north', limit: 10 });
+      result.push(buildLocalityPickerMessage(options));
+    } else {
+      result.push('באיזה יישוב או אזור מדובר?');
+    }
+    return;
+  }
+  const question = FIELD_GAP_QUESTIONS[gap.field];
+  if (question) result.push(question);
+}
+
 function fallbackQuestionsFromGaps(rankedGaps, geoLocalityPort) {
   if (!rankedGaps?.length) return [];
   const seen = new Set();
@@ -19,40 +52,9 @@ function fallbackQuestionsFromGaps(rankedGaps, geoLocalityPort) {
   for (const gap of rankedGaps) {
     if (result.length >= 3) break;
     if (gap.componentId) {
-      const req = EVIDENCE_REQUIREMENTS[gap.componentId];
-      if (req?.fallbackQuestions?.length) {
-        for (const q of req.fallbackQuestions) {
-          if (seen.has(q)) continue;
-          seen.add(q);
-          result.push(q);
-          if (result.length >= 3) break;
-        }
-      }
-    } else if (gap.field === 'locality') {
-      if (!seen.has('locality')) {
-        seen.add('locality');
-        if (geoLocalityPort?.searchLocalities) {
-          const options = geoLocalityPort.searchLocalities('', { scope: 'north', limit: 10 });
-          result.push(buildLocalityPickerMessage(options));
-        } else {
-          result.push('באיזה יישוב או אזור מדובר?');
-        }
-      }
-    } else if (gap.field === 'sourceBasis') {
-      if (!seen.has('sourceBasis')) {
-        seen.add('sourceBasis');
-        result.push('האם זו תצפית ישירה שלך, דיווח מצוות מקומי, או מה שתושבים סיפרו?');
-      }
-    } else if (gap.field === 'spread') {
-      if (!seen.has('spread')) {
-        seen.add('spread');
-        result.push('זה מקרה בודד, תופעה באזור מוגדר, או רחבה יותר?');
-      }
-    } else if (gap.field === 'observedBehavior') {
-      if (!seen.has('observedBehavior')) {
-        seen.add('observedBehavior');
-        result.push('מה בדיוק ראית או שמעת? כמה דוגמאות קונקרטיות.');
-      }
+      appendComponentFallbackQuestions(gap, seen, result);
+    } else {
+      appendFieldGapQuestion(gap, seen, result, geoLocalityPort);
     }
   }
   return result;
@@ -85,7 +87,7 @@ function hasSpreadCue(text) {
   const t = String(text ?? '').toLowerCase();
   // explicit quantification or common spread words
   if (/\b(\d+|dozens|hundreds|many|most|few)\b/.test(t)) return true;
-  if (/[0-9]+|עשרות|מאות|רבים|מרבית|מעטים|המון/.test(t)) return true;
+  if (/\d+|עשרות|מאות|רבים|מרבית|מעטים|המון/.test(t)) return true;
   if (/\b(isolated|widespread|across|throughout)\b/.test(t)) return true;
   if (/בודד|נקודתי|נרחב|בכל|ברחבי/.test(t)) return true;
   return false;
@@ -112,6 +114,41 @@ function normalizeSuggestText(text) {
 
 function sha1Hex(s) {
   return createHash('sha1').update(s).digest('hex');
+}
+
+function getCachedSuggestValue(suggestCache, ownerKey, norm, now) {
+  const key = `${ownerKey}:${sha1Hex(norm)}`;
+  const cached = suggestCache.get(key);
+  if (cached && cached.expiresAt > now) return { key, value: cached.value };
+  if (cached) suggestCache.delete(key);
+  return { key, value: null };
+}
+
+function pruneSuggestCache(suggestCache, now) {
+  if (suggestCache.size <= 500) return;
+  for (const [k, v] of suggestCache) {
+    if (v.expiresAt <= now) suggestCache.delete(k);
+    if (suggestCache.size <= 400) break;
+  }
+}
+
+async function buildSuggestValue({
+  clean,
+  displayName,
+  costRecorder,
+  suggestAnalyzerPort,
+  analyzerPort,
+  geoLocalityPort,
+}) {
+  const scratchTurns = [{ role: 'officer', text: clean, ts: nowIso() }];
+  const analyzer = suggestAnalyzerPort ?? analyzerPort;
+  const onUsage = costRecorder ? (p) => costRecorder.onUsage(p) : null;
+  const analysis = await analyzer.analyzeTurnHistory(scratchTurns, displayName, null, { onUsage });
+  const structured = conservativeStructuredForSuggest(clean, analysis?.structured ?? {});
+  const { sufficient, rankedGaps } = computeGaps(structured);
+  return sufficient
+    ? { sufficient: true, followupQuestions: [] }
+    : { sufficient: false, followupQuestions: pickQuestionsFromAnalysisOrGaps(analysis, rankedGaps, geoLocalityPort) };
 }
 
 function pickQuestionsFromAnalysisOrGaps(analysis, rankedGaps, geoLocalityPort) {
@@ -214,9 +251,9 @@ export function createReportBuildService({
         const picked = parseLocalityPickerReply(clean, options);
         if (picked) {
           draftStore.updateStructured(draftId, {
-            ...(draft?.structured_state ?? {}),
+            ...draft?.structured_state,
             observation: {
-              ...(draft?.structured_state?.observation ?? {}),
+              ...draft?.structured_state?.observation,
               localityKey: picked.canonicalKey,
               locality: picked.displayName,
             },
@@ -252,35 +289,20 @@ export function createReportBuildService({
       const clean = safeText(text);
       if (!clean) return { sufficient: false, followupQuestions: [] };
 
-      const norm = normalizeSuggestText(clean);
-      const key = `${ownerKey}:${sha1Hex(norm)}`;
       const now = Date.now();
-      const cached = suggestCache.get(key);
-      if (cached && cached.expiresAt > now) return cached.value;
-      if (cached) suggestCache.delete(key);
+      const { key, value: cachedValue } = getCachedSuggestValue(suggestCache, ownerKey, normalizeSuggestText(clean), now);
+      if (cachedValue) return cachedValue;
 
-      const scratchTurns = [{ role: 'officer', text: clean, ts: nowIso() }];
-      const analyzer = suggestAnalyzerPort ?? analyzerPort;
-      const onUsage = costRecorder
-        ? (p) => costRecorder.onUsage(p)
-        : null;
-      const analysis = await analyzer.analyzeTurnHistory(scratchTurns, displayName, null, { onUsage });
-      const structured = conservativeStructuredForSuggest(clean, analysis?.structured ?? {});
-      const { sufficient, rankedGaps } = computeGaps(structured);
-
-      const value = sufficient
-        ? { sufficient: true, followupQuestions: [] }
-        : { sufficient: false, followupQuestions: pickQuestionsFromAnalysisOrGaps(analysis, rankedGaps, geoLocalityPort) };
-
+      const value = await buildSuggestValue({
+        clean,
+        displayName,
+        costRecorder,
+        suggestAnalyzerPort,
+        analyzerPort,
+        geoLocalityPort,
+      });
       suggestCache.set(key, { expiresAt: now + SUGGEST_CACHE_TTL_MS, value });
-      // Best-effort pruning (keep memory bounded).
-      if (suggestCache.size > 500) {
-        for (const [k, v] of suggestCache) {
-          if (v.expiresAt <= now) suggestCache.delete(k);
-          if (suggestCache.size <= 400) break;
-        }
-      }
-
+      pruneSuggestCache(suggestCache, now);
       return value;
     },
 

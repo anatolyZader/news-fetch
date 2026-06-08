@@ -61,6 +61,40 @@ function buildHeuristicQuestions(text) {
   return qs.slice(0, 3);
 }
 
+async function readFetchJson(res) {
+  try {
+    return await res.json();
+  } catch {
+    return {};
+  }
+}
+
+function appendRevealedQuestionChar(prevQs, qIdx, chIdx, qText) {
+  const next = [...prevQs];
+  next[qIdx] = qText.slice(0, chIdx + 1);
+  return next;
+}
+
+function updateTypewriterProgress(prev, questions, step, typeTimerRef, setTypedQuestions) {
+  const qText = questions[prev.qIdx] ?? '';
+  if (!qText) {
+    const nextQ = prev.qIdx + 1;
+    if (nextQ >= questions.length) return prev;
+    return { qIdx: nextQ, chIdx: 0 };
+  }
+
+  if (prev.chIdx >= qText.length) {
+    const nextQ = prev.qIdx + 1;
+    if (nextQ >= questions.length) return prev;
+    typeTimerRef.current = setTimeout(step, 180);
+    return { qIdx: nextQ, chIdx: 0 };
+  }
+
+  setTypedQuestions((prevQs) => appendRevealedQuestionChar(prevQs, prev.qIdx, prev.chIdx, qText));
+  typeTimerRef.current = setTimeout(step, 25);
+  return { qIdx: prev.qIdx, chIdx: prev.chIdx + 1 };
+}
+
 function stripParentheticals(text) {
   // Presentation-only: remove parenthetical explanations like "(why ...)".
   const s = String(text ?? '');
@@ -70,6 +104,40 @@ function stripParentheticals(text) {
     .replaceAll(/\s+/g, ' ')
     .trim();
   return out;
+}
+
+async function fetchReportBuildSuggestions({
+  text,
+  controller,
+  getIdToken,
+  getAppCheckToken,
+  setLiveQuestions,
+  suggestLastAtRef,
+  setSuggesting,
+}) {
+  try {
+    suggestLastAtRef.current = Date.now();
+    const headers = await buildAuthHeaders({ getIdToken, getAppCheckToken });
+    headers.set('Content-Type', 'application/json');
+
+    const res = await fetch('/api/report-build/suggest', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ text }),
+      signal: controller.signal,
+    });
+    const data = await readFetchJson(res);
+    if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`);
+
+    const nextQs = Array.isArray(data?.followupQuestions) ? data.followupQuestions : [];
+    const sufficient = Boolean(data?.sufficient);
+    setLiveQuestions(sufficient ? [] : nextQs);
+  } catch (e) {
+    if (e?.name === 'AbortError') return;
+    // Keep last questions on transient errors.
+  } finally {
+    setSuggesting(false);
+  }
 }
 
 async function postJson(url, body, { getIdToken, getAppCheckToken } = {}) {
@@ -187,7 +255,7 @@ export function ReportBuildPanel({ open, onClose, variant = 'modal' }) {
     if (variant !== 'window') return undefined;
     const onPageHide = () => {
       if (!sessionActiveRef.current) return;
-      void postJson('/api/report-build/cancel', {}, { getIdToken, getAppCheckToken }).catch(() => {});
+      postJson('/api/report-build/cancel', {}, { getIdToken, getAppCheckToken }).catch(() => {});
     };
     globalThis.addEventListener('pagehide', onPageHide);
     return () => globalThis.removeEventListener('pagehide', onPageHide);
@@ -250,33 +318,15 @@ export function ReportBuildPanel({ open, onClose, variant = 'modal' }) {
 
       setSuggesting(true);
 
-      void (async () => {
-        try {
-          suggestLastAtRef.current = Date.now();
-          const headers = await buildAuthHeaders({ getIdToken, getAppCheckToken });
-          headers.set('Content-Type', 'application/json');
-
-          const res = await fetch('/api/report-build/suggest', {
-            method: 'POST',
-            headers,
-            body: JSON.stringify({ text }),
-            signal: controller.signal,
-          });
-          const data = await res.json().catch(() => ({}));
-          if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`);
-
-          const nextQs = Array.isArray(data?.followupQuestions) ? data.followupQuestions : [];
-          const sufficient = Boolean(data?.sufficient);
-          // On a successful response, replace questions to reflect what was answered.
-          // If sufficient, clear the follow-ups.
-          setLiveQuestions(sufficient ? [] : nextQs);
-        } catch (e) {
-          if (e?.name === 'AbortError') return;
-          // Keep last questions on transient errors.
-        } finally {
-          setSuggesting(false);
-        }
-      })();
+      fetchReportBuildSuggestions({
+        text,
+        controller,
+        getIdToken,
+        getAppCheckToken,
+        setLiveQuestions,
+        suggestLastAtRef,
+        setSuggesting,
+      }).catch(() => {});
     }, delayMs);
 
     return () => {
@@ -374,32 +424,7 @@ export function ReportBuildPanel({ open, onClose, variant = 'modal' }) {
     const step = () => {
       if (typeRunIdRef.current !== runId) return;
 
-      setTypedProgress((prev) => {
-        const qText = questions[prev.qIdx] ?? '';
-        if (!qText) {
-          const nextQ = prev.qIdx + 1;
-          if (nextQ >= questions.length) return prev;
-          return { qIdx: nextQ, chIdx: 0 };
-        }
-
-        if (prev.chIdx >= qText.length) {
-          const nextQ = prev.qIdx + 1;
-          if (nextQ >= questions.length) return prev;
-          // Small pause between questions.
-          typeTimerRef.current = setTimeout(step, 180);
-          return { qIdx: nextQ, chIdx: 0 };
-        }
-
-        // Reveal next character.
-        setTypedQuestions((prevQs) => {
-          const next = [...prevQs];
-          next[prev.qIdx] = qText.slice(0, prev.chIdx + 1);
-          return next;
-        });
-
-        typeTimerRef.current = setTimeout(step, 25);
-        return { qIdx: prev.qIdx, chIdx: prev.chIdx + 1 };
-      });
+      setTypedProgress((prev) => updateTypewriterProgress(prev, questions, step, typeTimerRef, setTypedQuestions));
     };
 
     typeTimerRef.current = setTimeout(step, 50);

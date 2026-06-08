@@ -10,7 +10,7 @@ import { createHash } from 'node:crypto';
  */
 export function createTraceStore(reportsDir = 'daily_reports') {
   function tracePath(traceId) {
-    const safe = String(traceId ?? '').replace(/[^\w.-]/g, '_');
+    const safe = String(traceId ?? '').replaceAll(/[^\w.-]/g, '_');
     return join(reportsDir, `assessment-agent-trace-${safe}.jsonl`);
   }
 

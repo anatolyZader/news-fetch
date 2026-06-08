@@ -1,11 +1,10 @@
 /**
  * LLM draft generator for catalog signal-type proposals (never writes signalCatalog.js).
  */
-import Anthropic from '@anthropic-ai/sdk';
+import { resolveLlmPort } from '../../../../cross-cut-modules/llm/resolveLlmPort.js';
 import { catalogProposalLlmEnabled } from '../../../../cross-cut-modules/retrieval/ragConfig.js';
 import { extractJson } from '../../../../cross-cut-modules/resilience-contracts/index.js';
 
-const client = new Anthropic();
 const MODEL = 'claude-haiku-4-5-20251001';
 
 /**
@@ -23,7 +22,7 @@ export async function generateCatalogProposalFields(cluster, opts = {}) {
     };
   }
 
-  const anthropic = opts.client ?? client;
+  const port = resolveLlmPort(opts);
   const samples = (cluster.sample_evidence ?? []).slice(0, 3).join('\n---\n');
   const nearest = (cluster.nearest_catalog ?? [])
     .slice(0, 3)
@@ -39,7 +38,7 @@ export async function generateCatalogProposalFields(cluster, opts = {}) {
     'Return JSON only with keys: suggested_signal_type, suggested_label, suggested_definition, ' +
     'merge_vs_new_recommendation (merge|new|review), rationale.';
 
-  const response = await anthropic.messages.create({
+  const response = await port.createMessage({
     model: MODEL,
     max_tokens: 1200,
     temperature: 0,
@@ -47,6 +46,7 @@ export async function generateCatalogProposalFields(cluster, opts = {}) {
       'You help analysts draft new signal catalog entries for Israeli community resilience monitoring. ' +
       'Never invent evidence. Propose snake_case signal types matching existing catalog style.',
     messages: [{ role: 'user', content: userContent }],
+    callContext: { feature: 'catalog_proposal', purpose: 'catalog-proposal-draft' },
   });
 
   const text = response.content.filter((b) => b.type === 'text').map((b) => b.text).join('');

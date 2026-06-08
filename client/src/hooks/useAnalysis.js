@@ -56,6 +56,10 @@ function applyFoundReport(data, setters) {
   setters.setReportDate(typeof data.reportDate === 'string' ? data.reportDate : null);
   setters.setDisplayView(data.display_view === 'analyst' ? 'analyst' : 'operator');
   setters.setAttentionItems(Array.isArray(data.attention_items) ? data.attention_items : []);
+  setters.setActionCompass(data.action_compass ?? null);
+  setters.setAnomalyStrip(data.anomaly_strip ?? null);
+  setters.setBudgetStatus(data.budget_status ?? null);
+  setters.setSuggestCrisisBudget(data.suggest_crisis_budget === true);
   setters.setReportMissingHint(null);
   setters.setReportLoadError(null);
 }
@@ -104,6 +108,10 @@ export function useTodayReport(scope = 'national', view = 'operator') {
   const [reportMissingHint, setReportMissingHint] = useState(null);
   const [reportLoadError, setReportLoadError] = useState(null);
   const [attentionItems, setAttentionItems] = useState(null);
+  const [actionCompass, setActionCompass] = useState(null);
+  const [anomalyStrip, setAnomalyStrip] = useState(null);
+  const [budgetStatus, setBudgetStatus] = useState(null);
+  const [suggestCrisisBudget, setSuggestCrisisBudget] = useState(false);
 
   useEffect(() => {
     if (!reportFetchReady) return undefined;
@@ -120,6 +128,10 @@ export function useTodayReport(scope = 'national', view = 'operator') {
       setInitialReportLoadDone,
       setReportMissingHint,
       setAttentionItems,
+      setActionCompass,
+      setAnomalyStrip,
+      setBudgetStatus,
+      setSuggestCrisisBudget,
       setReportLoadError,
     };
 
@@ -135,6 +147,10 @@ export function useTodayReport(scope = 'national', view = 'operator') {
       setInitialReportLoadDone(false);
       setReportMissingHint(null);
       setAttentionItems(null);
+      setActionCompass(null);
+      setAnomalyStrip(null);
+      setBudgetStatus(null);
+      setSuggestCrisisBudget(false);
       setReportLoadError(null);
 
       if (authRequired && tokenWarmFailed && !accessTokenRef.current) {
@@ -195,6 +211,10 @@ export function useTodayReport(scope = 'national', view = 'operator') {
     reportMissingHint,
     reportLoadError,
     attentionItems,
+    actionCompass,
+    anomalyStrip,
+    budgetStatus,
+    suggestCrisisBudget,
   };
 }
 

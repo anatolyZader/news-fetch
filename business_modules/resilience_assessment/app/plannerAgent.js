@@ -1,7 +1,16 @@
 /**
  * Planner agent — one round investigation plan with gap-first and exploration tasks.
  */
-import { createAgentKernel, HAIKU_MODEL, PROMPT_VERSION } from '../../../cross-cut-modules/agent/index.js';
+import {
+  createAgentKernel,
+  HAIKU_MODEL,
+  PROMPT_VERSION,
+  slimPlannerPromptsEnabled,
+} from '../../../cross-cut-modules/agent/index.js';
+import {
+  compactEpistemicProfileForPlanner,
+  compactPlannerContextForPrompt,
+} from '../../../cross-cut-modules/retrieval/compactAssessPrompts.js';
 import { PLANNER_TOOLS, ASSESSMENT_PLANNER_PROFILE } from '../../../cross-cut-modules/agent/profiles/assessment.profile.js';
 import { COMPONENT_IDS } from '../../../cross-cut-modules/resilience-contracts/componentIds.js';
 import {
@@ -12,21 +21,31 @@ import { shouldUseDeterministicPlanner } from '../domain/services/plannerPolicy.
 import { shouldAbstainFromInvestigation } from '../../epistemic_features/domain/services/investigationEpistemic.js';
 
 function buildPlannerSystem(epistemicProfile, plannerContext) {
-  const gapBlock = plannerContext
-    ? `\n\nPLANNER CONTEXT (gaps, anomalies, OOV):\n${JSON.stringify(plannerContext, null, 2)}`
-    : '';
+  const slim = slimPlannerPromptsEnabled();
+  const profileBlock = slim
+    ? compactEpistemicProfileForPlanner(epistemicProfile)
+    : epistemicProfile;
+  let ctxBlock = null;
+  if (plannerContext) {
+    ctxBlock = slim ? compactPlannerContextForPrompt(plannerContext) : plannerContext;
+  }
+
   const gapInstruction = gapPlannerEnabled()
     ? ' You MUST assign at least one gap_closure task per investigation gap for non-abstained components.'
     : '';
-  return (
+
+  const stable =
     'You are the assessment planner for Israeli community resilience reports. ' +
     'Analyze epistemic profile hints and produce an investigation plan. ' +
     'Use submit_plan with focus_components, investigation_tasks, gap_closure_tasks, abstention_components.' +
-    gapInstruction +
-    '\n\nFROZEN EPISTEMIC PROFILE:\n' +
-    `${JSON.stringify(epistemicProfile, null, 2)}` +
-    gapBlock
-  );
+    gapInstruction;
+
+  let dynamic = `\n\nFROZEN EPISTEMIC PROFILE:\n${JSON.stringify(profileBlock, null, 2)}`;
+  if (ctxBlock) {
+    dynamic += `\n\nPLANNER CONTEXT (gaps, anomalies, OOV):\n${JSON.stringify(ctxBlock, null, 2)}`;
+  }
+
+  return { stable, dynamic };
 }
 
 function defaultPlan(epistemicProfile, plannerContext = null) {

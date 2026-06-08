@@ -9,6 +9,18 @@ function readJsonSafe(filePath) {
   }
 }
 
+function extractJsonMeta(data) {
+  const meta = {};
+  if (typeof data.total_articles === 'number') meta.total_articles = data.total_articles;
+  if (typeof data.extracted_at === 'string') meta.extracted_at = data.extracted_at;
+  if (typeof data.generated_at === 'string') meta.generated_at = data.generated_at;
+  if (data.assessment?.total_articles_analyzed != null) {
+    meta.total_articles_analyzed = data.assessment.total_articles_analyzed;
+  }
+  if (Array.isArray(data.signals)) meta.total_signals = data.signals.length;
+  return meta;
+}
+
 /**
  * @param {string} rootDir
  * @param {string} id
@@ -34,18 +46,10 @@ export function scanArtifactStage(rootDir, id, label, relativePath, opts = {}) {
     /* ignore */
   }
 
-  const meta = {};
+  let meta;
   if (abs.endsWith('.json')) {
     const data = readJsonSafe(abs);
-    if (data) {
-      if (typeof data.total_articles === 'number') meta.total_articles = data.total_articles;
-      if (typeof data.extracted_at === 'string') meta.extracted_at = data.extracted_at;
-      if (typeof data.generated_at === 'string') meta.generated_at = data.generated_at;
-      if (data.assessment?.total_articles_analyzed != null) {
-        meta.total_articles_analyzed = data.assessment.total_articles_analyzed;
-      }
-      if (Array.isArray(data.signals)) meta.total_signals = data.signals.length;
-    }
+    if (data) meta = extractJsonMeta(data);
   }
 
   return {
@@ -56,6 +60,6 @@ export function scanArtifactStage(rootDir, id, label, relativePath, opts = {}) {
     kind,
     path: relativePath,
     mtime,
-    meta: Object.keys(meta).length > 0 ? meta : undefined,
+    meta: meta && Object.keys(meta).length > 0 ? meta : undefined,
   };
 }

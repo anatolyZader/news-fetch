@@ -23,7 +23,7 @@ export function classifyGap(gapText, compId) {
   const text = String(gapText ?? '');
   let gap_type = 'investigation';
   if (text.includes('need more corroborating')) gap_type = 'data';
-  const slug = text.slice(0, 40).replace(/\W+/g, '_').toLowerCase();
+  const slug = text.slice(0, 40).replaceAll(/\W+/g, '_').toLowerCase();
   return {
     gap_id: `${compId}:${slug}`,
     component_id: compId,
@@ -68,29 +68,7 @@ export function buildClassifiedGapsForPlanner(gapsByComponent) {
  * @param {object} [oovBurst]
  * @param {number} [totalArticles]
  */
-export function buildEvidenceGraph({
-  hits = [],
-  signals = [],
-  epistemicProfile,
-  scoredLike = null,
-  oovBurst = null,
-  totalArticles = 0,
-  residualObservations = [],
-}) {
-  const registry = scoredLike
-    ? buildSignalRefRegistry(scoredLike)
-    : buildSignalRefRegistryFromSignals(signals);
-
-  const nodes = {
-    sources: [],
-    chunks: [],
-    signals: [],
-    hypotheses: [],
-    oov_clusters: [],
-  };
-  const edges = [];
-
-  const sourceIds = new Set();
+function addHitNodes(hits, nodes, edges, sourceIds) {
   for (const h of hits) {
     nodes.chunks.push({
       id: h.chunkId ?? h.parentId,
@@ -111,7 +89,9 @@ export function buildEvidenceGraph({
       edges.push({ from: h.parentId, to: h.chunkId ?? h.parentId, type: 'published' });
     }
   }
+}
 
+function addSignalNodes(signals, registry, nodes, edges) {
   for (const s of signals ?? []) {
     const ref = registry.byRef ? [...registry.byRef.entries()].find(([, v]) => v.signal === s)?.[0] : null;
     const refKey = ref ?? buildRefFromSignal(s);
@@ -132,10 +112,18 @@ export function buildEvidenceGraph({
       }
     }
   }
+}
 
-  const oovClaimsByComponent = injectOovClusters(nodes, oovBurst);
-  const residualClaimsByComponent = injectResidualObservations(nodes, residualObservations);
-
+function buildComponentHypotheses({
+  hits,
+  signals,
+  epistemicProfile,
+  registry,
+  totalArticles,
+  nodes,
+  oovClaimsByComponent,
+  residualClaimsByComponent,
+}) {
   const byComponent = {};
   for (const compId of COMPONENT_IDS) {
     const compProfile = epistemicProfile?.by_component?.[compId] ?? {};
@@ -149,19 +137,61 @@ export function buildEvidenceGraph({
       registry,
       totalArticles,
     );
-    const oovClaims = oovClaimsByComponent[compId] ?? [];
-    const residualClaims = residualClaimsByComponent[compId] ?? [];
-    const mergedClaims = [...claims, ...oovClaims, ...residualClaims];
-    const retrieval_gaps = buildRetrievalGaps(compId, compProfile, mergedClaims);
-
+    const mergedClaims = [
+      ...claims,
+      ...(oovClaimsByComponent[compId] ?? []),
+      ...(residualClaimsByComponent[compId] ?? []),
+    ];
     nodes.hypotheses.push({ id: `hyp:${compId}`, component_id: compId });
     byComponent[compId] = {
       component_id: compId,
       claims: mergedClaims,
-      retrieval_gaps,
+      retrieval_gaps: buildRetrievalGaps(compId, compProfile, mergedClaims),
       epistemic_flags: buildEpistemicFlags(compProfile),
     };
   }
+  return byComponent;
+}
+
+export function buildEvidenceGraph({
+  hits = [],
+  signals = [],
+  epistemicProfile,
+  scoredLike = null,
+  oovBurst = null,
+  totalArticles = 0,
+  residualObservations = [],
+  dataVoid = null,
+}) {
+  const registry = scoredLike
+    ? buildSignalRefRegistry(scoredLike)
+    : buildSignalRefRegistryFromSignals(signals);
+
+  const nodes = {
+    sources: [],
+    chunks: [],
+    signals: [],
+    hypotheses: [],
+    oov_clusters: [],
+  };
+  const edges = [];
+  const sourceIds = new Set();
+
+  addHitNodes(hits, nodes, edges, sourceIds);
+  addSignalNodes(signals, registry, nodes, edges);
+
+  const oovClaimsByComponent = injectOovClusters(nodes, oovBurst, dataVoid);
+  const residualClaimsByComponent = injectResidualObservations(nodes, residualObservations);
+  const byComponent = buildComponentHypotheses({
+    hits,
+    signals,
+    epistemicProfile,
+    registry,
+    totalArticles,
+    nodes,
+    oovClaimsByComponent,
+    residualClaimsByComponent,
+  });
 
   return {
     nodes,
@@ -172,15 +202,23 @@ export function buildEvidenceGraph({
   };
 }
 
-function injectOovClusters(nodes, oovBurst) {
+function injectOovClusters(nodes, oovBurst, dataVoid = null) {
   const byComponent = Object.fromEntries(COMPONENT_IDS.map((id) => [id, []]));
   if (!oovGraphEnabled()) return byComponent;
 
   const residualInBurst = oovBurst?.residual_observation_count ?? 0;
   const clusterCount = oovBurst?.top_cluster_count ?? 0;
-  const shouldInject = oovBurst?.alert === true
+  const voidLevel = dataVoid?.level ?? 'none';
+  const elevatedVoid = voidLevel === 'elevated' || voidLevel === 'critical'
+    || dataVoid?.digital_darkness === true;
+
+  let shouldInject = oovBurst?.alert === true
     || clusterCount >= 3
     || (residualInBurst >= 2 && clusterCount >= 1);
+
+  if (elevatedVoid && (clusterCount >= 1 || residualInBurst >= 1)) {
+    shouldInject = true;
+  }
 
   if (!shouldInject) return byComponent;
 
@@ -267,10 +305,14 @@ function mapOovToComponent(keywords, sample) {
     ['lifesaving_behavior', ['shelter', 'safety', 'emergency', 'evacuat']],
     ['functional_continuity', ['service', 'infrastructure', 'continuity', 'supply']],
   ];
+  let componentId = 'narrative';
   for (const [compId, terms] of hints) {
-    if (terms.some((t) => text.includes(t))) return compId;
+    if (terms.some((t) => text.includes(t))) {
+      componentId = compId;
+      break;
+    }
   }
-  return 'narrative';
+  return componentId;
 }
 
 function buildSignalRefRegistryFromSignals(signals) {
@@ -293,22 +335,28 @@ function signalMapsToComponent(signal, compId) {
   return compId in (SIGNAL_TO_COMPONENTS[t] ?? {});
 }
 
-function buildClaimsForComponent(compId, compSignals, hits, profile, registry, totalArticles) {
+function buildSignalClaims(compId, compSignals, registry, profile) {
   const claims = [];
   let idx = 0;
   for (const s of compSignals.slice(0, 8)) {
     const ref = [...(registry.byRef?.entries() ?? [])].find(([, v]) => v.signal === s)?.[0]
       ?? buildRefFromSignal(s);
     const polarity = s.polarity_override === 'negative' ? 'weaken' : 'support';
+    idx += 1;
     claims.push({
-      claim_id: `${compId}:c${idx += 1}`,
+      claim_id: `${compId}:c${idx}`,
       text: String(s.evidence ?? s.description ?? '').slice(0, 280) || `${s.signal_type ?? s.type} signal`,
       support: polarity === 'support' ? [{ ref, mass: 0.3 }] : [],
       contradict: polarity === 'weaken' ? [{ ref, mass: 0.3 }] : [],
       epistemic_flags: profile.contested ? ['contested'] : [],
     });
   }
+  return { claims, idx };
+}
 
+function buildRagClaims(compId, hits, profile, startIdx) {
+  const claims = [];
+  let idx = startIdx;
   const ragHits = hits
     .filter((h) => h.seed_origin === 'component_rag' && (!h.component_id || h.component_id === compId))
     .slice(0, RAG_SEED_CLAIM_CAP);
@@ -317,25 +365,37 @@ function buildClaimsForComponent(compId, compSignals, hits, profile, registry, t
     const flags = ['rag_seed'];
     if (profile.thin_evidence) flags.push('thin_evidence');
     const mass = profile.thin_evidence ? 0.2 : 0.25;
+    idx += 1;
     claims.push({
-      claim_id: `${compId}:r${idx += 1}`,
+      claim_id: `${compId}:r${idx}`,
       text: String(h.text ?? '').slice(0, 200),
       support: [{ ref: h.parentId ?? h.chunkId, mass }],
       contradict: [],
       epistemic_flags: flags,
     });
   }
+  return { claims, idx };
+}
+
+function buildFallbackClaim(compId, hits, profile) {
+  const h = hits[0];
+  return {
+    claim_id: `${compId}:c1`,
+    text: String(h.text ?? '').slice(0, 200),
+    support: [{ ref: h.parentId ?? h.chunkId, mass: 0.2 }],
+    contradict: [],
+    epistemic_flags: profile.thin_evidence ? ['thin_evidence', 'rag_seed'] : ['rag_seed'],
+  };
+}
+
+function buildClaimsForComponent(compId, compSignals, hits, profile, registry, totalArticles) {
+  const { claims: signalClaims, idx: signalIdx } = buildSignalClaims(compId, compSignals, registry, profile);
+  const { claims: ragClaims } = buildRagClaims(compId, hits, profile, signalIdx);
+  const claims = [...signalClaims, ...ragClaims];
 
   const skipRagOnlyFallback = profile.thin_evidence && totalArticles < THIN_ARTICLE_THRESHOLD;
   if (claims.length === 0 && hits.length > 0 && !skipRagOnlyFallback) {
-    const h = hits[0];
-    claims.push({
-      claim_id: `${compId}:c1`,
-      text: String(h.text ?? '').slice(0, 200),
-      support: [{ ref: h.parentId ?? h.chunkId, mass: 0.2 }],
-      contradict: [],
-      epistemic_flags: profile.thin_evidence ? ['thin_evidence', 'rag_seed'] : ['rag_seed'],
-    });
+    claims.push(buildFallbackClaim(compId, hits, profile));
   }
   if ((profile.dominance_warnings ?? []).length > 0 && claims[0]) {
     claims[0].epistemic_flags.push('single_source_dominance');

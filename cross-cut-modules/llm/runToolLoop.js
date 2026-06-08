@@ -4,6 +4,7 @@
 import { extractLastAssistantText } from './anthropicMessageUtils.js';
 import { appendAuditEvent } from '../security/input/auditLog.js';
 import { buildCompactMemoryBlock, formatCompactMemoryMessage } from '../agent/memory/compactMemoryBlock.js';
+import { prepareAnthropicRequest, resolvePromptCacheFeature } from './promptCache.js';
 
 function emitTextBlocks(textBlocks, onTextBlock) {
   if (!onTextBlock) return;
@@ -113,14 +114,18 @@ export async function runToolLoop(opts) {
 
   for (let round = 0; round <= maxRounds; round++) {
     throwIfAborted();
-    const response = await client.messages.create({
+    const prepared = prepareAnthropicRequest({
       model,
       max_tokens: maxTokens,
       temperature,
       system,
       messages: currentMessages,
       tools,
-    });
+      agentKind,
+      callContext: opts.callContext,
+    }, { feature: resolvePromptCacheFeature({ ...opts, agentKind }) });
+
+    const response = await client.messages.create(prepared);
 
     stopReason = response.stop_reason ?? null;
     lastUsage = response.usage ?? null;
@@ -131,6 +136,7 @@ export async function runToolLoop(opts) {
         model,
         usage: lastUsage,
         stopReason,
+        promptCacheApplied: prepared.callContext?.promptCacheApplied === true,
       });
     }
 

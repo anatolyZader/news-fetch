@@ -35,4 +35,6 @@ export async function attachDecisionBrief(assessment, opts = {}) {
   return null;
 }
 
-export { decisionBriefEnabled };
+
+
+export {decisionBriefEnabled} from '../infrastructure/decisionBriefGenerator.js';

@@ -49,6 +49,42 @@ function bodyHash(body) {
   return createHash('sha256').update(String(body ?? ''), 'utf8').digest('hex');
 }
 
+function rowMatchesSearchFilters(row, { q, url, title, sourceType }) {
+  if (sourceType && row.source_type !== sourceType) return false;
+  if (url && normalize(row.source_url) !== url) return false;
+  if (title && !safeLower(row.title).includes(title)) return false;
+  if (q) {
+    const hay = safeLower(
+      `${row.title ?? ''}\n${row.source_url ?? ''}\n${row.body ?? ''}\n${row.source_label ?? ''}`,
+    );
+    if (!hay.includes(q)) return false;
+  }
+  return true;
+}
+
+function formatSearchRow(row, snippetChars) {
+  return {
+    source_id: row.source_id,
+    title: normalize(row.title),
+    url: normalize(row.source_url),
+    source_type: normalize(row.source_type),
+    source_label: normalize(row.source_label),
+    published_at: normalize(row.published_at),
+    snippet: clip(normalize(row.body), snippetChars),
+  };
+}
+
+function filterSearchRows(rows, filters) {
+  const { limit, snippetChars, q, url, title, sourceType } = filters;
+  const out = [];
+  for (const row of rows) {
+    if (out.length >= limit) break;
+    if (!rowMatchesSearchFilters(row, { q, url, title, sourceType })) continue;
+    out.push(formatSearchRow(row, snippetChars));
+  }
+  return out;
+}
+
 /**
  * @param {string} dbPath
  */
@@ -200,27 +236,7 @@ export function createSourceArchiveStore(dbPath) {
         ? listByDateStmt.all(dateFrom)
         : listByDateRangeStmt.all(dateFrom, dateTo);
 
-      const out = [];
-      for (const row of rows) {
-        if (out.length >= limit) break;
-        if (sourceType && row.source_type !== sourceType) continue;
-        if (url && normalize(row.source_url) !== url) continue;
-        const hay = safeLower(
-          `${row.title ?? ''}\n${row.source_url ?? ''}\n${row.body ?? ''}\n${row.source_label ?? ''}`,
-        );
-        if (title && !safeLower(row.title).includes(title)) continue;
-        if (q && !hay.includes(q)) continue;
-        out.push({
-          source_id: row.source_id,
-          title: normalize(row.title),
-          url: normalize(row.source_url),
-          source_type: normalize(row.source_type),
-          source_label: normalize(row.source_label),
-          published_at: normalize(row.published_at),
-          snippet: clip(normalize(row.body), snippetChars),
-        });
-      }
-      return out;
+      return filterSearchRows(rows, { limit, snippetChars, q, url, title, sourceType });
     },
 
     /**

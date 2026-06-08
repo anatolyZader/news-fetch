@@ -11,6 +11,8 @@ import { createMailingPreferencesStore } from '../business_modules/mailing/infra
 import { setTranslationRetrievalService } from '../business_modules/translation/app/translationTermRag.js';
 import { createOutboxStore } from '../db/persistence/outboxStore.js';
 import { createProcessedEventStore } from '../db/persistence/processedEventStore.js';
+import { createCrisisBudgetSqliteAdapter } from '../cross-cut-modules/budget/infrastructure/adapters/crisisBudgetSqliteAdapter.js';
+import { createCrisisBudgetService } from '../cross-cut-modules/budget/app/crisisBudgetService.js';
 
 /**
  * @param {{ repoRoot: string, sqlitePath?: string, articleTimezone?: string }} opts
@@ -42,6 +44,8 @@ export function registerPersistence(opts) {
   const mailingPrefsStore = createMailingPreferencesStore(sqlitePath);
   const outboxStore = createOutboxStore(sqlitePath);
   const processedEventStore = createProcessedEventStore(sqlitePath);
+  const crisisBudgetAdapter = createCrisisBudgetSqliteAdapter({ dbPath: sqlitePath });
+  const crisisBudgetService = createCrisisBudgetService({ adapter: crisisBudgetAdapter });
 
   return {
     sqlitePath,
@@ -57,5 +61,6 @@ export function registerPersistence(opts) {
     mailingPrefsStore,
     outboxStore,
     processedEventStore,
+    crisisBudgetService,
   };
 }

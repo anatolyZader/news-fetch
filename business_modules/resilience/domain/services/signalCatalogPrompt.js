@@ -71,7 +71,7 @@ function formatEntryDisambiguation(entry) {
     lines.push(`  Mirror (if evidence fits better): \`${entry.mirror}\``);
   }
   if (d?.not_confused_with?.length) {
-    lines.push(`  NOT: ${d.not_confused_with.map((t) => `\`${t}\``).join(', ')}`);
+    lines.push('  NOT: ' + d.not_confused_with.map((t) => '`' + t + '`').join(', '));
   }
   for (const p of d?.accept_patterns ?? []) {
     lines.push(`  ACCEPT: ${p}`);

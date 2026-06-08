@@ -44,9 +44,8 @@
  */
 
 import 'dotenv/config';
-import { resolve } from 'node:path';
+import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { dirname } from 'node:path';
 import { createScheduledStreamCaptureJobStore } from '../infrastructure/scheduledStreamCaptureJobStore.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -63,23 +62,29 @@ const store = createScheduledStreamCaptureJobStore(sqlitePath);
 
 const DAY_NAMES = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 
+function parseDayToken(token) {
+  const n = Number.parseInt(token, 10);
+  return Number.isNaN(n) ? DAY_NAMES.indexOf(token) : n;
+}
+
+function addDayRange(days, part) {
+  const [from, to] = part.split('-').map(parseDayToken);
+  if (from < 0 || to < 0 || from > 6 || to > 6) throw new Error(`Invalid day range: ${part}`);
+  for (let d = from; d <= to; d++) days.add(d);
+}
+
+function addSingleDay(days, part) {
+  const day = parseDayToken(part);
+  if (day < 0 || day > 6) throw new Error(`Invalid day: ${part}`);
+  days.add(day);
+}
+
 function parseDays(str) {
   const parts = str.toLowerCase().split(',');
   const days = new Set();
   for (const part of parts) {
-    if (part.includes('-')) {
-      const [from, to] = part.split('-').map((s) => {
-        const n = Number.parseInt(s, 10);
-        return Number.isNaN(n) ? DAY_NAMES.indexOf(s) : n;
-      });
-      if (from < 0 || to < 0 || from > 6 || to > 6) throw new Error(`Invalid day range: ${part}`);
-      for (let d = from; d <= to; d++) days.add(d);
-    } else {
-      const n = Number.parseInt(part, 10);
-      const day = Number.isNaN(n) ? DAY_NAMES.indexOf(part) : n;
-      if (day < 0 || day > 6) throw new Error(`Invalid day: ${part}`);
-      days.add(day);
-    }
+    if (part.includes('-')) addDayRange(days, part);
+    else addSingleDay(days, part);
   }
   return [...days].sort((a, b) => a - b);
 }
@@ -100,13 +105,7 @@ function parseScheduleSlot(slotStr) {
 
 /** Parse "0-4:18:00,5:12:00" → array of slot objects */
 function parseSchedule(str) {
-  return str.split(',').reduce((acc, chunk) => {
-    // A slot has exactly two colons: DAYS:HH:MM
-    // But commas might split inside DAYS (e.g. "0,1,2:18:00") — re-join greedily
-    // Strategy: scan forward collecting tokens until we have "...:HH:MM" pattern
-    acc.push(chunk.trim());
-    return acc;
-  }, []).map(parseScheduleSlot);
+  return str.split(',').map((chunk) => chunk.trim()).map(parseScheduleSlot);
 }
 
 /** Parse "30m", "1h", "90s", "1800" → seconds */

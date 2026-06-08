@@ -1,4 +1,5 @@
 import { getDefaultLlmPort, createAnthropicLlmPort } from '../../../cross-cut-modules/llm/anthropicLlmAdapter.js';
+import { createLlmGateway } from '../../../cross-cut-modules/llm/llmGateway.js';
 import { jsonrepair } from 'jsonrepair';
 import {
   appendCostLog,
@@ -55,6 +56,55 @@ function parseClassifierJson(text) {
   return parsed;
 }
 
+function recordRejectedRow(row, source, rejected, rejected_examples) {
+  const reason = String(row.reason ?? 'off_topic');
+  rejected[reason] = (rejected[reason] ?? 0) + 1;
+  if (source?.url) rejected_examples.push({ url: source.url, reason });
+}
+
+function buildFindingFromRow(row, source) {
+  const id = String(row.id ?? '');
+  return {
+    id,
+    date: String(row.date ?? findingDateFromPostedAt(source?.postedAt)),
+    location: String(row.location ?? source?.location ?? 'לא ברור'),
+    platform: String(row.platform ?? source?.platform ?? 'x'),
+    source_kind: String(row.source_kind ?? 'post'),
+    url: String(row.url ?? source?.url ?? ''),
+    quote_original: String(row.quote_original ?? source?.text ?? ''),
+    quote_language: row.quote_language ?? source?.meta?.lang ?? 'he',
+    quote_translation_he: row.quote_translation_he ?? null,
+    speaker_role: String(row.speaker_role ?? 'לא ברור'),
+    behavior_or_emotion: String(row.behavior_or_emotion ?? ''),
+    resilience_component: String(row.resilience_component ?? 'narrative'),
+    confidence: row.confidence ?? 'בינונית',
+    relevance_reason: String(row.relevance_reason ?? ''),
+    verification_notes: String(row.verification_notes ?? ''),
+  };
+}
+
+function applyClassifierRows(rows, batch, findings, rejected, rejected_examples) {
+  const byId = new Map(batch.map((c) => [String(c.id), c]));
+  for (const row of rows) {
+    const source = byId.get(String(row.id ?? ''));
+    if (!row.keep) {
+      recordRejectedRow(row, source, rejected, rejected_examples);
+      continue;
+    }
+    findings.push(buildFindingFromRow(row, source));
+  }
+}
+
+async function loadFewShotBlock(candidates, retrieval) {
+  if (!socialClassifyRagEnabled() || !retrieval?.hybridRetrieve || candidates.length === 0) return '';
+  const sampleQ = candidates
+    .slice(0, 3)
+    .map((c) => String(c.text ?? '').slice(0, 120))
+    .join(' ');
+  const examples = await retrieveSocialFewShotExamples(sampleQ, retrieval);
+  return formatSocialFewShotBlock(examples);
+}
+
 /**
  * @param {object[]} candidates
  * @param {{ onUsage?: Function }} [opts]
@@ -66,24 +116,18 @@ export async function classifySocialCandidates(candidates, opts = {}) {
   }
 
   if (!opts.skipBudgetCheck) checkDailyBudget();
-  const llmPort = opts.llmPort ?? (opts.anthropicClient ? createAnthropicLlmPort({ client: opts.anthropicClient }) : getDefaultLlmPort());
+  const llmPort = opts.llmPort ?? (
+    opts.anthropicClient
+      ? createLlmGateway(createAnthropicLlmPort({ client: opts.anthropicClient }))
+      : getDefaultLlmPort()
+  );
   const tracker = createCostTracker({ label: 'social-gather-classify' });
 
   /** @type {object[]} */
   const findings = [];
   const rejected = {};
   const rejected_examples = [];
-
-  const retrieval = opts.retrieval ?? null;
-  let fewShotBlock = '';
-  if (socialClassifyRagEnabled() && retrieval?.hybridRetrieve && candidates.length > 0) {
-    const sampleQ = candidates
-      .slice(0, 3)
-      .map((c) => String(c.text ?? '').slice(0, 120))
-      .join(' ');
-    const examples = await retrieveSocialFewShotExamples(sampleQ, retrieval);
-    fewShotBlock = formatSocialFewShotBlock(examples);
-  }
+  const fewShotBlock = await loadFewShotBlock(candidates, opts.retrieval ?? null);
 
   for (let offset = 0; offset < candidates.length; offset += BATCH_SIZE) {
     const batch = candidates.slice(offset, offset + BATCH_SIZE);
@@ -98,6 +142,7 @@ export async function classifySocialCandidates(candidates, opts = {}) {
       temperature: 0,
       system: CLASSIFIER_SYSTEM,
       messages: [{ role: 'user', content: userContent }],
+      callContext: { feature: 'social_classify', purpose: `classify batch ${offset / BATCH_SIZE + 1}` },
     });
 
     const cost = calcInvocationCostUsd(MODEL, message.usage);
@@ -105,36 +150,7 @@ export async function classifySocialCandidates(candidates, opts = {}) {
     opts.onUsage?.({ model: MODEL, usage: message.usage, cost });
 
     const text = message.content.find((b) => b.type === 'text')?.text ?? '';
-    const rows = parseClassifierJson(text);
-    const byId = new Map(batch.map((c) => [String(c.id), c]));
-
-    for (const row of rows) {
-      const id = String(row.id ?? '');
-      const source = byId.get(id);
-      if (!row.keep) {
-        const reason = String(row.reason ?? 'off_topic');
-        rejected[reason] = (rejected[reason] ?? 0) + 1;
-        if (source?.url) rejected_examples.push({ url: source.url, reason });
-        continue;
-      }
-      findings.push({
-        id,
-        date: String(row.date ?? findingDateFromPostedAt(source?.postedAt)),
-        location: String(row.location ?? source?.location ?? 'לא ברור'),
-        platform: String(row.platform ?? source?.platform ?? 'x'),
-        source_kind: String(row.source_kind ?? 'post'),
-        url: String(row.url ?? source?.url ?? ''),
-        quote_original: String(row.quote_original ?? source?.text ?? ''),
-        quote_language: row.quote_language ?? source?.meta?.lang ?? 'he',
-        quote_translation_he: row.quote_translation_he ?? null,
-        speaker_role: String(row.speaker_role ?? 'לא ברור'),
-        behavior_or_emotion: String(row.behavior_or_emotion ?? ''),
-        resilience_component: String(row.resilience_component ?? 'narrative'),
-        confidence: row.confidence ?? 'בינונית',
-        relevance_reason: String(row.relevance_reason ?? ''),
-        verification_notes: String(row.verification_notes ?? ''),
-      });
-    }
+    applyClassifierRows(parseClassifierJson(text), batch, findings, rejected, rejected_examples);
   }
 
   if (!opts.skipCostLog) {

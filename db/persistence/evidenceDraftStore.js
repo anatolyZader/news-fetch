@@ -328,7 +328,7 @@ export function createEvidenceDraftStore(dbPath) {
 
     getDailyAnalysisCount(ownerKey, day) {
       const row = getDailyAnalysisCountStmt.get(ownerKey, day);
-      return row?.count != null ? Number(row.count) : 0;
+      return row?.count == null ? 0 : Number(row.count);
     },
 
     incrementDailyAnalysisCount(ownerKey, day) {

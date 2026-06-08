@@ -1,0 +1,104 @@
+/**
+ * Anomaly strip — OOV/residual/salience signals bypassing synthesizer prose.
+ */
+
+/**
+ * @param {object|null|undefined} assessment
+ * @returns {boolean}
+ */
+function isCrisisEpistemicMode(assessment) {
+  const mode = assessment?.assessment_mode ?? 'normal';
+  const sampling = assessment?.epistemic_status?.sampling_status ?? 'normal';
+  const voidLevel = assessment?.data_void?.level ?? 'none';
+  return mode === 'abstained'
+    || sampling === 'blind'
+    || assessment?.data_void?.digital_darkness === true
+    || voidLevel === 'critical'
+    || voidLevel === 'elevated';
+}
+
+function claimHasAnomalyFlag(claim) {
+  const flags = claim.flags ?? claim.epistemic_flags ?? [];
+  return flags.includes('oov_cluster') || flags.includes('unverified');
+}
+
+/**
+ * @param {object|null|undefined} assessment
+ * @returns {{ level: string, clusters: object[], salience_signals: object[], show_operator: boolean }|null}
+ */
+export function buildAnomalyStrip(assessment) {
+  if (!assessment || typeof assessment !== 'object') return null;
+
+  const oovBurst = assessment.oov_burst ?? null;
+  const crisisMode = isCrisisEpistemicMode(assessment);
+  const clusters = [];
+
+  for (const c of oovBurst?.top_clusters ?? []) {
+    clusters.push({
+      cluster_key: c.cluster_key ?? c.key ?? 'unknown',
+      count: c.count ?? 0,
+      keywords: c.keywords ?? [],
+      sample_evidence: c.sample_evidence ?? [],
+      high_salience: c.high_salience === true,
+      source: 'oov_burst',
+    });
+  }
+
+  if (!clusters.length && oovBurst?.top_cluster_key) {
+    clusters.push({
+      cluster_key: oovBurst.top_cluster_key,
+      count: oovBurst.top_cluster_count ?? 0,
+      keywords: oovBurst.top_cluster_keywords ?? [],
+      sample_evidence: [],
+      high_salience: oovBurst.salience_bypass === true,
+      source: 'oov_burst',
+    });
+  }
+
+  for (const comp of assessment.components ?? []) {
+    for (const node of comp.evidence_tree ?? comp.claims ?? []) {
+      if (!claimHasAnomalyFlag(node)) continue;
+      const key = node.claim_id ?? `${comp.component_id}:${String(node.text ?? '').slice(0, 30)}`;
+      if (clusters.some((c) => c.cluster_key === key)) continue;
+      clusters.push({
+        cluster_key: key,
+        count: 1,
+        keywords: node.flags ?? [],
+        sample_evidence: [String(node.text ?? '').slice(0, 200)],
+        high_salience: comp.instrument?.salience_critical === true,
+        source: 'evidence_tree',
+        component_id: comp.component_id,
+      });
+    }
+  }
+
+  const salience_signals = (assessment.components ?? [])
+    .filter((c) => c.instrument?.salience_critical === true || c.salience_critical === true)
+    .map((c) => ({
+      component_id: c.component_id,
+      operator_status: c.operator_status ?? c.instrument?.confidence,
+      instrument: c.instrument?.thin_evidence_instrument ?? null,
+    }));
+
+  const totalClusterCount = clusters.reduce((n, c) => n + (c.count ?? 0), 0);
+  const show_operator = oovBurst?.alert === true
+    || (crisisMode && clusters.length >= 1)
+    || salience_signals.length >= 1;
+
+  if (!clusters.length && !salience_signals.length) return null;
+
+  let level = oovBurst?.level ?? 'info';
+  if (salience_signals.length && level === 'info') level = 'warning';
+  if (crisisMode && clusters.length && level === 'info') level = 'warning';
+
+  return {
+    level,
+    clusters: clusters.slice(0, 8),
+    salience_signals: salience_signals.slice(0, 6),
+    show_operator,
+    total_count: totalClusterCount,
+    crisis_mode: crisisMode,
+  };
+}
+
+export { isCrisisEpistemicMode };

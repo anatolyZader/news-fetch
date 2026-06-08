@@ -9,6 +9,13 @@ import { chatRoutes } from '../../../../business_modules/chat/input/chatRoutes.j
 import { createChatStore } from '../../../../business_modules/chat/infrastructure/chatStore.js';
 import { createChatPendingActionStore } from '../../../../business_modules/chat/infrastructure/chatPendingActionStore.js';
 
+async function testAuthPreHandler(request) {
+  request.user = {
+    uid: 'u1',
+    email: request.headers['x-test-email'] ?? 'analyst@test.com',
+  };
+}
+
 describe('chatRoutes confirm-action', () => {
   let dir;
   /** @type {import('fastify').FastifyInstance} */
@@ -31,14 +38,8 @@ describe('chatRoutes confirm-action', () => {
     });
 
     app = Fastify();
-    const authPreHandler = async (request) => {
-      request.user = {
-        uid: 'u1',
-        email: request.headers['x-test-email'] ?? 'analyst@test.com',
-      };
-    };
     await chatRoutes(app, {
-      authHook: { preHandler: authPreHandler },
+      authHook: { preHandler: testAuthPreHandler },
       chatStore,
       chatOwnerUid: (request) => request.user?.uid ?? '',
       timezone: 'Asia/Jerusalem',

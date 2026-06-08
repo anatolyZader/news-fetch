@@ -149,4 +149,32 @@ describe('executePendingAction', () => {
       else process.env.RESILIENCE_ANALYST_EMAILS = prev;
     }
   });
+
+  it('compresses long get_source responses for the LLM', async () => {
+    const prev = process.env.CHAT_COMPRESS_TOOLS;
+    process.env.CHAT_COMPRESS_TOOLS = '1';
+    try {
+      const longBody = 'Lorem ipsum '.repeat(800);
+      const sourceArchive = {
+        getBySourceId: () => ({
+          source_id: 'md:2026-05-30:99',
+          title: 'Long article',
+          source_type: 'news',
+          source_url: 'https://example.com/a',
+          body: longBody,
+        }),
+      };
+      const result = await handleChatToolCall('get_source', { source_id: 'md:2026-05-30:99' }, {
+        sourceArchive,
+        economyOverride: 'default',
+      });
+      const parsed = JSON.parse(result);
+      assert.equal(parsed.source_id, 'md:2026-05-30:99');
+      assert.ok(parsed.body_excerpt.length <= 2000);
+      assert.ok(result.length < longBody.length);
+    } finally {
+      if (prev === undefined) delete process.env.CHAT_COMPRESS_TOOLS;
+      else process.env.CHAT_COMPRESS_TOOLS = prev;
+    }
+  });
 });

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { readFileSync } from 'fs';
-import { resolve } from 'path';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 import { createGeoService } from '../../../../business_modules/geo/app/geoService.js';
 import { isGeoResolved } from '../../../../business_modules/geo/domain/value_objects/geoEnrichment.js';
@@ -18,6 +18,26 @@ function mockBundle({ localities, border }) {
 
 const corpusPath = resolve('tests', 'business_modules', 'geo', 'golden', 'geo_golden_corpus.json');
 const corpus = JSON.parse(readFileSync(corpusPath, 'utf8'));
+
+function assertCorpusCase(c, serviceFor) {
+  const svc = serviceFor(c.overrides ?? null);
+  const out = svc.resolveLocalityName(c.input);
+  assert.equal(out.kind, c.expect.kind, `case=${c.name}`);
+
+  if (c.expect.kind === 'unknown') {
+    assert.equal(out.reason, c.expect.reason, `case=${c.name}`);
+    return;
+  }
+
+  assert.ok(isGeoResolved(out), `case=${c.name} expected resolved`);
+  if (c.expect.canonicalKey) assert.equal(out.resolution.canonicalKey, c.expect.canonicalKey, `case=${c.name}`);
+  if (c.expect.geoEntityType) assert.equal(out.geoEntityType, c.expect.geoEntityType, `case=${c.name}`);
+  if (c.expect.matchMethod) assert.equal(out.resolution.matchMethod, c.expect.matchMethod, `case=${c.name}`);
+  if (c.expect.usableForMetrics != null) assert.equal(out.policy.usableForMetrics, c.expect.usableForMetrics, `case=${c.name}`);
+  if (c.expect.distanceSemantics != null) {
+    assert.equal(out.classification?.distanceSemantics, c.expect.distanceSemantics, `case=${c.name}`);
+  }
+}
 
 test('geo golden corpus', () => {
   const localities = [
@@ -61,24 +81,6 @@ test('geo golden corpus', () => {
     });
 
   for (const c of corpus) {
-    const svc = serviceFor(c.overrides ?? null);
-    const out = svc.resolveLocalityName(c.input);
-    assert.equal(out.kind, c.expect.kind, `case=${c.name}`);
-
-    if (c.expect.kind === 'unknown') {
-      assert.equal(out.reason, c.expect.reason, `case=${c.name}`);
-      continue;
-    }
-
-    assert.ok(isGeoResolved(out), `case=${c.name} expected resolved`);
-    if (isGeoResolved(out)) {
-      if (c.expect.canonicalKey) assert.equal(out.resolution.canonicalKey, c.expect.canonicalKey, `case=${c.name}`);
-      if (c.expect.geoEntityType) assert.equal(out.geoEntityType, c.expect.geoEntityType, `case=${c.name}`);
-      if (c.expect.matchMethod) assert.equal(out.resolution.matchMethod, c.expect.matchMethod, `case=${c.name}`);
-      if (c.expect.usableForMetrics != null) assert.equal(out.policy.usableForMetrics, c.expect.usableForMetrics, `case=${c.name}`);
-      if (c.expect.distanceSemantics != null) {
-        assert.equal(out.classification?.distanceSemantics, c.expect.distanceSemantics, `case=${c.name}`);
-      }
-    }
+    assertCorpusCase(c, serviceFor);
   }
 });

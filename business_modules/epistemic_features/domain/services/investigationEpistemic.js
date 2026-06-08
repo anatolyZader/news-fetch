@@ -5,7 +5,7 @@ import { COMPONENT_IDS } from '../../../../cross-cut-modules/resilience-contract
 import { splitInvestigationMassEnabled } from '../../../../cross-cut-modules/agent/agentConfig.js';
 
 const INVESTIGATION_MASS_THRESHOLD = 1.5;
-const ARCHIVE_ELIGIBILITY_THRESHOLD = 2.0;
+const ARCHIVE_ELIGIBILITY_THRESHOLD = 2;
 const RESIDUAL_MASS_UNIT = 0.35;
 const ARCHIVE_MASS_UNIT = 0.5;
 const OOV_MASS_UNIT = 0.15;
@@ -40,7 +40,7 @@ export function enrichProfileForInvestigation(profile, ctx = {}) {
   const byComponent = { ...profile.by_component };
 
   for (const compId of COMPONENT_IDS) {
-    const base = { ...(byComponent[compId] ?? {}) };
+    const base = { ...byComponent[compId] };
     const scored = scoredComponents[compId] ?? {};
 
     base.presence_gate_triggered = scored.presence_gate_triggered === true;
@@ -90,7 +90,7 @@ function computeInvestigationEligible(ep, extras) {
   if (extras.archiveMass >= ARCHIVE_ELIGIBILITY_THRESHOLD) return true;
   if (extras.residualCount > 0) return true;
   if (extras.oovClusterCount > 0) return true;
-  if ((ep.media_mention_mass ?? 0) >= 2.0) return true;
+  if ((ep.media_mention_mass ?? 0) >= 2) return true;
   return false;
 }
 

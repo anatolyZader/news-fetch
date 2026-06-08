@@ -23,6 +23,11 @@ import { OpenaiTranscriptionAdapter } from '../../../business_modules/audio/infr
 const CLIP_DURATION_SEC = 600; // 10 minutes
 const SETTLE_TIMEOUT_MS = 720_000; // 12 min max wait
 
+function transcriptionFailureMessage(failCount, transcriptionFailures) {
+  const details = transcriptionFailures.map((f) => f.station + ': ' + f.error).join('; ');
+  return 'At most 1 transcription failure allowed (music-only stream). Failed ' + failCount + ': ' + details;
+}
+
 describe('recordAndTranscribe', { timeout: 1_800_000 }, () => {
   const testDbPath = join(tmpdir(), `rec-trans-${Date.now()}.sqlite`);
   const testRecDir = join(tmpdir(), `rec-trans-out-${Date.now()}`);
@@ -57,8 +62,8 @@ describe('recordAndTranscribe', { timeout: 1_800_000 }, () => {
     const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     return {
       dayOfWeek: DOW.indexOf(dowStr),
-      hour: parseInt(parts.hour, 10),
-      minute: parseInt(parts.minute, 10),
+      hour: Number.parseInt(parts.hour, 10),
+      minute: Number.parseInt(parts.minute, 10),
     };
   }
 
@@ -193,8 +198,7 @@ describe('recordAndTranscribe', { timeout: 1_800_000 }, () => {
 
     // Allow at most 1 failure (a station playing only music during the test window)
     const failCount = transcriptionFailures.length;
-    assert.ok(failCount <= 1,
-      `At most 1 transcription failure allowed (music-only stream). Failed ${failCount}: ${transcriptionFailures.map((f) => `${f.station}: ${f.error}`).join('; ')}`);
+    assert.ok(failCount <= 1, transcriptionFailureMessage(failCount, transcriptionFailures));
     assert.ok(transcriptionResults.length >= recordingResults.length - 1,
       `At least ${recordingResults.length - 1}/${recordingResults.length} stations should transcribe successfully (got ${transcriptionResults.length})`);
   });

@@ -101,4 +101,6 @@ export function groupObservationsByComponent(observations = []) {
   return byComponent;
 }
 
-export { INVESTIGATION_KINDS, LEARNING_CAPTURE_KINDS };
+export { INVESTIGATION_KINDS,  };
+
+export {LEARNING_CAPTURE_KINDS} from '../learningCapture/kinds.js';

@@ -45,7 +45,7 @@ function buildSpecialistSystem(componentId, epistemicProfile, evidenceGraph, ass
     ? '\nPrefer submitting from seeded claims; minimal retrieval unless a gap task requires it.\n'
     : '';
 
-  return (
+  const stable =
     `You assess resilience component "${componentId}". ` +
     'Tool order: use retrieve_for_claim, cross_source_compare, or expand_source_neighborhood FIRST; ' +
     'then lookup_signals to verify catalog refs; use get_source for verbatim quotes. ' +
@@ -53,11 +53,14 @@ function buildSpecialistSystem(componentId, epistemicProfile, evidenceGraph, ass
     'If thin_evidence, use severity abstain. For retrieval gaps, add attempted: entries when you tried to close them.\n' +
     compactHint +
     tierBHint +
-    adversarialSystemHint(compEp) +
+    adversarialSystemHint(compEp);
+
+  const dynamic =
     `\nEPISTEMIC HINTS:\n${epBlock}\n\n` +
     `EVIDENCE GRAPH:\n${graphBlock}` +
-    taskBlock
-  );
+    taskBlock;
+
+  return { stable, dynamic };
 }
 
 function abstentionAssessment(componentId, epistemicProfile, traceId, specialistTier = 'C') {
@@ -69,8 +72,8 @@ function abstentionAssessment(componentId, epistemicProfile, traceId, specialist
     operator_status: 'insufficient_data',
     claims: [],
     narrative: ep.thin_evidence
-      ? `Insufficient evidence to assess ${componentId.replace(/_/g, ' ')} today.`
-      : `Assessment abstained for ${componentId.replace(/_/g, ' ')}.`,
+      ? `Insufficient evidence to assess ${componentId.replaceAll('_', ' ')} today.`
+      : `Assessment abstained for ${componentId.replaceAll('_', ' ')}.`,
     dissent_summary: '',
     retrieval_gaps: [`need more evidence for ${componentId}`],
     reasoning_trace_id: traceId,

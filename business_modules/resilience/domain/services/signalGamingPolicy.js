@@ -2,11 +2,11 @@
  * Anti-gaming policy for citizen-sourced and high-volume signals.
  */
 
-import { isDmPhoneAllowed as isDmPhoneAllowedContract } from '../../../../cross-cut-modules/resilience-contracts/gamingPolicy.js';
+
 import { CRITICAL_BYPASS_SIGNAL_TYPES } from './highSalienceBypass.js';
 import { GROUNDING_TIER } from './groundingPolicy.js';
 
-export { isDmPhoneAllowedContract as isDmPhoneAllowed };
+
 
 const DEFAULT_DAILY_CAP = 20;
 const DEFAULT_HOURLY_TYPE_CAP = 5;
@@ -132,3 +132,5 @@ export function fieldProvenanceComplete(signal) {
     ?? signal?.localityKey;
   return Boolean(fp?.officer_id || localityKey);
 }
+
+export {isDmPhoneAllowed} from '../../../../cross-cut-modules/resilience-contracts/gamingPolicy.js';

@@ -132,11 +132,9 @@ try {
       `YouTube transcript: ${r.segmentCount} segment(s), ${r.articleBlocks} block(s) — source: ${tr.source}`,
     );
   } else {
-    console.error(
-      `No usable YouTube captions.${tr.ytDlpError ? ` yt-dlp: ${tr.ytDlpError}` : ''}${
-        tr.dataApiError ? ` Data API: ${tr.dataApiError}` : ''
-      }`,
-    );
+    const ytDlpPart = tr.ytDlpError ? ' yt-dlp: ' + tr.ytDlpError : '';
+    const dataApiPart = tr.dataApiError ? ' Data API: ' + tr.dataApiError : '';
+    console.error('No usable YouTube captions.' + ytDlpPart + dataApiPart);
   }
 
   // ── Contextualize path: get raw segments → scene articles ──────────────────

@@ -19,6 +19,7 @@ export {
   summariseStageEvents,
   summarizeStageDropRates,
   readTodayCostSpend,
+  readTodayCostSpendForScripts,
 } from './app/costLog.js';
 
 export { summariseStageEvents as summarizeStageEvents } from './app/costLog.js';

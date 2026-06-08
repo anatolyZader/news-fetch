@@ -527,6 +527,31 @@ export const SIGNAL_TO_COMPONENTS = {
   workplace_flexibility_response: { functional_continuity: +0.6, wellbeing_at_risk: +0.5 },
 };
 
+function checkCatalogEntryPolarity(entry, mapping, warnings) {
+  const hasPositive = Object.values(mapping).some((w) => w > 0);
+  const hasNegative = Object.values(mapping).some((w) => w < 0);
+  if (entry.defaultPolarity === 'positive' && !hasPositive) {
+    warnings.push(`${entry.type}: defaultPolarity positive but no positive weight`);
+  }
+  if (entry.defaultPolarity === 'negative' && !hasNegative) {
+    warnings.push(`${entry.type}: defaultPolarity negative but no negative weight`);
+  }
+}
+
+function checkCatalogEntryMirror(entry, warnings) {
+  if (entry.mirror && !CATALOG_BY_TYPE[entry.mirror]) {
+    warnings.push(`${entry.type}: mirror target missing: ${entry.mirror}`);
+  }
+}
+
+function checkCatalogEntryIntensities(entry, intensityLevels, warnings) {
+  for (const lvl of entry.scoringPriors?.allowed_intensities ?? []) {
+    if (!intensityLevels.has(lvl)) {
+      warnings.push(`${entry.type}: invalid allowed_intensity ${lvl}`);
+    }
+  }
+}
+
 /**
  * Assert catalog ↔ mapping coherence (for tests).
  * @returns {string[]} warning messages
@@ -540,24 +565,9 @@ export function assertCatalogPolarityCoherence() {
       warnings.push(`missing mapping for ${entry.type}`);
       continue;
     }
-    const hasPositive = Object.values(mapping).some((w) => w > 0);
-    const hasNegative = Object.values(mapping).some((w) => w < 0);
-    if (entry.defaultPolarity === 'positive' && !hasPositive) {
-      warnings.push(`${entry.type}: defaultPolarity positive but no positive weight`);
-    }
-    if (entry.defaultPolarity === 'negative' && !hasNegative) {
-      warnings.push(`${entry.type}: defaultPolarity negative but no negative weight`);
-    }
-    if (entry.mirror && !CATALOG_BY_TYPE[entry.mirror]) {
-      warnings.push(`${entry.type}: mirror target missing: ${entry.mirror}`);
-    }
-    if (entry.scoringPriors?.allowed_intensities) {
-      for (const lvl of entry.scoringPriors.allowed_intensities) {
-        if (!intensityLevels.has(lvl)) {
-          warnings.push(`${entry.type}: invalid allowed_intensity ${lvl}`);
-        }
-      }
-    }
+    checkCatalogEntryPolarity(entry, mapping, warnings);
+    checkCatalogEntryMirror(entry, warnings);
+    checkCatalogEntryIntensities(entry, intensityLevels, warnings);
   }
   for (const type of Object.keys(SIGNAL_TO_COMPONENTS)) {
     if (!CATALOG_BY_TYPE[type]) warnings.push(`orphan mapping for ${type}`);
