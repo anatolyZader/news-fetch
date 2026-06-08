@@ -8,6 +8,8 @@ import {
   buildGapClosureTasks,
   gapPlannerEnabled,
 } from '../../../cross-cut-modules/retrieval/plannerContextBuilder.js';
+import { shouldUseDeterministicPlanner } from '../domain/services/plannerPolicy.js';
+import { shouldAbstainFromInvestigation } from '../../epistemic_features/domain/services/investigationEpistemic.js';
 
 function buildPlannerSystem(epistemicProfile, plannerContext) {
   const gapBlock = plannerContext
@@ -32,8 +34,9 @@ function defaultPlan(epistemicProfile, plannerContext = null) {
   const abstention = [];
   for (const id of COMPONENT_IDS) {
     const ep = epistemicProfile?.by_component?.[id] ?? {};
-    if (ep.thin_evidence) abstention.push(id);
-    else if (ep.contested || ep.delta_significance?.startsWith('HIGH') || ep.evidence_mass >= 4) {
+    if (shouldAbstainFromInvestigation(ep)) abstention.push(id);
+    else if (ep.contested || ep.delta_significance?.startsWith('HIGH') || ep.evidence_mass >= 4
+      || ep.investigation_eligible === true) {
       focus.push(id);
     }
   }
@@ -73,6 +76,17 @@ function defaultPlan(epistemicProfile, plannerContext = null) {
   };
 }
 
+function finalizePlan(plan, epistemicProfile, plannerContext, plannerSource) {
+  const out = { ...plan, planner_source: plannerSource };
+  if (!out.gap_closure_tasks?.length && plannerContext) {
+    out.gap_closure_tasks = buildGapClosureTasks(plannerContext.investigation_gaps ?? []);
+  }
+  if (!out.focus_components?.length) {
+    out.focus_components = defaultPlan(epistemicProfile, plannerContext).focus_components;
+  }
+  return out;
+}
+
 /**
  * @param {object} params
  */
@@ -80,11 +94,29 @@ export async function runPlannerAgent(params) {
   const {
     epistemicProfile,
     plannerContext = null,
+    assessmentMode = 'normal',
     llmPort,
     agentKernel,
     onUsage,
     budget,
+    traceId: parentTraceId,
+    forceLlm = false,
   } = params;
+
+  if (!forceLlm && shouldUseDeterministicPlanner({ assessmentMode, plannerContext })) {
+    const plan = finalizePlan(
+      defaultPlan(epistemicProfile, plannerContext),
+      epistemicProfile,
+      plannerContext,
+      'deterministic',
+    );
+    return {
+      plan,
+      traceId: parentTraceId ? `${parentTraceId}:planner` : 'planner-deterministic',
+      prompt_version: PROMPT_VERSION,
+    };
+  }
+
   const kernel = agentKernel ?? createAgentKernel({ llmPort });
   const system = buildPlannerSystem(epistemicProfile, plannerContext);
 
@@ -98,10 +130,13 @@ export async function runPlannerAgent(params) {
     system,
     messages: [{
       role: 'user',
-      content: 'Create investigation plan using epistemic profile and planner context (gaps, media anomalies, OOV).',
+      content: plannerContext?.replan
+        ? 'Re-plan investigation using specialist summaries and cross-component issues in planner context.'
+        : 'Create investigation plan using epistemic profile and planner context (gaps, media anomalies, OOV).',
     }],
     tools: PLANNER_TOOLS,
     budget,
+    traceId: parentTraceId ? `${parentTraceId}:planner` : undefined,
     onUsage,
     executeTool: async (name, input) => {
       if (name === 'submit_plan') {
@@ -113,11 +148,12 @@ export async function runPlannerAgent(params) {
   });
 
   const submitted = result.submitPayloads.find((p) => p.tool === 'submit_plan');
-  plan = submitted?.payload ?? plan ?? defaultPlan(epistemicProfile, plannerContext);
-
-  if (!plan.gap_closure_tasks?.length && plannerContext) {
-    plan.gap_closure_tasks = buildGapClosureTasks(plannerContext.investigation_gaps ?? []);
-  }
+  plan = finalizePlan(
+    submitted?.payload ?? plan ?? defaultPlan(epistemicProfile, plannerContext),
+    epistemicProfile,
+    plannerContext,
+    'llm',
+  );
 
   return { plan, traceId: result.traceId, prompt_version: PROMPT_VERSION };
 }

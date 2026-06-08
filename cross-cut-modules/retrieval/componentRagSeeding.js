@@ -56,6 +56,20 @@ export function dedupeHits(hitLists) {
 }
 
 /**
+ * Seed RAG for specific component IDs only (lazy assess path).
+ * @param {object} params
+ */
+export async function seedComponentRagForComponents(params) {
+  const componentIds = params.componentIds ?? params.focusComponents ?? [];
+  if (!componentIds.length) return [];
+  return seedComponentRagHits({
+    ...params,
+    focusComponents: componentIds,
+    topKPerComponent: params.topKPerComponent ?? 3,
+  });
+}
+
+/**
  * @param {object} params
  */
 export async function seedComponentRagHits(params) {
@@ -66,7 +80,7 @@ export async function seedComponentRagHits(params) {
     epistemicProfile,
     focusComponents = COMPONENT_IDS,
     signals = [],
-    topKPerComponent = 5,
+    topKPerComponent = 3,
     assessmentMode = 'normal',
     epistemicStatus = null,
   } = params;

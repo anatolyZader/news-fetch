@@ -1,6 +1,6 @@
 # Geographic analysis
 
-**Purpose:** Deterministic **locality resolution** and **district scoping** for signals and reports. Geo is not LLM-inferred at assess time for metrics eligibility — envelopes are structured and versioned.
+**Purpose:** Deterministic **locality resolution** and **district scoping** for signals and reports. Geo is not LLM-inferred at assess time for metrics eligibility — envelopes are structured and versioned. The **assessment agent** path uses the same scoped/partitioned signals as shadow scoring (`regionSignalFilter.js`); geo does not change at the agent layer.
 
 **Sources:** `business_modules/geo/`, `cross-cut-modules/geo/enrichSignalsWithGeo.js`, `business_modules/resilience/domain/services/regionSignalFilter.js`.
 
@@ -88,4 +88,4 @@ Analysts triage via `/api/geo/unknown-queue` and chat tool `list_geo_unknown` (s
 ## Related docs
 
 - Scoped assess: [PIPELINE-AND-SOURCES.md](./PIPELINE-AND-SOURCES.md)
-- Epistemic geo gating: [RESILIENCE-ENGINE-REFERENCE.md](./RESILIENCE-ENGINE-REFERENCE.md) §3
+- Epistemic geo gating: [RESILIENCE-ENGINE-REFERENCE.md](./RESILIENCE-ENGINE-REFERENCE.md) §4

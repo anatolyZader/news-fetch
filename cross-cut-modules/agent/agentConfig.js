@@ -34,8 +34,74 @@ export function validationAgentMaxRounds() {
   return Number.isFinite(n) && n >= 0 ? Math.min(n, 10) : 3;
 }
 
+function envFlagEnabled(name) {
+  const v = process.env[name];
+  return v == null || v === '' || v === '1' || v === 'true';
+}
+
+export function deterministicPlannerEnabled() {
+  return envFlagEnabled('RESILIENCE_ASSESS_DETERMINISTIC_PLANNER');
+}
+
+export function slimPromptsEnabled() {
+  return envFlagEnabled('RESILIENCE_ASSESS_SLIM_PROMPTS');
+}
+
+export function compressToolsEnabled() {
+  return envFlagEnabled('RESILIENCE_ASSESS_COMPRESS_TOOLS');
+}
+
+export function compactToolLoopEnabled() {
+  return envFlagEnabled('RESILIENCE_ASSESS_COMPACT_TOOL_LOOP');
+}
+
+export function chatCompactToolLoopEnabled() {
+  return process.env.CHAT_COMPACT_TOOL_LOOP === '1';
+}
+
+export function tieredSpecialistsEnabled() {
+  return envFlagEnabled('RESILIENCE_ASSESS_TIERED_SPECIALISTS');
+}
+
+export function conditionalSynthEnabled() {
+  return envFlagEnabled('RESILIENCE_ASSESS_CONDITIONAL_SYNTH');
+}
+
+export function synthesisGapThreshold() {
+  const n = Number.parseInt(process.env.RESILIENCE_ASSESS_SYNTH_GAP_THRESHOLD ?? '3', 10);
+  return Number.isFinite(n) && n >= 0 ? n : 3;
+}
+
+export function splitInvestigationMassEnabled() {
+  return envFlagEnabled('RESILIENCE_ASSESS_SPLIT_INVESTIGATION_MASS');
+}
+
+export function archiveEpistemicEnabled() {
+  return envFlagEnabled('RESILIENCE_ASSESS_ARCHIVE_EPISTEMIC');
+}
+
+export function residualForAgentEnabled() {
+  return envFlagEnabled('RESILIENCE_ASSESS_RESIDUAL_FOR_AGENT');
+}
+
+export function investigationOovEnabled() {
+  return envFlagEnabled('RESILIENCE_ASSESS_INVESTIGATION_OOV');
+}
+
+export function replanHopEnabled() {
+  return envFlagEnabled('RESILIENCE_ASSESS_REPLAN_HOP');
+}
+
+export function crossComponentCheckEnabled() {
+  return envFlagEnabled('RESILIENCE_ASSESS_CROSS_COMPONENT_CHECK');
+}
+
+export function contestedAdversarialEnabled() {
+  return envFlagEnabled('RESILIENCE_ASSESS_CONTESTED_ADVERSARIAL');
+}
+
 export const HAIKU_MODEL = 'claude-haiku-4-5-20251001';
 export const SONNET_MODEL = 'claude-sonnet-4-6';
 
-export const PROMPT_VERSION = 'assessment-v1.0';
+export const PROMPT_VERSION = 'assessment-v1.2';
 export const MODEL_CARD_REF = 'MODEL-CARD.md#assessment-agent';

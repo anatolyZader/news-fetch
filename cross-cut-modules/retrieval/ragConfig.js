@@ -202,3 +202,23 @@ export function translationTermRagEnabled() {
   if (process.env.TRANSLATION_TERM_RAG_ENABLED === '1') return true;
   return false;
 }
+
+function envFlagOn(name, defaultOn = true) {
+  const v = process.env[name];
+  if (v == null || v === '') return defaultOn;
+  return v === '1' || v === 'true';
+}
+
+export function assessLazyRagEnabled() {
+  return envFlagOn('RESILIENCE_ASSESS_LAZY_RAG', true);
+}
+
+export function assessGlobalRagEnabled() {
+  return envFlagOn('RESILIENCE_ASSESS_GLOBAL_RAG', true);
+}
+
+export function assessGlobalTopK() {
+  const n = Number.parseInt(process.env.RESILIENCE_ASSESS_GLOBAL_TOPK ?? '', 10);
+  if (Number.isFinite(n) && n > 0) return Math.min(20, Math.max(4, n));
+  return ragFinalTopK();
+}

@@ -6,13 +6,10 @@
 import { readTodayCostSpend, resolveCostLogPath } from '../../log/index.js';
 import { existsSync } from 'node:fs';
 
-// ─── Pricing ($/1M tokens) ─────────────────────────────────────────────────
+import { calcLlmCostUsd, LLM_PRICING } from '../../llm/llmPricing.js';
 
-export const PRICING = {
-  'claude-haiku-4-5-20251001': { input: 0.8,  output: 4  },
-  'claude-sonnet-4-6':         { input: 3,  output: 15 },
-  'claude-opus-4-6':           { input: 15, output: 75 },
-};
+// Re-export for backward compatibility
+export const PRICING = LLM_PRICING;
 
 /** USD per 1M embedding tokens (OpenAI text-embedding-3-*). */
 export const EMBEDDING_USD_PER_MTOK = Number.parseFloat(
@@ -98,12 +95,7 @@ function breakdownFromUsageLog(usageLog) {
  * @returns {number}
  */
 export function calcInvocationCostUsd(model, usage) {
-  if (!usage || typeof usage.input_tokens !== 'number' || typeof usage.output_tokens !== 'number') {
-    return 0;
-  }
-  const p = PRICING[model];
-  if (!p) return 0;
-  return (usage.input_tokens / 1_000_000) * p.input + (usage.output_tokens / 1_000_000) * p.output;
+  return calcLlmCostUsd(model, usage);
 }
 
 // ─── Per-run cost tracker ──────────────────────────────────────────────────

@@ -1,28 +1,64 @@
 # Resilience engine reference
 
-**Purpose:** Implementation reference for the **assessment engine** — extraction, verification, deterministic scoring, narratives, and display redaction. The product is **decision support**; this document describes machinery that **informs** operators, not replaces them.
+**Purpose:** Implementation reference for the **assessment engine** — extraction, verification, **agent-RAG investigation assess**, shadow deterministic scoring, and display redaction. The product is **decision support**; this document describes machinery that **informs** operators, not replaces them.
 
-**Companion:** [SYSTEM-AND-OPERATOR-MODEL.md](./SYSTEM-AND-OPERATOR-MODEL.md) (what operators see), [docs/MODEL-CARD.md](../MODEL-CARD.md) (policy tables).
+**Companion:** [SYSTEM-AND-OPERATOR-MODEL.md](./SYSTEM-AND-OPERATOR-MODEL.md) (what operators see), [docs/MODEL-CARD.md](../MODEL-CARD.md) (policy tables and agent env flags).
 
-**Code roots:** `business_modules/resilience/`, `assessmentDisplayTier.js`, `thinEvidencePolicy.js`, `groundingPolicy.js`, `highSalienceBypass.js`, `scoreComponentsOrchestrator.js`.
+**Code roots:** `business_modules/resilience/`, `business_modules/resilience_assessment/`, `cross-cut-modules/agent/`, `cross-cut-modules/retrieval/`, `assessmentDisplayTier.js`, `scoreComponentsOrchestrator.js`.
 
 ---
 
-## 1. Purpose — instrument, not oracle
+## 1. Conceptual and technical shift
+
+Docs and operators should treat the refactor as a change in **what is primary**, not only in implementation detail.
+
+### 1.1 Conceptual (operators and analysts)
+
+| Dimension | Pre-refactor (math-scoring centered) | Post-refactor (agent-RAG decision support) |
+|-----------|--------------------------------------|--------------------------------------------|
+| **Primary question** | “What is the 1–10 resilience score today?” | “What happened, with what evidence, and what needs attention?” |
+| **Unit of truth** | Weighted signal mass → component score | **Claims** with `evidence_refs`, grounded in catalog signals + archive retrieval |
+| **LLM role** | One (or few) narrative passes over **already-scored** components | **Planner → parallel specialists → critic → synthesizer** — investigation before synthesis |
+| **Archive / RAG** | Secondary (chat, optional extract RAG) | **First-class at assess time** — RAG seed, multi-hop tools, `get_source`, residual/OOV on blackboard |
+| **Thin / abstain days** | Low catalog mass → abstain narrative | **Split mass**: thin for **scoring** vs **investigation-eligible** (archive spike, residual, OOV may still warrant specialist) |
+| **Novel behavior** | OOV logged; optional low-weight synthetic score | OOV/residual enter **evidence graph + planner** as investigation objects |
+| **Operator proof** | Narrative paragraph + instrument flags | **Evidence tree** per claim + cross-component synthesis + instrument flags (from epistemic/shadow) |
+| **Analyst calibration** | Scores + drift on disk | Scores as **shadow** + **divergence** vs agent output + **trace JSONL** replay |
+| **Multi-agent pattern** | N/A (batch narrative) | **Plan-and-execute map–reduce** (not peer agent chat) — see §3.1 |
+
+**Unchanged conceptually:** closed-catalog extraction for comparability; humans decide; abstention and data void as features; operator tier hides headline scores.
+
+### 1.2 Technical (code and artifacts)
+
+| Layer | Pre-refactor | Post-refactor (default) |
+|-------|--------------|-------------------------|
+| **Assess entry** | `assess-signals` → `runScoringPipeline` → `generateNarratives` | `assess-signals` → `produceAssessmentWithShadow` → **`runAssessmentAgent`** |
+| **Primary module** | `claudeNarratives.js` / `claudeEvaluator.js` | `business_modules/resilience_assessment/` + `cross-cut-modules/agent/` + retrieval helpers |
+| **Orchestration** | Linear: score then narrate | Planner → `Promise.all` specialists → critic → optional re-plan → synthesizer |
+| **Epistemic input** | Scored components only | `computeEpistemicProfile` + **`enrichProfileForInvestigation`** |
+| **Evidence assembly** | Signals in narrative prompt | **`buildEvidenceGraph`** (signals + RAG hits + OOV/residual + gaps) |
+| **Output schema** | Legacy `assessment.components[].narrative` | **Assessment v2** → **`mapAssessmentV2ToLegacy`** (`assessmentV2Mapper.js`) for API compatibility |
+| **Shadow path** | Scores were primary | **`scoreComponents` still runs** → `shadow-scores-*.json`, `divergence-*.json` |
+| **Trace / audit** | Cost log only | **`assessment-agent-trace-{id}.jsonl`** |
+| **Escape hatch** | — | `RESILIENCE_ASSESSMENT_AGENT=0` → legacy narrative-only assess |
+
+---
+
+## 2. Purpose — investigate, then inform (not oracle)
 
 The engine:
 
 1. Extracts **observable behavioral signals** (closed vocabulary) from multi-source text via LLM.
 2. Verifies evidence spans and assigns **grounding tiers**.
-3. Scores eight Home Front Command resilience **components** deterministically in code (not in the narrative LLM).
-4. Generates **operator-safe narratives** (LLM may not re-score).
+3. Runs **shadow deterministic scoring** in code (calibration / divergence — not the primary operator narrative path).
+4. Runs **assessment agent v2** (default): RAG-seeded evidence graph → planner → specialists → critic → synthesizer.
 5. **Redacts** numeric headline scores at API/UI for the default operator tier.
 
-Scores on disk under `daily_reports/` support analyst calibration and drift. **Operational action** should follow attention, evidence, and instrument flags — see operator model doc.
+Shadow scores on disk under `daily_reports/` support analyst calibration, drift, and divergence review. **Operational action** should follow attention, **evidence-backed claims**, and instrument flags — see [SYSTEM-AND-OPERATOR-MODEL.md](./SYSTEM-AND-OPERATOR-MODEL.md).
 
 ---
 
-## 2. End-to-end pipeline
+## 3. End-to-end pipeline
 
 ```text
 Markdown / archive rows
@@ -32,18 +68,56 @@ Markdown / archive rows
        ├─ scope + epistemic partition (regionSignalFilter, metrics eligibility)
        ├─ prepareScoringSignals (quarantine, data void, OOV)
        ├─ verify / grounding (claudeEvidenceVerification, groundingPolicy)
-       ├─ scoreComponents (deterministic)
+       ├─ scoreComponents (deterministic) — SHADOW / calibration
        ├─ thin-evidence + salience post-policy (highSalienceBypass)
        ├─ epistemic gate + EWMA (scoringPipelinePrep)
-       ├─ narratives (claudeNarratives — no re-scoring)
+       ├─ produceAssessmentWithShadow
+       │    ├─ computeEpistemicProfile (epistemicFeaturesService)
+       │    └─ runAssessmentAgent
+       │         ├─ enrichProfileForInvestigation
+       │         ├─ RAG seed (seedComponentRagHits) + buildEvidenceGraph (+ residual/OOV)
+       │         └─ planner → specialists → critic → optional re-plan → synthesizer
+       ├─ writeShadowArtifacts (when RESILIENCE_SHADOW_SCORING=1)
+       ├─ mapAssessmentV2ToLegacy → write report JSON/MD
        └─ redactReportPayload at API boundary (assessmentDisplayTier)
 ```
 
-Alternate path: `runResilienceAnalysis.js` (markdown batch, national default scope).
+**Escape hatch:** `RESILIENCE_ASSESSMENT_AGENT=0` skips the agent and uses legacy `claudeNarratives` (score-then-narrate).
+
+Alternate batch path: `runResilienceAnalysis.js` (markdown batch, national default scope).
+
+### 3.1 Assessment agent (v2)
+
+**Entry:** `business_modules/resilience/app/produceAssessmentWithShadow.js` → `business_modules/resilience_assessment/app/assessmentOrchestrator.js`
+
+**Pattern:** plan-and-execute **map–reduce** (parallel specialists per component; not peer-to-peer agent chat).
+
+| Stage | Module | Role |
+|-------|--------|------|
+| Prep | `componentRagSeeding.js`, `evidenceGraph.js` | Hybrid retrieve seeds + signal/residual/OOV claims |
+| Planner context | `plannerContextBuilder.js` | Gaps, media/archive anomalies, OOV/residual summary |
+| Planner | `plannerAgent.js` | Investigation plan (deterministic or Haiku); `planner_source` metadata |
+| Specialists | `componentSpecialistAgent.js` | Per-component tool loop (tiers A/B/C); multi-hop RAG + `lookup_signals` / `get_source` |
+| Critic | `criticAgent.js` | Deterministic grounding / thin-evidence / gap checks |
+| Re-plan (optional) | orchestrator + `replanPolicy.js` | Single hop when cross-component issues or gap overload |
+| Synthesizer | `synthesizerAgent.js` | Cross-component narrative (conditional Sonnet or deterministic) |
+
+**Kernel:** `cross-cut-modules/agent/agentKernel.js` — shared tool loop, budget governor, trace JSONL.
+
+**Outputs on report:** `agent_trace_id`, `investigation_plan`, `planner_context`, `budget_snapshot`, `cross_component_issues`, `evidence_graph_summary`; per-component `evidence_tree` (operators) and `specialist_tier` (v2 / trace).
+
+**Eval:** `npm run agent:eval`. **Trace replay:** `GET /api/report/agent-trace/:traceId` (analyst). Feature flags: [MODEL-CARD.md § Assessment agent](../MODEL-CARD.md#assessment-agent-v2-option-b).
+
+### 3.2 Epistemic profile for investigation
+
+**Builder:** `business_modules/epistemic_features/domain/services/epistemicProfileBuilder.js`  
+**Investigation enrich:** `investigationEpistemic.js` — adds `investigation_mass`, `investigation_eligible`, `archive_mention_mass`, `residual_observation_count`, `presence_gate_triggered`, `salience_critical` (from shadow scored components).
+
+When `RESILIENCE_ASSESS_SPLIT_INVESTIGATION_MASS=1` (default), planner abstention uses **investigation eligibility**, not catalog mass alone — a component may be thin for **scoring** but still investigated when archive/residual/OOV warrants it.
 
 ---
 
-## 3. Epistemic tiers and abstention
+## 4. Epistemic tiers and abstention
 
 **Grounding tiers** (`groundingPolicy.js`):
 
@@ -73,7 +147,7 @@ Abstention is a **feature** — prompts operators to ingest field sources or wai
 
 ---
 
-## 4. Operator instruments (before score math)
+## 5. Operator instruments (before score math)
 
 Thin-evidence policy (`thinEvidencePolicy.js`, Option C):
 
@@ -99,20 +173,22 @@ When `evidence_mass < 1.5` (typical floor):
 
 ---
 
-## 5. Analyst tier and on-disk truth
+## 6. Analyst tier and on-disk truth
 
 - **Operator API/UI:** `redactReportPayload` / `redactAssessmentForView` strip headline scores and debug narrative fields.
-- **Analyst SPA:** `analyst-site/` with `view=analyst`; drift, validation review, catalog proposals.
-- **Full JSON:** `daily_reports/resilience-report-*.json` retains scores for calibration.
+- **Analyst SPA:** `analyst-site/` with `view=analyst`; drift, validation review, catalog proposals, **agent trace replay**.
+- **Full JSON:** `daily_reports/resilience-report-*.json` retains shadow scores, v2 agent fields, and legacy-mapped narratives.
+- **Shadow artifacts:** `daily_reports/shadow-scores-{scopeId}-{date}.json`, `daily_reports/divergence-{scopeId}-{date}.json` (when `RESILIENCE_SHADOW_SCORING=1`; default on); optional `shadow-narratives-{scopeId}-{date}.json` when `RESILIENCE_SHADOW_NARRATIVES=1`.
+- **Agent trace:** `daily_reports/assessment-agent-trace-{traceId}.jsonl` — planner, specialist, critic, synthesizer steps.
 - **Drift APIs:** gated to analyst/maintainer (`canViewAnalystDisplay`).
 
-Scoring code path is identical; **presentation** differs by tier.
+Shadow scoring and agent assess share the same signal prep; **presentation** differs by tier. Primary operator proof is **claims + evidence_refs**, not headline scores.
 
 ---
 
-## 6. Stage reference (concise)
+## 7. Stage reference (concise)
 
-### 6.1 Extraction
+### 7.1 Extraction
 
 - **CLI:** `extract-signals.js`
 - **Infrastructure:** `claudeExtraction.js`, closed vocabulary from `behaviorSignals.js` / catalog
@@ -121,29 +197,39 @@ Scoring code path is identical; **presentation** differs by tier.
 - **Output:** `signals-{source}-{date}.json`
 - **Side effects:** `source_archive` rows, optional RAG index at ingest
 
-### 6.2 Verification and grounding
+### 7.2 Verification and grounding
 
 - **Infrastructure:** `signalVerification.js`, `claudeEvidenceVerification.js`, `sourceNativeGrounding.js`
 - Sets `grounding_tier`, verification metadata on each signal
 - Critical types list shared with salience bypass (`CRITICAL_BYPASS_SIGNAL_TYPES`)
 
-### 6.3 Scoring
+### 7.3 Shadow scoring (calibration)
 
 - **Orchestrator:** `scoreComponentsOrchestrator.js` (`scoreComponents`, v4 model)
+- **When:** Always runs in `assess-signals.js` via `runScoringPipeline` **before** `produceAssessmentWithShadow` (feeds epistemic profile and instruments)
+- **Artifact write:** `writeShadowArtifacts` inside `produceAssessmentWithShadow` when `RESILIENCE_SHADOW_SCORING=1` (default on)
 - **Steps per component:** weighted items → source cap → raw score → salience post-policy → bootstrap CI, counterfactuals, presence gates, facets
 - **Shared math:** `scoring/scoringShared.js` (weights, caps, grounding multiplier)
 - **Pipeline wrapper:** `scoringPipelinePrep.js` — digital quarantine partition, EWMA, epistemic gate
 - **Dedup / merge:** `input/assessSignalsHelpers.js`, `domain/services/crossSourceDedupClustered.js`
-- **Caps / weights:** `domain/services/scoring/scoringShared.js`, `applyEvidenceCaps.js`
-- **Overall score:** `domain/services/behaviorSignals.js` — `overallScore()` (certainty-weighted mean)
+- **Output:** Feeds epistemic profile + investigation enrich; written to `shadow-scores-*.json`
 
-### 6.4 Narratives
+### 7.4 Legacy narratives (escape hatch)
 
 - **Infrastructure:** `claudeNarratives.js` (barrel: `claudeEvaluator.js`)
+- **When:** `RESILIENCE_ASSESSMENT_AGENT=0` — score-then-narrate path only
 - LLM narrates from scored assessment; **must not** change scores
 - Default: instrument tags in prompt, not numeric scores (`RESILIENCE_NARRATIVE_INCLUDE_SCORES=false`)
 
-### 6.5 Reports and validation
+### 7.5 Assessment agent (default)
+
+- **Entry:** `produceAssessmentWithShadow.js` → `runAssessmentAgent` in `assessmentOrchestrator.js`
+- **Prep:** RAG seed (`componentRagSeeding.js`), evidence graph (`evidenceGraph.js`), planner context
+- **Agents:** `plannerAgent.js`, `componentSpecialistAgent.js`, `criticAgent.js`, `synthesizerAgent.js`
+- **Policies:** `plannerPolicy.js`, `specialistTier.js`, `synthesisPolicy.js`, Tier 2 (`replanPolicy.js`, `crossComponentConsistency.js`, `contestedRetrievalPolicy.js`)
+- **Output:** Assessment v2 → `assessmentV2Mapper.js` (`mapAssessmentV2ToLegacy`) for API; trace JSONL on disk
+
+### 7.6 Reports and validation
 
 - Report write from `assess-signals.js` finalize step
 - Validation queue: SQLite store (default); analyst routes under `business_modules/resilience/validation/`
@@ -155,7 +241,7 @@ Scoring code path is identical; **presentation** differs by tier.
 
 ---
 
-## 7. Eight components (conceptual)
+## 8. Eight components (conceptual)
 
 The framework follows Pikud HaOref / community resilience (Norris 2008). Component **definitions** and UI labels are code-derived — see Appendix below.
 
@@ -163,17 +249,23 @@ Component ids used in scoring: `narrative`, `information_communication`, `lifesa
 
 ---
 
-## 8. Key modules
+## 9. Key modules
 
 | Area | Path |
 |------|------|
+| Assess + shadow | `app/produceAssessmentWithShadow.js` |
+| Assessment agent | `business_modules/resilience_assessment/app/` — orchestrator, planner, specialists, critic, synthesizer |
+| Agent kernel / config | `cross-cut-modules/agent/` — `agentKernel.js`, `agentConfig.js` |
+| RAG at assess | `cross-cut-modules/retrieval/` — `componentRagSeeding.js`, `evidenceGraph.js`, `plannerContextBuilder.js`, `multiHopRetrieval.js` |
+| Epistemic profile | `business_modules/epistemic_features/domain/services/epistemicProfileBuilder.js`, `investigationEpistemic.js` |
 | Component definitions | `domain/resilienceComponents.js` |
 | Facets / signal routing | `domain/services/componentFacets.js` |
 | Scope filter | `domain/services/regionSignalFilter.js` |
 | Assess CLI | `input/assess-signals.js`, `input/assessSignalsHelpers.js` |
-| Scoring pipeline | `app/scoringPipelinePrep.js`, `app/prepareScoringSignals.js` |
+| Shadow scoring pipeline | `app/scoringPipelinePrep.js`, `app/prepareScoringSignals.js`, `scoreComponentsOrchestrator.js` |
 | Display redaction | `domain/services/assessmentDisplayTier.js` |
 | Thin evidence | `domain/services/thinEvidencePolicy.js` |
+| Legacy narratives | `infrastructure/claudeNarratives.js` (when `RESILIENCE_ASSESSMENT_AGENT=0`) |
 | Signal catalog evolution | `business_modules/signal_catalog_evolution/` — OOV gap reports + draft proposals |
 
 ---

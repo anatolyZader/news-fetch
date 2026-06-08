@@ -1,8 +1,8 @@
 # Pipeline and data sources
 
-**Purpose:** How daily **artifacts** are produced — ingest → signal extraction → assessment → reports on disk. Operators depend on this pipeline running; they do not run scoring math manually.
+**Purpose:** How daily **artifacts** are produced — ingest → signal extraction → **agent assess + shadow scoring** → reports on disk. Operators depend on this pipeline running; they do not run assessment math manually.
 
-**Sources:** `scripts/daily-pipeline.sh`, `pipeline-config.json`, `business_modules/resilience/input/extract-signals.js`, `assess-signals.js`.
+**Sources:** `scripts/daily-pipeline.sh`, `pipeline-config.json`, `business_modules/resilience/input/extract-signals.js`, `assess-signals.js`, `produceAssessmentWithShadow.js`.
 
 ---
 
@@ -13,8 +13,11 @@ Sources (news, radio, WhatsApp, field, PBO, social, …)
   → normalized markdown / JSON bundles
   → extract-signals (LLM, closed vocabulary)
   → signals-{source}-{date}.json
-  → assess-signals (scope, verify, score, narrate)
-  → daily_reports/resilience-report-{date}.json (+ markdown)
+  → assess-signals
+       ├─ verify, scope, prepareScoringSignals
+       ├─ scoreComponents (shadow / calibration)
+       └─ runAssessmentAgent (RAG + planner + specialists + synthesizer)
+  → daily_reports/resilience-report-{date}.json (+ markdown, trace, shadow artifacts)
   → API / operator UI (redacted display tier)
 ```
 
@@ -33,6 +36,8 @@ Orchestrated daily run:
 ```
 
 Worker variant: `npm run worker:assess` → `scripts/workers/assess-signals-worker.js`.
+
+**Escape hatch:** `RESILIENCE_ASSESSMENT_AGENT=0` runs legacy score-then-narrate assess (no agent trace).
 
 ---
 
@@ -89,6 +94,8 @@ Status CLI: `npm run pipeline:status`.
 
 Optional ingest RAG when `RESILIENCE_EXTRACT_RAG_ENABLED` (see [RAG.md](./RAG.md)).
 
+**Prod cron cost knobs:** set `RESILIENCE_EXTRACT_BATCH=1` for Anthropic Batch API (50% discount, async); sync path remains default elsewhere. Also recommended: `RESILIENCE_EXTRACT_CACHE=1` (default), `RESILIENCE_EXTRACT_MULTIPASS=2` for two-pass extract, `RESILIENCE_EXTRACT_MAX_TOKENS=5000`. See [COST-CONTROLS.md](./COST-CONTROLS.md).
+
 ---
 
 ## Stage 2 — Assess signals
@@ -103,16 +110,21 @@ Optional ingest RAG when `RESILIENCE_EXTRACT_RAG_ENABLED` (see [RAG.md](./RAG.md
 1. Load signal bundles for date window (auto-discover paths including social OSINT).
 2. Dedup; attach geo; **`scopeAndPartitionSignals`** (`regionSignalFilter.js`, epistemic partition).
 3. **`prepareScoringSignals`** — quarantine, data void, OOV, gaming policy.
-4. **`runScoringPipeline`** → `scoreComponents` → epistemic gate → EWMA (`scoringPipelinePrep.js`).
-5. Narratives (LLM, no re-scoring); write JSON/MD report; validation queue upsert; domain events.
+4. **`runScoringPipeline`** → `scoreComponents` → epistemic gate → EWMA (`scoringPipelinePrep.js`) — **shadow path**.
+5. **`produceAssessmentWithShadow`** → epistemic profile + investigation enrich → RAG seed + evidence graph → **`runAssessmentAgent`** (default).
+6. `mapAssessmentV2ToLegacy`; write JSON/MD report; shadow/divergence artifacts; validation queue upsert; domain events.
 
 **Outputs:**
 
-- `daily_reports/resilience-report-{date}.json` (and scoped variants)
+- `daily_reports/resilience-report-{date}.json` (and scoped variants) — includes v2 agent fields + legacy-mapped narratives
+- `daily_reports/shadow-scores-{scopeId}-{date}.json` — deterministic scores (`RESILIENCE_SHADOW_SCORING=1`, default on)
+- `daily_reports/divergence-{scopeId}-{date}.json` — shadow vs agent comparison
+- `daily_reports/shadow-narratives-{scopeId}-{date}.json` — optional legacy narrative shadow (`RESILIENCE_SHADOW_NARRATIVES=1`)
+- `daily_reports/assessment-agent-trace-{traceId}.jsonl` — per-assess agent audit trail
 - Markdown report paths as configured
 - SQLite validation review queue (default unless `VALIDATION_REVIEW_SQLITE=0`)
 
-**Cost script id:** `assess-signals`.
+**Cost script id:** `assess-signals` (includes agent LLM rounds under assess budget governor).
 
 Full stage detail: [RESILIENCE-ENGINE-REFERENCE.md](./RESILIENCE-ENGINE-REFERENCE.md).
 
@@ -158,10 +170,14 @@ Structured situational reports use one **`report_build`** orchestrator for two s
 
 | Path | Role |
 |------|------|
-| `daily_reports/*.json` | Full assessment (scores on disk; API redacts for operators) |
+| `daily_reports/resilience-report-*.json` | Full assessment — agent v2 fields + legacy-mapped narratives; shadow scores on disk; API redacts for operators |
+| `daily_reports/shadow-scores-{scopeId}-*.json` | Deterministic calibration scores (analyst; `RESILIENCE_SHADOW_SCORING=1`) |
+| `daily_reports/divergence-{scopeId}-*.json` | Shadow vs agent divergence (`GET /api/report/divergence`, analyst) |
+| `daily_reports/shadow-narratives-{scopeId}-*.json` | Optional legacy narrative shadow (`RESILIENCE_SHADOW_NARRATIVES=1`) |
+| `daily_reports/assessment-agent-trace-*.jsonl` | Agent step replay (analyst) |
 | `signals/signals-*.json` | Extracted signals per source/day |
 | `business_modules/news-sites/articles_extracted/` | News markdown exports |
-| SQLite `source_archive` | Original source text for chat `get_source` |
+| SQLite `source_archive` | Original source text for chat `get_source` and assess-time RAG |
 | SQLite validation queue | Analyst review of extraction quality |
 
 Deploy must include product pages (`cross-cut-modules/docs/content/pages/`) and these data dirs for a functioning operator experience.
@@ -172,7 +188,7 @@ Deploy must include product pages (`cross-cut-modules/docs/content/pages/`) and 
 
 During **extract**, optional OOV learning capture writes `daily_reports/oov-capture-{date}.jsonl` when `RESILIENCE_OOV_CAPTURE=1` (unknown types, self-check uncertain, zero-signal articles; optional residual observations when `RESILIENCE_RESIDUAL_CAPTURE=1`).
 
-**Module:** `business_modules/signal_catalog_evolution/` — clusters captures, generates gap reports, and stores human-reviewed draft catalog proposals (SQLite `catalog_proposals`). Does **not** change daily scores.
+**Module:** `business_modules/signal_catalog_evolution/` — clusters captures, generates gap reports, and stores human-reviewed draft catalog proposals (SQLite `catalog_proposals`). Does **not** change daily scores; OOV/residual may feed **investigation** when Tier 2 flags enabled.
 
 ```bash
 npm run signal-catalog-evolution:gap-report
@@ -186,5 +202,6 @@ npm run rag:reindex-catalog
 ## Related docs
 
 - Operator UI: [SYSTEM-AND-OPERATOR-MODEL.md](./SYSTEM-AND-OPERATOR-MODEL.md)
-- Scoring / abstention: [RESILIENCE-ENGINE-REFERENCE.md](./RESILIENCE-ENGINE-REFERENCE.md)
+- Assessment agent + shadow scoring: [RESILIENCE-ENGINE-REFERENCE.md](./RESILIENCE-ENGINE-REFERENCE.md)
 - RAG reindex after deploy: [RAG.md](./RAG.md)
+- Agent env flags: [docs/MODEL-CARD.md](../MODEL-CARD.md)

@@ -103,8 +103,43 @@ Default pipeline (`RESILIENCE_ASSESSMENT_AGENT=1`): planner → component specia
 | `RESILIENCE_SHADOW_NARRATIVES` | `0` | Optional legacy narrative shadow |
 | `RESILIENCE_ASSESSMENT_AGENT_MAX_USD` | `2.50` | Per-report agent budget |
 | `RESILIENCE_ASSESSMENT_AGENT_MAX_ROUNDS` | `24` | Tool round cap |
+| `RESILIENCE_ASSESS_DETERMINISTIC_PLANNER` | `1` | Skip planner LLM on routine normal days |
+| `RESILIENCE_ASSESS_SLIM_PROMPTS` | `1` | Compact evidence graph in specialist prompts |
+| `RESILIENCE_ASSESS_COMPRESS_TOOLS` | `1` | Cap multi-hop tool JSON returned to LLM |
+| `RESILIENCE_ASSESS_TIERED_SPECIALISTS` | `1` | Tier A/B/C specialist depth (3 / 1 / 0 rounds) |
+| `RESILIENCE_ASSESS_CONDITIONAL_SYNTH` | `1` | Skip Sonnet synthesizer on calm days |
+| `RESILIENCE_ASSESS_SYNTH_GAP_THRESHOLD` | `3` | Open retrieval gap count triggering LLM synthesis |
+| `RESILIENCE_ASSESS_SPLIT_INVESTIGATION_MASS` | `1` | Separate score mass vs investigation eligibility |
+| `RESILIENCE_ASSESS_ARCHIVE_EPISTEMIC` | `1` | Archive mention mass hints from RAG hits |
+| `RESILIENCE_ASSESS_RESIDUAL_FOR_AGENT` | `1` | Load residual/open observations into agent graph |
+| `RESILIENCE_ASSESS_INVESTIGATION_OOV` | `1` | OOV burst includes residual kinds for agent |
+| `RESILIENCE_ASSESS_REPLAN_HOP` | `1` | Single re-plan after specialist pass when warranted |
+| `RESILIENCE_ASSESS_CROSS_COMPONENT_CHECK` | `1` | Detect grounded cross-component contradictions |
+| `RESILIENCE_ASSESS_CONTESTED_ADVERSARIAL` | `1` | Require retrieve_for_claim both before submit on contested Tier A |
+| `RESILIENCE_ASSESS_LAZY_RAG` | `1` | Planner runs before component RAG; seed only `focus_components` |
+| `RESILIENCE_ASSESS_GLOBAL_RAG` | `1` | Global hybrid retrieve before specialists |
+| `RESILIENCE_ASSESS_GLOBAL_TOPK` | `8` | Global retrieve final top-K (was 20) |
+| `RESILIENCE_ASSESS_OPEN_RAG` | `1` | Per-component RAG seeding (set `0` to disable all) |
+| `RESILIENCE_ASSESS_COMPACT_TOOL_LOOP` | `1` | Compact tool-loop message history via working memory |
+
+Report metadata: `investigation_plan.planner_source` (`deterministic`|`llm`|`replan`), `synthesis_mode`, per-component `specialist_tier`, `cross_component_issues`, `investigation_enrichment`.
 
 Eval: `npm run agent:eval`. Trace replay: `GET /api/report/agent-trace/:traceId` (analyst).
+
+## Extraction (cost-optimized)
+
+| Env | Default | Effect |
+|-----|---------|--------|
+| `RESILIENCE_EXTRACT_CACHE` | `1` | Skip LLM when article hash + prompt version match cached signals |
+| `RESILIENCE_EXTRACT_MULTIPASS` | `1` | `0` off; `1` three-pass; `2` two-pass (AB + C) |
+| `RESILIENCE_EXTRACT_MAX_TOKENS` | `5000` | Lower default output cap vs legacy 12000 |
+| `RESILIENCE_EXTRACT_BATCH` | off | Batch API for offline cron extract (`RESILIENCE_EXTRACT_BATCH=1`) |
+| `RESILIENCE_EXTRACT_PROMPT_CACHE` | off | Ephemeral cache on stable extract system blocks |
+| `HOMEFRONT_PREFILTER_MODE` | `keyword` | Keyword/behavior prefilter; `llm` restores Haiku prefilter |
+
+Prompt version: **`extract-v2`** (`cross-cut-modules/resilience-contracts/extractionPrompt.js`). Cache invalidates on bump.
+
+Telemetry: per-invocation JSONL + `getLlmTelemetry()` feature rollup — see [COST-CONTROLS.md](./main_docu_files/COST-CONTROLS.md).
 
 ## Known limits
 

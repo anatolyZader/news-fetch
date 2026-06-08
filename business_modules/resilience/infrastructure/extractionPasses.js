@@ -27,13 +27,74 @@ export const DOMAIN_GROUP_LABELS = Object.freeze({
 });
 
 /**
+ * Returns multipass mode: '0' single, '1' three-pass (default), '2' two-pass.
+ * @param {NodeJS.ProcessEnv} [env]
+ * @returns {'0'|'1'|'2'}
+ */
+export function getMultipassMode(env = process.env) {
+  const v = env.RESILIENCE_EXTRACT_MULTIPASS;
+  if (v === '0' || v === 'false' || v === 'off') return '0';
+  if (v === '2') return '2';
+  return '1';
+}
+
+/**
  * Returns whether multipass extraction is enabled.
- * Default: ON. Set RESILIENCE_EXTRACT_MULTIPASS=0 to fall back to single-pass.
+ * Default: ON (3-pass). Set RESILIENCE_EXTRACT_MULTIPASS=0 for single-pass.
  */
 export function isMultipassEnabled(env = process.env) {
-  const v = env.RESILIENCE_EXTRACT_MULTIPASS;
-  if (v == null) return true;
-  return !(v === '0' || v === 'false' || v === 'off');
+  return getMultipassMode(env) !== '0';
+}
+
+/** Two-pass merge: AB = institutional + protective, C = social/wellbeing */
+export const TWO_PASS_GROUPS = Object.freeze({
+  AB: [...DOMAIN_GROUPS.A, ...DOMAIN_GROUPS.B],
+  C: [...DOMAIN_GROUPS.C],
+});
+
+export const TWO_PASS_LABELS = Object.freeze({
+  AB: 'Protective + Institutional (merged pass)',
+  C: 'Social Fabric & Wellbeing',
+});
+
+/**
+ * Domain group keys for current multipass mode.
+ * @param {NodeJS.ProcessEnv} [env]
+ * @returns {string[]}
+ */
+export function getMultipassGroupKeys(env = process.env) {
+  const mode = getMultipassMode(env);
+  if (mode === '0') return [];
+  if (mode === '2') return ['AB', 'C'];
+  return Object.keys(DOMAIN_GROUPS);
+}
+
+/**
+ * Domains for a pass key (A/B/C or AB merged).
+ * @param {string} groupKey
+ */
+export function domainsForPassKey(groupKey) {
+  if (groupKey === 'AB') return TWO_PASS_GROUPS.AB;
+  return DOMAIN_GROUPS[groupKey] ?? [];
+}
+
+/**
+ * Produces domain scope suffix for a pass (supports merged AB).
+ * @param {string} groupKey
+ */
+export function buildPassScopeSuffix(groupKey) {
+  const domains = domainsForPassKey(groupKey);
+  if (!domains.length) throw new Error(`unknown domain group: ${groupKey}`);
+  const label = TWO_PASS_LABELS[groupKey] ?? DOMAIN_GROUP_LABELS[groupKey];
+  return (
+    `━━━ THIS PASS — ${String(label).toUpperCase()} ━━━\n` +
+    `For THIS extraction pass, ONLY emit signals whose type belongs to the domains: ` +
+    `${domains.join(', ')}. Skip any candidate signal whose type does not appear in the ` +
+    `subset list below — it will be picked up in another pass. Do NOT relabel a fact into ` +
+    `a wrong domain just to fit this pass.\n\n` +
+    `━━━ SIGNAL TYPES (closed vocabulary, this pass only) ━━━\n` +
+    `${formatSignalCatalogSubset(domains)}\n\n`
+  );
 }
 
 /**
@@ -50,18 +111,7 @@ export function formatSignalCatalogSubset(domains) {
  * a single domain group. Inserted immediately before the SIGNAL TYPES section.
  */
 export function buildDomainScopeSuffix(groupKey) {
-  const domains = DOMAIN_GROUPS[groupKey];
-  if (!domains) throw new Error(`unknown domain group: ${groupKey}`);
-  const label = DOMAIN_GROUP_LABELS[groupKey];
-  return (
-    `━━━ THIS PASS — ${label.toUpperCase()} ━━━\n` +
-    `For THIS extraction pass, ONLY emit signals whose type belongs to the domains: ` +
-    `${domains.join(', ')}. Skip any candidate signal whose type does not appear in the ` +
-    `subset list below — it will be picked up in another pass. Do NOT relabel a fact into ` +
-    `a wrong domain just to fit this pass.\n\n` +
-    `━━━ SIGNAL TYPES (closed vocabulary, this pass only) ━━━\n` +
-    `${formatSignalCatalogSubset(domains)}\n\n`
-  );
+  return buildPassScopeSuffix(groupKey);
 }
 
 /**

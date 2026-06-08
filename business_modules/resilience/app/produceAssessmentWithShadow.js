@@ -77,6 +77,7 @@ export async function produceAssessmentWithShadow(params) {
     evidenceStore: params.evidenceStore ?? null,
     scopedSignals: scopedSignals ?? signalsForScoring,
     oovBurst: params.oovBurst ?? null,
+    scoredComponents: scoredFull,
   });
 
   assessment.schema_version = assessmentV2.schema_version;

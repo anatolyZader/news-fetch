@@ -4,6 +4,9 @@ import assert from 'node:assert';
 import {
   DOMAIN_GROUPS,
   isMultipassEnabled,
+  getMultipassMode,
+  getMultipassGroupKeys,
+  domainsForPassKey,
   formatSignalCatalogSubset,
   buildDomainScopeSuffix,
   buildSelfCheckPrompt,
@@ -41,6 +44,25 @@ describe('isMultipassEnabled', () => {
   it('returns true for "1" / "true" / arbitrary', () => {
     assert.equal(isMultipassEnabled({ RESILIENCE_EXTRACT_MULTIPASS: '1' }), true);
     assert.equal(isMultipassEnabled({ RESILIENCE_EXTRACT_MULTIPASS: 'true' }), true);
+  });
+});
+
+describe('getMultipassMode / getMultipassGroupKeys', () => {
+  it('mode 2 yields two passes AB and C', () => {
+    assert.equal(getMultipassMode({ RESILIENCE_EXTRACT_MULTIPASS: '2' }), '2');
+    assert.deepEqual(getMultipassGroupKeys({ RESILIENCE_EXTRACT_MULTIPASS: '2' }), ['AB', 'C']);
+  });
+
+  it('mode 2 AB merges A and B domains without overlap loss', () => {
+    const ab = domainsForPassKey('AB');
+    for (const d of DOMAIN_GROUPS.A) assert.ok(ab.includes(d));
+    for (const d of DOMAIN_GROUPS.B) assert.ok(ab.includes(d));
+    assert.doesNotMatch(buildDomainScopeSuffix('AB'), /SOCIAL FABRIC/i);
+    assert.match(buildDomainScopeSuffix('C'), /SOCIAL FABRIC/i);
+  });
+
+  it('mode 1 yields three passes A/B/C', () => {
+    assert.deepEqual(getMultipassGroupKeys({ RESILIENCE_EXTRACT_MULTIPASS: '1' }), ['A', 'B', 'C']);
   });
 });
 

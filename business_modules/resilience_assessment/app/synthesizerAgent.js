@@ -11,6 +11,7 @@ import {
   ASSESSMENT_SYNTHESIZER_PROFILE,
 } from '../../../cross-cut-modules/agent/profiles/assessment.profile.js';
 import { buildAttentionItems } from '../../resilience/domain/services/attentionItems.js';
+import { needsLlmSynthesis } from '../domain/services/synthesisPolicy.js';
 
 function buildSynthesizerSystem(componentAssessments, epistemicProfile) {
   return (
@@ -50,6 +51,28 @@ export async function runSynthesizerAgent(params) {
     traceId,
     partialAssessment = null,
   } = params;
+
+  if (!needsLlmSynthesis({ componentAssessments, epistemicProfile })) {
+    const synthesis = defaultSynthesis(componentAssessments, epistemicProfile);
+    const draftAssessment = {
+      ...(partialAssessment ?? {}),
+      components: componentAssessments,
+      cross_component_synthesis: synthesis.cross_component_synthesis,
+      retrieval_gaps: synthesis.retrieval_gaps ?? [],
+    };
+    const attention_items = buildAttentionItems(draftAssessment, { view: 'operator' });
+    return {
+      cross_component_synthesis: synthesis.cross_component_synthesis,
+      attention_items,
+      decision_brief: synthesis.decision_brief_summary
+        ? { summary: synthesis.decision_brief_summary, priority_items: [], source: 'agent_v2' }
+        : null,
+      retrieval_gaps: synthesis.retrieval_gaps ?? [],
+      traceId: null,
+      prompt_version: PROMPT_VERSION,
+      synthesis_mode: 'deterministic',
+    };
+  }
 
   const kernel = agentKernel ?? createAgentKernel({ llmPort });
   let synthesis = null;
@@ -100,5 +123,8 @@ export async function runSynthesizerAgent(params) {
     retrieval_gaps: synthesis.retrieval_gaps ?? [],
     traceId: result.traceId,
     prompt_version: PROMPT_VERSION,
+    synthesis_mode: 'llm',
   };
 }
+
+export { defaultSynthesis, buildSynthesizerSystem };

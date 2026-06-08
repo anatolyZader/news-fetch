@@ -1,11 +1,19 @@
 /**
  * Main assessment agent orchestrator — planner → specialists → critic → synthesizer.
  */
-import { createAgentKernel, createAgentBudgetGovernor, assessmentAgentMaxUsd, assessmentAgentMaxRounds, PROMPT_VERSION, MODEL_CARD_REF } from '../../../cross-cut-modules/agent/index.js';
+import { createAgentKernel, createAgentBudgetGovernor, assessmentAgentMaxUsd, assessmentAgentMaxRounds, PROMPT_VERSION, MODEL_CARD_REF, archiveEpistemicEnabled, residualForAgentEnabled, investigationOovEnabled, crossComponentCheckEnabled } from '../../../cross-cut-modules/agent/index.js';
 import { createMultiHopRetrieval } from '../../../cross-cut-modules/retrieval/multiHopRetrieval.js';
 import { buildEvidenceGraph } from '../../../cross-cut-modules/retrieval/evidenceGraph.js';
-import { seedComponentRagHits, dedupeHits } from '../../../cross-cut-modules/retrieval/componentRagSeeding.js';
+import { seedComponentRagForComponents, seedComponentRagHits, dedupeHits } from '../../../cross-cut-modules/retrieval/componentRagSeeding.js';
+import {
+  assessLazyRagEnabled,
+  assessGlobalRagEnabled,
+  assessGlobalTopK,
+} from '../../../cross-cut-modules/retrieval/ragConfig.js';
 import { buildPlannerContext } from '../../../cross-cut-modules/retrieval/plannerContextBuilder.js';
+import { computeArchiveMentionMass } from '../../../cross-cut-modules/retrieval/archiveEpistemicHints.js';
+import { loadResidualObservationsForAgent, groupObservationsByComponent } from '../../../cross-cut-modules/retrieval/residualObservations.js';
+import { enrichProfileForInvestigation } from '../../epistemic_features/domain/services/investigationEpistemic.js';
 import {
   ASSESSMENT_SCHEMA_VERSION,
   createEmptyAssessmentV2,
@@ -17,6 +25,10 @@ import { runComponentSpecialist } from './componentSpecialistAgent.js';
 import { runCriticChecks, applyCriticRepair } from './criticAgent.js';
 import { runSynthesizerAgent } from './synthesizerAgent.js';
 import { mapAssessmentV2ToLegacy } from '../domain/services/assessmentV2Mapper.js';
+import { resolveSpecialistTier } from '../domain/services/specialistTier.js';
+import { detectCrossComponentContradictions } from '../domain/services/crossComponentConsistency.js';
+import { needsReplan, buildReplanContext, affectedComponentsForReplan } from '../domain/services/replanPolicy.js';
+import { evaluateInvestigationBurst } from '../../resilience/domain/services/oovBurstAlert.js';
 
 /**
  * @param {object} params
@@ -39,6 +51,8 @@ export async function runAssessmentAgent(params) {
     evidenceStore = null,
     scopedSignals = null,
     oovBurst = null,
+    investigationOovBurst = null,
+    scoredComponents = null,
   } = params;
 
   const budget = createAgentBudgetGovernor({
@@ -54,61 +68,123 @@ export async function runAssessmentAgent(params) {
     reportsDir: params.reportsDir ?? 'daily_reports',
   });
 
-  let globalHits = [];
-  if (retrieval?.hybridRetrieve) {
-    globalHits = await retrieval.hybridRetrieve('resilience assessment evidence', {
-      namespaces: ['archive', 'report'],
-      reportDate,
-      scopeId: reportScopeId === 'national' ? null : reportScopeId,
-      epistemicProfile,
-      topKFinal: 20,
+  let residualObservations = [];
+  if (residualForAgentEnabled()) {
+    residualObservations = loadResidualObservationsForAgent(reportDate, {
+      reportsDir: params.reportsDir ?? 'daily_reports',
     });
   }
 
-  const preliminaryFocus = COMPONENT_IDS.filter((id) => {
-    const ep = epistemicProfile?.by_component?.[id] ?? {};
-    return !ep.thin_evidence;
+  let investigationBurst = investigationOovBurst;
+  if (!investigationBurst && investigationOovEnabled()) {
+    investigationBurst = await evaluateInvestigationBurst(reportDate, {
+      reportsDir: params.reportsDir ?? 'daily_reports',
+    });
+  }
+
+  const residualByComponent = groupObservationsByComponent(residualObservations);
+
+  const epistemicProfileBase = enrichProfileForInvestigation(epistemicProfile, {
+    scoredComponents: scoredComponents ?? {},
+    archiveMentionMass: {},
+    residualByComponent,
+    investigationOovBurst: investigationBurst,
   });
 
-  const componentHits = await seedComponentRagHits({
-    retrieval,
-    reportDate,
-    scopeId: reportScopeId,
-    epistemicProfile,
-    focusComponents: preliminaryFocus.length ? preliminaryFocus : COMPONENT_IDS,
+  const evidenceGraphInitial = buildEvidenceGraph({
+    hits: [],
     signals,
-    assessmentMode,
-    epistemicStatus,
-  });
-
-  const hits = dedupeHits([globalHits, componentHits]);
-
-  const evidenceGraph = buildEvidenceGraph({
-    hits,
-    signals,
-    epistemicProfile,
-    oovBurst,
+    epistemicProfile: epistemicProfileBase,
+    oovBurst: investigationBurst ?? oovBurst,
     totalArticles,
+    residualObservations,
   });
 
   const plannerContext = buildPlannerContext({
-    epistemicProfile,
-    evidenceGraph,
+    epistemicProfile: epistemicProfileBase,
+    evidenceGraph: evidenceGraphInitial,
     oovBurst,
+    investigationOovBurst: investigationBurst,
     assessmentMode,
+    archiveMentionMass: {},
+    residualObservations,
   });
 
   const { plan, traceId: plannerTraceId } = await runPlannerAgent({
-    epistemicProfile,
+    epistemicProfile: epistemicProfileBase,
     plannerContext,
+    assessmentMode,
     llmPort,
     agentKernel: kernel,
     onUsage,
     budget,
+    traceId,
   });
 
   let focusComponents = plan.focus_components ?? ['leadership'];
   const abstentionSet = new Set(plan.abstention_components ?? []);
+
+  let globalHits = [];
+  if (assessGlobalRagEnabled() && retrieval?.hybridRetrieve) {
+    globalHits = await retrieval.hybridRetrieve('resilience assessment evidence', {
+      namespaces: ['archive', 'report'],
+      reportDate,
+      scopeId: reportScopeId === 'national' ? null : reportScopeId,
+      epistemicProfile: epistemicProfileBase,
+      topKFinal: assessGlobalTopK(),
+    });
+  }
+
+  let componentHits = [];
+  if (assessLazyRagEnabled()) {
+    const lazyComponents = focusComponents.filter((id) => !abstentionSet.has(id));
+    componentHits = await seedComponentRagForComponents({
+      retrieval,
+      reportDate,
+      scopeId: reportScopeId,
+      epistemicProfile: epistemicProfileBase,
+      componentIds: lazyComponents,
+      signals,
+      assessmentMode,
+      epistemicStatus,
+    });
+  } else {
+    const preliminaryFocus = COMPONENT_IDS.filter((id) => {
+      const ep = epistemicProfile?.by_component?.[id] ?? {};
+      return !ep.thin_evidence;
+    });
+    componentHits = await seedComponentRagHits({
+      retrieval,
+      reportDate,
+      scopeId: reportScopeId,
+      epistemicProfile: epistemicProfileBase,
+      focusComponents: preliminaryFocus.length ? preliminaryFocus : COMPONENT_IDS,
+      signals,
+      assessmentMode,
+      epistemicStatus,
+    });
+  }
+
+  const hits = dedupeHits([globalHits, componentHits]);
+  const archiveMentionMass = archiveEpistemicEnabled()
+    ? computeArchiveMentionMass(hits)
+    : {};
+
+  const epistemicProfileEnriched = enrichProfileForInvestigation(epistemicProfile, {
+    scoredComponents: scoredComponents ?? {},
+    archiveMentionMass,
+    residualByComponent,
+    investigationOovBurst: investigationBurst,
+  });
+
+  const evidenceGraph = buildEvidenceGraph({
+    hits,
+    signals,
+    epistemicProfile: epistemicProfileEnriched,
+    oovBurst: investigationBurst ?? oovBurst,
+    totalArticles,
+    residualObservations,
+  });
 
   plannerContext.abstentionComponents = [...abstentionSet];
   if (plannerContext.exploration_candidates?.length && abstentionSet.size) {
@@ -121,45 +197,64 @@ export async function runAssessmentAgent(params) {
     focusComponents = focusComponents.slice(0, 3);
   }
 
+  let currentPlan = plan;
+  let plannerSource = plan.planner_source ?? 'llm';
+
   const componentAssessments = [];
   const signalPool = scopedSignals ?? signals;
 
-  function tasksForComponent(componentId) {
-    return (plan.investigation_tasks ?? []).filter((t) => t.component_id === componentId);
+  function tasksForComponent(componentId, activePlan = currentPlan) {
+    return (activePlan.investigation_tasks ?? []).filter((t) => t.component_id === componentId);
   }
 
-  function gapTasksForComponent(componentId) {
-    return (plan.gap_closure_tasks ?? []).filter(
+  function gapTasksForComponent(componentId, activePlan = currentPlan) {
+    return (activePlan.gap_closure_tasks ?? []).filter(
       (t) => t.component_id === componentId && !abstentionSet.has(componentId),
     );
   }
 
-  async function assessComponent(componentId) {
+  async function assessComponent(componentId, activePlan = currentPlan) {
+    const assignedTasks = tasksForComponent(componentId, activePlan);
+    const gapClosureTasks = gapTasksForComponent(componentId, activePlan);
+    const abstain = (activePlan.abstention_components ?? []).includes(componentId);
+    const tier = resolveSpecialistTier({
+      componentId,
+      epistemicProfile: epistemicProfileEnriched,
+      plannerContext,
+      plan: activePlan,
+      abstain,
+      escalate: activePlan.investigation_tasks?.some((t) => t.component_id === componentId),
+      evidenceGraph,
+      gapClosureTasks,
+      assignedTasks,
+    });
+
     const raw = await runComponentSpecialist({
       componentId,
-      epistemicProfile,
+      epistemicProfile: epistemicProfileEnriched,
       evidenceGraph,
       multiHop,
       llmPort,
       agentKernel: kernel,
       onUsage,
       budget,
-      abstain: abstentionSet.has(componentId),
-      escalate: plan.investigation_tasks?.some((t) => t.component_id === componentId),
+      abstain,
+      specialistTier: tier,
+      escalate: tier === 'A',
       traceId: plannerTraceId ?? traceId,
       reportDate,
       signals: signalPool,
       sourceArchive,
       evidenceStore,
-      assignedTasks: tasksForComponent(componentId),
-      gapClosureTasks: gapTasksForComponent(componentId),
+      assignedTasks,
+      gapClosureTasks,
     });
 
     let assessed = raw;
-    const critic = runCriticChecks(assessed, epistemicProfile);
+    const critic = runCriticChecks(assessed, epistemicProfileEnriched);
     if (critic.requiresRepair) {
       assessed = applyCriticRepair({ ...assessed }, critic.issues);
-      const recheck = runCriticChecks(assessed, epistemicProfile);
+      const recheck = runCriticChecks(assessed, epistemicProfileEnriched);
       assessed.grounding_score = recheck.grounding_score;
     } else {
       assessed.grounding_score = critic.grounding_score;
@@ -181,13 +276,14 @@ export async function runAssessmentAgent(params) {
     for (const id of COMPONENT_IDS.filter((cid) => !toRun.slice(0, 3).includes(cid))) {
       componentAssessments.push(await runComponentSpecialist({
         componentId: id,
-        epistemicProfile,
+        epistemicProfile: epistemicProfileEnriched,
         evidenceGraph,
         multiHop,
         llmPort,
         agentKernel: kernel,
         budget,
         abstain: true,
+        specialistTier: 'C',
         traceId,
         reportDate,
         signals: signalPool,
@@ -201,19 +297,62 @@ export async function runAssessmentAgent(params) {
     for (const id of COMPONENT_IDS.filter((cid) => !toRun.includes(cid))) {
       componentAssessments.push(await runComponentSpecialist({
         componentId: id,
-        epistemicProfile,
+        epistemicProfile: epistemicProfileEnriched,
         evidenceGraph,
         multiHop,
         llmPort,
         agentKernel: kernel,
         budget,
         abstain: true,
+        specialistTier: 'C',
         traceId,
         reportDate,
         signals: signalPool,
         sourceArchive,
         evidenceStore,
       }));
+    }
+  }
+
+  let crossComponentIssues = [];
+  if (crossComponentCheckEnabled()) {
+    crossComponentIssues = detectCrossComponentContradictions(componentAssessments);
+  }
+
+  if (needsReplan({
+    componentAssessments,
+    crossComponentIssues,
+    plan: currentPlan,
+    plannerContext,
+  })) {
+    const replanContext = buildReplanContext({
+      plannerContext,
+      componentAssessments,
+      crossComponentIssues,
+    });
+    const replanResult = await runPlannerAgent({
+      epistemicProfile: epistemicProfileEnriched,
+      plannerContext: replanContext,
+      assessmentMode,
+      llmPort,
+      agentKernel: kernel,
+      onUsage,
+      budget,
+      traceId,
+      forceLlm: true,
+    });
+    const previousPlan = currentPlan;
+    currentPlan = { ...replanResult.plan, planner_source: 'replan' };
+    plannerSource = 'replan';
+    const affected = affectedComponentsForReplan(currentPlan, previousPlan, crossComponentIssues);
+    for (const compId of affected) {
+      const updated = await assessComponent(compId, currentPlan);
+      const idx = componentAssessments.findIndex((a) => a.component_id === compId);
+      if (idx >= 0) componentAssessments[idx] = updated;
+      else componentAssessments.push(updated);
+    }
+    if (crossComponentCheckEnabled()) {
+      crossComponentIssues = detectCrossComponentContradictions(componentAssessments);
     }
   }
 
@@ -231,7 +370,7 @@ export async function runAssessmentAgent(params) {
 
   const synth = await runSynthesizerAgent({
     componentAssessments,
-    epistemicProfile,
+    epistemicProfile: epistemicProfileEnriched,
     llmPort,
     agentKernel: kernel,
     onUsage,
@@ -247,15 +386,21 @@ export async function runAssessmentAgent(params) {
     attention_items: synth.attention_items,
     decision_brief: synth.decision_brief,
     retrieval_gaps: synth.retrieval_gaps,
+    synthesis_mode: synth.synthesis_mode ?? 'llm',
     agent_trace_id: traceId,
     budget_snapshot: budget.snapshot(),
-    investigation_plan: plan,
+    investigation_plan: currentPlan,
     planner_context: plannerContext,
+    cross_component_issues: crossComponentIssues,
+    investigation_enrichment: epistemicProfileEnriched.investigation_enrichment_applied === true,
     evidence_graph_summary: {
       component_count: Object.keys(evidenceGraph.by_component ?? {}).length,
       hit_count: hits.length,
       component_rag_hits: componentHits.length,
       oov_cluster_count: evidenceGraph.oov_cluster_count ?? 0,
+      residual_observation_count: residualObservations.length,
+      planner_source: plannerSource,
+      synthesis_mode: synth.synthesis_mode ?? 'llm',
     },
   };
 

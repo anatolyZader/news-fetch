@@ -8,6 +8,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { runToolLoop as sharedRunToolLoop } from './runToolLoop.js';
 import { withSpan } from '../observability/withSpan.js';
+import { createLlmGateway } from './llmGateway.js';
 
 /**
  * @param {{ apiKey?: string, defaultModel?: string, client?: object }} [cfg]
@@ -46,6 +47,8 @@ export function setSharedLlmPort(port) {
  * @returns {import('./ILlmPort.js').LlmPort}
  */
 export function getDefaultLlmPort() {
-  if (!defaultPort) defaultPort = createAnthropicLlmPort();
+  if (!defaultPort) {
+    defaultPort = createLlmGateway(createAnthropicLlmPort());
+  }
   return defaultPort;
 }

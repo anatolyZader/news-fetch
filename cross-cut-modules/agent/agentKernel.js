@@ -7,6 +7,7 @@ import { createWorkingMemory } from './memory/workingMemory.js';
 import { createTraceStore, hashInputs } from './memory/traceStore.js';
 import { validateSubmitToolPayload, parseToolInput } from './schemaValidator.js';
 import { getToolsForProfile } from './toolRegistry.js';
+import { compactToolLoopEnabled } from './agentConfig.js';
 import './profiles/chat.profile.js';
 import './profiles/validation.profile.js';
 import './profiles/assessment.profile.js';
@@ -75,6 +76,14 @@ export function createAgentKernel(deps) {
       tools,
       agentKind,
       abortSignal: opts.abortSignal ?? null,
+      compactHistoryAfterRound: opts.compactHistoryAfterRound ?? compactToolLoopEnabled(),
+      workingMemory: memory,
+      budget,
+      callContext: {
+        feature: agentKind,
+        agentName: agentKind,
+        purpose: `${agentKind}:tool_loop`,
+      },
       onTextBlock: opts.onTextBlock,
       onUsage: (p) => {
         budget.recordUsage({ model: p.model, usage: p.usage });

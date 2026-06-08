@@ -1,4 +1,3 @@
-import Anthropic from '@anthropic-ai/sdk';
 import { createHash } from 'node:crypto';
 import {
   AFFECTED_SUBGROUPS,
@@ -9,7 +8,8 @@ import {
 import {
   DOMAIN_GROUPS,
   isMultipassEnabled,
-  buildDomainScopeSuffix,
+  getMultipassGroupKeys,
+  buildPassScopeSuffix,
   buildSelfCheckPrompt,
 } from './extractionPasses.js';
 import {
@@ -28,8 +28,22 @@ import { applyEvidenceVerifier, splitParagraphs } from './claudeEvidenceVerifica
 import { DOMAIN_INTENT_QUERIES } from '../../../cross-cut-modules/retrieval/domainIntentQueries.js';
 import { selectArticlePromptSpans } from '../../../cross-cut-modules/retrieval/pipelineRetrieval.js';
 import { resilienceExtractRagEnabled } from '../../../cross-cut-modules/retrieval/ragConfig.js';
+import { getDefaultLlmPort } from '../../../cross-cut-modules/llm/anthropicLlmAdapter.js';
+import {
+  EXTRACT_PROMPT_ID,
+  EXTRACT_PROMPT_VERSION,
+  extractMaxTokens,
+  selfCheckMaxTokensCap,
+  extractBatchEnabled,
+  buildCoreExtractionSystemPrompt,
+} from '../../../cross-cut-modules/resilience-contracts/extractionPrompt.js';
+import { runExtractionBatchCalls } from './extractionBatchRunner.js';
+import {
+  partitionArticlesByExtractCache,
+  remapMissBatchIndices,
+  persistArticleExtractCache,
+} from '../../../cross-cut-modules/llm/cache/extractionCacheIntegration.js';
 
-const client = new Anthropic();
 const DEFAULT_EXTRACT_MODEL = process.env.RESILIENCE_EXTRACT_MODEL ?? 'claude-haiku-4-5-20251001';
 const DEFAULT_SELF_CHECK_MODEL = process.env.RESILIENCE_SELF_CHECK_MODEL ?? 'claude-haiku-4-5-20251001';
 
@@ -510,29 +524,29 @@ const WHATSAPP_INTERACTIVE_SIGNAL_EXTRACTION_PREFIX =
   `- Keep each question to one sentence.\n\n`;
 
 export function buildSignalExtractionSystemPrompt(contentKind) {
-  const base = SIGNAL_EXTRACTION_SYSTEM_PROMPT;
+  const base = buildCoreExtractionSystemPrompt(formatDisambiguationBlock, formatSignalCatalogForPrompt);
   if (contentKind === 'audio') {
     return AUDIO_SIGNAL_EXTRACTION_PREFIX + base.replace(
-      'from news articles using',
-      'from spoken-audio transcripts (same rules as news text) using',
+      'Extract ATOMIC signals',
+      'Extract ATOMIC signals from spoken-audio transcripts (same rules as news text)',
     );
   }
   if (contentKind === 'field_report') {
     return FIELD_REPORT_SIGNAL_EXTRACTION_PREFIX + base.replace(
-      'from news articles using',
-      'from expert field report documents (same signal vocabulary) using',
+      'Extract ATOMIC signals',
+      'Extract ATOMIC signals from expert field report documents (same signal vocabulary)',
     );
   }
   if (contentKind === 'whatsapp_realtime') {
     return WHATSAPP_REALTIME_SIGNAL_EXTRACTION_PREFIX + base.replace(
-      'from news articles using',
-      'from a single WhatsApp field report using',
+      'Extract ATOMIC signals',
+      'Extract ATOMIC signals from a single WhatsApp field report',
     );
   }
   if (contentKind === 'whatsapp_interactive') {
     return WHATSAPP_INTERACTIVE_SIGNAL_EXTRACTION_PREFIX + base.replace(
-      'from news articles using',
-      'from a multi-turn WhatsApp officer dialogue using',
+      'Extract ATOMIC signals',
+      'Extract ATOMIC signals from a multi-turn WhatsApp officer dialogue',
     );
   }
   return base;
@@ -548,13 +562,26 @@ function haikuRetryWaitMs(err, attempt) {
   return is429 ? 90000 : 5000 * attempt;
 }
 
-async function fetchHaikuSignalsOnce(batchLabel, modelId, system, userContent, usageCallback) {
-  const stream = client.messages.stream({
+async function fetchHaikuSignalsOnce(batchLabel, modelId, system, userContent, usageCallback, callContextExtra = {}) {
+  const llmPort = getDefaultLlmPort();
+  const maxTokens = extractMaxTokens();
+  const stream = await llmPort.stream({
     model: modelId,
-    max_tokens: 12000,
+    max_tokens: maxTokens,
     temperature: 0,
     system,
     messages: [{ role: 'user', content: userContent }],
+    callContext: {
+      feature: 'extract',
+      promptId: EXTRACT_PROMPT_ID,
+      promptVersion: EXTRACT_PROMPT_VERSION,
+      purpose: batchLabel,
+      maxOutputTokens: maxTokens,
+      ...callContextExtra,
+    },
+    onUsage: usageCallback
+      ? (p) => usageCallback({ label: batchLabel, model: modelId, usage: p.usage })
+      : undefined,
   });
   await streamWithProgress(stream, batchLabel);
   const message = await stream.finalMessage();
@@ -579,33 +606,59 @@ async function callHaikuExtraction(articles, {
   extractModel = null,
   extractOpts = {},
 }) {
-  const baseSystem = buildSignalExtractionSystemPrompt(contentKind);
-  const system = domainGroupKey
-    ? `${baseSystem}\n\n${buildDomainScopeSuffix(domainGroupKey)}`
-    : baseSystem;
-  const prepared = await prepareArticlesForPrompt(articles, {
-    contentKind,
-    domainGroupKey,
-    retrievalService: extractOpts.retrievalService ?? null,
-    reportDate: extractOpts.reportDate ?? null,
-  });
-  const userContent =
-    `Extract all behavioral signals from these Israeli ${extractUserLabelForSignals(contentKind)}:\n\n` +
-    formatArticlesForPrompt(prepared);
   const modelId = extractModel ?? DEFAULT_EXTRACT_MODEL;
+  const { missArticles, origIndexByMiss, cachedSignals } = partitionArticlesByExtractCache(
+    articles,
+    {
+      model: modelId,
+      contentKind,
+      domainGroupKey,
+      cacheDbPath: extractOpts.cacheDbPath,
+    },
+  );
 
-  for (let attempt = 1; attempt <= retries; attempt++) {
-    try {
-      const label = attempt > 1 ? `${batchLabel} (retry ${attempt})` : batchLabel;
-      return await fetchHaikuSignalsOnce(label, modelId, system, userContent, usageCallback);
-    } catch (err) {
-      if (attempt === retries) throw err;
-      const wait = haikuRetryWaitMs(err, attempt);
-      console.error(`  ⚠ ${batchLabel} attempt ${attempt} failed (${err.message}) — retrying in ${wait / 1000}s...`);
-      await new Promise((r) => setTimeout(r, wait));
+  if (cachedSignals.length > 0) {
+    console.error(`  → ${batchLabel}: ${cachedSignals.length} cached signal(s) from ${articles.length - missArticles.length} article(s)`);
+  }
+
+  let llmSignals = [];
+  if (missArticles.length > 0) {
+    const baseSystem = buildSignalExtractionSystemPrompt(contentKind);
+    const system = domainGroupKey
+      ? `${baseSystem}\n\n${buildPassScopeSuffix(domainGroupKey)}`
+      : baseSystem;
+    const prepared = await prepareArticlesForPrompt(missArticles, {
+      contentKind,
+      domainGroupKey,
+      retrievalService: extractOpts.retrievalService ?? null,
+      reportDate: extractOpts.reportDate ?? null,
+    });
+    const userContent =
+      `Extract all behavioral signals from these Israeli ${extractUserLabelForSignals(contentKind)}:\n\n` +
+      formatArticlesForPrompt(prepared);
+
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      try {
+        const label = attempt > 1 ? `${batchLabel} (retry ${attempt})` : batchLabel;
+        const raw = await fetchHaikuSignalsOnce(label, modelId, system, userContent, usageCallback);
+        llmSignals = remapMissBatchIndices(raw, origIndexByMiss);
+        persistArticleExtractCache(llmSignals, articles, {
+          model: modelId,
+          contentKind,
+          domainGroupKey,
+          cacheDbPath: extractOpts.cacheDbPath,
+        });
+        break;
+      } catch (err) {
+        if (attempt === retries) throw err;
+        const wait = haikuRetryWaitMs(err, attempt);
+        console.error(`  ⚠ ${batchLabel} attempt ${attempt} failed (${err.message}) — retrying in ${wait / 1000}s...`);
+        await new Promise((r) => setTimeout(r, wait));
+      }
     }
   }
-  return [];
+
+  return [...cachedSignals, ...llmSignals];
 }
 
 /**
@@ -643,12 +696,24 @@ async function runSelfCheck(signals, batchLabel, usageCallback) {
 
   try {
     const selfLabel = `${batchLabel} self-check`;
-    const stream = client.messages.stream({
+    const selfCheckMax = Math.min(selfCheckMaxTokensCap(), 60 + indices.length * 30);
+    const llmPort = getDefaultLlmPort();
+    const stream = await llmPort.stream({
       model: DEFAULT_SELF_CHECK_MODEL,
-      max_tokens: Math.min(4000, 60 + indices.length * 30),
+      max_tokens: selfCheckMax,
       temperature: 0,
       system,
       messages: [{ role: 'user', content: user }],
+      callContext: {
+        feature: 'extract_self_check',
+        promptId: EXTRACT_PROMPT_ID,
+        promptVersion: EXTRACT_PROMPT_VERSION,
+        purpose: selfLabel,
+        maxOutputTokens: selfCheckMax,
+      },
+      onUsage: usageCallback
+        ? (p) => usageCallback({ label: selfLabel, model: DEFAULT_SELF_CHECK_MODEL, usage: p.usage })
+        : undefined,
     });
     await streamWithProgress(stream, selfLabel);
     const message = await stream.finalMessage();
@@ -680,6 +745,96 @@ async function runSelfCheck(signals, batchLabel, usageCallback) {
   }
 }
 
+async function extractMultipassRaw(articles, batchLabel, retries, usageCallback, contentKind, extractModel, extractOpts) {
+  const groupKeys = getMultipassGroupKeys();
+  const modelId = extractModel ?? DEFAULT_EXTRACT_MODEL;
+
+  if (extractBatchEnabled() && groupKeys.length > 0) {
+    const batchCalls = [];
+    const cachedAccum = [];
+    for (const key of groupKeys) {
+      const passLabel = `${batchLabel} pass-${key}`;
+      const { missArticles, origIndexByMiss, cachedSignals } = partitionArticlesByExtractCache(
+        articles,
+        { model: modelId, contentKind, domainGroupKey: key, cacheDbPath: extractOpts.cacheDbPath },
+      );
+      cachedAccum.push(...cachedSignals);
+      if (!missArticles.length) continue;
+      const baseSystem = buildSignalExtractionSystemPrompt(contentKind);
+      const system = `${baseSystem}\n\n${buildPassScopeSuffix(key)}`;
+      const prepared = await prepareArticlesForPrompt(missArticles, {
+        contentKind,
+        domainGroupKey: key,
+        retrievalService: extractOpts.retrievalService ?? null,
+        reportDate: extractOpts.reportDate ?? null,
+      });
+      const userContent =
+        `Extract all behavioral signals from these Israeli ${extractUserLabelForSignals(contentKind)}:\n\n` +
+        formatArticlesForPrompt(prepared);
+      batchCalls.push({
+        customId: passLabel,
+        model: modelId,
+        system,
+        userContent,
+        label: passLabel,
+        meta: { key, origIndexByMiss, missArticles },
+      });
+    }
+
+    if (batchCalls.length > 0) {
+      const batchResults = await runExtractionBatchCalls(batchCalls);
+      let raw = [...cachedAccum];
+      for (const call of batchCalls) {
+        const result = batchResults.get(call.customId);
+        if (!result?.ok) {
+          console.error(`  ⚠ batch pass failed (${result?.error}) — sync fallback for ${call.customId}`);
+          raw = raw.concat(await callHaikuExtraction(articles, {
+            batchLabel: call.customId,
+            retries,
+            usageCallback,
+            contentKind,
+            domainGroupKey: call.meta.key,
+            extractModel,
+            extractOpts,
+          }));
+          continue;
+        }
+        if (usageCallback && result.usage) {
+          usageCallback({ label: call.label, model: modelId, usage: result.usage });
+        }
+        const remapped = remapMissBatchIndices(result.signals, call.meta.origIndexByMiss);
+        persistArticleExtractCache(remapped, articles, {
+          model: modelId,
+          contentKind,
+          domainGroupKey: call.meta.key,
+          cacheDbPath: extractOpts.cacheDbPath,
+        });
+        raw = raw.concat(remapped);
+        console.error(`  → ${call.customId}: ${remapped.length} candidate(s) [batch]`);
+      }
+      return raw;
+    }
+    return cachedAccum;
+  }
+
+  let raw = [];
+  for (const key of groupKeys) {
+    const passLabel = `${batchLabel} pass-${key}`;
+    const passSignals = await callHaikuExtraction(articles, {
+      batchLabel: passLabel,
+      retries,
+      usageCallback,
+      contentKind,
+      domainGroupKey: key,
+      extractModel,
+      extractOpts,
+    });
+    console.error(`  → ${passLabel}: ${passSignals.length} candidate(s)`);
+    raw = raw.concat(passSignals);
+  }
+  return raw;
+}
+
 async function extractSignalsBatch(articles, batchLabel, retries = 3, usageCallback = null, contentKind = 'news', extractModel = null, extractOpts = {}) {
   const useMultipass = isMultipassEnabled() &&
     contentKind !== 'whatsapp_realtime' &&
@@ -687,21 +842,7 @@ async function extractSignalsBatch(articles, batchLabel, retries = 3, usageCallb
 
   let raw = [];
   if (useMultipass) {
-    const groupKeys = Object.keys(DOMAIN_GROUPS);
-    for (const key of groupKeys) {
-      const passLabel = `${batchLabel} pass-${key}`;
-      const passSignals = await callHaikuExtraction(articles, {
-        batchLabel: passLabel,
-        retries,
-        usageCallback,
-        contentKind,
-        domainGroupKey: key,
-        extractModel,
-        extractOpts,
-      });
-      console.error(`  → ${passLabel}: ${passSignals.length} candidate(s)`);
-      raw = raw.concat(passSignals);
-    }
+    raw = await extractMultipassRaw(articles, batchLabel, retries, usageCallback, contentKind, extractModel, extractOpts);
   } else {
     raw = await callHaikuExtraction(articles, {
       batchLabel,

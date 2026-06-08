@@ -4,6 +4,7 @@
 import { buildSignalRefRegistry } from '../../business_modules/resilience/domain/services/narrativeGrounding/signalRefRegistry.js';
 import { SIGNAL_TO_COMPONENTS } from '../../business_modules/resilience/domain/services/signalRouter.js';
 import { COMPONENT_IDS } from '../resilience-contracts/componentIds.js';
+import { mapObservationToComponent, observationText } from './residualObservations.js';
 
 const OOV_CLUSTER_CAP = 3;
 const RAG_SEED_CLAIM_CAP = 3;
@@ -74,6 +75,7 @@ export function buildEvidenceGraph({
   scoredLike = null,
   oovBurst = null,
   totalArticles = 0,
+  residualObservations = [],
 }) {
   const registry = scoredLike
     ? buildSignalRefRegistry(scoredLike)
@@ -132,6 +134,7 @@ export function buildEvidenceGraph({
   }
 
   const oovClaimsByComponent = injectOovClusters(nodes, oovBurst);
+  const residualClaimsByComponent = injectResidualObservations(nodes, residualObservations);
 
   const byComponent = {};
   for (const compId of COMPONENT_IDS) {
@@ -147,7 +150,8 @@ export function buildEvidenceGraph({
       totalArticles,
     );
     const oovClaims = oovClaimsByComponent[compId] ?? [];
-    const mergedClaims = [...claims, ...oovClaims];
+    const residualClaims = residualClaimsByComponent[compId] ?? [];
+    const mergedClaims = [...claims, ...oovClaims, ...residualClaims];
     const retrieval_gaps = buildRetrievalGaps(compId, compProfile, mergedClaims);
 
     nodes.hypotheses.push({ id: `hyp:${compId}`, component_id: compId });
@@ -171,7 +175,14 @@ export function buildEvidenceGraph({
 function injectOovClusters(nodes, oovBurst) {
   const byComponent = Object.fromEntries(COMPONENT_IDS.map((id) => [id, []]));
   if (!oovGraphEnabled()) return byComponent;
-  if (!oovBurst?.alert && (oovBurst?.top_cluster_count ?? 0) < 3) return byComponent;
+
+  const residualInBurst = oovBurst?.residual_observation_count ?? 0;
+  const clusterCount = oovBurst?.top_cluster_count ?? 0;
+  const shouldInject = oovBurst?.alert === true
+    || clusterCount >= 3
+    || (residualInBurst >= 2 && clusterCount >= 1);
+
+  if (!shouldInject) return byComponent;
 
   const clusters = (oovBurst?.top_clusters ?? []).slice(0, OOV_CLUSTER_CAP);
   if (!clusters.length && oovBurst?.top_cluster_key) {
@@ -204,6 +215,44 @@ function injectOovClusters(nodes, oovBurst) {
       contradict: [],
       epistemic_flags: ['unverified', 'oov_cluster'],
     });
+  }
+
+  return byComponent;
+}
+
+const RESIDUAL_CLAIM_CAP = 3;
+
+function injectResidualObservations(nodes, observations = []) {
+  const byComponent = Object.fromEntries(COMPONENT_IDS.map((id) => [id, []]));
+  if (!observations?.length) return byComponent;
+
+  const byComp = Object.fromEntries(COMPONENT_IDS.map((id) => [id, []]));
+  for (const obs of observations) {
+    const compId = obs.component_id ?? mapObservationToComponent(obs);
+    if (byComp[compId]) byComp[compId].push(obs);
+    else byComp.narrative.push(obs);
+  }
+
+  for (const compId of COMPONENT_IDS) {
+    const list = byComp[compId].slice(0, RESIDUAL_CLAIM_CAP);
+    for (const [i, obs] of list.entries()) {
+      const text = observationText(obs).slice(0, 200);
+      const ref = obs.article_url ?? obs.source_id ?? `residual:${compId}:${i}`;
+      nodes.signals.push({
+        id: `residual:${ref}`,
+        signal_type: 'residual_observation',
+        source_type: obs.source_type ?? obs.source_label ?? null,
+        evidence: text.slice(0, 300),
+        grounding_tier: 'unverified',
+      });
+      byComponent[compId].push({
+        claim_id: `${compId}:res${i + 1}`,
+        text: text || 'Open residual observation from zero-signal article',
+        support: [{ ref: `residual:${ref}`, mass: 0.2 }],
+        contradict: [],
+        epistemic_flags: ['unverified', 'residual_observation', 'archive_only'],
+      });
+    }
   }
 
   return byComponent;

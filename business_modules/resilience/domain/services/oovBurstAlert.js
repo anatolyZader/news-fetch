@@ -9,7 +9,7 @@ function getStore(deps = {}) {
 }
 import { resolve } from 'node:path';
 
-import { evaluateDynamicOovClusters } from '../../../../cross-cut-modules/learningCapture/dynamicOovCluster.js';
+import { evaluateDynamicOovClusters, evaluateInvestigationOovClusters } from '../../../../cross-cut-modules/learningCapture/dynamicOovCluster.js';
 import { LEARNING_CAPTURE_KINDS } from '../../../../cross-cut-modules/learningCapture/kinds.js';
 import { embedText, embeddingsEnabled } from '../../../../cross-cut-modules/vector_index/index.js';
 import { isLearningCaptureEnabled, getOovRunBuffer } from './oovCapture.js';
@@ -88,6 +88,34 @@ export async function evaluateOovBurst(date, opts = {}) {
     : undefined;
 
   return evaluateDynamicOovClusters(records, {
+    ...opts,
+    embedFn,
+    digitalDarkness: opts.digitalDarkness === true,
+  });
+}
+
+/**
+ * Investigation burst for agent path — includes residual/open observations.
+ * @param {string} date
+ * @param {object} [opts]
+ */
+export async function evaluateInvestigationBurst(date, opts = {}) {
+  if (!isLearningCaptureEnabled()) {
+    return evaluateInvestigationOovClusters([], opts);
+  }
+
+  const fileRecords = loadOovCaptureRecordsForDate(date, opts.reportsDir);
+  const runRecords = getOovRunBuffer().filter((r) => {
+    const day = r.timestamp?.slice(0, 10);
+    return !day || day === date;
+  });
+  const records = mergeOovRecords(fileRecords, runRecords);
+
+  const embedFn = embeddingsEnabled()
+    ? (text) => embedText(text)
+    : undefined;
+
+  return evaluateInvestigationOovClusters(records, {
     ...opts,
     embedFn,
     digitalDarkness: opts.digitalDarkness === true,

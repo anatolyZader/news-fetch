@@ -9,6 +9,7 @@ import {
   resolveCostLogPath,
   summarizeStageDropRates,
 } from '../infrastructure/adapters/costLogReader.js';
+import { readLlmTelemetryForDate } from '../../llm/llmInvocationLog.js';
 
 /**
  * Technical monitoring facade (filesystem + cost-log v1).
@@ -62,6 +63,11 @@ export function createMonitoringService(deps) {
       total_usd: cost.total_usd,
       by_script: cost.by_script,
     };
+  }
+
+  async function getLlmTelemetry({ date } = {}) {
+    const datePrefix = date ?? new Date().toISOString().slice(0, 10);
+    return readLlmTelemetryForDate(datePrefix, deps.rootDir);
   }
 
   async function getStageTelemetry({ date } = {}) {
@@ -122,6 +128,7 @@ export function createMonitoringService(deps) {
     getPublicHealth,
     getPipelineStatus,
     getCostTelemetry,
+    getLlmTelemetry,
     getStageTelemetry,
   };
 }

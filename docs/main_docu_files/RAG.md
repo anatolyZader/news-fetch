@@ -1,8 +1,8 @@
 # RAG platform
 
-**Purpose:** Unified **hybrid retrieval** (SQLite `rag_chunks`, FTS5, optional embeddings, RRF, Cohere rerank) feeding chat, pipeline extract, report-build, analyst tools, and docs search.
+**Purpose:** Unified **hybrid retrieval** (SQLite `rag_chunks`, FTS5, optional embeddings, RRF, Cohere rerank) feeding **assess-time investigation**, chat, pipeline extract, report-build, analyst tools, and docs search.
 
-**Sources:** `cross-cut-modules/retrieval/`, `createRetrievalService.js`, `ragConfig.js`.
+**Sources:** `cross-cut-modules/retrieval/`, `createRetrievalService.js`, `ragConfig.js`, `componentRagSeeding.js`, `evidenceGraph.js`.
 
 ---
 
@@ -12,7 +12,7 @@
 Index writers → rag_chunks (namespace, parent_id, date, body)
   → chunkStore + FTS rebuild
   → retrievalService.hybridRetrieve(query, { namespaces, date window, topK })
-  → Consumers (chat, extract, field report-build, docs panel, translation, …)
+  → Consumers (assess agent, chat, extract, field report-build, docs panel, translation, …)
 ```
 
 **Factory:** `createRetrievalService({ dbPath })` wires store, orchestrator, and specialized index writers.
@@ -45,12 +45,29 @@ Static index dates: docs namespace uses `2099-01-01`; HFC uses `2099-01-01`.
 
 | Tier | Module | Use |
 |------|--------|-----|
+| **Assess agent** | `componentRagSeeding.js`, `evidenceGraph.js`, `multiHopRetrieval.js` | Per-component RAG seed at assess; evidence graph claims; specialist tool loop (`search_sources`, `get_source`) |
 | Chat | `business_modules/chat/` — `sourceArchiveQuery.js`, tool handlers | Hybrid search over archive + tools |
 | Pipeline extract | `pipelineRetrieval.js` | Prompt span selection when extract RAG enabled |
 | Report build | `fieldRetrieval.js` | Similar reports, taxonomy, HFC snippets |
 | Analyst | `analystRetrieval.js` | Validation explain/agent context; catalog gap neighbors for signal catalog evolution |
 | Docs panel | `docsRetrieval.js` | `GET /api/docs/search` |
 | Translation | `translationTermRetrieval.js` | Glossary-aware translation |
+
+### Assess-time RAG (default assess path)
+
+When `RESILIENCE_ASSESSMENT_AGENT=1` (default):
+
+1. **Planner (signals-only)** — `buildPlannerContext` runs without upfront RAG when `RESILIENCE_ASSESS_LAZY_RAG=1` (default).
+2. **Lazy component seed** — `seedComponentRagForComponents` retrieves only for `plan.focus_components` (`topKPerComponent` default **3**).
+3. **Global retrieve** (optional) — hybrid retrieve with `RESILIENCE_ASSESS_GLOBAL_TOPK` (default **8**) when `RESILIENCE_ASSESS_GLOBAL_RAG=1`.
+4. **`buildEvidenceGraph`** — merges catalog signals, RAG hits, OOV/residual observations, gaps; optional archive epistemic hints (`RESILIENCE_ASSESS_ARCHIVE_EPISTEMIC`).
+5. **Specialist tools** — `multiHopRetrieval.js` extends context within budget; contested components may run adversarial retrieval (`RESILIENCE_ASSESS_CONTESTED_ADVERSARIAL`).
+
+Disable all component seeding: `RESILIENCE_ASSESS_OPEN_RAG=0`.
+
+Legacy upfront seed (all 8 components before planner): set `RESILIENCE_ASSESS_LAZY_RAG=0`.
+
+See [RESILIENCE-ENGINE-REFERENCE.md §3.1](./RESILIENCE-ENGINE-REFERENCE.md#31-assessment-agent-v2) and [MODEL-CARD.md](../MODEL-CARD.md) for Tier 1/2 flags.
 
 ---
 
@@ -85,6 +102,11 @@ After deploy or bulk doc changes: run relevant reindex + restart if needed.
 | `COHERE_API_KEY` | Rerank when enabled |
 | `DOCS_RAG_VERSION` / package version | Docs corpus scope id |
 | `SIGNAL_CATALOG_EVOLUTION_RAG_ENABLED` | Gap-report nearest-catalog neighbors (`retrieveCatalogNeighbors`) |
+| `RESILIENCE_ASSESS_LAZY_RAG` | Lazy component RAG after planner (default on) |
+| `RESILIENCE_ASSESS_GLOBAL_RAG` | Global hybrid retrieve at assess (default on) |
+| `RESILIENCE_ASSESS_GLOBAL_TOPK` | Global retrieve top-K (default 8) |
+| `RESILIENCE_ASSESS_OPEN_RAG` | Per-component RAG seeding (default on; `0` disables) |
+| `RESILIENCE_EXTRACT_RAG_ENABLED` | Prompt-span RAG during pipeline extract |
 
 See `ragConfig.js` for topK, snippet length, date windows.
 

@@ -10,8 +10,69 @@ import {
 } from './assessmentEvidenceTools.js';
 import { buildEvidenceGraph } from './evidenceGraph.js';
 import { applyRetrievalPolicies } from './retrievalPolicies.js';
+import { compressToolsEnabled } from '../agent/agentConfig.js';
+import {
+  compressRetrieveResult,
+  compressCrossSourceCompare,
+  compressStructuredPayload,
+} from './toolResponseCompress.js';
 
 export { applyRetrievalPolicies } from './retrievalPolicies.js';
+
+function logFullToolResult(ctx, name, raw) {
+  if (!ctx.traceStore || !ctx.traceId) return;
+  try {
+    let totalHits = 0;
+    let sample = null;
+    if (Array.isArray(raw)) {
+      totalHits = raw.length;
+      sample = raw.slice(0, 2);
+    } else if (raw?.support != null) {
+      totalHits = (raw.support?.length ?? 0) + (raw.contradict?.length ?? 0);
+      sample = { support: raw.support?.slice(0, 2), contradict: raw.contradict?.slice(0, 2) };
+    } else if (raw && typeof raw === 'object') {
+      const keys = Object.keys(raw);
+      if (keys.length && Array.isArray(raw[keys[0]])) {
+        totalHits = keys.reduce((s, k) => s + (raw[k]?.length ?? 0), 0);
+        sample = Object.fromEntries(keys.slice(0, 2).map((k) => [k, raw[k]?.slice(0, 2)]));
+      }
+    }
+    ctx.traceStore.append(ctx.traceId, {
+      agent: ctx.agentKind ?? 'specialist',
+      event: 'tool_result_full',
+      tool: name,
+      total_hits: totalHits,
+      sample,
+    });
+  } catch {
+    // trace logging must not break tools
+  }
+}
+
+function formatToolResult(name, raw, ctx) {
+  logFullToolResult(ctx, name, raw);
+  const escalated = ctx.toolCompressEscalated === true;
+  const compress = ctx.compressTools !== false && compressToolsEnabled();
+
+  if (!compress || LOOKUP_TOOL_NAMES.has(name)) {
+    return JSON.stringify(raw);
+  }
+
+  switch (name) {
+    case 'retrieve_for_claim':
+      return JSON.stringify(compressRetrieveResult(raw, { escalated }));
+    case 'expand_source_neighborhood':
+    case 'temporal_trace':
+      return JSON.stringify(compressRetrieveResult(raw, { escalated }));
+    case 'cross_source_compare':
+      return JSON.stringify(compressCrossSourceCompare(raw, { escalated }));
+    case 'recall_prior_assessments':
+    case 'get_epistemic_profile':
+      return JSON.stringify(compressStructuredPayload(raw));
+    default:
+      return JSON.stringify(raw);
+  }
+}
 
 /**
  * @param {object} deps
@@ -124,46 +185,46 @@ export async function executeMultiHopTool(name, input, ctx) {
 
   switch (name) {
     case 'retrieve_for_claim':
-      return JSON.stringify(await multiHop.retrieveForClaim({
+      return formatToolResult(name, await multiHop.retrieveForClaim({
         claim_text: input.claim_text,
         component_id: input.component_id,
         polarity: input.polarity,
         epistemicProfile: ctx.epistemicProfile,
         reportDate: ctx.reportDate,
-      }));
+      }), ctx);
     case 'expand_source_neighborhood':
-      return JSON.stringify(await multiHop.expandSourceNeighborhood({
+      return formatToolResult(name, await multiHop.expandSourceNeighborhood({
         source_id: input.source_id,
         top_k: input.top_k,
         reportDate: ctx.reportDate,
-      }));
+      }), ctx);
     case 'cross_source_compare':
-      return JSON.stringify(await multiHop.crossSourceCompare({
+      return formatToolResult(name, await multiHop.crossSourceCompare({
         topic: input.topic,
         source_types: input.source_types,
         component_id: input.component_id,
         reportDate: ctx.reportDate,
         epistemicProfile: ctx.epistemicProfile,
-      }));
+      }), ctx);
     case 'temporal_trace':
-      return JSON.stringify(await multiHop.temporalTrace({
+      return formatToolResult(name, await multiHop.temporalTrace({
         entity: input.entity,
         window_days: input.window_days,
         component_id: input.component_id,
         reportDate: ctx.reportDate,
-      }));
+      }), ctx);
     case 'recall_prior_assessments':
-      return JSON.stringify(multiHop.recallPriorAssessments({
+      return formatToolResult(name, multiHop.recallPriorAssessments({
         component_id: input.component_id,
         window_days: input.window_days,
         reportDate: ctx.reportDate,
-      }));
+      }), ctx);
     case 'get_epistemic_profile': {
       const compId = input.component_id;
       const profile = ctx.epistemicProfile;
       if (!profile) return JSON.stringify({ error: 'no_profile' });
-      if (compId) return JSON.stringify(profile.by_component?.[compId] ?? {});
-      return JSON.stringify(profile);
+      const slice = compId ? (profile.by_component?.[compId] ?? {}) : profile;
+      return formatToolResult(name, slice, ctx);
     }
     default:
       if (LOOKUP_TOOL_NAMES.has(name)) {

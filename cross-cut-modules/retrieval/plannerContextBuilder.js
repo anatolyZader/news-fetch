@@ -3,6 +3,7 @@
  */
 import { COMPONENT_IDS } from '../resilience-contracts/componentIds.js';
 import { classifyGap } from './evidenceGraph.js';
+import { detectArchiveAnomalies } from './archiveEpistemicHints.js';
 
 const MEDIA_MASS_THRESHOLD = 2.0;
 const LOW_EVIDENCE_THRESHOLD = 1.5;
@@ -27,8 +28,11 @@ export function buildPlannerContext(params) {
     epistemicProfile,
     evidenceGraph,
     oovBurst = null,
+    investigationOovBurst = null,
     assessmentMode = 'normal',
     abstentionComponents = [],
+    archiveMentionMass = null,
+    residualObservations = [],
   } = params;
 
   const abstentionSet = new Set(abstentionComponents);
@@ -60,26 +64,55 @@ export function buildPlannerContext(params) {
   }
 
   let oov_summary = null;
-  if (oovBurst?.alert === true || (oovBurst?.top_cluster_count ?? 0) >= 3) {
+  const burst = investigationOovBurst ?? oovBurst;
+  const residualCount = burst?.residual_observation_count
+    ?? residualObservations.length
+    ?? 0;
+  if (burst?.alert === true
+    || (burst?.top_cluster_count ?? 0) >= 3
+    || (residualCount >= 2 && (burst?.top_cluster_count ?? 0) >= 1)) {
     oov_summary = {
-      alert: oovBurst?.alert ?? false,
-      level: oovBurst?.level ?? 'none',
-      top_cluster_count: oovBurst?.top_cluster_count ?? 0,
-      top_cluster_keywords: (oovBurst?.top_cluster_keywords ?? []).slice(0, 8),
-      total: oovBurst?.total ?? 0,
+      alert: burst?.alert ?? false,
+      level: burst?.level ?? 'none',
+      top_cluster_count: burst?.top_cluster_count ?? 0,
+      top_cluster_keywords: (burst?.top_cluster_keywords ?? []).slice(0, 8),
+      total: burst?.total ?? 0,
+      residual_observation_count: residualCount,
+      investigation_mode: burst?.investigation_mode === true,
     };
   }
 
+  let residual_summary = null;
+  if (residualObservations.length > 0) {
+    residual_summary = {
+      count: residualObservations.length,
+      by_component: Object.fromEntries(
+        COMPONENT_IDS.map((id) => [
+          id,
+          residualObservations.filter((o) => (o.component_id ?? mapResidualComponent(o)) === id).length,
+        ]),
+      ),
+    };
+  }
+
+  const archive_anomalies = archiveMentionMass
+    ? detectArchiveAnomalies(epistemicProfile, archiveMentionMass)
+    : [];
+
   let exploration_candidates = [];
   if (mediaExploreEnabled() && EXPLORATION_MODES.has(assessmentMode)) {
-    exploration_candidates = media_volume_anomalies
-      .filter((a) => !abstentionSet.has(a.component_id))
+    const exploreFromMedia = media_volume_anomalies
+      .filter((a) => !abstentionSet.has(a.component_id));
+    const exploreFromArchive = archive_anomalies
+      .filter((a) => !abstentionSet.has(a.component_id));
+    const combined = [...exploreFromMedia, ...exploreFromArchive];
+    exploration_candidates = combined
       .slice(0, MAX_EXPLORATION_CANDIDATES)
       .map((a, i) => ({
         id: `explore_${i + 1}`,
         component_id: a.component_id,
         type: 'archive_explore',
-        topic: 'zero signals high media volume',
+        topic: a.reason?.includes('archive') ? 'archive mention spike' : 'zero signals high media volume',
         reason: a.reason,
       }));
   }
@@ -93,9 +126,18 @@ export function buildPlannerContext(params) {
     classified_gaps,
     investigation_gaps,
     media_volume_anomalies,
+    archive_anomalies,
     oov_summary,
+    residual_summary,
     exploration_candidates,
   };
+}
+
+function mapResidualComponent(obs) {
+  const text = String(obs.behavioral_description ?? obs.evidence ?? '').toLowerCase();
+  if (text.includes('shelter') || text.includes('emergency')) return 'lifesaving_behavior';
+  if (text.includes('mayor') || text.includes('leadership')) return 'leadership';
+  return 'narrative';
 }
 
 /**

@@ -219,30 +219,90 @@ export async function evaluateDynamicOovClusters(records, opts = {}) {
     (r) => (r.capture_kind ?? LEARNING_CAPTURE_KINDS.UNKNOWN_TYPE) === LEARNING_CAPTURE_KINDS.UNKNOWN_TYPE,
   );
 
-  if (unknowns.length === 0) {
+  return evaluateClustersFromRecords(unknowns, {
+    ...opts,
+    windowHours,
+    embedThreshold,
+    operatorMin,
+    salienceMin,
+    anchorMs,
+  });
+}
+
+const INVESTIGATION_CAPTURE_KINDS = new Set([
+  LEARNING_CAPTURE_KINDS.UNKNOWN_TYPE,
+  LEARNING_CAPTURE_KINDS.RESIDUAL_OBSERVATION,
+  LEARNING_CAPTURE_KINDS.OPEN_OBSERVATION,
+]);
+
+/**
+ * Investigation burst — includes residual/open observations for agent blackboard.
+ * Scoring path should keep using evaluateDynamicOovClusters (unknown_type only).
+ *
+ * @param {Array<object>} records
+ * @param {object} [opts]
+ */
+export async function evaluateInvestigationOovClusters(records, opts = {}) {
+  const windowHours = opts.windowHours ?? parseEnvFloat('RESILIENCE_OOV_CLUSTER_WINDOW_HOURS', 2);
+  const embedThreshold = opts.embedThreshold ?? parseEnvFloat('RESILIENCE_OOV_EMBED_THRESHOLD', 0.82);
+  const operatorMinRaw = opts.operatorMin ?? parseEnvInt('RESILIENCE_OOV_OPERATOR_MIN', 5);
+  const operatorMin = Number.isFinite(operatorMinRaw) && operatorMinRaw > 0 ? operatorMinRaw : 5;
+  const salienceMinRaw = parseEnvInt('RESILIENCE_OOV_SALIENCE_MIN', 2);
+  const salienceMin = Number.isFinite(salienceMinRaw) && salienceMinRaw > 0 ? salienceMinRaw : 2;
+  const anchorMs = opts.anchorMs ?? Date.now();
+
+  const inWindow = filterRecordsInWindow(records, windowHours, anchorMs);
+  const investigationRecords = inWindow.filter((r) =>
+    INVESTIGATION_CAPTURE_KINDS.has(r.capture_kind ?? LEARNING_CAPTURE_KINDS.UNKNOWN_TYPE));
+
+  return evaluateClustersFromRecords(investigationRecords, {
+    ...opts,
+    windowHours,
+    embedThreshold,
+    operatorMin,
+    salienceMin,
+    anchorMs,
+    investigationMode: true,
+  });
+}
+
+async function evaluateClustersFromRecords(records, opts) {
+  const {
+    windowHours,
+    embedThreshold,
+    operatorMin,
+    salienceMin,
+    investigationMode = false,
+  } = opts;
+
+  if (records.length === 0) {
     return emptyResult(windowHours);
   }
 
-  const { clusters, clusteringMethod } = await resolveUnknownClusters(unknowns, opts, embedThreshold);
+  const { clusters, clusteringMethod } = await resolveUnknownClusters(records, opts, embedThreshold);
   const top = clusters[0] ?? null;
-  const dominantSource = inferDominantSourceClass(top?.records ?? unknowns);
+  const dominantSource = inferDominantSourceClass(top?.records ?? records);
   let clusterMin = clusterMinThresholdForSource(dominantSource, {
     digitalDarkness: opts.digitalDarkness === true,
   });
 
   const salienceBypass = clusters.some((c) => c.high_salience === true)
-    || unknowns.some((r) => evidenceHasHighSalience(evidenceTextForRecord(r)));
+    || records.some((r) => evidenceHasHighSalience(evidenceTextForRecord(r)));
 
   if (salienceBypass) {
     clusterMin = Math.min(clusterMin, salienceMin);
   }
 
-  const { alert, level } = computeOovAlertLevel(unknowns, top, clusterMin, salienceBypass, operatorMin);
+  const { alert, level } = computeOovAlertLevel(records, top, clusterMin, salienceBypass, operatorMin);
 
-  return {
+  const residualCount = records.filter((r) =>
+    r.capture_kind === LEARNING_CAPTURE_KINDS.RESIDUAL_OBSERVATION
+    || r.capture_kind === LEARNING_CAPTURE_KINDS.OPEN_OBSERVATION).length;
+
+  const out = {
     alert,
     level,
-    total: unknowns.length,
+    total: records.length,
     window_hours: windowHours,
     clustering_method: clusteringMethod,
     top_cluster_key: top?.label ?? top?.key ?? null,
@@ -252,6 +312,13 @@ export async function evaluateDynamicOovClusters(records, opts = {}) {
     salience_bypass: salienceBypass,
     cluster_threshold: clusterMin,
   };
+
+  if (investigationMode) {
+    out.investigation_mode = true;
+    out.residual_observation_count = residualCount;
+  }
+
+  return out;
 }
 
 function parseEnvFloat(name, fallback) {

@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { defaultPlan } from '../../../business_modules/resilience_assessment/app/plannerAgent.js';
+import { defaultPlan, runPlannerAgent } from '../../../business_modules/resilience_assessment/app/plannerAgent.js';
 import { buildPlannerContext } from '../../../cross-cut-modules/retrieval/plannerContextBuilder.js';
 
 describe('plannerAgent gaps', () => {
@@ -47,5 +47,36 @@ describe('plannerAgent gaps', () => {
     });
     const plan = defaultPlan(epistemicProfile, plannerContext);
     assert.ok(plan.investigation_tasks.some((t) => t.type === 'archive_explore'));
+  });
+
+  it('runPlannerAgent skips kernel on calm deterministic path', async () => {
+    const epistemicProfile = {
+      by_component: {
+        leadership: { evidence_mass: 5, thin_evidence: false, contested: false },
+      },
+    };
+    const plannerContext = buildPlannerContext({
+      epistemicProfile,
+      evidenceGraph: { by_component: {} },
+      assessmentMode: 'normal',
+    });
+    let kernelCalled = false;
+    const fakeKernel = {
+      run: async () => {
+        kernelCalled = true;
+        return { submitPayloads: [], traceId: 'llm-trace' };
+      },
+    };
+    const result = await runPlannerAgent({
+      epistemicProfile,
+      plannerContext,
+      assessmentMode: 'normal',
+      agentKernel: fakeKernel,
+      traceId: 'parent-trace',
+    });
+    assert.equal(kernelCalled, false);
+    assert.equal(result.plan.planner_source, 'deterministic');
+    assert.ok(result.plan.focus_components.length >= 1);
+    assert.equal(result.traceId, 'parent-trace:planner');
   });
 });

@@ -13,6 +13,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { relative } from 'node:path';
 
 import { getDefaultLlmPort } from '../../../cross-cut-modules/llm/anthropicLlmAdapter.js';
+import { preFilterByRelevance, homefrontPrefilterMode } from '../../../cross-cut-modules/homefront/homefrontRelevanceFilter.js';
 import { getTodayInTimezone } from '../../../utils/dateUtils.js';
 import { createCostTracker, appendCostLog, checkDailyBudget } from '../../../cross-cut-modules/budget/index.js';
 import { createSourceArchive } from '../../../db/source_archive/createSourceArchive.js';
@@ -272,7 +273,9 @@ export async function runExtractHomefrontArticles(opts = {}) {
 
   const MAX_ARTICLES = Number.parseInt(process.env.HOMEFRONT_MAX_ARTICLES || '300', 10);
 
-  const llmFiltered = await preFilterByLLM(allArticles, onUsage);
+  const llmFiltered = homefrontPrefilterMode() === 'llm'
+    ? await preFilterByLLM(allArticles, onUsage)
+    : await preFilterByRelevance(allArticles, { onUsage });
 
   const _seen = new Set();
   const deduped = llmFiltered.filter((a) => {

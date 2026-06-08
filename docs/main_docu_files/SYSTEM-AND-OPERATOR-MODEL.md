@@ -1,30 +1,30 @@
 # System and operator model
 
-**Purpose:** Describe how the running product supports **human decision-making** — not automated verdicts. Operators scan attention and evidence; analysts calibrate the engine.
+**Purpose:** Describe how the running product supports **human decision-making** — not automated verdicts. Operators scan attention and **evidence-backed claims**; analysts calibrate shadow scoring and review agent traces.
 
-**Sources:** `business_modules/resilience/domain/services/assessmentDisplayTier.js`, `thinEvidencePolicy.js`, `client/src/MainApp.jsx`, `client/src/components/ReportView.jsx`, `analyst-site/src/AnalystApp.jsx`.
+**Sources:** `business_modules/resilience/domain/services/assessmentDisplayTier.js`, `thinEvidencePolicy.js`, `business_modules/resilience_assessment/`, `client/src/MainApp.jsx`, `client/src/components/ReportView.jsx`, `analyst-site/src/AnalystApp.jsx`.
 
 ---
 
 ## What the system is for
 
-Srulik's lab ingests multi-source text (news, radio, WhatsApp, field reports, PBO, social OSINT, etc.), extracts closed-vocabulary behavioral signals, runs deterministic assessment, and presents **operator-safe** surfaces:
+Srulik's lab ingests multi-source text (news, radio, WhatsApp, field reports, PBO, social OSINT, etc.), extracts closed-vocabulary behavioral signals, runs **assessment agent + RAG investigation** (default), and presents **operator-safe** surfaces:
 
 - **Attention queue** — what changed, what is thin, what is contested
 - **Epistemic banner** — data void, sampling blind, abstention modes
 - **Evidence overview** — adequate / thin / contested component counts
 - **Component lenses** — filter by needs-attention, thin, contested, or per-component
-- **Narratives and cited evidence** — proof before action
-- **Instrument flags** — sufficiency bands, not headline scores
+- **Claims and cited evidence** — proof before action (`evidence_tree` per component in UI; v2 `claims` with `evidence_refs` on disk)
+- **Instrument flags** — sufficiency bands from epistemic/shadow policy, not headline scores
 
-Full numeric scores remain in on-disk JSON under `daily_reports/` for analysts and drift tooling. API and operator UI **redact** scores at the boundary.
+Shadow numeric scores remain in on-disk JSON under `daily_reports/` for analysts, drift tooling, and divergence review. API and operator UI **redact** headline scores at the boundary.
 
 ---
 
 ## Operator loop: scan → proof → decide
 
 1. **Scan** — Epistemic banner + evidence overview + attention panel (`AttentionPanel.jsx`, `EpistemicStatusBanner.jsx`, `EvidenceOverviewPanel.jsx`).
-2. **Proof** — Open component narratives and supporting/weakening evidence; follow source links where available.
+2. **Proof** — Open component narratives and **claim-level evidence** (supporting/weakening refs); follow source links where available; optional chat drill-down ([LLM-CHAT-AND-AGENTS.md](./LLM-CHAT-AND-AGENTS.md)).
 3. **Decide** — Human judgment; optional operator recommendations workflow (`OperatorRecommendationsPanel.jsx`, `/api/report/recommendations/*`). System may **abstain** (`insufficient_data`, `sampling_blind`, data void) — treat abstention as a prompt to ingest or wait, not “all clear.”
 
 When the system shows **limited evidence** or hides a score, that is intentional (thin-evidence policy), not a bug.
@@ -35,8 +35,8 @@ When the system shows **limited evidence** or hides a score, that is intentional
 
 | Tier | App | API | What users get |
 |------|-----|-----|----------------|
-| **Operator (default)** | `client/` → `MainApp.jsx` passes `displayTier="operator"` to `ReportView` | `GET /api/report/today` default; `resolveDisplayView` → `operator` | Narratives, evidence, instruments, attention, recommendations. **No** headline 1–10 scores, no drift alerts in attention. |
-| **Analyst** | Separate SPA `analyst-site/` → `AnalystApp.jsx`, `?view=analyst` | Same report route when `canViewAnalystDisplay(email)` | Drift sparklines, validation review, catalog proposals, drift-derived attention items, pipeline status. Scores still largely redacted at API; calibration uses drift APIs and on-disk JSON. |
+| **Operator (default)** | `client/` → `MainApp.jsx` passes `displayTier="operator"` to `ReportView` | `GET /api/report/today` default; `resolveDisplayView` → `operator` | Narratives, **evidence_tree**, instruments, attention, recommendations. **No** headline 1–10 scores, no drift alerts in attention. |
+| **Analyst** | Separate SPA `analyst-site/` → `AnalystApp.jsx`, `?view=analyst` | Same report route when `canViewAnalystDisplay(email)` | Drift sparklines, validation review, catalog proposals, **agent trace replay**, shadow/divergence artifacts, drift-derived attention items, pipeline status. Scores still largely redacted at API; calibration uses drift APIs and on-disk JSON. |
 
 Access: `config/userAccess.json` levels `analyst` / `maintainer`, or env `RESILIENCE_ANALYST_EMAILS` / `RESILIENCE_MAINTAINER_EMAILS` (`cross-cut-modules/auth/userAccess.js`).
 
@@ -74,7 +74,7 @@ Assessment-level epistemic overrides (data void, digital darkness): `deriveAsses
 2. Evidence overview (instrument summary counts)
 3. Attention panel (no drift-merge on operator tier)
 4. Operator recommendations (when present)
-5. Component filter bar + per-component sections (narrative, evidence, instrument badges — not `/10` headline scores)
+5. Component filter bar + per-component sections (narrative, **claims/evidence tree**, instrument badges — not `/10` headline scores)
 6. Docs panel, chat (grounded in report; see [LLM-CHAT-AND-AGENTS.md](./LLM-CHAT-AND-AGENTS.md))
 
 **Analyst workspace** — header link when `canViewAnalyst`; separate origin (`getAnalystSiteUrl()`), not an in-app toggle. Three tabs in `AnalystApp.jsx`: **assessment** (report + validation/catalog panels), **drift** (`ResilienceDriftPanel`), **pipeline** (`PipelineStatusPanel`).
@@ -86,11 +86,12 @@ Assessment-level epistemic overrides (data void, digital darkness): `deriveAsses
 `analyst-site/src/AnalystApp.jsx`:
 
 - Fetches report with `view=analyst`
-- **Assessment tab:** `ReportView` + `ValidationReviewPanel`, `CatalogProposalPanel`, drift sparklines
-- **Drift tab:** `GET /api/resilience/drift` — component score history (`driftService.js`)
+- **Assessment tab:** `ReportView` + `ValidationReviewPanel`, `CatalogProposalPanel`, drift sparklines, agent trace when present
+- **Drift tab:** `GET /api/resilience/drift` — component score history from **shadow** scores (`driftService.js`)
 - **Pipeline tab:** `GET /api/monitoring/pipeline` — ingest/extract/assess stage health
+- **Agent trace:** `GET /api/report/agent-trace/:traceId` — replay planner/specialist/critic/synthesizer steps
 - Chat with analyst tool profile when enabled
-- Full assessment JSON still primarily on disk; use drift and validation routes for calibration
+- Full assessment JSON still primarily on disk; use drift, divergence, validation routes, and trace for calibration
 
 Operational decisions should use the **operator app** and instrument/narrative tier.
 
@@ -111,7 +112,7 @@ Analyst tier keeps additional instrument detail (`suppression_delta`, truncated 
 
 ## Related docs
 
-- Engine stages and epistemic tiers: [RESILIENCE-ENGINE-REFERENCE.md](./RESILIENCE-ENGINE-REFERENCE.md)
+- Engine stages, assessment agent, epistemic tiers: [RESILIENCE-ENGINE-REFERENCE.md](./RESILIENCE-ENGINE-REFERENCE.md)
 - Daily artifact production: [PIPELINE-AND-SOURCES.md](./PIPELINE-AND-SOURCES.md)
 - Firebase auth setup: [docs/IDENTITY_PLATFORM_SETUP.md](../IDENTITY_PLATFORM_SETUP.md); access tiers in `config/userAccess.json`
 - Source archive retention: `db/input/purgeSourceArchive.js`, `db/source_archive/retentionPolicy.js` (ephemeral types purged after window; field/whatsapp retained)

@@ -100,4 +100,48 @@ describe('runToolLoop', () => {
     assert.equal(usages[0].label, 'test:round-0');
     assert.equal(usages[0].model, 'claude-haiku-4-5-20251001');
   });
+
+  it('compacts message history after tool rounds when enabled', async () => {
+    const client = fakeClient([
+      {
+        stop_reason: 'tool_use',
+        content: [
+          { type: 'tool_use', id: 't1', name: 'lookup', input: { q: 'a' } },
+        ],
+        usage: { input_tokens: 10, output_tokens: 5 },
+      },
+      {
+        stop_reason: 'tool_use',
+        content: [
+          { type: 'tool_use', id: 't2', name: 'lookup', input: { q: 'b' } },
+        ],
+        usage: { input_tokens: 10, output_tokens: 5 },
+      },
+      {
+        stop_reason: 'end_turn',
+        content: [{ type: 'text', text: 'Done.' }],
+        usage: { input_tokens: 10, output_tokens: 5 },
+      },
+    ]);
+
+    const workingMemory = {
+      snapshot: () => ({ 'tool:lookup': 'summary of prior hits' }),
+    };
+
+    const result = await runToolLoop({
+      client,
+      model: 'test-model',
+      system: 'sys',
+      messages: [{ role: 'user', content: 'go' }],
+      tools: [{ name: 'lookup', input_schema: { type: 'object', properties: {} } }],
+      executeTool: async () => 'tool output',
+      compactHistoryAfterRound: true,
+      workingMemory,
+      budget: { snapshot: () => ({ spentUsd: 0.1 }) },
+    });
+
+    assert.equal(result.lastAssistantText, 'Done.');
+    assert.ok(result.messages.length <= 5, `expected bounded history, got ${result.messages.length}`);
+    assert.match(result.messages[1].content, /COMPACT WORKING MEMORY/);
+  });
 });

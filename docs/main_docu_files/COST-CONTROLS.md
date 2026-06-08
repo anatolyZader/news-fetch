@@ -48,7 +48,9 @@ Extract and assess CLIs call `checkDailyBudget()` from `cross-cut-modules/budget
 - Script ids: `extract-signals`, `assess-signals`
 - Logged to same `cost-log.jsonl`
 
-Narrative and verification steps inside assess accumulate under assess script id.
+**Assess (default):** includes **assessment agent** LLM rounds (planner, specialists, synthesizer) under the `assess-signals` script id, capped by `RESILIENCE_ASSESSMENT_AGENT_MAX_USD` / `RESILIENCE_ASSESSMENT_AGENT_MAX_ROUNDS` via `cross-cut-modules/agent/` budget governor — separate from the HTTP daily cap.
+
+Legacy narrative and verification steps inside assess also accumulate under assess script id when agent is disabled.
 
 ---
 
@@ -61,7 +63,43 @@ Narrative and verification steps inside assess accumulate under assess script id
 | `CHAT_MAX_TOOL_ROUNDS` | Limits chat tool-loop cost exposure |
 | `CHAT_RETRIEVAL_CACHE_TTL_MS` | Retrieval cache (default 600000) |
 
+Assessment agent caps (planner/specialist/synth tiers, re-plan hop): see [MODEL-CARD.md](../MODEL-CARD.md) and `cross-cut-modules/agent/agentConfig.js`.
+
 **Testing:** `npm run test-tokens` → `cross-cut-modules/budget/input/test-token-usage.js`.
+
+---
+
+## LLM invocation telemetry
+
+Every LLM call routed through **`LlmGateway`** (`cross-cut-modules/llm/llmGateway.js`) appends a structured line to:
+
+`cross-cut-modules/log/data/llm-invocations.jsonl`
+
+**Fields:** `timestamp`, `requestId`, `feature`, `agentName`, `purpose`, `promptId`, `promptVersion`, `model`, token counts (including `cachedInputTokens`, `cacheCreationTokens`), `costUsd`, `latencyMs`, `stopReason`, `cacheHit` (e.g. `extraction` on SQLite cache hits).
+
+**Feature rollup:** `monitoringService.getLlmTelemetry({ date })` aggregates by `feature` for the UTC day.
+
+**Pricing:** `llmPricing.js` extends Anthropic cache-read / cache-creation token rates.
+
+---
+
+## Extraction & assess cost controls
+
+| Variable | Default | Role |
+|----------|---------|------|
+| `RESILIENCE_EXTRACT_CACHE` | `1` | SQLite per-article extraction cache (`llm_extraction_cache`) |
+| `RESILIENCE_EXTRACT_MULTIPASS` | `1` | `0` single; `1` three-pass; `2` two-pass (AB + C) |
+| `RESILIENCE_EXTRACT_MAX_TOKENS` | `5000` | Extract output cap (1500–12000) |
+| `RESILIENCE_SELF_CHECK_MAX_TOKENS` | `2000` | Self-check cap |
+| `RESILIENCE_EXTRACT_BATCH` | off | Anthropic Batch API for extract cron |
+| `RESILIENCE_EXTRACT_PROMPT_CACHE` | off | Ephemeral cache on stable extract prefix |
+| `HOMEFRONT_PREFILTER_MODE` | `keyword` | Keyword prefilter; `llm` = legacy Haiku |
+| `RESILIENCE_ASSESS_LAZY_RAG` | `1` | Planner before component RAG seed |
+| `RESILIENCE_ASSESS_GLOBAL_TOPK` | `8` | Global assess retrieve top-K |
+| `RESILIENCE_ASSESS_COMPACT_TOOL_LOOP` | `1` | Compact agent tool-loop history |
+| `CHAT_COMPACT_TOOL_LOOP` | off | Compact chat tool-loop history |
+
+Prompt version **`extract-v2`** — bump in `extractionPrompt.js` invalidates extraction cache.
 
 ---
 

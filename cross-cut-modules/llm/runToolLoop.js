@@ -3,6 +3,7 @@
  */
 import { extractLastAssistantText } from './anthropicMessageUtils.js';
 import { appendAuditEvent } from '../security/input/auditLog.js';
+import { buildCompactMemoryBlock, formatCompactMemoryMessage } from '../agent/memory/compactMemoryBlock.js';
 
 function emitTextBlocks(textBlocks, onTextBlock) {
   if (!onTextBlock) return;
@@ -69,6 +70,9 @@ function auditToolRound(roundMeta, auditLogPath) {
  *   onUsage?: (payload: { label: string, model: string, usage: object }) => void,
  *   agentKind?: string,
  *   auditLogPath?: string,
+ *   compactHistoryAfterRound?: boolean,
+ *   workingMemory?: { snapshot: () => object },
+ *   budget?: { snapshot: () => object },
  * }} opts
  * @returns {Promise<{ messages: Array<object>, lastAssistantText: string, stopReason: string | null, usage: object | null }>}
  */
@@ -87,9 +91,13 @@ export async function runToolLoop(opts) {
     onUsage,
     agentKind = 'unknown',
     auditLogPath,
+    compactHistoryAfterRound = false,
+    workingMemory = null,
+    budget = null,
   } = opts;
 
   let currentMessages = opts.messages ?? [];
+  const initialUserMessage = currentMessages.find((m) => m.role === 'user') ?? currentMessages[0] ?? null;
   let stopReason = null;
   let lastUsage = null;
 
@@ -122,6 +130,7 @@ export async function runToolLoop(opts) {
         label: `${agentKind}:round-${round}`,
         model,
         usage: lastUsage,
+        stopReason,
       });
     }
 
@@ -153,6 +162,17 @@ export async function runToolLoop(opts) {
       { role: 'assistant', content: response.content },
       { role: 'user', content: toolResults },
     ];
+
+    if (compactHistoryAfterRound && round >= 0 && workingMemory) {
+      const memoryBlock = formatCompactMemoryMessage(
+        buildCompactMemoryBlock(workingMemory, budget),
+      );
+      const tailAssistant = { role: 'assistant', content: response.content };
+      const tailUser = { role: 'user', content: toolResults };
+      currentMessages = initialUserMessage
+        ? [initialUserMessage, memoryBlock, tailAssistant, tailUser]
+        : [memoryBlock, tailAssistant, tailUser];
+    }
   }
 
   return {
