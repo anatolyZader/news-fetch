@@ -33,6 +33,70 @@ export function parseToolLoopRound(purpose) {
 }
 
 /**
+ * @param {object} row
+ * @param {Record<string, object>} byFeature
+ */
+function accumulateInvocationRow(row, byFeature) {
+  const feature = row.feature ?? 'unknown';
+  if (!byFeature[feature]) {
+    byFeature[feature] = {
+      count: 0,
+      cachedReadTotal: 0,
+      cacheCreationTotal: 0,
+      promptCacheAppliedCount: 0,
+      rounds: {},
+      purposes: new Set(),
+    };
+  }
+  const bucket = byFeature[feature];
+  bucket.count += 1;
+  bucket.cachedReadTotal += row.cachedInputTokens ?? 0;
+  bucket.cacheCreationTotal += row.cacheCreationTokens ?? 0;
+  if (row.promptCacheApplied === true) bucket.promptCacheAppliedCount += 1;
+
+  const purpose = row.purpose ?? '';
+  if (purpose) bucket.purposes.add(purpose);
+
+  const round = parseToolLoopRound(purpose);
+  if (round == null) return;
+
+  if (!bucket.rounds[round]) {
+    bucket.rounds[round] = { count: 0, cachedRead: 0, cacheCreation: 0 };
+  }
+  bucket.rounds[round].count += 1;
+  bucket.rounds[round].cachedRead += row.cachedInputTokens ?? 0;
+  bucket.rounds[round].cacheCreation += row.cacheCreationTokens ?? 0;
+}
+
+/**
+ * @param {string} feature
+ * @param {object} stats
+ * @param {string[]} issues
+ * @param {string[]} warnings
+ */
+function auditToolLoopCache(feature, stats, issues, warnings) {
+  const roundNums = Object.keys(stats.rounds).map(Number).sort((a, b) => a - b);
+  if (roundNums.length === 0) return;
+
+  const round1Plus = roundNums.filter((r) => r >= 1);
+  const round1PlusCached = round1Plus.filter((r) => stats.rounds[r].cachedRead > 0);
+  const round0Creation = stats.rounds[0]?.cacheCreation ?? 0;
+
+  if (!llmPromptCacheMasterEnabled() || !TOOL_LOOP_FEATURES.has(feature)) return;
+
+  if (round1Plus.length > 0 && round1PlusCached.length === 0 && round0Creation === 0) {
+    warnings.push(
+      `${feature}: tool rounds 1+ (${round1Plus.join(',')}) have no cachedInputTokens and round-0 had no cacheCreation — cache may be off or prompts too short`,
+    );
+  }
+  if (round1Plus.length > 0 && round1PlusCached.length === 0 && round0Creation > 0) {
+    issues.push(
+      `${feature}: cache was created on round-0 but rounds 1+ show zero cache reads`,
+    );
+  }
+}
+
+/**
  * @param {object[]} rows
  */
 export function analyzeLlmInvocations(rows) {
@@ -41,58 +105,12 @@ export function analyzeLlmInvocations(rows) {
   const warnings = [];
 
   for (const row of rows) {
-    const feature = row.feature ?? 'unknown';
-    if (!byFeature[feature]) {
-      byFeature[feature] = {
-        count: 0,
-        cachedReadTotal: 0,
-        cacheCreationTotal: 0,
-        promptCacheAppliedCount: 0,
-        rounds: {},
-        purposes: new Set(),
-      };
-    }
-    const bucket = byFeature[feature];
-    bucket.count += 1;
-    bucket.cachedReadTotal += row.cachedInputTokens ?? 0;
-    bucket.cacheCreationTotal += row.cacheCreationTokens ?? 0;
-    if (row.promptCacheApplied === true) bucket.promptCacheAppliedCount += 1;
-
-    const purpose = row.purpose ?? '';
-    if (purpose) bucket.purposes.add(purpose);
-
-    const round = parseToolLoopRound(purpose);
-    if (round != null) {
-      if (!bucket.rounds[round]) {
-        bucket.rounds[round] = { count: 0, cachedRead: 0, cacheCreation: 0 };
-      }
-      bucket.rounds[round].count += 1;
-      bucket.rounds[round].cachedRead += row.cachedInputTokens ?? 0;
-      bucket.rounds[round].cacheCreation += row.cacheCreationTokens ?? 0;
-    }
+    accumulateInvocationRow(row, byFeature);
   }
 
   for (const [feature, stats] of Object.entries(byFeature)) {
     stats.purposes = [...stats.purposes];
-    const roundNums = Object.keys(stats.rounds).map(Number).sort((a, b) => a - b);
-    if (roundNums.length === 0) continue;
-
-    const round1Plus = roundNums.filter((r) => r >= 1);
-    const round1PlusCached = round1Plus.filter((r) => stats.rounds[r].cachedRead > 0);
-    const round0Creation = stats.rounds[0]?.cacheCreation ?? 0;
-
-    if (llmPromptCacheMasterEnabled() && TOOL_LOOP_FEATURES.has(feature)) {
-      if (round1Plus.length > 0 && round1PlusCached.length === 0 && round0Creation === 0) {
-        warnings.push(
-          `${feature}: tool rounds 1+ (${round1Plus.join(',')}) have no cachedInputTokens and round-0 had no cacheCreation — cache may be off or prompts too short`,
-        );
-      }
-      if (round1Plus.length > 0 && round1PlusCached.length === 0 && round0Creation > 0) {
-        issues.push(
-          `${feature}: cache was created on round-0 but rounds 1+ show zero cache reads`,
-        );
-      }
-    }
+    auditToolLoopCache(feature, stats, issues, warnings);
   }
 
   return {

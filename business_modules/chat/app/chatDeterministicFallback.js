@@ -79,9 +79,9 @@ export async function runDeterministicChatFallback(params) {
     toolContextDeps = {},
   } = params;
 
-  const tierResult = tierOverride != null
-    ? { tier: tierOverride, reason: tierReason ?? 'override' }
-    : resolveChatContextTier(message, { toolProfile: toolContextDeps.toolProfile });
+  const tierResult = tierOverride == null
+    ? resolveChatContextTier(message, { toolProfile: toolContextDeps.toolProfile })
+    : { tier: tierOverride, reason: tierReason ?? 'override' };
 
   const toolCtx = createChatToolContext({
     reportData,

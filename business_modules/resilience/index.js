@@ -80,3 +80,4 @@ export {
 export { loadProbeRecordsForDate } from './infrastructure/adapters/connectivityProbeFileAdapter.js';
 export { createReportReadPort } from './infrastructure/adapters/reportReadPortAdapter.js';
 export { createReportDisplayPort } from './infrastructure/adapters/reportDisplayPortAdapter.js';
+export { generateDecisionBrief, decisionBriefEnabled } from './infrastructure/decisionBriefGenerator.js';

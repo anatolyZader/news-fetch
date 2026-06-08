@@ -1237,6 +1237,7 @@ ReportView.propTypes = {
     clusters: PropTypes.arrayOf(PropTypes.object),
     show_operator: PropTypes.bool,
   }),
+  suggestCrisisBudget: PropTypes.bool,
   driftAlerts: PropTypes.arrayOf(PropTypes.object),
   onJumpToComponent: PropTypes.func,
   openCompId: PropTypes.string,

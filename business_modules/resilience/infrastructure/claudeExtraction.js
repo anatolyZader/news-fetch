@@ -427,7 +427,7 @@ function haikuRetryWaitMs(err, attempt) {
 async function fetchHaikuSignalsOnce(batchLabel, modelId, system, userContent, usageCallback, callContextExtra = {}) {
   const llmPort = getDefaultLlmPort();
   const maxTokens = extractMaxTokens();
-  const stream = await llmPort.stream({
+  const stream = await Promise.resolve(llmPort.stream({
     model: modelId,
     max_tokens: maxTokens,
     temperature: 0,
@@ -444,7 +444,7 @@ async function fetchHaikuSignalsOnce(batchLabel, modelId, system, userContent, u
     onUsage: usageCallback
       ? (p) => usageCallback({ label: batchLabel, model: modelId, usage: p.usage })
       : undefined,
-  });
+  }));
   await streamWithProgress(stream, batchLabel);
   const message = await stream.finalMessage();
   if (message.stop_reason === 'max_tokens') {
@@ -586,7 +586,7 @@ async function runSelfCheck(signals, batchLabel, usageCallback) {
     const selfLabel = `${batchLabel} self-check`;
     const selfCheckMax = Math.min(selfCheckMaxTokensCap(), 60 + indices.length * 30);
     const llmPort = getDefaultLlmPort();
-    const stream = await llmPort.stream({
+    const stream = await Promise.resolve(llmPort.stream({
       model: DEFAULT_SELF_CHECK_MODEL,
       max_tokens: selfCheckMax,
       temperature: 0,
@@ -602,7 +602,7 @@ async function runSelfCheck(signals, batchLabel, usageCallback) {
       onUsage: usageCallback
         ? (p) => usageCallback({ label: selfLabel, model: DEFAULT_SELF_CHECK_MODEL, usage: p.usage })
         : undefined,
-    });
+    }));
     await streamWithProgress(stream, selfLabel);
     const message = await stream.finalMessage();
     if (usageCallback) usageCallback({ label: selfLabel, model: DEFAULT_SELF_CHECK_MODEL, usage: message.usage });
@@ -676,7 +676,9 @@ async function processBatchCallResult(call, result, articles, raw, {
   return raw.concat(remapped);
 }
 
-async function extractMultipassViaBatch(articles, batchLabel, retries, usageCallback, contentKind, extractModel, extractOpts, groupKeys, modelId) {
+async function extractMultipassViaBatch({
+  articles, batchLabel, retries, usageCallback, contentKind, extractModel, extractOpts, groupKeys, modelId,
+}) {
   const batchCalls = [];
   const cachedAccum = [];
   for (const key of groupKeys) {
@@ -698,7 +700,9 @@ async function extractMultipassViaBatch(articles, batchLabel, retries, usageCall
   return raw;
 }
 
-async function extractMultipassSequential(articles, batchLabel, retries, usageCallback, contentKind, extractModel, extractOpts, groupKeys) {
+async function extractMultipassSequential({
+  articles, batchLabel, retries, usageCallback, contentKind, extractModel, extractOpts, groupKeys,
+}) {
   let raw = [];
   for (const key of groupKeys) {
     const passLabel = `${batchLabel} pass-${key}`;
@@ -720,16 +724,15 @@ async function extractMultipassSequential(articles, batchLabel, retries, usageCa
 async function extractMultipassRaw(articles, batchLabel, retries, usageCallback, contentKind, extractModel, extractOpts) {
   const groupKeys = getMultipassGroupKeys();
   const modelId = extractModel ?? DEFAULT_EXTRACT_MODEL;
+  const passCtx = {
+    articles, batchLabel, retries, usageCallback, contentKind, extractModel, extractOpts, groupKeys,
+  };
 
   if (extractBatchEnabled() && groupKeys.length > 0) {
-    return extractMultipassViaBatch(
-      articles, batchLabel, retries, usageCallback, contentKind, extractModel, extractOpts, groupKeys, modelId,
-    );
+    return extractMultipassViaBatch({ ...passCtx, modelId });
   }
 
-  return extractMultipassSequential(
-    articles, batchLabel, retries, usageCallback, contentKind, extractModel, extractOpts, groupKeys,
-  );
+  return extractMultipassSequential(passCtx);
 }
 
 async function extractSignalsBatch(articles, batchLabel, retries = 3, usageCallback = null, contentKind = 'news', extractModel = null, extractOpts = {}) {

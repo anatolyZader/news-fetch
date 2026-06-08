@@ -28,13 +28,19 @@ function parseKeyValueSource(text) {
   return out;
 }
 
+const SOURCE_ID_RE = /source_id=([^\n]+)/;
+const TITLE_RE = /^title:\s*(.+)$/m;
+const SNIPPET_RE = /^snippet:\s*(.+)$/m;
+const SIGNAL_HEADER_RE = /^\[\d+\]\s+id=[^\s]+\s+—\s+(\S+)\s+\(([^)]+)\)/;
+const SIGNAL_EVIDENCE_RE = /\n\s+(.+)/s;
+
 function parseSearchHits(text, maxHits = 6) {
   const blocks = String(text ?? '').split(/\n\n+/).filter(Boolean);
   const hits = [];
   for (const block of blocks) {
-    const sourceMatch = block.match(/source_id=([^\n]+)/);
-    const titleMatch = block.match(/^title:\s*(.+)$/m);
-    const snippetMatch = block.match(/^snippet:\s*(.+)$/m);
+    const sourceMatch = SOURCE_ID_RE.exec(block);
+    const titleMatch = TITLE_RE.exec(block);
+    const snippetMatch = SNIPPET_RE.exec(block);
     hits.push({
       source_id: sourceMatch?.[1]?.trim() ?? null,
       title: titleMatch?.[1]?.trim() ?? null,
@@ -53,8 +59,8 @@ function parseSignalLines(text, maxSignals = 8) {
   const blocks = String(text ?? '').split(/\n\n+/).filter(Boolean);
   const signals = [];
   for (const block of blocks) {
-    const header = block.match(/^\[\d+\]\s+id=[^\s]+\s+—\s+(\S+)\s+\(([^)]+)\)/);
-    const evidence = block.match(/\n\s+(.+)/s);
+    const header = SIGNAL_HEADER_RE.exec(block);
+    const evidence = SIGNAL_EVIDENCE_RE.exec(block);
     signals.push({
       signal_type: header?.[1] ?? 'unknown',
       component: header?.[2]?.split(',')[0]?.trim() ?? null,

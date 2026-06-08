@@ -92,7 +92,8 @@ export function prepareAnthropicRequest(opts, cfg = {}) {
       { feature },
     );
     const applied = isSystemBlockArray(system);
-    const { system: _removed, ...rest } = opts;
+    const rest = { ...opts };
+    delete rest.system;
     return withOptionalCallContext({ ...rest, system }, opts.callContext, applied);
   }
 

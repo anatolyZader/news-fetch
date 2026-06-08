@@ -52,7 +52,7 @@ export function createLlmGateway(innerPort, cfg = {}) {
   async function stream(opts) {
     const callContext = resolveContext(opts?.callContext);
     const started = Date.now();
-    const streamObj = innerPort.stream(opts);
+    const streamObj = await innerPort.stream(opts);
     const wrapped = streamObj;
 
     if (typeof streamObj.finalMessage === 'function') {

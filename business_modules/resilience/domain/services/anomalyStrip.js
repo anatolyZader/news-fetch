@@ -23,16 +23,11 @@ function claimHasAnomalyFlag(claim) {
 }
 
 /**
- * @param {object|null|undefined} assessment
- * @returns {{ level: string, clusters: object[], salience_signals: object[], show_operator: boolean }|null}
+ * @param {object|null|undefined} oovBurst
+ * @returns {object[]}
  */
-export function buildAnomalyStrip(assessment) {
-  if (!assessment || typeof assessment !== 'object') return null;
-
-  const oovBurst = assessment.oov_burst ?? null;
-  const crisisMode = isCrisisEpistemicMode(assessment);
+function collectOovBurstClusters(oovBurst) {
   const clusters = [];
-
   for (const c of oovBurst?.top_clusters ?? []) {
     clusters.push({
       cluster_key: c.cluster_key ?? c.key ?? 'unknown',
@@ -54,7 +49,14 @@ export function buildAnomalyStrip(assessment) {
       source: 'oov_burst',
     });
   }
+  return clusters;
+}
 
+/**
+ * @param {object} assessment
+ * @param {object[]} clusters
+ */
+function appendEvidenceTreeClusters(assessment, clusters) {
   for (const comp of assessment.components ?? []) {
     for (const node of comp.evidence_tree ?? comp.claims ?? []) {
       if (!claimHasAnomalyFlag(node)) continue;
@@ -71,14 +73,48 @@ export function buildAnomalyStrip(assessment) {
       });
     }
   }
+}
 
-  const salience_signals = (assessment.components ?? [])
+/**
+ * @param {object|null|undefined} assessment
+ * @returns {object[]}
+ */
+function collectSalienceSignals(assessment) {
+  return (assessment.components ?? [])
     .filter((c) => c.instrument?.salience_critical === true || c.salience_critical === true)
     .map((c) => ({
       component_id: c.component_id,
       operator_status: c.operator_status ?? c.instrument?.confidence,
       instrument: c.instrument?.thin_evidence_instrument ?? null,
     }));
+}
+
+/**
+ * @param {object|null|undefined} oovBurst
+ * @param {object[]} salience_signals
+ * @param {boolean} crisisMode
+ * @param {object[]} clusters
+ * @returns {string}
+ */
+function deriveAnomalyLevel(oovBurst, salience_signals, crisisMode, clusters) {
+  let level = oovBurst?.level ?? 'info';
+  if (salience_signals.length && level === 'info') level = 'warning';
+  if (crisisMode && clusters.length && level === 'info') level = 'warning';
+  return level;
+}
+
+/**
+ * @param {object|null|undefined} assessment
+ * @returns {{ level: string, clusters: object[], salience_signals: object[], show_operator: boolean }|null}
+ */
+export function buildAnomalyStrip(assessment) {
+  if (!assessment || typeof assessment !== 'object') return null;
+
+  const oovBurst = assessment.oov_burst ?? null;
+  const crisisMode = isCrisisEpistemicMode(assessment);
+  const clusters = collectOovBurstClusters(oovBurst);
+  appendEvidenceTreeClusters(assessment, clusters);
+  const salience_signals = collectSalienceSignals(assessment);
 
   const totalClusterCount = clusters.reduce((n, c) => n + (c.count ?? 0), 0);
   const show_operator = oovBurst?.alert === true
@@ -87,12 +123,8 @@ export function buildAnomalyStrip(assessment) {
 
   if (!clusters.length && !salience_signals.length) return null;
 
-  let level = oovBurst?.level ?? 'info';
-  if (salience_signals.length && level === 'info') level = 'warning';
-  if (crisisMode && clusters.length && level === 'info') level = 'warning';
-
   return {
-    level,
+    level: deriveAnomalyLevel(oovBurst, salience_signals, crisisMode, clusters),
     clusters: clusters.slice(0, 8),
     salience_signals: salience_signals.slice(0, 6),
     show_operator,

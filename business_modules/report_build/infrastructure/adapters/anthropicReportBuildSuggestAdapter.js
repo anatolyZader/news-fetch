@@ -101,7 +101,7 @@ export function createAnthropicReportBuildSuggestAdapter({ anthropicApiKey }) {
      */
     async analyzeTurnHistory(turnHistory, _senderName = '', _ragContext = null, opts = {}) {
       const turns = Array.isArray(turnHistory) ? turnHistory : [];
-      const last = turns[turns.length - 1];
+      const last = turns.at(-1);
       const text = String(last?.text ?? '').trim();
       if (!text) return emptyOutput();
 

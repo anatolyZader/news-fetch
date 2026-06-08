@@ -2,7 +2,6 @@
  * Action compass — ranked operator actions during abstention/uncertainty (no numeric scores).
  */
 
-import { ATTENTION_LEVELS } from './attentionItems.js';
 import { THIN_EVIDENCE_INSTRUMENT } from './thinEvidencePolicy.js';
 
 const LEVEL_PRIORITY = { critical: 0, warning: 1, watch: 2, info: 3 };
@@ -175,4 +174,4 @@ export function buildActionCompass(assessment, attentionItems = [], opts = {}) {
   };
 }
 
-export { ATTENTION_LEVELS };
+export { ATTENTION_LEVELS } from './attentionItems.js';

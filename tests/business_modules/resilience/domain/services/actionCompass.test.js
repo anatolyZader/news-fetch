@@ -20,7 +20,7 @@ describe('buildActionCompass', () => {
     assert.equal(compass.uncertainty_band, 'critical');
     assert.ok(compass.actions.some((a) => a.id === 'compass:void:field'));
     const blob = JSON.stringify(compass);
-    assert.doesNotMatch(blob, /"score":\s*[0-9]/);
+    assert.doesNotMatch(blob, /"score":\s*\d/);
     assert.doesNotMatch(blob, /\/10/);
   });
 

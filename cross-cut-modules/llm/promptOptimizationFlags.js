@@ -86,8 +86,7 @@ export function formatPromptOptimizationFlags() {
   }
   lines.push('', 'Quality escape hatches:');
   for (const h of escape_hatches) {
-    lines.push(`  [${h.scope}] ${h.action}`);
-    lines.push(`    → ${h.effect}`);
+    lines.push(`  [${h.scope}] ${h.action}\n    → ${h.effect}`);
   }
   return lines.join('\n');
 }

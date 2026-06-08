@@ -17,7 +17,7 @@ import {
   formatAnalysisReport,
 } from '../analyzeLlmInvocations.js';
 import { formatPromptOptimizationFlags } from '../promptOptimizationFlags.js';
-import { generateDecisionBrief } from '../../../business_modules/resilience/infrastructure/decisionBriefGenerator.js';
+import { generateDecisionBrief } from '../../../business_modules/resilience/index.js';
 
 const LIVE_COST_WARN_USD = 0.05;
 const STABLE_SYSTEM = 'x'.repeat(2500);
@@ -60,6 +60,23 @@ export function createOfflineMockClient() {
 }
 
 /**
+ * @param {object[]} rows
+ * @param {ReturnType<typeof analyzeLlmInvocations>} report
+ */
+function collectOfflineSmokeFailures(rows, report) {
+  const failures = [];
+  const round1 = rows.find((r) => r.purpose === 'chat:round-1');
+  const hasCacheApplied = rows.some((r) => r.promptCacheApplied === true);
+  const round1CacheRead = round1?.cachedInputTokens ?? 0;
+
+  if (rows.length < 2) failures.push(`expected >= 2 invocations, got ${rows.length}`);
+  if (round1CacheRead <= 0) failures.push('chat:round-1 missing cache_read_input_tokens');
+  if (!hasCacheApplied) failures.push('no row with promptCacheApplied=true');
+  if (!report.ok) failures.push(`analyzer issues: ${report.issues.join('; ')}`);
+  return failures;
+}
+
+/**
  * @param {{ logDir?: string, invocationsPath?: string }} [opts]
  * @returns {Promise<{ ok: boolean, report: object, rows: object[] }>}
  */
@@ -95,22 +112,10 @@ export async function runOfflineSmoke(opts = {}) {
 
     const rows = [...readJsonlRecords(invPath)];
     const report = analyzeLlmInvocations(rows);
-
-    const round1 = rows.find((r) => r.purpose === 'chat:round-1');
-    const hasCacheApplied = rows.some((r) => r.promptCacheApplied === true);
-    const round1CacheRead = round1?.cachedInputTokens ?? 0;
-
-    const ok = report.ok
-      && rows.length >= 2
-      && round1CacheRead > 0
-      && hasCacheApplied;
+    const failures = collectOfflineSmokeFailures(rows, report);
+    const ok = failures.length === 0;
 
     if (!ok) {
-      const failures = [];
-      if (rows.length < 2) failures.push(`expected >= 2 invocations, got ${rows.length}`);
-      if (round1CacheRead <= 0) failures.push('chat:round-1 missing cache_read_input_tokens');
-      if (!hasCacheApplied) failures.push('no row with promptCacheApplied=true');
-      if (!report.ok) failures.push(`analyzer issues: ${report.issues.join('; ')}`);
       report.offline_failures = failures;
     }
 

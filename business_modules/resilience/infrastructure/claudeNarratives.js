@@ -721,16 +721,18 @@ async function buildNarrativeGenerationContext(scoredComponents, date, totalArti
   return { systemPrompt, meta, claimsByComponent, registry };
 }
 
-async function fetchNarrativeJson(systemPrompt, date, totalArticles, feedback, attempt, onUsage, claimsByComponent, llmPort) {
+async function fetchNarrativeJson({
+  systemPrompt, date, totalArticles, feedback, attempt, onUsage, claimsByComponent, llmPort,
+}) {
   const label = attempt > 1 ? `[Step 2 — Narratives] (retry ${attempt})` : '[Step 2 — Narratives]';
   const userContent = buildNarrativeUserMessage(date, totalArticles, feedback);
-  const stream = await llmPort.stream({
+  const stream = await Promise.resolve(llmPort.stream({
     model: DEFAULT_NARRATIVE_MODEL,
     max_tokens: 16000,
     system: systemPrompt,
     messages: [{ role: 'user', content: userContent }],
     callContext: { feature: 'narrative_polish', purpose: label },
-  });
+  }));
   await streamWithProgress(stream, label);
   const message = await stream.finalMessage();
   if (onUsage) onUsage({ label: '[Step 2 — Narratives]', model: DEFAULT_NARRATIVE_MODEL, usage: message.usage });
@@ -787,9 +789,9 @@ function mergeGroundingIntoNarratives(narratives, grounding) {
 
 async function processNarrativeAttempt(ctx, attempt, maxRetries) {
   const { systemPrompt, meta, claimsByComponent, registry, scoredComponents, date, totalArticles, onUsage, llmPort } = ctx;
-  let narratives = await fetchNarrativeJson(
-    systemPrompt, date, totalArticles, ctx.feedback, attempt, onUsage, claimsByComponent, llmPort,
-  );
+  let narratives = await fetchNarrativeJson({
+    systemPrompt, date, totalArticles, feedback: ctx.feedback, attempt, onUsage, claimsByComponent, llmPort,
+  });
   if (!isNarrativeGroundingEnabled()) {
     return buildAssessmentPayload(narratives, scoredComponents, meta);
   }

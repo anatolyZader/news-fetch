@@ -18,6 +18,10 @@ export function crisisBudgetDefaultHours(env = process.env) {
   return Number.isFinite(n) && n > 0 ? n : 4;
 }
 
+function getCrisisChatSpend() {
+  return readTodayCostSpendForScripts(['http:chat:crisis']);
+}
+
 /**
  * @param {{ adapter?: { getActiveSession?: Function } | null }} deps
  */
@@ -27,10 +31,6 @@ export function createCrisisBudgetService(deps = {}) {
   function getActiveSession() {
     if (!crisisBudgetEnabled() || !adapter?.getActiveSession) return null;
     return adapter.getActiveSession();
-  }
-
-  function getCrisisChatSpend() {
-    return readTodayCostSpendForScripts(['http:chat:crisis']);
   }
 
   function getChatBudgetStatus() {

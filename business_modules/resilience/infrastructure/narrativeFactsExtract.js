@@ -83,14 +83,14 @@ export async function extractNarrativeFacts(scoredComponents, opts = {}) {
   if (registry.refCount === 0) return {};
 
   const port = resolveLlmPort(opts);
-  const stream = await port.stream({
+  const stream = await Promise.resolve(port.stream({
     model: DEFAULT_FACTS_MODEL,
     max_tokens: 8000,
     temperature: 0,
     system: buildFactsSystemPrompt(),
     messages: [{ role: 'user', content: formatFactsUserMessage(registry, retrievedSpansBlock) }],
     callContext: { feature: 'narrative_facts', purpose: '[Step 2 — Facts]' },
-  });
+  }));
   await streamWithProgress(stream, '[Step 2 — Facts]');
   const message = await stream.finalMessage();
   if (onUsage) {

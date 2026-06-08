@@ -266,7 +266,6 @@ export async function runAssessmentAgent(params) {
     evidenceStore = null,
     scopedSignals = null,
     oovBurst = null,
-    investigationOovBurst: _investigationOovBurst = null,
     scoredComponents = null,
   } = params;
 

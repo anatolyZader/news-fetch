@@ -33,7 +33,7 @@ describe('compactAssessPrompts', () => {
 
   it('compactPlannerContextForPrompt caps classified_gaps and truncates text', () => {
     const ctx = {
-      classified_gaps: Array.from({ length: 20 }, (_, i) => ({
+      classified_gaps: Array.from({ length: 20 }, () => ({
         component_id: 'leadership',
         gap_type: 'investigation',
         gap_text: 'x'.repeat(500),

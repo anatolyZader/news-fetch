@@ -100,14 +100,14 @@ async function judgeComponentClaimsBatch(claims, comp, registry, opts = {}) {
     blocks;
 
   const maxTokens = Math.min(4000, 200 + claims.length * 80);
-  const stream = await port.stream({
+  const stream = await Promise.resolve(port.stream({
     model: DEFAULT_JUDGE_MODEL,
     max_tokens: maxTokens,
     temperature: 0,
     system: buildJudgeSystemPrompt(),
     messages: [{ role: 'user', content: userContent }],
     callContext: { feature: 'narrative_judge', purpose: `[Step 2 — Judge batch ${comp.component_id}]` },
-  });
+  }));
   if (!opts.skipProgress) await streamWithProgress(stream, `[Step 2 — Judge batch ${comp.component_id}]`);
   const message = await stream.finalMessage();
   if (opts.onUsage) {
@@ -147,14 +147,14 @@ async function judgeOneNarrativeClaim(claim, comp, registry, opts = {}) {
   if (!claim?.text) return null;
   const port = resolveLlmPort(opts);
   const userContent = formatClaimForJudge(claim, registry);
-  const stream = await port.stream({
+  const stream = await Promise.resolve(port.stream({
     model: DEFAULT_JUDGE_MODEL,
     max_tokens: 512,
     temperature: 0,
     system: buildPerClaimSystemPrompt(),
     messages: [{ role: 'user', content: userContent }],
     callContext: { feature: 'narrative_judge', purpose: '[Step 2 — Judge]' },
-  });
+  }));
   if (!opts.skipProgress) await streamWithProgress(stream, '[Step 2 — Judge]');
   const message = await stream.finalMessage();
   if (opts.onUsage) {

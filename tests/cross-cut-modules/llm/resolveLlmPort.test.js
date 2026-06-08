@@ -49,11 +49,11 @@ describe('resolveLlmPort', () => {
 
   it('bridges opts.client mock through stream.finalMessage', async () => {
     const port = resolveLlmPort({ client: fakeClient() });
-    const stream = await port.stream({
+    const stream = await Promise.resolve(port.stream({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 10,
       messages: [{ role: 'user', content: 'hi' }],
-    });
+    }));
     const msg = await stream.finalMessage();
     assert.equal(msg.content[0].text, 'streamed');
   });

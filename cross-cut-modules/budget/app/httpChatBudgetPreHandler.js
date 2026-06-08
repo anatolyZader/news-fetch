@@ -2,6 +2,7 @@
  * Chat-only budget preHandler with crisis pool + deterministic fallback.
  */
 import { chatDeterministicFallbackEnabled } from '../../../business_modules/chat/domain/chatDeterministicFallbackConfig.js';
+import { getDailyBudgetStatus } from './httpDailyBudget.js';
 import { resolveChatBudgetGate } from './crisisBudgetService.js';
 
 /**
@@ -27,9 +28,10 @@ export function createHttpChatBudgetPreHandler(deps = {}) {
     }
 
     if (gate.reject429) {
-      const status = gate.chatStatus?.limit != null
-        ? gate.chatStatus
-        : { ...daily, daily_exceeded: daily.exceeded };
+      const fallbackDaily = getDailyBudgetStatus();
+      const status = gate.chatStatus?.limit == null
+        ? { spent: fallbackDaily.spent, limit: fallbackDaily.limit, daily_exceeded: fallbackDaily.exceeded }
+        : gate.chatStatus;
       return reply.code(429).send({
         error: 'Too Many Requests',
         code: 'daily_budget_exceeded',
