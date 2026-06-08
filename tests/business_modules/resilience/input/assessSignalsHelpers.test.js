@@ -12,7 +12,7 @@ import {
   enrichWithDeltaChannel,
   mergeLoadedSignalFiles,
   parseSignalBundleFilename,
-} from '../../../../business_modules/resilience/input/assessSignalsHelpers.js';
+} from '../../../../business_modules/resilience/app/assessSignalsHelpers.js';
 
 describe('crossSourceDedup', () => {
   it('collapses identical evidence republished by multiple outlets within the same source_type', () => {

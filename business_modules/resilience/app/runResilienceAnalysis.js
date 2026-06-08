@@ -1,12 +1,12 @@
 /**
- * Shared orchestration: load markdown article files → extract signals → score → narratives → ready for writeReport.
+ * Shared orchestration: load markdown article files → extract signals → score → assess → ready for writeReport.
  */
 
 import { basename } from 'node:path';
 import { existsSync } from 'node:fs';
 
 import { loadMdFiles } from '../infrastructure/mdReportsLoader.js';
-import { extractSignals, generateNarratives } from '../infrastructure/claudeEvaluator.js';
+import { extractSignals } from '../infrastructure/claudeEvaluator.js';
 import {
   attachEpistemicToAssessment,
 } from '../domain/services/dataVoidIndex.js';
@@ -17,6 +17,7 @@ import { loadConnectivityProbeSignals } from '../infrastructure/adapters/connect
 import { enrichProbeSignalsInList } from '../domain/services/probeCorroborationPolicy.js';
 import { runScoringPipeline } from './scoringPipelinePrep.js';
 import { prepareScoringSignals } from './prepareScoringSignals.js';
+import { produceAssessmentWithShadow } from './produceAssessmentWithShadow.js';
 
 /**
  * @param {object} opts
@@ -27,6 +28,7 @@ import { prepareScoringSignals } from './prepareScoringSignals.js';
  * @param {Function} [opts.onUsage]
  * @param {Array} [opts.priorReports]
  * @param {string} [opts.reportsDir]
+ * @param {boolean} [opts.dailyBudgetExceeded]
  * @returns {Promise<{ assessment: object, signals: Array, articles: Array, totalCount: number }>}
  */
 export async function runResilienceAnalysis({
@@ -35,8 +37,9 @@ export async function runResilienceAnalysis({
   contentKind = 'news',
   dedupeTitles = true,
   onUsage,
-  priorReports = [],
+  priorReports: _priorReports = [],
   reportsDir = 'daily_reports',
+  dailyBudgetExceeded = false,
 }) {
   const { articles: rawArticles, date: parsedDate, totalCount } = loadMdFiles(filePaths);
   const reportDate = reportDateOpt ?? parsedDate;
@@ -98,20 +101,21 @@ export async function runResilienceAnalysis({
 
   signals = pipelineResult.scoringSignals;
 
-  const assessment = await generateNarratives(
-    pipelineResult.scoredFull,
-    signals,
-    reportDate,
-    totalArticles,
-    {
-      onUsage,
-      priorReports,
-      contentKind,
-      dataVoid,
-      salienceContext: pipelineResult.salienceContext,
-      quarantinedDigital: pipelineResult.quarantinedDigital,
-    },
-  );
+  const assessment = await produceAssessmentWithShadow({
+    targetDate: reportDate,
+    reportScopeId: 'national',
+    signalsForScoring: signals,
+    scopedSignals: signals,
+    scoredFull: pipelineResult.scoredFull,
+    scopedTotalArticles: totalArticles,
+    dataVoid,
+    assessmentMode: pipelineResult.assessmentMode,
+    epistemicStatus: pipelineResult.epistemicStatus,
+    onUsage,
+    reportsDir,
+    oovBurst: prepared.oovBurst ?? null,
+    dailyBudgetExceeded,
+  });
 
   attachEpistemicToAssessment(assessment, {
     dataVoid,

@@ -17,11 +17,8 @@ export async function createSignalBundlePort(opts) {
     ?? 'closed';
 
   if (source === 'observations') {
-    const { createObservationBundleService } = await import(
-      '../../signals_extraction/app/observationBundleService.js'
-    );
-    const { ObservationFsAdapter } = await import(
-      '../../signals_extraction/infrastructure/adapters/observationFsAdapter.js'
+    const { createObservationBundleService, ObservationFsAdapter } = await import(
+      '../../signals_extraction/index.js'
     );
     const store = new ObservationFsAdapter();
     const obsService = createObservationBundleService({ store });

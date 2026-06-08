@@ -6,17 +6,15 @@ import { assertValidResilienceContentBatch } from '../domain/services/resilience
 import { mergeDualExtractionSignals } from '../infrastructure/dualModelExtract.js';
 import {
   normalizeReportScope,
-  reportScopeMetadata,
 } from '../domain/services/regionSignalFilter.js';
 import { scopeAndPartitionSignals } from './assessmentPipeline.js';
 import { attachEpistemicToAssessment } from '../domain/services/dataVoidIndex.js';
 import { salienceContextFromDataVoid } from '../domain/services/highSalienceBypass.js';
-import { countOovCapturesForDate } from '../domain/services/oovCapture.js';
 import {
   getSocialQuarantineDecision,
 } from '../domain/services/socialQuarantineOverrides.js';
 import { tryOpenValidationStore } from './socialQuarantineWiring.js';
-import { loadHistoricalScores } from '../input/assessSignalsHelpers.js';
+import { loadHistoricalScores } from '../app/assessSignalsHelpers.js';
 import { runScoringPipeline } from './scoringPipelinePrep.js';
 import { prepareScoringSignals } from './prepareScoringSignals.js';
 import { detectSemanticPatterns } from '../domain/services/patternDetection/semanticPatternAlerts.js';
@@ -289,7 +287,6 @@ export async function runResilienceAssessment(batch, options = {}) {
   } = options;
 
   const reportScopeId = normalizeReportScope(scope ?? batch.scope ?? 'national');
-  const reportScope = reportScopeMetadata(reportScopeId);
 
   assertValidResilienceContentBatch(batch);
   if (!llmPort) {
@@ -311,9 +308,8 @@ export async function runResilienceAssessment(batch, options = {}) {
 
   let allSignals;
   let baseSignalsForScoring;
-  let macroSignals;
   try {
-    ({ allSignals, baseSignalsForScoring, macroSignals } = await extractBatchSignals({
+    ({ allSignals, baseSignalsForScoring } = await extractBatchSignals({
       batch,
       articles,
       llmPort,
@@ -331,8 +327,6 @@ export async function runResilienceAssessment(batch, options = {}) {
 
   const reportsDir = options.reportsDir ?? 'daily_reports';
   const totalArticles = articles.length + supplementaryArticles.length;
-  const narrativeContentKind = supplementaryArticles.length > 0 ? 'mixed' : batch.contentKind;
-
   const {
     scoredComponents,
     signalsForScoring,
@@ -352,7 +346,6 @@ export async function runResilienceAssessment(batch, options = {}) {
   });
   pipeline.completeStage('SCORE');
 
-  const oovCaptureCount = countOovCapturesForDate(batch.reportDate);
   const assessment = await produceAssessmentWithShadow({
     targetDate: batch.reportDate,
     reportScopeId,
@@ -370,17 +363,7 @@ export async function runResilienceAssessment(batch, options = {}) {
     onUsage,
     reportsDir,
     llmPort,
-    legacyNarrativeOpts: {
-      onProgress,
-      priorReports: batch.priorAssessments ?? [],
-      contentKind: narrativeContentKind,
-      reportScope,
-      macroSignals,
-      allScopedSignals: allSignals,
-      oovCaptureCount,
-      socialChannelQuarantine: osintChannelQuarantine,
-      quarantinedDigital: pipelineResult.quarantinedDigital,
-    },
+    dailyBudgetExceeded: options.dailyBudgetExceeded ?? false,
   });
 
   pipeline.completeStage('NARRATE');

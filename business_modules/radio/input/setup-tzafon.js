@@ -29,7 +29,7 @@
 import 'dotenv/config';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { createScheduledStreamCaptureJobStore } from '../../scheduled_stream_capture/infrastructure/scheduledStreamCaptureJobStore.js';
+import { createScheduledStreamCaptureJobStore } from '../../scheduled_stream_capture/index.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 

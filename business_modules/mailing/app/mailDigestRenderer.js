@@ -3,7 +3,7 @@
  */
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { defaultClosedSignalsDir } from '../../signals_extraction/infrastructure/signalsDataPaths.js';
+import { defaultClosedSignalsDir } from '../../signals_extraction/index.js';
 import { getMunicipalityDashboard } from '../../pbo_report_muni/index.js';
 import {
   deriveInstrumentState,

@@ -7,7 +7,10 @@ import { resolve, isAbsolute } from 'node:path';
 import { existsSync as fsExists } from 'node:fs';
 
 import { loadMdFiles } from '../../../business_modules/resilience/index.js';
-import { extractEvidence, synthesizeComponents } from '../../../business_modules/resilience/index.js';
+import { extractEvidence } from '../../../business_modules/resilience/index.js';
+import { scoreComponents } from '../../../business_modules/resilience/index.js';
+import { createEpistemicFeaturesService } from '../../../business_modules/epistemic_features/index.js';
+import { runDeterministicAssessment } from '../../../business_modules/resilience_assessment/index.js';
 import { getTodayInTimezone } from '../../../utils/dateUtils.js';
 import { PRICING, calcInvocationCostUsd } from '../app/budgetCostTracker.js';
 
@@ -149,9 +152,34 @@ export async function runTestTokenUsageCli() {
     const evidenceSnippets = await extractEvidence(articles, { onUsage });
     console.error(`\n  → ${evidenceSnippets.length} evidence snippets extracted\n`);
 
-    const assessment = await synthesizeComponents(evidenceSnippets, date, articles.length, { onUsage });
+    const scored = scoreComponents(evidenceSnippets, { totalArticles: articles.length });
+    const epistemicService = createEpistemicFeaturesService({ reportsDir: 'daily_reports' });
+    const epistemicProfile = epistemicService.computeProfile(evidenceSnippets, {
+      totalArticles: articles.length,
+      reportDate: date,
+      scoredComponents: scored,
+    });
+    await runDeterministicAssessment({
+      signals: evidenceSnippets,
+      epistemicProfile,
+      reportDate: date,
+      scoredComponents: scored,
+      degradeReason: 'forced_deterministic',
+    });
 
-    printSummary(assessment);
+    const scores = Object.values(scored).map((s) => s.score).filter((n) => typeof n === 'number');
+    const assessmentForSummary = {
+      components: Object.entries(scored).map(([component_id, s]) => ({
+        component_id,
+        score: s.score,
+        confidence: s.confidence,
+      })),
+      overall_resilience_score: scores.length
+        ? Math.round((scores.reduce((a, b) => a + b, 0) / scores.length) * 10) / 10
+        : null,
+    };
+
+    printSummary(assessmentForSummary);
   } catch (err) {
     if (!err.message?.includes('threshold')) {
       console.error('\nAnalysis failed:', err.message);

@@ -6,6 +6,7 @@ import { readFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { runCriticChecks } from '../../business_modules/resilience_assessment/app/criticAgent.js';
+import { computeDivergence } from '../../business_modules/resilience_assessment/domain/services/shadowArtifacts.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, '../..');
@@ -45,10 +46,40 @@ function checkDominanceMention(fx, assessment, errors) {
   }
 }
 
+function checkDivergenceAligned(fx, errors) {
+  if (!fx.expect.divergence_aligned) return;
+  const { agent_assessment: agent, shadow_scored: shadow } = fx.divergence_case ?? {};
+  const divergence = computeDivergence(agent, shadow);
+  const comp = divergence.by_component?.leadership;
+  if (!comp?.aligned) errors.push('divergence not aligned for leadership');
+}
+
+function checkDeterministicShape(fx, errors) {
+  const assessment = fx.deterministic_assessment;
+  if (!assessment) return;
+  if (fx.expect.degraded_mode && assessment.assessment_degraded?.mode !== fx.expect.degraded_mode) {
+    errors.push(`expected degraded mode ${fx.expect.degraded_mode}`);
+  }
+  if (fx.expect.has_instruments) {
+    for (const c of assessment.components ?? []) {
+      if (!c.instrument) errors.push(`missing instrument on ${c.component_id}`);
+    }
+  }
+}
+
 function evalFixture(fx) {
   const errors = [];
   const assessment = fx.component_assessment;
   const epistemic = fx.epistemic_profile ?? { by_component: {} };
+
+  if (fx.divergence_case) {
+    checkDivergenceAligned(fx, errors);
+    return errors;
+  }
+  if (fx.deterministic_assessment) {
+    checkDeterministicShape(fx, errors);
+    return errors;
+  }
 
   if (fx.expect.all_claims_have_refs) checkClaimsHaveRefs(assessment, errors);
   checkMustAbstain(fx, assessment, epistemic, errors);

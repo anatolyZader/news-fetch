@@ -1,11 +1,10 @@
 /**
- * Delegates to existing claudeEvaluator (Haiku extract + Sonnet narratives).
+ * Delegates to claudeEvaluator (Haiku extract).
  */
-import { extractSignals, generateNarratives } from '../claudeEvaluator.js';
+import { extractSignals } from '../claudeEvaluator.js';
 
 export function createAnthropicResilienceLlmAdapter() {
   return {
     extractSignals,
-    generateNarratives,
   };
 }

@@ -20,7 +20,7 @@ import {
   validateAdversarialBeforeSubmit,
   adversarialSystemHint,
 } from '../domain/services/contestedRetrievalPolicy.js';
-import { shouldAbstainFromInvestigation } from '../../epistemic_features/domain/services/investigationEpistemic.js';
+import { shouldAbstainFromInvestigation } from '../../epistemic_features/index.js';
 
 function buildSpecialistSystem(componentId, epistemicProfile, evidenceGraph, assignedTasks = [], specialistTier = 'A') {
   const compGraph = evidenceGraph?.by_component?.[componentId] ?? {};

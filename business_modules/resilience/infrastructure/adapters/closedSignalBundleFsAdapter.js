@@ -5,7 +5,7 @@ import { ISignalBundlePort } from '../../domain/ports/ISignalBundlePort.js';
 import {
   discoverSignalBundles,
   loadAssessSignalFiles,
-} from '../../input/assessSignalsHelpers.js';
+} from '../../app/assessSignalsHelpers.js';
 
 /**
  * @param {{ signalsDir: string, fieldSignalsDir: string, socialSignalsDir: string }} dirs

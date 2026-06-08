@@ -8,7 +8,7 @@ import {
   createCatalogProposalSqliteStore,
   createCatalogProposalService,
 } from '../business_modules/signal_catalog_evolution/index.js';
-import { createDefaultPboReportReviewService } from '../business_modules/pbo_report_review/input/createPboReviewWiring.js';
+import { createDefaultPboReportReviewService } from '../business_modules/pbo_report_review/index.js';
 import { createPboHistoricalSearchService } from '../business_modules/pbo_report_review/app/pboHistoricalSearchService.js';
 import { createMailingResendAdapter } from '../business_modules/mailing/infrastructure/adapters/mailingResendAdapter.js';
 import { createMailingService } from '../business_modules/mailing/app/mailingService.js';

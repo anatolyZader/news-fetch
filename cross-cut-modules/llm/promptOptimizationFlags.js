@@ -9,8 +9,7 @@ import {
   compactToolLoopEnabled,
   chatCompactToolLoopEnabled,
 } from '../agent/agentConfig.js';
-import { chatCompressToolsEnabled } from '../../business_modules/chat/domain/chatConfig.js';
-import { chatContextTieringEnabled } from '../../business_modules/chat/domain/chatContextTier.js';
+import { chatCompressToolsEnabled, chatContextTieringEnabled } from '../../business_modules/chat/index.js';
 import {
   llmPromptCacheMasterEnabled,
   promptCacheEnabledForFeature,

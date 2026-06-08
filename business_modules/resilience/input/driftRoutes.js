@@ -1,5 +1,5 @@
 import { requireAnalystView } from '../../../cross-cut-modules/auth/requireAnalystAccess.js';
-import { normalizeReportScope } from '../domain/services/regionSignalFilter.js';
+import { normalizeReportScope } from '../app/regionSignalFilter.js';
 
 /**
  * Fastify routes for the resilience drift dashboard (N4).

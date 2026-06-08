@@ -15,7 +15,7 @@ import {
   SYNTHESIZER_TOOLS,
   ASSESSMENT_SYNTHESIZER_PROFILE,
 } from '../../../cross-cut-modules/agent/profiles/assessment.profile.js';
-import { buildAttentionItems } from '../../resilience/domain/services/attentionItems.js';
+import { buildAttentionItems } from '../../resilience/index.js';
 import { needsLlmSynthesis } from '../domain/services/synthesisPolicy.js';
 
 function buildSynthesizerSystem(componentAssessments, epistemicProfile, oovClusters = []) {

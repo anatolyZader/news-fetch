@@ -2,7 +2,7 @@
  * Per-cluster (PBO subregion) digital void detection.
  */
 
-import { groupSignalsBySubregion } from '../../../../geo/domain/services/geoAggregation.js';
+import { groupSignalsBySubregion } from '../../../../geo/index.js';
 import {
   DIGITAL_SOURCE_TYPES,
   FIELD_SOURCE_TYPES,

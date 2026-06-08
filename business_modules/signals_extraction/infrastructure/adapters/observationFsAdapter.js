@@ -8,7 +8,7 @@ import {
   observationBundleFilename,
   validateObservationBundle,
 } from '../../domain/services/observationSchema.js';
-import { defaultSignalsExtractionDataDir } from './signalsDataPaths.js';
+import { defaultSignalsExtractionDataDir } from '../signalsDataPaths.js';
 
 export function defaultObservationDataDir(opts = {}) {
   return defaultSignalsExtractionDataDir(opts);

@@ -4,9 +4,9 @@ import {
   createGeoLocalityOverridesSqliteAdapter,
   createGeoNorthReferenceJsonAdapter,
   createGeoService,
+  createGeoUnknownJsonlSinkAdapter,
   createGeoUnknownSqliteQueueAdapter,
 } from '../../business_modules/geo/index.js';
-import { createGeoUnknownJsonlSinkAdapter } from '../../business_modules/geo/infrastructure/adapters/geoUnknownJsonlSinkAdapter.js';
 import { createGeoEnrichmentAdapter } from '../../business_modules/resilience/index.js';
 
 /**

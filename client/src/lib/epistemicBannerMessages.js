@@ -199,6 +199,33 @@ function addCalibrationBanner(push, methodology) {
   });
 }
 
+function addAssessmentDegradedBanner(push, assessment, attentionIds) {
+  const degraded = assessment.assessment_degraded ?? null;
+  if (!degraded?.mode) return;
+
+  if (degraded.mode === 'cached' && !attentionIds.has('assessment:degraded_cached')) {
+    push({
+      id: 'assessment:degraded_cached',
+      severity: 'error',
+      messageKey: 'report.assessmentDegraded.cached',
+      params: {
+        date: degraded.cached_date ?? assessment.date ?? '',
+        reason: degraded.reason ?? '',
+      },
+    });
+    return;
+  }
+
+  if (degraded.mode === 'deterministic' && !attentionIds.has('assessment:degraded_deterministic')) {
+    push({
+      id: 'assessment:degraded_deterministic',
+      severity: 'warning',
+      messageKey: 'report.assessmentDegraded.deterministic',
+      params: { reason: degraded.reason ?? '' },
+    });
+  }
+}
+
 function addNorrisDisclaimer(push, isAnalyst, assessment) {
   if (isAnalyst && Array.isArray(assessment.norris_capacities) && assessment.norris_capacities.length > 0) {
     push({
@@ -224,6 +251,7 @@ export function deriveEpistemicBannerMessages(assessment, opts = {}) {
   const voidLevel = dataVoid?.level ?? 'none';
 
   addMethodologyBanner(push, isAnalyst);
+  addAssessmentDegradedBanner(push, assessment, attentionIds);
   addDataVoidBanner(push, isAnalyst, dataVoid, voidLevel, attentionIds);
   addAssessmentModeBanners(push, assessmentMode, epistemicStatus, attentionIds);
   addSocialQuarantineBanners(push, assessment.social_channel_quarantine ?? null, attentionIds);

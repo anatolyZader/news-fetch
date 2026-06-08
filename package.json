@@ -37,7 +37,7 @@
     "worker:assess": "node scripts/workers/assess-signals-worker.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "deps:boundaries": "depcruise business_modules cross-cut-modules composition --config .dependency-cruiser.cjs",
+    "deps:boundaries": "depcruise business_modules cross-cut-modules composition server.js --config .dependency-cruiser.cjs",
     "sonar:issues": "node scripts/sonar/list-sonar-issues.mjs --all-issues --json",
     "sonar:issues:local": "node scripts/sonar/list-sonar-issues.mjs --local-only --all-issues --json",
     "sonar:verify": "node scripts/sonar/verify-sonar-issue.mjs",

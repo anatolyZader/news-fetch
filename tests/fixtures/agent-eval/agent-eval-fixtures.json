@@ -65,5 +65,38 @@
       "narrative": "Note: telegram exceeds cap for source diversity."
     },
     "expect": { "mentions_dominance": true }
+  },
+  {
+    "id": "divergence-aligned-1",
+    "divergence_case": {
+      "agent_assessment": {
+        "components": [
+          { "component_id": "leadership", "severity": "moderate", "confidence": "medium" }
+        ]
+      },
+      "shadow_scored": {
+        "leadership": { "score": 5, "evidence_mass": 3 }
+      }
+    },
+    "expect": { "divergence_aligned": true }
+  },
+  {
+    "id": "deterministic-shape-1",
+    "deterministic_assessment": {
+      "components": [
+        {
+          "component_id": "leadership",
+          "severity": "moderate",
+          "operator_status": "stable",
+          "instrument": { "thin_evidence_instrument": "adequate" }
+        }
+      ],
+      "assessment_degraded": { "mode": "deterministic", "reason": "budget_exceeded" },
+      "synthesis_mode": "deterministic"
+    },
+    "expect": {
+      "has_instruments": true,
+      "degraded_mode": "deterministic"
+    }
   }
 ]

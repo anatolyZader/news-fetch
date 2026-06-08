@@ -8,7 +8,7 @@
 import 'dotenv/config';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { createDefaultPboReportReviewService } from './createPboReviewWiring.js';
+import { createDefaultPboReportReviewService } from '../app/createPboReviewWiring.js';
 import { createRetrievalService } from '../../../cross-cut-modules/retrieval/createRetrievalService.js';
 import { createPboHistoricalSearchService } from '../app/pboHistoricalSearchService.js';
 

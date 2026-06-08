@@ -1,7 +1,7 @@
 /**
  * Chat-only budget preHandler with crisis pool + deterministic fallback.
  */
-import { chatDeterministicFallbackEnabled } from '../../../business_modules/chat/domain/chatDeterministicFallbackConfig.js';
+import { chatDeterministicFallbackEnabled } from '../../../business_modules/chat/index.js';
 import { getDailyBudgetStatus } from './httpDailyBudget.js';
 import { resolveChatBudgetGate } from './crisisBudgetService.js';
 

@@ -7,7 +7,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { createGeoWiring } from '../createGeoWiring.js';
-import { runAnalyzeSurveyCli } from '../../../business_modules/resilience/input/analyzeSurveyInput.js';
+import { runAnalyzeSurveyCli } from '../../../business_modules/resilience/index.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const rootDir = resolve(__dirname, '../../..');

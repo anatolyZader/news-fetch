@@ -1,4 +1,4 @@
-import { normalizeTrendWindowDays } from '../domain/trendWindowDays.js';
+import { normalizeTrendWindowDays } from '../app/trendWindowDays.js';
 
 /**
  * @param {import('fastify').FastifyInstance} app

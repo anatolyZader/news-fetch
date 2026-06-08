@@ -13,7 +13,7 @@ import {
   enrichWithDeltaChannel,
   enrichScoredComponentsEpistemic,
   isEwmaFreezeOnEpistemicEnabled,
-} from '../input/assessSignalsHelpers.js';
+} from '../app/assessSignalsHelpers.js';
 
 /**
  * @param {object} params

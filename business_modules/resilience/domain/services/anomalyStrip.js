@@ -10,11 +10,9 @@ function isCrisisEpistemicMode(assessment) {
   const mode = assessment?.assessment_mode ?? 'normal';
   const sampling = assessment?.epistemic_status?.sampling_status ?? 'normal';
   const voidLevel = assessment?.data_void?.level ?? 'none';
-  return mode === 'abstained'
-    || sampling === 'blind'
-    || assessment?.data_void?.digital_darkness === true
-    || voidLevel === 'critical'
-    || voidLevel === 'elevated';
+  if (mode === 'abstained' || sampling === 'blind') return true;
+  if (assessment?.data_void?.digital_darkness === true) return true;
+  return voidLevel === 'critical' || voidLevel === 'elevated';
 }
 
 function claimHasAnomalyFlag(claim) {
@@ -103,6 +101,30 @@ function deriveAnomalyLevel(oovBurst, salience_signals, crisisMode, clusters) {
   return level;
 }
 
+function shouldShowOperator(oovBurst, crisisMode, clusters, salience_signals) {
+  if (oovBurst?.alert === true) return true;
+  if (crisisMode && clusters.length >= 1) return true;
+  return salience_signals.length >= 1;
+}
+
+/**
+ * @param {object|null} oovBurst
+ * @param {boolean} crisisMode
+ * @param {object[]} clusters
+ * @param {object[]} salience_signals
+ */
+function buildAnomalyStripResult(oovBurst, crisisMode, clusters, salience_signals) {
+  const totalClusterCount = clusters.reduce((n, c) => n + (c.count ?? 0), 0);
+  return {
+    level: deriveAnomalyLevel(oovBurst, salience_signals, crisisMode, clusters),
+    clusters: clusters.slice(0, 8),
+    salience_signals: salience_signals.slice(0, 6),
+    show_operator: shouldShowOperator(oovBurst, crisisMode, clusters, salience_signals),
+    total_count: totalClusterCount,
+    crisis_mode: crisisMode,
+  };
+}
+
 /**
  * @param {object|null|undefined} assessment
  * @returns {{ level: string, clusters: object[], salience_signals: object[], show_operator: boolean }|null}
@@ -116,21 +138,9 @@ export function buildAnomalyStrip(assessment) {
   appendEvidenceTreeClusters(assessment, clusters);
   const salience_signals = collectSalienceSignals(assessment);
 
-  const totalClusterCount = clusters.reduce((n, c) => n + (c.count ?? 0), 0);
-  const show_operator = oovBurst?.alert === true
-    || (crisisMode && clusters.length >= 1)
-    || salience_signals.length >= 1;
-
   if (!clusters.length && !salience_signals.length) return null;
 
-  return {
-    level: deriveAnomalyLevel(oovBurst, salience_signals, crisisMode, clusters),
-    clusters: clusters.slice(0, 8),
-    salience_signals: salience_signals.slice(0, 6),
-    show_operator,
-    total_count: totalClusterCount,
-    crisis_mode: crisisMode,
-  };
+  return buildAnomalyStripResult(oovBurst, crisisMode, clusters, salience_signals);
 }
 
 export { isCrisisEpistemicMode };

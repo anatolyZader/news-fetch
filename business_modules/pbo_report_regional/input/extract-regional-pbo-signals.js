@@ -23,7 +23,7 @@ import { enrichSignalsWithGeo } from '../../../cross-cut-modules/geo/enrichSigna
 import { createSourceArchive } from '../../../db/source_archive/createSourceArchive.js';
 import { buildArchiveSourceId } from '../../../db/source_archive/sourceId.js';
 import { createRetrievalService } from '../../../cross-cut-modules/retrieval/createRetrievalService.js';
-import { defaultClosedSignalsDir } from '../../signals_extraction/infrastructure/signalsDataPaths.js';
+import { defaultClosedSignalsDir } from '../../signals_extraction/index.js';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 

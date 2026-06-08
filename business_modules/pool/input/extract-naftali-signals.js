@@ -21,7 +21,7 @@ import {
   archiveNaftaliWeek,
   stampNaftaliSignalSourceIds,
 } from '../../../db/source_archive/archiveNaftaliWeek.js';
-import { defaultClosedSignalsDir } from '../../signals_extraction/infrastructure/signalsDataPaths.js';
+import { defaultClosedSignalsDir } from '../../signals_extraction/index.js';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 

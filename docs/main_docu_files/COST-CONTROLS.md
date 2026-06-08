@@ -45,14 +45,14 @@ Routes using **`costlyRoutePreHandlers`** (full chain):
 
 ## Pipeline / CLI budget
 
-Extract and assess CLIs call `checkDailyBudget()` from `cross-cut-modules/budget` before LLM work:
+**Extract** calls `checkDailyBudget()` before LLM work (hard exit when exceeded).
+
+**Assess** uses `getDailyBudgetStatus()` — when the daily cap is exceeded, the assessment agent LLM is skipped and **deterministic degrade** runs (shadow scoring still completes; report includes `assessment_degraded`).
 
 - Script ids: `extract-signals`, `assess-signals`
 - Logged to same `cost-log.jsonl`
 
 **Assess (default):** includes **assessment agent** LLM rounds (planner, specialists, synthesizer) under the `assess-signals` script id, capped by `RESILIENCE_ASSESSMENT_AGENT_MAX_USD` / `RESILIENCE_ASSESSMENT_AGENT_MAX_ROUNDS` via `cross-cut-modules/agent/` budget governor — separate from the HTTP daily cap.
-
-Legacy narrative and verification steps inside assess also accumulate under assess script id when agent is disabled.
 
 ---
 

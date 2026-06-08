@@ -13,7 +13,7 @@ import {
 import { buildPlannerContext } from '../../../cross-cut-modules/retrieval/plannerContextBuilder.js';
 import { computeArchiveMentionMass } from '../../../cross-cut-modules/retrieval/archiveEpistemicHints.js';
 import { loadResidualObservationsForAgent, groupObservationsByComponent } from '../../../cross-cut-modules/retrieval/residualObservations.js';
-import { enrichProfileForInvestigation } from '../../epistemic_features/domain/services/investigationEpistemic.js';
+import { enrichProfileForInvestigation } from '../../epistemic_features/index.js';
 import {
   ASSESSMENT_SCHEMA_VERSION,
   createEmptyAssessmentV2,
@@ -29,7 +29,7 @@ import { mapAssessmentV2ToLegacy } from '../domain/services/assessmentV2Mapper.j
 import { resolveSpecialistTier } from '../domain/services/specialistTier.js';
 import { detectCrossComponentContradictions } from '../domain/services/crossComponentConsistency.js';
 import { needsReplan, buildReplanContext, affectedComponentsForReplan } from '../domain/services/replanPolicy.js';
-import { evaluateInvestigationBurst } from '../../resilience/domain/services/oovBurstAlert.js';
+import { evaluateInvestigationBurst } from '../../resilience/index.js';
 
 async function loadInvestigationContext(params, reportDate) {
   let residualObservations = [];

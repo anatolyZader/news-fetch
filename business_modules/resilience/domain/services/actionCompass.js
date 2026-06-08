@@ -4,6 +4,8 @@
 
 import { THIN_EVIDENCE_INSTRUMENT } from './thinEvidencePolicy.js';
 
+export { ATTENTION_LEVELS } from './attentionItems.js';
+
 const LEVEL_PRIORITY = { critical: 0, warning: 1, watch: 2, info: 3 };
 
 export function actionCompassEnabled(env = process.env) {
@@ -173,5 +175,3 @@ export function buildActionCompass(assessment, attentionItems = [], opts = {}) {
     actions: actions.slice(0, 5),
   };
 }
-
-export { ATTENTION_LEVELS } from './attentionItems.js';

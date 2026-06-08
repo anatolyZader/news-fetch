@@ -65,6 +65,7 @@ import { registerEarlyAuthForRateLimit } from '../cross-cut-modules/security/inp
 import { wireApplication } from './wireApplication.js';
 import { MAX_EVIDENCE_DRAFT_CHARS } from './registerPlatform.js';
 import { chatOwnerUid, evidenceOwnerKey } from './registerMedia.js';
+import { createArticlesFetcher } from './registerIngestion.js';
 
 async function loadOpenApiDocument(repoRoot) {
   const openapiPath = resolve(repoRoot, 'openapi', 'openapi.yaml');
@@ -399,7 +400,8 @@ export async function createApp(options) {
   }
 
   const timezone = options.timezone || w.articleTimezone;
-  const fetchArticlesForDay = options.fetchArticlesForDay;
+  const fetchArticlesForDay = options.fetchArticlesForDay
+    ?? createArticlesFetcher({ apiKey, timezone });
 
   const authRequired =
     options.authRequired ??

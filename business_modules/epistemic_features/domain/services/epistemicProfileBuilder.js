@@ -2,20 +2,16 @@
  * Compute epistemic hints per component (mass, polarization, caps) without headline scores.
  */
 import { COMPONENT_IDS } from '../../../../cross-cut-modules/resilience-contracts/componentIds.js';
-import { applySourceCap } from '../../../resilience/domain/services/scoring/applyEvidenceCaps.js';
 import {
+  applySourceCap,
   buildDuplicateOccurrenceIndex,
   round3,
   sourceCapWasApplied,
   tuningFor,
-} from '../../../resilience/domain/services/scoring/scoringShared.js';
-import {
   collectComponentItems,
-} from '../../../resilience/domain/services/scoring/scoreSingleComponent.js';
-import {
   defaultSignalWeights,
   resolveSignalWeights,
-} from '../../../resilience/domain/services/scoring/scoringOverrides.js';
+} from '../../../resilience/index.js';
 
 const SOURCE_TYPE_CAP = 0.5;
 const OUTLET_CAP = 0.35;

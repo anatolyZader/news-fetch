@@ -2,16 +2,39 @@
  * Agent runtime configuration from environment.
  */
 
+let _deprecatedAgentFlagLogged = false;
+
 export function assessmentAgentEnabled() {
   return process.env.RESILIENCE_ASSESSMENT_AGENT !== '0';
 }
 
-export function shadowScoringEnabled() {
-  return process.env.RESILIENCE_SHADOW_SCORING !== '0';
+/** @deprecated RESILIENCE_ASSESSMENT_AGENT=0 — use RESILIENCE_ASSESSMENT_FORCE_DETERMINISTIC=1 */
+export function logDeprecatedAssessmentAgentFlag() {
+  if (process.env.RESILIENCE_ASSESSMENT_AGENT !== '0') return;
+  if (_deprecatedAgentFlagLogged) return;
+  _deprecatedAgentFlagLogged = true;
+  console.error(
+    '[DEPRECATED] RESILIENCE_ASSESSMENT_AGENT=0 — legacy narratives removed; using deterministic degrade. ' +
+    'Migrate to RESILIENCE_ASSESSMENT_FORCE_DETERMINISTIC=1.',
+  );
 }
 
-export function shadowNarrativesEnabled() {
-  return process.env.RESILIENCE_SHADOW_NARRATIVES === '1';
+export function assessmentForceDeterministic() {
+  logDeprecatedAssessmentAgentFlag();
+  if (process.env.RESILIENCE_ASSESSMENT_FORCE_DETERMINISTIC === '1'
+    || process.env.RESILIENCE_ASSESSMENT_FORCE_DETERMINISTIC === 'true') {
+    return true;
+  }
+  return process.env.RESILIENCE_ASSESSMENT_AGENT === '0';
+}
+
+export function shouldSkipAssessmentAgent({ dailyBudgetExceeded = false } = {}) {
+  if (dailyBudgetExceeded) return true;
+  return assessmentForceDeterministic();
+}
+
+export function shadowScoringEnabled() {
+  return process.env.RESILIENCE_SHADOW_SCORING !== '0';
 }
 
 export function assessmentAgentMaxUsd() {

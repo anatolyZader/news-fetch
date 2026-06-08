@@ -41,8 +41,8 @@ function conceptTermsForLang(topic, lang) {
   const terms = conceptSearchTermsForLang(trimmed, lang);
   if (terms.length) return terms.slice(0, 8);
 
-  const sanitized = trimmed.replaceAll("'", '');
-  return [`"${sanitized}"`];
+  const sanitized = trimmed.replaceAll("'", '').replaceAll('"', '');
+  return sanitized ? [`"${sanitized}"`] : [];
 }
 
 /**
@@ -89,6 +89,20 @@ function langOperator(_topic, _lang, opts) {
 }
 
 /**
+ * X recent-search query terms must not contain unescaped `"` (breaks query parser).
+ * @param {string} term
+ */
+function formatXSearchTerm(term) {
+  const raw = String(term ?? '').trim();
+  if (!raw) return '';
+  if (raw.startsWith('"') && raw.endsWith('"') && raw.length > 2) {
+    const inner = raw.slice(1, -1).replaceAll('"', '');
+    return inner ? `"${inner}"` : '';
+  }
+  return raw.replaceAll('"', '');
+}
+
+/**
  * @param {string} topic
  * @param {string[]} [langs]
  * @param {{ broad?: boolean, socialMediaTab?: boolean }} [opts]
@@ -98,7 +112,7 @@ export function buildXTopicQueries(topic, langs = LANG_CODES, opts = {}) {
   /** @type {Record<string, string>} */
   const queries = {};
   for (const lang of langs) {
-    const terms = conceptTermsForLang(topic, lang);
+    const terms = conceptTermsForLang(topic, lang).map(formatXSearchTerm).filter(Boolean);
     if (!terms.length) continue;
     const topicClause = `(${terms.join(' OR ')})`;
     const query = `${topicClause}${localityClause(topic, lang, opts)}${langOperator(topic, lang, opts)} -is:retweet`.trim();

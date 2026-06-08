@@ -13,7 +13,6 @@ export function writeShadowArtifacts(params) {
     scopeId = 'national',
     date,
     shadowScored,
-    shadowNarratives = null,
     divergence,
   } = params;
 
@@ -25,11 +24,5 @@ export function writeShadowArtifacts(params) {
   const divPath = join(reportsDir, `divergence-${scopeId}-${date}.json`);
   writeFileSync(divPath, JSON.stringify({ date, scopeId, ...divergence }, null, 2));
 
-  let narrativesPath = null;
-  if (shadowNarratives) {
-    narrativesPath = join(reportsDir, `shadow-narratives-${scopeId}-${date}.json`);
-    writeFileSync(narrativesPath, JSON.stringify({ date, scopeId, assessment: shadowNarratives }, null, 2));
-  }
-
-  return { scoresPath, divPath, narrativesPath, base: join(reportsDir, `${scopeId}-${date}`) };
+  return { scoresPath, divPath, base: join(reportsDir, `${scopeId}-${date}`) };
 }

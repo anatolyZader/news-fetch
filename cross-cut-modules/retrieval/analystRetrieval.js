@@ -4,7 +4,7 @@
 import { embedText, embeddingsEnabled } from '../vector_index/index.js';
 import { clusterByPrefix, clusterByEmbedding } from '../learningCapture/oovClusterer.js';
 import { evidenceTextForRecord } from '../learningCapture/recordHelpers.js';
-import { LearningCaptureFsAdapter } from '../../business_modules/signal_catalog_evolution/infrastructure/adapters/learningCaptureFsAdapter.js';
+import { LearningCaptureFsAdapter } from '../../business_modules/signal_catalog_evolution/index.js';
 import {
   validationReviewRagEnabled,
   signalCatalogEvolutionRagEnabled,

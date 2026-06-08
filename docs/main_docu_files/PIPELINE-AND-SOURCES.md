@@ -37,7 +37,7 @@ Orchestrated daily run:
 
 Worker variant: `npm run worker:assess` → `scripts/workers/assess-signals-worker.js`.
 
-**Escape hatch:** `RESILIENCE_ASSESSMENT_AGENT=0` runs legacy score-then-narrate assess (no agent trace).
+**Degrade:** When daily budget is exceeded or the agent is unavailable, assess continues with deterministic scoring + cached-report fallback (`assessment_degraded` on the report). No legacy Sonnet narrative path.
 
 ---
 
@@ -111,7 +111,7 @@ Optional ingest RAG when `RESILIENCE_EXTRACT_RAG_ENABLED` (see [RAG.md](./RAG.md
 2. Dedup; attach geo; **`scopeAndPartitionSignals`** (`regionSignalFilter.js`, epistemic partition).
 3. **`prepareScoringSignals`** — quarantine, data void, OOV, gaming policy.
 4. **`runScoringPipeline`** → `scoreComponents` → epistemic gate → EWMA (`scoringPipelinePrep.js`) — **shadow path**.
-5. **`produceAssessmentWithShadow`** → epistemic profile + investigation enrich → RAG seed + evidence graph → **`runAssessmentAgent`** (default).
+5. **`produceAssessmentWithShadow`** → epistemic profile → **`runAssessmentAgent`** (default) or **deterministic degrade** / cached fallback.
 6. `mapAssessmentV2ToLegacy`; write JSON/MD report; shadow/divergence artifacts; validation queue upsert; domain events.
 
 **Outputs:**
@@ -119,7 +119,6 @@ Optional ingest RAG when `RESILIENCE_EXTRACT_RAG_ENABLED` (see [RAG.md](./RAG.md
 - `daily_reports/resilience-report-{date}.json` (and scoped variants) — includes v2 agent fields + legacy-mapped narratives
 - `daily_reports/shadow-scores-{scopeId}-{date}.json` — deterministic scores (`RESILIENCE_SHADOW_SCORING=1`, default on)
 - `daily_reports/divergence-{scopeId}-{date}.json` — shadow vs agent comparison
-- `daily_reports/shadow-narratives-{scopeId}-{date}.json` — optional legacy narrative shadow (`RESILIENCE_SHADOW_NARRATIVES=1`)
 - `daily_reports/assessment-agent-trace-{traceId}.jsonl` — per-assess agent audit trail
 - Markdown report paths as configured
 - SQLite validation review queue (default unless `VALIDATION_REVIEW_SQLITE=0`)
@@ -173,7 +172,6 @@ Structured situational reports use one **`report_build`** orchestrator for two s
 | `daily_reports/resilience-report-*.json` | Full assessment — agent v2 fields + legacy-mapped narratives; shadow scores on disk; API redacts for operators |
 | `daily_reports/shadow-scores-{scopeId}-*.json` | Deterministic calibration scores (analyst; `RESILIENCE_SHADOW_SCORING=1`) |
 | `daily_reports/divergence-{scopeId}-*.json` | Shadow vs agent divergence (`GET /api/report/divergence`, analyst) |
-| `daily_reports/shadow-narratives-{scopeId}-*.json` | Optional legacy narrative shadow (`RESILIENCE_SHADOW_NARRATIVES=1`) |
 | `daily_reports/assessment-agent-trace-*.jsonl` | Agent step replay (analyst) |
 | `signals/signals-*.json` | Extracted signals per source/day |
 | `business_modules/news-sites/articles_extracted/` | News markdown exports |

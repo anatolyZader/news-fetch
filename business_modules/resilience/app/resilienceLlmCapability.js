@@ -7,7 +7,6 @@ import {
   buildSignalExtractionSystemPrompt,
   extractJsonArray,
   extractEvidence,
-  synthesizeComponents,
 } from '../infrastructure/claudeEvaluator.js';
 
 /** @type {import('../domain/ports/IResilienceLlmPort.js').IResilienceLlmPort | null} */
@@ -45,10 +44,7 @@ export function createResilienceLlmCapability(deps = {}) {
     buildSignalExtractionSystemPrompt,
     extractJsonArray,
     extractEvidence,
-    synthesizeComponents,
   };
 }
 
-
-
-export {buildSignalExtractionSystemPrompt, extractJsonArray, extractEvidence, synthesizeComponents} from '../infrastructure/claudeEvaluator.js';
+export { buildSignalExtractionSystemPrompt, extractJsonArray, extractEvidence } from '../infrastructure/claudeEvaluator.js';

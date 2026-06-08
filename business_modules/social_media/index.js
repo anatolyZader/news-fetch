@@ -20,6 +20,8 @@ export {
   isHomefrontBehaviorRelevant,
   isTelegramPostBehaviorEvidence,
   hasPopulationBehaviorSignal,
+  isMilitaryOperationsNews,
+  isAttackAlertOnly,
 } from './domain/services/homefrontBehaviorFilter.js';
 export { mapFindingToSignal, mapFindingsToSignals } from './domain/services/findingToSignalMapper.js';
 export { validateOsintBundle } from './domain/services/osintBundleValidator.js';

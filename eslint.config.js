@@ -78,48 +78,18 @@ export default defineConfig([
     },
   },
   {
-    files: ['**/*.{js,mjs,cjs}'],
-    ignores: ['business_modules/geo/**', 'tests/**', 'scripts/**'],
+    // Option B: input/ is transport-only — delegate to app/ or index.js (not own domain/ or infrastructure/).
+    files: ['business_modules/**/input/**/*.{js,mjs,cjs}'],
+    ignores: ['tests/**', 'scripts/**'],
     rules: {
       'no-restricted-imports': [
         'error',
         {
           patterns: [
             {
-              group: [
-                '**/geo/domain/**',
-                '**/geo/app/**',
-                '**/geo/infrastructure/**',
-              ],
+              group: ['**/business_modules/*/domain/**', '**/business_modules/*/infrastructure/**'],
               message:
-                'Import geo capabilities from business_modules/geo/index.js (the module facade), not its internals.',
-            },
-          ],
-        },
-      ],
-    },
-  },
-  {
-    // Cross-module boundary: sibling modules must import resilience capabilities
-    // from its facade (business_modules/resilience/index.js), not reach into its
-    // internals. Scoped out for the resilience module itself. Warn during the
-    // GRASP migration — error once all §3 markers are resolved.
-    files: ['**/*.{js,mjs,cjs}'],
-    ignores: ['business_modules/resilience/**', 'tests/**', 'scripts/**'],
-    rules: {
-      'no-restricted-imports': [
-        'error',
-        {
-          patterns: [
-            {
-              group: [
-                '**/resilience/domain/**',
-                '**/resilience/app/**',
-                '**/resilience/infrastructure/**',
-                '**/resilience/validation/**',
-              ],
-              message:
-                'Import resilience capabilities from business_modules/resilience/index.js (the module facade), not its internals.',
+                'Option B: input/ may only import own app/ or index.js — move logic to an app service or CLI runner.',
             },
           ],
         },

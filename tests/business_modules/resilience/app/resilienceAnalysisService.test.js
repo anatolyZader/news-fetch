@@ -7,39 +7,6 @@ import {
   MAX_BODY_CHARS,
 } from '../../../../business_modules/resilience/app/resilienceAnalysisService.js';
 
-function minimalAssessment(date, totalArticles, contentKind) {
-  return {
-    date,
-    total_articles_analyzed: totalArticles,
-    overall_resilience_score: 5,
-    content_kind: contentKind,
-    cross_component_synthesis: 'syn',
-    evidence_quality_note: 'ok',
-    components: RESILIENCE_COMPONENTS.map((c) => ({
-      component_id: c.id,
-      score: 5,
-      confidence: 'medium',
-      signal_count: 1,
-      distinct_article_count: 1,
-      source_diversity: 0,
-      coverage_ratio: 0.5,
-      dispersion: 'low',
-      coverage_adjustment: 0,
-      positive_evidence: 1,
-      negative_evidence: 0,
-      net_evidence: 1,
-      evidence_mass: 1,
-      strength: 0.5,
-      adjusted_strength: 0.5,
-      certainty: 0.5,
-      manifestations_evidenced: [],
-      manifestations_absent: [],
-      evidence: [],
-      narrative: 'narrative',
-    })),
-  };
-}
-
 const validSignal = {
   article_index: 1,
   article_url: 'https://example.com/a',
@@ -50,16 +17,16 @@ const validSignal = {
 };
 
 describe('runResilienceAssessment', () => {
-  let prevAssessmentAgent;
+  let prevForceDeterministic;
 
   before(() => {
-    prevAssessmentAgent = process.env.RESILIENCE_ASSESSMENT_AGENT;
-    process.env.RESILIENCE_ASSESSMENT_AGENT = '0';
+    prevForceDeterministic = process.env.RESILIENCE_ASSESSMENT_FORCE_DETERMINISTIC;
+    process.env.RESILIENCE_ASSESSMENT_FORCE_DETERMINISTIC = '1';
   });
 
   after(() => {
-    if (prevAssessmentAgent === undefined) delete process.env.RESILIENCE_ASSESSMENT_AGENT;
-    else process.env.RESILIENCE_ASSESSMENT_AGENT = prevAssessmentAgent;
+    if (prevForceDeterministic === undefined) delete process.env.RESILIENCE_ASSESSMENT_FORCE_DETERMINISTIC;
+    else process.env.RESILIENCE_ASSESSMENT_FORCE_DETERMINISTIC = prevForceDeterministic;
   });
 
   it('throws when llmPort is missing', async () => {
@@ -85,8 +52,6 @@ describe('runResilienceAssessment', () => {
         captured = articles;
         return [validSignal];
       },
-      generateNarratives: async (_scored, _signals, date, totalArticles, opts) =>
-        minimalAssessment(date, totalArticles, opts.contentKind),
     };
 
     await runResilienceAssessment(
@@ -109,7 +74,6 @@ describe('runResilienceAssessment', () => {
         captured = articles;
         return [validSignal];
       },
-      generateNarratives: async (_sc, _si, date, total, opts) => minimalAssessment(date, total, opts.contentKind),
     };
 
     await runResilienceAssessment(
@@ -134,7 +98,6 @@ describe('runResilienceAssessment', () => {
         captured = articles;
         return [validSignal, { ...validSignal, article_index: 2 }];
       },
-      generateNarratives: async (_sc, _si, date, total, opts) => minimalAssessment(date, total, opts.contentKind),
     };
 
     await runResilienceAssessment(
@@ -155,7 +118,6 @@ describe('runResilienceAssessment', () => {
   it('returns provenance and assessment compatible with report shape', async () => {
     const llmPort = {
       extractSignals: async () => [validSignal],
-      generateNarratives: async (_sc, _si, date, total, opts) => minimalAssessment(date, total, opts.contentKind),
     };
 
     const result = await runResilienceAssessment(
@@ -177,33 +139,8 @@ describe('runResilienceAssessment', () => {
     assert.ok(Array.isArray(result.provenance.sourceLabels));
     assert.ok(result.provenance.sourceLabels.includes('KAN'));
     assert.equal(result.assessment.date, '2026-03-22');
-    assert.equal(result.assessment.components.length, 8);
+    assert.equal(result.assessment.components.length, RESILIENCE_COMPONENTS.length);
     assert.ok(Array.isArray(result.signals));
-    assert.equal(result.assessment.content_kind, 'audio');
-  });
-
-  it('passes priorAssessments to generateNarratives as priorReports', async () => {
-    const prior = [{ date: '2026-03-21', overall_resilience_score: 4, components: [] }];
-    let receivedPrior = null;
-    const llmPort = {
-      extractSignals: async () => [validSignal],
-      generateNarratives: async (_sc, _si, date, total, opts) => {
-        receivedPrior = opts.priorReports;
-        return minimalAssessment(date, total, opts.contentKind);
-      },
-    };
-
-    await runResilienceAssessment(
-      {
-        reportDate: '2026-03-22',
-        contentKind: 'news',
-        items: [{ id: '1', title: 'T', body: 'b' }],
-        priorAssessments: prior,
-      },
-      { llmPort },
-    );
-
-    assert.deepStrictEqual(receivedPrior, prior);
   });
 
   it('calls reportWriterPort when persist is true', async () => {
@@ -211,7 +148,6 @@ describe('runResilienceAssessment', () => {
     const reportWriterPort = { writeReport };
     const llmPort = {
       extractSignals: async () => [validSignal],
-      generateNarratives: async (_sc, _si, date, total, opts) => minimalAssessment(date, total, opts.contentKind),
     };
 
     await runResilienceAssessment(
@@ -252,13 +188,9 @@ describe('runResilienceAssessment', () => {
         if (calls === 1) return [validSignal];
         return [s2];
       },
-      generateNarratives: async (_sc, signals, date, total, opts) => {
-        assert.equal(signals.length, 1, 'veto mode keeps only cross-pass agreed signals');
-        return minimalAssessment(date, total, opts.contentKind);
-      },
     };
     try {
-      await runResilienceAssessment(
+      const result = await runResilienceAssessment(
         {
           reportDate: '2026-03-22',
           contentKind: 'news',
@@ -267,6 +199,7 @@ describe('runResilienceAssessment', () => {
         { llmPort },
       );
       assert.equal(calls, 2);
+      assert.equal(result.signals.length, 1, 'veto mode keeps only cross-pass agreed signals');
     } finally {
       if (prev === undefined) delete process.env.RESILIENCE_SECOND_EXTRACT;
       else process.env.RESILIENCE_SECOND_EXTRACT = prev;

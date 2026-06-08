@@ -32,15 +32,15 @@ Docs and operators should treat the refactor as a change in **what is primary**,
 
 | Layer | Pre-refactor | Post-refactor (default) |
 |-------|--------------|-------------------------|
-| **Assess entry** | `assess-signals` → `runScoringPipeline` → `generateNarratives` | `assess-signals` → `produceAssessmentWithShadow` → **`runAssessmentAgent`** |
-| **Primary module** | `claudeNarratives.js` / `claudeEvaluator.js` | `business_modules/resilience_assessment/` + `cross-cut-modules/agent/` + retrieval helpers |
+| **Assess entry** | `assess-signals` → `runScoringPipeline` → legacy Sonnet narratives | `assess-signals` → `produceAssessmentWithShadow` → **`runAssessmentAgent`** (or deterministic degrade) |
+| **Primary module** | Legacy `claudeNarratives.js` (removed) | `business_modules/resilience_assessment/` + `cross-cut-modules/agent/` + retrieval helpers |
 | **Orchestration** | Linear: score then narrate | Planner → `Promise.all` specialists → critic → optional re-plan → synthesizer |
 | **Epistemic input** | Scored components only | `computeEpistemicProfile` + **`enrichProfileForInvestigation`** |
 | **Evidence assembly** | Signals in narrative prompt | **`buildEvidenceGraph`** (signals + RAG hits + OOV/residual + gaps) |
 | **Output schema** | Legacy `assessment.components[].narrative` | **Assessment v2** → **`mapAssessmentV2ToLegacy`** (`assessmentV2Mapper.js`) for API compatibility |
 | **Shadow path** | Scores were primary | **`scoreComponents` still runs** → `shadow-scores-*.json`, `divergence-*.json` |
 | **Trace / audit** | Cost log only | **`assessment-agent-trace-{id}.jsonl`** |
-| **Escape hatch** | — | `RESILIENCE_ASSESSMENT_AGENT=0` → legacy narrative-only assess |
+| **Degrade ladder** | — | Agent skip/failure → `runDeterministicAssessment` → `loadCachedAssessmentFallback`; `assessment_degraded` on report |
 
 ---
 
@@ -73,7 +73,7 @@ Markdown / archive rows
        ├─ epistemic gate + EWMA (scoringPipelinePrep)
        ├─ produceAssessmentWithShadow
        │    ├─ computeEpistemicProfile (epistemicFeaturesService)
-       │    └─ runAssessmentAgent
+       │    └─ runAssessmentAgent (or runDeterministicAssessment on degrade)
        │         ├─ enrichProfileForInvestigation
        │         ├─ RAG seed (seedComponentRagHits) + buildEvidenceGraph (+ residual/OOV)
        │         └─ planner → specialists → critic → optional re-plan → synthesizer
@@ -82,9 +82,9 @@ Markdown / archive rows
        └─ redactReportPayload at API boundary (assessmentDisplayTier)
 ```
 
-**Escape hatch:** `RESILIENCE_ASSESSMENT_AGENT=0` skips the agent and uses legacy `claudeNarratives` (score-then-narrate).
+**Degrade:** `RESILIENCE_ASSESSMENT_FORCE_DETERMINISTIC=1` or daily budget exceeded skips agent LLM. `RESILIENCE_ASSESSMENT_AGENT=0` is deprecated (same effect, logs warning). Legacy Sonnet narratives removed.
 
-Alternate batch path: `runResilienceAnalysis.js` (markdown batch, national default scope).
+Alternate batch path: `runResilienceAnalysis.js` → `produceAssessmentWithShadow` (markdown batch, national default scope).
 
 ### 3.1 Assessment agent (v2)
 
@@ -178,7 +178,7 @@ When `evidence_mass < 1.5` (typical floor):
 - **Operator API/UI:** `redactReportPayload` / `redactAssessmentForView` strip headline scores and debug narrative fields.
 - **Analyst SPA:** `analyst-site/` with `view=analyst`; drift, validation review, catalog proposals, **agent trace replay**.
 - **Full JSON:** `daily_reports/resilience-report-*.json` retains shadow scores, v2 agent fields, and legacy-mapped narratives.
-- **Shadow artifacts:** `daily_reports/shadow-scores-{scopeId}-{date}.json`, `daily_reports/divergence-{scopeId}-{date}.json` (when `RESILIENCE_SHADOW_SCORING=1`; default on); optional `shadow-narratives-{scopeId}-{date}.json` when `RESILIENCE_SHADOW_NARRATIVES=1`.
+- **Shadow artifacts:** `daily_reports/shadow-scores-{scopeId}-{date}.json`, `daily_reports/divergence-{scopeId}-{date}.json` (when `RESILIENCE_SHADOW_SCORING=1`; default on).
 - **Agent trace:** `daily_reports/assessment-agent-trace-{traceId}.jsonl` — planner, specialist, critic, synthesizer steps.
 - **Drift APIs:** gated to analyst/maintainer (`canViewAnalystDisplay`).
 
@@ -214,12 +214,12 @@ Shadow scoring and agent assess share the same signal prep; **presentation** dif
 - **Dedup / merge:** `input/assessSignalsHelpers.js`, `domain/services/crossSourceDedupClustered.js`
 - **Output:** Feeds epistemic profile + investigation enrich; written to `shadow-scores-*.json`
 
-### 7.4 Legacy narratives (escape hatch)
+### 7.4 Deterministic degrade (replaces legacy narratives)
 
-- **Infrastructure:** `claudeNarratives.js` (barrel: `claudeEvaluator.js`)
-- **When:** `RESILIENCE_ASSESSMENT_AGENT=0` — score-then-narrate path only
-- LLM narrates from scored assessment; **must not** change scores
-- Default: instrument tags in prompt, not numeric scores (`RESILIENCE_NARRATIVE_INCLUDE_SCORES=false`)
+- **Modules:** `runDeterministicAssessment.js`, `loadCachedAssessmentFallback.js`
+- **When:** Agent skip/failure, `RESILIENCE_ASSESSMENT_FORCE_DETERMINISTIC=1`, daily budget exceeded, or deprecated `RESILIENCE_ASSESSMENT_AGENT=0`
+- Evidence graph + epistemic instruments only (no Sonnet narratives); cached prior report if scores empty
+- Report metadata: `assessment_degraded`, `synthesis_mode: deterministic`
 
 ### 7.5 Assessment agent (default)
 
@@ -265,7 +265,7 @@ Component ids used in scoring: `narrative`, `information_communication`, `lifesa
 | Shadow scoring pipeline | `app/scoringPipelinePrep.js`, `app/prepareScoringSignals.js`, `scoreComponentsOrchestrator.js` |
 | Display redaction | `domain/services/assessmentDisplayTier.js` |
 | Thin evidence | `domain/services/thinEvidencePolicy.js` |
-| Legacy narratives | `infrastructure/claudeNarratives.js` (when `RESILIENCE_ASSESSMENT_AGENT=0`) |
+| Deterministic degrade | `resilience_assessment/app/runDeterministicAssessment.js`, `loadCachedAssessmentFallback.js` |
 | Signal catalog evolution | `business_modules/signal_catalog_evolution/` — OOV gap reports + draft proposals |
 
 ---

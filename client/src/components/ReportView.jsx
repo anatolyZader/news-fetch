@@ -935,6 +935,8 @@ export function ReportView({
         <AgentDivergencePanel
           reportDate={reportDate ?? assessment?.date}
           reportScope={reportScope?.id ?? assessment?.report_scope?.id ?? 'national'}
+          assessmentDegraded={assessment?.assessment_degraded ?? null}
+          agentTraceId={assessment?.agent_trace_id ?? null}
         />
       )}
       <DecisionBriefPanel

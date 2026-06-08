@@ -39,7 +39,7 @@ Keep LLM spend predictable. Srulik's lab touches three paid providers — Anthro
 | News (homefront) | LLM pre-filter over all NewsAPI candidates | Tighten NewsAPI query; headline prefilter before LLM |
 | WhatsApp | Signal extraction over all stored messages | Filter to message types/groups that matter |
 | Audio | Whisper (charged per minute) + extraction over the transcript | Trim audio before upload; skip silent sections |
-| Resilience analysis | Extraction + narrative generation | Smaller model for extraction, Opus only for narrative if needed |
+| Resilience analysis | Extraction + assessment agent (or deterministic degrade when budget exceeded) | Smaller model for extraction; agent capped per report; assess continues without agent LLM when daily cap hit |
 
 ## Examples
 

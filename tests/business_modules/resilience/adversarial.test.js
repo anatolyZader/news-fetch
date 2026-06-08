@@ -8,7 +8,7 @@ import { resolveScoringPartition } from '../../../business_modules/resilience/do
 import { runScoringPipeline } from '../../../business_modules/resilience/app/scoringPipelinePrep.js';
 import { dedupeSignalsWithinBatch, verifyEvidenceAgainstArticle }
   from '../../../business_modules/resilience/infrastructure/signalVerification.js';
-import { crossSourceDedup } from '../../../business_modules/resilience/input/assessSignalsHelpers.js';
+import { crossSourceDedup } from '../../../business_modules/resilience/app/assessSignalsHelpers.js';
 import { enrichProbeSignalsInList } from '../../../business_modules/resilience/domain/services/probeCorroborationPolicy.js';
 
 import { ADVERSARIAL_CASES_PATH } from '../../../business_modules/resilience/tuning/goldenPaths.js';

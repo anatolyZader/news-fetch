@@ -9,7 +9,12 @@ import { authFetch } from '../lib/authFetch.js';
 /**
  * Analyst panel: agent vs shadow score divergence.
  */
-export function AgentDivergencePanel({ reportDate, reportScope = 'national' }) {
+export function AgentDivergencePanel({
+  reportDate,
+  reportScope = 'national',
+  assessmentDegraded = null,
+  agentTraceId = null,
+}) {
   const { t } = useLanguage();
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
@@ -31,9 +36,11 @@ export function AgentDivergencePanel({ reportDate, reportScope = 'national' }) {
     return () => { cancelled = true; };
   }, [reportDate, reportScope]);
 
-  if (error || !data) return null;
+  const showDegradeNote = !agentTraceId && assessmentDegraded?.mode;
 
-  const rate = data.alignment_rate == null
+  if ((error || !data) && !showDegradeNote) return null;
+
+  const rate = data?.alignment_rate == null
     ? '—'
     : `${Math.round(data.alignment_rate * 100)}%`;
 
@@ -51,6 +58,16 @@ export function AgentDivergencePanel({ reportDate, reportScope = 'national' }) {
       <Typography variant="subtitle2" component="h2" sx={{ mb: 1 }}>
         {t('report.divergence.panelTitle')}
       </Typography>
+      {showDegradeNote && (
+        <Typography variant="body2" color="warning.main" sx={{ mb: 1 }}>
+          {t('report.divergence.degradedNote', {
+            mode: assessmentDegraded.mode,
+            reason: assessmentDegraded.reason ?? '',
+          })}
+        </Typography>
+      )}
+      {data && (
+        <>
       <Typography variant="body2" color="text.secondary">
         {t('report.divergence.alignmentRate')}: {rate}
       </Typography>
@@ -61,6 +78,8 @@ export function AgentDivergencePanel({ reportDate, reportScope = 'national' }) {
           </Typography>
         ))}
       </Box>
+        </>
+      )}
     </Box>
   );
 }
@@ -68,4 +87,9 @@ export function AgentDivergencePanel({ reportDate, reportScope = 'national' }) {
 AgentDivergencePanel.propTypes = {
   reportDate: PropTypes.string,
   reportScope: PropTypes.string,
+  assessmentDegraded: PropTypes.shape({
+    mode: PropTypes.string,
+    reason: PropTypes.string,
+  }),
+  agentTraceId: PropTypes.string,
 };

@@ -4,8 +4,10 @@ export { resolveModelForStage } from './agentModelRouter.js';
 export { validateSubmitToolPayload } from './schemaValidator.js';
 export {
   assessmentAgentEnabled,
+  logDeprecatedAssessmentAgentFlag,
+  assessmentForceDeterministic,
+  shouldSkipAssessmentAgent,
   shadowScoringEnabled,
-  shadowNarrativesEnabled,
   assessmentAgentMaxUsd,
   assessmentAgentMaxRounds,
   chatMaxToolRounds,

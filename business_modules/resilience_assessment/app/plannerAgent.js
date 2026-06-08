@@ -18,7 +18,7 @@ import {
   gapPlannerEnabled,
 } from '../../../cross-cut-modules/retrieval/plannerContextBuilder.js';
 import { shouldUseDeterministicPlanner } from '../domain/services/plannerPolicy.js';
-import { shouldAbstainFromInvestigation } from '../../epistemic_features/domain/services/investigationEpistemic.js';
+import { shouldAbstainFromInvestigation } from '../../epistemic_features/index.js';
 
 function buildPlannerSystem(epistemicProfile, plannerContext) {
   const slim = slimPlannerPromptsEnabled();

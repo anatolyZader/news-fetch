@@ -1,8 +1,7 @@
 /**
  * Chat-parity evidence tools for assessment specialists (lookup_signals, get_source).
  */
-import { loadSignals, searchSignals, formatSignals } from '../../business_modules/chat/domain/signalLookup.js';
-import { getSource } from '../../business_modules/chat/domain/sourceArchiveQuery.js';
+import { loadSignals, searchSignals, formatSignals, getSource } from '../../business_modules/chat/index.js';
 
 const COMPONENT_ENUM = [
   'narrative', 'information_communication', 'lifesaving_behavior', 'functional_continuity',

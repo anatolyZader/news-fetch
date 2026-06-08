@@ -1,5 +1,5 @@
 export { createPboReportReviewService } from './app/pboReportReviewService.js';
-export { createDefaultPboReportReviewService, loadReviewMetadataMapForDate } from './input/createPboReviewWiring.js';
+export { createDefaultPboReportReviewService, loadReviewMetadataMapForDate, shouldForcePboSignalRewrite, isPboReviewMailingConfigured } from './app/createPboReviewWiring.js';
 export { createPboReviewSqliteStore } from './infrastructure/adapters/pboReviewSqliteStore.js';
 export { createPboOfficerDirectoryJsonAdapter } from './infrastructure/adapters/pboOfficerDirectoryJsonAdapter.js';
 export { createPboReviewMailingAdapter } from './infrastructure/adapters/pboReviewMailingAdapter.js';

@@ -4,7 +4,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { EVIDENCE_REQUIREMENTS } from '../../business_modules/report_build/domain/evidenceRequirements.js';
+import { EVIDENCE_REQUIREMENTS } from '../../business_modules/report_build/index.js';
 
 const FIELD_EXAMPLES_INDEX_DATE = '2099-01-01';
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');

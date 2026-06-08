@@ -39,4 +39,5 @@ export {
   districtRelevanceFromResolvedGeo,
   homeFrontDistrictIdsFromResolvedGeo,
 } from './domain/services/districtRelevanceFromResolvedGeo.js';
+export { groupLocalitiesIntoSubregionsForFile } from './domain/services/northReferenceDocShape.js';
 export { collectRawLocalitiesFromNorthReferenceDoc } from './domain/services/northReferenceDocShape.js';

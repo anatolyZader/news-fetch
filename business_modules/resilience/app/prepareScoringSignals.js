@@ -15,7 +15,7 @@ import {
   isSocialQuarantineActive,
   isSocialQuarantineDismissed,
 } from '../domain/services/socialQuarantineOverrides.js';
-import { loadHistoricalSignalDays } from '../input/assessSignalsHelpers.js';
+import { loadHistoricalSignalDays } from '../app/assessSignalsHelpers.js';
 
 /**
  * @param {object} params

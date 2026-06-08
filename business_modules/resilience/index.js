@@ -69,7 +69,6 @@ export {
   buildSignalExtractionSystemPrompt,
   extractJsonArray,
   extractEvidence,
-  synthesizeComponents,
 } from './app/resilienceLlmCapability.js';
 export { loadMdFile, loadMdFiles } from './infrastructure/mdReportsLoader.js';
 export { applySourceNativeGrounding } from './infrastructure/sourceNativeGrounding.js';
@@ -81,3 +80,33 @@ export { loadProbeRecordsForDate } from './infrastructure/adapters/connectivityP
 export { createReportReadPort } from './infrastructure/adapters/reportReadPortAdapter.js';
 export { createReportDisplayPort } from './infrastructure/adapters/reportDisplayPortAdapter.js';
 export { generateDecisionBrief, decisionBriefEnabled } from './infrastructure/decisionBriefGenerator.js';
+
+// --- Scoring internals (facade for epistemic_features) ---
+export { applySourceCap } from './domain/services/scoring/applyEvidenceCaps.js';
+export {
+  buildDuplicateOccurrenceIndex,
+  round3,
+  sourceCapWasApplied,
+  tuningFor,
+} from './domain/services/scoring/scoringShared.js';
+export { collectComponentItems } from './domain/services/scoring/scoreSingleComponent.js';
+export {
+  defaultSignalWeights,
+  resolveSignalWeights,
+} from './domain/services/scoring/scoringOverrides.js';
+
+// --- OOV / investigation burst ---
+export { countOovCapturesForDate } from './domain/services/oovCapture.js';
+export { overallScore, scoreComponents } from './domain/services/behaviorSignals.js';
+export { evaluateInvestigationBurst } from './domain/services/oovBurstAlert.js';
+
+// --- Narrative grounding ---
+export {
+  scoreTextGrounding,
+  computeGroundingScores,
+} from './domain/services/narrativeGrounding/sentenceGroundingChecker.js';
+export { buildSignalRefRegistry } from './domain/services/narrativeGrounding/signalRefRegistry.js';
+export { SIGNAL_TO_COMPONENTS } from './domain/services/signalRouter.js';
+
+// --- Survey CLI runner (cross-cut geo entry) ---
+export { runAnalyzeSurveyCli } from './app/analyzeSurveyCli.js';

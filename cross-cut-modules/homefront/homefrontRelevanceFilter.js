@@ -1,12 +1,12 @@
 /**
  * Keyword + behavior prefilter for homefront news (replaces LLM by default).
  */
-import { isHomefrontRelevant } from '../../business_modules/social_media/domain/services/homefrontKeywords.js';
 import {
+  isHomefrontRelevant,
   hasPopulationBehaviorSignal,
   isMilitaryOperationsNews,
   isAttackAlertOnly,
-} from '../../business_modules/social_media/domain/services/homefrontBehaviorFilter.js';
+} from '../../business_modules/social_media/index.js';
 import { embedText, embeddingsEnabled } from '../vector_index/index.js';
 
 const PROTOTYPE_QUERIES = [

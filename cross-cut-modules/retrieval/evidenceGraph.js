@@ -1,8 +1,7 @@
 /**
  * Assemble retrieval hits and signals into an evidence graph for agent reasoning.
  */
-import { buildSignalRefRegistry } from '../../business_modules/resilience/domain/services/narrativeGrounding/signalRefRegistry.js';
-import { SIGNAL_TO_COMPONENTS } from '../../business_modules/resilience/domain/services/signalRouter.js';
+import { buildSignalRefRegistry, SIGNAL_TO_COMPONENTS } from '../../business_modules/resilience/index.js';
 import { COMPONENT_IDS } from '../resilience-contracts/componentIds.js';
 import { mapObservationToComponent, observationText } from './residualObservations.js';
 

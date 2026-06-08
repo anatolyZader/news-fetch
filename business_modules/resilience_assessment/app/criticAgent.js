@@ -1,7 +1,7 @@
 /**
  * Critic agent — deterministic checks + optional LLM contested pass.
  */
-import { scoreTextGrounding } from '../../resilience/domain/services/narrativeGrounding/sentenceGroundingChecker.js';
+import { scoreTextGrounding } from '../../resilience/index.js';
 import { checkComponentOovInNarrative, repairComponentOovInNarrative } from '../domain/services/synthesisOovChecks.js';
 
 function claimHasOovFlag(claim) {

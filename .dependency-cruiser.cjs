@@ -11,10 +11,19 @@ module.exports = {
       },
     },
     {
+      name: 'domain-no-input',
+      severity: 'error',
+      comment: 'Domain layer must not import input/ transport layer',
+      from: { path: '^business_modules/[^/]+/domain/' },
+      to: {
+        path: '^business_modules/[^/]+/input/',
+      },
+    },
+    {
       name: 'business-module-cross-import',
-      severity: 'warn',
+      severity: 'error',
       comment:
-        'Import sibling business modules only via their index.js facade or cross-cut-modules (warn until legacy paths migrated)',
+        'Import sibling business modules only via their index.js facade or cross-cut-modules',
       from: { path: '^business_modules/([^/]+)/' },
       to: {
         path: '^business_modules/([^/]+)/',
@@ -26,12 +35,60 @@ module.exports = {
     },
     {
       name: 'cross-cut-no-business-internals',
-      severity: 'warn',
+      severity: 'error',
       comment:
-        'Cross-cut modules should not import business module internals (warn until wired via composition)',
+        'Cross-cut modules should not import business module internals (wire via composition or facades)',
       from: { path: '^cross-cut-modules/' },
       to: {
         path: '^business_modules/[^/]+/(app|domain|infrastructure|input)/',
+        pathNot: '^business_modules/[^/]+/index.js$',
+      },
+    },
+    {
+      name: 'app-no-sibling-infrastructure',
+      severity: 'error',
+      comment: 'App layer must not import another module infrastructure/',
+      from: { path: '^business_modules/([^/]+)/app/' },
+      to: {
+        path: '^business_modules/([^/]+)/infrastructure/',
+        pathNot: '^business_modules/$1/infrastructure/',
+      },
+    },
+    {
+      name: 'cross-module-infrastructure-outside-composition',
+      severity: 'error',
+      comment:
+        'Cross-module infrastructure imports are allowed only from composition/ (same-module infra OK)',
+      from: { path: '^business_modules/([^/]+)/' },
+      to: {
+        path: '^business_modules/([^/]+)/infrastructure/',
+        pathNot: '^business_modules/$1/infrastructure/',
+      },
+    },
+    {
+      name: 'cross-cut-no-business-infrastructure',
+      severity: 'error',
+      comment: 'Cross-cut modules must not import business module infrastructure/',
+      from: { path: '^cross-cut-modules/' },
+      to: {
+        path: '^business_modules/[^/]+/infrastructure/',
+        pathNot: '^business_modules/[^/]+/index.js$',
+      },
+    },
+    {
+      name: 'server-no-business-infrastructure',
+      severity: 'error',
+      comment: 'server.js must not import business module infrastructure/ (wire in composition/)',
+      from: { path: String.raw`^server\.js$` },
+      to: { path: '^business_modules/[^/]+/infrastructure/' },
+    },
+    {
+      name: 'input-no-own-domain-or-infrastructure',
+      severity: 'error',
+      comment: 'Option B: input/ may only delegate to app/ or index.js (not own domain/ or infrastructure/)',
+      from: { path: '^business_modules/([^/]+)/input/' },
+      to: {
+        path: '^business_modules/$1/(domain|infrastructure)/',
       },
     },
   ],
@@ -45,17 +102,4 @@ module.exports = {
       path: ['node_modules', 'client/dist', 'tools/docs-site', 'analyst-site'],
     },
   },
-  allowed: [
-    {
-      from: { path: '^business_modules/' },
-      to: {
-        path: '^business_modules/(audio|geo|pbo_report_|pool|radio|resilience|scheduled_stream_capture|signals_extraction|video)/',
-        pathNot: ['^business_modules/[^/]+/index.js$'],
-      },
-    },
-    {
-      from: { path: '^cross-cut-modules/' },
-      to: { path: '^business_modules/' },
-    },
-  ],
 };

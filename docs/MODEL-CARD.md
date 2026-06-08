@@ -102,13 +102,15 @@ When partition quarantines digital signals, `assessment.digital_quarantine_state
 
 ## Assessment agent (v2, Option B)
 
-Default pipeline (`RESILIENCE_ASSESSMENT_AGENT=1`): planner → component specialists → critic → synthesizer produce **assessment.v2** with evidence refs and trace JSONL. Legacy scoring runs as **shadow** (`RESILIENCE_SHADOW_SCORING=1`) → `shadow-scores-*.json`, `divergence-*.json`. Escape hatch: `RESILIENCE_ASSESSMENT_AGENT=0` restores legacy narratives.
+Default pipeline: planner → component specialists → critic → synthesizer produce **assessment.v2** with evidence refs and trace JSONL. Deterministic **shadow scoring** (`RESILIENCE_SHADOW_SCORING=1`) writes `shadow-scores-*.json` and `divergence-*.json` for analyst calibration.
+
+**Degrade ladder** (replaces legacy narrative escape hatch): agent failure, per-run budget exhaustion, or daily HTTP budget → `runDeterministicAssessment` (evidence graph + instruments, no LLM) → cached prior report if scores are empty. Report field `assessment_degraded` documents the mode.
 
 | Env | Default | Effect |
 |-----|---------|--------|
-| `RESILIENCE_ASSESSMENT_AGENT` | `1` | Agent v2 primary assess path |
+| `RESILIENCE_ASSESSMENT_FORCE_DETERMINISTIC` | `0` | Skip agent LLM; run deterministic degrade (dev/test) |
+| `RESILIENCE_ASSESSMENT_AGENT` | `1` | **`=0` deprecated** — logs warning and forces deterministic degrade (migrate to `RESILIENCE_ASSESSMENT_FORCE_DETERMINISTIC=1`) |
 | `RESILIENCE_SHADOW_SCORING` | `1` | Write shadow score + divergence artifacts |
-| `RESILIENCE_SHADOW_NARRATIVES` | `0` | Optional legacy narrative shadow |
 | `RESILIENCE_ASSESSMENT_AGENT_MAX_USD` | `2.50` | Per-report agent budget |
 | `RESILIENCE_ASSESSMENT_AGENT_MAX_ROUNDS` | `24` | Tool round cap |
 | `RESILIENCE_ASSESS_DETERMINISTIC_PLANNER` | `1` | Skip planner LLM on routine normal days |

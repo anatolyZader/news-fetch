@@ -17,13 +17,13 @@
 
 The assessment agent is **plan-and-execute map–reduce**, not peer-to-peer multi-agent chat. See [RESILIENCE-ENGINE-REFERENCE.md §3.1](./RESILIENCE-ENGINE-REFERENCE.md#31-assessment-agent-v2).
 
-**Escape hatch:** `RESILIENCE_ASSESSMENT_AGENT=0` → legacy single-pass narratives (`claudeNarratives`), no assessment agent trace.
+**Degrade ladder:** On agent skip/failure, `produceAssessmentWithShadow.js` runs `runDeterministicAssessment` (no LLM), then `loadCachedAssessmentFallback` if scores are empty. `RESILIENCE_ASSESSMENT_FORCE_DETERMINISTIC=1` skips the agent explicitly. `RESILIENCE_ASSESSMENT_AGENT=0` is **deprecated** (same as force-deterministic; no legacy Sonnet narratives).
 
 ---
 
 ## Assessment agent (batch)
 
-**Entry:** `produceAssessmentWithShadow.js` → `runAssessmentAgent` in `assessmentOrchestrator.js`
+**Entry:** `produceAssessmentWithShadow.js` → `runAssessmentAgent` in `assessmentOrchestrator.js` (or deterministic degrade)
 
 **Kernel:** `cross-cut-modules/agent/agentKernel.js` — shared tool loop, budget governor, JSONL trace.
 
@@ -154,7 +154,8 @@ Used from analyst `ValidationReviewPanel` — not operator Daily Assessment tab.
 
 | Variable | Role |
 |----------|------|
-| `RESILIENCE_ASSESSMENT_AGENT` | `0` disables assessment agent (legacy narratives) |
+| `RESILIENCE_ASSESSMENT_FORCE_DETERMINISTIC` | `1` skips agent LLM (deterministic degrade) |
+| `RESILIENCE_ASSESSMENT_AGENT` | `0` **deprecated** — forces deterministic degrade (no legacy narratives) |
 | `ANTHROPIC_API_KEY` | Required for chat and agent assess |
 | `CHAT_MAX_TOOL_ROUNDS` | Chat tool loop cap (default 3) |
 | `CHAT_CONFIRM_ACTIONS_ENABLED` | HITL propose/confirm |

@@ -5,9 +5,9 @@
 import 'dotenv/config';
 import { bootstrapDefaultStateStore } from './cross-cut-modules/persistence/bootstrapStateStore.js';
 import { createApp } from './app.js';
+import { createArticlesFetcher } from './composition/registerIngestion.js';
 
 bootstrapDefaultStateStore();
-import { createNewsApiArticlesFetcher } from './business_modules/news-sites/infrastructure/adapters/newsApiYnetAdapter.js';
 import {
   validateProductionSecurity,
   productionSecurityWarnings,
@@ -33,7 +33,7 @@ if (!apiKey) {
   process.exit(1);
 }
 
-const fetchArticlesForDay = createNewsApiArticlesFetcher({ apiKey, timezone });
+const fetchArticlesForDay = createArticlesFetcher({ apiKey, timezone });
 const app = await createApp({ apiKey, fetchArticlesForDay, timezone });
 
 const host = resolveListenHost();

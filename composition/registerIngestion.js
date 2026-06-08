@@ -20,6 +20,15 @@ import {
   createReportBotManualReportsService,
 } from '../business_modules/report_bot/index.js';
 
+import { createNewsApiArticlesFetcher } from '../business_modules/news-sites/infrastructure/adapters/newsApiYnetAdapter.js';
+
+/**
+ * @param {{ apiKey: string, timezone?: string }} opts
+ */
+export function createArticlesFetcher({ apiKey, timezone }) {
+  return createNewsApiArticlesFetcher({ apiKey, timezone });
+}
+
 /**
  * @param {{ repoRoot: string, retrievalService: object }} opts
  */

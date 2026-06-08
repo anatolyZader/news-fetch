@@ -95,7 +95,7 @@ export function buildSignalAppendix(signals) {
 /**
  * Write both .md and .json outputs.
  *
- * @param {Object} assessment    Output of generateNarratives()
+ * @param {Object} assessment    Assessment payload (agent v2 or degrade ladder)
  * @param {Array}  signals       Output of extractSignals()
  * @param {Array}  sourceFiles   Array of source file basenames
  * @param {string} outputBase    Path without extension

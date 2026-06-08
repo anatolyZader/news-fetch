@@ -38,6 +38,7 @@ For role and scope terminology, see the repo glossary at `docs/architecture/ubiq
 - **Entities/aggregates:** Use thin **state-bearing VOs** only where lifecycle or invariants matter (e.g. review status, conversation state, catalog proposal approval). No event sourcing required.
 - **Hexagonal boundaries:** External I/O via `domain/ports/` implemented in `infrastructure/adapters/`. Shared taxonomy/constants live in `cross-cut-modules/resilience-contracts/`.
 - **Module coupling:** Sibling business modules communicate via contracts, composition wiring, or injected ports — not direct `domain/` or `app/` imports. CI enforces this with `npm run deps:boundaries`.
+- **Option B — input/ contract:** `business_modules/<module>/input/` is transport-only (HTTP routes, webhooks, CLI). Input files may import only the **own** module `app/` or `index.js`, plus `cross-cut-modules/`, `db/`, `utils/`, and `composition/`. They must not import own `domain/` or `infrastructure/` — delegate to app services. Cross-module adapter wiring lives in `composition/`.
 
 ## Top-level layout
 

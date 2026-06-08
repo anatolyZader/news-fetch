@@ -89,7 +89,7 @@ export async function reportRoutes(app, opts) {
     const { date, component_id, claim_text, action, rationale, scope = 'national' } = request.body ?? {};
     if (action === 'reject' && claim_text) {
       try {
-        const { createInstitutionalMemoryService } = await import('../../resilience_assessment/infrastructure/institutionalMemoryService.js');
+        const { createInstitutionalMemoryService } = await import('../../resilience_assessment/index.js');
         const { createRetrievalService } = await import('../../../cross-cut-modules/retrieval/createRetrievalService.js');
         const svc = createRetrievalService({ dbPath: sqlitePath ?? opts.sqlitePath });
         const memory = createInstitutionalMemoryService({

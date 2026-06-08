@@ -12,7 +12,7 @@ import { authPreHandlerList } from '../../../cross-cut-modules/auth/buildAuthHoo
 import { createHttpCostRecorder, createHttpChatBudgetPreHandler } from '../../../cross-cut-modules/budget/index.js';
 import { createChatRetrievalCache } from '../../../cross-cut-modules/retrieval/chatRetrievalCache.js';
 import { executePendingAction } from '../app/executePendingAction.js';
-import { OPERATOR_PROPOSE_TOOL_NAMES } from '../domain/chatConfig.js';
+import { OPERATOR_PROPOSE_TOOL_NAMES } from '../app/chatConfig.js';
 import { METRIC } from '../../../cross-cut-modules/monitoring/domain/metricNames.js';
 
 function chatRequestTimeoutMs() {
