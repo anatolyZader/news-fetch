@@ -94,7 +94,7 @@ describe('createAnthropicLlmPort', () => {
       const sent = client.calls.create[0];
       assert.ok(Array.isArray(sent.system));
       assert.equal(sent.system[0].cache_control?.type, 'ephemeral');
-      assert.equal(sent.callContext.promptCacheApplied, true);
+      assert.equal(sent.callContext, undefined, 'callContext must not reach Anthropic API');
     } finally {
       restoreEnv();
     }

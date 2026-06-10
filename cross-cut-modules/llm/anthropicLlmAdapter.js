@@ -9,7 +9,11 @@ import Anthropic from '@anthropic-ai/sdk';
 import { runToolLoop as sharedRunToolLoop } from './runToolLoop.js';
 import { withSpan } from '../observability/withSpan.js';
 import { createLlmGateway } from './llmGateway.js';
-import { prepareAnthropicRequest, resolvePromptCacheFeature } from './promptCache.js';
+import {
+  prepareAnthropicRequest,
+  resolvePromptCacheFeature,
+  stripAnthropicInternalParams,
+} from './promptCache.js';
 
 /**
  * @param {{ apiKey?: string, defaultModel?: string, client?: object }} [cfg]
@@ -25,13 +29,13 @@ export function createAnthropicLlmPort(cfg = {}) {
         const prepared = prepareAnthropicRequest(opts, {
           feature: resolvePromptCacheFeature(opts),
         });
-        return client.messages.create(prepared);
+        return client.messages.create(stripAnthropicInternalParams(prepared));
       }),
     stream: (opts) => {
       const prepared = prepareAnthropicRequest(opts, {
         feature: resolvePromptCacheFeature(opts),
       });
-      return client.messages.stream(prepared);
+      return client.messages.stream(stripAnthropicInternalParams(prepared));
     },
     runToolLoop: (opts) =>
       withSpan('llm.runToolLoop', {}, () => sharedRunToolLoop({ ...opts, client })),

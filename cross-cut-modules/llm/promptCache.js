@@ -122,3 +122,17 @@ function withOptionalCallContext(opts, callContext, applied) {
 export function resolvePromptCacheFeature(opts = {}) {
   return opts.callContext?.feature ?? opts.agentKind ?? null;
 }
+
+/** App-only fields that must not be sent to Anthropic messages.create. */
+const ANTHROPIC_INTERNAL_PARAM_KEYS = ['callContext', 'onUsage', 'agentKind'];
+
+/**
+ * @param {object} prepared
+ * @returns {object}
+ */
+export function stripAnthropicInternalParams(prepared) {
+  if (!prepared || typeof prepared !== 'object') return prepared;
+  const out = { ...prepared };
+  for (const key of ANTHROPIC_INTERNAL_PARAM_KEYS) delete out[key];
+  return out;
+}

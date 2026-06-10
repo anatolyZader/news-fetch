@@ -26,6 +26,15 @@ function generateRunId() {
     .slice(0, 12);
 }
 
+function systemHashInput(system) {
+  if (system == null) return '';
+  if (typeof system === 'string') return system.slice(0, 500);
+  if (typeof system === 'object' && system.stable != null) {
+    return `${String(system.stable).slice(0, 400)}${String(system.dynamic ?? '').slice(0, 100)}`;
+  }
+  return JSON.stringify(system).slice(0, 500);
+}
+
 /**
  * @param {{ llmPort: import('../llm/ILlmPort.js').LlmPort, traceStore?: ReturnType<typeof createTraceStore> }} deps
  */
@@ -67,7 +76,7 @@ export function createAgentKernel(deps) {
       agent: agentKind,
       event: 'run_start',
       profile: opts.profile,
-      inputs_hash: hashInputs(opts.inputsForHash ?? opts.system?.slice(0, 500)),
+      inputs_hash: hashInputs(opts.inputsForHash ?? systemHashInput(opts.system)),
     });
 
     const submitPayloads = [];

@@ -4,7 +4,11 @@
 import { extractLastAssistantText } from './anthropicMessageUtils.js';
 import { appendAuditEvent } from '../security/input/auditLog.js';
 import { buildCompactMemoryBlock, formatCompactMemoryMessage } from '../agent/memory/compactMemoryBlock.js';
-import { prepareAnthropicRequest, resolvePromptCacheFeature } from './promptCache.js';
+import {
+  prepareAnthropicRequest,
+  resolvePromptCacheFeature,
+  stripAnthropicInternalParams,
+} from './promptCache.js';
 
 function emitTextBlocks(textBlocks, onTextBlock) {
   if (!onTextBlock) return;
@@ -125,7 +129,7 @@ export async function runToolLoop(opts) {
       callContext: opts.callContext,
     }, { feature: resolvePromptCacheFeature({ ...opts, agentKind }) });
 
-    const response = await client.messages.create(prepared);
+    const response = await client.messages.create(stripAnthropicInternalParams(prepared));
 
     stopReason = response.stop_reason ?? null;
     lastUsage = response.usage ?? null;
