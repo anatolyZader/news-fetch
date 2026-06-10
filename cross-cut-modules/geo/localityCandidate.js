@@ -230,7 +230,9 @@ export function extractLocalityFromArticleSource(articleSource) {
 export function parseFieldReportTitleLocality(title) {
   const raw = String(title ?? '').trim();
   if (!raw) return null;
-  const beforeDash = raw.split(/\s+—\s+/)[0]?.replace(/\s*\([^)]*\)\s*$/, '').trim();
+  const parts = raw.split(/\s+—\s+/);
+  if (parts.length < 2) return null;
+  const beforeDash = parts[0]?.replace(/\s*\([^)]*\)\s*$/, '').trim();
   if (!beforeDash) return null;
   const primary = beforeDash.includes('/') ? beforeDash.split('/')[0].trim() : beforeDash;
   return normalizeLocalityName(primary);
@@ -257,8 +259,10 @@ export function inferLocalityCandidateForSignal(signal, opts = {}) {
   }
 
   const fromTitle =
-    parseFieldReportTitleLocality(signal?.article_title) ??
-    parseFieldReportTitleLocality(signal?.articleTitle);
+    sourceType === 'field'
+      ? (parseFieldReportTitleLocality(signal?.article_title)
+        ?? parseFieldReportTitleLocality(signal?.articleTitle))
+      : null;
   if (fromTitle) {
     return { candidate: fromTitle, scope: 'signal', provenance: GEO_PROVENANCE.structured };
   }

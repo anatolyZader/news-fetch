@@ -24,6 +24,13 @@ test('parseFieldReportTitleLocality takes municipality before em dash', () => {
   );
 });
 
+test('parseFieldReportTitleLocality returns null for plain news headlines without em dash', () => {
+  assert.equal(
+    parseFieldReportTitleLocality('הלך לעולמו יששכר דב שפיגל שטבע בים בנתניה'),
+    null,
+  );
+});
+
 test('inferLocalityCandidateForSignal prefers structured municipality over evidence text', () => {
   const { candidate, provenance } = inferLocalityCandidateForSignal({
     source_type: 'pbo',

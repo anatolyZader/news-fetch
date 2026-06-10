@@ -33,7 +33,10 @@ export function attachGeoToSignals(signals, geoEnrichmentPort, opts = {}) {
   let unknown = 0;
 
   const out = list.map((s) => {
-    if (!s || typeof s !== 'object' || ('geo' in s && s.geo != null)) {
+    if (!s || typeof s !== 'object') {
+      return s;
+    }
+    if ('geo' in s && s.geo != null && s.geo?.kind !== 'unknown') {
       return s;
     }
 
