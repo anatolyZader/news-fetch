@@ -4,7 +4,7 @@
 
 **Companion:** [SYSTEM-AND-OPERATOR-MODEL.md](./SYSTEM-AND-OPERATOR-MODEL.md) (what operators see), [docs/MODEL-CARD.md](../MODEL-CARD.md) (policy tables and agent env flags).
 
-**Code roots:** `business_modules/resilience/`, `business_modules/resilience_assessment/`, `cross-cut-modules/agent/`, `cross-cut-modules/retrieval/`, `assessmentDisplayTier.js`, `scoreComponentsOrchestrator.js`.
+**Code roots:** `business_modules/resilience/`, `business_modules/resilience_assessment/`, `cross-cut-modules/agent/`, `cross-cut-modules/retrieval/`, `domain/services/assessmentDisplayTier.js`, `domain/services/scoring/scoreComponentsOrchestrator.js`.
 
 ---
 
@@ -84,7 +84,7 @@ Markdown / archive rows
 
 **Degrade:** `RESILIENCE_ASSESSMENT_FORCE_DETERMINISTIC=1` or daily budget exceeded skips agent LLM. `RESILIENCE_ASSESSMENT_AGENT=0` is deprecated (same effect, logs warning). Legacy Sonnet narratives removed.
 
-Alternate batch path: `runResilienceAnalysis.js` → `produceAssessmentWithShadow` (markdown batch, national default scope).
+Production assess uses `input/assess-signals.js` → `app/assessSignalsCli.js`. Legacy batch helper `app/runResilienceAnalysis.js` exists but is **not wired** in the daily pipeline.
 
 ### 3.1 Assessment agent (v2)
 
@@ -94,13 +94,13 @@ Alternate batch path: `runResilienceAnalysis.js` → `produceAssessmentWithShado
 
 | Stage | Module | Role |
 |-------|--------|------|
-| Prep | `componentRagSeeding.js`, `evidenceGraph.js` | Hybrid retrieve seeds + signal/residual/OOV claims |
-| Planner context | `plannerContextBuilder.js` | Gaps, media/archive anomalies, OOV/residual summary |
-| Planner | `plannerAgent.js` | Investigation plan (deterministic or Haiku); `planner_source` metadata |
-| Specialists | `componentSpecialistAgent.js` | Per-component tool loop (tiers A/B/C); multi-hop RAG + `lookup_signals` / `get_source` |
-| Critic | `criticAgent.js` | Deterministic grounding / thin-evidence / gap checks |
+| Prep | `cross-cut-modules/retrieval/componentRagSeeding.js`, `evidenceGraph.js` | Hybrid retrieve seeds + signal/residual/OOV claims |
+| Planner context | `cross-cut-modules/retrieval/plannerContextBuilder.js` | Gaps, media/archive anomalies, OOV/residual summary |
+| Planner | `resilience_assessment/app/plannerAgent.js` | Investigation plan (deterministic or Haiku); `planner_source` metadata |
+| Specialists | `resilience_assessment/app/componentSpecialistAgent.js` | Per-component tool loop (tiers A/B/C); multi-hop RAG + `lookup_signals` / `get_source` |
+| Critic | `resilience_assessment/app/criticAgent.js` | Deterministic grounding / thin-evidence / gap checks |
 | Re-plan (optional) | orchestrator + `replanPolicy.js` | Single hop when cross-component issues or gap overload |
-| Synthesizer | `synthesizerAgent.js` | Cross-component narrative (conditional Sonnet or deterministic) |
+| Synthesizer | `resilience_assessment/app/synthesizerAgent.js` | Cross-component narrative (conditional Sonnet or deterministic) |
 
 **Kernel:** `cross-cut-modules/agent/agentKernel.js` — shared tool loop, budget governor, trace JSONL.
 
@@ -193,7 +193,7 @@ Shadow scoring and agent assess share the same signal prep; **presentation** dif
 - **CLI:** `extract-signals.js`
 - **Infrastructure:** `claudeExtraction.js`, closed vocabulary from `behaviorSignals.js` / catalog
 - **Catalog:** `cross-cut-modules/resilience-contracts/signalCatalog.js` — `SIGNAL_TYPES`, `CATALOG_VERSION` (v6) stamped on assessments
-- **OOV capture:** `business_modules/resilience/infrastructure/adapters/oovCapture.js` → `daily_reports/oov-capture-{date}.jsonl` when `RESILIENCE_OOV_CAPTURE=1`
+- **OOV capture:** `business_modules/resilience/domain/services/oovCapture.js` → `daily_reports/oov-capture-{date}.jsonl` when `RESILIENCE_OOV_CAPTURE=1`
 - **Output:** `signals-{source}-{date}.json`
 - **Side effects:** `source_archive` rows, optional RAG index at ingest
 
@@ -205,13 +205,13 @@ Shadow scoring and agent assess share the same signal prep; **presentation** dif
 
 ### 7.3 Shadow scoring (calibration)
 
-- **Orchestrator:** `scoreComponentsOrchestrator.js` (`scoreComponents`, v4 model)
+- **Orchestrator:** `scoreComponentsOrchestrator.js` (`scoreComponents`, v5 model — `SCORING_MODEL_VERSION` in `assessmentMethodology.js`)
 - **When:** Always runs in `assess-signals.js` via `runScoringPipeline` **before** `produceAssessmentWithShadow` (feeds epistemic profile and instruments)
 - **Artifact write:** `writeShadowArtifacts` inside `produceAssessmentWithShadow` when `RESILIENCE_SHADOW_SCORING=1` (default on)
 - **Steps per component:** weighted items → source cap → raw score → salience post-policy → bootstrap CI, counterfactuals, presence gates, facets
 - **Shared math:** `scoring/scoringShared.js` (weights, caps, grounding multiplier)
 - **Pipeline wrapper:** `scoringPipelinePrep.js` — digital quarantine partition, EWMA, epistemic gate
-- **Dedup / merge:** `input/assessSignalsHelpers.js`, `domain/services/crossSourceDedupClustered.js`
+- **Dedup / merge:** `app/assessSignalsHelpers.js` (`crossSourceDedupClustered`, `crossSourceDedup`, …)
 - **Output:** Feeds epistemic profile + investigation enrich; written to `shadow-scores-*.json`
 
 ### 7.4 Deterministic degrade (replaces legacy narratives)
@@ -253,19 +253,24 @@ Component ids used in scoring: `narrative`, `information_communication`, `lifesa
 
 | Area | Path |
 |------|------|
-| Assess + shadow | `app/produceAssessmentWithShadow.js` |
+| Assess + shadow | `business_modules/resilience/app/produceAssessmentWithShadow.js` |
 | Assessment agent | `business_modules/resilience_assessment/app/` — orchestrator, planner, specialists, critic, synthesizer |
+| Shadow artifacts | `business_modules/resilience_assessment/infrastructure/adapters/shadowArtifactsFileAdapter.js` — `writeShadowArtifacts`, `computeDivergence` |
 | Agent kernel / config | `cross-cut-modules/agent/` — `agentKernel.js`, `agentConfig.js` |
 | RAG at assess | `cross-cut-modules/retrieval/` — `componentRagSeeding.js`, `evidenceGraph.js`, `plannerContextBuilder.js`, `multiHopRetrieval.js` |
 | Epistemic profile | `business_modules/epistemic_features/domain/services/epistemicProfileBuilder.js`, `investigationEpistemic.js` |
-| Component definitions | `domain/resilienceComponents.js` |
-| Facets / signal routing | `domain/services/componentFacets.js` |
-| Scope filter | `domain/services/regionSignalFilter.js` |
-| Assess CLI | `input/assess-signals.js`, `input/assessSignalsHelpers.js` |
-| Shadow scoring pipeline | `app/scoringPipelinePrep.js`, `app/prepareScoringSignals.js`, `scoreComponentsOrchestrator.js` |
-| Display redaction | `domain/services/assessmentDisplayTier.js` |
-| Thin evidence | `domain/services/thinEvidencePolicy.js` |
-| Deterministic degrade | `resilience_assessment/app/runDeterministicAssessment.js`, `loadCachedAssessmentFallback.js` |
+| Synthesis OOV guard | `business_modules/resilience_assessment/domain/services/synthesisOovChecks.js` |
+| Component definitions | `business_modules/resilience/domain/resilienceComponents.js` |
+| Facets / signal routing | `business_modules/resilience/domain/services/componentFacets.js` |
+| Scope filter | `business_modules/resilience/domain/services/regionSignalFilter.js` |
+| Assess CLI | `input/assess-signals.js` (transport) → `app/assessSignalsCli.js`, `app/assessSignalsHelpers.js` |
+| Report cache | `app/reportCacheService.js` — `getCachedReport`, scope-aware paths for `GET /api/report/today` |
+| Shadow scoring pipeline | `business_modules/resilience/app/scoringPipelinePrep.js`, `prepareScoringSignals.js`, `scoreComponentsOrchestrator.js` |
+| Display redaction | `business_modules/resilience/domain/services/assessmentDisplayTier.js` |
+| Thin evidence | `business_modules/resilience/domain/services/thinEvidencePolicy.js` |
+| Operator action compass | `business_modules/resilience/domain/services/actionCompass.js` |
+| Anomaly strip | `business_modules/resilience/domain/services/anomalyStrip.js` |
+| Deterministic degrade | `business_modules/resilience_assessment/app/runDeterministicAssessment.js`, `loadCachedAssessmentFallback.js` |
 | Signal catalog evolution | `business_modules/signal_catalog_evolution/` — OOV gap reports + draft proposals |
 
 ---

@@ -28,7 +28,7 @@ export function createDefaultPboReportReviewService({ repoRoot, sqlitePath, mail
     mailPort = createPboReviewMailingAdapter({
       deliveryPort: mailingDeliveryPort,
       mailFrom: process.env.MAIL_FROM.trim(),
-      appBaseUrl: process.env.APP_BASE_URL?.trim() || 'https://vibeswitch.ai',
+      appBaseUrl: process.env.APP_BASE_URL?.trim() || 'https://srulik.ai',
       inboundDomain: process.env.PBO_INBOUND_DOMAIN?.trim() || '',
     });
   }

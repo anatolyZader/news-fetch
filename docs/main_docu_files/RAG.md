@@ -55,11 +55,11 @@ Static index dates: docs namespace uses `2099-01-01`; HFC uses `2099-01-01`.
 
 ### Assess-time RAG (default assess path)
 
-When `RESILIENCE_ASSESSMENT_AGENT=1` (default):
+When the assessment agent is enabled (default — `RESILIENCE_ASSESSMENT_AGENT` unset or any value except `'0'`; `=0` is deprecated):
 
 1. **Planner (signals-only)** — `buildPlannerContext` runs without upfront RAG when `RESILIENCE_ASSESS_LAZY_RAG=1` (default).
 2. **Lazy component seed** — `seedComponentRagForComponents` retrieves only for `plan.focus_components` (`topKPerComponent` default **3**).
-3. **Global retrieve** (optional) — hybrid retrieve with `RESILIENCE_ASSESS_GLOBAL_TOPK` (default **8**) when `RESILIENCE_ASSESS_GLOBAL_RAG=1`.
+3. **Global retrieve** — hybrid retrieve with `RESILIENCE_ASSESS_GLOBAL_TOPK` (default **8**); on by default via `RESILIENCE_ASSESS_GLOBAL_RAG` (default on; set `=0` to disable).
 4. **`buildEvidenceGraph`** — merges catalog signals, RAG hits, OOV/residual observations, gaps; optional archive epistemic hints (`RESILIENCE_ASSESS_ARCHIVE_EPISTEMIC`).
 5. **Specialist tools** — `multiHopRetrieval.js` extends context within budget; contested components may run adversarial retrieval (`RESILIENCE_ASSESS_CONTESTED_ADVERSARIAL`).
 

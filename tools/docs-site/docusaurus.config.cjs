@@ -6,7 +6,7 @@ const { themes: prismThemes } = require('prism-react-renderer');
 const config = {
   title: "Srulik's lab docs",
   tagline: "Documentation for Srulik's lab — homefront decision support",
-  url: 'https://docs.vibeswitch.ai',
+  url: 'https://docs.srulik.ai',
   baseUrl: '/',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'throw',

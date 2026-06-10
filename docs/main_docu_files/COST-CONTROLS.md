@@ -26,20 +26,20 @@ Routes using **`costlyRoutePreHandlers`** (full chain):
 
 | Route | Module |
 |-------|--------|
-| `POST /api/chat` | `chatRoutes.js` — logged as `http:chat` (or `http:chat:crisis` when crisis pool active) |
-| `POST /api/evidence-submit`, `/api/evidence-upload` | `evidenceRoutes.js` |
-| `POST /api/social-media/fetch-topic` | `socialMediaRoutes.js` |
-| `POST /api/signal-catalog-evolution/proposals/generate` | `signalCatalogEvolutionRoutes.js` |
-| `POST /api/video/download-url`, `/api/translate` | `reportRoutes.js` |
-| `POST /api/validation/review-queue/.../explain` | `validationReviewRoutes.js` |
-| `POST /api/validation/review-queue/.../agent` | `validationReviewRoutes.js` |
-| `POST /api/report-build/start`, `/turn`, `/suggest` | `reportBuildRoutes.js` |
+| `POST /api/chat` | `business_modules/chat/input/chatRoutes.js` — logged as `http:chat` (or `http:chat:crisis` when crisis pool active) |
+| `POST /api/evidence-submit`, `/api/evidence-upload` | `cross-cut-modules/evidence/input/evidenceRoutes.js` |
+| `POST /api/social-media/fetch-topic` | `business_modules/social_media/input/socialMediaRoutes.js` |
+| `POST /api/signal-catalog-evolution/proposals/generate` | `business_modules/signal_catalog_evolution/input/signalCatalogEvolutionRoutes.js` |
+| `POST /api/video/download-url`, `/api/translate` | `business_modules/resilience/input/reportRoutes.js` |
+| `POST /api/validation/review-queue/.../explain` | `business_modules/resilience/validation/input/validationReviewRoutes.js` |
+| `POST /api/validation/review-queue/.../agent` | `business_modules/resilience/validation/input/validationReviewRoutes.js` |
+| `POST /api/report-build/start`, `/turn`, `/suggest` | `business_modules/report_build/input/reportBuildRoutes.js` |
 
 **Budget only** (no full costly chain):
 
 | Route | Module |
 |-------|--------|
-| `GET /api/docs/search` | `docsRoutes.js` — rate limit + budget |
+| `GET /api/docs/search` | `cross-cut-modules/docs/input/docsRoutes.js` — rate limit + budget |
 
 ---
 
@@ -144,19 +144,19 @@ When daily HTTP budget is exhausted during crisis epistemic conditions, operator
 
 **Spend scripts:** normal chat → `http:chat`; crisis pool → `http:chat:crisis`. Evidence upload, validation agent, report build, etc. **do not** use the crisis pool — they still hard **429** at daily cap.
 
-**Routes (analyst):** `GET /api/budget/crisis-status`, `POST /api/budget/crisis/activate`, `POST /api/budget/crisis/deactivate` (`crisisBudgetRoutes.js`).
+**Routes (analyst):** `GET /api/budget/crisis-status`, `POST /api/budget/crisis/activate`, `POST /api/budget/crisis/deactivate` (`cross-cut-modules/budget/input/crisisBudgetRoutes.js`).
 
 **Auto-suggest:** `suggest_crisis_budget: true` on report API when `(data_void.level >= critical \|\| sampling_blind \|\| digital_darkness) && chat budget exhausted` — no auto-activate.
 
 **Gate order (`resolveChatBudgetGate`):** daily OK → LLM; daily exceeded + active crisis pool → LLM (`http:chat:crisis`); else fallback if enabled; else **429**.
 
-**Sources:** `cross-cut-modules/budget/app/crisisBudgetService.js`, `crisisBudgetSqliteAdapter.js`, `httpChatBudgetPreHandler.js`.
+**Sources:** `cross-cut-modules/budget/app/crisisBudgetService.js`, `cross-cut-modules/budget/infrastructure/adapters/crisisBudgetSqliteAdapter.js`, `cross-cut-modules/budget/app/httpChatBudgetPreHandler.js`.
 
 **Chat one-turn bypass:** `POST /api/chat` body `"economy": "full"` forces full report context, disables compact tool loop, and skips chat tool compression for that turn only (no redeploy). Every `done` SSE event includes `chat_economy` metadata; cost-log records `stage=chat_economy`.
 
 **Prompt cache hits:** Use `npm run verify:prompt-optimization -- --audit YYYY-MM-DD` instead of manual grep. Tool round 2+ on chat/assess should show non-zero `cachedInputTokens` when stable system blocks exceed ~2K chars.
 
-Prompt version **`extract-v2`** — bump in `extractionPrompt.js` invalidates extraction cache.
+Prompt version **`extract-v2`** — bump `EXTRACT_PROMPT_VERSION` in `cross-cut-modules/resilience-contracts/extractionPrompt.js` invalidates extraction cache.
 
 ---
 

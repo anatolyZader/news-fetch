@@ -11,7 +11,7 @@ import {
   attachEpistemicToAssessment,
 } from '../domain/services/dataVoidIndex.js';
 import { salienceContextFromDataVoid } from '../domain/services/highSalienceBypass.js';
-import { loadHistoricalScores } from '../input/assessSignalsHelpers.js';
+import { loadHistoricalScores } from './assessSignalsHelpers.js';
 import { summarizeValidationMaturity } from '../validation/domain/validationStatus.js';
 import { loadConnectivityProbeSignals } from '../infrastructure/adapters/connectivityProbeFileAdapter.js';
 import { enrichProbeSignalsInList } from '../domain/services/probeCorroborationPolicy.js';

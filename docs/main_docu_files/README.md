@@ -60,6 +60,17 @@ npm run docs:sync
 
 Sources: `business_modules/resilience/domain/resilienceComponents.js`, `componentFacets.js`, `client/src/i18n/translations.js`. Do not hand-edit content between those markers.
 
+## Module boundaries (Option B)
+
+Business modules follow a layered layout enforced in CI:
+
+- **`input/`** — transport only (HTTP routes, CLI wrappers); delegates to **`app/`** services.
+- **`app/`** — orchestration and application services.
+- **`domain/`** / **`infrastructure/`** — entities, ports, adapters (no cross-module imports).
+- **Facades** — other modules import shared capabilities via `business_modules/<name>/index.js`, not deep paths.
+
+Run `npm run deps:boundaries` locally (same check as CI). Full module map: [`cross-cut-modules/docs/content/pages/architecture/module-map.md`](../../cross-cut-modules/docs/content/pages/architecture/module-map.md).
+
 ## Terminology
 
 See [`docs/architecture/ubiquitous-language.md`](../architecture/ubiquitous-language.md) for **Operator**, **Analyst**, **Maintainer**, **Report scope**, **Principal**, and related terms.

@@ -1,4 +1,64 @@
 .env
 .env.*
-secrets/ 
+secrets/
 **/service-account*.json
+
+# Separate apps / doc sites (unrelated to most tasks)
+analyst-site/
+tools/docs-site/
+cross-cut-modules/docs/content/pages/**
+
+# Engineering docs (load via AGENTS.md links only)
+docs/main_docu_files/
+docs/specs/
+
+package-lock.json
+
+# Dependencies and build outputs (large, low signal for agents)
+node_modules/
+client/node_modules/
+analyst-site/node_modules/
+tools/docs-site/node_modules/
+dist/
+client/dist/
+analyst-site/dist/
+tools/docs-site/build/
+tools/docs-site/.docusaurus/
+tools/docs-site/.cache/
+coverage/
+
+# Runtime data and reports (huge; use APIs/CLIs instead)
+daily_reports/
+db/*.sqlite
+db/*.sqlite-*
+*.sqlite
+*.sqlite-*
+business_modules/**/data/**
+!business_modules/**/data/.gitkeep
+cross-cut-modules/log/data/**
+validation/
+business_modules/resilience/validation/artifacts/
+
+# Logs, cost telemetry, generated JSON
+*.log
+log/data/
+eslint-report.json
+business_modules/search_trends/data/cache/
+business_modules/social_media/data/topic-fetches/
+business_modules/news-sites/data/resilience-outlet-reputation.json
+
+# Media and binaries
+*.mp3
+*.mp4
+*.wav
+*.m4a
+*.webm
+*.xlsx
+*.png
+*.jpg
+*.jpeg
+*.webp
+
+# Cursor local state (debug logs, scratchpad churn)
+.cursor/debug-*.log
+.cursor/sonar-fix-progress.json

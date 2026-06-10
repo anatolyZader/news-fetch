@@ -2,7 +2,7 @@
 
 **Purpose:** Distinguish **report-grounded chat** (operator drill-down) from the **assessment agent** (batch assess pipeline). Both use tool loops and RAG; only chat is interactive HTTP.
 
-**Sources:** `business_modules/chat/`, `business_modules/resilience_assessment/`, `cross-cut-modules/agent/`, `cross-cut-modules/llm/runToolLoop.js`, validation agent routes.
+**Sources:** `business_modules/chat/`, `business_modules/resilience_assessment/`, `cross-cut-modules/agent/`, `cross-cut-modules/llm/`, validation agent routes.
 
 ---
 
@@ -44,14 +44,36 @@ The assessment agent is **plan-and-execute map–reduce**, not peer-to-peer mult
 
 ## What chat is for
 
-Operators and analysts ask questions about the **current resilience report** (narratives, claims, evidence, changes). The model may call tools to:
+Operators and analysts ask questions about the **current resilience report** (narratives, claims, evidence, changes). The model may call tools grouped by role:
 
-- Look up raw signals (`lookup_signals`)
-- Compare report dates (`compare_dates`)
-- Query PBO municipality data
-- Search/fetch **source archive** originals (`search_sources`, `get_source`, `list_sources`)
-- Generate audience briefs (`generate_brief`)
-- Geo unknown queue (analyst tools)
+**Operator hub (priorities and briefs):**
+
+- `list_attention_items` — ranked attention queue from current report
+- `get_decision_brief` — structured decision brief for hub-mode questions
+- `list_operator_recommendations` — pending operator recommendations
+- `generate_brief` — audience-targeted narrative brief
+
+**Evidence and sources:**
+
+- `lookup_signals` — raw signal bundles by date/source
+- `compare_dates` — day-over-day report diff
+- `lookup_pbo` — municipality PBO dashboard lookup
+- `search_sources`, `get_source`, `list_sources` — source archive hybrid search and fetch (`lookup_evidence` / `search_evidence` are aliases)
+
+**Analyst tools** (gated by `CHAT_ANALYST_TOOLS_ENABLED` and analyst access):
+
+- Validation: `list_validation_queue`, `get_validation_item`, `explain_validation_item`, `search_similar_articles`
+- PBO review: `search_pbo_history`, `list_pbo_reviews`, `get_pbo_review`
+- Calibration: `get_resilience_drift`
+- Catalog: `list_catalog_proposals`, `get_catalog_gap_summary`
+- Geo: `list_geo_unknown`
+
+**HITL propose tools** (require `POST /api/chat/confirm-action`):
+
+- `propose_validation_decision`
+- `propose_geo_unknown_update`
+- `propose_catalog_proposal_review`
+- `propose_operator_recommendation`
 
 Chat does **not** re-run extract/assess or mutate reports without explicit confirm-gated actions.
 
@@ -66,7 +88,11 @@ Chat does **not** re-run extract/assess or mutate reports without explicit confi
 | GET/POST/PUT/DELETE | `/api/chat/sessions*` | No |
 | GET/DELETE | `/api/chat/sessions/:id/messages*` | No |
 | POST | `/api/chat/confirm-action` | No (HITL) |
-| POST | `/api/chat` | **Yes** (`http:chat`) |
+| POST | `/api/chat` | **Yes** — soft gate via `createHttpChatBudgetPreHandler`; logged as `http:chat` or `http:chat:crisis` when crisis pool active |
+
+**Chat budget:** Unlike other costly routes, `POST /api/chat` uses a **soft gate** — when daily budget is exceeded, chat may continue with deterministic tool fallback (`CHAT_DETERMINISTIC_FALLBACK`, default on) or draw from an analyst-activated **crisis chat pool** (`http:chat:crisis`). See [COST-CONTROLS.md § Crisis chat budget](./COST-CONTROLS.md#crisis-chat-budget-cb-hybrid).
+
+**Economy override:** `POST /api/chat` body `"economy": "full"` forces full report context, disables compact tool loop, and skips tool compression for that turn only. Every `done` SSE event includes `chat_economy` metadata.
 
 **Streaming:** SSE events `{ type: 'text' }`, `{ type: 'action_proposed' }`, `{ type: 'done' }`, `{ type: 'error' }`.
 
@@ -83,30 +109,32 @@ Chat does **not** re-run extract/assess or mutate reports without explicit confi
 - Report date, component summaries, executive summary, PBO index
 - Footer listing available tool data (report dates on disk, signal sources)
 
-Uses same cached report path as `GET /api/report/today` (`getCachedReport`).
+Uses same cached report path as `GET /api/report/today` — `business_modules/resilience/app/reportCacheService.js` (`getCachedReport`, scope-aware JSON paths).
 
 **Operator tier:** report payload redacted before context build when applicable (`redactReportPayload`).
 
-**Provider:** `infrastructure/claudeChat.js` — Anthropic Claude (`claude-haiku-4-5-20251001`), `max_tokens: 4000`.
+**Provider:** `business_modules/chat/app/chatLlmOrchestrator.js` — Anthropic Claude Haiku (`claude-haiku-4-5-20251001` via `HAIKU_MODEL`), `max_tokens: 4000`. (`infrastructure/claudeChat.js` is a deprecated re-export shim.)
 
 ---
 
 ## Tool loop (shared kernel)
 
-**Implementation:** `cross-cut-modules/llm/runToolLoop.js` via `anthropicLlmAdapter.js`; assessment agent uses the same kernel with per-stage `agentKind` values (`planner`, `specialist:{componentId}`, `synthesizer`).
+**Kernel:** `cross-cut-modules/agent/agentKernel.js` — shared tool loop, budget governor, trace JSONL. Assessment agent and chat both use it with different profiles.
 
-**Chat entry:** `streamChatResponse` → `runToolLoop` with:
+**Chat entry:** `chatService.streamChat` → `chatLlmOrchestrator.streamChatResponse` → `agentKernel.run({ profile: 'chat' })` with:
 
 - `maxRounds`: `CHAT_MAX_TOOL_ROUNDS` (default **3**)
-- `agentKind: 'chat'`
 - Tools from `chatToolHandlers.js` / `createChatToolContext`
+- Optional injected `agentKernel` from composition (shared singleton)
 
-**Handlers:** `business_modules/chat/app/chatToolHandlers.js` — reads `signals/`, `daily_reports/`, `source_archive`, PBO indices.
+**Assessment agent:** same kernel with per-stage `agentKind` values (`planner`, `specialist:{componentId}`, `synthesizer`).
+
+**Handlers:** `business_modules/chat/app/chatToolHandlers.js` — reads signal bundles, `daily_reports/`, `source_archive`, PBO indices, validation/catalog/drift services.
 
 **One-shot / batch (not interactive chat):**
 
-- `extract-signals.js`, `assess-signals.js` pipeline CLIs (assess includes multi-agent loop)
-- Legacy narrative generation when agent disabled
+- `extract-signals.js`, `assess-signals.js` pipeline CLIs (assess includes multi-agent loop via `agentKernel`)
+- Deterministic assess degrade (`runDeterministicAssessment`) when agent skipped — no LLM, no legacy narratives
 - Docs search without tool loop
 
 ---
@@ -160,7 +188,10 @@ Used from analyst `ValidationReviewPanel` — not operator Daily Assessment tab.
 | `CHAT_MAX_TOOL_ROUNDS` | Chat tool loop cap (default 3) |
 | `CHAT_CONFIRM_ACTIONS_ENABLED` | HITL propose/confirm |
 | `CHAT_ANALYST_TOOLS_ENABLED` | Analyst tools |
+| `CHAT_DETERMINISTIC_FALLBACK` | Non-LLM tool fallback when both daily and crisis chat pools exhausted (default on) |
+| `CRISIS_BUDGET_ENABLED` | Crisis chat pool master switch — see [COST-CONTROLS.md](./COST-CONTROLS.md) |
 | `DAILY_BUDGET_USD` | Shared HTTP budget (chat); assess uses CLI budget governor |
+| `CHAT_CONTEXT_TIERING` | Rule-based slim system context per message (default on) |
 | `APP_CHECK_ENFORCE` | App Check on costly routes |
 
 Assessment agent Tier 1/2 flags: [MODEL-CARD.md](../MODEL-CARD.md).

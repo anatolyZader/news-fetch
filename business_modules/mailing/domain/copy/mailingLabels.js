@@ -83,7 +83,7 @@ export const LABELS = {
   },
 };
 
-export const DEFAULT_APP_BASE_URL = 'https://vibeswitch.ai';
+export const DEFAULT_APP_BASE_URL = 'https://srulik.ai';
 
 export const COMPONENT_LABELS = {
   en: {

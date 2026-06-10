@@ -2,7 +2,7 @@
 
 **Purpose:** How daily **artifacts** are produced — ingest → signal extraction → **agent assess + shadow scoring** → reports on disk. Operators depend on this pipeline running; they do not run assessment math manually.
 
-**Sources:** `scripts/daily-pipeline.sh`, `pipeline-config.json`, `business_modules/resilience/input/extract-signals.js`, `assess-signals.js`, `produceAssessmentWithShadow.js`.
+**Sources:** `scripts/daily-pipeline.sh`, `pipeline-config.json`, `business_modules/resilience/input/extract-signals.js`, `input/assess-signals.js` (thin CLI wrappers → `app/extractSignalsCli.js`, `app/assessSignalsCli.js`), `app/produceAssessmentWithShadow.js`. Cross-module imports use `business_modules/<name>/index.js` facades — see [README § Module boundaries](./README.md#module-boundaries-option-b).
 
 ---
 
@@ -53,7 +53,7 @@ Runs for **today, yesterday, two days ago** (system date):
 | 4 | `extract-signals.js --source-type radio` on `articles-audio-*` |
 | 5 | `whatsapp-to-md.js` + `extract-signals.js --source-type whatsapp` |
 | 6 | Last 3 field report MD files → `extract-signals.js --source-type field` |
-| 7b | `runMunicipalPboReview.js --date $TODAY` |
+| 7b | `business_modules/pbo_report_review/input/runMunicipalPboReview.js --date $TODAY` |
 | 7 | `extract-pbo-signals.js` (municipal) |
 | 8 | `extract-regional-pbo-signals.js` |
 | 9 | `extract-naftali-signals.js` |
@@ -70,7 +70,7 @@ Per-source toggles: `{ "sources": { "<type>": { "enabled": bool, "description": 
 Keys include: `news`, `radio`, `whatsapp`, `field`, `pbo`, `naftali`, `social`.
 
 - **Extract:** `extract-signals.js` skips disabled sources (`isSourceEnabled`).
-- **Assess:** `assessSignalsHelpers.js` skips disabled sources when loading bundles.
+- **Assess:** `app/assessSignalsHelpers.js` skips disabled sources when loading bundles.
 
 Status CLI: `npm run pipeline:status`.
 
@@ -78,7 +78,7 @@ Status CLI: `npm run pipeline:status`.
 
 ## Stage 1 — Extract signals
 
-**Entry:** `business_modules/resilience/input/extract-signals.js`  
+**Entry:** `business_modules/resilience/input/extract-signals.js` (transport) → `app/extractSignalsCli.js`  
 **npm:** `npm run extract-signals -- …`
 
 **Inputs:** `--source-type`, `--files` (CSV paths), `--date` (default today).
@@ -100,7 +100,7 @@ Optional ingest RAG when `RESILIENCE_EXTRACT_RAG_ENABLED` (see [RAG.md](./RAG.md
 
 ## Stage 2 — Assess signals
 
-**Entry:** `business_modules/resilience/input/assess-signals.js`  
+**Entry:** `business_modules/resilience/input/assess-signals.js` (transport) → `app/assessSignalsCli.js`  
 **npm:** `npm run assess-signals -- …`
 
 **Inputs:** `--date`, `--days` (1–14, default 1), `--scope`, `--output`.
@@ -112,13 +112,14 @@ Optional ingest RAG when `RESILIENCE_EXTRACT_RAG_ENABLED` (see [RAG.md](./RAG.md
 3. **`prepareScoringSignals`** — quarantine, data void, OOV, gaming policy.
 4. **`runScoringPipeline`** → `scoreComponents` → epistemic gate → EWMA (`scoringPipelinePrep.js`) — **shadow path**.
 5. **`produceAssessmentWithShadow`** → epistemic profile → **`runAssessmentAgent`** (default) or **deterministic degrade** / cached fallback.
-6. `mapAssessmentV2ToLegacy`; write JSON/MD report; shadow/divergence artifacts; validation queue upsert; domain events.
+6. `mapAssessmentV2ToLegacy`; write JSON/MD report; shadow/divergence artifacts (via `resilience_assessment` adapter); validation queue upsert; domain events.
 
 **Outputs:**
 
 - `daily_reports/resilience-report-{date}.json` (and scoped variants) — includes v2 agent fields + legacy-mapped narratives
-- `daily_reports/shadow-scores-{scopeId}-{date}.json` — deterministic scores (`RESILIENCE_SHADOW_SCORING=1`, default on)
+- `daily_reports/shadow-scores-{scopeId}-{date}.json` — deterministic scores (`RESILIENCE_SHADOW_SCORING=1`, default on); written by `writeShadowArtifacts` in `business_modules/resilience_assessment/infrastructure/adapters/shadowArtifactsFileAdapter.js` (orchestrated from `produceAssessmentWithShadow.js`)
 - `daily_reports/divergence-{scopeId}-{date}.json` — shadow vs agent comparison
+- `daily_reports/epistemic-profile-{scopeId}-{date}.json` — epistemic profile snapshot (`epistemicFeaturesService.persistProfile`)
 - `daily_reports/assessment-agent-trace-{traceId}.jsonl` — per-assess agent audit trail
 - Markdown report paths as configured
 - SQLite validation review queue (default unless `VALIDATION_REVIEW_SQLITE=0`)
@@ -138,7 +139,7 @@ Full stage detail: [RESILIENCE-ENGINE-REFERENCE.md](./RESILIENCE-ENGINE-REFERENC
 | WhatsApp (groups) | `business_modules/whatsapp/input/whatsapp-to-md.js` — passive group export → extract |
 | WhatsApp (DM Report bot) | Same guided flow as Write report — [§ Guided report](#guided-report-write-report--whatsapp-dm) |
 | Field visits | `business_modules/visits/data/` |
-| PBO municipal / regional | `pbo_report_muni/`, `pbo_report_regional/` |
+| PBO municipal / regional | `business_modules/pbo_report_muni/`, `business_modules/pbo_report_regional/` |
 | Naftali / pools | `business_modules/pool/` |
 | Social OSINT | `business_modules/social_media/data/` |
 
@@ -172,8 +173,9 @@ Structured situational reports use one **`report_build`** orchestrator for two s
 | `daily_reports/resilience-report-*.json` | Full assessment — agent v2 fields + legacy-mapped narratives; shadow scores on disk; API redacts for operators |
 | `daily_reports/shadow-scores-{scopeId}-*.json` | Deterministic calibration scores (analyst; `RESILIENCE_SHADOW_SCORING=1`) |
 | `daily_reports/divergence-{scopeId}-*.json` | Shadow vs agent divergence (`GET /api/report/divergence`, analyst) |
+| `daily_reports/epistemic-profile-{scopeId}-*.json` | Epistemic profile snapshot per scope/date |
 | `daily_reports/assessment-agent-trace-*.jsonl` | Agent step replay (analyst) |
-| `signals/signals-*.json` | Extracted signals per source/day |
+| `business_modules/signals_extraction/data/signals/signals-{type}-*.json` | Extracted signals per source/day (field: `business_modules/visits/data/signals/signals-field-*.json`) |
 | `business_modules/news-sites/articles_extracted/` | News markdown exports |
 | SQLite `source_archive` | Original source text for chat `get_source` and assess-time RAG |
 | SQLite validation queue | Analyst review of extraction quality |

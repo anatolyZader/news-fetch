@@ -42,7 +42,7 @@ function escapeHtml(s) {
 }
 
 function buildAppLink(appBaseUrl, date, municipality) {
-  const base = String(appBaseUrl ?? 'https://vibeswitch.ai').replace(/\/$/, '');
+  const base = String(appBaseUrl ?? 'https://srulik.ai').replace(/\/$/, '');
   const params = new URLSearchParams({
     section: 'pbo-reports',
     pbo: 'local',

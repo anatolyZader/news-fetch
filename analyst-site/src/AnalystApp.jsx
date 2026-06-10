@@ -55,7 +55,7 @@ function readStoredSection() {
 }
 
 /**
- * Analyst-only workspace (analyst.vibeswitch.ai). Reuses shared report/drift/pipeline UI.
+ * Analyst-only workspace (analyst.srulik.ai). Reuses shared report/drift/pipeline UI.
  */
 export function AnalystApp({ logout, user, authRequired }) {
   const { t, lang } = useLanguage();
@@ -162,7 +162,7 @@ export function AnalystApp({ logout, user, authRequired }) {
         )}
         <Button
           component={Link}
-          href="https://vibeswitch.ai"
+          href="https://srulik.ai"
           size="small"
           variant="outlined"
           sx={{ whiteSpace: 'nowrap' }}

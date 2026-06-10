@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Cloudflare cutover: DNS (proxied), Full (strict), Bot Fight, webhook rate limit.
+# Cloudflare cutover: DNS (proxied), Full (strict), Bot Fight, AI bots, DMARC, webhook rate limit.
 # Idempotent — safe to re-run.
 #
 # Usage:
@@ -7,9 +7,10 @@
 #   ./scripts/ops/cloudflare-cutover.sh
 #
 # Optional env:
-#   CLOUDFLARE_ZONE_NAME=vibeswitch.ai
+#   CLOUDFLARE_ZONE_NAME=srulik.ai
 #   VM_PUBLIC_IP=34.165.63.234
 #   WEBHOOK_RATE_PER_MIN=200
+#   DMARC_RUA_EMAIL=security@srulik.ai
 #   DRY_RUN=1
 set -euo pipefail
 
@@ -28,9 +29,10 @@ if [[ -z "${CLOUDFLARE_API_TOKEN:-}" && -f "${ROOT}/.env" ]]; then
 fi
 
 API="https://api.cloudflare.com/client/v4"
-ZONE_NAME="${CLOUDFLARE_ZONE_NAME:-vibeswitch.ai}"
+ZONE_NAME="${CLOUDFLARE_ZONE_NAME:-srulik.ai}"
 VM_IP="${VM_PUBLIC_IP:-34.165.63.234}"
 WEBHOOK_RATE="${WEBHOOK_RATE_PER_MIN:-200}"
+DMARC_RUA="${DMARC_RUA_EMAIL:-security@srulik.ai}"
 DRY_RUN="${DRY_RUN:-0}"
 
 if [[ -z "${CLOUDFLARE_API_TOKEN:-}" ]]; then
@@ -113,14 +115,40 @@ for r in d.get('result') or []:
 
 enable_bot_fight() {
   local zone_id="$1"
-  echo "Enabling Bot Fight Mode..."
+  echo "Enabling Bot Fight Mode, AI bot block, and AI Labyrinth..."
   local resp
-  resp="$(cf_api PUT "/zones/${zone_id}/bot_management" --data '{"fight_mode":true,"enable_js":true}')"
+  resp="$(cf_api PUT "/zones/${zone_id}/bot_management" --data '{
+    "fight_mode": true,
+    "enable_js": true,
+    "ai_bots_protection": "block",
+    "crawler_protection": "enabled",
+    "cf_robots_variant": "policy_only"
+  }')"
   if [[ "${DRY_RUN}" != "1" ]]; then
     echo "${resp}" | cf_result_ok || {
       echo "WARN: bot_management API failed (plan may use dashboard toggle only):"
       echo "${resp}" | python3 -m json.tool 2>/dev/null || echo "${resp}"
     }
+  fi
+}
+
+ensure_dmarc_txt() {
+  local zone_id="$1" record_name="$2" content="$3"
+  echo "DMARC TXT ${record_name}..."
+  if [[ "${DRY_RUN}" == "1" ]]; then return 0; fi
+  local resp fqdn
+  fqdn="${record_name}.${ZONE_NAME}"
+  [[ "${record_name}" == "_dmarc" ]] && fqdn="_dmarc.${ZONE_NAME}"
+  [[ "${record_name}" == "_dmarc.send" ]] && fqdn="_dmarc.send.${ZONE_NAME}"
+  resp="$(cf_api GET "/zones/${zone_id}/dns_records?type=TXT&name=${fqdn}")"
+  local count
+  count="$(echo "${resp}" | python3 -c "import json,sys; d=json.load(sys.stdin); print(len(d.get('result') or []))")"
+  if [[ "${count}" == "0" ]]; then
+    cf_api POST "/zones/${zone_id}/dns_records" --data "{
+      \"type\":\"TXT\",\"name\":\"${record_name}\",\"content\":\"${content}\",\"ttl\":3600
+    }" | cf_result_ok
+  else
+    echo "  OK: ${fqdn} exists"
   fi
 }
 
@@ -198,8 +226,11 @@ verify_external() {
   echo
   echo "Dashboard checks:"
   echo "  SSL/TLS → Overview → Full (strict)"
-  echo "  Security → Bots → Bot Fight Mode ON"
+  echo "  Security → Bots → Bot Fight Mode ON, AI bots blocked, AI Labyrinth ON"
   echo "  Security → WAF → Rate limiting → webhook-rate-limit"
+  echo "  DNS → _dmarc TXT records present"
+  dig +short "TXT" "_dmarc.${ZONE_NAME}" 2>/dev/null || true
+  curl -sS "https://${ZONE_NAME}/.well-known/security.txt" 2>/dev/null | head -4 || true
 }
 
 echo "Zone:    ${ZONE_NAME}"
@@ -216,6 +247,9 @@ ensure_dns_a "${ZONE_ID}" "www.${ZONE_NAME}"
 patch_zone_setting "${ZONE_ID}" "ssl" "strict"
 patch_zone_setting "${ZONE_ID}" "always_use_https" "on"
 enable_bot_fight "${ZONE_ID}"
+DMARC_CONTENT="v=DMARC1; p=none; rua=mailto:${DMARC_RUA}; fo=1"
+ensure_dmarc_txt "${ZONE_ID}" "_dmarc" "${DMARC_CONTENT}"
+ensure_dmarc_txt "${ZONE_ID}" "_dmarc.send" "${DMARC_CONTENT}"
 ensure_webhook_rate_limit "${ZONE_ID}"
 verify_external
 

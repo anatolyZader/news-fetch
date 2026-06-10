@@ -132,7 +132,7 @@ function AnalystGate() {
 function StackActions({ logout, authRequired, user }) {
   return (
     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'center' }}>
-      <Button component={Link} href="https://vibeswitch.ai" variant="outlined" size="small">
+      <Button component={Link} href="https://srulik.ai" variant="outlined" size="small">
         Operator app
       </Button>
       {authRequired && user && (

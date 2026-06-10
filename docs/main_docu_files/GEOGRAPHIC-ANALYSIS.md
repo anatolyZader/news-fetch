@@ -62,7 +62,7 @@ Registered via `registerGeoRoutes(app, opts)`:
 
 ## Signal-level scoping (resilience)
 
-**File:** `regionSignalFilter.js`
+**Files:** `domain/services/regionSignalFilter.js` (canonical logic); `app/regionSignalFilter.js` re-exports `normalizeReportScope` for Option B `input/` routes (e.g. `driftRoutes.js`).
 
 - **`deriveHomeFrontDistricts(signal)`** — union of `signal_district` + districts from resolved `signal.geo`
 - **`scopeDecisionForSignal(signal, targetScopeId)`** — explainable trace; national always in-scope
@@ -70,7 +70,7 @@ Registered via `registerGeoRoutes(app, opts)`:
 
 Regional reports require resolved geo (or always-in-scope source types) matching target district. Non-north localities may match via `homefront-district-stubs.json` when absent from `north-reference.json`.
 
-**Port:** `IReportScopePolicy` → `defaultReportScopePolicyAdapter.js` → `assessmentPipeline.js` (`scopeAndPartitionSignals`).
+**Port:** `IReportScopePolicy` → `defaultReportScopePolicyAdapter.js` → `business_modules/resilience/app/assessmentPipeline.js` (`scopeAndPartitionSignals`).
 
 Report scope ids: `cross-cut-modules/geo/reportScopeIds.js` (national + five regional districts).
 

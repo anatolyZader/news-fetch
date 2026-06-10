@@ -1,12 +1,12 @@
 /**
  * Cloudflare Pages Function: proxy /api/* to the production VibeSwitch API (Option A).
  *
- * Set Pages env `API_ORIGIN` (e.g. https://vibeswitch.ai). Local dev uses Vite proxy instead.
+ * Set Pages env `API_ORIGIN` (e.g. https://srulik.ai). Local dev uses Vite proxy instead.
  *
  * @param {import('@cloudflare/workers-types').EventContext<{ API_ORIGIN?: string }, string, unknown>} context
  */
 export async function onRequest(context) {
-  const apiOrigin = String(context.env.API_ORIGIN || 'https://vibeswitch.ai').replace(/\/$/, '');
+  const apiOrigin = String(context.env.API_ORIGIN || 'https://srulik.ai').replace(/\/$/, '');
   const incoming = new URL(context.request.url);
   const target = `${apiOrigin}${incoming.pathname}${incoming.search}`;
 

@@ -1,4 +1,4 @@
-const DEFAULT_POLICY_URL = 'https://github.com/your-org/news/security/policy';
+const DEFAULT_POLICY_URL = 'https://github.com/anatolyZader/news-fetch/security/policy';
 
 /**
  * @param {string} email
