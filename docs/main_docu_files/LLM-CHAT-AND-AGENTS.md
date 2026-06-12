@@ -15,7 +15,7 @@
 | **Validation investigate** | Analyst validation queue | Multi-turn tool loop | Analyst-only |
 | **Report build** | Write report / WhatsApp DM | Turn-based gap engine + LLM draft | Confirm-gated archive write |
 
-The assessment agent is **plan-and-execute map–reduce**, not peer-to-peer multi-agent chat. See [RESILIENCE-ENGINE-REFERENCE.md §3.1](./RESILIENCE-ENGINE-REFERENCE.md#31-assessment-agent-v2).
+The assessment agent is **plan-and-execute map–reduce**, not peer-to-peer multi-agent chat. Planner, specialists, critic, and synthesizer are **sequential roles on one Anthropic stack** (per-stage prompts and tool profiles) — not separate human-scale services. See [RESILIENCE-ENGINE-REFERENCE.md §3.1](./RESILIENCE-ENGINE-REFERENCE.md#31-assessment-agent-v2).
 
 **Degrade ladder:** On agent skip/failure, `produceAssessmentWithShadow.js` runs `runDeterministicAssessment` (no LLM), then `loadCachedAssessmentFallback` if scores are empty. `RESILIENCE_ASSESSMENT_FORCE_DETERMINISTIC=1` skips the agent explicitly. `RESILIENCE_ASSESSMENT_AGENT=0` is **deprecated** (same as force-deterministic; no legacy Sonnet narratives).
 
@@ -76,6 +76,20 @@ Operators and analysts ask questions about the **current resilience report** (na
 - `propose_operator_recommendation`
 
 Chat does **not** re-run extract/assess or mutate reports without explicit confirm-gated actions.
+
+## PBO review surfaces
+
+Municipal PBO completeness review is exposed through **chat tools** and **REST** (`business_modules/pbo_report_review/input/pboReviewRoutes.js`):
+
+| Surface | Endpoints / tools |
+|---------|-------------------|
+| **Chat (analyst)** | `list_pbo_reviews`, `get_pbo_review`, `search_pbo_history` |
+| **REST** | `GET /api/pbo/municipal-reviews`, `GET /api/pbo/municipal-reviews/:date/:municipality`, `POST /api/pbo/municipal-reviews/:date/:municipality/replies` |
+| **Inbound email** | `POST /api/pbo/review/inbound-email` (Resend webhook, `RESEND_WEBHOOK_SECRET`) |
+| **Historical search** | `GET /api/pbo/historical-search` (RAG-backed, when wired) |
+
+Pipeline integration: [PIPELINE-AND-SOURCES.md § Municipal PBO review](./PIPELINE-AND-SOURCES.md#municipal-pbo-review).
+
 
 ---
 
@@ -147,7 +161,7 @@ When `CHAT_CONFIRM_ACTIONS_ENABLED` (default on):
 - Client calls `POST /api/chat/confirm-action` to approve/reject
 - Prevents silent side effects
 
-**Command registry:** `business_modules/chat/domain/proposedActionCommands.js` — `PROPOSED_ACTION_SUMMARIES` maps each `propose_*` tool name to a function that validates input and returns `{ summary }` (or `{ error }`). Add new propose tools here first; execution logic stays in `executePendingAction.js` (`PENDING_EXECUTORS`).
+**Command registry (staging):** `business_modules/chat/domain/proposedActionCommands.js` defines `PROPOSED_ACTION_SUMMARIES` — target registry for propose tools. **Not wired yet:** `chatToolHandlers.handleProposeTool` and `executePendingAction.js` still inline validation/summaries. When adding propose tools, update the registry first, then wire handlers to import it; execution logic stays in `executePendingAction.js` (`PENDING_EXECUTORS`).
 
 Env: `CHAT_ANALYST_TOOLS_ENABLED` gates analyst read tools.
 
@@ -179,6 +193,24 @@ Env: `CHAT_ANALYST_TOOLS_ENABLED` gates analyst read tools.
 Used from analyst `ValidationReviewPanel` — not operator Daily Assessment tab.
 
 ---
+
+
+---
+
+## Observability
+
+| Signal | Location | Mechanism |
+|--------|----------|-----------|
+| Chat retrieval hint | `chatService.js` | `tracePort.startActiveSpan('chat.retrieval_hint', …)` |
+| Chat LLM stream | `chatService.js` | `tracePort.startActiveSpan('chat.llm_stream', …)` |
+| LLM calls | `anthropicLlmAdapter.js` | `withSpan('llm.createMessage' / 'llm.runToolLoop')` when `OTEL_ENABLED=true` |
+| Chat economy | `chatService.js` + `httpCostRecorder` | `stage: 'chat_economy'` → `cost-log.jsonl` |
+| LLM invocations | `llmGateway` | `llm-invocations.jsonl` — see [COST-CONTROLS.md](./COST-CONTROLS.md) |
+| Agent tool rounds | `agentKernel.js` | Trace JSONL `tool_round` events (assess + chat) |
+
+**Retrieval cache:** `createChatRetrievalCache` deduplicates `buildChatRetrievalHint` + `search_sources` per session (`CHAT_RETRIEVAL_CACHE_TTL_MS`). **Prompt cache / compact loop:** `CHAT_PROMPT_CACHE`, `CHAT_COMPACT_TOOL_LOOP` — see [COST-CONTROLS.md](./COST-CONTROLS.md).
+
+**Module boundaries:** chat HTTP entry is `input/chatRoutes.js`; cross-module imports use `business_modules/chat/index.js` facade only — see [README § Module boundaries](./README.md#module-boundaries-option-b).
 
 ## Key environment variables
 

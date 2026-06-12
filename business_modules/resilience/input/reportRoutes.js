@@ -11,6 +11,7 @@ import { requireOperatorDistrictAccess } from '../../../cross-cut-modules/auth/o
 import { canViewAnalystDisplay } from '../../../cross-cut-modules/auth/userAccess.js';
 import {
   getCachedReport as getCachedReportDefault,
+  getAvailableReportDates,
   resolveDisplayView,
   redactReportPayload,
   redactScoreBySource,
@@ -48,7 +49,17 @@ export async function reportRoutes(app, opts) {
     fetchArticlesForDay,
     sqlitePath,
     crisisBudgetService = null,
+    geoUnknownReviewService = null,
   } = opts;
+
+  /**
+   * @param {typeof geoUnknownReviewService} svc
+   * @returns {number}
+   */
+  function countPendingGeoUnknown(svc) {
+    if (!svc?.enabled || typeof svc.list !== 'function') return 0;
+    return svc.list({ status: 'new', limit: 100 }).length;
+  }
 
   const getCachedReport = (store, readOpts) =>
     (reportReadPort?.getCachedReport ?? getCachedReportDefault)(store, readOpts);
@@ -130,13 +141,23 @@ export async function reportRoutes(app, opts) {
     return reply.send(JSON.parse(readFileSync(path, 'utf8')));
   });
 
+  app.get('/api/report/dates', todayAuthHook, async (request, reply) => {
+    const scope = normalizeReportScope(request.query?.scope ?? 'national');
+    if (isRegionalReportScope(scope)) {
+      if (!requireOperatorDistrictAccess(request, reply, scope)) return;
+    }
+    const dates = getAvailableReportDates({ scope });
+    return reply.send({ dates });
+  });
+
   app.get('/api/report/today', todayAuthHook, async (request, reply) => {
     const scope = normalizeReportScope(request.query?.scope ?? 'national');
     if (isRegionalReportScope(scope)) {
       if (!requireOperatorDistrictAccess(request, reply, scope)) return;
     }
     const requestedView = String(request.query?.view ?? 'operator').trim().toLowerCase();
-    const data = getCachedReport(evidenceStore, { scope });
+    const dateParam = String(request.query?.date ?? '').trim();
+    const data = getCachedReport(evidenceStore, { scope, date: dateParam || undefined });
     if (!data) {
       if (isRegionalReportScope(scope)) {
         return reply.send({
@@ -161,7 +182,9 @@ export async function reportRoutes(app, opts) {
       view: display_view,
       reportScopeId: scope,
     });
-    const action_compass = buildActionCompass(redacted.assessment, attention_items);
+    const action_compass = buildActionCompass(redacted.assessment, attention_items, {
+      geoUnknownCount: countPendingGeoUnknown(geoUnknownReviewService),
+    });
     const anomaly_strip = buildAnomalyStrip(redacted.assessment);
     const budget_status = crisisBudgetService?.getChatBudgetStatus?.() ?? null;
     const suggest_crisis_budget = crisisBudgetService?.shouldSuggestCrisisBudget?.(redacted.assessment) ?? false;

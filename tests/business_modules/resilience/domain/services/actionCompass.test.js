@@ -24,6 +24,18 @@ describe('buildActionCompass', () => {
     assert.doesNotMatch(blob, /\/10/);
   });
 
+  it('includes geo-unknown compass action when geoUnknownCount > 0', () => {
+    const assessment = {
+      assessment_mode: 'normal',
+      epistemic_status: { sampling_status: 'normal' },
+      data_void: { level: 'none' },
+      components: [],
+    };
+    const compass = buildActionCompass(assessment, [], { geoUnknownCount: 3 });
+    assert.ok(compass);
+    assert.ok(compass.actions.some((a) => a.id === 'compass:geo:unknown'));
+  });
+
   it('returns null when no actions and band unknown', () => {
     const assessment = {
       assessment_mode: 'normal',

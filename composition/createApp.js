@@ -241,6 +241,7 @@ async function registerApplicationRoutes(app, ctx) {
     fetchArticlesForDay,
     sqlitePath: w.sqlitePath,
     crisisBudgetService: w.crisisBudgetService ?? null,
+    geoUnknownReviewService: w.geoUnknownReviewService ?? null,
   });
 
   await app.register(validationReviewRoutes, {

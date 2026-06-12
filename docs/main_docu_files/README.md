@@ -22,7 +22,9 @@ Full before/after tables: [RESILIENCE-ENGINE-REFERENCE.md §1](./RESILIENCE-ENGI
 | # | File | When you need… |
 |---|------|----------------|
 | 1 | [SYSTEM-AND-OPERATOR-MODEL.md](./SYSTEM-AND-OPERATOR-MODEL.md) | What operators see, scan → proof → decide, operator vs analyst apps, v2 evidence tree |
-| 2 | [PIPELINE-AND-SOURCES.md](./PIPELINE-AND-SOURCES.md) | Daily ingest, extract, assess (agent + shadow), artifacts on disk, guided report |
+| 2 | [PIPELINE-AND-SOURCES.md](./PIPELINE-AND-SOURCES.md) | Daily ingest, extract, assess (agent + shadow), artifacts on disk, guided report, municipal PBO review |
+| 2b | `business_modules/pbo_report_review/` | Municipal PBO completeness gaps, officer email, inbound replies — see PIPELINE § Municipal PBO review |
+| 2c | `analyst-site/` | Separate analyst SPA (`AnalystApp.jsx`) — scope switcher, validation/catalog panels, drift, pipeline status |
 | 3 | [RESILIENCE-ENGINE-REFERENCE.md](./RESILIENCE-ENGINE-REFERENCE.md) | Conceptual/technical shift, assessment agent, epistemic instruments, shadow scoring |
 | 4 | [GEOGRAPHIC-ANALYSIS.md](./GEOGRAPHIC-ANALYSIS.md) | Geo envelope, district scoping, unknown queue |
 | 5 | [RAG.md](./RAG.md) | Hybrid retrieval, assess-time RAG, namespaces, reindex commands |
@@ -45,7 +47,7 @@ Add these for **shadow scoring math**, architecture synthesis, and terminology (
 |------|------|
 | [`docs/architecture/ubiquitous-language.md`](../architecture/ubiquitous-language.md) | Shared glossary |
 | [`docs/reviews/application-architecture-and-analysis-deep-dive.md`](../reviews/application-architecture-and-analysis-deep-dive.md) | End-to-end synthesis; includes legacy scoring baseline |
-| [`docs/reviews/8-component-resilience-pipeline-notebooklm.md`](../reviews/8-component-resilience-pipeline-notebooklm.md) | NotebookLM pipeline primer (may predate agent path — cross-check RESILIENCE-ENGINE) |
+| [`docs/reviews/8-component-resilience-pipeline-notebooklm.md`](../reviews/8-component-resilience-pipeline-notebooklm.md) | **Legacy** score-primary pipeline primer — do **not** upload alone; predates agent assess path |
 | [`docs/reviews/geographic-analysis-implementation.md`](../reviews/geographic-analysis-implementation.md) | Optional — geo matching, unknown queue |
 
 For epistemic policy, assessment agent flags, and display redaction, prefer [RESILIENCE-ENGINE-REFERENCE.md](./RESILIENCE-ENGINE-REFERENCE.md) and [MODEL-CARD.md](../MODEL-CARD.md) over the review docs.
@@ -69,7 +71,7 @@ Business modules follow a layered layout enforced in CI:
 - **`domain/`** / **`infrastructure/`** — entities, ports, adapters (no cross-module imports).
 - **Facades** — other modules import shared capabilities via `business_modules/<name>/index.js`, not deep paths.
 
-Run `npm run deps:boundaries` locally (same check as CI). Full module map: [`cross-cut-modules/docs/content/pages/architecture/module-map.md`](../../cross-cut-modules/docs/content/pages/architecture/module-map.md).
+Run `npm run deps:boundaries` locally (same check as CI; config `.dependency-cruiser.cjs`, smoke test `tests/architecture/dependencyBoundaries.test.js`). Full module map: [`cross-cut-modules/docs/content/pages/architecture/module-map.md`](../../cross-cut-modules/docs/content/pages/architecture/module-map.md).
 
 ## Terminology
 

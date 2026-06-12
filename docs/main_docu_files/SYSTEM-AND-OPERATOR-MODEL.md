@@ -2,7 +2,7 @@
 
 **Purpose:** Describe how the running product supports **human decision-making** — not automated verdicts. Operators scan attention and **evidence-backed claims**; analysts calibrate shadow scoring and review agent traces.
 
-**Sources:** `business_modules/resilience/domain/services/assessmentDisplayTier.js`, `thinEvidencePolicy.js`, `actionCompass.js`, `anomalyStrip.js`, `app/reportCacheService.js`, `business_modules/resilience_assessment/`, `client/src/MainApp.jsx`, `client/src/components/ReportView.jsx`, `analyst-site/src/AnalystApp.jsx`, `cross-cut-modules/resilience-contracts/reportSelection.js`, `cross-cut-modules/messaging/app/reportEventHandlers.js`.
+**Sources:** `business_modules/resilience/domain/services/assessmentDisplayTier.js`, `thinEvidencePolicy.js`, `actionCompass.js`, `anomalyStrip.js`, `app/reportCacheService.js`, `business_modules/resilience_assessment/`, `client/src/MainApp.jsx`, `client/src/components/ReportView.jsx`, `analyst-site/src/AnalystApp.jsx`, `cross-cut-modules/messaging/app/registerModuleHandlers.js`, `cross-cut-modules/budget/app/crisisBudgetService.js`.
 
 ---
 
@@ -27,7 +27,16 @@ Shadow numeric scores remain in on-disk JSON under `daily_reports/` for analysts
 
 1. **Scan** — Epistemic banner + evidence overview + attention panel + **action compass** (`AttentionPanel.jsx`, `EpistemicStatusBanner.jsx`, `EvidenceOverviewPanel.jsx`, `ActionCompassPanel.jsx`). During crisis/abstention, **anomaly strip** highlights OOV/residual/salience signals that bypassed synthesizer prose.
 2. **Proof** — Open component narratives and **claim-level evidence** (supporting/weakening refs); follow source links where available; optional chat drill-down via `list_attention_items` / `get_decision_brief` ([LLM-CHAT-AND-AGENTS.md](./LLM-CHAT-AND-AGENTS.md)).
-3. **Decide** — Human judgment; optional operator recommendations workflow (`OperatorRecommendationsPanel.jsx`, `/api/report/recommendations/*`). System may **abstain** (`insufficient_data`, `sampling_blind`, data void) — treat abstention as a prompt to ingest or wait, not “all clear.” When chat budget is exhausted during crisis epistemic conditions, report API may return `suggest_crisis_budget: true` — operators see a banner; **analysts** HITL-activate the crisis chat pool ([COST-CONTROLS.md § Crisis chat budget](./COST-CONTROLS.md#crisis-chat-budget-cb-hybrid)).
+3. **Decide** — Human judgment; optional operator recommendations workflow (`OperatorRecommendationsPanel.jsx`, `/api/report/recommendations/*`). System may **abstain** (`insufficient_data`, `sampling_blind`, data void) — treat abstention as a prompt to ingest or wait, not “all clear.” When chat budget is exhausted during crisis epistemic conditions, report API may return `suggest_crisis_budget: true` ([COST-CONTROLS.md § Crisis chat budget](./COST-CONTROLS.md#crisis-chat-budget-cb-hybrid)). `shouldSuggestCrisisBudget` (`crisisBudgetService.js`) fires when daily/crisis budget is exceeded **and** (`data_void.level === 'critical'` OR `digital_darkness` OR `sampling_status === 'blind'` OR `assessment_mode === 'abstained'`).
+
+**Crisis budget UI (where activation lives):**
+
+| Role | Surface | Component |
+|------|---------|-----------|
+| **Operator** | Operator app `client/` | `EpistemicStatusBanner` shows `crisisBudget.operatorBanner` via `epistemicBannerMessages.js` when `suggest_crisis_budget` is true |
+| **Analyst** | Operator app `client/` (not `analyst-site/`) | `CrisisBudgetPanel` in `MainApp.jsx`, gated by `canViewAnalyst` — HITL activate/deactivate crisis chat pool |
+
+Analysts open the **operator app** (same origin as operators) to activate the pool; `analyst-site/` does not host `CrisisBudgetPanel`.
 
 When the system shows **limited evidence** or hides a score, that is intentional (thin-evidence policy), not a bug.
 
@@ -75,8 +84,8 @@ Assessment-level epistemic overrides (data void, digital darkness): `deriveAsses
 1. Epistemic status banner
 2. Evidence overview (instrument summary counts)
 3. Attention panel (no drift-merge on operator tier)
-4. **Action compass** — ranked operator actions from `buildActionCompass` (`action_compass` on report API); uncertainty band derived from data void / sampling status
-5. **Anomaly strip** — OOV/residual/salience visibility during crisis epistemic mode (`anomaly_strip` on report API)
+4. **Action compass** — ranked operator actions from `buildActionCompass` in `actionCompass.js` (`action_compass` on report API); uncertainty band from `deriveUncertaintyBand` (data void, sampling, abstention); gap-closure tasks; **geo-unknown** warning when `geoUnknownReviewService` reports pending `new` queue items (resolution remains analyst HITL — see [GEOGRAPHIC-ANALYSIS.md § Analyst unknown queue](./GEOGRAPHIC-ANALYSIS.md#analyst-unknown-queue))
+5. **Anomaly strip** — OOV/residual/salience visibility during crisis epistemic mode (`anomalyStrip.js`; `anomaly_strip` on report API); shown when epistemic mode is crisis/abstained and at least one OOV cluster or residual observation is present (see [MODEL-CARD.md](../MODEL-CARD.md))
 6. Operator recommendations (when present)
 7. Component filter bar + per-component sections (narrative, **claims/evidence tree**, instrument badges — not `/10` headline scores)
 8. Docs panel, chat (grounded in report; hub tools complement action compass — see [LLM-CHAT-AND-AGENTS.md](./LLM-CHAT-AND-AGENTS.md))
@@ -87,14 +96,15 @@ Assessment-level epistemic overrides (data void, digital darkness): `deriveAsses
 
 ## Analyst workspace (calibration, not operations)
 
-`analyst-site/src/AnalystApp.jsx`:
+`analyst-site/src/AnalystApp.jsx` (separate SPA; URL from `client/src/lib/analystSiteUrl.js` → `getAnalystSiteUrl()`):
 
-- Fetches report with `view=analyst`
-- **Assessment tab:** `ReportView` + `ValidationReviewPanel`, `CatalogProposalPanel`, drift sparklines, agent trace when present
+- **Scope:** `DistrictScopeSwitcher` in header; selected scope persisted in `localStorage` key `vibeswitch:analystScope` (`normalizeReportScopeId` from `reportScopes.js`)
+- Fetches report with `view=analyst` for the active scope (`useTodayReport(scope, 'analyst')`)
+- **Assessment tab:** `ReportView` + `ValidationReviewPanel`, `CatalogProposalPanel`, drift sparklines, agent trace when present; `useTranslatedReport` for i18n; inline outdated-report pipeline panel when report is stale
 - **Drift tab:** `GET /api/resilience/drift` — component score history from **shadow** scores (`driftService.js`)
 - **Pipeline tab:** `GET /api/monitoring/pipeline` — ingest/extract/assess stage health
 - **Agent trace:** `GET /api/report/agent-trace/:traceId` — replay planner/specialist/critic/synthesizer steps
-- Chat with analyst tool profile when enabled
+- **Chat FAB:** floating button opens `ChatPanel` with analyst tool profile; `handleOpenValidationInChat` pre-seeds validation context (`toolProfile: 'validation'`) when opened from `ValidationReviewPanel`
 - Full assessment JSON still primarily on disk; use drift, divergence, validation routes, and trace for calibration
 
 Operational decisions should use the **operator app** and instrument/narrative tier.
@@ -114,31 +124,33 @@ Analyst tier keeps additional instrument detail (`suppression_delta`, truncated 
 
 ---
 
-## Shared report selection contract
+## Report file selection (wired)
 
-**File:** `cross-cut-modules/resilience-contracts/reportSelection.js`
+**Primary implementation:** `business_modules/resilience/app/reportCacheService.js` — `resolveReportJsonPathForDate(date, { scope, reportsDir })`.
 
-**Purpose:** Shared ranking logic for choosing the best available report file when multiple scoped variants exist (e.g., normal vs. field_anchor_only vs. abstained). Used by `business_modules/resilience/app/reportCacheService.js` and `cross-cut-modules/monitoring/infrastructure/adapters/reportPathResolver.js`.
+When multiple scoped variants exist for the same date (e.g. `resilience-report-2026-06-12-*.json`), the resolver picks the candidate with the **highest** `total_articles_analyzed`; on a tie, the **newest mtime** wins. Exact-path files (`resilience-report-{date}.json` or scoped prefix without suffix) are returned immediately when present.
 
-**Key exports:**
+The monitoring adapter (`cross-cut-modules/monitoring/infrastructure/adapters/reportPathResolver.js`) uses the same article-count + mtime rule for pipeline status.
 
-- `reportQualityRank(meta)` — lower rank = better; penalizes `field_anchor_only` (+10), `abstained` (+20), `quarantineActive` (+5)
-- `isBetterReportCandidate(next, best)` — picks better of two candidates by rank, then article count, then mtime
-- `reportMetaFromAssessment(assessment)` — extracts `{ articles, assessmentMode, quarantineActive }` from a raw assessment object
+**Pipeline replay guard:** `pipelineOrchestrator.assertAssessOnlySafe` uses `reportQualityRank(meta)` from `reportCacheService.js` (not quality-based file pick). Rank `0` = normal report with no active quarantine — replay `--assess-only` aborts unless `--force`. Rank `1` = non-`normal` assessment mode; rank `2` = active digital quarantine (safe to overwrite).
 
-**Rule:** Do not duplicate ranking logic inline — import from this contract. Keep in sync with `reportCacheService.js`.
+---
+
+## Staging contract: `reportSelection.js`
+
+**File:** `cross-cut-modules/resilience-contracts/reportSelection.js` — **not yet imported** by production code.
+
+Defines an alternate ranking intended for operator-facing selection: penalizes `field_anchor_only` (+10), `abstained` (+20), `quarantineActive` (+5), then article count, then mtime via `isBetterReportCandidate`. When adopted, `reportCacheService` and `reportPathResolver` should import from this contract instead of duplicating logic. Do not add a third inline copy until wiring is done.
+
+**Maintainer note:** `reportQualityRank` exists in both `reportCacheService.js` (replay guard) and `reportSelection.js` (staging contract) with **different ranking rules** — they can drift until production imports the contract. Do not change one without checking the other.
 
 ---
 
 ## Post-report side effects
 
-**Event:** `RESILIENCE_REPORT_WRITTEN` — published by the assess pipeline after each report write.
+**Event:** `RESILIENCE_REPORT_WRITTEN` — published by `assessSignalsCli.js` after each report write.
 
-**Handlers** (`cross-cut-modules/messaging/app/reportEventHandlers.js`): Chain of Responsibility pattern. Each handler declares:
-- `canHandle(deps)` — returns true if required deps are available
-- `handle(payload, deps)` — performs the side effect
-
-Current handlers (in order):
+**Wired handlers:** `cross-cut-modules/messaging/app/registerModuleHandlers.js` subscribes to the event bus. Each side effect runs inside `runOnce(handlerId, …)` with idempotency via `processedEventStore` when configured.
 
 | Handler id | Condition | Action |
 |------------|-----------|--------|
@@ -146,7 +158,9 @@ Current handlers (in order):
 | `rag-index` | `deps.retrievalService.indexReportForDate` present | indexes new report into RAG |
 | `drift` | `deps.driftService.recordSnapshot` present | records drift snapshot |
 
-Add new post-report side effects here without touching `registerModuleHandlers`.
+Add new post-report side effects in `registerModuleHandlers.js` today.
+
+**Staging:** `cross-cut-modules/messaging/app/reportEventHandlers.js` defines the same handler list as `REPORT_WRITTEN_HANDLERS` (Chain of Responsibility shape) for future extraction — not imported yet. When migrating, wire `registerModuleHandlers` to iterate that array instead of duplicating inline handlers.
 
 ---
 

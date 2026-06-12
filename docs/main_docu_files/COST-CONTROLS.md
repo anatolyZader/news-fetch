@@ -45,14 +45,20 @@ Routes using **`costlyRoutePreHandlers`** (full chain):
 
 ## Pipeline / CLI budget
 
+**Shared daily ledger:** HTTP costly routes, **extract**, and **assess** all append to the same UTC-day `cost-log.jsonl` total checked by `getDailyBudgetStatus()`. There is one `DAILY_BUDGET_USD` pool (default **$10**), not separate HTTP vs pipeline budgets.
+
 **Extract** calls `checkDailyBudget()` before LLM work (hard exit when exceeded).
 
-**Assess** uses `getDailyBudgetStatus()` — when the daily cap is exceeded, the assessment agent LLM is skipped and **deterministic degrade** runs (shadow scoring still completes; report includes `assessment_degraded`).
+**Assess** uses `getDailyBudgetStatus()` — when the daily cap is exceeded, the assessment agent LLM is skipped and **deterministic degrade** runs (shadow scoring still completes; report includes `assessment_degraded`). The report is still written; operators are not left without a daily artifact.
 
 - Script ids: `extract-signals`, `assess-signals`
 - Logged to same `cost-log.jsonl`
 
-**Assess (default):** includes **assessment agent** LLM rounds (planner, specialists, synthesizer) under the `assess-signals` script id, capped by `RESILIENCE_ASSESSMENT_AGENT_MAX_USD` / `RESILIENCE_ASSESSMENT_AGENT_MAX_ROUNDS` via `cross-cut-modules/agent/` budget governor — separate from the HTTP daily cap.
+**Per-report agent cap (within a day under budget):** assessment agent LLM rounds (planner, specialists, synthesizer) under the `assess-signals` script id are also capped by `RESILIENCE_ASSESSMENT_AGENT_MAX_USD` / `RESILIENCE_ASSESSMENT_AGENT_MAX_ROUNDS` via `cross-cut-modules/agent/` budget governor.
+
+**Crisis pool does not extend assess:** `CRISIS_BUDGET_USD` applies only to `http:chat:crisis` (interactive chat). Batch `assess-signals` has **no** crisis top-up — raise `DAILY_BUDGET_USD` or tune assess caps for heavy ingest days.
+
+**Operational mitigation:** raise `DAILY_BUDGET_USD`, reduce extract cost knobs (`RESILIENCE_EXTRACT_CACHE`, batch mode), or set `RESILIENCE_ASSESSMENT_FORCE_DETERMINISTIC=1` when agent LLM is intentionally off.
 
 ---
 
@@ -79,9 +85,34 @@ Every LLM call routed through **`LlmGateway`** (`cross-cut-modules/llm/llmGatewa
 
 **Fields:** `timestamp`, `requestId`, `feature`, `agentName`, `purpose`, `promptId`, `promptVersion`, `model`, token counts (including `cachedInputTokens`, `cacheCreationTokens`), `costUsd`, `latencyMs`, `stopReason`, `cacheHit` (e.g. `extraction` on SQLite cache hits), `promptCacheApplied` (when Anthropic ephemeral cache blocks were attached).
 
-**Feature rollup:** `monitoringService.getLlmTelemetry({ date })` aggregates by `feature` for the UTC day. `readLlmTelemetryForDate` also returns `cached_input_tokens_total`, `cache_creation_tokens_total`, and `cache_by_feature`.
+**Feature rollup:** `monitoringService.getLlmTelemetry({ date })` aggregates by `feature` for the UTC day (in-process service call or direct JSONL read — **no dedicated HTTP route** today; `GET /api/monitoring/summary` returns `cost` and `stage_telemetry` but not the full LLM invocation rollup). `readLlmTelemetryForDate` also returns `cached_input_tokens_total`, `cache_creation_tokens_total`, and `cache_by_feature`. Extraction cache hits log `cacheHit: 'extraction'` on the same JSONL stream via `logLlmCacheHit`.
 
 **Pricing:** `llmPricing.js` extends Anthropic cache-read / cache-creation token rates.
+
+---
+
+## Per-pipeline token report
+
+After each `run-pipeline.js` run (full pipeline or `--ingest-only`), `tryWriteTokenReport` in `pipelineOrchestrator.js` calls `cross-cut-modules/llm/writeTokenReport.js`.
+
+**Output:** `cross-cut-modules/budget/resilience_analysis/token-report-{date}-{scope}.json`
+
+**Input:** Filters `llm-invocations.jsonl` entries whose `timestamp` falls within `[startedAt, completedAt]` for that run.
+
+**Schema (`summary`):** `invocations`, `inputTokens`, `outputTokens`, `cachedInputTokens`, `cacheCreationTokens`, `effectiveInputTokens` (input minus cached), `cacheHitRatePct`, `costUsd`, plus top-level `durationMs`. Aggregates `byFeature`, `byModel`, and per-call `calls[]` with token counts and `costUsd`.
+
+Distinct from daily `cost-log.jsonl` script totals and from UTC-day `getLlmTelemetry()` rollup — this is a **per-run window** for pipeline cost review. See [PIPELINE-AND-SOURCES.md § Node.js pipeline orchestrator](./PIPELINE-AND-SOURCES.md#nodejs-pipeline-orchestrator).
+
+---
+
+## Internal param stripping (Anthropic adapter)
+
+Application-only options are stripped before Anthropic API calls so they never reach the provider:
+
+- **Keys removed:** `callContext`, `onUsage`, `agentKind` (`stripAnthropicInternalParams` in `cross-cut-modules/llm/promptCache.js`)
+- **Applied in:** `anthropicLlmAdapter.js` (`create` / `stream`) and `runToolLoop.js` (`messages.create`)
+
+`LlmGateway` reads these params **before** the adapter strips them, for telemetry (`llm-invocations.jsonl`) and budget recording.
 
 ---
 
@@ -110,7 +141,7 @@ Optional `--full-assess` with `--live` is reserved for manual full `assess-signa
 
 | Variable | Default | Role |
 |----------|---------|------|
-| `RESILIENCE_EXTRACT_CACHE` | `1` | SQLite per-article extraction cache (`llm_extraction_cache`) |
+| `RESILIENCE_EXTRACT_CACHE` | `1` | SQLite per-article extraction cache (`llm_extraction_cache`); integration in `cross-cut-modules/llm/cache/extractionCacheIntegration.js`, store in `extractionCacheStore.js`, config in `extractionCacheConfig.js` |
 | `RESILIENCE_EXTRACT_MULTIPASS` | `1` | `0` single; `1` three-pass; `2` two-pass (AB + C) |
 | `RESILIENCE_EXTRACT_MAX_TOKENS` | `5000` | Extract output cap (1500–12000) |
 | `RESILIENCE_SELF_CHECK_MAX_TOKENS` | `2000` | Self-check cap |
@@ -146,7 +177,7 @@ When daily HTTP budget is exhausted during crisis epistemic conditions, operator
 
 **Routes (analyst):** `GET /api/budget/crisis-status`, `POST /api/budget/crisis/activate`, `POST /api/budget/crisis/deactivate` (`cross-cut-modules/budget/input/crisisBudgetRoutes.js`).
 
-**Auto-suggest:** `suggest_crisis_budget: true` on report API when `(data_void.level >= critical \|\| sampling_blind \|\| digital_darkness) && chat budget exhausted` — no auto-activate.
+**Auto-suggest:** `suggest_crisis_budget: true` on report API when chat budget is exhausted **and** (`data_void.level === 'critical'` OR `digital_darkness` OR `sampling_status === 'blind'` OR `assessment_mode === 'abstained'`) — no auto-activate.
 
 **Gate order (`resolveChatBudgetGate`):** daily OK → LLM; daily exceeded + active crisis pool → LLM (`http:chat:crisis`); else fallback if enabled; else **429**.
 

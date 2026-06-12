@@ -82,9 +82,11 @@ Markdown / archive rows
        └─ redactReportPayload at API boundary (assessmentDisplayTier)
 ```
 
-**Degrade:** `RESILIENCE_ASSESSMENT_FORCE_DETERMINISTIC=1` or daily budget exceeded skips agent LLM. `RESILIENCE_ASSESSMENT_AGENT=0` is deprecated (same effect, logs warning). Legacy Sonnet narratives removed.
+**Degrade:** `produceAssessmentWithShadow` skips the agent when `shouldSkipAssessmentAgent` fires (`RESILIENCE_ASSESSMENT_FORCE_DETERMINISTIC=1` or daily assess budget exceeded via `dailyBudgetExceeded`). `RESILIENCE_ASSESSMENT_AGENT=0` is deprecated (same effect, logs warning). Legacy Sonnet narratives removed.
 
-Production assess uses `input/assess-signals.js` → `app/assessSignalsCli.js`. Legacy batch helper `app/runResilienceAnalysis.js` exists but is **not wired** in the daily pipeline.
+**`degrade_reason` values on report:** `budget_exceeded`, `forced_deterministic`, `agent_failed`, `empty_scores` (cached fallback). Distinct from **HTTP crisis chat pool** (`crisisBudgetService`) — assess agent uses pipeline daily budget, not the chat crisis pool.
+
+Production entries: single assess stage `input/assess-signals.js` → `app/assessSignalsCli.js`; full ingest+assess `input/run-pipeline.js` → `app/pipelineOrchestrator.js` (see [PIPELINE-AND-SOURCES.md](./PIPELINE-AND-SOURCES.md)). Legacy batch helper `app/runResilienceAnalysis.js` exists but is **not wired** in the daily pipeline.
 
 ### 3.1 Assessment agent (v2)
 
@@ -106,6 +108,25 @@ Production assess uses `input/assess-signals.js` → `app/assessSignalsCli.js`. 
 
 **Outputs on report:** `agent_trace_id`, `investigation_plan`, `planner_context`, `budget_snapshot`, `cross_component_issues`, `evidence_graph_summary`; per-component `evidence_tree` (operators) and `specialist_tier` (v2 / trace).
 
+
+**Evidence graph** (`cross-cut-modules/retrieval/evidenceGraph.js` → `buildEvidenceGraph`):
+
+| Node kind | Source |
+|-----------|--------|
+| `chunks` | Hybrid RAG hits (text, `source_type`, `seed_origin`) |
+| `signals` | Closed-catalog signal refs from registry |
+| `sources` | Parent archive rows linked from chunks |
+| `oov_clusters` | OOV burst clusters (optional; `RESILIENCE_ASSESS_OOV_GRAPH`, default on) |
+| `residual` | Residual observations mapped to components |
+
+Edges link sources → chunks → signals. `by_component` holds hypothesis claims with `claim_id`, `support` / `contradict` refs.
+
+**OOV injection:** When `oovGraphEnabled()`, clusters enter the graph when count ≥ 3 or residual+burst combos fire; lowered threshold when data void is elevated/critical.
+
+**Gap classification:** `buildRetrievalGaps` + `classifyGap` → `gap_type` `data` | `investigation`; `buildClassifiedGapsForPlanner` feeds the planner.
+
+**Specialist tools:** `assessmentEvidenceTools.js`, `multiHopRetrieval.js` — `lookup_signals`, `get_source`, multi-hop retrieve within the agent tool loop.
+
 **Eval:** `npm run agent:eval`. **Trace replay:** `GET /api/report/agent-trace/:traceId` (analyst). Feature flags: [MODEL-CARD.md § Assessment agent](../MODEL-CARD.md#assessment-agent-v2-option-b).
 
 ### 3.2 Epistemic profile for investigation
@@ -113,7 +134,26 @@ Production assess uses `input/assess-signals.js` → `app/assessSignalsCli.js`. 
 **Builder:** `business_modules/epistemic_features/domain/services/epistemicProfileBuilder.js`  
 **Investigation enrich:** `investigationEpistemic.js` — adds `investigation_mass`, `investigation_eligible`, `archive_mention_mass`, `residual_observation_count`, `presence_gate_triggered`, `salience_critical` (from shadow scored components).
 
+Per-component `by_component` fields include `signal_count` and `distinct_article_count` (Jun 2026) — fed into `deriveInstrumentState` via `assessmentV2Mapper`, not headline scores.
+
+**`retrieval_policies` output:** `buildRetrievalPolicies(byComponent)` emits `{ diversify, boost, require_corroboration }` on the persisted profile. Consumed by `cross-cut-modules/retrieval/retrievalPolicies.js` during assess RAG diversify. `dominance_warnings` on the profile become diversify policies and planner gaps.
+
+**Persisted artifact:** `daily_reports/epistemic-profile-{scopeId}-{date}.json` via `epistemicService.persistProfile`.
+
 When `RESILIENCE_ASSESS_SPLIT_INVESTIGATION_MASS=1` (default), planner abstention uses **investigation eligibility**, not catalog mass alone — a component may be thin for **scoring** but still investigated when archive/residual/OOV warrants it.
+
+### 3.3 Legacy compatibility layer
+
+**Mapper:** `business_modules/resilience_assessment/domain/services/assessmentV2Mapper.js` → `mapAssessmentV2ToLegacy(v2, epistemicProfile, opts)`.
+
+| v2 field | Legacy mapping |
+|----------|----------------|
+| `claims[]` with `evidence_refs` | `narrative_claims` + `evidence_tree` (fallback `evidenceTreeFromGraph`) |
+| `severity`, `confidence`, `operator_status` | Per-component legacy fields |
+| Epistemic `signal_count`, `distinct_article_count` | `deriveInstrumentState` inputs |
+| `overall_resilience_score` | Always `null` on legacy object |
+
+`produceAssessmentWithShadow` returns the **legacy-mapped** assessment for API/write; v2 fields are attached via `attachAssessmentV2Fields`. On-disk JSON includes both shapes. In-memory `shadow_divergence` is attached before write; on-disk `divergence-*.json` compares shadow vs agent.
 
 ---
 
@@ -137,6 +177,18 @@ When `RESILIENCE_ASSESS_SPLIT_INVESTIGATION_MASS=1` (default), planner abstentio
 | `macro_national` | No (context) | Information environment |
 | Metrics-unsafe geo | No | Context only |
 | `insufficient_data` | Abstain | Abstain |
+
+**Source channel taxonomy** (`domain/services/dataVoid/sourceChannels.js`):
+
+| Set | Types | Role |
+|-----|-------|------|
+| `DIGITAL_SOURCE_TYPES` | `news`, `radio`, `whatsapp`, `telegram`, `social`, `x` | Digital volume for sampling |
+| `FIELD_SOURCE_TYPES` | `field`, `field_whatsapp`, `pbo`, `pbo_regional`, `naftali` | Field / official structured anchors |
+| `PROBE_SOURCE_TYPES` | `infrastructure_probe` | High-trust probes (not digital volume) |
+| `CAP_EXEMPT_SOURCE_TYPES` | `infrastructure_probe`, `pbo`, `pbo_regional`, `naftali`, `field` | Exempt from 50% source-type cap (official ground truth); `field_whatsapp` remains capped |
+
+Module facade `business_modules/resilience/domain/services/signalCatalog.js` re-exports `cross-cut-modules/resilience-contracts/signalCatalog.js` — edit the contract file only.
+
 
 **Data void / digital darkness** (`business_modules/resilience/domain/services/dataVoid/`):
 
@@ -180,6 +232,7 @@ When `evidence_mass < 1.5` (typical floor):
 - **Full JSON:** `daily_reports/resilience-report-*.json` retains shadow scores, v2 agent fields, and legacy-mapped narratives.
 - **Shadow artifacts:** `daily_reports/shadow-scores-{scopeId}-{date}.json`, `daily_reports/divergence-{scopeId}-{date}.json` (when `RESILIENCE_SHADOW_SCORING=1`; default on).
 - **Agent trace:** `daily_reports/assessment-agent-trace-{traceId}.jsonl` — planner, specialist, critic, synthesizer steps.
+- **Per-run token rollup:** `cross-cut-modules/budget/resilience_analysis/token-report-{date}-{scope}.json` — written by `run-pipeline.js` (`writeTokenReport.js`); see [PIPELINE-AND-SOURCES.md](./PIPELINE-AND-SOURCES.md).
 - **Drift APIs:** gated to analyst/maintainer (`canViewAnalystDisplay`).
 
 Shadow scoring and agent assess share the same signal prep; **presentation** differs by tier. Primary operator proof is **claims + evidence_refs**, not headline scores.
@@ -187,6 +240,23 @@ Shadow scoring and agent assess share the same signal prep; **presentation** dif
 ---
 
 ## 7. Stage reference (concise)
+
+### Signal catalog v6
+
+**File:** `cross-cut-modules/resilience-contracts/signalCatalog.js` — `CATALOG_VERSION = 'v6'`, stamped on assessments and extraction cache keys.
+
+**Size:** ~165 closed signal types (`SIGNAL_TYPES.length >= 165`).
+
+**v6 additions** (regression list in `tests/business_modules/resilience/domain/services/signalCatalog.v5.test.js`):
+
+- `self_evacuation_unauthorized`
+- `early_warning_system_failure`
+- `early_warning_system_effective`
+- `population_survey_finding`
+- `connectivity_outage`
+- `institutional_abandonment_perception`
+
+Module facade re-exports from `business_modules/resilience/domain/services/signalCatalog.js` and `business_modules/resilience/index.js` — edit the contract file only.
 
 ### 7.1 Extraction
 
@@ -196,6 +266,7 @@ Shadow scoring and agent assess share the same signal prep; **presentation** dif
 - **OOV capture:** `business_modules/resilience/domain/services/oovCapture.js` → `daily_reports/oov-capture-{date}.jsonl` when `RESILIENCE_OOV_CAPTURE=1`
 - **Output:** `signals-{source}-{date}.json`
 - **Side effects:** `source_archive` rows, optional RAG index at ingest
+- **PBO review metadata:** Municipal extract (`extract-pbo-signals.js`) merges officer supplemental answers via `loadReviewMetadataMapForDate` from `pbo_report_review`; `shouldForcePboSignalRewrite` forces re-extract when inbound replies arrive. Review state flows into PBO signals before assess. See [PIPELINE § Municipal PBO review](./PIPELINE-AND-SOURCES.md#municipal-pbo-review).
 
 ### 7.2 Verification and grounding
 

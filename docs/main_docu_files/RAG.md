@@ -46,7 +46,7 @@ Static index dates: docs namespace uses `2099-01-01`; HFC uses `2099-01-01`.
 | Tier | Module | Use |
 |------|--------|-----|
 | **Assess agent** | `componentRagSeeding.js`, `evidenceGraph.js`, `multiHopRetrieval.js` | Per-component RAG seed at assess; evidence graph claims; specialist tool loop (`search_sources`, `get_source`) |
-| Chat | `business_modules/chat/` — `sourceArchiveQuery.js`, tool handlers | Hybrid search over archive + tools |
+| Chat | `business_modules/chat/` — `sourceArchiveQuery.js`, `chatRetrievalCache.js`, tool handlers | Hybrid search over archive + tools; session-scoped dedup via `CHAT_RETRIEVAL_CACHE_TTL_MS` (see [COST-CONTROLS.md](./COST-CONTROLS.md)); span `sqlite.hybrid_retrieve` when `OTEL_ENABLED` |
 | Pipeline extract | `pipelineRetrieval.js` | Prompt span selection when extract RAG enabled |
 | Report build | `fieldRetrieval.js` | Similar reports, taxonomy, HFC snippets |
 | Analyst | `analystRetrieval.js` | Validation explain/agent context; catalog gap neighbors for signal catalog evolution |
@@ -55,7 +55,7 @@ Static index dates: docs namespace uses `2099-01-01`; HFC uses `2099-01-01`.
 
 ### Assess-time RAG (default assess path)
 
-When the assessment agent is enabled (default — `RESILIENCE_ASSESSMENT_AGENT` unset or any value except `'0'`; `=0` is deprecated):
+When the assessment agent is **not** skipped (`shouldSkipAssessmentAgent` in `agentConfig.js` — set `RESILIENCE_ASSESSMENT_FORCE_DETERMINISTIC=1` to skip; `RESILIENCE_ASSESSMENT_AGENT=0` is **deprecated**, same effect):
 
 1. **Planner (signals-only)** — `buildPlannerContext` runs without upfront RAG when `RESILIENCE_ASSESS_LAZY_RAG=1` (default).
 2. **Lazy component seed** — `seedComponentRagForComponents` retrieves only for `plan.focus_components` (`topKPerComponent` default **3**).

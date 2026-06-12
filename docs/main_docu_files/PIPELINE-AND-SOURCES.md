@@ -2,7 +2,7 @@
 
 **Purpose:** How daily **artifacts** are produced — ingest → signal extraction → **agent assess + shadow scoring** → reports on disk. Operators depend on this pipeline running; they do not run assessment math manually.
 
-**Sources:** `scripts/daily-pipeline.sh`, `pipeline-config.json`, `business_modules/resilience/input/extract-signals.js`, `input/assess-signals.js` (thin CLI wrappers → `app/extractSignalsCli.js`, `app/assessSignalsCli.js`), `app/produceAssessmentWithShadow.js`, `app/pipelineOrchestrator.js`, `app/pipelineIngestPlan.js`, `input/run-pipeline.js`, `domain/services/pipelineArtifactPaths.js`. Cross-module imports use `business_modules/<name>/index.js` facades — see [README § Module boundaries](./README.md#module-boundaries-option-b).
+**Sources:** `scripts/daily-pipeline.sh`, `pipeline-config.json`, `business_modules/resilience/input/extract-signals.js`, `input/assess-signals.js` (thin CLI wrappers → `app/extractSignalsCli.js`, `app/assessSignalsCli.js`), `app/produceAssessmentWithShadow.js`, `app/pipelineOrchestrator.js`, `app/pipelineIngestPlan.js`, `input/run-pipeline.js`, `domain/services/pipelineArtifactPaths.js`, `cross-cut-modules/llm/writeTokenReport.js`. Cross-module imports use `business_modules/<name>/index.js` facades — see [README § Module boundaries](./README.md#module-boundaries-option-b).
 
 ---
 
@@ -36,7 +36,7 @@ Orchestrated daily run:
 ./scripts/daily-pipeline.sh --no-transcribe   # skip radio transcription
 ```
 
-`run-pipeline.js` supersedes `daily-pipeline.sh` for slash commands and cron; the shell script remains for manual/legacy use.
+`run-pipeline.js` is the **recommended** unified entry for cron and programmatic runs. `daily-pipeline.sh` and `.claude/commands/8comp*.md` remain as legacy manual recipes (slash commands may use outdated artifact paths — prefer `run-pipeline.js`).
 
 Worker variant: `npm run worker:assess` → `scripts/workers/assess-signals-worker.js`.
 
@@ -46,13 +46,15 @@ Worker variant: `npm run worker:assess` → `scripts/workers/assess-signals-work
 
 ## Node.js pipeline orchestrator
 
-**Entry:** `business_modules/resilience/input/run-pipeline.js` → `app/pipelineOrchestrator.js`
+**Entry:** `node business_modules/resilience/input/run-pipeline.js [date] [options]` → `app/pipelineOrchestrator.js` → `runPipelineOrchestrator`. Bootstraps SQLite via `bootstrapDefaultStateStore` in `run-pipeline.js` before orchestration.
 
-**Purpose:** Unified Node.js orchestration for `/8comp-3`, `/8comp-3-north`, and cron runs. Supersedes `daily-pipeline.sh` for programmatic use.
+**Purpose:** Unified Node.js orchestration for `/8comp-3`, `/8comp-3-north`, and cron runs. Recommended over `daily-pipeline.sh` for programmatic use.
 
-**Plan phase** (`pipelineIngestPlan.js` → `buildPipelineIngestPlan`): Pure preflight — no I/O side effects. Checks artifact existence and emits an ordered list of typed steps per source per date. Action types: `reuse | skip | fetch_news | extract_news | extract_radio | export_whatsapp | extract_whatsapp | extract_field | extract_pbo | extract_naftali | extract_regional_pbo | social_gather | pbo_review`.
+**Plan phase** (`pipelineIngestPlan.js` → `buildPipelineIngestPlan`): Read-only filesystem preflight (no subprocess spawns or writes). Uses `existsSync` / `readdirSync` to check artifact presence and emits an ordered list of typed steps per source per date. Helpers: `parsePipelineDateArg`, `planHasWork`, `loadPipelineEnabledSources`. Action types: `reuse | skip | fetch_news | extract_news | extract_radio | export_whatsapp | extract_whatsapp | extract_field | extract_pbo | extract_naftali | extract_regional_pbo | social_gather | pbo_review`.
 
-**Execute phase** (`pipelineOrchestrator.js` → `runPipelineOrchestrator`): Runs plan steps sequentially via `spawn`. Guards replay `--assess-only` against overwriting a normal existing report (`assertAssessOnlySafe`).
+**Execute phase** (`pipelineOrchestrator.js` → `runPipelineOrchestrator` → `runIngestPhase`): Runs plan steps sequentially via `spawn`. Honors `pipeline-config.json` source toggles. Social gather spawns `socialMediaInput.js gather-daily` (with `--north` when `--scope` ≠ `national`).
+
+**Post-run token report** (`tryWriteTokenReport` → `cross-cut-modules/llm/writeTokenReport.js`): After both full runs and `--ingest-only` exits, filters `llm-invocations.jsonl` by `[startedAt, completedAt]` and writes `cross-cut-modules/budget/resilience_analysis/token-report-{date}-{scope}.json` (aggregates by feature and model). See [COST-CONTROLS.md § Per-pipeline token report](./COST-CONTROLS.md#per-pipeline-token-report).
 
 **Path resolver** (`domain/services/pipelineArtifactPaths.js`): Canonical path functions (`newsSignalsPath`, `radioSignalsPath`, `whatsappSignalsPath`, `socialSignalsPath`, `newsArticlesPath`, etc.). Always import from here — do not hardcode artifact paths.
 
@@ -66,16 +68,43 @@ Worker variant: `npm run worker:assess` → `scripts/workers/assess-signals-work
 | `--force` | Re-extract; delete existing signal bundles in window |
 | `--no-transcribe` | Skip radio transcription step |
 | `--no-social` | Skip social OSINT gather |
-| `--ingest-only` | Run ingest steps only; skip assess |
+| `--ingest-only` | Run ingest steps only; skip assess (still writes token report) |
 | `--assess-only` | Skip ingest; run assess-signals only |
 
-**Replay mode:** Activated when `--date` ≠ today. `conservativeNewsFetch=true` (only fetch if no signals and no articles on disk); social cannot be re-fetched (step emits `skip`). `--assess-only` in replay aborts if a normal report already exists.
+**Replay mode:** Activated when `--date` ≠ today (in `Asia/Jerusalem` / `TZ_ARTICLES`).
+
+- `conservativeNewsFetch=true` when replay **or** when `--scope` ≠ `national` (north runs reuse-first news fetch).
+- Social cannot be re-fetched in replay (`pushSocialReplaySteps` emits `skip`).
+- **Ingest stages suppressed in replay** (`pipelineIngestPlan.js` — `pushOnceSteps` / `pushFieldStepsIfEnabled`; orchestrator skips radio transcribe when `replayMode`):
+
+| Stage | Replay behavior |
+|-------|-----------------|
+| `field` extract | **Skipped** |
+| `pbo` extract | **Skipped** |
+| `naftali` extract | **Skipped** |
+| `pbo_review` | **Skipped** |
+| Radio transcribe (`runPipelineOrchestrator`) | **Skipped** |
+| `social_gather` | `skip` (no re-fetch) |
+| `extract_regional_pbo` | **Still runs** if regional MD files exist on disk |
+| News | Conservative reuse-first fetch (see above) |
+
+- **Abort guards:** (1) `assertAssessOnlySafe` — replay `--assess-only` without `--force` aborts when an existing report has `reportQualityRank(meta) === 0` (normal, no active quarantine). (2) Any replay run aborts when `planHasWork(plan.steps)` is false (nothing to ingest or assess).
 
 ---
 
 ## `scripts/daily-pipeline.sh` (typical steps)
 
-Note: for programmatic invocation (slash commands, cron), use `run-pipeline.js` instead. The shell script remains for manual/legacy use.
+Note: for programmatic invocation (slash commands, cron), prefer `node business_modules/resilience/input/run-pipeline.js`. The shell script remains for manual/legacy use.
+
+**Divergence from Node orchestrator:**
+
+| Aspect | `daily-pipeline.sh` | `run-pipeline.js` |
+|--------|---------------------|-------------------|
+| Social OSINT gather | Not included | `social_gather` when `social` enabled in config |
+| `pipeline-config.json` | Ignored (runs all steps) | Honored via `loadPipelineEnabledSources` |
+| Post-run token report | Not written | `tryWriteTokenReport` after ingest or full run |
+| PBO review vs extract order | Review (7b) before municipal extract (7) | Municipal extract before `pbo_review` |
+| Replay / scope guards | None | `assertAssessOnlySafe`, `planHasWork`, conservative north fetch |
 
 Runs for **today, yesterday, two days ago** (system date):
 
@@ -102,6 +131,8 @@ The shell script runs all steps; **source enablement** for extract/assess is als
 Per-source toggles: `{ "sources": { "<type>": { "enabled": bool, "description": "…" } } }`.
 
 Keys include: `news`, `radio`, `whatsapp`, `field`, `pbo`, `naftali`, `social`.
+
+**Not in config:** `extract_regional_pbo` is filesystem-driven — the orchestrator runs it when regional PBO markdown exists under `regionalPboDataDir()` (`pipelineArtifactPaths.js`), independent of `pipeline-config.json` toggles.
 
 - **Extract:** `extract-signals.js` skips disabled sources (`isSourceEnabled`).
 - **Assess:** `app/assessSignalsHelpers.js` skips disabled sources when loading bundles.
@@ -174,10 +205,51 @@ Full stage detail: [RESILIENCE-ENGINE-REFERENCE.md](./RESILIENCE-ENGINE-REFERENC
 | WhatsApp (DM Report bot) | Same guided flow as Write report — [§ Guided report](#guided-report-write-report--whatsapp-dm) |
 | Field visits | `business_modules/visits/data/` |
 | PBO municipal / regional | `business_modules/pbo_report_muni/`, `business_modules/pbo_report_regional/` |
+| PBO municipal review | `business_modules/pbo_report_review/` — completeness gaps, officer email, inbound replies (see [§ Municipal PBO review](#municipal-pbo-review)) |
 | Naftali / pools | `business_modules/pool/` |
 | Social OSINT | `business_modules/social_media/data/` |
 
 Geographic scoping for regional reports: [GEOGRAPHIC-ANALYSIS.md](./GEOGRAPHIC-ANALYSIS.md).
+
+---
+
+## Municipal PBO review
+
+**Module:** `business_modules/pbo_report_review/` — municipal PBO **completeness** workflow (distinct from municipal extract in `pbo_report_muni/`).
+
+**Flow:**
+
+```text
+Municipal PBO markdown on disk
+  → extract-pbo-signals (may force re-extract when review answers arrive)
+  → pbo_review step (orchestrator, today-only — skipped in replay)
+       ├─ compute gaps vs expected sections (municipalCompleteness.js)
+       ├─ email officers with questions (pboReviewMailingAdapter)
+       └─ store review state in SQLite (pboReviewSqliteStore)
+  → officer replies via inbound email webhook or analyst web form
+  → supplemental answers merged on next extract (loadReviewMetadataMapForDate)
+```
+
+**Orchestrator:** `pbo_review` action in `pipelineIngestPlan.js` spawns `input/runMunicipalPboReview.js` after municipal extract, before assess. **Skipped in replay mode.**
+
+**Extract coupling:** `business_modules/pbo_report_muni/input/extract-pbo-signals.js` imports `loadReviewMetadataMapForDate` and `shouldForcePboSignalRewrite` from `pbo_report_review/index.js` to merge officer supplemental text and force re-extract when inbound answers arrive.
+
+**HTTP routes** (`input/pboReviewRoutes.js`):
+
+| Route | Purpose |
+|-------|---------|
+| `GET /api/pbo/municipal-reviews?date=` | List reviews for a date |
+| `GET /api/pbo/municipal-reviews/:date/:municipality` | Review detail |
+| `POST /api/pbo/municipal-reviews/:date/:municipality/replies` | Analyst web reply |
+| `POST /api/pbo/review/inbound-email` | Resend inbound webhook (`RESEND_WEBHOOK_SECRET`) |
+| `GET /api/pbo/historical-search` | RAG-backed historical PBO search (when wired) |
+
+**Data:** officer directory `business_modules/pbo_report_review/data/officers.json`; review state in SQLite.
+
+**Chat tools:** `list_pbo_reviews`, `get_pbo_review`, `search_pbo_history` — see [LLM-CHAT-AND-AGENTS.md § PBO review surfaces](./LLM-CHAT-AND-AGENTS.md#pbo-review-surfaces).
+
+**Shell vs Node order:** `daily-pipeline.sh` runs review (step 7b) **before** municipal extract (step 7); Node orchestrator runs municipal extract **before** `pbo_review`.
+
 
 ---
 
@@ -209,6 +281,7 @@ Structured situational reports use one **`report_build`** orchestrator for two s
 | `daily_reports/divergence-{scopeId}-*.json` | Shadow vs agent divergence (`GET /api/report/divergence`, analyst) |
 | `daily_reports/epistemic-profile-{scopeId}-*.json` | Epistemic profile snapshot per scope/date |
 | `daily_reports/assessment-agent-trace-*.jsonl` | Agent step replay (analyst) |
+| `cross-cut-modules/budget/resilience_analysis/token-report-{date}-{scope}.json` | Per-run LLM token/cost rollup (pipeline orchestrator) |
 | `business_modules/signals_extraction/data/signals/signals-{type}-*.json` | Extracted signals per source/day (field: `business_modules/visits/data/signals/signals-field-*.json`) |
 | `business_modules/news-sites/articles_extracted/` | News markdown exports |
 | SQLite `source_archive` | Original source text for chat `get_source` and assess-time RAG |
@@ -222,7 +295,7 @@ Deploy must include product pages (`cross-cut-modules/docs/content/pages/`) and 
 
 During **extract**, optional OOV learning capture writes `daily_reports/oov-capture-{date}.jsonl` when `RESILIENCE_OOV_CAPTURE=1` (unknown types, self-check uncertain, zero-signal articles; optional residual observations when `RESILIENCE_RESIDUAL_CAPTURE=1`).
 
-**Module:** `business_modules/signal_catalog_evolution/` — clusters captures, generates gap reports, and stores human-reviewed draft catalog proposals (SQLite `catalog_proposals`). Does **not** change daily scores; OOV/residual may feed **investigation** when Tier 2 flags enabled.
+**Module:** `business_modules/signal_catalog_evolution/` — clusters captures, generates gap reports, and stores human-reviewed draft catalog proposals (SQLite `catalog_proposals`). Does **not** change daily scores; OOV/residual may feed **investigation** when Tier 2 flags enabled. Closed catalog is `CATALOG_VERSION` v6 (~165 types) — see [RESILIENCE-ENGINE-REFERENCE.md § Signal catalog v6](./RESILIENCE-ENGINE-REFERENCE.md#signal-catalog-v6).
 
 ```bash
 npm run signal-catalog-evolution:gap-report
