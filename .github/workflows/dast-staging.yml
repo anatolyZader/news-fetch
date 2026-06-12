@@ -11,7 +11,7 @@ jobs:
     name: OWASP ZAP baseline (staging)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Run ZAP baseline scan
         env:
@@ -25,7 +25,7 @@ jobs:
             zap-baseline.py -t "$STAGING_URL" -r zap-report.html || true
           echo "Review zap-report.html artifact if scan ran."
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: env.STAGING_URL != ''
         env:
           STAGING_URL: ${{ secrets.STAGING_URL }}
