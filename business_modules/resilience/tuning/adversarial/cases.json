@@ -6,61 +6,125 @@
       "category": "rumor_cascade",
       "scenario": "A single news outlet repeats the same unverified rumor across 8 articles; pipeline must not pin the affected component at extreme score.",
       "mock_extraction": [
-        {"article_index": 1, "article_url": "https://x.com/r1", "article_source": "ynet.co.il", "source_type": "news",
-         "signal_type": "rumor_spread", "evidence_type": "observational_reported_fact",
-         "scope_level": "single_case", "evidence": "Rumour: missile factory targeted",
-         "extraction_confidence": 0.7, "temporal_weight": 1.0},
-        {"article_index": 2, "article_url": "https://x.com/r2", "article_source": "ynet.co.il", "source_type": "news",
-         "signal_type": "rumor_spread", "evidence_type": "observational_reported_fact",
-         "scope_level": "single_case", "evidence": "Rumour: missile factory targeted",
-         "extraction_confidence": 0.7, "temporal_weight": 1.0},
-        {"article_index": 3, "article_url": "https://x.com/r3", "article_source": "ynet.co.il", "source_type": "news",
-         "signal_type": "rumor_spread", "evidence_type": "observational_reported_fact",
-         "scope_level": "single_case", "evidence": "Rumour: missile factory targeted",
-         "extraction_confidence": 0.7, "temporal_weight": 1.0},
-        {"article_index": 4, "article_url": "https://x.com/r4", "article_source": "ynet.co.il", "source_type": "news",
-         "signal_type": "rumor_spread", "evidence_type": "observational_reported_fact",
-         "scope_level": "single_case", "evidence": "Rumour: missile factory targeted",
-         "extraction_confidence": 0.7, "temporal_weight": 1.0},
-        {"article_index": 5, "article_url": "https://x.com/r5", "article_source": "ynet.co.il", "source_type": "news",
-         "signal_type": "rumor_spread", "evidence_type": "observational_reported_fact",
-         "scope_level": "single_case", "evidence": "Rumour: missile factory targeted",
-         "extraction_confidence": 0.7, "temporal_weight": 1.0}
+        {
+          "article_index": 1,
+          "article_url": "https://x.com/r1",
+          "article_source": "ynet.co.il",
+          "source_type": "news",
+          "signal_type": "rumor_spread",
+          "evidence_type": "observational_reported_fact",
+          "scope_level": "single_case",
+          "evidence": "Rumour: missile factory targeted",
+          "extraction_confidence": 0.7,
+          "temporal_weight": 1
+        },
+        {
+          "article_index": 2,
+          "article_url": "https://x.com/r2",
+          "article_source": "ynet.co.il",
+          "source_type": "news",
+          "signal_type": "rumor_spread",
+          "evidence_type": "observational_reported_fact",
+          "scope_level": "single_case",
+          "evidence": "Rumour: missile factory targeted",
+          "extraction_confidence": 0.7,
+          "temporal_weight": 1
+        },
+        {
+          "article_index": 3,
+          "article_url": "https://x.com/r3",
+          "article_source": "ynet.co.il",
+          "source_type": "news",
+          "signal_type": "rumor_spread",
+          "evidence_type": "observational_reported_fact",
+          "scope_level": "single_case",
+          "evidence": "Rumour: missile factory targeted",
+          "extraction_confidence": 0.7,
+          "temporal_weight": 1
+        },
+        {
+          "article_index": 4,
+          "article_url": "https://x.com/r4",
+          "article_source": "ynet.co.il",
+          "source_type": "news",
+          "signal_type": "rumor_spread",
+          "evidence_type": "observational_reported_fact",
+          "scope_level": "single_case",
+          "evidence": "Rumour: missile factory targeted",
+          "extraction_confidence": 0.7,
+          "temporal_weight": 1
+        },
+        {
+          "article_index": 5,
+          "article_url": "https://x.com/r5",
+          "article_source": "ynet.co.il",
+          "source_type": "news",
+          "signal_type": "rumor_spread",
+          "evidence_type": "observational_reported_fact",
+          "scope_level": "single_case",
+          "evidence": "Rumour: missile factory targeted",
+          "extraction_confidence": 0.7,
+          "temporal_weight": 1
+        }
       ],
       "expectations": {
         "after_cross_source_dedup_count": 1,
-        "score_range": {"information_communication": [3, 8]},
+        "score_range": {
+          "information_communication": [
+            3,
+            8
+          ]
+        },
         "comment": "Cross-source dedup collapses the rumor cascade to one signal; min-mass floor then keeps the score in the moderate band [3,8]."
       }
     },
-
     {
       "id": "cross_outlet_duplicated_quote",
       "category": "duplicated_quote",
       "scenario": "Three outlets republish the same direct quote from the mayor; cross-source dedup should collapse them to ~1 signal.",
       "mock_extraction": [
-        {"article_index": 1, "article_url": "https://ynet.co.il/q1", "article_source": "ynet.co.il", "source_type": "news",
-         "signal_type": "leadership_clear_guidance", "evidence_type": "direct_quote_named_person",
-         "scope_level": "single_case",
-         "evidence": "Mayor Cohen said: \"All schools will reopen Monday. Public transport returns to full schedule tonight.\"",
-         "extraction_confidence": 0.9, "temporal_weight": 1.0},
-        {"article_index": 2, "article_url": "https://maariv.co.il/q2", "article_source": "maariv.co.il", "source_type": "news",
-         "signal_type": "leadership_clear_guidance", "evidence_type": "direct_quote_named_person",
-         "scope_level": "single_case",
-         "evidence": "Mayor Cohen said: \"All schools will reopen Monday. Public transport returns to full schedule tonight.\"",
-         "extraction_confidence": 0.9, "temporal_weight": 1.0},
-        {"article_index": 3, "article_url": "https://channel14.co.il/q3", "article_source": "channel14.co.il", "source_type": "news",
-         "signal_type": "leadership_clear_guidance", "evidence_type": "direct_quote_named_person",
-         "scope_level": "single_case",
-         "evidence": "Mayor Cohen said: \"All schools will reopen Monday. Public transport returns to full schedule tonight.\"",
-         "extraction_confidence": 0.9, "temporal_weight": 1.0}
+        {
+          "article_index": 1,
+          "article_url": "https://ynet.co.il/q1",
+          "article_source": "ynet.co.il",
+          "source_type": "news",
+          "signal_type": "leadership_clear_guidance",
+          "evidence_type": "direct_quote_named_person",
+          "scope_level": "single_case",
+          "evidence": "Mayor Cohen said: \"All schools will reopen Monday. Public transport returns to full schedule tonight.\"",
+          "extraction_confidence": 0.9,
+          "temporal_weight": 1
+        },
+        {
+          "article_index": 2,
+          "article_url": "https://maariv.co.il/q2",
+          "article_source": "maariv.co.il",
+          "source_type": "news",
+          "signal_type": "leadership_clear_guidance",
+          "evidence_type": "direct_quote_named_person",
+          "scope_level": "single_case",
+          "evidence": "Mayor Cohen said: \"All schools will reopen Monday. Public transport returns to full schedule tonight.\"",
+          "extraction_confidence": 0.9,
+          "temporal_weight": 1
+        },
+        {
+          "article_index": 3,
+          "article_url": "https://channel14.co.il/q3",
+          "article_source": "channel14.co.il",
+          "source_type": "news",
+          "signal_type": "leadership_clear_guidance",
+          "evidence_type": "direct_quote_named_person",
+          "scope_level": "single_case",
+          "evidence": "Mayor Cohen said: \"All schools will reopen Monday. Public transport returns to full schedule tonight.\"",
+          "extraction_confidence": 0.9,
+          "temporal_weight": 1
+        }
       ],
       "expectations": {
         "after_cross_source_dedup_count": 1,
         "comment": "Identical evidence text across multiple outlets should collapse to one signal."
       }
     },
-
     {
       "id": "single_outlet_flood_news",
       "category": "outlet_flood",
@@ -68,28 +132,43 @@
       "mock_extraction": "REPEAT(9, ynet, resilience_narrative_positive) + REPEAT(1, maariv, resilience_narrative_positive)",
       "_generator": "outlet_flood_positive",
       "expectations": {
-        "score_range": {"narrative": [4, 9]},
+        "score_range": {
+          "narrative": [
+            4,
+            9
+          ]
+        },
         "comment": "Per-article-source cap brings ynet down to 35%; without the cap the score would pin at 10."
       }
     },
-
     {
       "id": "thin_single_signal_negative",
       "category": "thin_evidence",
       "scenario": "One single-case observational signal alone; min-mass floor should prevent extreme low (<3) score.",
       "mock_extraction": [
-        {"article_index": 1, "article_url": "https://x.com/thin", "article_source": "x.com", "source_type": "news",
-         "signal_type": "non_compliance_exit_early", "evidence_type": "observational_reported_fact",
-         "scope_level": "single_case",
-         "evidence": "Two residents reportedly left shelter before all-clear.",
-         "extraction_confidence": 0.6, "temporal_weight": 1.0}
+        {
+          "article_index": 1,
+          "article_url": "https://x.com/thin",
+          "article_source": "x.com",
+          "source_type": "news",
+          "signal_type": "non_compliance_exit_early",
+          "evidence_type": "observational_reported_fact",
+          "scope_level": "single_case",
+          "evidence": "Two residents reportedly left shelter before all-clear.",
+          "extraction_confidence": 0.6,
+          "temporal_weight": 1
+        }
       ],
       "expectations": {
-        "score_range": {"lifesaving_behavior": [3, 8]},
+        "score_range": {
+          "lifesaving_behavior": [
+            3,
+            8
+          ]
+        },
         "comment": "Min-mass floor must clamp to [3,8] for evidence_mass < 1.5."
       }
     },
-
     {
       "id": "low_extraction_confidence_chain",
       "category": "extraction_confidence",
@@ -97,39 +176,71 @@
       "mock_extraction": "REPEAT(10, ynet, resilience_narrative_negative, ec=0.2)",
       "_generator": "low_confidence_negatives",
       "expectations": {
-        "max_evidence_mass": 8.0,
+        "max_evidence_mass": 8,
         "comment": "Even 10 signals at low extraction_confidence should produce muted evidence mass."
       }
     },
-
     {
       "id": "balanced_high_polarization",
       "category": "polarization",
       "scenario": "Equal positive and negative narrative signals from diverse sources; polarization should be very high.",
       "mock_extraction": [
-        {"article_index": 1, "article_url": "https://x.com/p1", "article_source": "ynet.co.il", "source_type": "news",
-         "signal_type": "resilience_narrative_positive", "evidence_type": "observational_reported_fact",
-         "scope_level": "repeated_pattern", "evidence": "Many residents express confidence",
-         "extraction_confidence": 0.9, "temporal_weight": 1.0},
-        {"article_index": 2, "article_url": "https://x.com/p2", "article_source": "kan.org.il", "source_type": "radio",
-         "signal_type": "resilience_narrative_positive", "evidence_type": "observational_reported_fact",
-         "scope_level": "repeated_pattern", "evidence": "Resilience reported in Kiryat Shmona",
-         "extraction_confidence": 0.9, "temporal_weight": 1.0},
-        {"article_index": 3, "article_url": "https://x.com/n1", "article_source": "haaretz.co.il", "source_type": "news",
-         "signal_type": "resilience_narrative_negative", "evidence_type": "observational_reported_fact",
-         "scope_level": "repeated_pattern", "evidence": "Many residents reject coping narrative",
-         "extraction_confidence": 0.9, "temporal_weight": 1.0},
-        {"article_index": 4, "article_url": "https://x.com/n2", "article_source": "field.report", "source_type": "field",
-         "signal_type": "resilience_narrative_negative", "evidence_type": "observational_reported_fact",
-         "scope_level": "repeated_pattern", "evidence": "Officers report widespread frustration",
-         "extraction_confidence": 0.9, "temporal_weight": 1.0}
+        {
+          "article_index": 1,
+          "article_url": "https://x.com/p1",
+          "article_source": "ynet.co.il",
+          "source_type": "news",
+          "signal_type": "resilience_narrative_positive",
+          "evidence_type": "observational_reported_fact",
+          "scope_level": "repeated_pattern",
+          "evidence": "Many residents express confidence",
+          "extraction_confidence": 0.9,
+          "temporal_weight": 1
+        },
+        {
+          "article_index": 2,
+          "article_url": "https://x.com/p2",
+          "article_source": "kan.org.il",
+          "source_type": "radio",
+          "signal_type": "resilience_narrative_positive",
+          "evidence_type": "observational_reported_fact",
+          "scope_level": "repeated_pattern",
+          "evidence": "Resilience reported in Kiryat Shmona",
+          "extraction_confidence": 0.9,
+          "temporal_weight": 1
+        },
+        {
+          "article_index": 3,
+          "article_url": "https://x.com/n1",
+          "article_source": "haaretz.co.il",
+          "source_type": "news",
+          "signal_type": "resilience_narrative_negative",
+          "evidence_type": "observational_reported_fact",
+          "scope_level": "repeated_pattern",
+          "evidence": "Many residents reject coping narrative",
+          "extraction_confidence": 0.9,
+          "temporal_weight": 1
+        },
+        {
+          "article_index": 4,
+          "article_url": "https://x.com/n2",
+          "article_source": "103fm.co.il",
+          "source_type": "radio",
+          "signal_type": "resilience_narrative_negative",
+          "evidence_type": "observational_reported_fact",
+          "scope_level": "repeated_pattern",
+          "evidence": "Officers report widespread frustration",
+          "extraction_confidence": 0.9,
+          "temporal_weight": 1
+        }
       ],
       "expectations": {
-        "min_polarization": {"narrative": 0.85},
+        "min_polarization": {
+          "narrative": 0.85
+        },
         "comment": "Balanced positive/negative => polarization near 1.0."
       }
     },
-
     {
       "id": "all_one_source_type_no_cap",
       "category": "no_diversity",
@@ -137,66 +248,90 @@
       "mock_extraction": "REPEAT(6, ynet, calm_confidence)",
       "_generator": "single_source_calm",
       "expectations": {
-        "max_source_diversity_factor": {"narrative": 0.86},
+        "max_source_diversity_factor": {
+          "narrative": 0.86
+        },
         "comment": "source_diversity_factor = 0.85 + 0.15 * min(1, (1-1)/3) = 0.85 floor."
       }
     },
-
     {
       "id": "signal_verification_drops_unsupported",
       "category": "evidence_verification",
       "scenario": "Signal whose evidence text does not appear in the article body should be marked unverified by verifyEvidenceAgainstArticle.",
       "article_body": "The Home Front Command issued a statement reminding residents to enter sealed rooms when alerts sound.",
       "mock_signal": {
-        "article_index": 1, "article_url": "https://x.com/v1", "article_source": "x.com", "source_type": "news",
-        "signal_type": "harm_to_population", "evidence_type": "observational_reported_fact",
+        "article_index": 1,
+        "article_url": "https://x.com/v1",
+        "article_source": "x.com",
+        "source_type": "news",
+        "signal_type": "harm_to_population",
+        "evidence_type": "observational_reported_fact",
         "scope_level": "single_case",
         "evidence": "Twenty civilians were reportedly killed in a building strike in Kiryat Shmona.",
-        "extraction_confidence": 0.9, "temporal_weight": 1.0
+        "extraction_confidence": 0.9,
+        "temporal_weight": 1
       },
       "expectations": {
         "verifier_should_pass": false,
         "comment": "Evidence text mentions casualties not in the article body — verifier must reject."
       }
     },
-
     {
       "id": "signal_verification_accepts_paraphrase",
       "category": "evidence_verification",
       "scenario": "Signal whose evidence paraphrases content present in the article body should pass verification.",
       "article_body": "Mayor Cohen visited the local school today and personally inspected the shelter setup, reassuring families that the building is safe and that classes will resume Monday morning.",
       "mock_signal": {
-        "article_index": 1, "article_url": "https://x.com/v2", "article_source": "x.com", "source_type": "news",
-        "signal_type": "leadership_visible_presence", "evidence_type": "observational_reported_fact",
+        "article_index": 1,
+        "article_url": "https://x.com/v2",
+        "article_source": "x.com",
+        "source_type": "news",
+        "signal_type": "leadership_visible_presence",
+        "evidence_type": "observational_reported_fact",
         "scope_level": "single_case",
         "evidence": "Mayor Cohen visited the local school today and personally inspected the shelter setup",
-        "extraction_confidence": 0.9, "temporal_weight": 1.0
+        "extraction_confidence": 0.9,
+        "temporal_weight": 1
       },
       "expectations": {
         "verifier_should_pass": true,
         "comment": "Evidence is a near-verbatim slice of the article body."
       }
     },
-
     {
       "id": "within_source_dedup_collapses_identical",
       "category": "within_source_dedup",
       "scenario": "Two identical signals (same article + signal_type + evidence) within the same source should collapse to 1.",
       "mock_extraction": [
-        {"article_index": 1, "article_url": "https://x.com/d", "article_source": "x.com", "source_type": "news",
-         "signal_type": "leadership_visible_presence", "evidence_type": "observational_reported_fact",
-         "scope_level": "single_case", "evidence": "Mayor Cohen visited the school",
-         "extraction_confidence": 0.9, "temporal_weight": 1.0},
-        {"article_index": 1, "article_url": "https://x.com/d", "article_source": "x.com", "source_type": "news",
-         "signal_type": "leadership_visible_presence", "evidence_type": "observational_reported_fact",
-         "scope_level": "single_case", "evidence": "Mayor Cohen visited the school",
-         "extraction_confidence": 0.9, "temporal_weight": 1.0}
+        {
+          "article_index": 1,
+          "article_url": "https://x.com/d",
+          "article_source": "x.com",
+          "source_type": "news",
+          "signal_type": "leadership_visible_presence",
+          "evidence_type": "observational_reported_fact",
+          "scope_level": "single_case",
+          "evidence": "Mayor Cohen visited the school",
+          "extraction_confidence": 0.9,
+          "temporal_weight": 1
+        },
+        {
+          "article_index": 1,
+          "article_url": "https://x.com/d",
+          "article_source": "x.com",
+          "source_type": "news",
+          "signal_type": "leadership_visible_presence",
+          "evidence_type": "observational_reported_fact",
+          "scope_level": "single_case",
+          "evidence": "Mayor Cohen visited the school",
+          "extraction_confidence": 0.9,
+          "temporal_weight": 1
+        }
       ],
       "expectations": {
         "after_within_dedup_count": 1
       }
     },
-
     {
       "id": "extreme_positive_quantified_repeated",
       "category": "saturation",
@@ -209,7 +344,6 @@
         "comment": "Saturation should produce a high score but not crash; score must stay within [1,10]."
       }
     },
-
     {
       "id": "no_signals_yields_insufficient_data",
       "category": "empty",
@@ -219,26 +353,45 @@
         "all_components_insufficient": true
       }
     },
-
     {
       "id": "polarization_with_min_mass_clamps",
       "category": "thin_balanced",
       "scenario": "One positive + one negative signal of same magnitude; polarization=1, evidence_mass<1.5 should clamp to [3,8].",
       "mock_extraction": [
-        {"article_index": 1, "article_url": "https://x.com/tp", "article_source": "x.com", "source_type": "news",
-         "signal_type": "resilience_narrative_positive", "evidence_type": "observational_reported_fact",
-         "scope_level": "single_case", "evidence": "one resident felt confident",
-         "extraction_confidence": 0.5, "temporal_weight": 1.0},
-        {"article_index": 2, "article_url": "https://x.com/tn", "article_source": "x.com", "source_type": "news",
-         "signal_type": "resilience_narrative_negative", "evidence_type": "observational_reported_fact",
-         "scope_level": "single_case", "evidence": "one resident expressed despair",
-         "extraction_confidence": 0.5, "temporal_weight": 1.0}
+        {
+          "article_index": 1,
+          "article_url": "https://x.com/tp",
+          "article_source": "x.com",
+          "source_type": "news",
+          "signal_type": "resilience_narrative_positive",
+          "evidence_type": "observational_reported_fact",
+          "scope_level": "single_case",
+          "evidence": "one resident felt confident",
+          "extraction_confidence": 0.5,
+          "temporal_weight": 1
+        },
+        {
+          "article_index": 2,
+          "article_url": "https://x.com/tn",
+          "article_source": "x.com",
+          "source_type": "news",
+          "signal_type": "resilience_narrative_negative",
+          "evidence_type": "observational_reported_fact",
+          "scope_level": "single_case",
+          "evidence": "one resident expressed despair",
+          "extraction_confidence": 0.5,
+          "temporal_weight": 1
+        }
       ],
       "expectations": {
-        "score_range": {"narrative": [3, 8]}
+        "score_range": {
+          "narrative": [
+            3,
+            8
+          ]
+        }
       }
     },
-
     {
       "id": "live_llm_satire_should_not_extract_harm",
       "category": "satire",
@@ -247,11 +400,14 @@
       "article_body": "[SATIRE — published in the humor section] In a definitely-not-real announcement, the Ministry of Time confirmed that today, all alerts have been replaced with elevator music and free cake. Sources include a duck and our cousin Yossi.",
       "expectations": {
         "max_signals": 1,
-        "forbidden_signal_types": ["harm_to_population", "fear_expression", "panic_behavior"],
+        "forbidden_signal_types": [
+          "harm_to_population",
+          "fear_expression",
+          "panic_behavior"
+        ],
         "comment": "LLM must recognize satire framing and either skip extraction or extract only meta-signals."
       }
     },
-
     {
       "id": "live_llm_opinion_should_not_become_observational_fact",
       "category": "opinion",
@@ -260,140 +416,242 @@
       "article_body": "OPINION | Adi Ben-David: I believe, based on my reading of the situation, that the government is profoundly failing to communicate with the population. They should resign immediately.",
       "expectations": {
         "max_signals": 2,
-        "forbidden_evidence_types": ["named_institutional_fact", "named_survey_statistic"],
+        "forbidden_evidence_types": [
+          "named_institutional_fact",
+          "named_survey_statistic"
+        ],
         "comment": "First-person opinion is not an institutional fact or a survey statistic."
       }
     },
-
     {
       "id": "wire_copy_geo_cluster_cross_outlet",
       "category": "geo_duplication",
       "scenario": "Four outlets publish the same observational wire line about Tel Aviv transit; cross-source dedup should collapse to one behavioral fact.",
       "mock_extraction": [
-        {"article_index": 1, "article_url": "https://ynet.co.il/w1", "article_source": "ynet.co.il", "source_type": "news",
-         "signal_type": "routine_maintenance", "evidence_type": "observational_reported_fact",
-         "scope_level": "single_case",
-         "evidence": "Municipal authorities announced that Tel Aviv light rail service will resume normal weekend frequency after overnight maintenance on the Red Line.",
-         "extraction_confidence": 0.9, "temporal_weight": 1.0},
-        {"article_index": 2, "article_url": "https://maariv.co.il/w2", "article_source": "maariv.co.il", "source_type": "news",
-         "signal_type": "routine_maintenance", "evidence_type": "observational_reported_fact",
-         "scope_level": "single_case",
-         "evidence": "Municipal authorities announced that Tel Aviv light rail service will resume normal weekend frequency after overnight maintenance on the Red Line.",
-         "extraction_confidence": 0.88, "temporal_weight": 1.0},
-        {"article_index": 3, "article_url": "https://haaretz.co.il/w3", "article_source": "haaretz.co.il", "source_type": "news",
-         "signal_type": "routine_maintenance", "evidence_type": "observational_reported_fact",
-         "scope_level": "single_case",
-         "evidence": "Municipal authorities announced that Tel Aviv light rail service will resume normal weekend frequency after overnight maintenance on the Red Line.",
-         "extraction_confidence": 0.87, "temporal_weight": 1.0},
-        {"article_index": 4, "article_url": "https://channel14.co.il/w4", "article_source": "channel14.co.il", "source_type": "news",
-         "signal_type": "routine_maintenance", "evidence_type": "observational_reported_fact",
-         "scope_level": "single_case",
-         "evidence": "Municipal authorities announced that Tel Aviv light rail service will resume normal weekend frequency after overnight maintenance on the Red Line.",
-         "extraction_confidence": 0.86, "temporal_weight": 1.0}
+        {
+          "article_index": 1,
+          "article_url": "https://ynet.co.il/w1",
+          "article_source": "ynet.co.il",
+          "source_type": "news",
+          "signal_type": "routine_maintenance",
+          "evidence_type": "observational_reported_fact",
+          "scope_level": "single_case",
+          "evidence": "Municipal authorities announced that Tel Aviv light rail service will resume normal weekend frequency after overnight maintenance on the Red Line.",
+          "extraction_confidence": 0.9,
+          "temporal_weight": 1
+        },
+        {
+          "article_index": 2,
+          "article_url": "https://maariv.co.il/w2",
+          "article_source": "maariv.co.il",
+          "source_type": "news",
+          "signal_type": "routine_maintenance",
+          "evidence_type": "observational_reported_fact",
+          "scope_level": "single_case",
+          "evidence": "Municipal authorities announced that Tel Aviv light rail service will resume normal weekend frequency after overnight maintenance on the Red Line.",
+          "extraction_confidence": 0.88,
+          "temporal_weight": 1
+        },
+        {
+          "article_index": 3,
+          "article_url": "https://haaretz.co.il/w3",
+          "article_source": "haaretz.co.il",
+          "source_type": "news",
+          "signal_type": "routine_maintenance",
+          "evidence_type": "observational_reported_fact",
+          "scope_level": "single_case",
+          "evidence": "Municipal authorities announced that Tel Aviv light rail service will resume normal weekend frequency after overnight maintenance on the Red Line.",
+          "extraction_confidence": 0.87,
+          "temporal_weight": 1
+        },
+        {
+          "article_index": 4,
+          "article_url": "https://channel14.co.il/w4",
+          "article_source": "channel14.co.il",
+          "source_type": "news",
+          "signal_type": "routine_maintenance",
+          "evidence_type": "observational_reported_fact",
+          "scope_level": "single_case",
+          "evidence": "Municipal authorities announced that Tel Aviv light rail service will resume normal weekend frequency after overnight maintenance on the Red Line.",
+          "extraction_confidence": 0.86,
+          "temporal_weight": 1
+        }
       ],
       "expectations": {
         "after_cross_source_dedup_count": 1
       }
     },
-
     {
       "id": "military_ops_headline_echo_chamber",
       "category": "military_framing",
       "scenario": "Repeated military-operations framing with identical evidence text across desks; dedup + scoring should stay bounded.",
       "mock_extraction": [
-        {"article_index": 1, "article_url": "https://ynet.co.il/m1", "article_source": "ynet.co.il", "source_type": "news",
-         "signal_type": "rumor_spread", "evidence_type": "observational_reported_fact",
-         "scope_level": "single_case",
-         "evidence": "Unverified social posts claimed Iron Dome batteries were repositioned near Tel Aviv ahead of a diplomatic visit; no official confirmation was quoted.",
-         "extraction_confidence": 0.75, "temporal_weight": 1.0},
-        {"article_index": 2, "article_url": "https://maariv.co.il/m2", "article_source": "maariv.co.il", "source_type": "news",
-         "signal_type": "rumor_spread", "evidence_type": "observational_reported_fact",
-         "scope_level": "single_case",
-         "evidence": "Unverified social posts claimed Iron Dome batteries were repositioned near Tel Aviv ahead of a diplomatic visit; no official confirmation was quoted.",
-         "extraction_confidence": 0.74, "temporal_weight": 1.0},
-        {"article_index": 3, "article_url": "https://kan.org.il/m3", "article_source": "kan.org.il", "source_type": "news",
-         "signal_type": "rumor_spread", "evidence_type": "observational_reported_fact",
-         "scope_level": "single_case",
-         "evidence": "Unverified social posts claimed Iron Dome batteries were repositioned near Tel Aviv ahead of a diplomatic visit; no official confirmation was quoted.",
-         "extraction_confidence": 0.73, "temporal_weight": 1.0}
+        {
+          "article_index": 1,
+          "article_url": "https://ynet.co.il/m1",
+          "article_source": "ynet.co.il",
+          "source_type": "news",
+          "signal_type": "rumor_spread",
+          "evidence_type": "observational_reported_fact",
+          "scope_level": "single_case",
+          "evidence": "Unverified social posts claimed Iron Dome batteries were repositioned near Tel Aviv ahead of a diplomatic visit; no official confirmation was quoted.",
+          "extraction_confidence": 0.75,
+          "temporal_weight": 1
+        },
+        {
+          "article_index": 2,
+          "article_url": "https://maariv.co.il/m2",
+          "article_source": "maariv.co.il",
+          "source_type": "news",
+          "signal_type": "rumor_spread",
+          "evidence_type": "observational_reported_fact",
+          "scope_level": "single_case",
+          "evidence": "Unverified social posts claimed Iron Dome batteries were repositioned near Tel Aviv ahead of a diplomatic visit; no official confirmation was quoted.",
+          "extraction_confidence": 0.74,
+          "temporal_weight": 1
+        },
+        {
+          "article_index": 3,
+          "article_url": "https://kan.org.il/m3",
+          "article_source": "kan.org.il",
+          "source_type": "news",
+          "signal_type": "rumor_spread",
+          "evidence_type": "observational_reported_fact",
+          "scope_level": "single_case",
+          "evidence": "Unverified social posts claimed Iron Dome batteries were repositioned near Tel Aviv ahead of a diplomatic visit; no official confirmation was quoted.",
+          "extraction_confidence": 0.73,
+          "temporal_weight": 1
+        }
       ],
       "expectations": {
         "after_cross_source_dedup_count": 1,
-        "score_range": {"information_communication": [3, 9]}
+        "score_range": {
+          "information_communication": [
+            3,
+            9
+          ]
+        }
       }
     },
-
     {
       "id": "repeated_headline_near_duplicate_evidence",
       "category": "headline_echo",
       "scenario": "Two outlets run the same headline lede with only punctuation drift; normalized cross-source dedup should still collapse.",
       "mock_extraction": [
-        {"article_index": 10, "article_url": "https://ynet.co.il/h1", "article_source": "ynet.co.il", "source_type": "news",
-         "signal_type": "information_effectiveness_gap", "evidence_type": "observational_reported_fact",
-         "scope_level": "single_case",
-         "evidence": "Residents in northern towns reported they still had no clear instructions on school reopenings after the overnight alert sequence ended.",
-         "extraction_confidence": 0.85, "temporal_weight": 1.0},
-        {"article_index": 11, "article_url": "https://maariv.co.il/h2", "article_source": "maariv.co.il", "source_type": "news",
-         "signal_type": "information_effectiveness_gap", "evidence_type": "observational_reported_fact",
-         "scope_level": "single_case",
-         "evidence": "Residents in northern towns reported they still had no clear instructions on school reopenings after the overnight alert sequence ended",
-         "extraction_confidence": 0.84, "temporal_weight": 1.0}
+        {
+          "article_index": 10,
+          "article_url": "https://ynet.co.il/h1",
+          "article_source": "ynet.co.il",
+          "source_type": "news",
+          "signal_type": "information_effectiveness_gap",
+          "evidence_type": "observational_reported_fact",
+          "scope_level": "single_case",
+          "evidence": "Residents in northern towns reported they still had no clear instructions on school reopenings after the overnight alert sequence ended.",
+          "extraction_confidence": 0.85,
+          "temporal_weight": 1
+        },
+        {
+          "article_index": 11,
+          "article_url": "https://maariv.co.il/h2",
+          "article_source": "maariv.co.il",
+          "source_type": "news",
+          "signal_type": "information_effectiveness_gap",
+          "evidence_type": "observational_reported_fact",
+          "scope_level": "single_case",
+          "evidence": "Residents in northern towns reported they still had no clear instructions on school reopenings after the overnight alert sequence ended",
+          "extraction_confidence": 0.84,
+          "temporal_weight": 1
+        }
       ],
       "expectations": {
         "after_cross_source_dedup_count": 1
       }
     },
-
     {
       "id": "military_framing_news_floods_radio_balanced",
       "category": "source_type_cap",
       "_generator": "military_news_flood_with_one_radio",
       "scenario": "Eight news outlets push positive narrative on military framing; one radio piece balances. Layer-1 source_type cap (≤50%) keeps narrative within a moderate band.",
       "expectations": {
-        "score_range": {"narrative": [4, 9]},
+        "score_range": {
+          "narrative": [
+            4,
+            9
+          ]
+        },
         "comment": "Without Layer-1 cap, news mass dominates and the score saturates near 10."
       }
     },
-
     {
       "id": "geo_listing_two_outlets_each_negative",
       "category": "article_source_cap",
       "_generator": "ynet_geo_negatives_with_one_maariv",
       "scenario": "Six ynet pieces pile a negative wellbeing narrative; one maariv piece balances. Layer-2 article_source cap (≤35%) keeps source_diversity_factor low and bounds the score.",
       "expectations": {
-        "score_range": {"wellbeing_at_risk": [1, 9]},
-        "max_source_diversity_factor": {"wellbeing_at_risk": 0.95},
+        "score_range": {
+          "wellbeing_at_risk": [
+            1,
+            9
+          ]
+        },
+        "max_source_diversity_factor": {
+          "wellbeing_at_risk": 0.95
+        },
         "comment": "Layer-2 cap keeps single outlet from dominating the negative case."
       }
     },
-
     {
       "id": "border_town_listing_geo_ish_duplication",
       "category": "geo_listing",
       "scenario": "Multiple articles list the same border-adjacent municipalities as 'under alert'; identical observational strings should dedupe.",
       "mock_extraction": [
-        {"article_index": 5, "article_url": "https://ynet.co.il/g1", "article_source": "ynet.co.il", "source_type": "news",
-         "signal_type": "fear_expression", "evidence_type": "observational_reported_fact",
-         "scope_level": "quantified_or_broad",
-         "evidence": "Local councils for Metula, Kiryat Shmona, and Margaliot published identical shelter-timing notices citing the same northern sector map grid reference.",
-         "extraction_confidence": 0.8, "temporal_weight": 1.0},
-        {"article_index": 6, "article_url": "https://haaretz.co.il/g2", "article_source": "haaretz.co.il", "source_type": "news",
-         "signal_type": "fear_expression", "evidence_type": "observational_reported_fact",
-         "scope_level": "quantified_or_broad",
-         "evidence": "Local councils for Metula, Kiryat Shmona, and Margaliot published identical shelter-timing notices citing the same northern sector map grid reference.",
-         "extraction_confidence": 0.79, "temporal_weight": 1.0},
-        {"article_index": 7, "article_url": "https://channel14.co.il/g3", "article_source": "channel14.co.il", "source_type": "news",
-         "signal_type": "fear_expression", "evidence_type": "observational_reported_fact",
-         "scope_level": "quantified_or_broad",
-         "evidence": "Local councils for Metula, Kiryat Shmona, and Margaliot published identical shelter-timing notices citing the same northern sector map grid reference.",
-         "extraction_confidence": 0.78, "temporal_weight": 1.0}
+        {
+          "article_index": 5,
+          "article_url": "https://ynet.co.il/g1",
+          "article_source": "ynet.co.il",
+          "source_type": "news",
+          "signal_type": "fear_expression",
+          "evidence_type": "observational_reported_fact",
+          "scope_level": "quantified_or_broad",
+          "evidence": "Local councils for Metula, Kiryat Shmona, and Margaliot published identical shelter-timing notices citing the same northern sector map grid reference.",
+          "extraction_confidence": 0.8,
+          "temporal_weight": 1
+        },
+        {
+          "article_index": 6,
+          "article_url": "https://haaretz.co.il/g2",
+          "article_source": "haaretz.co.il",
+          "source_type": "news",
+          "signal_type": "fear_expression",
+          "evidence_type": "observational_reported_fact",
+          "scope_level": "quantified_or_broad",
+          "evidence": "Local councils for Metula, Kiryat Shmona, and Margaliot published identical shelter-timing notices citing the same northern sector map grid reference.",
+          "extraction_confidence": 0.79,
+          "temporal_weight": 1
+        },
+        {
+          "article_index": 7,
+          "article_url": "https://channel14.co.il/g3",
+          "article_source": "channel14.co.il",
+          "source_type": "news",
+          "signal_type": "fear_expression",
+          "evidence_type": "observational_reported_fact",
+          "scope_level": "quantified_or_broad",
+          "evidence": "Local councils for Metula, Kiryat Shmona, and Margaliot published identical shelter-timing notices citing the same northern sector map grid reference.",
+          "extraction_confidence": 0.78,
+          "temporal_weight": 1
+        }
       ],
       "expectations": {
         "after_cross_source_dedup_count": 1,
-        "score_range": {"wellbeing_at_risk": [3, 10]}
+        "score_range": {
+          "wellbeing_at_risk": [
+            3,
+            10
+          ]
+        }
       }
     },
-
     {
       "id": "metrics_unsafe_geo_excluded_from_metrics",
       "category": "epistemic_geo",
@@ -409,22 +667,35 @@
           "scope_level": "single_case",
           "evidence": "Residents in Kiryat Shmona reported panic in shelters.",
           "extraction_confidence": 0.85,
-          "temporal_weight": 1.0,
+          "temporal_weight": 1,
           "geo": {
             "kind": "resolved",
-            "policy": { "usableForMetrics": false, "scopeConfidence": "low" },
-            "classification": { "pboSubregionId": "kiryat_shmona", "geoAreaTags": ["north"] }
+            "policy": {
+              "usableForMetrics": false,
+              "scopeConfidence": "low"
+            },
+            "classification": {
+              "pboSubregionId": "kiryat_shmona",
+              "geoAreaTags": [
+                "north"
+              ]
+            }
           },
-          "scopeDecision": { "isNorthRelevant": true, "source": "geo_tags", "confidence": "low" },
+          "scopeDecision": {
+            "isNorthRelevant": true,
+            "source": "geo_tags",
+            "confidence": "low"
+          },
           "metricsEligible": false
         }
       ],
       "expectations": {
-        "confidence": {"wellbeing_at_risk": "insufficient_data"},
+        "confidence": {
+          "wellbeing_at_risk": "insufficient_data"
+        },
         "comment": "metricsEligible=false => no contributing signals for scoring."
       }
     },
-
     {
       "id": "text_inferred_geo_excluded_from_metrics",
       "category": "epistemic_geo",
@@ -440,22 +711,39 @@
           "scope_level": "single_case",
           "evidence": "Residents in Kiryat Shmona entered shelters after alerts.",
           "extraction_confidence": 0.85,
-          "temporal_weight": 1.0,
+          "temporal_weight": 1,
           "geo": {
             "kind": "resolved",
-            "resolution": { "provenance": "text_inferred", "scope": "signal" },
-            "policy": { "usableForMetrics": false, "scopeConfidence": "low", "requiresReview": true },
-            "classification": { "pboSubregionId": "naftali", "geoAreaTags": ["north"] }
+            "resolution": {
+              "provenance": "text_inferred",
+              "scope": "signal"
+            },
+            "policy": {
+              "usableForMetrics": false,
+              "scopeConfidence": "low",
+              "requiresReview": true
+            },
+            "classification": {
+              "pboSubregionId": "naftali",
+              "geoAreaTags": [
+                "north"
+              ]
+            }
           },
-          "scopeDecision": { "isNorthRelevant": true, "source": "geo_tags", "confidence": "low" }
+          "scopeDecision": {
+            "isNorthRelevant": true,
+            "source": "geo_tags",
+            "confidence": "low"
+          }
         }
       ],
       "expectations": {
-        "confidence": {"wellbeing_at_risk": "insufficient_data"},
+        "confidence": {
+          "wellbeing_at_risk": "insufficient_data"
+        },
         "comment": "text_inferred + usableForMetrics=false excluded from scoring under epistemic geo v2."
       }
     },
-
     {
       "category": "thin_evidence",
       "scenario": "Single extreme negative signal with mass<1.5 triggers floor_clamped.",
@@ -469,15 +757,16 @@
           "scope_level": "single_case",
           "evidence": "Complete collapse of water supply in village.",
           "extraction_confidence": 0.9,
-          "temporal_weight": 1.0
+          "temporal_weight": 1
         }
       ],
       "expectations": {
-        "floor_clamped": {"functional_continuity": false},
+        "floor_clamped": {
+          "functional_continuity": false
+        },
         "comment": "Min-mass floor removed — thin single-signal shows raw score."
       }
     },
-
     {
       "id": "thin_critical_field_harm_salience",
       "category": "thin_evidence",
@@ -493,15 +782,16 @@
           "intensity": "severe",
           "evidence": "MDA paramedic: three civilians killed in direct strike on shelter.",
           "extraction_confidence": 0.95,
-          "temporal_weight": 1.0
+          "temporal_weight": 1
         }
       ],
       "expectations": {
-        "salience_critical": {"wellbeing_at_risk": true},
+        "salience_critical": {
+          "wellbeing_at_risk": true
+        },
         "comment": "Verified high-stakes field harm must not be hidden behind thin-evidence abstention."
       }
     },
-
     {
       "id": "digital_darkness_field_active",
       "category": "data_void",
@@ -516,27 +806,59 @@
           "scope_level": "single_case",
           "evidence": "Officers report continued shelter operations despite connectivity loss.",
           "extraction_confidence": 0.9,
-          "temporal_weight": 1.0
+          "temporal_weight": 1
         }
       ],
       "historical_signals": [
         [
-          {"source_type": "whatsapp", "article_source": "wa1", "signal_type": "fear_expression", "evidence": "chat a"},
-          {"source_type": "news", "article_source": "news1", "signal_type": "calm_confidence", "evidence": "news b"},
-          {"source_type": "news", "article_source": "news2", "signal_type": "calm_confidence", "evidence": "news c"}
+          {
+            "source_type": "whatsapp",
+            "article_source": "wa1",
+            "signal_type": "fear_expression",
+            "evidence": "chat a"
+          },
+          {
+            "source_type": "news",
+            "article_source": "news1",
+            "signal_type": "calm_confidence",
+            "evidence": "news b"
+          },
+          {
+            "source_type": "news",
+            "article_source": "news2",
+            "signal_type": "calm_confidence",
+            "evidence": "news c"
+          }
         ],
         [
-          {"source_type": "whatsapp", "article_source": "wa2", "signal_type": "fear_expression", "evidence": "chat b"},
-          {"source_type": "news", "article_source": "news3", "signal_type": "calm_confidence", "evidence": "news d"},
-          {"source_type": "news", "article_source": "news4", "signal_type": "calm_confidence", "evidence": "news e"}
+          {
+            "source_type": "whatsapp",
+            "article_source": "wa2",
+            "signal_type": "fear_expression",
+            "evidence": "chat b"
+          },
+          {
+            "source_type": "news",
+            "article_source": "news3",
+            "signal_type": "calm_confidence",
+            "evidence": "news d"
+          },
+          {
+            "source_type": "news",
+            "article_source": "news4",
+            "signal_type": "calm_confidence",
+            "evidence": "news e"
+          }
         ]
       ],
       "expectations": {
-        "data_void": {"digital_darkness": true, "level": "critical"},
+        "data_void": {
+          "digital_darkness": true,
+          "level": "critical"
+        },
         "comment": "Historical digital volume > 0, today digital = 0, field active."
       }
     },
-
     {
       "id": "total_silence_critical",
       "category": "data_void",
@@ -544,22 +866,49 @@
       "mock_extraction": [],
       "historical_signals": [
         [
-          {"source_type": "whatsapp", "article_source": "wa1", "evidence": "a"},
-          {"source_type": "news", "article_source": "n1", "evidence": "b"},
-          {"source_type": "news", "article_source": "n2", "evidence": "c"}
+          {
+            "source_type": "whatsapp",
+            "article_source": "wa1",
+            "evidence": "a"
+          },
+          {
+            "source_type": "news",
+            "article_source": "n1",
+            "evidence": "b"
+          },
+          {
+            "source_type": "news",
+            "article_source": "n2",
+            "evidence": "c"
+          }
         ],
         [
-          {"source_type": "whatsapp", "article_source": "wa2", "evidence": "a"},
-          {"source_type": "news", "article_source": "n3", "evidence": "b"},
-          {"source_type": "news", "article_source": "n4", "evidence": "c"}
+          {
+            "source_type": "whatsapp",
+            "article_source": "wa2",
+            "evidence": "a"
+          },
+          {
+            "source_type": "news",
+            "article_source": "n3",
+            "evidence": "b"
+          },
+          {
+            "source_type": "news",
+            "article_source": "n4",
+            "evidence": "c"
+          }
         ]
       ],
       "expectations": {
-        "data_void": {"total_silence": true, "level": "critical", "reason": "total_silence"},
+        "data_void": {
+          "total_silence": true,
+          "level": "critical",
+          "reason": "total_silence"
+        },
         "comment": "Complete sampling blackout must not downgrade to elevated."
       }
     },
-
     {
       "id": "connectivity_outage_telegram_flood_field_active",
       "category": "data_void",
@@ -574,7 +923,7 @@
           "scope_level": "single_case",
           "evidence": "Officers report continued shelter operations despite connectivity loss.",
           "extraction_confidence": 0.9,
-          "temporal_weight": 1.0
+          "temporal_weight": 1
         },
         {
           "article_index": 2,
@@ -584,8 +933,8 @@
           "evidence_type": "named_institutional_fact",
           "scope_level": "quantified_or_broad",
           "evidence": "Regional connectivity probe reports outage in northern cluster.",
-          "extraction_confidence": 1.0,
-          "temporal_weight": 1.0
+          "extraction_confidence": 1,
+          "temporal_weight": 1
         },
         {
           "article_index": 3,
@@ -596,7 +945,7 @@
           "scope_level": "repeated_pattern",
           "evidence": "Telegram channel reports mass panic and drone sightings.",
           "extraction_confidence": 0.85,
-          "temporal_weight": 1.0
+          "temporal_weight": 1
         },
         {
           "article_index": 4,
@@ -607,11 +956,15 @@
           "scope_level": "repeated_pattern",
           "evidence": "Telegram users report connectivity loss and evacuation chaos.",
           "extraction_confidence": 0.85,
-          "temporal_weight": 1.0
+          "temporal_weight": 1
         }
       ],
       "expectations": {
-        "data_void": {"level": "critical", "probe_outage": true, "connectivity_outage_signals": 0},
+        "data_void": {
+          "level": "critical",
+          "probe_outage": true,
+          "connectivity_outage_signals": 0
+        },
         "scoring_partition": {
           "assessmentMode": "field_anchor_only",
           "min_quarantined_count": 1
@@ -623,28 +976,118 @@
         "comment": "Poisoned telegram flood must not enter component scores when field is active during connectivity outage."
       }
     },
-
     {
       "id": "osint_bot_flood_auto_quarantine",
       "category": "osint_quarantine",
       "scenario": "Polarized telegram+social bot flood without connectivity outage — OSINT auto-excluded from scoring.",
       "mock_extraction": [
-        {"article_index": 1, "article_source": "tg-1", "source_type": "telegram", "signal_type": "fear_expression", "evidence_type": "observational_reported_fact", "scope_level": "repeated_pattern", "evidence": "Mass panic reports.", "extraction_confidence": 0.9, "temporal_weight": 1.0},
-        {"article_index": 2, "article_source": "tg-2", "source_type": "telegram", "signal_type": "fear_expression", "evidence_type": "observational_reported_fact", "scope_level": "repeated_pattern", "evidence": "Evacuation chaos.", "extraction_confidence": 0.9, "temporal_weight": 1.0},
-        {"article_index": 3, "article_source": "tg-3", "source_type": "telegram", "signal_type": "fear_expression", "evidence_type": "observational_reported_fact", "scope_level": "repeated_pattern", "evidence": "Drone sightings.", "extraction_confidence": 0.9, "temporal_weight": 1.0},
-        {"article_index": 4, "article_source": "tg-4", "source_type": "telegram", "signal_type": "fear_expression", "evidence_type": "observational_reported_fact", "scope_level": "repeated_pattern", "evidence": "Shelter overcrowding.", "extraction_confidence": 0.9, "temporal_weight": 1.0},
-        {"article_index": 5, "article_source": "social-1", "source_type": "social", "signal_type": "calm_confidence", "evidence_type": "observational_reported_fact", "scope_level": "repeated_pattern", "evidence": "Officials say situation stable.", "extraction_confidence": 0.9, "temporal_weight": 1.0},
-        {"article_index": 6, "article_source": "social-2", "source_type": "social", "signal_type": "calm_confidence", "evidence_type": "observational_reported_fact", "scope_level": "repeated_pattern", "evidence": "Calm messaging.", "extraction_confidence": 0.9, "temporal_weight": 1.0},
-        {"article_index": 7, "article_source": "social-3", "source_type": "social", "signal_type": "calm_confidence", "evidence_type": "observational_reported_fact", "scope_level": "repeated_pattern", "evidence": "Reassurance posts.", "extraction_confidence": 0.9, "temporal_weight": 1.0},
-        {"article_index": 8, "article_source": "social-4", "source_type": "social", "signal_type": "calm_confidence", "evidence_type": "observational_reported_fact", "scope_level": "repeated_pattern", "evidence": "All under control.", "extraction_confidence": 0.9, "temporal_weight": 1.0},
-        {"article_index": 9, "article_source": "ynet", "source_type": "news", "signal_type": "service_continuity", "evidence_type": "named_institutional_fact", "scope_level": "quantified_or_broad", "evidence": "Services continue.", "extraction_confidence": 0.9, "temporal_weight": 1.0}
+        {
+          "article_index": 1,
+          "article_source": "tg-1",
+          "source_type": "telegram",
+          "signal_type": "fear_expression",
+          "evidence_type": "observational_reported_fact",
+          "scope_level": "repeated_pattern",
+          "evidence": "Mass panic reports.",
+          "extraction_confidence": 0.9,
+          "temporal_weight": 1
+        },
+        {
+          "article_index": 2,
+          "article_source": "tg-2",
+          "source_type": "telegram",
+          "signal_type": "fear_expression",
+          "evidence_type": "observational_reported_fact",
+          "scope_level": "repeated_pattern",
+          "evidence": "Evacuation chaos.",
+          "extraction_confidence": 0.9,
+          "temporal_weight": 1
+        },
+        {
+          "article_index": 3,
+          "article_source": "tg-3",
+          "source_type": "telegram",
+          "signal_type": "fear_expression",
+          "evidence_type": "observational_reported_fact",
+          "scope_level": "repeated_pattern",
+          "evidence": "Drone sightings.",
+          "extraction_confidence": 0.9,
+          "temporal_weight": 1
+        },
+        {
+          "article_index": 4,
+          "article_source": "tg-4",
+          "source_type": "telegram",
+          "signal_type": "fear_expression",
+          "evidence_type": "observational_reported_fact",
+          "scope_level": "repeated_pattern",
+          "evidence": "Shelter overcrowding.",
+          "extraction_confidence": 0.9,
+          "temporal_weight": 1
+        },
+        {
+          "article_index": 5,
+          "article_source": "social-1",
+          "source_type": "social",
+          "signal_type": "calm_confidence",
+          "evidence_type": "observational_reported_fact",
+          "scope_level": "repeated_pattern",
+          "evidence": "Officials say situation stable.",
+          "extraction_confidence": 0.9,
+          "temporal_weight": 1
+        },
+        {
+          "article_index": 6,
+          "article_source": "social-2",
+          "source_type": "social",
+          "signal_type": "calm_confidence",
+          "evidence_type": "observational_reported_fact",
+          "scope_level": "repeated_pattern",
+          "evidence": "Calm messaging.",
+          "extraction_confidence": 0.9,
+          "temporal_weight": 1
+        },
+        {
+          "article_index": 7,
+          "article_source": "social-3",
+          "source_type": "social",
+          "signal_type": "calm_confidence",
+          "evidence_type": "observational_reported_fact",
+          "scope_level": "repeated_pattern",
+          "evidence": "Reassurance posts.",
+          "extraction_confidence": 0.9,
+          "temporal_weight": 1
+        },
+        {
+          "article_index": 8,
+          "article_source": "social-4",
+          "source_type": "social",
+          "signal_type": "calm_confidence",
+          "evidence_type": "observational_reported_fact",
+          "scope_level": "repeated_pattern",
+          "evidence": "All under control.",
+          "extraction_confidence": 0.9,
+          "temporal_weight": 1
+        },
+        {
+          "article_index": 9,
+          "article_source": "ynet",
+          "source_type": "news",
+          "signal_type": "service_continuity",
+          "evidence_type": "named_institutional_fact",
+          "scope_level": "quantified_or_broad",
+          "evidence": "Services continue.",
+          "extraction_confidence": 0.9,
+          "temporal_weight": 1
+        }
       ],
       "expectations": {
-        "data_void": {"level": "none"},
+        "data_void": {
+          "level": "none"
+        },
         "comment": "OSINT auto-quarantine tested in socialChannelQuarantine.test.js; news-only mass should score without telegram/social."
       }
     },
-
     {
       "id": "ynet_flood_suppression_binding",
       "category": "suppression",
@@ -652,44 +1095,81 @@
       "mock_extraction": "REPEAT(9, ynet, resilience_narrative_positive) + REPEAT(1, maariv, resilience_narrative_positive)",
       "_generator": "outlet_flood_positive",
       "expectations": {
-        "source_cap_binding": {"narrative": true},
-        "min_suppression_delta": {"narrative": 0.5},
+        "source_cap_binding": {
+          "narrative": true
+        },
+        "min_suppression_delta": {
+          "narrative": 0.5
+        },
         "comment": "Cap scales Ynet contributions; score_raw should exceed headline when binding."
       }
     },
-
     {
       "id": "contested_thin_balanced",
       "category": "contested_thin",
       "scenario": "Moderate mass with balanced +/- evidence yields high polarization in thin-moderate band.",
       "mock_extraction": [
         {
-          "article_index": 1, "article_url": "https://ynet.co.il/a1", "article_source": "ynet.co.il", "source_type": "news",
-          "signal_type": "resilience_narrative_positive", "evidence_type": "named_institutional_fact",
-          "scope_level": "quantified_or_broad", "evidence": "Municipal survey: 52% report hope.", "extraction_confidence": 0.95, "temporal_weight": 1.0
+          "article_index": 1,
+          "article_url": "https://ynet.co.il/a1",
+          "article_source": "ynet.co.il",
+          "source_type": "news",
+          "signal_type": "resilience_narrative_positive",
+          "evidence_type": "named_institutional_fact",
+          "scope_level": "quantified_or_broad",
+          "evidence": "Municipal survey: 52% report hope.",
+          "extraction_confidence": 0.95,
+          "temporal_weight": 1
         },
         {
-          "article_index": 2, "article_url": "https://maariv.co.il/a2", "article_source": "maariv.co.il", "source_type": "news",
-          "signal_type": "resilience_narrative_positive", "evidence_type": "observational_reported_fact",
-          "scope_level": "quantified_or_broad", "evidence": "Volunteers report continued community support.", "extraction_confidence": 0.9, "temporal_weight": 1.0
+          "article_index": 2,
+          "article_url": "https://maariv.co.il/a2",
+          "article_source": "maariv.co.il",
+          "source_type": "news",
+          "signal_type": "resilience_narrative_positive",
+          "evidence_type": "observational_reported_fact",
+          "scope_level": "quantified_or_broad",
+          "evidence": "Volunteers report continued community support.",
+          "extraction_confidence": 0.9,
+          "temporal_weight": 1
         },
         {
-          "article_index": 3, "article_url": "https://kan.org.il/a3", "article_source": "kan.org.il", "source_type": "radio",
-          "signal_type": "resilience_narrative_negative", "evidence_type": "named_institutional_fact",
-          "scope_level": "quantified_or_broad", "evidence": "Poll: 48% report exhaustion and despair.", "extraction_confidence": 0.95, "temporal_weight": 1.0
+          "article_index": 3,
+          "article_url": "https://kan.org.il/a3",
+          "article_source": "kan.org.il",
+          "source_type": "radio",
+          "signal_type": "resilience_narrative_negative",
+          "evidence_type": "named_institutional_fact",
+          "scope_level": "quantified_or_broad",
+          "evidence": "Poll: 48% report exhaustion and despair.",
+          "extraction_confidence": 0.95,
+          "temporal_weight": 1
         },
         {
-          "article_index": 4, "article_url": "https://haaretz.co.il/a4", "article_source": "haaretz.co.il", "source_type": "news",
-          "signal_type": "resilience_narrative_negative", "evidence_type": "observational_reported_fact",
-          "scope_level": "quantified_or_broad", "evidence": "Widespread anxiety and fatigue reported.", "extraction_confidence": 0.9, "temporal_weight": 1.0
+          "article_index": 4,
+          "article_url": "https://haaretz.co.il/a4",
+          "article_source": "haaretz.co.il",
+          "source_type": "news",
+          "signal_type": "resilience_narrative_negative",
+          "evidence_type": "observational_reported_fact",
+          "scope_level": "quantified_or_broad",
+          "evidence": "Widespread anxiety and fatigue reported.",
+          "extraction_confidence": 0.9,
+          "temporal_weight": 1
         }
       ],
       "expectations": {
-        "min_polarization": {"narrative": 0.4},
-        "min_evidence_mass_band": {"narrative": [1.5, 4]},
+        "min_polarization": {
+          "narrative": 0.4
+        },
+        "min_evidence_mass_band": {
+          "narrative": [
+            1.5,
+            4
+          ]
+        },
         "comment": "Balanced +/- narrative mass — contested_thin band when pol > 0.5 and mass < 4."
       }
     }
   ]
 }
-
