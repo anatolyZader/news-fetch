@@ -91,6 +91,8 @@ function emptyComponentProfile(id, ctx) {
     dominance_warnings: [],
     delta_significance: null,
     media_mention_mass: round3(ctx.scoredComponents?.[id]?.media_mention_mass ?? 0),
+    signal_count: 0,
+    distinct_article_count: 0,
   };
 }
 
@@ -130,6 +132,7 @@ function buildComponentProfile(id, items, articleSet, sourceSet, ctx) {
     contested: polarization > 0.5 && mass.evidenceMass > 4,
     source_cap_applied: sourceCapWasApplied(items, cappedItems),
     dominance_warnings: dominanceWarnings(cappedItems),
+    signal_count: items.length,
     distinct_article_count: articleSet.size,
     source_diversity: sourceSet.size,
     media_mention_mass: round3(ctx.scoredComponents?.[id]?.media_mention_mass ?? 0),

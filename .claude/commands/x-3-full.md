@@ -53,8 +53,8 @@ Dry-run runs `counts/recent` for **2 clusters × 3 langs × 3 days = 18 calls** 
 **P1.** Token:
 ```
 test -n "$X_BEARER_TOKEN" || {
-  LINE=$(grep -E '^X_BEARER_TOKEN=' .env | head -1)
-  VAL=${LINE#X_BEARER_TOKEN=}; VAL=${VAL%\"}; VAL=${VAL#\"}; VAL=${VAL%\'}; VAL=${VAL#\'}
+  VAL=$(grep -E '^X_BEARER_TOKEN=' .env | head -1 | sed 's/^X_BEARER_TOKEN=//')
+  VAL=$(printf '%s' "$VAL" | tr -d "\"'")
   export X_BEARER_TOKEN="$VAL"
 }
 test -n "$X_BEARER_TOKEN" || { echo "X_BEARER_TOKEN is not set. Aborting before any spend."; exit 1; }

@@ -2,7 +2,7 @@
 
 **Purpose:** Describe how the running product supports **human decision-making** — not automated verdicts. Operators scan attention and **evidence-backed claims**; analysts calibrate shadow scoring and review agent traces.
 
-**Sources:** `business_modules/resilience/domain/services/assessmentDisplayTier.js`, `thinEvidencePolicy.js`, `actionCompass.js`, `anomalyStrip.js`, `app/reportCacheService.js`, `business_modules/resilience_assessment/`, `client/src/MainApp.jsx`, `client/src/components/ReportView.jsx`, `analyst-site/src/AnalystApp.jsx`.
+**Sources:** `business_modules/resilience/domain/services/assessmentDisplayTier.js`, `thinEvidencePolicy.js`, `actionCompass.js`, `anomalyStrip.js`, `app/reportCacheService.js`, `business_modules/resilience_assessment/`, `client/src/MainApp.jsx`, `client/src/components/ReportView.jsx`, `analyst-site/src/AnalystApp.jsx`, `cross-cut-modules/resilience-contracts/reportSelection.js`, `cross-cut-modules/messaging/app/reportEventHandlers.js`.
 
 ---
 
@@ -111,6 +111,42 @@ Operational decisions should use the **operator app** and instrument/narrative t
 - Macro signals summarized to counts/types for operators
 
 Analyst tier keeps additional instrument detail (`suppression_delta`, truncated `top_contributors`) but is not a “full score dashboard” in the default API shape.
+
+---
+
+## Shared report selection contract
+
+**File:** `cross-cut-modules/resilience-contracts/reportSelection.js`
+
+**Purpose:** Shared ranking logic for choosing the best available report file when multiple scoped variants exist (e.g., normal vs. field_anchor_only vs. abstained). Used by `business_modules/resilience/app/reportCacheService.js` and `cross-cut-modules/monitoring/infrastructure/adapters/reportPathResolver.js`.
+
+**Key exports:**
+
+- `reportQualityRank(meta)` — lower rank = better; penalizes `field_anchor_only` (+10), `abstained` (+20), `quarantineActive` (+5)
+- `isBetterReportCandidate(next, best)` — picks better of two candidates by rank, then article count, then mtime
+- `reportMetaFromAssessment(assessment)` — extracts `{ articles, assessmentMode, quarantineActive }` from a raw assessment object
+
+**Rule:** Do not duplicate ranking logic inline — import from this contract. Keep in sync with `reportCacheService.js`.
+
+---
+
+## Post-report side effects
+
+**Event:** `RESILIENCE_REPORT_WRITTEN` — published by the assess pipeline after each report write.
+
+**Handlers** (`cross-cut-modules/messaging/app/reportEventHandlers.js`): Chain of Responsibility pattern. Each handler declares:
+- `canHandle(deps)` — returns true if required deps are available
+- `handle(payload, deps)` — performs the side effect
+
+Current handlers (in order):
+
+| Handler id | Condition | Action |
+|------------|-----------|--------|
+| `log` | always | logs `resilience.report.written` |
+| `rag-index` | `deps.retrievalService.indexReportForDate` present | indexes new report into RAG |
+| `drift` | `deps.driftService.recordSnapshot` present | records drift snapshot |
+
+Add new post-report side effects here without touching `registerModuleHandlers`.
 
 ---
 

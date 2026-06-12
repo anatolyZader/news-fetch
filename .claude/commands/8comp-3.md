@@ -1,5 +1,5 @@
 ---
-allowed-tools: Bash(npm run homefront-to-md*), Bash(node business_modules/resilience/input/extract-signals.js*), Bash(node business_modules/resilience/input/assess-signals.js*), Bash(ls articles-audio-* articles-field-reports-* articles-homefront-* articles-whatsapp-* signals/*), Bash(node business_modules/whatsapp/input/whatsapp-to-md.js*), Bash(node business_modules/pbo_report_muni/input/extract-pbo-signals.js*), Bash(node business_modules/pool/input/extract-naftali-signals.js*), Bash(rm signals/signals-*.json)
+allowed-tools: Bash(npm run homefront-to-md*), Bash(node business_modules/resilience/input/extract-signals.js*), Bash(node business_modules/resilience/input/assess-signals.js*), Bash(ls articles-audio-* articles-field-reports-* articles-homefront-* articles-whatsapp-* signals/*), Bash(node business_modules/whatsapp/input/whatsapp-to-md.js*), Bash(node business_modules/pbo_report_muni/input/extract-pbo-signals.js*), Bash(node business_modules/pool/input/extract-naftali-signals.js*), Bash(rm signals/signals-*.json), Bash(mkdir -p logs), Bash(tail*), Agent
 description: Full 3-day pipeline — fetch news, extract signals from all sources for the last 3 days, run combined assessment. Pass a date to replay a past window from existing files.
 ---
 
@@ -27,6 +27,11 @@ The 3 dates to cover are: target, target-1, target-2.
 **Step 0 — Read pipeline config**
 
 Read `pipeline-config.json`. Skip any source where `enabled: false`. Sources: `news`, `radio`, `whatsapp`, `field`, `pbo`, `naftali`, `social` (social = `business_modules/social_media/data/signals-social-*.json` via `social-media:gather-daily`, not extract-signals). If the file is missing, treat all sources as enabled.
+
+Initialize the run log:
+```
+mkdir -p logs && echo "=== Pipeline run: national <target date> | mode: <today/replay> | force: <yes/no> ===" > logs/pipeline-run-national-<target date>.log
+```
 
 ---
 
@@ -84,7 +89,8 @@ Each run writes `articles-homefront-<date>.md` (date-stamped) and overwrites `ar
 
 For each window date, if `signals/signals-news-<date>.json` does NOT exist and `articles-homefront-<date>.md` exists (and is non-empty), run:
 ```
-node business_modules/resilience/input/extract-signals.js --source-type news --files articles-homefront-<date>.md --date <YYYY-MM-DD>
+node business_modules/resilience/input/extract-signals.js --source-type news --files articles-homefront-<date>.md --date <YYYY-MM-DD> 2>> logs/pipeline-run-national-<target date>.log
+tail -3 logs/pipeline-run-national-<target date>.log
 ```
 
 Skip dates where the signals file already exists (reuse). Skip dates with no source file.
@@ -95,7 +101,6 @@ Skip dates where the signals file already exists (reuse). Skip dates with no sou
 
 This command does **not** transcribe raw recordings. Radio transcripts (`articles-audio-*.md`) are produced by targeted per-program recording tasks that the user triggers separately. Here we only consume transcripts that already exist on disk.
 
-
 List all available radio transcripts:
 ```
 ls articles-audio-*.md 2>/dev/null | sort
@@ -103,7 +108,8 @@ ls articles-audio-*.md 2>/dev/null | sort
 
 Group by date. For each window date, if `signals/signals-radio-<date>.json` does NOT exist and at least one `articles-audio-*-<date>T*.md` exists, run:
 ```
-node business_modules/resilience/input/extract-signals.js --source-type radio --files <csv of that date's transcripts> --date <YYYY-MM-DD>
+node business_modules/resilience/input/extract-signals.js --source-type radio --files <csv of that date's transcripts> --date <YYYY-MM-DD> 2>> logs/pipeline-run-national-<target date>.log
+tail -3 logs/pipeline-run-national-<target date>.log
 ```
 
 Skip dates where the signals file already exists. Skip dates with no transcripts.
@@ -122,7 +128,8 @@ For each window date:
   ```
 - After that, if `articles-whatsapp-<date>.md` exists and is non-empty, run:
   ```
-  node business_modules/resilience/input/extract-signals.js --source-type whatsapp --files articles-whatsapp-<date>.md --date <YYYY-MM-DD>
+  node business_modules/resilience/input/extract-signals.js --source-type whatsapp --files articles-whatsapp-<date>.md --date <YYYY-MM-DD> 2>> logs/pipeline-run-national-<target date>.log
+  tail -3 logs/pipeline-run-national-<target date>.log
   ```
 
 If the DB has no messages for that date, the export produces nothing — skip silently.
@@ -138,7 +145,8 @@ ls business_modules/visits/data/articles-field-reports-*.md 2>/dev/null | sort |
 
 For each file, extract the date from the filename and run:
 ```
-node business_modules/resilience/input/extract-signals.js --source-type field --files <file> --date <date-from-filename>
+node business_modules/resilience/input/extract-signals.js --source-type field --files <file> --date <date-from-filename> 2>> logs/pipeline-run-national-<target date>.log
+tail -3 logs/pipeline-run-national-<target date>.log
 ```
 
 ---
@@ -147,7 +155,8 @@ node business_modules/resilience/input/extract-signals.js --source-type field --
 
 Today mode:
 ```
-node business_modules/pbo_report_muni/input/extract-pbo-signals.js
+node business_modules/pbo_report_muni/input/extract-pbo-signals.js 2>> logs/pipeline-run-national-<target date>.log
+tail -3 logs/pipeline-run-national-<target date>.log
 ```
 
 ---
@@ -156,7 +165,8 @@ node business_modules/pbo_report_muni/input/extract-pbo-signals.js
 
 Today mode:
 ```
-node business_modules/pool/input/extract-naftali-signals.js
+node business_modules/pool/input/extract-naftali-signals.js 2>> logs/pipeline-run-national-<target date>.log
+tail -3 logs/pipeline-run-national-<target date>.log
 ```
 
 ---
@@ -166,16 +176,24 @@ node business_modules/pool/input/extract-naftali-signals.js
 Temporal weights are applied automatically (target=1.0, target-1=0.85, target-2=0.70). Field, PBO, and Naftali are included by recency regardless of date.
 
 ```
-node business_modules/resilience/input/assess-signals.js --date <target date> --days 3
+node business_modules/resilience/input/assess-signals.js --date <target date> --days 3 2>> logs/pipeline-run-national-<target date>.log
+tail -5 logs/pipeline-run-national-<target date>.log
 ```
 
 ---
 
 **Step 9 — Final report**
 
-After completion, report:
-- Mode used (today vs. replay) and `--force` state
-- The preflight plan vs. what actually executed (any skips due to missing data)
-- Which sources and dates contributed to the assessment (news / radio / whatsapp / field / pbo / naftali) and which were absent
-- Per-component scores and confidence levels
-- Path of the written report file
+Spawn an Agent with this prompt, substituting the actual target date for `<target date>`:
+
+> Summarize a completed resilience pipeline run. Do the following in order:
+>
+> 1. Read `logs/pipeline-run-national-<target date>.log` (the full execution log).
+> 2. Scan the log for a line like `Reports written:` and note the `.json` path listed beneath it. If not found, run: `ls daily_reports/resilience-report-<target date>-*.json 2>/dev/null | grep -v north | tail -1`
+> 3. Read that JSON report file.
+> 4. Return a markdown summary with:
+>    - Mode used (today/replay) and --force state
+>    - The preflight plan vs. what actually executed (sources and dates that ran, were reused, or were skipped — infer from log entries)
+>    - Any warnings or errors in the log
+>    - Per-component scores: id, score, confidence, signal_count
+>    - Report file path

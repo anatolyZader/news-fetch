@@ -7,5 +7,11 @@
   },
   "env": {
     "MAX_THINKING_TOKENS": "10000"
+  },
+  "permissions": {
+    "allow": [
+      "Bash(npm test *)",
+      "Bash(npm run lint *)"
+    ]
   }
 }

@@ -40,6 +40,8 @@ export function mapAssessmentV2ToLegacy(v2, epistemicProfile, opts = {}) {
         contested: ep.contested,
         thin_evidence: ep.thin_evidence,
         narrative_grounding_score: v2Comp?.grounding_score,
+        signal_count: ep.signal_count ?? 0,
+        distinct_article_count: ep.distinct_article_count ?? 0,
       },
       { dataVoid: opts.dataVoid, epistemicStatus: opts.epistemicStatus },
     );

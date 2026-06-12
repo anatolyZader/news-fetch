@@ -2,7 +2,7 @@
 
 **Purpose:** Distinguish **report-grounded chat** (operator drill-down) from the **assessment agent** (batch assess pipeline). Both use tool loops and RAG; only chat is interactive HTTP.
 
-**Sources:** `business_modules/chat/`, `business_modules/resilience_assessment/`, `cross-cut-modules/agent/`, `cross-cut-modules/llm/`, validation agent routes.
+**Sources:** `business_modules/chat/`, `business_modules/resilience_assessment/`, `cross-cut-modules/agent/`, `cross-cut-modules/llm/`, validation agent routes, `business_modules/chat/domain/proposedActionCommands.js`.
 
 ---
 
@@ -146,6 +146,8 @@ When `CHAT_CONFIRM_ACTIONS_ENABLED` (default on):
 - Propose tools emit `action_proposed` SSE events
 - Client calls `POST /api/chat/confirm-action` to approve/reject
 - Prevents silent side effects
+
+**Command registry:** `business_modules/chat/domain/proposedActionCommands.js` — `PROPOSED_ACTION_SUMMARIES` maps each `propose_*` tool name to a function that validates input and returns `{ summary }` (or `{ error }`). Add new propose tools here first; execution logic stays in `executePendingAction.js` (`PENDING_EXECUTORS`).
 
 Env: `CHAT_ANALYST_TOOLS_ENABLED` gates analyst read tools.
 

@@ -2,7 +2,7 @@
 
 **Purpose:** How daily **artifacts** are produced — ingest → signal extraction → **agent assess + shadow scoring** → reports on disk. Operators depend on this pipeline running; they do not run assessment math manually.
 
-**Sources:** `scripts/daily-pipeline.sh`, `pipeline-config.json`, `business_modules/resilience/input/extract-signals.js`, `input/assess-signals.js` (thin CLI wrappers → `app/extractSignalsCli.js`, `app/assessSignalsCli.js`), `app/produceAssessmentWithShadow.js`. Cross-module imports use `business_modules/<name>/index.js` facades — see [README § Module boundaries](./README.md#module-boundaries-option-b).
+**Sources:** `scripts/daily-pipeline.sh`, `pipeline-config.json`, `business_modules/resilience/input/extract-signals.js`, `input/assess-signals.js` (thin CLI wrappers → `app/extractSignalsCli.js`, `app/assessSignalsCli.js`), `app/produceAssessmentWithShadow.js`, `app/pipelineOrchestrator.js`, `app/pipelineIngestPlan.js`, `input/run-pipeline.js`, `domain/services/pipelineArtifactPaths.js`. Cross-module imports use `business_modules/<name>/index.js` facades — see [README § Module boundaries](./README.md#module-boundaries-option-b).
 
 ---
 
@@ -24,6 +24,7 @@ Sources (news, radio, WhatsApp, field, PBO, social, …)
 Production entry points:
 
 ```bash
+node business_modules/resilience/input/run-pipeline.js [date] [options]   # unified (Node) — see § Node.js pipeline orchestrator
 npm run extract-signals -- --source-type news --files <path> --date YYYY-MM-DD
 npm run assess-signals -- --date YYYY-MM-DD [--days N] [--scope national|north|…]
 ```
@@ -35,13 +36,46 @@ Orchestrated daily run:
 ./scripts/daily-pipeline.sh --no-transcribe   # skip radio transcription
 ```
 
+`run-pipeline.js` supersedes `daily-pipeline.sh` for slash commands and cron; the shell script remains for manual/legacy use.
+
 Worker variant: `npm run worker:assess` → `scripts/workers/assess-signals-worker.js`.
 
 **Degrade:** When daily budget is exceeded or the agent is unavailable, assess continues with deterministic scoring + cached-report fallback (`assessment_degraded` on the report). No legacy Sonnet narrative path.
 
 ---
 
+## Node.js pipeline orchestrator
+
+**Entry:** `business_modules/resilience/input/run-pipeline.js` → `app/pipelineOrchestrator.js`
+
+**Purpose:** Unified Node.js orchestration for `/8comp-3`, `/8comp-3-north`, and cron runs. Supersedes `daily-pipeline.sh` for programmatic use.
+
+**Plan phase** (`pipelineIngestPlan.js` → `buildPipelineIngestPlan`): Pure preflight — no I/O side effects. Checks artifact existence and emits an ordered list of typed steps per source per date. Action types: `reuse | skip | fetch_news | extract_news | extract_radio | export_whatsapp | extract_whatsapp | extract_field | extract_pbo | extract_naftali | extract_regional_pbo | social_gather | pbo_review`.
+
+**Execute phase** (`pipelineOrchestrator.js` → `runPipelineOrchestrator`): Runs plan steps sequentially via `spawn`. Guards replay `--assess-only` against overwriting a normal existing report (`assertAssessOnlySafe`).
+
+**Path resolver** (`domain/services/pipelineArtifactPaths.js`): Canonical path functions (`newsSignalsPath`, `radioSignalsPath`, `whatsappSignalsPath`, `socialSignalsPath`, `newsArticlesPath`, etc.). Always import from here — do not hardcode artifact paths.
+
+**CLI flags:**
+
+| Flag | Effect |
+|------|--------|
+| `--date YYYY-MM-DD` or positional `dd:mm:yyyy` | Target assessment date (default today) |
+| `--days N` | Window size 1–14 (default 3) |
+| `--scope national\|north\|…` | Report scope (default national) |
+| `--force` | Re-extract; delete existing signal bundles in window |
+| `--no-transcribe` | Skip radio transcription step |
+| `--no-social` | Skip social OSINT gather |
+| `--ingest-only` | Run ingest steps only; skip assess |
+| `--assess-only` | Skip ingest; run assess-signals only |
+
+**Replay mode:** Activated when `--date` ≠ today. `conservativeNewsFetch=true` (only fetch if no signals and no articles on disk); social cannot be re-fetched (step emits `skip`). `--assess-only` in replay aborts if a normal report already exists.
+
+---
+
 ## `scripts/daily-pipeline.sh` (typical steps)
+
+Note: for programmatic invocation (slash commands, cron), use `run-pipeline.js` instead. The shell script remains for manual/legacy use.
 
 Runs for **today, yesterday, two days ago** (system date):
 
