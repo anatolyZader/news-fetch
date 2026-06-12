@@ -130,9 +130,10 @@ describe('observationCaptureAdapter', () => {
   it('loads open observations as capture records', async () => {
     const dir = join(tmpdir(), `obs-capture-${Date.now()}`);
     mkdirSync(dir, { recursive: true });
-    writeFileSync(join(dir, 'observations-exploratory-2026-05-27.json'), JSON.stringify({
+    const recentDate = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+    writeFileSync(join(dir, `observations-exploratory-${recentDate}.json`), JSON.stringify({
       profile: 'exploratory',
-      date: '2026-05-27',
+      date: recentDate,
       extracted_at: new Date().toISOString(),
       observations: [
         { evidence: 'local fact', behavioral_description: 'fact', suggested_catalog_types: [] },

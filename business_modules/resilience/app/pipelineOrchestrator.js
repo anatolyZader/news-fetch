@@ -312,38 +312,11 @@ export async function runPipelineOrchestrator(opts, deps = {}) {
   }
 
   if (!opts.assessOnly) {
-    if (opts.force) {
-      applyForceDeletes(plan.windowDates, rootDir);
-    }
-
-    if (!opts.noTranscribe && !opts.replayMode && isSourceEnabled(enabledSources, 'radio')) {
-      console.error('── Transcribe missing radio recordings ──');
-      await runProcess('bash', [resolve(rootDir, 'scripts/radio-transcribe.sh'), String(opts.days)], {
-        cwd: rootDir,
-        allowFail: true,
-      });
-    }
-
-    const executed = new Set();
-    for (const step of plan.steps) {
-      const key = `${step.stage}:${step.date ?? ''}:${step.action}`;
-      if (executed.has(key)) continue;
-      executed.add(key);
-      if (step.action === 'reuse' || step.action === 'skip') continue;
-      console.error(`── ${step.stage}${step.date ? ` (${step.date})` : ''}: ${step.action} ──`);
-      await executeIngestStep(step, { ...opts, rootDir });
-    }
+    await runIngestPhase(plan, opts, rootDir, enabledSources);
   }
 
   if (opts.ingestOnly) {
-    const completedAt = new Date().toISOString();
-    const reportsDir = join(rootDir, 'cross-cut-modules/budget/resilience_analysis');
-    try {
-      const reportPath = writeTokenReport({ startedAt, completedAt, date: opts.targetDate, scope: opts.scope, days: opts.days, reportsDir, rootDir });
-      console.error(`\n  → Token report: ${reportPath}`);
-    } catch (err) {
-      console.error(`  ⚠ Could not write token report: ${err.message}`);
-    }
+    tryWriteTokenReport(startedAt, opts, rootDir);
     console.error('\n═══ Ingest complete (assess skipped) ═══');
     return { plan, assessed: false };
   }
@@ -360,6 +333,35 @@ export async function runPipelineOrchestrator(opts, deps = {}) {
     { rootDir },
   );
 
+  tryWriteTokenReport(startedAt, opts, rootDir);
+  console.error('\n═══ Pipeline complete ═══');
+  return { plan, assessed: true, signalCount: merged.allSignals.length };
+}
+
+async function runIngestPhase(plan, opts, rootDir, enabledSources) {
+  if (opts.force) applyForceDeletes(plan.windowDates, rootDir);
+
+  if (!opts.noTranscribe && !opts.replayMode && isSourceEnabled(enabledSources, 'radio')) {
+    console.error('── Transcribe missing radio recordings ──');
+    await runProcess('bash', [resolve(rootDir, 'scripts/radio-transcribe.sh'), String(opts.days)], {
+      cwd: rootDir,
+      allowFail: true,
+    });
+  }
+
+  const executed = new Set();
+  for (const step of plan.steps) {
+    const key = `${step.stage}:${step.date ?? ''}:${step.action}`;
+    if (executed.has(key)) continue;
+    executed.add(key);
+    if (step.action === 'reuse' || step.action === 'skip') continue;
+    const datePart = step.date ? ` (${step.date})` : '';
+    console.error(`── ${step.stage}${datePart}: ${step.action} ──`);
+    await executeIngestStep(step, { ...opts, rootDir });
+  }
+}
+
+function tryWriteTokenReport(startedAt, opts, rootDir) {
   const completedAt = new Date().toISOString();
   const reportsDir = join(rootDir, 'cross-cut-modules/budget/resilience_analysis');
   try {
@@ -368,9 +370,6 @@ export async function runPipelineOrchestrator(opts, deps = {}) {
   } catch (err) {
     console.error(`  ⚠ Could not write token report: ${err.message}`);
   }
-
-  console.error('\n═══ Pipeline complete ═══');
-  return { plan, assessed: true, signalCount: merged.allSignals.length };
 }
 
 function isSourceEnabled(enabledSources, key) {

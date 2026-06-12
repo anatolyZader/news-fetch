@@ -457,7 +457,6 @@ export const SIGNAL_TO_COMPONENTS = {
   leadership_clear_guidance: { leadership: +1.1, lifesaving_behavior: +0.4 },
   leadership_credibility_loss: { leadership: -1.1, narrative: -0.3 },
   leadership_visible_presence: { leadership: +1 },
-  leadership_visible_present: { leadership: +1 },
   learning_loss_documented: { functional_continuity: -0.6, wellbeing_at_risk: -0.5 },
   lessons_learned_uptake: { functional_continuity: +0.6, leadership: +0.5, lifesaving_behavior: +0.3 },
   local_capacity_demonstrated: { community_capital: +0.9, functional_continuity: +0.4 },

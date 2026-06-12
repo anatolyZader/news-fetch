@@ -94,6 +94,32 @@ export function resolveReportJsonPathForDate(date, opts = {}) {
 }
 
 /**
+ * Read the assessment metadata block from a report JSON file.
+ * @param {string} jsonPath
+ * @returns {object|null}
+ */
+export function readAssessmentReportMeta(jsonPath) {
+  try {
+    const parsed = JSON.parse(readFileSync(jsonPath, 'utf8'));
+    return parsed?.assessment ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Rank a report's quality: 0 = normal (do not overwrite), >0 = degraded (safe to overwrite).
+ * @param {object|null} meta
+ * @returns {number}
+ */
+export function reportQualityRank(meta) {
+  if (!meta) return 1;
+  if (meta.digital_quarantine_state?.active) return 2;
+  if (meta.assessment_mode && meta.assessment_mode !== 'normal') return 1;
+  return 0;
+}
+
+/**
  * Return today's cached report payload `{ assessment, signals?, markdown?, ... }`, or null if none exists.
  *
  * **Filesystem first:** the best `resilience-report-{date}-*.json` under `daily_reports/` (highest
