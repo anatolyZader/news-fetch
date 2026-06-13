@@ -22,6 +22,7 @@ export default defineConfig([
       'cross-cut-modules/docs/content/pages/api/generated/**',
       'business_modules/**/data/**',
       'tests/fixtures/**',
+      'test-results/**',
     ],
   },
   js.configs.recommended,

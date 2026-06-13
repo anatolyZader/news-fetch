@@ -43,10 +43,6 @@ export function fieldSignalsPath(date, rootDir) {
   return resolve(resolveRepoRoot(rootDir), `business_modules/visits/data/signals/signals-field-${date}.json`);
 }
 
-export function pboSignalsPath(date, rootDir) {
-  return resolve(pipelineSignalsDir(rootDir), `signals-pbo-${date}.json`);
-}
-
 export function fieldReportsGlobDir(rootDir) {
   return resolve(resolveRepoRoot(rootDir), 'business_modules/visits/data');
 }
