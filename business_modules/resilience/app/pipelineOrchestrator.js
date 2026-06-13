@@ -21,6 +21,7 @@ import {
 } from './pipelineIngestPlan.js';
 import {
   newsSignalsPath,
+  pboSignalsPath,
   pipelineOpenObservationsPath,
   radioSignalsPath,
   resolveRepoRoot,
@@ -131,7 +132,7 @@ function runNpmScript(scriptName, args, opts) {
   return runProcess('npm', ['run', scriptName, '--', ...args], { cwd: root, ...opts });
 }
 
-const OPEN_EXTRACT_SOURCE_TYPES = ['news', 'radio', 'whatsapp', 'field', 'social'];
+const OPEN_EXTRACT_SOURCE_TYPES = ['news', 'radio', 'whatsapp', 'field', 'social', 'pbo'];
 
 const STAGE_OPEN_EXTRACT_META = {
   news: { sourceType: 'news', contentKind: 'news' },
@@ -156,6 +157,7 @@ function applyForceDeletes(windowDates, rootDir) {
       newsSignalsPath(date, rootDir),
       radioSignalsPath(date, rootDir),
       whatsappSignalsPath(date, rootDir),
+      pboSignalsPath(date, rootDir),
     ]) {
       tryUnlink(path);
     }
@@ -276,9 +278,16 @@ async function executeIngestStep(step, ctx) {
         { allowFail: true, rootDir },
       );
       return;
-    case 'extract_pbo':
-      await runNodeScript('business_modules/pbo_report_muni/input/extract-pbo-signals.js', [], { allowFail: true, rootDir });
+    case 'extract_pbo_date': {
+      const args = ['--date', step.date];
+      if (force) args.push('--force');
+      await runNodeScript(
+        'business_modules/pbo_report_muni/input/extract-pbo-signals.js',
+        args,
+        { allowFail: true, rootDir },
+      );
       return;
+    }
     case 'extract_naftali':
       await runNodeScript('business_modules/pool/input/extract-naftali-signals.js', [], { allowFail: true, rootDir });
       return;

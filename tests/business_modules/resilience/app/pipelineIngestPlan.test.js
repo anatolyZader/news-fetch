@@ -12,6 +12,7 @@ import {
 import {
   newsArticlesPath,
   newsSignalsPath,
+  pboSignalsPath,
   pipelineOpenObservationsPath,
   socialSignalsPath,
 } from '../../../../business_modules/resilience/domain/services/pipelineArtifactPaths.js';
@@ -302,7 +303,7 @@ describe('buildPipelineIngestPlan', () => {
     }
   });
 
-  it('skips field/pbo extraction in replay mode', () => {
+  it('skips field and naftali extraction in replay mode', () => {
     const root = mkdtempSync(join(tmpdir(), 'pipeline-plan-'));
     try {
       const enabled = new Set(['field', 'pbo', 'naftali']);
@@ -314,8 +315,94 @@ describe('buildPipelineIngestPlan', () => {
         rootDir: root,
       });
       assert.ok(!plan.steps.some((s) => s.action === 'extract_field'));
-      assert.ok(!plan.steps.some((s) => s.action === 'extract_pbo'));
       assert.ok(!plan.steps.some((s) => s.action === 'extract_naftali'));
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it('plans extract_pbo_date in replay when closed PBO exists but open obs missing', () => {
+    const root = mkdtempSync(join(tmpdir(), 'pipeline-plan-pbo-'));
+    const prev = process.env.RESILIENCE_OPEN_EXTRACT_PARALLEL;
+    process.env.RESILIENCE_OPEN_EXTRACT_PARALLEL = '1';
+    try {
+      const dates = ['2026-04-13', '2026-04-14', '2026-04-15'];
+      const sigDir = join(root, 'business_modules/signals_extraction/data/signals');
+      mkdirSync(sigDir, { recursive: true });
+      for (const date of dates) {
+        writeFileSync(pboSignalsPath(date, root), JSON.stringify({ signals: [{ id: 's1' }] }));
+      }
+
+      const plan = buildPipelineIngestPlan({
+        targetDate: '2026-04-15',
+        days: 3,
+        enabledSources: new Set(['pbo']),
+        replayMode: true,
+        rootDir: root,
+      });
+
+      for (const date of dates) {
+        const pbo = plan.steps.filter((s) => s.stage === 'pbo' && s.date === date);
+        assert.ok(pbo.some((s) => s.action === 'extract_pbo_date'), `expected extract_pbo_date for ${date}`);
+      }
+      assert.ok(!plan.steps.some((s) => s.action === 'extract_pbo'));
+    } finally {
+      if (prev == null) delete process.env.RESILIENCE_OPEN_EXTRACT_PARALLEL;
+      else process.env.RESILIENCE_OPEN_EXTRACT_PARALLEL = prev;
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it('reuses PBO in replay when both closed and open obs exist', () => {
+    const root = mkdtempSync(join(tmpdir(), 'pipeline-plan-pbo-'));
+    const prev = process.env.RESILIENCE_OPEN_EXTRACT_PARALLEL;
+    process.env.RESILIENCE_OPEN_EXTRACT_PARALLEL = '1';
+    try {
+      const date = '2026-04-15';
+      const sigDir = join(root, 'business_modules/signals_extraction/data/signals');
+      const dataDir = join(root, 'business_modules/signals_extraction/data');
+      mkdirSync(sigDir, { recursive: true });
+      mkdirSync(dataDir, { recursive: true });
+      writeFileSync(pboSignalsPath(date, root), JSON.stringify({ signals: [{ id: 's1' }] }));
+      writeFileSync(
+        pipelineOpenObservationsPath('pbo', date, root),
+        JSON.stringify({ observations: [{ evidence: 'open pbo obs', behavioral_description: 'x' }] }),
+      );
+
+      const plan = buildPipelineIngestPlan({
+        targetDate: date,
+        days: 1,
+        enabledSources: new Set(['pbo']),
+        replayMode: true,
+        rootDir: root,
+      });
+
+      const pbo = plan.steps.filter((s) => s.stage === 'pbo' && s.date === date);
+      assert.ok(pbo.some((s) => s.action === 'reuse'));
+      assert.ok(!pbo.some((s) => s.action === 'extract_pbo_date'));
+    } finally {
+      if (prev == null) delete process.env.RESILIENCE_OPEN_EXTRACT_PARALLEL;
+      else process.env.RESILIENCE_OPEN_EXTRACT_PARALLEL = prev;
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it('plans per-date extract_pbo_date in today mode, not undated extract_pbo', () => {
+    const root = mkdtempSync(join(tmpdir(), 'pipeline-plan-pbo-'));
+    try {
+      const plan = buildPipelineIngestPlan({
+        targetDate: '2026-04-15',
+        days: 3,
+        enabledSources: new Set(['pbo']),
+        replayMode: false,
+        rootDir: root,
+      });
+
+      assert.ok(!plan.steps.some((s) => s.action === 'extract_pbo'));
+      assert.equal(
+        plan.steps.filter((s) => s.stage === 'pbo' && s.action === 'extract_pbo_date').length,
+        3,
+      );
     } finally {
       rmSync(root, { recursive: true, force: true });
     }

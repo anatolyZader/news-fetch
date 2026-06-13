@@ -73,4 +73,36 @@ describe('loadOpenObservationsForAssess', () => {
     assert.equal(openObservations[0].source_type, 'social');
     assert.ok(summary.bundle_files.includes(socialFile));
   });
+
+  it('loads field pipeline obs outside the assess days window', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'open-obs-field-hist-'));
+    mkdirSync(dir, { recursive: true });
+    const oldDate = '2026-03-01';
+    const targetDate = '2026-04-03';
+    const fieldFile = pipelineObservationBundleFilename('field', oldDate);
+    writeFileSync(
+      join(dir, fieldFile),
+      JSON.stringify({
+        profile: 'pipeline',
+        source_type: 'field',
+        date: oldDate,
+        observations: [{
+          observation_id: 'obs-field-old',
+          article_index: 1,
+          behavioral_description: 'Older visit observation',
+          evidence: 'Older visit observation',
+          confidence: 'high',
+        }],
+      }),
+    );
+
+    const { openObservations } = await loadOpenObservationsForAssess({
+      targetDate,
+      days: 1,
+      dataDir: dir,
+    });
+
+    assert.equal(openObservations.length, 1);
+    assert.equal(openObservations[0].observation_id, 'obs-field-old');
+  });
 });

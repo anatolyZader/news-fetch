@@ -61,6 +61,7 @@ import {
   SidebarItem,
   SiteFooter,
   mobileFlatReportShellSx,
+  reportScopePillsSx,
 } from './ui/index.js';
 import { useVisualViewportInset } from './hooks/useVisualViewportInset.js';
 
@@ -941,10 +942,12 @@ function AppShell() {
               title={t('nav.dailyAssessment')}
               action={(
                 <Stack
-                  direction={{ xs: 'column', sm: 'row' }}
-                  alignItems={{ xs: 'center', sm: 'center' }}
-                  spacing={{ xs: 0.75, sm: 1 }}
-                  sx={{ width: '100%' }}
+                  direction="row"
+                  alignItems="center"
+                  useFlexGap
+                  flexWrap="wrap"
+                  spacing={1.5}
+                  sx={{ width: 'auto', flexShrink: 0 }}
                 >
                   <ToggleButtonGroup
                     exclusive
@@ -954,13 +957,21 @@ function AppShell() {
                       if (next) setReportScope(next);
                     }}
                     aria-label={t('report.scope.label')}
-                    sx={{ flexWrap: 'wrap', justifyContent: 'center' }}
+                    sx={(theme) => reportScopePillsSx(theme)}
                   >
                     <ToggleButton value="national">{t('report.scope.national')}</ToggleButton>
                     <ToggleButton value="north">{t('report.scope.north')}</ToggleButton>
                   </ToggleButtonGroup>
                   {availableReportDates.length > 1 && (
-                    <FormControl size="small" sx={{ minWidth: { xs: 'auto', sm: 120 } }}>
+                    <FormControl
+                      size="small"
+                      sx={{
+                        minWidth: 120,
+                        flexShrink: 0,
+                        m: 0,
+                        '& .MuiInputBase-root': { alignItems: 'center' },
+                      }}
+                    >
                       <NativeSelect
                         value={selectedReportDate ?? ''}
                         onChange={(e) => setSelectedReportDate(e.target.value || null)}

@@ -9,7 +9,7 @@ function getStore(deps = {}) {
   return resolveStateStore(deps);
 }
 import { resolve } from 'node:path';
-import { COMPONENT_TUNING } from '../../domain/services/behaviorSignals.js';
+import { COMPONENT_TUNING } from '../../domain/epistemic/certaintyTuning.js';
 
 const TANHK_MIN = 1;
 const TANHK_MAX = 4;

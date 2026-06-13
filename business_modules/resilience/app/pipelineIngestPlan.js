@@ -11,6 +11,7 @@ import {
   fieldSignalsPath,
   newsArticlesPath,
   newsSignalsPath,
+  pboSignalsPath,
   pipelineOpenObservationsPath,
   radioSignalsPath,
   regionalPboDataDir,
@@ -21,7 +22,7 @@ import {
 } from '../domain/services/pipelineArtifactPaths.js';
 import { openPipelineObsNeedsExtract } from './pipelineOpenObsGuard.js';
 
-/** @typedef {'reuse'|'skip'|'fetch_news'|'extract_news'|'extract_radio'|'export_whatsapp'|'extract_whatsapp'|'extract_field'|'extract_open_only'|'extract_open_social'|'extract_pbo'|'extract_naftali'|'extract_regional_pbo'|'social_gather'|'pbo_review'} PipelineAction */
+/** @typedef {'reuse'|'skip'|'fetch_news'|'extract_news'|'extract_radio'|'export_whatsapp'|'extract_whatsapp'|'extract_field'|'extract_open_only'|'extract_open_social'|'extract_pbo_date'|'extract_naftali'|'extract_regional_pbo'|'social_gather'|'pbo_review'} PipelineAction */
 
 /**
  * @param {string} input dd:mm:yyyy or YYYY-MM-DD
@@ -210,6 +211,28 @@ function pushWhatsappStepsForDate(steps, date, { sig, md, force, rootDir }) {
   steps.push({ stage: 'whatsapp', date, action: 'extract_whatsapp' });
 }
 
+/**
+ * @param {Array<{ stage: string, date?: string, action: PipelineAction, detail?: string }>} steps
+ * @param {string[]} windowDates
+ * @param {{ enabledSources: Set<string>|null, force?: boolean, rootDir?: string }} opts
+ */
+function pushPboStepsForWindowDates(steps, windowDates, { enabledSources, force = false, rootDir }) {
+  if (!isEnabled(enabledSources, 'pbo')) return;
+
+  for (const date of windowDates) {
+    const closedPath = pboSignalsPath(date, rootDir);
+    const closedOk = fileNonEmpty(closedPath);
+    const openNeeds = openPipelineObsNeedsExtract(pipelineOpenObservationsPath('pbo', date, rootDir));
+    const parallel = isOpenExtractParallelEnabled();
+
+    if (force || !closedOk || (parallel && openNeeds)) {
+      steps.push({ stage: 'pbo', date, action: 'extract_pbo_date' });
+    } else {
+      steps.push({ stage: 'pbo', date, action: 'reuse' });
+    }
+  }
+}
+
 function pushFieldStepsIfEnabled(steps, enabledSources, replayMode, rootDir, force) {
   if (!isEnabled(enabledSources, 'field')) return;
 
@@ -239,7 +262,7 @@ function pushFieldStepsIfEnabled(steps, enabledSources, replayMode, rootDir, for
 
 function pushOnceSteps(steps, enabledSources, windowDates, { replayMode, targetDate, rootDir, force }) {
   pushFieldStepsIfEnabled(steps, enabledSources, replayMode, rootDir, force);
-  if (isEnabled(enabledSources, 'pbo') && !replayMode) steps.push({ stage: 'pbo', action: 'extract_pbo' });
+  pushPboStepsForWindowDates(steps, windowDates, { enabledSources, force, rootDir });
   if (isEnabled(enabledSources, 'naftali') && !replayMode) steps.push({ stage: 'naftali', action: 'extract_naftali' });
   if (!replayMode) steps.push({ stage: 'pbo_review', action: 'pbo_review', date: targetDate });
   for (const date of windowDates) {
@@ -351,7 +374,7 @@ export function planHasWork(steps) {
     'extract_field',
     'extract_open_only',
     'extract_open_social',
-    'extract_pbo',
+    'extract_pbo_date',
     'extract_naftali',
     'extract_regional_pbo',
     'social_gather',

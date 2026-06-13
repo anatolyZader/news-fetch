@@ -1,6 +1,6 @@
 import { describe, it, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert';
-import { mkdtempSync, writeFileSync, rmSync } from 'fs';
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'fs';
 import { tmpdir } from 'os';
 import { resolve, join } from 'path';
 
@@ -12,6 +12,8 @@ import {
   enrichWithDeltaChannel,
   mergeLoadedSignalFiles,
   parseSignalBundleFilename,
+  discoverSignalBundles,
+  loadAssessSignalFiles,
 } from '../../../../business_modules/resilience/app/assessSignalsHelpers.js';
 
 describe('crossSourceDedup', () => {
@@ -280,5 +282,51 @@ describe('mergeLoadedSignalFiles', () => {
     assert.equal(allSignals.length, 2);
     assert.equal(allSignals[0].district_id, 'south');
     assert.equal(allSignals[1].district_id, 'south');
+  });
+});
+
+describe('discoverSignalBundles field history', () => {
+  it('loads all field bundles on or before target date, not only the assess window', () => {
+    const root = mkdtempSync(join(tmpdir(), 'field-hist-'));
+    try {
+      const signalsDir = join(root, 'business_modules/signals_extraction/data/signals');
+      const fieldSignalsDir = join(root, 'business_modules/visits/data/signals');
+      const socialSignalsDir = join(root, 'business_modules/social_media/data');
+      mkdirSync(signalsDir, { recursive: true });
+      mkdirSync(fieldSignalsDir, { recursive: true });
+      mkdirSync(socialSignalsDir, { recursive: true });
+
+      const oldField = 'signals-field-2026-05-01.json';
+      const inWindowField = 'signals-field-2026-06-10.json';
+      const oldNews = 'signals-news-2026-05-01.json';
+      writeFileSync(join(fieldSignalsDir, oldField), JSON.stringify({ signals: [{ evidence: 'old visit' }] }));
+      writeFileSync(join(fieldSignalsDir, inWindowField), JSON.stringify({ signals: [{ evidence: 'recent visit' }] }));
+      writeFileSync(join(signalsDir, oldNews), JSON.stringify({ signals: [{ evidence: 'old news' }] }));
+
+      const targetDate = '2026-06-10';
+      const days = 3;
+      const discovery = discoverSignalBundles({
+        targetDate,
+        days,
+        signalsDir,
+        fieldSignalsDir,
+        socialSignalsDir,
+      });
+      const loaded = loadAssessSignalFiles({
+        ...discovery,
+        targetDate,
+        targetDates: discovery.targetDates,
+        recencySources: discovery.recencySources,
+        enabledSources: new Set(['news', 'field']),
+      });
+
+      const fieldFiles = loaded.filter((f) => f.sourceType === 'field').map((f) => f.file);
+      const newsFiles = loaded.filter((f) => f.sourceType === 'news').map((f) => f.file);
+      assert.ok(fieldFiles.includes(oldField));
+      assert.ok(fieldFiles.includes(inWindowField));
+      assert.equal(newsFiles.includes(oldNews), false);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
   });
 });

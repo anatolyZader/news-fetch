@@ -345,7 +345,8 @@ export function loadAssessSignalFiles({
     const parsed = parseSignalBundleFilename(file);
     if (!parsed) return;
     const { sourceType, fileDate, districtId: fileDistrictId } = parsed;
-    if (fileDate > targetDate || !targetDates.has(fileDate)) return;
+    if (fileDate > targetDate) return;
+    if (sourceType !== 'field' && !targetDates.has(fileDate)) return;
     if (enabledSources && !enabledSources.has(sourceType) && sourceType !== 'pbo_regional') return;
     const recencySet = recencySources[sourceType];
     if (recencySet && !recencySet.has(file)) return;

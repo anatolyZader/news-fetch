@@ -136,14 +136,15 @@ If the DB has no messages for that date, the export produces nothing — skip si
 
 ---
 
-**Step 5 — Field signals** *(skip if `field` is disabled; **SKIP ENTIRELY in replay mode** — existing `business_modules/visits/data/signals/signals-field-*.json` are picked up automatically by assess)*
+**Step 5 — Field signals** *(skip if `field` is disabled; runs in **today and replay**)*
 
-Today mode:
+Assess loads **all** `signals-field-*.json` with date on or before `--date` (full visit history, temporal-weighted). Ingest must ensure JSON exists for every field MD on disk.
+
 ```
-ls business_modules/visits/data/articles-field-reports-*.md 2>/dev/null | sort | tail -3
+ls business_modules/visits/data/articles-field-reports-*.md 2>/dev/null | sort
 ```
 
-For each file, extract the date from the filename and run:
+For each file, if `business_modules/visits/data/signals/signals-field-<date>.json` is missing (or `--force`), extract:
 ```
 node business_modules/resilience/input/extract-signals.js --source-type field --files <file> --date <date-from-filename> 2>> logs/pipeline-run-national-<target date>.log
 tail -3 logs/pipeline-run-national-<target date>.log
@@ -151,13 +152,15 @@ tail -3 logs/pipeline-run-national-<target date>.log
 
 ---
 
-**Step 6 — PBO municipality signals** *(skip if `pbo` is disabled; **SKIP ENTIRELY in replay mode**)*
+**Step 6 — PBO municipality signals** *(skip if `pbo` is disabled; runs in **today and replay** for each window date)*
 
-Today mode:
+For each of target, target-1, target-2: if `signals/signals-pbo-<date>.json` or `observations-pipeline-pbo-<date>.json` is missing (or `--force`), run closed + open dual-path extract:
 ```
-node business_modules/pbo_report_muni/input/extract-pbo-signals.js 2>> logs/pipeline-run-national-<target date>.log
+node business_modules/pbo_report_muni/input/extract-pbo-signals.js --date <YYYY-MM-DD> 2>> logs/pipeline-run-national-<target date>.log
 tail -3 logs/pipeline-run-national-<target date>.log
 ```
+
+If closed signals already exist but open pipeline obs are missing, running the same command still backfills open observations.
 
 ---
 
@@ -173,7 +176,7 @@ tail -3 logs/pipeline-run-national-<target date>.log
 
 **Step 8 — Run combined 3-day assessment**
 
-Temporal weights are applied automatically (target=1.0, target-1=0.85, target-2=0.70). Field, PBO, and Naftali are included by recency regardless of date.
+Temporal weights are applied automatically (target=1.0, target-1=0.85, target-2=0.70). **Field visits:** all historical bundles on or before `--date`. **PBO:** window dates only (3-day). Naftali: at most one bundle within the window.
 
 ```
 node business_modules/resilience/input/assess-signals.js --date <target date> --days 3 2>> logs/pipeline-run-national-<target date>.log

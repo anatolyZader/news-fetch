@@ -21,6 +21,31 @@ export function panelInsetBoxSx(theme) {
   };
 }
 
+/** National / North scope pills — inline row with visible gaps between buttons. */
+export function reportScopePillsSx(theme) {
+  return {
+    flexShrink: 0,
+    '& .MuiToggleButtonGroup-grouped': {
+      borderRadius: `${theme.custom.radius.section}px !important`,
+      border: theme.custom.border.hairline,
+      marginLeft: `${theme.spacing(0.75)} !important`,
+      marginRight: '0 !important',
+      textTransform: 'none',
+      '&:first-of-type': {
+        marginLeft: '0 !important',
+      },
+    },
+    '& .MuiToggleButton-root.Mui-selected': {
+      backgroundColor: theme.palette.primary.main,
+      color: theme.palette.primary.contrastText,
+      borderColor: `${theme.palette.primary.main} !important`,
+      '&:hover': {
+        backgroundColor: theme.palette.primary.dark,
+      },
+    },
+  };
+}
+
 /** Even grid of date (or date-like) toggle chips — left-to-right, row by row. */
 export function dateToggleGridSx(theme, { minColumnWidth = 108 } = {}) {
   return {

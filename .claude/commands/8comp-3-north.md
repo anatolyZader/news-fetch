@@ -66,11 +66,15 @@ The CLI automatically runs `treat` on dates that received new findings (maps `fi
 
 ## Other signal sources
 
-Run the same reuse-first ingestion as `/8comp-3` for news, radio, whatsapp, field, pbo, naftali (Steps 0–7 in that command) when those signal files are missing — unless **only** social was stale and all `signals/signals-*` already exist.
+Run the same reuse-first ingestion as `/8comp-3` for news, radio, whatsapp, field, pbo, naftali when signal files are missing — unless **only** social was stale and all other `signals/signals-*` already exist.
+
+**Field:** extract from **every** `articles-field-reports-*.md` missing `signals-field-<date>.json` (today and replay). Assess includes all visit signal bundles on or before target date.
+
+**PBO (3-day window only):** for target, target-1, target-2 run `extract-pbo-signals.js --date <date>` when closed or open pipeline bundle is missing (today and replay). Dual-path: `signals-pbo-<date>.json` + `observations-pipeline-pbo-<date>.json`.
 
 For all `node extract-signals.js` calls in this phase, append `2>> logs/pipeline-run-north-<target date>.log` and follow each with `tail -3 logs/pipeline-run-north-<target date>.log`.
 
-For PBO and Naftali calls, append `2>> logs/pipeline-run-north-<target date>.log` and follow with `tail -3 logs/pipeline-run-north-<target date>.log`.
+For PBO calls use `extract-pbo-signals.js --date <YYYY-MM-DD>` per window day. Append `2>> logs/pipeline-run-north-<target date>.log` and follow with `tail -3 logs/pipeline-run-north-<target date>.log`.
 
 ---
 
