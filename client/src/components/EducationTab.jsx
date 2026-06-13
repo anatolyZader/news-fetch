@@ -320,7 +320,7 @@ export function EducationTab({ operatorScope = 'national' }) {
           clearLabel: t('edu.filter.clear'),
         } : null}
       >
-        <FilterRow label={t('edu.filter.age')}>
+        <FilterRow label={t('edu.filter.age')} stackOnMobile>
           <FilterPillGroup label={t('edu.filter.age')}>
             {AGE_KEYS.map((k) => (
               <FilterPill key={k} active={ageFilter.has(k)} onClick={() => toggleSet(setAgeFilter, k)}>
@@ -330,7 +330,7 @@ export function EducationTab({ operatorScope = 'national' }) {
           </FilterPillGroup>
         </FilterRow>
 
-        <FilterRow label={t('edu.filter.settlement')}>
+        <FilterRow label={t('edu.filter.settlement')} stackOnMobile>
           <FilterPillGroup label={t('edu.filter.settlement')}>
             {settlementNames.map((name) => (
               <FilterPill

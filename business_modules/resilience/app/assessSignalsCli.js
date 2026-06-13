@@ -27,7 +27,7 @@ import { resolve, dirname } from 'node:path';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
-import { overallScore, scoreComponents } from '../domain/services/behaviorSignals.js';
+import { overallScore, scoreComponents } from './scoringFacade.js';
 import { scopeAndPartitionSignals } from '../app/assessmentPipeline.js';
 import { buildComparisonContext } from '../domain/services/sourceMixIndex.js';
 import { isRegionalReportScope, reportFilePrefix } from '../../../cross-cut-modules/geo/reportScopeIds.js';
@@ -53,11 +53,15 @@ import {
   formatSubgroupCoverageLogLine,
 } from '../domain/services/assessmentMethodology.js';
 import { computeDataVoidIndex, attachEpistemicToAssessment } from '../domain/services/dataVoidIndex.js';
+import { attachInvestigationDiagnostics } from '../domain/services/componentDiagnostics.js';
+import { COMPONENT_IDS } from '../../../cross-cut-modules/resilience-contracts/componentIds.js';
 import { runScoringPipeline } from '../app/scoringPipelinePrep.js';
 import { detectSemanticPatterns } from '../domain/services/patternDetection/semanticPatternAlerts.js';
 import { buildOperatorRecommendations } from '../domain/services/patternDetection/operatorRecommendations.js';
 import { attachDecisionBrief } from '../app/attachDecisionBrief.js';
 import { prepareScoringSignals } from '../app/prepareScoringSignals.js';
+import { prepareInvestigationSignals } from '../app/prepareInvestigationSignals.js';
+import { deriveInvestigationEpistemicContext } from '../domain/services/investigationEpistemicContext.js';
 import { salienceContextFromDataVoid } from '../domain/services/highSalienceBypass.js';
 import {
   getSocialQuarantineDecision,
@@ -79,6 +83,10 @@ import { createRetrievalService } from '../../../cross-cut-modules/retrieval/cre
 import { createSignalBundlePort } from './createSignalBundlePort.js';
 import { produceAssessmentWithShadow } from '../app/produceAssessmentWithShadow.js';
 import { defaultClosedSignalsDir } from '../../signals_extraction/index.js';
+import { loadOpenObservationsForAssess } from './loadOpenObservationsForAssess.js';
+import { verifyOpenEvidenceClaims } from '../domain/services/openEvidenceVerification.js';
+import { synthesizeOpenEvidenceScoringSignals } from '../domain/services/openEvidenceScoringSignals.js';
+import { enqueueVerifiedOpenForCatalog } from './enqueueVerifiedOpenForCatalog.js';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 
@@ -249,6 +257,11 @@ async function loadPreparedSignals(targetDate, days, bundleOpts = {}) {
   allSignals = await dedupSignalsCrossSource(allSignals, retrievalService);
   allSignals = enrichSignalsGeoIfNeeded(allSignals);
 
+  const { openObservations, summary: openObservationsSummary } = await loadOpenObservationsForAssess({
+    targetDate,
+    days,
+  });
+
   return {
     loadedFiles,
     allSignals,
@@ -258,6 +271,8 @@ async function loadPreparedSignals(targetDate, days, bundleOpts = {}) {
     retrievalService,
     pipelineConfig,
     contentKind: contentKindFromSourceTypes(sourceTypesSeen),
+    openObservations,
+    openObservationsSummary,
   };
 }
 
@@ -319,11 +334,22 @@ function buildScoreBySource({
   return scoreBySource;
 }
 
-async function buildScopedScoring(targetDate, days, allSignals, totalArticles, reportScopeId, reportScope, loadedFiles) {
+async function buildScopedScoring(targetDate, days, allSignals, totalArticles, reportScopeId, reportScope, loadedFiles, openObservations = [], routingOpts = {}) {
   const nationalSignals = allSignals;
   const nationalHistoricalDays = isRegionalReportScope(reportScopeId)
     ? loadHistoricalSignalDays(targetDate, 'daily_reports', 7, ISRAEL_NATIONAL_DISTRICT_ID)
     : loadHistoricalSignalDays(targetDate, 'daily_reports', 7, reportScopeId);
+
+  const routedOpenObservations = openObservations.length
+    ? await (async () => {
+      const { routeOpenObservations } = await import('../../signals_extraction/index.js');
+      return routeOpenObservations(openObservations, routingOpts);
+    })()
+    : [];
+
+  if (routedOpenObservations.length > 0) {
+    console.error(`  → Open observations loaded: ${routedOpenObservations.length} (pipeline parallel extract)`);
+  }
 
   const historicalScores = loadHistoricalScores(targetDate, 'daily_reports', 14, reportScopeId);
   if (Object.keys(historicalScores).length > 0) {
@@ -336,6 +362,16 @@ async function buildScopedScoring(targetDate, days, allSignals, totalArticles, r
     macroSignals,
     baseSignalsForScoring,
   } = scopeAndPartitionSignals(allSignals, reportScopeId);
+
+  const investigationPrep = await prepareInvestigationSignals({
+    investigationSignals: baseSignalsForScoring,
+    reportDate: targetDate,
+    reportScopeId,
+    reportsDir: 'daily_reports',
+  });
+
+  const investigationEpistemic = deriveInvestigationEpistemicContext(investigationPrep.dataVoid);
+  const investigationSignals = investigationPrep.investigationSignals;
 
   const prepared = await prepareScoringSignals({
     signalsForScoring: baseSignalsForScoring,
@@ -371,14 +407,14 @@ async function buildScopedScoring(targetDate, days, allSignals, totalArticles, r
     scopeLogLine,
   });
 
-  if (signalsForScoring.length === 0 && macroSignals.length === 0) {
+  if (investigationSignals.length === 0 && macroSignals.length === 0) {
     const suffix = formatDaysSuffix(days);
     console.error(`No signal files contained ${reportScope.label} evidence for ${targetDate}${suffix}.`);
     process.exit(1);
   }
 
   const scopedArticleKeys = new Set(
-    signalsForScoring
+    investigationSignals
       .map((s) => s.article_url || (s.article_index ?? null))
       .filter((v) => v != null),
   );
@@ -418,24 +454,91 @@ async function buildScopedScoring(targetDate, days, allSignals, totalArticles, r
     nationalScored,
     nationalDataVoid,
     scopedSignals,
+    investigationSignals,
+    investigationEpistemic,
     signalsForScoring: metricsSignalsForNarrative,
     macroSignals,
     scopedTotalArticles,
     scopedSourceTypesSeen,
     scoredFull,
     scoreBySource,
-    dataVoid,
-    assessmentMode: pipelineResult.assessmentMode,
-    epistemicStatus: pipelineResult.epistemicStatus,
+    dataVoid: investigationPrep.dataVoid,
+    osintChannelQuarantine: investigationPrep.osintChannelQuarantine,
+    oovBurst: investigationPrep.oovBurst,
+    priorQuarantine: investigationPrep.priorQuarantine,
+    assessmentMode: investigationEpistemic.assessmentMode,
+    epistemicStatus: investigationEpistemic.epistemicStatus,
+    scoringAssessmentMode: pipelineResult.assessmentMode,
+    scoringEpistemicStatus: pipelineResult.epistemicStatus,
     staleDigitalScores: pipelineResult.staleDigitalScores,
     quarantinedDigital: pipelineResult.quarantinedDigital,
     validationMaturity,
     epistemicEnrichment: pipelineResult.epistemicEnrichment,
-    osintChannelQuarantine,
-    oovBurst,
     oovScoringApplied,
     digitalQuarantineState: pipelineResult.digitalQuarantineState,
+    scoringPartition: pipelineResult.partition ?? null,
+    openObservations: routedOpenObservations,
+    openObservationsSummary: routingOpts.openObservationsSummary ?? null,
+    scoringPipelineContext: {
+      dataVoid,
+      scopedTotalArticles,
+      scopedSignals,
+      salienceContext: pipelineResult.salienceContext,
+      historicalScores,
+      priorQuarantine,
+      validationMaturity,
+    },
   };
+}
+
+async function applyOpenEvidenceScoringIfVerified({
+  assessment,
+  scoring,
+  targetDate,
+  reportScopeId,
+}) {
+  const openObservations = scoring.openObservations ?? [];
+  const verified = verifyOpenEvidenceClaims(assessment, openObservations, assessment._evidence_graph);
+  if (!verified.length) return;
+
+  const { signals: syntheticOpen, applied } = synthesizeOpenEvidenceScoringSignals(
+    verified,
+    openObservations,
+    { reportDate: targetDate, reportScopeId },
+  );
+  if (!applied || !syntheticOpen.length) return;
+
+  const ctx = scoring.scoringPipelineContext ?? {};
+  const pipelineResult = runScoringPipeline({
+    signalsForScoring: [...scoring.signalsForScoring, ...syntheticOpen],
+    dataVoid: ctx.dataVoid ?? scoring.dataVoid,
+    totalArticles: ctx.scopedTotalArticles ?? scoring.scopedTotalArticles,
+    mediaSignals: ctx.scopedSignals ?? scoring.scopedSignals,
+    salienceContext: ctx.salienceContext,
+    historicalScores: ctx.historicalScores ?? {},
+    scopeId: reportScopeId,
+    validationMaturity: ctx.validationMaturity ?? scoring.validationMaturity,
+    priorQuarantine: ctx.priorQuarantine ?? scoring.priorQuarantine,
+    reportDate: targetDate,
+  });
+
+  scoring.scoredFull = pipelineResult.scoredFull;
+  scoring.signalsForScoring = pipelineResult.scoringSignals;
+  scoring.openEvidenceScoringApplied = applied;
+  console.error(`  → Open evidence scoring: ${syntheticOpen.length} verified synthetic signal(s)`);
+
+  const enqueueResult = await enqueueVerifiedOpenForCatalog(verified, openObservations, {
+    assessment,
+    reportDate: targetDate,
+    reportScopeId,
+    repoRoot: REPO_ROOT,
+  });
+  if (enqueueResult.enqueued > 0) {
+    console.error(`  → Catalog evolution enqueue: ${enqueueResult.enqueued} verified open observation(s)`);
+  }
+  if (enqueueResult.proposals_generated > 0) {
+    console.error(`  → Catalog auto-proposals: ${enqueueResult.proposals_generated} draft(s)`);
+  }
 }
 
 function logScoringResults(scopedSignals, signalsForScoring, scoredFull) {
@@ -500,10 +603,31 @@ function collectValidation(assessment, allSignals, outputBase, signalPaths, pipe
   }
 }
 
+function buildEpistemicProfileShim(scoredFull) {
+  const by_component = {};
+  for (const id of COMPONENT_IDS) {
+    const c = scoredFull?.[id] ?? {};
+    by_component[id] = {
+      signal_count: c.signal_count ?? 0,
+      evidence_mass: c.evidence_mass ?? 0,
+      thin_evidence: c.thin_evidence === true,
+      investigation_eligible: c.investigation_eligible === true,
+      contested: c.contested === true,
+    };
+  }
+  return { by_component };
+}
+
 function enrichAssessmentMetadata(assessment, { scoring, targetDate, reportScopeId, epistemicEnrichment, epistemic, scopedSignals }) {
   attachEpistemicToAssessment(assessment, epistemic);
   assessment.oov_burst = scoring.oovBurst ?? null;
   if (scoring.oovScoringApplied) assessment.oov_scoring_applied = scoring.oovScoringApplied;
+  if (scoring.openObservationsSummary) {
+    assessment.open_observations_summary = scoring.openObservationsSummary;
+  }
+  if (scoring.openEvidenceScoringApplied) {
+    assessment.open_evidence_scoring_applied = scoring.openEvidenceScoringApplied;
+  }
   if (scoring.osintChannelQuarantine) {
     const decision = scoring.osintChannelQuarantine.active
       ? getSocialQuarantineDecision(targetDate, reportScopeId, tryOpenValidationStore())
@@ -515,6 +639,12 @@ function enrichAssessmentMetadata(assessment, { scoring, targetDate, reportScope
   }
   if (epistemicEnrichment?.overall_score_calibrated != null) {
     assessment.overall_score_calibrated = epistemicEnrichment.overall_score_calibrated;
+  }
+  if (epistemic.scoringAssessmentMode || epistemic.scoringEpistemicStatus) {
+    assessment.shadow_scoring = {
+      assessment_mode: epistemic.scoringAssessmentMode ?? null,
+      epistemic_status: epistemic.scoringEpistemicStatus ?? null,
+    };
   }
 
   const patterns = detectSemanticPatterns(scopedSignals ?? scoring.scopedSignals ?? []);
@@ -629,6 +759,8 @@ async function finalizeAndWriteReport({
     nationalScored,
     nationalDataVoid,
     scopedSignals,
+    investigationSignals,
+    investigationEpistemic,
     signalsForScoring,
     scopedTotalArticles,
     scoredFull,
@@ -636,6 +768,8 @@ async function finalizeAndWriteReport({
     dataVoid,
     assessmentMode,
     epistemicStatus,
+    scoringAssessmentMode,
+    scoringEpistemicStatus,
     staleDigitalScores,
     quarantinedDigital,
     validationMaturity,
@@ -655,6 +789,8 @@ async function finalizeAndWriteReport({
   const assessment = await produceAssessmentWithShadow({
     targetDate,
     reportScopeId,
+    investigationSignals,
+    investigationEpistemic,
     signalsForScoring,
     scopedSignals,
     scoredFull,
@@ -665,8 +801,16 @@ async function finalizeAndWriteReport({
     retrievalService,
     sourceArchive,
     oovBurst: scoring.oovBurst ?? null,
+    openObservations: scoring.openObservations ?? [],
     onUsage,
     dailyBudgetExceeded,
+  });
+
+  await applyOpenEvidenceScoringIfVerified({
+    assessment,
+    scoring,
+    targetDate,
+    reportScopeId,
   });
 
   retrievalService?.close();
@@ -684,6 +828,8 @@ async function finalizeAndWriteReport({
       staleDigitalScores,
       quarantinedDigital,
       digitalQuarantineState,
+      scoringAssessmentMode,
+      scoringEpistemicStatus,
     },
     scopedSignals,
   });
@@ -691,6 +837,14 @@ async function finalizeAndWriteReport({
   await attachDecisionBrief(assessment, {
     reportScopeId,
     onUsage,
+  });
+
+  const epistemicProfileForDiagnostics = buildEpistemicProfileShim(scoring.scoredFull);
+  attachInvestigationDiagnostics(assessment, {
+    scoring,
+    scoreBySource,
+    epistemicProfile: epistemicProfileForDiagnostics,
+    investigationPlan: assessment.investigation_plan,
   });
 
   const outputBase = resolveOutputBase(reportScopeId, targetDate, getArg);
@@ -778,6 +932,8 @@ export async function runAssessSignalsCli() {
     reportScopeId,
     reportScope,
     prepared.loadedFiles,
+    prepared.openObservations ?? [],
+    { onUsage, openObservationsSummary: prepared.openObservationsSummary },
   );
 
   logScoringResults(scoring.scopedSignals, scoring.signalsForScoring, scoring.scoredFull);

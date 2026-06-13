@@ -9,8 +9,8 @@ import {
   DISPLAY_VIEWS,
   normalizeReportScope,
   buildAttentionItems,
-  formatSimilarArticlesForChat,
 } from '../../resilience/index.js';
+import { formatSimilarArticlesForChat } from '../../../analyst/validation/app/validationToolExecutor.js';
 import { searchSources, getSource, listSources } from '../domain/sourceArchiveQuery.js';
 import { pboReviewRagEnabled } from '../../../cross-cut-modules/retrieval/ragConfig.js';
 import { requireAnalyst } from './createChatToolContext.js';
@@ -20,6 +20,7 @@ import {
   chatCompressToolsEnabled,
 } from '../domain/chatConfig.js';
 import { compressChatToolResult } from '../domain/chatToolCompress.js';
+import { wrapToolResultIfUntrusted, wrapUntrustedBlock } from '../../../cross-cut-modules/security/index.js';
 
 
 const VALIDATION_ACTIONS = new Set([
@@ -171,7 +172,8 @@ async function generateBrief(input, reportData, pboLookup, costRecorder = null) 
       role: 'user',
       content:
         `${audienceInstructions[audience] ?? audienceInstructions.analyst}\n` +
-        `${langInstructions}\n${scopeInstructions}\n\nDATA:\n${briefContext}`,
+        `${langInstructions}\n${scopeInstructions}\n\nDATA:\n` +
+        `${wrapUntrustedBlock(briefContext, { label: 'brief_context' })}`,
     }],
   });
   if (costRecorder && response.usage) {
@@ -470,10 +472,11 @@ export async function handleChatToolCall(toolName, input, ctx) {
   const handler = CHAT_TOOL_HANDLERS[toolName];
   if (!handler) return 'Unknown tool';
   const raw = await handler(toolName, input, ctx);
-  return compressChatToolResult(toolName, raw, {
+  const compressed = compressChatToolResult(toolName, raw, {
     enabled: chatCompressToolsEnabled(),
     economyOverride: ctx.economyOverride,
   });
+  return wrapToolResultIfUntrusted(toolName, compressed);
 }
 
-export { generateBrief, buildAssessmentBriefContext };
+export { generateBrief, buildAssessmentBriefContext, CHAT_TOOL_HANDLERS };

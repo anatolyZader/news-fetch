@@ -204,6 +204,17 @@ export function buildTheme(direction = 'ltr') {
             backgroundImage: PAGE_GRADIENT,
             backgroundAttachment: 'fixed',
             color: base.palette.text.primary,
+            '@media (max-width: 899px)': {
+              backgroundAttachment: 'scroll',
+            },
+          },
+          '@media (prefers-reduced-motion: reduce)': {
+            '*': {
+              animationDuration: '0.01ms !important',
+              animationIterationCount: '1 !important',
+              transitionDuration: '0.01ms !important',
+              scrollBehavior: 'auto !important',
+            },
           },
         },
       },

@@ -1,7 +1,8 @@
 /**
- * Public facade for the resilience validation submodule.
+ * @deprecated Import from analyst/validation — temporary backward-compat shim.
  */
-
-export { createValidationReviewSqliteStore } from './infrastructure/adapters/validationReviewSqliteStore.js';
-export { createValidationReviewService } from './app/validationReviewService.js';
-export { validationReviewRoutes } from './input/validationReviewRoutes.js';
+export {
+  createValidationReviewSqliteStore,
+  createValidationReviewService,
+  validationReviewRoutes,
+} from '../../../analyst/validation/index.js';

@@ -1,0 +1,113 @@
+{
+  "_doc": "Adversarial fixtures for narrative grounding (deterministic validation only — no live LLM).",
+  "scored_components": {
+    "narrative": {
+      "signal_count": 2,
+      "signals": [
+        {
+          "signal_type": "fear_expression",
+          "article_url": "https://example.com/fear",
+          "evidence_type": "direct_quote_named_person",
+          "evidence": "Residents report difficulty sleeping and returning to shelters repeatedly"
+        },
+        {
+          "signal_type": "compliance_enter_shelter",
+          "article_url": "https://example.com/compliance",
+          "evidence_type": "observational_reported_fact",
+          "evidence": "Reporting describes high shelter compliance during evening alerts"
+        }
+      ]
+    }
+  },
+  "bad_narrative_output": {
+    "cross_component_synthesis": "Fear drove compliance because residents were anxious.",
+    "components": [
+      {
+        "component_id": "narrative",
+        "manifestations_evidenced": ["Residents express that the authority's narrative is credible and reflects their lived reality"],
+        "manifestations_absent": [],
+        "evidence": ["Residents were afraid therefore they entered shelters"],
+        "narrative_claims": [
+          {
+            "text": "Fear caused shelter compliance",
+            "signal_refs": ["fear_expression@url:https://example.com/fear", "compliance_enter_shelter@url:https://example.com/compliance"],
+            "relation": "same_article_only"
+          }
+        ],
+        "narrative": "Residents expressed fear because compliance with shelter instructions was high."
+      }
+    ]
+  },
+  "good_narrative_output": {
+    "cross_component_synthesis": "- narrative: \"Residents report sleep disruption\" ([S1])\n- narrative: \"Shelter compliance observed\" ([S2])\n\nNo shared evidence links fear and compliance observations.",
+    "components": [
+      {
+        "component_id": "narrative",
+        "manifestations_evidenced": ["Competing or contradictory narratives are explicitly voiced by residents or groups"],
+        "manifestations_absent": [],
+        "evidence": [
+          "Residents report difficulty sleeping and returning to shelters repeatedly ([source](https://example.com/fear))",
+          "Reporting describes high shelter compliance during evening alerts ([source](https://example.com/compliance))"
+        ],
+        "narrative_claims": [
+          {
+            "text": "Residents report sleep disruption",
+            "signal_refs": ["fear_expression@url:https://example.com/fear"],
+            "relation": "parallel"
+          },
+          {
+            "text": "Shelter compliance observed during alerts",
+            "signal_refs": ["compliance_enter_shelter@url:https://example.com/compliance"],
+            "relation": "parallel"
+          }
+        ],
+        "narrative": "One report describes residents reporting sleep disruption. Separately, another describes shelter compliance during alerts."
+      }
+    ]
+  },
+  "suppression_scored": {
+    "narrative": {
+      "score": 7,
+      "score_raw": 9,
+      "score_headline": 7,
+      "suppression_delta": 2,
+      "source_cap_binding": true,
+      "positive_evidence": 8,
+      "negative_evidence": 1,
+      "signal_count": 9,
+      "suppression_breakdown": { "source_cap": -2, "min_mass_floor": null },
+      "derived_indicators": {
+        "dominant_outlet_key": "ynet.co.il",
+        "outlet_concentration_warning": true
+      },
+      "signals": [
+        {
+          "signal_type": "resilience_narrative_positive",
+          "article_source": "ynet.co.il",
+          "evidence": "Residents describe effective coping",
+          "_contribution": 0.7,
+          "_contribution_raw": 2.1,
+          "_cap_layer": "article_source"
+        }
+      ]
+    }
+  },
+  "bad_suppression_output": {
+    "components": [
+      {
+        "component_id": "narrative",
+        "data_quality_caveat": "",
+        "narrative": "Beneath the surface, hidden anxiety persists despite positive reporting from ynet."
+      }
+    ]
+  },
+  "good_suppression_output": {
+    "components": [
+      {
+        "component_id": "narrative",
+        "data_quality_caveat": "Headline score limited by source cap on ynet.co.il concentration; raw signal stream was higher.",
+        "narrative": "Reporting describes residents citing effective coping and shelter compliance."
+      }
+    ]
+  }
+}

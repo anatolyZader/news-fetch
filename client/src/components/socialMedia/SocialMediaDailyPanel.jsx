@@ -20,6 +20,7 @@ import {
 import { formatDate } from '../../lib/date.js';
 import PropTypes from 'prop-types';
 import { SocialMediaPostCard } from './SocialMediaPostCard.jsx';
+import { ResponsiveItemList } from '../ingest/ResponsiveItemList.jsx';
 
 export function SocialMediaDailyPanel({ operatorScope = 'national' }) {
   const { t, lang } = useLanguage();
@@ -119,19 +120,25 @@ export function SocialMediaDailyPanel({ operatorScope = 'national' }) {
                 <SectionHeading>
                   {t(cat.labelKey)} ({cat.count})
                 </SectionHeading>
-                <Stack spacing={1.5} sx={{ mt: 1 }}>
-                  {(cat.posts ?? []).map((post) => (
-                    <SocialMediaPostCard key={post.id} post={{ ...post, categoryId: cat.id }} t={t} />
-                  ))}
-                </Stack>
+                <ResponsiveItemList
+                  items={cat.posts ?? []}
+                  getItemKey={(post) => post.id}
+                  estimateSize={220}
+                  renderItem={(post) => (
+                    <SocialMediaPostCard post={{ ...post, categoryId: cat.id }} t={t} />
+                  )}
+                />
               </Box>
             ))
           ) : (
-            <Stack spacing={1.5}>
-              {visiblePosts.map((post) => (
-                <SocialMediaPostCard key={post.id} post={post} t={t} />
-              ))}
-            </Stack>
+            <ResponsiveItemList
+              items={visiblePosts}
+              getItemKey={(post) => post.id}
+              estimateSize={220}
+              renderItem={(post) => (
+                <SocialMediaPostCard post={post} t={t} />
+              )}
+            />
           )}
 
           {visiblePosts.length === 0 && (

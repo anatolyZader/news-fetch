@@ -13,11 +13,11 @@ function formatTemplate(template, params = {}) {
   );
 }
 
-export function EpistemicStatusBanner({ assessment, displayTier, attentionItems, suggestCrisisBudget }) {
+export function EpistemicStatusBanner({ assessment, displayView, attentionItems, suggestCrisisBudget }) {
   const { t } = useLanguage();
   const attentionItemIds = (attentionItems ?? []).map((item) => item.id).filter(Boolean);
   const messages = deriveEpistemicBannerMessages(assessment, {
-    displayTier,
+    displayView,
     attentionItemIds,
     suggestCrisisBudget,
   });
@@ -27,7 +27,20 @@ export function EpistemicStatusBanner({ assessment, displayTier, attentionItems,
   return (
     <Stack spacing={1}>
       {messages.map((msg) => (
-        <Alert key={msg.id} severity={msg.severity} variant="outlined">
+        <Alert
+          key={msg.id}
+          severity={msg.severity}
+          variant="outlined"
+          sx={{
+            minWidth: 0,
+            '& .MuiAlert-message': {
+              minWidth: 0,
+              overflow: 'visible',
+              wordBreak: 'break-word',
+              overflowWrap: 'anywhere',
+            },
+          }}
+        >
           {formatTemplate(t(msg.messageKey), msg.params)}
         </Alert>
       ))}
@@ -37,7 +50,7 @@ export function EpistemicStatusBanner({ assessment, displayTier, attentionItems,
 
 EpistemicStatusBanner.propTypes = {
   assessment: PropTypes.object,
-  displayTier: PropTypes.oneOf(['operator', 'analyst']),
+  displayView: PropTypes.oneOf(['operator', 'analyst']),
   attentionItems: PropTypes.arrayOf(PropTypes.object),
   suggestCrisisBudget: PropTypes.bool,
 };

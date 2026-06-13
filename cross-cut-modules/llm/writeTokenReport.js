@@ -2,7 +2,8 @@
  * Post-pipeline token report — written after each full pipeline run.
  *
  * Reads llm-invocations.jsonl, filters entries within the run's time window,
- * and writes daily_reports/token-report-{date}-{scope}.json.
+ * and writes token-report-{date}-{scope}.json under reportsDir
+ * (default from pipeline orchestrator: cross-cut-modules/budget/resilience_analysis/).
  */
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';

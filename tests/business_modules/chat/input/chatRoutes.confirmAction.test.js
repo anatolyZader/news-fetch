@@ -1,13 +1,18 @@
 import { describe, it, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import Fastify from 'fastify';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { chatRoutes } from '../../../../business_modules/chat/input/chatRoutes.js';
 import { createChatStore } from '../../../../business_modules/chat/infrastructure/chatStore.js';
 import { createChatPendingActionStore } from '../../../../business_modules/chat/infrastructure/chatPendingActionStore.js';
+
+const REPO_ROOT = resolve(import.meta.dirname, '../../../..');
+const TEST_REPORTS_DIR = join(REPO_ROOT, 'daily_reports');
+const OPERATOR_REPORT_DATE = '2099-06-13';
+const OPERATOR_REPORT_PATH = join(TEST_REPORTS_DIR, `resilience-report-${OPERATOR_REPORT_DATE}.json`);
 
 async function testAuthPreHandler(request) {
   request.user = {
@@ -24,10 +29,14 @@ describe('chatRoutes confirm-action', () => {
   let pendingActionStore;
   let sessionId;
   let prevAnalystEmails;
+  let geoUpdated;
+  let catalogReviewed;
 
   beforeEach(async () => {
     prevAnalystEmails = process.env.RESILIENCE_ANALYST_EMAILS;
     process.env.RESILIENCE_ANALYST_EMAILS = 'analyst@test.com';
+    geoUpdated = null;
+    catalogReviewed = null;
     dir = mkdtempSync(join(tmpdir(), 'chat-confirm-routes-'));
     chatStore = createChatStore(join(dir, 'chat.sqlite'));
     pendingActionStore = createChatPendingActionStore(join(dir, 'pending.sqlite'));
@@ -38,6 +47,7 @@ describe('chatRoutes confirm-action', () => {
     });
 
     app = Fastify();
+    // executePendingAction only needs validation/geo/catalog services — not pboReportReviewService or driftService.
     await chatRoutes(app, {
       authHook: { preHandler: testAuthPreHandler },
       chatStore,
@@ -56,19 +66,28 @@ describe('chatRoutes confirm-action', () => {
       pboHistoricalSearchService: null,
       pboReportReviewService: null,
       driftService: null,
-      catalogProposalService: null,
-      geoUnknownReviewService: null,
+      catalogProposalService: {
+        async reviewProposal(proposalId, review) {
+          catalogReviewed = { proposalId, review };
+        },
+      },
+      geoUnknownReviewService: {
+        updateStatus(id, update) {
+          geoUpdated = { id, update };
+        },
+      },
     });
   });
 
   afterEach(async () => {
     await app.close();
     rmSync(dir, { recursive: true, force: true });
+    if (existsSync(OPERATOR_REPORT_PATH)) rmSync(OPERATOR_REPORT_PATH);
     if (prevAnalystEmails === undefined) delete process.env.RESILIENCE_ANALYST_EMAILS;
     else process.env.RESILIENCE_ANALYST_EMAILS = prevAnalystEmails;
   });
 
-  function createPendingAction() {
+  function createPendingAction(overrides = {}) {
     return pendingActionStore.createPending({
       ownerUid: 'u1',
       sessionId,
@@ -80,6 +99,7 @@ describe('chatRoutes confirm-action', () => {
         action: 'skip',
       },
       summary: 'skip item',
+      ...overrides,
     });
   }
 
@@ -141,5 +161,73 @@ describe('chatRoutes confirm-action', () => {
       payload: { sessionId, actionId: id, confirmed: true },
     });
     assert.equal(res.statusCode, 410);
+  });
+
+  it('confirms geo unknown update for analyst', async () => {
+    const { id } = createPendingAction({
+      toolName: 'propose_geo_unknown_update',
+      params: { id: 42, status: 'resolved', note: 'mapped' },
+      summary: 'geo #42 resolved',
+    });
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/chat/confirm-action',
+      headers: { 'x-test-email': 'analyst@test.com' },
+      payload: { sessionId, actionId: id, confirmed: true },
+    });
+    assert.equal(res.statusCode, 200);
+    assert.equal(geoUpdated?.id, 42);
+    assert.equal(geoUpdated?.update.status, 'resolved');
+  });
+
+  it('confirms catalog proposal review for analyst', async () => {
+    const { id } = createPendingAction({
+      toolName: 'propose_catalog_proposal_review',
+      params: { proposal_id: 'prop-1', status: 'approved', note: 'ok' },
+      summary: 'catalog prop-1 approved',
+    });
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/chat/confirm-action',
+      headers: { 'x-test-email': 'analyst@test.com' },
+      payload: { sessionId, actionId: id, confirmed: true },
+    });
+    assert.equal(res.statusCode, 200);
+    assert.equal(catalogReviewed?.proposalId, 'prop-1');
+    assert.equal(catalogReviewed?.review.status, 'approved');
+  });
+
+  it('confirms operator recommendation for non-analyst operator', async () => {
+    mkdirSync(TEST_REPORTS_DIR, { recursive: true });
+    writeFileSync(OPERATOR_REPORT_PATH, JSON.stringify({
+      assessment: {
+        date: OPERATOR_REPORT_DATE,
+        operator_recommendations: [{
+          id: 'rec-test-1',
+          status: 'pending',
+          pattern_code: 'test_pattern',
+          level: 'watch',
+        }],
+      },
+    }), 'utf8');
+
+    const { id } = createPendingAction({
+      toolName: 'propose_operator_recommendation',
+      params: {
+        date: OPERATOR_REPORT_DATE,
+        scope: 'national',
+        recommendation_id: 'rec-test-1',
+        action: 'acknowledge',
+      },
+      summary: 'ack rec-test-1',
+    });
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/chat/confirm-action',
+      headers: { 'x-test-email': 'operator@test.com' },
+      payload: { sessionId, actionId: id, confirmed: true },
+    });
+    assert.equal(res.statusCode, 200);
+    assert.match(res.json().result.message, /acknowledge/i);
   });
 });

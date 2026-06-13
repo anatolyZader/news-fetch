@@ -22,6 +22,7 @@ import {
   stampNaftaliSignalSourceIds,
 } from '../../../db/source_archive/archiveNaftaliWeek.js';
 import { defaultClosedSignalsDir } from '../../signals_extraction/index.js';
+import { naftaliWeekToExtractUnits } from '../app/naftaliDashboardToExtractUnits.js';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 
@@ -141,7 +142,7 @@ function buildSignalsForWeek(week) {
   return signals;
 }
 
-function writeWeekBundle(week, outDir) {
+async function writeWeekBundle(week, outDir) {
   const weekDate = week.dateTo ?? week.dateFrom;
   if (!weekDate) return false;
 
@@ -188,10 +189,27 @@ function writeWeekBundle(week, outDir) {
   }, null, 2), 'utf-8');
 
   console.error(`signals-naftali-${weekDate}.json  →  ${stampedGeoSignals.length} signals from ${week.responses.length} municipalities (geo: ${resolved} resolved, ${unknown} unknown)`);
+
+  try {
+    const units = naftaliWeekToExtractUnits(week);
+    if (units.length > 0) {
+      const { runPipelineOpenExtract } = await import('../../signals_extraction/index.js');
+      await runPipelineOpenExtract({
+        articles: units,
+        sourceType: 'naftali',
+        contentKind: 'naftali_questionnaire',
+        date: weekDate,
+        sourceFiles: [week.file],
+      });
+    }
+  } catch (err) {
+    console.error(`  ⚠ Open pipeline extract skipped: ${err.message}`);
+  }
+
   return true;
 }
 
-function run() {
+async function run() {
   const data = getNaftaliDashboardSync();
   const outDir = defaultClosedSignalsDir();
   mkdirSync(outDir, { recursive: true });
@@ -199,7 +217,7 @@ function run() {
   let filesWritten = 0;
 
   for (const week of data.weeks) {
-    if (writeWeekBundle(week, outDir)) filesWritten++;
+    if (await writeWeekBundle(week, outDir)) filesWritten++;
   }
 
   if (filesWritten === 0) {
@@ -207,4 +225,7 @@ function run() {
   }
 }
 
-run();
+run().catch((err) => {
+  console.error('extract-naftali-signals failed:', err.message);
+  process.exit(1);
+});

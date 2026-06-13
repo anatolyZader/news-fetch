@@ -2,7 +2,6 @@
  * Epistemic gate — abstention and field-anchor-only scoring modes.
  */
 
-import { scoreComponents } from '../behaviorSignals.js';
 import { filterAnchorSignals } from './sourceChannels.js';
 import { buildEpistemicStatus } from './epistemicStatus.js';
 
@@ -90,6 +89,7 @@ export function applyEpistemicGate({
   digitalInclusiveScored = null,
   scoringPartition = null,
   quarantinedDigital = null,
+  scoreComponents = null,
 }) {
   const voidLevel = dataVoid?.level ?? 'none';
   const salienceCtx = {
@@ -137,6 +137,9 @@ export function applyEpistemicGate({
   }
 
   if (!partitionApplied && dataVoid?.digital_darkness === true) {
+    if (typeof scoreComponents !== 'function') {
+      throw new Error('applyEpistemicGate requires scoreComponents for field_anchor_only under digital_darkness');
+    }
     const fieldSignals = filterAnchorSignals(signalsForScoring);
     const fieldScored = scoreComponents(fieldSignals, {
       totalArticles: Math.max(fieldSignals.length, 1),

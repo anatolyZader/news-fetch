@@ -19,6 +19,7 @@ import {
   classifySocialCandidates,
   postsToClassifierCandidates,
 } from './socialCandidateClassifier.js';
+import { socialFindingsToExtractUnits } from '../domain/services/socialFindingsToExtractUnits.js';
 
 const COUNTS_COST = 0.005;
 const POST_COST = 0.005;
@@ -59,6 +60,24 @@ export function createSocialMediaDailyGatherService({
 
   async function gatherX({ anchorDate, days, north, execute, maxPerQuery, maxCostUsd }) {
     const slots = buildDailyXSearchSlots({ anchorDate, days, north });
+
+    // X /search/recent and /counts/recent only cover the rolling 7-day window.
+    // If the oldest slot's startTime is before that cutoff, skip X gracefully
+    // rather than spending API credits and getting a 400.
+    const xEarliestAllowed = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const oldestSlotStart = slots.length ? new Date(slots.at(-1).startTime) : null;
+    if (oldestSlotStart && oldestSlotStart < xEarliestAllowed) {
+      return {
+        posts: [],
+        candidateCount: 0,
+        estCost: 0,
+        accessNotes: [
+          `X fetch skipped: window start ${slots.at(-1).startTime} is outside the 7-day recent-search limit.`,
+        ],
+        aborted: false,
+      };
+    }
+
     const accessNotes = [];
     const candidates = [];
     let countsCost = 0;
@@ -206,6 +225,24 @@ export function createSocialMediaDailyGatherService({
         treatedDates.push(date);
       } catch (err) {
         accessNotes.push(`treat failed for ${date}: ${err?.message ?? err}`);
+      }
+
+      try {
+        const units = socialFindingsToExtractUnits(dayFindings);
+        if (units.length > 0) {
+          const { runPipelineOpenExtract } = await import('../../signals_extraction/index.js');
+          await runPipelineOpenExtract({
+            articles: units,
+            sourceType: 'social',
+            contentKind: 'mixed',
+            date,
+            sourceFiles: [
+              `business_modules/social_media/data/signals-social-${date}.json`,
+            ],
+          });
+        }
+      } catch (err) {
+        accessNotes.push(`open pipeline extract failed for ${date}: ${err?.message ?? err}`);
       }
     }
 

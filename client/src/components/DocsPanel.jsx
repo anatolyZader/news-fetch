@@ -11,7 +11,8 @@ import CircularProgress from '@mui/material/CircularProgress';
 import InputAdornment from '@mui/material/InputAdornment';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import MenuBookRoundedIcon from '@mui/icons-material/MenuBookRounded';
-import { alpha } from '@mui/material/styles';
+import { alpha, useTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { MarkdownDocView } from './MarkdownDocView.jsx';
@@ -146,6 +147,8 @@ function groupPagesByNavGroup(pages) {
 
 export function DocsPanel({ open, onClose, initialSlug, variant = 'modal' }) {
   const isActive = variant === 'window' || open;
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { getIdToken, authRequired, user } = useAuth();
   const { t } = useLanguage();
   const [index, setIndex] = useState([]);
@@ -514,21 +517,33 @@ export function DocsPanel({ open, onClose, initialSlug, variant = 'modal' }) {
             flexDirection: 'column',
           }}
         >
-          <OpenFullDocsStickyLink
-            href={fullDocsUrl}
-            label={t('app.openFullDocs')}
-            active={isActive}
-            pin={variant === 'window' ? 'fixed' : 'overlay'}
-          />
+          {!isMobile && (
+            <OpenFullDocsStickyLink
+              href={fullDocsUrl}
+              label={t('app.openFullDocs')}
+              active={isActive}
+              pin={variant === 'window' ? 'fixed' : 'overlay'}
+            />
+          )}
           <Box
             sx={(theme) => ({
               flex: 1,
               minHeight: 0,
               padding: theme.spacing(2),
-              paddingTop: theme.spacing(5.5),
+              paddingTop: isMobile ? theme.spacing(2) : theme.spacing(5.5),
               overflow: 'auto',
             })}
           >
+          {isMobile && (
+            <Box sx={(theme) => ({ display: 'flex', justifyContent: 'flex-end', marginBottom: theme.spacing(1.5) })}>
+              <OpenFullDocsStickyLink
+                href={fullDocsUrl}
+                label={t('app.openFullDocs')}
+                active={isActive}
+                pin="inline"
+              />
+            </Box>
+          )}
           {error && (
             <Alert
               severity="info"

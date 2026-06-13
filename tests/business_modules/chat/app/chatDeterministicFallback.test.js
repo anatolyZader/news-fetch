@@ -28,7 +28,7 @@ describe('chatDeterministicFallback', () => {
   });
 
   it('formatDeterministicFallbackResponse includes deterministic header', () => {
-    const text = formatDeterministicFallbackResponse('tool output', { tier: 'hub', reason: 'test' });
+    const text = formatDeterministicFallbackResponse('tool output', { contextSlice: 'hub', reason: 'test' });
     assert.match(text, /Deterministic mode/);
     assert.match(text, /tool output/);
     assert.match(text, /hub/);

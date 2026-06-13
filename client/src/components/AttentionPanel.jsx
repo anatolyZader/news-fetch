@@ -102,33 +102,24 @@ export function mergeAttentionItems(items, driftAlerts, isAnalyst) {
   return merged;
 }
 
-function highestLevel(items) {
-  const order = ['critical', 'warning', 'watch', 'info'];
-  for (const level of order) {
-    if (items.some((i) => i.level === level)) return level;
-  }
-  return null;
-}
-
 export function AttentionPanel({
   items = [],
   driftAlerts = null,
-  displayTier = 'operator',
+  displayView = 'operator',
   onJumpToComponent,
   onScrollToValidationReview,
   defaultOpen = false,
 }) {
   const { t } = useLanguage();
   const [open, setOpen] = useState(defaultOpen);
-  const isAnalyst = displayTier === 'analyst';
+  const isAnalyst = displayView === 'analyst';
   const allItems = mergeAttentionItems(items, driftAlerts, isAnalyst);
 
   if (allItems.length === 0) return null;
 
-  const peak = highestLevel(allItems);
-
   return (
     <Box
+      id="attention-panel"
       component="section"
       aria-label={t('attention.panelTitle')}
       sx={(theme) => ({
@@ -164,14 +155,11 @@ export function AttentionPanel({
           cursor: 'pointer',
         })}
       >
-        <Typography variant="cardTitle">{t('attention.panelTitle')}</Typography>
-        <Stack direction="row" spacing={0.75} alignItems="center">
-          {peak && (
-            <StatusTag variant={LEVEL_VARIANT[peak] ?? 'neutral'}>
-              {t(LEVEL_LABEL_KEY[peak])}
-            </StatusTag>
-          )}
-          <Typography variant="caption" color="text.secondary">
+        <Typography variant="cardTitle" sx={{ flex: 1, minWidth: 0, lineHeight: 1.3 }}>
+          {t('attention.panelTitle')}
+        </Typography>
+        <Stack direction="row" spacing={0.75} alignItems="center" sx={{ flexShrink: 0 }}>
+          <Typography variant="caption" color="text.secondary" sx={{ whiteSpace: 'nowrap' }}>
             {t('attention.itemCount').replace('{n}', String(allItems.length))}
           </Typography>
           <IconButton
@@ -262,7 +250,7 @@ export function AttentionPanel({
 AttentionPanel.propTypes = {
   items: PropTypes.arrayOf(PropTypes.object),
   driftAlerts: PropTypes.arrayOf(PropTypes.object),
-  displayTier: PropTypes.oneOf(['operator', 'analyst']),
+  displayView: PropTypes.oneOf(['operator', 'analyst']),
   onJumpToComponent: PropTypes.func,
   onScrollToValidationReview: PropTypes.func,
   defaultOpen: PropTypes.bool,

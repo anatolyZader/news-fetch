@@ -7,6 +7,11 @@ function claimHasOovFlag(claim) {
   return flags.includes('oov_cluster') || flags.includes('unverified');
 }
 
+function claimHasOpenObservationFlag(claim) {
+  const flags = claim.epistemic_flags ?? claim.flags ?? [];
+  return flags.includes('open_observation') || flags.includes('residual_observation');
+}
+
 /**
  * @param {object[]} componentAssessments
  * @returns {object[]}
@@ -52,6 +57,12 @@ function clusterMentionedInSynthesis(synthesis, cluster) {
  * @returns {object}
  */
 export function applySynthesisOovChecks(synthResult, ctx = {}) {
+  let result = applyOovClusterChecks(synthResult, ctx);
+  result = applyOpenObservationChecks(result, ctx);
+  return result;
+}
+
+function applyOovClusterChecks(synthResult, ctx = {}) {
   const oovClusters = ctx.oovClusters ?? [];
   if (!oovClusters.length) return synthResult;
 
@@ -89,6 +100,70 @@ export function applySynthesisOovChecks(synthResult, ctx = {}) {
     cross_component_synthesis: synthesis,
     attention_items,
   };
+}
+
+function openClaimMentionedInSynthesis(synthesis, claim) {
+  const blob = String(synthesis ?? '').toLowerCase();
+  if (!blob) return false;
+  const text = String(claim.text ?? '').slice(0, 40).toLowerCase();
+  if (text.length >= 8 && blob.includes(text.slice(0, 20))) return true;
+  const obsId = claim.observation_id ?? claim.claim_id ?? '';
+  return obsId && blob.includes(String(obsId).toLowerCase());
+}
+
+function applyOpenObservationChecks(synthResult, ctx = {}) {
+  const openObservationClaims = ctx.openObservationClaims ?? collectOpenObservationClaimsFromAssessments(ctx.componentAssessments);
+  if (!openObservationClaims.length) return synthResult;
+
+  let synthesis = String(synthResult.cross_component_synthesis ?? '');
+  const attention_items = [...(synthResult.attention_items ?? [])];
+  const seenAttention = new Set(attention_items.map((a) => a.id));
+
+  for (const claim of openObservationClaims) {
+    const claimKey = claim.claim_id ?? claim.observation_id ?? claim.text?.slice(0, 30) ?? 'unknown';
+    if (openClaimMentionedInSynthesis(synthesis, claim)) continue;
+
+    const sample = String(claim.text ?? '').slice(0, 200);
+    const bullet = `- Unverified open observation (${claim.component_id}): ${sample}`;
+    synthesis = synthesis.trim() ? `${synthesis.trim()}\n${bullet}` : bullet;
+
+    const attId = `open:unaddressed:${claimKey}`;
+    if (!seenAttention.has(attId)) {
+      seenAttention.add(attId);
+      attention_items.push({
+        id: attId,
+        level: 'warning',
+        code: 'open_observation_unaddressed',
+        title_key: 'attention.openObservation.unaddressed',
+        detail_key: 'attention.openObservation.unaddressedDetail',
+        detail_params: { sample, component_id: claim.component_id },
+        suggested_action_key: 'attention.suggested.reviewEvidence',
+      });
+    }
+  }
+
+  return {
+    ...synthResult,
+    cross_component_synthesis: synthesis,
+    attention_items,
+  };
+}
+
+function collectOpenObservationClaimsFromAssessments(componentAssessments) {
+  const out = [];
+  for (const comp of componentAssessments ?? []) {
+    for (const claim of comp.claims ?? []) {
+      if (claimHasOpenObservationFlag(claim)) {
+        out.push({
+          component_id: comp.component_id,
+          claim_id: claim.claim_id,
+          text: claim.text ?? '',
+          observation_id: claim.observation_id ?? null,
+        });
+      }
+    }
+  }
+  return out;
 }
 
 /**

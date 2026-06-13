@@ -7,9 +7,11 @@ import { alpha } from '@mui/material/styles';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { PrimaryTab } from './PrimaryTab.jsx';
+import { DataSourcesMobileNav } from './DataSourcesMobileNav.jsx';
 
 /**
  * Persistent data-source tab strip — label column + equal-width tabs across full width.
+ * Below md: bottom sheet (xs) or chip scroller (sm–md).
  */
 export function DataSourcesNav({
   isOnAssessment,
@@ -20,12 +22,15 @@ export function DataSourcesNav({
 }) {
   const { t } = useLanguage();
 
-  const sourceRuler = (
+  const desktopSourceRuler = (
     <Stack
       direction="row"
       alignItems="stretch"
       sx={(th) => ({
+        display: { xs: 'none', md: 'flex' },
         width: '100%',
+        minWidth: 0,
+        overflow: 'hidden',
         borderBottom: th.custom.border.hairline,
       })}
     >
@@ -46,11 +51,6 @@ export function DataSourcesNav({
           ...th.typography.eyebrow,
           letterSpacing: '0.08em',
           userSelect: 'none',
-          [th.breakpoints.down('sm')]: {
-            paddingLeft: th.spacing(1.5),
-            paddingRight: th.spacing(1.5),
-            fontSize: '0.65rem',
-          },
         })}
       >
         {t('nav.dataSources')}
@@ -80,11 +80,6 @@ export function DataSourcesNav({
               paddingLeft: th.spacing(0.75),
               paddingRight: th.spacing(0.75),
               whiteSpace: 'nowrap',
-              [th.breakpoints.down('md')]: {
-                fontSize: th.typography.body2.fontSize,
-                paddingLeft: th.spacing(0.5),
-                paddingRight: th.spacing(0.5),
-              },
             })}
           >
             {source.label}
@@ -94,10 +89,26 @@ export function DataSourcesNav({
     </Stack>
   );
 
+  const mobileNav = (
+    <DataSourcesMobileNav
+      sources={sources}
+      activeSourceId={activeSourceId}
+      isOnAssessment={isOnAssessment}
+      onSelectSource={onSelectSource}
+    />
+  );
+
+  const navBody = (
+    <>
+      {mobileNav}
+      {desktopSourceRuler}
+    </>
+  );
+
   if (isOnAssessment) {
     return (
       <Box component="nav" aria-label={t('app.ariaDataSources')} sx={{ width: '100%' }}>
-        {sourceRuler}
+        {navBody}
       </Box>
     );
   }
@@ -113,7 +124,7 @@ export function DataSourcesNav({
         paddingBottom: th.spacing(2.5),
       })}
     >
-      {sourceRuler}
+      {navBody}
       <Button
         type="button"
         variant="outlined"

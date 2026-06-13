@@ -8,8 +8,9 @@ import {
   compressToolsEnabled,
   compactToolLoopEnabled,
   chatCompactToolLoopEnabled,
+  tieredSpecialistsEnabled,
 } from '../agent/agentConfig.js';
-import { chatCompressToolsEnabled, chatContextTieringEnabled } from '../../business_modules/chat/index.js';
+import { chatCompressToolsEnabled, chatContextSlicingEnabled } from '../../business_modules/chat/index.js';
 import {
   llmPromptCacheMasterEnabled,
   promptCacheEnabledForFeature,
@@ -29,8 +30,9 @@ export function collectPromptOptimizationFlags() {
     flagLine('RESILIENCE_EXTRACT_PROMPT_CACHE', promptCacheEnabledForFeature('extract')),
     flagLine('RESILIENCE_ASSESS_PROMPT_CACHE', promptCacheEnabledForFeature('assess_planner')),
     flagLine('CHAT_COMPRESS_TOOLS', chatCompressToolsEnabled()),
-    flagLine('CHAT_CONTEXT_TIERING', chatContextTieringEnabled()),
+    flagLine('CHAT_CONTEXT_TIERING', chatContextSlicingEnabled()),
     flagLine('CHAT_COMPACT_TOOL_LOOP', chatCompactToolLoopEnabled()),
+    flagLine('RESILIENCE_ASSESS_TIERED_SPECIALISTS', tieredSpecialistsEnabled()),
     flagLine('RESILIENCE_ASSESS_SLIM_PLANNER', slimPlannerPromptsEnabled()),
     flagLine('RESILIENCE_ASSESS_SLIM_SYNTH', slimSynthPromptsEnabled()),
     flagLine('RESILIENCE_ASSESS_SLIM_PROMPTS', slimPromptsEnabled()),
@@ -52,7 +54,12 @@ export function collectPromptOptimizationFlags() {
     {
       scope: 'chat_context',
       action: 'CHAT_CONTEXT_TIERING=0',
-      effect: 'Full report context every turn',
+      effect: 'Full report context every turn (context_slice=full)',
+    },
+    {
+      scope: 'assess_specialist_depth',
+      action: 'RESILIENCE_ASSESS_TIERED_SPECIALISTS=0',
+      effect: 'Full-depth specialist investigation (depth A) for every component',
     },
     {
       scope: 'slim_planner',

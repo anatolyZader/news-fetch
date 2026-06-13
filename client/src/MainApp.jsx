@@ -6,6 +6,8 @@ import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
+import Divider from '@mui/material/Divider';
+import ListSubheader from '@mui/material/ListSubheader';
 import Paper from '@mui/material/Paper';
 import Slide from '@mui/material/Slide';
 import Alert from '@mui/material/Alert';
@@ -13,15 +15,20 @@ import Snackbar from '@mui/material/Snackbar';
 import CircularProgress from '@mui/material/CircularProgress';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+import NativeSelect from '@mui/material/NativeSelect';
+import FormControl from '@mui/material/FormControl';
 import { useTheme, alpha } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
-import { useTodayReport } from './hooks/useAnalysis.js';
+import { useTodayReport, useReportDates } from './hooks/useAnalysis.js';
 import { usePanelPopups } from './hooks/usePanelPopups.js';
 import { useDisplayCapabilities } from './hooks/useDisplayCapabilities.js';
 import { useTranslatedReport } from './hooks/useTranslatedReport.js';
 import { getAnalystSiteUrl } from './lib/analystSiteUrl.js';
+import { formatDate } from './lib/date.js';
 import { ReportView } from './components/ReportView.jsx';
+import { ReportContentsMobileNav } from './components/ReportContentsMobileNav.jsx';
+import { MobileDailyAssessmentCard } from './components/MobileDailyAssessmentCard.jsx';
 import { CrisisBudgetPanel } from './components/CrisisBudgetPanel.jsx';
 import { ChatPanel } from './components/ChatPanel.jsx';
 import { DocsPanel } from './components/DocsPanel.jsx';
@@ -39,20 +46,22 @@ import { SocialMediaTab } from './components/SocialMediaTab.jsx';
 import { NewsTab } from './components/NewsTab.jsx';
 import { RadioTab } from './components/RadioTab.jsx';
 import { useLanguage } from './context/LanguageContext.jsx';
-import { LanguageSelector } from './components/LanguageSelector.jsx';
+import { LanguageSelector, LANGUAGE_CODES, LANGUAGE_LABELS } from './components/LanguageSelector.jsx';
 import { useAuth } from './context/AuthContext.jsx';
 import {
   AppLayout,
   BrandHeader,
   ChatLauncher,
   DataSourcesNav,
+  MobileAppBar,
   PageHeader,
   PrimaryTab,
   ResizableFrame,
   SidebarItem,
   SiteFooter,
+  mobileFlatReportShellSx,
 } from './ui/index.js';
-import { formatDate } from './lib/date.js';
+import { useVisualViewportInset } from './hooks/useVisualViewportInset.js';
 
 const LS_MAIN_TAB = 'vibes-witch:mainTab';
 const LS_POOL_TAB = 'vibes-witch:poolTab';
@@ -259,10 +268,12 @@ function readReportScope() {
 }
 
 function AppShell() {
-  const { logout, authRequired, user } = useAuth();
+  const { logout, authRequired, user, accessToken } = useAuth();
   const { canViewAnalyst } = useDisplayCapabilities();
   const analystSiteUrl = getAnalystSiteUrl();
   const [reportScope, setReportScope] = useState(() => readReportScope());
+  const [selectedReportDate, setSelectedReportDate] = useState(null);
+  const { dates: availableReportDates } = useReportDates(reportScope, accessToken);
   const {
     report,
     scoreBySource,
@@ -276,13 +287,14 @@ function AppShell() {
     budgetStatus,
     suggestCrisisBudget,
     refreshReport,
-  } = useTodayReport(reportScope);
+  } = useTodayReport(reportScope, 'operator', selectedReportDate);
   const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jerusalem' });
   const [activeTab, setActiveTab] = useState(() => readMainTab());
   const [activePoolTab, setActivePoolTab] = useState(() => readPoolTab());
   const [activePboTab, setActivePboTab] = useState(() => readPboTab());
   const [activePboRegionTab, setActivePboRegionTab] = useState(() => readPboRegionTab());
   const reportTopRef = useRef(null);
+  const reportContentsNavRef = useRef(null);
   const [openReportCompId, setOpenReportCompId] = useState(() => readDeepLink().component || null);
   const [openReportEvidenceCompId, setOpenReportEvidenceCompId] = useState(null);
   const [chatOpen, setChatOpen] = useState(false);
@@ -301,6 +313,7 @@ function AppShell() {
       h: Math.max(200, Math.min(maxH, next.height)),
     });
   }, []);
+  const viewportBottomInset = useVisualViewportInset();
 
   useEffect(() => {
     try {
@@ -330,6 +343,7 @@ function AppShell() {
     try {
       localStorage.setItem(LS_REPORT_SCOPE, reportScope);
     } catch { /* */ }
+    setSelectedReportDate(null);
     queueMicrotask(() => {
       setOpenReportCompId(null);
       setOpenReportEvidenceCompId(null);
@@ -345,10 +359,14 @@ function AppShell() {
   const [moreMenuAnchor, setMoreMenuAnchor] = useState(null);
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
+  const isCompact = useMediaQuery(theme.breakpoints.down('sm'));
   const closeMoreMenu = useCallback(() => setMoreMenuAnchor(null), []);
   const goToAssessment = useCallback(() => {
     setActiveTab('report');
     reportTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, []);
+  const scrollToAttention = useCallback(() => {
+    document.getElementById('attention-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, []);
   const closeDocs = useCallback(() => {
     setDocsOpen(false);
@@ -401,7 +419,7 @@ function AppShell() {
     setSettingsOpen(false);
   }, []);
 
-  const { t, lang } = useLanguage();
+  const { t, lang, setLang } = useLanguage();
   const { displayReport, translating, translateError } = useTranslatedReport(report, lang);
 
   useEffect(() => {
@@ -498,147 +516,230 @@ function AppShell() {
     { id: 'education', label: t('tab.education') },
   ];
 
-  const header = (
+  const brandHeader = (
+    <BrandHeader
+      title="Srulik's lab"
+      subtitle="Home Front Command · Daily Assessment"
+      logoSrc="/logo_srulik_1_no_text.png"
+      logoAlt=""
+      onHomeClick={goToAssessment}
+      homeAriaLabel={t('app.goToDailyAssessment')}
+    />
+  );
+
+  const writeReportButton = (
+    <Button
+      variant="outlined"
+      size="small"
+      type="button"
+      onClick={openReportBuild}
+      aria-pressed={isDesktop ? isPanelPopupOpen('report-build') : reportBuildOpen}
+      sx={headerButtonSx}
+    >
+      {t('app.writeReport')}
+    </Button>
+  );
+
+  const moreMenuButton = (
+    <IconButton
+      id="header-more-button"
+      type="button"
+      size="small"
+      onClick={(e) => setMoreMenuAnchor(e.currentTarget)}
+      aria-label={t('app.moreMenu')}
+      aria-controls={moreMenuAnchor ? 'header-more-menu' : undefined}
+      aria-haspopup="true"
+      aria-expanded={moreMenuAnchor ? 'true' : 'false'}
+      sx={moreIconButtonSx}
+    >
+      <MoreVertIcon fontSize="small" />
+    </IconButton>
+  );
+
+  const headerMoreMenu = (
+    <Menu
+      id="header-more-menu"
+      anchorEl={moreMenuAnchor}
+      open={Boolean(moreMenuAnchor)}
+      onClose={closeMoreMenu}
+      slotProps={{ list: { 'aria-labelledby': 'header-more-button' } }}
+      anchorOrigin={isCompact ? { vertical: 'bottom', horizontal: 'left' } : { vertical: 'bottom', horizontal: 'right' }}
+      transformOrigin={isCompact ? { vertical: 'top', horizontal: 'left' } : { vertical: 'top', horizontal: 'right' }}
+    >
+      {!isDesktop && (
+        <MenuItem
+          onClick={() => {
+            openReportBuild();
+            closeMoreMenu();
+          }}
+        >
+          {t('app.writeReport')}
+        </MenuItem>
+      )}
+      {!isDesktop && (
+        <MenuItem
+          onClick={() => {
+            openSendEvidence();
+            closeMoreMenu();
+          }}
+        >
+          {t('app.sendEvidence')}
+        </MenuItem>
+      )}
+      <MenuItem
+        onClick={() => {
+          openDocs();
+          closeMoreMenu();
+        }}
+      >
+        {t('app.docs')}
+      </MenuItem>
+      <MenuItem
+        onClick={() => {
+          openSettings();
+          closeMoreMenu();
+        }}
+      >
+        {t('app.settings')}
+      </MenuItem>
+      {user && canViewAnalyst && (
+        <MenuItem
+          component="a"
+          href={analystSiteUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={closeMoreMenu}
+        >
+          {t('app.analystView')}
+        </MenuItem>
+      )}
+      {!isDesktop && (
+        <>
+          <Divider sx={{ my: 0.5 }} />
+          <ListSubheader component="div" disableSticky sx={{ lineHeight: 2 }}>
+            {t('settings.section.language')}
+          </ListSubheader>
+          {LANGUAGE_CODES.map((code) => (
+            <MenuItem
+              key={code}
+              selected={lang === code}
+              onClick={() => {
+                setLang(code);
+                closeMoreMenu();
+              }}
+            >
+              {LANGUAGE_LABELS[code]}
+            </MenuItem>
+          ))}
+        </>
+      )}
+      {authRequired && (
+        <>
+          <Divider sx={{ my: 0.5 }} />
+          <MenuItem
+            onClick={() => {
+              logout();
+              closeMoreMenu();
+            }}
+          >
+            {t('settings.signOut')}
+          </MenuItem>
+        </>
+      )}
+    </Menu>
+  );
+
+  const translatingBadge = translating && (
+    <Stack
+      direction="row"
+      alignItems="center"
+      spacing={1}
+      role="status"
+      aria-live="polite"
+      sx={(theme) => ({
+        paddingTop: theme.spacing(0.5),
+        paddingBottom: theme.spacing(0.5),
+        paddingLeft: theme.spacing(1),
+        paddingRight: theme.spacing(1),
+        borderRadius: `${theme.custom.radius.section}px`,
+        background: theme.palette.background.paper,
+        border: theme.custom.border.hairline,
+        boxShadow: theme.custom.elevation.hover,
+      })}
+    >
+      <CircularProgress size={20} thickness={4} />
+      <Typography variant="cardTitle" sx={{ lineHeight: 1.2 }}>
+        {t('report.translating')}
+      </Typography>
+    </Stack>
+  );
+
+  const header = isDesktop ? (
     <>
-      <BrandHeader
+      {brandHeader}
+      <Stack
+        direction="row"
+        alignItems="center"
+        spacing={0.75}
+        sx={{ ml: 'auto', flexShrink: 0 }}
+      >
+        {writeReportButton}
+        <Button
+          variant="outlined"
+          size="small"
+          type="button"
+          onClick={openSendEvidence}
+          aria-pressed={isPanelPopupOpen('send-evidence')}
+          sx={headerButtonSx}
+        >
+          {t('app.sendEvidence')}
+        </Button>
+        {moreMenuButton}
+        {headerMoreMenu}
+        {translatingBadge}
+        <LanguageSelector />
+      </Stack>
+    </>
+  ) : isCompact ? (
+    <Stack spacing={0.75} sx={{ width: '100%' }}>
+      <MobileAppBar
         title="Srulik's lab"
         subtitle="Home Front Command · Daily Assessment"
         logoSrc="/logo_srulik_1_no_text.png"
         logoAlt=""
         onHomeClick={goToAssessment}
         homeAriaLabel={t('app.goToDailyAssessment')}
+        onMenuClick={(e) => setMoreMenuAnchor(e.currentTarget)}
+        onNotificationClick={scrollToAttention}
+        notificationAriaLabel={t('app.moreMenu')}
       />
+      {headerMoreMenu}
+      {translatingBadge}
+    </Stack>
+  ) : (
+    <>
+      {brandHeader}
       <Stack
         direction="row"
         alignItems="center"
         spacing={0.75}
-        sx={{ ml: 'auto', flexShrink: 0, flexWrap: { xs: 'wrap', md: 'nowrap' } }}
+        sx={{ ml: 'auto', flexShrink: 0 }}
       >
-        <Button
-          variant="outlined"
-          size="small"
-          type="button"
-          onClick={openReportBuild}
-          aria-pressed={isDesktop ? isPanelPopupOpen('report-build') : reportBuildOpen}
-          sx={headerButtonSx}
-        >
-          {t('app.writeReport')}
-        </Button>
-        {isDesktop && (
-          <Button
-            variant="outlined"
-            size="small"
-            type="button"
-            onClick={openSendEvidence}
-            aria-pressed={isPanelPopupOpen('send-evidence')}
-            sx={headerButtonSx}
-          >
-            {t('app.sendEvidence')}
-          </Button>
-        )}
-        <IconButton
-          id="header-more-button"
-          type="button"
-          size="small"
-          onClick={(e) => setMoreMenuAnchor(e.currentTarget)}
-          aria-label={t('app.moreMenu')}
-          aria-controls={moreMenuAnchor ? 'header-more-menu' : undefined}
-          aria-haspopup="true"
-          aria-expanded={moreMenuAnchor ? 'true' : 'false'}
-          sx={moreIconButtonSx}
-        >
-          <MoreVertIcon fontSize="small" />
-        </IconButton>
-        <Menu
-          id="header-more-menu"
-          anchorEl={moreMenuAnchor}
-          open={Boolean(moreMenuAnchor)}
-          onClose={closeMoreMenu}
-          slotProps={{ list: { 'aria-labelledby': 'header-more-button' } }}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-          transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-        >
-          {!isDesktop && (
-            <MenuItem
-              onClick={() => {
-                openSendEvidence();
-                closeMoreMenu();
-              }}
-            >
-              {t('app.sendEvidence')}
-            </MenuItem>
-          )}
-          <MenuItem
-            onClick={() => {
-              openDocs();
-              closeMoreMenu();
-            }}
-          >
-            {t('app.docs')}
-          </MenuItem>
-          <MenuItem
-            onClick={() => {
-              openSettings();
-              closeMoreMenu();
-            }}
-          >
-            {t('app.settings')}
-          </MenuItem>
-          {user && canViewAnalyst && (
-            <MenuItem
-              component="a"
-              href={analystSiteUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={closeMoreMenu}
-            >
-              {t('app.analystView')}
-            </MenuItem>
-          )}
-          {authRequired && (
-            <MenuItem
-              onClick={() => {
-                logout();
-                closeMoreMenu();
-              }}
-            >
-              {t('settings.signOut')}
-            </MenuItem>
-          )}
-        </Menu>
-        {translating && (
-          <Stack
-            direction="row"
-            alignItems="center"
-            spacing={1}
-            role="status"
-            aria-live="polite"
-            sx={(theme) => ({
-              paddingTop: theme.spacing(0.5),
-              paddingBottom: theme.spacing(0.5),
-              paddingLeft: theme.spacing(1),
-              paddingRight: theme.spacing(1),
-              borderRadius: `${theme.custom.radius.section}px`,
-              background: theme.palette.background.paper,
-              border: theme.custom.border.hairline,
-              boxShadow: theme.custom.elevation.hover,
-            })}
-          >
-            <CircularProgress size={20} thickness={4} />
-            <Typography variant="cardTitle" sx={{ lineHeight: 1.2 }}>
-              {t('report.translating')}
-            </Typography>
-          </Stack>
-        )}
-        <LanguageSelector />
+        {moreMenuButton}
+        {headerMoreMenu}
+        {translatingBadge}
       </Stack>
     </>
   );
 
+  const outdatedMessage = isOutdated
+    ? t('report.outdated').replace('{date}', formatDate(reportDate))
+    : null;
+
   return (
     <AppLayout
       header={header}
-      footer={(
+      footer={!(isCompact && activeTab === 'report') ? (
         <SiteFooter
           onGoToAssessment={goToAssessment}
           onSendEvidence={openSendEvidence}
@@ -649,7 +750,7 @@ function AppShell() {
           authRequired={authRequired}
           user={user}
         />
-      )}
+      ) : null}
     >
         <DataSourcesNav
           isOnAssessment={isOnAssessment}
@@ -663,19 +764,32 @@ function AppShell() {
           <Stack
             component="section"
             aria-label={t('nav.dailyAssessment')}
-            spacing={2}
+            spacing={{ xs: 1.5, md: 2 }}
           >
             <div ref={reportTopRef} />
+            {isCompact ? (
+              <MobileDailyAssessmentCard
+                reportScope={reportScope}
+                onReportScopeChange={setReportScope}
+                selectedReportDate={selectedReportDate}
+                onSelectedReportDateChange={setSelectedReportDate}
+                availableReportDates={availableReportDates}
+                onOpenReportContents={
+                  reportContents.length > 0
+                    ? () => reportContentsNavRef.current?.open()
+                    : undefined
+                }
+                outdatedMessage={initialReportLoadDone && report ? outdatedMessage : null}
+              />
+            ) : (
             <PageHeader
               title={t('nav.dailyAssessment')}
               action={(
-                <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    flexWrap: 'wrap',
-                    gap: 1,
-                  }}
+                <Stack
+                  direction={{ xs: 'column', sm: 'row' }}
+                  alignItems={{ xs: 'center', sm: 'center' }}
+                  spacing={{ xs: 0.75, sm: 1 }}
+                  sx={{ width: '100%' }}
                 >
                   <ToggleButtonGroup
                     exclusive
@@ -685,13 +799,33 @@ function AppShell() {
                       if (next) setReportScope(next);
                     }}
                     aria-label={t('report.scope.label')}
+                    sx={{ flexWrap: 'wrap', justifyContent: 'center' }}
                   >
                     <ToggleButton value="national">{t('report.scope.national')}</ToggleButton>
                     <ToggleButton value="north">{t('report.scope.north')}</ToggleButton>
                   </ToggleButtonGroup>
-                </Box>
+                  {availableReportDates.length > 1 && (
+                    <FormControl size="small" sx={{ minWidth: { xs: 'auto', sm: 120 } }}>
+                      <NativeSelect
+                        value={selectedReportDate ?? ''}
+                        onChange={(e) => setSelectedReportDate(e.target.value || null)}
+                        inputProps={{ 'aria-label': 'Report date' }}
+                        sx={(theme) => ({
+                          fontSize: theme.typography.body2.fontSize,
+                          borderRadius: `${theme.custom.radius.section}px`,
+                        })}
+                      >
+                        <option value="">latest</option>
+                        {availableReportDates.map((d) => (
+                          <option key={d} value={d}>{d}</option>
+                        ))}
+                      </NativeSelect>
+                    </FormControl>
+                  )}
+                </Stack>
               )}
             />
+            )}
 
             {!initialReportLoadDone && (
               <Typography variant="body2" color="text.secondary">
@@ -732,7 +866,16 @@ function AppShell() {
             )}
 
             {initialReportLoadDone && report && (
-              <Stack spacing={2}>
+              <Stack spacing={{ xs: 1.5, md: 2 }}>
+              {!isDesktop && reportContents.length > 0 && (
+                <ReportContentsMobileNav
+                  ref={reportContentsNavRef}
+                  contents={reportContents}
+                  activeId={openReportCompId}
+                  onSelect={jumpToReportComponent}
+                  drawerOnly={isCompact}
+                />
+              )}
               <Box
                 sx={(theme) => ({
                   display: 'grid',
@@ -774,11 +917,18 @@ function AppShell() {
                 </Box>
 
                 <Box sx={{ minWidth: 0 }}>
-                  {isOutdated && (
+                  {isOutdated && !isCompact && (
                     <Alert
                       severity="warning"
                       variant="outlined"
-                      sx={(theme) => ({ marginBottom: theme.spacing(1) })}
+                      sx={(theme) => ({
+                        marginBottom: theme.spacing(1),
+                        minWidth: 0,
+                        [theme.breakpoints.down('sm')]: {
+                          marginBottom: theme.spacing(0.5),
+                        },
+                        '& .MuiAlert-message': { wordBreak: 'break-word', overflowWrap: 'anywhere' },
+                      })}
                     >
                       {t('report.outdated').replace('{date}', formatDate(reportDate))}
                     </Alert>
@@ -794,6 +944,11 @@ function AppShell() {
                       paddingRight: theme.spacing(3),
                       background: theme.palette.background.paper,
                       boxShadow: theme.custom.elevation.subtle,
+                      minWidth: 0,
+                      [theme.breakpoints.down('sm')]: {
+                        overflow: 'visible',
+                      },
+                      ...mobileFlatReportShellSx(theme),
                     })}
                   >
                     {canViewAnalyst && (
@@ -806,7 +961,7 @@ function AppShell() {
                     <ReportView
                       assessment={displayReport}
                       scoreBySource={displayReport?.score_by_source ?? scoreBySource}
-                      displayTier="operator"
+                      displayView="operator"
                       readOnly
                       translating={translating}
                       translateError={translateError}
@@ -929,6 +1084,7 @@ function AppShell() {
           open={false}
           onClick={openChat}
           closedLabel={t('chat.launcherWhenClosed')}
+          bottomInset={viewportBottomInset}
         />
       )}
 
@@ -940,24 +1096,35 @@ function AppShell() {
           elevation={6}
           sx={(theme) => ({
             position: 'fixed',
-            right: theme.spacing(3),
-            bottom: theme.spacing(7),
-            width: chatSize.w,
-            height: chatSize.h,
             zIndex: theme.zIndex.tooltip + 5,
-            borderRadius: `${theme.custom.radius.section}px`,
             border: theme.custom.border.hairline,
             boxShadow: theme.custom.elevation.chat,
             overflow: 'hidden',
             pointerEvents: 'auto',
             display: 'flex',
             flexDirection: 'column',
-            [theme.breakpoints.down('sm')]: {
-              right: theme.spacing(2),
-              bottom: theme.spacing(6),
-            },
+            ...(isCompact
+              ? {
+                inset: 0,
+                width: '100%',
+                height: '100%',
+                maxHeight: '100dvh',
+                borderRadius: 0,
+                paddingBottom: `calc(env(safe-area-inset-bottom, 0px) + ${viewportBottomInset}px)`,
+              }
+              : {
+                right: theme.spacing(3),
+                bottom: `calc(${theme.spacing(7)} + env(safe-area-inset-bottom, 0px) + ${viewportBottomInset}px)`,
+                width: chatSize.w,
+                height: chatSize.h,
+                borderRadius: `${theme.custom.radius.section}px`,
+                [theme.breakpoints.down('sm')]: {
+                  right: theme.spacing(2),
+                },
+              }),
           })}
         >
+          {!isCompact && (
           <ResizableFrame
             width={chatSize.w}
             height={chatSize.h}
@@ -968,6 +1135,7 @@ function AppShell() {
             maxHeight={globalThis.window ? globalThis.window.innerHeight - 24 : 2000}
             zIndex={2}
           />
+          )}
           <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
             <ChatPanel
               reportScope={chatReportScope}

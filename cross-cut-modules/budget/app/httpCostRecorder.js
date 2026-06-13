@@ -3,6 +3,7 @@
  */
 import { appendCostLog } from '../../log/index.js';
 import { calcInvocationCostUsd } from './budgetCostTracker.js';
+import { redactSecrets } from '../../security/domain/services/secretRedaction.js';
 
 /**
  * @param {{
@@ -38,7 +39,7 @@ export function createHttpCostRecorder(opts) {
     const { label, model, usage, costUsd, stage, stats } = payload ?? {};
 
     if (stage) {
-      stageEvents.push({ label: label ?? script, stage, stats: stats ?? {} });
+      stageEvents.push({ label: label ?? script, stage, stats: redactSecrets(stats ?? {}) });
       console.error(`  🔎 ${String(label ?? script).padEnd(38)} stage=${stage}`);
       return;
     }

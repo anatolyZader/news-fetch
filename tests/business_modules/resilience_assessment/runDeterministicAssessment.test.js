@@ -47,7 +47,6 @@ describe('runDeterministicAssessment', () => {
       reportDate: '2026-03-22',
       reportScopeId: 'national',
       totalArticles: 1,
-      scoredComponents: scoredStub(),
       degradeReason: 'forced_deterministic',
     });
 
@@ -65,12 +64,11 @@ describe('runDeterministicAssessment', () => {
     assert.equal(result.assessment.agent_trace_id, null);
   });
 
-  it('returns isEmpty when scoredComponents is empty', async () => {
+  it('returns isEmpty when no signals and no epistemic evidence', async () => {
     const result = await runDeterministicAssessment({
       signals: [],
-      epistemicProfile: epistemicProfile(),
+      epistemicProfile: { by_component: {} },
       reportDate: '2026-03-22',
-      scoredComponents: {},
       degradeReason: 'agent_failed',
     });
     assert.equal(result.isEmpty, true);

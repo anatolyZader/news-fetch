@@ -1,8 +1,10 @@
 /**
  * When to invoke LLM synthesizer vs deterministic defaultSynthesis.
+ * Default: LLM unless explicitly degraded.
  */
 import {
   conditionalSynthEnabled,
+  forceDeterministicSynthEnabled,
   synthesisGapThreshold,
 } from '../../../../cross-cut-modules/agent/agentConfig.js';
 
@@ -22,29 +24,59 @@ function contestedNonAbstainCount(componentAssessments, epistemicProfile) {
 }
 
 /**
+ * Legacy calm-day skip heuristics when RESILIENCE_ASSESS_CONDITIONAL_SYNTH=1.
  * @param {{ componentAssessments?: object[], epistemicProfile?: object, gapThreshold?: number }} params
  * @returns {boolean}
  */
-export function needsLlmSynthesis(params) {
+function legacyConditionalSkip(params) {
   const {
     componentAssessments = [],
     epistemicProfile = {},
     gapThreshold = synthesisGapThreshold(),
   } = params;
 
-  if (!conditionalSynthEnabled()) return true;
-
   for (const c of componentAssessments) {
-    if (c.severity === 'high' || c.severity === 'critical') return true;
+    if (c.severity === 'high' || c.severity === 'critical') return false;
   }
 
   if (contestedNonAbstainCount(componentAssessments, epistemicProfile) >= 2) {
-    return true;
+    return false;
   }
 
-  if (countOpenGaps(componentAssessments) > gapThreshold) return true;
+  if (countOpenGaps(componentAssessments) > gapThreshold) return false;
 
-  return false;
+  return true;
 }
 
-export { countOpenGaps, contestedNonAbstainCount };
+/**
+ * @param {object} params
+ * @returns {boolean}
+ */
+export function needsLlmSynthesis(params = {}) {
+  const {
+    componentAssessments = [],
+    epistemicProfile = {},
+    budget = null,
+    degradeReason = null,
+    assessmentMode = 'normal',
+    gapThreshold = synthesisGapThreshold(),
+  } = params;
+
+  if (forceDeterministicSynthEnabled()) return false;
+  if (degradeReason) return false;
+  if (assessmentMode === 'degraded') return false;
+  if (budget?.degradeMode) return false;
+  if (!componentAssessments.length) return false;
+
+  if (conditionalSynthEnabled() && legacyConditionalSkip({
+    componentAssessments,
+    epistemicProfile,
+    gapThreshold,
+  })) {
+    return false;
+  }
+
+  return true;
+}
+
+export { countOpenGaps, contestedNonAbstainCount, legacyConditionalSkip };

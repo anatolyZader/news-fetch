@@ -230,7 +230,7 @@ export function NaftaliTab({ operatorScope = 'national' }) {
           clearLabel: t('naf.filter.clear'),
         } : null}
       >
-        <FilterRow label={t('naf.filter.municipality')}>
+        <FilterRow label={t('naf.filter.municipality')} stackOnMobile>
           <FilterPillGroup label={t('naf.filter.municipality')}>
             {muniNames.map((name) => (
               <FilterPill

@@ -13,6 +13,7 @@ export {
 } from './charts.jsx';
 export { ChatLauncher } from './ChatLauncher.jsx';
 export { DataSourcesNav } from './DataSourcesNav.jsx';
+export { MobileAppBar } from './MobileAppBar.jsx';
 export { DetailPanel } from './DetailPanel.jsx';
 export { DriftSparkline } from './DriftSparkline.jsx';
 export { FilterBar } from './FilterBar.jsx';
@@ -31,3 +32,23 @@ export { ResilienceSummaryCard } from './ResilienceSummaryCard.jsx';
 export { SectionHeading } from './SectionHeading.jsx';
 export { SidebarItem } from './SidebarItem.jsx';
 export { StatusTag } from './StatusTag.jsx';
+export {
+  scrollableTabRowSx,
+  scrollFadeEdgeSx,
+  safeAreaFixedSx,
+  stickyTableFirstColSx,
+  mobileCardListSx,
+  chatActionsVisibilitySx,
+  chatRowHoverRevealSx,
+} from './responsive/responsiveSx.js';
+export {
+  mobileDashboardPageSx,
+  mobileHeroCardSx,
+  mobileHeroEyebrowSx,
+  mobileHeroPickerSx,
+  mobileSurfaceCardSx,
+  mobileSegmentedPillsSx,
+  mobileFieldRowSx,
+  mobileFlatReportShellSx,
+} from './responsive/mobileDashboardSx.js';
+export { VirtualizedList } from './VirtualizedList.jsx';

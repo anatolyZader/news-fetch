@@ -5,6 +5,7 @@ import {
   applyEpistemicGate,
   applyScoreAbstention,
 } from '../../../../../business_modules/resilience/domain/services/dataVoidIndex.js';
+import { scoreComponents } from '../../../../../analyst/scoring/index.js';
 import {
   deriveAssessmentEpistemicPolicy,
   deriveThinEvidencePolicy,
@@ -57,6 +58,7 @@ describe('epistemicGate', () => {
       dataVoid: { level: 'critical', digital_darkness: true, reason: 'digital_darkness' },
       totalArticles: 2,
       digitalInclusiveScored: scored,
+      scoreComponents,
     });
     assert.equal(result.assessmentMode, 'field_anchor_only');
     assert.equal(result.epistemicStatus.scores_reliable, true);

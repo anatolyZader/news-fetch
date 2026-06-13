@@ -8,7 +8,7 @@ export function LanguageProvider({ children }) {
   const [lang, setLang] = useState(() => localStorage.getItem('lang') || 'en');
 
   useEffect(() => {
-    document.documentElement.dir = 'ltr';
+    document.documentElement.dir = lang === 'he' ? 'rtl' : 'ltr';
     document.documentElement.lang = lang;
   }, [lang]);
 

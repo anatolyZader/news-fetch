@@ -2,7 +2,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
-import { scoreComponents } from '../../../business_modules/resilience/domain/services/behaviorSignals.js';
+import { scoreComponents } from '../../../analyst/scoring/index.js';
 import { computeDataVoidIndex } from '../../../business_modules/resilience/domain/services/dataVoidIndex.js';
 import { resolveScoringPartition } from '../../../business_modules/resilience/domain/services/dataVoid/scoringPartition.js';
 import { runScoringPipeline } from '../../../business_modules/resilience/app/scoringPipelinePrep.js';
@@ -11,7 +11,7 @@ import { dedupeSignalsWithinBatch, verifyEvidenceAgainstArticle }
 import { crossSourceDedup } from '../../../business_modules/resilience/app/assessSignalsHelpers.js';
 import { enrichProbeSignalsInList } from '../../../business_modules/resilience/domain/services/probeCorroborationPolicy.js';
 
-import { ADVERSARIAL_CASES_PATH } from '../../../business_modules/resilience/tuning/goldenPaths.js';
+import { ADVERSARIAL_CASES_PATH } from '../../../analyst/tuning/goldenPaths.js';
 
 const fixture = JSON.parse(readFileSync(ADVERSARIAL_CASES_PATH, 'utf8'));
 const liveLlm = process.env.RESILIENCE_LIVE_LLM === '1';

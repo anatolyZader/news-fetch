@@ -18,6 +18,7 @@ import {
 } from './ragConfig.js';
 import { getTodayInTimezone } from '../../utils/dateUtils.js';
 import { chatRetrievalCacheKey } from './chatRetrievalCache.js';
+import { wrapUntrustedBlock } from '../security/domain/services/untrustedContentGuard.js';
 
 function dateWindowEnd(reportDate, timezone) {
   const d = String(reportDate ?? '').trim();
@@ -173,9 +174,10 @@ function formatRetrievalHintLines(hits, snippetChars) {
 
 function buildRetrievalHintText(hits, rewritten, snippetChars) {
   const lines = formatRetrievalHintLines(hits, snippetChars);
+  const wrappedLines = wrapUntrustedBlock(lines, { label: 'retrieval_hits' });
   return (
     `RETRIEVED CONTEXT (hybrid search + rerank; cite source_id; use get_source for full text):\n` +
-    `${lines}\n\n` +
+    `${wrappedLines}\n\n` +
     `Search query used: ${rewritten}`
   );
 }

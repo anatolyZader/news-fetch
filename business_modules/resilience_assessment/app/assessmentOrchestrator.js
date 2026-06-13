@@ -1,7 +1,19 @@
 /**
  * Main assessment agent orchestrator — planner → specialists → critic → synthesizer.
  */
-import { createAgentKernel, createAgentBudgetGovernor, assessmentAgentMaxUsd, assessmentAgentMaxRounds, PROMPT_VERSION, MODEL_CARD_REF, archiveEpistemicEnabled, residualForAgentEnabled, investigationOovEnabled, crossComponentCheckEnabled } from '../../../cross-cut-modules/agent/index.js';
+import {
+  createAgentKernel,
+  createAgentBudgetGovernor,
+  assessmentAgentMaxUsd,
+  assessmentAgentMaxRounds,
+  PROMPT_VERSION,
+  MODEL_CARD_REF,
+  archiveEpistemicEnabled,
+  residualForAgentEnabled,
+  openObsForAgentEnabled,
+  investigationOovEnabled,
+  crossComponentCheckEnabled,
+} from '../../../cross-cut-modules/agent/index.js';
 import { createMultiHopRetrieval } from '../../../cross-cut-modules/retrieval/multiHopRetrieval.js';
 import { buildEvidenceGraph } from '../../../cross-cut-modules/retrieval/evidenceGraph.js';
 import { seedComponentRagForComponents, seedComponentRagHits, dedupeHits } from '../../../cross-cut-modules/retrieval/componentRagSeeding.js';
@@ -12,8 +24,9 @@ import {
 } from '../../../cross-cut-modules/retrieval/ragConfig.js';
 import { buildPlannerContext } from '../../../cross-cut-modules/retrieval/plannerContextBuilder.js';
 import { computeArchiveMentionMass } from '../../../cross-cut-modules/retrieval/archiveEpistemicHints.js';
-import { loadResidualObservationsForAgent, groupObservationsByComponent } from '../../../cross-cut-modules/retrieval/residualObservations.js';
+import { loadOpenObservationsForAgent, groupObservationsByComponent } from '../../../cross-cut-modules/retrieval/residualObservations.js';
 import { enrichProfileForInvestigation } from '../../epistemic_features/index.js';
+import { applyInvestigationSignalFlags } from '../../resilience/index.js';
 import {
   ASSESSMENT_SCHEMA_VERSION,
   createEmptyAssessmentV2,
@@ -26,16 +39,18 @@ import { runCriticChecks, applyCriticRepair } from './criticAgent.js';
 import { runSynthesizerAgent } from './synthesizerAgent.js';
 import { applySynthesisOovChecks } from '../domain/services/synthesisOovChecks.js';
 import { mapAssessmentV2ToLegacy } from '../domain/services/assessmentV2Mapper.js';
+import { selectSpecialistComponents } from '../domain/services/componentSelectionPolicy.js';
 import { resolveSpecialistTier } from '../domain/services/specialistTier.js';
 import { detectCrossComponentContradictions } from '../domain/services/crossComponentConsistency.js';
 import { needsReplan, buildReplanContext, affectedComponentsForReplan } from '../domain/services/replanPolicy.js';
 import { evaluateInvestigationBurst } from '../../resilience/index.js';
 
 async function loadInvestigationContext(params, reportDate) {
-  let residualObservations = [];
-  if (residualForAgentEnabled()) {
-    residualObservations = loadResidualObservationsForAgent(reportDate, {
+  let openObservations = [];
+  if (openObsForAgentEnabled() || residualForAgentEnabled()) {
+    openObservations = loadOpenObservationsForAgent(reportDate, {
       reportsDir: params.reportsDir ?? 'daily_reports',
+      preRouted: params.openObservations ?? [],
     });
   }
   let investigationBurst = params.investigationOovBurst;
@@ -45,8 +60,9 @@ async function loadInvestigationContext(params, reportDate) {
     });
   }
   return {
-    residualObservations,
-    residualByComponent: groupObservationsByComponent(residualObservations),
+    openObservations,
+    residualObservations: openObservations,
+    residualByComponent: groupObservationsByComponent(openObservations),
     investigationBurst,
   };
 }
@@ -266,7 +282,6 @@ export async function runAssessmentAgent(params) {
     evidenceStore = null,
     scopedSignals = null,
     oovBurst = null,
-    scoredComponents = null,
   } = params;
 
   const budget = createAgentBudgetGovernor({
@@ -283,17 +298,18 @@ export async function runAssessmentAgent(params) {
   });
 
   const {
+    openObservations,
     residualObservations,
     residualByComponent,
     investigationBurst,
   } = await loadInvestigationContext(params, reportDate);
 
-  const epistemicProfileBase = enrichProfileForInvestigation(epistemicProfile, {
-    scoredComponents: scoredComponents ?? {},
+  let epistemicProfileBase = enrichProfileForInvestigation(epistemicProfile, {
     archiveMentionMass: {},
     residualByComponent,
     investigationOovBurst: investigationBurst,
   });
+  epistemicProfileBase = applyInvestigationSignalFlags(epistemicProfileBase, signals, dataVoid);
 
   const evidenceGraphInitial = buildEvidenceGraph({
     hits: [],
@@ -301,7 +317,7 @@ export async function runAssessmentAgent(params) {
     epistemicProfile: epistemicProfileBase,
     oovBurst: investigationBurst ?? oovBurst,
     totalArticles,
-    residualObservations,
+    openObservations,
     dataVoid,
   });
 
@@ -344,12 +360,12 @@ export async function runAssessmentAgent(params) {
     ? computeArchiveMentionMass(hits)
     : {};
 
-  const epistemicProfileEnriched = enrichProfileForInvestigation(epistemicProfile, {
-    scoredComponents: scoredComponents ?? {},
+  let epistemicProfileEnriched = enrichProfileForInvestigation(epistemicProfile, {
     archiveMentionMass,
     residualByComponent,
     investigationOovBurst: investigationBurst,
   });
+  epistemicProfileEnriched = applyInvestigationSignalFlags(epistemicProfileEnriched, signals, dataVoid);
 
   const evidenceGraph = buildEvidenceGraph({
     hits,
@@ -357,7 +373,7 @@ export async function runAssessmentAgent(params) {
     epistemicProfile: epistemicProfileEnriched,
     oovBurst: investigationBurst ?? oovBurst,
     totalArticles,
-    residualObservations,
+    openObservations,
     dataVoid,
   });
 
@@ -436,10 +452,10 @@ export async function runAssessmentAgent(params) {
     return assessed;
   }
 
-  const toRun = COMPONENT_IDS.filter((id) => {
-    if (abstentionSet.has(id)) return true;
-    if (focusComponents.length === 0) return true;
-    return focusComponents.includes(id);
+  const toRun = selectSpecialistComponents({
+    abstentionSet,
+    focusComponents,
+    epistemicProfileEnriched,
   });
 
   const runAbstainedSpecialist = createAbstainedSpecialistRunner({
@@ -495,6 +511,8 @@ export async function runAssessmentAgent(params) {
   });
   v2Partial.components = componentAssessments;
 
+  const openObservationClaims = collectOpenObservationClaims(evidenceGraph);
+
   const synthRaw = await runSynthesizerAgent({
     componentAssessments,
     epistemicProfile: epistemicProfileEnriched,
@@ -505,10 +523,13 @@ export async function runAssessmentAgent(params) {
     traceId,
     partialAssessment: v2Partial,
     oovClusters: evidenceGraph.nodes?.oov_clusters ?? [],
+    openObservationClaims,
+    assessmentMode,
   });
 
   const synth = applySynthesisOovChecks(synthRaw, {
     oovClusters: evidenceGraph.nodes?.oov_clusters ?? [],
+    openObservationClaims,
     componentAssessments,
   });
 
@@ -538,7 +559,27 @@ export async function runAssessmentAgent(params) {
     assessment: legacy,
     traceId,
     budget: budget.snapshot(),
+    evidenceGraph,
   };
+}
+
+function collectOpenObservationClaims(evidenceGraph) {
+  const out = [];
+  for (const [componentId, graph] of Object.entries(evidenceGraph?.by_component ?? {})) {
+    for (const claim of graph.claims ?? []) {
+      const flags = claim.epistemic_flags ?? [];
+      if (flags.includes('open_observation') || flags.includes('residual_observation')) {
+        out.push({
+          component_id: componentId,
+          claim_id: claim.claim_id,
+          text: claim.text,
+          observation_id: claim.observation_id ?? null,
+          epistemic_flags: flags,
+        });
+      }
+    }
+  }
+  return out;
 }
 
 export default runAssessmentAgent;

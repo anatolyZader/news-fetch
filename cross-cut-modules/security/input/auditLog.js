@@ -1,6 +1,7 @@
 import { appendFileSync, mkdirSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { redactSecrets } from '../domain/services/secretRedaction.js';
 
 const moduleRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -38,7 +39,7 @@ export function appendAuditEvent(entry, logPath = resolveAuditLogPath()) {
     uid: entry.uid ?? null,
     ip: entry.ip ?? null,
     userAgent: entry.userAgent ?? null,
-    meta: entry.meta ?? null,
+    meta: entry.meta == null ? null : redactSecrets(entry.meta),
   };
   mkdirSync(dirname(logPath), { recursive: true });
   appendFileSync(logPath, `${JSON.stringify(row)}\n`, 'utf8');

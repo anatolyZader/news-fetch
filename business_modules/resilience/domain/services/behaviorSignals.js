@@ -39,11 +39,7 @@ export {
 
 export {
   COMPONENT_IDS,
-  COMPONENT_TUNING,
-  RELIABILITY_WEIGHT,
-} from './scoring/scoringShared.js';
-
-export { scoreComponents } from './scoring/scoreComponentsOrchestrator.js';
+} from '../../../../cross-cut-modules/resilience-contracts/componentIds.js';
 
 // ─── Public API ───────────────────────────────────────────────────────────────
 
@@ -52,16 +48,4 @@ export function summarizeConfidence(conf) {
   if (conf == null || conf === 'insufficient_data') return 'insufficient_data';
   if (typeof conf === 'string') return conf;
   return conf.signal_confidence ?? 'insufficient_data';
-}
-
-/**
- * Compute overall score as a certainty-weighted mean.
- * Components with almost no evidence do not pull the overall score as much as
- * components with broad, reliable evidence.
- */
-export function overallScore(componentScores) {
-  const scored = Object.values(componentScores).filter((c) => c.score !== null && c.certainty > 0);
-  if (scored.length === 0) return null;
-  const totalCertainty = scored.reduce((s, c) => s + c.certainty, 0);
-  return Math.round(scored.reduce((s, c) => s + c.score * c.certainty, 0) / totalCertainty);
 }

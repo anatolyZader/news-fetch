@@ -6,33 +6,30 @@ import {
 } from '../../../business_modules/resilience_assessment/domain/services/synthesisPolicy.js';
 
 describe('synthesisPolicy', () => {
-  it('needsLlmSynthesis false on calm assessments', () => {
+  it('needsLlmSynthesis true on calm assessments by default', () => {
     assert.equal(needsLlmSynthesis({
       componentAssessments: [
         { component_id: 'leadership', severity: 'moderate', retrieval_gaps: [] },
         { component_id: 'functional_continuity', severity: 'low', retrieval_gaps: ['attempted: foo'] },
       ],
       epistemicProfile: { by_component: {} },
-    }), false);
+    }), true);
   });
 
-  it('needsLlmSynthesis true on high severity', () => {
+  it('needsLlmSynthesis false when budget degrade mode set', () => {
     assert.equal(needsLlmSynthesis({
       componentAssessments: [
         { component_id: 'leadership', severity: 'high', retrieval_gaps: [] },
       ],
-      epistemicProfile: { by_component: {} },
-    }), true);
+      budget: { degradeMode: 'focus_top_3_components' },
+    }), false);
   });
 
-  it('needsLlmSynthesis true when open gaps exceed threshold', () => {
+  it('needsLlmSynthesis false when degradeReason set', () => {
     assert.equal(needsLlmSynthesis({
-      componentAssessments: [
-        { component_id: 'a', severity: 'moderate', retrieval_gaps: ['g1', 'g2', 'g3', 'g4'] },
-      ],
-      epistemicProfile: { by_component: {} },
-      gapThreshold: 3,
-    }), true);
+      componentAssessments: [{ component_id: 'a', severity: 'high' }],
+      degradeReason: 'budget_exceeded',
+    }), false);
   });
 
   it('countOpenGaps excludes attempted prefix', () => {

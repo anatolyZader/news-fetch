@@ -1,5 +1,6 @@
 /**
  * Chat agent feature flags.
+ * Invariant: state mutations use propose_* tools only (see chatToolMutations.test.js).
  */
 
 export function chatAnalystToolsEnabled() {

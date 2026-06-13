@@ -3,7 +3,7 @@ import { createReportReadPort } from '../business_modules/resilience/index.js';
 import {
   createValidationReviewSqliteStore,
   createValidationReviewService,
-} from '../business_modules/resilience/index.js';
+} from '../analyst/index.js';
 import {
   createCatalogProposalSqliteStore,
   createCatalogProposalService,

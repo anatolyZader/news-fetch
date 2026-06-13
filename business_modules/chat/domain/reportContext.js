@@ -3,6 +3,7 @@
  */
 import { buildPboIndex } from './pboIndex.js';
 import { listReportDates, listSignalMeta } from './signalLookup.js';
+import { wrapUntrustedBlock } from '../../../cross-cut-modules/security/index.js';
 import { DISPLAY_VIEWS } from '../../../cross-cut-modules/resilience-contracts/index.js';
 import {
   deriveInstrumentState,
@@ -52,7 +53,9 @@ export function formatDecisionBriefSummary(assessment) {
   const brief = assessment?.decision_brief;
   if (!brief?.summary && (brief?.priority_items?.length ?? 0) <= 0) return '';
   let block = 'Decision brief (use get_decision_brief for full detail):\n';
-  if (brief.summary) block += `Summary: ${brief.summary}\n`;
+  if (brief.summary) {
+    block += `Summary: ${wrapUntrustedBlock(brief.summary, { label: 'decision_brief_summary' })}\n`;
+  }
   const ids = (brief.priority_items ?? [])
     .slice(0, 5)
     .map((p) => p.attention_id ?? p.recommendation_id ?? '?')
@@ -69,20 +72,24 @@ function clipText(text, maxChars) {
 
 function formatComponentBlock(c, { includeScores }) {
   const id = c.component_id ?? 'unknown';
+  const narrative = wrapUntrustedBlock(c.narrative ?? '', { label: `component:${id}` });
   if (includeScores && c.score != null) {
-    return `### ${id} (${c.score}/10, ${c.confidence})\n${c.narrative ?? ''}`;
+    return `### ${id} (${c.score}/10, ${c.confidence})\n${narrative}`;
   }
   const inst = c.instrument ?? deriveInstrumentState(c);
   const instLine =
     `confidence=${inst.confidence}, sufficiency=${inst.evidence_sufficiency}` +
     `${inst.contested ? ', contested' : ''}` +
     `${inst.significant_delta ? ', significant_delta' : ''}`;
-  return `### ${id} (${instLine})\n${c.narrative ?? ''}`;
+  return `### ${id} (${instLine})\n${narrative}`;
 }
 
 function formatComponentInstrumentSummary(c, { includeScores }) {
   const id = c.component_id ?? 'unknown';
-  const narrative = clipText(c.narrative ?? '', INSTRUMENT_NARRATIVE_MAX_CHARS);
+  const narrative = wrapUntrustedBlock(
+    clipText(c.narrative ?? '', INSTRUMENT_NARRATIVE_MAX_CHARS),
+    { label: `component_summary:${id}` },
+  );
   if (includeScores && c.score != null) {
     return `- ${id}: ${c.score}/10 (${c.confidence}) — ${narrative}`;
   }
@@ -134,9 +141,9 @@ function formatToolFooter() {
   );
 }
 
-function formatTierFooter(tier) {
+function formatContextSliceFooter(contextSlice) {
   return (
-    `\n[Chat context tier: ${tier}. ` +
+    `\n[Chat context slice: ${contextSlice}. ` +
     'Use tools for full narratives, PBO data, and verbatim sources.]'
   );
 }
@@ -144,10 +151,11 @@ function formatTierFooter(tier) {
 function formatExecutiveSummary(assessment, maxChars = EXEC_SUMMARY_MAX_CHARS) {
   const text = assessment?.cross_component_synthesis ?? '';
   if (!text) return '';
-  return `Executive summary:\n${clipText(text, maxChars)}\n\n`;
+  const wrapped = wrapUntrustedBlock(clipText(text, maxChars), { label: 'executive_summary' });
+  return `Executive summary:\n${wrapped}\n\n`;
 }
 
-function buildFullContext(a, reportScopeId, includeScores, pboIndex) {
+function buildFullContext(a, reportScopeId, includeScores) {
   return (
     formatV2ContextBlock(a) +
     formatHeader(a, { includeScores }) +
@@ -158,8 +166,7 @@ function buildFullContext(a, reportScopeId, includeScores, pboIndex) {
     `Components detail:\n` +
     (a.components ?? [])
       .map((c) => formatComponentBlock(c, { includeScores }))
-      .join('\n\n') +
-    pboIndex
+      .join('\n\n')
   );
 }
 
@@ -216,25 +223,27 @@ function buildComponentContext(a, reportScopeId, includeScores, componentId) {
  * @param {{
  *   includeScores?: boolean,
  *   reportScopeId?: string,
- *   tier?: string,
+ *   contextSlice?: string,
  *   componentId?: string,
  * }} [opts]
  */
 export function buildReportContext(reportData, opts = {}) {
-  if (!reportData) return { context: 'No resilience report is available for today yet.', pboLookup: {}, tier: 'full' };
+  if (!reportData) {
+    return { context: 'No resilience report is available for today yet.', pboLookup: {}, contextSlice: 'full' };
+  }
   const a = reportData.assessment;
   const includeScores = opts.includeScores === true;
   const reportScopeId = opts.reportScopeId
     ?? a?.report_scope?.id
     ?? reportData.report_scope?.id
     ?? 'national';
-  const tier = opts.tier ?? 'full';
+  const contextSlice = opts.contextSlice ?? 'full';
   const componentId = opts.componentId;
 
   const { index: pboIndex, lookup: pboLookup } = buildPboIndex(reportData.signals ?? a.signals);
 
   let body;
-  switch (tier) {
+  switch (contextSlice) {
     case 'compare':
       body = buildCompareContext(a, reportScopeId, includeScores);
       break;
@@ -252,10 +261,15 @@ export function buildReportContext(reportData, opts = {}) {
       break;
     case 'full':
     default:
-      body = buildFullContext(a, reportScopeId, includeScores, pboIndex);
+      body = buildFullContext(a, reportScopeId, includeScores);
       break;
   }
 
-  const context = body + formatToolFooter() + formatTierFooter(tier);
-  return { context, pboLookup, tier };
+  const context = body + formatPboIndexWrapped(pboIndex) + formatToolFooter() + formatContextSliceFooter(contextSlice);
+  return { context, pboLookup, contextSlice };
+}
+
+function formatPboIndexWrapped(pboIndex) {
+  if (!pboIndex?.trim()) return '';
+  return wrapUntrustedBlock(pboIndex, { label: 'pbo_index' });
 }

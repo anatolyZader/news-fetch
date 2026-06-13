@@ -1,5 +1,5 @@
 /**
- * Tier A/B/C specialist depth for token savings.
+ * Specialist depth A/B/C for token savings (env: RESILIENCE_ASSESS_TIERED_SPECIALISTS).
  */
 import { tieredSpecialistsEnabled } from '../../../../cross-cut-modules/agent/agentConfig.js';
 

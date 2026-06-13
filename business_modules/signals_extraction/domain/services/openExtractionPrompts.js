@@ -26,6 +26,12 @@ const PROFILE_SUFFIX = Object.freeze({
     '\n\nProfile: RESIDUAL — these articles yielded zero signals in closed-vocabulary extraction. ' +
     'Find facts the taxonomy may be missing. Include nearest_existing_types (1–3 snake_case types if partial fit) ' +
     'and novelty_hint: low|medium|high. Do NOT invent signal_type fields.',
+  pipeline:
+    '\n\nProfile: PIPELINE — parallel open pass alongside closed-vocabulary extract. ' +
+    'Capture every resilience-relevant civilian behavioral fact even when no catalog type fits. ' +
+    'Add suggested_component (one of: narrative, information_communication, lifesaving_behavior, ' +
+    'functional_continuity, community_capital, leadership, belonging_solidarity, wellbeing_at_risk) when obvious; ' +
+    'otherwise leave suggested_catalog_types as hints only. Include nearest_existing_types when partially mappable.',
 });
 
 /**

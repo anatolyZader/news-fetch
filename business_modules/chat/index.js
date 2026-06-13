@@ -17,5 +17,5 @@ export {
   chatCompressToolsEnabled,
   OPERATOR_PROPOSE_TOOL_NAMES,
 } from './domain/chatConfig.js';
-export { chatContextTieringEnabled } from './domain/chatContextTier.js';
+export { chatContextSlicingEnabled, chatContextTieringEnabled } from './domain/chatContextTier.js';
 export { chatDeterministicFallbackEnabled } from './domain/chatDeterministicFallbackConfig.js';

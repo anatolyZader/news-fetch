@@ -127,13 +127,19 @@ export function reportQualityRank(meta) {
  * SQLite is used only when no JSON exists for that date.
  *
  * @param {import('../../../db/persistence/evidenceStore.js').ReturnType<createEvidenceStore>} [store]
- * @param {{ scope?: 'national'|'north' }} [opts]
+ * @param {{ scope?: 'national'|'north', date?: string }} [opts]
  */
 export function getCachedReport(store, opts = {}) {
   const timezone = process.env.TZ_ARTICLES || 'Asia/Jerusalem';
   const today = getTodayInTimezone(timezone);
   const scope = normalizeReportScopeId(opts.scope);
   const reportsDir = resolveReportsDir(opts);
+
+  // If a specific date is requested, load exactly that date (no fallback).
+  if (opts.date && /^\d{4}-\d{2}-\d{2}$/.test(opts.date)) {
+    const result = _loadReportForDate(opts.date, store, { scope, reportsDir });
+    return result ? { ...result, reportDate: opts.date } : null;
+  }
 
   const todayResult = _loadReportForDate(today, store, { scope, reportsDir });
   if (todayResult) return { ...todayResult, reportDate: today };
@@ -142,6 +148,31 @@ export function getCachedReport(store, opts = {}) {
   if (fallback) return fallback;
 
   return null;
+}
+
+/**
+ * Return all dates that have a report for the given scope, newest first.
+ * @param {{ scope?: 'national'|'north', reportsDir?: string }} [opts]
+ * @returns {string[]} YYYY-MM-DD strings, newest first
+ */
+export function getAvailableReportDates(opts = {}) {
+  const scope = normalizeReportScopeId(opts.scope);
+  const dir = opts.reportsDir ?? resolveReportsDir();
+  if (!existsSync(dir)) return [];
+
+  let names;
+  try {
+    names = readdirSync(dir);
+  } catch {
+    return [];
+  }
+
+  const escapedPrefix = reportPrefixForScope(scope).replaceAll(REGEX_SPECIAL_CHARS, String.raw`\$&`);
+  const datePattern = new RegExp(String.raw`^${escapedPrefix}-(\d{4}-\d{2}-\d{2})`);
+  const dates = [...new Set(
+    names.map((f) => datePattern.exec(f)?.[1]).filter(Boolean),
+  )].sort((a, b) => b.localeCompare(a)); // newest first
+  return dates;
 }
 
 /** Load markdown sidecar files adjacent to a report JSON path. */

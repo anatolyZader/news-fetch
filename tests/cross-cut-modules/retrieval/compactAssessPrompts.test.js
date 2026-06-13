@@ -55,7 +55,7 @@ describe('compactAssessPrompts', () => {
       severity: 'high',
       confidence: 'medium',
       operator_status: 'watch',
-      specialist_tier: 'A',
+      specialist_depth: 'A',
       narrative: 'n'.repeat(1000),
       claims: [{ text: 'claim text', evidence_refs: ['src:1'] }],
       evidence_tree: [{ huge: true }],
@@ -63,10 +63,21 @@ describe('compactAssessPrompts', () => {
       retrieval_gaps: Array.from({ length: 10 }, (_, i) => `gap${i}`),
     }];
     const compact = compactComponentAssessmentsForSynth(assessments)[0];
+    assert.equal(compact.specialist_depth, 'A');
     assert.equal(compact.narrative.length, 400);
     assert.equal(compact.claims[0].evidence_refs[0], 'src:1');
     assert.equal(compact.retrieval_gaps.length, 6);
     assert.equal(compact.evidence_tree, undefined);
     assert.equal(compact.reasoning_trace_id, undefined);
+  });
+
+  it('compactComponentAssessmentsForSynth reads legacy specialist_tier when specialist_depth absent', () => {
+    const compact = compactComponentAssessmentsForSynth([{
+      component_id: 'leadership',
+      severity: 'high',
+      specialist_tier: 'B',
+      claims: [],
+    }])[0];
+    assert.equal(compact.specialist_depth, 'B');
   });
 });

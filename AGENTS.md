@@ -28,8 +28,9 @@ Read the routing table first. Do not open other modules until the entry file pro
 | If the task is… | Start here (only) |
 |-----------------|-------------------|
 | Report chat / tools | `business_modules/chat/AGENTS.md` → `input/chatRoutes.js`, `app/chatLlmOrchestrator.js` |
-| Assessment agent / scoring | `business_modules/resilience/AGENTS.md` + `business_modules/resilience_assessment/app/assessmentOrchestrator.js` |
-| Signal extract / assess CLI | `business_modules/resilience/input/extract-signals.js`, `assess-signals.js` |
+| Assessment agent / operator scoring prep | `business_modules/resilience/AGENTS.md` + `resilience_assessment/app/assessmentOrchestrator.js` — use `app/scoringFacade.js` for headline /10 only |
+| Headline /10, validation, tuning, drift (analyst) | `analyst/README.md` — **not** operator daily work |
+| Signal extract / assess CLI | `business_modules/resilience/input/extract-signals.js`, `assess-signals.js` — parallel open bundles `observations-pipeline-{source}-{date}.json` for news/radio/field/whatsapp, social, pbo, pbo_regional, naftali (default ON via `RESILIENCE_OPEN_EXTRACT_PARALLEL`) |
 | Ingest news/audio/social | `composition/registerIngestion.js` → module `input/` (see `scripts/agent-routing.md`) |
 | UI tab / component | `client/src/` + matching `business_modules/*/input/*Routes.js` |
 | API contract | `openapi/openapi.yaml` |

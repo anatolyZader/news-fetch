@@ -8,12 +8,12 @@ import { spawnSync } from 'node:child_process';
 import {
   precisionRecallF1,
   cohensKappa,
-} from '../../../business_modules/resilience/tuning/domain/extractionMetrics.js';
+} from '../../../analyst/tuning/domain/extractionMetrics.js';
 import {
   BUILD_CORPUS_SCRIPT,
   CORPUS_PATH,
   EXTRACTION_SNAPSHOT_PATH,
-} from '../../../business_modules/resilience/tuning/goldenPaths.js';
+} from '../../../analyst/tuning/goldenPaths.js';
 
 const __dirname = resolve(fileURLToPath(import.meta.url), '..');
 const REPO_ROOT = resolve(__dirname, '../../..');

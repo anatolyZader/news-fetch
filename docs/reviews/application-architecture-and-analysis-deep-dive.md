@@ -118,13 +118,13 @@ Readers often conflate these; they serve different operational models.
 
 **Implication:** “North” in the product is primarily **a filtered view of evidence** persisted as a **separate report artifact**, not a post-hoc filter applied inside `runResilienceAssessment` unless your operational pipeline always produces both files.
 
-### 2.3 Client and API contract for scope and display tier
+### 2.3 Client and API contract for scope and display_view
 
 - [`GET /api/report/today`](../../business_modules/resilience/input/reportRoutes.js) accepts `?scope=north` or default national, and `?view=operator` (default) or `?view=analyst` (when `canViewAnalystDisplay(email)` — `config/userAccess.json` or `RESILIENCE_ANALYST_EMAILS`).  
-- Responses include `display_view` and redact numeric scores for operator tier via [`assessmentDisplayTier.js`](../../business_modules/resilience/domain/services/assessmentDisplayTier.js).  
+- Responses include `display_view` and redact numeric scores for operator display_view via [`assessmentDisplayTier.js`](../../business_modules/resilience/domain/services/assessmentDisplayTier.js).  
 - [`GET /api/resilience/display-capabilities`](../../business_modules/resilience/input/reportRoutes.js) returns `{ canViewAnalyst }` for the optional signed-in user.  
 - [`useTodayReport(scope, view)`](../../client/src/hooks/useAnalysis.js) passes scope and view query params.  
-- [`MainApp.jsx`](../../client/src/MainApp.jsx) links to the **analyst SPA** (`getAnalystSiteUrl()`) when `canViewAnalyst` is true — not an in-app tier toggle. Drift APIs are gated to analyst/maintainer.
+- [`MainApp.jsx`](../../client/src/MainApp.jsx) links to the **analyst SPA** (`getAnalystSiteUrl()`) when `canViewAnalyst` is true — not an in-app display_view toggle. Drift APIs are gated to analyst/maintainer.
 
 ---
 
@@ -206,7 +206,7 @@ Where:
 | \(\tau\) | **Temporal weight** (`temporal_weight`, default 1.0) from article or batch metadata. |
 | \(\gamma\) | **Extraction confidence** clamped to \([0,1]\) (`extraction_confidence`, default 1.0). |
 
-**v4 add-ons (not in the baseline formula above):** the live path in [`scoringShared.js`](../../business_modules/resilience/domain/services/scoring/scoringShared.js) also multiplies by **intensity** (`INTENSITY_WEIGHT`), **grounding tier** (`groundingWeightMultiplier`), **field source multiplier**, **gaming caps**, **phase mismatch discount**, and optional **half-life decay** on `article_date`. Only **metrics-eligible** signals contribute when `RESILIENCE_EPISTEMIC_GEO_V2` is on (`metricsEligible` in `scoreComponentsOrchestrator.js`). Post-score: **salience policy**, **presence gates**, **epistemic gate + EWMA** in [`scoringPipelinePrep.js`](../../business_modules/resilience/app/scoringPipelinePrep.js). Operator-facing presentation: [`assessmentDisplayTier.js`](../../business_modules/resilience/domain/services/assessmentDisplayTier.js) — see [RESILIENCE-ENGINE-REFERENCE.md](../main_docu_files/RESILIENCE-ENGINE-REFERENCE.md) §3–§5.
+**v4 add-ons (not in the baseline formula above):** the live path in [`scoringShared.js`](../../business_modules/resilience/domain/services/scoring/scoringShared.js) also multiplies by **intensity** (`INTENSITY_WEIGHT`), **grounding outcome** (`groundingWeightMultiplier`), **field source multiplier**, **gaming caps**, **phase mismatch discount**, and optional **half-life decay** on `article_date`. Only **metrics-eligible** signals contribute when `RESILIENCE_EPISTEMIC_GEO_V2` is on (`metricsEligible` in `scoreComponentsOrchestrator.js`). Post-score: **salience policy**, **presence gates**, **epistemic gate + EWMA** in [`scoringPipelinePrep.js`](../../business_modules/resilience/app/scoringPipelinePrep.js). Operator-facing presentation: [`assessmentDisplayTier.js`](../../business_modules/resilience/domain/services/assessmentDisplayTier.js) — see [RESILIENCE-ENGINE-REFERENCE.md](../main_docu_files/RESILIENCE-ENGINE-REFERENCE.md) §3–§5.
 
 Polarity is tracked separately: positive vs negative mass is accumulated from contributions whose base weight sign is positive vs negative.
 
@@ -417,7 +417,7 @@ Non-exhaustive list of variables referenced across analysis, geo, and client-fac
 | `TRANSLATION_ENABLED` | Gate server-side report translation. |
 | `AUTH_REQUIRED` | Gate API routes and docs pages. |
 | `RESILIENCE_DRIFT_*` | Drift alert thresholds (polarization window, etc.) — see client i18n help strings. |
-| `RESILIENCE_ANALYST_EMAILS` | Comma-separated emails allowed analyst display tier and gated drift APIs. |
+| `RESILIENCE_ANALYST_EMAILS` | Comma-separated emails allowed analyst display_view and gated drift APIs. |
 | `RESILIENCE_NARRATIVE_INCLUDE_SCORES` | Default `false`; set `true` to pass 1–10 scores into narrative LLM prompts. |
 
 Always treat this table as **hints**; authoritative behavior is the code path that reads each variable.

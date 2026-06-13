@@ -4,6 +4,8 @@ import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
 import { alpha } from '@mui/material/styles';
 import PropTypes from 'prop-types';
+import { mobileDashboardPageSx } from './responsive/mobileDashboardSx.js';
+import { mobilePageGapSx } from './responsive/responsiveSx.js';
 
 export function AppLayout({
   header,
@@ -13,7 +15,7 @@ export function AppLayout({
   contentSpacing = 5,
 }) {
   return (
-    <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <Box sx={{ minHeight: ['100vh', '100dvh'], display: 'flex', flexDirection: 'column' }}>
       {header && (
         <AppBar
           position="static"
@@ -39,9 +41,10 @@ export function AppLayout({
               [theme.breakpoints.down('sm')]: {
                 paddingLeft: theme.spacing(2),
                 paddingRight: theme.spacing(2),
-                paddingTop: theme.spacing(2),
-                paddingBottom: theme.spacing(2),
-                flexWrap: 'wrap',
+                paddingTop: theme.spacing(1.5),
+                paddingBottom: theme.spacing(1.5),
+                flexWrap: 'nowrap',
+                alignItems: 'center',
               },
             })}
           >
@@ -62,9 +65,19 @@ export function AppLayout({
           paddingBottom: `${theme.spacing(7)} !important`,
           paddingLeft: `${theme.spacing(4)} !important`,
           paddingRight: `${theme.spacing(4)} !important`,
+          [theme.breakpoints.down('sm')]: {
+            paddingLeft: `${theme.spacing(2)} !important`,
+            paddingRight: `${theme.spacing(2)} !important`,
+            paddingTop: `${theme.spacing(2)} !important`,
+            paddingBottom: `${theme.spacing(12)} !important`,
+          },
+          [theme.breakpoints.between('sm', 'md')]: {
+            paddingBottom: `${theme.spacing(10)} !important`,
+          },
+          ...mobileDashboardPageSx(theme),
           display: 'flex',
           flexDirection: 'column',
-          gap: theme.spacing(contentSpacing),
+          ...mobilePageGapSx(theme, contentSpacing),
         })}
       >
         {children}

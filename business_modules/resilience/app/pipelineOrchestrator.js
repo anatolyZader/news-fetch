@@ -21,6 +21,7 @@ import {
 } from './pipelineIngestPlan.js';
 import {
   newsSignalsPath,
+  pipelineOpenObservationsPath,
   radioSignalsPath,
   resolveRepoRoot,
   whatsappSignalsPath,
@@ -130,6 +131,15 @@ function runNpmScript(scriptName, args, opts) {
   return runProcess('npm', ['run', scriptName, '--', ...args], { cwd: root, ...opts });
 }
 
+const OPEN_EXTRACT_SOURCE_TYPES = ['news', 'radio', 'whatsapp', 'field', 'social'];
+
+const STAGE_OPEN_EXTRACT_META = {
+  news: { sourceType: 'news', contentKind: 'news' },
+  radio: { sourceType: 'radio', contentKind: 'audio' },
+  whatsapp: { sourceType: 'whatsapp', contentKind: 'whatsapp' },
+  field: { sourceType: 'field', contentKind: 'field_report' },
+};
+
 function applyForceDeletes(windowDates, rootDir) {
   for (const date of windowDates) {
     for (const path of [
@@ -143,6 +153,17 @@ function applyForceDeletes(windowDates, rootDir) {
           console.error(`  → removed ${path}`);
         } catch (err) {
           console.error(`  ⚠ could not remove ${path}: ${err.message}`);
+        }
+      }
+    }
+    for (const sourceType of OPEN_EXTRACT_SOURCE_TYPES) {
+      const openPath = pipelineOpenObservationsPath(sourceType, date, rootDir);
+      if (existsSync(openPath)) {
+        try {
+          unlinkSync(openPath);
+          console.error(`  → removed ${openPath}`);
+        } catch (err) {
+          console.error(`  ⚠ could not remove ${openPath}: ${err.message}`);
         }
       }
     }
@@ -174,6 +195,35 @@ async function executeSocialGather(targetDate, days, scope, replayMode, force, r
   await runNodeScript('business_modules/social_media/input/socialMediaInput.js', ['gather-daily', ...args], {
     allowFail: true,
     rootDir,
+  });
+}
+
+async function executeOpenOnlyExtract(step, rootDir) {
+  const meta = STAGE_OPEN_EXTRACT_META[step.stage];
+  if (!meta || !step.detail || !step.date) {
+    console.error(`  ⚠ extract_open_only missing stage meta or files for ${step.stage}`);
+    return;
+  }
+
+  const { loadMdFiles } = await import('../infrastructure/mdReportsLoader.js');
+  const { runOpenOnlyPipelineExtract } = await import('./articleDualPathExtractService.js');
+  const { createCostTracker } = await import('../../../cross-cut-modules/budget/index.js');
+
+  const filePaths = step.detail.split(',').map((f) => resolve(rootDir, f.trim()));
+  const { articles } = loadMdFiles(filePaths, { dayOffsets: filePaths.map(() => 0) });
+  if (!articles.length) {
+    console.error(`  ⚠ extract_open_only: no articles loaded from ${filePaths.length} file(s)`);
+    return;
+  }
+
+  const { onUsage } = createCostTracker({ label: 'extract-open-only' });
+  await runOpenOnlyPipelineExtract({
+    articles,
+    sourceType: meta.sourceType,
+    contentKind: meta.contentKind,
+    date: step.date,
+    filePaths,
+    onUsage,
   });
 }
 
@@ -218,6 +268,16 @@ async function executeIngestStep(step, ctx) {
       await runNodeScript(
         'business_modules/resilience/input/extract-signals.js',
         ['--source-type', 'field', '--files', step.detail, '--date', step.date],
+        { allowFail: true, rootDir },
+      );
+      return;
+    case 'extract_open_only':
+      await executeOpenOnlyExtract(step, rootDir);
+      return;
+    case 'extract_open_social':
+      await runNodeScript(
+        'business_modules/social_media/input/backfill-open-observations.js',
+        ['--date', step.date],
         { allowFail: true, rootDir },
       );
       return;

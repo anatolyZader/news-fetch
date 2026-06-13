@@ -40,6 +40,7 @@ export { enrichFieldProvenance } from './domain/services/fieldSignalPolicy.js';
 // --- Application services ---
 export {
   getCachedReport,
+  getAvailableReportDates,
   resolveReportJsonPathForDate,
 } from './app/reportCacheService.js';
 export {
@@ -47,18 +48,29 @@ export {
   parseOperatorRecommendationRequest,
 } from './app/operatorRecommendationService.js';
 export { archiveMarkdownFiles } from './app/archiveMarkdownFromMd.js';
-export { createDriftService } from './app/driftService.js';
-export { formatSimilarArticlesForChat } from './validation/app/validationToolExecutor.js';
 export { runResilienceAssessment } from './app/resilienceAnalysisService.js';
 export { contentBatchFromMdArticles } from './app/contentBatchFromMdArticles.js';
 export { createAnthropicResilienceLlmAdapter } from './infrastructure/adapters/anthropicResilienceLlmAdapter.js';
 
-// --- Validation submodule (facade for app.js composition root) ---
+// --- Epistemic ingestion math (operator — not headline /10 scoring) ---
+export { applySourceCap, sourceCapWasApplied } from './domain/epistemic/evidenceCaps.js';
 export {
-  createValidationReviewSqliteStore,
-  createValidationReviewService,
-  validationReviewRoutes,
-} from './validation/index.js';
+  buildDuplicateOccurrenceIndex,
+  round3,
+  contributionForSignal,
+} from './domain/epistemic/massContribution.js';
+export { certaintyTuningFor } from './domain/epistemic/certaintyTuning.js';
+export { collectComponentItems } from './domain/epistemic/componentItems.js';
+export {
+  defaultSignalWeights,
+  resolveSignalWeights,
+} from './domain/epistemic/signalWeights.js';
+export { computeMediaMentionMass } from './domain/services/mediaMentionMass.js';
+export { applyInvestigationSignalFlags } from './domain/services/investigationSignalFlags.js';
+
+// --- OOV / investigation burst ---
+export { countOovCapturesForDate } from './domain/services/oovCapture.js';
+export { evaluateInvestigationBurst } from './domain/services/oovBurstAlert.js';
 
 // --- Resilience LLM capability (sibling modules use this, not claudeEvaluator directly) ---
 export {
@@ -81,25 +93,6 @@ export { createReportReadPort } from './infrastructure/adapters/reportReadPortAd
 export { createReportDisplayPort } from './infrastructure/adapters/reportDisplayPortAdapter.js';
 export { generateDecisionBrief, decisionBriefEnabled } from './infrastructure/decisionBriefGenerator.js';
 
-// --- Scoring internals (facade for epistemic_features) ---
-export { applySourceCap } from './domain/services/scoring/applyEvidenceCaps.js';
-export {
-  buildDuplicateOccurrenceIndex,
-  round3,
-  sourceCapWasApplied,
-  tuningFor,
-} from './domain/services/scoring/scoringShared.js';
-export { collectComponentItems } from './domain/services/scoring/scoreSingleComponent.js';
-export {
-  defaultSignalWeights,
-  resolveSignalWeights,
-} from './domain/services/scoring/scoringOverrides.js';
-
-// --- OOV / investigation burst ---
-export { countOovCapturesForDate } from './domain/services/oovCapture.js';
-export { overallScore, scoreComponents } from './domain/services/behaviorSignals.js';
-export { evaluateInvestigationBurst } from './domain/services/oovBurstAlert.js';
-
 // --- Narrative grounding ---
 export {
   scoreTextGrounding,
@@ -110,3 +103,7 @@ export { SIGNAL_TO_COMPONENTS } from './domain/services/signalRouter.js';
 
 // --- Survey CLI runner (cross-cut geo entry) ---
 export { runAnalyzeSurveyCli } from './app/analyzeSurveyCli.js';
+export {
+  runArticleDualPathExtract,
+  indexExtractStoryClusters,
+} from './app/articleDualPathExtractService.js';

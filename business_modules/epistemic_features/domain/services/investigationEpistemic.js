@@ -12,7 +12,6 @@ const OOV_MASS_UNIT = 0.15;
 
 /**
  * Whether planner/specialist should abstain (investigation path).
- * When split disabled, falls back to thin_evidence (legacy).
  * @param {object} ep — epistemicProfile.by_component[id]
  */
 export function shouldAbstainFromInvestigation(ep) {
@@ -31,7 +30,6 @@ export function enrichProfileForInvestigation(profile, ctx = {}) {
   if (!profile?.by_component) return profile;
 
   const {
-    scoredComponents = {},
     archiveMentionMass = {},
     residualByComponent = {},
     investigationOovBurst = null,
@@ -41,10 +39,7 @@ export function enrichProfileForInvestigation(profile, ctx = {}) {
 
   for (const compId of COMPONENT_IDS) {
     const base = { ...byComponent[compId] };
-    const scored = scoredComponents[compId] ?? {};
 
-    base.presence_gate_triggered = scored.presence_gate_triggered === true;
-    base.salience_critical = scored.salience_critical === true;
     base.thin_for_scoring = base.thin_evidence === true;
 
     const archiveMass = archiveMentionMass[compId] ?? 0;

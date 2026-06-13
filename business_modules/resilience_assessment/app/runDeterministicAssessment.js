@@ -36,20 +36,22 @@ export async function runDeterministicAssessment(params) {
     dataVoid = null,
     epistemicStatus = null,
     oovBurst = null,
-    scoredComponents = null,
     degradeReason = 'agent_failed',
   } = params;
 
   const traceId = null;
-  const scoredFull = scoredComponents ?? {};
 
-  if (!scoredFull || Object.keys(scoredFull).length === 0) {
-    return {
-      assessment: null,
-      assessmentV2: null,
-      traceId,
-      isEmpty: true,
-    };
+  if (!signals?.length) {
+    const hasEpistemicEvidence = Object.values(epistemicProfile?.by_component ?? {})
+      .some((ep) => (ep.signal_count ?? 0) > 0 || (ep.evidence_mass ?? 0) > 0);
+    if (!hasEpistemicEvidence) {
+      return {
+        assessment: null,
+        assessmentV2: null,
+        traceId,
+        isEmpty: true,
+      };
+    }
   }
 
   const evidenceGraph = buildEvidenceGraph({

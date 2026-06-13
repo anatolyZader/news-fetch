@@ -19,7 +19,7 @@ import {
   SIGNAL_TO_COMPONENTS,
   getScoringPriors,
 } from './signalCatalog.js';
-import { COMPONENT_TUNING } from './behaviorSignals.js';
+import { COMPONENT_TUNING } from './epistemic/certaintyTuning.js';
 
 /** Fields that may be calibrated when labeled data exists. */
 export const CALIBRATION_TARGETS = Object.freeze({
@@ -54,7 +54,7 @@ export function getCalibrationSnapshot() {
  * @param {string} [rootDir]
  */
 export function loadShadowWeights(rootDir = process.cwd()) {
-  const path = resolve(rootDir, 'business_modules/resilience/tuning/shadow-weights.json');
+  const path = resolve(rootDir, 'analyst/tuning/shadow-weights.json');
   if (!getStore().existsSync(path)) return null;
   try {
     return JSON.parse(getStore().readFileSync(path, 'utf8'));

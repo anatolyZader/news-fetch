@@ -9,6 +9,18 @@ const DENSITY = {
   dense:       { px: 1.5, py: 1 },
 };
 
+function resolveSpan(span, theme) {
+  if (span == null) return {};
+  if (typeof span === 'number') return { gridColumn: `span ${span}` };
+  const xs = span.xs ?? 1;
+  const md = span.md ?? span.xs ?? 1;
+  return {
+    gridColumn: `span ${md}`,
+    [theme.breakpoints.down('md')]: { gridColumn: `span ${span.sm ?? xs}` },
+    [theme.breakpoints.down('sm')]: { gridColumn: `span ${xs}` },
+  };
+}
+
 export function KpiCard({
   label,
   value,
@@ -33,7 +45,7 @@ export function KpiCard({
         bgcolor: alpha(theme.palette.primary.main, 0.06),
         border: `1px solid ${alpha(theme.palette.primary.main, 0.28)}`,
         boxShadow: theme.custom.elevation.subtle,
-        ...(span ? { gridColumn: `span ${span}` } : {}),
+        ...resolveSpan(span, theme),
       })}
     >
       <Typography variant="eyebrow" component="p" color="text.secondary">
@@ -69,19 +81,55 @@ KpiCard.propTypes = {
   helper: PropTypes.node,
   tone: PropTypes.string,
   density: PropTypes.oneOf(['comfortable', 'dense']),
-  span: PropTypes.number,
+  span: PropTypes.oneOfType([
+    PropTypes.number,
+    PropTypes.shape({
+      xs: PropTypes.number,
+      sm: PropTypes.number,
+      md: PropTypes.number,
+    }),
+  ]),
 };
+
+function resolveColumns(columns, theme, minColumnWidth) {
+  if (columns == null) {
+    return `repeat(auto-fit, minmax(${minColumnWidth}px, 1fr))`;
+  }
+  if (typeof columns === 'number') {
+    return `repeat(${columns}, minmax(0, 1fr))`;
+  }
+  const xs = columns.xs ?? 2;
+  const sm = columns.sm ?? xs;
+  const md = columns.md ?? sm;
+  return {
+    gridTemplateColumns: `repeat(${md}, minmax(0, 1fr))`,
+    [theme.breakpoints.down('md')]: {
+      gridTemplateColumns: `repeat(${sm}, minmax(0, 1fr))`,
+    },
+    [theme.breakpoints.down('sm')]: {
+      gridTemplateColumns: `repeat(${xs}, minmax(0, 1fr))`,
+    },
+  };
+}
 
 export function KpiStrip({ children, minColumnWidth = 140, columns }) {
   return (
     <Box
-      sx={(theme) => ({
-        display: 'grid',
-        gridTemplateColumns: columns
-          ? `repeat(${columns}, minmax(0, 1fr))`
-          : `repeat(auto-fit, minmax(${minColumnWidth}px, 1fr))`,
-        gap: theme.spacing(1),
-      })}
+      sx={(theme) => {
+        const cols = resolveColumns(columns, theme, minColumnWidth);
+        if (typeof cols === 'string') {
+          return {
+            display: 'grid',
+            gridTemplateColumns: cols,
+            gap: theme.spacing(1),
+          };
+        }
+        return {
+          display: 'grid',
+          gap: theme.spacing(1),
+          ...cols,
+        };
+      }}
     >
       {children}
     </Box>
@@ -91,5 +139,12 @@ export function KpiStrip({ children, minColumnWidth = 140, columns }) {
 KpiStrip.propTypes = {
   children: PropTypes.node,
   minColumnWidth: PropTypes.number,
-  columns: PropTypes.number,
+  columns: PropTypes.oneOfType([
+    PropTypes.number,
+    PropTypes.shape({
+      xs: PropTypes.number,
+      sm: PropTypes.number,
+      md: PropTypes.number,
+    }),
+  ]),
 };

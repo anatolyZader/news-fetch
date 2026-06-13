@@ -1,6 +1,5 @@
 /**
- * Application use case: ResilienceContentBatch → signals → scored → assessment (+ optional persist).
- * Reuses resilience domain scoring and LLM pipeline via injected ports.
+ * Application use case: ResilienceContentBatch → signals → investigation → optional shadow score.
  */
 import { assertValidResilienceContentBatch } from '../domain/services/resilienceBatchValidation.js';
 import { mergeDualExtractionSignals } from '../infrastructure/dualModelExtract.js';
@@ -17,10 +16,13 @@ import { tryOpenValidationStore } from './socialQuarantineWiring.js';
 import { loadHistoricalScores } from '../app/assessSignalsHelpers.js';
 import { runScoringPipeline } from './scoringPipelinePrep.js';
 import { prepareScoringSignals } from './prepareScoringSignals.js';
+import { prepareInvestigationSignals } from './prepareInvestigationSignals.js';
+import { deriveInvestigationEpistemicContext } from '../domain/services/investigationEpistemicContext.js';
 import { detectSemanticPatterns } from '../domain/services/patternDetection/semanticPatternAlerts.js';
 import { buildOperatorRecommendations } from '../domain/services/patternDetection/operatorRecommendations.js';
 import { attachDecisionBrief } from './attachDecisionBrief.js';
-import { produceAssessmentWithShadow } from './produceAssessmentWithShadow.js';
+import { produceAssessmentWithShadow, attachShadowDivergenceToAssessment } from './produceAssessmentWithShadow.js';
+import { attachInvestigationDiagnostics } from '../domain/services/componentDiagnostics.js';
 import { loadConnectivityProbeSignals } from '../infrastructure/adapters/connectivityProbeFileAdapter.js';
 import { enrichProbeSignalsInList } from '../domain/services/probeCorroborationPolicy.js';
 import { summarizeValidationMaturity } from '../validation/domain/validationStatus.js';
@@ -45,7 +47,6 @@ function resolvePipelineRunStore(options) {
   return createPipelineRunStore(dbPath);
 }
 
-/** Map batch items to the article shape expected by claudeEvaluator.extractSignals. */
 function batchItemsToArticles(batch) {
   const sourceFile = batch.sourceRunId == null ? 'content-batch' : String(batch.sourceRunId);
   return batch.items.map((item) => ({
@@ -73,17 +74,6 @@ function uniqueSourceLabels(articles) {
   return [...new Set(articles.map((a) => a.source).filter(Boolean))];
 }
 
-/**
- * @param {object} params
- * @param {object} params.batch
- * @param {object[]} params.articles
- * @param {import('../domain/ports/IResilienceLlmPort.js').IResilienceLlmPort} params.llmPort
- * @param {object[]} [params.supplementaryArticles]
- * @param {string} [params.supplementaryContentKind]
- * @param {Function} [params.onUsage]
- * @param {Function} [params.onProgress]
- * @param {string} params.reportScopeId
- */
 async function extractBatchSignals({
   batch,
   articles,
@@ -134,72 +124,7 @@ async function extractBatchSignals({
   };
 }
 
-/**
- * @param {object} assessment
- * @param {object} ctx
- */
-function applyAssessmentPostScoring(assessment, ctx) {
-  const {
-    pipelineResult,
-    dataVoid,
-    oovBurst,
-    oovScoringApplied,
-    osintChannelQuarantine,
-    batch,
-    reportScopeId,
-    allSignals,
-  } = ctx;
-
-  attachEpistemicToAssessment(assessment, {
-    dataVoid,
-    epistemicStatus: pipelineResult.epistemicStatus,
-    assessmentMode: pipelineResult.assessmentMode,
-    staleDigitalScores: pipelineResult.staleDigitalScores,
-    quarantinedDigital: pipelineResult.quarantinedDigital,
-    digitalQuarantineState: pipelineResult.digitalQuarantineState,
-  });
-
-  assessment.oov_burst = oovBurst;
-  if (oovScoringApplied) {
-    assessment.oov_scoring_applied = oovScoringApplied;
-  }
-  if (osintChannelQuarantine) {
-    const decision = osintChannelQuarantine.active
-      ? getSocialQuarantineDecision(batch.reportDate, reportScopeId, tryOpenValidationStore())
-      : null;
-    assessment.social_channel_quarantine = {
-      ...osintChannelQuarantine,
-      ...(decision?.created_at ? { confirmed_at: decision.created_at } : {}),
-    };
-  }
-
-  if (pipelineResult.epistemicEnrichment.overall_score_calibrated != null) {
-    assessment.overall_score_calibrated = pipelineResult.epistemicEnrichment.overall_score_calibrated;
-  }
-
-  const patterns = detectSemanticPatterns(allSignals);
-  assessment.pattern_alerts = patterns;
-  assessment.operator_recommendations = buildOperatorRecommendations(patterns);
-}
-
-/**
- * @param {object} batch  ResilienceContentBatch
- * @param {object} [options]
- * @param {import('../domain/ports/IResilienceLlmPort.js').IResilienceLlmPort} [options.llmPort]
- * @param {import('../domain/ports/IResilienceReportWriterPort.js').IResilienceReportWriterPort} [options.reportWriterPort]
- * @param {boolean} [options.dedupeTitles]
- * @param {(e: object) => void} [options.onProgress]
- * @param {(e: object) => void} [options.onUsage]
- * @param {boolean} [options.persist]
- * @param {string} [options.outputBase]  Path without extension when persist is true
- * @param {string[]} [options.reportSourceFiles]  Basenames for report header (e.g. articles-homefront.md); default from batch items
- */
-/**
- * Scoring phase: prepare signals (data-void / quarantine / OOV), then run the
- * scoring pipeline. Returns the scored components plus the side-channel state
- * the downstream narrative/post-scoring steps consume.
- */
-async function scoreBatchSignals({
+async function runShadowScoring({
   baseSignalsForScoring,
   allSignals,
   batch,
@@ -235,18 +160,75 @@ async function scoreBatchSignals({
   return {
     scoredComponents: pipelineResult.scoredFull,
     signalsForScoring: pipelineResult.scoringSignals,
-    dataVoid: prepared.dataVoid,
-    osintChannelQuarantine: prepared.osintChannelQuarantine,
-    oovBurst: prepared.oovBurst,
     oovScoringApplied: prepared.oovScoringApplied,
     pipelineResult,
   };
 }
 
-/**
- * Persistence phase: write the report via the writer port when persist is on.
- * Validates required options, mirroring the previous inline guard.
- */
+function applyAssessmentPostScoring(assessment, ctx) {
+  const {
+    investigationEpistemic,
+    pipelineResult,
+    investigationPrep,
+    shadowScoring,
+    batch,
+    reportScopeId,
+    allSignals,
+    macroSignals,
+  } = ctx;
+
+  attachEpistemicToAssessment(assessment, {
+    dataVoid: investigationPrep.dataVoid,
+    epistemicStatus: investigationEpistemic.epistemicStatus,
+    assessmentMode: investigationEpistemic.assessmentMode,
+    staleDigitalScores: pipelineResult?.staleDigitalScores ?? null,
+    quarantinedDigital: pipelineResult?.quarantinedDigital ?? null,
+    digitalQuarantineState: pipelineResult?.digitalQuarantineState ?? null,
+  });
+
+  if (pipelineResult) {
+    assessment.shadow_scoring = {
+      assessment_mode: pipelineResult.assessmentMode,
+      epistemic_status: pipelineResult.epistemicStatus,
+    };
+    if (pipelineResult.epistemicEnrichment?.overall_score_calibrated != null) {
+      assessment.overall_score_calibrated = pipelineResult.epistemicEnrichment.overall_score_calibrated;
+    }
+  }
+
+  assessment.oov_burst = investigationPrep.oovBurst;
+  if (shadowScoring?.oovScoringApplied) {
+    assessment.oov_scoring_applied = shadowScoring.oovScoringApplied;
+  }
+  if (investigationPrep.osintChannelQuarantine) {
+    const decision = investigationPrep.osintChannelQuarantine.active
+      ? getSocialQuarantineDecision(batch.reportDate, reportScopeId, tryOpenValidationStore())
+      : null;
+    assessment.social_channel_quarantine = {
+      ...investigationPrep.osintChannelQuarantine,
+      ...(decision?.created_at ? { confirmed_at: decision.created_at } : {}),
+    };
+  }
+
+  const patterns = detectSemanticPatterns(allSignals);
+  assessment.pattern_alerts = patterns;
+  assessment.operator_recommendations = buildOperatorRecommendations(patterns);
+
+  attachInvestigationDiagnostics(assessment, {
+    scoring: {
+      investigationSignals: investigationPrep.investigationSignals,
+      signalsForScoring: shadowScoring?.signalsForScoring ?? investigationPrep.investigationSignals,
+      scopedSignals: allSignals,
+      macroSignals,
+      scoredFull: shadowScoring?.scoredComponents ?? null,
+      scoringPartition: pipelineResult?.partition ?? null,
+      scoringAssessmentMode: pipelineResult?.assessmentMode ?? null,
+      assessmentMode: investigationEpistemic.assessmentMode,
+    },
+    investigationPlan: assessment.investigation_plan,
+  });
+}
+
 function persistReportIfRequested({
   persist,
   reportWriterPort,
@@ -281,7 +263,6 @@ export async function runResilienceAssessment(batch, options = {}) {
     outputBase = null,
     reportSourceFiles = null,
     scope = null,
-    // Optional supplementary articles (e.g. field reports) extracted with a different content kind
     supplementaryArticles = [],
     supplementaryContentKind = 'field_report',
   } = options;
@@ -308,8 +289,9 @@ export async function runResilienceAssessment(batch, options = {}) {
 
   let allSignals;
   let baseSignalsForScoring;
+  let macroSignals;
   try {
-    ({ allSignals, baseSignalsForScoring } = await extractBatchSignals({
+    ({ allSignals, baseSignalsForScoring, macroSignals } = await extractBatchSignals({
       batch,
       articles,
       llmPort,
@@ -327,15 +309,38 @@ export async function runResilienceAssessment(batch, options = {}) {
 
   const reportsDir = options.reportsDir ?? 'daily_reports';
   const totalArticles = articles.length + supplementaryArticles.length;
-  const {
-    scoredComponents,
-    signalsForScoring,
-    dataVoid,
-    osintChannelQuarantine,
-    oovBurst,
-    oovScoringApplied,
-    pipelineResult,
-  } = await scoreBatchSignals({
+
+  const investigationPrep = await prepareInvestigationSignals({
+    investigationSignals: baseSignalsForScoring,
+    reportDate: batch.reportDate,
+    reportScopeId,
+    reportsDir,
+  });
+  const investigationEpistemic = deriveInvestigationEpistemicContext(investigationPrep.dataVoid);
+
+  const assessment = await produceAssessmentWithShadow({
+    targetDate: batch.reportDate,
+    reportScopeId,
+    investigationSignals: investigationPrep.investigationSignals,
+    investigationEpistemic,
+    scopedSignals: allSignals,
+    scopedTotalArticles: totalArticles,
+    dataVoid: investigationPrep.dataVoid,
+    assessmentMode: investigationEpistemic.assessmentMode,
+    epistemicStatus: investigationEpistemic.epistemicStatus,
+    retrievalService: options.retrievalService ?? null,
+    sourceArchive: options.sourceArchive ?? null,
+    evidenceStore: options.evidenceStore ?? null,
+    oovBurst: investigationPrep.oovBurst,
+    onUsage,
+    reportsDir,
+    llmPort,
+    dailyBudgetExceeded: options.dailyBudgetExceeded ?? false,
+  });
+
+  pipeline.completeStage('NARRATE');
+
+  const shadowScoring = await runShadowScoring({
     baseSignalsForScoring,
     allSignals,
     batch,
@@ -346,37 +351,22 @@ export async function runResilienceAssessment(batch, options = {}) {
   });
   pipeline.completeStage('SCORE');
 
-  const assessment = await produceAssessmentWithShadow({
-    targetDate: batch.reportDate,
+  attachShadowDivergenceToAssessment(assessment, {
+    scoredFull: shadowScoring.scoredComponents,
     reportScopeId,
-    signalsForScoring,
-    scopedSignals: allSignals,
-    scoredFull: scoredComponents,
-    scopedTotalArticles: totalArticles,
-    dataVoid,
-    assessmentMode: pipelineResult.assessmentMode,
-    epistemicStatus: pipelineResult.epistemicStatus,
-    retrievalService: options.retrievalService ?? null,
-    sourceArchive: options.sourceArchive ?? null,
-    evidenceStore: options.evidenceStore ?? null,
-    oovBurst,
-    onUsage,
+    targetDate: batch.reportDate,
     reportsDir,
-    llmPort,
-    dailyBudgetExceeded: options.dailyBudgetExceeded ?? false,
   });
 
-  pipeline.completeStage('NARRATE');
-
   applyAssessmentPostScoring(assessment, {
-    pipelineResult,
-    dataVoid,
-    oovBurst,
-    oovScoringApplied,
-    osintChannelQuarantine,
+    investigationEpistemic,
+    investigationPrep,
+    pipelineResult: shadowScoring.pipelineResult,
+    shadowScoring,
     batch,
     reportScopeId,
     allSignals,
+    macroSignals,
   });
 
   await attachDecisionBrief(assessment, {
@@ -414,5 +404,4 @@ export async function runResilienceAssessment(batch, options = {}) {
   };
 }
 
-/** Spec alias */
 export const runAssessment = runResilienceAssessment;

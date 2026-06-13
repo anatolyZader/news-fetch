@@ -10,57 +10,92 @@ const ALIGN_MAP = {
   center:{ alignItems: 'center',     textAlign: 'center' },
 };
 
-function BrandMark({ src, alt }) {
-  return (
-    <Box
-      component="img"
-      src={src}
-      alt={alt}
-      sx={(theme) => ({
-        flexShrink: 0,
-        height: theme.spacing(9),
-        width: 'auto',
-        maxHeight: theme.spacing(9),
-        display: 'block',
-        userSelect: 'none',
-      })}
-    />
-  );
-}
-
-BrandMark.propTypes = {
-  src: PropTypes.string.isRequired,
-  alt: PropTypes.string,
-};
-
 export function BrandHeader({
   title,
   subtitle,
   align = 'start',
+  variant = 'default',
   onHomeClick,
   homeAriaLabel,
   logoSrc,
   logoAlt = '',
 }) {
   const alignSx = ALIGN_MAP[align] ?? ALIGN_MAP.start;
+  const isCompact = variant === 'compact';
 
   const titleBlock = (
     <Stack
       direction="row"
       alignItems="center"
-      spacing={1.5}
-      sx={{
+      spacing={isCompact ? 1 : { xs: 1, sm: 1.5 }}
+      sx={(theme) => ({
         alignSelf: alignSx.alignItems,
         '[dir="rtl"] &': { flexDirection: 'row-reverse' },
-      }}
+        ...(isCompact
+          ? { justifyContent: 'center' }
+          : {
+            [theme.breakpoints.down('sm')]: {
+              flexDirection: 'column',
+              alignItems: 'center',
+              alignSelf: 'center',
+              justifyContent: 'center',
+              '[dir="rtl"] &': { flexDirection: 'column' },
+            },
+          }),
+      })}
     >
-      {logoSrc && <BrandMark src={logoSrc} alt={logoAlt} />}
-      <Stack spacing={0.125} sx={{ minWidth: 0, textAlign: alignSx.textAlign }}>
-        <Typography variant="h1" component="h1" sx={{ lineHeight: 1.2 }}>
+      {logoSrc && (
+        <Box
+          component="img"
+          src={logoSrc}
+          alt={logoAlt}
+          sx={(theme) => ({
+            flexShrink: 0,
+            height: isCompact ? theme.spacing(5) : theme.spacing(9),
+            width: 'auto',
+            maxHeight: isCompact ? theme.spacing(5) : theme.spacing(9),
+            display: 'block',
+            userSelect: 'none',
+          })}
+        />
+      )}
+      <Stack
+        spacing={0.125}
+        sx={(theme) => ({
+          minWidth: 0,
+          textAlign: isCompact ? 'center' : alignSx.textAlign,
+          ...(!isCompact && {
+            [theme.breakpoints.down('sm')]: {
+              textAlign: 'center',
+              alignItems: 'center',
+            },
+          }),
+        })}
+      >
+        <Typography
+          variant="h1"
+          component="h1"
+          sx={(theme) => ({
+            lineHeight: 1.2,
+            ...(isCompact && {
+              fontSize: theme.typography.h3.fontSize,
+              fontWeight: 700,
+            }),
+          })}
+        >
           {title}
         </Typography>
-        {subtitle && (
-          <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.35 }}>
+        {subtitle && !isCompact && (
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={(theme) => ({
+              lineHeight: 1.35,
+              [theme.breakpoints.down('sm')]: {
+                display: 'none',
+              },
+            })}
+          >
             {subtitle}
           </Typography>
         )}
@@ -71,10 +106,21 @@ export function BrandHeader({
   return (
     <Stack
       spacing={0.25}
-      sx={() => ({
+      sx={(theme) => ({
         ...alignSx,
-        '[dir="rtl"] &': align === 'start'
-          ? { alignItems: 'flex-end', textAlign: 'right' }
+        ...(isCompact
+          ? { alignItems: 'center', width: 'auto' }
+          : {
+            [theme.breakpoints.down('sm')]: {
+              alignItems: 'center',
+              textAlign: 'center',
+              width: '100%',
+            },
+          }),
+        '[dir="rtl"] &': align === 'start' && !isCompact
+          ? {
+            [theme.breakpoints.up('sm')]: { alignItems: 'flex-end', textAlign: 'right' },
+          }
           : alignSx,
       })}
     >
@@ -90,6 +136,9 @@ export function BrandHeader({
             padding: theme.spacing(0.25, 0.5),
             margin: theme.spacing(-0.25, -0.5),
             '&:hover': { background: theme.palette.action.hover },
+            [theme.breakpoints.down('sm')]: !isCompact
+              ? { alignSelf: 'center', textAlign: 'center' }
+              : undefined,
           })}
         >
           {titleBlock}
@@ -105,6 +154,7 @@ BrandHeader.propTypes = {
   title: PropTypes.node.isRequired,
   subtitle: PropTypes.node,
   align: PropTypes.oneOf(['start', 'end', 'center']),
+  variant: PropTypes.oneOf(['default', 'compact']),
   onHomeClick: PropTypes.func,
   homeAriaLabel: PropTypes.string,
   logoSrc: PropTypes.string,

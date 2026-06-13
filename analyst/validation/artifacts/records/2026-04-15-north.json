@@ -1,0 +1,291 @@
+{
+  "schema_version": 1,
+  "record_type": "daily_validation",
+  "date": "2026-04-15",
+  "scope": "north",
+  "generated_at": "2026-06-12T07:15:52.383Z",
+  "operational_phase": "baseline",
+  "phase_started_at": null,
+  "shadow_collection": true,
+  "provenance": {
+    "report_json_path": "/home/eventstorm1/news/daily_reports/resilience-report-north-2026-04-15-0715.json",
+    "signal_paths": [
+      "/home/eventstorm1/news/business_modules/signals_extraction/data/signals/signals-news-2026-04-13.json",
+      "/home/eventstorm1/news/business_modules/signals_extraction/data/signals/signals-news-2026-04-14.json",
+      "/home/eventstorm1/news/business_modules/signals_extraction/data/signals/signals-news-2026-04-15.json",
+      "/home/eventstorm1/news/business_modules/signals_extraction/data/signals/signals-pbo-2026-04-13.json",
+      "/home/eventstorm1/news/business_modules/signals_extraction/data/signals/signals-pbo-2026-04-14.json",
+      "/home/eventstorm1/news/business_modules/signals_extraction/data/signals/signals-pbo-2026-04-15.json",
+      "/home/eventstorm1/news/business_modules/visits/data/signals/signals-field-2026-04-15.json"
+    ],
+    "sources_enabled": {
+      "news": {
+        "enabled": true,
+        "description": "Homefront news articles"
+      },
+      "radio": {
+        "enabled": false,
+        "description": "Radio broadcast transcripts (ashams, tzafon, kan-bet, etc.)"
+      },
+      "whatsapp": {
+        "enabled": true,
+        "description": "WhatsApp reports"
+      },
+      "field": {
+        "enabled": true,
+        "description": "Professional squad field visit reports"
+      },
+      "pbo": {
+        "enabled": true,
+        "description": "PBO municipality daily reports"
+      },
+      "naftali": {
+        "enabled": true,
+        "description": "Naftali weekly questionnaire"
+      },
+      "social": {
+        "enabled": true,
+        "description": "Social media OSINT (X + Telegram): signals-social-*.json from gather-daily / 8comp-3-north; daily feed + 8-component assessment"
+      }
+    },
+    "catalog_version": "v6",
+    "scoring_model_version": "v5",
+    "signal_to_components_sha256": "d0686656fed8b7b444d0e81e33b62afdd920c77db56a223d33ca745802a61165",
+    "models": {
+      "extract": "claude-haiku-4-5-20251001",
+      "narrative": "claude-sonnet-4-6"
+    },
+    "total_signals": 563,
+    "total_articles_analyzed": 52,
+    "overall_score": null
+  },
+  "validation_status": {
+    "operational_phase": "baseline",
+    "phase_started_at": null,
+    "collection_enabled": true,
+    "tiers": {
+      "tier1_process": {
+        "status": "active_in_ci",
+        "note": "adversarial + golden corpus in CI"
+      },
+      "tier2_extraction": {
+        "status": "golden_corpus_partial",
+        "target": {
+          "micro_f1_min": 0.65,
+          "macro_kappa_min": 0.5,
+          "min_hand_reviewed_articles": 80
+        }
+      },
+      "tier3_tuning": {
+        "status": "awaiting_report_history",
+        "target": {
+          "min_reports": 30,
+          "script": "npm run suggest-tuning"
+        }
+      },
+      "tier4_construct": {
+        "status": "awaiting_expert_labels",
+        "target": {
+          "min_labeled_days": 10,
+          "min_raters": 2,
+          "spearman_min": 0.6
+        }
+      },
+      "tier5_weights": {
+        "status": "stub_only",
+        "target": {
+          "min_labeled_examples": 50,
+          "module": "signalWeightsFit.js"
+        }
+      }
+    }
+  },
+  "elevation_advisory": {
+    "advisory_only": true,
+    "current_phase": "baseline",
+    "suggested_phase": "elevated",
+    "triggers": {
+      "signal_count": 563,
+      "article_count": 52,
+      "min_daily_signals": 150,
+      "min_daily_articles": 40
+    },
+    "message": "Volume thresholds met (563 signals, 52 articles). Consider setting operational_phase to \"elevated\" in business_modules/resilience/validation/validation-config.json."
+  },
+  "components": [
+    {
+      "component_id": "narrative",
+      "system_score": null,
+      "confidence": "low",
+      "certainty": null,
+      "evidence_mass": null,
+      "polarization": null,
+      "delta_score": null,
+      "delta_significance": null,
+      "delta_flag": null,
+      "counterfactual_delta": null,
+      "counterfactual_article_key": null,
+      "signal_count": 0,
+      "distinct_article_count": 0,
+      "top_contributors": [],
+      "expert_labels": [],
+      "outcome_tags": []
+    },
+    {
+      "component_id": "information_communication",
+      "system_score": null,
+      "confidence": "low",
+      "certainty": null,
+      "evidence_mass": null,
+      "polarization": null,
+      "delta_score": null,
+      "delta_significance": null,
+      "delta_flag": null,
+      "counterfactual_delta": null,
+      "counterfactual_article_key": null,
+      "signal_count": 0,
+      "distinct_article_count": 0,
+      "top_contributors": [],
+      "expert_labels": [],
+      "outcome_tags": []
+    },
+    {
+      "component_id": "lifesaving_behavior",
+      "system_score": null,
+      "confidence": "low",
+      "certainty": null,
+      "evidence_mass": null,
+      "polarization": null,
+      "delta_score": null,
+      "delta_significance": null,
+      "delta_flag": null,
+      "counterfactual_delta": null,
+      "counterfactual_article_key": null,
+      "signal_count": 0,
+      "distinct_article_count": 0,
+      "top_contributors": [],
+      "expert_labels": [],
+      "outcome_tags": []
+    },
+    {
+      "component_id": "functional_continuity",
+      "system_score": null,
+      "confidence": "medium",
+      "certainty": null,
+      "evidence_mass": null,
+      "polarization": null,
+      "delta_score": null,
+      "delta_significance": null,
+      "delta_flag": null,
+      "counterfactual_delta": null,
+      "counterfactual_article_key": null,
+      "signal_count": 0,
+      "distinct_article_count": 0,
+      "top_contributors": [],
+      "expert_labels": [],
+      "outcome_tags": []
+    },
+    {
+      "component_id": "community_capital",
+      "system_score": null,
+      "confidence": "medium",
+      "certainty": null,
+      "evidence_mass": null,
+      "polarization": null,
+      "delta_score": null,
+      "delta_significance": null,
+      "delta_flag": null,
+      "counterfactual_delta": null,
+      "counterfactual_article_key": null,
+      "signal_count": 0,
+      "distinct_article_count": 0,
+      "top_contributors": [],
+      "expert_labels": [],
+      "outcome_tags": []
+    },
+    {
+      "component_id": "leadership",
+      "system_score": null,
+      "confidence": "low",
+      "certainty": null,
+      "evidence_mass": null,
+      "polarization": null,
+      "delta_score": null,
+      "delta_significance": null,
+      "delta_flag": null,
+      "counterfactual_delta": null,
+      "counterfactual_article_key": null,
+      "signal_count": 0,
+      "distinct_article_count": 0,
+      "top_contributors": [],
+      "expert_labels": [],
+      "outcome_tags": []
+    },
+    {
+      "component_id": "belonging_solidarity",
+      "system_score": null,
+      "confidence": "low",
+      "certainty": null,
+      "evidence_mass": null,
+      "polarization": null,
+      "delta_score": null,
+      "delta_significance": null,
+      "delta_flag": null,
+      "counterfactual_delta": null,
+      "counterfactual_article_key": null,
+      "signal_count": 0,
+      "distinct_article_count": 0,
+      "top_contributors": [],
+      "expert_labels": [],
+      "outcome_tags": []
+    },
+    {
+      "component_id": "wellbeing_at_risk",
+      "system_score": null,
+      "confidence": "medium",
+      "certainty": null,
+      "evidence_mass": null,
+      "polarization": null,
+      "delta_score": null,
+      "delta_significance": null,
+      "delta_flag": null,
+      "counterfactual_delta": null,
+      "counterfactual_article_key": null,
+      "signal_count": 0,
+      "distinct_article_count": 0,
+      "top_contributors": [],
+      "expert_labels": [],
+      "outcome_tags": []
+    }
+  ],
+  "calibration_snapshot_ref": {
+    "catalog_version": "v6",
+    "signal_count": 166,
+    "captured_at": "2026-06-12T07:15:52.383Z"
+  },
+  "tuning_proposal_summary": {
+    "status": "advisory_only",
+    "report_count": 49,
+    "skipped_reason": null,
+    "components_with_proposal": 8
+  },
+  "review_queue_summary": {
+    "item_count": 15,
+    "path": "/home/eventstorm1/news/business_modules/resilience/validation/artifacts/review-queue/2026-04-15-north.jsonl",
+    "top_reasons": [
+      {
+        "code": "rare_signal_type",
+        "count": 18
+      },
+      {
+        "code": "random_control",
+        "count": 6
+      }
+    ]
+  },
+  "label_slots": {
+    "expert_component_scores": "append via review workflow; blind scoring preferred",
+    "outcome_tags": "link delayed PBO/field/service outcomes retrospectively",
+    "extraction_gold": "per review-queue item gold_signals"
+  }
+}

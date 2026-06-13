@@ -1,0 +1,43 @@
+/**
+ * Per-component contribution item collection (operator epistemic layer).
+ */
+import {
+  contributionForSignal,
+  duplicateArticleFactor,
+  effectiveWeightForSignal,
+} from './massContribution.js';
+
+/**
+ * @param {string} componentId
+ * @param {Array} scoringSignals
+ * @param {WeakMap} duplicateIndex
+ * @param {object} signalWeights
+ */
+export function collectComponentItems(componentId, scoringSignals, duplicateIndex, signalWeights) {
+  const items = [];
+  const articleSet = new Set();
+  const sourceSet = new Set();
+
+  for (const signal of scoringSignals) {
+    const signalType = signal.signal_type ?? signal.type;
+    const mapping = signalWeights[signalType];
+    if (mapping == null || (componentId in mapping) === false) continue;
+    const baseWeight = mapping[componentId];
+    const effectiveWeight = effectiveWeightForSignal(signal, signalType, baseWeight);
+    const preDuplicate = contributionForSignal(signal, baseWeight);
+    const k = duplicateIndex.get(signal) ?? 1;
+    const contribution = preDuplicate * duplicateArticleFactor(k);
+    items.push({
+      signal,
+      contribution,
+      contributionPreDuplicate: preDuplicate,
+      polarity: effectiveWeight >= 0 ? '+' : '-',
+    });
+
+    const articleKey = signal.article_url || (signal.article_index ?? null);
+    if (articleKey != null) articleSet.add(articleKey);
+    if (signal.source_type) sourceSet.add(signal.source_type);
+  }
+
+  return { items, articleSet, sourceSet };
+}

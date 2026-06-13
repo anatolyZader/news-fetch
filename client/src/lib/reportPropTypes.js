@@ -52,6 +52,35 @@ export const componentScoreShape = PropTypes.shape({
   calibration_deficit: PropTypes.number,
   weight_sensitivity: PropTypes.object,
   weight_sensitivity_note: PropTypes.string,
+  operator_display_state: PropTypes.oneOf([
+    'assessed_claims',
+    'assessed_low_confidence',
+    'specialist_skipped',
+    'evidence_quarantined',
+    'insufficient_data',
+  ]),
+  operator_state_reason: PropTypes.string,
+  evidence_usage_state: PropTypes.oneOf([
+    'normal',
+    'field_anchor_only',
+    'quarantined_digital_present',
+    'macro_context_only',
+    'scope_excluded_only',
+    'mixed',
+  ]),
+  coverage: PropTypes.shape({
+    scoring_used: PropTypes.number,
+    investigation_used: PropTypes.number,
+    scoring_quarantined: PropTypes.number,
+    quarantined: PropTypes.number,
+    macro_context: PropTypes.number,
+    excluded_by_scope: PropTypes.number,
+    claims: PropTypes.number,
+  }),
+  specialist_tier: PropTypes.oneOf(['A', 'B', 'C']),
+  specialist_ran: PropTypes.bool,
+  assessment_state: PropTypes.string,
+  analyst_flags: PropTypes.arrayOf(PropTypes.string),
 });
 
 export const assessmentShape = PropTypes.shape({
@@ -60,6 +89,17 @@ export const assessmentShape = PropTypes.shape({
   components: PropTypes.arrayOf(componentScoreShape),
   norris_capacities: PropTypes.arrayOf(PropTypes.object),
   cross_component_synthesis: PropTypes.string,
+  investigation_summary: PropTypes.shape({
+    agent_ran: PropTypes.bool,
+    degrade_reason: PropTypes.string,
+    synthesis_mode: PropTypes.string,
+    budget_degrade_mode: PropTypes.string,
+    signals_investigation: PropTypes.number,
+    signals_scoring_quarantined: PropTypes.number,
+    shadow_scoring_available: PropTypes.bool,
+  }),
+  synthesis_mode: PropTypes.string,
+  degrade_reason: PropTypes.string,
   narrative_grounding_summary: PropTypes.shape({
     mean_score: PropTypes.number,
     synthesis_score: PropTypes.number,

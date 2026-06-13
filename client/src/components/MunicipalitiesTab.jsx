@@ -20,6 +20,7 @@ import AccordionDetails from '@mui/material/AccordionDetails';
 import Chip from '@mui/material/Chip';
 import Collapse from '@mui/material/Collapse';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
@@ -32,6 +33,8 @@ import {
   LoadingState,
   PageHeader,
   dateToggleGridSx,
+  stickyTableFirstColSx,
+  mobileCardListSx,
 } from '../ui/index.js';
 import { scoreBg01, scoreColor01 } from '../lib/score.js';
 import { formatDate } from '../lib/date.js';
@@ -461,11 +464,166 @@ MunicipalityComponentCompareAccordion.propTypes = {
   t: PropTypes.func.isRequired,
 };
 
+function MunicipalityDetailPanel({
+  m,
+  reviewSummary,
+  reviewOpenByDefault,
+  selectedDate,
+  isHe,
+  t,
+  comps,
+  compNames,
+  theme,
+  scopedDistrict,
+  getIdToken,
+  getAppCheckToken,
+  apiReady,
+  reloadReviews,
+  selectedMuni,
+  muniAllDays,
+  setSelectedMuni,
+}) {
+  return (
+    <Box
+      id={`muni-report-${m.name}`}
+      sx={(th) => ({
+        padding: th.spacing(2),
+        borderTop: th.custom.border.hairline,
+      })}
+    >
+      <PageHeader
+        title={`${m.name} — ${formatDate(selectedDate)}`}
+        action={(
+          <Button variant="outlined" size="small" onClick={() => setSelectedMuni(null)}>
+            {isHe ? 'סגור' : 'Close'}
+          </Button>
+        )}
+      />
+
+      <Accordion defaultExpanded={reviewOpenByDefault ?? true} disableGutters>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+          <Stack direction="row" spacing={1} alignItems="center" useFlexGap flexWrap="wrap">
+            <Typography variant="cardTitle" component="span">
+              {t('pboReview.reportSection')}
+            </Typography>
+            <Chip
+              size="small"
+              label={reviewStatusLabel(reviewSummary, t)}
+              color={reviewStatusTone(reviewSummary)}
+            />
+          </Stack>
+        </AccordionSummary>
+        <AccordionDetails>
+          <PboMunicipalReviewPanel
+            date={selectedDate}
+            municipality={m.name}
+            districtId={scopedDistrict}
+            getIdToken={getIdToken}
+            getAppCheckToken={getAppCheckToken}
+            apiReady={apiReady}
+            summary={reviewSummary}
+            showHistoricalSearch
+            onSubmitted={() => { void reloadReviews(); }}
+          />
+        </AccordionDetails>
+      </Accordion>
+
+      <Stack spacing={1.2} sx={(th) => ({ marginTop: th.spacing(1.5) })}>
+        {comps.map((cid) => {
+          const c = m.components[cid];
+          const avg = c.avg;
+          const hasText = c.texts.some((txt) => txt.length > 0);
+          const muniDays = selectedMuni === m.name ? muniAllDays : [];
+
+          return (
+            <Card
+              key={cid}
+              sx={(th) => ({
+                borderInlineStartWidth: 4,
+                borderInlineStartStyle: 'solid',
+                borderInlineStartColor: scoreColor01(avg, theme),
+                paddingTop: th.spacing(1),
+                paddingBottom: th.spacing(1),
+                paddingLeft: th.spacing(1.5),
+                paddingRight: th.spacing(1.5),
+                display: 'flex',
+                flexDirection: 'column',
+                gap: th.spacing(0.75),
+              })}
+            >
+              <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
+                <Typography variant="cardTitle" component="h3">{compNames[cid]}</Typography>
+                <ScoreBadge value={avg} theme={theme} />
+              </Stack>
+
+              {hasText
+                ? c.texts.map((txt) => (
+                  <Typography key={`${cid}-text-${txt}`} variant="body2">{txt}</Typography>
+                ))
+                : (
+                  <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                    {isHe ? 'אין התייחסות מילולית' : 'No verbal reference provided'}
+                  </Typography>
+                )}
+
+              {c.scores.length > 0 && (
+                <Stack direction="row" useFlexGap flexWrap="wrap" spacing={1}>
+                  {c.scores.map((s) => (
+                    <ScoreLabelPill
+                      key={`${cid}-${normalizeScoreLabel(s.label)}`}
+                      label={s.label}
+                      value={s.value}
+                      theme={theme}
+                    />
+                  ))}
+                </Stack>
+              )}
+
+              {muniDays.length > 1 && (
+                <MunicipalityComponentCompareAccordion
+                  cid={cid}
+                  c={c}
+                  muniAllDays={muniDays}
+                  compNames={compNames}
+                  theme={theme}
+                  isHe={isHe}
+                  t={t}
+                />
+              )}
+            </Card>
+          );
+        })}
+      </Stack>
+    </Box>
+  );
+}
+
+MunicipalityDetailPanel.propTypes = {
+  m: PropTypes.object.isRequired,
+  reviewSummary: PropTypes.object,
+  reviewOpenByDefault: PropTypes.bool,
+  selectedDate: PropTypes.string.isRequired,
+  isHe: PropTypes.bool.isRequired,
+  t: PropTypes.func.isRequired,
+  comps: PropTypes.array.isRequired,
+  compNames: PropTypes.object.isRequired,
+  theme: PropTypes.object.isRequired,
+  scopedDistrict: PropTypes.string.isRequired,
+  getIdToken: PropTypes.func.isRequired,
+  getAppCheckToken: PropTypes.func.isRequired,
+  apiReady: PropTypes.bool.isRequired,
+  reloadReviews: PropTypes.func.isRequired,
+  selectedMuni: PropTypes.string,
+  muniAllDays: PropTypes.array.isRequired,
+  setSelectedMuni: PropTypes.func.isRequired,
+};
+
 export function MunicipalitiesTab({ districtId = 'north' }) {
   const { getIdToken, getAppCheckToken, apiReady } = useAuth();
   const { lang, t } = useLanguage();
   const theme = useTheme();
   const isHe = lang === 'he';
+  const isCardMode = useMediaQuery(theme.breakpoints.down('sm'));
   const scopedDistrict = normalizeIsraelDistrictId(districtId);
   const {
     data,
@@ -534,9 +692,9 @@ export function MunicipalitiesTab({ districtId = 'north' }) {
       </ToggleButtonGroup>
 
       {day && (
-        <KpiStrip columns={8}>
-          <KpiCard density="dense" span={4} label={isHe ? 'תאריך' : 'Date'} value={formatDate(day.date)} />
-          <KpiCard density="dense" span={4} label={isHe ? 'רשויות' : 'Municipalities'} value={day.municipalities.length} />
+        <KpiStrip columns={{ xs: 2, sm: 4, md: 8 }}>
+          <KpiCard density="dense" span={{ xs: 2, md: 4 }} label={isHe ? 'תאריך' : 'Date'} value={formatDate(day.date)} />
+          <KpiCard density="dense" span={{ xs: 2, md: 4 }} label={isHe ? 'רשויות' : 'Municipalities'} value={day.municipalities.length} />
           {comps.map((cid) => (
             <KpiCard
               key={cid}
@@ -550,7 +708,106 @@ export function MunicipalitiesTab({ districtId = 'north' }) {
       )}
 
       {day && (
-        <TableContainer component={Card}>
+        <>
+        {isCardMode ? (
+          <Box sx={mobileCardListSx}>
+            {visibleMunicipalities.map((m) => {
+              const reviewSummary = reviewsByMuni[m.name];
+              const expanded = selectedMuni === m.name;
+              const reviewOpenByDefault = reviewSummary
+                && !reviewSummary.sufficient
+                && reviewSummary.status !== 'resolved';
+
+              return (
+                <Card
+                  key={m.name}
+                  variant="outlined"
+                  sx={(th) => ({
+                    overflow: 'hidden',
+                    borderRadius: `${th.custom.radius.section}px`,
+                    borderColor: expanded ? th.palette.primary.main : th.palette.divider,
+                  })}
+                >
+                  <Box
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => setSelectedMuni(expanded ? null : m.name)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setSelectedMuni(expanded ? null : m.name);
+                      }
+                    }}
+                    sx={(th) => ({
+                      padding: th.spacing(1.5),
+                      cursor: 'pointer',
+                    })}
+                  >
+                    <Stack spacing={1}>
+                      <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
+                        <Typography variant="cardTitle" component="h3">{m.name}</Typography>
+                        <Chip
+                          size="small"
+                          label={reviewStatusLabel(reviewSummary, t)}
+                          color={reviewStatusTone(reviewSummary)}
+                          variant={reviewSummary ? 'filled' : 'outlined'}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedMuni(expanded ? null : m.name);
+                          }}
+                        />
+                      </Stack>
+                      <Stack direction="row" useFlexGap flexWrap="wrap" spacing={0.75}>
+                        {comps.map((cid) => (
+                          <Chip
+                            key={cid}
+                            size="small"
+                            variant="outlined"
+                            label={`${compNames[cid]}: ${pct(m.components[cid].avg)}`}
+                            sx={{
+                              fontWeight: 600,
+                              color: scoreColor01(m.components[cid].avg, theme),
+                            }}
+                          />
+                        ))}
+                      </Stack>
+                    </Stack>
+                  </Box>
+                  <Collapse in={expanded} timeout="auto" unmountOnExit>
+                    <MunicipalityDetailPanel
+                      m={m}
+                      reviewSummary={reviewSummary}
+                      reviewOpenByDefault={reviewOpenByDefault}
+                      selectedDate={selectedDate}
+                      isHe={isHe}
+                      t={t}
+                      comps={comps}
+                      compNames={compNames}
+                      theme={theme}
+                      scopedDistrict={scopedDistrict}
+                      getIdToken={getIdToken}
+                      getAppCheckToken={getAppCheckToken}
+                      apiReady={apiReady}
+                      reloadReviews={reloadReviews}
+                      selectedMuni={selectedMuni}
+                      muniAllDays={muniAllDays}
+                      setSelectedMuni={setSelectedMuni}
+                    />
+                  </Collapse>
+                </Card>
+              );
+            })}
+          </Box>
+        ) : (
+        <TableContainer
+          component={Card}
+          sx={[
+            stickyTableFirstColSx,
+            (th) => ({
+              [th.breakpoints.between('sm', 'md')]: { overflowX: 'auto' },
+            }),
+          ]}
+        >
           <Table size="small">
             <TableHead>
               <TableRow>
@@ -619,117 +876,25 @@ export function MunicipalitiesTab({ districtId = 'north' }) {
                         })}
                       >
                         <Collapse in={expanded} timeout="auto" unmountOnExit>
-                          <Box
-                            id={`muni-report-${m.name}`}
-                            sx={(th) => ({
-                              padding: th.spacing(2),
-                              borderTop: th.custom.border.hairline,
-                            })}
-                          >
-                            <PageHeader
-                              title={`${m.name} — ${formatDate(selectedDate)}`}
-                              action={(
-                                <Button variant="outlined" size="small" onClick={() => setSelectedMuni(null)}>
-                                  {isHe ? 'סגור' : 'Close'}
-                                </Button>
-                              )}
-                            />
-
-                            <Accordion defaultExpanded={reviewOpenByDefault ?? true} disableGutters>
-                              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                                <Stack direction="row" spacing={1} alignItems="center" useFlexGap flexWrap="wrap">
-                                  <Typography variant="cardTitle" component="span">
-                                    {t('pboReview.reportSection')}
-                                  </Typography>
-                                  <Chip
-                                    size="small"
-                                    label={reviewStatusLabel(reviewSummary, t)}
-                                    color={reviewStatusTone(reviewSummary)}
-                                  />
-                                </Stack>
-                              </AccordionSummary>
-                              <AccordionDetails>
-                                <PboMunicipalReviewPanel
-                                  date={selectedDate}
-                                  municipality={m.name}
-                                  districtId={scopedDistrict}
-                                  getIdToken={getIdToken}
-                                  getAppCheckToken={getAppCheckToken}
-                                  apiReady={apiReady}
-                                  summary={reviewSummary}
-                                  showHistoricalSearch
-                                  onSubmitted={() => { void reloadReviews(); }}
-                                />
-                              </AccordionDetails>
-                            </Accordion>
-
-                            <Stack spacing={1.2} sx={(th) => ({ marginTop: th.spacing(1.5) })}>
-                              {comps.map((cid) => {
-                                const c = m.components[cid];
-                                const avg = c.avg;
-                                const hasText = c.texts.some((txt) => txt.length > 0);
-                                const muniDays = selectedMuni === m.name ? muniAllDays : [];
-
-                                return (
-                                  <Card
-                                    key={cid}
-                                    sx={(t) => ({
-                                      borderInlineStartWidth: 4,
-                                      borderInlineStartStyle: 'solid',
-                                      borderInlineStartColor: scoreColor01(avg, theme),
-                                      paddingTop: t.spacing(1),
-                                      paddingBottom: t.spacing(1),
-                                      paddingLeft: t.spacing(1.5),
-                                      paddingRight: t.spacing(1.5),
-                                      display: 'flex',
-                                      flexDirection: 'column',
-                                      gap: t.spacing(0.75),
-                                    })}
-                                  >
-                                    <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
-                                      <Typography variant="cardTitle" component="h3">{compNames[cid]}</Typography>
-                                      <ScoreBadge value={avg} theme={theme} />
-                                    </Stack>
-
-                                    {hasText
-                                      ? c.texts.map((txt) => (
-                                        <Typography key={`${cid}-text-${txt}`} variant="body2">{txt}</Typography>
-                                      ))
-                                      : (
-                                        <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
-                                          {isHe ? 'אין התייחסות מילולית' : 'No verbal reference provided'}
-                                        </Typography>
-                                      )}
-
-                                    {c.scores.length > 0 && (
-                                      <Stack direction="row" useFlexGap flexWrap="wrap" spacing={1}>
-                                        {c.scores.map((s) => (
-                                          <ScoreLabelPill
-                                            key={`${cid}-${normalizeScoreLabel(s.label)}`}
-                                            label={s.label}
-                                            value={s.value}
-                                            theme={theme}
-                                          />
-                                        ))}
-                                      </Stack>
-                                    )}
-
-                                    {muniDays.length > 1 && (
-                                      <MunicipalityComponentCompareAccordion
-                                        cid={cid}
-                                        c={c}
-                                        muniAllDays={muniDays}
-                                        compNames={compNames}
-                                        theme={theme}
-                                        isHe={isHe}
-                                        t={t}
-                                      />
-                                    )}
-                                  </Card>
-                                );
-                              })}
-                            </Stack>
-                          </Box>
+                          <MunicipalityDetailPanel
+                            m={m}
+                            reviewSummary={reviewSummary}
+                            reviewOpenByDefault={reviewOpenByDefault}
+                            selectedDate={selectedDate}
+                            isHe={isHe}
+                            t={t}
+                            comps={comps}
+                            compNames={compNames}
+                            theme={theme}
+                            scopedDistrict={scopedDistrict}
+                            getIdToken={getIdToken}
+                            getAppCheckToken={getAppCheckToken}
+                            apiReady={apiReady}
+                            reloadReviews={reloadReviews}
+                            selectedMuni={selectedMuni}
+                            muniAllDays={muniAllDays}
+                            setSelectedMuni={setSelectedMuni}
+                          />
                         </Collapse>
                       </TableCell>
                     </TableRow>
@@ -754,6 +919,8 @@ export function MunicipalitiesTab({ districtId = 'north' }) {
             )}
           </Table>
         </TableContainer>
+        )}
+        </>
       )}
     </Box>
   );

@@ -8,7 +8,7 @@ import {
   getOutletReliabilityMultiplier,
   resetOutletReliabilityPriorsCacheForTests,
 } from '../../../../../business_modules/resilience/domain/services/outletReliabilityPriors.js';
-import { scoreComponents } from '../../../../../business_modules/resilience/domain/services/behaviorSignals.js';
+import { scoreComponents } from '../../../../../analyst/scoring/index.js';
 
 let tmp;
 let configPath;

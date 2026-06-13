@@ -9,7 +9,7 @@
 import { config } from 'dotenv';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, resolve } from 'node:path';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, statSync, writeFileSync } from 'node:fs';
 import { relative } from 'node:path';
 
 import { getDefaultLlmPort } from '../../../cross-cut-modules/llm/anthropicLlmAdapter.js';
@@ -306,10 +306,26 @@ export async function runExtractHomefrontArticles(opts = {}) {
   // Ensure the output directory exists (especially when using the default under business_modules/).
   mkdirSync(dirname(resolve(repoRoot, outPath)), { recursive: true });
 
-  writeFileSync(outPath, sections.join('\n'), 'utf8');
   const datedOutPath = outPath.replace(/\.md$/, '') + `-${date}.md`;
-  writeFileSync(datedOutPath, sections.join('\n'), 'utf8');
-  console.log(`Wrote ${articles.length} home-front–relevant articles to ${outPath} and ${datedOutPath} (from ${allArticles.length} total)`);
+  const content = sections.join('\n');
+
+  // Guard: never overwrite a non-empty dated file with a zero-result fetch.
+  // The NewsAPI only retains ~30 days; re-running a past date returns 0 and
+  // would silently destroy existing historical data.
+  if (articles.length === 0 && existsSync(datedOutPath) && statSync(datedOutPath).size > 200) {
+    console.error(`  ⚠ 0 articles fetched for ${date} but ${datedOutPath} already exists — skipping overwrite.`);
+  } else {
+    writeFileSync(datedOutPath, content, 'utf8');
+    console.log(`Wrote ${articles.length} home-front–relevant articles to ${datedOutPath} (from ${allArticles.length} total)`);
+  }
+
+  // Only update the rolling file when fetching today's date; replaying a past
+  // date must not overwrite the most-recent daily snapshot.
+  const today = getTodayInTimezone(timezone);
+  if (date === today) {
+    writeFileSync(outPath, content, 'utf8');
+    console.log(`  → rolling file ${outPath} updated`);
+  }
 
   const sqlitePath = process.env.SQLITE_PATH?.trim() || resolve(repoRoot, 'db', 'app.sqlite');
   try {

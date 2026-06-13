@@ -10,33 +10,28 @@
  * Output:
  *   business_modules/signals_extraction/data/signals/signals-{source-type}-{date}.json  (news, radio, whatsapp, …)
  *   business_modules/visits/data/signals/signals-field-{date}.json  (field)
+ *   business_modules/signals_extraction/data/observations-pipeline-{source-type}-{date}.json  (parallel open, default ON)
  */
 
 import 'dotenv/config';
 import { resolve, basename, dirname } from 'node:path';
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 import { loadMdFiles } from '../infrastructure/mdReportsLoader.js';
-import { extractSignals } from '../infrastructure/claudeEvaluator.js';
 import { createCostTracker, appendCostLog, checkDailyBudget } from '../../../cross-cut-modules/budget/index.js';
-import { enrichSignalsWithGeo } from '../../../cross-cut-modules/geo/enrichSignalsWithGeo.js';
 import { archiveMarkdownFiles } from '../app/archiveMarkdownFromMd.js';
-import { attachSourceIdsToSignals, attachSourceIdsToArticles } from '../../../db/source_archive/attachSourceIds.js';
+import { attachSourceIdsToArticles } from '../../../db/source_archive/attachSourceIds.js';
 import { createRetrievalService } from '../../../cross-cut-modules/retrieval/createRetrievalService.js';
-import { defaultClosedSignalsDir } from '../../signals_extraction/index.js';
+import {
+  runArticleDualPathExtract,
+  indexExtractStoryClusters,
+} from '../app/articleDualPathExtractService.js';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 
 const CONTENT_KIND = { news: 'news', radio: 'audio', field: 'field_report', whatsapp: 'whatsapp' };
 
-/**
- * C1 — honour `pipeline-config.json` at extract-time.
- * `assess-signals.js` already skips disabled sources at assessment time, but
- * extraction itself (which is where the LLM cost is incurred) ignored the
- * config and would gladly burn tokens for sources the operator turned off.
- * Returns true when `sourceType` is enabled (or no config file is present).
- */
 function isSourceEnabled(sourceType) {
   const cfgPath = resolve('pipeline-config.json');
   if (!existsSync(cfgPath)) return true;
@@ -109,62 +104,6 @@ async function archiveExtractSources(filePaths, { date, sourceType, sqlitePath, 
   return retrievalService;
 }
 
-async function enrichExtractedSignals(rawSignals, sourceType, filePaths) {
-  let signals = rawSignals.map((s) => ({ ...s, source_type: sourceType }));
-  const { signals: withGeo, attached, resolved, unknown } = enrichSignalsWithGeo(signals, {
-    rootDir: REPO_ROOT,
-    unknownSourceType: `extract-${sourceType}`,
-  });
-  signals = withGeo;
-  if (attached > 0) {
-    console.error(`  → Geo attach: ${attached} signals, ${resolved} resolved, ${unknown} unknown`);
-  }
-  signals = attachSourceIdsToSignals(signals, filePaths, REPO_ROOT);
-  const bundleDistrictId = sourceType === 'field' || sourceType === 'whatsapp' ? 'north' : null;
-  if (bundleDistrictId) {
-    signals = signals.map((s) => ({ ...s, district_id: bundleDistrictId }));
-  }
-  return { signals, bundleDistrictId };
-}
-
-function writeSignalsBundle({ sourceType, contentKind, date, filePaths, articles, signals, bundleDistrictId }) {
-  const outDir = sourceType === 'field'
-    ? resolve('business_modules', 'visits', 'data', 'signals')
-    : defaultClosedSignalsDir();
-  mkdirSync(outDir, { recursive: true });
-  const outPath = resolve(outDir, `signals-${sourceType}-${date}.json`);
-  writeFileSync(
-    outPath,
-    JSON.stringify(
-      {
-        source_type: sourceType,
-        content_kind: contentKind,
-        ...(bundleDistrictId ? { district_id: bundleDistrictId } : {}),
-        date,
-        extracted_at: new Date().toISOString(),
-        source_files: filePaths.map((f) => basename(f)),
-        total_articles: articles.length,
-        signals,
-      },
-      null,
-      2,
-    ),
-    'utf-8',
-  );
-  console.error(`\nSignal file written: ${outPath}`);
-  return outPath;
-}
-
-async function indexStoryClusters(retrievalService, signals) {
-  if (!retrievalService?.storyClusterIndex) return;
-  try {
-    const { indexed } = await retrievalService.storyClusterIndex.upsertSignals(signals);
-    if (indexed > 0) console.error(`  → Story cluster index: ${indexed} evidence span(s)`);
-  } catch (err) {
-    console.error(`  ⚠ Story cluster index skipped: ${err.message}`);
-  }
-}
-
 export async function runExtractSignalsCli() {
   const cli = parseExtractCliArgs(process.argv.slice(2));
   exitIfInvalidExtractCli(cli);
@@ -191,20 +130,20 @@ export async function runExtractSignalsCli() {
   console.error(`Files: ${filePaths.map((f) => basename(f)).join(', ')}`);
   console.error(`Articles loaded: ${articles.length}\n`);
 
-  const rawSignals = await extractSignals(articles, {
-    onUsage,
+  const { signals } = await runArticleDualPathExtract({
+    repoRoot: REPO_ROOT,
+    articles,
+    sourceType,
     contentKind,
+    date,
+    filePaths,
+    onUsage,
     retrievalService,
-    reportDate: date,
   });
 
-  const { signals, bundleDistrictId } = await enrichExtractedSignals(rawSignals, sourceType, filePaths);
-  console.error(`\n→ ${signals.length} signals extracted`);
-  writeSignalsBundle({ sourceType, contentKind, date, filePaths, articles, signals, bundleDistrictId });
-  await indexStoryClusters(retrievalService, signals);
+  await indexExtractStoryClusters(retrievalService, signals);
   retrievalService?.close();
 
   const { totalCostUsd, usageLog, stageEvents } = getTotal();
   appendCostLog({ script: 'extract-signals', date, totalCostUsd, usageLog, stageEvents, articles: articles.length });
 }
-

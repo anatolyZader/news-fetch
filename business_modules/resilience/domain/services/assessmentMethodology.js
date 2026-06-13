@@ -4,13 +4,13 @@
  */
 
 import { createHash } from 'node:crypto';
+import { COMPONENT_TUNING } from '../epistemic/certaintyTuning.js';
+import { buildCalibrationMethodology } from '../epistemic/calibrationMethodology.js';
 import {
-  COMPONENT_TUNING,
   SIGNAL_TO_COMPONENTS,
   SIGNAL_TYPES,
   EQUITY_RELEVANT_TYPES,
 } from './behaviorSignals.js';
-import { buildCalibrationMethodology } from './scoring/calibrationPenalty.js';
 import { extractionTelemetryForOperator } from './pipelineStageTelemetry.js';
 import { summarizeGeoQuality } from '../../../../cross-cut-modules/geo/signalGeoSummary.js';
 import {

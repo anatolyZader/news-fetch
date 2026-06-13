@@ -12,7 +12,7 @@ Decision-support instrument for Home Front Command: extracts **observable behavi
 LLM extract (closed vocabulary, ~165 tags) → verify evidence → deterministic score → LLM narrate (no re-scoring)
 ```
 
-## Epistemic tiers
+## Epistemic provenance gates
 
 | Provenance | Scope | Metrics | Narrative |
 |------------|-------|---------|-----------|
@@ -116,7 +116,7 @@ Default pipeline: planner → component specialists → critic → synthesizer p
 | `RESILIENCE_ASSESS_DETERMINISTIC_PLANNER` | `1` | Skip planner LLM on routine normal days |
 | `RESILIENCE_ASSESS_SLIM_PROMPTS` | `1` | Compact evidence graph in specialist prompts |
 | `RESILIENCE_ASSESS_COMPRESS_TOOLS` | `1` | Cap multi-hop tool JSON returned to LLM |
-| `RESILIENCE_ASSESS_TIERED_SPECIALISTS` | `1` | Tier A/B/C specialist depth (3 / 1 / 0 rounds) |
+| `RESILIENCE_ASSESS_TIERED_SPECIALISTS` | `1` | Specialist depth A/B/C (3 / 1 / 0 tool rounds) |
 | `RESILIENCE_ASSESS_CONDITIONAL_SYNTH` | `1` | Skip Sonnet synthesizer on calm days |
 | `RESILIENCE_ASSESS_SYNTH_GAP_THRESHOLD` | `3` | Open retrieval gap count triggering LLM synthesis |
 | `RESILIENCE_ASSESS_SPLIT_INVESTIGATION_MASS` | `1` | Separate score mass vs investigation eligibility |
@@ -125,7 +125,7 @@ Default pipeline: planner → component specialists → critic → synthesizer p
 | `RESILIENCE_ASSESS_INVESTIGATION_OOV` | `1` | OOV burst includes residual kinds for agent |
 | `RESILIENCE_ASSESS_REPLAN_HOP` | `1` | Single re-plan after specialist pass when warranted |
 | `RESILIENCE_ASSESS_CROSS_COMPONENT_CHECK` | `1` | Detect grounded cross-component contradictions |
-| `RESILIENCE_ASSESS_CONTESTED_ADVERSARIAL` | `1` | Require retrieve_for_claim both before submit on contested Tier A |
+| `RESILIENCE_ASSESS_CONTESTED_ADVERSARIAL` | `1` | Require retrieve_for_claim both before submit on contested depth A |
 | `RESILIENCE_ASSESS_LAZY_RAG` | `1` | Planner runs before component RAG; seed only `focus_components` |
 | `RESILIENCE_ASSESS_GLOBAL_RAG` | `1` | Global hybrid retrieve before specialists |
 | `RESILIENCE_ASSESS_GLOBAL_TOPK` | `8` | Global retrieve final top-K (was 20) |
@@ -135,7 +135,17 @@ Default pipeline: planner → component specialists → critic → synthesizer p
 | `RESILIENCE_ASSESS_SLIM_PLANNER` | `1` | Compact planner epistemic profile + gap context |
 | `RESILIENCE_ASSESS_SLIM_SYNTH` | `1` | Compact synthesizer component assessment payloads |
 
-Report metadata: `investigation_plan.planner_source` (`deterministic`|`llm`|`replan`), `synthesis_mode`, per-component `specialist_tier`, `cross_component_issues`, `investigation_enrichment`.
+Report metadata: `investigation_plan.planner_source` (`deterministic`|`llm`|`replan`), `synthesis_mode`, per-component `specialist_depth` (legacy alias `specialist_tier`), `cross_component_issues`, `investigation_enrichment`.
+
+### Economy rollback
+
+Lowest-risk rollback for optional LLM economy (does not affect scoring or operator `display_view` redaction):
+
+| Action | Effect |
+|--------|--------|
+| `CHAT_CONTEXT_TIERING=0` | Full report context every chat turn (`context_slice=full`) |
+| `RESILIENCE_ASSESS_TIERED_SPECIALISTS=0` | Full-depth specialist investigation (depth A) for every component |
+| `POST /api/chat` body `{ "economy": "full" }` | One-turn override: full context, no compact tool loop |
 
 Eval: `npm run agent:eval`. Trace replay: `GET /api/report/agent-trace/:traceId` (analyst).
 
@@ -151,6 +161,8 @@ Eval: `npm run agent:eval`. Trace replay: `GET /api/report/agent-trace/:traceId`
 | `LLM_PROMPT_CACHE` | `1` | Master prompt-cache gate (all features) |
 | `CHAT_PROMPT_CACHE` | `1` | Cache chat tool template across tool rounds |
 | `CHAT_COMPRESS_TOOLS` | `1` | Compress chat tool outputs returned to the model |
+| `CHAT_CONTEXT_TIERING` | `1` | Rule-based `context_slice` selection (set `0` for full context every turn) |
+| `CHAT_COMPACT_TOOL_LOOP` | `1` | Compact chat tool-loop message history |
 | `HOMEFRONT_PREFILTER_MODE` | `keyword` | Keyword/behavior prefilter; `llm` restores Haiku prefilter |
 
 Prompt version: **`extract-v2`** (`cross-cut-modules/resilience-contracts/extractionPrompt.js`). Cache invalidates on bump.

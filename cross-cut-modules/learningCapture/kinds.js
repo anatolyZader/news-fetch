@@ -8,6 +8,7 @@ export const LEARNING_CAPTURE_KINDS = Object.freeze({
   RESIDUAL_OBSERVATION: 'residual_observation',
   OPEN_OBSERVATION: 'open_observation',
   MAPPING_SKIPPED: 'mapping_skipped',
+  VERIFIED_OPEN_OBSERVATION: 'verified_open_observation',
 });
 
 /** @type {Set<string>} */

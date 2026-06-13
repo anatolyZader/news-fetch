@@ -4,7 +4,7 @@ import { mkdtempSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 
-import { proposeComponentTuningFromReportFiles } from '../../../../../business_modules/resilience/tuning/domain/componentTuningProposal.js';
+import { proposeComponentTuningFromReportFiles } from '../../../../../analyst/tuning/domain/componentTuningProposal.js';
 
 function writeReport(dir, name, components) {
   writeFileSync(

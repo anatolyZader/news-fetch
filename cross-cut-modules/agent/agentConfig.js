@@ -96,7 +96,13 @@ export function tieredSpecialistsEnabled() {
 }
 
 export function conditionalSynthEnabled() {
-  return envFlagEnabled('RESILIENCE_ASSESS_CONDITIONAL_SYNTH');
+  const v = process.env.RESILIENCE_ASSESS_CONDITIONAL_SYNTH;
+  return v === '1' || v === 'true';
+}
+
+export function forceDeterministicSynthEnabled() {
+  return process.env.RESILIENCE_ASSESS_FORCE_DETERMINISTIC_SYNTH === '1'
+    || process.env.RESILIENCE_ASSESS_FORCE_DETERMINISTIC_SYNTH === 'true';
 }
 
 export function synthesisGapThreshold() {
@@ -114,6 +120,12 @@ export function archiveEpistemicEnabled() {
 
 export function residualForAgentEnabled() {
   return envFlagEnabled('RESILIENCE_ASSESS_RESIDUAL_FOR_AGENT');
+}
+
+export function openObsForAgentEnabled() {
+  const v = process.env.RESILIENCE_OPEN_OBS_FOR_AGENT;
+  if (v == null || v === '') return true;
+  return v === '1' || v === 'true' || v === 'on';
 }
 
 export function investigationOovEnabled() {

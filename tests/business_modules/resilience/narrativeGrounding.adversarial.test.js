@@ -16,7 +16,7 @@ import {
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const fixtures = JSON.parse(
   readFileSync(
-    join(__dirname, '../../../business_modules/resilience/tuning/adversarial/narrativeGroundingCases.json'),
+    join(__dirname, '../../../analyst/tuning/adversarial/narrativeGroundingCases.json'),
     'utf8',
   ),
 );

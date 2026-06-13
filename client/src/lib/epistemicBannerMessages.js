@@ -1,7 +1,7 @@
 /**
  * Derive epistemic status banner messages for the report UI.
  * @param {object | null | undefined} assessment
- * @param {{ displayTier?: 'operator' | 'analyst', attentionItemIds?: Set<string> | string[], suggestCrisisBudget?: boolean }} [opts]
+ * @param {{ displayView?: 'operator' | 'analyst', attentionItemIds?: Set<string> | string[], suggestCrisisBudget?: boolean }} [opts]
  * @returns {Array<{ id: string, severity: 'info' | 'warning' | 'error', messageKey: string, params?: Record<string, string|number|null> }>}
  */
 
@@ -20,16 +20,6 @@ function createBannerCollector() {
     messages.push(entry);
   };
   return { messages, push };
-}
-
-function addMethodologyBanner(push, isAnalyst) {
-  if (!isAnalyst) {
-    push({
-      id: 'methodology:epistemic',
-      severity: 'info',
-      messageKey: 'report.methodology.epistemicBanner',
-    });
-  }
 }
 
 function addDataVoidBanner(push, isAnalyst, dataVoid, voidLevel, attentionIds) {
@@ -153,18 +143,6 @@ function addDigitalQuarantineBanners(push, assessment, attentionIds) {
   }
 }
 
-function addThinEvidenceBanner(push, isAnalyst, components) {
-  if (isAnalyst || components.length === 0) return;
-  const thin = components.filter((c) => c.instrument?.evidence_sufficiency === 'thin').length;
-  if (thin > components.length / 2) {
-    push({
-      id: 'methodology:thin_evidence',
-      severity: 'warning',
-      messageKey: 'report.methodology.thinEvidenceWarning',
-    });
-  }
-}
-
 function addGeoQualityBanner(push, isAnalyst, methodology, assessment, attentionIds) {
   const geoMetricsSafePct = methodology?.scope?.geo_quality_summary?.pctUsableForMetrics ?? null;
   const scopeId = assessment.report_scope?.id ?? 'national';
@@ -239,8 +217,8 @@ function addNorrisDisclaimer(push, isAnalyst, assessment) {
 export function deriveEpistemicBannerMessages(assessment, opts = {}) {
   if (!assessment || typeof assessment !== 'object') return [];
 
-  const displayTier = opts.displayTier === 'analyst' ? 'analyst' : 'operator';
-  const isAnalyst = displayTier === 'analyst';
+  const displayView = opts.displayView === 'analyst' ? 'analyst' : 'operator';
+  const isAnalyst = displayView === 'analyst';
   const attentionIds = resolveAttentionIds(opts.attentionItemIds);
   const { messages, push } = createBannerCollector();
 
@@ -250,13 +228,11 @@ export function deriveEpistemicBannerMessages(assessment, opts = {}) {
   const assessmentMode = assessment.assessment_mode ?? 'normal';
   const voidLevel = dataVoid?.level ?? 'none';
 
-  addMethodologyBanner(push, isAnalyst);
   addAssessmentDegradedBanner(push, assessment, attentionIds);
   addDataVoidBanner(push, isAnalyst, dataVoid, voidLevel, attentionIds);
   addAssessmentModeBanners(push, assessmentMode, epistemicStatus, attentionIds);
   addSocialQuarantineBanners(push, assessment.social_channel_quarantine ?? null, attentionIds);
   addDigitalQuarantineBanners(push, assessment, attentionIds);
-  addThinEvidenceBanner(push, isAnalyst, assessment.components ?? []);
   addGeoQualityBanner(push, isAnalyst, methodology, assessment, attentionIds);
   addCalibrationBanner(push, methodology);
   addNorrisDisclaimer(push, isAnalyst, assessment);

@@ -21,6 +21,7 @@ import {
 import { formatDate } from '../lib/date.js';
 import { DistrictScopeSwitcher } from './DistrictScopeSwitcher.jsx';
 import { IngestArticleCard } from './ingest/IngestArticleCard.jsx';
+import { ResponsiveItemList } from './ingest/ResponsiveItemList.jsx';
 
 export function NewsTab({ reportScope = 'national', onReportScopeChange }) {
   const { t } = useLanguage();
@@ -127,10 +128,11 @@ export function NewsTab({ reportScope = 'national', onReportScopeChange }) {
           {articles.length === 0 ? (
             <EmptyState>{t('news.emptyDay')}</EmptyState>
           ) : (
-            <Stack spacing={1.5}>
-              {articles.map((article) => (
+            <ResponsiveItemList
+              items={articles}
+              getItemKey={(article) => article.id}
+              renderItem={(article) => (
                 <IngestArticleCard
-                  key={article.id}
                   title={article.title}
                   body={article.body}
                   source={article.source}
@@ -138,8 +140,8 @@ export function NewsTab({ reportScope = 'national', onReportScopeChange }) {
                   url={article.url}
                   t={t}
                 />
-              ))}
-            </Stack>
+              )}
+            />
           )}
         </>
       )}

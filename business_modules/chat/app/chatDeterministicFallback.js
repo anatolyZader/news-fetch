@@ -1,21 +1,21 @@
 /**
- * Non-LLM chat fallback — dispatch deterministic tools by context tier.
+ * Non-LLM chat fallback — dispatch deterministic tools by context_slice.
  */
 import { resolveChatContextTier } from '../domain/chatContextTier.js';
 import { handleChatToolCall } from './chatToolHandlers.js';
 import { createChatToolContext } from './createChatToolContext.js';
 
 /**
- * @param {import('../domain/chatContextTier.js').ChatContextTier} tier
+ * @param {import('../domain/chatContextTier.js').ContextSlice} contextSlice
  * @param {string} message
  * @param {object} reportData
  * @returns {Array<{ tool: string, input: object }>}
  */
-export function planDeterministicToolCalls(tier, message, reportData) {
+export function planDeterministicToolCalls(contextSlice, message, reportData) {
   const assessmentDate = reportData?.assessment?.date ?? reportData?.reportDate ?? null;
   const text = String(message ?? '').trim();
 
-  switch (tier) {
+  switch (contextSlice) {
     case 'hub':
       return [
         { tool: 'list_attention_items', input: { limit: 10 } },
@@ -49,13 +49,13 @@ export function planDeterministicToolCalls(tier, message, reportData) {
 
 /**
  * @param {string} toolResults
- * @param {{ tier: string, reason: string }} tierResult
+ * @param {{ contextSlice: string, reason: string }} sliceResult
  * @returns {string}
  */
-export function formatDeterministicFallbackResponse(toolResults, tierResult) {
+export function formatDeterministicFallbackResponse(toolResults, sliceResult) {
   const header =
     '**Deterministic mode** (LLM budget exhausted — no AI synthesis; raw tool results below)\n\n';
-  const meta = `_Context tier: ${tierResult.tier} (${tierResult.reason})_\n\n`;
+  const meta = `_Context slice: ${sliceResult.contextSlice} (${sliceResult.reason})_\n\n`;
   return `${header}${meta}${toolResults}`;
 }
 
@@ -64,8 +64,8 @@ export function formatDeterministicFallbackResponse(toolResults, tierResult) {
  * @param {string} params.message
  * @param {object} params.reportData
  * @param {object} params.pboLookup
- * @param {import('../domain/chatContextTier.js').ChatContextTier} [params.tier]
- * @param {string} [params.tierReason]
+ * @param {import('../domain/chatContextTier.js').ContextSlice} [params.contextSlice]
+ * @param {string} [params.contextSliceReason]
  * @param {object} [params.toolContextDeps]
  * @returns {Promise<string>}
  */
@@ -74,14 +74,14 @@ export async function runDeterministicChatFallback(params) {
     message,
     reportData,
     pboLookup,
-    tier: tierOverride,
-    tierReason,
+    contextSlice: contextSliceOverride,
+    contextSliceReason,
     toolContextDeps = {},
   } = params;
 
-  const tierResult = tierOverride == null
+  const sliceResult = contextSliceOverride == null
     ? resolveChatContextTier(message, { toolProfile: toolContextDeps.toolProfile })
-    : { tier: tierOverride, reason: tierReason ?? 'override' };
+    : { contextSlice: contextSliceOverride, reason: contextSliceReason ?? 'override' };
 
   const toolCtx = createChatToolContext({
     reportData,
@@ -89,7 +89,7 @@ export async function runDeterministicChatFallback(params) {
     ...toolContextDeps,
   });
 
-  const calls = planDeterministicToolCalls(tierResult.tier, message, reportData);
+  const calls = planDeterministicToolCalls(sliceResult.contextSlice, message, reportData);
   const sections = [];
 
   for (const { tool, input } of calls) {
@@ -101,5 +101,5 @@ export async function runDeterministicChatFallback(params) {
     }
   }
 
-  return formatDeterministicFallbackResponse(sections.join('\n\n'), tierResult);
+  return formatDeterministicFallbackResponse(sections.join('\n\n'), sliceResult);
 }

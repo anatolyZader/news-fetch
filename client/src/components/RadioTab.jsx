@@ -21,6 +21,7 @@ import {
 import { formatDate } from '../lib/date.js';
 import { DistrictScopeSwitcher } from './DistrictScopeSwitcher.jsx';
 import { IngestArticleCard } from './ingest/IngestArticleCard.jsx';
+import { ResponsiveItemList } from './ingest/ResponsiveItemList.jsx';
 
 export function RadioTab({
   operatorScope = 'national',
@@ -132,10 +133,11 @@ export function RadioTab({
           {segments.length === 0 ? (
             <EmptyState>{t('radio.emptyDay')}</EmptyState>
           ) : (
-            <Stack spacing={1.5}>
-              {segments.map((segment) => (
+            <ResponsiveItemList
+              items={segments}
+              getItemKey={(segment) => segment.id}
+              renderItem={(segment) => (
                 <IngestArticleCard
-                  key={segment.id}
                   title={segment.title}
                   body={segment.body}
                   source={segment.station || segment.source}
@@ -144,8 +146,8 @@ export function RadioTab({
                   url={segment.url}
                   t={t}
                 />
-              ))}
-            </Stack>
+              )}
+            />
           )}
         </>
       )}

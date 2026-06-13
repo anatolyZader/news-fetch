@@ -18,7 +18,8 @@ export function mapAssessmentV2ToLegacy(v2, epistemicProfile, opts = {}) {
       component_id: id,
       severity: v2Comp?.severity ?? 'abstain',
       confidence: v2Comp?.confidence ?? 'low',
-      operator_status: v2Comp?.operator_status ?? (ep.thin_evidence ? 'insufficient_data' : 'stable'),
+      operator_status: v2Comp?.operator_status
+        ?? (v2Comp ? (ep.thin_evidence ? 'insufficient_data' : 'stable') : 'insufficient_data'),
       narrative: v2Comp?.narrative ?? '',
       narrative_claims: (v2Comp?.claims ?? []).map((c) => ({
         text: c.text,
@@ -31,6 +32,9 @@ export function mapAssessmentV2ToLegacy(v2, epistemicProfile, opts = {}) {
       dissent_summary: v2Comp?.dissent_summary ?? '',
       repair_log: v2Comp?.repair_log ?? [],
       retrieval_gaps: v2Comp?.retrieval_gaps ?? [],
+      specialist_tier: v2Comp?.specialist_tier ?? null,
+      specialist_ran: v2Comp?.specialist_ran === true,
+      narrative_grounding_score: v2Comp?.grounding_score ?? null,
     };
     legacy.instrument = deriveInstrumentState(
       {

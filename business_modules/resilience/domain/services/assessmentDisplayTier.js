@@ -220,6 +220,9 @@ export function redactAssessmentForView(assessment, view) {
       delete base.grounding_issues;
       delete base.narrative_grounding_score;
       delete base.interpretive_summary;
+      delete base.analyst_flags;
+      delete base.operator_state_inputs;
+      delete base.assessment_state;
     }
     const facets = Array.isArray(c.facets)
       ? c.facets.map(redactFacet)
@@ -247,6 +250,11 @@ export function redactAssessmentForView(assessment, view) {
     norris_capacities: norris,
   };
   delete out.overall_resilience_score;
+  if (view === DISPLAY_VIEWS.operator) {
+    delete out.component_diagnostics;
+    delete out.component_id_warnings;
+    delete out.shadow_scoring;
+  }
   if (view === DISPLAY_VIEWS.operator && Array.isArray(out.macro_signals) && out.macro_signals.length > 0) {
     out.macro_signals_summary = {
       count: out.macro_signals.length,

@@ -1,39 +1,69 @@
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
+import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
+import useMediaQuery from '@mui/material/useMediaQuery';
+import { useTheme } from '@mui/material/styles';
 import PropTypes from 'prop-types';
+import { mobileCardListSx } from './responsive/responsiveSx.js';
 
 /**
  * Stateless, theme-driven grid table.
- *
- * Props:
- * - columns: Array<{ key: string; label: string; render?: (row) => ReactNode }>
- * - rows: Array<object>
- * - gridTemplateColumns: CSS grid-template-columns string
- * - textAlign: optional CSS text-align value for header and body cells
- *
- * Styling is sourced entirely from theme tokens (spacing, typography,
- * border, surface). No inline literals.
+ * Below sm: card list (label/value rows). sm+: grid unchanged.
  */
 export function GridTable({ columns, rows, gridTemplateColumns, textAlign = 'inherit' }) {
+  const theme = useTheme();
+  const isCardMode = useMediaQuery(theme.breakpoints.down('sm'));
+
+  if (isCardMode) {
+    return (
+      <Box sx={mobileCardListSx}>
+        {rows.map((row, idx) => (
+          <Card
+            key={row.id ?? row.key ?? `${idx}-${String(row[columns[0]?.key] ?? '')}`}
+            variant="outlined"
+            sx={(th) => ({
+              padding: th.spacing(1.5),
+              borderRadius: `${th.custom.radius.section}px`,
+            })}
+          >
+            <Stack spacing={1}>
+              {columns.map((col) => (
+                <Box key={col.key}>
+                  <Typography variant="caption" color="text.secondary" component="p" sx={{ margin: 0 }}>
+                    {col.label}
+                  </Typography>
+                  <Box sx={{ wordBreak: 'break-word', textAlign, fontSize: theme.typography.body2.fontSize }}>
+                    {col.render ? col.render(row) : (row[col.key] ?? '—')}
+                  </Box>
+                </Box>
+              ))}
+            </Stack>
+          </Card>
+        ))}
+      </Box>
+    );
+  }
+
   return (
     <Card sx={{ overflow: 'hidden' }}>
       <Box
-        sx={(theme) => ({
+        sx={(th) => ({
           display: 'grid',
           gridTemplateColumns,
-          gap: theme.spacing(1),
+          gap: th.spacing(1),
           textAlign,
-          paddingTop: theme.spacing(0.75),
-          paddingBottom: theme.spacing(0.75),
-          paddingLeft: theme.spacing(1.5),
-          paddingRight: theme.spacing(1.5),
-          background: theme.palette.background.default,
-          fontSize: theme.typography.eyebrow.fontSize,
-          fontWeight: theme.typography.eyebrow.fontWeight,
-          textTransform: theme.typography.eyebrow.textTransform,
-          letterSpacing: theme.typography.eyebrow.letterSpacing,
-          color: theme.palette.text.secondary,
-          borderBottom: theme.custom.border.hairline,
+          paddingTop: th.spacing(0.75),
+          paddingBottom: th.spacing(0.75),
+          paddingLeft: th.spacing(1.5),
+          paddingRight: th.spacing(1.5),
+          background: th.palette.background.default,
+          fontSize: th.typography.eyebrow.fontSize,
+          fontWeight: th.typography.eyebrow.fontWeight,
+          textTransform: th.typography.eyebrow.textTransform,
+          letterSpacing: th.typography.eyebrow.letterSpacing,
+          color: th.palette.text.secondary,
+          borderBottom: th.custom.border.hairline,
         })}
       >
         {columns.map((col) => (<span key={col.key}>{col.label}</span>))}
@@ -41,18 +71,18 @@ export function GridTable({ columns, rows, gridTemplateColumns, textAlign = 'inh
       {rows.map((row, idx) => (
         <Box
           key={row.id ?? row.key ?? `${idx}-${String(row[columns[0]?.key] ?? '')}`}
-          sx={(theme) => ({
+          sx={(th) => ({
             display: 'grid',
             gridTemplateColumns,
-            gap: theme.spacing(1),
+            gap: th.spacing(1),
             textAlign,
-            paddingTop: theme.spacing(0.75),
-            paddingBottom: theme.spacing(0.75),
-            paddingLeft: theme.spacing(1.5),
-            paddingRight: theme.spacing(1.5),
-            borderBottom: theme.custom.border.hairline,
-            lineHeight: theme.typography.body2.lineHeight,
-            fontSize: theme.typography.body2.fontSize,
+            paddingTop: th.spacing(0.75),
+            paddingBottom: th.spacing(0.75),
+            paddingLeft: th.spacing(1.5),
+            paddingRight: th.spacing(1.5),
+            borderBottom: th.custom.border.hairline,
+            lineHeight: th.typography.body2.lineHeight,
+            fontSize: th.typography.body2.fontSize,
             '&:last-of-type': { borderBottom: 'none' },
           })}
         >

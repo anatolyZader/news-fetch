@@ -81,7 +81,7 @@ export function compactComponentAssessmentsForSynth(assessments) {
       severity: a.severity,
       confidence: a.confidence,
       operator_status: a.operator_status,
-      specialist_tier: a.specialist_tier,
+      specialist_depth: a.specialist_depth ?? a.specialist_tier,
       narrative: truncate(a.narrative, 400),
       claims: (a.claims ?? []).slice(0, 8).map((c) => ({
         text: truncate(c.text, 120),

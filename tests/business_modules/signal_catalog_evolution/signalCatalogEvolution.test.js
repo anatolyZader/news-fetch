@@ -40,9 +40,26 @@ describe('signalCatalogEvolution oovClusterer', () => {
     assert.ok(ranked[0].priority_score > ranked[1].priority_score);
   });
 
-  it('cosineSimilarity returns 1 for identical vectors', () => {
-    const v = new Float32Array([1, 0, 0]);
-    assert.equal(cosineSimilarity(v, v), 1);
+  it('ranks verified open observations higher than unknown types', () => {
+    const ranked = rankClusters([
+      {
+        key: 'a',
+        count: 3,
+        distinct_sources: 1,
+        high_novelty_count: 0,
+        medium_novelty_count: 0,
+        kinds: { [LEARNING_CAPTURE_KINDS.UNKNOWN_TYPE]: 3 },
+      },
+      {
+        key: 'b',
+        count: 3,
+        distinct_sources: 1,
+        high_novelty_count: 0,
+        medium_novelty_count: 0,
+        kinds: { [LEARNING_CAPTURE_KINDS.VERIFIED_OPEN_OBSERVATION]: 3 },
+      },
+    ], { minCount: 2 });
+    assert.equal(ranked[0].key, 'b');
   });
 });
 

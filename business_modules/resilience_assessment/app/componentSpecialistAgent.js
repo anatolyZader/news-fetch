@@ -63,9 +63,14 @@ function buildSpecialistSystem(componentId, epistemicProfile, evidenceGraph, ass
   return { stable, dynamic };
 }
 
-function abstentionAssessment(componentId, epistemicProfile, traceId, specialistTier = 'C') {
+function assignSpecialistDepth(assessment, depth) {
+  assessment.specialist_depth = depth;
+  assessment.specialist_tier = depth;
+}
+
+function abstentionAssessment(componentId, epistemicProfile, traceId, specialistDepth = 'C') {
   const ep = epistemicProfile?.by_component?.[componentId] ?? {};
-  return {
+  const out = {
     component_id: componentId,
     severity: 'abstain',
     confidence: 'low',
@@ -78,8 +83,10 @@ function abstentionAssessment(componentId, epistemicProfile, traceId, specialist
     retrieval_gaps: [`need more evidence for ${componentId}`],
     reasoning_trace_id: traceId,
     evidence_tree: [],
-    specialist_tier: specialistTier,
+    specialist_ran: false,
   };
+  assignSpecialistDepth(out, specialistDepth);
+  return out;
 }
 
 /**
@@ -187,7 +194,8 @@ export async function runComponentSpecialist(params) {
   assessment.evidence_tree = assessment.claims ?? [];
   assessment.tool_usage = toolUsage;
   assessment.gap_closure_tasks = gapClosureTasks;
-  assessment.specialist_tier = tier;
+  assignSpecialistDepth(assessment, tier);
+  assessment.specialist_ran = true;
   return assessment;
 }
 

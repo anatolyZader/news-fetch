@@ -2,7 +2,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
 import { mergeDualExtractionSignals, isDualRequireAgreementEnabled } from '../../../../business_modules/resilience/infrastructure/dualModelExtract.js';
-import { scoreComponents } from '../../../../business_modules/resilience/domain/services/behaviorSignals.js';
+import { scoreComponents } from '../../../../analyst/scoring/index.js';
 
 describe('mergeDualExtractionSignals', () => {
   it('dedupes identical keys and marks agreement', () => {

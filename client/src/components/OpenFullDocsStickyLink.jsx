@@ -83,6 +83,7 @@ function useFullDocsFlash(active) {
 export function OpenFullDocsStickyLink({ href, label, active, pin = 'overlay' }) {
   const animating = useFullDocsFlash(active);
   const useFixedPin = pin === 'fixed';
+  const useInlinePin = pin === 'inline';
 
   return (
     <Link
@@ -91,10 +92,12 @@ export function OpenFullDocsStickyLink({ href, label, active, pin = 'overlay' })
       rel="noreferrer"
       underline="none"
       sx={(theme) => ({
-        position: useFixedPin ? 'fixed' : 'absolute',
-        top: useFixedPin ? theme.spacing(8.5) : theme.spacing(1.25),
-        right: theme.spacing(1.25),
-        zIndex: useFixedPin ? 1400 : 20,
+        position: useInlinePin ? 'static' : (useFixedPin ? 'fixed' : 'absolute'),
+        top: useInlinePin
+          ? undefined
+          : (useFixedPin ? theme.spacing(8.5) : theme.spacing(1.25)),
+        right: useInlinePin ? undefined : theme.spacing(1.25),
+        zIndex: useInlinePin ? undefined : (useFixedPin ? 1400 : 20),
         pointerEvents: 'auto',
         display: 'inline-flex',
         alignItems: 'center',
@@ -118,6 +121,13 @@ export function OpenFullDocsStickyLink({ href, label, active, pin = 'overlay' })
           ? `0 0 0 3px ${alpha(theme.palette.primary.main, 0.35)}, 0 4px 16px ${alpha(theme.palette.primary.main, 0.22)}`
           : theme.custom.elevation.subtle,
         animation: animating ? `${docsFullFlash} ${FLASH_MS}ms ease-in-out` : 'none',
+        ...(!useInlinePin ? {
+          [theme.breakpoints.down('sm')]: useFixedPin ? {
+            top: theme.spacing(7),
+          } : {
+            top: theme.spacing(0.5),
+          },
+        } : null),
         '&:hover': {
           color: theme.palette.primary.main,
           backgroundColor: alpha(theme.custom.pastel.periwinkleLight, 0.65),
@@ -138,5 +148,5 @@ OpenFullDocsStickyLink.propTypes = {
   href: PropTypes.string.isRequired,
   label: PropTypes.string.isRequired,
   active: PropTypes.bool.isRequired,
-  pin: PropTypes.oneOf(['fixed', 'overlay']),
+  pin: PropTypes.oneOf(['fixed', 'overlay', 'inline']),
 };

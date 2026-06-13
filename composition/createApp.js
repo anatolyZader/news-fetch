@@ -27,8 +27,13 @@ import { initFirebaseAdminForAuth } from '../cross-cut-modules/auth/firebaseAdmi
 import { syncAllUserAccessClaims } from '../cross-cut-modules/auth/userAccessClaims.js';
 import { hasPrivilegedUserAccessConfigured } from '../cross-cut-modules/auth/userAccess.js';
 import { requireAnalystView } from '../cross-cut-modules/auth/requireAnalystAccess.js';
-import { createDriftService } from '../business_modules/resilience/index.js';
-import { registerDriftRoutes } from '../business_modules/resilience/input/driftRoutes.js';
+import {
+  createValidationReviewSqliteStore,
+  createValidationReviewService,
+  createDriftService,
+  registerDriftRoutes,
+  validationReviewRoutes,
+} from '../analyst/index.js';
 import {
   createMonitoringService,
   registerMonitoringRoutes,
@@ -48,7 +53,6 @@ import { reportBotManualReportsRoutes } from '../business_modules/report_bot/ind
 import { reportBuildRoutes } from '../business_modules/report_build/input/reportBuildRoutes.js';
 import { mailingRoutes } from '../business_modules/mailing/input/mailingRoutes.js';
 import { pboReviewRoutes } from '../business_modules/pbo_report_review/input/pboReviewRoutes.js';
-import { validationReviewRoutes } from '../business_modules/resilience/index.js';
 import { signalCatalogEvolutionRoutes } from '../business_modules/signal_catalog_evolution/index.js';
 import { evidenceRoutes } from '../cross-cut-modules/evidence/input/evidenceRoutes.js';
 import { chatRoutes } from '../business_modules/chat/input/chatRoutes.js';

@@ -168,6 +168,30 @@ describe('assessmentDisplayTier', () => {
     assert.equal(out.components[0].score, undefined);
   });
 
+  it('redactAssessmentForView preserves operator display fields and hides analyst diagnostics', () => {
+    const assessment = {
+      components: [{
+        component_id: 'information_communication',
+        operator_display_state: 'specialist_skipped',
+        operator_state_reason: 'tier_c_not_in_focus',
+        operator_state_inputs: { claims_count: 0 },
+        coverage: { scoring_used: 57, quarantined: 20, claims: 0 },
+        evidence_usage_state: 'mixed',
+        assessment_state: 'specialist_skipped',
+        analyst_flags: ['tier_c_skipped'],
+        narrative: 'keep',
+      }],
+      component_diagnostics: { information_communication: { claims_count: 0 } },
+    };
+    const out = redactAssessmentForView(assessment, DISPLAY_VIEWS.operator);
+    const comp = out.components[0];
+    assert.equal(comp.operator_display_state, 'specialist_skipped');
+    assert.equal(comp.coverage.scoring_used, 57);
+    assert.equal(comp.operator_state_inputs, undefined);
+    assert.equal(comp.analyst_flags, undefined);
+    assert.equal(out.component_diagnostics, undefined);
+  });
+
   it('redactAssessmentForView summarizes macro_signals for operator', () => {
     const assessment = {
       components: [],

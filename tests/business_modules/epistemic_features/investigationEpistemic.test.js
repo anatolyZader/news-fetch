@@ -21,7 +21,7 @@ describe('investigationEpistemic', () => {
         },
       };
       const enriched = enrichProfileForInvestigation(profile, {
-        scoredComponents: {},
+        signals: [],
         archiveMentionMass: { leadership: 3 },
         residualByComponent: {},
       });

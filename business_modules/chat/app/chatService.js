@@ -61,26 +61,26 @@ export async function streamChat(message, history, rawReply, getReportData, opts
     economy: opts.economy,
     toolProfile: opts.toolProfile,
   });
-  const tierResult = economy.tieringEnabled
+  const sliceResult = economy.contextSlicingEnabled
     ? resolveChatContextTier(message, {
       toolProfile: opts.toolProfile,
       forceFull: economy.forceFull,
     })
-    : { tier: 'full', reason: 'tiering_disabled' };
+    : { contextSlice: 'full', reason: 'context_slicing_disabled' };
 
   const { context: baseContext, pboLookup } = buildReportContext(reportData, {
     includeScores,
     reportScopeId,
-    tier: tierResult.tier,
-    componentId: tierResult.componentId,
+    contextSlice: sliceResult.contextSlice,
+    componentId: sliceResult.componentId,
   });
 
   const chatEconomyMeta = {
-    context_tier: tierResult.tier,
+    context_slice: sliceResult.contextSlice,
     compact_tool_loop: economy.compactToolLoop,
-    tiering_enabled: economy.tieringEnabled,
+    context_slicing_enabled: economy.contextSlicingEnabled,
     economy_override: economy.economyOverride,
-    tier_reason: tierResult.reason,
+    context_slice_reason: sliceResult.reason,
   };
 
   const tracePort = opts.tracePort ?? null;
@@ -99,8 +99,8 @@ export async function streamChat(message, history, rawReply, getReportData, opts
         message,
         reportData,
         pboLookup,
-        tier: tierResult.tier,
-        tierReason: tierResult.reason,
+        contextSlice: sliceResult.contextSlice,
+        contextSliceReason: sliceResult.reason,
         toolContextDeps: {
           userEmail: opts.userEmail ?? '',
           sourceArchive: opts.sourceArchive ?? null,
@@ -143,7 +143,7 @@ export async function streamChat(message, history, rawReply, getReportData, opts
     (retrievalHint ? `\n\n${retrievalHint}` : '');
 
   console.error(
-    `chat economy tier=${chatEconomyMeta.context_tier} compact=${chatEconomyMeta.compact_tool_loop ? 1 : 0} ` +
+    `chat economy context_slice=${chatEconomyMeta.context_slice} compact=${chatEconomyMeta.compact_tool_loop ? 1 : 0} ` +
     `context_chars=${context.length} override=${chatEconomyMeta.economy_override}`,
   );
 
@@ -152,12 +152,12 @@ export async function streamChat(message, history, rawReply, getReportData, opts
       label: 'http:chat',
       stage: 'chat_economy',
       stats: {
-        tier: chatEconomyMeta.context_tier,
+        context_slice: chatEconomyMeta.context_slice,
         compact_tool_loop: chatEconomyMeta.compact_tool_loop,
         context_chars: context.length,
-        tiering_enabled: chatEconomyMeta.tiering_enabled,
+        context_slicing_enabled: chatEconomyMeta.context_slicing_enabled,
         economy_override: chatEconomyMeta.economy_override,
-        tier_reason: chatEconomyMeta.tier_reason,
+        context_slice_reason: chatEconomyMeta.context_slice_reason,
       },
     });
   }

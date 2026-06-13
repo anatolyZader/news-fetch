@@ -6,6 +6,7 @@ export const OBSERVATION_PROFILES = Object.freeze([
   'exploratory',
   'document_pack',
   'residual',
+  'pipeline',
 ]);
 
 const POLARITY = new Set(['positive', 'negative', 'mixed', 'unknown']);
@@ -129,4 +130,18 @@ export function validateObservationBundle(bundle) {
 export function observationBundleFilename(profile, date) {
   const safe = String(profile ?? 'exploratory').replaceAll(/[^a-z0-9_-]/gi, '_');
   return `observations-${safe}-${date}.json`;
+}
+
+/**
+ * Daily pipeline open extract artifact (one per source type per date).
+ * @param {string} sourceType
+ * @param {string} date YYYY-MM-DD
+ */
+export function pipelineObservationBundleFilename(sourceType, date) {
+  const safe = String(sourceType ?? 'adhoc').replaceAll(/[^a-z0-9_-]/gi, '_');
+  return `observations-pipeline-${safe}-${date}.json`;
+}
+
+export function isPipelineObservationFilename(filename) {
+  return /^observations-pipeline-.+-\d{4}-\d{2}-\d{2}\.json$/.test(String(filename ?? ''));
 }

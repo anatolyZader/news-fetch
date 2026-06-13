@@ -179,3 +179,16 @@ export function evaluateHighSalienceBypass(items, evidenceMass, rawScore, opts =
     dominantSignalType: signal.signal_type ?? signal.type ?? null,
   };
 }
+
+/**
+ * Signal-native salience check for investigation (no headline score required).
+ * @param {Array<{ contribution: number, signal: object }>} items
+ * @param {number} evidenceMass
+ * @param {{ dataVoidLevel?: string, digitalDarkness?: boolean }} [opts]
+ * @returns {boolean}
+ */
+export function isComponentSalienceCritical(items, evidenceMass, opts = {}) {
+  if (!isHighSalienceBypassEnabled()) return false;
+  const probeScore = evidenceMass > 0 ? 2.5 : null;
+  return evaluateHighSalienceBypass(items, evidenceMass, probeScore, opts).operatorCritical === true;
+}

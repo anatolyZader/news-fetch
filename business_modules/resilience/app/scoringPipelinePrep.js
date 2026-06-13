@@ -2,7 +2,7 @@
  * Shared scoring pipeline: partition → score → gate → EWMA → epistemic enrichment.
  */
 
-import { scoreComponents } from '../domain/services/behaviorSignals.js';
+import { scoreComponents } from './scoringFacade.js';
 import { applyEpistemicGate } from '../domain/services/dataVoid/epistemicGate.js';
 import {
   resolveScoringPartition,
@@ -80,6 +80,7 @@ export function runScoringPipeline({
     digitalInclusiveScored,
     scoringPartition: partition,
     quarantinedDigital,
+    scoreComponents,
   });
 
   scoredFull = gateResult.scoredFull;

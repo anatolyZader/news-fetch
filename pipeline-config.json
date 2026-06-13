@@ -3,8 +3,8 @@
     "news":     { "enabled": true, "description": "Homefront news articles" },
     "radio":    { "enabled": false, "description": "Radio broadcast transcripts (ashams, tzafon, kan-bet, etc.)" },
     "whatsapp": { "enabled": true, "description": "WhatsApp reports" },
-    "field":    { "enabled": false, "description": "Professional squad field visit reports" },
-    "pbo":      { "enabled": false, "description": "PBO municipality daily reports" },
+    "field":    { "enabled": true, "description": "Professional squad field visit reports" },
+    "pbo":      { "enabled": true, "description": "PBO municipality daily reports" },
     "naftali":  { "enabled": false, "description": "Naftali weekly questionnaire" },
     "social":   { "enabled": true, "description": "Social media OSINT (X + Telegram): signals-social-*.json from gather-daily / 8comp-3-north; daily feed + 8-component assessment" }
   }

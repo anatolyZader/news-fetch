@@ -16,7 +16,8 @@ describe('chatToolHandlers', () => {
       confirmActionsEnabled: true,
       reportData: {},
     });
-    assert.equal(result, 'scores here');
+    assert.ok(result.includes('scores here'));
+    assert.match(result, /^<<<UNTRUSTED_DATA label="tool:lookup_pbo">>>/);
   });
 
   it('blocks analyst tools for non-analyst', async () => {
@@ -168,7 +169,10 @@ describe('executePendingAction', () => {
         sourceArchive,
         economyOverride: 'default',
       });
-      const parsed = JSON.parse(result);
+      const jsonBody = result.includes('<<<UNTRUSTED_DATA')
+        ? result.replace(/^<<<UNTRUSTED_DATA[^>]*>>>\n/, '').replace(/\n<<<END_UNTRUSTED_DATA>>>$/, '')
+        : result;
+      const parsed = JSON.parse(jsonBody);
       assert.equal(parsed.source_id, 'md:2026-05-30:99');
       assert.ok(parsed.body_excerpt.length <= 2000);
       assert.ok(result.length < longBody.length);

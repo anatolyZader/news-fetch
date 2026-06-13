@@ -18,7 +18,7 @@ import {
 import { buildAttentionItems } from '../../resilience/index.js';
 import { needsLlmSynthesis } from '../domain/services/synthesisPolicy.js';
 
-function buildSynthesizerSystem(componentAssessments, epistemicProfile, oovClusters = []) {
+function buildSynthesizerSystem(componentAssessments, epistemicProfile, oovClusters = [], openObservationClaims = []) {
   const slim = slimSynthPromptsEnabled();
   const assessments = slim
     ? compactComponentAssessmentsForSynth(componentAssessments)
@@ -30,7 +30,8 @@ function buildSynthesizerSystem(componentAssessments, epistemicProfile, oovClust
   const stable =
     'Synthesize cross-component resilience assessment. Use submit_synthesis tool. ' +
     'Do not invent facts not present in component assessments. ' +
-    'Address any OOV clusters and unverified repeated phrasing in your synthesis.';
+    'Address any OOV clusters and unverified repeated phrasing in your synthesis. ' +
+    'Treat open observations and catalog signals equally; cite unverified material explicitly.';
 
   let dynamic =
     `\n\nCOMPONENT ASSESSMENTS:\n${JSON.stringify(assessments, null, 2)}\n\n` +
@@ -38,6 +39,9 @@ function buildSynthesizerSystem(componentAssessments, epistemicProfile, oovClust
 
   if (oovClusters.length) {
     dynamic += `\n\nOOV CLUSTERS (must mention in synthesis if material):\n${JSON.stringify(oovClusters.slice(0, 5), null, 2)}`;
+  }
+  if (openObservationClaims.length) {
+    dynamic += `\n\nOPEN OBSERVATION CLAIMS (unverified — cite explicitly if material):\n${JSON.stringify(openObservationClaims.slice(0, 12), null, 2)}`;
   }
 
   return { stable, dynamic };
@@ -72,9 +76,16 @@ export async function runSynthesizerAgent(params) {
     traceId,
     partialAssessment = null,
     oovClusters = [],
+    openObservationClaims = [],
   } = params;
 
-  if (!needsLlmSynthesis({ componentAssessments, epistemicProfile })) {
+  if (!needsLlmSynthesis({
+    componentAssessments,
+    epistemicProfile,
+    budget,
+    degradeReason: params.degradeReason ?? null,
+    assessmentMode: params.assessmentMode ?? 'normal',
+  })) {
     const synthesis = defaultSynthesis(componentAssessments, epistemicProfile);
     const draftAssessment = {
       ...partialAssessment,
@@ -105,7 +116,7 @@ export async function runSynthesizerAgent(params) {
     model: SONNET_MODEL,
     maxRounds: 2,
     maxTokens: 4000,
-    system: buildSynthesizerSystem(componentAssessments, epistemicProfile, oovClusters),
+    system: buildSynthesizerSystem(componentAssessments, epistemicProfile, oovClusters, openObservationClaims),
     messages: [{
       role: 'user',
       content: 'Produce cross-component synthesis and priority attention themes.',

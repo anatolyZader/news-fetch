@@ -1,6 +1,7 @@
 /**
  * Load residual / open observations from OOV capture JSONL for agent investigation.
  */
+import { createHash } from 'node:crypto';
 import { resolve } from 'node:path';
 import { resolveStateStore } from '../persistence/domain/resolveStateStore.js';
 import { LEARNING_CAPTURE_KINDS } from '../learningCapture/kinds.js';
@@ -99,6 +100,43 @@ export function groupObservationsByComponent(observations = []) {
     else byComponent.narrative.push(obs);
   }
   return byComponent;
+}
+
+function observationDedupeKey(obs) {
+  if (obs.observation_id) return `id:${obs.observation_id}`;
+  const text = observationText(obs).slice(0, 120);
+  return `ev:${createHash('sha256').update(text).digest('hex').slice(0, 16)}`;
+}
+
+/**
+ * Merge jsonl residuals + pre-routed pipeline bundles for agent graph.
+ * @param {string} date
+ * @param {object} [opts]
+ * @param {object[]} [opts.preRouted] pipeline observations with component_id
+ * @param {object[]} [opts.bundles] optional pre-loaded bundle entries
+ */
+export function loadOpenObservationsForAgent(date, opts = {}) {
+  const jsonlRecords = loadResidualObservationsForAgent(date, opts).map((rec) => ({
+    ...rec,
+    observation_id: rec.observation_id ?? rec.id ?? `residual-${observationDedupeKey(rec)}`,
+    source: 'residual_jsonl',
+    component_id: rec.component_id ?? mapObservationToComponent(rec),
+  }));
+
+  const preRouted = (opts.preRouted ?? []).map((obs) => ({
+    ...obs,
+    source: obs.source ?? 'pipeline',
+  }));
+
+  const seen = new Set();
+  const merged = [];
+  for (const obs of [...preRouted, ...jsonlRecords]) {
+    const key = observationDedupeKey(obs);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    merged.push(obs);
+  }
+  return merged;
 }
 
 export { INVESTIGATION_KINDS,  };

@@ -8,7 +8,7 @@ import { existsSync as fsExists } from 'node:fs';
 
 import { loadMdFiles } from '../../../business_modules/resilience/index.js';
 import { extractEvidence } from '../../../business_modules/resilience/index.js';
-import { scoreComponents } from '../../../business_modules/resilience/index.js';
+import { scoreComponents } from '../../../analyst/scoring/index.js';
 import { createEpistemicFeaturesService } from '../../../business_modules/epistemic_features/index.js';
 import { runDeterministicAssessment } from '../../../business_modules/resilience_assessment/index.js';
 import { getTodayInTimezone } from '../../../utils/dateUtils.js';

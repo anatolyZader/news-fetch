@@ -20,7 +20,7 @@ bootstrapDefaultStateStore();
 
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { writeFileSync, mkdirSync, existsSync } from 'node:fs';
+import { writeFileSync, mkdirSync, existsSync, readFileSync, statSync } from 'node:fs';
 import { getMunicipalityDashboard } from '../app/pboMunicipalityService.js';
 import { enrichSignalsWithGeo } from '../../../cross-cut-modules/geo/enrichSignalsWithGeo.js';
 import { listPboDistrictIds } from '../../../cross-cut-modules/pbo/pboDistrictRegistry.js';
@@ -32,11 +32,32 @@ import {
 } from '../../../db/source_archive/archivePboMunicipality.js';
 import { createRetrievalService } from '../../../cross-cut-modules/retrieval/createRetrievalService.js';
 import { defaultClosedSignalsDir } from '../../signals_extraction/index.js';
+import { pboDashboardDayToExtractUnits } from '../app/pboDashboardToExtractUnits.js';
+
+const openUnitsByDate = new Map();
+const sourceFilesByDate = new Map();
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 const SQLITE_PATH = process.env.SQLITE_PATH?.trim()
   ? resolve(process.env.SQLITE_PATH.trim())
   : resolve(REPO_ROOT, 'db', 'app.sqlite');
+
+function pipelineOpenObsPath(sourceType, date) {
+  const safe = String(sourceType ?? 'adhoc').replaceAll(/[^a-z0-9_-]/gi, '_');
+  return resolve(REPO_ROOT, 'business_modules/signals_extraction/data', `observations-pipeline-${safe}-${date}.json`);
+}
+
+function openObsNeedsExtract(path) {
+  if (!existsSync(path)) return true;
+  try {
+    if (statSync(path).size === 0) return true;
+    const bundle = JSON.parse(readFileSync(path, 'utf8'));
+    const observations = bundle?.observations;
+    return !Array.isArray(observations) || observations.length === 0;
+  } catch {
+    return true;
+  }
+}
 
 const COMPONENT_TO_SIGNAL_TYPE = {
   narrative:                 'resilience_narrative_positive',
@@ -115,11 +136,24 @@ function outputFileName(districtId, date) {
     : `signals-pbo-${districtId}-${date}.json`;
 }
 
+function recordOpenUnitsForDay(day, componentNames, districtId) {
+  const reviewMetaByMuni = loadReviewMetadataMapForDate(day.date, SQLITE_PATH);
+  const units = pboDashboardDayToExtractUnits(day, componentNames, reviewMetaByMuni);
+  if (units.length === 0) return;
+
+  const prev = openUnitsByDate.get(day.date) ?? [];
+  openUnitsByDate.set(day.date, [...prev, ...units]);
+  const files = sourceFilesByDate.get(day.date) ?? new Set();
+  files.add(day.file);
+  sourceFilesByDate.set(day.date, files);
+}
+
 async function writeDayBundle(day, districtId, outDir, componentsOrder, componentNames, { force = false } = {}) {
   const outPath = resolve(outDir, outputFileName(districtId, day.date));
   const effectiveForce = force || shouldForcePboSignalRewrite(day.date, SQLITE_PATH);
   if (existsSync(outPath) && !effectiveForce) {
     console.error(`${outputFileName(districtId, day.date)}  →  already exists, skipping`);
+    recordOpenUnitsForDay(day, componentNames, districtId);
     return false;
   }
   if (existsSync(outPath) && effectiveForce && !force) {
@@ -173,6 +207,9 @@ async function writeDayBundle(day, districtId, outDir, componentsOrder, componen
   }, null, 2), 'utf-8');
 
   console.error(`${outputFileName(districtId, day.date)}  →  ${stampedSignals.length} signals from ${day.municipalities.length} municipalities (geo: ${resolved} resolved, ${unknown} unknown)`);
+
+  recordOpenUnitsForDay(day, componentNames, districtId);
+
   return true;
 }
 
@@ -207,6 +244,26 @@ mkdirSync(outDir, { recursive: true });
 
 const districts = allDistricts ? listPboDistrictIds() : [districtArg];
 for (const districtId of districts) {
-   
   await runDistrict(districtId, filterDate, outDir, force);
+}
+
+for (const [date, units] of openUnitsByDate.entries()) {
+  if (!units.length) continue;
+  const openPath = pipelineOpenObsPath('pbo', date);
+  if (!openObsNeedsExtract(openPath)) {
+    console.error(`  → Open pipeline observations already present: ${openPath}`);
+    continue;
+  }
+  try {
+    const { runPipelineOpenExtract } = await import('../../signals_extraction/index.js');
+    await runPipelineOpenExtract({
+      articles: units,
+      sourceType: 'pbo',
+      contentKind: 'pbo_municipality',
+      date,
+      sourceFiles: [...(sourceFilesByDate.get(date) ?? [])],
+    });
+  } catch (err) {
+    console.error(`  ⚠ Open pipeline extract skipped for ${date}: ${err.message}`);
+  }
 }

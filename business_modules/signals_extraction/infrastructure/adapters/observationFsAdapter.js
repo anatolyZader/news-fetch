@@ -6,7 +6,9 @@ import { resolve } from 'node:path';
 import { IObservationStorePort } from '../../domain/ports/IObservationStorePort.js';
 import {
   observationBundleFilename,
+  pipelineObservationBundleFilename,
   validateObservationBundle,
+  isPipelineObservationFilename,
 } from '../../domain/services/observationSchema.js';
 import { defaultSignalsExtractionDataDir } from '../signalsDataPaths.js';
 
@@ -32,7 +34,9 @@ export class ObservationFsAdapter extends IObservationStorePort {
       throw new Error(`Invalid observation bundle: ${errors.join('; ')}`);
     }
     mkdirSync(this.dataDir, { recursive: true });
-    const name = observationBundleFilename(normalized.profile, normalized.date);
+    const name = normalized.profile === 'pipeline'
+      ? pipelineObservationBundleFilename(normalized.source_type, normalized.date)
+      : observationBundleFilename(normalized.profile, normalized.date);
     const path = resolve(this.dataDir, name);
     writeFileSync(path, JSON.stringify(normalized, null, 2), 'utf8');
     return path;
@@ -54,13 +58,18 @@ export class ObservationFsAdapter extends IObservationStorePort {
 
     const out = [];
     for (const name of names) {
+      if (opts.profile === 'pipeline' && !isPipelineObservationFilename(name)) continue;
       const m = /^observations-(.+)-(\d{4}-\d{2}-\d{2})\.json$/.exec(name);
       if (!m) continue;
       const fileDate = m[2];
       if (fileDate < minStr || fileDate > endDate) continue;
-      if (opts.profile && !name.startsWith(`observations-${opts.profile}-`)) {
+      if (opts.profile && opts.profile !== 'pipeline' && !name.startsWith(`observations-${opts.profile}-`)) {
         const profileSlug = String(opts.profile).replaceAll(/[^a-z0-9_-]/gi, '_');
         if (!name.startsWith(`observations-${profileSlug}-`)) continue;
+      }
+      if (opts.sourceType && opts.profile === 'pipeline') {
+        const expected = pipelineObservationBundleFilename(opts.sourceType, fileDate);
+        if (name !== expected) continue;
       }
       if (opts.date && fileDate !== opts.date) continue;
       out.push({ filename: name, profile: m[1], date: fileDate, path: resolve(this.dataDir, name) });

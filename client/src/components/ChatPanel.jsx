@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { safeMarkdownComponents } from '../ui/safeMarkdownComponents.js';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
@@ -18,6 +19,7 @@ import { alpha } from '@mui/material/styles';
 import { useChat } from '../hooks/useChat.js';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { panelHeaderButtonSx, panelSectionRadius } from '../ui/panelChrome.js';
+import { chatActionsVisibilitySx, chatRowHoverRevealSx } from '../ui/responsive/responsiveSx.js';
 import PropTypes from 'prop-types';
 
 const chatFieldSx = (theme) => ({
@@ -33,7 +35,7 @@ export function ChatPanel({
   toolProfile = 'default',
   systemHint = null,
   initialMessage = null,
-  displayTier = 'operator',
+  displayView = 'operator',
 }) {
   const {
     sessions,
@@ -92,10 +94,10 @@ export function ChatPanel({
   const chatSendOpts = useMemo(() => ({
     reportGeoScope,
     toolProfile,
-    view: displayTier === 'analyst' ? 'analyst' : 'operator',
+    view: displayView === 'analyst' ? 'analyst' : 'operator',
     systemHint,
     scope: reportScope?.type === 'component' ? reportScope.id : null,
-  }), [reportGeoScope, toolProfile, displayTier, systemHint, reportScope]);
+  }), [reportGeoScope, toolProfile, displayView, systemHint, reportScope]);
 
   useEffect(() => {
     seededInitialRef.current = false;
@@ -574,7 +576,7 @@ ChatPanel.propTypes = {
   toolProfile: PropTypes.string,
   systemHint: PropTypes.string,
   initialMessage: PropTypes.string,
-  displayTier: PropTypes.oneOf(['operator', 'analyst']),
+  displayView: PropTypes.oneOf(['operator', 'analyst']),
 };
 
 function ChatAvatar({ isUser }) {
@@ -649,7 +651,7 @@ function ChatRow({ msg, streaming = false, activeSessionId, onCopy, onEdit, onDe
         background: isUser
           ? theme.palette.background.paper
           : alpha(theme.palette.background.default, 0.75),
-        '&:hover .chat-actions': { opacity: 1, pointerEvents: 'auto' },
+        ...chatRowHoverRevealSx(),
         position: 'relative',
         ...(msg.error && {
           backgroundColor: `${theme.custom.surface.errorBg} !important`,
@@ -665,16 +667,22 @@ function ChatRow({ msg, streaming = false, activeSessionId, onCopy, onEdit, onDe
             direction="row"
             spacing={0.5}
             className="chat-actions"
-            sx={(theme) => ({
-              position: 'absolute',
-              top: theme.spacing(-0.75),
-              right: 0,
-              opacity: 0,
-              pointerEvents: 'none',
-              transition: theme.transitions.create('opacity', {
-                duration: theme.transitions.duration.shortest,
+            sx={[
+              (theme) => ({
+                position: 'absolute',
+                top: theme.spacing(-0.75),
+                right: 0,
+                transition: theme.transitions.create('opacity', {
+                  duration: theme.transitions.duration.shortest,
+                }),
+                '@media (pointer: coarse)': {
+                  position: 'relative',
+                  top: 0,
+                  marginTop: theme.spacing(0.5),
+                },
               }),
-            })}
+              chatActionsVisibilitySx,
+            ]}
           >
             {onCopy && <ChatActionButton onClick={onCopy}>Copy</ChatActionButton>}
             {isUser && onEdit && <ChatActionButton onClick={onEdit}>Edit</ChatActionButton>}
@@ -716,7 +724,7 @@ function ChatRow({ msg, streaming = false, activeSessionId, onCopy, onEdit, onDe
             },
           })}
         >
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+          <ReactMarkdown remarkPlugins={[remarkGfm]} components={safeMarkdownComponents}>
             {msg.content ?? ''}
           </ReactMarkdown>
           {streaming && (

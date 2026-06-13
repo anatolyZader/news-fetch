@@ -37,7 +37,7 @@ Access levels: `operator` \| `analyst` \| `maintainer` — `config/userAccess.js
 | **Signal type** | Stable id from closed catalog (`signalCatalog.js`, `CATALOG_VERSION` v6). |
 | **OOV** | Out-of-vocabulary type — captured to `oov-capture-{date}.jsonl`, not scored. |
 | **Catalog proposal** | Analyst-reviewed draft from `signal_catalog_evolution` module. |
-| **Grounding tier** | Verification outcome: `grounded`, `weak`, `unverified_critical`, `rejected`. |
+| **Grounding outcome** | Verification outcome: `grounded`, `weak`, `unverified_critical`, `rejected`. |
 | **Review queue** | Stratified daily sample for human validation review (max 15/day). |
 | **Drift** | Historical component score series for analyst dashboard. |
 
@@ -51,6 +51,23 @@ Access levels: `operator` \| `analyst` \| `maintainer` — `config/userAccess.js
 | **Sampling blind** | Instrument when sources too sparse for reliable inference. |
 | **Abstention** | Deliberate `null` score — not “all clear.” |
 | **Thin evidence** | Low evidence mass; operator instruments hide or qualify scores. |
+
+---
+
+## Terminology: avoid overloaded "tier"
+
+Use these canonical terms in docs, logs, and new code. The word **tier** is overloaded — prefer the specific term.
+
+| Canonical term | Meaning | Do not call it |
+|----------------|---------|----------------|
+| **display_view** | `operator` \| `analyst` API/UI redaction | "display tier" |
+| **context_slice** | Chat prompt slice: `full\|compare\|hub\|minimal\|component\|standard` | "chat context tier" |
+| **specialist_depth** | Assessment agent depth `A\|B\|C` | "specialist tier" (in new prose) |
+| **grounding_outcome** | `grounded`, `weak`, `unverified_critical`, `rejected` | "grounding tier" (in new prose) |
+
+Legacy persisted field **`specialist_tier`** remains readable on disk; new writes also emit **`specialist_depth`**.
+
+Optional economy (rollback via env): `CHAT_CONTEXT_TIERING=0` → always full context; `RESILIENCE_ASSESS_TIERED_SPECIALISTS=0` → always depth A. See [MODEL-CARD.md](../MODEL-CARD.md) § Economy rollback.
 
 ---
 

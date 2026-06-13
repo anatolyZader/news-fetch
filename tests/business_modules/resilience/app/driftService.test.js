@@ -1,8 +1,8 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { createDriftService } from '../../../../business_modules/resilience/app/driftService.js';
-import { COMPONENT_IDS } from '../../../../business_modules/resilience/domain/services/behaviorSignals.js';
+import { createDriftService } from '../../../../analyst/drift/driftService.js';
+import { COMPONENT_IDS } from '../../../../analyst/scoring/index.js';
 
 function buildHistory() {
   return [

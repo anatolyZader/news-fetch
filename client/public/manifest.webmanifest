@@ -1,0 +1,21 @@
+{
+  "name": "Srulik's lab",
+  "short_name": "Srulik",
+  "description": "Home Front Command · Daily Assessment",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f4f7fc",
+  "theme_color": "#8b9cf0",
+  "icons": [
+    {
+      "src": "/favicon_srulik_1.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/logo_srulik_1_no_text.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

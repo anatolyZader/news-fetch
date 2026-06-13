@@ -5,10 +5,14 @@
 import { existsSync, readdirSync, statSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { buildTargetDates, loadPipelineConfig } from './assessSignalsHelpers.js';
+import { isOpenExtractParallelEnabled } from '../domain/services/openExtractConfig.js';
 import {
   fieldReportsGlobDir,
+  fieldSignalsPath,
   newsArticlesPath,
   newsSignalsPath,
+  openPipelineObsNeedsExtract,
+  pipelineOpenObservationsPath,
   radioSignalsPath,
   regionalPboDataDir,
   resolveRepoRoot,
@@ -17,7 +21,7 @@ import {
   whatsappSignalsPath,
 } from '../domain/services/pipelineArtifactPaths.js';
 
-/** @typedef {'reuse'|'skip'|'fetch_news'|'extract_news'|'extract_radio'|'export_whatsapp'|'extract_whatsapp'|'extract_field'|'extract_pbo'|'extract_naftali'|'extract_regional_pbo'|'social_gather'|'pbo_review'} PipelineAction */
+/** @typedef {'reuse'|'skip'|'fetch_news'|'extract_news'|'extract_radio'|'export_whatsapp'|'extract_whatsapp'|'extract_field'|'extract_open_only'|'extract_open_social'|'extract_pbo'|'extract_naftali'|'extract_regional_pbo'|'social_gather'|'pbo_review'} PipelineAction */
 
 /**
  * @param {string} input dd:mm:yyyy or YYYY-MM-DD
@@ -96,6 +100,49 @@ function isEnabled(enabledSources, key) {
 }
 
 /**
+ * @param {Array<{ stage: string, date?: string, action: PipelineAction, detail?: string }>} steps
+ * @param {object} opts
+ * @param {string} opts.stage
+ * @param {string} opts.date
+ * @param {string} opts.sourceType
+ * @param {string[]} opts.mdPaths absolute paths with readable MD/units
+ * @param {string} [opts.rootDir]
+ * @param {boolean} [opts.force]
+ */
+function maybePushOpenBackfillStep(steps, opts) {
+  const { stage, date, sourceType, mdPaths, rootDir, force = false } = opts;
+  if (force || !isOpenExtractParallelEnabled()) return;
+  const readablePaths = (mdPaths ?? []).filter((p) => fileNonEmpty(p));
+  if (readablePaths.length === 0) return;
+
+  const openPath = pipelineOpenObservationsPath(sourceType, date, rootDir);
+  if (!openPipelineObsNeedsExtract(openPath)) return;
+
+  steps.push({
+    stage,
+    date,
+    action: 'extract_open_only',
+    detail: readablePaths.join(','),
+  });
+}
+
+/**
+ * @param {Array<{ stage: string, date?: string, action: PipelineAction, detail?: string }>} steps
+ * @param {string} date
+ * @param {string} [rootDir]
+ * @param {boolean} [force]
+ */
+function maybePushOpenSocialBackfillStep(steps, date, rootDir, force = false) {
+  if (force || !isOpenExtractParallelEnabled()) return;
+  if (!fileNonEmpty(socialSignalsPath(date, rootDir))) return;
+
+  const openPath = pipelineOpenObservationsPath('social', date, rootDir);
+  if (!openPipelineObsNeedsExtract(openPath)) return;
+
+  steps.push({ stage: 'social', date, action: 'extract_open_social' });
+}
+
+/**
  * @param {object} opts
  * @param {string} opts.targetDate YYYY-MM-DD
  * @param {number} [opts.days]
@@ -106,9 +153,17 @@ function isEnabled(enabledSources, key) {
  * @param {string} [opts.rootDir]
  * @returns {{ windowDates: string[], steps: Array<{ stage: string, date?: string, action: PipelineAction, detail?: string }> }}
  */
-function pushNewsStepsForDate(steps, date, { sig, md, force, conservativeNewsFetch, replayMode }) {
+function pushNewsStepsForDate(steps, date, { sig, md, force, conservativeNewsFetch, replayMode, rootDir }) {
   if (fileNonEmpty(sig) && !force) {
     steps.push({ stage: 'news', date, action: 'reuse' });
+    maybePushOpenBackfillStep(steps, {
+      stage: 'news',
+      date,
+      sourceType: 'news',
+      mdPaths: [md],
+      rootDir,
+      force,
+    });
     return;
   }
   const shouldFetch = conservativeNewsFetch ? !fileNonEmpty(sig) && !fileNonEmpty(md) : !replayMode;
@@ -120,9 +175,17 @@ function pushNewsStepsForDate(steps, date, { sig, md, force, conservativeNewsFet
   }
 }
 
-function pushRadioStepsForDate(steps, date, { sig, transcripts, force }) {
+function pushRadioStepsForDate(steps, date, { sig, transcripts, force, rootDir }) {
   if (fileNonEmpty(sig) && !force) {
     steps.push({ stage: 'radio', date, action: 'reuse' });
+    maybePushOpenBackfillStep(steps, {
+      stage: 'radio',
+      date,
+      sourceType: 'radio',
+      mdPaths: transcripts,
+      rootDir,
+      force,
+    });
   } else if (transcripts.length > 0) {
     steps.push({ stage: 'radio', date, action: 'extract_radio', detail: transcripts.join(',') });
   } else {
@@ -130,25 +193,52 @@ function pushRadioStepsForDate(steps, date, { sig, transcripts, force }) {
   }
 }
 
-function pushWhatsappStepsForDate(steps, date, { sig, md, force }) {
+function pushWhatsappStepsForDate(steps, date, { sig, md, force, rootDir }) {
   if (fileNonEmpty(sig) && !force) {
     steps.push({ stage: 'whatsapp', date, action: 'reuse' });
+    maybePushOpenBackfillStep(steps, {
+      stage: 'whatsapp',
+      date,
+      sourceType: 'whatsapp',
+      mdPaths: [md],
+      rootDir,
+      force,
+    });
     return;
   }
   if (!fileNonEmpty(md)) steps.push({ stage: 'whatsapp', date, action: 'export_whatsapp' });
   steps.push({ stage: 'whatsapp', date, action: 'extract_whatsapp' });
 }
 
-function pushFieldStepsIfEnabled(steps, enabledSources, replayMode, rootDir) {
-  if (!isEnabled(enabledSources, 'field') || replayMode) return;
+function pushFieldStepsIfEnabled(steps, enabledSources, replayMode, rootDir, force) {
+  if (!isEnabled(enabledSources, 'field')) return;
+
   for (const file of listRecentFieldReportMds(rootDir)) {
     const date = fieldDateFromFilename(file);
-    if (date) steps.push({ stage: 'field', date, action: 'extract_field', detail: file });
+    if (!date) continue;
+
+    if (replayMode) {
+      const sig = fieldSignalsPath(date, rootDir);
+      if (fileNonEmpty(sig) && !force) {
+        steps.push({ stage: 'field', date, action: 'reuse' });
+        maybePushOpenBackfillStep(steps, {
+          stage: 'field',
+          date,
+          sourceType: 'field',
+          mdPaths: [file],
+          rootDir,
+          force,
+        });
+      }
+      continue;
+    }
+
+    steps.push({ stage: 'field', date, action: 'extract_field', detail: file });
   }
 }
 
-function pushOnceSteps(steps, enabledSources, windowDates, { replayMode, targetDate, rootDir }) {
-  pushFieldStepsIfEnabled(steps, enabledSources, replayMode, rootDir);
+function pushOnceSteps(steps, enabledSources, windowDates, { replayMode, targetDate, rootDir, force }) {
+  pushFieldStepsIfEnabled(steps, enabledSources, replayMode, rootDir, force);
   if (isEnabled(enabledSources, 'pbo') && !replayMode) steps.push({ stage: 'pbo', action: 'extract_pbo' });
   if (isEnabled(enabledSources, 'naftali') && !replayMode) steps.push({ stage: 'naftali', action: 'extract_naftali' });
   if (!replayMode) steps.push({ stage: 'pbo_review', action: 'pbo_review', date: targetDate });
@@ -165,6 +255,7 @@ function pushSocialReplaySteps(steps, windowDates, { force, rootDir }) {
   for (const d of windowDates) {
     if (fileNonEmpty(socialSignalsPath(d, rootDir)) && !force) {
       steps.push({ stage: 'social', date: d, action: 'reuse' });
+      maybePushOpenSocialBackfillStep(steps, d, rootDir, force);
     } else if (missing.includes(d)) {
       steps.push({ stage: 'social', date: d, action: 'skip', detail: 'no social bundle on disk (historical replay cannot re-fetch X/Telegram)' });
     }
@@ -180,7 +271,10 @@ function pushSocialSteps(steps, windowDates, { replayMode, force, targetDate, ro
   if (missing.length > 0 || force) {
     steps.push({ stage: 'social', action: 'social_gather', date: targetDate });
   } else {
-    for (const d of windowDates) steps.push({ stage: 'social', date: d, action: 'reuse' });
+    for (const d of windowDates) {
+      steps.push({ stage: 'social', date: d, action: 'reuse' });
+      maybePushOpenSocialBackfillStep(steps, d, rootDir, force);
+    }
   }
 }
 
@@ -200,18 +294,37 @@ export function buildPipelineIngestPlan(opts) {
 
   for (const date of windowDates) {
     if (isEnabled(enabledSources, 'news')) {
-      pushNewsStepsForDate(steps, date, { sig: newsSignalsPath(date, rootDir), md: newsArticlesPath(date, rootDir), force, conservativeNewsFetch, replayMode });
+      pushNewsStepsForDate(steps, date, {
+        sig: newsSignalsPath(date, rootDir),
+        md: newsArticlesPath(date, rootDir),
+        force,
+        conservativeNewsFetch,
+        replayMode,
+        rootDir,
+      });
     }
     if (isEnabled(enabledSources, 'radio')) {
-      pushRadioStepsForDate(steps, date, { sig: radioSignalsPath(date, rootDir), transcripts: listRadioTranscriptsForDate(date, rootDir), force });
+      pushRadioStepsForDate(steps, date, {
+        sig: radioSignalsPath(date, rootDir),
+        transcripts: listRadioTranscriptsForDate(date, rootDir),
+        force,
+        rootDir,
+      });
     }
     if (isEnabled(enabledSources, 'whatsapp')) {
-      pushWhatsappStepsForDate(steps, date, { sig: whatsappSignalsPath(date, rootDir), md: whatsappReportPath(date, rootDir), force });
+      pushWhatsappStepsForDate(steps, date, {
+        sig: whatsappSignalsPath(date, rootDir),
+        md: whatsappReportPath(date, rootDir),
+        force,
+        rootDir,
+      });
     }
   }
 
-  pushOnceSteps(steps, enabledSources, windowDates, { replayMode, targetDate, rootDir });
-  if (isEnabled(enabledSources, 'social')) pushSocialSteps(steps, windowDates, { replayMode, force, targetDate, rootDir });
+  pushOnceSteps(steps, enabledSources, windowDates, { replayMode, targetDate, rootDir, force });
+  if (isEnabled(enabledSources, 'social')) {
+    pushSocialSteps(steps, windowDates, { replayMode, force, targetDate, rootDir });
+  }
 
   return { windowDates, steps };
 }
@@ -236,6 +349,8 @@ export function planHasWork(steps) {
     'export_whatsapp',
     'extract_whatsapp',
     'extract_field',
+    'extract_open_only',
+    'extract_open_social',
     'extract_pbo',
     'extract_naftali',
     'extract_regional_pbo',

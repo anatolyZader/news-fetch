@@ -1,6 +1,10 @@
+import Fab from '@mui/material/Fab';
 import Button from '@mui/material/Button';
-import { alpha } from '@mui/material/styles';
+import { alpha, useTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
+import ChatOutlinedIcon from '@mui/icons-material/ChatOutlined';
 import { panelHeaderButtonSx, panelSectionRadius } from './panelChrome.js';
+import { safeAreaFixedSx } from './responsive/responsiveSx.js';
 import PropTypes from 'prop-types';
 
 export function ChatLauncher({
@@ -9,8 +13,40 @@ export function ChatLauncher({
   openLabel = 'Close chat',
   closedLabel = 'Chat',
   position = 'bottom-right',
+  bottomInset = 0,
 }) {
+  const theme = useTheme();
+  const isCompact = useMediaQuery(theme.breakpoints.down('sm'));
   const label = open ? openLabel : closedLabel;
+
+  const fixedSx = {
+    position: 'fixed',
+    zIndex: theme.zIndex.tooltip + 10,
+    right: position === 'bottom-right' ? theme.spacing(isCompact ? 2 : 3) : 'auto',
+    left: position === 'bottom-left' ? theme.spacing(isCompact ? 2 : 3) : 'auto',
+    bottom: theme.spacing(2),
+    ...safeAreaFixedSx(theme, { bottomInset, position }),
+  };
+
+  if (isCompact) {
+    return (
+      <Fab
+        color="primary"
+        aria-label={label}
+        aria-expanded={open}
+        onClick={onClick}
+        sx={{
+          ...fixedSx,
+          width: 56,
+          height: 56,
+          boxShadow: `0 8px 24px ${alpha(theme.palette.primary.main, 0.35)}`,
+        }}
+      >
+        <ChatOutlinedIcon />
+      </Fab>
+    );
+  }
+
   return (
     <Button
       type="button"
@@ -19,32 +55,23 @@ export function ChatLauncher({
       onClick={onClick}
       aria-label={label}
       aria-expanded={open}
-      sx={(theme) => ({
-        ...panelHeaderButtonSx(theme),
-        position: 'fixed',
-        zIndex: theme.zIndex.tooltip + 10,
-        right: position === 'bottom-right' ? theme.spacing(3) : 'auto',
-        left:  position === 'bottom-left'  ? theme.spacing(3) : 'auto',
-        bottom: theme.spacing(2),
-        borderRadius: panelSectionRadius(theme),
-        border: `1px solid ${alpha(theme.palette.primary.main, 0.35)}`,
-        background: `linear-gradient(135deg, ${theme.palette.background.paper} 0%, ${alpha(theme.palette.primary.light, 0.55)} 100%)`,
-        color: theme.palette.primary.dark,
-        fontWeight: theme.typography.button.fontWeight,
-        boxShadow: theme.custom.elevation.hover,
-        transition: theme.transitions.create(['transform', 'box-shadow', 'border-color'], {
-          duration: theme.transitions.duration.short,
+      sx={(th) => ({
+        ...panelHeaderButtonSx(th),
+        ...fixedSx,
+        borderRadius: panelSectionRadius(th),
+        border: `1px solid ${alpha(th.palette.primary.main, 0.35)}`,
+        background: `linear-gradient(135deg, ${th.palette.background.paper} 0%, ${alpha(th.palette.primary.light, 0.55)} 100%)`,
+        color: th.palette.primary.dark,
+        fontWeight: th.typography.button.fontWeight,
+        boxShadow: th.custom.elevation.hover,
+        transition: th.transitions.create(['transform', 'box-shadow', 'border-color'], {
+          duration: th.transitions.duration.short,
         }),
         '&:hover': {
-          background: `linear-gradient(135deg, ${alpha(theme.palette.primary.light, 0.7)} 0%, ${alpha(theme.palette.secondary.light, 0.5)} 100%)`,
-          boxShadow: theme.custom.elevation.cta,
-          borderColor: theme.palette.primary.main,
+          background: `linear-gradient(135deg, ${alpha(th.palette.primary.light, 0.7)} 0%, ${alpha(th.palette.secondary.light, 0.5)} 100%)`,
+          boxShadow: th.custom.elevation.cta,
+          borderColor: th.palette.primary.main,
           transform: 'translateY(-1px)',
-        },
-        [theme.breakpoints.down('sm')]: {
-          right: position === 'bottom-right' ? theme.spacing(2) : 'auto',
-          left:  position === 'bottom-left'  ? theme.spacing(2) : 'auto',
-          bottom: theme.spacing(1.5),
         },
       })}
     >
@@ -59,4 +86,5 @@ ChatLauncher.propTypes = {
   openLabel: PropTypes.string,
   closedLabel: PropTypes.string,
   position: PropTypes.oneOf(['bottom-right', 'bottom-left']),
+  bottomInset: PropTypes.number,
 };

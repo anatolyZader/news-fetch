@@ -13,7 +13,7 @@ function formatTemplate(template, params = {}) {
   );
 }
 
-export function EvidenceOverviewPanel({ assessment, reportScope, displayTier: _displayTier }) {
+export function EvidenceOverviewPanel({ assessment, reportScope, displayView: _displayView }) {
   const { t } = useLanguage();
   const counts = deriveEvidenceOverviewCounts(assessment);
   if (counts.total === 0) return null;
@@ -59,5 +59,5 @@ export function EvidenceOverviewPanel({ assessment, reportScope, displayTier: _d
 EvidenceOverviewPanel.propTypes = {
   assessment: PropTypes.object,
   reportScope: PropTypes.string,
-  displayTier: PropTypes.oneOf(['operator', 'analyst']),
+  displayView: PropTypes.oneOf(['operator', 'analyst']),
 };

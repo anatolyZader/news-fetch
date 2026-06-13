@@ -1,30 +1,27 @@
 #!/usr/bin/env node
 /**
- * Convert regional PBO markdown reports into resilience signal JSON.
- *
- * Keeps `business_modules/resilience/infrastructure/mdReportsLoader.js` unchanged:
- * this script builds the article-shaped objects expected by `extractSignals`.
+ * Convert regional PBO markdown reports into resilience signal JSON + pipeline open observations.
  *
  * Usage:
  *   node extract-regional-pbo-signals.js --files <f1.md,f2.md,...> --date YYYY-MM-DD
  *
  * Output:
  *   business_modules/signals_extraction/data/signals/signals-pbo_regional-YYYY-MM-DD.json
+ *   business_modules/signals_extraction/data/observations-pipeline-pbo_regional-YYYY-MM-DD.json
  */
 
 import 'dotenv/config';
 import { basename, dirname, extname, resolve } from 'node:path';
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
-import { getDefaultResilienceLlmPort } from '../../resilience/index.js';
+import { getDefaultResilienceLlmPort, runArticleDualPathExtract } from '../../resilience/index.js';
 import { createCostTracker, appendCostLog, checkDailyBudget } from '../../../cross-cut-modules/budget/index.js';
 import { enrichSignalsWithGeo } from '../../../cross-cut-modules/geo/enrichSignalsWithGeo.js';
 import { createSourceArchive } from '../../../db/source_archive/createSourceArchive.js';
 import { buildArchiveSourceId } from '../../../db/source_archive/sourceId.js';
 import { createRetrievalService } from '../../../cross-cut-modules/retrieval/createRetrievalService.js';
 import { defaultClosedSignalsDir } from '../../signals_extraction/index.js';
-
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 
 const MAX_BODY_CHARS = 2000;
@@ -169,7 +166,7 @@ async function archiveRegionalPboArticles(articles, date, signals) {
   return enriched;
 }
 
-function writeSignalsOutput({ date, articles, signals, districtId }) {
+function writeRegionalSignalsBundle({ date, articles, signals, districtId }) {
   const outDir = defaultClosedSignalsDir();
   mkdirSync(outDir, { recursive: true });
   const outPath = resolve(outDir, `signals-pbo_regional-${date}.json`);
@@ -209,28 +206,43 @@ async function run() {
   console.error(`Files: ${filePaths.map((f) => basename(f)).join(', ')}`);
   console.error(`Articles loaded: ${articles.length}\n`);
 
-  const rawSignals = await getDefaultResilienceLlmPort().extractSignals(articles, { onUsage, contentKind: 'field_report' });
-  let signals = rawSignals.map((s) => ({ ...s, source_type: 'pbo_regional' }));
-
-  try {
-    signals = await archiveRegionalPboArticles(articles, date, signals);
-  } catch (err) {
-    console.error(`  ⚠ Regional PBO archive skipped: ${err.message}`);
-  }
-
-  const { signals: geoSignals, attached, resolved, unknown } = enrichSignalsWithGeo(signals, {
-    rootDir: REPO_ROOT,
-    unknownSourceType: 'extract-pbo_regional',
-  });
   const districtId = 'north';
-  signals = geoSignals.map((s) => ({ ...s, district_id: districtId }));
+  const llmPort = getDefaultResilienceLlmPort();
 
-  console.error(`\n→ ${signals.length} signals extracted`);
-  if (attached > 0) {
-    console.error(`  → Geo attach: ${attached} signals, ${resolved} resolved, ${unknown} unknown`);
-  }
+  await runArticleDualPathExtract({
+    repoRoot: REPO_ROOT,
+    articles,
+    sourceType: 'pbo_regional',
+    contentKind: 'field_report',
+    date,
+    filePaths,
+    onUsage,
+    retrievalService: null,
+    closedExtractFn: async ({ articles: arts, onUsage: usageCb }) => {
+      const rawSignals = await llmPort.extractSignals(arts, { onUsage: usageCb, contentKind: 'field_report' });
+      let signals = rawSignals.map((s) => ({ ...s, source_type: 'pbo_regional' }));
 
-  writeSignalsOutput({ date, articles, signals, districtId });
+      try {
+        signals = await archiveRegionalPboArticles(arts, date, signals);
+      } catch (err) {
+        console.error(`  ⚠ Regional PBO archive skipped: ${err.message}`);
+      }
+
+      const { signals: geoSignals, attached, resolved, unknown } = enrichSignalsWithGeo(signals, {
+        rootDir: REPO_ROOT,
+        unknownSourceType: 'extract-pbo_regional',
+      });
+      signals = geoSignals.map((s) => ({ ...s, district_id: districtId }));
+
+      console.error(`\n→ ${signals.length} signals extracted`);
+      if (attached > 0) {
+        console.error(`  → Geo attach: ${attached} signals, ${resolved} resolved, ${unknown} unknown`);
+      }
+
+      writeRegionalSignalsBundle({ date, articles: arts, signals, districtId });
+      return { signals };
+    },
+  });
 
   const { totalCostUsd, usageLog } = getTotal();
   appendCostLog({ script: 'extract-regional-pbo-signals', date, totalCostUsd, usageLog, articles: articles.length });

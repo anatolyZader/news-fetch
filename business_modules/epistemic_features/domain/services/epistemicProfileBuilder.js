@@ -7,10 +7,11 @@ import {
   buildDuplicateOccurrenceIndex,
   round3,
   sourceCapWasApplied,
-  tuningFor,
+  certaintyTuningFor,
   collectComponentItems,
   defaultSignalWeights,
   resolveSignalWeights,
+  computeMediaMentionMass,
 } from '../../../resilience/index.js';
 
 const SOURCE_TYPE_CAP = 0.5;
@@ -90,7 +91,7 @@ function emptyComponentProfile(id, ctx) {
     polarization_band: null,
     dominance_warnings: [],
     delta_significance: null,
-    media_mention_mass: round3(ctx.scoredComponents?.[id]?.media_mention_mass ?? 0),
+    media_mention_mass: round3(ctx.mediaMentionMass?.[id] ?? 0),
     signal_count: 0,
     distinct_article_count: 0,
   };
@@ -111,7 +112,7 @@ function polarizationBandFor(polarization, evidenceMass) {
 function buildComponentProfile(id, items, articleSet, sourceSet, ctx) {
   const cappedItems = applySourceCap(items);
   const mass = sumPolarityMass(cappedItems);
-  const tuning = tuningFor(id);
+  const tuning = certaintyTuningFor(id);
   const certainty = mass.evidenceMass > 0
     ? 1 - Math.exp(-mass.evidenceMass / tuning.certM)
     : 0;
@@ -135,7 +136,7 @@ function buildComponentProfile(id, items, articleSet, sourceSet, ctx) {
     signal_count: items.length,
     distinct_article_count: articleSet.size,
     source_diversity: sourceSet.size,
-    media_mention_mass: round3(ctx.scoredComponents?.[id]?.media_mention_mass ?? 0),
+    media_mention_mass: round3(ctx.mediaMentionMass?.[id] ?? 0),
     delta_significance: ctx.historicalMass?.[id]
       ? inferDeltaSignificance(mass.evidenceMass, ctx.historicalMass[id])
       : null,
@@ -149,6 +150,11 @@ function buildComponentProfile(id, items, articleSet, sourceSet, ctx) {
 export function computeEpistemicProfile(signals, ctx = {}) {
   const signalWeights = resolveSignalWeights(defaultSignalWeights(), ctx.weightOverlay ?? null);
   const duplicateIndex = buildDuplicateOccurrenceIndex(signals ?? []);
+  const mediaMentionMass = ctx.mediaMentionMass ?? computeMediaMentionMass(
+    ctx.mediaSignals ?? signals ?? [],
+    signalWeights,
+  );
+  const profileCtx = { ...ctx, mediaMentionMass };
   const byComponent = {};
 
   for (const id of COMPONENT_IDS) {
@@ -159,8 +165,8 @@ export function computeEpistemicProfile(signals, ctx = {}) {
       signalWeights,
     );
     byComponent[id] = items.length === 0
-      ? emptyComponentProfile(id, ctx)
-      : buildComponentProfile(id, items, articleSet, sourceSet, ctx);
+      ? emptyComponentProfile(id, profileCtx)
+      : buildComponentProfile(id, items, articleSet, sourceSet, profileCtx);
   }
 
   const retrieval_policies = buildRetrievalPolicies(byComponent);

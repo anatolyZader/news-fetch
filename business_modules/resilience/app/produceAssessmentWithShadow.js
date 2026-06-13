@@ -6,14 +6,16 @@ import {
   shouldSkipAssessmentAgent,
 } from '../../../cross-cut-modules/agent/index.js';
 import { getDefaultLlmPort } from '../../../cross-cut-modules/llm/anthropicLlmAdapter.js';
-import { createEpistemicFeaturesService } from '../../epistemic_features/index.js';
+import { createEpistemicFeaturesService, loadHistoricalEpistemicMass } from '../../epistemic_features/index.js';
 import {
   runAssessmentAgent,
   runDeterministicAssessment,
   loadCachedAssessmentFallback,
+} from '../../resilience_assessment/index.js';
+import {
   computeDivergence,
   writeShadowArtifacts,
-} from '../../resilience_assessment/index.js';
+} from './shadowFacade.js';
 
 /**
  * @param {object} params — assess-signals finalize context
@@ -32,18 +34,34 @@ export async function produceAssessmentWithShadow(params) {
   return agentOutcome.assessment;
 }
 
+export function attachShadowDivergenceToAssessment(assessment, params) {
+  attachShadowDivergence(assessment, params);
+}
+
+function resolveInvestigationSignals(params) {
+  return params.investigationSignals ?? params.signalsForScoring ?? [];
+}
+
 function buildEpistemicProfile(params) {
+  const investigationSignals = resolveInvestigationSignals(params);
   const epistemicService = createEpistemicFeaturesService({ reportsDir: params.reportsDir ?? 'daily_reports' });
-  const historicalMass = buildHistoricalMassMap(params.scoredFull);
-  const epistemicProfile = epistemicService.computeProfile(params.signalsForScoring, {
+  const historicalMass = loadHistoricalEpistemicMass(
+    params.targetDate,
+    params.reportsDir ?? 'daily_reports',
+    14,
+    params.reportScopeId,
+  );
+  const investigationEpistemic = params.investigationEpistemic ?? {};
+  const epistemicProfile = epistemicService.computeProfile(investigationSignals, {
     totalArticles: params.scopedTotalArticles,
     reportDate: params.targetDate,
+    mediaSignals: params.scopedSignals ?? investigationSignals,
     assessmentEpistemic: {
-      assessment_mode: params.assessmentMode,
-      epistemic_status: params.epistemicStatus,
+      assessment_mode: investigationEpistemic.assessmentMode ?? params.assessmentMode ?? 'normal',
+      epistemic_status: investigationEpistemic.epistemicStatus ?? params.epistemicStatus,
+      investigation_mode: investigationEpistemic.investigationMode ?? null,
     },
     historicalMass,
-    scoredComponents: params.scoredFull,
   });
   epistemicService.persistProfile(epistemicProfile, {
     scopeId: params.reportScopeId,
@@ -55,9 +73,19 @@ function buildEpistemicProfile(params) {
 async function resolveAssessmentOutcome(params, epistemicProfile) {
   const agentAttempt = await tryAssessmentAgent(params, epistemicProfile);
   if (agentAttempt.assessment) {
+    attachAgentInternals(agentAttempt.assessment, agentAttempt);
     return agentAttempt;
   }
   return resolveDegradedAssessment(params, epistemicProfile, agentAttempt.degradeReason);
+}
+
+function attachAgentInternals(assessment, agentOutcome) {
+  if (agentOutcome.assessmentV2?.components) {
+    assessment._agent_components = agentOutcome.assessmentV2.components;
+  }
+  if (agentOutcome.evidenceGraph) {
+    assessment._evidence_graph = agentOutcome.evidenceGraph;
+  }
 }
 
 async function tryAssessmentAgent(params, epistemicProfile) {
@@ -69,30 +97,33 @@ async function tryAssessmentAgent(params, epistemicProfile) {
   }
 
   const llmPortForAgent = params.llmPort ?? getDefaultLlmPort();
+  const investigationSignals = resolveInvestigationSignals(params);
+  const investigationEpistemic = params.investigationEpistemic ?? {};
   try {
     const agentResult = await runAssessmentAgent({
-      signals: params.signalsForScoring,
+      signals: investigationSignals,
       epistemicProfile,
       retrievalService: params.retrievalService,
       reportDate: params.targetDate,
       reportScopeId: params.reportScopeId,
       totalArticles: params.scopedTotalArticles,
-      assessmentMode: params.assessmentMode,
+      assessmentMode: investigationEpistemic.assessmentMode ?? params.assessmentMode ?? 'normal',
       llmPort: llmPortForAgent,
       onUsage: params.onUsage,
       dataVoid: params.dataVoid,
-      epistemicStatus: params.epistemicStatus,
+      epistemicStatus: investigationEpistemic.epistemicStatus ?? params.epistemicStatus,
       reportsDir: params.reportsDir ?? 'daily_reports',
       sourceArchive: params.sourceArchive ?? null,
       evidenceStore: params.evidenceStore ?? null,
-      scopedSignals: params.scopedSignals ?? params.signalsForScoring,
+      scopedSignals: params.scopedSignals ?? investigationSignals,
       oovBurst: params.oovBurst ?? null,
-      scoredComponents: params.scoredFull,
+      openObservations: params.openObservations ?? [],
     });
     return {
       assessment: agentResult.assessment,
       assessmentV2: agentResult.assessmentV2,
       traceId: agentResult.traceId,
+      evidenceGraph: agentResult.evidenceGraph ?? null,
       degradeReason: null,
     };
   } catch (err) {
@@ -102,17 +133,18 @@ async function tryAssessmentAgent(params, epistemicProfile) {
 }
 
 async function resolveDegradedAssessment(params, epistemicProfile, degradeReason) {
+  const investigationSignals = resolveInvestigationSignals(params);
+  const investigationEpistemic = params.investigationEpistemic ?? {};
   const det = await runDeterministicAssessment({
-    signals: params.signalsForScoring,
+    signals: investigationSignals,
     epistemicProfile,
     reportDate: params.targetDate,
     reportScopeId: params.reportScopeId,
     totalArticles: params.scopedTotalArticles,
     assessmentMode: 'degraded',
     dataVoid: params.dataVoid,
-    epistemicStatus: params.epistemicStatus,
+    epistemicStatus: investigationEpistemic.epistemicStatus ?? params.epistemicStatus,
     oovBurst: params.oovBurst ?? null,
-    scoredComponents: params.scoredFull,
     degradeReason: degradeReason ?? 'agent_failed',
   });
 
@@ -129,7 +161,7 @@ async function resolveDegradedAssessment(params, epistemicProfile, degradeReason
     targetDate: params.targetDate,
     reportScopeId: params.reportScopeId,
     reportsDir: params.reportsDir ?? 'daily_reports',
-    degradeReason: degradeReason ?? 'empty_scores',
+    degradeReason: degradeReason ?? 'empty_signals',
   });
   if (cached?.assessment) {
     console.error(
@@ -167,14 +199,6 @@ function attachShadowDivergence(assessment, params) {
     divergence,
   });
   assessment.shadow_divergence = divergence;
-}
-
-function buildHistoricalMassMap(scoredFull) {
-  const out = {};
-  for (const [id, c] of Object.entries(scoredFull ?? {})) {
-    out[id] = [c.evidence_mass ?? 0];
-  }
-  return out;
 }
 
 function resolveForceDeterministicReason() {

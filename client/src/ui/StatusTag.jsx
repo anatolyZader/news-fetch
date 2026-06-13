@@ -14,7 +14,8 @@ export function StatusTag({ variant = 'neutral', children, className = '' }) {
       sx={(theme) => {
         const tone = theme.palette.score?.[key] ?? theme.palette.score.neutral;
         return {
-          height: theme.spacing(2.75),
+          height: 'auto',
+          minHeight: theme.spacing(2.75),
           borderRadius: `${theme.custom.radius.section}px`,
           fontWeight: 700,
           fontSize: theme.typography.caption.fontSize,
@@ -24,6 +25,8 @@ export function StatusTag({ variant = 'neutral', children, className = '' }) {
           '& .MuiChip-label': {
             paddingLeft: theme.spacing(0.75),
             paddingRight: theme.spacing(0.75),
+            whiteSpace: 'normal',
+            lineHeight: 1.25,
           },
         };
       }}

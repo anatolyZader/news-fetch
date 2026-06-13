@@ -83,6 +83,29 @@ module.exports = {
       to: { path: '^business_modules/[^/]+/infrastructure/' },
     },
     {
+      name: 'resilience-no-analyst-except-facades',
+      severity: 'error',
+      comment:
+        'Operator resilience code must not import analyst/ except scoringFacade, shadowFacade, validation shim',
+      from: {
+        path: '^business_modules/resilience/',
+        pathNot: [
+          '^business_modules/resilience/app/scoringFacade\\.js$',
+          '^business_modules/resilience/app/shadowFacade\\.js$',
+          '^business_modules/resilience/validation/index\\.js$',
+          '^business_modules/resilience/tuning/goldenPaths\\.js$',
+        ],
+      },
+      to: { path: '^analyst/' },
+    },
+    {
+      name: 'client-no-analyst',
+      severity: 'error',
+      comment: 'Operator client must not import analyst quarantine code',
+      from: { path: '^client/' },
+      to: { path: '^analyst/' },
+    },
+    {
       name: 'input-no-own-domain-or-infrastructure',
       severity: 'error',
       comment: 'Option B: input/ may only delegate to app/ or index.js (not own domain/ or infrastructure/)',

@@ -7,10 +7,11 @@ const TOKEN_REFRESH_RETRY_MS = 5_000;
 
 const RETRY_AUTH_CODES = new Set(['missing_token', 'invalid_token', 'token_revoked']);
 
-async function fetchTodayReportPayload(scope, view, accessToken, getIdToken, signal) {
+async function fetchTodayReportPayload(scope, view, accessToken, getIdToken, signal, date) {
   const params = new URLSearchParams();
   if (scope !== 'national') params.set('scope', scope);
   if (view === 'analyst') params.set('view', 'analyst');
+  if (date) params.set('date', date);
   const qs = params.toString() ? `?${params.toString()}` : '';
 
   async function attempt(bearerToken) {
@@ -79,7 +80,7 @@ function applyTodayReportPayload(data, setters) {
  * @param {string} scope report scope id (national | north | south | …)
  * @param {'operator'|'analyst'} [view]
  */
-export function useTodayReport(scope = 'national', view = 'operator') {
+export function useTodayReport(scope = 'national', view = 'operator', date = null) {
   const {
     getIdToken,
     apiReady,
@@ -166,6 +167,7 @@ export function useTodayReport(scope = 'national', view = 'operator') {
           accessTokenRef.current,
           (...args) => getIdTokenRef.current(...args),
           controller.signal,
+          date,
         );
         if (loadGen !== loadGenRef.current) return;
         applyTodayReportPayload(data, setters);
@@ -194,7 +196,7 @@ export function useTodayReport(scope = 'national', view = 'operator') {
       controller.abort();
       clearTimeout(timeoutId);
     };
-  }, [reportFetchReady, authRequired, accessToken, tokenWarmFailed, scope, view, refreshTick]);
+  }, [reportFetchReady, authRequired, accessToken, tokenWarmFailed, scope, view, date, refreshTick]);
 
   const refreshReport = useCallback(() => {
     setRefreshTick((t) => t + 1);
@@ -216,6 +218,35 @@ export function useTodayReport(scope = 'national', view = 'operator') {
     budgetStatus,
     suggestCrisisBudget,
   };
+}
+
+/**
+ * Fetch available report dates for a scope from GET /api/report/dates.
+ * @param {string} scope
+ * @param {string|null} accessToken
+ * @returns {{ dates: string[], loading: boolean }}
+ */
+export function useReportDates(scope, accessToken) {
+  const [dates, setDates] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    const params = new URLSearchParams();
+    if (scope !== 'national') params.set('scope', scope);
+    const qs = params.toString() ? `?${params.toString()}` : '';
+    const headers = new Headers();
+    if (accessToken) headers.set('Authorization', `Bearer ${accessToken}`);
+    fetch(`/api/report/dates${qs}`, { headers })
+      .then((r) => r.json())
+      .then((body) => { if (!cancelled) setDates(Array.isArray(body?.dates) ? body.dates : []); })
+      .catch(() => { if (!cancelled) setDates([]); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [scope, accessToken]);
+
+  return { dates, loading };
 }
 
 export function readStoredReportView() {

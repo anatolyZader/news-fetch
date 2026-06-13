@@ -8,6 +8,7 @@ import { createChatToolContext } from './createChatToolContext.js';
 import { buildSystemTemplateToolList } from '../domain/tools/chatToolSchemas.js';
 import { chatAnalystToolsEnabled, chatConfirmActionsEnabled } from '../domain/chatConfig.js';
 import { canViewAnalystDisplay } from '../../../cross-cut-modules/auth/userAccess.js';
+import { UNTRUSTED_CONTENT_INSTRUCTION } from '../../../cross-cut-modules/security/index.js';
 
 function buildSystemTemplate(ctx) {
   const isAnalyst = canViewAnalystDisplay(ctx.userEmail ?? '');
@@ -37,6 +38,7 @@ function buildSystemTemplate(ctx) {
     `- Validation investigate: use get_validation_item, search_similar_articles, then propose_validation_decision after review (user must confirm).\n` +
     `- For mutations (validation decisions, geo updates, catalog reviews, operator recommendations), use propose_* tools only; tell the user to confirm in the UI.\n` +
     `- Answer in the same language the user writes in.\n\n` +
+    `${UNTRUSTED_CONTENT_INSTRUCTION}\n\n` +
     `CONTEXT:\n`
   );
 }

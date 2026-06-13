@@ -6,6 +6,11 @@ import { createDefaultLearningCapturePort } from '../infrastructure/createLearni
 import { buildDraftProposalFromCluster } from '../domain/services/draftProposalBuilder.js';
 import { generateCatalogProposalFields } from '../infrastructure/adapters/anthropicCatalogProposalAdapter.js';
 import { signalCatalogEvolutionRagEnabled } from '../../../cross-cut-modules/retrieval/ragConfig.js';
+import { clusterByPrefix } from '../domain/services/oovClusterer.js';
+import {
+  LEARNING_CAPTURE_KINDS,
+  evidenceTextForRecord,
+} from '../domain/services/learningCaptureKinds.js';
 
 /**
  * @param {{
@@ -75,6 +80,41 @@ export function createCatalogProposalService(deps) {
         total_records: report.total_records,
         clustering_method: report.clustering_method,
       } };
+    },
+
+    async generateProposalsFromVerifiedOpen(opts = {}) {
+      const maxDays = opts.maxDays ?? 14;
+      const minRecurrence = opts.minRecurrence ?? 3;
+      const { records } = await capture.loadCaptureRecords({ maxDays });
+      const verified = records.filter(
+        (r) => r.capture_kind === LEARNING_CAPTURE_KINDS.VERIFIED_OPEN_OBSERVATION,
+      );
+      if (verified.length < minRecurrence) {
+        return { generated: 0, ids: [], verified_records: verified.length };
+      }
+
+      const clusters = clusterByPrefix(verified)
+        .filter((c) => c.count >= minRecurrence)
+        .map((c) => ({
+          ...c,
+          key: `${c.key}:${c.records?.[0]?.component_id ?? 'narrative'}`,
+        }));
+
+      const ids = [];
+      for (const cluster of clusters) {
+        const llmFields = await generateCatalogProposalFields(cluster);
+        const proposalJson = buildDraftProposalFromCluster(cluster, llmFields);
+        const id = proposalStore.upsertDraft({
+          clusterKey: cluster.key,
+          proposalJson: {
+            ...proposalJson,
+            source_kind: LEARNING_CAPTURE_KINDS.VERIFIED_OPEN_OBSERVATION,
+            sample_evidence: cluster.sample_evidence?.[0] ?? evidenceTextForRecord(cluster.records?.[0] ?? {}),
+          },
+        });
+        ids.push(id);
+      }
+      return { generated: ids.length, ids, verified_records: verified.length };
     },
 
     async reviewProposal(id, { status, note, reviewer }) {

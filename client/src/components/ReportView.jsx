@@ -153,9 +153,25 @@ function flatAccordionSx(theme) {
     '&.Mui-expanded': { margin: 0 },
     '& .MuiAccordionSummary-root': {
       backgroundColor: 'transparent',
+      minHeight: 56,
+      [theme.breakpoints.down('sm')]: {
+        paddingLeft: theme.spacing(1.5),
+        paddingRight: theme.spacing(1.5),
+        paddingTop: theme.spacing(1.25),
+        paddingBottom: theme.spacing(1.25),
+        minHeight: 60,
+      },
     },
     '&.Mui-expanded .MuiAccordionSummary-root': {
       backgroundColor: theme.palette.action.hover,
+      minHeight: 56,
+      [theme.breakpoints.down('sm')]: {
+        minHeight: 60,
+      },
+    },
+    [theme.breakpoints.down('md')]: {
+      contentVisibility: 'auto',
+      containIntrinsicSize: '0 420px',
     },
   };
 }
@@ -249,50 +265,84 @@ function DeltaAdornment({ delta, significant, t }) {
 function InstrumentStateBadges({ instrument, t }) {
   const inst = instrument ?? {};
   const suffKey = `report.instrument.sufficiency.${inst.evidence_sufficiency ?? 'adequate'}`;
+
+  const tags = [
+    <StatusTag key="confidence" variant="neutral">
+      {t(`confidence.${inst.confidence}`) ?? inst.confidence}
+    </StatusTag>,
+    <StatusTag key="sufficiency" variant="neutral">{t(suffKey)}</StatusTag>,
+    inst.contested && <ContestedBadge key="contested" t={t} />,
+    inst.contested_evidence && !inst.contested && (
+      <StatusTag key="contested-evidence" variant="alert">{t('report.instrument.contestedEvidence')}</StatusTag>
+    ),
+    inst.significant_delta && (
+      <StatusTag key="sig-delta" variant="alert">{t('report.delta.significant')}</StatusTag>
+    ),
+    inst.ci_unstable && (
+      <StatusTag key="ci-unstable" variant="alert">{t('report.scoreInterval.ciUnstable')}</StatusTag>
+    ),
+    inst.contested_thin && (
+      <StatusTag key="contested-thin" variant="alert">{t('report.instrument.contestedThin')}</StatusTag>
+    ),
+    inst.thin_evidence_instrument === 'unverified_alert' && (
+      <StatusTag key="unverified" variant="alert">{t('report.instrument.unverifiedAlert')}</StatusTag>
+    ),
+    inst.thin_evidence_instrument === 'critical_presence_failure' && (
+      <StatusTag key="presence-failure" variant="critical">{t('report.instrument.criticalPresenceFailure')}</StatusTag>
+    ),
+    inst.thin_evidence_instrument === 'critical_single_signal' && (
+      <StatusTag key="single-signal" variant="alert">{t('report.instrument.criticalSingleSignal')}</StatusTag>
+    ),
+    inst.salience_critical && inst.floor_bypassed && (
+      <StatusTag key="floor-bypass" variant="alert">{t('report.instrument.salienceFloorBypass')}</StatusTag>
+    ),
+    inst.thin_evidence_instrument === 'limited_evidence_neutral' && (
+      <StatusTag key="limited-neutral" variant="neutral">{t('report.instrument.limitedNeutral')}</StatusTag>
+    ),
+    inst.interpretive_summary && (
+      <StatusTag key="interpretive" variant="warning">{t('report.instrument.interpretiveSummary')}</StatusTag>
+    ),
+    inst.source_cap_binding && (
+      <StatusTag key="source-cap" variant="warning">{t('report.instrument.sourceCapBinding')}</StatusTag>
+    ),
+  ].filter(Boolean);
+
   return (
     <Stack
       direction="row"
       flexWrap="wrap"
-      sx={(theme) => ({ gap: theme.spacing(1), justifyContent: 'flex-end' })}
+      sx={(theme) => ({
+        gap: theme.spacing(0.75),
+        width: '100%',
+        justifyContent: { xs: 'center', sm: 'flex-end' },
+        maxWidth: '100%',
+        [theme.breakpoints.down('sm')]: {
+          display: 'grid',
+          gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+          justifyItems: 'stretch',
+          alignItems: 'stretch',
+        },
+      })}
     >
-      <StatusTag variant="neutral">
-        {t(`confidence.${inst.confidence}`) ?? inst.confidence}
-      </StatusTag>
-      <StatusTag variant="neutral">{t(suffKey)}</StatusTag>
-      {inst.contested && <ContestedBadge t={t} />}
-      {inst.contested_evidence && !inst.contested && (
-        <StatusTag variant="alert">{t('report.instrument.contestedEvidence')}</StatusTag>
-      )}
-      {inst.significant_delta && (
-        <StatusTag variant="alert">{t('report.delta.significant')}</StatusTag>
-      )}
-      {inst.ci_unstable && (
-        <StatusTag variant="alert">{t('report.scoreInterval.ciUnstable')}</StatusTag>
-      )}
-      {inst.contested_thin && (
-        <StatusTag variant="alert">{t('report.instrument.contestedThin')}</StatusTag>
-      )}
-      {inst.thin_evidence_instrument === 'unverified_alert' && (
-        <StatusTag variant="alert">{t('report.instrument.unverifiedAlert')}</StatusTag>
-      )}
-      {inst.thin_evidence_instrument === 'critical_presence_failure' && (
-        <StatusTag variant="critical">{t('report.instrument.criticalPresenceFailure')}</StatusTag>
-      )}
-      {inst.thin_evidence_instrument === 'critical_single_signal' && (
-        <StatusTag variant="alert">{t('report.instrument.criticalSingleSignal')}</StatusTag>
-      )}
-      {inst.salience_critical && inst.floor_bypassed && (
-        <StatusTag variant="alert">{t('report.instrument.salienceFloorBypass')}</StatusTag>
-      )}
-      {inst.thin_evidence_instrument === 'limited_evidence_neutral' && (
-        <StatusTag variant="neutral">{t('report.instrument.limitedNeutral')}</StatusTag>
-      )}
-      {inst.interpretive_summary && (
-        <StatusTag variant="warning">{t('report.instrument.interpretiveSummary')}</StatusTag>
-      )}
-      {inst.source_cap_binding && (
-        <StatusTag variant="warning">{t('report.instrument.sourceCapBinding')}</StatusTag>
-      )}
+      {tags.map((tag) => (
+        <Box
+          key={tag.key}
+          sx={(theme) => ({
+            display: 'flex',
+            justifyContent: 'center',
+            minWidth: 0,
+            [theme.breakpoints.down('sm')]: {
+              width: '100%',
+              '& .MuiChip-root': {
+                width: '100%',
+                justifyContent: 'center',
+              },
+            },
+          })}
+        >
+          {tag}
+        </Box>
+      ))}
     </Stack>
   );
 }
@@ -539,20 +589,155 @@ function MacroSignalsSection({ macroSignals, t, isAnalyst }) {
   );
 }
 
+function OperatorComponentStateBanner({ comp, t }) {
+  const state = comp.operator_display_state;
+  if (!state || state === 'assessed_claims') return null;
+  const stateLabel = t(`report.operatorState.${state}`);
+  const reason = comp.operator_state_reason;
+  const reasonLabel = reason ? t(`report.operatorState.reason.${reason}`) : null;
+  const severity = state === 'insufficient_data' ? 'warning' : 'info';
+  const tierLabel = comp.specialist_tier
+    ? t('report.investigation.specialistTier').replace('{tier}', String(comp.specialist_tier))
+    : null;
+  const ranLabel = comp.specialist_ran === true
+    ? t('report.investigation.specialistRan')
+    : (comp.specialist_ran === false ? t('report.investigation.specialistNotRan') : null);
+  return (
+    <Alert severity={severity} sx={{ marginBottom: 1 }}>
+      {stateLabel}
+      {reasonLabel && reasonLabel !== `report.operatorState.reason.${reason}` && (
+        <>
+          {' — '}
+          {reasonLabel}
+        </>
+      )}
+      {(tierLabel || ranLabel) && (
+        <Typography variant="body2" sx={{ marginTop: 0.5, opacity: 0.9 }}>
+          {[tierLabel, ranLabel].filter(Boolean).join(' · ')}
+        </Typography>
+      )}
+    </Alert>
+  );
+}
+
+function InvestigationSummaryBanner({ summary, t }) {
+  if (!summary || typeof summary !== 'object') return null;
+  const show = summary.degrade_reason
+    || summary.synthesis_mode === 'deterministic'
+    || summary.synthesis_mode === 'cached'
+    || (summary.signals_scoring_quarantined ?? 0) > 0
+    || summary.budget_degrade_mode;
+  if (!show) return null;
+
+  const lines = [];
+  if (summary.degrade_reason) {
+    lines.push(t('report.investigation.degradeReason').replace('{reason}', String(summary.degrade_reason)));
+  }
+  if (summary.synthesis_mode === 'deterministic' || summary.synthesis_mode === 'cached') {
+    lines.push(t('report.investigation.synthesisMode').replace('{mode}', String(summary.synthesis_mode)));
+  }
+  if ((summary.signals_scoring_quarantined ?? 0) > 0) {
+    lines.push(
+      t('report.investigation.scoringQuarantined').replace('{n}', String(summary.signals_scoring_quarantined)),
+    );
+  }
+  if (summary.budget_degrade_mode) {
+    lines.push(
+      t('report.investigation.budgetDegrade').replace('{mode}', String(summary.budget_degrade_mode)),
+    );
+  }
+
+  return (
+    <Alert severity="info" sx={{ marginBottom: 2 }}>
+      <Typography variant="cardTitle" sx={{ marginBottom: 0.5 }}>
+        {t('report.investigation.summaryTitle')}
+      </Typography>
+      <Stack spacing={0.25}>
+        {lines.map((line) => (
+          <Typography key={line} variant="body2">{line}</Typography>
+        ))}
+      </Stack>
+    </Alert>
+  );
+}
+
+function EvidencePartitionPanel({ comp, t }) {
+  const coverage = comp.coverage;
+  if (!coverage) return null;
+  const state = comp.operator_display_state;
+  const usage = comp.evidence_usage_state;
+  const show = state === 'specialist_skipped'
+    || state === 'evidence_quarantined'
+    || state === 'insufficient_data'
+    || usage === 'field_anchor_only'
+    || usage === 'mixed'
+    || (coverage.investigation_used ?? 0) !== (coverage.scoring_used ?? 0)
+    || (coverage.scoring_quarantined ?? 0) > 0;
+  if (!show) return null;
+
+  const rows = [];
+  if ((coverage.investigation_used ?? 0) > 0) {
+    rows.push(t('report.evidencePartition.investigationUsed').replace('{n}', String(coverage.investigation_used)));
+  }
+  if ((coverage.scoring_quarantined ?? 0) > 0) {
+    rows.push(
+      t('report.evidencePartition.scoringQuarantined').replace('{n}', String(coverage.scoring_quarantined)),
+    );
+  }
+  if (usage === 'field_anchor_only' || usage === 'mixed') {
+    if (coverage.scoring_used > 0) {
+      rows.push(t('report.evidencePartition.fieldAnchor').replace('{n}', String(coverage.scoring_used)));
+    }
+  } else if (coverage.scoring_used > 0) {
+    rows.push(t('report.evidencePartition.scoringUsed').replace('{n}', String(coverage.scoring_used)));
+  }
+  if (coverage.quarantined > 0) {
+    rows.push(t('report.evidencePartition.quarantined').replace('{n}', String(coverage.quarantined)));
+  }
+  if (coverage.macro_context > 0) {
+    rows.push(t('report.evidencePartition.macroContext').replace('{n}', String(coverage.macro_context)));
+  }
+  if (coverage.claims > 0) {
+    rows.push(t('report.evidencePartition.claims').replace('{n}', String(coverage.claims)));
+  }
+
+  if (rows.length === 0) return null;
+
+  return (
+    <Box sx={(theme) => ({
+      marginBottom: theme.spacing(1),
+      padding: theme.spacing(1),
+      borderRadius: `${theme.custom.radius.section}px`,
+      border: theme.custom.border.hairline,
+      backgroundColor: theme.palette.action.hover,
+    })}
+    >
+      <Typography variant="meta" color="text.secondary" sx={{ display: 'block', marginBottom: 0.5 }}>
+        {t('report.evidencePartition.title')}
+      </Typography>
+      <Stack spacing={0.25}>
+        {rows.map((row) => (
+          <Typography key={row} variant="body2" sx={{ fontSize: '0.85rem' }}>{row}</Typography>
+        ))}
+      </Stack>
+    </Box>
+  );
+}
+
 function ComponentCard({
   comp,
   t,
   sourceSignals,
   driftSeries,
   driftLoading,
-  displayTier = 'operator',
+  displayView = 'operator',
   flat = false,
   open,
   evidenceOpen,
   onToggle,
   onEvidenceToggle,
 }) {
-  const isAnalyst = displayTier === 'analyst';
+  const isAnalyst = displayView === 'analyst';
   const [showScoreDrift, setShowScoreDrift] = useState(false);
   const label = t(`comp.${comp.component_id}`) ?? comp.component_id.replaceAll('_', ' ');
 
@@ -560,8 +745,14 @@ function ComponentCard({
   const signals = isFiltered ? (sourceSignals ?? []) : null;
   const curatedEvidence = isFiltered ? null : (comp.evidence ?? []);
   const evidenceCount = isFiltered ? signals.length : curatedEvidence.length;
-  const isInsufficient = comp.confidence === 'insufficient_data'
-    || comp.instrument?.operator_shows_score === false;
+  const isInsufficient = comp.operator_display_state
+    ? comp.operator_display_state === 'insufficient_data'
+    : (comp.confidence === 'insufficient_data' || comp.instrument?.operator_shows_score === false);
+  const showEvidenceAccordion = isAnalyst
+    || !comp.operator_display_state
+    || comp.operator_display_state === 'assessed_claims'
+    || comp.operator_display_state === 'assessed_low_confidence'
+    || (comp.coverage?.scoring_used ?? 0) > 0;
   const isContested = comp.instrument?.contested === true
     || comp.instrument?.contested_thin === true;
 
@@ -578,31 +769,89 @@ function ComponentCard({
           } : null),
         })}
     >
-      <AccordionSummary>
-        {createElement(getComponentIcon(comp.component_id), {
-          sx: (theme) => ({
-            fontSize: theme.typography.sectionTitle.fontSize,
-            color: theme.palette.text.secondary,
-            marginRight: theme.spacing(1),
-          }),
+      <AccordionSummary
+        sx={(theme) => ({
+          ...(flat ? {
+            minHeight: 56,
+            [theme.breakpoints.down('sm')]: {
+              minHeight: 60,
+              py: 1.25,
+            },
+          } : null),
+          '& .MuiAccordionSummary-content': {
+            alignItems: flat ? 'center' : { xs: 'flex-start', sm: 'center' },
+            minWidth: 0,
+            margin: flat
+              ? `${theme.spacing(0.75, 0)} !important`
+              : `${theme.spacing(0.5, 0)} !important`,
+            ...(flat ? {
+              [theme.breakpoints.down('sm')]: {
+                margin: `${theme.spacing(1, 0)} !important`,
+              },
+            } : null),
+          },
         })}
-        <Stack direction="column" sx={{ flex: 1, minWidth: 0 }}>
-          <Stack direction="row" alignItems="center" spacing={1}>
-            <Typography sx={{ fontWeight: 500, textTransform: 'capitalize' }}>
-              {label}
-            </Typography>
-            {isContested && <ContestedBadge t={t} />}
-          </Stack>
-        </Stack>
+      >
         <Stack
-          direction="row"
-          alignItems="center"
+          direction={{ xs: 'column', sm: 'row' }}
+          alignItems={{ xs: 'flex-start', sm: 'center' }}
           spacing={1}
-          sx={{ flexShrink: 0, marginLeft: 'auto', textAlign: 'right', maxWidth: '55%' }}
+          sx={{ width: '100%', minWidth: 0 }}
         >
-          <InstrumentStateBadges instrument={comp.instrument} t={t} />
+          <Stack
+            direction="row"
+            alignItems="flex-start"
+            spacing={1}
+            sx={{ flex: 1, minWidth: 0, width: '100%' }}
+          >
+            {createElement(getComponentIcon(comp.component_id), {
+              sx: (theme) => ({
+                fontSize: theme.typography.sectionTitle.fontSize,
+                color: theme.palette.text.secondary,
+                marginTop: flat ? 0 : theme.spacing(0.25),
+                flexShrink: 0,
+              }),
+            })}
+            <Stack direction="column" spacing={0.25} sx={{ flex: 1, minWidth: 0 }}>
+              <Stack direction="row" alignItems="center" flexWrap="wrap" spacing={0.75} useFlexGap>
+                <Typography
+                  sx={(theme) => ({
+                    fontWeight: 500,
+                    textTransform: 'capitalize',
+                    wordBreak: 'break-word',
+                    overflowWrap: 'anywhere',
+                    lineHeight: 1.35,
+                    fontSize: theme.typography.body2.fontSize,
+                    [theme.breakpoints.up('sm')]: {
+                      fontSize: theme.typography.body1.fontSize,
+                    },
+                  })}
+                >
+                  {label}
+                </Typography>
+                {isContested && <ContestedBadge t={t} />}
+              </Stack>
+            </Stack>
+          </Stack>
           {isAnalyst && comp.instrument?.significant_delta && (
-            <StatusTag variant="alert">{t('report.delta.significant')}</StatusTag>
+            <Stack
+              direction="row"
+              alignItems="center"
+              flexWrap="wrap"
+              spacing={0.75}
+              useFlexGap
+              sx={(theme) => ({
+                flexShrink: 0,
+                width: { xs: '100%', sm: 'auto' },
+                maxWidth: { xs: '100%', sm: '55%' },
+                marginLeft: { xs: 0, sm: 'auto' },
+                justifyContent: { xs: 'center', sm: 'flex-end' },
+              })}
+            >
+              <Box sx={{ width: { xs: '100%', sm: 'auto' }, display: 'flex', justifyContent: { xs: 'center', sm: 'flex-end' } }}>
+                <StatusTag variant="alert">{t('report.delta.significant')}</StatusTag>
+              </Box>
+            </Stack>
           )}
         </Stack>
       </AccordionSummary>
@@ -649,6 +898,8 @@ function ComponentCard({
             {t('report.dataQualityCaveat')}: {comp.data_quality_caveat}
           </Typography>
         )}
+        {!isAnalyst && <OperatorComponentStateBanner comp={comp} t={t} />}
+        {!isAnalyst && <EvidencePartitionPanel comp={comp} t={t} />}
         <MarkdownArticle variant="report" markdown={expandSourceCitationLinks(comp.narrative ?? '')} />
         <EvidenceTreePanel
           evidenceTree={comp.evidence_tree}
@@ -665,7 +916,7 @@ function ComponentCard({
             {t('report.narrative.groundingScore').replace('{score}', String(comp.narrative_grounding_score))}
           </Typography>
         )}
-        {evidenceCount > 0 && (
+        {showEvidenceAccordion && evidenceCount > 0 && (
           <Accordion
             expanded={evidenceOpen}
             onChange={(_, expanded) => onEvidenceToggle(expanded)}
@@ -685,7 +936,11 @@ function ComponentCard({
               fontSize: theme.typography.meta.fontSize,
               fontWeight: 500,
             })}>
-              <Typography variant="meta" component="span">{t('report.evidence')}</Typography>
+              <Typography variant="meta" component="span">
+                {comp.operator_display_state === 'insufficient_data' && !isAnalyst
+                  ? t('report.evidencePartition.rawScored')
+                  : t('report.evidence')}
+              </Typography>
               <Typography variant="caption" component="span" sx={{ marginLeft: 'auto', opacity: 0.7 }}>
                 {evidenceCount} {t('report.items')}
               </Typography>
@@ -796,7 +1051,7 @@ function ComponentCard({
 export function ReportView({
   assessment,
   scoreBySource,
-  displayTier = 'operator',
+  displayView = 'operator',
   readOnly = false,
   translating,
   translateError,
@@ -817,7 +1072,7 @@ export function ReportView({
   showValidationReview = false,
   onOpenValidationInChat,
 }) {
-  const isAnalyst = displayTier === 'analyst';
+  const isAnalyst = displayView === 'analyst';
   const { t } = useLanguage();
   const theme = useTheme();
   const [openCompIdInternal, setOpenCompIdInternal] = useState(null);
@@ -890,7 +1145,7 @@ export function ReportView({
 
       <EpistemicStatusBanner
         assessment={assessment}
-        displayTier={displayTier}
+        displayView={displayView}
         attentionItems={attentionItems}
         suggestCrisisBudget={suggestCrisisBudget}
       />
@@ -917,14 +1172,14 @@ export function ReportView({
         <EvidenceOverviewPanel
           assessment={assessment}
           reportScope={reportScope}
-          displayTier={displayTier}
+          displayView={displayView}
         />
       )}
 
       <AttentionPanel
         items={attentionItems}
         driftAlerts={driftAlerts}
-        displayTier={displayTier}
+        displayView={displayView}
         onJumpToComponent={onJumpToComponent}
         onScrollToValidationReview={showValidationReview ? () => {
           validationReviewRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1084,6 +1339,9 @@ export function ReportView({
             marginRight: 'auto',
           }}
         >
+          {!isAnalyst && (
+            <InvestigationSummaryBanner summary={assessment.investigation_summary} t={t} />
+          )}
           <MarkdownArticle
             variant="report"
             markdown={expandSourceCitationLinks(assessment.cross_component_synthesis ?? '')}
@@ -1099,8 +1357,12 @@ export function ReportView({
               borderRadius: `${theme.custom.radius.section}px`,
               overflow: 'hidden',
               background: theme.palette.background.paper,
+              minWidth: 0,
+              [theme.breakpoints.down('sm')]: {
+                overflow: 'visible',
+              },
             }
-            : undefined)}
+            : { minWidth: 0 })}
         >
           {(visibleComponents).map((c, componentIndex, componentList) => (
             <Box
@@ -1115,7 +1377,7 @@ export function ReportView({
               <ComponentCard
                 comp={c}
                 t={t}
-                displayTier={displayTier}
+                displayView={displayView}
                 flat={readOnly}
                 sourceSignals={getSourceSignals(c.component_id)}
                 driftSeries={driftMap?.[c.component_id]?.series ?? []}
@@ -1210,7 +1472,7 @@ ComponentCard.propTypes = {
   sourceSignals: PropTypes.arrayOf(PropTypes.object),
   driftSeries: PropTypes.array,
   driftLoading: PropTypes.bool,
-  displayTier: PropTypes.oneOf(['operator', 'analyst']),
+  displayView: PropTypes.oneOf(['operator', 'analyst']),
   flat: PropTypes.bool,
   open: PropTypes.bool,
   evidenceOpen: PropTypes.bool,
@@ -1221,7 +1483,7 @@ ComponentCard.propTypes = {
 ReportView.propTypes = {
   assessment: assessmentShape.isRequired,
   scoreBySource: scoreBySourceShape,
-  displayTier: PropTypes.oneOf(['operator', 'analyst']),
+  displayView: PropTypes.oneOf(['operator', 'analyst']),
   readOnly: PropTypes.bool,
   translating: PropTypes.bool,
   translateError: PropTypes.string,

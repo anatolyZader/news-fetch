@@ -6,17 +6,12 @@ import {
 } from '../../../client/src/lib/epistemicBannerMessages.js';
 
 describe('deriveEpistemicBannerMessages', () => {
-  it('includes epistemic banner for operator mode', () => {
-    const msgs = deriveEpistemicBannerMessages({ components: [] }, { displayTier: 'operator' });
-    assert.ok(msgs.some((m) => m.id === 'methodology:epistemic'));
-  });
-
-  it('skips epistemic banner for analyst mode', () => {
-    const msgs = deriveEpistemicBannerMessages({ components: [] }, { displayTier: 'analyst' });
+  it('does not show methodology epistemic banner for operator mode', () => {
+    const msgs = deriveEpistemicBannerMessages({ components: [] }, { displayView: 'operator' });
     assert.ok(!msgs.some((m) => m.id === 'methodology:epistemic'));
   });
 
-  it('warns when majority of components have thin evidence', () => {
+  it('does not show thin evidence warning when majority have thin evidence', () => {
     const assessment = {
       components: [
         { instrument: { evidence_sufficiency: 'thin' } },
@@ -24,8 +19,8 @@ describe('deriveEpistemicBannerMessages', () => {
         { instrument: { evidence_sufficiency: 'adequate' } },
       ],
     };
-    const msgs = deriveEpistemicBannerMessages(assessment, { displayTier: 'operator' });
-    assert.ok(msgs.some((m) => m.id === 'methodology:thin_evidence'));
+    const msgs = deriveEpistemicBannerMessages(assessment, { displayView: 'operator' });
+    assert.ok(!msgs.some((m) => m.id === 'methodology:thin_evidence'));
   });
 
   it('dedupes data void banner when attention item present', () => {
@@ -34,7 +29,7 @@ describe('deriveEpistemicBannerMessages', () => {
       components: [],
     };
     const msgs = deriveEpistemicBannerMessages(assessment, {
-      displayTier: 'operator',
+      displayView: 'operator',
       attentionItemIds: ['data_void:critical'],
     });
     assert.ok(!msgs.some((m) => m.id === 'data_void:banner'));

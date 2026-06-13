@@ -140,7 +140,8 @@ export function rankClusters(clusters, opts = {}) {
         + c.high_novelty_count * 5
         + c.medium_novelty_count * 2
         + (c.kinds[LEARNING_CAPTURE_KINDS.UNKNOWN_TYPE] ?? 0) * 2
-        + (c.kinds[LEARNING_CAPTURE_KINDS.RESIDUAL_OBSERVATION] ?? 0) * 3,
+        + (c.kinds[LEARNING_CAPTURE_KINDS.RESIDUAL_OBSERVATION] ?? 0) * 3
+        + (c.kinds[LEARNING_CAPTURE_KINDS.VERIFIED_OPEN_OBSERVATION] ?? 0) * 6,
     }))
     .sort((a, b) => b.priority_score - a.priority_score);
 }

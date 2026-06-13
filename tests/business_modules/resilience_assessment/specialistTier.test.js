@@ -56,6 +56,24 @@ describe('specialistTier', () => {
     }), 'C');
   });
 
+  it('returns B for investigation-eligible component outside focus', () => {
+    const ep = {
+      by_component: {
+        information_communication: {
+          contested: false,
+          delta_significance: 'LOW',
+          evidence_mass: 57,
+          investigation_eligible: true,
+        },
+      },
+    };
+    assert.equal(resolveSpecialistTier({
+      componentId: 'information_communication',
+      epistemicProfile: ep,
+      plan: { focus_components: ['narrative'] },
+    }), 'B');
+  });
+
   it('maxRoundsForTier maps A/B/C', () => {
     assert.equal(maxRoundsForTier('A'), 3);
     assert.equal(maxRoundsForTier('B'), 1);

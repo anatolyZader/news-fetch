@@ -1,5 +1,6 @@
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { mergeSafeMarkdownComponents } from './safeMarkdownComponents.js';
 import Box from '@mui/material/Box';
 import Alert from '@mui/material/Alert';
 import { alpha } from '@mui/material/styles';
@@ -227,6 +228,7 @@ export function MarkdownArticle({
   maxWidth,
 }) {
   const articleSx = VARIANT_STYLES[variant] ?? VARIANT_STYLES.doc;
+  const mdComponents = mergeSafeMarkdownComponents(components);
   return (
     <Box sx={{ maxWidth: maxWidth ?? '100%', width: '100%', textAlign: 'left' }}>
       {banner && (
@@ -247,7 +249,7 @@ export function MarkdownArticle({
         </Alert>
       )}
       <Box component="article" dir={variant === 'doc' ? 'ltr' : 'auto'} sx={articleSx}>
-        <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
+        <ReactMarkdown remarkPlugins={[remarkGfm]} components={mdComponents}>
           {markdown}
         </ReactMarkdown>
       </Box>

@@ -9,6 +9,11 @@ const OOV_CLUSTER_CAP = 3;
 const RAG_SEED_CLAIM_CAP = 3;
 const THIN_ARTICLE_THRESHOLD = 5;
 
+function openObsGraphCap() {
+  const n = Number.parseInt(process.env.RESILIENCE_OPEN_OBS_GRAPH_CAP ?? '20', 10);
+  return Number.isFinite(n) && n > 0 ? Math.min(n, 100) : 20;
+}
+
 export function oovGraphEnabled() {
   const v = process.env.RESILIENCE_ASSESS_OOV_GRAPH;
   return v == null || v === '' || v === '1' || v === 'true';
@@ -121,6 +126,7 @@ function buildComponentHypotheses({
   totalArticles,
   nodes,
   oovClaimsByComponent,
+  openClaimsByComponent,
   residualClaimsByComponent,
 }) {
   const byComponent = {};
@@ -139,6 +145,7 @@ function buildComponentHypotheses({
     const mergedClaims = [
       ...claims,
       ...(oovClaimsByComponent[compId] ?? []),
+      ...(openClaimsByComponent[compId] ?? []),
       ...(residualClaimsByComponent[compId] ?? []),
     ];
     nodes.hypotheses.push({ id: `hyp:${compId}`, component_id: compId });
@@ -160,6 +167,7 @@ export function buildEvidenceGraph({
   oovBurst = null,
   totalArticles = 0,
   residualObservations = [],
+  openObservations = [],
   dataVoid = null,
 }) {
   const registry = scoredLike
@@ -180,7 +188,9 @@ export function buildEvidenceGraph({
   addSignalNodes(signals, registry, nodes, edges);
 
   const oovClaimsByComponent = injectOovClusters(nodes, oovBurst, dataVoid);
-  const residualClaimsByComponent = injectResidualObservations(nodes, residualObservations);
+  const mergedOpen = openObservations.length ? openObservations : residualObservations;
+  const openClaimsByComponent = injectOpenObservations(nodes, mergedOpen);
+  const residualClaimsByComponent = Object.fromEntries(COMPONENT_IDS.map((id) => [id, []]));
   const byComponent = buildComponentHypotheses({
     hits,
     signals,
@@ -189,6 +199,7 @@ export function buildEvidenceGraph({
     totalArticles,
     nodes,
     oovClaimsByComponent,
+    openClaimsByComponent,
     residualClaimsByComponent,
   });
 
@@ -259,40 +270,66 @@ function injectOovClusters(nodes, oovBurst, dataVoid = null) {
 
 const RESIDUAL_CLAIM_CAP = 3;
 
-function injectResidualObservations(nodes, observations = []) {
+function confidenceRank(obs) {
+  const map = { high: 3, medium: 2, low: 1 };
+  return map[obs.confidence] ?? 2;
+}
+
+function injectOpenObservations(nodes, observations = []) {
   const byComponent = Object.fromEntries(COMPONENT_IDS.map((id) => [id, []]));
   if (!observations?.length) return byComponent;
 
+  const cap = openObsGraphCap();
+  const sorted = [...observations].sort((a, b) => {
+    const confDiff = (b.routing_confidence ?? 0) - (a.routing_confidence ?? 0);
+    if (confDiff !== 0) return confDiff;
+    return confidenceRank(b) - confidenceRank(a);
+  });
+
   const byComp = Object.fromEntries(COMPONENT_IDS.map((id) => [id, []]));
-  for (const obs of observations) {
+  for (const obs of sorted) {
     const compId = obs.component_id ?? mapObservationToComponent(obs);
     if (byComp[compId]) byComp[compId].push(obs);
     else byComp.narrative.push(obs);
   }
 
+  let injected = 0;
   for (const compId of COMPONENT_IDS) {
-    const list = byComp[compId].slice(0, RESIDUAL_CLAIM_CAP);
-    for (const [i, obs] of list.entries()) {
+    if (injected >= cap) break;
+    const list = byComp[compId];
+    for (let i = 0; i < list.length && injected < cap; i += 1) {
+      const obs = list[i];
       const text = observationText(obs).slice(0, 200);
-      const ref = obs.article_url ?? obs.source_id ?? `residual:${compId}:${i}`;
+      const obsId = obs.observation_id ?? `obs-${compId}-${i}`;
+      const ref = `open:${obsId}`;
+      const isPipeline = obs.source === 'pipeline';
       nodes.signals.push({
-        id: `residual:${ref}`,
-        signal_type: 'residual_observation',
+        id: ref,
+        signal_type: isPipeline ? 'open_observation' : 'residual_observation',
         source_type: obs.source_type ?? obs.source_label ?? null,
         evidence: text.slice(0, 300),
         grounding_tier: 'unverified',
       });
+      const flags = isPipeline
+        ? ['unverified', 'open_observation']
+        : ['unverified', 'residual_observation', 'archive_only'];
       byComponent[compId].push({
-        claim_id: `${compId}:res${i + 1}`,
-        text: text || 'Open residual observation from zero-signal article',
-        support: [{ ref: `residual:${ref}`, mass: 0.2 }],
+        claim_id: `${compId}:open${i + 1}`,
+        text: text || 'Open observation from parallel extract',
+        support: [{ ref, mass: isPipeline ? 0.25 : 0.2 }],
         contradict: [],
-        epistemic_flags: ['unverified', 'residual_observation', 'archive_only'],
+        epistemic_flags: flags,
+        observation_id: obsId,
       });
+      injected += 1;
     }
   }
 
   return byComponent;
+}
+
+function injectResidualObservations(nodes, observations = []) {
+  return injectOpenObservations(nodes, observations);
 }
 
 function mapOovToComponent(keywords, sample) {

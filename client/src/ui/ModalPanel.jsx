@@ -5,6 +5,8 @@ import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import IconButton from '@mui/material/IconButton';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
+import useMediaQuery from '@mui/material/useMediaQuery';
+import { useTheme } from '@mui/material/styles';
 import { ResizableFrame } from './ResizableFrame.jsx';
 import { panelSectionRadius } from './panelChrome.js';
 import PropTypes from 'prop-types';
@@ -40,6 +42,8 @@ export function ModalPanel({
 }) {
   const [size, setSize] = useState(() => getInitialSize(initialWidth, initialHeight));
   const paperRef = useRef(null);
+  const theme = useTheme();
+  const isCompact = useMediaQuery(theme.breakpoints.down('sm'));
 
   const clampSize = useCallback((next) => {
     if (browserWindow == null) {
@@ -48,11 +52,12 @@ export function ModalPanel({
     }
     const maxW = browserWindow.innerWidth - 32;
     const maxH = Math.floor(browserWindow.innerHeight * 0.92);
+    const minW = isCompact ? Math.min(400, maxW) : 400;
     setSize({
-      w: Math.max(400, Math.min(maxW, next.width)),
+      w: Math.max(minW, Math.min(maxW, next.width)),
       h: Math.max(320, Math.min(maxH, next.height)),
     });
-  }, []);
+  }, [isCompact]);
 
   const modelessMinimize = modeless && minimizeOnOutsideClick;
 
@@ -97,6 +102,7 @@ export function ModalPanel({
     <Dialog
       open={Boolean(open)}
       onClose={handleClose}
+      fullScreen={isCompact}
       aria-label={ariaLabel ?? (typeof title === 'string' ? title : undefined)}
       maxWidth={false}
       scroll="paper"
@@ -117,16 +123,16 @@ export function ModalPanel({
         paper: {
           ref: paperRef,
           sx: (theme) => ({
-            width: size.w,
-            height: size.h,
+            width: isCompact ? '100%' : size.w,
+            height: isCompact ? '100%' : size.h,
             maxWidth: 'none',
             maxHeight: 'none',
             margin: 0,
-            marginTop: '5vh',
-            marginBottom: theme.spacing(2),
+            marginTop: isCompact ? 0 : '5vh',
+            marginBottom: isCompact ? 0 : theme.spacing(2),
             marginLeft: 'auto',
             marginRight: 'auto',
-            borderRadius: panelSectionRadius(theme),
+            borderRadius: isCompact ? 0 : panelSectionRadius(theme),
             border: theme.custom.border.hairline,
             boxShadow: theme.custom.elevation.modal,
             overflow: 'hidden',
@@ -199,6 +205,7 @@ export function ModalPanel({
           </Stack>
         </DialogTitle>
         <Box sx={{ flex: '1 1 auto', minHeight: 0, overflow: 'auto' }}>{children}</Box>
+        {!isCompact && (
         <ResizableFrame
           width={size.w}
           height={size.h}
@@ -209,6 +216,7 @@ export function ModalPanel({
           maxHeight={browserWindow ? Math.floor(browserWindow.innerHeight * 0.92) : 2000}
           zIndex={3}
         />
+        )}
       </Box>
     </Dialog>
   );
