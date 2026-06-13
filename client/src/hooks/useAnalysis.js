@@ -232,7 +232,9 @@ export function useReportDates(scope, accessToken) {
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
+    queueMicrotask(() => {
+      if (!cancelled) setLoading(true);
+    });
     const params = new URLSearchParams();
     if (scope !== 'national') params.set('scope', scope);
     const qs = params.toString() ? `?${params.toString()}` : '';

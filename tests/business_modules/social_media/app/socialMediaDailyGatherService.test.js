@@ -114,6 +114,7 @@ describe('socialMediaDailyGatherService', () => {
   });
 
   it('execute path classifies behavior posts and saves bundles', async () => {
+    const anchorDate = new Date().toISOString().slice(0, 10);
     const dataDir = mkdtempSync(join(tmpdir(), 'sm-daily-'));
     const persistencePort = createSocialMediaFsAdapter({ dataDir });
     const gatherService = createSocialMediaGatherService({ persistencePort });
@@ -129,7 +130,7 @@ describe('socialMediaDailyGatherService', () => {
             id: '9001',
             author_id: '1',
             text: 'תושבים נכנסים למקלט בנהריה אחרי האזעקה',
-            created_at: '2026-05-23T08:00:00.000Z',
+            created_at: `${anchorDate}T08:00:00.000Z`,
           }],
           includes: { users: [{ id: '1', username: 'north_user' }] },
         };
@@ -146,7 +147,7 @@ describe('socialMediaDailyGatherService', () => {
       classifyCandidates: async (candidates) => ({
         findings: candidates.map((c) => ({
           id: c.id,
-          date: '2026-05-23',
+          date: anchorDate,
           platform: c.platform,
           quote_original: c.text,
           resilience_component: 'functional_continuity',
@@ -157,7 +158,7 @@ describe('socialMediaDailyGatherService', () => {
     });
 
     const result = await service.gatherDaily({
-      date: '2026-05-23',
+      date: anchorDate,
       days: 1,
       north: true,
       execute: true,

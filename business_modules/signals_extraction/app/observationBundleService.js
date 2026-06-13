@@ -38,5 +38,20 @@ export function createObservationBundleService({ store }) {
       }
       return bundles;
     },
+
+    /**
+     * Pipeline profile bundles for one source type with bundle date <= endDate (no day cap).
+     * @param {{ endDate: string, sourceType: string, profile?: string }}
+     */
+    loadPipelineBundlesUpToDate({ endDate, sourceType, profile = 'pipeline' }) {
+      const entries = store.listBundles({ endDate, maxDays: 36500, profile, sourceType });
+      const bundles = [];
+      for (const entry of entries) {
+        if (entry.date > endDate) continue;
+        const bundle = store.loadBundle(entry.filename);
+        if (bundle) bundles.push({ ...entry, bundle });
+      }
+      return bundles;
+    },
   };
 }

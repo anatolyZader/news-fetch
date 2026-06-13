@@ -107,3 +107,4 @@ export {
   runArticleDualPathExtract,
   indexExtractStoryClusters,
 } from './app/articleDualPathExtractService.js';
+export { readResilienceHistory } from './infrastructure/reportHistoryReader.js';

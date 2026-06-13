@@ -12,10 +12,10 @@ import {
 import {
   newsArticlesPath,
   newsSignalsPath,
-  openPipelineObsNeedsExtract,
   pipelineOpenObservationsPath,
   socialSignalsPath,
 } from '../../../../business_modules/resilience/domain/services/pipelineArtifactPaths.js';
+import { openPipelineObsNeedsExtract } from '../../../../business_modules/resilience/app/pipelineOpenObsGuard.js';
 import { pipelineObservationBundleFilename } from '../../../../business_modules/signals_extraction/domain/services/observationSchema.js';
 
 describe('parsePipelineDateArg', () => {

@@ -40,6 +40,77 @@ function componentClaims(assessment, componentId) {
   };
 }
 
+function resolveCorroborationLevel(multiHop, refs) {
+  if (multiHop && hasCorroboratingRef(refs)) return 'multi_hop_and_rag';
+  if (multiHop) return 'multi_hop';
+  if (hasCorroboratingRef(refs)) return 'rag_chunk';
+  return null;
+}
+
+function verifyOpenClaimEntry({
+  claim,
+  componentId,
+  multiHop,
+  obsById,
+  seen,
+}) {
+  const refs = claimEvidenceRefs(claim);
+  if (!hasOpenRef(refs)) return null;
+
+  const openRef = refs.find((r) => OPEN_REF_PREFIX.test(r) || RESIDUAL_REF_PREFIX.test(r));
+  const observationId = openRef?.includes(':') ? openRef.split(':').slice(1).join(':') : null;
+  const obs = observationId ? obsById.get(observationId) : null;
+  const resolvedId = obs?.observation_id ?? observationId ?? 'unknown';
+  const corroboration_level = resolveCorroborationLevel(multiHop, refs);
+  if (!corroboration_level) return null;
+
+  const key = `${resolvedId}:${componentId}:${claim.claim_id ?? claim.text?.slice(0, 40)}`;
+  if (seen.has(key)) return null;
+  seen.add(key);
+
+  return {
+    observation_id: resolvedId,
+    component_id: componentId,
+    claim_id: claim.claim_id ?? null,
+    corroboration_level,
+    observation: obs ?? null,
+  };
+}
+
+function verifyGraphClaimEntry(claim, componentId, multiHop, obsById, seen) {
+  const refs = claimEvidenceRefs(claim);
+  if (!hasOpenRef(refs)) return null;
+  const openRef = refs.find((r) => OPEN_REF_PREFIX.test(r));
+  const observationId = openRef?.split(':')[1];
+  const obs = observationId ? obsById.get(observationId) : null;
+  if (!obs) return null;
+  const key = `${obs.observation_id}:${componentId}:${claim.claim_id}`;
+  if (seen.has(key)) return null;
+  if (!multiHop && !hasCorroboratingRef(refs)) return null;
+  seen.add(key);
+  return {
+    observation_id: obs.observation_id,
+    component_id: componentId,
+    claim_id: claim.claim_id ?? null,
+    corroboration_level: hasCorroboratingRef(refs) ? 'rag_chunk' : 'multi_hop',
+    observation: obs,
+  };
+}
+
+function verifyOpenClaimsFromGraph(assessment, evidenceGraph, obsById, seen) {
+  const verified = [];
+  for (const [componentId, graph] of Object.entries(evidenceGraph.by_component)) {
+    const comp = assessment.components?.find((c) => c.component_id === componentId);
+    if (comp?.specialist_ran !== true) continue;
+    const multiHop = specialistMultiHop(componentClaims(assessment, componentId));
+    for (const claim of graph.claims ?? []) {
+      const entry = verifyGraphClaimEntry(claim, componentId, multiHop, obsById, seen);
+      if (entry) verified.push(entry);
+    }
+  }
+  return verified;
+}
+
 /**
  * @param {object} assessment
  * @param {object[]} openObservations
@@ -63,60 +134,19 @@ export function verifyOpenEvidenceClaims(assessment, openObservations = [], evid
     const multiHop = specialistMultiHop(compAssessment);
 
     for (const claim of compAssessment.claims) {
-      const refs = claimEvidenceRefs(claim);
-      if (!hasOpenRef(refs)) continue;
-
-      const openRef = refs.find((r) => OPEN_REF_PREFIX.test(r) || RESIDUAL_REF_PREFIX.test(r));
-      const observationId = openRef?.includes(':') ? openRef.split(':').slice(1).join(':') : null;
-      const obs = observationId ? obsById.get(observationId) : null;
-      const resolvedId = obs?.observation_id ?? observationId ?? 'unknown';
-
-      let corroboration_level = 'open_only';
-      if (multiHop && hasCorroboratingRef(refs)) corroboration_level = 'multi_hop_and_rag';
-      else if (multiHop) corroboration_level = 'multi_hop';
-      else if (hasCorroboratingRef(refs)) corroboration_level = 'rag_chunk';
-      else continue;
-
-      const key = `${resolvedId}:${componentId}:${claim.claim_id ?? claim.text?.slice(0, 40)}`;
-      if (seen.has(key)) continue;
-      seen.add(key);
-
-      verified.push({
-        observation_id: resolvedId,
-        component_id: componentId,
-        claim_id: claim.claim_id ?? null,
-        corroboration_level,
-        observation: obs ?? null,
+      const entry = verifyOpenClaimEntry({
+        claim,
+        componentId,
+        multiHop,
+        obsById,
+        seen,
       });
+      if (entry) verified.push(entry);
     }
   }
 
   if (evidenceGraph?.by_component && verified.length === 0) {
-    for (const [componentId, graph] of Object.entries(evidenceGraph.by_component)) {
-      const comp = assessment.components?.find((c) => c.component_id === componentId);
-      if (comp?.specialist_ran !== true) continue;
-      for (const claim of graph.claims ?? []) {
-        const refs = claimEvidenceRefs(claim);
-        if (!hasOpenRef(refs)) continue;
-        const openRef = refs.find((r) => OPEN_REF_PREFIX.test(r));
-        const observationId = openRef?.split(':')[1];
-        const obs = observationId ? obsById.get(observationId) : null;
-        if (!obs) continue;
-        const key = `${obs.observation_id}:${componentId}:${claim.claim_id}`;
-        if (seen.has(key)) continue;
-        if (!specialistMultiHop(componentClaims(assessment, componentId)) && !hasCorroboratingRef(refs)) {
-          continue;
-        }
-        seen.add(key);
-        verified.push({
-          observation_id: obs.observation_id,
-          component_id: componentId,
-          claim_id: claim.claim_id ?? null,
-          corroboration_level: hasCorroboratingRef(refs) ? 'rag_chunk' : 'multi_hop',
-          observation: obs,
-        });
-      }
-    }
+    verified.push(...verifyOpenClaimsFromGraph(assessment, evidenceGraph, obsById, seen));
   }
 
   return verified;

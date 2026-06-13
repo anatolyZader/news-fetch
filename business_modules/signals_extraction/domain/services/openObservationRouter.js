@@ -35,6 +35,58 @@ function parseRouterJson(text) {
   }
 }
 
+function routeKeywordObservations(observations) {
+  return observations.map((obs) => ({
+    ...obs,
+    component_id: obs.suggested_component && COMPONENT_IDS.includes(obs.suggested_component)
+      ? obs.suggested_component
+      : mapObservationToComponent(obs),
+    routing_method: 'keyword',
+  }));
+}
+
+async function routeLlmBatch(batch, llmPort, opts, routedById) {
+  const payload = batch.map((obs) => ({
+    observation_id: obs.observation_id,
+    behavioral_description: String(obs.behavioral_description ?? '').slice(0, 200),
+    evidence: String(obs.evidence ?? '').slice(0, 200),
+    suggested_catalog_types: obs.suggested_catalog_types ?? [],
+    suggested_component: obs.suggested_component ?? null,
+  }));
+
+  try {
+    const resp = await llmPort.createMessage({
+      model: HAIKU_MODEL,
+      max_tokens: 2048,
+      system: ROUTER_SYSTEM,
+      messages: [{ role: 'user', content: JSON.stringify(payload) }],
+    });
+    opts.onUsage?.(resp.usage);
+    const text = (resp.content ?? [])
+      .filter((block) => block.type === 'text')
+      .map((block) => block.text)
+      .join('');
+    const rows = parseRouterJson(text);
+    for (const row of rows) {
+      const id = String(row.observation_id ?? '');
+      const compId = COMPONENT_IDS.includes(row.component_id) ? row.component_id : 'narrative';
+      routedById.set(id, {
+        component_id: compId,
+        routing_confidence: Number.isFinite(row.confidence) ? row.confidence : 0.6,
+        routing_method: 'llm',
+      });
+    }
+  } catch {
+    for (const obs of batch) {
+      routedById.set(obs.observation_id, {
+        component_id: mapObservationToComponent(obs),
+        routing_confidence: 0.4,
+        routing_method: 'keyword_fallback',
+      });
+    }
+  }
+}
+
 /**
  * @param {object[]} observations
  * @param {object} [opts]
@@ -44,13 +96,7 @@ export async function routeOpenObservations(observations, opts = {}) {
 
   const mode = opts.routingMode ?? openObsRoutingMode(opts.env);
   if (mode === 'keyword') {
-    return observations.map((obs) => ({
-      ...obs,
-      component_id: obs.suggested_component && COMPONENT_IDS.includes(obs.suggested_component)
-        ? obs.suggested_component
-        : mapObservationToComponent(obs),
-      routing_method: 'keyword',
-    }));
+    return routeKeywordObservations(observations);
   }
 
   const llmPort = opts.llmPort ?? getDefaultLlmPort();
@@ -58,45 +104,7 @@ export async function routeOpenObservations(observations, opts = {}) {
 
   for (let i = 0; i < observations.length; i += BATCH_SIZE) {
     const batch = observations.slice(i, i + BATCH_SIZE);
-    const payload = batch.map((obs) => ({
-      observation_id: obs.observation_id,
-      behavioral_description: String(obs.behavioral_description ?? '').slice(0, 200),
-      evidence: String(obs.evidence ?? '').slice(0, 200),
-      suggested_catalog_types: obs.suggested_catalog_types ?? [],
-      suggested_component: obs.suggested_component ?? null,
-    }));
-
-    try {
-      const resp = await llmPort.createMessage({
-        model: HAIKU_MODEL,
-        max_tokens: 2048,
-        system: ROUTER_SYSTEM,
-        messages: [{ role: 'user', content: JSON.stringify(payload) }],
-      });
-      opts.onUsage?.(resp.usage);
-      const text = (resp.content ?? [])
-        .filter((block) => block.type === 'text')
-        .map((block) => block.text)
-        .join('');
-      const rows = parseRouterJson(text);
-      for (const row of rows) {
-        const id = String(row.observation_id ?? '');
-        const compId = COMPONENT_IDS.includes(row.component_id) ? row.component_id : 'narrative';
-        routedById.set(id, {
-          component_id: compId,
-          routing_confidence: Number.isFinite(row.confidence) ? row.confidence : 0.6,
-          routing_method: 'llm',
-        });
-      }
-    } catch {
-      for (const obs of batch) {
-        routedById.set(obs.observation_id, {
-          component_id: mapObservationToComponent(obs),
-          routing_confidence: 0.4,
-          routing_method: 'keyword_fallback',
-        });
-      }
-    }
+    await routeLlmBatch(batch, llmPort, opts, routedById);
   }
 
   return observations

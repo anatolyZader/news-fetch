@@ -11,7 +11,7 @@ import {
   fieldSignalsPath,
   newsArticlesPath,
   newsSignalsPath,
-  openPipelineObsNeedsExtract,
+  pboSignalsPath,
   pipelineOpenObservationsPath,
   radioSignalsPath,
   regionalPboDataDir,
@@ -20,8 +20,9 @@ import {
   whatsappReportPath,
   whatsappSignalsPath,
 } from '../domain/services/pipelineArtifactPaths.js';
+import { openPipelineObsNeedsExtract } from './pipelineOpenObsGuard.js';
 
-/** @typedef {'reuse'|'skip'|'fetch_news'|'extract_news'|'extract_radio'|'export_whatsapp'|'extract_whatsapp'|'extract_field'|'extract_open_only'|'extract_open_social'|'extract_pbo'|'extract_naftali'|'extract_regional_pbo'|'social_gather'|'pbo_review'} PipelineAction */
+/** @typedef {'reuse'|'skip'|'fetch_news'|'extract_news'|'extract_radio'|'export_whatsapp'|'extract_whatsapp'|'extract_field'|'extract_open_only'|'extract_open_social'|'extract_pbo'|'extract_pbo_date'|'extract_naftali'|'extract_regional_pbo'|'social_gather'|'pbo_review'} PipelineAction */
 
 /**
  * @param {string} input dd:mm:yyyy or YYYY-MM-DD

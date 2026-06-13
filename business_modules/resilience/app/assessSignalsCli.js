@@ -382,8 +382,6 @@ async function buildScopedScoring(targetDate, days, allSignals, totalArticles, r
 
   let signalsForScoring = prepared.signalsForScoring;
   const dataVoid = prepared.dataVoid;
-  const osintChannelQuarantine = prepared.osintChannelQuarantine;
-  const oovBurst = prepared.oovBurst;
   const oovScoringApplied = prepared.oovScoringApplied;
   const priorQuarantine = prepared.priorQuarantine;
 

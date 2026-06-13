@@ -136,9 +136,9 @@ export function BrandHeader({
             padding: theme.spacing(0.25, 0.5),
             margin: theme.spacing(-0.25, -0.5),
             '&:hover': { background: theme.palette.action.hover },
-            [theme.breakpoints.down('sm')]: !isCompact
-              ? { alignSelf: 'center', textAlign: 'center' }
-              : undefined,
+            [theme.breakpoints.down('sm')]: isCompact
+              ? undefined
+              : { alignSelf: 'center', textAlign: 'center' },
           })}
         >
           {titleBlock}

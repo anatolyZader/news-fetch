@@ -28,8 +28,6 @@ import { syncAllUserAccessClaims } from '../cross-cut-modules/auth/userAccessCla
 import { hasPrivilegedUserAccessConfigured } from '../cross-cut-modules/auth/userAccess.js';
 import { requireAnalystView } from '../cross-cut-modules/auth/requireAnalystAccess.js';
 import {
-  createValidationReviewSqliteStore,
-  createValidationReviewService,
   createDriftService,
   registerDriftRoutes,
   validationReviewRoutes,

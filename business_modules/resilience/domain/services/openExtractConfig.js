@@ -2,9 +2,8 @@
  * Feature flags for parallel open-vocabulary extraction and agent feeding.
  * "Parallel" = closed catalogue + open pipeline run concurrently on extract-signals (not sequential).
  */
+export { isOpenPipelineExtractEnabled } from '../../../signals_extraction/index.js';
 import { isOpenPipelineExtractEnabled } from '../../../signals_extraction/index.js';
-
-export { isOpenPipelineExtractEnabled };
 
 export function isOpenExtractParallelEnabled(env = process.env) {
   return isOpenPipelineExtractEnabled(env);

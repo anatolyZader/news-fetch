@@ -136,7 +136,7 @@ function outputFileName(districtId, date) {
     : `signals-pbo-${districtId}-${date}.json`;
 }
 
-function recordOpenUnitsForDay(day, componentNames, districtId) {
+function recordOpenUnitsForDay(day, componentNames, _districtId) {
   const reviewMetaByMuni = loadReviewMetadataMapForDate(day.date, SQLITE_PATH);
   const units = pboDashboardDayToExtractUnits(day, componentNames, reviewMetaByMuni);
   if (units.length === 0) return;

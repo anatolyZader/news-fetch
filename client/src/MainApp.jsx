@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import PropTypes from 'prop-types';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
@@ -267,6 +268,297 @@ function readReportScope() {
   return 'national';
 }
 
+function openResponsivePanel(isDesktop, openPanelPopup, panelKey, setMobileOpen, opts) {
+  if (isDesktop) {
+    openPanelPopup(panelKey, opts);
+    return;
+  }
+  setMobileOpen(true);
+}
+
+function DailyAssessmentLoadStatus({
+  initialReportLoadDone,
+  reportLoadError,
+  report,
+  reportMissingHint,
+  t,
+}) {
+  if (!initialReportLoadDone) {
+    return (
+      <Typography variant="body2" color="text.secondary">
+        {t('app.reportLoading')}
+      </Typography>
+    );
+  }
+  if (reportLoadError) {
+    return (
+      <Alert severity="warning" variant="outlined" sx={(theme) => ({ marginBottom: theme.spacing(1) })}>
+        {reportLoadError}
+      </Alert>
+    );
+  }
+  if (!report && (reportMissingHint === 'regional_requires_assess_signals'
+    || reportMissingHint === 'north_requires_assess_signals')) {
+    return (
+      <Alert severity="info" variant="outlined" sx={(theme) => ({ marginBottom: theme.spacing(1) })}>
+        {t('app.northReportMissingHint')}
+      </Alert>
+    );
+  }
+  if (!report && !reportMissingHint) {
+    return (
+      <Typography
+        variant="body2"
+        color="text.secondary"
+        sx={(theme) => ({
+          paddingTop: theme.spacing(2),
+          paddingBottom: theme.spacing(2),
+          paddingLeft: theme.spacing(2.5),
+          paddingRight: theme.spacing(2.5),
+          background: theme.palette.background.paper,
+          border: `1px dashed ${theme.palette.divider}`,
+          borderRadius: `${theme.custom.radius.section}px`,
+        })}
+      >
+        {t('app.noReportYet')}
+      </Typography>
+    );
+  }
+  return null;
+}
+
+function HeaderMoreMenu({
+  isDesktop,
+  isCompact,
+  moreMenuAnchor,
+  closeMoreMenu,
+  openReportBuild,
+  openSendEvidence,
+  openDocs,
+  openSettings,
+  user,
+  canViewAnalyst,
+  analystSiteUrl,
+  lang,
+  setLang,
+  authRequired,
+  logout,
+  t,
+}) {
+  return (
+    <Menu
+      id="header-more-menu"
+      anchorEl={moreMenuAnchor}
+      open={Boolean(moreMenuAnchor)}
+      onClose={closeMoreMenu}
+      slotProps={{ list: { 'aria-labelledby': 'header-more-button' } }}
+      anchorOrigin={isCompact ? { vertical: 'bottom', horizontal: 'left' } : { vertical: 'bottom', horizontal: 'right' }}
+      transformOrigin={isCompact ? { vertical: 'top', horizontal: 'left' } : { vertical: 'top', horizontal: 'right' }}
+    >
+      {!isDesktop && (
+        <MenuItem
+          onClick={() => {
+            openReportBuild();
+            closeMoreMenu();
+          }}
+        >
+          {t('app.writeReport')}
+        </MenuItem>
+      )}
+      {!isDesktop && (
+        <MenuItem
+          onClick={() => {
+            openSendEvidence();
+            closeMoreMenu();
+          }}
+        >
+          {t('app.sendEvidence')}
+        </MenuItem>
+      )}
+      <MenuItem
+        onClick={() => {
+          openDocs();
+          closeMoreMenu();
+        }}
+      >
+        {t('app.docs')}
+      </MenuItem>
+      <MenuItem
+        onClick={() => {
+          openSettings();
+          closeMoreMenu();
+        }}
+      >
+        {t('app.settings')}
+      </MenuItem>
+      {user && canViewAnalyst && (
+        <MenuItem
+          component="a"
+          href={analystSiteUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={closeMoreMenu}
+        >
+          {t('app.analystView')}
+        </MenuItem>
+      )}
+      {!isDesktop && (
+        <>
+          <Divider sx={{ my: 0.5 }} />
+          <ListSubheader component="div" disableSticky sx={{ lineHeight: 2 }}>
+            {t('settings.section.language')}
+          </ListSubheader>
+          {LANGUAGE_CODES.map((code) => (
+            <MenuItem
+              key={code}
+              selected={lang === code}
+              onClick={() => {
+                setLang(code);
+                closeMoreMenu();
+              }}
+            >
+              {LANGUAGE_LABELS[code]}
+            </MenuItem>
+          ))}
+        </>
+      )}
+      {authRequired && (
+        <>
+          <Divider sx={{ my: 0.5 }} />
+          <MenuItem
+            onClick={() => {
+              logout();
+              closeMoreMenu();
+            }}
+          >
+            {t('settings.signOut')}
+          </MenuItem>
+        </>
+      )}
+    </Menu>
+  );
+}
+
+function AppShellHeader({
+  isDesktop,
+  isCompact,
+  brandHeader,
+  writeReportButton,
+  openSendEvidence,
+  isPanelPopupOpen,
+  headerButtonSx,
+  moreMenuButton,
+  headerMoreMenu,
+  translatingBadge,
+  t,
+  onHomeClick,
+  onMenuClick,
+  onNotificationClick,
+}) {
+  if (isDesktop) {
+    return (
+      <>
+        {brandHeader}
+        <Stack
+          direction="row"
+          alignItems="center"
+          spacing={0.75}
+          sx={{ ml: 'auto', flexShrink: 0 }}
+        >
+          {writeReportButton}
+          <Button
+            variant="outlined"
+            size="small"
+            type="button"
+            onClick={openSendEvidence}
+            aria-pressed={isPanelPopupOpen('send-evidence')}
+            sx={headerButtonSx}
+          >
+            {t('app.sendEvidence')}
+          </Button>
+          {moreMenuButton}
+          {headerMoreMenu}
+          {translatingBadge}
+          <LanguageSelector />
+        </Stack>
+      </>
+    );
+  }
+  if (isCompact) {
+    return (
+      <Stack spacing={0.75} sx={{ width: '100%' }}>
+        <MobileAppBar
+          title="Srulik's lab"
+          subtitle="Home Front Command · Daily Assessment"
+          logoSrc="/logo_srulik_1_no_text.png"
+          logoAlt=""
+          onHomeClick={onHomeClick}
+          homeAriaLabel={t('app.goToDailyAssessment')}
+          onMenuClick={onMenuClick}
+          onNotificationClick={onNotificationClick}
+          notificationAriaLabel={t('app.moreMenu')}
+        />
+        {headerMoreMenu}
+        {translatingBadge}
+      </Stack>
+    );
+  }
+  return (
+    <>
+      {brandHeader}
+      <Stack
+        direction="row"
+        alignItems="center"
+        spacing={0.75}
+        sx={{ ml: 'auto', flexShrink: 0 }}
+      >
+        {moreMenuButton}
+        {headerMoreMenu}
+        {translatingBadge}
+      </Stack>
+    </>
+  );
+}
+
+function useDeepLinkRouting({
+  setActiveTab,
+  setActivePoolTab,
+  setActivePboTab,
+  setActivePboRegionTab,
+  setOpenReportCompId,
+  setOpenReportEvidenceCompId,
+}) {
+  useEffect(() => {
+    const applyDeepLink = () => {
+      const { section, pool, component, pboSub, pboRegion } = readDeepLink();
+      const mainSection = normalizeMainTabSection(section);
+      if (MAIN_TAB_IDS.has(mainSection)) setActiveTab(mainSection);
+      if (section === 'pools' && POOL_TAB_IDS.has(pool)) setActivePoolTab(pool);
+      const pboFromUrl = normalizePboSubFromSection(section, pboSub);
+      if (mainSection === 'pbo-reports' && pboFromUrl) setActivePboTab(pboFromUrl);
+      if (mainSection === 'pbo-reports' && pboRegion && PBO_REGION_IDS.has(pboRegion)) {
+        setActivePboRegionTab(pboRegion);
+      }
+      if (section === 'report' && component) {
+        setOpenReportCompId(component);
+        setOpenReportEvidenceCompId(null);
+      }
+    };
+    applyDeepLink();
+    globalThis.window?.addEventListener('popstate', applyDeepLink);
+    return () => globalThis.window?.removeEventListener('popstate', applyDeepLink);
+  }, [
+    setActiveTab,
+    setActivePoolTab,
+    setActivePboTab,
+    setActivePboRegionTab,
+    setOpenReportCompId,
+    setOpenReportEvidenceCompId,
+  ]);
+}
+
+// Layout shell: header/more-menu/report tab wiring; heavy JSX lives in child components.
+// eslint-disable-next-line sonarjs/cognitive-complexity
 function AppShell() {
   const { logout, authRequired, user, accessToken } = useAuth();
   const { canViewAnalyst } = useDisplayCapabilities();
@@ -343,8 +635,8 @@ function AppShell() {
     try {
       localStorage.setItem(LS_REPORT_SCOPE, reportScope);
     } catch { /* */ }
-    setSelectedReportDate(null);
     queueMicrotask(() => {
+      setSelectedReportDate(null);
       setOpenReportCompId(null);
       setOpenReportEvidenceCompId(null);
     });
@@ -368,6 +660,7 @@ function AppShell() {
   const scrollToAttention = useCallback(() => {
     document.getElementById('attention-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, []);
+
   const closeDocs = useCallback(() => {
     setDocsOpen(false);
     setDocsInitialSlug('');
@@ -388,30 +681,21 @@ function AppShell() {
   useEffect(() => {
     openDocsRef.current = openDocs;
   }, [openDocs]);
-  const openSettings = useCallback(() => {
-    if (isDesktop) {
-      openPanelPopup('settings');
-      return;
-    }
-    setSettingsOpen(true);
-  }, [isDesktop, openPanelPopup]);
-  const openReportBuild = useCallback(() => {
-    if (isDesktop) {
-      openPanelPopup('report-build');
-      return;
-    }
-    setReportBuildOpen(true);
-  }, [isDesktop, openPanelPopup]);
+  const openSettings = useCallback(
+    () => openResponsivePanel(isDesktop, openPanelPopup, 'settings', setSettingsOpen),
+    [isDesktop, openPanelPopup],
+  );
+  const openReportBuild = useCallback(
+    () => openResponsivePanel(isDesktop, openPanelPopup, 'report-build', setReportBuildOpen),
+    [isDesktop, openPanelPopup],
+  );
   const dismissReportBuild = useCallback(() => {
     setReportBuildOpen(false);
   }, []);
-  const openSendEvidence = useCallback(() => {
-    if (isDesktop) {
-      openPanelPopup('send-evidence');
-      return;
-    }
-    setSendEvidenceOpen(true);
-  }, [isDesktop, openPanelPopup]);
+  const openSendEvidence = useCallback(
+    () => openResponsivePanel(isDesktop, openPanelPopup, 'send-evidence', setSendEvidenceOpen),
+    [isDesktop, openPanelPopup],
+  );
   const dismissSendEvidence = useCallback(() => {
     setSendEvidenceOpen(false);
   }, []);
@@ -422,47 +706,29 @@ function AppShell() {
   const { t, lang, setLang } = useLanguage();
   const { displayReport, translating, translateError } = useTranslatedReport(report, lang);
 
-  useEffect(() => {
-    const applyDeepLink = () => {
-      const { section, pool, component, pboSub, pboRegion } = readDeepLink();
-      const mainSection = normalizeMainTabSection(section);
-      if (MAIN_TAB_IDS.has(mainSection)) setActiveTab(mainSection);
-      if (section === 'pools' && POOL_TAB_IDS.has(pool)) setActivePoolTab(pool);
-      const pboFromUrl = normalizePboSubFromSection(section, pboSub);
-      if (mainSection === 'pbo-reports' && pboFromUrl) setActivePboTab(pboFromUrl);
-      if (mainSection === 'pbo-reports' && pboRegion && PBO_REGION_IDS.has(pboRegion)) {
-        setActivePboRegionTab(pboRegion);
-      }
-      if (section === 'report' && component) {
-        setOpenReportCompId(component);
-        setOpenReportEvidenceCompId(null);
-      }
-    };
-    applyDeepLink();
-    globalThis.window?.addEventListener('popstate', applyDeepLink);
-    return () => globalThis.window?.removeEventListener('popstate', applyDeepLink);
-  }, []);
+  useDeepLinkRouting({
+    setActiveTab,
+    setActivePoolTab,
+    setActivePboTab,
+    setActivePboRegionTab,
+    setOpenReportCompId,
+    setOpenReportEvidenceCompId,
+  });
 
   const isOutdated = reportDate && reportDate !== todayStr;
 
-  const reportContents = useMemo(() => {
-    const comps = displayReport?.components ?? [];
-    return comps.map((c) => ({
-      id: c.component_id,
-      label: t(`comp.${c.component_id}`) ?? c.component_id.replaceAll('_', ' '),
-    }));
-  }, [displayReport, t]);
+  const reportContents = (displayReport?.components ?? []).map((c) => ({
+    id: c.component_id,
+    label: t(`comp.${c.component_id}`) ?? c.component_id.replaceAll('_', ' '),
+  }));
 
-  const chatReportScope = useMemo(() => {
-    if (activeTab === 'report' && openReportCompId) {
-      return {
-        type: 'component',
-        id: openReportCompId,
-        label: reportContents.find((c) => c.id === openReportCompId)?.label ?? openReportCompId,
-      };
+  const chatReportScope = activeTab === 'report' && openReportCompId
+    ? {
+      type: 'component',
+      id: openReportCompId,
+      label: reportContents.find((c) => c.id === openReportCompId)?.label ?? openReportCompId,
     }
-    return { type: 'all' };
-  }, [activeTab, openReportCompId, reportContents]);
+    : { type: 'all' };
 
   const handleChatPanelClose = useCallback(() => {
     setChatOpen(false);
@@ -557,96 +823,24 @@ function AppShell() {
   );
 
   const headerMoreMenu = (
-    <Menu
-      id="header-more-menu"
-      anchorEl={moreMenuAnchor}
-      open={Boolean(moreMenuAnchor)}
-      onClose={closeMoreMenu}
-      slotProps={{ list: { 'aria-labelledby': 'header-more-button' } }}
-      anchorOrigin={isCompact ? { vertical: 'bottom', horizontal: 'left' } : { vertical: 'bottom', horizontal: 'right' }}
-      transformOrigin={isCompact ? { vertical: 'top', horizontal: 'left' } : { vertical: 'top', horizontal: 'right' }}
-    >
-      {!isDesktop && (
-        <MenuItem
-          onClick={() => {
-            openReportBuild();
-            closeMoreMenu();
-          }}
-        >
-          {t('app.writeReport')}
-        </MenuItem>
-      )}
-      {!isDesktop && (
-        <MenuItem
-          onClick={() => {
-            openSendEvidence();
-            closeMoreMenu();
-          }}
-        >
-          {t('app.sendEvidence')}
-        </MenuItem>
-      )}
-      <MenuItem
-        onClick={() => {
-          openDocs();
-          closeMoreMenu();
-        }}
-      >
-        {t('app.docs')}
-      </MenuItem>
-      <MenuItem
-        onClick={() => {
-          openSettings();
-          closeMoreMenu();
-        }}
-      >
-        {t('app.settings')}
-      </MenuItem>
-      {user && canViewAnalyst && (
-        <MenuItem
-          component="a"
-          href={analystSiteUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={closeMoreMenu}
-        >
-          {t('app.analystView')}
-        </MenuItem>
-      )}
-      {!isDesktop && (
-        <>
-          <Divider sx={{ my: 0.5 }} />
-          <ListSubheader component="div" disableSticky sx={{ lineHeight: 2 }}>
-            {t('settings.section.language')}
-          </ListSubheader>
-          {LANGUAGE_CODES.map((code) => (
-            <MenuItem
-              key={code}
-              selected={lang === code}
-              onClick={() => {
-                setLang(code);
-                closeMoreMenu();
-              }}
-            >
-              {LANGUAGE_LABELS[code]}
-            </MenuItem>
-          ))}
-        </>
-      )}
-      {authRequired && (
-        <>
-          <Divider sx={{ my: 0.5 }} />
-          <MenuItem
-            onClick={() => {
-              logout();
-              closeMoreMenu();
-            }}
-          >
-            {t('settings.signOut')}
-          </MenuItem>
-        </>
-      )}
-    </Menu>
+    <HeaderMoreMenu
+      isDesktop={isDesktop}
+      isCompact={isCompact}
+      moreMenuAnchor={moreMenuAnchor}
+      closeMoreMenu={closeMoreMenu}
+      openReportBuild={openReportBuild}
+      openSendEvidence={openSendEvidence}
+      openDocs={openDocs}
+      openSettings={openSettings}
+      user={user}
+      canViewAnalyst={canViewAnalyst}
+      analystSiteUrl={analystSiteUrl}
+      lang={lang}
+      setLang={setLang}
+      authRequired={authRequired}
+      logout={logout}
+      t={t}
+    />
   );
 
   const translatingBadge = translating && (
@@ -674,62 +868,23 @@ function AppShell() {
     </Stack>
   );
 
-  const header = isDesktop ? (
-    <>
-      {brandHeader}
-      <Stack
-        direction="row"
-        alignItems="center"
-        spacing={0.75}
-        sx={{ ml: 'auto', flexShrink: 0 }}
-      >
-        {writeReportButton}
-        <Button
-          variant="outlined"
-          size="small"
-          type="button"
-          onClick={openSendEvidence}
-          aria-pressed={isPanelPopupOpen('send-evidence')}
-          sx={headerButtonSx}
-        >
-          {t('app.sendEvidence')}
-        </Button>
-        {moreMenuButton}
-        {headerMoreMenu}
-        {translatingBadge}
-        <LanguageSelector />
-      </Stack>
-    </>
-  ) : isCompact ? (
-    <Stack spacing={0.75} sx={{ width: '100%' }}>
-      <MobileAppBar
-        title="Srulik's lab"
-        subtitle="Home Front Command · Daily Assessment"
-        logoSrc="/logo_srulik_1_no_text.png"
-        logoAlt=""
-        onHomeClick={goToAssessment}
-        homeAriaLabel={t('app.goToDailyAssessment')}
-        onMenuClick={(e) => setMoreMenuAnchor(e.currentTarget)}
-        onNotificationClick={scrollToAttention}
-        notificationAriaLabel={t('app.moreMenu')}
-      />
-      {headerMoreMenu}
-      {translatingBadge}
-    </Stack>
-  ) : (
-    <>
-      {brandHeader}
-      <Stack
-        direction="row"
-        alignItems="center"
-        spacing={0.75}
-        sx={{ ml: 'auto', flexShrink: 0 }}
-      >
-        {moreMenuButton}
-        {headerMoreMenu}
-        {translatingBadge}
-      </Stack>
-    </>
+  const header = (
+    <AppShellHeader
+      isDesktop={isDesktop}
+      isCompact={isCompact}
+      brandHeader={brandHeader}
+      writeReportButton={writeReportButton}
+      openSendEvidence={openSendEvidence}
+      isPanelPopupOpen={isPanelPopupOpen}
+      headerButtonSx={headerButtonSx}
+      moreMenuButton={moreMenuButton}
+      headerMoreMenu={headerMoreMenu}
+      translatingBadge={translatingBadge}
+      t={t}
+      onHomeClick={goToAssessment}
+      onMenuClick={(e) => setMoreMenuAnchor(e.currentTarget)}
+      onNotificationClick={scrollToAttention}
+    />
   );
 
   const outdatedMessage = isOutdated
@@ -739,7 +894,7 @@ function AppShell() {
   return (
     <AppLayout
       header={header}
-      footer={!(isCompact && activeTab === 'report') ? (
+      footer={(isCompact && activeTab === 'report') ? null : (
         <SiteFooter
           onGoToAssessment={goToAssessment}
           onSendEvidence={openSendEvidence}
@@ -750,7 +905,7 @@ function AppShell() {
           authRequired={authRequired}
           user={user}
         />
-      ) : null}
+      )}
     >
         <DataSourcesNav
           isOnAssessment={isOnAssessment}
@@ -827,43 +982,13 @@ function AppShell() {
             />
             )}
 
-            {!initialReportLoadDone && (
-              <Typography variant="body2" color="text.secondary">
-                {t('app.reportLoading')}
-              </Typography>
-            )}
-
-            {initialReportLoadDone && reportLoadError && (
-              <Alert severity="warning" variant="outlined" sx={(theme) => ({ marginBottom: theme.spacing(1) })}>
-                {reportLoadError}
-              </Alert>
-            )}
-
-            {initialReportLoadDone && !report && !reportLoadError
-              && (reportMissingHint === 'regional_requires_assess_signals'
-                || reportMissingHint === 'north_requires_assess_signals') && (
-              <Alert severity="info" variant="outlined" sx={(theme) => ({ marginBottom: theme.spacing(1) })}>
-                {t('app.northReportMissingHint')}
-              </Alert>
-            )}
-
-            {initialReportLoadDone && !report && !reportLoadError && !reportMissingHint && (
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                sx={(theme) => ({
-                  paddingTop: theme.spacing(2),
-                  paddingBottom: theme.spacing(2),
-                  paddingLeft: theme.spacing(2.5),
-                  paddingRight: theme.spacing(2.5),
-                  background: theme.palette.background.paper,
-                  border: `1px dashed ${theme.palette.divider}`,
-                  borderRadius: `${theme.custom.radius.section}px`,
-                })}
-              >
-                {t('app.noReportYet')}
-              </Typography>
-            )}
+            <DailyAssessmentLoadStatus
+              initialReportLoadDone={initialReportLoadDone}
+              reportLoadError={reportLoadError}
+              report={report}
+              reportMissingHint={reportMissingHint}
+              t={t}
+            />
 
             {initialReportLoadDone && report && (
               <Stack spacing={{ xs: 1.5, md: 2 }}>
@@ -1189,6 +1314,50 @@ function AppShell() {
     </AppLayout>
   );
 }
+
+DailyAssessmentLoadStatus.propTypes = {
+  initialReportLoadDone: PropTypes.bool,
+  reportLoadError: PropTypes.string,
+  report: PropTypes.object,
+  reportMissingHint: PropTypes.string,
+  t: PropTypes.func.isRequired,
+};
+
+HeaderMoreMenu.propTypes = {
+  isDesktop: PropTypes.bool,
+  isCompact: PropTypes.bool,
+  moreMenuAnchor: PropTypes.object,
+  closeMoreMenu: PropTypes.func.isRequired,
+  openReportBuild: PropTypes.func.isRequired,
+  openSendEvidence: PropTypes.func.isRequired,
+  openDocs: PropTypes.func.isRequired,
+  openSettings: PropTypes.func.isRequired,
+  user: PropTypes.object,
+  canViewAnalyst: PropTypes.bool,
+  analystSiteUrl: PropTypes.string,
+  lang: PropTypes.string,
+  setLang: PropTypes.func.isRequired,
+  authRequired: PropTypes.bool,
+  logout: PropTypes.func.isRequired,
+  t: PropTypes.func.isRequired,
+};
+
+AppShellHeader.propTypes = {
+  isDesktop: PropTypes.bool,
+  isCompact: PropTypes.bool,
+  brandHeader: PropTypes.node,
+  writeReportButton: PropTypes.node,
+  openSendEvidence: PropTypes.func.isRequired,
+  isPanelPopupOpen: PropTypes.func.isRequired,
+  headerButtonSx: PropTypes.object,
+  moreMenuButton: PropTypes.node,
+  headerMoreMenu: PropTypes.node,
+  translatingBadge: PropTypes.node,
+  t: PropTypes.func.isRequired,
+  onHomeClick: PropTypes.func.isRequired,
+  onMenuClick: PropTypes.func.isRequired,
+  onNotificationClick: PropTypes.func.isRequired,
+};
 
 export function MainApp() {
   return <AppShell />;

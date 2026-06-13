@@ -9,7 +9,7 @@ const SENSITIVE_KEY_RE = /api[_-]?key|secret|password|token|authorization/i;
 const SENSITIVE_STRING_PATTERNS = [
   /\bsk-ant-[A-Za-z0-9_-]{8,}\b/g,
   /\bsk-[A-Za-z0-9_-]{16,}\b/g,
-  /Bearer\s+[A-Za-z0-9._-]+/gi,
+  /Bearer\s+[\w.-]+/gi,
 ];
 
 /**

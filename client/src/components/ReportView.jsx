@@ -589,6 +589,12 @@ function MacroSignalsSection({ macroSignals, t, isAnalyst }) {
   );
 }
 
+function specialistRanLabel(comp, t) {
+  if (comp.specialist_ran === true) return t('report.investigation.specialistRan');
+  if (comp.specialist_ran === false) return t('report.investigation.specialistNotRan');
+  return null;
+}
+
 function OperatorComponentStateBanner({ comp, t }) {
   const state = comp.operator_display_state;
   if (!state || state === 'assessed_claims') return null;
@@ -599,9 +605,7 @@ function OperatorComponentStateBanner({ comp, t }) {
   const tierLabel = comp.specialist_tier
     ? t('report.investigation.specialistTier').replace('{tier}', String(comp.specialist_tier))
     : null;
-  const ranLabel = comp.specialist_ran === true
-    ? t('report.investigation.specialistRan')
-    : (comp.specialist_ran === false ? t('report.investigation.specialistNotRan') : null);
+  const ranLabel = specialistRanLabel(comp, t);
   return (
     <Alert severity={severity} sx={{ marginBottom: 1 }}>
       {stateLabel}
@@ -840,7 +844,7 @@ function ComponentCard({
               flexWrap="wrap"
               spacing={0.75}
               useFlexGap
-              sx={(theme) => ({
+              sx={() => ({
                 flexShrink: 0,
                 width: { xs: '100%', sm: 'auto' },
                 maxWidth: { xs: '100%', sm: '55%' },
@@ -1478,6 +1482,21 @@ ComponentCard.propTypes = {
   evidenceOpen: PropTypes.bool,
   onToggle: PropTypes.func.isRequired,
   onEvidenceToggle: PropTypes.func.isRequired,
+};
+
+OperatorComponentStateBanner.propTypes = {
+  comp: componentScoreShape.isRequired,
+  t: translationFnPropType,
+};
+
+InvestigationSummaryBanner.propTypes = {
+  summary: PropTypes.object,
+  t: translationFnPropType,
+};
+
+EvidencePartitionPanel.propTypes = {
+  comp: componentScoreShape.isRequired,
+  t: translationFnPropType,
 };
 
 ReportView.propTypes = {

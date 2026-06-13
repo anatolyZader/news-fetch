@@ -1,13 +1,11 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
 
-import {
-  openPipelineObsNeedsExtract,
-  pipelineOpenObservationsPath,
-} from '../../../../../business_modules/resilience/domain/services/pipelineArtifactPaths.js';
+import { openPipelineObsNeedsExtract } from '../../../../../business_modules/resilience/app/pipelineOpenObsGuard.js';
+import { pipelineOpenObservationsPath } from '../../../../../business_modules/resilience/domain/services/pipelineArtifactPaths.js';
 import { pipelineObservationBundleFilename } from '../../../../../business_modules/signals_extraction/domain/services/observationSchema.js';
 
 describe('openPipelineObsNeedsExtract', () => {

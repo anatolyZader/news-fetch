@@ -33,6 +33,15 @@ import { costlyRoutePreHandlers } from '../../../cross-cut-modules/security/inpu
 import { authPreHandlerList } from '../../../cross-cut-modules/auth/buildAuthHooks.js';
 
 /**
+ * @param {{ enabled?: boolean, list?: Function } | null | undefined} svc
+ * @returns {number}
+ */
+function countPendingGeoUnknown(svc) {
+  if (!svc?.enabled || typeof svc.list !== 'function') return 0;
+  return svc.list({ status: 'new', limit: 100 }).length;
+}
+
+/**
  * @param {import('fastify').FastifyInstance} app
  * @param {object} opts
  */
@@ -51,15 +60,6 @@ export async function reportRoutes(app, opts) {
     crisisBudgetService = null,
     geoUnknownReviewService = null,
   } = opts;
-
-  /**
-   * @param {typeof geoUnknownReviewService} svc
-   * @returns {number}
-   */
-  function countPendingGeoUnknown(svc) {
-    if (!svc?.enabled || typeof svc.list !== 'function') return 0;
-    return svc.list({ status: 'new', limit: 100 }).length;
-  }
 
   const getCachedReport = (store, readOpts) =>
     (reportReadPort?.getCachedReport ?? getCachedReportDefault)(store, readOpts);

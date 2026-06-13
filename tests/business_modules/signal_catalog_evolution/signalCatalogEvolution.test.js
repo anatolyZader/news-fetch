@@ -2,7 +2,6 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   clusterByPrefix,
-  cosineSimilarity,
   rankClusters,
 } from '../../../business_modules/signal_catalog_evolution/domain/services/oovClusterer.js';
 import { LEARNING_CAPTURE_KINDS } from '../../../cross-cut-modules/learningCapture/kinds.js';

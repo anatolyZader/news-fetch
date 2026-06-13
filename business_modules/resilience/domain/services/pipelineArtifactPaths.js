@@ -1,7 +1,6 @@
 /**
  * Canonical filesystem paths for pipeline ingest artifacts (relative to repo root).
  */
-import { existsSync, readFileSync, statSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { defaultClosedSignalsDir } from '../../../signals_extraction/index.js';
@@ -44,6 +43,10 @@ export function fieldSignalsPath(date, rootDir) {
   return resolve(resolveRepoRoot(rootDir), `business_modules/visits/data/signals/signals-field-${date}.json`);
 }
 
+export function pboSignalsPath(date, rootDir) {
+  return resolve(pipelineSignalsDir(rootDir), `signals-pbo-${date}.json`);
+}
+
 export function fieldReportsGlobDir(rootDir) {
   return resolve(resolveRepoRoot(rootDir), 'business_modules/visits/data');
 }
@@ -64,20 +67,4 @@ export function pipelineOpenObservationsDataDir(rootDir) {
 export function pipelineOpenObservationsPath(sourceType, date, rootDir) {
   const safe = String(sourceType ?? 'adhoc').replaceAll(/[^a-z0-9_-]/gi, '_');
   return resolve(pipelineOpenObservationsDataDir(rootDir), `observations-pipeline-${safe}-${date}.json`);
-}
-
-/**
- * True when open pipeline extract should run (missing, empty, invalid, or zero observations).
- * @param {string} path
- */
-export function openPipelineObsNeedsExtract(path) {
-  if (!existsSync(path)) return true;
-  try {
-    if (statSync(path).size === 0) return true;
-    const bundle = JSON.parse(readFileSync(path, 'utf8'));
-    const observations = bundle?.observations;
-    return !Array.isArray(observations) || observations.length === 0;
-  } catch {
-    return true;
-  }
 }

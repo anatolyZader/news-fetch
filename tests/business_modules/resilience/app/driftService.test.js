@@ -2,7 +2,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
 import { createDriftService } from '../../../../analyst/drift/driftService.js';
-import { COMPONENT_IDS } from '../../../../analyst/scoring/index.js';
+import { COMPONENT_IDS } from '../../../../cross-cut-modules/resilience-contracts/componentIds.js';
 
 function buildHistory() {
   return [

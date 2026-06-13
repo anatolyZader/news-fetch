@@ -19,11 +19,14 @@ export function ChatLauncher({
   const isCompact = useMediaQuery(theme.breakpoints.down('sm'));
   const label = open ? openLabel : closedLabel;
 
+  const horizontalInset = position === 'bottom-right'
+    ? { right: theme.spacing(isCompact ? 2 : 3), left: 'auto' }
+    : { left: theme.spacing(isCompact ? 2 : 3), right: 'auto' };
+
   const fixedSx = {
     position: 'fixed',
     zIndex: theme.zIndex.tooltip + 10,
-    right: position === 'bottom-right' ? theme.spacing(isCompact ? 2 : 3) : 'auto',
-    left: position === 'bottom-left' ? theme.spacing(isCompact ? 2 : 3) : 'auto',
+    ...horizontalInset,
     bottom: theme.spacing(2),
     ...safeAreaFixedSx(theme, { bottomInset, position }),
   };

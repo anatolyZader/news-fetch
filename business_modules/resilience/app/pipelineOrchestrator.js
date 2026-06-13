@@ -140,6 +140,16 @@ const STAGE_OPEN_EXTRACT_META = {
   field: { sourceType: 'field', contentKind: 'field_report' },
 };
 
+function tryUnlink(path) {
+  if (!existsSync(path)) return;
+  try {
+    unlinkSync(path);
+    console.error(`  → removed ${path}`);
+  } catch (err) {
+    console.error(`  ⚠ could not remove ${path}: ${err.message}`);
+  }
+}
+
 function applyForceDeletes(windowDates, rootDir) {
   for (const date of windowDates) {
     for (const path of [
@@ -147,25 +157,10 @@ function applyForceDeletes(windowDates, rootDir) {
       radioSignalsPath(date, rootDir),
       whatsappSignalsPath(date, rootDir),
     ]) {
-      if (existsSync(path)) {
-        try {
-          unlinkSync(path);
-          console.error(`  → removed ${path}`);
-        } catch (err) {
-          console.error(`  ⚠ could not remove ${path}: ${err.message}`);
-        }
-      }
+      tryUnlink(path);
     }
     for (const sourceType of OPEN_EXTRACT_SOURCE_TYPES) {
-      const openPath = pipelineOpenObservationsPath(sourceType, date, rootDir);
-      if (existsSync(openPath)) {
-        try {
-          unlinkSync(openPath);
-          console.error(`  → removed ${openPath}`);
-        } catch (err) {
-          console.error(`  ⚠ could not remove ${openPath}: ${err.message}`);
-        }
-      }
+      tryUnlink(pipelineOpenObservationsPath(sourceType, date, rootDir));
     }
   }
 }

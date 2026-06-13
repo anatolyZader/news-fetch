@@ -268,11 +268,34 @@ function injectOovClusters(nodes, oovBurst, dataVoid = null) {
   return byComponent;
 }
 
-const RESIDUAL_CLAIM_CAP = 3;
-
 function confidenceRank(obs) {
   const map = { high: 3, medium: 2, low: 1 };
   return map[obs.confidence] ?? 2;
+}
+
+function appendOpenObservationClaim(nodes, byComponent, obs, compId, index) {
+  const text = observationText(obs).slice(0, 200);
+  const obsId = obs.observation_id ?? `obs-${compId}-${index}`;
+  const ref = `open:${obsId}`;
+  const isPipeline = obs.source === 'pipeline';
+  nodes.signals.push({
+    id: ref,
+    signal_type: isPipeline ? 'open_observation' : 'residual_observation',
+    source_type: obs.source_type ?? obs.source_label ?? null,
+    evidence: text.slice(0, 300),
+    grounding_tier: 'unverified',
+  });
+  const flags = isPipeline
+    ? ['unverified', 'open_observation']
+    : ['unverified', 'residual_observation', 'archive_only'];
+  byComponent[compId].push({
+    claim_id: `${compId}:open${index + 1}`,
+    text: text || 'Open observation from parallel extract',
+    support: [{ ref, mass: isPipeline ? 0.25 : 0.2 }],
+    contradict: [],
+    epistemic_flags: flags,
+    observation_id: obsId,
+  });
 }
 
 function injectOpenObservations(nodes, observations = []) {
@@ -298,38 +321,12 @@ function injectOpenObservations(nodes, observations = []) {
     if (injected >= cap) break;
     const list = byComp[compId];
     for (let i = 0; i < list.length && injected < cap; i += 1) {
-      const obs = list[i];
-      const text = observationText(obs).slice(0, 200);
-      const obsId = obs.observation_id ?? `obs-${compId}-${i}`;
-      const ref = `open:${obsId}`;
-      const isPipeline = obs.source === 'pipeline';
-      nodes.signals.push({
-        id: ref,
-        signal_type: isPipeline ? 'open_observation' : 'residual_observation',
-        source_type: obs.source_type ?? obs.source_label ?? null,
-        evidence: text.slice(0, 300),
-        grounding_tier: 'unverified',
-      });
-      const flags = isPipeline
-        ? ['unverified', 'open_observation']
-        : ['unverified', 'residual_observation', 'archive_only'];
-      byComponent[compId].push({
-        claim_id: `${compId}:open${i + 1}`,
-        text: text || 'Open observation from parallel extract',
-        support: [{ ref, mass: isPipeline ? 0.25 : 0.2 }],
-        contradict: [],
-        epistemic_flags: flags,
-        observation_id: obsId,
-      });
+      appendOpenObservationClaim(nodes, byComponent, list[i], compId, i);
       injected += 1;
     }
   }
 
   return byComponent;
-}
-
-function injectResidualObservations(nodes, observations = []) {
-  return injectOpenObservations(nodes, observations);
 }
 
 function mapOovToComponent(keywords, sample) {

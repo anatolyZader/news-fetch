@@ -3,8 +3,10 @@
  * Weekly cluster digest of OOV capture records.
  * Delegates to signal catalog evolution gap report (stdout summary).
  */
-import { SignalCatalogEvolutionService } from '../../../business_modules/signal_catalog_evolution/app/signalCatalogEvolutionService.js';
-import { LearningCaptureFsAdapter } from '../../../business_modules/signal_catalog_evolution/infrastructure/adapters/learningCaptureFsAdapter.js';
+import {
+  LearningCaptureFsAdapter,
+  SignalCatalogEvolutionService,
+} from '../../../business_modules/signal_catalog_evolution/index.js';
 
 const reportsDir = process.argv[2] ?? 'daily_reports';
 

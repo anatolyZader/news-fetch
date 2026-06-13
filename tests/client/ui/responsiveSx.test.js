@@ -12,7 +12,7 @@ const mockTheme = {
   spacing: (n) => `${n * 8}px`,
   breakpoints: {
     down: (key) => `@media (max-width:${key === 'md' ? '899.95px' : '599.95px'})`,
-    between: (a, b) => `@media (min-width:600px) and (max-width:899.95px)`,
+    between: (_a, _b) => `@media (min-width:600px) and (max-width:899.95px)`,
   },
   palette: {
     background: { paper: '#fff' },

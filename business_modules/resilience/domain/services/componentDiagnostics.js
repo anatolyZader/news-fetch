@@ -31,6 +31,57 @@ export function countSignalsForComponent(componentId, signals, signalWeights = S
   return { count, mass: round2(mass) };
 }
 
+function buildComponentEvidencePartition(
+  componentId,
+  {
+    signalsForScoring,
+    investigationSet,
+    scoringQuarantinedSignals,
+    quarantinedSignals,
+    macroSignals,
+    scopedSet,
+    metricsSet,
+    macroSet,
+    assessmentMode,
+    signalWeights,
+  },
+) {
+  const scoringUsed = countSignalsForComponent(componentId, signalsForScoring, signalWeights);
+  const investigationUsed = countSignalsForComponent(componentId, [...investigationSet], signalWeights);
+  const scoringQuarantined = countSignalsForComponent(componentId, scoringQuarantinedSignals, signalWeights);
+  const quarantined = countSignalsForComponent(componentId, quarantinedSignals, signalWeights);
+  const macroContext = countSignalsForComponent(componentId, macroSignals, signalWeights);
+
+  let fieldAnchorUsed = { count: 0, mass: 0 };
+  if (assessmentMode === 'field_anchor_only' && scoringUsed.count > 0) {
+    const fieldSignals = signalsForScoring.filter((s) => FIELD_SOURCE_TYPES.has(s?.source_type));
+    fieldAnchorUsed = countSignalsForComponent(componentId, fieldSignals, signalWeights);
+  }
+
+  const excludedSignals = [];
+  for (const signal of scopedSet) {
+    if (metricsSet.has(signal) || macroSet.has(signal)) continue;
+    const signalType = signal?.signal_type ?? signal?.type;
+    const mapping = signalWeights[signalType];
+    if (mapping != null && componentId in mapping) excludedSignals.push(signal);
+  }
+  const excludedByScope = countSignalsForComponent(componentId, excludedSignals, signalWeights);
+
+  return {
+    scoring_used: scoringUsed.count,
+    evidence_mass_scoring_used: scoringUsed.mass,
+    investigation_used: investigationUsed.count,
+    evidence_mass_investigation_used: investigationUsed.mass,
+    scoring_quarantined: scoringQuarantined.count,
+    evidence_mass_scoring_quarantined: scoringQuarantined.mass,
+    quarantined: quarantined.count,
+    evidence_mass_quarantined: quarantined.mass,
+    macro_context: macroContext.count,
+    field_anchor_used: fieldAnchorUsed.count,
+    excluded_by_scope: excludedByScope.count,
+  };
+}
+
 /**
  * @param {object} params
  * @returns {Record<string, object>}
@@ -59,49 +110,20 @@ export function buildEvidencePartitionsByComponent({
 
   /** @type {Record<string, object>} */
   const out = {};
+  const partitionCtx = {
+    signalsForScoring,
+    investigationSet,
+    scoringQuarantinedSignals,
+    quarantinedSignals,
+    macroSignals,
+    scopedSet,
+    metricsSet,
+    macroSet,
+    assessmentMode,
+    signalWeights,
+  };
   for (const componentId of componentIds) {
-    const scoringUsed = countSignalsForComponent(componentId, signalsForScoring, signalWeights);
-    const investigationUsed = countSignalsForComponent(
-      componentId,
-      [...investigationSet],
-      signalWeights,
-    );
-    const scoringQuarantined = countSignalsForComponent(
-      componentId,
-      scoringQuarantinedSignals,
-      signalWeights,
-    );
-    const quarantined = countSignalsForComponent(componentId, quarantinedSignals, signalWeights);
-    const macroContext = countSignalsForComponent(componentId, macroSignals, signalWeights);
-
-    let fieldAnchorUsed = { count: 0, mass: 0 };
-    if (assessmentMode === 'field_anchor_only' && scoringUsed.count > 0) {
-      const fieldSignals = signalsForScoring.filter((s) => FIELD_SOURCE_TYPES.has(s?.source_type));
-      fieldAnchorUsed = countSignalsForComponent(componentId, fieldSignals, signalWeights);
-    }
-
-    const excludedSignals = [];
-    for (const signal of scopedSet) {
-      if (metricsSet.has(signal) || macroSet.has(signal)) continue;
-      const signalType = signal?.signal_type ?? signal?.type;
-      const mapping = signalWeights[signalType];
-      if (mapping != null && componentId in mapping) excludedSignals.push(signal);
-    }
-    const excludedByScope = countSignalsForComponent(componentId, excludedSignals, signalWeights);
-
-    out[componentId] = {
-      scoring_used: scoringUsed.count,
-      evidence_mass_scoring_used: scoringUsed.mass,
-      investigation_used: investigationUsed.count,
-      evidence_mass_investigation_used: investigationUsed.mass,
-      scoring_quarantined: scoringQuarantined.count,
-      evidence_mass_scoring_quarantined: scoringQuarantined.mass,
-      quarantined: quarantined.count,
-      evidence_mass_quarantined: quarantined.mass,
-      macro_context: macroContext.count,
-      field_anchor_used: fieldAnchorUsed.count,
-      excluded_by_scope: excludedByScope.count,
-    };
+    out[componentId] = buildComponentEvidencePartition(componentId, partitionCtx);
   }
   return out;
 }
@@ -175,6 +197,31 @@ export function buildSingleComponentDiagnostics(comp, partitions, ctx) {
   };
 }
 
+function deriveAssessmentStateWithClaims(comp, diagnostics, analystFlags) {
+  const claimsCount = diagnostics.claims_count ?? 0;
+  const severity = comp.severity ?? 'abstain';
+  const confidence = comp.confidence ?? 'low';
+  const operatorStatus = comp.operator_status ?? null;
+  const grounding = comp.narrative_grounding_score ?? comp.grounding_score ?? null;
+  const contestedThin = comp.instrument?.contested_thin === true
+    || comp.instrument?.contested === true;
+
+  if (claimsCount > 0 && severity === 'abstain' && operatorStatus === 'insufficient_data') {
+    analystFlags.push('contract_inconsistent');
+    return { state: 'invalid_artifact', analystFlags };
+  }
+
+  const lowConfidence = confidence === 'low'
+    || (grounding != null && grounding < LOW_GROUNDING_THRESHOLD)
+    || contestedThin
+    || diagnostics.critic_downgraded;
+  if (lowConfidence) {
+    if (diagnostics.critic_downgraded) analystFlags.push('critic_downgraded');
+    return { state: 'assessed_low_confidence', analystFlags };
+  }
+  return { state: 'assessed', analystFlags };
+}
+
 /**
  * @param {object} comp
  * @param {object} diagnostics
@@ -189,28 +236,8 @@ export function deriveAssessmentState(comp, diagnostics, ctx) {
   const excluded = diagnostics.coverage?.excluded_by_scope ?? 0;
   const totalEvidence = scoringUsed + quarantined + macroContext + excluded;
 
-  const severity = comp.severity ?? 'abstain';
-  const confidence = comp.confidence ?? 'low';
-  const operatorStatus = comp.operator_status ?? null;
-  const grounding = comp.narrative_grounding_score ?? comp.grounding_score ?? null;
-  const contestedThin = comp.instrument?.contested_thin === true
-    || comp.instrument?.contested === true;
-
-  if (claimsCount > 0 && severity === 'abstain' && operatorStatus === 'insufficient_data') {
-    analystFlags.push('contract_inconsistent');
-    return { state: 'invalid_artifact', analystFlags };
-  }
-
   if (claimsCount > 0) {
-    const lowConfidence = confidence === 'low'
-      || (grounding != null && grounding < LOW_GROUNDING_THRESHOLD)
-      || contestedThin
-      || diagnostics.critic_downgraded;
-    if (lowConfidence) {
-      if (diagnostics.critic_downgraded) analystFlags.push('critic_downgraded');
-      return { state: 'assessed_low_confidence', analystFlags };
-    }
-    return { state: 'assessed', analystFlags };
+    return deriveAssessmentStateWithClaims(comp, diagnostics, analystFlags);
   }
 
   if (diagnostics.specialist_ran && claimsCount === 0 && (diagnostics.repair_log?.length > 0 || comp.repair_log?.length > 0)) {
@@ -268,6 +295,14 @@ export function deriveEvidenceUsageState(part, assessmentMode = 'normal') {
   return 'normal';
 }
 
+function specialistSkippedReason(diagnostics) {
+  if (diagnostics.specialist_tier === 'C' && !diagnostics.specialist_selected) {
+    return 'tier_c_not_in_focus';
+  }
+  if (diagnostics.specialist_tier === 'C') return 'tier_c_skipped';
+  return 'specialist_not_run';
+}
+
 /**
  * @param {string} assessmentState
  * @param {string} evidenceUsageState
@@ -295,12 +330,7 @@ export function deriveOperatorDisplayState(assessmentState, evidenceUsageState, 
     return { state: 'assessed_low_confidence', reason, inputs };
   }
   if (assessmentState === 'specialist_skipped') {
-    const reason = diagnostics.specialist_tier === 'C' && !diagnostics.specialist_selected
-      ? 'tier_c_not_in_focus'
-      : diagnostics.specialist_tier === 'C'
-        ? 'tier_c_skipped'
-        : 'specialist_not_run';
-    return { state: 'specialist_skipped', reason, inputs };
+    return { state: 'specialist_skipped', reason: specialistSkippedReason(diagnostics), inputs };
   }
   if (assessmentState === 'specialist_failed') {
     return { state: 'specialist_skipped', reason: 'specialist_failed', inputs };

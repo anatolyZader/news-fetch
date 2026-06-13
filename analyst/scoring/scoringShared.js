@@ -9,7 +9,7 @@ export { COMPONENT_IDS } from '../../cross-cut-modules/resilience-contracts/comp
 export {
   RELIABILITY_WEIGHT,
   buildDuplicateOccurrenceIndex,
-  duplicateArticleFactor,
+  duplicateArticleFactor, contributionForSignal, effectiveWeightForSignal, round3,
 } from '../../business_modules/resilience/domain/epistemic/massContribution.js';
 export { sourceCapWasApplied } from '../../business_modules/resilience/domain/epistemic/evidenceCaps.js';
 import {
@@ -17,7 +17,7 @@ import {
   effectiveWeightForSignal,
   round3,
 } from '../../business_modules/resilience/domain/epistemic/massContribution.js';
-export { contributionForSignal, effectiveWeightForSignal, round3 };
+
 
 export const COMPONENT_TUNING = {
   narrative:                 { tanhK: 1.8, certM: 1.4 },

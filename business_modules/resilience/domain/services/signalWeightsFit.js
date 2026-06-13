@@ -19,7 +19,7 @@ import {
   SIGNAL_TO_COMPONENTS,
   getScoringPriors,
 } from './signalCatalog.js';
-import { COMPONENT_TUNING } from './epistemic/certaintyTuning.js';
+import { COMPONENT_TUNING } from '../epistemic/certaintyTuning.js';
 
 /** Fields that may be calibrated when labeled data exists. */
 export const CALIBRATION_TARGETS = Object.freeze({

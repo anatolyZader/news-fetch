@@ -16,6 +16,24 @@ export function defaultObservationDataDir(opts = {}) {
   return defaultSignalsExtractionDataDir(opts);
 }
 
+function observationBundleMatchesListOpts(name, opts, endDate, minStr) {
+  if (opts.profile === 'pipeline' && !isPipelineObservationFilename(name)) return false;
+  const m = /^observations-(.+)-(\d{4}-\d{2}-\d{2})\.json$/.exec(name);
+  if (!m) return false;
+  const fileDate = m[2];
+  if (fileDate < minStr || fileDate > endDate) return false;
+  if (opts.profile && opts.profile !== 'pipeline' && !name.startsWith(`observations-${opts.profile}-`)) {
+    const profileSlug = String(opts.profile).replaceAll(/[^a-z0-9_-]/gi, '_');
+    if (!name.startsWith(`observations-${profileSlug}-`)) return false;
+  }
+  if (opts.sourceType && opts.profile === 'pipeline') {
+    const expected = pipelineObservationBundleFilename(opts.sourceType, fileDate);
+    if (name !== expected) return false;
+  }
+  if (opts.date && fileDate !== opts.date) return false;
+  return true;
+}
+
 export class ObservationFsAdapter extends IObservationStorePort {
   /**
    * @param {{ dataDir?: string }} [opts]
@@ -58,21 +76,10 @@ export class ObservationFsAdapter extends IObservationStorePort {
 
     const out = [];
     for (const name of names) {
-      if (opts.profile === 'pipeline' && !isPipelineObservationFilename(name)) continue;
+      if (!observationBundleMatchesListOpts(name, opts, endDate, minStr)) continue;
       const m = /^observations-(.+)-(\d{4}-\d{2}-\d{2})\.json$/.exec(name);
       if (!m) continue;
-      const fileDate = m[2];
-      if (fileDate < minStr || fileDate > endDate) continue;
-      if (opts.profile && opts.profile !== 'pipeline' && !name.startsWith(`observations-${opts.profile}-`)) {
-        const profileSlug = String(opts.profile).replaceAll(/[^a-z0-9_-]/gi, '_');
-        if (!name.startsWith(`observations-${profileSlug}-`)) continue;
-      }
-      if (opts.sourceType && opts.profile === 'pipeline') {
-        const expected = pipelineObservationBundleFilename(opts.sourceType, fileDate);
-        if (name !== expected) continue;
-      }
-      if (opts.date && fileDate !== opts.date) continue;
-      out.push({ filename: name, profile: m[1], date: fileDate, path: resolve(this.dataDir, name) });
+      out.push({ filename: name, profile: m[1], date: m[2], path: resolve(this.dataDir, name) });
     }
     return out.sort((a, b) => a.filename.localeCompare(b.filename));
   }

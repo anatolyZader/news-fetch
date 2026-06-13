@@ -97,9 +97,21 @@ function buildRecencySource(sortedFiles, sourceType, targetDate, targetDates, re
   return new Set(pick);
 }
 
+/** All bundles for sourceType with basename date on or before targetDate (field visits: full history). */
+function buildAllHistoricalSource(sortedFiles, sourceType, targetDate) {
+  const out = [];
+  for (const f of sortedFiles) {
+    const parsed = parseSignalBundleFilename(f);
+    if (!parsed || parsed.sourceType !== sourceType) continue;
+    if (parsed.fileDate > targetDate) continue;
+    out.push(f);
+  }
+  return new Set(out);
+}
+
 function buildRecencySources(sortedField, sortedRoot, sortedSocial, targetDate, targetDates, bundleCap) {
   return {
-    field: buildRecencySource(sortedField, 'field', targetDate, targetDates, bundleCap),
+    field: buildAllHistoricalSource(sortedField, 'field', targetDate),
     pbo: buildRecencySource(sortedRoot, 'pbo', targetDate, targetDates, bundleCap),
     pbo_regional: buildRecencySource(sortedRoot, 'pbo_regional', targetDate, targetDates, bundleCap),
     naftali: buildRecencySource(sortedRoot, 'naftali', targetDate, targetDates, 1),

@@ -14,7 +14,7 @@ const signal = {
   component_id: 'information_environment',
 };
 
-function scoredStub() {
+function _scoredStub() {
   const out = {};
   for (const id of COMPONENT_IDS) {
     out[id] = {
