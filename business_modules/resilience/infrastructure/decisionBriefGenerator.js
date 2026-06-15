@@ -38,6 +38,9 @@ export function normalizeDecisionBriefOutput(raw) {
         level: ['critical', 'warning', 'watch', 'info'].includes(p.level) ? p.level : 'watch',
         rationale: String(p.rationale ?? '').slice(0, 800),
         suggested_next_step: String(p.suggested_next_step ?? '').slice(0, 400),
+        where: p.where ? String(p.where).slice(0, 160) : null,
+        with_whom: p.with_whom ? String(p.with_whom).slice(0, 160) : null,
+        success_signal: p.success_signal ? String(p.success_signal).slice(0, 240) : null,
       }))
     : [];
   if (!summary && priorityItems.length === 0) return null;

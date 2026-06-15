@@ -224,10 +224,21 @@ flowchart TD
 | `RESILIENCE_OPEN_EXTRACT_PARALLEL` | ON (empty = enabled) | Produce open observation bundles in parallel at extract time |
 | `RESILIENCE_OPEN_OBS_FOR_AGENT` | ON | Feed routed open observations into the assessment agent |
 | `RESILIENCE_OPEN_OBS_ROUTING` | `llm` | How open observations are routed to components (`keyword` fallback) |
-| `RESILIENCE_OPEN_EVIDENCE_SCORING` | ON | Post-agent synthetic scoring from verified open claims (analyst/shadow) |
+| `RESILIENCE_OPEN_EVIDENCE_SCORING` | **OFF** | Post-agent synthetic scoring from verified open claims (analyst/shadow). **Production default: OFF** — enable only after auditing the open-path verification gate. Set to `1` or `on` to enable. |
 | `RESILIENCE_CATALOG_AUTO_PROPOSE_VERIFIED` | OFF | Auto-generate catalog proposals from verified open observations |
 | `ASSESS_BUNDLE_SOURCE` | `closed` | Alternate assess mode that maps observation bundles to pseudo-signals |
 
-## 8. One-paragraph summary
+## 8. Degraded mode
 
-Ingest district sources -> in parallel, extract **closed catalog signals** (supporting) and **open free-form observations** (primary) -> at assess time, load both separately, **route open observations to components and feed them, with closed signals, into the assessment agent** -> the agent produces evidence-backed claims -> optionally, verified open claims become synthetic signals for the de-emphasized shadow score -> write claim-first reports and learn new vocabulary from what the open path discovered.
+When the LLM specialist call fails or returns unusable output, `assessSignalsCli.js` degrades gracefully:
+
+- **`assessment_mode: 'keyword'`** — the open path falls back to keyword-based routing. Signal counts are preserved but open-path narrative quality is reduced.
+- **`assessment_mode: 'abstained'`** — no signal-based report can be produced. The report still contains `data_void` metadata and attention items.
+- The UI (`epistemicBannerMessages.js`) shows a **pulsing red error banner** (error severity) when `assessment_degraded` is detected, visually distinguishing it from standard warning banners.
+- Analysts can inspect the `shadow_scoring.assessment_mode` field in the report to understand which path was active.
+
+**Cron note:** see `scripts/README.md` for the recommended two-window schedule (06:00 + 14:00 Israel time). The afternoon run supersedes the morning run via the `generated_at`-based report cache. If the data is older than 4 hours, the UI shows a freshness banner automatically.
+
+## 9. One-paragraph summary
+
+Ingest district sources -> in parallel, extract **closed catalog signals** (supporting) and **open free-form observations** (primary) -> at assess time, load both separately, **route open observations to components and feed them, with closed signals, into the assessment agent** -> the agent produces evidence-backed claims -> optionally, verified open claims become synthetic signals for the de-emphasized shadow score (default OFF in production) -> write claim-first reports and learn new vocabulary from what the open path discovered.

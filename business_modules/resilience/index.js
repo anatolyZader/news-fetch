@@ -30,7 +30,14 @@ export {
 } from './domain/services/assessmentDisplayTier.js';
 
 // --- Attention items & scope (domain) ---
-export { buildAttentionItems } from './domain/services/attentionItems.js';
+export {
+  buildAttentionItems,
+  annotateAttentionNovelty,
+  applyDecisionBriefPriority,
+  sortAttentionItems,
+  ATTENTION_KINDS,
+  ATTENTION_LEVELS,
+} from './domain/services/attentionItems.js';
 export { buildActionCompass, actionCompassEnabled } from './domain/services/actionCompass.js';
 export { buildAnomalyStrip } from './domain/services/anomalyStrip.js';
 

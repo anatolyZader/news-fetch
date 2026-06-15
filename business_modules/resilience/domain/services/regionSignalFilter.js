@@ -12,6 +12,7 @@ import {
   hasExplicitSignalDistrictId,
   signalDistrictId,
 } from './signalDistrictId.js';
+import { recordDefaultNorthFallback } from './scopeAttributionMetrics.js';
 
 /**
  * District ids implied by signal district assignment and resolved geo.
@@ -62,8 +63,11 @@ export function scopeDecisionForSignal(signal, targetScopeId = ISRAEL_NATIONAL_D
   const assigned = assignedDistrictScopeMatch(signal, scopeId);
   if (assigned) {
     const explicit = hasExplicitSignalDistrictId(signal);
+    if (assigned.source === 'default_north_district') {
+      recordDefaultNorthFallback(1);
+    }
     reasons.push(
-      `signal_district=${assigned.districtId}${explicit ? '' : ' (legacy_north_fallback)'}`,
+      `signal_district=${assigned.districtId}${explicit ? '' : ' (default_north_district)'}`,
     );
     return {
       isScopeRelevant: true,

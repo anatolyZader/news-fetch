@@ -14,8 +14,13 @@ import {
 } from '../../../business_modules/resilience/domain/services/signalCatalogPrompt.js';
 
 describe('extractionPromptBudget', () => {
-  it('uses extract-v2 prompt version (invalidates extraction cache)', () => {
-    assert.equal(EXTRACT_PROMPT_VERSION, 'extract-v2');
+  it('uses extract-v3 prompt version (invalidates extraction cache)', () => {
+    assert.equal(EXTRACT_PROMPT_VERSION, 'extract-v3');
+  });
+
+  it('asks for a locality output field for geo-scope resolution', () => {
+    const prompt = buildCoreExtractionSystemPrompt(formatDisambiguationBlock, formatSignalCatalog);
+    assert.match(prompt, /locality/);
   });
 
   it('stable prefix (no catalog) is at least 25% shorter than extract-v1 baseline', () => {

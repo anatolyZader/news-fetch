@@ -22,7 +22,7 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { writeFileSync, mkdirSync, existsSync, readFileSync, statSync } from 'node:fs';
 import { getMunicipalityDashboard } from '../app/pboMunicipalityService.js';
-import { enrichSignalsWithGeo } from '../../../cross-cut-modules/geo/enrichSignalsWithGeo.js';
+import { attributeSignalScope } from '../../../cross-cut-modules/geo/attributeSignalScope.js';
 import { listPboDistrictIds } from '../../../cross-cut-modules/pbo/pboDistrictRegistry.js';
 import { loadReviewMetadataMapForDate, shouldForcePboSignalRewrite } from '../../pbo_report_review/index.js';
 import { createSourceArchive } from '../../../db/source_archive/createSourceArchive.js';
@@ -189,11 +189,12 @@ async function writeDayBundle(day, districtId, outDir, componentsOrder, componen
     console.error(`  ⚠ PBO archive skipped: ${err.message}`);
   }
 
-  const { signals: geoSignals, resolved, unknown } = enrichSignalsWithGeo(signals, {
+  const { signals: stampedSignals, resolved, unknown } = attributeSignalScope(signals, {
     rootDir: REPO_ROOT,
+    sourceType: 'pbo',
+    bundleDistrictId: districtId,
     unknownSourceType: 'extract-pbo',
   });
-  const stampedSignals = geoSignals.map((s) => ({ ...s, district_id: districtId }));
 
   writeFileSync(outPath, JSON.stringify({
     source_type: 'pbo',

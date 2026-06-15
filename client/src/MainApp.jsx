@@ -571,6 +571,7 @@ function AppShell() {
     report,
     scoreBySource,
     reportDate,
+    reportGeneratedAt,
     initialReportLoadDone,
     reportMissingHint,
     reportLoadError,
@@ -946,7 +947,7 @@ function AppShell() {
                   alignItems="center"
                   useFlexGap
                   flexWrap="wrap"
-                  spacing={1.5}
+                  spacing={2}
                   sx={{ width: 'auto', flexShrink: 0 }}
                 >
                   <ToggleButtonGroup
@@ -965,20 +966,30 @@ function AppShell() {
                   {availableReportDates.length > 1 && (
                     <FormControl
                       size="small"
-                      sx={{
+                      sx={(theme) => ({
                         minWidth: 120,
                         flexShrink: 0,
                         m: 0,
-                        '& .MuiInputBase-root': { alignItems: 'center' },
-                      }}
+                        '& .MuiInputBase-root': {
+                          alignItems: 'center',
+                          border: theme.custom.border.hairline,
+                          borderRadius: `${theme.custom.radius.section}px`,
+                          '&::before, &::after': { display: 'none' },
+                        },
+                      })}
                     >
                       <NativeSelect
                         value={selectedReportDate ?? ''}
                         onChange={(e) => setSelectedReportDate(e.target.value || null)}
                         inputProps={{ 'aria-label': 'Report date' }}
+                        disableUnderline
                         sx={(theme) => ({
                           fontSize: theme.typography.body2.fontSize,
-                          borderRadius: `${theme.custom.radius.section}px`,
+                          '& .MuiNativeSelect-select': {
+                            paddingTop: theme.spacing(0.625),
+                            paddingBottom: theme.spacing(0.625),
+                            paddingLeft: theme.spacing(1.25),
+                          },
                         })}
                       >
                         <option value="">latest</option>
@@ -1103,6 +1114,7 @@ function AppShell() {
                       translateError={translateError}
                       reportDate={reportDate}
                       reportScope={reportScope}
+                      generatedAt={reportGeneratedAt}
                       attentionItems={attentionItems ?? []}
                       actionCompass={actionCompass}
                       anomalyStrip={anomalyStrip}

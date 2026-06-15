@@ -62,13 +62,17 @@ The officer works at the scope `north`, which the system treats as the **entire 
 
 The officer's operational responsibility is to produce **two situation reports per day** (for example, a morning read and an afternoon/evening read), each based on a fresh, thorough analysis of incoming district data.
 
-**Important - what the code actually schedules.** The system is built to *support* this human cadence, but it does not contain a "morning + evening" scheduler:
+**What the code schedules.** The system is built to *support* this human cadence with a recommended two-window schedule:
 
-- The bundled cron example runs the full pipeline **once daily, Sunday-Thursday, at 15:00 Israel time** (`scripts/README.md`, `scripts/daily-pipeline.sh`).
-- The assessment CLI (`business_modules/resilience/app/assessSignalsCli.js`) writes each run to a filename stamped with an `HHMM` time suffix (e.g. `resilience-report-north-2026-06-13-0930.json`), so **running the pipeline more than once per day is fully supported**.
-- The report cache (`business_modules/resilience/app/reportCacheService.js`) resolves the "best" report for a date (most articles analyzed, then newest), so multiple same-day runs coexist cleanly.
+- `scripts/README.md` provides **two cron entries** — **06:00 Israel time** (morning, before briefing 1) and **14:00 Israel time** (afternoon, before briefing 2), Sunday–Thursday.
+- The morning run uses `--no-transcribe` to skip radio transcription (recordings may still be in progress); the afternoon run includes full transcription.
+- The assessment CLI writes each run to a filename stamped with an `HHMM` time suffix (e.g. `resilience-report-north-2026-06-13-0930.json`), so **running the pipeline more than once per day is fully supported**.
+- The report cache (`business_modules/resilience/app/reportCacheService.js`) resolves the "best" report for a date by **newest `generated_at` timestamp first** (not by article count), so the afternoon run supersedes the morning run automatically.
+- If the most recent report is **older than 4 hours** when the officer opens the UI, a freshness warning banner is shown.
 
-So "twice daily" is a **workflow the officer follows**, executed by invoking the pipeline (or a scheduled job) at two points in the day. The radio source separately captures two recording windows per day (06:00-09:00 and 09:00-12:00 via `business_modules/radio/input/setup-tzafon.js`), which is an ingestion detail, not a report schedule.
+The radio source captures two recording windows per day (06:00-09:00 and 09:00-12:00 via `business_modules/radio/input/setup-tzafon.js`), which is an ingestion detail, not a report schedule. For weekend coverage, add days 5–6 to the cron or run manually.
+
+**Action approvals:** The system's `POST /api/report/action/approve` endpoint records operator decisions with mandatory reasoning (`cross-cut-modules/log/data/action-approvals-{date}.jsonl`). The ActionCompassPanel UI enforces this via a required textarea before the approve button becomes active.
 
 ## 5. Humans decide; the machine never acts
 

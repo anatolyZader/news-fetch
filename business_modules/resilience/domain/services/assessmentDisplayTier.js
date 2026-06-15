@@ -156,6 +156,55 @@ export function deriveInstrumentState(comp, assessmentContext = {}) {
 }
 
 /**
+ * Derive a qualitative confidence band from component certainty values.
+ * Returns { low: string, high: string } where each is 'low' | 'medium' | 'high'.
+ * This gives the operator a directional sense of evidence quality without numeric scores.
+ * @param {object | null | undefined} assessment
+ * @returns {{ low: string, high: string } | null}
+ */
+export function deriveHeadlineBand(assessment) {
+  const comps = assessment?.components ?? [];
+  const certaintyValues = comps
+    .map((c) => c.certainty)
+    .filter((v) => typeof v === 'number' && Number.isFinite(v));
+  if (certaintyValues.length === 0) return null;
+  const sorted = [...certaintyValues].sort((a, b) => a - b);
+  const lo = sorted[0];
+  const hi = sorted.at(-1);
+  const toBand = (v) => {
+    if (v < 0.35) return 'low';
+    if (v < 0.65) return 'medium';
+    return 'high';
+  };
+  return { low: toBand(lo), high: toBand(hi) };
+}
+
+/**
+ * Detect when narrative text direction contradicts shadow score direction.
+ * Returns true when the shadow score is low (<= 4) but component narratives are
+ * predominantly positive, or vice versa — a sign the LLM text diverges from math.
+ * @param {object | null | undefined} assessment
+ * @returns {boolean}
+ */
+export function detectNarrativeScoreDivergence(assessment) {
+  const shadowScore = assessment?.shadow_scoring?.overall_score
+    ?? assessment?.overall_resilience_score;
+  if (typeof shadowScore !== 'number' || !Number.isFinite(shadowScore)) return false;
+  const comps = assessment?.components ?? [];
+  if (comps.length === 0) return false;
+  const positiveNarrativeCount = comps.filter((c) => {
+    const text = String(c.narrative ?? c.evidence_summary ?? '').toLowerCase();
+    const posMatches = (text.match(/\b(good|positive|stable|strong|adequate|maintained|high)\b/g) ?? []).length;
+    const negMatches = (text.match(/\b(risk|concern|decline|weak|crisis|critical|insufficient|lack)\b/g) ?? []).length;
+    return posMatches > negMatches;
+  }).length;
+  const narrativePositiveRatio = positiveNarrativeCount / comps.length;
+  if (shadowScore <= 4 && narrativePositiveRatio > 0.6) return true;
+  if (shadowScore >= 7 && narrativePositiveRatio < 0.3) return true;
+  return false;
+}
+
+/**
  * One-line operator-safe summary (no numeric 1–10 scores).
  * @param {object | null | undefined} assessment
  */
@@ -243,11 +292,16 @@ export function redactAssessmentForView(assessment, view) {
     ? assessment.norris_capacities.map(redactNorrisCap)
     : assessment.norris_capacities;
 
+  const headlineBand = deriveHeadlineBand(assessment);
+  const narrativeDivergence = detectNarrativeScoreDivergence(assessment);
+
   const out = {
     ...assessment,
     display_view: view,
     components,
     norris_capacities: norris,
+    ...(headlineBand ? { headline_band: headlineBand } : {}),
+    ...(narrativeDivergence ? { narrative_score_divergence: true } : {}),
   };
   delete out.overall_resilience_score;
   if (view === DISPLAY_VIEWS.operator) {

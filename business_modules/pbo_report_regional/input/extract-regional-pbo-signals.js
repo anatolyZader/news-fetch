@@ -17,7 +17,7 @@ import { fileURLToPath } from 'node:url';
 
 import { getDefaultResilienceLlmPort, runArticleDualPathExtract } from '../../resilience/index.js';
 import { createCostTracker, appendCostLog, checkDailyBudget } from '../../../cross-cut-modules/budget/index.js';
-import { enrichSignalsWithGeo } from '../../../cross-cut-modules/geo/enrichSignalsWithGeo.js';
+import { attributeSignalScope } from '../../../cross-cut-modules/geo/attributeSignalScope.js';
 import { createSourceArchive } from '../../../db/source_archive/createSourceArchive.js';
 import { buildArchiveSourceId } from '../../../db/source_archive/sourceId.js';
 import { createRetrievalService } from '../../../cross-cut-modules/retrieval/createRetrievalService.js';
@@ -228,11 +228,13 @@ async function run() {
         console.error(`  ⚠ Regional PBO archive skipped: ${err.message}`);
       }
 
-      const { signals: geoSignals, attached, resolved, unknown } = enrichSignalsWithGeo(signals, {
+      const { signals: attributed, attached, resolved, unknown } = attributeSignalScope(signals, {
         rootDir: REPO_ROOT,
+        sourceType: 'pbo_regional',
+        bundleDistrictId: districtId,
         unknownSourceType: 'extract-pbo_regional',
       });
-      signals = geoSignals.map((s) => ({ ...s, district_id: districtId }));
+      signals = attributed;
 
       console.error(`\n→ ${signals.length} signals extracted`);
       if (attached > 0) {

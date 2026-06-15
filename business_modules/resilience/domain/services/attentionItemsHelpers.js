@@ -386,19 +386,63 @@ export function addOovAttentionItems(push, item, assessment, isAnalyst, methodol
 export { DISPLAY_VIEWS } from './assessmentDisplayTier.js';
 
 /**
+ * Abstention fatigue: emit a critical attention item when consecutive reports show elevated/critical
+ * data void. This prevents operators from habituating to persistent grey/no-data states and
+ * reminds them to dispatch field collection to the affected region.
+ *
+ * @param {Function} push
+ * @param {Function} item
+ * @param {object} assessment Current assessment
+ * @param {Array<object>} priorReports Array of prior assessment objects (newest first), at most 3.
+ */
+export function addAbstentionFatigueItems(push, item, assessment, priorReports) {
+  const currentVoid = assessment?.data_void;
+  const currentLevel = currentVoid?.level ?? 'none';
+  const isAbstaining = currentLevel === 'elevated' || currentLevel === 'critical' || currentVoid?.digital_darkness === true;
+  if (!isAbstaining) return;
+
+  const priorAbstaining = (priorReports ?? []).filter((r) => {
+    const v = r?.data_void ?? r?.assessment?.data_void;
+    const level = v?.level ?? 'none';
+    return level === 'elevated' || level === 'critical' || v?.digital_darkness === true;
+  });
+  if (priorAbstaining.length === 0) return;
+
+  const consecutiveCount = priorAbstaining.length + 1; // current + prior
+  const affectedChannels = currentVoid?.affected_channels ?? [];
+  const channelList = affectedChannels.length > 0 ? affectedChannels.join(', ') : null;
+
+  push(item('critical', 'data_void:consecutive', 'abstention_fatigue', 'attention.dataVoid.consecutive', {
+    detail_key: 'attention.dataVoid.consecutiveDetail',
+    detail_params: {
+      count: consecutiveCount,
+      channels: channelList ?? '—',
+    },
+    suggested_action_key: 'attention.suggested.dispatchFieldCollection',
+  }));
+}
+
+/**
  * @param {Function} push
  * @param {Function} item
  * @param {Array<object>} patternAlerts
+ * @param {Set<string>} [coveredPatternCodes] pattern_codes already shown as pending recommendations
  */
-export function addPatternAttentionItems(push, item, patternAlerts) {
+export function addPatternAttentionItems(push, item, patternAlerts, coveredPatternCodes) {
+  const covered = coveredPatternCodes ?? new Set();
   for (const p of patternAlerts ?? []) {
     if (!p?.id || !p.pattern_code) continue;
+    if (covered.has(p.pattern_code)) continue;
+    const evidenceRefs = p.evidence_refs ?? [];
     push(item(p.level ?? 'watch', p.id, p.pattern_code, p.title_key, {
       component_id: p.component_id ?? undefined,
       detail_key: p.detail_key ?? null,
       detail_params: p.detail_params ?? {},
       suggested_action_key: p.suggested_action_key ?? null,
       recommendation_id: `rec:${p.pattern_code}`,
+      channels: p.recommended_action?.channels ?? null,
+      evidence_refs: evidenceRefs,
+      evidence_count: evidenceRefs.length,
     }));
   }
 }
@@ -411,12 +455,16 @@ export function addPatternAttentionItems(push, item, patternAlerts) {
 export function addOperatorRecommendationItems(push, item, recommendations) {
   for (const rec of recommendations ?? []) {
     if (rec.status !== 'pending') continue;
+    const evidenceRefs = rec.evidence_refs ?? [];
     push(item(rec.level ?? 'warning', `recommendation:${rec.id}`, rec.pattern_code, rec.title_key, {
       component_id: rec.component_id ?? undefined,
       detail_key: rec.detail_key ?? null,
       detail_params: rec.detail_params ?? {},
       suggested_action_key: rec.suggested_action_key ?? 'attention.suggested.commsClarification',
       recommendation_id: rec.id,
+      channels: rec.recommended_action?.channels ?? null,
+      evidence_refs: evidenceRefs,
+      evidence_count: evidenceRefs.length,
     }));
   }
 }

@@ -1061,6 +1061,7 @@ export function ReportView({
   translateError,
   reportDate,
   reportScope,
+  generatedAt,
   driftByComponent,
   driftLoading,
   attentionItems,
@@ -1152,6 +1153,7 @@ export function ReportView({
         displayView={displayView}
         attentionItems={attentionItems}
         suggestCrisisBudget={suggestCrisisBudget}
+        generatedAt={generatedAt}
       />
 
       <ActionCompassPanel
@@ -1346,6 +1348,40 @@ export function ReportView({
           {!isAnalyst && (
             <InvestigationSummaryBanner summary={assessment.investigation_summary} t={t} />
           )}
+          {!isAnalyst && assessment?.headline_band && (
+            <Box sx={{ mb: 1, display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center' }}>
+              <Box
+                component="span"
+                sx={(theme) => ({
+                  fontSize: '0.8rem',
+                  px: 1,
+                  py: 0.25,
+                  borderRadius: '4px',
+                  border: `1px solid ${theme.palette.divider}`,
+                  color: theme.palette.text.secondary,
+                })}
+              >
+                {t('report.headline.band')
+                  .replace('{low}', t(`report.instrument.certainty.${assessment.headline_band.low}`))
+                  .replace('{high}', t(`report.instrument.certainty.${assessment.headline_band.high}`))}
+              </Box>
+              {assessment.narrative_score_divergence && (
+                <Box
+                  component="span"
+                  sx={(theme) => ({
+                    fontSize: '0.8rem',
+                    px: 1,
+                    py: 0.25,
+                    borderRadius: '4px',
+                    border: `1px solid ${theme.palette.warning.main}`,
+                    color: theme.palette.warning.dark,
+                  })}
+                >
+                  {t('report.headline.divergence')}
+                </Box>
+              )}
+            </Box>
+          )}
           <MarkdownArticle
             variant="report"
             markdown={expandSourceCitationLinks(assessment.cross_component_synthesis ?? '')}
@@ -1508,6 +1544,7 @@ ReportView.propTypes = {
   translateError: PropTypes.string,
   reportDate: PropTypes.string,
   reportScope: PropTypes.string,
+  generatedAt: PropTypes.string,
   driftByComponent: driftByComponentShape,
   driftLoading: PropTypes.bool,
   attentionItems: PropTypes.arrayOf(PropTypes.object),

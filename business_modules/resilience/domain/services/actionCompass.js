@@ -1,12 +1,34 @@
 /**
  * Action compass — ranked operator actions during abstention/uncertainty (no numeric scores).
+ *
+ * Pipeline: collect candidates (attention items, pending recommendations, decision
+ * brief priority items, gap-closure tasks, synthesized void/geo/escalate actions)
+ * -> drop info-noise -> classify into KINDS -> cluster semantic duplicates ->
+ * value-rank -> kind-diversity select top 5 -> operator-language phrasing.
  */
 
 import { THIN_EVIDENCE_INSTRUMENT } from './thinEvidencePolicy.js';
+import { classifyKind, isInfoNoise } from './actionCompassKinds.js';
+import { scoreAction, selectWithKindDiversity } from './actionCompassRanking.js';
+import { buildGroundingContext } from './actionCompassGrounding.js';
+import { phraseAction } from './actionCompassPhrasing.js';
 
 export { ATTENTION_LEVELS } from './attentionItems.js';
+export { ACTION_KINDS } from './actionCompassKinds.js';
 
 const LEVEL_PRIORITY = { critical: 0, warning: 1, watch: 2, info: 3 };
+const MAX_ACTIONS = 5;
+
+/** Novelty hints by attention code (drives ranking + monitor vs repair split). */
+const CODE_NOVELTY = {
+  persisted_digital_quarantine: 'persisted',
+  field_anchor_only: 'persisted',
+  abstention_fatigue: 'persisted',
+  digital_darkness: 'new',
+  sampling_blind: 'new',
+  quarantined_digital: 'new',
+  oov_burst: 'new',
+};
 
 export function actionCompassEnabled(env = process.env) {
   return env.RESILIENCE_ACTION_COMPASS !== '0';
@@ -20,8 +42,7 @@ export function actionCompassEnabled(env = process.env) {
 export function deriveUncertaintyBand(dataVoid, epistemicStatus) {
   const voidLevel = dataVoid?.level ?? 'none';
   const sampling = epistemicStatus?.sampling_status ?? 'normal';
-  const mode = epistemicStatus?.assessment_mode ?? epistemicStatus?.assessment_mode
-    ?? 'normal';
+  const mode = epistemicStatus?.assessment_mode ?? 'normal';
 
   if (sampling === 'blind' || mode === 'abstained' || voidLevel === 'critical' || dataVoid?.digital_darkness === true) {
     return 'critical';
@@ -32,11 +53,158 @@ export function deriveUncertaintyBand(dataVoid, epistemicStatus) {
 }
 
 /**
- * @param {object} entry
- * @param {number} priority
+ * Gather raw candidates from all sources into a uniform shape.
+ * @param {object} assessment
+ * @param {Array<object>} attentionItems
+ * @param {string} band
+ * @param {number} geoUnknownCount
+ * @returns {Array<object>}
  */
-function compassAction(entry, priority) {
-  return { priority, ...entry };
+function collectCandidates(assessment, attentionItems, band, geoUnknownCount) {
+  const candidates = [];
+
+  const sortedAttention = [...(attentionItems ?? [])].sort((a, b) => {
+    const la = LEVEL_PRIORITY[a.level] ?? 99;
+    const lb = LEVEL_PRIORITY[b.level] ?? 99;
+    return la - lb;
+  });
+  for (const it of sortedAttention.slice(0, 8)) {
+    if (isInfoNoise(it.code)) continue;
+    candidates.push({
+      id: `compass:attention:${it.id}`,
+      source: 'attention',
+      code: it.code ?? null,
+      level: it.level ?? 'watch',
+      component_id: it.component_id ?? null,
+      suggested_action_key: it.suggested_action_key ?? null,
+      analyst_detail: it.detail_params ?? {},
+      novelty: CODE_NOVELTY[it.code] ?? null,
+    });
+  }
+
+  const pendingRecs = (assessment.operator_recommendations ?? []).filter((r) => r.status === 'pending');
+  for (const rec of pendingRecs.slice(0, 4)) {
+    candidates.push({
+      id: `compass:rec:${rec.id}`,
+      source: 'recommendation',
+      code: rec.pattern_code ?? null,
+      level: rec.level ?? 'watch',
+      component_id: rec.component_id ?? null,
+      suggested_action_key: rec.suggested_action_key ?? 'attention.suggested.reviewEvidence',
+      analyst_detail: rec.detail_params ?? {},
+      novelty: 'new',
+    });
+  }
+
+  const briefItems = assessment.decision_brief?.priority_items ?? [];
+  for (const [i, briefItem] of briefItems.slice(0, 4).entries()) {
+    const rationale = String(briefItem.rationale ?? '').slice(0, 280);
+    candidates.push({
+      id: `compass:brief:${briefItem.attention_id ?? briefItem.recommendation_id ?? i}`,
+      source: 'brief',
+      code: null,
+      level: briefItem.level ?? 'watch',
+      component_id: null,
+      text: `${rationale} ${briefItem.suggested_next_step ?? ''}`,
+      why_now_text: rationale,
+      suggested_next_step: briefItem.suggested_next_step ?? null,
+      success_text: briefItem.success_signal ?? null,
+      novelty: 'new',
+    });
+  }
+
+  const gapTasks = assessment.investigation_plan?.gap_closure_tasks ?? [];
+  for (const [i, task] of gapTasks.slice(0, 4).entries()) {
+    candidates.push({
+      id: `compass:gap:${task.gap_id ?? task.id ?? i}`,
+      source: 'gap',
+      code: 'gap',
+      level: 'watch',
+      component_id: task.component_id ?? null,
+      suggested_next_step: String(task.action ?? '').slice(0, 200) || null,
+      suggested_action_key: 'actionCompass.investigateGap',
+      novelty: 'new',
+    });
+  }
+
+  if (band === 'critical') {
+    candidates.push({
+      id: 'compass:void:field',
+      source: 'void',
+      code: 'void_field',
+      level: 'critical',
+      component_id: null,
+      novelty: 'new',
+    });
+    if ((assessment.assessment_mode ?? 'normal') === 'abstained') {
+      candidates.push({
+        id: 'compass:escalate',
+        source: 'void',
+        code: 'escalate_void',
+        level: 'critical',
+        component_id: null,
+        novelty: 'new',
+      });
+    }
+  }
+
+  if (geoUnknownCount > 0) {
+    candidates.push({
+      id: 'compass:geo:unknown',
+      source: 'void',
+      code: 'geo_unknown',
+      level: 'warning',
+      component_id: null,
+      suggested_action_key: 'actionCompass.reviewGeoUnknown',
+      novelty: 'new',
+    });
+  }
+
+  return candidates;
+}
+
+/**
+ * Merge semantic duplicates by kind + component so the same situation is not
+ * surfaced multiple times. Keeps highest severity, accumulates evidence codes,
+ * and carries any verb-bearing text (brief next step / gap action).
+ * @param {Array<object>} candidates each already has `kind`
+ * @returns {Array<object>}
+ */
+function clusterCandidates(candidates) {
+  const byKey = new Map();
+  let order = 0;
+
+  for (const c of candidates) {
+    const key = `${c.kind}:${c.component_id ?? ''}`;
+    const existing = byKey.get(key);
+    if (!existing) {
+      byKey.set(key, {
+        ...c,
+        evidence_codes: c.code ? [c.code] : [],
+        _order: order++,
+      });
+      continue;
+    }
+
+    if (c.code && !existing.evidence_codes.includes(c.code)) existing.evidence_codes.push(c.code);
+
+    const moreSevere = (LEVEL_PRIORITY[c.level] ?? 99) < (LEVEL_PRIORITY[existing.level] ?? 99);
+    if (moreSevere) {
+      existing.level = c.level;
+      existing.id = c.id;
+      existing.source = c.source;
+      existing.code = c.code ?? existing.code;
+    }
+    // carry verb-bearing fields from any member
+    existing.suggested_next_step = existing.suggested_next_step ?? c.suggested_next_step ?? null;
+    existing.why_now_text = existing.why_now_text ?? c.why_now_text ?? null;
+    existing.success_text = existing.success_text ?? c.success_text ?? null;
+    existing.suggested_action_key = existing.suggested_action_key ?? c.suggested_action_key ?? null;
+    existing.analyst_detail = existing.analyst_detail ?? c.analyst_detail;
+    if (c.novelty === 'new') existing.novelty = 'new';
+  }
+
+  return [...byKey.values()];
 }
 
 /**
@@ -57,107 +225,21 @@ export function buildActionCompass(assessment, attentionItems = [], opts = {}) {
     assessment_mode: assessmentMode,
   });
 
-  const actions = [];
-  const seen = new Set();
-  let priority = 0;
+  const geoUnknownCount = opts.geoUnknownCount ?? 0;
+  const ground = buildGroundingContext(assessment, { geoUnknownCount });
 
-  function push(entry) {
-    if (!entry?.id || seen.has(entry.id)) return;
-    seen.add(entry.id);
-    actions.push(compassAction(entry, priority++));
+  const candidates = collectCandidates(assessment, attentionItems, uncertainty_band, geoUnknownCount);
+  for (const c of candidates) {
+    c.kind = classifyKind(c);
   }
 
-  const sortedAttention = [...(attentionItems ?? [])].sort((a, b) => {
-    const la = LEVEL_PRIORITY[a.level] ?? 99;
-    const lb = LEVEL_PRIORITY[b.level] ?? 99;
-    return la - lb;
-  });
-
-  for (const it of sortedAttention.slice(0, 8)) {
-    push({
-      id: `compass:attention:${it.id}`,
-      level: it.level,
-      title_key: it.title_key,
-      detail_key: it.detail_key ?? null,
-      detail_params: it.detail_params ?? {},
-      suggested_action_key: it.suggested_action_key ?? null,
-      source: 'attention',
-      component_id: it.component_id ?? null,
-    });
+  const merged = clusterCandidates(candidates);
+  for (const action of merged) {
+    action.ground = ground;
+    action._score = scoreAction(action);
   }
 
-  const pendingRecs = (assessment.operator_recommendations ?? [])
-    .filter((r) => r.status === 'pending');
-  for (const rec of pendingRecs.slice(0, 4)) {
-    push({
-      id: `compass:rec:${rec.id}`,
-      level: rec.level ?? 'watch',
-      title_key: rec.title_key,
-      detail_key: rec.detail_key ?? null,
-      detail_params: rec.detail_params ?? {},
-      suggested_action_key: rec.suggested_action_key ?? 'attention.suggested.reviewEvidence',
-      source: 'recommendation',
-      component_id: rec.component_id ?? null,
-    });
-  }
-
-  const briefItems = assessment.decision_brief?.priority_items ?? [];
-  for (const [i, item] of briefItems.slice(0, 4).entries()) {
-    push({
-      id: `compass:brief:${item.attention_id ?? item.recommendation_id ?? i}`,
-      level: item.level ?? 'watch',
-      title_key: 'actionCompass.briefItem',
-      detail_key: null,
-      detail_params: { rationale: String(item.rationale ?? '').slice(0, 200) },
-      suggested_action_key: 'actionCompass.suggestedNextStep',
-      source: 'brief',
-      component_id: null,
-      suggested_next_step: item.suggested_next_step ?? null,
-    });
-  }
-
-  const gapTasks = assessment.investigation_plan?.gap_closure_tasks ?? [];
-  for (const task of gapTasks.slice(0, 4)) {
-    push({
-      id: `compass:gap:${task.gap_id ?? task.id}`,
-      level: 'watch',
-      title_key: 'actionCompass.gapClosure',
-      detail_key: null,
-      detail_params: {
-        component_id: task.component_id ?? '',
-        action: String(task.action ?? '').slice(0, 200),
-      },
-      suggested_action_key: 'actionCompass.investigateGap',
-      source: 'gap',
-      component_id: task.component_id ?? null,
-    });
-  }
-
-  if (uncertainty_band === 'critical' && !seen.has('compass:void:field')) {
-    push({
-      id: 'compass:void:field',
-      level: 'critical',
-      title_key: 'actionCompass.fieldCorroboration',
-      detail_key: 'actionCompass.fieldCorroborationDetail',
-      detail_params: {},
-      suggested_action_key: 'attention.suggested.fieldCorroboration',
-      source: 'void',
-      component_id: null,
-    });
-  }
-
-  if ((opts.geoUnknownCount ?? 0) > 0) {
-    push({
-      id: 'compass:geo:unknown',
-      level: 'warning',
-      title_key: 'actionCompass.geoUnknown',
-      detail_key: 'actionCompass.geoUnknownDetail',
-      detail_params: { count: opts.geoUnknownCount },
-      suggested_action_key: 'actionCompass.reviewGeoUnknown',
-      source: 'void',
-      component_id: null,
-    });
-  }
+  const selected = selectWithKindDiversity(merged, MAX_ACTIONS, { maxPerKind: 2 });
 
   const hasAbstention = (assessment.components ?? []).some((c) => {
     const inst = c.instrument?.thin_evidence_instrument ?? c.thin_evidence_instrument;
@@ -166,12 +248,33 @@ export function buildActionCompass(assessment, attentionItems = [], opts = {}) {
       || c.instrument?.operator_shows_score === false;
   });
 
-  if (actions.length === 0 && uncertainty_band === 'unknown' && !hasAbstention) {
+  if (selected.length === 0 && uncertainty_band === 'unknown' && !hasAbstention) {
     return null;
   }
 
+  const actions = selected.map((action, index) => {
+    const phrasing = phraseAction(action, ground);
+    return {
+      id: action.id,
+      priority: index,
+      level: action.level,
+      kind: action.kind,
+      component_id: action.component_id ?? null,
+      source: action.source,
+      title_key: phrasing.title_key,
+      detail_params: phrasing.detail_params,
+      why_now_key: action.why_now_text ? null : phrasing.why_now_key,
+      why_now_params: phrasing.why_now_params,
+      why_now_text: action.why_now_text ?? null,
+      success_signal_key: action.success_text ? null : phrasing.success_signal_key,
+      success_signal_text: action.success_text ?? null,
+      suggested_next_step: action.suggested_next_step ?? null,
+      suggested_action_key: action.suggested_action_key ?? null,
+    };
+  });
+
   return {
     uncertainty_band,
-    actions: actions.slice(0, 5),
+    actions,
   };
 }

@@ -31,3 +31,9 @@
 {"ts":"2026-06-13T12:32:32.157Z","endpoint":"counts/recent","date":"2026-06-11..2026-06-13","lang":"he","result_count":91,"est_cost_usd":0.005}
 {"ts":"2026-06-13T12:32:32.397Z","endpoint":"counts/recent","date":"2026-06-11..2026-06-13","lang":"en","result_count":15518,"est_cost_usd":0.005}
 {"ts":"2026-06-13T12:32:32.733Z","endpoint":"counts/recent","date":"2026-06-11..2026-06-13","lang":"ar","result_count":1218,"est_cost_usd":0.005}
+{"ts":"2026-06-13T12:40:31.804Z","endpoint":"counts/recent","date":"2026-06-11..2026-06-13","lang":"he","result_count":91,"est_cost_usd":0.005}
+{"ts":"2026-06-13T12:40:32.128Z","endpoint":"counts/recent","date":"2026-06-11..2026-06-13","lang":"en","result_count":15544,"est_cost_usd":0.005}
+{"ts":"2026-06-13T12:40:32.309Z","endpoint":"counts/recent","date":"2026-06-11..2026-06-13","lang":"ar","result_count":1221,"est_cost_usd":0.005}
+{"ts":"2026-06-13T13:08:48.865Z","endpoint":"counts/recent","date":"2026-06-11..2026-06-13","lang":"he","result_count":91,"est_cost_usd":0.005}
+{"ts":"2026-06-13T13:08:49.103Z","endpoint":"counts/recent","date":"2026-06-11..2026-06-13","lang":"en","result_count":15654,"est_cost_usd":0.005}
+{"ts":"2026-06-13T13:08:49.338Z","endpoint":"counts/recent","date":"2026-06-11..2026-06-13","lang":"ar","result_count":1229,"est_cost_usd":0.005}

@@ -2,8 +2,9 @@
  * Report, translation, video, and municipality API routes.
  */
 
-import { mkdir } from 'node:fs/promises';
-import { resolve } from 'node:path';
+import { mkdir, appendFile } from 'node:fs/promises';
+import { resolve, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { getTodayInTimezone, validateDate } from '../../../utils/dateUtils.js';
 import { getTranslatedReport } from '../../translation/index.js';
 import { buildMunicipalityDashboardDto } from '../../pbo_report_muni/index.js';
@@ -18,6 +19,9 @@ import {
   DISPLAY_VIEWS,
   normalizeReportScope,
   buildAttentionItems,
+  annotateAttentionNovelty,
+  applyDecisionBriefPriority,
+  sortAttentionItems,
   buildActionCompass,
   buildAnomalyStrip,
   updateOperatorRecommendationStatus,
@@ -63,6 +67,44 @@ export async function reportRoutes(app, opts) {
 
   const getCachedReport = (store, readOpts) =>
     (reportReadPort?.getCachedReport ?? getCachedReportDefault)(store, readOpts);
+
+  // Resolve the previous report's assessment for the same scope (day-over-day novelty
+  // + abstention fatigue). Best-effort: returns null on any miss/error.
+  const loadPriorAssessment = (redacted, scope, display_view, dateParam) => {
+    try {
+      const currentDate = redacted.assessment?.date ?? (dateParam || undefined);
+      const priorDate = (getAvailableReportDates({ scope }) ?? [])
+        .find((d) => !currentDate || d < currentDate);
+      if (!priorDate) return null;
+      const priorData = getCachedReport(evidenceStore, { scope, date: priorDate });
+      return priorData ? (redactReportPayload(priorData, display_view).assessment ?? null) : null;
+    } catch {
+      return null;
+    }
+  };
+
+  const buildAttentionItemsWithContext = (redacted, scope, display_view, dateParam) => {
+    const priorAssessment = loadPriorAssessment(redacted, scope, display_view, dateParam);
+    let attentionItems = buildAttentionItems(redacted.assessment, {
+      view: display_view,
+      reportScopeId: scope,
+      priorReports: priorAssessment ? [priorAssessment] : [],
+    });
+    if (priorAssessment) {
+      try {
+        const priorItems = buildAttentionItems(priorAssessment, {
+          view: display_view,
+          reportScopeId: scope,
+        });
+        attentionItems = annotateAttentionNovelty(attentionItems, priorItems);
+      } catch {
+        // novelty is best-effort; ignore on failure
+      }
+    }
+    return sortAttentionItems(
+      applyDecisionBriefPriority(attentionItems, redacted.assessment?.decision_brief),
+    );
+  };
 
   const todayAuthHook = readAuthHook ?? authHook;
 
@@ -178,10 +220,7 @@ export async function reportRoutes(app, opts) {
     const analyst_denied = requestedView === DISPLAY_VIEWS.analyst
       && display_view !== DISPLAY_VIEWS.analyst;
     const redacted = redactReportPayload(data, display_view);
-    const attention_items = buildAttentionItems(redacted.assessment, {
-      view: display_view,
-      reportScopeId: scope,
-    });
+    const attention_items = buildAttentionItemsWithContext(redacted, scope, display_view, dateParam);
     const action_compass = buildActionCompass(redacted.assessment, attention_items, {
       geoUnknownCount: countPendingGeoUnknown(geoUnknownReviewService),
     });
@@ -376,6 +415,39 @@ export async function reportRoutes(app, opts) {
     } catch (err) {
       return reply.code(502).send({ error: err?.message ?? 'Translation failed' });
     }
+  });
+
+  app.post('/report/action/approve', authHook, async (request, reply) => {
+    const { action_id, reasoning, approved_at } = request.body ?? {};
+    if (!action_id || typeof action_id !== 'string' || !action_id.trim()) {
+      return reply.code(400).send({ error: 'action_id is required' });
+    }
+    if (!reasoning || typeof reasoning !== 'string' || !reasoning.trim()) {
+      return reply.code(400).send({ error: 'reasoning is required — document why this action was approved' });
+    }
+
+    const date = getTodayInTimezone(timezone);
+    const ROUTES_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
+    const logDir = resolve(ROUTES_ROOT, 'cross-cut-modules', 'log', 'data');
+    const logPath = resolve(logDir, `action-approvals-${date}.jsonl`);
+
+    const record = {
+      action_id: action_id.trim(),
+      reasoning: reasoning.trim(),
+      approved_at: approved_at ?? new Date().toISOString(),
+      approved_by: request.user?.email ?? request.user?.uid ?? 'unknown',
+      server_time: new Date().toISOString(),
+    };
+
+    try {
+      await mkdir(logDir, { recursive: true });
+      await appendFile(logPath, JSON.stringify(record) + '\n', 'utf-8');
+    } catch (err) {
+      request.log?.error({ err }, 'Failed to write action approval log');
+      return reply.code(500).send({ error: 'Failed to record approval' });
+    }
+
+    return reply.send({ ok: true, approved_at: record.approved_at });
   });
 
   app.get('/articles', authHook, async (request, reply) => {

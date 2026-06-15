@@ -6,9 +6,14 @@ import { tmpdir } from 'os';
 
 import { resolveReportJsonPathForDate } from '../../../../business_modules/resilience/index.js';
 
-function miniReport(totalArticles) {
+function miniReport(totalArticles, { generatedAt, critical } = {}) {
   return JSON.stringify({
-    assessment: { date: '2026-01-01', total_articles_analyzed: totalArticles },
+    ...(generatedAt ? { generated_at: generatedAt } : {}),
+    assessment: {
+      date: '2026-01-01',
+      total_articles_analyzed: totalArticles,
+      ...(critical ? { critical_signal: true } : {}),
+    },
   });
 }
 
@@ -21,14 +26,36 @@ describe('resolveReportJsonPathForDate', () => {
     rmSync(dir, { recursive: true, force: true });
   });
 
-  it('prefers higher total_articles_analyzed over newer mtime', () => {
-    const rich = join(dir, 'resilience-report-2026-01-01-0900.json');
-    const slim = join(dir, 'resilience-report-2026-01-01-1800.json');
+  it('prefers newer generated_at over higher article count', () => {
+    const morning = join(dir, 'resilience-report-2026-01-01-0900.json');
+    const evening = join(dir, 'resilience-report-2026-01-01-1800.json');
+    // Morning run processed 500 routine articles; evening run processed 50 crisis articles but is newer
+    writeFileSync(morning, miniReport(500, { generatedAt: '2026-01-01T09:00:00.000Z' }));
+    writeFileSync(evening, miniReport(50, { generatedAt: '2026-01-01T18:00:00.000Z' }));
+
+    const picked = resolveReportJsonPathForDate('2026-01-01', { reportsDir: dir });
+    assert.strictEqual(picked, evening, 'newer generated_at should win over higher article count');
+  });
+
+  it('falls back to article count when generated_at is absent', () => {
+    const rich = join(dir, 'resilience-report-2026-01-04-0900.json');
+    const slim = join(dir, 'resilience-report-2026-01-04-1800.json');
     writeFileSync(rich, miniReport(79));
     writeFileSync(slim, miniReport(7));
 
-    const picked = resolveReportJsonPathForDate('2026-01-01', { reportsDir: dir });
-    assert.strictEqual(picked, rich);
+    const picked = resolveReportJsonPathForDate('2026-01-04', { reportsDir: dir });
+    assert.strictEqual(picked, rich, 'without generated_at, higher article count should win');
+  });
+
+  it('critical_signal flag always wins regardless of timestamp', () => {
+    const normal = join(dir, 'resilience-report-2026-01-05-0900.json');
+    const crisis = join(dir, 'resilience-report-2026-01-05-0600.json');
+    // Crisis run is earlier but has critical_signal: true
+    writeFileSync(normal, miniReport(500, { generatedAt: '2026-01-05T09:00:00.000Z' }));
+    writeFileSync(crisis, miniReport(20, { generatedAt: '2026-01-05T06:00:00.000Z', critical: true }));
+
+    const picked = resolveReportJsonPathForDate('2026-01-05', { reportsDir: dir });
+    assert.strictEqual(picked, crisis, 'critical_signal should win over newer/larger reports');
   });
 
   it('ties on article count with newer mtime', () => {

@@ -55,6 +55,7 @@ function applyFoundReport(data, setters) {
   setters.setMarkdown(typeof data.markdown === 'string' && data.markdown.trim() ? data.markdown : null);
   setters.setScoreBySource(data.score_by_source && typeof data.score_by_source === 'object' ? data.score_by_source : null);
   setters.setReportDate(typeof data.reportDate === 'string' ? data.reportDate : null);
+  setters.setReportGeneratedAt(typeof data.generated_at === 'string' ? data.generated_at : null);
   setters.setDisplayView(data.display_view === 'analyst' ? 'analyst' : 'operator');
   setters.setAttentionItems(Array.isArray(data.attention_items) ? data.attention_items : []);
   setters.setActionCompass(data.action_compass ?? null);
@@ -103,6 +104,7 @@ export function useTodayReport(scope = 'national', view = 'operator', date = nul
   const [markdown, setMarkdown] = useState(null);
   const [scoreBySource, setScoreBySource] = useState(null);
   const [reportDate, setReportDate] = useState(null);
+  const [reportGeneratedAt, setReportGeneratedAt] = useState(null);
   const [displayView, setDisplayView] = useState(view);
   const [refreshTick, setRefreshTick] = useState(0);
   const [initialReportLoadDone, setInitialReportLoadDone] = useState(false);
@@ -125,6 +127,7 @@ export function useTodayReport(scope = 'national', view = 'operator', date = nul
       setMarkdown,
       setScoreBySource,
       setReportDate,
+      setReportGeneratedAt,
       setDisplayView,
       setInitialReportLoadDone,
       setReportMissingHint,
@@ -207,6 +210,7 @@ export function useTodayReport(scope = 'national', view = 'operator', date = nul
     markdown,
     scoreBySource,
     reportDate,
+    reportGeneratedAt,
     displayView,
     refreshReport,
     initialReportLoadDone,

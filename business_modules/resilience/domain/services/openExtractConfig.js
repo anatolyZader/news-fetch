@@ -25,9 +25,12 @@ export function openObsRoutingMode(env = process.env) {
   return m === 'keyword' ? 'keyword' : 'llm';
 }
 
+// Production default: OFF — enable only after audit (set RESILIENCE_OPEN_EVIDENCE_SCORING=1 or on).
+// Changing the default from ON to OFF prevents untested open-path signals from silently
+// entering scoring in fresh deployments before the verification gate has been reviewed.
 export function isOpenEvidenceScoringEnabled(env = process.env) {
   const v = env.RESILIENCE_OPEN_EVIDENCE_SCORING;
-  if (v == null || v === '') return true;
+  if (v == null || v === '') return false;
   return v === '1' || v === 'true' || v === 'on';
 }
 

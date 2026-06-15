@@ -29,6 +29,7 @@ import {
   selfCheckMaxTokensCap,
   extractBatchEnabled,
   buildExtractionSystemParts,
+  extractRationaleEnabled,
 } from '../../../cross-cut-modules/resilience-contracts/extractionPrompt.js';
 import { runExtractionBatchCalls } from './extractionBatchRunner.js';
 import {
@@ -133,6 +134,98 @@ const SEMANTIC_SELECT_CACHE = new Map(); // key -> Float32Array
 
 function sha256Hex(s) {
   return createHash('sha256').update(String(s ?? '')).digest('hex');
+}
+
+// ─── Decision-trace helpers (A) + rationale parsing (B) ──────────────────────
+
+/** Temporary fields attached for the decision trace; never persisted to bundles. */
+const TRACE_ONLY_SIGNAL_FIELDS = ['rationale', '_pass', '_dropped_reason', '_self_check', '_from_cache'];
+
+/** Drop trace-only / B-only fields so written signal bundles stay clean. */
+export function stripTraceFields(signal) {
+  if (!signal || typeof signal !== 'object') return signal;
+  const clean = { ...signal };
+  for (const f of TRACE_ONLY_SIGNAL_FIELDS) delete clean[f];
+  return clean;
+}
+
+const REJECTED_OBJECT_RE = /\{[^{}]*"_rejected"[\s\S]*\}/;
+
+/** Parse the trailing `{"_rejected": [...]}` object emitted in trace mode (B). */
+function parseRejectedCandidates(text) {
+  try {
+    const m = REJECTED_OBJECT_RE.exec(String(text ?? ''));
+    if (!m) return [];
+    const obj = JSON.parse(m[0]);
+    return Array.isArray(obj?._rejected) ? obj._rejected : [];
+  } catch {
+    return [];
+  }
+}
+
+/** Stable-ish identity for tracking a signal's fate across pipeline stages. */
+function signalTraceKey(s) {
+  return `${s?.article_index ?? '?'}|${s?.signal_type ?? '?'}|${String(s?.evidence ?? '').slice(0, 120)}`;
+}
+
+function classifyTraceStatus(key, sets) {
+  if (!sets.afterInBatch.has(key)) return { status: 'dropped', dropped_by: 'in_batch_dedup' };
+  if (!sets.afterSemantic.has(key)) return { status: 'dropped', dropped_by: 'semantic_dedup' };
+  if (!sets.afterValidate.has(key)) return { status: 'dropped', dropped_by: 'validation' };
+  if (!sets.afterVerifier.has(key)) return { status: 'dropped', dropped_by: 'evidence_verifier' };
+  if (!sets.afterSelfCheck.has(key)) return { status: 'dropped', dropped_by: 'self_check' };
+  return { status: 'kept', dropped_by: null };
+}
+
+function traceSelfCheck(s) {
+  if (s._self_check) return s._self_check;
+  if (s._dropped_reason?.stage === 'self_check') {
+    return { verdict: 'no', reason: s._dropped_reason.reason };
+  }
+  return null;
+}
+
+function emitBatchTrace({ trace, articles, contentKind, batchLabel, candidates, sets }) {
+  const byArticle = new Map();
+  for (const s of candidates) {
+    const idx = s.article_index ?? 1;
+    if (!byArticle.has(idx)) byArticle.set(idx, []);
+    byArticle.get(idx).push(s);
+  }
+  for (const [idx, cands] of byArticle) {
+    const art = articles[idx - 1] ?? {};
+    const signals = cands.map((s) => {
+      const { status, dropped_by } = classifyTraceStatus(signalTraceKey(s), sets);
+      return {
+        signal_type: s.signal_type ?? null,
+        evidence: s.evidence ?? '',
+        confidence: s.confidence ?? null,
+        extraction_confidence: s.extraction_confidence ?? null,
+        rationale: s.rationale ?? null,
+        self_check: traceSelfCheck(s),
+        status,
+        dropped_by,
+        pass: s._pass ?? null,
+      };
+    });
+    const body = art.body ?? '';
+    trace.item({
+      source_type: contentKind,
+      batch: batchLabel,
+      pass: cands[0]?._pass ?? null,
+      from_cache: cands.length > 0 && cands.every((s) => s._from_cache === true),
+      article: {
+        title: art.title ?? null,
+        source: art.source ?? null,
+        url: art.url ?? null,
+        source_id: art.source_id ?? null,
+      },
+      raw_text: body,
+      raw_text_len: body.length,
+      rag_trimmed: Boolean(art.promptBody && art.promptBody !== body),
+      signals,
+    });
+  }
 }
 
 function semanticSelectionEnabled() {
@@ -456,7 +549,8 @@ async function fetchHaikuSignalsOnce(batchLabel, modelId, system, userContent, u
   if (!textBlock) throw new Error(`${batchLabel}: no text block`);
   const signals = extractJsonArray(textBlock.text);
   if (!Array.isArray(signals)) throw new Error(`${batchLabel}: expected JSON array`);
-  return signals;
+  const rejected = extractRationaleEnabled() ? parseRejectedCandidates(textBlock.text) : [];
+  return { signals, rejected };
 }
 
 async function fetchMissArticlesSignals({
@@ -477,7 +571,7 @@ async function fetchMissArticlesSignals({
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
       const label = attempt > 1 ? `${batchLabel} (retry ${attempt})` : batchLabel;
-      const raw = await fetchHaikuSignalsOnce(label, modelId, system, userContent, usageCallback);
+      const { signals: raw, rejected } = await fetchHaikuSignalsOnce(label, modelId, system, userContent, usageCallback);
       const llmSignals = remapMissBatchIndices(raw, origIndexByMiss);
       persistArticleExtractCache(llmSignals, articles, {
         model: modelId,
@@ -485,6 +579,9 @@ async function fetchMissArticlesSignals({
         domainGroupKey,
         cacheDbPath: extractOpts.cacheDbPath,
       });
+      if (extractOpts.trace?.enabled && rejected.length) {
+        extractOpts.trace.event('rejected', { batch: batchLabel, items: rejected });
+      }
       return llmSignals;
     } catch (err) {
       if (attempt === retries) throw err;
@@ -527,7 +624,7 @@ async function callHaikuExtraction(articles, {
     })
     : [];
 
-  return [...cachedSignals, ...llmSignals];
+  return [...cachedSignals.map((s) => ({ ...s, _from_cache: true })), ...llmSignals];
 }
 
 /**
@@ -539,6 +636,7 @@ function collectSelfCheckVerdicts(verdicts) {
   const noSet = new Set();
   const uncertainSet = new Set();
   const reasonCounts = {};
+  const reasonByIndex = new Map();
   for (const v of verdicts) {
     const idx = Number(v.index);
     if (!Number.isInteger(idx)) continue;
@@ -547,11 +645,12 @@ function collectSelfCheckVerdicts(verdicts) {
       noSet.add(idx);
       const reason = typeof v.reason === 'string' && v.reason ? v.reason : 'unspecified';
       reasonCounts[reason] = (reasonCounts[reason] || 0) + 1;
+      reasonByIndex.set(idx, reason);
     } else if (verdict === 'uncertain') {
       uncertainSet.add(idx);
     }
   }
-  return { noSet, uncertainSet, reasonCounts };
+  return { noSet, uncertainSet, reasonCounts, reasonByIndex };
 }
 
 function reportSelfCheckStats(batchLabel, usageCallback, stats) {
@@ -560,9 +659,17 @@ function reportSelfCheckStats(batchLabel, usageCallback, stats) {
 }
 
 function applySelfCheckVerdicts(signals, verdicts, batchLabel, usageCallback) {
-  const { noSet, uncertainSet, reasonCounts } = collectSelfCheckVerdicts(verdicts);
+  const { noSet, uncertainSet, reasonCounts, reasonByIndex } = collectSelfCheckVerdicts(verdicts);
   for (const idx of uncertainSet) {
-    if (signals[idx]) logSelfCheckUncertain(signals[idx], batchLabel);
+    if (signals[idx]) {
+      logSelfCheckUncertain(signals[idx], batchLabel);
+      signals[idx]._self_check = { verdict: 'uncertain' };
+    }
+  }
+  for (const idx of noSet) {
+    if (signals[idx]) {
+      signals[idx]._dropped_reason = { stage: 'self_check', reason: reasonByIndex.get(idx) ?? 'unspecified' };
+    }
   }
   if (noSet.size === 0) {
     reportSelfCheckStats(batchLabel, usageCallback, {
@@ -652,7 +759,7 @@ async function processBatchCallResult(call, result, articles, raw, {
 }) {
   if (!result?.ok) {
     console.error(`  ⚠ batch pass failed (${result?.error}) — sync fallback for ${call.customId}`);
-    return raw.concat(await callHaikuExtraction(articles, {
+    const fallback = await callHaikuExtraction(articles, {
       batchLabel: call.customId,
       retries,
       usageCallback,
@@ -660,12 +767,15 @@ async function processBatchCallResult(call, result, articles, raw, {
       domainGroupKey: call.meta.key,
       extractModel,
       extractOpts,
-    }));
+    });
+    for (const s of fallback) s._pass = call.meta.key;
+    return raw.concat(fallback);
   }
   if (usageCallback && result.usage) {
     usageCallback({ label: call.label, model: modelId, usage: result.usage });
   }
   const remapped = remapMissBatchIndices(result.signals, call.meta.origIndexByMiss);
+  for (const s of remapped) s._pass = call.meta.key;
   persistArticleExtractCache(remapped, articles, {
     model: modelId,
     contentKind,
@@ -685,7 +795,7 @@ async function extractMultipassViaBatch({
     const { cachedSignals, batchCall } = await buildMultipassBatchCall(
       articles, batchLabel, key, modelId, contentKind, extractOpts,
     );
-    cachedAccum.push(...cachedSignals);
+    cachedAccum.push(...cachedSignals.map((s) => ({ ...s, _pass: key, _from_cache: true })));
     if (batchCall) batchCalls.push(batchCall);
   }
   if (batchCalls.length === 0) return cachedAccum;
@@ -715,6 +825,7 @@ async function extractMultipassSequential({
       extractModel,
       extractOpts,
     });
+    for (const s of passSignals) if (s._pass == null) s._pass = key;
     console.error(`  → ${passLabel}: ${passSignals.length} candidate(s)`);
     raw = raw.concat(passSignals);
   }
@@ -751,22 +862,43 @@ async function extractSignalsBatch(articles, batchLabel, retries = 3, usageCallb
       extractOpts,
     });
 
+  // Snapshot the model's raw candidates (pre-dedup) so the decision trace can
+  // attribute each candidate's fate to the stage that dropped it.
+  const traceActive = extractOpts.trace?.enabled === true;
+  const traceCandidates = traceActive ? raw.slice() : null;
+
   const beforeDedup = raw.length;
   raw = dedupeSignalsWithinBatch(raw);
   if (raw.length < beforeDedup) {
     console.error(`  → [${batchLabel}] in-batch dedup: ${beforeDedup} → ${raw.length}`);
   }
+  const afterInBatch = traceActive ? new Set(raw.map(signalTraceKey)) : null;
 
   const beforeSemantic = raw.length;
   raw = await dedupeSignalsBySemanticEvidence(raw, { contentKind });
   if (raw.length < beforeSemantic) {
     console.error(`  → [${batchLabel}] semantic dedup: ${beforeSemantic} → ${raw.length}`);
   }
+  const afterSemantic = traceActive ? new Set(raw.map(signalTraceKey)) : null;
 
   let valid = validateSignalsFromCall(raw, articles, batchLabel, contentKind);
+  const afterValidate = traceActive ? new Set(valid.map(signalTraceKey)) : null;
   valid = await applyEvidenceVerifier(valid, articles, batchLabel, usageCallback);
+  const afterVerifier = traceActive ? new Set(valid.map(signalTraceKey)) : null;
   valid = await runSelfCheck(valid, batchLabel, usageCallback);
+  const afterSelfCheck = traceActive ? new Set(valid.map(signalTraceKey)) : null;
   await captureBatchLearningSignals(articles, valid, batchLabel, usageCallback);
+
+  if (traceActive) {
+    emitBatchTrace({
+      trace: extractOpts.trace,
+      articles,
+      contentKind,
+      batchLabel,
+      candidates: traceCandidates,
+      sets: { afterInBatch, afterSemantic, afterValidate, afterVerifier, afterSelfCheck },
+    });
+  }
   return valid;
 }
 
@@ -876,8 +1008,9 @@ export async function extractSignals(articles, {
   extractModel = null,
   retrievalService = null,
   reportDate = null,
+  trace = null,
 } = {}) {
-  const extractOpts = { retrievalService, reportDate };
+  const extractOpts = { retrievalService, reportDate, trace };
   if (articles.length <= EVIDENCE_BATCH_SIZE) {
     onProgress?.({ type: 'progress', step: 'extract', message: 'Extracting behavioral signals...' });
     return extractSignalsBatch(articles, '[Step 1 — Signal extraction]', 3, onUsage, contentKind, extractModel, extractOpts);

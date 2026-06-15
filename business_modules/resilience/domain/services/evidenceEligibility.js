@@ -49,7 +49,8 @@ export function deriveSignalProvenance(signal) {
     scope?.isScopeRelevant
     || scope?.isNorthRelevant
     || scope?.source === 'signal_district'
-    || scope?.source === 'legacy_north_fallback'
+    || scope?.source === 'default_north_district'
+    || scope?.source === 'legacy_north_fallback'  // backward-compat for old report files
   ) {
     return SIGNAL_PROVENANCE.source_assigned;
   }

@@ -20,6 +20,7 @@ import { fileURLToPath } from 'node:url';
 
 import { loadMdFiles } from '../infrastructure/mdReportsLoader.js';
 import { createCostTracker, appendCostLog, checkDailyBudget } from '../../../cross-cut-modules/budget/index.js';
+import { createRunTrace } from '../../../cross-cut-modules/log/index.js';
 import { archiveMarkdownFiles } from '../app/archiveMarkdownFromMd.js';
 import { attachSourceIdsToArticles } from '../../../db/source_archive/attachSourceIds.js';
 import { createRetrievalService } from '../../../cross-cut-modules/retrieval/createRetrievalService.js';
@@ -130,6 +131,13 @@ export async function runExtractSignalsCli() {
   console.error(`Files: ${filePaths.map((f) => basename(f)).join(', ')}`);
   console.error(`Articles loaded: ${articles.length}\n`);
 
+  const trace = createRunTrace({
+    run: 'extract',
+    sourceType,
+    date,
+    enabled: process.env.RESILIENCE_ITEM_TRACE !== '0',
+  });
+
   const { signals } = await runArticleDualPathExtract({
     repoRoot: REPO_ROOT,
     articles,
@@ -139,7 +147,13 @@ export async function runExtractSignalsCli() {
     filePaths,
     onUsage,
     retrievalService,
+    trace,
   });
+
+  const traceOut = trace.finish();
+  if (traceOut) {
+    console.error(`\nDecision trace written:\n  ${traceOut.mdPath}`);
+  }
 
   await indexExtractStoryClusters(retrievalService, signals);
   retrievalService?.close();

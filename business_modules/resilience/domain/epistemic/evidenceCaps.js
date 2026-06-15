@@ -55,20 +55,46 @@ export function capByGroup(items, keyFn, threshold, layerName = null) {
   return [...out, ...exemptItems.map((it) => ({ ...it }))];
 }
 
+const DEFAULT_SOURCE_TYPE_CAP = 0.5;
+const DEFAULT_ARTICLE_SOURCE_CAP = 0.35;
+
+/** When total evidence mass is very low, relax caps so sparse data isn't over-penalised. */
+const ADAPTIVE_SOURCE_TYPE_CAP = 0.8;
+const ADAPTIVE_ARTICLE_SOURCE_CAP = 0.6;
+
+/** Evidence mass threshold below which adaptive caps are used. */
+const ADAPTIVE_CAP_MASS_THRESHOLD = 5;
+
 /**
  * @param {Array<{signal: object, contribution: number, polarity: '+'|'-'}>} items
+ * @param {{ totalEvidenceMass?: number }} [opts]
+ *   `totalEvidenceMass` — total absolute evidence mass across all components; when < 5, caps are relaxed.
  */
-export function applySourceCap(items) {
+export function applySourceCap(items, { totalEvidenceMass } = {}) {
+  const sparse = typeof totalEvidenceMass === 'number' && totalEvidenceMass < ADAPTIVE_CAP_MASS_THRESHOLD;
+  const sourceTypeCap = sparse ? ADAPTIVE_SOURCE_TYPE_CAP : DEFAULT_SOURCE_TYPE_CAP;
+  const articleSourceCap = sparse ? ADAPTIVE_ARTICLE_SOURCE_CAP : DEFAULT_ARTICLE_SOURCE_CAP;
+
   let out = items.map((it) => ({
     ...it,
     _cap_scale_factor: it._cap_scale_factor ?? 1,
     _cap_layer: it._cap_layer ?? null,
+    ...(sparse ? { _adaptive_cap: true } : {}),
   }));
 
-  out = capByGroup(out, (sig) => sig.source_type ?? '_unknown', 0.5, 'source_type');
-  out = capByGroup(out, (sig) => sig.article_source ?? '_unknown', 0.35, 'article_source');
+  out = capByGroup(out, (sig) => sig.source_type ?? '_unknown', sourceTypeCap, 'source_type');
+  out = capByGroup(out, (sig) => sig.article_source ?? '_unknown', articleSourceCap, 'article_source');
 
   return out;
+}
+
+/**
+ * Convenience wrapper: adaptive cap applied when `totalEvidenceMass < 5`.
+ * @param {Array<{signal: object, contribution: number, polarity: '+'|'-'}>} items
+ * @param {{ totalEvidenceMass: number }} opts
+ */
+export function applyAdaptiveSourceCap(items, opts) {
+  return applySourceCap(items, opts);
 }
 
 /** Whether applySourceCap scaled any item (post vs pre cap mass). */

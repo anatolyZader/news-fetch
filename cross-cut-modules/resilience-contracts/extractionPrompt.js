@@ -3,10 +3,23 @@
  */
 import { promptCacheEnabledForFeature } from '../llm/promptCacheConfig.js';
 
-export const EXTRACT_PROMPT_VERSION = 'extract-v2';
+export const EXTRACT_PROMPT_VERSION = 'extract-v3';
 export const EXTRACT_PROMPT_ID = 'signal-extraction';
 
+/**
+ * Trace mode (B): when on, each extracted signal carries a model-authored `rationale`
+ * and the model appends a trailing `{"_rejected": [...]}` object. Gated off by default
+ * because it adds output tokens and perturbs determinism — intended for tuning runs.
+ */
+export function extractRationaleEnabled() {
+  const v = process.env.RESILIENCE_EXTRACT_RATIONALE;
+  return v === '1' || v === 'true' || v === 'full';
+}
+
 export function extractionCacheEnabled() {
+  // Bypass the extraction cache when trace mode is on so B-off cached signals
+  // (which lack `rationale`/`_rejected`) are never reused on a B-on run.
+  if (extractRationaleEnabled()) return false;
   if (process.env.RESILIENCE_EXTRACT_CACHE === '0') return false;
   return process.env.RESILIENCE_EXTRACT_CACHE !== 'false';
 }
@@ -44,7 +57,12 @@ export function buildCoreExtractionStablePrefix(formatDisambiguationBlock) {
     `- EXCLUDE: journalist mood without observable civilian facts\n` +
     `- fear_expression/calm_confidence require named person (direct_quote_named_person)\n\n` +
     `OUTPUT FIELDS: article_index, signal_type, evidence_type, evidence (verbatim quote), ` +
-    `scope_level, confidence (0-1). Return [] if none.\n\n` +
+    `scope_level, confidence (0-1), locality. Return [] if none.\n` +
+    `- locality: the Israeli town/city/community/region where the described civilian behavior ` +
+    `actually occurs (Hebrew or English, as written in the text). Set null when the signal is ` +
+    `national in scope or no specific place is identifiable. Do NOT infer locality from a place ` +
+    `merely named in passing, quoted by a pundit, or discussed in studio — only when the behavior ` +
+    `happens there.\n\n` +
     `━━━ CLASSIFICATION ━━━\n${formatDisambiguationBlock()}\n\n`
   );
 }
@@ -70,6 +88,22 @@ export function coreExtractionStablePrefixCharBudget() {
 }
 
 /**
+ * Trace-mode (B) prompt suffix: ask for a per-signal `rationale` plus a trailing
+ * `{"_rejected": [...]}` object listing considered-but-not-emitted facts.
+ */
+export function buildRationaleInstructionSuffix() {
+  return (
+    `\n\n━━━ TRACE MODE (rationale capture) ━━━\n` +
+    `For EACH signal object, ALSO include a "rationale" field: one short clause (under 20 words) ` +
+    `explaining why this evidence is a valid instance of its signal_type.\n` +
+    `AFTER the JSON array, on a NEW line, output a single JSON object listing facts you considered ` +
+    `but did NOT emit as signals:\n` +
+    `{"_rejected":[{"text":"<the fact or quote>","why":"<short reason it was not emitted>"}]}\n` +
+    `Use {"_rejected":[]} when nothing was considered and rejected.`
+  );
+}
+
+/**
  * Cache-friendly extraction system split: stable catalog block vs dynamic content-kind prefix.
  * @param {string} contentKind
  * @param {{
@@ -86,6 +120,9 @@ export function buildExtractionSystemParts(_contentKind, opts) {
   );
   if (opts.passScopeSuffix) {
     stable += `\n\n${opts.passScopeSuffix}`;
+  }
+  if (extractRationaleEnabled()) {
+    stable += buildRationaleInstructionSuffix();
   }
   const dynamic = String(opts.contentKindPrefix ?? '');
   return { stable, dynamic };

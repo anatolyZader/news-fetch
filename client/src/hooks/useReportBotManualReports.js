@@ -1,8 +1,21 @@
 import { useCallback, useEffect, useState } from 'react';
+import { authFetch } from '../lib/authFetch.js';
 import { withOperatorDistrictQuery } from '../lib/clampOperatorDistrictScope.js';
 
-/** @param {{ getIdToken: () => Promise<string|null>, apiReady: boolean, operatorScope?: string }} opts */
-export function useReportBotManualReports({ getIdToken, apiReady, operatorScope = 'national' }) {
+/**
+ * @param {{
+ *   getIdToken: () => Promise<string|null>,
+ *   getAppCheckToken?: () => Promise<string|null>,
+ *   apiReady: boolean,
+ *   operatorScope?: string,
+ * }} opts
+ */
+export function useReportBotManualReports({
+  getIdToken,
+  getAppCheckToken,
+  apiReady,
+  operatorScope = 'national',
+}) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -11,19 +24,17 @@ export function useReportBotManualReports({ getIdToken, apiReady, operatorScope 
     setLoading(true);
     setError(null);
     try {
-      const headers = new Headers();
-      const token = await getIdToken();
-      if (token) headers.set('Authorization', `Bearer ${token}`);
-      const res = await fetch(withOperatorDistrictQuery('/api/report-bot/manual-reports', operatorScope), { headers });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json = await res.json();
+      const json = await authFetch(
+        withOperatorDistrictQuery('/api/report-bot/manual-reports', operatorScope),
+        { getIdToken, getAppCheckToken },
+      );
       setData(json);
     } catch (e) {
       setError(e?.message ?? 'Failed');
     } finally {
       setLoading(false);
     }
-  }, [getIdToken, operatorScope]);
+  }, [getIdToken, getAppCheckToken, operatorScope]);
 
   useEffect(() => {
     if (!apiReady) return;

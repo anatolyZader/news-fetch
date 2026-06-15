@@ -2,6 +2,7 @@ export {
   defaultLogDataDir,
   resolveCostLogPath,
   resolvePipelineLogPath,
+  resolveRunTracePath,
 } from './infrastructure/logPaths.js';
 
 export {
@@ -25,3 +26,5 @@ export {
 export { summariseStageEvents as summarizeStageEvents } from './app/costLog.js';
 
 export { createLogger } from './app/createLogger.js';
+
+export { createRunTrace } from './app/runTrace.js';

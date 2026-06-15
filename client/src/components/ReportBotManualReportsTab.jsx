@@ -15,6 +15,7 @@ import { EmptyState, ErrorState, LoadingState, PageHeader } from '../ui/index.js
 import { formatDate } from '../lib/date.js';
 import PropTypes from 'prop-types';
 import { useReportBotManualReports } from '../hooks/useReportBotManualReports.js';
+import { authFetch } from '../lib/authFetch.js';
 import { withOperatorDistrictQuery } from '../lib/clampOperatorDistrictScope.js';
 import { DistrictScopeSwitcher } from './DistrictScopeSwitcher.jsx';
 
@@ -32,9 +33,10 @@ export function ReportBotManualReportsTab({
 }) {
   const theme = useTheme();
   const { t } = useLanguage();
-  const { apiReady, getIdToken } = useAuth();
+  const { apiReady, getIdToken, getAppCheckToken } = useAuth();
   const { data, loading, error } = useReportBotManualReports({
     getIdToken,
+    getAppCheckToken,
     apiReady,
     operatorScope,
   });
@@ -64,26 +66,11 @@ export function ReportBotManualReportsTab({
       if (fetchedRef.current.has(fileName)) return;
       setFullLoading(fileName);
       try {
-        const headers = new Headers();
-        const token = await getIdToken();
-        if (token) headers.set('Authorization', `Bearer ${token}`);
         const q = new URLSearchParams({ name: fileName });
-        const res = await fetch(
+        const json = await authFetch(
           withOperatorDistrictQuery(`/api/report-bot/manual-reports/file?${q.toString()}`, operatorScope),
-          { headers },
+          { getIdToken, getAppCheckToken },
         );
-        const text = await res.text();
-        if (!res.ok) {
-          let detail = `HTTP ${res.status}`;
-          try {
-            const j = JSON.parse(text);
-            if (typeof j?.error === 'string' && j.error.trim()) detail = j.error.trim();
-          } catch {
-            /* plain text or HTML */
-          }
-          throw new Error(detail);
-        }
-        const json = JSON.parse(text);
         const content = String(json.content ?? '');
         setFullByName((prev) => ({ ...prev, [fileName]: content }));
         fetchedRef.current.add(fileName);
@@ -96,7 +83,7 @@ export function ReportBotManualReportsTab({
         setFullLoading(null);
       }
     },
-    [getIdToken, t, operatorScope],
+    [getIdToken, getAppCheckToken, t, operatorScope],
   );
 
   const onAccordionChange =

@@ -61,7 +61,9 @@ To run in background (survives SSH disconnect):
 nohup ./scripts/daily-pipeline.sh > cross-cut-modules/log/data/pipeline-$(date +%Y-%m-%d).log 2>&1 &
 ```
 
-### Option B: Scheduled via cron
+### Option B: Scheduled via cron (two-window, recommended)
+
+The officer produces two briefings per day — morning and afternoon. Run the pipeline twice to ensure each briefing uses fresh data.
 
 Edit crontab on the VM:
 
@@ -69,33 +71,51 @@ Edit crontab on the VM:
 crontab -e
 ```
 
-Add a daily run at 15:00 Israel time (12:00 UTC in winter, 13:00 UTC in summer):
+Add two daily runs — morning (06:00) and afternoon (14:00) Israel time:
 
 ```cron
-# Daily resilience pipeline — runs at 15:00 Israel time (UTC+3)
-0 12 * * 0-4  cd /home/eventstorm1/news && ./scripts/daily-pipeline.sh >> cross-cut-modules/log/data/pipeline-cron.log 2>&1
+# Morning pipeline — 06:00 Israel time (UTC+3 = 03:00 UTC; UTC+2 summer = 04:00 UTC)
+0 3 * * 0-4  cd /home/eventstorm1/news && source .env && ./scripts/daily-pipeline.sh --no-transcribe >> cross-cut-modules/log/data/pipeline-morning.log 2>&1
+
+# Afternoon pipeline — 14:00 Israel time (11:00 UTC winter / 12:00 UTC summer)
+0 11 * * 0-4  cd /home/eventstorm1/news && source .env && ./scripts/daily-pipeline.sh >> cross-cut-modules/log/data/pipeline-afternoon.log 2>&1
 ```
 
 Notes:
-- Schedule `0-4` = Sunday–Thursday (Israeli work week)
-- Choose a time after all recordings finish (check your recording jobs schedule)
-- Log output goes under `cross-cut-modules/log/data/` (created automatically on first write)
+- Schedule `0-4` = Sunday–Thursday (Israeli work week). Add `,5,6` to also run Friday–Saturday if the officer is on duty.
+- Morning run uses `--no-transcribe` because radio recordings are still being captured at 06:00. The afternoon run includes transcription.
+- Choose times that clear your recording job windows (check `business_modules/radio/input/setup-tzafon.js` for recording hours).
+- The report cache always picks the most recent run for a given day, so back-to-back runs are safe.
+- If data is older than 4 hours when the officer opens the UI, a freshness banner is shown automatically.
+- Log output goes under `cross-cut-modules/log/data/` (created automatically on first write).
 
-### Option C: Via PM2
+**Weekend coverage:** if the officer needs weekend reports, add days 5 (Friday) and 6 (Saturday) to the schedule, or run manually:
+```bash
+./scripts/daily-pipeline.sh
+```
 
-Add to `ecosystem.config.cjs` as a one-shot process with a cron restart:
+### Option C: Via PM2 (two-window)
+
+Add two entries to `ecosystem.config.cjs`:
 
 ```javascript
 {
-  name:          'daily-pipeline',
+  name:          'pipeline-morning',
+  script:        'scripts/daily-pipeline.sh',
+  args:          '--no-transcribe',
+  cwd:           __dirname,
+  cron_restart:  '0 3 * * 0-4',    // 06:00 Israel time (winter, UTC+3)
+  autorestart:   false,
+  env: { NODE_ENV: 'production' },
+},
+{
+  name:          'pipeline-afternoon',
   script:        'scripts/daily-pipeline.sh',
   cwd:           __dirname,
-  cron_restart:  '0 12 * * 0-4',   // 15:00 Israel time
-  autorestart:   false,             // don't restart after completion
-  env: {
-    NODE_ENV: 'production',
-  },
-}
+  cron_restart:  '0 11 * * 0-4',   // 14:00 Israel time (winter, UTC+3)
+  autorestart:   false,
+  env: { NODE_ENV: 'production' },
+},
 ```
 
 Then: `pm2 start ecosystem.config.cjs` (or `pm2 reload ecosystem.config.cjs` if already running).
@@ -119,11 +139,13 @@ If running via cron, make sure the env vars are available. Easiest way:
 Check the latest pipeline run:
 
 ```bash
-# If using cron
-tail -100 ~/news/cross-cut-modules/log/data/pipeline-cron.log
+# If using two-window cron
+tail -50 ~/news/cross-cut-modules/log/data/pipeline-morning.log
+tail -50 ~/news/cross-cut-modules/log/data/pipeline-afternoon.log
 
 # If using PM2
-pm2 logs daily-pipeline --lines 100
+pm2 logs pipeline-morning --lines 50
+pm2 logs pipeline-afternoon --lines 50
 ```
 
 Check if today's report was generated:
@@ -131,6 +153,18 @@ Check if today's report was generated:
 ```bash
 ls -la daily_reports/resilience-report-$(date +%Y-%m-%d)*.json
 ```
+
+## Degraded mode
+
+When the LLM specialist call fails during assessment, the pipeline degrades gracefully rather than crashing:
+
+- **Keyword fallback (`assessment_mode: 'keyword'`)** — the open path routes observations via keyword matching instead of LLM routing. Reports are still produced but open-path narrative quality is reduced. The UI shows a **warning banner**.
+- **Abstention (`assessment_mode: 'abstained'`)** — no viable signal-based report; the output contains only `data_void` metadata and attention items. The UI shows a **pulsing red error banner** (visually distinct from warnings) to alert the officer.
+
+In either case:
+1. Check `stderr` in the pipeline log for `specialist_failed` or `assessment_degraded`.
+2. Inspect `assessment.shadow_scoring.assessment_mode` in the JSON report.
+3. The officer should treat the report as advisory and seek field corroboration.
 
 ## Troubleshooting
 

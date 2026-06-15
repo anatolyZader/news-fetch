@@ -110,7 +110,7 @@ function polarizationBandFor(polarization, evidenceMass) {
 }
 
 function buildComponentProfile(id, items, articleSet, sourceSet, ctx) {
-  const cappedItems = applySourceCap(items);
+  const cappedItems = applySourceCap(items, { totalEvidenceMass: ctx.totalEvidenceMass ?? undefined });
   const mass = sumPolarityMass(cappedItems);
   const tuning = certaintyTuningFor(id);
   const certainty = mass.evidenceMass > 0
@@ -132,6 +132,7 @@ function buildComponentProfile(id, items, articleSet, sourceSet, ctx) {
     thin_evidence: mass.evidenceMass < 1.5,
     contested: polarization > 0.5 && mass.evidenceMass > 4,
     source_cap_applied: sourceCapWasApplied(items, cappedItems),
+    source_cap_adaptive: cappedItems.some((it) => it._adaptive_cap === true) || undefined,
     dominance_warnings: dominanceWarnings(cappedItems),
     signal_count: items.length,
     distinct_article_count: articleSet.size,
@@ -157,16 +158,21 @@ export function computeEpistemicProfile(signals, ctx = {}) {
   const profileCtx = { ...ctx, mediaMentionMass };
   const byComponent = {};
 
-  for (const id of COMPONENT_IDS) {
-    const { items, articleSet, sourceSet } = collectComponentItems(
-      id,
-      signals ?? [],
-      duplicateIndex,
-      signalWeights,
-    );
+  // Pre-compute total evidence mass across all components to enable adaptive caps for sparse data.
+  const allComponentItems = COMPONENT_IDS.map((id) =>
+    collectComponentItems(id, signals ?? [], duplicateIndex, signalWeights),
+  );
+  const totalEvidenceMass = allComponentItems.reduce(
+    (sum, { items }) => sum + items.reduce((s, it) => s + (it.contribution ?? 0), 0),
+    0,
+  );
+
+  for (let i = 0; i < COMPONENT_IDS.length; i++) {
+    const id = COMPONENT_IDS[i];
+    const { items, articleSet, sourceSet } = allComponentItems[i];
     byComponent[id] = items.length === 0
       ? emptyComponentProfile(id, profileCtx)
-      : buildComponentProfile(id, items, articleSet, sourceSet, profileCtx);
+      : buildComponentProfile(id, items, articleSet, sourceSet, { ...profileCtx, totalEvidenceMass });
   }
 
   const retrieval_policies = buildRetrievalPolicies(byComponent);

@@ -92,6 +92,48 @@ export function buildSignalAppendix(signals) {
   return lines.join('\n');
 }
 
+/** Pattern matching stray "N/10" scores that the LLM may leak despite prompt prohibitions. */
+const SCORE_LEAK_PATTERN = /\b(10|[1-9])\s*\/\s*10\b/gi;
+
+/**
+ * Strip stray `N/10` numeric score leaks from a narrative text string.
+ * Logs a warning to stderr for each occurrence found.
+ * @param {string | null | undefined} text
+ * @param {string} [fieldLabel]  Used in warning messages.
+ * @returns {string}
+ */
+export function sanitizeNarrativeText(text, fieldLabel = 'narrative') {
+  if (!text || typeof text !== 'string') return text ?? '';
+  const matches = text.match(SCORE_LEAK_PATTERN);
+  if (!matches) return text;
+  console.error(
+    `  ⚠ Score leak detected in ${fieldLabel}: found ${matches.length} occurrence(s) of N/10 pattern — stripping`,
+  );
+  return text.replace(SCORE_LEAK_PATTERN, '[score redacted]');
+}
+
+/**
+ * Sanitize all operator-visible narrative fields in the assessment in-place.
+ * @param {object} assessment
+ */
+function sanitizeAssessmentNarratives(assessment) {
+  if (!assessment || typeof assessment !== 'object') return;
+  if (typeof assessment.cross_component_synthesis === 'string') {
+    assessment.cross_component_synthesis = sanitizeNarrativeText(
+      assessment.cross_component_synthesis,
+      'cross_component_synthesis',
+    );
+  }
+  for (const comp of assessment.components ?? []) {
+    if (typeof comp.narrative === 'string') {
+      comp.narrative = sanitizeNarrativeText(comp.narrative, `${comp.component_id}.narrative`);
+    }
+    if (typeof comp.evidence_summary === 'string') {
+      comp.evidence_summary = sanitizeNarrativeText(comp.evidence_summary, `${comp.component_id}.evidence_summary`);
+    }
+  }
+}
+
 /**
  * Write both .md and .json outputs.
  *
@@ -104,6 +146,7 @@ export function buildSignalAppendix(signals) {
  * @returns {{ mdPath, jsonPath }}
  */
 export function writeReport(assessment, signals, sourceFiles, outputBase, { scoreBySource } = {}) {
+  sanitizeAssessmentNarratives(assessment);
   mkdirSync(dirname(outputBase), { recursive: true });
 
   const mdPath = `${outputBase}.md`;

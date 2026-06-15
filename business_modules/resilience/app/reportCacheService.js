@@ -32,23 +32,33 @@ function resolveReportsDir(opts = {}) {
   return resolve(ROOT, 'daily_reports');
 }
 
-function readAssessmentTotalArticles(jsonPath) {
+function readReportMeta(jsonPath) {
   try {
     const raw = readFileSync(jsonPath, 'utf8');
     const parsed = JSON.parse(raw);
-    const n = parsed?.assessment?.total_articles_analyzed;
-    return typeof n === 'number' && Number.isFinite(n) ? n : 0;
+    const articles = parsed?.assessment?.total_articles_analyzed;
+    const critical = parsed?.assessment?.critical_signal === true;
+    // generated_at is a top-level ISO string written by reportWriter.js
+    const generatedAt = typeof parsed?.generated_at === 'string' ? parsed.generated_at : null;
+    return {
+      articles: typeof articles === 'number' && Number.isFinite(articles) ? articles : 0,
+      critical,
+      generatedAt,
+    };
   } catch {
-    return -1;
+    return { articles: -1, critical: false, generatedAt: null };
   }
 }
 
 /**
  * Prefer `resilience-report-{date}.json`; else best `resilience-report-{date}-*.json` (CLI runs add HHMM).
- * When several timestamped files exist for the same day, prefer the one with the largest
- * `assessment.total_articles_analyzed` (full merge beats a later slim/audio-only run); tie-break on newest mtime.
+ * Selection priority for same-day timestamped files:
+ *   1. `assessment.critical_signal === true` always wins (emergency re-runs).
+ *   2. Newest `generated_at` ISO timestamp (written top-level by reportWriter.js).
+ *   3. Largest `assessment.total_articles_analyzed` (full merge beats slim/audio-only run).
+ *   4. Newest filesystem mtime as final tiebreaker.
  * @param {string} date YYYY-MM-DD
- * @param {{ reportsDir?: string, scope?: 'national'|'north' }} [opts] `reportsDir` overrides the default `daily_reports/` (for tests).
+ * @param {{ reportsDir?: string, scope?: 'national'|'north' }} [opts]
  * @returns {string | null} absolute path
  */
 export function resolveReportJsonPathForDate(date, opts = {}) {
@@ -71,18 +81,39 @@ export function resolveReportJsonPathForDate(date, opts = {}) {
   if (candidates.length === 0) return null;
 
   let bestPath = null;
+  let bestCritical = false;
+  let bestGeneratedAt = null;
   let bestArticles = -Infinity;
   let bestMtime = -1;
+
   for (const f of candidates) {
     const p = join(reportsDir, f);
     try {
-      const articles = readAssessmentTotalArticles(p);
+      const meta = readReportMeta(p);
       const m = statSync(p).mtimeMs;
-      if (
-        articles > bestArticles ||
-        (articles === bestArticles && m > bestMtime)
-      ) {
-        bestArticles = articles;
+      const isBetter = (() => {
+        // Critical flag always wins
+        if (meta.critical && !bestCritical) return true;
+        if (!meta.critical && bestCritical) return false;
+        // Newest generated_at wins (ISO strings compare lexicographically)
+        if (meta.generatedAt && bestGeneratedAt) {
+          if (meta.generatedAt > bestGeneratedAt) return true;
+          if (meta.generatedAt < bestGeneratedAt) return false;
+        } else if (meta.generatedAt && !bestGeneratedAt) {
+          return true;
+        } else if (!meta.generatedAt && bestGeneratedAt) {
+          return false;
+        }
+        // Most articles as secondary
+        if (meta.articles > bestArticles) return true;
+        if (meta.articles < bestArticles) return false;
+        // Newest mtime as final tiebreaker
+        return m > bestMtime;
+      })();
+      if (isBetter) {
+        bestCritical = meta.critical;
+        bestGeneratedAt = meta.generatedAt;
+        bestArticles = meta.articles;
         bestMtime = m;
         bestPath = p;
       }

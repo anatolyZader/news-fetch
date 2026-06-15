@@ -15,7 +15,7 @@ import { resolve, dirname } from 'node:path';
 import { writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { getNaftaliDashboardSync } from '../app/naftaliService.js';
-import { enrichSignalsWithGeo } from '../../../cross-cut-modules/geo/enrichSignalsWithGeo.js';
+import { attributeSignalScope } from '../../../cross-cut-modules/geo/attributeSignalScope.js';
 import { createSourceArchive } from '../../../db/source_archive/createSourceArchive.js';
 import {
   archiveNaftaliWeek,
@@ -168,12 +168,13 @@ async function writeWeekBundle(week, outDir) {
     console.error(`  ⚠ Naftali archive skipped: ${err.message}`);
   }
 
-  const { signals: geoSignals, resolved, unknown } = enrichSignalsWithGeo(stampedSignals, {
+  const districtId = 'north';
+  const { signals: stampedGeoSignals, resolved, unknown } = attributeSignalScope(stampedSignals, {
     rootDir: REPO_ROOT,
+    sourceType: 'naftali',
+    bundleDistrictId: districtId,
     unknownSourceType: 'extract-naftali',
   });
-  const districtId = 'north';
-  const stampedGeoSignals = geoSignals.map((s) => ({ ...s, district_id: districtId }));
 
   writeFileSync(outPath, JSON.stringify({
     source_type: 'naftali',

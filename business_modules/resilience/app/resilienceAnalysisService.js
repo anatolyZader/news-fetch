@@ -6,29 +6,16 @@ import { mergeDualExtractionSignals } from '../infrastructure/dualModelExtract.j
 import {
   normalizeReportScope,
 } from '../domain/services/regionSignalFilter.js';
-import { scopeAndPartitionSignals } from './assessmentPipeline.js';
-import { attachEpistemicToAssessment } from '../domain/services/dataVoidIndex.js';
-import { salienceContextFromDataVoid } from '../domain/services/highSalienceBypass.js';
-import {
-  getSocialQuarantineDecision,
-} from '../domain/services/socialQuarantineOverrides.js';
-import { tryOpenValidationStore } from './socialQuarantineWiring.js';
-import { loadHistoricalScores } from '../app/assessSignalsHelpers.js';
-import { runScoringPipeline } from './scoringPipelinePrep.js';
-import { prepareScoringSignals } from './prepareScoringSignals.js';
-import { prepareInvestigationSignals } from './prepareInvestigationSignals.js';
-import { deriveInvestigationEpistemicContext } from '../domain/services/investigationEpistemicContext.js';
-import { detectSemanticPatterns } from '../domain/services/patternDetection/semanticPatternAlerts.js';
-import { buildOperatorRecommendations } from '../domain/services/patternDetection/operatorRecommendations.js';
-import { attachDecisionBrief } from './attachDecisionBrief.js';
-import { produceAssessmentWithShadow, attachShadowDivergenceToAssessment } from './produceAssessmentWithShadow.js';
-import { attachInvestigationDiagnostics } from '../domain/services/componentDiagnostics.js';
 import { loadConnectivityProbeSignals } from '../infrastructure/adapters/connectivityProbeFileAdapter.js';
 import { enrichProbeSignalsInList } from '../domain/services/probeCorroborationPolicy.js';
-import { summarizeValidationMaturity } from '../validation/domain/validationStatus.js';
-import { resolve } from 'node:path';
+import { enrichSignalsGeoIfNeeded } from '../../../cross-cut-modules/geo/enrichSignalsGeoIfNeeded.js';
+import { runPostExtractionAssessmentCore } from './postExtractionAssessmentCore.js';
+import { resolve, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { createPipelineRunStore } from '../../../db/persistence/pipelineRunStore.js';
 import { createPipelineRunTracker } from './pipelineRunTracker.js';
+
+const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 
 /** Aligned with infrastructure/mdReportsLoader.js body cap */
 export const MAX_BODY_CHARS = 2000;
@@ -116,117 +103,12 @@ async function extractBatchSignals({
   }
 
   allSignals = enrichProbeSignalsInList(allSignals);
-  const partitioned = scopeAndPartitionSignals(allSignals, reportScopeId);
-  return {
-    allSignals: partitioned.scopedSignals,
-    baseSignalsForScoring: partitioned.baseSignalsForScoring,
-    macroSignals: partitioned.macroSignals,
-  };
-}
-
-async function runShadowScoring({
-  baseSignalsForScoring,
-  allSignals,
-  batch,
-  reportScopeId,
-  reportsDir,
-  totalArticles,
-  rootDir,
-}) {
-  const prepared = await prepareScoringSignals({
-    signalsForScoring: baseSignalsForScoring,
-    reportDate: batch.reportDate,
-    reportScopeId,
-    reportsDir,
+  allSignals = enrichSignalsGeoIfNeeded(allSignals, {
+    rootDir: REPO_ROOT,
+    unknownSourceType: 'server-assessment',
+    logPrefix: 'Geo attach',
   });
-
-  const salienceContext = salienceContextFromDataVoid(prepared.dataVoid);
-  const validationMaturity = summarizeValidationMaturity({ rootDir });
-  const historicalScores = loadHistoricalScores(batch.reportDate, reportsDir, 14, reportScopeId);
-
-  const pipelineResult = runScoringPipeline({
-    signalsForScoring: prepared.signalsForScoring,
-    dataVoid: prepared.dataVoid,
-    totalArticles,
-    mediaSignals: allSignals,
-    salienceContext,
-    historicalScores,
-    scopeId: reportScopeId,
-    validationMaturity,
-    priorQuarantine: prepared.priorQuarantine,
-    reportDate: batch.reportDate,
-  });
-
-  return {
-    scoredComponents: pipelineResult.scoredFull,
-    signalsForScoring: pipelineResult.scoringSignals,
-    oovScoringApplied: prepared.oovScoringApplied,
-    pipelineResult,
-  };
-}
-
-function applyAssessmentPostScoring(assessment, ctx) {
-  const {
-    investigationEpistemic,
-    pipelineResult,
-    investigationPrep,
-    shadowScoring,
-    batch,
-    reportScopeId,
-    allSignals,
-    macroSignals,
-  } = ctx;
-
-  attachEpistemicToAssessment(assessment, {
-    dataVoid: investigationPrep.dataVoid,
-    epistemicStatus: investigationEpistemic.epistemicStatus,
-    assessmentMode: investigationEpistemic.assessmentMode,
-    staleDigitalScores: pipelineResult?.staleDigitalScores ?? null,
-    quarantinedDigital: pipelineResult?.quarantinedDigital ?? null,
-    digitalQuarantineState: pipelineResult?.digitalQuarantineState ?? null,
-  });
-
-  if (pipelineResult) {
-    assessment.shadow_scoring = {
-      assessment_mode: pipelineResult.assessmentMode,
-      epistemic_status: pipelineResult.epistemicStatus,
-    };
-    if (pipelineResult.epistemicEnrichment?.overall_score_calibrated != null) {
-      assessment.overall_score_calibrated = pipelineResult.epistemicEnrichment.overall_score_calibrated;
-    }
-  }
-
-  assessment.oov_burst = investigationPrep.oovBurst;
-  if (shadowScoring?.oovScoringApplied) {
-    assessment.oov_scoring_applied = shadowScoring.oovScoringApplied;
-  }
-  if (investigationPrep.osintChannelQuarantine) {
-    const decision = investigationPrep.osintChannelQuarantine.active
-      ? getSocialQuarantineDecision(batch.reportDate, reportScopeId, tryOpenValidationStore())
-      : null;
-    assessment.social_channel_quarantine = {
-      ...investigationPrep.osintChannelQuarantine,
-      ...(decision?.created_at ? { confirmed_at: decision.created_at } : {}),
-    };
-  }
-
-  const patterns = detectSemanticPatterns(allSignals);
-  assessment.pattern_alerts = patterns;
-  assessment.operator_recommendations = buildOperatorRecommendations(patterns);
-
-  attachInvestigationDiagnostics(assessment, {
-    scoring: {
-      investigationSignals: investigationPrep.investigationSignals,
-      signalsForScoring: shadowScoring?.signalsForScoring ?? investigationPrep.investigationSignals,
-      scopedSignals: allSignals,
-      macroSignals,
-      scoredFull: shadowScoring?.scoredComponents ?? null,
-      scoringPartition: pipelineResult?.partition ?? null,
-      scoringAssessmentMode: pipelineResult?.assessmentMode ?? null,
-      assessmentMode: investigationEpistemic.assessmentMode,
-    },
-    investigationPlan: assessment.investigation_plan,
-  });
+  return { allSignals };
 }
 
 function persistReportIfRequested({
@@ -288,10 +170,8 @@ export async function runResilienceAssessment(batch, options = {}) {
   }
 
   let allSignals;
-  let baseSignalsForScoring;
-  let macroSignals;
   try {
-    ({ allSignals, baseSignalsForScoring, macroSignals } = await extractBatchSignals({
+    ({ allSignals } = await extractBatchSignals({
       batch,
       articles,
       llmPort,
@@ -310,69 +190,32 @@ export async function runResilienceAssessment(batch, options = {}) {
   const reportsDir = options.reportsDir ?? 'daily_reports';
   const totalArticles = articles.length + supplementaryArticles.length;
 
-  const investigationPrep = await prepareInvestigationSignals({
-    investigationSignals: baseSignalsForScoring,
-    reportDate: batch.reportDate,
-    reportScopeId,
-    reportsDir,
-  });
-  const investigationEpistemic = deriveInvestigationEpistemicContext(investigationPrep.dataVoid);
+  let coreResult;
+  try {
+    coreResult = await runPostExtractionAssessmentCore({
+      allSignals,
+      reportScopeId,
+      reportDate: batch.reportDate,
+      totalArticles,
+      reportsDir,
+      onUsage,
+      llmPort,
+      retrievalService: options.retrievalService ?? null,
+      sourceArchive: options.sourceArchive ?? null,
+      evidenceStore: options.evidenceStore ?? null,
+      dailyBudgetExceeded: options.dailyBudgetExceeded ?? false,
+      rootDir: options.reportsDir ?? process.cwd(),
+      onScoreComplete: () => pipeline.completeStage('SCORE'),
+      onNarrateComplete: () => pipeline.completeStage('NARRATE'),
+      attachDecisionBrief: true,
+    });
+  } catch (err) {
+    pipeline.failStage('SCORE', err);
+    throw err;
+  }
 
-  const assessment = await produceAssessmentWithShadow({
-    targetDate: batch.reportDate,
-    reportScopeId,
-    investigationSignals: investigationPrep.investigationSignals,
-    investigationEpistemic,
-    scopedSignals: allSignals,
-    scopedTotalArticles: totalArticles,
-    dataVoid: investigationPrep.dataVoid,
-    assessmentMode: investigationEpistemic.assessmentMode,
-    epistemicStatus: investigationEpistemic.epistemicStatus,
-    retrievalService: options.retrievalService ?? null,
-    sourceArchive: options.sourceArchive ?? null,
-    evidenceStore: options.evidenceStore ?? null,
-    oovBurst: investigationPrep.oovBurst,
-    onUsage,
-    reportsDir,
-    llmPort,
-    dailyBudgetExceeded: options.dailyBudgetExceeded ?? false,
-  });
-
-  pipeline.completeStage('NARRATE');
-
-  const shadowScoring = await runShadowScoring({
-    baseSignalsForScoring,
-    allSignals,
-    batch,
-    reportScopeId,
-    reportsDir,
-    totalArticles,
-    rootDir: options.reportsDir ?? process.cwd(),
-  });
-  pipeline.completeStage('SCORE');
-
-  attachShadowDivergenceToAssessment(assessment, {
-    scoredFull: shadowScoring.scoredComponents,
-    reportScopeId,
-    targetDate: batch.reportDate,
-    reportsDir,
-  });
-
-  applyAssessmentPostScoring(assessment, {
-    investigationEpistemic,
-    investigationPrep,
-    pipelineResult: shadowScoring.pipelineResult,
-    shadowScoring,
-    batch,
-    reportScopeId,
-    allSignals,
-    macroSignals,
-  });
-
-  await attachDecisionBrief(assessment, {
-    reportScopeId,
-    onUsage,
-  });
+  const { assessment, scopedSignals } = coreResult;
+  allSignals = scopedSignals;
 
   const allArticles = [...articles, ...supplementaryArticles];
   const sourceFilesForReport =

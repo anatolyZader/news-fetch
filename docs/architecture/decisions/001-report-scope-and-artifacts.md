@@ -21,3 +21,4 @@ National and regional (e.g. north) resilience reports share one scoring engine b
 - Evidence submission may pass optional `reportScopeId` for district-scoped analysis.
 - Documentation and UI hints must reference `assess-signals --scope` for regional daily files.
 - Future districts extend `reportScopeId` via `IReportScopePolicy` (see ADR 004 follow-up) without forking scoring code.
+- Signal geo and `district_id` persistence at extract time: [ADR 002](./002-signal-scope-attribution.md).

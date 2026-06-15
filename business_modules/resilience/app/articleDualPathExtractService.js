@@ -4,7 +4,8 @@
 import { basename, resolve } from 'node:path';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { extractSignals } from '../infrastructure/claudeEvaluator.js';
-import { enrichSignalsWithGeo } from '../../../cross-cut-modules/geo/enrichSignalsWithGeo.js';
+import { stripTraceFields } from '../infrastructure/claudeExtraction.js';
+import { attributeSignalScope } from '../../../cross-cut-modules/geo/attributeSignalScope.js';
 import { attachSourceIdsToSignals } from '../../../db/source_archive/attachSourceIds.js';
 import { defaultClosedSignalsDir } from '../../signals_extraction/index.js';
 
@@ -64,6 +65,7 @@ export async function runArticleDualPathExtract(opts) {
     onUsage,
     retrievalService = null,
     closedExtractFn,
+    trace = null,
   } = opts;
 
   const runClosed = async () => {
@@ -85,21 +87,27 @@ export async function runArticleDualPathExtract(opts) {
       contentKind,
       retrievalService,
       reportDate: date,
+      trace,
     });
-    let signals = rawSignals.map((s) => ({ ...s, source_type: sourceType }));
-    const { signals: withGeo, attached, resolved, unknown } = enrichSignalsWithGeo(signals, {
-      rootDir: repoRoot,
-      unknownSourceType: `extract-${sourceType}`,
-    });
-    signals = withGeo;
+    const bundleDistrictId = sourceType === 'field' || sourceType === 'whatsapp' ? 'north' : null;
+    const { signals: attributed, attached, resolved, unknown } = attributeSignalScope(
+      rawSignals.map((s) => ({ ...s, source_type: sourceType })),
+      {
+        rootDir: repoRoot,
+        sourceType,
+        bundleDistrictId,
+        unknownSourceType: `extract-${sourceType}`,
+      },
+    );
+    let signals = attributed;
     if (attached > 0) {
       console.error(`  → Geo attach: ${attached} signals, ${resolved} resolved, ${unknown} unknown`);
     }
     signals = attachSourceIdsToSignals(signals, filePaths, repoRoot);
-    const bundleDistrictId = sourceType === 'field' || sourceType === 'whatsapp' ? 'north' : null;
-    if (bundleDistrictId) {
-      signals = signals.map((s) => ({ ...s, district_id: bundleDistrictId }));
-    }
+
+    // Drop trace-only / rationale (B) fields so the persisted bundle and everything
+    // downstream (assess/agent) stay clean.
+    signals = signals.map(stripTraceFields);
 
     const outDir = sourceType === 'field'
       ? resolve('business_modules', 'visits', 'data', 'signals')

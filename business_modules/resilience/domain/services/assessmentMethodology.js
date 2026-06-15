@@ -17,7 +17,7 @@ import {
   ISRAEL_REGIONAL_DISTRICT_ORDER,
 } from '../../../../cross-cut-modules/geo/israelDistricts.js';
 import { isRegionalReportScope, normalizeReportScopeId } from '../../../../cross-cut-modules/geo/reportScopeIds.js';
-import { LEGACY_NORTH_STRUCTURED_SOURCE_TYPES } from './signalDistrictId.js';
+import { DEFAULT_NORTH_SOURCE_TYPES } from './signalDistrictId.js';
 
 export const SCORING_MODEL_VERSION = 'v5';
 
@@ -37,11 +37,11 @@ export const SCORING_MODEL_CHANGELOG = [
   },
 ];
 
-/** @deprecated use LEGACY_NORTH_STRUCTURED_SOURCE_TYPES from signalDistrictId.js */
-export const PHASE1_ALWAYS_NORTH_SOURCE_TYPES = [...LEGACY_NORTH_STRUCTURED_SOURCE_TYPES];
+/** @deprecated use DEFAULT_NORTH_SOURCE_TYPES from signalDistrictId.js */
+export const PHASE1_ALWAYS_NORTH_SOURCE_TYPES = [...DEFAULT_NORTH_SOURCE_TYPES];
 
 const SIGNAL_DISTRICT_SCOPE_NOTE =
-  'Structured feeds stamp signal.district_id at extract (or inherit from bundle at assess). Legacy bundles without district_id fall back to north in code for structured source types. Regional scope uses signal district plus resolved geo tags—not source_type alone.';
+  'Structured feeds stamp signal.district_id at extract (or inherit from bundle at assess). North-domain feeds (field, pbo, whatsapp, etc.) without district_id default to north — these sources are exclusively north-domain. Regional scope uses signal district plus resolved geo tags — not source_type alone.';
 
 /**
  * Report-quality metric: how often equity-relevant signals name an affected_subgroup.
@@ -156,7 +156,7 @@ export function buildAssessmentMethodology({
     scope: {
       regional_slices: [...ISRAEL_REGIONAL_DISTRICT_ORDER],
       active_scope: scopeId,
-      legacy_north_structured_source_types: [...LEGACY_NORTH_STRUCTURED_SOURCE_TYPES],
+      default_north_source_types: [...DEFAULT_NORTH_SOURCE_TYPES],
       signal_district_scope_note: SIGNAL_DISTRICT_SCOPE_NOTE,
       scope_decision_summary: summarizeScopeDecisionSources(signals, { reportScopeId: scopeId }),
       ...(Array.isArray(signals) && signals.some((s) => s && 'geo' in s)
@@ -177,7 +177,7 @@ export function buildAssessmentMethodology({
       component_tuning: 'heuristic_tanhK_certM; see tuning_proposal when enough national history',
       regional_geo_news:
         'All pipeline sources receive resolved geo envelopes via geoService. Text-inferred locality on news/radio/social is scope hint only (usableForMetrics=false); structured locality and signal.district_id drive regional metrics.',
-      legacy_north_structured_source_types: [...LEGACY_NORTH_STRUCTURED_SOURCE_TYPES],
+      default_north_source_types: [...DEFAULT_NORTH_SOURCE_TYPES],
       dual_pipeline:
         'Evidence submission analysis scores all signals without scope filter; regional artifacts require assess-signals --scope <districtId>',
       extraction_quality:

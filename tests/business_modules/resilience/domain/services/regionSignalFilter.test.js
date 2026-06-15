@@ -44,7 +44,7 @@ describe('regionSignalFilter', () => {
     assert.equal(d.source, 'signal_district');
   });
 
-  it('treats pbo_regional signals as north via legacy fallback', () => {
+  it('treats pbo_regional signals as north via default-north district', () => {
     assert.equal(
       northScopeRelevant({ source_type: 'pbo_regional', evidence: 'volunteers reported steady attendance' }),
       true,
@@ -144,7 +144,7 @@ describe('regionSignalFilter', () => {
     const out = filterSignalsForScope(signals, 'north');
     assert.deepEqual(out.map((s) => s.evidence), [signals[2].evidence]);
     assert.equal(out[0].scopeDecision.isScopeRelevant, true);
-    assert.equal(out[0].scopeDecision.source, 'legacy_north_fallback');
+    assert.equal(out[0].scopeDecision.source, 'default_north_district');
   });
 
   it('normalizes unknown scopes to national', () => {
