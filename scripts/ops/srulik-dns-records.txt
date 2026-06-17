@@ -1,0 +1,40 @@
+# Manual DNS for srulik.ai zone (Cloudflare dashboard)
+# Required when CLOUDFLARE_API_TOKEN lacks srulik.ai zone access.
+# Add CLOUDFLARE_SRULIK_API_TOKEN to .env (zone-scoped token for srulik.ai), then:
+#   ./scripts/ops/cloudflare-cutover.sh
+#
+# VM origin IP: 34.165.63.234
+#
+# URGENT: vibeswitch.ai may already 301 to srulik.ai at Cloudflare edge.
+# Until A records exist below, production is broken — add DNS first, then:
+#   ./scripts/ops/srulik-cutover-after-dns.sh
+#
+# SSL/TLS → Overview → Full (strict)
+# Always Use HTTPS: ON
+#
+# Option A — all on VM (nginx static for docs/analyst):
+# Type  Name      Content          Proxy
+# A     @         34.165.63.234    Proxied
+# A     www       34.165.63.234    Proxied
+# A     docs      34.165.63.234    Proxied
+# A     analyst   34.165.63.234    Proxied
+#
+# Option B — docs on Cloudflare Pages (like vibeswitch):
+# A     @         34.165.63.234    Proxied
+# A     www       34.165.63.234    Proxied
+# CNAME docs      news-fetch-abl.pages.dev   Proxied
+# A     analyst   34.165.63.234    Proxied
+# (Also add docs.srulik.ai custom domain in Pages project dashboard)
+#
+# After records propagate, on the VM:
+#   sudo mkdir -p /var/www/certbot
+#   sudo cp scripts/ops/nginx-srulik-http-acme.conf /etc/nginx/sites-available/srulik
+#   sudo ln -sf /etc/nginx/sites-available/srulik /etc/nginx/sites-enabled/srulik
+#   sudo nginx -t && sudo systemctl reload nginx
+#   sudo certbot certonly --webroot -w /var/www/certbot \
+#     -d srulik.ai -d www.srulik.ai -d docs.srulik.ai -d analyst.srulik.ai \
+#     --non-interactive --agree-tos -m security@srulik.ai
+#   sudo cp scripts/ops/nginx-srulik.conf /etc/nginx/sites-available/srulik
+#   sudo cp scripts/ops/nginx-srulik-subdomains.conf /etc/nginx/sites-available/srulik-subdomains
+#   sudo ln -sf /etc/nginx/sites-available/srulik-subdomains /etc/nginx/sites-enabled/srulik-subdomains
+#   sudo nginx -t && sudo systemctl reload nginx

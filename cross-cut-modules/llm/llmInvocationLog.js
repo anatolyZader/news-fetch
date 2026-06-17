@@ -68,6 +68,7 @@ export function logLlmInvocation(payload) {
     ownerUid: ctx.userId ?? null,
     cacheHit: ctx.cacheHit ?? null,
     promptCacheApplied: ctx.promptCacheApplied === true ? true : null,
+    pipelineRunId: ctx.pipelineRunId ?? process.env.PIPELINE_RUN_ID?.trim() ?? null,
   });
 }
 

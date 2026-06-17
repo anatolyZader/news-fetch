@@ -7,6 +7,7 @@ import { extractSignals } from '../infrastructure/claudeEvaluator.js';
 import { stripTraceFields } from '../infrastructure/claudeExtraction.js';
 import { attributeSignalScope } from '../../../cross-cut-modules/geo/attributeSignalScope.js';
 import { attachSourceIdsToSignals } from '../../../db/source_archive/attachSourceIds.js';
+import { archiveArtifactBeforeWrite } from '../../../cross-cut-modules/log/index.js';
 import { defaultClosedSignalsDir } from '../../signals_extraction/index.js';
 
 /**
@@ -114,6 +115,10 @@ export async function runArticleDualPathExtract(opts) {
       : defaultClosedSignalsDir();
     mkdirSync(outDir, { recursive: true });
     const outPath = resolve(outDir, `signals-${sourceType}-${date}.json`);
+    const archived = archiveArtifactBeforeWrite(outPath);
+    if (archived) {
+      console.error(`  → Prior closed bundle archived: ${archived}`);
+    }
     writeFileSync(
       outPath,
       JSON.stringify(

@@ -2,10 +2,2734 @@
   "source_type": "news",
   "content_kind": "news",
   "date": "2026-04-03",
-  "extracted_at": "2026-06-12T13:11:53.760Z",
+  "extracted_at": "2026-06-17T15:47:46.587Z",
   "source_files": [
     "articles-homefront-2026-04-03.md"
   ],
-  "total_articles": 0,
-  "signals": []
+  "total_articles": 140,
+  "signals": [
+    {
+      "article_index": 1,
+      "signal_type": "infrastructure_damage_acute",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "נזק כבד נרשם בכמה זירות, בין היתר בפתח תקווה, גבעת שמואל, בני ברק ותל אביב",
+      "scope_level": "regional",
+      "confidence": 0.9,
+      "locality": "פתח תקווה, גבעת שמואל, בני ברק, תל אביב",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "ynet.co.il",
+      "temporal_weight": 1,
+      "article_title": "הרס כבד בכמה זירות במרכז | התיעודים מהירי הלילי מאיראן למרכז",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "פתח תקווה, גבעת שמואל, בני ברק, תל אביב",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "פתח תקווה, גבעת שמואל, בני ברק, תל אביב",
+          "normalizedInput": "פתח תקווה, גבעת שמואל, בני ברק, תל אביב",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-17T15:47:46.320Z"
+        }
+      },
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#1"
+    },
+    {
+      "article_index": 8,
+      "signal_type": "infrastructure_damage_acute",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "נזק משמעותי נגרם למפעל של חברת 'אירוסול פתרונות תעופתיים', שמייצרת בין היתר רחפנים ביטחוניים, בעקבות ראש הקרב של הטיל האיראני שהתפוצץ אמש בפתח תקווה. בפגיעה אתמול תועד מכתש גדול ונזק כבד למבנים סביבו",
+      "scope_level": "local",
+      "confidence": 0.9,
+      "locality": "פתח תקווה",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "ynet.co.il",
+      "temporal_weight": 1,
+      "article_title": "מפעל של חברת הרחפנים \"אירוסול\" בפתח תקווה ניזוק משמעותית מטיל איראני",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "geo": {
+        "kind": "resolved",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "geoEntityType": "locality",
+        "resolution": {
+          "rawInput": "פתח תקווה",
+          "normalizedInput": "פתח תקווה",
+          "canonicalKey": "petah_tikva",
+          "matchedName": "פתח תקווה",
+          "matchedVariant": "פתח תקווה",
+          "matchMethod": "exact",
+          "matchConfidence": 1,
+          "candidateCount": 1,
+          "geoEntityType": "locality",
+          "provenance": "structured",
+          "scope": "signal"
+        },
+        "classification": {
+          "pboSubregionId": "homefront_dan",
+          "geoAreaTags": [
+            "dan"
+          ],
+          "isGolan": false,
+          "distanceKmToNorthBorder": 500,
+          "distanceBand": "25+",
+          "distancePolicyVersion": "distance-band-2026-05-v1"
+        },
+        "policy": {
+          "geoPolicyVersion": "geo-policy-2026-05-v3",
+          "quality": "medium",
+          "usableForMetrics": true,
+          "requiresReview": false,
+          "scopeConfidence": "high",
+          "decisionReasons": [
+            "homefront_district_stub:dan"
+          ]
+        },
+        "audit": {
+          "geoReferenceVersion": "homefront-district-stubs-v1",
+          "source": "homefront-district-stubs",
+          "resolvedAt": "2026-06-17T15:47:46.321Z"
+        },
+        "matchEvidence": {
+          "rawInput": "פתח תקווה",
+          "normalizedInput": "פתח תקווה",
+          "matchedVariant": "פתח תקווה",
+          "candidateCount": 1
+        },
+        "scopeDecision": {
+          "isRelevant": false,
+          "source": "unknown",
+          "confidence": "low",
+          "usableForMetrics": true,
+          "reasons": [
+            "no geoAreaTag for north"
+          ],
+          "isNorthRelevant": false,
+          "homeFrontDistrictIds": [
+            "dan"
+          ]
+        }
+      },
+      "district_id": "dan",
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#8"
+    },
+    {
+      "article_index": 28,
+      "signal_type": "infrastructure_damage_acute",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "לוחמי אש מתחנת קריות פועלים בשלוש זירות בעקבות המטח האחרון לאזור. באחת הזירות עלו באש כמה כלי רכב לאחר פגיעת שבר יירוט סמוך למבנה מגורים, בזירה נוספת נגרם נזק לחזית מבנה מפגיעה ישירה, ובזירה שלישית דווח על פגיעה בכלי רכב חונים",
+      "scope_level": "local",
+      "confidence": 0.85,
+      "locality": "קריות",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "maariv.co.il",
+      "temporal_weight": 1,
+      "article_title": "הירי מאיראן: שלוש זירות פגיעה בקריות; נזקים לכלי רכב ומבנה מגורים",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "קריות",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "קריות",
+          "normalizedInput": "קריות",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-17T15:47:46.322Z"
+        }
+      },
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#28"
+    },
+    {
+      "article_index": 3,
+      "signal_type": "information_actionable_effective",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "משרד הבריאות ממליץ לאוכלוסיות רגישות, ובהן נשים בהריון וילדים עם מחלות כרוניות, להימנע משהייה ממושכת ומפעילות גופנית מחוץ למבנים בעקבות זיהום האוויר הגבוהה",
+      "scope_level": "national",
+      "confidence": 0.8,
+      "locality": null,
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "ynet.co.il",
+      "temporal_weight": 1,
+      "article_title": "משרד הבריאות ממליץ: להימנע מפעילות גופנית מאומצת באוויר הפתוח",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#3"
+    },
+    {
+      "article_index": 13,
+      "signal_type": "information_actionable_effective",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "משרד הבריאות המליץ לאוכלוסיות רגישות להימנע משהייה ממושכת בחוץ בסוף השבוע הקרוב לנוכח צפי לזיהום אוויר גבוה עד גבוה מאוד",
+      "scope_level": "national",
+      "confidence": 0.8,
+      "locality": null,
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "haaretz.co.il",
+      "temporal_weight": 1,
+      "article_title": "לילדים ולקשישים מומלץ לא לשהות זמן רב בחוץ בסופ\"ש לנוכח זיהום האוויר",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#13"
+    },
+    {
+      "article_index": 4,
+      "signal_type": "reservist_family_strain",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "צה\"ל הפיץ גרף לחימה מותאם לחודשים הקרובים, שיעודו הוא שנת הלחימה 2026, ברקע התארכות המלחמה והעמקת התמרון הקרקעי בדרום לבנון. לפי הצבא, בגרף המעודכן אורך המשימה יעמוד על כ-9 שבועות",
+      "scope_level": "national",
+      "confidence": 0.85,
+      "locality": null,
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "ynet.co.il",
+      "temporal_weight": 1,
+      "article_title": "צה\"ל יוציא צווי 8 חדשים לחלק מאנשי המילואים",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#4"
+    },
+    {
+      "article_index": 14,
+      "signal_type": "reservist_family_strain",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "שירות המילואים של לוחמים ותומכי לחימה יוארך משישה שבועות לתשעה בעקבות הלחימה בלבנון",
+      "scope_level": "national",
+      "confidence": 0.85,
+      "locality": null,
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "haaretz.co.il",
+      "temporal_weight": 1,
+      "article_title": "לפחות 8 זירות נפילה בצפון מהירי מאיראן; שירות המילואים של לוחמים יוארך",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#14"
+    },
+    {
+      "article_index": 5,
+      "signal_type": "economic_continuity",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "החל מיום ראשון הקרוב תוגדל מכסת הנוסעים בטיסות היוצאות מ-50 ל-80 נוסעים. בנוסף, תתאפשר העלאה של עוד עשרה נוסעים נוספים שמוגדרים מקרים הומניטריים",
+      "scope_level": "national",
+      "confidence": 0.8,
+      "locality": null,
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "ynet.co.il",
+      "temporal_weight": 1,
+      "article_title": "הקלה במתווה הטיסות מנתב\"ג | זה השינוי - שייכנס לתוקף מיום ראשון",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#5"
+    },
+    {
+      "article_index": 15,
+      "signal_type": "economic_continuity",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "החל ביום ראשון 5 באפריל מספר הנוסעים בטיסות היוצאות מנתב\"ג יגדל. כעת עומד מספר הנוסעים בכל מטוס על 70, ועם הגדלת התפוסה יורשו לטוס 80 או 90 נוסעים",
+      "scope_level": "national",
+      "confidence": 0.8,
+      "locality": null,
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "haaretz.co.il",
+      "temporal_weight": 1,
+      "article_title": "מסתמן: החל מיום ראשון מספר הנוסעים בכל טיסה יוצאת מנתב\"ג יעלה",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#15"
+    },
+    {
+      "article_index": 6,
+      "signal_type": "political_distrust",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "ראש הממשלה בנימין נתניהו הבטיח בשיח עם ראשי רשויות בקו העימות בשבוע שעבר כי 'סוגיית פירוק חיזבאללה עומדת לנגד עינינו'. אבל בתדרוך היום (שישי) של בכיר בצבא כבר נשמעו דברים אחרים לגמרי - שהובילו לזעם של תושבים בצפון",
+      "scope_level": "regional",
+      "confidence": 0.9,
+      "locality": "צפון",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "ynet.co.il",
+      "temporal_weight": 1,
+      "article_title": "ארסנל חיזבאללה, ההבטחות שיפורק מנשק - והזיגזג: \"לא יקרה? אות קין על נתניהו\"",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NON_LOCALITY_AREA_TERM",
+        "rawName": "צפון",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "צפון",
+          "normalizedInput": "צפון",
+          "geoEntityType": "area"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-17T15:47:46.507Z"
+        }
+      },
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#6"
+    },
+    {
+      "article_index": 40,
+      "signal_type": "political_distrust",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "ראש הממשלה, הגיע הזמן שתתחיל לתת תשובות. הגיע העת לשים סוף לשנים רבות של הפקרת תושבי הצפון, לחתור להכרעה אמיתית ולא לקנות שקט מדומה וזמני שמסכן את עתיד ילדנו ועתיד הגליל",
+      "scope_level": "regional",
+      "confidence": 0.9,
+      "locality": "צפון",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "news.walla.co.il",
+      "temporal_weight": 1,
+      "article_title": "ראשי רשויות בחזית הצפון: \"תושבי הצפון מופקרים על ידי מדינת ישראל, הסבב הבא מעבר לפינה\" - וואלה חדשות",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NON_LOCALITY_AREA_TERM",
+        "rawName": "צפון",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "צפון",
+          "normalizedInput": "צפון",
+          "geoEntityType": "area"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-17T15:47:46.507Z"
+        }
+      },
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#40"
+    },
+    {
+      "article_index": 11,
+      "signal_type": "risk_trade_off_behavior",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "עסקים רבים חוזרים לפעול ולא מחכים לסוף המלחמה, כי הם מבינים שהפיצוי קטן, הדרך אליו מייגעת ועדיף להסתכן מלהישמע להוראות",
+      "scope_level": "national",
+      "confidence": 0.75,
+      "locality": null,
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "haaretz.co.il",
+      "temporal_weight": 1,
+      "article_title": "200 איש יושבים במסעדה בלי מרחב מוגן. מה כבר יכול להשתבש",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#11"
+    },
+    {
+      "article_index": 11,
+      "signal_type": "non_compliance_ignore_guidelines",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "200 איש יושבים במסעדה בלי מרחב מוגן. עסקים רבים חוזרים לפעול ולא מחכים לסוף המלחמה, כי הם מבינים שהפיצוי קטן, הדרך אליו מייגעת ועדיף להסתכן מלהישמע להוראות",
+      "scope_level": "national",
+      "confidence": 0.8,
+      "locality": null,
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "haaretz.co.il",
+      "temporal_weight": 1,
+      "article_title": "200 איש יושבים במסעדה בלי מרחב מוגן. מה כבר יכול להשתבש",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#11"
+    },
+    {
+      "article_index": 39,
+      "signal_type": "non_compliance_ignore_guidelines",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "בימים האחרונים, במסגרת הערכות לקראת הילולת הרשב\"י, הובא לידיעת המשרד לשירותי דתות כי האתר פתוח לקהל הרחב ופועל בשגרה מלאה. בשיחת בירור שהתקיימה עם עם מנהל האתר, אורי רוזנבסקי, עלה כי המקום פועל ללא אישור מפיקוד העורף ובניגוד מוחלט להנחיותיו",
+      "scope_level": "local",
+      "confidence": 0.85,
+      "locality": "מירון",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "news.walla.co.il",
+      "temporal_weight": 1,
+      "article_title": "בזמן המלחמה: אתר הרשב\"י במירון פועל כבשגרה - וואלה חדשות",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "מירון",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "מירון",
+          "normalizedInput": "מירון",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-17T15:47:46.509Z"
+        }
+      },
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#39"
+    },
+    {
+      "article_index": 12,
+      "signal_type": "harm_to_population",
+      "evidence_type": "named_survey_statistic",
+      "evidence": "משרד הבריאות: יותר מ־6,500 נפגעים פונו לבתי החולים מתחילת המלחמה",
+      "scope_level": "national",
+      "confidence": 0.9,
+      "locality": null,
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "haaretz.co.il",
+      "temporal_weight": 1,
+      "article_title": "ירי מאיראן: דווח על נפילות בחיפה ובקריות; נורו כמה טילים, בהם טיל מצרר",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#12"
+    },
+    {
+      "article_index": 27,
+      "signal_type": "harm_to_population",
+      "evidence_type": "named_survey_statistic",
+      "evidence": "משרד הבריאות מעדכן כי מתחילת מבצע שאגת הארי, נכון ליום שישי 3 באפריל 2026 בשעה 07:00 בבוקר, פונו לבתי החולים 6,594 נפגעים, מתוכם מאושפזים כעת 125 נפגעים",
+      "scope_level": "national",
+      "confidence": 0.9,
+      "locality": null,
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "maariv.co.il",
+      "temporal_weight": 1,
+      "article_title": "משרד הבריאות: 125 נפגעים מתחילת מבצע \"שאגת הארי\" מאושפזים בבתי החולים",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#27"
+    },
+    {
+      "article_index": 43,
+      "signal_type": "harm_to_population",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "דיווח התקבל על פצוע קל משברי זכוכית ביישוב כפר חנניה שבאזור כרמיאל",
+      "scope_level": "local",
+      "confidence": 0.8,
+      "locality": "כפר חנניה",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "news.walla.co.il",
+      "temporal_weight": 1,
+      "article_title": "דיווחים על נפילות שברי יירוט בכמה זירות בצפון, פצוע קל ביישוב באזור כרמיאל - וואלה חדשות",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "כפר חנניה",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "כפר חנניה",
+          "normalizedInput": "כפר חנניה",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-17T15:47:46.510Z"
+        }
+      },
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#43"
+    },
+    {
+      "article_index": 22,
+      "signal_type": "bridging_capital_demonstrated",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "ארבעה לוחמים, שהפכו לצוות אחד בתוך טנק מרכבה, שומרים עלינו בגבול הצפון. יחד הם יוצרים פסיפס שלם של החברה הישראלית. צוות הטנק הישראלי בגדוד 52, חטיבה 401. ארבעה בנים שהפכו בלחימה יחד בעזה ובלבנון למשפחה גרעינית אמיתית",
+      "scope_level": "local",
+      "confidence": 0.8,
+      "locality": "דרום לבנון",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "maariv.co.il",
+      "temporal_weight": 1,
+      "article_title": "חרדי, דרוזי, עירוני וקיבוצניק - בתוך טנק אחד הם הפכו למשפחה",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "דרום לבנון",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "דרום לבנון",
+          "normalizedInput": "דרום לבנון",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-17T15:47:46.511Z"
+        }
+      },
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#22"
+    },
+    {
+      "article_index": 30,
+      "signal_type": "compliance_follow_instructions",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "אנחנו מקיימים את ההנחיות וכשקיבלנו את ההתראה, יצאנו באמצע הלילה לרכב ונסענו למקלט. כשהיינו במקלט שמענו פיצוץ חזק, אבל לא ידענו שיש נפילה בבית שלנו. רק כשחזרנו ראינו את ההרס הרב בבית",
+      "scope_level": "local",
+      "confidence": 0.9,
+      "locality": "רמת גן",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "maariv.co.il",
+      "temporal_weight": 1,
+      "article_title": "הבית נחרב - זוג הדיירים בחיים: \"תמיד פועלים על פי ההנחיות וזה הציל אותם\"",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "geo": {
+        "kind": "resolved",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "geoEntityType": "locality",
+        "resolution": {
+          "rawInput": "רמת גן",
+          "normalizedInput": "רמת גן",
+          "canonicalKey": "ramat_gan",
+          "matchedName": "רמת גן",
+          "matchedVariant": "רמת גן",
+          "matchMethod": "exact",
+          "matchConfidence": 1,
+          "candidateCount": 1,
+          "geoEntityType": "locality",
+          "provenance": "structured",
+          "scope": "signal"
+        },
+        "classification": {
+          "pboSubregionId": "homefront_dan",
+          "geoAreaTags": [
+            "dan"
+          ],
+          "isGolan": false,
+          "distanceKmToNorthBorder": 500,
+          "distanceBand": "25+",
+          "distancePolicyVersion": "distance-band-2026-05-v1"
+        },
+        "policy": {
+          "geoPolicyVersion": "geo-policy-2026-05-v3",
+          "quality": "medium",
+          "usableForMetrics": true,
+          "requiresReview": false,
+          "scopeConfidence": "high",
+          "decisionReasons": [
+            "homefront_district_stub:dan"
+          ]
+        },
+        "audit": {
+          "geoReferenceVersion": "homefront-district-stubs-v1",
+          "source": "homefront-district-stubs",
+          "resolvedAt": "2026-06-17T15:47:46.512Z"
+        },
+        "matchEvidence": {
+          "rawInput": "רמת גן",
+          "normalizedInput": "רמת גן",
+          "matchedVariant": "רמת גן",
+          "candidateCount": 1
+        },
+        "scopeDecision": {
+          "isRelevant": false,
+          "source": "unknown",
+          "confidence": "low",
+          "usableForMetrics": true,
+          "reasons": [
+            "no geoAreaTag for north"
+          ],
+          "isNorthRelevant": false,
+          "homeFrontDistrictIds": [
+            "dan"
+          ]
+        }
+      },
+      "district_id": "dan",
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#30"
+    },
+    {
+      "article_index": 30,
+      "signal_type": "protection_effective",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "בני זוג מרמת גן ניצלו מפגיעת פצצת מצרר במהלך טטח מאיראן, לאחר שנסעו למקלט בזמן ההתרעה - ביתם נהרס קשות",
+      "scope_level": "local",
+      "confidence": 0.9,
+      "locality": "רמת גן",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "maariv.co.il",
+      "temporal_weight": 1,
+      "article_title": "הבית נחרב - זוג הדיירים בחיים: \"תמיד פועלים על פי ההנחיות וזה הציל אותם\"",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "geo": {
+        "kind": "resolved",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "geoEntityType": "locality",
+        "resolution": {
+          "rawInput": "רמת גן",
+          "normalizedInput": "רמת גן",
+          "canonicalKey": "ramat_gan",
+          "matchedName": "רמת גן",
+          "matchedVariant": "רמת גן",
+          "matchMethod": "exact",
+          "matchConfidence": 1,
+          "candidateCount": 1,
+          "geoEntityType": "locality",
+          "provenance": "structured",
+          "scope": "signal"
+        },
+        "classification": {
+          "pboSubregionId": "homefront_dan",
+          "geoAreaTags": [
+            "dan"
+          ],
+          "isGolan": false,
+          "distanceKmToNorthBorder": 500,
+          "distanceBand": "25+",
+          "distancePolicyVersion": "distance-band-2026-05-v1"
+        },
+        "policy": {
+          "geoPolicyVersion": "geo-policy-2026-05-v3",
+          "quality": "medium",
+          "usableForMetrics": true,
+          "requiresReview": false,
+          "scopeConfidence": "high",
+          "decisionReasons": [
+            "homefront_district_stub:dan"
+          ]
+        },
+        "audit": {
+          "geoReferenceVersion": "homefront-district-stubs-v1",
+          "source": "homefront-district-stubs",
+          "resolvedAt": "2026-06-17T15:47:46.513Z"
+        },
+        "matchEvidence": {
+          "rawInput": "רמת גן",
+          "normalizedInput": "רמת גן",
+          "matchedVariant": "רמת גן",
+          "candidateCount": 1
+        },
+        "scopeDecision": {
+          "isRelevant": false,
+          "source": "unknown",
+          "confidence": "low",
+          "usableForMetrics": true,
+          "reasons": [
+            "no geoAreaTag for north"
+          ],
+          "isNorthRelevant": false,
+          "homeFrontDistrictIds": [
+            "dan"
+          ]
+        }
+      },
+      "district_id": "dan",
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#30"
+    },
+    {
+      "article_index": 35,
+      "signal_type": "service_continuity",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "רשת בתי הקולנוע סינמה סיטי תפתח היום (שישי) את אולמות הקולנוע שלה, על פי מתווה של עד 50 אנשים באולם. בנוסף, אולמות הקולנוע מבית פלאנט ובתי קולנוע לב, בתל אביב, רעננה ואבן יהודה - יחזרו במתכונת מצומצמת",
+      "scope_level": "local",
+      "confidence": 0.8,
+      "locality": "תל אביב, רעננה, אבן יהודה",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "news.walla.co.il",
+      "temporal_weight": 1,
+      "article_title": "אחרי מעל לחודש: בתי הקולנוע \"חוזרים לפעילות\" - וואלה חדשות",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "תל אביב, רעננה, אבן יהודה",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "תל אביב, רעננה, אבן יהודה",
+          "normalizedInput": "תל אביב, רעננה, אבן יהודה",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-17T15:47:46.514Z"
+        }
+      },
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#35"
+    },
+    {
+      "article_index": 38,
+      "signal_type": "system_resilience_under_load",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "בעיצומה של מציאות ביטחונית מתוחה, מפונים רבים מגיעים לנפוש בבתי המלון בים המלח ובאילת כדי לחפש מעט שקט מהאזעקות. לכן, מערכת הבריאות ממשיכה להיערך לתרחישים של נפגעים, עומסים ופינוי חולים, תוך תגבור משמעותי של כוחות בשטח והסטת משאבים לאזורים רגישים",
+      "scope_level": "regional",
+      "confidence": 0.8,
+      "locality": "ים המלח, אילת",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "news.walla.co.il",
+      "temporal_weight": 1,
+      "article_title": "על רקע המלחמה: ההיערכות של משרד הבריאות באילת ובים המלח - וואלה חדשות",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "ים המלח, אילת",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "ים המלח, אילת",
+          "normalizedInput": "ים המלח, אילת",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-17T15:47:46.515Z"
+        }
+      },
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#38"
+    },
+    {
+      "article_index": 40,
+      "signal_type": "institutional_abandonment_perception",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "תושבי הצפון מופקרים על ידי מדינת ישראל. ההחלטה לרדת מהמטרה של פירוק חיזבאללה מנשקו מבטיח דבר אחד: הסבב הבא מעבר לפינה",
+      "scope_level": "regional",
+      "confidence": 0.9,
+      "locality": "צפון",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "news.walla.co.il",
+      "temporal_weight": 1,
+      "article_title": "ראשי רשויות בחזית הצפון: \"תושבי הצפון מופקרים על ידי מדינת ישראל, הסבב הבא מעבר לפינה\" - וואלה חדשות",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NON_LOCALITY_AREA_TERM",
+        "rawName": "צפון",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "צפון",
+          "normalizedInput": "צפון",
+          "geoEntityType": "area"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-17T15:47:46.516Z"
+        }
+      },
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#40"
+    },
+    {
+      "article_index": 3,
+      "signal_type": "harm_to_population",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "גבר ואישה נפצעו באורח קל ופונו לבית החולים בילינסון בעיר. גם במזכרת בתיה נפצע אדם באורח קל מזכוכיות שהתנפצו",
+      "scope_level": "local",
+      "confidence": 0.95,
+      "locality": "Petach Tikva, Matzkereth Batya",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "inn.co.il",
+      "temporal_weight": 1,
+      "article_title": "אזעקות במרכז בעקבות שיגור טיל עם ראש קרב מתפצל מאיראן",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Petach Tikva, Matzkereth Batya",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Petach Tikva, Matzkereth Batya",
+          "normalizedInput": "petach tikva, matzkereth batya",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-17T15:47:46.518Z"
+        }
+      },
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#3"
+    },
+    {
+      "article_index": 5,
+      "signal_type": "harm_to_population",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "כוחות הביטחון וההצלה הוזעקו למספר זירות בחיפה ובקריית אתא שבחלקן היו נזקים כבדים ואף מכוניות עלו באש",
+      "scope_level": "local",
+      "confidence": 0.85,
+      "locality": "Haifa, Kiryat Ata",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "inn.co.il",
+      "temporal_weight": 1,
+      "article_title": "טיל עם ראש קרב מתפצל שוגר לחיפה והקריות, נזק כבד במספר זירות",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Haifa, Kiryat Ata",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Haifa, Kiryat Ata",
+          "normalizedInput": "haifa, kiryat ata",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-17T15:47:46.520Z"
+        }
+      },
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#5"
+    },
+    {
+      "article_index": 13,
+      "signal_type": "harm_to_population",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "משרד הבריאות מעדכן כי מתחילת מבצע שאגת הארי, נכון לשעה 07:00 בבוקר, פונו לבתי החולים 6,594 נפגעים, מתוכם מאושפזים כעת 125 נפגעים",
+      "scope_level": "national",
+      "confidence": 0.95,
+      "locality": null,
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "bhol.co.il",
+      "temporal_weight": 1,
+      "article_title": "טראמפ מאיים אחרי הפצצת הגשר: \"עוד לא התחלנו בהשמדה\"",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#13"
+    },
+    {
+      "article_index": 17,
+      "signal_type": "harm_to_population",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "אזעקות הופעלו בשורת יישובים בגוש דן, בשרון, בשומרון ובשפלה בשל ירי מאיראן. ברמת גן, בפתח תקווה, בגבעת שמואל ובבני ברק נפלו כמה שברי יירוט וגרמו לנזק. בזירה ברמת גן דווח כי ישנו פצוע קל אחד",
+      "scope_level": "local",
+      "confidence": 0.9,
+      "locality": "Ramat Gan, Petach Tikva, Givat Shmuel, Bni Brak",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "kipa.co.il",
+      "temporal_weight": 1,
+      "article_title": "אזעקות הופעלו במרכז ובצפון - פצוע מנפילה באזור המרכז - כיפה",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Ramat Gan, Petach Tikva, Givat Shmuel, Bni Brak",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Ramat Gan, Petach Tikva, Givat Shmuel, Bni Brak",
+          "normalizedInput": "ramat gan, petach tikva, givat shmuel, bni brak",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-17T15:47:46.528Z"
+        }
+      },
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#17"
+    },
+    {
+      "article_index": 21,
+      "signal_type": "harm_to_population",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "שברי הטילים תסבבו בנזקים מادיים במבנים ומרכבות בקריית אתא והמטחות המקיפות, כמו כן נרשמו נזקים בשבכות מים ובמספר מכוניות",
+      "scope_level": "local",
+      "confidence": 0.85,
+      "locality": "Kiryat Ata",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "bokra.net",
+      "temporal_weight": 1,
+      "article_title": "كريات آتا: أضرار لمبانٍ ومركبات بعد سقوط شظايا صاروخية",
+      "grounding_tier": "grounded",
+      "grounding_reason": "no_body",
+      "grounding_method": "no_body",
+      "source_type": "news",
+      "geo": {
+        "kind": "resolved",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "geoEntityType": "locality",
+        "resolution": {
+          "rawInput": "Kiryat Ata",
+          "normalizedInput": "kiryat ata",
+          "canonicalKey": "kiryat_ata",
+          "matchedName": "Kiryat Ata",
+          "matchedVariant": "Kiryat Ata",
+          "matchMethod": "exact",
+          "matchConfidence": 1,
+          "candidateCount": 1,
+          "geoEntityType": "locality",
+          "provenance": "structured",
+          "scope": "signal"
+        },
+        "classification": {
+          "pboSubregionId": "homefront_haifa",
+          "geoAreaTags": [
+            "haifa"
+          ],
+          "isGolan": false,
+          "distanceKmToNorthBorder": 500,
+          "distanceBand": "25+",
+          "distancePolicyVersion": "distance-band-2026-05-v1"
+        },
+        "policy": {
+          "geoPolicyVersion": "geo-policy-2026-05-v3",
+          "quality": "medium",
+          "usableForMetrics": true,
+          "requiresReview": false,
+          "scopeConfidence": "high",
+          "decisionReasons": [
+            "homefront_district_stub:haifa"
+          ]
+        },
+        "audit": {
+          "geoReferenceVersion": "homefront-district-stubs-v1",
+          "source": "homefront-district-stubs",
+          "resolvedAt": "2026-06-17T15:47:46.529Z"
+        },
+        "matchEvidence": {
+          "rawInput": "Kiryat Ata",
+          "normalizedInput": "kiryat ata",
+          "matchedVariant": "Kiryat Ata",
+          "candidateCount": 1
+        },
+        "scopeDecision": {
+          "isRelevant": false,
+          "source": "unknown",
+          "confidence": "low",
+          "usableForMetrics": true,
+          "reasons": [
+            "no geoAreaTag for north"
+          ],
+          "isNorthRelevant": false,
+          "homeFrontDistrictIds": [
+            "haifa"
+          ]
+        }
+      },
+      "district_id": "haifa",
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#21"
+    },
+    {
+      "article_index": 24,
+      "signal_type": "harm_to_population",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "ומنذ بداية عملية 'زئير الأسد'، قدمت الطواقم الطبية العلاج لـ2250 شخصًا، بينهم 1757 إصابة جسدية و493 حالة هلع. وأظهرت المعطيات أن 550 من المصابين أُصيبوا جراء سقوط الصواريخ، بينهم 19 قتيلًا",
+      "scope_level": "national",
+      "confidence": 0.95,
+      "locality": null,
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "bokra.net",
+      "temporal_weight": 1,
+      "article_title": "مقتل 19 وإصابة أكثر من 2200 منذ بدء عملية زئير الأسد",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#24"
+    },
+    {
+      "article_index": 28,
+      "signal_type": "harm_to_population",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Мужчина в возрасте около 70 лет получил осколочные ранения, его состояние оценивается как легкое",
+      "scope_level": "local",
+      "confidence": 0.85,
+      "locality": "Kiryat Ata",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "newsru.co.il",
+      "temporal_weight": 1,
+      "article_title": "Сообщения о падениях кассетных суббоеприпасов в Хайфе и Крайот - NEWSru.co.il",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "geo": {
+        "kind": "resolved",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "geoEntityType": "locality",
+        "resolution": {
+          "rawInput": "Kiryat Ata",
+          "normalizedInput": "kiryat ata",
+          "canonicalKey": "kiryat_ata",
+          "matchedName": "Kiryat Ata",
+          "matchedVariant": "Kiryat Ata",
+          "matchMethod": "exact",
+          "matchConfidence": 1,
+          "candidateCount": 1,
+          "geoEntityType": "locality",
+          "provenance": "structured",
+          "scope": "signal"
+        },
+        "classification": {
+          "pboSubregionId": "homefront_haifa",
+          "geoAreaTags": [
+            "haifa"
+          ],
+          "isGolan": false,
+          "distanceKmToNorthBorder": 500,
+          "distanceBand": "25+",
+          "distancePolicyVersion": "distance-band-2026-05-v1"
+        },
+        "policy": {
+          "geoPolicyVersion": "geo-policy-2026-05-v3",
+          "quality": "medium",
+          "usableForMetrics": true,
+          "requiresReview": false,
+          "scopeConfidence": "high",
+          "decisionReasons": [
+            "homefront_district_stub:haifa"
+          ]
+        },
+        "audit": {
+          "geoReferenceVersion": "homefront-district-stubs-v1",
+          "source": "homefront-district-stubs",
+          "resolvedAt": "2026-06-17T15:47:46.530Z"
+        },
+        "matchEvidence": {
+          "rawInput": "Kiryat Ata",
+          "normalizedInput": "kiryat ata",
+          "matchedVariant": "Kiryat Ata",
+          "candidateCount": 1
+        },
+        "scopeDecision": {
+          "isRelevant": false,
+          "source": "unknown",
+          "confidence": "low",
+          "usableForMetrics": true,
+          "reasons": [
+            "no geoAreaTag for north"
+          ],
+          "isNorthRelevant": false,
+          "homeFrontDistrictIds": [
+            "haifa"
+          ]
+        }
+      },
+      "district_id": "haifa",
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#28"
+    },
+    {
+      "article_index": 33,
+      "signal_type": "harm_to_population",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "The Health Ministry reports that in the past 24 hours, 148 injured people have been taken to hospitals as a result of the conflict with Iran, bringing the number of hospitalizations due to the fighting to over 6,500",
+      "scope_level": "national",
+      "confidence": 0.95,
+      "locality": null,
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "timesofisrael.com",
+      "temporal_weight": 1,
+      "article_title": "Health Ministry: 148 people hospitalized due to injuries from Iran war over past 24 hours",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#33"
+    },
+    {
+      "article_index": 5,
+      "signal_type": "infrastructure_damage_acute",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "כוחות הביטחון וההצלה הוזעקו למספר זירות בחיפה ובקריית אתא שבחלקן היו נזקים כבדים ואף מכוניות עלו באש",
+      "scope_level": "local",
+      "confidence": 0.9,
+      "locality": "Haifa, Kiryat Ata",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "inn.co.il",
+      "temporal_weight": 1,
+      "article_title": "טיל עם ראש קרב מתפצל שוגר לחיפה והקריות, נזק כבד במספר זירות",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Haifa, Kiryat Ata",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Haifa, Kiryat Ata",
+          "normalizedInput": "haifa, kiryat ata",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-17T15:47:46.565Z"
+        }
+      },
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#5"
+    },
+    {
+      "article_index": 17,
+      "signal_type": "infrastructure_damage_acute",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "ברמת גן, בפתח תקווה, בגבעת שמואל ובבני ברק נפלו כמה שברי יירוט וגרמו לנזק",
+      "scope_level": "local",
+      "confidence": 0.85,
+      "locality": "Ramat Gan, Petach Tikva, Givat Shmuel, Bni Brak",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "kipa.co.il",
+      "temporal_weight": 1,
+      "article_title": "אזעקות הופעלו במרכז ובצפון - פצוע מנפילה באזור המרכז - כיפה",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Ramat Gan, Petach Tikva, Givat Shmuel, Bni Brak",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Ramat Gan, Petach Tikva, Givat Shmuel, Bni Brak",
+          "normalizedInput": "ramat gan, petach tikva, givat shmuel, bni brak",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-17T15:47:46.566Z"
+        }
+      },
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#17"
+    },
+    {
+      "article_index": 21,
+      "signal_type": "infrastructure_damage_acute",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "שברי הטילים תסבבו בנזקים מادיים במבנים ומרכבות בקריית אתא והמטחות המקיפות, כמו כן נרשמו נזקים בשבכות מים ובמספר מכוניות",
+      "scope_level": "local",
+      "confidence": 0.9,
+      "locality": "Kiryat Ata",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "bokra.net",
+      "temporal_weight": 1,
+      "article_title": "كريات آتا: أضرار لمبانٍ ومركبات بعد سقوط شظايا صاروخية",
+      "grounding_tier": "grounded",
+      "grounding_reason": "no_body",
+      "grounding_method": "no_body",
+      "source_type": "news",
+      "geo": {
+        "kind": "resolved",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "geoEntityType": "locality",
+        "resolution": {
+          "rawInput": "Kiryat Ata",
+          "normalizedInput": "kiryat ata",
+          "canonicalKey": "kiryat_ata",
+          "matchedName": "Kiryat Ata",
+          "matchedVariant": "Kiryat Ata",
+          "matchMethod": "exact",
+          "matchConfidence": 1,
+          "candidateCount": 1,
+          "geoEntityType": "locality",
+          "provenance": "structured",
+          "scope": "signal"
+        },
+        "classification": {
+          "pboSubregionId": "homefront_haifa",
+          "geoAreaTags": [
+            "haifa"
+          ],
+          "isGolan": false,
+          "distanceKmToNorthBorder": 500,
+          "distanceBand": "25+",
+          "distancePolicyVersion": "distance-band-2026-05-v1"
+        },
+        "policy": {
+          "geoPolicyVersion": "geo-policy-2026-05-v3",
+          "quality": "medium",
+          "usableForMetrics": true,
+          "requiresReview": false,
+          "scopeConfidence": "high",
+          "decisionReasons": [
+            "homefront_district_stub:haifa"
+          ]
+        },
+        "audit": {
+          "geoReferenceVersion": "homefront-district-stubs-v1",
+          "source": "homefront-district-stubs",
+          "resolvedAt": "2026-06-17T15:47:46.567Z"
+        },
+        "matchEvidence": {
+          "rawInput": "Kiryat Ata",
+          "normalizedInput": "kiryat ata",
+          "matchedVariant": "Kiryat Ata",
+          "candidateCount": 1
+        },
+        "scopeDecision": {
+          "isRelevant": false,
+          "source": "unknown",
+          "confidence": "low",
+          "usableForMetrics": true,
+          "reasons": [
+            "no geoAreaTag for north"
+          ],
+          "isNorthRelevant": false,
+          "homeFrontDistrictIds": [
+            "haifa"
+          ]
+        }
+      },
+      "district_id": "haifa",
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#21"
+    },
+    {
+      "article_index": 28,
+      "signal_type": "infrastructure_damage_acute",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "В Кирьят-Ата из-за взрыва загорелись несколько автомобилей, на месте работают пожарные",
+      "scope_level": "local",
+      "confidence": 0.9,
+      "locality": "Kiryat Ata",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "newsru.co.il",
+      "temporal_weight": 1,
+      "article_title": "Сообщения о падениях кассетных суббоеприпасов в Хайфе и Крайот - NEWSru.co.il",
+      "grounding_tier": "weak",
+      "grounding_reason": "empty_evidence",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "geo": {
+        "kind": "resolved",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "geoEntityType": "locality",
+        "resolution": {
+          "rawInput": "Kiryat Ata",
+          "normalizedInput": "kiryat ata",
+          "canonicalKey": "kiryat_ata",
+          "matchedName": "Kiryat Ata",
+          "matchedVariant": "Kiryat Ata",
+          "matchMethod": "exact",
+          "matchConfidence": 1,
+          "candidateCount": 1,
+          "geoEntityType": "locality",
+          "provenance": "structured",
+          "scope": "signal"
+        },
+        "classification": {
+          "pboSubregionId": "homefront_haifa",
+          "geoAreaTags": [
+            "haifa"
+          ],
+          "isGolan": false,
+          "distanceKmToNorthBorder": 500,
+          "distanceBand": "25+",
+          "distancePolicyVersion": "distance-band-2026-05-v1"
+        },
+        "policy": {
+          "geoPolicyVersion": "geo-policy-2026-05-v3",
+          "quality": "medium",
+          "usableForMetrics": true,
+          "requiresReview": false,
+          "scopeConfidence": "high",
+          "decisionReasons": [
+            "homefront_district_stub:haifa"
+          ]
+        },
+        "audit": {
+          "geoReferenceVersion": "homefront-district-stubs-v1",
+          "source": "homefront-district-stubs",
+          "resolvedAt": "2026-06-17T15:47:46.567Z"
+        },
+        "matchEvidence": {
+          "rawInput": "Kiryat Ata",
+          "normalizedInput": "kiryat ata",
+          "matchedVariant": "Kiryat Ata",
+          "candidateCount": 1
+        },
+        "scopeDecision": {
+          "isRelevant": false,
+          "source": "unknown",
+          "confidence": "low",
+          "usableForMetrics": true,
+          "reasons": [
+            "no geoAreaTag for north"
+          ],
+          "isNorthRelevant": false,
+          "homeFrontDistrictIds": [
+            "haifa"
+          ]
+        }
+      },
+      "district_id": "haifa",
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#28"
+    },
+    {
+      "article_index": 37,
+      "signal_type": "infrastructure_damage_acute",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "A fire caused by falling debris from an intercepted attack forced the suspension of operations at a gas complex in the emirate of Abu Dhabi on Friday",
+      "scope_level": "local",
+      "confidence": 0.85,
+      "locality": null,
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "timesofisrael.com",
+      "temporal_weight": 1,
+      "article_title": "Abu Dhabi gas facility stops operations after interceptor debris sparks fire",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#37"
+    },
+    {
+      "article_index": 52,
+      "signal_type": "infrastructure_damage_acute",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Firefighters say they are working to extinguish a blaze sparked by an Iranian ballistic missile impact at the Neot Hovav industrial zone, south of Beersheba",
+      "scope_level": "local",
+      "confidence": 0.9,
+      "locality": "Beersheba",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "timesofisrael.com",
+      "temporal_weight": 1,
+      "article_title": "Iranian missile sparks fire at industrial zone near Beersheba; no reported injuries or hazardous material fears",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "geo": {
+        "kind": "resolved",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "geoEntityType": "locality",
+        "resolution": {
+          "rawInput": "Beersheba",
+          "normalizedInput": "beersheba",
+          "canonicalKey": "beer_sheva",
+          "matchedName": "Beersheba",
+          "matchedVariant": "Beersheba",
+          "matchMethod": "exact",
+          "matchConfidence": 1,
+          "candidateCount": 1,
+          "geoEntityType": "locality",
+          "provenance": "structured",
+          "scope": "signal"
+        },
+        "classification": {
+          "pboSubregionId": "homefront_south",
+          "geoAreaTags": [
+            "south"
+          ],
+          "isGolan": false,
+          "distanceKmToNorthBorder": 500,
+          "distanceBand": "25+",
+          "distancePolicyVersion": "distance-band-2026-05-v1"
+        },
+        "policy": {
+          "geoPolicyVersion": "geo-policy-2026-05-v3",
+          "quality": "medium",
+          "usableForMetrics": true,
+          "requiresReview": false,
+          "scopeConfidence": "high",
+          "decisionReasons": [
+            "homefront_district_stub:south"
+          ]
+        },
+        "audit": {
+          "geoReferenceVersion": "homefront-district-stubs-v1",
+          "source": "homefront-district-stubs",
+          "resolvedAt": "2026-06-17T15:47:46.568Z"
+        },
+        "matchEvidence": {
+          "rawInput": "Beersheba",
+          "normalizedInput": "beersheba",
+          "matchedVariant": "Beersheba",
+          "candidateCount": 1
+        },
+        "scopeDecision": {
+          "isRelevant": false,
+          "source": "unknown",
+          "confidence": "low",
+          "usableForMetrics": true,
+          "reasons": [
+            "no geoAreaTag for north"
+          ],
+          "isNorthRelevant": false,
+          "homeFrontDistrictIds": [
+            "south"
+          ]
+        }
+      },
+      "district_id": "south",
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#52"
+    },
+    {
+      "article_index": 53,
+      "signal_type": "infrastructure_damage_acute",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "No injuries are immediately reported after an Iranian ballistic missile carrying a cluster bomb warhead spread bomblets across central Israel. The submuntions hit several cities in the Tel Aviv area, causing damage",
+      "scope_level": "local",
+      "confidence": 0.85,
+      "locality": "Tel Aviv area",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "timesofisrael.com",
+      "temporal_weight": 1,
+      "article_title": "No injuries immediately reported after Iranian cluster bomb on center",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Tel Aviv area",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Tel Aviv area",
+          "normalizedInput": "tel aviv area",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-17T15:47:46.569Z"
+        }
+      },
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#53"
+    },
+    {
+      "article_index": 6,
+      "signal_type": "reservist_family_strain",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "צה\"ל פרסם הבוקר (שישי) עדכון משמעותי בנוגע למשך שירות המילואים הצפוי במהלך שנת 2026 בשל התמשכות המלחמה והצורך בכוח אדם. אורך המשימה לאנשי המילואים יעמוד על כתשעה שבועות",
+      "scope_level": "national",
+      "confidence": 0.9,
+      "locality": null,
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "inn.co.il",
+      "temporal_weight": 1,
+      "article_title": "בעקבות המלחמה: שירות המילואים ב-2026 יוארך לתשעה שבועות",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#6"
+    },
+    {
+      "article_index": 19,
+      "signal_type": "reservist_family_strain",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "צה\"ל הודיע היום (ו') לכלל משרתי המילואים ולחיילי הסדיר על עדכון גרף הלחימה, לפיו משך שירות המילואים יוארך מ-6 שבועות ל-9 שבועות",
+      "scope_level": "national",
+      "confidence": 0.9,
+      "locality": null,
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "kipa.co.il",
+      "temporal_weight": 1,
+      "article_title": "שינוי דרמטי בצה\"ל: שירות המילואים יוארך - כיפה",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#19"
+    },
+    {
+      "article_index": 7,
+      "signal_type": "information_actionable_effective",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "משרד הבריאות מודיע כי בהתאם לתחזיות המשרד להגנת הסביבה, צפוי זיהום אוויר גבוה עד גבוה מאוד בכל חלקי הארץ במהלך השבת. לאור זאת, ממליץ משרד הבריאות כי אוכלוסיות רגישות... יימנעו משהייה ממושכת ומפעילות גופנית מאומצת מחוץ למבנים",
+      "scope_level": "national",
+      "confidence": 0.85,
+      "locality": null,
+      "_semantic_dedup_count": 2,
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "inn.co.il",
+      "temporal_weight": 1,
+      "article_title": "משרד הבריאות: במהלך השבת צפוי זיהום אוויר גבוה",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#7"
+    },
+    {
+      "article_index": 9,
+      "signal_type": "information_actionable_effective",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "בפיקוד העורף מדגישים כי האחריות על תכנון הטיול מוטלת על המטיילים. 'לפני שיוצאים מהבית, חובה לבדוק האם באתר הטיול או במסלול הנבחר יש מרחב מוגן נגיש'",
+      "scope_level": "national",
+      "confidence": 0.8,
+      "locality": null,
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "srugim.co.il",
+      "temporal_weight": 1,
+      "article_title": "היערכות לירי מוגבר: הנחיות פיקוד העורף לחול המועד - סרוגים",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#9"
+    },
+    {
+      "article_index": 11,
+      "signal_type": "information_actionable_effective",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "גוגל החלה בהפצה הדרגתית של עדכון מערכת הכולל מפה ויזואלית מובנית בתוך התראות החירום הקופצות. השדרוג החדש נועד לחסוך שניות יקרות בזמן אמת, ולאפשר למשתמשים להבין בשבריר שנייה האם הם נמצאים בתוך טווח האיום",
+      "scope_level": "national",
+      "confidence": 0.85,
+      "locality": null,
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "srugim.co.il",
+      "temporal_weight": 1,
+      "article_title": "שימו לב: שינוי דרמטי בהתרעות המקדימות של פיקוד העורף - סרוגים",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#11"
+    },
+    {
+      "article_index": 18,
+      "signal_type": "information_actionable_effective",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "המשרד להגנת הסביבה הודיע היום (ו') כי זיהום אוויר גבוה נרשם בכל חלקי הארץ והוא צפוי להמשיך לשרור עד יום ראשון. לפי המשרד, הסיבה לזיהום היא חלקיקים נשימיים שמקורם בהסעת אבק. שיפור באיכות האוויר חזוי במהלך שעות הערב",
+      "scope_level": "national",
+      "confidence": 0.85,
+      "locality": null,
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "kipa.co.il",
+      "temporal_weight": 1,
+      "article_title": "בהתייעצות עם משרד הבריאות\": קשישים, ילדים ונשים בהיריון היזהרו - כיפה",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#18"
+    },
+    {
+      "article_index": 8,
+      "signal_type": "service_continuity",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "במשרד התחבורה החליטו על הקלה במתווה הטיסות בנמל התעופה בן גוריון: החל מיום ראשון הקרוב תוגדל מכסת הנוסעים בטיסות היוצאות מ-50 ל-80 נוסעים",
+      "scope_level": "national",
+      "confidence": 0.9,
+      "locality": null,
+      "_semantic_dedup_count": 2,
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "inn.co.il",
+      "temporal_weight": 1,
+      "article_title": "הקלה במתווה הטיסות מנתב\"ג",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#8"
+    },
+    {
+      "article_index": 9,
+      "signal_type": "leadership_clear_guidance",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "עם פתיחת ימי חול המועד, פיקוד העורף מחדד את ההנחיות למיליוני הישראלים שמתכננים לפקוד את אתרי הטיולים והפארקים. המסר המרכזי שיצא מהאולפן הוא שילוב בין שמירה על שגרת החג לבין ערנות מקסימלית",
+      "scope_level": "national",
+      "confidence": 0.85,
+      "locality": null,
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "srugim.co.il",
+      "temporal_weight": 1,
+      "article_title": "היערכות לירי מוגבר: הנחיות פיקוד העורף לחול המועד - סרוגים",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#9"
+    },
+    {
+      "article_index": 12,
+      "signal_type": "early_warning_system_effective",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "פיקוד העורף הפעיל התרעות במרחב נרחב במיוחד, שנפרס על פני אזורים רבים במרכז הארץ, בשרון, בגוש דן, בשומרון, בירקון, בשפלה ובבקעה",
+      "scope_level": "national",
+      "confidence": 0.8,
+      "locality": null,
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "srugim.co.il",
+      "temporal_weight": 1,
+      "article_title": "בעקבות שיגורים מאיראן: הופעלו התרעות במרכז",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#12"
+    },
+    {
+      "article_index": 54,
+      "signal_type": "solidarity_help_others",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Following his passing, the National Transplant Center announced that Ben-Yakar was an ADI card holder, and wished for his organs to be donated to those in need. His wishes were respected, and led to him saving the lives of four people",
+      "scope_level": "national",
+      "confidence": 0.85,
+      "locality": null,
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "jpost.com",
+      "temporal_weight": 1,
+      "article_title": "'Always put the other first': IDF reservist who died on leave saves four with organ transplants",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#54"
+    },
+    {
+      "article_index": 1,
+      "signal_type": "harm_to_population",
+      "evidence_type": "named_survey_statistic",
+      "evidence": "6,594 wounded people have been evacuated to hospitals since the start of the war, with 125 currently hospitalized",
+      "scope_level": "national",
+      "confidence": 0.95,
+      "locality": null,
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "haaretz.com",
+      "temporal_weight": 1,
+      "article_title": "CNN: Iran retains half of missile launchers and massive drone fleet",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#1"
+    },
+    {
+      "article_index": 4,
+      "signal_type": "harm_to_population",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Emergency services reported possible debris from interceptions falling in several cities, including Tel Aviv, Givat Shmuel and Bnei Brak",
+      "scope_level": "regional",
+      "confidence": 0.8,
+      "locality": "Tel Aviv, Givat Shmuel, Bnei Brak",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "ynetnews.com",
+      "temporal_weight": 1,
+      "article_title": "Sirens sound in central Israel after Iran missile launch",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Tel Aviv, Givat Shmuel, Bnei Brak",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Tel Aviv, Givat Shmuel, Bnei Brak",
+          "normalizedInput": "tel aviv, givat shmuel, bnei brak",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-17T15:47:46.571Z"
+        }
+      },
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#4"
+    },
+    {
+      "article_index": 7,
+      "signal_type": "harm_to_population",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Cluster missile hits Kiryat Ata, severe damage; elderly man injured",
+      "scope_level": "local",
+      "confidence": 0.92,
+      "locality": "Kiryat Ata",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "ynetnews.com",
+      "temporal_weight": 1,
+      "article_title": "Cluster missile hits Kiryat Ata, severe damage; elderly man injured, reserve duty ext",
+      "grounding_tier": "unverified_critical",
+      "grounding_reason": "verification_failed_critical",
+      "grounding_method": "low_similarity",
+      "source_type": "news",
+      "geo": {
+        "kind": "resolved",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "geoEntityType": "locality",
+        "resolution": {
+          "rawInput": "Kiryat Ata",
+          "normalizedInput": "kiryat ata",
+          "canonicalKey": "kiryat_ata",
+          "matchedName": "Kiryat Ata",
+          "matchedVariant": "Kiryat Ata",
+          "matchMethod": "exact",
+          "matchConfidence": 1,
+          "candidateCount": 1,
+          "geoEntityType": "locality",
+          "provenance": "structured",
+          "scope": "signal"
+        },
+        "classification": {
+          "pboSubregionId": "homefront_haifa",
+          "geoAreaTags": [
+            "haifa"
+          ],
+          "isGolan": false,
+          "distanceKmToNorthBorder": 500,
+          "distanceBand": "25+",
+          "distancePolicyVersion": "distance-band-2026-05-v1"
+        },
+        "policy": {
+          "geoPolicyVersion": "geo-policy-2026-05-v3",
+          "quality": "medium",
+          "usableForMetrics": true,
+          "requiresReview": false,
+          "scopeConfidence": "high",
+          "decisionReasons": [
+            "homefront_district_stub:haifa"
+          ]
+        },
+        "audit": {
+          "geoReferenceVersion": "homefront-district-stubs-v1",
+          "source": "homefront-district-stubs",
+          "resolvedAt": "2026-06-17T15:47:46.572Z"
+        },
+        "matchEvidence": {
+          "rawInput": "Kiryat Ata",
+          "normalizedInput": "kiryat ata",
+          "matchedVariant": "Kiryat Ata",
+          "candidateCount": 1
+        },
+        "scopeDecision": {
+          "isRelevant": false,
+          "source": "unknown",
+          "confidence": "low",
+          "usableForMetrics": true,
+          "reasons": [
+            "no geoAreaTag for north"
+          ],
+          "isNorthRelevant": false,
+          "homeFrontDistrictIds": [
+            "haifa"
+          ]
+        }
+      },
+      "district_id": "haifa",
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#7"
+    },
+    {
+      "article_index": 10,
+      "signal_type": "harm_to_population",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Rocket fire from Lebanon and missiles from Iran struck northern Israel, causing damage in multiple locations but no reported injuries. A direct hit was recorded at a parking lot in Nahariya following the barrage",
+      "scope_level": "regional",
+      "confidence": 0.88,
+      "locality": "Nahariya, Gesher HaZiv",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "ynetnews.com",
+      "temporal_weight": 1,
+      "article_title": "Iran and Lebanon fire at northern Israel as IDF strikes Tehran and Beirut",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Nahariya, Gesher HaZiv",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Nahariya, Gesher HaZiv",
+          "normalizedInput": "nahariya, gesher haziv",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-17T15:47:46.573Z"
+        }
+      },
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#10"
+    },
+    {
+      "article_index": 13,
+      "signal_type": "harm_to_population",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Reports indicated impact sites in Bnei Brak, Givat Shmuel and Petah Tikva",
+      "scope_level": "regional",
+      "confidence": 0.85,
+      "locality": "Bnei Brak, Givat Shmuel, Petah Tikva",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "ynetnews.com",
+      "temporal_weight": 1,
+      "article_title": "Sirens sound across central Israel after Iranian missile launch; impacts reported in",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Bnei Brak, Givat Shmuel, Petah Tikva",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Bnei Brak, Givat Shmuel, Petah Tikva",
+          "normalizedInput": "bnei brak, givat shmuel, petah tikva",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-17T15:47:46.573Z"
+        }
+      },
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#13"
+    },
+    {
+      "article_index": 15,
+      "signal_type": "harm_to_population",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "A missile launched from Iran on Thursday night carried a cluster warhead. Loud explosions were heard in central Israel. Magen David Adom (MDA) reported that a fragment from an interceptor fell in Givat Shmuel",
+      "scope_level": "regional",
+      "confidence": 0.88,
+      "locality": "central Israel, Givat Shmuel",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "israelnationalnews.com",
+      "temporal_weight": 1,
+      "article_title": "Cluster missile launched towards central Israel, damaging home",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "central Israel, Givat Shmuel",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "central Israel, Givat Shmuel",
+          "normalizedInput": "central israel, givat shmuel",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-17T15:47:46.574Z"
+        }
+      },
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#15"
+    },
+    {
+      "article_index": 15,
+      "signal_type": "harm_to_population",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "In Petah Tikva, heavy damage was caused to buildings and property after an explosion created a large crater at the impact site. A man and a woman were lightly injured and evacuated to Beilinson Hospital in the city. In Mazkeret Batya, another person was lightly injured by shattered glass caused by the blast wave from the Iranian missile's impact",
+      "scope_level": "regional",
+      "confidence": 0.9,
+      "locality": "Petah Tikva, Mazkeret Batya",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "israelnationalnews.com",
+      "temporal_weight": 1,
+      "article_title": "Cluster missile launched towards central Israel, damaging home",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Petah Tikva, Mazkeret Batya",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Petah Tikva, Mazkeret Batya",
+          "normalizedInput": "petah tikva, mazkeret batya",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-17T15:47:46.575Z"
+        }
+      },
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#15"
+    },
+    {
+      "article_index": 16,
+      "signal_type": "harm_to_population",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Sirens sounded Friday morning in northern Israel after an Iranian cluster missile was launched towards Haifa and the surrounding area. Security forces and first responders were called to a number of impact sites in Haifa and Kiryat Ata. Heavy damage was reported to some of the sites, and vehicles caught fire",
+      "scope_level": "regional",
+      "confidence": 0.9,
+      "locality": "Haifa, Kiryat Ata",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "israelnationalnews.com",
+      "temporal_weight": 1,
+      "article_title": "Heavy damage following missile strike on Haifa area",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Haifa, Kiryat Ata",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Haifa, Kiryat Ata",
+          "normalizedInput": "haifa, kiryat ata",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-17T15:47:46.576Z"
+        }
+      },
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#16"
+    },
+    {
+      "article_index": 16,
+      "signal_type": "harm_to_population",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Magen David Adom (MDA) reported that a 79-year-old suffered light injuries from rocks thrown by the blast created by the impact, and was treated by paramedics",
+      "scope_level": "local",
+      "confidence": 0.92,
+      "locality": "Haifa or Kiryat Ata",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "israelnationalnews.com",
+      "temporal_weight": 1,
+      "article_title": "Heavy damage following missile strike on Haifa area",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Haifa or Kiryat Ata",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Haifa or Kiryat Ata",
+          "normalizedInput": "haifa or kiryat ata",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-17T15:47:46.577Z"
+        }
+      },
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#16"
+    },
+    {
+      "article_index": 3,
+      "signal_type": "political_distrust",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "If the statements made in the army's briefing are accurate, we see this shift as a resounding slap in the face to residents who have remained in their homes since the start of the war, effectively serving as a human shield for Israel",
+      "scope_level": "regional",
+      "confidence": 0.92,
+      "locality": "northern Israel",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "haaretz.com",
+      "temporal_weight": 1,
+      "article_title": "IDF strikes Beirut, Tehran; One wounded in northern Israel",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NON_LOCALITY_AREA_TERM",
+        "rawName": "northern Israel",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "northern Israel",
+          "normalizedInput": "northern israel",
+          "geoEntityType": "area"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-17T15:47:46.577Z"
+        }
+      },
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#3"
+    },
+    {
+      "article_index": 3,
+      "signal_type": "political_distrust",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "it means we've learned nothing from October 7, 2023. We're still following the same policy of containment",
+      "scope_level": "regional",
+      "confidence": 0.88,
+      "locality": "Metula",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "haaretz.com",
+      "temporal_weight": 1,
+      "article_title": "IDF strikes Beirut, Tehran; One wounded in northern Israel",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "geo": {
+        "kind": "resolved",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "geoEntityType": "locality",
+        "resolution": {
+          "rawInput": "Metula",
+          "normalizedInput": "metula",
+          "canonicalKey": "metula",
+          "matchedName": "Metula",
+          "matchedVariant": "Metula",
+          "matchMethod": "exact",
+          "matchConfidence": 1,
+          "candidateCount": 1,
+          "geoEntityType": "locality",
+          "provenance": "structured",
+          "scope": "signal"
+        },
+        "classification": {
+          "pboSubregionId": "naftali",
+          "geoAreaTags": [
+            "north",
+            "upper_galilee_adjacent"
+          ],
+          "isGolan": false,
+          "distanceKmToNorthBorder": 16.183859853046588,
+          "distanceBand": "10-25",
+          "distanceSemantics": "point_to_polyline",
+          "distancePolicyVersion": "distance-band-2026-05-v1"
+        },
+        "policy": {
+          "geoPolicyVersion": "geo-policy-2026-05-v3",
+          "quality": "high",
+          "usableForMetrics": true,
+          "requiresReview": false,
+          "scopeConfidence": "high",
+          "decisionReasons": [
+            "deterministic_match"
+          ]
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "borderReferenceVersion": "north-border-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-17T15:47:46.578Z"
+        },
+        "matchEvidence": {
+          "rawInput": "Metula",
+          "normalizedInput": "metula",
+          "matchedVariant": "Metula",
+          "candidateCount": 1
+        },
+        "scopeDecision": {
+          "isRelevant": true,
+          "source": "geo_tags",
+          "confidence": "high",
+          "usableForMetrics": true,
+          "reasons": [
+            "geoAreaTags includes north"
+          ],
+          "isNorthRelevant": true,
+          "homeFrontDistrictIds": [
+            "north"
+          ]
+        }
+      },
+      "district_id": "north",
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#3"
+    },
+    {
+      "article_index": 4,
+      "signal_type": "compliance_enter_shelter",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Sirens sounded across central Israel early Friday after a missile was launched from Iran, prompting residents to seek shelter as air defenses were activated",
+      "scope_level": "regional",
+      "confidence": 0.9,
+      "locality": "central Israel",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "ynetnews.com",
+      "temporal_weight": 1,
+      "article_title": "Sirens sound in central Israel after Iran missile launch",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "central Israel",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "central Israel",
+          "normalizedInput": "central israel",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-17T15:47:46.578Z"
+        }
+      },
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#4"
+    },
+    {
+      "article_index": 12,
+      "signal_type": "compliance_enter_shelter",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Air raid alerts were activated in multiple waves throughout the evening, beginning in the Upper Galilee, including Avivim and Yir'on, and later expanding to broader areas such as the Krayot, Haifa and surrounding areas",
+      "scope_level": "regional",
+      "confidence": 0.88,
+      "locality": "Upper Galilee, Avivim, Yir'on, Krayot, Haifa",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "ynetnews.com",
+      "temporal_weight": 1,
+      "article_title": "Hezbollah continues rocket fire on northern Israel after earlier Iranian missile stri",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Upper Galilee, Avivim, Yir'on, Krayot, Haifa",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Upper Galilee, Avivim, Yir'on, Krayot, Haifa",
+          "normalizedInput": "upper galilee, avivim, yir'on, krayot, haifa",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-17T15:47:46.579Z"
+        }
+      },
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#12"
+    },
+    {
+      "article_index": 13,
+      "signal_type": "compliance_enter_shelter",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Air raid sirens sounded across central Israel and Samaria on Saturday following a missile launch from Iran, sending millions of Israelis into shelters",
+      "scope_level": "regional",
+      "confidence": 0.92,
+      "locality": "central Israel, Samaria",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "ynetnews.com",
+      "temporal_weight": 1,
+      "article_title": "Sirens sound across central Israel after Iranian missile launch; impacts reported in",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "central Israel, Samaria",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "central Israel, Samaria",
+          "normalizedInput": "central israel, samaria",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-17T15:47:46.580Z"
+        }
+      },
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#13"
+    },
+    {
+      "article_index": 4,
+      "signal_type": "early_warning_system_effective",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Sirens sounded across central Israel early Friday after a missile was launched from Iran, prompting residents to seek shelter as air defenses were activated",
+      "scope_level": "regional",
+      "confidence": 0.85,
+      "locality": "central Israel",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "ynetnews.com",
+      "temporal_weight": 1,
+      "article_title": "Sirens sound in central Israel after Iran missile launch",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "central Israel",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "central Israel",
+          "normalizedInput": "central israel",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-17T15:47:46.580Z"
+        }
+      },
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#4"
+    },
+    {
+      "article_index": 12,
+      "signal_type": "early_warning_system_effective",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "The Home Front Command issued several updates during the night, at times instructing residents to remain in protected spaces before later announcing it was safe to leave shelters in areas including the Galilee and Haifa region once immediate threats had passed",
+      "scope_level": "regional",
+      "confidence": 0.85,
+      "locality": "Galilee, Haifa",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "ynetnews.com",
+      "temporal_weight": 1,
+      "article_title": "Hezbollah continues rocket fire on northern Israel after earlier Iranian missile stri",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Galilee, Haifa",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Galilee, Haifa",
+          "normalizedInput": "galilee, haifa",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-17T15:47:46.581Z"
+        }
+      },
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#12"
+    },
+    {
+      "article_index": 7,
+      "signal_type": "reservist_family_strain",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "The Israel Defense Forces said it would issue new call-up orders (Tzav 8), and extend operational reserve duty to approximately nine weeks due to the continued war and the expansion of ground operations in southern Lebanon",
+      "scope_level": "national",
+      "confidence": 0.88,
+      "locality": null,
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "ynetnews.com",
+      "temporal_weight": 1,
+      "article_title": "Cluster missile hits Kiryat Ata, severe damage; elderly man injured, reserve duty ext",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#7"
+    },
+    {
+      "article_index": 19,
+      "signal_type": "reservist_family_strain",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "The IDF on Friday morning published a significant update regarding the expected duration of reserve duty during 2026, citing the ongoing war and the continued need for manpower. According to the update, reserve service will last approximately nine weeks",
+      "scope_level": "national",
+      "confidence": 0.9,
+      "locality": null,
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "israelnationalnews.com",
+      "temporal_weight": 1,
+      "article_title": "IDF announces: Reserve duty to be lengthened to nine weeks",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#19"
+    },
+    {
+      "article_index": 8,
+      "signal_type": "service_continuity",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Starting this Sunday, the passenger quota on outgoing flights will increase from 50 to 70 passengers",
+      "scope_level": "national",
+      "confidence": 0.9,
+      "locality": "Ben Gurion Airport",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "ynetnews.com",
+      "temporal_weight": 1,
+      "article_title": "Flight restrictions eased at Ben Gurion from Sunday",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Ben Gurion Airport",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Ben Gurion Airport",
+          "normalizedInput": "ben gurion airport",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-17T15:47:46.582Z"
+        }
+      },
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#8"
+    },
+    {
+      "article_index": 9,
+      "signal_type": "religious_coping_practice",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "At the height of the intermediate days of Passover, musical morning prayers are being held at Zefat Academic College, initiated by the Union of Community Rabbis and the Tzfat Municipality",
+      "scope_level": "local",
+      "confidence": 0.92,
+      "locality": "Tzfat",
+      "_semantic_dedup_count": 2,
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "ynetnews.com",
+      "temporal_weight": 1,
+      "article_title": "A Passover Night of Faith, Survival, and Miracles in Jerusalem",
+      "grounding_tier": "weak",
+      "grounding_reason": "low_similarity",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "geo": {
+        "kind": "resolved",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "geoEntityType": "locality",
+        "resolution": {
+          "rawInput": "Tzfat",
+          "normalizedInput": "tzfat",
+          "canonicalKey": "safed",
+          "matchedName": "Tzfat",
+          "matchedVariant": "Tzfat",
+          "matchMethod": "exact",
+          "matchConfidence": 1,
+          "candidateCount": 1,
+          "geoEntityType": "locality",
+          "provenance": "structured",
+          "scope": "signal"
+        },
+        "classification": {
+          "pboSubregionId": "naftali",
+          "geoAreaTags": [
+            "north",
+            "upper_galilee_adjacent"
+          ],
+          "isGolan": false,
+          "distanceKmToNorthBorder": 18.81056996243473,
+          "distanceBand": "10-25",
+          "distanceSemantics": "point_to_polyline",
+          "distancePolicyVersion": "distance-band-2026-05-v1"
+        },
+        "policy": {
+          "geoPolicyVersion": "geo-policy-2026-05-v3",
+          "quality": "high",
+          "usableForMetrics": true,
+          "requiresReview": false,
+          "scopeConfidence": "high",
+          "decisionReasons": [
+            "deterministic_match"
+          ]
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "borderReferenceVersion": "north-border-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-17T15:47:46.582Z"
+        },
+        "matchEvidence": {
+          "rawInput": "Tzfat",
+          "normalizedInput": "tzfat",
+          "matchedVariant": "Tzfat",
+          "candidateCount": 1
+        },
+        "scopeDecision": {
+          "isRelevant": true,
+          "source": "geo_tags",
+          "confidence": "high",
+          "usableForMetrics": true,
+          "reasons": [
+            "geoAreaTags includes north"
+          ],
+          "isNorthRelevant": true,
+          "homeFrontDistrictIds": [
+            "north"
+          ]
+        }
+      },
+      "district_id": "north",
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#9"
+    },
+    {
+      "article_index": 9,
+      "signal_type": "resilience_narrative_positive",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "We are in moments of elevation and unity. Despite the limitations and physical challenges, the voice rising now from Tzfat is one of unbreakable faith",
+      "scope_level": "local",
+      "confidence": 0.85,
+      "locality": "Tzfat",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "ynetnews.com",
+      "temporal_weight": 1,
+      "article_title": "A Passover Night of Faith, Survival, and Miracles in Jerusalem",
+      "grounding_tier": "weak",
+      "grounding_reason": "low_similarity",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "geo": {
+        "kind": "resolved",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "geoEntityType": "locality",
+        "resolution": {
+          "rawInput": "Tzfat",
+          "normalizedInput": "tzfat",
+          "canonicalKey": "safed",
+          "matchedName": "Tzfat",
+          "matchedVariant": "Tzfat",
+          "matchMethod": "exact",
+          "matchConfidence": 1,
+          "candidateCount": 1,
+          "geoEntityType": "locality",
+          "provenance": "structured",
+          "scope": "signal"
+        },
+        "classification": {
+          "pboSubregionId": "naftali",
+          "geoAreaTags": [
+            "north",
+            "upper_galilee_adjacent"
+          ],
+          "isGolan": false,
+          "distanceKmToNorthBorder": 18.81056996243473,
+          "distanceBand": "10-25",
+          "distanceSemantics": "point_to_polyline",
+          "distancePolicyVersion": "distance-band-2026-05-v1"
+        },
+        "policy": {
+          "geoPolicyVersion": "geo-policy-2026-05-v3",
+          "quality": "high",
+          "usableForMetrics": true,
+          "requiresReview": false,
+          "scopeConfidence": "high",
+          "decisionReasons": [
+            "deterministic_match"
+          ]
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "borderReferenceVersion": "north-border-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-17T15:47:46.582Z"
+        },
+        "matchEvidence": {
+          "rawInput": "Tzfat",
+          "normalizedInput": "tzfat",
+          "matchedVariant": "Tzfat",
+          "candidateCount": 1
+        },
+        "scopeDecision": {
+          "isRelevant": true,
+          "source": "geo_tags",
+          "confidence": "high",
+          "usableForMetrics": true,
+          "reasons": [
+            "geoAreaTags includes north"
+          ],
+          "isNorthRelevant": true,
+          "homeFrontDistrictIds": [
+            "north"
+          ]
+        }
+      },
+      "district_id": "north",
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#9"
+    },
+    {
+      "article_index": 11,
+      "signal_type": "substance_use_uptick",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Telegram channels such as 'The Health Channel,' 'Dr. Dobi,' 'The Central Pharmacist' and many others will immediately supply, via courier or pickup, almost any prescription drug imaginable: from sedatives and sleeping pills, through ADHD medications, to heavy opioids",
+      "scope_level": "national",
+      "confidence": 0.75,
+      "locality": null,
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "ynetnews.com",
+      "temporal_weight": 1,
+      "article_title": "How war with Iran is fueling Israel's booming black market for prescription drugs",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#11"
+    },
+    {
+      "article_index": 14,
+      "signal_type": "information_actionable_effective",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Due to the complex security situation on the northern front and the directives of security authorities, the prayer is being held without a physical audience, but is broadcast live to thousands of Jews in Israel and around the world. The digital format is intended to bridge distances and allow anyone at home, in reserve duty, or in protected spaces to actively participate",
+      "scope_level": "local",
+      "confidence": 0.82,
+      "locality": "Tzfat",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "israelnationalnews.com",
+      "temporal_weight": 1,
+      "article_title": "Watch live: Moving holiday prayers from Tzfat",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "geo": {
+        "kind": "resolved",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "geoEntityType": "locality",
+        "resolution": {
+          "rawInput": "Tzfat",
+          "normalizedInput": "tzfat",
+          "canonicalKey": "safed",
+          "matchedName": "Tzfat",
+          "matchedVariant": "Tzfat",
+          "matchMethod": "exact",
+          "matchConfidence": 1,
+          "candidateCount": 1,
+          "geoEntityType": "locality",
+          "provenance": "structured",
+          "scope": "signal"
+        },
+        "classification": {
+          "pboSubregionId": "naftali",
+          "geoAreaTags": [
+            "north",
+            "upper_galilee_adjacent"
+          ],
+          "isGolan": false,
+          "distanceKmToNorthBorder": 18.81056996243473,
+          "distanceBand": "10-25",
+          "distanceSemantics": "point_to_polyline",
+          "distancePolicyVersion": "distance-band-2026-05-v1"
+        },
+        "policy": {
+          "geoPolicyVersion": "geo-policy-2026-05-v3",
+          "quality": "high",
+          "usableForMetrics": true,
+          "requiresReview": false,
+          "scopeConfidence": "high",
+          "decisionReasons": [
+            "deterministic_match"
+          ]
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "borderReferenceVersion": "north-border-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-17T15:47:46.582Z"
+        },
+        "matchEvidence": {
+          "rawInput": "Tzfat",
+          "normalizedInput": "tzfat",
+          "matchedVariant": "Tzfat",
+          "candidateCount": 1
+        },
+        "scopeDecision": {
+          "isRelevant": true,
+          "source": "geo_tags",
+          "confidence": "high",
+          "usableForMetrics": true,
+          "reasons": [
+            "geoAreaTags includes north"
+          ],
+          "isNorthRelevant": true,
+          "homeFrontDistrictIds": [
+            "north"
+          ]
+        }
+      },
+      "district_id": "north",
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#14"
+    }
+  ]
 }

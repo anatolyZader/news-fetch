@@ -52,6 +52,7 @@
     "articles-to-md": "node business_modules/news-sites/input/fetch-articles-to-md.js",
     "homefront-to-md": "node business_modules/news-sites/input/extract-homefront-articles.js",
     "extract-signals": "node business_modules/resilience/input/extract-signals.js",
+    "trace-article": "node business_modules/resilience/input/trace-article.js",
     "extract-observations": "node business_modules/signals_extraction/input/extract-observations.js",
     "assess-signals": "node business_modules/resilience/input/assess-signals.js",
     "suggest-tuning": "node analyst/tuning/scripts/suggestComponentTuning.js",

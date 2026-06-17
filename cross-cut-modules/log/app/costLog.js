@@ -54,9 +54,11 @@ export function summariseStageEvents(stageEvents = []) {
  * @param {Array} entry.usageLog
  * @param {Array} [entry.stageEvents]
  * @param {number} [entry.articles]
+ * @param {string} [entry.pipelineRunId]
  */
-export function appendCostLog({ script, date, totalCostUsd, usageLog, stageEvents, articles }) {
+export function appendCostLog({ script, date, totalCostUsd, usageLog, stageEvents, articles, pipelineRunId }) {
   const { haiku, sonnet, opus, other } = breakdownFromUsageLog(usageLog ?? []);
+  const runId = pipelineRunId ?? process.env.PIPELINE_RUN_ID?.trim() ?? null;
 
   const record = {
     timestamp: new Date().toISOString(),
@@ -65,6 +67,9 @@ export function appendCostLog({ script, date, totalCostUsd, usageLog, stageEvent
     totalCostUsd,
     breakdown: { haiku, sonnet, opus, other },
   };
+  if (runId) {
+    record.pipelineRunId = runId;
+  }
   if (articles != null) {
     record.articles = articles;
   }
@@ -89,6 +94,28 @@ export function readCostForDate(logPath, date) {
 
   for (const entry of readJsonlRecords(logPath)) {
     if (entry.date !== date) continue;
+    entries.push(entry);
+    byScript[entry.script] = (byScript[entry.script] ?? 0) + (entry.totalCostUsd ?? 0);
+  }
+
+  const total_usd = Object.values(byScript).reduce((a, b) => a + b, 0);
+  return {
+    total_usd: Math.round(total_usd * 10000) / 10000,
+    by_script: byScript,
+    entries,
+  };
+}
+
+/**
+ * @param {string} logPath
+ * @param {string} pipelineRunId
+ */
+export function readCostForRunId(logPath, pipelineRunId) {
+  const byScript = {};
+  const entries = [];
+
+  for (const entry of readJsonlRecords(logPath)) {
+    if (entry.pipelineRunId !== pipelineRunId) continue;
     entries.push(entry);
     byScript[entry.script] = (byScript[entry.script] ?? 0) + (entry.totalCostUsd ?? 0);
   }

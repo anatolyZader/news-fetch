@@ -14,6 +14,7 @@ export {
 export {
   appendCostLog,
   readCostForDate,
+  readCostForRunId,
   readStageTelemetryForDate,
   readCostBreakdownForDate,
   readCostLogStagesForDate,
@@ -28,3 +29,5 @@ export { summariseStageEvents as summarizeStageEvents } from './app/costLog.js';
 export { createLogger } from './app/createLogger.js';
 
 export { createRunTrace } from './app/runTrace.js';
+
+export { archiveArtifactBeforeWrite } from './app/archiveArtifactBeforeWrite.js';

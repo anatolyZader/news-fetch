@@ -1,6 +1,6 @@
 ---
-allowed-tools: Bash(npm run homefront-to-md*), Bash(npm run social-media:gather-daily*), Bash(node business_modules/social_media/input/socialMediaInput.js*), Bash(node business_modules/resilience/input/extract-signals.js*), Bash(node business_modules/resilience/input/assess-signals.js*), Bash(ls articles-audio-* articles-field-reports-* articles-homefront-* articles-whatsapp-* signals/* business_modules/social_media/data/signals-social-*.json), Bash(node business_modules/whatsapp/input/whatsapp-to-md.js*), Bash(node business_modules/pbo_report_muni/input/extract-pbo-signals.js*), Bash(node business_modules/pool/input/extract-naftali-signals.js*), Bash(rm signals/signals-*.json), Bash(mkdir -p logs), Bash(tail*), Agent
-description: Full 3-day northern Israel 8-component pipeline — gather social OSINT (X + Telegram), reuse/extract other signals, then run a north-focused assessment.
+allowed-tools: Bash(npm run homefront-to-md*), Bash(npm run social-media:gather-daily*), Bash(node business_modules/social_media/input/socialMediaInput.js*), Bash(node business_modules/resilience/input/extract-signals.js*), Bash(node business_modules/resilience/input/assess-signals.js*), Bash(npm run extract-observations*), Bash(ls articles-audio-* articles-field-reports-* articles-homefront-* articles-whatsapp-* signals/* business_modules/signals_extraction/data/observations-pipeline-* business_modules/social_media/data/signals-social-*.json), Bash(node business_modules/whatsapp/input/whatsapp-to-md.js*), Bash(node business_modules/pbo_report_muni/input/extract-pbo-signals.js*), Bash(node business_modules/pool/input/extract-naftali-signals.js*), Bash(export RESILIENCE_OPEN_EXTRACT_PARALLEL=1), Bash(mkdir -p logs), Bash(tail*), Agent
+description: Full 3-day northern Israel 8-component pipeline — always re-extract closed + open paths from source .md, gather social OSINT, then north-focused assessment.
 ---
 
 ## Your task
@@ -11,29 +11,54 @@ Follow the same argument parsing and date validation as `/8comp-3`.
 
 The 3 dates to cover are: target, target-1, target-2.
 
+### Argument parsing
+
+Accept up to two whitespace-separated tokens after the command name:
+
+1. **Optional date** `dd:mm:yyyy` or `dd/mm/yyyy` → **replay mode**. Absent → **today mode** (target = today from context).
+2. **Optional flag** `--force` → also re-fetch/re-gather source `.md` files and social OSINT where they already exist (extra API cost). Without `--force`, still **always re-extract** signals and open observations from existing `.md` files.
+
+Validate:
+- If a date is supplied but is not `dd:mm:yyyy` or `dd/mm/yyyy`, stop with `Usage: /8comp-3-north [dd:mm:yyyy|dd/mm/yyyy] [--force]`.
+- After converting to `YYYY-MM-DD`: if the date is **in the future**, stop with `Error: target date <date> is in the future`.
+
+**Internally, convert the user date to `YYYY-MM-DD`** for all file paths, filenames, and CLI flags. Example: `15:04:2026` or `15/04/2026` → `2026-04-15`.
+
 Initialize the run log:
 ```
 mkdir -p logs && echo "=== Pipeline run: north <target date> | mode: <today/replay> | force: <yes/no> ===" > logs/pipeline-run-north-<target date>.log
 ```
 
-## Critical reuse rule
+## Always re-extract rule (closed + open paths)
 
-Do **not** download or extract the same source twice just because both the national and north reports are needed.
+**Do not reuse** existing bundles for assessment inputs — always re-extract from source `.md` so assess loads freshly improved extractors.
 
-The north report is a second assessment over the same `signals/signals-<type>-<date>.json` files used by the national report. If the national 3-day pipeline already ran, skip directly to the final north assessment step **only when** social OSINT bundles for the window are also fresh.
+**Never delete** prior `signals/signals-<type>-<date>.json` or `observations-pipeline-<type>-<date>.json` files. Do **not** run `rm` on signal or observation bundles. When re-extraction overwrites the canonical filename, the extractors automatically **archive** the previous file to a sibling `archive/` directory (timestamped copy) before writing the new bundle.
 
-For every enabled source and window date, use this reuse-first plan:
+`extract-signals` runs **both** paths in one invocation:
+- **Closed:** `signals/signals-<type>-<date>.json` (canonical overwritten; prior → `signals/archive/`)
+- **Open:** `business_modules/signals_extraction/data/observations-pipeline-<type>-<date>.json` (prior → `.../data/archive/`)
 
-| Situation | Action |
+Before any extraction, ensure the open parallel path is enabled:
+```
+export RESILIENCE_OPEN_EXTRACT_PARALLEL=1
+```
+
+Do **not** download or extract the same source twice within one run. The north report is a second **assessment** over the same freshly extracted bundles — not a second extraction pass.
+
+For every **enabled** source and window date {target, target-1, target-2}, use this plan:
+
+| Situation (per source × date) | Action |
 |---|---|
-| `signals/signals-<type>-<date>.json` exists and no `--force` | **reuse** |
-| `signals/signals-<type>-<date>.json` exists and `--force` passed | delete and re-extract from existing source `.md` when possible |
-| signals missing, source `.md` exists | extract from that `.md` |
-| signals missing, source `.md` missing, source is `news` | run `npm run homefront-to-md -- <date>`, then extract |
-| signals missing, source `.md` missing, source is `radio` | skip silently |
-| signals missing, source `.md` missing, source is `whatsapp` | run local SQLite export, then extract if non-empty |
+| Source `.md` exists on disk | **always re-extract** via `extract-signals` (archives then overwrites canonical closed + open bundles) |
+| Source `.md` missing, source is `news` | run `npm run homefront-to-md -- <date>`, then extract |
+| Source `.md` missing, source is `radio` | **skip silently** |
+| Source `.md` missing, source is `whatsapp` | run `whatsapp-to-md.js --date <date>`; if output non-empty, extract |
+| `--force` passed and `.md` already exists | **re-fetch/re-export** the `.md` first, then extract |
 
-This reuse-first preflight applies in both today mode and replay mode. Unlike `/8comp-3`, today mode must **not** automatically re-fetch news for dates that already have signals or `articles-homefront-<date>.md`.
+Unlike `/8comp-3` replay mode, **do not skip extraction** when old signal files exist. Unlike `/8comp-3` today mode, **do not** automatically re-fetch news when `articles-homefront-<date>.md` already exists (unless `--force`).
+
+Print a compact preflight table (source × date → action: extract / fetch-then-extract / skip) before proceeding.
 
 ---
 
@@ -66,11 +91,13 @@ The CLI automatically runs `treat` on dates that received new findings (maps `fi
 
 ## Other signal sources
 
-Run the same reuse-first ingestion as `/8comp-3` for news, radio, whatsapp, field, pbo, naftali when signal files are missing — unless **only** social was stale and all other `signals/signals-*` already exist.
+Run extraction for **every** enabled source and window date where source `.md` exists (or can be fetched). Always re-extract — never skip because old `signals-*.json` or `observations-pipeline-*.json` exist.
 
-**Field:** extract from **every** `articles-field-reports-*.md` missing `signals-field-<date>.json` (today and replay). Assess includes all visit signal bundles on or before target date.
+**Field:** extract from **every** `articles-field-reports-*.md` for each window date (today and replay). Assess includes all visit signal bundles on or before target date.
 
-**PBO (3-day window only):** for target, target-1, target-2 run `extract-pbo-signals.js --date <date>` when closed or open pipeline bundle is missing (today and replay). Dual-path: `signals-pbo-<date>.json` + `observations-pipeline-pbo-<date>.json`.
+**PBO (3-day window only):** for target, target-1, target-2 always run `extract-pbo-signals.js --date <date>` (archives prior bundles, then writes fresh `signals-pbo-<date>.json` + `observations-pipeline-pbo-<date>.json`).
+
+**Naftali:** re-extract within the 3-day window when source data exists.
 
 For all `node extract-signals.js` calls in this phase, append `2>> logs/pipeline-run-north-<target date>.log` and follow each with `tail -3 logs/pipeline-run-north-<target date>.log`.
 
@@ -108,7 +135,7 @@ Spawn an Agent with this prompt, substituting the actual target date for `<targe
 > 4. Return a markdown summary with:
 >    - Mode used (today/replay) and --force state
 >    - The preflight plan vs. what actually executed (including social gather — reuse/dry_run/execute)
->    - Which sources and dates contributed to the northern assessment and which were absent
+>    - Which sources and dates were re-extracted (closed + open bundles) and which were absent
 >    - Social: findings count per date (X vs Telegram platforms), from log
 >    - Number of national signals loaded and number retained by the north scope filter (from log)
 >    - Any warnings or errors in the log

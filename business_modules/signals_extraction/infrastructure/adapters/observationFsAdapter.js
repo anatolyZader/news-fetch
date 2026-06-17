@@ -11,6 +11,7 @@ import {
   isPipelineObservationFilename,
 } from '../../domain/services/observationSchema.js';
 import { defaultSignalsExtractionDataDir } from '../signalsDataPaths.js';
+import { archiveArtifactBeforeWrite } from '../../../../cross-cut-modules/log/index.js';
 
 export function defaultObservationDataDir(opts = {}) {
   return defaultSignalsExtractionDataDir(opts);
@@ -56,6 +57,10 @@ export class ObservationFsAdapter extends IObservationStorePort {
       ? pipelineObservationBundleFilename(normalized.source_type, normalized.date)
       : observationBundleFilename(normalized.profile, normalized.date);
     const path = resolve(this.dataDir, name);
+    const archived = archiveArtifactBeforeWrite(path);
+    if (archived) {
+      console.error(`  → Prior open bundle archived: ${archived}`);
+    }
     writeFileSync(path, JSON.stringify(normalized, null, 2), 'utf8');
     return path;
   }

@@ -21,6 +21,7 @@ bootstrapDefaultStateStore();
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { writeFileSync, mkdirSync, existsSync, readFileSync, statSync } from 'node:fs';
+import { archiveArtifactBeforeWrite } from '../../../cross-cut-modules/log/index.js';
 import { getMunicipalityDashboard } from '../app/pboMunicipalityService.js';
 import { attributeSignalScope } from '../../../cross-cut-modules/geo/attributeSignalScope.js';
 import { listPboDistrictIds } from '../../../cross-cut-modules/pbo/pboDistrictRegistry.js';
@@ -195,6 +196,11 @@ async function writeDayBundle(day, districtId, outDir, componentsOrder, componen
     bundleDistrictId: districtId,
     unknownSourceType: 'extract-pbo',
   });
+
+  const archived = archiveArtifactBeforeWrite(outPath);
+  if (archived) {
+    console.error(`  → Prior PBO closed bundle archived: ${archived}`);
+  }
 
   writeFileSync(outPath, JSON.stringify({
     source_type: 'pbo',

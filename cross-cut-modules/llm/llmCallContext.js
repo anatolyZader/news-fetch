@@ -17,6 +17,7 @@ import { randomUUID } from 'node:crypto';
  * @property {string} [script]
  * @property {string} [route]
  * @property {string|null} [cacheHit]
+ * @property {string} [pipelineRunId]
  */
 
 /**
@@ -37,6 +38,7 @@ export function createLlmCallContext(partial = {}) {
     script: partial.script ?? null,
     route: partial.route ?? null,
     cacheHit: partial.cacheHit ?? null,
+    pipelineRunId: partial.pipelineRunId ?? null,
   };
 }
 

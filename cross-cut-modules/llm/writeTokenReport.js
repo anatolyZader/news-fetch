@@ -1,14 +1,16 @@
 /**
  * Post-pipeline token report — written after each full pipeline run.
  *
- * Reads llm-invocations.jsonl, filters entries within the run's time window,
- * and writes token-report-{date}-{scope}.json under reportsDir
- * (default from pipeline orchestrator: cross-cut-modules/budget/resilience_analysis/).
+ * Reads llm-invocations.jsonl filtered by pipelineRunId (or legacy time window),
+ * merges cost-log.jsonl script totals for the same run, and writes:
+ *   - token-report-runs/{runId}.json (immutable per run)
+ *   - token-report-{date}-{scope}.json (latest snapshot)
  */
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { readJsonlRecords } from '../log/infrastructure/jsonlLog.js';
+import { readCostForRunId, resolveCostLogPath } from '../log/index.js';
 import { resolveLlmInvocationsPath } from './llmInvocationLog.js';
 
 /**
@@ -34,35 +36,61 @@ function groupRows(rows, groupKey) {
 }
 
 /**
+ * @param {object[]} rows
+ * @param {string} [pipelineRunId]
+ * @param {number} startMs
+ * @param {number} endMs
+ */
+function filterInvocationRows(rows, pipelineRunId, startMs, endMs) {
+  if (pipelineRunId) {
+    return rows.filter((row) => row.pipelineRunId === pipelineRunId);
+  }
+  return rows.filter((row) => {
+    if (!row.timestamp) return false;
+    const t = new Date(row.timestamp).getTime();
+    return t >= startMs && t <= endMs;
+  });
+}
+
+/**
  * @param {{
  *   startedAt: string,      ISO timestamp before pipeline began
  *   completedAt: string,    ISO timestamp after pipeline ended
  *   date: string,           YYYY-MM-DD assessment date
  *   scope: string,          pipeline scope (national|north|…)
  *   days: number,
- *   reportsDir: string,     absolute path to daily_reports/
+ *   reportsDir: string,     absolute path to resilience_analysis/
  *   rootDir?: string,
+ *   pipelineRunId?: string,
  * }} opts
- * @returns {string} path to written report file
+ * @returns {string} path to written latest snapshot file
  */
-export function writeTokenReport({ startedAt, completedAt, date, scope, days, reportsDir, rootDir }) {
+export function writeTokenReport({ startedAt, completedAt, date, scope, days, reportsDir, rootDir, pipelineRunId }) {
   const logPath = resolveLlmInvocationsPath(rootDir);
   const startMs = new Date(startedAt).getTime();
   const endMs = new Date(completedAt).getTime();
 
-  const rows = readJsonlRecords(logPath).filter((row) => {
-    if (!row.timestamp) return false;
-    const t = new Date(row.timestamp).getTime();
-    return t >= startMs && t <= endMs;
-  });
+  const rows = filterInvocationRows(readJsonlRecords(logPath), pipelineRunId, startMs, endMs);
 
   const totalInput = rows.reduce((s, r) => s + (r.inputTokens ?? 0), 0);
   const totalOutput = rows.reduce((s, r) => s + (r.outputTokens ?? 0), 0);
   const totalCached = rows.reduce((s, r) => s + (r.cachedInputTokens ?? 0), 0);
   const totalCreation = rows.reduce((s, r) => s + (r.cacheCreationTokens ?? 0), 0);
-  const totalCost = Math.round(rows.reduce((s, r) => s + (r.costUsd ?? 0), 0) * 1e8) / 1e8;
+  const llmCostUsd = Math.round(rows.reduce((s, r) => s + (r.costUsd ?? 0), 0) * 1e8) / 1e8;
   const effectiveInput = totalInput - totalCached;
   const cacheHitRatePct = totalInput > 0 ? Math.round((totalCached / totalInput) * 1000) / 10 : 0;
+
+  let costLogTotalUsd = 0;
+  let costLogByScript = {};
+  let costLogEntries = 0;
+  if (pipelineRunId) {
+    const cost = readCostForRunId(resolveCostLogPath(rootDir), pipelineRunId);
+    costLogTotalUsd = cost.total_usd;
+    costLogByScript = cost.by_script;
+    costLogEntries = cost.entries.length;
+  }
+
+  const pipelineTotalCostUsd = costLogEntries > 0 ? costLogTotalUsd : llmCostUsd;
 
   const calls = rows.map((r) => ({
     timestamp: r.timestamp,
@@ -79,12 +107,19 @@ export function writeTokenReport({ startedAt, completedAt, date, scope, days, re
   }));
 
   const report = {
+    ...(pipelineRunId ? { runId: pipelineRunId } : {}),
     date,
     scope,
     days,
     runStartedAt: startedAt,
     runCompletedAt: completedAt,
     durationMs: endMs - startMs,
+    pipeline: {
+      totalCostUsd: pipelineTotalCostUsd,
+      llmCostUsd,
+      byScript: costLogByScript,
+      costLogEntries,
+    },
     summary: {
       invocations: rows.length,
       inputTokens: totalInput,
@@ -93,7 +128,7 @@ export function writeTokenReport({ startedAt, completedAt, date, scope, days, re
       cacheCreationTokens: totalCreation,
       effectiveInputTokens: effectiveInput,
       cacheHitRatePct,
-      costUsd: totalCost,
+      costUsd: llmCostUsd,
     },
     byFeature: groupRows(rows, 'feature'),
     byModel: groupRows(rows, 'model'),
@@ -101,8 +136,17 @@ export function writeTokenReport({ startedAt, completedAt, date, scope, days, re
   };
 
   mkdirSync(reportsDir, { recursive: true });
-  const filename = `token-report-${date}-${scope}.json`;
-  const outPath = join(reportsDir, filename);
-  writeFileSync(outPath, JSON.stringify(report, null, 2));
-  return outPath;
+  const json = JSON.stringify(report, null, 2);
+
+  const latestFilename = `token-report-${date}-${scope}.json`;
+  const latestPath = join(reportsDir, latestFilename);
+  writeFileSync(latestPath, json);
+
+  if (pipelineRunId) {
+    const runsDir = join(reportsDir, 'token-report-runs');
+    mkdirSync(runsDir, { recursive: true });
+    writeFileSync(join(runsDir, `${pipelineRunId}.json`), json);
+  }
+
+  return latestPath;
 }

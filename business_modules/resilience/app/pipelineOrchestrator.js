@@ -2,7 +2,7 @@
  * Node orchestrator for the multi-source resilience pipeline (/8comp-3, /8comp-3-north, cron).
  */
 import { spawn } from 'node:child_process';
-import { existsSync, unlinkSync } from 'node:fs';
+import { randomUUID } from 'node:crypto';
 import { join, resolve } from 'node:path';
 
 import { getTodayInTimezone, validateDate } from '../../../utils/dateUtils.js';
@@ -20,12 +20,7 @@ import {
   planHasWork,
 } from './pipelineIngestPlan.js';
 import {
-  newsSignalsPath,
-  pboSignalsPath,
-  pipelineOpenObservationsPath,
-  radioSignalsPath,
   resolveRepoRoot,
-  whatsappSignalsPath,
 } from '../domain/services/pipelineArtifactPaths.js';
 import {
   readAssessmentReportMeta,
@@ -107,12 +102,12 @@ export function parsePipelineCliArgs(argv) {
   };
 }
 
-function runProcess(command, args, { cwd, allowFail = false } = {}) {
+function runProcess(command, args, { cwd, allowFail = false, env } = {}) {
   return new Promise((resolvePromise, reject) => {
     const child = spawn(command, args, {
       cwd,
       stdio: 'inherit',
-      env: process.env,
+      env: { ...process.env, ...env },
     });
     child.on('error', reject);
     child.on('exit', (code) => {
@@ -132,8 +127,6 @@ function runNpmScript(scriptName, args, opts) {
   return runProcess('npm', ['run', scriptName, '--', ...args], { cwd: root, ...opts });
 }
 
-const OPEN_EXTRACT_SOURCE_TYPES = ['news', 'radio', 'whatsapp', 'field', 'social', 'pbo'];
-
 const STAGE_OPEN_EXTRACT_META = {
   news: { sourceType: 'news', contentKind: 'news' },
   radio: { sourceType: 'radio', contentKind: 'audio' },
@@ -141,30 +134,10 @@ const STAGE_OPEN_EXTRACT_META = {
   field: { sourceType: 'field', contentKind: 'field_report' },
 };
 
-function tryUnlink(path) {
-  if (!existsSync(path)) return;
-  try {
-    unlinkSync(path);
-    console.error(`  → removed ${path}`);
-  } catch (err) {
-    console.error(`  ⚠ could not remove ${path}: ${err.message}`);
-  }
-}
-
-function applyForceDeletes(windowDates, rootDir) {
-  for (const date of windowDates) {
-    for (const path of [
-      newsSignalsPath(date, rootDir),
-      radioSignalsPath(date, rootDir),
-      whatsappSignalsPath(date, rootDir),
-      pboSignalsPath(date, rootDir),
-    ]) {
-      tryUnlink(path);
-    }
-    for (const sourceType of OPEN_EXTRACT_SOURCE_TYPES) {
-      tryUnlink(pipelineOpenObservationsPath(sourceType, date, rootDir));
-    }
-  }
+function applyForceDeletes(_windowDates, _rootDir) {
+  // Force no longer deletes signal or observation bundles. Prior versions are copied to
+  // sibling archive/ directories automatically when extract overwrites canonical files.
+  console.error('  → --force: bundles preserved; prior versions archived on re-extract write');
 }
 
 function printPlan(plan, { replayMode, force, scope, targetDate, days }) {
@@ -213,7 +186,7 @@ async function executeOpenOnlyExtract(step, rootDir) {
     return;
   }
 
-  const { onUsage } = createCostTracker({ label: 'extract-open-only' });
+  const { onUsage, getTotal } = createCostTracker({ label: 'extract-open-only' });
   await runOpenOnlyPipelineExtract({
     articles,
     sourceType: meta.sourceType,
@@ -221,6 +194,17 @@ async function executeOpenOnlyExtract(step, rootDir) {
     date: step.date,
     filePaths,
     onUsage,
+  });
+
+  const { totalCostUsd, usageLog, stageEvents } = getTotal();
+  const { appendCostLog } = await import('../../../cross-cut-modules/log/index.js');
+  appendCostLog({
+    script: 'extract-open-only',
+    date: step.date,
+    totalCostUsd,
+    usageLog,
+    stageEvents,
+    articles: articles.length,
   });
 }
 
@@ -343,6 +327,8 @@ function countLoadedBundles(targetDate, days, enabledSources, rootDir) {
  * @param {{ rootDir?: string }} [deps]
  */
 export async function runPipelineOrchestrator(opts, deps = {}) {
+  const pipelineRunId = randomUUID();
+  process.env.PIPELINE_RUN_ID = pipelineRunId;
   const startedAt = new Date().toISOString();
   const rootDir = deps.rootDir ?? resolveRepoRoot();
   const validation = validateDate(opts.targetDate, DEFAULT_TZ);
@@ -380,9 +366,9 @@ export async function runPipelineOrchestrator(opts, deps = {}) {
   }
 
   if (opts.ingestOnly) {
-    tryWriteTokenReport(startedAt, opts, rootDir);
+    tryWriteTokenReport(startedAt, opts, rootDir, pipelineRunId);
     console.error('\n═══ Ingest complete (assess skipped) ═══');
-    return { plan, assessed: false };
+    return { plan, assessed: false, pipelineRunId };
   }
 
   const { loaded, merged } = countLoadedBundles(opts.targetDate, opts.days, enabledSources, rootDir);
@@ -397,9 +383,9 @@ export async function runPipelineOrchestrator(opts, deps = {}) {
     { rootDir },
   );
 
-  tryWriteTokenReport(startedAt, opts, rootDir);
+  tryWriteTokenReport(startedAt, opts, rootDir, pipelineRunId);
   console.error('\n═══ Pipeline complete ═══');
-  return { plan, assessed: true, signalCount: merged.allSignals.length };
+  return { plan, assessed: true, signalCount: merged.allSignals.length, pipelineRunId };
 }
 
 async function runIngestPhase(plan, opts, rootDir, enabledSources) {
@@ -425,12 +411,21 @@ async function runIngestPhase(plan, opts, rootDir, enabledSources) {
   }
 }
 
-function tryWriteTokenReport(startedAt, opts, rootDir) {
+function tryWriteTokenReport(startedAt, opts, rootDir, pipelineRunId) {
   const completedAt = new Date().toISOString();
   const reportsDir = join(rootDir, 'cross-cut-modules/budget/resilience_analysis');
   try {
-    const reportPath = writeTokenReport({ startedAt, completedAt, date: opts.targetDate, scope: opts.scope, days: opts.days, reportsDir, rootDir });
-    console.error(`\n  → Token report: ${reportPath}`);
+    const reportPath = writeTokenReport({
+      startedAt,
+      completedAt,
+      date: opts.targetDate,
+      scope: opts.scope,
+      days: opts.days,
+      reportsDir,
+      rootDir,
+      pipelineRunId,
+    });
+    console.error(`\n  → Token report: ${reportPath} (run ${pipelineRunId.slice(0, 8)})`);
   } catch (err) {
     console.error(`  ⚠ Could not write token report: ${err.message}`);
   }

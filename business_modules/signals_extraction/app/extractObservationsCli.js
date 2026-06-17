@@ -1,4 +1,5 @@
-import { existsSync, resolve } from 'node:path';
+import { resolve } from 'node:path';
+import { existsSync } from 'node:fs';
 import { loadMdFiles } from '../../resilience/index.js';
 import {
   createCostTracker,
@@ -52,8 +53,7 @@ export async function runExtractObservationsCli() {
   const date = cli.date ?? parsedDate;
   console.error(`Open extraction: profile=${cli.profile} date=${date} articles=${totalCount}`);
 
-  const tracker = createCostTracker();
-  const onUsage = ({ label, model, usage }) => tracker.record({ label, model, usage });
+  const { onUsage, getTotal } = createCostTracker({ label: 'extract-observations' });
 
   const service = createDefaultSignalsExtractionService();
   const { path, observationCount } = await service.extractAndSave(articles, {
@@ -65,13 +65,15 @@ export async function runExtractObservationsCli() {
     onUsage,
   });
 
-  const cost = tracker.flush();
-  if (cost.totalUsd > 0) {
+  const { totalCostUsd, usageLog, stageEvents } = getTotal();
+  if (totalCostUsd > 0) {
     appendCostLog({
       date,
       script: 'extract-observations',
-      totalCostUsd: cost.totalUsd,
-      invocations: cost.invocations,
+      totalCostUsd,
+      usageLog,
+      stageEvents,
+      articles: totalCount,
     });
   }
 

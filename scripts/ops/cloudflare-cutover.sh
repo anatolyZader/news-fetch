@@ -7,6 +7,7 @@
 #   ./scripts/ops/cloudflare-cutover.sh
 #
 # Optional env:
+#   CLOUDFLARE_SRULIK_API_TOKEN=...  # zone token for srulik.ai (overrides CLOUDFLARE_API_TOKEN)
 #   CLOUDFLARE_ZONE_NAME=srulik.ai
 #   VM_PUBLIC_IP=34.165.63.234
 #   WEBHOOK_RATE_PER_MIN=200
@@ -35,9 +36,14 @@ WEBHOOK_RATE="${WEBHOOK_RATE_PER_MIN:-200}"
 DMARC_RUA="${DMARC_RUA_EMAIL:-security@srulik.ai}"
 DRY_RUN="${DRY_RUN:-0}"
 
+if [[ -n "${CLOUDFLARE_SRULIK_API_TOKEN:-}" ]]; then
+  CLOUDFLARE_API_TOKEN="${CLOUDFLARE_SRULIK_API_TOKEN}"
+fi
+
 if [[ -z "${CLOUDFLARE_API_TOKEN:-}" ]]; then
-  echo "ERROR: Set CLOUDFLARE_API_TOKEN (Zone:Edit, DNS:Edit, Zone Settings:Edit, Bot Fight:Edit, WAF:Edit)"
-  echo "Dashboard fallback: cross-cut-modules/docs/content/pages/operations/manual-cutover-gcp-cloudflare.md §4"
+  echo "ERROR: Set CLOUDFLARE_API_TOKEN or CLOUDFLARE_SRULIK_API_TOKEN"
+  echo "  Permissions: Zone:Edit, DNS:Edit, Zone Settings:Edit, Bot Fight:Edit, WAF:Edit (srulik.ai zone)"
+  echo "  Manual DNS: scripts/ops/srulik-dns-records.txt"
   exit 1
 fi
 
