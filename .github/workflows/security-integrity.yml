@@ -24,11 +24,14 @@ jobs:
           cache: 'npm'
           cache-dependency-path: client/package-lock.json
 
-      - uses: ./.github/actions/setup-npm-ci
+      - name: Resolve min-release-age policy
+        id: release_age
+        run: bash .github/scripts/resolve-min-release-age.sh
 
       - uses: ./.github/actions/setup-npm-ci
         with:
           working-directory: client
+          min-release-age-days: ${{ steps.release_age.outputs.days }}
 
       - run: npm run client:build
 

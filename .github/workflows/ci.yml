@@ -383,6 +383,7 @@ jobs:
         with:
           name: client-dist
           path: client/dist
+          if-no-files-found: error
 
       - name: Verify integrity baseline
         run: npm run security:integrity:verify

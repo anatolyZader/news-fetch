@@ -103,7 +103,7 @@ function listRecentFieldReportMds(rootDir, limit = 3) {
   }
   return names
     .filter((f) => f.startsWith('articles-field-reports-') && f.endsWith('.md'))
-    .sort()
+    .sort((a, b) => a.localeCompare(b))
     .slice(-limit)
     .map((f) => resolve(dir, f));
 }
@@ -292,12 +292,12 @@ function pushOnceSteps(steps, enabledSources, windowDates, { replayMode, targetD
 }
 
 function pushSocialReplaySteps(steps, windowDates, { force, rootDir }) {
-  const missing = windowDates.filter((d) => !fileNonEmpty(socialSignalsPath(d, rootDir)));
+  const missing = new Set(windowDates.filter((d) => !fileNonEmpty(socialSignalsPath(d, rootDir))));
   for (const d of windowDates) {
     if (fileNonEmpty(socialSignalsPath(d, rootDir)) && !force) {
       steps.push({ stage: 'social', date: d, action: 'reuse' });
       maybePushOpenSocialBackfillStep(steps, d, rootDir, force);
-    } else if (missing.includes(d)) {
+    } else if (missing.has(d)) {
       steps.push({ stage: 'social', date: d, action: 'skip', detail: 'no social bundle on disk (historical replay cannot re-fetch X/Telegram)' });
     }
   }
@@ -330,7 +330,7 @@ export function buildPipelineIngestPlan(opts) {
     rootDir,
   } = opts;
 
-  const windowDates = [...buildTargetDates(targetDate, days)].sort();
+  const windowDates = [...buildTargetDates(targetDate, days)].sort((a, b) => a.localeCompare(b));
   const steps = [];
 
   for (const date of windowDates) {
