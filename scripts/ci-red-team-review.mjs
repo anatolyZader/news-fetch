@@ -7,7 +7,7 @@ import { readFileSync, existsSync } from 'node:fs';
 import { join, dirname, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createAnthropicLlmPort } from '../cross-cut-modules/llm/anthropicLlmAdapter.js';
-import { extractJson } from '../business_modules/resilience/infrastructure/claudeJsonHelpers.js';
+import { extractJson } from '../cross-cut-modules/resilience-contracts/jsonExtract.js';
 import { notifySecurityEvent } from '../cross-cut-modules/security/app/securityNotifier.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)));
