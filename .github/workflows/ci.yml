@@ -251,12 +251,22 @@ jobs:
 
       - run: npm run client:build
 
+      - name: Record CI integrity snapshot
+        run: npm run security:integrity:record
+
       - name: Upload client dist
         uses: actions/upload-artifact@v4
         with:
           name: client-dist
           path: client/dist
           retention-days: 1
+
+      - name: Upload integrity baseline snapshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: integrity-baseline-snapshot
+          path: security/integrity-baseline.json
+          retention-days: 7
 
   build-analyst-site:
     name: Build analyst site
