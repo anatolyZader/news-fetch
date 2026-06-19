@@ -49,7 +49,7 @@ Bounded CI scripts in `scripts/` and [`cross-cut-modules/security/`](cross-cut-m
 | Outbound fetch audit | `npm run security:check-fetch` / **Lint** | Static scan for raw `fetch()` on user-URL paths |
 | Tiered notifications | `notifySecurityEvent()` | Audit log always; Telegram on WARNING/CRITICAL when configured |
 
-**Post-deploy (pm2 host):** after `npm ci && npm run client:build && pm2 restart news`, run `npm run security:integrity:verify`. If lockfiles or build output changed intentionally, run `npm run security:integrity:record` and commit [`security/integrity-baseline.json`](security/integrity-baseline.json).
+**Post-deploy (pm2 host):** after `npm ci && npm run client:build && pm2 restart news`, run `npm run security:integrity:verify`. If lockfiles or build output changed intentionally, run `npm run security:integrity:record` and commit [`security/integrity-baseline.json`](security/integrity-baseline.json). **Client dist hashes are CI-canonical** — when `client/` changes, run the **Record integrity baseline** GitHub Actions workflow and commit the uploaded artifact (local Vite output may differ from CI).
 
 **Optional secrets:** `ANTHROPIC_API_KEY` (Red Team), `TELEGRAM_BOT_TOKEN` + `TELEGRAM_SECURITY_CHAT_ID` (alerts). See [.github/CI-SETUP.md](.github/CI-SETUP.md).
 

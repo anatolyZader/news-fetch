@@ -19,6 +19,7 @@ async function main() {
   if (!existsSync(BASELINE_PATH)) {
     console.error(`Missing baseline: ${BASELINE_PATH}`);
     console.error('Run: npm run security:integrity:record (after npm ci && npm run client:build)');
+    console.error('Or trigger GitHub Actions workflow "Record integrity baseline" and commit the artifact.');
     process.exit(1);
   }
 
@@ -67,7 +68,7 @@ async function main() {
     console.error(`  … and ${comparison.drifts.length - 30} more`);
   }
   console.error(`Summary: ${driftSummary}`);
-  console.error('If intentional, run: npm run security:integrity:record && commit security/integrity-baseline.json');
+  console.error('If intentional, run workflow "Record integrity baseline" on GitHub Actions (canonical CI build), or locally: npm run security:integrity:record && commit security/integrity-baseline.json');
   process.exit(1);
 }
 

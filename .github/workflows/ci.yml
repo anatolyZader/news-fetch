@@ -251,6 +251,13 @@ jobs:
 
       - run: npm run client:build
 
+      - name: Upload client dist
+        uses: actions/upload-artifact@v4
+        with:
+          name: client-dist
+          path: client/dist
+          retention-days: 1
+
   build-analyst-site:
     name: Build analyst site
     runs-on: ubuntu-latest
@@ -360,26 +367,12 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
-          cache: 'npm'
-          cache-dependency-path: client/package-lock.json
 
-      - name: Resolve min-release-age policy
-        id: release_age
-        env:
-          INPUT_SKIP_RELEASE_AGE: ${{ github.event_name == 'workflow_dispatch' && inputs.skip_release_age || 'false' }}
-          PR_LABELS_JSON: ${{ toJson(github.event.pull_request.labels.*.name) }}
-        run: bash .github/scripts/resolve-min-release-age.sh
-
-      - uses: ./.github/actions/setup-npm-ci
+      - name: Download client dist from build-client
+        uses: actions/download-artifact@v4
         with:
-          min-release-age-days: ${{ steps.release_age.outputs.days }}
-
-      - uses: ./.github/actions/setup-npm-ci
-        with:
-          working-directory: client
-          min-release-age-days: ${{ steps.release_age.outputs.days }}
-
-      - run: npm run client:build
+          name: client-dist
+          path: client/dist
 
       - name: Verify integrity baseline
         run: npm run security:integrity:verify
