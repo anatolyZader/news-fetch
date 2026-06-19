@@ -21,6 +21,37 @@ function readCostBreakdownForDate(date) {
   return readCostBreakdownForDateFromLog(date, ROOT);
 }
 
+/**
+ * @param {string | null} candidateAt
+ * @param {string | null} bestAt
+ * @returns {boolean | null} true if candidate wins, false if best wins, null if tie
+ */
+function compareGeneratedAt(candidateAt, bestAt) {
+  if (candidateAt && bestAt) {
+    if (candidateAt > bestAt) return true;
+    if (candidateAt < bestAt) return false;
+    return null;
+  }
+  if (candidateAt && !bestAt) return true;
+  if (!candidateAt && bestAt) return false;
+  return null;
+}
+
+/**
+ * @param {{ critical: boolean, generatedAt: string | null, articles: number }} meta
+ * @param {number} mtimeMs
+ * @param {{ critical: boolean, generatedAt: string | null, articles: number, mtime: number }} best
+ */
+function isBetterReportCandidate(meta, mtimeMs, best) {
+  if (meta.critical && !best.critical) return true;
+  if (!meta.critical && best.critical) return false;
+  const generatedAtWinner = compareGeneratedAt(meta.generatedAt, best.generatedAt);
+  if (generatedAtWinner != null) return generatedAtWinner;
+  if (meta.articles > best.articles) return true;
+  if (meta.articles < best.articles) return false;
+  return mtimeMs > best.mtime;
+}
+
 function reportPrefixForScope(scope = 'national') {
   return reportFilePrefix(normalizeReportScopeId(scope));
 }
@@ -81,40 +112,23 @@ export function resolveReportJsonPathForDate(date, opts = {}) {
   if (candidates.length === 0) return null;
 
   let bestPath = null;
-  let bestCritical = false;
-  let bestGeneratedAt = null;
-  let bestArticles = -Infinity;
-  let bestMtime = -1;
+  const best = {
+    critical: false,
+    generatedAt: null,
+    articles: -Infinity,
+    mtime: -1,
+  };
 
   for (const f of candidates) {
     const p = join(reportsDir, f);
     try {
       const meta = readReportMeta(p);
       const m = statSync(p).mtimeMs;
-      const isBetter = (() => {
-        // Critical flag always wins
-        if (meta.critical && !bestCritical) return true;
-        if (!meta.critical && bestCritical) return false;
-        // Newest generated_at wins (ISO strings compare lexicographically)
-        if (meta.generatedAt && bestGeneratedAt) {
-          if (meta.generatedAt > bestGeneratedAt) return true;
-          if (meta.generatedAt < bestGeneratedAt) return false;
-        } else if (meta.generatedAt && !bestGeneratedAt) {
-          return true;
-        } else if (!meta.generatedAt && bestGeneratedAt) {
-          return false;
-        }
-        // Most articles as secondary
-        if (meta.articles > bestArticles) return true;
-        if (meta.articles < bestArticles) return false;
-        // Newest mtime as final tiebreaker
-        return m > bestMtime;
-      })();
-      if (isBetter) {
-        bestCritical = meta.critical;
-        bestGeneratedAt = meta.generatedAt;
-        bestArticles = meta.articles;
-        bestMtime = m;
+      if (isBetterReportCandidate(meta, m, best)) {
+        best.critical = meta.critical;
+        best.generatedAt = meta.generatedAt;
+        best.articles = meta.articles;
+        best.mtime = m;
         bestPath = p;
       }
     } catch {

@@ -41,7 +41,7 @@ export function fingerprintPayload(resourceId, payload, extra = '') {
 }
 
 function cacheFilePath(resourceId, fingerprint, lang) {
-  const safeResource = resourceId.replace(/[^a-zA-Z0-9._-]/g, '_');
+  const safeResource = resourceId.replaceAll(/[^a-zA-Z0-9._-]/g, '_');
   return resolve(cacheDir(), `locale-v1-${safeResource}-${fingerprint}-${lang}.json`);
 }
 

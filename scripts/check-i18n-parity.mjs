@@ -40,12 +40,12 @@ if (fixMode && (heMissing.length || ruMissing.length || heExtra.length || ruExtr
     const existingBody = match[2];
     let body = existingBody;
     for (const key of extra) {
-      const keyRe = new RegExp(String.raw`\n    '${key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}':[^\n]*,?\n`);
+      const keyRe = new RegExp(String.raw`\n    '${key.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&')}':[^\n]*,?\n`);
       body = body.replace(keyRe, '\n');
     }
     for (const key of missing) {
       const value = JSON.stringify(translations.en[key]);
-      body += `\n    '${key.replace(/'/g, "\\'")}': ${value},`;
+      body += `\n    '${key.replaceAll('\'', "\\'")}': ${value},`;
     }
     source = source.replace(sectionRe, `${match[1]}${body}${match[3]}`);
   }

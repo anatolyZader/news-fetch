@@ -13,5 +13,3 @@ export async function maybeLocalize(payload, resourceId, request, opts = {}) {
   const lang = parseLocale(request);
   return localizePayload(payload, resourceId, lang, opts);
 }
-
-export { parseLocale };

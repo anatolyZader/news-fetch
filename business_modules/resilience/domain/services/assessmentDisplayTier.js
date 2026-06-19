@@ -162,6 +162,12 @@ export function deriveInstrumentState(comp, assessmentContext = {}) {
  * @param {object | null | undefined} assessment
  * @returns {{ low: string, high: string } | null}
  */
+function certaintyBand(v) {
+  if (v < 0.35) return 'low';
+  if (v < 0.65) return 'medium';
+  return 'high';
+}
+
 export function deriveHeadlineBand(assessment) {
   const comps = assessment?.components ?? [];
   const certaintyValues = comps
@@ -171,12 +177,7 @@ export function deriveHeadlineBand(assessment) {
   const sorted = [...certaintyValues].sort((a, b) => a - b);
   const lo = sorted[0];
   const hi = sorted.at(-1);
-  const toBand = (v) => {
-    if (v < 0.35) return 'low';
-    if (v < 0.65) return 'medium';
-    return 'high';
-  };
-  return { low: toBand(lo), high: toBand(hi) };
+  return { low: certaintyBand(lo), high: certaintyBand(hi) };
 }
 
 /**

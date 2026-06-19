@@ -109,7 +109,7 @@ export function sanitizeNarrativeText(text, fieldLabel = 'narrative') {
   console.error(
     `  ⚠ Score leak detected in ${fieldLabel}: found ${matches.length} occurrence(s) of N/10 pattern — stripping`,
   );
-  return text.replace(SCORE_LEAK_PATTERN, '[score redacted]');
+  return text.replaceAll(SCORE_LEAK_PATTERN, '[score redacted]');
 }
 
 /**

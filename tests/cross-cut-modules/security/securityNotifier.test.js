@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { describe, it, beforeEach, afterEach } from 'node:test';
@@ -9,7 +9,6 @@ import {
   sendTelegramSecurityAlert,
   shouldNotifyTelegram,
 } from '../../../cross-cut-modules/security/app/securityNotifier.js';
-import { resolveAuditLogPath } from '../../../cross-cut-modules/security/input/auditLog.js';
 
 describe('securityNotifier', () => {
   let tempDir;

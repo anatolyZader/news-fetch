@@ -10,7 +10,7 @@
 const RAW_TEXT_PREVIEW_CHARS = 800;
 
 function collapseWs(s) {
-  return String(s ?? '').replace(/\s+/g, ' ').trim();
+  return String(s ?? '').replaceAll(/\s+/g, ' ').trim();
 }
 
 function truncate(s, n) {
@@ -158,7 +158,7 @@ export function renderRunTraceMarkdown({ run, sourceType, date, events } = {}) {
     head.join('\n'),
     sections.join('\n'),
     rejectedBlock ? `\n${rejectedBlock}` : '',
-  ].join('\n').replace(/\n{3,}/g, '\n\n').trimEnd() + '\n';
+  ].join('\n').replaceAll(/\n{3,}/g, '\n\n').trimEnd() + '\n';
 }
 
 export default renderRunTraceMarkdown;

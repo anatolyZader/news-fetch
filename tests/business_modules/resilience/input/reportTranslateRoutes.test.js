@@ -2,7 +2,7 @@ import { describe, it, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import Fastify from 'fastify';
 import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { join } from 'node:path';
 import { tmpdir } from 'os';
 import { reportRoutes } from '../../../../business_modules/resilience/input/reportRoutes.js';
 

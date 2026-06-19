@@ -670,29 +670,18 @@ async function finalizeAndWriteReport({
   scoring,
   retrievalService = null,
   sourceArchive = null,
-  dailyBudgetExceeded = false,
+  dailyBudgetExceeded: _dailyBudgetExceeded = false,
 }) {
   const {
     nationalSignals,
     nationalScored,
     nationalDataVoid,
     scopedSignals,
-    investigationSignals,
-    investigationEpistemic,
     signalsForScoring,
-    scopedTotalArticles,
-    scoredFull,
     scoreBySource,
-    dataVoid,
-    assessmentMode,
-    epistemicStatus,
-    scoringAssessmentMode,
-    scoringEpistemicStatus,
     staleDigitalScores,
-    quarantinedDigital,
     validationMaturity,
     epistemicEnrichment,
-    digitalQuarantineState,
   } = scoring;
 
   const priorReports = loadPriorReports(targetDate);
