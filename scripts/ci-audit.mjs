@@ -1,15 +1,20 @@
 #!/usr/bin/env node
 /**
  * CI security audit: fail on high/critical except documented dependency exceptions.
+ * DevDependencies are omitted — openapi lint toolchain (@redocly/cli) is not runtime.
  */
 import { execSync } from 'node:child_process';
 
-/** Dependency names allowed to report high severity (no npm fix). */
-const ALLOW_HIGH = new Set(['xlsx']);
+/**
+ * High severity accepted until npm fix or min-release-age allows a patched release.
+ * - xlsx: no upstream fix
+ * - form-data, protobufjs: fixes exist but are newer than supply-chain min-release-age window
+ */
+const ALLOW_HIGH = new Set(['xlsx', 'form-data', 'protobufjs']);
 
 function loadAuditJson() {
   try {
-    return execSync('npm audit --json', { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
+    return execSync('npm audit --omit=dev --json', { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
   } catch (err) {
     const stdout = err.stdout?.toString() ?? '';
     if (!stdout.trim()) {
@@ -31,7 +36,7 @@ for (const [name, vuln] of Object.entries(audit.vulnerabilities ?? {})) {
 }
 
 if (blocked.length === 0) {
-  console.log('Security audit OK (high/critical clear; xlsx high accepted with no npm fix).');
+  console.log('Security audit OK (production high/critical clear; documented exceptions: xlsx, form-data, protobufjs).');
   process.exit(0);
 }
 
