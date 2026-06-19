@@ -10,11 +10,14 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import PropTypes from 'prop-types';
 
 import { useAuth } from '../context/AuthContext.jsx';
+import { useLanguage } from '../context/LanguageContext.jsx';
 import { buildAuthHeaders } from '../lib/authFetch.js';
+import { withLang } from '../lib/localeFetch.js';
 import { StatusTag } from '../ui/index.js';
 
 export function CatalogProposalPanel({ enabled = false }) {
   const { getIdToken, getAppCheckToken, apiReady } = useAuth();
+  const { lang } = useLanguage();
   const [open, setOpen] = useState(true);
   const [proposals, setProposals] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -30,7 +33,7 @@ export function CatalogProposalPanel({ enabled = false }) {
       const headers = new Headers();
       const token = await getIdToken();
       if (token) headers.set('Authorization', `Bearer ${token}`);
-      const res = await fetch('/api/signal-catalog-evolution/proposals?status=draft', { headers });
+      const res = await fetch(withLang('/api/signal-catalog-evolution/proposals?status=draft', lang), { headers });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error ?? `HTTP ${res.status}`);
       setProposals(Array.isArray(data.proposals) ? data.proposals : []);
@@ -40,7 +43,7 @@ export function CatalogProposalPanel({ enabled = false }) {
     } finally {
       setLoading(false);
     }
-  }, [apiReady, enabled, getIdToken]);
+  }, [apiReady, enabled, getIdToken, lang]);
 
   useEffect(() => {
     queueMicrotask(() => { load().catch(() => {}); });

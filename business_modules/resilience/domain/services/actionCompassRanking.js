@@ -80,10 +80,22 @@ export function selectWithKindDiversity(actions, limit, opts = {}) {
     }
   }
 
-  for (const action of leftovers) {
-    if (selected.length >= limit) break;
-    selected.push(action);
-  }
+  // Backfill remaining slots, but keep preferring kind diversity: fill from
+  // leftover kinds not yet selected before topping up with already-used kinds.
+  // Otherwise a monothematic candidate pool (e.g. all source-mix "investigate"
+  // gaps) packs the panel with near-identical items.
+  const fillBy = (predicate) => {
+    for (const action of leftovers) {
+      if (selected.length >= limit) break;
+      if (selected.includes(action)) continue;
+      if (!predicate(action)) continue;
+      selected.push(action);
+      kindCount.set(action.kind, (kindCount.get(action.kind) ?? 0) + 1);
+    }
+  };
+
+  fillBy((action) => !kindCount.has(action.kind));
+  fillBy(() => true);
 
   return selected;
 }

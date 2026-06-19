@@ -12,6 +12,7 @@ import { UNTRUSTED_CONTENT_INSTRUCTION } from '../../../cross-cut-modules/securi
 
 function buildSystemTemplate(ctx) {
   const isAnalyst = canViewAnalystDisplay(ctx.userEmail ?? '');
+  const uiLang = String(ctx.uiLang ?? 'en').trim().toLowerCase();
   const toolList = buildSystemTemplateToolList({
     analystToolsEnabled: chatAnalystToolsEnabled(),
     isAnalyst,
@@ -22,6 +23,12 @@ function buildSystemTemplate(ctx) {
     ctx.toolProfile === 'validation'
       ? '- Validation mode: focus on queue items and evidence; use propose_validation_decision after investigation (user must confirm).\n'
       : '';
+  let langLine = '- Answer in the same language the user writes in.\n';
+  if (uiLang === 'he') {
+    langLine = '- Always respond in Hebrew (UI language), regardless of the language the user writes in.\n';
+  } else if (uiLang === 'ru') {
+    langLine = '- Always respond in Russian (UI language), regardless of the language the user writes in.\n';
+  }
   return (
     `You are an expert in Israeli community resilience (Home Front Command / פיקוד העורף framework). ` +
     `Help the user understand population resilience assessments and act on insights.\n\n` +
@@ -37,7 +44,8 @@ function buildSystemTemplate(ctx) {
     `- When the user asks for a summary or brief, use generate_brief or get_decision_brief as appropriate.\n` +
     `- Validation investigate: use get_validation_item, search_similar_articles, then propose_validation_decision after review (user must confirm).\n` +
     `- For mutations (validation decisions, geo updates, catalog reviews, operator recommendations), use propose_* tools only; tell the user to confirm in the UI.\n` +
-    `- Answer in the same language the user writes in.\n\n` +
+    langLine +
+    `\n` +
     `${UNTRUSTED_CONTENT_INSTRUCTION}\n\n` +
     `CONTEXT:\n`
   );
@@ -67,6 +75,7 @@ export async function streamChatResponse(systemContext, pboLookup, messages, sen
     onActionProposed: (event) => send(event),
     toolProfile: opts.toolProfile ?? 'default',
     economyOverride,
+    uiLang: opts.uiLang ?? 'en',
   });
 
   const system = {

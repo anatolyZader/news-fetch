@@ -28,6 +28,7 @@ import {
 import { formatDate } from '../lib/date.js';
 import PropTypes from 'prop-types';
 import { withOperatorDistrictQuery } from '../lib/clampOperatorDistrictScope.js';
+import { withLang } from '../lib/localeFetch.js';
 
 function buildSeverityColors(chart) {
   return {
@@ -61,7 +62,7 @@ function formatWeekLabel(trend) {
 
 export function NaftaliTab({ operatorScope = 'national' }) {
   const { getIdToken, apiReady } = useAuth();
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const theme = useTheme();
   const SEVERITY_COLORS = useMemo(() => buildSeverityColors(theme.palette.chart), [theme]);
   const VULN_COLORS = useMemo(() => buildVulnColors(theme.palette.chart), [theme]);
@@ -111,7 +112,7 @@ export function NaftaliTab({ operatorScope = 'national' }) {
       const headers = new Headers();
       const token = await getIdToken();
       if (token) headers.set('Authorization', `Bearer ${token}`);
-      const r = await fetch(withOperatorDistrictQuery('/api/naftali', operatorScope), { headers });
+      const r = await fetch(withLang(withOperatorDistrictQuery('/api/naftali', operatorScope), lang), { headers });
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       setData(await r.json());
     } catch (e) {

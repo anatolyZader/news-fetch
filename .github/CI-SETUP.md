@@ -8,7 +8,8 @@ This guide explains how to configure GitHub so the workflows in [`.github/workfl
 
 | Workflow | When it runs | Secrets required? |
 |----------|----------------|-------------------|
-| **`ci.yml`** | Every `push` and `pull_request` | **None** for test/build/audit/doc sync. **SonarCloud:** three secrets (below) — job skips if `SONAR_TOKEN` is unset. |
+| **`ci.yml`** | Every `push` and `pull_request` | **None** for test/build/audit/doc sync. **SonarCloud:** three secrets (below) — job skips if `SONAR_TOKEN` is unset. **Red Team:** optional `ANTHROPIC_API_KEY` — job skips if unset. **Telegram alerts:** optional `TELEGRAM_BOT_TOKEN` + `TELEGRAM_SECURITY_CHAT_ID`. |
+| **`security-integrity.yml`** | Weekly + manual | Optional Telegram secrets (same as CI). |
 | **`dependency-review.yml`** | **`pull_request` only** | **None** — uses `GITHUB_TOKEN`; fails if the PR introduces a **high** severity dependency. |
 | **`resilience-live-llm.yml`** | Mondays 06:00 UTC + manual | **Optional:** `ANTHROPIC_API_KEY` — without it, the job skips cleanly. |
 
@@ -230,25 +231,30 @@ You need **Admin** or a custom role with `secrets` write access to add repositor
 
 ---
 
-#### Anthropic live LLM (optional, single secret)
+#### Anthropic (optional — Red Team + live LLM)
 
 | Secret | Required? | Workflow | What to put in the value |
 |--------|-----------|----------|---------------------------|
-| `ANTHROPIC_API_KEY` | Optional | [`resilience-live-llm.yml`](./workflows/resilience-live-llm.yml) | API key from [Anthropic Console](https://console.anthropic.com/) → **API keys** |
+| `ANTHROPIC_API_KEY` | Optional | `ci.yml` → **Red Team review**; [`resilience-live-llm.yml`](./workflows/resilience-live-llm.yml) | API key from [Anthropic Console](https://console.anthropic.com/) → **API keys** |
 
-**Behavior without secret:** Workflow runs on schedule (Mondays 06:00 UTC) or manual dispatch; first step detects empty key, logs `ANTHROPIC_API_KEY is not set; skipping live-LLM adversarial run`, and **does not** run tests (no failure).
+**Red Team behavior without secret:** Job logs `ANTHROPIC_API_KEY not set — skipping Red Team review` and exits successfully.
 
-**Behavior with secret:** Runs `npm test -- tests/business_modules/resilience/adversarial.test.js` with `RESILIENCE_LIVE_LLM=1` (costs real API usage).
+**Red Team behavior with secret:** Runs `npm run security:red-team` on the PR/push diff; **fails CI** on CRITICAL findings.
 
-**Steps to add:**
+**Live LLM behavior without secret:** Workflow runs on schedule (Mondays 06:00 UTC) or manual dispatch; first step detects empty key, logs `ANTHROPIC_API_KEY is not set; skipping live-LLM adversarial run`, and **does not** run tests (no failure).
 
-1. Create key at Anthropic Console (use a dedicated key named e.g. `github-actions-live-llm`).
-2. **Settings → Secrets and variables → Actions → New repository secret**
-3. Name: `ANTHROPIC_API_KEY`
-4. Secret: `sk-ant-...` (your key)
-5. Trigger manually: **Actions** → **Resilience live LLM** → **Run workflow**
+**Live LLM behavior with secret:** Runs `npm test -- tests/business_modules/resilience/adversarial.test.js` with `RESILIENCE_LIVE_LLM=1` (costs real API usage).
 
-**Not used by `ci.yml`:** The main CI **Test** job does not pass `ANTHROPIC_API_KEY`; adversarial live cases stay skipped in regular PR CI.
+---
+
+#### Telegram security alerts (optional)
+
+| Secret | Required? | Workflow | What to put in the value |
+|--------|-----------|----------|---------------------------|
+| `TELEGRAM_BOT_TOKEN` | Optional | `ci.yml` (Red Team, Security audit, Integrity verify); `security-integrity.yml` | Bot token from [@BotFather](https://t.me/BotFather) |
+| `TELEGRAM_SECURITY_CHAT_ID` | Optional | same | Chat ID for operator alerts (numeric or `@channel`) |
+
+When unset, `notifySecurityEvent()` still writes to the audit log; Telegram is skipped.
 
 ---
 

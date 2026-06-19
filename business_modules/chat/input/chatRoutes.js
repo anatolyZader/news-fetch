@@ -249,6 +249,7 @@ export async function chatRoutes(app, opts) {
           tracePort: tracePort ?? null,
           abortSignal: abortController.signal,
           budgetDegraded: request.budgetDegraded === true,
+          uiLang: String(body.lang ?? body.uiLang ?? 'en').trim().toLowerCase() || 'en',
           onSend: (event) => {
             if (event?.type === 'text' && typeof event.text === 'string') assistantText += event.text;
           },

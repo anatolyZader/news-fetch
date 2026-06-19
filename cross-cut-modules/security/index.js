@@ -8,6 +8,21 @@ export { REDACTED, redactSecrets } from './domain/services/secretRedaction.js';
 export { validateUserFetchUrl, validateRemoteVideoUrl, isBlockedHostname } from './domain/services/ssrfGuard.js';
 export { safeFetch } from './infrastructure/safeFetch.js';
 export { validateProductionSecurity, productionSecurityWarnings } from './app/validateProductionSecurity.js';
+export {
+  notifySecurityEvent,
+  formatSecurityTelegramMessage,
+  sendTelegramSecurityAlert,
+  shouldNotifyTelegram,
+} from './app/securityNotifier.js';
+export {
+  buildIntegrityManifest,
+  compareIntegrityManifests,
+  compareIntegrityManifestRecords,
+  sha256File,
+  INTEGRITY_PATHS,
+  INTEGRITY_MANIFEST_VERSION,
+  clientDistExists,
+} from './app/integrityManifest.js';
 export { appendAuditEvent, auditFromRequest, resolveAuditLogPath } from './input/auditLog.js';
 export {
   appCheckPreHandler,

@@ -71,7 +71,7 @@ export const CORE_CHAT_TOOLS = [
         scope: { type: 'string', enum: ['overall', 'municipality'] },
         municipality: { type: 'string', description: 'Required when scope is municipality.' },
         audience: { type: 'string', enum: ['commander', 'analyst', 'public'] },
-        language: { type: 'string', enum: ['he', 'en'] },
+        language: { type: 'string', enum: ['he', 'en', 'ru'] },
       },
       required: ['scope', 'audience', 'language'],
     },

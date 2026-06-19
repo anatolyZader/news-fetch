@@ -133,7 +133,10 @@ function addDigitalQuarantineBanners(push, assessment, attentionIds) {
   }
 
   const persistedQ = assessment.digital_quarantine_state ?? null;
-  if (persistedQ?.active === true && !attentionIds.has('epistemic:persisted_quarantine')) {
+  // Avoid stacking: the field-anchor-only banner already states digital channels
+  // are quarantined; don't repeat it as a separate persisted-quarantine line.
+  const fieldAnchorActive = (assessment.assessment_mode ?? 'normal') === 'field_anchor_only';
+  if (persistedQ?.active === true && !fieldAnchorActive && !attentionIds.has('epistemic:persisted_quarantine')) {
     push({
       id: 'epistemic:persisted_quarantine',
       severity: 'warning',

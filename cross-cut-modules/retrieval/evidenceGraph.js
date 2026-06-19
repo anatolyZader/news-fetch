@@ -45,8 +45,17 @@ export function buildRetrievalGaps(compId, profile, claims) {
   const gaps = [];
   if (profile.thin_evidence) gaps.push(`need more corroborating evidence for ${compId}`);
   if (profile.contested && claims.length < 2) gaps.push(`need opposing evidence for contested ${compId}`);
+  // Emit at most one normalized dominance gap per (layer, key). The raw warning
+  // message embeds a volatile mass-share percentage, which differs per component
+  // and defeats the synthesizer's cross-component de-dup — flooding the gap list
+  // with the same systemic single-source problem. Dropping the percentage lets a
+  // single canonical caveat surface once at report level.
+  const seenDominance = new Set();
   for (const w of profile.dominance_warnings ?? []) {
-    gaps.push(`diversify sources: ${w.message}`);
+    const key = `${w.layer}:${w.key}`;
+    if (seenDominance.has(key)) continue;
+    seenDominance.add(key);
+    gaps.push(`diversify sources: ${w.layer} "${w.key}" over-represented`);
   }
   return gaps;
 }

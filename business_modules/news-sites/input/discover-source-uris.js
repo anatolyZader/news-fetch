@@ -2,6 +2,7 @@
 /**
  * Discover Event Registry source URIs for N12 and KAN (and optionally other sites).
  * Run: node business_modules/news-sites/input/discover-source-uris.js [date YYYY-MM-DD]
+ * security:trusted-vendor-fetch
  *
  * 1) Fetches Hebrew articles for the date without sourceUri filter and collects
  *    unique source.uri values that contain "n12" or "kan".

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { authFetch } from '../lib/authFetch.js';
+import { withLang } from '../lib/localeFetch.js';
 
 /** @param {{ getIdToken: () => Promise<string|null>, getAppCheckToken?: () => Promise<string|null>, apiReady: boolean }} opts */
 export function useNewsSitesDashboard({ getIdToken, getAppCheckToken, apiReady }) {
@@ -40,8 +41,8 @@ export function useNewsSitesDashboard({ getIdToken, getAppCheckToken, apiReady }
   return { data, loading, error, reload };
 }
 
-/** @param {{ date: string, getIdToken: () => Promise<string|null>, getAppCheckToken?: () => Promise<string|null>, apiReady: boolean }} opts */
-export function useNewsSitesDailyFeed({ date, getIdToken, getAppCheckToken, apiReady }) {
+/** @param {{ date: string, lang?: string, getIdToken: () => Promise<string|null>, getAppCheckToken?: () => Promise<string|null>, apiReady: boolean }} opts */
+export function useNewsSitesDailyFeed({ date, lang = 'en', getIdToken, getAppCheckToken, apiReady }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -53,7 +54,7 @@ export function useNewsSitesDailyFeed({ date, getIdToken, getAppCheckToken, apiR
       setLoading(true);
       setError(null);
       try {
-        const out = await authFetch(`/api/news-sites/daily?date=${encodeURIComponent(date)}`, {
+        const out = await authFetch(withLang(`/api/news-sites/daily?date=${encodeURIComponent(date)}`, lang), {
           getIdToken,
           getAppCheckToken,
         });
@@ -68,7 +69,7 @@ export function useNewsSitesDailyFeed({ date, getIdToken, getAppCheckToken, apiR
       }
     })();
     return () => { cancelled = true; };
-  }, [date, apiReady, getIdToken, getAppCheckToken]);
+  }, [date, lang, apiReady, getIdToken, getAppCheckToken]);
 
   return { data, loading, error };
 }

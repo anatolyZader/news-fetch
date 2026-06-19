@@ -82,6 +82,7 @@ export function parsePipelineCliArgs(argv) {
   const ingestOnly = hasFlag('--ingest-only');
   const assessOnly = hasFlag('--assess-only');
   const skipSocial = hasFlag('--no-social');
+  const planOnly = hasFlag('--plan-only');
 
   const today = getTodayInTimezone(DEFAULT_TZ);
   const replayMode = targetDate !== today;
@@ -96,6 +97,7 @@ export function parsePipelineCliArgs(argv) {
     ingestOnly,
     assessOnly,
     skipSocial,
+    planOnly,
     replayMode,
     conservativeNewsFetch,
     today,
@@ -293,7 +295,9 @@ async function executeIngestStep(step, ctx) {
       await executeSocialGather(step.date ?? ctx.targetDate, ctx.days, ctx.scope, ctx.replayMode, force, rootDir);
       return;
     default:
-      console.error(`  ⚠ unknown ingest action: ${step.action}`);
+      throw new Error(
+        `Unhandled ingest action: ${step.action} — add a case to executeIngestStep in pipelineOrchestrator.js`,
+      );
   }
 }
 
@@ -357,6 +361,11 @@ export async function runPipelineOrchestrator(opts, deps = {}) {
 
   printPlan(plan, opts);
 
+  if (opts.planOnly) {
+    console.error('═══ --plan-only: exiting before ingest ═══');
+    return { plan, assessed: false, pipelineRunId: null };
+  }
+
   if (opts.replayMode && !planHasWork(plan.steps)) {
     throw new Error(`no signals or source data exist for ${opts.targetDate} or the prior ${opts.days - 1} day(s)`);
   }
@@ -382,6 +391,15 @@ export async function runPipelineOrchestrator(opts, deps = {}) {
     ['--date', opts.targetDate, '--days', String(opts.days), '--scope', opts.scope],
     { rootDir },
   );
+
+  if (process.env.PRETRANSLATE_LOCALES) {
+    console.error('── Pre-translate locale caches ──');
+    await runNodeScript(
+      'business_modules/translation/input/pretranslate-daily.js',
+      ['--date', opts.targetDate, '--scope', opts.scope],
+      { rootDir, allowFail: true },
+    );
+  }
 
   tryWriteTokenReport(startedAt, opts, rootDir, pipelineRunId);
   console.error('\n═══ Pipeline complete ═══');

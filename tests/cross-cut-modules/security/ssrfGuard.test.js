@@ -74,6 +74,7 @@ describe('validateProductionSecurity', () => {
     ENABLE_STRICT_CSP: 'true',
     SECURITY_CONTACT_EMAIL: 'security@example.org',
     RESILIENCE_PROBE_HMAC_SECRET: 'secret',
+    FIREBASE_CHECK_REVOKED: 'true',
   };
 
   it('requires auth and firebase in production', () => {
@@ -149,10 +150,36 @@ describe('validateProductionSecurity', () => {
   it('warns when claims sync on start is disabled in production', () => {
     const warnings = productionSecurityWarnings({ NODE_ENV: 'production' });
     assert.ok(warnings.some((w) => w.includes('SYNC_USER_CLAIMS_ON_START')));
+    assert.ok(warnings.some((w) => w.includes('MFA')));
     assert.deepEqual(
-      productionSecurityWarnings({ NODE_ENV: 'production', SYNC_USER_CLAIMS_ON_START: 'true' }),
+      productionSecurityWarnings({ NODE_ENV: 'production', SYNC_USER_CLAIMS_ON_START: 'true' }).filter((w) =>
+        w.includes('SYNC_USER_CLAIMS_ON_START'),
+      ),
       [],
     );
+  });
+
+  it('requires FIREBASE_CHECK_REVOKED and rejects GOOGLE_APPLICATION_CREDENTIALS in production', () => {
+    assert.throws(
+      () => validateProductionSecurity({ ...validProdEnv, FIREBASE_CHECK_REVOKED: 'false' }),
+      /FIREBASE_CHECK_REVOKED/,
+    );
+    assert.throws(
+      () =>
+        validateProductionSecurity({
+          ...validProdEnv,
+          GOOGLE_APPLICATION_CREDENTIALS: '/secrets/key.json',
+        }),
+      /GOOGLE_APPLICATION_CREDENTIALS/,
+    );
+  });
+
+  it('warns when probe HMAC rotation date is missing', () => {
+    const warnings = productionSecurityWarnings({
+      NODE_ENV: 'production',
+      RESILIENCE_PROBE_HMAC_SECRET: 'secret',
+    });
+    assert.ok(warnings.some((w) => w.includes('RESILIENCE_PROBE_HMAC_ROTATED_AT')));
   });
 });
 

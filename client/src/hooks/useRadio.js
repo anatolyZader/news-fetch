@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { withOperatorDistrictQuery } from '../lib/clampOperatorDistrictScope.js';
 import { authFetch } from '../lib/authFetch.js';
+import { withLang } from '../lib/localeFetch.js';
 
 /** @param {{ getIdToken: () => Promise<string|null>, getAppCheckToken?: () => Promise<string|null>, apiReady: boolean, operatorScope?: string }} opts */
 export function useRadioDashboard({ getIdToken, getAppCheckToken, apiReady, operatorScope = 'national' }) {
@@ -42,8 +43,8 @@ export function useRadioDashboard({ getIdToken, getAppCheckToken, apiReady, oper
   return { data, loading, error, reload };
 }
 
-/** @param {{ date: string, getIdToken: () => Promise<string|null>, getAppCheckToken?: () => Promise<string|null>, apiReady: boolean, operatorScope?: string }} opts */
-export function useRadioDailyFeed({ date, getIdToken, getAppCheckToken, apiReady, operatorScope = 'national' }) {
+/** @param {{ date: string, lang?: string, getIdToken: () => Promise<string|null>, getAppCheckToken?: () => Promise<string|null>, apiReady: boolean, operatorScope?: string }} opts */
+export function useRadioDailyFeed({ date, lang = 'en', getIdToken, getAppCheckToken, apiReady, operatorScope = 'national' }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -55,7 +56,10 @@ export function useRadioDailyFeed({ date, getIdToken, getAppCheckToken, apiReady
       setLoading(true);
       setError(null);
       try {
-        const base = withOperatorDistrictQuery(`/api/radio/daily?date=${encodeURIComponent(date)}`, operatorScope);
+        const base = withOperatorDistrictQuery(
+          withLang(`/api/radio/daily?date=${encodeURIComponent(date)}`, lang),
+          operatorScope,
+        );
         const out = await authFetch(base, { getIdToken, getAppCheckToken });
         if (!cancelled) setData(out);
       } catch (e) {
@@ -68,7 +72,7 @@ export function useRadioDailyFeed({ date, getIdToken, getAppCheckToken, apiReady
       }
     })();
     return () => { cancelled = true; };
-  }, [date, apiReady, getIdToken, getAppCheckToken, operatorScope]);
+  }, [date, lang, apiReady, getIdToken, getAppCheckToken, operatorScope]);
 
   return { data, loading, error };
 }

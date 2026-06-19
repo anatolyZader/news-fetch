@@ -5,6 +5,7 @@
  * @param {{ visitsService: ReturnType<import('../app/visitsService.js').createVisitsService>, authPreHandler?: any }} opts
  */
 import { checkOptionalDistrictQueryAccess } from '../../../cross-cut-modules/auth/checkOptionalDistrictQueryAccess.js';
+import { maybeLocalize } from '../../translation/index.js';
 
 export async function visitsRoutes(app, opts) {
   const visitsService = opts?.visitsService ?? null;
@@ -17,7 +18,8 @@ export async function visitsRoutes(app, opts) {
     if (!checkOptionalDistrictQueryAccess(request, reply)) return;
 
     try {
-      return reply.send(visitsService.getDashboard());
+      const data = visitsService.getDashboard();
+      return reply.send(await maybeLocalize(data, 'visits.list', request));
     } catch (err) {
       return reply.code(502).send({ error: err?.message ?? 'Failed to load visits data' });
     }

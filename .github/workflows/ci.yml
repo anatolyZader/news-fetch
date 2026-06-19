@@ -49,6 +49,8 @@ jobs:
         with:
           min-release-age-days: ${{ steps.release_age.outputs.days }}
 
+      - run: npm run i18n:parity
+
       - run: npm run openapi:lint
 
   sync-main-docs:
@@ -147,6 +149,8 @@ jobs:
         run: npx eslint . -f json -o eslint-report.json
 
       - run: npm run deps:boundaries
+
+      - run: npm run security:check-fetch
 
       - name: Upload ESLint report for SonarCloud
         uses: actions/upload-artifact@v7
@@ -299,7 +303,90 @@ jobs:
         with:
           min-release-age-days: ${{ steps.release_age.outputs.days }}
 
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
       - run: node scripts/ci-audit.mjs
+
+      - run: npm run security:supply-chain
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_SECURITY_CHAT_ID: ${{ secrets.TELEGRAM_SECURITY_CHAT_ID }}
+
+  red-team-review:
+    name: Red Team review
+    runs-on: ubuntu-latest
+    needs: [validate]
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - name: Resolve min-release-age policy
+        id: release_age
+        env:
+          INPUT_SKIP_RELEASE_AGE: ${{ github.event_name == 'workflow_dispatch' && inputs.skip_release_age || 'false' }}
+          PR_LABELS_JSON: ${{ toJson(github.event.pull_request.labels.*.name) }}
+        run: bash .github/scripts/resolve-min-release-age.sh
+
+      - uses: ./.github/actions/setup-npm-ci
+        with:
+          min-release-age-days: ${{ steps.release_age.outputs.days }}
+
+      - name: Red Team security review
+        run: npm run security:red-team
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GITHUB_BASE_REF: ${{ github.base_ref }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          GITHUB_HEAD_REPO_FULL_NAME: ${{ github.event.pull_request.head.repo.full_name }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_SECURITY_CHAT_ID: ${{ secrets.TELEGRAM_SECURITY_CHAT_ID }}
+
+  integrity-verify:
+    name: Integrity verify
+    runs-on: ubuntu-latest
+    needs: [build-client]
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+          cache-dependency-path: client/package-lock.json
+
+      - name: Resolve min-release-age policy
+        id: release_age
+        env:
+          INPUT_SKIP_RELEASE_AGE: ${{ github.event_name == 'workflow_dispatch' && inputs.skip_release_age || 'false' }}
+          PR_LABELS_JSON: ${{ toJson(github.event.pull_request.labels.*.name) }}
+        run: bash .github/scripts/resolve-min-release-age.sh
+
+      - uses: ./.github/actions/setup-npm-ci
+        with:
+          min-release-age-days: ${{ steps.release_age.outputs.days }}
+
+      - uses: ./.github/actions/setup-npm-ci
+        with:
+          working-directory: client
+          min-release-age-days: ${{ steps.release_age.outputs.days }}
+
+      - run: npm run client:build
+
+      - name: Verify integrity baseline
+        run: npm run security:integrity:verify
+        env:
+          GITHUB_SHA: ${{ github.sha }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_SECURITY_CHAT_ID: ${{ secrets.TELEGRAM_SECURITY_CHAT_ID }}
 
   sbom:
     name: SBOM

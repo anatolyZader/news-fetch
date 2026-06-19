@@ -1144,7 +1144,7 @@ export function ReportView({
     >
       {translateError && (
         <Alert severity="error" variant="outlined">
-          Translation error: {translateError}
+          {t('report.translateError')}
         </Alert>
       )}
 

@@ -1,6 +1,7 @@
 /**
  * Optional N8 embedding gate: rescue borderline containment failures when an
  * API key is configured. Otherwise skipped (no network).
+ * security:trusted-vendor-fetch
  */
 
 const DEFAULT_EMBED_MODEL = 'text-embedding-3-small';

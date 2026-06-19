@@ -4,6 +4,7 @@
  * @param {import('fastify').FastifyInstance} app
  * @param {{ radioIngestReadService?: ReturnType<import('../app/radioIngestReadService.js').createRadioIngestReadService>, authPreHandler?: any }} opts
  */
+import { maybeLocalize } from '../../translation/index.js';
 import { checkOptionalDistrictQueryAccess } from '../../../cross-cut-modules/auth/checkOptionalDistrictQueryAccess.js';
 import { assertService, dateParam } from '../../../cross-cut-modules/security/app/httpGuards.js';
 
@@ -29,7 +30,7 @@ export async function radioRoutes(app, opts) {
     try {
       const feed = radioIngestReadService.getDailyFeed(date);
       if (!feed) return reply.code(404).send({ error: 'Daily radio feed not found' });
-      return reply.send(feed);
+      return reply.send(await maybeLocalize(feed, 'radio.daily', request, { fingerprintExtra: date, costDate: date }));
     } catch (err) {
       return reply.code(502).send({ error: err?.message ?? 'Failed to load daily radio feed' });
     }

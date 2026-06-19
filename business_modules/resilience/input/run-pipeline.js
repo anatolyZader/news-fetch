@@ -31,6 +31,7 @@ Options:
   --no-social           Skip social OSINT gather
   --ingest-only         Run ingest steps only
   --assess-only         Skip ingest; run assess-signals only
+  --plan-only           Print ingest plan and exit (no API calls, no extraction)
 `);
   process.exit(0);
 }

@@ -14,6 +14,7 @@ import PropTypes from 'prop-types';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { authFetch } from '../lib/authFetch.js';
+import { formatTemplate } from '../lib/i18nFormat.js';
 import { StatusTag } from '../ui/index.js';
 
 const LEVEL_VARIANT = {
@@ -39,14 +40,6 @@ const BAND_VARIANT = {
   watch: 'moderate',
   unknown: 'neutral',
 };
-
-function formatTemplate(template, params = {}) {
-  if (!template) return '';
-  return Object.entries(params).reduce(
-    (acc, [key, value]) => acc.replaceAll(`{${key}}`, value == null ? '—' : String(value)),
-    template,
-  );
-}
 
 function componentLabel(componentId, t) {
   if (!componentId) return '';

@@ -124,6 +124,29 @@ describe('buildActionCompass', () => {
     assert.ok(compass.actions.some((a) => a.kind === ACTION_KINDS.communicate));
   });
 
+  it('collapses systemic source-mix gaps across components into one investigate action', () => {
+    const assessment = {
+      assessment_mode: 'normal',
+      epistemic_status: { sampling_status: 'degraded' },
+      data_void: { level: 'warning' },
+      components: [],
+      investigation_plan: {
+        gap_closure_tasks: [
+          { gap_id: 'narrative:div', component_id: 'narrative', gap_type: 'investigation', action: 'diversify sources: source_type "pbo" over-represented' },
+          { gap_id: 'info:div', component_id: 'information_communication', gap_type: 'investigation', action: 'diversify sources: source_type "pbo" over-represented' },
+          { gap_id: 'life:div', component_id: 'lifesaving_behavior', gap_type: 'investigation', action: 'diversify sources: source_type "pbo" over-represented' },
+        ],
+      },
+    };
+    const attention = buildAttentionItems(assessment, { view: 'operator' });
+    const compass = buildActionCompass(assessment, attention);
+    const sourceMix = compass.actions.filter(
+      (a) => /diversify sources|over-represented/i.test(a.suggested_next_step ?? ''),
+    );
+    assert.equal(sourceMix.length, 1);
+    assert.equal(sourceMix[0].component_id, null);
+  });
+
   it('carries brief suggested_next_step and success_signal through', () => {
     const assessment = {
       assessment_mode: 'normal',

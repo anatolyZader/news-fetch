@@ -1,5 +1,6 @@
 import { basename } from 'node:path';
 import { checkOptionalDistrictQueryAccess } from '../../../cross-cut-modules/auth/checkOptionalDistrictQueryAccess.js';
+import { maybeLocalize } from '../../translation/index.js';
 
 /**
  * @param {import('fastify').FastifyInstance} app
@@ -15,7 +16,7 @@ export async function reportBotManualReportsRoutes(app, opts) {
     }
     if (!checkOptionalDistrictQueryAccess(request, reply)) return;
     try {
-      return reply.send(service.getDashboard());
+      return reply.send(await maybeLocalize(service.getDashboard(), 'reportBot.list', request));
     } catch (err) {
       return reply.code(502).send({ error: err?.message ?? 'Failed to load report bot manual reports' });
     }
@@ -32,7 +33,12 @@ export async function reportBotManualReportsRoutes(app, opts) {
     }
     try {
       const content = service.getFileText(name);
-      return reply.send({ fileName: basename(name), content });
+      return reply.send(await maybeLocalize(
+        { fileName: basename(name), content },
+        'reportBot.file',
+        request,
+        { fingerprintExtra: name },
+      ));
     } catch (err) {
       const msg = err?.message ?? 'Not found';
       return reply.code(404).send({ error: msg });

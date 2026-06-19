@@ -37,6 +37,7 @@ import { formatDate } from '../lib/date.js';
 import PropTypes from 'prop-types';
 import { translationFnPropType } from '../lib/reportPropTypes.js';
 import { withOperatorDistrictQuery } from '../lib/clampOperatorDistrictScope.js';
+import { withLang } from '../lib/localeFetch.js';
 
 const AGE_KEYS = ['toddlers', 'kindergarten', 'elementary', 'highschool'];
 
@@ -192,7 +193,7 @@ export function EducationTab({ operatorScope = 'national' }) {
       const token = await getIdToken();
       if (token) headers.set('Authorization', `Bearer ${token}`);
       const base = forceRefresh ? '/api/education-sessions?refresh=1' : '/api/education-sessions';
-      const r = await fetch(withOperatorDistrictQuery(base, operatorScope), { headers });
+      const r = await fetch(withLang(withOperatorDistrictQuery(base, operatorScope), lang), { headers });
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       setData(await r.json());
     } catch (e) {
@@ -200,7 +201,7 @@ export function EducationTab({ operatorScope = 'national' }) {
     } finally {
       setLoading(false);
     }
-  }, [getIdToken, operatorScope]);
+  }, [getIdToken, operatorScope, lang]);
 
   useEffect(() => {
     if (!apiReady) return;

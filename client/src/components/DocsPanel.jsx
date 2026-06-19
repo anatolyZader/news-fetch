@@ -21,6 +21,7 @@ import { PanelWindowShell } from '../ui/PanelWindowShell.jsx';
 import { SidebarItem } from '../ui/SidebarItem.jsx';
 import { OpenFullDocsStickyLink } from './OpenFullDocsStickyLink.jsx';
 import { getDocsBaseUrl } from '../lib/docsUrl.js';
+import { withLang } from '../lib/localeFetch.js';
 
 function canonicalFromMeta(meta) {
   const raw = meta?.canonical;
@@ -150,7 +151,7 @@ export function DocsPanel({ open, onClose, initialSlug, variant = 'modal' }) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { getIdToken, authRequired, user } = useAuth();
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const [index, setIndex] = useState([]);
   const [selectedSlug, setSelectedSlug] = useState(initialSlug ?? 'getting-started/using-the-app');
   const [syncedInitialSlug, setSyncedInitialSlug] = useState(initialSlug);
@@ -193,14 +194,14 @@ export function DocsPanel({ open, onClose, initialSlug, variant = 'modal' }) {
     setError(null);
     try {
       const token = await getIdToken();
-      const data = await fetchJson('/api/docs/index', { token });
+      const data = await fetchJson(withLang('/api/docs/index', lang), { token });
       setIndex(Array.isArray(data.pages) ? data.pages : []);
     } catch (err) {
       setError(err?.message ?? t('docsPanel.errorIndex'));
     } finally {
       setLoadingIndex(false);
     }
-  }, [getIdToken, fetchJson, t]);
+  }, [getIdToken, fetchJson, t, lang]);
 
   const loadPage = useCallback(
     async (slug) => {
@@ -209,7 +210,7 @@ export function DocsPanel({ open, onClose, initialSlug, variant = 'modal' }) {
       setError(null);
       try {
         const token = await getIdToken();
-        const data = await fetchJson(`/api/docs/page/${encodeURIComponent(slug)}`, { token });
+        const data = await fetchJson(withLang(`/api/docs/page/${encodeURIComponent(slug)}`, lang), { token });
         setPage(data);
       } catch (err) {
         setPage(null);
@@ -222,7 +223,7 @@ export function DocsPanel({ open, onClose, initialSlug, variant = 'modal' }) {
         setLoadingPage(false);
       }
     },
-    [getIdToken, authRequired, user, t, fetchJson],
+    [getIdToken, authRequired, user, t, fetchJson, lang],
   );
 
   useEffect(() => {
@@ -258,7 +259,7 @@ export function DocsPanel({ open, onClose, initialSlug, variant = 'modal' }) {
         try {
           const token = await getIdToken();
           const data = await fetchJson(
-            `/api/docs/search?query=${encodeURIComponent(q)}&limit=8`,
+            withLang(`/api/docs/search?query=${encodeURIComponent(q)}&limit=8`, lang),
             { token },
           );
           if (cancelled) return;

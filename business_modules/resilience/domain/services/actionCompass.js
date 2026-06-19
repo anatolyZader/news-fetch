@@ -164,6 +164,47 @@ function collectCandidates(assessment, attentionItems, band, geoUnknownCount) {
 }
 
 /**
+ * A systemic source-mix dominance gap (e.g. "diversify sources: source_type
+ * \"pbo\" over-represented") is the same report-wide problem regardless of which
+ * component raised it. Detect it so it clusters into a single action instead of
+ * one near-identical "investigate" item per component.
+ * @param {object} c
+ * @returns {boolean}
+ */
+function isSystemicSourceMixGap(c) {
+  if (c.source !== 'gap') return false;
+  const text = String(c.suggested_next_step ?? c.text ?? '');
+  return /diversify sources|over-represented|mass cap/i.test(text);
+}
+
+/** Cluster key: systemic source-mix gaps collapse across components. */
+function clusterKeyFor(c) {
+  return isSystemicSourceMixGap(c)
+    ? `${c.kind}:__source_mix__`
+    : `${c.kind}:${c.component_id ?? ''}`;
+}
+
+/** Merge a duplicate candidate into the already-clustered entry (mutates existing). */
+function mergeIntoExisting(existing, c) {
+  if (c.code && !existing.evidence_codes.includes(c.code)) existing.evidence_codes.push(c.code);
+
+  const moreSevere = (LEVEL_PRIORITY[c.level] ?? 99) < (LEVEL_PRIORITY[existing.level] ?? 99);
+  if (moreSevere) {
+    existing.level = c.level;
+    existing.id = c.id;
+    existing.source = c.source;
+    existing.code = c.code ?? existing.code;
+  }
+  // carry verb-bearing fields from any member
+  existing.suggested_next_step = existing.suggested_next_step ?? c.suggested_next_step ?? null;
+  existing.why_now_text = existing.why_now_text ?? c.why_now_text ?? null;
+  existing.success_text = existing.success_text ?? c.success_text ?? null;
+  existing.suggested_action_key = existing.suggested_action_key ?? c.suggested_action_key ?? null;
+  existing.analyst_detail = existing.analyst_detail ?? c.analyst_detail;
+  if (c.novelty === 'new') existing.novelty = 'new';
+}
+
+/**
  * Merge semantic duplicates by kind + component so the same situation is not
  * surfaced multiple times. Keeps highest severity, accumulates evidence codes,
  * and carries any verb-bearing text (brief next step / gap action).
@@ -175,33 +216,20 @@ function clusterCandidates(candidates) {
   let order = 0;
 
   for (const c of candidates) {
-    const key = `${c.kind}:${c.component_id ?? ''}`;
+    const key = clusterKeyFor(c);
     const existing = byKey.get(key);
-    if (!existing) {
-      byKey.set(key, {
-        ...c,
-        evidence_codes: c.code ? [c.code] : [],
-        _order: order++,
-      });
+    if (existing) {
+      mergeIntoExisting(existing, c);
       continue;
     }
-
-    if (c.code && !existing.evidence_codes.includes(c.code)) existing.evidence_codes.push(c.code);
-
-    const moreSevere = (LEVEL_PRIORITY[c.level] ?? 99) < (LEVEL_PRIORITY[existing.level] ?? 99);
-    if (moreSevere) {
-      existing.level = c.level;
-      existing.id = c.id;
-      existing.source = c.source;
-      existing.code = c.code ?? existing.code;
-    }
-    // carry verb-bearing fields from any member
-    existing.suggested_next_step = existing.suggested_next_step ?? c.suggested_next_step ?? null;
-    existing.why_now_text = existing.why_now_text ?? c.why_now_text ?? null;
-    existing.success_text = existing.success_text ?? c.success_text ?? null;
-    existing.suggested_action_key = existing.suggested_action_key ?? c.suggested_action_key ?? null;
-    existing.analyst_detail = existing.analyst_detail ?? c.analyst_detail;
-    if (c.novelty === 'new') existing.novelty = 'new';
+    byKey.set(key, {
+      ...c,
+      // Systemic gap is report-wide, not component-scoped — drop component_id so
+      // phrasing reads as one cross-cutting caveat.
+      component_id: isSystemicSourceMixGap(c) ? null : c.component_id,
+      evidence_codes: c.code ? [c.code] : [],
+      _order: order++,
+    });
   }
 
   return [...byKey.values()];

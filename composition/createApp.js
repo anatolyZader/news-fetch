@@ -59,6 +59,7 @@ import { reportRoutes } from '../business_modules/resilience/input/reportRoutes.
 import { authRoutes } from '../cross-cut-modules/auth/authRoutes.js';
 import { operatorRoutes } from '../cross-cut-modules/monitoring/input/operatorRoutes.js';
 import { docsRoutes, resolveProductDocsRoot } from '../cross-cut-modules/docs/input/docsRoutes.js';
+import { maybeLocalize } from '../business_modules/translation/index.js';
 import {
   registerSecurityPlugins,
   registerWhatsappRawBodyHook,
@@ -226,6 +227,7 @@ async function registerApplicationRoutes(app, ctx) {
     tryAuthHook,
     productDocsRoot: resolveProductDocsRoot(w.repoRoot),
     openapiDocument,
+    maybeLocalize,
   });
 
   await authRoutes(app, { authRequired });

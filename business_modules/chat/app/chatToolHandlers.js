@@ -158,7 +158,9 @@ async function generateBrief(input, reportData, pboLookup, costRecorder = null) 
     analyst: 'Write for a resilience analyst: evidence-rich, cite specific signals and sources.',
     public: 'Write for public communication: accessible language, no jargon.',
   };
-  const langInstructions = language === 'he' ? 'Write the brief in Hebrew.' : 'Write the brief in English.';
+  let langInstructions = 'Write the brief in English.';
+  if (language === 'he') langInstructions = 'Write the brief in Hebrew.';
+  else if (language === 'ru') langInstructions = 'Write the brief in Russian.';
   const scopeInstructions = scope === 'municipality'
     ? `Focus the brief on the municipality: ${municipality}.`
     : 'Produce an overall situation brief covering all components.';
@@ -437,7 +439,12 @@ const CHAT_TOOL_HANDLERS = {
   lookup_signals: (_toolName, input) => handleLookupSignals(input),
   compare_dates: (_toolName, input, ctx) => handleCompareDates(input, ctx),
   generate_brief: (_toolName, input, ctx) =>
-    generateBrief(input, ctx.reportData, ctx.pboLookup, ctx.costRecorder),
+    generateBrief(
+      { ...input, language: input.language ?? ctx.uiLang ?? 'en' },
+      ctx.reportData,
+      ctx.pboLookup,
+      ctx.costRecorder,
+    ),
   list_sources: (_toolName, input, ctx) => handleListSources(input, ctx),
   get_source: (_toolName, input, ctx) => handleGetSource(input, ctx),
   lookup_evidence: (_toolName, input, ctx) => handleGetSource(input, ctx),

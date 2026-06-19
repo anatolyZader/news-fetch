@@ -6,7 +6,7 @@ import { mkdir, appendFile } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getTodayInTimezone, validateDate } from '../../../utils/dateUtils.js';
-import { getTranslatedReport } from '../../translation/index.js';
+import { getTranslatedReport, localizeReportTodayPayload, maybeLocalize, parseLocale } from '../../translation/index.js';
 import { buildMunicipalityDashboardDto } from '../../pbo_report_muni/index.js';
 import { requireOperatorDistrictAccess } from '../../../cross-cut-modules/auth/operatorDistrictAccess.js';
 import { canViewAnalystDisplay } from '../../../cross-cut-modules/auth/userAccess.js';
@@ -43,6 +43,28 @@ import { authPreHandlerList } from '../../../cross-cut-modules/auth/buildAuthHoo
 function countPendingGeoUnknown(svc) {
   if (!svc?.enabled || typeof svc.list !== 'function') return 0;
   return svc.list({ status: 'new', limit: 100 }).length;
+}
+
+function resolveTranslateDisplayView(displayViewHint) {
+  return displayViewHint === DISPLAY_VIEWS.analyst
+    ? DISPLAY_VIEWS.analyst
+    : DISPLAY_VIEWS.operator;
+}
+
+function loadAssessmentForTranslation(store, getCachedReportFn, { date, scope, displayViewHint }) {
+  const cached = getCachedReportFn(store, { scope, date: String(date).trim() });
+  if (!cached) return null;
+  const redacted = redactReportPayload(cached, resolveTranslateDisplayView(displayViewHint));
+  return redacted.assessment ?? redacted;
+}
+
+function attachScoreBySourceIfMissing(store, getCachedReportFn, report, { bodyScope, date }) {
+  if (report.score_by_source) return report;
+  const scope = normalizeReportScope(report.report_scope?.id ?? bodyScope ?? 'national');
+  const cached = getCachedReportFn(store, { scope, date: report.date ?? date });
+  if (!cached?.score_by_source) return report;
+  const view = resolveTranslateDisplayView(report.display_view);
+  return { ...report, score_by_source: redactScoreBySource(cached.score_by_source, view) };
 }
 
 /**
@@ -228,7 +250,8 @@ export async function reportRoutes(app, opts) {
     const budget_status = crisisBudgetService?.getChatBudgetStatus?.() ?? null;
     const suggest_crisis_budget = crisisBudgetService?.shouldSuggestCrisisBudget?.(redacted.assessment) ?? false;
 
-    return reply.send({
+    const lang = parseLocale(request);
+    let responsePayload = {
       found: true,
       display_view,
       attention_items,
@@ -238,7 +261,13 @@ export async function reportRoutes(app, opts) {
       suggest_crisis_budget,
       ...(analyst_denied ? { analyst_denied: true, requested_view: DISPLAY_VIEWS.analyst } : {}),
       ...redacted,
-    });
+    };
+
+    if (lang !== 'en') {
+      responsePayload = await localizeReportTodayPayload(responsePayload, lang);
+    }
+
+    return reply.send(responsePayload);
   });
 
   app.post('/api/report/recommendations/:id/acknowledge', {
@@ -348,7 +377,7 @@ export async function reportRoutes(app, opts) {
       const district = String(request.query?.district ?? 'north').trim();
       if (!requireOperatorDistrictAccess(request, reply, district)) return;
       const data = buildMunicipalityDashboardDto(district);
-      return reply.send(data);
+      return reply.send(await maybeLocalize(data, 'municipalities.dashboard', request, { fingerprintExtra: district }));
     } catch (err) {
       return reply.code(502).send({ error: err?.message ?? 'Failed to load municipality data' });
     }
@@ -370,7 +399,9 @@ export async function reportRoutes(app, opts) {
         String(districtId ?? ''),
         String(regionId ?? ''),
       );
-      return reply.send(data);
+      return reply.send(await maybeLocalize(data, 'pbo.regionalReport', request, {
+        fingerprintExtra: `${districtId}-${regionId}`,
+      }));
     } catch (err) {
       if (err?.code === 'UNKNOWN_REGION') {
         return reply.code(400).send({ error: err.message, code: 'UNKNOWN_REGION' });
@@ -384,7 +415,9 @@ export async function reportRoutes(app, opts) {
     if (!requireOperatorDistrictAccess(request, reply, 'north')) return;
     try {
       const data = pboRegionalDailyService.getRegionalPboReportDays('north', String(regionId ?? ''));
-      return reply.send(data);
+      return reply.send(await maybeLocalize(data, 'pbo.regionalReport', request, {
+        fingerprintExtra: `north-${regionId}`,
+      }));
     } catch (err) {
       if (err?.code === 'UNKNOWN_REGION') {
         return reply.code(400).send({ error: err.message, code: 'UNKNOWN_REGION' });
@@ -397,21 +430,55 @@ export async function reportRoutes(app, opts) {
     auditFromRequest(request, 'translate.post', '/api/translate', {
       lang: request.body?.lang ?? null,
     });
-    const { report, lang } = request.body ?? {};
-    if (!report || !lang || lang === 'en') return reply.send({ report: report ?? null });
+    const {
+      report: bodyReport,
+      lang,
+      date,
+      scope: bodyScope,
+      display_view: bodyDisplayView,
+    } = request.body ?? {};
+
+    if (!lang || lang === 'en') {
+      return reply.send({ report: bodyReport ?? null });
+    }
+
+    let report = bodyReport ?? null;
+    if (!report && date) {
+      const scope = normalizeReportScope(bodyScope ?? 'national');
+      report = loadAssessmentForTranslation(evidenceStore, getCachedReport, {
+        date,
+        scope,
+        displayViewHint: bodyDisplayView,
+      });
+      if (!report) {
+        return reply.code(404).send({ error: 'Report not found for translation' });
+      }
+    }
+
+    if (!report) {
+      return reply.code(400).send({ error: 'report or date is required' });
+    }
+
     if (process.env.TRANSLATION_ENABLED !== 'true') return reply.send({ report });
     try {
-      if (!report.score_by_source) {
-        const scope = normalizeReportScope(report.report_scope?.id ?? 'national');
-        const cached = getCachedReport(evidenceStore, { scope });
-        if (cached?.score_by_source) {
-          const view = report.display_view === DISPLAY_VIEWS.analyst
-            ? DISPLAY_VIEWS.analyst
-            : DISPLAY_VIEWS.operator;
-          report.score_by_source = redactScoreBySource(cached.score_by_source, view);
-        }
+      report = attachScoreBySourceIfMissing(evidenceStore, getCachedReport, report, {
+        bodyScope,
+        date,
+      });
+      const scope = normalizeReportScope(bodyScope ?? report.report_scope?.id ?? 'national');
+      const cached = getCachedReport(evidenceStore, { scope, date: report.date ?? date });
+      if (cached) {
+        const displayView = resolveTranslateDisplayView(bodyDisplayView);
+        const redacted = redactReportPayload(cached, displayView);
+        const localized = await localizeReportTodayPayload({
+          found: true,
+          display_view: displayView,
+          ...redacted,
+        }, lang);
+        return reply.send({ report: localized.assessment ?? report });
       }
-      return getTranslatedReport(report, lang).then((translated) => reply.send({ report: translated }));
+      const translated = await getTranslatedReport(report, lang);
+      return reply.send({ report: translated });
     } catch (err) {
       return reply.code(502).send({ error: err?.message ?? 'Translation failed' });
     }

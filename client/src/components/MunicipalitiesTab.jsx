@@ -523,7 +523,7 @@ function MunicipalityDetailPanel({
             apiReady={apiReady}
             summary={reviewSummary}
             showHistoricalSearch
-            onSubmitted={() => { void reloadReviews(); }}
+            onSubmitted={async () => { await reloadReviews(); }}
           />
         </AccordionDetails>
       </Accordion>
@@ -639,6 +639,7 @@ export function MunicipalitiesTab({ districtId = 'north' }) {
     visibleMunicipalities,
   } = useMunicipalitiesData({
     districtId: scopedDistrict,
+    lang,
     getIdToken,
     getAppCheckToken,
     apiReady,

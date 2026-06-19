@@ -204,6 +204,13 @@ paths:
       summary: Fetch today's cached report (if any).
       parameters:
         - in: query
+          name: lang
+          required: false
+          schema:
+            type: string
+            enum: [en, he, ru]
+          description: UI locale for localized narrative fields (default en).
+        - in: query
           name: scope
           required: false
           schema:

@@ -1,3 +1,4 @@
+import { maybeLocalize } from '../../business_modules/translation/index.js';
 import { requireAnalystView } from '../../cross-cut-modules/auth/requireAnalystAccess.js';
 import { normalizeReportScope } from '../../business_modules/resilience/domain/services/regionSignalFilter.js';
 
@@ -57,7 +58,7 @@ export async function registerDriftRoutes(app, opts) {
           ? endDateRaw.trim()
           : undefined;
       const data = driftService.compute({ scope, days, endDate });
-      return reply.send(data);
+      return reply.send(await maybeLocalize(data, 'drift.dashboard', request, { fingerprintExtra: scope }));
     } catch (err) {
       return reply.code(500).send({ error: err?.message ?? 'failed to compute drift' });
     }

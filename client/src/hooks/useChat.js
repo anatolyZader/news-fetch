@@ -182,6 +182,7 @@ export function useChat() {
       scope: opts.scope ?? null,
       toolProfile: opts.toolProfile ?? 'default',
       view: opts.view ?? 'operator',
+      lang: opts.lang ?? 'en',
       ...partial,
     };
     const hint = opts.systemHint ?? null;

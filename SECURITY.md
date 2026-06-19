@@ -29,11 +29,31 @@ When configuring branch protection, require these **job names** (as shown in the
 | Build client | CI |
 | Build docs site | CI |
 | Security audit | CI |
+| Red Team review | CI |
+| Integrity verify | CI |
 | Dependency review | Dependency review (pull requests only) |
 
-Optional: **SonarCloud** (only if `SONAR_TOKEN` and related secrets are configured).
+Optional: **SonarCloud** (only if `SONAR_TOKEN` and related secrets are configured). **Red Team review** skips when `ANTHROPIC_API_KEY` is unset.
 
 Usually **do not** require **Sync main documentation** — it may push a follow-up commit on PRs.
+
+## AIS security controls (Phase 0)
+
+Bounded CI scripts in `scripts/` and [`cross-cut-modules/security/`](cross-cut-modules/security/):
+
+| Control | Script / job | Behavior |
+|---------|----------------|----------|
+| Red Team LLM review | `npm run security:red-team` / **Red Team review** | Attacker mindset on git diff; **fails CI on CRITICAL** |
+| Integrity manifest | `npm run security:integrity:verify` / **Integrity verify** | SHA-256 of lockfiles, configs, `client/dist`; fails on drift |
+| Supply chain | `npm run security:supply-chain` / **Security audit** | `npm audit` + osv-scanner + lockfile maintainer warnings |
+| Outbound fetch audit | `npm run security:check-fetch` / **Lint** | Static scan for raw `fetch()` on user-URL paths |
+| Tiered notifications | `notifySecurityEvent()` | Audit log always; Telegram on WARNING/CRITICAL when configured |
+
+**Post-deploy (pm2 host):** after `npm ci && npm run client:build && pm2 restart news`, run `npm run security:integrity:verify`. If lockfiles or build output changed intentionally, run `npm run security:integrity:record` and commit [`security/integrity-baseline.json`](security/integrity-baseline.json).
+
+**Optional secrets:** `ANTHROPIC_API_KEY` (Red Team), `TELEGRAM_BOT_TOKEN` + `TELEGRAM_SECURITY_CHAT_ID` (alerts). See [.github/CI-SETUP.md](.github/CI-SETUP.md).
+
+**Weekly cron:** [`.github/workflows/security-integrity.yml`](.github/workflows/security-integrity.yml) re-runs integrity verify on main.
 
 ## Dependency and lockfile policy
 
@@ -41,6 +61,7 @@ Usually **do not** require **Sync main documentation** — it may push a follow-
 - Lockfiles are required: root, `client/`, and `tools/docs-site/`.
 - Dependency changes go through PR review; see [docs/DEPENDENCIES.md](docs/DEPENDENCIES.md).
 - Dependabot opens grouped weekly PRs; merge after CI passes.
+- CI **maintainer-change warnings** (`security:supply-chain`) complement Dependabot review when lockfile versions change.
 - CI enforces **min-release-age = 7 days** for npm packages (see below).
 
 ## min-release-age (CI only)
@@ -78,7 +99,8 @@ If you discover a security issue, contact the repository maintainers privately r
 
 When `NODE_ENV=production`, the server enforces:
 
-- `AUTH_REQUIRED=true`, `FIREBASE_PROJECT_ID`, `TRUST_PROXY=true`, `ENABLE_HSTS=true` (startup validation)
+- `AUTH_REQUIRED=true`, `FIREBASE_PROJECT_ID`, `FIREBASE_CHECK_REVOKED=true`, `TRUST_PROXY=true`, `ENABLE_HSTS=true` (startup validation)
+- `GOOGLE_APPLICATION_CREDENTIALS` must **not** be set (use runtime service account)
 - `SECURITY_CONTACT_EMAIL` (dynamic `/.well-known/security.txt`)
 - `ENABLE_SWAGGER` must not be `true` (startup fails)
 - Default bind `127.0.0.1` unless `HOST` or `ALLOW_PUBLIC_BIND=true`

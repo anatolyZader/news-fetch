@@ -562,6 +562,7 @@ function useDeepLinkRouting({
 // eslint-disable-next-line sonarjs/cognitive-complexity
 function AppShell() {
   const { logout, authRequired, user, accessToken } = useAuth();
+  const { t, lang, setLang } = useLanguage();
   const { canViewAnalyst } = useDisplayCapabilities();
   const analystSiteUrl = getAnalystSiteUrl();
   const [reportScope, setReportScope] = useState(() => readReportScope());
@@ -581,7 +582,7 @@ function AppShell() {
     budgetStatus,
     suggestCrisisBudget,
     refreshReport,
-  } = useTodayReport(reportScope, 'operator', selectedReportDate);
+  } = useTodayReport(reportScope, 'operator', selectedReportDate, lang);
   const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jerusalem' });
   const [activeTab, setActiveTab] = useState(() => readMainTab());
   const [activePoolTab, setActivePoolTab] = useState(() => readPoolTab());
@@ -705,7 +706,6 @@ function AppShell() {
     setSettingsOpen(false);
   }, []);
 
-  const { t, lang, setLang } = useLanguage();
   const { displayReport, translating, translateError } = useTranslatedReport(report, lang);
 
   useDeepLinkRouting({

@@ -2,6 +2,7 @@
  * HTTP routes for signal catalog evolution proposals (analyst-only).
  */
 import { requireAnalystView } from '../../../cross-cut-modules/auth/requireAnalystAccess.js';
+import { maybeLocalize } from '../../translation/index.js';
 import { auditFromRequest } from '../../../cross-cut-modules/security/input/auditLog.js';
 import { costlyRoutePreHandlers } from '../../../cross-cut-modules/security/input/costlyRoutePreHandlers.js';
 import { normalizeAuthPreHandlers } from '../../../cross-cut-modules/auth/buildAuthHooks.js';
@@ -21,7 +22,7 @@ export async function signalCatalogEvolutionRoutes(app, opts) {
     const status = request.query?.status ? String(request.query.status) : 'draft';
     const limit = request.query?.limit ? Number(request.query.limit) : 20;
     const proposals = await catalogProposalService.listProposals({ status, limit });
-    return reply.send({ proposals });
+    return reply.send(await maybeLocalize({ proposals }, 'catalog.proposals', request));
   });
 
   app.get('/api/signal-catalog-evolution/proposals/:id', {
@@ -30,7 +31,7 @@ export async function signalCatalogEvolutionRoutes(app, opts) {
     if (!requireAnalystView(request, reply)) return;
     const proposal = catalogProposalService.getProposal(String(request.params.id));
     if (!proposal) return reply.code(404).send({ error: 'Not found' });
-    return reply.send(proposal);
+    return reply.send(await maybeLocalize(proposal, 'catalog.proposals', request, { fingerprintExtra: String(request.params.id) }));
   });
 
   app.post('/api/signal-catalog-evolution/proposals/generate', costlyRoutePreHandlers(normalizeAuthPreHandlers(authPreHandler)), async (request, reply) => {

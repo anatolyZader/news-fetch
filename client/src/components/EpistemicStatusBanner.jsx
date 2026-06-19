@@ -4,14 +4,7 @@ import PropTypes from 'prop-types';
 
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { deriveEpistemicBannerMessages } from '../lib/epistemicBannerMessages.js';
-
-function formatTemplate(template, params = {}) {
-  if (!template) return '';
-  return Object.entries(params).reduce(
-    (acc, [key, value]) => acc.replaceAll(`{${key}}`, value == null ? '—' : String(value)),
-    template,
-  );
-}
+import { formatTemplate } from '../lib/i18nFormat.js';
 
 export function EpistemicStatusBanner({ assessment, displayView, attentionItems, suggestCrisisBudget, generatedAt }) {
   const { t } = useLanguage();

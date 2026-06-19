@@ -1,0 +1,39 @@
+name: Security integrity
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 4 * * 1'
+
+permissions:
+  contents: read
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+
+jobs:
+  integrity-verify:
+    name: Integrity verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+          cache-dependency-path: client/package-lock.json
+
+      - uses: ./.github/actions/setup-npm-ci
+
+      - uses: ./.github/actions/setup-npm-ci
+        with:
+          working-directory: client
+
+      - run: npm run client:build
+
+      - name: Verify integrity baseline
+        run: npm run security:integrity:verify
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_SECURITY_CHAT_ID: ${{ secrets.TELEGRAM_SECURITY_CHAT_ID }}

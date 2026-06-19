@@ -32,13 +32,14 @@ export function ReportBotManualReportsTab({
   districtAccess = null,
 }) {
   const theme = useTheme();
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const { apiReady, getIdToken, getAppCheckToken } = useAuth();
   const { data, loading, error } = useReportBotManualReports({
     getIdToken,
     getAppCheckToken,
     apiReady,
     operatorScope,
+    lang,
   });
   const [expanded, setExpanded] = useState(null);
   const [fullByName, setFullByName] = useState(() => /** @type {Record<string, string>} */ ({}));

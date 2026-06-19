@@ -26,7 +26,7 @@ import PropTypes from 'prop-types';
 /** Daily markdown reports from one regional PBO inbox within a home-front district. */
 export function PboRegionalDailyReports({ districtId = 'north', regionId, showHistoricalSearch = false }) {
   const theme = useTheme();
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const { apiReady, getIdToken, getAppCheckToken } = useAuth();
   const { hits: historyHits, loading: historyLoading, error: historyError, search: searchHistory } = usePboHistoricalSearch({
     getIdToken,
@@ -37,6 +37,7 @@ export function PboRegionalDailyReports({ districtId = 'north', regionId, showHi
   const { data, loading, error, reload } = useRegionalPboReports({
     districtId,
     regionId,
+    lang,
     getIdToken,
     getAppCheckToken,
     apiReady,

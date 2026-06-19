@@ -1,6 +1,7 @@
 /**
  * WhatsApp Business Cloud API adapter.
  * Handles webhook verification and outbound message sending via Meta Graph API.
+ * security:trusted-vendor-fetch
  */
 
 const GRAPH_API_VERSION = 'v21.0';

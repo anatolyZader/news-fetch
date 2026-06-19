@@ -4,6 +4,7 @@
  * @param {import('fastify').FastifyInstance} app
  * @param {{ newsSitesService?: ReturnType<import('../app/newsSitesService.js').createNewsSitesService>, authPreHandler?: any }} opts
  */
+import { maybeLocalize } from '../../translation/index.js';
 import { assertService, dateParam } from '../../../cross-cut-modules/security/app/httpGuards.js';
 
 export async function newsSitesRoutes(app, opts) {
@@ -26,7 +27,7 @@ export async function newsSitesRoutes(app, opts) {
     try {
       const feed = newsSitesService.getDailyFeed(date);
       if (!feed) return reply.code(404).send({ error: 'Daily news feed not found' });
-      return reply.send(feed);
+      return reply.send(await maybeLocalize(feed, 'news.daily', request, { fingerprintExtra: date, costDate: date }));
     } catch (err) {
       return reply.code(502).send({ error: err?.message ?? 'Failed to load daily news feed' });
     }

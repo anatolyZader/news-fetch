@@ -9,6 +9,7 @@
  *
  * Reads:  business_modules/geo/data/regions.json
  * Writes: business_modules/geo/data/north-reference.json (hierarchical subregions.*.localities; merges by canonicalKey)
+ * security:trusted-vendor-fetch
  */
 import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';

@@ -200,10 +200,10 @@ SignalVolumeBar.propTypes = {
 };
 
 export function ResilienceDriftPanel({ scope = 'national' }) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const [days, setDays] = useState(30);
   const [showScoreHistory, setShowScoreHistory] = useState(false);
-  const { data, loading, error } = useResilienceDrift({ scope, days });
+  const { data, loading, error } = useResilienceDrift({ scope, days, lang });
 
   const perComponent = useMemo(() => data?.per_component ?? {}, [data]);
 

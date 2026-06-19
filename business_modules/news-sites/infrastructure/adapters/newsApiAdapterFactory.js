@@ -1,6 +1,7 @@
 /**
  * Shared factory for NewsAPI (Event Registry) article fetchers. Each site adapter
  * calls this with its sourceUris and defaultSourceLabel; filter is from mainNewsFilter.js.
+ * security:trusted-vendor-fetch
  */
 import { isMainNewsUrl } from '../../domain/mainNewsFilter.js';
 

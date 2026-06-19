@@ -55,7 +55,7 @@ export function ChatPanel({
     confirmAction,
   } = useChat();
   const seededInitialRef = useRef(false);
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const [input, setInput] = useState('');
   const [search, setSearch] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
@@ -97,7 +97,8 @@ export function ChatPanel({
     view: displayView === 'analyst' ? 'analyst' : 'operator',
     systemHint,
     scope: reportScope?.type === 'component' ? reportScope.id : null,
-  }), [reportGeoScope, toolProfile, displayView, systemHint, reportScope]);
+    lang,
+  }), [reportGeoScope, toolProfile, displayView, systemHint, reportScope, lang]);
 
   useEffect(() => {
     seededInitialRef.current = false;

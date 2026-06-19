@@ -28,7 +28,7 @@ export function RadioTab({
   onOperatorScopeChange,
   districtAccess = null,
 }) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const { apiReady, getIdToken, getAppCheckToken } = useAuth();
   const { data: dashboard, loading: dashLoading, error: dashError } = useRadioDashboard({
     getIdToken,
@@ -47,6 +47,7 @@ export function RadioTab({
 
   const { data: feed, loading: feedLoading, error: feedError } = useRadioDailyFeed({
     date: activeDate,
+    lang,
     getIdToken,
     getAppCheckToken,
     apiReady,
@@ -140,6 +141,8 @@ export function RadioTab({
                 <IngestArticleCard
                   title={segment.title}
                   body={segment.body}
+                  titleOriginal={segment.titleOriginal}
+                  bodyOriginal={segment.bodyOriginal}
                   source={segment.station || segment.source}
                   secondaryLabel={segment.program || undefined}
                   publishedAt={segment.publishedAt}

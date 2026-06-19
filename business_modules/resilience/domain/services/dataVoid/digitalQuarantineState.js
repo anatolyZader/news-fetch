@@ -74,8 +74,12 @@ export function loadActiveQuarantine(date, scopeId, reportsDir = 'daily_reports'
   if (!state?.active) return null;
 
   const expires = state.expires ?? endOfUtcDayIso(date);
-  const today = new Date().toISOString().slice(0, 10);
-  if (date === today && Date.now() > Date.parse(expires)) return null;
+  // Expire by the quarantine's own timestamp regardless of whether `date` is
+  // today. Otherwise a past-date replay would inherit a previous run's quarantine
+  // forever (it never reaches the expiry check), permanently freezing digital
+  // signals out of scoring. Same-day flip-flop protection is preserved because a
+  // same-day quarantine has not yet passed its end-of-day expiry.
+  if (Date.now() > Date.parse(expires)) return null;
 
   return state;
 }

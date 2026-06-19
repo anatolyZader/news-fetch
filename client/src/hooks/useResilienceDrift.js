@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
+import { withLang } from '../lib/localeFetch.js';
 
 import { normalizeReportScopeId } from '../lib/reportScopes.js';
 
@@ -16,6 +17,7 @@ export function useResilienceDrift(opts = {}) {
     typeof opts.endDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(opts.endDate.trim())
       ? opts.endDate.trim()
       : '';
+  const lang = opts.lang ?? 'en';
   const { getIdToken, apiReady } = useAuth();
 
   const [data, setData] = useState(null);
@@ -43,7 +45,7 @@ export function useResilienceDrift(opts = {}) {
           days: String(days),
           ...(endDate ? { end_date: endDate } : null),
         });
-        const res = await fetch(`/api/resilience/drift?${qs.toString()}`, { headers });
+        const res = await fetch(withLang(`/api/resilience/drift?${qs.toString()}`, lang), { headers });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const body = await res.json();
         if (cancelled) return;
@@ -56,7 +58,7 @@ export function useResilienceDrift(opts = {}) {
     })();
 
     return () => { cancelled = true; };
-  }, [apiReady, getIdToken, scope, days, endDate, enabled]);
+  }, [apiReady, getIdToken, scope, days, endDate, enabled, lang]);
 
   return {
     data: apiReady && enabled ? data : null,

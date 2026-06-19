@@ -2,6 +2,7 @@
  * HTTP routes for municipal PBO completeness reviews.
  */
 import { createHmac, timingSafeEqual } from 'node:crypto';
+import { maybeLocalize } from '../../translation/index.js';
 
 function verifyResendWebhook(rawBody, signature, secret) {
   if (!secret) return false;
@@ -43,7 +44,7 @@ export async function pboReviewRoutes(app, opts) {
         days: request.query?.days ? Number(request.query.days) : undefined,
         limit: request.query?.limit ? Number(request.query.limit) : undefined,
       });
-      return reply.send(result);
+      return reply.send(await maybeLocalize(result, 'pbo.historicalSearch', request, { fingerprintExtra: query }));
     });
   }
 
@@ -55,7 +56,7 @@ export async function pboReviewRoutes(app, opts) {
       return reply.code(400).send({ error: 'date query parameter is required' });
     }
     const reviews = await pboReportReviewService.listReviewsForDate(date);
-    return reply.send({ date, reviews });
+    return reply.send(await maybeLocalize({ date, reviews }, 'pbo.municipalReview', request, { fingerprintExtra: date }));
   });
 
   app.get('/api/pbo/municipal-reviews/:date/:municipality', {
@@ -69,7 +70,9 @@ export async function pboReviewRoutes(app, opts) {
     if (!detail) {
       return reply.code(404).send({ error: 'Review not found' });
     }
-    return reply.send(detail);
+    return reply.send(await maybeLocalize(detail, 'pbo.municipalReview', request, {
+      fingerprintExtra: `${date}-${municipality}`,
+    }));
   });
 
   app.post('/api/pbo/municipal-reviews/:date/:municipality/replies', {

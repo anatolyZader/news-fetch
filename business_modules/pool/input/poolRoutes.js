@@ -5,6 +5,7 @@
  */
 import { checkOptionalDistrictQueryAccess } from '../../../cross-cut-modules/auth/checkOptionalDistrictQueryAccess.js';
 import { buildEducationDashboardDto } from '../app/educationDashboardReadModel.js';
+import { maybeLocalize } from '../../translation/index.js';
 
 export async function registerPoolRoutes(app, opts = {}) {
   const pre = opts.authPreHandler ? { preHandler: opts.authPreHandler } : {};
@@ -18,7 +19,7 @@ export async function registerPoolRoutes(app, opts = {}) {
     const forceRefresh = request.query?.refresh === '1';
     try {
       const data = await buildEducationDashboardDto({ forceRefresh });
-      return reply.send(data);
+      return reply.send(await maybeLocalize(data, 'education.sessions', request));
     } catch (err) {
       return reply.code(502).send({ error: err?.message ?? 'Failed to load education data' });
     }
@@ -33,7 +34,7 @@ export async function registerPoolRoutes(app, opts = {}) {
     const forceRefresh = request.query?.refresh === '1';
     try {
       const data = await poolSvc.getNaftaliDashboard({ forceRefresh });
-      return reply.send(data);
+      return reply.send(await maybeLocalize(data, 'naftali.pool', request));
     } catch (err) {
       return reply.code(502).send({ error: err?.message ?? 'Failed to load Naftali data' });
     }

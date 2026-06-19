@@ -58,6 +58,40 @@ describe('criticAgent openness', () => {
     assert.ok(issues.some((i) => i.type === 'lookup_only_no_retrieval'));
   });
 
+  it('appends a clean dominance note with no percentage or mass-cap jargon and does not loop', () => {
+    const ep = {
+      by_component: {
+        leadership: {
+          thin_evidence: false,
+          contested: false,
+          dominance_warnings: [{
+            layer: 'source_type',
+            key: 'pbo',
+            message: 'source_type "pbo" exceeds 50% mass cap (94.494%)',
+          }],
+        },
+      },
+    };
+    const assessment = {
+      component_id: 'leadership',
+      severity: 'moderate',
+      confidence: 'medium',
+      claims: [{ text: 'x', evidence_refs: ['a'] }],
+      narrative: 'Leadership: 8 signal(s).',
+    };
+    const first = runCriticChecks(assessment, ep);
+    assert.ok(first.issues.some((i) => i.type === 'dominance_unacknowledged'));
+    const repaired = applyCriticRepair({ ...assessment }, first.issues);
+    assert.match(repaired.narrative, /source/);
+    assert.doesNotMatch(repaired.narrative, /%/);
+    assert.doesNotMatch(repaired.narrative, /mass cap/);
+    assert.doesNotMatch(repaired.narrative, /\(pbo\)/);
+
+    // Re-running the checks on the repaired narrative must NOT re-flag dominance (no loop).
+    const second = runCriticChecks(repaired, ep);
+    assert.ok(!second.issues.some((i) => i.type === 'dominance_unacknowledged'));
+  });
+
   it('notes gap_unaddressed on repair', () => {
     const assessment = {
       component_id: 'leadership',

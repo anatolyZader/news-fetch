@@ -1,10 +1,42 @@
 import { describe, it, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
-import { join } from 'node:path';
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync, readFileSync } from 'node:fs';
+import { join, dirname } from 'node:path';
 import { tmpdir } from 'node:os';
+import { fileURLToPath } from 'node:url';
 
 import { assertAssessOnlySafe } from '../../../../business_modules/resilience/app/pipelineOrchestrator.js';
+import { PIPELINE_ACTIONS } from '../../../../business_modules/resilience/app/pipelineIngestPlan.js';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const orchestratorSourcePath = join(
+  __dirname,
+  '../../../../business_modules/resilience/app/pipelineOrchestrator.js',
+);
+
+/** @returns {string[]} */
+function extractIngestStepSwitchCases(source) {
+  const fnStart = source.indexOf('async function executeIngestStep');
+  assert.notEqual(fnStart, -1, 'executeIngestStep not found');
+  const switchStart = source.indexOf('switch (step.action)', fnStart);
+  assert.notEqual(switchStart, -1, 'executeIngestStep switch not found');
+  const switchBodyStart = source.indexOf('{', switchStart);
+  let depth = 0;
+  let switchEnd = -1;
+  for (let i = switchBodyStart; i < source.length; i++) {
+    if (source[i] === '{') depth += 1;
+    else if (source[i] === '}') {
+      depth -= 1;
+      if (depth === 0) {
+        switchEnd = i;
+        break;
+      }
+    }
+  }
+  assert.notEqual(switchEnd, -1, 'executeIngestStep switch body not closed');
+  const switchBody = source.slice(switchBodyStart, switchEnd + 1);
+  return [...new Set([...switchBody.matchAll(/case '([^']+)':/g)].map((m) => m[1]))];
+}
 
 function miniReport(extra = {}) {
   return JSON.stringify({
@@ -74,5 +106,21 @@ describe('assertAssessOnlySafe', () => {
     } finally {
       rmSync(degradedDir, { recursive: true, force: true });
     }
+  });
+});
+
+describe('executeIngestStep switch parity', () => {
+  it('handles every PipelineAction emitted by buildPipelineIngestPlan', () => {
+    const source = readFileSync(orchestratorSourcePath, 'utf8');
+    const handled = extractIngestStepSwitchCases(source);
+    const expected = [...PIPELINE_ACTIONS].sort();
+    const actual = [...handled].sort();
+    assert.deepEqual(
+      actual,
+      expected,
+      `executeIngestStep cases must match PIPELINE_ACTIONS.\n`
+        + `  missing: ${expected.filter((a) => !handled.includes(a)).join(', ') || 'none'}\n`
+        + `  extra: ${handled.filter((a) => !PIPELINE_ACTIONS.includes(a)).join(', ') || 'none'}`,
+    );
   });
 });

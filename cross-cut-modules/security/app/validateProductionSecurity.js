@@ -47,6 +47,17 @@ function validateProbeHmac(env, errors) {
   }
 }
 
+function validateProductionCredentials(env, errors) {
+  if ((env.GOOGLE_APPLICATION_CREDENTIALS ?? '').trim()) {
+    errors.push(
+      'GOOGLE_APPLICATION_CREDENTIALS must not be set in production — use workload identity / runtime service account',
+    );
+  }
+  if (env.FIREBASE_CHECK_REVOKED !== 'true') {
+    errors.push('FIREBASE_CHECK_REVOKED must be "true" when NODE_ENV=production');
+  }
+}
+
 /**
  * Fail fast when production env is misconfigured for security.
  * @param {NodeJS.ProcessEnv} [env]
@@ -61,6 +72,7 @@ export function validateProductionSecurity(env = process.env) {
   validateContactEmail(env, errors);
   validateWhatsappSecret(env, errors);
   validateProbeHmac(env, errors);
+  validateProductionCredentials(env, errors);
 
   if (errors.length > 0) {
     throw new Error(`Production security validation failed:\n- ${errors.join('\n- ')}`);
@@ -73,10 +85,31 @@ export function validateProductionSecurity(env = process.env) {
  */
 export function productionSecurityWarnings(env = process.env) {
   const warnings = [];
-  if ((env.NODE_ENV ?? '').trim() === 'production' && env.SYNC_USER_CLAIMS_ON_START !== 'true') {
+  if ((env.NODE_ENV ?? '').trim() !== 'production') {
+    return warnings;
+  }
+
+  if (env.SYNC_USER_CLAIMS_ON_START !== 'true') {
     warnings.push(
       'SYNC_USER_CLAIMS_ON_START is not "true" — Firebase custom claims may be stale until POST /api/auth/sync-claims',
     );
   }
+
+  warnings.push(
+    'Ensure Firebase MFA is enforced for all operator accounts in the Firebase console (Identity Platform → Authentication → Settings).',
+  );
+
+  if ((env.RESILIENCE_PROBE_HMAC_SECRET ?? '').trim() && !(env.RESILIENCE_PROBE_HMAC_ROTATED_AT ?? '').trim()) {
+    warnings.push(
+      'RESILIENCE_PROBE_HMAC_ROTATED_AT is not set — record probe HMAC secret rotation date for audit trail',
+    );
+  }
+
+  if ((env.DOTENV_CONFIG_PATH ?? '').trim()) {
+    warnings.push(
+      'DOTENV_CONFIG_PATH is set in production — prefer platform secret injection over dotenv files on disk',
+    );
+  }
+
   return warnings;
 }

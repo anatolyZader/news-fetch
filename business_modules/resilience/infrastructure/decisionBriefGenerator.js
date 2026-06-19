@@ -31,12 +31,12 @@ export function normalizeDecisionBriefOutput(raw) {
   const priorityItems = Array.isArray(raw.priority_items)
     ? raw.priority_items
       .filter((p) => p && typeof p === 'object')
-      .slice(0, 6)
+      .slice(0, 4)
       .map((p) => ({
         attention_id: p.attention_id ?? null,
         recommendation_id: p.recommendation_id ?? null,
         level: ['critical', 'warning', 'watch', 'info'].includes(p.level) ? p.level : 'watch',
-        rationale: String(p.rationale ?? '').slice(0, 800),
+        rationale: String(p.rationale ?? '').slice(0, 360),
         suggested_next_step: String(p.suggested_next_step ?? '').slice(0, 400),
         where: p.where ? String(p.where).slice(0, 160) : null,
         with_whom: p.with_whom ? String(p.with_whom).slice(0, 160) : null,

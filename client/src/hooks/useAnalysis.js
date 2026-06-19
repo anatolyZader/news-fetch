@@ -7,11 +7,12 @@ const TOKEN_REFRESH_RETRY_MS = 5_000;
 
 const RETRY_AUTH_CODES = new Set(['missing_token', 'invalid_token', 'token_revoked']);
 
-async function fetchTodayReportPayload(scope, view, accessToken, getIdToken, signal, date) {
+async function fetchTodayReportPayload(scope, view, accessToken, getIdToken, signal, date, lang) {
   const params = new URLSearchParams();
   if (scope !== 'national') params.set('scope', scope);
   if (view === 'analyst') params.set('view', 'analyst');
   if (date) params.set('date', date);
+  if (lang && lang !== 'en') params.set('lang', lang);
   const qs = params.toString() ? `?${params.toString()}` : '';
 
   async function attempt(bearerToken) {
@@ -81,7 +82,7 @@ function applyTodayReportPayload(data, setters) {
  * @param {string} scope report scope id (national | north | south | …)
  * @param {'operator'|'analyst'} [view]
  */
-export function useTodayReport(scope = 'national', view = 'operator', date = null) {
+export function useTodayReport(scope = 'national', view = 'operator', date = null, lang = 'en') {
   const {
     getIdToken,
     apiReady,
@@ -171,6 +172,7 @@ export function useTodayReport(scope = 'national', view = 'operator', date = nul
           (...args) => getIdTokenRef.current(...args),
           controller.signal,
           date,
+          lang,
         );
         if (loadGen !== loadGenRef.current) return;
         applyTodayReportPayload(data, setters);
@@ -199,7 +201,7 @@ export function useTodayReport(scope = 'national', view = 'operator', date = nul
       controller.abort();
       clearTimeout(timeoutId);
     };
-  }, [reportFetchReady, authRequired, accessToken, tokenWarmFailed, scope, view, date, refreshTick]);
+  }, [reportFetchReady, authRequired, accessToken, tokenWarmFailed, scope, view, date, lang, refreshTick]);
 
   const refreshReport = useCallback(() => {
     setRefreshTick((t) => t + 1);

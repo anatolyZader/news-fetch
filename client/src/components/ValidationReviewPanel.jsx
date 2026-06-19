@@ -1,5 +1,4 @@
 import { forwardRef, useState } from 'react';
-import PropTypes from 'prop-types';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
@@ -11,23 +10,24 @@ import TextField from '@mui/material/TextField';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { useValidationReviewQueue } from '../hooks/useValidationReviewQueue.js';
+import { formatTemplate } from '../lib/i18nFormat.js';
 import { simplifyMessagesForDisplay } from '../lib/anthropicMessageUtils.js';
 import { StatusTag } from '../ui/index.js';
 
-function formatTemplate(template, params = {}) {
-  if (!template) return '';
-  return Object.entries(params).reduce(
-    (acc, [key, value]) => acc.replaceAll(`{${key}}`, value == null ? '—' : String(value)),
-    template,
-  );
-}
+/**
+ * @typedef {object} ValidationReviewPanelProps
+ * @property {string} [reportDate]
+ * @property {string} [reportScope]
+ * @property {boolean} [enabled]
+ * @property {Function} [onOpenInChat]
+ */
 
 export const ValidationReviewPanel = forwardRef(function ValidationReviewPanel(
-  /** @type {{ reportDate?: string, reportScope?: string, enabled?: boolean, onOpenInChat?: Function }} */
+  /** @type {ValidationReviewPanelProps} */
   { reportDate, reportScope, enabled, onOpenInChat },
   ref,
 ) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const [open, setOpen] = useState(true);
   const {
     items,
@@ -38,7 +38,7 @@ export const ValidationReviewPanel = forwardRef(function ValidationReviewPanel(
     fetchContext,
     explainItem,
     agentTurn,
-  } = useValidationReviewQueue(reportDate, reportScope, { enabled });
+  } = useValidationReviewQueue(reportDate, reportScope, { enabled, lang });
 
   const [expandedKey, setExpandedKey] = useState(null);
   const [contextByKey, setContextByKey] = useState({});
@@ -516,10 +516,3 @@ export const ValidationReviewPanel = forwardRef(function ValidationReviewPanel(
     </Box>
   );
 });
-
-ValidationReviewPanel.propTypes = {
-  reportDate: PropTypes.string,
-  reportScope: PropTypes.string,
-  enabled: PropTypes.bool,
-  onOpenInChat: PropTypes.func,
-};

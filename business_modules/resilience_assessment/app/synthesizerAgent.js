@@ -17,6 +17,7 @@ import {
 } from '../../../cross-cut-modules/agent/profiles/assessment.profile.js';
 import { buildAttentionItems } from '../../resilience/index.js';
 import { needsLlmSynthesis } from '../domain/services/synthesisPolicy.js';
+import { componentLabel } from '../domain/services/narrativeTemplates.js';
 
 function buildSynthesizerSystem(componentAssessments, epistemicProfile, oovClusters = [], openObservationClaims = []) {
   const slim = slimSynthPromptsEnabled();
@@ -30,6 +31,8 @@ function buildSynthesizerSystem(componentAssessments, epistemicProfile, oovClust
   const stable =
     'Synthesize cross-component resilience assessment. Use submit_synthesis tool. ' +
     'Do not invent facts not present in component assessments. ' +
+    'Write cross_component_synthesis as concise, operator-readable English prose; ' +
+    'do not paste raw or multi-language evidence quotes into the synthesis. ' +
     'Address any OOV clusters and unverified repeated phrasing in your synthesis. ' +
     'Treat open observations and catalog signals equally; cite unverified material explicitly.';
 
@@ -47,18 +50,73 @@ function buildSynthesizerSystem(componentAssessments, epistemicProfile, oovClust
   return { stable, dynamic };
 }
 
-function defaultSynthesis(componentAssessments, _epistemicProfile) {
+function isAbstained(component) {
+  return component.severity === 'abstain' || component.operator_status === 'insufficient_data';
+}
+
+function dominantSourceFamily(epistemicProfile, componentAssessments) {
+  const byComponent = epistemicProfile?.by_component ?? {};
+  const families = new Map();
+  let withDominance = 0;
+  for (const c of componentAssessments) {
+    const warning = (byComponent[c.component_id]?.dominance_warnings ?? [])
+      .find((w) => w?.layer === 'source_type');
+    if (!warning) continue;
+    withDominance += 1;
+    if (warning.key) families.set(warning.key, (families.get(warning.key) ?? 0) + 1);
+  }
+  const majority = componentAssessments.length > 0
+    && withDominance >= Math.ceil(componentAssessments.length / 2);
+  if (!majority || families.size === 0) return null;
+  const [topFamily] = [...families.entries()].sort((a, b) => b[1] - a[1])[0];
+  return topFamily;
+}
+
+function buildDeterministicSummary(componentAssessments, epistemicProfile, gapCount) {
   const focus = componentAssessments.filter((c) =>
     c.severity === 'high' || c.severity === 'critical');
-  const summary = focus.length
-    ? `Today's assessment highlights ${focus.map((c) => c.component_id).join(', ')} as areas requiring attention.`
-    : 'Overall resilience indicators remain within typical ranges based on available evidence.';
-  const retrieval_gaps = componentAssessments.flatMap((c) => c.retrieval_gaps ?? []);
+  const abstained = componentAssessments.filter(isAbstained);
+  const assessed = componentAssessments.length - abstained.length;
+
+  const sentences = [];
+  if (focus.length) {
+    const labels = focus.map((c) => componentLabel(c.component_id).toLowerCase()).join(', ');
+    sentences.push(`Today's assessment highlights ${labels} as area(s) requiring attention.`);
+  } else {
+    sentences.push('Overall resilience indicators remain within typical ranges based on available evidence.');
+  }
+
+  if (componentAssessments.length) {
+    const total = componentAssessments.length;
+    let coverage = `${assessed} of ${total} components had sufficient evidence to assess`;
+    coverage += abstained.length
+      ? `; ${abstained.length} abstained pending corroboration.`
+      : '.';
+    sentences.push(coverage);
+  }
+
+  // Operator register: signal the single-channel concentration qualitatively;
+  // the named source family and shares stay in analyst-only surfaces.
+  const widespreadDominance = dominantSourceFamily(epistemicProfile, componentAssessments) !== null;
+  if (widespreadDominance) {
+    sentences.push('Evidence is concentrated in a single evidence channel across most components; treat component reads as provisional.');
+  }
+
+  if (gapCount > 0) {
+    sentences.push(`${gapCount} open evidence gap(s) remain.`);
+  }
+
+  return sentences.join(' ');
+}
+
+export function defaultSynthesis(componentAssessments, epistemicProfile) {
+  const retrieval_gaps = [...new Set(componentAssessments.flatMap((c) => c.retrieval_gaps ?? []))];
+  const summary = buildDeterministicSummary(componentAssessments, epistemicProfile, retrieval_gaps.length);
   return {
     cross_component_synthesis: summary,
     attention_items: [],
     decision_brief_summary: summary,
-    retrieval_gaps: [...new Set(retrieval_gaps)],
+    retrieval_gaps,
   };
 }
 
@@ -160,4 +218,4 @@ export async function runSynthesizerAgent(params) {
   };
 }
 
-export { defaultSynthesis, buildSynthesizerSystem };
+export { buildSynthesizerSystem };

@@ -21,6 +21,7 @@ import {
   adversarialSystemHint,
 } from '../domain/services/contestedRetrievalPolicy.js';
 import { shouldAbstainFromInvestigation } from '../../epistemic_features/index.js';
+import { buildComponentNarrative, buildAbstentionNarrative } from '../domain/services/narrativeTemplates.js';
 
 function buildSpecialistSystem(componentId, epistemicProfile, evidenceGraph, assignedTasks = [], specialistTier = 'A') {
   const compGraph = evidenceGraph?.by_component?.[componentId] ?? {};
@@ -50,6 +51,8 @@ function buildSpecialistSystem(componentId, epistemicProfile, evidenceGraph, ass
     'Tool order: use retrieve_for_claim, cross_source_compare, or expand_source_neighborhood FIRST; ' +
     'then lookup_signals to verify catalog refs; use get_source for verbatim quotes. ' +
     'Submit via submit_component_assessment. Every claim MUST have evidence_refs. ' +
+    'Write the narrative as concise, operator-readable English prose that summarizes the evidence; ' +
+    'put verbatim quotes only in evidence_refs and never paste raw or multi-language evidence text into the narrative. ' +
     'If thin_evidence, use severity abstain. For retrieval gaps, add attempted: entries when you tried to close them.\n' +
     compactHint +
     tierBHint +
@@ -76,9 +79,7 @@ function abstentionAssessment(componentId, epistemicProfile, traceId, specialist
     confidence: 'low',
     operator_status: 'insufficient_data',
     claims: [],
-    narrative: ep.thin_evidence
-      ? `Insufficient evidence to assess ${componentId.replaceAll('_', ' ')} today.`
-      : `Assessment abstained for ${componentId.replaceAll('_', ' ')}.`,
+    narrative: buildAbstentionNarrative(componentId, ep),
     dissent_summary: '',
     retrieval_gaps: [`need more evidence for ${componentId}`],
     reasoning_trace_id: traceId,
@@ -209,7 +210,9 @@ function buildFallbackAssessment(componentId, evidenceGraph, epistemicProfile, t
     grounding_tier: 'grounded',
   }));
   const ep = epistemicProfile?.by_component?.[componentId] ?? {};
-  const narrative = claims.map((c) => c.text).join(' ') || `No substantive signals for ${componentId} today.`;
+  // Readable templated prose from structured facts — never raw, possibly
+  // multi-language, evidence text. Verbatim quotes remain in evidence_tree below.
+  const narrative = buildComponentNarrative({ componentId, ep, claimCount: claims.length });
   return {
     component_id: componentId,
     severity: ep.thin_evidence ? 'abstain' : 'moderate',

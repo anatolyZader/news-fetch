@@ -99,10 +99,11 @@ export function buildDecisionBriefSystemPrompt() {
     '- Reject generic phrasing such as "review field corroboration protocols" — be concrete using the grounding facts (named clusters, dark channels, quarantine timing).\n' +
     '- If grounding is empty for an item, ground it in the report scope rather than omitting the place.\n' +
     '- where: short place/scope string. with_whom: the counterpart. success_signal: observable outcome.\n' +
-    '- priority_items: at most 6 items, ranked by operational urgency.\n\n' +
+    '- priority_items: at most 4 items, ranked by operational urgency. Prefer fewer, distinct items over many overlapping ones.\n' +
+    '- CONCISENESS (required): each rationale is at most 2 sentences. State a shared fact (e.g. a quarantine count, digital darkness) ONCE — do not repeat the same situation across multiple items. Merge items that describe the same underlying problem.\n\n' +
     'OUTPUT JSON schema:\n' +
     '{\n' +
-    '  "summary": "string (2-4 sentences, operator-safe)",\n' +
+    '  "summary": "string (2-3 sentences, operator-safe, no repetition)",\n' +
     '  "priority_items": [\n' +
     '    {\n' +
     '      "attention_id": "string or null",\n' +

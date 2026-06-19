@@ -132,14 +132,23 @@ const CRITIC_REPAIR_HANDLERS = {
     }
   },
   dominance_unacknowledged(assessment, issue, repairLog) {
-    assessment.narrative = `${assessment.narrative}\n\nNote: ${issue.warning}`;
+    // Operator-register note: qualitative, no source_type slug / percentage /
+    // count. Must contain "source" so the re-check in collectEpistemicIssues is
+    // satisfied and no repair loop occurs.
+    const note = 'Evidence relies on a single source channel; treat component reads as provisional.';
+    if (!String(assessment.narrative ?? '').includes(note)) {
+      assessment.narrative = `${assessment.narrative} ${note}`.trim();
+    }
     repairLog.push({ issue: issue.type, action: 'appended_dominance_note' });
   },
   gap_unaddressed(assessment, issue, repairLog) {
     const note = `Gap not fully resolved: ${issue.action}`;
-    assessment.retrieval_gaps = [...(assessment.retrieval_gaps ?? []), note];
-    if (!String(assessment.narrative ?? '').includes('Gap not fully resolved')) {
-      assessment.narrative = `${assessment.narrative}\n\n${note}`;
+    // Keep the note in retrieval_gaps metadata only — never mutate the operator
+    // narrative / evidence tree. Dedup so repeated repair rounds (or several
+    // components sharing one systemic gap) don't stack identical notes.
+    const existing = assessment.retrieval_gaps ?? [];
+    if (!existing.includes(note)) {
+      assessment.retrieval_gaps = [...existing, note];
     }
     repairLog.push({ issue: issue.type, action: 'noted_open_gap', gap_id: issue.gap_id });
   },

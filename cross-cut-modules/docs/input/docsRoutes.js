@@ -9,6 +9,10 @@ import { docsRagEnabled } from '../../retrieval/ragConfig.js';
 import { httpDailyBudgetPreHandler } from '../../budget/app/httpDailyBudget.js';
 
 /**
+ * @typedef {(payload: object, resourceId: string, request: object, opts?: object) => Promise<object>} MaybeLocalizeFn
+ */
+
+/**
  * @param {import('fastify').FastifyInstance} app
  * @param {object} opts
  */
@@ -19,7 +23,16 @@ export async function docsRoutes(app, opts) {
     productDocsRoot,
     openapiDocument,
     retrievalService = null,
+    maybeLocalize = null,
   } = opts;
+
+  /** @param {object} payload @param {string} resourceId @param {object} request @param {object} [locOpts] */
+  async function localizeDocsPayload(payload, resourceId, request, locOpts = {}) {
+    if (typeof maybeLocalize === 'function') {
+      return maybeLocalize(payload, resourceId, request, locOpts);
+    }
+    return payload;
+  }
 
   app.get('/api/docs/index', tryAuthHook, async (request, reply) => {
     const index = await buildProductDocsIndex({ docsRootDir: productDocsRoot });
@@ -28,7 +41,7 @@ export async function docsRoutes(app, opts) {
       ...p,
       locked: p.gated && !isAuthed,
     }));
-    return reply.send({ pages });
+    return reply.send(await localizeDocsPayload({ pages }, 'docs.index', request));
   });
 
   const docsSearchHooks = [httpDailyBudgetPreHandler];
@@ -51,7 +64,9 @@ export async function docsRoutes(app, opts) {
       topK: limit,
       includeGated: isAuthed,
     });
-    return reply.send({ enabled: true, hits, query });
+    return reply.send(await localizeDocsPayload({ enabled: true, hits, query }, 'docs.search', request, {
+      fingerprintExtra: query,
+    }));
   });
 
   app.get('/api/docs/page/:slug', tryAuthHook, async (request, reply) => {
@@ -61,7 +76,12 @@ export async function docsRoutes(app, opts) {
     if (authRequired && page.gated && !request.user) {
       return reply.code(401).send({ error: 'Unauthorized', code: 'docs_page_locked' });
     }
-    return reply.send({ meta: page.meta ?? {}, markdown: page.markdown ?? '' });
+    return reply.send(await localizeDocsPayload(
+      { meta: page.meta ?? {}, markdown: page.markdown ?? '' },
+      'docs.page',
+      request,
+      { fingerprintExtra: slug },
+    ));
   });
 
   app.get('/api/openapi.json', tryAuthHook, async (request, reply) => {

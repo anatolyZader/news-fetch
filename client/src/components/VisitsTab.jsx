@@ -32,14 +32,17 @@ import { formatDate } from '../lib/date.js';
 import PropTypes from 'prop-types';
 import { translationFnPropType } from '../lib/reportPropTypes.js';
 import { withOperatorDistrictQuery } from '../lib/clampOperatorDistrictScope.js';
+import { withLang } from '../lib/localeFetch.js';
 import { authFetch } from '../lib/authFetch.js';
 import { DistrictScopeSwitcher } from './DistrictScopeSwitcher.jsx';
 
 function stableHue(input) {
   const s = String(input ?? '');
   let h = 0;
-  for (let i = 0; i < s.length; i += 1) {
-    h = (h * 31 + s.charCodeAt(i)) >>> 0;
+  for (let i = 0; i < s.length; ) {
+    const codePoint = s.codePointAt(i) ?? 0;
+    h = (h * 31 + codePoint) >>> 0;
+    i += codePoint > 0xffff ? 2 : 1;
   }
   return h % 360;
 }
@@ -483,7 +486,7 @@ export function VisitsTab({
   districtAccess = null,
 }) {
   const { getIdToken, getAppCheckToken, apiReady } = useAuth();
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -495,7 +498,7 @@ export function VisitsTab({
     setLoading(true);
     setError(null);
     try {
-      const json = await authFetch(withOperatorDistrictQuery('/api/visits', operatorScope), {
+      const json = await authFetch(withLang(withOperatorDistrictQuery('/api/visits', operatorScope), lang), {
         getIdToken,
         getAppCheckToken,
       });
@@ -509,7 +512,7 @@ export function VisitsTab({
     } finally {
       setLoading(false);
     }
-  }, [getIdToken, getAppCheckToken, operatorScope]);
+  }, [getIdToken, getAppCheckToken, operatorScope, lang]);
 
   useEffect(() => {
     if (!apiReady) return;

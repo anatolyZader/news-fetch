@@ -1,6 +1,7 @@
 /**
  * Google Trends via DataForSEO Keywords Data API (live explore).
  * @see https://docs.dataforseo.com/v3/keywords_data/google_trends/explore/live
+ * security:trusted-vendor-fetch
  */
 
 import { resolveDataforseoLocationName } from '../../domain/dataforseoDistrictLocations.js';

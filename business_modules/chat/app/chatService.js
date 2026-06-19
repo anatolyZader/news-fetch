@@ -193,6 +193,7 @@ export async function streamChat(message, history, rawReply, getReportData, opts
       agentKernel: opts.agentKernel ?? null,
       abortSignal,
       economy: chatEconomyMeta,
+      uiLang: opts.uiLang ?? 'en',
     });
 
     if (tracePort) {

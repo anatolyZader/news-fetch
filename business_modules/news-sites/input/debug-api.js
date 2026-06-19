@@ -2,6 +2,7 @@
 /**
  * One-off debug: call Event Registry getArticles and log response shape.
  * Run: node business_modules/news-sites/input/debug-api.js
+ * security:trusted-vendor-fetch
  */
 import { config } from 'dotenv';
 import { fileURLToPath } from 'node:url';

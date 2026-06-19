@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { authFetch } from '../lib/authFetch.js';
+import { withLang } from '../lib/localeFetch.js';
 import { normalizeIsraelDistrictId } from '../lib/israelDistricts.js';
 
 /**
  * @param {{ districtId?: string, getIdToken?: () => Promise<string|null>, getAppCheckToken?: () => Promise<string|null>, apiReady?: boolean }} [opts]
  */
-export function useMunicipalitiesData({ districtId = 'north', getIdToken, getAppCheckToken, apiReady } = {}) {
+export function useMunicipalitiesData({ districtId = 'north', lang = 'en', getIdToken, getAppCheckToken, apiReady } = {}) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -19,7 +20,7 @@ export function useMunicipalitiesData({ districtId = 'north', getIdToken, getApp
     setError(null);
     try {
       const params = new URLSearchParams({ district: scopedDistrict });
-      const json = await authFetch(`/api/municipalities?${params.toString()}`, {
+      const json = await authFetch(withLang(`/api/municipalities?${params.toString()}`, lang), {
         getIdToken,
         getAppCheckToken,
       });
@@ -31,7 +32,7 @@ export function useMunicipalitiesData({ districtId = 'north', getIdToken, getApp
     } finally {
       setLoading(false);
     }
-  }, [getIdToken, getAppCheckToken, scopedDistrict]);
+  }, [getIdToken, getAppCheckToken, scopedDistrict, lang]);
 
   useEffect(() => {
     if (!apiReady) return undefined;

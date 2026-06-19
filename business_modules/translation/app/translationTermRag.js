@@ -35,11 +35,11 @@ function getTranslationRetrieval() {
 
 /**
  * @param {string} lang
- * @param {Record<string, string>} systemPromptByLang
+ * @param {string} baseSystem
  * @param {string} [queryHint]
  */
-export async function translationSystemPrompt(lang, systemPromptByLang, queryHint) {
-  let system = systemPromptByLang[lang];
+export async function translationSystemPrompt(lang, baseSystem, queryHint) {
+  let system = baseSystem;
   const svc = getTranslationRetrieval();
   if (!svc) return system;
   const hint = String(queryHint ?? '').trim().slice(0, 600);

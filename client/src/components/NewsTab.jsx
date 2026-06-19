@@ -24,7 +24,7 @@ import { IngestArticleCard } from './ingest/IngestArticleCard.jsx';
 import { ResponsiveItemList } from './ingest/ResponsiveItemList.jsx';
 
 export function NewsTab({ reportScope = 'national', onReportScopeChange }) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const { apiReady, getIdToken, getAppCheckToken } = useAuth();
   const { data: dashboard, loading: dashLoading, error: dashError } = useNewsSitesDashboard({
     getIdToken,
@@ -42,6 +42,7 @@ export function NewsTab({ reportScope = 'national', onReportScopeChange }) {
 
   const { data: feed, loading: feedLoading, error: feedError } = useNewsSitesDailyFeed({
     date: activeDate,
+    lang,
     getIdToken,
     getAppCheckToken,
     apiReady,
@@ -135,6 +136,8 @@ export function NewsTab({ reportScope = 'national', onReportScopeChange }) {
                 <IngestArticleCard
                   title={article.title}
                   body={article.body}
+                  titleOriginal={article.titleOriginal}
+                  bodyOriginal={article.bodyOriginal}
                   source={article.source}
                   publishedAt={article.publishedAt}
                   url={article.url}

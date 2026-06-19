@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
+import { withLang } from '../lib/localeFetch.js';
 
 /**
  * @param {string | null} date
@@ -9,6 +10,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 export function useValidationReviewQueue(date, scope, opts = {}) {
   const { getIdToken, apiReady } = useAuth();
   const enabled = opts.enabled !== false;
+  const lang = opts.lang ?? 'en';
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -24,7 +26,7 @@ export function useValidationReviewQueue(date, scope, opts = {}) {
       if (token) headers.set('Authorization', `Bearer ${token}`);
       const params = new URLSearchParams({ date, status: 'pending' });
       if (scope && scope !== 'national') params.set('scope', scope);
-      const res = await fetch(`/api/validation/review-queue?${params}`, { headers });
+      const res = await fetch(withLang(`/api/validation/review-queue?${params}`, lang), { headers });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error ?? `HTTP ${res.status}`);
       setItems(Array.isArray(data.items) ? data.items : []);
@@ -34,7 +36,7 @@ export function useValidationReviewQueue(date, scope, opts = {}) {
     } finally {
       setLoading(false);
     }
-  }, [apiReady, date, scope, enabled, getIdToken]);
+  }, [apiReady, date, scope, enabled, getIdToken, lang]);
 
   useEffect(() => {
     let cancelled = false;
@@ -85,7 +87,10 @@ export function useValidationReviewQueue(date, scope, opts = {}) {
       const encKey = encodeURIComponent(articleKey);
       const encScope = encodeURIComponent(scope ?? 'national');
       const res = await fetch(
-        `/api/validation/review-queue/${encodeURIComponent(date)}/${encScope}/${encKey}/context`,
+        withLang(
+          `/api/validation/review-queue/${encodeURIComponent(date)}/${encScope}/${encKey}/context`,
+          lang,
+        ),
         { headers },
       );
       const data = await res.json();
@@ -94,7 +99,7 @@ export function useValidationReviewQueue(date, scope, opts = {}) {
     } catch {
       return null;
     }
-  }, [apiReady, date, scope, getIdToken]);
+  }, [apiReady, date, scope, getIdToken, lang]);
 
   const explainItem = useCallback(async (articleKey, question) => {
     if (!apiReady || !date || !articleKey) return null;

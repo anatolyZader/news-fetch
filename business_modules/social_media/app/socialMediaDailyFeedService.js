@@ -1,9 +1,9 @@
+import { localizePayload, translateSocialPosts } from '../../translation/index.js';
 import {
   CATEGORY_LABEL_KEYS,
   EMERGENCY_CATEGORY_IDS,
 } from '../domain/value_objects/emergencyCategories.js';
 import { findingsToDedupedPosts } from '../domain/services/postNormalizer.js';
-import { translateSocialPosts } from '../../translation/index.js';
 
 /**
  * @param {{
@@ -45,14 +45,25 @@ export function createSocialMediaDailyFeedService({ persistencePort, translatePo
         : categories.filter((c) => c.count > 0);
 
       const lang = String(opts.lang ?? '').trim();
+      const bundleFingerprint = bundle.extracted_at ?? bundle.window_end ?? null;
       if (lang && translatePosts) {
         categories = await Promise.all(categories.map(async (cat) => ({
           ...cat,
-          posts: cat.posts?.length ? await translatePosts(cat.posts, lang) : [],
+          posts: cat.posts?.length
+            ? await translatePosts(cat.posts, lang, {
+              date,
+              categoryId: cat.id,
+              bundleFingerprint,
+            })
+            : [],
         })));
       }
 
-      return {
+      const optionalMeta = {};
+      if (bundle.threat_perception != null) optionalMeta.threatPerception = bundle.threat_perception;
+      if (bundle.knowledge != null) optionalMeta.knowledge = bundle.knowledge;
+
+      return localizePayload({
         date,
         windowStart: bundle.window_start ?? null,
         windowEnd: bundle.window_end ?? null,
@@ -66,7 +77,8 @@ export function createSocialMediaDailyFeedService({ persistencePort, translatePo
         },
         summary: bundle.summary ?? null,
         accessLimitations: bundle.access_limitations ?? [],
-      };
+        ...optionalMeta,
+      }, 'social.dailyMeta', lang, { fingerprintExtra: `${date}-${bundleFingerprint ?? ''}`, costDate: date });
     },
   };
 }

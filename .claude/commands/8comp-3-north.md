@@ -3,6 +3,11 @@ allowed-tools: Bash(npm run homefront-to-md*), Bash(npm run social-media:gather-
 description: Full 3-day northern Israel 8-component pipeline — always re-extract closed + open paths from source .md, gather social OSINT, then north-focused assessment.
 ---
 
+<!-- Pipeline sources: news, radio, whatsapp, field, pbo, naftali, social.
+     Adding a source/step here? Also add PipelineAction + executeIngestStep case in
+     business_modules/resilience/app/pipelineOrchestrator.js and an entry in PIPELINE_ACTIONS
+     (business_modules/resilience/app/pipelineIngestPlan.js). -->
+
 ## Your task
 
 Run the full 3-day resilience pipeline and produce a north-focused 8-component assessment centered on northern Israel, with national scores used as comparison context. Do NOT ask for confirmation — just go.

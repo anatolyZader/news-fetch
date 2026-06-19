@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
@@ -9,6 +10,7 @@ import PropTypes from 'prop-types';
 import { alpha, useTheme } from '@mui/material/styles';
 import { formatPublishedDateTime } from '../../lib/date.js';
 import { translationFnPropType } from '../../lib/reportPropTypes.js';
+import { ShowOriginalToggle } from '../ShowOriginalToggle.jsx';
 
 const BODY_PREVIEW_CHARS = 480;
 
@@ -19,6 +21,8 @@ function isHttpUrl(url) {
 export function IngestArticleCard({
   title,
   body,
+  titleOriginal,
+  bodyOriginal,
   source,
   publishedAt,
   url,
@@ -26,9 +30,13 @@ export function IngestArticleCard({
   t,
 }) {
   const theme = useTheme();
-  const preview = String(body ?? '').length > BODY_PREVIEW_CHARS
-    ? `${String(body).slice(0, BODY_PREVIEW_CHARS)}…`
-    : String(body ?? '');
+  const [showOriginal, setShowOriginal] = useState(false);
+  const hasOriginal = Boolean(titleOriginal || bodyOriginal);
+  const displayTitle = showOriginal && titleOriginal ? titleOriginal : title;
+  const displayBody = showOriginal && bodyOriginal ? bodyOriginal : body;
+  const preview = String(displayBody ?? '').length > BODY_PREVIEW_CHARS
+    ? `${String(displayBody).slice(0, BODY_PREVIEW_CHARS)}…`
+    : String(displayBody ?? '');
   const publishedLabel = publishedAt ? formatPublishedDateTime(publishedAt) : null;
 
   return (
@@ -42,17 +50,26 @@ export function IngestArticleCard({
       <CardContent>
         <Stack spacing={1.25}>
           <Typography variant="subtitle1" dir="auto" sx={{ fontWeight: 600, lineHeight: 1.45 }}>
-            {title}
+            {displayTitle}
           </Typography>
+          {hasOriginal && (
+            <ShowOriginalToggle
+              showingOriginal={showOriginal}
+              onToggle={() => setShowOriginal((v) => !v)}
+              t={t}
+            />
+          )}
           <Stack direction="row" flexWrap="wrap" gap={0.75} alignItems="center">
             {source && <Chip size="small" label={source} />}
             {secondaryLabel && <Chip size="small" variant="outlined" label={secondaryLabel} />}
             {publishedLabel && (
-              <Chip size="small" variant="outlined" label={publishedLabel} />
+              <Typography variant="caption" color="text.secondary">
+                {publishedLabel}
+              </Typography>
             )}
           </Stack>
           {preview && (
-            <Typography variant="body2" dir="auto" color="text.secondary" sx={{ lineHeight: 1.65, whiteSpace: 'pre-wrap' }}>
+            <Typography variant="body2" dir="auto" color="text.secondary" sx={{ whiteSpace: 'pre-wrap', lineHeight: 1.55 }}>
               {preview}
             </Typography>
           )}
@@ -77,6 +94,8 @@ export function IngestArticleCard({
 IngestArticleCard.propTypes = {
   title: PropTypes.string,
   body: PropTypes.string,
+  titleOriginal: PropTypes.string,
+  bodyOriginal: PropTypes.string,
   source: PropTypes.string,
   publishedAt: PropTypes.string,
   url: PropTypes.string,

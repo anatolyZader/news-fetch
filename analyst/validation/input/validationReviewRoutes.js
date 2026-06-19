@@ -13,6 +13,7 @@ import {
   VALIDATION_LLM_CHANNELS,
 } from '../../../cross-cut-modules/budget/app/validationLlmAccess.js';
 import { runValidationAgent } from '../app/validationReviewAgent.js';
+import { maybeLocalize } from '../../../business_modules/translation/index.js';
 
 /**
  * @param {import('fastify').FastifyInstance} app
@@ -42,7 +43,8 @@ export async function validationReviewRoutes(app, opts) {
     if (!date) {
       return reply.code(400).send({ error: 'date query parameter is required' });
     }
-    return reply.send(validationReviewService.listQueue(date, scope, { status }));
+    const queue = validationReviewService.listQueue(date, scope, { status });
+    return reply.send(await maybeLocalize(queue, 'validation.queue', request, { fingerprintExtra: `${date}-${scope}` }));
   });
 
   app.get('/api/validation/review-queue/:date/:scope/:articleKey', authOnly, async (request, reply) => {
@@ -57,7 +59,9 @@ export async function validationReviewRoutes(app, opts) {
     if (!detail) {
       return reply.code(404).send({ error: 'Queue item not found' });
     }
-    return reply.send(detail);
+    return reply.send(await maybeLocalize(detail, 'validation.queue', request, {
+      fingerprintExtra: `${date}-${scope}-${articleKey}`,
+    }));
   });
 
   app.get('/api/validation/review-queue/:date/:scope/:articleKey/context', authOnly, async (request, reply) => {
@@ -72,7 +76,9 @@ export async function validationReviewRoutes(app, opts) {
     if (!ctx) {
       return reply.code(404).send({ error: 'Queue item not found' });
     }
-    return reply.send(ctx);
+    return reply.send(await maybeLocalize(ctx, 'validation.context', request, {
+      fingerprintExtra: `${date}-${scope}-${articleKey}`,
+    }));
   });
 
   app.post('/api/validation/review-queue/:date/:scope/:articleKey/explain', costlyRoute, async (request, reply) => {
@@ -103,7 +109,9 @@ export async function validationReviewRoutes(app, opts) {
         return reply.code(404).send({ error: 'Queue item not found' });
       }
       recordValidationLlmUsage(request, llmQuotaStore, VALIDATION_LLM_CHANNELS.explain);
-      return reply.send(result);
+      return reply.send(await maybeLocalize(result, 'validation.answer', request, {
+        fingerprintExtra: `${date}-${scope}-${articleKey}-explain`,
+      }));
     } catch (err) {
       return reply.code(500).send({ error: err?.message ?? 'Explain failed' });
     } finally {

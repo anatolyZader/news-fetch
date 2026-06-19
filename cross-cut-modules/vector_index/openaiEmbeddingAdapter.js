@@ -4,6 +4,7 @@
  * Design goals:
  * - Reuse existing env conventions in this repo (OPENAI_API_KEY, RESILIENCE_EMBEDDING_API_KEY).
  * - Keep provider-specific code isolated so other embeddings can be swapped in.
+ * security:trusted-vendor-fetch
  */
  
 const DEFAULT_MODEL = 'text-embedding-3-small';

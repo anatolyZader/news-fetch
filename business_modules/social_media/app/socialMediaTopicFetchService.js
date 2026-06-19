@@ -58,8 +58,13 @@ export function createSocialMediaTopicFetchService({ persistencePort, fetchPort,
       }
 
       const lang = String(input?.lang ?? '').trim();
+      const cacheOpts = {
+        date: new Date().toISOString().slice(0, 10),
+        topicId: slugifyTopic(topic),
+        bundleFingerprint: fetched.fetchedAt ?? fetched.source ?? null,
+      };
       if (lang && translatePosts) {
-        posts = await translatePosts(posts, lang);
+        posts = await translatePosts(posts, lang, cacheOpts);
       }
 
       const payload = {
@@ -100,10 +105,15 @@ export function createSocialMediaTopicFetchService({ persistencePort, fetchPort,
       if (!raw) return null;
       const lang = String(opts.lang ?? '').trim();
       if (lang && translatePosts && Array.isArray(raw.posts) && raw.posts.length) {
+        const cacheOpts = {
+          date: String(raw.fetchedAt ?? '').slice(0, 10) || new Date().toISOString().slice(0, 10),
+          topicId: String(id),
+          bundleFingerprint: raw.fetchedAt ?? raw.source ?? null,
+        };
         return {
           ...raw,
           lang,
-          posts: await translatePosts(raw.posts, lang),
+          posts: await translatePosts(raw.posts, lang, cacheOpts),
         };
       }
       return raw;
