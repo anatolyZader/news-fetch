@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "recordedAt": "2026-06-20T07:44:25.619Z",
-  "gitSha": "44eaf99102c35becb62efcfa0e1bf726cdbae1a9",
+  "recordedAt": "2026-06-20T10:16:48.870Z",
+  "gitSha": "eda84f4dd9a55eff0a437241f2fadf70ab76bed1",
   "files": {
     "package-lock.json": "8dedd6e55829816430eb930a5323d61c1eba6c2d08dffd722a091676b7cbd12c",
     "client/package-lock.json": "fba3155da65847688e11fb9fc074f6a17eb46e4a7f34fedbdc9a7254caaefb48",
@@ -11,15 +11,15 @@
     "openapi/openapi.yaml": "8f0fd701bb3072f0464d33fde63901fcb6b94d81b8d42d513a8f353eb3e770c8",
     ".github/dependabot.yml": "c7f5684ea2eee4302c76f258721c3f7e2cc466189ed4e111068674d28766db24",
     ".github/actions/setup-npm-ci/action.yml": "7a1ea9b73e7cece91469554d0e65cdf7f0eb885475e3db168034926bf277d439",
-    "client/dist/assets/LoginScreen-Ce0f-t8D.js": "5210f565f3f16d6ff8d34630f8da5c3afd9201b830de26ba33d25380495bf9ee",
-    "client/dist/assets/MainApp-B1KscuHR.js": "badd0c3799eb46151b3aeb729e5c84f6a7acd94019dfd2740c8a3f5c8d1a125e",
-    "client/dist/assets/PanelWindowApp-D1Is2BAf.js": "5eac342d55c750dc5c2c21a0a9c2f5b1144899f638bf05217f40cfdbfde99f58",
-    "client/dist/assets/SettingsPanel-DB-8MP1X.js": "991e5327faf02ccb8d8aa4f6e571237bc5d0947da11473be0c8cf07f986c708d",
-    "client/dist/assets/SiteFooter-DVG9kTZl.js": "5e708166e6158ae2ba072cb34e094655ecd2f69f59cb8e11a4df527595a15fc3",
-    "client/dist/assets/docsUrl-RADQTmGD.js": "56e6c0659a0ab804715f0ba74bba35a521569838dbdb0a7dd830b2e2cf3424f3",
+    "client/dist/assets/LoginScreen-RhwGke-v.js": "9b5b5778770a675d74f848daadd6b49f964826cc12f41b4d55e474a908a9dd2f",
+    "client/dist/assets/MainApp-DMgROVBw.js": "fe1b088ba54fc24892007ea9fbf469a28a994b29ca99724d4ca08be2cb43b1c2",
+    "client/dist/assets/PanelWindowApp-DfVgFAsf.js": "c0d3eed86c09f5322e909a492793842d4b88885c98bf9d9ec2197bc2e7aec461",
+    "client/dist/assets/SettingsPanel-BxYOiFyo.js": "b0015082f1ae4a7b88aebb3f50aab0c5f28e74d2332b2ca9554d9ea34ba06e34",
+    "client/dist/assets/SiteFooter-B9ZpM_z3.js": "b2b478e00c1fca99646a5eb34ee25e39ca399773f20b245b2f2aba9573af7443",
+    "client/dist/assets/docsUrl-DYn8ICRn.js": "3d0adb79bfeb9be9a56b0805aba4b1d6dffb97beb6d6c4bf5432d3729ea879b4",
     "client/dist/assets/firebase-Wxsw3fEx.js": "26cac8159380745452708cac65debaa5d9a2033f9ecac16df8e57a91ab2282e9",
-    "client/dist/assets/index-BMIpax7I.js": "59e5bb146cc3b47fa4cf6bb5e747ad3f944aa8448fc8bbd699556fb1d2dcdea1",
     "client/dist/assets/index-B_LacIQ5.css": "04c2b52be316b89f7da254e4aa6f41149bb03ad4fadf82e97bfbde92513782cd",
+    "client/dist/assets/index-qA1qOewY.js": "eb8a9cfdb55c255ad7f8854b15e4e286a61f2103c587449796b22fd43237402f",
     "client/dist/assets/inter-cyrillic-400-normal-HOLc17fK.woff": "6e441a6c94788318fa02b6d0a633aa29eebe27b69c6567eb1e59b4edc68ed70e",
     "client/dist/assets/inter-cyrillic-400-normal-obahsSVq.woff2": "f0bb586459ce8f09b238285040f17e3e9e9538b2c5a7aae0775194e33c36c3c3",
     "client/dist/assets/inter-cyrillic-500-normal-BasfLYem.woff2": "b77a86ec16aadc157f4a99e8898d71cd75ea264753d9bdf13f962f8c3988cbb0",
@@ -79,7 +79,7 @@
     "client/dist/assets/mui-D53l30eD.js": "083c769df72d86d0f33fe509e32573661ea004733bedd35b0c783a69dffad079",
     "client/dist/assets/vendor-BtpORKpE.js": "81a3f9fa5f671449f0cbe34a0890b8aee68f1d20a754ff827322e19aff0356d0",
     "client/dist/assets/vendor-DX91zFbL.css": "29736a77e0c8d7efb0fb5f68fa98e123e3ff7413c8db4d3e6508a0cd3f670515",
-    "client/dist/index.html": "96bdd2a426727c70517873ef93b34ed61915f545cc5ee781d9c66a0a342314dc",
+    "client/dist/index.html": "44b92d5e3584f6a4a4d96e17941f9062ec794724e8e12ad96d701f95af8a58e3",
     "client/dist/manifest.webmanifest": "b3d51b10c03d90ae709f33304262a1bb046a2e4ec1de5ff09f47c1c2ece5d796"
   }
 }
