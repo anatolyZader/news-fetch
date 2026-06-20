@@ -29,33 +29,10 @@ const MAX_POLISH_ATTEMPTS = 2;
 
 /**
  * @param {object} params
- * @returns {Promise<object|null>}
+ * @returns {Promise<{ factsByComponent: object, mergedNarratives: object, judgeFeedback: string }|null>}
  */
-export async function runOperatorNarrativePipeline(params) {
-  const {
-    assessment,
-    narrativeScopeSignals,
-    scoredFull = null,
-    retrievalService = null,
-    reportDate,
-    onUsage,
-    llmPort,
-  } = params;
-
-  if (!assessment || !Array.isArray(narrativeScopeSignals) || narrativeScopeSignals.length === 0) {
-    return null;
-  }
-
-  const narrativeScored = buildFullSignalDigest(narrativeScopeSignals, scoredFull);
-  const registry = buildSignalRefRegistry(narrativeScored);
-  if (registry.refCount === 0) return null;
-
-  const llmOpts = { onUsage, llmPort };
-  const rag = await buildNarrativeRetrievalContext(narrativeScored, {
-    retrievalService,
-    reportDate,
-  });
-
+async function runFactsAndJudgePass(params) {
+  const { assessment, narrativeScored, registry, rag, llmOpts } = params;
   let factsByComponent = {};
   let mergedNarratives = { components: [] };
   let judgeFeedback = '';
@@ -83,9 +60,25 @@ export async function runOperatorNarrativePipeline(params) {
     }
   }
 
+  return { factsByComponent, mergedNarratives, judgeFeedback };
+}
+
+/**
+ * @param {object} params
+ * @returns {Promise<object>}
+ */
+async function runPolishAndValidatePass(params) {
+  const {
+    mergedNarratives,
+    registry,
+    narrativeScored,
+    rag,
+    llmOpts,
+    judgeFeedback,
+  } = params;
+
   let polish = { components: [], cross_component_synthesis: '' };
-  let validationFeedback = '';
-  if (judgeFeedback) validationFeedback = judgeFeedback;
+  let validationFeedback = judgeFeedback;
 
   for (let attempt = 0; attempt < MAX_POLISH_ATTEMPTS; attempt += 1) {
     const feedback = [judgeFeedback, validationFeedback].filter(Boolean).join('\n\n');
@@ -114,6 +107,84 @@ export async function runOperatorNarrativePipeline(params) {
     }
   }
 
+  return polish;
+}
+
+/**
+ * @param {object} comp
+ * @param {object} leg
+ * @param {object|null|undefined} groundingScores
+ */
+function applyPolishLegToComponent(comp, leg, groundingScores) {
+  comp.narrative_operator = leg.narrative;
+  comp.narrative_grounding_score = groundingScores?.byComponent?.[comp.component_id]?.score ?? null;
+
+  if (Array.isArray(leg.evidence) && leg.evidence.length > 0) {
+    comp.evidence_operator = leg.evidence;
+  }
+
+  if (leg.data_quality_caveat) {
+    comp.data_quality_caveat = leg.data_quality_caveat;
+  }
+
+  if (!legacyNarrativeOnly()) return;
+
+  comp.narrative = leg.narrative;
+  if (Array.isArray(leg.narrative_claims) && leg.narrative_claims.length > 0) {
+    comp.narrative_claims = leg.narrative_claims;
+  }
+  if (Array.isArray(leg.evidence) && leg.evidence.length > 0) {
+    comp.evidence = leg.evidence;
+  }
+}
+
+/**
+ * @param {object} params
+ * @returns {Promise<object|null>}
+ */
+export async function runOperatorNarrativePipeline(params) {
+  const {
+    assessment,
+    narrativeScopeSignals,
+    scoredFull = null,
+    retrievalService = null,
+    reportDate,
+    onUsage,
+    llmPort,
+  } = params;
+
+  if (!assessment || !Array.isArray(narrativeScopeSignals) || narrativeScopeSignals.length === 0) {
+    return null;
+  }
+
+  const narrativeScored = buildFullSignalDigest(narrativeScopeSignals, scoredFull);
+  const registry = buildSignalRefRegistry(narrativeScored);
+  if (registry.refCount === 0) return null;
+
+  const llmOpts = { onUsage, llmPort };
+  const rag = await buildNarrativeRetrievalContext(narrativeScored, {
+    retrievalService,
+    reportDate,
+  });
+
+  const factsResult = await runFactsAndJudgePass({
+    assessment,
+    narrativeScored,
+    registry,
+    rag,
+    llmOpts,
+  });
+  if (!factsResult) return null;
+
+  const polish = await runPolishAndValidatePass({
+    mergedNarratives: factsResult.mergedNarratives,
+    registry,
+    narrativeScored,
+    rag,
+    llmOpts,
+    judgeFeedback: factsResult.judgeFeedback,
+  });
+
   const groundingScores = computeGroundingScores(polish, narrativeScored, registry);
   return {
     polish,
@@ -140,27 +211,7 @@ export function applyOperatorNarrativeToAssessment(assessment, pipelineResult) {
   for (const comp of assessment.components ?? []) {
     const leg = polishById[comp.component_id];
     if (!leg?.narrative) continue;
-
-    comp.narrative_operator = leg.narrative;
-    comp.narrative_grounding_score = groundingScores?.byComponent?.[comp.component_id]?.score ?? null;
-
-    if (Array.isArray(leg.evidence) && leg.evidence.length > 0) {
-      comp.evidence_operator = leg.evidence;
-    }
-
-    if (leg.data_quality_caveat) {
-      comp.data_quality_caveat = leg.data_quality_caveat;
-    }
-
-    if (legacyNarrativeOnly()) {
-      comp.narrative = leg.narrative;
-      if (Array.isArray(leg.narrative_claims) && leg.narrative_claims.length > 0) {
-        comp.narrative_claims = leg.narrative_claims;
-      }
-      if (Array.isArray(leg.evidence) && leg.evidence.length > 0) {
-        comp.evidence = leg.evidence;
-      }
-    }
+    applyPolishLegToComponent(comp, leg, groundingScores);
   }
 
   if (polish.cross_component_synthesis) {
@@ -195,9 +246,3 @@ export async function applyOperatorNarrativePipeline(params) {
 
   return assessment;
 }
-
-export {
-  hybridNarrativeEnabled,
-  legacyNarrativeOnly,
-  resolveNarrativePipelineMode,
-};

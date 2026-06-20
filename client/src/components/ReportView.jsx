@@ -563,7 +563,7 @@ function provenanceLabel(provenance, t) {
   if (!provenance) return t('report.nationalContext.provenance.unknown');
   const key = `report.nationalContext.provenance.${provenance}`;
   const label = t(key);
-  return label !== key ? label : provenance;
+  return label === key ? provenance : label;
 }
 
 function ScopeAttributionBanner({ assessment, t }) {
@@ -578,7 +578,7 @@ function ScopeAttributionBanner({ assessment, t }) {
     lines.push(
       t('report.scopeAttribution.defaultNorth')
         .replace('{count}', String(count))
-        .replace('{pct}', pct != null ? String(pct) : '?'),
+        .replace('{pct}', pct == null ? '?' : String(pct)),
     );
   }
   if (scopeAttr?.gate_warning && threshold != null) {
@@ -668,9 +668,9 @@ function NorthClusterNarrativesSection({ clusterNarratives, t, reportScope }) {
               })}
             >
               <Typography variant="cardTitle" sx={{ marginBottom: 0.5 }}>
-                {t(`report.northClusters.${clusterId}`) !== `report.northClusters.${clusterId}`
-                  ? t(`report.northClusters.${clusterId}`)
-                  : clusterId}
+                {t(`report.northClusters.${clusterId}`) === `report.northClusters.${clusterId}`
+                  ? clusterId
+                  : t(`report.northClusters.${clusterId}`)}
                 {' '}
                 ({summary.signal_count ?? 0})
               </Typography>

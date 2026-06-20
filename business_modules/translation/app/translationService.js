@@ -355,12 +355,12 @@ export async function getTranslatedReport(report, lang) {
   const translatedReport = {
     ...report,
     cross_component_synthesis: synthesisChunk.result.cross_component_synthesis ?? synthesisSource,
-    ...(report.cross_component_synthesis_operator != null
-      ? {
+    ...(report.cross_component_synthesis_operator == null
+      ? {}
+      : {
         cross_component_synthesis_operator:
           synthesisChunk.result.cross_component_synthesis ?? report.cross_component_synthesis_operator,
-      }
-      : {}),
+      }),
     components: components.map((c, i) => {
       const chunk = componentChunks[i].result;
       const narrativeSource = c.narrative_operator ?? c.narrative;
@@ -377,10 +377,12 @@ export async function getTranslatedReport(report, lang) {
       const translatedNarrative = chunk.narrative ?? narrativeSource;
       return {
         ...c,
-        narrative: c.narrative_operator != null ? c.narrative : translatedNarrative,
-        ...(c.narrative_operator != null
-          ? { narrative_operator: translatedNarrative }
-          : { narrative: translatedNarrative }),
+        ...(c.narrative_operator == null
+          ? { narrative: translatedNarrative }
+          : {
+            narrative: c.narrative,
+            narrative_operator: translatedNarrative,
+          }),
         interpretive_summary: chunk.interpretive_summary ?? c.interpretive_summary,
         data_quality_caveat: chunk.data_quality_caveat ?? c.data_quality_caveat,
         ...(c.evidence?.length ? { evidence: translatedEvidence } : {}),

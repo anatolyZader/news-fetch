@@ -278,11 +278,17 @@ function buildFallbackAssessment(componentId, evidenceGraph, epistemicProfile, t
     ? INSUFFICIENT_SYNTHESIS_NARRATIVE
     : buildComponentNarrative({ componentId, ep, claimCount: claims.length });
   const thinAbstain = ep.thin_evidence === true && claims.length === 0;
+  let operatorStatus = 'stable';
+  if (thinAbstain) {
+    operatorStatus = 'insufficient_data';
+  } else if (ep.thin_evidence) {
+    operatorStatus = 'provisional';
+  }
   return {
     component_id: componentId,
     severity: thinAbstain ? 'abstain' : 'moderate',
     confidence: ep.certainty_band === 'high' ? 'medium' : 'low',
-    operator_status: thinAbstain ? 'insufficient_data' : (ep.thin_evidence ? 'provisional' : 'stable'),
+    operator_status: operatorStatus,
     claims,
     narrative,
     dissent_summary: ep.contested ? 'Evidence appears contested across sources.' : '',

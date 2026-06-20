@@ -36,6 +36,35 @@ import { ensureArticleCorpusRagIndexed } from './ensureArticleCorpusRagIndexed.j
 /**
  * @param {object} assessment
  * @param {object} ctx
+ * @param {object} investigationPrep
+ * @param {string} reportDate
+ * @param {string} reportScopeId
+ */
+function attachInvestigationContextFlags(assessment, ctx, investigationPrep, reportDate, reportScopeId) {
+  assessment.oov_burst = investigationPrep.oovBurst ?? null;
+  if (ctx.oovScoringApplied) {
+    assessment.oov_scoring_applied = ctx.oovScoringApplied;
+  }
+  if (ctx.openObservationsSummary) {
+    assessment.open_observations_summary = ctx.openObservationsSummary;
+  }
+  if (ctx.openEvidenceScoringApplied) {
+    assessment.open_evidence_scoring_applied = ctx.openEvidenceScoringApplied;
+  }
+  if (!investigationPrep.osintChannelQuarantine) return;
+
+  const decision = investigationPrep.osintChannelQuarantine.active
+    ? getSocialQuarantineDecision(reportDate, reportScopeId, tryOpenValidationStore())
+    : null;
+  assessment.social_channel_quarantine = {
+    ...investigationPrep.osintChannelQuarantine,
+    ...(decision?.created_at ? { confirmed_at: decision.created_at } : {}),
+  };
+}
+
+/**
+ * @param {object} assessment
+ * @param {object} ctx
  */
 export function applySharedAssessmentPostMetadata(assessment, ctx) {
   const {
@@ -68,25 +97,13 @@ export function applySharedAssessmentPostMetadata(assessment, ctx) {
     }
   }
 
-  assessment.oov_burst = investigationPrep.oovBurst ?? null;
-  if (ctx.oovScoringApplied) {
-    assessment.oov_scoring_applied = ctx.oovScoringApplied;
-  }
-  if (ctx.openObservationsSummary) {
-    assessment.open_observations_summary = ctx.openObservationsSummary;
-  }
-  if (ctx.openEvidenceScoringApplied) {
-    assessment.open_evidence_scoring_applied = ctx.openEvidenceScoringApplied;
-  }
-  if (investigationPrep.osintChannelQuarantine) {
-    const decision = investigationPrep.osintChannelQuarantine.active
-      ? getSocialQuarantineDecision(reportDate, reportScopeId, tryOpenValidationStore())
-      : null;
-    assessment.social_channel_quarantine = {
-      ...investigationPrep.osintChannelQuarantine,
-      ...(decision?.created_at ? { confirmed_at: decision.created_at } : {}),
-    };
-  }
+  attachInvestigationContextFlags(
+    assessment,
+    ctx,
+    investigationPrep,
+    reportDate,
+    reportScopeId,
+  );
 
   const patterns = detectSemanticPatterns(scopedSignals ?? []);
   assessment.pattern_alerts = patterns;
@@ -162,7 +179,7 @@ export async function runPostExtractionAssessmentCore(params) {
       targetDate: reportDate,
       days: assessmentDays,
       retrievalService,
-      repoRoot,
+      repoRoot: rootDir,
     });
   }
 

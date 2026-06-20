@@ -32,6 +32,56 @@ function isParentIndexed(retrievalService, sourceId) {
 
 /**
  * @param {object} params
+ * @param {string} date
+ * @returns {Promise<{ indexed: number, skipped: number, touched: boolean }>}
+ */
+async function indexArticlesForDate(params, date) {
+  const { retrievalService, repoRoot, archive } = params;
+  const mdPath = newsArticlesPath(date, repoRoot);
+  if (!existsSync(mdPath)) return { indexed: 0, skipped: 0, touched: false };
+
+  const abs = resolve(mdPath);
+  const { articles } = loadMdFile(abs);
+  const items = articles
+    .filter((a) => String(a.body ?? '').trim())
+    .map((a, i) => ({
+      source_id: buildMdSourceIdFromPath(repoRoot, abs, i + 1),
+      date,
+      source_type: 'news',
+      source_label: a.source ?? '',
+      source_url: a.url ?? '',
+      title: a.title ?? '',
+      body: String(a.body ?? '').trim(),
+      published_at: a.publishedAt ?? date,
+      module_ref: abs,
+    }));
+
+  if (items.length === 0) return { indexed: 0, skipped: 0, touched: true };
+
+  const toIndex = [];
+  let skipped = 0;
+  for (const item of items) {
+    if (isParentIndexed(retrievalService, item.source_id)) {
+      skipped += 1;
+      continue;
+    }
+    toIndex.push(item);
+  }
+
+  if (toIndex.length === 0) return { indexed: 0, skipped, touched: true };
+
+  persistOriginalSources(archive, toIndex);
+  let indexed = 0;
+  for (const item of toIndex) {
+    await retrievalService.indexArchiveRow(item);
+    indexed += 1;
+  }
+
+  return { indexed, skipped, touched: true };
+}
+
+/**
+ * @param {object} params
  * @returns {Promise<{ indexed: number, skipped: number, dates: number, disabled?: boolean }>}
  */
 export async function ensureArticleCorpusRagIndexed(params) {
@@ -61,45 +111,11 @@ export async function ensureArticleCorpusRagIndexed(params) {
 
   try {
     for (const date of dateList) {
-      const mdPath = newsArticlesPath(date, repoRoot);
-      if (!existsSync(mdPath)) continue;
-      datesTouched += 1;
-
-      const abs = resolve(mdPath);
-      const { articles } = loadMdFile(abs);
-      const items = articles
-        .filter((a) => String(a.body ?? '').trim())
-        .map((a, i) => ({
-          source_id: buildMdSourceIdFromPath(repoRoot, abs, i + 1),
-          date,
-          source_type: 'news',
-          source_label: a.source ?? '',
-          source_url: a.url ?? '',
-          title: a.title ?? '',
-          body: String(a.body ?? '').trim(),
-          published_at: a.publishedAt ?? date,
-          module_ref: abs,
-        }));
-
-      if (items.length === 0) continue;
-
-      const toIndex = [];
-      for (const item of items) {
-        if (isParentIndexed(retrievalService, item.source_id)) {
-          skipped += 1;
-          continue;
-        }
-        toIndex.push(item);
-      }
-
-      if (toIndex.length === 0) continue;
-
-      persistOriginalSources(archive, toIndex);
-      for (const item of toIndex) {
-        await retrievalService.indexArchiveRow(item);
-        indexed += 1;
-      }
-      ftsDirty = true;
+      const result = await indexArticlesForDate({ retrievalService, repoRoot, archive }, date);
+      indexed += result.indexed;
+      skipped += result.skipped;
+      if (result.touched) datesTouched += 1;
+      if (result.indexed > 0) ftsDirty = true;
     }
   } finally {
     archive.close();

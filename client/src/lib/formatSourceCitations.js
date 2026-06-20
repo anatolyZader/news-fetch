@@ -49,7 +49,7 @@ const MARKDOWN_LINK = /\[([^\]]+)\]\((https?:[^)\s]+)\)/gi;
 export function formatReadableCitations(markdown, reportDate) {
   if (typeof markdown !== 'string') return '';
   if (!markdown) return markdown;
-  return markdown.replace(MARKDOWN_LINK, (match, text, url) => {
+  return markdown.replaceAll(MARKDOWN_LINK, (match, text, url) => {
     const label = GENERIC_SOURCE.test(String(text).trim()) ? labelFromUrl(url) : String(text).trim();
     const datePart = formatReportDateLabel(reportDate);
     if (!label) return match;
