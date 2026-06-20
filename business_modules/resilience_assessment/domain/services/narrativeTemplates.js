@@ -114,6 +114,15 @@ function operatorNarrative(label, ep) {
 }
 
 /**
+ * Qualitative operator prose from epistemic profile only (no raw quotes).
+ * @param {{ componentId: string, ep?: object }} params
+ * @returns {string}
+ */
+export function buildOperatorQualitativeNarrative({ componentId, ep = {} }) {
+  return operatorNarrative(componentLabel(componentId), ep);
+}
+
+/**
  * Analyst-register narrative: may name the dominant source family and counts.
  * @param {string} label
  * @param {object} ep

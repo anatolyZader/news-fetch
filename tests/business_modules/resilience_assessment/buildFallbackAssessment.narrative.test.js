@@ -1,7 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { buildFallbackAssessment } from '../../../business_modules/resilience_assessment/app/componentSpecialistAgent.js';
-import { INSUFFICIENT_SYNTHESIS_NARRATIVE } from '../../../business_modules/resilience_assessment/domain/services/narrativeTemplates.js';
 
 describe('buildFallbackAssessment narrative', () => {
   const evidenceGraph = {
@@ -24,10 +23,11 @@ describe('buildFallbackAssessment narrative', () => {
     },
   };
 
-  it('uses insufficient synthesis message when seeded claims exist', () => {
+  it('builds connected prose from seeded claims instead of insufficient synthesis stub', () => {
     const out = buildFallbackAssessment('functional_continuity', evidenceGraph, epistemicProfile, 'trace');
-    assert.equal(out.narrative, INSUFFICIENT_SYNTHESIS_NARRATIVE);
-    assert.doesNotMatch(out.narrative, /שירותים/);
+    assert.match(out.narrative, /שירותים/);
+    assert.match(out.narrative, /Separately,/);
+    assert.doesNotMatch(out.narrative, /see supporting evidence below/i);
     assert.equal(out.evidence_tree.length, 2);
     assert.match(out.evidence_tree[0].text, /שירותים/);
   });

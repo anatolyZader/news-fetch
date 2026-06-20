@@ -96,10 +96,10 @@ describe('operatorNarrativePipeline', () => {
     assert.ok(assessment.cross_component_synthesis.includes('- narrative:'));
   });
 
-  it('applyOperatorNarrativePipeline skips when mode is agent', async () => {
+  it('applyOperatorNarrativePipeline stamps agent mode and finalizes surface', async () => {
     process.env.RESILIENCE_NARRATIVE_PIPELINE = 'agent';
     const assessment = {
-      components: [{ component_id: 'narrative', narrative: 'unchanged' }],
+      components: [{ component_id: 'narrative', narrative: 'Agent prose unchanged.' }],
     };
     const signals = fixtures.scored_components.narrative.signals;
 
@@ -109,7 +109,8 @@ describe('operatorNarrativePipeline', () => {
       llmPort: buildMockLlmPort([]),
     });
 
-    assert.equal(assessment.components[0].narrative_operator, undefined);
+    assert.equal(assessment.narrative_pipeline_mode, 'agent');
+    assert.equal(assessment.components[0].narrative_operator, 'Agent prose unchanged.');
   });
 
   it('runs end-to-end with mocked LLM and sets operator fields', async () => {

@@ -23,6 +23,7 @@ import {
   legacyNarrativeOnly,
   resolveNarrativePipelineMode,
 } from '../domain/services/narrativeGrounding/index.js';
+import { finalizeOperatorNarrativeSurface } from '../domain/services/operatorNarrativeSurface.js';
 
 const MAX_FACTS_ATTEMPTS = 2;
 const MAX_POLISH_ATTEMPTS = 2;
@@ -232,7 +233,8 @@ export function applyOperatorNarrativeToAssessment(assessment, pipelineResult) {
 export async function applyOperatorNarrativePipeline(params) {
   const { assessment } = params;
   if (!hybridNarrativeEnabled() && !legacyNarrativeOnly()) {
-    return assessment;
+    assessment.narrative_pipeline_mode = resolveNarrativePipelineMode();
+    return finalizeOperatorNarrativeSurface(assessment);
   }
 
   try {

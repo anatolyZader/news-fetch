@@ -130,6 +130,14 @@ export {
   applyOperatorNarrativeToAssessment,
 } from './app/operatorNarrativePipeline.js';
 export { buildNarrativeScoredComponents } from './domain/services/buildNarrativeScoredComponents.js';
+export {
+  finalizeOperatorNarrativeSurface,
+  resolveOperatorComponentNarrative,
+  buildProseFromClaims,
+  buildCuratedEvidenceBullets,
+  isStubNarrative,
+  INSUFFICIENT_SYNTHESIS_NARRATIVE,
+} from './domain/services/operatorNarrativeSurface.js';
 export { SIGNAL_TO_COMPONENTS } from './domain/services/signalRouter.js';
 
 // --- Survey CLI runner (cross-cut geo entry) ---

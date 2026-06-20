@@ -115,12 +115,15 @@ export function createAgentKernel(deps) {
         });
       },
       executeTool: async (name, input, toolUseBlock) => {
-        if (!budget.canContinue()) {
+        const isSubmit = String(name).startsWith('submit_');
+        // Submits are always allowed through: tokens are already spent, discarding
+        // the result gains nothing and breaks the entire run via fallback templates.
+        if (!isSubmit && !budget.canContinue()) {
           return JSON.stringify({ error: 'budget_exceeded', budget: budget.snapshot() });
         }
 
         const parsed = parseToolInput(input);
-        if (String(name).startsWith('submit_')) {
+        if (isSubmit) {
           const validation = validateSubmitToolPayload(name, parsed);
           if (!validation.valid) {
             return JSON.stringify({ error: 'validation_failed', errors: validation.errors });

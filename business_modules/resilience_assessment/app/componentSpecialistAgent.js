@@ -24,6 +24,7 @@ import { shouldAbstainFromInvestigation } from '../../epistemic_features/index.j
 import { narrativeInvestigationPermissive } from '../../../cross-cut-modules/resilience-contracts/narrativeEpistemicMode.js';
 import {
   buildComponentNarrative,
+  buildOperatorQualitativeNarrative,
   buildAbstentionNarrative,
   INSUFFICIENT_SYNTHESIS_NARRATIVE,
   shouldAllowTemplateNarrative,
@@ -272,11 +273,17 @@ function buildFallbackAssessment(componentId, evidenceGraph, epistemicProfile, t
   }));
   const ep = epistemicProfile?.by_component?.[componentId] ?? {};
   const investigationUsed = ep.investigation_used ?? ep.signal_count ?? claims.length;
-  const useInsufficientSynthesis = claims.length > 0 || investigationUsed >= 5
-    || !shouldAllowTemplateNarrative(ep, claims.length);
-  const narrative = useInsufficientSynthesis
-    ? INSUFFICIENT_SYNTHESIS_NARRATIVE
-    : buildComponentNarrative({ componentId, ep, claimCount: claims.length });
+  let narrative;
+  if (claims.length > 0) {
+    const claimTexts = claims.map((c) => String(c.text ?? '').trim()).filter(Boolean).slice(0, 3);
+    narrative = claimTexts.length > 1
+      ? claimTexts.join(' Separately, ')
+      : (claimTexts[0] ?? buildOperatorQualitativeNarrative({ componentId, ep }));
+  } else if (investigationUsed >= 5 || !shouldAllowTemplateNarrative(ep, claims.length)) {
+    narrative = INSUFFICIENT_SYNTHESIS_NARRATIVE;
+  } else {
+    narrative = buildComponentNarrative({ componentId, ep, claimCount: claims.length });
+  }
   const thinAbstain = ep.thin_evidence === true && claims.length === 0;
   let operatorStatus = 'stable';
   if (thinAbstain) {

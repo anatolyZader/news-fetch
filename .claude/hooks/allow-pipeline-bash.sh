@@ -7,10 +7,38 @@ command=$(echo "$input" | jq -r '.tool_input.command // empty')
 event=$(echo "$input" | jq -r '.hook_event_name // "PreToolUse"')
 [ -z "$command" ] && exit 0
 
+dangerous_command() {
+  echo "$command" | grep -qE '(^|[;&|] *)(sudo|rm -rf|curl [^|]*\| *bash|wget )'
+}
+
+safe_file_redirect_targets() {
+  local targets
+  targets=$(echo "$command" | grep -oE '[12]?>>? [^;&|[:space:]]+' | sed -E 's/^[12]?>>? //')
+  [ -z "$targets" ] && return 0
+  while IFS= read -r target; do
+    case "$target" in
+      logs/*|/home/eventstorm1/news/logs/*|/dev/null|/dev/stdout|/dev/stderr) ;;
+      *) return 1 ;;
+    esac
+  done <<< "$targets"
+}
+
+# Claude Code always prompts on `cd … && … > file` (path-resolution bypass guard).
+trusted_project_cd_compound() {
+  echo "$command" | grep -qE '^cd /home/eventstorm1/news( |$)' || return 1
+  echo "$command" | grep -qE '^cd /home/eventstorm1/news && ' || return 1
+  dangerous_command && return 1
+  if echo "$command" | grep -qE '[12]?>>? '; then
+    safe_file_redirect_targets || return 1
+  fi
+  return 0
+}
+
 pipeline_command() {
-  if echo "$command" | grep -qE '(^|[;&|] *)(sudo|rm -rf|curl [^|]*\| *bash|wget )'; then
+  if dangerous_command; then
     return 1
   fi
+  trusted_project_cd_compound && return 0
   echo "$command" | grep -qE 'logs/pipeline-run-(north|national)-' && return 0
   echo "$command" | grep -qE '(^|[;&|\n] *)export RESILIENCE_OPEN_EXTRACT_PARALLEL=1' && return 0
   echo "$command" | grep -qE '(^|[;&|\n] *)mkdir -p (logs|/home/eventstorm1/news/logs)' && return 0

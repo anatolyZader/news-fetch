@@ -19,12 +19,14 @@ import MonitorHeartOutlinedIcon from '@mui/icons-material/MonitorHeartOutlined';
 import HelpOutlineOutlinedIcon from '@mui/icons-material/HelpOutlineOutlined';
 import { expandSourceCitationLinks } from './ReportMarkdownView.jsx';
 import { formatReportMarkdown } from '../lib/formatSourceCitations.js';
+import { isStubNarrative } from '../lib/isStubNarrative.js';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { DriftSparkline, StatusTag, MarkdownArticle } from '../ui/index.js';
 import { AttentionPanel } from './AttentionPanel.jsx';
 import { ActionCompassPanel } from './ActionCompassPanel.jsx';
 import { EpistemicStatusBanner } from './EpistemicStatusBanner.jsx';
 import { ReportFreshnessBadges } from './ReportFreshnessBadges.jsx';
+import { OperatorReportContextLine } from './OperatorReportContextLine.jsx';
 import { EvidenceOverviewPanel } from './EvidenceOverviewPanel.jsx';
 import { ValidationReviewPanel } from './ValidationReviewPanel.jsx';
 import { CatalogProposalPanel } from './CatalogProposalPanel.jsx';
@@ -826,6 +828,33 @@ function EvidencePartitionPanel({ comp, t }) {
   );
 }
 
+function resolveCuratedEvidence(comp) {
+  if (comp.evidence_operator?.length) return comp.evidence_operator;
+  if (comp.evidence?.length) return comp.evidence;
+  return null;
+}
+
+function resolveComponentSignals(curatedEvidence, allowRawSignalFallback, sourceSignals) {
+  if (curatedEvidence) return null;
+  if (allowRawSignalFallback) return sourceSignals ?? [];
+  return null;
+}
+
+function componentIsInsufficient(comp) {
+  if (comp.operator_display_state) {
+    return comp.operator_display_state === 'insufficient_data';
+  }
+  return comp.confidence === 'insufficient_data' || comp.instrument?.operator_shows_score === false;
+}
+
+function evidenceAccordionTitle({ isFiltered, isAnalyst, operatorDisplayState, t }) {
+  if (isFiltered && !isAnalyst) return t('report.evidence.rawSourceExcerpts');
+  if (operatorDisplayState === 'insufficient_data' && !isAnalyst) {
+    return t('report.evidencePartition.rawScored');
+  }
+  return t('report.supportingEvidence');
+}
+
 function ComponentCard({
   comp,
   t,
@@ -844,16 +873,16 @@ function ComponentCard({
   const [showScoreDrift, setShowScoreDrift] = useState(false);
   const label = t(`comp.${comp.component_id}`) ?? comp.component_id.replaceAll('_', ' ');
 
-  const curatedEvidence = (comp.evidence_operator?.length ? comp.evidence_operator : null)
-    ?? (comp.evidence?.length ? comp.evidence : null);
-  const signals = curatedEvidence ? null : (sourceSignals ?? []);
+  const curatedEvidence = resolveCuratedEvidence(comp);
+  const narrativeText = String(comp.narrative ?? '').trim();
+  const narrativeIsStub = isStubNarrative(narrativeText);
+  const allowRawSignalFallback = isAnalyst || (!narrativeIsStub || Boolean(curatedEvidence?.length));
+  const signals = resolveComponentSignals(curatedEvidence, allowRawSignalFallback, sourceSignals);
   const isFiltered = Boolean(signals?.length);
   const evidenceCount = curatedEvidence?.length ?? signals?.length ?? 0;
   const showEvidenceAccordion = evidenceCount > 0;
   const formatMd = (markdown) => formatReportMarkdown(markdown, reportDate, expandSourceCitationLinks);
-  const isInsufficient = comp.operator_display_state
-    ? comp.operator_display_state === 'insufficient_data'
-    : (comp.confidence === 'insufficient_data' || comp.instrument?.operator_shows_score === false);
+  const isInsufficient = componentIsInsufficient(comp);
   const isContested = comp.instrument?.contested === true
     || comp.instrument?.contested_thin === true;
 
@@ -1002,10 +1031,15 @@ function ComponentCard({
         {!isAnalyst && <OperatorComponentStateBanner comp={comp} t={t} />}
         {!isAnalyst && <EvidencePartitionPanel comp={comp} t={t} />}
         <MarkdownArticle variant="report" markdown={formatMd(comp.narrative ?? '')} />
-        {(comp.interpretive_summary || comp.instrument?.interpretive_summary) && (
-          <Typography variant="caption" color="warning.main" sx={{ display: 'block', marginTop: 1 }}>
-            {t('report.narrative.interpretiveSummary')}
-          </Typography>
+        {(comp.instrument?.interpretive_summary === true) && (
+          <Box sx={(theme) => ({ marginTop: theme.spacing(1) })}>
+            <Typography variant="caption" color="warning.main" sx={{ display: 'block', fontWeight: 600 }}>
+              {t('report.narrative.interpretiveTitle')}
+            </Typography>
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', marginTop: 0.25 }}>
+              {t('report.narrative.interpretiveCaveat')}
+            </Typography>
+          </Box>
         )}
         {isAnalyst && comp.narrative_grounding_score != null && comp.narrative_grounding_score < 1 && (
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', marginTop: 0.5 }}>
@@ -1033,9 +1067,12 @@ function ComponentCard({
               fontWeight: 500,
             })}>
               <Typography variant="meta" component="span">
-                {comp.operator_display_state === 'insufficient_data' && !isAnalyst
-                  ? t('report.evidencePartition.rawScored')
-                  : t('report.supportingEvidence')}
+                {evidenceAccordionTitle({
+                  isFiltered,
+                  isAnalyst,
+                  operatorDisplayState: comp.operator_display_state,
+                  t,
+                })}
               </Typography>
               <Typography variant="caption" component="span" sx={{ marginLeft: 'auto', opacity: 0.7 }}>
                 {evidenceCount} {t('report.items')}
@@ -1045,6 +1082,11 @@ function ComponentCard({
               gap: theme.spacing(1),
               fontSize: theme.typography.body2.fontSize,
             })}>
+              {isFiltered && !isAnalyst && (
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', marginBottom: 0.5 }}>
+                  {t('report.evidence.rawSourceHint')}
+                </Typography>
+              )}
               <Box component="ul" sx={(theme) => ({ paddingLeft: theme.spacing(2.5), margin: 0 })}>
                 {isFiltered
                   ? signals.map((s, i) => (
@@ -1249,6 +1291,13 @@ export function ReportView({
         reportDate={reportDate ?? assessment?.date}
         generatedAt={generatedAt}
       />
+
+      {!isAnalyst && (
+        <OperatorReportContextLine
+          assessment={assessment}
+          reportScope={reportScope ?? assessment?.report_scope?.id ?? 'national'}
+        />
+      )}
 
       {showGuidancePanels && (
         <EpistemicStatusBanner

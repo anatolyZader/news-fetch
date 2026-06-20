@@ -32,6 +32,11 @@ Configured in `.claude/settings.json` → `statusLine.command` → `~/.claude/st
 
 At session start, read **`memory.md`** (repo) and `~/.claude/projects/-home-eventstorm1-news/memory/` (Claude project memory). Do not re-explain rules already there.
 
+## Bash permissions
+
+- **Edits:** `permissions.defaultMode: "acceptEdits"` in `.claude/settings.json` auto-approves file edits under the project (still prompts for `.git`, `.claude`, `.env`, etc.).
+- **Bash:** Compound `cd /home/eventstorm1/news && …` commands (including output to `logs/`) are auto-approved via `.claude/hooks/allow-pipeline-bash.sh`. Prefer absolute paths or `cd … && cmd` without redirects when possible; if redirecting, use `logs/` or `/dev/null`.
+
 ## Slash commands
 
 Pipeline commands live in `.claude/commands/` (analyze-news, analyze-radio, 8comp, etc.). External API slash commands must budget both $ and Claude tokens — see `memory.md`.

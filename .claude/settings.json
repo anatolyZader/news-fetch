@@ -4,6 +4,7 @@
     "MAX_THINKING_TOKENS": "10000"
   },
   "permissions": {
+    "defaultMode": "acceptEdits",
     "allow": [
       "Bash(npm test *)",
       "Bash(npm run lint *)",
@@ -25,6 +26,11 @@
       "Bash(echo *:+SET*)",
       "Bash(echo *X_BEARER_TOKEN*)",
       "Bash(echo *TELEGRAM_*)",
+      "Bash(cd /home/eventstorm1/news && *)",
+      "Bash(cd /home/eventstorm1/news && * > logs/*)",
+      "Bash(cd /home/eventstorm1/news && * >> logs/*)",
+      "Bash(cd /home/eventstorm1/news && * 2> logs/*)",
+      "Bash(cd /home/eventstorm1/news && * 2>> logs/*)",
       "Write(logs/**)",
       "Edit(logs/**)"
     ],

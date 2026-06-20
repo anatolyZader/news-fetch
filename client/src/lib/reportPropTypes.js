@@ -39,6 +39,7 @@ export const componentScoreShape = PropTypes.shape({
   interpretive_summary: PropTypes.bool,
   evidence: PropTypes.arrayOf(PropTypes.string),
   evidence_operator: PropTypes.arrayOf(PropTypes.string),
+  operator_evidence_tier: PropTypes.oneOf(['curated', 'none']),
   evidence_tree: PropTypes.arrayOf(PropTypes.object),
   reasoning_trace_id: PropTypes.string,
   severity: PropTypes.string,
@@ -103,6 +104,8 @@ export const assessmentShape = PropTypes.shape({
   }),
   synthesis_mode: PropTypes.string,
   degrade_reason: PropTypes.string,
+  narrative_pipeline_mode: PropTypes.oneOf(['hybrid', 'agent', 'legacy']),
+  narrative_scope_signal_count: PropTypes.number,
   narrative_grounding_summary: PropTypes.shape({
     mean_score: PropTypes.number,
     synthesis_score: PropTypes.number,
@@ -126,7 +129,6 @@ export const assessmentShape = PropTypes.shape({
     gate_warning: PropTypes.bool,
   }),
   default_district_signal_count: PropTypes.number,
-  narrative_scope_signal_count: PropTypes.number,
   north_cluster_narratives: PropTypes.object,
   oov_capture_count: PropTypes.number,
   oov_burst: PropTypes.shape({

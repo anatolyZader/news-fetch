@@ -19,6 +19,7 @@ import {
   mergeNationalContextSignals,
   summarizeNationalContext,
 } from '../domain/services/narrativeScopeSignals.js';
+import { finalizeOperatorNarrativeSurface } from '../domain/services/operatorNarrativeSurface.js';
 import {
   getSocialQuarantineDecision,
 } from '../domain/services/socialQuarantineOverrides.js';
@@ -141,6 +142,8 @@ export function applySharedAssessmentPostMetadata(assessment, ctx) {
   if (ctx.northClusterNarratives) {
     assessment.north_cluster_narratives = ctx.northClusterNarratives;
   }
+
+  finalizeOperatorNarrativeSurface(assessment);
 }
 
 /**

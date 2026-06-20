@@ -31,8 +31,10 @@ export function createAgentBudgetGovernor(opts = {}) {
       return { spentUsd, toolRounds, degradeMode };
     },
 
+    // toolRounds is tracked for telemetry/snapshot only; the cross-agent gate
+    // is USD. Per-agent round limits live in each kernel's runToolLoop maxRounds.
     canContinue() {
-      return spentUsd < maxUsd && toolRounds < maxToolRounds;
+      return spentUsd < maxUsd;
     },
 
     snapshot() {
