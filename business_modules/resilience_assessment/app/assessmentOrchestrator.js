@@ -26,7 +26,7 @@ import { buildPlannerContext } from '../../../cross-cut-modules/retrieval/planne
 import { computeArchiveMentionMass } from '../../../cross-cut-modules/retrieval/archiveEpistemicHints.js';
 import { loadOpenObservationsForAgent, groupObservationsByComponent } from '../../../cross-cut-modules/retrieval/residualObservations.js';
 import { enrichProfileForInvestigation } from '../../epistemic_features/index.js';
-import { applyInvestigationSignalFlags } from '../../resilience/index.js';
+import { applyInvestigationSignalFlags, buildNorthClusterNarrativesFromSignals } from '../../resilience/index.js';
 import {
   ASSESSMENT_SCHEMA_VERSION,
   createEmptyAssessmentV2,
@@ -281,8 +281,11 @@ export async function runAssessmentAgent(params) {
     sourceArchive = null,
     evidenceStore = null,
     scopedSignals = null,
+    narrativeScopeSignals = null,
     oovBurst = null,
   } = params;
+
+  const narrativePool = narrativeScopeSignals ?? scopedSignals ?? signals;
 
   const budget = createAgentBudgetGovernor({
     maxUsd: assessmentAgentMaxUsd(),
@@ -313,7 +316,7 @@ export async function runAssessmentAgent(params) {
 
   const evidenceGraphInitial = buildEvidenceGraph({
     hits: [],
-    signals,
+    signals: narrativePool,
     epistemicProfile: epistemicProfileBase,
     oovBurst: investigationBurst ?? oovBurst,
     totalArticles,
@@ -349,10 +352,10 @@ export async function runAssessmentAgent(params) {
     retrieval,
     reportDate,
     reportScopeId,
-    epistemicProfileBase,
+    epistemicProfile: epistemicProfileBase,
     focusComponents,
     abstentionSet,
-    signals,
+    signals: narrativePool,
     assessmentMode,
     epistemicStatus,
   });
@@ -369,7 +372,7 @@ export async function runAssessmentAgent(params) {
 
   const evidenceGraph = buildEvidenceGraph({
     hits,
-    signals,
+    signals: narrativePool,
     epistemicProfile: epistemicProfileEnriched,
     oovBurst: investigationBurst ?? oovBurst,
     totalArticles,
@@ -391,7 +394,11 @@ export async function runAssessmentAgent(params) {
   let currentPlan = plan;
   let plannerSource;
 
-  const signalPool = scopedSignals ?? signals;
+  const signalPool = narrativePool;
+
+  const clusterSummaries = reportScopeId === 'north'
+    ? buildNorthClusterNarrativesFromSignals(narrativePool)
+    : null;
 
   function tasksForComponent(componentId, activePlan = currentPlan) {
     return (activePlan.investigation_tasks ?? []).filter((t) => t.component_id === componentId);
@@ -417,6 +424,8 @@ export async function runAssessmentAgent(params) {
       evidenceGraph,
       gapClosureTasks,
       assignedTasks,
+      reportScopeId,
+      totalScopedSignals: (scopedSignals ?? signals ?? []).length,
     });
 
     const raw = await runComponentSpecialist({
@@ -525,6 +534,7 @@ export async function runAssessmentAgent(params) {
     oovClusters: evidenceGraph.nodes?.oov_clusters ?? [],
     openObservationClaims,
     assessmentMode,
+    clusterSummaries,
   });
 
   const synth = applySynthesisOovChecks(synthRaw, {

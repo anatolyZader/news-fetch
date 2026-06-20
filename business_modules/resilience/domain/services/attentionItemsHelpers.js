@@ -4,6 +4,7 @@
 
 import { deriveInstrumentState } from './assessmentDisplayTier.js';
 import { THIN_EVIDENCE_INSTRUMENT } from './thinEvidencePolicy.js';
+import { isSoftVoidWarning } from '../../../../cross-cut-modules/resilience-contracts/softVoidReasons.js';
 
 /**
  * @param {Array<object>} items
@@ -38,6 +39,7 @@ export function addDataVoidAttentionItems(push, item, dataVoid) {
     return;
   }
   if (voidLevel === 'elevated' || voidLevel === 'warning') {
+    if (isSoftVoidWarning(dataVoid)) return;
     push(item('warning', `data_void:${voidLevel}`, 'data_void_drop', 'attention.dataVoid.warning', {
       detail_key: 'attention.dataVoid.warningDetail',
       detail_params: {

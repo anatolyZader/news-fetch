@@ -59,9 +59,9 @@ describe('chatAgentToolSelection (offline eval)', () => {
     }
   });
 
-  it('default profile excludes guidance tools when narrative focus UI is on', () => {
-    const prev = process.env.RESILIENCE_NARRATIVE_FOCUS_UI;
-    process.env.RESILIENCE_NARRATIVE_FOCUS_UI = '1';
+  it('default profile excludes guidance tools when operator epistemic overlay is off', () => {
+    const prev = process.env.RESILIENCE_OPERATOR_EPISTEMIC_OVERLAY;
+    process.env.RESILIENCE_OPERATOR_EPISTEMIC_OVERLAY = '0';
     try {
       const tools = buildChatToolList({
         analystToolsEnabled: true,
@@ -76,14 +76,14 @@ describe('chatAgentToolSelection (offline eval)', () => {
       assert.equal(names.has('propose_operator_recommendation'), false);
       assert.ok(names.has('lookup_signals'));
     } finally {
-      if (prev === undefined) delete process.env.RESILIENCE_NARRATIVE_FOCUS_UI;
-      else process.env.RESILIENCE_NARRATIVE_FOCUS_UI = prev;
+      if (prev === undefined) delete process.env.RESILIENCE_OPERATOR_EPISTEMIC_OVERLAY;
+      else process.env.RESILIENCE_OPERATOR_EPISTEMIC_OVERLAY = prev;
     }
   });
 
-  it('default profile keeps guidance tools for analyst users when narrative focus UI is on', () => {
-    const prev = process.env.RESILIENCE_NARRATIVE_FOCUS_UI;
-    process.env.RESILIENCE_NARRATIVE_FOCUS_UI = '1';
+  it('default profile keeps guidance tools for analyst users when operator epistemic overlay is off', () => {
+    const prev = process.env.RESILIENCE_OPERATOR_EPISTEMIC_OVERLAY;
+    process.env.RESILIENCE_OPERATOR_EPISTEMIC_OVERLAY = '0';
     try {
       const tools = buildChatToolList({
         analystToolsEnabled: true,
@@ -95,8 +95,8 @@ describe('chatAgentToolSelection (offline eval)', () => {
       assert.ok(names.has('list_attention_items'));
       assert.ok(names.has('get_decision_brief'));
     } finally {
-      if (prev === undefined) delete process.env.RESILIENCE_NARRATIVE_FOCUS_UI;
-      else process.env.RESILIENCE_NARRATIVE_FOCUS_UI = prev;
+      if (prev === undefined) delete process.env.RESILIENCE_OPERATOR_EPISTEMIC_OVERLAY;
+      else process.env.RESILIENCE_OPERATOR_EPISTEMIC_OVERLAY = prev;
     }
   });
 

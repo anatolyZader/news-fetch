@@ -82,7 +82,7 @@ describe('criticAgent openness', () => {
     const first = runCriticChecks(assessment, ep);
     assert.ok(first.issues.some((i) => i.type === 'dominance_unacknowledged'));
     const repaired = applyCriticRepair({ ...assessment }, first.issues);
-    assert.match(repaired.narrative, /source/);
+    assert.ok(repaired.retrieval_gaps.some((g) => g.includes('single source channel')));
     assert.doesNotMatch(repaired.narrative, /%/);
     assert.doesNotMatch(repaired.narrative, /mass cap/);
     assert.doesNotMatch(repaired.narrative, /\(pbo\)/);

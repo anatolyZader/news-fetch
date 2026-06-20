@@ -10,6 +10,7 @@ export const SIGNAL_PROVENANCE = Object.freeze({
   verified_geo: 'verified_geo',
   source_assigned: 'source_assigned',
   macro_national: 'macro_national',
+  narrative_national_context: 'narrative_national_context',
   unscoped: 'unscoped',
 });
 
@@ -28,6 +29,10 @@ export const MACRO_NATIONAL_TERMS = [
  * @returns {string} SIGNAL_PROVENANCE value
  */
 export function deriveSignalProvenance(signal) {
+  if (signal?.signalProvenance === SIGNAL_PROVENANCE.narrative_national_context
+    || signal?.narrativeContextOnly === true) {
+    return SIGNAL_PROVENANCE.narrative_national_context;
+  }
   const scope = signal?.scopeDecision;
   if (scope?.macro_scope === 'national') return SIGNAL_PROVENANCE.macro_national;
   if (signalDistrictId(signal)) {
@@ -68,7 +73,10 @@ export function metricsEligible(signal, opts = {}) {
   if (!epistemicV2) return true;
 
   const provenance = signal?.signalProvenance ?? deriveSignalProvenance(signal);
-  if (provenance === SIGNAL_PROVENANCE.macro_national) return false;
+  if (provenance === SIGNAL_PROVENANCE.macro_national
+    || provenance === SIGNAL_PROVENANCE.narrative_national_context) {
+    return false;
+  }
 
   const g = signal?.geo;
   if (g?.kind === 'resolved') {

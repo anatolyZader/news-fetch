@@ -1,3 +1,5 @@
+import { isSoftVoidWarning } from '../../../cross-cut-modules/resilience-contracts/softVoidReasons.js';
+
 /**
  * Derive epistemic status banner messages for the report UI.
  * @param {object | null | undefined} assessment
@@ -38,7 +40,7 @@ function addDataVoidBanner(push, isAnalyst, dataVoid, voidLevel, attentionIds) {
   });
 }
 
-function addAssessmentModeBanners(push, assessmentMode, epistemicStatus, attentionIds) {
+function addAssessmentModeBanners(push, assessmentMode, epistemicStatus, attentionIds, dataVoid, isAnalyst) {
   if (assessmentMode === 'field_anchor_only' && !attentionIds.has('epistemic:field_anchor_only')) {
     push({
       id: 'epistemic:field_anchor_only',
@@ -59,6 +61,7 @@ function addAssessmentModeBanners(push, assessmentMode, epistemicStatus, attenti
   }
 
   if (epistemicStatus?.sampling_status !== 'degraded') return;
+  if (!isAnalyst && isSoftVoidWarning(dataVoid)) return;
   push({
     id: 'epistemic:sampling_degraded',
     severity: 'warning',
@@ -166,7 +169,8 @@ function addGeoQualityBanner(push, isAnalyst, methodology, assessment, attention
   });
 }
 
-function addCalibrationBanner(push, methodology) {
+function addCalibrationBanner(push, methodology, isAnalyst) {
+  if (!isAnalyst) return;
   const calibration = methodology?.calibration ?? null;
   if (calibration?.deficit == null || calibration.deficit < 0.5) return;
   push({
@@ -237,11 +241,11 @@ export function deriveEpistemicBannerMessages(assessment, opts = {}) {
 
   addAssessmentDegradedBanner(push, assessment, attentionIds);
   addDataVoidBanner(push, isAnalyst, dataVoid, voidLevel, attentionIds);
-  addAssessmentModeBanners(push, assessmentMode, epistemicStatus, attentionIds);
+  addAssessmentModeBanners(push, assessmentMode, epistemicStatus, attentionIds, dataVoid, isAnalyst);
   addSocialQuarantineBanners(push, assessment.social_channel_quarantine ?? null, attentionIds);
   addDigitalQuarantineBanners(push, assessment, attentionIds);
   addGeoQualityBanner(push, isAnalyst, methodology, assessment, attentionIds);
-  addCalibrationBanner(push, methodology);
+  addCalibrationBanner(push, methodology, isAnalyst);
   addNorrisDisclaimer(push, isAnalyst, assessment);
 
   if (!isAnalyst && opts.suggestCrisisBudget === true) {

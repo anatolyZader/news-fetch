@@ -5,6 +5,10 @@ export {
   narrativeGroundingMinScore,
   narrativeSynthesisMaxUrls,
   EVIDENCE_OVERLAP_MIN,
+  resolveNarrativePipelineMode,
+  hybridNarrativeEnabled,
+  legacyNarrativeOnly,
+  operatorNarrativePipelineEnabled,
 } from './groundingConfig.js';
 
 export {

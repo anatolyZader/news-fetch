@@ -8,5 +8,7 @@ describe('assessmentPipeline.scopeAndPartitionSignals', () => {
     const out = scopeAndPartitionSignals(signals, 'national');
     assert.equal(out.scopedSignals.length, 1);
     assert.equal(out.baseSignalsForScoring.length, 1);
+    assert.equal(out.narrativeNationalContext.length, 0);
+    assert.equal(out.narrativeScopeSignals.length, 1);
   });
 });

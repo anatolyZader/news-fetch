@@ -1,3 +1,18 @@
+/** Operator message when signals exist but LLM synthesis did not run. */
+export const INSUFFICIENT_SYNTHESIS_NARRATIVE =
+  'Insufficient LLM synthesis — see supporting evidence below.';
+
+/**
+ * Templates are for true empty/abstain only — not when investigation signals exist.
+ * @param {object} ep
+ * @param {number} [claimCount]
+ * @returns {boolean}
+ */
+export function shouldAllowTemplateNarrative(ep, claimCount = 0) {
+  const signalCount = ep.signal_count ?? claimCount ?? 0;
+  return signalCount === 0;
+}
+
 /**
  * Deterministic narrative templates — readable English prose built from structured
  * epistemic facts (never raw evidence text). Used by the fallback/deterministic
@@ -24,6 +39,22 @@ function componentLabel(componentId) {
 function dominantSourceType(ep) {
   const warning = (ep?.dominance_warnings ?? []).find((w) => w?.layer === 'source_type');
   return warning?.key ?? null;
+}
+
+/**
+ * Whether operator narrative should describe single-channel concentration.
+ * Dominance alone is insufficient when diversity or investigation pool is rich.
+ * @param {object} ep epistemic profile slice for the component
+ * @returns {boolean}
+ */
+export function shouldUseSingleChannelNarrative(ep) {
+  const diversity = ep?.source_diversity ?? 0;
+  const investigationUsed = ep?.investigation_used ?? ep?.signal_count ?? 0;
+  const hasDominance = (ep?.dominance_warnings ?? []).some((w) => w?.layer === 'source_type');
+  if (!hasDominance) return false;
+  if (diversity >= 2) return false;
+  if (investigationUsed > 20) return false;
+  return true;
 }
 
 /**
@@ -58,11 +89,14 @@ function qualityCaveat({ contested, thin, dominant }) {
  */
 function operatorNarrative(label, ep) {
   const dominant = dominantSourceType(ep) !== null;
+  const singleChannel = shouldUseSingleChannelNarrative(ep);
   const diversity = ep.source_diversity ?? null;
 
   let concentration;
-  if (dominant) {
+  if (singleChannel) {
     concentration = 'rests on a single evidence channel';
+  } else if (dominant) {
+    concentration = 'draws on multiple evidence channels with one source family over-represented';
   } else if (typeof diversity === 'number' && diversity > 1) {
     concentration = 'draws on multiple evidence channels';
   } else {
@@ -73,7 +107,7 @@ function operatorNarrative(label, ep) {
   const caveat = qualityCaveat({
     contested: ep.contested === true,
     thin: ep.thin_evidence === true,
-    dominant: dominant || concentration === 'rests on a limited evidence base',
+    dominant: singleChannel || dominant || concentration === 'rests on a limited evidence base',
   });
 
   return caveat ? `${lead} ${caveat}` : lead;
@@ -120,6 +154,10 @@ export function buildComponentNarrative({ componentId, ep = {}, claimCount = 0, 
 
   if (!signalCount) {
     return `${label}: no substantive signals today.`;
+  }
+
+  if (view !== 'analyst' && !shouldAllowTemplateNarrative(ep, claimCount)) {
+    return INSUFFICIENT_SYNTHESIS_NARRATIVE;
   }
 
   return view === 'analyst'

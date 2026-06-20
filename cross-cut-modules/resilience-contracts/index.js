@@ -27,6 +27,11 @@ export {
   createEmptyAssessmentV2,
 } from './assessmentV2.js';
 export {
-  narrativeFocusUiEnabled,
+  operatorEpistemicOverlayEnabled,
   stripOperatorGuidancePayload,
-} from './narrativeFocusUi.js';
+} from './operatorEpistemicOverlay.js';
+export {
+  narrativeEpistemicMode,
+  narrativeInvestigationPermissive,
+} from './narrativeEpistemicMode.js';
+export { isSoftVoidWarning, SOFT_VOID_REASONS } from './softVoidReasons.js';

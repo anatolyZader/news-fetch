@@ -8,6 +8,7 @@
  */
 
 import { THIN_EVIDENCE_INSTRUMENT } from './thinEvidencePolicy.js';
+import { isSoftVoidWarning } from '../../../../cross-cut-modules/resilience-contracts/softVoidReasons.js';
 import { classifyKind, isInfoNoise } from './actionCompassKinds.js';
 import { scoreAction, selectWithKindDiversity } from './actionCompassRanking.js';
 import { buildGroundingContext } from './actionCompassGrounding.js';
@@ -62,6 +63,7 @@ export function deriveUncertaintyBand(dataVoid, epistemicStatus) {
  */
 function collectCandidates(assessment, attentionItems, band, geoUnknownCount) {
   const candidates = [];
+  const dataVoid = assessment?.data_void ?? null;
 
   const sortedAttention = [...(attentionItems ?? [])].sort((a, b) => {
     const la = LEVEL_PRIORITY[a.level] ?? 99;
@@ -70,6 +72,7 @@ function collectCandidates(assessment, attentionItems, band, geoUnknownCount) {
   });
   for (const it of sortedAttention.slice(0, 8)) {
     if (isInfoNoise(it.code)) continue;
+    if (it.code === 'data_void_drop' && isSoftVoidWarning(dataVoid)) continue;
     candidates.push({
       id: `compass:attention:${it.id}`,
       source: 'attention',

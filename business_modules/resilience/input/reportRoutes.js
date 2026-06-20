@@ -26,7 +26,7 @@ import {
   buildAnomalyStrip,
   updateOperatorRecommendationStatus,
   parseOperatorRecommendationRequest,
-  narrativeFocusUiEnabled,
+  operatorEpistemicOverlayEnabled,
   stripOperatorGuidancePayload,
 } from '../index.js';
 import { isRegionalReportScope } from '../../../cross-cut-modules/geo/reportScopeIds.js';
@@ -269,7 +269,7 @@ export async function reportRoutes(app, opts) {
       responsePayload = await localizeReportTodayPayload(responsePayload, lang);
     }
 
-    if (narrativeFocusUiEnabled() && display_view === DISPLAY_VIEWS.operator) {
+    if (!operatorEpistemicOverlayEnabled() && display_view === DISPLAY_VIEWS.operator) {
       responsePayload = stripOperatorGuidancePayload(responsePayload);
     }
 
@@ -481,7 +481,7 @@ export async function reportRoutes(app, opts) {
           display_view: displayView,
           ...redacted,
         }, lang);
-        if (narrativeFocusUiEnabled() && displayView === DISPLAY_VIEWS.operator) {
+        if (!operatorEpistemicOverlayEnabled() && displayView === DISPLAY_VIEWS.operator) {
           localized = stripOperatorGuidancePayload(localized);
         }
         return reply.send({ report: localized.assessment ?? report });

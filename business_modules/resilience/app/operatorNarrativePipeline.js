@@ -1,0 +1,203 @@
+/**
+ * Hybrid operator narrative pipeline: RAG → facts → merge agent claims → judge → polish → validate.
+ */
+import { buildNarrativeRetrievalContext } from '../infrastructure/narrativeRetrievalContext.js';
+import { extractNarrativeFacts } from '../infrastructure/narrativeFactsExtract.js';
+import {
+  judgeNarrativeRelations,
+  formatJudgeFeedback,
+} from '../infrastructure/narrativeRelationJudge.js';
+import { polishNarrativeFromClaims } from '../infrastructure/narrativePolish.js';
+import { buildFullSignalDigest } from '../domain/services/buildFullSignalDigest.js';
+import { mergeAgentClaimsWithFacts } from '../domain/services/buildNarrativeScoredComponents.js';
+import {
+  buildSignalRefRegistry,
+  validateNarrativeOutput,
+  formatValidationFeedback,
+  computeGroundingScores,
+  validateSuppressionCompliance,
+  formatSuppressionFeedback,
+  isNarrativeFactsPassEnabled,
+  isNarrativeJudgeEnabled,
+  hybridNarrativeEnabled,
+  legacyNarrativeOnly,
+  resolveNarrativePipelineMode,
+} from '../domain/services/narrativeGrounding/index.js';
+
+const MAX_FACTS_ATTEMPTS = 2;
+const MAX_POLISH_ATTEMPTS = 2;
+
+/**
+ * @param {object} params
+ * @returns {Promise<object|null>}
+ */
+export async function runOperatorNarrativePipeline(params) {
+  const {
+    assessment,
+    narrativeScopeSignals,
+    scoredFull = null,
+    retrievalService = null,
+    reportDate,
+    onUsage,
+    llmPort,
+  } = params;
+
+  if (!assessment || !Array.isArray(narrativeScopeSignals) || narrativeScopeSignals.length === 0) {
+    return null;
+  }
+
+  const narrativeScored = buildFullSignalDigest(narrativeScopeSignals, scoredFull);
+  const registry = buildSignalRefRegistry(narrativeScored);
+  if (registry.refCount === 0) return null;
+
+  const llmOpts = { onUsage, llmPort };
+  const rag = await buildNarrativeRetrievalContext(narrativeScored, {
+    retrievalService,
+    reportDate,
+  });
+
+  let factsByComponent = {};
+  let mergedNarratives = { components: [] };
+  let judgeFeedback = '';
+
+  for (let attempt = 0; attempt < MAX_FACTS_ATTEMPTS; attempt += 1) {
+    if (isNarrativeFactsPassEnabled()) {
+      factsByComponent = await extractNarrativeFacts(narrativeScored, {
+        ...llmOpts,
+        retrievedSpansBlock: rag.block,
+      });
+    }
+
+    mergedNarratives = mergeAgentClaimsWithFacts(assessment, factsByComponent);
+    if (!(mergedNarratives.components ?? []).some((c) => (c.narrative_claims ?? []).length > 0)) {
+      return null;
+    }
+
+    if (!isNarrativeJudgeEnabled()) break;
+
+    const judgeResult = await judgeNarrativeRelations(mergedNarratives, registry, llmOpts);
+    if (judgeResult.ok) break;
+    judgeFeedback = formatJudgeFeedback(judgeResult.failures);
+    if (attempt >= MAX_FACTS_ATTEMPTS - 1) {
+      console.error(`[operator-narrative] Relation judge failures after ${MAX_FACTS_ATTEMPTS} attempts`);
+    }
+  }
+
+  let polish = { components: [], cross_component_synthesis: '' };
+  let validationFeedback = '';
+  if (judgeFeedback) validationFeedback = judgeFeedback;
+
+  for (let attempt = 0; attempt < MAX_POLISH_ATTEMPTS; attempt += 1) {
+    const feedback = [judgeFeedback, validationFeedback].filter(Boolean).join('\n\n');
+    polish = await polishNarrativeFromClaims(
+      mergedNarratives,
+      registry,
+      narrativeScored,
+      { ...llmOpts, retrievedSpansBlock: rag.block, feedback, skipProgress: false },
+    );
+
+    const validation = validateNarrativeOutput(polish, {
+      scoredComponents: narrativeScored,
+      registry,
+    });
+    const suppression = validateSuppressionCompliance(polish, narrativeScored);
+
+    if (validation.ok && suppression.ok) break;
+
+    validationFeedback = [
+      formatValidationFeedback(validation),
+      formatSuppressionFeedback(suppression),
+    ].filter(Boolean).join('\n\n');
+
+    if (attempt >= MAX_POLISH_ATTEMPTS - 1) {
+      console.error('[operator-narrative] Validation failed after polish retries; applying best-effort output');
+    }
+  }
+
+  const groundingScores = computeGroundingScores(polish, narrativeScored, registry);
+  return {
+    polish,
+    groundingScores,
+    narrativeScored,
+    registry,
+  };
+}
+
+/**
+ * Apply pipeline output to assessment (hybrid or legacy mode).
+ * @param {object} assessment
+ * @param {object} pipelineResult
+ */
+export function applyOperatorNarrativeToAssessment(assessment, pipelineResult) {
+  if (!assessment || !pipelineResult?.polish) return assessment;
+
+  const mode = resolveNarrativePipelineMode();
+  const { polish, groundingScores } = pipelineResult;
+  const polishById = Object.fromEntries(
+    (polish.components ?? []).map((c) => [c.component_id, c]),
+  );
+
+  for (const comp of assessment.components ?? []) {
+    const leg = polishById[comp.component_id];
+    if (!leg?.narrative) continue;
+
+    comp.narrative_operator = leg.narrative;
+    comp.narrative_grounding_score = groundingScores?.byComponent?.[comp.component_id]?.score ?? null;
+
+    if (Array.isArray(leg.evidence) && leg.evidence.length > 0) {
+      comp.evidence_operator = leg.evidence;
+    }
+
+    if (leg.data_quality_caveat) {
+      comp.data_quality_caveat = leg.data_quality_caveat;
+    }
+
+    if (legacyNarrativeOnly()) {
+      comp.narrative = leg.narrative;
+      if (Array.isArray(leg.narrative_claims) && leg.narrative_claims.length > 0) {
+        comp.narrative_claims = leg.narrative_claims;
+      }
+      if (Array.isArray(leg.evidence) && leg.evidence.length > 0) {
+        comp.evidence = leg.evidence;
+      }
+    }
+  }
+
+  if (polish.cross_component_synthesis) {
+    assessment.cross_component_synthesis_operator = polish.cross_component_synthesis;
+    if (legacyNarrativeOnly()) {
+      assessment.cross_component_synthesis = polish.cross_component_synthesis;
+    }
+  }
+
+  assessment.narrative_pipeline_mode = mode;
+  return assessment;
+}
+
+/**
+ * @param {object} params
+ * @returns {Promise<object>}
+ */
+export async function applyOperatorNarrativePipeline(params) {
+  const { assessment } = params;
+  if (!hybridNarrativeEnabled() && !legacyNarrativeOnly()) {
+    return assessment;
+  }
+
+  try {
+    const result = await runOperatorNarrativePipeline(params);
+    if (result) {
+      applyOperatorNarrativeToAssessment(assessment, result);
+    }
+  } catch (err) {
+    console.error(`[operator-narrative] Pipeline failed (${err.message}); keeping agent narratives`);
+  }
+
+  return assessment;
+}
+
+export {
+  hybridNarrativeEnabled,
+  legacyNarrativeOnly,
+  resolveNarrativePipelineMode,
+};

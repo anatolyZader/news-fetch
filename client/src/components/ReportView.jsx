@@ -18,6 +18,7 @@ import Diversity3OutlinedIcon from '@mui/icons-material/Diversity3Outlined';
 import MonitorHeartOutlinedIcon from '@mui/icons-material/MonitorHeartOutlined';
 import HelpOutlineOutlinedIcon from '@mui/icons-material/HelpOutlineOutlined';
 import { expandSourceCitationLinks } from './ReportMarkdownView.jsx';
+import { formatReportMarkdown } from '../lib/formatSourceCitations.js';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { DriftSparkline, StatusTag, MarkdownArticle } from '../ui/index.js';
 import { AttentionPanel } from './AttentionPanel.jsx';
@@ -30,7 +31,6 @@ import { CatalogProposalPanel } from './CatalogProposalPanel.jsx';
 import { OovAnomalyClustersPanel } from './OovAnomalyClustersPanel.jsx';
 import { OperatorRecommendationsPanel } from './OperatorRecommendationsPanel.jsx';
 import { DecisionBriefPanel } from './DecisionBriefPanel.jsx';
-import { EvidenceTreePanel } from './EvidenceTreePanel.jsx';
 import { AgentDivergencePanel } from './AgentDivergencePanel.jsx';
 import { InstrumentMetricsBadges } from './InstrumentMetricsBadges.jsx';
 import { ReportComponentFilterBar, readReportComponentFilter } from './ReportComponentFilterBar.jsx';
@@ -559,34 +559,131 @@ function DeltaLine({ comp, t }) {
   );
 }
 
-function MacroSignalsSection({ macroSignals, t, isAnalyst }) {
-  const list = Array.isArray(macroSignals) ? macroSignals : [];
-  if (list.length === 0) return null;
-  if (!isAnalyst) return null;
+function provenanceLabel(provenance, t) {
+  if (!provenance) return t('report.nationalContext.provenance.unknown');
+  const key = `report.nationalContext.provenance.${provenance}`;
+  const label = t(key);
+  return label !== key ? label : provenance;
+}
+
+function ScopeAttributionBanner({ assessment, t }) {
+  const scopeAttr = assessment?.scope_attribution;
+  const count = assessment?.default_district_signal_count ?? scopeAttr?.default_district_signal_count ?? 0;
+  if (count <= 0 && !scopeAttr?.gate_warning) return null;
+
+  const pct = scopeAttr?.default_district_pct;
+  const threshold = scopeAttr?.gate_threshold_pct;
+  const lines = [];
+  if (count > 0) {
+    lines.push(
+      t('report.scopeAttribution.defaultNorth')
+        .replace('{count}', String(count))
+        .replace('{pct}', pct != null ? String(pct) : '?'),
+    );
+  }
+  if (scopeAttr?.gate_warning && threshold != null) {
+    lines.push(
+      t('report.scopeAttribution.gateWarning')
+        .replace('{threshold}', String(threshold)),
+    );
+  }
 
   return (
-    <Box sx={(theme) => ({
-      padding: theme.spacing(1.5),
-      border: theme.custom.border.hairline,
-      borderRadius: `${theme.custom.radius.section}px`,
-      background: theme.palette.action.hover,
-    })}>
-      <Typography variant="cardTitle" sx={{ marginBottom: 1 }}>
-        {t('report.macroSignals.title').replace('{n}', String(list.length))}
-      </Typography>
-      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', marginBottom: 1 }}>
-        {t('report.macroSignals.body')}
-      </Typography>
-      <Stack spacing={0.75}>
-        {list.slice(0, 12).map((s, i) => (
-          <Typography key={`${s.signal_type ?? s.type ?? 'macro'}-${i}`} variant="body2" sx={{ fontSize: '0.85rem' }}>
-            <strong>{(s.signal_type ?? s.type ?? 'macro').replaceAll('_', ' ')}</strong>
-            {' — '}
-            {String(s.evidence ?? '').slice(0, 240)}
-          </Typography>
+    <Alert severity="warning" sx={{ marginBottom: 2 }}>
+      <Stack spacing={0.25}>
+        {lines.map((line) => (
+          <Typography key={line} variant="body2">{line}</Typography>
         ))}
       </Stack>
-    </Box>
+    </Alert>
+  );
+}
+
+function NationalContextSection({ nationalContextSignals, t }) {
+  const list = Array.isArray(nationalContextSignals) ? nationalContextSignals : [];
+  if (list.length === 0) return null;
+
+  return (
+    <Accordion defaultExpanded={false} disableGutters sx={{ '&:before': { display: 'none' } }}>
+      <AccordionSummary expandIcon={<Typography component="span" aria-hidden>▾</Typography>}>
+        <Box>
+          <Typography variant="cardTitle">
+            {t('report.nationalContext.title').replace('{n}', String(list.length))}
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            {t('report.nationalContext.collapsedHint')}
+          </Typography>
+        </Box>
+      </AccordionSummary>
+      <AccordionDetails>
+        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', marginBottom: 1 }}>
+          {t('report.nationalContext.body')}
+        </Typography>
+        <Stack spacing={0.75}>
+          {list.slice(0, 12).map((s, i) => (
+            <Box key={`${s.signal_type ?? 'macro'}-${i}`}>
+              <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" sx={{ marginBottom: 0.25 }}>
+                <Typography variant="caption" color="text.secondary">
+                  {provenanceLabel(s.signalProvenance, t)}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  {(s.signal_type ?? 'macro').replaceAll('_', ' ')}
+                </Typography>
+              </Stack>
+              <Typography variant="body2" sx={{ fontSize: '0.85rem' }}>
+                {String(s.evidence ?? '').slice(0, 240)}
+              </Typography>
+            </Box>
+          ))}
+        </Stack>
+      </AccordionDetails>
+    </Accordion>
+  );
+}
+
+function NorthClusterNarrativesSection({ clusterNarratives, t, reportScope }) {
+  const scopeId = reportScope?.id ?? reportScope ?? 'national';
+  if (scopeId !== 'north') return null;
+  const clusters = clusterNarratives && typeof clusterNarratives === 'object'
+    ? Object.entries(clusterNarratives)
+    : [];
+  if (clusters.length === 0) return null;
+
+  return (
+    <Accordion defaultExpanded={false} disableGutters sx={{ '&:before': { display: 'none' } }}>
+      <AccordionSummary expandIcon={<Typography component="span" aria-hidden>▾</Typography>}>
+        <Typography variant="cardTitle">
+          {t('report.northClusters.title').replace('{n}', String(clusters.length))}
+        </Typography>
+      </AccordionSummary>
+      <AccordionDetails>
+        <Stack spacing={1.5}>
+          {clusters.map(([clusterId, summary]) => (
+            <Box
+              key={clusterId}
+              sx={(theme) => ({
+                padding: theme.spacing(1),
+                border: theme.custom.border.hairline,
+                borderRadius: `${theme.custom.radius.section}px`,
+              })}
+            >
+              <Typography variant="cardTitle" sx={{ marginBottom: 0.5 }}>
+                {t(`report.northClusters.${clusterId}`) !== `report.northClusters.${clusterId}`
+                  ? t(`report.northClusters.${clusterId}`)
+                  : clusterId}
+                {' '}
+                ({summary.signal_count ?? 0})
+              </Typography>
+              {(summary.top_evidence ?? []).map((ev, idx) => (
+                <Typography key={`${clusterId}-${idx}`} variant="body2" sx={{ fontSize: '0.85rem' }}>
+                  {String(ev).slice(0, 200)}
+                </Typography>
+              ))}
+            </Box>
+          ))}
+        </Stack>
+      </AccordionDetails>
+    </Accordion>
   );
 }
 
@@ -732,6 +829,7 @@ function EvidencePartitionPanel({ comp, t }) {
 function ComponentCard({
   comp,
   t,
+  reportDate,
   sourceSignals,
   driftSeries,
   driftLoading,
@@ -746,18 +844,16 @@ function ComponentCard({
   const [showScoreDrift, setShowScoreDrift] = useState(false);
   const label = t(`comp.${comp.component_id}`) ?? comp.component_id.replaceAll('_', ' ');
 
-  const isFiltered = sourceSignals !== null && sourceSignals !== undefined;
-  const signals = isFiltered ? (sourceSignals ?? []) : null;
-  const curatedEvidence = isFiltered ? null : (comp.evidence ?? []);
-  const evidenceCount = isFiltered ? signals.length : curatedEvidence.length;
+  const curatedEvidence = (comp.evidence_operator?.length ? comp.evidence_operator : null)
+    ?? (comp.evidence?.length ? comp.evidence : null);
+  const signals = curatedEvidence ? null : (sourceSignals ?? []);
+  const isFiltered = Boolean(signals?.length);
+  const evidenceCount = curatedEvidence?.length ?? signals?.length ?? 0;
+  const showEvidenceAccordion = evidenceCount > 0;
+  const formatMd = (markdown) => formatReportMarkdown(markdown, reportDate, expandSourceCitationLinks);
   const isInsufficient = comp.operator_display_state
     ? comp.operator_display_state === 'insufficient_data'
     : (comp.confidence === 'insufficient_data' || comp.instrument?.operator_shows_score === false);
-  const showEvidenceAccordion = isAnalyst
-    || !comp.operator_display_state
-    || comp.operator_display_state === 'assessed_claims'
-    || comp.operator_display_state === 'assessed_low_confidence'
-    || (comp.coverage?.scoring_used ?? 0) > 0;
   const isContested = comp.instrument?.contested === true
     || comp.instrument?.contested_thin === true;
 
@@ -905,12 +1001,7 @@ function ComponentCard({
         )}
         {!isAnalyst && <OperatorComponentStateBanner comp={comp} t={t} />}
         {!isAnalyst && <EvidencePartitionPanel comp={comp} t={t} />}
-        <MarkdownArticle variant="report" markdown={expandSourceCitationLinks(comp.narrative ?? '')} />
-        <EvidenceTreePanel
-          evidenceTree={comp.evidence_tree}
-          reasoningTraceId={comp.reasoning_trace_id}
-          isAnalyst={isAnalyst}
-        />
+        <MarkdownArticle variant="report" markdown={formatMd(comp.narrative ?? '')} />
         {(comp.interpretive_summary || comp.instrument?.interpretive_summary) && (
           <Typography variant="caption" color="warning.main" sx={{ display: 'block', marginTop: 1 }}>
             {t('report.narrative.interpretiveSummary')}
@@ -944,7 +1035,7 @@ function ComponentCard({
               <Typography variant="meta" component="span">
                 {comp.operator_display_state === 'insufficient_data' && !isAnalyst
                   ? t('report.evidencePartition.rawScored')
-                  : t('report.evidence')}
+                  : t('report.supportingEvidence')}
               </Typography>
               <Typography variant="caption" component="span" sx={{ marginLeft: 'auto', opacity: 0.7 }}>
                 {evidenceCount} {t('report.items')}
@@ -991,7 +1082,7 @@ function ComponentCard({
                   ))
                   : curatedEvidence.map((e, i) => (
                     <Box component="li" key={`evidence-${i}-${String(e).slice(0, 32)}`} sx={(theme) => ({ marginBottom: theme.spacing(0.75) })}>
-                      <MarkdownArticle variant="report" markdown={expandSourceCitationLinks(e)} />
+                      <MarkdownArticle variant="report" markdown={formatMd(e)} />
                     </Box>
                   ))}
               </Box>
@@ -1071,7 +1162,7 @@ export function ReportView({
   actionCompass,
   anomalyStrip,
   suggestCrisisBudget,
-  narrativeFocusUi = false,
+  operatorEpistemicOverlay = true,
   driftAlerts,
   onJumpToComponent,
   openCompId: openCompIdProp,
@@ -1117,7 +1208,7 @@ export function ReportView({
     })
     : (assessment.components ?? []);
 
-  const showGuidancePanels = !narrativeFocusUi;
+  const showGuidancePanels = operatorEpistemicOverlay;
 
   function getSourceSignals(compId) {
     if (!scoreBySource) return null;
@@ -1258,7 +1349,18 @@ export function ReportView({
         </Box>
       )}
 
-      <MacroSignalsSection macroSignals={assessment.macro_signals} t={t} isAnalyst={isAnalyst} />
+      <ScopeAttributionBanner assessment={assessment} t={t} />
+
+      <NationalContextSection
+        nationalContextSignals={assessment.national_context_signals ?? assessment.macro_signals}
+        t={t}
+      />
+
+      <NorthClusterNarrativesSection
+        clusterNarratives={assessment.north_cluster_narratives}
+        reportScope={reportScope ?? assessment?.report_scope}
+        t={t}
+      />
 
       {isAnalyst && Array.isArray(norrisCaps) && norrisCaps.length > 0 && (
         <ReportSection flat={readOnly} title={t('report.norris.titleDiagnostic') ?? t('report.norris.title')}>
@@ -1404,7 +1506,11 @@ export function ReportView({
           )}
           <MarkdownArticle
             variant="report"
-            markdown={expandSourceCitationLinks(assessment.cross_component_synthesis ?? '')}
+            markdown={formatReportMarkdown(
+              assessment.cross_component_synthesis ?? '',
+              assessment.date,
+              expandSourceCitationLinks,
+            )}
           />
         </Box>
       </ReportSection>
@@ -1437,6 +1543,7 @@ export function ReportView({
               <ComponentCard
                 comp={c}
                 t={t}
+                reportDate={assessment.date}
                 displayView={displayView}
                 flat={readOnly}
                 sourceSignals={getSourceSignals(c.component_id)}
@@ -1520,15 +1627,26 @@ DeltaLine.propTypes = {
   t: translationFnPropType,
 };
 
-MacroSignalsSection.propTypes = {
-  macroSignals: PropTypes.arrayOf(macroSignalShape),
+ScopeAttributionBanner.propTypes = {
+  assessment: assessmentShape,
   t: translationFnPropType,
-  isAnalyst: PropTypes.bool,
+};
+
+NationalContextSection.propTypes = {
+  nationalContextSignals: PropTypes.arrayOf(macroSignalShape),
+  t: translationFnPropType,
+};
+
+NorthClusterNarrativesSection.propTypes = {
+  clusterNarratives: PropTypes.object,
+  reportScope: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
+  t: translationFnPropType,
 };
 
 ComponentCard.propTypes = {
   comp: componentScoreShape.isRequired,
   t: translationFnPropType,
+  reportDate: PropTypes.string,
   sourceSignals: PropTypes.arrayOf(PropTypes.object),
   driftSeries: PropTypes.array,
   driftLoading: PropTypes.bool,
@@ -1578,7 +1696,7 @@ ReportView.propTypes = {
     show_operator: PropTypes.bool,
   }),
   suggestCrisisBudget: PropTypes.bool,
-  narrativeFocusUi: PropTypes.bool,
+  operatorEpistemicOverlay: PropTypes.bool,
   driftAlerts: PropTypes.arrayOf(PropTypes.object),
   onJumpToComponent: PropTypes.func,
   openCompId: PropTypes.string,

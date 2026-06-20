@@ -11,6 +11,8 @@ export function buildInvestigationSummary(assessment, ctx = {}) {
   const {
     investigationSignals = [],
     scoringSignals = [],
+    narrativeScopeSignals = [],
+    narrativeNationalContext = [],
     shadowScoringAvailable = false,
     budgetDegradeMode = null,
   } = ctx;
@@ -32,6 +34,8 @@ export function buildInvestigationSummary(assessment, ctx = {}) {
       ?? assessment?.budget_snapshot?.degrade_mode
       ?? null,
     signals_investigation: investigationSignals.length,
+    signals_narrative_scope: narrativeScopeSignals.length,
+    signals_national_context: narrativeNationalContext.length,
     signals_scoring_quarantined: scoringQuarantined,
     shadow_scoring_available: shadowScoringAvailable === true,
     investigation_mode: assessment?.epistemic_status?.investigation_mode ?? null,

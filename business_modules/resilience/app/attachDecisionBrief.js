@@ -5,7 +5,7 @@ import {
   decisionBriefEnabled,
   generateDecisionBrief,
 } from '../infrastructure/decisionBriefGenerator.js';
-import { narrativeFocusUiEnabled } from '../../../cross-cut-modules/resilience-contracts/narrativeFocusUi.js';
+import { operatorEpistemicOverlayEnabled } from '../../../cross-cut-modules/resilience-contracts/operatorEpistemicOverlay.js';
 
 /**
  * @param {object} assessment — mutated in place when brief is generated
@@ -18,7 +18,7 @@ import { narrativeFocusUiEnabled } from '../../../cross-cut-modules/resilience-c
  */
 export async function attachDecisionBrief(assessment, opts = {}) {
   if (!decisionBriefEnabled()) return null;
-  if (narrativeFocusUiEnabled()) return null;
+  if (!operatorEpistemicOverlayEnabled()) return null;
   if (!assessment || typeof assessment !== 'object') return null;
 
   try {

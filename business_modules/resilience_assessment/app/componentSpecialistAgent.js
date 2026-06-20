@@ -21,9 +21,19 @@ import {
   adversarialSystemHint,
 } from '../domain/services/contestedRetrievalPolicy.js';
 import { shouldAbstainFromInvestigation } from '../../epistemic_features/index.js';
-import { buildComponentNarrative, buildAbstentionNarrative } from '../domain/services/narrativeTemplates.js';
+import { narrativeInvestigationPermissive } from '../../../cross-cut-modules/resilience-contracts/narrativeEpistemicMode.js';
+import {
+  buildComponentNarrative,
+  buildAbstentionNarrative,
+  INSUFFICIENT_SYNTHESIS_NARRATIVE,
+  shouldAllowTemplateNarrative,
+} from '../domain/services/narrativeTemplates.js';
 
-function buildSpecialistSystem(componentId, epistemicProfile, evidenceGraph, assignedTasks = [], specialistTier = 'A') {
+function investigationAbstentionOpts() {
+  return { narrativePermissive: narrativeInvestigationPermissive() };
+}
+
+function buildSpecialistSystem(componentId, epistemicProfile, evidenceGraph, assignedTasks = [], specialistTier = 'A', narrativePermissive = false) {
   const compGraph = evidenceGraph?.by_component?.[componentId] ?? {};
   const compEp = epistemicProfile?.by_component?.[componentId] ?? {};
   const taskBlock = assignedTasks.length
@@ -46,16 +56,24 @@ function buildSpecialistSystem(componentId, epistemicProfile, evidenceGraph, ass
     ? '\nPrefer submitting from seeded claims; minimal retrieval unless a gap task requires it.\n'
     : '';
 
+  const permissiveHint = narrativePermissive
+    ? '\nNarrative mode permissive: summarize all investigation-pool signals even if scoring epistemics are thin; mark uncertainty as provisional in the narrative — do not abstain solely for thin_evidence.\n'
+    : '';
+
   const stable =
     `You assess resilience component "${componentId}". ` +
     'Tool order: use retrieve_for_claim, cross_source_compare, or expand_source_neighborhood FIRST; ' +
     'then lookup_signals to verify catalog refs; use get_source for verbatim quotes. ' +
     'Submit via submit_component_assessment. Every claim MUST have evidence_refs. ' +
     'Write the narrative as concise, operator-readable English prose that summarizes the evidence; ' +
-    'put verbatim quotes only in evidence_refs and never paste raw or multi-language evidence text into the narrative. ' +
-    'If thin_evidence, use severity abstain. For retrieval gaps, add attempted: entries when you tried to close them.\n' +
+    'when evidence_refs include URLs, each factual sentence must include an inline markdown citation [source_label](url) using article_source or source type as the label. ' +
+    'Put verbatim quotes only in evidence_refs and never paste raw or multi-language evidence text into the narrative. ' +
+    'If evidence carries narrativeContextOnly or signalProvenance narrative_national_context / macro_national, use it for narrative context only — never treat it as scope-local scored evidence. Cite provenance when referencing national context.\n' +
+    'If thin_evidence, set severity low and confidence low, still synthesize available investigation-pool signals with provisional caveats — abstain only when there are zero claims.\n' +
+    'For retrieval gaps, add attempted: entries when you tried to close them.\n' +
     compactHint +
     tierBHint +
+    permissiveHint +
     adversarialSystemHint(compEp);
 
   const dynamic =
@@ -90,6 +108,18 @@ function abstentionAssessment(componentId, epistemicProfile, traceId, specialist
   return out;
 }
 
+function seededClaimCount(evidenceGraph, componentId) {
+  return (evidenceGraph?.by_component?.[componentId]?.claims ?? []).length;
+}
+
+function resolveSubmittedAssessment(result, assessment) {
+  const submitted = result.submitPayloads.find((p) => p.tool === 'submit_component_assessment');
+  return {
+    submitted,
+    assessment: submitted?.payload ?? assessment,
+  };
+}
+
 /**
  * @param {object} params
  */
@@ -112,13 +142,15 @@ export async function runComponentSpecialist(params) {
   } = params;
 
   const tier = specialistTier;
+  const narrativePermissive = narrativeInvestigationPermissive();
+  const abstentionOpts = investigationAbstentionOpts();
 
   if (abstain || tier === 'C') {
     return abstentionAssessment(componentId, epistemicProfile, traceId, tier);
   }
 
   const ep = epistemicProfile?.by_component?.[componentId] ?? {};
-  if (!abstain && shouldAbstainFromInvestigation(ep) && tier !== 'A') {
+  if (!abstain && shouldAbstainFromInvestigation(ep, abstentionOpts) && tier !== 'A') {
     return abstentionAssessment(componentId, epistemicProfile, traceId, tier);
   }
 
@@ -154,42 +186,71 @@ export async function runComponentSpecialist(params) {
     ? `Assess component ${componentId} with evidence-backed claims. Assigned tasks: ${JSON.stringify(allTasks)}`
     : `Assess component ${componentId} with evidence-backed claims.`;
 
-  const maxRounds = maxRoundsForTier(tier);
+  const system = buildSpecialistSystem(componentId, epistemicProfile, evidenceGraph, allTasks, tier, narrativePermissive);
 
-  const result = await kernel.run({
+  const executeTool = async (name, input) => {
+    if (name === 'submit_component_assessment') {
+      const advErr = validateAdversarialBeforeSubmit(toolCtx);
+      if (advErr) return advErr;
+      assessment = { ...input, reasoning_trace_id: `${traceId}:${componentId}` };
+      return JSON.stringify({ ok: true });
+    }
+    trackAdversarialRetrieval(toolCtx, name, input);
+    if (MULTI_HOP_TOOL_NAMES.has(name)) toolUsage.multiHop += 1;
+    if (LOOKUP_TOOL_NAMES.has(name)) toolUsage.lookup += 1;
+    return executeMultiHopTool(name, input, toolCtx);
+  };
+
+  let result = await kernel.run({
     profile: ASSESSMENT_SPECIALIST_PROFILE,
     agentKind: `specialist:${componentId}`,
     model,
-    maxRounds,
+    maxRounds: maxRoundsForTier(tier),
     maxTokens: 3000,
-    system: buildSpecialistSystem(componentId, epistemicProfile, evidenceGraph, allTasks, tier),
-    messages: [{
-      role: 'user',
-      content: userContent,
-    }],
+    system,
+    messages: [{ role: 'user', content: userContent }],
     tools: SPECIALIST_TOOLS,
     budget,
     traceId: `${traceId}:${componentId}`,
     onUsage,
-    executeTool: async (name, input) => {
-      if (name === 'submit_component_assessment') {
-        const advErr = validateAdversarialBeforeSubmit(toolCtx);
-        if (advErr) return advErr;
-        assessment = { ...input, reasoning_trace_id: `${traceId}:${componentId}` };
-        return JSON.stringify({ ok: true });
-      }
-      trackAdversarialRetrieval(toolCtx, name, input);
-      if (MULTI_HOP_TOOL_NAMES.has(name)) toolUsage.multiHop += 1;
-      if (LOOKUP_TOOL_NAMES.has(name)) toolUsage.lookup += 1;
-      return executeMultiHopTool(name, input, toolCtx);
-    },
+    executeTool,
   });
 
-  const submitted = result.submitPayloads.find((p) => p.tool === 'submit_component_assessment');
-  assessment = submitted?.payload ?? assessment;
+  let { submitted, assessment: resolved } = resolveSubmittedAssessment(result, assessment);
+  assessment = resolved;
+
+  const seededCount = seededClaimCount(evidenceGraph, componentId);
+  if (!submitted && seededCount > 0) {
+    toolCtx.toolCompressEscalated = true;
+    result = await kernel.run({
+      profile: ASSESSMENT_SPECIALIST_PROFILE,
+      agentKind: `specialist:${componentId}`,
+      model,
+      maxRounds: maxRoundsForTier('A'),
+      maxTokens: 3000,
+      system,
+      messages: [{
+        role: 'user',
+        content:
+          `Assess component ${componentId}. Seeded claims exist — you MUST call submit_component_assessment ` +
+          'with evidence-backed claims and a synthesized narrative before ending.',
+      }],
+      tools: SPECIALIST_TOOLS,
+      budget,
+      traceId: `${traceId}:${componentId}:retry`,
+      onUsage,
+      executeTool,
+    });
+    ({ submitted, assessment: resolved } = resolveSubmittedAssessment(result, assessment));
+    assessment = resolved;
+  }
 
   if (!assessment) {
     assessment = buildFallbackAssessment(componentId, evidenceGraph, epistemicProfile, traceId);
+  }
+
+  if (!submitted && seededCount > 0) {
+    assessment.specialist_submit_missing = true;
   }
 
   assessment.evidence_tree = assessment.claims ?? [];
@@ -210,14 +271,18 @@ function buildFallbackAssessment(componentId, evidenceGraph, epistemicProfile, t
     grounding_tier: 'grounded',
   }));
   const ep = epistemicProfile?.by_component?.[componentId] ?? {};
-  // Readable templated prose from structured facts — never raw, possibly
-  // multi-language, evidence text. Verbatim quotes remain in evidence_tree below.
-  const narrative = buildComponentNarrative({ componentId, ep, claimCount: claims.length });
+  const investigationUsed = ep.investigation_used ?? ep.signal_count ?? claims.length;
+  const useInsufficientSynthesis = claims.length > 0 || investigationUsed >= 5
+    || !shouldAllowTemplateNarrative(ep, claims.length);
+  const narrative = useInsufficientSynthesis
+    ? INSUFFICIENT_SYNTHESIS_NARRATIVE
+    : buildComponentNarrative({ componentId, ep, claimCount: claims.length });
+  const thinAbstain = ep.thin_evidence === true && claims.length === 0;
   return {
     component_id: componentId,
-    severity: ep.thin_evidence ? 'abstain' : 'moderate',
+    severity: thinAbstain ? 'abstain' : 'moderate',
     confidence: ep.certainty_band === 'high' ? 'medium' : 'low',
-    operator_status: ep.thin_evidence ? 'insufficient_data' : 'stable',
+    operator_status: thinAbstain ? 'insufficient_data' : (ep.thin_evidence ? 'provisional' : 'stable'),
     claims,
     narrative,
     dissent_summary: ep.contested ? 'Evidence appears contested across sources.' : '',

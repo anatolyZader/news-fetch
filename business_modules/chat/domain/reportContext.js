@@ -9,7 +9,7 @@ import {
   deriveInstrumentState,
   operatorAssessmentSummary,
   buildAttentionItems,
-  narrativeFocusUiEnabled,
+  operatorEpistemicOverlayEnabled,
 } from '../../resilience/index.js';
 
 const MAX_ATTENTION_SUMMARY = 8;
@@ -157,7 +157,7 @@ function formatExecutiveSummary(assessment, maxChars = EXEC_SUMMARY_MAX_CHARS) {
 }
 
 function includeGuidanceContext() {
-  return !narrativeFocusUiEnabled();
+  return operatorEpistemicOverlayEnabled();
 }
 
 function buildFullContext(a, reportScopeId, includeScores) {

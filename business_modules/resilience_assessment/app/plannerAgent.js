@@ -19,6 +19,11 @@ import {
 } from '../../../cross-cut-modules/retrieval/plannerContextBuilder.js';
 import { shouldUseDeterministicPlanner } from '../domain/services/plannerPolicy.js';
 import { shouldAbstainFromInvestigation } from '../../epistemic_features/index.js';
+import { narrativeInvestigationPermissive } from '../../../cross-cut-modules/resilience-contracts/narrativeEpistemicMode.js';
+
+function investigationAbstentionOpts() {
+  return { narrativePermissive: narrativeInvestigationPermissive() };
+}
 
 function buildPlannerSystem(epistemicProfile, plannerContext) {
   const slim = slimPlannerPromptsEnabled();
@@ -53,7 +58,7 @@ function defaultPlan(epistemicProfile, plannerContext = null) {
   const abstention = [];
   for (const id of COMPONENT_IDS) {
     const ep = epistemicProfile?.by_component?.[id] ?? {};
-    if (shouldAbstainFromInvestigation(ep)) abstention.push(id);
+    if (shouldAbstainFromInvestigation(ep, investigationAbstentionOpts())) abstention.push(id);
     else if (ep.contested || ep.delta_significance?.startsWith('HIGH') || ep.evidence_mass >= 4
       || ep.investigation_eligible === true) {
       focus.push(id);

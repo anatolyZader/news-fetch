@@ -26,6 +26,30 @@ describe('synthesizerAgent defaultSynthesis', () => {
     assert.deepEqual(out.retrieval_gaps, ['g1']);
   });
 
+  it('does not claim single-channel when dominance is widespread but channels are diverse', () => {
+    const componentAssessments = [
+      { component_id: 'leadership', severity: 'low', retrieval_gaps: [] },
+      { component_id: 'functional_continuity', severity: 'low', retrieval_gaps: [] },
+    ];
+    const epistemicProfile = {
+      by_component: {
+        leadership: {
+          source_diversity: 3,
+          investigation_used: 40,
+          dominance_warnings: [{ layer: 'source_type', key: 'pbo' }],
+        },
+        functional_continuity: {
+          source_diversity: 2,
+          investigation_used: 30,
+          dominance_warnings: [{ layer: 'source_type', key: 'pbo' }],
+        },
+      },
+    };
+    const out = defaultSynthesis(componentAssessments, epistemicProfile);
+    assert.doesNotMatch(out.cross_component_synthesis, /single evidence channel/);
+    assert.match(out.cross_component_synthesis, /over-represented/);
+  });
+
   it('does not claim source limitation when dominance is not widespread', () => {
     const componentAssessments = [
       { component_id: 'leadership', severity: 'low', retrieval_gaps: [] },

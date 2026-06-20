@@ -44,6 +44,24 @@ function i18n(componentId) {
 }
 
 /**
+ * Prefer hybrid operator narrative fields for markdown output.
+ * @param {object} assessment
+ * @returns {object}
+ */
+function assessmentForMarkdown(assessment) {
+  if (!assessment || typeof assessment !== 'object') return assessment;
+  return {
+    ...assessment,
+    cross_component_synthesis:
+      assessment.cross_component_synthesis_operator ?? assessment.cross_component_synthesis,
+    components: (assessment.components ?? []).map((c) => ({
+      ...c,
+      narrative: c.narrative_operator ?? c.narrative,
+    })),
+  };
+}
+
+/**
  * @param {object} assessment
  * @param {string[]} sourceFiles
  * @param {{ includeScores?: boolean }} [opts] When false, narrative-focused brief (no /10).
@@ -51,14 +69,15 @@ function i18n(componentId) {
 export function buildMarkdown(assessment, sourceFiles, { includeScores = true } = {}) {
   const lines = [];
   const formatters = { evidenceDirection, i18n };
+  const mdAssessment = assessmentForMarkdown(assessment);
 
-  appendReportHeader(lines, assessment, sourceFiles);
-  appendMethodologyBlock(lines, assessment, includeScores);
-  lines.push(`## Executive Summary`, ``, assessment.cross_component_synthesis, ``, `---`, ``);
-  appendNorrisSection(lines, assessment, includeScores);
-  appendComponentsTable(lines, assessment, includeScores);
-  appendComponentDetails(lines, assessment, includeScores, formatters);
-  appendMacroAndCaveats(lines, assessment);
+  appendReportHeader(lines, mdAssessment, sourceFiles);
+  appendMethodologyBlock(lines, mdAssessment, includeScores);
+  lines.push(`## Executive Summary`, ``, mdAssessment.cross_component_synthesis, ``, `---`, ``);
+  appendNorrisSection(lines, mdAssessment, includeScores);
+  appendComponentsTable(lines, mdAssessment, includeScores);
+  appendComponentDetails(lines, mdAssessment, includeScores, formatters);
+  appendMacroAndCaveats(lines, mdAssessment);
 
   return lines.join('\n');
 }
@@ -124,9 +143,21 @@ function sanitizeAssessmentNarratives(assessment) {
       'cross_component_synthesis',
     );
   }
+  if (typeof assessment.cross_component_synthesis_operator === 'string') {
+    assessment.cross_component_synthesis_operator = sanitizeNarrativeText(
+      assessment.cross_component_synthesis_operator,
+      'cross_component_synthesis_operator',
+    );
+  }
   for (const comp of assessment.components ?? []) {
     if (typeof comp.narrative === 'string') {
       comp.narrative = sanitizeNarrativeText(comp.narrative, `${comp.component_id}.narrative`);
+    }
+    if (typeof comp.narrative_operator === 'string') {
+      comp.narrative_operator = sanitizeNarrativeText(
+        comp.narrative_operator,
+        `${comp.component_id}.narrative_operator`,
+      );
     }
     if (typeof comp.evidence_summary === 'string') {
       comp.evidence_summary = sanitizeNarrativeText(comp.evidence_summary, `${comp.component_id}.evidence_summary`);

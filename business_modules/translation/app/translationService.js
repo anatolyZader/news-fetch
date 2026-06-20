@@ -309,25 +309,27 @@ export async function getTranslatedReport(report, lang) {
 
   const langName = LANG_NAMES[lang] ?? lang;
   const components = report.components ?? [];
-  const translationQueryHint = String(report.cross_component_synthesis ?? '').slice(0, 600);
+  const synthesisSource = report.cross_component_synthesis_operator ?? report.cross_component_synthesis ?? '';
+  const translationQueryHint = String(synthesisSource).slice(0, 600);
   const CONCURRENCY_COMPONENTS = 3;
 
   const synthesisChunk = await translateChunkWithRetry({
-    cross_component_synthesis: report.cross_component_synthesis ?? '',
+    cross_component_synthesis: synthesisSource,
   }, lang, langName, translationQueryHint);
 
   const componentChunks = await runWithConcurrencyLimit(
     components.map((c) => () => {
+      const narrativeSource = c.narrative_operator ?? c.narrative ?? '';
       const evidenceItems = (c.evidence ?? []).map((e, j) => ({
         id: String(j),
         quote: String(e.evidence ?? e.text ?? '').slice(0, 2000),
       })).filter((row) => row.quote.trim());
       return translateChunkWithRetry({
-        narrative: c.narrative ?? '',
+        narrative: narrativeSource,
         interpretive_summary: c.interpretive_summary ?? '',
         data_quality_caveat: c.data_quality_caveat ?? '',
         ...(evidenceItems.length ? { evidence: evidenceItems } : {}),
-      }, lang, langName, `${translationQueryHint} ${c.component_id ?? ''} ${c.narrative ?? ''}`.slice(0, 600));
+      }, lang, langName, `${translationQueryHint} ${c.component_id ?? ''} ${narrativeSource}`.slice(0, 600));
     }),
     CONCURRENCY_COMPONENTS,
   );
@@ -352,9 +354,16 @@ export async function getTranslatedReport(report, lang) {
 
   const translatedReport = {
     ...report,
-    cross_component_synthesis: synthesisChunk.result.cross_component_synthesis ?? report.cross_component_synthesis,
+    cross_component_synthesis: synthesisChunk.result.cross_component_synthesis ?? synthesisSource,
+    ...(report.cross_component_synthesis_operator != null
+      ? {
+        cross_component_synthesis_operator:
+          synthesisChunk.result.cross_component_synthesis ?? report.cross_component_synthesis_operator,
+      }
+      : {}),
     components: components.map((c, i) => {
       const chunk = componentChunks[i].result;
+      const narrativeSource = c.narrative_operator ?? c.narrative;
       const translatedEvidence = (c.evidence ?? []).map((e, j) => {
         const row = (chunk.evidence ?? []).find((r) => String(r.id) === String(j)) ?? chunk.evidence?.[j];
         const source = String(e.evidence ?? e.text ?? '');
@@ -365,9 +374,13 @@ export async function getTranslatedReport(report, lang) {
           evidence: translated || source,
         };
       });
+      const translatedNarrative = chunk.narrative ?? narrativeSource;
       return {
         ...c,
-        narrative: chunk.narrative ?? c.narrative,
+        narrative: c.narrative_operator != null ? c.narrative : translatedNarrative,
+        ...(c.narrative_operator != null
+          ? { narrative_operator: translatedNarrative }
+          : { narrative: translatedNarrative }),
         interpretive_summary: chunk.interpretive_summary ?? c.interpretive_summary,
         data_quality_caveat: chunk.data_quality_caveat ?? c.data_quality_caveat,
         ...(c.evidence?.length ? { evidence: translatedEvidence } : {}),

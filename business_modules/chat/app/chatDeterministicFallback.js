@@ -4,7 +4,7 @@
 import { resolveChatContextTier } from '../domain/chatContextTier.js';
 import { handleChatToolCall } from './chatToolHandlers.js';
 import { createChatToolContext } from './createChatToolContext.js';
-import { narrativeFocusUiEnabled } from '../../../cross-cut-modules/resilience-contracts/narrativeFocusUi.js';
+import { operatorEpistemicOverlayEnabled } from '../../../cross-cut-modules/resilience-contracts/operatorEpistemicOverlay.js';
 
 /**
  * @param {import('../domain/chatContextTier.js').ContextSlice} contextSlice
@@ -15,7 +15,7 @@ import { narrativeFocusUiEnabled } from '../../../cross-cut-modules/resilience-c
 export function planDeterministicToolCalls(contextSlice, message, reportData) {
   const assessmentDate = reportData?.assessment?.date ?? reportData?.reportDate ?? null;
   const text = String(message ?? '').trim();
-  const narrativeFocus = narrativeFocusUiEnabled();
+  const narrativeFocus = !operatorEpistemicOverlayEnabled();
 
   switch (contextSlice) {
     case 'hub':

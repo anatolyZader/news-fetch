@@ -56,6 +56,25 @@ describe('specialistTier', () => {
     }), 'C');
   });
 
+  it('returns A for regional report scope', () => {
+    assert.equal(resolveSpecialistTier({
+      componentId: 'leadership',
+      epistemicProfile: baseEp,
+      plan: { focus_components: ['functional_continuity'] },
+      reportScopeId: 'north',
+    }), 'A');
+  });
+
+  it('returns A when totalScopedSignals exceeds 50', () => {
+    assert.equal(resolveSpecialistTier({
+      componentId: 'leadership',
+      epistemicProfile: baseEp,
+      plan: { focus_components: ['functional_continuity'] },
+      reportScopeId: 'national',
+      totalScopedSignals: 51,
+    }), 'A');
+  });
+
   it('returns B for investigation-eligible component outside focus', () => {
     const ep = {
       by_component: {

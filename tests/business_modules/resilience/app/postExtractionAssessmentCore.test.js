@@ -49,6 +49,7 @@ describe('postExtractionAssessmentCore', () => {
     assert.equal(national.scopedSignals.length, 3);
     assert.ok(north.scopedSignals.length >= 1);
     assert.ok(north.scopedSignals.length < national.scopedSignals.length);
+    assert.ok(north.narrativeScopeSignals.length >= north.scopedSignals.length);
   });
 
   it('runPostExtractionAssessmentCore scores before narrating', async () => {

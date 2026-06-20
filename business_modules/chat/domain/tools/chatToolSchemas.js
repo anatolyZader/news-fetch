@@ -1,7 +1,7 @@
 /**
  * Claude tool schemas for chat agent.
  */
-import { narrativeFocusUiEnabled } from '../../../../cross-cut-modules/resilience-contracts/narrativeFocusUi.js';
+import { operatorEpistemicOverlayEnabled } from '../../../../cross-cut-modules/resilience-contracts/operatorEpistemicOverlay.js';
 
 export const SOURCE_TYPE_ENUM = [
   'news', 'radio', 'field', 'pbo', 'pbo_regional', 'naftali', 'whatsapp',
@@ -364,7 +364,7 @@ export const OPERATOR_PROPOSE_TOOLS = [
   },
 ];
 
-/** Guidance tools suppressed when RESILIENCE_NARRATIVE_FOCUS_UI=1 (main-site narrative focus). */
+/** Guidance tools suppressed when RESILIENCE_OPERATOR_EPISTEMIC_OVERLAY=0 (narrative-first operator UI). */
 export const GUIDANCE_CHAT_TOOL_NAMES = new Set([
   'list_attention_items',
   'get_decision_brief',
@@ -373,7 +373,7 @@ export const GUIDANCE_CHAT_TOOL_NAMES = new Set([
 ]);
 
 function excludeGuidanceTools(tools, opts = {}) {
-  if (!narrativeFocusUiEnabled() || opts.isAnalyst) return tools;
+  if (operatorEpistemicOverlayEnabled() || opts.isAnalyst) return tools;
   return tools.filter((t) => !GUIDANCE_CHAT_TOOL_NAMES.has(t.name));
 }
 
@@ -451,7 +451,7 @@ export function buildSystemTemplateToolList(opts = {}) {
     '- generate_brief: formatted brief for an audience',
     '- list_sources / search_sources / get_source: original archive documents',
   ];
-  if (!narrativeFocusUiEnabled() || opts.isAnalyst) {
+  if (operatorEpistemicOverlayEnabled() || opts.isAnalyst) {
     core.push(
       '- list_attention_items: ranked what-needs-attention queue',
       '- list_operator_recommendations: pending suggested actions',
@@ -462,7 +462,7 @@ export function buildSystemTemplateToolList(opts = {}) {
       '- Default to evidence-first answers: cite component narratives and lookup_signals / get_source quotes.',
     );
   }
-  if (opts.confirmActionsEnabled && (!narrativeFocusUiEnabled() || opts.isAnalyst)) {
+  if (opts.confirmActionsEnabled && (operatorEpistemicOverlayEnabled() || opts.isAnalyst)) {
     core.push(
       '- propose_operator_recommendation: acknowledge/dismiss pending operator recommendations (user must confirm)',
     );

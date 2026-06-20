@@ -2,6 +2,7 @@
  * Specialist depth A/B/C for token savings (env: RESILIENCE_ASSESS_TIERED_SPECIALISTS).
  */
 import { tieredSpecialistsEnabled } from '../../../../cross-cut-modules/agent/agentConfig.js';
+import { isRegionalReportScope } from '../../../../cross-cut-modules/geo/reportScopeIds.js';
 
 /**
  * @param {object} params
@@ -18,9 +19,13 @@ export function resolveSpecialistTier(params) {
     evidenceGraph = null,
     gapClosureTasks = [],
     assignedTasks = [],
+    reportScopeId = 'national',
+    totalScopedSignals = 0,
   } = params;
 
   if (abstain) return 'C';
+
+  if (isRegionalReportScope(reportScopeId) || totalScopedSignals > 50) return 'A';
 
   if (!tieredSpecialistsEnabled()) return 'A';
 

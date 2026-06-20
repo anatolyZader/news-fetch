@@ -116,6 +116,7 @@ async function tryAssessmentAgent(params, epistemicProfile) {
       sourceArchive: params.sourceArchive ?? null,
       evidenceStore: params.evidenceStore ?? null,
       scopedSignals: params.scopedSignals ?? investigationSignals,
+      narrativeScopeSignals: params.narrativeScopeSignals ?? params.scopedSignals ?? investigationSignals,
       oovBurst: params.oovBurst ?? null,
       openObservations: params.openObservations ?? [],
     });

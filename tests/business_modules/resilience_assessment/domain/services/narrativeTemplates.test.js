@@ -4,6 +4,8 @@ import {
   buildComponentNarrative,
   buildAbstentionNarrative,
   componentLabel,
+  INSUFFICIENT_SYNTHESIS_NARRATIVE,
+  shouldAllowTemplateNarrative,
 } from '../../../../../business_modules/resilience_assessment/domain/services/narrativeTemplates.js';
 
 describe('narrativeTemplates', () => {
@@ -11,31 +13,30 @@ describe('narrativeTemplates', () => {
     assert.equal(componentLabel('functional_continuity'), 'Functional continuity');
   });
 
-  it('operator narrative is qualitative: names the component but no slug or raw counts', () => {
+  it('shouldAllowTemplateNarrative is true only when signal_count is zero', () => {
+    assert.equal(shouldAllowTemplateNarrative({ signal_count: 0 }), true);
+    assert.equal(shouldAllowTemplateNarrative({ signal_count: 4 }, 4), false);
+  });
+
+  it('operator view returns insufficient synthesis when signals exist', () => {
     const out = buildComponentNarrative({
       componentId: 'functional_continuity',
       ep: { signal_count: 12, source_diversity: 3 },
     });
-    assert.match(out, /Functional continuity/);
-    assert.match(out, /multiple evidence channels/);
-    assert.doesNotMatch(out, /12 signal\(s\)|signal\(s\)/);
-    assert.doesNotMatch(out, /source types/);
+    assert.equal(out, INSUFFICIENT_SYNTHESIS_NARRATIVE);
   });
 
-  it('operator narrative flags single-channel concentration qualitatively (no source_type slug)', () => {
+  it('operator view does not emit template boilerplate for rich components', () => {
     const out = buildComponentNarrative({
       componentId: 'leadership',
       ep: {
         signal_count: 8,
+        source_diversity: 1,
         dominance_warnings: [{ layer: 'source_type', key: 'pbo', message: 'pbo exceeds cap' }],
       },
     });
-    assert.match(out, /single evidence channel/);
-    assert.match(out, /provisional/);
-    assert.doesNotMatch(out, /\(pbo\)/);
-    assert.doesNotMatch(out, /%/);
-    assert.doesNotMatch(out, /mass cap/);
-    assert.doesNotMatch(out, /signal\(s\)/);
+    assert.equal(out, INSUFFICIENT_SYNTHESIS_NARRATIVE);
+    assert.doesNotMatch(out, /single evidence channel/);
   });
 
   it('analyst view may name the source family and counts', () => {
@@ -51,27 +52,9 @@ describe('narrativeTemplates', () => {
     assert.match(out, /8 signal\(s\)/);
   });
 
-  it('flags contested and thin evidence', () => {
-    const out = buildComponentNarrative({
-      componentId: 'narrative',
-      ep: { signal_count: 4, contested: true, thin_evidence: true },
-    });
-    assert.match(out, /thin and contested/);
-    assert.match(out, /provisional/);
-  });
-
   it('reports no signals when count is zero', () => {
     const out = buildComponentNarrative({ componentId: 'leadership', ep: { signal_count: 0 } });
     assert.match(out, /no substantive signals/);
-  });
-
-  it('does not inline raw evidence markers', () => {
-    const out = buildComponentNarrative({
-      componentId: 'narrative',
-      ep: { signal_count: 5 },
-      claimCount: 5,
-    });
-    assert.doesNotMatch(out, /evidence_refs|sig:|http/);
   });
 
   it('builds an abstention narrative that mentions corroboration when thin', () => {

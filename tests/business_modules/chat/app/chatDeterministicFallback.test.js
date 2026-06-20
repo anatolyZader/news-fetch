@@ -6,27 +6,28 @@ import {
 } from '../../../../business_modules/chat/app/chatDeterministicFallback.js';
 
 describe('chatDeterministicFallback', () => {
-  it('hub tier plans attention and decision brief tools when narrative focus is off', () => {
-    const prev = process.env.RESILIENCE_NARRATIVE_FOCUS_UI;
+  it('hub tier plans attention and decision brief tools when overlay is on', () => {
+    const prev = process.env.RESILIENCE_OPERATOR_EPISTEMIC_OVERLAY;
+    delete process.env.RESILIENCE_OPERATOR_EPISTEMIC_OVERLAY;
     delete process.env.RESILIENCE_NARRATIVE_FOCUS_UI;
     try {
       const calls = planDeterministicToolCalls('hub', 'what should I focus on', {});
       assert.deepEqual(calls.map((c) => c.tool), ['list_attention_items', 'get_decision_brief']);
     } finally {
-      if (prev === undefined) delete process.env.RESILIENCE_NARRATIVE_FOCUS_UI;
-      else process.env.RESILIENCE_NARRATIVE_FOCUS_UI = prev;
+      if (prev === undefined) delete process.env.RESILIENCE_OPERATOR_EPISTEMIC_OVERLAY;
+      else process.env.RESILIENCE_OPERATOR_EPISTEMIC_OVERLAY = prev;
     }
   });
 
-  it('hub tier plans lookup_signals when narrative focus is on', () => {
-    const prev = process.env.RESILIENCE_NARRATIVE_FOCUS_UI;
-    process.env.RESILIENCE_NARRATIVE_FOCUS_UI = '1';
+  it('hub tier plans lookup_signals when overlay is off', () => {
+    const prev = process.env.RESILIENCE_OPERATOR_EPISTEMIC_OVERLAY;
+    process.env.RESILIENCE_OPERATOR_EPISTEMIC_OVERLAY = '0';
     try {
       const calls = planDeterministicToolCalls('hub', 'what should I focus on', {});
       assert.deepEqual(calls.map((c) => c.tool), ['lookup_signals']);
     } finally {
-      if (prev === undefined) delete process.env.RESILIENCE_NARRATIVE_FOCUS_UI;
-      else process.env.RESILIENCE_NARRATIVE_FOCUS_UI = prev;
+      if (prev === undefined) delete process.env.RESILIENCE_OPERATOR_EPISTEMIC_OVERLAY;
+      else process.env.RESILIENCE_OPERATOR_EPISTEMIC_OVERLAY = prev;
     }
   });
 

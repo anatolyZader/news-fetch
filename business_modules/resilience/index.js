@@ -40,9 +40,13 @@ export {
 } from './domain/services/attentionItems.js';
 export { buildActionCompass, actionCompassEnabled } from './domain/services/actionCompass.js';
 export {
-  narrativeFocusUiEnabled,
+  operatorEpistemicOverlayEnabled,
   stripOperatorGuidancePayload,
-} from '../../cross-cut-modules/resilience-contracts/narrativeFocusUi.js';
+} from '../../cross-cut-modules/resilience-contracts/operatorEpistemicOverlay.js';
+export {
+  narrativeEpistemicMode,
+  narrativeInvestigationPermissive,
+} from '../../cross-cut-modules/resilience-contracts/narrativeEpistemicMode.js';
 export { isOpenExtractParallelEnabled } from './domain/services/openExtractConfig.js';
 export { pipelineOpenObservationsPath } from './domain/services/pipelineArtifactPaths.js';
 export { stripTraceFields } from './infrastructure/claudeExtraction.js';
@@ -81,6 +85,7 @@ export {
 } from './domain/epistemic/signalWeights.js';
 export { computeMediaMentionMass } from './domain/services/mediaMentionMass.js';
 export { applyInvestigationSignalFlags } from './domain/services/investigationSignalFlags.js';
+export { buildNorthClusterNarrativesFromSignals } from './domain/services/northClusterNarrative.js';
 
 // --- OOV / investigation burst ---
 export { countOovCapturesForDate } from './domain/services/oovCapture.js';
@@ -113,6 +118,18 @@ export {
   computeGroundingScores,
 } from './domain/services/narrativeGrounding/sentenceGroundingChecker.js';
 export { buildSignalRefRegistry } from './domain/services/narrativeGrounding/signalRefRegistry.js';
+export {
+  resolveNarrativePipelineMode,
+  hybridNarrativeEnabled,
+  legacyNarrativeOnly,
+  operatorNarrativePipelineEnabled,
+} from './domain/services/narrativeGrounding/groundingConfig.js';
+export {
+  applyOperatorNarrativePipeline,
+  runOperatorNarrativePipeline,
+  applyOperatorNarrativeToAssessment,
+} from './app/operatorNarrativePipeline.js';
+export { buildNarrativeScoredComponents } from './domain/services/buildNarrativeScoredComponents.js';
 export { SIGNAL_TO_COMPONENTS } from './domain/services/signalRouter.js';
 
 // --- Survey CLI runner (cross-cut geo entry) ---

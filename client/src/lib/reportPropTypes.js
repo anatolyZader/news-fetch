@@ -38,6 +38,7 @@ export const componentScoreShape = PropTypes.shape({
   grounding_issues: PropTypes.arrayOf(PropTypes.object),
   interpretive_summary: PropTypes.bool,
   evidence: PropTypes.arrayOf(PropTypes.string),
+  evidence_operator: PropTypes.arrayOf(PropTypes.string),
   evidence_tree: PropTypes.arrayOf(PropTypes.object),
   reasoning_trace_id: PropTypes.string,
   severity: PropTypes.string,
@@ -95,6 +96,8 @@ export const assessmentShape = PropTypes.shape({
     synthesis_mode: PropTypes.string,
     budget_degrade_mode: PropTypes.string,
     signals_investigation: PropTypes.number,
+    signals_narrative_scope: PropTypes.number,
+    signals_national_context: PropTypes.number,
     signals_scoring_quarantined: PropTypes.number,
     shadow_scoring_available: PropTypes.bool,
   }),
@@ -111,6 +114,20 @@ export const assessmentShape = PropTypes.shape({
   macro_signals_summary: PropTypes.shape({
     count: PropTypes.number,
   }),
+  national_context_signals: PropTypes.arrayOf(PropTypes.object),
+  national_context_summary: PropTypes.shape({
+    count: PropTypes.number,
+    provenance_counts: PropTypes.object,
+  }),
+  scope_attribution: PropTypes.shape({
+    default_district_signal_count: PropTypes.number,
+    default_district_pct: PropTypes.number,
+    gate_threshold_pct: PropTypes.number,
+    gate_warning: PropTypes.bool,
+  }),
+  default_district_signal_count: PropTypes.number,
+  narrative_scope_signal_count: PropTypes.number,
+  north_cluster_narratives: PropTypes.object,
   oov_capture_count: PropTypes.number,
   oov_burst: PropTypes.shape({
     alert: PropTypes.bool,

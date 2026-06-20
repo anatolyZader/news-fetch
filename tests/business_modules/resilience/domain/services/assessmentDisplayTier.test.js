@@ -168,6 +168,49 @@ describe('assessmentDisplayTier', () => {
     assert.equal(out.components[0].score, undefined);
   });
 
+  it('redactAssessmentForView prefers narrative_operator for operator view', () => {
+    const assessment = {
+      cross_component_synthesis: 'Agent synthesis.',
+      cross_component_synthesis_operator: 'Operator synthesis.',
+      components: [{
+        component_id: 'narrative',
+        narrative: 'Agent narrative.',
+        narrative_operator: 'Operator narrative.',
+      }],
+    };
+    const out = redactAssessmentForView(assessment, DISPLAY_VIEWS.operator);
+    assert.equal(out.components[0].narrative, 'Operator narrative.');
+    assert.equal(out.cross_component_synthesis, 'Operator synthesis.');
+    assert.equal(out.components[0].narrative_operator, undefined);
+    assert.equal(out.cross_component_synthesis_operator, undefined);
+  });
+
+  it('redactAssessmentForView prefers evidence_operator for operator view', () => {
+    const assessment = {
+      components: [{
+        component_id: 'narrative',
+        evidence: ['Agent evidence.'],
+        evidence_operator: ['Operator evidence.'],
+      }],
+    };
+    const out = redactAssessmentForView(assessment, DISPLAY_VIEWS.operator);
+    assert.deepEqual(out.components[0].evidence, ['Operator evidence.']);
+    assert.equal(out.components[0].evidence_operator, undefined);
+  });
+
+  it('redactAssessmentForView keeps agent narrative for analyst when operator field present', () => {
+    const assessment = {
+      components: [{
+        component_id: 'narrative',
+        narrative: 'Agent narrative.',
+        narrative_operator: 'Operator narrative.',
+      }],
+    };
+    const out = redactAssessmentForView(assessment, DISPLAY_VIEWS.analyst);
+    assert.equal(out.components[0].narrative, 'Agent narrative.');
+    assert.equal(out.components[0].narrative_operator, 'Operator narrative.');
+  });
+
   it('redactAssessmentForView preserves operator display fields and hides analyst diagnostics', () => {
     const assessment = {
       components: [{
@@ -192,7 +235,7 @@ describe('assessmentDisplayTier', () => {
     assert.equal(out.component_diagnostics, undefined);
   });
 
-  it('redactAssessmentForView summarizes macro_signals for operator', () => {
+  it('redactAssessmentForView exposes national_context_signals for operator', () => {
     const assessment = {
       components: [],
       macro_signals: [
@@ -201,8 +244,9 @@ describe('assessmentDisplayTier', () => {
     };
     const out = redactAssessmentForView(assessment, DISPLAY_VIEWS.operator);
     assert.equal(out.macro_signals, undefined);
-    assert.equal(out.macro_signals_summary.count, 1);
-    assert.deepEqual(out.macro_signals_summary.signal_types, ['macro_framing']);
+    assert.equal(out.national_context_signals.length, 1);
+    assert.equal(out.national_context_summary.count, 1);
+    assert.equal(out.national_context_signals[0].signal_type, 'macro_framing');
   });
 
   it('redactScoreBySource keeps signals only for operator', () => {

@@ -46,4 +46,8 @@ describe('investigationEpistemic', () => {
       else process.env.RESILIENCE_ASSESS_SPLIT_INVESTIGATION_MASS = prev;
     }
   });
+
+  it('shouldAbstainFromInvestigation returns false when narrativePermissive', () => {
+    assert.equal(shouldAbstainFromInvestigation({ thin_evidence: true }, { narrativePermissive: true }), false);
+  });
 });

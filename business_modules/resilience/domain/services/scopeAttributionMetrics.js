@@ -34,6 +34,44 @@ export function countAndLogDefaultNorthSignals(scopedSignals, opts = {}) {
     if (assessment && typeof assessment === 'object') {
       assessment.default_district_signal_count = count;
     }
+  } else if (assessment && typeof assessment === 'object') {
+    assessment.default_district_signal_count = 0;
   }
   return count;
+}
+
+/**
+ * @param {NodeJS.ProcessEnv} [env]
+ * @returns {number}
+ */
+export function defaultNorthGateThresholdPct(env = process.env) {
+  const n = Number.parseFloat(env.RESILIENCE_DEFAULT_NORTH_GATE_PCT ?? '30');
+  return Number.isFinite(n) && n >= 0 ? Math.min(n, 100) : 30;
+}
+
+/**
+ * @param {NodeJS.ProcessEnv} [env]
+ * @returns {boolean}
+ */
+export function defaultNorthGateBlockEnabled(env = process.env) {
+  const v = env.RESILIENCE_DEFAULT_NORTH_GATE_BLOCK;
+  if (v == null || v === '') return true;
+  return v !== '0' && v !== 'false' && v !== 'off';
+}
+
+/**
+ * @param {object[]} scopedSignals
+ * @param {NodeJS.ProcessEnv} [env]
+ * @returns {{ count: number, pct: number, blocked: boolean, thresholdPct: number, blockEnabled: boolean }}
+ */
+export function evaluateDefaultNorthGate(scopedSignals, env = process.env) {
+  const count = (scopedSignals ?? []).filter(
+    (s) => s?.scopeDecision?.source === 'default_north_district',
+  ).length;
+  const total = Math.max((scopedSignals ?? []).length, 1);
+  const pct = Math.round((count / total) * 1000) / 10;
+  const thresholdPct = defaultNorthGateThresholdPct(env);
+  const blockEnabled = defaultNorthGateBlockEnabled(env);
+  const blocked = blockEnabled && pct > thresholdPct;
+  return { count, pct, blocked, thresholdPct, blockEnabled };
 }

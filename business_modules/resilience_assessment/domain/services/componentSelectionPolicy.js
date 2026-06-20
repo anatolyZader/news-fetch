@@ -3,6 +3,11 @@
  */
 import { COMPONENT_IDS } from '../../../../cross-cut-modules/resilience-contracts/componentIds.js';
 import { shouldAbstainFromInvestigation } from '../../../epistemic_features/index.js';
+import { narrativeInvestigationPermissive } from '../../../../cross-cut-modules/resilience-contracts/narrativeEpistemicMode.js';
+
+function investigationAbstentionOpts() {
+  return { narrativePermissive: narrativeInvestigationPermissive() };
+}
 
 /**
  * @param {object} params
@@ -24,6 +29,6 @@ export function selectSpecialistComponents({
     if (focus.length === 0 || focus.includes(id)) return true;
     const ep = epistemicProfileEnriched?.by_component?.[id] ?? {};
     if (ep.investigation_eligible === true) return true;
-    return !shouldAbstainFromInvestigation(ep);
+    return !shouldAbstainFromInvestigation(ep, investigationAbstentionOpts());
   });
 }

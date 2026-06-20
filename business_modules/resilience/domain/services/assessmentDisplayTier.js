@@ -9,6 +9,7 @@ import {
 } from '../../../../cross-cut-modules/resilience-contracts/displayViews.js';
 import { deriveThinEvidencePolicy, isThinEvidencePolicyEnabled, deriveAssessmentEpistemicPolicy } from './thinEvidencePolicy.js';
 import { narrativeGroundingMinScore } from './narrativeGrounding/groundingConfig.js';
+import { isSoftVoidWarning } from '../../../../cross-cut-modules/resilience-contracts/softVoidReasons.js';
 
 
 
@@ -139,6 +140,10 @@ export function deriveInstrumentState(comp, assessmentContext = {}) {
     delta_flag: comp?.delta_flag === 'significant',
   };
 
+  if (isSoftVoidWarning(assessmentContext.dataVoid)) {
+    instrument.sampling_degraded = true;
+  }
+
   if (isAnalyst) {
     instrument.suppression_delta = suppressionDelta;
     const contributors = comp?.top_contributors ?? comp?.signals ?? [];
@@ -259,13 +264,18 @@ function redactNorrisCap(cap) {
 export function redactAssessmentForView(assessment, view) {
   if (!assessment || typeof assessment !== 'object') return assessment;
 
+  const isOperator = view === DISPLAY_VIEWS.operator;
+  const operatorSynthesis = isOperator
+    ? (assessment.cross_component_synthesis_operator ?? assessment.cross_component_synthesis)
+    : assessment.cross_component_synthesis;
+
   const components = (assessment.components ?? []).map((c) => {
     const base = omitKeys(c, SCORE_KEYS_COMPONENT);
     delete base.delta_flag;
     delete base.counterfactual_article_key;
     delete base.dispersion;
     delete base.reviewer_score_adjusted;
-    if (view === DISPLAY_VIEWS.operator) {
+    if (isOperator) {
       delete base.narrative_claims;
       delete base.grounding_issues;
       delete base.narrative_grounding_score;
@@ -273,6 +283,8 @@ export function redactAssessmentForView(assessment, view) {
       delete base.analyst_flags;
       delete base.operator_state_inputs;
       delete base.assessment_state;
+      delete base.narrative_operator;
+      delete base.evidence_operator;
     }
     const facets = Array.isArray(c.facets)
       ? c.facets.map(redactFacet)
@@ -282,8 +294,16 @@ export function redactAssessmentForView(assessment, view) {
       epistemicStatus: assessment.epistemic_status,
       view,
     };
+    const narrative = isOperator
+      ? (c.narrative_operator ?? c.narrative)
+      : c.narrative;
+    const evidence = isOperator
+      ? (c.evidence_operator ?? c.evidence)
+      : c.evidence;
     return {
       ...base,
+      narrative,
+      evidence,
       facets,
       instrument: deriveInstrumentState(c, assessmentContext),
     };
@@ -300,21 +320,36 @@ export function redactAssessmentForView(assessment, view) {
     ...assessment,
     display_view: view,
     components,
+    cross_component_synthesis: operatorSynthesis,
     norris_capacities: norris,
     ...(headlineBand ? { headline_band: headlineBand } : {}),
     ...(narrativeDivergence ? { narrative_score_divergence: true } : {}),
   };
   delete out.overall_resilience_score;
+  if (isOperator) {
+    delete out.cross_component_synthesis_operator;
+  }
+  if (Array.isArray(out.national_context_signals) && out.national_context_signals.length > 0) {
+    out.national_context_summary = out.national_context_summary ?? {
+      count: out.national_context_signals.length,
+      provenance_counts: {},
+    };
+  } else if (view === DISPLAY_VIEWS.operator && Array.isArray(out.macro_signals) && out.macro_signals.length > 0) {
+    out.national_context_signals = out.macro_signals.map((s) => ({
+      signal_type: s.signal_type ?? s.type ?? null,
+      evidence: s.evidence ?? '',
+      signalProvenance: s.signalProvenance ?? 'macro_national',
+      source_type: s.source_type ?? null,
+    }));
+    out.national_context_summary = {
+      count: out.national_context_signals.length,
+      provenance_counts: { macro_national: out.national_context_signals.length },
+    };
+  }
   if (view === DISPLAY_VIEWS.operator) {
     delete out.component_diagnostics;
     delete out.component_id_warnings;
     delete out.shadow_scoring;
-  }
-  if (view === DISPLAY_VIEWS.operator && Array.isArray(out.macro_signals) && out.macro_signals.length > 0) {
-    out.macro_signals_summary = {
-      count: out.macro_signals.length,
-      signal_types: [...new Set(out.macro_signals.map((s) => s.signal_type ?? s.type).filter(Boolean))],
-    };
     delete out.macro_signals;
   }
   if (out.national_comparison && typeof out.national_comparison === 'object') {

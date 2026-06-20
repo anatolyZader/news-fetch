@@ -46,6 +46,7 @@ import {
 import { summarizeGeoCoverage, summarizeGeoQuality } from '../../../cross-cut-modules/geo/signalGeoSummary.js';
 import { enrichSignalsGeoIfNeeded } from '../../../cross-cut-modules/geo/enrichSignalsGeoIfNeeded.js';
 import { runPostExtractionAssessmentCore } from './postExtractionAssessmentCore.js';
+import { ensureArticleCorpusRagIndexed } from './ensureArticleCorpusRagIndexed.js';
 import {
   buildAssessmentMethodology,
   buildScoringModelManifest,
@@ -277,11 +278,18 @@ function logBuildScopedDiagnostics({
   scopedSignals,
   metricsSignals,
   macroSignals,
+  narrativeScopeSignals,
+  narrativeNationalContext,
   dataVoid,
   scopeLogLine,
 }) {
   if (isRegionalReportScope(reportScopeId) && macroSignals.length > 0) {
     console.error(`  → Epistemic partition: ${metricsSignals.length} metrics-eligible, ${macroSignals.length} macro/context-only`);
+  }
+  if (isRegionalReportScope(reportScopeId) && narrativeScopeSignals != null) {
+    console.error(
+      `  → Narrative scope: ${narrativeScopeSignals.length} signals (${narrativeNationalContext?.length ?? 0} national context)`,
+    );
   }
   if (reportScopeId !== ISRAEL_NATIONAL_DISTRICT_ID) {
     console.error(`  → Scope filter (${reportScope.label}): ${scopedSignals.length}/${nationalSignals.length} signals retained`);
@@ -358,11 +366,21 @@ async function buildScopedScoring(targetDate, days, allSignals, totalArticles, r
       rootDir: REPO_ROOT,
       dailyBudgetExceeded: routingOpts.dailyBudgetExceeded ?? false,
       attachDecisionBrief: false,
+      skipRagBackfill: true,
+      assessmentDays: days,
     });
   } catch (err) {
     if (err?.code === 'empty_scoped_evidence') {
       const suffix = formatDaysSuffix(days);
       console.error(`No signal files contained ${reportScope.label} evidence for ${targetDate}${suffix}.`);
+      process.exit(1);
+    }
+    if (err?.code === 'default_north_threshold_exceeded') {
+      const gate = err.gate ?? {};
+      console.error(
+        `Default-north fallback ${gate.pct ?? '?'}% exceeds threshold ${gate.thresholdPct ?? '?'}% `
+        + `(${gate.count ?? '?'} signals) — fix extractor district_id or set RESILIENCE_DEFAULT_NORTH_GATE_BLOCK=0`,
+      );
       process.exit(1);
     }
     throw err;
@@ -372,6 +390,8 @@ async function buildScopedScoring(targetDate, days, allSignals, totalArticles, r
     assessment,
     scopedSignals,
     macroSignals,
+    narrativeNationalContext,
+    narrativeScopeSignals,
     investigationSignals,
     investigationEpistemic,
     signalsForScoring,
@@ -393,6 +413,8 @@ async function buildScopedScoring(targetDate, days, allSignals, totalArticles, r
     scopedSignals,
     metricsSignals,
     macroSignals,
+    narrativeScopeSignals,
+    narrativeNationalContext,
     dataVoid,
     scopeLogLine,
   });
@@ -798,6 +820,16 @@ export async function runAssessSignalsCli() {
   logAssessmentHeader({ targetDate, days, reportScope, ...prepared });
 
   const { onUsage, getTotal, printSummary } = createCostTracker({ label: 'assess-signals' });
+  if (prepared.retrievalService?.setOnUsage) {
+    prepared.retrievalService.setOnUsage(onUsage);
+  }
+  await ensureArticleCorpusRagIndexed({
+    targetDate,
+    days,
+    retrievalService: prepared.retrievalService,
+    repoRoot: REPO_ROOT,
+  });
+
   const scoring = await buildScopedScoring(
     targetDate,
     days,

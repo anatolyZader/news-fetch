@@ -11,9 +11,14 @@ import { salienceContextFromDataVoid } from '../domain/services/highSalienceBypa
 import { attachEpistemicToAssessment } from '../domain/services/dataVoidIndex.js';
 import { detectSemanticPatterns } from '../domain/services/patternDetection/semanticPatternAlerts.js';
 import { buildOperatorRecommendations } from '../domain/services/patternDetection/operatorRecommendations.js';
-import { narrativeFocusUiEnabled } from '../../../cross-cut-modules/resilience-contracts/narrativeFocusUi.js';
+import { operatorEpistemicOverlayEnabled } from '../../../cross-cut-modules/resilience-contracts/operatorEpistemicOverlay.js';
 import { attachInvestigationDiagnostics } from '../domain/services/componentDiagnostics.js';
-import { countAndLogDefaultNorthSignals } from '../domain/services/scopeAttributionMetrics.js';
+import { countAndLogDefaultNorthSignals, evaluateDefaultNorthGate } from '../domain/services/scopeAttributionMetrics.js';
+import { buildNorthClusterNarrativesFromSignals } from '../domain/services/northClusterNarrative.js';
+import {
+  mergeNationalContextSignals,
+  summarizeNationalContext,
+} from '../domain/services/narrativeScopeSignals.js';
 import {
   getSocialQuarantineDecision,
 } from '../domain/services/socialQuarantineOverrides.js';
@@ -23,8 +28,10 @@ import { ISRAEL_NATIONAL_DISTRICT_ID } from '../../../cross-cut-modules/geo/isra
 import {
   produceAssessmentWithShadow,
 } from './produceAssessmentWithShadow.js';
+import { applyOperatorNarrativePipeline } from './operatorNarrativePipeline.js';
 import { attachDecisionBrief } from './attachDecisionBrief.js';
 import { loadHistoricalScores } from './assessSignalsHelpers.js';
+import { ensureArticleCorpusRagIndexed } from './ensureArticleCorpusRagIndexed.js';
 
 /**
  * @param {object} assessment
@@ -84,7 +91,7 @@ export function applySharedAssessmentPostMetadata(assessment, ctx) {
   const patterns = detectSemanticPatterns(scopedSignals ?? []);
   assessment.pattern_alerts = patterns;
   countAndLogDefaultNorthSignals(scopedSignals, { assessment });
-  if (!narrativeFocusUiEnabled()) {
+  if (operatorEpistemicOverlayEnabled()) {
     assessment.operator_recommendations = buildOperatorRecommendations(patterns);
   }
 
@@ -94,6 +101,8 @@ export function applySharedAssessmentPostMetadata(assessment, ctx) {
       signalsForScoring: signalsForScoring ?? investigationPrep.investigationSignals,
       scopedSignals,
       macroSignals: ctx.macroSignals ?? [],
+      narrativeScopeSignals: ctx.narrativeScopeSignals ?? scopedSignals,
+      narrativeNationalContext: ctx.narrativeNationalContext ?? [],
       scoredFull: scoredFull ?? null,
       scoringPartition: pipelineResult?.partition ?? null,
       scoringAssessmentMode: pipelineResult?.assessmentMode ?? null,
@@ -101,6 +110,20 @@ export function applySharedAssessmentPostMetadata(assessment, ctx) {
     },
     investigationPlan: assessment.investigation_plan,
   });
+
+  if (ctx.scopeAttribution) {
+    assessment.scope_attribution = ctx.scopeAttribution;
+  }
+  if (ctx.narrativeScopeSignalCount != null) {
+    assessment.narrative_scope_signal_count = ctx.narrativeScopeSignalCount;
+  }
+  if (ctx.nationalContextSignals?.length) {
+    assessment.national_context_signals = ctx.nationalContextSignals;
+    assessment.national_context_summary = summarizeNationalContext(ctx.nationalContextSignals);
+  }
+  if (ctx.northClusterNarratives) {
+    assessment.north_cluster_narratives = ctx.northClusterNarratives;
+  }
 }
 
 /**
@@ -127,7 +150,21 @@ export async function runPostExtractionAssessmentCore(params) {
     onScoreComplete,
     onNarrateComplete,
     attachDecisionBrief: shouldAttachBrief = true,
+    assessmentDays = 1,
+    skipRagBackfill = false,
   } = params;
+
+  if (!skipRagBackfill && retrievalService) {
+    if (retrievalService.setOnUsage && onUsage) {
+      retrievalService.setOnUsage(onUsage);
+    }
+    await ensureArticleCorpusRagIndexed({
+      targetDate: reportDate,
+      days: assessmentDays,
+      retrievalService,
+      repoRoot,
+    });
+  }
 
   const historicalScores = historicalScoresIn
     ?? loadHistoricalScores(reportDate, reportsDir, 14, reportScopeId);
@@ -136,7 +173,31 @@ export async function runPostExtractionAssessmentCore(params) {
     scopedSignals,
     macroSignals,
     baseSignalsForScoring,
+    narrativeNationalContext,
+    narrativeScopeSignals,
   } = scopeAndPartitionSignals(allSignals, reportScopeId);
+
+  const defaultNorthGate = evaluateDefaultNorthGate(scopedSignals);
+  if (defaultNorthGate.blocked) {
+    const err = new Error(
+      `Default-north fallback ${defaultNorthGate.pct}% exceeds gate threshold ${defaultNorthGate.thresholdPct}% (${defaultNorthGate.count}/${scopedSignals.length} signals)`,
+    );
+    err.code = 'default_north_threshold_exceeded';
+    err.gate = defaultNorthGate;
+    throw err;
+  }
+  if (defaultNorthGate.count > 0 && !defaultNorthGate.blockEnabled) {
+    console.error(
+      `  ⚠ Default-north fallback ${defaultNorthGate.pct}% (threshold ${defaultNorthGate.thresholdPct}%) — warn only`,
+    );
+  }
+
+  const scopeAttribution = {
+    default_district_signal_count: defaultNorthGate.count,
+    default_district_pct: defaultNorthGate.pct,
+    gate_threshold_pct: defaultNorthGate.thresholdPct,
+    gate_warning: defaultNorthGate.count > 0 && defaultNorthGate.pct > defaultNorthGate.thresholdPct,
+  };
 
   const investigationPrep = await prepareInvestigationSignals({
     investigationSignals: baseSignalsForScoring,
@@ -148,7 +209,7 @@ export async function runPostExtractionAssessmentCore(params) {
   const investigationEpistemic = deriveInvestigationEpistemicContext(investigationPrep.dataVoid);
   const investigationSignals = investigationPrep.investigationSignals;
 
-  if (investigationSignals.length === 0 && macroSignals.length === 0) {
+  if (investigationSignals.length === 0 && macroSignals.length === 0 && narrativeNationalContext.length === 0) {
     const err = new Error('No scoped evidence signals for assessment');
     err.code = 'empty_scoped_evidence';
     throw err;
@@ -199,6 +260,7 @@ export async function runPostExtractionAssessmentCore(params) {
     investigationEpistemic,
     signalsForScoring,
     scopedSignals,
+    narrativeScopeSignals,
     scoredFull,
     scopedTotalArticles,
     dataVoid: investigationPrep.dataVoid,
@@ -215,7 +277,22 @@ export async function runPostExtractionAssessmentCore(params) {
     dailyBudgetExceeded,
   });
 
+  await applyOperatorNarrativePipeline({
+    assessment,
+    narrativeScopeSignals,
+    scoredFull,
+    retrievalService,
+    reportDate,
+    onUsage,
+    llmPort,
+  });
+
   onNarrateComplete?.();
+
+  const nationalContextSignals = mergeNationalContextSignals(macroSignals, narrativeNationalContext);
+  const northClusterNarratives = reportScopeId === 'north'
+    ? buildNorthClusterNarrativesFromSignals(narrativeScopeSignals)
+    : null;
 
   applySharedAssessmentPostMetadata(assessment, {
     investigationEpistemic,
@@ -225,6 +302,12 @@ export async function runPostExtractionAssessmentCore(params) {
     reportDate,
     scopedSignals,
     macroSignals,
+    narrativeScopeSignals,
+    narrativeNationalContext,
+    narrativeScopeSignalCount: narrativeScopeSignals.length,
+    nationalContextSignals,
+    scopeAttribution,
+    northClusterNarratives,
     signalsForScoring,
     scoredFull,
     oovScoringApplied: prepared.oovScoringApplied,
@@ -240,6 +323,8 @@ export async function runPostExtractionAssessmentCore(params) {
     allSignals,
     scopedSignals,
     macroSignals,
+    narrativeNationalContext,
+    narrativeScopeSignals,
     baseSignalsForScoring,
     investigationPrep,
     investigationEpistemic,

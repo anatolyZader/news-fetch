@@ -13,8 +13,10 @@ const OOV_MASS_UNIT = 0.15;
 /**
  * Whether planner/specialist should abstain (investigation path).
  * @param {object} ep — epistemicProfile.by_component[id]
+ * @param {{ narrativePermissive?: boolean }} [opts]
  */
-export function shouldAbstainFromInvestigation(ep) {
+export function shouldAbstainFromInvestigation(ep, opts = {}) {
+  if (opts.narrativePermissive === true) return false;
   if (!splitInvestigationMassEnabled()) {
     return ep?.thin_evidence === true;
   }

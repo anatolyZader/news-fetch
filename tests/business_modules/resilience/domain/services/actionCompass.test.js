@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildActionCompass } from '../../../../../business_modules/resilience/domain/services/actionCompass.js';
+import { buildActionCompass, deriveUncertaintyBand } from '../../../../../business_modules/resilience/domain/services/actionCompass.js';
 import { ACTION_KINDS } from '../../../../../business_modules/resilience/domain/services/actionCompassKinds.js';
 import { buildAttentionItems } from '../../../../../business_modules/resilience/domain/services/attentionItems.js';
 
@@ -168,5 +168,28 @@ describe('buildActionCompass', () => {
     assert.ok(brief);
     assert.equal(brief.success_signal_text, 'Field team confirms status.');
     assert.equal(brief.why_now_text, 'Field corroboration needed for Kiryat Shmona.');
+  });
+
+  it('deriveUncertaintyBand returns watch for soft void warning', () => {
+    const band = deriveUncertaintyBand(
+      { level: 'warning', reason: 'digital_z_drop' },
+      { sampling_status: 'degraded', assessment_mode: 'normal' },
+    );
+    assert.equal(band, 'watch');
+  });
+
+  it('does not surface repair_sampling compass action for soft void warning', () => {
+    const assessment = {
+      assessment_mode: 'normal',
+      epistemic_status: { sampling_status: 'degraded', reason: 'digital_z_drop' },
+      data_void: { level: 'warning', reason: 'digital_z_drop' },
+      components: [{ component_id: 'narrative', instrument: { operator_shows_score: true } }],
+    };
+    const attention = buildAttentionItems(assessment, { view: 'operator' });
+    assert.ok(!attention.some((i) => i.code === 'data_void_drop'));
+    const compass = buildActionCompass(assessment, attention);
+    assert.ok(compass);
+    assert.equal(compass.uncertainty_band, 'watch');
+    assert.ok(!compass.actions.some((a) => a.kind === ACTION_KINDS.repair_sampling));
   });
 });

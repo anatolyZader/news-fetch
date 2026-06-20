@@ -4,6 +4,7 @@
  */
 
 import { UNVERIFIED_CRITICAL_GROUNDING_REASON } from './groundingPolicy.js';
+import { isSoftVoidWarning } from '../../../../cross-cut-modules/resilience-contracts/softVoidReasons.js';
 
 export const THIN_EVIDENCE_INSTRUMENT = Object.freeze({
   insufficient_data: 'insufficient_data',
@@ -40,6 +41,10 @@ export function deriveAssessmentEpistemicPolicy(dataVoid, epistemicStatus) {
       globalOperatorShowsScore: true,
       instrumentDefault: null,
     };
+  }
+
+  if (isSoftVoidWarning(dataVoid)) {
+    return { globalOperatorShowsScore: true, instrumentDefault: null };
   }
 
   if (sampling === 'degraded' || (dataVoid?.level && dataVoid.level !== 'none')) {

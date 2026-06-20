@@ -63,7 +63,7 @@ function applyFoundReport(data, setters) {
   setters.setAnomalyStrip(data.anomaly_strip ?? null);
   setters.setBudgetStatus(data.budget_status ?? null);
   setters.setSuggestCrisisBudget(data.suggest_crisis_budget === true);
-  setters.setNarrativeFocusUi(data.narrative_focus_ui === true);
+  setters.setOperatorEpistemicOverlay(data.operator_epistemic_overlay !== false);
   setters.setReportMissingHint(null);
   setters.setReportLoadError(null);
 }
@@ -117,7 +117,7 @@ export function useTodayReport(scope = 'national', view = 'operator', date = nul
   const [anomalyStrip, setAnomalyStrip] = useState(null);
   const [budgetStatus, setBudgetStatus] = useState(null);
   const [suggestCrisisBudget, setSuggestCrisisBudget] = useState(false);
-  const [narrativeFocusUi, setNarrativeFocusUi] = useState(false);
+  const [operatorEpistemicOverlay, setOperatorEpistemicOverlay] = useState(true);
 
   useEffect(() => {
     if (!reportFetchReady) return undefined;
@@ -139,7 +139,7 @@ export function useTodayReport(scope = 'national', view = 'operator', date = nul
       setAnomalyStrip,
       setBudgetStatus,
       setSuggestCrisisBudget,
-      setNarrativeFocusUi,
+      setOperatorEpistemicOverlay,
       setReportLoadError,
     };
 
@@ -159,7 +159,7 @@ export function useTodayReport(scope = 'national', view = 'operator', date = nul
       setAnomalyStrip(null);
       setBudgetStatus(null);
       setSuggestCrisisBudget(false);
-      setNarrativeFocusUi(false);
+      setOperatorEpistemicOverlay(true);
       setReportLoadError(null);
 
       if (authRequired && tokenWarmFailed && !accessTokenRef.current) {
@@ -227,7 +227,7 @@ export function useTodayReport(scope = 'national', view = 'operator', date = nul
     anomalyStrip,
     budgetStatus,
     suggestCrisisBudget,
-    narrativeFocusUi,
+    operatorEpistemicOverlay,
   };
 }
 

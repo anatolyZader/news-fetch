@@ -3,6 +3,7 @@
  */
 import { COMPONENT_IDS } from '../../../../cross-cut-modules/resilience-contracts/componentIds.js';
 import { shouldAbstainFromInvestigation } from '../../../epistemic_features/index.js';
+import { narrativeInvestigationPermissive } from '../../../../cross-cut-modules/resilience-contracts/narrativeEpistemicMode.js';
 import { FIELD_SOURCE_TYPES } from './dataVoid/sourceChannels.js';
 import { contributionForSignal } from '../epistemic/massContribution.js';
 import { SIGNAL_TO_COMPONENTS } from './signalRouter.js';
@@ -468,6 +469,8 @@ export function attachInvestigationDiagnostics(assessment, params) {
   assessment.investigation_summary = buildInvestigationSummary(assessment, {
     investigationSignals: scoring.investigationSignals ?? scoring.signalsForScoring ?? [],
     scoringSignals: scoring.signalsForScoring ?? [],
+    narrativeScopeSignals: scoring.narrativeScopeSignals ?? scoring.scopedSignals ?? [],
+    narrativeNationalContext: scoring.narrativeNationalContext ?? [],
     shadowScoringAvailable: Boolean(scoring.scoredFull && Object.keys(scoring.scoredFull).length > 0),
     budgetDegradeMode: assessment.budget_snapshot?.degrade_mode ?? null,
   });
@@ -497,7 +500,7 @@ function buildSpecialistSelectedSet({ abstentionSet, focusComponents, epistemicP
       selected.add(id);
       continue;
     }
-    if (!shouldAbstainFromInvestigation(ep)) {
+    if (!shouldAbstainFromInvestigation(ep, { narrativePermissive: narrativeInvestigationPermissive() })) {
       selected.add(id);
     }
   }

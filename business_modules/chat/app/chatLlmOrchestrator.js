@@ -9,11 +9,11 @@ import { buildSystemTemplateToolList } from '../domain/tools/chatToolSchemas.js'
 import { chatAnalystToolsEnabled, chatConfirmActionsEnabled } from '../domain/chatConfig.js';
 import { canViewAnalystDisplay } from '../../../cross-cut-modules/auth/userAccess.js';
 import { UNTRUSTED_CONTENT_INSTRUCTION } from '../../../cross-cut-modules/security/index.js';
-import { narrativeFocusUiEnabled } from '../../../cross-cut-modules/resilience-contracts/narrativeFocusUi.js';
+import { operatorEpistemicOverlayEnabled } from '../../../cross-cut-modules/resilience-contracts/operatorEpistemicOverlay.js';
 
 function buildSystemTemplate(ctx) {
   const isAnalyst = canViewAnalystDisplay(ctx.userEmail ?? '');
-  const narrativeFocus = narrativeFocusUiEnabled() && !isAnalyst;
+  const narrativeFocus = !operatorEpistemicOverlayEnabled() && !isAnalyst;
   const uiLang = String(ctx.uiLang ?? 'en').trim().toLowerCase();
   const toolList = buildSystemTemplateToolList({
     analystToolsEnabled: chatAnalystToolsEnabled(),

@@ -34,6 +34,35 @@ describe('deriveEpistemicBannerMessages', () => {
     });
     assert.ok(!msgs.some((m) => m.id === 'data_void:banner'));
   });
+
+  it('does not show calibration banner for operator view', () => {
+    const assessment = {
+      components: [],
+      methodology: { calibration: { trust: 0.2, deficit: 0.6 } },
+    };
+    const msgs = deriveEpistemicBannerMessages(assessment, { displayView: 'operator' });
+    assert.ok(!msgs.some((m) => m.id === 'calibration:limited'));
+  });
+
+  it('shows calibration banner for analyst view', () => {
+    const assessment = {
+      components: [],
+      methodology: { calibration: { trust: 0.2, deficit: 0.6 } },
+    };
+    const msgs = deriveEpistemicBannerMessages(assessment, { displayView: 'analyst' });
+    assert.ok(msgs.some((m) => m.id === 'calibration:limited'));
+  });
+
+  it('skips sampling degraded banner for operator on soft void warning', () => {
+    const assessment = {
+      assessment_mode: 'normal',
+      epistemic_status: { sampling_status: 'degraded', reason: 'digital_z_drop' },
+      data_void: { level: 'warning', reason: 'digital_z_drop' },
+      components: [],
+    };
+    const msgs = deriveEpistemicBannerMessages(assessment, { displayView: 'operator' });
+    assert.ok(!msgs.some((m) => m.id === 'epistemic:sampling_degraded'));
+  });
 });
 
 describe('deriveEvidenceOverviewCounts', () => {

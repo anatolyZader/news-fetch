@@ -66,4 +66,14 @@ describe('evidenceEligibility', () => {
     assert.equal(metricsSignals.length, 1);
     assert.equal(macroSignals.length, 1);
   });
+
+  it('marks narrative_national_context as not metricsEligible', () => {
+    const s = {
+      signalProvenance: SIGNAL_PROVENANCE.narrative_national_context,
+      narrativeContextOnly: true,
+      evidence: 'northern israel',
+    };
+    assert.equal(deriveSignalProvenance(s), SIGNAL_PROVENANCE.narrative_national_context);
+    assert.equal(metricsEligible(s), false);
+  });
 });

@@ -27,3 +27,22 @@ export function narrativeSynthesisMaxUrls() {
 }
 
 export const EVIDENCE_OVERLAP_MIN = 0.7;
+
+/** @returns {'hybrid' | 'agent' | 'legacy'} */
+export function resolveNarrativePipelineMode() {
+  const v = String(process.env.RESILIENCE_NARRATIVE_PIPELINE ?? 'hybrid').trim().toLowerCase();
+  if (v === 'agent' || v === 'legacy') return v;
+  return 'hybrid';
+}
+
+export function hybridNarrativeEnabled() {
+  return resolveNarrativePipelineMode() === 'hybrid';
+}
+
+export function legacyNarrativeOnly() {
+  return resolveNarrativePipelineMode() === 'legacy';
+}
+
+export function operatorNarrativePipelineEnabled() {
+  return hybridNarrativeEnabled() || legacyNarrativeOnly();
+}

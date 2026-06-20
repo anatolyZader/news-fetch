@@ -17,9 +17,9 @@ import {
 } from '../../../cross-cut-modules/agent/profiles/assessment.profile.js';
 import { buildAttentionItems } from '../../resilience/index.js';
 import { needsLlmSynthesis } from '../domain/services/synthesisPolicy.js';
-import { componentLabel } from '../domain/services/narrativeTemplates.js';
+import { componentLabel, shouldUseSingleChannelNarrative } from '../domain/services/narrativeTemplates.js';
 
-function buildSynthesizerSystem(componentAssessments, epistemicProfile, oovClusters = [], openObservationClaims = []) {
+function buildSynthesizerSystem(componentAssessments, epistemicProfile, oovClusters = [], openObservationClaims = [], clusterSummaries = null) {
   const slim = slimSynthPromptsEnabled();
   const assessments = slim
     ? compactComponentAssessmentsForSynth(componentAssessments)
@@ -31,7 +31,8 @@ function buildSynthesizerSystem(componentAssessments, epistemicProfile, oovClust
   const stable =
     'Synthesize cross-component resilience assessment. Use submit_synthesis tool. ' +
     'Do not invent facts not present in component assessments. ' +
-    'Write cross_component_synthesis as concise, operator-readable English prose; ' +
+    'Write cross_component_synthesis as 2–4 sentences of operator-readable English prose (not bullet lists); ' +
+    'include inline markdown citations [source_label](url) when component narratives or claims reference URLs. ' +
     'do not paste raw or multi-language evidence quotes into the synthesis. ' +
     'Address any OOV clusters and unverified repeated phrasing in your synthesis. ' +
     'Treat open observations and catalog signals equally; cite unverified material explicitly.';
@@ -46,6 +47,9 @@ function buildSynthesizerSystem(componentAssessments, epistemicProfile, oovClust
   if (openObservationClaims.length) {
     dynamic += `\n\nOPEN OBSERVATION CLAIMS (unverified — cite explicitly if material):\n${JSON.stringify(openObservationClaims.slice(0, 12), null, 2)}`;
   }
+  if (clusterSummaries && typeof clusterSummaries === 'object' && Object.keys(clusterSummaries).length > 0) {
+    dynamic += `\n\nNORTH CLUSTER PARTITIONS (geo-tagged subregions — roll up in exec summary when material):\n${JSON.stringify(clusterSummaries, null, 2)}`;
+  }
 
   return { stable, dynamic };
 }
@@ -54,22 +58,15 @@ function isAbstained(component) {
   return component.severity === 'abstain' || component.operator_status === 'insufficient_data';
 }
 
-function dominantSourceFamily(epistemicProfile, componentAssessments) {
+function widespreadSingleChannelDominance(epistemicProfile, componentAssessments) {
   const byComponent = epistemicProfile?.by_component ?? {};
-  const families = new Map();
-  let withDominance = 0;
+  let withSingleChannelDominance = 0;
   for (const c of componentAssessments) {
-    const warning = (byComponent[c.component_id]?.dominance_warnings ?? [])
-      .find((w) => w?.layer === 'source_type');
-    if (!warning) continue;
-    withDominance += 1;
-    if (warning.key) families.set(warning.key, (families.get(warning.key) ?? 0) + 1);
+    const ep = byComponent[c.component_id] ?? {};
+    if (shouldUseSingleChannelNarrative(ep)) withSingleChannelDominance += 1;
   }
-  const majority = componentAssessments.length > 0
-    && withDominance >= Math.ceil(componentAssessments.length / 2);
-  if (!majority || families.size === 0) return null;
-  const [topFamily] = [...families.entries()].sort((a, b) => b[1] - a[1])[0];
-  return topFamily;
+  return componentAssessments.length > 0
+    && withSingleChannelDominance >= Math.ceil(componentAssessments.length / 2);
 }
 
 function buildDeterministicSummary(componentAssessments, epistemicProfile, gapCount) {
@@ -97,9 +94,19 @@ function buildDeterministicSummary(componentAssessments, epistemicProfile, gapCo
 
   // Operator register: signal the single-channel concentration qualitatively;
   // the named source family and shares stay in analyst-only surfaces.
-  const widespreadDominance = dominantSourceFamily(epistemicProfile, componentAssessments) !== null;
+  const widespreadDominance = widespreadSingleChannelDominance(epistemicProfile, componentAssessments);
   if (widespreadDominance) {
     sentences.push('Evidence is concentrated in a single evidence channel across most components; treat component reads as provisional.');
+  } else {
+    const byComponent = epistemicProfile?.by_component ?? {};
+    const dominanceComponents = componentAssessments.filter((c) => {
+      const ep = byComponent[c.component_id] ?? {};
+      return (ep.dominance_warnings ?? []).some((w) => w?.layer === 'source_type')
+        && !shouldUseSingleChannelNarrative(ep);
+    });
+    if (dominanceComponents.length > 0) {
+      sentences.push('Some components draw on multiple channels but one source family is over-represented; treat those reads as provisional.');
+    }
   }
 
   if (gapCount > 0) {
@@ -135,6 +142,7 @@ export async function runSynthesizerAgent(params) {
     partialAssessment = null,
     oovClusters = [],
     openObservationClaims = [],
+    clusterSummaries = null,
   } = params;
 
   if (!needsLlmSynthesis({
@@ -174,7 +182,13 @@ export async function runSynthesizerAgent(params) {
     model: SONNET_MODEL,
     maxRounds: 2,
     maxTokens: 4000,
-    system: buildSynthesizerSystem(componentAssessments, epistemicProfile, oovClusters, openObservationClaims),
+    system: buildSynthesizerSystem(
+      componentAssessments,
+      epistemicProfile,
+      oovClusters,
+      openObservationClaims,
+      clusterSummaries,
+    ),
     messages: [{
       role: 'user',
       content: 'Produce cross-component synthesis and priority attention themes.',

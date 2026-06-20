@@ -74,7 +74,7 @@ Style requirements:
 - Transliterate Israeli place names phonetically where no established Russian form exists`,
 };
 
-const JSON_RULES = `Return ONLY valid JSON with the exact same structure as the input. Do NOT translate field names or component_id values. Do NOT translate or alter URLs. Do NOT translate markdown link text — keep ([source](url)) patterns exactly as ([source](url)).`;
+const JSON_RULES = `Return ONLY valid JSON with the exact same structure as the input. Do NOT translate field names or component_id values. Do NOT translate or alter URLs. Do NOT translate markdown link text — keep ([source](url)) and ([label](url)) patterns unchanged. Do NOT alter parenthetical citation text such as (Source Name, 20 Jun 2026).`;
 
 /**
  * @returns {Promise<Array<{ id: string, en: string, he: string, ru: string, aliases?: string[] }>>}

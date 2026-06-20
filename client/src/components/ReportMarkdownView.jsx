@@ -3,6 +3,7 @@ import {
   EVIDENCE_LEVEL_INLINE_NOTE,
 } from '../../../cross-cut-modules/resilience-contracts/componentsTableGlossary.js';
 import { MarkdownArticle } from '../ui/MarkdownArticle.jsx';
+import { formatReportMarkdown } from '../lib/formatSourceCitations.js';
 import PropTypes from 'prop-types';
 
 /**
@@ -38,11 +39,13 @@ function clarifyLegacyEvidenceLevelNotes(markdown) {
 /**
  * Renders the full resilience report Markdown (tables, appendices, links) from the server.
  */
-export function ReportMarkdownView({ markdown, readOnly }) {
+export function ReportMarkdownView({ markdown, readOnly, reportDate }) {
   if (!markdown?.trim()) return null;
 
-  const body = expandSourceCitationLinks(
+  const body = formatReportMarkdown(
     clarifyLegacyEvidenceLevelNotes(ensureComponentsTableGlossary(markdown)),
+    reportDate,
+    expandSourceCitationLinks,
   );
 
   return (
@@ -62,4 +65,5 @@ export function ReportMarkdownView({ markdown, readOnly }) {
 ReportMarkdownView.propTypes = {
   markdown: PropTypes.string,
   readOnly: PropTypes.bool,
+  reportDate: PropTypes.string,
 };

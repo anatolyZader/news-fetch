@@ -45,8 +45,10 @@ function collectEpistemicIssues(assessment, ep, issues) {
     issues.push({ type: 'contested_without_dissent' });
   }
   const narrative = String(assessment.narrative ?? '').toLowerCase();
+  const gapsText = (assessment.retrieval_gaps ?? []).join(' ').toLowerCase();
   for (const w of ep.dominance_warnings ?? []) {
-    if (w.layer === 'source_type' && !narrative.includes('source') && assessment.severity !== 'abstain') {
+    const dominanceAcknowledged = narrative.includes('source') || gapsText.includes('single source channel');
+    if (w.layer === 'source_type' && !dominanceAcknowledged && assessment.severity !== 'abstain') {
       issues.push({ type: 'dominance_unacknowledged', warning: w.message });
     }
   }
@@ -132,14 +134,12 @@ const CRITIC_REPAIR_HANDLERS = {
     }
   },
   dominance_unacknowledged(assessment, issue, repairLog) {
-    // Operator-register note: qualitative, no source_type slug / percentage /
-    // count. Must contain "source" so the re-check in collectEpistemicIssues is
-    // satisfied and no repair loop occurs.
     const note = 'Evidence relies on a single source channel; treat component reads as provisional.';
-    if (!String(assessment.narrative ?? '').includes(note)) {
-      assessment.narrative = `${assessment.narrative} ${note}`.trim();
+    const existing = assessment.retrieval_gaps ?? [];
+    if (!existing.includes(note)) {
+      assessment.retrieval_gaps = [...existing, note];
     }
-    repairLog.push({ issue: issue.type, action: 'appended_dominance_note' });
+    repairLog.push({ issue: issue.type, action: 'noted_dominance_gap' });
   },
   gap_unaddressed(assessment, issue, repairLog) {
     const note = `Gap not fully resolved: ${issue.action}`;
