@@ -42,7 +42,10 @@ export { buildActionCompass, actionCompassEnabled } from './domain/services/acti
 export {
   narrativeFocusUiEnabled,
   stripOperatorGuidancePayload,
-} from './domain/services/narrativeFocusUi.js';
+} from '../../cross-cut-modules/resilience-contracts/narrativeFocusUi.js';
+export { isOpenExtractParallelEnabled } from './domain/services/openExtractConfig.js';
+export { pipelineOpenObservationsPath } from './domain/services/pipelineArtifactPaths.js';
+export { stripTraceFields } from './infrastructure/claudeExtraction.js';
 export { buildAnomalyStrip } from './domain/services/anomalyStrip.js';
 
 // --- Policies (domain) ---

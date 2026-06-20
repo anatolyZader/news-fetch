@@ -9,7 +9,7 @@ import { buildSystemTemplateToolList } from '../domain/tools/chatToolSchemas.js'
 import { chatAnalystToolsEnabled, chatConfirmActionsEnabled } from '../domain/chatConfig.js';
 import { canViewAnalystDisplay } from '../../../cross-cut-modules/auth/userAccess.js';
 import { UNTRUSTED_CONTENT_INSTRUCTION } from '../../../cross-cut-modules/security/index.js';
-import { narrativeFocusUiEnabled } from '../../resilience/domain/services/narrativeFocusUi.js';
+import { narrativeFocusUiEnabled } from '../../../cross-cut-modules/resilience-contracts/narrativeFocusUi.js';
 
 function buildSystemTemplate(ctx) {
   const isAnalyst = canViewAnalystDisplay(ctx.userEmail ?? '');

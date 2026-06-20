@@ -13,7 +13,7 @@ import {
   wantsAlwaysReextractPbo,
 } from '../domain/services/pipelineIngestPolicy.js';
 import { normalizePipelineSourceKey } from '../domain/services/visitsSourceType.js';
-import { isBundleFreshForRun } from '../../social_media/domain/services/osintBundleMerge.js';
+import { isBundleFreshForRun } from '../../social_media/index.js';
 import {
   visitsReportsGlobDir,
   visitsSignalsPath,

@@ -1,7 +1,7 @@
 /**
  * Claude tool schemas for chat agent.
  */
-import { narrativeFocusUiEnabled } from '../../../resilience/domain/services/narrativeFocusUi.js';
+import { narrativeFocusUiEnabled } from '../../../../cross-cut-modules/resilience-contracts/narrativeFocusUi.js';
 
 export const SOURCE_TYPE_ENUM = [
   'news', 'radio', 'field', 'pbo', 'pbo_regional', 'naftali', 'whatsapp',

@@ -33,10 +33,13 @@ import {
 import { createRetrievalService } from '../../../cross-cut-modules/retrieval/createRetrievalService.js';
 import { defaultClosedSignalsDir } from '../../signals_extraction/index.js';
 import { pboDashboardDayToExtractUnits } from '../app/pboDashboardToExtractUnits.js';
-import { getDefaultResilienceLlmPort, runArticleDualPathExtract } from '../../resilience/index.js';
-import { stripTraceFields } from '../../resilience/infrastructure/claudeExtraction.js';
-import { isOpenExtractParallelEnabled } from '../../resilience/domain/services/openExtractConfig.js';
-import { pipelineOpenObservationsPath } from '../../resilience/domain/services/pipelineArtifactPaths.js';
+import {
+  getDefaultResilienceLlmPort,
+  runArticleDualPathExtract,
+  stripTraceFields,
+  isOpenExtractParallelEnabled,
+  pipelineOpenObservationsPath,
+} from '../../resilience/index.js';
 import { createCostTracker, appendCostLog, checkDailyBudget } from '../../../cross-cut-modules/budget/index.js';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');

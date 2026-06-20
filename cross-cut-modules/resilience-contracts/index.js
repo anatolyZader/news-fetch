@@ -26,3 +26,7 @@ export {
   validateAssessmentV2,
   createEmptyAssessmentV2,
 } from './assessmentV2.js';
+export {
+  narrativeFocusUiEnabled,
+  stripOperatorGuidancePayload,
+} from './narrativeFocusUi.js';

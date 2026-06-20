@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import {
   narrativeFocusUiEnabled,
   stripOperatorGuidancePayload,
-} from '../../../../../business_modules/resilience/domain/services/narrativeFocusUi.js';
+} from '../../../../../cross-cut-modules/resilience-contracts/narrativeFocusUi.js';
 
 describe('narrativeFocusUi', () => {
   it('narrativeFocusUiEnabled is false by default', () => {

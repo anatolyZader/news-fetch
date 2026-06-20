@@ -29,4 +29,5 @@ export { evaluateCitizenVoiceCandidate } from './domain/services/osintRejectionR
 export { buildDefaultGatherQueries } from './domain/services/gatherQueryTemplates.js';
 export { buildSocialOsintMarkdown } from './domain/services/socialMediaReportWriter.js';
 export { socialFindingsToExtractUnits } from './domain/services/socialFindingsToExtractUnits.js';
+export { isBundleFreshForRun } from './domain/services/osintBundleMerge.js';
 export { socialMediaRoutes } from './input/socialMediaRoutes.js';

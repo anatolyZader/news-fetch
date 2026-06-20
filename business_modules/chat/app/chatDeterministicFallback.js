@@ -4,7 +4,7 @@
 import { resolveChatContextTier } from '../domain/chatContextTier.js';
 import { handleChatToolCall } from './chatToolHandlers.js';
 import { createChatToolContext } from './createChatToolContext.js';
-import { narrativeFocusUiEnabled } from '../../resilience/domain/services/narrativeFocusUi.js';
+import { narrativeFocusUiEnabled } from '../../../cross-cut-modules/resilience-contracts/narrativeFocusUi.js';
 
 /**
  * @param {import('../domain/chatContextTier.js').ContextSlice} contextSlice

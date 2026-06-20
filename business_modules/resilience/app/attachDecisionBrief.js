@@ -5,7 +5,7 @@ import {
   decisionBriefEnabled,
   generateDecisionBrief,
 } from '../infrastructure/decisionBriefGenerator.js';
-import { narrativeFocusUiEnabled } from '../domain/services/narrativeFocusUi.js';
+import { narrativeFocusUiEnabled } from '../../../cross-cut-modules/resilience-contracts/narrativeFocusUi.js';
 
 /**
  * @param {object} assessment — mutated in place when brief is generated
