@@ -59,6 +59,47 @@ describe('chatAgentToolSelection (offline eval)', () => {
     }
   });
 
+  it('default profile excludes guidance tools when narrative focus UI is on', () => {
+    const prev = process.env.RESILIENCE_NARRATIVE_FOCUS_UI;
+    process.env.RESILIENCE_NARRATIVE_FOCUS_UI = '1';
+    try {
+      const tools = buildChatToolList({
+        analystToolsEnabled: true,
+        isAnalyst: false,
+        confirmActionsEnabled: true,
+        toolProfile: 'default',
+      });
+      const names = new Set(tools.map((t) => t.name));
+      assert.equal(names.has('list_attention_items'), false);
+      assert.equal(names.has('get_decision_brief'), false);
+      assert.equal(names.has('list_operator_recommendations'), false);
+      assert.equal(names.has('propose_operator_recommendation'), false);
+      assert.ok(names.has('lookup_signals'));
+    } finally {
+      if (prev === undefined) delete process.env.RESILIENCE_NARRATIVE_FOCUS_UI;
+      else process.env.RESILIENCE_NARRATIVE_FOCUS_UI = prev;
+    }
+  });
+
+  it('default profile keeps guidance tools for analyst users when narrative focus UI is on', () => {
+    const prev = process.env.RESILIENCE_NARRATIVE_FOCUS_UI;
+    process.env.RESILIENCE_NARRATIVE_FOCUS_UI = '1';
+    try {
+      const tools = buildChatToolList({
+        analystToolsEnabled: true,
+        isAnalyst: true,
+        confirmActionsEnabled: true,
+        toolProfile: 'default',
+      });
+      const names = new Set(tools.map((t) => t.name));
+      assert.ok(names.has('list_attention_items'));
+      assert.ok(names.has('get_decision_brief'));
+    } finally {
+      if (prev === undefined) delete process.env.RESILIENCE_NARRATIVE_FOCUS_UI;
+      else process.env.RESILIENCE_NARRATIVE_FOCUS_UI = prev;
+    }
+  });
+
   it('explain_validation_item handler calls validationReviewService', async () => {
     let called = false;
     const validationReviewService = {

@@ -39,17 +39,27 @@ export function socialSignalsPath(date, rootDir) {
   return resolve(resolveRepoRoot(rootDir), `business_modules/social_media/data/signals-social-${date}.json`);
 }
 
-export function fieldSignalsPath(date, rootDir) {
+export function visitsSignalsPath(date, rootDir) {
   return resolve(resolveRepoRoot(rootDir), `business_modules/visits/data/signals/signals-field-${date}.json`);
 }
+
+/** @deprecated use visitsSignalsPath */
+export const fieldSignalsPath = visitsSignalsPath;
 
 export function pboSignalsPath(date, rootDir) {
   return resolve(pipelineSignalsDir(rootDir), `signals-pbo-${date}.json`);
 }
 
-export function fieldReportsGlobDir(rootDir) {
+export function pboRegionalSignalsPath(date, rootDir) {
+  return resolve(pipelineSignalsDir(rootDir), `signals-pbo_regional-${date}.json`);
+}
+
+export function visitsReportsGlobDir(rootDir) {
   return resolve(resolveRepoRoot(rootDir), 'business_modules/visits/data');
 }
+
+/** @deprecated use visitsReportsGlobDir */
+export const fieldReportsGlobDir = visitsReportsGlobDir;
 
 export function regionalPboDataDir(rootDir) {
   return resolve(resolveRepoRoot(rootDir), 'business_modules/pbo_report_regional/data');

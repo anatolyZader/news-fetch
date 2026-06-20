@@ -24,7 +24,7 @@ Ingestion services are wired in `composition/registerIngestion.js`. The npm-scri
 | **WhatsApp** | `whatsapp-to-md` -> `business_modules/whatsapp/input/whatsapp-to-md.js` | group export | `business_modules/whatsapp/reports/whatsapp_reports-{date}.md` | `signals-whatsapp-{date}.json` |
 | **Social OSINT** | `social-media:gather-daily`, `:treat` -> `business_modules/social_media/input/socialMediaInput.js` | social posts | JSON bundle (no markdown) | `business_modules/social_media/data/signals-social-{date}.json` (`findings[]` -> `signals[]`) |
 | **Field visits** | `ingest-field-reports` -> `business_modules/visits/input/visitsInput.js` | Hebrew visit notes (.xlsx) | `business_modules/visits/data/articles-field-reports-{date}.md` | `business_modules/visits/data/signals/signals-field-{date}.json` |
-| **PBO municipal** | pipeline step -> `business_modules/pbo_report_muni/input/extract-pbo-signals.js` | Excel dashboards | (skips markdown - already structured) | `signals-pbo-{date}.json` |
+| **PBO municipal** | pipeline step -> `business_modules/pbo_report_muni/input/extract-pbo-signals.js` | Excel dashboards (verbal text columns + review follow-up only; numeric scores not analyzed) | text units from Excel | `signals-pbo-{date}.json` + `observations-pipeline-pbo-{date}.json` (LLM dual-path) |
 | **PBO regional** | pipeline step -> `business_modules/pbo_report_regional/input/extract-regional-pbo-signals.js` | Excel / regional markdown | `business_modules/pbo_report_regional/data/*{date}*.md` | `signals-pbo_regional-{date}.json` |
 | **Naftali (pool)** | pipeline step -> `business_modules/pool/input/extract-naftali-signals.js` | weekly questionnaire (structured) | (skips markdown) | `signals-naftali-{date}.json` (weekly cadence) |
 | **PBO event log** | `analyze-event-log` -> `business_modules/pbo_report_muni/input/analyze-event-log.js` | raw `.txt` log | analysis output | separate from daily 8-component flow |
@@ -34,7 +34,7 @@ Ingestion services are wired in `composition/registerIngestion.js`. The npm-scri
 ### 2.1 Two ingestion shapes
 
 1. **Textual sources** (news, radio, WhatsApp, field, regional PBO) produce a **markdown corpus** consumed by `loadMdFiles` in `business_modules/resilience/infrastructure/mdReportsLoader.js`, then both extraction paths run (file 02).
-2. **Structured sources** (PBO municipal, Naftali, social after treat) emit **signal/observation bundles directly** - their data is already structured, so they can skip the markdown + LLM-extraction step. Per the PBO extractor's own header note, this is "evidence shaped like every other signal," not a second scoring engine.
+2. **Structured sources** (Naftali, social after treat) emit **signal/observation bundles directly** without a markdown corpus step. **PBO municipal** uses verbal Excel fields only (not officer score columns) via the same LLM dual-path extract as other free-text sources.
 
 ## 3. The northern-district geographic model
 

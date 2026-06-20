@@ -14,21 +14,18 @@ export function formatPboMunicipalityBody(muni, componentsOrder, componentNames,
   const lines = [`# PBO: ${muni.name}`, ''];
   for (const cid of componentsOrder) {
     const c = muni.components?.[cid];
-    if (c?.avg == null) continue;
-    const label = componentNames?.he?.[cid] ?? componentNames?.en?.[cid] ?? cid;
-    const scoreParts = (c.scores ?? []).map((s) => Math.round(s.value * 100) + '%').join(', ');
-    const textParts = (c.texts ?? []).filter(Boolean).join(' | ');
+    const textParts = (c?.texts ?? []).filter(Boolean).join(' | ');
     const supplement = String(supplementalTexts[cid] ?? '').trim();
-    const componentLines = [
-      `## ${label}`,
-      `Average: ${Math.round(c.avg * 100)}% (${scoreParts})`,
-    ];
+    if (!textParts && !supplement) continue;
+    const label = componentNames?.he?.[cid] ?? componentNames?.en?.[cid] ?? cid;
+    const componentLines = [`## ${label}`];
     if (textParts) componentLines.push(`Observations: ${textParts}`);
     if (supplement) componentLines.push(`Follow-up: ${supplement}`);
     componentLines.push('');
     lines.push(...componentLines);
   }
-  return lines.join('\n').trim();
+  const body = lines.join('\n').trim();
+  return body === `# PBO: ${muni.name}` ? '' : body;
 }
 
 /**

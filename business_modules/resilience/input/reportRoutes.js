@@ -26,6 +26,8 @@ import {
   buildAnomalyStrip,
   updateOperatorRecommendationStatus,
   parseOperatorRecommendationRequest,
+  narrativeFocusUiEnabled,
+  stripOperatorGuidancePayload,
 } from '../index.js';
 import { isRegionalReportScope } from '../../../cross-cut-modules/geo/reportScopeIds.js';
 import { auditFromRequest } from '../../../cross-cut-modules/security/input/auditLog.js';
@@ -267,6 +269,10 @@ export async function reportRoutes(app, opts) {
       responsePayload = await localizeReportTodayPayload(responsePayload, lang);
     }
 
+    if (narrativeFocusUiEnabled() && display_view === DISPLAY_VIEWS.operator) {
+      responsePayload = stripOperatorGuidancePayload(responsePayload);
+    }
+
     return reply.send(responsePayload);
   });
 
@@ -470,11 +476,14 @@ export async function reportRoutes(app, opts) {
       if (cached) {
         const displayView = resolveTranslateDisplayView(bodyDisplayView);
         const redacted = redactReportPayload(cached, displayView);
-        const localized = await localizeReportTodayPayload({
+        let localized = await localizeReportTodayPayload({
           found: true,
           display_view: displayView,
           ...redacted,
         }, lang);
+        if (narrativeFocusUiEnabled() && displayView === DISPLAY_VIEWS.operator) {
+          localized = stripOperatorGuidancePayload(localized);
+        }
         return reply.send({ report: localized.assessment ?? report });
       }
       const translated = await getTranslatedReport(report, lang);

@@ -28,19 +28,11 @@ Finds radio recordings that don't have a corresponding `.md` transcript and tran
 
 ### `daily-pipeline.sh` — Full 3-day resilience pipeline
 
-Runs the complete pipeline equivalent to the `/8comp-3` slash command:
-
-1. Transcribe missing radio recordings (last 3 days)
-2. Fetch news articles for each of the 3 days
-3. Extract signals from news, radio, WhatsApp, field reports, PBO, and Naftali
-4. Run the combined 3-day resilience assessment
+Runs the complete pipeline via unified orchestrator (equivalent to `/8comp-3`):
 
 ```bash
-# Full pipeline
 ./scripts/daily-pipeline.sh
-
-# Skip transcription (if recordings are already transcribed)
-./scripts/daily-pipeline.sh --no-transcribe
+# or: npm run pipeline:run -- --preset 8comp-3
 ```
 
 ## Running on the GCP VM

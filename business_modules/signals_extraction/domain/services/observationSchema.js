@@ -101,12 +101,14 @@ export function validateObservationBundle(bundle) {
     errors.push('date must be YYYY-MM-DD');
   }
   const observations = normalizeObservations(bundle.observations ?? []);
-  if (!observations.length && !errors.length) {
+  const profile = bundle.profile ?? 'exploratory';
+  const allowEmptyPipeline = profile === 'pipeline';
+  if (!observations.length && !errors.length && !allowEmptyPipeline) {
     errors.push('observations array is empty');
   }
 
   const normalized = {
-    profile: bundle.profile ?? 'exploratory',
+    profile,
     content_kind: bundle.content_kind ?? 'mixed',
     source_type: bundle.source_type ?? 'adhoc',
     date: bundle.date,
@@ -117,7 +119,7 @@ export function validateObservationBundle(bundle) {
   };
 
   return {
-    valid: errors.length === 0 && observations.length > 0,
+    valid: errors.length === 0 && (observations.length > 0 || allowEmptyPipeline),
     errors,
     bundle: normalized,
   };

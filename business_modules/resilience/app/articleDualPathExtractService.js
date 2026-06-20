@@ -9,6 +9,20 @@ import { attributeSignalScope } from '../../../cross-cut-modules/geo/attributeSi
 import { attachSourceIdsToSignals } from '../../../db/source_archive/attachSourceIds.js';
 import { archiveArtifactBeforeWrite } from '../../../cross-cut-modules/log/index.js';
 import { defaultClosedSignalsDir } from '../../signals_extraction/index.js';
+import { isVisitsSourceType, normalizeVisitsSourceType } from '../domain/services/visitsSourceType.js';
+
+function attachArticleDatesToSignals(signals, articles) {
+  return (signals ?? []).map((s) => {
+    const idx = Number(s?.article_index);
+    if (!Number.isFinite(idx) || idx <= 0) return s;
+    const article = articles[idx - 1];
+    const published = article?.publishedAt;
+    if (!published) return s;
+    const date = String(published).slice(0, 10);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return s;
+    return { ...s, article_date: s.article_date ?? date };
+  });
+}
 
 /**
  * Open-vocabulary pipeline extract only (no closed catalogue LLM or signals JSON write).
@@ -90,14 +104,15 @@ export async function runArticleDualPathExtract(opts) {
       reportDate: date,
       trace,
     });
-    const bundleDistrictId = sourceType === 'field' || sourceType === 'whatsapp' ? 'north' : null;
+    const canonicalType = normalizeVisitsSourceType(sourceType);
+    const bundleDistrictId = isVisitsSourceType(sourceType) || sourceType === 'whatsapp' ? 'north' : null;
     const { signals: attributed, attached, resolved, unknown } = attributeSignalScope(
-      rawSignals.map((s) => ({ ...s, source_type: sourceType })),
+      rawSignals.map((s) => ({ ...s, source_type: canonicalType })),
       {
         rootDir: repoRoot,
-        sourceType,
+        sourceType: canonicalType,
         bundleDistrictId,
-        unknownSourceType: `extract-${sourceType}`,
+        unknownSourceType: `extract-${canonicalType}`,
       },
     );
     let signals = attributed;
@@ -105,16 +120,18 @@ export async function runArticleDualPathExtract(opts) {
       console.error(`  → Geo attach: ${attached} signals, ${resolved} resolved, ${unknown} unknown`);
     }
     signals = attachSourceIdsToSignals(signals, filePaths, repoRoot);
+    signals = attachArticleDatesToSignals(signals, articles);
 
     // Drop trace-only / rationale (B) fields so the persisted bundle and everything
     // downstream (assess/agent) stay clean.
     signals = signals.map(stripTraceFields);
 
-    const outDir = sourceType === 'field'
+    const outDir = isVisitsSourceType(sourceType)
       ? resolve('business_modules', 'visits', 'data', 'signals')
       : defaultClosedSignalsDir();
     mkdirSync(outDir, { recursive: true });
-    const outPath = resolve(outDir, `signals-${sourceType}-${date}.json`);
+    const fileStem = isVisitsSourceType(sourceType) ? 'field' : canonicalType;
+    const outPath = resolve(outDir, `signals-${fileStem}-${date}.json`);
     const archived = archiveArtifactBeforeWrite(outPath);
     if (archived) {
       console.error(`  → Prior closed bundle archived: ${archived}`);
@@ -123,7 +140,7 @@ export async function runArticleDualPathExtract(opts) {
       outPath,
       JSON.stringify(
         {
-          source_type: sourceType,
+          source_type: canonicalType,
           content_kind: contentKind,
           ...(bundleDistrictId ? { district_id: bundleDistrictId } : {}),
           date,

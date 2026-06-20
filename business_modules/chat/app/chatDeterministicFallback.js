@@ -4,6 +4,7 @@
 import { resolveChatContextTier } from '../domain/chatContextTier.js';
 import { handleChatToolCall } from './chatToolHandlers.js';
 import { createChatToolContext } from './createChatToolContext.js';
+import { narrativeFocusUiEnabled } from '../../resilience/domain/services/narrativeFocusUi.js';
 
 /**
  * @param {import('../domain/chatContextTier.js').ContextSlice} contextSlice
@@ -14,9 +15,13 @@ import { createChatToolContext } from './createChatToolContext.js';
 export function planDeterministicToolCalls(contextSlice, message, reportData) {
   const assessmentDate = reportData?.assessment?.date ?? reportData?.reportDate ?? null;
   const text = String(message ?? '').trim();
+  const narrativeFocus = narrativeFocusUiEnabled();
 
   switch (contextSlice) {
     case 'hub':
+      if (narrativeFocus) {
+        return [{ tool: 'lookup_signals', input: { limit: 15 } }];
+      }
       return [
         { tool: 'list_attention_items', input: { limit: 10 } },
         { tool: 'get_decision_brief', input: {} },
@@ -43,6 +48,9 @@ export function planDeterministicToolCalls(contextSlice, message, reportData) {
     case 'full':
     case 'standard':
     default:
+      if (narrativeFocus) {
+        return [{ tool: 'lookup_signals', input: { query: text.slice(0, 200) || undefined, limit: 15 } }];
+      }
       return [{ tool: 'list_attention_items', input: { limit: 15 } }];
   }
 }

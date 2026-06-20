@@ -5,11 +5,11 @@
  * Run this separately for each source type; then run assess-signals.js to combine and assess.
  *
  * Usage:
- *   node extract-signals.js --source-type news|radio|field|whatsapp --files <f1.md,f2.md,...> --date YYYY-MM-DD
+ *   node extract-signals.js --source-type news|radio|visits|field|whatsapp --files <f1.md,f2.md,...> --date YYYY-MM-DD
  *
  * Output:
  *   business_modules/signals_extraction/data/signals/signals-{source-type}-{date}.json  (news, radio, whatsapp, …)
- *   business_modules/visits/data/signals/signals-field-{date}.json  (field)
+ *   business_modules/visits/data/signals/signals-field-{date}.json  (visits / legacy field)
  *   business_modules/signals_extraction/data/observations-pipeline-{source-type}-{date}.json  (parallel open, default ON)
  */
 
@@ -31,14 +31,26 @@ import {
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 
-const CONTENT_KIND = { news: 'news', radio: 'audio', field: 'field_report', whatsapp: 'whatsapp' };
+const CONTENT_KIND = {
+  news: 'news',
+  radio: 'audio',
+  field: 'field_report',
+  visits: 'field_report',
+  whatsapp: 'whatsapp',
+};
+
+function normalizeExtractSourceType(sourceType) {
+  if (sourceType === 'field') return 'visits';
+  return sourceType;
+}
 
 function isSourceEnabled(sourceType) {
   const cfgPath = resolve('pipeline-config.json');
   if (!existsSync(cfgPath)) return true;
   try {
     const cfg = JSON.parse(readFileSync(cfgPath, 'utf8'));
-    const entry = cfg?.sources?.[sourceType];
+    const key = sourceType === 'visits' ? 'visits' : sourceType;
+    const entry = cfg?.sources?.[key] ?? cfg?.sources?.field;
     return entry?.enabled !== false;
   } catch {
     return true;
@@ -58,16 +70,17 @@ function parseExtractCliArgs(argv) {
 }
 
 function exitIfInvalidExtractCli({ sourceType, filesArg }) {
-  if (!sourceType || !CONTENT_KIND[sourceType]) {
-    console.error('Usage: extract-signals.js --source-type news|radio|field|whatsapp --files <csv> --date YYYY-MM-DD');
+  const canonical = normalizeExtractSourceType(sourceType);
+  if (!sourceType || !CONTENT_KIND[canonical]) {
+    console.error('Usage: extract-signals.js --source-type news|radio|visits|field|whatsapp --files <csv> --date YYYY-MM-DD');
     process.exit(1);
   }
   if (!filesArg) {
     console.error('Error: --files is required');
     process.exit(1);
   }
-  if (!isSourceEnabled(sourceType)) {
-    console.log(`  ℹ Source "${sourceType}" is disabled in pipeline-config.json — skipping extraction.`);
+  if (!isSourceEnabled(canonical)) {
+    console.log(`  ℹ Source "${canonical}" is disabled in pipeline-config.json — skipping extraction.`);
     process.exit(0);
   }
   if (!process.env.ANTHROPIC_API_KEY) {
@@ -108,7 +121,8 @@ async function archiveExtractSources(filePaths, { date, sourceType, sqlitePath, 
 export async function runExtractSignalsCli() {
   const cli = parseExtractCliArgs(process.argv.slice(2));
   exitIfInvalidExtractCli(cli);
-  const { sourceType, filesArg, date } = cli;
+  const sourceType = normalizeExtractSourceType(cli.sourceType);
+  const { filesArg, date } = cli;
 
   checkDailyBudget();
   const contentKind = CONTENT_KIND[sourceType];

@@ -1,16 +1,25 @@
 /**
- * Pure ingest preflight for the 3-day (or N-day) resilience pipeline.
- * Mirrors /8comp-3 and /8comp-3-north reuse rules.
+ * Pure ingest preflight for the N-day resilience pipeline.
+ * Policy-driven: refresh | reuse-first | always-reextract (see pipelineIngestPolicy.js).
  */
-import { existsSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { buildTargetDates, loadPipelineConfig } from './assessSignalsHelpers.js';
 import { isOpenExtractParallelEnabled } from '../domain/services/openExtractConfig.js';
+import { shouldReuseInReplay } from '../domain/services/replayReuseConfig.js';
 import {
-  fieldReportsGlobDir,
-  fieldSignalsPath,
+  resolveIngestPolicy,
+  shouldReuseBundle,
+  wantsAlwaysReextractPbo,
+} from '../domain/services/pipelineIngestPolicy.js';
+import { normalizePipelineSourceKey } from '../domain/services/visitsSourceType.js';
+import { isBundleFreshForRun } from '../../social_media/domain/services/osintBundleMerge.js';
+import {
+  visitsReportsGlobDir,
+  visitsSignalsPath,
   newsArticlesPath,
   newsSignalsPath,
+  pboRegionalSignalsPath,
   pboSignalsPath,
   pipelineOpenObservationsPath,
   radioSignalsPath,
@@ -30,7 +39,7 @@ export const PIPELINE_ACTIONS = Object.freeze([
   'extract_radio',
   'export_whatsapp',
   'extract_whatsapp',
-  'extract_field',
+  'extract_visits',
   'extract_open_only',
   'extract_open_social',
   'extract_pbo_date',
@@ -43,7 +52,7 @@ export const PIPELINE_ACTIONS = Object.freeze([
 /** @typedef {typeof PIPELINE_ACTIONS[number]} PipelineAction */
 
 /**
- * @param {string} input dd:mm:yyyy or YYYY-MM-DD
+ * @param {string} input dd:mm:yyyy, dd/mm/yyyy, or YYYY-MM-DD
  * @returns {string|null} YYYY-MM-DD
  */
 export function parsePipelineDateArg(input) {
@@ -55,6 +64,11 @@ export function parsePipelineDateArg(input) {
     const [, dd, mm, yyyy] = colon;
     return `${yyyy}-${mm}-${dd}`;
   }
+  const slash = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(raw);
+  if (slash) {
+    const [, dd, mm, yyyy] = slash;
+    return `${yyyy}-${mm}-${dd}`;
+  }
   return null;
 }
 
@@ -64,6 +78,23 @@ function fileNonEmpty(path) {
   } catch {
     return false;
   }
+}
+
+function readSocialBundle(date, rootDir) {
+  const path = socialSignalsPath(date, rootDir);
+  if (!fileNonEmpty(path)) return null;
+  try {
+    return JSON.parse(readFileSync(path, 'utf8'));
+  } catch {
+    return null;
+  }
+}
+
+function socialBundleUsable(date, rootDir, runDate, force) {
+  if (force) return false;
+  const bundle = readSocialBundle(date, rootDir);
+  if (!bundle) return false;
+  return isBundleFreshForRun(bundle, runDate);
 }
 
 function listRadioTranscriptsForDate(date, rootDir) {
@@ -93,44 +124,55 @@ function listRegionalPboMarkdownForDate(date, rootDir) {
     .map((f) => resolve(dir, f));
 }
 
-function listRecentFieldReportMds(rootDir, limit = 3) {
-  const dir = fieldReportsGlobDir(rootDir);
+/**
+ * @param {string} rootDir
+ * @param {{ limit?: number|null }} [opts] null limit = all MDs
+ */
+function listVisitReportMds(rootDir, { limit = 3 } = {}) {
+  const dir = visitsReportsGlobDir(rootDir);
   let names;
   try {
     names = readdirSync(dir);
   } catch {
     return [];
   }
-  return names
+  const sorted = names
     .filter((f) => f.startsWith('articles-field-reports-') && f.endsWith('.md'))
-    .sort((a, b) => a.localeCompare(b))
-    .slice(-limit)
-    .map((f) => resolve(dir, f));
+    .sort((a, b) => a.localeCompare(b));
+  const picked = limit == null ? sorted : sorted.slice(-limit);
+  return picked.map((f) => resolve(dir, f));
 }
 
-function fieldDateFromFilename(filePath) {
+function visitDateFromFilename(filePath) {
   const m = /(\d{4}-\d{2}-\d{2})/.exec(filePath);
   return m?.[1] ?? null;
 }
 
 function isEnabled(enabledSources, key) {
   if (!enabledSources) return true;
-  return enabledSources.has(key);
+  const canonical = normalizePipelineSourceKey(key);
+  if (enabledSources.has(canonical) || enabledSources.has(key)) return true;
+  if (canonical === 'visits' && enabledSources.has('field')) return true;
+  return false;
+}
+
+function skipOpenBackfill({ replayMode, sourceType, force, env, ingestPolicy }) {
+  if (force || ingestPolicy === 'always-reextract') return true;
+  if (replayMode && !shouldReuseInReplay(sourceType, { replayMode, force, env })) return true;
+  return false;
 }
 
 /**
  * @param {Array<{ stage: string, date?: string, action: PipelineAction, detail?: string }>} steps
  * @param {object} opts
- * @param {string} opts.stage
- * @param {string} opts.date
- * @param {string} opts.sourceType
- * @param {string[]} opts.mdPaths absolute paths with readable MD/units
- * @param {string} [opts.rootDir]
- * @param {boolean} [opts.force]
  */
 function maybePushOpenBackfillStep(steps, opts) {
-  const { stage, date, sourceType, mdPaths, rootDir, force = false } = opts;
-  if (force || !isOpenExtractParallelEnabled()) return;
+  const {
+    stage, date, sourceType, mdPaths, rootDir, force = false, replayMode = false, env, ingestPolicy,
+  } = opts;
+  if (skipOpenBackfill({ replayMode, sourceType, force, env, ingestPolicy }) || !isOpenExtractParallelEnabled()) {
+    return;
+  }
   const readablePaths = (mdPaths ?? []).filter((p) => fileNonEmpty(p));
   if (readablePaths.length === 0) return;
 
@@ -145,14 +187,11 @@ function maybePushOpenBackfillStep(steps, opts) {
   });
 }
 
-/**
- * @param {Array<{ stage: string, date?: string, action: PipelineAction, detail?: string }>} steps
- * @param {string} date
- * @param {string} [rootDir]
- * @param {boolean} [force]
- */
-function maybePushOpenSocialBackfillStep(steps, date, rootDir, force = false) {
-  if (force || !isOpenExtractParallelEnabled()) return;
+function maybePushOpenSocialBackfillStep(steps, date, ctx) {
+  const { force = false, replayMode = false, rootDir, env, ingestPolicy } = ctx;
+  if (skipOpenBackfill({ replayMode, sourceType: 'social', force, env, ingestPolicy }) || !isOpenExtractParallelEnabled()) {
+    return;
+  }
   if (!fileNonEmpty(socialSignalsPath(date, rootDir))) return;
 
   const openPath = pipelineOpenObservationsPath('social', date, rootDir);
@@ -161,19 +200,14 @@ function maybePushOpenSocialBackfillStep(steps, date, rootDir, force = false) {
   steps.push({ stage: 'social', date, action: 'extract_open_social' });
 }
 
-/**
- * @param {object} opts
- * @param {string} opts.targetDate YYYY-MM-DD
- * @param {number} [opts.days]
- * @param {Set<string>|null} [opts.enabledSources]
- * @param {boolean} [opts.replayMode]
- * @param {boolean} [opts.conservativeNewsFetch] 8comp-3-north style
- * @param {boolean} [opts.force]
- * @param {string} [opts.rootDir]
- * @returns {{ windowDates: string[], steps: Array<{ stage: string, date?: string, action: PipelineAction, detail?: string }> }}
- */
-function pushNewsStepsForDate(steps, date, { sig, md, force, conservativeNewsFetch, replayMode, rootDir }) {
-  if (fileNonEmpty(sig) && !force) {
+function pushNewsStepsForDate(steps, date, ctx) {
+  const {
+    sig, md, force, conservativeNewsFetch, replayMode, rootDir, env, ingestPolicy,
+  } = ctx;
+
+  if (shouldReuseBundle({
+    ingestPolicy, replayMode, sourceType: 'news', force, bundleExists: fileNonEmpty(sig), env,
+  })) {
     steps.push({ stage: 'news', date, action: 'reuse' });
     maybePushOpenBackfillStep(steps, {
       stage: 'news',
@@ -182,10 +216,16 @@ function pushNewsStepsForDate(steps, date, { sig, md, force, conservativeNewsFet
       mdPaths: [md],
       rootDir,
       force,
+      replayMode,
+      env,
+      ingestPolicy,
     });
     return;
   }
-  const shouldFetch = conservativeNewsFetch ? !fileNonEmpty(sig) && !fileNonEmpty(md) : !replayMode;
+
+  const refetchExistingMd = force && fileNonEmpty(md) && ingestPolicy === 'always-reextract';
+  const shouldFetch = refetchExistingMd
+    || (conservativeNewsFetch ? !fileNonEmpty(sig) && !fileNonEmpty(md) : !replayMode);
   if (shouldFetch) steps.push({ stage: 'news', date, action: 'fetch_news' });
   if (fileNonEmpty(md) || shouldFetch) {
     steps.push({ stage: 'news', date, action: 'extract_news' });
@@ -194,8 +234,12 @@ function pushNewsStepsForDate(steps, date, { sig, md, force, conservativeNewsFet
   }
 }
 
-function pushRadioStepsForDate(steps, date, { sig, transcripts, force, rootDir }) {
-  if (fileNonEmpty(sig) && !force) {
+function pushRadioStepsForDate(steps, date, ctx) {
+  const { sig, transcripts, force, replayMode, rootDir, env, ingestPolicy } = ctx;
+
+  if (shouldReuseBundle({
+    ingestPolicy, replayMode, sourceType: 'radio', force, bundleExists: fileNonEmpty(sig), env,
+  })) {
     steps.push({ stage: 'radio', date, action: 'reuse' });
     maybePushOpenBackfillStep(steps, {
       stage: 'radio',
@@ -204,6 +248,9 @@ function pushRadioStepsForDate(steps, date, { sig, transcripts, force, rootDir }
       mdPaths: transcripts,
       rootDir,
       force,
+      replayMode,
+      env,
+      ingestPolicy,
     });
   } else if (transcripts.length > 0) {
     steps.push({ stage: 'radio', date, action: 'extract_radio', detail: transcripts.join(',') });
@@ -212,8 +259,12 @@ function pushRadioStepsForDate(steps, date, { sig, transcripts, force, rootDir }
   }
 }
 
-function pushWhatsappStepsForDate(steps, date, { sig, md, force, rootDir }) {
-  if (fileNonEmpty(sig) && !force) {
+function pushWhatsappStepsForDate(steps, date, ctx) {
+  const { sig, md, force, replayMode, rootDir, env, ingestPolicy } = ctx;
+
+  if (shouldReuseBundle({
+    ingestPolicy, replayMode, sourceType: 'whatsapp', force, bundleExists: fileNonEmpty(sig), env,
+  })) {
     steps.push({ stage: 'whatsapp', date, action: 'reuse' });
     maybePushOpenBackfillStep(steps, {
       stage: 'whatsapp',
@@ -222,6 +273,9 @@ function pushWhatsappStepsForDate(steps, date, { sig, md, force, rootDir }) {
       mdPaths: [md],
       rootDir,
       force,
+      replayMode,
+      env,
+      ingestPolicy,
     });
     return;
   }
@@ -229,21 +283,24 @@ function pushWhatsappStepsForDate(steps, date, { sig, md, force, rootDir }) {
   steps.push({ stage: 'whatsapp', date, action: 'extract_whatsapp' });
 }
 
-/**
- * @param {Array<{ stage: string, date?: string, action: PipelineAction, detail?: string }>} steps
- * @param {string[]} windowDates
- * @param {{ enabledSources: Set<string>|null, force?: boolean, rootDir?: string }} opts
- */
-function pushPboStepsForWindowDates(steps, windowDates, { enabledSources, force = false, rootDir }) {
+function pushPboStepsForWindowDates(steps, windowDates, ctx) {
+  const { enabledSources, force = false, rootDir, replayMode, env, ingestPolicy } = ctx;
   if (!isEnabled(enabledSources, 'pbo')) return;
+
+  const parallel = isOpenExtractParallelEnabled();
 
   for (const date of windowDates) {
     const closedPath = pboSignalsPath(date, rootDir);
     const closedOk = fileNonEmpty(closedPath);
     const openNeeds = openPipelineObsNeedsExtract(pipelineOpenObservationsPath('pbo', date, rootDir));
-    const parallel = isOpenExtractParallelEnabled();
 
-    if (force || !closedOk || (parallel && openNeeds)) {
+    const wantsExtract = force
+      || wantsAlwaysReextractPbo(ingestPolicy)
+      || !closedOk
+      || (parallel && openNeeds)
+      || (replayMode && !shouldReuseInReplay('pbo', { replayMode, force, env }));
+
+    if (wantsExtract) {
       steps.push({ stage: 'pbo', date, action: 'extract_pbo_date' });
     } else {
       steps.push({ stage: 'pbo', date, action: 'reuse' });
@@ -251,70 +308,121 @@ function pushPboStepsForWindowDates(steps, windowDates, { enabledSources, force 
   }
 }
 
-function pushFieldStepsIfEnabled(steps, enabledSources, replayMode, rootDir, force) {
-  if (!isEnabled(enabledSources, 'field')) return;
+function pushVisitsStepsIfEnabled(steps, enabledSources, ctx) {
+  const { replayMode, rootDir, force, env, ingestPolicy } = ctx;
+  if (!isEnabled(enabledSources, 'visits')) return;
 
-  for (const file of listRecentFieldReportMds(rootDir)) {
-    const date = fieldDateFromFilename(file);
+  const limit = ingestPolicy === 'always-reextract' ? null : 3;
+  for (const file of listVisitReportMds(rootDir, { limit })) {
+    const date = visitDateFromFilename(file);
     if (!date) continue;
 
-    if (replayMode) {
-      const sig = fieldSignalsPath(date, rootDir);
-      if (fileNonEmpty(sig) && !force) {
-        steps.push({ stage: 'field', date, action: 'reuse' });
-        maybePushOpenBackfillStep(steps, {
-          stage: 'field',
-          date,
-          sourceType: 'field',
-          mdPaths: [file],
-          rootDir,
-          force,
-        });
-      }
+    const sig = visitsSignalsPath(date, rootDir);
+    if (shouldReuseBundle({
+      ingestPolicy, replayMode, sourceType: 'visits', force, bundleExists: fileNonEmpty(sig), env,
+    })) {
+      steps.push({ stage: 'visits', date, action: 'reuse' });
+      maybePushOpenBackfillStep(steps, {
+        stage: 'visits',
+        date,
+        sourceType: 'visits',
+        mdPaths: [file],
+        rootDir,
+        force,
+        replayMode,
+        env,
+        ingestPolicy,
+      });
       continue;
     }
 
-    steps.push({ stage: 'field', date, action: 'extract_field', detail: file });
+    steps.push({ stage: 'visits', date, action: 'extract_visits', detail: file });
   }
 }
 
-function pushOnceSteps(steps, enabledSources, windowDates, { replayMode, targetDate, rootDir, force }) {
-  pushFieldStepsIfEnabled(steps, enabledSources, replayMode, rootDir, force);
-  pushPboStepsForWindowDates(steps, windowDates, { enabledSources, force, rootDir });
-  if (isEnabled(enabledSources, 'naftali') && !replayMode) steps.push({ stage: 'naftali', action: 'extract_naftali' });
-  if (!replayMode) steps.push({ stage: 'pbo_review', action: 'pbo_review', date: targetDate });
+function pushRegionalPboSteps(steps, windowDates, ctx) {
+  const { replayMode, force, rootDir, env, ingestPolicy } = ctx;
+  const parallel = isOpenExtractParallelEnabled();
+
   for (const date of windowDates) {
     const regional = listRegionalPboMarkdownForDate(date, rootDir);
-    if (regional.length > 0) {
-      steps.push({ stage: 'regional_pbo', date, action: 'extract_regional_pbo', detail: regional.join(',') });
+    if (regional.length === 0) continue;
+
+    const closedOk = fileNonEmpty(pboRegionalSignalsPath(date, rootDir));
+    const openNeeds = openPipelineObsNeedsExtract(pipelineOpenObservationsPath('pbo_regional', date, rootDir));
+    const canReuse = !wantsAlwaysReextractPbo(ingestPolicy) && shouldReuseBundle({
+      ingestPolicy,
+      replayMode,
+      sourceType: 'pbo_regional',
+      force,
+      bundleExists: closedOk && (!parallel || !openNeeds),
+      env,
+    });
+
+    if (canReuse) {
+      steps.push({ stage: 'regional_pbo', date, action: 'reuse' });
+      continue;
     }
+
+    steps.push({ stage: 'regional_pbo', date, action: 'extract_regional_pbo', detail: regional.join(',') });
   }
 }
 
-function pushSocialReplaySteps(steps, windowDates, { force, rootDir }) {
+function pushOnceSteps(steps, enabledSources, windowDates, ctx) {
+  pushVisitsStepsIfEnabled(steps, enabledSources, ctx);
+  pushPboStepsForWindowDates(steps, windowDates, { enabledSources, ...ctx });
+  const { replayMode, targetDate, force, env, ingestPolicy } = ctx;
+  const runNaftali = !replayMode
+    || wantsAlwaysReextractPbo(ingestPolicy)
+    || !shouldReuseInReplay('naftali', { replayMode, force, env });
+  if (isEnabled(enabledSources, 'naftali') && runNaftali) {
+    steps.push({ stage: 'naftali', action: 'extract_naftali' });
+  }
+  if (!replayMode) steps.push({ stage: 'pbo_review', action: 'pbo_review', date: targetDate });
+  pushRegionalPboSteps(steps, windowDates, ctx);
+}
+
+function pushSocialReplaySteps(steps, windowDates, ctx) {
+  const { force, rootDir, replayMode, env, ingestPolicy } = ctx;
   const missing = new Set(windowDates.filter((d) => !fileNonEmpty(socialSignalsPath(d, rootDir))));
   for (const d of windowDates) {
-    if (fileNonEmpty(socialSignalsPath(d, rootDir)) && !force) {
+    if (shouldReuseBundle({
+      ingestPolicy,
+      replayMode,
+      sourceType: 'social',
+      force,
+      bundleExists: fileNonEmpty(socialSignalsPath(d, rootDir)),
+      env,
+    })) {
       steps.push({ stage: 'social', date: d, action: 'reuse' });
-      maybePushOpenSocialBackfillStep(steps, d, rootDir, force);
+      maybePushOpenSocialBackfillStep(steps, d, { force, replayMode, rootDir, env, ingestPolicy });
     } else if (missing.has(d)) {
-      steps.push({ stage: 'social', date: d, action: 'skip', detail: 'no social bundle on disk (historical replay cannot re-fetch X/Telegram)' });
+      steps.push({
+        stage: 'social',
+        date: d,
+        action: 'skip',
+        detail: 'no social bundle on disk (historical replay cannot re-fetch X/Telegram)',
+      });
     }
   }
 }
 
-function pushSocialSteps(steps, windowDates, { replayMode, force, targetDate, rootDir }) {
+function pushSocialSteps(steps, windowDates, ctx) {
+  const { replayMode, force, targetDate, rootDir, env, ingestPolicy, today } = ctx;
   if (replayMode) {
-    pushSocialReplaySteps(steps, windowDates, { force, rootDir });
+    pushSocialReplaySteps(steps, windowDates, ctx);
     return;
   }
-  const missing = windowDates.filter((d) => !fileNonEmpty(socialSignalsPath(d, rootDir)));
-  if (missing.length > 0 || force) {
+  const runDate = today ?? targetDate;
+  const staleOrMissing = windowDates.filter(
+    (d) => !socialBundleUsable(d, rootDir, runDate, force),
+  );
+  if (staleOrMissing.length > 0 || force) {
     steps.push({ stage: 'social', action: 'social_gather', date: targetDate });
   } else {
     for (const d of windowDates) {
       steps.push({ stage: 'social', date: d, action: 'reuse' });
-      maybePushOpenSocialBackfillStep(steps, d, rootDir, force);
+      maybePushOpenSocialBackfillStep(steps, d, { force, replayMode, rootDir, env, ingestPolicy });
     }
   }
 }
@@ -327,47 +435,64 @@ export function buildPipelineIngestPlan(opts) {
     replayMode = false,
     conservativeNewsFetch = false,
     force = false,
+    ingestPolicy: ingestPolicyOpt = null,
+    alwaysReextract = false,
+    scope = 'national',
+    today = null,
     rootDir,
+    env = process.env,
   } = opts;
+
+  const ingestPolicy = resolveIngestPolicy({
+    ingestPolicy: ingestPolicyOpt,
+    alwaysReextract,
+    scope,
+    replayMode,
+  });
 
   const windowDates = [...buildTargetDates(targetDate, days)].sort((a, b) => a.localeCompare(b));
   const steps = [];
+  const sharedCtx = {
+    replayMode,
+    targetDate,
+    rootDir,
+    force,
+    env,
+    ingestPolicy,
+    conservativeNewsFetch,
+    today,
+  };
 
   for (const date of windowDates) {
     if (isEnabled(enabledSources, 'news')) {
       pushNewsStepsForDate(steps, date, {
         sig: newsSignalsPath(date, rootDir),
         md: newsArticlesPath(date, rootDir),
-        force,
-        conservativeNewsFetch,
-        replayMode,
-        rootDir,
+        ...sharedCtx,
       });
     }
     if (isEnabled(enabledSources, 'radio')) {
       pushRadioStepsForDate(steps, date, {
         sig: radioSignalsPath(date, rootDir),
         transcripts: listRadioTranscriptsForDate(date, rootDir),
-        force,
-        rootDir,
+        ...sharedCtx,
       });
     }
     if (isEnabled(enabledSources, 'whatsapp')) {
       pushWhatsappStepsForDate(steps, date, {
         sig: whatsappSignalsPath(date, rootDir),
         md: whatsappReportPath(date, rootDir),
-        force,
-        rootDir,
+        ...sharedCtx,
       });
     }
   }
 
-  pushOnceSteps(steps, enabledSources, windowDates, { replayMode, targetDate, rootDir, force });
+  pushOnceSteps(steps, enabledSources, windowDates, sharedCtx);
   if (isEnabled(enabledSources, 'social')) {
-    pushSocialSteps(steps, windowDates, { replayMode, force, targetDate, rootDir });
+    pushSocialSteps(steps, windowDates, sharedCtx);
   }
 
-  return { windowDates, steps };
+  return { windowDates, steps, ingestPolicy };
 }
 
 /**
@@ -389,7 +514,7 @@ export function planHasWork(steps) {
     'extract_radio',
     'export_whatsapp',
     'extract_whatsapp',
-    'extract_field',
+    'extract_visits',
     'extract_open_only',
     'extract_open_social',
     'extract_pbo_date',

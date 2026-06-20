@@ -1,7 +1,36 @@
 /**
- * Map PBO municipality dashboard day data to open-extract units (free text + evidence).
+ * Map PBO municipality dashboard day data to extract units (verbal text only).
  */
 import { normalizeExtractUnits } from '../../signals_extraction/index.js';
+
+/**
+ * @param {object} muni
+ * @param {object} componentNames — { he: Record<string, string> }
+ * @param {Record<string, string>} supplemental
+ */
+function buildMuniExtractLines(muni, componentNames, supplemental) {
+  const lines = [];
+  for (const [cid, c] of Object.entries(muni.components ?? {})) {
+    const textParts = (c.texts ?? []).filter(Boolean).join(' | ');
+    const supplement = String(supplemental[cid] ?? '').trim();
+    if (!textParts && !supplement) continue;
+    const label = componentNames?.he?.[cid] ?? cid;
+    if (textParts) {
+      lines.push(`[${muni.name}] ${label} — ${textParts}`);
+    }
+    if (supplement) {
+      lines.push(`[${muni.name}] [PBO follow-up ${cid}] ${supplement}`);
+    }
+  }
+  for (const [cid, text] of Object.entries(supplemental)) {
+    const t = String(text ?? '').trim();
+    if (!t) continue;
+    const alreadyListed = lines.some((line) => line.includes(`[PBO follow-up ${cid}]`));
+    if (alreadyListed) continue;
+    lines.push(`[${muni.name}] [PBO follow-up ${cid}] ${t}`);
+  }
+  return lines;
+}
 
 /**
  * @param {object} day — getMunicipalityDashboard day entry
@@ -9,26 +38,6 @@ import { normalizeExtractUnits } from '../../signals_extraction/index.js';
  * @param {Map<string, object>} [reviewMetaByMuni]
  * @returns {Array<object>}
  */
-function buildMuniExtractLines(muni, componentNames, supplemental) {
-  const lines = [];
-  for (const [cid, c] of Object.entries(muni.components ?? {})) {
-    if (c.avg == null && !(c.texts?.length)) continue;
-    const label = componentNames?.he?.[cid] ?? cid;
-    const scoreParts = (c.scores ?? []).map((s) => Math.round(s.value * 100) + '%').join(', ');
-    const textParts = (c.texts ?? []).filter(Boolean).join(' | ');
-    let line = `[${muni.name}] ${label}`;
-    if (c.avg != null) line += `: avg=${Math.round(c.avg * 100)}% (${scoreParts})`;
-    if (textParts) line += ` — ${textParts}`;
-    lines.push(line);
-  }
-  for (const [cid, text] of Object.entries(supplemental)) {
-    const t = String(text ?? '').trim();
-    if (!t) continue;
-    lines.push(`[${muni.name}] [PBO follow-up ${cid}] ${t}`);
-  }
-  return lines;
-}
-
 export function pboDashboardDayToExtractUnits(day, componentNames, reviewMetaByMuni = new Map()) {
   const units = [];
   let idx = 0;

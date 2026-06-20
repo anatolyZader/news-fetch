@@ -5,6 +5,7 @@ import {
   decisionBriefEnabled,
   generateDecisionBrief,
 } from '../infrastructure/decisionBriefGenerator.js';
+import { narrativeFocusUiEnabled } from '../domain/services/narrativeFocusUi.js';
 
 /**
  * @param {object} assessment — mutated in place when brief is generated
@@ -17,6 +18,7 @@ import {
  */
 export async function attachDecisionBrief(assessment, opts = {}) {
   if (!decisionBriefEnabled()) return null;
+  if (narrativeFocusUiEnabled()) return null;
   if (!assessment || typeof assessment !== 'object') return null;
 
   try {

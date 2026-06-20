@@ -9,6 +9,7 @@ import {
   deriveInstrumentState,
   operatorAssessmentSummary,
   buildAttentionItems,
+  narrativeFocusUiEnabled,
 } from '../../resilience/index.js';
 
 const MAX_ATTENTION_SUMMARY = 8;
@@ -155,14 +156,19 @@ function formatExecutiveSummary(assessment, maxChars = EXEC_SUMMARY_MAX_CHARS) {
   return `Executive summary:\n${wrapped}\n\n`;
 }
 
+function includeGuidanceContext() {
+  return !narrativeFocusUiEnabled();
+}
+
 function buildFullContext(a, reportScopeId, includeScores) {
+  const guidance = includeGuidanceContext();
   return (
     formatV2ContextBlock(a) +
     formatHeader(a, { includeScores }) +
-    formatAttentionItemsSummary(a, reportScopeId) +
-    formatDecisionBriefSummary(a) +
+    (guidance ? formatAttentionItemsSummary(a, reportScopeId) : '') +
+    (guidance ? formatDecisionBriefSummary(a) : '') +
     formatExecutiveSummary(a, Number.MAX_SAFE_INTEGER) +
-    formatPendingRecommendations(a) +
+    (guidance ? formatPendingRecommendations(a) : '') +
     `Components detail:\n` +
     (a.components ?? [])
       .map((c) => formatComponentBlock(c, { includeScores }))
@@ -178,11 +184,12 @@ function buildCompareContext(a, reportScopeId, includeScores) {
 }
 
 function buildHubContext(a, reportScopeId, includeScores) {
+  const guidance = includeGuidanceContext();
   return (
     formatV2ContextBlock(a) +
     formatHeader(a, { includeScores }) +
-    formatAttentionItemsSummary(a, reportScopeId) +
-    formatDecisionBriefSummary(a)
+    (guidance ? formatAttentionItemsSummary(a, reportScopeId) : '') +
+    (guidance ? formatDecisionBriefSummary(a) : '')
   );
 }
 
@@ -191,16 +198,17 @@ function buildMinimalContext(a, includeScores) {
 }
 
 function buildStandardContext(a, reportScopeId, includeScores) {
+  const guidance = includeGuidanceContext();
   const instrumentLines = (a.components ?? [])
     .map((c) => formatComponentInstrumentSummary(c, { includeScores }))
     .join('\n');
   return (
     formatV2ContextBlock(a) +
     formatHeader(a, { includeScores }) +
-    formatAttentionItemsSummary(a, reportScopeId) +
-    formatDecisionBriefSummary(a) +
+    (guidance ? formatAttentionItemsSummary(a, reportScopeId) : '') +
+    (guidance ? formatDecisionBriefSummary(a) : '') +
     formatExecutiveSummary(a) +
-    formatPendingRecommendations(a) +
+    (guidance ? formatPendingRecommendations(a) : '') +
     (instrumentLines ? `Component summaries (truncated — use tools for full detail):\n${instrumentLines}\n` : '')
   );
 }

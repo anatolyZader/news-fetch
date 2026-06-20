@@ -1,6 +1,7 @@
 /**
  * Claude tool schemas for chat agent.
  */
+import { narrativeFocusUiEnabled } from '../../../resilience/domain/services/narrativeFocusUi.js';
 
 export const SOURCE_TYPE_ENUM = [
   'news', 'radio', 'field', 'pbo', 'pbo_regional', 'naftali', 'whatsapp',
@@ -363,6 +364,19 @@ export const OPERATOR_PROPOSE_TOOLS = [
   },
 ];
 
+/** Guidance tools suppressed when RESILIENCE_NARRATIVE_FOCUS_UI=1 (main-site narrative focus). */
+export const GUIDANCE_CHAT_TOOL_NAMES = new Set([
+  'list_attention_items',
+  'get_decision_brief',
+  'list_operator_recommendations',
+  'propose_operator_recommendation',
+]);
+
+function excludeGuidanceTools(tools, opts = {}) {
+  if (!narrativeFocusUiEnabled() || opts.isAnalyst) return tools;
+  return tools.filter((t) => !GUIDANCE_CHAT_TOOL_NAMES.has(t.name));
+}
+
 /** Tool name subsets for scoped chat modes. null profile = full default set. */
 export const TOOL_PROFILES = {
   default: null,
@@ -405,7 +419,7 @@ export function buildChatToolList(opts = {}) {
   if (profile !== 'default') {
     tools = filterToolsByProfile(tools, profile);
   }
-  return tools;
+  return excludeGuidanceTools(tools, opts);
 }
 
 export function buildSystemTemplateToolList(opts = {}) {
@@ -436,11 +450,19 @@ export function buildSystemTemplateToolList(opts = {}) {
     '- compare_dates: compare two assessment dates',
     '- generate_brief: formatted brief for an audience',
     '- list_sources / search_sources / get_source: original archive documents',
-    '- list_attention_items: ranked what-needs-attention queue',
-    '- list_operator_recommendations: pending suggested actions',
-    '- get_decision_brief: batch operator decision brief',
   ];
-  if (opts.confirmActionsEnabled) {
+  if (!narrativeFocusUiEnabled() || opts.isAnalyst) {
+    core.push(
+      '- list_attention_items: ranked what-needs-attention queue',
+      '- list_operator_recommendations: pending suggested actions',
+      '- get_decision_brief: batch operator decision brief',
+    );
+  } else {
+    core.push(
+      '- Default to evidence-first answers: cite component narratives and lookup_signals / get_source quotes.',
+    );
+  }
+  if (opts.confirmActionsEnabled && (!narrativeFocusUiEnabled() || opts.isAnalyst)) {
     core.push(
       '- propose_operator_recommendation: acknowledge/dismiss pending operator recommendations (user must confirm)',
     );

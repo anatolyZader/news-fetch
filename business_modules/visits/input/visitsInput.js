@@ -76,7 +76,7 @@ function col(row, ...keys) {
 }
 
 const lines = [
-  `# Field-reports articles (${latestDate})`,
+  `# Visits reports (${latestDate})`,
   ``,
   `Professional squad visits to municipalities (${basename(filePath)}).`,
   `Each entry is one expert team visit to one municipality — direct stakeholder interviews and field observation.`,
@@ -127,7 +127,7 @@ try {
   const archive = createSourceArchive(sqlitePath);
   const items = articlesToArchiveItems(parsed, {
     date: latestDate,
-    source_type: 'field',
+    source_type: 'visits',
     repoRoot,
     module_ref: outputPath,
   });

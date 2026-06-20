@@ -11,6 +11,7 @@ import { salienceContextFromDataVoid } from '../domain/services/highSalienceBypa
 import { attachEpistemicToAssessment } from '../domain/services/dataVoidIndex.js';
 import { detectSemanticPatterns } from '../domain/services/patternDetection/semanticPatternAlerts.js';
 import { buildOperatorRecommendations } from '../domain/services/patternDetection/operatorRecommendations.js';
+import { narrativeFocusUiEnabled } from '../domain/services/narrativeFocusUi.js';
 import { attachInvestigationDiagnostics } from '../domain/services/componentDiagnostics.js';
 import { countAndLogDefaultNorthSignals } from '../domain/services/scopeAttributionMetrics.js';
 import {
@@ -83,7 +84,9 @@ export function applySharedAssessmentPostMetadata(assessment, ctx) {
   const patterns = detectSemanticPatterns(scopedSignals ?? []);
   assessment.pattern_alerts = patterns;
   countAndLogDefaultNorthSignals(scopedSignals, { assessment });
-  assessment.operator_recommendations = buildOperatorRecommendations(patterns);
+  if (!narrativeFocusUiEnabled()) {
+    assessment.operator_recommendations = buildOperatorRecommendations(patterns);
+  }
 
   attachInvestigationDiagnostics(assessment, {
     scoring: {

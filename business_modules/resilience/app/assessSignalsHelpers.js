@@ -32,6 +32,7 @@ import {
   ISRAEL_REGIONAL_DISTRICT_ORDER,
   normalizeIsraelDistrictId,
 } from '../../../cross-cut-modules/geo/israelDistricts.js';
+import { isVisitsSourceType, normalizePipelineSourceKey, normalizeVisitsSourceType } from '../domain/services/visitsSourceType.js';
 
 export const MAX_ASSESSMENT_DAYS = 14;
 
@@ -55,8 +56,9 @@ export function parseSignalBundleFilename(filename) {
   }
   const std = STANDARD_BUNDLE_FILENAME_PATTERN.exec(base);
   if (!std) return null;
-  const sourceType = std[1];
-  if (sourceType === 'pbo') return null;
+  const rawType = std[1];
+  if (rawType === 'pbo') return null;
+  const sourceType = normalizeVisitsSourceType(rawType);
   return {
     sourceType,
     fileDate: std[2],
@@ -111,7 +113,8 @@ function buildAllHistoricalSource(sortedFiles, sourceType, targetDate) {
 
 function buildRecencySources(sortedField, sortedRoot, sortedSocial, targetDate, targetDates, bundleCap) {
   return {
-    field: buildAllHistoricalSource(sortedField, 'field', targetDate),
+    visits: buildAllHistoricalSource(sortedField, 'visits', targetDate),
+    field: buildAllHistoricalSource(sortedField, 'visits', targetDate),
     pbo: buildRecencySource(sortedRoot, 'pbo', targetDate, targetDates, bundleCap),
     pbo_regional: buildRecencySource(sortedRoot, 'pbo_regional', targetDate, targetDates, bundleCap),
     naftali: buildRecencySource(sortedRoot, 'naftali', targetDate, targetDates, 1),
@@ -312,7 +315,7 @@ export function loadPipelineConfig(configPath) {
     enabledSources = new Set(
       Object.entries(cfg.sources ?? {})
         .filter(([, v]) => v.enabled !== false)
-        .map(([k]) => k),
+        .map(([k]) => normalizePipelineSourceKey(k)),
     );
     const disabled = Object.entries(cfg.sources ?? {})
       .filter(([, v]) => v.enabled === false)
@@ -341,14 +344,23 @@ export function loadAssessSignalFiles({
 }) {
   const loadedFiles = [];
 
+  function isSourceEnabledForLoad(sourceType) {
+    if (!enabledSources) return true;
+    if (sourceType === 'pbo_regional') return true;
+    if (enabledSources.has(sourceType)) return true;
+    if (sourceType === 'visits' && enabledSources.has('field')) return true;
+    return false;
+  }
+
   function tryLoadSignalFile(file, baseDir) {
     const parsed = parseSignalBundleFilename(file);
     if (!parsed) return;
     const { sourceType, fileDate, districtId: fileDistrictId } = parsed;
     if (fileDate > targetDate) return;
-    if (sourceType !== 'field' && !targetDates.has(fileDate)) return;
-    if (enabledSources && !enabledSources.has(sourceType) && sourceType !== 'pbo_regional') return;
-    const recencySet = recencySources[sourceType];
+    if (!isVisitsSourceType(sourceType) && !targetDates.has(fileDate)) return;
+    if (!isSourceEnabledForLoad(sourceType)) return;
+    const recencyKey = isVisitsSourceType(sourceType) ? 'visits' : sourceType;
+    const recencySet = recencySources[recencyKey] ?? recencySources[sourceType];
     if (recencySet && !recencySet.has(file)) return;
     try {
       const data = JSON.parse(readFileSync(resolve(baseDir, file), 'utf8'));
@@ -363,13 +375,13 @@ export function loadAssessSignalFiles({
   for (const file of [...rootFiles].sort((a, b) => a.localeCompare(b))) {
     const parsed = parseSignalBundleFilename(file);
     if (!parsed) continue;
-    if (parsed.sourceType === 'field' || parsed.sourceType === 'social') continue;
+    if (parsed.sourceType === 'visits' || parsed.sourceType === 'field' || parsed.sourceType === 'social') continue;
     tryLoadSignalFile(file, signalsDir);
   }
 
   for (const file of [...fieldDirFiles].sort((a, b) => a.localeCompare(b))) {
     const parsed = parseSignalBundleFilename(file);
-    if (parsed?.sourceType !== 'field') continue;
+    if (!parsed || !isVisitsSourceType(parsed.sourceType)) continue;
     tryLoadSignalFile(file, fieldSignalsDir);
   }
 
@@ -381,7 +393,7 @@ export function loadAssessSignalFiles({
 }
 
 /** Merge loaded bundles into flat signal list with temporal weights. */
-export function mergeLoadedSignalFiles(loadedFiles) {
+export function mergeLoadedSignalFiles(loadedFiles, { targetDate } = {}) {
   let allSignals = [];
   let totalArticles = 0;
   const sourceFiles = [];
@@ -396,17 +408,27 @@ export function mergeLoadedSignalFiles(loadedFiles) {
       && ISRAEL_REGIONAL_DISTRICT_ORDER.includes(bundleDistrict)
       ? bundleDistrict
       : null;
-    const weighted = (data.signals ?? []).map((s) => ({
-      ...s,
-      temporal_weight: weight,
-      source_type: sourceType,
-      signal_file_date: fileDate,
-      ...(s.district_id == null && bundleDistrictId ? { district_id: bundleDistrictId } : {}),
-    }));
+    const canonicalType = normalizeVisitsSourceType(sourceType);
+    const weighted = (data.signals ?? []).map((s) => {
+      let signalWeight = weight;
+      if (targetDate && isVisitsSourceType(sourceType)) {
+        const visitDate = String(s.article_date ?? fileDate).slice(0, 10);
+        if (/^\d{4}-\d{2}-\d{2}$/.test(visitDate)) {
+          signalWeight = temporalWeightForOffset(dateOffset(visitDate, targetDate));
+        }
+      }
+      return {
+        ...s,
+        temporal_weight: signalWeight,
+        source_type: canonicalType,
+        signal_file_date: fileDate,
+        ...(s.district_id == null && bundleDistrictId ? { district_id: bundleDistrictId } : {}),
+      };
+    });
     allSignals = allSignals.concat(weighted);
     totalArticles += data.total_articles ?? 0;
     sourceFiles.push(...(data.source_files ?? []));
-    sourceTypesSeen.add(sourceType);
+    sourceTypesSeen.add(canonicalType);
   }
 
   return { allSignals, totalArticles, sourceFiles, sourceTypesSeen };

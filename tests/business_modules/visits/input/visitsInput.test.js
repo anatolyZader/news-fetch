@@ -35,7 +35,7 @@ test('visits input converts squad visit spreadsheet to markdown source data', ()
     ], { cwd: resolve('.'), stdio: 'pipe' });
 
     const markdown = readFileSync(outputPath, 'utf8');
-    assert.match(markdown, /# Field-reports articles \(2026-03-15\)/);
+    assert.match(markdown, /# Visits reports \(2026-03-15\)/);
     assert.match(markdown, /Professional squad visits to municipalities/);
     assert.match(markdown, /## 1\. Baram — North/);
     assert.match(markdown, /- \*\*Source:\*\* squad one/);

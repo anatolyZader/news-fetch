@@ -19,9 +19,14 @@ import {
   parsePipelineDateArg,
   planHasWork,
 } from './pipelineIngestPlan.js';
+import { applyPipelinePreset, getPipelinePreset } from './pipelinePresets.js';
 import {
   resolveRepoRoot,
 } from '../domain/services/pipelineArtifactPaths.js';
+import {
+  isReplayReuseEnabled,
+  REPLAY_REUSE_SOURCE_TYPES,
+} from '../domain/services/replayReuseConfig.js';
 import {
   readAssessmentReportMeta,
   reportQualityRank,
@@ -75,18 +80,37 @@ export function parsePipelineCliArgs(argv) {
   const targetDate = parsePipelineDateArg(explicitDate) ?? positionalDate
     ?? getTodayInTimezone(DEFAULT_TZ);
 
-  const days = Math.min(14, Math.max(1, Number.parseInt(getFlag('--days') ?? '3', 10)));
-  const scope = normalizeReportScopeId(getFlag('--scope') ?? 'national');
+  const presetName = getFlag('--preset');
+  const preset = presetName ? getPipelinePreset(presetName) : null;
+  if (presetName && !preset) {
+    throw new Error(`Unknown pipeline preset: ${presetName}`);
+  }
+
+  const today = getTodayInTimezone(DEFAULT_TZ);
+  const replayMode = targetDate !== today;
+
+  const explicitDays = getFlag('--days');
+  const explicitScope = getFlag('--scope');
+  const flagAlwaysReextract = hasFlag('--always-reextract')
+    || process.env.RESILIENCE_ALWAYS_REEXTRACT === '1';
+
+  const applied = applyPipelinePreset(preset, {
+    days: explicitDays != null ? Number.parseInt(explicitDays, 10) : undefined,
+    scope: explicitScope ?? undefined,
+    alwaysReextract: flagAlwaysReextract ? true : undefined,
+    replayMode,
+  });
+
+  const days = Math.min(14, Math.max(1, applied.days));
+  const scope = normalizeReportScopeId(applied.scope);
+  const ingestPolicy = applied.ingestPolicy;
   const force = hasFlag('--force');
   const noTranscribe = hasFlag('--no-transcribe');
   const ingestOnly = hasFlag('--ingest-only');
   const assessOnly = hasFlag('--assess-only');
   const skipSocial = hasFlag('--no-social');
   const planOnly = hasFlag('--plan-only');
-
-  const today = getTodayInTimezone(DEFAULT_TZ);
-  const replayMode = targetDate !== today;
-  const conservativeNewsFetch = scope !== 'national' || replayMode;
+  const conservativeNewsFetch = scope !== 'national' || replayMode || ingestPolicy === 'always-reextract';
 
   return {
     targetDate,
@@ -101,6 +125,9 @@ export function parsePipelineCliArgs(argv) {
     replayMode,
     conservativeNewsFetch,
     today,
+    presetName: presetName ?? null,
+    alwaysReextract: ingestPolicy === 'always-reextract',
+    ingestPolicy,
   };
 }
 
@@ -133,7 +160,8 @@ const STAGE_OPEN_EXTRACT_META = {
   news: { sourceType: 'news', contentKind: 'news' },
   radio: { sourceType: 'radio', contentKind: 'audio' },
   whatsapp: { sourceType: 'whatsapp', contentKind: 'whatsapp' },
-  field: { sourceType: 'field', contentKind: 'field_report' },
+  visits: { sourceType: 'visits', contentKind: 'field_report' },
+  field: { sourceType: 'visits', contentKind: 'field_report' },
 };
 
 function applyForceDeletes(_windowDates, _rootDir) {
@@ -142,11 +170,26 @@ function applyForceDeletes(_windowDates, _rootDir) {
   console.error('  → --force: bundles preserved; prior versions archived on re-extract write');
 }
 
-function printPlan(plan, { replayMode, force, scope, targetDate, days }) {
+function formatReplayReuseLine(enabledSources) {
+  const parts = REPLAY_REUSE_SOURCE_TYPES
+    .filter((sourceType) => !enabledSources || enabledSources.has(sourceType))
+    .map((sourceType) => {
+      const on = isReplayReuseEnabled(sourceType);
+      return `${sourceType}=${on ? 'on' : 'off'}`;
+    });
+  return parts.length > 0 ? parts.join(' ') : '(no sources in plan)';
+}
+
+function printPlan(plan, { replayMode, force, scope, targetDate, days, enabledSources, ingestPolicy, presetName }) {
   console.error('\n═══ Pipeline ingest plan ═══');
   console.error(`  Mode:   ${replayMode ? 'replay' : 'today'}${force ? ' (force)' : ''}`);
   console.error(`  Target: ${targetDate}  days: ${days}  scope: ${scope}`);
+  if (presetName) console.error(`  Preset: ${presetName}`);
+  console.error(`  Policy: ${ingestPolicy ?? plan.ingestPolicy ?? 'reuse-first'}`);
   console.error(`  Window: ${plan.windowDates.join(', ')}`);
+  if (replayMode) {
+    console.error(`  Replay reuse: ${formatReplayReuseLine(enabledSources)} (unset=off)`);
+  }
   for (const step of plan.steps) {
     const datePart = step.date ? ` ${step.date}` : '';
     const detail = step.detail ? ` — ${step.detail}` : '';
@@ -247,10 +290,10 @@ async function executeIngestStep(step, ctx) {
         { allowFail: true, rootDir },
       );
       return;
-    case 'extract_field':
+    case 'extract_visits':
       await runNodeScript(
         'business_modules/resilience/input/extract-signals.js',
-        ['--source-type', 'field', '--files', step.detail, '--date', step.date],
+        ['--source-type', 'visits', '--files', step.detail, '--date', step.date],
         { allowFail: true, rootDir },
       );
       return;
@@ -322,7 +365,7 @@ function countLoadedBundles(targetDate, days, enabledSources, rootDir) {
     recencySources: discovery.recencySources,
     enabledSources,
   });
-  const merged = mergeLoadedSignalFiles(loaded);
+  const merged = mergeLoadedSignalFiles(loaded, { targetDate: opts.targetDate });
   return { loaded, merged, discovery };
 }
 
@@ -333,6 +376,9 @@ function countLoadedBundles(targetDate, days, enabledSources, rootDir) {
 export async function runPipelineOrchestrator(opts, deps = {}) {
   const pipelineRunId = randomUUID();
   process.env.PIPELINE_RUN_ID = pipelineRunId;
+  if (process.env.RESILIENCE_OPEN_EXTRACT_PARALLEL == null || process.env.RESILIENCE_OPEN_EXTRACT_PARALLEL === '') {
+    process.env.RESILIENCE_OPEN_EXTRACT_PARALLEL = '1';
+  }
   const startedAt = new Date().toISOString();
   const rootDir = deps.rootDir ?? resolveRepoRoot();
   const validation = validateDate(opts.targetDate, DEFAULT_TZ);
@@ -356,10 +402,14 @@ export async function runPipelineOrchestrator(opts, deps = {}) {
     replayMode: opts.replayMode,
     conservativeNewsFetch: opts.conservativeNewsFetch,
     force: opts.force,
+    ingestPolicy: opts.ingestPolicy,
+    alwaysReextract: opts.alwaysReextract,
+    scope: opts.scope,
+    today: opts.today,
     rootDir,
   });
 
-  printPlan(plan, opts);
+  printPlan(plan, { ...opts, enabledSources, ingestPolicy: plan.ingestPolicy });
 
   if (opts.planOnly) {
     console.error('═══ --plan-only: exiting before ingest ═══');

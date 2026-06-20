@@ -227,6 +227,16 @@ flowchart TD
 | `RESILIENCE_OPEN_EVIDENCE_SCORING` | **OFF** | Post-agent synthetic scoring from verified open claims (analyst/shadow). **Production default: OFF** — enable only after auditing the open-path verification gate. Set to `1` or `on` to enable. |
 | `RESILIENCE_CATALOG_AUTO_PROPOSE_VERIFIED` | OFF | Auto-generate catalog proposals from verified open observations |
 | `ASSESS_BUNDLE_SOURCE` | `closed` | Alternate assess mode that maps observation bundles to pseudo-signals |
+| `RESILIENCE_REPLAY_REUSE_NEWS` | OFF (unset) | In **replay** mode (`--date` ≠ today), reuse cached news signals instead of full re-extract |
+| `RESILIENCE_REPLAY_REUSE_RADIO` | OFF | Same for radio transcripts |
+| `RESILIENCE_REPLAY_REUSE_WHATSAPP` | OFF | Same for WhatsApp |
+| `RESILIENCE_REPLAY_REUSE_FIELD` | OFF | Same for field visit reports |
+| `RESILIENCE_REPLAY_REUSE_PBO` | OFF | Same for municipal PBO |
+| `RESILIENCE_REPLAY_REUSE_NAFTALI` | OFF | Same for Naftali source |
+| `RESILIENCE_REPLAY_REUSE_SOCIAL` | OFF | Same for social (plan `reuse` step only; historical X/Telegram cannot be re-gathered) |
+| `RESILIENCE_REPLAY_REUSE_PBO_REGIONAL` | OFF | Same for regional PBO |
+
+**Replay reuse profile:** Leave all `RESILIENCE_REPLAY_REUSE_*` unset (or `0`) for dev — backdated runs schedule full dual-path extract per source. Set to `1` / `true` / `on` for prod-style replay that reuses cached closed bundles (+ open-only backfill when open obs are missing). `--force` always re-extracts all sources. Today-mode reuse rules are unchanged.
 
 ## 8. Degraded mode
 

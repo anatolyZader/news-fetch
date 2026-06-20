@@ -252,6 +252,16 @@ describe('parseSignalBundleFilename', () => {
       fileDate: '2026-05-01',
       districtId: null,
     });
+    assert.deepEqual(parseSignalBundleFilename('signals-field-2026-05-01.json'), {
+      sourceType: 'visits',
+      fileDate: '2026-05-01',
+      districtId: null,
+    });
+    assert.deepEqual(parseSignalBundleFilename('signals-visits-2026-05-01.json'), {
+      sourceType: 'visits',
+      fileDate: '2026-05-01',
+      districtId: null,
+    });
     assert.deepEqual(parseSignalBundleFilename('signals-pbo-2026-05-01.json'), {
       sourceType: 'pbo',
       fileDate: '2026-05-01',
@@ -266,6 +276,27 @@ describe('parseSignalBundleFilename', () => {
 });
 
 describe('mergeLoadedSignalFiles', () => {
+  it('applies per-visit temporal_weight from article_date', () => {
+    const targetDate = '2026-06-10';
+    const { allSignals } = mergeLoadedSignalFiles([
+      {
+        weight: 1,
+        sourceType: 'visits',
+        fileDate: '2026-06-10',
+        fileDistrictId: 'north',
+        data: {
+          signals: [
+            { evidence: 'recent', article_date: '2026-06-10' },
+            { evidence: 'older', article_date: '2026-06-08' },
+          ],
+        },
+      },
+    ], { targetDate });
+    assert.equal(allSignals[0].temporal_weight, 1);
+    assert.equal(allSignals[1].temporal_weight, 0.7);
+    assert.equal(allSignals[0].source_type, 'visits');
+  });
+
   it('copies bundle district_id onto signals when missing', () => {
     const { allSignals } = mergeLoadedSignalFiles([
       {
@@ -317,10 +348,10 @@ describe('discoverSignalBundles field history', () => {
         targetDate,
         targetDates: discovery.targetDates,
         recencySources: discovery.recencySources,
-        enabledSources: new Set(['news', 'field']),
+        enabledSources: new Set(['news', 'visits']),
       });
 
-      const fieldFiles = loaded.filter((f) => f.sourceType === 'field').map((f) => f.file);
+      const fieldFiles = loaded.filter((f) => f.sourceType === 'visits').map((f) => f.file);
       const newsFiles = loaded.filter((f) => f.sourceType === 'news').map((f) => f.file);
       assert.ok(fieldFiles.includes(oldField));
       assert.ok(fieldFiles.includes(inWindowField));

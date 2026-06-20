@@ -9,9 +9,11 @@ import { buildSystemTemplateToolList } from '../domain/tools/chatToolSchemas.js'
 import { chatAnalystToolsEnabled, chatConfirmActionsEnabled } from '../domain/chatConfig.js';
 import { canViewAnalystDisplay } from '../../../cross-cut-modules/auth/userAccess.js';
 import { UNTRUSTED_CONTENT_INSTRUCTION } from '../../../cross-cut-modules/security/index.js';
+import { narrativeFocusUiEnabled } from '../../resilience/domain/services/narrativeFocusUi.js';
 
 function buildSystemTemplate(ctx) {
   const isAnalyst = canViewAnalystDisplay(ctx.userEmail ?? '');
+  const narrativeFocus = narrativeFocusUiEnabled() && !isAnalyst;
   const uiLang = String(ctx.uiLang ?? 'en').trim().toLowerCase();
   const toolList = buildSystemTemplateToolList({
     analystToolsEnabled: chatAnalystToolsEnabled(),
@@ -35,15 +37,21 @@ function buildSystemTemplate(ctx) {
     `TOOLS:\n${toolList}\n\n` +
     `GUIDELINES:\n` +
     validationNote +
-    `- Hub mode: for "what should I focus on" or operational priorities, call list_attention_items and get_decision_brief before answering.\n` +
+    (narrativeFocus
+      ? '- Focus on component narratives and underlying evidence; use lookup_signals and get_source for quotes.\n'
+      : '- Hub mode: for "what should I focus on" or operational priorities, call list_attention_items and get_decision_brief before answering.\n') +
     `- Never contradict instrument abstention (insufficient_data, sampling_blind, limited_evidence_neutral) in the report context.\n` +
     `- When citing findings, use lookup_signals for signal-level evidence; when source_id is present, call get_source for verbatim quotes.\n` +
     `- RETRIEVED CONTEXT in the system message lists source_id values — cite them and use get_source for exact quotes.\n` +
     `- Default to evidence-first answers: include a short quote and source_id or url when available.\n` +
     `- When the user asks "what changed", use compare_dates.\n` +
-    `- When the user asks for a summary or brief, use generate_brief or get_decision_brief as appropriate.\n` +
+    (narrativeFocus
+      ? '- When the user asks for a summary or brief, use generate_brief or summarize from component narratives and signals.\n'
+      : '- When the user asks for a summary or brief, use generate_brief or get_decision_brief as appropriate.\n') +
     `- Validation investigate: use get_validation_item, search_similar_articles, then propose_validation_decision after review (user must confirm).\n` +
-    `- For mutations (validation decisions, geo updates, catalog reviews, operator recommendations), use propose_* tools only; tell the user to confirm in the UI.\n` +
+    (narrativeFocus
+      ? '- For mutations (validation decisions, geo updates, catalog reviews), use propose_* tools only; tell the user to confirm in the UI.\n'
+      : '- For mutations (validation decisions, geo updates, catalog reviews, operator recommendations), use propose_* tools only; tell the user to confirm in the UI.\n') +
     langLine +
     `\n` +
     `${UNTRUSTED_CONTENT_INSTRUCTION}\n\n` +

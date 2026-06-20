@@ -228,7 +228,7 @@ async function loadPreparedSignals(targetDate, days, bundleOpts = {}) {
 
   exitIfNoLoadedSignalFiles(loadedFiles, useObservations, targetDate, days);
 
-  let { allSignals, totalArticles, sourceFiles, sourceTypesSeen } = mergeLoadedSignalFiles(loadedFiles);
+  let { allSignals, totalArticles, sourceFiles, sourceTypesSeen } = mergeLoadedSignalFiles(loadedFiles, { targetDate });
   allSignals = mergeConnectivityProbeSignals(allSignals, sourceTypesSeen, targetDate);
   archiveProbeRecordsForDate(targetDate);
   allSignals = enrichProbeSignalsInList(allSignals);

@@ -2,10 +2,9 @@
 /**
  * Convert PBO municipality Excel reports into resilience signal files.
  *
- * Unlike other sources (news, radio, field), PBO data is already structured
- * as scored evidence per component. We convert each municipality's scores
- * and free-text fields into behavioral signals that assess-signals.js can
- * discover and include.
+ * Pipeline uses verbal fields only (התייחסות מילולית columns + review follow-up text).
+ * Numeric officer scores are not analyzed. LLM dual-path extract produces closed
+ * signals and open pipeline observations (same pattern as regional PBO).
  *
  * Usage:
  *   node extract-pbo-signals.js [--date YYYY-MM-DD] [--district north|south|…] [--all-districts] [--force]
@@ -20,7 +19,7 @@ bootstrapDefaultStateStore();
 
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { writeFileSync, mkdirSync, existsSync, readFileSync, statSync } from 'node:fs';
+import { writeFileSync, mkdirSync, existsSync, statSync } from 'node:fs';
 import { archiveArtifactBeforeWrite } from '../../../cross-cut-modules/log/index.js';
 import { getMunicipalityDashboard } from '../app/pboMunicipalityService.js';
 import { attributeSignalScope } from '../../../cross-cut-modules/geo/attributeSignalScope.js';
@@ -34,102 +33,16 @@ import {
 import { createRetrievalService } from '../../../cross-cut-modules/retrieval/createRetrievalService.js';
 import { defaultClosedSignalsDir } from '../../signals_extraction/index.js';
 import { pboDashboardDayToExtractUnits } from '../app/pboDashboardToExtractUnits.js';
-
-const openUnitsByDate = new Map();
-const sourceFilesByDate = new Map();
+import { getDefaultResilienceLlmPort, runArticleDualPathExtract } from '../../resilience/index.js';
+import { stripTraceFields } from '../../resilience/infrastructure/claudeExtraction.js';
+import { isOpenExtractParallelEnabled } from '../../resilience/domain/services/openExtractConfig.js';
+import { pipelineOpenObservationsPath } from '../../resilience/domain/services/pipelineArtifactPaths.js';
+import { createCostTracker, appendCostLog, checkDailyBudget } from '../../../cross-cut-modules/budget/index.js';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 const SQLITE_PATH = process.env.SQLITE_PATH?.trim()
   ? resolve(process.env.SQLITE_PATH.trim())
   : resolve(REPO_ROOT, 'db', 'app.sqlite');
-
-function pipelineOpenObsPath(sourceType, date) {
-  const safe = String(sourceType ?? 'adhoc').replaceAll(/[^a-z0-9_-]/gi, '_');
-  return resolve(REPO_ROOT, 'business_modules/signals_extraction/data', `observations-pipeline-${safe}-${date}.json`);
-}
-
-function openObsNeedsExtract(path) {
-  if (!existsSync(path)) return true;
-  try {
-    if (statSync(path).size === 0) return true;
-    const bundle = JSON.parse(readFileSync(path, 'utf8'));
-    const observations = bundle?.observations;
-    return !Array.isArray(observations) || observations.length === 0;
-  } catch {
-    return true;
-  }
-}
-
-const COMPONENT_TO_SIGNAL_TYPE = {
-  narrative:                 'resilience_narrative_positive',
-  information_communication: 'information_actionable_effective',
-  lifesaving_behavior:       'compliance_enter_shelter',
-  functional_continuity:     'service_continuity',
-  community_capital:         'community_volunteering',
-  leadership:                'leadership_visible_present',
-  belonging_solidarity:      'solidarity_help_others',
-  wellbeing_at_risk:          'wellbeing_support_accessed',
-};
-
-const COMPONENT_TO_NEG_SIGNAL = {
-  narrative:                 'resilience_narrative_negative',
-  information_communication: 'information_confusion',
-  lifesaving_behavior:       'non_compliance',
-  functional_continuity:     'service_disruption',
-  community_capital:         'dependency_on_external_aid',
-  leadership:                'leadership_absent_criticized',
-  belonging_solidarity:      'social_exclusion',
-  wellbeing_at_risk:          'psychological_distress',
-};
-
-function buildPboComponentSignal(muni, cid, c, articleIdx, componentNames, meta, supplemental) {
-  const isPositive = c.avg >= 0.5;
-  const signalType = isPositive ? COMPONENT_TO_SIGNAL_TYPE[cid] : COMPONENT_TO_NEG_SIGNAL[cid];
-  const scoreParts = c.scores.map((s) => Math.round(s.value * 100) + '%').join(', ');
-  const textParts = c.texts.filter(Boolean).join(' | ');
-  const supplement = String(supplemental[cid] ?? '').trim();
-  let evidence = `[${muni.name}] ${componentNames.he[cid]}: avg=${Math.round(c.avg * 100)}% (${scoreParts})`;
-  if (textParts) evidence += ` — ${textParts}`;
-  if (supplement) evidence += ` — [PBO follow-up] ${supplement}`;
-  return {
-    article_index: articleIdx,
-    article_url: null,
-    signal_type: signalType,
-    evidence_type: 'observational_reported_fact',
-    evidence,
-    scope_level: c.scores.length >= 3 ? 'quantified_or_broad' : 'single_case',
-    article_source: `pbo-${muni.name}`,
-    municipality: muni.name,
-    source_type: 'pbo',
-    pbo_completeness: meta.pbo_completeness,
-    pbo_review_status: meta.pbo_review_status,
-    pbo_evidence_thin: meta.pbo_evidence_thin,
-  };
-}
-
-function buildSignalsForDay(day, componentsOrder, componentNames, reviewMetaByMuni) {
-  const signals = [];
-  let articleIdx = 0;
-
-  for (const muni of day.municipalities) {
-    articleIdx++;
-    const meta = reviewMetaByMuni.get(muni.name) ?? {
-      pbo_completeness: 'incomplete',
-      pbo_review_status: 'open',
-      pbo_evidence_thin: true,
-      supplementalTexts: {},
-    };
-    const supplemental = meta.supplementalTexts ?? {};
-
-    for (const cid of componentsOrder) {
-      const c = muni.components[cid];
-      if (c.avg == null) continue;
-      signals.push(buildPboComponentSignal(muni, cid, c, articleIdx, componentNames, meta, supplemental));
-    }
-  }
-
-  return signals;
-}
 
 function outputFileName(districtId, date) {
   return districtId === 'north'
@@ -137,24 +50,73 @@ function outputFileName(districtId, date) {
     : `signals-pbo-${districtId}-${date}.json`;
 }
 
-function recordOpenUnitsForDay(day, componentNames, _districtId) {
-  const reviewMetaByMuni = loadReviewMetadataMapForDate(day.date, SQLITE_PATH);
-  const units = pboDashboardDayToExtractUnits(day, componentNames, reviewMetaByMuni);
-  if (units.length === 0) return;
+function writePboSignalsBundle({ outPath, districtId, day, articles, signals }) {
+  const archived = archiveArtifactBeforeWrite(outPath);
+  if (archived) {
+    console.error(`  → Prior PBO closed bundle archived: ${archived}`);
+  }
 
-  const prev = openUnitsByDate.get(day.date) ?? [];
-  openUnitsByDate.set(day.date, [...prev, ...units]);
-  const files = sourceFilesByDate.get(day.date) ?? new Set();
-  files.add(day.file);
-  sourceFilesByDate.set(day.date, files);
+  writeFileSync(
+    outPath,
+    JSON.stringify(
+      {
+        source_type: 'pbo',
+        content_kind: 'pbo_municipality',
+        district_id: districtId,
+        date: day.date,
+        extracted_at: new Date().toISOString(),
+        source_files: [day.file],
+        total_articles: articles.length,
+        signals,
+      },
+      null,
+      2,
+    ),
+    'utf-8',
+  );
+  console.error(`\nSignal file written: ${outPath}`);
 }
 
-async function writeDayBundle(day, districtId, outDir, componentsOrder, componentNames, { force = false } = {}) {
+function assertAnalysisArtifactsPersisted({ closedPath, date, rootDir }) {
+  if (!existsSync(closedPath) || statSync(closedPath).size === 0) {
+    throw new Error(`Closed PBO bundle not persisted: ${closedPath}`);
+  }
+  if (!isOpenExtractParallelEnabled()) return;
+  const openPath = pipelineOpenObservationsPath('pbo', date, rootDir);
+  if (!existsSync(openPath) || statSync(openPath).size === 0) {
+    throw new Error(`Open PBO observations not persisted: ${openPath}`);
+  }
+}
+
+async function archiveDayMunicipalities(day, districtId, componentsOrder, componentNames, reviewMetaByMuni) {
+  const retrievalService = createRetrievalService({ dbPath: SQLITE_PATH });
+  const archive = createSourceArchive(SQLITE_PATH);
+  const { archived, muniMap } = archivePboMunicipalityDay(
+    archive,
+    day,
+    componentsOrder,
+    componentNames,
+    reviewMetaByMuni,
+    { districtId, sourceFile: day.file },
+  );
+  for (const sourceId of muniMap.values()) {
+    const row = archive.getBySourceId(sourceId, { includeBody: true });
+    if (row) {
+      await retrievalService.indexArchiveRow({ ...row, scope_id: districtId });
+    }
+  }
+  retrievalService.rebuildFts();
+  retrievalService.close();
+  archive.close();
+  if (archived > 0) console.error(`  → ${archived} PBO municipality original(s) archived`);
+  return muniMap;
+}
+
+async function writeDayBundle(day, districtId, outDir, componentsOrder, componentNames, { force = false, onUsage } = {}) {
   const outPath = resolve(outDir, outputFileName(districtId, day.date));
   const effectiveForce = force || shouldForcePboSignalRewrite(day.date, SQLITE_PATH);
   if (existsSync(outPath) && !effectiveForce) {
     console.error(`${outputFileName(districtId, day.date)}  →  already exists, skipping`);
-    recordOpenUnitsForDay(day, componentNames, districtId);
     return false;
   }
   if (existsSync(outPath) && effectiveForce && !force) {
@@ -162,79 +124,90 @@ async function writeDayBundle(day, districtId, outDir, componentsOrder, componen
   }
 
   const reviewMetaByMuni = loadReviewMetadataMapForDate(day.date, SQLITE_PATH);
-  let signals = buildSignalsForDay(day, componentsOrder, componentNames, reviewMetaByMuni);
+  const articles = pboDashboardDayToExtractUnits(day, componentNames, reviewMetaByMuni);
+  if (articles.length === 0) {
+    console.error(`  → no verbal PBO text for ${day.date}, skipping extract`);
+    return false;
+  }
 
+  let muniMap = new Map();
   try {
-    const retrievalService = createRetrievalService({ dbPath: SQLITE_PATH });
-    const archive = createSourceArchive(SQLITE_PATH);
-    const { archived, muniMap } = archivePboMunicipalityDay(
-      archive,
+    muniMap = await archiveDayMunicipalities(
       day,
+      districtId,
       componentsOrder,
       componentNames,
       reviewMetaByMuni,
-      { districtId, sourceFile: day.file },
     );
-    for (const sourceId of muniMap.values()) {
-      const row = archive.getBySourceId(sourceId, { includeBody: true });
-      if (row) {
-        await retrievalService.indexArchiveRow({ ...row, scope_id: districtId });
-      }
-    }
-    retrievalService.rebuildFts();
-    retrievalService.close();
-    archive.close();
-    signals = stampPboSignalSourceIds(signals, muniMap);
-    if (archived > 0) console.error(`  → ${archived} PBO municipality original(s) archived`);
   } catch (err) {
     console.error(`  ⚠ PBO archive skipped: ${err.message}`);
   }
 
-  const { signals: stampedSignals, resolved, unknown } = attributeSignalScope(signals, {
-    rootDir: REPO_ROOT,
+  const llmPort = getDefaultResilienceLlmPort();
+  const filePaths = [day.file];
+
+  console.error(`\nSignal Extraction  source=pbo  kind=field_report`);
+  console.error(`===================`);
+  console.error(`Date: ${day.date}`);
+  console.error(`File: ${day.file}`);
+  console.error(`Articles loaded: ${articles.length}\n`);
+
+  await runArticleDualPathExtract({
+    repoRoot: REPO_ROOT,
+    articles,
     sourceType: 'pbo',
-    bundleDistrictId: districtId,
-    unknownSourceType: 'extract-pbo',
+    contentKind: 'field_report',
+    date: day.date,
+    filePaths,
+    onUsage,
+    retrievalService: null,
+    closedExtractFn: async ({ articles: arts, onUsage: usageCb }) => {
+      const rawSignals = await llmPort.extractSignals(arts, { onUsage: usageCb, contentKind: 'field_report' });
+      let signals = rawSignals.map((s) => ({ ...s, source_type: 'pbo' }));
+      signals = stampPboSignalSourceIds(signals, muniMap);
+
+      const { signals: attributed, attached, resolved, unknown } = attributeSignalScope(signals, {
+        rootDir: REPO_ROOT,
+        sourceType: 'pbo',
+        bundleDistrictId: districtId,
+        unknownSourceType: 'extract-pbo',
+      });
+      signals = attributed.map(stripTraceFields);
+
+      console.error(`\n→ ${signals.length} signals extracted`);
+      if (attached > 0) {
+        console.error(`  → Geo attach: ${attached} signals, ${resolved} resolved, ${unknown} unknown`);
+      }
+
+      writePboSignalsBundle({ outPath, districtId, day, articles: arts, signals });
+      return { signals };
+    },
   });
 
-  const archived = archiveArtifactBeforeWrite(outPath);
-  if (archived) {
-    console.error(`  → Prior PBO closed bundle archived: ${archived}`);
-  }
+  assertAnalysisArtifactsPersisted({ closedPath: outPath, date: day.date, rootDir: REPO_ROOT });
 
-  writeFileSync(outPath, JSON.stringify({
-    source_type: 'pbo',
-    content_kind: 'pbo_municipality',
-    district_id: districtId,
-    date: day.date,
-    extracted_at: new Date().toISOString(),
-    source_files: [day.file],
-    total_articles: day.municipalities.length,
-    signals: stampedSignals,
-  }, null, 2), 'utf-8');
-
-  console.error(`${outputFileName(districtId, day.date)}  →  ${stampedSignals.length} signals from ${day.municipalities.length} municipalities (geo: ${resolved} resolved, ${unknown} unknown)`);
-
-  recordOpenUnitsForDay(day, componentNames, districtId);
+  console.error(
+    `${outputFileName(districtId, day.date)}  →  LLM extract from ${articles.length} municipality unit(s) with verbal text`,
+  );
 
   return true;
 }
 
-async function runDistrict(districtId, filterDate, outDir, force) {
+async function runDistrict(districtId, filterDate, outDir, force, onUsage) {
   const data = getMunicipalityDashboard(districtId, { rootDir: REPO_ROOT });
   let filesWritten = 0;
 
   for (const day of data.days) {
     if (filterDate && day.date !== filterDate) continue;
-     
-    if (await writeDayBundle(day, data.districtId, outDir, data.componentsOrder, data.componentNames, { force })) {
+
+    if (await writeDayBundle(day, data.districtId, outDir, data.componentsOrder, data.componentNames, { force, onUsage })) {
       filesWritten += 1;
     }
   }
 
   if (filesWritten === 0) {
     console.error(filterDate
-      ? `No PBO data found for district=${data.districtId} date=${filterDate}`
+      ? `No PBO verbal text found for district=${data.districtId} date=${filterDate}`
       : `No PBO Excel files found for district=${data.districtId}`);
   }
 }
@@ -246,31 +219,23 @@ const allDistricts = args.includes('--all-districts');
 const districtArg = getArg('--district') ?? 'north';
 const force = args.includes('--force');
 
+checkDailyBudget();
+const { onUsage, getTotal } = createCostTracker({ label: 'extract-pbo-signals' });
+
 const outDir = defaultClosedSignalsDir();
 mkdirSync(outDir, { recursive: true });
 
 const districts = allDistricts ? listPboDistrictIds() : [districtArg];
 for (const districtId of districts) {
-  await runDistrict(districtId, filterDate, outDir, force);
+  await runDistrict(districtId, filterDate, outDir, force, onUsage);
 }
 
-for (const [date, units] of openUnitsByDate.entries()) {
-  if (!units.length) continue;
-  const openPath = pipelineOpenObsPath('pbo', date);
-  if (!openObsNeedsExtract(openPath)) {
-    console.error(`  → Open pipeline observations already present: ${openPath}`);
-    continue;
-  }
-  try {
-    const { runPipelineOpenExtract } = await import('../../signals_extraction/index.js');
-    await runPipelineOpenExtract({
-      articles: units,
-      sourceType: 'pbo',
-      contentKind: 'pbo_municipality',
-      date,
-      sourceFiles: [...(sourceFilesByDate.get(date) ?? [])],
-    });
-  } catch (err) {
-    console.error(`  ⚠ Open pipeline extract skipped for ${date}: ${err.message}`);
-  }
+const { totalCostUsd, usageLog } = getTotal();
+if (usageLog?.length) {
+  appendCostLog({
+    script: 'extract-pbo-signals',
+    date: filterDate ?? new Date().toISOString().slice(0, 10),
+    totalCostUsd,
+    usageLog,
+  });
 }

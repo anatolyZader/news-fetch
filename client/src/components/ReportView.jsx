@@ -975,7 +975,9 @@ function ComponentCard({
                           marginBottom: theme.spacing(0.25),
                         })}
                       >
-                        {s.source_type === 'field' && <SourceBadge kind="field">{t('report.badge.field')}</SourceBadge>}
+                        {(s.source_type === 'field' || s.source_type === 'visits') && (
+                          <SourceBadge kind="field">{t('report.badge.visits')}</SourceBadge>
+                        )}
                         {s.source_type === 'radio' && <SourceBadge kind="radio">{t('report.badge.radio')}</SourceBadge>}
                         {s.source_type === 'naftali' && <SourceBadge kind="naftali">{t('report.badge.naftali')}</SourceBadge>}
                         {(s.source_type === 'news' || s.source_type === 'press') && <SourceBadge kind="press">{t('report.badge.press')}</SourceBadge>}
@@ -1069,6 +1071,7 @@ export function ReportView({
   actionCompass,
   anomalyStrip,
   suggestCrisisBudget,
+  narrativeFocusUi = false,
   driftAlerts,
   onJumpToComponent,
   openCompId: openCompIdProp,
@@ -1114,6 +1117,8 @@ export function ReportView({
     })
     : (assessment.components ?? []);
 
+  const showGuidancePanels = !narrativeFocusUi;
+
   function getSourceSignals(compId) {
     if (!scoreBySource) return null;
     const all = [];
@@ -1154,17 +1159,21 @@ export function ReportView({
         generatedAt={generatedAt}
       />
 
-      <EpistemicStatusBanner
-        assessment={assessment}
-        displayView={displayView}
-        attentionItems={attentionItems}
-        suggestCrisisBudget={suggestCrisisBudget}
-      />
+      {showGuidancePanels && (
+        <EpistemicStatusBanner
+          assessment={assessment}
+          displayView={displayView}
+          attentionItems={attentionItems}
+          suggestCrisisBudget={suggestCrisisBudget}
+        />
+      )}
 
-      <ActionCompassPanel
-        actionCompass={actionCompass}
-        onJumpToComponent={onJumpToComponent}
-      />
+      {showGuidancePanels && (
+        <ActionCompassPanel
+          actionCompass={actionCompass}
+          onJumpToComponent={onJumpToComponent}
+        />
+      )}
 
       <OovAnomalyClustersPanel
         oovBurst={assessment?.oov_burst}
@@ -1187,15 +1196,17 @@ export function ReportView({
         />
       )}
 
-      <AttentionPanel
-        items={attentionItems}
-        driftAlerts={driftAlerts}
-        displayView={displayView}
-        onJumpToComponent={onJumpToComponent}
-        onScrollToValidationReview={showValidationReview ? () => {
-          validationReviewRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        } : undefined}
-      />
+      {showGuidancePanels && (
+        <AttentionPanel
+          items={attentionItems}
+          driftAlerts={driftAlerts}
+          displayView={displayView}
+          onJumpToComponent={onJumpToComponent}
+          onScrollToValidationReview={showValidationReview ? () => {
+            validationReviewRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          } : undefined}
+        />
+      )}
 
       {isAnalyst && (
         <AgentDivergencePanel
@@ -1205,19 +1216,23 @@ export function ReportView({
           agentTraceId={assessment?.agent_trace_id ?? null}
         />
       )}
-      <DecisionBriefPanel
-        decisionBrief={assessment?.decision_brief}
-        retrievalGaps={assessment?.retrieval_gaps}
-      />
+      {showGuidancePanels && (
+        <DecisionBriefPanel
+          decisionBrief={assessment?.decision_brief}
+          retrievalGaps={assessment?.retrieval_gaps}
+        />
+      )}
 
-      <OperatorRecommendationsPanel
-        recommendations={recommendations}
-        reportDate={reportDate ?? assessment?.date}
-        reportScope={reportScope ?? assessment?.report_scope?.id ?? 'national'}
-        onUpdated={(updated) => {
-          setRecommendations((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
-        }}
-      />
+      {showGuidancePanels && (
+        <OperatorRecommendationsPanel
+          recommendations={recommendations}
+          reportDate={reportDate ?? assessment?.date}
+          reportScope={reportScope ?? assessment?.report_scope?.id ?? 'national'}
+          onUpdated={(updated) => {
+            setRecommendations((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
+          }}
+        />
+      )}
 
       {isAnalyst && (
         <ReportComponentFilterBar
@@ -1563,6 +1578,7 @@ ReportView.propTypes = {
     show_operator: PropTypes.bool,
   }),
   suggestCrisisBudget: PropTypes.bool,
+  narrativeFocusUi: PropTypes.bool,
   driftAlerts: PropTypes.arrayOf(PropTypes.object),
   onJumpToComponent: PropTypes.func,
   openCompId: PropTypes.string,

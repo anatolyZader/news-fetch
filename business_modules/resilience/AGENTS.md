@@ -10,7 +10,7 @@ Read this before any file under `business_modules/resilience/` or `resilience_as
 - `app/shadowFacade.js` — **only** bridge into `analyst/shadow/`
 - `domain/epistemic/` — operator caps + mass (not headline scoring)
 - `input/extract-signals.js`, `input/assess-signals.js` — pipeline CLIs
-- `input/run-pipeline.js` — unified ingest+assess orchestrator CLI
+- `input/run-pipeline.js` — unified ingest+assess orchestrator CLI (`npm run pipeline:run -- --preset 8comp-3`)
 - `app/pipelineOrchestrator.js`, `app/pipelineIngestPlan.js` — ingest plan + spawn orchestration
 - `domain/services/pipelineArtifactPaths.js` — canonical artifact paths
 - `input/reportRoutes.js` — report HTTP API

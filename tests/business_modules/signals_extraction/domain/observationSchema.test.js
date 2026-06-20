@@ -25,6 +25,26 @@ describe('observationSchema', () => {
     assert.equal(bundle.observations.length, 1);
   });
 
+  it('validateObservationBundle allows empty observations for pipeline profile', () => {
+    const { valid, errors, bundle } = validateObservationBundle({
+      profile: 'pipeline',
+      source_type: 'pbo',
+      date: '2026-05-01',
+      observations: [],
+    });
+    assert.equal(valid, true, errors.join('; '));
+    assert.deepEqual(bundle.observations, []);
+  });
+
+  it('validateObservationBundle rejects empty observations for exploratory profile', () => {
+    const { valid } = validateObservationBundle({
+      profile: 'exploratory',
+      date: '2026-05-01',
+      observations: [],
+    });
+    assert.equal(valid, false);
+  });
+
   it('observationBundleFilename', () => {
     assert.equal(
       observationBundleFilename('document_pack', '2026-05-01'),

@@ -581,6 +581,7 @@ function AppShell() {
     anomalyStrip,
     budgetStatus,
     suggestCrisisBudget,
+    narrativeFocusUi,
     refreshReport,
   } = useTodayReport(reportScope, 'operator', selectedReportDate, lang);
   const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jerusalem' });
@@ -1119,6 +1120,7 @@ function AppShell() {
                       actionCompass={actionCompass}
                       anomalyStrip={anomalyStrip}
                       suggestCrisisBudget={suggestCrisisBudget}
+                      narrativeFocusUi={narrativeFocusUi}
                       onJumpToComponent={openReportComponent}
                       openCompId={openReportCompId}
                       setOpenCompId={setOpenReportCompId}

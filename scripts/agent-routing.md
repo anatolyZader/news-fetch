@@ -30,6 +30,7 @@ Ingest services are wired in `composition/registerIngestion.js`.
 | `extract-signals` | `business_modules/resilience/input/extract-signals.js` |
 | `extract-observations` | `business_modules/signals_extraction/input/extract-observations.js` |
 | `assess-signals` | `business_modules/resilience/input/assess-signals.js` |
+| `pipeline:run` | `business_modules/resilience/input/run-pipeline.js` |
 | `pipeline:status` | `business_modules/resilience/input/pipeline-status.js` |
 | `validation:status` | `business_modules/resilience/validation/scripts/validationStatus.js` |
 | `validation:set-phase` | `business_modules/resilience/validation/scripts/validationSetPhase.js` |

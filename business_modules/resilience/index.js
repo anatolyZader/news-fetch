@@ -39,6 +39,10 @@ export {
   ATTENTION_LEVELS,
 } from './domain/services/attentionItems.js';
 export { buildActionCompass, actionCompassEnabled } from './domain/services/actionCompass.js';
+export {
+  narrativeFocusUiEnabled,
+  stripOperatorGuidancePayload,
+} from './domain/services/narrativeFocusUi.js';
 export { buildAnomalyStrip } from './domain/services/anomalyStrip.js';
 
 // --- Policies (domain) ---
