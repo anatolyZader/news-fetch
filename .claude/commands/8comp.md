@@ -1,5 +1,5 @@
 ---
-allowed-tools: Bash(npm run homefront-to-md), Bash(node business_modules/resilience/input/extract-signals.js*), Bash(node business_modules/resilience/input/assess-signals.js*), Bash(ls articles-audio-* articles-field-reports-*), Bash(node business_modules/whatsapp/input/whatsapp-to-md.js*), Bash(ls articles-whatsapp-*), Bash(node business_modules/pbo_report_muni/input/extract-pbo-signals.js*), Bash(mkdir -p logs), Bash(tail*), Agent
+allowed-tools: Bash(npm run homefront-to-md), Bash(node business_modules/resilience/input/extract-signals.js*), Bash(node business_modules/resilience/input/assess-signals.js*), Bash(ls articles-audio-* articles-field-reports-*), Bash(node business_modules/whatsapp/input/whatsapp-to-md.js*), Bash(ls articles-whatsapp-*), Bash(node business_modules/pbo_report_muni/input/extract-pbo-signals.js*), Bash(export RESILIENCE_OPEN_EXTRACT_PARALLEL=1), Bash(export RESILIENCE_OPEN_EXTRACT_PARALLEL=1*), Bash(export RESILIENCE_OPEN_EXTRACT_PARALLEL=1 && *), Bash(mkdir -p logs), Bash(mkdir -p logs && *), Bash(for date in *), Bash(echo * >> logs/*), Bash(echo * 2>> logs/*), Bash(*>> logs/*), Bash(* 2>> logs/*), Bash(echo "Exit: $?"), Bash(tail*), Agent
 description: Full daily pipeline — fetch news, extract signals from all sources, run combined 8-component assessment
 ---
 

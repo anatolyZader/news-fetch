@@ -1,0 +1,1495 @@
+{
+  "source_type": "field",
+  "content_kind": "field_report",
+  "district_id": "north",
+  "date": "2026-03-17",
+  "extracted_at": "2026-06-19T12:33:27.971Z",
+  "source_files": [
+    "articles-field-reports-2026-03-17.md"
+  ],
+  "total_articles": 41,
+  "signals": [
+    {
+      "article_index": 1,
+      "signal_type": "political_distrust",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "In Baram, community leaders expressed lack of trust in politicians and the army, stating they told unrealistic stories and promised a quiet, secure border that did not materialize in reality.",
+      "scope_level": "repeated_pattern",
+      "confidence": 0.9,
+      "locality": "Baram",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "פרופ' משה פרחי ורינת לוי",
+      "temporal_weight": 1,
+      "article_title": "מטה אשר/איילון — ברעם (ביקור שטח)",
+      "municipality": "מטה אשר",
+      "grounding_tier": "weak",
+      "grounding_reason": "low_similarity",
+      "grounding_method": "containment",
+      "source_type": "field",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Baram",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Baram",
+          "normalizedInput": "baram",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-19T12:33:27.940Z"
+        }
+      },
+      "district_id": "north",
+      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#1"
+    },
+    {
+      "article_index": 3,
+      "signal_type": "political_distrust",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "In Abdon/Maaleh Yosef, there is concern that the army is not telling the truth.",
+      "scope_level": "repeated_pattern",
+      "confidence": 0.8,
+      "locality": "Abdon/Maaleh Yosef",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "איתמר שפר ולדי ליצ'אק",
+      "temporal_weight": 1,
+      "article_title": "עבדון/מעלה יוסף — ברעם (ביקור שטח)",
+      "municipality": "עבדון",
+      "grounding_tier": "weak",
+      "grounding_reason": "low_similarity",
+      "grounding_method": "containment",
+      "source_type": "field",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Abdon/Maaleh Yosef",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Abdon/Maaleh Yosef",
+          "normalizedInput": "abdon/maaleh yosef",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-19T12:33:27.941Z"
+        }
+      },
+      "district_id": "north",
+      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#3"
+    },
+    {
+      "article_index": 4,
+      "signal_type": "political_distrust",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "In Liman/Matte Asher, message to IDF: 'Do not tell stories!'",
+      "scope_level": "repeated_pattern",
+      "confidence": 0.9,
+      "locality": "Liman",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "פרופ' משה פרחי ורינת לוי",
+      "temporal_weight": 1,
+      "article_title": "לימן/ מטה אשר — ברעם (ביקור שטח)",
+      "municipality": "לימן",
+      "grounding_tier": "weak",
+      "grounding_reason": "low_similarity",
+      "grounding_method": "containment",
+      "source_type": "field",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Liman",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Liman",
+          "normalizedInput": "liman",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-19T12:33:27.942Z"
+        }
+      },
+      "district_id": "north",
+      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#4"
+    },
+    {
+      "article_index": 1,
+      "signal_type": "protective_infrastructure_absent",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "In Baram, farmers report limited number of armored field protection booths (מיגוניות) relative to the scope of agricultural land.",
+      "scope_level": "repeated_pattern",
+      "confidence": 0.9,
+      "locality": "Baram",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "פרופ' משה פרחי ורינת לוי",
+      "temporal_weight": 1,
+      "article_title": "מטה אשר/איילון — ברעם (ביקור שטח)",
+      "municipality": "מטה אשר",
+      "grounding_tier": "unverified_critical",
+      "grounding_reason": "verification_failed_critical",
+      "grounding_method": "low_similarity",
+      "source_type": "field",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Baram",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Baram",
+          "normalizedInput": "baram",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-19T12:33:27.943Z"
+        }
+      },
+      "district_id": "north",
+      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#1"
+    },
+    {
+      "article_index": 1,
+      "signal_type": "protective_infrastructure_absent",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "In Baram, there is a shortage of protected spaces for educational and social activities; no suitable public space exists.",
+      "scope_level": "repeated_pattern",
+      "confidence": 0.85,
+      "locality": "Baram",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "פרופ' משה פרחי ורינת לוי",
+      "temporal_weight": 1,
+      "article_title": "מטה אשר/איילון — ברעם (ביקור שטח)",
+      "municipality": "מטה אשר",
+      "grounding_tier": "unverified_critical",
+      "grounding_reason": "verification_failed_critical",
+      "grounding_method": "low_similarity",
+      "source_type": "field",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Baram",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Baram",
+          "normalizedInput": "baram",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-19T12:33:27.943Z"
+        }
+      },
+      "district_id": "north",
+      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#1"
+    },
+    {
+      "article_index": 2,
+      "signal_type": "protective_infrastructure_absent",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "In Goren/Maaleh Yosef, many residents lack individual safe rooms (ממ\"דים); public shelters are not in optimal condition; some residents have shelters that are far from them.",
+      "scope_level": "repeated_pattern",
+      "confidence": 0.9,
+      "locality": "Goren/Maaleh Yosef",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "איתמר שפר ולדי ליצ'אק",
+      "temporal_weight": 1,
+      "article_title": "גורן/מעלה יוסף — ברעם (ביקור שטח)",
+      "municipality": "גורן",
+      "grounding_tier": "unverified_critical",
+      "grounding_reason": "verification_failed_critical",
+      "grounding_method": "low_similarity",
+      "source_type": "field",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Goren/Maaleh Yosef",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Goren/Maaleh Yosef",
+          "normalizedInput": "goren/maaleh yosef",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-19T12:33:27.944Z"
+        }
+      },
+      "district_id": "north",
+      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#2"
+    },
+    {
+      "article_index": 3,
+      "signal_type": "protective_infrastructure_absent",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "In Abdon/Maaleh Yosef, not all elderly have individual safe rooms (ממ\"דים); public shelters are far away; no possibility to reach shelters in time.",
+      "scope_level": "repeated_pattern",
+      "confidence": 0.9,
+      "locality": "Abdon/Maaleh Yosef",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "איתמר שפר ולדי ליצ'אק",
+      "temporal_weight": 1,
+      "article_title": "עבדון/מעלה יוסף — ברעם (ביקור שטח)",
+      "municipality": "עבדון",
+      "grounding_tier": "unverified_critical",
+      "grounding_reason": "verification_failed_critical",
+      "grounding_method": "low_similarity",
+      "source_type": "field",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Abdon/Maaleh Yosef",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Abdon/Maaleh Yosef",
+          "normalizedInput": "abdon/maaleh yosef",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-19T12:33:27.945Z"
+        }
+      },
+      "district_id": "north",
+      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#3"
+    },
+    {
+      "article_index": 3,
+      "signal_type": "protective_infrastructure_absent",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "In Abdon/Maaleh Yosef, additional armored field protection booths (מיגוניות) are needed.",
+      "scope_level": "repeated_pattern",
+      "confidence": 0.8,
+      "locality": "Abdon/Maaleh Yosef",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "איתמר שפר ולדי ליצ'אק",
+      "temporal_weight": 1,
+      "article_title": "עבדון/מעלה יוסף — ברעם (ביקור שטח)",
+      "municipality": "עבדון",
+      "grounding_tier": "unverified_critical",
+      "grounding_reason": "verification_failed_critical",
+      "grounding_method": "low_similarity",
+      "source_type": "field",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Abdon/Maaleh Yosef",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Abdon/Maaleh Yosef",
+          "normalizedInput": "abdon/maaleh yosef",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-19T12:33:27.946Z"
+        }
+      },
+      "district_id": "north",
+      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#3"
+    },
+    {
+      "article_index": 4,
+      "signal_type": "protective_infrastructure_absent",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "In Liman/Matte Asher, there are known protection gaps; all are in process of receiving solutions.",
+      "scope_level": "repeated_pattern",
+      "confidence": 0.85,
+      "locality": "Liman",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "פרופ' משה פרחי ורינת לוי",
+      "temporal_weight": 1,
+      "article_title": "לימן/ מטה אשר — ברעם (ביקור שטח)",
+      "municipality": "לימן",
+      "grounding_tier": "unverified_critical",
+      "grounding_reason": "verification_failed_critical",
+      "grounding_method": "low_similarity",
+      "source_type": "field",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Liman",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Liman",
+          "normalizedInput": "liman",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-19T12:33:27.946Z"
+        }
+      },
+      "district_id": "north",
+      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#4"
+    },
+    {
+      "article_index": 5,
+      "signal_type": "protective_infrastructure_absent",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "In Granot HaGalil/Maaleh Yosef, there are protection gaps; elderly lack protection.",
+      "scope_level": "repeated_pattern",
+      "confidence": 0.85,
+      "locality": "Granot HaGalil",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "ציפי כהן סוקולר וצפואת שחאדה",
+      "temporal_weight": 1,
+      "article_title": "גרנות הגליל/מעלה יוסף — ברעם (ביקור שטח)",
+      "municipality": "גרנות הגליל",
+      "grounding_tier": "unverified_critical",
+      "grounding_reason": "verification_failed_critical",
+      "grounding_method": "low_similarity",
+      "source_type": "field",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Granot HaGalil",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Granot HaGalil",
+          "normalizedInput": "granot hagalil",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-19T12:33:27.947Z"
+        }
+      },
+      "district_id": "north",
+      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#5"
+    },
+    {
+      "article_index": 1,
+      "signal_type": "community_volunteering",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "In Baram, informal activities began today; HFC volunteer corps (צח\"י) training and volunteer reinforcement are underway.",
+      "scope_level": "repeated_pattern",
+      "confidence": 0.8,
+      "locality": "Baram",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "פרופ' משה פרחי ורינת לוי",
+      "temporal_weight": 1,
+      "article_title": "מטה אשר/איילון — ברעם (ביקור שטח)",
+      "municipality": "מטה אשר",
+      "grounding_tier": "weak",
+      "grounding_reason": "low_similarity",
+      "grounding_method": "containment",
+      "source_type": "field",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Baram",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Baram",
+          "normalizedInput": "baram",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-19T12:33:27.948Z"
+        }
+      },
+      "district_id": "north",
+      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#1"
+    },
+    {
+      "article_index": 3,
+      "signal_type": "community_volunteering",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "In Abdon/Maaleh Yosef, informal activities are taking place; community coordinator is recruiting volunteers.",
+      "scope_level": "repeated_pattern",
+      "confidence": 0.8,
+      "locality": "Abdon/Maaleh Yosef",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "איתמר שפר ולדי ליצ'אק",
+      "temporal_weight": 1,
+      "article_title": "עבדון/מעלה יוסף — ברעם (ביקור שטח)",
+      "municipality": "עבדון",
+      "grounding_tier": "weak",
+      "grounding_reason": "low_similarity",
+      "grounding_method": "containment",
+      "source_type": "field",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Abdon/Maaleh Yosef",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Abdon/Maaleh Yosef",
+          "normalizedInput": "abdon/maaleh yosef",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-19T12:33:27.948Z"
+        }
+      },
+      "district_id": "north",
+      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#3"
+    },
+    {
+      "article_index": 1,
+      "signal_type": "economic_disruption",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "In Baram, there is concern about business collapse, specifically a pizzeria.",
+      "scope_level": "single_case",
+      "confidence": 0.7,
+      "locality": "Baram",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "פרופ' משה פרחי ורינת לוי",
+      "temporal_weight": 1,
+      "article_title": "מטה אשר/איילון — ברעם (ביקור שטח)",
+      "municipality": "מטה אשר",
+      "grounding_tier": "weak",
+      "grounding_reason": "low_similarity",
+      "grounding_method": "containment",
+      "source_type": "field",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Baram",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Baram",
+          "normalizedInput": "baram",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-19T12:33:27.949Z"
+        }
+      },
+      "district_id": "north",
+      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#1"
+    },
+    {
+      "article_index": 1,
+      "signal_type": "preparedness_gap_identified",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "In Baram, there is a gap in educators; proposal to fill the gap with the help of reserve soldiers.",
+      "scope_level": "repeated_pattern",
+      "confidence": 0.8,
+      "locality": "Baram",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "פרופ' משה פרחי ורינת לוי",
+      "temporal_weight": 1,
+      "article_title": "מטה אשר/איילון — ברעם (ביקור שטח)",
+      "municipality": "מטה אשר",
+      "grounding_tier": "weak",
+      "grounding_reason": "low_similarity",
+      "grounding_method": "containment",
+      "source_type": "field",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Baram",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Baram",
+          "normalizedInput": "baram",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-19T12:33:27.949Z"
+        }
+      },
+      "district_id": "north",
+      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#1"
+    },
+    {
+      "article_index": 2,
+      "signal_type": "self_evacuation_unauthorized",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "In Goren/Maaleh Yosef, young people fled; those aged 40+ remained.",
+      "scope_level": "repeated_pattern",
+      "confidence": 0.85,
+      "locality": "Goren/Maaleh Yosef",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "איתמר שפר ולדי ליצ'אק",
+      "temporal_weight": 1,
+      "article_title": "גורן/מעלה יוסף — ברעם (ביקור שטח)",
+      "municipality": "גורן",
+      "grounding_tier": "weak",
+      "grounding_reason": "low_similarity",
+      "grounding_method": "containment",
+      "source_type": "field",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Goren/Maaleh Yosef",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Goren/Maaleh Yosef",
+          "normalizedInput": "goren/maaleh yosef",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-19T12:33:27.950Z"
+        }
+      },
+      "district_id": "north",
+      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#2"
+    },
+    {
+      "article_index": 2,
+      "signal_type": "resilience_narrative_positive",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "In Goren/Maaleh Yosef, the narrative is to stay, though accompanied by difficulties.",
+      "scope_level": "repeated_pattern",
+      "confidence": 0.8,
+      "locality": "Goren/Maaleh Yosef",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "איתמר שפר ולדי ליצ'אק",
+      "temporal_weight": 1,
+      "article_title": "גורן/מעלה יוסף — ברעם (ביקור שטח)",
+      "municipality": "גורן",
+      "grounding_tier": "weak",
+      "grounding_reason": "low_similarity",
+      "grounding_method": "containment",
+      "source_type": "field",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Goren/Maaleh Yosef",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Goren/Maaleh Yosef",
+          "normalizedInput": "goren/maaleh yosef",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-19T12:33:27.951Z"
+        }
+      },
+      "district_id": "north",
+      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#2"
+    },
+    {
+      "article_index": 3,
+      "signal_type": "resilience_narrative_positive",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "In Abdon/Maaleh Yosef, residents are not leaving; community coordinator is recruiting volunteers; women's evening and activities for adults are held.",
+      "scope_level": "repeated_pattern",
+      "confidence": 0.8,
+      "locality": "Abdon/Maaleh Yosef",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "איתמר שפר ולדי ליצ'אק",
+      "temporal_weight": 1,
+      "article_title": "עבדון/מעלה יוסף — ברעם (ביקור שטח)",
+      "municipality": "עבדון",
+      "grounding_tier": "weak",
+      "grounding_reason": "low_similarity",
+      "grounding_method": "containment",
+      "source_type": "field",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Abdon/Maaleh Yosef",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Abdon/Maaleh Yosef",
+          "normalizedInput": "abdon/maaleh yosef",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-19T12:33:27.952Z"
+        }
+      },
+      "district_id": "north",
+      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#3"
+    },
+    {
+      "article_index": 5,
+      "signal_type": "resilience_narrative_positive",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "In Granot HaGalil/Maaleh Yosef, community resilience is expressed in the willingness to enable what is possible without distraction; most of the population has returned to the settlement; there is a young functioning population; discourse of coping.",
+      "scope_level": "repeated_pattern",
+      "confidence": 0.85,
+      "locality": "Granot HaGalil",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "ציפי כהן סוקולר וצפואת שחאדה",
+      "temporal_weight": 1,
+      "article_title": "גרנות הגליל/מעלה יוסף — ברעם (ביקור שטח)",
+      "municipality": "גרנות הגליל",
+      "grounding_tier": "weak",
+      "grounding_reason": "low_similarity",
+      "grounding_method": "containment",
+      "source_type": "field",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Granot HaGalil",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Granot HaGalil",
+          "normalizedInput": "granot hagalil",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-19T12:33:27.953Z"
+        }
+      },
+      "district_id": "north",
+      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#5"
+    },
+    {
+      "article_index": 2,
+      "signal_type": "routine_disruption",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "In Goren/Maaleh Yosef, there is variation in reports about going out to work.",
+      "scope_level": "repeated_pattern",
+      "confidence": 0.75,
+      "locality": "Goren/Maaleh Yosef",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "איתמר שפר ולדי ליצ'אק",
+      "temporal_weight": 1,
+      "article_title": "גורן/מעלה יוסף — ברעם (ביקור שטח)",
+      "municipality": "גורן",
+      "grounding_tier": "weak",
+      "grounding_reason": "low_similarity",
+      "grounding_method": "containment",
+      "source_type": "field",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Goren/Maaleh Yosef",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Goren/Maaleh Yosef",
+          "normalizedInput": "goren/maaleh yosef",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-19T12:33:27.953Z"
+        }
+      },
+      "district_id": "north",
+      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#2"
+    },
+    {
+      "article_index": 2,
+      "signal_type": "system_overload",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "In Goren/Maaleh Yosef, there is an increase in the number of calls to the 106 emergency hotline.",
+      "scope_level": "repeated_pattern",
+      "confidence": 0.8,
+      "locality": "Goren/Maaleh Yosef",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "איתמר שפר ולדי ליצ'אק",
+      "temporal_weight": 1,
+      "article_title": "גורן/מעלה יוסף — ברעם (ביקור שטח)",
+      "municipality": "גורן",
+      "grounding_tier": "weak",
+      "grounding_reason": "low_similarity",
+      "grounding_method": "containment",
+      "source_type": "field",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Goren/Maaleh Yosef",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Goren/Maaleh Yosef",
+          "normalizedInput": "goren/maaleh yosef",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-19T12:33:27.954Z"
+        }
+      },
+      "district_id": "north",
+      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#2"
+    },
+    {
+      "article_index": 2,
+      "signal_type": "harm_to_population",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "In Goren/Maaleh Yosef, elderly population faces distress; difficulty reaching safe rooms; sometimes injured.",
+      "scope_level": "repeated_pattern",
+      "confidence": 0.8,
+      "locality": "Goren/Maaleh Yosef",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "איתמר שפר ולדי ליצ'אק",
+      "temporal_weight": 1,
+      "article_title": "גורן/מעלה יוסף — ברעם (ביקור שטח)",
+      "municipality": "גורן",
+      "grounding_tier": "unverified_critical",
+      "grounding_reason": "verification_failed_critical",
+      "grounding_method": "low_similarity",
+      "source_type": "field",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Goren/Maaleh Yosef",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Goren/Maaleh Yosef",
+          "normalizedInput": "goren/maaleh yosef",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-19T12:33:27.956Z"
+        }
+      },
+      "district_id": "north",
+      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#2"
+    },
+    {
+      "article_index": 3,
+      "signal_type": "educational_continuity",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "In Abdon/Maaleh Yosef, expansion of activities for children is underway.",
+      "scope_level": "repeated_pattern",
+      "confidence": 0.75,
+      "locality": "Abdon/Maaleh Yosef",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "איתמר שפר ולדי ליצ'אק",
+      "temporal_weight": 1,
+      "article_title": "עבדון/מעלה יוסף — ברעם (ביקור שטח)",
+      "municipality": "עבדון",
+      "grounding_tier": "weak",
+      "grounding_reason": "low_similarity",
+      "grounding_method": "containment",
+      "source_type": "field",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Abdon/Maaleh Yosef",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Abdon/Maaleh Yosef",
+          "normalizedInput": "abdon/maaleh yosef",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-19T12:33:27.957Z"
+        }
+      },
+      "district_id": "north",
+      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#3"
+    },
+    {
+      "article_index": 5,
+      "signal_type": "educational_continuity",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "In Granot HaGalil/Maaleh Yosef, there is basic youth activity.",
+      "scope_level": "repeated_pattern",
+      "confidence": 0.75,
+      "locality": "Granot HaGalil",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "ציפי כהן סוקולר וצפואת שחאדה",
+      "temporal_weight": 1,
+      "article_title": "גרנות הגליל/מעלה יוסף — ברעם (ביקור שטח)",
+      "municipality": "גרנות הגליל",
+      "grounding_tier": "weak",
+      "grounding_reason": "low_similarity",
+      "grounding_method": "containment",
+      "source_type": "field",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Granot HaGalil",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Granot HaGalil",
+          "normalizedInput": "granot hagalil",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-19T12:33:27.958Z"
+        }
+      },
+      "district_id": "north",
+      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#5"
+    },
+    {
+      "article_index": 4,
+      "signal_type": "leadership_credibility_loss",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "In Liman/Matte Asher, there is a sense of loss of trust toward politicians and military personnel.",
+      "scope_level": "repeated_pattern",
+      "confidence": 0.85,
+      "locality": "Liman",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "פרופ' משה פרחי ורינת לוי",
+      "temporal_weight": 1,
+      "article_title": "לימן/ מטה אשר — ברעם (ביקור שטח)",
+      "municipality": "לימן",
+      "grounding_tier": "weak",
+      "grounding_reason": "low_similarity",
+      "grounding_method": "containment",
+      "source_type": "field",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Liman",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Liman",
+          "normalizedInput": "liman",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-19T12:33:27.959Z"
+        }
+      },
+      "district_id": "north",
+      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#4"
+    },
+    {
+      "article_index": 4,
+      "signal_type": "educational_disruption",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "In Liman/Matte Asher, the central distress is lack of activities for children.",
+      "scope_level": "repeated_pattern",
+      "confidence": 0.85,
+      "locality": "Liman",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "פרופ' משה פרחי ורינת לוי",
+      "temporal_weight": 1,
+      "article_title": "לימן/ מטה אשר — ברעם (ביקור שטח)",
+      "municipality": "לימן",
+      "grounding_tier": "weak",
+      "grounding_reason": "low_similarity",
+      "grounding_method": "containment",
+      "source_type": "field",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Liman",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Liman",
+          "normalizedInput": "liman",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-19T12:33:27.959Z"
+        }
+      },
+      "district_id": "north",
+      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#4"
+    },
+    {
+      "article_index": 4,
+      "signal_type": "protective_infrastructure_present",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "In Liman/Matte Asher, those who can afford it have individual safe rooms (ממ\"דים).",
+      "scope_level": "repeated_pattern",
+      "confidence": 0.8,
+      "locality": "Liman",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "פרופ' משה פרחי ורינת לוי",
+      "temporal_weight": 1,
+      "article_title": "לימן/ מטה אשר — ברעם (ביקור שטח)",
+      "municipality": "לימן",
+      "grounding_tier": "weak",
+      "grounding_reason": "low_similarity",
+      "grounding_method": "containment",
+      "source_type": "field",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Liman",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Liman",
+          "normalizedInput": "liman",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-19T12:33:27.960Z"
+        }
+      },
+      "district_id": "north",
+      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#4"
+    },
+    {
+      "article_index": 4,
+      "signal_type": "risk_exposure_behavior",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "In Liman/Matte Asher, there is difficulty protecting farmers' security.",
+      "scope_level": "repeated_pattern",
+      "confidence": 0.75,
+      "locality": "Liman",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "פרופ' משה פרחי ורינת לוי",
+      "temporal_weight": 1,
+      "article_title": "לימן/ מטה אשר — ברעם (ביקור שטח)",
+      "municipality": "לימן",
+      "grounding_tier": "unverified_critical",
+      "grounding_reason": "verification_failed_critical",
+      "grounding_method": "low_similarity",
+      "source_type": "field",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Liman",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Liman",
+          "normalizedInput": "liman",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-19T12:33:27.961Z"
+        }
+      },
+      "district_id": "north",
+      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#4"
+    },
+    {
+      "article_index": 4,
+      "signal_type": "leadership_visible_presence",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "In Liman/Matte Asher, HFC volunteer corps (צח\"י) overall functions well.",
+      "scope_level": "repeated_pattern",
+      "confidence": 0.8,
+      "locality": "Liman",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "פרופ' משה פרחי ורינת לוי",
+      "temporal_weight": 1,
+      "article_title": "לימן/ מטה אשר — ברעם (ביקור שטח)",
+      "municipality": "לימן",
+      "grounding_tier": "weak",
+      "grounding_reason": "low_similarity",
+      "grounding_method": "containment",
+      "source_type": "field",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Liman",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Liman",
+          "normalizedInput": "liman",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-19T12:33:27.961Z"
+        }
+      },
+      "district_id": "north",
+      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#4"
+    },
+    {
+      "article_index": 5,
+      "signal_type": "leadership_visible_presence",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "In Granot HaGalil/Maaleh Yosef, there is a community readiness unit (כיתת כוננות).",
+      "scope_level": "repeated_pattern",
+      "confidence": 0.8,
+      "locality": "Granot HaGalil",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "ציפי כהן סוקולר וצפואת שחאדה",
+      "temporal_weight": 1,
+      "article_title": "גרנות הגליל/מעלה יוסף — ברעם (ביקור שטח)",
+      "municipality": "גרנות הגליל",
+      "grounding_tier": "weak",
+      "grounding_reason": "low_similarity",
+      "grounding_method": "containment",
+      "source_type": "field",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Granot HaGalil",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Granot HaGalil",
+          "normalizedInput": "granot hagalil",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-19T12:33:27.963Z"
+        }
+      },
+      "district_id": "north",
+      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#5"
+    },
+    {
+      "article_index": 5,
+      "signal_type": "psychological_distress",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "In Granot HaGalil/Maaleh Yosef, there is a sense of fatigue and erosion from the ongoing situation.",
+      "scope_level": "repeated_pattern",
+      "confidence": 0.85,
+      "locality": "Granot HaGalil",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "ציפי כהן סוקולר וצפואת שחאדה",
+      "temporal_weight": 1,
+      "article_title": "גרנות הגליל/מעלה יוסף — ברעם (ביקור שטח)",
+      "municipality": "גרנות הגליל",
+      "grounding_tier": "weak",
+      "grounding_reason": "low_similarity",
+      "grounding_method": "containment",
+      "source_type": "field",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Granot HaGalil",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Granot HaGalil",
+          "normalizedInput": "granot hagalil",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-19T12:33:27.964Z"
+        }
+      },
+      "district_id": "north",
+      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#5"
+    },
+    {
+      "article_index": 5,
+      "signal_type": "information_clarity",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "In Granot HaGalil/Maaleh Yosef, community communication exists without evidence of toxic discourse.",
+      "scope_level": "repeated_pattern",
+      "confidence": 0.8,
+      "locality": "Granot HaGalil",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "ציפי כהן סוקולר וצפואת שחאדה",
+      "temporal_weight": 1,
+      "article_title": "גרנות הגליל/מעלה יוסף — ברעם (ביקור שטח)",
+      "municipality": "גרנות הגליל",
+      "grounding_tier": "weak",
+      "grounding_reason": "low_similarity",
+      "grounding_method": "containment",
+      "source_type": "field",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Granot HaGalil",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Granot HaGalil",
+          "normalizedInput": "granot hagalil",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-19T12:33:27.965Z"
+        }
+      },
+      "district_id": "north",
+      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#5"
+    },
+    {
+      "article_index": 5,
+      "signal_type": "coordination_success",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "In Granot HaGalil/Maaleh Yosef, there is good relationship with the council and Home Front Command.",
+      "scope_level": "repeated_pattern",
+      "confidence": 0.85,
+      "locality": "Granot HaGalil",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "ציפי כהן סוקולר וצפואת שחאדה",
+      "temporal_weight": 1,
+      "article_title": "גרנות הגליל/מעלה יוסף — ברעם (ביקור שטח)",
+      "municipality": "גרנות הגליל",
+      "grounding_tier": "weak",
+      "grounding_reason": "low_similarity",
+      "grounding_method": "containment",
+      "source_type": "field",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Granot HaGalil",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Granot HaGalil",
+          "normalizedInput": "granot hagalil",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-19T12:33:27.966Z"
+        }
+      },
+      "district_id": "north",
+      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#5"
+    },
+    {
+      "article_index": 5,
+      "signal_type": "leadership_absence",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "In Granot HaGalil/Maaleh Yosef, HFC volunteer corps (צח\"י) is not operating at full capacity.",
+      "scope_level": "repeated_pattern",
+      "confidence": 0.8,
+      "locality": "Granot HaGalil",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "ציפי כהן סוקולר וצפואת שחאדה",
+      "temporal_weight": 1,
+      "article_title": "גרנות הגליל/מעלה יוסף — ברעם (ביקור שטח)",
+      "municipality": "גרנות הגליל",
+      "grounding_tier": "weak",
+      "grounding_reason": "low_similarity",
+      "grounding_method": "containment",
+      "source_type": "field",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Granot HaGalil",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Granot HaGalil",
+          "normalizedInput": "granot hagalil",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-19T12:33:27.967Z"
+        }
+      },
+      "district_id": "north",
+      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#5"
+    },
+    {
+      "article_index": 5,
+      "signal_type": "institutional_abandonment_perception",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "In Granot HaGalil/Maaleh Yosef, elderly and those with special needs feel there is no 'father and mother' - no entity within the community that has a complete picture of elderly and people with disabilities.",
+      "scope_level": "repeated_pattern",
+      "confidence": 0.85,
+      "locality": "Granot HaGalil",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "ציפי כהן סוקולר וצפואת שחאדה",
+      "temporal_weight": 1,
+      "article_title": "גרנות הגליל/מעלה יוסף — ברעם (ביקור שטח)",
+      "municipality": "גרנות הגליל",
+      "grounding_tier": "weak",
+      "grounding_reason": "low_similarity",
+      "grounding_method": "containment",
+      "source_type": "field",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Granot HaGalil",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Granot HaGalil",
+          "normalizedInput": "granot hagalil",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-19T12:33:27.967Z"
+        }
+      },
+      "district_id": "north",
+      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#5"
+    },
+    {
+      "article_index": 5,
+      "signal_type": "information_inclusivity_gap",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "In Granot HaGalil/Maaleh Yosef, there is a lack of precise mapping of the entire population because HFC is not operating at full capacity.",
+      "scope_level": "repeated_pattern",
+      "confidence": 0.8,
+      "locality": "Granot HaGalil",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "ציפי כהן סוקולר וצפואת שחאדה",
+      "temporal_weight": 1,
+      "article_title": "גרנות הגליל/מעלה יוסף — ברעם (ביקור שטח)",
+      "municipality": "גרנות הגליל",
+      "grounding_tier": "weak",
+      "grounding_reason": "low_similarity",
+      "grounding_method": "containment",
+      "source_type": "field",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Granot HaGalil",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Granot HaGalil",
+          "normalizedInput": "granot hagalil",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-19T12:33:27.968Z"
+        }
+      },
+      "district_id": "north",
+      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#5"
+    },
+    {
+      "article_index": 5,
+      "signal_type": "coordination_failure",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "In Granot HaGalil/Maaleh Yosef, there is a lack of connection between welfare services and this population - elderly, urban residents, families with children with special needs, and other populations including women whose family members are in military service.",
+      "scope_level": "repeated_pattern",
+      "confidence": 0.85,
+      "locality": "Granot HaGalil",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "ציפי כהן סוקולר וצפואת שחאדה",
+      "temporal_weight": 1,
+      "article_title": "גרנות הגליל/מעלה יוסף — ברעם (ביקור שטח)",
+      "municipality": "גרנות הגליל",
+      "grounding_tier": "weak",
+      "grounding_reason": "low_similarity",
+      "grounding_method": "containment",
+      "source_type": "field",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Granot HaGalil",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Granot HaGalil",
+          "normalizedInput": "granot hagalil",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-19T12:33:27.968Z"
+        }
+      },
+      "district_id": "north",
+      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#5"
+    },
+    {
+      "article_index": 6,
+      "signal_type": "resilience_narrative_negative",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "In Even Menahem/Maaleh Yosef, residents describe themselves as 'mentally ill people living here'; feeling of abandonment; 'we are the periphery of the periphery'.",
+      "scope_level": "repeated_pattern",
+      "confidence": 0.9,
+      "locality": "Even Menahem",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "ציפי כהן סוקולר וצפונאת שחאדה",
+      "temporal_weight": 1,
+      "article_title": "אבן מנחם/מעלה יוסף — ברעם (ביקור שטח)",
+      "municipality": "אבן מנחם",
+      "grounding_tier": "weak",
+      "grounding_reason": "low_similarity",
+      "grounding_method": "containment",
+      "source_type": "field",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Even Menahem",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Even Menahem",
+          "normalizedInput": "even menahem",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-19T12:33:27.969Z"
+        }
+      },
+      "district_id": "north",
+      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#6"
+    },
+    {
+      "article_index": 1,
+      "signal_type": "wellbeing_support_accessed",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "In Baram, elderly population is receiving community support.",
+      "scope_level": "repeated_pattern",
+      "confidence": 0.75,
+      "locality": "Baram",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "article_source": "פרופ' משה פרחי ורינת לוי",
+      "temporal_weight": 1,
+      "article_title": "מטה אשר/איילון — ברעם (ביקור שטח)",
+      "municipality": "מטה אשר",
+      "grounding_tier": "grounded",
+      "grounding_reason": "entailment_rescue",
+      "grounding_method": "entailment",
+      "source_type": "field",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Baram",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Baram",
+          "normalizedInput": "baram",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-19T12:33:27.969Z"
+        }
+      },
+      "district_id": "north",
+      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#1"
+    }
+  ]
+}

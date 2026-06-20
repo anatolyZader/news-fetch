@@ -23,6 +23,7 @@ import { DriftSparkline, StatusTag, MarkdownArticle } from '../ui/index.js';
 import { AttentionPanel } from './AttentionPanel.jsx';
 import { ActionCompassPanel } from './ActionCompassPanel.jsx';
 import { EpistemicStatusBanner } from './EpistemicStatusBanner.jsx';
+import { ReportFreshnessBadges } from './ReportFreshnessBadges.jsx';
 import { EvidenceOverviewPanel } from './EvidenceOverviewPanel.jsx';
 import { ValidationReviewPanel } from './ValidationReviewPanel.jsx';
 import { CatalogProposalPanel } from './CatalogProposalPanel.jsx';
@@ -1148,12 +1149,16 @@ export function ReportView({
         </Alert>
       )}
 
+      <ReportFreshnessBadges
+        reportDate={reportDate ?? assessment?.date}
+        generatedAt={generatedAt}
+      />
+
       <EpistemicStatusBanner
         assessment={assessment}
         displayView={displayView}
         attentionItems={attentionItems}
         suggestCrisisBudget={suggestCrisisBudget}
-        generatedAt={generatedAt}
       />
 
       <ActionCompassPanel

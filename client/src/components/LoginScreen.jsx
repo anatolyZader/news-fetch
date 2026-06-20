@@ -68,6 +68,10 @@ export function LoginScreen() {
     try {
       await signInGoogle();
     } catch (err) {
+      const code = err?.code ?? '';
+      if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') {
+        return;
+      }
       setAuthError(err?.message ?? 'Google sign-in failed');
     } finally {
       setBusy(false);

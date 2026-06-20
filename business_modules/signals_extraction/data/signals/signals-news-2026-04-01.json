@@ -2,7 +2,7 @@
   "source_type": "news",
   "content_kind": "news",
   "date": "2026-04-01",
-  "extracted_at": "2026-06-17T19:40:39.769Z",
+  "extracted_at": "2026-06-19T11:19:05.685Z",
   "source_files": [
     "articles-homefront-2026-04-01.md"
   ],
@@ -69,7 +69,7 @@
           "geoReferenceVersion": "north-geo-2026-05-10",
           "borderReferenceVersion": "north-border-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-17T19:40:39.503Z"
+          "resolvedAt": "2026-06-19T11:19:05.391Z"
         },
         "matchEvidence": {
           "rawInput": "קריית שמונה",
@@ -155,7 +155,7 @@
           "geoReferenceVersion": "north-geo-2026-05-10",
           "borderReferenceVersion": "north-border-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-17T19:40:39.503Z"
+          "resolvedAt": "2026-06-19T11:19:05.392Z"
         },
         "matchEvidence": {
           "rawInput": "קריית שמונה",
@@ -213,7 +213,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-17T19:40:39.506Z"
+          "resolvedAt": "2026-06-19T11:19:05.395Z"
         }
       },
       "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-01.md#23"
@@ -336,7 +336,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-17T19:40:39.686Z"
+          "resolvedAt": "2026-06-19T11:19:05.582Z"
         },
         "matchEvidence": {
           "rawInput": "Tel Aviv",
@@ -454,7 +454,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-17T19:40:39.688Z"
+          "resolvedAt": "2026-06-19T11:19:05.585Z"
         }
       },
       "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-01.md#22"
@@ -517,7 +517,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-17T19:40:39.689Z"
+          "resolvedAt": "2026-06-19T11:19:05.587Z"
         },
         "matchEvidence": {
           "rawInput": "בני ברק",
@@ -575,7 +575,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-17T19:40:39.689Z"
+          "resolvedAt": "2026-06-19T11:19:05.589Z"
         }
       },
       "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-01.md#8"
@@ -638,7 +638,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-17T19:40:39.690Z"
+          "resolvedAt": "2026-06-19T11:19:05.590Z"
         },
         "matchEvidence": {
           "rawInput": "בני ברק",
@@ -696,7 +696,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-17T19:40:39.691Z"
+          "resolvedAt": "2026-06-19T11:19:05.592Z"
         }
       },
       "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-01.md#10"
@@ -759,7 +759,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-17T19:40:39.691Z"
+          "resolvedAt": "2026-06-19T11:19:05.594Z"
         },
         "matchEvidence": {
           "rawInput": "ראשון לציון",
@@ -862,7 +862,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-17T19:40:39.692Z"
+          "resolvedAt": "2026-06-19T11:19:05.596Z"
         },
         "matchEvidence": {
           "rawInput": "בני ברק",
@@ -920,7 +920,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-17T19:40:39.693Z"
+          "resolvedAt": "2026-06-19T11:19:05.605Z"
         }
       },
       "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-01.md#25"
@@ -983,7 +983,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-17T19:40:39.694Z"
+          "resolvedAt": "2026-06-19T11:19:05.606Z"
         },
         "matchEvidence": {
           "rawInput": "ראשון לציון",
@@ -1041,7 +1041,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-17T19:40:39.694Z"
+          "resolvedAt": "2026-06-19T11:19:05.606Z"
         }
       },
       "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-01.md#29"
@@ -1079,7 +1079,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-17T19:40:39.695Z"
+          "resolvedAt": "2026-06-19T11:19:05.607Z"
         }
       },
       "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-01.md#31"
@@ -1117,7 +1117,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-17T19:40:39.696Z"
+          "resolvedAt": "2026-06-19T11:19:05.608Z"
         }
       },
       "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-01.md#33"
@@ -1155,7 +1155,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-17T19:40:39.697Z"
+          "resolvedAt": "2026-06-19T11:19:05.609Z"
         }
       },
       "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-01.md#34"
@@ -1193,7 +1193,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-17T19:40:39.697Z"
+          "resolvedAt": "2026-06-19T11:19:05.610Z"
         }
       },
       "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-01.md#37"
@@ -1256,7 +1256,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-17T19:40:39.698Z"
+          "resolvedAt": "2026-06-19T11:19:05.610Z"
         },
         "matchEvidence": {
           "rawInput": "תל אביב",
@@ -1314,7 +1314,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-17T19:40:39.698Z"
+          "resolvedAt": "2026-06-19T11:19:05.610Z"
         }
       },
       "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-01.md#49"
@@ -1352,7 +1352,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-17T19:40:39.699Z"
+          "resolvedAt": "2026-06-19T11:19:05.611Z"
         }
       },
       "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-01.md#50"
@@ -1415,7 +1415,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-17T19:40:39.699Z"
+          "resolvedAt": "2026-06-19T11:19:05.612Z"
         },
         "matchEvidence": {
           "rawInput": "בני ברק",
@@ -1498,7 +1498,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-17T19:40:39.700Z"
+          "resolvedAt": "2026-06-19T11:19:05.612Z"
         },
         "matchEvidence": {
           "rawInput": "תל אביב",
@@ -1601,7 +1601,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-17T19:40:39.701Z"
+          "resolvedAt": "2026-06-19T11:19:05.613Z"
         },
         "matchEvidence": {
           "rawInput": "בני ברק",
@@ -1704,7 +1704,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-17T19:40:39.702Z"
+          "resolvedAt": "2026-06-19T11:19:05.614Z"
         },
         "matchEvidence": {
           "rawInput": "תל אביב",
@@ -1787,7 +1787,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-17T19:40:39.703Z"
+          "resolvedAt": "2026-06-19T11:19:05.615Z"
         },
         "matchEvidence": {
           "rawInput": "תל אביב",
@@ -1870,7 +1870,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-17T19:40:39.704Z"
+          "resolvedAt": "2026-06-19T11:19:05.616Z"
         },
         "matchEvidence": {
           "rawInput": "ראשון לציון",
@@ -1953,7 +1953,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-17T19:40:39.705Z"
+          "resolvedAt": "2026-06-19T11:19:05.616Z"
         },
         "matchEvidence": {
           "rawInput": "ראשון לציון",
@@ -2011,7 +2011,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-17T19:40:39.706Z"
+          "resolvedAt": "2026-06-19T11:19:05.618Z"
         }
       },
       "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-01.md#13"
@@ -2049,7 +2049,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-17T19:40:39.707Z"
+          "resolvedAt": "2026-06-19T11:19:05.619Z"
         }
       },
       "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-01.md#17"
@@ -2107,7 +2107,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-17T19:40:39.708Z"
+          "resolvedAt": "2026-06-19T11:19:05.620Z"
         }
       },
       "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-01.md#55"
@@ -2145,7 +2145,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-17T19:40:39.710Z"
+          "resolvedAt": "2026-06-19T11:19:05.621Z"
         }
       },
       "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-01.md#17"
@@ -2228,7 +2228,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-17T19:40:39.711Z"
+          "resolvedAt": "2026-06-19T11:19:05.622Z"
         },
         "matchEvidence": {
           "rawInput": "אילת",
@@ -2311,7 +2311,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-17T19:40:39.711Z"
+          "resolvedAt": "2026-06-19T11:19:05.623Z"
         },
         "matchEvidence": {
           "rawInput": "Eilat",
@@ -2409,7 +2409,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-17T19:40:39.712Z"
+          "resolvedAt": "2026-06-19T11:19:05.625Z"
         }
       },
       "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-01.md#23"
@@ -2492,7 +2492,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-17T19:40:39.712Z"
+          "resolvedAt": "2026-06-19T11:19:05.625Z"
         },
         "matchEvidence": {
           "rawInput": "אילת",
@@ -2570,7 +2570,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-17T19:40:39.713Z"
+          "resolvedAt": "2026-06-19T11:19:05.626Z"
         }
       },
       "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-01.md#46"
@@ -2648,7 +2648,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-17T19:40:39.714Z"
+          "resolvedAt": "2026-06-19T11:19:05.627Z"
         }
       },
       "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-01.md#45"
@@ -2711,7 +2711,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-17T19:40:39.714Z"
+          "resolvedAt": "2026-06-19T11:19:05.627Z"
         },
         "matchEvidence": {
           "rawInput": "Tel Aviv",
@@ -2769,7 +2769,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-17T19:40:39.715Z"
+          "resolvedAt": "2026-06-19T11:19:05.627Z"
         }
       },
       "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-01.md#53"
@@ -2807,7 +2807,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-17T19:40:39.715Z"
+          "resolvedAt": "2026-06-19T11:19:05.628Z"
         }
       },
       "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-01.md#53"
@@ -2905,7 +2905,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-17T19:40:39.716Z"
+          "resolvedAt": "2026-06-19T11:19:05.629Z"
         }
       },
       "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-01.md#7"
@@ -2968,7 +2968,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-17T19:40:39.716Z"
+          "resolvedAt": "2026-06-19T11:19:05.629Z"
         },
         "matchEvidence": {
           "rawInput": "בני ברק",
@@ -3051,7 +3051,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-17T19:40:39.717Z"
+          "resolvedAt": "2026-06-19T11:19:05.629Z"
         },
         "matchEvidence": {
           "rawInput": "תל אביב",
@@ -3134,7 +3134,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-17T19:40:39.717Z"
+          "resolvedAt": "2026-06-19T11:19:05.630Z"
         },
         "matchEvidence": {
           "rawInput": "נתיבות",
@@ -3217,7 +3217,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-17T19:40:39.717Z"
+          "resolvedAt": "2026-06-19T11:19:05.630Z"
         },
         "matchEvidence": {
           "rawInput": "תל אביב",
@@ -3300,7 +3300,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-17T19:40:39.718Z"
+          "resolvedAt": "2026-06-19T11:19:05.631Z"
         },
         "matchEvidence": {
           "rawInput": "בני ברק",
@@ -3386,7 +3386,7 @@
           "geoReferenceVersion": "north-geo-2026-05-10",
           "borderReferenceVersion": "north-border-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-17T19:40:39.718Z"
+          "resolvedAt": "2026-06-19T11:19:05.631Z"
         },
         "matchEvidence": {
           "rawInput": "מעלות תרשיחא",
@@ -3469,7 +3469,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-17T19:40:39.718Z"
+          "resolvedAt": "2026-06-19T11:19:05.631Z"
         },
         "matchEvidence": {
           "rawInput": "בני ברק",
@@ -3552,7 +3552,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-17T19:40:39.719Z"
+          "resolvedAt": "2026-06-19T11:19:05.632Z"
         },
         "matchEvidence": {
           "rawInput": "בני ברק",
@@ -3635,7 +3635,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-17T19:40:39.719Z"
+          "resolvedAt": "2026-06-19T11:19:05.632Z"
         },
         "matchEvidence": {
           "rawInput": "תל אביב",
@@ -3718,7 +3718,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-17T19:40:39.719Z"
+          "resolvedAt": "2026-06-19T11:19:05.632Z"
         },
         "matchEvidence": {
           "rawInput": "Tel Aviv",
@@ -3801,7 +3801,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-17T19:40:39.720Z"
+          "resolvedAt": "2026-06-19T11:19:05.633Z"
         },
         "matchEvidence": {
           "rawInput": "Bnei Brak",
@@ -3834,9 +3834,10 @@
       "scope_level": "local",
       "confidence": 0.95,
       "locality": "Tel Aviv",
+      "article_url": "https://www.israelnationalnews.com/news/424931",
+      "article_source": "israelnationalnews.com",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
-      "article_source": "israelnationalnews.com",
       "temporal_weight": 1,
       "article_title": "Woman moderately injured in a building collapse in Tel Aviv",
       "grounding_tier": "grounded",
@@ -3883,7 +3884,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-17T19:40:39.720Z"
+          "resolvedAt": "2026-06-19T11:19:05.633Z"
         },
         "matchEvidence": {
           "rawInput": "Tel Aviv",
@@ -3907,6 +3908,89 @@
       },
       "district_id": "dan",
       "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-01.md#53"
+    },
+    {
+      "article_index": 1,
+      "signal_type": "early_warning_system_effective",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "צוותי חוסן של איחוד הצלה העניקו סיוע לנפגעי החרדה",
+      "scope_level": "local",
+      "confidence": 0.7,
+      "locality": "בני ברק",
+      "article_url": "https://www.bhol.co.il/news/1723488",
+      "article_source": "bhol.co.il",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "temporal_weight": 1,
+      "article_title": "נפילות בבני ברק: ילדה בת 11 נפצעה קשה, נזק כבד לבתי מגורים",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "geo": {
+        "kind": "resolved",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "geoEntityType": "locality",
+        "resolution": {
+          "rawInput": "בני ברק",
+          "normalizedInput": "בני ברק",
+          "canonicalKey": "bnei_brak",
+          "matchedName": "בני ברק",
+          "matchedVariant": "בני ברק",
+          "matchMethod": "exact",
+          "matchConfidence": 1,
+          "candidateCount": 1,
+          "geoEntityType": "locality",
+          "provenance": "structured",
+          "scope": "signal"
+        },
+        "classification": {
+          "pboSubregionId": "homefront_dan",
+          "geoAreaTags": [
+            "dan"
+          ],
+          "isGolan": false,
+          "distanceKmToNorthBorder": 500,
+          "distanceBand": "25+",
+          "distancePolicyVersion": "distance-band-2026-05-v1"
+        },
+        "policy": {
+          "geoPolicyVersion": "geo-policy-2026-05-v3",
+          "quality": "medium",
+          "usableForMetrics": true,
+          "requiresReview": false,
+          "scopeConfidence": "high",
+          "decisionReasons": [
+            "homefront_district_stub:dan"
+          ]
+        },
+        "audit": {
+          "geoReferenceVersion": "homefront-district-stubs-v1",
+          "source": "homefront-district-stubs",
+          "resolvedAt": "2026-06-19T11:19:05.633Z"
+        },
+        "matchEvidence": {
+          "rawInput": "בני ברק",
+          "normalizedInput": "בני ברק",
+          "matchedVariant": "בני ברק",
+          "candidateCount": 1
+        },
+        "scopeDecision": {
+          "isRelevant": false,
+          "source": "unknown",
+          "confidence": "low",
+          "usableForMetrics": true,
+          "reasons": [
+            "no geoAreaTag for north"
+          ],
+          "isNorthRelevant": false,
+          "homeFrontDistrictIds": [
+            "dan"
+          ]
+        }
+      },
+      "district_id": "dan",
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-01.md#1"
     },
     {
       "article_index": 13,
@@ -3941,7 +4025,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-17T19:40:39.720Z"
+          "resolvedAt": "2026-06-19T11:19:05.634Z"
         }
       },
       "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-01.md#13"
@@ -4007,7 +4091,7 @@
           "geoReferenceVersion": "north-geo-2026-05-10",
           "borderReferenceVersion": "north-border-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-17T19:40:39.720Z"
+          "resolvedAt": "2026-06-19T11:19:05.634Z"
         },
         "matchEvidence": {
           "rawInput": "Kiryat Shmona",
@@ -4053,26 +4137,6 @@
       "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-01.md#21"
     },
     {
-      "article_index": 44,
-      "signal_type": "early_warning_system_effective",
-      "evidence_type": "named_institutional_fact",
-      "evidence": "Air raid sirens sounded at about 6:28 a.m. across southern Israel, including Ashkelon and Dimona, following a missile launch from Yemen by Iran-backed Houthis. The IDF said air defense systems intercepted the missile",
-      "scope_level": "regional",
-      "confidence": 0.8,
-      "locality": null,
-      "article_url": "https://www.ynetnews.com/article/rjp86m5jze",
-      "article_source": "ynetnews.com",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "temporal_weight": 1,
-      "article_title": "Houthis fire missile at southern Israel as Hezbollah launches drones, rockets at nort",
-      "grounding_tier": "grounded",
-      "grounding_reason": "containment",
-      "grounding_method": "containment",
-      "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-01.md#44"
-    },
-    {
       "article_index": 29,
       "signal_type": "early_warning_system_effective",
       "evidence_type": "observational_reported_fact",
@@ -4080,9 +4144,10 @@
       "scope_level": "regional",
       "confidence": 0.85,
       "locality": "Upper Galilee",
+      "article_url": "https://www.vesty.co.il/main/article/ty8ente0w",
+      "article_source": "vesty.co.il",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
-      "article_source": "vesty.co.il",
       "temporal_weight": 1,
       "article_title": "Война с Ираном, день 33-й: хроника противостояния",
       "grounding_tier": "weak",
@@ -4104,10 +4169,30 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-17T19:40:39.750Z"
+          "resolvedAt": "2026-06-19T11:19:05.634Z"
         }
       },
       "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-01.md#29"
+    },
+    {
+      "article_index": 44,
+      "signal_type": "early_warning_system_effective",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "Air raid sirens sounded at about 6:28 a.m. across southern Israel, including Ashkelon and Dimona, following a missile launch from Yemen by Iran-backed Houthis. The IDF said air defense systems intercepted the missile",
+      "scope_level": "regional",
+      "confidence": 0.8,
+      "locality": null,
+      "article_url": "https://www.ynetnews.com/article/rjp86m5jze",
+      "article_source": "ynetnews.com",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "temporal_weight": 1,
+      "article_title": "Houthis fire missile at southern Israel as Hezbollah launches drones, rockets at nort",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-01.md#44"
     },
     {
       "article_index": 2,
@@ -4167,7 +4252,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-17T19:40:39.750Z"
+          "resolvedAt": "2026-06-19T11:19:05.665Z"
         },
         "matchEvidence": {
           "rawInput": "בני ברק",
@@ -4250,7 +4335,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-17T19:40:39.751Z"
+          "resolvedAt": "2026-06-19T11:19:05.665Z"
         },
         "matchEvidence": {
           "rawInput": "בני ברק",
@@ -4308,7 +4393,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-17T19:40:39.751Z"
+          "resolvedAt": "2026-06-19T11:19:05.666Z"
         }
       },
       "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-01.md#44"
@@ -4371,7 +4456,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-17T19:40:39.752Z"
+          "resolvedAt": "2026-06-19T11:19:05.666Z"
         },
         "matchEvidence": {
           "rawInput": "בני ברק",
@@ -4395,6 +4480,127 @@
       },
       "district_id": "dan",
       "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-01.md#2"
+    },
+    {
+      "article_index": 3,
+      "signal_type": "commemoration_event_observed",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "בתקופה הקרובה ייסגר המעגל בחלוף כמעט 78 שנים, ויערך טקס צבאי ממלכתי להוספת כרית מצבה על שם דב פרמט ז״ל בבית העלמין הצבאי שבמעוז חיים",
+      "scope_level": "national",
+      "confidence": 0.95,
+      "locality": "Maoz Haim",
+      "article_url": "https://www.bhol.co.il/news/1723502",
+      "article_source": "bhol.co.il",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "temporal_weight": 1,
+      "article_title": "המעגל נסגר אחרי 78 שנים: דב פרמט הי\"ד נטמן בקבר אחים עם 16 חללי צה\"ל",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Maoz Haim",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Maoz Haim",
+          "normalizedInput": "maoz haim",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-19T11:19:05.667Z"
+        }
+      },
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-01.md#3"
+    },
+    {
+      "article_index": 5,
+      "signal_type": "risk_trade_off_behavior",
+      "evidence_type": "direct_quote_named_person",
+      "evidence": "במידה ותהיה אזעקה, קודם כל אני אעשה ספרינט לממ״ד ואני אוריד איזה 12 גרם",
+      "scope_level": "local",
+      "confidence": 0.65,
+      "locality": "חיפה",
+      "article_url": "https://www.one.co.il/Article/518595.html",
+      "article_source": "one.co.il",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "temporal_weight": 1,
+      "article_title": "\"במקרה של אזעקה אעשה ספרינט ואוריד 12 גרם\"",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "geo": {
+        "kind": "resolved",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "geoEntityType": "locality",
+        "resolution": {
+          "rawInput": "חיפה",
+          "normalizedInput": "חיפה",
+          "canonicalKey": "haifa",
+          "matchedName": "חיפה",
+          "matchedVariant": "חיפה",
+          "matchMethod": "exact",
+          "matchConfidence": 1,
+          "candidateCount": 1,
+          "geoEntityType": "locality",
+          "provenance": "structured",
+          "scope": "signal"
+        },
+        "classification": {
+          "pboSubregionId": "homefront_haifa",
+          "geoAreaTags": [
+            "haifa"
+          ],
+          "isGolan": false,
+          "distanceKmToNorthBorder": 500,
+          "distanceBand": "25+",
+          "distancePolicyVersion": "distance-band-2026-05-v1"
+        },
+        "policy": {
+          "geoPolicyVersion": "geo-policy-2026-05-v3",
+          "quality": "medium",
+          "usableForMetrics": true,
+          "requiresReview": false,
+          "scopeConfidence": "high",
+          "decisionReasons": [
+            "homefront_district_stub:haifa"
+          ]
+        },
+        "audit": {
+          "geoReferenceVersion": "homefront-district-stubs-v1",
+          "source": "homefront-district-stubs",
+          "resolvedAt": "2026-06-19T11:19:05.667Z"
+        },
+        "matchEvidence": {
+          "rawInput": "חיפה",
+          "normalizedInput": "חיפה",
+          "matchedVariant": "חיפה",
+          "candidateCount": 1
+        },
+        "scopeDecision": {
+          "isRelevant": false,
+          "source": "unknown",
+          "confidence": "low",
+          "usableForMetrics": true,
+          "reasons": [
+            "no geoAreaTag for north"
+          ],
+          "isNorthRelevant": false,
+          "homeFrontDistrictIds": [
+            "haifa"
+          ]
+        }
+      },
+      "district_id": "haifa",
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-01.md#5"
     },
     {
       "article_index": 6,
@@ -4429,7 +4635,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-17T19:40:39.752Z"
+          "resolvedAt": "2026-06-19T11:19:05.667Z"
         }
       },
       "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-01.md#6"
@@ -4492,7 +4698,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-17T19:40:39.752Z"
+          "resolvedAt": "2026-06-19T11:19:05.668Z"
         },
         "matchEvidence": {
           "rawInput": "תל אביב",
@@ -4575,7 +4781,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-17T19:40:39.753Z"
+          "resolvedAt": "2026-06-19T11:19:05.668Z"
         },
         "matchEvidence": {
           "rawInput": "אשדוד",
@@ -4633,7 +4839,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-17T19:40:39.753Z"
+          "resolvedAt": "2026-06-19T11:19:05.668Z"
         }
       },
       "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-01.md#6"
@@ -4696,7 +4902,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-17T19:40:39.754Z"
+          "resolvedAt": "2026-06-19T11:19:05.669Z"
         },
         "matchEvidence": {
           "rawInput": "גבעתיים",
@@ -4779,7 +4985,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-17T19:40:39.754Z"
+          "resolvedAt": "2026-06-19T11:19:05.669Z"
         },
         "matchEvidence": {
           "rawInput": "ירושלים",
@@ -4862,7 +5068,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-17T19:40:39.754Z"
+          "resolvedAt": "2026-06-19T11:19:05.670Z"
         },
         "matchEvidence": {
           "rawInput": "ירושלים",
@@ -4945,7 +5151,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-17T19:40:39.755Z"
+          "resolvedAt": "2026-06-19T11:19:05.671Z"
         },
         "matchEvidence": {
           "rawInput": "שדרות",
@@ -5028,7 +5234,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-17T19:40:39.755Z"
+          "resolvedAt": "2026-06-19T11:19:05.671Z"
         },
         "matchEvidence": {
           "rawInput": "שדרות",
@@ -5226,7 +5432,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-17T19:40:39.757Z"
+          "resolvedAt": "2026-06-19T11:19:05.673Z"
         }
       },
       "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-01.md#17"
@@ -5264,7 +5470,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-17T19:40:39.757Z"
+          "resolvedAt": "2026-06-19T11:19:05.674Z"
         }
       },
       "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-01.md#17"
@@ -5328,7 +5534,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-17T19:40:39.758Z"
+          "resolvedAt": "2026-06-19T11:19:05.674Z"
         },
         "matchEvidence": {
           "rawInput": "Jerusalem",
@@ -5386,7 +5592,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-17T19:40:39.758Z"
+          "resolvedAt": "2026-06-19T11:19:05.675Z"
         }
       },
       "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-01.md#55"
@@ -5464,7 +5670,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-17T19:40:39.759Z"
+          "resolvedAt": "2026-06-19T11:19:05.676Z"
         }
       },
       "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-01.md#36"
@@ -5562,7 +5768,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-17T19:40:39.760Z"
+          "resolvedAt": "2026-06-19T11:19:05.677Z"
         }
       },
       "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-01.md#23"
@@ -5660,7 +5866,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-17T19:40:39.761Z"
+          "resolvedAt": "2026-06-19T11:19:05.678Z"
         }
       },
       "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-01.md#30"
@@ -5723,7 +5929,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-17T19:40:39.761Z"
+          "resolvedAt": "2026-06-19T11:19:05.678Z"
         },
         "matchEvidence": {
           "rawInput": "תל אביב",
@@ -5767,6 +5973,172 @@
       "grounding_method": "containment",
       "source_type": "news",
       "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-01.md#38"
+    },
+    {
+      "article_index": 39,
+      "signal_type": "cultural_continuity",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Despite the ever-present war, the city is gearing up for Passover - shops are bustling with preparations and there's a chag spirit untouched by sirens",
+      "scope_level": "local",
+      "confidence": 0.9,
+      "locality": "Jerusalem",
+      "article_url": "https://www.jpost.com/judaism/jewish-holidays/article-891344",
+      "article_source": "jpost.com",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "temporal_weight": 1,
+      "article_title": "The Passover playbook: Jerusalem activities the whole family can rally around during war",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "geo": {
+        "kind": "resolved",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "geoEntityType": "locality",
+        "resolution": {
+          "rawInput": "Jerusalem",
+          "normalizedInput": "jerusalem",
+          "canonicalKey": "jerusalem",
+          "matchedName": "Jerusalem",
+          "matchedVariant": "Jerusalem",
+          "matchMethod": "exact",
+          "matchConfidence": 1,
+          "candidateCount": 1,
+          "geoEntityType": "locality",
+          "provenance": "structured",
+          "scope": "signal"
+        },
+        "classification": {
+          "pboSubregionId": "homefront_jerusalem",
+          "geoAreaTags": [
+            "jerusalem"
+          ],
+          "isGolan": false,
+          "distanceKmToNorthBorder": 500,
+          "distanceBand": "25+",
+          "distancePolicyVersion": "distance-band-2026-05-v1"
+        },
+        "policy": {
+          "geoPolicyVersion": "geo-policy-2026-05-v3",
+          "quality": "medium",
+          "usableForMetrics": true,
+          "requiresReview": false,
+          "scopeConfidence": "high",
+          "decisionReasons": [
+            "homefront_district_stub:jerusalem"
+          ]
+        },
+        "audit": {
+          "geoReferenceVersion": "homefront-district-stubs-v1",
+          "source": "homefront-district-stubs",
+          "resolvedAt": "2026-06-19T11:19:05.679Z"
+        },
+        "matchEvidence": {
+          "rawInput": "Jerusalem",
+          "normalizedInput": "jerusalem",
+          "matchedVariant": "Jerusalem",
+          "candidateCount": 1
+        },
+        "scopeDecision": {
+          "isRelevant": false,
+          "source": "unknown",
+          "confidence": "low",
+          "usableForMetrics": true,
+          "reasons": [
+            "no geoAreaTag for north"
+          ],
+          "isNorthRelevant": false,
+          "homeFrontDistrictIds": [
+            "jerusalem"
+          ]
+        }
+      },
+      "district_id": "jerusalem",
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-01.md#39"
+    },
+    {
+      "article_index": 39,
+      "signal_type": "service_continuity",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Everything will be operating according to the instructions from the Home Front Command. Holiday-themed festivals & special events... Birkat Kohanim, Western Wall... Kol HaOt Passover Festival... Ancient Shiloh",
+      "scope_level": "local",
+      "confidence": 0.9,
+      "locality": "Jerusalem",
+      "article_url": "https://www.jpost.com/judaism/jewish-holidays/article-891344",
+      "article_source": "jpost.com",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "temporal_weight": 1,
+      "article_title": "The Passover playbook: Jerusalem activities the whole family can rally around during war",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "geo": {
+        "kind": "resolved",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "geoEntityType": "locality",
+        "resolution": {
+          "rawInput": "Jerusalem",
+          "normalizedInput": "jerusalem",
+          "canonicalKey": "jerusalem",
+          "matchedName": "Jerusalem",
+          "matchedVariant": "Jerusalem",
+          "matchMethod": "exact",
+          "matchConfidence": 1,
+          "candidateCount": 1,
+          "geoEntityType": "locality",
+          "provenance": "structured",
+          "scope": "signal"
+        },
+        "classification": {
+          "pboSubregionId": "homefront_jerusalem",
+          "geoAreaTags": [
+            "jerusalem"
+          ],
+          "isGolan": false,
+          "distanceKmToNorthBorder": 500,
+          "distanceBand": "25+",
+          "distancePolicyVersion": "distance-band-2026-05-v1"
+        },
+        "policy": {
+          "geoPolicyVersion": "geo-policy-2026-05-v3",
+          "quality": "medium",
+          "usableForMetrics": true,
+          "requiresReview": false,
+          "scopeConfidence": "high",
+          "decisionReasons": [
+            "homefront_district_stub:jerusalem"
+          ]
+        },
+        "audit": {
+          "geoReferenceVersion": "homefront-district-stubs-v1",
+          "source": "homefront-district-stubs",
+          "resolvedAt": "2026-06-19T11:19:05.679Z"
+        },
+        "matchEvidence": {
+          "rawInput": "Jerusalem",
+          "normalizedInput": "jerusalem",
+          "matchedVariant": "Jerusalem",
+          "candidateCount": 1
+        },
+        "scopeDecision": {
+          "isRelevant": false,
+          "source": "unknown",
+          "confidence": "low",
+          "usableForMetrics": true,
+          "reasons": [
+            "no geoAreaTag for north"
+          ],
+          "isNorthRelevant": false,
+          "homeFrontDistrictIds": [
+            "jerusalem"
+          ]
+        }
+      },
+      "district_id": "jerusalem",
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-01.md#39"
     },
     {
       "article_index": 40,
@@ -5846,7 +6218,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-17T19:40:39.762Z"
+          "resolvedAt": "2026-06-19T11:19:05.679Z"
         },
         "matchEvidence": {
           "rawInput": "Jerusalem",
@@ -5929,7 +6301,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-17T19:40:39.762Z"
+          "resolvedAt": "2026-06-19T11:19:05.680Z"
         },
         "matchEvidence": {
           "rawInput": "Bnei Brak",
@@ -5953,207 +6325,6 @@
       },
       "district_id": "dan",
       "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-01.md#51"
-    },
-    {
-      "article_index": 3,
-      "signal_type": "commemoration_event_observed",
-      "evidence_type": "named_institutional_fact",
-      "evidence": "בתקופה הקרובה ייסגר המעגל בחלוף כמעט 78 שנים, ויערך טקס צבאי ממלכתי להוספת כרית מצבה על שם דב פרמט ז״ל בבית העלמין הצבאי שבמעוז חיים",
-      "scope_level": "national",
-      "confidence": 0.95,
-      "locality": "Maoz Haim",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "article_source": "bhol.co.il",
-      "temporal_weight": 1,
-      "article_title": "המעגל נסגר אחרי 78 שנים: דב פרמט הי\"ד נטמן בקבר אחים עם 16 חללי צה\"ל",
-      "grounding_tier": "grounded",
-      "grounding_reason": "containment",
-      "grounding_method": "containment",
-      "source_type": "news",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "Maoz Haim",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "Maoz Haim",
-          "normalizedInput": "maoz haim",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-06-17T19:40:39.763Z"
-        }
-      },
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-01.md#3"
-    },
-    {
-      "article_index": 39,
-      "signal_type": "cultural_continuity",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "Despite the ever-present war, the city is gearing up for Passover - shops are bustling with preparations and there's a chag spirit untouched by sirens",
-      "scope_level": "local",
-      "confidence": 0.9,
-      "locality": "Jerusalem",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "article_source": "jpost.com",
-      "temporal_weight": 1,
-      "article_title": "The Passover playbook: Jerusalem activities the whole family can rally around during war",
-      "grounding_tier": "grounded",
-      "grounding_reason": "containment",
-      "grounding_method": "containment",
-      "source_type": "news",
-      "geo": {
-        "kind": "resolved",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "geoEntityType": "locality",
-        "resolution": {
-          "rawInput": "Jerusalem",
-          "normalizedInput": "jerusalem",
-          "canonicalKey": "jerusalem",
-          "matchedName": "Jerusalem",
-          "matchedVariant": "Jerusalem",
-          "matchMethod": "exact",
-          "matchConfidence": 1,
-          "candidateCount": 1,
-          "geoEntityType": "locality",
-          "provenance": "structured",
-          "scope": "signal"
-        },
-        "classification": {
-          "pboSubregionId": "homefront_jerusalem",
-          "geoAreaTags": [
-            "jerusalem"
-          ],
-          "isGolan": false,
-          "distanceKmToNorthBorder": 500,
-          "distanceBand": "25+",
-          "distancePolicyVersion": "distance-band-2026-05-v1"
-        },
-        "policy": {
-          "geoPolicyVersion": "geo-policy-2026-05-v3",
-          "quality": "medium",
-          "usableForMetrics": true,
-          "requiresReview": false,
-          "scopeConfidence": "high",
-          "decisionReasons": [
-            "homefront_district_stub:jerusalem"
-          ]
-        },
-        "audit": {
-          "geoReferenceVersion": "homefront-district-stubs-v1",
-          "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-17T19:40:39.763Z"
-        },
-        "matchEvidence": {
-          "rawInput": "Jerusalem",
-          "normalizedInput": "jerusalem",
-          "matchedVariant": "Jerusalem",
-          "candidateCount": 1
-        },
-        "scopeDecision": {
-          "isRelevant": false,
-          "source": "unknown",
-          "confidence": "low",
-          "usableForMetrics": true,
-          "reasons": [
-            "no geoAreaTag for north"
-          ],
-          "isNorthRelevant": false,
-          "homeFrontDistrictIds": [
-            "jerusalem"
-          ]
-        }
-      },
-      "district_id": "jerusalem",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-01.md#39"
-    },
-    {
-      "article_index": 39,
-      "signal_type": "service_continuity",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "Everything will be operating according to the instructions from the Home Front Command. Holiday-themed festivals & special events... Birkat Kohanim, Western Wall... Kol HaOt Passover Festival... Ancient Shiloh",
-      "scope_level": "local",
-      "confidence": 0.9,
-      "locality": "Jerusalem",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "article_source": "jpost.com",
-      "temporal_weight": 1,
-      "article_title": "The Passover playbook: Jerusalem activities the whole family can rally around during war",
-      "grounding_tier": "grounded",
-      "grounding_reason": "containment",
-      "grounding_method": "containment",
-      "source_type": "news",
-      "geo": {
-        "kind": "resolved",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "geoEntityType": "locality",
-        "resolution": {
-          "rawInput": "Jerusalem",
-          "normalizedInput": "jerusalem",
-          "canonicalKey": "jerusalem",
-          "matchedName": "Jerusalem",
-          "matchedVariant": "Jerusalem",
-          "matchMethod": "exact",
-          "matchConfidence": 1,
-          "candidateCount": 1,
-          "geoEntityType": "locality",
-          "provenance": "structured",
-          "scope": "signal"
-        },
-        "classification": {
-          "pboSubregionId": "homefront_jerusalem",
-          "geoAreaTags": [
-            "jerusalem"
-          ],
-          "isGolan": false,
-          "distanceKmToNorthBorder": 500,
-          "distanceBand": "25+",
-          "distancePolicyVersion": "distance-band-2026-05-v1"
-        },
-        "policy": {
-          "geoPolicyVersion": "geo-policy-2026-05-v3",
-          "quality": "medium",
-          "usableForMetrics": true,
-          "requiresReview": false,
-          "scopeConfidence": "high",
-          "decisionReasons": [
-            "homefront_district_stub:jerusalem"
-          ]
-        },
-        "audit": {
-          "geoReferenceVersion": "homefront-district-stubs-v1",
-          "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-17T19:40:39.764Z"
-        },
-        "matchEvidence": {
-          "rawInput": "Jerusalem",
-          "normalizedInput": "jerusalem",
-          "matchedVariant": "Jerusalem",
-          "candidateCount": 1
-        },
-        "scopeDecision": {
-          "isRelevant": false,
-          "source": "unknown",
-          "confidence": "low",
-          "usableForMetrics": true,
-          "reasons": [
-            "no geoAreaTag for north"
-          ],
-          "isNorthRelevant": false,
-          "homeFrontDistrictIds": [
-            "jerusalem"
-          ]
-        }
-      },
-      "district_id": "jerusalem",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-01.md#39"
     }
   ]
 }

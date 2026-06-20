@@ -218,31 +218,8 @@ function addNorrisDisclaimer(push, isAnalyst, assessment) {
 }
 
 /**
- * Warn when report data is stale (> 4 hours old).
- * Uses `generated_at` ISO string from the top-level payload (not the assessment sub-object).
- */
-function addDataFreshnessBanner(push, generatedAt) {
-  if (!generatedAt || typeof generatedAt !== 'string') return;
-  try {
-    const ageMs = Date.now() - new Date(generatedAt).getTime();
-    const FOUR_HOURS_MS = 4 * 60 * 60 * 1000;
-    if (ageMs < FOUR_HOURS_MS) return;
-    const ageHours = Math.floor(ageMs / (60 * 60 * 1000));
-    push({
-      id: 'report:data_stale',
-      severity: 'warning',
-      messageKey: 'report.dataFreshness.stale',
-      params: { hours: ageHours, generated_at: generatedAt },
-    });
-  } catch {
-    /* ignore unparseable dates */
-  }
-}
-
-/**
  * @param {object | null | undefined} assessment
- * @param {{ displayView?: 'operator' | 'analyst', attentionItemIds?: Set<string> | string[], suggestCrisisBudget?: boolean, generatedAt?: string }} [opts]
- *   `generatedAt` — ISO timestamp from the top-level report payload (`payload.generated_at`).
+ * @param {{ displayView?: 'operator' | 'analyst', attentionItemIds?: Set<string> | string[], suggestCrisisBudget?: boolean }} [opts]
  */
 export function deriveEpistemicBannerMessages(assessment, opts = {}) {
   if (!assessment || typeof assessment !== 'object') return [];
@@ -259,7 +236,6 @@ export function deriveEpistemicBannerMessages(assessment, opts = {}) {
   const voidLevel = dataVoid?.level ?? 'none';
 
   addAssessmentDegradedBanner(push, assessment, attentionIds);
-  addDataFreshnessBanner(push, opts.generatedAt ?? null);
   addDataVoidBanner(push, isAnalyst, dataVoid, voidLevel, attentionIds);
   addAssessmentModeBanners(push, assessmentMode, epistemicStatus, attentionIds);
   addSocialQuarantineBanners(push, assessment.social_channel_quarantine ?? null, attentionIds);

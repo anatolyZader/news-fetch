@@ -338,6 +338,8 @@ export const translations = {
 
     // Report staleness
     'report.outdated':    'This report is from {date} and may be outdated.',
+    'report.freshness.analysisRun': 'Analysis run: {date}',
+    'report.freshness.dataGathered': 'Data gathered: {date}',
     'report.latestLabel': 'Latest',
     'report.scope.label': 'Report scope',
     'report.scope.national': 'National',
@@ -387,7 +389,6 @@ export const translations = {
     'pipeline.stale': 'Stale data ({date})',
     'pipeline.costSummary': 'Run cost {total} for {date}',
     'pipeline.loadError': 'Could not load pipeline status: {msg}',
-    'report.dataFreshness.stale': 'Report data is {hours}h old — pipeline may not have run this morning. Refresh or run the pipeline manually.',
     'monitoring.health.ok': 'Healthy',
     'monitoring.health.degraded': 'Degraded',
     'monitoring.health.unhealthy': 'Unhealthy',
@@ -1488,6 +1489,8 @@ export const translations = {
     'visit.card.toggleVisitDetails': 'הצגה או הסתרה של פרטי הביקור',
 
     'report.outdated':    'דוח זה מתאריך {date} וייתכן שאינו עדכני.',
+    'report.freshness.analysisRun': 'ניתוח רץ: {date}',
+    'report.freshness.dataGathered': 'נתונים נאספו: {date}',
     'report.latestLabel': 'אחרון',
     'report.scope.label': 'היקף הדוח',
     'report.scope.national': 'ארצי',
@@ -1518,7 +1521,6 @@ export const translations = {
     'pipeline.stale': 'נתונים מיושנים ({date})',
     'pipeline.costSummary': 'עלות ריצה {total} ל-{date}',
     'pipeline.loadError': 'לא ניתן לטעון סטטוס צינור: {msg}',
-    'report.dataFreshness.stale': 'נתוני הדוח בני {hours} שעות — ייתכן שהצינור לא רץ הבוקר. רענן או הפעל את הצינור ידנית.',
     'monitoring.health.ok': 'תקין',
     'monitoring.health.degraded': 'מוגבל',
     'monitoring.health.unhealthy': 'לא תקין',
@@ -2580,6 +2582,8 @@ export const translations = {
     'visit.card.toggleVisitDetails': 'Показать или скрыть детали визита',
 
     'report.outdated':    'Этот отчёт от {date} и может быть устаревшим.',
+    'report.freshness.analysisRun': 'Анализ выполнен: {date}',
+    'report.freshness.dataGathered': 'Данные собраны: {date}',
     'report.latestLabel': 'Последний',
     'report.scope.label': 'Охват отчёта',
     'report.scope.national': 'Страна',
@@ -2610,7 +2614,6 @@ export const translations = {
     'pipeline.stale': 'Устаревшие данные ({date})',
     'pipeline.costSummary': 'Стоимость запуска {total} за {date}',
     'pipeline.loadError': 'Не удалось загрузить статус конвейера: {msg}',
-    'report.dataFreshness.stale': 'Данные доклада устарели на {hours}ч — конвейер мог не запуститься утром. Обновите страницу или запустите конвейер вручную.',
     'monitoring.health.ok': 'Исправен',
     'monitoring.health.degraded': 'Ограничен',
     'monitoring.health.unhealthy': 'Неисправен',

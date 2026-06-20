@@ -6,14 +6,13 @@ import { useLanguage } from '../context/LanguageContext.jsx';
 import { deriveEpistemicBannerMessages } from '../lib/epistemicBannerMessages.js';
 import { formatTemplate } from '../lib/i18nFormat.js';
 
-export function EpistemicStatusBanner({ assessment, displayView, attentionItems, suggestCrisisBudget, generatedAt }) {
+export function EpistemicStatusBanner({ assessment, displayView, attentionItems, suggestCrisisBudget }) {
   const { t } = useLanguage();
   const attentionItemIds = (attentionItems ?? []).map((item) => item.id).filter(Boolean);
   const messages = deriveEpistemicBannerMessages(assessment, {
     displayView,
     attentionItemIds,
     suggestCrisisBudget,
-    generatedAt: generatedAt ?? null,
   });
 
   if (messages.length === 0) return null;
@@ -74,5 +73,4 @@ EpistemicStatusBanner.propTypes = {
   displayView: PropTypes.oneOf(['operator', 'analyst']),
   attentionItems: PropTypes.arrayOf(PropTypes.object),
   suggestCrisisBudget: PropTypes.bool,
-  generatedAt: PropTypes.string,
 };

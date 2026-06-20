@@ -24,6 +24,9 @@ export async function registerSecurityPlugins(app, _opts = {}) {
     contentSecurityPolicy: useCsp
       ? { directives: buildContentSecurityPolicyDirectives() }
       : false,
+    // Firebase signInWithPopup needs window.closed on the Google OAuth popup; helmet's
+    // default COOP "same-origin" isolates the popup and surfaces auth/popup-closed-by-user.
+    crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
     strictTransportSecurity: enableHsts
       ? { maxAge: 31536000, includeSubDomains: true }
       : false,

@@ -2,10 +2,10 @@
   "source_type": "field",
   "content_kind": "field_report",
   "district_id": "north",
-  "date": "2026-03-17",
-  "extracted_at": "2026-06-19T13:23:58.116Z",
+  "date": "1970-01-01",
+  "extracted_at": "2026-06-19T13:21:33.000Z",
   "source_files": [
-    "articles-field-reports-2026-03-17.md"
+    "articles-field-reports-1970-01-01.md"
   ],
   "total_articles": 41,
   "signals": [
@@ -43,11 +43,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.039Z"
+          "resolvedAt": "2026-06-19T13:21:32.936Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#1"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#1"
     },
     {
       "article_index": 3,
@@ -83,11 +83,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.040Z"
+          "resolvedAt": "2026-06-19T13:21:32.938Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#3"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#3"
     },
     {
       "article_index": 4,
@@ -123,11 +123,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.042Z"
+          "resolvedAt": "2026-06-19T13:21:32.938Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#4"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#4"
     },
     {
       "article_index": 17,
@@ -137,10 +137,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.8,
       "locality": "Arrabe al-Aramsha",
-      "article_url": "",
-      "article_source": "יואב בן בסט",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "יואב בן בסט",
       "temporal_weight": 1,
       "article_title": "ערב אל עראמשה /מטה אשר — ברעם (ביקור שטח)",
       "municipality": "ערב אל עראמשה",
@@ -163,11 +162,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.042Z"
+          "resolvedAt": "2026-06-19T13:21:32.939Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#17"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#17"
     },
     {
       "article_index": 18,
@@ -177,10 +176,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.8,
       "locality": "Adamit",
-      "article_url": "",
-      "article_source": "יואב בן בסט",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "יואב בן בסט",
       "temporal_weight": 1,
       "article_title": "אדמית /מטה אשר — ברעם (ביקור שטח)",
       "municipality": "אדמית",
@@ -203,11 +201,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.043Z"
+          "resolvedAt": "2026-06-19T13:21:32.940Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#18"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#18"
     },
     {
       "article_index": 1,
@@ -243,11 +241,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.043Z"
+          "resolvedAt": "2026-06-19T13:21:32.940Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#1"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#1"
     },
     {
       "article_index": 1,
@@ -283,11 +281,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.044Z"
+          "resolvedAt": "2026-06-19T13:21:32.940Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#1"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#1"
     },
     {
       "article_index": 2,
@@ -323,11 +321,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.045Z"
+          "resolvedAt": "2026-06-19T13:21:32.942Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#2"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#2"
     },
     {
       "article_index": 3,
@@ -363,11 +361,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.045Z"
+          "resolvedAt": "2026-06-19T13:21:32.942Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#3"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#3"
     },
     {
       "article_index": 3,
@@ -403,11 +401,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.046Z"
+          "resolvedAt": "2026-06-19T13:21:32.943Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#3"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#3"
     },
     {
       "article_index": 4,
@@ -443,11 +441,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.047Z"
+          "resolvedAt": "2026-06-19T13:21:32.944Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#4"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#4"
     },
     {
       "article_index": 5,
@@ -483,11 +481,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.048Z"
+          "resolvedAt": "2026-06-19T13:21:32.944Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#5"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#5"
     },
     {
       "article_index": 7,
@@ -523,11 +521,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.048Z"
+          "resolvedAt": "2026-06-19T13:21:32.945Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#7"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#7"
     },
     {
       "article_index": 9,
@@ -563,11 +561,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.049Z"
+          "resolvedAt": "2026-06-19T13:21:32.946Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#9"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#9"
     },
     {
       "article_index": 10,
@@ -603,11 +601,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.049Z"
+          "resolvedAt": "2026-06-19T13:21:32.946Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#10"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#10"
     },
     {
       "article_index": 11,
@@ -643,11 +641,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.050Z"
+          "resolvedAt": "2026-06-19T13:21:32.947Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#11"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#11"
     },
     {
       "article_index": 12,
@@ -683,11 +681,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.051Z"
+          "resolvedAt": "2026-06-19T13:21:32.947Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#12"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#12"
     },
     {
       "article_index": 15,
@@ -697,10 +695,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.75,
       "locality": "Netua/Maaleh Yosef",
-      "article_url": "",
-      "article_source": "יואב בן בסט",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "יואב בן בסט",
       "temporal_weight": 1,
       "article_title": "נטועה /מעולה יוסף — ברעם (ביקור שטח)",
       "municipality": "נטועה",
@@ -723,11 +720,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.051Z"
+          "resolvedAt": "2026-06-19T13:21:32.948Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#15"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#15"
     },
     {
       "article_index": 17,
@@ -737,10 +734,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.75,
       "locality": "Arrabe al-Aramsha",
-      "article_url": "",
-      "article_source": "יואב בן בסט",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "יואב בן בסט",
       "temporal_weight": 1,
       "article_title": "ערב אל עראמשה /מטה אשר — ברעם (ביקור שטח)",
       "municipality": "ערב אל עראמשה",
@@ -763,11 +759,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.053Z"
+          "resolvedAt": "2026-06-19T13:21:32.949Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#17"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#17"
     },
     {
       "article_index": 18,
@@ -777,10 +773,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.8,
       "locality": "Adamit",
-      "article_url": "",
-      "article_source": "יואב בן בסט",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "יואב בן בסט",
       "temporal_weight": 1,
       "article_title": "אדמית /מטה אשר — ברעם (ביקור שטח)",
       "municipality": "אדמית",
@@ -803,11 +798,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.053Z"
+          "resolvedAt": "2026-06-19T13:21:32.949Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#18"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#18"
     },
     {
       "article_index": 19,
@@ -817,10 +812,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.8,
       "locality": "Kibbutz Snir",
-      "article_url": "",
-      "article_source": "עלי נוגידת ויניב מרדלר",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "עלי נוגידת ויניב מרדלר",
       "temporal_weight": 1,
       "article_title": "קיבוץ שניר/גליל עליון — חירם (ביקור שטח)",
       "municipality": "קיבוץ שניר",
@@ -843,128 +837,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.054Z"
+          "resolvedAt": "2026-06-19T13:21:32.950Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#19"
-    },
-    {
-      "article_index": 20,
-      "signal_type": "protective_infrastructure_absent",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "בית הלל/מבואות חרמון: פערי מיגון במועדון לגיל השלישי, מועדון נוער ללא מיגון תקני, מקלט לילדים בעיית תשתית",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.9,
-      "locality": "בית הלל",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "article_source": "גיל נחמני וגלעד לביא",
-      "temporal_weight": 1,
-      "article_title": "בית הלל/ מבואות חרמון — חירם (ביקור שטח)",
-      "municipality": "בית הלל",
-      "grounding_tier": "grounded",
-      "grounding_reason": "containment",
-      "grounding_method": "containment",
-      "source_type": "field",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "בית הלל",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "בית הלל",
-          "normalizedInput": "בית הלל",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.055Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#20"
-    },
-    {
-      "article_index": 22,
-      "signal_type": "protective_infrastructure_absent",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "מעיין ברוך/גליל עליון: חוסר מיגוניות בתחנת אוטובוס ושתי מיגוניות בגני משחקים, חוסר במיגון תקני במערך החינוך הבלתי פורמלי",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.9,
-      "locality": "מעיין ברוך",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "article_source": "יואב בן בסט ואילת יוסף",
-      "temporal_weight": 1,
-      "article_title": "מעיין ברוך/גליל עליון — חירם (ביקור שטח)",
-      "municipality": "מעיין ברוך",
-      "grounding_tier": "grounded",
-      "grounding_reason": "containment",
-      "grounding_method": "containment",
-      "source_type": "field",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "מעיין ברוך",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "מעיין ברוך",
-          "normalizedInput": "מעיין ברוך",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.055Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#22"
-    },
-    {
-      "article_index": 23,
-      "signal_type": "protective_infrastructure_absent",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "קיבוץ דן/גליל עליון: אין מיגון במבני הקהילה (no protection in community buildings)",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.9,
-      "locality": "קיבוץ דן",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "article_source": "יואב בן בסט ואילת יוסף",
-      "temporal_weight": 1,
-      "article_title": "קיבוץ דן/גליל עליון — חירם (ביקור שטח)",
-      "municipality": "קיבוץ דן",
-      "grounding_tier": "unverified_critical",
-      "grounding_reason": "verification_failed_critical",
-      "grounding_method": "low_similarity",
-      "source_type": "field",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "קיבוץ דן",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "קיבוץ דן",
-          "normalizedInput": "קיבוץ דן",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.056Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#23"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#19"
     },
     {
       "article_index": 1,
@@ -1000,11 +877,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.056Z"
+          "resolvedAt": "2026-06-19T13:21:32.950Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#1"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#1"
     },
     {
       "article_index": 11,
@@ -1040,11 +917,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.057Z"
+          "resolvedAt": "2026-06-19T13:21:32.951Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#11"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#11"
     },
     {
       "article_index": 14,
@@ -1054,10 +931,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.75,
       "locality": "Menot/Maaleh Yosef",
-      "article_url": "",
-      "article_source": "עומרי אפרת וצפואת שחאדה",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "עומרי אפרת וצפואת שחאדה",
       "temporal_weight": 1,
       "article_title": "מנות /מעלה יוסף — ברעם (ביקור שטח)",
       "municipality": "מנות",
@@ -1080,11 +956,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.058Z"
+          "resolvedAt": "2026-06-19T13:21:32.953Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#14"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#14"
     },
     {
       "article_index": 16,
@@ -1094,10 +970,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.8,
       "locality": "Shetula/Maaleh Yosef",
-      "article_url": "",
-      "article_source": "יואב בן בסט",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "יואב בן בסט",
       "temporal_weight": 1,
       "article_title": "שתולה /מעלה יוסף — ברעם (ביקור שטח)",
       "municipality": "שתולה",
@@ -1120,11 +995,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.059Z"
+          "resolvedAt": "2026-06-19T13:21:32.954Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#16"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#16"
     },
     {
       "article_index": 19,
@@ -1134,10 +1009,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.8,
       "locality": "Kibbutz Snir",
-      "article_url": "",
-      "article_source": "עלי נוגידת ויניב מרדלר",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "עלי נוגידת ויניב מרדלר",
       "temporal_weight": 1,
       "article_title": "קיבוץ שניר/גליל עליון — חירם (ביקור שטח)",
       "municipality": "קיבוץ שניר",
@@ -1160,11 +1034,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.059Z"
+          "resolvedAt": "2026-06-19T13:21:32.955Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#19"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#19"
     },
     {
       "article_index": 1,
@@ -1200,11 +1074,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.060Z"
+          "resolvedAt": "2026-06-19T13:21:32.955Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#1"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#1"
     },
     {
       "article_index": 3,
@@ -1240,11 +1114,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.060Z"
+          "resolvedAt": "2026-06-19T13:21:32.957Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#3"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#3"
     },
     {
       "article_index": 8,
@@ -1280,11 +1154,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.061Z"
+          "resolvedAt": "2026-06-19T13:21:32.957Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#8"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#8"
     },
     {
       "article_index": 9,
@@ -1320,11 +1194,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.061Z"
+          "resolvedAt": "2026-06-19T13:21:32.958Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#9"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#9"
     },
     {
       "article_index": 10,
@@ -1360,11 +1234,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.062Z"
+          "resolvedAt": "2026-06-19T13:21:32.959Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#10"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#10"
     },
     {
       "article_index": 14,
@@ -1374,10 +1248,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.8,
       "locality": "Menot/Maaleh Yosef",
-      "article_url": "",
-      "article_source": "עומרי אפרת וצפואת שחאדה",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "עומרי אפרת וצפואת שחאדה",
       "temporal_weight": 1,
       "article_title": "מנות /מעלה יוסף — ברעם (ביקור שטח)",
       "municipality": "מנות",
@@ -1400,11 +1273,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.062Z"
+          "resolvedAt": "2026-06-19T13:21:32.960Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#14"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#14"
     },
     {
       "article_index": 16,
@@ -1414,10 +1287,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.8,
       "locality": "Shetula/Maaleh Yosef",
-      "article_url": "",
-      "article_source": "יואב בן בסט",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "יואב בן בסט",
       "temporal_weight": 1,
       "article_title": "שתולה /מעלה יוסף — ברעם (ביקור שטח)",
       "municipality": "שתולה",
@@ -1440,11 +1312,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.063Z"
+          "resolvedAt": "2026-06-19T13:21:32.961Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#16"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#16"
     },
     {
       "article_index": 18,
@@ -1454,10 +1326,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.8,
       "locality": "Adamit",
-      "article_url": "",
-      "article_source": "יואב בן בסט",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "יואב בן בסט",
       "temporal_weight": 1,
       "article_title": "אדמית /מטה אשר — ברעם (ביקור שטח)",
       "municipality": "אדמית",
@@ -1480,89 +1351,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.063Z"
+          "resolvedAt": "2026-06-19T13:21:32.962Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#18"
-    },
-    {
-      "article_index": 20,
-      "signal_type": "community_volunteering",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "בית הלל/מבואות חרמון: צח״י מערך מתנדבים מצומצם אך פועלים לפי תתי צוותים",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.85,
-      "locality": "בית הלל",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "article_source": "גיל נחמני וגלעד לביא",
-      "temporal_weight": 1,
-      "article_title": "בית הלל/ מבואות חרמון — חירם (ביקור שטח)",
-      "municipality": "בית הלל",
-      "grounding_tier": "grounded",
-      "grounding_reason": "containment",
-      "grounding_method": "containment",
-      "source_type": "field",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "בית הלל",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "בית הלל",
-          "normalizedInput": "בית הלל",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.064Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#20"
-    },
-    {
-      "article_index": 24,
-      "signal_type": "community_volunteering",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "משגב עם/גליל עליון: צח״י ארבעה תושבים, יש עשייה קהילתית (HFC with four residents, community action ongoing)",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.85,
-      "locality": "משגב עם",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "article_source": "גל+ליאור+אמל",
-      "temporal_weight": 1,
-      "article_title": "משגב עם/גליל עליון — חירם (ביקור שטח)",
-      "municipality": "משגב עם",
-      "grounding_tier": "weak",
-      "grounding_reason": "low_similarity",
-      "grounding_method": "containment",
-      "source_type": "field",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "משגב עם",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "משגב עם",
-          "normalizedInput": "משגב עם",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.064Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#24"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#18"
     },
     {
       "article_index": 7,
@@ -1598,11 +1391,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.064Z"
+          "resolvedAt": "2026-06-19T13:21:32.962Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#7"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#7"
     },
     {
       "article_index": 9,
@@ -1638,50 +1431,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.065Z"
+          "resolvedAt": "2026-06-19T13:21:32.963Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#9"
-    },
-    {
-      "article_index": 20,
-      "signal_type": "wellbeing_support_accessed",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "בית הלל/מבואות חרמון: יש שתי פסיכולוגיות במקום (two psychologists on site)",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.9,
-      "locality": "בית הלל",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "article_source": "גיל נחמני וגלעד לביא",
-      "temporal_weight": 1,
-      "article_title": "בית הלל/ מבואות חרמון — חירם (ביקור שטח)",
-      "municipality": "בית הלל",
-      "grounding_tier": "weak",
-      "grounding_reason": "low_similarity",
-      "grounding_method": "containment",
-      "source_type": "field",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "בית הלל",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "בית הלל",
-          "normalizedInput": "בית הלל",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.065Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#20"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#9"
     },
     {
       "article_index": 1,
@@ -1717,11 +1471,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.065Z"
+          "resolvedAt": "2026-06-19T13:21:32.963Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#1"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#1"
     },
     {
       "article_index": 1,
@@ -1757,11 +1511,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.066Z"
+          "resolvedAt": "2026-06-19T13:21:32.963Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#1"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#1"
     },
     {
       "article_index": 2,
@@ -1797,11 +1551,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.066Z"
+          "resolvedAt": "2026-06-19T13:21:32.964Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#2"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#2"
     },
     {
       "article_index": 3,
@@ -1837,11 +1591,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.067Z"
+          "resolvedAt": "2026-06-19T13:21:32.965Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#3"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#3"
     },
     {
       "article_index": 5,
@@ -1877,11 +1631,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.068Z"
+          "resolvedAt": "2026-06-19T13:21:32.965Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#5"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#5"
     },
     {
       "article_index": 9,
@@ -1917,11 +1671,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.068Z"
+          "resolvedAt": "2026-06-19T13:21:32.965Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#9"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#9"
     },
     {
       "article_index": 15,
@@ -1931,10 +1685,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.75,
       "locality": "Netua/Maaleh Yosef",
-      "article_url": "",
-      "article_source": "יואב בן בסט",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "יואב בן בסט",
       "temporal_weight": 1,
       "article_title": "נטועה /מעולה יוסף — ברעם (ביקור שטח)",
       "municipality": "נטועה",
@@ -1957,11 +1710,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.068Z"
+          "resolvedAt": "2026-06-19T13:21:32.966Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#15"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#15"
     },
     {
       "article_index": 19,
@@ -1971,10 +1724,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.8,
       "locality": "Kibbutz Snir",
-      "article_url": "",
-      "article_source": "עלי נוגידת ויניב מרדלר",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "עלי נוגידת ויניב מרדלר",
       "temporal_weight": 1,
       "article_title": "קיבוץ שניר/גליל עליון — חירם (ביקור שטח)",
       "municipality": "קיבוץ שניר",
@@ -1997,89 +1749,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.069Z"
+          "resolvedAt": "2026-06-19T13:21:32.966Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#19"
-    },
-    {
-      "article_index": 20,
-      "signal_type": "resilience_narrative_positive",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "בית הלל/מבואות חרמון: אין שום כוונת נטישה (no intention to leave), סטודנטים שלא ירצו לעזוב (students unwilling to leave)",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.85,
-      "locality": "בית הלל",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "article_source": "גיל נחמני וגלעד לביא",
-      "temporal_weight": 1,
-      "article_title": "בית הלל/ מבואות חרמון — חירם (ביקור שטח)",
-      "municipality": "בית הלל",
-      "grounding_tier": "weak",
-      "grounding_reason": "low_similarity",
-      "grounding_method": "containment",
-      "source_type": "field",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "בית הלל",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "בית הלל",
-          "normalizedInput": "בית הלל",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.069Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#20"
-    },
-    {
-      "article_index": 23,
-      "signal_type": "resilience_narrative_positive",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "קיבוץ דן/גליל עליון: קהילה חזקה ומתמודדת (strong and coping community)",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.9,
-      "locality": "קיבוץ דן",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "article_source": "יואב בן בסט ואילת יוסף",
-      "temporal_weight": 1,
-      "article_title": "קיבוץ דן/גליל עליון — חירם (ביקור שטח)",
-      "municipality": "קיבוץ דן",
-      "grounding_tier": "weak",
-      "grounding_reason": "low_similarity",
-      "grounding_method": "containment",
-      "source_type": "field",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "קיבוץ דן",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "קיבוץ דן",
-          "normalizedInput": "קיבוץ דן",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.070Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#23"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#19"
     },
     {
       "article_index": 2,
@@ -2115,11 +1789,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.070Z"
+          "resolvedAt": "2026-06-19T13:21:32.967Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#2"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#2"
     },
     {
       "article_index": 8,
@@ -2155,11 +1829,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.071Z"
+          "resolvedAt": "2026-06-19T13:21:32.967Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#8"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#8"
     },
     {
       "article_index": 11,
@@ -2195,11 +1869,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.071Z"
+          "resolvedAt": "2026-06-19T13:21:32.968Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#11"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#11"
     },
     {
       "article_index": 13,
@@ -2235,11 +1909,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.071Z"
+          "resolvedAt": "2026-06-19T13:21:32.968Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#13"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#13"
     },
     {
       "article_index": 15,
@@ -2249,10 +1923,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.85,
       "locality": "Netua/Maaleh Yosef",
-      "article_url": "",
-      "article_source": "יואב בן בסט",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "יואב בן בסט",
       "temporal_weight": 1,
       "article_title": "נטועה /מעולה יוסף — ברעם (ביקור שטח)",
       "municipality": "נטועה",
@@ -2275,11 +1948,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.072Z"
+          "resolvedAt": "2026-06-19T13:21:32.969Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#15"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#15"
     },
     {
       "article_index": 17,
@@ -2289,10 +1962,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.85,
       "locality": "Arrabe al-Aramsha",
-      "article_url": "",
-      "article_source": "יואב בן בסט",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "יואב בן בסט",
       "temporal_weight": 1,
       "article_title": "ערב אל עראמשה /מטה אשר — ברעם (ביקור שטח)",
       "municipality": "ערב אל עראמשה",
@@ -2315,11 +1987,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.073Z"
+          "resolvedAt": "2026-06-19T13:21:32.969Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#17"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#17"
     },
     {
       "article_index": 18,
@@ -2329,10 +2001,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.75,
       "locality": "Adamit",
-      "article_url": "",
-      "article_source": "יואב בן בסט",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "יואב בן בסט",
       "temporal_weight": 1,
       "article_title": "אדמית /מטה אשר — ברעם (ביקור שטח)",
       "municipality": "אדמית",
@@ -2355,11 +2026,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.073Z"
+          "resolvedAt": "2026-06-19T13:21:32.970Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#18"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#18"
     },
     {
       "article_index": 2,
@@ -2395,11 +2066,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.074Z"
+          "resolvedAt": "2026-06-19T13:21:32.970Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#2"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#2"
     },
     {
       "article_index": 2,
@@ -2435,11 +2106,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.074Z"
+          "resolvedAt": "2026-06-19T13:21:32.971Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#2"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#2"
     },
     {
       "article_index": 2,
@@ -2475,11 +2146,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.075Z"
+          "resolvedAt": "2026-06-19T13:21:32.971Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#2"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#2"
     },
     {
       "article_index": 4,
@@ -2515,11 +2186,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.075Z"
+          "resolvedAt": "2026-06-19T13:21:32.972Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#4"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#4"
     },
     {
       "article_index": 8,
@@ -2555,11 +2226,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.076Z"
+          "resolvedAt": "2026-06-19T13:21:32.972Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#8"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#8"
     },
     {
       "article_index": 3,
@@ -2595,11 +2266,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.076Z"
+          "resolvedAt": "2026-06-19T13:21:32.973Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#3"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#3"
     },
     {
       "article_index": 5,
@@ -2635,11 +2306,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.077Z"
+          "resolvedAt": "2026-06-19T13:21:32.973Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#5"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#5"
     },
     {
       "article_index": 4,
@@ -2675,11 +2346,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.077Z"
+          "resolvedAt": "2026-06-19T13:21:32.973Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#4"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#4"
     },
     {
       "article_index": 16,
@@ -2689,10 +2360,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.75,
       "locality": "Shetula/Maaleh Yosef",
-      "article_url": "",
-      "article_source": "יואב בן בסט",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "יואב בן בסט",
       "temporal_weight": 1,
       "article_title": "שתולה /מעלה יוסף — ברעם (ביקור שטח)",
       "municipality": "שתולה",
@@ -2715,11 +2385,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.078Z"
+          "resolvedAt": "2026-06-19T13:21:32.974Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#16"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#16"
     },
     {
       "article_index": 4,
@@ -2755,11 +2425,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.078Z"
+          "resolvedAt": "2026-06-19T13:21:32.974Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#4"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#4"
     },
     {
       "article_index": 8,
@@ -2795,11 +2465,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.078Z"
+          "resolvedAt": "2026-06-19T13:21:32.974Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#8"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#8"
     },
     {
       "article_index": 12,
@@ -2835,11 +2505,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.079Z"
+          "resolvedAt": "2026-06-19T13:21:32.975Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#12"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#12"
     },
     {
       "article_index": 13,
@@ -2875,11 +2545,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.079Z"
+          "resolvedAt": "2026-06-19T13:21:32.975Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#13"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#13"
     },
     {
       "article_index": 4,
@@ -2915,11 +2585,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.080Z"
+          "resolvedAt": "2026-06-19T13:21:32.975Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#4"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#4"
     },
     {
       "article_index": 7,
@@ -2955,11 +2625,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.080Z"
+          "resolvedAt": "2026-06-19T13:21:32.976Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#7"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#7"
     },
     {
       "article_index": 8,
@@ -2995,89 +2665,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.080Z"
+          "resolvedAt": "2026-06-19T13:21:32.976Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#8"
-    },
-    {
-      "article_index": 20,
-      "signal_type": "protective_infrastructure_present",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "בית הלל/מבואות חרמון: נושא ממ״דים השתפר משמעותית (safe room infrastructure improved significantly)",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.85,
-      "locality": "בית הלל",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "article_source": "גיל נחמני וגלעד לביא",
-      "temporal_weight": 1,
-      "article_title": "בית הלל/ מבואות חרמון — חירם (ביקור שטח)",
-      "municipality": "בית הלל",
-      "grounding_tier": "weak",
-      "grounding_reason": "low_similarity",
-      "grounding_method": "containment",
-      "source_type": "field",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "בית הלל",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "בית הלל",
-          "normalizedInput": "בית הלל",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.081Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#20"
-    },
-    {
-      "article_index": 21,
-      "signal_type": "protective_infrastructure_present",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "דפנה/גליל עליון: אין פערי מיגון (no protection gaps)",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.85,
-      "locality": "דפנה",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "article_source": "עלי נוג'ידת ויניב מרדלר",
-      "temporal_weight": 1,
-      "article_title": "דפנה/ גליל עליון — חירם (ביקור שטח)",
-      "municipality": "דפנה",
-      "grounding_tier": "weak",
-      "grounding_reason": "low_similarity",
-      "grounding_method": "containment",
-      "source_type": "field",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "דפנה",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "דפנה",
-          "normalizedInput": "דפנה",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.081Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#21"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#8"
     },
     {
       "article_index": 4,
@@ -3113,11 +2705,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.081Z"
+          "resolvedAt": "2026-06-19T13:21:32.976Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#4"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#4"
     },
     {
       "article_index": 17,
@@ -3127,10 +2719,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.8,
       "locality": "Arrabe al-Aramsha",
-      "article_url": "",
-      "article_source": "יואב בן בסט",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "יואב בן בסט",
       "temporal_weight": 1,
       "article_title": "ערב אל עראמשה /מטה אשר — ברעם (ביקור שטח)",
       "municipality": "ערב אל עראמשה",
@@ -3153,11 +2744,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.082Z"
+          "resolvedAt": "2026-06-19T13:21:32.977Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#17"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#17"
     },
     {
       "article_index": 4,
@@ -3193,11 +2784,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.082Z"
+          "resolvedAt": "2026-06-19T13:21:32.977Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#4"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#4"
     },
     {
       "article_index": 5,
@@ -3233,11 +2824,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.083Z"
+          "resolvedAt": "2026-06-19T13:21:32.978Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#5"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#5"
     },
     {
       "article_index": 7,
@@ -3273,11 +2864,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.083Z"
+          "resolvedAt": "2026-06-19T13:21:32.978Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#7"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#7"
     },
     {
       "article_index": 11,
@@ -3313,11 +2904,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.083Z"
+          "resolvedAt": "2026-06-19T13:21:32.979Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#11"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#11"
     },
     {
       "article_index": 15,
@@ -3327,10 +2918,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.75,
       "locality": "Netua/Maaleh Yosef",
-      "article_url": "",
-      "article_source": "יואב בן בסט",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "יואב בן בסט",
       "temporal_weight": 1,
       "article_title": "נטועה /מעולה יוסף — ברעם (ביקור שטח)",
       "municipality": "נטועה",
@@ -3353,11 +2943,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.084Z"
+          "resolvedAt": "2026-06-19T13:21:32.980Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#15"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#15"
     },
     {
       "article_index": 18,
@@ -3367,10 +2957,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.75,
       "locality": "Adamit",
-      "article_url": "",
-      "article_source": "יואב בן בסט",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "יואב בן בסט",
       "temporal_weight": 1,
       "article_title": "אדמית /מטה אשר — ברעם (ביקור שטח)",
       "municipality": "אדמית",
@@ -3393,89 +2982,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.084Z"
+          "resolvedAt": "2026-06-19T13:21:32.980Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#18"
-    },
-    {
-      "article_index": 20,
-      "signal_type": "leadership_visible_presence",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "בית הלל/מבואות חרמון: צח״י active with chair (אורה גלבוע), community coordinator present, municipal council leadership engaged",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.9,
-      "locality": "בית הלל",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "article_source": "גיל נחמני וגלעד לביא",
-      "temporal_weight": 1,
-      "article_title": "בית הלל/ מבואות חרמון — חירם (ביקור שטח)",
-      "municipality": "בית הלל",
-      "grounding_tier": "weak",
-      "grounding_reason": "low_similarity",
-      "grounding_method": "containment",
-      "source_type": "field",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "בית הלל",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "בית הלל",
-          "normalizedInput": "בית הלל",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.085Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#20"
-    },
-    {
-      "article_index": 21,
-      "signal_type": "leadership_visible_presence",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "דפנה/גליל עליון: יו״ר צח״י present, informal network operating",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.85,
-      "locality": "דפנה",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "article_source": "עלי נוג'ידת ויניב מרדלר",
-      "temporal_weight": 1,
-      "article_title": "דפנה/ גליל עליון — חירם (ביקור שטח)",
-      "municipality": "דפנה",
-      "grounding_tier": "weak",
-      "grounding_reason": "low_similarity",
-      "grounding_method": "containment",
-      "source_type": "field",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "דפנה",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "דפנה",
-          "normalizedInput": "דפנה",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.085Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#21"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#18"
     },
     {
       "article_index": 5,
@@ -3511,50 +3022,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.086Z"
+          "resolvedAt": "2026-06-19T13:21:32.981Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#5"
-    },
-    {
-      "article_index": 24,
-      "signal_type": "psychological_distress",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "משגב עם/גליל עליון: תושבים עם טראומה נפשית מהמלחמה ומהפינוי (residents with psychological trauma from war and evacuation)",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.85,
-      "locality": "משגב עם",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "article_source": "גל+ליאור+אמל",
-      "temporal_weight": 1,
-      "article_title": "משגב עם/גליל עליון — חירם (ביקור שטח)",
-      "municipality": "משגב עם",
-      "grounding_tier": "weak",
-      "grounding_reason": "low_similarity",
-      "grounding_method": "containment",
-      "source_type": "field",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "משגב עם",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "משגב עם",
-          "normalizedInput": "משגב עם",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.086Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#24"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#5"
     },
     {
       "article_index": 5,
@@ -3590,89 +3062,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.087Z"
+          "resolvedAt": "2026-06-19T13:21:32.981Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#5"
-    },
-    {
-      "article_index": 22,
-      "signal_type": "information_clarity",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "מעיין ברוך/גליל עליון: הסברה מה מותר ומה אסור (guidance on what is permitted and forbidden)",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.8,
-      "locality": "מעיין ברוך",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "article_source": "יואב בן בסט ואילת יוסף",
-      "temporal_weight": 1,
-      "article_title": "מעיין ברוך/גליל עליון — חירם (ביקור שטח)",
-      "municipality": "מעיין ברוך",
-      "grounding_tier": "weak",
-      "grounding_reason": "low_similarity",
-      "grounding_method": "containment",
-      "source_type": "field",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "מעיין ברוך",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "מעיין ברוך",
-          "normalizedInput": "מעיין ברוך",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.087Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#22"
-    },
-    {
-      "article_index": 23,
-      "signal_type": "information_clarity",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "קיבוץ דן/גליל עליון: הסברה חידוד הנחיות (guidance clarification)",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.8,
-      "locality": "קיבוץ דן",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "article_source": "יואב בן בסט ואילת יוסף",
-      "temporal_weight": 1,
-      "article_title": "קיבוץ דן/גליל עליון — חירם (ביקור שטח)",
-      "municipality": "קיבוץ דן",
-      "grounding_tier": "weak",
-      "grounding_reason": "low_similarity",
-      "grounding_method": "containment",
-      "source_type": "field",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "קיבוץ דן",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "קיבוץ דן",
-          "normalizedInput": "קיבוץ דן",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.087Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#23"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#5"
     },
     {
       "article_index": 5,
@@ -3708,11 +3102,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.088Z"
+          "resolvedAt": "2026-06-19T13:21:32.982Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#5"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#5"
     },
     {
       "article_index": 15,
@@ -3722,10 +3116,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.8,
       "locality": "Netua/Maaleh Yosef",
-      "article_url": "",
-      "article_source": "יואב בן בסט",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "יואב בן בסט",
       "temporal_weight": 1,
       "article_title": "נטועה /מעולה יוסף — ברעם (ביקור שטח)",
       "municipality": "נטועה",
@@ -3748,11 +3141,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.088Z"
+          "resolvedAt": "2026-06-19T13:21:32.982Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#15"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#15"
     },
     {
       "article_index": 5,
@@ -3788,11 +3181,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.089Z"
+          "resolvedAt": "2026-06-19T13:21:32.983Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#5"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#5"
     },
     {
       "article_index": 5,
@@ -3828,11 +3221,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.089Z"
+          "resolvedAt": "2026-06-19T13:21:32.983Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#5"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#5"
     },
     {
       "article_index": 10,
@@ -3868,11 +3261,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.090Z"
+          "resolvedAt": "2026-06-19T13:21:32.983Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#10"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#10"
     },
     {
       "article_index": 5,
@@ -3908,11 +3301,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.090Z"
+          "resolvedAt": "2026-06-19T13:21:32.984Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#5"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#5"
     },
     {
       "article_index": 5,
@@ -3948,11 +3341,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.091Z"
+          "resolvedAt": "2026-06-19T13:21:32.984Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#5"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#5"
     },
     {
       "article_index": 19,
@@ -3962,10 +3355,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.75,
       "locality": "Kibbutz Snir",
-      "article_url": "",
-      "article_source": "עלי נוגידת ויניב מרדלר",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "עלי נוגידת ויניב מרדלר",
       "temporal_weight": 1,
       "article_title": "קיבוץ שניר/גליל עליון — חירם (ביקור שטח)",
       "municipality": "קיבוץ שניר",
@@ -3988,50 +3380,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.091Z"
+          "resolvedAt": "2026-06-19T13:21:32.985Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#19"
-    },
-    {
-      "article_index": 21,
-      "signal_type": "coordination_failure",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "דפנה/גליל עליון: הקמת צוות חירום וחוסן נדרש חמ״ל צח״י דחוף (emergency and resilience team formation requires urgent HFC coordination)",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.8,
-      "locality": "דפנה",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "article_source": "עלי נוג'ידת ויניב מרדלר",
-      "temporal_weight": 1,
-      "article_title": "דפנה/ גליל עליון — חירם (ביקור שטח)",
-      "municipality": "דפנה",
-      "grounding_tier": "weak",
-      "grounding_reason": "low_similarity",
-      "grounding_method": "containment",
-      "source_type": "field",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "דפנה",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "דפנה",
-          "normalizedInput": "דפנה",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.091Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#21"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#19"
     },
     {
       "article_index": 6,
@@ -4067,11 +3420,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.092Z"
+          "resolvedAt": "2026-06-19T13:21:32.985Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#6"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#6"
     },
     {
       "article_index": 12,
@@ -4107,11 +3460,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.092Z"
+          "resolvedAt": "2026-06-19T13:21:32.985Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#12"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#12"
     },
     {
       "article_index": 7,
@@ -4147,11 +3500,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.092Z"
+          "resolvedAt": "2026-06-19T13:21:32.986Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#7"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#7"
     },
     {
       "article_index": 7,
@@ -4187,11 +3540,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.093Z"
+          "resolvedAt": "2026-06-19T13:21:32.986Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#7"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#7"
     },
     {
       "article_index": 7,
@@ -4227,11 +3580,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.093Z"
+          "resolvedAt": "2026-06-19T13:21:32.986Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#7"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#7"
     },
     {
       "article_index": 9,
@@ -4267,11 +3620,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.093Z"
+          "resolvedAt": "2026-06-19T13:21:32.987Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#9"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#9"
     },
     {
       "article_index": 11,
@@ -4307,11 +3660,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.094Z"
+          "resolvedAt": "2026-06-19T13:21:32.987Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#11"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#11"
     },
     {
       "article_index": 12,
@@ -4347,11 +3700,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.094Z"
+          "resolvedAt": "2026-06-19T13:21:32.988Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#12"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#12"
     },
     {
       "article_index": 14,
@@ -4361,10 +3714,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.8,
       "locality": "Menot/Maaleh Yosef",
-      "article_url": "",
-      "article_source": "עומרי אפרת וצפואת שחאדה",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "עומרי אפרת וצפואת שחאדה",
       "temporal_weight": 1,
       "article_title": "מנות /מעלה יוסף — ברעם (ביקור שטח)",
       "municipality": "מנות",
@@ -4387,11 +3739,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.095Z"
+          "resolvedAt": "2026-06-19T13:21:32.988Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#14"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#14"
     },
     {
       "article_index": 16,
@@ -4401,10 +3753,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.7,
       "locality": "Shetula/Maaleh Yosef",
-      "article_url": "",
-      "article_source": "יואב בן בסט",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "יואב בן בסט",
       "temporal_weight": 1,
       "article_title": "שתולה /מעלה יוסף — ברעם (ביקור שטח)",
       "municipality": "שתולה",
@@ -4427,11 +3778,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.096Z"
+          "resolvedAt": "2026-06-19T13:21:32.989Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#16"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#16"
     },
     {
       "article_index": 17,
@@ -4441,10 +3792,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.75,
       "locality": "Arrabe al-Aramsha",
-      "article_url": "",
-      "article_source": "יואב בן בסט",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "יואב בן בסט",
       "temporal_weight": 1,
       "article_title": "ערב אל עראמשה /מטה אשר — ברעם (ביקור שטח)",
       "municipality": "ערב אל עראמשה",
@@ -4467,11 +3817,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.096Z"
+          "resolvedAt": "2026-06-19T13:21:32.989Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#17"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#17"
     },
     {
       "article_index": 19,
@@ -4481,10 +3831,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.75,
       "locality": "Kibbutz Snir",
-      "article_url": "",
-      "article_source": "עלי נוגידת ויניב מרדלר",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "עלי נוגידת ויניב מרדלר",
       "temporal_weight": 1,
       "article_title": "קיבוץ שניר/גליל עליון — חירם (ביקור שטח)",
       "municipality": "קיבוץ שניר",
@@ -4507,11 +3856,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.096Z"
+          "resolvedAt": "2026-06-19T13:21:32.989Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#19"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#19"
     },
     {
       "article_index": 8,
@@ -4547,11 +3896,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.097Z"
+          "resolvedAt": "2026-06-19T13:21:32.990Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#8"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#8"
     },
     {
       "article_index": 8,
@@ -4587,11 +3936,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.097Z"
+          "resolvedAt": "2026-06-19T13:21:32.990Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#8"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#8"
     },
     {
       "article_index": 10,
@@ -4627,11 +3976,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.097Z"
+          "resolvedAt": "2026-06-19T13:21:32.990Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#10"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#10"
     },
     {
       "article_index": 11,
@@ -4667,50 +4016,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.098Z"
+          "resolvedAt": "2026-06-19T13:21:32.991Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#11"
-    },
-    {
-      "article_index": 21,
-      "signal_type": "social_isolation",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "דפנה/גליל עליון: קשישים בעיית בדידות (elderly isolation problem)",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.8,
-      "locality": "דפנה",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "article_source": "עלי נוג'ידת ויניב מרדלר",
-      "temporal_weight": 1,
-      "article_title": "דפנה/ גליל עליון — חירם (ביקור שטח)",
-      "municipality": "דפנה",
-      "grounding_tier": "weak",
-      "grounding_reason": "low_similarity",
-      "grounding_method": "containment",
-      "source_type": "field",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "דפנה",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "דפנה",
-          "normalizedInput": "דפנה",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.098Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#21"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#11"
     },
     {
       "article_index": 9,
@@ -4746,11 +4056,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.099Z"
+          "resolvedAt": "2026-06-19T13:21:32.991Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#9"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#9"
     },
     {
       "article_index": 10,
@@ -4786,11 +4096,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.099Z"
+          "resolvedAt": "2026-06-19T13:21:32.992Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#10"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#10"
     },
     {
       "article_index": 11,
@@ -4826,11 +4136,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.100Z"
+          "resolvedAt": "2026-06-19T13:21:32.992Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#11"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#11"
     },
     {
       "article_index": 12,
@@ -4866,50 +4176,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.100Z"
+          "resolvedAt": "2026-06-19T13:21:32.993Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#12"
-    },
-    {
-      "article_index": 22,
-      "signal_type": "household_strain_economic",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "מעיין ברוך/גליל עליון: עניין כלכלי מכביד (economic burden weighing)",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.75,
-      "locality": "מעיין ברוך",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "article_source": "יואב בן בסט ואילת יוסף",
-      "temporal_weight": 1,
-      "article_title": "מעיין ברוך/גליל עליון — חירם (ביקור שטח)",
-      "municipality": "מעיין ברוך",
-      "grounding_tier": "weak",
-      "grounding_reason": "low_similarity",
-      "grounding_method": "containment",
-      "source_type": "field",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "מעיין ברוך",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "מעיין ברוך",
-          "normalizedInput": "מעיין ברוך",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.101Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#22"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#12"
     },
     {
       "article_index": 14,
@@ -4919,10 +4190,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.7,
       "locality": "Menot/Maaleh Yosef",
-      "article_url": "",
-      "article_source": "עומרי אפרת וצפואת שחאדה",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "עומרי אפרת וצפואת שחאדה",
       "temporal_weight": 1,
       "article_title": "מנות /מעלה יוסף — ברעם (ביקור שטח)",
       "municipality": "מנות",
@@ -4945,11 +4215,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.101Z"
+          "resolvedAt": "2026-06-19T13:21:32.993Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#14"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#14"
     },
     {
       "article_index": 19,
@@ -4959,10 +4229,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.7,
       "locality": "Kibbutz Snir",
-      "article_url": "",
-      "article_source": "עלי נוגידת ויניב מרדלר",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "עלי נוגידת ויניב מרדלר",
       "temporal_weight": 1,
       "article_title": "קיבוץ שניר/גליל עליון — חירם (ביקור שטח)",
       "municipality": "קיבוץ שניר",
@@ -4985,11 +4254,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.101Z"
+          "resolvedAt": "2026-06-19T13:21:32.993Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#19"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#19"
     },
     {
       "article_index": 14,
@@ -4999,10 +4268,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.8,
       "locality": "Menot/Maaleh Yosef",
-      "article_url": "",
-      "article_source": "עומרי אפרת וצפואת שחאדה",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "עומרי אפרת וצפואת שחאדה",
       "temporal_weight": 1,
       "article_title": "מנות /מעלה יוסף — ברעם (ביקור שטח)",
       "municipality": "מנות",
@@ -5025,11 +4293,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.102Z"
+          "resolvedAt": "2026-06-19T13:21:32.994Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#14"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#14"
     },
     {
       "article_index": 16,
@@ -5039,10 +4307,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.8,
       "locality": "Shetula/Maaleh Yosef",
-      "article_url": "",
-      "article_source": "יואב בן בסט",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "יואב בן בסט",
       "temporal_weight": 1,
       "article_title": "שתולה /מעלה יוסף — ברעם (ביקור שטח)",
       "municipality": "שתולה",
@@ -5065,50 +4332,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.103Z"
+          "resolvedAt": "2026-06-19T13:21:32.994Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#16"
-    },
-    {
-      "article_index": 24,
-      "signal_type": "solidarity_help_others",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "משגב עם/גליל עליון: עושים פעילות לילדים (organizing activities for children)",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.8,
-      "locality": "משגב עם",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "article_source": "גל+ליאור+אמל",
-      "temporal_weight": 1,
-      "article_title": "משגב עם/גליל עליון — חירם (ביקור שטח)",
-      "municipality": "משגב עם",
-      "grounding_tier": "weak",
-      "grounding_reason": "low_similarity",
-      "grounding_method": "containment",
-      "source_type": "field",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "משגב עם",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "משגב עם",
-          "normalizedInput": "משגב עם",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.103Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#24"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#16"
     },
     {
       "article_index": 15,
@@ -5118,10 +4346,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.75,
       "locality": "Netua/Maaleh Yosef",
-      "article_url": "",
-      "article_source": "יואב בן בסט",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "יואב בן בסט",
       "temporal_weight": 1,
       "article_title": "נטועה /מעולה יוסף — ברעם (ביקור שטח)",
       "municipality": "נטועה",
@@ -5144,11 +4371,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.104Z"
+          "resolvedAt": "2026-06-19T13:21:32.995Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#15"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#15"
     },
     {
       "article_index": 15,
@@ -5158,10 +4385,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.7,
       "locality": "Netua/Maaleh Yosef",
-      "article_url": "",
-      "article_source": "יואב בן בסט",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "יואב בן בסט",
       "temporal_weight": 1,
       "article_title": "נטועה /מעולה יוסף — ברעם (ביקור שטח)",
       "municipality": "נטועה",
@@ -5184,11 +4410,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.104Z"
+          "resolvedAt": "2026-06-19T13:21:32.995Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#15"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#15"
     },
     {
       "article_index": 19,
@@ -5198,10 +4424,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.8,
       "locality": "Kibbutz Snir",
-      "article_url": "",
-      "article_source": "עלי נוגידת ויניב מרדלר",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "עלי נוגידת ויניב מרדלר",
       "temporal_weight": 1,
       "article_title": "קיבוץ שניר/גליל עליון — חירם (ביקור שטח)",
       "municipality": "קיבוץ שניר",
@@ -5224,11 +4449,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.104Z"
+          "resolvedAt": "2026-06-19T13:21:32.996Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#19"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#19"
     },
     {
       "article_index": 16,
@@ -5238,10 +4463,9 @@
       "scope_level": "quantified_or_broad",
       "confidence": 0.8,
       "locality": "Shetula/Maaleh Yosef",
-      "article_url": "",
-      "article_source": "יואב בן בסט",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "יואב בן בסט",
       "temporal_weight": 1,
       "article_title": "שתולה /מעלה יוסף — ברעם (ביקור שטח)",
       "municipality": "שתולה",
@@ -5264,11 +4488,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.105Z"
+          "resolvedAt": "2026-06-19T13:21:32.997Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#16"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#16"
     },
     {
       "article_index": 18,
@@ -5278,10 +4502,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.7,
       "locality": "Adamit",
-      "article_url": "",
-      "article_source": "יואב בן בסט",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "יואב בן בסט",
       "temporal_weight": 1,
       "article_title": "אדמית /מטה אשר — ברעם (ביקור שטח)",
       "municipality": "אדמית",
@@ -5304,11 +4527,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.105Z"
+          "resolvedAt": "2026-06-19T13:21:32.997Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#18"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#18"
     },
     {
       "article_index": 18,
@@ -5318,10 +4541,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.75,
       "locality": "Adamit",
-      "article_url": "",
-      "article_source": "יואב בן בסט",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "יואב בן בסט",
       "temporal_weight": 1,
       "article_title": "אדמית /מטה אשר — ברעם (ביקור שטח)",
       "municipality": "אדמית",
@@ -5344,557 +4566,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.106Z"
+          "resolvedAt": "2026-06-19T13:21:32.997Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#18"
-    },
-    {
-      "article_index": 23,
-      "signal_type": "service_continuity",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "קיבוץ דן/גליל עליון: עזרה בכ״א לפעילות קהילתית (personnel support for community activities)",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.8,
-      "locality": "קיבוץ דן",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "article_source": "יואב בן בסט ואילת יוסף",
-      "temporal_weight": 1,
-      "article_title": "קיבוץ דן/גליל עליון — חירם (ביקור שטח)",
-      "municipality": "קיבוץ דן",
-      "grounding_tier": "weak",
-      "grounding_reason": "low_similarity",
-      "grounding_method": "containment",
-      "source_type": "field",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "קיבוץ דן",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "קיבוץ דן",
-          "normalizedInput": "קיבוץ דן",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.106Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#23"
-    },
-    {
-      "article_index": 20,
-      "signal_type": "adaptive_practice",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "בית הלל/מבואות חרמון: פעילות הפגה שעה/שעה וחצי (decompression activities), פעילות הפגה לגיל השלישי, פעילות הפגה לנוער וילדים",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.85,
-      "locality": "בית הלל",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "article_source": "גיל נחמני וגלעד לביא",
-      "temporal_weight": 1,
-      "article_title": "בית הלל/ מבואות חרמון — חירם (ביקור שטח)",
-      "municipality": "בית הלל",
-      "grounding_tier": "grounded",
-      "grounding_reason": "containment",
-      "grounding_method": "containment",
-      "source_type": "field",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "בית הלל",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "בית הלל",
-          "normalizedInput": "בית הלל",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.106Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#20"
-    },
-    {
-      "article_index": 23,
-      "signal_type": "adaptive_practice",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "קיבוץ דן/גליל עליון: מתקיימת פעילות בלתי פורמלית (informal activities ongoing)",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.85,
-      "locality": "קיבוץ דן",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "article_source": "יואב בן בסט ואילת יוסף",
-      "temporal_weight": 1,
-      "article_title": "קיבוץ דן/גליל עליון — חירם (ביקור שטח)",
-      "municipality": "קיבוץ דן",
-      "grounding_tier": "weak",
-      "grounding_reason": "low_similarity",
-      "grounding_method": "containment",
-      "source_type": "field",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "קיבוץ דן",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "קיבוץ דן",
-          "normalizedInput": "קיבוץ דן",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.107Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#23"
-    },
-    {
-      "article_index": 20,
-      "signal_type": "system_resilience_under_load",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "בית הלל/מבואות חרמון: רציפות תפקודית 60% (functional continuity at 60%)",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.8,
-      "locality": "בית הלל",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "article_source": "גיל נחמני וגלעד לביא",
-      "temporal_weight": 1,
-      "article_title": "בית הלל/ מבואות חרמון — חירם (ביקור שטח)",
-      "municipality": "בית הלל",
-      "grounding_tier": "weak",
-      "grounding_reason": "low_similarity",
-      "grounding_method": "containment",
-      "source_type": "field",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "בית הלל",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "בית הלל",
-          "normalizedInput": "בית הלל",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.107Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#20"
-    },
-    {
-      "article_index": 22,
-      "signal_type": "equitable_resource_distribution",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "מעיין ברוך/גליל עליון: קהילת קשישים ואוכ׳ רווחה מטופלת, אוכ׳ מוגבלים מקבלת מענה",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.85,
-      "locality": "מעיין ברוך",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "article_source": "יואב בן בסט ואילת יוסף",
-      "temporal_weight": 1,
-      "article_title": "מעיין ברוך/גליל עליון — חירם (ביקור שטח)",
-      "municipality": "מעיין ברוך",
-      "grounding_tier": "weak",
-      "grounding_reason": "low_similarity",
-      "grounding_method": "containment",
-      "source_type": "field",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "מעיין ברוך",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "מעיין ברוך",
-          "normalizedInput": "מעיין ברוך",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.108Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#22"
-    },
-    {
-      "article_index": 23,
-      "signal_type": "equitable_resource_distribution",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "קיבוץ דן/גליל עליון: מתן מענה לאוכלוסיה עם מוגבלות וקשישים (providing services to people with disabilities and elderly)",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.85,
-      "locality": "קיבוץ דן",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "article_source": "יואב בן בסט ואילת יוסף",
-      "temporal_weight": 1,
-      "article_title": "קיבוץ דן/גליל עליון — חירם (ביקור שטח)",
-      "municipality": "קיבוץ דן",
-      "grounding_tier": "weak",
-      "grounding_reason": "low_similarity",
-      "grounding_method": "containment",
-      "source_type": "field",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "קיבוץ דן",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "קיבוץ דן",
-          "normalizedInput": "קיבוץ דן",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.108Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#23"
-    },
-    {
-      "article_index": 24,
-      "signal_type": "equitable_resource_distribution",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "משגב עם/גליל עליון: מענה מיטבי לקשישים (optimal service for elderly)",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.85,
-      "locality": "משגב עם",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "article_source": "גל+ליאור+אמל",
-      "temporal_weight": 1,
-      "article_title": "משגב עם/גליל עליון — חירם (ביקור שטח)",
-      "municipality": "משגב עם",
-      "grounding_tier": "weak",
-      "grounding_reason": "low_similarity",
-      "grounding_method": "containment",
-      "source_type": "field",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "משגב עם",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "משגב עם",
-          "normalizedInput": "משגב עם",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.108Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#24"
-    },
-    {
-      "article_index": 23,
-      "signal_type": "resource_mobilization",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "קיבוץ דן/גליל עליון: שימוש במשאבי הקהילה וכלל זה צח״י (mobilizing community resources including HFC volunteers)",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.85,
-      "locality": "קיבוץ דן",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "article_source": "יואב בן בסט ואילת יוסף",
-      "temporal_weight": 1,
-      "article_title": "קיבוץ דן/גליל עליון — חירם (ביקור שטח)",
-      "municipality": "קיבוץ דן",
-      "grounding_tier": "weak",
-      "grounding_reason": "low_similarity",
-      "grounding_method": "containment",
-      "source_type": "field",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "קיבוץ דן",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "קיבוץ דן",
-          "normalizedInput": "קיבוץ דן",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.109Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#23"
-    },
-    {
-      "article_index": 23,
-      "signal_type": "rapid_mobilization",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "קיבוץ דן/גליל עליון: שיפוץ מקלט לשהייה רציפה (shelter renovation for continuous occupancy)",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.8,
-      "locality": "קיבוץ דן",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "article_source": "יואב בן בסט ואילת יוסף",
-      "temporal_weight": 1,
-      "article_title": "קיבוץ דן/גליל עליון — חירם (ביקור שטח)",
-      "municipality": "קיבוץ דן",
-      "grounding_tier": "weak",
-      "grounding_reason": "low_similarity",
-      "grounding_method": "containment",
-      "source_type": "field",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "קיבוץ דן",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "קיבוץ דן",
-          "normalizedInput": "קיבוץ דן",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.109Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#23"
-    },
-    {
-      "article_index": 23,
-      "signal_type": "early_warning_system_effective",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "קיבוץ דן/גליל עליון: בדיקת הוספת צופר (checking addition of siren coverage)",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.75,
-      "locality": "קיבוץ דן",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "article_source": "יואב בן בסט ואילת יוסף",
-      "temporal_weight": 1,
-      "article_title": "קיבוץ דן/גליל עליון — חירם (ביקור שטח)",
-      "municipality": "קיבוץ דן",
-      "grounding_tier": "weak",
-      "grounding_reason": "low_similarity",
-      "grounding_method": "containment",
-      "source_type": "field",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "קיבוץ דן",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "קיבוץ דן",
-          "normalizedInput": "קיבוץ דן",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.109Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#23"
-    },
-    {
-      "article_index": 24,
-      "signal_type": "responder_workforce_strain",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "משגב עם/גליל עליון: חוסר בכבאים ובצוות סע״ר (shortage of firefighters and rescue team)",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.85,
-      "locality": "משגב עם",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "article_source": "גל+ליאור+אמל",
-      "temporal_weight": 1,
-      "article_title": "משגב עם/גליל עליון — חירם (ביקור שטח)",
-      "municipality": "משגב עם",
-      "grounding_tier": "weak",
-      "grounding_reason": "low_similarity",
-      "grounding_method": "containment",
-      "source_type": "field",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "משגב עם",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "משגב עם",
-          "normalizedInput": "משגב עם",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.110Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#24"
-    },
-    {
-      "article_index": 24,
-      "signal_type": "sleep_disruption_population",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "משגב עם/גליל עליון: אנשים עייפים ולא יושנים טוב בלילה (people tired and not sleeping well at night)",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.9,
-      "locality": "משגב עם",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "article_source": "גל+ליאור+אמל",
-      "temporal_weight": 1,
-      "article_title": "משגב עם/גליל עליון — חירם (ביקור שטח)",
-      "municipality": "משגב עם",
-      "grounding_tier": "weak",
-      "grounding_reason": "low_similarity",
-      "grounding_method": "containment",
-      "source_type": "field",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "משגב עם",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "משגב עם",
-          "normalizedInput": "משגב עם",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.110Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#24"
-    },
-    {
-      "article_index": 24,
-      "signal_type": "volunteer_donor_fatigue",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "משגב עם/גליל עליון: בקשה להפוגות (request for relief/decompression)",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.8,
-      "locality": "משגב עם",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "article_source": "גל+ליאור+אמל",
-      "temporal_weight": 1,
-      "article_title": "משגב עם/גליל עליון — חירם (ביקור שטח)",
-      "municipality": "משגב עם",
-      "grounding_tier": "weak",
-      "grounding_reason": "low_similarity",
-      "grounding_method": "containment",
-      "source_type": "field",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "משגב עם",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "משגב עם",
-          "normalizedInput": "משגב עם",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.111Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#24"
-    },
-    {
-      "article_index": 20,
-      "signal_type": "evacuation_displacement",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "בית הלל/מבואות חרמון: תושבי הרחבה יותר היסטריים (תושבי קרית שמונה לשעבר) - former Kiryat Shmona residents more hysterical",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.75,
-      "locality": "בית הלל",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "article_source": "גיל נחמני וגלעד לביא",
-      "temporal_weight": 1,
-      "article_title": "בית הלל/ מבואות חרמון — חירם (ביקור שטח)",
-      "municipality": "בית הלל",
-      "grounding_tier": "grounded",
-      "grounding_reason": "entailment_rescue",
-      "grounding_method": "entailment",
-      "source_type": "field",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "בית הלל",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "בית הלל",
-          "normalizedInput": "בית הלל",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.111Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#20"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#18"
     },
     {
       "article_index": 1,
@@ -5930,89 +4606,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.111Z"
+          "resolvedAt": "2026-06-19T13:21:32.997Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#1"
-    },
-    {
-      "article_index": 22,
-      "signal_type": "resilience_narrative_positive",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "מעיין ברוך/גליל עליון: אין שום רצון להתפנות, קהילה חזקה ורשות חזקה (no evacuation desire, strong community and strong authority)",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.9,
-      "locality": "מעיין ברוך",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "article_source": "יואב בן בסט ואילת יוסף",
-      "temporal_weight": 1,
-      "article_title": "מעיין ברוך/גליל עליון — חירם (ביקור שטח)",
-      "municipality": "מעיין ברוך",
-      "grounding_tier": "grounded",
-      "grounding_reason": "entailment_rescue",
-      "grounding_method": "entailment",
-      "source_type": "field",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "מעיין ברוך",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "מעיין ברוך",
-          "normalizedInput": "מעיין ברוך",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.112Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#22"
-    },
-    {
-      "article_index": 25,
-      "signal_type": "resilience_narrative_positive",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "מנרה/גליל עליון: קהילה חזקה (strong community)",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.85,
-      "locality": "מנרה",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "article_source": "גל+ליאור+אמל",
-      "temporal_weight": 1,
-      "article_title": "מנרה/גליל עליון — חירם (ביקור שטח)",
-      "municipality": "מנרה",
-      "grounding_tier": "grounded",
-      "grounding_reason": "entailment_rescue",
-      "grounding_method": "entailment",
-      "source_type": "field",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "מנרה",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "מנרה",
-          "normalizedInput": "מנרה",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.112Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#25"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#1"
     },
     {
       "article_index": 9,
@@ -6048,11 +4646,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.113Z"
+          "resolvedAt": "2026-06-19T13:21:32.998Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#9"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#9"
     },
     {
       "article_index": 9,
@@ -6088,89 +4686,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.113Z"
+          "resolvedAt": "2026-06-19T13:21:32.998Z"
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#9"
-    },
-    {
-      "article_index": 20,
-      "signal_type": "service_continuity",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "בית הלל/מבואות חרמון: יש יציאה לקניות בקרית שמונה (shopping trips continue)",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.8,
-      "locality": "בית הלל",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "article_source": "גיל נחמני וגלעד לביא",
-      "temporal_weight": 1,
-      "article_title": "בית הלל/ מבואות חרמון — חירם (ביקור שטח)",
-      "municipality": "בית הלל",
-      "grounding_tier": "grounded",
-      "grounding_reason": "entailment_rescue",
-      "grounding_method": "entailment",
-      "source_type": "field",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "בית הלל",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "בית הלל",
-          "normalizedInput": "בית הלל",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.113Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#20"
-    },
-    {
-      "article_index": 24,
-      "signal_type": "future_orientation_despair",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "משגב עם/גליל עליון: לא כולם מבינים שזה הולך להיות ארוך (not everyone understands this will be prolonged)",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.8,
-      "locality": "משגב עם",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "article_source": "גל+ליאור+אמל",
-      "temporal_weight": 1,
-      "article_title": "משגב עם/גליל עליון — חירם (ביקור שטח)",
-      "municipality": "משגב עם",
-      "grounding_tier": "grounded",
-      "grounding_reason": "entailment_rescue",
-      "grounding_method": "entailment",
-      "source_type": "field",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "משגב עם",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "משגב עם",
-          "normalizedInput": "משגב עם",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:23:58.114Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-field-reports-2026-03-17.md#24"
+      "source_id": "md:business_modules/visits/data/articles-field-reports-1970-01-01.md#9"
     }
   ]
 }

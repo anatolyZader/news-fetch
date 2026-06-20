@@ -7,10 +7,65 @@
     "allow": [
       "Bash(npm test *)",
       "Bash(npm run lint *)",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(mkdir -p logs)",
+      "Bash(mkdir -p logs && *)",
+      "Bash(for date in *)",
+      "Bash(tail * logs/*)",
+      "Bash(*>> logs/*)",
+      "Bash(* 2>> logs/*)",
+      "Bash(export RESILIENCE_OPEN_EXTRACT_PARALLEL=1)",
+      "Bash(export RESILIENCE_OPEN_EXTRACT_PARALLEL=1*)",
+      "Bash(export RESILIENCE_OPEN_EXTRACT_PARALLEL=1 && *)",
+      "Bash(echo * >> logs/*)",
+      "Bash(echo * 2>> logs/*)",
+      "Bash(node business_modules/*)",
+      "Bash(echo \"Exit: $?\")",
+      "Bash(echo \"exit: $?\")",
+      "Bash(echo *:+SET*)",
+      "Bash(echo *X_BEARER_TOKEN*)",
+      "Bash(echo *TELEGRAM_*)",
+      "Write(logs/**)",
+      "Edit(logs/**)"
     ],
     "additionalDirectories": [
-      "/home/eventstorm1/news/logs"
+      "/home/eventstorm1/news/logs",
+      "logs"
+    ]
+  },
+  "sandbox": {
+    "autoAllowBashIfSandboxed": true,
+    "filesystem": {
+      "allowWrite": [
+        "./logs",
+        "/home/eventstorm1/news/logs"
+      ]
+    }
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/allow-pipeline-bash.sh\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/allow-pipeline-bash.sh\"",
+            "timeout": 5
+          }
+        ]
+      }
     ]
   },
   "statusLine": {
