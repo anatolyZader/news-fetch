@@ -25,7 +25,7 @@ const REPLAY_REUSE_ALIASES = Object.freeze({
  */
 export function replayReuseEnvKey(sourceType) {
   const canonical = REPLAY_REUSE_ALIASES[sourceType] ?? sourceType;
-  return `RESILIENCE_REPLAY_REUSE_${String(canonical ?? '').toUpperCase().replace(/-/g, '_')}`;
+  return `RESILIENCE_REPLAY_REUSE_${String(canonical ?? '').toUpperCase().replaceAll('-', '_')}`;
 }
 
 /**

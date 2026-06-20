@@ -95,7 +95,7 @@ export function parsePipelineCliArgs(argv) {
     || process.env.RESILIENCE_ALWAYS_REEXTRACT === '1';
 
   const applied = applyPipelinePreset(preset, {
-    days: explicitDays != null ? Number.parseInt(explicitDays, 10) : undefined,
+    days: explicitDays == null ? undefined : Number.parseInt(explicitDays, 10),
     scope: explicitScope ?? undefined,
     alwaysReextract: flagAlwaysReextract ? true : undefined,
     replayMode,
@@ -365,7 +365,7 @@ function countLoadedBundles(targetDate, days, enabledSources, rootDir) {
     recencySources: discovery.recencySources,
     enabledSources,
   });
-  const merged = mergeLoadedSignalFiles(loaded, { targetDate: opts.targetDate });
+  const merged = mergeLoadedSignalFiles(loaded, { targetDate });
   return { loaded, merged, discovery };
 }
 
