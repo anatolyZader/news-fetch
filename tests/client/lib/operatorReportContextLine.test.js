@@ -22,9 +22,9 @@ describe('operatorReportContextLine', () => {
 
   it('formatOperatorContextTemplate substitutes placeholders', () => {
     const line = formatOperatorContextTemplate(
-      '{scope} · void: {voidLevel} · narrative: {narrativeMode} · {n} scope signals',
+      '{scope} · void {voidLevel} · narrative {narrativeMode} · {n} scope signals',
       { scope: 'North', voidLevel: 'none', narrativeMode: 'agent', n: 10 },
     );
-    assert.equal(line, 'North · void: none · narrative: agent · 10 scope signals');
+    assert.equal(line, 'North · void none · narrative agent · 10 scope signals');
   });
 });
