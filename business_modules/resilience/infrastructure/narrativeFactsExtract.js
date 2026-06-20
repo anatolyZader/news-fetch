@@ -10,6 +10,7 @@ import {
   buildSignalRefRegistry,
   formatSignalWithRef,
   resolveRef,
+  formatDigitalQuarantineNarrativeBlock,
 } from '../domain/services/narrativeGrounding/index.js';
 
 const DEFAULT_FACTS_MODEL = process.env.RESILIENCE_NARRATIVE_FACTS_MODEL
@@ -42,7 +43,7 @@ function buildFactsSystemPrompt() {
   );
 }
 
-function formatFactsUserMessage(registry, retrievedSpansBlock = '') {
+function formatFactsUserMessage(registry, retrievedSpansBlock = '', epistemicBlock = '') {
   const blocks = RESILIENCE_COMPONENTS.map((def) => {
     const entries = registry.byComponent[def.id] ?? [];
     if (entries.length === 0) {
@@ -51,8 +52,9 @@ function formatFactsUserMessage(registry, retrievedSpansBlock = '') {
     const signalLines = entries.map((e) => formatSignalWithRef(e.signal, e)).join('\n\n');
     return `**${def.id}**\n${signalLines}`;
   });
-  const prefix = retrievedSpansBlock ? `${retrievedSpansBlock}\n` : '';
-  return `${prefix}Extract narrative_claims for each component.\n\n${blocks.join('\n\n---\n\n')}`;
+  const prefix = [retrievedSpansBlock, epistemicBlock].filter(Boolean).join('\n');
+  const prefixBlock = prefix ? `${prefix}\n\n` : '';
+  return `${prefixBlock}Extract narrative_claims for each component.\n\n${blocks.join('\n\n---\n\n')}`;
 }
 
 function validateFactsOutput(parsed, registry) {
@@ -78,7 +80,7 @@ function validateFactsOutput(parsed, registry) {
  * @returns {Promise<Record<string, object[]>>}
  */
 export async function extractNarrativeFacts(scoredComponents, opts = {}) {
-  const { onUsage, retrievedSpansBlock = '' } = opts;
+  const { onUsage, retrievedSpansBlock = '', epistemicBlock = '' } = opts;
   const registry = buildSignalRefRegistry(scoredComponents);
   if (registry.refCount === 0) return {};
 
@@ -88,7 +90,7 @@ export async function extractNarrativeFacts(scoredComponents, opts = {}) {
     max_tokens: 8000,
     temperature: 0,
     system: buildFactsSystemPrompt(),
-    messages: [{ role: 'user', content: formatFactsUserMessage(registry, retrievedSpansBlock) }],
+    messages: [{ role: 'user', content: formatFactsUserMessage(registry, retrievedSpansBlock, epistemicBlock) }],
     callContext: { feature: 'narrative_facts', purpose: '[Step 2 — Facts]' },
   }));
   await streamWithProgress(stream, '[Step 2 — Facts]');

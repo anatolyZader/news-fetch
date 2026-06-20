@@ -22,6 +22,7 @@ import {
   hybridNarrativeEnabled,
   legacyNarrativeOnly,
   resolveNarrativePipelineMode,
+  formatDigitalQuarantineNarrativeBlock,
 } from '../domain/services/narrativeGrounding/index.js';
 import { finalizeOperatorNarrativeSurface } from '../domain/services/operatorNarrativeSurface.js';
 
@@ -33,7 +34,7 @@ const MAX_POLISH_ATTEMPTS = 2;
  * @returns {Promise<{ factsByComponent: object, mergedNarratives: object, judgeFeedback: string }|null>}
  */
 async function runFactsAndJudgePass(params) {
-  const { assessment, narrativeScored, registry, rag, llmOpts } = params;
+  const { assessment, narrativeScored, registry, rag, llmOpts, epistemicBlock } = params;
   let factsByComponent = {};
   let mergedNarratives = { components: [] };
   let judgeFeedback = '';
@@ -43,6 +44,7 @@ async function runFactsAndJudgePass(params) {
       factsByComponent = await extractNarrativeFacts(narrativeScored, {
         ...llmOpts,
         retrievedSpansBlock: rag.block,
+        epistemicBlock,
       });
     }
 
@@ -76,6 +78,7 @@ async function runPolishAndValidatePass(params) {
     rag,
     llmOpts,
     judgeFeedback,
+    epistemicBlock,
   } = params;
 
   let polish = { components: [], cross_component_synthesis: '' };
@@ -87,7 +90,7 @@ async function runPolishAndValidatePass(params) {
       mergedNarratives,
       registry,
       narrativeScored,
-      { ...llmOpts, retrievedSpansBlock: rag.block, feedback, skipProgress: false },
+      { ...llmOpts, retrievedSpansBlock: rag.block, feedback, epistemicBlock, skipProgress: false },
     );
 
     const validation = validateNarrativeOutput(polish, {
@@ -148,6 +151,10 @@ export async function runOperatorNarrativePipeline(params) {
     assessment,
     narrativeScopeSignals,
     scoredFull = null,
+    narrativeScoringContext = null,
+    scoringPartition = null,
+    quarantinedDigital = null,
+    signalsScoringUsed = null,
     retrievalService = null,
     reportDate,
     onUsage,
@@ -158,9 +165,17 @@ export async function runOperatorNarrativePipeline(params) {
     return null;
   }
 
-  const narrativeScored = buildFullSignalDigest(narrativeScopeSignals, scoredFull);
+  const scoringContext = narrativeScoringContext ?? scoredFull;
+  const narrativeScored = buildFullSignalDigest(narrativeScopeSignals, scoringContext);
   const registry = buildSignalRefRegistry(narrativeScored);
   if (registry.refCount === 0) return null;
+
+  const epistemicBlock = formatDigitalQuarantineNarrativeBlock({
+    quarantinedDigital,
+    scoringPartition,
+    narrativeScopeSignalCount: narrativeScopeSignals.length,
+    signalsScoringUsed: signalsScoringUsed ?? scoringPartition?.scoringSignals?.length ?? 0,
+  });
 
   const llmOpts = { onUsage, llmPort };
   const rag = await buildNarrativeRetrievalContext(narrativeScored, {
@@ -174,6 +189,7 @@ export async function runOperatorNarrativePipeline(params) {
     registry,
     rag,
     llmOpts,
+    epistemicBlock,
   });
   if (!factsResult) return null;
 
@@ -184,6 +200,7 @@ export async function runOperatorNarrativePipeline(params) {
     rag,
     llmOpts,
     judgeFeedback: factsResult.judgeFeedback,
+    epistemicBlock,
   });
 
   const groundingScores = computeGroundingScores(polish, narrativeScored, registry);

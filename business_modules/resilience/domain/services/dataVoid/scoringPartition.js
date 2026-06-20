@@ -5,6 +5,7 @@
  * prior same-day quarantine state, and elevated/critical abstention.
  */
 
+import { isSoftVoidWarning } from '../../../../../cross-cut-modules/resilience-contracts/softVoidReasons.js';
 import {
   filterAnchorSignals,
   isDigitalSignal,
@@ -70,6 +71,7 @@ function partitionResult(scoringSignals, quarantinedSignals, reason) {
  *   quarantinedSignals: Array<object>,
  *   quarantineReason: string | null,
  *   partitionApplied: boolean,
+ *   priorQuarantineSkipped: string | null,
  * }}
  */
 export function resolveScoringPartition(signals, dataVoid, opts = {}) {
@@ -80,9 +82,14 @@ export function resolveScoringPartition(signals, dataVoid, opts = {}) {
     quarantinedSignals: [],
     quarantineReason: null,
     partitionApplied: false,
+    priorQuarantineSkipped: null,
   };
 
   if (!isScoringPartitionEnabled() || !dataVoid) {
+    return normal;
+  }
+
+  if (isSoftVoidWarning(dataVoid)) {
     return normal;
   }
 
@@ -92,6 +99,13 @@ export function resolveScoringPartition(signals, dataVoid, opts = {}) {
   const prior = opts.priorQuarantine ?? null;
 
   if (prior?.active === true) {
+    const volumeRecovered = digitalQuarantined.length > 0 && dataVoid.digital_darkness !== true;
+    if (volumeRecovered) {
+      return {
+        ...normal,
+        priorQuarantineSkipped: 'volume_recovered',
+      };
+    }
     const reason = prior.reason ?? QUARANTINE_REASON.PRIOR_QUARANTINE;
     if (anchorOnly.length > 0) {
       return partitionResult(anchorOnly, digitalQuarantined, reason);
@@ -102,6 +116,7 @@ export function resolveScoringPartition(signals, dataVoid, opts = {}) {
       quarantinedSignals: digitalQuarantined,
       quarantineReason: reason,
       partitionApplied: true,
+      priorQuarantineSkipped: null,
     };
   }
 

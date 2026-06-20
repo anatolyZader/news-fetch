@@ -8,6 +8,7 @@ import {
   applyOperatorNarrativeToAssessment,
   applyOperatorNarrativePipeline,
 } from '../../../../business_modules/resilience/app/operatorNarrativePipeline.js';
+import { buildFullSignalDigest } from '../../../../business_modules/resilience/domain/services/buildFullSignalDigest.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const fixtures = JSON.parse(
@@ -96,6 +97,47 @@ describe('operatorNarrativePipeline', () => {
     assert.ok(assessment.cross_component_synthesis.includes('- narrative:'));
   });
 
+  it('buildFullSignalDigest prefers digital-inclusive scoring context over field-only', () => {
+    const pboSig = {
+      source_type: 'pbo',
+      signal_type: 'information_clarity',
+      evidence: 'Field guidance continues.',
+      article_url: 'https://example.com/field',
+    };
+    const newsSig = {
+      source_type: 'news',
+      signal_type: 'information_clarity',
+      evidence: 'News reports ongoing concern.',
+      article_url: 'https://example.com/news',
+    };
+    const signals = [pboSig, newsSig];
+    const fieldOnlyScored = {
+      information_communication: {
+        score: 4,
+        score_raw: 4,
+        suppression_delta: 0,
+        signals: [],
+      },
+    };
+    const digitalInclusiveScored = {
+      information_communication: {
+        score: 6,
+        score_raw: 7,
+        suppression_delta: -1,
+        source_cap_binding: true,
+        signals: [],
+      },
+    };
+
+    const fromField = buildFullSignalDigest(signals, fieldOnlyScored);
+    const fromInclusive = buildFullSignalDigest(signals, digitalInclusiveScored);
+
+    assert.equal(fromField.information_communication.score, 4);
+    assert.equal(fromInclusive.information_communication.score, 6);
+    assert.equal(fromInclusive.information_communication.source_cap_binding, true);
+    assert.ok(fromInclusive.information_communication.signals.length >= 1);
+  });
+
   it('applyOperatorNarrativePipeline stamps agent mode and finalizes surface', async () => {
     process.env.RESILIENCE_NARRATIVE_PIPELINE = 'agent';
     const assessment = {
@@ -111,6 +153,30 @@ describe('operatorNarrativePipeline', () => {
 
     assert.equal(assessment.narrative_pipeline_mode, 'agent');
     assert.equal(assessment.components[0].narrative_operator, 'Agent prose unchanged.');
+  });
+
+  it('applyOperatorNarrativePipeline accepts partition metadata without error', async () => {
+    process.env.RESILIENCE_NARRATIVE_PIPELINE = 'agent';
+    const assessment = {
+      components: [{ component_id: 'narrative', narrative: 'Agent prose unchanged.' }],
+    };
+    const signals = fixtures.scored_components.narrative.signals;
+
+    await applyOperatorNarrativePipeline({
+      assessment,
+      narrativeScopeSignals: signals,
+      narrativeScoringContext: { narrative: { score: 5, score_raw: 6 } },
+      scoringPartition: {
+        partitionApplied: true,
+        assessmentMode: 'field_anchor_only',
+        quarantinedSignals: [{ source_type: 'news' }],
+      },
+      quarantinedDigital: { count: 1, reason: 'digital_darkness' },
+      signalsScoringUsed: 2,
+      llmPort: buildMockLlmPort([]),
+    });
+
+    assert.equal(assessment.narrative_pipeline_mode, 'agent');
   });
 
   it('runs end-to-end with mocked LLM and sets operator fields', async () => {

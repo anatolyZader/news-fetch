@@ -61,3 +61,8 @@ export {
   validateSuppressionCompliance,
   formatSuppressionFeedback,
 } from './suppressionComplianceValidator.js';
+
+export {
+  formatDigitalQuarantineNarrativeBlock,
+  narrativeQuarantineContextActive,
+} from './digitalQuarantineNarrativeContext.js';

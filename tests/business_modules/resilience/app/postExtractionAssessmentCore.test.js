@@ -5,6 +5,10 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { scopeAndPartitionSignals } from '../../../../business_modules/resilience/app/assessmentPipeline.js';
+import { prepareInvestigationSignals } from '../../../../business_modules/resilience/app/prepareInvestigationSignals.js';
+import { prepareScoringSignals } from '../../../../business_modules/resilience/app/prepareScoringSignals.js';
+import { runScoringPipeline } from '../../../../business_modules/resilience/app/scoringPipelinePrep.js';
+import { attachInvestigationDiagnostics } from '../../../../business_modules/resilience/domain/services/componentDiagnostics.js';
 import { runPostExtractionAssessmentCore } from '../../../../business_modules/resilience/app/postExtractionAssessmentCore.js';
 import { createGeoWiring } from '../../../../cross-cut-modules/geo/createGeoWiring.js';
 import { attachGeoToSignals } from '../../../../cross-cut-modules/geo/attachGeoToSignals.js';
@@ -75,6 +79,80 @@ describe('postExtractionAssessmentCore', () => {
     });
 
     assert.deepEqual(order, ['score', 'narrate']);
+  });
+
+  it('digital darkness scoring partition keeps full investigation and narrative pools', async () => {
+    process.env.RESILIENCE_SCORING_PARTITION = '1';
+    const pbo = {
+      source_type: 'pbo',
+      signal_type: 'information_clarity',
+      evidence_type: 'named_institutional_fact',
+      evidence: 'Officers report continued operations.',
+      article_url: 'https://example.com/pbo',
+    };
+    const news = {
+      source_type: 'news',
+      signal_type: 'information_clarity',
+      evidence_type: 'named_institutional_fact',
+      evidence: 'News channel reports public concern.',
+      article_url: 'https://example.com/news',
+    };
+    const allSignals = [pbo, news];
+
+    const scoped = scopeAndPartitionSignals(allSignals, 'national');
+    const investigationPrep = await prepareInvestigationSignals({
+      investigationSignals: scoped.baseSignalsForScoring,
+      reportDate: '2026-04-03',
+      reportScopeId: 'national',
+      reportsDir: '/tmp/nonexistent-reports-dir',
+    });
+    const prepared = await prepareScoringSignals({
+      signalsForScoring: scoped.baseSignalsForScoring,
+      reportDate: '2026-04-03',
+      reportScopeId: 'national',
+      reportsDir: '/tmp/nonexistent-reports-dir',
+    });
+
+    const dataVoid = {
+      ...prepared.dataVoid,
+      digital_darkness: true,
+      level: 'critical',
+      field_volume: 1,
+      actual_digital_volume: 1,
+    };
+
+    const pipelineResult = runScoringPipeline({
+      signalsForScoring: prepared.signalsForScoring,
+      dataVoid,
+      totalArticles: 2,
+      mediaSignals: scoped.scopedSignals,
+      scopeId: 'national',
+      reportDate: '2026-04-03',
+    });
+
+    assert.equal(pipelineResult.partition?.partitionApplied, true);
+    assert.equal(pipelineResult.scoringSignals.length, 1);
+    assert.equal(pipelineResult.scoringSignals[0].source_type, 'pbo');
+    assert.ok(investigationPrep.investigationSignals.some((s) => s.source_type === 'news'));
+    assert.ok(scoped.narrativeScopeSignals.some((s) => s.source_type === 'news'));
+    assert.ok(pipelineResult.digitalInclusiveScored != null);
+
+    const assessment = { components: [], agent_trace_id: 'test-trace' };
+    attachInvestigationDiagnostics(assessment, {
+      scoring: {
+        investigationSignals: investigationPrep.investigationSignals,
+        signalsForScoring: pipelineResult.scoringSignals,
+        scopedSignals: scoped.scopedSignals,
+        narrativeScopeSignals: scoped.narrativeScopeSignals,
+        scoringPartition: pipelineResult.partition,
+        scoringAssessmentMode: pipelineResult.assessmentMode,
+        scoredFull: pipelineResult.scoredFull,
+      },
+    });
+
+    assert.equal(assessment.investigation_summary.signals_scoring_quarantined, 1);
+    assert.equal(assessment.investigation_summary.signals_narrative_scope, 2);
+    assert.equal(assessment.investigation_summary.scoring_partition_applied, true);
   });
 
   it('attributeSignalScope on news fixture yields persisted district_id for resolved geo', () => {

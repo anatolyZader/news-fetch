@@ -105,13 +105,37 @@ describe('scoringPartition', () => {
     assert.equal(r.quarantinedSignals.length, 2);
   });
 
-  it('prior quarantine forces digital partition', () => {
+  it('prior quarantine skipped when digital volume recovered (news present, no darkness)', () => {
     process.env.RESILIENCE_SCORING_PARTITION = '1';
-    const r = resolveScoringPartition([fieldSig, newsSig], { level: 'none' }, {
+    const r = resolveScoringPartition([fieldSig, newsSig], { level: 'none', digital_darkness: false }, {
+      priorQuarantine: { active: true, reason: QUARANTINE_REASON.PRIOR_QUARANTINE },
+    });
+    assert.equal(r.assessmentMode, 'normal');
+    assert.equal(r.partitionApplied, false);
+    assert.equal(r.priorQuarantineSkipped, 'volume_recovered');
+    assert.equal(r.scoringSignals.length, 2);
+  });
+
+  it('prior quarantine still partitions when no digital signals present', () => {
+    process.env.RESILIENCE_SCORING_PARTITION = '1';
+    const r = resolveScoringPartition([fieldSig], { level: 'none', digital_darkness: false }, {
       priorQuarantine: { active: true, reason: QUARANTINE_REASON.PRIOR_QUARANTINE },
     });
     assert.equal(r.assessmentMode, 'field_anchor_only');
-    assert.equal(r.quarantinedSignals.length, 1);
+    assert.equal(r.quarantinedSignals.length, 0);
+    assert.equal(r.scoringSignals.length, 1);
+  });
+
+  it('digital_z_drop warning does not quarantine', () => {
+    process.env.RESILIENCE_SCORING_PARTITION = '1';
+    const r = resolveScoringPartition([fieldSig, newsSig], {
+      level: 'warning',
+      reason: 'digital_z_drop',
+      digital_darkness: false,
+    });
+    assert.equal(r.assessmentMode, 'normal');
+    assert.equal(r.partitionApplied, false);
+    assert.equal(r.scoringSignals.length, 2);
   });
 
   it('normal day passes all signals through', () => {

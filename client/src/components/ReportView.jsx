@@ -730,6 +730,7 @@ function InvestigationSummaryBanner({ summary, t }) {
     || summary.synthesis_mode === 'deterministic'
     || summary.synthesis_mode === 'cached'
     || (summary.signals_scoring_quarantined ?? 0) > 0
+    || summary.scoring_partition_applied === true
     || summary.budget_degrade_mode;
   if (!show) return null;
 
@@ -739,6 +740,13 @@ function InvestigationSummaryBanner({ summary, t }) {
   }
   if (summary.synthesis_mode === 'deterministic' || summary.synthesis_mode === 'cached') {
     lines.push(t('report.investigation.synthesisMode').replace('{mode}', String(summary.synthesis_mode)));
+  }
+  if (summary.scoring_partition_applied === true) {
+    lines.push(
+      t('report.investigation.scoringPartitionDualUse')
+        .replace('{scoring}', String(summary.signals_scoring_used ?? 0))
+        .replace('{narrative}', String(summary.signals_narrative_scope ?? 0)),
+    );
   }
   if ((summary.signals_scoring_quarantined ?? 0) > 0) {
     lines.push(

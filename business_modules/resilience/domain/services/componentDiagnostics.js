@@ -473,6 +473,10 @@ export function attachInvestigationDiagnostics(assessment, params) {
     narrativeNationalContext: scoring.narrativeNationalContext ?? [],
     shadowScoringAvailable: Boolean(scoring.scoredFull && Object.keys(scoring.scoredFull).length > 0),
     budgetDegradeMode: assessment.budget_snapshot?.degrade_mode ?? null,
+    scoringPartitionApplied: scoring.scoringPartition?.partitionApplied === true,
+    scoringAssessmentMode: scoring.scoringAssessmentMode ?? scoring.scoringPartition?.assessmentMode ?? null,
+    signalsScoringUsed: (scoring.signalsForScoring ?? []).length,
+    priorQuarantineSkipped: scoring.scoringPartition?.priorQuarantineSkipped ?? null,
   });
   return assessment;
 }

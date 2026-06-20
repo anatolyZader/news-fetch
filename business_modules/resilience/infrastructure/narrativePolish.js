@@ -78,8 +78,9 @@ function formatClaimsBlock(mergedNarratives, registry, narrativeScored) {
   return blocks.join('\n\n---\n\n');
 }
 
-function formatPolishUserMessage(mergedNarratives, registry, narrativeScored, retrievedSpansBlock = '', feedback = '') {
-  const prefix = retrievedSpansBlock ? `${retrievedSpansBlock}\n` : '';
+function formatPolishUserMessage(mergedNarratives, registry, narrativeScored, retrievedSpansBlock = '', feedback = '', epistemicBlock = '') {
+  const prefixParts = [retrievedSpansBlock, epistemicBlock].filter(Boolean);
+  const prefix = prefixParts.length > 0 ? `${prefixParts.join('\n\n')}\n\n` : '';
   const claimsBlock = formatClaimsBlock(mergedNarratives, registry, narrativeScored);
   const feedbackBlock = feedback ? `\n\nREVISION FEEDBACK:\n${feedback}\n` : '';
   return (
@@ -117,7 +118,7 @@ function normalizePolishOutput(parsed, mergedNarratives) {
  * @returns {Promise<{ components: object[], cross_component_synthesis: string }>}
  */
 export async function polishNarrativeFromClaims(mergedNarratives, registry, narrativeScored, opts = {}) {
-  const { onUsage, retrievedSpansBlock = '', feedback = '' } = opts;
+  const { onUsage, retrievedSpansBlock = '', feedback = '', epistemicBlock = '' } = opts;
   if (!(mergedNarratives?.components ?? []).some((c) => (c.narrative_claims ?? []).length > 0)) {
     return { components: [], cross_component_synthesis: '' };
   }
@@ -129,6 +130,7 @@ export async function polishNarrativeFromClaims(mergedNarratives, registry, narr
     narrativeScored,
     retrievedSpansBlock,
     feedback,
+    epistemicBlock,
   );
 
   const stream = await Promise.resolve(port.stream({

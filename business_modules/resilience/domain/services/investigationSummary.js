@@ -15,6 +15,10 @@ export function buildInvestigationSummary(assessment, ctx = {}) {
     narrativeNationalContext = [],
     shadowScoringAvailable = false,
     budgetDegradeMode = null,
+    scoringPartitionApplied = false,
+    scoringAssessmentMode = null,
+    signalsScoringUsed = null,
+    priorQuarantineSkipped = null,
   } = ctx;
 
   const investigationSet = new Set(investigationSignals);
@@ -37,6 +41,10 @@ export function buildInvestigationSummary(assessment, ctx = {}) {
     signals_narrative_scope: narrativeScopeSignals.length,
     signals_national_context: narrativeNationalContext.length,
     signals_scoring_quarantined: scoringQuarantined,
+    signals_scoring_used: signalsScoringUsed ?? scoringSignals.length,
+    scoring_partition_applied: scoringPartitionApplied === true,
+    scoring_assessment_mode: scoringAssessmentMode ?? null,
+    prior_quarantine_skipped: priorQuarantineSkipped ?? null,
     shadow_scoring_available: shadowScoringAvailable === true,
     investigation_mode: assessment?.epistemic_status?.investigation_mode ?? null,
   };
