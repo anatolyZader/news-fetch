@@ -10,7 +10,6 @@ import {
   buildSignalRefRegistry,
   formatSignalWithRef,
   resolveRef,
-  formatDigitalQuarantineNarrativeBlock,
 } from '../domain/services/narrativeGrounding/index.js';
 
 const DEFAULT_FACTS_MODEL = process.env.RESILIENCE_NARRATIVE_FACTS_MODEL
