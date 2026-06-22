@@ -30,6 +30,150 @@ function throwIfAborted(abortSignal) {
   throw err;
 }
 
+function buildChatToolContextDeps(opts) {
+  return {
+    userEmail: opts.userEmail ?? '',
+    sourceArchive: opts.sourceArchive ?? null,
+    evidenceStore: opts.evidenceStore ?? null,
+    retrievalService: opts.retrievalService ?? null,
+    retrievalCache: opts.retrievalCache ?? null,
+    toolProfile: opts.toolProfile ?? 'default',
+  };
+}
+
+async function sendDeterministicFallback(send, {
+  message,
+  reportData,
+  pboLookup,
+  sliceResult,
+  toolContextDeps,
+  doneMeta,
+  errorDoneMeta,
+}) {
+  try {
+    const fallbackText = await runDeterministicChatFallback({
+      message,
+      reportData,
+      pboLookup,
+      contextSlice: sliceResult.contextSlice,
+      contextSliceReason: sliceResult.reason,
+      toolContextDeps,
+    });
+    send({ type: 'text', text: fallbackText });
+    send({ type: 'done', mode: 'deterministic_fallback', ...doneMeta });
+  } catch (err) {
+    send({ type: 'error', message: err?.message ?? 'Deterministic fallback failed' });
+    send({ type: 'done', error: true, ...errorDoneMeta });
+  }
+}
+
+function recordChatEconomyUsage(costRecorder, chatEconomyMeta, contextLength) {
+  if (!costRecorder) return;
+  costRecorder.onUsage({
+    label: 'http:chat',
+    stage: 'chat_economy',
+    stats: {
+      context_slice: chatEconomyMeta.context_slice,
+      compact_tool_loop: chatEconomyMeta.compact_tool_loop,
+      context_chars: contextLength,
+      context_slicing_enabled: chatEconomyMeta.context_slicing_enabled,
+      economy_override: chatEconomyMeta.economy_override,
+      context_slice_reason: chatEconomyMeta.context_slice_reason,
+    },
+  });
+}
+
+async function runStreamChatLlm({
+  chatLlmPort,
+  context,
+  pboLookup,
+  messages,
+  send,
+  reportData,
+  opts,
+  chatEconomyMeta,
+  abortSignal,
+  tracePort,
+}) {
+  let loopExhausted = false;
+  const runLlm = () => chatLlmPort.streamChatResponse(
+    context,
+    pboLookup,
+    messages,
+    send,
+    reportData,
+    buildChatLlmStreamOptions(opts, {
+      chatEconomyMeta,
+      abortSignal,
+      onLoopExhausted: (meta) => {
+        loopExhausted = meta?.stopReason === 'max_rounds';
+      },
+    }),
+  );
+
+  if (tracePort) {
+    await tracePort.startActiveSpan(METRIC.CHAT_LLM_STREAM, runLlm);
+  } else {
+    await runLlm();
+  }
+  send({
+    type: 'done',
+    chat_economy: chatEconomyMeta,
+    ...(loopExhausted ? { loop_exhausted: true } : {}),
+  });
+}
+
+async function handleStreamChatLlmError(err, send, {
+  message,
+  reportData,
+  pboLookup,
+  sliceResult,
+  opts,
+  chatEconomyMeta,
+}) {
+  if (err?.code === 'llm_circuit_open' && err?.name !== 'AbortError') {
+    await sendDeterministicFallback(send, {
+      message,
+      reportData,
+      pboLookup,
+      sliceResult,
+      toolContextDeps: buildChatToolContextDeps(opts),
+      doneMeta: { llm_circuit_open: true, chat_economy: chatEconomyMeta },
+      errorDoneMeta: { mode: 'deterministic_fallback' },
+    });
+    return;
+  }
+  send({ type: 'error', message: err?.message ?? 'Chat failed' });
+  send({ type: 'done', error: true });
+}
+
+function buildChatLlmStreamOptions(opts, { chatEconomyMeta, abortSignal, onLoopExhausted }) {
+  return {
+    sourceArchive: opts.sourceArchive ?? null,
+    evidenceStore: opts.evidenceStore ?? null,
+    retrievalService: opts.retrievalService ?? null,
+    retrievalCache: opts.retrievalCache ?? null,
+    costRecorder: opts.costRecorder ?? null,
+    userEmail: opts.userEmail ?? '',
+    ownerUid: opts.ownerUid ?? '',
+    sessionId: opts.sessionId ?? '',
+    pendingActionStore: opts.pendingActionStore ?? null,
+    validationReviewService: opts.validationReviewService ?? null,
+    pboHistoricalSearchService: opts.pboHistoricalSearchService ?? null,
+    pboReportReviewService: opts.pboReportReviewService ?? null,
+    driftService: opts.driftService ?? null,
+    catalogProposalService: opts.catalogProposalService ?? null,
+    geoUnknownReviewService: opts.geoUnknownReviewService ?? null,
+    toolProfile: opts.toolProfile ?? 'default',
+    llmPort: opts.llmPort ?? null,
+    agentKernel: opts.agentKernel ?? null,
+    abortSignal,
+    economy: chatEconomyMeta,
+    uiLang: opts.uiLang ?? 'en',
+    onLoopExhausted,
+  };
+}
+
 /**
  * @param {object} [opts]
  * @param {string} [opts.userEmail]
@@ -94,33 +238,15 @@ export async function streamChat(message, history, rawReply, getReportData, opts
   };
 
   if (opts.budgetDegraded) {
-    try {
-      const fallbackText = await runDeterministicChatFallback({
-        message,
-        reportData,
-        pboLookup,
-        contextSlice: sliceResult.contextSlice,
-        contextSliceReason: sliceResult.reason,
-        toolContextDeps: {
-          userEmail: opts.userEmail ?? '',
-          sourceArchive: opts.sourceArchive ?? null,
-          evidenceStore: opts.evidenceStore ?? null,
-          retrievalService: opts.retrievalService ?? null,
-          retrievalCache: opts.retrievalCache ?? null,
-          toolProfile: opts.toolProfile ?? 'default',
-        },
-      });
-      send({ type: 'text', text: fallbackText });
-      send({
-        type: 'done',
-        mode: 'deterministic_fallback',
-        budget_degraded: true,
-        chat_economy: chatEconomyMeta,
-      });
-    } catch (err) {
-      send({ type: 'error', message: err?.message ?? 'Deterministic fallback failed' });
-      send({ type: 'done', error: true, mode: 'deterministic_fallback' });
-    }
+    await sendDeterministicFallback(send, {
+      message,
+      reportData,
+      pboLookup,
+      sliceResult,
+      toolContextDeps: buildChatToolContextDeps(opts),
+      doneMeta: { budget_degraded: true, chat_economy: chatEconomyMeta },
+      errorDoneMeta: { mode: 'deterministic_fallback' },
+    });
     return;
   }
 
@@ -148,18 +274,7 @@ export async function streamChat(message, history, rawReply, getReportData, opts
   );
 
   if (opts.costRecorder) {
-    opts.costRecorder.onUsage({
-      label: 'http:chat',
-      stage: 'chat_economy',
-      stats: {
-        context_slice: chatEconomyMeta.context_slice,
-        compact_tool_loop: chatEconomyMeta.compact_tool_loop,
-        context_chars: context.length,
-        context_slicing_enabled: chatEconomyMeta.context_slicing_enabled,
-        economy_override: chatEconomyMeta.economy_override,
-        context_slice_reason: chatEconomyMeta.context_slice_reason,
-      },
-    });
+    recordChatEconomyUsage(opts.costRecorder, chatEconomyMeta, context.length);
   }
 
   const trimmedHistory = history.length > MAX_HISTORY_MESSAGES
@@ -172,81 +287,27 @@ export async function streamChat(message, history, rawReply, getReportData, opts
   ];
 
   try {
-    let loopExhausted = false;
-    const runLlm = () => chatLlmPort.streamChatResponse(context, pboLookup, messages, send, reportData, {
-      sourceArchive: opts.sourceArchive ?? null,
-      evidenceStore: opts.evidenceStore ?? null,
-      retrievalService: opts.retrievalService ?? null,
-      retrievalCache: opts.retrievalCache ?? null,
-      costRecorder: opts.costRecorder ?? null,
-      userEmail: opts.userEmail ?? '',
-      ownerUid: opts.ownerUid ?? '',
-      sessionId: opts.sessionId ?? '',
-      pendingActionStore: opts.pendingActionStore ?? null,
-      validationReviewService: opts.validationReviewService ?? null,
-      pboHistoricalSearchService: opts.pboHistoricalSearchService ?? null,
-      pboReportReviewService: opts.pboReportReviewService ?? null,
-      driftService: opts.driftService ?? null,
-      catalogProposalService: opts.catalogProposalService ?? null,
-      geoUnknownReviewService: opts.geoUnknownReviewService ?? null,
-      toolProfile: opts.toolProfile ?? 'default',
-      llmPort: opts.llmPort ?? null,
-      agentKernel: opts.agentKernel ?? null,
+    await runStreamChatLlm({
+      chatLlmPort,
+      context,
+      pboLookup,
+      messages,
+      send,
+      reportData,
+      opts,
+      chatEconomyMeta,
       abortSignal,
-      economy: chatEconomyMeta,
-      uiLang: opts.uiLang ?? 'en',
-      onLoopExhausted: (meta) => {
-        loopExhausted = meta?.stopReason === 'max_rounds';
-      },
-    });
-
-    if (tracePort) {
-      await tracePort.startActiveSpan(METRIC.CHAT_LLM_STREAM, runLlm);
-    } else {
-      await runLlm();
-    }
-    send({
-      type: 'done',
-      chat_economy: chatEconomyMeta,
-      ...(loopExhausted ? { loop_exhausted: true } : {}),
+      tracePort,
     });
   } catch (err) {
-    if (err?.code === 'llm_circuit_open' && err?.name !== 'AbortError') {
-      try {
-        const fallbackText = await runDeterministicChatFallback({
-          message,
-          reportData,
-          pboLookup,
-          contextSlice: sliceResult.contextSlice,
-          contextSliceReason: sliceResult.reason,
-          toolContextDeps: {
-            userEmail: opts.userEmail ?? '',
-            sourceArchive: opts.sourceArchive ?? null,
-            evidenceStore: opts.evidenceStore ?? null,
-            retrievalService: opts.retrievalService ?? null,
-            retrievalCache: opts.retrievalCache ?? null,
-            toolProfile: opts.toolProfile ?? 'default',
-          },
-        });
-        send({ type: 'text', text: fallbackText });
-        send({
-          type: 'done',
-          mode: 'deterministic_fallback',
-          llm_circuit_open: true,
-          chat_economy: chatEconomyMeta,
-        });
-        return;
-      } catch (fallbackErr) {
-        send({
-          type: 'error',
-          message: fallbackErr?.message ?? err?.message ?? 'LLM circuit open + fallback failed',
-        });
-        send({ type: 'done', error: true, mode: 'deterministic_fallback' });
-        return;
-      }
-    }
-    send({ type: 'error', message: err?.message ?? 'Chat failed' });
-    send({ type: 'done', error: true });
+    await handleStreamChatLlmError(err, send, {
+      message,
+      reportData,
+      pboLookup,
+      sliceResult,
+      opts,
+      chatEconomyMeta,
+    });
   }
 }
 

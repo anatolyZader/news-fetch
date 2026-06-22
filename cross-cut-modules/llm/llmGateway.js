@@ -5,6 +5,29 @@ import { mergeLlmCallContext } from './llmCallContext.js';
 import { logLlmInvocation } from './llmInvocationLog.js';
 import { calcLlmCostUsd } from './llmPricing.js';
 
+function makeCircuitOpenError() {
+  const err = new Error('LLM circuit breaker open');
+  err.name = 'LlmCircuitOpenError';
+  err.code = 'llm_circuit_open';
+  err.providerCircuitOpen = true;
+  return err;
+}
+
+function logCircuitOpen(callContext, model) {
+  try {
+    logLlmInvocation({
+      callContext,
+      model: model ?? 'unknown',
+      usage: null,
+      latencyMs: 0,
+      stopReason: 'llm_circuit_open',
+      label: callContext.purpose ?? callContext.feature,
+    });
+  } catch {
+    // never let observability failures break request handling
+  }
+}
+
 function emitUsage(onUsage, payload) {
   if (typeof onUsage === 'function') onUsage(payload);
 }
@@ -28,14 +51,6 @@ export function createLlmGateway(innerPort, cfg = {}) {
     return Date.now() < breakerOpenUntilMs;
   }
 
-  function makeCircuitOpenError() {
-    const err = new Error('LLM circuit breaker open');
-    err.name = 'LlmCircuitOpenError';
-    err.code = 'llm_circuit_open';
-    err.providerCircuitOpen = true;
-    return err;
-  }
-
   function isNetworkOrProviderFailure(err) {
     if (!err || typeof err !== 'object') return false;
     const status = err.status ?? err.statusCode ?? err?.response?.status;
@@ -49,21 +64,6 @@ export function createLlmGateway(innerPort, cfg = {}) {
     if (/timeout|timed out|unavailable|temporarily/i.test(msg)) return true;
 
     return false;
-  }
-
-  function logCircuitOpen(callContext, model) {
-    try {
-      logLlmInvocation({
-        callContext,
-        model: model ?? 'unknown',
-        usage: null,
-        latencyMs: 0,
-        stopReason: 'llm_circuit_open',
-        label: callContext.purpose ?? callContext.feature,
-      });
-    } catch {
-      // never let observability failures break request handling
-    }
   }
 
   function resolveContext(partial) {

@@ -256,6 +256,12 @@ function redactNorrisCap(cap) {
   return omitKeys(cap, ['score', 'certainty', 'evidence_mass']);
 }
 
+function resolveOperatorEvidence(component) {
+  const structuredEvidence = component.evidence_operator_structured ?? [];
+  if (structuredEvidence.length > 0) return structuredEvidence;
+  return component.evidence_operator ?? component.evidence;
+}
+
 /**
  * @param {object} assessment
  * @param {'operator' | 'analyst'} view
@@ -299,12 +305,7 @@ export function redactAssessmentForView(assessment, view) {
     const narrative = isOperator
       ? (c.narrative_operator ?? c.narrative)
       : c.narrative;
-    const structuredEvidence = c.evidence_operator_structured ?? [];
-    const evidence = isOperator
-      ? (structuredEvidence.length > 0
-        ? structuredEvidence
-        : (c.evidence_operator ?? c.evidence))
-      : c.evidence;
+    const evidence = isOperator ? resolveOperatorEvidence(c) : c.evidence;
     return {
       ...base,
       narrative,

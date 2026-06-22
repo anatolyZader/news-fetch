@@ -207,7 +207,7 @@ export function computeDataVoidIndex(signals, historicalSignals = [], opts = {})
     expected_field_volume: Math.round(expectedField * 100) / 100,
     field_volume: fieldToday,
     north_digital_volume: northPressVolume,
-    ...(nationalPressVolume != null ? { national_digital_volume: nationalPressVolume } : {}),
+    ...(nationalPressVolume == null ? {} : { national_digital_volume: nationalPressVolume }),
     digital_z: digitalZ == null ? null : Math.round(digitalZ * 100) / 100,
     digital_ewma_7: Math.round(digitalEwma7 * 100) / 100,
     digital_ewma_14: Math.round(digitalEwma14 * 100) / 100,

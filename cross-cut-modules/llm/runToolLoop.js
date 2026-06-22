@@ -59,6 +59,23 @@ function auditToolRound(roundMeta, auditLogPath) {
   }
 }
 
+function applyCompactHistoryMessages({
+  initialUserMessage,
+  responseContent,
+  toolResults,
+  workingMemory,
+  budget,
+}) {
+  const memoryBlock = formatCompactMemoryMessage(
+    buildCompactMemoryBlock(workingMemory, budget),
+  );
+  const tailAssistant = { role: 'assistant', content: responseContent };
+  const tailUser = { role: 'user', content: toolResults };
+  return initialUserMessage
+    ? [initialUserMessage, memoryBlock, tailAssistant, tailUser]
+    : [memoryBlock, tailAssistant, tailUser];
+}
+
 /**
  * @param {{
  *   client: { messages: { create: Function } },
@@ -176,14 +193,13 @@ export async function runToolLoop(opts) {
     ];
 
     if (compactHistoryAfterRound && round >= 0 && workingMemory) {
-      const memoryBlock = formatCompactMemoryMessage(
-        buildCompactMemoryBlock(workingMemory, budget),
-      );
-      const tailAssistant = { role: 'assistant', content: response.content };
-      const tailUser = { role: 'user', content: toolResults };
-      currentMessages = initialUserMessage
-        ? [initialUserMessage, memoryBlock, tailAssistant, tailUser]
-        : [memoryBlock, tailAssistant, tailUser];
+      currentMessages = applyCompactHistoryMessages({
+        initialUserMessage,
+        responseContent: response.content,
+        toolResults,
+        workingMemory,
+        budget,
+      });
     }
   }
 

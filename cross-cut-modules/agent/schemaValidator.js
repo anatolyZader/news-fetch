@@ -4,6 +4,54 @@
 
 const SUBMIT_TOOL_PREFIX = 'submit_';
 
+/** @type {Record<string, (key: string, value: unknown, errors: string[]) => void>} */
+const PRIMITIVE_TYPE_VALIDATORS = {
+  string(key, value, errors) {
+    if (typeof value !== 'string') errors.push(`"${key}" must be a string`);
+  },
+  number(key, value, errors) {
+    if (typeof value !== 'number' || !Number.isFinite(value)) {
+      errors.push(`"${key}" must be a finite number`);
+    }
+  },
+  integer(key, value, errors) {
+    if (typeof value !== 'number' || !Number.isInteger(value)) {
+      errors.push(`"${key}" must be an integer`);
+    }
+  },
+  boolean(key, value, errors) {
+    if (typeof value !== 'boolean') errors.push(`"${key}" must be a boolean`);
+  },
+  array(key, value, errors) {
+    if (!Array.isArray(value)) errors.push(`"${key}" must be an array`);
+  },
+  object(key, value, errors) {
+    if (value == null || typeof value !== 'object' || Array.isArray(value)) {
+      errors.push(`"${key}" must be an object`);
+    }
+  },
+};
+
+/**
+ * @param {string[]} errors
+ * @param {string} key
+ * @param {unknown} value
+ * @param {{ type?: string, enum?: unknown[] }} propSchema
+ */
+function validatePropertySchema(errors, key, value, propSchema) {
+  if (Array.isArray(propSchema.enum) && !propSchema.enum.includes(value)) {
+    errors.push(`"${key}" must be one of: ${propSchema.enum.map((v) => JSON.stringify(v)).join(', ')}`);
+  }
+  const expectedType = propSchema?.type;
+  if (!expectedType) return;
+  const validate = PRIMITIVE_TYPE_VALIDATORS[expectedType];
+  if (validate) {
+    validate(key, value, errors);
+    return;
+  }
+  errors.push(`"${key}" has unsupported type "${expectedType}"`);
+}
+
 /**
  * Validate a subset of JSON Schema against an unknown payload.
  * This is intentionally small: it covers the tool schema shapes we ship today
@@ -40,56 +88,10 @@ export function validateToolInputAgainstInputSchema(payload, inputSchema) {
     if (!(key in obj)) errors.push(`"${key}" is required`);
   }
 
-  function validatePrimitiveType(key, value, propSchema) {
-    const expectedType = propSchema?.type;
-    if (!expectedType) return;
-
-    if (expectedType === 'string') {
-      if (typeof value !== 'string') errors.push(`"${key}" must be a string`);
-      return;
-    }
-    if (expectedType === 'number') {
-      if (typeof value !== 'number' || !Number.isFinite(value)) {
-        errors.push(`"${key}" must be a finite number`);
-      }
-      return;
-    }
-    if (expectedType === 'integer') {
-      if (typeof value !== 'number' || !Number.isInteger(value)) {
-        errors.push(`"${key}" must be an integer`);
-      }
-      return;
-    }
-    if (expectedType === 'boolean') {
-      if (typeof value !== 'boolean') errors.push(`"${key}" must be a boolean`);
-      return;
-    }
-    if (expectedType === 'array') {
-      if (!Array.isArray(value)) errors.push(`"${key}" must be an array`);
-      return;
-    }
-    if (expectedType === 'object') {
-      if (value == null || typeof value !== 'object' || Array.isArray(value)) {
-        errors.push(`"${key}" must be an object`);
-      }
-      return;
-    }
-
-    errors.push(`"${key}" has unsupported type "${expectedType}"`);
-  }
-
   for (const [key, value] of Object.entries(obj)) {
     const propSchema = properties[key];
     if (!propSchema) continue; // allow extra keys by default
-
-    if (Array.isArray(propSchema.enum)) {
-      // enum values are treated as-is (strict equality).
-      if (!propSchema.enum.includes(value)) {
-        errors.push(`"${key}" must be one of: ${propSchema.enum.map((v) => JSON.stringify(v)).join(', ')}`);
-      }
-    }
-
-    validatePrimitiveType(key, value, propSchema);
+    validatePropertySchema(errors, key, value, propSchema);
   }
 
   return { valid: errors.length === 0, errors };

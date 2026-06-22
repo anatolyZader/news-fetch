@@ -872,10 +872,17 @@ function resolveEvidenceSourceMeta(item, sourceSignals) {
   return null;
 }
 
+function formatEvidenceArticleSource(meta, sourceType) {
+  if (!meta.article_source) return null;
+  if (sourceType === 'pbo') return meta.article_source.replace(/^pbo-/, '');
+  return meta.article_source;
+}
+
 function EvidenceSourceHeader({ item, sourceSignals, t }) {
   const meta = resolveEvidenceSourceMeta(item, sourceSignals);
   if (!meta?.source_type && !meta?.article_source) return null;
   const sourceType = meta.source_type;
+  const articleSourceLabel = formatEvidenceArticleSource(meta, sourceType);
   return (
     <Box
       component="span"
@@ -896,12 +903,16 @@ function EvidenceSourceHeader({ item, sourceSignals, t }) {
       )}
       {sourceType === 'social' && <SourceBadge kind="social">{t('report.badge.social')}</SourceBadge>}
       {sourceType === 'pbo' && <SourceBadge kind="pbo">{t('report.badge.pbo')}</SourceBadge>}
-      {meta.article_source
-        ? (sourceType === 'pbo' ? meta.article_source.replace(/^pbo-/, '') : meta.article_source)
-        : null}
+      {articleSourceLabel}
     </Box>
   );
 }
+
+EvidenceSourceHeader.propTypes = {
+  item: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
+  sourceSignals: PropTypes.arrayOf(PropTypes.object),
+  t: PropTypes.func.isRequired,
+};
 
 function resolveComponentSignals(curatedEvidence, allowRawSignalFallback, sourceSignals) {
   if (curatedEvidence) return null;
