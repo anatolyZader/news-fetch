@@ -31,12 +31,14 @@ describe('chatRoutes confirm-action', () => {
   let prevAnalystEmails;
   let geoUpdated;
   let catalogReviewed;
+  let submitDecisionCalls;
 
   beforeEach(async () => {
     prevAnalystEmails = process.env.RESILIENCE_ANALYST_EMAILS;
     process.env.RESILIENCE_ANALYST_EMAILS = 'analyst@test.com';
     geoUpdated = null;
     catalogReviewed = null;
+    submitDecisionCalls = 0;
     dir = mkdtempSync(join(tmpdir(), 'chat-confirm-routes-'));
     chatStore = createChatStore(join(dir, 'chat.sqlite'));
     pendingActionStore = createChatPendingActionStore(join(dir, 'pending.sqlite'));
@@ -60,6 +62,7 @@ describe('chatRoutes confirm-action', () => {
       pendingActionStore,
       validationReviewService: {
         submitDecision(date, scope, key, reviewer, { action }) {
+          submitDecisionCalls += 1;
           return { date, scope, article_key: key, action, reviewer: reviewer.email };
         },
       },
@@ -114,6 +117,30 @@ describe('chatRoutes confirm-action', () => {
     assert.equal(res.statusCode, 200);
     assert.equal(res.json().ok, true);
     assert.match(res.json().result.message, /skip/i);
+  });
+
+  it('prevents double execution on double confirm', async () => {
+    const { id } = createPendingAction();
+
+    const [resA, resB] = await Promise.all([
+      app.inject({
+        method: 'POST',
+        url: '/api/chat/confirm-action',
+        headers: { 'x-test-email': 'analyst@test.com' },
+        payload: { sessionId, actionId: id, confirmed: true },
+      }),
+      app.inject({
+        method: 'POST',
+        url: '/api/chat/confirm-action',
+        headers: { 'x-test-email': 'analyst@test.com' },
+        payload: { sessionId, actionId: id, confirmed: true },
+      }),
+    ]);
+
+    const codes = [resA.statusCode, resB.statusCode].sort();
+    assert.equal(codes[0], 200);
+    assert.equal(codes[1], 409);
+    assert.equal(submitDecisionCalls, 1);
   });
 
   it('rejects without executing', async () => {

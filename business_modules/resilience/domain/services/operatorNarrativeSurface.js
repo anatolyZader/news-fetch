@@ -146,6 +146,54 @@ function urlFromClaim(claim) {
 }
 
 /**
+ * @param {string|null|undefined} sourceType
+ * @returns {string|null}
+ */
+function normalizeSourceType(sourceType) {
+  const st = String(sourceType ?? '').trim().toLowerCase();
+  if (!st) return null;
+  if (st === 'news' || st === 'press') return 'press';
+  if (st === 'field' || st === 'visits') return 'field';
+  return st;
+}
+
+/**
+ * @param {object} claim
+ * @param {object} comp
+ * @returns {{ source_type: string|null, article_source: string|null }}
+ */
+function sourceMetaFromClaim(claim, comp) {
+  if (claim?.source_type) {
+    return {
+      source_type: normalizeSourceType(claim.source_type),
+      article_source: claim.article_source ?? null,
+    };
+  }
+  const url = urlFromClaim(claim);
+  const signalPools = [
+    ...(comp?.signals ?? []),
+    ...(comp?.top_contributors ?? []),
+  ];
+  for (const signal of signalPools) {
+    if (url && signal?.article_url && signal.article_url === url) {
+      return {
+        source_type: normalizeSourceType(signal.source_type),
+        article_source: signal.article_source ?? null,
+      };
+    }
+  }
+  if (url) {
+    try {
+      const host = new URL(url).hostname.replace(/^www\./, '');
+      return { source_type: null, article_source: host || null };
+    } catch {
+      return { source_type: null, article_source: null };
+    }
+  }
+  return { source_type: null, article_source: null };
+}
+
+/**
  * @param {string} text
  * @param {string|null} url
  * @returns {string}
@@ -187,6 +235,52 @@ export function buildCuratedEvidenceBullets(comp) {
   }
 
   return [];
+}
+
+/**
+ * @param {object} comp
+ * @returns {object[]}
+ */
+function rawClaimsForComponent(comp) {
+  const raw = comp?.narrative_claims ?? comp?.claims ?? [];
+  return Array.isArray(raw) ? raw.filter((c) => c?.text) : [];
+}
+
+/**
+ * @param {object} comp
+ * @returns {Array<{ text: string, source_type?: string|null, article_source?: string|null, url?: string|null, markdown?: string }>}
+ */
+export function buildStructuredEvidenceItems(comp) {
+  if (Array.isArray(comp.evidence_operator_structured) && comp.evidence_operator_structured.length > 0) {
+    return comp.evidence_operator_structured.slice(0, MAX_EVIDENCE_BULLETS);
+  }
+
+  const claims = rawClaimsForComponent(comp).length > 0
+    ? rawClaimsForComponent(comp)
+    : claimsForComponent(comp);
+  if (claims.length > 0) {
+    return claims
+      .map((c) => {
+        const text = String(c.text ?? '').trim().slice(0, MAX_EVIDENCE_LINE_CHARS);
+        if (!text) return null;
+        const url = urlFromClaim(c);
+        const meta = sourceMetaFromClaim(c, comp);
+        return {
+          text,
+          source_type: meta.source_type,
+          article_source: meta.article_source,
+          url,
+          markdown: formatEvidenceBullet(c.text, url),
+        };
+      })
+      .filter(Boolean)
+      .slice(0, MAX_EVIDENCE_BULLETS);
+  }
+
+  return buildCuratedEvidenceBullets(comp).map((md) => ({
+    text: String(md).replace(/^-\s*/, '').trim(),
+    markdown: md,
+  }));
 }
 
 /**
@@ -236,8 +330,10 @@ export function finalizeOperatorNarrativeSurface(assessment) {
     }
 
     const bullets = buildCuratedEvidenceBullets(comp);
+    const structured = buildStructuredEvidenceItems(comp);
     if (bullets.length > 0) {
       comp.evidence_operator = bullets;
+      comp.evidence_operator_structured = structured;
       comp.operator_evidence_tier = 'curated';
     } else {
       comp.operator_evidence_tier = 'none';

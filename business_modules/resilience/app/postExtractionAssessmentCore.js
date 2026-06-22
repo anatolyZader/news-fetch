@@ -224,6 +224,7 @@ export async function runPostExtractionAssessmentCore(params) {
     reportDate,
     reportScopeId,
     reportsDir,
+    allSignalsForDiagnostics: allSignals,
   });
 
   const investigationEpistemic = deriveInvestigationEpistemicContext(investigationPrep.dataVoid);

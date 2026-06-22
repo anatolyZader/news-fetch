@@ -57,6 +57,31 @@ describe('runToolLoop', () => {
     assert.ok(result.messages.length >= 3);
   });
 
+  it('surfaces stopReason=max_rounds when loop ends by maxRounds', async () => {
+    const client = fakeClient([
+      {
+        stop_reason: 'tool_use',
+        content: [
+          { type: 'tool_use', id: 't1', name: 'lookup', input: { q: 'x' } },
+        ],
+        usage: { input_tokens: 10, output_tokens: 5 },
+      },
+    ]);
+
+    const result = await runToolLoop({
+      client,
+      model: 'test-model',
+      system: 'sys',
+      messages: [{ role: 'user', content: 'go' }],
+      tools: [{ name: 'lookup', input_schema: { type: 'object', properties: {} } }],
+      agentKind: 'test',
+      maxRounds: 0,
+      executeTool: async () => 'tool output',
+    });
+
+    assert.equal(result.stopReason, 'max_rounds');
+  });
+
   it('stops on end_turn without tools', async () => {
     const client = fakeClient([
       {

@@ -198,6 +198,39 @@ describe('assessmentDisplayTier', () => {
     assert.equal(out.components[0].evidence_operator, undefined);
   });
 
+  it('redactAssessmentForView prefers structured evidence_operator for operator view', () => {
+    const assessment = {
+      components: [{
+        component_id: 'narrative',
+        evidence_operator: ['- bullet'],
+        evidence_operator_structured: [{
+          text: 'Operator claim.',
+          source_type: 'press',
+          article_source: 'ynet.co.il',
+          markdown: '- Operator claim. [source](https://ynet.co.il/x)',
+        }],
+      }],
+    };
+    const out = redactAssessmentForView(assessment, DISPLAY_VIEWS.operator);
+    assert.equal(out.components[0].evidence.length, 1);
+    assert.equal(out.components[0].evidence[0].source_type, 'press');
+    assert.equal(out.components[0].evidence_operator_structured, undefined);
+  });
+
+  it('redactAssessmentForView strips operator pipeline caveats', () => {
+    const assessment = {
+      investigation_summary: { synthesis_mode: 'deterministic' },
+      components: [{
+        component_id: 'narrative',
+        narrative: 'Prose.',
+        data_quality_caveat: 'Source cap on ynet.',
+      }],
+    };
+    const out = redactAssessmentForView(assessment, DISPLAY_VIEWS.operator);
+    assert.equal(out.investigation_summary, undefined);
+    assert.equal(out.components[0].data_quality_caveat, undefined);
+  });
+
   it('redactAssessmentForView keeps agent narrative for analyst when operator field present', () => {
     const assessment = {
       components: [{

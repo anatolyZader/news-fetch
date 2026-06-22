@@ -16,15 +16,84 @@ function emitUsage(onUsage, payload) {
  */
 export function createLlmGateway(innerPort, cfg = {}) {
   const defaultCtx = cfg.defaultCallContext ?? {};
+  const breakerThreshold = Number.parseInt(process.env.LLM_BREAKER_THRESHOLD ?? '5', 10);
+  const breakerCooldownMs = Number.parseInt(process.env.LLM_BREAKER_COOLDOWN_MS ?? '60000', 10);
+  const consecutiveFailureLimit = Number.isFinite(breakerThreshold) && breakerThreshold > 0 ? breakerThreshold : 5;
+  const cooldownMs = Number.isFinite(breakerCooldownMs) && breakerCooldownMs > 0 ? breakerCooldownMs : 60_000;
+
+  let consecutiveProviderFailures = 0;
+  let breakerOpenUntilMs = 0;
+
+  function isBreakerOpen() {
+    return Date.now() < breakerOpenUntilMs;
+  }
+
+  function makeCircuitOpenError() {
+    const err = new Error('LLM circuit breaker open');
+    err.name = 'LlmCircuitOpenError';
+    err.code = 'llm_circuit_open';
+    err.providerCircuitOpen = true;
+    return err;
+  }
+
+  function isNetworkOrProviderFailure(err) {
+    if (!err || typeof err !== 'object') return false;
+    const status = err.status ?? err.statusCode ?? err?.response?.status;
+    if (status === 429) return true;
+    if (Number.isFinite(status) && status >= 500 && status <= 599) return true;
+
+    const code = err.code ?? err?.cause?.code ?? '';
+    const msg = String(err.message ?? '');
+    if (['ETIMEDOUT', 'ECONNRESET', 'EAI_AGAIN', 'ENOTFOUND'].includes(code)) return true;
+    if (/rate.?limit|429/i.test(msg)) return true;
+    if (/timeout|timed out|unavailable|temporarily/i.test(msg)) return true;
+
+    return false;
+  }
+
+  function logCircuitOpen(callContext, model) {
+    try {
+      logLlmInvocation({
+        callContext,
+        model: model ?? 'unknown',
+        usage: null,
+        latencyMs: 0,
+        stopReason: 'llm_circuit_open',
+        label: callContext.purpose ?? callContext.feature,
+      });
+    } catch {
+      // never let observability failures break request handling
+    }
+  }
 
   function resolveContext(partial) {
     return mergeLlmCallContext(defaultCtx, partial ?? {});
   }
 
+  async function guardedProviderCall(callContext, model, fn) {
+    if (isBreakerOpen()) {
+      logCircuitOpen(callContext, model);
+      throw makeCircuitOpenError();
+    }
+    try {
+      const res = await fn();
+      consecutiveProviderFailures = 0;
+      return res;
+    } catch (err) {
+      if (isNetworkOrProviderFailure(err)) {
+        consecutiveProviderFailures += 1;
+        if (consecutiveProviderFailures >= consecutiveFailureLimit) {
+          breakerOpenUntilMs = Date.now() + cooldownMs;
+        }
+      }
+      throw err;
+    }
+  }
+
   async function createMessage(opts) {
     const callContext = resolveContext(opts?.callContext);
     const started = Date.now();
-    const response = await innerPort.createMessage(opts);
+    const response = await guardedProviderCall(callContext, opts?.model, () => innerPort.createMessage(opts));
     const latencyMs = Date.now() - started;
 
     logLlmInvocation({
@@ -52,7 +121,7 @@ export function createLlmGateway(innerPort, cfg = {}) {
   async function stream(opts) {
     const callContext = resolveContext(opts?.callContext);
     const started = Date.now();
-    const streamObj = await innerPort.stream(opts);
+    const streamObj = await guardedProviderCall(callContext, opts?.model, () => innerPort.stream(opts));
     const wrapped = streamObj;
 
     if (typeof streamObj.finalMessage === 'function') {
@@ -88,7 +157,7 @@ export function createLlmGateway(innerPort, cfg = {}) {
     const baseContext = resolveContext(opts?.callContext);
     const userOnUsage = opts?.onUsage;
 
-    return innerPort.runToolLoop({
+    return guardedProviderCall(baseContext, opts?.model, () => innerPort.runToolLoop({
       ...opts,
       callContext: baseContext,
       onUsage: (p) => {
@@ -111,7 +180,7 @@ export function createLlmGateway(innerPort, cfg = {}) {
           });
         }
       },
-    });
+    }));
   }
 
   return {

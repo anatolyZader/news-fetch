@@ -5,7 +5,11 @@ import { createHash } from 'node:crypto';
 import { createAgentBudgetGovernor } from './agentBudgetGovernor.js';
 import { createWorkingMemory } from './memory/workingMemory.js';
 import { createTraceStore, hashInputs } from './memory/traceStore.js';
-import { validateSubmitToolPayload, parseToolInput } from './schemaValidator.js';
+import {
+  validateSubmitToolPayload,
+  parseToolInput,
+  validateToolInputAgainstInputSchema,
+} from './schemaValidator.js';
 import { getToolsForProfile } from './toolRegistry.js';
 import { compactToolLoopEnabled, chatCompactToolLoopEnabled } from './agentConfig.js';
 
@@ -123,6 +127,18 @@ export function createAgentKernel(deps) {
         }
 
         const parsed = parseToolInput(input);
+
+        // Universal tool input validation based on the tool's declared input_schema.
+        // This hardens tool-call boundaries against malformed or out-of-contract arguments.
+        const toolDef = tools.find((t) => t?.name === name);
+        const inputSchema = toolDef?.input_schema ?? null;
+        if (inputSchema) {
+          const validation = validateToolInputAgainstInputSchema(parsed, inputSchema);
+          if (!validation.valid) {
+            return JSON.stringify({ error: 'validation_failed', tool: name, errors: validation.errors });
+          }
+        }
+
         if (isSubmit) {
           const validation = validateSubmitToolPayload(name, parsed);
           if (!validation.valid) {

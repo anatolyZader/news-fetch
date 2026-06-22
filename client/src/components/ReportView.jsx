@@ -837,9 +837,70 @@ function EvidencePartitionPanel({ comp, t }) {
 }
 
 function resolveCuratedEvidence(comp) {
+  if (comp.evidence_operator_structured?.length) return comp.evidence_operator_structured;
   if (comp.evidence_operator?.length) return comp.evidence_operator;
   if (comp.evidence?.length) return comp.evidence;
   return null;
+}
+
+function evidenceItemMarkdown(item) {
+  if (typeof item === 'string') return item;
+  return item?.markdown ?? item?.text ?? '';
+}
+
+function evidenceItemKey(item, index) {
+  const md = evidenceItemMarkdown(item);
+  return `evidence-${index}-${md.slice(0, 32)}`;
+}
+
+function resolveEvidenceSourceMeta(item, sourceSignals) {
+  if (item && typeof item === 'object' && (item.source_type || item.article_source)) {
+    return item;
+  }
+  const md = evidenceItemMarkdown(item);
+  const urlMatch = md.match(/\]\((https?:\/\/[^)]+)\)/);
+  const url = urlMatch?.[1] ?? (typeof item === 'object' ? item?.url : null);
+  if (url && sourceSignals?.length) {
+    const signal = sourceSignals.find((s) => s.article_url === url);
+    if (signal) {
+      return {
+        source_type: signal.source_type,
+        article_source: signal.article_source,
+      };
+    }
+  }
+  return null;
+}
+
+function EvidenceSourceHeader({ item, sourceSignals, t }) {
+  const meta = resolveEvidenceSourceMeta(item, sourceSignals);
+  if (!meta?.source_type && !meta?.article_source) return null;
+  const sourceType = meta.source_type;
+  return (
+    <Box
+      component="span"
+      sx={(theme) => ({
+        fontWeight: 600,
+        color: theme.palette.text.secondary,
+        display: 'inline-block',
+        marginBottom: theme.spacing(0.25),
+      })}
+    >
+      {(sourceType === 'field' || sourceType === 'visits') && (
+        <SourceBadge kind="field">{t('report.badge.visits')}</SourceBadge>
+      )}
+      {sourceType === 'radio' && <SourceBadge kind="radio">{t('report.badge.radio')}</SourceBadge>}
+      {sourceType === 'naftali' && <SourceBadge kind="naftali">{t('report.badge.naftali')}</SourceBadge>}
+      {(sourceType === 'news' || sourceType === 'press') && (
+        <SourceBadge kind="press">{t('report.badge.press')}</SourceBadge>
+      )}
+      {sourceType === 'social' && <SourceBadge kind="social">{t('report.badge.social')}</SourceBadge>}
+      {sourceType === 'pbo' && <SourceBadge kind="pbo">{t('report.badge.pbo')}</SourceBadge>}
+      {meta.article_source
+        ? (sourceType === 'pbo' ? meta.article_source.replace(/^pbo-/, '') : meta.article_source)
+        : null}
+    </Box>
+  );
 }
 
 function resolveComponentSignals(curatedEvidence, allowRawSignalFallback, sourceSignals) {
@@ -871,6 +932,7 @@ function ComponentCard({
   driftSeries,
   driftLoading,
   displayView = 'operator',
+  operatorSimpleView = false,
   flat = false,
   open,
   evidenceOpen,
@@ -1031,15 +1093,15 @@ function ComponentCard({
         {isAnalyst && <WhyThisScore comp={comp} t={t} />}
         {isAnalyst && <DeltaLine comp={comp} t={t} />}
         {isAnalyst && <CounterfactualHint comp={comp} t={t} />}
-        {comp.data_quality_caveat && String(comp.data_quality_caveat).trim() && (
+        {!operatorSimpleView && comp.data_quality_caveat && String(comp.data_quality_caveat).trim() && (
           <Typography variant="caption" color="info.main" sx={{ display: 'block', marginBottom: 1 }}>
             {t('report.dataQualityCaveat')}: {comp.data_quality_caveat}
           </Typography>
         )}
-        {!isAnalyst && <OperatorComponentStateBanner comp={comp} t={t} />}
-        {!isAnalyst && <EvidencePartitionPanel comp={comp} t={t} />}
+        {!operatorSimpleView && !isAnalyst && <OperatorComponentStateBanner comp={comp} t={t} />}
+        {!operatorSimpleView && !isAnalyst && <EvidencePartitionPanel comp={comp} t={t} />}
         <MarkdownArticle variant="report" markdown={formatMd(comp.narrative ?? '')} />
-        {(comp.instrument?.interpretive_summary === true) && (
+        {!operatorSimpleView && (comp.instrument?.interpretive_summary === true) && (
           <Box sx={(theme) => ({ marginTop: theme.spacing(1) })}>
             <Typography variant="caption" color="warning.main" sx={{ display: 'block', fontWeight: 600 }}>
               {t('report.narrative.interpretiveTitle')}
@@ -1131,8 +1193,9 @@ function ComponentCard({
                     </Box>
                   ))
                   : curatedEvidence.map((e, i) => (
-                    <Box component="li" key={`evidence-${i}-${String(e).slice(0, 32)}`} sx={(theme) => ({ marginBottom: theme.spacing(0.75) })}>
-                      <MarkdownArticle variant="report" markdown={formatMd(e)} />
+                    <Box component="li" key={evidenceItemKey(e, i)} sx={(theme) => ({ marginBottom: theme.spacing(0.75) })}>
+                      <EvidenceSourceHeader item={e} sourceSignals={sourceSignals} t={t} />
+                      <MarkdownArticle variant="report" markdown={formatMd(evidenceItemMarkdown(e))} />
                     </Box>
                   ))}
               </Box>
@@ -1223,6 +1286,7 @@ export function ReportView({
   onOpenValidationInChat,
 }) {
   const isAnalyst = displayView === 'analyst';
+  const operatorSimpleView = !isAnalyst;
   const { t } = useLanguage();
   const theme = useTheme();
   const [openCompIdInternal, setOpenCompIdInternal] = useState(null);
@@ -1258,7 +1322,7 @@ export function ReportView({
     })
     : (assessment.components ?? []);
 
-  const showGuidancePanels = operatorEpistemicOverlay;
+  const showGuidancePanels = isAnalyst && operatorEpistemicOverlay;
 
   function getSourceSignals(compId) {
     if (!scoreBySource) return null;
@@ -1300,7 +1364,7 @@ export function ReportView({
         generatedAt={generatedAt}
       />
 
-      {!isAnalyst && (
+      {!operatorSimpleView && (
         <OperatorReportContextLine
           assessment={assessment}
           reportScope={reportScope ?? assessment?.report_scope?.id ?? 'national'}
@@ -1323,18 +1387,20 @@ export function ReportView({
         />
       )}
 
-      <OovAnomalyClustersPanel
-        oovBurst={assessment?.oov_burst}
-        anomalyStrip={anomalyStrip}
-        oovCaptureCount={assessment?.oov_capture_count}
-        oovScoringApplied={assessment?.oov_scoring_applied}
-        isAnalyst={isAnalyst}
-        onReviewCatalogProposals={
-          showValidationReview && isAnalyst
-            ? () => catalogProposalsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-            : undefined
-        }
-      />
+      {isAnalyst && (
+        <OovAnomalyClustersPanel
+          oovBurst={assessment?.oov_burst}
+          anomalyStrip={anomalyStrip}
+          oovCaptureCount={assessment?.oov_capture_count}
+          oovScoringApplied={assessment?.oov_scoring_applied}
+          isAnalyst={isAnalyst}
+          onReviewCatalogProposals={
+            showValidationReview && isAnalyst
+              ? () => catalogProposalsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+              : undefined
+          }
+        />
+      )}
 
       {isAnalyst && (
         <EvidenceOverviewPanel
@@ -1406,18 +1472,24 @@ export function ReportView({
         </Box>
       )}
 
-      <ScopeAttributionBanner assessment={assessment} t={t} />
+      {!operatorSimpleView && (
+        <ScopeAttributionBanner assessment={assessment} t={t} />
+      )}
 
-      <NationalContextSection
-        nationalContextSignals={assessment.national_context_signals ?? assessment.macro_signals}
-        t={t}
-      />
+      {isAnalyst && (
+        <NationalContextSection
+          nationalContextSignals={assessment.national_context_signals ?? assessment.macro_signals}
+          t={t}
+        />
+      )}
 
-      <NorthClusterNarrativesSection
-        clusterNarratives={assessment.north_cluster_narratives}
-        reportScope={reportScope ?? assessment?.report_scope}
-        t={t}
-      />
+      {isAnalyst && (
+        <NorthClusterNarrativesSection
+          clusterNarratives={assessment.north_cluster_narratives}
+          reportScope={reportScope ?? assessment?.report_scope}
+          t={t}
+        />
+      )}
 
       {isAnalyst && Array.isArray(norrisCaps) && norrisCaps.length > 0 && (
         <ReportSection flat={readOnly} title={t('report.norris.titleDiagnostic') ?? t('report.norris.title')}>
@@ -1524,10 +1596,10 @@ export function ReportView({
             marginRight: 'auto',
           }}
         >
-          {!isAnalyst && (
+          {isAnalyst && (
             <InvestigationSummaryBanner summary={assessment.investigation_summary} t={t} />
           )}
-          {!isAnalyst && assessment?.headline_band && (
+          {isAnalyst && assessment?.headline_band && (
             <Box sx={{ mb: 1, display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center' }}>
               <Box
                 component="span"
@@ -1602,6 +1674,7 @@ export function ReportView({
                 t={t}
                 reportDate={assessment.date}
                 displayView={displayView}
+                operatorSimpleView={operatorSimpleView}
                 flat={readOnly}
                 sourceSignals={getSourceSignals(c.component_id)}
                 driftSeries={driftMap?.[c.component_id]?.series ?? []}
@@ -1708,6 +1781,7 @@ ComponentCard.propTypes = {
   driftSeries: PropTypes.array,
   driftLoading: PropTypes.bool,
   displayView: PropTypes.oneOf(['operator', 'analyst']),
+  operatorSimpleView: PropTypes.bool,
   flat: PropTypes.bool,
   open: PropTypes.bool,
   evidenceOpen: PropTypes.bool,

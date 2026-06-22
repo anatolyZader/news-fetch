@@ -102,4 +102,59 @@ describe('createLlmGateway', () => {
       rmSync(dir, { recursive: true, force: true });
     }
   });
+
+  it('opens circuit breaker after consecutive provider failures', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'llm-gw-breaker-'));
+    const prevPath = process.env.LLM_INVOCATIONS_PATH;
+    const prevThreshold = process.env.LLM_BREAKER_THRESHOLD;
+    const prevCooldown = process.env.LLM_BREAKER_COOLDOWN_MS;
+
+    process.env.LLM_INVOCATIONS_PATH = join(dir, 'invocations.jsonl');
+    process.env.LLM_BREAKER_THRESHOLD = '2';
+    process.env.LLM_BREAKER_COOLDOWN_MS = '60000';
+
+    let attempts = 0;
+    const failingClient = {
+      messages: {
+        create: async () => {
+          attempts += 1;
+          const err = new Error('rate limited');
+          err.status = 429;
+          err.statusCode = 429;
+          throw err;
+        },
+      },
+    };
+
+    try {
+      const port = createLlmGateway(createAnthropicLlmPort({ client: failingClient }));
+
+      const baseCall = {
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 10,
+        messages: [{ role: 'user', content: 'hi' }],
+        callContext: { feature: 'chat', purpose: 'breaker-test' },
+      };
+
+      await assert.rejects(() => port.createMessage(baseCall), (err) => err?.status === 429 || err?.statusCode === 429);
+      await assert.rejects(() => port.createMessage(baseCall), (err) => err?.status === 429 || err?.statusCode === 429);
+
+      assert.equal(attempts, 2);
+
+      await assert.rejects(
+        () => port.createMessage(baseCall),
+        (err) => err?.code === 'llm_circuit_open',
+      );
+
+      assert.equal(attempts, 2, 'expected breaker fast-fail without calling provider');
+    } finally {
+      if (prevPath == null) delete process.env.LLM_INVOCATIONS_PATH;
+      else process.env.LLM_INVOCATIONS_PATH = prevPath;
+      if (prevThreshold == null) delete process.env.LLM_BREAKER_THRESHOLD;
+      else process.env.LLM_BREAKER_THRESHOLD = prevThreshold;
+      if (prevCooldown == null) delete process.env.LLM_BREAKER_COOLDOWN_MS;
+      else process.env.LLM_BREAKER_COOLDOWN_MS = prevCooldown;
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
 });

@@ -51,6 +51,107 @@ describe('agentKernel', () => {
     assert.equal(result.submitPayloads[0].tool, 'submit_plan');
   });
 
+  it('passes valid tool args through to executeTool (input_schema)', async () => {
+    let executeCalls = 0;
+    const captured = { result: null };
+    const llmPort = {
+      runToolLoop: async (opts) => {
+        captured.result = await opts.executeTool('my_tool', { x: 1 });
+        return { messages: [], lastAssistantText: 'ok', stopReason: 'end_turn', usage: null };
+      },
+    };
+
+    const kernel = createAgentKernel({ llmPort });
+    await kernel.run({
+      profile: 'assessment_planner',
+      model: 'claude-haiku-4-5-20251001',
+      system: 'test',
+      messages: [],
+      tools: [
+        {
+          name: 'my_tool',
+          input_schema: {
+            type: 'object',
+            required: ['x'],
+            properties: { x: { type: 'number' } },
+          },
+        },
+      ],
+      executeTool: async () => {
+        executeCalls += 1;
+        return 'tool_ok';
+      },
+    });
+
+    assert.equal(executeCalls, 1);
+    assert.equal(captured.result, 'tool_ok');
+  });
+
+  it('rejects invalid tool args before executeTool (input_schema)', async () => {
+    let executeCalls = 0;
+    const captured = { result: null };
+    const llmPort = {
+      runToolLoop: async (opts) => {
+        captured.result = await opts.executeTool('my_tool', { x: 'bad' });
+        return { messages: [], lastAssistantText: 'ok', stopReason: 'end_turn', usage: null };
+      },
+    };
+
+    const kernel = createAgentKernel({ llmPort });
+    await kernel.run({
+      profile: 'assessment_planner',
+      model: 'claude-haiku-4-5-20251001',
+      system: 'test',
+      messages: [],
+      tools: [
+        {
+          name: 'my_tool',
+          input_schema: {
+            type: 'object',
+            required: ['x'],
+            properties: { x: { type: 'number' } },
+          },
+        },
+      ],
+      executeTool: async () => {
+        executeCalls += 1;
+        return 'tool_ok';
+      },
+    });
+
+    assert.equal(executeCalls, 0);
+    const parsed = JSON.parse(captured.result);
+    assert.equal(parsed.error, 'validation_failed');
+    assert.ok(parsed.errors.length > 0);
+  });
+
+  it('skips input_schema validation when tool has no input_schema', async () => {
+    let executeCalls = 0;
+    const captured = { result: null };
+    const llmPort = {
+      runToolLoop: async (opts) => {
+        captured.result = await opts.executeTool('my_tool_no_schema', 'not_an_object');
+        return { messages: [], lastAssistantText: 'ok', stopReason: 'end_turn', usage: null };
+      },
+    };
+
+    const kernel = createAgentKernel({ llmPort });
+    await kernel.run({
+      profile: 'assessment_planner',
+      model: 'claude-haiku-4-5-20251001',
+      system: 'test',
+      messages: [],
+      tools: [{ name: 'my_tool_no_schema' }],
+      executeTool: async () => {
+        executeCalls += 1;
+        return 'tool_ok';
+      },
+    });
+
+    assert.equal(executeCalls, 1);
+    assert.equal(captured.result, 'tool_ok');
+  });
+
   it('chat profile uses chat compact flag by default', async () => {
     const prevChat = process.env.CHAT_COMPACT_TOOL_LOOP;
     const prevAssess = process.env.RESILIENCE_ASSESS_COMPACT_TOOL_LOOP;

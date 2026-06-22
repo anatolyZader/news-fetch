@@ -7,6 +7,7 @@ import {
   scopedSignalKeys,
   evidenceMatchesMacroNationalTerms,
   mergeNationalContextSignals,
+  annotateScopeDecisions,
 } from '../../../../../business_modules/resilience/domain/services/narrativeScopeSignals.js';
 import { scopeAndPartitionSignals } from '../../../../../business_modules/resilience/app/assessmentPipeline.js';
 import { SIGNAL_PROVENANCE } from '../../../../../business_modules/resilience/domain/services/evidenceEligibility.js';
@@ -39,6 +40,59 @@ describe('narrativeScopeSignals', () => {
     assert.equal(ctx[0].signalProvenance, SIGNAL_PROVENANCE.narrative_national_context);
     assert.equal(ctx[0].metricsEligible, false);
     assert.equal(ctx[0].narrativeContextOnly, true);
+  });
+
+  it('selectNarrativeNationalContext tier B includes central press without macro keywords', () => {
+    const scoped = [{
+      source_type: 'field',
+      signal_type: 'information_clarity',
+      evidence: 'North field note.',
+      district_id: 'north',
+    }];
+    const central = annotateScopeDecisions([{
+      source_type: 'news',
+      signal_type: 'compliance_enter_shelter',
+      evidence: 'Millions entered shelters in Tel Aviv after missile alert.',
+      article_url: 'https://example.com/tel-aviv-shelter',
+      geo: {
+        kind: 'resolved',
+        classification: { geoAreaTags: ['dan'] },
+        scopeDecision: { isNorthRelevant: false, isScopeRelevant: false },
+      },
+    }], 'north')[0];
+    const keys = scopedSignalKeys(scoped);
+    const ctx = selectNarrativeNationalContext([...scoped, central], 'north', keys);
+    assert.equal(ctx.length, 1);
+    assert.equal(ctx[0].signalProvenance, SIGNAL_PROVENANCE.narrative_national_context);
+    assert.equal(ctx[0].article_url, 'https://example.com/tel-aviv-shelter');
+  });
+
+  it('selectNarrativeNationalContext does not duplicate north-local news', () => {
+    const northNews = {
+      source_type: 'news',
+      signal_type: 'harm_to_population',
+      evidence: 'Injuries reported in Haifa after missile strike.',
+      article_url: 'https://example.com/haifa',
+      district_id: 'north',
+    };
+    const keys = scopedSignalKeys([northNews]);
+    const ctx = selectNarrativeNationalContext([northNews], 'north', keys);
+    assert.equal(ctx.length, 0);
+  });
+
+  it('selectNarrativeNationalContext respects cap', () => {
+    const scoped = [];
+    const keys = scopedSignalKeys(scoped);
+    const press = Array.from({ length: 50 }, (_, i) => ({
+      source_type: 'news',
+      signal_type: 'fear_expression',
+      evidence: `Central Israel report ${i} about national homefront conditions.`,
+      article_url: `https://example.com/central-${i}`,
+      geo: { kind: 'resolved', classification: { geoAreaTags: ['dan'] } },
+    }));
+    const annotated = annotateScopeDecisions(press, 'north');
+    const ctx = selectNarrativeNationalContext(annotated, 'north', keys, { cap: 10 });
+    assert.equal(ctx.length, 10);
   });
 
   it('buildNarrativeScopeSignals unions scoped and national context without dupes', () => {
@@ -76,11 +130,72 @@ describe('narrativeScopeSignals', () => {
     }
   });
 
+  it('scopeAndPartitionSignals adds tier B central press to narrative pool', () => {
+    const all = [
+      {
+        source_type: 'field',
+        signal_type: 'information_clarity',
+        evidence: 'Field north note.',
+        district_id: 'north',
+      },
+      {
+        source_type: 'news',
+        signal_type: 'compliance_enter_shelter',
+        evidence: 'Shelter compliance in central Israel remained high overnight.',
+        article_url: 'https://example.com/central-1',
+        geo: {
+          kind: 'resolved',
+          classification: { geoAreaTags: ['dan'] },
+          policy: { usableForMetrics: false },
+        },
+      },
+    ];
+    const out = scopeAndPartitionSignals(all, 'north');
+    const newsInNarrative = out.narrativeScopeSignals.filter((s) => s.source_type === 'news');
+    assert.ok(newsInNarrative.length >= 1);
+    assert.ok(out.narrativeNationalContext.length >= 1);
+    assert.equal(out.scopedSignals.filter((s) => s.source_type === 'news').length, 0);
+  });
+
   it('mergeNationalContextSignals dedupes macro and narrative national', () => {
     const merged = mergeNationalContextSignals(
       [{ evidence: 'macro', signalProvenance: 'macro_national', signal_type: 'a' }],
       [{ evidence: 'nat ctx', signalProvenance: 'narrative_national_context', signal_type: 'b' }],
     );
     assert.equal(merged.length, 2);
+  });
+
+  it('synthetic Apr window: narrative pool news count exceeds north-local only', () => {
+    const northLocal = Array.from({ length: 6 }, (_, i) => ({
+      source_type: 'news',
+      signal_type: 'harm_to_population',
+      evidence: `Northern injury report ${i} in Haifa area.`,
+      article_url: `https://example.com/north-${i}`,
+      district_id: 'north',
+    }));
+    const central = Array.from({ length: 80 }, (_, i) => ({
+      source_type: 'news',
+      signal_type: 'fear_expression',
+      evidence: `Central Israel homefront report ${i} from Tel Aviv metro.`,
+      article_url: `https://example.com/central-${i}`,
+      geo: {
+        kind: 'resolved',
+        classification: { geoAreaTags: ['dan'] },
+        policy: { usableForMetrics: false },
+      },
+      signal_file_date: i < 40 ? '2026-04-05' : '2026-04-04',
+    }));
+    const field = [{
+      source_type: 'field',
+      signal_type: 'information_clarity',
+      evidence: 'Visit note from north community.',
+      district_id: 'north',
+    }];
+    const out = scopeAndPartitionSignals([...field, ...northLocal, ...central], 'north');
+    const northNewsInScoped = out.scopedSignals.filter((s) => s.source_type === 'news');
+    const newsInNarrative = out.narrativeScopeSignals.filter((s) => s.source_type === 'news');
+    assert.equal(northNewsInScoped.length, 6);
+    assert.ok(newsInNarrative.length > 17);
+    assert.equal(out.narrativeNationalContext.length, 40);
   });
 });

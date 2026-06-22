@@ -19,6 +19,7 @@
     "**/business_modules/**/data/**": true
   },
 
+  "sonarlint.pathToNodeExecutable": "/home/eventstorm1/.nvm/versions/node/v22.13.0/bin/node",
   "sonarlint.automaticAnalysis": false,
   "sonarlint.analysisExcludesStandalone": "**/node_modules/**,**/client/dist/**,**/tools/docs-site/**,**/coverage/**,**/articles_extracted/**,**/daily_reports/**,**/signals/**,**/cross-cut-modules/docs/content/pages/api/generated/**,**/*.md,**/business_modules/**/data/**,**/tests/fixtures/**",
   "sonarlint.analyzerProperties": {

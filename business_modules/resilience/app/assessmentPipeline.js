@@ -10,6 +10,7 @@ import {
   partitionMacroSignals,
 } from '../domain/services/evidenceEligibility.js';
 import {
+  annotateScopeDecisions,
   buildNarrativeScopeSignals,
   scopedSignalKeys,
   selectNarrativeNationalContext,
@@ -35,7 +36,8 @@ import {
  * @param {import('../domain/ports/IReportScopePolicy.js').IReportScopePolicy} [scopePolicy]
  */
 export function scopeAndPartitionSignals(allSignals, reportScopeId, scopePolicy = defaultScopePolicy) {
-  let scopedSignals = scopePolicy.filterSignalsForScope(allSignals, reportScopeId);
+  const annotated = annotateScopeDecisions(allSignals, reportScopeId);
+  let scopedSignals = scopePolicy.filterSignalsForScope(annotated, reportScopeId);
   scopedSignals = annotateSignalsEpistemics(scopedSignals, { reportScope: reportScopeId });
   const { metricsSignals, macroSignals } = partitionMacroSignals(scopedSignals, reportScopeId);
   const baseSignalsForScoring = isRegionalReportScope(reportScopeId)
@@ -44,7 +46,7 @@ export function scopeAndPartitionSignals(allSignals, reportScopeId, scopePolicy 
 
   const keys = scopedSignalKeys(scopedSignals);
   const narrativeNationalContext = selectNarrativeNationalContext(
-    allSignals,
+    annotated,
     reportScopeId,
     keys,
   );

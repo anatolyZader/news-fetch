@@ -23,6 +23,17 @@ safe_file_redirect_targets() {
   done <<< "$targets"
 }
 
+# Claude Code always prompts on multiline python3 -c with "#" after newline (path-validation bypass guard).
+trusted_python_inline() {
+  echo "$command" | grep -qE '^python3 -c ' || return 1
+  dangerous_command && return 1
+  echo "$command" | grep -qE '(subprocess\.|os\.system|shutil\.(rmtree|move)|open\([^)]*['\''"]w|exec\(|eval\()' && return 1
+  echo "$command" | grep -qE '(\.env|secrets/|/etc/|Bearer |Authorization:)' && return 1
+  echo "$command" | grep -q '/home/eventstorm1/news/' && return 0
+  echo "$command" | grep -q '/home/' && return 1
+  return 0
+}
+
 # Claude Code always prompts on `cd … && … > file` (path-resolution bypass guard).
 trusted_project_cd_compound() {
   echo "$command" | grep -qE '^cd /home/eventstorm1/news( |$)' || return 1
@@ -39,6 +50,7 @@ pipeline_command() {
     return 1
   fi
   trusted_project_cd_compound && return 0
+  trusted_python_inline && return 0
   echo "$command" | grep -qE 'logs/pipeline-run-(north|national)-' && return 0
   echo "$command" | grep -qE '(^|[;&|\n] *)export RESILIENCE_OPEN_EXTRACT_PARALLEL=1' && return 0
   echo "$command" | grep -qE '(^|[;&|\n] *)mkdir -p (logs|/home/eventstorm1/news/logs)' && return 0

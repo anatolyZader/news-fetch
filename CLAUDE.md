@@ -35,7 +35,7 @@ At session start, read **`memory.md`** (repo) and `~/.claude/projects/-home-even
 ## Bash permissions
 
 - **Edits:** `permissions.defaultMode: "acceptEdits"` in `.claude/settings.json` auto-approves file edits under the project (still prompts for `.git`, `.claude`, `.env`, etc.).
-- **Bash:** Compound `cd /home/eventstorm1/news && …` commands (including output to `logs/`) are auto-approved via `.claude/hooks/allow-pipeline-bash.sh`. Prefer absolute paths or `cd … && cmd` without redirects when possible; if redirecting, use `logs/` or `/dev/null`.
+- **Bash:** Compound `cd /home/eventstorm1/news && …` commands (including output to `logs/`) are auto-approved via `.claude/hooks/allow-pipeline-bash.sh`. Read-only `python3 -c` scripts that reference `/home/eventstorm1/news/` paths are auto-approved too (multiline `#` comments otherwise prompt). Prefer absolute paths or `cd … && cmd` without redirects when possible; if redirecting, use `logs/` or `/dev/null`.
 
 ## Slash commands
 

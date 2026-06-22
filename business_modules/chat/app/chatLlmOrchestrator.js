@@ -2,7 +2,14 @@
  * Chat LLM orchestration (app layer) — tool loop with Claude Haiku.
  */
 import { getDefaultLlmPort, createAnthropicLlmPort } from '../../../cross-cut-modules/llm/anthropicLlmAdapter.js';
-import { createAgentKernel, chatMaxToolRounds, chatCompactToolLoopEnabled, HAIKU_MODEL } from '../../../cross-cut-modules/agent/index.js';
+import {
+  createAgentBudgetGovernor,
+  createAgentKernel,
+  chatMaxToolRounds,
+  chatSessionMaxUsd,
+  chatCompactToolLoopEnabled,
+  HAIKU_MODEL,
+} from '../../../cross-cut-modules/agent/index.js';
 import { handleChatToolCall } from './chatToolHandlers.js';
 import { createChatToolContext } from './createChatToolContext.js';
 import { buildSystemTemplateToolList } from '../domain/tools/chatToolSchemas.js';
@@ -10,6 +17,7 @@ import { chatAnalystToolsEnabled, chatConfirmActionsEnabled } from '../domain/ch
 import { canViewAnalystDisplay } from '../../../cross-cut-modules/auth/userAccess.js';
 import { UNTRUSTED_CONTENT_INSTRUCTION } from '../../../cross-cut-modules/security/index.js';
 import { operatorEpistemicOverlayEnabled } from '../../../cross-cut-modules/resilience-contracts/operatorEpistemicOverlay.js';
+import { semanticOutputGate } from '../../../cross-cut-modules/security/domain/services/semanticOutputGate.js';
 
 function buildSystemTemplate(ctx) {
   const isAnalyst = canViewAnalystDisplay(ctx.userEmail ?? '');
@@ -94,8 +102,20 @@ export async function streamChatResponse(systemContext, pboLookup, messages, sen
   const llmPort = opts.llmPort ?? (opts.client ? createAnthropicLlmPort({ client: opts.client }) : getDefaultLlmPort());
   const agentKernel = opts.agentKernel ?? createAgentKernel({ llmPort });
   const compactToolLoop = opts.economy?.compact_tool_loop ?? chatCompactToolLoopEnabled();
+  const budget = opts.budget ?? createAgentBudgetGovernor({
+    maxUsd: chatSessionMaxUsd(),
+    maxToolRounds: chatMaxToolRounds(),
+  });
 
-  await agentKernel.run({
+  const lastUser = Array.isArray(messages)
+    ? [...messages].reverse().find((m) => m?.role === 'user')
+    : null;
+  const userIntentText = typeof lastUser?.content === 'string'
+    ? lastUser.content
+    : String(lastUser?.content ?? '');
+  let assistantText = '';
+
+  const loopResult = await agentKernel.run({
     profile: 'chat',
     agentKind: 'chat',
     model: HAIKU_MODEL,
@@ -105,14 +125,44 @@ export async function streamChatResponse(systemContext, pboLookup, messages, sen
     messages,
     tools: toolCtx.tools,
     executeTool: (name, input) => handleChatToolCall(name, input, toolCtx),
-    onTextBlock: (text) => send({ type: 'text', text }),
+    onTextBlock: (text) => {
+      const t = String(text ?? '');
+      assistantText += t;
+      send({ type: 'text', text: t });
+    },
     agentKernel: opts.agentKernel ?? null,
     abortSignal: opts.abortSignal ?? null,
     compactHistoryAfterRound: compactToolLoop,
+    budget,
     onUsage: costRecorder
       ? (p) => costRecorder.onUsage({ label: p.label, model: p.model, usage: p.usage })
       : undefined,
   });
+
+  if (opts.onLoopExhausted && loopResult?.stopReason === 'max_rounds') {
+    opts.onLoopExhausted({ stopReason: loopResult.stopReason, runId: loopResult.runId, traceId: loopResult.traceId });
+  }
+
+  // Optional semantic output gate: telemetry-only (never blocks completion).
+  if (assistantText.trim()) {
+    try {
+      const verdict = await semanticOutputGate({
+        leftText: userIntentText,
+        rightText: assistantText,
+      });
+      if (verdict?.enabled) {
+        send({
+          type: 'semantic_output_gate',
+          ok: verdict.ok,
+          similarity: verdict.similarity,
+          threshold: verdict.threshold,
+          reason: verdict.reason,
+        });
+      }
+    } catch {
+      // Gate failures must not break chat.
+    }
+  }
 }
 
 export async function generateChatTitle(seedText, opts = {}) {

@@ -16,7 +16,7 @@ describe('applySynthesisOovChecks', () => {
         count: 4,
       }],
     });
-    assert.match(out.cross_component_synthesis, /Unverified repeated phrasing/i);
+    assert.equal(out.cross_component_synthesis, 'Overall stable.');
     assert.ok(out.attention_items.some((a) => a.id === 'oov:unaddressed:shelter_panic'));
   });
 

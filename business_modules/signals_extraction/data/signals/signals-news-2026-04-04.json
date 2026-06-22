@@ -2,7 +2,7 @@
   "source_type": "news",
   "content_kind": "news",
   "date": "2026-04-04",
-  "extracted_at": "2026-06-19T13:09:22.101Z",
+  "extracted_at": "2026-06-20T14:04:29.269Z",
   "source_files": [
     "articles-homefront-2026-04-04.md"
   ],
@@ -41,10 +41,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:09:21.838Z"
+          "resolvedAt": "2026-06-20T14:04:29.024Z"
         }
       },
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#1"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#1",
+      "article_date": "2026-04-04"
     },
     {
       "article_index": 2,
@@ -79,10 +80,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:09:21.839Z"
+          "resolvedAt": "2026-06-20T14:04:29.026Z"
         }
       },
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#2"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#2",
+      "article_date": "2026-04-04"
     },
     {
       "article_index": 6,
@@ -102,7 +104,8 @@
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#6"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#6",
+      "article_date": "2026-04-04"
     },
     {
       "article_index": 6,
@@ -137,10 +140,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:09:21.972Z"
+          "resolvedAt": "2026-06-20T14:04:29.156Z"
         }
       },
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#6"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#6",
+      "article_date": "2026-04-04"
     },
     {
       "article_index": 6,
@@ -175,10 +179,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:09:21.973Z"
+          "resolvedAt": "2026-06-20T14:04:29.156Z"
         }
       },
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#6"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#6",
+      "article_date": "2026-04-04"
     },
     {
       "article_index": 15,
@@ -198,7 +203,8 @@
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#15"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#15",
+      "article_date": "2026-04-04"
     },
     {
       "article_index": 17,
@@ -233,10 +239,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:09:22.037Z"
+          "resolvedAt": "2026-06-20T14:04:29.209Z"
         }
       },
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#17"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#17",
+      "article_date": "2026-04-04"
     },
     {
       "article_index": 27,
@@ -299,7 +306,7 @@
           "geoReferenceVersion": "north-geo-2026-05-10",
           "borderReferenceVersion": "north-border-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:09:22.038Z"
+          "resolvedAt": "2026-06-20T14:04:29.210Z"
         },
         "matchEvidence": {
           "rawInput": "Kiryat Shmona",
@@ -322,7 +329,8 @@
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#27"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#27",
+      "article_date": "2026-04-04"
     },
     {
       "article_index": 30,
@@ -342,7 +350,92 @@
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#30"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#30",
+      "article_date": "2026-04-04"
+    },
+    {
+      "article_index": 33,
+      "signal_type": "infrastructure_damage_acute",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "تسبب سقوط صاروخ قرب بئر السبع بإصابة مصنع بشكل مباشر واندلاع حريق كبير في الموقع",
+      "scope_level": "local",
+      "confidence": 0.95,
+      "locality": "Beersheba",
+      "article_url": "https://bokra.net/Article-1591616",
+      "article_source": "bokra.net",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "temporal_weight": 1,
+      "article_title": "هجوم صاروخي إيراني واسع يضرب تل أبيب والنقب",
+      "grounding_tier": "weak",
+      "grounding_reason": "empty_evidence",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "geo": {
+        "kind": "resolved",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "geoEntityType": "locality",
+        "resolution": {
+          "rawInput": "Beersheba",
+          "normalizedInput": "beersheba",
+          "canonicalKey": "beer_sheva",
+          "matchedName": "Beersheba",
+          "matchedVariant": "Beersheba",
+          "matchMethod": "exact",
+          "matchConfidence": 1,
+          "candidateCount": 1,
+          "geoEntityType": "locality",
+          "provenance": "structured",
+          "scope": "signal"
+        },
+        "classification": {
+          "pboSubregionId": "homefront_south",
+          "geoAreaTags": [
+            "south"
+          ],
+          "isGolan": false,
+          "distanceKmToNorthBorder": 500,
+          "distanceBand": "25+",
+          "distancePolicyVersion": "distance-band-2026-05-v1"
+        },
+        "policy": {
+          "geoPolicyVersion": "geo-policy-2026-05-v3",
+          "quality": "medium",
+          "usableForMetrics": true,
+          "requiresReview": false,
+          "scopeConfidence": "high",
+          "decisionReasons": [
+            "homefront_district_stub:south"
+          ]
+        },
+        "audit": {
+          "geoReferenceVersion": "homefront-district-stubs-v1",
+          "source": "homefront-district-stubs",
+          "resolvedAt": "2026-06-20T14:04:29.212Z"
+        },
+        "matchEvidence": {
+          "rawInput": "Beersheba",
+          "normalizedInput": "beersheba",
+          "matchedVariant": "Beersheba",
+          "candidateCount": 1
+        },
+        "scopeDecision": {
+          "isRelevant": false,
+          "source": "unknown",
+          "confidence": "low",
+          "usableForMetrics": true,
+          "reasons": [
+            "no geoAreaTag for north"
+          ],
+          "isNorthRelevant": false,
+          "homeFrontDistrictIds": [
+            "south"
+          ]
+        }
+      },
+      "district_id": "south",
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#33",
+      "article_date": "2026-04-04"
     },
     {
       "article_index": 35,
@@ -362,7 +455,8 @@
       "grounding_reason": "empty_evidence",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#35"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#35",
+      "article_date": "2026-04-04"
     },
     {
       "article_index": 37,
@@ -422,7 +516,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-19T13:09:22.040Z"
+          "resolvedAt": "2026-06-20T14:04:29.213Z"
         },
         "matchEvidence": {
           "rawInput": "Ramat Gan",
@@ -445,147 +539,8 @@
         }
       },
       "district_id": "dan",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#37"
-    },
-    {
-      "article_index": 44,
-      "signal_type": "infrastructure_damage_acute",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "An Iranian cluster bomb struck several cities throughout Israel's center, including Tel Aviv, Bnei Brak, Petah Tikva, Rosh Haayin and Givatayim",
-      "scope_level": "regional",
-      "confidence": 0.9,
-      "locality": null,
-      "article_url": "https://www.haaretz.com/israel-news/israel-security/2026-04-03/ty-article-live/idf-strikes-beirut-tehran-one-wounded-in-northern-israel/0000019d-550d-db3c-a3df-dd8d75ef0000?liveBlogItemId=522103611",
-      "article_source": "haaretz.com",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "temporal_weight": 1,
-      "article_title": "Iranian cluster bomb hits Tel Aviv, central Israel; strikes reported in Tehran",
-      "grounding_tier": "grounded",
-      "grounding_reason": "containment",
-      "grounding_method": "containment",
-      "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#44"
-    },
-    {
-      "article_index": 46,
-      "signal_type": "infrastructure_damage_acute",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "Several impact sites were reported in the Tel Aviv metropolitan area, including Tel Aviv, Ramat Gan, Bnei Brak and Petah Tikva. Emergency teams said a residential building in Bnei Brak sustained heavy damage from a direct hit, while a vehicle overturned in Tel Aviv and buildings in Ramat Gan were also damaged.",
-      "scope_level": "regional",
-      "confidence": 0.9,
-      "locality": null,
-      "article_url": "https://www.ynetnews.com/article/hjdx8irsbe",
-      "article_source": "ynetnews.com",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "temporal_weight": 1,
-      "article_title": "Multi-front attack: Iran, Hezbollah, Yemen target Tel Aviv area",
-      "grounding_tier": "grounded",
-      "grounding_reason": "containment",
-      "grounding_method": "containment",
-      "source_type": "news",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "the Tel Aviv metropolitan",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "the Tel Aviv metropolitan",
-          "normalizedInput": "the tel aviv metropolitan",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:09:22.075Z"
-        }
-      },
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#46"
-    },
-    {
-      "article_index": 33,
-      "signal_type": "infrastructure_damage_acute",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "تسبب سقوط صاروخ قرب بئر السبع بإصابة مصنع بشكل مباشر واندلاع حريق كبير في الموقع",
-      "scope_level": "local",
-      "confidence": 0.95,
-      "locality": "Beersheba",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "article_source": "bokra.net",
-      "temporal_weight": 1,
-      "article_title": "هجوم صاروخي إيراني واسع يضرب تل أبيب والنقب",
-      "grounding_tier": "weak",
-      "grounding_reason": "empty_evidence",
-      "grounding_method": "containment",
-      "source_type": "news",
-      "geo": {
-        "kind": "resolved",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "geoEntityType": "locality",
-        "resolution": {
-          "rawInput": "Beersheba",
-          "normalizedInput": "beersheba",
-          "canonicalKey": "beer_sheva",
-          "matchedName": "Beersheba",
-          "matchedVariant": "Beersheba",
-          "matchMethod": "exact",
-          "matchConfidence": 1,
-          "candidateCount": 1,
-          "geoEntityType": "locality",
-          "provenance": "structured",
-          "scope": "signal"
-        },
-        "classification": {
-          "pboSubregionId": "homefront_south",
-          "geoAreaTags": [
-            "south"
-          ],
-          "isGolan": false,
-          "distanceKmToNorthBorder": 500,
-          "distanceBand": "25+",
-          "distancePolicyVersion": "distance-band-2026-05-v1"
-        },
-        "policy": {
-          "geoPolicyVersion": "geo-policy-2026-05-v3",
-          "quality": "medium",
-          "usableForMetrics": true,
-          "requiresReview": false,
-          "scopeConfidence": "high",
-          "decisionReasons": [
-            "homefront_district_stub:south"
-          ]
-        },
-        "audit": {
-          "geoReferenceVersion": "homefront-district-stubs-v1",
-          "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-19T13:09:22.076Z"
-        },
-        "matchEvidence": {
-          "rawInput": "Beersheba",
-          "normalizedInput": "beersheba",
-          "matchedVariant": "Beersheba",
-          "candidateCount": 1
-        },
-        "scopeDecision": {
-          "isRelevant": false,
-          "source": "unknown",
-          "confidence": "low",
-          "usableForMetrics": true,
-          "reasons": [
-            "no geoAreaTag for north"
-          ],
-          "isNorthRelevant": false,
-          "homeFrontDistrictIds": [
-            "south"
-          ]
-        }
-      },
-      "district_id": "south",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#33"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#37",
+      "article_date": "2026-04-04"
     },
     {
       "article_index": 38,
@@ -595,9 +550,10 @@
       "scope_level": "local",
       "confidence": 0.95,
       "locality": "Kiryat Shmona",
+      "article_url": "https://www.timesofisrael.com/hezbollah-attacks-damage-homes-in-north-idf-said-to-destroy-east-lebanon-bridge/",
+      "article_source": "timesofisrael.com",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
-      "article_source": "timesofisrael.com",
       "temporal_weight": 1,
       "article_title": "Hezbollah attacks damage homes in north; IDF said to destroy east Lebanon bridge",
       "grounding_tier": "grounded",
@@ -647,7 +603,7 @@
           "geoReferenceVersion": "north-geo-2026-05-10",
           "borderReferenceVersion": "north-border-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:09:22.076Z"
+          "resolvedAt": "2026-06-20T14:04:29.213Z"
         },
         "matchEvidence": {
           "rawInput": "Kiryat Shmona",
@@ -670,7 +626,8 @@
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#38"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#38",
+      "article_date": "2026-04-04"
     },
     {
       "article_index": 38,
@@ -680,9 +637,10 @@
       "scope_level": "local",
       "confidence": 0.95,
       "locality": "Gesher Haziv",
+      "article_url": "https://www.timesofisrael.com/hezbollah-attacks-damage-homes-in-north-idf-said-to-destroy-east-lebanon-bridge/",
+      "article_source": "timesofisrael.com",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
-      "article_source": "timesofisrael.com",
       "temporal_weight": 1,
       "article_title": "Hezbollah attacks damage homes in north; IDF said to destroy east Lebanon bridge",
       "grounding_tier": "grounded",
@@ -704,10 +662,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:09:22.077Z"
+          "resolvedAt": "2026-06-20T14:04:29.214Z"
         }
       },
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#38"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#38",
+      "article_date": "2026-04-04"
     },
     {
       "article_index": 38,
@@ -717,9 +676,10 @@
       "scope_level": "local",
       "confidence": 0.95,
       "locality": "Metula",
+      "article_url": "https://www.timesofisrael.com/hezbollah-attacks-damage-homes-in-north-idf-said-to-destroy-east-lebanon-bridge/",
+      "article_source": "timesofisrael.com",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
-      "article_source": "timesofisrael.com",
       "temporal_weight": 1,
       "article_title": "Hezbollah attacks damage homes in north; IDF said to destroy east Lebanon bridge",
       "grounding_tier": "grounded",
@@ -769,7 +729,7 @@
           "geoReferenceVersion": "north-geo-2026-05-10",
           "borderReferenceVersion": "north-border-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:09:22.077Z"
+          "resolvedAt": "2026-06-20T14:04:29.214Z"
         },
         "matchEvidence": {
           "rawInput": "Metula",
@@ -792,7 +752,68 @@
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#38"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#38",
+      "article_date": "2026-04-04"
+    },
+    {
+      "article_index": 44,
+      "signal_type": "infrastructure_damage_acute",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "An Iranian cluster bomb struck several cities throughout Israel's center, including Tel Aviv, Bnei Brak, Petah Tikva, Rosh Haayin and Givatayim",
+      "scope_level": "regional",
+      "confidence": 0.9,
+      "locality": null,
+      "article_url": "https://www.haaretz.com/israel-news/israel-security/2026-04-03/ty-article-live/idf-strikes-beirut-tehran-one-wounded-in-northern-israel/0000019d-550d-db3c-a3df-dd8d75ef0000?liveBlogItemId=522103611",
+      "article_source": "haaretz.com",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "temporal_weight": 1,
+      "article_title": "Iranian cluster bomb hits Tel Aviv, central Israel; strikes reported in Tehran",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#44",
+      "article_date": "2026-04-04"
+    },
+    {
+      "article_index": 46,
+      "signal_type": "infrastructure_damage_acute",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Several impact sites were reported in the Tel Aviv metropolitan area, including Tel Aviv, Ramat Gan, Bnei Brak and Petah Tikva. Emergency teams said a residential building in Bnei Brak sustained heavy damage from a direct hit, while a vehicle overturned in Tel Aviv and buildings in Ramat Gan were also damaged.",
+      "scope_level": "regional",
+      "confidence": 0.9,
+      "locality": null,
+      "article_url": "https://www.ynetnews.com/article/hjdx8irsbe",
+      "article_source": "ynetnews.com",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "temporal_weight": 1,
+      "article_title": "Multi-front attack: Iran, Hezbollah, Yemen target Tel Aviv area",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "the Tel Aviv metropolitan",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "the Tel Aviv metropolitan",
+          "normalizedInput": "the tel aviv metropolitan",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-20T14:04:29.244Z"
+        }
+      },
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#46",
+      "article_date": "2026-04-04"
     },
     {
       "article_index": 2,
@@ -852,7 +873,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-19T13:09:22.077Z"
+          "resolvedAt": "2026-06-20T14:04:29.245Z"
         },
         "matchEvidence": {
           "rawInput": "בני ברק",
@@ -875,7 +896,8 @@
         }
       },
       "district_id": "dan",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#2"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#2",
+      "article_date": "2026-04-04"
     },
     {
       "article_index": 2,
@@ -935,7 +957,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-19T13:09:22.078Z"
+          "resolvedAt": "2026-06-20T14:04:29.246Z"
         },
         "matchEvidence": {
           "rawInput": "פתח תקווה",
@@ -958,7 +980,8 @@
         }
       },
       "district_id": "dan",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#2"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#2",
+      "article_date": "2026-04-04"
     },
     {
       "article_index": 6,
@@ -1018,7 +1041,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-19T13:09:22.079Z"
+          "resolvedAt": "2026-06-20T14:04:29.246Z"
         },
         "matchEvidence": {
           "rawInput": "בני ברק",
@@ -1041,7 +1064,8 @@
         }
       },
       "district_id": "dan",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#6"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#6",
+      "article_date": "2026-04-04"
     },
     {
       "article_index": 9,
@@ -1061,7 +1085,8 @@
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#9"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#9",
+      "article_date": "2026-04-04"
     },
     {
       "article_index": 14,
@@ -1121,7 +1146,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-19T13:09:22.080Z"
+          "resolvedAt": "2026-06-20T14:04:29.247Z"
         },
         "matchEvidence": {
           "rawInput": "בני ברק",
@@ -1144,90 +1169,8 @@
         }
       },
       "district_id": "dan",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#14"
-    },
-    {
-      "article_index": 14,
-      "signal_type": "harm_to_population",
-      "evidence_type": "named_institutional_fact",
-      "evidence": "דייר מבוגר פונה מקומה שנהרסה בבניין ברמת גן ללא פגע",
-      "scope_level": "local",
-      "confidence": 0.85,
-      "locality": "רמת גן",
-      "article_url": "https://www.maariv.co.il/breaking-news/article-1304917",
-      "article_source": "maariv.co.il",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "temporal_weight": 1,
-      "article_title": "ירי הטילים מאיראן למרכז: צעיר בן 24 נפגע באורח קל כתוצאה משאיפת עשן בבני ברק",
-      "grounding_tier": "grounded",
-      "grounding_reason": "containment",
-      "grounding_method": "containment",
-      "source_type": "news",
-      "geo": {
-        "kind": "resolved",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "geoEntityType": "locality",
-        "resolution": {
-          "rawInput": "רמת גן",
-          "normalizedInput": "רמת גן",
-          "canonicalKey": "ramat_gan",
-          "matchedName": "רמת גן",
-          "matchedVariant": "רמת גן",
-          "matchMethod": "exact",
-          "matchConfidence": 1,
-          "candidateCount": 1,
-          "geoEntityType": "locality",
-          "provenance": "structured",
-          "scope": "signal"
-        },
-        "classification": {
-          "pboSubregionId": "homefront_dan",
-          "geoAreaTags": [
-            "dan"
-          ],
-          "isGolan": false,
-          "distanceKmToNorthBorder": 500,
-          "distanceBand": "25+",
-          "distancePolicyVersion": "distance-band-2026-05-v1"
-        },
-        "policy": {
-          "geoPolicyVersion": "geo-policy-2026-05-v3",
-          "quality": "medium",
-          "usableForMetrics": true,
-          "requiresReview": false,
-          "scopeConfidence": "high",
-          "decisionReasons": [
-            "homefront_district_stub:dan"
-          ]
-        },
-        "audit": {
-          "geoReferenceVersion": "homefront-district-stubs-v1",
-          "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-19T13:09:22.080Z"
-        },
-        "matchEvidence": {
-          "rawInput": "רמת גן",
-          "normalizedInput": "רמת גן",
-          "matchedVariant": "רמת גן",
-          "candidateCount": 1
-        },
-        "scopeDecision": {
-          "isRelevant": false,
-          "source": "unknown",
-          "confidence": "low",
-          "usableForMetrics": true,
-          "reasons": [
-            "no geoAreaTag for north"
-          ],
-          "isNorthRelevant": false,
-          "homeFrontDistrictIds": [
-            "dan"
-          ]
-        }
-      },
-      "district_id": "dan",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#14"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#14",
+      "article_date": "2026-04-04"
     },
     {
       "article_index": 15,
@@ -1287,7 +1230,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-19T13:09:22.081Z"
+          "resolvedAt": "2026-06-20T14:04:29.248Z"
         },
         "matchEvidence": {
           "rawInput": "Bnei Brak",
@@ -1310,7 +1253,8 @@
         }
       },
       "district_id": "dan",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#15"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#15",
+      "article_date": "2026-04-04"
     },
     {
       "article_index": 23,
@@ -1370,7 +1314,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-19T13:09:22.081Z"
+          "resolvedAt": "2026-06-20T14:04:29.249Z"
         },
         "matchEvidence": {
           "rawInput": "פתח תקווה",
@@ -1393,7 +1337,8 @@
         }
       },
       "district_id": "dan",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#23"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#23",
+      "article_date": "2026-04-04"
     },
     {
       "article_index": 30,
@@ -1453,7 +1398,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-19T13:09:22.082Z"
+          "resolvedAt": "2026-06-20T14:04:29.249Z"
         },
         "matchEvidence": {
           "rawInput": "Bnei Brak",
@@ -1476,7 +1421,92 @@
         }
       },
       "district_id": "dan",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#30"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#30",
+      "article_date": "2026-04-04"
+    },
+    {
+      "article_index": 33,
+      "signal_type": "harm_to_population",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "أسفر عن إصابة رجل في مدينة بني براك جراء تطاير الزجاج",
+      "scope_level": "local",
+      "confidence": 0.95,
+      "locality": "Bnei Brak",
+      "article_url": "https://bokra.net/Article-1591616",
+      "article_source": "bokra.net",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "temporal_weight": 1,
+      "article_title": "هجوم صاروخي إيراني واسع يضرب تل أبيب والنقب",
+      "grounding_tier": "unverified_critical",
+      "grounding_reason": "verification_failed_critical",
+      "grounding_method": "empty_evidence",
+      "source_type": "news",
+      "geo": {
+        "kind": "resolved",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "geoEntityType": "locality",
+        "resolution": {
+          "rawInput": "Bnei Brak",
+          "normalizedInput": "bnei brak",
+          "canonicalKey": "bnei_brak",
+          "matchedName": "Bnei Brak",
+          "matchedVariant": "Bnei Brak",
+          "matchMethod": "exact",
+          "matchConfidence": 1,
+          "candidateCount": 1,
+          "geoEntityType": "locality",
+          "provenance": "structured",
+          "scope": "signal"
+        },
+        "classification": {
+          "pboSubregionId": "homefront_dan",
+          "geoAreaTags": [
+            "dan"
+          ],
+          "isGolan": false,
+          "distanceKmToNorthBorder": 500,
+          "distanceBand": "25+",
+          "distancePolicyVersion": "distance-band-2026-05-v1"
+        },
+        "policy": {
+          "geoPolicyVersion": "geo-policy-2026-05-v3",
+          "quality": "medium",
+          "usableForMetrics": true,
+          "requiresReview": false,
+          "scopeConfidence": "high",
+          "decisionReasons": [
+            "homefront_district_stub:dan"
+          ]
+        },
+        "audit": {
+          "geoReferenceVersion": "homefront-district-stubs-v1",
+          "source": "homefront-district-stubs",
+          "resolvedAt": "2026-06-20T14:04:29.250Z"
+        },
+        "matchEvidence": {
+          "rawInput": "Bnei Brak",
+          "normalizedInput": "bnei brak",
+          "matchedVariant": "Bnei Brak",
+          "candidateCount": 1
+        },
+        "scopeDecision": {
+          "isRelevant": false,
+          "source": "unknown",
+          "confidence": "low",
+          "usableForMetrics": true,
+          "reasons": [
+            "no geoAreaTag for north"
+          ],
+          "isNorthRelevant": false,
+          "homeFrontDistrictIds": [
+            "dan"
+          ]
+        }
+      },
+      "district_id": "dan",
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#33",
+      "article_date": "2026-04-04"
     },
     {
       "article_index": 35,
@@ -1536,7 +1566,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-19T13:09:22.083Z"
+          "resolvedAt": "2026-06-20T14:04:29.250Z"
         },
         "matchEvidence": {
           "rawInput": "Bnei Brak",
@@ -1559,7 +1589,92 @@
         }
       },
       "district_id": "dan",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#35"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#35",
+      "article_date": "2026-04-04"
+    },
+    {
+      "article_index": 36,
+      "signal_type": "harm_to_population",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "Ранения получил житель Бней-Брака",
+      "scope_level": "local",
+      "confidence": 0.95,
+      "locality": "Bnei Brak",
+      "article_url": "https://www.vesty.co.il/main/article/9nlw00h5t",
+      "article_source": "vesty.co.il",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "temporal_weight": 1,
+      "article_title": "Война с Ираном, день 36-й: хроника противостояния",
+      "grounding_tier": "unverified_critical",
+      "grounding_reason": "verification_failed_critical",
+      "grounding_method": "empty_evidence",
+      "source_type": "news",
+      "geo": {
+        "kind": "resolved",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "geoEntityType": "locality",
+        "resolution": {
+          "rawInput": "Bnei Brak",
+          "normalizedInput": "bnei brak",
+          "canonicalKey": "bnei_brak",
+          "matchedName": "Bnei Brak",
+          "matchedVariant": "Bnei Brak",
+          "matchMethod": "exact",
+          "matchConfidence": 1,
+          "candidateCount": 1,
+          "geoEntityType": "locality",
+          "provenance": "structured",
+          "scope": "signal"
+        },
+        "classification": {
+          "pboSubregionId": "homefront_dan",
+          "geoAreaTags": [
+            "dan"
+          ],
+          "isGolan": false,
+          "distanceKmToNorthBorder": 500,
+          "distanceBand": "25+",
+          "distancePolicyVersion": "distance-band-2026-05-v1"
+        },
+        "policy": {
+          "geoPolicyVersion": "geo-policy-2026-05-v3",
+          "quality": "medium",
+          "usableForMetrics": true,
+          "requiresReview": false,
+          "scopeConfidence": "high",
+          "decisionReasons": [
+            "homefront_district_stub:dan"
+          ]
+        },
+        "audit": {
+          "geoReferenceVersion": "homefront-district-stubs-v1",
+          "source": "homefront-district-stubs",
+          "resolvedAt": "2026-06-20T14:04:29.251Z"
+        },
+        "matchEvidence": {
+          "rawInput": "Bnei Brak",
+          "normalizedInput": "bnei brak",
+          "matchedVariant": "Bnei Brak",
+          "candidateCount": 1
+        },
+        "scopeDecision": {
+          "isRelevant": false,
+          "source": "unknown",
+          "confidence": "low",
+          "usableForMetrics": true,
+          "reasons": [
+            "no geoAreaTag for north"
+          ],
+          "isNorthRelevant": false,
+          "homeFrontDistrictIds": [
+            "dan"
+          ]
+        }
+      },
+      "district_id": "dan",
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#36",
+      "article_date": "2026-04-04"
     },
     {
       "article_index": 44,
@@ -1619,7 +1734,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-19T13:09:22.083Z"
+          "resolvedAt": "2026-06-20T14:04:29.251Z"
         },
         "matchEvidence": {
           "rawInput": "Bnei Brak",
@@ -1642,171 +1757,8 @@
         }
       },
       "district_id": "dan",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#44"
-    },
-    {
-      "article_index": 33,
-      "signal_type": "harm_to_population",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "أسفر عن إصابة رجل في مدينة بني براك جراء تطاير الزجاج",
-      "scope_level": "local",
-      "confidence": 0.95,
-      "locality": "Bnei Brak",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "article_source": "bokra.net",
-      "temporal_weight": 1,
-      "article_title": "هجوم صاروخي إيراني واسع يضرب تل أبيب والنقب",
-      "grounding_tier": "unverified_critical",
-      "grounding_reason": "verification_failed_critical",
-      "grounding_method": "empty_evidence",
-      "source_type": "news",
-      "geo": {
-        "kind": "resolved",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "geoEntityType": "locality",
-        "resolution": {
-          "rawInput": "Bnei Brak",
-          "normalizedInput": "bnei brak",
-          "canonicalKey": "bnei_brak",
-          "matchedName": "Bnei Brak",
-          "matchedVariant": "Bnei Brak",
-          "matchMethod": "exact",
-          "matchConfidence": 1,
-          "candidateCount": 1,
-          "geoEntityType": "locality",
-          "provenance": "structured",
-          "scope": "signal"
-        },
-        "classification": {
-          "pboSubregionId": "homefront_dan",
-          "geoAreaTags": [
-            "dan"
-          ],
-          "isGolan": false,
-          "distanceKmToNorthBorder": 500,
-          "distanceBand": "25+",
-          "distancePolicyVersion": "distance-band-2026-05-v1"
-        },
-        "policy": {
-          "geoPolicyVersion": "geo-policy-2026-05-v3",
-          "quality": "medium",
-          "usableForMetrics": true,
-          "requiresReview": false,
-          "scopeConfidence": "high",
-          "decisionReasons": [
-            "homefront_district_stub:dan"
-          ]
-        },
-        "audit": {
-          "geoReferenceVersion": "homefront-district-stubs-v1",
-          "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-19T13:09:22.084Z"
-        },
-        "matchEvidence": {
-          "rawInput": "Bnei Brak",
-          "normalizedInput": "bnei brak",
-          "matchedVariant": "Bnei Brak",
-          "candidateCount": 1
-        },
-        "scopeDecision": {
-          "isRelevant": false,
-          "source": "unknown",
-          "confidence": "low",
-          "usableForMetrics": true,
-          "reasons": [
-            "no geoAreaTag for north"
-          ],
-          "isNorthRelevant": false,
-          "homeFrontDistrictIds": [
-            "dan"
-          ]
-        }
-      },
-      "district_id": "dan",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#33"
-    },
-    {
-      "article_index": 36,
-      "signal_type": "harm_to_population",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "Ранения получил житель Бней-Брака",
-      "scope_level": "local",
-      "confidence": 0.95,
-      "locality": "Bnei Brak",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "article_source": "vesty.co.il",
-      "temporal_weight": 1,
-      "article_title": "Война с Ираном, день 36-й: хроника противостояния",
-      "grounding_tier": "unverified_critical",
-      "grounding_reason": "verification_failed_critical",
-      "grounding_method": "empty_evidence",
-      "source_type": "news",
-      "geo": {
-        "kind": "resolved",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "geoEntityType": "locality",
-        "resolution": {
-          "rawInput": "Bnei Brak",
-          "normalizedInput": "bnei brak",
-          "canonicalKey": "bnei_brak",
-          "matchedName": "Bnei Brak",
-          "matchedVariant": "Bnei Brak",
-          "matchMethod": "exact",
-          "matchConfidence": 1,
-          "candidateCount": 1,
-          "geoEntityType": "locality",
-          "provenance": "structured",
-          "scope": "signal"
-        },
-        "classification": {
-          "pboSubregionId": "homefront_dan",
-          "geoAreaTags": [
-            "dan"
-          ],
-          "isGolan": false,
-          "distanceKmToNorthBorder": 500,
-          "distanceBand": "25+",
-          "distancePolicyVersion": "distance-band-2026-05-v1"
-        },
-        "policy": {
-          "geoPolicyVersion": "geo-policy-2026-05-v3",
-          "quality": "medium",
-          "usableForMetrics": true,
-          "requiresReview": false,
-          "scopeConfidence": "high",
-          "decisionReasons": [
-            "homefront_district_stub:dan"
-          ]
-        },
-        "audit": {
-          "geoReferenceVersion": "homefront-district-stubs-v1",
-          "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-19T13:09:22.085Z"
-        },
-        "matchEvidence": {
-          "rawInput": "Bnei Brak",
-          "normalizedInput": "bnei brak",
-          "matchedVariant": "Bnei Brak",
-          "candidateCount": 1
-        },
-        "scopeDecision": {
-          "isRelevant": false,
-          "source": "unknown",
-          "confidence": "low",
-          "usableForMetrics": true,
-          "reasons": [
-            "no geoAreaTag for north"
-          ],
-          "isNorthRelevant": false,
-          "homeFrontDistrictIds": [
-            "dan"
-          ]
-        }
-      },
-      "district_id": "dan",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#36"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#44",
+      "article_date": "2026-04-04"
     },
     {
       "article_index": 2,
@@ -1826,7 +1778,8 @@
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#2"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#2",
+      "article_date": "2026-04-04"
     },
     {
       "article_index": 3,
@@ -1887,7 +1840,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:09:22.086Z"
+          "resolvedAt": "2026-06-20T14:04:29.252Z"
         },
         "matchEvidence": {
           "rawInput": "העיר העתיקה",
@@ -1909,7 +1862,8 @@
           "homeFrontDistrictIds": []
         }
       },
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#3"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#3",
+      "article_date": "2026-04-04"
     },
     {
       "article_index": 3,
@@ -1970,7 +1924,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:09:22.087Z"
+          "resolvedAt": "2026-06-20T14:04:29.253Z"
         },
         "matchEvidence": {
           "rawInput": "העיר העתיקה",
@@ -1992,7 +1946,8 @@
           "homeFrontDistrictIds": []
         }
       },
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#3"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#3",
+      "article_date": "2026-04-04"
     },
     {
       "article_index": 3,
@@ -2053,7 +2008,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:09:22.087Z"
+          "resolvedAt": "2026-06-20T14:04:29.254Z"
         },
         "matchEvidence": {
           "rawInput": "העיר העתיקה",
@@ -2075,7 +2030,8 @@
           "homeFrontDistrictIds": []
         }
       },
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#3"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#3",
+      "article_date": "2026-04-04"
     },
     {
       "article_index": 31,
@@ -2135,7 +2091,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-19T13:09:22.088Z"
+          "resolvedAt": "2026-06-20T14:04:29.254Z"
         },
         "matchEvidence": {
           "rawInput": "תל אביב",
@@ -2158,7 +2114,8 @@
         }
       },
       "district_id": "dan",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#31"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#31",
+      "article_date": "2026-04-04"
     },
     {
       "article_index": 4,
@@ -2222,7 +2179,7 @@
           "geoReferenceVersion": "north-geo-2026-05-10",
           "borderReferenceVersion": "north-border-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:09:22.089Z"
+          "resolvedAt": "2026-06-20T14:04:29.255Z"
         },
         "matchEvidence": {
           "rawInput": "מטולה",
@@ -2246,7 +2203,8 @@
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#4"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#4",
+      "article_date": "2026-04-04"
     },
     {
       "article_index": 15,
@@ -2266,7 +2224,8 @@
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#15"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#15",
+      "article_date": "2026-04-04"
     },
     {
       "article_index": 7,
@@ -2286,7 +2245,8 @@
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#7"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#7",
+      "article_date": "2026-04-04"
     },
     {
       "article_index": 7,
@@ -2306,7 +2266,8 @@
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#7"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#7",
+      "article_date": "2026-04-04"
     },
     {
       "article_index": 18,
@@ -2369,7 +2330,7 @@
           "geoReferenceVersion": "north-geo-2026-05-10",
           "borderReferenceVersion": "north-border-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:09:22.089Z"
+          "resolvedAt": "2026-06-20T14:04:29.256Z"
         },
         "matchEvidence": {
           "rawInput": "קריית שמונה",
@@ -2392,7 +2353,8 @@
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#18"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#18",
+      "article_date": "2026-04-04"
     },
     {
       "article_index": 27,
@@ -2455,7 +2417,7 @@
           "geoReferenceVersion": "north-geo-2026-05-10",
           "borderReferenceVersion": "north-border-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:09:22.089Z"
+          "resolvedAt": "2026-06-20T14:04:29.256Z"
         },
         "matchEvidence": {
           "rawInput": "Kiryat Shmona",
@@ -2478,7 +2440,8 @@
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#27"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#27",
+      "article_date": "2026-04-04"
     },
     {
       "article_index": 10,
@@ -2513,10 +2476,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:09:22.090Z"
+          "resolvedAt": "2026-06-20T14:04:29.257Z"
         }
       },
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#10"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#10",
+      "article_date": "2026-04-04"
     },
     {
       "article_index": 16,
@@ -2576,7 +2540,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-19T13:09:22.091Z"
+          "resolvedAt": "2026-06-20T14:04:29.257Z"
         },
         "matchEvidence": {
           "rawInput": "פתח תקווה",
@@ -2599,7 +2563,8 @@
         }
       },
       "district_id": "dan",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#16"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#16",
+      "article_date": "2026-04-04"
     },
     {
       "article_index": 35,
@@ -2634,10 +2599,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:09:22.091Z"
+          "resolvedAt": "2026-06-20T14:04:29.258Z"
         }
       },
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#35"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#35",
+      "article_date": "2026-04-04"
     },
     {
       "article_index": 16,
@@ -2697,7 +2663,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-19T13:09:22.092Z"
+          "resolvedAt": "2026-06-20T14:04:29.258Z"
         },
         "matchEvidence": {
           "rawInput": "פתח תקווה",
@@ -2720,7 +2686,8 @@
         }
       },
       "district_id": "dan",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#16"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#16",
+      "article_date": "2026-04-04"
     },
     {
       "article_index": 16,
@@ -2780,7 +2747,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-19T13:09:22.092Z"
+          "resolvedAt": "2026-06-20T14:04:29.259Z"
         },
         "matchEvidence": {
           "rawInput": "פתח תקווה",
@@ -2803,7 +2770,8 @@
         }
       },
       "district_id": "dan",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#16"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#16",
+      "article_date": "2026-04-04"
     },
     {
       "article_index": 35,
@@ -2863,7 +2831,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-19T13:09:22.093Z"
+          "resolvedAt": "2026-06-20T14:04:29.260Z"
         },
         "matchEvidence": {
           "rawInput": "Petah Tikva",
@@ -2886,7 +2854,8 @@
         }
       },
       "district_id": "dan",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#35"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#35",
+      "article_date": "2026-04-04"
     },
     {
       "article_index": 41,
@@ -2921,10 +2890,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:09:22.093Z"
+          "resolvedAt": "2026-06-20T14:04:29.260Z"
         }
       },
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#41"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#41",
+      "article_date": "2026-04-04"
     },
     {
       "article_index": 19,
@@ -2959,10 +2929,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:09:22.094Z"
+          "resolvedAt": "2026-06-20T14:04:29.261Z"
         }
       },
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#19"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#19",
+      "article_date": "2026-04-04"
     },
     {
       "article_index": 31,
@@ -3022,7 +2993,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-19T13:09:22.094Z"
+          "resolvedAt": "2026-06-20T14:04:29.261Z"
         },
         "matchEvidence": {
           "rawInput": "תל אביב",
@@ -3045,7 +3016,8 @@
         }
       },
       "district_id": "dan",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#31"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#31",
+      "article_date": "2026-04-04"
     },
     {
       "article_index": 19,
@@ -3080,10 +3052,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:09:22.095Z"
+          "resolvedAt": "2026-06-20T14:04:29.262Z"
         }
       },
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#19"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#19",
+      "article_date": "2026-04-04"
     },
     {
       "article_index": 20,
@@ -3104,7 +3077,8 @@
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#20"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#20",
+      "article_date": "2026-04-04"
     },
     {
       "article_index": 29,
@@ -3124,7 +3098,8 @@
       "grounding_reason": "low_similarity",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#29"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#29",
+      "article_date": "2026-04-04"
     },
     {
       "article_index": 22,
@@ -3144,7 +3119,8 @@
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#22"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#22",
+      "article_date": "2026-04-04"
     },
     {
       "article_index": 24,
@@ -3179,10 +3155,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:09:22.096Z"
+          "resolvedAt": "2026-06-20T14:04:29.263Z"
         }
       },
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#24"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#24",
+      "article_date": "2026-04-04"
     },
     {
       "article_index": 28,
@@ -3202,7 +3179,8 @@
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#28"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#28",
+      "article_date": "2026-04-04"
     },
     {
       "article_index": 39,
@@ -3222,7 +3200,8 @@
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#39"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#39",
+      "article_date": "2026-04-04"
     },
     {
       "article_index": 28,
@@ -3242,7 +3221,8 @@
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#28"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#28",
+      "article_date": "2026-04-04"
     },
     {
       "article_index": 31,
@@ -3302,7 +3282,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-19T13:09:22.097Z"
+          "resolvedAt": "2026-06-20T14:04:29.264Z"
         },
         "matchEvidence": {
           "rawInput": "תל אביב",
@@ -3325,7 +3305,8 @@
         }
       },
       "district_id": "dan",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#31"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#31",
+      "article_date": "2026-04-04"
     },
     {
       "article_index": 37,
@@ -3360,48 +3341,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:09:22.097Z"
+          "resolvedAt": "2026-06-20T14:04:29.264Z"
         }
       },
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#37"
-    },
-    {
-      "article_index": 41,
-      "signal_type": "resource_mobilization",
-      "evidence_type": "named_institutional_fact",
-      "evidence": "An internal document from the Health Ministry released on Friday showed a significant reinforcement of ground forces and a redirection of resources to the Dead Sea and Eilat areas, involving extensive preparations and a high economic cost. According to the data, the decision to reinforce forces was made following a situation assessment, during which an immediate need was identified to increase medical responses in areas likely to be affected.",
-      "scope_level": "regional",
-      "confidence": 0.9,
-      "locality": "Dead Sea and Eilat",
-      "article_url": "https://www.jpost.com/israel-news/article-892023",
-      "article_source": "jpost.com",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "temporal_weight": 1,
-      "article_title": "Health Ministry reveals wartime preparations in Eilat, Dead Sea amid tense security situation",
-      "grounding_tier": "grounded",
-      "grounding_reason": "containment",
-      "grounding_method": "containment",
-      "source_type": "news",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "Dead Sea and Eilat",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "Dead Sea and Eilat",
-          "normalizedInput": "dead sea and eilat",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:09:22.098Z"
-        }
-      },
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#41"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#37",
+      "article_date": "2026-04-04"
     },
     {
       "article_index": 38,
@@ -3411,9 +3355,10 @@
       "scope_level": "local",
       "confidence": 0.85,
       "locality": "Haifa",
+      "article_url": "https://www.timesofisrael.com/hezbollah-attacks-damage-homes-in-north-idf-said-to-destroy-east-lebanon-bridge/",
+      "article_source": "timesofisrael.com",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
-      "article_source": "timesofisrael.com",
       "temporal_weight": 1,
       "article_title": "Hezbollah attacks damage homes in north; IDF said to destroy east Lebanon bridge",
       "grounding_tier": "grounded",
@@ -3460,7 +3405,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-19T13:09:22.098Z"
+          "resolvedAt": "2026-06-20T14:04:29.265Z"
         },
         "matchEvidence": {
           "rawInput": "Haifa",
@@ -3483,7 +3428,47 @@
         }
       },
       "district_id": "haifa",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#38"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#38",
+      "article_date": "2026-04-04"
+    },
+    {
+      "article_index": 41,
+      "signal_type": "resource_mobilization",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "An internal document from the Health Ministry released on Friday showed a significant reinforcement of ground forces and a redirection of resources to the Dead Sea and Eilat areas, involving extensive preparations and a high economic cost. According to the data, the decision to reinforce forces was made following a situation assessment, during which an immediate need was identified to increase medical responses in areas likely to be affected.",
+      "scope_level": "regional",
+      "confidence": 0.9,
+      "locality": "Dead Sea and Eilat",
+      "article_url": "https://www.jpost.com/israel-news/article-892023",
+      "article_source": "jpost.com",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "temporal_weight": 1,
+      "article_title": "Health Ministry reveals wartime preparations in Eilat, Dead Sea amid tense security situation",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Dead Sea and Eilat",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Dead Sea and Eilat",
+          "normalizedInput": "dead sea and eilat",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-20T14:04:29.266Z"
+        }
+      },
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#41",
+      "article_date": "2026-04-04"
     },
     {
       "article_index": 11,
@@ -3503,7 +3488,8 @@
       "grounding_reason": "entailment_failed_critical",
       "grounding_method": "entailment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#11"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#11",
+      "article_date": "2026-04-04"
     },
     {
       "article_index": 13,
@@ -3566,7 +3552,7 @@
           "geoReferenceVersion": "north-geo-2026-05-10",
           "borderReferenceVersion": "north-border-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:09:22.099Z"
+          "resolvedAt": "2026-06-20T14:04:29.266Z"
         },
         "matchEvidence": {
           "rawInput": "קריית שמונה",
@@ -3589,7 +3575,8 @@
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#13"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-04.md#13",
+      "article_date": "2026-04-04"
     }
   ]
 }

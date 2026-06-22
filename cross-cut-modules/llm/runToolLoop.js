@@ -105,6 +105,7 @@ export async function runToolLoop(opts) {
   const initialUserMessage = currentMessages.find((m) => m.role === 'user') ?? currentMessages[0] ?? null;
   let stopReason = null;
   let lastUsage = null;
+  let endedByToolLoop = false;
 
   function throwIfAborted() {
     const signal = opts.abortSignal;
@@ -151,6 +152,7 @@ export async function runToolLoop(opts) {
 
     if (shouldEndToolLoop(toolUseBlocks, stopReason)) {
       currentMessages = appendAssistantText(currentMessages, textBlocks);
+      endedByToolLoop = true;
       break;
     }
 
@@ -183,6 +185,12 @@ export async function runToolLoop(opts) {
         ? [initialUserMessage, memoryBlock, tailAssistant, tailUser]
         : [memoryBlock, tailAssistant, tailUser];
     }
+  }
+
+  // If we completed the loop without hitting an explicit end condition, surface
+  // a distinct stop reason for observability + client UX.
+  if (!endedByToolLoop && (stopReason == null || stopReason === 'tool_use')) {
+    stopReason = 'max_rounds';
   }
 
   return {

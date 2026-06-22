@@ -9,7 +9,11 @@ import {
   resolveCostLogPath,
   summarizeStageDropRates,
 } from '../infrastructure/adapters/costLogReader.js';
-import { readLlmTelemetryForDate } from '../../llm/llmInvocationLog.js';
+import { readJsonlRecords } from '../../log/infrastructure/jsonlLog.js';
+import {
+  readLlmTelemetryForDate,
+  resolveLlmInvocationsPath,
+} from '../../llm/llmInvocationLog.js';
 
 /**
  * Technical monitoring facade (filesystem + cost-log v1).
@@ -122,6 +126,71 @@ export function createMonitoringService(deps) {
     });
   }
 
+  async function getAgentTelemetry({ date } = {}) {
+    const datePrefix = date ?? new Date().toISOString().slice(0, 10);
+    const invocationsPath = resolveLlmInvocationsPath(deps.rootDir);
+    const rows = readJsonlRecords(invocationsPath);
+
+    const byFeature = {};
+    const inc = (feature, key, value = 1) => {
+      if (!byFeature[feature]) byFeature[feature] = {};
+      byFeature[feature][key] = (byFeature[feature][key] ?? 0) + value;
+    };
+
+    for (const row of rows) {
+      if (!row.timestamp?.startsWith(datePrefix)) continue;
+
+      const feature = String(row.feature ?? 'unknown');
+      const stopReason = row.stopReason ?? null;
+      const costUsd = typeof row.costUsd === 'number' ? row.costUsd : 0;
+
+      inc(feature, 'total_usd', costUsd);
+      inc(feature, 'invocation_count', 1);
+
+      if (stopReason != null) {
+        const stopKey = `stop_${String(stopReason)}`;
+        inc(feature, stopKey, 1);
+      }
+
+      if (stopReason === 'max_rounds') inc(feature, 'loop_hits', 1);
+    }
+
+    // Post-process into a stable shape.
+    const normalized = Object.fromEntries(
+      Object.entries(byFeature).map(([feature, s]) => {
+        const toolUse = s.stop_tool_use ?? 0;
+        const endTurn = s.stop_end_turn ?? 0;
+        const totalToolOrEnd = toolUse + endTurn;
+        const tool_call_success_ratio = totalToolOrEnd > 0
+          ? toolUse / totalToolOrEnd
+          : null;
+
+        return [
+          feature,
+          {
+            total_usd: Math.round((s.total_usd ?? 0) * 1e6) / 1e6,
+            invocation_count: s.invocation_count ?? 0,
+            $per_invocation: s.invocation_count > 0
+              ? Math.round(((s.total_usd ?? 0) / s.invocation_count) * 1e6) / 1e6
+              : null,
+            tool_call_success_ratio,
+            loop_hits: s.loop_hits ?? 0,
+            stop_counts: Object.fromEntries(
+              Object.entries(s)
+                .filter(([k]) => k.startsWith('stop_'))
+                .map(([k, v]) => [k.slice('stop_'.length), v]),
+            ),
+          },
+        ];
+      }),
+    );
+
+    return {
+      date: datePrefix,
+      by_feature: normalized,
+    };
+  }
+
   return {
     getSummary,
     getHealth,
@@ -130,5 +199,6 @@ export function createMonitoringService(deps) {
     getCostTelemetry,
     getLlmTelemetry,
     getStageTelemetry,
+    getAgentTelemetry,
   };
 }

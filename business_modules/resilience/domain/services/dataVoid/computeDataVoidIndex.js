@@ -4,7 +4,10 @@
 
 import {
   isProbeSignal,
+  distinctSourceVolume,
 } from './sourceChannels.js';
+
+const PRESS_SOURCE_TYPES = new Set(['news', 'radio']);
 import {
   computeVolumeBaselines,
   isBelowQuarterBaseline,
@@ -174,6 +177,20 @@ export function computeDataVoidIndex(signals, historicalSignals = [], opts = {})
     affected_clusters.push({ reason: 'total_silence', cluster: '_global', field_active: false });
   }
 
+  const northPressVolume = distinctSourceVolume(
+    list.filter((s) => PRESS_SOURCE_TYPES.has(s?.source_type)),
+    PRESS_SOURCE_TYPES,
+  );
+  const allForDiagnostics = Array.isArray(opts.allSignalsForDiagnostics)
+    ? opts.allSignalsForDiagnostics
+    : null;
+  const nationalPressVolume = allForDiagnostics
+    ? distinctSourceVolume(
+      allForDiagnostics.filter((s) => PRESS_SOURCE_TYPES.has(s?.source_type)),
+      PRESS_SOURCE_TYPES,
+    )
+    : null;
+
   return {
     level,
     reason,
@@ -189,6 +206,8 @@ export function computeDataVoidIndex(signals, historicalSignals = [], opts = {})
     actual_digital_volume: digitalToday,
     expected_field_volume: Math.round(expectedField * 100) / 100,
     field_volume: fieldToday,
+    north_digital_volume: northPressVolume,
+    ...(nationalPressVolume != null ? { national_digital_volume: nationalPressVolume } : {}),
     digital_z: digitalZ == null ? null : Math.round(digitalZ * 100) / 100,
     digital_ewma_7: Math.round(digitalEwma7 * 100) / 100,
     digital_ewma_14: Math.round(digitalEwma14 * 100) / 100,

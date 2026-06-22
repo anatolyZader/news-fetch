@@ -2,12 +2,51 @@
   "source_type": "news",
   "content_kind": "news",
   "date": "2026-04-03",
-  "extracted_at": "2026-06-19T13:08:25.737Z",
+  "extracted_at": "2026-06-20T13:59:53.310Z",
   "source_files": [
     "articles-homefront-2026-04-03.md"
   ],
   "total_articles": 140,
   "signals": [
+    {
+      "article_index": 1,
+      "signal_type": "early_warning_system_effective",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "אזעקות הופעלו הלילה (בין רביעי לחמישי) ביישובים רבים במרכז כתוצאה משיגור של ראש קרב מתפצל מאיראן, שלא יורט",
+      "scope_level": "regional",
+      "confidence": 0.85,
+      "locality": "פתח תקווה, גבעת שמואל, בני ברק, תל אביב, כפר סבא, כפר שמריהו, רעננה, הוד השרון, קריית אונו, יהוד מונוסון, חולון, גבעתיים, רמת גן, אלעד, רמת השרון, אור יהודה, שוהם, ראשון לציון, הרצליה, בת ים, נס ציונה, מקווה ישראל",
+      "article_url": "https://www.ynet.co.il/news/article/hybpzc2sbl",
+      "article_source": "ynet.co.il",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "temporal_weight": 1,
+      "article_title": "הרס כבד בכמה זירות במרכז | התיעודים מהירי הלילי מאיראן למרכז",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "פתח תקווה, גבעת שמואל, בני ברק, תל אביב, כפר סבא, כפר שמריהו, רעננה, הוד השרון,",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "פתח תקווה, גבעת שמואל, בני ברק, תל אביב, כפר סבא, כפר שמריהו, רעננה, הוד השרון,",
+          "normalizedInput": "פתח תקווה, גבעת שמואל, בני ברק, תל אביב, כפר סבא, כפר שמריהו, רעננה, הוד השרון,",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-20T13:59:53.040Z"
+        }
+      },
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#1",
+      "article_date": "2026-04-03"
+    },
     {
       "article_index": 31,
       "signal_type": "early_warning_system_effective",
@@ -26,7 +65,8 @@
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#31"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#31",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 33,
@@ -46,7 +86,8 @@
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#33"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#33",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 41,
@@ -56,9 +97,10 @@
       "scope_level": "regional",
       "confidence": 0.75,
       "locality": "Galilee",
+      "article_url": "https://news.walla.co.il/break/3828245",
+      "article_source": "news.walla.co.il",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
-      "article_source": "news.walla.co.il",
       "temporal_weight": 1,
       "article_title": "אזעקות בחיפה וצפון הארץ - וואלה חדשות",
       "grounding_tier": "grounded",
@@ -80,10 +122,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:08:25.655Z"
+          "resolvedAt": "2026-06-20T13:59:53.225Z"
         }
       },
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#41"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#41",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 42,
@@ -93,9 +136,10 @@
       "scope_level": "regional",
       "confidence": 0.75,
       "locality": "Northern Israel",
+      "article_url": "https://news.walla.co.il/break/3828253",
+      "article_source": "news.walla.co.il",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
-      "article_source": "news.walla.co.il",
       "temporal_weight": 1,
       "article_title": "שיגורים נוספים זוהו מאיראן, אזעקות צפויות בצפון הארץ - וואלה חדשות",
       "grounding_tier": "grounded",
@@ -117,10 +161,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:08:25.656Z"
+          "resolvedAt": "2026-06-20T13:59:53.226Z"
         }
       },
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#42"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#42",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 1,
@@ -155,10 +200,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:08:25.657Z"
+          "resolvedAt": "2026-06-20T13:59:53.228Z"
         }
       },
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#1"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#1",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 8,
@@ -218,7 +264,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-19T13:08:25.658Z"
+          "resolvedAt": "2026-06-20T13:59:53.229Z"
         },
         "matchEvidence": {
           "rawInput": "פתח תקווה",
@@ -241,7 +287,8 @@
         }
       },
       "district_id": "dan",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#8"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#8",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 28,
@@ -276,10 +323,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:08:25.659Z"
+          "resolvedAt": "2026-06-20T13:59:53.230Z"
         }
       },
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#28"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#28",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 41,
@@ -289,9 +337,10 @@
       "scope_level": "regional",
       "confidence": 0.7,
       "locality": "Galilee",
+      "article_url": "https://news.walla.co.il/break/3828245",
+      "article_source": "news.walla.co.il",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
-      "article_source": "news.walla.co.il",
       "temporal_weight": 1,
       "article_title": "אזעקות בחיפה וצפון הארץ - וואלה חדשות",
       "grounding_tier": "grounded",
@@ -313,10 +362,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:08:25.660Z"
+          "resolvedAt": "2026-06-20T13:59:53.230Z"
         }
       },
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#41"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#41",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 48,
@@ -326,9 +376,10 @@
       "scope_level": "local",
       "confidence": 0.85,
       "locality": "Gush Dan",
+      "article_url": "https://news.walla.co.il/break/3828309",
+      "article_source": "news.walla.co.il",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
-      "article_source": "news.walla.co.il",
       "temporal_weight": 1,
       "article_title": "חשד לנפילות במספר זירות בגוש דן: כשלא ידוע על נפגעים - וואלה חדשות",
       "grounding_tier": "grounded",
@@ -350,10 +401,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:08:25.660Z"
+          "resolvedAt": "2026-06-20T13:59:53.231Z"
         }
       },
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#48"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#48",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 60,
@@ -363,9 +415,10 @@
       "scope_level": "regional",
       "confidence": 0.85,
       "locality": "Central Israel",
+      "article_url": "https://www.kikar.co.il/security-news/tcwj4t",
+      "article_source": "kikar.co.il",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
-      "article_source": "kikar.co.il",
       "temporal_weight": 1,
       "article_title": "נפילות ונזק מטיל איראני שנפל במרכז | שיגורים גם מלבנון |דיווח: מטוס ..",
       "grounding_tier": "grounded",
@@ -387,10 +440,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:08:25.661Z"
+          "resolvedAt": "2026-06-20T13:59:53.232Z"
         }
       },
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#60"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#60",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 2,
@@ -450,7 +504,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-19T13:08:25.661Z"
+          "resolvedAt": "2026-06-20T13:59:53.233Z"
         },
         "matchEvidence": {
           "rawInput": "חיפה",
@@ -473,7 +527,8 @@
         }
       },
       "district_id": "haifa",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#2"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#2",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 3,
@@ -493,7 +548,8 @@
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#3"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#3",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 13,
@@ -513,7 +569,8 @@
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#13"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#13",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 37,
@@ -533,7 +590,8 @@
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#37"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#37",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 4,
@@ -553,7 +611,8 @@
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#4"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#4",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 14,
@@ -573,7 +632,8 @@
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#14"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#14",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 29,
@@ -593,7 +653,8 @@
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#29"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#29",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 5,
@@ -613,7 +674,8 @@
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#5"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#5",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 15,
@@ -633,7 +695,8 @@
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#15"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#15",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 6,
@@ -668,10 +731,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:08:25.664Z"
+          "resolvedAt": "2026-06-20T13:59:53.236Z"
         }
       },
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#6"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#6",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 40,
@@ -706,10 +770,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:08:25.665Z"
+          "resolvedAt": "2026-06-20T13:59:53.236Z"
         }
       },
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#40"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#40",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 7,
@@ -769,7 +834,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-19T13:08:25.665Z"
+          "resolvedAt": "2026-06-20T13:59:53.237Z"
         },
         "matchEvidence": {
           "rawInput": "פתח תקווה",
@@ -792,85 +857,29 @@
         }
       },
       "district_id": "dan",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#7"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#7",
+      "article_date": "2026-04-03"
     },
     {
-      "article_index": 11,
-      "signal_type": "risk_trade_off_behavior",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "עסקים רבים חוזרים לפעול ולא מחכים לסוף המלחמה, כי הם מבינים שהפיצוי קטן, הדרך אליו מייגעת ועדיף להסתכן מלהישמע להוראות",
-      "scope_level": "national",
-      "confidence": 0.75,
-      "locality": null,
-      "article_url": "https://www.haaretz.co.il/tmr/weekend/2026-04-03/ty-article-magazine/.premium/0000019d-43da-d068-a19f-4fda9ba80000",
-      "article_source": "haaretz.co.il",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "temporal_weight": 1,
-      "article_title": "200 איש יושבים במסעדה בלי מרחב מוגן. מה כבר יכול להשתבש",
-      "grounding_tier": "grounded",
-      "grounding_reason": "containment",
-      "grounding_method": "containment",
-      "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#11"
-    },
-    {
-      "article_index": 11,
-      "signal_type": "non_compliance_ignore_guidelines",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "200 איש יושבים במסעדה בלי מרחב מוגן. עסקים רבים חוזרים לפעול ולא מחכים לסוף המלחמה, כי הם מבינים שהפיצוי קטן, הדרך אליו מייגעת ועדיף להסתכן מלהישמע להוראות",
-      "scope_level": "national",
-      "confidence": 0.8,
-      "locality": null,
-      "article_url": "https://www.haaretz.co.il/tmr/weekend/2026-04-03/ty-article-magazine/.premium/0000019d-43da-d068-a19f-4fda9ba80000",
-      "article_source": "haaretz.co.il",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "temporal_weight": 1,
-      "article_title": "200 איש יושבים במסעדה בלי מרחב מוגן. מה כבר יכול להשתבש",
-      "grounding_tier": "grounded",
-      "grounding_reason": "containment",
-      "grounding_method": "containment",
-      "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#11"
-    },
-    {
-      "article_index": 39,
-      "signal_type": "non_compliance_ignore_guidelines",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "בימים האחרונים, במסגרת הערכות לקראת הילולת הרשב\"י, הובא לידיעת המשרד לשירותי דתות כי האתר פתוח לקהל הרחב ופועל בשגרה מלאה. בשיחת בירור שהתקיימה עם עם מנהל האתר, אורי רוזנבסקי, עלה כי המקום פועל ללא אישור מפיקוד העורף ובניגוד מוחלט להנחיותיו",
+      "article_index": 9,
+      "signal_type": "harm_to_population",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "חיזבאללה שיגר מוקדם יותר היום רקטה שפגעה במוצב יוניפי\"ל בדרום לבנון, במרחב אל-עדייסה, וגרמה לפציעתם של שלושה אנשי או\"ם, שניים מהם באורח קשה",
       "scope_level": "local",
-      "confidence": 0.85,
-      "locality": "מירון",
-      "article_url": "http://news.walla.co.il/item/3828221",
-      "article_source": "news.walla.co.il",
+      "confidence": 0.95,
+      "locality": null,
+      "article_url": "https://www.ynet.co.il/news/article/b1s47qtowx",
+      "article_source": "ynet.co.il",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
       "temporal_weight": 1,
-      "article_title": "בזמן המלחמה: אתר הרשב\"י במירון פועל כבשגרה - וואלה חדשות",
+      "article_title": "צה\"ל: רקטת חיזבאללה פגעה במוצב יוניפי\"ל בלבנון וגרמה לפציעת 3 אנשי או\"ם",
       "grounding_tier": "grounded",
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "מירון",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "מירון",
-          "normalizedInput": "מירון",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:08:25.667Z"
-        }
-      },
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#39"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#9",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 12,
@@ -890,7 +899,8 @@
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#12"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#12",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 17,
@@ -951,7 +961,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-19T13:08:25.667Z"
+          "resolvedAt": "2026-06-20T13:59:53.238Z"
         },
         "matchEvidence": {
           "rawInput": "קריית אתא",
@@ -974,7 +984,8 @@
         }
       },
       "district_id": "haifa",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#17"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#17",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 27,
@@ -994,7 +1005,8 @@
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#27"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#27",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 34,
@@ -1054,7 +1066,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-19T13:08:25.668Z"
+          "resolvedAt": "2026-06-20T13:59:53.239Z"
         },
         "matchEvidence": {
           "rawInput": "רמת גן",
@@ -1077,7 +1089,8 @@
         }
       },
       "district_id": "dan",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#34"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#34",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 43,
@@ -1112,10 +1125,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:08:25.669Z"
+          "resolvedAt": "2026-06-20T13:59:53.240Z"
         }
       },
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#43"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#43",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 57,
@@ -1150,10 +1164,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:08:25.669Z"
+          "resolvedAt": "2026-06-20T13:59:53.240Z"
         }
       },
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#57"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#57",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 58,
@@ -1173,7 +1188,8 @@
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#58"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#58",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 59,
@@ -1193,26 +1209,89 @@
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#59"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#59",
+      "article_date": "2026-04-03"
     },
     {
-      "article_index": 9,
-      "signal_type": "harm_to_population",
-      "evidence_type": "named_institutional_fact",
-      "evidence": "חיזבאללה שיגר מוקדם יותר היום רקטה שפגעה במוצב יוניפי\"ל בדרום לבנון, במרחב אל-עדייסה, וגרמה לפציעתם של שלושה אנשי או\"ם, שניים מהם באורח קשה",
-      "scope_level": "local",
-      "confidence": 0.95,
+      "article_index": 11,
+      "signal_type": "risk_trade_off_behavior",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "עסקים רבים חוזרים לפעול ולא מחכים לסוף המלחמה, כי הם מבינים שהפיצוי קטן, הדרך אליו מייגעת ועדיף להסתכן מלהישמע להוראות",
+      "scope_level": "national",
+      "confidence": 0.75,
       "locality": null,
+      "article_url": "https://www.haaretz.co.il/tmr/weekend/2026-04-03/ty-article-magazine/.premium/0000019d-43da-d068-a19f-4fda9ba80000",
+      "article_source": "haaretz.co.il",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
-      "article_source": "ynet.co.il",
       "temporal_weight": 1,
-      "article_title": "צה\"ל: רקטת חיזבאללה פגעה במוצב יוניפי\"ל בלבנון וגרמה לפציעת 3 אנשי או\"ם",
+      "article_title": "200 איש יושבים במסעדה בלי מרחב מוגן. מה כבר יכול להשתבש",
       "grounding_tier": "grounded",
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#9"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#11",
+      "article_date": "2026-04-03"
+    },
+    {
+      "article_index": 11,
+      "signal_type": "non_compliance_ignore_guidelines",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "200 איש יושבים במסעדה בלי מרחב מוגן. עסקים רבים חוזרים לפעול ולא מחכים לסוף המלחמה, כי הם מבינים שהפיצוי קטן, הדרך אליו מייגעת ועדיף להסתכן מלהישמע להוראות",
+      "scope_level": "national",
+      "confidence": 0.8,
+      "locality": null,
+      "article_url": "https://www.haaretz.co.il/tmr/weekend/2026-04-03/ty-article-magazine/.premium/0000019d-43da-d068-a19f-4fda9ba80000",
+      "article_source": "haaretz.co.il",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "temporal_weight": 1,
+      "article_title": "200 איש יושבים במסעדה בלי מרחב מוגן. מה כבר יכול להשתבש",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#11",
+      "article_date": "2026-04-03"
+    },
+    {
+      "article_index": 39,
+      "signal_type": "non_compliance_ignore_guidelines",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "בימים האחרונים, במסגרת הערכות לקראת הילולת הרשב\"י, הובא לידיעת המשרד לשירותי דתות כי האתר פתוח לקהל הרחב ופועל בשגרה מלאה. בשיחת בירור שהתקיימה עם עם מנהל האתר, אורי רוזנבסקי, עלה כי המקום פועל ללא אישור מפיקוד העורף ובניגוד מוחלט להנחיותיו",
+      "scope_level": "local",
+      "confidence": 0.85,
+      "locality": "מירון",
+      "article_url": "http://news.walla.co.il/item/3828221",
+      "article_source": "news.walla.co.il",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "temporal_weight": 1,
+      "article_title": "בזמן המלחמה: אתר הרשב\"י במירון פועל כבשגרה - וואלה חדשות",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "מירון",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "מירון",
+          "normalizedInput": "מירון",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-06-20T13:59:53.241Z"
+        }
+      },
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#39",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 22,
@@ -1247,10 +1326,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:08:25.671Z"
+          "resolvedAt": "2026-06-20T13:59:53.242Z"
         }
       },
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#22"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#22",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 23,
@@ -1270,7 +1350,8 @@
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#23"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#23",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 51,
@@ -1305,10 +1386,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:08:25.671Z"
+          "resolvedAt": "2026-06-20T13:59:53.243Z"
         }
       },
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#51"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#51",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 30,
@@ -1368,7 +1450,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-19T13:08:25.672Z"
+          "resolvedAt": "2026-06-20T13:59:53.243Z"
         },
         "matchEvidence": {
           "rawInput": "רמת גן",
@@ -1391,7 +1473,8 @@
         }
       },
       "district_id": "dan",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#30"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#30",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 30,
@@ -1451,7 +1534,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-19T13:08:25.672Z"
+          "resolvedAt": "2026-06-20T13:59:53.244Z"
         },
         "matchEvidence": {
           "rawInput": "רמת גן",
@@ -1474,7 +1557,8 @@
         }
       },
       "district_id": "dan",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#30"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#30",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 32,
@@ -1494,7 +1578,8 @@
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#32"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#32",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 35,
@@ -1529,10 +1614,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:08:25.673Z"
+          "resolvedAt": "2026-06-20T13:59:53.245Z"
         }
       },
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#35"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#35",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 55,
@@ -1552,7 +1638,8 @@
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#55"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#55",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 36,
@@ -1587,10 +1674,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:08:25.675Z"
+          "resolvedAt": "2026-06-20T13:59:53.247Z"
         }
       },
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#36"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#36",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 38,
@@ -1625,10 +1713,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:08:25.676Z"
+          "resolvedAt": "2026-06-20T13:59:53.247Z"
         }
       },
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#38"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#38",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 40,
@@ -1663,10 +1752,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:08:25.676Z"
+          "resolvedAt": "2026-06-20T13:59:53.248Z"
         }
       },
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#40"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#40",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 44,
@@ -1686,7 +1776,8 @@
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#44"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#44",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 46,
@@ -1706,7 +1797,8 @@
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#46"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#46",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 47,
@@ -1741,30 +1833,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:08:25.677Z"
+          "resolvedAt": "2026-06-20T13:59:53.249Z"
         }
       },
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#47"
-    },
-    {
-      "article_index": 50,
-      "signal_type": "routine_maintenance",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "עגלות הקפה המומלצות שפתוחות בחג עם מרחב מוגן בהישג יד",
-      "scope_level": "local",
-      "confidence": 0.6,
-      "locality": null,
-      "article_url": "https://www.mako.co.il/travel-israel/Article-fdc23abe4a34d91026.htm",
-      "article_source": "mako.co.il",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "temporal_weight": 1,
-      "article_title": "עם אופציה לכשל\"פ ומרחב מוגן: עגלות הקפה המומלצות שפתוחות בחג",
-      "grounding_tier": "weak",
-      "grounding_reason": "low_similarity",
-      "grounding_method": "containment",
-      "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#50"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#47",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 48,
@@ -1774,9 +1847,10 @@
       "scope_level": "local",
       "confidence": 0.8,
       "locality": "Petah Tikva",
+      "article_url": "https://news.walla.co.il/break/3828309",
+      "article_source": "news.walla.co.il",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
-      "article_source": "news.walla.co.il",
       "temporal_weight": 1,
       "article_title": "חשד לנפילות במספר זירות בגוש דן: כשלא ידוע על נפגעים - וואלה חדשות",
       "grounding_tier": "grounded",
@@ -1823,7 +1897,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-19T13:08:25.678Z"
+          "resolvedAt": "2026-06-20T13:59:53.249Z"
         },
         "matchEvidence": {
           "rawInput": "Petah Tikva",
@@ -1846,7 +1920,8 @@
         }
       },
       "district_id": "dan",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#48"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#48",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 60,
@@ -1856,9 +1931,10 @@
       "scope_level": "regional",
       "confidence": 0.8,
       "locality": "Central Israel",
+      "article_url": "https://www.kikar.co.il/security-news/tcwj4t",
+      "article_source": "kikar.co.il",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
-      "article_source": "kikar.co.il",
       "temporal_weight": 1,
       "article_title": "נפילות ונזק מטיל איראני שנפל במרכז | שיגורים גם מלבנון |דיווח: מטוס ..",
       "grounding_tier": "grounded",
@@ -1880,10 +1956,53 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:08:25.678Z"
+          "resolvedAt": "2026-06-20T13:59:53.250Z"
         }
       },
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#60"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#60",
+      "article_date": "2026-04-03"
+    },
+    {
+      "article_index": 50,
+      "signal_type": "routine_maintenance",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "עגלות הקפה המומלצות שפתוחות בחג עם מרחב מוגן בהישג יד",
+      "scope_level": "local",
+      "confidence": 0.6,
+      "locality": null,
+      "article_url": "https://www.mako.co.il/travel-israel/Article-fdc23abe4a34d91026.htm",
+      "article_source": "mako.co.il",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "temporal_weight": 1,
+      "article_title": "עם אופציה לכשל\"פ ומרחב מוגן: עגלות הקפה המומלצות שפתוחות בחג",
+      "grounding_tier": "weak",
+      "grounding_reason": "low_similarity",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#50",
+      "article_date": "2026-04-03"
+    },
+    {
+      "article_index": 58,
+      "signal_type": "protective_infrastructure_absent",
+      "evidence_type": "named_institutional_fact",
+      "evidence": "רוב הדירות במדינה לא מותאמות אפילו לנגישות בסיסית",
+      "scope_level": "national",
+      "confidence": 0.89,
+      "locality": null,
+      "article_url": "https://www.mako.co.il/finances-real-estate/Article-0f0aa38918f3d91027.htm",
+      "article_source": "mako.co.il",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "temporal_weight": 1,
+      "article_title": "למה הדירות בישראל לא מוכנות לגל הנפגעים הבא?",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "source_type": "news",
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#58",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 25,
@@ -1903,7 +2022,8 @@
       "grounding_reason": "entailment_failed",
       "grounding_method": "entailment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#25"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#25",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 2,
@@ -1923,7 +2043,8 @@
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#2"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#2",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 3,
@@ -1958,10 +2079,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:08:25.680Z"
+          "resolvedAt": "2026-06-20T13:59:53.251Z"
         }
       },
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#3"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#3",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 5,
@@ -1996,10 +2118,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:08:25.680Z"
+          "resolvedAt": "2026-06-20T13:59:53.252Z"
         }
       },
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#5"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#5",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 13,
@@ -2019,7 +2142,8 @@
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#13"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#13",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 17,
@@ -2054,10 +2178,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:08:25.682Z"
+          "resolvedAt": "2026-06-20T13:59:53.253Z"
         }
       },
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#17"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#17",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 21,
@@ -2117,7 +2242,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-19T13:08:25.683Z"
+          "resolvedAt": "2026-06-20T13:59:53.254Z"
         },
         "matchEvidence": {
           "rawInput": "Kiryat Ata",
@@ -2140,7 +2265,8 @@
         }
       },
       "district_id": "haifa",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#21"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#21",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 24,
@@ -2160,7 +2286,8 @@
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#24"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#24",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 28,
@@ -2220,7 +2347,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-19T13:08:25.683Z"
+          "resolvedAt": "2026-06-20T13:59:53.254Z"
         },
         "matchEvidence": {
           "rawInput": "Kiryat Ata",
@@ -2243,7 +2370,8 @@
         }
       },
       "district_id": "haifa",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#28"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#28",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 33,
@@ -2263,7 +2391,8 @@
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#33"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#33",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 57,
@@ -2323,7 +2452,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-19T13:08:25.712Z"
+          "resolvedAt": "2026-06-20T13:59:53.283Z"
         },
         "matchEvidence": {
           "rawInput": "Kiryat Ata",
@@ -2346,7 +2475,8 @@
         }
       },
       "district_id": "haifa",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#57"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#57",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 4,
@@ -2366,7 +2496,8 @@
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#4"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#4",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 4,
@@ -2386,7 +2517,8 @@
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#4"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#4",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 5,
@@ -2421,10 +2553,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:08:25.714Z"
+          "resolvedAt": "2026-06-20T13:59:53.285Z"
         }
       },
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#5"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#5",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 17,
@@ -2459,10 +2592,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:08:25.715Z"
+          "resolvedAt": "2026-06-20T13:59:53.286Z"
         }
       },
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#17"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#17",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 21,
@@ -2522,7 +2656,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-19T13:08:25.715Z"
+          "resolvedAt": "2026-06-20T13:59:53.286Z"
         },
         "matchEvidence": {
           "rawInput": "Kiryat Ata",
@@ -2545,7 +2679,8 @@
         }
       },
       "district_id": "haifa",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#21"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#21",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 28,
@@ -2605,7 +2740,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-19T13:08:25.715Z"
+          "resolvedAt": "2026-06-20T13:59:53.287Z"
         },
         "matchEvidence": {
           "rawInput": "Kiryat Ata",
@@ -2628,7 +2763,8 @@
         }
       },
       "district_id": "haifa",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#28"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#28",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 37,
@@ -2648,7 +2784,8 @@
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#37"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#37",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 52,
@@ -2708,7 +2845,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-19T13:08:25.716Z"
+          "resolvedAt": "2026-06-20T13:59:53.287Z"
         },
         "matchEvidence": {
           "rawInput": "Beersheba",
@@ -2731,7 +2868,8 @@
         }
       },
       "district_id": "south",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#52"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#52",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 53,
@@ -2766,10 +2904,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:08:25.717Z"
+          "resolvedAt": "2026-06-20T13:59:53.288Z"
         }
       },
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#53"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#53",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 60,
@@ -2804,10 +2943,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:08:25.717Z"
+          "resolvedAt": "2026-06-20T13:59:53.288Z"
         }
       },
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#60"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#60",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 6,
@@ -2827,7 +2967,8 @@
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#6"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#6",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 19,
@@ -2847,7 +2988,8 @@
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#19"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#19",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 7,
@@ -2868,7 +3010,8 @@
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#7"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#7",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 9,
@@ -2888,7 +3031,8 @@
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#9"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#9",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 10,
@@ -2908,7 +3052,8 @@
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#10"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#10",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 11,
@@ -2928,7 +3073,8 @@
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#11"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#11",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 18,
@@ -2948,7 +3094,8 @@
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#18"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#18",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 8,
@@ -2969,7 +3116,8 @@
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#8"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#8",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 29,
@@ -2989,7 +3137,8 @@
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#29"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#29",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 30,
@@ -3009,7 +3158,8 @@
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#30"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#30",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 48,
@@ -3029,7 +3179,8 @@
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#48"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#48",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 9,
@@ -3049,7 +3200,8 @@
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#9"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#9",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 12,
@@ -3069,7 +3221,8 @@
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#12"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#12",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 20,
@@ -3089,7 +3242,8 @@
       "grounding_reason": "low_similarity",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#20"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#20",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 54,
@@ -3109,7 +3263,8 @@
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#54"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#54",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 56,
@@ -3144,10 +3299,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:08:25.720Z"
+          "resolvedAt": "2026-06-20T13:59:53.291Z"
         }
       },
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#56"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#56",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 55,
@@ -3167,7 +3323,8 @@
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#55"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#55",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 59,
@@ -3227,7 +3384,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-19T13:08:25.720Z"
+          "resolvedAt": "2026-06-20T13:59:53.292Z"
         },
         "matchEvidence": {
           "rawInput": "Jerusalem",
@@ -3250,7 +3407,8 @@
         }
       },
       "district_id": "jerusalem",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#59"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#59",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 55,
@@ -3270,7 +3428,8 @@
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#55"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#55",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 56,
@@ -3290,7 +3449,8 @@
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#56"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#56",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 56,
@@ -3350,7 +3510,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-19T13:08:25.721Z"
+          "resolvedAt": "2026-06-20T13:59:53.293Z"
         },
         "matchEvidence": {
           "rawInput": "Beersheba",
@@ -3373,7 +3533,8 @@
         }
       },
       "district_id": "south",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#56"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#56",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 58,
@@ -3393,7 +3554,8 @@
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#58"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#58",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 58,
@@ -3413,7 +3575,8 @@
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#58"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#58",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 22,
@@ -3433,7 +3596,8 @@
       "grounding_reason": "entailment_rescue",
       "grounding_method": "entailment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#22"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#22",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 1,
@@ -3453,7 +3617,8 @@
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#1"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#1",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 4,
@@ -3488,10 +3653,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:08:25.722Z"
+          "resolvedAt": "2026-06-20T13:59:53.294Z"
         }
       },
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#4"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#4",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 7,
@@ -3551,7 +3717,7 @@
         "audit": {
           "geoReferenceVersion": "homefront-district-stubs-v1",
           "source": "homefront-district-stubs",
-          "resolvedAt": "2026-06-19T13:08:25.723Z"
+          "resolvedAt": "2026-06-20T13:59:53.294Z"
         },
         "matchEvidence": {
           "rawInput": "Kiryat Ata",
@@ -3574,7 +3740,8 @@
         }
       },
       "district_id": "haifa",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#7"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#7",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 10,
@@ -3609,10 +3776,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:08:25.723Z"
+          "resolvedAt": "2026-06-20T13:59:53.295Z"
         }
       },
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#10"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#10",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 13,
@@ -3647,10 +3815,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:08:25.724Z"
+          "resolvedAt": "2026-06-20T13:59:53.296Z"
         }
       },
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#13"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#13",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 15,
@@ -3685,10 +3854,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:08:25.725Z"
+          "resolvedAt": "2026-06-20T13:59:53.297Z"
         }
       },
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#15"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#15",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 15,
@@ -3723,10 +3893,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:08:25.725Z"
+          "resolvedAt": "2026-06-20T13:59:53.297Z"
         }
       },
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#15"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#15",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 16,
@@ -3761,10 +3932,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:08:25.726Z"
+          "resolvedAt": "2026-06-20T13:59:53.298Z"
         }
       },
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#16"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#16",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 16,
@@ -3799,10 +3971,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:08:25.727Z"
+          "resolvedAt": "2026-06-20T13:59:53.299Z"
         }
       },
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#16"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#16",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 3,
@@ -3837,10 +4010,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:08:25.727Z"
+          "resolvedAt": "2026-06-20T13:59:53.300Z"
         }
       },
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#3"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#3",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 3,
@@ -3903,7 +4077,7 @@
           "geoReferenceVersion": "north-geo-2026-05-10",
           "borderReferenceVersion": "north-border-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:08:25.728Z"
+          "resolvedAt": "2026-06-20T13:59:53.300Z"
         },
         "matchEvidence": {
           "rawInput": "Metula",
@@ -3926,7 +4100,8 @@
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#3"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#3",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 4,
@@ -3961,10 +4136,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:08:25.729Z"
+          "resolvedAt": "2026-06-20T13:59:53.301Z"
         }
       },
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#4"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#4",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 12,
@@ -3999,10 +4175,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:08:25.729Z"
+          "resolvedAt": "2026-06-20T13:59:53.302Z"
         }
       },
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#12"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#12",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 13,
@@ -4037,10 +4214,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:08:25.730Z"
+          "resolvedAt": "2026-06-20T13:59:53.303Z"
         }
       },
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#13"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#13",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 4,
@@ -4075,10 +4253,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:08:25.730Z"
+          "resolvedAt": "2026-06-20T13:59:53.303Z"
         }
       },
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#4"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#4",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 12,
@@ -4113,10 +4292,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:08:25.731Z"
+          "resolvedAt": "2026-06-20T13:59:53.303Z"
         }
       },
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#12"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#12",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 7,
@@ -4136,7 +4316,8 @@
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#7"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#7",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 19,
@@ -4156,7 +4337,8 @@
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#19"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#19",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 8,
@@ -4191,10 +4373,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:08:25.732Z"
+          "resolvedAt": "2026-06-20T13:59:53.304Z"
         }
       },
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#8"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#8",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 9,
@@ -4258,7 +4441,7 @@
           "geoReferenceVersion": "north-geo-2026-05-10",
           "borderReferenceVersion": "north-border-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:08:25.732Z"
+          "resolvedAt": "2026-06-20T13:59:53.304Z"
         },
         "matchEvidence": {
           "rawInput": "Tzfat",
@@ -4281,7 +4464,8 @@
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#9"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#9",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 9,
@@ -4344,7 +4528,7 @@
           "geoReferenceVersion": "north-geo-2026-05-10",
           "borderReferenceVersion": "north-border-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:08:25.732Z"
+          "resolvedAt": "2026-06-20T13:59:53.305Z"
         },
         "matchEvidence": {
           "rawInput": "Tzfat",
@@ -4367,7 +4551,8 @@
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#9"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#9",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 11,
@@ -4387,7 +4572,8 @@
       "grounding_reason": "containment",
       "grounding_method": "containment",
       "source_type": "news",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#11"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#11",
+      "article_date": "2026-04-03"
     },
     {
       "article_index": 14,
@@ -4450,7 +4636,7 @@
           "geoReferenceVersion": "north-geo-2026-05-10",
           "borderReferenceVersion": "north-border-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-06-19T13:08:25.732Z"
+          "resolvedAt": "2026-06-20T13:59:53.305Z"
         },
         "matchEvidence": {
           "rawInput": "Tzfat",
@@ -4473,7 +4659,8 @@
         }
       },
       "district_id": "north",
-      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#14"
+      "source_id": "md:business_modules/news-sites/articles_extracted/articles-homefront-2026-04-03.md#14",
+      "article_date": "2026-04-03"
     }
   ]
 }

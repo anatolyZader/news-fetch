@@ -24,6 +24,7 @@ import { loadHistoricalSignalDays } from './assessSignalsHelpers.js';
  * @param {string} params.reportScopeId
  * @param {string} [params.reportsDir]
  * @param {boolean} [params.digitalDarknessHint]
+ * @param {Array<object>} [params.allSignalsForDiagnostics]
  * @returns {Promise<{
  *   investigationSignals: Array<object>,
  *   dataVoid: object,
@@ -38,6 +39,7 @@ export async function prepareInvestigationSignals({
   reportScopeId,
   reportsDir = 'daily_reports',
   digitalDarknessHint = false,
+  allSignalsForDiagnostics = null,
 }) {
   const dismissed = isSocialQuarantineDismissed(reportDate, reportScopeId);
   const analystActive = isSocialQuarantineActive(reportDate, reportScopeId);
@@ -67,6 +69,7 @@ export async function prepareInvestigationSignals({
 
   const dataVoid = computeDataVoidIndex(prepared, historicalSignalDays, {
     reportScope: reportScopeId,
+    ...(allSignalsForDiagnostics ? { allSignalsForDiagnostics } : {}),
   });
 
   const priorQuarantine = loadActiveQuarantine(reportDate, reportScopeId, reportsDir);

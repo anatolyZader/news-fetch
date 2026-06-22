@@ -66,7 +66,7 @@ function applyOovClusterChecks(synthResult, ctx = {}) {
   const oovClusters = ctx.oovClusters ?? [];
   if (!oovClusters.length) return synthResult;
 
-  let synthesis = String(synthResult.cross_component_synthesis ?? '');
+  const synthesis = String(synthResult.cross_component_synthesis ?? '');
   const attention_items = [...(synthResult.attention_items ?? [])];
   const seenAttention = new Set(attention_items.map((a) => a.id));
 
@@ -77,8 +77,6 @@ function applyOovClusterChecks(synthResult, ctx = {}) {
     if (alreadyInAttention || clusterMentionedInSynthesis(synthesis, cluster)) continue;
 
     const sample = String(cluster.sample_evidence ?? cluster.keywords?.join(', ') ?? clusterKey).slice(0, 200);
-    const bullet = `- Unverified repeated phrasing: ${sample}`;
-    synthesis = synthesis.trim() ? `${synthesis.trim()}\n${bullet}` : bullet;
 
     const attId = `oov:unaddressed:${clusterKey}`;
     if (!seenAttention.has(attId)) {
@@ -97,7 +95,6 @@ function applyOovClusterChecks(synthResult, ctx = {}) {
 
   return {
     ...synthResult,
-    cross_component_synthesis: synthesis,
     attention_items,
   };
 }
@@ -115,7 +112,7 @@ function applyOpenObservationChecks(synthResult, ctx = {}) {
   const openObservationClaims = ctx.openObservationClaims ?? collectOpenObservationClaimsFromAssessments(ctx.componentAssessments);
   if (!openObservationClaims.length) return synthResult;
 
-  let synthesis = String(synthResult.cross_component_synthesis ?? '');
+  const synthesis = String(synthResult.cross_component_synthesis ?? '');
   const attention_items = [...(synthResult.attention_items ?? [])];
   const seenAttention = new Set(attention_items.map((a) => a.id));
 
@@ -124,8 +121,6 @@ function applyOpenObservationChecks(synthResult, ctx = {}) {
     if (openClaimMentionedInSynthesis(synthesis, claim)) continue;
 
     const sample = String(claim.text ?? '').slice(0, 200);
-    const bullet = `- Unverified open observation (${claim.component_id}): ${sample}`;
-    synthesis = synthesis.trim() ? `${synthesis.trim()}\n${bullet}` : bullet;
 
     const attId = `open:unaddressed:${claimKey}`;
     if (!seenAttention.has(attId)) {
@@ -144,7 +139,6 @@ function applyOpenObservationChecks(synthResult, ctx = {}) {
 
   return {
     ...synthResult,
-    cross_component_synthesis: synthesis,
     attention_items,
   };
 }

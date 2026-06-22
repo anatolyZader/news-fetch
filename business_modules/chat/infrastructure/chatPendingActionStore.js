@@ -78,9 +78,13 @@ export function createChatPendingActionStore(dbPath) {
     },
 
     markConsumed(id) {
-      db.prepare(`
-        UPDATE chat_pending_actions SET consumed_at = datetime('now') WHERE id = ? AND consumed_at IS NULL
+      const info = db.prepare(`
+        UPDATE chat_pending_actions
+        SET consumed_at = datetime('now')
+        WHERE id = ? AND consumed_at IS NULL
       `).run(id);
+      // node:sqlite exposes `changes` for how many rows were updated.
+      return (info?.changes ?? 0) > 0;
     },
 
     isExpired(pending) {

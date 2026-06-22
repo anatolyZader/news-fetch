@@ -33,6 +33,7 @@ function buildSynthesizerSystem(componentAssessments, epistemicProfile, oovClust
     'Do not invent facts not present in component assessments. ' +
     'Write cross_component_synthesis as 2–4 sentences of operator-readable English prose (not bullet lists); ' +
     'include inline markdown citations [source_label](url) when component narratives or claims reference URLs. ' +
+    'When component assessments reference national press (narrative_national_context / macro_national), weave how those national themes may influence northern communities — use phrasing like "National press (not north-local evidence):" where appropriate. ' +
     'do not paste raw or multi-language evidence quotes into the synthesis. ' +
     'Address any OOV clusters and unverified repeated phrasing in your synthesis. ' +
     'Treat open observations and catalog signals equally; cite unverified material explicitly.';

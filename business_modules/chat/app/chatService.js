@@ -172,6 +172,7 @@ export async function streamChat(message, history, rawReply, getReportData, opts
   ];
 
   try {
+    let loopExhausted = false;
     const runLlm = () => chatLlmPort.streamChatResponse(context, pboLookup, messages, send, reportData, {
       sourceArchive: opts.sourceArchive ?? null,
       evidenceStore: opts.evidenceStore ?? null,
@@ -194,6 +195,9 @@ export async function streamChat(message, history, rawReply, getReportData, opts
       abortSignal,
       economy: chatEconomyMeta,
       uiLang: opts.uiLang ?? 'en',
+      onLoopExhausted: (meta) => {
+        loopExhausted = meta?.stopReason === 'max_rounds';
+      },
     });
 
     if (tracePort) {
@@ -201,8 +205,46 @@ export async function streamChat(message, history, rawReply, getReportData, opts
     } else {
       await runLlm();
     }
-    send({ type: 'done', chat_economy: chatEconomyMeta });
+    send({
+      type: 'done',
+      chat_economy: chatEconomyMeta,
+      ...(loopExhausted ? { loop_exhausted: true } : {}),
+    });
   } catch (err) {
+    if (err?.code === 'llm_circuit_open' && err?.name !== 'AbortError') {
+      try {
+        const fallbackText = await runDeterministicChatFallback({
+          message,
+          reportData,
+          pboLookup,
+          contextSlice: sliceResult.contextSlice,
+          contextSliceReason: sliceResult.reason,
+          toolContextDeps: {
+            userEmail: opts.userEmail ?? '',
+            sourceArchive: opts.sourceArchive ?? null,
+            evidenceStore: opts.evidenceStore ?? null,
+            retrievalService: opts.retrievalService ?? null,
+            retrievalCache: opts.retrievalCache ?? null,
+            toolProfile: opts.toolProfile ?? 'default',
+          },
+        });
+        send({ type: 'text', text: fallbackText });
+        send({
+          type: 'done',
+          mode: 'deterministic_fallback',
+          llm_circuit_open: true,
+          chat_economy: chatEconomyMeta,
+        });
+        return;
+      } catch (fallbackErr) {
+        send({
+          type: 'error',
+          message: fallbackErr?.message ?? err?.message ?? 'LLM circuit open + fallback failed',
+        });
+        send({ type: 'done', error: true, mode: 'deterministic_fallback' });
+        return;
+      }
+    }
     send({ type: 'error', message: err?.message ?? 'Chat failed' });
     send({ type: 'done', error: true });
   }

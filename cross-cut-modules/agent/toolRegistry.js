@@ -28,6 +28,18 @@ export function getToolsForProfile(profileId, extraTools = []) {
   return merged;
 }
 
+/**
+ * @param {string} profileId
+ * @param {string} toolName
+ * @param {Array<object>} [extraTools]
+ * @returns {object|null} input_schema or null if unknown/unset
+ */
+export function getToolSchema(profileId, toolName, extraTools = []) {
+  const tools = getToolsForProfile(profileId, extraTools);
+  const toolDef = tools.find((t) => t?.name === toolName);
+  return toolDef?.input_schema ?? null;
+}
+
 export function listRegisteredProfiles() {
   return [...profileTools.keys()];
 }

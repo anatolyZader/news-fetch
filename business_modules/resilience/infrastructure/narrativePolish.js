@@ -41,6 +41,7 @@ function buildPolishSystemPrompt() {
     '- Do NOT invent causal links between signals from different article URLs.\n' +
     '- Use "Separately," / parallel structure for independent observations in narrative prose.\n' +
     '- No raw multi-language evidence quotes in narrative prose — paraphrase in English.\n' +
+    '- When signal refs carry narrativeContextOnly or narrative_national_context / macro_national provenance, include 1–2 sentences per component where such evidence exists: "At national level…; for northern communities this implies…" with inline [source_label](url) citations; prefix with "National press (not north-local evidence):" when the source is not scope-local.\n' +
     '- evidence[] items should echo claim text with markdown source links when URLs exist (full supporting list for drill-down).\n' +
     '- When SUPPRESSION/DATA_QUALITY block is present, include data_quality_caveat naming the limit.\n' +
     '- cross_component_synthesis: flowing prose paragraphs only — no bullet lists.\n'

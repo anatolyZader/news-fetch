@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import {
   buildProseFromClaims,
   buildCuratedEvidenceBullets,
+  buildStructuredEvidenceItems,
   buildEpistemicOperatorProse,
   finalizeOperatorNarrativeSurface,
   isStubNarrative,
@@ -90,6 +91,21 @@ describe('operatorNarrativeSurface', () => {
     assert.match(bullets[0], /\[source\]\(https:\/\/news\.example\/item\)/);
   });
 
+  it('buildStructuredEvidenceItems includes source metadata from claims', () => {
+    const items = buildStructuredEvidenceItems({
+      claims: [{
+        text: 'Field team noted supply gaps.',
+        evidence_refs: ['gap@url:https://pbo.example/report'],
+        source_type: 'pbo',
+        article_source: 'pbo-north',
+      }],
+    });
+    assert.equal(items.length, 1);
+    assert.equal(items[0].source_type, 'pbo');
+    assert.equal(items[0].article_source, 'pbo-north');
+    assert.match(items[0].markdown, /Field team noted supply gaps/);
+  });
+
   it('finalizeOperatorNarrativeSurface sets narrative_operator and evidence_operator', () => {
     const assessment = {
       components: [{
@@ -104,5 +120,6 @@ describe('operatorNarrativeSurface', () => {
     assert.match(assessment.components[0].narrative_operator, /Sleep disruption/);
     assert.equal(assessment.components[0].operator_evidence_tier, 'curated');
     assert.ok(assessment.components[0].evidence_operator?.length >= 1);
+    assert.ok(assessment.components[0].evidence_operator_structured?.length >= 1);
   });
 });

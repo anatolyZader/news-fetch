@@ -132,7 +132,10 @@ export async function chatRoutes(app, opts) {
       return reply.code(409).send({ error: 'action already consumed' });
     }
     if (pendingActionStore.isExpired(pending)) {
-      pendingActionStore.markConsumed(aid);
+      const didConsume = pendingActionStore.markConsumed(aid);
+      if (!didConsume) {
+        return reply.code(409).send({ error: 'action already consumed' });
+      }
       return reply.code(410).send({ error: 'action expired' });
     }
 
@@ -141,7 +144,10 @@ export async function chatRoutes(app, opts) {
       return reply.code(403).send({ error: 'Analyst access required', code: 'analyst_view_required' });
     }
 
-    pendingActionStore.markConsumed(aid);
+    const didConsume = pendingActionStore.markConsumed(aid);
+    if (!didConsume) {
+      return reply.code(409).send({ error: 'action already consumed' });
+    }
 
     if (confirmed !== true) {
       auditFromRequest(request, 'chat.confirm_action_rejected', '/api/chat/confirm-action', { actionId: aid });

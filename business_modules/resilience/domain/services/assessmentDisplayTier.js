@@ -285,6 +285,8 @@ export function redactAssessmentForView(assessment, view) {
       delete base.assessment_state;
       delete base.narrative_operator;
       delete base.evidence_operator;
+      delete base.evidence_operator_structured;
+      delete base.data_quality_caveat;
     }
     const facets = Array.isArray(c.facets)
       ? c.facets.map(redactFacet)
@@ -297,8 +299,11 @@ export function redactAssessmentForView(assessment, view) {
     const narrative = isOperator
       ? (c.narrative_operator ?? c.narrative)
       : c.narrative;
+    const structuredEvidence = c.evidence_operator_structured ?? [];
     const evidence = isOperator
-      ? (c.evidence_operator ?? c.evidence)
+      ? (structuredEvidence.length > 0
+        ? structuredEvidence
+        : (c.evidence_operator ?? c.evidence))
       : c.evidence;
     return {
       ...base,
@@ -328,6 +333,7 @@ export function redactAssessmentForView(assessment, view) {
   delete out.overall_resilience_score;
   if (isOperator) {
     delete out.cross_component_synthesis_operator;
+    delete out.investigation_summary;
   }
   if (Array.isArray(out.national_context_signals) && out.national_context_signals.length > 0) {
     out.national_context_summary = out.national_context_summary ?? {

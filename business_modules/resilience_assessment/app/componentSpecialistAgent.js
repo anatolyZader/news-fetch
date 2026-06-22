@@ -69,7 +69,8 @@ function buildSpecialistSystem(componentId, epistemicProfile, evidenceGraph, ass
     'Write the narrative as concise, operator-readable English prose that summarizes the evidence; ' +
     'when evidence_refs include URLs, each factual sentence must include an inline markdown citation [source_label](url) using article_source or source type as the label. ' +
     'Put verbatim quotes only in evidence_refs and never paste raw or multi-language evidence text into the narrative. ' +
-    'If evidence carries narrativeContextOnly or signalProvenance narrative_national_context / macro_national, use it for narrative context only — never treat it as scope-local scored evidence. Cite provenance when referencing national context.\n' +
+    'If evidence carries narrativeContextOnly or signalProvenance narrative_national_context / macro_national, use it for narrative context only — never treat it as scope-local scored evidence. ' +
+    'When citing national press, explain how national or homefront dynamics (shelter norms, economic spillover, leadership messaging, national mood) may affect northern residents; prefix such sentences with phrasing like "National press (not north-local evidence):" and include inline citations. ' +
     'If thin_evidence, set severity low and confidence low, still synthesize available investigation-pool signals with provisional caveats — abstain only when there are zero claims.\n' +
     'For retrieval gaps, add attempted: entries when you tried to close them.\n' +
     compactHint +

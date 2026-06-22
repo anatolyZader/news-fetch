@@ -111,6 +111,32 @@ export async function registerMonitoringRoutes(app, opts) {
   app.get('/api/monitoring/pipeline', analystPreHandler, handlePipelineQuery);
   app.get('/api/monitoring/summary', analystPreHandler, handleSummaryQuery);
 
+  async function handleAgentsQuery(request, reply) {
+    if (!monitoringService) {
+      return reply.code(503).send({ error: 'monitoring service not configured' });
+    }
+
+    if (requireAnalystView && !requireAnalystView(request, reply)) return;
+
+    const date = resolveQueryDate(
+      request.query?.date ?? request.query?.end_date ?? null,
+      timezone,
+    );
+
+    if (!validateDate(date)) {
+      return reply.code(400).send({ error: 'date must be YYYY-MM-DD' });
+    }
+
+    try {
+      const data = await monitoringService.getAgentTelemetry({ date });
+      return reply.send(data);
+    } catch (err) {
+      return reply.code(500).send({ error: err?.message ?? 'failed to compute agent telemetry' });
+    }
+  }
+
+  app.get('/api/monitoring/agents', analystPreHandler, handleAgentsQuery);
+
   /** @deprecated use GET /api/monitoring/pipeline */
   app.get('/api/pipeline/status', analystPreHandler, async (request, reply) => {
     await handlePipelineQuery(request, reply);
