@@ -86,12 +86,13 @@ async function runPolishAndValidatePass(params) {
 
   for (let attempt = 0; attempt < MAX_POLISH_ATTEMPTS; attempt += 1) {
     const feedback = [judgeFeedback, validationFeedback].filter(Boolean).join('\n\n');
-    polish = await polishNarrativeFromClaims(
+    const polishResult = await polishNarrativeFromClaims(
       mergedNarratives,
       registry,
       narrativeScored,
       { ...llmOpts, retrievedSpansBlock: rag.block, feedback, epistemicBlock, skipProgress: false },
     );
+    polish = polishResult;
 
     const validation = validateNarrativeOutput(polish, {
       scoredComponents: narrativeScored,
@@ -100,6 +101,11 @@ async function runPolishAndValidatePass(params) {
     const suppression = validateSuppressionCompliance(polish, narrativeScored);
 
     if (validation.ok && suppression.ok) break;
+
+    if (polishResult.stopReason === 'max_tokens' && attempt < MAX_POLISH_ATTEMPTS - 1) {
+      console.error('[operator-narrative] Polish truncated at max_tokens; skipping costly validation retry');
+      break;
+    }
 
     validationFeedback = [
       formatValidationFeedback(validation),
@@ -111,7 +117,8 @@ async function runPolishAndValidatePass(params) {
     }
   }
 
-  return polish;
+  const { stopReason: _stopReason, ...polishOutput } = polish;
+  return polishOutput;
 }
 
 /**

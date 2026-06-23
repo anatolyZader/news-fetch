@@ -8,6 +8,7 @@ export {
   calcTranscriptionCostUsd,
   rerankUsdPerSearch,
   createCostTracker,
+  resolveMaxCostUsd,
   checkDailyBudget,
 } from './app/budgetCostTracker.js';
 export {

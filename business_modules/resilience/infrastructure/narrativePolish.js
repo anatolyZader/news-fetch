@@ -18,7 +18,39 @@ import {
 const DEFAULT_POLISH_MODEL = process.env.RESILIENCE_NARRATIVE_POLISH_MODEL
   ?? SONNET_MODEL;
 
-function buildPolishSystemPrompt() {
+function polishMaxTokens() {
+  const n = Number.parseInt(process.env.RESILIENCE_NARRATIVE_POLISH_MAX_TOKENS ?? '16000', 10);
+  return Number.isFinite(n) ? Math.min(64_000, Math.max(4096, n)) : 16_000;
+}
+
+function polishShardSize() {
+  const n = Number.parseInt(process.env.RESILIENCE_POLISH_SHARD_SIZE ?? '4', 10);
+  return Number.isFinite(n) && n >= 2 ? n : 4;
+}
+
+function polishShardMinComponents() {
+  const n = Number.parseInt(process.env.RESILIENCE_POLISH_SHARD_MIN_COMPONENTS ?? '5', 10);
+  return Number.isFinite(n) && n >= 3 ? n : 5;
+}
+
+function buildPolishSystemPrompt({ includeSynthesis = true, synthesisOnly = false } = {}) {
+  if (synthesisOnly) {
+    return (
+      'Return ONLY valid JSON:\n' +
+      '{ "cross_component_synthesis": "<2–4 sentences of executive prose>" }\n' +
+      'No bullet lists. Include inline [source_label](url) citations when URLs are known from input.\n'
+    );
+  }
+
+  const synthesisBlock = includeSynthesis
+    ? (
+      '  "cross_component_synthesis": "<2–4 sentences of executive prose (not bullets); name components in plain English; each factual sentence includes inline [source_label](url) citations from underlying claims>"\n'
+    )
+    : '';
+  const synthesisRules = includeSynthesis
+    ? '- cross_component_synthesis: flowing prose paragraphs only — no bullet lists.\n'
+    : '- Omit cross_component_synthesis (return only components).\n';
+
   return (
     'You write operator-readable English resilience narratives grounded in cited claims.\n' +
     'Return ONLY valid JSON:\n' +
@@ -34,7 +66,7 @@ function buildPolishSystemPrompt() {
     '      "data_quality_caveat": "<optional when suppression context provided>"\n' +
     '    }\n' +
     '  ],\n' +
-    '  "cross_component_synthesis": "<2–4 sentences of executive prose (not bullets); name components in plain English; each factual sentence includes inline [source_label](url) citations from underlying claims>"\n' +
+    synthesisBlock +
     '}\n\n' +
     'Rules:\n' +
     '- Preserve every input narrative_claim verbatim in narrative_claims output.\n' +
@@ -44,13 +76,15 @@ function buildPolishSystemPrompt() {
     '- When signal refs carry narrativeContextOnly or narrative_national_context / macro_national provenance, include 1–2 sentences per component where such evidence exists: "At national level…; for northern communities this implies…" with inline [source_label](url) citations; prefix with "National press (not north-local evidence):" when the source is not scope-local.\n' +
     '- evidence[] items should echo claim text with markdown source links when URLs exist (full supporting list for drill-down).\n' +
     '- When SUPPRESSION/DATA_QUALITY block is present, include data_quality_caveat naming the limit.\n' +
-    '- cross_component_synthesis: flowing prose paragraphs only — no bullet lists.\n'
+    synthesisRules
   );
 }
 
-function formatClaimsBlock(mergedNarratives, registry, narrativeScored) {
+function formatClaimsBlock(mergedNarratives, registry, narrativeScored, componentIds = null) {
+  const idSet = componentIds ? new Set(componentIds) : null;
   const blocks = [];
   for (const def of RESILIENCE_COMPONENTS) {
+    if (idSet && !idSet.has(def.id)) continue;
     const comp = (mergedNarratives?.components ?? []).find((c) => c.component_id === def.id);
     const claims = comp?.narrative_claims ?? [];
     if (claims.length === 0) continue;
@@ -79,11 +113,33 @@ function formatClaimsBlock(mergedNarratives, registry, narrativeScored) {
   return blocks.join('\n\n---\n\n');
 }
 
-function formatPolishUserMessage(mergedNarratives, registry, narrativeScored, retrievedSpansBlock = '', feedback = '', epistemicBlock = '') {
+function formatPolishUserMessage(
+  mergedNarratives,
+  registry,
+  narrativeScored,
+  {
+    retrievedSpansBlock = '',
+    feedback = '',
+    epistemicBlock = '',
+    componentIds = null,
+    synthesisOnly = false,
+  } = {},
+) {
   const prefixParts = [retrievedSpansBlock, epistemicBlock].filter(Boolean);
   const prefix = prefixParts.length > 0 ? `${prefixParts.join('\n\n')}\n\n` : '';
-  const claimsBlock = formatClaimsBlock(mergedNarratives, registry, narrativeScored);
   const feedbackBlock = feedback ? `\n\nREVISION FEEDBACK:\n${feedback}\n` : '';
+
+  if (synthesisOnly) {
+    const summaryLines = (mergedNarratives?.components ?? [])
+      .filter((c) => String(c.narrative ?? '').trim())
+      .map((c) => `**${c.component_id}**: ${c.narrative}`);
+    return (
+      `${prefix}Write cross_component_synthesis only from these component narratives.\n\n` +
+      `${summaryLines.join('\n\n')}${feedbackBlock}`
+    );
+  }
+
+  const claimsBlock = formatClaimsBlock(mergedNarratives, registry, narrativeScored, componentIds);
   return (
     `${prefix}Write operator narratives for each component from these validated claims.\n\n` +
     `${claimsBlock}${feedbackBlock}`
@@ -111,46 +167,180 @@ function normalizePolishOutput(parsed, mergedNarratives) {
   };
 }
 
+function componentsWithClaims(mergedNarratives) {
+  return (mergedNarratives?.components ?? []).filter((c) => (c.narrative_claims ?? []).length > 0);
+}
+
+function chunkComponentIds(ids, size) {
+  const chunks = [];
+  for (let i = 0; i < ids.length; i += size) {
+    chunks.push(ids.slice(i, i + size));
+  }
+  return chunks;
+}
+
+/**
+ * @param {object} params
+ * @returns {Promise<{ components: object[], cross_component_synthesis: string, stopReason: string|null }>}
+ */
+async function invokePolishStream(params) {
+  const {
+    port,
+    mergedNarratives,
+    registry,
+    narrativeScored,
+    opts,
+    includeSynthesis,
+    componentIds,
+    synthesisOnly,
+    progressLabel,
+  } = params;
+
+  const userContent = formatPolishUserMessage(
+    mergedNarratives,
+    registry,
+    narrativeScored,
+    {
+      retrievedSpansBlock: opts.retrievedSpansBlock ?? '',
+      feedback: opts.feedback ?? '',
+      epistemicBlock: opts.epistemicBlock ?? '',
+      componentIds,
+      synthesisOnly,
+    },
+  );
+
+  const stream = await Promise.resolve(port.stream({
+    model: DEFAULT_POLISH_MODEL,
+    max_tokens: polishMaxTokens(),
+    temperature: 0,
+    system: buildPolishSystemPrompt({ includeSynthesis, synthesisOnly }),
+    messages: [{ role: 'user', content: userContent }],
+    callContext: {
+      feature: 'narrative_polish',
+      purpose: progressLabel ?? '[Step 3 — Polish]',
+    },
+  }));
+  if (!opts.skipProgress) await streamWithProgress(stream, progressLabel ?? '[Step 3 — Polish]');
+  const message = await stream.finalMessage();
+  if (opts.onUsage) {
+    opts.onUsage({
+      label: progressLabel ?? '[Step 3 — Polish]',
+      model: DEFAULT_POLISH_MODEL,
+      usage: message.usage,
+    });
+  }
+  const textBlock = message.content.find((b) => b.type === 'text');
+  if (!textBlock) throw new Error('Narrative polish: no text block');
+  const parsed = extractJson(textBlock.text);
+  const stopReason = message.stop_reason ?? null;
+  if (stopReason === 'max_tokens') {
+    console.error(`[operator-narrative] Polish hit max_tokens (${progressLabel ?? 'polish'})`);
+  }
+  return {
+    ...normalizePolishOutput(parsed, mergedNarratives),
+    stopReason,
+  };
+}
+
+async function polishSharded(mergedNarratives, registry, narrativeScored, opts) {
+  const port = resolveLlmPort(opts);
+  const withClaims = componentsWithClaims(mergedNarratives);
+  const shardSize = polishShardSize();
+  const idChunks = chunkComponentIds(withClaims.map((c) => c.component_id), shardSize);
+
+  const mergedComponents = [];
+  let lastStopReason = null;
+
+  for (let i = 0; i < idChunks.length; i += 1) {
+    const chunkIds = idChunks[i];
+    const isLast = i === idChunks.length - 1;
+    const partial = await invokePolishStream({
+      port,
+      mergedNarratives,
+      registry,
+      narrativeScored,
+      opts: { ...opts, feedback: isLast ? opts.feedback : '' },
+      includeSynthesis: false,
+      componentIds: chunkIds,
+      progressLabel: `[Step 3 — Polish ${i + 1}/${idChunks.length}]`,
+    });
+    mergedComponents.push(...partial.components);
+    lastStopReason = partial.stopReason;
+  }
+
+  const forSynthesis = {
+    components: mergedComponents.map((c) => {
+      const input = withClaims.find((x) => x.component_id === c.component_id);
+      return {
+        component_id: c.component_id,
+        narrative_claims: input?.narrative_claims ?? c.narrative_claims ?? [],
+        narrative: c.narrative,
+        evidence: c.evidence,
+        data_quality_caveat: c.data_quality_caveat,
+      };
+    }),
+  };
+
+  const synthesisResult = await invokePolishStream({
+    port,
+    mergedNarratives: forSynthesis,
+    registry,
+    narrativeScored,
+    opts,
+    includeSynthesis: true,
+    synthesisOnly: true,
+    progressLabel: '[Step 3 — Polish synthesis]',
+  });
+
+  return {
+    components: mergedComponents,
+    cross_component_synthesis: synthesisResult.cross_component_synthesis,
+    stopReason: synthesisResult.stopReason ?? lastStopReason,
+  };
+}
+
 /**
  * @param {object} mergedNarratives — { components: [{ component_id, narrative_claims }] }
  * @param {object} registry
  * @param {Record<string, object>} narrativeScored
  * @param {{ onUsage?: Function, llmPort?: object, retrievedSpansBlock?: string, feedback?: string, skipProgress?: boolean }} [opts]
- * @returns {Promise<{ components: object[], cross_component_synthesis: string }>}
+ * @returns {Promise<{ components: object[], cross_component_synthesis: string, stopReason?: string|null }>}
  */
 export async function polishNarrativeFromClaims(mergedNarratives, registry, narrativeScored, opts = {}) {
   const { onUsage, retrievedSpansBlock = '', feedback = '', epistemicBlock = '' } = opts;
-  if (!(mergedNarratives?.components ?? []).some((c) => (c.narrative_claims ?? []).length > 0)) {
-    return { components: [], cross_component_synthesis: '' };
+  if (!componentsWithClaims(mergedNarratives).length) {
+    return { components: [], cross_component_synthesis: '', stopReason: null };
   }
 
-  const port = resolveLlmPort(opts);
-  const userContent = formatPolishUserMessage(
-    mergedNarratives,
-    registry,
-    narrativeScored,
+  const llmOpts = {
+    onUsage,
     retrievedSpansBlock,
     feedback,
     epistemicBlock,
-  );
+    skipProgress: opts.skipProgress,
+    llmPort: opts.llmPort,
+    client: opts.client,
+  };
 
-  const stream = await Promise.resolve(port.stream({
-    model: DEFAULT_POLISH_MODEL,
-    max_tokens: 12000,
-    temperature: 0,
-    system: buildPolishSystemPrompt(),
-    messages: [{ role: 'user', content: userContent }],
-    callContext: { feature: 'narrative_polish', purpose: '[Step 3 — Polish]' },
-  }));
-  if (!opts.skipProgress) await streamWithProgress(stream, '[Step 3 — Polish]');
-  const message = await stream.finalMessage();
-  if (onUsage) {
-    onUsage({ label: '[Step 3 — Polish]', model: DEFAULT_POLISH_MODEL, usage: message.usage });
+  const claimCount = componentsWithClaims(mergedNarratives).length;
+  if (claimCount >= polishShardMinComponents()) {
+    return polishSharded(mergedNarratives, registry, narrativeScored, llmOpts);
   }
-  const textBlock = message.content.find((b) => b.type === 'text');
-  if (!textBlock) throw new Error('Narrative polish: no text block');
-  const parsed = extractJson(textBlock.text);
-  return normalizePolishOutput(parsed, mergedNarratives);
+
+  const port = resolveLlmPort(opts);
+  return invokePolishStream({
+    port,
+    mergedNarratives,
+    registry,
+    narrativeScored,
+    opts: llmOpts,
+    includeSynthesis: true,
+  });
 }
 
-export { DEFAULT_POLISH_MODEL };
+export {
+  DEFAULT_POLISH_MODEL,
+  polishMaxTokens,
+  polishShardMinComponents,
+  polishShardSize,
+};

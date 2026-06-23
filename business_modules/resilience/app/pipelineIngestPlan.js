@@ -5,7 +5,10 @@
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { buildTargetDates, loadPipelineConfig } from './assessSignalsHelpers.js';
-import { isOpenExtractParallelEnabled } from '../domain/services/openExtractConfig.js';
+import {
+  isOpenExtractParallelEnabled,
+  isOpenPipelineLegacyEnabled,
+} from '../domain/services/openExtractConfig.js';
 import { shouldReuseInReplay } from '../domain/services/replayReuseConfig.js';
 import {
   resolveIngestPolicy,
@@ -170,7 +173,9 @@ function maybePushOpenBackfillStep(steps, opts) {
   const {
     stage, date, sourceType, mdPaths, rootDir, force = false, replayMode = false, env, ingestPolicy,
   } = opts;
-  if (skipOpenBackfill({ replayMode, sourceType, force, env, ingestPolicy }) || !isOpenExtractParallelEnabled()) {
+  if (skipOpenBackfill({ replayMode, sourceType, force, env, ingestPolicy })
+    || !isOpenExtractParallelEnabled(env)
+    || !isOpenPipelineLegacyEnabled(env)) {
     return;
   }
   const readablePaths = (mdPaths ?? []).filter((p) => fileNonEmpty(p));
@@ -189,7 +194,9 @@ function maybePushOpenBackfillStep(steps, opts) {
 
 function maybePushOpenSocialBackfillStep(steps, date, ctx) {
   const { force = false, replayMode = false, rootDir, env, ingestPolicy } = ctx;
-  if (skipOpenBackfill({ replayMode, sourceType: 'social', force, env, ingestPolicy }) || !isOpenExtractParallelEnabled()) {
+  if (skipOpenBackfill({ replayMode, sourceType: 'social', force, env, ingestPolicy })
+    || !isOpenExtractParallelEnabled(env)
+    || !isOpenPipelineLegacyEnabled(env)) {
     return;
   }
   if (!fileNonEmpty(socialSignalsPath(date, rootDir))) return;

@@ -376,9 +376,6 @@ function countLoadedBundles(targetDate, days, enabledSources, rootDir) {
 export async function runPipelineOrchestrator(opts, deps = {}) {
   const pipelineRunId = randomUUID();
   process.env.PIPELINE_RUN_ID = pipelineRunId;
-  if (process.env.RESILIENCE_OPEN_EXTRACT_PARALLEL == null || process.env.RESILIENCE_OPEN_EXTRACT_PARALLEL === '') {
-    process.env.RESILIENCE_OPEN_EXTRACT_PARALLEL = '1';
-  }
   const startedAt = new Date().toISOString();
   const rootDir = deps.rootDir ?? resolveRepoRoot();
   const validation = validateDate(opts.targetDate, DEFAULT_TZ);

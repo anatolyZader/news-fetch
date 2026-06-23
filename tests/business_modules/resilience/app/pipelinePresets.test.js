@@ -6,9 +6,31 @@ import { parsePipelineCliArgs } from '../../../../business_modules/resilience/ap
 
 describe('pipelinePresets', () => {
   it('defines all 8comp slash command presets', () => {
-    for (const name of ['8comp', '8comp-3', '8comp-3-north', '8comp-7', '8comp-7-north']) {
+    for (const name of [
+      '8comp',
+      '8comp-north',
+      '8comp-north-replay',
+      '8comp-3',
+      '8comp-3-north',
+      '8comp-7',
+      '8comp-7-north',
+    ]) {
       assert.ok(PIPELINE_PRESETS[name], name);
     }
+  });
+
+  it('8comp-north enables always-reextract', () => {
+    const applied = applyPipelinePreset(getPipelinePreset('8comp-north'), { replayMode: true });
+    assert.equal(applied.scope, 'north');
+    assert.equal(applied.days, 1);
+    assert.equal(applied.ingestPolicy, 'always-reextract');
+  });
+
+  it('8comp-north-replay uses reuse-first on replay', () => {
+    const applied = applyPipelinePreset(getPipelinePreset('8comp-north-replay'), { replayMode: true });
+    assert.equal(applied.scope, 'north');
+    assert.equal(applied.days, 1);
+    assert.equal(applied.ingestPolicy, 'reuse-first');
   });
 
   it('8comp-3-north enables always-reextract', () => {
@@ -40,5 +62,12 @@ describe('parsePipelineCliArgs presets', () => {
   it('parses dd/mm/yyyy positional date', () => {
     const opts = parsePipelineCliArgs(['15/04/2026', '--preset', '8comp-3']);
     assert.equal(opts.targetDate, '2026-04-15');
+  });
+
+  it('expands --preset 8comp-north-replay', () => {
+    const opts = parsePipelineCliArgs(['--preset', '8comp-north-replay', '--date', '2026-04-09']);
+    assert.equal(opts.scope, 'north');
+    assert.equal(opts.days, 1);
+    assert.equal(opts.ingestPolicy, 'reuse-first');
   });
 });

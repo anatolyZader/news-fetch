@@ -173,7 +173,8 @@ Telemetry: per-invocation JSONL + `getLlmTelemetry()` feature rollup — see [CO
 
 - Digital survivorship bias — people who do not post are invisible (mitigated by data_void + field priority)
 - Closed vocabulary — novel behaviors logged to OOV; `novel_behavior_observed` adds low-weight scoring mass when clusters alert
-- Residual capture (opt-in `RESILIENCE_RESIDUAL_CAPTURE=1`) — open-vocab observations for zero-signal articles
+- Residual capture (`RESILIENCE_RESIDUAL_CAPTURE=1` or omission-audit mode) — Haiku residual pass on zero-signal articles; writes to `oov-capture-*.jsonl` only
+- Omission audit (`RESILIENCE_OMISSION_AUDIT`, default ON on closed-core branch) — `daily_reports/omission-audit-{scope}-{date}.json`; no agent feed
 - Catalog gap report — `npm run signal-catalog-evolution:gap-report` clusters captures for analyst review
 - Heuristic weights — author-set; RGR calibration via `signalWeightsFit.js` when ≥30 labeled reports
 - Media repetition tracked separately as `media_mention_mass` — not merged into behavioral headline score
@@ -203,7 +204,14 @@ Telemetry: per-invocation JSONL + `getLlmTelemetry()` feature rollup — see [CO
 | `RESILIENCE_SOCIAL_QUARANTINE_MIN_SIGNALS` | 4 | Min OSINT signals to evaluate quarantine |
 | `RESILIENCE_OOV_SCORING` | on | Synthesize `novel_behavior_observed` from OOV clusters |
 | `RESILIENCE_OOV_SCORE_WEIGHT` | 0.4 | Contribution multiplier for OOV synthetic signals |
-| `RESILIENCE_RESIDUAL_CAPTURE` | off | LLM residual pass on zero-signal articles (extra cost) |
+| `RESILIENCE_RESIDUAL_CAPTURE` | on when omission audit on | LLM residual pass on zero-signal articles (OOV JSONL) |
+| `RESILIENCE_OMISSION_AUDIT` | on (closed-core branch) | Omission audit artifact; disables open obs agent feed |
+| `RESILIENCE_CLOSED_CORE_ASSESS` | on (closed-core branch) | Closed signals → score → `generateNarratives`; no specialists |
+| `RESILIENCE_ASSESSMENT_AGENT_LEGACY` | off | Re-enable `runAssessmentAgent` multi-specialist path |
+| `RESILIENCE_OPEN_EXTRACT_PARALLEL` | off | Parallel pipeline open extract at extract time |
+| `RESILIENCE_OPEN_PIPELINE_LEGACY` | off | `extract_open_only` ingest backfill + legacy open path |
+| `RESILIENCE_OPEN_OBS_FOR_AGENT` | off | Feed pipeline open observations into assessment agent |
+| `RESILIENCE_OPEN_OBS_ROUTING` | `keyword` | Route open observations (`llm` optional) |
 | `RESILIENCE_SUPPRESSION_DELTA` | on | (always computed in scorer) |
 | `RESILIENCE_EMBEDDING_SKIP_TYPES` | quote types | Skip embedding rescue for literal evidence types |
 | `RESILIENCE_DUAL_REQUIRE_AGREEMENT` | on | When second extract enabled, keep intersection-only signals |

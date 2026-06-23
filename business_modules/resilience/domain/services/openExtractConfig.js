@@ -5,14 +5,47 @@
 export { isOpenPipelineExtractEnabled } from '../../../signals_extraction/index.js';
 import { isOpenPipelineExtractEnabled } from '../../../signals_extraction/index.js';
 
+function envFlagOn(env, name) {
+  const v = env[name];
+  return v === '1' || v === 'true' || v === 'on';
+}
+
+function envFlagOff(env, name) {
+  const v = env[name];
+  return v === '0' || v === 'false' || v === 'off';
+}
+
 export function isOpenExtractParallelEnabled(env = process.env) {
   return isOpenPipelineExtractEnabled(env);
 }
 
-export function isOpenObsForAgentEnabled(env = process.env) {
-  const v = env.RESILIENCE_OPEN_OBS_FOR_AGENT;
+/** Re-enable full pipeline open extract + ingest backfill (rag-v legacy). */
+export function isOpenPipelineLegacyEnabled(env = process.env) {
+  return envFlagOn(env, 'RESILIENCE_OPEN_PIPELINE_LEGACY');
+}
+
+/** Closed-core interim: omission audit artifact, no open obs feed to assess/agent. */
+export function isOmissionAuditEnabled(env = process.env) {
+  const v = env.RESILIENCE_OMISSION_AUDIT;
   if (v == null || v === '') return true;
-  return v === '1' || v === 'true' || v === 'on';
+  if (envFlagOff(env, 'RESILIENCE_OMISSION_AUDIT')) return false;
+  return envFlagOn(env, 'RESILIENCE_OMISSION_AUDIT');
+}
+
+/** Dev-style assess: closed signals → score → generateNarratives; no multi-agent specialists. */
+export function isClosedCoreAssessEnabled(env = process.env) {
+  if (envFlagOn(env, 'RESILIENCE_ASSESSMENT_AGENT_LEGACY')) return false;
+  const v = env.RESILIENCE_CLOSED_CORE_ASSESS;
+  if (v == null || v === '') return true;
+  if (envFlagOff(env, 'RESILIENCE_CLOSED_CORE_ASSESS')) return false;
+  return envFlagOn(env, 'RESILIENCE_CLOSED_CORE_ASSESS');
+}
+
+export function isOpenObsForAgentEnabled(env = process.env) {
+  if (isOmissionAuditEnabled(env)) return false;
+  const v = env.RESILIENCE_OPEN_OBS_FOR_AGENT;
+  if (v == null || v === '') return false;
+  return envFlagOn(env, 'RESILIENCE_OPEN_OBS_FOR_AGENT');
 }
 
 export function openObsGraphCap(env = process.env) {
@@ -21,17 +54,16 @@ export function openObsGraphCap(env = process.env) {
 }
 
 export function openObsRoutingMode(env = process.env) {
-  const m = String(env.RESILIENCE_OPEN_OBS_ROUTING ?? 'llm').toLowerCase();
+  const m = String(env.RESILIENCE_OPEN_OBS_ROUTING ?? 'keyword').toLowerCase();
   return m === 'keyword' ? 'keyword' : 'llm';
 }
 
 // Production default: OFF — enable only after audit (set RESILIENCE_OPEN_EVIDENCE_SCORING=1 or on).
-// Changing the default from ON to OFF prevents untested open-path signals from silently
-// entering scoring in fresh deployments before the verification gate has been reviewed.
 export function isOpenEvidenceScoringEnabled(env = process.env) {
+  if (isOmissionAuditEnabled(env)) return false;
   const v = env.RESILIENCE_OPEN_EVIDENCE_SCORING;
   if (v == null || v === '') return false;
-  return v === '1' || v === 'true' || v === 'on';
+  return envFlagOn(env, 'RESILIENCE_OPEN_EVIDENCE_SCORING');
 }
 
 export function openEvidenceScoreWeight(env = process.env) {
@@ -41,5 +73,13 @@ export function openEvidenceScoreWeight(env = process.env) {
 
 export function isCatalogAutoProposeVerifiedEnabled(env = process.env) {
   const v = env.RESILIENCE_CATALOG_AUTO_PROPOSE_VERIFIED;
-  return v === '1' || v === 'true' || v === 'on';
+  return envFlagOn(env, 'RESILIENCE_CATALOG_AUTO_PROPOSE_VERIFIED');
+}
+
+/** JSONL residuals into agent graph — off when omission audit mode is on. */
+export function isResidualForAgentEnabled(env = process.env) {
+  if (isOmissionAuditEnabled(env)) return false;
+  const v = env.RESILIENCE_ASSESS_RESIDUAL_FOR_AGENT;
+  if (v == null || v === '') return true;
+  return envFlagOn(env, 'RESILIENCE_ASSESS_RESIDUAL_FOR_AGENT');
 }

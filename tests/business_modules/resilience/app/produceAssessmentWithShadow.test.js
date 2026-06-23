@@ -32,6 +32,7 @@ describe('produceAssessmentWithShadow', () => {
     prevForce = process.env.RESILIENCE_ASSESSMENT_FORCE_DETERMINISTIC;
     prevAgent = process.env.RESILIENCE_ASSESSMENT_AGENT;
     process.env.RESILIENCE_SHADOW_SCORING = '0';
+    process.env.RESILIENCE_CLOSED_CORE_ASSESS = '0';
   });
 
   after(() => {
@@ -40,6 +41,7 @@ describe('produceAssessmentWithShadow', () => {
     if (prevAgent === undefined) delete process.env.RESILIENCE_ASSESSMENT_AGENT;
     else process.env.RESILIENCE_ASSESSMENT_AGENT = prevAgent;
     delete process.env.RESILIENCE_SHADOW_SCORING;
+    delete process.env.RESILIENCE_CLOSED_CORE_ASSESS;
   });
 
   it('uses deterministic degrade when force flag set', async () => {

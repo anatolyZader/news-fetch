@@ -4,8 +4,9 @@ import { isOpenPipelineExtractEnabled } from '../../../../business_modules/signa
 import { runPipelineOpenExtract } from '../../../../business_modules/signals_extraction/app/pipelineOpenExtractService.js';
 
 describe('pipelineOpenExtractService', () => {
-  it('isOpenPipelineExtractEnabled defaults on', () => {
-    assert.equal(isOpenPipelineExtractEnabled({}), true);
+  it('isOpenPipelineExtractEnabled defaults off', () => {
+    assert.equal(isOpenPipelineExtractEnabled({}), false);
+    assert.equal(isOpenPipelineExtractEnabled({ RESILIENCE_OPEN_EXTRACT_PARALLEL: '1' }), true);
     assert.equal(isOpenPipelineExtractEnabled({ RESILIENCE_OPEN_EXTRACT_PARALLEL: '0' }), false);
   });
 

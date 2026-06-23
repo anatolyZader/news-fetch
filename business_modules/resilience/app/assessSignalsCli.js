@@ -32,7 +32,7 @@ import { buildComparisonContext } from '../domain/services/sourceMixIndex.js';
 import { isRegionalReportScope, reportFilePrefix } from '../../../cross-cut-modules/geo/reportScopeIds.js';
 import { ISRAEL_NATIONAL_DISTRICT_ID } from '../../../cross-cut-modules/geo/israelDistricts.js';
 import { writeReport } from '../infrastructure/reportWriter.js';
-import { createCostTracker, appendCostLog } from '../../../cross-cut-modules/budget/index.js';
+import { createCostTracker, appendCostLog, resolveMaxCostUsd } from '../../../cross-cut-modules/budget/index.js';
 import { getDailyBudgetStatus } from '../../../cross-cut-modules/budget/app/httpDailyBudget.js';
 import {
   crossSourceDedupClustered,
@@ -74,6 +74,7 @@ import { createRetrievalService } from '../../../cross-cut-modules/retrieval/cre
 import { createSignalBundlePort } from './createSignalBundlePort.js';
 import { defaultClosedSignalsDir } from '../../signals_extraction/index.js';
 import { loadOpenObservationsForAssess } from './loadOpenObservationsForAssess.js';
+import { isOmissionAuditEnabled } from '../domain/services/openExtractConfig.js';
 import { verifyOpenEvidenceClaims } from '../domain/services/openEvidenceVerification.js';
 import { synthesizeOpenEvidenceScoringSignals } from '../domain/services/openEvidenceScoringSignals.js';
 import { enqueueVerifiedOpenForCatalog } from './enqueueVerifiedOpenForCatalog.js';
@@ -239,10 +240,12 @@ async function loadPreparedSignals(targetDate, days, bundleOpts = {}) {
   allSignals = await dedupSignalsCrossSource(allSignals, retrievalService);
   allSignals = enrichSignalsGeoForAssess(allSignals);
 
-  const { openObservations, summary: openObservationsSummary } = await loadOpenObservationsForAssess({
-    targetDate,
-    days,
-  });
+  const { openObservations, summary: openObservationsSummary } = isOmissionAuditEnabled()
+    ? { openObservations: [], summary: null }
+    : await loadOpenObservationsForAssess({
+      targetDate,
+      days,
+    });
 
   return {
     loadedFiles,
@@ -471,6 +474,7 @@ async function applyOpenEvidenceScoringIfVerified({
   targetDate,
   reportScopeId,
 }) {
+  if (isOmissionAuditEnabled()) return;
   const openObservations = scoring.openObservations ?? [];
   const verified = verifyOpenEvidenceClaims(assessment, openObservations, assessment._evidence_graph);
   if (!verified.length) return;
@@ -819,7 +823,21 @@ export async function runAssessSignalsCli() {
   });
   logAssessmentHeader({ targetDate, days, reportScope, ...prepared });
 
-  const { onUsage, getTotal, printSummary } = createCostTracker({ label: 'assess-signals' });
+  const maxCostUsd = resolveMaxCostUsd({
+    script: 'assess-signals',
+    scope: reportScopeId,
+    signalCount: prepared.allSignals.length,
+  });
+  if (maxCostUsd > 3) {
+    console.error(
+      `  📊 Assess cost cap: $${maxCostUsd.toFixed(2)} (scope=${reportScopeId}, signals=${prepared.allSignals.length})`,
+    );
+  }
+
+  const { onUsage, getTotal, printSummary } = createCostTracker({
+    label: 'assess-signals',
+    maxCostUsd,
+  });
   if (prepared.retrievalService?.setOnUsage) {
     prepared.retrievalService.setOnUsage(onUsage);
   }

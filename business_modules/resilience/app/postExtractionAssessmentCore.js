@@ -33,6 +33,11 @@ import { applyOperatorNarrativePipeline } from './operatorNarrativePipeline.js';
 import { attachDecisionBrief } from './attachDecisionBrief.js';
 import { loadHistoricalScores } from './assessSignalsHelpers.js';
 import { ensureArticleCorpusRagIndexed } from './ensureArticleCorpusRagIndexed.js';
+import { isClosedCoreAssessEnabled, isOmissionAuditEnabled } from '../domain/services/openExtractConfig.js';
+import { generateNarratives } from '../infrastructure/claudeNarratives.js';
+import { buildAndWriteOmissionAudit } from './omissionAuditService.js';
+import { reportScopeMetadata } from '../domain/services/regionSignalFilter.js';
+import { countOovCapturesForDate } from '../domain/services/oovCapture.js';
 
 /**
  * @param {object} assessment
@@ -45,6 +50,9 @@ function attachInvestigationContextFlags(assessment, ctx, investigationPrep, rep
   assessment.oov_burst = investigationPrep.oovBurst ?? null;
   if (ctx.oovScoringApplied) {
     assessment.oov_scoring_applied = ctx.oovScoringApplied;
+  }
+  if (ctx.omissionAuditSummary) {
+    assessment.omission_audit_summary = ctx.omissionAuditSummary;
   }
   if (ctx.openObservationsSummary) {
     assessment.open_observations_summary = ctx.openObservationsSummary;
@@ -274,43 +282,83 @@ export async function runPostExtractionAssessmentCore(params) {
 
   onScoreComplete?.();
 
-  const assessment = await produceAssessmentWithShadow({
-    targetDate: reportDate,
-    reportScopeId,
-    investigationSignals,
-    investigationEpistemic,
-    signalsForScoring,
-    scopedSignals,
-    narrativeScopeSignals,
-    scoredFull,
-    scopedTotalArticles,
-    dataVoid: investigationPrep.dataVoid,
-    assessmentMode: investigationEpistemic.assessmentMode,
-    epistemicStatus: investigationEpistemic.epistemicStatus,
-    retrievalService,
-    sourceArchive,
-    evidenceStore,
-    oovBurst: investigationPrep.oovBurst,
-    openObservations,
-    onUsage,
-    reportsDir,
-    llmPort,
-    dailyBudgetExceeded,
-  });
+  let assessment;
+  let omissionAuditSummary = null;
 
-  await applyOperatorNarrativePipeline({
-    assessment,
-    narrativeScopeSignals,
-    scoredFull,
-    narrativeScoringContext: pipelineResult.digitalInclusiveScored ?? scoredFull,
-    scoringPartition: pipelineResult.partition ?? null,
-    quarantinedDigital: pipelineResult.quarantinedDigital ?? null,
-    signalsScoringUsed: signalsForScoring.length,
-    retrievalService,
-    reportDate,
-    onUsage,
-    llmPort,
-  });
+  if (isClosedCoreAssessEnabled()) {
+    console.error('[assess-signals] Closed-core assess: generateNarratives (no assessment agent)');
+    const reportScope = reportScopeMetadata(reportScopeId);
+    assessment = await generateNarratives(
+      scoredFull,
+      signalsForScoring,
+      reportDate,
+      scopedTotalArticles,
+      {
+        onUsage,
+        dataVoid: investigationPrep.dataVoid,
+        allScopedSignals: scopedSignals,
+        macroSignals,
+        retrievalService,
+        reportScope,
+        oovCaptureCount: countOovCapturesForDate(reportDate, reportsDir),
+        socialChannelQuarantine: investigationPrep.osintChannelQuarantine ?? null,
+      },
+    );
+    assessment.assessment_mode = 'closed_core';
+    assessment.assessment_degraded = null;
+  } else {
+    assessment = await produceAssessmentWithShadow({
+      targetDate: reportDate,
+      reportScopeId,
+      investigationSignals,
+      investigationEpistemic,
+      signalsForScoring,
+      scopedSignals,
+      narrativeScopeSignals,
+      scoredFull,
+      scopedTotalArticles,
+      dataVoid: investigationPrep.dataVoid,
+      assessmentMode: investigationEpistemic.assessmentMode,
+      epistemicStatus: investigationEpistemic.epistemicStatus,
+      retrievalService,
+      sourceArchive,
+      evidenceStore,
+      oovBurst: investigationPrep.oovBurst,
+      openObservations,
+      onUsage,
+      reportsDir,
+      llmPort,
+      dailyBudgetExceeded,
+    });
+
+    await applyOperatorNarrativePipeline({
+      assessment,
+      narrativeScopeSignals,
+      scoredFull,
+      narrativeScoringContext: pipelineResult.digitalInclusiveScored ?? scoredFull,
+      scoringPartition: pipelineResult.partition ?? null,
+      quarantinedDigital: pipelineResult.quarantinedDigital ?? null,
+      signalsScoringUsed: signalsForScoring.length,
+      retrievalService,
+      reportDate,
+      onUsage,
+      llmPort,
+    });
+  }
+
+  if (isOmissionAuditEnabled()) {
+    const audit = buildAndWriteOmissionAudit({
+      date: reportDate,
+      reportScopeId,
+      closedSignals: scopedSignals,
+      reportsDir,
+    });
+    omissionAuditSummary = audit.summary;
+    console.error(
+      `  → Omission audit: ${audit.path} `
+      + `(zero-signal=${audit.summary.zero_signal_article_count}, residual=${audit.summary.residual_observation_count})`,
+    );
+  }
 
   onNarrateComplete?.();
 
@@ -337,6 +385,7 @@ export async function runPostExtractionAssessmentCore(params) {
     scoredFull,
     oovScoringApplied: prepared.oovScoringApplied,
     openObservationsSummary,
+    omissionAuditSummary,
   });
 
   if (shouldAttachBrief) {

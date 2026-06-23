@@ -23,8 +23,17 @@ export function isLearningCaptureEnabled(env = process.env) {
  * @param {NodeJS.ProcessEnv} [env]
  */
 export function isResidualCaptureEnabled(env = process.env) {
+  if (env.RESILIENCE_RESIDUAL_CAPTURE === '0'
+    || env.RESILIENCE_RESIDUAL_CAPTURE === 'false'
+    || env.RESILIENCE_RESIDUAL_CAPTURE === 'off') {
+    return false;
+  }
   const v = env.RESILIENCE_RESIDUAL_CAPTURE;
-  return v === '1' || v === 'true' || v === 'on';
+  if (v === '1' || v === 'true' || v === 'on') return true;
+  const omission = env.RESILIENCE_OMISSION_AUDIT;
+  if (omission === '0' || omission === 'false' || omission === 'off') return false;
+  if (omission == null || omission === '') return true;
+  return omission === '1' || omission === 'true' || omission === 'on';
 }
 
 /**

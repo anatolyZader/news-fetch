@@ -101,8 +101,10 @@ describe('buildPipelineIngestPlan', () => {
 
   it('plans extract_open_only when closed signals exist but open obs are missing', () => {
     const root = mkdtempSync(join(tmpdir(), 'pipeline-plan-open-'));
-    const prev = process.env.RESILIENCE_OPEN_EXTRACT_PARALLEL;
+    const prevParallel = process.env.RESILIENCE_OPEN_EXTRACT_PARALLEL;
+    const prevLegacy = process.env.RESILIENCE_OPEN_PIPELINE_LEGACY;
     process.env.RESILIENCE_OPEN_EXTRACT_PARALLEL = '1';
+    process.env.RESILIENCE_OPEN_PIPELINE_LEGACY = '1';
     withReplayReuseEnv({ RESILIENCE_REPLAY_REUSE_NEWS: '1' }, () => {
       try {
         const date = '2026-04-15';
@@ -128,8 +130,10 @@ describe('buildPipelineIngestPlan', () => {
         assert.ok(news.some((s) => s.action === 'extract_open_only'));
         assert.ok(!news.some((s) => s.action === 'extract_news'));
       } finally {
-        if (prev == null) delete process.env.RESILIENCE_OPEN_EXTRACT_PARALLEL;
-        else process.env.RESILIENCE_OPEN_EXTRACT_PARALLEL = prev;
+        if (prevParallel == null) delete process.env.RESILIENCE_OPEN_EXTRACT_PARALLEL;
+        else process.env.RESILIENCE_OPEN_EXTRACT_PARALLEL = prevParallel;
+        if (prevLegacy == null) delete process.env.RESILIENCE_OPEN_PIPELINE_LEGACY;
+        else process.env.RESILIENCE_OPEN_PIPELINE_LEGACY = prevLegacy;
         rmSync(root, { recursive: true, force: true });
       }
     });
@@ -137,8 +141,10 @@ describe('buildPipelineIngestPlan', () => {
 
   it('reuses only when both closed and open obs exist with observations', () => {
     const root = mkdtempSync(join(tmpdir(), 'pipeline-plan-open-'));
-    const prev = process.env.RESILIENCE_OPEN_EXTRACT_PARALLEL;
+    const prevParallel = process.env.RESILIENCE_OPEN_EXTRACT_PARALLEL;
+    const prevLegacy = process.env.RESILIENCE_OPEN_PIPELINE_LEGACY;
     process.env.RESILIENCE_OPEN_EXTRACT_PARALLEL = '1';
+    process.env.RESILIENCE_OPEN_PIPELINE_LEGACY = '1';
     withReplayReuseEnv({ RESILIENCE_REPLAY_REUSE_NEWS: '1' }, () => {
       try {
         const date = '2026-04-15';
@@ -170,8 +176,10 @@ describe('buildPipelineIngestPlan', () => {
         assert.ok(!news.some((s) => s.action === 'extract_open_only'));
         assert.ok(!news.some((s) => s.action === 'extract_news'));
       } finally {
-        if (prev == null) delete process.env.RESILIENCE_OPEN_EXTRACT_PARALLEL;
-        else process.env.RESILIENCE_OPEN_EXTRACT_PARALLEL = prev;
+        if (prevParallel == null) delete process.env.RESILIENCE_OPEN_EXTRACT_PARALLEL;
+        else process.env.RESILIENCE_OPEN_EXTRACT_PARALLEL = prevParallel;
+        if (prevLegacy == null) delete process.env.RESILIENCE_OPEN_PIPELINE_LEGACY;
+        else process.env.RESILIENCE_OPEN_PIPELINE_LEGACY = prevLegacy;
         rmSync(root, { recursive: true, force: true });
       }
     });
@@ -179,8 +187,10 @@ describe('buildPipelineIngestPlan', () => {
 
   it('plans extract_open_only when open bundle has empty observations', () => {
     const root = mkdtempSync(join(tmpdir(), 'pipeline-plan-open-'));
-    const prev = process.env.RESILIENCE_OPEN_EXTRACT_PARALLEL;
+    const prevParallel = process.env.RESILIENCE_OPEN_EXTRACT_PARALLEL;
+    const prevLegacy = process.env.RESILIENCE_OPEN_PIPELINE_LEGACY;
     process.env.RESILIENCE_OPEN_EXTRACT_PARALLEL = '1';
+    process.env.RESILIENCE_OPEN_PIPELINE_LEGACY = '1';
     withReplayReuseEnv({ RESILIENCE_REPLAY_REUSE_NEWS: '1' }, () => {
       try {
         const date = '2026-04-15';
@@ -209,8 +219,10 @@ describe('buildPipelineIngestPlan', () => {
         const news = plan.steps.filter((s) => s.stage === 'news' && s.date === date);
         assert.ok(news.some((s) => s.action === 'extract_open_only'));
       } finally {
-        if (prev == null) delete process.env.RESILIENCE_OPEN_EXTRACT_PARALLEL;
-        else process.env.RESILIENCE_OPEN_EXTRACT_PARALLEL = prev;
+        if (prevParallel == null) delete process.env.RESILIENCE_OPEN_EXTRACT_PARALLEL;
+        else process.env.RESILIENCE_OPEN_EXTRACT_PARALLEL = prevParallel;
+        if (prevLegacy == null) delete process.env.RESILIENCE_OPEN_PIPELINE_LEGACY;
+        else process.env.RESILIENCE_OPEN_PIPELINE_LEGACY = prevLegacy;
         rmSync(root, { recursive: true, force: true });
       }
     });
@@ -239,8 +251,10 @@ describe('buildPipelineIngestPlan', () => {
 
   it('force plans full extract_news not open-only when closed signals exist', () => {
     const root = mkdtempSync(join(tmpdir(), 'pipeline-plan-force-'));
-    const prev = process.env.RESILIENCE_OPEN_EXTRACT_PARALLEL;
+    const prevParallel = process.env.RESILIENCE_OPEN_EXTRACT_PARALLEL;
+    const prevLegacy = process.env.RESILIENCE_OPEN_PIPELINE_LEGACY;
     process.env.RESILIENCE_OPEN_EXTRACT_PARALLEL = '1';
+    process.env.RESILIENCE_OPEN_PIPELINE_LEGACY = '1';
     try {
       const date = '2026-04-15';
       const sigDir = join(root, 'business_modules/signals_extraction/data/signals');
@@ -265,8 +279,10 @@ describe('buildPipelineIngestPlan', () => {
       assert.ok(!news.some((s) => s.action === 'reuse'));
       assert.ok(!news.some((s) => s.action === 'extract_open_only'));
     } finally {
-      if (prev == null) delete process.env.RESILIENCE_OPEN_EXTRACT_PARALLEL;
-      else process.env.RESILIENCE_OPEN_EXTRACT_PARALLEL = prev;
+      if (prevParallel == null) delete process.env.RESILIENCE_OPEN_EXTRACT_PARALLEL;
+      else process.env.RESILIENCE_OPEN_EXTRACT_PARALLEL = prevParallel;
+      if (prevLegacy == null) delete process.env.RESILIENCE_OPEN_PIPELINE_LEGACY;
+      else process.env.RESILIENCE_OPEN_PIPELINE_LEGACY = prevLegacy;
       rmSync(root, { recursive: true, force: true });
     }
   });
@@ -321,8 +337,10 @@ describe('buildPipelineIngestPlan', () => {
 
   it('plans extract_open_social when social closed bundle exists but open obs missing', () => {
     const root = mkdtempSync(join(tmpdir(), 'pipeline-plan-social-'));
-    const prev = process.env.RESILIENCE_OPEN_EXTRACT_PARALLEL;
+    const prevParallel = process.env.RESILIENCE_OPEN_EXTRACT_PARALLEL;
+    const prevLegacy = process.env.RESILIENCE_OPEN_PIPELINE_LEGACY;
     process.env.RESILIENCE_OPEN_EXTRACT_PARALLEL = '1';
+    process.env.RESILIENCE_OPEN_PIPELINE_LEGACY = '1';
     withReplayReuseEnv({ RESILIENCE_REPLAY_REUSE_SOCIAL: '1' }, () => {
       try {
         const date = '2026-05-23';
@@ -347,8 +365,10 @@ describe('buildPipelineIngestPlan', () => {
           true,
         );
       } finally {
-        if (prev == null) delete process.env.RESILIENCE_OPEN_EXTRACT_PARALLEL;
-        else process.env.RESILIENCE_OPEN_EXTRACT_PARALLEL = prev;
+        if (prevParallel == null) delete process.env.RESILIENCE_OPEN_EXTRACT_PARALLEL;
+        else process.env.RESILIENCE_OPEN_EXTRACT_PARALLEL = prevParallel;
+        if (prevLegacy == null) delete process.env.RESILIENCE_OPEN_PIPELINE_LEGACY;
+        else process.env.RESILIENCE_OPEN_PIPELINE_LEGACY = prevLegacy;
         rmSync(root, { recursive: true, force: true });
       }
     });
@@ -379,8 +399,10 @@ describe('buildPipelineIngestPlan', () => {
 
   it('plans extract_pbo_date in replay when closed PBO exists but open obs missing', () => {
     const root = mkdtempSync(join(tmpdir(), 'pipeline-plan-pbo-'));
-    const prev = process.env.RESILIENCE_OPEN_EXTRACT_PARALLEL;
+    const prevParallel = process.env.RESILIENCE_OPEN_EXTRACT_PARALLEL;
+    const prevLegacy = process.env.RESILIENCE_OPEN_PIPELINE_LEGACY;
     process.env.RESILIENCE_OPEN_EXTRACT_PARALLEL = '1';
+    process.env.RESILIENCE_OPEN_PIPELINE_LEGACY = '1';
     try {
       const dates = ['2026-04-13', '2026-04-14', '2026-04-15'];
       const sigDir = join(root, 'business_modules/signals_extraction/data/signals');
@@ -403,16 +425,20 @@ describe('buildPipelineIngestPlan', () => {
       }
       assert.ok(!plan.steps.some((s) => s.action === 'extract_pbo'));
     } finally {
-      if (prev == null) delete process.env.RESILIENCE_OPEN_EXTRACT_PARALLEL;
-      else process.env.RESILIENCE_OPEN_EXTRACT_PARALLEL = prev;
+      if (prevParallel == null) delete process.env.RESILIENCE_OPEN_EXTRACT_PARALLEL;
+      else process.env.RESILIENCE_OPEN_EXTRACT_PARALLEL = prevParallel;
+      if (prevLegacy == null) delete process.env.RESILIENCE_OPEN_PIPELINE_LEGACY;
+      else process.env.RESILIENCE_OPEN_PIPELINE_LEGACY = prevLegacy;
       rmSync(root, { recursive: true, force: true });
     }
   });
 
   it('reuses PBO in replay when both closed and open obs exist', () => {
     const root = mkdtempSync(join(tmpdir(), 'pipeline-plan-pbo-'));
-    const prev = process.env.RESILIENCE_OPEN_EXTRACT_PARALLEL;
+    const prevParallel = process.env.RESILIENCE_OPEN_EXTRACT_PARALLEL;
+    const prevLegacy = process.env.RESILIENCE_OPEN_PIPELINE_LEGACY;
     process.env.RESILIENCE_OPEN_EXTRACT_PARALLEL = '1';
+    process.env.RESILIENCE_OPEN_PIPELINE_LEGACY = '1';
     withReplayReuseEnv({ RESILIENCE_REPLAY_REUSE_PBO: '1' }, () => {
       try {
         const date = '2026-04-15';
@@ -438,8 +464,10 @@ describe('buildPipelineIngestPlan', () => {
         assert.ok(pbo.some((s) => s.action === 'reuse'));
         assert.ok(!pbo.some((s) => s.action === 'extract_pbo_date'));
       } finally {
-        if (prev == null) delete process.env.RESILIENCE_OPEN_EXTRACT_PARALLEL;
-        else process.env.RESILIENCE_OPEN_EXTRACT_PARALLEL = prev;
+        if (prevParallel == null) delete process.env.RESILIENCE_OPEN_EXTRACT_PARALLEL;
+        else process.env.RESILIENCE_OPEN_EXTRACT_PARALLEL = prevParallel;
+        if (prevLegacy == null) delete process.env.RESILIENCE_OPEN_PIPELINE_LEGACY;
+        else process.env.RESILIENCE_OPEN_PIPELINE_LEGACY = prevLegacy;
         rmSync(root, { recursive: true, force: true });
       }
     });

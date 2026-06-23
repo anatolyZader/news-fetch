@@ -28,8 +28,38 @@ export function assessmentForceDeterministic() {
   return process.env.RESILIENCE_ASSESSMENT_AGENT === '0';
 }
 
+function envFlagOn(name, env = process.env) {
+  const v = env[name];
+  return v === '1' || v === 'true' || v === 'on';
+}
+
+function envFlagOff(name, env = process.env) {
+  const v = env[name];
+  return v === '0' || v === 'false' || v === 'off';
+}
+
+export function isOmissionAuditModeEnabled(env = process.env) {
+  const v = env.RESILIENCE_OMISSION_AUDIT;
+  if (v == null || v === '') return true;
+  if (envFlagOff('RESILIENCE_OMISSION_AUDIT', env)) return false;
+  return envFlagOn('RESILIENCE_OMISSION_AUDIT', env);
+}
+
+export function isAssessmentAgentLegacyEnabled(env = process.env) {
+  return envFlagOn('RESILIENCE_ASSESSMENT_AGENT_LEGACY', env);
+}
+
+export function isClosedCoreAssessEnabled(env = process.env) {
+  if (isAssessmentAgentLegacyEnabled(env)) return false;
+  const v = env.RESILIENCE_CLOSED_CORE_ASSESS;
+  if (v == null || v === '') return true;
+  if (envFlagOff('RESILIENCE_CLOSED_CORE_ASSESS', env)) return false;
+  return envFlagOn('RESILIENCE_CLOSED_CORE_ASSESS', env);
+}
+
 export function shouldSkipAssessmentAgent({ dailyBudgetExceeded = false } = {}) {
   if (dailyBudgetExceeded) return true;
+  if (isClosedCoreAssessEnabled()) return true;
   return assessmentForceDeterministic();
 }
 
@@ -125,12 +155,14 @@ export function archiveEpistemicEnabled() {
 }
 
 export function residualForAgentEnabled() {
+  if (isOmissionAuditModeEnabled()) return false;
   return envFlagEnabled('RESILIENCE_ASSESS_RESIDUAL_FOR_AGENT');
 }
 
 export function openObsForAgentEnabled() {
+  if (isOmissionAuditModeEnabled()) return false;
   const v = process.env.RESILIENCE_OPEN_OBS_FOR_AGENT;
-  if (v == null || v === '') return true;
+  if (v == null || v === '') return false;
   return v === '1' || v === 'true' || v === 'on';
 }
 

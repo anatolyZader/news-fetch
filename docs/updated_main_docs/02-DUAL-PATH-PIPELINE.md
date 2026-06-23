@@ -50,20 +50,14 @@ Source types wired in code: `news`, `radio`, `whatsapp`, `field`, `social`, `pbo
 
 Bundle shape: `{ profile, content_kind, source_type, date, extracted_at, source_files, total_articles, observations[] }`.
 
-### 2.3 It is ON by default
+### 2.3 Default: OFF on closed-core branch
 
-The open path runs by default. The flag is `RESILIENCE_OPEN_EXTRACT_PARALLEL`, and an empty/unset value means **enabled**:
+Parallel pipeline open extract is **disabled by default**. `RESILIENCE_OPEN_EXTRACT_PARALLEL` must be `1` / `on` to enable. Legacy full dual-path also requires `RESILIENCE_OPEN_PIPELINE_LEGACY=1`.
 
-```5:9:business_modules/signals_extraction/domain/services/openPipelineConfig.js
-export function isOpenPipelineExtractEnabled(env = process.env) {
-  const v = env.RESILIENCE_OPEN_EXTRACT_PARALLEL;
-  if (v == null || v === '') return true;
-  return v === '1' || v === 'true' || v === 'on';
-}
-```
+- **OFF (default):** closed catalogue extract only; `runPipelineOpenExtract` no-ops; open backfill ingest steps skipped.
+- **ON + legacy:** closed + open extraction in parallel; ingest planner may schedule `extract_open_only` backfill.
 
-- **ON (default):** for text sources, closed + open extraction launch together (`Promise.all` in `runArticleDualPathExtract`); the ingest planner backfills missing open bundles.
-- **OFF (`=0`):** `runPipelineOpenExtract` returns immediately and open backfill steps are skipped. Closed scoring still works, but the agent loses its primary enrichment.
+Omission audit (`RESILIENCE_OMISSION_AUDIT`, default ON) replaces pipeline open feed with `omission-audit-{scope}-{date}.json` metadata.
 
 ## 3. The closed vocabulary path (supporting)
 
@@ -221,9 +215,13 @@ flowchart TD
 
 | Variable | Default | Effect |
 |----------|---------|--------|
-| `RESILIENCE_OPEN_EXTRACT_PARALLEL` | ON (empty = enabled) | Produce open observation bundles in parallel at extract time |
-| `RESILIENCE_OPEN_OBS_FOR_AGENT` | ON | Feed routed open observations into the assessment agent |
-| `RESILIENCE_OPEN_OBS_ROUTING` | `llm` | How open observations are routed to components (`keyword` fallback) |
+| `RESILIENCE_OPEN_EXTRACT_PARALLEL` | OFF (empty = disabled) | Produce open observation bundles in parallel at extract time |
+| `RESILIENCE_OPEN_PIPELINE_LEGACY` | OFF | Enable `extract_open_only` ingest backfill and legacy pipeline open path |
+| `RESILIENCE_OPEN_OBS_FOR_AGENT` | OFF | Feed routed open observations into the assessment agent |
+| `RESILIENCE_OPEN_OBS_ROUTING` | `keyword` | How open observations are routed to components (`llm` optional) |
+| `RESILIENCE_OMISSION_AUDIT` | ON (closed-core branch) | Write `omission-audit-{scope}-{date}.json`; no open obs agent feed |
+| `RESILIENCE_CLOSED_CORE_ASSESS` | ON (closed-core branch) | Assess via closed signals + `generateNarratives` (no specialists) |
+| `RESILIENCE_ASSESSMENT_AGENT_LEGACY` | OFF | Re-enable multi-agent `runAssessmentAgent` path |
 | `RESILIENCE_OPEN_EVIDENCE_SCORING` | **OFF** | Post-agent synthetic scoring from verified open claims (analyst/shadow). **Production default: OFF** — enable only after auditing the open-path verification gate. Set to `1` or `on` to enable. |
 | `RESILIENCE_CATALOG_AUTO_PROPOSE_VERIFIED` | OFF | Auto-generate catalog proposals from verified open observations |
 | `ASSESS_BUNDLE_SOURCE` | `closed` | Alternate assess mode that maps observation bundles to pseudo-signals |

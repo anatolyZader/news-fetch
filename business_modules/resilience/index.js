@@ -47,7 +47,14 @@ export {
   narrativeEpistemicMode,
   narrativeInvestigationPermissive,
 } from '../../cross-cut-modules/resilience-contracts/narrativeEpistemicMode.js';
-export { isOpenExtractParallelEnabled } from './domain/services/openExtractConfig.js';
+export {
+  isOpenExtractParallelEnabled,
+  isOpenPipelineLegacyEnabled,
+  isOmissionAuditEnabled,
+  isClosedCoreAssessEnabled,
+  isOpenObsForAgentEnabled,
+  isResidualForAgentEnabled,
+} from './domain/services/openExtractConfig.js';
 export { pipelineOpenObservationsPath } from './domain/services/pipelineArtifactPaths.js';
 export { stripTraceFields } from './infrastructure/claudeExtraction.js';
 export { buildAnomalyStrip } from './domain/services/anomalyStrip.js';

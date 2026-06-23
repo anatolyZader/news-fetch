@@ -9,6 +9,7 @@ import { attributeSignalScope } from '../../../cross-cut-modules/geo/attributeSi
 import { attachSourceIdsToSignals } from '../../../db/source_archive/attachSourceIds.js';
 import { archiveArtifactBeforeWrite } from '../../../cross-cut-modules/log/index.js';
 import { defaultClosedSignalsDir } from '../../signals_extraction/index.js';
+import { isOpenExtractParallelEnabled } from '../domain/services/openExtractConfig.js';
 import { isVisitsSourceType, normalizeVisitsSourceType } from '../domain/services/visitsSourceType.js';
 
 function attachArticleDatesToSignals(signals, articles) {
@@ -158,6 +159,10 @@ export async function runArticleDualPathExtract(opts) {
     console.error(`\nSignal file written: ${outPath}`);
     return { signals, bundleDistrictId };
   };
+
+  if (!isOpenExtractParallelEnabled()) {
+    return runClosed();
+  }
 
   const [closedResult] = await Promise.all([
     runClosed(),

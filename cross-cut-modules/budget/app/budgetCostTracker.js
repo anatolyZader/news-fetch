@@ -97,18 +97,46 @@ export function calcInvocationCostUsd(model, usage) {
   return calcLlmCostUsd(model, usage);
 }
 
+// ─── Per-run cost cap ───────────────────────────────────────────────────────
+
+const DEFAULT_MAX_COST_USD = 3;
+const NORTH_ASSESS_MAX_COST_USD = 6;
+const LARGE_ASSESS_MAX_COST_USD = 5;
+const LARGE_ASSESS_SIGNAL_THRESHOLD = 1200;
+
+/**
+ * Resolve per-script USD cap (explicit MAX_COST_USD env always wins).
+ * @param {{ script?: string, scope?: string, signalCount?: number }} [ctx]
+ * @returns {number}
+ */
+export function resolveMaxCostUsd(ctx = {}) {
+  const envRaw = process.env.MAX_COST_USD;
+  if (envRaw != null && envRaw !== '') {
+    const n = Number.parseFloat(envRaw);
+    if (Number.isFinite(n) && n > 0) return n;
+  }
+
+  const { script, scope, signalCount = 0 } = ctx;
+  if (script === 'assess-signals') {
+    if (scope === 'north') return NORTH_ASSESS_MAX_COST_USD;
+    if (signalCount >= LARGE_ASSESS_SIGNAL_THRESHOLD) return LARGE_ASSESS_MAX_COST_USD;
+  }
+
+  return DEFAULT_MAX_COST_USD;
+}
+
 // ─── Per-run cost tracker ──────────────────────────────────────────────────
 
 /**
  * Create a cost tracker for a single script run.
  *
  * @param {object} opts
- * @param {number} [opts.maxCostUsd]   Per-run cap in USD (default: MAX_COST_USD env or 3)
+ * @param {number} [opts.maxCostUsd]   Per-run cap in USD (default: resolveMaxCostUsd or 3)
  * @param {string} [opts.label]        Human-readable label for log messages
  * @returns {{ onUsage, getTotal, printSummary }}
  */
 export function createCostTracker({ maxCostUsd, label: _label = 'run' } = {}) {
-  const cap = maxCostUsd ?? Number.parseFloat(process.env.MAX_COST_USD ?? '3');
+  const cap = maxCostUsd ?? resolveMaxCostUsd({ script: _label });
   const usageLog = [];
   // C9 — stage instrumentation: stage events (verifier kills, self-check
   // verdicts) carry no LLM cost but are aggregated into the persistent log so

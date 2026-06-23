@@ -8,6 +8,10 @@ import { resolveIngestPolicy } from '../domain/services/pipelineIngestPolicy.js'
 /** @type {Record<string, PipelinePreset>} */
 export const PIPELINE_PRESETS = Object.freeze({
   '8comp': { days: 1, scope: 'national' },
+  /** Dated replay: reuse bundles + closed-core assess + omission audit (branch default). */
+  '8comp-north-replay': { days: 1, scope: 'north' },
+  /** Full re-extract every run — use for fresh bundles or cron, not routine replay. */
+  '8comp-north': { days: 1, scope: 'north', alwaysReextract: true },
   '8comp-3': { days: 3, scope: 'national' },
   '8comp-3-north': { days: 3, scope: 'north', alwaysReextract: true },
   '8comp-7': { days: 14, scope: 'national' },
