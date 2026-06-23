@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "recordedAt": "2026-06-22T07:42:30.136Z",
-  "gitSha": "f0b6b57554668fd35b418d899c5922b58976493d",
+  "recordedAt": "2026-06-23T13:55:22.747Z",
+  "gitSha": "b31672a5e6e5e97d32dcd53d33ca550fbb3e08cc",
   "files": {
     "package-lock.json": "8dedd6e55829816430eb930a5323d61c1eba6c2d08dffd722a091676b7cbd12c",
     "client/package-lock.json": "fba3155da65847688e11fb9fc074f6a17eb46e4a7f34fedbdc9a7254caaefb48",
