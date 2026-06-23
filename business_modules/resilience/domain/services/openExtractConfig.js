@@ -72,7 +72,6 @@ export function openEvidenceScoreWeight(env = process.env) {
 }
 
 export function isCatalogAutoProposeVerifiedEnabled(env = process.env) {
-  const v = env.RESILIENCE_CATALOG_AUTO_PROPOSE_VERIFIED;
   return envFlagOn(env, 'RESILIENCE_CATALOG_AUTO_PROPOSE_VERIFIED');
 }
 

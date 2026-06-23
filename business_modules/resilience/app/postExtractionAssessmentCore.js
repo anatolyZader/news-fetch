@@ -154,6 +154,157 @@ export function applySharedAssessmentPostMetadata(assessment, ctx) {
   finalizeOperatorNarrativeSurface(assessment);
 }
 
+async function maybeEnsureRagIndexed({
+  skipRagBackfill,
+  retrievalService,
+  onUsage,
+  reportDate,
+  assessmentDays,
+  rootDir,
+}) {
+  if (skipRagBackfill || !retrievalService) return;
+  if (retrievalService.setOnUsage && onUsage) {
+    retrievalService.setOnUsage(onUsage);
+  }
+  await ensureArticleCorpusRagIndexed({
+    targetDate: reportDate,
+    days: assessmentDays,
+    retrievalService,
+    repoRoot: rootDir,
+  });
+}
+
+function assertDefaultNorthGate(defaultNorthGate, scopedSignals) {
+  if (!defaultNorthGate.blocked) {
+    if (defaultNorthGate.count > 0 && !defaultNorthGate.blockEnabled) {
+      console.error(
+        `  ⚠ Default-north fallback ${defaultNorthGate.pct}% (threshold ${defaultNorthGate.thresholdPct}%) — warn only`,
+      );
+    }
+    return;
+  }
+  const err = new Error(
+    `Default-north fallback ${defaultNorthGate.pct}% exceeds gate threshold ${defaultNorthGate.thresholdPct}% (${defaultNorthGate.count}/${scopedSignals.length} signals)`,
+  );
+  err.code = 'default_north_threshold_exceeded';
+  err.gate = defaultNorthGate;
+  throw err;
+}
+
+/**
+ * @param {object} ctx
+ * @returns {Promise<object>}
+ */
+async function produceAssessmentForMode(ctx) {
+  const {
+    reportScopeId,
+    reportDate,
+    scopedTotalArticles,
+    investigationPrep,
+    investigationEpistemic,
+    investigationSignals,
+    signalsForScoring,
+    scopedSignals,
+    narrativeScopeSignals,
+    scoredFull,
+    pipelineResult,
+    retrievalService,
+    sourceArchive,
+    evidenceStore,
+    openObservations,
+    onUsage,
+    reportsDir,
+    llmPort,
+    dailyBudgetExceeded,
+  } = ctx;
+
+  if (isClosedCoreAssessEnabled()) {
+    console.error('[assess-signals] Closed-core assess: generateNarratives (no assessment agent)');
+    const reportScope = reportScopeMetadata(reportScopeId);
+    const assessment = await generateNarratives(
+      scoredFull,
+      signalsForScoring,
+      reportDate,
+      scopedTotalArticles,
+      {
+        onUsage,
+        dataVoid: investigationPrep.dataVoid,
+        allScopedSignals: scopedSignals,
+        macroSignals: ctx.macroSignals,
+        retrievalService,
+        reportScope,
+        oovCaptureCount: countOovCapturesForDate(reportDate, reportsDir),
+        socialChannelQuarantine: investigationPrep.osintChannelQuarantine ?? null,
+      },
+    );
+    assessment.assessment_mode = 'closed_core';
+    assessment.assessment_degraded = null;
+    return assessment;
+  }
+
+  const assessment = await produceAssessmentWithShadow({
+    targetDate: reportDate,
+    reportScopeId,
+    investigationSignals,
+    investigationEpistemic,
+    signalsForScoring,
+    scopedSignals,
+    narrativeScopeSignals,
+    scoredFull,
+    scopedTotalArticles,
+    dataVoid: investigationPrep.dataVoid,
+    assessmentMode: investigationEpistemic.assessmentMode,
+    epistemicStatus: investigationEpistemic.epistemicStatus,
+    retrievalService,
+    sourceArchive,
+    evidenceStore,
+    oovBurst: investigationPrep.oovBurst,
+    openObservations,
+    onUsage,
+    reportsDir,
+    llmPort,
+    dailyBudgetExceeded,
+  });
+
+  await applyOperatorNarrativePipeline({
+    assessment,
+    narrativeScopeSignals,
+    scoredFull,
+    narrativeScoringContext: pipelineResult.digitalInclusiveScored ?? scoredFull,
+    scoringPartition: pipelineResult.partition ?? null,
+    quarantinedDigital: pipelineResult.quarantinedDigital ?? null,
+    signalsScoringUsed: signalsForScoring.length,
+    retrievalService,
+    reportDate,
+    onUsage,
+    llmPort,
+  });
+
+  return assessment;
+}
+
+/**
+ * @param {string} reportDate
+ * @param {string} reportScopeId
+ * @param {object[]} scopedSignals
+ * @param {string} reportsDir
+ * @returns {object|null}
+ */
+function runOmissionAuditIfEnabled(reportDate, reportScopeId, scopedSignals, reportsDir) {
+  if (!isOmissionAuditEnabled()) return null;
+  const audit = buildAndWriteOmissionAudit({
+    date: reportDate,
+    reportScopeId,
+    closedSignals: scopedSignals,
+    reportsDir,
+  });
+  console.error(
+    `  → Omission audit: ${audit.path} `
+    + `(zero-signal=${audit.summary.zero_signal_article_count}, residual=${audit.summary.residual_observation_count})`,
+  );
+  return audit.summary;
+}
+
 /**
  * @param {object} params
  * @returns {Promise<object>}
@@ -182,17 +333,14 @@ export async function runPostExtractionAssessmentCore(params) {
     skipRagBackfill = false,
   } = params;
 
-  if (!skipRagBackfill && retrievalService) {
-    if (retrievalService.setOnUsage && onUsage) {
-      retrievalService.setOnUsage(onUsage);
-    }
-    await ensureArticleCorpusRagIndexed({
-      targetDate: reportDate,
-      days: assessmentDays,
-      retrievalService,
-      repoRoot: rootDir,
-    });
-  }
+  await maybeEnsureRagIndexed({
+    skipRagBackfill,
+    retrievalService,
+    onUsage,
+    reportDate,
+    assessmentDays,
+    rootDir,
+  });
 
   const historicalScores = historicalScoresIn
     ?? loadHistoricalScores(reportDate, reportsDir, 14, reportScopeId);
@@ -206,19 +354,7 @@ export async function runPostExtractionAssessmentCore(params) {
   } = scopeAndPartitionSignals(allSignals, reportScopeId);
 
   const defaultNorthGate = evaluateDefaultNorthGate(scopedSignals);
-  if (defaultNorthGate.blocked) {
-    const err = new Error(
-      `Default-north fallback ${defaultNorthGate.pct}% exceeds gate threshold ${defaultNorthGate.thresholdPct}% (${defaultNorthGate.count}/${scopedSignals.length} signals)`,
-    );
-    err.code = 'default_north_threshold_exceeded';
-    err.gate = defaultNorthGate;
-    throw err;
-  }
-  if (defaultNorthGate.count > 0 && !defaultNorthGate.blockEnabled) {
-    console.error(
-      `  ⚠ Default-north fallback ${defaultNorthGate.pct}% (threshold ${defaultNorthGate.thresholdPct}%) — warn only`,
-    );
-  }
+  assertDefaultNorthGate(defaultNorthGate, scopedSignals);
 
   const scopeAttribution = {
     default_district_signal_count: defaultNorthGate.count,
@@ -282,83 +418,35 @@ export async function runPostExtractionAssessmentCore(params) {
 
   onScoreComplete?.();
 
-  let assessment;
-  let omissionAuditSummary = null;
+  const assessment = await produceAssessmentForMode({
+    reportScopeId,
+    reportDate,
+    scopedTotalArticles,
+    investigationPrep,
+    investigationEpistemic,
+    investigationSignals,
+    signalsForScoring,
+    scopedSignals,
+    macroSignals,
+    narrativeScopeSignals,
+    scoredFull,
+    pipelineResult,
+    retrievalService,
+    sourceArchive,
+    evidenceStore,
+    openObservations,
+    onUsage,
+    reportsDir,
+    llmPort,
+    dailyBudgetExceeded,
+  });
 
-  if (isClosedCoreAssessEnabled()) {
-    console.error('[assess-signals] Closed-core assess: generateNarratives (no assessment agent)');
-    const reportScope = reportScopeMetadata(reportScopeId);
-    assessment = await generateNarratives(
-      scoredFull,
-      signalsForScoring,
-      reportDate,
-      scopedTotalArticles,
-      {
-        onUsage,
-        dataVoid: investigationPrep.dataVoid,
-        allScopedSignals: scopedSignals,
-        macroSignals,
-        retrievalService,
-        reportScope,
-        oovCaptureCount: countOovCapturesForDate(reportDate, reportsDir),
-        socialChannelQuarantine: investigationPrep.osintChannelQuarantine ?? null,
-      },
-    );
-    assessment.assessment_mode = 'closed_core';
-    assessment.assessment_degraded = null;
-  } else {
-    assessment = await produceAssessmentWithShadow({
-      targetDate: reportDate,
-      reportScopeId,
-      investigationSignals,
-      investigationEpistemic,
-      signalsForScoring,
-      scopedSignals,
-      narrativeScopeSignals,
-      scoredFull,
-      scopedTotalArticles,
-      dataVoid: investigationPrep.dataVoid,
-      assessmentMode: investigationEpistemic.assessmentMode,
-      epistemicStatus: investigationEpistemic.epistemicStatus,
-      retrievalService,
-      sourceArchive,
-      evidenceStore,
-      oovBurst: investigationPrep.oovBurst,
-      openObservations,
-      onUsage,
-      reportsDir,
-      llmPort,
-      dailyBudgetExceeded,
-    });
-
-    await applyOperatorNarrativePipeline({
-      assessment,
-      narrativeScopeSignals,
-      scoredFull,
-      narrativeScoringContext: pipelineResult.digitalInclusiveScored ?? scoredFull,
-      scoringPartition: pipelineResult.partition ?? null,
-      quarantinedDigital: pipelineResult.quarantinedDigital ?? null,
-      signalsScoringUsed: signalsForScoring.length,
-      retrievalService,
-      reportDate,
-      onUsage,
-      llmPort,
-    });
-  }
-
-  if (isOmissionAuditEnabled()) {
-    const audit = buildAndWriteOmissionAudit({
-      date: reportDate,
-      reportScopeId,
-      closedSignals: scopedSignals,
-      reportsDir,
-    });
-    omissionAuditSummary = audit.summary;
-    console.error(
-      `  → Omission audit: ${audit.path} `
-      + `(zero-signal=${audit.summary.zero_signal_article_count}, residual=${audit.summary.residual_observation_count})`,
-    );
-  }
+  const omissionAuditSummary = runOmissionAuditIfEnabled(
+    reportDate,
+    reportScopeId,
+    scopedSignals,
+    reportsDir,
+  );
 
   onNarrateComplete?.();
 
