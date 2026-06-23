@@ -34,15 +34,20 @@ function loadGeoMixedSignals() {
 
 describe('postExtractionAssessmentCore', () => {
   let prevForceDeterministic;
+  let prevClosedCore;
 
   before(() => {
     prevForceDeterministic = process.env.RESILIENCE_ASSESSMENT_FORCE_DETERMINISTIC;
+    prevClosedCore = process.env.RESILIENCE_CLOSED_CORE_ASSESS;
     process.env.RESILIENCE_ASSESSMENT_FORCE_DETERMINISTIC = '1';
+    process.env.RESILIENCE_CLOSED_CORE_ASSESS = '0';
   });
 
   after(() => {
     if (prevForceDeterministic === undefined) delete process.env.RESILIENCE_ASSESSMENT_FORCE_DETERMINISTIC;
     else process.env.RESILIENCE_ASSESSMENT_FORCE_DETERMINISTIC = prevForceDeterministic;
+    if (prevClosedCore === undefined) delete process.env.RESILIENCE_CLOSED_CORE_ASSESS;
+    else process.env.RESILIENCE_CLOSED_CORE_ASSESS = prevClosedCore;
   });
 
   it('scope partition: national keeps all fixture signals; north filters to geo-relevant', () => {

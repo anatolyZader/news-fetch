@@ -18,7 +18,7 @@ describe('openEvidenceScoringSignals', () => {
         },
       }],
       [],
-      { env: { RESILIENCE_OPEN_EVIDENCE_SCORING: '1', RESILIENCE_OPEN_EVIDENCE_SCORE_WEIGHT: '0.4' } },
+      { env: { RESILIENCE_OPEN_EVIDENCE_SCORING: '1', RESILIENCE_OMISSION_AUDIT: '0', RESILIENCE_OPEN_EVIDENCE_SCORE_WEIGHT: '0.4' } },
     );
 
     assert.equal(signals.length, 1);
