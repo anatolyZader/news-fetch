@@ -5,7 +5,7 @@ import { writeReport as writeResilienceReportFiles } from '../reportWriter.js';
 
 export function createResilienceReportFsAdapter() {
   return {
-    writeReport: ({ assessment, signals, sourceFiles, outputBase, scoreBySource }) =>
-      writeResilienceReportFiles(assessment, signals, sourceFiles, outputBase, { scoreBySource }),
+    writeReport: ({ assessment, signals, sourceFiles, outputBase, scoreBySource, assessmentWindow }) =>
+      writeResilienceReportFiles(assessment, signals, sourceFiles, outputBase, { scoreBySource, assessmentWindow }),
   };
 }

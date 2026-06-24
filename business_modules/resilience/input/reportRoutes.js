@@ -13,6 +13,7 @@ import { canViewAnalystDisplay } from '../../../cross-cut-modules/auth/userAcces
 import {
   getCachedReport as getCachedReportDefault,
   getAvailableReportDates,
+  getAvailableReportEditions,
   resolveDisplayView,
   redactReportPayload,
   redactScoreBySource,
@@ -213,7 +214,8 @@ export async function reportRoutes(app, opts) {
       if (!requireOperatorDistrictAccess(request, reply, scope)) return;
     }
     const dates = getAvailableReportDates({ scope });
-    return reply.send({ dates });
+    const editions = getAvailableReportEditions({ scope });
+    return reply.send({ dates, editions });
   });
 
   app.get('/api/report/today', todayAuthHook, async (request, reply) => {

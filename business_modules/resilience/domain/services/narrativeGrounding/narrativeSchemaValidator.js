@@ -170,5 +170,10 @@ export function formatValidationFeedback(result) {
   if (result.warnings?.length) {
     parts.push(`Warnings:\n- ${result.warnings.join('\n- ')}`);
   }
+  parts.push(
+    'Reminders: signal_ref must match input exactly (type@url:… or [S#]); '
+    + 'manifestations_evidenced must copy exact catalog strings; '
+    + 'multi-ref claims must not use because/despite/due to/in response to.',
+  );
   return parts.join('\n\n');
 }

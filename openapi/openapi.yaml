@@ -64,6 +64,27 @@ components:
     ReportTodayResponse:
       type: object
       additionalProperties: true
+    ReportEdition:
+      type: object
+      required: [date]
+      properties:
+        date: { type: string, description: "Report anchor date YYYY-MM-DD" }
+        generated_at: { type: string, nullable: true }
+        assessment_days: { type: integer, nullable: true }
+        window_start: { type: string, nullable: true }
+        window_end: { type: string, nullable: true }
+        total_articles: { type: integer, nullable: true }
+        is_today: { type: boolean }
+    ReportDatesResponse:
+      type: object
+      required: [dates]
+      properties:
+        dates:
+          type: array
+          items: { type: string }
+        editions:
+          type: array
+          items: { $ref: "#/components/schemas/ReportEdition" }
     TranslateRequest:
       type: object
       required: [report, lang]
@@ -223,6 +244,30 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/ReportTodayResponse" }
+        "401":
+          description: Unauthorized (when auth is required)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /api/report/dates:
+    get:
+      tags: [Reports]
+      summary: List available report editions for a scope.
+      parameters:
+        - in: query
+          name: scope
+          required: false
+          schema:
+            type: string
+            enum: [national, north]
+          description: Report scope. Defaults to national.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ReportDatesResponse" }
         "401":
           description: Unauthorized (when auth is required)
           content:

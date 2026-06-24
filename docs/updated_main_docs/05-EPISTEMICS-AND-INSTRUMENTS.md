@@ -125,3 +125,17 @@ A district officer producing twice-daily situation reports is better served by *
 | Operator display states | `business_modules/resilience/domain/services/componentDiagnostics.js` |
 | Scoring bridge | `business_modules/resilience/app/scoringFacade.js` |
 | Display view | `cross-cut-modules/resilience-contracts/displayViews.js` |
+
+## 7. Dual epistemic status (monitoring replays)
+
+On `digital_darkness` days the report carries **two** epistemic surfaces:
+
+| Field | Use for |
+|-------|---------|
+| `assessment.epistemic_status` | Investigation pool context (`investigation_mode: digital_darkness`); may show `void_level: none` while investigation signals stay available |
+| `assessment.shadow_scoring.epistemic_status` | **Score reliability** — `void_level`, `assessment_mode: field_anchor_only`, `scores_reliable` |
+| `assessment.digital_quarantine_state` | Active quarantine flag + `assessment_mode` for the scoring partition |
+
+**Operators and replay QA:** trust `operator_display_state` / `evidence_operator` on components, plus `shadow_scoring.epistemic_status` and `digital_quarantine_state` — not top-level `epistemic_status.void_level` alone.
+
+Post-run checklist: `npm run pipeline:audit -- --date YYYY-MM-DD --scope north`.

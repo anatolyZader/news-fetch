@@ -22,7 +22,10 @@ export function writeShadowArtifacts(params) {
   writeFileSync(scoresPath, JSON.stringify({ date, scopeId, scored: shadowScored }, null, 2));
 
   const divPath = join(reportsDir, `divergence-${scopeId}-${date}.json`);
-  writeFileSync(divPath, JSON.stringify({ date, scopeId, ...divergence }, null, 2));
+  writeFileSync(
+    divPath,
+    JSON.stringify({ date, scopeId, generated_at: divergence?.generated_at ?? new Date().toISOString(), ...divergence }, null, 2),
+  );
 
   return { scoresPath, divPath, base: join(reportsDir, `${scopeId}-${date}`) };
 }

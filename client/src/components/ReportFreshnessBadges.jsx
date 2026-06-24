@@ -26,7 +26,7 @@ export function ReportFreshnessBadges({ reportDate, generatedAt }) {
         <Chip
           size="small"
           variant="outlined"
-          label={formatTemplate(t('report.freshness.dataGathered'), { date: gatheredLabel })}
+          label={formatTemplate(t('report.freshness.reportDate'), { date: gatheredLabel })}
         />
       )}
     </Stack>

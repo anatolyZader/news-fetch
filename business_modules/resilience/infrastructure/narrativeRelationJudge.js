@@ -7,6 +7,7 @@ import { resolveLlmPort } from '../../../cross-cut-modules/llm/resolveLlmPort.js
 import { extractJson } from './claudeJsonHelpers.js';
 import { streamWithProgress } from './claudeExtraction.js';
 import { resolveRef } from '../domain/services/narrativeGrounding/index.js';
+import { narrativeJudgeMaxTokens } from '../domain/services/narrativeGrounding/groundingConfig.js';
 
 const DEFAULT_JUDGE_MODEL = process.env.RESILIENCE_NARRATIVE_JUDGE_MODEL
   ?? process.env.RESILIENCE_SELF_CHECK_MODEL
@@ -99,7 +100,7 @@ async function judgeComponentClaimsBatch(claims, comp, registry, opts = {}) {
     `Evaluate ${claims.length} case(s). Return verdicts array with "i" matching CASE numbers.\n\n` +
     blocks;
 
-  const maxTokens = Math.min(4000, 200 + claims.length * 80);
+  const maxTokens = narrativeJudgeMaxTokens(claims.length);
   const stream = await Promise.resolve(port.stream({
     model: DEFAULT_JUDGE_MODEL,
     max_tokens: maxTokens,

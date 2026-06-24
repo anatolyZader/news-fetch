@@ -174,9 +174,10 @@ function sanitizeAssessmentNarratives(assessment) {
  * @param {string} outputBase    Path without extension
  * @param {Object} [extras]
  * @param {Object} [extras.scoreBySource]  Per-source component scores: { news: {...}, radio: {...}, field: {...} }
+ * @param {Object} [extras.assessmentWindow]  Persisted window metadata from buildAssessmentWindowMetadata
  * @returns {{ mdPath, jsonPath }}
  */
-export function writeReport(assessment, signals, sourceFiles, outputBase, { scoreBySource } = {}) {
+export function writeReport(assessment, signals, sourceFiles, outputBase, { scoreBySource, assessmentWindow } = {}) {
   sanitizeAssessmentNarratives(assessment);
   mkdirSync(dirname(outputBase), { recursive: true });
 
@@ -197,6 +198,9 @@ export function writeReport(assessment, signals, sourceFiles, outputBase, { scor
     generated_at: new Date().toISOString(),
     ...collectGeoVersionsFromSignals(signals),
   };
+  if (assessmentWindow && typeof assessmentWindow === 'object') {
+    jsonPayload.assessment_window = assessmentWindow;
+  }
   if (scoreBySource && Object.keys(scoreBySource).length > 0) {
     jsonPayload.score_by_source = scoreBySource;
   }

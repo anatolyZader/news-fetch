@@ -4,6 +4,7 @@
  */
 import { agentClaimsForComponent } from './buildNarrativeScoredComponents.js';
 import { resolveNarrativePipelineMode } from './narrativeGrounding/groundingConfig.js';
+import { buildRefKey } from './narrativeGrounding/signalRefRegistry.js';
 
 export const INSUFFICIENT_SYNTHESIS_NARRATIVE =
   'Insufficient LLM synthesis — see supporting evidence below.';
@@ -11,6 +12,7 @@ export const INSUFFICIENT_SYNTHESIS_NARRATIVE =
 const MAX_CLAIMS_IN_PROSE = 3;
 const MAX_EVIDENCE_BULLETS = 8;
 const MAX_EVIDENCE_LINE_CHARS = 480;
+const SIGNAL_REF_TRAILING = /\s*(?:\[S\d+\])+\s*$/;
 
 /**
  * @param {string | null | undefined} text
@@ -133,14 +135,89 @@ function urlFromRefKey(refKey) {
 }
 
 /**
- * @param {object} claim
+ * @param {object} comp
+ * @returns {object[]}
+ */
+function signalPoolsFromComponent(comp) {
+  return [
+    ...(comp?.signals ?? []),
+    ...(comp?.top_contributors ?? []),
+  ];
+}
+
+/**
+ * @param {string} ref
+ * @param {object} comp
+ * @returns {object|null}
+ */
+function resolveSignalForRef(ref, comp) {
+  const refKey = String(ref ?? '').trim();
+  if (!refKey) return null;
+  const pool = signalPoolsFromComponent(comp);
+  for (const signal of pool) {
+    if (buildRefKey(signal) === refKey) return signal;
+  }
+  const idxMatch = /^(.+)@idx:(\d+)$/.exec(refKey);
+  if (idxMatch) {
+    const [, signalType, idxStr] = idxMatch;
+    const articleIndex = Number(idxStr);
+    const byIdx = pool.find(
+      (s) => (s?.signal_type ?? s?.type) === signalType && s?.article_index === articleIndex,
+    );
+    if (byIdx) return byIdx;
+  }
+  const url = urlFromRefKey(refKey);
+  if (url) {
+    return pool.find((s) => s?.article_url === url) ?? null;
+  }
+  return null;
+}
+
+/**
+ * @param {object|null|undefined} signal
  * @returns {string|null}
  */
-function urlFromClaim(claim) {
+function urlFromSignal(signal) {
+  const url = signal?.article_url;
+  if (!url || url === '(no url)' || url === 'null') return null;
+  return url;
+}
+
+/**
+ * @param {string} text
+ * @returns {string}
+ */
+function stripTrailingSignalRefs(text) {
+  return String(text ?? '').replace(SIGNAL_REF_TRAILING, '').trim();
+}
+
+/**
+ * @param {object|null|undefined} signal
+ * @returns {{ source_type: string|null, article_source: string|null, url: string|null }}
+ */
+function metaFromSignal(signal) {
+  if (!signal) return { source_type: null, article_source: null, url: null };
+  return {
+    source_type: normalizeSourceType(signal.source_type),
+    article_source: signal.article_source ?? null,
+    url: urlFromSignal(signal),
+  };
+}
+
+/**
+ * @param {object} claim
+ * @param {object} [comp]
+ * @returns {string|null}
+ */
+function urlFromClaim(claim, comp) {
   const refs = claim.signal_refs ?? claim.evidence_refs ?? [];
   for (const ref of refs) {
     const url = urlFromRefKey(ref);
     if (url) return url;
+    if (comp) {
+      const signalUrl = urlFromSignal(resolveSignalForRef(ref, comp));
+      if (signalUrl) return signalUrl;
+    }
   }
   return null;
 }
@@ -169,17 +246,15 @@ function sourceMetaFromClaim(claim, comp) {
       article_source: claim.article_source ?? null,
     };
   }
-  const url = urlFromClaim(claim);
-  const signalPools = [
-    ...(comp?.signals ?? []),
-    ...(comp?.top_contributors ?? []),
-  ];
-  for (const signal of signalPools) {
+  const refs = claim.signal_refs ?? claim.evidence_refs ?? [];
+  for (const ref of refs) {
+    const signal = resolveSignalForRef(ref, comp);
+    if (signal) return metaFromSignal(signal);
+  }
+  const url = urlFromClaim(claim, comp);
+  for (const signal of signalPoolsFromComponent(comp)) {
     if (url && signal?.article_url && signal.article_url === url) {
-      return {
-        source_type: normalizeSourceType(signal.source_type),
-        article_source: signal.article_source ?? null,
-      };
+      return metaFromSignal(signal);
     }
   }
   if (url) {
@@ -206,6 +281,63 @@ function formatEvidenceBullet(text, url) {
 }
 
 /**
+ * @param {object} signal
+ * @param {string|null|undefined} [fallbackText]
+ * @returns {object|null}
+ */
+function structuredItemFromSignal(signal, fallbackText) {
+  const text = String(signal?.evidence ?? fallbackText ?? '').trim().slice(0, MAX_EVIDENCE_LINE_CHARS);
+  if (!text) return null;
+  const meta = metaFromSignal(signal);
+  return {
+    text,
+    source_type: meta.source_type,
+    article_source: meta.article_source,
+    url: meta.url,
+    markdown: formatEvidenceBullet(text, meta.url),
+  };
+}
+
+/**
+ * @param {object} claim
+ * @param {object} comp
+ * @returns {object[]}
+ */
+function structuredItemsFromClaim(claim, comp) {
+  const refs = claim.signal_refs ?? claim.evidence_refs ?? [];
+  const fromRefs = refs
+    .map((ref) => structuredItemFromSignal(resolveSignalForRef(ref, comp), null))
+    .filter(Boolean);
+  if (fromRefs.length > 0) return fromRefs;
+
+  const text = stripTrailingSignalRefs(claim.text).slice(0, MAX_EVIDENCE_LINE_CHARS);
+  if (!text) return [];
+  const url = urlFromClaim(claim, comp);
+  const meta = sourceMetaFromClaim(claim, comp);
+  return [{
+    text,
+    source_type: meta.source_type,
+    article_source: meta.article_source,
+    url,
+    markdown: formatEvidenceBullet(text, url),
+  }];
+}
+
+/**
+ * @param {object} comp
+ * @returns {object[]}
+ */
+function buildEvidenceFromClaims(comp) {
+  const claims = rawClaimsForComponent(comp).length > 0
+    ? rawClaimsForComponent(comp)
+    : claimsForComponent(comp);
+  if (!claims.length) return [];
+  return claims
+    .flatMap((c) => structuredItemsFromClaim(c, comp))
+    .slice(0, MAX_EVIDENCE_BULLETS);
+}
+
+/**
  * @param {object} comp
  * @returns {string[]}
  */
@@ -214,13 +346,9 @@ export function buildCuratedEvidenceBullets(comp) {
     return comp.evidence_operator.slice(0, MAX_EVIDENCE_BULLETS);
   }
 
-  const claims = claimsForComponent(comp);
-  if (claims.length > 0) {
-    const bullets = claims
-      .map((c) => formatEvidenceBullet(c.text, urlFromClaim(c)))
-      .filter(Boolean)
-      .slice(0, MAX_EVIDENCE_BULLETS);
-    if (bullets.length > 0) return bullets;
+  const fromClaims = buildEvidenceFromClaims(comp);
+  if (fromClaims.length > 0) {
+    return fromClaims.map((item) => item.markdown).filter(Boolean);
   }
 
   const evidence = comp.evidence ?? [];
@@ -255,27 +383,8 @@ export function buildStructuredEvidenceItems(comp) {
     return comp.evidence_operator_structured.slice(0, MAX_EVIDENCE_BULLETS);
   }
 
-  const claims = rawClaimsForComponent(comp).length > 0
-    ? rawClaimsForComponent(comp)
-    : claimsForComponent(comp);
-  if (claims.length > 0) {
-    return claims
-      .map((c) => {
-        const text = String(c.text ?? '').trim().slice(0, MAX_EVIDENCE_LINE_CHARS);
-        if (!text) return null;
-        const url = urlFromClaim(c);
-        const meta = sourceMetaFromClaim(c, comp);
-        return {
-          text,
-          source_type: meta.source_type,
-          article_source: meta.article_source,
-          url,
-          markdown: formatEvidenceBullet(c.text, url),
-        };
-      })
-      .filter(Boolean)
-      .slice(0, MAX_EVIDENCE_BULLETS);
-  }
+  const fromClaims = buildEvidenceFromClaims(comp);
+  if (fromClaims.length > 0) return fromClaims;
 
   return buildCuratedEvidenceBullets(comp).map((md) => ({
     text: String(md).replace(/^-\s*/, '').trim(),
@@ -319,6 +428,16 @@ export function finalizeOperatorNarrativeSurface(assessment) {
 
   if (!assessment.narrative_pipeline_mode) {
     assessment.narrative_pipeline_mode = resolveNarrativePipelineMode();
+  }
+
+  if (assessment.narrative_pipeline_degraded === true) {
+    const caveat =
+      '**Narrative validation incomplete** — component prose may not meet grounding standards; '
+      + 'prefer evidence_operator bullets and operator display states.\n\n';
+    const existing = assessment.evidence_quality_note ?? '';
+    if (!existing.includes('Narrative validation incomplete')) {
+      assessment.evidence_quality_note = `${caveat}${existing}`;
+    }
   }
 
   for (const comp of assessment.components ?? []) {

@@ -40,6 +40,60 @@ export function labelFromUrl(url) {
 }
 
 const MARKDOWN_LINK = /\[([^\]]+)\]\((https?:[^)\s]+)\)/gi;
+const SIGNAL_REF = /\[S\d+\]/g;
+const SPACED_SIGNAL_GROUP = /\(\s*(\[S\d+\](?:\s*,\s*\[S\d+\])*)\s*\)/g;
+
+/**
+ * Group consecutive [S#] refs into academic-style parentheticals: ([S1],[S2]).
+ * @param {string} markdown
+ * @returns {string}
+ */
+export function formatAcademicSignalRefs(markdown) {
+  if (typeof markdown !== 'string') return '';
+  if (!markdown) return markdown;
+
+  const step1 = markdown.replaceAll(SPACED_SIGNAL_GROUP, (_, inner) => {
+    const refs = [...inner.matchAll(SIGNAL_REF)].map((m) => m[0]);
+    return refs.length > 0 ? `(${refs.join(',')})` : `(${inner})`;
+  });
+
+  return step1.replaceAll(/(?:\[S\d+\])+(?=[.!?;\s]|$)/g, (run) => {
+    const refs = [...run.matchAll(SIGNAL_REF)].map((m) => m[0]);
+    return refs.length > 0 ? `(${refs.join(',')})` : run;
+  });
+}
+
+/**
+ * Academic parentheticals with a subtle clickable label: ([Ynet](url), DD Mon YYYY).
+ * @param {string} markdown
+ * @param {string|undefined|null} [reportDate]
+ * @returns {string}
+ */
+export function formatLinkedReadableCitations(markdown, reportDate) {
+  if (typeof markdown !== 'string') return '';
+  if (!markdown) return markdown;
+  const datePart = formatReportDateLabel(reportDate);
+  return markdown.replaceAll(MARKDOWN_LINK, (match, text, url) => {
+    const label = GENERIC_SOURCE.test(String(text).trim()) ? labelFromUrl(url) : String(text).trim();
+    if (!label) return match;
+    if (!datePart) return `([${label}](${url}))`;
+    return `([${label}](${url}), ${datePart})`;
+  });
+}
+
+/**
+ * Operator narrative prose: signal-ref grouping + linked academic citations.
+ * @param {string} markdown
+ * @param {string|undefined|null} [reportDate]
+ * @param {(md: string) => string} [expandLinks]
+ * @returns {string}
+ */
+export function formatNarrativeMarkdown(markdown, reportDate, expandLinks = (md) => md) {
+  if (typeof markdown !== 'string') return '';
+  const expanded = expandLinks(markdown);
+  const withSignals = formatAcademicSignalRefs(expanded);
+  return formatLinkedReadableCitations(withSignals, reportDate);
+}
 
 /**
  * @param {string} markdown
@@ -58,6 +112,16 @@ export function formatReadableCitations(markdown, reportDate) {
 }
 
 /**
+ * Evidence bullets: [source](url) → ([label](url), DD Mon YYYY).
+ * @param {string} markdown
+ * @param {string|undefined|null} [reportDate]
+ * @returns {string}
+ */
+export function formatEvidenceCitations(markdown, reportDate) {
+  return formatLinkedReadableCitations(markdown, reportDate);
+}
+
+/**
  * Expand generic [source](url) then apply readable parentheticals.
  * @param {string} markdown
  * @param {string|undefined|null} [reportDate]
@@ -68,4 +132,17 @@ export function formatReportMarkdown(markdown, reportDate, expandLinks = (md) =>
   if (typeof markdown !== 'string') return '';
   const expanded = expandLinks(markdown);
   return formatReadableCitations(expanded, reportDate);
+}
+
+/**
+ * Evidence list markdown: expand [source](url) then linked academic citations.
+ * @param {string} markdown
+ * @param {string|undefined|null} [reportDate]
+ * @param {(md: string) => string} [expandLinks]
+ * @returns {string}
+ */
+export function formatEvidenceMarkdown(markdown, reportDate, expandLinks = (md) => md) {
+  if (typeof markdown !== 'string') return '';
+  const expanded = expandLinks(markdown);
+  return formatEvidenceCitations(expanded, reportDate);
 }

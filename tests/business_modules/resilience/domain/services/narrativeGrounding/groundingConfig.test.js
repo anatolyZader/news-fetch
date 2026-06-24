@@ -1,39 +1,23 @@
-import { describe, it, beforeEach, afterEach } from 'node:test';
+import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-
 import {
-  resolveNarrativePipelineMode,
-  hybridNarrativeEnabled,
-  legacyNarrativeOnly,
-  operatorNarrativePipelineEnabled,
+  narrativeFactsMaxTokens,
+  narrativeJudgeMaxTokens,
 } from '../../../../../../business_modules/resilience/domain/services/narrativeGrounding/groundingConfig.js';
 
-describe('groundingConfig narrative pipeline mode', () => {
-  let prev;
-
-  beforeEach(() => {
-    prev = process.env.RESILIENCE_NARRATIVE_PIPELINE;
+describe('groundingConfig token caps', () => {
+  it('defaults narrative facts max tokens to 12000', () => {
+    const prev = process.env.RESILIENCE_NARRATIVE_FACTS_MAX_TOKENS;
+    delete process.env.RESILIENCE_NARRATIVE_FACTS_MAX_TOKENS;
+    assert.equal(narrativeFactsMaxTokens(), 12000);
+    if (prev != null) process.env.RESILIENCE_NARRATIVE_FACTS_MAX_TOKENS = prev;
   });
 
-  afterEach(() => {
-    if (prev === undefined) delete process.env.RESILIENCE_NARRATIVE_PIPELINE;
-    else process.env.RESILIENCE_NARRATIVE_PIPELINE = prev;
-  });
-
-  it('defaults to hybrid when env unset', () => {
-    delete process.env.RESILIENCE_NARRATIVE_PIPELINE;
-    assert.equal(resolveNarrativePipelineMode(), 'hybrid');
-    assert.equal(hybridNarrativeEnabled(), true);
-    assert.equal(operatorNarrativePipelineEnabled(), true);
-  });
-
-  it('respects agent and legacy modes', () => {
-    process.env.RESILIENCE_NARRATIVE_PIPELINE = 'agent';
-    assert.equal(resolveNarrativePipelineMode(), 'agent');
-    assert.equal(operatorNarrativePipelineEnabled(), false);
-
-    process.env.RESILIENCE_NARRATIVE_PIPELINE = 'legacy';
-    assert.equal(legacyNarrativeOnly(), true);
-    assert.equal(operatorNarrativePipelineEnabled(), true);
+  it('scales judge max tokens with claim count up to env cap', () => {
+    const prev = process.env.RESILIENCE_NARRATIVE_JUDGE_MAX_TOKENS;
+    process.env.RESILIENCE_NARRATIVE_JUDGE_MAX_TOKENS = '8000';
+    assert.equal(narrativeJudgeMaxTokens(8), Math.min(8000, 200 + 8 * 120));
+    if (prev != null) process.env.RESILIENCE_NARRATIVE_JUDGE_MAX_TOKENS = prev;
+    else delete process.env.RESILIENCE_NARRATIVE_JUDGE_MAX_TOKENS;
   });
 });

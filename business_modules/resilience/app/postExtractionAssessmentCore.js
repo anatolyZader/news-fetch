@@ -28,12 +28,14 @@ import { summarizeValidationMaturity } from '../validation/domain/validationStat
 import { ISRAEL_NATIONAL_DISTRICT_ID } from '../../../cross-cut-modules/geo/israelDistricts.js';
 import {
   produceAssessmentWithShadow,
+  attachShadowDivergenceToAssessment,
 } from './produceAssessmentWithShadow.js';
 import { applyOperatorNarrativePipeline } from './operatorNarrativePipeline.js';
 import { attachDecisionBrief } from './attachDecisionBrief.js';
 import { loadHistoricalScores } from './assessSignalsHelpers.js';
 import { ensureArticleCorpusRagIndexed } from './ensureArticleCorpusRagIndexed.js';
 import { isClosedCoreAssessEnabled, isOmissionAuditEnabled } from '../domain/services/openExtractConfig.js';
+import { shadowScoringEnabled } from '../../../cross-cut-modules/agent/index.js';
 import { generateNarratives } from '../infrastructure/claudeNarratives.js';
 import { buildAndWriteOmissionAudit } from './omissionAuditService.js';
 import { reportScopeMetadata } from '../domain/services/regionSignalFilter.js';
@@ -239,6 +241,14 @@ async function produceAssessmentForMode(ctx) {
     );
     assessment.assessment_mode = 'closed_core';
     assessment.assessment_degraded = null;
+    if (shadowScoringEnabled()) {
+      attachShadowDivergenceToAssessment(assessment, {
+        scoredFull,
+        reportScopeId,
+        targetDate: reportDate,
+        reportsDir,
+      });
+    }
     return assessment;
   }
 

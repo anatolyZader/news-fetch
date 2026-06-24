@@ -14,6 +14,7 @@ import {
   reportFilePrefix,
 } from '../../../cross-cut-modules/geo/reportScopeIds.js';
 import { readCostBreakdownForDate as readCostBreakdownForDateFromLog } from '../../../cross-cut-modules/log/index.js';
+import { inferAssessmentWindowFromSourceFiles } from '../app/assessSignalsHelpers.js';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 
@@ -75,10 +76,41 @@ function readReportMeta(jsonPath) {
       articles: typeof articles === 'number' && Number.isFinite(articles) ? articles : 0,
       critical,
       generatedAt,
+      assessmentWindow: parsed?.assessment_window ?? null,
+      sourceFiles: Array.isArray(parsed?.source_files) ? parsed.source_files : [],
+      reportDate: typeof parsed?.assessment?.date === 'string' ? parsed.assessment.date : null,
     };
   } catch {
-    return { articles: -1, critical: false, generatedAt: null };
+    return {
+      articles: -1,
+      critical: false,
+      generatedAt: null,
+      assessmentWindow: null,
+      sourceFiles: [],
+      reportDate: null,
+    };
   }
+}
+
+/**
+ * Resolve edition window fields from persisted metadata or legacy source_files inference.
+ * @param {string} date
+ * @param {object} meta from readReportMeta
+ */
+function resolveEditionWindow(date, meta) {
+  const aw = meta.assessmentWindow;
+  if (aw && typeof aw === 'object') {
+    return {
+      assessment_days: typeof aw.days === 'number' ? aw.days : null,
+      window_start: typeof aw.window_start === 'string' ? aw.window_start : null,
+      window_end: typeof aw.window_end === 'string' ? aw.window_end : null,
+    };
+  }
+  const inferred = inferAssessmentWindowFromSourceFiles(date, meta.sourceFiles);
+  if (!inferred) {
+    return { assessment_days: null, window_start: null, window_end: null };
+  }
+  return inferred;
 }
 
 /**
@@ -201,8 +233,18 @@ export function getCachedReport(store, opts = {}) {
  * @returns {string[]} YYYY-MM-DD strings, newest first
  */
 export function getAvailableReportDates(opts = {}) {
+  return getAvailableReportEditions(opts).map((e) => e.date);
+}
+
+/**
+ * Return rich edition metadata for each date that has a report for the given scope.
+ * @param {{ scope?: 'national'|'north', reportsDir?: string }} [opts]
+ */
+export function getAvailableReportEditions(opts = {}) {
   const scope = normalizeReportScopeId(opts.scope);
   const dir = opts.reportsDir ?? resolveReportsDir();
+  const timezone = process.env.TZ_ARTICLES || 'Asia/Jerusalem';
+  const today = getTodayInTimezone(timezone);
   if (!existsSync(dir)) return [];
 
   let names;
@@ -216,8 +258,28 @@ export function getAvailableReportDates(opts = {}) {
   const datePattern = new RegExp(String.raw`^${escapedPrefix}-(\d{4}-\d{2}-\d{2})`);
   const dates = [...new Set(
     names.map((f) => datePattern.exec(f)?.[1]).filter(Boolean),
-  )].sort((a, b) => b.localeCompare(a)); // newest first
-  return dates;
+  )].sort((a, b) => b.localeCompare(a));
+
+  return dates.map((date) => {
+    const jsonPath = resolveReportJsonPathForDate(date, { scope, reportsDir: dir });
+    const meta = jsonPath ? readReportMeta(jsonPath) : {
+      articles: null,
+      generatedAt: null,
+      assessmentWindow: null,
+      sourceFiles: [],
+      reportDate: date,
+    };
+    const windowFields = resolveEditionWindow(date, meta);
+    return {
+      date,
+      generated_at: meta.generatedAt,
+      assessment_days: windowFields.assessment_days,
+      window_start: windowFields.window_start,
+      window_end: windowFields.window_end,
+      total_articles: meta.articles >= 0 ? meta.articles : null,
+      is_today: date === today,
+    };
+  });
 }
 
 /** Load markdown sidecar files adjacent to a report JSON path. */

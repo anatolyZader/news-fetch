@@ -38,6 +38,12 @@ Options:
 Env:
   RESILIENCE_ALWAYS_REEXTRACT=1   Same as --always-reextract
   RESILIENCE_OPEN_EXTRACT_PARALLEL=1   Set automatically when unset
+  RESILIENCE_REPLAY_REUSE_NEWS=1  Reuse cached bundles on dated replay (preset 8comp-north-replay sets defaults)
+  RESILIENCE_REPLAY_REUSE_WHATSAPP=1 / RESILIENCE_REPLAY_REUSE_PBO=1 / RESILIENCE_REPLAY_REUSE_VISITS=1
+  RESILIENCE_NARRATIVE_FACTS_MAX_TOKENS=12000 / RESILIENCE_NARRATIVE_JUDGE_MAX_TOKENS=8000
+  RESILIENCE_NARRATIVE_GROUNDING_BLOCK=1   Fail assess when grounding mean < min (analyst replays only)
+  RESILIENCE_CLOSED_CORE_ASSESS=0   Enable assessment agent on replay (default 1)
+  npm run pipeline:audit -- --date YYYY-MM-DD --scope north   Post-run digest
 `);
   process.exit(0);
 }

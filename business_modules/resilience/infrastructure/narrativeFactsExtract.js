@@ -6,11 +6,7 @@ import { resolveLlmPort } from '../../../cross-cut-modules/llm/resolveLlmPort.js
 import { RESILIENCE_COMPONENTS } from '../domain/resilienceComponents.js';
 import { extractJson } from './claudeJsonHelpers.js';
 import { streamWithProgress } from './claudeExtraction.js';
-import {
-  buildSignalRefRegistry,
-  formatSignalWithRef,
-  resolveRef,
-} from '../domain/services/narrativeGrounding/index.js';
+import { narrativeFactsMaxTokens } from '../domain/services/narrativeGrounding/groundingConfig.js';
 
 const DEFAULT_FACTS_MODEL = process.env.RESILIENCE_NARRATIVE_FACTS_MODEL
   ?? process.env.RESILIENCE_SELF_CHECK_MODEL
@@ -33,7 +29,8 @@ function buildFactsSystemPrompt() {
     '  ]\n' +
     '}\n\n' +
     'Rules:\n' +
-    '- Each claim cites ≥1 signal_ref exactly as given in the input.\n' +
+    '- Each claim cites ≥1 signal_ref exactly as given in the input (e.g. type@url:… or the [S#] ref shown).\n' +
+    '- Do NOT invent signal_ref formats (no bare signal_type@idx:N unless that exact ref appears in input).\n' +
     '- Do NOT invent relationships between signals from different URLs.\n' +
     '- Use relation=same_article_only only when all cited refs share the same article_url.\n' +
     '- Use relation=parallel for independent observations.\n' +
@@ -86,7 +83,7 @@ export async function extractNarrativeFacts(scoredComponents, opts = {}) {
   const port = resolveLlmPort(opts);
   const stream = await Promise.resolve(port.stream({
     model: DEFAULT_FACTS_MODEL,
-    max_tokens: 8000,
+    max_tokens: narrativeFactsMaxTokens(),
     temperature: 0,
     system: buildFactsSystemPrompt(),
     messages: [{ role: 'user', content: formatFactsUserMessage(registry, retrievedSpansBlock, epistemicBlock) }],

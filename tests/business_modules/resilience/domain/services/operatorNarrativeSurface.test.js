@@ -106,6 +106,59 @@ describe('operatorNarrativeSurface', () => {
     assert.match(items[0].markdown, /Field team noted supply gaps/);
   });
 
+  it('buildStructuredEvidenceItems resolves @idx signal_refs to signal excerpts', () => {
+    const items = buildStructuredEvidenceItems({
+      component_id: 'narrative',
+      narrative_claims: [{
+        text: 'Summary claim [S3].',
+        signal_refs: ['fear_expression@idx:3'],
+      }],
+      top_contributors: [{
+        signal_type: 'fear_expression',
+        article_index: 3,
+        article_url: 'https://www.ynet.co.il/news/article-1',
+        article_source: 'ynet.co.il',
+        source_type: 'news',
+        evidence: 'Residents report fear in shelters.',
+      }],
+    });
+    assert.equal(items.length, 1);
+    assert.equal(items[0].text, 'Residents report fear in shelters.');
+    assert.equal(items[0].source_type, 'press');
+    assert.equal(items[0].article_source, 'ynet.co.il');
+    assert.match(items[0].markdown, /\[source\]\(https:\/\/www\.ynet\.co\.il\/news\/article-1\)/);
+  });
+
+  it('buildStructuredEvidenceItems emits one bullet per signal_ref', () => {
+    const items = buildStructuredEvidenceItems({
+      narrative_claims: [{
+        text: 'Multiple sources [S1][S2].',
+        signal_refs: ['type_a@idx:1', 'type_b@idx:2'],
+      }],
+      top_contributors: [
+        {
+          signal_type: 'type_a',
+          article_index: 1,
+          article_url: 'https://example.com/a',
+          article_source: 'example.com',
+          source_type: 'social',
+          evidence: 'First excerpt.',
+        },
+        {
+          signal_type: 'type_b',
+          article_index: 2,
+          article_url: 'https://example.com/b',
+          article_source: 'example.com',
+          source_type: 'press',
+          evidence: 'Second excerpt.',
+        },
+      ],
+    });
+    assert.equal(items.length, 2);
+    assert.equal(items[0].text, 'First excerpt.');
+    assert.equal(items[1].text, 'Second excerpt.');
+  });
+
   it('finalizeOperatorNarrativeSurface sets narrative_operator and evidence_operator', () => {
     const assessment = {
       components: [{

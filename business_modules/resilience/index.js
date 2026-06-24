@@ -66,6 +66,7 @@ export { enrichFieldProvenance } from './domain/services/fieldSignalPolicy.js';
 export {
   getCachedReport,
   getAvailableReportDates,
+  getAvailableReportEditions,
   resolveReportJsonPathForDate,
 } from './app/reportCacheService.js';
 export {

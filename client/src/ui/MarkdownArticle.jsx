@@ -189,7 +189,14 @@ const VARIANT_STYLES = {
       verticalAlign: 'top',
     },
     '& th': { fontWeight: 600 },
-    '& a': { color: theme.palette.primary.main, wordBreak: 'break-word' },
+    '& a': {
+      color: theme.palette.text.secondary,
+      fontWeight: 400,
+      textDecoration: 'none',
+      borderBottom: `1px dotted ${alpha(theme.palette.divider, 0.9)}`,
+      wordBreak: 'break-word',
+      '&:hover': { color: theme.palette.primary.dark },
+    },
     '& strong': { fontWeight: 600 },
     '& code': {
       fontSize: '0.88em',

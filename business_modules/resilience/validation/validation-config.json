@@ -1,6 +1,6 @@
 {
-  "operational_phase": "baseline",
-  "phase_started_at": null,
+  "operational_phase": "elevated",
+  "phase_started_at": "2026-06-24",
   "collection": {
     "enabled": true,
     "write_review_queue": true,

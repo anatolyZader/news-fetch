@@ -18,14 +18,17 @@ import Diversity3OutlinedIcon from '@mui/icons-material/Diversity3Outlined';
 import MonitorHeartOutlinedIcon from '@mui/icons-material/MonitorHeartOutlined';
 import HelpOutlineOutlinedIcon from '@mui/icons-material/HelpOutlineOutlined';
 import { expandSourceCitationLinks } from './ReportMarkdownView.jsx';
-import { formatReportMarkdown } from '../lib/formatSourceCitations.js';
+import {
+  formatNarrativeMarkdown,
+  formatEvidenceMarkdown,
+} from '../lib/formatSourceCitations.js';
 import { isStubNarrative } from '../lib/isStubNarrative.js';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { DriftSparkline, StatusTag, MarkdownArticle } from '../ui/index.js';
 import { AttentionPanel } from './AttentionPanel.jsx';
 import { ActionCompassPanel } from './ActionCompassPanel.jsx';
 import { EpistemicStatusBanner } from './EpistemicStatusBanner.jsx';
-import { ReportFreshnessBadges } from './ReportFreshnessBadges.jsx';
+import { ReportEditionContextBar } from './ReportEditionContextBar.jsx';
 import { OperatorReportContextLine } from './OperatorReportContextLine.jsx';
 import { EvidenceOverviewPanel } from './EvidenceOverviewPanel.jsx';
 import { ValidationReviewPanel } from './ValidationReviewPanel.jsx';
@@ -848,18 +851,32 @@ function evidenceItemMarkdown(item) {
   return item?.markdown ?? item?.text ?? '';
 }
 
-function evidenceItemKey(item, index) {
-  const md = evidenceItemMarkdown(item);
-  return `evidence-${index}-${md.slice(0, 32)}`;
+function stripEvidenceBulletPrefix(markdown) {
+  if (typeof markdown !== 'string') return '';
+  return markdown.replace(/^\s*-\s+/, '');
 }
 
 function resolveEvidenceSourceMeta(item, sourceSignals) {
-  if (item && typeof item === 'object' && (item.source_type || item.article_source)) {
-    return item;
-  }
   const md = evidenceItemMarkdown(item);
-  const urlMatch = md.match(/\]\((https?:\/\/[^)]+)\)/);
-  const url = urlMatch?.[1] ?? (typeof item === 'object' ? item?.url : null);
+  const urlFromMd = md.match(/\]\((https?:\/\/[^)]+)\)/)?.[1] ?? null;
+  const url = (typeof item === 'object' ? item?.url : null) ?? urlFromMd;
+
+  if (item && typeof item === 'object') {
+    const hasMeta = item.source_type || item.article_source;
+    if (hasMeta) return item;
+    if (url && sourceSignals?.length) {
+      const signal = sourceSignals.find((s) => s.article_url === url);
+      if (signal) {
+        return {
+          ...item,
+          source_type: signal.source_type,
+          article_source: signal.article_source ?? item.article_source,
+        };
+      }
+    }
+    if (url || item.article_source) return item;
+  }
+
   if (url && sourceSignals?.length) {
     const signal = sourceSignals.find((s) => s.article_url === url);
     if (signal) {
@@ -872,10 +889,23 @@ function resolveEvidenceSourceMeta(item, sourceSignals) {
   return null;
 }
 
+function evidenceItemKey(item, index) {
+  const md = evidenceItemMarkdown(item);
+  return `evidence-${index}-${md.slice(0, 32)}`;
+}
+
 function formatEvidenceArticleSource(meta, sourceType) {
   if (!meta.article_source) return null;
   if (sourceType === 'pbo') return meta.article_source.replace(/^pbo-/, '');
   return meta.article_source;
+}
+
+function evidenceListItemSx(theme) {
+  return {
+    display: 'block',
+    marginBottom: theme.spacing(1.5),
+    lineHeight: theme.typography.body2.lineHeight,
+  };
 }
 
 function EvidenceSourceHeader({ item, sourceSignals, t }) {
@@ -889,8 +919,8 @@ function EvidenceSourceHeader({ item, sourceSignals, t }) {
       sx={(theme) => ({
         fontWeight: 600,
         color: theme.palette.text.secondary,
-        display: 'inline-block',
-        marginBottom: theme.spacing(0.25),
+        display: 'block',
+        marginBottom: theme.spacing(0.5),
       })}
     >
       {(sourceType === 'field' || sourceType === 'visits') && (
@@ -904,6 +934,7 @@ function EvidenceSourceHeader({ item, sourceSignals, t }) {
       {sourceType === 'social' && <SourceBadge kind="social">{t('report.badge.social')}</SourceBadge>}
       {sourceType === 'pbo' && <SourceBadge kind="pbo">{t('report.badge.pbo')}</SourceBadge>}
       {articleSourceLabel}
+      <GeoEpistemicBadge signal={meta} t={t} />
     </Box>
   );
 }
@@ -955,14 +986,23 @@ function ComponentCard({
   const label = t(`comp.${comp.component_id}`) ?? comp.component_id.replaceAll('_', ' ');
 
   const curatedEvidence = resolveCuratedEvidence(comp);
-  const narrativeText = String(comp.narrative ?? '').trim();
-  const narrativeIsStub = isStubNarrative(narrativeText);
+  const narrativeBody = String(comp.narrative_operator ?? comp.narrative ?? '').trim();
+  const narrativeIsStub = isStubNarrative(narrativeBody);
   const allowRawSignalFallback = isAnalyst || (!narrativeIsStub || Boolean(curatedEvidence?.length));
   const signals = resolveComponentSignals(curatedEvidence, allowRawSignalFallback, sourceSignals);
   const isFiltered = Boolean(signals?.length);
   const evidenceCount = curatedEvidence?.length ?? signals?.length ?? 0;
   const showEvidenceAccordion = evidenceCount > 0;
-  const formatMd = (markdown) => formatReportMarkdown(markdown, reportDate, expandSourceCitationLinks);
+  const formatNarrativeMd = (markdown) => formatNarrativeMarkdown(
+    markdown,
+    reportDate,
+    expandSourceCitationLinks,
+  );
+  const formatEvidenceMd = (markdown) => formatEvidenceMarkdown(
+    markdown,
+    reportDate,
+    expandSourceCitationLinks,
+  );
   const isInsufficient = componentIsInsufficient(comp);
   const isContested = comp.instrument?.contested === true
     || comp.instrument?.contested_thin === true;
@@ -1111,7 +1151,7 @@ function ComponentCard({
         )}
         {!operatorSimpleView && !isAnalyst && <OperatorComponentStateBanner comp={comp} t={t} />}
         {!operatorSimpleView && !isAnalyst && <EvidencePartitionPanel comp={comp} t={t} />}
-        <MarkdownArticle variant="report" markdown={formatMd(comp.narrative ?? '')} />
+        <MarkdownArticle variant="report" markdown={formatNarrativeMd(narrativeBody)} />
         {!operatorSimpleView && (comp.instrument?.interpretive_summary === true) && (
           <Box sx={(theme) => ({ marginTop: theme.spacing(1) })}>
             <Typography variant="caption" color="warning.main" sx={{ display: 'block', fontWeight: 600 }}>
@@ -1174,39 +1214,22 @@ function ComponentCard({
                     <Box
                       component="li"
                       key={`${s.source_type ?? 'src'}-${s.article_source ?? i}-${i}`}
-                      sx={(theme) => ({
-                        display: 'block',
-                        marginBottom: theme.spacing(1),
-                        lineHeight: theme.typography.body2.lineHeight,
-                      })}
+                      sx={evidenceListItemSx}
                     >
-                      <Box
-                        component="span"
-                        sx={(theme) => ({
-                          fontWeight: 600,
-                          color: theme.palette.text.secondary,
-                          display: 'inline-block',
-                          marginBottom: theme.spacing(0.25),
-                        })}
-                      >
-                        {(s.source_type === 'field' || s.source_type === 'visits') && (
-                          <SourceBadge kind="field">{t('report.badge.visits')}</SourceBadge>
-                        )}
-                        {s.source_type === 'radio' && <SourceBadge kind="radio">{t('report.badge.radio')}</SourceBadge>}
-                        {s.source_type === 'naftali' && <SourceBadge kind="naftali">{t('report.badge.naftali')}</SourceBadge>}
-                        {(s.source_type === 'news' || s.source_type === 'press') && <SourceBadge kind="press">{t('report.badge.press')}</SourceBadge>}
-                        {s.source_type === 'social' && <SourceBadge kind="social">{t('report.badge.social')}</SourceBadge>}
-                        {s.source_type === 'pbo' && <SourceBadge kind="pbo">{t('report.badge.pbo')}</SourceBadge>}
-                        {s.source_type === 'pbo' ? s.article_source?.replace(/^pbo-/, '') : s.article_source}
-                        <GeoEpistemicBadge signal={s} t={t} />
-                      </Box>
-                      <Box component="span" sx={{ display: 'block' }}>{s.evidence}</Box>
+                      <EvidenceSourceHeader item={s} sourceSignals={sourceSignals} t={t} />
+                      <MarkdownArticle
+                        variant="report"
+                        markdown={formatEvidenceMd(stripEvidenceBulletPrefix(s.evidence ?? ''))}
+                      />
                     </Box>
                   ))
                   : curatedEvidence.map((e, i) => (
-                    <Box component="li" key={evidenceItemKey(e, i)} sx={(theme) => ({ marginBottom: theme.spacing(0.75) })}>
+                    <Box component="li" key={evidenceItemKey(e, i)} sx={evidenceListItemSx}>
                       <EvidenceSourceHeader item={e} sourceSignals={sourceSignals} t={t} />
-                      <MarkdownArticle variant="report" markdown={formatMd(evidenceItemMarkdown(e))} />
+                      <MarkdownArticle
+                        variant="report"
+                        markdown={formatEvidenceMd(stripEvidenceBulletPrefix(evidenceItemMarkdown(e)))}
+                      />
                     </Box>
                   ))}
               </Box>
@@ -1280,6 +1303,7 @@ export function ReportView({
   reportDate,
   reportScope,
   generatedAt,
+  assessmentWindow,
   driftByComponent,
   driftLoading,
   attentionItems,
@@ -1370,9 +1394,11 @@ export function ReportView({
         </Alert>
       )}
 
-      <ReportFreshnessBadges
+      <ReportEditionContextBar
+        reportScope={reportScope ?? assessment?.report_scope?.id ?? 'national'}
         reportDate={reportDate ?? assessment?.date}
         generatedAt={generatedAt}
+        assessmentWindow={assessmentWindow}
       />
 
       {!operatorSimpleView && (
@@ -1646,8 +1672,10 @@ export function ReportView({
           )}
           <MarkdownArticle
             variant="report"
-            markdown={formatReportMarkdown(
-              assessment.cross_component_synthesis ?? '',
+            markdown={formatNarrativeMarkdown(
+              assessment.cross_component_synthesis_operator
+                ?? assessment.cross_component_synthesis
+                ?? '',
               assessment.date,
               expandSourceCitationLinks,
             )}
@@ -1825,6 +1853,13 @@ ReportView.propTypes = {
   reportDate: PropTypes.string,
   reportScope: PropTypes.string,
   generatedAt: PropTypes.string,
+  assessmentWindow: PropTypes.shape({
+    days: PropTypes.number,
+    report_date: PropTypes.string,
+    window_start: PropTypes.string,
+    window_end: PropTypes.string,
+    pipeline_preset: PropTypes.string,
+  }),
   driftByComponent: driftByComponentShape,
   driftLoading: PropTypes.bool,
   attentionItems: PropTypes.arrayOf(PropTypes.object),

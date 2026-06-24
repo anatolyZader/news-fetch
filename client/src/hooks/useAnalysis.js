@@ -57,6 +57,11 @@ function applyFoundReport(data, setters) {
   setters.setScoreBySource(data.score_by_source && typeof data.score_by_source === 'object' ? data.score_by_source : null);
   setters.setReportDate(typeof data.reportDate === 'string' ? data.reportDate : null);
   setters.setReportGeneratedAt(typeof data.generated_at === 'string' ? data.generated_at : null);
+  setters.setAssessmentWindow(
+    data.assessment_window && typeof data.assessment_window === 'object'
+      ? data.assessment_window
+      : null,
+  );
   setters.setDisplayView(data.display_view === 'analyst' ? 'analyst' : 'operator');
   setters.setAttentionItems(Array.isArray(data.attention_items) ? data.attention_items : []);
   setters.setActionCompass(data.action_compass ?? null);
@@ -107,6 +112,7 @@ export function useTodayReport(scope = 'national', view = 'operator', date = nul
   const [scoreBySource, setScoreBySource] = useState(null);
   const [reportDate, setReportDate] = useState(null);
   const [reportGeneratedAt, setReportGeneratedAt] = useState(null);
+  const [assessmentWindow, setAssessmentWindow] = useState(null);
   const [displayView, setDisplayView] = useState(view);
   const [refreshTick, setRefreshTick] = useState(0);
   const [initialReportLoadDone, setInitialReportLoadDone] = useState(false);
@@ -131,6 +137,7 @@ export function useTodayReport(scope = 'national', view = 'operator', date = nul
       setScoreBySource,
       setReportDate,
       setReportGeneratedAt,
+      setAssessmentWindow,
       setDisplayView,
       setInitialReportLoadDone,
       setReportMissingHint,
@@ -151,6 +158,8 @@ export function useTodayReport(scope = 'national', view = 'operator', date = nul
       setMarkdown(null);
       setScoreBySource(null);
       setReportDate(null);
+      setReportGeneratedAt(null);
+      setAssessmentWindow(null);
       setDisplayView(view);
       setInitialReportLoadDone(false);
       setReportMissingHint(null);
@@ -217,6 +226,7 @@ export function useTodayReport(scope = 'national', view = 'operator', date = nul
     scoreBySource,
     reportDate,
     reportGeneratedAt,
+    assessmentWindow,
     displayView,
     refreshReport,
     initialReportLoadDone,
@@ -232,13 +242,13 @@ export function useTodayReport(scope = 'national', view = 'operator', date = nul
 }
 
 /**
- * Fetch available report dates for a scope from GET /api/report/dates.
+ * Fetch available report editions for a scope from GET /api/report/dates.
  * @param {string} scope
  * @param {string|null} accessToken
- * @returns {{ dates: string[], loading: boolean }}
+ * @returns {{ editions: object[], dates: string[], loading: boolean }}
  */
-export function useReportDates(scope, accessToken) {
-  const [dates, setDates] = useState([]);
+export function useReportEditions(scope, accessToken) {
+  const [editions, setEditions] = useState([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -253,12 +263,27 @@ export function useReportDates(scope, accessToken) {
     if (accessToken) headers.set('Authorization', `Bearer ${accessToken}`);
     fetch(`/api/report/dates${qs}`, { headers })
       .then((r) => r.json())
-      .then((body) => { if (!cancelled) setDates(Array.isArray(body?.dates) ? body.dates : []); })
-      .catch(() => { if (!cancelled) setDates([]); })
+      .then((body) => {
+        if (cancelled) return;
+        if (Array.isArray(body?.editions) && body.editions.length > 0) {
+          setEditions(body.editions);
+          return;
+        }
+        const dates = Array.isArray(body?.dates) ? body.dates : [];
+        setEditions(dates.map((date) => ({ date })));
+      })
+      .catch(() => { if (!cancelled) setEditions([]); })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, [scope, accessToken]);
 
+  const dates = editions.map((e) => e.date);
+  return { editions, dates, loading };
+}
+
+/** @deprecated use useReportEditions */
+export function useReportDates(scope, accessToken) {
+  const { dates, loading } = useReportEditions(scope, accessToken);
   return { dates, loading };
 }
 

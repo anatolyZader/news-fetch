@@ -4,7 +4,7 @@ import { mkdtempSync, writeFileSync, rmSync, utimesSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
 
-import { resolveReportJsonPathForDate } from '../../../../business_modules/resilience/index.js';
+import { resolveReportJsonPathForDate, getAvailableReportEditions } from '../../../../business_modules/resilience/index.js';
 
 function miniReport(totalArticles, { generatedAt, critical } = {}) {
   return JSON.stringify({
@@ -80,5 +80,39 @@ describe('resolveReportJsonPathForDate', () => {
 
     assert.strictEqual(resolveReportJsonPathForDate('2026-01-03', { reportsDir: dir }), national);
     assert.strictEqual(resolveReportJsonPathForDate('2026-01-03', { reportsDir: dir, scope: 'north' }), north);
+  });
+
+  it('getAvailableReportEditions returns window metadata and infers legacy source_files', () => {
+    const withWindow = join(dir, 'resilience-report-2026-06-01.json');
+    writeFileSync(withWindow, JSON.stringify({
+      generated_at: '2026-06-01T12:00:00.000Z',
+      assessment_window: {
+        days: 3,
+        report_date: '2026-06-01',
+        window_start: '2026-05-30',
+        window_end: '2026-06-01',
+      },
+      assessment: { date: '2026-06-01', total_articles_analyzed: 42 },
+      source_files: ['signals-news-2026-06-01.json'],
+    }));
+
+    const legacy = join(dir, 'resilience-report-2026-06-02.json');
+    writeFileSync(legacy, JSON.stringify({
+      generated_at: '2026-06-02T08:00:00.000Z',
+      assessment: { date: '2026-06-02', total_articles_analyzed: 10 },
+      source_files: [
+        'signals-news-2026-06-02.json',
+        'signals-radio-2026-06-01.json',
+        'signals-news-2026-05-31.json',
+      ],
+    }));
+
+    const editions = getAvailableReportEditions({ reportsDir: dir, scope: 'national' });
+    const june1 = editions.find((e) => e.date === '2026-06-01');
+    const june2 = editions.find((e) => e.date === '2026-06-02');
+    assert.strictEqual(june1?.assessment_days, 3);
+    assert.strictEqual(june1?.window_start, '2026-05-30');
+    assert.strictEqual(june2?.assessment_days, 3);
+    assert.strictEqual(june2?.window_start, '2026-05-31');
   });
 });

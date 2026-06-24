@@ -26,6 +26,17 @@ export PATH="/home/eventstorm1/.nvm/versions/node/v22.13.0/bin:$PATH"
 export NODE_BIN="/home/eventstorm1/.nvm/versions/node/v22.13.0/bin/node"
 ```
 
+Replay preset `8comp-north-replay` auto-enables bundle reuse when unset (`applyDefaultReplayReuseEnv` in pipeline orchestrator). To force re-extract, use `--reextract` / preset `8comp-north` instead of setting reuse flags to `0`.
+
+Optional overrides (only if you need to disable a single source):
+
+```
+export RESILIENCE_REPLAY_REUSE_NEWS=1
+export RESILIENCE_REPLAY_REUSE_WHATSAPP=1
+export RESILIENCE_REPLAY_REUSE_PBO=1
+export RESILIENCE_REPLAY_REUSE_VISITS=1
+```
+
 ### Log header
 
 ```
@@ -52,6 +63,18 @@ Use when signal bundles already exist and you only need a new report. Pass `--fo
 npm run pipeline:run -- --preset 8comp-north-replay --assess-only [--force] --date YYYY-MM-DD 2>> logs/pipeline-run-north-<target date>.log
 ```
 
+### Historical QA with assessment agent (optional)
+
+Default closed-core assess skips the specialist agent (faster, cheaper). For Jun-10-style agent traces + divergence on a **past date replay only**:
+
+```
+export RESILIENCE_CLOSED_CORE_ASSESS=0
+export RESILIENCE_ASSESSMENT_AGENT_MAX_USD=2.50
+npm run pipeline:run -- --preset 8comp-north-replay --assess-only --force --date YYYY-MM-DD 2>> logs/pipeline-run-north-<target date>.log
+```
+
+Unset `RESILIENCE_CLOSED_CORE_ASSESS` (or `=1`) for daily/cron. Narrative strict mode (analyst replays only): `RESILIENCE_NARRATIVE_GROUNDING_BLOCK=1`.
+
 ---
 
 ## Final report (read artifacts — do NOT spawn an Agent on the full log)
@@ -71,5 +94,11 @@ print('top_features', sorted(r['byFeature'].items(), key=lambda x:-x[1]['costUsd
 ```
 
 Also check log for `Reports written:` lines and any `Cost cap` / `run-pipeline failed` errors.
+
+Post-run audit digest:
+
+```
+npm run pipeline:audit -- --date YYYY-MM-DD --scope north
+```
 
 In your reply: preset used, force/reextract, reuse vs extract (from ingest plan), signal count at assess, warnings/errors, report JSON path, token-report cost and duration. Keep under ~30 lines.

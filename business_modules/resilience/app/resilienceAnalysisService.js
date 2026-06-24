@@ -10,6 +10,7 @@ import { loadConnectivityProbeSignals } from '../infrastructure/adapters/connect
 import { enrichProbeSignalsInList } from '../domain/services/probeCorroborationPolicy.js';
 import { enrichSignalsGeoIfNeeded } from '../../../cross-cut-modules/geo/enrichSignalsGeoIfNeeded.js';
 import { runPostExtractionAssessmentCore } from './postExtractionAssessmentCore.js';
+import { buildAssessmentWindowMetadata } from './assessSignalsHelpers.js';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createPipelineRunStore } from '../../../db/persistence/pipelineRunStore.js';
@@ -118,6 +119,8 @@ function persistReportIfRequested({
   assessment,
   allSignals,
   sourceFiles,
+  assessmentDays = 1,
+  pipelinePreset = null,
 }) {
   if (!persist) return;
   if (!reportWriterPort) {
@@ -126,11 +129,16 @@ function persistReportIfRequested({
   if (!outputBase || typeof outputBase !== 'string') {
     throw new Error('outputBase is required when persist is true');
   }
+  const reportDate = assessment?.date ?? null;
+  const assessmentWindow = reportDate
+    ? buildAssessmentWindowMetadata(reportDate, assessmentDays, { pipelinePreset })
+    : null;
   reportWriterPort.writeReport({
     assessment,
     signals: allSignals,
     sourceFiles,
     outputBase,
+    assessmentWindow,
   });
 }
 
@@ -147,6 +155,8 @@ export async function runResilienceAssessment(batch, options = {}) {
     scope = null,
     supplementaryArticles = [],
     supplementaryContentKind = 'field_report',
+    assessmentDays = 1,
+    pipelinePreset = null,
   } = options;
 
   const reportScopeId = normalizeReportScope(scope ?? batch.scope ?? 'national');
@@ -208,6 +218,7 @@ export async function runResilienceAssessment(batch, options = {}) {
       onScoreComplete: () => pipeline.completeStage('SCORE'),
       onNarrateComplete: () => pipeline.completeStage('NARRATE'),
       attachDecisionBrief: true,
+      assessmentDays,
     });
   } catch (err) {
     pipeline.failStage('SCORE', err);
@@ -230,6 +241,8 @@ export async function runResilienceAssessment(batch, options = {}) {
     assessment,
     allSignals,
     sourceFiles: sourceFilesForReport,
+    assessmentDays,
+    pipelinePreset,
   });
   if (persist) {
     pipeline.completeStage('PERSIST');

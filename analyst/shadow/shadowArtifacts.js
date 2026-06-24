@@ -15,6 +15,35 @@ const SEVERITY_TO_BAND = {
  * @param {Record<string, object>} shadowScored — scoreComponents output
  */
 export function computeDivergence(agentAssessment, shadowScored) {
+  const components = agentAssessment.components ?? [];
+  const hasAgentSeverity = components.some((c) => c?.severity != null);
+  const generated_at = new Date().toISOString();
+
+  if (!hasAgentSeverity) {
+    const byComponent = {};
+    for (const comp of components) {
+      const id = comp.component_id;
+      const shadow = shadowScored?.[id] ?? {};
+      byComponent[id] = {
+        agent_severity: null,
+        shadow_score: shadow.score ?? null,
+        severity_score_delta: null,
+        shadow_evidence_mass: shadow.evidence_mass ?? null,
+        agent_confidence: comp.confidence ?? null,
+        aligned: null,
+      };
+    }
+    return {
+      mode: 'shadow_only',
+      generated_at,
+      by_component: byComponent,
+      alignment_rate: null,
+      aligned_count: 0,
+      total_components: Object.keys(byComponent).length,
+      note: 'No agent severity (closed-core assess); shadow scores only',
+    };
+  }
+
   const byComponent = {};
   for (const comp of agentAssessment.components ?? []) {
     const id = comp.component_id;
@@ -39,6 +68,8 @@ export function computeDivergence(agentAssessment, shadowScored) {
   const alignedCount = Object.values(byComponent).filter((c) => c.aligned === true).length;
   const total = Object.keys(byComponent).length;
   return {
+    mode: 'agent_shadow',
+    generated_at,
     by_component: byComponent,
     alignment_rate: total > 0 ? alignedCount / total : null,
     aligned_count: alignedCount,

@@ -14,14 +14,10 @@ import Slide from '@mui/material/Slide';
 import Alert from '@mui/material/Alert';
 import Snackbar from '@mui/material/Snackbar';
 import CircularProgress from '@mui/material/CircularProgress';
-import ToggleButton from '@mui/material/ToggleButton';
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
-import NativeSelect from '@mui/material/NativeSelect';
-import FormControl from '@mui/material/FormControl';
 import { useTheme, alpha } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
-import { useTodayReport, useReportDates } from './hooks/useAnalysis.js';
+import { useTodayReport, useReportEditions } from './hooks/useAnalysis.js';
 import { usePanelPopups } from './hooks/usePanelPopups.js';
 import { useDisplayCapabilities } from './hooks/useDisplayCapabilities.js';
 import { useTranslatedReport } from './hooks/useTranslatedReport.js';
@@ -30,6 +26,7 @@ import { formatDate } from './lib/date.js';
 import { ReportView } from './components/ReportView.jsx';
 import { ReportContentsMobileNav } from './components/ReportContentsMobileNav.jsx';
 import { MobileDailyAssessmentCard } from './components/MobileDailyAssessmentCard.jsx';
+import { DailyAssessmentControls } from './components/DailyAssessmentControls.jsx';
 import { CrisisBudgetPanel } from './components/CrisisBudgetPanel.jsx';
 import { ChatPanel } from './components/ChatPanel.jsx';
 import { DocsPanel } from './components/DocsPanel.jsx';
@@ -61,7 +58,6 @@ import {
   SidebarItem,
   SiteFooter,
   mobileFlatReportShellSx,
-  reportScopePillsSx,
 } from './ui/index.js';
 import { useVisualViewportInset } from './hooks/useVisualViewportInset.js';
 
@@ -567,12 +563,14 @@ function AppShell() {
   const analystSiteUrl = getAnalystSiteUrl();
   const [reportScope, setReportScope] = useState(() => readReportScope());
   const [selectedReportDate, setSelectedReportDate] = useState(null);
-  const { dates: availableReportDates } = useReportDates(reportScope, accessToken);
+  const [scopeSwitchNotice, setScopeSwitchNotice] = useState(null);
+  const { editions: availableReportEditions, loading: editionsLoading } = useReportEditions(reportScope, accessToken);
   const {
     report,
     scoreBySource,
     reportDate,
     reportGeneratedAt,
+    assessmentWindow,
     initialReportLoadDone,
     reportMissingHint,
     reportLoadError,
@@ -635,7 +633,13 @@ function AppShell() {
     } catch { /* */ }
   }, [activePboRegionTab]);
 
+  const scopeInitRef = useRef(true);
   useEffect(() => {
+    if (scopeInitRef.current) {
+      scopeInitRef.current = false;
+    } else {
+      setScopeSwitchNotice(reportScope);
+    }
     try {
       localStorage.setItem(LS_REPORT_SCOPE, reportScope);
     } catch { /* */ }
@@ -718,7 +722,16 @@ function AppShell() {
     setOpenReportEvidenceCompId,
   });
 
-  const isOutdated = reportDate && reportDate !== todayStr;
+  const loadedReportEdition = (() => {
+    if (selectedReportDate) {
+      return availableReportEditions.find((e) => e.date === selectedReportDate) ?? null;
+    }
+    return availableReportEditions[0] ?? null;
+  })();
+
+  const scopeSwitchMessage = scopeSwitchNotice
+    ? t('report.edition.scopeSwitched').replace('{scope}', t(`report.scope.${scopeSwitchNotice}`))
+    : null;
 
   const reportContents = (displayReport?.components ?? []).map((c) => ({
     id: c.component_id,
@@ -890,6 +903,7 @@ function AppShell() {
     />
   );
 
+  const isOutdated = reportDate && reportDate !== todayStr;
   const outdatedMessage = isOutdated
     ? t('report.outdated').replace('{date}', formatDate(reportDate))
     : null;
@@ -931,7 +945,9 @@ function AppShell() {
                 onReportScopeChange={setReportScope}
                 selectedReportDate={selectedReportDate}
                 onSelectedReportDateChange={setSelectedReportDate}
-                availableReportDates={availableReportDates}
+                editions={availableReportEditions}
+                loadedEdition={loadedReportEdition}
+                editionsLoading={editionsLoading}
                 onOpenReportContents={
                   reportContents.length > 0
                     ? () => reportContentsNavRef.current?.open()
@@ -943,64 +959,15 @@ function AppShell() {
             <PageHeader
               title={t('nav.dailyAssessment')}
               action={(
-                <Stack
-                  direction="row"
-                  alignItems="center"
-                  useFlexGap
-                  flexWrap="wrap"
-                  spacing={2}
-                  sx={{ width: 'auto', flexShrink: 0 }}
-                >
-                  <ToggleButtonGroup
-                    exclusive
-                    size="small"
-                    value={reportScope}
-                    onChange={(_, next) => {
-                      if (next) setReportScope(next);
-                    }}
-                    aria-label={t('report.scope.label')}
-                    sx={(theme) => reportScopePillsSx(theme)}
-                  >
-                    <ToggleButton value="national">{t('report.scope.national')}</ToggleButton>
-                    <ToggleButton value="north">{t('report.scope.north')}</ToggleButton>
-                  </ToggleButtonGroup>
-                  {availableReportDates.length > 1 && (
-                    <FormControl
-                      size="small"
-                      sx={(theme) => ({
-                        minWidth: 120,
-                        flexShrink: 0,
-                        m: 0,
-                        '& .MuiInputBase-root': {
-                          alignItems: 'center',
-                          border: theme.custom.border.hairline,
-                          borderRadius: `${theme.custom.radius.section}px`,
-                          '&::before, &::after': { display: 'none' },
-                        },
-                      })}
-                    >
-                      <NativeSelect
-                        value={selectedReportDate ?? ''}
-                        onChange={(e) => setSelectedReportDate(e.target.value || null)}
-                        inputProps={{ 'aria-label': 'Report date' }}
-                        disableUnderline
-                        sx={(theme) => ({
-                          fontSize: theme.typography.body2.fontSize,
-                          '& .MuiNativeSelect-select': {
-                            paddingTop: theme.spacing(0.625),
-                            paddingBottom: theme.spacing(0.625),
-                            paddingLeft: theme.spacing(1.25),
-                          },
-                        })}
-                      >
-                        <option value="">latest</option>
-                        {availableReportDates.map((d) => (
-                          <option key={d} value={d}>{d}</option>
-                        ))}
-                      </NativeSelect>
-                    </FormControl>
-                  )}
-                </Stack>
+                <DailyAssessmentControls
+                  reportScope={reportScope}
+                  onReportScopeChange={setReportScope}
+                  selectedReportDate={selectedReportDate}
+                  onSelectedReportDateChange={setSelectedReportDate}
+                  editions={availableReportEditions}
+                  loadedEdition={loadedReportEdition}
+                  editionsLoading={editionsLoading}
+                />
               )}
             />
             )}
@@ -1116,6 +1083,7 @@ function AppShell() {
                       reportDate={reportDate}
                       reportScope={reportScope}
                       generatedAt={reportGeneratedAt}
+                      assessmentWindow={assessmentWindow}
                       attentionItems={attentionItems ?? []}
                       actionCompass={actionCompass}
                       anomalyStrip={anomalyStrip}
@@ -1334,6 +1302,16 @@ function AppShell() {
           onClose={() => setEvidenceNotice((current) => (current ? { ...current, open: false } : current))}
         >
           {evidenceNotice?.message ?? ''}
+        </Alert>
+      </Snackbar>
+      <Snackbar
+        open={Boolean(scopeSwitchMessage)}
+        autoHideDuration={5000}
+        onClose={() => setScopeSwitchNotice(null)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert severity="info" variant="filled" onClose={() => setScopeSwitchNotice(null)}>
+          {scopeSwitchMessage}
         </Alert>
       </Snackbar>
     </AppLayout>

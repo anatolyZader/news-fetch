@@ -20,6 +20,8 @@ import {
   isNarrativeGroundingEnabled,
   isNarrativeFactsPassEnabled,
   isNarrativeJudgeEnabled,
+  isNarrativeGroundingBlockEnabled,
+  narrativeGroundingMinScore,
 } from '../domain/services/narrativeGrounding/index.js';
 import { extractJson } from './claudeJsonHelpers.js';
 import { streamWithProgress } from './claudeExtraction.js';
@@ -310,6 +312,8 @@ const NARRATIVE_ANTI_RELATIONSHIP_BLOCK =
   `━━━ ANTI-RELATIONSHIP RULES (CO-OCCURRENCE ≠ CONNECTION) ━━━\n` +
   `- Signals sharing a theme or appearing in the same component do NOT imply a causal or explanatory link.\n` +
   `- FORBIDDEN connectives linking unrelated refs: because, therefore, as a result, led to, driven by, in response to, despite, due to, consequently, thus, hence.\n` +
+  `- Multi-ref claims (≥2 signal_refs): use relation=parallel and phrasing like "Separately…" — never causal connectives between refs.\n` +
+  `- signal_ref values MUST match the input exactly (type@url:… or [S#] as shown). Do NOT invent refs like signal_type@idx:N unless that exact string appears in Evidence.\n` +
   `- ALLOWED phrasing: "Separately…", "In parallel…", "One report describes… while another describes…", "No shared evidence links…"\n` +
   `- relation=same_article_only requires all cited signal_refs to share the same article_url.\n` +
   `- Epistemic framing by evidence_type: direct_quote → attributed quote; institutional → "According to…"; observational → "Reporting describes…"\n\n` +
@@ -343,6 +347,7 @@ const NARRATIVE_RULES_BLOCK =
   `  Step 2 — never silently skip absent manifestations. A component with 1 signal and 4 unaddressed manifestations is analytically different from a component with 5 evidenced signals.\n` +
   `  Step 3 — do not over-weight components that happen to have more signals. Signal count reflects reporting intensity, not necessarily prevalence of the phenomenon.\n` +
   `  List absent manifestations in the "manifestations_absent" array; include a parenthetical interpretation: (informative absence) or (likely reporting gap).\n` +
+  `- manifestations_evidenced: copy EXACT catalog strings from the component's "Expected manifestations" list in the prompt — do not paraphrase or shorten.\n` +
   `- INFORMATION EFFECTIVENESS (information_communication component): Distinguish between information presence and information effectiveness. Clarity of delivery is not the same as fitness for purpose.\n` +
   `  Ask: could people actually follow the guidance given their real constraints? Did it cover the scenario they faced?\n` +
   `  A component may show: clear wide-distribution of shelter guidance (presence) alongside complete absence of guidance on economic decisions or mass-casualty scenarios (effectiveness gap).\n` +
@@ -641,7 +646,7 @@ function buildAssessmentPayload(narratives, scoredComponents, meta, groundingSum
     return buildAssessmentComponent(def, scored, narr, groundingSummary);
   });
 
-  return {
+  const payload = {
     date: meta.date,
     ...(meta.reportScope ? { report_scope: meta.reportScope } : {}),
     total_articles_analyzed: meta.totalArticles,
@@ -667,6 +672,13 @@ function buildAssessmentPayload(narratives, scoredComponents, meta, groundingSum
     ...(meta.quarantinedDigital?.count > 0 ? { quarantined_digital: meta.quarantinedDigital } : {}),
     ...(meta.allScopedSignals ? { scoped_signal_count: meta.allScopedSignals.length } : {}),
   };
+
+  if (meta.pipelineDegrade?.active) {
+    payload.narrative_pipeline_degraded = true;
+    payload.narrative_pipeline_degrade_reasons = meta.pipelineDegrade.reasons;
+  }
+
+  return payload;
 }
 
 async function buildNarrativeGenerationContext(scoredComponents, date, totalArticles, opts) {
@@ -741,24 +753,30 @@ async function fetchNarrativeJson(systemPrompt, date, totalArticles, feedback, a
   return mergeNarrativeClaims(narratives, claimsByComponent);
 }
 
-function groundingExhaustedMessage(kind, maxRetries) {
+function groundingExhaustedMessage(kind, maxRetries, pipelineDegrade) {
   console.error(`  ⚠ ${kind} failed after ${maxRetries} attempts — proceeding`);
+  if (pipelineDegrade) {
+    pipelineDegrade.active = true;
+    pipelineDegrade.reasons.push(`${kind}: exhausted after ${maxRetries} attempts`);
+  }
 }
 
-async function applyNarrativeGroundingChecks(narratives, scoredComponents, registry, attempt, maxRetries, onUsage) {
+async function applyNarrativeGroundingChecks(
+  narratives, scoredComponents, registry, attempt, maxRetries, onUsage, pipelineDegrade,
+) {
   let feedback = '';
   const validation = validateNarrativeOutput(narratives, { scoredComponents, registry });
   if (!validation.ok) {
     feedback = formatValidationFeedback(validation);
     if (attempt < maxRetries) throw new Error(`Validation failed: ${validation.errors.join('; ')}`);
-    groundingExhaustedMessage('Narrative validation', maxRetries);
+    groundingExhaustedMessage('Narrative validation', maxRetries, pipelineDegrade);
   }
   const suppressResult = validateSuppressionCompliance(narratives, scoredComponents);
   if (!suppressResult.ok) {
     const suppressFeedback = formatSuppressionFeedback(suppressResult);
     feedback = feedback ? `${feedback}\n\n${suppressFeedback}` : suppressFeedback;
     if (attempt < maxRetries) throw new Error(`Suppression compliance failed: ${suppressResult.errors.join('; ')}`);
-    groundingExhaustedMessage('Suppression compliance', maxRetries);
+    groundingExhaustedMessage('Suppression compliance', maxRetries, pipelineDegrade);
   }
   if (isNarrativeJudgeEnabled()) {
     const judgeResult = await judgeNarrativeRelations(narratives, registry, { onUsage });
@@ -767,7 +785,7 @@ async function applyNarrativeGroundingChecks(narratives, scoredComponents, regis
       if (attempt < maxRetries) {
         throw new Error(`Judge rejected: ${judgeResult.failures.length} invented relation(s)`);
       }
-      groundingExhaustedMessage('Relation judge', maxRetries);
+      groundingExhaustedMessage('Relation judge', maxRetries, pipelineDegrade);
     }
   }
   return feedback;
@@ -787,7 +805,7 @@ function mergeGroundingIntoNarratives(narratives, grounding) {
 }
 
 async function processNarrativeAttempt(ctx, attempt, maxRetries) {
-  const { systemPrompt, meta, claimsByComponent, registry, scoredComponents, date, totalArticles, onUsage } = ctx;
+  const { systemPrompt, meta, claimsByComponent, registry, scoredComponents, date, totalArticles, onUsage, pipelineDegrade } = ctx;
   let narratives = await fetchNarrativeJson(
     systemPrompt, date, totalArticles, ctx.feedback, attempt, onUsage, claimsByComponent,
   );
@@ -795,7 +813,7 @@ async function processNarrativeAttempt(ctx, attempt, maxRetries) {
     return buildAssessmentPayload(narratives, scoredComponents, meta);
   }
   ctx.feedback = await applyNarrativeGroundingChecks(
-    narratives, scoredComponents, registry, attempt, maxRetries, onUsage,
+    narratives, scoredComponents, registry, attempt, maxRetries, onUsage, pipelineDegrade,
   );
   const grounding = computeGroundingScores(narratives, scoredComponents, registry);
   if (onUsage) {
@@ -804,6 +822,15 @@ async function processNarrativeAttempt(ctx, attempt, maxRetries) {
       model: 'deterministic',
       usage: { input_tokens: 0, output_tokens: 0 },
     });
+  }
+  if (
+    isNarrativeGroundingBlockEnabled()
+    && attempt >= maxRetries
+    && grounding.summary?.mean_score < narrativeGroundingMinScore()
+  ) {
+    throw new Error(
+      `Narrative grounding below threshold (${grounding.summary.mean_score} < ${narrativeGroundingMinScore()})`,
+    );
   }
   mergeGroundingIntoNarratives(narratives, grounding);
   return buildAssessmentPayload(narratives, scoredComponents, meta, grounding);
@@ -850,7 +877,17 @@ export async function generateNarratives(
   });
 
   const MAX_RETRIES = 3;
-  const ctx = { ...setup, scoredComponents, date, totalArticles, onUsage, feedback: '' };
+  const pipelineDegrade = { active: false, reasons: [] };
+  const ctx = {
+    ...setup,
+    scoredComponents,
+    date,
+    totalArticles,
+    onUsage,
+    feedback: '',
+    pipelineDegrade,
+  };
+  setup.meta.pipelineDegrade = pipelineDegrade;
 
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {

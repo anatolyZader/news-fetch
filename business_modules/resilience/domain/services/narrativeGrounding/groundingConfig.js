@@ -26,6 +26,22 @@ export function narrativeSynthesisMaxUrls() {
   return Number.isFinite(v) ? v : 8;
 }
 
+export function narrativeFactsMaxTokens() {
+  const v = Number.parseInt(process.env.RESILIENCE_NARRATIVE_FACTS_MAX_TOKENS ?? '12000', 10);
+  return Number.isFinite(v) && v > 0 ? v : 12000;
+}
+
+export function narrativeJudgeMaxTokens(claimCount = 1) {
+  const cap = Number.parseInt(process.env.RESILIENCE_NARRATIVE_JUDGE_MAX_TOKENS ?? '8000', 10);
+  const maxCap = Number.isFinite(cap) && cap > 0 ? cap : 8000;
+  return Math.min(maxCap, 200 + Math.max(1, claimCount) * 120);
+}
+
+export function isNarrativeGroundingBlockEnabled() {
+  const v = process.env.RESILIENCE_NARRATIVE_GROUNDING_BLOCK;
+  return v === '1' || v === 'true' || v === 'on';
+}
+
 export const EVIDENCE_OVERLAP_MIN = 0.7;
 
 /** @returns {'hybrid' | 'agent' | 'legacy'} */

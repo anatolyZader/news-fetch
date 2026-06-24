@@ -42,6 +42,7 @@ import {
   loadPipelineConfig,
   mergeLoadedSignalFiles,
   dedupWithinSource,
+  buildAssessmentWindowMetadata,
 } from './assessSignalsHelpers.js';
 import { summarizeGeoCoverage, summarizeGeoQuality } from '../../../cross-cut-modules/geo/signalGeoSummary.js';
 import { enrichSignalsGeoIfNeeded } from '../../../cross-cut-modules/geo/enrichSignalsGeoIfNeeded.js';
@@ -682,6 +683,7 @@ function logAssessmentOutputs(assessment, outputBase, printSummary) {
 
 async function finalizeAndWriteReport({
   targetDate,
+  days = 1,
   reportScopeId,
   reportScope: _reportScope,
   getArg,
@@ -778,7 +780,15 @@ async function finalizeAndWriteReport({
   );
 
   await attachPboCompletenessSummary(assessment, targetDate);
-  writeReport(assessment, scopedSignals, [...new Set(sourceFiles)], outputBase, { scoreBySource });
+  const pipelinePreset = getArg?.('--preset')?.trim() || null;
+  const assessmentWindow = buildAssessmentWindowMetadata(targetDate, days, { pipelinePreset });
+  writeReport(
+    assessment,
+    scopedSignals,
+    [...new Set(sourceFiles)],
+    outputBase,
+    { scoreBySource, assessmentWindow },
+  );
   try {
     await publishDomainEvent({
       eventType: EVENT_TYPES.RESILIENCE_REPORT_WRITTEN,
@@ -867,6 +877,7 @@ export async function runAssessSignalsCli() {
 
   await finalizeAndWriteReport({
     targetDate,
+    days,
     reportScopeId,
     reportScope,
     getArg,

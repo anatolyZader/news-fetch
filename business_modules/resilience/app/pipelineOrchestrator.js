@@ -24,6 +24,7 @@ import {
   resolveRepoRoot,
 } from '../domain/services/pipelineArtifactPaths.js';
 import {
+  applyDefaultReplayReuseEnv,
   isReplayReuseEnabled,
   REPLAY_REUSE_SOURCE_TYPES,
 } from '../domain/services/replayReuseConfig.js';
@@ -376,6 +377,12 @@ function countLoadedBundles(targetDate, days, enabledSources, rootDir) {
 export async function runPipelineOrchestrator(opts, deps = {}) {
   const pipelineRunId = randomUUID();
   process.env.PIPELINE_RUN_ID = pipelineRunId;
+  const replayReuseEnabled = applyDefaultReplayReuseEnv(opts.presetName);
+  if (replayReuseEnabled.length > 0) {
+    console.error(
+      `  Replay reuse (preset defaults): ${replayReuseEnabled.join(', ')}=on`,
+    );
+  }
   const startedAt = new Date().toISOString();
   const rootDir = deps.rootDir ?? resolveRepoRoot();
   const validation = validateDate(opts.targetDate, DEFAULT_TZ);

@@ -66,3 +66,28 @@ export function preferReuse({ replayMode, sourceType, force, bundleExists, env =
   if (!replayMode) return true;
   return shouldReuseInReplay(sourceType, { replayMode, force, env });
 }
+
+/** Presets that enable per-source replay reuse when env vars are unset. */
+const PRESET_DEFAULT_REPLAY_REUSE = Object.freeze({
+  '8comp-north-replay': ['news', 'whatsapp', 'visits', 'pbo'],
+});
+
+/**
+ * Apply preset-default replay reuse flags (only when env is unset).
+ * Mutates process.env when called without a custom env object.
+ * @param {string|null|undefined} presetName
+ * @param {NodeJS.ProcessEnv} [env]
+ * @returns {string[]} source types enabled by this call
+ */
+export function applyDefaultReplayReuseEnv(presetName, env = process.env) {
+  const sources = PRESET_DEFAULT_REPLAY_REUSE[String(presetName ?? '').trim()] ?? [];
+  const enabled = [];
+  for (const sourceType of sources) {
+    const key = replayReuseEnvKey(sourceType);
+    if (env[key] == null || env[key] === '') {
+      env[key] = '1';
+      enabled.push(sourceType);
+    }
+  }
+  return enabled;
+}

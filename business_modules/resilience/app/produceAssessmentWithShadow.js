@@ -4,6 +4,7 @@
 import {
   shadowScoringEnabled,
   shouldSkipAssessmentAgent,
+  isClosedCoreAssessEnabled,
 } from '../../../cross-cut-modules/agent/index.js';
 import { getDefaultLlmPort } from '../../../cross-cut-modules/llm/anthropicLlmAdapter.js';
 import { createEpistemicFeaturesService, loadHistoricalEpistemicMass } from '../../epistemic_features/index.js';
@@ -206,6 +207,9 @@ function resolveForceDeterministicReason() {
   if (process.env.RESILIENCE_ASSESSMENT_FORCE_DETERMINISTIC === '1'
     || process.env.RESILIENCE_ASSESSMENT_FORCE_DETERMINISTIC === 'true') {
     return 'forced_deterministic';
+  }
+  if (isClosedCoreAssessEnabled()) {
+    return 'closed_core_assess';
   }
   return 'legacy_flag_deprecated';
 }

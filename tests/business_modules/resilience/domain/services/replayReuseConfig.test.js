@@ -6,6 +6,7 @@ import {
   isReplayReuseEnabled,
   shouldReuseInReplay,
   preferReuse,
+  applyDefaultReplayReuseEnv,
 } from '../../../../../business_modules/resilience/domain/services/replayReuseConfig.js';
 
 describe('replayReuseConfig', () => {
@@ -47,5 +48,20 @@ describe('replayReuseConfig', () => {
   it('lists all pipeline source types', () => {
     assert.ok(REPLAY_REUSE_SOURCE_TYPES.includes('pbo_regional'));
     assert.equal(REPLAY_REUSE_SOURCE_TYPES.length, 8);
+  });
+
+  it('applyDefaultReplayReuseEnv enables preset sources when unset', () => {
+    const env = {};
+    const enabled = applyDefaultReplayReuseEnv('8comp-north-replay', env);
+    assert.deepEqual(enabled.sort(), ['news', 'pbo', 'visits', 'whatsapp'].sort());
+    assert.equal(env.RESILIENCE_REPLAY_REUSE_NEWS, '1');
+    assert.equal(isReplayReuseEnabled('news', env), true);
+  });
+
+  it('applyDefaultReplayReuseEnv does not override explicit env', () => {
+    const env = { RESILIENCE_REPLAY_REUSE_NEWS: '0' };
+    const enabled = applyDefaultReplayReuseEnv('8comp-north-replay', env);
+    assert.ok(!enabled.includes('news'));
+    assert.equal(env.RESILIENCE_REPLAY_REUSE_NEWS, '0');
   });
 });

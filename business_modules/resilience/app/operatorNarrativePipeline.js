@@ -83,6 +83,10 @@ async function runPolishAndValidatePass(params) {
 
   let polish = { components: [], cross_component_synthesis: '' };
   let validationFeedback = judgeFeedback;
+  const degradeReasons = [];
+  if (judgeFeedback) {
+    degradeReasons.push('Relation judge: unresolved after facts pass');
+  }
 
   for (let attempt = 0; attempt < MAX_POLISH_ATTEMPTS; attempt += 1) {
     const feedback = [judgeFeedback, validationFeedback].filter(Boolean).join('\n\n');
@@ -114,11 +118,12 @@ async function runPolishAndValidatePass(params) {
 
     if (attempt >= MAX_POLISH_ATTEMPTS - 1) {
       console.error('[operator-narrative] Validation failed after polish retries; applying best-effort output');
+      degradeReasons.push('Narrative validation: exhausted after polish retries');
     }
   }
 
   const { stopReason: _stopReason, ...polishOutput } = polish;
-  return polishOutput;
+  return { ...polishOutput, pipelineDegrade: degradeReasons.length > 0, degradeReasons };
 }
 
 /**
@@ -200,7 +205,7 @@ export async function runOperatorNarrativePipeline(params) {
   });
   if (!factsResult) return null;
 
-  const polish = await runPolishAndValidatePass({
+  const polishResult = await runPolishAndValidatePass({
     mergedNarratives: factsResult.mergedNarratives,
     registry,
     narrativeScored,
@@ -209,6 +214,7 @@ export async function runOperatorNarrativePipeline(params) {
     judgeFeedback: factsResult.judgeFeedback,
     epistemicBlock,
   });
+  const { pipelineDegrade, degradeReasons, ...polish } = polishResult;
 
   const groundingScores = computeGroundingScores(polish, narrativeScored, registry);
   return {
@@ -216,6 +222,8 @@ export async function runOperatorNarrativePipeline(params) {
     groundingScores,
     narrativeScored,
     registry,
+    pipelineDegrade,
+    degradeReasons,
   };
 }
 
@@ -247,6 +255,10 @@ export function applyOperatorNarrativeToAssessment(assessment, pipelineResult) {
   }
 
   assessment.narrative_pipeline_mode = mode;
+  if (pipelineResult.pipelineDegrade) {
+    assessment.narrative_pipeline_degraded = true;
+    assessment.narrative_pipeline_degrade_reasons = pipelineResult.degradeReasons ?? [];
+  }
   return assessment;
 }
 

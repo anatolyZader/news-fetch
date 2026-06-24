@@ -360,4 +360,44 @@ describe('discoverSignalBundles field history', () => {
       rmSync(root, { recursive: true, force: true });
     }
   });
+
+  it('skips placeholder field bundle dates (1970-01-01)', () => {
+    const root = join(tmpdir(), `assess-signals-${Date.now()}`);
+    const signalsDir = join(root, 'signals');
+    const fieldSignalsDir = join(root, 'field');
+    const socialSignalsDir = join(root, 'social');
+    mkdirSync(signalsDir, { recursive: true });
+    mkdirSync(fieldSignalsDir, { recursive: true });
+    mkdirSync(socialSignalsDir, { recursive: true });
+    try {
+      writeFileSync(
+        join(fieldSignalsDir, 'signals-field-1970-01-01.json'),
+        JSON.stringify({ signals: [{ evidence: 'placeholder' }] }),
+      );
+      writeFileSync(
+        join(fieldSignalsDir, 'signals-field-2026-04-10.json'),
+        JSON.stringify({ signals: [{ evidence: 'valid' }] }),
+      );
+      const targetDate = '2026-04-10';
+      const discovery = discoverSignalBundles({
+        targetDate,
+        days: 1,
+        signalsDir,
+        fieldSignalsDir,
+        socialSignalsDir,
+      });
+      const loaded = loadAssessSignalFiles({
+        ...discovery,
+        targetDate,
+        targetDates: discovery.targetDates,
+        recencySources: discovery.recencySources,
+        enabledSources: new Set(['visits']),
+      });
+      const fieldFiles = loaded.filter((f) => f.sourceType === 'visits').map((f) => f.file);
+      assert.ok(!fieldFiles.includes('signals-field-1970-01-01.json'));
+      assert.ok(fieldFiles.includes('signals-field-2026-04-10.json'));
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
 });
