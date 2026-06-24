@@ -856,6 +856,26 @@ function stripEvidenceBulletPrefix(markdown) {
   return markdown.replace(/^\s*-\s+/, '');
 }
 
+function findSignalByUrl(url, sourceSignals) {
+  if (!url || !sourceSignals?.length) return null;
+  return sourceSignals.find((s) => s.article_url === url) ?? null;
+}
+
+function enrichItemWithSignal(item, signal) {
+  return {
+    ...item,
+    source_type: signal.source_type,
+    article_source: signal.article_source ?? item.article_source,
+  };
+}
+
+function metaFromSignal(signal) {
+  return {
+    source_type: signal.source_type,
+    article_source: signal.article_source,
+  };
+}
+
 function resolveEvidenceSourceMeta(item, sourceSignals) {
   const md = evidenceItemMarkdown(item);
   const urlFromMd = md.match(/\]\((https?:\/\/[^)]+)\)/)?.[1] ?? null;
@@ -864,29 +884,13 @@ function resolveEvidenceSourceMeta(item, sourceSignals) {
   if (item && typeof item === 'object') {
     const hasMeta = item.source_type || item.article_source;
     if (hasMeta) return item;
-    if (url && sourceSignals?.length) {
-      const signal = sourceSignals.find((s) => s.article_url === url);
-      if (signal) {
-        return {
-          ...item,
-          source_type: signal.source_type,
-          article_source: signal.article_source ?? item.article_source,
-        };
-      }
-    }
+    const signal = findSignalByUrl(url, sourceSignals);
+    if (signal) return enrichItemWithSignal(item, signal);
     if (url || item.article_source) return item;
   }
 
-  if (url && sourceSignals?.length) {
-    const signal = sourceSignals.find((s) => s.article_url === url);
-    if (signal) {
-      return {
-        source_type: signal.source_type,
-        article_source: signal.article_source,
-      };
-    }
-  }
-  return null;
+  const signal = findSignalByUrl(url, sourceSignals);
+  return signal ? metaFromSignal(signal) : null;
 }
 
 function evidenceItemKey(item, index) {

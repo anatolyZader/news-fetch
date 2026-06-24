@@ -7,6 +7,11 @@ import { RESILIENCE_COMPONENTS } from '../domain/resilienceComponents.js';
 import { extractJson } from './claudeJsonHelpers.js';
 import { streamWithProgress } from './claudeExtraction.js';
 import { narrativeFactsMaxTokens } from '../domain/services/narrativeGrounding/groundingConfig.js';
+import {
+  buildSignalRefRegistry,
+  formatSignalWithRef,
+  resolveRef,
+} from '../domain/services/narrativeGrounding/index.js';
 
 const DEFAULT_FACTS_MODEL = process.env.RESILIENCE_NARRATIVE_FACTS_MODEL
   ?? process.env.RESILIENCE_SELF_CHECK_MODEL

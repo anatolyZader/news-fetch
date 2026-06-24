@@ -37,7 +37,7 @@ export function formatWindowRangeLabel(t, edition) {
     return formatTemplate(t('report.edition.includesSignals'), {
       start: formatDate(start),
       end: formatDate(end),
-      days: days != null ? String(days) : '?',
+      days: days == null ? '?' : String(days),
     });
   }
   if (end) {
@@ -99,4 +99,3 @@ export function resolveActiveEdition(edition, selectedDate, editions) {
   return editions[0] ?? null;
 }
 
-export { formatTemplate };
