@@ -420,6 +420,37 @@ export function resolveOperatorComponentNarrative(comp) {
 }
 
 /**
+ * @param {object} comp
+ */
+function finalizeOperatorComponentSurface(comp) {
+  const narrative = resolveOperatorComponentNarrative(comp);
+  if (narrative) {
+    comp.narrative_operator = narrative;
+  }
+
+  const bullets = buildCuratedEvidenceBullets(comp);
+  const structured = buildStructuredEvidenceItems(comp);
+  if (bullets.length > 0) {
+    comp.evidence_operator = bullets;
+    comp.evidence_operator_structured = structured;
+    comp.operator_evidence_tier = 'curated';
+  } else {
+    comp.operator_evidence_tier = 'none';
+  }
+}
+
+/**
+ * @param {object} assessment
+ */
+function applyCrossComponentSynthesisFallback(assessment) {
+  if (assessment.cross_component_synthesis_operator) return;
+  const synthesis = String(assessment.cross_component_synthesis ?? '').trim();
+  if (synthesis) {
+    assessment.cross_component_synthesis_operator = synthesis;
+  }
+}
+
+/**
  * @param {object|null|undefined} assessment
  * @returns {object|null|undefined}
  */
@@ -442,29 +473,10 @@ export function finalizeOperatorNarrativeSurface(assessment) {
 
   for (const comp of assessment.components ?? []) {
     if (!comp || typeof comp !== 'object') continue;
-
-    const narrative = resolveOperatorComponentNarrative(comp);
-    if (narrative) {
-      comp.narrative_operator = narrative;
-    }
-
-    const bullets = buildCuratedEvidenceBullets(comp);
-    const structured = buildStructuredEvidenceItems(comp);
-    if (bullets.length > 0) {
-      comp.evidence_operator = bullets;
-      comp.evidence_operator_structured = structured;
-      comp.operator_evidence_tier = 'curated';
-    } else {
-      comp.operator_evidence_tier = 'none';
-    }
+    finalizeOperatorComponentSurface(comp);
   }
 
-  if (!assessment.cross_component_synthesis_operator) {
-    const synthesis = String(assessment.cross_component_synthesis ?? '').trim();
-    if (synthesis) {
-      assessment.cross_component_synthesis_operator = synthesis;
-    }
-  }
+  applyCrossComponentSynthesisFallback(assessment);
 
   return assessment;
 }
