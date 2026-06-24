@@ -12,19 +12,33 @@ import { FILTER_PRESETS } from '../lib/reportComponentFilter.js';
 const LS_FILTER_PREFIX = 'srulik:reportFilter:';
 const LS_FILTER_PREFIX_LEGACY = 'vibeswitch:reportFilter:';
 
+function parseStoredFilter(raw) {
+  const parsed = JSON.parse(raw);
+  return {
+    preset: parsed.preset ?? FILTER_PRESETS.all,
+    // Component sidebar focus is scroll-only; do not restore stale single-component lenses.
+    selectedComponentIds: null,
+  };
+}
+
 function readStoredFilter(scope) {
   if (typeof sessionStorage === 'undefined') {
     return { preset: FILTER_PRESETS.all, selectedComponentIds: null };
   }
+  const keyScope = scope ?? 'national';
+  const key = `${LS_FILTER_PREFIX}${keyScope}`;
+  const legacyKey = `${LS_FILTER_PREFIX_LEGACY}${keyScope}`;
   try {
-    const raw = sessionStorage.getItem(`${LS_FILTER_PREFIX}${scope ?? 'national'}`);
-    if (!raw) return { preset: FILTER_PRESETS.all, selectedComponentIds: null };
-    const parsed = JSON.parse(raw);
-    return {
-      preset: parsed.preset ?? FILTER_PRESETS.all,
-      // Component sidebar focus is scroll-only; do not restore stale single-component lenses.
-      selectedComponentIds: null,
-    };
+    let raw = sessionStorage.getItem(key);
+    if (!raw) {
+      raw = sessionStorage.getItem(legacyKey);
+      if (!raw) return { preset: FILTER_PRESETS.all, selectedComponentIds: null };
+      const migrated = parseStoredFilter(raw);
+      sessionStorage.setItem(key, JSON.stringify(migrated));
+      sessionStorage.removeItem(legacyKey);
+      return migrated;
+    }
+    return parseStoredFilter(raw);
   } catch {
     return { preset: FILTER_PRESETS.all, selectedComponentIds: null };
   }
