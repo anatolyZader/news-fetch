@@ -354,7 +354,7 @@ The sections below are **auto-synced** from code. Do not edit between markers; r
 
 <!-- docs-sync:BEGIN components-at-a-glance -->
 
-> **Auto-synced** from `business_modules/resilience/domain/resilienceComponents.js` on 2026-06-23. Do not edit between sync markers.
+> **Auto-synced** from `business_modules/resilience/domain/resilienceComponents.js` on 2026-06-24. Do not edit between sync markers.
 
 | # | ID | English | Hebrew | What it measures (in one line) |
 |---|---|---|---|---|
@@ -373,7 +373,7 @@ The sections below are **auto-synced** from code. Do not edit between markers; r
 
 <!-- docs-sync:BEGIN component-facets -->
 
-> **Auto-synced** from `business_modules/resilience/domain/services/componentFacets.js` on 2026-06-23. Do not edit between sync markers.
+> **Auto-synced** from `business_modules/resilience/domain/services/componentFacets.js` on 2026-06-24. Do not edit between sync markers.
 
 | Component | Facets |
 |---|---|
@@ -392,7 +392,7 @@ The sections below are **auto-synced** from code. Do not edit between markers; r
 
 <!-- docs-sync:BEGIN components-detail -->
 
-> **Auto-synced** from `resilienceComponents.js + componentFacets.js` on 2026-06-23. Do not edit between sync markers.
+> **Auto-synced** from `resilienceComponents.js + componentFacets.js` on 2026-06-24. Do not edit between sync markers.
 
 
 Per-component reference below is regenerated from code. Extended narrative, signal-routing notes, and boundary rules in earlier manual sections may appear in pipeline stages §3+.
@@ -670,7 +670,7 @@ Per-component reference below is regenerated from code. Extended narrative, sign
 
 <!-- docs-sync:BEGIN appendix-ui-labels -->
 
-> **Auto-synced** from `client/src/i18n/translations.js (en + he)` on 2026-06-23. Do not edit between sync markers.
+> **Auto-synced** from `client/src/i18n/translations.js (en + he)` on 2026-06-24. Do not edit between sync markers.
 
 | ID | English UI label | Hebrew UI label |
 |---|---|---|

@@ -1,0 +1,1 @@
+{"parameters":[{"in":"query","name":"scope","required":false,"schema":{"type":"string","enum":["national","north"]},"description":"Report scope. Defaults to national."}]}
