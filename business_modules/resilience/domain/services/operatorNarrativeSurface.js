@@ -459,5 +459,12 @@ export function finalizeOperatorNarrativeSurface(assessment) {
     }
   }
 
+  if (!assessment.cross_component_synthesis_operator) {
+    const synthesis = String(assessment.cross_component_synthesis ?? '').trim();
+    if (synthesis) {
+      assessment.cross_component_synthesis_operator = synthesis;
+    }
+  }
+
   return assessment;
 }

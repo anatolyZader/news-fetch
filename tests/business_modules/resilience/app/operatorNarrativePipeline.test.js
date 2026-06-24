@@ -229,4 +229,27 @@ describe('operatorNarrativePipeline', () => {
     assert.ok(assessment.components[0].narrative_operator);
     assert.ok(assessment.cross_component_synthesis_operator);
   });
+
+  it('falls back to claim-derived operator narrative when hybrid pipeline throws', async () => {
+    const assessment = {
+      components: [{
+        component_id: 'narrative',
+        narrative: 'Agent narrative.',
+        narrative_claims: fixtures.good_narrative_output.components[0].narrative_claims,
+      }],
+    };
+
+    await applyOperatorNarrativePipeline({
+      assessment,
+      narrativeScopeSignals: fixtures.scored_components.narrative.signals,
+      llmPort: {
+        stream: async () => {
+          throw new Error('LLM unavailable');
+        },
+      },
+    });
+
+    assert.equal(assessment.components[0].narrative_operator, 'Agent narrative.');
+    assert.ok(assessment.components[0].evidence_operator?.length > 0);
+  });
 });

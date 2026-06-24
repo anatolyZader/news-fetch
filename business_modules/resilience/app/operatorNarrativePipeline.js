@@ -282,5 +282,5 @@ export async function applyOperatorNarrativePipeline(params) {
     console.error(`[operator-narrative] Pipeline failed (${err.message}); keeping agent narratives`);
   }
 
-  return assessment;
+  return finalizeOperatorNarrativeSurface(assessment);
 }
