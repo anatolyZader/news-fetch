@@ -10,6 +10,8 @@
 #   CLOUDFLARE_SRULIK_API_TOKEN=...  # zone token for srulik.ai (overrides CLOUDFLARE_API_TOKEN)
 #   CLOUDFLARE_ZONE_NAME=srulik.ai
 #   VM_PUBLIC_IP=34.165.63.234
+#   DOCS_HOSTING=pages|vm          # default pages (CNAME docs → Pages); vm = A record to VM
+#   DOCS_CNAME_TARGET=news-fetch-abl.pages.dev
 #   WEBHOOK_RATE_PER_MIN=200
 #   DMARC_RUA_EMAIL=security@srulik.ai
 #   DRY_RUN=1
@@ -34,6 +36,8 @@ ZONE_NAME="${CLOUDFLARE_ZONE_NAME:-srulik.ai}"
 VM_IP="${VM_PUBLIC_IP:-34.165.63.234}"
 WEBHOOK_RATE="${WEBHOOK_RATE_PER_MIN:-200}"
 DMARC_RUA="${DMARC_RUA_EMAIL:-security@srulik.ai}"
+DOCS_HOSTING="${DOCS_HOSTING:-pages}"
+DOCS_CNAME_TARGET="${DOCS_CNAME_TARGET:-news-fetch-abl.pages.dev}"
 DRY_RUN="${DRY_RUN:-0}"
 
 if [[ -n "${CLOUDFLARE_SRULIK_API_TOKEN:-}" ]]; then
@@ -115,6 +119,38 @@ for r in d.get('result') or []:
       }" | cf_result_ok
     else
       echo "  OK: already ${VM_IP} proxied"
+    fi
+  fi
+}
+
+ensure_dns_cname() {
+  local zone_id="$1" name="$2" target="$3"
+  echo "DNS CNAME ${name} → ${target} (proxied)..."
+  local resp records
+  resp="$(cf_api GET "/zones/${zone_id}/dns_records?type=CNAME&name=${name}")"
+  if [[ "${DRY_RUN}" == "1" ]]; then return 0; fi
+  records="$(echo "${resp}" | python3 -c "
+import json, sys
+d = json.load(sys.stdin)
+print(len(d.get('result') or []))
+for r in d.get('result') or []:
+    print(r['id'], r['content'], r.get('proxied'))
+")"
+  local count
+  count="$(echo "${records}" | head -1)"
+  if [[ "${count}" == "0" ]]; then
+    cf_api POST "/zones/${zone_id}/dns_records" --data "{
+      \"type\":\"CNAME\",\"name\":\"${name}\",\"content\":\"${target}\",\"proxied\":true,\"ttl\":1
+    }" | cf_result_ok
+  else
+    local record_id content proxied
+    read -r record_id content proxied <<< "$(echo "${records}" | sed -n '2p')"
+    if [[ "${content}" != "${target}" || "${proxied}" != "True" ]]; then
+      cf_api PATCH "/zones/${zone_id}/dns_records/${record_id}" --data "{
+        \"type\":\"CNAME\",\"name\":\"${name}\",\"content\":\"${target}\",\"proxied\":true,\"ttl\":1
+      }" | cf_result_ok
+    else
+      echo "  OK: already ${target} proxied"
     fi
   fi
 }
@@ -250,6 +286,12 @@ echo
 
 ensure_dns_a "${ZONE_ID}" "${ZONE_NAME}"
 ensure_dns_a "${ZONE_ID}" "www.${ZONE_NAME}"
+ensure_dns_a "${ZONE_ID}" "analyst.${ZONE_NAME}"
+if [[ "${DOCS_HOSTING}" == "pages" ]]; then
+  ensure_dns_cname "${ZONE_ID}" "docs.${ZONE_NAME}" "${DOCS_CNAME_TARGET}"
+else
+  ensure_dns_a "${ZONE_ID}" "docs.${ZONE_NAME}"
+fi
 patch_zone_setting "${ZONE_ID}" "ssl" "strict"
 patch_zone_setting "${ZONE_ID}" "always_use_https" "on"
 enable_bot_fight "${ZONE_ID}"

@@ -9,7 +9,8 @@ import PropTypes from 'prop-types';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { FILTER_PRESETS } from '../lib/reportComponentFilter.js';
 
-const LS_FILTER_PREFIX = 'vibeswitch:reportFilter:';
+const LS_FILTER_PREFIX = 'srulik:reportFilter:';
+const LS_FILTER_PREFIX_LEGACY = 'vibeswitch:reportFilter:';
 
 function readStoredFilter(scope) {
   if (typeof sessionStorage === 'undefined') {
