@@ -9,7 +9,10 @@ import {
 } from '../infrastructure/narrativeRelationJudge.js';
 import { polishNarrativeFromClaims } from '../infrastructure/narrativePolish.js';
 import { buildFullSignalDigest } from '../domain/services/buildFullSignalDigest.js';
-import { mergeAgentClaimsWithFacts } from '../domain/services/buildNarrativeScoredComponents.js';
+import {
+  buildDigestStubClaims,
+  mergeAgentClaimsWithFacts,
+} from '../domain/services/buildNarrativeScoredComponents.js';
 import {
   buildSignalRefRegistry,
   validateNarrativeOutput,
@@ -17,53 +20,117 @@ import {
   computeGroundingScores,
   validateSuppressionCompliance,
   formatSuppressionFeedback,
-  isNarrativeFactsPassEnabled,
-  isNarrativeJudgeEnabled,
   hybridNarrativeEnabled,
   legacyNarrativeOnly,
   resolveNarrativePipelineMode,
   formatDigitalQuarantineNarrativeBlock,
+  isNarrativeFactsPassEnabled,
+  isNarrativeJudgeEnabled,
 } from '../domain/services/narrativeGrounding/index.js';
+import {
+  escalateNarrativeContextPlan,
+  isTokenOverflowError,
+  narrativeContextMaxTokens,
+  resolveNarrativeContextPlan,
+} from '../domain/services/narrativePromptBudget.js';
 import { finalizeOperatorNarrativeSurface } from '../domain/services/operatorNarrativeSurface.js';
 
 const MAX_FACTS_ATTEMPTS = 2;
 const MAX_POLISH_ATTEMPTS = 2;
+const MAX_OVERFLOW_RETRIES = 2;
+
+/**
+ * @param {object} plan
+ * @param {object} params
+ * @returns {object}
+ */
+function rebudgetPlan(plan, params) {
+  return escalateNarrativeContextPlan(plan, {
+    narrativeScopeSignals: params.narrativeScopeSignals,
+    scoredFull: params.scoredFull,
+    scoringContext: params.narrativeScoringContext ?? params.scoredFull,
+    macroSignals: params.macroSignals ?? [],
+    startLevel: (plan?.degradeLevel ?? 0) + 1,
+  });
+}
+
+/**
+ * @param {object} params
+ * @returns {Promise<object>}
+ */
+async function loadRagContext(narrativeScored, plan, retrievalService, reportDate) {
+  if (plan.ragEnabled === false) {
+    return { spansByComponent: {}, block: '' };
+  }
+  return buildNarrativeRetrievalContext(narrativeScored, {
+    retrievalService,
+    reportDate,
+  });
+}
 
 /**
  * @param {object} params
  * @returns {Promise<{ factsByComponent: object, mergedNarratives: object, judgeFeedback: string }|null>}
  */
 async function runFactsAndJudgePass(params) {
-  const { assessment, narrativeScored, registry, rag, llmOpts, epistemicBlock } = params;
+  const {
+    assessment,
+    narrativeScored,
+    registry,
+    rag,
+    llmOpts,
+    epistemicBlock,
+    plan,
+    pipelineParams,
+  } = params;
+
   let factsByComponent = {};
   let mergedNarratives = { components: [] };
   let judgeFeedback = '';
+  let activePlan = plan;
 
-  for (let attempt = 0; attempt < MAX_FACTS_ATTEMPTS; attempt += 1) {
-    if (isNarrativeFactsPassEnabled()) {
-      factsByComponent = await extractNarrativeFacts(narrativeScored, {
-        ...llmOpts,
-        retrievedSpansBlock: rag.block,
-        epistemicBlock,
-      });
-    }
+  for (let overflowRetry = 0; overflowRetry <= MAX_OVERFLOW_RETRIES; overflowRetry += 1) {
+    try {
+      for (let attempt = 0; attempt < MAX_FACTS_ATTEMPTS; attempt += 1) {
+        if (activePlan.useStubClaims || !isNarrativeFactsPassEnabled()) {
+          factsByComponent = buildDigestStubClaims(narrativeScored, registry);
+        } else if (activePlan.factsEnabled !== false) {
+          factsByComponent = await extractNarrativeFacts(narrativeScored, {
+            ...llmOpts,
+            retrievedSpansBlock: rag.block,
+            epistemicBlock,
+            factsShardSize: activePlan.factsShardSize,
+            promptBudget: {
+              section: 'narrative_facts',
+              degrade_level: activePlan.degradeLevel,
+              estimated_input_tokens: activePlan.section_estimates?.worst_facts_shard,
+            },
+          });
+        }
 
-    mergedNarratives = mergeAgentClaimsWithFacts(assessment, factsByComponent);
-    if (!(mergedNarratives.components ?? []).some((c) => (c.narrative_claims ?? []).length > 0)) {
-      return null;
-    }
+        mergedNarratives = mergeAgentClaimsWithFacts(assessment, factsByComponent);
+        if (!(mergedNarratives.components ?? []).some((c) => (c.narrative_claims ?? []).length > 0)) {
+          return null;
+        }
 
-    if (!isNarrativeJudgeEnabled()) break;
+        if (activePlan.judgeEnabled === false || !isNarrativeJudgeEnabled()) break;
 
-    const judgeResult = await judgeNarrativeRelations(mergedNarratives, registry, llmOpts);
-    if (judgeResult.ok) break;
-    judgeFeedback = formatJudgeFeedback(judgeResult.failures);
-    if (attempt >= MAX_FACTS_ATTEMPTS - 1) {
-      console.error(`[operator-narrative] Relation judge failures after ${MAX_FACTS_ATTEMPTS} attempts`);
+        const judgeResult = await judgeNarrativeRelations(mergedNarratives, registry, llmOpts);
+        if (judgeResult.ok) break;
+        judgeFeedback = formatJudgeFeedback(judgeResult.failures);
+        if (attempt >= MAX_FACTS_ATTEMPTS - 1) {
+          console.error(`[operator-narrative] Relation judge failures after ${MAX_FACTS_ATTEMPTS} attempts`);
+        }
+      }
+      return { factsByComponent, mergedNarratives, judgeFeedback, plan: activePlan };
+    } catch (err) {
+      if (!isTokenOverflowError(err) || overflowRetry >= MAX_OVERFLOW_RETRIES) throw err;
+      console.error(`[operator-narrative] Facts/judge token overflow — escalating budget (${err.message})`);
+      activePlan = rebudgetPlan(activePlan, pipelineParams);
+      if (activePlan.skipLlm) return null;
     }
   }
-
-  return { factsByComponent, mergedNarratives, judgeFeedback };
+  return null;
 }
 
 /**
@@ -79,6 +146,8 @@ async function runPolishAndValidatePass(params) {
     llmOpts,
     judgeFeedback,
     epistemicBlock,
+    plan,
+    pipelineParams,
   } = params;
 
   let polish = { components: [], cross_component_synthesis: '' };
@@ -88,42 +157,75 @@ async function runPolishAndValidatePass(params) {
     degradeReasons.push('Relation judge: unresolved after facts pass');
   }
 
-  for (let attempt = 0; attempt < MAX_POLISH_ATTEMPTS; attempt += 1) {
-    const feedback = [judgeFeedback, validationFeedback].filter(Boolean).join('\n\n');
-    const polishResult = await polishNarrativeFromClaims(
-      mergedNarratives,
-      registry,
-      narrativeScored,
-      { ...llmOpts, retrievedSpansBlock: rag.block, feedback, epistemicBlock, skipProgress: false },
-    );
-    polish = polishResult;
+  let activePlan = plan;
 
-    const validation = validateNarrativeOutput(polish, {
-      scoredComponents: narrativeScored,
-      registry,
-    });
-    const suppression = validateSuppressionCompliance(polish, narrativeScored);
+  for (let overflowRetry = 0; overflowRetry <= MAX_OVERFLOW_RETRIES; overflowRetry += 1) {
+    try {
+      for (let attempt = 0; attempt < MAX_POLISH_ATTEMPTS; attempt += 1) {
+        const feedback = [judgeFeedback, validationFeedback].filter(Boolean).join('\n\n');
+        const polishResult = await polishNarrativeFromClaims(
+          mergedNarratives,
+          registry,
+          narrativeScored,
+          {
+            ...llmOpts,
+            retrievedSpansBlock: rag.block,
+            feedback,
+            epistemicBlock,
+            skipProgress: false,
+            shardSize: activePlan.polishShardSize,
+            shardMinComponents: Math.min(3, activePlan.polishShardSize ?? 4),
+            promptBudget: {
+              section: 'narrative_polish',
+              degrade_level: activePlan.degradeLevel,
+              estimated_input_tokens: activePlan.section_estimates?.worst_polish_shard,
+            },
+          },
+        );
+        polish = polishResult;
 
-    if (validation.ok && suppression.ok) break;
+        const validation = validateNarrativeOutput(polish, {
+          scoredComponents: narrativeScored,
+          registry,
+        });
+        const suppression = validateSuppressionCompliance(polish, narrativeScored);
 
-    if (polishResult.stopReason === 'max_tokens' && attempt < MAX_POLISH_ATTEMPTS - 1) {
-      console.error('[operator-narrative] Polish truncated at max_tokens; skipping costly validation retry');
-      break;
-    }
+        if (validation.ok && suppression.ok) break;
 
-    validationFeedback = [
-      formatValidationFeedback(validation),
-      formatSuppressionFeedback(suppression),
-    ].filter(Boolean).join('\n\n');
+        if (polishResult.stopReason === 'max_tokens' && attempt < MAX_POLISH_ATTEMPTS - 1) {
+          console.error('[operator-narrative] Polish truncated at max_tokens; skipping costly validation retry');
+          break;
+        }
 
-    if (attempt >= MAX_POLISH_ATTEMPTS - 1) {
-      console.error('[operator-narrative] Validation failed after polish retries; applying best-effort output');
-      degradeReasons.push('Narrative validation: exhausted after polish retries');
+        validationFeedback = [
+          formatValidationFeedback(validation),
+          formatSuppressionFeedback(suppression),
+        ].filter(Boolean).join('\n\n');
+
+        if (attempt >= MAX_POLISH_ATTEMPTS - 1) {
+          console.error('[operator-narrative] Validation failed after polish retries; applying best-effort output');
+          degradeReasons.push('Narrative validation: exhausted after polish retries');
+        }
+      }
+      const polishOutput = { ...polish };
+      delete polishOutput.stopReason;
+      return {
+        ...polishOutput,
+        pipelineDegrade: degradeReasons.length > 0,
+        degradeReasons,
+        plan: activePlan,
+      };
+    } catch (err) {
+      if (!isTokenOverflowError(err) || overflowRetry >= MAX_OVERFLOW_RETRIES) throw err;
+      console.error(`[operator-narrative] Polish token overflow — escalating budget (${err.message})`);
+      activePlan = rebudgetPlan(activePlan, pipelineParams);
+      if (activePlan.skipLlm) {
+        return { components: [], cross_component_synthesis: '', pipelineDegrade: true, degradeReasons: ['narrative_context_overflow'], plan: activePlan };
+      }
     }
   }
 
-  const { stopReason: _stopReason, ...polishOutput } = polish;
-  return { ...polishOutput, pipelineDegrade: degradeReasons.length > 0, degradeReasons };
+  return { components: [], cross_component_synthesis: '', pipelineDegrade: true, degradeReasons: ['narrative_context_overflow'], plan: activePlan };
 }
 
 /**
@@ -171,6 +273,8 @@ export async function runOperatorNarrativePipeline(params) {
     reportDate,
     onUsage,
     llmPort,
+    narrativeContextPlan = null,
+    macroSignals = [],
   } = params;
 
   if (!assessment || !Array.isArray(narrativeScopeSignals) || narrativeScopeSignals.length === 0) {
@@ -178,8 +282,22 @@ export async function runOperatorNarrativePipeline(params) {
   }
 
   const scoringContext = narrativeScoringContext ?? scoredFull;
-  const narrativeScored = buildFullSignalDigest(narrativeScopeSignals, scoringContext);
-  const registry = buildSignalRefRegistry(narrativeScored);
+  let plan = narrativeContextPlan ?? resolveNarrativeContextPlan({
+    narrativeScopeSignals,
+    scoredFull,
+    scoringContext,
+    macroSignals,
+  });
+
+  if (plan.skipLlm) {
+    return null;
+  }
+
+  let narrativeScored = plan.narrativeScored ?? buildFullSignalDigest(narrativeScopeSignals, scoringContext, {
+    digestCap: plan.digestCap,
+    evidenceChars: plan.evidenceChars,
+  });
+  let registry = plan.registry ?? buildSignalRefRegistry(narrativeScored);
   if (registry.refCount === 0) return null;
 
   const epistemicBlock = formatDigitalQuarantineNarrativeBlock({
@@ -190,10 +308,9 @@ export async function runOperatorNarrativePipeline(params) {
   });
 
   const llmOpts = { onUsage, llmPort };
-  const rag = await buildNarrativeRetrievalContext(narrativeScored, {
-    retrievalService,
-    reportDate,
-  });
+  const pipelineParams = { ...params, narrativeScoringContext: scoringContext };
+
+  const rag = await loadRagContext(narrativeScored, plan, retrievalService, reportDate);
 
   const factsResult = await runFactsAndJudgePass({
     assessment,
@@ -202,8 +319,12 @@ export async function runOperatorNarrativePipeline(params) {
     rag,
     llmOpts,
     epistemicBlock,
+    plan,
+    pipelineParams,
   });
   if (!factsResult) return null;
+
+  plan = factsResult.plan ?? plan;
 
   const polishResult = await runPolishAndValidatePass({
     mergedNarratives: factsResult.mergedNarratives,
@@ -213,8 +334,10 @@ export async function runOperatorNarrativePipeline(params) {
     llmOpts,
     judgeFeedback: factsResult.judgeFeedback,
     epistemicBlock,
+    plan,
+    pipelineParams,
   });
-  const { pipelineDegrade, degradeReasons, ...polish } = polishResult;
+  const { pipelineDegrade, degradeReasons, plan: finalPlan, ...polish } = polishResult;
 
   const groundingScores = computeGroundingScores(polish, narrativeScored, registry);
   return {
@@ -224,6 +347,7 @@ export async function runOperatorNarrativePipeline(params) {
     registry,
     pipelineDegrade,
     degradeReasons,
+    narrativeContextPlan: finalPlan ?? plan,
   };
 }
 
@@ -236,7 +360,7 @@ export function applyOperatorNarrativeToAssessment(assessment, pipelineResult) {
   if (!assessment || !pipelineResult?.polish) return assessment;
 
   const mode = resolveNarrativePipelineMode();
-  const { polish, groundingScores } = pipelineResult;
+  const { polish, groundingScores, narrativeContextPlan } = pipelineResult;
   const polishById = Object.fromEntries(
     (polish.components ?? []).map((c) => [c.component_id, c]),
   );
@@ -255,6 +379,15 @@ export function applyOperatorNarrativeToAssessment(assessment, pipelineResult) {
   }
 
   assessment.narrative_pipeline_mode = mode;
+  if (narrativeContextPlan) {
+    assessment.narrative_prompt_budget = {
+      degrade_level: narrativeContextPlan.degradeLevel,
+      section_estimates: narrativeContextPlan.section_estimates,
+      registry_count: narrativeContextPlan.registry?.refCount ?? 0,
+      digest_cap: narrativeContextPlan.digest_cap,
+      max_context_tokens: narrativeContextMaxTokens(),
+    };
+  }
   if (pipelineResult.pipelineDegrade) {
     assessment.narrative_pipeline_degraded = true;
     assessment.narrative_pipeline_degrade_reasons = pipelineResult.degradeReasons ?? [];
@@ -279,7 +412,11 @@ export async function applyOperatorNarrativePipeline(params) {
       applyOperatorNarrativeToAssessment(assessment, result);
     }
   } catch (err) {
-    console.error(`[operator-narrative] Pipeline failed (${err.message}); keeping agent narratives`);
+    console.error(`[operator-narrative] Pipeline failed (${err.message}); keeping score shell`);
+    if (isTokenOverflowError(err)) {
+      assessment.narrative_pipeline_degraded = true;
+      assessment.narrative_pipeline_degrade_reasons = ['narrative_context_overflow'];
+    }
   }
 
   return finalizeOperatorNarrativeSurface(assessment);

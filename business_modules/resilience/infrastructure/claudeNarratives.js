@@ -836,7 +836,7 @@ async function processNarrativeAttempt(ctx, attempt, maxRetries) {
   return buildAssessmentPayload(narratives, scoredComponents, meta, grounding);
 }
 
-export async function generateNarratives(
+export async function generateNarrativesLegacy(
   scoredComponents,
   _allSignals,
   date,
@@ -901,9 +901,18 @@ export async function generateNarratives(
   }
 }
 
-// Backwards-compat: synthesizeComponents wraps the new two-step (score + narrate)
-// so that api/analysisService.js and cross-cut-modules/budget token audit continue to work.
+export async function generateNarratives(
+  scoredComponents,
+  allSignals,
+  date,
+  totalArticles,
+  opts = {},
+) {
+  const { closedCoreNarrate } = await import('../app/closedCoreNarrate.js');
+  return closedCoreNarrate(scoredComponents, allSignals, date, totalArticles, opts);
+}
 
+// Backwards-compat: synthesizeComponents wraps score + narrate
 export async function synthesizeComponents(signals, date, totalArticles, {
   onUsage,
   onProgress,
@@ -920,6 +929,7 @@ export async function synthesizeComponents(signals, date, totalArticles, {
     onProgress,
     contentKind,
     dataVoid,
+    narrativeScopeSignals: signals,
   });
 }
 

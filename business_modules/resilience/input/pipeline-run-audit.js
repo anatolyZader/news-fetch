@@ -89,6 +89,13 @@ if (token) {
     .slice(0, 5)
     .map(([k, v]) => `${k}:$${Number(v.costUsd).toFixed(4)}`);
   if (top.length) console.log(`  top features: ${top.join(', ')}`);
+  if (token.narrativePromptBudget) {
+    const nb = token.narrativePromptBudget;
+    console.log(
+      `  narrative budget: degrade_level=${nb.max_level_used ?? 'n/a'}, `
+      + `preflight_calls=${nb.invocations_with_budget ?? 0}`,
+    );
+  }
 } else {
   console.log(`Token report: missing (${tokenPath})`);
 }
@@ -111,6 +118,13 @@ if (reportPath) {
   }
   if (assessment?.narrative_pipeline_degraded) {
     console.log(`  ⚠ narrative_pipeline_degraded: ${(assessment.narrative_pipeline_degrade_reasons ?? []).join('; ')}`);
+  }
+  if (assessment?.narrative_prompt_budget) {
+    const pb = assessment.narrative_prompt_budget;
+    console.log(
+      `  narrative_prompt_budget: level=${pb.degrade_level ?? 'n/a'}, `
+      + `digest_cap=${pb.digest_cap ?? 'n/a'}, registry=${pb.registry_count ?? 'n/a'}`,
+    );
   }
   const shadowEp = assessment?.shadow_scoring?.epistemic_status;
   if (shadowEp) {

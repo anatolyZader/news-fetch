@@ -6,6 +6,8 @@ import {
   narrativeDigestSignalCap,
   narrativeDigestEvidenceChars,
 } from '../../../../../business_modules/resilience/domain/services/buildFullSignalDigest.js';
+import { buildDigestStubClaims } from '../../../../../business_modules/resilience/domain/services/buildNarrativeScoredComponents.js';
+import { buildSignalRefRegistry } from '../../../../../business_modules/resilience/domain/services/narrativeGrounding/signalRefRegistry.js';
 
 const envBackup = {};
 
@@ -114,5 +116,24 @@ describe('buildFullSignalDigest', () => {
       evidence_type: 'observational_reported_fact',
     }]);
     assert.equal(digest.narrative.signals[0].evidence.length, 20);
+  });
+});
+
+describe('buildDigestStubClaims', () => {
+  it('builds one claim per digest signal with ref', () => {
+    const narrativeScored = {
+      narrative: {
+        signals: [{
+          signal_type: 'fear_expression',
+          article_url: 'https://example.com/x',
+          evidence: 'Residents report shelter use.',
+        }],
+        signal_count: 1,
+      },
+    };
+    const registry = buildSignalRefRegistry(narrativeScored);
+    const claims = buildDigestStubClaims(narrativeScored, registry);
+    assert.ok(claims.narrative?.length >= 1);
+    assert.ok(claims.narrative[0].signal_refs.length >= 1);
   });
 });

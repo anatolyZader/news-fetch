@@ -36,7 +36,7 @@ import { loadHistoricalScores } from './assessSignalsHelpers.js';
 import { ensureArticleCorpusRagIndexed } from './ensureArticleCorpusRagIndexed.js';
 import { isClosedCoreAssessEnabled, isOmissionAuditEnabled } from '../domain/services/openExtractConfig.js';
 import { shadowScoringEnabled } from '../../../cross-cut-modules/agent/index.js';
-import { generateNarratives } from '../infrastructure/claudeNarratives.js';
+import { closedCoreNarrate } from './closedCoreNarrate.js';
 import { buildAndWriteOmissionAudit } from './omissionAuditService.js';
 import { reportScopeMetadata } from '../domain/services/regionSignalFilter.js';
 import { countOovCapturesForDate } from '../domain/services/oovCapture.js';
@@ -221,9 +221,9 @@ async function produceAssessmentForMode(ctx) {
   } = ctx;
 
   if (isClosedCoreAssessEnabled()) {
-    console.error('[assess-signals] Closed-core assess: generateNarratives (no assessment agent)');
+    console.error('[assess-signals] Closed-core assess: hybrid narrative pipeline (score shell + digest)');
     const reportScope = reportScopeMetadata(reportScopeId);
-    const assessment = await generateNarratives(
+    const assessment = await closedCoreNarrate(
       scoredFull,
       signalsForScoring,
       reportDate,
@@ -232,15 +232,19 @@ async function produceAssessmentForMode(ctx) {
         onUsage,
         dataVoid: investigationPrep.dataVoid,
         allScopedSignals: scopedSignals,
+        narrativeScopeSignals,
+        narrativeScoringContext: pipelineResult.digitalInclusiveScored ?? scoredFull,
+        scoringPartition: pipelineResult.partition ?? null,
+        quarantinedDigital: pipelineResult.quarantinedDigital ?? null,
+        signalsScoringUsed: signalsForScoring.length,
         macroSignals: ctx.macroSignals,
         retrievalService,
         reportScope,
         oovCaptureCount: countOovCapturesForDate(reportDate, reportsDir),
         socialChannelQuarantine: investigationPrep.osintChannelQuarantine ?? null,
+        llmPort,
       },
     );
-    assessment.assessment_mode = 'closed_core';
-    assessment.assessment_degraded = null;
     if (shadowScoringEnabled()) {
       attachShadowDivergenceToAssessment(assessment, {
         scoredFull,

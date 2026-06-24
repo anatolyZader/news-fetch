@@ -86,12 +86,17 @@ function sliceEvidence(signal, maxChars) {
  * @param {Record<string, object>|null} [scoredFull]
  * @returns {Record<string, { signals: object[], signal_count: number }>}
  */
-export function buildFullSignalDigest(narrativeScopeSignals, scoredFull = null) {
+/**
+ * @param {object[]} narrativeScopeSignals
+ * @param {Record<string, object>|null} [scoredFull]
+ * @param {{ digestCap?: number, evidenceChars?: number }} [opts]
+ */
+export function buildFullSignalDigest(narrativeScopeSignals, scoredFull = null, opts = {}) {
   const signals = narrativeScopeSignals ?? [];
   const signalWeights = defaultSignalWeights();
   const duplicateIndex = buildDuplicateOccurrenceIndex(signals);
-  const cap = narrativeDigestSignalCap();
-  const evidenceChars = narrativeDigestEvidenceChars();
+  const cap = opts.digestCap ?? narrativeDigestSignalCap();
+  const evidenceChars = opts.evidenceChars ?? narrativeDigestEvidenceChars();
   const out = {};
 
   for (const componentId of COMPONENT_IDS) {

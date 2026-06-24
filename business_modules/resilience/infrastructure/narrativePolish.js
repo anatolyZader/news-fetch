@@ -245,7 +245,7 @@ async function invokePolishStream(params) {
 async function polishSharded(mergedNarratives, registry, narrativeScored, opts) {
   const port = resolveLlmPort(opts);
   const withClaims = componentsWithClaims(mergedNarratives);
-  const shardSize = polishShardSize();
+  const shardSize = opts.shardSize ?? polishShardSize();
   const idChunks = chunkComponentIds(withClaims.map((c) => c.component_id), shardSize);
 
   const mergedComponents = [];
@@ -320,10 +320,15 @@ export async function polishNarrativeFromClaims(mergedNarratives, registry, narr
     skipProgress: opts.skipProgress,
     llmPort: opts.llmPort,
     client: opts.client,
+    shardSize: opts.shardSize,
+    shardMinComponents: opts.shardMinComponents,
+    promptBudget: opts.promptBudget,
   };
 
   const claimCount = componentsWithClaims(mergedNarratives).length;
-  if (claimCount >= polishShardMinComponents()) {
+  const shardMin = opts.shardMinComponents ?? polishShardMinComponents();
+  const forceShard = opts.shardSize != null && opts.shardSize < claimCount;
+  if (claimCount >= shardMin || forceShard) {
     return polishSharded(mergedNarratives, registry, narrativeScored, llmOpts);
   }
 

@@ -41,6 +41,12 @@ Env:
   RESILIENCE_REPLAY_REUSE_NEWS=1  Reuse cached bundles on dated replay (preset 8comp-north-replay sets defaults)
   RESILIENCE_REPLAY_REUSE_WHATSAPP=1 / RESILIENCE_REPLAY_REUSE_PBO=1 / RESILIENCE_REPLAY_REUSE_VISITS=1
   RESILIENCE_NARRATIVE_FACTS_MAX_TOKENS=12000 / RESILIENCE_NARRATIVE_JUDGE_MAX_TOKENS=8000
+  RESILIENCE_NARRATIVE_CONTEXT_MAX_TOKENS=180000   Preflight ceiling per narrative LLM call
+  RESILIENCE_NARRATIVE_CHARS_PER_TOKEN=3.5         Token estimator for preflight
+  RESILIENCE_NARRATIVE_DIGEST_SIGNALS=15           Digest cap per component (ladder may lower)
+  RESILIENCE_NARRATIVE_DIGEST_EVIDENCE_CHARS=500   Evidence trim in digest
+  RESILIENCE_NARRATIVE_FACTS_SHARD_SIZE=4          Haiku facts shard width
+  RESILIENCE_NARRATIVE_PIPELINE=hybrid             Set legacy for monolithic Sonnet Step 2
   RESILIENCE_NARRATIVE_GROUNDING_BLOCK=1   Fail assess when grounding mean < min (analyst replays only)
   RESILIENCE_CLOSED_CORE_ASSESS=0   Enable assessment agent on replay (default 1)
   npm run pipeline:audit -- --date YYYY-MM-DD --scope north   Post-run digest

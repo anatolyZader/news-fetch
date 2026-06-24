@@ -32,7 +32,7 @@ export function isOmissionAuditEnabled(env = process.env) {
   return envFlagOn(env, 'RESILIENCE_OMISSION_AUDIT');
 }
 
-/** Dev-style assess: closed signals → score → generateNarratives; no multi-agent specialists. */
+/** Closed-core: score shell + hybrid narrative pipeline (digest + facts/polish); no multi-agent specialists. */
 export function isClosedCoreAssessEnabled(env = process.env) {
   if (envFlagOn(env, 'RESILIENCE_ASSESSMENT_AGENT_LEGACY')) return false;
   const v = env.RESILIENCE_CLOSED_CORE_ASSESS;

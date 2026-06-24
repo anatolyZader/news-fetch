@@ -6,6 +6,7 @@ import { COMPONENT_IDS } from '../../../../cross-cut-modules/resilience-contract
 import { buildDuplicateOccurrenceIndex } from '../epistemic/massContribution.js';
 import { collectComponentItems } from '../epistemic/componentItems.js';
 import { defaultSignalWeights } from '../epistemic/signalWeights.js';
+import { buildRefKey } from './narrativeGrounding/signalRefRegistry.js';
 
 const SUPPRESSION_KEYS = [
   'suppression_delta',
@@ -142,4 +143,32 @@ export function mergeAgentClaimsWithFacts(assessment, factsByComponent) {
     }
   }
   return { components };
+}
+
+/**
+ * Deterministic one-line claims from digest signals (degrade level 3+).
+ * @param {Record<string, object>} narrativeScored
+ * @param {{ byComponent: Record<string, Array<{ ref: string, signal: object }>> }} registry
+ * @returns {Record<string, object[]>}
+ */
+export function buildDigestStubClaims(narrativeScored, registry) {
+  const byComponent = {};
+  for (const componentId of COMPONENT_IDS) {
+    const entries = registry?.byComponent?.[componentId] ?? [];
+    const claims = [];
+    for (const entry of entries) {
+      const evidence = String(entry.signal?.evidence ?? '').trim();
+      if (!evidence) continue;
+      const ref = entry.ref ?? buildRefKey(entry.signal);
+      claims.push({
+        text: evidence.slice(0, 280),
+        signal_refs: [ref],
+        relation: 'parallel',
+      });
+    }
+    if (claims.length > 0) {
+      byComponent[componentId] = claims;
+    }
+  }
+  return byComponent;
 }

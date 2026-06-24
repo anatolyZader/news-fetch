@@ -4,9 +4,11 @@
 
 import { resolveLlmPort } from '../../../cross-cut-modules/llm/resolveLlmPort.js';
 import { RESILIENCE_COMPONENTS } from '../domain/resilienceComponents.js';
+import { COMPONENT_IDS } from '../../../cross-cut-modules/resilience-contracts/componentIds.js';
 import { extractJson } from './claudeJsonHelpers.js';
 import { streamWithProgress } from './claudeExtraction.js';
 import { narrativeFactsMaxTokens } from '../domain/services/narrativeGrounding/groundingConfig.js';
+import { chunkComponentIds } from '../domain/services/narrativePromptBudget.js';
 import {
   buildSignalRefRegistry,
   formatSignalWithRef,
@@ -44,18 +46,41 @@ function buildFactsSystemPrompt() {
   );
 }
 
-function formatFactsUserMessage(registry, retrievedSpansBlock = '', epistemicBlock = '') {
-  const blocks = RESILIENCE_COMPONENTS.map((def) => {
-    const entries = registry.byComponent[def.id] ?? [];
+/**
+ * @param {{ byComponent: Record<string, object[]> }} registry
+ * @param {string[]} componentIds
+ * @param {string} [retrievedSpansBlock]
+ * @param {string} [epistemicBlock]
+ * @returns {string}
+ */
+export function formatFactsUserMessageForComponents(
+  registry,
+  componentIds,
+  retrievedSpansBlock = '',
+  epistemicBlock = '',
+) {
+  const blocks = componentIds.map((id) => {
+    const def = RESILIENCE_COMPONENTS.find((c) => c.id === id);
+    const label = def?.id ?? id;
+    const entries = registry.byComponent[id] ?? [];
     if (entries.length === 0) {
-      return `**${def.id}**\n(no signals)`;
+      return `**${label}**\n(no signals)`;
     }
     const signalLines = entries.map((e) => formatSignalWithRef(e.signal, e)).join('\n\n');
-    return `**${def.id}**\n${signalLines}`;
+    return `**${label}**\n${signalLines}`;
   });
   const prefix = [retrievedSpansBlock, epistemicBlock].filter(Boolean).join('\n');
   const prefixBlock = prefix ? `${prefix}\n\n` : '';
   return `${prefixBlock}Extract narrative_claims for each component.\n\n${blocks.join('\n\n---\n\n')}`;
+}
+
+function formatFactsUserMessage(registry, retrievedSpansBlock = '', epistemicBlock = '') {
+  return formatFactsUserMessageForComponents(
+    registry,
+    COMPONENT_IDS,
+    retrievedSpansBlock,
+    epistemicBlock,
+  );
 }
 
 function validateFactsOutput(parsed, registry) {
@@ -75,12 +100,72 @@ function validateFactsOutput(parsed, registry) {
   return byComponent;
 }
 
+async function extractFactsForShard(registry, componentIds, opts, shardLabel) {
+  const { onUsage, retrievedSpansBlock = '', epistemicBlock = '', promptBudget } = opts;
+  const port = resolveLlmPort(opts);
+  const stream = await Promise.resolve(port.stream({
+    model: DEFAULT_FACTS_MODEL,
+    max_tokens: narrativeFactsMaxTokens(),
+    temperature: 0,
+    system: buildFactsSystemPrompt(),
+    messages: [{
+      role: 'user',
+      content: formatFactsUserMessageForComponents(registry, componentIds, retrievedSpansBlock, epistemicBlock),
+    }],
+    callContext: {
+      feature: 'narrative_facts',
+      purpose: shardLabel ?? '[Step 2 — Facts]',
+      promptBudget,
+    },
+  }));
+  await streamWithProgress(stream, shardLabel ?? '[Step 2 — Facts]');
+  const message = await stream.finalMessage();
+  if (onUsage) {
+    onUsage({ label: shardLabel ?? '[Step 2 — Facts]', model: DEFAULT_FACTS_MODEL, usage: message.usage });
+  }
+  const textBlock = message.content.find((b) => b.type === 'text');
+  if (!textBlock) throw new Error('Facts pass: no text block');
+  const parsed = extractJson(textBlock.text);
+  return validateFactsOutput(parsed, registry);
+}
+
 /**
  * @param {Record<string, object>} scoredComponents
- * @param {{ onUsage?: Function, llmPort?: object, client?: object }} [opts]
+ * @param {{ onUsage?: Function, llmPort?: object, factsShardSize?: number, promptBudget?: object }} [opts]
+ * @returns {Promise<Record<string, object[]>>}
+ */
+export async function extractNarrativeFactsSharded(scoredComponents, opts = {}) {
+  const registry = buildSignalRefRegistry(scoredComponents);
+  if (registry.refCount === 0) return {};
+
+  const shardSize = opts.factsShardSize ?? 4;
+  const activeIds = COMPONENT_IDS.filter((id) => (registry.byComponent[id] ?? []).length > 0);
+  const shards = chunkComponentIds(activeIds.length ? activeIds : COMPONENT_IDS, shardSize);
+
+  const merged = {};
+  for (let i = 0; i < shards.length; i += 1) {
+    const shard = shards[i];
+    const label = shards.length > 1
+      ? `[Step 2 — Facts ${i + 1}/${shards.length}]`
+      : '[Step 2 — Facts]';
+    const partial = await extractFactsForShard(registry, shard, opts, label);
+    for (const [compId, claims] of Object.entries(partial)) {
+      if (!claims?.length) continue;
+      merged[compId] = [...(merged[compId] ?? []), ...claims];
+    }
+  }
+  return merged;
+}
+
+/**
+ * @param {Record<string, object>} scoredComponents
+ * @param {{ onUsage?: Function, llmPort?: object, client?: object, factsShardSize?: number }} [opts]
  * @returns {Promise<Record<string, object[]>>}
  */
 export async function extractNarrativeFacts(scoredComponents, opts = {}) {
+  if (opts.factsShardSize && opts.factsShardSize < COMPONENT_IDS.length) {
+    return extractNarrativeFactsSharded(scoredComponents, opts);
+  }
   const { onUsage, retrievedSpansBlock = '', epistemicBlock = '' } = opts;
   const registry = buildSignalRefRegistry(scoredComponents);
   if (registry.refCount === 0) return {};
@@ -105,6 +190,4 @@ export async function extractNarrativeFacts(scoredComponents, opts = {}) {
   return validateFactsOutput(parsed, registry);
 }
 
-
-
-export {buildSignalRefRegistry as buildFactsRegistry} from '../domain/services/narrativeGrounding/index.js';
+export { buildSignalRefRegistry as buildFactsRegistry } from '../domain/services/narrativeGrounding/index.js';

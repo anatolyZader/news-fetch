@@ -104,7 +104,22 @@ export function writeTokenReport({ startedAt, completedAt, date, scope, days, re
     costUsd: r.costUsd ?? 0,
     latencyMs: r.latencyMs ?? null,
     stopReason: r.stopReason ?? null,
+    ...(r.promptBudget ? { promptBudget: r.promptBudget } : {}),
   }));
+
+  const budgetRows = rows.filter((r) => r.promptBudget);
+  const maxDegradeLevel = budgetRows.reduce(
+    (max, r) => Math.max(max, r.promptBudget?.degrade_level ?? 0),
+    0,
+  );
+  const lastBudgetRow = budgetRows[budgetRows.length - 1];
+  const narrativePromptBudget = budgetRows.length
+    ? {
+      max_level_used: maxDegradeLevel,
+      last_section_estimates: lastBudgetRow?.promptBudget?.section_estimates ?? null,
+      invocations_with_budget: budgetRows.length,
+    }
+    : null;
 
   const report = {
     ...(pipelineRunId ? { runId: pipelineRunId } : {}),
@@ -132,6 +147,7 @@ export function writeTokenReport({ startedAt, completedAt, date, scope, days, re
     },
     byFeature: groupRows(rows, 'feature'),
     byModel: groupRows(rows, 'model'),
+    ...(narrativePromptBudget ? { narrativePromptBudget } : {}),
     calls,
   };
 

@@ -220,7 +220,12 @@ flowchart TD
 | `RESILIENCE_OPEN_OBS_FOR_AGENT` | OFF | Feed routed open observations into the assessment agent |
 | `RESILIENCE_OPEN_OBS_ROUTING` | `keyword` | How open observations are routed to components (`llm` optional) |
 | `RESILIENCE_OMISSION_AUDIT` | ON (closed-core branch) | Write `omission-audit-{scope}-{date}.json`; no open obs agent feed |
-| `RESILIENCE_CLOSED_CORE_ASSESS` | ON (closed-core branch) | Assess via closed signals + `generateNarratives` (no specialists) |
+| `RESILIENCE_CLOSED_CORE_ASSESS` | ON (closed-core branch) | Assess via closed signals + hybrid narrative pipeline (digest + facts/polish; no specialists) |
+| `RESILIENCE_NARRATIVE_CONTEXT_MAX_TOKENS` | 180000 | Preflight ceiling per narrative LLM call; degrade ladder lowers digest before overflow |
+| `RESILIENCE_NARRATIVE_DIGEST_SIGNALS` | 15 | Max signals per component in narrative digest (ladder may lower) |
+| `RESILIENCE_NARRATIVE_DIGEST_EVIDENCE_CHARS` | 500 | Evidence trim in digest |
+| `RESILIENCE_NARRATIVE_FACTS_SHARD_SIZE` | 4 | Haiku facts-pass shard width |
+| `RESILIENCE_NARRATIVE_PIPELINE` | hybrid | Set `legacy` to restore monolithic Sonnet Step 2 (`generateNarrativesLegacy`) |
 | `RESILIENCE_ASSESSMENT_AGENT_LEGACY` | OFF | Re-enable multi-agent `runAssessmentAgent` path |
 | `RESILIENCE_OPEN_EVIDENCE_SCORING` | **OFF** | Post-agent synthetic scoring from verified open claims (analyst/shadow). **Production default: OFF** — enable only after auditing the open-path verification gate. Set to `1` or `on` to enable. |
 | `RESILIENCE_CATALOG_AUTO_PROPOSE_VERIFIED` | OFF | Auto-generate catalog proposals from verified open observations |
