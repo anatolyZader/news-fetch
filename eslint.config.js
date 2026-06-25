@@ -23,6 +23,7 @@ export default defineConfig([
       'business_modules/**/data/**',
       'tests/fixtures/**',
       'test-results/**',
+      'logs/**',
     ],
   },
   js.configs.recommended,

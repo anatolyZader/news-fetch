@@ -334,7 +334,7 @@ export function getAvailableReportEditions(opts = {}) {
     const date = m[1];
     const run_id = m[2] ?? null;
     const jsonPath = join(dir, f);
-    let mtime = 0;
+    let mtime;
     try {
       mtime = statSync(jsonPath).mtimeMs;
     } catch {

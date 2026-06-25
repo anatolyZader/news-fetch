@@ -8,6 +8,19 @@ import {
 } from '../../../../business_modules/chat/domain/traceComponentTimeline.js';
 import { formatAnalysisDateTime } from '../../../../utils/dateUtils.js';
 
+const mockMunicipalityDashboard = () => ({
+  municipalities: ['Testville'],
+  days: [{
+    date: '2026-03-21',
+    municipalities: [{
+      name: 'Testville',
+      components: {
+        information_communication: { avg: 0.75, texts: ['local comms strong'], scores: [] },
+      },
+    }],
+  }],
+});
+
 describe('traceComponentTimeline', () => {
   it('resolveDateWindow filters inclusive bounds', () => {
     const dates = resolveDateWindow('2026-03-21', '2026-03-25', false);
@@ -17,22 +30,9 @@ describe('traceComponentTimeline', () => {
   });
 
   it('buildComponentTimeline returns rows for mock dashboard', async () => {
-    const getMunicipalityDashboard = () => ({
-      municipalities: ['Testville'],
-      days: [{
-        date: '2026-03-21',
-        municipalities: [{
-          name: 'Testville',
-          components: {
-            information_communication: { avg: 0.75, texts: ['local comms strong'], scores: [] },
-          },
-        }],
-      }],
-    });
-
     const result = await buildComponentTimeline(
       { component: 'information_communication', municipality: 'Testville', date_from: '2026-03-21', date_to: '2026-03-21' },
-      { getMunicipalityDashboard, includeScores: false },
+      { getMunicipalityDashboard: mockMunicipalityDashboard, includeScores: false },
     );
 
     assert.equal(result.component, 'information_communication');

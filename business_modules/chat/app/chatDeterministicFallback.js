@@ -7,6 +7,27 @@ import { createChatToolContext } from './createChatToolContext.js';
 import { extractMunicipalityFromMessage } from '../domain/municipalityResolve.js';
 import { operatorEpistemicOverlayEnabled } from '../../../cross-cut-modules/resilience-contracts/operatorEpistemicOverlay.js';
 
+function planCompareToolCalls(reportData, assessmentDate) {
+  const dates = reportData?.report_dates ?? reportData?.available_dates ?? [];
+  const dateB = assessmentDate ?? dates.at(-1) ?? null;
+  const dateA = dates.length >= 2 ? dates.at(-2) : dateB;
+  return [{ tool: 'compare_dates', input: { date_a: dateA, date_b: dateB } }];
+}
+
+function planTemporalToolCalls(text, componentId) {
+  const municipality = extractMunicipalityFromMessage(text) ?? undefined;
+  if (!componentId) {
+    return [{ tool: 'lookup_signals', input: { query: text.slice(0, 200), limit: 15 } }];
+  }
+  return [{
+    tool: 'trace_component_timeline',
+    input: {
+      component: componentId,
+      ...(municipality ? { municipality } : {}),
+    },
+  }];
+}
+
 /**
  * @param {import('../domain/chatContextTier.js').ContextSlice} contextSlice
  * @param {string} message
@@ -30,25 +51,10 @@ export function planDeterministicToolCalls(contextSlice, message, reportData, op
         { tool: 'list_attention_items', input: { limit: 10 } },
         { tool: 'get_decision_brief', input: {} },
       ];
-    case 'compare': {
-      const dates = reportData?.report_dates ?? reportData?.available_dates ?? [];
-      const dateB = assessmentDate ?? dates[dates.length - 1] ?? null;
-      const dateA = dates.length >= 2 ? dates[dates.length - 2] : dateB;
-      return [{ tool: 'compare_dates', input: { date_a: dateA, date_b: dateB } }];
-    }
-    case 'temporal': {
-      const municipality = extractMunicipalityFromMessage(text) ?? undefined;
-      if (!componentId) {
-        return [{ tool: 'lookup_signals', input: { query: text.slice(0, 200), limit: 15 } }];
-      }
-      return [{
-        tool: 'trace_component_timeline',
-        input: {
-          component: componentId,
-          ...(municipality ? { municipality } : {}),
-        },
-      }];
-    }
+    case 'compare':
+      return planCompareToolCalls(reportData, assessmentDate);
+    case 'temporal':
+      return planTemporalToolCalls(text, componentId);
     case 'minimal':
       if (/\bsearch\b/i.test(text) || /חיפוש/.test(text)) {
         return [{ tool: 'search_sources', input: { query: text.slice(0, 200), limit: 8 } }];

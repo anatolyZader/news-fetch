@@ -57,14 +57,14 @@ export function resolveInlineSignalCitations(prose, registry) {
   if (typeof prose !== 'string' || !prose) return '';
   if (!registry?.byLabel?.size) return prose;
 
-  let out = prose.replace(TRAILING_SIGNAL_REFS, '');
+  let out = prose.replaceAll(TRAILING_SIGNAL_REFS, '');
 
-  out = out.replace(SIGNAL_REF_GROUP, (match, inner) => {
+  out = out.replaceAll(SIGNAL_REF_GROUP, (match, inner) => {
     const resolved = citationsFromRefGroup(inner, registry);
     return resolved ?? match;
   });
 
-  out = out.replace(SIGNAL_REF, (match) => {
+  out = out.replaceAll(SIGNAL_REF, (match) => {
     const label = match.slice(1, -1);
     return citationForLabel(label, registry) ?? '';
   });
