@@ -39,6 +39,7 @@ export async function chatRoutes(app, opts) {
     pboHistoricalSearchService,
     pboReportReviewService,
     driftService,
+    getMunicipalityDashboard,
     catalogProposalService,
     geoUnknownReviewService,
     llmPort,
@@ -214,7 +215,8 @@ export async function chatRoutes(app, opts) {
     }, chatRequestTimeoutMs());
 
     const runChatTurn = async () => {
-      await streamChat(
+      try {
+        await streamChat(
         userMessage,
         history,
         reply.raw,
@@ -244,6 +246,7 @@ export async function chatRoutes(app, opts) {
           pboHistoricalSearchService,
           pboReportReviewService,
           driftService,
+          getMunicipalityDashboard,
           catalogProposalService,
           geoUnknownReviewService,
           toolProfile: String(toolProfile ?? 'default').trim() || 'default',
@@ -268,6 +271,12 @@ export async function chatRoutes(app, opts) {
         userMessage,
         costRecorder,
       });
+      } catch (err) {
+        const message = err?.message ?? 'Chat failed';
+        console.error('chat turn error:', message);
+        reply.raw.write(`data: ${JSON.stringify({ type: 'error', message })}\n\n`);
+        reply.raw.write(`data: ${JSON.stringify({ type: 'done', error: true })}\n\n`);
+      }
     };
 
     try {

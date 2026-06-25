@@ -57,6 +57,68 @@ function reportPrefixForScope(scope = 'national') {
   return reportFilePrefix(normalizeReportScopeId(scope));
 }
 
+function reportFilePatternForScope(scope = 'national') {
+  const escapedPrefix = reportPrefixForScope(scope).replaceAll(REGEX_SPECIAL_CHARS, String.raw`\$&`);
+  return new RegExp(String.raw`^${escapedPrefix}-(\d{4}-\d{2}-\d{2})(?:-(\d{4}))?\.json$`);
+}
+
+/**
+ * @param {string} filename
+ * @param {string} [scope]
+ * @returns {string | null | undefined} run_id suffix, null for exact file, undefined if no match
+ */
+export function parseReportRunIdFromFilename(filename, scope = 'national') {
+  const m = reportFilePatternForScope(scope).exec(filename);
+  if (!m) return undefined;
+  return m[2] ?? null;
+}
+
+/**
+ * Compare two report candidates; positive when `a` outranks `b`.
+ * @param {{ critical: boolean, generatedAt: string | null, articles: number }} metaA
+ * @param {number} mtimeA
+ * @param {{ critical: boolean, generatedAt: string | null, articles: number }} metaB
+ * @param {number} mtimeB
+ */
+export function compareReportCandidates(metaA, mtimeA, metaB, mtimeB) {
+  if (isBetterReportCandidate(metaA, mtimeA, { ...metaB, mtime: mtimeB })) {
+    if (isBetterReportCandidate(metaB, mtimeB, { ...metaA, mtime: mtimeA })) return 0;
+    return -1;
+  }
+  return 1;
+}
+
+/**
+ * All report JSON paths for a date (exact + suffixed), not just the winner.
+ * @param {string} date YYYY-MM-DD
+ * @param {{ reportsDir?: string, scope?: string }} [opts]
+ * @returns {string[]}
+ */
+export function listReportJsonPathsForDate(date, opts = {}) {
+  const reportsDir = opts.reportsDir ?? resolveReportsDir(opts);
+  const prefixBase = reportPrefixForScope(opts.scope);
+  if (!existsSync(reportsDir)) return [];
+
+  const paths = [];
+  const exact = resolve(reportsDir, `${prefixBase}-${date}.json`);
+  if (existsSync(exact)) paths.push(exact);
+
+  const prefix = `${prefixBase}-${date}-`;
+  let names;
+  try {
+    names = readdirSync(reportsDir);
+  } catch {
+    return paths;
+  }
+
+  for (const f of names) {
+    if (f.startsWith(prefix) && f.endsWith('.json')) {
+      paths.push(join(reportsDir, f));
+    }
+  }
+  return paths;
+}
+
 function resolveReportsDir(opts = {}) {
   if (opts.reportsDir) return opts.reportsDir;
   const fromEnv = process.env.REPORTS_DIR?.trim();
@@ -121,13 +183,19 @@ function resolveEditionWindow(date, meta) {
  *   3. Largest `assessment.total_articles_analyzed` (full merge beats slim/audio-only run).
  *   4. Newest filesystem mtime as final tiebreaker.
  * @param {string} date YYYY-MM-DD
- * @param {{ reportsDir?: string, scope?: 'national'|'north' }} [opts]
+ * @param {{ reportsDir?: string, scope?: 'national'|'north', runId?: string | null }} [opts]
  * @returns {string | null} absolute path
  */
 export function resolveReportJsonPathForDate(date, opts = {}) {
   const reportsDir = opts.reportsDir ?? resolve(ROOT, 'daily_reports');
   const prefixBase = reportPrefixForScope(opts.scope);
   if (!existsSync(reportsDir)) return null;
+
+  const runId = opts.runId;
+  if (typeof runId === 'string' && runId.length > 0) {
+    const specific = resolve(reportsDir, `${prefixBase}-${date}-${runId}.json`);
+    return existsSync(specific) ? specific : null;
+  }
 
   const exact = resolve(reportsDir, `${prefixBase}-${date}.json`);
   if (existsSync(exact)) return exact;
@@ -204,21 +272,22 @@ export function reportQualityRank(meta) {
  * SQLite is used only when no JSON exists for that date.
  *
  * @param {import('../../../db/persistence/evidenceStore.js').ReturnType<createEvidenceStore>} [store]
- * @param {{ scope?: 'national'|'north', date?: string }} [opts]
+ * @param {{ scope?: 'national'|'north', date?: string, runId?: string | null }} [opts]
  */
 export function getCachedReport(store, opts = {}) {
   const timezone = process.env.TZ_ARTICLES || 'Asia/Jerusalem';
   const today = getTodayInTimezone(timezone);
   const scope = normalizeReportScopeId(opts.scope);
   const reportsDir = resolveReportsDir(opts);
+  const loadOpts = { scope, reportsDir, runId: opts.runId };
 
   // If a specific date is requested, load exactly that date (no fallback).
   if (opts.date && /^\d{4}-\d{2}-\d{2}$/.test(opts.date)) {
-    const result = _loadReportForDate(opts.date, store, { scope, reportsDir });
+    const result = _loadReportForDate(opts.date, store, loadOpts);
     return result ? { ...result, reportDate: opts.date } : null;
   }
 
-  const todayResult = _loadReportForDate(today, store, { scope, reportsDir });
+  const todayResult = _loadReportForDate(today, store, loadOpts);
   if (todayResult) return { ...todayResult, reportDate: today };
 
   const fallback = _findLatestAvailableReport(today, store, { scope, reportsDir });
@@ -233,7 +302,8 @@ export function getCachedReport(store, opts = {}) {
  * @returns {string[]} YYYY-MM-DD strings, newest first
  */
 export function getAvailableReportDates(opts = {}) {
-  return getAvailableReportEditions(opts).map((e) => e.date);
+  const editions = getAvailableReportEditions(opts);
+  return [...new Set(editions.map((e) => e.date))].sort((a, b) => b.localeCompare(a));
 }
 
 /**
@@ -254,24 +324,42 @@ export function getAvailableReportEditions(opts = {}) {
     return [];
   }
 
-  const escapedPrefix = reportPrefixForScope(scope).replaceAll(REGEX_SPECIAL_CHARS, String.raw`\$&`);
-  const datePattern = new RegExp(String.raw`^${escapedPrefix}-(\d{4}-\d{2}-\d{2})`);
-  const dates = [...new Set(
-    names.map((f) => datePattern.exec(f)?.[1]).filter(Boolean),
-  )].sort((a, b) => b.localeCompare(a));
+  const filePattern = reportFilePatternForScope(scope);
+  /** @type {Array<{ date: string, run_id: string | null, jsonPath: string, meta: ReturnType<typeof readReportMeta>, mtime: number }>} */
+  const candidates = [];
 
-  return dates.map((date) => {
-    const jsonPath = resolveReportJsonPathForDate(date, { scope, reportsDir: dir });
-    const meta = jsonPath ? readReportMeta(jsonPath) : {
-      articles: null,
-      generatedAt: null,
-      assessmentWindow: null,
-      sourceFiles: [],
-      reportDate: date,
-    };
+  for (const f of names) {
+    const m = filePattern.exec(f);
+    if (!m) continue;
+    const date = m[1];
+    const run_id = m[2] ?? null;
+    const jsonPath = join(dir, f);
+    let mtime = 0;
+    try {
+      mtime = statSync(jsonPath).mtimeMs;
+    } catch {
+      continue;
+    }
+    candidates.push({
+      date,
+      run_id,
+      jsonPath,
+      meta: readReportMeta(jsonPath),
+      mtime,
+    });
+  }
+
+  candidates.sort((a, b) => {
+    const dateCmp = b.date.localeCompare(a.date);
+    if (dateCmp !== 0) return dateCmp;
+    return compareReportCandidates(a.meta, a.mtime, b.meta, b.mtime);
+  });
+
+  return candidates.map(({ date, run_id, meta }) => {
     const windowFields = resolveEditionWindow(date, meta);
     return {
       date,
+      run_id,
       generated_at: meta.generatedAt,
       assessment_days: windowFields.assessment_days,
       window_start: windowFields.window_start,
@@ -306,8 +394,8 @@ function _readMarkdownSidecars(jsonPath) {
 }
 
 /** Load a report for a specific date from filesystem or store. Returns payload or null. */
-function _loadReportForDate(date, store, { scope = 'national', reportsDir } = {}) {
-  const jsonPath = resolveReportJsonPathForDate(date, { scope, reportsDir });
+function _loadReportForDate(date, store, { scope = 'national', reportsDir, runId } = {}) {
+  const jsonPath = resolveReportJsonPathForDate(date, { scope, reportsDir, runId });
   if (jsonPath && existsSync(jsonPath)) {
     let parsed;
     try {

@@ -13,15 +13,18 @@ import { useLanguage } from '../context/LanguageContext.jsx';
 import { formatDate, formatPublishedDateTime } from '../lib/date.js';
 import { formatTemplate } from '../lib/i18nFormat.js';
 import {
-  formatEditionSignalsSummary,
-  formatRelativeRunTime,
-  formatWindowDaysLabel,
+  countEditionsForDate,
+  editionSelectionKey,
+  editionsMatch,
+  formatEditionPickerTriggerParts,
   formatWindowRangeLabel,
   resolveActiveEdition,
+  shouldLabelEditionRunTime,
 } from '../lib/reportEditionFormat.js';
 
 const editionShape = PropTypes.shape({
   date: PropTypes.string.isRequired,
+  run_id: PropTypes.string,
   generated_at: PropTypes.string,
   assessment_days: PropTypes.number,
   window_start: PropTypes.string,
@@ -30,19 +33,28 @@ const editionShape = PropTypes.shape({
   is_today: PropTypes.bool,
 });
 
-function EditionMenuRow({ t, edition, isNewest }) {
+const editionSelectionShape = PropTypes.shape({
+  date: PropTypes.string.isRequired,
+  run_id: PropTypes.string,
+});
+
+function EditionMenuRow({ t, edition, isNewest, sameDateCount }) {
   const signalsLine = formatWindowRangeLabel(t, edition);
+  const showRunLabel = shouldLabelEditionRunTime(edition, sameDateCount);
   const runLine = edition.generated_at
     ? formatTemplate(t('report.edition.analyzedAt'), {
       time: formatPublishedDateTime(edition.generated_at),
     })
     : null;
+  const title = formatTemplate(t('report.freshness.reportDate'), {
+    date: formatDate(edition.date),
+  });
 
   return (
     <Box sx={{ py: 0.25 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexWrap: 'wrap' }}>
         <Typography variant="body2" sx={{ fontWeight: 600 }}>
-          {formatDate(edition.date)}
+          {title}
         </Typography>
         {isNewest && (
           <Chip size="small" label={t('report.edition.newest')} color="primary" sx={{ height: 20 }} />
@@ -51,7 +63,7 @@ function EditionMenuRow({ t, edition, isNewest }) {
       <Typography variant="caption" color="text.primary" component="p" sx={{ mt: 0.25, display: 'block' }}>
         {signalsLine}
       </Typography>
-      {runLine && (
+      {runLine && showRunLabel && (
         <Typography variant="caption" color="text.secondary" component="p" sx={{ display: 'block' }}>
           {runLine}
         </Typography>
@@ -64,11 +76,12 @@ EditionMenuRow.propTypes = {
   t: PropTypes.func.isRequired,
   edition: editionShape.isRequired,
   isNewest: PropTypes.bool,
+  sameDateCount: PropTypes.number,
 };
 
 export function ReportEditionPicker({
   editions = [],
-  selectedDate = null,
+  selectedEdition = null,
   loadedEdition = null,
   onChange,
   loading = false,
@@ -78,11 +91,8 @@ export function ReportEditionPicker({
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
 
-  const active = resolveActiveEdition(loadedEdition, selectedDate, editions);
-  const reportDateLabel = active ? formatDate(active.date) : null;
-  const signalsSummary = formatEditionSignalsSummary(t, active);
-  const windowLabel = active ? formatWindowDaysLabel(t, active.assessment_days) : null;
-  const runRelative = active?.generated_at ? formatRelativeRunTime(active.generated_at) : null;
+  const active = resolveActiveEdition(loadedEdition, selectedEdition, editions);
+  const sameDateCount = countEditionsForDate(editions, active?.date);
 
   if (loading && editions.length === 0) {
     return (
@@ -94,13 +104,10 @@ export function ReportEditionPicker({
 
   if (editions.length === 0) return null;
 
-  const triggerParts = [
-  selectedDate == null ? t('report.edition.newest') : null,
-    reportDateLabel,
-    signalsSummary,
-    windowLabel,
-    runRelative,
-  ].filter(Boolean);
+  const triggerParts = formatEditionPickerTriggerParts(t, active, {
+    showNewest: selectedEdition == null,
+    sameDateCount,
+  });
 
   return (
     <>
@@ -156,20 +163,26 @@ export function ReportEditionPicker({
       >
         {editions.map((edition, index) => {
           const isNewest = index === 0;
-          const isSelected = selectedDate
-            ? selectedDate === edition.date
+          const isSelected = selectedEdition
+            ? editionsMatch(edition, selectedEdition)
             : isNewest;
+          const rowSameDateCount = countEditionsForDate(editions, edition.date);
           return (
             <MenuItem
-              key={edition.date}
+              key={editionSelectionKey(edition)}
               selected={isSelected}
               onClick={() => {
-                onChange(isNewest ? null : edition.date);
+                onChange(isNewest ? null : { date: edition.date, run_id: edition.run_id ?? null });
                 setAnchorEl(null);
               }}
               sx={{ alignItems: 'flex-start', py: 1.25 }}
             >
-              <EditionMenuRow t={t} edition={edition} isNewest={isNewest} />
+              <EditionMenuRow
+                t={t}
+                edition={edition}
+                isNewest={isNewest}
+                sameDateCount={rowSameDateCount}
+              />
             </MenuItem>
           );
         })}
@@ -180,7 +193,7 @@ export function ReportEditionPicker({
 
 ReportEditionPicker.propTypes = {
   editions: PropTypes.arrayOf(editionShape),
-  selectedDate: PropTypes.string,
+  selectedEdition: editionSelectionShape,
   loadedEdition: editionShape,
   onChange: PropTypes.func.isRequired,
   loading: PropTypes.bool,

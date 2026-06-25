@@ -27,6 +27,8 @@ export function buildRefKey(signal) {
 export function buildSignalRefRegistry(scoredComponents) {
   /** @type {Map<string, object>} */
   const byRef = new Map();
+  /** @type {Map<string, object>} */
+  const byLabel = new Map();
   /** @type {Record<string, Array<{ ref: string, label: string, signal: object }>>} */
   const byComponent = {};
   let counter = 0;
@@ -39,11 +41,55 @@ export function buildSignalRefRegistry(scoredComponents) {
       const label = `S${counter}`;
       const entry = { ref, label, signal, componentId };
       byRef.set(ref, entry);
+      byLabel.set(label, entry);
       byComponent[componentId].push(entry);
     }
   }
 
-  return { byRef, byComponent, refCount: counter };
+  return { byRef, byLabel, byComponent, refCount: counter };
+}
+
+/**
+ * @param {string|null|undefined} url
+ * @returns {string|null}
+ */
+function cleanArticleUrl(url) {
+  const u = String(url ?? '').trim();
+  if (!u || u === '(no url)' || u === 'null') return null;
+  return u;
+}
+
+/**
+ * Human-readable citation label for APA-style parentheticals.
+ * @param {object|null|undefined} signal
+ * @returns {string}
+ */
+export function citationLabelForSignal(signal) {
+  const articleSource = String(signal?.article_source ?? '').trim();
+  if (articleSource) return articleSource;
+
+  const url = cleanArticleUrl(signal?.article_url);
+  if (url) {
+    try {
+      return new URL(url).hostname.replace(/^www\./i, '');
+    } catch {
+      // fall through
+    }
+  }
+
+  const sourceType = String(signal?.source_type ?? '').trim();
+  if (sourceType) return sourceType;
+
+  return 'source';
+}
+
+/**
+ * @param {string} label e.g. S16
+ * @param {{ byLabel?: Map<string, object> }} registry
+ * @returns {object|null}
+ */
+export function resolveLabel(label, registry) {
+  return registry?.byLabel?.get(label) ?? null;
 }
 
 /**

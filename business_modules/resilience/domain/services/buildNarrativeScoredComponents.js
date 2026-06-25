@@ -172,3 +172,26 @@ export function buildDigestStubClaims(narrativeScored, registry) {
   }
   return byComponent;
 }
+
+/**
+ * Fill missing facts-pass claims with capped digest stubs when signals exist.
+ * @param {Record<string, object[]>} factsByComponent
+ * @param {{ byComponent: Record<string, object[]> }} registry
+ * @param {{ maxClaimsPerComponent?: number }} [opts]
+ * @returns {Record<string, object[]>}
+ */
+export function supplementFactsWithDigestStubs(factsByComponent, registry, opts = {}) {
+  const maxClaims = opts.maxClaimsPerComponent ?? 8;
+  const stubs = buildDigestStubClaims(null, registry);
+  const out = factsByComponent ? { ...factsByComponent } : {};
+
+  for (const componentId of COMPONENT_IDS) {
+    const hasSignals = (registry?.byComponent?.[componentId] ?? []).length > 0;
+    const hasFacts = (out[componentId] ?? []).length > 0;
+    if (hasSignals && !hasFacts && stubs[componentId]?.length) {
+      out[componentId] = stubs[componentId].slice(0, maxClaims);
+    }
+  }
+
+  return out;
+}

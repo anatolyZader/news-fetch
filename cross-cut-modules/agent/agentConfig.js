@@ -82,6 +82,11 @@ export function chatMaxToolRounds() {
   return Number.isFinite(n) && n >= 0 ? Math.min(n, 10) : 3;
 }
 
+export function chatTemporalMaxToolRounds() {
+  const n = Number.parseInt(process.env.CHAT_TEMPORAL_MAX_TOOL_ROUNDS ?? '6', 10);
+  return Number.isFinite(n) && n >= 0 ? Math.min(n, 12) : 6;
+}
+
 export function chatSessionMaxUsd() {
   // Intended to be lower than the default per-run governor cap ($2.50).
   const n = Number.parseFloat(process.env.CHAT_SESSION_MAX_USD ?? '2');

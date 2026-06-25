@@ -4,6 +4,7 @@ import { formatTemplate } from './i18nFormat.js';
 /**
  * @typedef {{
  *   date: string,
+ *   run_id?: string | null,
  *   generated_at?: string | null,
  *   assessment_days?: number | null,
  *   window_start?: string | null,
@@ -12,6 +13,28 @@ import { formatTemplate } from './i18nFormat.js';
  *   is_today?: boolean,
  * }} ReportEdition
  */
+
+/**
+ * @typedef {{ date: string, run_id?: string | null } | null} ReportEditionSelection
+ */
+
+/**
+ * @param {ReportEdition | ReportEditionSelection | null | undefined} edition
+ */
+export function editionSelectionKey(edition) {
+  if (!edition?.date) return '';
+  const runId = edition.run_id;
+  return runId ? `${edition.date}:${runId}` : edition.date;
+}
+
+/**
+ * @param {ReportEdition | ReportEditionSelection | null | undefined} a
+ * @param {ReportEdition | ReportEditionSelection | null | undefined} b
+ */
+export function editionsMatch(a, b) {
+  if (!a?.date || !b?.date) return false;
+  return editionSelectionKey(a) === editionSelectionKey(b);
+}
 
 /**
  * @param {import('../context/LanguageContext.jsx').TranslateFn} t
@@ -68,6 +91,63 @@ export function formatEditionSignalsSummary(t, edition) {
 }
 
 /**
+ * @param {ReportEdition | null | undefined} edition
+ */
+export function editionRunDiffersFromAnchor(edition) {
+  if (!edition?.generated_at || !edition?.date) return false;
+  return edition.generated_at.slice(0, 10) !== edition.date;
+}
+
+/**
+ * @param {ReportEdition | null | undefined} edition
+ * @param {number} [sameDateCount]
+ */
+export function shouldLabelEditionRunTime(edition, sameDateCount = 1) {
+  return Boolean(
+    edition?.generated_at
+    && (sameDateCount > 1 || editionRunDiffersFromAnchor(edition)),
+  );
+}
+
+/**
+ * Compact picker trigger: report date, optional multi-day range, optional relative run time.
+ * @param {import('../context/LanguageContext.jsx').TranslateFn} t
+ * @param {ReportEdition | null | undefined} edition
+ * @param {{ showNewest?: boolean, sameDateCount?: number }} [options]
+ * @returns {string[]}
+ */
+export function formatEditionPickerTriggerParts(t, edition, { showNewest = false, sameDateCount = 1 } = {}) {
+  if (!edition) return [];
+  const parts = [];
+  if (showNewest) parts.push(t('report.edition.newest'));
+
+  const start = edition.window_start;
+  const end = edition.window_end ?? edition.date;
+  const days = edition.assessment_days;
+  const isMultiDay = (start && end && start !== end) || (days != null && days > 1);
+  const showRunLabel = shouldLabelEditionRunTime(edition, sameDateCount);
+
+  if (isMultiDay && start && end && start !== end) {
+    parts.push(`${formatDate(start)}–${formatDate(end)}`);
+  } else if (showRunLabel) {
+    parts.push(formatTemplate(t('report.edition.reportForShort'), { date: formatDate(edition.date) }));
+  } else {
+    parts.push(formatDate(edition.date));
+  }
+
+  if (showRunLabel) {
+    parts.push(formatTemplate(t('report.edition.runAtShort'), {
+      time: formatPublishedDateTime(edition.generated_at),
+    }));
+  } else {
+    const runRelative = edition.generated_at ? formatRelativeRunTime(edition.generated_at) : null;
+    if (runRelative) parts.push(runRelative);
+  }
+
+  return parts;
+}
+
+/**
  * @param {string | null | undefined} iso
  */
 export function formatRelativeRunTime(iso) {
@@ -87,15 +167,25 @@ export function formatRelativeRunTime(iso) {
 }
 
 /**
- * @param {ReportEdition | null | undefined} edition
- * @param {string | null | undefined} selectedDate null = latest
+ * @param {ReportEdition | null | undefined} loadedEdition
+ * @param {ReportEditionSelection} selectedEdition null = newest
  * @param {ReportEdition[]} editions
  */
-export function resolveActiveEdition(edition, selectedDate, editions) {
-  if (edition && typeof edition === 'object') return edition;
-  if (selectedDate) {
-    return editions.find((e) => e.date === selectedDate) ?? { date: selectedDate };
+export function resolveActiveEdition(loadedEdition, selectedEdition, editions) {
+  if (loadedEdition && typeof loadedEdition === 'object') return loadedEdition;
+  if (selectedEdition?.date) {
+    return editions.find((e) => editionsMatch(e, selectedEdition)) ?? selectedEdition;
   }
   return editions[0] ?? null;
+}
+
+/**
+ * Count editions sharing the same anchor date.
+ * @param {ReportEdition[]} editions
+ * @param {string | null | undefined} date
+ */
+export function countEditionsForDate(editions, date) {
+  if (!date) return 0;
+  return editions.filter((e) => e.date === date).length;
 }
 

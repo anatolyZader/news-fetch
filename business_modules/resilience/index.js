@@ -81,6 +81,8 @@ export {
   getAvailableReportDates,
   getAvailableReportEditions,
   resolveReportJsonPathForDate,
+  listReportJsonPathsForDate,
+  parseReportRunIdFromFilename,
 } from './app/reportCacheService.js';
 export {
   updateOperatorRecommendationStatus,

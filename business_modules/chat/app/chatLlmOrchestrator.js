@@ -6,6 +6,7 @@ import {
   createAgentBudgetGovernor,
   createAgentKernel,
   chatMaxToolRounds,
+  chatTemporalMaxToolRounds,
   chatSessionMaxUsd,
   chatCompactToolLoopEnabled,
   HAIKU_MODEL,
@@ -52,7 +53,15 @@ function buildSystemTemplate(ctx) {
     `- When citing findings, use lookup_signals for signal-level evidence; when source_id is present, call get_source for verbatim quotes.\n` +
     `- RETRIEVED CONTEXT in the system message lists source_id values — cite them and use get_source for exact quotes.\n` +
     `- Default to evidence-first answers: include a short quote and source_id or url when available.\n` +
-    `- When the user asks "what changed", use compare_dates.\n` +
+    `- When the user asks "what changed" between two specific dates, use compare_dates.\n` +
+    `- When the user asks how a component evolved across many dates (municipality + component + timeline), ` +
+    `call trace_component_timeline once — do not use compare_dates as the primary answer.\n` +
+    `- If the user says "not just two dates" or asks for all dates / throughout the war, use trace_component_timeline, not compare_dates.\n` +
+    `- Never re-list available tools after the user stated a concrete question; execute tools and answer.\n` +
+    `- If tools return empty, state what was searched (component, municipality, dates) and list available dates — ` +
+    `do not revert to capability marketing.\n` +
+    `- For temporal evolution answers use this structure: (1) Timeline by analyzed_at (date and time when known), ` +
+    `(2) Phases early/mid/late, (3) 2–3 cited signals with source_id, (4) Data gaps.\n` +
     (narrativeFocus
       ? '- When the user asks for a summary or brief, use generate_brief or summarize from component narratives and signals.\n'
       : '- When the user asks for a summary or brief, use generate_brief or get_decision_brief as appropriate.\n') +
@@ -65,6 +74,28 @@ function buildSystemTemplate(ctx) {
     `${UNTRUSTED_CONTENT_INSTRUCTION}\n\n` +
     `CONTEXT:\n`
   );
+}
+
+async function emitSemanticOutputGate(send, userIntentText, assistantText) {
+  if (!assistantText.trim()) return;
+
+  try {
+    const verdict = await semanticOutputGate({
+      leftText: userIntentText,
+      rightText: assistantText,
+    });
+    if (verdict?.enabled) {
+      send({
+        type: 'semantic_output_gate',
+        ok: verdict.ok,
+        similarity: verdict.similarity,
+        threshold: verdict.threshold,
+        reason: verdict.reason,
+      });
+    }
+  } catch {
+    // Gate failures must not break chat.
+  }
 }
 
 export async function streamChatResponse(systemContext, pboLookup, messages, send, reportData, opts = {}) {
@@ -83,6 +114,7 @@ export async function streamChatResponse(systemContext, pboLookup, messages, sen
     pboHistoricalSearchService: opts.pboHistoricalSearchService ?? null,
     pboReportReviewService: opts.pboReportReviewService ?? null,
     driftService: opts.driftService ?? null,
+    getMunicipalityDashboard: opts.getMunicipalityDashboard ?? null,
     catalogProposalService: opts.catalogProposalService ?? null,
     geoUnknownReviewService: opts.geoUnknownReviewService ?? null,
     pendingActionStore: opts.pendingActionStore ?? null,
@@ -102,9 +134,13 @@ export async function streamChatResponse(systemContext, pboLookup, messages, sen
   const llmPort = opts.llmPort ?? (opts.client ? createAnthropicLlmPort({ client: opts.client }) : getDefaultLlmPort());
   const agentKernel = opts.agentKernel ?? createAgentKernel({ llmPort });
   const compactToolLoop = opts.economy?.compact_tool_loop ?? chatCompactToolLoopEnabled();
+  const contextSlice = opts.economy?.context_slice ?? 'standard';
+  const maxToolRounds = contextSlice === 'temporal'
+    ? chatTemporalMaxToolRounds()
+    : chatMaxToolRounds();
   const budget = opts.budget ?? createAgentBudgetGovernor({
     maxUsd: chatSessionMaxUsd(),
-    maxToolRounds: chatMaxToolRounds(),
+    maxToolRounds,
   });
 
   const lastUser = Array.isArray(messages)
@@ -120,7 +156,7 @@ export async function streamChatResponse(systemContext, pboLookup, messages, sen
     agentKind: 'chat',
     model: HAIKU_MODEL,
     maxTokens: 4000,
-    maxRounds: chatMaxToolRounds(),
+    maxRounds: maxToolRounds,
     system,
     messages,
     tools: toolCtx.tools,
@@ -143,26 +179,7 @@ export async function streamChatResponse(systemContext, pboLookup, messages, sen
     opts.onLoopExhausted({ stopReason: loopResult.stopReason, runId: loopResult.runId, traceId: loopResult.traceId });
   }
 
-  // Optional semantic output gate: telemetry-only (never blocks completion).
-  if (assistantText.trim()) {
-    try {
-      const verdict = await semanticOutputGate({
-        leftText: userIntentText,
-        rightText: assistantText,
-      });
-      if (verdict?.enabled) {
-        send({
-          type: 'semantic_output_gate',
-          ok: verdict.ok,
-          similarity: verdict.similarity,
-          threshold: verdict.threshold,
-          reason: verdict.reason,
-        });
-      }
-    } catch {
-      // Gate failures must not break chat.
-    }
-  }
+  await emitSemanticOutputGate(send, userIntentText, assistantText);
 }
 
 export async function generateChatTitle(seedText, opts = {}) {

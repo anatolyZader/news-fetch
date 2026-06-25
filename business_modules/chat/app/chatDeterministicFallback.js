@@ -4,6 +4,7 @@
 import { resolveChatContextTier } from '../domain/chatContextTier.js';
 import { handleChatToolCall } from './chatToolHandlers.js';
 import { createChatToolContext } from './createChatToolContext.js';
+import { extractMunicipalityFromMessage } from '../domain/municipalityResolve.js';
 import { operatorEpistemicOverlayEnabled } from '../../../cross-cut-modules/resilience-contracts/operatorEpistemicOverlay.js';
 
 /**
@@ -34,6 +35,19 @@ export function planDeterministicToolCalls(contextSlice, message, reportData, op
       const dateB = assessmentDate ?? dates[dates.length - 1] ?? null;
       const dateA = dates.length >= 2 ? dates[dates.length - 2] : dateB;
       return [{ tool: 'compare_dates', input: { date_a: dateA, date_b: dateB } }];
+    }
+    case 'temporal': {
+      const municipality = extractMunicipalityFromMessage(text) ?? undefined;
+      if (!componentId) {
+        return [{ tool: 'lookup_signals', input: { query: text.slice(0, 200), limit: 15 } }];
+      }
+      return [{
+        tool: 'trace_component_timeline',
+        input: {
+          component: componentId,
+          ...(municipality ? { municipality } : {}),
+        },
+      }];
     }
     case 'minimal':
       if (/\bsearch\b/i.test(text) || /חיפוש/.test(text)) {

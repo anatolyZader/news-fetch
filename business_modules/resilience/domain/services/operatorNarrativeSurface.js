@@ -4,13 +4,17 @@
  */
 import { agentClaimsForComponent } from './buildNarrativeScoredComponents.js';
 import { resolveNarrativePipelineMode } from './narrativeGrounding/groundingConfig.js';
-import { buildRefKey } from './narrativeGrounding/signalRefRegistry.js';
+import {
+  buildRefKey,
+  buildSignalRefRegistry,
+} from './narrativeGrounding/signalRefRegistry.js';
 import {
   operatorSurfaceMode,
   operatorEvidenceChars,
   operatorMaxClaims,
 } from '../../../../cross-cut-modules/resilience-contracts/operatorSurfaceMode.js';
 import { buildDeterministicNarrativeFromClaims } from './operatorInvestigationSurface.js';
+import { resolveInlineSignalCitations } from './narrativeGrounding/inlineCitationResolver.js';
 
 export const INSUFFICIENT_SYNTHESIS_NARRATIVE =
   'Insufficient LLM synthesis — see supporting evidence below.';
@@ -75,6 +79,73 @@ export function buildProseFromClaims(claims) {
   }
   if (texts.length === 1) return texts[0];
   return texts.join(' Separately, ');
+}
+
+/**
+ * @param {string} componentId
+ * @returns {string}
+ */
+function claimsFromRichPool(comp) {
+  const pool = comp.operator_investigation_pool ?? [];
+  if (pool.length < 2) return [];
+
+  const highlights = comp.evidence_operator_structured ?? [];
+  const source = highlights.length > 0
+    ? highlights
+    : pool.slice(0, maxClaimsInProse());
+
+  return source
+    .map((item) => {
+      const text = String(item.text ?? item.evidence ?? '').trim();
+      if (!text) return null;
+      const ref = item.ref ?? null;
+      return {
+        text,
+        signal_refs: ref ? [ref] : [],
+        relation: 'parallel',
+      };
+    })
+    .filter(Boolean);
+}
+
+/**
+ * @param {object} assessment
+ * @returns {{ byLabel: Map<string, object> }|null}
+ */
+function citationRegistryFromAssessment(assessment) {
+  const stored = assessment?.narrative_citation_registry?.entries;
+  if (Array.isArray(stored) && stored.length > 0) {
+    const byLabel = new Map();
+    for (const entry of stored) {
+      if (!entry?.label) continue;
+      byLabel.set(entry.label, {
+        label: entry.label,
+        ref: entry.ref,
+        signal: {
+          article_source: entry.article_source ?? null,
+          article_url: entry.article_url ?? null,
+          source_type: entry.source_type ?? null,
+        },
+      });
+    }
+    return { byLabel };
+  }
+
+  const scored = {};
+  for (const comp of assessment?.components ?? []) {
+    const signals = (comp.top_contributors ?? []).filter((s) => s?.evidence);
+    if (signals.length > 0) {
+      scored[comp.component_id] = { signals };
+    }
+  }
+  if (Object.keys(scored).length === 0) return null;
+  return buildSignalRefRegistry(scored);
+}
+
+function applyCitationResolverToField(text, registry) {
+  const raw = String(text ?? '').trim();
+  if (!raw || !registry?.byLabel?.size || !/\[S\d+\]/.test(raw)) return raw;
+  return resolveInlineSignalCitations(raw, registry);
 }
 
 /**
@@ -463,6 +534,14 @@ export function resolveOperatorComponentNarrative(comp) {
     return fromClaims;
   }
 
+  if (isRichSurfaceMode()) {
+    const poolClaims = claimsFromRichPool(comp);
+    if (poolClaims.length > 0) {
+      const fromPool = buildDeterministicNarrativeFromClaims(poolClaims);
+      if (fromPool) return fromPool;
+    }
+  }
+
   const ep = epistemicSliceFromComponent(comp);
   if ((ep.signal_count ?? 0) > 0) {
     return buildEpistemicOperatorProse(comp.component_id, ep);
@@ -510,6 +589,37 @@ function applyCrossComponentSynthesisFallback(assessment) {
   }
 }
 
+function applyDegradedNarrativeCaveat(assessment) {
+  if (assessment.narrative_pipeline_degraded !== true) return;
+
+  const caveat =
+    '**Narrative validation incomplete** — component prose may not meet grounding standards; '
+    + 'prefer evidence_operator bullets and operator display states.\n\n';
+  const existing = assessment.evidence_quality_note ?? '';
+  if (!existing.includes('Narrative validation incomplete')) {
+    assessment.evidence_quality_note = `${caveat}${existing}`;
+  }
+}
+
+function applyCitationRegistryToAssessment(assessment, citationRegistry) {
+  if (!citationRegistry) return;
+
+  if (typeof assessment.cross_component_synthesis_operator === 'string') {
+    assessment.cross_component_synthesis_operator = applyCitationResolverToField(
+      assessment.cross_component_synthesis_operator,
+      citationRegistry,
+    );
+  }
+  for (const comp of assessment.components ?? []) {
+    if (typeof comp.narrative_operator === 'string') {
+      comp.narrative_operator = applyCitationResolverToField(
+        comp.narrative_operator,
+        citationRegistry,
+      );
+    }
+  }
+}
+
 /**
  * @param {object|null|undefined} assessment
  * @returns {object|null|undefined}
@@ -521,15 +631,7 @@ export function finalizeOperatorNarrativeSurface(assessment) {
     assessment.narrative_pipeline_mode = resolveNarrativePipelineMode();
   }
 
-  if (assessment.narrative_pipeline_degraded === true) {
-    const caveat =
-      '**Narrative validation incomplete** — component prose may not meet grounding standards; '
-      + 'prefer evidence_operator bullets and operator display states.\n\n';
-    const existing = assessment.evidence_quality_note ?? '';
-    if (!existing.includes('Narrative validation incomplete')) {
-      assessment.evidence_quality_note = `${caveat}${existing}`;
-    }
-  }
+  applyDegradedNarrativeCaveat(assessment);
 
   for (const comp of assessment.components ?? []) {
     if (!comp || typeof comp !== 'object') continue;
@@ -537,6 +639,7 @@ export function finalizeOperatorNarrativeSurface(assessment) {
   }
 
   applyCrossComponentSynthesisFallback(assessment);
+  applyCitationRegistryToAssessment(assessment, citationRegistryFromAssessment(assessment));
 
   return assessment;
 }

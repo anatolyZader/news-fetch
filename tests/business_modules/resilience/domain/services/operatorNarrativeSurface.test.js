@@ -175,4 +175,30 @@ describe('operatorNarrativeSurface', () => {
     assert.ok(assessment.components[0].evidence_operator?.length >= 1);
     assert.ok(assessment.components[0].evidence_operator_structured?.length >= 1);
   });
+
+  it('rich pool fallback beats epistemic stub when claims are absent', () => {
+    const prevMode = process.env.RESILIENCE_OPERATOR_SURFACE_MODE;
+    process.env.RESILIENCE_OPERATOR_SURFACE_MODE = 'rich';
+
+    const assessment = {
+      components: [{
+        component_id: 'narrative',
+        narrative: INSUFFICIENT_SYNTHESIS_NARRATIVE,
+        operator_surface_mode: 'rich',
+        operator_investigation_pool: [
+          { ref: 'a@url:https://x.test/1', evidence: 'First pool excerpt.', url: 'https://x.test/1' },
+          { ref: 'b@url:https://x.test/2', evidence: 'Second pool excerpt.', url: 'https://x.test/2' },
+        ],
+        instrument: { signal_count: 5, source_diversity: 1 },
+      }],
+    };
+
+    finalizeOperatorNarrativeSurface(assessment);
+    assert.match(assessment.components[0].narrative_operator, /First pool excerpt/);
+    assert.match(assessment.components[0].narrative_operator, /Second pool excerpt/);
+    assert.doesNotMatch(assessment.components[0].narrative_operator, /limited evidence base/);
+
+    if (prevMode === undefined) delete process.env.RESILIENCE_OPERATOR_SURFACE_MODE;
+    else process.env.RESILIENCE_OPERATOR_SURFACE_MODE = prevMode;
+  });
 });

@@ -34,3 +34,28 @@ export function validateDate(dateStr, timezone = 'Asia/Jerusalem') {
   }
   return { valid: true };
 }
+
+const DEFAULT_ANALYSIS_TZ = process.env.TZ_ARTICLES || 'Asia/Jerusalem';
+
+/**
+ * Format an analysis timestamp for operator display (date + time in project timezone).
+ * @param {string|null|undefined} isoOrDate - ISO-8601 datetime or YYYY-MM-DD
+ * @param {{ timezone?: string }} [opts]
+ * @returns {string|null} e.g. "2026-03-21 14:32" or date-only if no time available
+ */
+export function formatAnalysisDateTime(isoOrDate, opts = {}) {
+  const raw = String(isoOrDate ?? '').trim();
+  if (!raw) return null;
+  const tz = opts.timezone ?? DEFAULT_ANALYSIS_TZ;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+  const d = new Date(raw);
+  if (Number.isNaN(d.getTime())) return raw.slice(0, 10) || null;
+  const datePart = d.toLocaleDateString('en-CA', { timeZone: tz });
+  const timePart = d.toLocaleTimeString('en-GB', {
+    timeZone: tz,
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
+  return `${datePart} ${timePart}`;
+}

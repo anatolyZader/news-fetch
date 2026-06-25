@@ -2,6 +2,7 @@
  * Claude tool schemas for chat agent.
  */
 import { operatorEpistemicOverlayEnabled } from '../../../../cross-cut-modules/resilience-contracts/operatorEpistemicOverlay.js';
+import { pboReviewRagEnabled } from '../../../../cross-cut-modules/retrieval/ragConfig.js';
 
 export const SOURCE_TYPE_ENUM = [
   'news', 'radio', 'field', 'pbo', 'pbo_regional', 'naftali', 'whatsapp',
@@ -45,6 +46,9 @@ export const CORE_CHAT_TOOLS = [
         source_type: { type: 'string', enum: SIGNAL_SOURCE_ENUM, description: 'Filter by source type (optional).' },
         municipality: { type: 'string', description: 'Filter by municipality (optional).' },
         date: { type: 'string', description: 'Filter by date YYYY-MM-DD (optional).' },
+        date_from: { type: 'string', description: 'Start date YYYY-MM-DD inclusive (optional).' },
+        date_to: { type: 'string', description: 'End date YYYY-MM-DD inclusive (optional).' },
+        group_by: { type: 'string', enum: ['date'], description: 'Group results by date (optional).' },
         limit: { type: 'number', description: 'Max signals (default 10, max 25).' },
       },
     },
@@ -79,6 +83,23 @@ export const CORE_CHAT_TOOLS = [
         date_b: { type: 'string', description: 'Newer date (YYYY-MM-DD).' },
       },
       required: ['date_a', 'date_b'],
+    },
+  },
+  {
+    name: 'trace_component_timeline',
+    description:
+      'Trace how a resilience component evolved across many assessment dates in one call. ' +
+      'Returns per-date analyzed_at (date and time when available), instrument, narrative excerpt, ' +
+      'PBO municipal scores (when municipality set), and signal counts. Use for multi-date evolution — not pairwise compare_dates.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        component: { type: 'string', enum: COMPONENT_ENUM, description: 'Component id (required).' },
+        municipality: { type: 'string', description: 'Municipality name Hebrew or English (optional).' },
+        date_from: { type: 'string', description: 'Start date YYYY-MM-DD (optional).' },
+        date_to: { type: 'string', description: 'End date YYYY-MM-DD (optional).' },
+      },
+      required: ['component'],
     },
   },
   {
@@ -466,7 +487,8 @@ export function buildSystemTemplateToolList(opts = {}) {
   const core = [
     '- lookup_pbo: detailed PBO municipality data',
     '- lookup_signals: search raw behavioral signals',
-    '- compare_dates: compare two assessment dates',
+    '- compare_dates: compare two assessment dates (pairwise only)',
+    '- trace_component_timeline: multi-date component evolution (prefer over compare_dates for timelines)',
     '- generate_brief: formatted brief for an audience',
     '- list_sources / search_sources / get_source: original archive documents',
   ];
@@ -487,8 +509,14 @@ export function buildSystemTemplateToolList(opts = {}) {
     );
   }
   if (opts.analystToolsEnabled && opts.isAnalyst) {
+    const pboLines = [
+      '- list_pbo_reviews / get_pbo_review: PBO analyst tools',
+    ];
+    if (pboReviewRagEnabled()) {
+      pboLines.unshift('- search_pbo_history: PBO archive RAG search');
+    }
     core.push(
-      '- search_pbo_history / list_pbo_reviews / get_pbo_review: PBO analyst tools',
+      ...pboLines,
       '- get_resilience_drift: drift time series and alerts',
       '- list_validation_queue / get_validation_item / explain_validation_item: validation review queue',
       '- list_geo_unknown: geo unknown locality queue',

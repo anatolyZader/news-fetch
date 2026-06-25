@@ -18,11 +18,15 @@ export {
   buildSignalRefRegistry,
   buildRefKey,
   resolveRef,
+  resolveLabel,
   formatSignalWithRef,
   signalArticleKey,
+  citationLabelForSignal,
   evidenceAttributionLabel,
   epistemicFramingHint,
 } from './signalRefRegistry.js';
+
+export { resolveInlineSignalCitations } from './inlineCitationResolver.js';
 
 export {
   buildCoOccurrenceGroups,

@@ -17,6 +17,13 @@ import {
 } from './narrativeTextUtils.js';
 
 const VALID_RELATIONS = new Set(['parallel', 'same_article_only', 'none']);
+const SIGNAL_LABEL_IN_PROSE = /\[S\d+\]/;
+
+function warnSignalLabelsInProse(text, fieldName, warnings) {
+  if (text && SIGNAL_LABEL_IN_PROSE.test(text)) {
+    warnings.push(`${fieldName}: contains [S#] labels — use [source_label](url) in prose`);
+  }
+}
 
 /**
  * @param {object} comp
@@ -80,6 +87,18 @@ function validateNarrativeConnectives(comp, def, ctx) {
   }
 }
 
+function validateComponentEvidenceOverlap(comp, def, scored, signalCount, warnings) {
+  for (const evItem of comp.evidence ?? []) {
+    const stripped = stripMarkdownLinks(evItem);
+    const overlaps = (scored.signals ?? []).map((s) =>
+      bestEvidenceOverlap(stripped, s.evidence ?? ''));
+    const maxOverlap = overlaps.length ? Math.max(...overlaps) : 0;
+    if (signalCount > 0 && maxOverlap < EVIDENCE_OVERLAP_MIN * 0.5) {
+      warnings.push(`${def.id}: evidence item low overlap (${maxOverlap.toFixed(2)})`);
+    }
+  }
+}
+
 /**
  * @param {object | undefined} comp
  * @param {object} def
@@ -87,13 +106,16 @@ function validateNarrativeConnectives(comp, def, ctx) {
  */
 function validateResilienceComponent(comp, def, ctx) {
   const { errors, warnings, manifestMap, scoredComponents } = ctx;
-  if (!comp) {
-    errors.push(`${def.id}: missing component block`);
-    return;
-  }
-
   const scored = scoredComponents[def.id] ?? {};
   const signalCount = scored.signal_count ?? scored.signals?.length ?? 0;
+  const inPolishOutput = (ctx.polishedComponentIds ?? new Set()).has(def.id);
+
+  if (!comp) {
+    if (signalCount > 0 && inPolishOutput) {
+      errors.push(`${def.id}: missing component block`);
+    }
+    return;
+  }
 
   if (signalCount > 0 && (!Array.isArray(comp.evidence) || comp.evidence.length === 0)) {
     errors.push(`${def.id}: evidence[] required when signals present`);
@@ -107,18 +129,9 @@ function validateResilienceComponent(comp, def, ctx) {
   }
 
   validateNarrativeClaims(comp, def, ctx);
-
-  for (const evItem of comp.evidence ?? []) {
-    const stripped = stripMarkdownLinks(evItem);
-    const overlaps = (scored.signals ?? []).map((s) =>
-      bestEvidenceOverlap(stripped, s.evidence ?? ''));
-    const maxOverlap = overlaps.length ? Math.max(...overlaps) : 0;
-    if (signalCount > 0 && maxOverlap < EVIDENCE_OVERLAP_MIN * 0.5) {
-      warnings.push(`${def.id}: evidence item low overlap (${maxOverlap.toFixed(2)})`);
-    }
-  }
-
+  validateComponentEvidenceOverlap(comp, def, scored, signalCount, warnings);
   validateNarrativeConnectives(comp, def, ctx);
+  warnSignalLabelsInProse(comp.narrative ?? '', `${def.id}.narrative`, warnings);
 }
 
 /**
@@ -134,7 +147,12 @@ export function validateNarrativeOutput(narratives, opts = {}) {
   const manifestMap = Object.fromEntries(
     RESILIENCE_COMPONENTS.map((d) => [d.id, new Set(d.behavioral_manifestations ?? [])]),
   );
-  const ctx = { errors, warnings, manifestMap, scoredComponents, registry };
+  const polishedComponentIds = new Set(
+    (narratives.components ?? []).map((c) => c.component_id).filter(Boolean),
+  );
+  const ctx = {
+    errors, warnings, manifestMap, scoredComponents, registry, polishedComponentIds,
+  };
 
   for (const def of RESILIENCE_COMPONENTS) {
     const comp = (narratives.components ?? []).find((c) => c.component_id === def.id);
@@ -150,6 +168,7 @@ export function validateNarrativeOutput(narratives, opts = {}) {
   if (synthesis && !synthesis.includes('-') && !synthesis.includes('No shared evidence')) {
     warnings.push('cross_component_synthesis: expected bullet format or explicit non-claims');
   }
+  warnSignalLabelsInProse(synthesis, 'cross_component_synthesis', warnings);
 
   return {
     ok: errors.length === 0,

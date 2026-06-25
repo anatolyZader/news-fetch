@@ -75,6 +75,7 @@ describe('chatAgentToolSelection (offline eval)', () => {
       assert.equal(names.has('list_operator_recommendations'), false);
       assert.equal(names.has('propose_operator_recommendation'), false);
       assert.ok(names.has('lookup_signals'));
+      assert.ok(names.has('trace_component_timeline'));
     } finally {
       if (prev === undefined) delete process.env.RESILIENCE_OPERATOR_EPISTEMIC_OVERLAY;
       else process.env.RESILIENCE_OPERATOR_EPISTEMIC_OVERLAY = prev;

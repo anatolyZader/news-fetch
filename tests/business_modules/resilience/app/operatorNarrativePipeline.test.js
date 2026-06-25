@@ -9,6 +9,7 @@ import {
   applyOperatorNarrativePipeline,
 } from '../../../../business_modules/resilience/app/operatorNarrativePipeline.js';
 import { buildFullSignalDigest } from '../../../../business_modules/resilience/domain/services/buildFullSignalDigest.js';
+import { buildSignalRefRegistry } from '../../../../business_modules/resilience/domain/services/narrativeGrounding/signalRefRegistry.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const fixtures = JSON.parse(
@@ -76,6 +77,69 @@ describe('operatorNarrativePipeline', () => {
     );
     assert.equal(assessment.narrative_pipeline_mode, 'hybrid');
     assert.ok(assessment.cross_component_synthesis_operator);
+  });
+
+  it('persists narrative_claims and resolves [S#] citations in hybrid mode', () => {
+    process.env.RESILIENCE_NARRATIVE_PIPELINE = 'hybrid';
+    const signals = fixtures.scored_components.narrative.signals;
+    const registry = buildSignalRefRegistry({ narrative: { signals } });
+    const assessment = {
+      components: [{
+        component_id: 'narrative',
+        narrative: 'Agent thin template.',
+      }],
+    };
+    const polish = {
+      ...fixtures.good_narrative_output,
+      components: [{
+        ...fixtures.good_narrative_output.components[0],
+        narrative: `${fixtures.good_narrative_output.components[0].narrative} [S1].`,
+      }],
+      cross_component_synthesis: 'Executive summary with [S1].',
+    };
+
+    applyOperatorNarrativeToAssessment(assessment, {
+      polish,
+      groundingScores: { byComponent: { narrative: { score: 0.9 } } },
+      registry,
+      mergedNarratives: {
+        components: [{
+          component_id: 'narrative',
+          narrative_claims: fixtures.good_narrative_output.components[0].narrative_claims,
+        }],
+      },
+    });
+
+    assert.ok(assessment.components[0].narrative_claims?.length > 0);
+    assert.doesNotMatch(assessment.components[0].narrative_operator, /\[S\d+\]/);
+    assert.doesNotMatch(assessment.cross_component_synthesis_operator, /\[S\d+\]/);
+    assert.ok(assessment.narrative_citation_registry?.entries?.length > 0);
+  });
+
+  it('backfills narrative_operator when polish omits component narrative', () => {
+    process.env.RESILIENCE_NARRATIVE_PIPELINE = 'hybrid';
+    const signals = fixtures.scored_components.narrative.signals;
+    const registry = buildSignalRefRegistry({ narrative: { signals } });
+    const assessment = {
+      components: [{ component_id: 'narrative', narrative: 'Agent thin template.' }],
+    };
+
+    applyOperatorNarrativeToAssessment(assessment, {
+      polish: { components: [], cross_component_synthesis: '' },
+      groundingScores: { byComponent: {} },
+      registry,
+      mergedNarratives: {
+        components: [{
+          component_id: 'narrative',
+          narrative_claims: fixtures.good_narrative_output.components[0].narrative_claims,
+        }],
+      },
+    });
+
+    assert.ok(assessment.components[0].narrative_operator);
+    assert.match(assessment.components[0].narrative_operator, /sleep disruption/i);
+    assert.ok(assessment.narrative_pipeline_degraded);
+    assert.ok(assessment.narrative_pipeline_degrade_reasons?.includes('polish_miss_backfill'));
   });
 
   it('legacy mode overwrites agent narrative on disk', () => {

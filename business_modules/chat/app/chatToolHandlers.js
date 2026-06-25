@@ -22,6 +22,7 @@ import {
 } from '../domain/chatConfig.js';
 import { compressChatToolResult } from '../domain/chatToolCompress.js';
 import { wrapToolResultIfUntrusted, wrapUntrustedBlock } from '../../../cross-cut-modules/security/index.js';
+import { buildComponentTimeline, formatComponentTimeline } from '../domain/traceComponentTimeline.js';
 
 
 const VALIDATION_ACTIONS = new Set([
@@ -199,7 +200,14 @@ async function handleLookupPbo(input, ctx) {
 }
 
 function handleLookupSignals(input) {
-  const signals = loadSignals({ date: input.date, sourceType: input.source_type });
+  const dateFrom = input.date_from ?? undefined;
+  const dateTo = input.date_to ?? undefined;
+  const signals = loadSignals({
+    date: input.date,
+    dateFrom,
+    dateTo,
+    sourceType: input.source_type,
+  });
   const matches = searchSignals(signals, {
     query: input.query,
     component: input.component,
@@ -207,7 +215,19 @@ function handleLookupSignals(input) {
     municipality: input.municipality,
     limit: Math.min(input.limit ?? 10, 25),
   });
-  return formatSignals(matches);
+  const groupBy = input.group_by === 'date' ? 'date' : undefined;
+  return formatSignals(matches, { groupBy });
+}
+
+async function handleTraceComponentTimeline(_toolName, input, ctx) {
+  const includeScores = ctx.reportData?.display_view === DISPLAY_VIEWS.analyst;
+  const result = await buildComponentTimeline(input, {
+    includeScores,
+    isAnalyst: ctx.isAnalyst,
+    getMunicipalityDashboard: ctx.getMunicipalityDashboard ?? null,
+    pboReportReviewService: ctx.pboReportReviewService ?? null,
+  });
+  return formatComponentTimeline(result);
 }
 
 function handleCompareDates(input, ctx) {
@@ -449,6 +469,7 @@ const CHAT_TOOL_HANDLERS = {
   lookup_signals: (_toolName, input) => handleLookupSignals(input),
   get_component_evidence_bundle: handleGetComponentEvidenceBundle,
   compare_dates: (_toolName, input, ctx) => handleCompareDates(input, ctx),
+  trace_component_timeline: handleTraceComponentTimeline,
   generate_brief: (_toolName, input, ctx) =>
     generateBrief(
       { ...input, language: input.language ?? ctx.uiLang ?? 'en' },

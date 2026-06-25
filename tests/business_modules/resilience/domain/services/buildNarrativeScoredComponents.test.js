@@ -6,7 +6,10 @@ import {
   mergeAgentClaimsWithFacts,
   mergeClaimsLists,
   agentClaimsForComponent,
+  buildDigestStubClaims,
+  supplementFactsWithDigestStubs,
 } from '../../../../../business_modules/resilience/domain/services/buildNarrativeScoredComponents.js';
+import { buildSignalRefRegistry } from '../../../../../business_modules/resilience/domain/services/narrativeGrounding/signalRefRegistry.js';
 
 const fearSignal = {
   signal_type: 'fear_expression',
@@ -90,5 +93,21 @@ describe('mergeAgentClaimsWithFacts', () => {
     };
     const merged = mergeClaimsLists([claim], [claim]);
     assert.equal(merged.length, 1);
+  });
+
+  it('supplementFactsWithDigestStubs fills empty facts when signals exist', () => {
+    const scored = buildNarrativeScoredComponents([fearSignal, complianceSignal]);
+    const registry = buildSignalRefRegistry(scored);
+    const stubs = buildDigestStubClaims(scored, registry);
+
+    const supplemented = supplementFactsWithDigestStubs(
+      { lifesaving_behavior: stubs.lifesaving_behavior ?? [] },
+      registry,
+      { maxClaimsPerComponent: 3 },
+    );
+
+    assert.ok(supplemented.narrative?.length > 0);
+    assert.ok(supplemented.lifesaving_behavior?.length > 0);
+    assert.ok(supplemented.narrative.length <= 3);
   });
 });

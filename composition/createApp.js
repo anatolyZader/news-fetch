@@ -8,6 +8,7 @@ import fastifySwaggerUi from '@fastify/swagger-ui';
 import YAML from 'yaml';
 import { createReportReadPort, createReportDisplayPort } from '../business_modules/resilience/index.js';
 import { createClaudeChatAdapter } from '../business_modules/chat/infrastructure/adapters/claudeChatAdapter.js';
+import { getMunicipalityDashboard } from '../business_modules/pbo_report_muni/index.js';
 import { registerAppErrorHandler } from '../cross-cut-modules/errors/index.js';
 import {
   getDefaultEventBus,
@@ -277,6 +278,7 @@ async function registerApplicationRoutes(app, ctx) {
     pboHistoricalSearchService: w.pboHistoricalSearchService,
     pboReportReviewService: w.pboReportReviewService,
     driftService,
+    getMunicipalityDashboard,
     catalogProposalService: w.catalogProposalService,
     geoUnknownReviewService: w.geoUnknownReviewService,
     llmPort: w.sharedLlmPort,

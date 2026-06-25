@@ -14,6 +14,7 @@ export {
   assessmentAgentMaxUsd,
   assessmentAgentMaxRounds,
   chatMaxToolRounds,
+  chatTemporalMaxToolRounds,
   chatSessionMaxUsd,
   validationAgentMaxRounds,
   deterministicPlannerEnabled,

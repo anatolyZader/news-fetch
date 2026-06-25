@@ -358,6 +358,8 @@ export const translations = {
     'report.edition.windowRange': 'Signals {start}–{end}',
     'report.edition.windowSingleDay': 'Signals {date}',
     'report.edition.analyzedAt': 'Analysis run {time}',
+    'report.edition.reportForShort': 'Report {date}',
+    'report.edition.runAtShort': 'Run {time}',
     'report.edition.articleCount': '{n} articles',
     'report.edition.contextLine': '{scope} · {reportDate} · {windowRange} · {runTime}',
     'report.edition.scopeSwitched': 'Switched to {scope} — showing the latest available report for this scope.',
@@ -1101,7 +1103,7 @@ export const translations = {
 
     // Chat panel
     'chat.header':       'Ask about this report',
-    'chat.placeholder':  'Ask anything about today\'s resilience assessment…',
+    'chat.placeholder':  'Ask anything about resilience assessments — today or past dates…',
     'chat.input':        'Ask a question…',
     'chat.send':         'Send',
     'chat.closeTitle':   'Close chat?',
@@ -1574,6 +1576,8 @@ export const translations = {
     'report.edition.windowRange': 'אותות {start}–{end}',
     'report.edition.windowSingleDay': 'אותות {date}',
     'report.edition.analyzedAt': 'ניתוח {time}',
+    'report.edition.reportForShort': 'דוח {date}',
+    'report.edition.runAtShort': 'ריצה {time}',
     'report.edition.articleCount': '{n} מאמרים',
     'report.edition.contextLine': '{scope} · {reportDate} · {windowRange} · {runTime}',
     'report.edition.scopeSwitched': 'עבר ל{scope} — מוצג הדוח האחרון הזמין להיקף זה.',
@@ -2141,7 +2145,7 @@ export const translations = {
 
     // Chat panel
     'chat.header':      'שאל על הדוח',
-    'chat.placeholder': 'שאל כל שאלה על הערכת החוסן של היום…',
+    'chat.placeholder': 'שאל על הערכות חוסן — היום או תאריכים קודמים…',
     'chat.input':       'שאל שאלה…',
     'chat.send':        'שלח',
     'chat.closeTitle':  'לסגור את הצ׳אט?',
@@ -2732,6 +2736,8 @@ export const translations = {
     'report.edition.windowRange': 'Сигналы {start}–{end}',
     'report.edition.windowSingleDay': 'Сигналы {date}',
     'report.edition.analyzedAt': 'Анализ {time}',
+    'report.edition.reportForShort': 'Отчёт {date}',
+    'report.edition.runAtShort': 'Запуск {time}',
     'report.edition.articleCount': '{n} статей',
     'report.edition.contextLine': '{scope} · {reportDate} · {windowRange} · {runTime}',
     'report.edition.scopeSwitched': 'Переключено на {scope} — показан последний доступный отчёт для этого охвата.',
@@ -3259,7 +3265,7 @@ export const translations = {
 
     // Chat panel
     'chat.header':      'Задайте вопрос об отчёте',
-    'chat.placeholder': 'Задайте любой вопрос об оценке устойчивости сегодня…',
+    'chat.placeholder': 'Задайте вопрос об оценках устойчивости — сегодня или за прошлые даты…',
     'chat.input':       'Задайте вопрос…',
     'chat.send':        'Отправить',
     'chat.closeTitle':  'Закрыть чат?',

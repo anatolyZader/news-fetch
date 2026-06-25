@@ -124,6 +124,8 @@ function compressToolOutput(toolName, raw) {
       return JSON.stringify(parseSignalLines(raw, 8));
     case 'compare_dates':
       return compressCompareDates(raw);
+    case 'trace_component_timeline':
+      return truncateLongText(raw, 6000);
     case 'get_component_evidence_bundle':
     case 'get_decision_brief':
     case 'get_pbo_review':

@@ -4,7 +4,13 @@ import { mkdtempSync, writeFileSync, rmSync, utimesSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 
-import { resolveReportJsonPathForDate, getAvailableReportEditions } from '../../../../business_modules/resilience/index.js';
+import {
+  resolveReportJsonPathForDate,
+  getAvailableReportEditions,
+  getCachedReport,
+  listReportJsonPathsForDate,
+  parseReportRunIdFromFilename,
+} from '../../../../business_modules/resilience/index.js';
 
 function miniReport(totalArticles, { generatedAt, critical } = {}) {
   return JSON.stringify({
@@ -114,5 +120,82 @@ describe('resolveReportJsonPathForDate', () => {
     assert.strictEqual(june1?.window_start, '2026-05-30');
     assert.strictEqual(june2?.assessment_days, 3);
     assert.strictEqual(june2?.window_start, '2026-05-31');
+  });
+
+  it('lists multiple same-day runs with distinct run_id values', () => {
+    const morning = join(dir, 'resilience-report-2026-07-01-0900.json');
+    const evening = join(dir, 'resilience-report-2026-07-01-1800.json');
+    writeFileSync(morning, miniReport(40, { generatedAt: '2026-07-01T09:00:00.000Z' }));
+    writeFileSync(evening, miniReport(12, { generatedAt: '2026-07-01T18:00:00.000Z' }));
+
+    const editions = getAvailableReportEditions({ reportsDir: dir, scope: 'national' })
+      .filter((e) => e.date === '2026-07-01');
+    assert.equal(editions.length, 2);
+    assert.deepEqual(
+      editions.map((e) => e.run_id).sort((a, b) => a.localeCompare(b)),
+      ['0900', '1800'],
+    );
+    assert.strictEqual(editions[0].run_id, '1800');
+  });
+
+  it('keeps exact file as default winner when exact and suffixed coexist', () => {
+    const exact = join(dir, 'resilience-report-2026-07-02.json');
+    const suffixed = join(dir, 'resilience-report-2026-07-02-1800.json');
+    writeFileSync(exact, miniReport(10, { generatedAt: '2026-07-02T08:00:00.000Z' }));
+    writeFileSync(suffixed, miniReport(99, { generatedAt: '2026-07-02T18:00:00.000Z' }));
+
+    assert.strictEqual(
+      resolveReportJsonPathForDate('2026-07-02', { reportsDir: dir }),
+      exact,
+    );
+    const editions = getAvailableReportEditions({ reportsDir: dir, scope: 'national' })
+      .filter((e) => e.date === '2026-07-02');
+    assert.equal(editions.length, 2);
+  });
+
+  it('loads a specific run via runId', () => {
+    const morning = join(dir, 'resilience-report-2026-07-03-0900.json');
+    const evening = join(dir, 'resilience-report-2026-07-03-1800.json');
+    writeFileSync(morning, miniReport(40, { generatedAt: '2026-07-03T09:00:00.000Z' }));
+    writeFileSync(evening, miniReport(12, { generatedAt: '2026-07-03T18:00:00.000Z' }));
+
+    assert.strictEqual(
+      resolveReportJsonPathForDate('2026-07-03', { reportsDir: dir, runId: '0900' }),
+      morning,
+    );
+    const loaded = getCachedReport(null, {
+      reportsDir: dir,
+      scope: 'national',
+      date: '2026-07-03',
+      runId: '0900',
+    });
+    assert.strictEqual(loaded?.generated_at, '2026-07-03T09:00:00.000Z');
+  });
+
+  it('listReportJsonPathsForDate returns exact and suffixed paths', () => {
+    const exact = join(dir, 'resilience-report-2026-07-04.json');
+    const suffixed = join(dir, 'resilience-report-2026-07-04-1200.json');
+    writeFileSync(exact, miniReport(1));
+    writeFileSync(suffixed, miniReport(2));
+
+    const paths = listReportJsonPathsForDate('2026-07-04', { reportsDir: dir });
+    assert.equal(paths.length, 2);
+    assert.ok(paths.includes(exact));
+    assert.ok(paths.includes(suffixed));
+  });
+
+  it('parseReportRunIdFromFilename extracts suffix or null', () => {
+    assert.strictEqual(
+      parseReportRunIdFromFilename('resilience-report-2026-07-05.json'),
+      null,
+    );
+    assert.strictEqual(
+      parseReportRunIdFromFilename('resilience-report-2026-07-05-1530.json'),
+      '1530',
+    );
+    assert.strictEqual(
+      parseReportRunIdFromFilename('resilience-report-north-2026-07-05-1530.json', 'north'),
+      '1530',
+    );
   });
 });

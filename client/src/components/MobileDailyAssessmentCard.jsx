@@ -13,6 +13,7 @@ import { mobileFieldRowSx, mobileSurfaceCardSx } from '../ui/responsive/mobileDa
 
 const editionShape = PropTypes.shape({
   date: PropTypes.string.isRequired,
+  run_id: PropTypes.string,
   generated_at: PropTypes.string,
   assessment_days: PropTypes.number,
   window_start: PropTypes.string,
@@ -21,11 +22,16 @@ const editionShape = PropTypes.shape({
   is_today: PropTypes.bool,
 });
 
+const editionSelectionShape = PropTypes.shape({
+  date: PropTypes.string.isRequired,
+  run_id: PropTypes.string,
+});
+
 export function MobileDailyAssessmentCard({
   reportScope,
   onReportScopeChange,
-  selectedReportDate,
-  onSelectedReportDateChange,
+  selectedReportEdition,
+  onSelectedReportEditionChange,
   editions = [],
   loadedEdition = null,
   editionsLoading = false,
@@ -47,8 +53,8 @@ export function MobileDailyAssessmentCard({
         <DailyAssessmentControls
           reportScope={reportScope}
           onReportScopeChange={onReportScopeChange}
-          selectedReportDate={selectedReportDate}
-          onSelectedReportDateChange={onSelectedReportDateChange}
+          selectedReportEdition={selectedReportEdition}
+          onSelectedReportEditionChange={onSelectedReportEditionChange}
           editions={editions}
           loadedEdition={loadedEdition}
           editionsLoading={editionsLoading}
@@ -88,8 +94,8 @@ export function MobileDailyAssessmentCard({
 MobileDailyAssessmentCard.propTypes = {
   reportScope: PropTypes.string.isRequired,
   onReportScopeChange: PropTypes.func.isRequired,
-  selectedReportDate: PropTypes.string,
-  onSelectedReportDateChange: PropTypes.func.isRequired,
+  selectedReportEdition: editionSelectionShape,
+  onSelectedReportEditionChange: PropTypes.func.isRequired,
   editions: PropTypes.arrayOf(editionShape),
   loadedEdition: editionShape,
   editionsLoading: PropTypes.bool,

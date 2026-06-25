@@ -19,7 +19,10 @@ import { alpha } from '@mui/material/styles';
 import { useChat } from '../hooks/useChat.js';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { panelHeaderButtonSx, panelSectionRadius } from '../ui/panelChrome.js';
-import { chatActionsVisibilitySx, chatRowHoverRevealSx } from '../ui/responsive/responsiveSx.js';
+import {
+  chatActionsVisibilitySx,
+  chatRowHoverRevealSx,
+} from '../ui/responsive/responsiveSx.js';
 import PropTypes from 'prop-types';
 
 const chatFieldSx = (theme) => ({
@@ -50,7 +53,6 @@ export function ChatPanel({
     send,
     regenerateLast,
     stop,
-    deleteMessage,
     pendingActions,
     confirmAction,
   } = useChat();
@@ -416,22 +418,14 @@ export function ChatPanel({
           <ChatRow
             key={msg.id ?? `${msg.role}-${String(msg.content ?? '').slice(0, 48)}`}
             msg={msg}
-            activeSessionId={activeSessionId}
             onCopy={() => navigator.clipboard?.writeText(msg.content ?? '')}
             onEdit={() => setInput(msg.content ?? '')}
-            onDelete={async () => {
-              if (!msg.id || !activeSessionId) return;
-              const ok = globalThis.confirm('Delete this message?');
-              if (!ok) return;
-              await deleteMessage({ sessionId: activeSessionId, messageId: msg.id });
-            }}
           />
         ))}
         {streaming && draft && (
           <ChatRow
             msg={{ role: 'assistant', content: draft }}
             streaming
-            activeSessionId={activeSessionId}
           />
         )}
         <div ref={bottomRef} />
@@ -609,23 +603,30 @@ ChatAvatar.propTypes = {
   isUser: PropTypes.bool,
 };
 
-function ChatActionButton({ onClick, color, children }) {
+function ChatActionButton({ onClick, children }) {
   return (
     <Button
       type="button"
-      variant="outlined"
+      variant="text"
       size="small"
       onClick={onClick}
-      color={color}
+      color="inherit"
       sx={(theme) => ({
-        ...panelHeaderButtonSx(theme),
+        minHeight: theme.spacing(3.5),
+        borderRadius: panelSectionRadius(theme),
         fontSize: theme.typography.caption.fontSize,
-        fontWeight: 800,
+        fontWeight: 500,
         paddingTop: theme.spacing(0.25),
         paddingBottom: theme.spacing(0.25),
         paddingLeft: theme.spacing(0.75),
         paddingRight: theme.spacing(0.75),
         minWidth: 0,
+        color: theme.palette.text.secondary,
+        backgroundColor: 'transparent',
+        '&:hover': {
+          backgroundColor: theme.palette.action.hover,
+          color: theme.palette.text.primary,
+        },
       })}
     >
       {children}
@@ -635,19 +636,19 @@ function ChatActionButton({ onClick, color, children }) {
 
 ChatActionButton.propTypes = {
   onClick: PropTypes.func,
-  color: PropTypes.string,
   children: PropTypes.node,
 };
 
-function ChatRow({ msg, streaming = false, activeSessionId, onCopy, onEdit, onDelete }) {
+function ChatRow({ msg, streaming = false, onCopy, onEdit }) {
   const isUser = msg.role === 'user';
+  const hasActions = !streaming && Boolean(onCopy || onEdit);
   return (
     <Box
       sx={(theme) => ({
         display: 'grid',
         gridTemplateColumns: `${theme.spacing(3.5)} 1fr`,
         gap: theme.spacing(1),
-        padding: theme.spacing(1.25),
+        padding: theme.spacing(1.5),
         borderBottom: theme.custom.border.hairline,
         background: isUser
           ? theme.palette.background.paper
@@ -662,36 +663,7 @@ function ChatRow({ msg, streaming = false, activeSessionId, onCopy, onEdit, onDe
       })}
     >
       <ChatAvatar isUser={isUser} />
-      <Box sx={{ position: 'relative' }}>
-        {!streaming && (onCopy || onEdit || onDelete) && (
-          <Stack
-            direction="row"
-            spacing={0.5}
-            className="chat-actions"
-            sx={[
-              (theme) => ({
-                position: 'absolute',
-                top: theme.spacing(-0.75),
-                right: 0,
-                transition: theme.transitions.create('opacity', {
-                  duration: theme.transitions.duration.shortest,
-                }),
-                '@media (pointer: coarse)': {
-                  position: 'relative',
-                  top: 0,
-                  marginTop: theme.spacing(0.5),
-                },
-              }),
-              chatActionsVisibilitySx,
-            ]}
-          >
-            {onCopy && <ChatActionButton onClick={onCopy}>Copy</ChatActionButton>}
-            {isUser && onEdit && <ChatActionButton onClick={onEdit}>Edit</ChatActionButton>}
-            {msg.id && activeSessionId && onDelete && (
-              <ChatActionButton onClick={onDelete} color="error">Delete</ChatActionButton>
-            )}
-          </Stack>
-        )}
+      <Box>
         <Box
           sx={(theme) => ({
             color: theme.palette.text.primary,
@@ -744,6 +716,27 @@ function ChatRow({ msg, streaming = false, activeSessionId, onCopy, onEdit, onDe
             />
           )}
         </Box>
+        {hasActions && (
+          <Stack
+            direction="row"
+            spacing={1}
+            className="chat-actions"
+            sx={[
+              (theme) => ({
+                marginTop: theme.spacing(1.5),
+                justifyContent: 'flex-end',
+                flexWrap: 'wrap',
+                transition: theme.transitions.create('opacity', {
+                  duration: theme.transitions.duration.shortest,
+                }),
+              }),
+              chatActionsVisibilitySx,
+            ]}
+          >
+            {onCopy && <ChatActionButton onClick={onCopy}>Copy</ChatActionButton>}
+            {isUser && onEdit && <ChatActionButton onClick={onEdit}>Edit</ChatActionButton>}
+          </Stack>
+        )}
       </Box>
     </Box>
   );
@@ -757,8 +750,6 @@ ChatRow.propTypes = {
     error: PropTypes.bool,
   }).isRequired,
   streaming: PropTypes.bool,
-  activeSessionId: PropTypes.string,
   onCopy: PropTypes.func,
   onEdit: PropTypes.func,
-  onDelete: PropTypes.func,
 };

@@ -225,7 +225,12 @@ export async function reportRoutes(app, opts) {
     }
     const requestedView = String(request.query?.view ?? 'operator').trim().toLowerCase();
     const dateParam = String(request.query?.date ?? '').trim();
-    const data = getCachedReport(evidenceStore, { scope, date: dateParam || undefined });
+    const runParam = String(request.query?.run ?? '').trim();
+    const data = getCachedReport(evidenceStore, {
+      scope,
+      date: dateParam || undefined,
+      runId: runParam || undefined,
+    });
     if (!data) {
       if (isRegionalReportScope(scope)) {
         return reply.send({

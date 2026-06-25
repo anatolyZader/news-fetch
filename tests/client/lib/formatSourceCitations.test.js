@@ -85,6 +85,15 @@ describe('formatSourceCitations', () => {
     assert.match(out, /\(\[ynet\.co\.il\]\(https:\/\/www\.ynet\.co\.il\/story\), 20 Jun 2026\)/);
   });
 
+  it('formatNarrativeMarkdown renders resolved markdown links as APA parentheticals', () => {
+    const out = formatNarrativeMarkdown(
+      'Residents report relief [Ynet](https://www.ynet.co.il/article).',
+      '2026-04-12',
+    );
+    assert.match(out, /\(\[Ynet\]\(https:\/\/www\.ynet\.co\.il\/article\), 12 Apr 2026\)/);
+    assert.doesNotMatch(out, /\[S\d+\]/);
+  });
+
   it('formatNarrativeMarkdown chains expandLinks, signal refs, and linked citations', () => {
     const out = formatNarrativeMarkdown(
       'Coping [S1][S2] and ([Ynet](https://www.ynet.co.il/article)).',

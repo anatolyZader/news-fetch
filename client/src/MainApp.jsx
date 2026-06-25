@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
@@ -23,6 +23,7 @@ import { useDisplayCapabilities } from './hooks/useDisplayCapabilities.js';
 import { useTranslatedReport } from './hooks/useTranslatedReport.js';
 import { getAnalystSiteUrl } from './lib/analystSiteUrl.js';
 import { formatDate } from './lib/date.js';
+import { editionsMatch } from './lib/reportEditionFormat.js';
 import { ReportView } from './components/ReportView.jsx';
 import { ReportContentsMobileNav } from './components/ReportContentsMobileNav.jsx';
 import { MobileDailyAssessmentCard } from './components/MobileDailyAssessmentCard.jsx';
@@ -562,9 +563,15 @@ function AppShell() {
   const { canViewAnalyst } = useDisplayCapabilities();
   const analystSiteUrl = getAnalystSiteUrl();
   const [reportScope, setReportScope] = useState(() => readReportScope());
-  const [selectedReportDate, setSelectedReportDate] = useState(null);
+  const [selectedReportEdition, setSelectedReportEdition] = useState(null);
   const [scopeSwitchNotice, setScopeSwitchNotice] = useState(null);
   const { editions: availableReportEditions, loading: editionsLoading } = useReportEditions(reportScope, accessToken);
+  const effectiveReportEdition = useMemo(() => {
+    if (selectedReportEdition) return selectedReportEdition;
+    const first = availableReportEditions[0];
+    if (!first) return null;
+    return { date: first.date, run_id: first.run_id ?? null };
+  }, [selectedReportEdition, availableReportEditions]);
   const {
     report,
     scoreBySource,
@@ -581,7 +588,7 @@ function AppShell() {
     suggestCrisisBudget,
     operatorEpistemicOverlay,
     refreshReport,
-  } = useTodayReport(reportScope, 'operator', selectedReportDate, lang);
+  } = useTodayReport(reportScope, 'operator', effectiveReportEdition, lang);
   const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jerusalem' });
   const [activeTab, setActiveTab] = useState(() => readMainTab());
   const [activePoolTab, setActivePoolTab] = useState(() => readPoolTab());
@@ -644,7 +651,7 @@ function AppShell() {
       localStorage.setItem(LS_REPORT_SCOPE, reportScope);
     } catch { /* */ }
     queueMicrotask(() => {
-      setSelectedReportDate(null);
+      setSelectedReportEdition(null);
       setOpenReportCompId(null);
       setOpenReportEvidenceCompId(null);
     });
@@ -722,12 +729,12 @@ function AppShell() {
     setOpenReportEvidenceCompId,
   });
 
-  const loadedReportEdition = (() => {
-    if (selectedReportDate) {
-      return availableReportEditions.find((e) => e.date === selectedReportDate) ?? null;
+  const loadedReportEdition = useMemo(() => {
+    if (selectedReportEdition) {
+      return availableReportEditions.find((e) => editionsMatch(e, selectedReportEdition)) ?? selectedReportEdition;
     }
     return availableReportEditions[0] ?? null;
-  })();
+  }, [selectedReportEdition, availableReportEditions]);
 
   const scopeSwitchMessage = scopeSwitchNotice
     ? t('report.edition.scopeSwitched').replace('{scope}', t(`report.scope.${scopeSwitchNotice}`))
@@ -943,8 +950,8 @@ function AppShell() {
               <MobileDailyAssessmentCard
                 reportScope={reportScope}
                 onReportScopeChange={setReportScope}
-                selectedReportDate={selectedReportDate}
-                onSelectedReportDateChange={setSelectedReportDate}
+                selectedReportEdition={selectedReportEdition}
+                onSelectedReportEditionChange={setSelectedReportEdition}
                 editions={availableReportEditions}
                 loadedEdition={loadedReportEdition}
                 editionsLoading={editionsLoading}
@@ -962,8 +969,8 @@ function AppShell() {
                 <DailyAssessmentControls
                   reportScope={reportScope}
                   onReportScopeChange={setReportScope}
-                  selectedReportDate={selectedReportDate}
-                  onSelectedReportDateChange={setSelectedReportDate}
+                  selectedReportEdition={selectedReportEdition}
+                  onSelectedReportEditionChange={setSelectedReportEdition}
                   editions={availableReportEditions}
                   loadedEdition={loadedReportEdition}
                   editionsLoading={editionsLoading}

@@ -185,6 +185,22 @@ function buildCompareContext(a, reportScopeId, includeScores) {
   );
 }
 
+function buildTemporalContext(a, reportScopeId, includeScores, componentId) {
+  let body =
+    formatV2ContextBlock(a) +
+    formatHeader(a, { includeScores }) +
+    formatExecutiveSummary(a);
+  if (componentId) {
+    const comp = (a.components ?? []).find((c) => c.component_id === componentId);
+    const componentBlock = comp
+      ? formatComponentBlock(comp, { includeScores })
+      : `(Component ${componentId} not found in today's report.)`;
+    body += `Component focus:\n${componentBlock}\n`;
+  }
+  body += '\nUse trace_component_timeline for multi-date evolution across all report dates.\n';
+  return body;
+}
+
 function buildHubContext(a, reportScopeId, includeScores) {
   const guidance = includeGuidanceContext();
   return (
@@ -273,6 +289,9 @@ export function buildReportContext(reportData, opts = {}) {
   switch (contextSlice) {
     case 'compare':
       body = buildCompareContext(a, reportScopeId, includeScores);
+      break;
+    case 'temporal':
+      body = buildTemporalContext(a, reportScopeId, includeScores, componentId);
       break;
     case 'hub':
       body = buildHubContext(a, reportScopeId, includeScores);

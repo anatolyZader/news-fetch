@@ -7,10 +7,15 @@ function getStore(deps = {}) {
   return resolveStateStore(deps);
 }
 import { join } from 'node:path';
+import { formatAnalysisDateTime } from '../../../utils/dateUtils.js';
 import {
   deriveInstrumentState,
   operatorAssessmentSummary,
 } from '../../resilience/index.js';
+import {
+  resolveMunicipalityName,
+  signalMatchesMunicipality,
+} from './municipalityResolve.js';
 
 const REPO_ROOT = join(import.meta.dirname, '..', '..', '..');
 const SIGNALS_DIRS = [
@@ -35,18 +40,28 @@ function isSignalBundleFile(name) {
   return name.startsWith('signals-') || name.startsWith('signals-social-');
 }
 
-function matchesSignalFilters(name, { date, sourceType }) {
+function extractFileDate(name) {
+  const m = SIGNAL_FILE_RE.exec(name);
+  return m ? m[2] : null;
+}
+
+function matchesSignalFilters(name, { date, dateFrom, dateTo, sourceType }) {
   if (sourceType) {
     const prefix = sourceType === 'social' ? 'signals-social-' : `signals-${sourceType}-`;
     if (!name.startsWith(prefix)) return false;
   }
+  const fileDate = extractFileDate(name);
+  if (date && !name.includes(date)) return false;
+  if (dateFrom && fileDate && fileDate < dateFrom) return false;
+  if (dateTo && fileDate && fileDate > dateTo) return false;
+  if ((dateFrom || dateTo) && !fileDate) return false;
   return !date || name.includes(date);
 }
 
-function listSignalJsonFiles({ date, sourceType } = {}) {
+function listSignalJsonFiles({ date, dateFrom, dateTo, sourceType } = {}) {
   const seen = new Set();
   const files = [];
-  const filters = { date, sourceType };
+  const filters = { date, dateFrom, dateTo, sourceType };
   for (const dir of SIGNALS_DIRS) {
     const names = readSignalDirNames(dir);
     if (!names) continue;
@@ -65,11 +80,11 @@ function listSignalJsonFiles({ date, sourceType } = {}) {
 /**
  * Load signals from JSON files, optionally filtered by date and/or source type.
  * Scans signals_extraction/data/signals/, visits/data/signals/, and social_media/data/.
- * @param {{ date?: string, sourceType?: string }} opts
+ * @param {{ date?: string, dateFrom?: string, dateTo?: string, sourceType?: string }} opts
  * @returns {Array} flat array of signal objects with file-level metadata merged in
  */
-export function loadSignals({ date, sourceType } = {}) {
-  const fileEntries = listSignalJsonFiles({ date, sourceType });
+export function loadSignals({ date, dateFrom, dateTo, sourceType } = {}) {
+  const fileEntries = listSignalJsonFiles({ date, dateFrom, dateTo, sourceType });
   const results = [];
   for (const { dir, name: f } of fileEntries) {
     try {
@@ -77,6 +92,7 @@ export function loadSignals({ date, sourceType } = {}) {
       const meta = {
         source_type: raw.source_type ?? (f.startsWith('signals-social-') ? 'social' : undefined),
         date: raw.date,
+        extracted_at: raw.extracted_at ?? null,
         file: f,
         signal_dir: dir,
       };
@@ -164,11 +180,8 @@ export function searchSignals(signals, { query, component, sourceType, municipal
   }
 
   if (municipality) {
-    const q = municipality.toLowerCase();
-    filtered = filtered.filter((s) =>
-      (s.evidence ?? '').toLowerCase().includes(q) ||
-      (s.article_source ?? '').toLowerCase().includes(q),
-    );
+    const resolved = resolveMunicipalityName(municipality);
+    filtered = filtered.filter((s) => signalMatchesMunicipality(s, resolved ?? municipality));
   }
 
   if (query) {
@@ -184,7 +197,8 @@ export function searchSignals(signals, { query, component, sourceType, municipal
 }
 
 function formatSignalLine(s, i) {
-  let line = `[${i + 1}] id=${s.signal_id ?? 'unknown'} — ${s.signal_type} (${s.source_type}, ${s.date})`;
+  const when = formatAnalysisDateTime(s.extracted_at ?? s.date) ?? s.date ?? 'unknown';
+  let line = `[${i + 1}] id=${s.signal_id ?? 'unknown'} — ${s.signal_type} (${s.source_type}, ${when})`;
   if (s.article_source) line += ` — ${s.article_source}`;
   if (s.source_id) line += `\n    source_id=${s.source_id}`;
   line += `\n    ${s.evidence?.slice(0, 300)}`;
@@ -194,9 +208,28 @@ function formatSignalLine(s, i) {
 
 /**
  * Format signals for tool output (concise, readable).
+ * @param {Array} signals
+ * @param {{ groupBy?: 'date' }} [opts]
  */
-export function formatSignals(signals) {
+export function formatSignals(signals, opts = {}) {
   if (signals.length === 0) return 'No matching signals found.';
+  if (opts.groupBy === 'date') {
+    const byDate = new Map();
+    for (const s of signals) {
+      const d = s.date ?? 'unknown';
+      if (!byDate.has(d)) byDate.set(d, []);
+      byDate.get(d).push(s);
+    }
+    const sections = [];
+    for (const d of [...byDate.keys()].sort((a, b) => a.localeCompare(b))) {
+      const group = byDate.get(d);
+      sections.push(
+        `### ${d} (${group.length} signals)\n` +
+        group.map((s, i) => formatSignalLine(s, i)).join('\n\n'),
+      );
+    }
+    return sections.join('\n\n');
+  }
   return signals.map((s, i) => formatSignalLine(s, i)).join('\n\n');
 }
 
@@ -284,7 +317,9 @@ function formatDeltaArrow(delta) {
  * @returns {string[]}
  */
 function formatOverallComparison(dateA, dateB, reportA, reportB, includeScores) {
-  const header = [`Comparison: ${dateA} → ${dateB}\n`];
+  const labelA = formatAnalysisDateTime(reportA.generated_at) ?? dateA;
+  const labelB = formatAnalysisDateTime(reportB.generated_at) ?? dateB;
+  const header = [`Comparison: ${labelA} → ${labelB}\n`];
   if (includeScores) {
     header.push(
       `Overall: ${reportA.assessment.overall_resilience_score}/10 → ${reportB.assessment.overall_resilience_score}/10`,

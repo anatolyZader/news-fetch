@@ -7,11 +7,12 @@ const TOKEN_REFRESH_RETRY_MS = 5_000;
 
 const RETRY_AUTH_CODES = new Set(['missing_token', 'invalid_token', 'token_revoked']);
 
-async function fetchTodayReportPayload(scope, view, accessToken, getIdToken, signal, date, lang) {
+async function fetchTodayReportPayload(scope, view, accessToken, getIdToken, signal, selectedEdition, lang) {
   const params = new URLSearchParams();
   if (scope !== 'national') params.set('scope', scope);
   if (view === 'analyst') params.set('view', 'analyst');
-  if (date) params.set('date', date);
+  if (selectedEdition?.date) params.set('date', selectedEdition.date);
+  if (selectedEdition?.run_id) params.set('run', selectedEdition.run_id);
   if (lang && lang !== 'en') params.set('lang', lang);
   const qs = params.toString() ? `?${params.toString()}` : '';
 
@@ -87,8 +88,9 @@ function applyTodayReportPayload(data, setters) {
  * Loads today's cached report from GET /api/report/today (requires auth when enabled).
  * @param {string} scope report scope id (national | north | south | …)
  * @param {'operator'|'analyst'} [view]
+ * @param {import('../lib/reportEditionFormat.js').ReportEditionSelection} [selectedEdition]
  */
-export function useTodayReport(scope = 'national', view = 'operator', date = null, lang = 'en') {
+export function useTodayReport(scope = 'national', view = 'operator', selectedEdition = null, lang = 'en') {
   const {
     getIdToken,
     apiReady,
@@ -124,6 +126,9 @@ export function useTodayReport(scope = 'national', view = 'operator', date = nul
   const [budgetStatus, setBudgetStatus] = useState(null);
   const [suggestCrisisBudget, setSuggestCrisisBudget] = useState(false);
   const [operatorEpistemicOverlay, setOperatorEpistemicOverlay] = useState(true);
+
+  const editionDate = selectedEdition?.date ?? null;
+  const editionRunId = selectedEdition?.run_id ?? null;
 
   useEffect(() => {
     if (!reportFetchReady) return undefined;
@@ -184,7 +189,7 @@ export function useTodayReport(scope = 'national', view = 'operator', date = nul
           accessTokenRef.current,
           (...args) => getIdTokenRef.current(...args),
           controller.signal,
-          date,
+          editionDate ? { date: editionDate, run_id: editionRunId || null } : null,
           lang,
         );
         if (loadGen !== loadGenRef.current) return;
@@ -214,7 +219,7 @@ export function useTodayReport(scope = 'national', view = 'operator', date = nul
       controller.abort();
       clearTimeout(timeoutId);
     };
-  }, [reportFetchReady, authRequired, accessToken, tokenWarmFailed, scope, view, date, lang, refreshTick]);
+  }, [reportFetchReady, authRequired, accessToken, tokenWarmFailed, scope, view, editionDate, editionRunId, lang, refreshTick]);
 
   const refreshReport = useCallback(() => {
     setRefreshTick((t) => t + 1);

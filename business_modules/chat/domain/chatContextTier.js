@@ -5,7 +5,42 @@
 import { COMPONENT_IDS } from '../../../cross-cut-modules/resilience-contracts/componentIds.js';
 import { chatCompactToolLoopEnabled } from '../../../cross-cut-modules/agent/agentConfig.js';
 
-/** @typedef {'full'|'compare'|'hub'|'minimal'|'component'|'standard'} ContextSlice */
+/** @typedef {'full'|'compare'|'hub'|'minimal'|'component'|'standard'|'temporal'} ContextSlice */
+
+const TEMPORAL_PATTERNS = [
+  /\bthroughout\b/i,
+  /\bover time\b/i,
+  /\bfrom the beginning\b/i,
+  /\ball dates\b/i,
+  /\btimeline\b/i,
+  /\bdevelop(?:ed|ment)?\b/i,
+  /\bevolution\b/i,
+  /\bbeginning to end\b/i,
+  /\bnot just (two|2) dates?\b/i,
+  /\bacross (all|the) dates?\b/i,
+  /\bduring the war\b/i,
+  /\bthroughout the war\b/i,
+  /במהלך המלחמה/,
+  /לאורך המלחמה/,
+  /מתחילת/,
+  /במהלך/,
+  /התפתח/,
+  /כל התאריכים/,
+  /מתחילה ועד/,
+];
+
+const ANTI_COMPARE_PATTERNS = [
+  /\ball dates\b/i,
+  /\bthroughout\b/i,
+  /\bnot just (two|2)\b/i,
+  /\bbeginning to end\b/i,
+  /\bacross (all|the) dates?\b/i,
+  /\bover time\b/i,
+  /\btimeline\b/i,
+  /כל התאריכים/,
+  /לאורך/,
+  /מתחילה ועד/,
+];
 
 const FULL_PATTERNS = [
   /\ball components\b/i,
@@ -61,7 +96,7 @@ const MINIMAL_PATTERNS = [
 /** @type {Record<string, string[]>} */
 const COMPONENT_ALIASES = {
   narrative: ['narrative', 'סיפור', 'narratives'],
-  information_communication: ['information communication', 'information', 'communication', 'מידע', 'תקשורת'],
+  information_communication: ['information communication', 'information and communication', 'information', 'communication', 'מידע', 'תקשורת'],
   lifesaving_behavior: ['lifesaving', 'lifesaving behavior', 'shelter behavior', 'מקלט', 'הצלת חיים'],
   functional_continuity: ['functional continuity', 'continuity', 'functional_continuity', 'רציפות'],
   community_capital: ['community capital', 'community', 'קהילה', 'הון קהילתי'],
@@ -79,6 +114,31 @@ export function chatContextSlicingEnabled() {
 export const chatContextTieringEnabled = chatContextSlicingEnabled;
 
 /**
+ * @param {string} text
+ * @returns {{ componentId: string, reason: string }|null}
+ */
+export function resolveComponentIdFromMessage(text) {
+  const lower = String(text ?? '').toLowerCase();
+  for (const id of COMPONENT_IDS) {
+    const idSpaced = id.replaceAll('_', ' ');
+    if (lower.includes(id) || lower.includes(idSpaced)) {
+      return { componentId: id, reason: 'component_id_match' };
+    }
+    const aliases = COMPONENT_ALIASES[id] ?? [];
+    for (const alias of aliases) {
+      if (lower.includes(alias.toLowerCase())) {
+        return { componentId: id, reason: `component_alias:${alias}` };
+      }
+    }
+  }
+  return null;
+}
+
+function isAntiCompare(text) {
+  return ANTI_COMPARE_PATTERNS.some((re) => re.test(text));
+}
+
+/**
  * @param {string} message
  * @param {{ toolProfile?: string, forceFull?: boolean }} [opts]
  * @returns {{ contextSlice: ContextSlice, componentId?: string, reason: string }}
@@ -89,13 +149,21 @@ export function resolveChatContextTier(message, opts = {}) {
   }
 
   const text = String(message ?? '').trim();
-  const lower = text.toLowerCase();
 
   if (FULL_PATTERNS.some((re) => re.test(text))) {
     return { contextSlice: 'full', reason: 'explicit_full_request' };
   }
 
-  if (COMPARE_PATTERNS.some((re) => re.test(text))) {
+  if (TEMPORAL_PATTERNS.some((re) => re.test(text))) {
+    const comp = resolveComponentIdFromMessage(text);
+    return {
+      contextSlice: 'temporal',
+      componentId: comp?.componentId,
+      reason: comp ? `temporal:${comp.reason}` : 'temporal_query',
+    };
+  }
+
+  if (COMPARE_PATTERNS.some((re) => re.test(text)) && !isAntiCompare(text)) {
     return { contextSlice: 'compare', reason: 'compare_or_drift' };
   }
 
@@ -111,17 +179,9 @@ export function resolveChatContextTier(message, opts = {}) {
     return { contextSlice: 'minimal', reason: 'evidence_or_source' };
   }
 
-  for (const id of COMPONENT_IDS) {
-    const idSpaced = id.replaceAll('_', ' ');
-    if (lower.includes(id) || lower.includes(idSpaced)) {
-      return { contextSlice: 'component', componentId: id, reason: 'component_id_match' };
-    }
-    const aliases = COMPONENT_ALIASES[id] ?? [];
-    for (const alias of aliases) {
-      if (lower.includes(alias.toLowerCase())) {
-        return { contextSlice: 'component', componentId: id, reason: `component_alias:${alias}` };
-      }
-    }
+  const comp = resolveComponentIdFromMessage(text);
+  if (comp) {
+    return { contextSlice: 'component', componentId: comp.componentId, reason: comp.reason };
   }
 
   return { contextSlice: 'standard', reason: 'default' };

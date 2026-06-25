@@ -5,7 +5,6 @@ import {
   resolveChatContextTier,
   resolveChatEconomyMode,
   chatContextSlicingEnabled,
-  chatContextTieringEnabled,
 } from '../../../../business_modules/chat/domain/chatContextTier.js';
 
 describe('chatContextTier', () => {
@@ -13,7 +12,6 @@ describe('chatContextTier', () => {
     const prev = process.env.CHAT_CONTEXT_TIERING;
     delete process.env.CHAT_CONTEXT_TIERING;
     assert.equal(chatContextSlicingEnabled(), true);
-    assert.equal(chatContextTieringEnabled(), true);
     process.env.CHAT_CONTEXT_TIERING = '0';
     assert.equal(chatContextSlicingEnabled(), false);
     if (prev === undefined) delete process.env.CHAT_CONTEXT_TIERING;
@@ -28,6 +26,27 @@ describe('chatContextTier', () => {
   it('resolves compare context_slice', () => {
     const r = resolveChatContextTier('What changed since yesterday?');
     assert.equal(r.contextSlice, 'compare');
+  });
+
+  it('resolves temporal context_slice over compare when anti-compare', () => {
+    const r = resolveChatContextTier(
+      'how information_communication changed in Kiryat Shmona throughout all dates',
+    );
+    assert.equal(r.contextSlice, 'temporal');
+    assert.equal(r.componentId, 'information_communication');
+  });
+
+  it('resolves temporal context_slice for war-period phrasing', () => {
+    const r = resolveChatContextTier(
+      'how information and communication developed in Kiryat Shmona during the war?',
+    );
+    assert.equal(r.contextSlice, 'temporal');
+    assert.equal(r.componentId, 'information_communication');
+  });
+
+  it('anti-compare blocks compare slice for all-dates phrasing', () => {
+    const r = resolveChatContextTier('what changed across all dates for leadership');
+    assert.notEqual(r.contextSlice, 'compare');
   });
 
   it('resolves minimal context_slice for evidence questions', () => {

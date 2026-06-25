@@ -6,6 +6,16 @@ import {
   resolveChatContextTier,
   resolveChatEconomyMode,
 } from '../domain/chatContextTier.js';
+import {
+  shouldPrefetchTimeline,
+  buildAntiLoopNudge,
+  buildRestatementNudgeOnly,
+  detectUserRestatement,
+} from '../domain/chatAntiLoop.js';
+import { buildComponentTimeline, formatComponentTimeline } from '../domain/traceComponentTimeline.js';
+import { extractMunicipalityFromMessage } from '../domain/municipalityResolve.js';
+import { wrapUntrustedBlock } from '../../../cross-cut-modules/security/index.js';
+import { canViewAnalystDisplay } from '../../../cross-cut-modules/auth/userAccess.js';
 import { runDeterministicChatFallback } from './chatDeterministicFallback.js';
 import { ragPipelineEnabled } from '../../../cross-cut-modules/retrieval/index.js';
 import { reportIndexHelpers } from '../../../cross-cut-modules/retrieval/reportIndexHelpers.js';
@@ -38,6 +48,8 @@ function buildChatToolContextDeps(opts) {
     retrievalService: opts.retrievalService ?? null,
     retrievalCache: opts.retrievalCache ?? null,
     toolProfile: opts.toolProfile ?? 'default',
+    getMunicipalityDashboard: opts.getMunicipalityDashboard ?? null,
+    pboReportReviewService: opts.pboReportReviewService ?? null,
   };
 }
 
@@ -163,6 +175,7 @@ function buildChatLlmStreamOptions(opts, { chatEconomyMeta, abortSignal, onLoopE
     pboHistoricalSearchService: opts.pboHistoricalSearchService ?? null,
     pboReportReviewService: opts.pboReportReviewService ?? null,
     driftService: opts.driftService ?? null,
+    getMunicipalityDashboard: opts.getMunicipalityDashboard ?? null,
     catalogProposalService: opts.catalogProposalService ?? null,
     geoUnknownReviewService: opts.geoUnknownReviewService ?? null,
     toolProfile: opts.toolProfile ?? 'default',
@@ -173,6 +186,40 @@ function buildChatLlmStreamOptions(opts, { chatEconomyMeta, abortSignal, onLoopE
     uiLang: opts.uiLang ?? 'en',
     onLoopExhausted,
   };
+}
+
+async function buildPrefetchAntiLoopHint({ history, message, sliceResult, includeScores, opts, pboLookup }) {
+  const prefetch = shouldPrefetchTimeline({ history, message, sliceResult });
+  if (prefetch && sliceResult.componentId) {
+    const municipality = extractMunicipalityFromMessage(message, {
+      pboLookupKeys: Object.keys(pboLookup ?? {}),
+    });
+    try {
+      const timeline = await buildComponentTimeline(
+        {
+          component: sliceResult.componentId,
+          ...(municipality ? { municipality } : {}),
+        },
+        {
+          includeScores,
+          isAnalyst: canViewAnalystDisplay(opts.userEmail ?? ''),
+          getMunicipalityDashboard: opts.getMunicipalityDashboard ?? null,
+          pboReportReviewService: opts.pboReportReviewService ?? null,
+        },
+      );
+      return (
+        `${buildAntiLoopNudge({ reason: sliceResult.reason })}\n` +
+        `${wrapUntrustedBlock(formatComponentTimeline(timeline), { label: 'prefetched_timeline' })}\n`
+      );
+    } catch (err) {
+      console.error('prefetch timeline:', err?.message ?? err);
+      return buildRestatementNudgeOnly();
+    }
+  }
+  if (detectUserRestatement(message) || prefetch) {
+    return buildRestatementNudgeOnly();
+  }
+  return '';
 }
 
 /**
@@ -238,6 +285,8 @@ export async function streamChat(message, history, rawReply, getReportData, opts
     rawReply.write(`data: ${JSON.stringify(data)}\n\n`);
   };
 
+  send({ type: 'status', phase: 'preparing' });
+
   if (opts.budgetDegraded) {
     await sendDeterministicFallback(send, {
       message,
@@ -264,9 +313,19 @@ export async function streamChat(message, history, rawReply, getReportData, opts
 
   throwIfAborted(abortSignal);
 
+  let antiLoopHint = await buildPrefetchAntiLoopHint({
+    history,
+    message,
+    sliceResult,
+    includeScores,
+    opts,
+    pboLookup,
+  });
+
   const context =
     String(baseContext ?? '') +
     (opts.systemHint ? `\n\n${opts.systemHint}` : '') +
+    (antiLoopHint ? `\n\n${antiLoopHint}` : '') +
     (retrievalHint ? `\n\n${retrievalHint}` : '');
 
   console.error(

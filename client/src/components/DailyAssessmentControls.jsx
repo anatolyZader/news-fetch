@@ -9,6 +9,7 @@ import { reportScopePillsSx, mobileSegmentedPillsSx } from '../ui/index.js';
 
 const editionShape = PropTypes.shape({
   date: PropTypes.string.isRequired,
+  run_id: PropTypes.string,
   generated_at: PropTypes.string,
   assessment_days: PropTypes.number,
   window_start: PropTypes.string,
@@ -17,11 +18,16 @@ const editionShape = PropTypes.shape({
   is_today: PropTypes.bool,
 });
 
+const editionSelectionShape = PropTypes.shape({
+  date: PropTypes.string.isRequired,
+  run_id: PropTypes.string,
+});
+
 export function DailyAssessmentControls({
   reportScope,
   onReportScopeChange,
-  selectedReportDate,
-  onSelectedReportDateChange,
+  selectedReportEdition,
+  onSelectedReportEditionChange,
   editions = [],
   loadedEdition = null,
   editionsLoading = false,
@@ -56,9 +62,9 @@ export function DailyAssessmentControls({
       {editions.length >= 1 && (
         <ReportEditionPicker
           editions={editions}
-          selectedDate={selectedReportDate}
+          selectedEdition={selectedReportEdition}
           loadedEdition={loadedEdition}
-          onChange={onSelectedReportDateChange}
+          onChange={onSelectedReportEditionChange}
           loading={editionsLoading}
           compact={compact}
         />
@@ -70,8 +76,8 @@ export function DailyAssessmentControls({
 DailyAssessmentControls.propTypes = {
   reportScope: PropTypes.string.isRequired,
   onReportScopeChange: PropTypes.func.isRequired,
-  selectedReportDate: PropTypes.string,
-  onSelectedReportDateChange: PropTypes.func.isRequired,
+  selectedReportEdition: editionSelectionShape,
+  onSelectedReportEditionChange: PropTypes.func.isRequired,
   editions: PropTypes.arrayOf(editionShape),
   loadedEdition: editionShape,
   editionsLoading: PropTypes.bool,

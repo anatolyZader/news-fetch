@@ -42,6 +42,17 @@ describe('chatDeterministicFallback', () => {
     assert.equal(calls[0].input.date_b, '2026-06-01');
   });
 
+  it('temporal tier plans trace_component_timeline', () => {
+    const calls = planDeterministicToolCalls(
+      'temporal',
+      'information_communication in Kiryat Shmona throughout all dates',
+      {},
+      { componentId: 'information_communication' },
+    );
+    assert.equal(calls[0].tool, 'trace_component_timeline');
+    assert.equal(calls[0].input.component, 'information_communication');
+  });
+
   it('minimal tier plans lookup_signals by default', () => {
     const calls = planDeterministicToolCalls('minimal', 'show signals about shelter', {});
     assert.equal(calls[0].tool, 'lookup_signals');
