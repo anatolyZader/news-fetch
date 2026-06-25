@@ -29,6 +29,11 @@ describe('traceComponentTimeline', () => {
     }
   });
 
+  it('resolveDateWindow returns explicit range when no report dates match', () => {
+    const dates = resolveDateWindow('2099-01-01', '2099-01-03', false);
+    assert.deepEqual(dates, ['2099-01-01', '2099-01-02', '2099-01-03']);
+  });
+
   it('buildComponentTimeline returns rows for mock dashboard', async () => {
     const result = await buildComponentTimeline(
       { component: 'information_communication', municipality: 'Testville', date_from: '2026-03-21', date_to: '2026-03-21' },

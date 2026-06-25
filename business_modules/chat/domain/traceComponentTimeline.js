@@ -18,6 +18,18 @@ import { formatAnalysisDateTime } from '../../../utils/dateUtils.js';
 const NARRATIVE_MAX = 300;
 const PBO_TEXT_MAX = 200;
 const REVIEW_TEXT_MAX = 150;
+const MAX_EXPLICIT_DATE_RANGE_DAYS = 366;
+
+function enumerateDateRange(from, to) {
+  const dates = [];
+  let cur = new Date(`${from}T12:00:00.000Z`);
+  const end = new Date(`${to}T12:00:00.000Z`);
+  while (cur <= end && dates.length < MAX_EXPLICIT_DATE_RANGE_DAYS) {
+    dates.push(cur.toISOString().slice(0, 10));
+    cur.setUTCDate(cur.getUTCDate() + 1);
+  }
+  return dates;
+}
 
 function clip(text, max) {
   const s = String(text ?? '').trim();
@@ -47,6 +59,9 @@ export function resolveDateWindow(dateFrom, dateTo, includeSignalOnlyDates = fal
   dates.sort((a, b) => a.localeCompare(b));
   if (dateFrom) dates = dates.filter((d) => d >= dateFrom);
   if (dateTo) dates = dates.filter((d) => d <= dateTo);
+  if (dates.length === 0 && dateFrom && dateTo && dateFrom <= dateTo) {
+    dates = enumerateDateRange(dateFrom, dateTo);
+  }
   return dates;
 }
 
