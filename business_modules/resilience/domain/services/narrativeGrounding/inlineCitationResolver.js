@@ -57,7 +57,7 @@ export function resolveInlineSignalCitations(prose, registry) {
   if (typeof prose !== 'string' || !prose) return '';
   if (!registry?.byLabel?.size) return prose;
 
-  let out = prose.replaceAll(TRAILING_SIGNAL_REFS, '');
+  let out = prose.replace(TRAILING_SIGNAL_REFS, '');
 
   out = out.replaceAll(SIGNAL_REF_GROUP, (match, inner) => {
     const resolved = citationsFromRefGroup(inner, registry);
