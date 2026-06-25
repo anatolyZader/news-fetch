@@ -16,11 +16,15 @@ export {
 } from './app/securityNotifier.js';
 export {
   buildIntegrityManifest,
+  buildClientDistAggregate,
   compareIntegrityManifests,
   compareIntegrityManifestRecords,
+  splitManifestFiles,
   sha256File,
   INTEGRITY_PATHS,
   INTEGRITY_MANIFEST_VERSION,
+  CLIENT_DIST_AGGREGATE_KEY,
+  isClientDistPath,
   clientDistExists,
 } from './app/integrityManifest.js';
 export { appendAuditEvent, auditFromRequest, resolveAuditLogPath } from './input/auditLog.js';

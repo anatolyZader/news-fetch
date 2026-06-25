@@ -38,7 +38,11 @@ async function main() {
   const comparison = compareIntegrityManifestRecords(baseline, current);
 
   if (comparison.ok) {
-    console.log(`Integrity verify OK (${Object.keys(current.files).length} files match baseline).`);
+    const supplyCount = Object.keys(current.files).length;
+    const clientNote = current.clientDist
+      ? ` + client/dist aggregate (${current.clientDist.fileCount} files)`
+      : '';
+    console.log(`Integrity verify OK (${supplyCount} supply-chain paths${clientNote}).`);
     await notifySecurityEvent({
       tier: 'info',
       action: 'integrity.verify.ok',
@@ -68,7 +72,8 @@ async function main() {
     console.error(`  … and ${comparison.drifts.length - 30} more`);
   }
   console.error(`Summary: ${driftSummary}`);
-  console.error('If intentional, run workflow "Record integrity baseline" on GitHub Actions (canonical CI build), or locally: npm run security:integrity:record && commit security/integrity-baseline.json');
+  console.error('If intentional, run workflow "Record integrity baseline" on GitHub Actions and commit the artifact.');
+  console.error('Client dist is CI-canonical (v2 aggregate hash) — local Vite output will not match GitHub Actions.');
   process.exit(1);
 }
 

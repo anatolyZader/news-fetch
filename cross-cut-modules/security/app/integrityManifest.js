@@ -3,7 +3,10 @@ import { createReadStream, existsSync, statSync } from 'node:fs';
 import { readdir } from 'node:fs/promises';
 import { join, relative } from 'node:path';
 
-export const INTEGRITY_MANIFEST_VERSION = 1;
+export const INTEGRITY_MANIFEST_VERSION = 2;
+
+/** Stable key for aggregate client/dist comparison (CI-canonical). */
+export const CLIENT_DIST_AGGREGATE_KEY = 'client/dist@aggregateSha256';
 
 /** @type {readonly string[]} */
 export const INTEGRITY_PATHS = [
@@ -16,6 +19,14 @@ export const INTEGRITY_PATHS = [
   '.github/dependabot.yml',
   '.github/actions/setup-npm-ci/action.yml',
 ];
+
+/**
+ * @param {string} relPath
+ * @returns {boolean}
+ */
+export function isClientDistPath(relPath) {
+  return relPath.startsWith('client/dist/');
+}
 
 /**
  * @param {string} filePath
@@ -54,12 +65,61 @@ async function listClientDistFiles(dir) {
 }
 
 /**
+ * Roll up all client/dist file hashes into one stable digest (path + content).
+ * Vite content-addressed chunk filenames differ across build hosts; aggregate is CI-canonical.
+ *
+ * @param {string} rootDir
+ * @returns {Promise<{ aggregateSha256: string, fileCount: number } | null>}
+ */
+export async function buildClientDistAggregate(rootDir) {
+  const distDir = join(rootDir, 'client/dist');
+  const distFiles = await listClientDistFiles(distDir);
+  if (distFiles.length === 0) return null;
+
+  const hash = createHash('sha256');
+  for (const abs of distFiles.sort()) {
+    const rel = relative(rootDir, abs).replaceAll('\\', '/');
+    hash.update(rel);
+    hash.update('\0');
+    hash.update(await sha256File(abs));
+    hash.update('\0');
+  }
+
+  return {
+    aggregateSha256: hash.digest('hex'),
+    fileCount: distFiles.length,
+  };
+}
+
+/**
+ * @param {Record<string, string>} files
+ * @returns {{ supplyChain: Record<string, string>, clientDist: Record<string, string> }}
+ */
+export function splitManifestFiles(files) {
+  /** @type {Record<string, string>} */
+  const supplyChain = {};
+  /** @type {Record<string, string>} */
+  const clientDist = {};
+  for (const [path, digest] of Object.entries(files)) {
+    if (isClientDistPath(path)) clientDist[path] = digest;
+    else supplyChain[path] = digest;
+  }
+  return { supplyChain, clientDist };
+}
+
+/**
  * @param {{
  *   rootDir?: string,
  *   includeClientDist?: boolean,
  *   gitSha?: string | null,
  * }} [opts]
- * @returns {Promise<{ version: number, recordedAt: string, gitSha: string | null, files: Record<string, string> }>}
+ * @returns {Promise<{
+ *   version: number,
+ *   recordedAt: string,
+ *   gitSha: string | null,
+ *   files: Record<string, string>,
+ *   clientDist?: { aggregateSha256: string, fileCount: number },
+ * }>}
  */
 export async function buildIntegrityManifest(opts = {}) {
   const rootDir = opts.rootDir ?? process.cwd();
@@ -73,13 +133,11 @@ export async function buildIntegrityManifest(opts = {}) {
     files[relPath] = await sha256File(abs);
   }
 
+  /** @type {{ aggregateSha256: string, fileCount: number } | undefined} */
+  let clientDist;
   if (includeClientDist) {
-    const distDir = join(rootDir, 'client/dist');
-    const distFiles = await listClientDistFiles(distDir);
-    for (const abs of distFiles.sort()) {
-      const rel = relative(rootDir, abs).replaceAll('\\', '/');
-      files[rel] = await sha256File(abs);
-    }
+    const aggregate = await buildClientDistAggregate(rootDir);
+    if (aggregate) clientDist = aggregate;
   }
 
   return {
@@ -87,6 +145,7 @@ export async function buildIntegrityManifest(opts = {}) {
     recordedAt: new Date().toISOString(),
     gitSha: opts.gitSha ?? null,
     files,
+    ...(clientDist ? { clientDist } : {}),
   };
 }
 
@@ -112,12 +171,51 @@ export function compareIntegrityManifests(baselineFiles, currentFiles) {
 }
 
 /**
- * @param {{ files: Record<string, string> }} baseline
- * @param {{ files: Record<string, string> }} current
+ * @param {{
+ *   version?: number,
+ *   files?: Record<string, string>,
+ *   clientDist?: { aggregateSha256?: string, fileCount?: number },
+ * }} baseline
+ * @param {{
+ *   version?: number,
+ *   files?: Record<string, string>,
+ *   clientDist?: { aggregateSha256?: string, fileCount?: number },
+ * }} current
  * @returns {{ ok: boolean, drifts: Array<{ path: string, expected: string | null, actual: string | null }> }}
  */
 export function compareIntegrityManifestRecords(baseline, current) {
-  return compareIntegrityManifests(baseline.files ?? {}, current.files ?? {});
+  const baselineVersion = baseline.version ?? 1;
+  const { supplyChain: baselineSupply } = splitManifestFiles(baseline.files ?? {});
+  const { supplyChain: currentSupply } = splitManifestFiles(current.files ?? {});
+  const supplyCompare = compareIntegrityManifests(baselineSupply, currentSupply);
+
+  /** @type {Array<{ path: string, expected: string | null, actual: string | null }>} */
+  const clientDrifts = [];
+
+  if (baselineVersion >= 2 && baseline.clientDist?.aggregateSha256) {
+    const expected = baseline.clientDist.aggregateSha256;
+    const actual = current.clientDist?.aggregateSha256 ?? null;
+    if (expected !== actual) {
+      clientDrifts.push({ path: CLIENT_DIST_AGGREGATE_KEY, expected, actual });
+    }
+    const expectedCount = baseline.clientDist.fileCount ?? null;
+    const actualCount = current.clientDist?.fileCount ?? null;
+    if (expectedCount !== actualCount) {
+      clientDrifts.push({
+        path: 'client/dist@fileCount',
+        expected: expectedCount == null ? null : String(expectedCount),
+        actual: actualCount == null ? null : String(actualCount),
+      });
+    }
+  } else {
+    const { clientDist: baselineClient } = splitManifestFiles(baseline.files ?? {});
+    const { clientDist: currentClient } = splitManifestFiles(current.files ?? {});
+    const legacyClient = compareIntegrityManifests(baselineClient, currentClient);
+    clientDrifts.push(...legacyClient.drifts);
+  }
+
+  const drifts = [...supplyCompare.drifts, ...clientDrifts];
+  return { ok: drifts.length === 0, drifts };
 }
 
 /**
