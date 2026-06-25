@@ -16,6 +16,7 @@ export const INSUFFICIENT_SYNTHESIS_NARRATIVE =
   'Insufficient LLM synthesis — see supporting evidence below.';
 
 const MAX_CLAIMS_IN_PROSE = 3;
+const MAX_RICH_FALLBACK_CLAIMS = 12;
 const MAX_EVIDENCE_LINE_CHARS = 480;
 const SIGNAL_REF_TRAILING = /\s*(?:\[S\d+\])+\s*$/;
 
@@ -30,7 +31,19 @@ function maxEvidenceLineChars() {
 function maxClaimsInProse() {
   if (!isRichSurfaceMode()) return MAX_CLAIMS_IN_PROSE;
   const n = operatorMaxClaims();
-  return n > 0 ? n : Number.MAX_SAFE_INTEGER;
+  return n > 0 ? n : MAX_RICH_FALLBACK_CLAIMS;
+}
+
+/**
+ * @param {object} comp
+ * @returns {boolean}
+ */
+function hasHybridPolishedNarrative(comp) {
+  const existing = String(comp?.narrative_operator ?? '').trim();
+  if (!existing || isStubNarrative(existing)) return false;
+  if (comp.narrative_grounding_score != null) return true;
+  if (comp.narrative_pipeline_mode && comp.narrative_pipeline_mode !== 'legacy') return true;
+  return existing.length > 80 && !existing.includes('avg=');
 }
 
 /**
@@ -50,13 +63,15 @@ export function isStubNarrative(text) {
  */
 export function buildProseFromClaims(claims) {
   const cap = maxClaimsInProse();
-  const texts = (claims ?? [])
-    .map((c) => String(c?.text ?? '').trim())
-    .filter(Boolean)
+  const capped = (claims ?? [])
+    .filter((c) => c?.text)
     .slice(0, cap);
+  const texts = capped
+    .map((c) => String(c?.text ?? '').trim())
+    .filter(Boolean);
   if (texts.length === 0) return '';
   if (isRichSurfaceMode()) {
-    return buildDeterministicNarrativeFromClaims(claims ?? []);
+    return buildDeterministicNarrativeFromClaims(capped);
   }
   if (texts.length === 1) return texts[0];
   return texts.join(' Separately, ');
@@ -444,7 +459,9 @@ export function resolveOperatorComponentNarrative(comp) {
 
   const claims = claimsForComponent(comp);
   const fromClaims = buildProseFromClaims(claims);
-  if (fromClaims) return fromClaims;
+  if (fromClaims && !(isRichSurfaceMode() && fromClaims.includes('avg='))) {
+    return fromClaims;
+  }
 
   const ep = epistemicSliceFromComponent(comp);
   if ((ep.signal_count ?? 0) > 0) {
@@ -462,22 +479,22 @@ function finalizeOperatorComponentSurface(comp) {
     && Array.isArray(comp.operator_investigation_pool)
     && comp.operator_investigation_pool.length > 0;
 
-  const narrative = resolveOperatorComponentNarrative(comp);
-  if (narrative) {
-    comp.narrative_operator = narrative;
-  } else if (hasRichPool && isStubNarrative(comp.narrative_operator)) {
-    delete comp.narrative_operator;
+  if (!hasHybridPolishedNarrative(comp)) {
+    const narrative = resolveOperatorComponentNarrative(comp);
+    if (narrative) {
+      comp.narrative_operator = narrative;
+    } else if (hasRichPool && isStubNarrative(comp.narrative_operator)) {
+      delete comp.narrative_operator;
+    }
   }
 
   const bullets = buildCuratedEvidenceBullets(comp);
   const structured = buildStructuredEvidenceItems(comp);
-  if (bullets.length > 0) {
+  if (bullets.length > 0 && comp.operator_evidence_tier !== 'rich_pool') {
     comp.evidence_operator = bullets;
     comp.evidence_operator_structured = structured;
-    if (comp.operator_evidence_tier !== 'rich_pool') {
-      comp.operator_evidence_tier = 'curated';
-    }
-  } else if (!hasRichPool) {
+    comp.operator_evidence_tier = 'curated';
+  } else if (!hasRichPool && bullets.length === 0) {
     comp.operator_evidence_tier = 'none';
   }
 }

@@ -1239,7 +1239,7 @@ function ComponentCard({
         {isAnalyst && <WhyThisScore comp={comp} t={t} />}
         {isAnalyst && <DeltaLine comp={comp} t={t} />}
         {isAnalyst && <CounterfactualHint comp={comp} t={t} />}
-        {!operatorSimpleView && comp.data_quality_caveat && String(comp.data_quality_caveat).trim() && (
+        {(!operatorSimpleView || isRichMode) && comp.data_quality_caveat && String(comp.data_quality_caveat).trim() && (
           <Typography variant="caption" color="info.main" sx={{ display: 'block', marginBottom: 1 }}>
             {t('report.dataQualityCaveat')}: {comp.data_quality_caveat}
           </Typography>

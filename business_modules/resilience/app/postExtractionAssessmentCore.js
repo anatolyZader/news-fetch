@@ -22,7 +22,6 @@ import {
 import { finalizeOperatorNarrativeSurface } from '../domain/services/operatorNarrativeSurface.js';
 import { attachRichOperatorSurface } from '../domain/services/operatorInvestigationSurface.js';
 import { shouldUseRichDeterministicPath } from '../../../cross-cut-modules/resilience-contracts/operatorSurfaceMode.js';
-import { buildClosedCoreAssessmentShell } from './buildClosedCoreAssessmentShell.js';
 import {
   getSocialQuarantineDecision,
 } from '../domain/services/socialQuarantineOverrides.js';
@@ -239,33 +238,11 @@ async function produceAssessmentForMode(ctx) {
     dailyBudgetExceeded,
   } = ctx;
 
-  if (shouldUseRichDeterministicPath()) {
-    console.error('[assess-signals] Rich operator surface: score shell + deterministic pool (no specialists, no narrative LLM)');
-    const reportScope = reportScopeMetadata(reportScopeId);
-    const assessment = buildClosedCoreAssessmentShell({
-      scoredFull,
-      reportDate,
-      scopedTotalArticles,
-      reportScope,
-      macroSignals: ctx.macroSignals,
-      dataVoid: investigationPrep.dataVoid,
-      oovCaptureCount: countOovCapturesForDate(reportDate, reportsDir),
-      socialChannelQuarantine: investigationPrep.osintChannelQuarantine ?? null,
-      allScopedSignals: scopedSignals,
-    });
-    if (shadowScoringEnabled()) {
-      attachShadowDivergenceToAssessment(assessment, {
-        scoredFull,
-        reportScopeId,
-        targetDate: reportDate,
-        reportsDir,
-      });
-    }
-    return assessment;
-  }
-
-  if (isClosedCoreAssessEnabled()) {
-    console.error('[assess-signals] Closed-core assess: hybrid narrative pipeline (score shell + digest)');
+  if (shouldUseRichDeterministicPath() || isClosedCoreAssessEnabled()) {
+    const pathLabel = shouldUseRichDeterministicPath()
+      ? 'Rich operator surface: score shell + hybrid narrative (no specialists)'
+      : 'Closed-core assess: hybrid narrative pipeline (score shell + digest)';
+    console.error(`[assess-signals] ${pathLabel}`);
     const reportScope = reportScopeMetadata(reportScopeId);
     const assessment = await closedCoreNarrate(
       scoredFull,

@@ -135,14 +135,17 @@ Default pipeline: planner → component specialists → critic → synthesizer p
 
 ## Rich operator surface (Track B)
 
-When `RESILIENCE_OPERATOR_SURFACE_MODE=rich`, scoring epistemics are unchanged but the **operator surface** is built deterministically from `narrativeScopeSignals`: full per-component investigation pool with epistemic role labels (`scored`, `context_only`, `quarantined`, `investigation_only`), multi-claim narrative, and highlighted evidence. **No assessment specialists or narrative facts/polish LLM** on this path. Product rule: scoring may abstain; operator surface must not starve.
+When `RESILIENCE_OPERATOR_SURFACE_MODE=rich`, scoring epistemics are unchanged and **assessment-agent specialists are skipped**, but assess still runs the **hybrid narrative pipeline** (facts → judge → Sonnet polish) for academic English `narrative_operator` prose with inline `[source](url)` citations (translated to operator locale via `getTranslatedReport` when `lang=he|ru`). After polish, a deterministic **investigation pool** is attached per component (`scored`, `context_only`, `quarantined`, `investigation_only`) for drill-down. Product rule: scoring may abstain; operator surface must not starve.
 
 | Env | Default | Effect |
 |-----|---------|--------|
-| `RESILIENCE_OPERATOR_SURFACE_MODE` | `legacy` | `rich` enables Track B deterministic surface |
+| `RESILIENCE_OPERATOR_SURFACE_MODE` | `legacy` | `rich` enables Track B pool + hybrid narrative |
 | `RESILIENCE_OPERATOR_EVIDENCE_CHARS` | `1200` | Max evidence chars per pool item in rich mode |
-| `RESILIENCE_OPERATOR_MAX_CLAIMS` | `0` | Max claims in narrative (`0` = unlimited) |
+| `RESILIENCE_OPERATOR_MAX_CLAIMS` | `12` | Max claims in deterministic fallback when polish unavailable |
 | `RESILIENCE_OPERATOR_HIGHLIGHT_PER_SOURCE` | `12` | Highlighted evidence items per source bucket |
+| `RESILIENCE_NARRATIVE_PROSE_STYLE` | `academic` | `academic` = 2–4 paragraph polish; `legacy`/`off` = shorter sentences |
+
+**Cost:** rich north replays incur hybrid narrative LLM cost (not $0). Budget degrade uses epistemic fallback prose when `dailyBudgetExceeded` or prompt budget skips LLM.
 
 Chat: `get_component_evidence_bundle` reads `operator_investigation_pool` from the current report. UI: dual evidence accordion (highlighted + full pool) and claim-linked evidence list.
 

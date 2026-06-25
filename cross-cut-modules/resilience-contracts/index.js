@@ -36,6 +36,7 @@ export {
 } from './narrativeEpistemicMode.js';
 export {
   operatorSurfaceMode,
+  richSurfaceSkipSpecialists,
   richSurfaceDeterministicOnly,
   shouldUseRichDeterministicPath,
   operatorEvidenceChars,

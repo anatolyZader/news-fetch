@@ -1,5 +1,5 @@
 /**
- * Operator surface mode — Track B (rich pool + deterministic narrative) vs legacy.
+ * Operator surface mode — Track B (rich investigation pool + hybrid narrative) vs legacy.
  * Product rule: scoring may abstain; operator surface must not starve.
  */
 
@@ -14,11 +14,13 @@ export function operatorSurfaceMode(env = process.env) {
 }
 
 /**
- * When true, assessment skips specialists and narrative LLM; uses deterministic pool surface.
+ * When true, assessment skips assessment-agent specialists (rich Track B path).
+ * Narrative uses the hybrid facts/judge/polish pipeline when closed-core assess is enabled.
+ *
  * @param {NodeJS.ProcessEnv} [env]
  * @returns {boolean}
  */
-export function richSurfaceDeterministicOnly(env = process.env) {
+export function richSurfaceSkipSpecialists(env = process.env) {
   return operatorSurfaceMode(env) === 'rich';
 }
 
@@ -27,7 +29,12 @@ export function richSurfaceDeterministicOnly(env = process.env) {
  * @returns {boolean}
  */
 export function shouldUseRichDeterministicPath(env = process.env) {
-  return richSurfaceDeterministicOnly(env);
+  return richSurfaceSkipSpecialists(env);
+}
+
+/** @deprecated use richSurfaceSkipSpecialists */
+export function richSurfaceDeterministicOnly(env = process.env) {
+  return richSurfaceSkipSpecialists(env);
 }
 
 /**
@@ -40,13 +47,16 @@ export function operatorEvidenceChars(env = process.env) {
 }
 
 /**
- * Max claims in deterministic narrative; 0 = unlimited.
+ * Max claims in deterministic narrative fallback when hybrid polish is unavailable.
+ *
  * @param {NodeJS.ProcessEnv} [env]
  * @returns {number}
  */
 export function operatorMaxClaims(env = process.env) {
-  const n = Number.parseInt(env.RESILIENCE_OPERATOR_MAX_CLAIMS ?? '0', 10);
-  if (!Number.isFinite(n) || n < 0) return 0;
+  const raw = env.RESILIENCE_OPERATOR_MAX_CLAIMS;
+  if (raw === undefined || raw === '') return 12;
+  const n = Number.parseInt(raw, 10);
+  if (!Number.isFinite(n) || n < 0) return 12;
   return n;
 }
 

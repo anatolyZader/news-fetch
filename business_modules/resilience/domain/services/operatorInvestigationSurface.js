@@ -1,5 +1,5 @@
 /**
- * Track B — rich operator investigation surface (deterministic, no specialists).
+ * Track B — rich operator investigation surface (full pool + hybrid narrative prose).
  * Product rule: scoring may abstain; operator surface must not starve.
  */
 import {
@@ -9,7 +9,6 @@ import {
 import {
   operatorEvidenceChars,
   operatorHighlightPerSource,
-  operatorMaxClaims,
   operatorSurfaceMode,
 } from '../../../../cross-cut-modules/resilience-contracts/operatorSurfaceMode.js';
 import { buildDuplicateOccurrenceIndex } from '../epistemic/massContribution.js';
@@ -17,13 +16,6 @@ import { collectComponentItems } from '../epistemic/componentItems.js';
 import { defaultSignalWeights } from '../epistemic/signalWeights.js';
 import { SIGNAL_PROVENANCE } from './evidenceEligibility.js';
 import { buildRefKey } from './narrativeGrounding/signalRefRegistry.js';
-
-function isStubClaimText(text) {
-  const t = String(text ?? '').trim();
-  if (!t) return true;
-  if (t === 'Insufficient LLM synthesis — see supporting evidence below.') return true;
-  return t.toLowerCase().includes('see supporting evidence below');
-}
 
 const CONTEXT_PROVENANCES = new Set([
   SIGNAL_PROVENANCE.macro_national,
@@ -132,23 +124,6 @@ export function buildComponentInvestigationPool(componentId, narrativeScopeSigna
 }
 
 /**
- * @param {object[]} pool
- * @param {string} componentId
- * @returns {object[]}
- */
-export function buildDeterministicClaimsFromPool(pool, componentId) {
-  const maxClaims = operatorMaxClaims();
-  const list = maxClaims > 0 ? pool.slice(0, maxClaims) : pool;
-  return list.map((item) => ({
-    text: item.evidence,
-    signal_refs: [item.ref],
-    operator_epistemic_role: item.operator_epistemic_role,
-    relation: 'parallel',
-    component_id: componentId,
-  }));
-}
-
-/**
  * @param {object[]} claims
  * @returns {string}
  */
@@ -211,36 +186,17 @@ function isThinPool(pool) {
 }
 
 /**
+ * Attach investigation pool + highlights only (never overwrites hybrid narrative_operator / claims).
+ *
  * @param {object} comp
  * @param {object[]} pool
- * @param {object[]} claims
  */
-function applyRichComponentSurface(comp, pool, claims) {
+export function attachRichInvestigationPool(comp, pool) {
   comp.operator_surface_mode = 'rich';
   comp.operator_investigation_pool = pool.map(stripContributionField);
   comp.operator_investigation_pool_by_source = groupPoolItemsBySource(comp.operator_investigation_pool);
   comp.operator_surface_starved = pool.length === 0;
   comp.operator_component_thin = isThinPool(pool);
-
-  const existingClaims = comp.narrative_claims ?? comp.claims ?? [];
-  const hasUsableClaims = Array.isArray(existingClaims)
-    && existingClaims.some((c) => c?.text && !isStubClaimText(c.text));
-  if (!hasUsableClaims && claims.length > 0) {
-    comp.narrative_claims = claims;
-  }
-
-  const existingNarrative = String(comp.narrative_operator ?? comp.narrative ?? '').trim();
-  if (!existingNarrative || isStubClaimText(existingNarrative)) {
-    const narrativeClaims = hasUsableClaims ? existingClaims : claims;
-    const prose = buildDeterministicNarrativeFromClaims(
-      narrativeClaims.map((c) => ({
-        ...c,
-        operator_epistemic_role: c.operator_epistemic_role
-          ?? pool.find((p) => p.ref === (c.signal_refs ?? [])[0])?.operator_epistemic_role,
-      })),
-    );
-    if (prose) comp.narrative_operator = prose;
-  }
 
   const highlighted = buildHighlightedEvidenceFromPool(pool);
   if (highlighted.length > 0) {
@@ -286,8 +242,7 @@ export function attachRichOperatorSurface(assessment, ctx) {
       narrativeScopeSignals,
       poolCtx,
     );
-    const claims = buildDeterministicClaimsFromPool(pool, comp.component_id);
-    applyRichComponentSurface(comp, pool, claims);
+    attachRichInvestigationPool(comp, pool);
   }
 
   return assessment;

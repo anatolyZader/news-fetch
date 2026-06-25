@@ -33,6 +33,25 @@ function polishShardMinComponents() {
   return Number.isFinite(n) && n >= 3 ? n : 5;
 }
 
+function academicProseStyleEnabled() {
+  const v = String(process.env.RESILIENCE_NARRATIVE_PROSE_STYLE ?? 'academic').trim().toLowerCase();
+  return v !== '0' && v !== 'off' && v !== 'legacy';
+}
+
+function narrativeFieldSpec() {
+  if (academicProseStyleEnabled()) {
+    return (
+      '      "narrative": "<2–4 connected English paragraphs synthesizing component state; '
+      + 'open with a topic sentence; paraphrase claims in academic register; '
+      + 'each factual sentence must include an inline markdown citation [source_label](url) '
+      + 'using article_source or source type from signal refs — never use generic \\"source\\" when a label is known>",\n'
+    );
+  }
+  return (
+    '      "narrative": "<1–3 connected English sentences summarizing claims; each factual sentence must include an inline markdown citation [source_label](url) using article_source or source type from signal refs — never use generic \\"source\\" when a label is known>",\n'
+  );
+}
+
 function buildPolishSystemPrompt({ includeSynthesis = true, synthesisOnly = false } = {}) {
   if (synthesisOnly) {
     return (
@@ -51,6 +70,14 @@ function buildPolishSystemPrompt({ includeSynthesis = true, synthesisOnly = fals
     ? '- cross_component_synthesis: flowing prose paragraphs only — no bullet lists.\n'
     : '- Omit cross_component_synthesis (return only components).\n';
 
+  const academicRules = academicProseStyleEnabled()
+    ? (
+      '- narrative: write 2–4 connected paragraphs per component in academic operator register (topic sentence + synthesis across claims).\n'
+      + '- State uncertainty explicitly when evidence is thin, contested, or context-only.\n'
+      + '- Never include PBO dashboard metadata (avg=, percentage tuples) or raw Hebrew/Arabic quotes in narrative prose — paraphrase in English.\n'
+    )
+    : '';
+
   return (
     'You write operator-readable English resilience narratives grounded in cited claims.\n' +
     'Return ONLY valid JSON:\n' +
@@ -62,7 +89,7 @@ function buildPolishSystemPrompt({ includeSynthesis = true, synthesisOnly = fals
     '        { "text": "<claim>", "signal_refs": ["type@url:…"], "relation": "parallel|same_article_only|none" }\n' +
     '      ],\n' +
     '      "evidence": ["<markdown bullet with optional source link>"],\n' +
-    '      "narrative": "<1–3 connected English sentences summarizing claims; each factual sentence must include an inline markdown citation [source_label](url) using article_source or source type from signal refs — never use generic \\"source\\" when a label is known>",\n' +
+    narrativeFieldSpec() +
     '      "data_quality_caveat": "<optional when suppression context provided>"\n' +
     '    }\n' +
     '  ],\n' +
@@ -73,6 +100,7 @@ function buildPolishSystemPrompt({ includeSynthesis = true, synthesisOnly = fals
     '- Do NOT invent causal links between signals from different article URLs.\n' +
     '- Use "Separately," / parallel structure for independent observations in narrative prose.\n' +
     '- No raw multi-language evidence quotes in narrative prose — paraphrase in English.\n' +
+    academicRules +
     '- When signal refs carry narrativeContextOnly or narrative_national_context / macro_national / regional_press_context provenance, include 1–2 sentences per component where such evidence exists: "At national level…; for northern communities this implies…" with inline [source_label](url) citations; prefix with "National press (not north-local evidence):" when the source is not scope-local; prefix regional_press_context with "Regional press (not north-local scored evidence):".\n' +
     '- evidence[] items should echo claim text with markdown source links when URLs exist (full supporting list for drill-down).\n' +
     '- When SUPPRESSION/DATA_QUALITY block is present, include data_quality_caveat naming the limit.\n' +
@@ -348,4 +376,5 @@ export {
   polishMaxTokens,
   polishShardMinComponents,
   polishShardSize,
+  buildPolishSystemPrompt,
 };

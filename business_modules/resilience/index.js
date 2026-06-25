@@ -161,6 +161,7 @@ export {
 } from './domain/services/operatorNarrativeSurface.js';
 export {
   attachRichOperatorSurface,
+  attachRichInvestigationPool,
   buildDeterministicNarrativeFromClaims,
   assignOperatorEpistemicRole,
 } from './domain/services/operatorInvestigationSurface.js';
