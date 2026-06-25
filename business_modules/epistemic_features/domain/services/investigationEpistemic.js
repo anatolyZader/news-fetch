@@ -4,7 +4,7 @@
 import { COMPONENT_IDS } from '../../../../cross-cut-modules/resilience-contracts/componentIds.js';
 import { splitInvestigationMassEnabled } from '../../../../cross-cut-modules/agent/agentConfig.js';
 
-const INVESTIGATION_MASS_THRESHOLD = 1.5;
+const INVESTIGATION_MASS_THRESHOLD = 1.2;
 const ARCHIVE_ELIGIBILITY_THRESHOLD = 2;
 const RESIDUAL_MASS_UNIT = 0.35;
 const ARCHIVE_MASS_UNIT = 0.5;
@@ -87,7 +87,7 @@ function computeInvestigationEligible(ep, extras) {
   if (extras.archiveMass >= ARCHIVE_ELIGIBILITY_THRESHOLD) return true;
   if (extras.residualCount > 0) return true;
   if (extras.oovClusterCount > 0) return true;
-  if ((ep.media_mention_mass ?? 0) >= 2) return true;
+  if ((ep.media_mention_mass ?? 0) >= 1.5) return true;
   return false;
 }
 

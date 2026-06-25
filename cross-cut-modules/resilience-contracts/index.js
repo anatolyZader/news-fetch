@@ -34,4 +34,18 @@ export {
   narrativeEpistemicMode,
   narrativeInvestigationPermissive,
 } from './narrativeEpistemicMode.js';
+export {
+  operatorSurfaceMode,
+  richSurfaceDeterministicOnly,
+  shouldUseRichDeterministicPath,
+  operatorEvidenceChars,
+  operatorMaxClaims,
+  operatorHighlightPerSource,
+} from './operatorSurfaceMode.js';
+export {
+  normalizePoolSourceType,
+  poolItemSourceBucket,
+  groupPoolItemsBySource,
+  SOURCE_BUCKET_ORDER,
+} from './evidencePoolGrouping.js';
 export { isSoftVoidWarning, SOFT_VOID_REASONS } from './softVoidReasons.js';

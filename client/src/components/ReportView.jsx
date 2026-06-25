@@ -22,6 +22,13 @@ import {
   formatNarrativeMarkdown,
   formatEvidenceMarkdown,
 } from '../lib/formatSourceCitations.js';
+import {
+  formatEvidenceArticleSource,
+  groupEvidenceBySourceType,
+  normalizeEvidenceSourceType,
+  resolveEvidenceSourceMeta,
+  stripTrailingEvidenceCitation,
+} from '../lib/evidenceSourceMeta.js';
 import { isStubNarrative } from '../lib/isStubNarrative.js';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { DriftSparkline, StatusTag, MarkdownArticle } from '../ui/index.js';
@@ -35,7 +42,8 @@ import { ValidationReviewPanel } from './ValidationReviewPanel.jsx';
 import { CatalogProposalPanel } from './CatalogProposalPanel.jsx';
 import { OovAnomalyClustersPanel } from './OovAnomalyClustersPanel.jsx';
 import { OperatorRecommendationsPanel } from './OperatorRecommendationsPanel.jsx';
-import { DecisionBriefPanel } from './DecisionBriefPanel.jsx';
+import { OperatorClaimEvidenceList } from './OperatorClaimEvidenceList.jsx';
+import { EpistemicRoleBadge } from './EpistemicRoleBadge.jsx';
 import { AgentDivergencePanel } from './AgentDivergencePanel.jsx';
 import { InstrumentMetricsBadges } from './InstrumentMetricsBadges.jsx';
 import { ReportComponentFilterBar, readReportComponentFilter } from './ReportComponentFilterBar.jsx';
@@ -604,9 +612,10 @@ function ScopeAttributionBanner({ assessment, t }) {
   );
 }
 
-function NationalContextSection({ nationalContextSignals, t }) {
+function NationalContextSection({ nationalContextSignals, t, richMode = false }) {
   const list = Array.isArray(nationalContextSignals) ? nationalContextSignals : [];
   if (list.length === 0) return null;
+  const displayList = richMode ? list : list.slice(0, 12);
 
   return (
     <Accordion defaultExpanded={false} disableGutters sx={{ '&:before': { display: 'none' } }}>
@@ -625,7 +634,7 @@ function NationalContextSection({ nationalContextSignals, t }) {
           {t('report.nationalContext.body')}
         </Typography>
         <Stack spacing={0.75}>
-          {list.slice(0, 12).map((s, i) => (
+          {displayList.map((s, i) => (
             <Box key={`${s.signal_type ?? 'macro'}-${i}`}>
               <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" sx={{ marginBottom: 0.25 }}>
                 <Typography variant="caption" color="text.secondary">
@@ -776,43 +785,61 @@ function InvestigationSummaryBanner({ summary, t }) {
   );
 }
 
-function EvidencePartitionPanel({ comp, t }) {
+function EvidencePartitionPanel({ comp, t, isRichMode = false }) {
   const coverage = comp.coverage;
-  if (!coverage) return null;
+  const pool = comp.operator_investigation_pool ?? [];
+  if (!coverage && !isRichMode) return null;
   const state = comp.operator_display_state;
   const usage = comp.evidence_usage_state;
-  const show = state === 'specialist_skipped'
+  const show = isRichMode
+    || state === 'specialist_skipped'
     || state === 'evidence_quarantined'
     || state === 'insufficient_data'
     || usage === 'field_anchor_only'
     || usage === 'mixed'
-    || (coverage.investigation_used ?? 0) !== (coverage.scoring_used ?? 0)
-    || (coverage.scoring_quarantined ?? 0) > 0;
+    || (coverage?.investigation_used ?? 0) !== (coverage?.scoring_used ?? 0)
+    || (coverage?.scoring_quarantined ?? 0) > 0;
   if (!show) return null;
 
   const rows = [];
-  if ((coverage.investigation_used ?? 0) > 0) {
+  if (isRichMode && pool.length > 0) {
+    const roleCounts = {};
+    for (const item of pool) {
+      const role = item.operator_epistemic_role ?? 'investigation_only';
+      roleCounts[role] = (roleCounts[role] ?? 0) + 1;
+    }
+    for (const role of ['scored', 'investigation_only', 'context_only', 'quarantined']) {
+      if (roleCounts[role] > 0) {
+        rows.push(
+          t('report.evidencePartition.roleCount')
+            .replace('{role}', t(`report.epistemicRole.${role}`))
+            .replace('{n}', String(roleCounts[role])),
+        );
+      }
+    }
+  }
+  if ((coverage?.investigation_used ?? 0) > 0) {
     rows.push(t('report.evidencePartition.investigationUsed').replace('{n}', String(coverage.investigation_used)));
   }
-  if ((coverage.scoring_quarantined ?? 0) > 0) {
+  if ((coverage?.scoring_quarantined ?? 0) > 0) {
     rows.push(
       t('report.evidencePartition.scoringQuarantined').replace('{n}', String(coverage.scoring_quarantined)),
     );
   }
   if (usage === 'field_anchor_only' || usage === 'mixed') {
-    if (coverage.scoring_used > 0) {
+    if ((coverage?.scoring_used ?? 0) > 0) {
       rows.push(t('report.evidencePartition.fieldAnchor').replace('{n}', String(coverage.scoring_used)));
     }
-  } else if (coverage.scoring_used > 0) {
+  } else if ((coverage?.scoring_used ?? 0) > 0) {
     rows.push(t('report.evidencePartition.scoringUsed').replace('{n}', String(coverage.scoring_used)));
   }
-  if (coverage.quarantined > 0) {
+  if ((coverage?.quarantined ?? 0) > 0) {
     rows.push(t('report.evidencePartition.quarantined').replace('{n}', String(coverage.quarantined)));
   }
-  if (coverage.macro_context > 0) {
+  if ((coverage?.macro_context ?? 0) > 0) {
     rows.push(t('report.evidencePartition.macroContext').replace('{n}', String(coverage.macro_context)));
   }
-  if (coverage.claims > 0) {
+  if ((coverage?.claims ?? 0) > 0) {
     rows.push(t('report.evidencePartition.claims').replace('{n}', String(coverage.claims)));
   }
 
@@ -848,7 +875,7 @@ function resolveCuratedEvidence(comp) {
 
 function evidenceItemMarkdown(item) {
   if (typeof item === 'string') return item;
-  return item?.markdown ?? item?.text ?? '';
+  return item?.markdown ?? item?.text ?? item?.evidence ?? '';
 }
 
 function stripEvidenceBulletPrefix(markdown) {
@@ -856,52 +883,18 @@ function stripEvidenceBulletPrefix(markdown) {
   return markdown.replace(/^\s*-\s+/, '');
 }
 
-function findSignalByUrl(url, sourceSignals) {
-  if (!url || !sourceSignals?.length) return null;
-  return sourceSignals.find((s) => s.article_url === url) ?? null;
-}
-
-function enrichItemWithSignal(item, signal) {
-  return {
-    ...item,
-    source_type: signal.source_type,
-    article_source: signal.article_source ?? item.article_source,
-  };
-}
-
-function metaFromSignal(signal) {
-  return {
-    source_type: signal.source_type,
-    article_source: signal.article_source,
-  };
-}
-
-function resolveEvidenceSourceMeta(item, sourceSignals) {
-  const md = evidenceItemMarkdown(item);
-  const urlFromMd = md.match(/\]\((https?:\/\/[^)]+)\)/)?.[1] ?? null;
-  const url = (typeof item === 'object' ? item?.url : null) ?? urlFromMd;
-
-  if (item && typeof item === 'object') {
-    const hasMeta = item.source_type || item.article_source;
-    if (hasMeta) return item;
-    const signal = findSignalByUrl(url, sourceSignals);
-    if (signal) return enrichItemWithSignal(item, signal);
-    if (url || item.article_source) return item;
-  }
-
-  const signal = findSignalByUrl(url, sourceSignals);
-  return signal ? metaFromSignal(signal) : null;
-}
-
 function evidenceItemKey(item, index) {
   const md = evidenceItemMarkdown(item);
   return `evidence-${index}-${md.slice(0, 32)}`;
 }
 
-function formatEvidenceArticleSource(meta, sourceType) {
-  if (!meta.article_source) return null;
-  if (sourceType === 'pbo') return meta.article_source.replace(/^pbo-/, '');
-  return meta.article_source;
+function formatEvidenceBodyMarkdown(item, sourceSignals, formatEvidenceMd) {
+  const raw = stripEvidenceBulletPrefix(evidenceItemMarkdown(item));
+  const meta = resolveEvidenceSourceMeta(item, sourceSignals);
+  const body = (meta?.source_type || meta?.article_source)
+    ? stripTrailingEvidenceCitation(raw)
+    : raw;
+  return formatEvidenceMd(body);
 }
 
 function evidenceListItemSx(theme) {
@@ -915,7 +908,8 @@ function evidenceListItemSx(theme) {
 function EvidenceSourceHeader({ item, sourceSignals, t }) {
   const meta = resolveEvidenceSourceMeta(item, sourceSignals);
   if (!meta?.source_type && !meta?.article_source) return null;
-  const sourceType = meta.source_type;
+  const sourceType = normalizeEvidenceSourceType(meta.source_type)
+    ?? meta.source_type;
   const articleSourceLabel = formatEvidenceArticleSource(meta, sourceType);
   return (
     <Box
@@ -939,6 +933,9 @@ function EvidenceSourceHeader({ item, sourceSignals, t }) {
       {sourceType === 'pbo' && <SourceBadge kind="pbo">{t('report.badge.pbo')}</SourceBadge>}
       {articleSourceLabel}
       <GeoEpistemicBadge signal={meta} t={t} />
+      {typeof item === 'object' && item?.operator_epistemic_role && (
+        <EpistemicRoleBadge role={item.operator_epistemic_role} t={t} />
+      )}
     </Box>
   );
 }
@@ -963,12 +960,80 @@ function componentIsInsufficient(comp) {
 }
 
 function evidenceAccordionTitle({ isFiltered, isAnalyst, operatorDisplayState, t }) {
-  if (isFiltered && !isAnalyst) return t('report.evidence.rawSourceExcerpts');
-  if (operatorDisplayState === 'insufficient_data' && !isAnalyst) {
+  if (operatorDisplayState === 'insufficient_data' && !isAnalyst && isFiltered) {
     return t('report.evidencePartition.rawScored');
   }
   return t('report.supportingEvidence');
 }
+
+function sourceSectionLabel(bucketKey, t) {
+  const key = `report.evidence.sourceSection.${bucketKey}`;
+  const label = t(key);
+  return label === key ? bucketKey : label;
+}
+
+function EvidenceBySourceList({
+  items,
+  sourceSignals,
+  formatEvidenceMd,
+  t,
+}) {
+  const groups = groupEvidenceBySourceType(items, sourceSignals);
+  if (groups.length === 0) return null;
+
+  return (
+    <Stack spacing={0.5}>
+      {groups.map(({ key, items: groupItems }) => (
+        <Accordion
+          key={key}
+          defaultExpanded={false}
+          disableGutters
+          sx={(theme) => ({
+            border: theme.custom.border.hairline,
+            borderRadius: `${theme.custom.radius.section}px !important`,
+            '&:before': { display: 'none' },
+          })}
+        >
+          <AccordionSummary
+            sx={(theme) => ({
+              minHeight: 40,
+              color: theme.palette.text.secondary,
+              fontSize: theme.typography.meta.fontSize,
+              fontWeight: 500,
+            })}
+          >
+            <Typography variant="meta" component="span">
+              {sourceSectionLabel(key, t)}
+            </Typography>
+            <Typography variant="caption" component="span" sx={{ marginLeft: 'auto', opacity: 0.7 }}>
+              {groupItems.length} {t('report.items')}
+            </Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <Box component="ul" sx={(theme) => ({ paddingLeft: theme.spacing(2.5), margin: 0 })}>
+              {groupItems.map((item, i) => (
+                <Box component="li" key={evidenceItemKey(item, i)} sx={evidenceListItemSx}>
+                  <EvidenceSourceHeader item={item} sourceSignals={sourceSignals} t={t} />
+                  <MarkdownArticle
+                    variant="report"
+                    markdown={formatEvidenceBodyMarkdown(item, sourceSignals, formatEvidenceMd)}
+                  />
+                </Box>
+              ))}
+            </Box>
+          </AccordionDetails>
+        </Accordion>
+      ))}
+    </Stack>
+  );
+}
+
+EvidenceBySourceList.propTypes = {
+  items: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.object])),
+  sourceSignals: PropTypes.arrayOf(PropTypes.object),
+  formatEvidenceMd: PropTypes.func.isRequired,
+  t: PropTypes.func.isRequired,
+};
 
 function ComponentCard({
   comp,
@@ -992,11 +1057,18 @@ function ComponentCard({
   const curatedEvidence = resolveCuratedEvidence(comp);
   const narrativeBody = String(comp.narrative_operator ?? comp.narrative ?? '').trim();
   const narrativeIsStub = isStubNarrative(narrativeBody);
+  const isRichMode = comp.operator_surface_mode === 'rich';
+  const fullPool = comp.operator_investigation_pool ?? [];
   const allowRawSignalFallback = isAnalyst || (!narrativeIsStub || Boolean(curatedEvidence?.length));
-  const signals = resolveComponentSignals(curatedEvidence, allowRawSignalFallback, sourceSignals);
+  const signals = isRichMode ? null : resolveComponentSignals(curatedEvidence, allowRawSignalFallback, sourceSignals);
   const isFiltered = Boolean(signals?.length);
-  const evidenceCount = curatedEvidence?.length ?? signals?.length ?? 0;
+  const highlightedCount = curatedEvidence?.length ?? 0;
+  const poolCount = fullPool.length;
+  const evidenceCount = isRichMode
+    ? Math.max(highlightedCount, poolCount)
+    : (curatedEvidence?.length ?? signals?.length ?? 0);
   const showEvidenceAccordion = evidenceCount > 0;
+  const claims = comp.narrative_claims ?? comp.claims ?? [];
   const formatNarrativeMd = (markdown) => formatNarrativeMarkdown(
     markdown,
     reportDate,
@@ -1154,8 +1226,18 @@ function ComponentCard({
           </Typography>
         )}
         {!operatorSimpleView && !isAnalyst && <OperatorComponentStateBanner comp={comp} t={t} />}
-        {!operatorSimpleView && !isAnalyst && <EvidencePartitionPanel comp={comp} t={t} />}
+        {!operatorSimpleView && !isAnalyst && (
+          <EvidencePartitionPanel comp={comp} t={t} isRichMode={isRichMode} />
+        )}
         <MarkdownArticle variant="report" markdown={formatNarrativeMd(narrativeBody)} />
+        {isRichMode && Array.isArray(claims) && claims.length > 0 && (
+          <OperatorClaimEvidenceList
+            claims={claims}
+            investigationPool={fullPool}
+            formatEvidenceMd={formatEvidenceMd}
+            t={t}
+          />
+        )}
         {!operatorSimpleView && (comp.instrument?.interpretive_summary === true) && (
           <Box sx={(theme) => ({ marginTop: theme.spacing(1) })}>
             <Typography variant="caption" color="warning.main" sx={{ display: 'block', fontWeight: 600 }}>
@@ -1192,51 +1274,65 @@ function ComponentCard({
               fontWeight: 500,
             })}>
               <Typography variant="meta" component="span">
-                {evidenceAccordionTitle({
-                  isFiltered,
-                  isAnalyst,
-                  operatorDisplayState: comp.operator_display_state,
-                  t,
-                })}
+                {isRichMode
+                  ? t('report.evidence.highlighted')
+                  : evidenceAccordionTitle({
+                    isFiltered,
+                    isAnalyst,
+                    operatorDisplayState: comp.operator_display_state,
+                    t,
+                  })}
               </Typography>
               <Typography variant="caption" component="span" sx={{ marginLeft: 'auto', opacity: 0.7 }}>
-                {evidenceCount} {t('report.items')}
+                {isRichMode ? highlightedCount : evidenceCount} {t('report.items')}
               </Typography>
             </AccordionSummary>
             <AccordionDetails sx={(theme) => ({
               gap: theme.spacing(1),
               fontSize: theme.typography.body2.fontSize,
             })}>
-              {isFiltered && !isAnalyst && (
+              {isFiltered && !isAnalyst && !isRichMode && (
                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block', marginBottom: 0.5 }}>
                   {t('report.evidence.rawSourceHint')}
                 </Typography>
               )}
-              <Box component="ul" sx={(theme) => ({ paddingLeft: theme.spacing(2.5), margin: 0 })}>
-                {isFiltered
-                  ? signals.map((s, i) => (
-                    <Box
-                      component="li"
-                      key={`${s.source_type ?? 'src'}-${s.article_source ?? i}-${i}`}
-                      sx={evidenceListItemSx}
-                    >
-                      <EvidenceSourceHeader item={s} sourceSignals={sourceSignals} t={t} />
-                      <MarkdownArticle
-                        variant="report"
-                        markdown={formatEvidenceMd(stripEvidenceBulletPrefix(s.evidence ?? ''))}
-                      />
-                    </Box>
-                  ))
-                  : curatedEvidence.map((e, i) => (
-                    <Box component="li" key={evidenceItemKey(e, i)} sx={evidenceListItemSx}>
-                      <EvidenceSourceHeader item={e} sourceSignals={sourceSignals} t={t} />
-                      <MarkdownArticle
-                        variant="report"
-                        markdown={formatEvidenceMd(stripEvidenceBulletPrefix(evidenceItemMarkdown(e)))}
-                      />
-                    </Box>
-                  ))}
-              </Box>
+              <EvidenceBySourceList
+                items={isRichMode ? (curatedEvidence ?? []) : (isFiltered ? signals : curatedEvidence)}
+                sourceSignals={sourceSignals}
+                formatEvidenceMd={formatEvidenceMd}
+                t={t}
+              />
+            </AccordionDetails>
+          </Accordion>
+        )}
+        {isRichMode && poolCount > 0 && (
+          <Accordion
+            defaultExpanded={false}
+            sx={(theme) => ({
+              borderRadius: `${theme.custom.radius.section}px !important`,
+              marginTop: theme.spacing(1),
+              marginBottom: theme.spacing(1),
+            })}
+          >
+            <AccordionSummary sx={(theme) => ({
+              color: theme.palette.text.secondary,
+              fontSize: theme.typography.meta.fontSize,
+              fontWeight: 500,
+            })}>
+              <Typography variant="meta" component="span">
+                {t('report.evidence.fullPool')}
+              </Typography>
+              <Typography variant="caption" component="span" sx={{ marginLeft: 'auto', opacity: 0.7 }}>
+                {poolCount} {t('report.items')}
+              </Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <EvidenceBySourceList
+                items={fullPool}
+                sourceSignals={sourceSignals}
+                formatEvidenceMd={formatEvidenceMd}
+                t={t}
+              />
             </AccordionDetails>
           </Accordion>
         )}
@@ -1521,6 +1617,7 @@ export function ReportView({
         <NationalContextSection
           nationalContextSignals={assessment.national_context_signals ?? assessment.macro_signals}
           t={t}
+          richMode={assessment.operator_surface_mode === 'rich'}
         />
       )}
 
@@ -1808,6 +1905,7 @@ ScopeAttributionBanner.propTypes = {
 NationalContextSection.propTypes = {
   nationalContextSignals: PropTypes.arrayOf(macroSignalShape),
   t: translationFnPropType,
+  richMode: PropTypes.bool,
 };
 
 NorthClusterNarrativesSection.propTypes = {
@@ -1845,6 +1943,7 @@ InvestigationSummaryBanner.propTypes = {
 EvidencePartitionPanel.propTypes = {
   comp: componentScoreShape.isRequired,
   t: translationFnPropType,
+  isRichMode: PropTypes.bool,
 };
 
 ReportView.propTypes = {

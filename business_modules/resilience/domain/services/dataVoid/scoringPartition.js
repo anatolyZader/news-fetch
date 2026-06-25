@@ -8,6 +8,8 @@
 import { isSoftVoidWarning } from '../../../../../cross-cut-modules/resilience-contracts/softVoidReasons.js';
 import {
   filterAnchorSignals,
+  filterHardDigitalSignals,
+  filterSoftDigitalSignals,
   isDigitalSignal,
   totalAnchorVolume,
 } from './sourceChannels.js';
@@ -61,6 +63,23 @@ function partitionResult(scoringSignals, quarantinedSignals, reason) {
 }
 
 /**
+ * Anchor + soft press/radio at partial weight; hard digital quarantined.
+ * @param {Array<object>} list
+ * @returns {{ scoringSignals: Array<object>, quarantinedSignals: Array<object> }}
+ */
+function partitionAnchorPlusSoftPress(list) {
+  const anchors = filterAnchorSignals(list);
+  const softPress = filterSoftDigitalSignals(list).map((s) => ({
+    ...s,
+    partial_void_press: true,
+  }));
+  return {
+    scoringSignals: [...anchors, ...softPress],
+    quarantinedSignals: filterHardDigitalSignals(list),
+  };
+}
+
+/**
  * @param {Array<object>} signals
  * @param {object|null|undefined} dataVoid
  * @param {object} [opts]
@@ -108,7 +127,8 @@ export function resolveScoringPartition(signals, dataVoid, opts = {}) {
     }
     const reason = prior.reason ?? QUARANTINE_REASON.PRIOR_QUARANTINE;
     if (anchorOnly.length > 0) {
-      return partitionResult(anchorOnly, digitalQuarantined, reason);
+      const { scoringSignals, quarantinedSignals } = partitionAnchorPlusSoftPress(list);
+      return partitionResult(scoringSignals, quarantinedSignals, reason);
     }
     return {
       assessmentMode: 'abstained',
@@ -126,7 +146,8 @@ export function resolveScoringPartition(signals, dataVoid, opts = {}) {
 
   if (hasConnectivityOutage(dataVoid)) {
     if (anchorActive(dataVoid, list)) {
-      return partitionResult(anchorOnly, digitalQuarantined, QUARANTINE_REASON.CONNECTIVITY_ISOLATION);
+      const { scoringSignals, quarantinedSignals } = partitionAnchorPlusSoftPress(list);
+      return partitionResult(scoringSignals, quarantinedSignals, QUARANTINE_REASON.CONNECTIVITY_ISOLATION);
     }
     return {
       assessmentMode: 'abstained',

@@ -3,6 +3,7 @@
  */
 import { getDefaultLlmPort } from '../../../cross-cut-modules/llm/anthropicLlmAdapter.js';
 import { loadSignals, searchSignals, formatSignals, compareReports } from '../domain/signalLookup.js';
+import { formatComponentEvidenceBundle } from '../domain/componentEvidenceBundle.js';
 import {
   deriveInstrumentState,
   operatorAssessmentSummary,
@@ -434,9 +435,19 @@ async function handleSearchSimilarArticles(toolName, input, ctx) {
   });
 }
 
+function handleGetComponentEvidenceBundle(_toolName, input, ctx) {
+  const componentId = String(input?.component ?? '').trim();
+  if (!componentId) return 'component is required';
+  return formatComponentEvidenceBundle(ctx.reportData, componentId, {
+    role: input?.role ?? null,
+    limit: input?.limit ?? 50,
+  });
+}
+
 const CHAT_TOOL_HANDLERS = {
   lookup_pbo: (_toolName, input, ctx) => handleLookupPbo(input, ctx),
   lookup_signals: (_toolName, input) => handleLookupSignals(input),
+  get_component_evidence_bundle: handleGetComponentEvidenceBundle,
   compare_dates: (_toolName, input, ctx) => handleCompareDates(input, ctx),
   generate_brief: (_toolName, input, ctx) =>
     generateBrief(

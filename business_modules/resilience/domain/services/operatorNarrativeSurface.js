@@ -5,14 +5,33 @@
 import { agentClaimsForComponent } from './buildNarrativeScoredComponents.js';
 import { resolveNarrativePipelineMode } from './narrativeGrounding/groundingConfig.js';
 import { buildRefKey } from './narrativeGrounding/signalRefRegistry.js';
+import {
+  operatorSurfaceMode,
+  operatorEvidenceChars,
+  operatorMaxClaims,
+} from '../../../../cross-cut-modules/resilience-contracts/operatorSurfaceMode.js';
+import { buildDeterministicNarrativeFromClaims } from './operatorInvestigationSurface.js';
 
 export const INSUFFICIENT_SYNTHESIS_NARRATIVE =
   'Insufficient LLM synthesis — see supporting evidence below.';
 
 const MAX_CLAIMS_IN_PROSE = 3;
-const MAX_EVIDENCE_BULLETS = 8;
 const MAX_EVIDENCE_LINE_CHARS = 480;
 const SIGNAL_REF_TRAILING = /\s*(?:\[S\d+\])+\s*$/;
+
+function isRichSurfaceMode() {
+  return operatorSurfaceMode() === 'rich';
+}
+
+function maxEvidenceLineChars() {
+  return isRichSurfaceMode() ? operatorEvidenceChars() : MAX_EVIDENCE_LINE_CHARS;
+}
+
+function maxClaimsInProse() {
+  if (!isRichSurfaceMode()) return MAX_CLAIMS_IN_PROSE;
+  const n = operatorMaxClaims();
+  return n > 0 ? n : Number.MAX_SAFE_INTEGER;
+}
 
 /**
  * @param {string | null | undefined} text
@@ -30,11 +49,15 @@ export function isStubNarrative(text) {
  * @returns {string}
  */
 export function buildProseFromClaims(claims) {
+  const cap = maxClaimsInProse();
   const texts = (claims ?? [])
     .map((c) => String(c?.text ?? '').trim())
     .filter(Boolean)
-    .slice(0, MAX_CLAIMS_IN_PROSE);
+    .slice(0, cap);
   if (texts.length === 0) return '';
+  if (isRichSurfaceMode()) {
+    return buildDeterministicNarrativeFromClaims(claims ?? []);
+  }
   if (texts.length === 1) return texts[0];
   return texts.join(' Separately, ');
 }
@@ -139,7 +162,17 @@ function urlFromRefKey(refKey) {
  * @returns {object[]}
  */
 function signalPoolsFromComponent(comp) {
+  const poolItems = (comp?.operator_investigation_pool ?? []).map((item) => ({
+    signal_type: item.signal_type,
+    type: item.signal_type,
+    evidence: item.evidence,
+    article_url: item.url,
+    source_type: item.source_type,
+    article_source: item.article_source,
+    signalProvenance: item.signal_provenance,
+  }));
   return [
+    ...poolItems,
     ...(comp?.signals ?? []),
     ...(comp?.top_contributors ?? []),
   ];
@@ -274,7 +307,7 @@ function sourceMetaFromClaim(claim, comp) {
  * @returns {string}
  */
 function formatEvidenceBullet(text, url) {
-  const body = String(text ?? '').trim().slice(0, MAX_EVIDENCE_LINE_CHARS);
+  const body = String(text ?? '').trim().slice(0, maxEvidenceLineChars());
   if (!body) return '';
   if (url) return `- ${body} [source](${url})`;
   return `- ${body}`;
@@ -286,7 +319,7 @@ function formatEvidenceBullet(text, url) {
  * @returns {object|null}
  */
 function structuredItemFromSignal(signal, fallbackText) {
-  const text = String(signal?.evidence ?? fallbackText ?? '').trim().slice(0, MAX_EVIDENCE_LINE_CHARS);
+  const text = String(signal?.evidence ?? fallbackText ?? '').trim().slice(0, maxEvidenceLineChars());
   if (!text) return null;
   const meta = metaFromSignal(signal);
   return {
@@ -310,7 +343,7 @@ function structuredItemsFromClaim(claim, comp) {
     .filter(Boolean);
   if (fromRefs.length > 0) return fromRefs;
 
-  const text = stripTrailingSignalRefs(claim.text).slice(0, MAX_EVIDENCE_LINE_CHARS);
+  const text = stripTrailingSignalRefs(claim.text).slice(0, maxEvidenceLineChars());
   if (!text) return [];
   const url = urlFromClaim(claim, comp);
   const meta = sourceMetaFromClaim(claim, comp);
@@ -333,8 +366,7 @@ function buildEvidenceFromClaims(comp) {
     : claimsForComponent(comp);
   if (!claims.length) return [];
   return claims
-    .flatMap((c) => structuredItemsFromClaim(c, comp))
-    .slice(0, MAX_EVIDENCE_BULLETS);
+    .flatMap((c) => structuredItemsFromClaim(c, comp));
 }
 
 /**
@@ -342,8 +374,12 @@ function buildEvidenceFromClaims(comp) {
  * @returns {string[]}
  */
 export function buildCuratedEvidenceBullets(comp) {
+  if (isRichSurfaceMode() && Array.isArray(comp.evidence_operator_structured) && comp.evidence_operator_structured.length > 0) {
+    return comp.evidence_operator_structured.map((item) => item.markdown).filter(Boolean);
+  }
+
   if (Array.isArray(comp.evidence_operator) && comp.evidence_operator.length > 0) {
-    return comp.evidence_operator.slice(0, MAX_EVIDENCE_BULLETS);
+    return comp.evidence_operator;
   }
 
   const fromClaims = buildEvidenceFromClaims(comp);
@@ -358,8 +394,7 @@ export function buildCuratedEvidenceBullets(comp) {
         const text = typeof e === 'string' ? e : (e?.evidence ?? e?.text ?? '');
         return formatEvidenceBullet(text, null);
       })
-      .filter(Boolean)
-      .slice(0, MAX_EVIDENCE_BULLETS);
+      .filter(Boolean);
   }
 
   return [];
@@ -380,7 +415,7 @@ function rawClaimsForComponent(comp) {
  */
 export function buildStructuredEvidenceItems(comp) {
   if (Array.isArray(comp.evidence_operator_structured) && comp.evidence_operator_structured.length > 0) {
-    return comp.evidence_operator_structured.slice(0, MAX_EVIDENCE_BULLETS);
+    return comp.evidence_operator_structured;
   }
 
   const fromClaims = buildEvidenceFromClaims(comp);
@@ -423,9 +458,15 @@ export function resolveOperatorComponentNarrative(comp) {
  * @param {object} comp
  */
 function finalizeOperatorComponentSurface(comp) {
+  const hasRichPool = isRichSurfaceMode()
+    && Array.isArray(comp.operator_investigation_pool)
+    && comp.operator_investigation_pool.length > 0;
+
   const narrative = resolveOperatorComponentNarrative(comp);
   if (narrative) {
     comp.narrative_operator = narrative;
+  } else if (hasRichPool && isStubNarrative(comp.narrative_operator)) {
+    delete comp.narrative_operator;
   }
 
   const bullets = buildCuratedEvidenceBullets(comp);
@@ -433,8 +474,10 @@ function finalizeOperatorComponentSurface(comp) {
   if (bullets.length > 0) {
     comp.evidence_operator = bullets;
     comp.evidence_operator_structured = structured;
-    comp.operator_evidence_tier = 'curated';
-  } else {
+    if (comp.operator_evidence_tier !== 'rich_pool') {
+      comp.operator_evidence_tier = 'curated';
+    }
+  } else if (!hasRichPool) {
     comp.operator_evidence_tier = 'none';
   }
 }

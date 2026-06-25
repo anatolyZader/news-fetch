@@ -41,8 +41,8 @@ export function evidenceMatchesMacroNationalTerms(evidence) {
  * @returns {number}
  */
 export function narrativeNationalCap(env = process.env) {
-  const n = Number.parseInt(env.RESILIENCE_NARRATIVE_NATIONAL_CAP ?? '40', 10);
-  return Number.isFinite(n) && n > 0 ? Math.min(n, 200) : 40;
+  const n = Number.parseInt(env.RESILIENCE_NARRATIVE_NATIONAL_CAP ?? '60', 10);
+  return Number.isFinite(n) && n > 0 ? Math.min(n, 200) : 60;
 }
 
 /**
@@ -90,12 +90,29 @@ function isValidExtractedSignal(signal) {
  * @returns {number} 0 = tier A keyword, 1 = tier B press, -1 = not eligible
  */
 function nationalContextTier(signal, reportScopeId) {
-  if (evidenceMatchesMacroNationalTerms(signal?.evidence)) return 0;
-  if (!NATIONAL_PRESS_SOURCE_TYPES.has(signal?.source_type)) return -1;
+  if (!NATIONAL_PRESS_SOURCE_TYPES.has(signal?.source_type)) {
+    if (evidenceMatchesMacroNationalTerms(signal?.evidence)) return 0;
+    return -1;
+  }
   const decision = signal?.scopeDecision ?? scopeDecisionForSignal(signal, reportScopeId);
   if (decision.isScopeRelevant) return -1;
   if (!isValidExtractedSignal(signal)) return -1;
+  if (evidenceMatchesMacroNationalTerms(signal?.evidence)) return -1;
   return 1;
+}
+
+/**
+ * Scope-excluded press/radio mentioning north/locality terms (regional press context).
+ * @param {object} signal
+ * @param {string} reportScopeId
+ * @returns {boolean}
+ */
+function isRegionalPressContextCandidate(signal, reportScopeId) {
+  if (!NATIONAL_PRESS_SOURCE_TYPES.has(signal?.source_type)) return false;
+  if (!evidenceMatchesMacroNationalTerms(signal?.evidence)) return false;
+  const decision = signal?.scopeDecision ?? scopeDecisionForSignal(signal, reportScopeId);
+  if (decision.isScopeRelevant) return false;
+  return isValidExtractedSignal(signal);
 }
 
 /**
@@ -117,6 +134,16 @@ function confidenceRank(signal) {
   if (typeof raw === 'number') return raw;
   const map = { high: 0.9, medium: 0.6, low: 0.3 };
   return map[String(raw).toLowerCase()] ?? 0.5;
+}
+
+function sortRegionalPressCandidates(candidates) {
+  return [...candidates].sort((a, b) => {
+    const breadth = componentBreadth(b) - componentBreadth(a);
+    if (breadth !== 0) return breadth;
+    const temporal = (b.temporal_weight ?? 1) - (a.temporal_weight ?? 1);
+    if (temporal !== 0) return temporal;
+    return confidenceRank(b) - confidenceRank(a);
+  });
 }
 
 /**
@@ -210,13 +237,55 @@ export function selectNarrativeNationalContext(allSignals, reportScopeId, scoped
 }
 
 /**
- * @param {{ scopedSignals: object[], narrativeNationalContext: object[] }} params
+ * Scope-excluded press mentioning north/locality terms — investigation + narrative only.
+ * @param {object[]} allSignals
+ * @param {string} reportScopeId
+ * @param {Set<string>} scopedKeys
+ * @param {{ cap?: number, perDayCap?: number|null }} [opts]
  * @returns {object[]}
  */
-export function buildNarrativeScopeSignals({ scopedSignals = [], narrativeNationalContext = [] }) {
+export function selectRegionalPressContext(allSignals, reportScopeId, scopedKeys, opts = {}) {
+  if (!isRegionalReportScope(reportScopeId)) return [];
+
+  const perDayCap = opts.perDayCap ?? narrativeNationalCapPerDay();
+  const totalCap = opts.cap ?? narrativeNationalCap();
+  const effectiveTotalCap = perDayCap ? Math.min(200, perDayCap * 7) : totalCap;
+
+  const candidates = [];
+  const seen = new Set(scopedKeys);
+
+  for (const s of allSignals ?? []) {
+    if (!s || typeof s !== 'object') continue;
+    const key = signalDedupeKey(s);
+    if (seen.has(key)) continue;
+    if (!isRegionalPressContextCandidate(s, reportScopeId)) continue;
+    seen.add(key);
+    candidates.push(s);
+  }
+
+  const sorted = sortRegionalPressCandidates(candidates);
+  const picked = applyNationalContextCap(sorted, effectiveTotalCap, perDayCap);
+
+  return picked.map((s) => ({
+    ...s,
+    signalProvenance: SIGNAL_PROVENANCE.regional_press_context,
+    metricsEligible: false,
+    narrativeContextOnly: true,
+  }));
+}
+
+/**
+ * @param {{ scopedSignals: object[], narrativeNationalContext: object[], regionalPressContext?: object[] }} params
+ * @returns {object[]}
+ */
+export function buildNarrativeScopeSignals({
+  scopedSignals = [],
+  narrativeNationalContext = [],
+  regionalPressContext = [],
+}) {
   const out = [];
   const seen = new Set();
-  for (const s of [...scopedSignals, ...narrativeNationalContext]) {
+  for (const s of [...scopedSignals, ...regionalPressContext, ...narrativeNationalContext]) {
     if (!s || typeof s !== 'object') continue;
     const key = signalDedupeKey(s);
     if (seen.has(key)) continue;
@@ -255,10 +324,14 @@ export function slimNationalContextSignal(signal) {
  * @param {object[]} narrativeNationalContext
  * @returns {object[]}
  */
-export function mergeNationalContextSignals(macroSignals = [], narrativeNationalContext = []) {
+export function mergeNationalContextSignals(
+  macroSignals = [],
+  narrativeNationalContext = [],
+  regionalPressContext = [],
+) {
   const out = [];
   const seen = new Set();
-  for (const s of [...macroSignals, ...narrativeNationalContext]) {
+  for (const s of [...macroSignals, ...regionalPressContext, ...narrativeNationalContext]) {
     if (!s || typeof s !== 'object') continue;
     const key = signalDedupeKey(s);
     if (seen.has(key)) continue;

@@ -91,7 +91,7 @@ describe('scoringPartition', () => {
     assert.equal(r.quarantineReason, QUARANTINE_REASON.CONNECTIVITY_ISOLATION);
   });
 
-  it('connectivity_outage with probe anchor scores probes only', () => {
+  it('connectivity_outage with probe anchor includes soft press at partial weight', () => {
     process.env.RESILIENCE_SCORING_PARTITION = '1';
     const r = resolveScoringPartition([probeSig, newsSig, telegramSig], {
       level: 'critical',
@@ -100,9 +100,13 @@ describe('scoringPartition', () => {
       field_volume: 0,
     });
     assert.equal(r.assessmentMode, 'field_anchor_only');
-    assert.equal(r.scoringSignals.length, 1);
+    assert.equal(r.scoringSignals.length, 2);
     assert.equal(r.scoringSignals[0].source_type, 'infrastructure_probe');
-    assert.equal(r.quarantinedSignals.length, 2);
+    const softPress = r.scoringSignals.find((s) => s.source_type === 'news');
+    assert.ok(softPress);
+    assert.equal(softPress.partial_void_press, true);
+    assert.equal(r.quarantinedSignals.length, 1);
+    assert.equal(r.quarantinedSignals[0].source_type, 'telegram');
   });
 
   it('prior quarantine skipped when digital volume recovered (news present, no darkness)', () => {

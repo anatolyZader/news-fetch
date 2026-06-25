@@ -56,7 +56,7 @@ export function capByGroup(items, keyFn, threshold, layerName = null) {
 }
 
 const DEFAULT_SOURCE_TYPE_CAP = 0.5;
-const DEFAULT_ARTICLE_SOURCE_CAP = 0.35;
+const DEFAULT_ARTICLE_SOURCE_CAP = 0.42;
 
 /** When total evidence mass is very low, relax caps so sparse data isn't over-penalised. */
 const ADAPTIVE_SOURCE_TYPE_CAP = 0.8;
@@ -64,6 +64,39 @@ const ADAPTIVE_ARTICLE_SOURCE_CAP = 0.6;
 
 /** Evidence mass threshold below which adaptive caps are used. */
 const ADAPTIVE_CAP_MASS_THRESHOLD = 5;
+
+const PBO_SOURCE_TYPES = new Set(['pbo', 'pbo_regional']);
+
+function pboSettlementKey(signal) {
+  const src = String(signal?.article_source ?? '_unknown');
+  return src.replace(/^pbo-/, '') || src;
+}
+
+function pboSettlementCapThreshold(env = process.env) {
+  const raw = Number.parseFloat(env.RESILIENCE_PBO_SETTLEMENT_CAP ?? '0.45');
+  return Number.isFinite(raw) && raw > 0 ? raw : 0.45;
+}
+
+/**
+ * Per-settlement cap for PBO scoring mass (investigation path skips this).
+ * @param {Array<{signal: object, contribution: number, polarity: '+'|'-'}>} items
+ * @param {NodeJS.ProcessEnv} [env]
+ */
+export function applyPboSettlementCap(items, env = process.env) {
+  const pboItems = (items ?? []).filter((it) => PBO_SOURCE_TYPES.has(it.signal?.source_type));
+  if (pboItems.length <= 1) return items;
+
+  const threshold = pboSettlementCapThreshold(env);
+  const out = items.map((it) => ({ ...it }));
+  for (const polarity of ['+', '-']) {
+    const polItems = out.filter((it) =>
+      it.polarity === polarity && PBO_SOURCE_TYPES.has(it.signal?.source_type));
+    const total = polItems.reduce((s, it) => s + it.contribution, 0);
+    if (total === 0) continue;
+    applyThresholdCapToPolarity(polItems, total, threshold, (sig) => pboSettlementKey(sig), 'pbo_settlement');
+  }
+  return out;
+}
 
 /**
  * @param {Array<{signal: object, contribution: number, polarity: '+'|'-'}>} items
@@ -84,6 +117,7 @@ export function applySourceCap(items, { totalEvidenceMass } = {}) {
 
   out = capByGroup(out, (sig) => sig.source_type ?? '_unknown', sourceTypeCap, 'source_type');
   out = capByGroup(out, (sig) => sig.article_source ?? '_unknown', articleSourceCap, 'article_source');
+  out = applyPboSettlementCap(out);
 
   return out;
 }

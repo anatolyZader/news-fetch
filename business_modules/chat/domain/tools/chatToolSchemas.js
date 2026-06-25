@@ -50,6 +50,25 @@ export const CORE_CHAT_TOOLS = [
     },
   },
   {
+    name: 'get_component_evidence_bundle',
+    description:
+      'Return the full rich operator investigation pool for a component from the current report ' +
+      '(claims, epistemic roles, evidence text). Prefer this over lookup_signals when operator_surface_mode is rich.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        component: { type: 'string', enum: COMPONENT_ENUM, description: 'Component id (required).' },
+        role: {
+          type: 'string',
+          enum: ['scored', 'context_only', 'quarantined', 'investigation_only'],
+          description: 'Filter by operator epistemic role (optional).',
+        },
+        limit: { type: 'number', description: 'Max pool items (default 50, max 100).' },
+      },
+      required: ['component'],
+    },
+  },
+  {
     name: 'compare_dates',
     description:
       'Compare two resilience assessment reports by date. Returns per-component score deltas and narrative shifts.',

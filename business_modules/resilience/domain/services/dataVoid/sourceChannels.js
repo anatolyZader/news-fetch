@@ -11,6 +11,20 @@ export const DIGITAL_SOURCE_TYPES = new Set([
   'radio',
 ]);
 
+/** OSINT / citizen digital — hard-quarantined during partial void partitions. */
+export const HARD_DIGITAL_SOURCE_TYPES = new Set([
+  'whatsapp',
+  'telegram',
+  'social',
+  'x',
+]);
+
+/** Press/radio — soft-included at reduced weight when anchors active (not digital_darkness). */
+export const SOFT_DIGITAL_SOURCE_TYPES = new Set([
+  'news',
+  'radio',
+]);
+
 export const FIELD_SOURCE_TYPES = new Set([
   'field',
   'field_whatsapp',
@@ -45,6 +59,38 @@ const ALL_DIGITAL_CHANNELS = [...DIGITAL_SOURCE_TYPES];
  */
 export function isDigitalSignal(signal) {
   return DIGITAL_SOURCE_TYPES.has(signal?.source_type);
+}
+
+/**
+ * @param {object} signal
+ * @returns {boolean}
+ */
+export function isHardDigitalSignal(signal) {
+  return HARD_DIGITAL_SOURCE_TYPES.has(signal?.source_type);
+}
+
+/**
+ * @param {object} signal
+ * @returns {boolean}
+ */
+export function isSoftDigitalSignal(signal) {
+  return SOFT_DIGITAL_SOURCE_TYPES.has(signal?.source_type);
+}
+
+/**
+ * @param {Array<object>} signals
+ * @returns {Array<object>}
+ */
+export function filterSoftDigitalSignals(signals) {
+  return (signals ?? []).filter((s) => isSoftDigitalSignal(s));
+}
+
+/**
+ * @param {Array<object>} signals
+ * @returns {Array<object>}
+ */
+export function filterHardDigitalSignals(signals) {
+  return (signals ?? []).filter((s) => isHardDigitalSignal(s));
 }
 
 /**

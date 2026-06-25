@@ -48,6 +48,19 @@ export {
   narrativeInvestigationPermissive,
 } from '../../cross-cut-modules/resilience-contracts/narrativeEpistemicMode.js';
 export {
+  operatorSurfaceMode,
+  richSurfaceDeterministicOnly,
+  shouldUseRichDeterministicPath,
+  operatorEvidenceChars,
+  operatorMaxClaims,
+  operatorHighlightPerSource,
+} from '../../cross-cut-modules/resilience-contracts/operatorSurfaceMode.js';
+export {
+  groupPoolItemsBySource,
+  poolItemSourceBucket,
+  normalizePoolSourceType,
+} from '../../cross-cut-modules/resilience-contracts/evidencePoolGrouping.js';
+export {
   isOpenExtractParallelEnabled,
   isOpenPipelineLegacyEnabled,
   isOmissionAuditEnabled,
@@ -146,6 +159,11 @@ export {
   isStubNarrative,
   INSUFFICIENT_SYNTHESIS_NARRATIVE,
 } from './domain/services/operatorNarrativeSurface.js';
+export {
+  attachRichOperatorSurface,
+  buildDeterministicNarrativeFromClaims,
+  assignOperatorEpistemicRole,
+} from './domain/services/operatorInvestigationSurface.js';
 export { SIGNAL_TO_COMPONENTS } from './domain/services/signalRouter.js';
 
 // --- Survey CLI runner (cross-cut geo entry) ---

@@ -11,6 +11,7 @@ import {
   buildAttentionItems,
   operatorEpistemicOverlayEnabled,
 } from '../../resilience/index.js';
+import { formatPoolSummaryForChat } from './componentEvidenceBundle.js';
 
 const MAX_ATTENTION_SUMMARY = 8;
 const EXEC_SUMMARY_MAX_CHARS = 2000;
@@ -73,7 +74,8 @@ function clipText(text, maxChars) {
 
 function formatComponentBlock(c, { includeScores }) {
   const id = c.component_id ?? 'unknown';
-  const narrative = wrapUntrustedBlock(c.narrative ?? '', { label: `component:${id}` });
+  const narrativeRaw = c.narrative_operator ?? c.narrative ?? '';
+  const narrative = wrapUntrustedBlock(narrativeRaw, { label: `component:${id}` });
   if (includeScores && c.score != null) {
     return `### ${id} (${c.score}/10, ${c.confidence})\n${narrative}`;
   }
@@ -218,11 +220,26 @@ function buildComponentContext(a, reportScopeId, includeScores, componentId) {
   const componentBlock = comp
     ? formatComponentBlock(comp, { includeScores })
     : `(Component ${componentId} not found in report.)`;
+
+  let extra = '';
+  const isRichSurface = a.operator_surface_mode === 'rich' || comp?.operator_surface_mode === 'rich';
+  if (isRichSurface && comp) {
+    extra += `\nRich operator surface — investigation pool summary:\n${formatPoolSummaryForChat(comp)}\n`;
+    const claims = comp.narrative_claims ?? [];
+    if (claims.length > 0) {
+      extra += '\nNarrative claims:\n';
+      for (const claim of claims) {
+        extra += `- ${wrapUntrustedBlock(String(claim.text ?? '').slice(0, 600), { label: `claim:${componentId}` })}\n`;
+      }
+    }
+    extra += '\nUse get_component_evidence_bundle for full pool items and roles.\n';
+  }
+
   return (
     formatV2ContextBlock(a) +
     formatHeader(a, { includeScores }) +
     formatExecutiveSummary(a) +
-    `Component detail:\n${componentBlock}\n`
+    `Component detail:\n${componentBlock}\n${extra}`
   );
 }
 

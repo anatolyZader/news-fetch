@@ -14,6 +14,8 @@ import {
   buildNarrativeScopeSignals,
   scopedSignalKeys,
   selectNarrativeNationalContext,
+  selectRegionalPressContext,
+  signalDedupeKey,
 } from '../domain/services/narrativeScopeSignals.js';
 
 /**
@@ -27,6 +29,7 @@ import {
  *   macroSignals: object[],
  *   baseSignalsForScoring: object[],
  *   narrativeNationalContext: object[],
+ *   regionalPressContext: object[],
  *   narrativeScopeSignals: object[],
  * }}
  */
@@ -45,14 +48,24 @@ export function scopeAndPartitionSignals(allSignals, reportScopeId, scopePolicy 
     : scopedSignals;
 
   const keys = scopedSignalKeys(scopedSignals);
-  const narrativeNationalContext = selectNarrativeNationalContext(
+  const regionalPressContext = selectRegionalPressContext(
     annotated,
     reportScopeId,
     keys,
   );
+  const contextKeys = new Set([
+    ...keys,
+    ...regionalPressContext.map((s) => signalDedupeKey(s)),
+  ]);
+  const narrativeNationalContext = selectNarrativeNationalContext(
+    annotated,
+    reportScopeId,
+    contextKeys,
+  );
   const narrativeScopeSignals = buildNarrativeScopeSignals({
     scopedSignals,
     narrativeNationalContext,
+    regionalPressContext,
   });
 
   return {
@@ -61,6 +74,7 @@ export function scopeAndPartitionSignals(allSignals, reportScopeId, scopePolicy 
     macroSignals,
     baseSignalsForScoring,
     narrativeNationalContext,
+    regionalPressContext,
     narrativeScopeSignals,
   };
 }

@@ -10,6 +10,7 @@ import {
 import { groundingWeightMultiplier } from '../services/groundingPolicy.js';
 import { applyFieldGeoDiscount, isFieldFamilySource } from '../services/fieldSignalPolicy.js';
 import { gamingContributionMultiplier } from '../services/signalGamingPolicy.js';
+import { SIGNAL_PROVENANCE } from '../services/evidenceEligibility.js';
 
 const INTENSITY_ORDER = { light: 0, moderate: 1, severe: 2 };
 
@@ -29,6 +30,7 @@ export const RELIABILITY_WEIGHT = {
 };
 
 const FIELD_SOURCE_TYPES = new Set(['field', 'field_whatsapp', 'pbo', 'pbo_regional', 'naftali']);
+const PRESS_SOURCE_TYPES = new Set(['news', 'radio']);
 
 const OUTLET_PRIOR_APPLIES_TO = new Set([
   'observational_reported_fact',
@@ -36,8 +38,32 @@ const OUTLET_PRIOR_APPLIES_TO = new Set([
 ]);
 
 function fieldSourceMultiplier() {
-  const raw = Number.parseFloat(process.env.RESILIENCE_FIELD_SOURCE_MULTIPLIER ?? '1.5');
-  return Number.isFinite(raw) && raw > 0 ? raw : 1.5;
+  const raw = Number.parseFloat(process.env.RESILIENCE_FIELD_SOURCE_MULTIPLIER ?? '1.3');
+  return Number.isFinite(raw) && raw > 0 ? raw : 1.3;
+}
+
+function partialVoidPressMultiplier(signal) {
+  if (signal?.partial_void_press !== true) return 1;
+  const raw = Number.parseFloat(process.env.RESILIENCE_PARTIAL_VOID_PRESS_WEIGHT ?? '0.5');
+  return Number.isFinite(raw) && raw > 0 ? raw : 0.5;
+}
+
+function isGeoVerifiedPress(signal) {
+  if (!PRESS_SOURCE_TYPES.has(signal?.source_type)) return false;
+  if (signal?.signalProvenance === SIGNAL_PROVENANCE.verified_geo) return true;
+  const g = signal?.geo;
+  if (g?.kind !== 'resolved') return false;
+  const geoProv = g?.resolution?.provenance;
+  if (geoProv === 'text_inferred') return false;
+  const usable = g?.policy?.usableForMetrics ?? g?.usableForMetrics;
+  return usable !== false;
+}
+
+function defaultScopeLevel(signal) {
+  const isField = signal.source_type === 'field' || signal.source_type === 'field_whatsapp';
+  if (isField || isFieldFamilySource(signal)) return 'repeated_pattern';
+  if (isGeoVerifiedPress(signal)) return 'repeated_pattern';
+  return 'single_case';
 }
 
 function effectiveIntensityKey(signal, signalType) {
@@ -104,8 +130,7 @@ export function contributionForSignal(signal, baseWeight) {
   const signalType = signal.signal_type ?? signal.type;
   const priors = getScoringPriors(signalType);
   const effectiveWeight = effectiveWeightForSignal(signal, signalType, baseWeight);
-  const isField = signal.source_type === 'field' || signal.source_type === 'field_whatsapp';
-  const defaultScope = isField || isFieldFamilySource(signal) ? 'repeated_pattern' : 'single_case';
+  const defaultScope = defaultScopeLevel(signal);
   const scope = SCOPE_WEIGHT[signal.scope_level ?? defaultScope] ?? SCOPE_WEIGHT[defaultScope];
   const intensityKey = effectiveIntensityKey(signal, signalType);
   const intensity = INTENSITY_WEIGHT[intensityKey] ?? INTENSITY_WEIGHT.moderate;
@@ -138,6 +163,7 @@ export function contributionForSignal(signal, baseWeight) {
     * dualAgreementBoost(signal) * temporal * phaseMismatchFactor(signal, priors)
     * extractionConfidence * groundingFactor * fieldMult;
   contribution *= gamingContributionMultiplier(signal);
+  contribution *= partialVoidPressMultiplier(signal);
   contribution = applyFieldGeoDiscount(signal, contribution);
   return applyOpenEvidenceSyntheticDiscount(signal, applyOovSyntheticDiscount(signal, contribution));
 }

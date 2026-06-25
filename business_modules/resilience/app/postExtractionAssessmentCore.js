@@ -20,6 +20,9 @@ import {
   summarizeNationalContext,
 } from '../domain/services/narrativeScopeSignals.js';
 import { finalizeOperatorNarrativeSurface } from '../domain/services/operatorNarrativeSurface.js';
+import { attachRichOperatorSurface } from '../domain/services/operatorInvestigationSurface.js';
+import { shouldUseRichDeterministicPath } from '../../../cross-cut-modules/resilience-contracts/operatorSurfaceMode.js';
+import { buildClosedCoreAssessmentShell } from './buildClosedCoreAssessmentShell.js';
 import {
   getSocialQuarantineDecision,
 } from '../domain/services/socialQuarantineOverrides.js';
@@ -153,6 +156,22 @@ export function applySharedAssessmentPostMetadata(assessment, ctx) {
     assessment.north_cluster_narratives = ctx.northClusterNarratives;
   }
 
+  if (shouldUseRichDeterministicPath()) {
+    const partition = pipelineResult?.partition;
+    const investigationSet = investigationPrep.investigationSignals ?? signalsForScoring ?? [];
+    const metricsSet = new Set(signalsForScoring ?? []);
+    const scoringQuarantined = [];
+    for (const signal of investigationSet) {
+      if (!metricsSet.has(signal)) scoringQuarantined.push(signal);
+    }
+    attachRichOperatorSurface(assessment, {
+      narrativeScopeSignals: ctx.narrativeScopeSignals ?? scopedSignals ?? [],
+      signalsForScoring: signalsForScoring ?? [],
+      quarantinedSignals: partition?.quarantinedSignals ?? [],
+      scoringQuarantinedSignals: scoringQuarantined,
+    });
+  }
+
   finalizeOperatorNarrativeSurface(assessment);
 }
 
@@ -219,6 +238,31 @@ async function produceAssessmentForMode(ctx) {
     llmPort,
     dailyBudgetExceeded,
   } = ctx;
+
+  if (shouldUseRichDeterministicPath()) {
+    console.error('[assess-signals] Rich operator surface: score shell + deterministic pool (no specialists, no narrative LLM)');
+    const reportScope = reportScopeMetadata(reportScopeId);
+    const assessment = buildClosedCoreAssessmentShell({
+      scoredFull,
+      reportDate,
+      scopedTotalArticles,
+      reportScope,
+      macroSignals: ctx.macroSignals,
+      dataVoid: investigationPrep.dataVoid,
+      oovCaptureCount: countOovCapturesForDate(reportDate, reportsDir),
+      socialChannelQuarantine: investigationPrep.osintChannelQuarantine ?? null,
+      allScopedSignals: scopedSignals,
+    });
+    if (shadowScoringEnabled()) {
+      attachShadowDivergenceToAssessment(assessment, {
+        scoredFull,
+        reportScopeId,
+        targetDate: reportDate,
+        reportsDir,
+      });
+    }
+    return assessment;
+  }
 
   if (isClosedCoreAssessEnabled()) {
     console.error('[assess-signals] Closed-core assess: hybrid narrative pipeline (score shell + digest)');
@@ -364,6 +408,7 @@ export async function runPostExtractionAssessmentCore(params) {
     macroSignals,
     baseSignalsForScoring,
     narrativeNationalContext,
+    regionalPressContext,
     narrativeScopeSignals,
   } = scopeAndPartitionSignals(allSignals, reportScopeId);
 
@@ -388,7 +433,8 @@ export async function runPostExtractionAssessmentCore(params) {
   const investigationEpistemic = deriveInvestigationEpistemicContext(investigationPrep.dataVoid);
   const investigationSignals = investigationPrep.investigationSignals;
 
-  if (investigationSignals.length === 0 && macroSignals.length === 0 && narrativeNationalContext.length === 0) {
+  if (investigationSignals.length === 0 && macroSignals.length === 0
+    && narrativeNationalContext.length === 0 && regionalPressContext.length === 0) {
     const err = new Error('No scoped evidence signals for assessment');
     err.code = 'empty_scoped_evidence';
     throw err;
@@ -464,7 +510,11 @@ export async function runPostExtractionAssessmentCore(params) {
 
   onNarrateComplete?.();
 
-  const nationalContextSignals = mergeNationalContextSignals(macroSignals, narrativeNationalContext);
+  const nationalContextSignals = mergeNationalContextSignals(
+    macroSignals,
+    narrativeNationalContext,
+    regionalPressContext,
+  );
   const northClusterNarratives = reportScopeId === 'north'
     ? buildNorthClusterNarrativesFromSignals(narrativeScopeSignals)
     : null;

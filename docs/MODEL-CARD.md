@@ -57,7 +57,10 @@ Flag: `RESILIENCE_DATA_VOID=0` disables void index.
 | Env | Default | Effect |
 |-----|---------|--------|
 | `RESILIENCE_VOID_TOTAL_SILENCE_MIN_BASELINE` | 3 | Min expected digital volume for total-silence critical |
-| `RESILIENCE_FIELD_SOURCE_MULTIPLIER` | 1.5 | Contribution multiplier for field-family sources |
+| `RESILIENCE_FIELD_SOURCE_MULTIPLIER` | 1.3 | Contribution multiplier for field-family sources |
+| `RESILIENCE_PARTIAL_VOID_PRESS_WEIGHT` | 0.5 | Press/radio mass multiplier when soft-included during partial void partition |
+| `RESILIENCE_PBO_SETTLEMENT_CAP` | 0.45 | Per-settlement PBO mass cap (scoring only) |
+| `RESILIENCE_NARRATIVE_NATIONAL_CAP` | 60 | Max national/regional press context signals for regional reports |
 | `RESILIENCE_FIELD_GEO_DISCOUNT` | 0.5 | Discount when field signal lacks geo/locality binding |
 
 ## Suppression transparency (analyst)
@@ -129,6 +132,20 @@ Default pipeline: planner → component specialists → critic → synthesizer p
 | `RESILIENCE_ASSESS_LAZY_RAG` | `1` | Planner runs before component RAG; seed only `focus_components` |
 | `RESILIENCE_ASSESS_GLOBAL_RAG` | `1` | Global hybrid retrieve before specialists |
 | `RESILIENCE_ASSESS_GLOBAL_TOPK` | `8` | Global retrieve final top-K (was 20) |
+
+## Rich operator surface (Track B)
+
+When `RESILIENCE_OPERATOR_SURFACE_MODE=rich`, scoring epistemics are unchanged but the **operator surface** is built deterministically from `narrativeScopeSignals`: full per-component investigation pool with epistemic role labels (`scored`, `context_only`, `quarantined`, `investigation_only`), multi-claim narrative, and highlighted evidence. **No assessment specialists or narrative facts/polish LLM** on this path. Product rule: scoring may abstain; operator surface must not starve.
+
+| Env | Default | Effect |
+|-----|---------|--------|
+| `RESILIENCE_OPERATOR_SURFACE_MODE` | `legacy` | `rich` enables Track B deterministic surface |
+| `RESILIENCE_OPERATOR_EVIDENCE_CHARS` | `1200` | Max evidence chars per pool item in rich mode |
+| `RESILIENCE_OPERATOR_MAX_CLAIMS` | `0` | Max claims in narrative (`0` = unlimited) |
+| `RESILIENCE_OPERATOR_HIGHLIGHT_PER_SOURCE` | `12` | Highlighted evidence items per source bucket |
+
+Chat: `get_component_evidence_bundle` reads `operator_investigation_pool` from the current report. UI: dual evidence accordion (highlighted + full pool) and claim-linked evidence list.
+
 | `RESILIENCE_ASSESS_OPEN_RAG` | `1` | Per-component RAG seeding (set `0` to disable all) |
 | `RESILIENCE_ASSESS_COMPACT_TOOL_LOOP` | `1` | Compact tool-loop message history via working memory |
 | `RESILIENCE_ASSESS_PROMPT_CACHE` | `1` | Ephemeral cache on assess agent stable system blocks |

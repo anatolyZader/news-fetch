@@ -50,4 +50,30 @@ describe('investigationEpistemic', () => {
   it('shouldAbstainFromInvestigation returns false when narrativePermissive', () => {
     assert.equal(shouldAbstainFromInvestigation({ thin_evidence: true }, { narrativePermissive: true }), false);
   });
+
+  it('enriches investigation_eligible from media_mention_mass at 1.5', () => {
+    const prev = process.env.RESILIENCE_ASSESS_SPLIT_INVESTIGATION_MASS;
+    process.env.RESILIENCE_ASSESS_SPLIT_INVESTIGATION_MASS = '1';
+    try {
+      const profile = {
+        by_component: {
+          narrative: {
+            evidence_mass: 0.4,
+            thin_evidence: true,
+            media_mention_mass: 1.6,
+          },
+        },
+      };
+      const enriched = enrichProfileForInvestigation(profile, {
+        archiveMentionMass: {},
+        residualByComponent: {},
+      });
+      const ep = enriched.by_component.narrative;
+      assert.equal(ep.investigation_eligible, true);
+      assert.equal(shouldAbstainFromInvestigation(ep), false);
+    } finally {
+      if (prev == null) delete process.env.RESILIENCE_ASSESS_SPLIT_INVESTIGATION_MASS;
+      else process.env.RESILIENCE_ASSESS_SPLIT_INVESTIGATION_MASS = prev;
+    }
+  });
 });

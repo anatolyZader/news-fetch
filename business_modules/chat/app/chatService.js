@@ -57,6 +57,7 @@ async function sendDeterministicFallback(send, {
       pboLookup,
       contextSlice: sliceResult.contextSlice,
       contextSliceReason: sliceResult.reason,
+      componentId: sliceResult.componentId,
       toolContextDeps,
     });
     send({ type: 'text', text: fallbackText });

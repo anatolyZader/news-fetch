@@ -10,12 +10,15 @@ import { operatorEpistemicOverlayEnabled } from '../../../cross-cut-modules/resi
  * @param {import('../domain/chatContextTier.js').ContextSlice} contextSlice
  * @param {string} message
  * @param {object} reportData
+ * @param {{ componentId?: string }} [opts]
  * @returns {Array<{ tool: string, input: object }>}
  */
-export function planDeterministicToolCalls(contextSlice, message, reportData) {
+export function planDeterministicToolCalls(contextSlice, message, reportData, opts = {}) {
   const assessmentDate = reportData?.assessment?.date ?? reportData?.reportDate ?? null;
   const text = String(message ?? '').trim();
   const narrativeFocus = !operatorEpistemicOverlayEnabled();
+  const isRichSurface = reportData?.assessment?.operator_surface_mode === 'rich';
+  const componentId = opts.componentId;
 
   switch (contextSlice) {
     case 'hub':
@@ -38,10 +41,17 @@ export function planDeterministicToolCalls(contextSlice, message, reportData) {
       }
       return [{ tool: 'lookup_signals', input: { query: text.slice(0, 200), limit: 10 } }];
     case 'component':
+      if (isRichSurface && componentId) {
+        return [{
+          tool: 'get_component_evidence_bundle',
+          input: { component: componentId, limit: 50 },
+        }];
+      }
       return [{
         tool: 'lookup_signals',
         input: {
           query: text.slice(0, 200) || undefined,
+          component: componentId,
           limit: 10,
         },
       }];
@@ -74,6 +84,7 @@ export function formatDeterministicFallbackResponse(toolResults, sliceResult) {
  * @param {object} params.pboLookup
  * @param {import('../domain/chatContextTier.js').ContextSlice} [params.contextSlice]
  * @param {string} [params.contextSliceReason]
+ * @param {string} [params.componentId]
  * @param {object} [params.toolContextDeps]
  * @returns {Promise<string>}
  */
@@ -84,6 +95,7 @@ export async function runDeterministicChatFallback(params) {
     pboLookup,
     contextSlice: contextSliceOverride,
     contextSliceReason,
+    componentId,
     toolContextDeps = {},
   } = params;
 
@@ -97,7 +109,12 @@ export async function runDeterministicChatFallback(params) {
     ...toolContextDeps,
   });
 
-  const calls = planDeterministicToolCalls(sliceResult.contextSlice, message, reportData);
+  const calls = planDeterministicToolCalls(
+    sliceResult.contextSlice,
+    message,
+    reportData,
+    { componentId },
+  );
   const sections = [];
 
   for (const { tool, input } of calls) {

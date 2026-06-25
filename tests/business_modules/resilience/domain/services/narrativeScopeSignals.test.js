@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 
 import {
   selectNarrativeNationalContext,
+  selectRegionalPressContext,
   buildNarrativeScopeSignals,
   scopedSignalKeys,
   evidenceMatchesMacroNationalTerms,
@@ -21,7 +22,7 @@ describe('narrativeScopeSignals', () => {
     assert.equal(evidenceMatchesMacroNationalTerms('Tel Aviv studio discussion.'), false);
   });
 
-  it('selectNarrativeNationalContext includes scope-excluded national news', () => {
+  it('selectRegionalPressContext includes scope-excluded press with north keywords', () => {
     const scoped = [{
       source_type: 'field',
       signal_type: 'information_clarity',
@@ -35,9 +36,9 @@ describe('narrativeScopeSignals', () => {
       article_url: 'https://example.com/national-front',
     };
     const keys = scopedSignalKeys(scoped);
-    const ctx = selectNarrativeNationalContext([...scoped, national], 'north', keys);
+    const ctx = selectRegionalPressContext([...scoped, national], 'north', keys);
     assert.equal(ctx.length, 1);
-    assert.equal(ctx[0].signalProvenance, SIGNAL_PROVENANCE.narrative_national_context);
+    assert.equal(ctx[0].signalProvenance, SIGNAL_PROVENANCE.regional_press_context);
     assert.equal(ctx[0].metricsEligible, false);
     assert.equal(ctx[0].narrativeContextOnly, true);
   });
@@ -123,7 +124,7 @@ describe('narrativeScopeSignals', () => {
     ];
     const out = scopeAndPartitionSignals(all, 'north');
     assert.ok(out.metricsSignals.length >= 1);
-    assert.ok(out.narrativeNationalContext.length >= 1);
+    assert.ok(out.narrativeNationalContext.length >= 1 || out.regionalPressContext.length >= 1);
     assert.ok(out.narrativeScopeSignals.length > out.scopedSignals.length);
     for (const s of out.metricsSignals) {
       assert.notEqual(s.signalProvenance, SIGNAL_PROVENANCE.narrative_national_context);
@@ -196,6 +197,6 @@ describe('narrativeScopeSignals', () => {
     const newsInNarrative = out.narrativeScopeSignals.filter((s) => s.source_type === 'news');
     assert.equal(northNewsInScoped.length, 6);
     assert.ok(newsInNarrative.length > 17);
-    assert.equal(out.narrativeNationalContext.length, 40);
+    assert.equal(out.narrativeNationalContext.length, 60);
   });
 });

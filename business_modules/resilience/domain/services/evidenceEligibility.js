@@ -11,6 +11,7 @@ export const SIGNAL_PROVENANCE = Object.freeze({
   source_assigned: 'source_assigned',
   macro_national: 'macro_national',
   narrative_national_context: 'narrative_national_context',
+  regional_press_context: 'regional_press_context',
   unscoped: 'unscoped',
 });
 
@@ -29,6 +30,9 @@ export const MACRO_NATIONAL_TERMS = [
  * @returns {string} SIGNAL_PROVENANCE value
  */
 export function deriveSignalProvenance(signal) {
+  if (signal?.signalProvenance === SIGNAL_PROVENANCE.regional_press_context) {
+    return SIGNAL_PROVENANCE.regional_press_context;
+  }
   if (signal?.signalProvenance === SIGNAL_PROVENANCE.narrative_national_context
     || signal?.narrativeContextOnly === true) {
     return SIGNAL_PROVENANCE.narrative_national_context;
@@ -74,7 +78,8 @@ export function metricsEligible(signal, opts = {}) {
 
   const provenance = signal?.signalProvenance ?? deriveSignalProvenance(signal);
   if (provenance === SIGNAL_PROVENANCE.macro_national
-    || provenance === SIGNAL_PROVENANCE.narrative_national_context) {
+    || provenance === SIGNAL_PROVENANCE.narrative_national_context
+    || provenance === SIGNAL_PROVENANCE.regional_press_context) {
     return false;
   }
 
