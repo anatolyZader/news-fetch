@@ -42,6 +42,7 @@ import { ValidationReviewPanel } from './ValidationReviewPanel.jsx';
 import { CatalogProposalPanel } from './CatalogProposalPanel.jsx';
 import { OovAnomalyClustersPanel } from './OovAnomalyClustersPanel.jsx';
 import { OperatorRecommendationsPanel } from './OperatorRecommendationsPanel.jsx';
+import { DecisionBriefPanel } from './DecisionBriefPanel.jsx';
 import { OperatorClaimEvidenceList } from './OperatorClaimEvidenceList.jsx';
 import { EpistemicRoleBadge } from './EpistemicRoleBadge.jsx';
 import { AgentDivergencePanel } from './AgentDivergencePanel.jsx';
@@ -785,39 +786,33 @@ function InvestigationSummaryBanner({ summary, t }) {
   );
 }
 
-function EvidencePartitionPanel({ comp, t, isRichMode = false }) {
-  const coverage = comp.coverage;
-  const pool = comp.operator_investigation_pool ?? [];
-  if (!coverage && !isRichMode) return null;
-  const state = comp.operator_display_state;
-  const usage = comp.evidence_usage_state;
-  const show = isRichMode
-    || state === 'specialist_skipped'
-    || state === 'evidence_quarantined'
-    || state === 'insufficient_data'
-    || usage === 'field_anchor_only'
-    || usage === 'mixed'
-    || (coverage?.investigation_used ?? 0) !== (coverage?.scoring_used ?? 0)
-    || (coverage?.scoring_quarantined ?? 0) > 0;
-  if (!show) return null;
+function resolveHighlightedEvidenceItems(isRichMode, curatedEvidence, isFiltered, signals) {
+  if (isRichMode) return curatedEvidence ?? [];
+  if (isFiltered) return signals;
+  return curatedEvidence;
+}
 
+function buildRichRoleCountRows(pool, t) {
+  const roleCounts = {};
+  for (const item of pool) {
+    const role = item.operator_epistemic_role ?? 'investigation_only';
+    roleCounts[role] = (roleCounts[role] ?? 0) + 1;
+  }
   const rows = [];
-  if (isRichMode && pool.length > 0) {
-    const roleCounts = {};
-    for (const item of pool) {
-      const role = item.operator_epistemic_role ?? 'investigation_only';
-      roleCounts[role] = (roleCounts[role] ?? 0) + 1;
-    }
-    for (const role of ['scored', 'investigation_only', 'context_only', 'quarantined']) {
-      if (roleCounts[role] > 0) {
-        rows.push(
-          t('report.evidencePartition.roleCount')
-            .replace('{role}', t(`report.epistemicRole.${role}`))
-            .replace('{n}', String(roleCounts[role])),
-        );
-      }
+  for (const role of ['scored', 'investigation_only', 'context_only', 'quarantined']) {
+    if (roleCounts[role] > 0) {
+      rows.push(
+        t('report.evidencePartition.roleCount')
+          .replace('{role}', t(`report.epistemicRole.${role}`))
+          .replace('{n}', String(roleCounts[role])),
+      );
     }
   }
+  return rows;
+}
+
+function buildCoveragePartitionRows(coverage, usage, t) {
+  const rows = [];
   if ((coverage?.investigation_used ?? 0) > 0) {
     rows.push(t('report.evidencePartition.investigationUsed').replace('{n}', String(coverage.investigation_used)));
   }
@@ -842,6 +837,30 @@ function EvidencePartitionPanel({ comp, t, isRichMode = false }) {
   if ((coverage?.claims ?? 0) > 0) {
     rows.push(t('report.evidencePartition.claims').replace('{n}', String(coverage.claims)));
   }
+  return rows;
+}
+
+function EvidencePartitionPanel({ comp, t, isRichMode = false }) {
+  const coverage = comp.coverage;
+  const pool = comp.operator_investigation_pool ?? [];
+  if (!coverage && !isRichMode) return null;
+  const state = comp.operator_display_state;
+  const usage = comp.evidence_usage_state;
+  const show = isRichMode
+    || state === 'specialist_skipped'
+    || state === 'evidence_quarantined'
+    || state === 'insufficient_data'
+    || usage === 'field_anchor_only'
+    || usage === 'mixed'
+    || (coverage?.investigation_used ?? 0) !== (coverage?.scoring_used ?? 0)
+    || (coverage?.scoring_quarantined ?? 0) > 0;
+  if (!show) return null;
+
+  const rows = [];
+  if (isRichMode && pool.length > 0) {
+    rows.push(...buildRichRoleCountRows(pool, t));
+  }
+  rows.push(...buildCoveragePartitionRows(coverage, usage, t));
 
   if (rows.length === 0) return null;
 
@@ -1297,7 +1316,7 @@ function ComponentCard({
                 </Typography>
               )}
               <EvidenceBySourceList
-                items={isRichMode ? (curatedEvidence ?? []) : (isFiltered ? signals : curatedEvidence)}
+                items={resolveHighlightedEvidenceItems(isRichMode, curatedEvidence, isFiltered, signals)}
                 sourceSignals={sourceSignals}
                 formatEvidenceMd={formatEvidenceMd}
                 t={t}

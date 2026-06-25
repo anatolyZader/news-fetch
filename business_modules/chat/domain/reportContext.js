@@ -229,7 +229,9 @@ function buildComponentContext(a, reportScopeId, includeScores, componentId) {
     if (claims.length > 0) {
       extra += '\nNarrative claims:\n';
       for (const claim of claims) {
-        extra += `- ${wrapUntrustedBlock(String(claim.text ?? '').slice(0, 600), { label: `claim:${componentId}` })}\n`;
+        const claimLabel = `claim:${componentId}`;
+        const claimText = wrapUntrustedBlock(String(claim.text ?? '').slice(0, 600), { label: claimLabel });
+        extra += `- ${claimText}\n`;
       }
     }
     extra += '\nUse get_component_evidence_bundle for full pool items and roles.\n';

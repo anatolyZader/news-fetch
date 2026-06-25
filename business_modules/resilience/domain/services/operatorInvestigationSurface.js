@@ -2,7 +2,6 @@
  * Track B — rich operator investigation surface (deterministic, no specialists).
  * Product rule: scoring may abstain; operator surface must not starve.
  */
-import { COMPONENT_IDS } from '../../../../cross-cut-modules/resilience-contracts/componentIds.js';
 import {
   groupPoolItemsBySource,
   normalizePoolSourceType,
@@ -33,6 +32,21 @@ const CONTEXT_PROVENANCES = new Set([
 ]);
 
 const ROLE_ORDER = ['scored', 'investigation_only', 'quarantined', 'context_only'];
+
+function roleSectionPrefix(role) {
+  if (role === 'context_only') {
+    return '**National or regional context (not local scored evidence):** ';
+  }
+  if (role === 'quarantined') {
+    return '**Quarantined sources (verify independently):** ';
+  }
+  return '';
+}
+
+function stripContributionField(item) {
+  const { contribution: _contribution, ...rest } = item;
+  return rest;
+}
 
 /**
  * @param {object} signal
@@ -153,11 +167,7 @@ export function buildDeterministicNarrativeFromClaims(claims) {
   for (const role of ROLE_ORDER) {
     const group = byRole[role];
     if (!group?.length) continue;
-    const prefix = role === 'context_only'
-      ? '**National or regional context (not local scored evidence):** '
-      : role === 'quarantined'
-        ? '**Quarantined sources (verify independently):** '
-        : '';
+    const prefix = roleSectionPrefix(role);
     const body = group.map((c) => String(c.text ?? '').trim()).filter(Boolean).join('\n\n');
     if (body) sections.push(prefix ? `${prefix}\n\n${body}` : body);
   }
@@ -177,7 +187,7 @@ export function buildHighlightedEvidenceFromPool(pool) {
       (a, b) => (b.contribution ?? 0) - (a.contribution ?? 0),
     );
     for (const item of sorted.slice(0, perSource)) {
-      const { contribution, ...rest } = item;
+      const rest = stripContributionField(item);
       const url = item.url;
       const md = url ? `- ${item.evidence} [source](${url})` : `- ${item.evidence}`;
       highlighted.push({
@@ -207,7 +217,7 @@ function isThinPool(pool) {
  */
 function applyRichComponentSurface(comp, pool, claims) {
   comp.operator_surface_mode = 'rich';
-  comp.operator_investigation_pool = pool.map(({ contribution, ...rest }) => rest);
+  comp.operator_investigation_pool = pool.map(stripContributionField);
   comp.operator_investigation_pool_by_source = groupPoolItemsBySource(comp.operator_investigation_pool);
   comp.operator_surface_starved = pool.length === 0;
   comp.operator_component_thin = isThinPool(pool);
