@@ -29,6 +29,7 @@ export function PboRegionalDailyReports({ districtId = 'north', regionId, showHi
   const { t, lang } = useLanguage();
   const { apiReady, getIdToken, getAppCheckToken } = useAuth();
   const { hits: historyHits, loading: historyLoading, error: historyError, search: searchHistory } = usePboHistoricalSearch({
+    lang,
     getIdToken,
     getAppCheckToken,
     apiReady,

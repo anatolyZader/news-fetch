@@ -1,0 +1,9 @@
+{
+  "reportBotManual.empty": "No matching files yet. Add .md, .txt, .json, or .html reports under `{path}` on the server.",
+  "reportBotManual.inboxHint": "Inbox folder: `{path}`",
+  "reportBotManual.listAria": "Report bot manual reports",
+  "reportBotManual.loadFailed": "Could not load the full file.",
+  "reportBotManual.loading": "Loading manual reports…",
+  "reportBotManual.subtitle": "Manual reports from the WhatsApp bot or srulik.ai “send report”; files live in `business_modules/report_bot/data/`.",
+  "reportBotManual.updated": "Modified"
+}

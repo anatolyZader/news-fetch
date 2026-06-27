@@ -104,10 +104,7 @@ export function ReportEditionPicker({
 
   if (editions.length === 0) return null;
 
-  const triggerParts = formatEditionPickerTriggerParts(t, active, {
-    showNewest: selectedEdition == null,
-    sameDateCount,
-  });
+  const triggerParts = formatEditionPickerTriggerParts(t, active);
 
   return (
     <>
@@ -115,6 +112,8 @@ export function ReportEditionPicker({
         size="small"
         variant="outlined"
         color="inherit"
+        disableRipple
+        disableFocusRipple
         onClick={(e) => setAnchorEl(e.currentTarget)}
         endIcon={<KeyboardArrowDownIcon fontSize="small" />}
         aria-haspopup="listbox"
@@ -124,14 +123,16 @@ export function ReportEditionPicker({
           textTransform: 'none',
           borderColor: theme.palette.divider,
           borderRadius: `${theme.custom.radius.section}px`,
-          maxWidth: compact ? '100%' : 400,
+          maxWidth: compact ? '100%' : 200,
           justifyContent: 'space-between',
           px: 1.25,
           py: 0.75,
           fontSize: theme.typography.body2.fontSize,
           fontWeight: 500,
           color: theme.palette.text.primary,
-          alignItems: 'flex-start',
+          alignItems: 'center',
+          userSelect: 'none',
+          WebkitUserSelect: 'none',
         })}
       >
         <Box
@@ -142,6 +143,8 @@ export function ReportEditionPicker({
             whiteSpace: 'nowrap',
             textAlign: 'start',
             lineHeight: 1.35,
+            userSelect: 'none',
+            WebkitUserSelect: 'none',
           }}
         >
           {triggerParts.join(' · ')}

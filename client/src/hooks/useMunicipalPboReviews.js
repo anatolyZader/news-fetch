@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import { authFetch } from '../lib/authFetch.js';
+import { localizedAuthFetch } from '../lib/localizedAuthFetch.js';
 
 /** Load municipal PBO completeness reviews for one date. */
-export function useMunicipalPboReviews({ date, getIdToken, getAppCheckToken, apiReady }) {
+export function useMunicipalPboReviews({ date, lang = 'en', getIdToken, getAppCheckToken, apiReady }) {
   const [reviewsByMuni, setReviewsByMuni] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -15,10 +16,10 @@ export function useMunicipalPboReviews({ date, getIdToken, getAppCheckToken, api
     setLoading(true);
     setError(null);
     try {
-      const json = await authFetch(`/api/pbo/municipal-reviews?date=${encodeURIComponent(date)}`, {
-        getIdToken,
-        getAppCheckToken,
-      });
+      const json = await localizedAuthFetch(
+        `/api/pbo/municipal-reviews?date=${encodeURIComponent(date)}`,
+        { lang, getIdToken, getAppCheckToken },
+      );
       const map = {};
       for (const review of json.reviews ?? []) {
         map[review.municipality] = review;
@@ -30,7 +31,7 @@ export function useMunicipalPboReviews({ date, getIdToken, getAppCheckToken, api
     } finally {
       setLoading(false);
     }
-  }, [date, getIdToken, getAppCheckToken]);
+  }, [date, lang, getIdToken, getAppCheckToken]);
 
   useEffect(() => {
     if (!apiReady) return undefined;
@@ -50,6 +51,7 @@ export function useMunicipalPboReviews({ date, getIdToken, getAppCheckToken, api
 export function useMunicipalPboReviewDetail({
   date,
   municipality,
+  lang = 'en',
   getIdToken,
   getAppCheckToken,
   apiReady,
@@ -67,7 +69,7 @@ export function useMunicipalPboReviewDetail({
     setError(null);
     try {
       const path = `/api/pbo/municipal-reviews/${encodeURIComponent(date)}/${encodeURIComponent(municipality)}`;
-      const json = await authFetch(path, { getIdToken, getAppCheckToken });
+      const json = await localizedAuthFetch(path, { lang, getIdToken, getAppCheckToken });
       setDetail(json);
     } catch (e) {
       if (e?.status === 404) {
@@ -79,7 +81,7 @@ export function useMunicipalPboReviewDetail({
     } finally {
       setLoading(false);
     }
-  }, [date, municipality, getIdToken, getAppCheckToken]);
+  }, [date, municipality, lang, getIdToken, getAppCheckToken]);
 
   useEffect(() => {
     if (!apiReady) return undefined;

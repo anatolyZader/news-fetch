@@ -37,13 +37,16 @@ export function editionsMatch(a, b) {
 }
 
 /**
- * @param {import('../context/LanguageContext.jsx').TranslateFn} t
+ * @param {{ t: (key: string, params?: Record<string, unknown>) => string, tp?: (key: string, count: number) => string }} langApi
  * @param {number | null | undefined} days
  */
-export function formatWindowDaysLabel(t, days) {
+export function formatWindowDaysLabel(langApi, days) {
+  const t = typeof langApi === 'function' ? langApi : langApi.t;
+  const tp = typeof langApi === 'function' ? null : langApi.tp;
   if (days == null || !Number.isFinite(days)) {
     return t('report.edition.windowUnknown');
   }
+  if (tp) return tp('report.edition.windowDaysPlural', days);
   if (days === 1) return t('report.edition.windowSingle');
   return formatTemplate(t('report.edition.windowDays'), { n: String(days) });
 }
@@ -110,41 +113,14 @@ export function shouldLabelEditionRunTime(edition, sameDateCount = 1) {
 }
 
 /**
- * Compact picker trigger: report date, optional multi-day range, optional relative run time.
+ * Closed picker trigger — single short label; full edition context is in ReportEditionContextBar.
  * @param {import('../context/LanguageContext.jsx').TranslateFn} t
  * @param {ReportEdition | null | undefined} edition
- * @param {{ showNewest?: boolean, sameDateCount?: number }} [options]
  * @returns {string[]}
  */
-export function formatEditionPickerTriggerParts(t, edition, { showNewest = false, sameDateCount = 1 } = {}) {
+export function formatEditionPickerTriggerParts(t, edition) {
   if (!edition) return [];
-  const parts = [];
-  if (showNewest) parts.push(t('report.edition.newest'));
-
-  const start = edition.window_start;
-  const end = edition.window_end ?? edition.date;
-  const days = edition.assessment_days;
-  const isMultiDay = (start && end && start !== end) || (days != null && days > 1);
-  const showRunLabel = shouldLabelEditionRunTime(edition, sameDateCount);
-
-  if (isMultiDay && start && end && start !== end) {
-    parts.push(`${formatDate(start)}–${formatDate(end)}`);
-  } else if (showRunLabel) {
-    parts.push(formatTemplate(t('report.edition.reportForShort'), { date: formatDate(edition.date) }));
-  } else {
-    parts.push(formatDate(edition.date));
-  }
-
-  if (showRunLabel) {
-    parts.push(formatTemplate(t('report.edition.runAtShort'), {
-      time: formatPublishedDateTime(edition.generated_at),
-    }));
-  } else {
-    const runRelative = edition.generated_at ? formatRelativeRunTime(edition.generated_at) : null;
-    if (runRelative) parts.push(runRelative);
-  }
-
-  return parts;
+  return [t('report.edition.pickerShort')];
 }
 
 /**

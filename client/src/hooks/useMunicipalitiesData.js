@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { authFetch } from '../lib/authFetch.js';
-import { withLang } from '../lib/localeFetch.js';
+import { localizedAuthFetch } from '../lib/localizedAuthFetch.js';
 import { normalizeIsraelDistrictId } from '../lib/israelDistricts.js';
 
 /**
@@ -20,7 +20,8 @@ export function useMunicipalitiesData({ districtId = 'north', lang = 'en', getId
     setError(null);
     try {
       const params = new URLSearchParams({ district: scopedDistrict });
-      const json = await authFetch(withLang(`/api/municipalities?${params.toString()}`, lang), {
+      const json = await localizedAuthFetch(`/api/municipalities?${params.toString()}`, {
+        lang,
         getIdToken,
         getAppCheckToken,
       });

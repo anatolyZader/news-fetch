@@ -1,0 +1,15 @@
+{
+  "pipeline.collapse": "Свернуть панель конвейера",
+  "pipeline.costSummary": "Стоимость запуска {total} за {date}",
+  "pipeline.expand": "Развернуть панель конвейера",
+  "pipeline.loadError": "Не удалось загрузить статус конвейера: {msg}",
+  "pipeline.overall.complete": "Полный",
+  "pipeline.overall.missing": "Отсутствует",
+  "pipeline.overall.partial": "Частичный",
+  "pipeline.panelTitle": "Статус конвейера",
+  "pipeline.stage.disabled": "Отключён",
+  "pipeline.stage.error": "Ошибка",
+  "pipeline.stage.missing": "Отсутствует",
+  "pipeline.stage.ok": "ОК",
+  "pipeline.stale": "Устаревшие данные ({date})"
+}

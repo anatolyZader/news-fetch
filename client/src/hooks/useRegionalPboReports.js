@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { authFetch } from '../lib/authFetch.js';
-import { withLang } from '../lib/localeFetch.js';
+import { localizedAuthFetch } from '../lib/localizedAuthFetch.js';
 
 const REGION_URL_KEY = /^[a-z0-9_-]+$/;
 const DISTRICT_URL_KEY = /^[a-z0-9_-]+$/;
@@ -42,12 +42,9 @@ export function useRegionalPboReports({
     setLoading(true);
     setError(null);
     try {
-      const json = await authFetch(
-        withLang(
-          `/api/pbo/regional-report-days/${encodeURIComponent(district)}/${encodeURIComponent(region)}`,
-          lang,
-        ),
-        { getIdToken, getAppCheckToken },
+      const json = await localizedAuthFetch(
+        `/api/pbo/regional-report-days/${encodeURIComponent(district)}/${encodeURIComponent(region)}`,
+        { lang, getIdToken, getAppCheckToken },
       );
       setData(json);
     } catch (e) {

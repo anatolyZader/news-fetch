@@ -1,0 +1,283 @@
+{
+  "runId": "eb36318a-ad50-4444-aa42-535d3c7f0443",
+  "date": "2026-04-12",
+  "scope": "north",
+  "days": 1,
+  "runStartedAt": "2026-06-24T16:48:21.189Z",
+  "runCompletedAt": "2026-06-24T16:58:27.543Z",
+  "durationMs": 606354,
+  "pipeline": {
+    "totalCostUsd": 0.7271,
+    "llmCostUsd": 0.7270962,
+    "byScript": {
+      "assess-signals": 0.7270962
+    },
+    "costLogEntries": 1
+  },
+  "summary": {
+    "invocations": 15,
+    "inputTokens": 116291,
+    "outputTokens": 44904,
+    "cachedInputTokens": 0,
+    "cacheCreationTokens": 0,
+    "effectiveInputTokens": 116291,
+    "cacheHitRatePct": 0,
+    "costUsd": 0.7270962
+  },
+  "byFeature": {
+    "narrative_facts": {
+      "invocations": 2,
+      "inputTokens": 26621,
+      "outputTokens": 9186,
+      "cachedInputTokens": 0,
+      "cacheCreationTokens": 0,
+      "costUsd": 0.0580408
+    },
+    "narrative_judge": {
+      "invocations": 7,
+      "inputTokens": 21708,
+      "outputTokens": 7997,
+      "cachedInputTokens": 0,
+      "cacheCreationTokens": 0,
+      "costUsd": 0.0493544
+    },
+    "narrative_polish": {
+      "invocations": 6,
+      "inputTokens": 67962,
+      "outputTokens": 27721,
+      "cachedInputTokens": 0,
+      "cacheCreationTokens": 0,
+      "costUsd": 0.619701
+    }
+  },
+  "byModel": {
+    "claude-haiku-4-5-20251001": {
+      "invocations": 9,
+      "inputTokens": 48329,
+      "outputTokens": 17183,
+      "cachedInputTokens": 0,
+      "cacheCreationTokens": 0,
+      "costUsd": 0.1073952
+    },
+    "claude-sonnet-4-6": {
+      "invocations": 6,
+      "inputTokens": 67962,
+      "outputTokens": 27721,
+      "cachedInputTokens": 0,
+      "cacheCreationTokens": 0,
+      "costUsd": 0.619701
+    }
+  },
+  "narrativePromptBudget": {
+    "max_level_used": 0,
+    "last_section_estimates": null,
+    "invocations_with_budget": 2
+  },
+  "calls": [
+    {
+      "timestamp": "2026-06-24T16:49:15.415Z",
+      "feature": "narrative_facts",
+      "purpose": "[Step 2 — Facts 1/2]",
+      "model": "claude-haiku-4-5-20251001",
+      "inputTokens": 14066,
+      "outputTokens": 5268,
+      "cachedInputTokens": 0,
+      "cacheCreationTokens": 0,
+      "costUsd": 0.0323248,
+      "latencyMs": 41008,
+      "stopReason": "end_turn",
+      "promptBudget": {
+        "section": "narrative_facts",
+        "degrade_level": 0,
+        "estimated_input_tokens": 13385
+      }
+    },
+    {
+      "timestamp": "2026-06-24T16:49:43.049Z",
+      "feature": "narrative_facts",
+      "purpose": "[Step 2 — Facts 2/2]",
+      "model": "claude-haiku-4-5-20251001",
+      "inputTokens": 12555,
+      "outputTokens": 3918,
+      "cachedInputTokens": 0,
+      "cacheCreationTokens": 0,
+      "costUsd": 0.025716,
+      "latencyMs": 27633,
+      "stopReason": "end_turn",
+      "promptBudget": {
+        "section": "narrative_facts",
+        "degrade_level": 0,
+        "estimated_input_tokens": 13385
+      }
+    },
+    {
+      "timestamp": "2026-06-24T16:49:51.060Z",
+      "feature": "narrative_judge",
+      "purpose": "[Step 2 — Judge batch information_communication]",
+      "model": "claude-haiku-4-5-20251001",
+      "inputTokens": 3158,
+      "outputTokens": 965,
+      "cachedInputTokens": 0,
+      "cacheCreationTokens": 0,
+      "costUsd": 0.0063864,
+      "latencyMs": 8010,
+      "stopReason": "end_turn"
+    },
+    {
+      "timestamp": "2026-06-24T16:49:59.316Z",
+      "feature": "narrative_judge",
+      "purpose": "[Step 2 — Judge batch lifesaving_behavior]",
+      "model": "claude-haiku-4-5-20251001",
+      "inputTokens": 3293,
+      "outputTokens": 995,
+      "cachedInputTokens": 0,
+      "cacheCreationTokens": 0,
+      "costUsd": 0.0066144,
+      "latencyMs": 8255,
+      "stopReason": "end_turn"
+    },
+    {
+      "timestamp": "2026-06-24T16:50:10.671Z",
+      "feature": "narrative_judge",
+      "purpose": "[Step 2 — Judge batch functional_continuity]",
+      "model": "claude-haiku-4-5-20251001",
+      "inputTokens": 4377,
+      "outputTokens": 1510,
+      "cachedInputTokens": 0,
+      "cacheCreationTokens": 0,
+      "costUsd": 0.0095416,
+      "latencyMs": 11355,
+      "stopReason": "end_turn"
+    },
+    {
+      "timestamp": "2026-06-24T16:50:17.027Z",
+      "feature": "narrative_judge",
+      "purpose": "[Step 2 — Judge batch community_capital]",
+      "model": "claude-haiku-4-5-20251001",
+      "inputTokens": 2677,
+      "outputTokens": 879,
+      "cachedInputTokens": 0,
+      "cacheCreationTokens": 0,
+      "costUsd": 0.0056576,
+      "latencyMs": 6356,
+      "stopReason": "end_turn"
+    },
+    {
+      "timestamp": "2026-06-24T16:50:26.838Z",
+      "feature": "narrative_judge",
+      "purpose": "[Step 2 — Judge batch leadership]",
+      "model": "claude-haiku-4-5-20251001",
+      "inputTokens": 3230,
+      "outputTokens": 1149,
+      "cachedInputTokens": 0,
+      "cacheCreationTokens": 0,
+      "costUsd": 0.00718,
+      "latencyMs": 9811,
+      "stopReason": "end_turn"
+    },
+    {
+      "timestamp": "2026-06-24T16:50:39.528Z",
+      "feature": "narrative_judge",
+      "purpose": "[Step 2 — Judge batch belonging_solidarity]",
+      "model": "claude-haiku-4-5-20251001",
+      "inputTokens": 2436,
+      "outputTokens": 1475,
+      "cachedInputTokens": 0,
+      "cacheCreationTokens": 0,
+      "costUsd": 0.0078488,
+      "latencyMs": 12690,
+      "stopReason": "end_turn"
+    },
+    {
+      "timestamp": "2026-06-24T16:50:48.495Z",
+      "feature": "narrative_judge",
+      "purpose": "[Step 2 — Judge batch wellbeing_at_risk]",
+      "model": "claude-haiku-4-5-20251001",
+      "inputTokens": 2537,
+      "outputTokens": 1024,
+      "cachedInputTokens": 0,
+      "cacheCreationTokens": 0,
+      "costUsd": 0.0061256,
+      "latencyMs": 8967,
+      "stopReason": "end_turn"
+    },
+    {
+      "timestamp": "2026-06-24T16:53:09.246Z",
+      "feature": "narrative_polish",
+      "purpose": "[Step 3 — Polish 1/2]",
+      "model": "claude-sonnet-4-6",
+      "inputTokens": 18642,
+      "outputTokens": 8626,
+      "cachedInputTokens": 0,
+      "cacheCreationTokens": 0,
+      "costUsd": 0.185316,
+      "latencyMs": 140749,
+      "stopReason": "end_turn"
+    },
+    {
+      "timestamp": "2026-06-24T16:54:28.567Z",
+      "feature": "narrative_polish",
+      "purpose": "[Step 3 — Polish 2/2]",
+      "model": "claude-sonnet-4-6",
+      "inputTokens": 11424,
+      "outputTokens": 5320,
+      "cachedInputTokens": 0,
+      "cacheCreationTokens": 0,
+      "costUsd": 0.114072,
+      "latencyMs": 79320,
+      "stopReason": "end_turn"
+    },
+    {
+      "timestamp": "2026-06-24T16:54:40.643Z",
+      "feature": "narrative_polish",
+      "purpose": "[Step 3 — Polish synthesis]",
+      "model": "claude-sonnet-4-6",
+      "inputTokens": 2241,
+      "outputTokens": 474,
+      "cachedInputTokens": 0,
+      "cacheCreationTokens": 0,
+      "costUsd": 0.013833,
+      "latencyMs": 12075,
+      "stopReason": "end_turn"
+    },
+    {
+      "timestamp": "2026-06-24T16:56:59.334Z",
+      "feature": "narrative_polish",
+      "purpose": "[Step 3 — Polish 1/2]",
+      "model": "claude-sonnet-4-6",
+      "inputTokens": 18642,
+      "outputTokens": 8114,
+      "cachedInputTokens": 0,
+      "cacheCreationTokens": 0,
+      "costUsd": 0.177636,
+      "latencyMs": 137439,
+      "stopReason": "end_turn"
+    },
+    {
+      "timestamp": "2026-06-24T16:58:10.362Z",
+      "feature": "narrative_polish",
+      "purpose": "[Step 3 — Polish 2/2]",
+      "model": "claude-sonnet-4-6",
+      "inputTokens": 13181,
+      "outputTokens": 4695,
+      "cachedInputTokens": 0,
+      "cacheCreationTokens": 0,
+      "costUsd": 0.109968,
+      "latencyMs": 71027,
+      "stopReason": "end_turn"
+    },
+    {
+      "timestamp": "2026-06-24T16:58:25.430Z",
+      "feature": "narrative_polish",
+      "purpose": "[Step 3 — Polish synthesis]",
+      "model": "claude-sonnet-4-6",
+      "inputTokens": 3832,
+      "outputTokens": 492,
+      "cachedInputTokens": 0,
+      "cacheCreationTokens": 0,
+      "costUsd": 0.018876,
+      "latencyMs": 15068,
+      "stopReason": "end_turn"
+    }
+  ]
+}

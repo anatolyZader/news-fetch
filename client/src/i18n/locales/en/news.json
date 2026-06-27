@@ -1,0 +1,13 @@
+{
+  "news.articlesHeading": "Gathered articles",
+  "news.emptyDay": "No articles for this date.",
+  "news.kpi.articles": "Articles",
+  "news.kpi.filtered": "Kept / fetched",
+  "news.kpi.sources": "Outlets",
+  "news.loading": "Loading news ingest…",
+  "news.loadingFeed": "Loading articles…",
+  "news.noData": "No homefront news exports yet. Run `npm run homefront-to-md -- YYYY-MM-DD`.",
+  "news.pipelineDisabled": "News is disabled in pipeline-config.json; existing exports are shown for review only.",
+  "news.selectDate": "Ingest date",
+  "news.subtitle": "Homefront-filtered news articles gathered before signal extraction and 8-component analysis."
+}

@@ -50,6 +50,7 @@ jobs:
           min-release-age-days: ${{ steps.release_age.outputs.days }}
 
       - run: npm run i18n:parity
+      - run: npm run i18n:quality
 
       - run: npm run openapi:lint
 

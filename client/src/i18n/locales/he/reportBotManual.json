@@ -1,0 +1,9 @@
+{
+  "reportBotManual.empty": "אין עדיין קבצים מתאימים. יש למקם דוחות ‎.md‎ / ‎.txt‎ / ‎.json‎ / ‎.html‎ תחת `{path}` בשרת.",
+  "reportBotManual.inboxHint": "תיקיית inbox: `{path}`",
+  "reportBotManual.listAria": "דוחות ידניים מבוט הדוחות",
+  "reportBotManual.loadFailed": "לא ניתן לטעון את הקובץ במלואו.",
+  "reportBotManual.loading": "טוען דוחות ידניים…",
+  "reportBotManual.subtitle": "דוחות ידניות מבוט הווטסאפ או מהאתר (שליחת דוח); הקבצים ב-business_modules/report_bot/data/.",
+  "reportBotManual.updated": "עודכן"
+}

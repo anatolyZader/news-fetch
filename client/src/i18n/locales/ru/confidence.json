@@ -1,0 +1,6 @@
+{
+  "confidence.high": "Надёжность: высокая",
+  "confidence.insufficient_data": "Надёжность: недостаточно",
+  "confidence.low": "Надёжность: низкая",
+  "confidence.medium": "Надёжность: средняя"
+}

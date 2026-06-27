@@ -1,0 +1,16 @@
+{
+  "footer.ariaLabel": "כותרת תחתונה",
+  "footer.assessmentDate": "הערכה לתאריך {date}",
+  "footer.column.help": "עזרה",
+  "footer.column.legal": "משפטי",
+  "footer.column.product": "מוצר",
+  "footer.dataSources": "מקורות הנתונים כוללים חדשות, WhatsApp, רדיו/אודיו, Google Trends והגשות משתמשים.",
+  "footer.description": "הערכת עורף יומית מבוססת עדויות — מחדשות, רשתות חברתיות, דיווחי שטח והגשות ידניות.",
+  "footer.link.contact": "יצירת קשר",
+  "footer.link.dataHandling": "טיפול בנתונים",
+  "footer.link.getStarted": "תחילת עבודה",
+  "footer.link.scoring": "איך הניקוד עובד",
+  "footer.link.terms": "תנאי שימוש",
+  "footer.tagline": "חוסן קהילתי · הערכה יומית",
+  "footer.version": "גרסה {version}"
+}

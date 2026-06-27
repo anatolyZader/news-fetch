@@ -18,3 +18,4 @@ export {
   setLocaleCacheDirForTests,
 } from './app/localeCache.js';
 export { getLocaleSchema, LOCALE_SCHEMAS } from './app/localeSchemas.js';
+export { getLocaleStatus } from './app/localeStatus.js';

@@ -315,9 +315,14 @@ async function runPolishAndValidatePass(params) {
  * @param {object} leg
  * @param {object|null|undefined} groundingScores
  * @param {{ byLabel?: Map<string, object> }} registry
+ * @param {string|null|undefined} reportDate
  */
-function applyPolishLegToComponent(comp, leg, groundingScores, registry) {
-  const narrative = resolveInlineSignalCitations(String(leg.narrative ?? '').trim(), registry);
+function applyPolishLegToComponent(comp, leg, groundingScores, registry, reportDate) {
+  const narrative = resolveInlineSignalCitations(
+    String(leg.narrative ?? '').trim(),
+    registry,
+    reportDate,
+  );
   if (!narrative) return;
 
   comp.narrative_operator = narrative;
@@ -451,7 +456,11 @@ function backfillOperatorNarrativeFromClaims(comp, mergedClaims, registry, asses
   const prose = buildProseFromClaims(claims);
   if (!prose) return;
 
-  comp.narrative_operator = resolveInlineSignalCitations(prose, registry);
+  comp.narrative_operator = resolveInlineSignalCitations(
+    prose,
+    registry,
+    assessment.date,
+  );
   assessment.narrative_pipeline_degraded = true;
   assessment.narrative_pipeline_degrade_reasons = [
     ...(assessment.narrative_pipeline_degrade_reasons ?? []),
@@ -477,7 +486,7 @@ function applyNarrativeToAssessmentComponent(
 ) {
   const leg = polishById[comp.component_id];
   if (leg?.narrative) {
-    applyPolishLegToComponent(comp, leg, groundingScores, registry);
+    applyPolishLegToComponent(comp, leg, groundingScores, registry, assessment.date);
   } else if (Array.isArray(leg?.narrative_claims) && leg.narrative_claims.length > 0) {
     comp.narrative_claims = leg.narrative_claims;
   }
@@ -497,6 +506,7 @@ function applyNarrativePipelineMetadata(assessment, pipelineResult, mode) {
     assessment.cross_component_synthesis_operator = resolveInlineSignalCitations(
       polish.cross_component_synthesis,
       registry,
+      assessment.date,
     );
     if (legacyNarrativeOnly()) {
       assessment.cross_component_synthesis = assessment.cross_component_synthesis_operator;

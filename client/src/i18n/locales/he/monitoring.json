@@ -1,0 +1,7 @@
+{
+  "monitoring.health.degraded": "מוגבל",
+  "monitoring.health.ok": "תקין",
+  "monitoring.health.unhealthy": "לא תקין",
+  "monitoring.stageTelemetry.stageLine": "{stage}: {dropped}/{input} נפלו ({rate}%)",
+  "monitoring.stageTelemetry.summary": "{dropped} סיגנל(ים) נפלו בשלבי הצינור"
+}

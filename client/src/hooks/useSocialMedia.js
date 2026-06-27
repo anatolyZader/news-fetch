@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { withOperatorDistrictQuery } from '../lib/clampOperatorDistrictScope.js';
 import { authFetch } from '../lib/authFetch.js';
+import { localizedAuthFetch } from '../lib/localizedAuthFetch.js';
 
 /** @param {{ getIdToken: () => Promise<string|null>, getAppCheckToken?: () => Promise<string|null>, apiReady: boolean, operatorScope?: string }} opts */
 export function useSocialMediaDashboard({ getIdToken, getAppCheckToken, apiReady, operatorScope = 'national' }) {
@@ -59,7 +60,7 @@ export function useSocialMediaDailyFeed({ date, categoryId, lang, getIdToken, ge
         if (categoryId) q.set('category', categoryId);
         if (lang) q.set('lang', lang);
         const base = withOperatorDistrictQuery(`/api/social-media/daily?${q.toString()}`, operatorScope);
-        const out = await authFetch(base, { getIdToken, getAppCheckToken });
+        const out = await localizedAuthFetch(base, { lang, getIdToken, getAppCheckToken });
         if (!cancelled) setData(out);
       } catch (e) {
         if (!cancelled) {
@@ -122,8 +123,8 @@ export async function loadTopicFetchById({ id, lang, getIdToken, getAppCheckToke
   return authFetch(`/api/social-media/topic-fetches/${encodeURIComponent(id)}${suffix}`, { getIdToken, getAppCheckToken });
 }
 
-/** @param {{ date: string, getIdToken: () => Promise<string|null>, getAppCheckToken?: () => Promise<string|null>, enabled?: boolean }} opts */
-export function useSocialMediaReport({ date, getIdToken, getAppCheckToken, enabled = true }) {
+/** @param {{ date: string, lang?: string, getIdToken: () => Promise<string|null>, getAppCheckToken?: () => Promise<string|null>, enabled?: boolean }} opts */
+export function useSocialMediaReport({ date, lang = 'en', getIdToken, getAppCheckToken, enabled = true }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -136,7 +137,11 @@ export function useSocialMediaReport({ date, getIdToken, getAppCheckToken, enabl
       setError(null);
       try {
         const q = new URLSearchParams({ date });
-        const out = await authFetch(`/api/social-media/report?${q.toString()}`, { getIdToken, getAppCheckToken });
+        const out = await localizedAuthFetch(`/api/social-media/report?${q.toString()}`, {
+          lang,
+          getIdToken,
+          getAppCheckToken,
+        });
         if (!cancelled) setData(out);
       } catch (e) {
         if (!cancelled) {
@@ -148,7 +153,7 @@ export function useSocialMediaReport({ date, getIdToken, getAppCheckToken, enabl
       }
     })();
     return () => { cancelled = true; };
-  }, [date, enabled, getIdToken, getAppCheckToken]);
+  }, [date, lang, enabled, getIdToken, getAppCheckToken]);
 
   return { data, loading, error };
 }

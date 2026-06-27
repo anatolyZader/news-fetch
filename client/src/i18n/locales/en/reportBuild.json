@@ -1,0 +1,18 @@
+{
+  "reportBuild.confirmSubmit": "Confirm & submit",
+  "reportBuild.draftPreview": "Draft preview",
+  "reportBuild.errorAppCheck": "Security check failed. Refresh the page and try again.",
+  "reportBuild.errorCancel": "Failed to cancel",
+  "reportBuild.errorNoDraft": "No draft available to submit",
+  "reportBuild.errorSend": "Failed to send",
+  "reportBuild.errorStart": "Failed to start report builder",
+  "reportBuild.errorSubmit": "Failed to submit",
+  "reportBuild.followupTitle": "Follow-up questions",
+  "reportBuild.intro": "Write freely. The assistant will ask for missing details and then generate a concise draft for approval.",
+  "reportBuild.next": "Next",
+  "reportBuild.placeholderCollecting": "Describe what you saw / heard…",
+  "reportBuild.placeholderConfirming": "Add an edit or extra detail…",
+  "reportBuild.preparingSecurity": "Preparing security check…",
+  "reportBuild.successSubmitted": "Report submitted as evidence.",
+  "reportBuild.updateDraft": "Update draft"
+}

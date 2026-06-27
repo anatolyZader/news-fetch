@@ -1,0 +1,13 @@
+{
+  "chat.ariaDialog": "צ׳אט",
+  "chat.closeBody": "אפשר לפתוח שוב מכפתור הצ׳אט. השיחות נשמרות תחת היסטוריה.",
+  "chat.closeExit": "סגור",
+  "chat.closeStay": "המשך כאן",
+  "chat.closeTitle": "לסגור את הצ׳אט?",
+  "chat.header": "שאל על הדוח",
+  "chat.input": "שאל שאלה…",
+  "chat.launcherWhenClosed": "צ׳אט",
+  "chat.launcherWhenOpen": "סגור צ׳אט",
+  "chat.placeholder": "שאל על הערכות חוסן — היום או תאריכים קודמים…",
+  "chat.send": "שלח"
+}

@@ -13,7 +13,7 @@ import {
 } from '../../../client/src/lib/formatSourceCitations.js';
 
 describe('formatSourceCitations', () => {
-  it('formats named source with report date', () => {
+  it('formats named source with APA date parenthetical', () => {
     const out = formatReadableCitations(
       'Residents report disruption ([Ynet](https://www.ynet.co.il/article)).',
       '2026-06-20',
@@ -29,7 +29,7 @@ describe('formatSourceCitations', () => {
     assert.match(out, /\(ynet\.co\.il, 20 Jun 2026\)/);
   });
 
-  it('formatReportMarkdown chains expandLinks then parentheticals', () => {
+  it('formatReportMarkdown chains expandLinks then APA parentheticals', () => {
     const out = formatReportMarkdown(
       'Quote ([source](https://example.com/a)).',
       '2026-06-01',
@@ -38,7 +38,8 @@ describe('formatSourceCitations', () => {
     assert.match(out, /\(Example, 01 Jun 2026\)/);
   });
 
-  it('formatReportDateLabel returns empty for invalid input', () => {
+  it('formatReportDateLabel returns APA citation date', () => {
+    assert.equal(formatReportDateLabel('2026-04-12'), '12 Apr 2026');
     assert.equal(formatReportDateLabel(null), '');
     assert.equal(formatReportDateLabel('bad'), '');
   });
@@ -69,7 +70,7 @@ describe('formatSourceCitations', () => {
     assert.equal(out, 'Coping ([S1],[S2]).');
   });
 
-  it('formatLinkedReadableCitations keeps label as markdown link inside parens', () => {
+  it('formatLinkedReadableCitations uses APA date with linked author', () => {
     const out = formatLinkedReadableCitations(
       'Residents report disruption ([Ynet](https://www.ynet.co.il/article)).',
       '2026-06-20',
@@ -77,7 +78,7 @@ describe('formatSourceCitations', () => {
     assert.match(out, /\(\[Ynet\]\(https:\/\/www\.ynet\.co\.il\/article\), 20 Jun 2026\)/);
   });
 
-  it('formatLinkedReadableCitations derives hostname label for generic source', () => {
+  it('formatLinkedReadableCitations derives hostname for generic source', () => {
     const out = formatLinkedReadableCitations(
       'Observation ([source](https://www.ynet.co.il/story)).',
       '2026-06-20',
@@ -85,7 +86,7 @@ describe('formatSourceCitations', () => {
     assert.match(out, /\(\[ynet\.co\.il\]\(https:\/\/www\.ynet\.co\.il\/story\), 20 Jun 2026\)/);
   });
 
-  it('formatNarrativeMarkdown renders resolved markdown links as APA parentheticals', () => {
+  it('formatNarrativeMarkdown renders APA parentheticals with full date', () => {
     const out = formatNarrativeMarkdown(
       'Residents report relief [Ynet](https://www.ynet.co.il/article).',
       '2026-04-12',
@@ -94,16 +95,23 @@ describe('formatSourceCitations', () => {
     assert.doesNotMatch(out, /\[S\d+\]/);
   });
 
-  it('formatNarrativeMarkdown chains expandLinks, signal refs, and linked citations', () => {
+  it('formatNarrativeMarkdown merges multiple sources into one APA parenthetical', () => {
     const out = formatNarrativeMarkdown(
-      'Coping [S1][S2] and ([Ynet](https://www.ynet.co.il/article)).',
-      '2026-06-20',
+      'Relief [Ynet](https://www.ynet.co.il/a) [Haaretz](https://www.haaretz.co.il/b).',
+      '2026-04-12',
     );
-    assert.match(out, /Coping \(\[S1\],\[S2\]\) and/);
-    assert.match(out, /\(\[Ynet\]\(https:\/\/www\.ynet\.co\.il\/article\), 20 Jun 2026\)/);
+    assert.match(out, /12 Apr 2026; \[Haaretz\]/);
   });
 
-  it('formatEvidenceCitations renders linked academic citations', () => {
+  it('formatNarrativeMarkdown leaves pre-formatted APA unchanged', () => {
+    const out = formatNarrativeMarkdown(
+      'Already cited (Ynet, 12 Apr 2026).',
+      '2026-04-12',
+    );
+    assert.equal(out, 'Already cited (Ynet, 12 Apr 2026).');
+  });
+
+  it('formatEvidenceCitations renders linked APA citations with date', () => {
     const out = formatEvidenceCitations(
       'Quote [https://tiktok.com/x](https://tiktok.com/x).',
       '2026-05-23',
@@ -111,7 +119,7 @@ describe('formatSourceCitations', () => {
     assert.match(out, /\(\[https:\/\/tiktok\.com\/x\]\(https:\/\/tiktok\.com\/x\), 23 May 2026\)/);
   });
 
-  it('formatEvidenceMarkdown chains expandLinks then evidence citations', () => {
+  it('formatEvidenceMarkdown chains expandLinks then APA citations', () => {
     const out = formatEvidenceMarkdown(
       'Quote [source](https://example.com/a).',
       '2026-06-01',

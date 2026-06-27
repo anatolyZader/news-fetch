@@ -4,7 +4,6 @@
     "MAX_THINKING_TOKENS": "10000"
   },
   "permissions": {
-    "defaultMode": "acceptEdits",
     "allow": [
       "Bash(npm test *)",
       "Bash(npm run lint *)",
@@ -32,21 +31,19 @@
       "Bash(cd /home/eventstorm1/news && * 2> logs/*)",
       "Bash(cd /home/eventstorm1/news && * 2>> logs/*)",
       "Write(logs/**)",
-      "Edit(logs/**)"
+      "Edit(logs/**)",
+      "Bash(cat /proc/29821/cmdline | tr '\\\\0' ' ' && echo && ls -la /proc/29821/cwd 2>/dev/null)",
+      "Read(//proc/29821/**)",
+      "Bash(sort -k6,7)",
+      "Bash(command -v qrencode)",
+      "Bash(command -v python3)",
+      "Bash(pip install *)"
     ],
+    "defaultMode": "acceptEdits",
     "additionalDirectories": [
       "/home/eventstorm1/news/logs",
       "logs"
     ]
-  },
-  "sandbox": {
-    "autoAllowBashIfSandboxed": true,
-    "filesystem": {
-      "allowWrite": [
-        "./logs",
-        "/home/eventstorm1/news/logs"
-      ]
-    }
   },
   "hooks": {
     "PreToolUse": [
@@ -78,5 +75,14 @@
     "type": "command",
     "command": "~/.claude/statusline.sh",
     "padding": 2
+  },
+  "sandbox": {
+    "autoAllowBashIfSandboxed": true,
+    "filesystem": {
+      "allowWrite": [
+        "./logs",
+        "/home/eventstorm1/news/logs"
+      ]
+    }
   }
 }

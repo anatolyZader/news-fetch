@@ -1,0 +1,13 @@
+{
+  "radio.emptyDay": "אין קטעי רדיו לתאריך זה.",
+  "radio.kpi.files": "הקלטות",
+  "radio.kpi.segments": "קטעים",
+  "radio.kpi.stations": "תחנות",
+  "radio.loading": "טוען איסוף רדיו…",
+  "radio.loadingFeed": "טוען תמלולים…",
+  "radio.noData": "אין עדיין ייצוא תמלולי רדיו. הריצו `npm run audio-to-md` או `scripts/radio-transcribe.sh`.",
+  "radio.pipelineDisabled": "רדיו מושבת ב-pipeline-config.json; תמלולים קיימים מוצגים לצפייה בלבד.",
+  "radio.segmentsHeading": "קטעי תמלול",
+  "radio.selectDate": "תאריך שידור",
+  "radio.subtitle": "קטעי רדיו מתומללים שנאספו לפני חילוץ סיגנלים וניתוח 8 המרכיבים."
+}

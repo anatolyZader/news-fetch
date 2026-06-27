@@ -1,0 +1,13 @@
+{
+  "news.articlesHeading": "Собранные статьи",
+  "news.emptyDay": "Нет статей за эту дату.",
+  "news.kpi.articles": "Статьи",
+  "news.kpi.filtered": "Сохранено / собрано",
+  "news.kpi.sources": "Источники",
+  "news.loading": "Загрузка новостного ingest…",
+  "news.loadingFeed": "Загрузка статей…",
+  "news.noData": "Экспортов homefront пока нет. Запустите `npm run homefront-to-md -- YYYY-MM-DD`.",
+  "news.pipelineDisabled": "News отключён в pipeline-config.json; существующие экспорты показаны только для просмотра.",
+  "news.selectDate": "Дата сбора",
+  "news.subtitle": "Отфильтрованные новости тыла, собранные до извлечения сигналов и 8-компонентного анализа."
+}

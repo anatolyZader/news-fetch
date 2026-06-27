@@ -294,9 +294,21 @@ export function buildActionCompass(assessment, attentionItems = [], opts = {}) {
       source: action.source,
       title_key: phrasing.title_key,
       detail_params: phrasing.detail_params,
+      title: {
+        kind: 'i18n',
+        key: phrasing.title_key,
+        params: phrasing.detail_params ?? {},
+      },
       why_now_key: action.why_now_text ? null : phrasing.why_now_key,
       why_now_params: phrasing.why_now_params,
       why_now_text: action.why_now_text ?? null,
+      why_now: action.why_now_text
+        ? { kind: 'text', value: action.why_now_text }
+        : {
+          kind: 'i18n',
+          key: phrasing.why_now_key,
+          params: phrasing.why_now_params ?? {},
+        },
       success_signal_key: action.success_text ? null : phrasing.success_signal_key,
       success_signal_text: action.success_text ?? null,
       suggested_next_step: action.suggested_next_step ?? null,

@@ -9,6 +9,7 @@ import { canRunAnalysisDisplay, canViewAnalystDisplay } from '../../../cross-cut
 import { auditFromRequest } from '../../../cross-cut-modules/security/input/auditLog.js';
 import { costlyRoutePreHandlers } from '../../../cross-cut-modules/security/input/costlyRoutePreHandlers.js';
 import { normalizeAuthPreHandlers } from '../../../cross-cut-modules/auth/buildAuthHooks.js';
+import { maybeLocalize } from '../../translation/index.js';
 import { assertService, dateParam } from '../../../cross-cut-modules/security/app/httpGuards.js';
 
 function socialFetchAllowed(request) {
@@ -116,7 +117,10 @@ export async function socialMediaRoutes(app, opts) {
     try {
       const report = await socialMediaService.getReport(date);
       if (!report) return reply.code(404).send({ error: 'Report not found' });
-      return reply.send(report);
+      return reply.send(await maybeLocalize(report, 'social.report', request, {
+        fingerprintExtra: date,
+        costDate: date,
+      }));
     } catch (err) {
       return reply.code(502).send({ error: err?.message ?? 'Failed to load social media report' });
     }

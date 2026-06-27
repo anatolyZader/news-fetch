@@ -149,9 +149,9 @@ export const LOCALE_SCHEMAS = {
   },
   'report.actionCompass': {
     fields: [
-      { path: 'action_compass[].why_now_text' },
-      { path: 'action_compass[].success_signal_text' },
-      { path: 'action_compass[].suggested_next_step' },
+      { path: 'action_compass.actions[].why_now_text', originalKey: 'why_now_textOriginal' },
+      { path: 'action_compass.actions[].success_signal_text', originalKey: 'success_signal_textOriginal' },
+      { path: 'action_compass.actions[].suggested_next_step', originalKey: 'suggested_next_stepOriginal' },
     ],
   },
   'report.wrapper': {
@@ -166,6 +166,12 @@ export const LOCALE_SCHEMAS = {
       { path: 'decision_brief.items[].rationale' },
       { path: 'decision_brief.items[].suggested_next_step' },
       { path: 'decision_brief.items[].summary' },
+    ],
+  },
+  'social.report': {
+    fields: [
+      { path: 'markdown', originalKey: 'markdownOriginal' },
+      { path: 'bundle.summary' },
     ],
   },
 };

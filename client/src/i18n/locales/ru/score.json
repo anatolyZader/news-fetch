@@ -1,0 +1,7 @@
+{
+  "score.critical": "Критический",
+  "score.good": "Хороший",
+  "score.moderate": "Умеренный",
+  "score.strong": "Высокий",
+  "score.weak": "Слабый"
+}

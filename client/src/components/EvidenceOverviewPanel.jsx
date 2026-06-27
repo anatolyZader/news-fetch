@@ -3,15 +3,8 @@ import Typography from '@mui/material/Typography';
 import PropTypes from 'prop-types';
 
 import { useLanguage } from '../context/LanguageContext.jsx';
+import { formatTemplate } from '../lib/i18nFormat.js';
 import { deriveEvidenceOverviewCounts } from '../lib/epistemicBannerMessages.js';
-
-function formatTemplate(template, params = {}) {
-  if (!template) return '';
-  return Object.entries(params).reduce(
-    (acc, [key, value]) => acc.replaceAll(`{${key}}`, value == null ? '—' : String(value)),
-    template,
-  );
-}
 
 export function EvidenceOverviewPanel({ assessment, reportScope, displayView: _displayView }) {
   const { t } = useLanguage();

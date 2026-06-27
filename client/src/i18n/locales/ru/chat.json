@@ -1,0 +1,13 @@
+{
+  "chat.ariaDialog": "Чат",
+  "chat.closeBody": "Можно снова открыть с кнопки чата. Сессии остаются в «Истории».",
+  "chat.closeExit": "Закрыть",
+  "chat.closeStay": "Остаться",
+  "chat.closeTitle": "Закрыть чат?",
+  "chat.header": "Задайте вопрос об отчёте",
+  "chat.input": "Задайте вопрос…",
+  "chat.launcherWhenClosed": "Чат",
+  "chat.launcherWhenOpen": "Закрыть чат",
+  "chat.placeholder": "Задайте вопрос об оценках устойчивости — сегодня или за прошлые даты…",
+  "chat.send": "Отправить"
+}

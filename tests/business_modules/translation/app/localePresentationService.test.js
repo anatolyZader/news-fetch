@@ -32,6 +32,14 @@ describe('localePathUtils', () => {
     assert.equal(hits[0].value, 'Hello');
   });
 
+  it('extracts sourceLang from parent article', () => {
+    const root = { articles: [{ title: 'שלום', body: 'עולם', sourceLang: 'he' }] };
+    const { entries } = extractForTranslation(root, {
+      fields: [{ path: 'articles[].title' }],
+    });
+    assert.equal(entries[0].sourceLang, 'he');
+  });
+
   it('applyTranslations preserves originals', () => {
     const root = { articles: [{ title: 'Hello' }] };
     const { entries, pathMeta } = extractForTranslation(root, {

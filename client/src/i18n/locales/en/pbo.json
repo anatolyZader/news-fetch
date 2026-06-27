@@ -1,0 +1,14 @@
+{
+  "pbo.local.empty": "No municipality PBO data for {district} yet.",
+  "pbo.region.baram": "Baram",
+  "pbo.region.galma": "Galma",
+  "pbo.region.golan": "Golan",
+  "pbo.region.hiram": "Hiram",
+  "pbo.region.naftali": "Naftali",
+  "pbo.regionDaily.empty": "No markdown reports yet. Save daily .md reports in business_modules/pbo_report_regional/data.",
+  "pbo.regionDaily.listAria": "Regional daily PBO reports",
+  "pbo.regionDaily.loading": "Loading regional PBO data…",
+  "pbo.regionDaily.subtitle": "Daily markdown reports saved manually by the regional Population Behavior Officer before analysis.",
+  "pbo.regionDay.inboxLocation": "Inbox",
+  "pbo.regionDay.sourceFile": "Source file:"
+}

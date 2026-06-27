@@ -142,10 +142,11 @@ function citationRegistryFromAssessment(assessment) {
   return buildSignalRefRegistry(scored);
 }
 
-function applyCitationResolverToField(text, registry) {
+function applyCitationResolverToField(text, registry, reportDate) {
   const raw = String(text ?? '').trim();
-  if (!raw || !registry?.byLabel?.size || !/\[S\d+\]/.test(raw)) return raw;
-  return resolveInlineSignalCitations(raw, registry);
+  if (!raw || !registry?.byLabel?.size) return raw;
+  if (!/\[S\d+\]/.test(raw) && !/\[[^\]]+\]\(https?:/.test(raw)) return raw;
+  return resolveInlineSignalCitations(raw, registry, reportDate);
 }
 
 /**
@@ -603,11 +604,13 @@ function applyDegradedNarrativeCaveat(assessment) {
 
 function applyCitationRegistryToAssessment(assessment, citationRegistry) {
   if (!citationRegistry) return;
+  const reportDate = assessment.date;
 
   if (typeof assessment.cross_component_synthesis_operator === 'string') {
     assessment.cross_component_synthesis_operator = applyCitationResolverToField(
       assessment.cross_component_synthesis_operator,
       citationRegistry,
+      reportDate,
     );
   }
   for (const comp of assessment.components ?? []) {
@@ -615,6 +618,7 @@ function applyCitationRegistryToAssessment(assessment, citationRegistry) {
       comp.narrative_operator = applyCitationResolverToField(
         comp.narrative_operator,
         citationRegistry,
+        reportDate,
       );
     }
   }

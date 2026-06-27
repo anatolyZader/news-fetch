@@ -1,0 +1,7 @@
+{
+  "score.critical": "Critical",
+  "score.good": "Good",
+  "score.moderate": "Moderate",
+  "score.strong": "Strong",
+  "score.weak": "Weak"
+}

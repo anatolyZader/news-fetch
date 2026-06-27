@@ -650,6 +650,7 @@ export function MunicipalitiesTab({ districtId = 'north' }) {
     reload: reloadReviews,
   } = useMunicipalPboReviews({
     date: selectedDate,
+    lang,
     getIdToken,
     getAppCheckToken,
     apiReady,

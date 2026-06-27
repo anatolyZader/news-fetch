@@ -16,6 +16,7 @@ import Typography from '@mui/material/Typography';
 import { alpha, useTheme } from '@mui/material/styles';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
+import { LocalizedTextBlock } from './LocalizedTextBlock.jsx';
 import {
   EmptyState,
   ErrorState,
@@ -263,10 +264,12 @@ function VisitMunicipalityCard({
         }}
       >
         <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2} useFlexGap flexWrap="wrap">
-          <Typography
+          <LocalizedTextBlock
+            text={visit.title}
+            original={visit.titleOriginal}
+            t={t}
             variant="subtitle1"
             component="h3"
-            title={visit.title}
             sx={{
               whiteSpace: 'nowrap',
               overflow: 'hidden',
@@ -277,9 +280,8 @@ function VisitMunicipalityCard({
               fontWeight: 700,
               letterSpacing: '-0.01em',
             }}
-          >
-            {visit.title}
-          </Typography>
+            hideToggle
+          />
           <Stack direction="row" alignItems="center" spacing={0.5} sx={{ flexShrink: 0 }}>
             <IconButton
               size="small"
@@ -375,9 +377,13 @@ function VisitMunicipalityCard({
                       ...visitInsetPanelSx(theme, accent),
                     }}
                   >
-                    <Typography variant="body2" sx={{ lineHeight: 1.55, fontSize: '0.8125rem' }}>
-                      {visit.stakeholders}
-                    </Typography>
+                    <LocalizedTextBlock
+                      text={visit.stakeholders}
+                      original={visit.stakeholdersOriginal}
+                      t={t}
+                      variant="body2"
+                      sx={{ lineHeight: 1.55, fontSize: '0.8125rem' }}
+                    />
                   </Box>
                 </VisitSubsection>
               </Box>

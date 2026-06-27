@@ -1,0 +1,109 @@
+/**
+ * APA-style in-text parenthetical citations: (Author, DD Mon YYYY).
+ * Uses report assessment date (not publication year alone).
+ */
+
+const GENERIC_SOURCE = /^source$/i;
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const MARKDOWN_LINK = /\[([^\]]+)\]\((https?:[^)\s]+)\)/gi;
+const CITATION_LINK_RUN = /(?:\[[^\]]+\]\(https?:[^)\s]+\)\s*)+/g;
+
+/**
+ * @param {string|undefined|null} reportDate ISO YYYY-MM-DD
+ * @returns {string}
+ */
+export function formatApaCitationDate(reportDate) {
+  if (!reportDate || typeof reportDate !== 'string') return '';
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(reportDate.trim());
+  if (!m) return '';
+  const year = Number(m[1]);
+  const month = Number(m[2]);
+  const day = Number(m[3]);
+  if (!Number.isFinite(year) || month < 1 || month > 12 || day < 1 || day > 31) return '';
+  return `${String(day).padStart(2, '0')} ${MONTHS[month - 1]} ${year}`;
+}
+
+/**
+ * @param {string} url
+ * @returns {string}
+ */
+export function apaAuthorFromUrl(url) {
+  try {
+    const parsed = new URL(url);
+    const host = parsed.hostname.replace(/^www\./i, '');
+    if (host) return host;
+    const segment = parsed.pathname.split('/').filter(Boolean).at(-1);
+    if (segment) return decodeURIComponent(segment).slice(0, 48);
+  } catch {
+    // fall through
+  }
+  const trimmed = String(url ?? '').trim();
+  return trimmed.length > 48 ? `${trimmed.slice(0, 45)}…` : trimmed;
+}
+
+/**
+ * @param {string} text
+ * @param {string} url
+ * @returns {string}
+ */
+export function apaAuthorLabel(text, url) {
+  const trimmed = String(text ?? '').trim();
+  if (trimmed && !GENERIC_SOURCE.test(trimmed)) return trimmed;
+  return apaAuthorFromUrl(url);
+}
+
+/**
+ * @param {string} author
+ * @param {string} dateLabel DD Mon YYYY
+ * @param {{ url?: string|null, linked?: boolean }} [opts]
+ * @returns {string}
+ */
+export function formatApaCitationPart(author, dateLabel, opts = {}) {
+  const { url = null, linked = false } = opts;
+  if (!author) return '';
+  if (linked && url) {
+    return dateLabel ? `[${author}](${url}), ${dateLabel}` : `[${author}](${url})`;
+  }
+  return dateLabel ? `${author}, ${dateLabel}` : author;
+}
+
+/**
+ * @param {Array<{ author: string, url?: string|null }>} sources
+ * @param {string} dateLabel
+ * @param {{ linked?: boolean }} [opts]
+ * @returns {string}
+ */
+export function formatApaParenthetical(sources, dateLabel, opts = {}) {
+  const { linked = false } = opts;
+  const parts = sources
+    .map(({ author, url }) => formatApaCitationPart(author, dateLabel, { url, linked }))
+    .filter(Boolean);
+  if (parts.length === 0) return '';
+  return `(${parts.join('; ')})`;
+}
+
+/**
+ * Replace markdown [label](url) citation runs with APA parentheticals.
+ * @param {string} markdown
+ * @param {string|undefined|null} reportDate
+ * @param {{ linked?: boolean }} [opts]
+ * @returns {string}
+ */
+export function formatApaCitationsInMarkdown(markdown, reportDate, opts = {}) {
+  if (typeof markdown !== 'string' || !markdown) return '';
+  const dateLabel = formatApaCitationDate(reportDate);
+  const { linked = false } = opts;
+
+  return markdown.replace(CITATION_LINK_RUN, (run) => {
+    const links = [...run.matchAll(MARKDOWN_LINK)];
+    if (links.length === 0) return run;
+    const sources = links.map(([, text, url]) => ({
+      author: apaAuthorLabel(text, url),
+      url,
+    }));
+    const apa = formatApaParenthetical(sources, dateLabel, { linked });
+    if (!apa) return run;
+    const hadTrailingSpace = /\s$/.test(run);
+    return hadTrailingSpace ? `${apa} ` : apa;
+  });
+}

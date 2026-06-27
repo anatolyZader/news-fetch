@@ -1,0 +1,10 @@
+{
+  "nav.backToAnalysisResults": "Назад к результатам анализа",
+  "nav.browseDataSources": "Обзор источников данных",
+  "nav.chooseDataSource": "Выбрать",
+  "nav.dailyAssessment": "Ежедневная оценка",
+  "nav.dataSources": "Источник данных",
+  "nav.dataSourcesHint": "Источники данных для ежедневной оценки",
+  "nav.sourceContext": "Текущий источник данных",
+  "nav.switchSource": "Сменить источник"
+}

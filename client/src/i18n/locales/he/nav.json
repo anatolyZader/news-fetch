@@ -1,0 +1,10 @@
+{
+  "nav.backToAnalysisResults": "חזרה לתוצאות הניתוח",
+  "nav.browseDataSources": "עיון במקורות נתונים",
+  "nav.chooseDataSource": "בחר",
+  "nav.dailyAssessment": "הערכה יומית",
+  "nav.dataSources": "מקור נתונים",
+  "nav.dataSourcesHint": "מקורות קלט שמזינים את ההערכה היומית",
+  "nav.sourceContext": "מיקום במקורות נתונים",
+  "nav.switchSource": "החלף מקור"
+}

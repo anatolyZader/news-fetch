@@ -1,11 +1,11 @@
 import { useCallback, useState } from 'react';
-import { authFetch } from '../lib/authFetch.js';
 import { useAuth } from '../context/AuthContext.jsx';
+import { localizedAuthFetch } from '../lib/localizedAuthFetch.js';
 
 /**
  * PBO historical search via /api/pbo/historical-search.
  */
-export function usePboHistoricalSearch({ getIdToken, getAppCheckToken, apiReady } = {}) {
+export function usePboHistoricalSearch({ lang = 'en', getIdToken, getAppCheckToken, apiReady } = {}) {
   const auth = useAuth();
   const tokenFn = getIdToken ?? auth.getIdToken;
   const appCheckFn = getAppCheckToken ?? auth.getAppCheckToken;
@@ -28,7 +28,8 @@ export function usePboHistoricalSearch({ getIdToken, getAppCheckToken, apiReady 
       if (params?.region) qs.set('region', params.region);
       if (params?.days != null) qs.set('days', String(params.days));
 
-      const data = await authFetch(`/api/pbo/historical-search?${qs}`, {
+      const data = await localizedAuthFetch(`/api/pbo/historical-search?${qs}`, {
+        lang,
         getIdToken: tokenFn,
         getAppCheckToken: appCheckFn,
       });
@@ -42,7 +43,7 @@ export function usePboHistoricalSearch({ getIdToken, getAppCheckToken, apiReady 
     } finally {
       setLoading(false);
     }
-  }, [ready, tokenFn, appCheckFn]);
+  }, [ready, lang, tokenFn, appCheckFn]);
 
   return { hits, loading, error, search, clear: () => { setHits([]); setError(null); } };
 }

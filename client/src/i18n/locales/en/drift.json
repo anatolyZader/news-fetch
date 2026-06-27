@@ -1,0 +1,15 @@
+{
+  "drift.alerts.helpBody": "Alerts fire when the trailing-window mean polarization exceeds RESILIENCE_DRIFT_ALERT_POLARIZATION (default 0.70). The polarization window is RESILIENCE_DRIFT_POLARIZATION_WINDOW days (default 3, range 1-14).",
+  "drift.alerts.helpHeader": "Thresholds (env-tunable)",
+  "drift.alertsTitle": "Alerts",
+  "drift.hideScoreCalibration": "Instrument view",
+  "drift.meanCertainty": "Daily mean certainty (numeric / bucket proxy)",
+  "drift.meanChronicZ": "Daily mean chronic z-score vs peace-time anchor",
+  "drift.meanErosion": "Daily mean erosion index (peace-time anchor)",
+  "drift.meanPolarization": "Daily mean polarization (all components)",
+  "drift.noData": "No data",
+  "drift.showScoreCalibration": "Score history (calibration)",
+  "drift.signalVolume": "Signal volume per day",
+  "drift.title": "Resilience drift dashboard",
+  "drift.window": "{n}d"
+}

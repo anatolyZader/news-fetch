@@ -1,0 +1,13 @@
+{
+  "news.articlesHeading": "כתבות שנאספו",
+  "news.emptyDay": "אין כתבות לתאריך זה.",
+  "news.kpi.articles": "כתבות",
+  "news.kpi.filtered": "נשמרו / נאספו",
+  "news.kpi.sources": "מקורות",
+  "news.loading": "טוען איסוף חדשות…",
+  "news.loadingFeed": "טוען כתבות…",
+  "news.noData": "אין עדיין ייצוא homefront. הריצו `npm run homefront-to-md -- YYYY-MM-DD`.",
+  "news.pipelineDisabled": "חדשות מושבתות ב-pipeline-config.json; ייצוא קיים מוצג לצפייה בלבד.",
+  "news.selectDate": "תאריך איסוף",
+  "news.subtitle": "כתבות חדשות מסוננות לעורף שנאספו לפני חילוץ סיגנלים וניתוח 8 המרכיבים."
+}

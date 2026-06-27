@@ -24,6 +24,7 @@ const t = (key) => {
     'report.edition.signalsShortSingle': 'signals {date}',
     'report.edition.reportForShort': 'Report {date}',
     'report.edition.runAtShort': 'Run {time}',
+    'report.edition.pickerShort': 'Choose report',
   };
   return map[key] ?? key;
 };
@@ -82,33 +83,16 @@ describe('reportEditionFormat', () => {
     assert.equal(editionRunDiffersFromAnchor({ date: '2026-04-11', generated_at: '2026-06-14T17:59:00.000Z' }), true);
   });
 
-  it('formatEditionPickerTriggerParts labels report date and run when disambiguation needed', () => {
-    const parts = formatEditionPickerTriggerParts(t, {
-      date: '2026-04-11',
-      generated_at: '2026-06-14T17:59:00.000Z',
-    }, { sameDateCount: 2 });
-    assert.equal(parts[0], 'Report 11.04.2026');
-    assert.match(parts[1], /^Run /);
-  });
-
-  it('formatEditionPickerTriggerParts shows run time when multiple same-day editions exist', () => {
-    const parts = formatEditionPickerTriggerParts(t, {
-      date: '2026-04-02',
-      generated_at: '2026-04-02T09:15:00.000Z',
-    }, { sameDateCount: 2 });
-    assert.equal(parts[0], 'Report 02.04.2026');
-    assert.match(parts[1], /^Run /);
-  });
-
-  it('formatEditionPickerTriggerParts shows multi-day range without redundant labels', () => {
+  it('formatEditionPickerTriggerParts returns a short closed-state label', () => {
     assert.deepEqual(
       formatEditionPickerTriggerParts(t, {
         date: '2026-04-10',
         window_start: '2026-04-08',
         window_end: '2026-04-10',
         assessment_days: 3,
+        generated_at: '2026-06-14T17:59:00.000Z',
       }),
-      ['08.04.2026–10.04.2026'],
+      ['Choose report'],
     );
   });
 });

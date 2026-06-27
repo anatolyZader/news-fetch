@@ -1,0 +1,14 @@
+{
+  "evidence.clearFiles": "Remove all files",
+  "evidence.dropHint": "Drop files here or click to browse. Common audio and video formats are supported.",
+  "evidence.heading": "Report evidence",
+  "evidence.intro": "Add notes, observations, or paste links to articles, videos, or other sources you want on the record.",
+  "evidence.introExtended": "Paste URLs, notes, and/or attach audio and short video files. Drafts sync to the server; Send stores everything and runs the same ingest and 8-component analysis pipeline as link-only submissions.",
+  "evidence.loading": "Loading draft…",
+  "evidence.placeholder": "Example: Saw a report about shelter behavior in… https://…",
+  "evidence.savedAt": "Saved to server at {time}",
+  "evidence.savedOk": "Saved ✓",
+  "evidence.saving": "Saving…",
+  "evidence.send": "Send",
+  "evidence.unsynced": "Unsynced changes: retrying server save…"
+}

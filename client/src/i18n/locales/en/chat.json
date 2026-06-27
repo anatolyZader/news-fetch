@@ -1,0 +1,13 @@
+{
+  "chat.ariaDialog": "Chat",
+  "chat.closeBody": "You can open chat again from the launcher. Your sessions stay in History.",
+  "chat.closeExit": "Close",
+  "chat.closeStay": "Keep chatting",
+  "chat.closeTitle": "Close chat?",
+  "chat.header": "Ask about this report",
+  "chat.input": "Ask a question…",
+  "chat.launcherWhenClosed": "Chat",
+  "chat.launcherWhenOpen": "Close chat",
+  "chat.placeholder": "Ask anything about resilience assessments — today or past dates…",
+  "chat.send": "Send"
+}

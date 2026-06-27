@@ -1,0 +1,12 @@
+{
+  "norris.capacity.community_competence": "Компетентность сообщества",
+  "norris.capacity.economic_development": "Экономическое развитие",
+  "norris.capacity.information_and_communication": "Информация и коммуникация",
+  "norris.capacity.social_capital": "Социальный капитал",
+  "norris.diag.rapidity": "скорость",
+  "norris.diag.redundancy": "избыточность",
+  "norris.diag.robustness": "устойчивость",
+  "norris.evidenceLevel": "Уровень доказательности",
+  "norris.evidenceMass": "Масса доказательств",
+  "norris.topContributors": "Ключевые факторы"
+}

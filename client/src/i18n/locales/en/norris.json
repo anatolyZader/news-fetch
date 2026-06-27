@@ -1,0 +1,12 @@
+{
+  "norris.capacity.community_competence": "Community competence",
+  "norris.capacity.economic_development": "Economic development",
+  "norris.capacity.information_and_communication": "Information & communication",
+  "norris.capacity.social_capital": "Social capital",
+  "norris.diag.rapidity": "rapidity",
+  "norris.diag.redundancy": "redundancy",
+  "norris.diag.robustness": "robustness",
+  "norris.evidenceLevel": "Evidence level",
+  "norris.evidenceMass": "Evidence mass",
+  "norris.topContributors": "Top contributors"
+}

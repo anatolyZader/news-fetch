@@ -1,0 +1,16 @@
+{
+  "footer.ariaLabel": "Site footer",
+  "footer.assessmentDate": "Assessment for {date}",
+  "footer.column.help": "Help",
+  "footer.column.legal": "Legal",
+  "footer.column.product": "Product",
+  "footer.dataSources": "Data sources include news, WhatsApp, radio/audio, Google Trends, and user submissions.",
+  "footer.description": "Evidence-backed daily homefront assessment from news, social media, field reports, and manual submissions.",
+  "footer.link.contact": "Contact support",
+  "footer.link.dataHandling": "Data handling",
+  "footer.link.getStarted": "Get started",
+  "footer.link.scoring": "How scoring works",
+  "footer.link.terms": "Terms of use",
+  "footer.tagline": "Community resilience · Daily Assessment",
+  "footer.version": "Version {version}"
+}

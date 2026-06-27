@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { withOperatorDistrictQuery } from '../lib/clampOperatorDistrictScope.js';
 import { authFetch } from '../lib/authFetch.js';
-import { withLang } from '../lib/localeFetch.js';
+import { localizedAuthFetch } from '../lib/localizedAuthFetch.js';
 
 /** @param {{ getIdToken: () => Promise<string|null>, getAppCheckToken?: () => Promise<string|null>, apiReady: boolean, operatorScope?: string }} opts */
 export function useRadioDashboard({ getIdToken, getAppCheckToken, apiReady, operatorScope = 'national' }) {
@@ -57,10 +57,10 @@ export function useRadioDailyFeed({ date, lang = 'en', getIdToken, getAppCheckTo
       setError(null);
       try {
         const base = withOperatorDistrictQuery(
-          withLang(`/api/radio/daily?date=${encodeURIComponent(date)}`, lang),
+          `/api/radio/daily?date=${encodeURIComponent(date)}`,
           operatorScope,
         );
-        const out = await authFetch(base, { getIdToken, getAppCheckToken });
+        const out = await localizedAuthFetch(base, { lang, getIdToken, getAppCheckToken });
         if (!cancelled) setData(out);
       } catch (e) {
         if (!cancelled) {

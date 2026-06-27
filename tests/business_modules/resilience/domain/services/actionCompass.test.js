@@ -192,4 +192,26 @@ describe('buildActionCompass', () => {
     assert.equal(compass.uncertainty_band, 'watch');
     assert.ok(!compass.actions.some((a) => a.kind === ACTION_KINDS.repair_sampling));
   });
+
+  it('exposes display contract fields on actions', () => {
+    const assessment = {
+      assessment_mode: 'normal',
+      epistemic_status: { sampling_status: 'normal' },
+      data_void: { level: 'none' },
+      decision_brief: {
+        priority_items: [{
+          level: 'watch',
+          rationale: 'Brief rationale text',
+          suggested_next_step: 'Call municipality',
+        }],
+      },
+      components: [],
+    };
+    const compass = buildActionCompass(assessment, []);
+    const briefAction = compass?.actions?.find((a) => a.source === 'brief');
+    assert.ok(briefAction);
+    assert.equal(briefAction.title.kind, 'i18n');
+    assert.equal(briefAction.why_now.kind, 'text');
+    assert.equal(briefAction.why_now.value, 'Brief rationale text');
+  });
 });

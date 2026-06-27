@@ -107,6 +107,7 @@ export function createRadioFsAdapter(opts) {
             program: seg.program,
             body: seg.body,
             fileName: file.name,
+            sourceLang: 'en',
           });
         }
       }

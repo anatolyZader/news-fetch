@@ -1,0 +1,16 @@
+{
+  "footer.ariaLabel": "Нижний колонтитул",
+  "footer.assessmentDate": "Оценка за {date}",
+  "footer.column.help": "Помощь",
+  "footer.column.legal": "Правовая информация",
+  "footer.column.product": "Продукт",
+  "footer.dataSources": "Источники: новости, WhatsApp, радио/аудио, Google Trends и материалы пользователей.",
+  "footer.description": "Ежедневная оценка тыла на основе доказательств — из новостей, соцсетей, полевых отчётов и ручных материалов.",
+  "footer.link.contact": "Связаться с поддержкой",
+  "footer.link.dataHandling": "Обработка данных",
+  "footer.link.getStarted": "Начало работы",
+  "footer.link.scoring": "Как работает оценка",
+  "footer.link.terms": "Условия использования",
+  "footer.tagline": "Общественная устойчивость · Ежедневная оценка",
+  "footer.version": "Версия {version}"
+}

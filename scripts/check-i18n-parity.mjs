@@ -1,18 +1,54 @@
 #!/usr/bin/env node
 /**
- * Assert client i18n key parity: every translations.en key exists in he and ru.
+ * Assert client i18n key parity: every en key exists in he and ru.
  * Usage: node scripts/check-i18n-parity.mjs [--fix]
  */
-import { readFileSync, writeFileSync } from 'node:fs';
-import { resolve, dirname } from 'node:path';
+import { readFileSync, writeFileSync, readdirSync, mkdirSync } from 'node:fs';
+import { resolve, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const translationsPath = resolve(repoRoot, 'client/src/i18n/translations.js');
+const localesRoot = resolve(repoRoot, 'client/src/i18n/locales');
 const fixMode = process.argv.includes('--fix');
 
-const { translations } = await import(translationsPath);
+function loadLocaleMaps() {
+  const translations = { en: {}, he: {}, ru: {} };
+  for (const loc of ['en', 'he', 'ru']) {
+    const dir = join(localesRoot, loc);
+    for (const file of readdirSync(dir).filter((f) => f.endsWith('.json'))) {
+      const data = JSON.parse(readFileSync(join(dir, file), 'utf8'));
+      Object.assign(translations[loc], data);
+    }
+  }
+  return translations;
+}
 
+function namespaceForKey(key) {
+  const ns = key.split('.')[0];
+  const common = new Set(['tab', 'app', 'settings', 'district', 'comp', 'ingest', 'locale', 'common']);
+  return common.has(ns) ? 'common' : ns;
+}
+
+function writeKeyToNamespace(loc, key, value) {
+  const ns = namespaceForKey(key);
+  const path = join(localesRoot, loc, `${ns}.json`);
+  const data = JSON.parse(readFileSync(path, 'utf8'));
+  data[key] = value;
+  const sorted = Object.fromEntries(Object.keys(data).sort().map((k) => [k, data[k]]));
+  writeFileSync(path, `${JSON.stringify(sorted, null, 2)}\n`);
+}
+
+function removeKeyFromNamespace(loc, key) {
+  const ns = namespaceForKey(key);
+  const path = join(localesRoot, loc, `${ns}.json`);
+  const data = JSON.parse(readFileSync(path, 'utf8'));
+  if (!Object.hasOwn(data, key)) return;
+  delete data[key];
+  const sorted = Object.fromEntries(Object.keys(data).sort().map((k) => [k, data[k]]));
+  writeFileSync(path, `${JSON.stringify(sorted, null, 2)}\n`);
+}
+
+const translations = loadLocaleMaps();
 const enKeys = Object.keys(translations.en ?? {});
 const heKeys = new Set(Object.keys(translations.he ?? {}));
 const ruKeys = new Set(Object.keys(translations.ru ?? {}));
@@ -23,35 +59,15 @@ const heExtra = [...heKeys].filter((k) => !Object.hasOwn(translations.en, k));
 const ruExtra = [...ruKeys].filter((k) => !Object.hasOwn(translations.en, k));
 
 if (fixMode && (heMissing.length || ruMissing.length || heExtra.length || ruExtra.length)) {
-  let source = readFileSync(translationsPath, 'utf8');
-
-  for (const loc of ['he', 'ru']) {
-    const missing = loc === 'he' ? heMissing : ruMissing;
-    const extra = loc === 'he' ? heExtra : ruExtra;
-    if (!missing.length && !extra.length) continue;
-
-    const sectionRe = new RegExp(String.raw`(\n  ${loc}: \{)([\s\S]*?)(\n  \},)`, 'm');
-    const match = sectionRe.exec(source);
-    if (!match) {
-      console.error(`Could not locate ${loc} section in translations.js`);
-      process.exit(1);
-    }
-
-    const existingBody = match[2];
-    let body = existingBody;
-    for (const key of extra) {
-      const keyRe = new RegExp(String.raw`\n    '${key.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&')}':[^\n]*,?\n`);
-      body = body.replace(keyRe, '\n');
-    }
-    for (const key of missing) {
-      const value = JSON.stringify(translations.en[key]);
-      body += `\n    '${key.replaceAll('\'', "\\'")}': ${value},`;
-    }
-    source = source.replace(sectionRe, `${match[1]}${body}${match[3]}`);
+  for (const key of heMissing) {
+    writeKeyToNamespace('he', key, `[UNTRANSLATED] ${translations.en[key]}`);
   }
-
-  writeFileSync(translationsPath, source, 'utf8');
-  console.log(`Fixed translations.js (${heMissing.length} he, ${ruMissing.length} ru keys backfilled from en).`);
+  for (const key of ruMissing) {
+    writeKeyToNamespace('ru', key, `[UNTRANSLATED] ${translations.en[key]}`);
+  }
+  for (const key of heExtra) removeKeyFromNamespace('he', key);
+  for (const key of ruExtra) removeKeyFromNamespace('ru', key);
+  console.log(`Fixed locale JSON (${heMissing.length} he, ${ruMissing.length} ru keys marked untranslated).`);
   process.exit(0);
 }
 

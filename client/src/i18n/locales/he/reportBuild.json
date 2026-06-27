@@ -1,0 +1,18 @@
+{
+  "reportBuild.confirmSubmit": "אישור ושליחה",
+  "reportBuild.draftPreview": "תצוגה מקדימה",
+  "reportBuild.errorAppCheck": "בדיקת האבטחה נכשלה. רעננו את הדף ונסו שוב.",
+  "reportBuild.errorCancel": "הביטול נכשל",
+  "reportBuild.errorNoDraft": "אין טיוטה זמינה לשליחה",
+  "reportBuild.errorSend": "השליחה נכשלה",
+  "reportBuild.errorStart": "לא ניתן להתחיל את בונה הדוחות",
+  "reportBuild.errorSubmit": "ההגשה נכשלה",
+  "reportBuild.followupTitle": "שאלות המשך",
+  "reportBuild.intro": "כתבו בחופשיות. המערכת תשאל על פרטים חסרים ואז ייווצר טיוטה קצרה לאישור לפני השליחה.",
+  "reportBuild.next": "הבא",
+  "reportBuild.placeholderCollecting": "תארו מה ראיתם או שמעתם…",
+  "reportBuild.placeholderConfirming": "הוסיפו עריכה או פירוט נוסף…",
+  "reportBuild.preparingSecurity": "מכין בדיקת אבטחה…",
+  "reportBuild.successSubmitted": "הדוח נשלח כעדות.",
+  "reportBuild.updateDraft": "עדכן טיוטה"
+}

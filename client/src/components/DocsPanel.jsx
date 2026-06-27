@@ -15,7 +15,7 @@ import { alpha, useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
-import { MarkdownDocView } from './MarkdownDocView.jsx';
+import { LocalizedTextBlock } from './LocalizedTextBlock.jsx';
 import { ModalPanel } from '../ui/ModalPanel.jsx';
 import { PanelWindowShell } from '../ui/PanelWindowShell.jsx';
 import { SidebarItem } from '../ui/SidebarItem.jsx';
@@ -627,7 +627,13 @@ export function DocsPanel({ open, onClose, initialSlug, variant = 'modal' }) {
                   width: '100%',
                 })}
               >
-                <MarkdownDocView markdown={page?.markdown ?? ''} banner={null} />
+                <LocalizedTextBlock
+                  text={page?.markdown ?? ''}
+                  original={page?.markdownOriginal}
+                  t={t}
+                  markdown
+                  markdownVariant="doc"
+                />
               </Paper>
             </Stack>
           )}

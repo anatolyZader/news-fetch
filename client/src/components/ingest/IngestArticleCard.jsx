@@ -11,6 +11,7 @@ import { alpha, useTheme } from '@mui/material/styles';
 import { formatPublishedDateTime } from '../../lib/date.js';
 import { translationFnPropType } from '../../lib/reportPropTypes.js';
 import { ShowOriginalToggle } from '../ShowOriginalToggle.jsx';
+import { readShowOriginalPreference, writeShowOriginalPreference } from '../../hooks/useShowOriginalPreference.js';
 
 const BODY_PREVIEW_CHARS = 480;
 
@@ -28,16 +29,25 @@ export function IngestArticleCard({
   url,
   secondaryLabel,
   t,
+  lang,
 }) {
   const theme = useTheme();
-  const [showOriginal, setShowOriginal] = useState(false);
+  const [showOriginal, setShowOriginal] = useState(() => readShowOriginalPreference());
   const hasOriginal = Boolean(titleOriginal || bodyOriginal);
   const displayTitle = showOriginal && titleOriginal ? titleOriginal : title;
   const displayBody = showOriginal && bodyOriginal ? bodyOriginal : body;
   const preview = String(displayBody ?? '').length > BODY_PREVIEW_CHARS
     ? `${String(displayBody).slice(0, BODY_PREVIEW_CHARS)}…`
     : String(displayBody ?? '');
-  const publishedLabel = publishedAt ? formatPublishedDateTime(publishedAt) : null;
+  const publishedLabel = publishedAt ? formatPublishedDateTime(publishedAt, lang) : null;
+
+  function toggleOriginal() {
+    setShowOriginal((prev) => {
+      const next = !prev;
+      writeShowOriginalPreference(next);
+      return next;
+    });
+  }
 
   return (
     <Card
@@ -55,7 +65,7 @@ export function IngestArticleCard({
           {hasOriginal && (
             <ShowOriginalToggle
               showingOriginal={showOriginal}
-              onToggle={() => setShowOriginal((v) => !v)}
+              onToggle={toggleOriginal}
               t={t}
             />
           )}
@@ -101,4 +111,5 @@ IngestArticleCard.propTypes = {
   url: PropTypes.string,
   secondaryLabel: PropTypes.string,
   t: translationFnPropType,
+  lang: PropTypes.string,
 };

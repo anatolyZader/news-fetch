@@ -57,6 +57,7 @@ describe('operatorNarrativePipeline', () => {
   it('applyOperatorNarrativeToAssessment sets narrative_operator in hybrid mode', () => {
     process.env.RESILIENCE_NARRATIVE_PIPELINE = 'hybrid';
     const assessment = {
+      date: '2026-04-03',
       components: [{
         component_id: 'narrative',
         narrative: 'Agent thin template.',
@@ -84,6 +85,7 @@ describe('operatorNarrativePipeline', () => {
     const signals = fixtures.scored_components.narrative.signals;
     const registry = buildSignalRefRegistry({ narrative: { signals } });
     const assessment = {
+      date: '2026-04-03',
       components: [{
         component_id: 'narrative',
         narrative: 'Agent thin template.',
@@ -121,6 +123,7 @@ describe('operatorNarrativePipeline', () => {
     const signals = fixtures.scored_components.narrative.signals;
     const registry = buildSignalRefRegistry({ narrative: { signals } });
     const assessment = {
+      date: '2026-04-03',
       components: [{ component_id: 'narrative', narrative: 'Agent thin template.' }],
     };
 

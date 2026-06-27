@@ -48,8 +48,9 @@ export function PboMunicipalReviewPanel({
   summary = null,
   showHistoricalSearch = false,
 }) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const { hits: historyHits, loading: historyLoading, error: historyError, search: searchHistory } = usePboHistoricalSearch({
+    lang,
     getIdToken,
     getAppCheckToken,
     apiReady,
@@ -59,6 +60,7 @@ export function PboMunicipalReviewPanel({
   const { detail, loading, error, submitReply } = useMunicipalPboReviewDetail({
     date,
     municipality,
+    lang,
     getIdToken,
     getAppCheckToken,
     apiReady,

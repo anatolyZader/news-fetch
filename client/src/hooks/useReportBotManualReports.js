@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
-import { authFetch } from '../lib/authFetch.js';
+import { localizedAuthFetch } from '../lib/localizedAuthFetch.js';
 import { withOperatorDistrictQuery } from '../lib/clampOperatorDistrictScope.js';
-import { withLang } from '../lib/localeFetch.js';
 
 /**
  * @param {{
@@ -26,9 +25,9 @@ export function useReportBotManualReports({
     setLoading(true);
     setError(null);
     try {
-      const json = await authFetch(
-        withLang(withOperatorDistrictQuery('/api/report-bot/manual-reports', operatorScope), lang),
-        { getIdToken, getAppCheckToken },
+      const json = await localizedAuthFetch(
+        withOperatorDistrictQuery('/api/report-bot/manual-reports', operatorScope),
+        { lang, getIdToken, getAppCheckToken },
       );
       setData(json);
     } catch (e) {

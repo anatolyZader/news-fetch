@@ -21,7 +21,7 @@ const GENERIC_SYSTEM = {
 /**
  * @param {object} payload
  * @param {'he' | 'ru'} lang
- * @param {{ useReportPrompt?: boolean, queryHint?: string, costLabel?: string, costDate?: string }} [opts]
+ * @param {{ useReportPrompt?: boolean, queryHint?: string, costLabel?: string, costDate?: string, sourceLang?: string }} [opts]
  */
 export async function translateGenericJson(payload, lang, opts = {}) {
   const langName = LANG_NAMES[lang] ?? lang;
@@ -34,13 +34,16 @@ export async function translateGenericJson(payload, lang, opts = {}) {
     opts.queryHint ?? JSON.stringify(payload).slice(0, 400),
   );
 
+  const sourceLang = opts.sourceLang ?? 'en';
+  const sourceLabel = LANG_NAMES[sourceLang] ?? sourceLang;
+
   const message = await getDefaultLlmPort().createMessage({
     model: MODEL,
     max_tokens: 8000,
     system,
     messages: [{
       role: 'user',
-      content: `Translate the following JSON into ${langName}. Return ONLY valid JSON with the exact same structure.\n\n${JSON.stringify(payload)}`,
+      content: `Source language is ${sourceLabel}. Translate the following JSON into ${langName}. Return ONLY valid JSON with the exact same structure.\n\n${JSON.stringify(payload)}`,
     }],
   });
 

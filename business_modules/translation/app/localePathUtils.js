@@ -1,6 +1,4 @@
-/**
- * JSON path helpers for locale field extraction (dot/bracket notation).
- */
+import { detectSourceLang, normalizeSourceLang } from './detectSourceLang.js';
 
 /**
  * @param {unknown} root
@@ -111,6 +109,31 @@ export function originalFieldName(pathPattern) {
 
 /**
  * @param {object} root
+ * @param {string} path e.g. "articles.0.title"
+ * @returns {'en' | 'he' | 'ru'}
+ */
+function resolveEntrySourceLang(root, path) {
+  const parts = path.split('.');
+  if (parts.length >= 2) {
+    const parentPath = parts.slice(0, -1).join('.');
+    const parent = getAtPath(root, parentPath);
+    if (parent && typeof parent === 'object' && parent.sourceLang) {
+      return normalizeSourceLang(parent.sourceLang);
+    }
+    if (parent && typeof parent === 'object') {
+      const combined = [parent.title, parent.body, parent.notes, parent.content, parent.markdown]
+        .filter((v) => typeof v === 'string' && v.trim())
+        .join(' ');
+      if (combined) return detectSourceLang(combined);
+    }
+  }
+  const leaf = getAtPath(root, path);
+  if (typeof leaf === 'string') return detectSourceLang(leaf);
+  return 'en';
+}
+
+/**
+ * @param {object} root
  * @param {import('./localeSchemas.js').LocaleSchema} schema
  */
 export function extractForTranslation(root, schema) {
@@ -121,7 +144,11 @@ export function extractForTranslation(root, schema) {
     const hits = collectStringFields(root, field.path);
     for (const hit of hits) {
       const id = `f${entries.length}`;
-      entries.push({ id, text: hit.value });
+      entries.push({
+        id,
+        text: hit.value,
+        sourceLang: resolveEntrySourceLang(root, hit.path),
+      });
       pathMeta.push({
         path: hit.path,
         originalKey: field.originalKey ?? originalFieldName(field.path),

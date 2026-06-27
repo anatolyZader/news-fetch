@@ -30,7 +30,6 @@ export function BrandHeader({
       spacing={isCompact ? 1 : { xs: 1, sm: 1.5 }}
       sx={(theme) => ({
         alignSelf: alignSx.alignItems,
-        '[dir="rtl"] &': { flexDirection: 'row-reverse' },
         ...(isCompact
           ? { justifyContent: 'center' }
           : {
@@ -56,6 +55,7 @@ export function BrandHeader({
             maxHeight: isCompact ? theme.spacing(5) : theme.spacing(9),
             display: 'block',
             userSelect: 'none',
+            '[dir="rtl"] &': { transform: 'scaleX(-1)' },
           })}
         />
       )}

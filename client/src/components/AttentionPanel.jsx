@@ -11,6 +11,7 @@ import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import PropTypes from 'prop-types';
 
 import { useLanguage } from '../context/LanguageContext.jsx';
+import { formatTemplate } from '../lib/i18nFormat.js';
 import { StatusTag } from '../ui/index.js';
 
 const LEVEL_VARIANT = {
@@ -67,14 +68,6 @@ const DRIFT_CODE_MAP = {
     detail_key: 'attention.drift.erosionElevatedDetail',
   },
 };
-
-function formatTemplate(template, params = {}) {
-  if (!template) return '';
-  return Object.entries(params).reduce(
-    (acc, [key, value]) => acc.replaceAll(`{${key}}`, value == null ? '—' : String(value)),
-    template,
-  );
-}
 
 function componentLabel(componentId, t) {
   if (!componentId) return '';

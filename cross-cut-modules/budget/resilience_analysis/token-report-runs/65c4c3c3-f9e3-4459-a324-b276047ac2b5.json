@@ -1,0 +1,30 @@
+{
+  "runId": "65c4c3c3-f9e3-4459-a324-b276047ac2b5",
+  "date": "2026-04-03",
+  "scope": "north",
+  "days": 1,
+  "runStartedAt": "2026-06-25T13:15:34.725Z",
+  "runCompletedAt": "2026-06-25T13:15:53.847Z",
+  "durationMs": 19122,
+  "pipeline": {
+    "totalCostUsd": 0,
+    "llmCostUsd": 0,
+    "byScript": {
+      "assess-signals": 0
+    },
+    "costLogEntries": 1
+  },
+  "summary": {
+    "invocations": 0,
+    "inputTokens": 0,
+    "outputTokens": 0,
+    "cachedInputTokens": 0,
+    "cacheCreationTokens": 0,
+    "effectiveInputTokens": 0,
+    "cacheHitRatePct": 0,
+    "costUsd": 0
+  },
+  "byFeature": {},
+  "byModel": {},
+  "calls": []
+}

@@ -73,14 +73,23 @@ export function createNewsSitesFsAdapter(opts) {
         filteredFrom: parsed.filteredFrom,
         filteredTo: parsed.filteredTo,
         sourceCount: new Set(parsed.articles.map((a) => a.source).filter(Boolean)).size,
-        articles: parsed.articles.map((a) => ({
-          id: `${basename(match.path)}#${a.idx1}`,
-          title: a.title,
-          url: a.url,
-          publishedAt: a.publishedAt,
-          source: a.source,
-          body: a.body,
-        })),
+        articles: parsed.articles.map((a) => {
+          const sample = `${a.title ?? ''} ${a.body ?? ''}`.trim();
+          let nonLatin = 0;
+          for (const ch of sample.slice(0, 400)) {
+            if ((ch.codePointAt(0) ?? 0) > 0x7f) nonLatin += 1;
+          }
+          const sourceLang = sample && nonLatin > sample.slice(0, 400).length * 0.12 ? 'he' : 'en';
+          return {
+            id: `${basename(match.path)}#${a.idx1}`,
+            title: a.title,
+            url: a.url,
+            publishedAt: a.publishedAt,
+            source: a.source,
+            body: a.body,
+            sourceLang,
+          };
+        }),
       };
     },
   };

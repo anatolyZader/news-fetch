@@ -1,0 +1,18 @@
+{
+  "reportBuild.confirmSubmit": "Подтвердить и отправить",
+  "reportBuild.draftPreview": "Предпросмотр черновика",
+  "reportBuild.errorAppCheck": "Проверка безопасности не пройдена. Обновите страницу и попробуйте снова.",
+  "reportBuild.errorCancel": "Не удалось отменить",
+  "reportBuild.errorNoDraft": "Нет черновика для отправки",
+  "reportBuild.errorSend": "Не удалось отправить",
+  "reportBuild.errorStart": "Не удалось запустить мастер отчёта",
+  "reportBuild.errorSubmit": "Не удалось подтвердить",
+  "reportBuild.followupTitle": "Дополнительные вопросы",
+  "reportBuild.intro": "Пишите свободно. Помощник уточнит недостающие детали и сформирует краткий черновик на утверждение.",
+  "reportBuild.next": "Далее",
+  "reportBuild.placeholderCollecting": "Опишите, что вы видели или слышали…",
+  "reportBuild.placeholderConfirming": "Добавьте правку или уточнение…",
+  "reportBuild.preparingSecurity": "Подготовка проверки безопасности…",
+  "reportBuild.successSubmitted": "Отчёт отправлен как доказательство.",
+  "reportBuild.updateDraft": "Обновить черновик"
+}

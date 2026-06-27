@@ -77,14 +77,15 @@ async function writeDiskCache(report, lang, translatedReport) {
     const withMeta = {
       ...translatedReport,
       _translation_meta: {
-        schema: 'v3',
+        schema: 'v6',
         model: 'claude-sonnet-4-6',
         fields: {
           cross_component_synthesis: true,
           components_narrative: true,
           components_evidence: true,
           components_interpretive: true,
-          evidence: true,
+          evidence: false,
+          evidence_operator_structured: true,
           score_by_source_signals_evidence: false,
         },
         updatedAt: new Date().toISOString(),
@@ -279,7 +280,7 @@ function mergeSocialTranslation(posts, result, lang) {
  * @returns {Promise<object>} report with translated text fields merged in
  */
 export async function getTranslatedReport(report, lang) {
-  if (!report || lang === 'en') return report;
+  if (!report || lang === 'en' || !isTranslationEnabled()) return report;
 
   const key = cacheKey(report, lang);
   if (memCache.has(key)) {
@@ -289,21 +290,28 @@ export async function getTranslatedReport(report, lang) {
   const fromDisk = await readDiskCache(report, lang);
   if (fromDisk) {
     const meta = fromDisk?._translation_meta;
-    const isV3 = meta?.schema === 'v3' && meta?.fields?.components_evidence === true;
+    const isCurrentSchema = meta?.schema === 'v6'
+      && meta?.fields?.components_evidence === true;
     const metaSaysSynthesisTranslated = meta?.fields?.cross_component_synthesis === true;
     const synthesisHead = String(fromDisk?.cross_component_synthesis ?? '').trim();
     const looksLikeEnglish = synthesisHead.length > 0 && (synthesisHead.codePointAt(0) ?? 0) <= 0x7f;
     const needsSynthesisUpgrade = !metaSaysSynthesisTranslated && looksLikeEnglish && (lang === 'he' || lang === 'ru');
+    const needsStructuredEvidenceUpgrade = !meta?.fields?.evidence_operator_structured
+      && (report.components ?? []).some((c) => c.evidence_operator_structured?.length > 0);
 
-    if (!isV3 || needsSynthesisUpgrade) {
-      // Fall through to full re-translate when cache is stale (v2 or missing synthesis).
-      if (isV3 && !needsSynthesisUpgrade) {
-        memCache.set(key, fromDisk);
-        return fromDisk;
+    if (!isCurrentSchema || needsSynthesisUpgrade || needsStructuredEvidenceUpgrade) {
+      // Fall through to full re-translate when cache is stale or missing fields.
+      if (isCurrentSchema && !needsSynthesisUpgrade && !needsStructuredEvidenceUpgrade) {
+        const clean = { ...fromDisk };
+        delete clean._translation_meta;
+        memCache.set(key, clean);
+        return clean;
       }
     } else {
-      memCache.set(key, fromDisk);
-      return fromDisk;
+      const clean = { ...fromDisk };
+      delete clean._translation_meta;
+      memCache.set(key, clean);
+      return clean;
     }
   }
 
@@ -320,15 +328,20 @@ export async function getTranslatedReport(report, lang) {
   const componentChunks = await runWithConcurrencyLimit(
     components.map((c) => () => {
       const narrativeSource = c.narrative_operator ?? c.narrative ?? '';
-      const evidenceItems = (c.evidence ?? []).map((e, j) => ({
+      const useEvidenceField = !c.evidence_operator_structured?.length
+        && Array.isArray(c.evidence) && c.evidence.some((e) => e?.markdown);
+      const evidenceSource = c.evidence_operator_structured?.length
+        ? c.evidence_operator_structured
+        : (useEvidenceField ? c.evidence : []);
+      const structuredItems = evidenceSource.map((e, j) => ({
         id: String(j),
-        quote: String(e.evidence ?? e.text ?? '').slice(0, 2000),
-      })).filter((row) => row.quote.trim());
+        text: String(e.textOriginal ?? e.text ?? '').replace(/^\s*-\s+/, '').slice(0, 2000),
+      })).filter((row) => row.text.trim());
       return translateChunkWithRetry({
         narrative: narrativeSource,
         interpretive_summary: c.interpretive_summary ?? '',
         data_quality_caveat: c.data_quality_caveat ?? '',
-        ...(evidenceItems.length ? { evidence: evidenceItems } : {}),
+        ...(structuredItems.length ? { evidence_structured: structuredItems } : {}),
       }, lang, langName, `${translationQueryHint} ${c.component_id ?? ''} ${narrativeSource}`.slice(0, 600));
     }),
     CONCURRENCY_COMPONENTS,
@@ -364,15 +377,13 @@ export async function getTranslatedReport(report, lang) {
     components: components.map((c, i) => {
       const chunk = componentChunks[i].result;
       const narrativeSource = c.narrative_operator ?? c.narrative;
-      const translatedEvidence = (c.evidence ?? []).map((e, j) => {
-        const row = (chunk.evidence ?? []).find((r) => String(r.id) === String(j)) ?? chunk.evidence?.[j];
-        const source = String(e.evidence ?? e.text ?? '');
-        const translated = row?.quote ?? row?.text ?? source;
-        return {
-          ...e,
-          evidenceOriginal: e.evidenceOriginal ?? source,
-          evidence: translated || source,
-        };
+      const translatedStructured = evidenceSource.map((e, j) => {
+        const row = (chunk.evidence_structured ?? []).find((r) => String(r.id) === String(j)) ?? chunk.evidence_structured?.[j];
+        const originalText = e.textOriginal ?? e.text ?? '';
+        const translatedText = row?.text || originalText;
+        const url = e.url ?? null;
+        const markdown = url ? `- ${translatedText} [source](${url})` : `- ${translatedText}`;
+        return { ...e, textOriginal: originalText, text: translatedText, markdown };
       });
       const translatedNarrative = chunk.narrative ?? narrativeSource;
       return {
@@ -385,7 +396,11 @@ export async function getTranslatedReport(report, lang) {
           }),
         interpretive_summary: chunk.interpretive_summary ?? c.interpretive_summary,
         data_quality_caveat: chunk.data_quality_caveat ?? c.data_quality_caveat,
-        ...(c.evidence?.length ? { evidence: translatedEvidence } : {}),
+        ...(c.evidence_operator_structured?.length
+          ? { evidence_operator_structured: translatedStructured }
+          : useEvidenceField && translatedStructured.length
+          ? { evidence: translatedStructured }
+          : {}),
       };
     }),
   };

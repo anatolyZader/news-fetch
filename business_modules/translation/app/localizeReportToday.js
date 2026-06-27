@@ -26,27 +26,32 @@ export async function localizeReportTodayPayload(payload, lang) {
   let out = { ...payload };
   const dateExtra = out.assessment?.date ?? out.reportDate ?? '';
 
-  if (out.assessment) {
-    out = { ...out, assessment: await getTranslatedReport(out.assessment, lang) };
-  }
+  try {
+    if (out.assessment) {
+      out = { ...out, assessment: await getTranslatedReport(out.assessment, lang) };
+    }
 
-  if (out.assessment?.decision_brief) {
-    const briefWrap = { decision_brief: out.assessment.decision_brief };
-    const localized = await localizePayload(
-      briefWrap,
-      'report.decisionBrief',
-      lang,
-      { fingerprintExtra: `${dateExtra}-brief`, costDate: dateExtra },
-    );
-    out = {
-      ...out,
-      assessment: { ...out.assessment, decision_brief: localized.decision_brief ?? out.assessment.decision_brief },
-    };
-  }
+    if (out.assessment?.decision_brief) {
+      const briefWrap = { decision_brief: out.assessment.decision_brief };
+      const localized = await localizePayload(
+        briefWrap,
+        'report.decisionBrief',
+        lang,
+        { fingerprintExtra: `${dateExtra}-brief`, costDate: dateExtra },
+      );
+      out = {
+        ...out,
+        assessment: { ...out.assessment, decision_brief: localized.decision_brief ?? out.assessment.decision_brief },
+      };
+    }
 
-  out = await localizePayload(out, 'report.attention', lang, { fingerprintExtra: dateExtra, costDate: dateExtra });
-  out = await localizePayload(out, 'report.actionCompass', lang, { fingerprintExtra: dateExtra, costDate: dateExtra });
-  out = await localizePayload(out, 'report.wrapper', lang, { fingerprintExtra: dateExtra, costDate: dateExtra });
+    out = await localizePayload(out, 'report.attention', lang, { fingerprintExtra: dateExtra, costDate: dateExtra });
+    out = await localizePayload(out, 'report.actionCompass', lang, { fingerprintExtra: dateExtra, costDate: dateExtra });
+    out = await localizePayload(out, 'report.wrapper', lang, { fingerprintExtra: dateExtra, costDate: dateExtra });
+  } catch (err) {
+    console.error(`[localize] translation failed for lang=${lang}, falling back to source:`, err?.message ?? err);
+    return payload;
+  }
 
   return out;
 }

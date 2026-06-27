@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { authFetch } from '../lib/authFetch.js';
-import { withLang } from '../lib/localeFetch.js';
+import { localizedAuthFetch } from '../lib/localizedAuthFetch.js';
 
 /** @param {{ getIdToken: () => Promise<string|null>, getAppCheckToken?: () => Promise<string|null>, apiReady: boolean }} opts */
 export function useNewsSitesDashboard({ getIdToken, getAppCheckToken, apiReady }) {
@@ -54,7 +54,8 @@ export function useNewsSitesDailyFeed({ date, lang = 'en', getIdToken, getAppChe
       setLoading(true);
       setError(null);
       try {
-        const out = await authFetch(withLang(`/api/news-sites/daily?date=${encodeURIComponent(date)}`, lang), {
+        const out = await localizedAuthFetch(`/api/news-sites/daily?date=${encodeURIComponent(date)}`, {
+          lang,
           getIdToken,
           getAppCheckToken,
         });

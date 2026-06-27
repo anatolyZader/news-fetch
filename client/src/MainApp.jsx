@@ -46,6 +46,7 @@ import { NewsTab } from './components/NewsTab.jsx';
 import { RadioTab } from './components/RadioTab.jsx';
 import { useLanguage } from './context/LanguageContext.jsx';
 import { LanguageSelector, LANGUAGE_CODES, LANGUAGE_LABELS } from './components/LanguageSelector.jsx';
+import { LocaleStatusBanner } from './components/LocaleStatusBanner.jsx';
 import { useAuth } from './context/AuthContext.jsx';
 import {
   AppLayout,
@@ -486,8 +487,8 @@ function AppShellHeader({
     return (
       <Stack spacing={0.75} sx={{ width: '100%' }}>
         <MobileAppBar
-          title="Srulik's lab"
-          subtitle="Home Front Command · Daily Assessment"
+          title={t('app.brandTitle')}
+          subtitle={t('app.brandSubtitle')}
           logoSrc="/logo_srulik_1_no_text.png"
           logoAlt=""
           onHomeClick={onHomeClick}
@@ -588,6 +589,7 @@ function AppShell() {
     suggestCrisisBudget,
     operatorEpistemicOverlay,
     refreshReport,
+    reportLocalizing,
   } = useTodayReport(reportScope, 'operator', effectiveReportEdition, lang);
   const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jerusalem' });
   const [activeTab, setActiveTab] = useState(() => readMainTab());
@@ -807,8 +809,8 @@ function AppShell() {
 
   const brandHeader = (
     <BrandHeader
-      title="Srulik's lab"
-      subtitle="Home Front Command · Daily Assessment"
+      title={t('app.brandTitle')}
+      subtitle={t('app.brandSubtitle')}
       logoSrc="/logo_srulik_1_no_text.png"
       logoAlt=""
       onHomeClick={goToAssessment}
@@ -978,6 +980,8 @@ function AppShell() {
               )}
             />
             )}
+
+            <LocaleStatusBanner reportLocalizing={reportLocalizing} />
 
             <DailyAssessmentLoadStatus
               initialReportLoadDone={initialReportLoadDone}

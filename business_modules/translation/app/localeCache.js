@@ -6,6 +6,9 @@ import { fileURLToPath } from 'node:url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DEFAULT_REPORTS_DIR = resolve(__dirname, '../../../daily_reports');
 
+/** Bump when LOCALE_SCHEMAS or extraction rules change. */
+export const LOCALE_CACHE_VERSION = 2;
+
 const memCache = new Map();
 
 /** @type {string | null} */
@@ -33,6 +36,7 @@ export function resetLocaleCacheForTests() {
 export function fingerprintPayload(resourceId, payload, extra = '') {
   const hash = createHash('sha256')
     .update(resourceId)
+    .update(String(LOCALE_CACHE_VERSION))
     .update(extra)
     .update(JSON.stringify(payload ?? {}))
     .digest('hex')
@@ -42,7 +46,7 @@ export function fingerprintPayload(resourceId, payload, extra = '') {
 
 function cacheFilePath(resourceId, fingerprint, lang) {
   const safeResource = resourceId.replaceAll(/[^a-zA-Z0-9._-]/g, '_');
-  return resolve(cacheDir(), `locale-v1-${safeResource}-${fingerprint}-${lang}.json`);
+  return resolve(cacheDir(), `locale-v${LOCALE_CACHE_VERSION}-${safeResource}-${fingerprint}-${lang}.json`);
 }
 
 /**

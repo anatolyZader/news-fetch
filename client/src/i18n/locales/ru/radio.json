@@ -1,0 +1,13 @@
+{
+  "radio.emptyDay": "Нет радиосегментов за эту дату.",
+  "radio.kpi.files": "Записи",
+  "radio.kpi.segments": "Сегменты",
+  "radio.kpi.stations": "Станции",
+  "radio.loading": "Загрузка radio ingest…",
+  "radio.loadingFeed": "Загрузка транскриптов…",
+  "radio.noData": "Экспортов радио пока нет. Запустите `npm run audio-to-md` или `scripts/radio-transcribe.sh`.",
+  "radio.pipelineDisabled": "Radio отключён в pipeline-config.json; существующие транскрипты показаны только для просмотра.",
+  "radio.segmentsHeading": "Сегменты транскрипта",
+  "radio.selectDate": "Дата эфира",
+  "radio.subtitle": "Транскрибированные радиосегменты до извлечения сигналов и 8-компонентного анализа."
+}

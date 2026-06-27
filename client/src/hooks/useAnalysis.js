@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 
 const LS_REPORT_VIEW = 'resilienceReportView';
 const REPORT_FETCH_TIMEOUT_MS = 15_000;
+const REPORT_FETCH_TIMEOUT_TRANSLATE_MS = 120_000;
 const TOKEN_REFRESH_RETRY_MS = 5_000;
 
 const RETRY_AUTH_CODES = new Set(['missing_token', 'invalid_token', 'token_revoked']);
@@ -126,6 +127,7 @@ export function useTodayReport(scope = 'national', view = 'operator', selectedEd
   const [budgetStatus, setBudgetStatus] = useState(null);
   const [suggestCrisisBudget, setSuggestCrisisBudget] = useState(false);
   const [operatorEpistemicOverlay, setOperatorEpistemicOverlay] = useState(true);
+  const [reportLocalizing, setReportLocalizing] = useState(false);
 
   const editionDate = selectedEdition?.date ?? null;
   const editionRunId = selectedEdition?.run_id ?? null;
@@ -156,7 +158,17 @@ export function useTodayReport(scope = 'national', view = 'operator', selectedEd
     };
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), REPORT_FETCH_TIMEOUT_MS);
+    const fetchTimeoutMs = lang === 'en' ? REPORT_FETCH_TIMEOUT_MS : REPORT_FETCH_TIMEOUT_TRANSLATE_MS;
+    const timeoutId = setTimeout(() => controller.abort(), fetchTimeoutMs);
+    let localizingTimer = null;
+    if (lang !== 'en') {
+      setReportLocalizing(false);
+      localizingTimer = setTimeout(() => {
+        if (loadGen === loadGenRef.current) setReportLocalizing(true);
+      }, 800);
+    } else {
+      setReportLocalizing(false);
+    }
 
     void (async () => {
       setReport(null);
@@ -209,8 +221,10 @@ export function useTodayReport(scope = 'national', view = 'operator', selectedEd
         }
       } finally {
         clearTimeout(timeoutId);
+        if (localizingTimer) clearTimeout(localizingTimer);
         if (loadGen === loadGenRef.current) {
           setInitialReportLoadDone(true);
+          setReportLocalizing(false);
         }
       }
     })();
@@ -218,6 +232,7 @@ export function useTodayReport(scope = 'national', view = 'operator', selectedEd
     return () => {
       controller.abort();
       clearTimeout(timeoutId);
+      if (localizingTimer) clearTimeout(localizingTimer);
     };
   }, [reportFetchReady, authRequired, accessToken, tokenWarmFailed, scope, view, editionDate, editionRunId, lang, refreshTick]);
 
@@ -243,6 +258,7 @@ export function useTodayReport(scope = 'national', view = 'operator', selectedEd
     budgetStatus,
     suggestCrisisBudget,
     operatorEpistemicOverlay,
+    reportLocalizing,
   };
 }
 

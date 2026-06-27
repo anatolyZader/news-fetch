@@ -1,0 +1,9 @@
+{
+  "reportBotManual.empty": "Подходящих файлов пока нет. Поместите отчёты .md / .txt / .json / .html в `{path}` на сервере.",
+  "reportBotManual.inboxHint": "Каталог inbox: `{path}`",
+  "reportBotManual.listAria": "Ручные отчёты бота",
+  "reportBotManual.loadFailed": "Не удалось загрузить файл полностью.",
+  "reportBotManual.loading": "Загрузка ручных отчётов…",
+  "reportBotManual.subtitle": "Ручные отчёты из WhatsApp-бота или с сайта (отправка отчёта); файлы в business_modules/report_bot/data/.",
+  "reportBotManual.updated": "Изменён"
+}

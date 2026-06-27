@@ -14,6 +14,7 @@ import {
 } from './authPolicy.js';
 import { syncAllUserAccessClaims } from './userAccessClaims.js';
 import { buildAuthHook } from './buildAuthHooks.js';
+import { getLocaleStatus } from '../../business_modules/translation/index.js';
 
 /**
  * @param {import('fastify').FastifyInstance} app
@@ -88,6 +89,7 @@ export async function authRoutes(app, opts = {}) {
       canViewAnalyst: access.canViewAnalyst,
       accessLevel: access.level,
       canRunAnalysis: access.canRunAnalysis,
+      ...getLocaleStatus(),
     });
   });
 }

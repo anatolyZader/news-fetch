@@ -6,15 +6,8 @@ import Button from '@mui/material/Button';
 import PropTypes from 'prop-types';
 
 import { useLanguage } from '../context/LanguageContext.jsx';
+import { formatTemplate } from '../lib/i18nFormat.js';
 import { StatusTag } from '../ui/index.js';
-
-function formatTemplate(template, params = {}) {
-  if (!template) return '';
-  return Object.entries(params).reduce(
-    (acc, [key, value]) => acc.replaceAll(`{${key}}`, value == null ? '—' : String(value)),
-    template,
-  );
-}
 
 function levelToSeverity(level) {
   if (level === 'critical') return 'error';

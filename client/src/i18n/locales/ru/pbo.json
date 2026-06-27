@@ -1,0 +1,14 @@
+{
+  "pbo.local.empty": "Нет местных данных PBO для {district}.",
+  "pbo.region.baram": "Барам",
+  "pbo.region.galma": "Галма",
+  "pbo.region.golan": "Голан",
+  "pbo.region.hiram": "Хирам",
+  "pbo.region.naftali": "Нафтали",
+  "pbo.regionDaily.empty": "Пока нет markdown-отчётов. Сохраняйте ежедневные .md отчёты в business_modules/pbo_report_regional/data.",
+  "pbo.regionDaily.listAria": "Региональные ежедневные отчёты ПБО",
+  "pbo.regionDaily.loading": "Загрузка региональных данных ПБО…",
+  "pbo.regionDaily.subtitle": "Ежедневные markdown-отчёты, вручную сохранённые региональным ПБО перед анализом.",
+  "pbo.regionDay.inboxLocation": "Папка",
+  "pbo.regionDay.sourceFile": "Источник:"
+}

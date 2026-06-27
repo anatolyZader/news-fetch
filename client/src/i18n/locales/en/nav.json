@@ -1,0 +1,10 @@
+{
+  "nav.backToAnalysisResults": "back to 8 components analysis result",
+  "nav.browseDataSources": "Browse data sources",
+  "nav.chooseDataSource": "Choose",
+  "nav.dailyAssessment": "Daily assessment",
+  "nav.dataSources": "Data source",
+  "nav.dataSourcesHint": "Input feeds that inform the daily assessment",
+  "nav.sourceContext": "Data source location",
+  "nav.switchSource": "Switch source"
+}

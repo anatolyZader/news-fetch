@@ -4,14 +4,27 @@
  */
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { resolve, dirname } from 'node:path';
+import { readFileSync, readdirSync } from 'node:fs';
+import { resolve, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const translationsPath = resolve(dirname(fileURLToPath(import.meta.url)), '../../../client/src/i18n/translations.js');
+const localesRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../../../client/src/i18n/locales');
 
-describe('translations.js locale parity', () => {
-  it('he and ru contain every en key', async () => {
-    const { translations } = await import(translationsPath);
+function loadLocaleMaps() {
+  const translations = { en: {}, he: {}, ru: {} };
+  for (const loc of ['en', 'he', 'ru']) {
+    const dir = join(localesRoot, loc);
+    for (const file of readdirSync(dir).filter((f) => f.endsWith('.json'))) {
+      const data = JSON.parse(readFileSync(join(dir, file), 'utf8'));
+      Object.assign(translations[loc], data);
+    }
+  }
+  return translations;
+}
+
+describe('translations locale parity', () => {
+  it('he and ru contain every en key', () => {
+    const translations = loadLocaleMaps();
     const enKeys = Object.keys(translations.en ?? {});
     const heMissing = enKeys.filter((k) => !translations.he?.[k]);
     const ruMissing = enKeys.filter((k) => !translations.ru?.[k]);

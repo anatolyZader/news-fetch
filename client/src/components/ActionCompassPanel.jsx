@@ -15,6 +15,7 @@ import { useLanguage } from '../context/LanguageContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { authFetch } from '../lib/authFetch.js';
 import { formatTemplate } from '../lib/i18nFormat.js';
+import { resolveActionTitle, resolveActionWhyNow } from '../lib/resolveDisplayText.js';
 import { StatusTag } from '../ui/index.js';
 
 const LEVEL_VARIANT = {
@@ -285,14 +286,12 @@ export function ActionCompassPanel({
                 )}
               </Stack>
               <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                {formatTemplate(t(action.title_key), action.detail_params ?? {})}
+                {resolveActionTitle(action, t)}
               </Typography>
-              {(action.why_now_text || action.why_now_key) && (
+              {(action.why_now_text || action.why_now_key || action.why_now) && (
                 <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 0.5 }}>
                   <Box component="span" sx={{ fontWeight: 600 }}>{`${t('actionCompass.whyNowLabel')}: `}</Box>
-                  {action.why_now_text
-                    ? action.why_now_text
-                    : formatTemplate(t(action.why_now_key), action.why_now_params ?? {})}
+                  {resolveActionWhyNow(action, t)}
                 </Typography>
               )}
               {action.suggested_next_step && (
