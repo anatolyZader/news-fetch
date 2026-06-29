@@ -12,20 +12,20 @@
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@fontsource/inter": "^5.2.8",
-    "@mui/icons-material": "^9.0.0",
+    "@mui/icons-material": "^9.1.1",
     "@mui/material": "^9.0.0",
-    "firebase": "^11.10.0",
+    "firebase": "^12.15.0",
     "prop-types": "^15.8.1",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "react-markdown": "^9.1.0",
-    "recharts": "^3.8.1",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "react-markdown": "^10.1.0",
+    "recharts": "^3.9.0",
     "remark-gfm": "^4.0.1",
     "stylis": "^4.4.0",
     "stylis-plugin-rtl": "^2.1.1"
   },
   "devDependencies": {
-    "@vitejs/plugin-react": "^4.3.4",
-    "vite": "^6.0.7"
+    "@vitejs/plugin-react": "^6.0.3",
+    "vite": "^8.1.0"
   }
 }
