@@ -5,6 +5,7 @@ import {
   formatApaCitationDate,
   formatApaCitationsInMarkdown,
   formatApaParenthetical,
+  formatApaCitationPart,
   apaAuthorLabel,
 } from '../../../cross-cut-modules/resilience-contracts/apaCitationFormat.js';
 
@@ -44,5 +45,21 @@ describe('apaCitationFormat', () => {
       apaAuthorLabel('source', 'https://www.ynet.co.il/story'),
       'ynet.co.il',
     );
+  });
+
+  it('apaAuthorLabel derives hostname when link text is a full URL', () => {
+    assert.equal(
+      apaAuthorLabel('https://www.ynet.co.il/story', 'https://www.ynet.co.il/story'),
+      'ynet.co.il',
+    );
+  });
+
+  it('formatApaCitationPart supports evidence anchor links', () => {
+    const part = formatApaCitationPart('ynet.co.il', '02 Apr 2026', {
+      linked: true,
+      linkMode: 'evidence',
+      evidenceHref: '#evidence-narrative-fear-idx-1',
+    });
+    assert.equal(part, '[ynet.co.il](#evidence-narrative-fear-idx-1), 02 Apr 2026');
   });
 });

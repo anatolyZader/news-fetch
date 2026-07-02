@@ -35,7 +35,7 @@ function findLatestReportDateBefore(targetDate, reportScopeId, reportsDir) {
     return null;
   }
   const escapedPrefix = reportFilePrefix(reportScopeId).replaceAll(REGEX_SPECIAL_CHARS, String.raw`\$&`);
-  const datePattern = new RegExp(String.raw`^${escapedPrefix}-(\d{4}-\d{2}-\d{2})`);
+  const datePattern = new RegExp(String.raw`^${escapedPrefix}-data-(\d{4}-\d{2}-\d{2})-run-`);
   const dates = [...new Set(
     names
       .map((f) => datePattern.exec(f)?.[1])

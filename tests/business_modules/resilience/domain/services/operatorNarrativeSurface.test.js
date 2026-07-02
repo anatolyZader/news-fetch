@@ -124,6 +124,7 @@ describe('operatorNarrativeSurface', () => {
     });
     assert.equal(items.length, 1);
     assert.equal(items[0].text, 'Residents report fear in shelters.');
+    assert.equal(items[0].ref, 'fear_expression@idx:3');
     assert.equal(items[0].source_type, 'press');
     assert.equal(items[0].article_source, 'ynet.co.il');
     assert.match(items[0].markdown, /\[source\]\(https:\/\/www\.ynet\.co\.il\/news\/article-1\)/);
@@ -200,5 +201,33 @@ describe('operatorNarrativeSurface', () => {
 
     if (prevMode === undefined) delete process.env.RESILIENCE_OPERATOR_SURFACE_MODE;
     else process.env.RESILIENCE_OPERATOR_SURFACE_MODE = prevMode;
+  });
+
+  it('finalizeOperatorNarrativeSurface resolves @idx refs in narrative_operator via citation registry', () => {
+    const assessment = {
+      date: '2026-04-02',
+      narrative_citation_registry: {
+        entries: [{
+          label: 'S7',
+          ref: 'resilience_narrative_positive@idx:7',
+          source_type: 'field',
+          article_source: 'visitor-name',
+          article_url: null,
+        }],
+      },
+      components: [{
+        component_id: 'narrative',
+        narrative_operator:
+          'Routine is returning [resilience_narrative_positive@idx:7].',
+        narrative_pipeline_mode: 'hybrid',
+        narrative_grounding_score: 0.9,
+      }],
+    };
+    finalizeOperatorNarrativeSurface(assessment);
+    assert.match(
+      assessment.components[0].narrative_operator,
+      /\[Field visit\]\(#evidence-narrative-/,
+    );
+    assert.doesNotMatch(assessment.components[0].narrative_operator, /@idx:/);
   });
 });

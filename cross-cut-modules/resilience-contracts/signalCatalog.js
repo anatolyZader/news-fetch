@@ -87,6 +87,7 @@ export const SIGNAL_CATALOG = [
   { type: 'prosocial_norm_violation', domain: 'social', signal_class: 'behavior', label: 'Free-riding or norm-breaking in shared emergency resources (shelter hogging, aid queue jumping)', defaultPolarity: 'negative' },
   // Leadership & Governance
   { type: 'leadership_visible_presence', domain: 'leadership', signal_class: 'structural_state', label: 'Leadership is publicly visible and active', defaultPolarity: 'positive', mirror: 'leadership_absence' },
+  { type: 'leadership_visible_present', domain: 'leadership', signal_class: 'structural_state', label: 'Leadership is publicly visible and active', defaultPolarity: 'positive', mirror: 'leadership_absence', canonical: 'leadership_visible_presence' },
   { type: 'leadership_clear_guidance', domain: 'leadership', signal_class: 'structural_state', label: 'Leadership provides clear, specific directions', defaultPolarity: 'positive',
     disambiguation: {
       not_confused_with: ['information_clarity', 'information_actionable_effective', 'political_distrust'],
@@ -457,6 +458,7 @@ export const SIGNAL_TO_COMPONENTS = {
   leadership_clear_guidance: { leadership: +1.1, lifesaving_behavior: +0.4 },
   leadership_credibility_loss: { leadership: -1.1, narrative: -0.3 },
   leadership_visible_presence: { leadership: +1 },
+  leadership_visible_present: { leadership: +1 },
   learning_loss_documented: { functional_continuity: -0.6, wellbeing_at_risk: -0.5 },
   lessons_learned_uptake: { functional_continuity: +0.6, leadership: +0.5, lifesaving_behavior: +0.3 },
   local_capacity_demonstrated: { community_capital: +0.9, functional_continuity: +0.4 },

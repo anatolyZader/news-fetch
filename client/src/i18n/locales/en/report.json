@@ -69,6 +69,7 @@
   "report.evidence": "Evidence",
   "report.evidence.fullPool": "Full investigation pool",
   "report.evidence.highlighted": "Highlighted evidence",
+  "report.evidence.openSource": "Open source article",
   "report.evidence.rawSourceExcerpts": "Raw source excerpts",
   "report.evidence.rawSourceHint": "Verbatim source excerpts — not synthesized narrative.",
   "report.evidence.sourceSection.field": "Field / visits",

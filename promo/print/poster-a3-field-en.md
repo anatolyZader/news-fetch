@@ -1,6 +1,6 @@
 # Poster A3 — ops rooms / field meetings (EN)
 
-> Production spec for an A3 poster (297×420 mm), English LTR. EN mirror of `poster-a3-field-he.md`. Copy grounded in product strings (`footer.json`) and `MESSAGING-HOUSE.md`. Passes `do-not-say.md`. **Working name** — confirm branding is locked before printing (see warning in MESSAGING-HOUSE.md).
+> Production spec for an A3 poster (297×420 mm), English LTR. EN mirror of `poster-a3-field-he.md`. Copy grounded in product strings (`footer.json`) and `MESSAGING-HOUSE.md`. Passes `do-not-say.md`. Brand locked per [`../brand/BRAND-LOCK.md`](../brand/BRAND-LOCK.md).
 
 ---
 

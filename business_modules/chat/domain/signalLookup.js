@@ -25,7 +25,7 @@ const SIGNALS_DIRS = [
 ];
 const OBSERVATIONS_DIR = join(REPO_ROOT, 'business_modules', 'signals_extraction', 'data');
 const REPORTS_DIR = join(REPO_ROOT, 'daily_reports');
-const REPORT_DATE_RE = /resilience-report-(\d{4}-\d{2}-\d{2})/;
+const REPORT_DATE_RE = /-data-(\d{4}-\d{2}-\d{2})-run-/;
 const SIGNAL_FILE_RE = /signals-(.+?)-(\d{4}-\d{2}-\d{2})\.json/;
 
 function readSignalDirNames(dir) {
@@ -243,7 +243,7 @@ export function loadReport(date) {
   let files;
   try {
     files = getStore().readdirSync(REPORTS_DIR)
-      .filter((f) => f.startsWith(`resilience-report-${date}`) && f.endsWith('.json'))
+      .filter((f) => f.includes(`-data-${date}-run-`) && f.endsWith('.json'))
       .sort((a, b) => a.localeCompare(b));
   } catch {
     return null;

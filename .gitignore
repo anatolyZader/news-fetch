@@ -89,8 +89,12 @@ business_modules/report_bot/data/**
 *.m4a
 *.webm
 
-# Generated test fixtures (runtime captures)
-tests/business_modules/social_media/data/telegram-raw-*.jsonl
+# Local one-off assets (not part of srulik.ai repo)
+Haifa files/
+
+# Promo exported PDFs (regenerate from print/brochure-hq-en.html)
+promo/print/brochure-hq-en-*.pdf
+promo/screenshots/.auth-state.json
 tests/business_modules/social_media/data/telegram-raw-daily-*.jsonl
 tests/business_modules/social_media/data/x-spend-log-*.jsonl
 

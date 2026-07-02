@@ -4,6 +4,7 @@
  */
 
 const GENERIC_SOURCE = /^source$/i;
+const URL_LIKE_TEXT = /^https?:\/\//i;
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const MARKDOWN_LINK = /\[([^\]]+)\]\((https?:[^)\s]+)\)/gi;
 const CITATION_LINK_RUN = /(?:\[[^\]]+\]\(https?:[^)\s]+\)\s*)+/g;
@@ -32,7 +33,7 @@ export function apaAuthorFromUrl(url) {
     const parsed = new URL(url);
     const host = parsed.hostname.replace(/^www\./i, '');
     if (host) return host;
-    const segment = parsed.pathname.split('/').filter(Boolean).at(-1);
+    const segment = parsed.pathname.split('/').findLast(Boolean);
     if (segment) return decodeURIComponent(segment).slice(0, 48);
   } catch {
     // fall through
@@ -48,35 +49,50 @@ export function apaAuthorFromUrl(url) {
  */
 export function apaAuthorLabel(text, url) {
   const trimmed = String(text ?? '').trim();
-  if (trimmed && !GENERIC_SOURCE.test(trimmed)) return trimmed;
+  if (trimmed && !GENERIC_SOURCE.test(trimmed) && !URL_LIKE_TEXT.test(trimmed)) {
+    return trimmed;
+  }
   return apaAuthorFromUrl(url);
 }
 
 /**
  * @param {string} author
  * @param {string} dateLabel DD Mon YYYY
- * @param {{ url?: string|null, linked?: boolean }} [opts]
+ * @param {{ url?: string|null, linked?: boolean, linkMode?: 'none'|'external'|'evidence', evidenceHref?: string|null }} [opts]
  * @returns {string}
  */
 export function formatApaCitationPart(author, dateLabel, opts = {}) {
-  const { url = null, linked = false } = opts;
+  const {
+    url = null,
+    linked = false,
+    linkMode = 'external',
+    evidenceHref = null,
+  } = opts;
   if (!author) return '';
-  if (linked && url) {
+  if (linked && linkMode === 'evidence' && evidenceHref) {
+    return dateLabel ? `[${author}](${evidenceHref}), ${dateLabel}` : `[${author}](${evidenceHref})`;
+  }
+  if (linked && linkMode === 'external' && url) {
     return dateLabel ? `[${author}](${url}), ${dateLabel}` : `[${author}](${url})`;
   }
   return dateLabel ? `${author}, ${dateLabel}` : author;
 }
 
 /**
- * @param {Array<{ author: string, url?: string|null }>} sources
+ * @param {Array<{ author: string, url?: string|null, evidenceHref?: string|null }>} sources
  * @param {string} dateLabel
- * @param {{ linked?: boolean }} [opts]
+ * @param {{ linked?: boolean, linkMode?: 'none'|'external'|'evidence' }} [opts]
  * @returns {string}
  */
 export function formatApaParenthetical(sources, dateLabel, opts = {}) {
-  const { linked = false } = opts;
+  const { linked = false, linkMode = 'external' } = opts;
   const parts = sources
-    .map(({ author, url }) => formatApaCitationPart(author, dateLabel, { url, linked }))
+    .map(({ author, url, evidenceHref }) => formatApaCitationPart(author, dateLabel, {
+      url,
+      linked,
+      linkMode,
+      evidenceHref,
+    }))
     .filter(Boolean);
   if (parts.length === 0) return '';
   return `(${parts.join('; ')})`;

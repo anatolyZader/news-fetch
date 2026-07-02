@@ -50,3 +50,19 @@ export {
   SOURCE_BUCKET_ORDER,
 } from './evidencePoolGrouping.js';
 export { isSoftVoidWarning, SOFT_VOID_REASONS } from './softVoidReasons.js';
+export {
+  INTERNAL_REF_BRACKET,
+  sourceTypeCitationLabel,
+  citationAuthorForSignal,
+  apaSourceFromSignalEntry,
+  buildCitationRegistryFromStored,
+  proseHasResolvableCitations,
+} from './citationDisplay.js';
+export { resolveInlineSignalCitations, linkPlainApaParentheticals } from './inlineCitationResolve.js';
+export {
+  encodeRefForAnchor,
+  evidenceAnchorId,
+  evidenceAnchorHref,
+  isEvidenceAnchorHref,
+  parseEvidenceAnchorHref,
+} from './evidenceAnchor.js';

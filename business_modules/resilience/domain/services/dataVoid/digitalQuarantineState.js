@@ -39,7 +39,7 @@ function findLatestReportForDate(reportsDir, scopeId, date) {
   if (!getStore().existsSync(reportsDir)) return null;
   const prefix = reportFilePrefix(normalizeReportScopeId(scopeId));
   const pattern = new RegExp(
-    String.raw`^${escapeRegExpPrefix(prefix)}-${date}(?:-(\d{4}))?\.json$`,
+    String.raw`^${escapeRegExpPrefix(prefix)}-data-${date}-run-[^.]+\.json$`,
   );
   let best = null;
   let bestMtime = -1;

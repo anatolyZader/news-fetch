@@ -6,10 +6,10 @@
 
 ## Names
 
-> ⚠️ **"Srulik's lab" / srulik.ai is a WORKING NAME — not locked.** Treat it as a placeholder. Do not commit it to print, a registered domain, business cards, or external outreach until the brand is finalized. A rename is a single find-replace across `promo/**` (the strings below are the only brand tokens). Until then, keep this kit to digital drafts and internal review.
+> **Locked 2026-06-25.** See [`promo/brand/BRAND-LOCK.md`](../brand/BRAND-LOCK.md) for logo rules, colors, and sign-off checklist.
 
-| Context | Name (provisional) |
-|---------|--------------------|
+| Context | Name (locked) |
+|---------|---------------|
 | Public / URL | **srulik.ai** |
 | In-app product name | **Srulik's lab** (`settings.generalBody`) |
 | Category (say this) | Daily homefront decision-support |

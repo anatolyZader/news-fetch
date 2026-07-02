@@ -18,10 +18,14 @@ import {
 
 const VALID_RELATIONS = new Set(['parallel', 'same_article_only', 'none']);
 const SIGNAL_LABEL_IN_PROSE = /\[S\d+\]/;
+const INTERNAL_REF_IN_PROSE = /\[[^\]]+@(idx|url|file):[^\]]+\]/;
 
 function warnSignalLabelsInProse(text, fieldName, warnings) {
   if (text && SIGNAL_LABEL_IN_PROSE.test(text)) {
     warnings.push(`${fieldName}: contains [S#] labels — use [source_label](url) in prose`);
+  }
+  if (text && INTERNAL_REF_IN_PROSE.test(text)) {
+    warnings.push(`${fieldName}: contains internal signal_ref brackets — use (Field visit, date) or [hostname](url)`);
   }
 }
 

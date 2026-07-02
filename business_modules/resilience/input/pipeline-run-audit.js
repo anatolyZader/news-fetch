@@ -28,7 +28,7 @@ function loadJson(path) {
 function latestReportJson(date, scope) {
   const dir = join(ROOT, 'daily_reports');
   if (!existsSync(dir)) return null;
-  const prefix = scope === 'national' ? `resilience-report-${date}-` : `resilience-report-${scope}-${date}-`;
+  const prefix = scope === 'national' ? `resilience-report-data-${date}-run-` : `resilience-report-${scope}-data-${date}-run-`;
   const matches = readdirSync(dir)
     .filter((f) => f.startsWith(prefix) && f.endsWith('.json') && !f.includes('-brief'))
     .map((f) => ({ f, mtime: statSync(join(dir, f)).mtimeMs }))

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="500" viewBox="0 0 800 500">
+  <rect width="800" height="500" fill="#eef3fa"/>
+  <rect x="40" y="40" width="720" height="420" rx="12" fill="#ffffff" stroke="#e3eaf4" stroke-width="2"/>
+  <text x="400" y="240" text-anchor="middle" font-family="system-ui,sans-serif" font-size="22" fill="#6b7a94">Screenshot placeholder</text>
+  <text x="400" y="280" text-anchor="middle" font-family="system-ui,sans-serif" font-size="14" fill="#9aa8bc">Replace per SCREENSHOT-MANIFEST.md</text>
+</svg>

@@ -1,6 +1,6 @@
 # Business Card — srulik.ai
 
-> Print spec for a standard 85×55 mm card (3 mm bleed). Grounded in `MESSAGING-HOUSE.md` / `footer.json`. **Working name** — confirm branding is locked before sending to print (see warning in MESSAGING-HOUSE.md). QR: generate with `generate-qr.sh` and drop the PNG/SVG into the slot.
+> Print spec for a standard 85×55 mm card (3 mm bleed). Grounded in `MESSAGING-HOUSE.md` / `footer.json`. Brand locked per [`../brand/BRAND-LOCK.md`](../brand/BRAND-LOCK.md). QR: `generate-qr.sh` or `generate-qr-node.js`.
 
 ---
 

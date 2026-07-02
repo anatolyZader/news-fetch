@@ -3,10 +3,16 @@
  */
 import {
   apaAuthorFromUrl,
-  apaAuthorLabel,
   formatApaCitationDate,
   formatApaCitationsInMarkdown,
 } from '../../../cross-cut-modules/resilience-contracts/apaCitationFormat.js';
+import {
+  buildCitationRegistryFromStored,
+} from '../../../cross-cut-modules/resilience-contracts/citationDisplay.js';
+import {
+  linkPlainApaParentheticals,
+  resolveInlineSignalCitations,
+} from '../../../cross-cut-modules/resilience-contracts/inlineCitationResolve.js';
 
 const GENERIC_SOURCE = /^source$/i;
 const SIGNAL_REF = /\[S\d+\]/g;
@@ -46,6 +52,28 @@ export function formatAcademicSignalRefs(markdown) {
 }
 
 /**
+ * @param {string} markdown
+ * @param {string|undefined|null} reportDate
+ * @param {Array<object>|null|undefined} [citationRegistryEntries]
+ * @param {string|null|undefined} [componentId]
+ * @returns {string}
+ */
+function resolveRegistryCitations(markdown, reportDate, citationRegistryEntries, componentId) {
+  const registry = buildCitationRegistryFromStored(citationRegistryEntries);
+  if (!registry) return markdown;
+  let out = resolveInlineSignalCitations(markdown, registry, reportDate, {
+    linked: true,
+    linkMode: 'evidence',
+    componentId,
+    resolveMarkdown: true,
+  });
+  if (componentId) {
+    out = linkPlainApaParentheticals(out, registry, reportDate, componentId);
+  }
+  return out;
+}
+
+/**
  * APA parentheticals with clickable author: ([Ynet](url), 12 Apr 2026).
  * @param {string} markdown
  * @param {string|undefined|null} [reportDate]
@@ -56,16 +84,34 @@ export function formatLinkedReadableCitations(markdown, reportDate) {
 }
 
 /**
- * Operator narrative prose: signal-ref grouping + APA linked citations.
+ * Operator narrative prose: resolve internal refs + evidence-anchor APA citations.
  * @param {string} markdown
  * @param {string|undefined|null} [reportDate]
  * @param {(md: string) => string} [expandLinks]
+ * @param {Array<object>|null|undefined} [citationRegistryEntries]
+ * @param {{ componentId?: string|null }} [opts]
  * @returns {string}
  */
-export function formatNarrativeMarkdown(markdown, reportDate, expandLinks = (md) => md) {
+export function formatNarrativeMarkdown(
+  markdown,
+  reportDate,
+  expandLinks = (md) => md,
+  citationRegistryEntries = null,
+  opts = {},
+) {
   if (typeof markdown !== 'string') return '';
+  const { componentId = null } = opts;
   const expanded = expandLinks(markdown);
-  const withSignals = formatAcademicSignalRefs(expanded);
+  const resolved = resolveRegistryCitations(
+    expanded,
+    reportDate,
+    citationRegistryEntries,
+    componentId,
+  );
+  const withSignals = formatAcademicSignalRefs(resolved);
+  if (/\]\(#evidence-/.test(withSignals)) {
+    return withSignals;
+  }
   return formatLinkedReadableCitations(withSignals, reportDate);
 }
 
@@ -83,10 +129,23 @@ export function formatReadableCitations(markdown, reportDate) {
  * Evidence bullets: APA with linked author for drill-down.
  * @param {string} markdown
  * @param {string|undefined|null} [reportDate]
+ * @param {Array<object>|null|undefined} [citationRegistryEntries]
+ * @param {string|null|undefined} [componentId]
  * @returns {string}
  */
-export function formatEvidenceCitations(markdown, reportDate) {
-  return formatLinkedReadableCitations(markdown, reportDate);
+export function formatEvidenceCitations(
+  markdown,
+  reportDate,
+  citationRegistryEntries = null,
+  componentId = null,
+) {
+  const resolved = resolveRegistryCitations(
+    markdown,
+    reportDate,
+    citationRegistryEntries,
+    componentId,
+  );
+  return formatLinkedReadableCitations(resolved, reportDate);
 }
 
 /**
@@ -105,13 +164,23 @@ export function formatReportMarkdown(markdown, reportDate, expandLinks = (md) =>
  * @param {string} markdown
  * @param {string|undefined|null} [reportDate]
  * @param {(md: string) => string} [expandLinks]
+ * @param {Array<object>|null|undefined} [citationRegistryEntries]
+ * @param {{ componentId?: string|null }} [opts]
  * @returns {string}
  */
-export function formatEvidenceMarkdown(markdown, reportDate, expandLinks = (md) => md) {
+export function formatEvidenceMarkdown(
+  markdown,
+  reportDate,
+  expandLinks = (md) => md,
+  citationRegistryEntries = null,
+  opts = {},
+) {
   if (typeof markdown !== 'string') return '';
+  const { componentId = null } = opts;
   const expanded = expandLinks(markdown);
-  return formatEvidenceCitations(expanded, reportDate);
+  return formatEvidenceCitations(expanded, reportDate, citationRegistryEntries, componentId);
 }
 
 // Re-export for tests that assert author resolution
-export { apaAuthorLabel, GENERIC_SOURCE };
+export { apaAuthorLabel } from '../../../cross-cut-modules/resilience-contracts/apaCitationFormat.js';
+export { GENERIC_SOURCE };

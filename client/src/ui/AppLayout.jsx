@@ -6,14 +6,17 @@ import { alpha } from '@mui/material/styles';
 import PropTypes from 'prop-types';
 import { mobileDashboardPageSx } from './responsive/mobileDashboardSx.js';
 import { mobilePageGapSx } from './responsive/responsiveSx.js';
+import { APP_CONTENT_MAX_WIDTH, appContentContainerSx } from './appShellLayout.js';
 
 export function AppLayout({
   header,
   footer,
   children,
-  maxWidth = 1320,
+  maxWidth = APP_CONTENT_MAX_WIDTH,
   contentSpacing = 5,
 }) {
+  const shellSx = (theme, overrides = {}) => appContentContainerSx(theme, maxWidth, overrides);
+
   return (
     <Box sx={{ minHeight: ['100vh', '100dvh'], display: 'flex', flexDirection: 'column' }}>
       {header && (
@@ -56,18 +59,11 @@ export function AppLayout({
         component="main"
         maxWidth={false}
         sx={(theme) => ({
+          ...shellSx(theme),
           flex: 1,
-          width: '100%',
-          maxWidth: `${maxWidth}px !important`,
-          marginLeft: 'auto',
-          marginRight: 'auto',
           paddingTop: `${theme.spacing(5)} !important`,
           paddingBottom: `${theme.spacing(7)} !important`,
-          paddingLeft: `${theme.spacing(4)} !important`,
-          paddingRight: `${theme.spacing(4)} !important`,
           [theme.breakpoints.down('sm')]: {
-            paddingLeft: `${theme.spacing(2)} !important`,
-            paddingRight: `${theme.spacing(2)} !important`,
             paddingTop: `${theme.spacing(2)} !important`,
             paddingBottom: `${theme.spacing(12)} !important`,
           },
@@ -82,7 +78,19 @@ export function AppLayout({
       >
         {children}
       </Container>
-      {footer}
+      {footer && (
+        <Box sx={{ width: '100%', marginTop: 'auto' }}>
+          <Container
+            maxWidth={false}
+            sx={(theme) => shellSx(theme, {
+              paddingTop: 0,
+              paddingBottom: 0,
+            })}
+          >
+            {footer}
+          </Container>
+        </Box>
+      )}
     </Box>
   );
 }

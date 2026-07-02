@@ -1,4 +1,4 @@
-import { createElement, useEffect, useRef, useState } from 'react';
+import { createElement, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
@@ -7,7 +7,7 @@ import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import Alert from '@mui/material/Alert';
 import LinearProgress from '@mui/material/LinearProgress';
-import { useTheme } from '@mui/material/styles';
+import { useTheme, alpha } from '@mui/material/styles';
 import MenuBookOutlinedIcon from '@mui/icons-material/MenuBookOutlined';
 import CellTowerOutlinedIcon from '@mui/icons-material/CellTowerOutlined';
 import HealthAndSafetyOutlinedIcon from '@mui/icons-material/HealthAndSafetyOutlined';
@@ -17,6 +17,9 @@ import SupervisorAccountOutlinedIcon from '@mui/icons-material/SupervisorAccount
 import Diversity3OutlinedIcon from '@mui/icons-material/Diversity3Outlined';
 import MonitorHeartOutlinedIcon from '@mui/icons-material/MonitorHeartOutlined';
 import HelpOutlineOutlinedIcon from '@mui/icons-material/HelpOutlineOutlined';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import IconButton from '@mui/material/IconButton';
+import { evidenceAnchorId } from '../../../cross-cut-modules/resilience-contracts/evidenceAnchor.js';
 import { expandSourceCitationLinks } from './ReportMarkdownView.jsx';
 import {
   formatNarrativeMarkdown,
@@ -44,6 +47,12 @@ import { OovAnomalyClustersPanel } from './OovAnomalyClustersPanel.jsx';
 import { OperatorRecommendationsPanel } from './OperatorRecommendationsPanel.jsx';
 import { DecisionBriefPanel } from './DecisionBriefPanel.jsx';
 import { OperatorClaimEvidenceList } from './OperatorClaimEvidenceList.jsx';
+import {
+  EvidenceNavigationProvider,
+  createEvidenceAnchorNavigator,
+  evidenceNavigationMarkdownComponents,
+  useExpandedSourceGroups,
+} from '../lib/evidenceNavigation.jsx';
 import { EpistemicRoleBadge } from './EpistemicRoleBadge.jsx';
 import { AgentDivergencePanel } from './AgentDivergencePanel.jsx';
 import { InstrumentMetricsBadges } from './InstrumentMetricsBadges.jsx';
@@ -916,12 +925,45 @@ function formatEvidenceBodyMarkdown(item, sourceSignals, formatEvidenceMd) {
   return formatEvidenceMd(body);
 }
 
-function evidenceListItemSx(theme) {
-  return {
+function evidenceListItemSx(theme, { highlighted = false } = {}) {
+  const base = {
     display: 'block',
     marginBottom: theme.spacing(1.5),
     lineHeight: theme.typography.body2.lineHeight,
+    scrollMarginBlock: theme.spacing(2),
+    transition: theme.transitions.create(['background-color', 'box-shadow'], {
+      duration: theme.transitions.duration.standard,
+    }),
   };
+  if (!highlighted) return base;
+  return {
+    ...base,
+    backgroundColor: alpha(theme.palette.primary.main, 0.1),
+    borderRadius: `${theme.custom.radius.section}px`,
+    marginLeft: theme.spacing(-1),
+    paddingLeft: theme.spacing(1),
+    paddingRight: theme.spacing(1),
+    paddingTop: theme.spacing(0.75),
+    paddingBottom: theme.spacing(0.75),
+    boxShadow: `inset 3px 0 0 ${theme.palette.primary.main}`,
+  };
+}
+
+function evidenceItemUrl(item, meta) {
+  if (typeof item === 'object' && item) {
+    const url = item.url ?? item.article_url;
+    if (url && url !== '(no url)' && url !== 'null') return url;
+  }
+  const metaUrl = meta?.url ?? meta?.article_url;
+  if (metaUrl && metaUrl !== '(no url)' && metaUrl !== 'null') return metaUrl;
+  return null;
+}
+
+function evidenceListDomId(componentId, item, index) {
+  if (typeof item === 'object' && item?.ref && componentId) {
+    return evidenceAnchorId(componentId, item.ref);
+  }
+  return undefined;
 }
 
 function EvidenceSourceHeader({ item, sourceSignals, t }) {
@@ -930,16 +972,20 @@ function EvidenceSourceHeader({ item, sourceSignals, t }) {
   const sourceType = normalizeEvidenceSourceType(meta.source_type)
     ?? meta.source_type;
   const articleSourceLabel = formatEvidenceArticleSource(meta, sourceType);
+  const externalUrl = evidenceItemUrl(item, meta);
   return (
     <Box
       component="span"
       sx={(theme) => ({
         fontWeight: 600,
         color: theme.palette.text.secondary,
-        display: 'block',
+        display: 'flex',
+        alignItems: 'center',
+        gap: theme.spacing(0.5),
         marginBottom: theme.spacing(0.5),
       })}
     >
+      <Box component="span" sx={{ flex: 1, minWidth: 0 }}>
       {(sourceType === 'field' || sourceType === 'visits') && (
         <SourceBadge kind="field">{t('report.badge.visits')}</SourceBadge>
       )}
@@ -954,6 +1000,24 @@ function EvidenceSourceHeader({ item, sourceSignals, t }) {
       <GeoEpistemicBadge signal={meta} t={t} />
       {typeof item === 'object' && item?.operator_epistemic_role && (
         <EpistemicRoleBadge role={item.operator_epistemic_role} t={t} />
+      )}
+      </Box>
+      {externalUrl && (
+        <IconButton
+          component="a"
+          href={externalUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          size="small"
+          aria-label={t('report.evidence.openSource')}
+          sx={(theme) => ({
+            flexShrink: 0,
+            color: theme.palette.primary.main,
+            padding: theme.spacing(0.25),
+          })}
+        >
+          <OpenInNewIcon sx={{ fontSize: '1rem' }} />
+        </IconButton>
       )}
     </Box>
   );
@@ -985,6 +1049,17 @@ function evidenceAccordionTitle({ isFiltered, isAnalyst, operatorDisplayState, t
   return t('report.supportingEvidence');
 }
 
+function findSourceBucketForAnchor(anchorId, componentId, items, sourceSignals) {
+  if (!anchorId || !items?.length) return null;
+  const groups = groupEvidenceBySourceType(items, sourceSignals);
+  for (const { key, items: groupItems } of groups) {
+    for (const item of groupItems) {
+      if (evidenceListDomId(componentId, item, 0) === anchorId) return key;
+    }
+  }
+  return null;
+}
+
 function sourceSectionLabel(bucketKey, t) {
   const key = `report.evidence.sourceSection.${bucketKey}`;
   const label = t(key);
@@ -996,6 +1071,10 @@ function EvidenceBySourceList({
   sourceSignals,
   formatEvidenceMd,
   t,
+  componentId,
+  expandedSourceGroups,
+  onToggleSourceGroup,
+  highlightedAnchorId = null,
 }) {
   const groups = groupEvidenceBySourceType(items, sourceSignals);
   if (groups.length === 0) return null;
@@ -1005,7 +1084,8 @@ function EvidenceBySourceList({
       {groups.map(({ key, items: groupItems }) => (
         <Accordion
           key={key}
-          defaultExpanded={false}
+          expanded={expandedSourceGroups?.has(key) ?? false}
+          onChange={(_, expanded) => onToggleSourceGroup?.(key, expanded)}
           disableGutters
           sx={(theme) => ({
             border: theme.custom.border.hairline,
@@ -1030,15 +1110,26 @@ function EvidenceBySourceList({
           </AccordionSummary>
           <AccordionDetails>
             <Box component="ul" sx={(theme) => ({ paddingLeft: theme.spacing(2.5), margin: 0 })}>
-              {groupItems.map((item, i) => (
-                <Box component="li" key={evidenceItemKey(item, i)} sx={evidenceListItemSx}>
+              {groupItems.map((item, i) => {
+                const domId = evidenceListDomId(componentId, item, i);
+                const highlighted = Boolean(domId && domId === highlightedAnchorId);
+                return (
+                <Box
+                  component="li"
+                  key={evidenceItemKey(item, i)}
+                  id={domId}
+                  data-source-bucket={key}
+                  data-evidence-ref={typeof item === 'object' ? (item.ref ?? '') : ''}
+                  sx={(theme) => evidenceListItemSx(theme, { highlighted })}
+                >
                   <EvidenceSourceHeader item={item} sourceSignals={sourceSignals} t={t} />
                   <MarkdownArticle
                     variant="report"
                     markdown={formatEvidenceBodyMarkdown(item, sourceSignals, formatEvidenceMd)}
                   />
                 </Box>
-              ))}
+                );
+              })}
             </Box>
           </AccordionDetails>
         </Accordion>
@@ -1052,12 +1143,17 @@ EvidenceBySourceList.propTypes = {
   sourceSignals: PropTypes.arrayOf(PropTypes.object),
   formatEvidenceMd: PropTypes.func.isRequired,
   t: PropTypes.func.isRequired,
+  componentId: PropTypes.string,
+  expandedSourceGroups: PropTypes.instanceOf(Set),
+  onToggleSourceGroup: PropTypes.func,
+  highlightedAnchorId: PropTypes.string,
 };
 
 function ComponentCard({
   comp,
   t,
   reportDate,
+  citationRegistryEntries = null,
   sourceSignals,
   driftSeries,
   driftLoading,
@@ -1069,6 +1165,7 @@ function ComponentCard({
   onToggle,
   onEvidenceToggle,
 }) {
+  const theme = useTheme();
   const isAnalyst = displayView === 'analyst';
   const [showScoreDrift, setShowScoreDrift] = useState(false);
   const label = t(`comp.${comp.component_id}`) ?? comp.component_id.replaceAll('_', ' ');
@@ -1088,15 +1185,75 @@ function ComponentCard({
     : (curatedEvidence?.length ?? signals?.length ?? 0);
   const showEvidenceAccordion = evidenceCount > 0;
   const claims = comp.narrative_claims ?? comp.claims ?? [];
+  const { expandedSourceGroups, openSourceGroup, toggleSourceGroup } = useExpandedSourceGroups();
+  const [highlightedAnchorId, setHighlightedAnchorId] = useState(null);
+  const [fullPoolOpen, setFullPoolOpen] = useState(false);
+  const primaryEvidenceItems = resolveHighlightedEvidenceItems(
+    isRichMode,
+    curatedEvidence,
+    isFiltered,
+    signals,
+  );
+
+  const resolveAnchorTarget = useCallback((anchorId) => {
+    const primaryBucket = findSourceBucketForAnchor(
+      anchorId,
+      comp.component_id,
+      primaryEvidenceItems,
+      sourceSignals,
+    );
+    if (primaryBucket) return { bucket: primaryBucket, inFullPoolOnly: false };
+
+    const fullPoolBucket = findSourceBucketForAnchor(
+      anchorId,
+      comp.component_id,
+      fullPool,
+      sourceSignals,
+    );
+    if (fullPoolBucket) return { bucket: fullPoolBucket, inFullPoolOnly: true };
+
+    return { bucket: null, inFullPoolOnly: false };
+  }, [comp.component_id, primaryEvidenceItems, fullPool, sourceSignals]);
+
+  const openEvidenceAccordion = useCallback(() => {
+    if (!evidenceOpen) onEvidenceToggle(true);
+  }, [evidenceOpen, onEvidenceToggle]);
+  const openFullPoolAccordion = useCallback(() => {
+    setFullPoolOpen(true);
+  }, []);
+  const navigateToAnchor = useMemo(
+    () => createEvidenceAnchorNavigator(
+      openEvidenceAccordion,
+      openSourceGroup,
+      setHighlightedAnchorId,
+      {
+        transitionMs: theme.transitions.duration.standard,
+        resolveAnchorTarget,
+        openFullPoolAccordion,
+      },
+    ),
+    [
+      openEvidenceAccordion,
+      openSourceGroup,
+      resolveAnchorTarget,
+      openFullPoolAccordion,
+      theme.transitions.duration.standard,
+    ],
+  );
+  const citationOpts = { componentId: comp.component_id };
   const formatNarrativeMd = (markdown) => formatNarrativeMarkdown(
     markdown,
     reportDate,
     expandSourceCitationLinks,
+    citationRegistryEntries,
+    citationOpts,
   );
   const formatEvidenceMd = (markdown) => formatEvidenceMarkdown(
     markdown,
     reportDate,
     expandSourceCitationLinks,
+    citationRegistryEntries,
+    citationOpts,
   );
   const isInsufficient = componentIsInsufficient(comp);
   const isContested = comp.instrument?.contested === true
@@ -1248,7 +1405,13 @@ function ComponentCard({
         {!operatorSimpleView && !isAnalyst && (
           <EvidencePartitionPanel comp={comp} t={t} isRichMode={isRichMode} />
         )}
-        <MarkdownArticle variant="report" markdown={formatNarrativeMd(narrativeBody)} />
+        <EvidenceNavigationProvider onNavigateToAnchor={navigateToAnchor}>
+          <MarkdownArticle
+            variant="report"
+            markdown={formatNarrativeMd(narrativeBody)}
+            components={evidenceNavigationMarkdownComponents()}
+          />
+        </EvidenceNavigationProvider>
         {isRichMode && Array.isArray(claims) && claims.length > 0 && (
           <OperatorClaimEvidenceList
             claims={claims}
@@ -1316,17 +1479,22 @@ function ComponentCard({
                 </Typography>
               )}
               <EvidenceBySourceList
-                items={resolveHighlightedEvidenceItems(isRichMode, curatedEvidence, isFiltered, signals)}
+                items={primaryEvidenceItems}
                 sourceSignals={sourceSignals}
                 formatEvidenceMd={formatEvidenceMd}
                 t={t}
+                componentId={comp.component_id}
+                expandedSourceGroups={expandedSourceGroups}
+                onToggleSourceGroup={toggleSourceGroup}
+                highlightedAnchorId={highlightedAnchorId}
               />
             </AccordionDetails>
           </Accordion>
         )}
         {isRichMode && poolCount > 0 && (
           <Accordion
-            defaultExpanded={false}
+            expanded={fullPoolOpen}
+            onChange={(_, expanded) => setFullPoolOpen(expanded)}
             sx={(theme) => ({
               borderRadius: `${theme.custom.radius.section}px !important`,
               marginTop: theme.spacing(1),
@@ -1351,6 +1519,10 @@ function ComponentCard({
                 sourceSignals={sourceSignals}
                 formatEvidenceMd={formatEvidenceMd}
                 t={t}
+                componentId={comp.component_id}
+                expandedSourceGroups={expandedSourceGroups}
+                onToggleSourceGroup={toggleSourceGroup}
+                highlightedAnchorId={highlightedAnchorId}
               />
             </AccordionDetails>
           </Accordion>
@@ -1798,6 +1970,7 @@ export function ReportView({
                 ?? '',
               assessment.date,
               expandSourceCitationLinks,
+              assessment.narrative_citation_registry?.entries,
             )}
           />
         </Box>
@@ -1832,6 +2005,7 @@ export function ReportView({
                 comp={c}
                 t={t}
                 reportDate={assessment.date}
+                citationRegistryEntries={assessment.narrative_citation_registry?.entries}
                 displayView={displayView}
                 operatorSimpleView={operatorSimpleView}
                 flat={readOnly}
@@ -1937,6 +2111,7 @@ ComponentCard.propTypes = {
   comp: componentScoreShape.isRequired,
   t: translationFnPropType,
   reportDate: PropTypes.string,
+  citationRegistryEntries: PropTypes.arrayOf(PropTypes.object),
   sourceSignals: PropTypes.arrayOf(PropTypes.object),
   driftSeries: PropTypes.array,
   driftLoading: PropTypes.bool,

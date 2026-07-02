@@ -69,6 +69,7 @@
   "report.evidence": "עדויות",
   "report.evidence.fullPool": "מאגר חקירה מלא",
   "report.evidence.highlighted": "ראיות מודגשות",
+  "report.evidence.openSource": "פתח מאמר מקור",
   "report.evidence.rawSourceExcerpts": "קטעי מקור גולמיים",
   "report.evidence.rawSourceHint": "קטעי מקור מילוליים — לא נרטיב מסynthesized.",
   "report.evidence.sourceSection.field": "שטח / ביקורים",

@@ -8,6 +8,7 @@ import { useCallback } from 'react';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { LanguageSelector } from '../components/LanguageSelector.jsx';
 import { getDocsBaseUrl, getSupportEmail, joinDocsPath } from '../lib/docsUrl.js';
+import { appContentContainerSx } from './appShellLayout.js';
 
 const COPYRIGHT = '© 2026 srulik.ai';
 const BRAND_NAME = 'Srulik\'s lab';
@@ -24,17 +25,7 @@ const FOOTER_META_SX = (theme) => ({
   background: alpha(theme.palette.divider, 0.55),
 });
 
-const FOOTER_SHELL_SX = (theme) => ({
-  maxWidth: 1280,
-  marginLeft: 'auto',
-  marginRight: 'auto',
-  paddingLeft: theme.spacing(3),
-  paddingRight: theme.spacing(3),
-  [theme.breakpoints.down('sm')]: {
-    paddingLeft: theme.spacing(2),
-    paddingRight: theme.spacing(2),
-  },
-});
+const FOOTER_SHELL_SX = (theme) => appContentContainerSx(theme);
 
 const linkSx = (theme) => ({
   display: 'inline-block',
@@ -112,9 +103,10 @@ FooterColumn.propTypes = {
   children: PropTypes.node,
 };
 
-function FooterAboutColumn({ tagline, description }) {
+function FooterAboutColumn({ tagline, description, sx }) {
   return (
-    <FooterColumn title={BRAND_NAME}>
+    <Box sx={sx}>
+      <FooterColumn title={BRAND_NAME}>
       <FooterColumnItem>
         <Typography component="p" sx={footerBodyTextSx}>
           {tagline}
@@ -126,12 +118,14 @@ function FooterAboutColumn({ tagline, description }) {
         </Typography>
       </FooterColumnItem>
     </FooterColumn>
+    </Box>
   );
 }
 
 FooterAboutColumn.propTypes = {
   tagline: PropTypes.string.isRequired,
   description: PropTypes.string.isRequired,
+  sx: PropTypes.object,
 };
 
 function FooterColumnItem({ children }) {
@@ -176,22 +170,46 @@ MetaLine.propTypes = {
   children: PropTypes.node,
 };
 
+function footerInsetSx(theme, embeddedInLayout) {
+  return embeddedInLayout ? { width: '100%' } : FOOTER_SHELL_SX(theme);
+}
+
+const FOOTER_COLUMNS_SX = {
+  width: '100%',
+  display: 'flex',
+  flexDirection: { xs: 'column', md: 'row' },
+  justifyContent: { md: 'space-between' },
+  alignItems: 'flex-start',
+  gap: { xs: 3, md: 2 },
+};
+
 function FooterMetaBar({
   version,
   authRequired,
   userEmail,
   onSignOut,
   t,
+  embeddedInLayout = false,
 }) {
   return (
     <Box
       sx={(theme) => ({
         ...FOOTER_META_SX(theme),
+        ...(embeddedInLayout ? {
+          width: `calc(100% + ${theme.spacing(8)})`,
+          marginLeft: theme.spacing(-4),
+          marginRight: theme.spacing(-4),
+          [theme.breakpoints.down('sm')]: {
+            width: `calc(100% + ${theme.spacing(4)})`,
+            marginLeft: theme.spacing(-2),
+            marginRight: theme.spacing(-2),
+          },
+        } : null),
       })}
     >
       <Box
         sx={(theme) => ({
-          ...FOOTER_SHELL_SX(theme),
+          ...footerInsetSx(theme, embeddedInLayout),
           display: 'flex',
           flexDirection: { xs: 'column', md: 'row' },
           alignItems: { xs: 'flex-start', md: 'center' },
@@ -244,10 +262,12 @@ FooterMetaBar.propTypes = {
   userEmail: PropTypes.string,
   onSignOut: PropTypes.func,
   t: PropTypes.func.isRequired,
+  embeddedInLayout: PropTypes.bool,
 };
 
 export function SiteFooter({
   variant = 'full',
+  embeddedInLayout = false,
   onGoToAssessment,
   onSendEvidence,
   onNavigateTab,
@@ -322,7 +342,11 @@ export function SiteFooter({
           ...FOOTER_ROOT_SX(theme),
         })}
       >
-        <Box sx={(theme) => ({ ...FOOTER_SHELL_SX(theme), paddingTop: theme.spacing(3), paddingBottom: theme.spacing(2) })}>
+        <Box sx={(theme) => ({
+          ...footerInsetSx(theme, embeddedInLayout),
+          paddingTop: theme.spacing(3),
+          paddingBottom: theme.spacing(2),
+        })}>
           <Stack
             direction={{ xs: 'column', sm: 'row' }}
             alignItems={{ xs: 'flex-start', sm: 'center' }}
@@ -349,6 +373,7 @@ export function SiteFooter({
           userEmail=""
           onSignOut={onSignOut}
           t={t}
+          embeddedInLayout={embeddedInLayout}
         />
       </Box>
     );
@@ -364,7 +389,7 @@ export function SiteFooter({
     >
       <Box
         sx={(theme) => ({
-          ...FOOTER_SHELL_SX(theme),
+          ...footerInsetSx(theme, embeddedInLayout),
           paddingTop: theme.spacing(4),
           paddingBottom: theme.spacing(3),
           [theme.breakpoints.down('sm')]: {
@@ -372,21 +397,11 @@ export function SiteFooter({
           },
         })}
       >
-        <Box
-          sx={{
-            display: 'grid',
-            gridTemplateColumns: {
-              xs: '1fr',
-              md: 'repeat(4, minmax(0, 1fr))',
-            },
-            columnGap: { xs: 0, md: 4 },
-            rowGap: { xs: 3, md: 0 },
-            alignItems: 'start',
-          }}
-        >
+        <Box sx={FOOTER_COLUMNS_SX}>
           <FooterAboutColumn
             tagline={t('footer.tagline')}
             description={t('footer.description')}
+            sx={{ flex: { md: '0 1 360px' }, minWidth: 0, maxWidth: { md: 420 } }}
           />
 
           <FooterColumn title={t('footer.column.product')}>
@@ -476,6 +491,7 @@ export function SiteFooter({
         userEmail={userEmail}
         onSignOut={onSignOut}
         t={t}
+        embeddedInLayout={embeddedInLayout}
       />
     </Box>
   );
@@ -483,6 +499,7 @@ export function SiteFooter({
 
 SiteFooter.propTypes = {
   variant: PropTypes.oneOf(['full', 'minimal']),
+  embeddedInLayout: PropTypes.bool,
   onGoToAssessment: PropTypes.func,
   onSendEvidence: PropTypes.func,
   onNavigateTab: PropTypes.func,

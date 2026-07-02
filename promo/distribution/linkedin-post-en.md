@@ -1,6 +1,6 @@
 # LinkedIn post (EN) — partners / responsible-AI angle
 
-> For a partner/tech/responsible-AI audience. Credibility over hype. Operator-facing core only. Passes `do-not-say.md`. **Working name** — don't publish until branding locks.
+> For a partner/tech/responsible-AI audience. Credibility over hype. Operator-facing core only. Passes `do-not-say.md`. Brand locked per `../brand/BRAND-LOCK.md`.
 
 ---
 

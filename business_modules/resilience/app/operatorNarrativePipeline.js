@@ -39,6 +39,7 @@ import {
   finalizeOperatorNarrativeSurface,
   buildProseFromClaims,
   isStubNarrative,
+  resolveOperatorNarrativeCitations,
 } from '../domain/services/operatorNarrativeSurface.js';
 
 const MAX_FACTS_ATTEMPTS = 2;
@@ -318,10 +319,12 @@ async function runPolishAndValidatePass(params) {
  * @param {string|null|undefined} reportDate
  */
 function applyPolishLegToComponent(comp, leg, groundingScores, registry, reportDate) {
-  const narrative = resolveInlineSignalCitations(
+  const narrative = resolveOperatorNarrativeCitations(
     String(leg.narrative ?? '').trim(),
     registry,
     reportDate,
+    comp.component_id,
+    comp,
   );
   if (!narrative) return;
 
@@ -456,10 +459,12 @@ function backfillOperatorNarrativeFromClaims(comp, mergedClaims, registry, asses
   const prose = buildProseFromClaims(claims);
   if (!prose) return;
 
-  comp.narrative_operator = resolveInlineSignalCitations(
+  comp.narrative_operator = resolveOperatorNarrativeCitations(
     prose,
     registry,
     assessment.date,
+    comp.component_id,
+    comp,
   );
   assessment.narrative_pipeline_degraded = true;
   assessment.narrative_pipeline_degrade_reasons = [

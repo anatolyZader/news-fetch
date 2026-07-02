@@ -108,7 +108,7 @@ function loadPriorReports(targetDate, n = 2) {
     const p = new Date(d);
     p.setDate(d.getDate() - i);
     const pd = p.toISOString().slice(0, 10);
-    const match = [...allFiles.filter((f) => f.startsWith(`resilience-report-${pd}`) && f.endsWith('.json'))]
+    const match = [...allFiles.filter((f) => f.includes(`-data-${pd}-run-`) && f.endsWith('.json'))]
       .sort((a, b) => a.localeCompare(b))
       .at(-1);
     if (match) {
@@ -540,10 +540,11 @@ function logScoringResults(scopedSignals, signalsForScoring, scoredFull) {
 
 function resolveOutputBase(reportScopeId, targetDate, getArg) {
   const now = new Date();
-  const timeSuffix = now.toTimeString().slice(0, 5).replace(':', '');
+  // ISO format without seconds/milliseconds: 2026-05-23T121520Z
+  const runDatetime = now.toISOString().replace(/:\d{2}\.\d{3}Z$/, 'Z').replace(/:/g, '');
   const outputPrefix = reportFilePrefix(reportScopeId);
   const cliOutputBase = getArg('--output')?.replace(/\.(md|json)$/, '');
-  return cliOutputBase ?? resolve('daily_reports', `${outputPrefix}-${targetDate}-${timeSuffix}`);
+  return cliOutputBase ?? resolve('daily_reports', `${outputPrefix}-data-${targetDate}-run-${runDatetime}`);
 }
 
 function buildSignalPaths(loadedFiles) {

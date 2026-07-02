@@ -100,7 +100,7 @@ export function readResilienceHistory(opts = {}) {
   const names = readReportFileNames(reportsDir);
   const prefix = prefixFor(scope);
   const datePattern = new RegExp(
-    String.raw`^${escapeRegExpPrefix(prefix)}-(\d{4}-\d{2}-\d{2})(?:-(\d{4}))?\.json$`,
+    String.raw`^${escapeRegExpPrefix(prefix)}-data-(\d{4}-\d{2}-\d{2})-run-[^.]+\.json$`,
   );
   const startDate = daysAgoIsoFromAnchor(endDate, days - 1);
   const candidatesByDate = indexReportCandidatesByDate(names, {

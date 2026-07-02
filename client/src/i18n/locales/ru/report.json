@@ -69,6 +69,7 @@
   "report.evidence": "Доказательства",
   "report.evidence.fullPool": "Полный пул расследования",
   "report.evidence.highlighted": "Выделенные доказательства",
+  "report.evidence.openSource": "Открыть источник",
   "report.evidence.rawSourceExcerpts": "Исходные фрагменты источников",
   "report.evidence.rawSourceHint": "Дословные выдержки — не синтезированный narrative.",
   "report.evidence.sourceSection.field": "Полевые / визиты",

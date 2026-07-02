@@ -59,7 +59,7 @@ function reportPrefixForScope(scope = 'national') {
 
 function reportFilePatternForScope(scope = 'national') {
   const escapedPrefix = reportPrefixForScope(scope).replaceAll(REGEX_SPECIAL_CHARS, String.raw`\$&`);
-  return new RegExp(String.raw`^${escapedPrefix}-(\d{4}-\d{2}-\d{2})(?:-(\d{4}))?\.json$`);
+  return new RegExp(String.raw`^${escapedPrefix}-data-(\d{4}-\d{2}-\d{2})-run-([^.]+)\.json$`);
 }
 
 /**
@@ -100,10 +100,7 @@ export function listReportJsonPathsForDate(date, opts = {}) {
   if (!existsSync(reportsDir)) return [];
 
   const paths = [];
-  const exact = resolve(reportsDir, `${prefixBase}-${date}.json`);
-  if (existsSync(exact)) paths.push(exact);
-
-  const prefix = `${prefixBase}-${date}-`;
+  const prefix = `${prefixBase}-data-${date}-run-`;
   let names;
   try {
     names = readdirSync(reportsDir);
@@ -193,14 +190,11 @@ export function resolveReportJsonPathForDate(date, opts = {}) {
 
   const runId = opts.runId;
   if (typeof runId === 'string' && runId.length > 0) {
-    const specific = resolve(reportsDir, `${prefixBase}-${date}-${runId}.json`);
+    const specific = resolve(reportsDir, `${prefixBase}-data-${date}-run-${runId}.json`);
     return existsSync(specific) ? specific : null;
   }
 
-  const exact = resolve(reportsDir, `${prefixBase}-${date}.json`);
-  if (existsSync(exact)) return exact;
-
-  const prefix = `${prefixBase}-${date}-`;
+  const prefix = `${prefixBase}-data-${date}-run-`;
   let names;
   try {
     names = readdirSync(reportsDir);
@@ -441,7 +435,7 @@ function _findLatestAvailableReport(today, store, { scope = 'national', reportsD
   }
 
   const escapedPrefix = reportPrefixForScope(scope).replaceAll(REGEX_SPECIAL_CHARS, String.raw`\$&`);
-  const datePattern = new RegExp(String.raw`^${escapedPrefix}-(\d{4}-\d{2}-\d{2})`);
+  const datePattern = new RegExp(String.raw`^${escapedPrefix}-data-(\d{4}-\d{2}-\d{2})-run-`);
   const dates = [...new Set(
     names
       .map((f) => datePattern.exec(f)?.[1])

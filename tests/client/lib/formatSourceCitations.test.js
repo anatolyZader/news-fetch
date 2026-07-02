@@ -1,9 +1,9 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
+import { formatApaCitationDate } from '../../../cross-cut-modules/resilience-contracts/apaCitationFormat.js';
 import {
   formatReadableCitations,
   formatReportMarkdown,
-  formatReportDateLabel,
   labelFromUrl,
   formatAcademicSignalRefs,
   formatLinkedReadableCitations,
@@ -38,10 +38,10 @@ describe('formatSourceCitations', () => {
     assert.match(out, /\(Example, 01 Jun 2026\)/);
   });
 
-  it('formatReportDateLabel returns APA citation date', () => {
-    assert.equal(formatReportDateLabel('2026-04-12'), '12 Apr 2026');
-    assert.equal(formatReportDateLabel(null), '');
-    assert.equal(formatReportDateLabel('bad'), '');
+  it('formatApaCitationDate returns APA citation date', () => {
+    assert.equal(formatApaCitationDate('2026-04-12'), '12 Apr 2026');
+    assert.equal(formatApaCitationDate(null), '');
+    assert.equal(formatApaCitationDate('bad'), '');
   });
 
   it('labelFromUrl falls back to hostname', () => {
@@ -116,16 +116,16 @@ describe('formatSourceCitations', () => {
       'Quote [https://tiktok.com/x](https://tiktok.com/x).',
       '2026-05-23',
     );
-    assert.match(out, /\(\[https:\/\/tiktok\.com\/x\]\(https:\/\/tiktok\.com\/x\), 23 May 2026\)/);
+    assert.match(out, /\(\[tiktok\.com\]\(https:\/\/tiktok\.com\/x\), 23 May 2026\)/);
   });
 
   it('formatEvidenceMarkdown chains expandLinks then APA citations', () => {
     const out = formatEvidenceMarkdown(
       'Quote [source](https://example.com/a).',
       '2026-06-01',
-      (md) => md.replaceAll(/\[source\]\((https?:[^)\s]+)\)/gi, (_, url) => `[${url}](${url})`),
+      (md) => md.replaceAll(/\[source\]\((https?:[^)\s]+)\)/gi, (_, url) => `[${labelFromUrl(url)}](${url})`),
     );
-    assert.match(out, /\(\[https:\/\/example\.com\/a\]\(https:\/\/example\.com\/a\), 01 Jun 2026\)/);
+    assert.match(out, /\(\[example\.com\]\(https:\/\/example\.com\/a\), 01 Jun 2026\)/);
   });
 
   it('formatEvidenceMarkdown uses hostname for generic source citations', () => {
@@ -134,5 +134,51 @@ describe('formatSourceCitations', () => {
       '2026-06-01',
     );
     assert.match(out, /\(\[example\.com\]\(https:\/\/example\.com\/a\), 01 Jun 2026\)/);
+  });
+
+  it('formatNarrativeMarkdown resolves @idx refs to evidence anchors when registry provided', () => {
+    const out = formatNarrativeMarkdown(
+      'Routine is evident [resilience_narrative_positive@idx:7].',
+      '2026-04-02',
+      (md) => md,
+      [{
+        label: 'S7',
+        ref: 'resilience_narrative_positive@idx:7',
+        source_type: 'field',
+        article_url: null,
+      }],
+      { componentId: 'narrative' },
+    );
+    assert.match(out, /\[Field visit\]\(#evidence-narrative-resilience_narrative_positive-idx-7\), 02 Apr 2026/);
+    assert.doesNotMatch(out, /@idx:/);
+  });
+
+  it('formatNarrativeMarkdown retrofits plain APA parentheticals with evidence anchors', () => {
+    const out = formatNarrativeMarkdown(
+      'Already cited (ynet.co.il, 02 Apr 2026).',
+      '2026-04-02',
+      (md) => md,
+      [{
+        label: 'S1',
+        ref: 'fear_expression@url:https://www.ynet.co.il/news/1',
+        source_type: 'news',
+        article_url: 'https://www.ynet.co.il/news/1',
+      }],
+      { componentId: 'narrative' },
+    );
+    assert.match(out, /\[ynet\.co\.il\]\(#evidence-narrative-/);
+  });
+
+  it('formatNarrativeMarkdown with expandLinks uses domain not full URL for generic source', () => {
+    const out = formatNarrativeMarkdown(
+      'Quote [source](https://www.ynet.co.il/article).',
+      '2026-04-12',
+      (md) => md.replace(
+        /\[source\]\((https?:[^)\s]+)\)/gi,
+        (_, url) => `[${labelFromUrl(url)}](${url})`,
+      ),
+    );
+    assert.match(out, /\(\[ynet\.co\.il\]\(https:\/\/www\.ynet\.co\.il\/article\), 12 Apr 2026\)/);
+    assert.doesNotMatch(out, /https:\/\/www\.ynet\.co\.il\/article\]\(/);
   });
 });

@@ -37,7 +37,9 @@
       "Bash(sort -k6,7)",
       "Bash(command -v qrencode)",
       "Bash(command -v python3)",
-      "Bash(pip install *)"
+      "Bash(pip install *)",
+      "Bash(awk '{print $5, $9}')",
+      "Bash(systemctl list-units *)"
     ],
     "defaultMode": "acceptEdits",
     "additionalDirectories": [

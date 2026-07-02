@@ -1,6 +1,6 @@
 # Outreach — who, in what order
 
-> Warm, relationship-led rollout. This is a security-adjacent homefront product — **do not mass-blast**. Sequence by trust, not by volume. **Working name** in all assets; lock branding before anything physical or external goes out (see `MESSAGING-HOUSE.md`).
+> Warm, relationship-led rollout. This is a security-adjacent homefront product — **do not mass-blast**. Sequence by trust, not by volume. Brand locked per [`../brand/BRAND-LOCK.md`](../brand/BRAND-LOCK.md).
 
 ## Order of outreach
 
@@ -12,12 +12,17 @@
 
 - **Operator email:** attach or link the recorded demo (`../copy/demo-script.md` → record first). One CTA.
 - **Field WhatsApp:** short blurb + link to the HE field one-pager PDF. Never paste the whole kit into a group.
-- **Poster** (`../print/poster-a3-field-he.md`): print for ops rooms only after QR is generated and test-scanned, and after branding locks.
-- **Business card** (`../print/business-card.md`): events / in-person; same QR + branding gate.
+- **HQ brochure** (`../print/brochure-hq-en.html` → PDF per `EXPORT.md`): attach or hand out at operator briefings; note PDF export date below.
+- **Poster** (`../print/poster-a3-field-he.md`): print for ops rooms after QR is generated and test-scanned.
+- **Business card** (`../print/business-card.md`): events / in-person; same QR gate.
+
+## Brochure PDF version
+
+Record the date of the last exported `brochure-hq-en-*.pdf` here when distributing: _______________
 
 ## Pre-send gate (every item)
 
-- [ ] Branding locked? (working name → real name find-replace across `promo/**`)
+- [ ] `BRAND-LOCK.md` sign-off checklist complete?
 - [ ] QR generated via `../print/generate-qr.sh` and test-scanned?
 - [ ] Ran through `../source-corpus/do-not-say.md`?
 - [ ] Exactly one CTA?

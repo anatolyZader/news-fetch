@@ -1,0 +1,29 @@
+# Pre-print checklist — HQ EN brochure
+
+Run before saving `brochure-hq-en-print.pdf` or sending to a print shop.
+
+## Brand and copy
+
+- [ ] [`../brand/BRAND-LOCK.md`](../brand/BRAND-LOCK.md) sign-off checklist complete
+- [ ] Brochure text matches [`../copy/brochure-copy-hq-en.md`](../copy/brochure-copy-hq-en.md)
+- [ ] Passed [`../source-corpus/do-not-say.md`](../source-corpus/do-not-say.md) (no predict/replace/score-hero language)
+
+## Visual assets
+
+- [ ] All six screenshots from [`../screenshots/SCREENSHOT-MANIFEST.md`](../screenshots/SCREENSHOT-MANIFEST.md) present (no placeholders)
+- [ ] Assessment **date visible** in at least cover screenshot
+- [ ] Operator view only — no analyst UI
+- [ ] `qr-srulik-ai.png` present; test-scanned from screen and from printed proof
+- [ ] Logo renders from `client/public/logo_srulik_1_no_text.png`
+
+## Layout
+
+- [ ] Four pages, A4, no clipped text
+- [ ] Background colors print correctly (background graphics ON)
+- [ ] Exactly one CTA: **Read today's assessment → srulik.ai**
+- [ ] Data-sources line verbatim: *Data sources include news, WhatsApp, radio/audio, Google Trends, and user submissions.*
+
+## Distribution
+
+- [ ] Record PDF export date in [`../distribution/README-outreach.md`](../distribution/README-outreach.md)
+- [ ] Physical proof approved before bulk print

@@ -13,6 +13,19 @@ import {
   operatorEvidenceChars,
   operatorMaxClaims,
 } from '../../../../cross-cut-modules/resilience-contracts/operatorSurfaceMode.js';
+import {
+  buildCitationRegistryFromStored,
+  proseHasResolvableCitations,
+  apaSourceFromSignalEntry,
+} from '../../../../cross-cut-modules/resilience-contracts/citationDisplay.js';
+import {
+  evidenceAnchorHref,
+  evidenceAnchorId,
+} from '../../../../cross-cut-modules/resilience-contracts/evidenceAnchor.js';
+import {
+  linkPlainApaParentheticals,
+} from '../../../../cross-cut-modules/resilience-contracts/inlineCitationResolve.js';
+import { formatApaCitationDate } from '../../../../cross-cut-modules/resilience-contracts/apaCitationFormat.js';
 import { buildDeterministicNarrativeFromClaims } from './operatorInvestigationSurface.js';
 import { resolveInlineSignalCitations } from './narrativeGrounding/inlineCitationResolver.js';
 
@@ -114,22 +127,8 @@ function claimsFromRichPool(comp) {
  */
 function citationRegistryFromAssessment(assessment) {
   const stored = assessment?.narrative_citation_registry?.entries;
-  if (Array.isArray(stored) && stored.length > 0) {
-    const byLabel = new Map();
-    for (const entry of stored) {
-      if (!entry?.label) continue;
-      byLabel.set(entry.label, {
-        label: entry.label,
-        ref: entry.ref,
-        signal: {
-          article_source: entry.article_source ?? null,
-          article_url: entry.article_url ?? null,
-          source_type: entry.source_type ?? null,
-        },
-      });
-    }
-    return { byLabel };
-  }
+  const fromStored = buildCitationRegistryFromStored(stored);
+  if (fromStored) return fromStored;
 
   const scored = {};
   for (const comp of assessment?.components ?? []) {
@@ -142,11 +141,87 @@ function citationRegistryFromAssessment(assessment) {
   return buildSignalRefRegistry(scored);
 }
 
-function applyCitationResolverToField(text, registry, reportDate) {
+function citationResolveOpts(componentId) {
+  return {
+    linked: true,
+    linkMode: 'evidence',
+    componentId,
+    resolveMarkdown: true,
+  };
+}
+
+/**
+ * @param {string} prose
+ * @param {string} ref
+ * @param {string} componentId
+ * @returns {boolean}
+ */
+function proseIncludesRef(prose, ref, componentId) {
+  if (!prose || !ref) return false;
+  if (prose.includes(ref)) return true;
+  const anchor = evidenceAnchorId(componentId, ref);
+  return prose.includes(anchor) || prose.includes(`#${anchor}`);
+}
+
+/**
+ * @param {string} prose
+ * @param {object} comp
+ * @param {{ byRef?: Map<string, object> }} registry
+ * @param {string|null|undefined} reportDate
+ * @returns {string}
+ */
+function syncMissingClaimCitations(prose, comp, registry, reportDate) {
+  const componentId = comp?.component_id;
+  const dateLabel = formatApaCitationDate(reportDate);
+  if (!prose || !componentId || !dateLabel || !registry?.byRef?.size) return prose;
+
+  const missing = [];
+  for (const claim of comp.narrative_claims ?? comp.claims ?? []) {
+    for (const ref of claim.signal_refs ?? claim.evidence_refs ?? []) {
+      if (proseIncludesRef(prose, ref, componentId)) continue;
+      const entry = registry.byRef.get(ref);
+      if (!entry) continue;
+      const source = apaSourceFromSignalEntry(entry);
+      if (!source?.author) continue;
+      missing.push(`[${source.author}](${evidenceAnchorHref(componentId, ref)}), ${dateLabel}`);
+    }
+  }
+  if (missing.length === 0) return prose;
+  const unique = [...new Set(missing)];
+  const trimmed = prose.trim().replace(/\.\s*$/, '');
+  return `${trimmed} (${unique.join('; ')}).`;
+}
+
+function applyCitationResolverToField(text, registry, reportDate, componentId = null, comp = null) {
   const raw = String(text ?? '').trim();
-  if (!raw || !registry?.byLabel?.size) return raw;
-  if (!/\[S\d+\]/.test(raw) && !/\[[^\]]+\]\(https?:/.test(raw)) return raw;
-  return resolveInlineSignalCitations(raw, registry, reportDate);
+  if (!raw || !registry) return raw;
+  const needsResolve = proseHasResolvableCitations(raw)
+    || (componentId && /\(.+,\s*\d{1,2}\s+[A-Za-z]{3}\s+\d{4}\)/.test(raw));
+  if (!needsResolve && !comp) return raw;
+
+  let out = raw;
+  if (proseHasResolvableCitations(raw) || componentId) {
+    out = resolveInlineSignalCitations(raw, registry, reportDate, citationResolveOpts(componentId));
+  }
+  if (componentId) {
+    out = linkPlainApaParentheticals(out, registry, reportDate, componentId);
+  }
+  if (comp) {
+    out = syncMissingClaimCitations(out, comp, registry, reportDate);
+  }
+  return out;
+}
+
+/**
+ * @param {string} text
+ * @param {{ byLabel?: Map<string, object>, byRef?: Map<string, object> }|null} registry
+ * @param {string|null|undefined} reportDate
+ * @param {string|null|undefined} componentId
+ * @param {object|null|undefined} [comp]
+ * @returns {string}
+ */
+export function resolveOperatorNarrativeCitations(text, registry, reportDate, componentId = null, comp = null) {
+  return applyCitationResolverToField(text, registry, reportDate, componentId, comp);
 }
 
 /**
@@ -405,12 +480,14 @@ function formatEvidenceBullet(text, url) {
  * @param {string|null|undefined} [fallbackText]
  * @returns {object|null}
  */
-function structuredItemFromSignal(signal, fallbackText) {
+function structuredItemFromSignal(signal, fallbackText, refOverride = null) {
   const text = String(signal?.evidence ?? fallbackText ?? '').trim().slice(0, maxEvidenceLineChars());
   if (!text) return null;
   const meta = metaFromSignal(signal);
+  const ref = refOverride ?? (signal ? buildRefKey(signal) : null);
   return {
     text,
+    ref,
     source_type: meta.source_type,
     article_source: meta.article_source,
     url: meta.url,
@@ -426,7 +503,7 @@ function structuredItemFromSignal(signal, fallbackText) {
 function structuredItemsFromClaim(claim, comp) {
   const refs = claim.signal_refs ?? claim.evidence_refs ?? [];
   const fromRefs = refs
-    .map((ref) => structuredItemFromSignal(resolveSignalForRef(ref, comp), null))
+    .map((ref) => structuredItemFromSignal(resolveSignalForRef(ref, comp), null, ref))
     .filter(Boolean);
   if (fromRefs.length > 0) return fromRefs;
 
@@ -619,6 +696,8 @@ function applyCitationRegistryToAssessment(assessment, citationRegistry) {
         comp.narrative_operator,
         citationRegistry,
         reportDate,
+        comp.component_id,
+        comp,
       );
     }
   }

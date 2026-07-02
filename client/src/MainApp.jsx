@@ -23,6 +23,7 @@ import { useDisplayCapabilities } from './hooks/useDisplayCapabilities.js';
 import { useTranslatedReport } from './hooks/useTranslatedReport.js';
 import { getAnalystSiteUrl } from './lib/analystSiteUrl.js';
 import { formatDate } from './lib/date.js';
+import { formatTemplate } from './lib/i18nFormat.js';
 import { editionsMatch } from './lib/reportEditionFormat.js';
 import { ReportView } from './components/ReportView.jsx';
 import { ReportContentsMobileNav } from './components/ReportContentsMobileNav.jsx';
@@ -68,6 +69,7 @@ const LS_POOL_TAB = 'vibes-witch:poolTab';
 const LS_PBO_TAB = 'vibes-witch:pboTab';
 const LS_PBO_REGION = 'vibes-witch:pboRegion';
 const LS_REPORT_SCOPE = 'vibes-witch:reportScope';
+const LS_REPORT_EDITION = 'vibes-witch:reportEdition';
 const MAIN_TAB_IDS = new Set(['report', 'pbo-reports', 'report-bot', 'visits', 'news', 'radio', 'pools', 'trends', 'social-media']);
 const PBO_TAB_IDS = new Set(['local', 'regional']);
 /** Northern PBO sub-regions (maps to divisions in business_modules/geo/data/regions.json; Galma ≈ Western Galilee / גלמ״ע). */
@@ -265,6 +267,35 @@ function readReportScope() {
     if (v && REPORT_SCOPES.has(v)) return v;
   } catch { /* */ }
   return 'national';
+}
+
+/** @returns {{ date: string, run_id?: string | null } | null} */
+function readStoredReportEdition(scope) {
+  if (typeof localStorage === 'undefined' || !scope) return null;
+  try {
+    const raw = localStorage.getItem(LS_REPORT_EDITION);
+    if (!raw) return null;
+    const map = JSON.parse(raw);
+    const entry = map?.[scope];
+    if (!entry?.date || typeof entry.date !== 'string') return null;
+    return { date: entry.date, run_id: entry.run_id ?? null };
+  } catch { /* */ }
+  return null;
+}
+
+/** @param {string} scope @param {{ date: string, run_id?: string | null } | null} edition */
+function writeStoredReportEdition(scope, edition) {
+  if (typeof localStorage === 'undefined' || !scope) return;
+  try {
+    const raw = localStorage.getItem(LS_REPORT_EDITION);
+    const map = raw && typeof raw === 'string' ? JSON.parse(raw) : {};
+    if (edition?.date) {
+      map[scope] = { date: edition.date, run_id: edition.run_id ?? null };
+    } else {
+      delete map[scope];
+    }
+    localStorage.setItem(LS_REPORT_EDITION, JSON.stringify(map));
+  } catch { /* */ }
 }
 
 function openResponsivePanel(isDesktop, openPanelPopup, panelKey, setMobileOpen, opts) {
@@ -564,7 +595,9 @@ function AppShell() {
   const { canViewAnalyst } = useDisplayCapabilities();
   const analystSiteUrl = getAnalystSiteUrl();
   const [reportScope, setReportScope] = useState(() => readReportScope());
-  const [selectedReportEdition, setSelectedReportEdition] = useState(null);
+  const [selectedReportEdition, setSelectedReportEdition] = useState(
+    () => readStoredReportEdition(readReportScope()),
+  );
   const [scopeSwitchNotice, setScopeSwitchNotice] = useState(null);
   const { editions: availableReportEditions, loading: editionsLoading } = useReportEditions(reportScope, accessToken);
   const effectiveReportEdition = useMemo(() => {
@@ -642,9 +675,14 @@ function AppShell() {
     } catch { /* */ }
   }, [activePboRegionTab]);
 
+  useEffect(() => {
+    writeStoredReportEdition(reportScope, selectedReportEdition);
+  }, [reportScope, selectedReportEdition]);
+
   const scopeInitRef = useRef(true);
   useEffect(() => {
-    if (scopeInitRef.current) {
+    const isFirst = scopeInitRef.current;
+    if (isFirst) {
       scopeInitRef.current = false;
     } else {
       setScopeSwitchNotice(reportScope);
@@ -652,11 +690,13 @@ function AppShell() {
     try {
       localStorage.setItem(LS_REPORT_SCOPE, reportScope);
     } catch { /* */ }
-    queueMicrotask(() => {
-      setSelectedReportEdition(null);
-      setOpenReportCompId(null);
-      setOpenReportEvidenceCompId(null);
-    });
+    if (!isFirst) {
+      queueMicrotask(() => {
+        setSelectedReportEdition(readStoredReportEdition(reportScope));
+        setOpenReportCompId(null);
+        setOpenReportEvidenceCompId(null);
+      });
+    }
   }, [reportScope]);
 
   const [docsOpen, setDocsOpen] = useState(false);
@@ -670,6 +710,7 @@ function AppShell() {
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
   const isCompact = useMediaQuery(theme.breakpoints.down('sm'));
   const closeMoreMenu = useCallback(() => setMoreMenuAnchor(null), []);
+  const openMoreMenu = useCallback((e) => setMoreMenuAnchor(e.currentTarget), []);
   const goToAssessment = useCallback(() => {
     setActiveTab('report');
     reportTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -739,7 +780,7 @@ function AppShell() {
   }, [selectedReportEdition, availableReportEditions]);
 
   const scopeSwitchMessage = scopeSwitchNotice
-    ? t('report.edition.scopeSwitched').replace('{scope}', t(`report.scope.${scopeSwitchNotice}`))
+    ? formatTemplate(t('report.edition.scopeSwitched'), { scope: t(`report.scope.${scopeSwitchNotice}`) })
     : null;
 
   const reportContents = (displayReport?.components ?? []).map((c) => ({
@@ -836,7 +877,7 @@ function AppShell() {
       id="header-more-button"
       type="button"
       size="small"
-      onClick={(e) => setMoreMenuAnchor(e.currentTarget)}
+      onClick={openMoreMenu}
       aria-label={t('app.moreMenu')}
       aria-controls={moreMenuAnchor ? 'header-more-menu' : undefined}
       aria-haspopup="true"
@@ -907,21 +948,30 @@ function AppShell() {
       translatingBadge={translatingBadge}
       t={t}
       onHomeClick={goToAssessment}
-      onMenuClick={(e) => setMoreMenuAnchor(e.currentTarget)}
+      onMenuClick={openMoreMenu}
       onNotificationClick={scrollToAttention}
     />
   );
 
   const isOutdated = reportDate && reportDate !== todayStr;
   const outdatedMessage = isOutdated
-    ? t('report.outdated').replace('{date}', formatDate(reportDate))
+    ? formatTemplate(t('report.outdated'), { date: formatDate(reportDate) })
     : null;
+
+  const dismissEvidenceNotice = useCallback(() => {
+    setEvidenceNotice((current) => (current ? { ...current, open: false } : current));
+  }, []);
+
+  const dismissScopeSwitchNotice = useCallback(() => {
+    setScopeSwitchNotice(null);
+  }, []);
 
   return (
     <AppLayout
       header={header}
       footer={(isCompact && activeTab === 'report') ? null : (
         <SiteFooter
+          embeddedInLayout
           onGoToAssessment={goToAssessment}
           onSendEvidence={openSendEvidence}
           onNavigateTab={setActiveTab}
@@ -1056,7 +1106,7 @@ function AppShell() {
                         '& .MuiAlert-message': { wordBreak: 'break-word', overflowWrap: 'anywhere' },
                       })}
                     >
-                      {t('report.outdated').replace('{date}', formatDate(reportDate))}
+                      {outdatedMessage}
                     </Alert>
                   )}
                   <Box
@@ -1303,14 +1353,14 @@ function AppShell() {
       <Snackbar
         open={Boolean(evidenceNotice?.open)}
         autoHideDuration={8000}
-        onClose={() => setEvidenceNotice((current) => (current ? { ...current, open: false } : current))}
+        onClose={dismissEvidenceNotice}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
         sx={{ bottom: '16px !important' }}
       >
         <Alert
           severity={evidenceNotice?.severity ?? 'info'}
           variant="filled"
-          onClose={() => setEvidenceNotice((current) => (current ? { ...current, open: false } : current))}
+          onClose={dismissEvidenceNotice}
         >
           {evidenceNotice?.message ?? ''}
         </Alert>
@@ -1318,10 +1368,10 @@ function AppShell() {
       <Snackbar
         open={Boolean(scopeSwitchMessage)}
         autoHideDuration={5000}
-        onClose={() => setScopeSwitchNotice(null)}
+        onClose={dismissScopeSwitchNotice}
         anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
       >
-        <Alert severity="info" variant="filled" onClose={() => setScopeSwitchNotice(null)}>
+        <Alert severity="info" variant="filled" onClose={dismissScopeSwitchNotice}>
           {scopeSwitchMessage}
         </Alert>
       </Snackbar>

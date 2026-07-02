@@ -1,6 +1,6 @@
 # Email — operator / HQ invite (EN)
 
-> Warm, relationship-led — not a blast. Send to a named contact who already expects to hear from you. Grounded in `MESSAGING-HOUSE.md`; passes `do-not-say.md`. **Working name** — don't send externally until branding locks.
+> Warm, relationship-led — not a blast. Send to a named contact who already expects to hear from you. Grounded in `MESSAGING-HOUSE.md`; passes `do-not-say.md`. Brand locked per `../brand/BRAND-LOCK.md`.
 
 **Subject:** A daily homefront resilience read — would value your eyes on it
 

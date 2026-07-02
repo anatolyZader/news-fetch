@@ -76,11 +76,11 @@ function matchesReportScope(f, dStr, scope) {
   const scopeId = normalizeReportScopeId(scope);
   const prefix = reportFilePrefix(scopeId);
   if (scopeId === 'national') {
-    return f.startsWith(`${prefix}-${dStr}`)
+    return f.startsWith(`${prefix}-data-${dStr}-run-`)
       && !isRegionalReportFilename(f)
       && f.endsWith('.json');
   }
-  return f.startsWith(`${prefix}-${dStr}`) && f.endsWith('.json');
+  return f.startsWith(`${prefix}-data-${dStr}-run-`) && f.endsWith('.json');
 }
 
 function findLatestReportFile(allFiles, dStr, scope) {

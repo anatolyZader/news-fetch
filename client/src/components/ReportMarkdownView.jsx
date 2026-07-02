@@ -4,16 +4,19 @@ import {
 } from '../../../cross-cut-modules/resilience-contracts/componentsTableGlossary.js';
 import { MarkdownArticle } from '../ui/MarkdownArticle.jsx';
 import { formatReportMarkdown } from '../lib/formatSourceCitations.js';
+import { apaAuthorFromUrl } from '../../../cross-cut-modules/resilience-contracts/apaCitationFormat.js';
 import PropTypes from 'prop-types';
 
 /**
- * LLM output uses `[source](url)`; show the actual URL as link text so the browser matches
- * saved reports where citations read like `'…quote.' ((https://…))` instead of `(source)`.
+ * LLM output uses `[source](url)`; show site domain as link text (full URL remains href).
  */
 export function expandSourceCitationLinks(markdown) {
   if (typeof markdown !== 'string') return '';
   if (!markdown) return markdown;
-  return markdown.replaceAll(/\[source\]\((https?:[^)\s]+)\)/gi, (_, url) => `[${url}](${url})`);
+  return markdown.replaceAll(
+    /\[source\]\((https?:[^)\s]+)\)/gi,
+    (_, url) => `[${apaAuthorFromUrl(url)}](${url})`,
+  );
 }
 
 /** Legacy reports only had a one-line legend; inject the full glossary after `## Components`. */

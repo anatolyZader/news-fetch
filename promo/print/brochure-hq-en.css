@@ -1,0 +1,398 @@
+/* srulik.ai HQ brochure — A4 print + screen preview */
+
+:root {
+  --periwinkle: #8b9cf0;
+  --periwinkle-dark: #6f82e8;
+  --periwinkle-light: #d8e0ff;
+  --ink: #2f3648;
+  --ink-subtle: #6b7a94;
+  --canvas: #f4f7fc;
+  --mist: #eef3fa;
+  --paper: #ffffff;
+  --divider: #e3eaf4;
+  --font: Inter, "Segoe UI", system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font);
+  color: var(--ink);
+  background: #c5cdd9;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+a {
+  color: var(--periwinkle-dark);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+.screen-hint {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  padding: 10px 16px;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 13px;
+  text-align: center;
+}
+
+.page {
+  width: 210mm;
+  min-height: 297mm;
+  margin: 24px auto;
+  padding: 14mm 16mm;
+  background: var(--paper);
+  box-shadow: 0 4px 24px rgba(47, 54, 72, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  page-break-after: always;
+  break-after: page;
+}
+
+.page:last-child {
+  page-break-after: auto;
+  break-after: auto;
+}
+
+/* Cover */
+.cover-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 8px;
+}
+
+.cover-header img.logo {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+}
+
+.cover-header .brand-block h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.15;
+}
+
+.cover-header .brand-block .tagline {
+  margin: 4px 0 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--periwinkle-dark);
+  letter-spacing: 0.02em;
+}
+
+.cover-one-liner {
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--ink-subtle);
+  max-width: 42em;
+  margin: 4px 0 12px;
+}
+
+.hero-shot {
+  flex: 1;
+  min-height: 140mm;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--divider);
+  background: var(--mist);
+  display: flex;
+  flex-direction: column;
+}
+
+.hero-shot img {
+  width: 100%;
+  flex: 1;
+  object-fit: cover;
+  object-position: top center;
+  min-height: 120mm;
+}
+
+.hero-shot figcaption {
+  padding: 10px 14px;
+  font-size: 12px;
+  color: var(--ink-subtle);
+  background: var(--canvas);
+  border-top: 1px solid var(--divider);
+}
+
+.cover-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid var(--divider);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Inner pages */
+.page h2 {
+  margin: 0 0 10px;
+  font-size: 20px;
+  color: var(--periwinkle-dark);
+  line-height: 1.25;
+}
+
+.page h3 {
+  margin: 14px 0 6px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.page p {
+  margin: 0 0 10px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink);
+}
+
+.callout {
+  margin: 12px 0;
+  padding: 12px 14px;
+  background: var(--periwinkle-light);
+  border-left: 4px solid var(--periwinkle);
+  border-radius: 0 8px 8px 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.pipeline {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin: 14px 0;
+  list-style: none;
+  padding: 0;
+}
+
+.pipeline-step {
+  background: var(--canvas);
+  border: 1px solid var(--divider);
+  border-radius: 8px;
+  padding: 10px 8px;
+  text-align: center;
+}
+
+.pipeline-step .num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--periwinkle);
+  color: var(--paper);
+  font-size: 11px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.pipeline-step .label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.3;
+}
+
+.pipeline-step .desc {
+  font-size: 9px;
+  color: var(--ink-subtle);
+  margin-top: 4px;
+  line-height: 1.35;
+}
+
+.scope-line {
+  font-size: 11px;
+  color: var(--ink-subtle);
+  margin-top: auto;
+  padding-top: 10px;
+}
+
+.component-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 10px 0;
+}
+
+.component-card {
+  background: var(--canvas);
+  border: 1px solid var(--divider);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.component-card strong {
+  display: block;
+  font-size: 10.5px;
+  color: var(--periwinkle-dark);
+  margin-bottom: 3px;
+}
+
+.component-card span {
+  font-size: 9.5px;
+  line-height: 1.4;
+  color: var(--ink-subtle);
+}
+
+.proof-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.proof-panel {
+  border: 1px solid var(--divider);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--mist);
+}
+
+.proof-panel img {
+  width: 100%;
+  height: 72mm;
+  object-fit: cover;
+  object-position: top center;
+  display: block;
+}
+
+.proof-panel figcaption {
+  padding: 8px 10px;
+  font-size: 10px;
+  line-height: 1.4;
+  color: var(--ink-subtle);
+  background: var(--paper);
+}
+
+.trust-list {
+  margin: 0 0 12px;
+  padding-left: 18px;
+  font-size: 11.5px;
+  line-height: 1.55;
+}
+
+.trust-list li {
+  margin-bottom: 6px;
+}
+
+.faq-block {
+  background: var(--canvas);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin: 10px 0;
+  font-size: 10.5px;
+  line-height: 1.5;
+}
+
+.faq-block p {
+  margin: 0 0 8px;
+  font-size: 10.5px;
+}
+
+.faq-block p:last-child {
+  margin-bottom: 0;
+}
+
+.faq-block strong {
+  color: var(--periwinkle-dark);
+}
+
+.back-footer {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px;
+  align-items: end;
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid var(--divider);
+}
+
+.cta-block .cta-main {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--periwinkle-dark);
+  margin: 0 0 6px;
+}
+
+.cta-block .data-sources {
+  font-size: 9.5px;
+  color: var(--ink-subtle);
+  line-height: 1.45;
+  max-width: 38em;
+}
+
+.qr-block {
+  text-align: center;
+}
+
+.qr-block img {
+  width: 28mm;
+  height: 28mm;
+  display: block;
+}
+
+.qr-block span {
+  font-size: 10px;
+  color: var(--ink-subtle);
+  margin-top: 4px;
+  display: block;
+}
+
+.legal-footer {
+  grid-column: 1 / -1;
+  font-size: 10px;
+  color: var(--ink-subtle);
+  text-align: center;
+  padding-top: 8px;
+}
+
+@page {
+  size: A4;
+  margin: 12mm;
+}
+
+@media print {
+  body {
+    background: white;
+  }
+
+  .screen-hint {
+    display: none !important;
+  }
+
+  .page {
+    margin: 0;
+    box-shadow: none;
+    width: auto;
+    min-height: auto;
+    padding: 0;
+  }
+}
+
+@media screen {
+  .page {
+    position: relative;
+  }
+}
