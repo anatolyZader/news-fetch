@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { withLang } from '../../client/src/lib/localeFetch.js';
+import { withLang } from '../../../client/src/lib/localeFetch.js';
 
 describe('withLang', () => {
   it('appends lang query for non-english', () => {

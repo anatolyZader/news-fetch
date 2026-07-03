@@ -37,7 +37,7 @@ describe('reportRoutes POST /api/translate', () => {
 
     const date = '2099-01-15';
     writeFileSync(
-      join(reportsDir, `resilience-report-${date}-1000.json`),
+      join(reportsDir, `resilience-report-data-${date}-run-1000.json`),
       JSON.stringify(miniCachedPayload(date)),
       'utf8',
     );

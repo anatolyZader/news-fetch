@@ -48,16 +48,18 @@ describe('translationService', () => {
   });
 
   it('getTranslatedReport serves pre-written disk cache without LLM', async () => {
+    process.env.TRANSLATION_ENABLED = 'true';
     const cached = {
       ...sampleReport,
       cross_component_synthesis: 'סיכום בעברית.',
       components: sampleReport.components.map((c) => ({ ...c, narrative: `[he] ${c.narrative}` })),
       _translation_meta: {
-        schema: 'v3',
+        schema: 'v6',
         fields: {
           cross_component_synthesis: true,
           components_narrative: true,
           components_evidence: true,
+          evidence_operator_structured: true,
         },
       },
     };
