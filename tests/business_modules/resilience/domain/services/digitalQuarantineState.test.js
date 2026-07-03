@@ -21,7 +21,7 @@ describe('digitalQuarantineState', () => {
     const dir = mkdtempSync(join(tmpdir(), 'quarantine-'));
     try {
       const future = new Date(Date.now() + 60 * 60 * 1000).toISOString();
-      writeFileSync(join(dir, 'resilience-report-2026-05-29-1200.json'), JSON.stringify({
+      writeFileSync(join(dir, 'resilience-report-data-2026-05-29-run-1200.json'), JSON.stringify({
         assessment: {
           digital_quarantine_state: {
             active: true,
@@ -42,7 +42,7 @@ describe('digitalQuarantineState', () => {
   it('loadActiveQuarantine expires a stale past-date quarantine (replay does not inherit)', () => {
     const dir = mkdtempSync(join(tmpdir(), 'quarantine-'));
     try {
-      writeFileSync(join(dir, 'resilience-report-2026-04-03-1200.json'), JSON.stringify({
+      writeFileSync(join(dir, 'resilience-report-data-2026-04-03-run-1200.json'), JSON.stringify({
         assessment: {
           digital_quarantine_state: {
             active: true,
