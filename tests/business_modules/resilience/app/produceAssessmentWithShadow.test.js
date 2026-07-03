@@ -97,7 +97,7 @@ describe('produceAssessmentWithShadow', () => {
       cross_component_synthesis: 'cached synthesis',
     };
     writeFileSync(
-      join(reportsDir, 'resilience-report-2026-03-21.json'),
+      join(reportsDir, 'resilience-report-data-2026-03-21-run-1000.json'),
       JSON.stringify({ assessment: cachedAssessment }),
     );
 

@@ -76,7 +76,7 @@ describe('assertAssessOnlySafe', () => {
 
   it('throws when replay assess-only and a normal report exists', () => {
     writeFileSync(
-      join(reportsDir, 'resilience-report-north-2026-04-15-1739.json'),
+      join(reportsDir, 'resilience-report-north-data-2026-04-15-run-1739.json'),
       miniReport(),
     );
     assert.throws(
@@ -95,7 +95,7 @@ describe('assertAssessOnlySafe', () => {
     mkdirSync(degradedReports, { recursive: true });
     try {
       writeFileSync(
-        join(degradedReports, 'resilience-report-north-2026-04-15-0715.json'),
+        join(degradedReports, 'resilience-report-north-data-2026-04-15-run-0715.json'),
         miniReport({
           assessment_mode: 'field_anchor_only',
           digital_quarantine_state: { active: true, reason: 'total_silence' },

@@ -4,10 +4,9 @@
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { localizePayload } from '../business_modules/translation/app/localePresentationService.js';
-import { createNewsSitesFsAdapter } from '../business_modules/news-sites/infrastructure/adapters/newsSitesFsAdapter.js';
-import { createRadioFsAdapter } from '../business_modules/audio/infrastructure/adapters/radioFsAdapter.js';
-import { createVisitsFsAdapter } from '../business_modules/visits/infrastructure/adapters/visitsFsAdapter.js';
-import { createVisitsService } from '../business_modules/visits/app/visitsService.js';
+import { createNewsSitesFsAdapter } from '../business_modules/news-sites/index.js';
+import { createRadioFsAdapter } from '../business_modules/audio/index.js';
+import { createVisitsFsAdapter, createVisitsService } from '../business_modules/visits/index.js';
 import { getEducationDashboard, getNaftaliDashboard } from '../business_modules/pool/index.js';
 
 const ROOT_DIR = resolve(dirname(fileURLToPath(import.meta.url)), '..');

@@ -12,7 +12,10 @@ import { createChatPendingActionStore } from '../../../../business_modules/chat/
 const REPO_ROOT = resolve(import.meta.dirname, '../../../..');
 const TEST_REPORTS_DIR = join(REPO_ROOT, 'daily_reports');
 const OPERATOR_REPORT_DATE = '2099-06-13';
-const OPERATOR_REPORT_PATH = join(TEST_REPORTS_DIR, `resilience-report-${OPERATOR_REPORT_DATE}.json`);
+const OPERATOR_REPORT_PATH = join(
+  TEST_REPORTS_DIR,
+  `resilience-report-data-${OPERATOR_REPORT_DATE}-run-1000.json`,
+);
 
 async function testAuthPreHandler(request) {
   request.user = {
