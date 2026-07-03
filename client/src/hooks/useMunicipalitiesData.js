@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { authFetch } from '../lib/authFetch.js';
 import { localizedAuthFetch } from '../lib/localizedAuthFetch.js';
 import { normalizeIsraelDistrictId } from '../lib/israelDistricts.js';
 

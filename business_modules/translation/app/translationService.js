@@ -273,6 +273,41 @@ function mergeSocialTranslation(posts, result, lang) {
 }
 
 /**
+ * @param {object} c
+ * @returns {{ useEvidenceField: boolean, evidenceSource: object[] }}
+ */
+function componentEvidenceSource(c) {
+  if (c.evidence_operator_structured?.length) {
+    return {
+      useEvidenceField: false,
+      evidenceSource: c.evidence_operator_structured,
+    };
+  }
+  const useEvidenceField = Array.isArray(c.evidence)
+    && c.evidence.some((e) => e?.markdown);
+  return {
+    useEvidenceField,
+    evidenceSource: useEvidenceField ? c.evidence : [],
+  };
+}
+
+/**
+ * @param {object} c
+ * @param {boolean} useEvidenceField
+ * @param {object[]} translatedStructured
+ * @returns {object}
+ */
+function translatedEvidenceFields(c, useEvidenceField, translatedStructured) {
+  if (c.evidence_operator_structured?.length) {
+    return { evidence_operator_structured: translatedStructured };
+  }
+  if (useEvidenceField && translatedStructured.length) {
+    return { evidence: translatedStructured };
+  }
+  return {};
+}
+
+/**
  * Translate the narrative fields of a report into the target language.
  *
  * @param {object} report – assessment object (report.components, report.cross_component_synthesis, …)
@@ -328,11 +363,7 @@ export async function getTranslatedReport(report, lang) {
   const componentChunks = await runWithConcurrencyLimit(
     components.map((c) => () => {
       const narrativeSource = c.narrative_operator ?? c.narrative ?? '';
-      const useEvidenceField = !c.evidence_operator_structured?.length
-        && Array.isArray(c.evidence) && c.evidence.some((e) => e?.markdown);
-      const evidenceSource = c.evidence_operator_structured?.length
-        ? c.evidence_operator_structured
-        : (useEvidenceField ? c.evidence : []);
+      const { evidenceSource } = componentEvidenceSource(c);
       const structuredItems = evidenceSource.map((e, j) => ({
         id: String(j),
         text: String(e.textOriginal ?? e.text ?? '').replace(/^\s*-\s+/, '').slice(0, 2000),
@@ -377,6 +408,7 @@ export async function getTranslatedReport(report, lang) {
     components: components.map((c, i) => {
       const chunk = componentChunks[i].result;
       const narrativeSource = c.narrative_operator ?? c.narrative;
+      const { useEvidenceField, evidenceSource } = componentEvidenceSource(c);
       const translatedStructured = evidenceSource.map((e, j) => {
         const row = (chunk.evidence_structured ?? []).find((r) => String(r.id) === String(j)) ?? chunk.evidence_structured?.[j];
         const originalText = e.textOriginal ?? e.text ?? '';
@@ -396,11 +428,7 @@ export async function getTranslatedReport(report, lang) {
           }),
         interpretive_summary: chunk.interpretive_summary ?? c.interpretive_summary,
         data_quality_caveat: chunk.data_quality_caveat ?? c.data_quality_caveat,
-        ...(c.evidence_operator_structured?.length
-          ? { evidence_operator_structured: translatedStructured }
-          : useEvidenceField && translatedStructured.length
-          ? { evidence: translatedStructured }
-          : {}),
+        ...translatedEvidenceFields(c, useEvidenceField, translatedStructured),
       };
     }),
   };

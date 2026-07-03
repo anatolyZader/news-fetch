@@ -541,7 +541,7 @@ function logScoringResults(scopedSignals, signalsForScoring, scoredFull) {
 function resolveOutputBase(reportScopeId, targetDate, getArg) {
   const now = new Date();
   // ISO format without seconds/milliseconds: 2026-05-23T121520Z
-  const runDatetime = now.toISOString().replace(/:\d{2}\.\d{3}Z$/, 'Z').replace(/:/g, '');
+  const runDatetime = now.toISOString().replace(/:\d{2}\.\d{3}Z$/, 'Z').replaceAll(':', '');
   const outputPrefix = reportFilePrefix(reportScopeId);
   const cliOutputBase = getArg('--output')?.replace(/\.(md|json)$/, '');
   return cliOutputBase ?? resolve('daily_reports', `${outputPrefix}-data-${targetDate}-run-${runDatetime}`);

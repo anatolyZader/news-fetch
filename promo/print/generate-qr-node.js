@@ -3,7 +3,6 @@
  * Generate srulik.ai QR for poster + brochure (uses project qrcode if installed).
  *   node generate-qr-node.js
  */
-const fs = require('fs');
 const path = require('path');
 
 const URL = 'https://srulik.ai';

@@ -67,6 +67,7 @@ LocalizedTextBlock.propTypes = {
   markdown: PropTypes.bool,
   markdownVariant: PropTypes.oneOf(['doc', 'report']),
   component: PropTypes.elementType,
+  sx: PropTypes.oneOfType([PropTypes.object, PropTypes.array, PropTypes.func]),
   showOriginal: PropTypes.bool,
   onToggle: PropTypes.func,
   hideToggle: PropTypes.bool,

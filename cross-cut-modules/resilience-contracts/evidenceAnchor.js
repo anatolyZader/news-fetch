@@ -11,9 +11,9 @@ export function encodeRefForAnchor(ref) {
     .trim()
     .replace(/^@+/, '')
     .replaceAll('@', '-')
-    .replace(/[^a-zA-Z0-9_-]+/g, '-')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '')
+    .replaceAll(/[^a-zA-Z0-9_-]+/g, '-')
+    .replaceAll(/-+/g, '-')
+    .replaceAll(/^-|-$/g, '')
     .slice(0, 120);
 }
 
@@ -23,7 +23,7 @@ export function encodeRefForAnchor(ref) {
  * @returns {string}
  */
 export function evidenceAnchorId(componentId, ref) {
-  const comp = String(componentId ?? 'component').trim().replace(/[^a-zA-Z0-9_-]+/g, '-');
+  const comp = String(componentId ?? 'component').trim().replaceAll(/[^a-zA-Z0-9_-]+/g, '-');
   const encoded = encodeRefForAnchor(ref);
   if (!encoded) return `evidence-${comp}`;
   return `evidence-${comp}-${encoded}`;

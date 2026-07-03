@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useMemo } from 'react';
+import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import IntlMessageFormat from 'intl-messageformat';
 import { translations } from '../i18n/index.js';
 import { formatTemplate } from '../lib/i18nFormat.js';
@@ -30,7 +30,11 @@ function lookupMessage(key, lang) {
 
 export function LanguageProvider({ children }) {
   const [lang, setLang] = useState(() => localStorage.getItem('lang') || 'en');
-  const pluralCache = useMemo(() => new Map(), [lang]);
+  const pluralCacheRef = useRef(new Map());
+
+  useEffect(() => {
+    pluralCacheRef.current = new Map();
+  }, [lang]);
 
   useEffect(() => {
     document.documentElement.dir = lang === 'he' ? 'rtl' : 'ltr';
@@ -63,6 +67,7 @@ export function LanguageProvider({ children }) {
     const raw = lookupMessage(key, lang);
     if (!raw) return '';
     const cacheKey = `${lang}:${key}`;
+    const pluralCache = pluralCacheRef.current;
     let fmt = pluralCache.get(cacheKey);
     if (!fmt) {
       fmt = new IntlMessageFormat(raw, LOCALE_TAG[lang] ?? 'en');

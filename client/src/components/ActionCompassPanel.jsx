@@ -14,7 +14,6 @@ import PropTypes from 'prop-types';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { authFetch } from '../lib/authFetch.js';
-import { formatTemplate } from '../lib/i18nFormat.js';
 import { resolveActionTitle, resolveActionWhyNow } from '../lib/resolveDisplayText.js';
 import { StatusTag } from '../ui/index.js';
 

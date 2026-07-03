@@ -173,7 +173,7 @@ describe('formatSourceCitations', () => {
     const out = formatNarrativeMarkdown(
       'Quote [source](https://www.ynet.co.il/article).',
       '2026-04-12',
-      (md) => md.replace(
+      (md) => md.replaceAll(
         /\[source\]\((https?:[^)\s]+)\)/gi,
         (_, url) => `[${labelFromUrl(url)}](${url})`,
       ),

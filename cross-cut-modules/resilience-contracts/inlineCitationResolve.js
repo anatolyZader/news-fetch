@@ -17,7 +17,6 @@ const SIGNAL_REF = /\[S(\d+)\]/g;
 const SIGNAL_REF_GROUP = /\(\s*(\[S\d+\](?:\s*,\s*\[S\d+\])*)\s*\)/g;
 const TRAILING_SIGNAL_REFS = /\s*(?:\[S\d+\])+\s*$/;
 const MARKDOWN_LINK_RUN = /(?:\[[^\]]+\]\(https?:[^)\s]+\)\s*)+/g;
-const PLAIN_APA_PART = /([^(),;]+?),\s*(\d{1,2}\s+[A-Za-z]{3}\s+\d{4})/g;
 
 /**
  * @param {object} entry
@@ -225,8 +224,8 @@ export function linkPlainApaParentheticals(prose, registry, reportDate, componen
     authorToRefs.set(source.author, list);
   }
 
-  const escapedDateLabel = dateLabel.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
-  return prose.replace(
+  const escapedDateLabel = dateLabel.replaceAll(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
+  return prose.replaceAll(
     new RegExp(String.raw`\(([^()]+?,\s*${escapedDateLabel}(?:;\s*[^()]+?,\s*${escapedDateLabel})*)\)`, 'g'),
     (full, inner) => {
       const parts = inner.split(/\s*;\s*/);

@@ -3,7 +3,7 @@
  * Assert client i18n key parity: every en key exists in he and ru.
  * Usage: node scripts/check-i18n-parity.mjs [--fix]
  */
-import { readFileSync, writeFileSync, readdirSync, mkdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
 import { resolve, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 

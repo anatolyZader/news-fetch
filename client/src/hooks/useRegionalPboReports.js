@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from 'react';
-import { authFetch } from '../lib/authFetch.js';
 import { localizedAuthFetch } from '../lib/localizedAuthFetch.js';
 
 const REGION_URL_KEY = /^[a-z0-9_-]+$/;

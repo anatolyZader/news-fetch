@@ -959,7 +959,7 @@ function evidenceItemUrl(item, meta) {
   return null;
 }
 
-function evidenceListDomId(componentId, item, index) {
+function evidenceListDomId(componentId, item, _index) {
   if (typeof item === 'object' && item?.ref && componentId) {
     return evidenceAnchorId(componentId, item.ref);
   }
@@ -1220,7 +1220,7 @@ function ComponentCard({
   }, [evidenceOpen, onEvidenceToggle]);
   const openFullPoolAccordion = useCallback(() => {
     setFullPoolOpen(true);
-  }, []);
+  }, [setFullPoolOpen]);
   const navigateToAnchor = useMemo(
     () => createEvidenceAnchorNavigator(
       openEvidenceAccordion,

@@ -161,13 +161,12 @@ export function useTodayReport(scope = 'national', view = 'operator', selectedEd
     const fetchTimeoutMs = lang === 'en' ? REPORT_FETCH_TIMEOUT_MS : REPORT_FETCH_TIMEOUT_TRANSLATE_MS;
     const timeoutId = setTimeout(() => controller.abort(), fetchTimeoutMs);
     let localizingTimer = null;
-    if (lang !== 'en') {
-      setReportLocalizing(false);
+    if (lang === 'en') {
+      // English loads skip the delayed "localizing" banner.
+    } else {
       localizingTimer = setTimeout(() => {
         if (loadGen === loadGenRef.current) setReportLocalizing(true);
       }, 800);
-    } else {
-      setReportLocalizing(false);
     }
 
     void (async () => {
@@ -233,6 +232,7 @@ export function useTodayReport(scope = 'national', view = 'operator', selectedEd
       controller.abort();
       clearTimeout(timeoutId);
       if (localizingTimer) clearTimeout(localizingTimer);
+      setReportLocalizing(false);
     };
   }, [reportFetchReady, authRequired, accessToken, tokenWarmFailed, scope, view, editionDate, editionRunId, lang, refreshTick]);
 

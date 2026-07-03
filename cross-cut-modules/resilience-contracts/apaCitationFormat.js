@@ -110,7 +110,7 @@ export function formatApaCitationsInMarkdown(markdown, reportDate, opts = {}) {
   const dateLabel = formatApaCitationDate(reportDate);
   const { linked = false } = opts;
 
-  return markdown.replace(CITATION_LINK_RUN, (run) => {
+  return markdown.replaceAll(CITATION_LINK_RUN, (run) => {
     const links = [...run.matchAll(MARKDOWN_LINK)];
     if (links.length === 0) return run;
     const sources = links.map(([, text, url]) => ({

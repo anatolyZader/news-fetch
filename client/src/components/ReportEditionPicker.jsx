@@ -92,7 +92,6 @@ export function ReportEditionPicker({
   const open = Boolean(anchorEl);
 
   const active = resolveActiveEdition(loadedEdition, selectedEdition, editions);
-  const sameDateCount = countEditionsForDate(editions, active?.date);
 
   if (loading && editions.length === 0) {
     return (

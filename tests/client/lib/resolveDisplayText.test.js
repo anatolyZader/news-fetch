@@ -2,9 +2,9 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { resolveDisplayText, resolveActionTitle, resolveActionWhyNow } from '../../../client/src/lib/resolveDisplayText.js';
 
-describe('resolveDisplayText', () => {
-  const t = (key) => ({ 'action.test': 'Test title', 'why.test': 'Why now' }[key] ?? key);
+const t = (key) => ({ 'action.test': 'Test title', 'why.test': 'Why now' }[key] ?? key);
 
+describe('resolveDisplayText', () => {
   it('resolves i18n kind', () => {
     assert.equal(resolveDisplayText({ kind: 'i18n', key: 'action.test' }, t), 'Test title');
   });
