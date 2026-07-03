@@ -179,7 +179,7 @@ describe('loadHistoricalScores', () => {
   });
 
   function writeReport(date, components, time = '0830') {
-    const file = `resilience-report-${date}-${time}.json`;
+    const file = `resilience-report-data-${date}-run-${time}.json`;
     writeFileSync(join(dir, file), JSON.stringify({ assessment: { date, components } }), 'utf8');
   }
 
