@@ -1,11 +1,11 @@
 {
   "version": 2,
-  "recordedAt": "2026-06-25T15:38:54.068Z",
-  "gitSha": "be440bba6922060d8d29e54a3caacc6230097c41",
+  "recordedAt": "2026-07-03T13:16:26.634Z",
+  "gitSha": "22720f28671cb1c36f1acf64d8b8b2f71772f82d",
   "files": {
-    "package-lock.json": "8dedd6e55829816430eb930a5323d61c1eba6c2d08dffd722a091676b7cbd12c",
-    "client/package-lock.json": "fba3155da65847688e11fb9fc074f6a17eb46e4a7f34fedbdc9a7254caaefb48",
-    "analyst-site/package-lock.json": "67c3aedbedbdb5f8135c5b35c1bdd1777c30ba14e93f0f656b15e56afe51a09b",
+    "package-lock.json": "98471d769d10914b8d711f253e0a6f880dc53e0cb95518ca2b0bb44fef81f0f1",
+    "client/package-lock.json": "27bb59b51957d3f7956ace2100c710e1db17f695b80c1e458b1b8c30800beffe",
+    "analyst-site/package-lock.json": "212fac4cccfbb349b228cea6662cb3f347e84bc89b7e087b49e93791166645b2",
     "tools/docs-site/package-lock.json": "b3f47c18b0bac88a259d11f2f0191964548c3e59ae8bb11036dbb28692111110",
     ".nvmrc": "88029f8a967e9b0a57e49328ab94fa6d74e07946e2b5d33626c82d0dc6e93d81",
     "openapi/openapi.yaml": "3a547b7aa6f23c368b1be2e4c15d5090987740b873551ae90f15916576b1b3c1",
@@ -13,7 +13,7 @@
     ".github/actions/setup-npm-ci/action.yml": "7a1ea9b73e7cece91469554d0e65cdf7f0eb885475e3db168034926bf277d439"
   },
   "clientDist": {
-    "aggregateSha256": "0147e159f712a858253c5ece579ed7b991c6557df159ac9e157f571fde2c147a",
+    "aggregateSha256": "c0e051a30f8a89deda5466547493a4dd96cd0930912d7b9bbf398482761df6cc",
     "fileCount": 70
   }
 }
