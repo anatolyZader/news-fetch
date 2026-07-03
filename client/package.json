@@ -14,7 +14,9 @@
     "@fontsource/inter": "^5.2.8",
     "@mui/icons-material": "^9.0.0",
     "@mui/material": "^9.0.0",
+    "@tanstack/react-virtual": "^3.13.12",
     "firebase": "^11.10.0",
+    "intl-messageformat": "^11.2.9",
     "prop-types": "^15.8.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -22,8 +24,7 @@
     "recharts": "^3.8.1",
     "remark-gfm": "^4.0.1",
     "stylis": "^4.4.0",
-    "stylis-plugin-rtl": "^2.1.1",
-    "@tanstack/react-virtual": "^3.13.12"
+    "stylis-plugin-rtl": "^2.1.1"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.4",
