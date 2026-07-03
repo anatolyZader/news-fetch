@@ -22,6 +22,11 @@ function writeReport(dir, filename, payload) {
   writeFileSync(resolve(dir, filename), JSON.stringify(payload), 'utf8');
 }
 
+function reportFilename(date, runId = '1000', scope = 'national') {
+  const prefix = scope === 'north' ? 'resilience-report-north' : 'resilience-report';
+  return `${prefix}-data-${date}-run-${runId}.json`;
+}
+
 function buildReport({ date, totalArticles = 10, overall = 6, components = [], signals = [] }) {
   return {
     assessment: {
@@ -41,7 +46,7 @@ describe('readResilienceHistory', () => {
   });
 
   it('reads a single national report and summarizes components + signals', () => {
-    writeReport(tmp, 'resilience-report-2026-05-01.json', buildReport({
+    writeReport(tmp, reportFilename('2026-05-01'), buildReport({
       date: '2026-05-01',
       totalArticles: 12,
       overall: 7,
@@ -79,11 +84,11 @@ describe('readResilienceHistory', () => {
   });
 
   it('picks canonical report per date by total_articles_analyzed (then mtime)', () => {
-    writeReport(tmp, 'resilience-report-2026-05-01-0700.json', buildReport({
+    writeReport(tmp, reportFilename('2026-05-01', '0700'), buildReport({
       date: '2026-05-01', totalArticles: 5, overall: 3,
     }));
     // The 30-article run is canonical even though it's earlier in alphabetical order
-    writeReport(tmp, 'resilience-report-2026-05-01-1900.json', buildReport({
+    writeReport(tmp, reportFilename('2026-05-01', '1900'), buildReport({
       date: '2026-05-01', totalArticles: 30, overall: 8,
     }));
 
@@ -94,10 +99,10 @@ describe('readResilienceHistory', () => {
   });
 
   it('respects scope=north and excludes national reports', () => {
-    writeReport(tmp, 'resilience-report-2026-05-01.json', buildReport({
+    writeReport(tmp, reportFilename('2026-05-01'), buildReport({
       date: '2026-05-01', totalArticles: 12, overall: 7,
     }));
-    writeReport(tmp, 'resilience-report-north-2026-05-01.json', buildReport({
+    writeReport(tmp, reportFilename('2026-05-01', '1000', 'north'), buildReport({
       date: '2026-05-01', totalArticles: 5, overall: 4,
     }));
 
@@ -111,7 +116,7 @@ describe('readResilienceHistory', () => {
   });
 
   it('excludes -north- files from national results', () => {
-    writeReport(tmp, 'resilience-report-north-2026-05-01.json', buildReport({
+    writeReport(tmp, reportFilename('2026-05-01', '1000', 'north'), buildReport({
       date: '2026-05-01', totalArticles: 5, overall: 4,
     }));
     const national = readResilienceHistory({ reportsDir: tmp, days: 7, endDate: '2026-05-03', scope: 'national' });
@@ -119,24 +124,24 @@ describe('readResilienceHistory', () => {
   });
 
   it('skips dates outside the window', () => {
-    writeReport(tmp, 'resilience-report-2026-04-01.json', buildReport({ date: '2026-04-01', overall: 2 }));
-    writeReport(tmp, 'resilience-report-2026-05-01.json', buildReport({ date: '2026-05-01', overall: 7 }));
+    writeReport(tmp, reportFilename('2026-04-01'), buildReport({ date: '2026-04-01', overall: 2 }));
+    writeReport(tmp, reportFilename('2026-05-01'), buildReport({ date: '2026-05-01', overall: 7 }));
     const result = readResilienceHistory({ reportsDir: tmp, days: 5, endDate: '2026-05-03' });
     assert.equal(result.length, 1, 'only 2026-05-01 falls in last 5 days');
     assert.equal(result[0].date, '2026-05-01');
   });
 
   it('returns chronologically-sorted records', () => {
-    writeReport(tmp, 'resilience-report-2026-05-03.json', buildReport({ date: '2026-05-03', overall: 7 }));
-    writeReport(tmp, 'resilience-report-2026-05-01.json', buildReport({ date: '2026-05-01', overall: 5 }));
-    writeReport(tmp, 'resilience-report-2026-05-02.json', buildReport({ date: '2026-05-02', overall: 6 }));
+    writeReport(tmp, reportFilename('2026-05-03'), buildReport({ date: '2026-05-03', overall: 7 }));
+    writeReport(tmp, reportFilename('2026-05-01'), buildReport({ date: '2026-05-01', overall: 5 }));
+    writeReport(tmp, reportFilename('2026-05-02'), buildReport({ date: '2026-05-02', overall: 6 }));
     const result = readResilienceHistory({ reportsDir: tmp, days: 7, endDate: '2026-05-03' });
     assert.deepEqual(result.map((r) => r.date), ['2026-05-01', '2026-05-02', '2026-05-03']);
   });
 
   it('skips malformed JSON files gracefully', () => {
-    writeFileSync(resolve(tmp, 'resilience-report-2026-05-01.json'), 'not-json{', 'utf8');
-    writeReport(tmp, 'resilience-report-2026-05-02.json', buildReport({ date: '2026-05-02', overall: 6 }));
+    writeFileSync(resolve(tmp, reportFilename('2026-05-01')), 'not-json{', 'utf8');
+    writeReport(tmp, reportFilename('2026-05-02'), buildReport({ date: '2026-05-02', overall: 6 }));
     const result = readResilienceHistory({ reportsDir: tmp, days: 7, endDate: '2026-05-03' });
     assert.equal(result.length, 1);
     assert.equal(result[0].date, '2026-05-02');
