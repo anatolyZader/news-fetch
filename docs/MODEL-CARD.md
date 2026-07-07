@@ -50,7 +50,7 @@ Separate from component scores. Multi-channel EWMA baselines + z-score drop dete
 - `digital_darkness` → **field-anchor-only**: re-score using field-family sources only; `assessment_mode: field_anchor_only`; stale digital-inclusive snapshot in `stale_digital_scores`
 - `level === warning` → scores kept; `epistemic_status.sampling_status: degraded`
 
-**Connectivity probes:** drop JSON/JSONL under `business_modules/resilience/data/connectivity-probes/`; ingested as `source_type: infrastructure_probe` (cap-exempt, high trust).
+**Connectivity probes:** drop JSON/JSONL under `business_modules/resilience_scorer/data/connectivity-probes/`; ingested as `source_type: infrastructure_probe` (cap-exempt, high trust).
 
 Flag: `RESILIENCE_DATA_VOID=0` disables void index.
 
@@ -73,7 +73,7 @@ Flag: `RESILIENCE_DATA_VOID=0` disables void index.
 ## Temporal analysis
 
 - **Acute:** 14-day EWMA + z-score (`delta_significance`)
-- **Chronic:** peace-time anchor (`business_modules/resilience/config/peaceTimeAnchors.json`) + `z_score_chronic`, `erosion_index`, `exhaustion_days`
+- **Chronic:** peace-time anchor (`business_modules/resilience_scorer/config/peaceTimeAnchors.json`) + `z_score_chronic`, `erosion_index`, `exhaustion_days`
 
 Flag: `RESILIENCE_DUAL_BASELINE=0` disables chronic metrics.
 
@@ -83,7 +83,7 @@ When `RESILIENCE_PRESENCE_GATES` is on (default), verified **grounded** signals 
 
 ## OOV burst (operator)
 
-`assessment.oov_burst` evaluates `daily_reports/oov-capture-{date}.jsonl` unknown-type records **before scoring**. Operator attention when total ≥ `RESILIENCE_OOV_OPERATOR_MIN` (default 5) or largest cluster ≥ threshold.
+`assessment.oov_burst` evaluates `business_modules/resilience_scorer/data/oov_captures/oov-capture-{date}.jsonl` unknown-type records **before scoring**. Operator attention when total ≥ `RESILIENCE_OOV_OPERATOR_MIN` (default 5) or largest cluster ≥ threshold.
 
 During **abstention** (`sampling_blind`, `digital_darkness`, elevated `data_void`), the **anomaly strip** (`anomaly_strip` on report API) lowers the operator visibility threshold to cluster count ≥ 1 — surfaced in `OovAnomalyClustersPanel` with label “not in synthesis summary.”
 
@@ -194,7 +194,7 @@ Telemetry: per-invocation JSONL + `getLlmTelemetry()` feature rollup — see [CO
 - Digital survivorship bias — people who do not post are invisible (mitigated by data_void + field priority)
 - Closed vocabulary — novel behaviors logged to OOV; `novel_behavior_observed` adds low-weight scoring mass when clusters alert
 - Residual capture (`RESILIENCE_RESIDUAL_CAPTURE=1` or omission-audit mode) — Haiku residual pass on zero-signal articles; writes to `oov-capture-*.jsonl` only
-- Omission audit (`RESILIENCE_OMISSION_AUDIT`, default ON on closed-core branch) — `daily_reports/omission-audit-{scope}-{date}.json`; no agent feed
+- Omission audit (`RESILIENCE_OMISSION_AUDIT`, default ON on closed-core branch) — `business_modules/resilience_scorer/data/omission_audits/omission-audit-{scope}-{date}.json`; no agent feed
 - Catalog gap report — `npm run signal-catalog-evolution:gap-report` clusters captures for analyst review
 - Heuristic weights — author-set; RGR calibration via `signalWeightsFit.js` when ≥30 labeled reports
 - Media repetition tracked separately as `media_mention_mass` — not merged into behavioral headline score

@@ -6,7 +6,7 @@ import { resolve } from 'node:path';
 import fastifySwagger from '@fastify/swagger';
 import fastifySwaggerUi from '@fastify/swagger-ui';
 import YAML from 'yaml';
-import { createReportReadPort, createReportDisplayPort } from '../business_modules/resilience/index.js';
+import { createReportReadPort, createReportDisplayPort } from '../business_modules/resilience_scorer/index.js';
 import { createClaudeChatAdapter } from '../business_modules/chat/infrastructure/adapters/claudeChatAdapter.js';
 import { getMunicipalityDashboard } from '../business_modules/pbo_report_muni/index.js';
 import { registerAppErrorHandler } from '../cross-cut-modules/errors/index.js';
@@ -56,7 +56,7 @@ import { signalCatalogEvolutionRoutes } from '../business_modules/signal_catalog
 import { evidenceRoutes } from '../cross-cut-modules/evidence/input/evidenceRoutes.js';
 import { chatRoutes } from '../business_modules/chat/input/chatRoutes.js';
 import { registerCrisisBudgetRoutes } from '../cross-cut-modules/budget/index.js';
-import { reportRoutes } from '../business_modules/resilience/input/reportRoutes.js';
+import { reportRoutes } from '../business_modules/resilience_scorer/input/reportRoutes.js';
 import { authRoutes } from '../cross-cut-modules/auth/authRoutes.js';
 import { operatorRoutes } from '../cross-cut-modules/monitoring/input/operatorRoutes.js';
 import { docsRoutes, resolveProductDocsRoot } from '../cross-cut-modules/docs/input/docsRoutes.js';

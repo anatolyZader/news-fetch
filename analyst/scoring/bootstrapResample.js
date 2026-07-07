@@ -1,4 +1,4 @@
-import { applySourceCap } from '../../business_modules/resilience/domain/epistemic/evidenceCaps.js';
+import { applySourceCap } from '../../business_modules/resilience_scorer/domain/epistemic/evidenceCaps.js';
 import { scoreFromItems, applySaliencePostScoringPolicy } from './scoringShared.js';
 
 export function buildBootstrapSample(items, n, rng) {
@@ -9,7 +9,7 @@ export function buildBootstrapSample(items, n, rng) {
   return sample;
 }
 
-export function scoreBootstrapSample(sample, componentId, totalArticles) {
+export function scoreBootstrapSample(sample, componentId, totalArticles, capOpts = {}) {
   const articleSet = new Set();
   const sourceSet = new Set();
   for (const it of sample) {
@@ -17,11 +17,10 @@ export function scoreBootstrapSample(sample, componentId, totalArticles) {
     if (k != null) articleSet.add(k);
     if (it.signal.source_type) sourceSet.add(it.signal.source_type);
   }
-  const capped = applySourceCap(sample);
+  const capped = applySourceCap(sample, capOpts);
   return applySaliencePostScoringPolicy(
     scoreFromItems(capped, componentId, totalArticles, articleSet, sourceSet),
     capped,
-    { applyFloor: true },
   );
 }
 

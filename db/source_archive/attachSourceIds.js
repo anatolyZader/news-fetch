@@ -3,7 +3,7 @@
  */
 import { resolve } from 'node:path';
 import { buildMdSourceIdFromPath } from './sourceId.js';
-import { loadMdFile } from '../../business_modules/resilience/index.js';
+import { loadMdFile } from '../../business_modules/resilience_scorer/index.js';
 
 /**
  * @param {string[]} filePaths absolute or relative paths

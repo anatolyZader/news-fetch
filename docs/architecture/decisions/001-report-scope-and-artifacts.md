@@ -12,7 +12,7 @@ National and regional (e.g. north) resilience reports share one scoring engine b
 
 **Option B + regional artifacts:**
 
-1. **Server assessment** (`runResilienceAssessment`) always applies `filterSignalsForScope` via `scopeAndPartitionSignals` in [`assessmentPipeline.js`](../../../business_modules/resilience/app/assessmentPipeline.js) before scoring, using `reportScopeId` (default `national`).
+1. **Server assessment** (`runResilienceAssessment`) always applies `filterSignalsForScope` via `scopeAndPartitionSignals` in [`assessmentPipeline.js`](../../../business_modules/resilience_scorer/app/assessmentPipeline.js) before scoring, using `reportScopeId` (default `national`).
 2. **CLI `assess-signals`** uses the same `scopeAndPartitionSignals` helper but **persists separate JSON/MD files** per scope (e.g. `resilience-report-north-{date}`).
 3. **API** `GET /api/report/today?scope=…` loads the matching artifact; when missing for a regional scope, returns `regional_requires_assess_signals` (not a silent national fallback).
 

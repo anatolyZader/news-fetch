@@ -24,7 +24,7 @@ const TRUSTED_VENDOR_FILES = new Set([
   'business_modules/news-sites/infrastructure/adapters/newsApiAdapterFactory.js',
   'business_modules/search_trends/infrastructure/adapters/dataforseoTrendsAdapter.js',
   'business_modules/whatsapp/infrastructure/adapters/metaCloudApiAdapter.js',
-  'business_modules/resilience/infrastructure/embeddingEvidenceVerifier.js',
+  'business_modules/resilience_scorer/infrastructure/embeddingEvidenceVerifier.js',
   'cross-cut-modules/vector_index/openaiEmbeddingAdapter.js',
   'cross-cut-modules/security/infrastructure/safeFetch.js',
 ]);

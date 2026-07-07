@@ -173,6 +173,9 @@ export async function streamChatResponse(systemContext, pboLookup, messages, sen
     onUsage: costRecorder
       ? (p) => costRecorder.onUsage({ label: p.label, model: p.model, usage: p.usage })
       : undefined,
+    onToolStart: ({ name, round, maxRounds }) => {
+      send({ type: 'tool_start', name, round, maxRounds });
+    },
   });
 
   if (opts.onLoopExhausted && loopResult?.stopReason === 'max_rounds') {

@@ -9,5 +9,22 @@
   "chat.launcherWhenClosed": "צ׳אט",
   "chat.launcherWhenOpen": "סגור צ׳אט",
   "chat.placeholder": "שאל על הערכות חוסן — היום או תאריכים קודמים…",
-  "chat.send": "שלח"
+  "chat.send": "שלח",
+  "chat.stop": "עצור",
+  "chat.status.preparing": "מכין הקשר…",
+  "chat.status.thinking": "חושב…",
+  "chat.status.elapsed": "{seconds}ש׳",
+  "chat.status.toolProgress": "({round}/{maxRounds})",
+  "chat.status.slowWarning": "לוקח יותר מהרגיל — מגבלת השרת כ-{timeoutMin} דק׳. אפשר לעצור ולנסות שוב.",
+  "chat.status.tool.generic": "מריץ כלי…",
+  "chat.status.tool.lookup_signals": "מחפש אותות",
+  "chat.status.tool.get_source": "שולף מקור",
+  "chat.status.tool.search_sources": "מחפש במקורות",
+  "chat.status.tool.trace_component_timeline": "בונה ציר זמן",
+  "chat.status.tool.compare_dates": "משווה תאריכים",
+  "chat.status.tool.get_component_evidence_bundle": "טוען חבילת ראיות",
+  "chat.banner.loop_exhausted": "הגעת למגבלת חיפוש — התשובה עלולה להיות חלקית. נסה ליצור מחדש או לצמצם את השאלה.",
+  "chat.banner.error": "לא ניתן היה להשלים את התשובה.",
+  "chat.banner.deterministic_fallback": "תשובה ללא AI (מצב תקציב).",
+  "chat.banner.planning_only": "ייתכן שהתשובה לא הושלמה — ליצור מחדש?"
 }

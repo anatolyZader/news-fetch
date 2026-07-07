@@ -29,10 +29,10 @@ It is tempting to imagine this product as "a number from 1 to 10 for community r
 
 ### 2.2 What is hidden from the operator
 
-A headline **1-10 resilience score** (and per-component numeric scores, confidence intervals, score drift, etc.) still exists internally. It is produced by a deterministic scoring path (`business_modules/resilience/app/scoringFacade.js`, which is the *only* allowed bridge into `analyst/scoring/`). But for operators it is treated as a **shadow / analyst-only** artifact and is **redacted at the API and UI**:
+A headline **1-10 resilience score** (and per-component numeric scores, confidence intervals, score drift, etc.) still exists internally. It is produced by a deterministic scoring path (`business_modules/resilience_scorer/app/scoringFacade.js`, which is the *only* allowed bridge into `analyst/scoring/`). But for operators it is treated as a **shadow / analyst-only** artifact and is **redacted at the API and UI**:
 
 - `cross-cut-modules/resilience-contracts/displayViews.js` resolves a `display_view` of `operator` or `analyst`. Analyst is only granted to allow-listed users.
-- `business_modules/resilience/domain/services/assessmentDisplayTier.js` (`redactReportPayload`, `redactAssessmentForView`) strips numeric scores, `overall_resilience_score`, shadow scoring, and component diagnostics for the operator view.
+- `business_modules/resilience_scorer/domain/services/assessmentDisplayTier.js` (`redactReportPayload`, `redactAssessmentForView`) strips numeric scores, `overall_resilience_score`, shadow scoring, and component diagnostics for the operator view.
 - The operator-facing markdown brief (`...-brief.md`) is generated with `includeScores: false`.
 
 **Why hide it?** A single number invites over-trust and false precision, especially when evidence is thin or one-sided. The design forces the operator to engage with *claims and evidence quality* instead of anchoring on a score. The score remains available to analysts for calibration and methodology work. See file 05 for the mechanics.
@@ -67,7 +67,7 @@ The officer's operational responsibility is to produce **two situation reports p
 - `scripts/README.md` provides **two cron entries** — **06:00 Israel time** (morning, before briefing 1) and **14:00 Israel time** (afternoon, before briefing 2), Sunday–Thursday.
 - The morning run uses `--no-transcribe` to skip radio transcription (recordings may still be in progress); the afternoon run includes full transcription.
 - The assessment CLI writes each run to a filename stamped with an `HHMM` time suffix (e.g. `resilience-report-north-2026-06-13-0930.json`), so **running the pipeline more than once per day is fully supported**.
-- The report cache (`business_modules/resilience/app/reportCacheService.js`) resolves the "best" report for a date by **newest `generated_at` timestamp first** (not by article count), so the afternoon run supersedes the morning run automatically.
+- The report cache (`business_modules/resilience_scorer/app/reportCacheService.js`) resolves the "best" report for a date by **newest `generated_at` timestamp first** (not by article count), so the afternoon run supersedes the morning run automatically.
 - If the most recent report is **older than 4 hours** when the officer opens the UI, a freshness warning banner is shown.
 
 The radio source captures two recording windows per day (06:00-09:00 and 09:00-12:00 via `business_modules/radio/input/setup-tzafon.js`), which is an ingestion detail, not a report schedule. For weekend coverage, add days 5–6 to the cron or run manually.
@@ -101,9 +101,9 @@ The operating principle: **an honest "we don't know yet" is more useful to a dis
 | Concern | Path |
 |---------|------|
 | Display view resolution (operator vs analyst) | `cross-cut-modules/resilience-contracts/displayViews.js` |
-| Operator redaction of scores | `business_modules/resilience/domain/services/assessmentDisplayTier.js` |
-| Scoring bridge (analyst-only headline /10) | `business_modules/resilience/app/scoringFacade.js` |
+| Operator redaction of scores | `business_modules/resilience_scorer/domain/services/assessmentDisplayTier.js` |
+| Scoring bridge (analyst-only headline /10) | `business_modules/resilience_scorer/app/scoringFacade.js` |
 | Northern-district subregions | `business_modules/geo/domain/value_objects/northSubregionId.js` |
 | Daily pipeline cron / cadence | `scripts/README.md`, `scripts/daily-pipeline.sh` |
-| Report time-suffix + output | `business_modules/resilience/app/assessSignalsCli.js` |
-| Decision-brief advisory rules | `business_modules/resilience/domain/services/decisionBriefPrompt.js` |
+| Report time-suffix + output | `business_modules/resilience_scorer/app/assessSignalsCli.js` |
+| Decision-brief advisory rules | `business_modules/resilience_scorer/domain/services/decisionBriefPrompt.js` |

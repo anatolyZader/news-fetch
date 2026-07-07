@@ -1,6 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
 import { buildAuthHeaders } from '../lib/authFetch.js';
+import {
+  initialChatStreamState,
+  reduceChatStreamEvent,
+  buildAssistantTurnMeta,
+  resolveAssistantErrorContent,
+} from '../lib/chatStreamReducer.js';
+import { chatClientTimeoutMs } from '../lib/chatStreamStatus.js';
 
 async function consumeChatSseStream(response, onEvent) {
   const reader = response.body.getReader();
@@ -30,21 +37,18 @@ async function consumeChatSseStream(response, onEvent) {
   return { terminal: null, event: null };
 }
 
-function chatClientTimeoutMs() {
-  const raw = import.meta.env.VITE_CHAT_CLIENT_TIMEOUT_MS;
-  const n = Number.parseInt(raw ?? '270000', 10);
-  return Number.isFinite(n) && n > 0 ? n : 270_000;
-}
-
 export function useChat() {
   const { getIdToken, getAppCheckToken } = useAuth();
-  const [sessions, setSessions] = useState([]); // [{ id, title, report_date, created_at, updated_at }]
+  const [sessions, setSessions] = useState([]);
   const [activeSessionId, setActiveSessionId] = useState(null);
-  const [history, setHistory] = useState([]); // [{ id?, role, content, error? }]
+  const [history, setHistory] = useState([]);
   const [streaming, setStreaming] = useState(false);
-  const [draft, setDraft] = useState(''); // assistant reply being streamed
+  const [draft, setDraft] = useState('');
+  const [streamState, setStreamState] = useState(initialChatStreamState);
+  const [elapsedSec, setElapsedSec] = useState(0);
   const [pendingActions, setPendingActions] = useState([]);
   const abortRef = useRef(null);
+  const streamStateRef = useRef(initialChatStreamState());
 
   const todayStr = useMemo(() => new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jerusalem' }), []);
 
@@ -154,25 +158,35 @@ export function useChat() {
     queueMicrotask(() => { loadMessages(activeSessionId).catch(() => {}); });
   }, [activeSessionId, loadMessages]);
 
-  function handleChatStreamEvent(event, accumulatedRef) {
-    if (event.type === 'text') {
-      accumulatedRef.value += event.text;
-      setDraft(accumulatedRef.value);
-      return null;
+  useEffect(() => {
+    if (!streaming || !streamState.startedAt) {
+      setElapsedSec(0);
+      return undefined;
     }
-    if (event.type === 'action_proposed') {
-      setPendingActions((prev) => [
-        ...prev.filter((a) => a.actionId !== event.actionId),
-        {
-          actionId: event.actionId,
-          toolName: event.toolName,
-          summary: event.summary,
-          expiresAt: event.expiresAt,
-        },
-      ]);
-      return null;
-    }
-    return event.type;
+    const tick = () => {
+      setElapsedSec(Math.max(0, Math.floor((Date.now() - streamState.startedAt) / 1000)));
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [streaming, streamState.startedAt]);
+
+  function beginStreaming() {
+    const startedAt = Date.now();
+    const next = { ...initialChatStreamState(), startedAt, phase: 'thinking' };
+    streamStateRef.current = next;
+    setStreamState(next);
+    setElapsedSec(0);
+    setStreaming(true);
+    setDraft('');
+  }
+
+  function finishStreaming() {
+    setDraft('');
+    setStreaming(false);
+    streamStateRef.current = initialChatStreamState();
+    setStreamState(initialChatStreamState());
+    setElapsedSec(0);
   }
 
   function buildChatRequestBody(partial, opts = {}) {
@@ -192,35 +206,35 @@ export function useChat() {
     return body;
   }
 
-  function finishStreaming() {
-    setDraft('');
-    setStreaming(false);
-  }
-
   function completeSseOutcome(outcome, accumulated) {
     if (outcome.terminal === 'done') {
       if (outcome.event?.error) {
+        const content = resolveAssistantErrorContent(outcome.event, accumulated);
+        const meta = buildAssistantTurnMeta(outcome.event, content);
         setHistory((h) => [
           ...h,
           {
             role: 'assistant',
-            content: outcome.event?.message || accumulated || 'An error occurred',
+            content,
             error: true,
+            meta,
           },
         ]);
         finishStreaming();
         loadSessions().catch(() => {});
         return true;
       }
-      setHistory((h) => [...h, { role: 'assistant', content: accumulated }]);
+      const meta = buildAssistantTurnMeta(outcome.event, accumulated);
+      setHistory((h) => [...h, { role: 'assistant', content: accumulated, meta }]);
       finishStreaming();
       loadSessions().catch(() => {});
       return true;
     }
     if (outcome.terminal === 'error') {
+      const content = resolveAssistantErrorContent(outcome.event, accumulated);
       setHistory((h) => [
         ...h,
-        { role: 'assistant', content: outcome.event?.message || 'An error occurred', error: true },
+        { role: 'assistant', content, error: true, meta: { banner: 'error' } },
       ]);
       finishStreaming();
       loadSessions().catch(() => {});
@@ -246,24 +260,48 @@ export function useChat() {
 
       if (!res.ok) {
         const errText = await res.text().catch(() => res.statusText);
-        setHistory((h) => [...h, { role: 'assistant', content: errText || 'Request failed', error: true }]);
+        setHistory((h) => [...h, { role: 'assistant', content: errText || 'Request failed', error: true, meta: { banner: 'error' } }]);
         finishStreaming();
         return;
       }
 
-      const outcome = await consumeChatSseStream(res, (event) => handleChatStreamEvent(event, accRef));
+      const outcome = await consumeChatSseStream(res, (event) => {
+        const { state, terminal, event: sideEffect } = reduceChatStreamEvent(
+          streamStateRef.current,
+          event,
+          accRef,
+        );
+        streamStateRef.current = state;
+        setStreamState(state);
+        if (event.type === 'text') {
+          setDraft(accRef.value);
+        }
+        if (sideEffect?.type === 'action_proposed') {
+          setPendingActions((prev) => [
+            ...prev.filter((a) => a.actionId !== sideEffect.actionId),
+            {
+              actionId: sideEffect.actionId,
+              toolName: sideEffect.toolName,
+              summary: sideEffect.summary,
+              expiresAt: sideEffect.expiresAt,
+            },
+          ]);
+        }
+        return terminal;
+      });
       const accumulated = accRef.value;
       if (completeSseOutcome(outcome, accumulated)) return;
 
       if (accumulated) {
-        setHistory((h) => [...h, { role: 'assistant', content: accumulated }]);
+        const meta = buildAssistantTurnMeta(null, accumulated);
+        setHistory((h) => [...h, { role: 'assistant', content: accumulated, meta }]);
         finishStreaming();
         return;
       }
 
       setHistory((h) => [
         ...h,
-        { role: 'assistant', content: 'Connection ended unexpectedly.', error: true },
+        { role: 'assistant', content: 'Connection ended unexpectedly.', error: true, meta: { banner: 'error' } },
       ]);
       finishStreaming();
     } catch (err) {
@@ -278,8 +316,7 @@ export function useChat() {
     if (streaming || !message.trim() || !activeSessionId) return;
 
     setHistory((h) => [...h, { role: 'user', content: message }]);
-    setStreaming(true);
-    setDraft('');
+    beginStreaming();
 
     await runChatStreamRequest({ message, action: 'send' }, opts, {
       onAbort(err, accumulated) {
@@ -291,7 +328,7 @@ export function useChat() {
         }
         setHistory((h) => [
           ...h,
-          { role: 'assistant', content: 'Connection error — please try again.', error: true },
+          { role: 'assistant', content: 'Connection error — please try again.', error: true, meta: { banner: 'error' } },
         ]);
       },
     });
@@ -299,13 +336,12 @@ export function useChat() {
 
   async function regenerateLast(opts = {}) {
     if (streaming || !activeSessionId) return;
-    setStreaming(true);
-    setDraft('');
+    beginStreaming();
 
     await runChatStreamRequest({ action: 'regenerate', scope: null }, opts, {
       onAbort(err) {
         const content = err?.name === 'AbortError' ? 'Cancelled.' : 'Connection error — please try again.';
-        setHistory((h) => [...h, { role: 'assistant', content, error: true }]);
+        setHistory((h) => [...h, { role: 'assistant', content, error: true, meta: { banner: 'error' } }]);
       },
     });
   }
@@ -342,6 +378,8 @@ export function useChat() {
     history,
     streaming,
     draft,
+    streamState,
+    elapsedSec,
     pendingActions,
     confirmAction,
     send,

@@ -169,7 +169,7 @@ function buildNextActions(config, stats) {
 
   if (phase === 'baseline') {
     actions.push(
-      'Peacetime: expand hand-reviewed golden corpus under business_modules/resilience/tuning/golden/.',
+      'Peacetime: expand hand-reviewed golden corpus under business_modules/resilience_scorer/tuning/golden/.',
       'When crisis begins: set operational_phase to "elevated" or "acute" in validation-config.json.',
     );
   }

@@ -74,7 +74,7 @@ The page has three areas that matter for this project: **Actions permissions**, 
 
 **How to verify doc-sync can push:**
 
-1. Change something that affects generated docs (e.g. a field in `business_modules/resilience/domain/resilienceComponents.js`).
+1. Change something that affects generated docs (e.g. a field in `business_modules/resilience_scorer/domain/resilienceComponents.js`).
 2. Push to a branch and open a PR (same repo, not a fork).
 3. After **Sync main documentation** completes, either:
    - The job log says `Main documentation already up to date`, or
@@ -243,7 +243,7 @@ You need **Admin** or a custom role with `secrets` write access to add repositor
 
 **Live LLM behavior without secret:** Workflow runs on schedule (Mondays 06:00 UTC) or manual dispatch; first step detects empty key, logs `ANTHROPIC_API_KEY is not set; skipping live-LLM adversarial run`, and **does not** run tests (no failure).
 
-**Live LLM behavior with secret:** Runs `npm test -- tests/business_modules/resilience/adversarial.test.js` with `RESILIENCE_LIVE_LLM=1` (costs real API usage).
+**Live LLM behavior with secret:** Runs `npm test -- tests/business_modules/resilience_scorer/adversarial.test.js` with `RESILIENCE_LIVE_LLM=1` (costs real API usage).
 
 ---
 

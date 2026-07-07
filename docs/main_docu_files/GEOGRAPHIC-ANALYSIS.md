@@ -2,7 +2,7 @@
 
 **Purpose:** Deterministic **locality resolution** and **district scoping** for signals and reports. Geo is not LLM-inferred at assess time for metrics eligibility — envelopes are structured and versioned. The **assessment agent** path uses the same scoped/partitioned signals as shadow scoring (`regionSignalFilter.js`); geo does not change at the agent layer.
 
-**Sources:** `business_modules/geo/`, `cross-cut-modules/geo/enrichSignalsWithGeo.js`, `cross-cut-modules/geo/localityCandidate.js`, `cross-cut-modules/geo/geoAttachPolicy.js`, `business_modules/resilience/domain/services/regionSignalFilter.js`.
+**Sources:** `business_modules/geo/`, `cross-cut-modules/geo/enrichSignalsWithGeo.js`, `cross-cut-modules/geo/localityCandidate.js`, `cross-cut-modules/geo/geoAttachPolicy.js`, `business_modules/resilience_scorer/domain/services/regionSignalFilter.js`.
 
 ---
 
@@ -100,7 +100,7 @@ Called from `attachGeoToSignals` / `enrichSignalsWithGeo.js` at both extract and
 
 Regional reports require resolved geo (or always-in-scope source types) matching target district. Non-north localities may match via `homefront-district-stubs.json` when absent from `north-reference.json`.
 
-**Port:** `IReportScopePolicy` → `defaultReportScopePolicyAdapter.js` → `business_modules/resilience/app/assessmentPipeline.js` (`scopeAndPartitionSignals`).
+**Port:** `IReportScopePolicy` → `defaultReportScopePolicyAdapter.js` → `business_modules/resilience_scorer/app/assessmentPipeline.js` (`scopeAndPartitionSignals`).
 
 Report scope ids: `cross-cut-modules/geo/reportScopeIds.js` (national + five regional districts).
 

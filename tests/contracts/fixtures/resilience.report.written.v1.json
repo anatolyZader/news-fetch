@@ -4,6 +4,6 @@
     "eventVersion": 1,
     "date": "2026-01-15",
     "scope": "national",
-    "jsonPath": "/tmp/daily_reports/resilience-report-2026-01-15.json"
+    "jsonPath": "/tmp/business_modules/resilience/data/reports/resilience-report-2026-01-15.json"
   }
 }

@@ -6,11 +6,11 @@ import 'dotenv/config';
 import { resolve, isAbsolute } from 'node:path';
 import { existsSync as fsExists } from 'node:fs';
 
-import { loadMdFiles } from '../../../business_modules/resilience/index.js';
-import { extractEvidence } from '../../../business_modules/resilience/index.js';
+import { loadMdFiles } from '../../../business_modules/resilience_scorer/index.js';
+import { extractEvidence } from '../../../business_modules/resilience_scorer/index.js';
 import { scoreComponents } from '../../../analyst/scoring/index.js';
-import { createEpistemicFeaturesService } from '../../../business_modules/epistemic_features/index.js';
-import { runDeterministicAssessment } from '../../../business_modules/resilience_assessment/index.js';
+import { createEpistemicFeaturesService } from '../../../business_modules/resilience_scorer/index.js';
+import { runDeterministicAssessment } from '../../../business_modules/specialist_agents/index.js';
 import { getTodayInTimezone } from '../../../utils/dateUtils.js';
 import { PRICING, calcInvocationCostUsd } from '../app/budgetCostTracker.js';
 
@@ -153,7 +153,7 @@ export async function runTestTokenUsageCli() {
     console.error(`\n  → ${evidenceSnippets.length} evidence snippets extracted\n`);
 
     const scored = scoreComponents(evidenceSnippets, { totalArticles: articles.length });
-    const epistemicService = createEpistemicFeaturesService({ reportsDir: 'daily_reports' });
+    const epistemicService = createEpistemicFeaturesService({});
     const epistemicProfile = epistemicService.computeProfile(evidenceSnippets, {
       totalArticles: articles.length,
       reportDate: date,

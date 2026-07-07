@@ -1,4 +1,4 @@
-import { readResilienceHistory } from '../../business_modules/resilience/index.js';
+import { readResilienceHistory } from '../../business_modules/resilience_scorer/index.js';
 import { COMPONENT_IDS } from '../../cross-cut-modules/resilience-contracts/componentIds.js';
 
 function isoRangeInclusive(endIso, days) {

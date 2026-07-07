@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url';
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const child = spawn(
   process.execPath,
-  [resolve(repoRoot, 'business_modules/resilience/input/assess-signals.js'), ...process.argv.slice(2)],
+  [resolve(repoRoot, 'business_modules/resilience_scorer/input/assess-signals.js'), ...process.argv.slice(2)],
   { stdio: 'inherit', env: { ...process.env, WORKER_MODE: 'assess' } },
 );
 child.on('exit', (code) => process.exit(code ?? 0));

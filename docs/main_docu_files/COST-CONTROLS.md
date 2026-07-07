@@ -30,9 +30,9 @@ Routes using **`costlyRoutePreHandlers`** (full chain):
 | `POST /api/evidence-submit`, `/api/evidence-upload` | `cross-cut-modules/evidence/input/evidenceRoutes.js` |
 | `POST /api/social-media/fetch-topic` | `business_modules/social_media/input/socialMediaRoutes.js` |
 | `POST /api/signal-catalog-evolution/proposals/generate` | `business_modules/signal_catalog_evolution/input/signalCatalogEvolutionRoutes.js` |
-| `POST /api/video/download-url`, `/api/translate` | `business_modules/resilience/input/reportRoutes.js` |
-| `POST /api/validation/review-queue/.../explain` | `business_modules/resilience/validation/input/validationReviewRoutes.js` |
-| `POST /api/validation/review-queue/.../agent` | `business_modules/resilience/validation/input/validationReviewRoutes.js` |
+| `POST /api/video/download-url`, `/api/translate` | `business_modules/resilience_scorer/input/reportRoutes.js` |
+| `POST /api/validation/review-queue/.../explain` | `business_modules/resilience_scorer/validation/input/validationReviewRoutes.js` |
+| `POST /api/validation/review-queue/.../agent` | `business_modules/resilience_scorer/validation/input/validationReviewRoutes.js` |
 | `POST /api/report-build/start`, `/turn`, `/suggest` | `business_modules/report_build/input/reportBuildRoutes.js` |
 
 **Budget only** (no full costly chain):

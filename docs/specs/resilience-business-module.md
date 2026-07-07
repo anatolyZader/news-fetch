@@ -2,7 +2,7 @@
 
 ## Summary
 
-Define a **`business_modules/resilience/`** module that **owns population-resilience analysis**: behavioral signal extraction, deterministic scoring, and narrative synthesis across the **eight Home Front Command (Fran Norris–based) components**. The module **does not fetch or filter** news or audio; it accepts **already prepared, clean content** from the **news-articles** and **audio** bounded contexts (or their adapters), runs the LLM + scoring pipeline, and persists or returns structured assessments.
+Define a **`business_modules/resilience_scorer/`** module that **owns population-resilience analysis**: behavioral signal extraction, deterministic scoring, and narrative synthesis across the **eight Home Front Command (Fran Norris–based) components**. The module **does not fetch or filter** news or audio; it accepts **already prepared, clean content** from the **news-articles** and **audio** bounded contexts (or their adapters), runs the LLM + scoring pipeline, and persists or returns structured assessments.
 
 ---
 
@@ -156,21 +156,21 @@ Optional Fastify plugin or thin handlers that:
 ## Acceptance criteria
 
 1. Resilience module **tests** can run **assessment** with **in-memory fake** `IResilienceLlmPort` and no filesystem.
-2. No file under `business_modules/resilience/domain/` imports Fastify, `fs`, or `@anthropic-ai/sdk`.
-3. News and audio modules **do not import** from `business_modules/resilience/`; only the composition root (or a thin orchestrator) connects them.
+2. No file under `business_modules/resilience_scorer/domain/` imports Fastify, `fs`, or `@anthropic-ai/sdk`.
+3. News and audio modules **do not import** from `business_modules/resilience_scorer/`; only the composition root (or a thin orchestrator) connects them.
 4. Output **assessment + signals** remain compatible with existing **report JSON** consumers (web app, chat context builder) unless those are versioned in a follow-up spec.
 
 ---
 
 ## Migration notes (from current repo)
 
-- Legacy orchestration maps to **`app/resilienceAnalysisService.js`** + **`app/reportCacheService.js`**; canonical code is under `business_modules/resilience/`.
+- Legacy orchestration maps to **`app/resilienceAnalysisService.js`** + **`app/reportCacheService.js`**; canonical code is under `business_modules/resilience_scorer/`.
 - `loadMdFiles` (markdown → article DTOs) remains a **host-side** concern that **builds `ResilienceContentBatch`** until all callers pass DTOs explicitly.
 
 ---
 
 ## References
 
-- Component definitions: `business_modules/resilience/domain/resilienceComponents.js`.
+- Component definitions: `business_modules/resilience_scorer/domain/resilienceComponents.js`.
 - Pipeline overview: `docs/main_docu_files/PIPELINE-AND-SOURCES.md`, `docs/audio-pipeline.md`.
 - Module layout rules: `.cursor/skills/create-business-module/SKILL.md` / `.cursor/rules/module-structure.mdc`.

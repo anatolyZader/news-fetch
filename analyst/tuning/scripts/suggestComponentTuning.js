@@ -5,7 +5,7 @@
  *
  * Usage:
  *   npm run suggest-tuning
- *   node business_modules/resilience/tuning/scripts/suggestComponentTuning.js [--diff]
+ *   node business_modules/resilience_scorer/tuning/scripts/suggestComponentTuning.js [--diff]
  */
 
 import { resolve } from 'node:path';
@@ -13,7 +13,7 @@ import { proposeComponentTuningFromReportFiles } from '../domain/componentTuning
 
 const reportsDir = process.env.REPORTS_DIR
   ? resolve(process.env.REPORTS_DIR)
-  : resolve(process.cwd(), 'daily_reports');
+  : resolve(process.cwd(), 'business_modules/resilience_scorer/data/reports');
 
 const args = new Set(process.argv.slice(2));
 const DIFF_ONLY = args.has('--diff');

@@ -2,7 +2,7 @@
 
 **Purpose:** Distinguish **report-grounded chat** (operator drill-down) from the **assessment agent** (batch assess pipeline). Both use tool loops and RAG; only chat is interactive HTTP.
 
-**Sources:** `business_modules/chat/`, `business_modules/resilience_assessment/`, `cross-cut-modules/agent/`, `cross-cut-modules/llm/`, validation agent routes, `business_modules/chat/domain/proposedActionCommands.js`.
+**Sources:** `business_modules/chat/`, `business_modules/specialist_agents/`, `cross-cut-modules/agent/`, `cross-cut-modules/llm/`, validation agent routes, `business_modules/chat/domain/proposedActionCommands.js`.
 
 ---
 
@@ -123,7 +123,7 @@ Pipeline integration: [PIPELINE-AND-SOURCES.md § Municipal PBO review](./PIPELI
 - Report date, component summaries, executive summary, PBO index
 - Footer listing available tool data (report dates on disk, signal sources)
 
-Uses same cached report path as `GET /api/report/today` — `business_modules/resilience/app/reportCacheService.js` (`getCachedReport`, scope-aware JSON paths).
+Uses same cached report path as `GET /api/report/today` — `business_modules/resilience_scorer/app/reportCacheService.js` (`getCachedReport`, scope-aware JSON paths).
 
 **Operator tier:** report payload redacted before context build when applicable (`redactReportPayload`).
 
@@ -183,7 +183,7 @@ Env: `CHAT_ANALYST_TOOLS_ENABLED` gates analyst read tools.
 
 ## Validation investigate agent
 
-**Routes:** `business_modules/resilience/validation/input/validationReviewRoutes.js`
+**Routes:** `business_modules/resilience_scorer/validation/input/validationReviewRoutes.js`
 
 | Route | Role |
 |-------|------|

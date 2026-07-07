@@ -5,8 +5,8 @@
 import { readFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { runCriticChecks } from '../../business_modules/resilience_assessment/app/criticAgent.js';
-import { computeDivergence } from '../../business_modules/resilience_assessment/domain/services/shadowArtifacts.js';
+import { runCriticChecks } from '../../business_modules/specialist_agents/app/criticAgent.js';
+import { computeDivergence } from '../../business_modules/specialist_agents/domain/services/shadowArtifacts.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, '../..');

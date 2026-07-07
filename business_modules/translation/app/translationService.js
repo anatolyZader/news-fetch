@@ -13,9 +13,10 @@ import {
   sleep,
 } from './translationTranslateUtils.js';
 import { translateGenericJsonWithRetry, LANG_NAMES } from './translateGenericJson.js';
+import { translationLocaleDir } from '../domain/services/artifactPaths.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const DEFAULT_REPORTS_DIR = resolve(__dirname, '../../../daily_reports');
+const DEFAULT_LOCALE_DIR = translationLocaleDir(resolve(__dirname, '../../..'));
 
 /** In-memory cache to avoid disk reads on repeat requests */
 const memCache = new Map();
@@ -34,8 +35,8 @@ function isTranslationEnabled() {
   return process.env.TRANSLATION_ENABLED === 'true';
 }
 
-function reportsDir() {
-  return reportsDirOverride ?? DEFAULT_REPORTS_DIR;
+function localeDir() {
+  return reportsDirOverride ?? DEFAULT_LOCALE_DIR;
 }
 
 /** @param {string | null} dir */
@@ -54,13 +55,13 @@ export function cacheKey(report, lang) {
 }
 
 function cacheFilePath(date, articlesCount, lang) {
-  return resolve(reportsDir(), `translation-v2-${date}-${articlesCount}-${lang}.json`);
+  return resolve(localeDir(), `translation-v2-${date}-${articlesCount}-${lang}.json`);
 }
 
 function scopedCacheFilePath(report, lang) {
   const scope = report.report_scope?.id ?? 'national';
   if (scope === 'national') return cacheFilePath(report.date, report.total_articles_analyzed ?? 0, lang);
-  return resolve(reportsDir(), `translation-v2-${scope}-${report.date}-${report.total_articles_analyzed ?? 0}-${lang}.json`);
+  return resolve(localeDir(), `translation-v2-${scope}-${report.date}-${report.total_articles_analyzed ?? 0}-${lang}.json`);
 }
 
 async function readDiskCache(report, lang) {
@@ -127,7 +128,7 @@ export function socialTranslationCacheKey(posts, lang, opts = {}) {
 }
 
 function socialCacheFilePath(cacheKey) {
-  return resolve(reportsDir(), `social-translation-${cacheKey}.json`);
+  return resolve(localeDir(), `social-translation-${cacheKey}.json`);
 }
 
 async function readSocialDiskCache(cacheKey) {

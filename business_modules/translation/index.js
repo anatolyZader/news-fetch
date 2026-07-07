@@ -1,3 +1,4 @@
+export { translationLocaleDir } from './domain/services/artifactPaths.js';
 export { getTranslatedReport, translateSocialPosts } from './app/translationService.js';
 export {
   cacheKey,

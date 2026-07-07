@@ -34,7 +34,7 @@ import {
   applySourceNativeGrounding,
   createNoOpGeoEnrichmentPort,
   enrichFieldProvenance,
-} from '../business_modules/resilience/index.js';
+} from '../business_modules/resilience_scorer/index.js';
 import { createDraftGenerator } from '../business_modules/whatsapp/app/draftGenerator.js';
 import { whatsappWebhookPlugin } from '../business_modules/whatsapp/input/webhook-routes.js';
 import { createReportBuildService as createReportBuildServiceFromWa } from '../business_modules/report_build/app/reportBuildService.js';

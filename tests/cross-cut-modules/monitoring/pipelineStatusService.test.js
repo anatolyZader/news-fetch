@@ -13,7 +13,7 @@ describe('pipelineStatusService', () => {
     rootDir = join(tmpdir(), `pipeline-status-${Date.now()}-${Math.random().toString(36).slice(2)}`);
     process.env.COST_LOG_PATH = join(rootDir, 'cost-log.jsonl');
     mkdirSync(join(rootDir, 'business_modules/signals_extraction/data/signals'), { recursive: true });
-    mkdirSync(join(rootDir, 'daily_reports'), { recursive: true });
+    mkdirSync(join(rootDir, 'business_modules/resilience_scorer/data/reports'), { recursive: true });
     mkdirSync(join(rootDir, 'business_modules/news-sites/articles_extracted'), { recursive: true });
 
     writeFileSync(join(rootDir, 'pipeline-config.json'), JSON.stringify({
@@ -38,7 +38,7 @@ describe('pipelineStatusService', () => {
       extracted_at: '2026-05-27T08:00:00.000Z',
       signals: [],
     }));
-    writeFileSync(join(rootDir, 'daily_reports/resilience-report-2026-05-27.json'), JSON.stringify({
+    writeFileSync(join(rootDir, 'business_modules/resilience_scorer/data/reports/resilience-report-2026-05-27.json'), JSON.stringify({
       generated_at: '2026-05-27T09:00:00.000Z',
       assessment: { date: '2026-05-27', total_articles_analyzed: 10 },
       signals: [],
@@ -67,7 +67,7 @@ describe('pipelineStatusService', () => {
   });
 
   it('reports missing when assess report absent', () => {
-    rmSync(join(rootDir, 'daily_reports/resilience-report-2026-05-27.json'));
+    rmSync(join(rootDir, 'business_modules/resilience_scorer/data/reports/resilience-report-2026-05-27.json'));
     const svc = createPipelineStatusService({ rootDir, timezone: 'Asia/Jerusalem' });
     const status = svc.getStatus({ date: '2026-05-27', scope: 'national' });
     assert.equal(status.overall, 'partial');

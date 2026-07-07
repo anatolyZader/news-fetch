@@ -136,6 +136,21 @@ async function runStreamChatLlm({
   });
 }
 
+function isBillingError(err) {
+  if (!err || typeof err !== 'object') return false;
+  const status = err.status ?? err.statusCode ?? err?.response?.status;
+  if (status === 402) return true;
+  const msg = String(err.message ?? '');
+  return /credit|balance|billing|payment|insufficient funds/i.test(msg);
+}
+
+function operatorChatErrorMessage(err) {
+  if (isBillingError(err)) {
+    return 'AI service unavailable — Anthropic API credits exhausted. Top up your account and try again.';
+  }
+  return err?.message ?? 'Chat failed';
+}
+
 async function handleStreamChatLlmError(err, send, {
   message,
   reportData,
@@ -156,8 +171,9 @@ async function handleStreamChatLlmError(err, send, {
     });
     return;
   }
-  send({ type: 'error', message: err?.message ?? 'Chat failed' });
-  send({ type: 'done', error: true });
+  const errorMessage = operatorChatErrorMessage(err);
+  send({ type: 'error', message: errorMessage });
+  send({ type: 'done', error: true, message: errorMessage });
 }
 
 function buildChatLlmStreamOptions(opts, { chatEconomyMeta, abortSignal, onLoopExhausted }) {
@@ -345,6 +361,8 @@ export async function streamChat(message, history, rawReply, getReportData, opts
     ...trimmedHistory.map((h) => ({ role: h.role, content: h.content })),
     { role: 'user', content: message },
   ];
+
+  send({ type: 'status', phase: 'thinking' });
 
   try {
     await runStreamChatLlm({

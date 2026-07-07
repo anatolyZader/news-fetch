@@ -54,7 +54,7 @@ npm run assess-signals -- --date 2026-03-21 --days 1 --scope national
 | `business_modules/audio/infrastructure/adapters/openaiTranscriptionAdapter.js` | OpenAI Audio API (default adapter) |
 | `business_modules/audio/app/audioIngestService.js` | Split large files, transcribe, chunk text → markdown |
 | `business_modules/audio/input/audio-to-md.js` | CLI entry |
-| `business_modules/resilience/input/extract-signals.js` | Stage 1: per-source signal extraction |
-| `business_modules/resilience/input/assess-signals.js` | Stage 2: merge + score + narrate |
+| `business_modules/resilience_scorer/input/extract-signals.js` | Stage 1: per-source signal extraction |
+| `business_modules/resilience_scorer/input/assess-signals.js` | Stage 2: merge + score + narrate |
 
 Reports include **Content kind** = `audio` in the markdown header table when applicable.

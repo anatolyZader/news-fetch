@@ -11,6 +11,9 @@ import { formatAnalysisDateTime } from '../../../utils/dateUtils.js';
 import {
   deriveInstrumentState,
   operatorAssessmentSummary,
+  resilienceReportsDir,
+  listReportJsonFilenamesForDate,
+  parseReportFilename,
 } from '../../resilience/index.js';
 import {
   resolveMunicipalityName,
@@ -24,8 +27,7 @@ const SIGNALS_DIRS = [
   join(REPO_ROOT, 'business_modules', 'social_media', 'data'),
 ];
 const OBSERVATIONS_DIR = join(REPO_ROOT, 'business_modules', 'signals_extraction', 'data');
-const REPORTS_DIR = join(REPO_ROOT, 'daily_reports');
-const REPORT_DATE_RE = /-data-(\d{4}-\d{2}-\d{2})-run-/;
+const REPORTS_DIR = resilienceReportsDir(REPO_ROOT);
 const SIGNAL_FILE_RE = /signals-(.+?)-(\d{4}-\d{2}-\d{2})\.json/;
 
 function readSignalDirNames(dir) {
@@ -242,8 +244,7 @@ export function formatSignals(signals, opts = {}) {
 export function loadReport(date) {
   let files;
   try {
-    files = getStore().readdirSync(REPORTS_DIR)
-      .filter((f) => f.includes(`-data-${date}-run-`) && f.endsWith('.json'))
+    files = listReportJsonFilenamesForDate(REPORTS_DIR, date, 'national')
       .sort((a, b) => a.localeCompare(b));
   } catch {
     return null;
@@ -264,15 +265,14 @@ export function listReportDates() {
   let files;
   try {
     files = getStore().readdirSync(REPORTS_DIR)
-      .filter((f) => f.startsWith('resilience-report-') && f.endsWith('.json'))
-      .sort((a, b) => a.localeCompare(b));
+      .filter((f) => f.endsWith('.json'));
   } catch {
     return [];
   }
   const dates = new Set();
   for (const f of files) {
-    const m = REPORT_DATE_RE.exec(f);
-    if (m) dates.add(m[1]);
+    const parsed = parseReportFilename(f);
+    if (parsed) dates.add(parsed.reportDate);
   }
   return [...dates].sort((a, b) => a.localeCompare(b));
 }

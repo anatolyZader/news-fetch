@@ -6,7 +6,7 @@ Accepted
 
 ## Context
 
-Regional resilience reports (e.g. north) filter evidence via `filterSignalsForScope` in [`regionSignalFilter.js`](../../../business_modules/resilience/domain/services/regionSignalFilter.js). News and social signals only survive regional scope when they carry explicit `district_id`, resolved north `geo`, or (legacy) default-north source types (`field`, `pbo`, `whatsapp`, etc.).
+Regional resilience reports (e.g. north) filter evidence via `filterSignalsForScope` in [`regionSignalFilter.js`](../../../business_modules/resilience_scorer/domain/services/regionSignalFilter.js). News and social signals only survive regional scope when they carry explicit `district_id`, resolved north `geo`, or (legacy) default-north source types (`field`, `pbo`, `whatsapp`, etc.).
 
 Prior to this change:
 
@@ -36,7 +36,7 @@ Extract shared [`enrichSignalsGeoIfNeeded`](../../../cross-cut-modules/geo/enric
 
 ### 3. Unified post-extraction assessment core
 
-Add [`runPostExtractionAssessmentCore`](../../../business_modules/resilience/app/postExtractionAssessmentCore.js) starting at `scopeAndPartitionSignals`:
+Add [`runPostExtractionAssessmentCore`](../../../business_modules/resilience_scorer/app/postExtractionAssessmentCore.js) starting at `scopeAndPartitionSignals`:
 
 `scope → prepareInvestigation → prepareScoring → runScoringPipeline → produceAssessmentWithShadow → post-metadata → attachDecisionBrief`
 

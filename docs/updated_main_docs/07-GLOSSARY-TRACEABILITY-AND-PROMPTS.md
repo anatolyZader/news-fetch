@@ -42,7 +42,7 @@
 | **Shadow scoring** | The deterministic score run alongside the agent for analyst comparison/divergence. |
 | **OOV capture** | Out-of-vocabulary observations buffered for catalog evolution. |
 | **Catalog evolution** | Turning OOV/verified-open observations into gap reports and draft catalog proposals. |
-| **`daily_reports/`** | Output directory for assessment artifacts (`.md`, `-brief.md`, `.json`). |
+| **`business_modules/resilience_scorer/data/reports/`** | Output directory for assessment artifacts (`.md`, `-brief.md`, `.json`). |
 | **report_build** | Interactive field-report drafting module (input source), distinct from the daily assessment. |
 | **report_bot** | Read-only inbox of manually submitted reports. |
 
@@ -52,24 +52,24 @@
 |-------|------------------------|--------------------|
 | Ingest (textual) | `business_modules/{news-sites,audio,whatsapp,visits,pbo_report_regional}/...` | Markdown corpora |
 | Ingest (structured) | `business_modules/{pbo_report_muni,pool,social_media}/...` | Direct signal/observation bundles |
-| Closed extract (supporting) | `business_modules/resilience/input/extract-signals.js`, `infrastructure/claudeExtraction.js` | `signals_extraction/data/signals/signals-{source}-{date}.json` |
+| Closed extract (supporting) | `business_modules/resilience_scorer/input/extract-signals.js`, `infrastructure/claudeExtraction.js` | `signals_extraction/data/signals/signals-{source}-{date}.json` |
 | Open extract (primary) | `business_modules/signals_extraction/app/pipelineOpenExtractService.js` (`runPipelineOpenExtract`) | `signals_extraction/data/observations-pipeline-{source}-{date}.json` |
-| Canonical paths | `business_modules/resilience/domain/services/pipelineArtifactPaths.js` | path helpers |
-| Orchestrate | `business_modules/resilience/input/run-pipeline.js`, `app/pipelineOrchestrator.js`, `app/pipelineIngestPlan.js` | ingest plan + spawns |
-| Assess: load both paths | `business_modules/resilience/app/assessSignalsCli.js`, `loadOpenObservationsForAssess.js` | merged in-memory inputs |
+| Canonical paths | `business_modules/resilience_scorer/domain/services/pipelineArtifactPaths.js` | path helpers |
+| Orchestrate | `business_modules/resilience_scorer/input/run-pipeline.js`, `app/pipelineOrchestrator.js`, `app/pipelineIngestPlan.js` | ingest plan + spawns |
+| Assess: load both paths | `business_modules/resilience_scorer/app/assessSignalsCli.js`, `loadOpenObservationsForAssess.js` | merged in-memory inputs |
 | Route open obs to components | `business_modules/signals_extraction/domain/services/openObservationRouter.js` (`routeOpenObservations`) | `scoring.openObservations` |
-| Epistemic profile | `business_modules/epistemic_features/.../epistemicProfileBuilder.js`, `resilience/domain/epistemic/` | mass, certainty, caps |
-| Assessment agent | `business_modules/resilience_assessment/app/assessmentOrchestrator.js` (`runAssessmentAgent`) | `assessmentV2` (claims, synthesis, brief) |
+| Epistemic profile | `business_modules/resilience_scorer/domain/epistemic/epistemicProfileBuilder.js` | mass, certainty, caps |
+| Assessment agent | `business_modules/specialist_agents/app/assessmentOrchestrator.js` (`runAssessmentAgent`) | `assessmentV2` (claims, synthesis, brief) |
 | Planner / specialist / critic / synthesizer | `plannerAgent.js` / `componentSpecialistAgent.js` / `criticAgent.js` / `synthesizerAgent.js` | plan, component assessments, repairs, synthesis |
 | Evidence graph | `cross-cut-modules/retrieval/evidenceGraph.js` (`buildEvidenceGraph`) | per-component claims graph |
-| Shadow score (de-emphasized) | `business_modules/resilience/app/scoringFacade.js` (-> `analyst/scoring/`) | numeric scores (analyst-only) |
-| Score abstention gate | `business_modules/resilience/domain/services/dataVoid/epistemicGate.js` | null score + `epistemic_abstention` |
-| Operator instrument + redaction | `business_modules/resilience/domain/services/assessmentDisplayTier.js` | instrument; operator redaction |
+| Shadow score (de-emphasized) | `business_modules/resilience_scorer/app/scoringFacade.js` (-> `analyst/scoring/`) | numeric scores (analyst-only) |
+| Score abstention gate | `business_modules/resilience_scorer/domain/services/dataVoid/epistemicGate.js` | null score + `epistemic_abstention` |
+| Operator instrument + redaction | `business_modules/resilience_scorer/domain/services/assessmentDisplayTier.js` | instrument; operator redaction |
 | Display view | `cross-cut-modules/resilience-contracts/displayViews.js` | operator vs analyst |
-| Scope filter | `business_modules/resilience/domain/services/regionSignalFilter.js`, `IReportScopePolicy.js` | scope-local signals |
+| Scope filter | `business_modules/resilience_scorer/domain/services/regionSignalFilter.js`, `IReportScopePolicy.js` | scope-local signals |
 | Catalog evolution | `business_modules/signal_catalog_evolution/`, `resilience/app/enqueueVerifiedOpenForCatalog.js` | gap reports, proposals |
-| Write report | `business_modules/resilience/infrastructure/reportWriter.js` (`writeReport`) | `daily_reports/{scope}-{date}-{HHMM}.{md,brief.md,json}` |
-| Serve report | `business_modules/resilience/input/reportRoutes.js`, `app/reportCacheService.js` | HTTP API |
+| Write report | `business_modules/resilience_scorer/infrastructure/reportWriter.js` (`writeReport`) | `business_modules/resilience_scorer/data/reports/{scope}-{date}-{HHMM}.{md,brief.md,json}` |
+| Serve report | `business_modules/resilience_scorer/input/reportRoutes.js`, `app/reportCacheService.js` | HTTP API |
 | Operator UI | `client/src/components/ReportView.jsx` | operator view |
 | Chat | `business_modules/chat/app/chatLlmOrchestrator.js`, `chatService.js` | tool-driven Q&A |
 | Field report intake | `business_modules/report_build/app/reportBuildService.js` | drafted `field` source |
@@ -94,7 +94,7 @@ Paste these against a notebook containing files 00-07.
 14. What is the operator "instrument," and which fields does it expose instead of a score?
 15. How is a report scoped to the northern district? Describe the three ways a signal can be kept for `north`. (File 03.)
 16. What three files does each assessment run write, and how do they differ?
-17. Distinguish `daily_reports`, `report_build`, and `report_bot`. (File 06.)
+17. Distinguish `business_modules/resilience_scorer/data/reports/`, `report_build`, and `report_bot`. (File 06.)
 18. How does a verified open observation feed back into the closed catalog over time?
 19. Using the traceability table, map "scope filtering" and "evidence graph" to their files.
 20. Why is an honest "insufficient_data" considered a correct answer in this system?

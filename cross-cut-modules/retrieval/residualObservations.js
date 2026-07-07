@@ -13,13 +13,17 @@ const INVESTIGATION_KINDS = new Set([
   LEARNING_CAPTURE_KINDS.UNKNOWN_TYPE,
 ]);
 
+function defaultCapturesDir() {
+  return resolve(process.cwd(), 'business_modules/resilience_scorer/data/captures');
+}
+
 /**
  * @param {string} date YYYY-MM-DD
- * @param {string} [reportsDir]
+ * @param {string} [capturesDir]
  */
-export function loadOovCaptureRecords(date, reportsDir = 'daily_reports') {
+export function loadOovCaptureRecords(date, capturesDir = defaultCapturesDir()) {
   const store = resolveStateStore();
-  const path = resolve(reportsDir, `oov-capture-${date}.jsonl`);
+  const path = resolve(capturesDir, `oov-capture-${date}.jsonl`);
   if (!store.existsSync(path)) return [];
   try {
     const text = store.readFileSync(path, 'utf8');
@@ -38,8 +42,8 @@ export function loadOovCaptureRecords(date, reportsDir = 'daily_reports') {
  * @param {object} [opts]
  */
 export function loadResidualObservationsForAgent(date, opts = {}) {
-  const reportsDir = opts.reportsDir ?? 'daily_reports';
-  const records = loadOovCaptureRecords(date, reportsDir);
+  const capturesDir = opts.capturesDir ?? opts.reportsDir ?? defaultCapturesDir();
+  const records = loadOovCaptureRecords(date, capturesDir);
   return records.filter((r) => {
     const kind = r.capture_kind ?? LEARNING_CAPTURE_KINDS.UNKNOWN_TYPE;
     if (kind === LEARNING_CAPTURE_KINDS.RESIDUAL_OBSERVATION
@@ -139,6 +143,6 @@ export function loadOpenObservationsForAgent(date, opts = {}) {
   return merged;
 }
 
-export { INVESTIGATION_KINDS,  };
+export { INVESTIGATION_KINDS };
 
-export {LEARNING_CAPTURE_KINDS} from '../learningCapture/kinds.js';
+export { LEARNING_CAPTURE_KINDS } from '../learningCapture/kinds.js';

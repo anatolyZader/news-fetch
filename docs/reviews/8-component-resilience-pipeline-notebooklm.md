@@ -25,7 +25,7 @@ Use this NotebookLM file for **end-to-end flow, definitions, and study-style Q&A
 2. In notebook instructions, ask the model to **cite section numbers** and to treat **deterministic scoring** (code) as authoritative over natural-language paraphrases.
 3. For “where is X implemented?”, rely on **Section 11 (traceability)** first.
 
-**Version note.** Descriptions match the repository layout under `business_modules/resilience/` and the batch CLI `assess-signals.js` as of the document’s authoring; if behavior diverges, the linked source files win.
+**Version note.** Descriptions match the repository layout under `business_modules/resilience_scorer/` and the batch CLI `assess-signals.js` as of the document’s authoring; if behavior diverges, the linked source files win.
 
 **Phase 1 scope (2026).** Only **`national`** and **`north`** report scopes are supported for population-behavior officers and analysts. North is the sole regional slice until a generic district model replaces hardcoded `regionSignalFilter` logic. Reports include `assessment.methodology` (scope-decision telemetry, epistemic disclaimers, advisory tuning proposals).
 
@@ -165,9 +165,9 @@ Stable IDs (used in JSON, code, and i18n):
 | 7 | `belonging_solidarity` | Belonging and solidarity |
 | 8 | `wellbeing_at_risk` | Physical and mental wellbeing (at-risk focus) |
 
-**Definitions, guiding questions, and behavioral manifestations** are maintained in code as the single source of truth: `business_modules/resilience/domain/resilienceComponents.js` (`RESILIENCE_COMPONENTS`).
+**Definitions, guiding questions, and behavioral manifestations** are maintained in code as the single source of truth: `business_modules/resilience_scorer/domain/resilienceComponents.js` (`RESILIENCE_COMPONENTS`).
 
-**Facets.** Each component exposes **2–4 sub-facets** (narrow signal subsets) for explainability. Definitions: `business_modules/resilience/domain/services/componentFacets.js`. Facets use the **same directional math** as the parent component but **omit** source caps and bootstrap (cheaper).
+**Facets.** Each component exposes **2–4 sub-facets** (narrow signal subsets) for explainability. Definitions: `business_modules/resilience_scorer/domain/services/componentFacets.js`. Facets use the **same directional math** as the parent component but **omit** source caps and bootstrap (cheaper).
 
 ---
 
@@ -187,7 +187,7 @@ Stable IDs (used in JSON, code, and i18n):
 | PBO regional | `pbo_regional` | Excel | `business_modules/signals_extraction/data/signals/signals-pbo_regional-*.json` | **Direct** | **`legacy_north_fallback`** when `district_id` absent |
 | Naftali | `naftali` | Weekly questionnaire | `business_modules/signals_extraction/data/signals/signals-naftali-*.json` | Mapper (structured → signals) | **`legacy_north_fallback`** when `district_id` absent |
 
-**Structured sources (`LEGACY_NORTH_STRUCTURED_SOURCE_TYPES` in [`signalDistrictId.js`](../../business_modules/resilience/domain/services/signalDistrictId.js)):** `field`, `field_whatsapp`, `pbo`, `pbo_regional`, `naftali`, `whatsapp` — when `district_id` is absent, default to **`legacy_north_fallback`** (north). Explicit `district_id` on the signal overrides this.
+**Structured sources (`LEGACY_NORTH_STRUCTURED_SOURCE_TYPES` in [`signalDistrictId.js`](../../business_modules/resilience_scorer/domain/services/signalDistrictId.js)):** `field`, `field_whatsapp`, `pbo`, `pbo_regional`, `naftali`, `whatsapp` — when `district_id` is absent, default to **`legacy_north_fallback`** (north). Explicit `district_id` on the signal overrides this.
 
 **Structured PBO path (intuition).** Municipal spreadsheets already carry **numeric component-level posture**; the extractor **polarity-splits** around 0.5 and emits canonical signal types with traceable evidence strings (see canonical doc §4.2). This is **not** a second scoring engine — it is **evidence shaped like every other signal**.
 
@@ -195,7 +195,7 @@ Stable IDs (used in JSON, code, and i18n):
 
 ## 5. Combining sources in the assessment window
 
-**Entry point (batch).** `business_modules/resilience/input/assess-signals.js` implements the **merge → dedupe → score** path for operator runs.
+**Entry point (batch).** `business_modules/resilience_scorer/input/assess-signals.js` implements the **merge → dedupe → score** path for operator runs.
 
 ### 5.1 Window and temporal decay
 
@@ -253,13 +253,13 @@ Order of operations (important for **north** reports):
 | Extraction extras | `extraction_confidence` (0–1 multiplier), `_dual_pass_agreement` boost when dual extraction agrees |
 | Scoring overlays | `_contribution`, `_contribution_raw`, `_weight`, `_polarity` attached **after** caps for explainability |
 
-**Verification and dual pass.** The LLM extraction path uses `business_modules/resilience/infrastructure/signalVerification.js` and optional **second-pass** extraction merged in `dualModelExtract.js` / env-guarded paths in `resilienceAnalysisService.js`. Exact n-gram and rescue rules live in those modules and in the canonical doc §7.
+**Verification and dual pass.** The LLM extraction path uses `business_modules/resilience_scorer/infrastructure/signalVerification.js` and optional **second-pass** extraction merged in `dualModelExtract.js` / env-guarded paths in `resilienceAnalysisService.js`. Exact n-gram and rescue rules live in those modules and in the canonical doc §7.
 
 ---
 
 ## 7. Deterministic scoring: from signals to 1–10
 
-**Driver.** `scoreComponents(signals, { totalArticles })` in [`scoreComponentsOrchestrator.js`](../../business_modules/resilience/domain/services/scoring/scoreComponentsOrchestrator.js) (re-exported via `behaviorSignals.js` / `resilienceScoring.js`).
+**Driver.** `scoreComponents(signals, { totalArticles })` in [`scoreComponentsOrchestrator.js`](../../business_modules/resilience_scorer/domain/services/scoring/scoreComponentsOrchestrator.js) (re-exported via `behaviorSignals.js` / `resilienceScoring.js`).
 
 **v4 note:** Canonical stage detail and epistemic/display policy are in [RESILIENCE-ENGINE-REFERENCE.md](../main_docu_files/RESILIENCE-ENGINE-REFERENCE.md) §6.3. The baseline formula below omits v4 multipliers: **grounding tier**, **intensity**, **field multiplier**, **gaming caps**, **phase mismatch**, **half-life decay**, and **metrics eligibility** (`RESILIENCE_EPISTEMIC_GEO_V2`).
 
@@ -328,7 +328,7 @@ The **overall headline** is **not** a straight average of the eight integers.
 
 **Implementation.** `overallScore` in `behaviorSignals.js` keeps only components with **non-null** `score` and **strictly positive** `certainty`, then computes a **certainty-weighted mean** and **rounds** to an integer:
 
-```62:67:business_modules/resilience/domain/services/behaviorSignals.js
+```62:67:business_modules/resilience_scorer/domain/services/behaviorSignals.js
 export function overallScore(componentScores) {
   const scored = Object.values(componentScores).filter((c) => c.score !== null && c.certainty > 0);
   if (scored.length === 0) return null;
@@ -370,7 +370,7 @@ export function overallScore(componentScores) {
 
 ### 10.2 Report writer
 
-`reportWriter.js` emits paired **`.md` + `.json`** under `daily_reports/` with prefixes `resilience-report-` vs `resilience-report-north-`.
+`reportWriter.js` emits paired **`.md` + `.json`** under `business_modules/resilience_scorer/data/reports/` with prefixes `resilience-report-` vs `resilience-report-north-`.
 
 ### 10.3 Web UI highlights
 
@@ -382,7 +382,7 @@ export function overallScore(componentScores) {
 **Analyst tier** — separate `analyst-site/` SPA or `?view=analyst` on report fetch:
 
 - Drift sparklines, validation review, catalog proposals when enabled
-- Many numeric score fields still API-redacted; full scores on disk in `daily_reports/*.json` for calibration
+- Many numeric score fields still API-redacted; full scores on disk in `business_modules/resilience_scorer/data/reports/*.json` for calibration
 
 **On-disk / analyst diagnostics** (when present in JSON, not default operator UI):
 
@@ -401,14 +401,14 @@ Interactive / API batch assembly may call `runResilienceAssessment` (`resilience
 |-------|-------------------------|-------------------|
 | Source ingest (news/audio/whatsapp) | `business_modules/news-sites/`, `business_modules/audio/`, `business_modules/whatsapp/` | Markdown corpora |
 | Structured → signals | `extract-pbo-signals.js`, Naftali mappers (`business_modules/pool/`, etc.) | `business_modules/signals_extraction/data/signals/signals-*.json` |
-| Extract (LLM) | `business_modules/resilience/infrastructure/claudeEvaluator.js`, `input/extract-signals.js` | `business_modules/signals_extraction/data/signals/signals-{type}-{date}.json` |
+| Extract (LLM) | `business_modules/resilience_scorer/infrastructure/claudeEvaluator.js`, `input/extract-signals.js` | `business_modules/signals_extraction/data/signals/signals-{type}-{date}.json` |
 | Verify | `signalVerification.js` | Validated signals only |
 | Merge / dedupe / scope | `input/assess-signals.js`, `assessSignalsHelpers.js`, `regionSignalFilter.js` | Single in-memory signal array per run |
 | Score | `domain/services/behaviorSignals.js` | `scoredComponents` map |
 | Delta history | `assessSignalsHelpers.js` (`loadHistoricalScores`, `enrichWithDeltaChannel`) | Smoothed + delta fields |
 | Narrate | `claudeEvaluator.js` | `assessment` object |
 | Norris lens | `norrisCapacities.js` | `norris_capacities` block |
-| Persist | `reportWriter.js` | `daily_reports/*.md`, `daily_reports/*.json` |
+| Persist | `reportWriter.js` | `business_modules/resilience_scorer/data/reports/*.md`, `business_modules/resilience_scorer/data/reports/*.json` |
 | Serve | Server routes under resilience + `ReportView.jsx` | API + SPA |
 
 ---

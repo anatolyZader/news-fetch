@@ -55,7 +55,7 @@ pipeline_command() {
   echo "$command" | grep -qE '(^|[;&|\n] *)export RESILIENCE_OPEN_EXTRACT_PARALLEL=1' && return 0
   echo "$command" | grep -qE '(^|[;&|\n] *)mkdir -p (logs|/home/eventstorm1/news/logs)' && return 0
   echo "$command" | grep -qE '^for date in 20[0-9]{2}-[0-9]{2}-[0-9]{2}' && return 0
-  echo "$command" | grep -qE 'business_modules/(resilience|pbo_report_muni|pool|whatsapp|social_media|news-sites|audio|signals_extraction)/' && return 0
+  echo "$command" | grep -qE 'business_modules/(resilience_scorer|pbo_report_muni|pool|whatsapp|social_media|news-sites|audio|signals_extraction)/' && return 0
   echo "$command" | grep -qE 'npm run (homefront-to-md|extract-signals|assess-signals|social-media:gather-daily|extract-observations)' && return 0
   echo "$command" | grep -qE '(^|[;&|\n] *)(ls|test) (articles-|signals/|business_modules/)' && return 0
 

@@ -15,9 +15,11 @@ import Typography from '@mui/material/Typography';
 import ClickAwayListener from '@mui/material/ClickAwayListener';
 import Alert from '@mui/material/Alert';
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
+import CircularProgress from '@mui/material/CircularProgress';
 import { alpha } from '@mui/material/styles';
 import { useChat } from '../hooks/useChat.js';
 import { useLanguage } from '../context/LanguageContext.jsx';
+import { resolveChatStreamLabel, resolveSlowWarning } from '../lib/chatStreamStatus.js';
 import { panelHeaderButtonSx, panelSectionRadius } from '../ui/panelChrome.js';
 import {
   chatActionsVisibilitySx,
@@ -50,6 +52,8 @@ export function ChatPanel({
     history,
     streaming,
     draft,
+    streamState,
+    elapsedSec,
     send,
     regenerateLast,
     stop,
@@ -415,17 +419,23 @@ export function ChatPanel({
           </Typography>
         )}
         {visibleHistory.map((msg) => (
-          <ChatRow
-            key={msg.id ?? `${msg.role}-${String(msg.content ?? '').slice(0, 48)}`}
-            msg={msg}
-            onCopy={() => navigator.clipboard?.writeText(msg.content ?? '')}
-            onEdit={() => setInput(msg.content ?? '')}
-          />
+          <Box key={msg.id ?? `${msg.role}-${String(msg.content ?? '').slice(0, 48)}`}>
+            <ChatRow
+              msg={msg}
+              onCopy={() => navigator.clipboard?.writeText(msg.content ?? '')}
+              onEdit={() => setInput(msg.content ?? '')}
+            />
+            {msg.meta?.banner && (
+              <ChatCompletionBanner banner={msg.meta.banner} t={t} />
+            )}
+          </Box>
         ))}
-        {streaming && draft && (
-          <ChatRow
-            msg={{ role: 'assistant', content: draft }}
-            streaming
+        {streaming && (
+          <ChatWorkingRow
+            streamState={streamState}
+            draft={draft}
+            elapsedSec={elapsedSec}
+            t={t}
           />
         )}
         <div ref={bottomRef} />
@@ -637,6 +647,118 @@ function ChatActionButton({ onClick, children }) {
 ChatActionButton.propTypes = {
   onClick: PropTypes.func,
   children: PropTypes.node,
+};
+
+const BANNER_SEVERITY = {
+  loop_exhausted: 'warning',
+  planning_only: 'warning',
+  deterministic_fallback: 'info',
+  error: 'error',
+};
+
+function ChatCompletionBanner({ banner, t }) {
+  const severity = BANNER_SEVERITY[banner] ?? 'warning';
+  const key = `chat.banner.${banner}`;
+  return (
+    <Alert
+      severity={severity}
+      variant="outlined"
+      sx={(theme) => ({
+        marginX: theme.spacing(1.25),
+        marginBottom: theme.spacing(1),
+        borderRadius: panelSectionRadius(theme),
+      })}
+    >
+      {t(key)}
+    </Alert>
+  );
+}
+
+ChatCompletionBanner.propTypes = {
+  banner: PropTypes.string.isRequired,
+  t: PropTypes.func.isRequired,
+};
+
+function ChatWorkingRow({ streamState, draft, elapsedSec, t }) {
+  const label = resolveChatStreamLabel(streamState, t);
+  const slowWarning = resolveSlowWarning(elapsedSec, t);
+  const showSlow = elapsedSec >= 60;
+
+  return (
+    <Box
+      role="status"
+      aria-live="polite"
+      sx={(theme) => ({
+        display: 'grid',
+        gridTemplateColumns: `${theme.spacing(3.5)} 1fr`,
+        gap: theme.spacing(1),
+        padding: theme.spacing(1.5),
+        borderBottom: theme.custom.border.hairline,
+        background: alpha(theme.palette.background.default, 0.75),
+      })}
+    >
+      <ChatAvatar isUser={false} />
+      <Box>
+        <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
+          <CircularProgress size={16} thickness={5} />
+          <Typography variant="body2" color="text.secondary">
+            {label}
+          </Typography>
+          <Typography
+            variant="caption"
+            color={showSlow ? 'warning.main' : 'text.secondary'}
+          >
+            {t('chat.status.elapsed', { seconds: elapsedSec })}
+          </Typography>
+        </Stack>
+        {slowWarning && (
+          <Typography variant="caption" color="warning.main" sx={{ display: 'block', mt: 0.75 }}>
+            {slowWarning}
+          </Typography>
+        )}
+        {draft ? (
+          <Box
+            sx={(theme) => ({
+              marginTop: theme.spacing(1),
+              color: theme.palette.text.primary,
+              fontSize: theme.typography.chatBody.fontSize,
+              lineHeight: theme.typography.chatBody.lineHeight,
+            })}
+          >
+            <ReactMarkdown remarkPlugins={[remarkGfm]} components={safeMarkdownComponents}>
+              {draft}
+            </ReactMarkdown>
+            <Box
+              component="span"
+              sx={{
+                display: 'inline-block',
+                width: 2,
+                height: '1em',
+                background: 'currentColor',
+                marginLeft: '2px',
+                verticalAlign: 'text-bottom',
+                animation: 'chat-blink 0.8s step-end infinite',
+                '@keyframes chat-blink': { '0%,100%': { opacity: 1 }, '50%': { opacity: 0 } },
+              }}
+            />
+          </Box>
+        ) : (
+          <Box sx={(theme) => ({ marginTop: theme.spacing(1) })}>
+            <Typography variant="body2" color="text.disabled">
+              …
+            </Typography>
+          </Box>
+        )}
+      </Box>
+    </Box>
+  );
+}
+
+ChatWorkingRow.propTypes = {
+  streamState: PropTypes.object.isRequired,
+  draft: PropTypes.string.isRequired,
+  elapsedSec: PropTypes.number.isRequired,
+  t: PropTypes.func.isRequired,
 };
 
 function ChatRow({ msg, streaming = false, onCopy, onEdit }) {

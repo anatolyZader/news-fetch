@@ -31,7 +31,7 @@ Update after `/compact` or end-of-task. Prune monthly — one line per rule, max
 
 ## Do not open (cross-module)
 
-- Chat bug → not `resilience/` prompts or `daily_reports/`
+- Chat bug → not `resilience/` prompts or `resilience/data/reports/`
 - Client CSS/layout → not `business_modules/` unless API payload unclear
 - Cost/budget → `cross-cut-modules/budget/` only, not every LLM caller
 - Report-bot change → `report_bot/` + `composition/registerIngestion.js` / `createApp.js` only
@@ -42,7 +42,7 @@ Update after `/compact` or end-of-task. Prune monthly — one line per rule, max
 |------|------|
 | Composition / DI | `composition/wireApplication.js` |
 | Server shell | `app.js`, `server.js` |
-| Resilience pipeline | `business_modules/resilience/` |
+| Resilience pipeline | `business_modules/resilience_scorer/` |
 | Report bot | `business_modules/report_bot/` |
 | Client SPA | `client/src/` → build to `client/dist/` |
 | Main engineering docs | `docs/main_docu_files/` |

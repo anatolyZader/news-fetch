@@ -104,6 +104,7 @@ export function createAgentKernel(deps) {
         purpose: `${agentKind}:tool_loop`,
       },
       onTextBlock: opts.onTextBlock,
+      onToolStart: opts.onToolStart,
       onUsage: (p) => {
         budget.recordUsage({ model: p.model, usage: p.usage });
         if (opts.onUsage) opts.onUsage(p);

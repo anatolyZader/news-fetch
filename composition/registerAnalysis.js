@@ -1,5 +1,5 @@
 import { resolve } from 'node:path';
-import { createReportReadPort } from '../business_modules/resilience/index.js';
+import { createReportReadPort, resilienceReportsDir } from '../business_modules/resilience_scorer/index.js';
 import {
   createValidationReviewSqliteStore,
   createValidationReviewService,
@@ -44,7 +44,7 @@ export function registerAnalysis(opts) {
     sourceArchive: opts.sourceArchive,
     retrievalService: opts.retrievalService,
     storyClusterIndex: opts.retrievalService.storyClusterIndex,
-    reportsDir: resolve(opts.repoRoot, 'daily_reports'),
+    reportsDir: resilienceReportsDir(opts.repoRoot),
   });
 
   const reportReadPort = createReportReadPort();

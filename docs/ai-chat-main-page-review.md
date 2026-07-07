@@ -8,7 +8,7 @@ This review focuses on the current end-to-end implementation of the AI-backed ch
 
 - UI state management and user experience (`client/src/components/ChatPanel.jsx`, `client/src/hooks/useChat.js`)
 - Backend SSE streaming route and error semantics (`app.js`, `api/chatService.js`)
-- Prompt/context construction and report grounding (`business_modules/chat/app/chatService.js`, `business_modules/resilience/app/reportCacheService.js`)
+- Prompt/context construction and report grounding (`business_modules/chat/app/chatService.js`, `business_modules/resilience_scorer/app/reportCacheService.js`)
 - Security posture around authenticated access and content handling (`auth/requireAuthPreHandler.js`)
 - Reliability concerns (stream termination, failure modes, and resiliency)
 
@@ -52,11 +52,11 @@ LLM streaming is implemented in:
 It also builds a `system` instruction that includes report context:
 
 - The system string contains `CONTEXT:` from `buildReportContext(reportData)`.
-- The report data is retrieved with `getCachedReport()` from `business_modules/resilience/app/reportCacheService.js`.
+- The report data is retrieved with `getCachedReport()` from `business_modules/resilience_scorer/app/reportCacheService.js`.
 
 Important behavior:
 
-- `getCachedReport()` (in `business_modules/resilience/app/reportCacheService.js`) prefers filesystem JSON reports under `daily_reports/`.
+- `getCachedReport()` (in `business_modules/resilience_scorer/app/reportCacheService.js`) prefers filesystem JSON reports under `business_modules/resilience_scorer/data/reports/`.
 - It only consults the DB store when `getCachedReport(store)` is called with a store.
 - In `streamChat()`, the code calls `getCachedReport()` **without** providing `evidenceStore`, which can produce `null` context even when the UI is showing a report (if the UI path used the DB-backed version).
 
@@ -209,6 +209,6 @@ Recommendation:
 - `client/src/hooks/useChat.js`
 - `app.js` (route: `POST /api/chat`)
 - `api/chatService.js`
-- `business_modules/resilience/app/reportCacheService.js` (function: `getCachedReport`)
+- `business_modules/resilience_scorer/app/reportCacheService.js` (function: `getCachedReport`)
 - `auth/requireAuthPreHandler.js`
 

@@ -8,10 +8,10 @@ description: Review signal relevance and propose extraction improvements for a c
 Audit the signal extraction quality of a completed resilience report JSON. No pipeline re-runs, no API calls. Do NOT ask for confirmation — just go.
 
 **Step 1 — Resolve report path**
-- If the user provided a file name or path, use it. Resolve relative names under `daily_reports/` (e.g. `resilience-report-north-data-2026-05-23-run-2026-05-23T121520Z.json` → `daily_reports/resilience-report-north-data-2026-05-23-run-2026-05-23T121520Z.json`).
+- If the user provided a file name or path, use it. Resolve relative names under `business_modules/resilience_scorer/data/reports/` (e.g. `north-3-230526-1545.json` → `business_modules/resilience_scorer/data/reports/north-3-230526-1545.json`; legacy `resilience-report-north-data-2026-05-23-run-*.json` still works).
 - If no file specified, find the most recent report (must end in `.json`, not `.md` or `-brief.md`):
 ```
-find /home/eventstorm1/news/daily_reports -name "resilience-report-*-data-*-run-*.json" -type f | sort | tail -1
+find /home/eventstorm1/news/business_modules/resilience_scorer/data/reports -name "*.json" ! -name "*-brief*" -type f | sort | tail -1
 ```
 
 **Step 2 — Extract review data**
@@ -109,7 +109,7 @@ Then look across all components for patterns:
 
 **Step 4 — Write the review file**
 
-Write to `daily_reports/review-<report-slug>.md` (same base name as the report, prefix `review-`). Use this structure:
+Write to `analyst/data/reviews/review-<report-slug>.md` (same base name as the report, prefix `review-`). Use this structure:
 
 ```markdown
 # Signal Review: <report-slug>

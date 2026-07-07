@@ -34,7 +34,7 @@ business_modules/**/data/**
 !business_modules/**/data/.gitkeep
 cross-cut-modules/log/data/**
 validation/
-business_modules/resilience/validation/artifacts/
+business_modules/resilience_scorer/validation/artifacts/
 
 *.log
 log/data/

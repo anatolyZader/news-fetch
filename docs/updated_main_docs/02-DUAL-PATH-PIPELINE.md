@@ -40,7 +40,7 @@ Implementation:
 
 ### 2.2 The open artifact
 
-Canonical path (`business_modules/resilience/domain/services/pipelineArtifactPaths.js`, `pipelineOpenObservationsPath`):
+Canonical path (`business_modules/resilience_scorer/domain/services/pipelineArtifactPaths.js`, `pipelineOpenObservationsPath`):
 
 ```
 business_modules/signals_extraction/data/observations-pipeline-{sourceType}-{date}.json
@@ -84,13 +84,13 @@ export const COMPONENT_IDS = [
 - `resilienceComponents.js` - `RESILIENCE_COMPONENTS` (definitions, guiding questions, behavioral manifestations).
 - `extractionPrompt.js` - the closed extraction prompt contract.
 
-Routing from a closed signal to components: `business_modules/resilience/domain/services/signalRouter.js` (`getComponentWeight`, `getComponentWeightsForSignal`).
+Routing from a closed signal to components: `business_modules/resilience_scorer/domain/services/signalRouter.js` (`getComponentWeight`, `getComponentWeightsForSignal`).
 
 ### 3.2 Closed extract
 
-- CLI: `business_modules/resilience/input/extract-signals.js` -> `runExtractSignalsCli`.
-- App: `business_modules/resilience/app/extractSignalsCli.js` loads markdown, archives sources, then calls `runArticleDualPathExtract`.
-- Closed leg: `business_modules/resilience/infrastructure/claudeExtraction.js` (`extractSignals`) injects the formatted catalog and **validates** that every emitted `signal_type` belongs to `SIGNAL_CATALOG` (unknown types are dropped).
+- CLI: `business_modules/resilience_scorer/input/extract-signals.js` -> `runExtractSignalsCli`.
+- App: `business_modules/resilience_scorer/app/extractSignalsCli.js` loads markdown, archives sources, then calls `runArticleDualPathExtract`.
+- Closed leg: `business_modules/resilience_scorer/infrastructure/claudeExtraction.js` (`extractSignals`) injects the formatted catalog and **validates** that every emitted `signal_type` belongs to `SIGNAL_CATALOG` (unknown types are dropped).
 
 ### 3.3 The closed artifact
 
@@ -108,20 +108,20 @@ Bundle shape: `{ source_type, content_kind, [district_id], date, extracted_at, s
 
 Because the open path can see things the catalog cannot name, the system **learns**:
 
-- During closed extract, out-of-vocabulary captures are buffered (`business_modules/resilience/infrastructure/learningCapture.js`, `business_modules/resilience/domain/services/oovCapture.js`) to `daily_reports/oov-capture-{date}.jsonl`.
-- After assessment, verified open observations can be enqueued for catalog consideration (`business_modules/resilience/app/enqueueVerifiedOpenForCatalog.js`).
+- During closed extract, out-of-vocabulary captures are buffered (`business_modules/resilience_scorer/infrastructure/learningCapture.js`, `business_modules/resilience_scorer/domain/services/oovCapture.js`) to `business_modules/resilience_scorer/data/oov-capture-{date}.jsonl`.
+- After assessment, verified open observations can be enqueued for catalog consideration (`business_modules/resilience_scorer/app/enqueueVerifiedOpenForCatalog.js`).
 - The `signal_catalog_evolution` module turns these into **gap reports** and **draft proposals** (`input/generate-gap-report.js`, `app/catalogProposalService.js`).
 
 This is how the supporting (closed) vocabulary stays aligned with what the primary (open) path keeps discovering.
 
 ## 4. Where the two paths merge
 
-They do **not** merge at extract time - they stay in separate files. They merge at **assess** time, in three layers (entry: `business_modules/resilience/input/assess-signals.js` -> `business_modules/resilience/app/assessSignalsCli.js`).
+They do **not** merge at extract time - they stay in separate files. They merge at **assess** time, in three layers (entry: `business_modules/resilience_scorer/input/assess-signals.js` -> `business_modules/resilience_scorer/app/assessSignalsCli.js`).
 
 ### Layer A - Parallel load (still separate)
 
 - Closed bundles via `createSignalBundlePort` (default `bundleSource: 'closed'`) -> `allSignals`.
-- Open bundles via `loadOpenObservationsForAssess` (`business_modules/resilience/app/loadOpenObservationsForAssess.js`), loading `profile: 'pipeline'` observation bundles.
+- Open bundles via `loadOpenObservationsForAssess` (`business_modules/resilience_scorer/app/loadOpenObservationsForAssess.js`), loading `profile: 'pipeline'` observation bundles.
 
 ### Layer B - Route open observations to components, then feed the agent
 
@@ -148,10 +148,10 @@ run-pipeline.js
   -> assess-signals.js            (unless --ingest-only)
 ```
 
-- `business_modules/resilience/input/run-pipeline.js` - CLI entry.
-- `business_modules/resilience/app/pipelineOrchestrator.js` - `runPipelineOrchestrator`, `executeIngestStep`, force-delete handling.
-- `business_modules/resilience/app/pipelineIngestPlan.js` - `buildPipelineIngestPlan`, decides which ingest/extract steps are needed (including backfilling missing open bundles).
-- `business_modules/resilience/domain/services/pipelineArtifactPaths.js` - canonical artifact paths.
+- `business_modules/resilience_scorer/input/run-pipeline.js` - CLI entry.
+- `business_modules/resilience_scorer/app/pipelineOrchestrator.js` - `runPipelineOrchestrator`, `executeIngestStep`, force-delete handling.
+- `business_modules/resilience_scorer/app/pipelineIngestPlan.js` - `buildPipelineIngestPlan`, decides which ingest/extract steps are needed (including backfilling missing open bundles).
+- `business_modules/resilience_scorer/domain/services/pipelineArtifactPaths.js` - canonical artifact paths.
 - Which sources participate is set in `pipeline-config.json` (repo root).
 
 Representative ingest-plan actions -> spawned targets: `fetch_news` -> `homefront-to-md`; `extract_news`/`extract_radio`/`extract_whatsapp`/`extract_field` -> `extract-signals.js`; `extract_open_only` -> open-only extract; `extract_pbo_date` -> PBO extract; `extract_naftali` -> Naftali extract; `extract_regional_pbo` -> regional PBO extract; `social_gather` -> social gather.
@@ -189,7 +189,7 @@ flowchart TD
   end
 
   subgraph out [Output artifacts]
-    DR["daily_reports/{scope}-{date}-{HHMM}.md and .json"]
+    DR["business_modules/resilience_scorer/data/{scope}-{date}-{HHMM}.md and .json"]
     BR["...-brief.md no scores"]
     OOV["oov-capture-{date}.jsonl"]
   end

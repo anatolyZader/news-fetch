@@ -55,9 +55,21 @@ business_modules/scheduled_stream_capture/data/**
 !business_modules/scheduled_stream_capture/data/.gitkeep
 business_modules/signals_extraction/data/**
 !business_modules/signals_extraction/data/.gitkeep
+business_modules/resilience_scorer/data/**
+!business_modules/resilience_scorer/data/**/.gitkeep
+business_modules/specialist_agents/data/**
+!business_modules/specialist_agents/data/**/.gitkeep
+analyst/data/**
+!analyst/data/**/.gitkeep
+business_modules/translation/data/**
+!business_modules/translation/data/**/.gitkeep
+business_modules/pbo_report_muni/data/**
+!business_modules/pbo_report_muni/data/**/.gitkeep
+business_modules/signal_catalog_evolution/data/**
+!business_modules/signal_catalog_evolution/data/**/.gitkeep
 daily_reports/
 /validation/
-business_modules/resilience/validation/artifacts/
+business_modules/resilience_scorer/validation/artifacts/
 # Application logs (cost JSONL, pipeline text) — keep .gitkeep only
 cross-cut-modules/log/data/**
 !cross-cut-modules/log/data/.gitkeep
@@ -95,6 +107,7 @@ Haifa files/
 # Promo exported PDFs (regenerate from print/brochure-hq-en.html)
 promo/print/brochure-hq-en-*.pdf
 promo/screenshots/.auth-state.json
+tests/e2e/fixtures/reports/*.json
 tests/business_modules/social_media/data/telegram-raw-daily-*.jsonl
 tests/business_modules/social_media/data/x-spend-log-*.jsonl
 

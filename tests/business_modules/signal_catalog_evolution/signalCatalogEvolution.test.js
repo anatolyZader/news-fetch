@@ -6,18 +6,18 @@ import {
 } from '../../../business_modules/signal_catalog_evolution/domain/services/oovClusterer.js';
 import { LEARNING_CAPTURE_KINDS } from '../../../cross-cut-modules/learningCapture/kinds.js';
 import { formatGapReportMarkdown } from '../../../business_modules/signal_catalog_evolution/domain/services/gapReportFormatter.js';
-import { buildResidualCapturePrompt } from '../../../business_modules/resilience/infrastructure/extractionPasses.js';
+import { buildResidualCapturePrompt } from '../../../business_modules/resilience_scorer/infrastructure/extractionPasses.js';
 import { buildResidualExtractionPrompt } from '../../../business_modules/signals_extraction/domain/services/openExtractionPrompts.js';
 import { ObservationCaptureAdapter } from '../../../business_modules/signal_catalog_evolution/infrastructure/adapters/observationCaptureAdapter.js';
 import { CompositeLearningCaptureAdapter } from '../../../business_modules/signal_catalog_evolution/infrastructure/adapters/compositeLearningCaptureAdapter.js';
 import { mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { extractTopKParagraphsForLearning } from '../../../business_modules/resilience/infrastructure/learningCaptureText.js';
+import { extractTopKParagraphsForLearning } from '../../../business_modules/resilience_scorer/infrastructure/learningCaptureText.js';
 import {
   isLearningCaptureEnabled,
   isResidualCaptureEnabled,
-} from '../../../business_modules/resilience/domain/services/oovCapture.js';
+} from '../../../business_modules/resilience_scorer/domain/services/oovCapture.js';
 
 describe('signalCatalogEvolution oovClusterer', () => {
   it('clusters unknown types by suggested_type', () => {

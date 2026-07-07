@@ -1,19 +1,24 @@
 /**
- * Filesystem adapter for daily_reports/oov-capture-*.jsonl
+ * Filesystem adapter for resilience/data/captures/oov-capture-*.jsonl
  */
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { ILearningCapturePort } from '../../domain/ports/ILearningCapturePort.js';
 
+function defaultCapturesDir() {
+  return resolve(process.cwd(), 'business_modules/resilience_scorer/data/captures');
+}
+
 export class LearningCaptureFsAdapter extends ILearningCapturePort {
   /**
    * @param {object} [opts]
-   * @param {string} [opts.reportsDir]
+   * @param {string} [opts.capturesDir]
+   * @param {string} [opts.reportsDir] @deprecated use capturesDir
    */
   constructor(opts = {}) {
     super();
-    this.reportsDir = opts.reportsDir ?? 'daily_reports';
+    this.capturesDir = opts.capturesDir ?? opts.reportsDir ?? defaultCapturesDir();
   }
 
   /**
@@ -21,7 +26,7 @@ export class LearningCaptureFsAdapter extends ILearningCapturePort {
    * @param {number} [opts.maxDays] — only read files from the last N calendar days
    */
   async loadCaptureRecords(opts = {}) {
-    const dir = resolve(this.reportsDir);
+    const dir = resolve(this.capturesDir);
     if (!existsSync(dir)) return { records: [], files: [] };
 
     const maxDays = opts.maxDays ?? 14;

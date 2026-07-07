@@ -1,6 +1,7 @@
 import { maybeLocalize } from '../../business_modules/translation/index.js';
 import { requireAnalystView } from '../../cross-cut-modules/auth/requireAnalystAccess.js';
-import { normalizeReportScope } from '../../business_modules/resilience/domain/services/regionSignalFilter.js';
+import { normalizeReportScope } from '../../business_modules/resilience_scorer/domain/services/regionSignalFilter.js';
+import { analystShadowDir } from '../domain/services/artifactPaths.js';
 
 /**
  * Fastify routes for the resilience drift dashboard (N4).
@@ -21,7 +22,7 @@ export async function registerDriftRoutes(app, opts) {
     const days = Math.min(Number.parseInt(request.query?.days ?? '30', 10) || 30, 90);
     const { readdirSync, readFileSync, existsSync } = await import('node:fs');
     const { join } = await import('node:path');
-    const dir = join(process.cwd(), 'daily_reports');
+    const dir = analystShadowDir();
     if (!existsSync(dir)) return reply.send({ series: [] });
     const points = [];
     for (const f of readdirSync(dir).filter((n) => n.startsWith('divergence-'))) {

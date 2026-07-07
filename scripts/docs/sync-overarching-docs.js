@@ -7,8 +7,8 @@ import { resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
-import { RESILIENCE_COMPONENTS } from '../../business_modules/resilience/domain/resilienceComponents.js';
-import { COMPONENT_FACETS } from '../../business_modules/resilience/domain/services/componentFacets.js';
+import { RESILIENCE_COMPONENTS } from '../../business_modules/resilience_scorer/domain/resilienceComponents.js';
+import { COMPONENT_FACETS } from '../../business_modules/resilience_scorer/domain/services/componentFacets.js';
 
 const __dirname = resolve(fileURLToPath(import.meta.url), '..');
 const REPO_ROOT = resolve(__dirname, '../..');
@@ -77,7 +77,7 @@ async function loadUiLabels() {
 
 function generateAtAGlanceTable() {
   const lines = [
-    SYNC_NOTE('business_modules/resilience/domain/resilienceComponents.js'),
+    SYNC_NOTE('business_modules/resilience_scorer/domain/resilienceComponents.js'),
     '| # | ID | English | Hebrew | What it measures (in one line) |',
     '|---|---|---|---|---|',
   ];
@@ -91,7 +91,7 @@ function generateAtAGlanceTable() {
 
 function generateFacetTable() {
   const lines = [
-    SYNC_NOTE('business_modules/resilience/domain/services/componentFacets.js'),
+    SYNC_NOTE('business_modules/resilience_scorer/domain/services/componentFacets.js'),
     '| Component | Facets |',
     '|---|---|',
   ];

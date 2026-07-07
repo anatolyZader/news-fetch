@@ -1,5 +1,5 @@
-import { metricsEligible } from '../../business_modules/resilience/domain/services/evidenceEligibility.js';
-import { applySourceCap } from '../../business_modules/resilience/domain/epistemic/evidenceCaps.js';
+import { metricsEligible } from '../../business_modules/resilience_scorer/domain/services/evidenceEligibility.js';
+import { applySourceCap } from '../../business_modules/resilience_scorer/domain/epistemic/evidenceCaps.js';
 import { bootstrapScoreCI } from './bootstrapScoreCI.js';
 import { computeDerivedIndicators } from './derivedIndicators.js';
 import {
@@ -26,7 +26,7 @@ import {
   resolveComponentTuning,
   resolveSignalWeights,
 } from './scoringOverrides.js';
-import { evaluatePresenceGates } from '../../business_modules/resilience/domain/services/presenceGates.js';
+import { evaluatePresenceGates } from '../../business_modules/resilience_scorer/domain/services/presenceGates.js';
 
 const PRESS_SOURCE_TYPES = new Set(['news', 'radio']);
 
@@ -71,10 +71,10 @@ function assignConfidence(certainty, distinctArticleCount) {
   return 'high';
 }
 
-function computeSuppressionBreakdown(scRaw, scCapNoFloor, _sc) {
+function computeSuppressionBreakdown(scRaw, sc) {
   return {
-    source_cap: (scRaw?.score != null && scCapNoFloor?.score != null)
-      ? scCapNoFloor.score - scRaw.score
+    source_cap: (scRaw?.score != null && sc?.score != null)
+      ? sc.score - scRaw.score
       : null,
     min_mass_floor: null,
   };
@@ -85,7 +85,6 @@ function buildComponentScoreResult({
   items,
   cappedItems,
   scRaw,
-  scCapNoFloor,
   sc,
   batchMassByType,
   totalArticles,
@@ -94,6 +93,7 @@ function buildComponentScoreResult({
   enrichedSignals,
   sourceCapBinding,
   tuningTable,
+  capOpts,
 }) {
   const scoreRaw = scRaw?.score ?? null;
   const scoreHeadline = sc?.score ?? null;
@@ -109,13 +109,13 @@ function buildComponentScoreResult({
   const dispersion = coverageDispersion(sc.coverageRatio);
   const distinctArticleCount = articleSet.size;
   const confidence = assignConfidence(certainty, distinctArticleCount);
-  const ci = bootstrapScoreCI(items, id, totalArticles, sc.score);
+  const ci = bootstrapScoreCI(items, id, totalArticles, sc.score, capOpts);
   const cf = counterfactualLargestArticle(
     items,
     id,
     totalArticles,
     sc.score,
-    applySourceCap,
+    (its) => applySourceCap(its, capOpts),
   );
 
   const presence = evaluatePresenceGates(id, cappedItems);
@@ -125,7 +125,7 @@ function buildComponentScoreResult({
     score_raw: scoreRaw,
     score_headline: scoreHeadline,
     suppression_delta: suppressionDelta,
-    suppression_breakdown: computeSuppressionBreakdown(scRaw, scCapNoFloor, sc),
+    suppression_breakdown: computeSuppressionBreakdown(scRaw, sc),
     confidence,
     positive_evidence:       round3(sc.positive),
     negative_evidence:       round3(sc.negative),
@@ -170,42 +170,32 @@ function buildComponentScoreResult({
 
 function scoreSingleComponent({
   id,
-  scoringSignals,
-  duplicateIndex,
+  collected,
   batchMassByType,
   totalArticles,
   salienceContext,
   signalWeights,
   tuningTable,
+  capOpts,
 }) {
-  const { items, articleSet, sourceSet } = collectComponentItems(
-    id,
-    scoringSignals,
-    duplicateIndex,
-    signalWeights,
-  );
+  const { items, articleSet, sourceSet } = collected;
 
   if (items.length === 0) {
     return insufficientDataResult(id, batchMassByType, totalArticles);
   }
 
-  const cappedItems = applySourceCap(items);
+  const cappedItems = applySourceCap(items, capOpts);
   const sourceCapBinding = sourceCapWasApplied(items, cappedItems);
   const scoreOpts = { salienceContext, tuningTable };
   const scRaw = applySaliencePostScoringPolicy(
     scoreFromItems(items, id, totalArticles, articleSet, sourceSet, scoreOpts),
     items,
-    { ...scoreOpts, applyFloor: false },
-  );
-  const scCapNoFloor = applySaliencePostScoringPolicy(
-    scoreFromItems(cappedItems, id, totalArticles, articleSet, sourceSet, scoreOpts),
-    cappedItems,
-    { ...scoreOpts, applyFloor: false },
+    scoreOpts,
   );
   const sc = applySaliencePostScoringPolicy(
     scoreFromItems(cappedItems, id, totalArticles, articleSet, sourceSet, scoreOpts),
     cappedItems,
-    { ...scoreOpts, applyFloor: true },
+    scoreOpts,
   );
   const enrichedSignals = enrichCappedSignals(cappedItems, items, id, signalWeights);
 
@@ -218,7 +208,6 @@ function scoreSingleComponent({
     items,
     cappedItems,
     scRaw,
-    scCapNoFloor,
     sc,
     batchMassByType,
     totalArticles,
@@ -227,6 +216,7 @@ function scoreSingleComponent({
     enrichedSignals,
     sourceCapBinding,
     tuningTable,
+    capOpts,
   });
 }
 
@@ -286,16 +276,27 @@ export function scoreComponents(signals, {
 
   const batchMassByType = buildBatchPreCapMassByType(scoringSignals, duplicateIndex, signalWeights);
 
-  for (const id of COMPONENT_IDS) {
+  // Pre-cap mass across all components — enables adaptive cap relaxation on sparse data
+  // (same semantics as computeEpistemicProfile's totalEvidenceMass).
+  const allComponentItems = COMPONENT_IDS.map((id) =>
+    collectComponentItems(id, scoringSignals, duplicateIndex, signalWeights));
+  const totalEvidenceMass = allComponentItems.reduce(
+    (sum, { items }) => sum + items.reduce((s, it) => s + (it.contribution ?? 0), 0),
+    0,
+  );
+  const capOpts = { totalEvidenceMass };
+
+  for (let i = 0; i < COMPONENT_IDS.length; i++) {
+    const id = COMPONENT_IDS[i];
     results[id] = scoreSingleComponent({
       id,
-      scoringSignals,
-      duplicateIndex,
+      collected: allComponentItems[i],
       batchMassByType,
       totalArticles,
       salienceContext,
       signalWeights,
       tuningTable,
+      capOpts,
     });
   }
 

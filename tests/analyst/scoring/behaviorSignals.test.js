@@ -6,10 +6,10 @@ import {
   SIGNAL_TO_COMPONENTS,
   SIGNAL_TYPES,
   assertCatalogPolarityCoherence,
-} from '../../../business_modules/resilience/domain/services/behaviorSignals.js';
+} from '../../../business_modules/resilience_scorer/domain/services/behaviorSignals.js';
 import { scoreComponents, overallScore } from '../../../analyst/scoring/index.js';
-import { COMPONENT_FACETS } from '../../../business_modules/resilience/domain/services/componentFacets.js';
-import { summarizeSubgroupCoverage } from '../../../business_modules/resilience/domain/services/assessmentMethodology.js';
+import { COMPONENT_FACETS } from '../../../business_modules/resilience_scorer/domain/services/componentFacets.js';
+import { summarizeSubgroupCoverage } from '../../../business_modules/resilience_scorer/domain/services/assessmentMethodology.js';
 
 function makeSignal(overrides = {}) {
   return {
@@ -67,9 +67,12 @@ describe('SIGNAL_CATALOG / SIGNAL_TO_COMPONENTS — T1 + T2 additions', () => {
     assert.ok(m.functional_continuity > 0);
   });
 
-  it('T3 spillover: harm_to_population touches narrative negatively and no longer spills into belonging (B1)', () => {
+  it('T3: harm_to_population is wellbeing-primary only (no narrative/leadership spillover)', () => {
     const m = SIGNAL_TO_COMPONENTS.harm_to_population;
-    assert.ok(m.narrative < 0);
+    assert.equal(m.wellbeing_at_risk, -1.2);
+    assert.equal(m.narrative, undefined);
+    assert.equal(m.leadership, undefined);
+    assert.equal(m.community_capital, undefined);
     assert.equal(m.belonging_solidarity, undefined,
       'B1: harm should not auto-boost belonging — solidarity must be evidenced via solidarity_help_others');
   });
@@ -545,7 +548,7 @@ describe('scoreComponents — facets (T4)', () => {
   it('every facet signal type maps to its component (directly or via spillover)', async () => {
     // Sanity check: a facet should not reference a signal type that doesn't route to its parent.
     const { SIGNAL_TO_COMPONENTS: mapping } = await import(
-      '../../../business_modules/resilience/domain/services/behaviorSignals.js');
+      '../../../business_modules/resilience_scorer/domain/services/behaviorSignals.js');
     for (const [componentId, facets] of Object.entries(COMPONENT_FACETS)) {
       for (const [facetName, signalTypes] of Object.entries(facets)) {
         for (const sigType of signalTypes) {

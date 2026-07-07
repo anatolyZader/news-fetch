@@ -1,22 +1,22 @@
-import { COMPONENT_FACETS } from '../../business_modules/resilience/domain/services/componentFacets.js';
+import { COMPONENT_FACETS } from '../../business_modules/resilience_scorer/domain/services/componentFacets.js';
 import {
   SIGNAL_TO_COMPONENTS,
   getSignalCatalogEntry,
-} from '../../business_modules/resilience/domain/services/signalRouter.js';
-import { evaluateHighSalienceBypass } from '../../business_modules/resilience/domain/services/highSalienceBypass.js';
+} from '../../business_modules/resilience_scorer/domain/services/signalRouter.js';
+import { evaluateHighSalienceBypass } from '../../business_modules/resilience_scorer/domain/services/highSalienceBypass.js';
 
 export { COMPONENT_IDS } from '../../cross-cut-modules/resilience-contracts/componentIds.js';
 export {
   RELIABILITY_WEIGHT,
   buildDuplicateOccurrenceIndex,
   duplicateArticleFactor, contributionForSignal, effectiveWeightForSignal, round3,
-} from '../../business_modules/resilience/domain/epistemic/massContribution.js';
-export { sourceCapWasApplied } from '../../business_modules/resilience/domain/epistemic/evidenceCaps.js';
+} from '../../business_modules/resilience_scorer/domain/epistemic/massContribution.js';
+export { sourceCapWasApplied } from '../../business_modules/resilience_scorer/domain/epistemic/evidenceCaps.js';
 import {
   contributionForSignal,
   effectiveWeightForSignal,
   round3,
-} from '../../business_modules/resilience/domain/epistemic/massContribution.js';
+} from '../../business_modules/resilience_scorer/domain/epistemic/massContribution.js';
 
 
 export const COMPONENT_TUNING = {
@@ -158,11 +158,6 @@ function computeTypeDiversity(items) {
   return { typeDiversityFactor, signalTypeEntropy: Hmax > 0 ? H / Hmax : 0 };
 }
 
-function applyThinEvidenceFloor(score, evidenceMass, applyFloor, salienceBypass) {
-  // Min-mass [3,8] clamp removed — thin evidence shows raw scores; salience bypass unchanged.
-  return { score, floorClamped: false, floorBypassed: salienceBypass.skipFloor === true };
-}
-
 /**
  * Pure component score from contribution items (no high-salience bypass).
  */
@@ -199,24 +194,23 @@ export function scoreFromItems(items, componentId, totalArticles, articleSet, so
 }
 
 /**
- * Post-scoring policy: thin-evidence floor flags and high-salience bypass metadata.
+ * Post-scoring policy: high-salience bypass metadata.
+ * Min-mass [3,8] floor removed — thin evidence shows raw scores; `floorClamped`
+ * is kept always-false for report-field compatibility.
  * @param {ReturnType<typeof scoreFromItems>} base
  */
 export function applySaliencePostScoringPolicy(base, items, opts = {}) {
   if (!base) return null;
-  const applyFloor = opts.applyFloor !== false;
   const salienceBypass = evaluateHighSalienceBypass(
     items,
     base.evidenceMass,
     base.score,
     opts.salienceContext ?? {},
   );
-  const floorResult = applyThinEvidenceFloor(base.score, base.evidenceMass, applyFloor, salienceBypass);
   return {
     ...base,
-    score: floorResult.score,
-    floorClamped: floorResult.floorClamped,
-    floorBypassed: floorResult.floorBypassed,
+    floorClamped: false,
+    floorBypassed: salienceBypass.skipFloor === true,
     salienceCritical: salienceBypass.operatorCritical === true,
     salienceBypassReasons: salienceBypass.reasons ?? [],
     salienceDominantSignalType: salienceBypass.dominantSignalType ?? null,
@@ -262,7 +256,6 @@ export function counterfactualLargestArticle(items, componentId, totalArticles, 
   const sc = applySaliencePostScoringPolicy(
     scoreFromItems(capped, componentId, totalArticles, articleSet, sourceSet),
     capped,
-    { applyFloor: true },
   );
   if (sc) {
     return {

@@ -83,7 +83,7 @@ node scripts/sonar/verify-sonar-issue.mjs --file <path> --line <n> --rule <javas
 **Skip and report** (do not guess):
 
 - Security hotspots needing product/security judgment (unless fix is obvious)
-- Generated paths (`articles_extracted/`, `daily_reports/`, `signals/`, `client/dist/`, etc.)
+- Generated paths (`articles_extracted/`, `business_modules/resilience_scorer/data/`, `signals/`, `client/dist/`, etc.)
 - Issues where `verify-sonar-issue` returns `no-eslint-mapping` — note rule for manual follow-up
 
 Do **not** require the entire file to have zero issues — only that **this** rule at **this** line is cleared.

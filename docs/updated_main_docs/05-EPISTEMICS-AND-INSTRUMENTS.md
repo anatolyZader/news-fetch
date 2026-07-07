@@ -18,7 +18,7 @@ The epistemic layer is what lets the system say "thin," "contested," or "insuffi
 
 ## 2. Evidence mass, caps, and certainty
 
-These live under `business_modules/resilience/domain/epistemic/` and `business_modules/epistemic_features/`.
+These live under `business_modules/resilience_scorer/domain/epistemic/` and `business_modules/specialist_agents/domain/services/`.
 
 ### 2.1 Mass (how much evidence landed)
 
@@ -47,7 +47,7 @@ For the agent, a separate `enrichProfileForInvestigation` computes `investigatio
 
 ## 3. The operator instrument (what replaces the score)
 
-Instead of a 1-10, the operator sees an **instrument** derived by `deriveInstrumentState` (`business_modules/resilience/domain/services/assessmentDisplayTier.js`, line 75):
+Instead of a 1-10, the operator sees an **instrument** derived by `deriveInstrumentState` (`business_modules/resilience_scorer/domain/services/assessmentDisplayTier.js`, line 75):
 
 ```js
 {
@@ -61,7 +61,7 @@ Instead of a 1-10, the operator sees an **instrument** derived by `deriveInstrum
 }
 ```
 
-This communicates "how much to trust this, and is it changing" without inviting false precision. Operator display states (`insufficient_data`, `evidence_quarantined`, `specialist_skipped`) come from `business_modules/resilience/domain/services/componentDiagnostics.js`.
+This communicates "how much to trust this, and is it changing" without inviting false precision. Operator display states (`insufficient_data`, `evidence_quarantined`, `specialist_skipped`) come from `business_modules/resilience_scorer/domain/services/componentDiagnostics.js`.
 
 ## 4. The headline 1-10: present internally, hidden from operators
 
@@ -69,14 +69,14 @@ The deterministic score still exists - it is useful for analysts calibrating the
 
 ### 4.1 Where the score comes from
 
-The only sanctioned bridge from the resilience module into the scoring code is `business_modules/resilience/app/scoringFacade.js`, re-exporting `scoreComponents` / `overallScore` from `analyst/scoring/`. In the daily run it produces the **shadow** score, compared against the agent assessment for divergence - not merged into the operator's component claims.
+The only sanctioned bridge from the resilience module into the scoring code is `business_modules/resilience_scorer/app/scoringFacade.js`, re-exporting `scoreComponents` / `overallScore` from `analyst/scoring/`. In the daily run it produces the **shadow** score, compared against the agent assessment for divergence - not merged into the operator's component claims.
 
 ### 4.2 The gates and redactions that hide it
 
 | Layer | Mechanism |
 |-------|-----------|
 | Agent output | `mapAssessmentV2ToLegacy` sets `overall_resilience_score: null` |
-| Epistemic gate | `applyScoreAbstention` (`business_modules/resilience/domain/services/dataVoid/epistemicGate.js`) nulls scores and sets `epistemic_abstention` / `confidence: 'insufficient_data'` when the evidence void is elevated/critical |
+| Epistemic gate | `applyScoreAbstention` (`business_modules/resilience_scorer/domain/services/dataVoid/epistemicGate.js`) nulls scores and sets `epistemic_abstention` / `confidence: 'insufficient_data'` when the evidence void is elevated/critical |
 | API redaction | `redactReportPayload` / `redactAssessmentForView` strip per-component scores, `overall_resilience_score`, shadow scoring, and component diagnostics for operators |
 | Display-view auth | `resolveDisplayView` grants `analyst` only to allow-listed users; everyone else is `operator` |
 | Thin-evidence policy | sets `operator_shows_score: false` when mass is too low / abstaining / sampling-blind |
@@ -114,16 +114,16 @@ A district officer producing twice-daily situation reports is better served by *
 
 | Concern | Path |
 |---------|------|
-| Mass per signal | `business_modules/resilience/domain/epistemic/massContribution.js` |
-| Component polarity items | `business_modules/resilience/domain/epistemic/componentItems.js` |
-| Source caps (50% / 35%) | `business_modules/resilience/domain/epistemic/evidenceCaps.js` |
-| Certainty tuning | `business_modules/resilience/domain/epistemic/certaintyTuning.js` |
-| Epistemic profile | `business_modules/epistemic_features/.../epistemicProfileBuilder.js` |
-| Investigation abstention | `business_modules/epistemic_features/domain/services/investigationEpistemic.js` |
-| Instrument + redaction | `business_modules/resilience/domain/services/assessmentDisplayTier.js` |
-| Score abstention gate | `business_modules/resilience/domain/services/dataVoid/epistemicGate.js` |
-| Operator display states | `business_modules/resilience/domain/services/componentDiagnostics.js` |
-| Scoring bridge | `business_modules/resilience/app/scoringFacade.js` |
+| Mass per signal | `business_modules/resilience_scorer/domain/epistemic/massContribution.js` |
+| Component polarity items | `business_modules/resilience_scorer/domain/epistemic/componentItems.js` |
+| Source caps (50% / 35%) | `business_modules/resilience_scorer/domain/epistemic/evidenceCaps.js` |
+| Certainty tuning | `business_modules/resilience_scorer/domain/epistemic/certaintyTuning.js` |
+| Epistemic profile | `business_modules/resilience_scorer/domain/epistemic/epistemicProfileBuilder.js` |
+| Investigation abstention | `business_modules/specialist_agents/domain/services/investigationEpistemic.js` |
+| Instrument + redaction | `business_modules/resilience_scorer/domain/services/assessmentDisplayTier.js` |
+| Score abstention gate | `business_modules/resilience_scorer/domain/services/dataVoid/epistemicGate.js` |
+| Operator display states | `business_modules/resilience_scorer/domain/services/componentDiagnostics.js` |
+| Scoring bridge | `business_modules/resilience_scorer/app/scoringFacade.js` |
 | Display view | `cross-cut-modules/resilience-contracts/displayViews.js` |
 
 ## 7. Dual epistemic status (monitoring replays)

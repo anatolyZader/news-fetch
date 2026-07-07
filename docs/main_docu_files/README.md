@@ -60,7 +60,7 @@ Sections between `<!-- docs-sync:BEGIN … -->` / `<!-- docs-sync:END … -->` i
 npm run docs:sync
 ```
 
-Sources: `business_modules/resilience/domain/resilienceComponents.js`, `componentFacets.js`, `client/src/i18n/translations.js`. Do not hand-edit content between those markers.
+Sources: `business_modules/resilience_scorer/domain/resilienceComponents.js`, `componentFacets.js`, `client/src/i18n/translations.js`. Do not hand-edit content between those markers.
 
 ## Module boundaries (Option B)
 

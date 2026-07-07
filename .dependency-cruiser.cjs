@@ -88,12 +88,12 @@ module.exports = {
       comment:
         'Operator resilience code must not import analyst/ except scoringFacade, shadowFacade, validation shim',
       from: {
-        path: '^business_modules/resilience/',
+        path: '^business_modules/resilience_scorer/',
         pathNot: [
-          '^business_modules/resilience/app/scoringFacade\\.js$',
-          '^business_modules/resilience/app/shadowFacade\\.js$',
-          '^business_modules/resilience/validation/index\\.js$',
-          '^business_modules/resilience/tuning/goldenPaths\\.js$',
+          '^business_modules/resilience_scorer/app/scoringFacade\\.js$',
+          '^business_modules/resilience_scorer/app/shadowFacade\\.js$',
+          '^business_modules/resilience_scorer/validation/index\\.js$',
+          '^business_modules/resilience_scorer/tuning/goldenPaths\\.js$',
         ],
       },
       to: { path: '^analyst/' },

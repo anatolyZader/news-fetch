@@ -1,7 +1,9 @@
-import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
-import { join } from 'node:path';
+import { readFileSync } from 'node:fs';
 
-import { normalizeReportScopeId, reportFilePrefix } from '../../../geo/reportScopeIds.js';
+import {
+  resolveReportJsonPathForDate as resolveReportFromResilience,
+  resilienceReportsDir,
+} from '../../../../business_modules/resilience_scorer/index.js';
 
 function readJsonSafe(filePath) {
   try {
@@ -11,12 +13,6 @@ function readJsonSafe(filePath) {
   }
 }
 
-function readAssessmentTotalArticles(jsonPath) {
-  const data = readJsonSafe(jsonPath);
-  const n = data?.assessment?.total_articles_analyzed;
-  return typeof n === 'number' && Number.isFinite(n) ? n : 0;
-}
-
 /**
  * @param {string} rootDir
  * @param {string} date YYYY-MM-DD
@@ -24,42 +20,10 @@ function readAssessmentTotalArticles(jsonPath) {
  * @returns {string | null} absolute path
  */
 export function resolveReportJsonPathForDate(rootDir, date, scope) {
-  const reportsDir = join(rootDir, 'daily_reports');
-  if (!existsSync(reportsDir)) return null;
-
-  const prefixBase = reportFilePrefix(normalizeReportScopeId(scope));
-  const exact = join(reportsDir, `${prefixBase}-${date}.json`);
-  if (existsSync(exact)) return exact;
-
-  const prefix = `${prefixBase}-${date}-`;
-  let names;
-  try {
-    names = readdirSync(reportsDir);
-  } catch {
-    return null;
-  }
-
-  const candidates = names.filter((f) => f.startsWith(prefix) && f.endsWith('.json'));
-  if (candidates.length === 0) return null;
-
-  let bestPath = null;
-  let bestArticles = -Infinity;
-  let bestMtime = -1;
-  for (const f of candidates) {
-    const p = join(reportsDir, f);
-    try {
-      const articles = readAssessmentTotalArticles(p);
-      const m = statSync(p).mtimeMs;
-      if (articles > bestArticles || (articles === bestArticles && m > bestMtime)) {
-        bestArticles = articles;
-        bestMtime = m;
-        bestPath = p;
-      }
-    } catch {
-      /* skip */
-    }
-  }
-  return bestPath;
+  return resolveReportFromResilience(date, {
+    reportsDir: resilienceReportsDir(rootDir),
+    scope,
+  });
 }
 
 /**

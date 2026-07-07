@@ -143,7 +143,7 @@ pm2 logs pipeline-afternoon --lines 50
 Check if today's report was generated:
 
 ```bash
-ls -la daily_reports/resilience-report-$(date +%Y-%m-%d)*.json
+ls -la business_modules/resilience_scorer/data/reports/*-$(date +%d%m%y)-*.json
 ```
 
 ## Degraded mode

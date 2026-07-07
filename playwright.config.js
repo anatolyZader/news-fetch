@@ -1,4 +1,11 @@
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { defineConfig, devices } from '@playwright/test';
+
+const repoRoot = join(dirname(fileURLToPath(import.meta.url)));
+const e2eReportsDir = join(repoRoot, 'tests/e2e/fixtures/reports');
+const e2ePort = process.env.E2E_PORT || '3100';
+const e2eBaseUrl = process.env.E2E_BASE_URL || `http://127.0.0.1:${e2ePort}`;
 
 export default defineConfig({
   testDir: 'tests/e2e',
@@ -8,7 +15,7 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: 'list',
   use: {
-    baseURL: process.env.E2E_BASE_URL || 'http://127.0.0.1:3000',
+    baseURL: e2eBaseUrl,
     trace: 'on-first-retry',
   },
   projects: [
@@ -30,9 +37,17 @@ export default defineConfig({
   webServer: process.env.E2E_SKIP_SERVER
     ? undefined
     : {
-      command: 'npm start',
-      url: 'http://127.0.0.1:3000',
-      reuseExistingServer: true,
-      timeout: 120_000,
+      command: 'node tests/e2e/fixtures/seed-today-report.mjs && npm run client:build && npm start',
+      url: e2eBaseUrl,
+      reuseExistingServer: process.env.E2E_REUSE_SERVER === 'true',
+      timeout: 180_000,
+      env: {
+        AUTH_REQUIRED: 'false',
+        NODE_ENV: 'test',
+        NEWSAPI_API_KEY: 'e2e-smoke-key',
+        TZ_ARTICLES: 'Asia/Jerusalem',
+        REPORTS_DIR: e2eReportsDir,
+        PORT: e2ePort,
+      },
     },
 });

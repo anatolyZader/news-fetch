@@ -9,5 +9,22 @@
   "chat.launcherWhenClosed": "Чат",
   "chat.launcherWhenOpen": "Закрыть чат",
   "chat.placeholder": "Задайте вопрос об оценках устойчивости — сегодня или за прошлые даты…",
-  "chat.send": "Отправить"
+  "chat.send": "Отправить",
+  "chat.stop": "Стоп",
+  "chat.status.preparing": "Подготовка контекста…",
+  "chat.status.thinking": "Думаю…",
+  "chat.status.elapsed": "{seconds}с",
+  "chat.status.toolProgress": "({round}/{maxRounds})",
+  "chat.status.slowWarning": "Дольше обычного — таймаут сервера около {timeoutMin} мин. Можно остановить и повторить.",
+  "chat.status.tool.generic": "Выполняю инструмент…",
+  "chat.status.tool.lookup_signals": "Поиск сигналов",
+  "chat.status.tool.get_source": "Загрузка источника",
+  "chat.status.tool.search_sources": "Поиск в источниках",
+  "chat.status.tool.trace_component_timeline": "Построение хронологии",
+  "chat.status.tool.compare_dates": "Сравнение дат",
+  "chat.status.tool.get_component_evidence_bundle": "Загрузка пакета доказательств",
+  "chat.banner.loop_exhausted": "Достигнут лимит поиска — ответ может быть неполным. Повторите или сузьте вопрос.",
+  "chat.banner.error": "Не удалось завершить ответ.",
+  "chat.banner.deterministic_fallback": "Ответ без ИИ (режим бюджета).",
+  "chat.banner.planning_only": "Ответ может быть неполным — повторить?"
 }

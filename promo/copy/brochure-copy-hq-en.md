@@ -10,7 +10,7 @@
 **Tagline:** Community resilience · Daily assessment  
 **One-liner:** Evidence-backed daily homefront resilience assessment from news, social media, field reports, and manual submissions.
 
-**Hero image:** `01-home-8components.png`  
+**Hero image:** `01-home_screen.png`  
 **Caption:** Daily assessment across eight community-resilience components.
 
 **Footer strip:** srulik.ai
@@ -33,6 +33,11 @@ srulik.ai structures one daily read across eight components. Every narrative lin
 2. **Verify** — evidence behind each signal  
 3. **Assess** — eight community-resilience components  
 4. **Narrate** — operator prose with inline source citations  
+
+### Data ribbon (visual)
+
+**Image:** `07_data_source_ribbon.png`  
+**Caption:** News, WhatsApp, radio, Google Trends, and field submissions — fused into one daily read.
 
 ### Scope line
 
@@ -59,11 +64,17 @@ Home Front Command (Pikud HaOref) community-resilience model. Observable signals
 
 ### Proof panels
 
-**Image A:** `02-component-narrative.png`  
+**Image A:** `02_component_narrative.png`  
 **Caption:** Every claim traces to raw excerpts — open the evidence pool.
 
-**Image B:** `04-chat-cited.png`  
+**Image B:** `06_chat.png`  
 **Caption:** Ask the reports — chat cites today’s and past evidence.
+
+### Evidence strip (three sources)
+
+**Image C:** `03_evidence_visits.png` — Field visits — verbatim excerpts under each claim.  
+**Image D:** `04_evidence_pbo.png` — Regional PBO reports — same evidence discipline.  
+**Image E:** `05_evidence_press.png` — Press and news — traceable to the source.
 
 ---
 
@@ -79,6 +90,11 @@ Home Front Command (Pikud HaOref) community-resilience model. Observable signals
 ### The field completes the picture
 
 PBO regional reports, the WhatsApp report bot, and manual submissions feed the daily assessment — including the same day’s run. Field judgment stays primary.
+
+### Field panels
+
+**Image F:** `09_send_data_window.png` — Submit evidence from the field — same-day inclusion in the assessment.  
+**Image G:** `11_write_report_window.png` — Upload a regional report — your judgment becomes input.
 
 ### FAQ (short)
 

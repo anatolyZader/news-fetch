@@ -41,7 +41,7 @@ After reading this you should be able to locate any behavior of the running syst
 
 **Storage** (`db/` + SQLite) — default database file `db/app.sqlite` (`SQLITE_PATH`). Raw persistence (evidence, source archive originals, drafts, quotas) lives under `db/persistence/` and `db/source_archive/`; ops CLIs under `db/input/`. RAG chunk indexes use the same SQLite file via `cross-cut-modules/retrieval/`. Only the server writes; stages use these modules rather than opening the DB directly. See [Storage model](storage.md) and the [Module map](module-map.md#top-level-layout) for directory layout.
 
-**Analysis** (`business_modules/resilience/`) — the scoring pipeline. `extract-signals` reads dated exports and emits typed signals; `assess-signals` applies the weight table and produces reports. Prompts and the taxonomy are kept in this module.
+**Analysis** (`business_modules/resilience_scorer/`) — the scoring pipeline. `extract-signals` reads dated exports and emits typed signals; `assess-signals` applies the weight table and produces reports. Prompts and the taxonomy are kept in this module.
 
 **Cross-cut** (`cross-cut-modules/`) — shared concerns: budget accounting, LLM clients, persistence helpers, and utilities. Anything that *two or more* business modules would otherwise duplicate belongs here.
 
@@ -67,7 +67,7 @@ Each arrow crosses a file boundary. Each stage is restartable from the last arti
 ### Where a change usually belongs
 
 - "I want to ingest a new news source." → add an adapter under `business_modules/news-sites/` and teach the homefront extractor about it. Don't touch analysis code.
-- "I want to add a new signal type." → update the extraction prompt, the validator, and the scoring weight table in `business_modules/resilience/`. See [Signal taxonomy](../concepts/signal-taxonomy.md).
+- "I want to add a new signal type." → update the extraction prompt, the validator, and the scoring weight table in `business_modules/resilience_scorer/`. See [Signal taxonomy](../concepts/signal-taxonomy.md).
 - "I want a new tab in the UI." → add a component under `client/src/components/`, wire it into `MainApp.jsx`, and expose the data it needs via a new API route. Don't duplicate analysis logic in the client.
 - "I want to rotate an API key." → update the runtime env and restart the server. No rebuilds needed unless it was a `VITE_*` value (then rebuild `client/dist`).
 
@@ -83,7 +83,7 @@ Each arrow crosses a file boundary. Each stage is restartable from the last arti
   - **Fix**: verify environment variables and inspect server logs for upstream failures. Start with [Observability](https://docs.vibeswitch.ai/operations/observability).
 - **A change to the UI surfaces analysis differently but the numbers are the same**
   - **Check**: is the code in `client/` reshaping data, or is an analysis module changing values?
-  - **Fix**: keep analysis in `business_modules/resilience/`; keep presentation in `client/`. Data mutations in the UI are a code smell.
+  - **Fix**: keep analysis in `business_modules/resilience_scorer/`; keep presentation in `client/`. Data mutations in the UI are a code smell.
 - **Docs panel doesn't show a page that exists on disk**
   - **Check**: the page's frontmatter (especially `intent` and `gated`) against the in-app panel's user-guide filter.
   - **Fix**: fix frontmatter, or confirm the page appears on [full docs](https://docs.vibeswitch.ai/).

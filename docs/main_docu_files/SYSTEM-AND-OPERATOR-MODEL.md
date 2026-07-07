@@ -2,7 +2,7 @@
 
 **Purpose:** Describe how the running product supports **human decision-making** — not automated verdicts. Operators scan attention and **evidence-backed claims**; analysts calibrate shadow scoring and review agent traces.
 
-**Sources:** `business_modules/resilience/domain/services/assessmentDisplayTier.js`, `thinEvidencePolicy.js`, `actionCompass.js`, `anomalyStrip.js`, `app/reportCacheService.js`, `business_modules/resilience_assessment/`, `client/src/MainApp.jsx`, `client/src/components/ReportView.jsx`, `analyst-site/src/AnalystApp.jsx`, `cross-cut-modules/messaging/app/registerModuleHandlers.js`, `cross-cut-modules/budget/app/crisisBudgetService.js`.
+**Sources:** `business_modules/resilience_scorer/domain/services/assessmentDisplayTier.js`, `thinEvidencePolicy.js`, `actionCompass.js`, `anomalyStrip.js`, `app/reportCacheService.js`, `business_modules/specialist_agents/`, `client/src/MainApp.jsx`, `client/src/components/ReportView.jsx`, `analyst-site/src/AnalystApp.jsx`, `cross-cut-modules/messaging/app/registerModuleHandlers.js`, `cross-cut-modules/budget/app/crisisBudgetService.js`.
 
 ---
 
@@ -126,7 +126,7 @@ Analyst tier keeps additional instrument detail (`suppression_delta`, truncated 
 
 ## Report file selection (wired)
 
-**Primary implementation:** `business_modules/resilience/app/reportCacheService.js` — `resolveReportJsonPathForDate(date, { scope, reportsDir })`.
+**Primary implementation:** `business_modules/resilience_scorer/app/reportCacheService.js` — `resolveReportJsonPathForDate(date, { scope, reportsDir })`.
 
 When multiple scoped variants exist for the same date (e.g. `resilience-report-2026-06-12-*.json`), the resolver picks the candidate with the **highest** `total_articles_analyzed`; on a tie, the **newest mtime** wins. Exact-path files (`resilience-report-{date}.json` or scoped prefix without suffix) are returned immediately when present.
 

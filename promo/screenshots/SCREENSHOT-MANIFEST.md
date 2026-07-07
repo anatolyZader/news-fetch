@@ -2,6 +2,8 @@
 
 > Required captures for [`../print/brochure-hq-en.html`](../print/brochure-hq-en.html). Follow [`../copy/demo-script.md`](../copy/demo-script.md). Operator view only — not analyst.
 
+**Naming:** manual captures use underscore filenames below. The Playwright script [`capture-brochure-shots.mjs`](capture-brochure-shots.mjs) still outputs legacy hyphen names — re-capture manually or rename if using automation until a follow-up unifies them.
+
 ## Pre-flight
 
 - [ ] Good assessment day loaded (not empty state)
@@ -14,21 +16,34 @@
 
 | File | Screen | Brochure use |
 |------|--------|--------------|
-| `01-home-8components.png` | Home — daily assessment, eight components | Cover hero |
-| `02-component-narrative.png` | One hot component — narrative + inline citations | Page 3 proof |
-| `03-evidence-pool.png` | Evidence pool / raw excerpts under a component | Page 3 proof |
-| `04-chat-cited.png` | Chat with a cited answer visible | Page 3 proof |
-| `05-data-sources.png` | Data sources bar or source browse view | Page 2 or 3 |
-| `06-field-submission.png` | Submissions tab or report-bot inbox | Page 4 field loop |
+| `01-home_screen.png` | Home — daily assessment, eight components | Page 1 cover hero |
+| `02_component_narrative.png` | One hot component — narrative + inline citations | Page 3 proof row A |
+| `03_evidence_visits.png` | Evidence pool — field visits | Page 3 evidence strip |
+| `04_evidence_pbo.png` | Evidence pool — regional PBO | Page 3 evidence strip |
+| `05_evidence_press.png` | Evidence pool — press / news | Page 3 evidence strip |
+| `06_chat.png` | Chat with a cited answer visible | Page 3 proof row A |
+| `07_data_source_ribbon.png` | Data-source ribbon / multi-source bar | Page 2 |
+| `09_send_data_window.png` | Send data / field submission window | Page 4 field row |
+| `11_write_report_window.png` | Write report / PBO upload window | Page 4 field row |
+
+### Optional extras (not in brochure HTML)
+
+| File | Screen |
+|------|--------|
+| `08_upper_right_corner_controls.png` | Header controls — future one-pagers / posters |
+| `10_logo_name_slogan.png` | Brand lockup — future cover polish |
 
 ## Capture hints
 
 1. **01** — Full home with component list; ensure date in footer.
 2. **02** — Expand the most active component; one narrative sentence + `[source]` visible.
-3. **03** — Scroll to evidence pool; show verbatim excerpts label if present.
-4. **04** — Ask: “What should I verify in the field today?” — capture answer with citation.
-5. **05** — Open data-sources picker or a source tab header.
-6. **06** — Submissions or Report bot tab with upload/send UI visible.
+3. **03** — Evidence pool for field visits; show verbatim excerpts if present.
+4. **04** — Evidence pool for regional PBO report.
+5. **05** — Evidence pool for press / news source.
+6. **06** — Ask: “What should I verify in the field today?” — capture answer with citation.
+7. **07** — Data-source ribbon with multiple sources visible.
+8. **09** — Send data / submission window with upload or send UI.
+9. **11** — Write report window for regional PBO upload.
 
 ## Authentication (production)
 
@@ -85,4 +100,4 @@ Default base URL is `http://127.0.0.1:3000` if the app runs locally.
 
 ## Capture (manual)
 
-Use browser devtools or OS screenshot at 1440×900 while following [`../copy/demo-script.md`](../copy/demo-script.md).
+Use browser devtools or OS screenshot at 1440×900 while following [`../copy/demo-script.md`](../copy/demo-script.md). Save with the exact filenames in the table above.

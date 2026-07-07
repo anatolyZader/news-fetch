@@ -9,5 +9,22 @@
   "chat.launcherWhenClosed": "Chat",
   "chat.launcherWhenOpen": "Close chat",
   "chat.placeholder": "Ask anything about resilience assessments — today or past dates…",
-  "chat.send": "Send"
+  "chat.send": "Send",
+  "chat.stop": "Stop",
+  "chat.status.preparing": "Preparing context…",
+  "chat.status.thinking": "Thinking…",
+  "chat.status.elapsed": "{seconds}s",
+  "chat.status.toolProgress": "({round}/{maxRounds})",
+  "chat.status.slowWarning": "Taking longer than usual — server timeout is about {timeoutMin} min. You can Stop and retry.",
+  "chat.status.tool.generic": "Running tool…",
+  "chat.status.tool.lookup_signals": "Looking up signals",
+  "chat.status.tool.get_source": "Fetching source",
+  "chat.status.tool.search_sources": "Searching sources",
+  "chat.status.tool.trace_component_timeline": "Tracing timeline",
+  "chat.status.tool.compare_dates": "Comparing dates",
+  "chat.status.tool.get_component_evidence_bundle": "Loading evidence bundle",
+  "chat.banner.loop_exhausted": "Search limit reached — answer may be incomplete. Try Regenerate or narrow the question.",
+  "chat.banner.error": "This response could not be completed.",
+  "chat.banner.deterministic_fallback": "Answer generated without AI (budget mode).",
+  "chat.banner.planning_only": "Response may be incomplete — Regenerate?"
 }

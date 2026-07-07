@@ -2,16 +2,20 @@
  * Append-only JSONL trace store for agent runs.
  */
 import { appendFileSync, mkdirSync, readFileSync, existsSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { createHash } from 'node:crypto';
 
+function defaultTracesDir() {
+  return resolve(process.cwd(), 'business_modules/specialist_agents/data/traces');
+}
+
 /**
- * @param {string} reportsDir
+ * @param {string} [tracesDir]
  */
-export function createTraceStore(reportsDir = 'daily_reports') {
+export function createTraceStore(tracesDir = defaultTracesDir()) {
   function tracePath(traceId) {
     const safe = String(traceId ?? '').replaceAll(/[^\w.-]/g, '_');
-    return join(reportsDir, `assessment-agent-trace-${safe}.jsonl`);
+    return join(tracesDir, `assessment-agent-trace-${safe}.jsonl`);
   }
 
   return {

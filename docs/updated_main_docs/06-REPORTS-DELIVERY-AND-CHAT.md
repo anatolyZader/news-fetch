@@ -5,7 +5,7 @@
 - What a **daily report artifact** actually is (files and fields).
 - How reports are **served** (HTTP API) and **scoped** (national / north).
 - How the operator **reads and interrogates** a report (UI + chat tools).
-- The difference between three things that all say "report": **daily_reports** (the assessment), **report_build** (field-report drafting), and **report_bot** (manual inbox).
+- The difference between three things that all say "report": **daily assessment artifacts** (`business_modules/resilience_scorer/data/reports/`), **report_build** (field-report drafting), and **report_bot** (manual inbox).
 
 ## 1. Context recap
 
@@ -13,9 +13,9 @@ The officer's deliverable is a thoughtful situation report, ideally **twice a da
 
 ## 2. The daily report artifact
 
-Built by `writeReport` in `business_modules/resilience/infrastructure/reportWriter.js`. Each assessment run writes **three files** under `daily_reports/`:
+Built by `writeReport` in `business_modules/resilience_scorer/infrastructure/reportWriter.js`. Each assessment run writes **three files** under `business_modules/resilience_scorer/data/reports/`:
 
-```106:131:business_modules/resilience/infrastructure/reportWriter.js
+```106:131:business_modules/resilience_scorer/infrastructure/reportWriter.js
 export function writeReport(assessment, signals, sourceFiles, outputBase, { scoreBySource } = {}) {
   mkdirSync(dirname(outputBase), { recursive: true });
 
@@ -37,13 +37,13 @@ export function writeReport(assessment, signals, sourceFiles, outputBase, { scor
 | `{base}-brief.md` | Operator | Same narrative + signal appendix, **no scores** (`includeScores: false`) |
 | `{base}.json` | Machine / API | `{ assessment, signals, source_files, generated_at, geo versions, score_by_source? }` |
 
-Output base (`business_modules/resilience/app/assessSignalsCli.js`): `daily_reports/{prefix}-{date}-{HHMM}`, where prefix is `resilience-report` (national) or `resilience-report-north`. The `HHMM` suffix is what allows multiple runs per day (the twice-daily workflow). Backfill of briefs from existing JSON: `npm run backfill:report-brief` (`business_modules/resilience/app/backfillReportBriefMdCli.js`).
+Output base (`business_modules/resilience_scorer/app/assessSignalsCli.js`): `business_modules/resilience_scorer/data/reports/{prefix}-{date}-{HHMM}`, where prefix is `resilience-report` (national) or `resilience-report-north`. The `HHMM` suffix is what allows multiple runs per day (the twice-daily workflow). Backfill of briefs from existing JSON: `npm run backfill:report-brief` (`business_modules/resilience_scorer/app/backfillReportBriefMdCli.js`).
 
 The `assessment` object inside the JSON is the `assessmentV2` structure described in file 04 (8 components, synthesis, decision brief, attention items, agent trace), mapped to the legacy API shape with `overall_resilience_score: null`.
 
 ## 3. Serving reports: the HTTP API
 
-`business_modules/resilience/input/reportRoutes.js`:
+`business_modules/resilience_scorer/input/reportRoutes.js`:
 
 | Route | Purpose |
 |-------|---------|
@@ -56,7 +56,7 @@ The `assessment` object inside the JSON is the `assessmentV2` structure describe
 | `POST /api/translate` | Report translation |
 | `GET /articles` | News articles for a day |
 
-Report resolution (`business_modules/resilience/app/reportCacheService.js`) prefers the report with the most `total_articles_analyzed`, then the newest - so multiple same-day runs coexist and the "best" is served.
+Report resolution (`business_modules/resilience_scorer/app/reportCacheService.js`) prefers the report with the most `total_articles_analyzed`, then the newest - so multiple same-day runs coexist and the "best" is served.
 
 A regional scope with no report yet returns a hint to run `assess-signals --scope {scope}` rather than fabricating a result.
 
@@ -79,7 +79,7 @@ The chat module lets the officer ask questions against the current report. Opera
 
 | Thing | Module | What it is |
 |-------|--------|------------|
-| **Daily assessment report** | `business_modules/resilience/` | The automated 8-component assessment artifacts in `daily_reports/` (this file, sections 2-4) |
+| **Daily assessment report** | `business_modules/resilience_scorer/` | The automated 8-component assessment artifacts in `business_modules/resilience_scorer/data/reports/` (this file, sections 2-4) |
 | **Field report builder** | `business_modules/report_build/` | An **interactive** officer chat that gap-fills an observation and drafts a Hebrew field report; SQLite drafts (`report_build_drafts`); on confirm, archived as a `field` source for future pipeline runs |
 | **Report bot inbox** | `business_modules/report_bot/` | A **read-only dashboard** over a filesystem inbox of manual reports submitted via a WhatsApp bot or srulik.ai; not auto-extracted into the pipeline |
 
@@ -93,11 +93,11 @@ A separate mailing digest (`business_modules/mailing/`, `npm run mail:digest`) c
 
 | Concern | Path |
 |---------|------|
-| Report writer (md / brief / json) | `business_modules/resilience/infrastructure/reportWriter.js` |
-| Output base + time suffix | `business_modules/resilience/app/assessSignalsCli.js` |
-| Brief backfill | `business_modules/resilience/app/backfillReportBriefMdCli.js` |
-| Report HTTP API | `business_modules/resilience/input/reportRoutes.js` |
-| Report cache / date resolution | `business_modules/resilience/app/reportCacheService.js` |
+| Report writer (md / brief / json) | `business_modules/resilience_scorer/infrastructure/reportWriter.js` |
+| Output base + time suffix | `business_modules/resilience_scorer/app/assessSignalsCli.js` |
+| Brief backfill | `business_modules/resilience_scorer/app/backfillReportBriefMdCli.js` |
+| Report HTTP API | `business_modules/resilience_scorer/input/reportRoutes.js` |
+| Report cache / date resolution | `business_modules/resilience_scorer/app/reportCacheService.js` |
 | Scope ids / filename prefix | `cross-cut-modules/geo/reportScopeIds.js` |
 | Operator UI | `client/src/components/ReportView.jsx` |
 | Chat orchestrator | `business_modules/chat/app/chatLlmOrchestrator.js` |

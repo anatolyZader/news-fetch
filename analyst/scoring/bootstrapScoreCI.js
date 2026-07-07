@@ -22,13 +22,13 @@ function buildUnstableCi(scores, currentScore) {
   };
 }
 
-function resampleScoreValues(items, componentId, totalArticles, rng) {
+function resampleScoreValues(items, componentId, totalArticles, rng, capOpts) {
   const n = items.length;
   const scores = [];
   let nullSamples = 0;
   for (let r = 0; r < BOOTSTRAP_SAMPLES; r++) {
     const sample = buildBootstrapSample(items, n, rng);
-    const sc = scoreBootstrapSample(sample, componentId, totalArticles);
+    const sc = scoreBootstrapSample(sample, componentId, totalArticles, capOpts);
     if (sc) scores.push(sc.score);
     else nullSamples += 1;
   }
@@ -39,11 +39,11 @@ function resampleScoreValues(items, componentId, totalArticles, rng) {
  * Bootstrap a 90% confidence interval on the score by resampling contribution
  * items with replacement N times.
  */
-export function bootstrapScoreCI(items, componentId, totalArticles, currentScore = null) {
+export function bootstrapScoreCI(items, componentId, totalArticles, currentScore = null, capOpts = {}) {
   if (items.length === 0) return { score_low: null, score_high: null, ci_unstable: false };
 
   const rng = createSeededRng(BOOTSTRAP_SEED ^ items.length);
-  const { scores, nullSamples } = resampleScoreValues(items, componentId, totalArticles, rng);
+  const { scores, nullSamples } = resampleScoreValues(items, componentId, totalArticles, rng, capOpts);
   if (scores.length === 0) return { score_low: null, score_high: null, ci_unstable: false };
 
   scores.sort((a, b) => a - b);

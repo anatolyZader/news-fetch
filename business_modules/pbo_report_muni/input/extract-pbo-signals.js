@@ -37,6 +37,7 @@ import {
   getDefaultResilienceLlmPort,
   runArticleDualPathExtract,
   stripTraceFields,
+  applyFieldReportSignalHygiene,
   isOpenExtractParallelEnabled,
   pipelineOpenObservationsPath,
 } from '../../resilience/index.js';
@@ -166,7 +167,9 @@ async function writeDayBundle(day, districtId, outDir, componentsOrder, componen
     retrievalService: null,
     closedExtractFn: async ({ articles: arts, onUsage: usageCb }) => {
       const rawSignals = await llmPort.extractSignals(arts, { onUsage: usageCb, contentKind: 'field_report' });
-      let signals = rawSignals.map((s) => ({ ...s, source_type: 'pbo' }));
+      let signals = applyFieldReportSignalHygiene(
+        rawSignals.map((s) => ({ ...s, source_type: 'pbo' })),
+      );
       signals = stampPboSignalSourceIds(signals, muniMap);
 
       const { signals: attributed, attached, resolved, unknown } = attributeSignalScope(signals, {

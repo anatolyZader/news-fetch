@@ -7,146 +7,202 @@
   <link rel="stylesheet" href="brochure-hq-en.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 </head>
 <body>
-  <p class="screen-hint">Preview — use <strong>Print → Save as PDF</strong> (A4, background graphics on). See <a href="EXPORT.md" style="color:#d8e0ff">EXPORT.md</a>.</p>
+  <p class="screen-hint">Preview — <strong>Print → Save as PDF</strong> (A4, margins None, background graphics ON). See <a href="EXPORT.md">EXPORT.md</a>.</p>
 
   <!-- Page 1: Cover -->
-  <section class="page cover" aria-label="Cover">
-    <header class="cover-header">
-      <img class="logo" src="../../client/public/logo_srulik_1_no_text.png" alt="" width="56" height="56" />
-      <div class="brand-block">
-        <h1>Srulik's lab</h1>
-        <p class="tagline">Community resilience · Daily assessment</p>
+  <section class="page page-cover" aria-label="Cover">
+    <header class="cover-band">
+      <div class="cover-brand">
+        <img class="logo" src="../../client/public/logo_srulik_1_no_text.png" alt="" width="44" height="44" />
+        <div>
+          <h1>Srulik's lab</h1>
+          <p class="tagline">Community resilience · Daily assessment</p>
+        </div>
       </div>
+      <span class="cover-audience">HQ / operators · EN</span>
     </header>
-    <p class="cover-one-liner">
-      Evidence-backed daily homefront resilience assessment from news, social media, field reports, and manual submissions.
-    </p>
-    <figure class="hero-shot">
-      <img
-        src="../screenshots/01-home-8components.png"
-        alt="Daily assessment across eight community-resilience components"
-        data-fallback="../screenshots/PLACEHOLDER.svg"
-      />
-      <figcaption>Daily assessment across eight community-resilience components.</figcaption>
-    </figure>
-    <footer class="cover-footer">
-      <a href="https://srulik.ai">srulik.ai</a>
-      <span>HQ / operators · EN</span>
+
+    <div class="cover-grid">
+      <div class="cover-copy">
+        <p class="eyebrow">Daily homefront decision-support</p>
+        <p class="lead">
+          Evidence-backed daily homefront resilience assessment from news, social media, field reports, and manual submissions.
+        </p>
+        <p class="roof">Decision-support, not an oracle — humans decide.</p>
+
+        <div class="pillar-strip">
+          <div class="pillar-chip"><span>01</span>Daily, multi-source fusion</div>
+          <div class="pillar-chip"><span>02</span>Eight components, one framework</div>
+          <div class="pillar-chip"><span>03</span>Evidence you can open</div>
+          <div class="pillar-chip"><span>04</span>Field completes the picture</div>
+        </div>
+
+        <div class="source-pills" aria-label="Data sources">
+          <span>News</span><span>WhatsApp</span><span>Radio</span><span>Google Trends</span><span>Field reports</span><span>Submissions</span>
+        </div>
+      </div>
+
+      <figure class="shot shot-hero">
+        <img src="../screenshots/01-home_screen.png" alt="Daily assessment across eight components" data-fallback="../screenshots/PLACEHOLDER.svg" />
+        <figcaption>Eight community-resilience components · one daily read · every claim openable</figcaption>
+      </figure>
+    </div>
+
+    <footer class="cover-bar">
+      <a class="cover-url" href="https://srulik.ai">srulik.ai</a>
+      <span>National &amp; North · EN / HE / RU · opt-in email digest</span>
     </footer>
   </section>
 
-  <!-- Page 2: Why + How -->
+  <!-- Page 2: Problem + pipeline -->
   <section class="page" aria-label="Why and how">
-    <h2>Attention is the scarce resource</h2>
-    <p>
-      In a homefront crisis, signal is scattered across news, radio, social media, field reports, and search behavior.
-      The temptation is to compress it into a single number that hides what is behind it.
-    </p>
-    <h3>One daily assessment — every claim openable</h3>
-    <p>
-      <a href="https://srulik.ai">srulik.ai</a> structures one daily read across eight community-resilience components.
-      Every narrative links to the evidence behind it.
-    </p>
-    <blockquote class="callout">
-      Decision-support, not an oracle — humans decide.
-    </blockquote>
-    <ol class="pipeline">
-      <li class="pipeline-step">
-        <div class="num">1</div>
-        <div class="label">Extract</div>
-        <div class="desc">Observable behavioral signals from multi-source text</div>
-      </li>
-      <li class="pipeline-step">
-        <div class="num">2</div>
-        <div class="label">Verify</div>
-        <div class="desc">Evidence behind each signal</div>
-      </li>
-      <li class="pipeline-step">
-        <div class="num">3</div>
-        <div class="label">Assess</div>
-        <div class="desc">Eight community-resilience components</div>
-      </li>
-      <li class="pipeline-step">
-        <div class="num">4</div>
-        <div class="label">Narrate</div>
-        <div class="desc">Operator prose with inline source citations</div>
-      </li>
-    </ol>
-    <p class="scope-line">
-      National and North · English, Hebrew, Russian · opt-in daily email digest
-    </p>
-  </section>
+    <header class="page-head">
+      <h2>Attention is the scarce resource</h2>
+      <p class="page-deck">Structure the signal. Show the evidence. Let humans decide.</p>
+    </header>
 
-  <!-- Page 3: Framework + Proof -->
-  <section class="page" aria-label="Framework and proof">
-    <h2>Eight components, one framework</h2>
-    <p style="font-size:11px;color:var(--ink-subtle);margin-bottom:8px">
-      Home Front Command (Pikud HaOref) model · observable signals, not inferred mood
-    </p>
-    <div class="component-grid">
-      <div class="component-card"><strong>Narrative</strong><span>Whether the public story strengthens or weakens coping</span></div>
-      <div class="component-card"><strong>Information &amp; Communication</strong><span>Clear, credible messaging that channels life-saving behavior</span></div>
-      <div class="component-card"><strong>Life-Saving Behavior</strong><span>Whether people follow protective guidelines</span></div>
-      <div class="component-card"><strong>Functional Continuity</strong><span>Essential services, schools, and daily roles keep running</span></div>
-      <div class="component-card"><strong>Community Capital</strong><span>Volunteers, anchor orgs, and cross-sector cooperation mobilized</span></div>
-      <div class="component-card"><strong>Leadership</strong><span>Trusted leaders who set an example and represent everyone</span></div>
-      <div class="component-card"><strong>Belonging &amp; Solidarity</strong><span>Shared fate and mutual aid; no scapegoating</span></div>
-      <div class="component-card"><strong>Wellbeing (At-Risk)</strong><span>Vulnerable groups identified and given tailored responses</span></div>
-    </div>
-    <div class="proof-row">
-      <figure class="proof-panel">
-        <img
-          src="../screenshots/02-component-narrative.png"
-          alt="Component narrative with citations"
-          data-fallback="../screenshots/PLACEHOLDER.svg"
-        />
-        <figcaption>Every claim traces to raw excerpts — open the evidence pool.</figcaption>
-      </figure>
-      <figure class="proof-panel">
-        <img
-          src="../screenshots/04-chat-cited.png"
-          alt="Chat with cited answer"
-          data-fallback="../screenshots/PLACEHOLDER.svg"
-        />
-        <figcaption>Ask the reports — chat cites today&rsquo;s and past evidence.</figcaption>
-      </figure>
-    </div>
-  </section>
-
-  <!-- Page 4: Back -->
-  <section class="page" aria-label="Back cover">
-    <h2>Why it earns trust</h2>
-    <ul class="trust-list">
-      <li><strong>Evidence you can open</strong> — narratives trace to raw excerpts under each component</li>
-      <li><strong>Ask the reports</strong> — chat answers from cited evidence, not the open internet</li>
-      <li><strong>No single number as the hero</strong> — read narrative and evidence, not a headline score</li>
-      <li><strong>Recognized framework</strong> — shared language with HQ and field</li>
-    </ul>
-    <h3>The field completes the picture</h3>
-    <p>
-      PBO regional reports, the WhatsApp report bot, and manual submissions feed the daily assessment —
-      including the same day&rsquo;s run. Field judgment stays primary.
-    </p>
-    <div class="faq-block">
-      <p><strong>What is it?</strong> Evidence-backed daily resilience assessment across eight components; humans decide.</p>
-      <p><strong>Does it predict?</strong> No — it assesses today&rsquo;s observable picture from signals in text.</p>
-      <p><strong>Why no single score?</strong> Eight dimensions stay visible; one number would hide what is behind it.</p>
-    </div>
-    <footer class="back-footer">
-      <div class="cta-block">
-        <p class="cta-main"><a href="https://srulik.ai">Read today&rsquo;s assessment &rarr; srulik.ai</a></p>
-        <p class="data-sources">
-          Data sources include news, WhatsApp, radio/audio, Google Trends, and user submissions.
+    <div class="split-55">
+      <div class="split-main">
+        <p>
+          In a homefront crisis, signal is scattered across news, radio, social media, field reports, and search behavior.
+          The temptation is to compress it into a single number that hides what is behind it.
         </p>
+        <p>
+          <strong>srulik.ai</strong> produces <strong>one assessment a day</strong> across eight Home Front Command
+          community-resilience components. Every narrative links to raw excerpts — not a headline score.
+        </p>
+
+        <div class="diff-grid">
+          <article class="diff-card">
+            <h4>Every claim traceable</h4>
+            <p>Inline citations and an evidence pool under each component.</p>
+          </article>
+          <article class="diff-card">
+            <h4>Ask the reports</h4>
+            <p>Chat answers for today and past dates — same cited evidence.</p>
+          </article>
+          <article class="diff-card">
+            <h4>Field + digital, fused</h4>
+            <p>PBO, WhatsApp bot, and submissions in one daily run.</p>
+          </article>
+          <article class="diff-card">
+            <h4>Recognized framework</h4>
+            <p>Shared language with HQ and field — Pikud HaOref model.</p>
+          </article>
+        </div>
+      </div>
+
+      <div class="split-side">
+        <h3 class="side-title">How it works</h3>
+        <ol class="pipeline-v">
+          <li><strong>Extract</strong> observable behavioral signals from multi-source text</li>
+          <li><strong>Verify</strong> the evidence behind each signal</li>
+          <li><strong>Assess</strong> eight community-resilience components</li>
+          <li><strong>Narrate</strong> operator prose with inline source citations</li>
+        </ol>
+        <figure class="shot shot-ribbon">
+          <img src="../screenshots/07_data_source_ribbon.png" alt="Data source ribbon" data-fallback="../screenshots/PLACEHOLDER.svg" />
+        </figure>
+        <p class="fine">Data sources include news, WhatsApp, radio/audio, Google Trends, and user submissions.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Page 3: Framework + proof -->
+  <section class="page" aria-label="Framework and proof">
+    <header class="page-head page-head--tight">
+      <h2>Eight components, one framework</h2>
+      <p class="page-deck">Home Front Command model · observable signals — what people say and do, not inferred mood</p>
+    </header>
+
+    <div class="component-matrix">
+      <div class="comp"><b>1</b><div><strong>Narrative</strong><span>Public story strengthens or weakens coping</span></div></div>
+      <div class="comp"><b>2</b><div><strong>Information &amp; Communication</strong><span>Credible messaging channels life-saving behavior</span></div></div>
+      <div class="comp"><b>3</b><div><strong>Life-Saving Behavior</strong><span>Protective guidelines followed in practice</span></div></div>
+      <div class="comp"><b>4</b><div><strong>Functional Continuity</strong><span>Services, schools, daily roles keep running</span></div></div>
+      <div class="comp"><b>5</b><div><strong>Community Capital</strong><span>Volunteers, anchors, cross-sector cooperation</span></div></div>
+      <div class="comp"><b>6</b><div><strong>Leadership</strong><span>Trusted leaders set example, represent all</span></div></div>
+      <div class="comp"><b>7</b><div><strong>Belonging &amp; Solidarity</strong><span>Shared fate, mutual aid, no scapegoating</span></div></div>
+      <div class="comp"><b>8</b><div><strong>Wellbeing (At-Risk)</strong><span>Vulnerable groups identified, tailored response</span></div></div>
+    </div>
+
+    <div class="bento">
+      <figure class="shot bento-a">
+        <img src="../screenshots/02_component_narrative.png" alt="Component narrative with citations" data-fallback="../screenshots/PLACEHOLDER.svg" />
+        <figcaption>Narrative + inline citations — open the evidence pool</figcaption>
+      </figure>
+      <figure class="shot bento-b">
+        <img src="../screenshots/06_chat.png" alt="Chat with cited answer" data-fallback="../screenshots/PLACEHOLDER.svg" />
+        <figcaption>Ask the reports — chat cites today&rsquo;s and past evidence</figcaption>
+      </figure>
+      <figure class="shot bento-c">
+        <img src="../screenshots/03_evidence_visits.png" alt="Field visits evidence" data-fallback="../screenshots/PLACEHOLDER.svg" />
+        <figcaption>Field visits</figcaption>
+      </figure>
+      <figure class="shot bento-d">
+        <img src="../screenshots/04_evidence_pbo.png" alt="PBO evidence" data-fallback="../screenshots/PLACEHOLDER.svg" />
+        <figcaption>Regional PBO</figcaption>
+      </figure>
+      <figure class="shot bento-e">
+        <img src="../screenshots/05_evidence_press.png" alt="Press evidence" data-fallback="../screenshots/PLACEHOLDER.svg" />
+        <figcaption>Press &amp; news</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- Page 4: Field + trust + CTA -->
+  <section class="page page-back" aria-label="Back cover">
+    <header class="page-head page-head--tight">
+      <h2>The field completes the picture</h2>
+      <p class="page-deck">PBO reports, WhatsApp bot, and manual submissions feed the same-day assessment. Field judgment stays primary.</p>
+    </header>
+
+    <div class="field-bento">
+      <figure class="shot field-a">
+        <img src="../screenshots/09_send_data_window.png" alt="Send data window" data-fallback="../screenshots/PLACEHOLDER.svg" />
+        <figcaption>Submit evidence — same-day inclusion</figcaption>
+      </figure>
+      <figure class="shot field-b">
+        <img src="../screenshots/11_write_report_window.png" alt="Write report window" data-fallback="../screenshots/PLACEHOLDER.svg" />
+        <figcaption>Upload regional PBO report</figcaption>
+      </figure>
+      <div class="field-steps">
+        <h3>Three ways to contribute</h3>
+        <ol>
+          <li><strong>Regional report (PBO)</strong> — upload markdown; enters evidence pool</li>
+          <li><strong>WhatsApp report bot</strong> — short observation becomes a signal</li>
+          <li><strong>Manual submission</strong> — text or document in the app</li>
+        </ol>
+        <p class="fine">Your observation → signal in today&rsquo;s run, not held for tomorrow.</p>
+      </div>
+    </div>
+
+    <div class="trust-row">
+      <div class="trust-card"><strong>Evidence you can open</strong><span>Raw excerpts under every component</span></div>
+      <div class="trust-card"><strong>No score as hero</strong><span>Read narrative + evidence, not one number</span></div>
+      <div class="trust-card"><strong>Does not predict</strong><span>Assesses today&rsquo;s observable picture from text</span></div>
+      <div class="trust-card"><strong>Humans decide</strong><span>Decision-support — not an oracle</span></div>
+    </div>
+
+    <div class="faq-row">
+      <p><strong>What is it?</strong> Daily resilience assessment across eight components; humans decide.</p>
+      <p><strong>Who is it for?</strong> HQ operators and field professionals who need traceable daily reads.</p>
+      <p><strong>Why eight components?</strong> One number would hide what is behind the assessment.</p>
+    </div>
+
+    <footer class="cta-band">
+      <div class="cta-text">
+        <p class="cta-main"><a href="https://srulik.ai">Read today&rsquo;s assessment &rarr; srulik.ai</a></p>
+        <p class="data-sources">Data sources include news, WhatsApp, radio/audio, Google Trends, and user submissions.</p>
+        <p class="legal">srulik.ai · Community resilience · Daily assessment</p>
       </div>
       <div class="qr-block">
-        <img src="qr-srulik-ai.png" alt="QR code for srulik.ai" width="106" height="106" />
+        <img src="qr-srulik-ai.png" alt="QR code for srulik.ai" width="96" height="96" />
         <span>srulik.ai</span>
       </div>
-      <p class="legal-footer">srulik.ai · Community resilience · Daily assessment</p>
     </footer>
   </section>
 

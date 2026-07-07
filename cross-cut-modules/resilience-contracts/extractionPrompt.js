@@ -50,6 +50,13 @@ export function buildCoreExtractionStablePrefix(formatDisambiguationBlock) {
     `named_institutional_fact | observational_reported_fact\n\n` +
     `RULES:\n` +
     `- One behavioral fact per signal; split compounds\n` +
+    `- People injured/wounded/killed (נפצעו, נפגעים, casualties) → harm_to_population; ` +
+    `building/school/kindergarten/infrastructure damaged (ניזוק, building hit) → infrastructure_damage_acute — separate signals when both appear\n` +
+    `- EXCLUDE: criminal/street violence (אירוע אלימות, מטווח אפס, מרדף) unless war attack framing; ` +
+    `national EMS aggregate counts (מגן דוד אדום treated N since operation start)\n` +
+    `- Do NOT emit one signal per siren/missile round or city-list alert activation — abstain on pure hazard tickers; ` +
+    `extract behavior (compliance_*, complacency_or_normalization), outcomes (harm_to_population, infrastructure_damage_acute), ` +
+    `or warning-system facts (early_warning_system_*) when distinct; use scope_level repeated_pattern for sustained routine erosion from field visits\n` +
     `- signal_type from catalog only; never invent types\n` +
     `- Scope: Israeli civilian emergency behavior only\n` +
     `- EXCLUDE: military ops abroad, soldier casualties/eulogies, foreign populations, ` +

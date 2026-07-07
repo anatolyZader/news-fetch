@@ -1,0 +1,185 @@
+/**
+ * Planner agent — one round investigation plan with gap-first and exploration tasks.
+ */
+import {
+  createAgentKernel,
+  HAIKU_MODEL,
+  PROMPT_VERSION,
+  slimPlannerPromptsEnabled,
+} from '../../../cross-cut-modules/agent/index.js';
+import {
+  compactEpistemicProfileForPlanner,
+  compactPlannerContextForPrompt,
+} from '../../../cross-cut-modules/retrieval/compactAssessPrompts.js';
+import { PLANNER_TOOLS, ASSESSMENT_PLANNER_PROFILE } from '../../../cross-cut-modules/agent/profiles/assessment.profile.js';
+import { COMPONENT_IDS } from '../../../cross-cut-modules/resilience-contracts/componentIds.js';
+import {
+  buildGapClosureTasks,
+  gapPlannerEnabled,
+} from '../../../cross-cut-modules/retrieval/plannerContextBuilder.js';
+import { shouldUseDeterministicPlanner } from '../domain/services/plannerPolicy.js';
+import { shouldAbstainFromInvestigation } from '../domain/services/investigationEpistemic.js';
+import { narrativeInvestigationPermissive } from '../../../cross-cut-modules/resilience-contracts/narrativeEpistemicMode.js';
+
+function investigationAbstentionOpts() {
+  return { narrativePermissive: narrativeInvestigationPermissive() };
+}
+
+function buildPlannerSystem(epistemicProfile, plannerContext) {
+  const slim = slimPlannerPromptsEnabled();
+  const profileBlock = slim
+    ? compactEpistemicProfileForPlanner(epistemicProfile)
+    : epistemicProfile;
+  let ctxBlock = null;
+  if (plannerContext) {
+    ctxBlock = slim ? compactPlannerContextForPrompt(plannerContext) : plannerContext;
+  }
+
+  const gapInstruction = gapPlannerEnabled()
+    ? ' You MUST assign at least one gap_closure task per investigation gap for non-abstained components.'
+    : '';
+
+  const stable =
+    'You are the assessment planner for Israeli community resilience reports. ' +
+    'Analyze epistemic profile hints and produce an investigation plan. ' +
+    'Use submit_plan with focus_components, investigation_tasks, gap_closure_tasks, abstention_components.' +
+    gapInstruction;
+
+  let dynamic = `\n\nFROZEN EPISTEMIC PROFILE:\n${JSON.stringify(profileBlock, null, 2)}`;
+  if (ctxBlock) {
+    dynamic += `\n\nPLANNER CONTEXT (gaps, anomalies, OOV):\n${JSON.stringify(ctxBlock, null, 2)}`;
+  }
+
+  return { stable, dynamic };
+}
+
+function defaultPlan(epistemicProfile, plannerContext = null) {
+  const focus = [];
+  const abstention = [];
+  for (const id of COMPONENT_IDS) {
+    const ep = epistemicProfile?.by_component?.[id] ?? {};
+    if (shouldAbstainFromInvestigation(ep, investigationAbstentionOpts())) abstention.push(id);
+    else if (ep.contested || ep.delta_significance?.startsWith('HIGH') || ep.evidence_mass >= 4
+      || ep.investigation_eligible === true) {
+      focus.push(id);
+    }
+  }
+  if (focus.length === 0) focus.push('leadership', 'functional_continuity');
+
+  const investigation_tasks = focus.slice(0, 3).map((id, i) => ({
+    id: `t${i + 1}`,
+    type: 'cross_source',
+    topic: id,
+    component_id: id,
+    sources: ['pbo', 'field', 'news'],
+  }));
+
+  if (plannerContext?.exploration_candidates?.length) {
+    for (const ex of plannerContext.exploration_candidates) {
+      investigation_tasks.push({
+        id: ex.id,
+        type: 'archive_explore',
+        topic: ex.topic,
+        component_id: ex.component_id,
+        sources: ['news', 'field'],
+        reason: ex.reason,
+      });
+    }
+  }
+
+  const gap_closure_tasks = plannerContext
+    ? buildGapClosureTasks(plannerContext.investigation_gaps ?? [])
+    : [];
+
+  return {
+    focus_components: focus.slice(0, 5),
+    investigation_tasks,
+    gap_closure_tasks,
+    abstention_components: abstention,
+    budget: { max_rounds: 12, model_tier: 'mixed' },
+  };
+}
+
+function finalizePlan(plan, epistemicProfile, plannerContext, plannerSource) {
+  const out = { ...plan, planner_source: plannerSource };
+  if (!out.gap_closure_tasks?.length && plannerContext) {
+    out.gap_closure_tasks = buildGapClosureTasks(plannerContext.investigation_gaps ?? []);
+  }
+  if (!out.focus_components?.length) {
+    out.focus_components = defaultPlan(epistemicProfile, plannerContext).focus_components;
+  }
+  return out;
+}
+
+/**
+ * @param {object} params
+ */
+export async function runPlannerAgent(params) {
+  const {
+    epistemicProfile,
+    plannerContext = null,
+    assessmentMode = 'normal',
+    llmPort,
+    agentKernel,
+    onUsage,
+    budget,
+    traceId: parentTraceId,
+    forceLlm = false,
+  } = params;
+
+  if (!forceLlm && shouldUseDeterministicPlanner({ assessmentMode, plannerContext })) {
+    const plan = finalizePlan(
+      defaultPlan(epistemicProfile, plannerContext),
+      epistemicProfile,
+      plannerContext,
+      'deterministic',
+    );
+    return {
+      plan,
+      traceId: parentTraceId ? `${parentTraceId}:planner` : 'planner-deterministic',
+      prompt_version: PROMPT_VERSION,
+    };
+  }
+
+  const kernel = agentKernel ?? createAgentKernel({ llmPort });
+  const system = buildPlannerSystem(epistemicProfile, plannerContext);
+
+  let plan = null;
+  const result = await kernel.run({
+    profile: ASSESSMENT_PLANNER_PROFILE,
+    agentKind: 'planner',
+    model: HAIKU_MODEL,
+    maxRounds: 1,
+    maxTokens: 2000,
+    system,
+    messages: [{
+      role: 'user',
+      content: plannerContext?.replan
+        ? 'Re-plan investigation using specialist summaries and cross-component issues in planner context.'
+        : 'Create investigation plan using epistemic profile and planner context (gaps, media anomalies, OOV).',
+    }],
+    tools: PLANNER_TOOLS,
+    budget,
+    traceId: parentTraceId ? `${parentTraceId}:planner` : undefined,
+    onUsage,
+    executeTool: async (name, input) => {
+      if (name === 'submit_plan') {
+        plan = input;
+        return JSON.stringify({ ok: true });
+      }
+      return JSON.stringify({ error: 'unknown_tool' });
+    },
+  });
+
+  const submitted = result.submitPayloads.find((p) => p.tool === 'submit_plan');
+  plan = finalizePlan(
+    submitted?.payload ?? plan ?? defaultPlan(epistemicProfile, plannerContext),
+    epistemicProfile,
+    plannerContext,
+    'llm',
+  );
+
+  return { plan, traceId: result.traceId, prompt_version: PROMPT_VERSION };
+}
+
+export { defaultPlan, buildPlannerSystem };

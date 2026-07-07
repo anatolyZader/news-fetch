@@ -23,3 +23,4 @@ export { createDriftService } from './drift/driftService.js';
 export { registerDriftRoutes } from './drift/driftRoutes.js';
 
 export { computeDivergence, writeShadowArtifacts } from './shadow/index.js';
+export { analystShadowDir, analystReviewsDir } from './domain/services/artifactPaths.js';

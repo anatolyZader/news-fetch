@@ -17,7 +17,7 @@ import {
   formatAnalysisReport,
 } from '../analyzeLlmInvocations.js';
 import { formatPromptOptimizationFlags } from '../promptOptimizationFlags.js';
-import { generateDecisionBrief } from '../../../business_modules/resilience/index.js';
+import { generateDecisionBrief } from '../../../business_modules/resilience_scorer/index.js';
 
 const LIVE_COST_WARN_USD = 0.05;
 const STABLE_SYSTEM = 'x'.repeat(2500);

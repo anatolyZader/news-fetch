@@ -33,7 +33,7 @@ Ingestion services are wired in `composition/registerIngestion.js`. The npm-scri
 
 ### 2.1 Two ingestion shapes
 
-1. **Textual sources** (news, radio, WhatsApp, field, regional PBO) produce a **markdown corpus** consumed by `loadMdFiles` in `business_modules/resilience/infrastructure/mdReportsLoader.js`, then both extraction paths run (file 02).
+1. **Textual sources** (news, radio, WhatsApp, field, regional PBO) produce a **markdown corpus** consumed by `loadMdFiles` in `business_modules/resilience_scorer/infrastructure/mdReportsLoader.js`, then both extraction paths run (file 02).
 2. **Structured sources** (Naftali, social after treat) emit **signal/observation bundles directly** without a markdown corpus step. **PBO municipal** uses verbal Excel fields only (not officer score columns) via the same LLM dual-path extract as other free-text sources.
 
 ## 3. The northern-district geographic model
@@ -75,9 +75,9 @@ The scope id travels end to end:
 
 ### 4.2 The scope policy port
 
-Filtering is abstracted behind a port (`business_modules/resilience/domain/ports/IReportScopePolicy.js`):
+Filtering is abstracted behind a port (`business_modules/resilience_scorer/domain/ports/IReportScopePolicy.js`):
 
-```1:5:business_modules/resilience/domain/ports/IReportScopePolicy.js
+```1:5:business_modules/resilience_scorer/domain/ports/IReportScopePolicy.js
 /**
  * @typedef {object} IReportScopePolicy
  * @property {(signals: object[], reportScopeId: string) => object[]} filterSignalsForScope
@@ -85,7 +85,7 @@ Filtering is abstracted behind a port (`business_modules/resilience/domain/ports
  */
 ```
 
-Default adapter: `business_modules/resilience/infrastructure/adapters/defaultReportScopePolicyAdapter.js`, delegating to `business_modules/resilience/domain/services/regionSignalFilter.js`.
+Default adapter: `business_modules/resilience_scorer/infrastructure/adapters/defaultReportScopePolicyAdapter.js`, delegating to `business_modules/resilience_scorer/domain/services/regionSignalFilter.js`.
 
 ### 4.3 The filtering logic
 
@@ -99,7 +99,7 @@ Default adapter: `business_modules/resilience/infrastructure/adapters/defaultRep
 
 ### 4.4 Structured sources default to north
 
-Field and WhatsApp bundles default `district_id: 'north'` at extraction (`business_modules/resilience/app/articleDualPathExtractService.js`), and the structured source types (`field`, `field_whatsapp`, `pbo`, `pbo_regional`, `naftali`, `whatsapp`) fall back to a `legacy_north_fallback` when `district_id` is absent (`business_modules/resilience/domain/services/signalDistrictId.js`). An explicit `district_id` on a signal always overrides this.
+Field and WhatsApp bundles default `district_id: 'north'` at extraction (`business_modules/resilience_scorer/app/articleDualPathExtractService.js`), and the structured source types (`field`, `field_whatsapp`, `pbo`, `pbo_regional`, `naftali`, `whatsapp`) fall back to a `legacy_north_fallback` when `district_id` is absent (`business_modules/resilience_scorer/domain/services/signalDistrictId.js`). An explicit `district_id` on a signal always overrides this.
 
 ### 4.5 District picture, with national context
 
@@ -111,13 +111,13 @@ A `north` report scores the **scope-local signals** but attaches **national cont
 |---------|------|
 | Ingestion wiring | `composition/registerIngestion.js` |
 | npm -> module map | `scripts/agent-routing.md` |
-| Canonical artifact paths | `business_modules/resilience/domain/services/pipelineArtifactPaths.js` |
-| Markdown loader | `business_modules/resilience/infrastructure/mdReportsLoader.js` |
+| Canonical artifact paths | `business_modules/resilience_scorer/domain/services/pipelineArtifactPaths.js` |
+| Markdown loader | `business_modules/resilience_scorer/infrastructure/mdReportsLoader.js` |
 | District ids | `cross-cut-modules/geo/israelDistricts.js` |
 | North subregions | `business_modules/geo/domain/value_objects/northSubregionId.js` |
 | North reference builder | `business_modules/geo/app/buildNorthReferenceCli.js` |
-| Scope policy port | `business_modules/resilience/domain/ports/IReportScopePolicy.js` |
-| Scope filter impl | `business_modules/resilience/domain/services/regionSignalFilter.js` |
+| Scope policy port | `business_modules/resilience_scorer/domain/ports/IReportScopePolicy.js` |
+| Scope filter impl | `business_modules/resilience_scorer/domain/services/regionSignalFilter.js` |
 | District relevance from geo | `business_modules/geo/domain/services/districtRelevanceFromResolvedGeo.js` |
-| Source district defaulting | `business_modules/resilience/domain/services/signalDistrictId.js` |
+| Source district defaulting | `business_modules/resilience_scorer/domain/services/signalDistrictId.js` |
 | Scope ids / filenames | `cross-cut-modules/geo/reportScopeIds.js` |

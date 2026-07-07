@@ -57,6 +57,50 @@ describe('runToolLoop', () => {
     assert.ok(result.messages.length >= 3);
   });
 
+  it('calls onToolStart before executeTool with round metadata', async () => {
+    const client = fakeClient([
+      {
+        stop_reason: 'tool_use',
+        content: [
+          { type: 'tool_use', id: 't1', name: 'lookup', input: { q: 'x' } },
+          { type: 'tool_use', id: 't2', name: 'search', input: { q: 'y' } },
+        ],
+        usage: { input_tokens: 10, output_tokens: 5 },
+      },
+      {
+        stop_reason: 'end_turn',
+        content: [{ type: 'text', text: 'Done.' }],
+        usage: { input_tokens: 20, output_tokens: 10 },
+      },
+    ]);
+
+    const toolStarts = [];
+    let executeCalled = false;
+    await runToolLoop({
+      client,
+      model: 'test-model',
+      system: 'sys',
+      messages: [{ role: 'user', content: 'go' }],
+      tools: [{ name: 'lookup', input_schema: { type: 'object', properties: {} } }],
+      agentKind: 'test',
+      maxRounds: 3,
+      onToolStart: (meta) => {
+        toolStarts.push(meta);
+      },
+      executeTool: async () => {
+        executeCalled = true;
+        return 'tool output';
+      },
+    });
+
+    assert.equal(toolStarts.length, 2);
+    assert.equal(toolStarts[0].name, 'lookup');
+    assert.equal(toolStarts[0].round, 1);
+    assert.equal(toolStarts[0].maxRounds, 3);
+    assert.equal(toolStarts[1].name, 'search');
+    assert.ok(executeCalled);
+  });
+
   it('surfaces stopReason=max_rounds when loop ends by maxRounds', async () => {
     const client = fakeClient([
       {

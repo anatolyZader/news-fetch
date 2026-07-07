@@ -2,7 +2,7 @@
 
 **Purpose:** How daily **artifacts** are produced — ingest → signal extraction → **agent assess + shadow scoring** → reports on disk. Operators depend on this pipeline running; they do not run assessment math manually.
 
-**Sources:** `scripts/daily-pipeline.sh`, `pipeline-config.json`, `business_modules/resilience/input/extract-signals.js`, `input/assess-signals.js` (thin CLI wrappers → `app/extractSignalsCli.js`, `app/assessSignalsCli.js`), `app/produceAssessmentWithShadow.js`, `app/pipelineOrchestrator.js`, `app/pipelineIngestPlan.js`, `input/run-pipeline.js`, `domain/services/pipelineArtifactPaths.js`, `cross-cut-modules/llm/writeTokenReport.js`. Cross-module imports use `business_modules/<name>/index.js` facades — see [README § Module boundaries](./README.md#module-boundaries-option-b).
+**Sources:** `scripts/daily-pipeline.sh`, `pipeline-config.json`, `business_modules/resilience_scorer/input/extract-signals.js`, `input/assess-signals.js` (thin CLI wrappers → `app/extractSignalsCli.js`, `app/assessSignalsCli.js`), `app/produceAssessmentWithShadow.js`, `app/pipelineOrchestrator.js`, `app/pipelineIngestPlan.js`, `input/run-pipeline.js`, `domain/services/pipelineArtifactPaths.js`, `cross-cut-modules/llm/writeTokenReport.js`. Cross-module imports use `business_modules/<name>/index.js` facades — see [README § Module boundaries](./README.md#module-boundaries-option-b).
 
 ---
 
@@ -24,7 +24,7 @@ Sources (news, radio, WhatsApp, field, PBO, social, …)
 Production entry points:
 
 ```bash
-node business_modules/resilience/input/run-pipeline.js [date] [options]   # unified (Node) — see § Node.js pipeline orchestrator
+node business_modules/resilience_scorer/input/run-pipeline.js [date] [options]   # unified (Node) — see § Node.js pipeline orchestrator
 npm run extract-signals -- --source-type news --files <path> --date YYYY-MM-DD
 npm run assess-signals -- --date YYYY-MM-DD [--days N] [--scope national|north|…]
 ```
@@ -46,7 +46,7 @@ Worker variant: `npm run worker:assess` → `scripts/workers/assess-signals-work
 
 ## Node.js pipeline orchestrator
 
-**Entry:** `node business_modules/resilience/input/run-pipeline.js [date] [options]` → `app/pipelineOrchestrator.js` → `runPipelineOrchestrator`. Bootstraps SQLite via `bootstrapDefaultStateStore` in `run-pipeline.js` before orchestration.
+**Entry:** `node business_modules/resilience_scorer/input/run-pipeline.js [date] [options]` → `app/pipelineOrchestrator.js` → `runPipelineOrchestrator`. Bootstraps SQLite via `bootstrapDefaultStateStore` in `run-pipeline.js` before orchestration.
 
 **Purpose:** Unified Node.js orchestration for `/8comp-3`, `/8comp-3-north`, and cron runs. Recommended over `daily-pipeline.sh` for programmatic use.
 
@@ -94,7 +94,7 @@ Worker variant: `npm run worker:assess` → `scripts/workers/assess-signals-work
 
 ## `scripts/daily-pipeline.sh` (typical steps)
 
-Note: for programmatic invocation (slash commands, cron), prefer `node business_modules/resilience/input/run-pipeline.js`. The shell script remains for manual/legacy use.
+Note: for programmatic invocation (slash commands, cron), prefer `node business_modules/resilience_scorer/input/run-pipeline.js`. The shell script remains for manual/legacy use.
 
 **Divergence from Node orchestrator:**
 
@@ -143,7 +143,7 @@ Status CLI: `npm run pipeline:status`.
 
 ## Stage 1 — Extract signals
 
-**Entry:** `business_modules/resilience/input/extract-signals.js` (transport) → `app/extractSignalsCli.js`  
+**Entry:** `business_modules/resilience_scorer/input/extract-signals.js` (transport) → `app/extractSignalsCli.js`  
 **npm:** `npm run extract-signals -- …`
 
 **Inputs:** `--source-type`, `--files` (CSV paths), `--date` (default today).
@@ -165,7 +165,7 @@ Optional ingest RAG when `RESILIENCE_EXTRACT_RAG_ENABLED` (see [RAG.md](./RAG.md
 
 ## Stage 2 — Assess signals
 
-**Entry:** `business_modules/resilience/input/assess-signals.js` (transport) → `app/assessSignalsCli.js`  
+**Entry:** `business_modules/resilience_scorer/input/assess-signals.js` (transport) → `app/assessSignalsCli.js`  
 **npm:** `npm run assess-signals -- …`
 
 **Inputs:** `--date`, `--days` (1–14, default 1), `--scope`, `--output`.
@@ -177,12 +177,12 @@ Optional ingest RAG when `RESILIENCE_EXTRACT_RAG_ENABLED` (see [RAG.md](./RAG.md
 3. **`prepareScoringSignals`** — quarantine, data void, OOV, gaming policy.
 4. **`runScoringPipeline`** → `scoreComponents` → epistemic gate → EWMA (`scoringPipelinePrep.js`) — **shadow path**.
 5. **`produceAssessmentWithShadow`** → epistemic profile → **`runAssessmentAgent`** (default) or **deterministic degrade** / cached fallback.
-6. `mapAssessmentV2ToLegacy`; write JSON/MD report; shadow/divergence artifacts (via `resilience_assessment` adapter); validation queue upsert; domain events.
+6. `mapAssessmentV2ToLegacy`; write JSON/MD report; shadow/divergence artifacts (via `specialist_agents` adapter); validation queue upsert; domain events.
 
 **Outputs:**
 
 - `daily_reports/resilience-report-{date}.json` (and scoped variants) — includes v2 agent fields + legacy-mapped narratives
-- `daily_reports/shadow-scores-{scopeId}-{date}.json` — deterministic scores (`RESILIENCE_SHADOW_SCORING=1`, default on); written by `writeShadowArtifacts` in `business_modules/resilience_assessment/infrastructure/adapters/shadowArtifactsFileAdapter.js` (orchestrated from `produceAssessmentWithShadow.js`)
+- `daily_reports/shadow-scores-{scopeId}-{date}.json` — deterministic scores (`RESILIENCE_SHADOW_SCORING=1`, default on); written by `writeShadowArtifacts` in `business_modules/specialist_agents/infrastructure/adapters/shadowArtifactsFileAdapter.js` (orchestrated from `produceAssessmentWithShadow.js`)
 - `daily_reports/divergence-{scopeId}-{date}.json` — shadow vs agent comparison
 - `daily_reports/epistemic-profile-{scopeId}-{date}.json` — epistemic profile snapshot (`epistemicFeaturesService.persistProfile`)
 - `daily_reports/assessment-agent-trace-{traceId}.jsonl` — per-assess agent audit trail

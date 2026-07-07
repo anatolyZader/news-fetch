@@ -24,7 +24,7 @@ export function createHealthService(deps) {
     const rootDir = deps.rootDir;
     const sqlitePath = deps.sqlitePath ?? join(rootDir, 'db', 'app.sqlite');
     const costLogPath = resolveCostLogPath(rootDir);
-    const reportsDir = join(rootDir, 'daily_reports');
+    const reportsDir = join(rootDir, 'business_modules/resilience_scorer/data/reports');
     const signalsDir = join(rootDir, 'business_modules', 'signals_extraction', 'data', 'signals');
 
     const checks = {

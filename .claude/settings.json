@@ -39,12 +39,22 @@
       "Bash(command -v python3)",
       "Bash(pip install *)",
       "Bash(awk '{print $5, $9}')",
-      "Bash(systemctl list-units *)"
+      "Bash(systemctl list-units *)",
+      "Bash(ls \"$HOME/.cache/ms-playwright/\" 2>/dev/null; which pdftoppm convert magick 2>/dev/null; echo \"---\"; ls /home/eventstorm1/news/promo/screenshots/*.png 2>/dev/null)",
+      "Read(//home/eventstorm1/.cache/ms-playwright/**)",
+      "Bash(/home/eventstorm1/.cache/ms-playwright/chromium-1223/chrome-linux64/chrome --headless --disable-gpu --no-sandbox --print-to-pdf=promo/print/brochure-hq-en-rich.pdf --print-to-pdf-no-header file://__CMDSUB_OUTPUT__/promo/print/brochure-hq-en-rich.html)",
+      "Bash(/home/eventstorm1/.cache/ms-playwright/chromium-1223/chrome-linux64/chrome --headless --disable-gpu --no-sandbox --hide-scrollbars --window-size=900,4650 --screenshot=/tmp/claude-1002/-home-eventstorm1-news/a0316731-85d3-43bd-8c45-107356b2b5e7/scratchpad/brochure-rich-preview.png file://__CMDSUB_OUTPUT__/promo/print/brochure-hq-en-rich.html)",
+      "Bash(/home/eventstorm1/.cache/ms-playwright/chromium-1223/chrome-linux64/chrome --headless --disable-gpu --no-sandbox --hide-scrollbars --window-size=900,4650 --screenshot=/tmp/claude-1002/-home-eventstorm1-news/a0316731-85d3-43bd-8c45-107356b2b5e7/scratchpad/brochure-rich-preview3.png file://__CMDSUB_OUTPUT__/promo/print/brochure-hq-en-rich.html)",
+      "Bash(/home/eventstorm1/.cache/ms-playwright/chromium-1223/chrome-linux64/chrome --headless --disable-gpu --no-sandbox --hide-scrollbars --window-size=900,4650 --screenshot=/tmp/claude-1002/-home-eventstorm1-news/a0316731-85d3-43bd-8c45-107356b2b5e7/scratchpad/brochure-rich-preview4.png file://__CMDSUB_OUTPUT__/promo/print/brochure-hq-en-rich.html)",
+      "Bash(/home/eventstorm1/.cache/ms-playwright/chromium-1223/chrome-linux64/chrome --headless --disable-gpu --no-sandbox --hide-scrollbars --window-size=900,4650 --screenshot=/tmp/claude-1002/-home-eventstorm1-news/a0316731-85d3-43bd-8c45-107356b2b5e7/scratchpad/brochure-v5.png file://__CMDSUB_OUTPUT__/promo/print/brochure-hq-en-rich.html)",
+      "Bash(echo \"clean: $?\")",
+      "Bash(cd /home/eventstorm1/news *)"
     ],
     "defaultMode": "acceptEdits",
     "additionalDirectories": [
       "/home/eventstorm1/news/logs",
-      "logs"
+      "logs",
+      "/home/eventstorm1/news/business_modules/epistemic_features/data/profiles"
     ]
   },
   "hooks": {

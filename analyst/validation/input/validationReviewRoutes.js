@@ -1,7 +1,7 @@
 /**
  * HTTP routes for validation review queue (analyst-only).
  */
-import { normalizeReportScope } from '../../../business_modules/resilience/domain/services/regionSignalFilter.js';
+import { normalizeReportScope } from '../../../business_modules/resilience_scorer/domain/services/regionSignalFilter.js';
 import { requireAnalystView } from '../../../cross-cut-modules/auth/requireAnalystAccess.js';
 import { auditFromRequest } from '../../../cross-cut-modules/security/input/auditLog.js';
 import { costlyRoutePreHandlers } from '../../../cross-cut-modules/security/input/costlyRoutePreHandlers.js';

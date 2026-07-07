@@ -4,7 +4,7 @@
 
 **Companion:** [SYSTEM-AND-OPERATOR-MODEL.md](./SYSTEM-AND-OPERATOR-MODEL.md) (what operators see), [docs/MODEL-CARD.md](../MODEL-CARD.md) (policy tables and agent env flags).
 
-**Code roots:** `business_modules/resilience/`, `business_modules/resilience_assessment/`, `cross-cut-modules/agent/`, `cross-cut-modules/retrieval/`, `domain/services/assessmentDisplayTier.js`, `domain/services/scoring/scoreComponentsOrchestrator.js`.
+**Code roots:** `business_modules/resilience_scorer/`, `business_modules/specialist_agents/`, `cross-cut-modules/agent/`, `cross-cut-modules/retrieval/`, `domain/services/assessmentDisplayTier.js`, `domain/services/scoring/scoreComponentsOrchestrator.js`.
 
 ---
 
@@ -33,7 +33,7 @@ Docs and operators should treat the refactor as a change in **what is primary**,
 | Layer | Pre-refactor | Post-refactor (default) |
 |-------|--------------|-------------------------|
 | **Assess entry** | `assess-signals` → `runScoringPipeline` → legacy Sonnet narratives | `assess-signals` → `produceAssessmentWithShadow` → **`runAssessmentAgent`** (or deterministic degrade) |
-| **Primary module** | Legacy `claudeNarratives.js` (removed) | `business_modules/resilience_assessment/` + `cross-cut-modules/agent/` + retrieval helpers |
+| **Primary module** | Legacy `claudeNarratives.js` (removed) | `business_modules/specialist_agents/` + `cross-cut-modules/agent/` + retrieval helpers |
 | **Orchestration** | Linear: score then narrate | Planner → `Promise.all` specialists → critic → optional re-plan → synthesizer |
 | **Epistemic input** | Scored components only | `computeEpistemicProfile` + **`enrichProfileForInvestigation`** |
 | **Evidence assembly** | Signals in narrative prompt | **`buildEvidenceGraph`** (signals + RAG hits + OOV/residual + gaps) |
@@ -86,11 +86,11 @@ Markdown / archive rows
 
 **`degrade_reason` values on report:** `budget_exceeded`, `forced_deterministic`, `agent_failed`, `empty_scores` (cached fallback). Distinct from **HTTP crisis chat pool** (`crisisBudgetService`) — assess agent uses pipeline daily budget, not the chat crisis pool.
 
-Production entries: single assess stage `input/assess-signals.js` → `app/assessSignalsCli.js`; full ingest+assess `input/run-pipeline.js` → `app/pipelineOrchestrator.js` (see [PIPELINE-AND-SOURCES.md](./PIPELINE-AND-SOURCES.md)). Legacy batch helper `app/runResilienceAnalysis.js` exists but is **not wired** in the daily pipeline.
+Production entries: single assess stage `input/assess-signals.js` → `app/assessSignalsCli.js`; full ingest+assess `input/run-pipeline.js` → `app/pipelineOrchestrator.js` (see [PIPELINE-AND-SOURCES.md](./PIPELINE-AND-SOURCES.md)). The legacy batch helper `app/runResilienceAnalysis.js` (never wired into the daily pipeline) was removed.
 
 ### 3.1 Assessment agent (v2)
 
-**Entry:** `business_modules/resilience/app/produceAssessmentWithShadow.js` → `business_modules/resilience_assessment/app/assessmentOrchestrator.js`
+**Entry:** `business_modules/resilience_scorer/app/produceAssessmentWithShadow.js` → `business_modules/specialist_agents/app/assessmentOrchestrator.js`
 
 **Pattern:** plan-and-execute **map–reduce** (parallel specialists per component; not peer-to-peer agent chat).
 
@@ -98,11 +98,11 @@ Production entries: single assess stage `input/assess-signals.js` → `app/asses
 |-------|--------|------|
 | Prep | `cross-cut-modules/retrieval/componentRagSeeding.js`, `evidenceGraph.js` | Hybrid retrieve seeds + signal/residual/OOV claims |
 | Planner context | `cross-cut-modules/retrieval/plannerContextBuilder.js` | Gaps, media/archive anomalies, OOV/residual summary |
-| Planner | `resilience_assessment/app/plannerAgent.js` | Investigation plan (deterministic or Haiku); `planner_source` metadata |
-| Specialists | `resilience_assessment/app/componentSpecialistAgent.js` | Per-component tool loop (tiers A/B/C); multi-hop RAG + `lookup_signals` / `get_source` |
-| Critic | `resilience_assessment/app/criticAgent.js` | Deterministic grounding / thin-evidence / gap checks |
+| Planner | `business_modules/specialist_agents/app/plannerAgent.js` | Investigation plan (deterministic or Haiku); `planner_source` metadata |
+| Specialists | `business_modules/specialist_agents/app/componentSpecialistAgent.js` | Per-component tool loop (tiers A/B/C); multi-hop RAG + `lookup_signals` / `get_source` |
+| Critic | `business_modules/specialist_agents/app/criticAgent.js` | Deterministic grounding / thin-evidence / gap checks |
 | Re-plan (optional) | orchestrator + `replanPolicy.js` | Single hop when cross-component issues or gap overload |
-| Synthesizer | `resilience_assessment/app/synthesizerAgent.js` | Cross-component narrative (conditional Sonnet or deterministic) |
+| Synthesizer | `business_modules/specialist_agents/app/synthesizerAgent.js` | Cross-component narrative (conditional Sonnet or deterministic) |
 
 **Kernel:** `cross-cut-modules/agent/agentKernel.js` — shared tool loop, budget governor, trace JSONL.
 
@@ -131,7 +131,7 @@ Edges link sources → chunks → signals. `by_component` holds hypothesis claim
 
 ### 3.2 Epistemic profile for investigation
 
-**Builder:** `business_modules/epistemic_features/domain/services/epistemicProfileBuilder.js`  
+**Builder:** `business_modules/resilience_scorer/domain/epistemic/epistemicProfileBuilder.js`  
 **Investigation enrich:** `investigationEpistemic.js` — adds `investigation_mass`, `investigation_eligible`, `archive_mention_mass`, `residual_observation_count`, `presence_gate_triggered`, `salience_critical` (from shadow scored components).
 
 Per-component `by_component` fields include `signal_count` and `distinct_article_count` (Jun 2026) — fed into `deriveInstrumentState` via `assessmentV2Mapper`, not headline scores.
@@ -144,7 +144,7 @@ When `RESILIENCE_ASSESS_SPLIT_INVESTIGATION_MASS=1` (default), planner abstentio
 
 ### 3.3 Legacy compatibility layer
 
-**Mapper:** `business_modules/resilience_assessment/domain/services/assessmentV2Mapper.js` → `mapAssessmentV2ToLegacy(v2, epistemicProfile, opts)`.
+**Mapper:** `business_modules/specialist_agents/domain/services/assessmentV2Mapper.js` → `mapAssessmentV2ToLegacy(v2, epistemicProfile, opts)`.
 
 | v2 field | Legacy mapping |
 |----------|----------------|
@@ -187,10 +187,10 @@ When `RESILIENCE_ASSESS_SPLIT_INVESTIGATION_MASS=1` (default), planner abstentio
 | `PROBE_SOURCE_TYPES` | `infrastructure_probe` | High-trust probes (not digital volume) |
 | `CAP_EXEMPT_SOURCE_TYPES` | `infrastructure_probe`, `pbo`, `pbo_regional`, `naftali`, `field` | Exempt from 50% source-type cap (official ground truth); `field_whatsapp` remains capped |
 
-Module facade `business_modules/resilience/domain/services/signalCatalog.js` re-exports `cross-cut-modules/resilience-contracts/signalCatalog.js` — edit the contract file only.
+Module facade `business_modules/resilience_scorer/domain/services/signalCatalog.js` re-exports `cross-cut-modules/resilience-contracts/signalCatalog.js` — edit the contract file only.
 
 
-**Data void / digital darkness** (`business_modules/resilience/domain/services/dataVoid/`):
+**Data void / digital darkness** (`business_modules/resilience_scorer/domain/services/dataVoid/`):
 
 - Elevated void level → **abstention**: null component scores, `assessment_mode: abstained`, operator instrument `sampling_blind`.
 - `digital_darkness` → **field-anchor-only** re-score using field-family sources; stale digital-inclusive snapshot preserved separately.
@@ -247,7 +247,7 @@ Shadow scoring and agent assess share the same signal prep; **presentation** dif
 
 **Size:** ~165 closed signal types (`SIGNAL_TYPES.length >= 165`).
 
-**v6 additions** (regression list in `tests/business_modules/resilience/domain/services/signalCatalog.v5.test.js`):
+**v6 additions** (regression list in `tests/business_modules/resilience_scorer/domain/services/signalCatalog.v5.test.js`):
 
 - `self_evacuation_unauthorized`
 - `early_warning_system_failure`
@@ -256,14 +256,14 @@ Shadow scoring and agent assess share the same signal prep; **presentation** dif
 - `connectivity_outage`
 - `institutional_abandonment_perception`
 
-Module facade re-exports from `business_modules/resilience/domain/services/signalCatalog.js` and `business_modules/resilience/index.js` — edit the contract file only.
+Module facade re-exports from `business_modules/resilience_scorer/domain/services/signalCatalog.js` and `business_modules/resilience_scorer/index.js` — edit the contract file only.
 
 ### 7.1 Extraction
 
 - **CLI:** `extract-signals.js`
 - **Infrastructure:** `claudeExtraction.js`, closed vocabulary from `behaviorSignals.js` / catalog
 - **Catalog:** `cross-cut-modules/resilience-contracts/signalCatalog.js` — `SIGNAL_TYPES`, `CATALOG_VERSION` (v6) stamped on assessments
-- **OOV capture:** `business_modules/resilience/domain/services/oovCapture.js` → `daily_reports/oov-capture-{date}.jsonl` when `RESILIENCE_OOV_CAPTURE=1`
+- **OOV capture:** `business_modules/resilience_scorer/domain/services/oovCapture.js` → `daily_reports/oov-capture-{date}.jsonl` when `RESILIENCE_OOV_CAPTURE=1`
 - **Output:** `signals-{source}-{date}.json`
 - **Side effects:** `source_archive` rows, optional RAG index at ingest
 - **PBO review metadata:** Municipal extract (`extract-pbo-signals.js`) merges officer supplemental answers via `loadReviewMetadataMapForDate` from `pbo_report_review`; `shouldForcePboSignalRewrite` forces re-extract when inbound replies arrive. Review state flows into PBO signals before assess. See [PIPELINE § Municipal PBO review](./PIPELINE-AND-SOURCES.md#municipal-pbo-review).
@@ -303,9 +303,9 @@ Module facade re-exports from `business_modules/resilience/domain/services/signa
 ### 7.6 Reports and validation
 
 - Report write from `assess-signals.js` finalize step
-- Validation queue: SQLite store (default); analyst routes under `business_modules/resilience/validation/`
+- Validation queue: SQLite store (default); analyst routes under `business_modules/resilience_scorer/validation/`
 - Display redaction at serve time: `assessmentDisplayTier.js`
-- **Config:** `business_modules/resilience/validation/validation-config.json` — operational phase (`baseline` vs elevated)
+- **Config:** `business_modules/resilience_scorer/validation/validation-config.json` — operational phase (`baseline` vs elevated)
 - **Collection:** `validationCollectionService.js` — post-assess review queue upsert (max 15/day stratified sample)
 - **Analyst API:** `GET /api/validation/review-queue` — `ValidationReviewPanel` in analyst SPA
 - **Status CLI:** `npm run validation:status`
@@ -324,24 +324,24 @@ Component ids used in scoring: `narrative`, `information_communication`, `lifesa
 
 | Area | Path |
 |------|------|
-| Assess + shadow | `business_modules/resilience/app/produceAssessmentWithShadow.js` |
-| Assessment agent | `business_modules/resilience_assessment/app/` — orchestrator, planner, specialists, critic, synthesizer |
-| Shadow artifacts | `business_modules/resilience_assessment/infrastructure/adapters/shadowArtifactsFileAdapter.js` — `writeShadowArtifacts`, `computeDivergence` |
+| Assess + shadow | `business_modules/resilience_scorer/app/produceAssessmentWithShadow.js` |
+| Assessment agent | `business_modules/specialist_agents/app/` — orchestrator, planner, specialists, critic, synthesizer |
+| Shadow artifacts | `business_modules/specialist_agents/infrastructure/adapters/shadowArtifactsFileAdapter.js` — `writeShadowArtifacts`, `computeDivergence` |
 | Agent kernel / config | `cross-cut-modules/agent/` — `agentKernel.js`, `agentConfig.js` |
 | RAG at assess | `cross-cut-modules/retrieval/` — `componentRagSeeding.js`, `evidenceGraph.js`, `plannerContextBuilder.js`, `multiHopRetrieval.js` |
-| Epistemic profile | `business_modules/epistemic_features/domain/services/epistemicProfileBuilder.js`, `investigationEpistemic.js` |
-| Synthesis OOV guard | `business_modules/resilience_assessment/domain/services/synthesisOovChecks.js` |
-| Component definitions | `business_modules/resilience/domain/resilienceComponents.js` |
-| Facets / signal routing | `business_modules/resilience/domain/services/componentFacets.js` |
-| Scope filter | `business_modules/resilience/domain/services/regionSignalFilter.js` |
+| Epistemic profile | `business_modules/resilience_scorer/domain/epistemic/epistemicProfileBuilder.js`, `investigationEpistemic.js` |
+| Synthesis OOV guard | `business_modules/specialist_agents/domain/services/synthesisOovChecks.js` |
+| Component definitions | `business_modules/resilience_scorer/domain/resilienceComponents.js` |
+| Facets / signal routing | `business_modules/resilience_scorer/domain/services/componentFacets.js` |
+| Scope filter | `business_modules/resilience_scorer/domain/services/regionSignalFilter.js` |
 | Assess CLI | `input/assess-signals.js` (transport) → `app/assessSignalsCli.js`, `app/assessSignalsHelpers.js` |
 | Report cache | `app/reportCacheService.js` — `getCachedReport`, scope-aware paths for `GET /api/report/today` |
-| Shadow scoring pipeline | `business_modules/resilience/app/scoringPipelinePrep.js`, `prepareScoringSignals.js`, `scoreComponentsOrchestrator.js` |
-| Display redaction | `business_modules/resilience/domain/services/assessmentDisplayTier.js` |
-| Thin evidence | `business_modules/resilience/domain/services/thinEvidencePolicy.js` |
-| Operator action compass | `business_modules/resilience/domain/services/actionCompass.js` |
-| Anomaly strip | `business_modules/resilience/domain/services/anomalyStrip.js` |
-| Deterministic degrade | `business_modules/resilience_assessment/app/runDeterministicAssessment.js`, `loadCachedAssessmentFallback.js` |
+| Shadow scoring pipeline | `business_modules/resilience_scorer/app/scoringPipelinePrep.js`, `prepareScoringSignals.js`, `scoreComponentsOrchestrator.js` |
+| Display redaction | `business_modules/resilience_scorer/domain/services/assessmentDisplayTier.js` |
+| Thin evidence | `business_modules/resilience_scorer/domain/services/thinEvidencePolicy.js` |
+| Operator action compass | `business_modules/resilience_scorer/domain/services/actionCompass.js` |
+| Anomaly strip | `business_modules/resilience_scorer/domain/services/anomalyStrip.js` |
+| Deterministic degrade | `business_modules/specialist_agents/app/runDeterministicAssessment.js`, `loadCachedAssessmentFallback.js` |
 | Signal catalog evolution | `business_modules/signal_catalog_evolution/` — OOV gap reports + draft proposals |
 
 ---
@@ -354,7 +354,7 @@ The sections below are **auto-synced** from code. Do not edit between markers; r
 
 <!-- docs-sync:BEGIN components-at-a-glance -->
 
-> **Auto-synced** from `business_modules/resilience/domain/resilienceComponents.js` on 2026-07-03. Do not edit between sync markers.
+> **Auto-synced** from `business_modules/resilience_scorer/domain/resilienceComponents.js` on 2026-07-03. Do not edit between sync markers.
 
 | # | ID | English | Hebrew | What it measures (in one line) |
 |---|---|---|---|---|
@@ -373,7 +373,7 @@ The sections below are **auto-synced** from code. Do not edit between markers; r
 
 <!-- docs-sync:BEGIN component-facets -->
 
-> **Auto-synced** from `business_modules/resilience/domain/services/componentFacets.js` on 2026-07-03. Do not edit between sync markers.
+> **Auto-synced** from `business_modules/resilience_scorer/domain/services/componentFacets.js` on 2026-07-03. Do not edit between sync markers.
 
 | Component | Facets |
 |---|---|

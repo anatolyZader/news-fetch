@@ -12,7 +12,7 @@
 
 A scoring formula can tell you a number. It cannot tell you *what is going on*, *what the evidence is*, *where it is contradictory*, or *what is missing*. The district officer needs the latter. So the daily assessment is **agent-primary, score-secondary**: an investigation agent reasons over the evidence and produces grounded claims; the deterministic score (file 05) runs alongside as a shadow/analyst artifact.
 
-Entry point: `runAssessmentAgent(params)` in `business_modules/resilience_assessment/app/assessmentOrchestrator.js` (line 267). It is invoked from the pipeline via `business_modules/resilience/app/produceAssessmentWithShadow.js` (`tryAssessmentAgent`). It returns `{ assessmentV2, assessment (legacy), traceId, budget, evidenceGraph }`.
+Entry point: `runAssessmentAgent(params)` in `business_modules/specialist_agents/app/assessmentOrchestrator.js` (line 267). It is invoked from the pipeline via `business_modules/resilience_scorer/app/produceAssessmentWithShadow.js` (`tryAssessmentAgent`). It returns `{ assessmentV2, assessment (legacy), traceId, budget, evidenceGraph }`.
 
 ## 2. The flow
 
@@ -31,7 +31,7 @@ flowchart LR
 
 ### Stage A - Planner
 
-`runPlannerAgent` (`business_modules/resilience_assessment/app/plannerAgent.js`, line 112) builds an **investigation plan** (tool `submit_plan`):
+`runPlannerAgent` (`business_modules/specialist_agents/app/plannerAgent.js`, line 112) builds an **investigation plan** (tool `submit_plan`):
 
 ```js
 {
@@ -44,7 +44,7 @@ flowchart LR
 }
 ```
 
-It can run as a deterministic plan or an LLM plan (`shouldUseDeterministicPlanner`, `business_modules/resilience_assessment/domain/services/plannerPolicy.js`). Components with too little investigative mass are pushed into `abstention_components` via `shouldAbstainFromInvestigation` (`business_modules/epistemic_features/domain/services/investigationEpistemic.js`).
+It can run as a deterministic plan or an LLM plan (`shouldUseDeterministicPlanner`, `business_modules/specialist_agents/domain/services/plannerPolicy.js`). Components with too little investigative mass are pushed into `abstention_components` via `shouldAbstainFromInvestigation` (`business_modules/specialist_agents/domain/services/investigationEpistemic.js`).
 
 ### Stage B - RAG and evidence graph
 
@@ -71,7 +71,7 @@ Claims are seeded from closed signals (`buildSignalClaims`) and RAG hits (`build
 
 ### Stage C - Component specialists
 
-For each component selected for investigation, `runComponentSpecialist` (`business_modules/resilience_assessment/app/componentSpecialistAgent.js`, line 95) produces an assessment. Each specialist runs at a **depth** A/B/C (`resolveSpecialistTier`, `business_modules/resilience_assessment/domain/services/specialistTier.js`):
+For each component selected for investigation, `runComponentSpecialist` (`business_modules/specialist_agents/app/componentSpecialistAgent.js`, line 95) produces an assessment. Each specialist runs at a **depth** A/B/C (`resolveSpecialistTier`, `business_modules/specialist_agents/domain/services/specialistTier.js`):
 
 | Depth | Behavior |
 |-------|----------|
@@ -102,7 +102,7 @@ Per-component output (tool `submit_component_assessment` + post-processing):
 
 ### Stage D - Critic (deterministic per component)
 
-The critic is **not a separate LLM**; it is a set of deterministic checks (`runCriticChecks`, `business_modules/resilience_assessment/app/criticAgent.js`, line 81) applied to each specialist output, with repairs (`applyCriticRepair`). Checks include:
+The critic is **not a separate LLM**; it is a set of deterministic checks (`runCriticChecks`, `business_modules/specialist_agents/app/criticAgent.js`, line 81) applied to each specialist output, with repairs (`applyCriticRepair`). Checks include:
 
 - `missing_claim_text`, `missing_evidence_refs`
 - `thin_evidence_strong_claim` (high confidence on thin evidence)
@@ -116,11 +116,11 @@ Repairs **downgrade to abstain**, reduce confidence, add dissent, append gap/OOV
 
 ### Stage E - Cross-component consistency and optional replan
 
-`detectCrossComponentContradictions` (`business_modules/resilience_assessment/domain/services/crossComponentConsistency.js`) flags grounded severity/status mismatches across related components. If needed, `maybeReplanAndRefresh` runs **one** replan hop (forcing an LLM planner) and re-assesses affected components.
+`detectCrossComponentContradictions` (`business_modules/specialist_agents/domain/services/crossComponentConsistency.js`) flags grounded severity/status mismatches across related components. If needed, `maybeReplanAndRefresh` runs **one** replan hop (forcing an LLM planner) and re-assesses affected components.
 
 ### Stage F - Synthesizer
 
-`runSynthesizerAgent` (`business_modules/resilience_assessment/app/synthesizerAgent.js`, line 68) produces the operator-facing synthesis:
+`runSynthesizerAgent` (`business_modules/specialist_agents/app/synthesizerAgent.js`, line 68) produces the operator-facing synthesis:
 
 ```js
 {
@@ -154,14 +154,14 @@ The orchestrator assembles `assessmentV2` (`cross-cut-modules/resilience-contrac
 }
 ```
 
-A legacy mapper (`business_modules/resilience_assessment/domain/services/assessmentV2Mapper.js`, `mapAssessmentV2ToLegacy`) adapts this for the API and **sets `overall_resilience_score: null`** - the headline score is not part of the agent's operator output. Claims map to `narrative_claims`, `evidence`, and `evidence_tree`.
+A legacy mapper (`business_modules/specialist_agents/domain/services/assessmentV2Mapper.js`, `mapAssessmentV2ToLegacy`) adapts this for the API and **sets `overall_resilience_score: null`** - the headline score is not part of the agent's operator output. Claims map to `narrative_claims`, `evidence`, and `evidence_tree`.
 
 ## 4. The operator products (decision support)
 
 The agent encodes "narrow attention + show evidence; humans decide":
 
-- **Decision brief** - advisory summary and priority items. Its prompt (`business_modules/resilience/domain/services/decisionBriefPrompt.js`, `buildDecisionBriefSystemPrompt`) **forbids** numeric 1-10 scores and **forbids** claiming any resource was dispatched; `suggested_next_step` must be advisory.
-- **Attention items** - a unified, ranked queue built by `buildAttentionItems` (`business_modules/resilience/domain/services/attentionItems.js`) from voids, epistemic status, components, OOV, and recommendations.
+- **Decision brief** - advisory summary and priority items. Its prompt (`business_modules/resilience_scorer/domain/services/decisionBriefPrompt.js`, `buildDecisionBriefSystemPrompt`) **forbids** numeric 1-10 scores and **forbids** claiming any resource was dispatched; `suggested_next_step` must be advisory.
+- **Attention items** - a unified, ranked queue built by `buildAttentionItems` (`business_modules/resilience_scorer/domain/services/attentionItems.js`) from voids, epistemic status, components, OOV, and recommendations.
 - **Action compass** - `buildActionCompass` ranks operator actions under uncertainty, explicitly **without numeric scores**.
 - **Operator recommendations** - pattern-driven, acknowledge/dismiss via the report API.
 
@@ -181,17 +181,17 @@ Abstention is never silently rendered as "all clear."
 
 | Concern | Path |
 |---------|------|
-| Orchestrator | `business_modules/resilience_assessment/app/assessmentOrchestrator.js` |
-| Planner | `business_modules/resilience_assessment/app/plannerAgent.js` |
-| Specialist | `business_modules/resilience_assessment/app/componentSpecialistAgent.js` |
-| Specialist depth policy | `business_modules/resilience_assessment/domain/services/specialistTier.js` |
-| Critic | `business_modules/resilience_assessment/app/criticAgent.js` |
-| Synthesizer | `business_modules/resilience_assessment/app/synthesizerAgent.js` |
-| Cross-component consistency | `business_modules/resilience_assessment/domain/services/crossComponentConsistency.js` |
+| Orchestrator | `business_modules/specialist_agents/app/assessmentOrchestrator.js` |
+| Planner | `business_modules/specialist_agents/app/plannerAgent.js` |
+| Specialist | `business_modules/specialist_agents/app/componentSpecialistAgent.js` |
+| Specialist depth policy | `business_modules/specialist_agents/domain/services/specialistTier.js` |
+| Critic | `business_modules/specialist_agents/app/criticAgent.js` |
+| Synthesizer | `business_modules/specialist_agents/app/synthesizerAgent.js` |
+| Cross-component consistency | `business_modules/specialist_agents/domain/services/crossComponentConsistency.js` |
 | Tool schemas (plan, component) | `cross-cut-modules/agent/profiles/assessment.profile.js` |
 | assessment.v2 contract | `cross-cut-modules/resilience-contracts/assessmentV2.js` |
-| Legacy mapper | `business_modules/resilience_assessment/domain/services/assessmentV2Mapper.js` |
+| Legacy mapper | `business_modules/specialist_agents/domain/services/assessmentV2Mapper.js` |
 | Evidence graph | `cross-cut-modules/retrieval/evidenceGraph.js` |
-| Pipeline bridge | `business_modules/resilience/app/produceAssessmentWithShadow.js` |
-| Attention items | `business_modules/resilience/domain/services/attentionItems.js` |
-| Investigation abstention | `business_modules/epistemic_features/domain/services/investigationEpistemic.js` |
+| Pipeline bridge | `business_modules/resilience_scorer/app/produceAssessmentWithShadow.js` |
+| Attention items | `business_modules/resilience_scorer/domain/services/attentionItems.js` |
+| Investigation abstention | `business_modules/specialist_agents/domain/services/investigationEpistemic.js` |

@@ -1,5 +1,5 @@
 /**
- * Read learning-capture JSONL files from daily_reports/.
+ * Read learning-capture JSONL files from business_modules/resilience_scorer/data/captures/.
  */
 export class ILearningCapturePort {
   constructor() {

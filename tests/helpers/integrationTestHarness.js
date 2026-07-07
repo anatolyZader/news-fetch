@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { bootstrapDefaultStateStore } from '../../cross-cut-modules/persistence/bootstrapStateStore.js';
 import { resetUserAccessCache } from '../../cross-cut-modules/auth/userAccess.js';
-import { resetDefaultResilienceLlmPortForTests } from '../../business_modules/resilience/app/resilienceLlmCapability.js';
+import { resetDefaultResilienceLlmPortForTests } from '../../business_modules/resilience_scorer/app/resilienceLlmCapability.js';
 import { resetDefaultEventBusForTests } from '../../cross-cut-modules/messaging/index.js';
 import { resetTranslationRetrievalForTests } from '../../business_modules/translation/app/translationTermRag.js';
 

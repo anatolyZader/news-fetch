@@ -2,9 +2,10 @@ import { createHash } from 'node:crypto';
 import { readFile, writeFile } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { translationLocaleDir } from '../domain/services/artifactPaths.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const DEFAULT_REPORTS_DIR = resolve(__dirname, '../../../daily_reports');
+const DEFAULT_LOCALE_DIR = translationLocaleDir(resolve(__dirname, '../../..'));
 
 /** Bump when LOCALE_SCHEMAS or extraction rules change. */
 export const LOCALE_CACHE_VERSION = 2;
@@ -15,7 +16,7 @@ const memCache = new Map();
 let cacheDirOverride = null;
 
 function cacheDir() {
-  return cacheDirOverride ?? DEFAULT_REPORTS_DIR;
+  return cacheDirOverride ?? DEFAULT_LOCALE_DIR;
 }
 
 /** @param {string | null} dir */

@@ -1,6 +1,6 @@
 /**
  * Shared report file ranking for operator-facing selection.
- * Keep in sync with business_modules/resilience/app/reportCacheService.js
+ * Keep in sync with business_modules/resilience_scorer/app/reportCacheService.js
  * and cross-cut-modules/monitoring/infrastructure/adapters/reportPathResolver.js.
  */
 

@@ -1,5 +1,5 @@
 /**
- * Shared learning-capture record kinds (daily_reports/oov-capture-*.jsonl).
+ * Shared learning-capture record kinds (business_modules/resilience_scorer/data/captures/oov-capture-*.jsonl).
  */
 export const LEARNING_CAPTURE_KINDS = Object.freeze({
   UNKNOWN_TYPE: 'unknown_type',

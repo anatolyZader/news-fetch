@@ -88,6 +88,7 @@ function applyCompactHistoryMessages({
  *   temperature?: number,
  *   executeTool: (name: string, input: object, toolUseBlock: object) => Promise<string> | string,
  *   onTextBlock?: (text: string) => void,
+ *   onToolStart?: (meta: { name: string, round: number, maxRounds: number }) => void,
  *   onToolRound?: (meta: object) => void,
  *   onUsage?: (payload: { label: string, model: string, usage: object }) => void,
  *   agentKind?: string,
@@ -109,6 +110,7 @@ export async function runToolLoop(opts) {
     temperature = 0,
     executeTool,
     onTextBlock,
+    onToolStart,
     onToolRound,
     onUsage,
     agentKind = 'unknown',
@@ -171,6 +173,13 @@ export async function runToolLoop(opts) {
       currentMessages = appendAssistantText(currentMessages, textBlocks);
       endedByToolLoop = true;
       break;
+    }
+
+    if (onToolStart) {
+      const displayRound = round + 1;
+      for (const tu of toolUseBlocks) {
+        onToolStart({ name: tu.name, round: displayRound, maxRounds });
+      }
     }
 
     const { toolMeta, toolResults } = await executeToolRound(toolUseBlocks, executeTool);

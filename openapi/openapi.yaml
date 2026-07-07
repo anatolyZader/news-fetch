@@ -118,6 +118,47 @@ components:
         history:
           type: array
           items: { type: object, additionalProperties: true }
+    ChatSseEventStatus:
+      type: object
+      required: [type, phase]
+      properties:
+        type: { type: string, enum: [status] }
+        phase: { type: string, enum: [preparing, thinking] }
+    ChatSseEventToolStart:
+      type: object
+      required: [type, name, round, maxRounds]
+      properties:
+        type: { type: string, enum: [tool_start] }
+        name: { type: string }
+        round: { type: integer }
+        maxRounds: { type: integer }
+    ChatSseEventText:
+      type: object
+      required: [type, text]
+      properties:
+        type: { type: string, enum: [text] }
+        text: { type: string }
+    ChatSseEventDone:
+      type: object
+      required: [type]
+      properties:
+        type: { type: string, enum: [done] }
+        error: { type: boolean }
+        message: { type: string }
+        loop_exhausted: { type: boolean }
+        mode: { type: string }
+        chat_economy: { type: object, additionalProperties: true }
+    ChatSseEvent:
+      oneOf:
+        - { $ref: "#/components/schemas/ChatSseEventStatus" }
+        - { $ref: "#/components/schemas/ChatSseEventToolStart" }
+        - { $ref: "#/components/schemas/ChatSseEventText" }
+        - { $ref: "#/components/schemas/ChatSseEventDone" }
+        - type: object
+          required: [type]
+          properties:
+            type: { type: string, enum: [error, action_proposed, semantic_output_gate] }
+          additionalProperties: true
     MailConfigResponse:
       type: object
       required: [enabled]
@@ -1091,11 +1132,12 @@ paths:
             schema: { $ref: "#/components/schemas/ChatRequest" }
       responses:
         "200":
-          description: SSE stream
+          description: SSE stream of ChatSseEvent lines (`data: <json>\\n\\n`)
           content:
             text/event-stream:
               schema:
                 type: string
+                description: Newline-delimited SSE payloads; each line is `data: ` followed by a ChatSseEvent JSON object.
         "400":
           description: Invalid request
           content:

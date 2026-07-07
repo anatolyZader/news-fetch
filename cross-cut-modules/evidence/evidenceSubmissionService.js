@@ -10,7 +10,7 @@ import {
   contentBatchFromMdArticles,
   createAnthropicResilienceLlmAdapter,
   normalizeReportScope,
-} from '../../business_modules/resilience/index.js';
+} from '../../business_modules/resilience_scorer/index.js';
 import { persistOriginalSources } from '../../db/source_archive/persistOriginals.js';
 import {
   buildExtractedContentReview,

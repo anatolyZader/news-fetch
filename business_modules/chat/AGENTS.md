@@ -16,8 +16,8 @@ Read this before any file under `business_modules/chat/`.
 
 ## Do not read
 
-- `business_modules/resilience/` prompts or assessment internals
-- `daily_reports/` — use report read ports / APIs wired at composition
+- `business_modules/resilience_scorer/` prompts or assessment internals
+- `business_modules/resilience_scorer/data/reports/` — use report read ports / APIs wired at composition
 
 ## Neighbors
 

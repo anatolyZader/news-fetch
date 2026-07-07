@@ -102,7 +102,7 @@ For role and scope terminology, see the repo glossary at `docs/architecture/ubiq
 
 ### I want to add a new signal type
 
-1. Update the taxonomy (list of allowed `signal_type` values) in `business_modules/resilience/`.
+1. Update the taxonomy (list of allowed `signal_type` values) in `business_modules/resilience_scorer/`.
 2. Add the type to the extraction prompt's allowed values.
 3. Add a weight for it in the signal→component mapping.
 4. Decide whether to backfill older days — rerunning extraction lets old reports surface the new type.
@@ -133,7 +133,7 @@ For role and scope terminology, see the repo glossary at `docs/architecture/ubiq
 ## Troubleshooting
 - **Not sure where to add a new adapter**
   - **Check**: is it ingestion (source adapter) or analysis (signals / scoring)?
-  - **Fix**: add ingestion under its own `business_modules/<source>/`; keep scoring and taxonomy in `business_modules/resilience/`.
+  - **Fix**: add ingestion under its own `business_modules/<source>/`; keep scoring and taxonomy in `business_modules/resilience_scorer/`.
 - **My feature ended up spanning five directories**
   - **Check**: whether the feature is actually several features, or whether you're touching cross-cut utilities.
   - **Fix**: split the PR. Cross-cut changes ship on their own; each business module change rides on top.

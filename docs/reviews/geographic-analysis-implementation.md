@@ -34,11 +34,11 @@ The key constraint is **non-LLM geography**: the app does not let the model “d
 
 Code outside the `geo` module should **not import** `business_modules/geo` to enrich location strings. Instead it depends on a **port**:
 
-- `business_modules/resilience/domain/ports/IGeoEnrichmentPort.js`
+- `business_modules/resilience_scorer/domain/ports/IGeoEnrichmentPort.js`
 
 The port is implemented by an adapter:
 
-- `business_modules/resilience/infrastructure/adapters/geoEnrichmentAdapter.js`
+- `business_modules/resilience_scorer/infrastructure/adapters/geoEnrichmentAdapter.js`
 
 That adapter delegates to `geoService` (from `business_modules/geo`) and is **wired only in composition**.
 
@@ -323,7 +323,7 @@ This makes geo a message-level assumption that downstream consumers can inspect 
 
 In:
 
-- `business_modules/resilience/input/analyzeSurveyInput.js`
+- `business_modules/resilience_scorer/input/analyzeSurveyInput.js`
 
 Flow:
 
@@ -331,7 +331,7 @@ Flow:
 
 In:
 
-- `business_modules/resilience/app/surveyReportWriter.js`
+- `business_modules/resilience_scorer/app/surveyReportWriter.js`
 
 The Markdown report:
 
@@ -343,7 +343,7 @@ The Markdown report:
 
 In:
 
-- `business_modules/resilience/infrastructure/reportWriter.js`
+- `business_modules/resilience_scorer/infrastructure/reportWriter.js`
 
 The written report JSON includes:
 
@@ -358,8 +358,8 @@ Derived by scanning `signals[].geo` where `geo.kind === 'resolved'`.
 
 Regional scoping is implemented in:
 
-- `business_modules/resilience/domain/services/regionSignalFilter.js` — `scopeDecisionForSignal`, `filterSignalsForScope`
-- `business_modules/resilience/domain/services/signalDistrictId.js` — `signalDistrictId`, `assignedDistrictScopeMatch`, `LEGACY_NORTH_STRUCTURED_SOURCE_TYPES`
+- `business_modules/resilience_scorer/domain/services/regionSignalFilter.js` — `scopeDecisionForSignal`, `filterSignalsForScope`
+- `business_modules/resilience_scorer/domain/services/signalDistrictId.js` — `signalDistrictId`, `assignedDistrictScopeMatch`, `LEGACY_NORTH_STRUCTURED_SOURCE_TYPES`
 
 Decision outline (for a target scope such as `north`):
 

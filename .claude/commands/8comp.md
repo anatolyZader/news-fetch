@@ -38,4 +38,4 @@ Positional date (if provided) may be passed instead of `--date`.
 
 Spawn an Agent with this prompt, substituting `<target date>`:
 
-> Summarize a completed resilience pipeline run. Read `logs/pipeline-run-national-<target date>.log`, find the report JSON path (`Reports written:` or `ls daily_reports/resilience-report-<target date>-*.json`), read it, and return mode, preset, policy, warnings/errors, per-component scores (id, score, confidence, signal_count), and report file path.
+> Summarize a completed resilience pipeline run. Read `logs/pipeline-run-national-<target date>.log`, find the report JSON path (`Reports written:` or `ls business_modules/resilience_scorer/data/reports/national-*-<DDMMYY>-*.json`), read it, and return mode, preset, policy, warnings/errors, per-component scores (id, score, confidence, signal_count), and report file path.

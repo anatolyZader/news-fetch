@@ -1,5 +1,5 @@
 ---
-allowed-tools: Bash(node business_modules/resilience/input/extract-signals.js*), Bash(ls articles-field-reports-*)
+allowed-tools: Bash(node business_modules/resilience_scorer/input/extract-signals.js*), Bash(ls articles-field-reports-*)
 description: Extract resilience signals from the most recent field reports file and save under business_modules/visits/data/signals/
 ---
 
@@ -19,7 +19,7 @@ If no file is found, report that no field reports are available and stop.
 
 Run:
 ```
-node business_modules/resilience/input/extract-signals.js --source-type field --files <file from step 1> --date <date from filename YYYY-MM-DD>
+node business_modules/resilience_scorer/input/extract-signals.js --source-type field --files <file from step 1> --date <date from filename YYYY-MM-DD>
 ```
 
 Extract the date from the filename (e.g. `articles-field-reports-2026-03-24.md` → date `2026-03-24`).

@@ -23,7 +23,7 @@
     "tools/docs-site",
     "analyst-site",
     "coverage",
-    "daily_reports",
+    "business_modules/resilience_scorer/data",
     "signals",
     "articles_extracted",
     "**/data/**",

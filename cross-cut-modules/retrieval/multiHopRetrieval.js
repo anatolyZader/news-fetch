@@ -2,7 +2,7 @@
  * Multi-hop retrieval helpers governed by epistemic retrieval policies.
  */
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import {
   executeAssessmentEvidenceTool,
   LOOKUP_TOOL_NAMES,
@@ -10,7 +10,7 @@ import {
 } from './assessmentEvidenceTools.js';
 import { buildEvidenceGraph } from './evidenceGraph.js';
 import { applyRetrievalPolicies } from './retrievalPolicies.js';
-import { compressToolsEnabled } from '../agent/agentConfig.js';
+import { isResilienceReportFilename } from '../../business_modules/resilience_scorer/index.js';
 import {
   compressRetrieveResult,
   compressCrossSourceCompare,
@@ -82,7 +82,7 @@ function formatToolResult(name, raw, ctx) {
  */
 export function createMultiHopRetrieval(deps) {
   const retrieval = deps.retrieval;
-  const reportsDir = deps.reportsDir ?? 'daily_reports';
+  const reportsDir = deps.reportsDir ?? resolve(process.cwd(), 'business_modules/resilience_scorer/data/reports');
 
   async function hybrid(query, filters = {}) {
     if (!retrieval?.hybridRetrieve) return [];
@@ -149,7 +149,7 @@ export function createMultiHopRetrieval(deps) {
 
     recallPriorAssessments({ component_id, window_days = 14, reportDate }) {
       if (!existsSync(reportsDir)) return [];
-      const files = readdirSync(reportsDir).filter((f) => f.startsWith('resilience-report-') && f.endsWith('.json'));
+      const files = readdirSync(reportsDir).filter((f) => isResilienceReportFilename(f));
       const results = [];
       for (const f of files.slice(-window_days * 2)) {
         try {

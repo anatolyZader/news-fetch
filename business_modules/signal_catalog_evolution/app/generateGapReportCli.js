@@ -3,7 +3,7 @@
  * Generate a catalog gap report from learning-capture JSONL files.
  *
  * Usage:
- *   node business_modules/signal_catalog_evolution/input/generate-gap-report.js [reportsDir] [--days 14] [--out daily_reports/catalog-gap-report.md]
+ *   node business_modules/signal_catalog_evolution/input/generate-gap-report.js [capturesDir] [--days 14] [--out business_modules/signal_catalog_evolution/data/catalog-gap-report.md]
  */
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
@@ -18,7 +18,7 @@ const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 function parseArgs(argv) {
   const positional = [];
   let days = 14;
-  let out = 'daily_reports/catalog-gap-report.md';
+  let out = 'business_modules/signal_catalog_evolution/data/catalog-gap-report.md';
   let topN = 15;
 
   for (let i = 0; i < argv.length; i++) {
@@ -35,7 +35,7 @@ function parseArgs(argv) {
   }
 
   return {
-    reportsDir: positional[0] ?? 'daily_reports',
+    capturesDir: positional[0] ?? 'business_modules/resilience_scorer/data/captures',
     days,
     out,
     topN,
@@ -43,9 +43,9 @@ function parseArgs(argv) {
 }
 
 async function main() {
-  const { reportsDir, days, out, topN } = parseArgs(process.argv.slice(2));
+  const { capturesDir, days, out, topN } = parseArgs(process.argv.slice(2));
   const service = new SignalCatalogEvolutionService({
-    capturePort: createDefaultLearningCapturePort({ reportsDir }),
+    capturePort: createDefaultLearningCapturePort({ capturesDir }),
   });
 
   const sqlitePath = process.env.SQLITE_PATH?.trim() || resolve(REPO_ROOT, 'db', 'app.sqlite');

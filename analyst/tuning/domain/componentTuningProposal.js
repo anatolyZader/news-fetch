@@ -9,6 +9,7 @@ function getStore(deps = {}) {
   return resolveStateStore(deps);
 }
 import { resolve } from 'node:path';
+import { isNationalReportFilename } from '../../../business_modules/resilience_scorer/index.js';
 import { COMPONENT_TUNING } from '../../scoring/scoringShared.js';
 
 const TANHK_MIN = 1;
@@ -37,7 +38,7 @@ function clampNum(v, lo, hi) {
 function loadNationalReportFiles(reportsDir) {
   if (!getStore().existsSync(reportsDir)) return [];
   return getStore().readdirSync(reportsDir).filter(
-    (f) => f.startsWith('resilience-report-') && f.endsWith('.json') && !f.includes('-north-'),
+    (f) => f.endsWith('.json') && isNationalReportFilename(f),
   );
 }
 
@@ -147,7 +148,7 @@ function buildProposalsFromRows(rowsByComponent) {
  * @returns {null | { status: string, report_count: number, skipped_reason?: string, components: object }}
  */
 export function proposeComponentTuningFromReportFiles(reportsDir, opts = {}) {
-  const dir = reportsDir ? resolve(reportsDir) : resolve(process.cwd(), 'daily_reports');
+  const dir = reportsDir ? resolve(reportsDir) : resolve(process.cwd(), 'business_modules/resilience_scorer/data/reports');
   const minReports = opts.minReports ?? 10;
   const files = loadNationalReportFiles(dir);
 

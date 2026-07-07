@@ -1,6 +1,7 @@
 /**
  * Analyst-workflow RAG: validation review, catalog taxonomy, PBO history.
  */
+import { resolve } from 'node:path';
 import { embedText, embeddingsEnabled } from '../vector_index/index.js';
 import { clusterByPrefix, clusterByEmbedding } from '../learningCapture/oovClusterer.js';
 import { evidenceTextForRecord } from '../learningCapture/recordHelpers.js';
@@ -127,7 +128,9 @@ export function retrievePriorDecisions(store, { evidence, articleUrl, limit = 5,
  * @param {{ maxDays?: number, reportsDir?: string }} [opts]
  */
 export async function retrieveOovNeighbors(evidence, opts = {}) {
-  const adapter = new LearningCaptureFsAdapter({ reportsDir: opts.reportsDir ?? 'daily_reports' });
+  const adapter = new LearningCaptureFsAdapter({
+    capturesDir: opts.capturesDir ?? opts.reportsDir ?? resolve(process.cwd(), 'business_modules/resilience_scorer/data/captures'),
+  });
   const { records } = await adapter.loadCaptureRecords({ maxDays: opts.maxDays ?? 14 });
   if (!records.length) return [];
 

@@ -16,7 +16,7 @@ import { buildMdSourceIdFromPath, legacyDbSourceId } from '../source_archive/sou
 import { loadMarkdownArticlesFromFile } from '../source_archive/markdownArticles.js';
 import { archiveSocialFindings } from '../source_archive/archiveSocialFindings.js';
 import { archiveProbeRecords } from '../source_archive/archiveProbeRecords.js';
-import { loadProbeRecordsForDate } from '../../business_modules/resilience/index.js';
+import { loadProbeRecordsForDate } from '../../business_modules/resilience_scorer/index.js';
 import { getTodayInTimezone } from '../../utils/dateUtils.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
