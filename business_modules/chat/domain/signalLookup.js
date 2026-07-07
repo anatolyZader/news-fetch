@@ -14,7 +14,7 @@ import {
   resilienceReportsDir,
   listReportJsonFilenamesForDate,
   parseReportFilename,
-} from '../../resilience/index.js';
+} from '../../resilience_scorer/index.js';
 import {
   resolveMunicipalityName,
   signalMatchesMunicipality,

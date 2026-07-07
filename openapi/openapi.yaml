@@ -1132,12 +1132,12 @@ paths:
             schema: { $ref: "#/components/schemas/ChatRequest" }
       responses:
         "200":
-          description: SSE stream of ChatSseEvent lines (`data: <json>\\n\\n`)
+          description: "SSE stream of ChatSseEvent lines (`data: <json>\\n\\n`)"
           content:
             text/event-stream:
               schema:
                 type: string
-                description: Newline-delimited SSE payloads; each line is `data: ` followed by a ChatSseEvent JSON object.
+                description: "Newline-delimited SSE payloads; each line is `data: ` followed by a ChatSseEvent JSON object."
         "400":
           description: Invalid request
           content:
