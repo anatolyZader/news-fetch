@@ -61,7 +61,7 @@ export const COMPONENT_FACETS = {
     mood:                 ['fear_expression', 'calm_confidence'],
     coping_story:         ['resilience_narrative_positive', 'resilience_narrative_negative',
                            'post_event_recovery_indicator', 'future_orientation_hope', 'future_orientation_despair'],
-    competing_narratives: ['rumor_spread', 'rumor_correction', 'harm_to_population', 'cultural_continuity',
+    competing_narratives: ['rumor_spread', 'rumor_correction', 'cultural_continuity',
                            'hostile_influence_operation', 'deepfake_misinformation'],
     framing:              ['blame_narrative', 'heroism_overframing', 'historical_analogy_frame',
                            'moral_injury_narrative', 'institutional_abandonment_perception'],
