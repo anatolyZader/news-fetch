@@ -418,10 +418,10 @@ Per-component reference below is regenerated from code. Extended narrative, sign
 |---|---|
 | `mood` | `fear_expression`, `calm_confidence` |
 | `coping_story` | `resilience_narrative_positive`, `resilience_narrative_negative`, `post_event_recovery_indicator`, `future_orientation_hope`, `future_orientation_despair` |
-| `competing_narratives` | `rumor_spread`, `rumor_correction`, `harm_to_population`, `cultural_continuity`, `hostile_influence_operation`, `deepfake_misinformation` |
+| `competing_narratives` | `rumor_spread`, `rumor_correction`, `cultural_continuity`, `hostile_influence_operation`, `deepfake_misinformation` |
 | `framing` | `blame_narrative`, `heroism_overframing`, `historical_analogy_frame`, `moral_injury_narrative`, `institutional_abandonment_perception` |
 
-**All facet signal types for this component:** `blame_narrative`, `calm_confidence`, `cultural_continuity`, `deepfake_misinformation`, `fear_expression`, `future_orientation_despair`, `future_orientation_hope`, `harm_to_population`, `heroism_overframing`, `historical_analogy_frame`, `hostile_influence_operation`, `institutional_abandonment_perception`, `moral_injury_narrative`, `post_event_recovery_indicator`, `resilience_narrative_negative`, `resilience_narrative_positive`, `rumor_correction`, `rumor_spread`
+**All facet signal types for this component:** `blame_narrative`, `calm_confidence`, `cultural_continuity`, `deepfake_misinformation`, `fear_expression`, `future_orientation_despair`, `future_orientation_hope`, `heroism_overframing`, `historical_analogy_frame`, `hostile_influence_operation`, `institutional_abandonment_perception`, `moral_injury_narrative`, `post_event_recovery_indicator`, `resilience_narrative_negative`, `resilience_narrative_positive`, `rumor_correction`, `rumor_spread`
 
 ---
 
