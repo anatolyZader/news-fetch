@@ -3,11 +3,6 @@
  */
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import {
-  resilienceReportsDir,
-  resilienceCapturesDir,
-} from '../../../resilience_scorer/domain/services/artifactPaths.js';
-
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../../..');
 
 export function resolveRepoRoot(rootDir) {
@@ -22,6 +17,6 @@ export function assessmentEvalDir(rootDir) {
   return resolve(resolveRepoRoot(rootDir), 'business_modules/specialist_agents/data/eval');
 }
 
-// Single source of truth lives in resilience_scorer/domain/services/artifactPaths.js;
+// Single source of truth lives in resilience_scorer/index.js;
 // re-exported here so callers within this module don't need a cross-module import.
-export { resilienceReportsDir, resilienceCapturesDir };
+export { resilienceReportsDir, resilienceCapturesDir } from '../../../resilience_scorer/index.js';

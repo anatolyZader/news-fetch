@@ -8,7 +8,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { resilienceReportsDir, resolveReportJsonPathForDate } from '../index.js';
+import { resilienceReportsDir, resilienceAuditsDir, resolveReportJsonPathForDate } from '../index.js';
 
 const ROOT = resolve(fileURLToPath(new URL('../../../', import.meta.url)));
 

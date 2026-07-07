@@ -13,7 +13,7 @@ import {
   getCachedReport,
   redactReportPayload,
   DISPLAY_VIEWS,
-} from '../../resilience/index.js';
+} from '../../resilience_scorer/index.js';
 import { localizeReportTodayPayload } from '../app/localizeReportToday.js';
 import { warmDailyLocaleResources } from '../../../scripts/pretranslate-warm-resources.js';
 

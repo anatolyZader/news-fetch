@@ -2,9 +2,8 @@
  * Cached report fallback when deterministic assessment cannot run (empty scores).
  */
 import { readFileSync, existsSync, readdirSync } from 'node:fs';
-import { resolve } from 'node:path';
 
-import { resolveReportJsonPathForDate, resilienceReportsDir, parseReportFilename, reportScopeSlug } from '../../resilience/index.js';
+import { resolveReportJsonPathForDate, resilienceReportsDir, parseReportFilename, reportScopeSlug } from '../../resilience_scorer/index.js';
 import { isRegionalReportScope } from '../../../cross-cut-modules/geo/reportScopeIds.js';
 
 function defaultReportsDir(override) {

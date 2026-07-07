@@ -8,7 +8,7 @@ import { getMunicipalityDashboard } from '../../pbo_report_muni/index.js';
 import {
   deriveInstrumentState,
   operatorAssessmentSummary,
-} from '../../resilience/index.js';
+} from '../../resilience_scorer/index.js';
 import {
   COMPONENT_LABELS,
   POOL_COLORS,

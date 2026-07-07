@@ -1,6 +1,6 @@
 import { resolve } from 'node:path';
 import { existsSync } from 'node:fs';
-import { loadMdFiles } from '../../resilience/index.js';
+import { loadMdFiles } from '../../resilience_scorer/index.js';
 import {
   createCostTracker,
   appendCostLog,

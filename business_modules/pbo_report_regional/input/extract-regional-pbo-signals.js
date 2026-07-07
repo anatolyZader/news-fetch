@@ -15,7 +15,7 @@ import { basename, dirname, extname, resolve } from 'node:path';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
-import { getDefaultResilienceLlmPort, runArticleDualPathExtract, applyFieldReportSignalHygiene } from '../../resilience/index.js';
+import { getDefaultResilienceLlmPort, runArticleDualPathExtract, applyFieldReportSignalHygiene } from '../../resilience_scorer/index.js';
 import { createCostTracker, appendCostLog, checkDailyBudget } from '../../../cross-cut-modules/budget/index.js';
 import { attributeSignalScope } from '../../../cross-cut-modules/geo/attributeSignalScope.js';
 import { createSourceArchive } from '../../../db/source_archive/createSourceArchive.js';

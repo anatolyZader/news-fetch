@@ -10,7 +10,7 @@ import {
   createEmptyAssessmentV2,
   validateAssessmentV2,
 } from '../../../cross-cut-modules/resilience-contracts/assessmentV2.js';
-import { buildAttentionItems } from '../../resilience/index.js';
+import { buildAttentionItems } from '../../resilience_scorer/index.js';
 import { buildFallbackAssessment } from './componentSpecialistAgent.js';
 import { defaultPlan } from './plannerAgent.js';
 import { defaultSynthesis } from './synthesizerAgent.js';

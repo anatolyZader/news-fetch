@@ -12,7 +12,7 @@ import {
   findMunicipalityInDay,
   resolveMunicipalityName,
 } from './municipalityResolve.js';
-import { deriveInstrumentState } from '../../resilience/index.js';
+import { deriveInstrumentState } from '../../resilience_scorer/index.js';
 import { formatAnalysisDateTime } from '../../../utils/dateUtils.js';
 
 const NARRATIVE_MAX = 300;

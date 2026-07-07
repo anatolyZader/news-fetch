@@ -2,13 +2,17 @@
  * Compact resilience report basenames: {scope}-{days}-{DDMMYY}-{HHmm}
  * e.g. north-3-230526-1545  → north scope, 3-day window ending 2026-05-23, run at 15:45 UTC
  */
-import { existsSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
+import { resolveStateStore } from '../../../../cross-cut-modules/persistence/domain/resolveStateStore.js';
 import {
   normalizeReportScopeId,
   isRegionalReportScope,
   reportFilePrefix,
 } from '../../../../cross-cut-modules/geo/reportScopeIds.js';
+
+function getStore(deps = {}) {
+  return resolveStateStore(deps);
+}
 
 /** @type {RegExp} */
 export const COMPACT_REPORT_BASENAME_RE = /^([a-z]+)-(\d{1,2})-(\d{6})-(\d{4})$/;
@@ -216,32 +220,34 @@ export function resolveSpecificReportJsonPath(reportsDir, date, scopeId, runId) 
   const ddmmyy = ddMmYyFromIsoDate(date);
   const scope = reportScopeSlug(scopeId);
 
+  const store = getStore();
   const compactExact = join(reportsDir, `${scope}-1-${ddmmyy}-${runId}.json`);
-  if (existsSync(compactExact)) return compactExact;
+  if (store.existsSync(compactExact)) return compactExact;
 
   let names;
   try {
-    names = readdirSync(reportsDir);
+    names = store.readdirSync(reportsDir);
   } catch {
     names = [];
   }
 
+  const escapedRunId = runId.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const compactRe = new RegExp(
-    String.raw`^${scope}-\d{1,2}-${ddmmyy}-${runId.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`)}\.json$`,
+    String.raw`^${scope}-\d{1,2}-${ddmmyy}-${escapedRunId}\.json$`,
   );
   const compactHit = names.find((f) => compactRe.test(f));
   if (compactHit) return join(reportsDir, compactHit);
 
   const legacyPrefix = reportFilePrefix(scope);
   const legacy = join(reportsDir, `${legacyPrefix}-data-${date}-run-${runId}.json`);
-  if (existsSync(legacy)) return legacy;
+  if (store.existsSync(legacy)) return legacy;
 
   const legacySimple = join(reportsDir, `${legacyPrefix}-${date}-${runId}.json`);
-  if (existsSync(legacySimple)) return legacySimple;
+  if (store.existsSync(legacySimple)) return legacySimple;
 
   if (scope === 'national') {
     const nationalExact = join(reportsDir, `resilience-report-${date}.json`);
-    if (existsSync(nationalExact)) return nationalExact;
+    if (store.existsSync(nationalExact)) return nationalExact;
   }
 
   return null;
@@ -256,7 +262,7 @@ export function resolveSpecificReportJsonPath(reportsDir, date, scopeId, runId) 
 export function listReportJsonFilenamesForDate(reportsDir, date, scopeId) {
   let names;
   try {
-    names = readdirSync(reportsDir);
+    names = getStore().readdirSync(reportsDir);
   } catch {
     return [];
   }

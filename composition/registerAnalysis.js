@@ -1,4 +1,3 @@
-import { resolve } from 'node:path';
 import { createReportReadPort, resilienceReportsDir } from '../business_modules/resilience_scorer/index.js';
 import {
   createValidationReviewSqliteStore,

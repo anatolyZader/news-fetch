@@ -15,7 +15,7 @@ import {
   SYNTHESIZER_TOOLS,
   ASSESSMENT_SYNTHESIZER_PROFILE,
 } from '../../../cross-cut-modules/agent/profiles/assessment.profile.js';
-import { buildAttentionItems } from '../../resilience/index.js';
+import { buildAttentionItems } from '../../resilience_scorer/index.js';
 import { needsLlmSynthesis } from '../domain/services/synthesisPolicy.js';
 import { componentLabel, shouldUseSingleChannelNarrative } from '../domain/services/narrativeTemplates.js';
 

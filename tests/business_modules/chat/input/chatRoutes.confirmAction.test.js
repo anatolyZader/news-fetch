@@ -10,7 +10,7 @@ import { createChatStore } from '../../../../business_modules/chat/infrastructur
 import { createChatPendingActionStore } from '../../../../business_modules/chat/infrastructure/chatPendingActionStore.js';
 
 const REPO_ROOT = resolve(import.meta.dirname, '../../../..');
-const TEST_REPORTS_DIR = join(REPO_ROOT, 'business_modules/resilience_scorer/data/reports');
+const TEST_REPORTS_DIR = join(REPO_ROOT, 'business_modules/resilience_scorer/data/daily_reports');
 const OPERATOR_REPORT_DATE = '2099-06-13';
 const OPERATOR_REPORT_PATH = join(
   TEST_REPORTS_DIR,

@@ -11,6 +11,7 @@ import {
 import { buildEvidenceGraph } from './evidenceGraph.js';
 import { applyRetrievalPolicies } from './retrievalPolicies.js';
 import { isResilienceReportFilename } from '../../business_modules/resilience_scorer/index.js';
+import { compressToolsEnabled } from '../agent/index.js';
 import {
   compressRetrieveResult,
   compressCrossSourceCompare,
@@ -82,7 +83,7 @@ function formatToolResult(name, raw, ctx) {
  */
 export function createMultiHopRetrieval(deps) {
   const retrieval = deps.retrieval;
-  const reportsDir = deps.reportsDir ?? resolve(process.cwd(), 'business_modules/resilience_scorer/data/reports');
+  const reportsDir = deps.reportsDir ?? resolve(process.cwd(), 'business_modules/resilience_scorer/data/daily_reports');
 
   async function hybrid(query, filters = {}) {
     if (!retrieval?.hybridRetrieve) return [];

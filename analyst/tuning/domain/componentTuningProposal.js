@@ -148,7 +148,7 @@ function buildProposalsFromRows(rowsByComponent) {
  * @returns {null | { status: string, report_count: number, skipped_reason?: string, components: object }}
  */
 export function proposeComponentTuningFromReportFiles(reportsDir, opts = {}) {
-  const dir = reportsDir ? resolve(reportsDir) : resolve(process.cwd(), 'business_modules/resilience_scorer/data/reports');
+  const dir = reportsDir ? resolve(reportsDir) : resolve(process.cwd(), 'business_modules/resilience_scorer/data/daily_reports');
   const minReports = opts.minReports ?? 10;
   const files = loadNationalReportFiles(dir);
 

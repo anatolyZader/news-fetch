@@ -40,7 +40,7 @@ import {
   applyFieldReportSignalHygiene,
   isOpenExtractParallelEnabled,
   pipelineOpenObservationsPath,
-} from '../../resilience/index.js';
+} from '../../resilience_scorer/index.js';
 import { createCostTracker, appendCostLog, checkDailyBudget } from '../../../cross-cut-modules/budget/index.js';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');

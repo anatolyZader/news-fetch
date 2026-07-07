@@ -10,7 +10,7 @@ import {
   DISPLAY_VIEWS,
   normalizeReportScope,
   buildAttentionItems,
-} from '../../resilience/index.js';
+} from '../../resilience_scorer/index.js';
 import { formatSimilarArticlesForChat } from '../../../analyst/validation/app/validationToolExecutor.js';
 import { searchSources, getSource, listSources } from '../domain/sourceArchiveQuery.js';
 import { pboReviewRagEnabled } from '../../../cross-cut-modules/retrieval/ragConfig.js';

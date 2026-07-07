@@ -12,7 +12,7 @@ import {
   runAssessmentAgent,
   runDeterministicAssessment,
   loadCachedAssessmentFallback,
-} from '../../resilience_assessment/index.js';
+} from '../../specialist_agents/index.js';
 import {
   computeDivergence,
   writeShadowArtifacts,

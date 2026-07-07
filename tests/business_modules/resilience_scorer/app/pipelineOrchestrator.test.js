@@ -66,7 +66,7 @@ describe('assertAssessOnlySafe', () => {
 
   before(() => {
     rootDir = mkdtempSync(join(tmpdir(), 'pipeline-guard-'));
-    reportsDir = join(rootDir, 'business_modules/resilience_scorer/data/reports');
+    reportsDir = join(rootDir, 'business_modules/resilience_scorer/data/daily_reports');
     mkdirSync(reportsDir, { recursive: true });
   });
 
@@ -91,7 +91,7 @@ describe('assertAssessOnlySafe', () => {
 
   it('allows replay assess-only when only degraded report exists', () => {
     const degradedDir = mkdtempSync(join(tmpdir(), 'pipeline-guard-degraded-'));
-    const degradedReports = join(degradedDir, 'business_modules/resilience_scorer/data/reports');
+    const degradedReports = join(degradedDir, 'business_modules/resilience_scorer/data/daily_reports');
     mkdirSync(degradedReports, { recursive: true });
     try {
       writeFileSync(

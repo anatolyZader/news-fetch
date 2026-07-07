@@ -1,8 +1,5 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
-  "env": {
-    "MAX_THINKING_TOKENS": "10000"
-  },
   "permissions": {
     "allow": [
       "Bash(npm test *)",
@@ -69,18 +66,6 @@
           }
         ]
       }
-    ],
-    "PermissionRequest": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/allow-pipeline-bash.sh\"",
-            "timeout": 5
-          }
-        ]
-      }
     ]
   },
   "statusLine": {
@@ -93,7 +78,12 @@
     "filesystem": {
       "allowWrite": [
         "./logs",
-        "/home/eventstorm1/news/logs"
+        "/home/eventstorm1/news/logs",
+        "/home/eventstorm1/news/business_modules",
+        "/home/eventstorm1/news/db",
+        "/home/eventstorm1/news/analyst",
+        "/home/eventstorm1/news/client/dist",
+        "/home/eventstorm1/news/node_modules"
       ]
     }
   }

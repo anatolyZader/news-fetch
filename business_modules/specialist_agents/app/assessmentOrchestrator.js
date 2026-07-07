@@ -26,7 +26,7 @@ import { buildPlannerContext } from '../../../cross-cut-modules/retrieval/planne
 import { computeArchiveMentionMass } from '../../../cross-cut-modules/retrieval/archiveEpistemicHints.js';
 import { loadOpenObservationsForAgent, groupObservationsByComponent } from '../../../cross-cut-modules/retrieval/residualObservations.js';
 import { enrichProfileForInvestigation } from '../domain/services/investigationEpistemic.js';
-import { applyInvestigationSignalFlags, buildNorthClusterNarrativesFromSignals } from '../../resilience/index.js';
+import { applyInvestigationSignalFlags, buildNorthClusterNarrativesFromSignals } from '../../resilience_scorer/index.js';
 import {
   ASSESSMENT_SCHEMA_VERSION,
   createEmptyAssessmentV2,
@@ -43,7 +43,7 @@ import { selectSpecialistComponents } from '../domain/services/componentSelectio
 import { resolveSpecialistTier } from '../domain/services/specialistTier.js';
 import { detectCrossComponentContradictions } from '../domain/services/crossComponentConsistency.js';
 import { needsReplan, buildReplanContext, affectedComponentsForReplan } from '../domain/services/replanPolicy.js';
-import { evaluateInvestigationBurst } from '../../resilience/index.js';
+import { evaluateInvestigationBurst } from '../../resilience_scorer/index.js';
 import { resilienceCapturesDir, resilienceReportsDir } from '../domain/services/artifactPaths.js';
 
 async function loadInvestigationContext(params, reportDate) {

@@ -36,7 +36,7 @@ Profile computation (`epistemicProfileBuilder.js`, `computeEpistemicProfile`):
 `evidenceCaps.js` (`applySourceCap`) prevents any one channel or outlet from dominating:
 
 - No single `source_type` may contribute more than **50%** of polarity mass on either arm.
-- No single `article_source` (outlet) may contribute more than **35%**.
+- No single `article_source` (outlet) may contribute more than **42%**.
 - Some source types are exempt (`CAP_EXEMPT_SOURCE_TYPES`).
 
 This means twenty echoes of the same news outlet cannot manufacture certainty; multi-channel agreement is what moves the needle.
@@ -116,7 +116,7 @@ A district officer producing twice-daily situation reports is better served by *
 |---------|------|
 | Mass per signal | `business_modules/resilience_scorer/domain/epistemic/massContribution.js` |
 | Component polarity items | `business_modules/resilience_scorer/domain/epistemic/componentItems.js` |
-| Source caps (50% / 35%) | `business_modules/resilience_scorer/domain/epistemic/evidenceCaps.js` |
+| Source caps (50% / 42%) | `business_modules/resilience_scorer/domain/epistemic/evidenceCaps.js` |
 | Certainty tuning | `business_modules/resilience_scorer/domain/epistemic/certaintyTuning.js` |
 | Epistemic profile | `business_modules/resilience_scorer/domain/epistemic/epistemicProfileBuilder.js` |
 | Investigation abstention | `business_modules/specialist_agents/domain/services/investigationEpistemic.js` |

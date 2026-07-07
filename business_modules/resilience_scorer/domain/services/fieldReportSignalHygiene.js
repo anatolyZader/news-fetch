@@ -1,13 +1,9 @@
 /**
  * Post-extract cleanup for PBO / field-report signals.
  */
-import {
-  rewriteMisclassifiedSignalType,
-  resolveSignalTypeAlias,
-  FIELD_REPORT_SIGNAL_TYPE_ALIASES,
-} from './signalTypeHygiene.js';
+import { rewriteMisclassifiedSignalType } from './signalTypeHygiene.js';
 
-export { FIELD_REPORT_SIGNAL_TYPE_ALIASES, resolveSignalTypeAlias };
+export { FIELD_REPORT_SIGNAL_TYPE_ALIASES, resolveSignalTypeAlias } from './signalTypeHygiene.js';
 
 const TRIVIAL_EVIDENCE_RE = /^(אין|ללא שינוי|אותו דבר|אותו הדבר|none|n\/a|—|-|\.)$/i;
 
@@ -44,9 +40,9 @@ export function rewriteMisclassifiedFieldReportType(signalType, evidence) {
  */
 export function stripFieldReportScoreBlob(evidence) {
   let out = String(evidence ?? '');
-  out = out.replace(AVG_SCORE_BLOB_RE, '');
-  out = out.replace(/\bavg=\d+%(?:\s*\([^)]*\))?/gi, '');
-  return out.replace(/\s+/g, ' ').trim();
+  out = out.replaceAll(AVG_SCORE_BLOB_RE, '');
+  out = out.replaceAll(/\bavg=\d+%(?:\s*\([^)]*\))?/gi, '');
+  return out.replaceAll(/\s+/g, ' ').trim();
 }
 
 /**

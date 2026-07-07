@@ -10,7 +10,7 @@ import {
   operatorAssessmentSummary,
   buildAttentionItems,
   operatorEpistemicOverlayEnabled,
-} from '../../resilience/index.js';
+} from '../../resilience_scorer/index.js';
 import { formatPoolSummaryForChat } from './componentEvidenceBundle.js';
 
 const MAX_ATTENTION_SUMMARY = 8;

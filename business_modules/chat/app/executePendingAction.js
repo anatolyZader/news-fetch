@@ -4,7 +4,7 @@
 import { canViewAnalystDisplay } from '../../../cross-cut-modules/auth/userAccess.js';
 import { PROPOSE_TOOL_NAMES, OPERATOR_PROPOSE_TOOL_NAMES } from '../domain/chatConfig.js';
 import { normalizeReportScope } from '../../../cross-cut-modules/resilience-contracts/index.js';
-import { updateOperatorRecommendationStatus } from '../../resilience/index.js';
+import { updateOperatorRecommendationStatus } from '../../resilience_scorer/index.js';
 import { getTodayInTimezone } from '../../../utils/dateUtils.js';
 
 const VALIDATION_ACTIONS = new Set([

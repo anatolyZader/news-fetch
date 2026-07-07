@@ -1,6 +1,5 @@
 import { readdirSync, readFileSync, writeFileSync, statSync, existsSync } from 'node:fs';
-import { resolve, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { resolve } from 'node:path';
 
 import { buildMarkdown, buildSignalAppendix } from '../infrastructure/reportWriter.js';
 import { resilienceReportsDir } from '../domain/services/artifactPaths.js';

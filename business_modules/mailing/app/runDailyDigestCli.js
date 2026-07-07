@@ -23,7 +23,7 @@ import { fileURLToPath } from 'node:url';
 import { createMailingPreferencesStore } from '../infrastructure/mailingPreferencesStore.js';
 import { createMailingResendAdapter } from '../infrastructure/adapters/mailingResendAdapter.js';
 import { createMailingService } from '../app/mailingService.js';
-import { createReportReadPort } from '../../resilience/index.js';
+import { createReportReadPort } from '../../resilience_scorer/index.js';
 import { createEvidenceStore } from '../../../db/persistence/evidenceStore.js';
 import { getTranslatedReport } from '../../translation/index.js';
 
