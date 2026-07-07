@@ -272,6 +272,37 @@ export function getAvailableReportDates(opts = {}) {
 }
 
 /**
+ * Parse a single reports-dir filename into a candidate edition record, or null if it
+ * should be skipped (brief artifact, wrong extension, unparsable, wrong scope, unreadable).
+ * @param {string} f
+ * @param {{ nameSet: Set<string>, scope: string, dir: string }} ctx
+ */
+function reportEditionCandidateFromFilename(f, { nameSet, scope, dir }) {
+  if (f.endsWith('-brief.md') || f.endsWith('-brief.json')) return null;
+  if (!f.endsWith('.json') && !f.endsWith('.md')) return null;
+  if (f.endsWith('.md') && nameSet.has(f.replace(/\.md$/i, '.json'))) return null;
+  const parsed = parseReportFilename(f);
+  if (!parsed) return null;
+  if (reportScopeSlug(parsed.scopeId) !== scope) return null;
+  if (scope === 'national' && parsed.scopeId !== 'national') return null;
+
+  const jsonPath = join(dir, f);
+  let mtime;
+  try {
+    mtime = statSync(jsonPath).mtimeMs;
+  } catch {
+    return null;
+  }
+  return {
+    date: parsed.reportDate,
+    run_id: parsed.runId,
+    jsonPath,
+    meta: readReportMeta(jsonPath),
+    mtime,
+  };
+}
+
+/**
  * Return rich edition metadata for each date that has a report for the given scope.
  * @param {{ scope?: 'national'|'north', reportsDir?: string }} [opts]
  */
@@ -290,33 +321,9 @@ export function getAvailableReportEditions(opts = {}) {
   }
 
   const nameSet = new Set(names);
-  const candidates = [];
-
-  for (const f of names) {
-    if (f.endsWith('-brief.md') || f.endsWith('-brief.json')) continue;
-    if (!f.endsWith('.json') && !f.endsWith('.md')) continue;
-    if (f.endsWith('.md') && nameSet.has(f.replace(/\.md$/i, '.json'))) continue;
-    const parsed = parseReportFilename(f);
-    if (!parsed) continue;
-    if (reportScopeSlug(parsed.scopeId) !== scope) continue;
-    if (scope === 'national' && parsed.scopeId !== 'national') continue;
-    const date = parsed.reportDate;
-    const run_id = parsed.runId;
-    const jsonPath = join(dir, f);
-    let mtime;
-    try {
-      mtime = statSync(jsonPath).mtimeMs;
-    } catch {
-      continue;
-    }
-    candidates.push({
-      date,
-      run_id,
-      jsonPath,
-      meta: readReportMeta(jsonPath),
-      mtime,
-    });
-  }
+  const candidates = names
+    .map((f) => reportEditionCandidateFromFilename(f, { nameSet, scope, dir }))
+    .filter(Boolean);
 
   candidates.sort((a, b) => {
     const dateCmp = b.date.localeCompare(a.date);

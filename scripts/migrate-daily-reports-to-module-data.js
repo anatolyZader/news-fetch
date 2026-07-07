@@ -59,7 +59,8 @@ function main() {
     if (APPLY) {
       renameSync(src, dest);
     }
-    console.log(`${APPLY ? 'MOVED' : 'WOULD MOVE'}: ${name} → ${targetDir.replace(`${REPO_ROOT}/`, '')}`);
+    const relativeTargetDir = targetDir.replace(`${REPO_ROOT}/`, '');
+    console.log(`${APPLY ? 'MOVED' : 'WOULD MOVE'}: ${name} → ${relativeTargetDir}`);
     moved += 1;
   }
 

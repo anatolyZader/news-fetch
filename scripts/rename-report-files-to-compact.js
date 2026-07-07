@@ -136,6 +136,8 @@ function collectGroups() {
   return groups;
 }
 
+const EXT_BY_KIND = { brief: '-brief.md', json: '.json' };
+
 function planRenames(groups) {
   /** @type {Array<{ from: string, to: string }>} */
   const moves = [];
@@ -154,7 +156,7 @@ function planRenames(groups) {
     usedTargets.add(compact);
 
     for (const [kind, from] of group.files.entries()) {
-      const ext = kind === 'brief' ? '-brief.md' : kind === 'json' ? '.json' : '.md';
+      const ext = EXT_BY_KIND[kind] ?? '.md';
       const to = `${compact}${ext}`;
       if (from === to) continue;
       moves.push({ from, to });

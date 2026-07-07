@@ -59,6 +59,44 @@ function auditToolRound(roundMeta, auditLogPath) {
   }
 }
 
+function notifyToolStart(onToolStart, toolUseBlocks, round, maxRounds) {
+  if (!onToolStart) return;
+  const displayRound = round + 1;
+  for (const tu of toolUseBlocks) {
+    onToolStart({ name: tu.name, round: displayRound, maxRounds });
+  }
+}
+
+async function performModelRound(opts, currentMessages, round) {
+  const { client, model, tools, maxTokens = 4000, temperature = 0, agentKind = 'unknown', onUsage } = opts;
+  const prepared = prepareAnthropicRequest({
+    model,
+    max_tokens: maxTokens,
+    temperature,
+    system: opts.system,
+    messages: currentMessages,
+    tools,
+    agentKind,
+    callContext: opts.callContext,
+  }, { feature: resolvePromptCacheFeature({ ...opts, agentKind }) });
+
+  const response = await client.messages.create(stripAnthropicInternalParams(prepared));
+  const stopReason = response.stop_reason ?? null;
+  const usage = response.usage ?? null;
+
+  if (onUsage && usage) {
+    onUsage({
+      label: `${agentKind}:round-${round}`,
+      model,
+      usage,
+      stopReason,
+      promptCacheApplied: prepared.callContext?.promptCacheApplied === true,
+    });
+  }
+
+  return { response, stopReason, usage };
+}
+
 function applyCompactHistoryMessages({
   initialUserMessage,
   responseContent,
@@ -101,18 +139,12 @@ function applyCompactHistoryMessages({
  */
 export async function runToolLoop(opts) {
   const {
-    client,
     model,
-    system,
-    tools,
     maxRounds = 5,
-    maxTokens = 4000,
-    temperature = 0,
     executeTool,
     onTextBlock,
     onToolStart,
     onToolRound,
-    onUsage,
     agentKind = 'unknown',
     auditLogPath,
     compactHistoryAfterRound = false,
@@ -138,31 +170,9 @@ export async function runToolLoop(opts) {
 
   for (let round = 0; round <= maxRounds; round++) {
     throwIfAborted();
-    const prepared = prepareAnthropicRequest({
-      model,
-      max_tokens: maxTokens,
-      temperature,
-      system,
-      messages: currentMessages,
-      tools,
-      agentKind,
-      callContext: opts.callContext,
-    }, { feature: resolvePromptCacheFeature({ ...opts, agentKind }) });
-
-    const response = await client.messages.create(stripAnthropicInternalParams(prepared));
-
-    stopReason = response.stop_reason ?? null;
-    lastUsage = response.usage ?? null;
-
-    if (onUsage && lastUsage) {
-      onUsage({
-        label: `${agentKind}:round-${round}`,
-        model,
-        usage: lastUsage,
-        stopReason,
-        promptCacheApplied: prepared.callContext?.promptCacheApplied === true,
-      });
-    }
+    const { response, stopReason: roundStopReason, usage } = await performModelRound(opts, currentMessages, round);
+    stopReason = roundStopReason;
+    lastUsage = usage;
 
     const textBlocks = response.content.filter((b) => b.type === 'text');
     const toolUseBlocks = response.content.filter((b) => b.type === 'tool_use');
@@ -175,12 +185,7 @@ export async function runToolLoop(opts) {
       break;
     }
 
-    if (onToolStart) {
-      const displayRound = round + 1;
-      for (const tu of toolUseBlocks) {
-        onToolStart({ name: tu.name, round: displayRound, maxRounds });
-      }
-    }
+    notifyToolStart(onToolStart, toolUseBlocks, round, maxRounds);
 
     const { toolMeta, toolResults } = await executeToolRound(toolUseBlocks, executeTool);
 

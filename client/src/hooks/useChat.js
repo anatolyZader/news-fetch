@@ -37,6 +37,18 @@ async function consumeChatSseStream(response, onEvent) {
   return { terminal: null, event: null };
 }
 
+function upsertPendingAction(prev, sideEffect) {
+  return [
+    ...prev.filter((a) => a.actionId !== sideEffect.actionId),
+    {
+      actionId: sideEffect.actionId,
+      toolName: sideEffect.toolName,
+      summary: sideEffect.summary,
+      expiresAt: sideEffect.expiresAt,
+    },
+  ];
+}
+
 export function useChat() {
   const { getIdToken, getAppCheckToken } = useAuth();
   const [sessions, setSessions] = useState([]);
@@ -159,10 +171,7 @@ export function useChat() {
   }, [activeSessionId, loadMessages]);
 
   useEffect(() => {
-    if (!streaming || !streamState.startedAt) {
-      setElapsedSec(0);
-      return undefined;
-    }
+    if (!streaming || !streamState.startedAt) return undefined;
     const tick = () => {
       setElapsedSec(Math.max(0, Math.floor((Date.now() - streamState.startedAt) / 1000)));
     };
@@ -277,15 +286,7 @@ export function useChat() {
           setDraft(accRef.value);
         }
         if (sideEffect?.type === 'action_proposed') {
-          setPendingActions((prev) => [
-            ...prev.filter((a) => a.actionId !== sideEffect.actionId),
-            {
-              actionId: sideEffect.actionId,
-              toolName: sideEffect.toolName,
-              summary: sideEffect.summary,
-              expiresAt: sideEffect.expiresAt,
-            },
-          ]);
+          setPendingActions((prev) => upsertPendingAction(prev, sideEffect));
         }
         return terminal;
       });
@@ -379,7 +380,7 @@ export function useChat() {
     streaming,
     draft,
     streamState,
-    elapsedSec,
+    elapsedSec: streaming ? elapsedSec : 0,
     pendingActions,
     confirmAction,
     send,
