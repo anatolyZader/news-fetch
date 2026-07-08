@@ -45,11 +45,8 @@ export async function enqueueVerifiedOpenForCatalog(verifiedClaims, openObservat
     try {
       const repoRoot = opts.repoRoot ?? process.cwd();
       const sqlitePath = process.env.SQLITE_PATH?.trim() || resolve(repoRoot, 'db', 'app.sqlite');
-      const { createCatalogProposalService } = await import(
-        '../../../signal_catalog_evolution/app/catalogProposalService.js'
-      );
-      const { createCatalogProposalSqliteStore } = await import(
-        '../../../signal_catalog_evolution/infrastructure/adapters/catalogProposalSqliteStore.js'
+      const { createCatalogProposalService, createCatalogProposalSqliteStore } = await import(
+        '../../../signal_catalog_evolution/index.js'
       );
       const proposalService = createCatalogProposalService({
         proposalStore: createCatalogProposalSqliteStore(sqlitePath),
