@@ -8,7 +8,7 @@
  * Usage:
  *   node business_modules/pool/input/extract-naftali-signals.js
  *
- * Output: business_modules/signals_extraction/data/signals/signals-naftali-{date}.json per week (uses week end-date)
+ * Output: business_modules/resilience_scorer/data/signals/signals-naftali-{date}.json per week (uses week end-date)
  */
 
 import { resolve, dirname } from 'node:path';
@@ -21,7 +21,7 @@ import {
   archiveNaftaliWeek,
   stampNaftaliSignalSourceIds,
 } from '../../../db/source_archive/archiveNaftaliWeek.js';
-import { defaultClosedSignalsDir } from '../../signals_extraction/index.js';
+import { closedSignalsDir } from '../../../cross-cut-modules/resilience-contracts/index.js';
 import { naftaliWeekToExtractUnits } from '../app/naftaliDashboardToExtractUnits.js';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
@@ -194,7 +194,7 @@ async function writeWeekBundle(week, outDir) {
   try {
     const units = naftaliWeekToExtractUnits(week);
     if (units.length > 0) {
-      const { runPipelineOpenExtract } = await import('../../signals_extraction/index.js');
+      const { runPipelineOpenExtract } = await import('../../open_observation_extraction/index.js');
       await runPipelineOpenExtract({
         articles: units,
         sourceType: 'naftali',
@@ -212,7 +212,7 @@ async function writeWeekBundle(week, outDir) {
 
 async function run() {
   const data = getNaftaliDashboardSync();
-  const outDir = defaultClosedSignalsDir();
+  const outDir = closedSignalsDir();
   mkdirSync(outDir, { recursive: true });
 
   let filesWritten = 0;

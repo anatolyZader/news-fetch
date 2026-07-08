@@ -1,7 +1,7 @@
 /**
  * Map PBO municipality dashboard day data to extract units (verbal text only).
  */
-import { normalizeExtractUnits } from '../../signals_extraction/index.js';
+import { normalizeExtractUnits } from '../../open_observation_extraction/index.js';
 
 /**
  * @param {object} muni

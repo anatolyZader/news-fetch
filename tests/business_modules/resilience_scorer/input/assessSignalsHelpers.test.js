@@ -13,7 +13,7 @@ import {
   parseSignalBundleFilename,
   discoverSignalBundles,
   loadAssessSignalFiles,
-} from '../../../../business_modules/resilience_scorer/app/signals/assessSignalsHelpers.js';
+} from '../../../../business_modules/resilience_scorer/app/assessment/assessSignalsHelpers.js';
 import { loadHistoricalScores } from '../../../../business_modules/resilience_scorer/infrastructure/reportHistoryReader.js';
 
 describe('crossSourceDedup', () => {
@@ -336,7 +336,7 @@ describe('discoverSignalBundles field history', () => {
   it('loads all field bundles on or before target date, not only the assess window', () => {
     const root = mkdtempSync(join(tmpdir(), 'field-hist-'));
     try {
-      const signalsDir = join(root, 'business_modules/signals_extraction/data/signals');
+      const signalsDir = join(root, 'business_modules/resilience_scorer/data/signals');
       const fieldSignalsDir = join(root, 'business_modules/visits/data/signals');
       const socialSignalsDir = join(root, 'business_modules/social_media/data');
       mkdirSync(signalsDir, { recursive: true });

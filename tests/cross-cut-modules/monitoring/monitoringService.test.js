@@ -16,7 +16,7 @@ describe('monitoringService', () => {
   beforeEach(() => {
     rootDir = join(tmpdir(), `monitoring-${Date.now()}-${Math.random().toString(36).slice(2)}`);
     process.env.COST_LOG_PATH = join(rootDir, 'cost-log.jsonl');
-    mkdirSync(join(rootDir, 'business_modules/signals_extraction/data/signals'), { recursive: true });
+    mkdirSync(join(rootDir, 'business_modules/resilience_scorer/data/signals'), { recursive: true });
     mkdirSync(join(rootDir, 'business_modules/resilience_scorer/data/daily_reports'), { recursive: true });
     mkdirSync(join(rootDir, 'db'), { recursive: true });
     mkdirSync(join(rootDir, 'business_modules/news-sites/articles_extracted'), { recursive: true });
@@ -25,7 +25,7 @@ describe('monitoringService', () => {
       sources: { news: { enabled: true } },
     }));
     writeFileSync(join(rootDir, 'db/app.sqlite'), '');
-    writeFileSync(join(rootDir, 'business_modules/signals_extraction/data/signals/signals-news-2026-05-27.json'), JSON.stringify({
+    writeFileSync(join(rootDir, 'business_modules/resilience_scorer/data/signals/signals-news-2026-05-27.json'), JSON.stringify({
       date: '2026-05-27',
       total_articles: 5,
       signals: [],

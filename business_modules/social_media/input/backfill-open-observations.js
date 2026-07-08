@@ -11,7 +11,7 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { socialFindingsToExtractUnits } from '../index.js';
-import { runPipelineOpenExtract } from '../../signals_extraction/index.js';
+import { runPipelineOpenExtract } from '../../open_observation_extraction/index.js';
 import { createCostTracker } from '../../../cross-cut-modules/budget/index.js';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');

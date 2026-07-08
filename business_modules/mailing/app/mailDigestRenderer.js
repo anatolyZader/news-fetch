@@ -3,7 +3,7 @@
  */
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { defaultClosedSignalsDir } from '../../signals_extraction/index.js';
+import { closedSignalsDir } from '../../../cross-cut-modules/resilience-contracts/index.js';
 import { getMunicipalityDashboard } from '../../pbo_report_muni/index.js';
 import {
   deriveInstrumentState,
@@ -236,7 +236,7 @@ function countArticlesInSourceFile(fileName) {
 }
 
 function signalTotalsByDate(sourceType, sourceFiles) {
-  const signalsDir = defaultClosedSignalsDir();
+  const signalsDir = closedSignalsDir();
   const wantedFiles = new Set(sourceFiles.map(String));
   const totals = new Map();
   if (!existsSync(signalsDir) || wantedFiles.size === 0) return totals;

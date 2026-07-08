@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { crossSourceDedupSemantic } from '../../../../business_modules/resilience_scorer/app/signals/assessSignalsHelpers.js';
+import { crossSourceDedupSemantic } from '../../../../business_modules/resilience_scorer/app/assessment/assessSignalsHelpers.js';
 
 function fakeEmbedding(text) {
   const v = new Array(8).fill(0);

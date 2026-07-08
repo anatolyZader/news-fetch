@@ -1,12 +1,12 @@
 /**
- * Load signals_extraction observation bundles and map to closed signal bundles for assess.
+ * Load open_observation_extraction observation bundles and map to closed signal bundles for assess.
  */
 import { ISignalBundlePort } from '../../domain/ports/ISignalBundlePort.js';
 import {
   buildTargetDates,
   dateOffset,
   temporalWeightForOffset,
-} from '../../app/signals/assessSignalsHelpers.js';
+} from '../../app/assessment/assessSignalsHelpers.js';
 import { mapObservationsToSignals } from '../../domain/services/signals/catalogMappingService.js';
 
 /**

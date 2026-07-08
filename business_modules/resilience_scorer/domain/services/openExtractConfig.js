@@ -2,8 +2,8 @@
  * Feature flags for parallel open-vocabulary extraction and agent feeding.
  * "Parallel" = closed catalogue + open pipeline run concurrently on extract-signals (not sequential).
  */
-export { isOpenPipelineExtractEnabled } from '../../../signals_extraction/index.js';
-import { isOpenPipelineExtractEnabled } from '../../../signals_extraction/index.js';
+export { isOpenPipelineExtractEnabled } from '../../../open_observation_extraction/index.js';
+import { isOpenPipelineExtractEnabled } from '../../../open_observation_extraction/index.js';
 
 function envFlagOn(env, name) {
   const v = env[name];
@@ -15,6 +15,11 @@ function envFlagOff(env, name) {
   return v === '0' || v === 'false' || v === 'off';
 }
 
+/**
+ * STAGE-1 extraction-vocabulary axis: when true, closed-catalogue and open-vocabulary
+ * extractions run concurrently. Distinct from STAGE-2 assessment-path flags
+ * (isClosedCoreAssessEnabled, shouldSkipAssessmentAgent, etc.).
+ */
 export function isOpenExtractParallelEnabled(env = process.env) {
   return isOpenPipelineExtractEnabled(env);
 }

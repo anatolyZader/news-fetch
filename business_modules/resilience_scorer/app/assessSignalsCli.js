@@ -11,7 +11,7 @@
  * So `--date D --days 14` uses D through D−13. Up to `--days` bundles per channel may load within the window;
  * Naftali at most one within the window.
  *
- * Auto-discovers business_modules/signals_extraction/data/signals/signals-{type}-{date}.json,
+ * Auto-discovers business_modules/resilience_scorer/data/signals/signals-{type}-{date}.json,
  * field signals under business_modules/visits/data/signals/, and social OSINT under
  * business_modules/social_media/data/ for the requested date window.
  * Temporal weights: T=1, T-1=0.85, T-2=0.70, then geometric decay (floor 0.50).
@@ -47,11 +47,11 @@ import {
   mergeLoadedSignalFiles,
   dedupWithinSource,
   buildAssessmentWindowMetadata,
-} from './signals/assessSignalsHelpers.js';
+} from './assessment/assessSignalsHelpers.js';
 import { summarizeGeoCoverage, summarizeGeoQuality } from '../../../cross-cut-modules/geo/signalGeoSummary.js';
 import { enrichSignalsGeoIfNeeded } from '../../../cross-cut-modules/geo/enrichSignalsGeoIfNeeded.js';
-import { runPostExtractionAssessmentCore } from './signals/postExtractionAssessmentCore.js';
-import { ensureArticleCorpusRagIndexed } from './signals/ensureArticleCorpusRagIndexed.js';
+import { runPostExtractionAssessmentCore } from './assessment/assessmentStage.js';
+import { ensureArticleCorpusRagIndexed } from './assessment/ensureArticleCorpusRagIndexed.js';
 import {
   buildAssessmentMethodology,
   buildScoringModelManifest,
@@ -61,8 +61,8 @@ import {
 import { computeDataVoidIndex } from '../domain/services/dataVoidIndex.js';
 import { attachInvestigationDiagnostics } from '../domain/services/operator/componentDiagnostics.js';
 import { COMPONENT_IDS } from '../../../cross-cut-modules/resilience-contracts/componentIds.js';
-import { runScoringPipeline } from './signals/scoringPipelinePrep.js';
-import { attachDecisionBrief } from './operator/attachDecisionBrief.js';
+import { runScoringPipeline } from './assessment/scoringPipelinePrep.js';
+import { attachDecisionBrief } from './assessment/attachDecisionBrief.js';
 import { salienceContextFromDataVoid } from '../domain/epistemic/highSalienceBypass.js';
 import { proposeComponentTuningFromReportFiles } from '../tuning/domain/componentTuningProposal.js';
 import {
@@ -77,17 +77,17 @@ import { createSourceArchive } from '../../../db/source_archive/createSourceArch
 import { archiveProbeRecords } from '../../../db/source_archive/archiveProbeRecords.js';
 import { createRetrievalService } from '../../../cross-cut-modules/retrieval/createRetrievalService.js';
 import { createSignalBundlePort } from './createSignalBundlePort.js';
-import { defaultClosedSignalsDir } from '../../signals_extraction/index.js';
-import { loadOpenObservationsForAssess } from './signals/loadOpenObservationsForAssess.js';
+import { closedSignalsDir } from '../../../cross-cut-modules/resilience-contracts/index.js';
+import { loadOpenObservationsForAssess } from './assessment/loadOpenObservationsForAssess.js';
 import { isOmissionAuditEnabled } from '../domain/services/openExtractConfig.js';
 import { verifyOpenEvidenceClaims } from '../domain/services/signals/openEvidenceVerification.js';
 import { synthesizeOpenEvidenceScoringSignals } from '../domain/services/signals/openEvidenceScoringSignals.js';
-import { enqueueVerifiedOpenForCatalog } from './signals/enqueueVerifiedOpenForCatalog.js';
+import { enqueueVerifiedOpenForCatalog } from './catalog/enqueueVerifiedOpenForCatalog.js';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 
 const SIGNAL_DIRS = {
-  signalsDir: defaultClosedSignalsDir(),
+  signalsDir: closedSignalsDir(),
   fieldSignalsDir: resolve('business_modules', 'visits', 'data', 'signals'),
   socialSignalsDir: resolve('business_modules', 'social_media', 'data'),
 };
@@ -337,7 +337,7 @@ async function buildScopedScoring(targetDate, days, allSignals, totalArticles, r
 
   const routedOpenObservations = openObservations.length
     ? await (async () => {
-      const { routeOpenObservations } = await import('../../signals_extraction/index.js');
+      const { routeOpenObservations } = await import('../../open_observation_extraction/index.js');
       return routeOpenObservations(openObservations, routingOpts);
     })()
     : [];
@@ -554,7 +554,7 @@ function resolveOutputBase(reportScopeId, targetDate, days, getArg) {
 function buildSignalPaths(loadedFiles) {
   return loadedFiles.map(({ file, sourceType, data }) => {
     if (data?._from_observations) {
-      return resolve('business_modules/signals_extraction/data', file);
+      return resolve('business_modules/open_observation_extraction/data', file);
     }
     if (sourceType === 'field') return resolve(SIGNAL_DIRS.fieldSignalsDir, file);
     if (sourceType === 'social') return resolve(SIGNAL_DIRS.socialSignalsDir, file);

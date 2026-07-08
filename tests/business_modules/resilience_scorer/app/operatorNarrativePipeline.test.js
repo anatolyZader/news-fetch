@@ -7,7 +7,7 @@ import { dirname, join } from 'node:path';
 import {
   applyOperatorNarrativeToAssessment,
   applyOperatorNarrativePipeline,
-} from '../../../../business_modules/resilience_scorer/app/narrative/operatorNarrativePipeline.js';
+} from '../../../../business_modules/resilience_scorer/app/assessment/operatorNarrativePipeline.js';
 import { buildFullSignalDigest } from '../../../../business_modules/resilience_scorer/domain/services/buildFullSignalDigest.js';
 import { buildSignalRefRegistry } from '../../../../business_modules/resilience_scorer/domain/services/narrativeGrounding/signalRefRegistry.js';
 

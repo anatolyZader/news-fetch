@@ -6,8 +6,8 @@
  *   node extract-regional-pbo-signals.js --files <f1.md,f2.md,...> --date YYYY-MM-DD
  *
  * Output:
- *   business_modules/signals_extraction/data/signals/signals-pbo_regional-YYYY-MM-DD.json
- *   business_modules/signals_extraction/data/observations-pipeline-pbo_regional-YYYY-MM-DD.json
+ *   business_modules/resilience_scorer/data/signals/signals-pbo_regional-YYYY-MM-DD.json
+ *   business_modules/open_observation_extraction/data/observations-pipeline-pbo_regional-YYYY-MM-DD.json
  */
 
 import 'dotenv/config';
@@ -15,13 +15,13 @@ import { basename, dirname, extname, resolve } from 'node:path';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
-import { getDefaultResilienceLlmPort, runArticleDualPathExtract, applyFieldReportSignalHygiene } from '../../resilience_scorer/index.js';
+import { getDefaultResilienceLlmPort, runExtractionStage, applyFieldReportSignalHygiene } from '../../resilience_scorer/index.js';
 import { createCostTracker, appendCostLog, checkDailyBudget } from '../../../cross-cut-modules/budget/index.js';
 import { attributeSignalScope } from '../../../cross-cut-modules/geo/attributeSignalScope.js';
 import { createSourceArchive } from '../../../db/source_archive/createSourceArchive.js';
 import { buildArchiveSourceId } from '../../../db/source_archive/sourceId.js';
 import { createRetrievalService } from '../../../cross-cut-modules/retrieval/createRetrievalService.js';
-import { defaultClosedSignalsDir } from '../../signals_extraction/index.js';
+import { closedSignalsDir } from '../../../cross-cut-modules/resilience-contracts/index.js';
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 
 const MAX_BODY_CHARS = 2000;
@@ -167,7 +167,7 @@ async function archiveRegionalPboArticles(articles, date, signals) {
 }
 
 function writeRegionalSignalsBundle({ date, articles, signals, districtId }) {
-  const outDir = defaultClosedSignalsDir();
+  const outDir = closedSignalsDir();
   mkdirSync(outDir, { recursive: true });
   const outPath = resolve(outDir, `signals-pbo_regional-${date}.json`);
   writeFileSync(
@@ -209,7 +209,7 @@ async function run() {
   const districtId = 'north';
   const llmPort = getDefaultResilienceLlmPort();
 
-  await runArticleDualPathExtract({
+  await runExtractionStage({
     repoRoot: REPO_ROOT,
     articles,
     sourceType: 'pbo_regional',

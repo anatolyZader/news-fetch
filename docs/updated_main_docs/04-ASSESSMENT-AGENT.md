@@ -12,7 +12,7 @@
 
 A scoring formula can tell you a number. It cannot tell you *what is going on*, *what the evidence is*, *where it is contradictory*, or *what is missing*. The district officer needs the latter. So the daily assessment is **agent-primary, score-secondary**: an investigation agent reasons over the evidence and produces grounded claims; the deterministic score (file 05) runs alongside as a shadow/analyst artifact.
 
-Entry point: `runAssessmentAgent(params)` in `business_modules/specialist_agents/app/assessmentOrchestrator.js` (line 267). It is invoked from the pipeline via `business_modules/resilience_scorer/app/produceAssessmentWithShadow.js` (`tryAssessmentAgent`). It returns `{ assessmentV2, assessment (legacy), traceId, budget, evidenceGraph }`.
+Entry point: `runAssessmentAgent(params)` in `business_modules/specialist_agents/app/assessmentOrchestrator.js` (line 267). It is invoked from the pipeline via `business_modules/resilience_scorer/app/assessment/produceAssessmentWithShadow.js` (`tryAssessmentAgent`). It returns `{ assessmentV2, assessment (legacy), traceId, budget, evidenceGraph }`.
 
 ## 2. The flow
 
@@ -192,6 +192,6 @@ Abstention is never silently rendered as "all clear."
 | assessment.v2 contract | `cross-cut-modules/resilience-contracts/assessmentV2.js` |
 | Legacy mapper | `business_modules/specialist_agents/domain/services/assessmentV2Mapper.js` |
 | Evidence graph | `cross-cut-modules/retrieval/evidenceGraph.js` |
-| Pipeline bridge | `business_modules/resilience_scorer/app/produceAssessmentWithShadow.js` |
+| Pipeline bridge | `business_modules/resilience_scorer/app/assessment/produceAssessmentWithShadow.js` |
 | Attention items | `business_modules/resilience_scorer/domain/services/attentionItems.js` |
 | Investigation abstention | `business_modules/specialist_agents/domain/services/investigationEpistemic.js` |

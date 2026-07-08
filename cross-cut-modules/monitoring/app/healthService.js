@@ -25,7 +25,7 @@ export function createHealthService(deps) {
     const sqlitePath = deps.sqlitePath ?? join(rootDir, 'db', 'app.sqlite');
     const costLogPath = resolveCostLogPath(rootDir);
     const reportsDir = join(rootDir, 'business_modules/resilience_scorer/data/daily_reports');
-    const signalsDir = join(rootDir, 'business_modules', 'signals_extraction', 'data', 'signals');
+    const signalsDir = join(rootDir, 'business_modules', 'open_observation_extraction', 'data', 'signals');
 
     const checks = {
       sqlite: { ok: existsSync(sqlitePath), path: sqlitePath },

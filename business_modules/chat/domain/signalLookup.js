@@ -22,11 +22,11 @@ import {
 
 const REPO_ROOT = join(import.meta.dirname, '..', '..', '..');
 const SIGNALS_DIRS = [
-  join(REPO_ROOT, 'business_modules', 'signals_extraction', 'data', 'signals'),
+  join(REPO_ROOT, 'business_modules', 'resilience_scorer', 'data', 'signals'),
   join(REPO_ROOT, 'business_modules', 'visits', 'data', 'signals'),
   join(REPO_ROOT, 'business_modules', 'social_media', 'data'),
 ];
-const OBSERVATIONS_DIR = join(REPO_ROOT, 'business_modules', 'signals_extraction', 'data');
+const OBSERVATIONS_DIR = join(REPO_ROOT, 'business_modules', 'open_observation_extraction', 'data');
 const REPORTS_DIR = resilienceReportsDir(REPO_ROOT);
 const SIGNAL_FILE_RE = /signals-(.+?)-(\d{4}-\d{2}-\d{2})\.json/;
 
@@ -81,7 +81,7 @@ function listSignalJsonFiles({ date, dateFrom, dateTo, sourceType } = {}) {
 
 /**
  * Load signals from JSON files, optionally filtered by date and/or source type.
- * Scans signals_extraction/data/signals/, visits/data/signals/, and social_media/data/.
+ * Scans resilience_scorer/data/signals/, visits/data/signals/, and social_media/data/.
  * @param {{ date?: string, dateFrom?: string, dateTo?: string, sourceType?: string }} opts
  * @returns {Array} flat array of signal objects with file-level metadata merged in
  */
@@ -110,7 +110,7 @@ export function loadSignals({ date, dateFrom, dateTo, sourceType } = {}) {
 }
 
 /**
- * Load open observations (unmapped) from signals_extraction bundles for analyst lookup.
+ * Load open observations (unmapped) from open_observation_extraction bundles for analyst lookup.
  * @param {{ date?: string, profile?: string, limit?: number }} [opts]
  * @returns {Array<object>}
  */

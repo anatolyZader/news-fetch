@@ -2,11 +2,12 @@
  * Canonical filesystem paths for pipeline ingest artifacts (relative to repo root).
  */
 import { resolve } from 'node:path';
-import { defaultClosedSignalsDir } from '../../../../signals_extraction/index.js';
+import { closedSignalsDir } from '../../../../../cross-cut-modules/resilience-contracts/index.js';
 import { resolveRepoRoot } from './repoRoot.js';
 
-export function pipelineSignalsDir(rootDir) {
-  return defaultClosedSignalsDir({ dataDir: resolve(resolveRepoRoot(rootDir), 'business_modules/signals_extraction/data') });
+// rootDir kept for call-site compatibility; closedSignalsDir resolves via import.meta.url
+export function pipelineSignalsDir(_rootDir) {
+  return closedSignalsDir();
 }
 
 export function newsArticlesPath(date, rootDir) {
@@ -60,7 +61,7 @@ export function regionalPboDataDir(rootDir) {
 }
 
 export function pipelineOpenObservationsDataDir(rootDir) {
-  return resolve(resolveRepoRoot(rootDir), 'business_modules/signals_extraction/data');
+  return resolve(resolveRepoRoot(rootDir), 'business_modules/open_observation_extraction/data');
 }
 
 /**

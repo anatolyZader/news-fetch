@@ -20,6 +20,7 @@ Lean index + constitution. **Not documentation** — deep docs live in linked fi
 | Module map | `cross-cut-modules/docs/content/pages/architecture/module-map.md` |
 | Session memory (decisions, dead ends) | `memory.md` |
 | npm script → module entry | `scripts/agent-routing.md` |
+| Browse all pipeline artifacts (symlink view) | `output/README.md` — run `npm run output:setup` after clone |
 
 ## Task routing (read first)
 

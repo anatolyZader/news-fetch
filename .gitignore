@@ -53,10 +53,12 @@ business_modules/video/data/**
 # Stream captures (scheduled radio) — keep .gitkeep only
 business_modules/scheduled_stream_capture/data/**
 !business_modules/scheduled_stream_capture/data/.gitkeep
-business_modules/signals_extraction/data/**
-!business_modules/signals_extraction/data/.gitkeep
+business_modules/open_observation_extraction/data/**
+!business_modules/open_observation_extraction/data/.gitkeep
 business_modules/resilience_scorer/data/**
 !business_modules/resilience_scorer/data/**/.gitkeep
+business_modules/resilience_scorer/data/signals/**
+!business_modules/resilience_scorer/data/signals/.gitkeep
 business_modules/specialist_agents/data/**
 !business_modules/specialist_agents/data/**/.gitkeep
 analyst/data/**

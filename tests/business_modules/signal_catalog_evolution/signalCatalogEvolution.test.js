@@ -7,7 +7,7 @@ import {
 import { LEARNING_CAPTURE_KINDS } from '../../../cross-cut-modules/learningCapture/kinds.js';
 import { formatGapReportMarkdown } from '../../../business_modules/signal_catalog_evolution/domain/services/gapReportFormatter.js';
 import { buildResidualCapturePrompt } from '../../../business_modules/resilience_scorer/infrastructure/extractionPasses.js';
-import { buildResidualExtractionPrompt } from '../../../business_modules/signals_extraction/domain/services/openExtractionPrompts.js';
+import { buildResidualExtractionPrompt } from '../../../business_modules/open_observation_extraction/domain/services/openExtractionPrompts.js';
 import { ObservationCaptureAdapter } from '../../../business_modules/signal_catalog_evolution/infrastructure/adapters/observationCaptureAdapter.js';
 import { CompositeLearningCaptureAdapter } from '../../../business_modules/signal_catalog_evolution/infrastructure/adapters/compositeLearningCaptureAdapter.js';
 import { mkdirSync, writeFileSync, rmSync } from 'node:fs';
@@ -122,7 +122,7 @@ describe('learning capture helpers', () => {
     assert.match(user, /barter market/);
   });
 
-  it('buildResidualExtractionPrompt aligns with signals_extraction residual profile', () => {
+  it('buildResidualExtractionPrompt aligns with open_observation_extraction residual profile', () => {
     const { system } = buildResidualExtractionPrompt([
       { body: 'Residents organized a barter market.' },
     ]);

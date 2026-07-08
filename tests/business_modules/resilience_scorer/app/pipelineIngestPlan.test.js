@@ -18,7 +18,7 @@ import {
   fieldSignalsPath,
 } from '../../../../business_modules/resilience_scorer/domain/services/paths/ingestPaths.js';
 import { openPipelineObsNeedsExtract } from '../../../../business_modules/resilience_scorer/app/pipeline/pipelineOpenObsGuard.js';
-import { pipelineObservationBundleFilename } from '../../../../business_modules/signals_extraction/domain/services/observationSchema.js';
+import { pipelineObservationBundleFilename } from '../../../../business_modules/open_observation_extraction/domain/services/observationSchema.js';
 
 const REPLAY_REUSE_ENV_KEYS = [
   'RESILIENCE_REPLAY_REUSE_NEWS',
@@ -78,7 +78,7 @@ describe('buildPipelineIngestPlan', () => {
       const root = mkdtempSync(join(tmpdir(), 'pipeline-plan-'));
       try {
         const date = '2026-04-15';
-        const sigDir = join(root, 'business_modules/signals_extraction/data/signals');
+        const sigDir = join(root, 'business_modules/resilience_scorer/data/signals');
         mkdirSync(sigDir, { recursive: true });
         writeFileSync(newsSignalsPath(date, root), '{"signals":[]}');
         const enabled = new Set(['news', 'pbo', 'field']);
@@ -108,7 +108,7 @@ describe('buildPipelineIngestPlan', () => {
     withReplayReuseEnv({ RESILIENCE_REPLAY_REUSE_NEWS: '1' }, () => {
       try {
         const date = '2026-04-15';
-        const sigDir = join(root, 'business_modules/signals_extraction/data/signals');
+        const sigDir = join(root, 'business_modules/resilience_scorer/data/signals');
         mkdirSync(sigDir, { recursive: true });
         writeFileSync(newsSignalsPath(date, root), '{"signals":[]}');
 
@@ -148,8 +148,8 @@ describe('buildPipelineIngestPlan', () => {
     withReplayReuseEnv({ RESILIENCE_REPLAY_REUSE_NEWS: '1' }, () => {
       try {
         const date = '2026-04-15';
-        const sigDir = join(root, 'business_modules/signals_extraction/data/signals');
-        const dataDir = join(root, 'business_modules/signals_extraction/data');
+        const sigDir = join(root, 'business_modules/resilience_scorer/data/signals');
+        const dataDir = join(root, 'business_modules/open_observation_extraction/data');
         mkdirSync(sigDir, { recursive: true });
         mkdirSync(dataDir, { recursive: true });
         writeFileSync(newsSignalsPath(date, root), '{"signals":[]}');
@@ -194,8 +194,8 @@ describe('buildPipelineIngestPlan', () => {
     withReplayReuseEnv({ RESILIENCE_REPLAY_REUSE_NEWS: '1' }, () => {
       try {
         const date = '2026-04-15';
-        const sigDir = join(root, 'business_modules/signals_extraction/data/signals');
-        const dataDir = join(root, 'business_modules/signals_extraction/data');
+        const sigDir = join(root, 'business_modules/resilience_scorer/data/signals');
+        const dataDir = join(root, 'business_modules/open_observation_extraction/data');
         mkdirSync(sigDir, { recursive: true });
         mkdirSync(dataDir, { recursive: true });
         writeFileSync(newsSignalsPath(date, root), '{"signals":[]}');
@@ -257,7 +257,7 @@ describe('buildPipelineIngestPlan', () => {
     process.env.RESILIENCE_OPEN_PIPELINE_LEGACY = '1';
     try {
       const date = '2026-04-15';
-      const sigDir = join(root, 'business_modules/signals_extraction/data/signals');
+      const sigDir = join(root, 'business_modules/resilience_scorer/data/signals');
       mkdirSync(sigDir, { recursive: true });
       writeFileSync(newsSignalsPath(date, root), '{"signals":[]}');
 
@@ -405,7 +405,7 @@ describe('buildPipelineIngestPlan', () => {
     process.env.RESILIENCE_OPEN_PIPELINE_LEGACY = '1';
     try {
       const dates = ['2026-04-13', '2026-04-14', '2026-04-15'];
-      const sigDir = join(root, 'business_modules/signals_extraction/data/signals');
+      const sigDir = join(root, 'business_modules/resilience_scorer/data/signals');
       mkdirSync(sigDir, { recursive: true });
       for (const date of dates) {
         writeFileSync(pboSignalsPath(date, root), JSON.stringify({ signals: [{ id: 's1' }] }));
@@ -442,8 +442,8 @@ describe('buildPipelineIngestPlan', () => {
     withReplayReuseEnv({ RESILIENCE_REPLAY_REUSE_PBO: '1' }, () => {
       try {
         const date = '2026-04-15';
-        const sigDir = join(root, 'business_modules/signals_extraction/data/signals');
-        const dataDir = join(root, 'business_modules/signals_extraction/data');
+        const sigDir = join(root, 'business_modules/resilience_scorer/data/signals');
+        const dataDir = join(root, 'business_modules/open_observation_extraction/data');
         mkdirSync(sigDir, { recursive: true });
         mkdirSync(dataDir, { recursive: true });
         writeFileSync(pboSignalsPath(date, root), JSON.stringify({ signals: [{ id: 's1' }] }));
@@ -499,7 +499,7 @@ describe('buildPipelineIngestPlan', () => {
       const root = mkdtempSync(join(tmpdir(), 'pipeline-plan-dev-'));
       try {
         const date = '2026-04-15';
-        const sigDir = join(root, 'business_modules/signals_extraction/data/signals');
+        const sigDir = join(root, 'business_modules/resilience_scorer/data/signals');
         mkdirSync(sigDir, { recursive: true });
         writeFileSync(newsSignalsPath(date, root), '{"signals":[]}');
 
@@ -579,7 +579,7 @@ describe('buildPipelineIngestPlan', () => {
       const root = mkdtempSync(join(tmpdir(), 'pipeline-plan-reuse-regression-'));
       try {
         const date = '2026-04-15';
-        const sigDir = join(root, 'business_modules/signals_extraction/data/signals');
+        const sigDir = join(root, 'business_modules/resilience_scorer/data/signals');
         mkdirSync(sigDir, { recursive: true });
         writeFileSync(newsSignalsPath(date, root), '{"signals":[]}');
 
@@ -604,7 +604,7 @@ describe('buildPipelineIngestPlan', () => {
     const root = mkdtempSync(join(tmpdir(), 'pipeline-plan-refresh-'));
     try {
       const date = '2026-04-15';
-      const sigDir = join(root, 'business_modules/signals_extraction/data/signals');
+      const sigDir = join(root, 'business_modules/resilience_scorer/data/signals');
       mkdirSync(sigDir, { recursive: true });
       writeFileSync(newsSignalsPath(date, root), '{"signals":[]}');
       const mdPath = newsArticlesPath(date, root);

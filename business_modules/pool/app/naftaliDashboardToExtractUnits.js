@@ -1,7 +1,7 @@
 /**
  * Map Naftali questionnaire week data to open-extract units.
  */
-import { normalizeExtractUnits } from '../../signals_extraction/index.js';
+import { normalizeExtractUnits } from '../../open_observation_extraction/index.js';
 
 const DIMENSION_LABELS = {
   financialRequests: 'Economic hardship requests',

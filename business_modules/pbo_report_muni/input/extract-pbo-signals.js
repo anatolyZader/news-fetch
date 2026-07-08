@@ -10,7 +10,7 @@
  *   node extract-pbo-signals.js [--date YYYY-MM-DD] [--district north|south|…] [--all-districts] [--force]
  *
  * If --date is omitted, processes all available Excel files for the district(s).
- * Output: business_modules/signals_extraction/data/signals/signals-pbo-{date}.json (north) or signals-pbo-{district}-{date}.json
+ * Output: business_modules/resilience_scorer/data/signals/signals-pbo-{date}.json (north) or signals-pbo-{district}-{date}.json
  */
 
 import { bootstrapDefaultStateStore } from '../../../cross-cut-modules/persistence/bootstrapStateStore.js';
@@ -31,11 +31,11 @@ import {
   stampPboSignalSourceIds,
 } from '../../../db/source_archive/archivePboMunicipality.js';
 import { createRetrievalService } from '../../../cross-cut-modules/retrieval/createRetrievalService.js';
-import { defaultClosedSignalsDir } from '../../signals_extraction/index.js';
+import { closedSignalsDir } from '../../../cross-cut-modules/resilience-contracts/index.js';
 import { pboDashboardDayToExtractUnits } from '../app/pboDashboardToExtractUnits.js';
 import {
   getDefaultResilienceLlmPort,
-  runArticleDualPathExtract,
+  runExtractionStage,
   stripTraceFields,
   applyFieldReportSignalHygiene,
   isOpenExtractParallelEnabled,
@@ -156,7 +156,7 @@ async function writeDayBundle(day, districtId, outDir, componentsOrder, componen
   console.error(`File: ${day.file}`);
   console.error(`Articles loaded: ${articles.length}\n`);
 
-  await runArticleDualPathExtract({
+  await runExtractionStage({
     repoRoot: REPO_ROOT,
     articles,
     sourceType: 'pbo',
@@ -228,7 +228,7 @@ const force = args.includes('--force');
 checkDailyBudget();
 const { onUsage, getTotal } = createCostTracker({ label: 'extract-pbo-signals' });
 
-const outDir = defaultClosedSignalsDir();
+const outDir = closedSignalsDir();
 mkdirSync(outDir, { recursive: true });
 
 const districts = allDistricts ? listPboDistrictIds() : [districtArg];

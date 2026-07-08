@@ -3,7 +3,7 @@
  *
  * Inputs:
  *   - business_modules/news-sites/articles_extracted/articles-homefront-{date}.md
- *   - business_modules/signals_extraction/data/signals/signals-{news,radio,field,pbo}-{date}.json whose `source_files` reference
+ *   - business_modules/resilience_scorer/data/signals/signals-{news,radio,field,pbo}-{date}.json whose `source_files` reference
  *     the matching `articles-homefront-{date}.md` (indices align with that MD only).
  *
  * Output:
@@ -20,7 +20,7 @@
 import { existsSync, readFileSync, writeFileSync, mkdirSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { defaultClosedSignalsDir } from '../../../signals_extraction/index.js';
+import { closedSignalsDir } from '../../../cross-cut-modules/resilience-contracts/index.js';
 
 const __dirname = resolve(fileURLToPath(import.meta.url), '..');
 const ROOT = resolve(__dirname, '../../../..');
@@ -85,7 +85,7 @@ function discoverDatesWithHomefrontSignals() {
   const articlesDir = resolve(ROOT, 'business_modules/news-sites/articles_extracted');
   const articleDates = collectArticleDates(articlesDir);
 
-  const signalsDir = defaultClosedSignalsDir({ signalsDir: resolve(ROOT, 'business_modules', 'signals_extraction', 'data', 'signals') });
+  const signalsDir = closedSignalsDir();
   const eligible = new Set();
   if (!existsSync(signalsDir)) return [];
 
@@ -108,7 +108,7 @@ function discoverDatesWithHomefrontSignals() {
 }
 
 function loadMergedSignalsForDate(date) {
-  const signalsDir = defaultClosedSignalsDir({ signalsDir: resolve(ROOT, 'business_modules', 'signals_extraction', 'data', 'signals') });
+  const signalsDir = closedSignalsDir();
   const merged = [];
   if (!existsSync(signalsDir)) return merged;
 

@@ -28,7 +28,7 @@ Ingest services are wired in `composition/registerIngestion.js`.
 | npm script | Module entry |
 |------------|--------------|
 | `extract-signals` | `business_modules/resilience_scorer/input/extract-signals.js` |
-| `extract-observations` | `business_modules/signals_extraction/input/extract-observations.js` |
+| `extract-observations` | `business_modules/open_observation_extraction/input/extract-observations.js` |
 | `assess-signals` | `business_modules/resilience_scorer/input/assess-signals.js` |
 | `pipeline:run` | `business_modules/resilience_scorer/input/run-pipeline.js` |
 | `pipeline:status` | `business_modules/resilience_scorer/input/pipeline-status.js` |

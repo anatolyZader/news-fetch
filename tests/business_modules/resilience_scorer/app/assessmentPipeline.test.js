@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {
   filterCasualtyNoiseFromAnalysisSignals,
   scopeAndPartitionSignals,
-} from '../../../../business_modules/resilience_scorer/app/signals/assessmentPipeline.js';
+} from '../../../../business_modules/resilience_scorer/app/assessment/assessmentPipeline.js';
 
 describe('assessmentPipeline.scopeAndPartitionSignals', () => {
   it('returns national scoped signals unchanged for national scope', () => {

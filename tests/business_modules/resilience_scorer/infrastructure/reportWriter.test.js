@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { tmpdir } from 'os';
 
 import { writeReport } from '../../../../business_modules/resilience_scorer/infrastructure/reportWriter.js';
-import { buildAssessmentWindowMetadata } from '../../../../business_modules/resilience_scorer/app/signals/assessSignalsHelpers.js';
+import { buildAssessmentWindowMetadata } from '../../../../business_modules/resilience_scorer/app/assessment/assessSignalsHelpers.js';
 
 describe('writeReport assessment_window', () => {
   let dir;

@@ -10,8 +10,8 @@ import { loadConnectivityProbeSignals } from '../infrastructure/adapters/connect
 import { enrichProbeSignalsInList } from '../domain/services/signals/probeCorroborationPolicy.js';
 import { resilienceReportsDir } from '../domain/services/paths/outputDirs.js';
 import { enrichSignalsGeoIfNeeded } from '../../../cross-cut-modules/geo/enrichSignalsGeoIfNeeded.js';
-import { runPostExtractionAssessmentCore } from './signals/postExtractionAssessmentCore.js';
-import { buildAssessmentWindowMetadata } from './signals/assessSignalsHelpers.js';
+import { runPostExtractionAssessmentCore } from './assessment/assessmentStage.js';
+import { buildAssessmentWindowMetadata } from './assessment/assessSignalsHelpers.js';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createPipelineRunStore } from '../../../db/persistence/pipelineRunStore.js';

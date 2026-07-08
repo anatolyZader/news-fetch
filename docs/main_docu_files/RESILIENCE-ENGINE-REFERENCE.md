@@ -90,7 +90,7 @@ Production entries: single assess stage `input/assess-signals.js` → `app/asses
 
 ### 3.1 Assessment agent (v2)
 
-**Entry:** `business_modules/resilience_scorer/app/produceAssessmentWithShadow.js` → `business_modules/specialist_agents/app/assessmentOrchestrator.js`
+**Entry:** `business_modules/resilience_scorer/app/assessment/produceAssessmentWithShadow.js` → `business_modules/specialist_agents/app/assessmentOrchestrator.js`
 
 **Pattern:** plan-and-execute **map–reduce** (parallel specialists per component; not peer-to-peer agent chat).
 
@@ -324,7 +324,7 @@ Component ids used in scoring: `narrative`, `information_communication`, `lifesa
 
 | Area | Path |
 |------|------|
-| Assess + shadow | `business_modules/resilience_scorer/app/produceAssessmentWithShadow.js` |
+| Assess + shadow | `business_modules/resilience_scorer/app/assessment/produceAssessmentWithShadow.js` |
 | Assessment agent | `business_modules/specialist_agents/app/` — orchestrator, planner, specialists, critic, synthesizer |
 | Shadow artifacts | `business_modules/specialist_agents/infrastructure/adapters/shadowArtifactsFileAdapter.js` — `writeShadowArtifacts`, `computeDivergence` |
 | Agent kernel / config | `cross-cut-modules/agent/` — `agentKernel.js`, `agentConfig.js` |

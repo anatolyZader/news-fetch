@@ -66,3 +66,4 @@ export {
   isEvidenceAnchorHref,
   parseEvidenceAnchorHref,
 } from './evidenceAnchor.js';
+export { closedSignalsDir } from './closedSignalsPaths.js';

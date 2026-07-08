@@ -230,7 +230,7 @@ export function createSocialMediaDailyGatherService({
       try {
         const units = socialFindingsToExtractUnits(dayFindings);
         if (units.length > 0) {
-          const { runPipelineOpenExtract } = await import('../../signals_extraction/index.js');
+          const { runPipelineOpenExtract } = await import('../../open_observation_extraction/index.js');
           await runPipelineOpenExtract({
             articles: units,
             sourceType: 'social',

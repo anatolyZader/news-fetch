@@ -4,12 +4,12 @@ import { readFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { scopeAndPartitionSignals } from '../../../../business_modules/resilience_scorer/app/signals/assessmentPipeline.js';
-import { prepareInvestigationSignals } from '../../../../business_modules/resilience_scorer/app/signals/prepareInvestigationSignals.js';
-import { prepareScoringSignals } from '../../../../business_modules/resilience_scorer/app/signals/prepareScoringSignals.js';
-import { runScoringPipeline } from '../../../../business_modules/resilience_scorer/app/signals/scoringPipelinePrep.js';
+import { scopeAndPartitionSignals } from '../../../../business_modules/resilience_scorer/app/assessment/assessmentPipeline.js';
+import { prepareInvestigationSignals } from '../../../../business_modules/resilience_scorer/app/assessment/prepareInvestigationSignals.js';
+import { prepareScoringSignals } from '../../../../business_modules/resilience_scorer/app/assessment/prepareScoringSignals.js';
+import { runScoringPipeline } from '../../../../business_modules/resilience_scorer/app/assessment/scoringPipelinePrep.js';
 import { attachInvestigationDiagnostics } from '../../../../business_modules/resilience_scorer/domain/services/operator/componentDiagnostics.js';
-import { runPostExtractionAssessmentCore } from '../../../../business_modules/resilience_scorer/app/signals/postExtractionAssessmentCore.js';
+import { runPostExtractionAssessmentCore } from '../../../../business_modules/resilience_scorer/app/assessment/assessmentStage.js';
 import { createGeoWiring } from '../../../../cross-cut-modules/geo/createGeoWiring.js';
 import { attachGeoToSignals } from '../../../../cross-cut-modules/geo/attachGeoToSignals.js';
 import { buildReferenceNameIndex } from '../../../../cross-cut-modules/geo/referenceNameIndex.js';

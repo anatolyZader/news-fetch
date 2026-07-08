@@ -1,5 +1,5 @@
 /**
- * Load open observation bundles from signals_extraction for catalog gap clustering.
+ * Load open observation bundles from open_observation_extraction for catalog gap clustering.
  */
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { ILearningCapturePort } from '../../domain/ports/ILearningCapturePort.js';
 import { LEARNING_CAPTURE_KINDS } from '../../domain/services/learningCaptureKinds.js';
 
-const MODULE_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../../signals_extraction');
+const MODULE_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../../open_observation_extraction');
 
 /**
  * @param {{ dataDir?: string }} [opts]

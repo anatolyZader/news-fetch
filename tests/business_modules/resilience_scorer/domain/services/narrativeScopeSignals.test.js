@@ -10,7 +10,7 @@ import {
   mergeNationalContextSignals,
   annotateScopeDecisions,
 } from '../../../../../business_modules/resilience_scorer/domain/services/narrativeScopeSignals.js';
-import { scopeAndPartitionSignals } from '../../../../../business_modules/resilience_scorer/app/signals/assessmentPipeline.js';
+import { scopeAndPartitionSignals } from '../../../../../business_modules/resilience_scorer/app/assessment/assessmentPipeline.js';
 import { SIGNAL_PROVENANCE } from '../../../../../business_modules/resilience_scorer/domain/services/signals/evidenceEligibility.js';
 
 describe('narrativeScopeSignals', () => {

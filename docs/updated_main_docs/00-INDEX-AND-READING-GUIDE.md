@@ -57,4 +57,4 @@
 
 ## Version note
 
-Written against the repository layout under `business_modules/resilience_scorer/`, `business_modules/specialist_agents/`, `business_modules/signals_extraction/`, `cross-cut-modules/resilience-contracts/`, and the batch CLIs `extract-signals.js` / `assess-signals.js` / `run-pipeline.js` as of authoring. These files supersede the older `docs/reviews/8-component-resilience-pipeline-notebooklm.md` for NotebookLM purposes; that older document is score-centric and predates the agent-primary, dual-path model described here.
+Written against the repository layout under `business_modules/resilience_scorer/`, `business_modules/specialist_agents/`, `business_modules/open_observation_extraction/`, `cross-cut-modules/resilience-contracts/`, and the batch CLIs `extract-signals.js` / `assess-signals.js` / `run-pipeline.js` as of authoring. These files supersede the older `docs/reviews/8-component-resilience-pipeline-notebooklm.md` for NotebookLM purposes; that older document is score-centric and predates the agent-primary, dual-path model described here.

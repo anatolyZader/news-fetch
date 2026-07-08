@@ -99,7 +99,7 @@ Default adapter: `business_modules/resilience_scorer/infrastructure/adapters/def
 
 ### 4.4 Structured sources default to north
 
-Field and WhatsApp bundles default `district_id: 'north'` at extraction (`business_modules/resilience_scorer/app/articleDualPathExtractService.js`), and the structured source types (`field`, `field_whatsapp`, `pbo`, `pbo_regional`, `naftali`, `whatsapp`) fall back to a `legacy_north_fallback` when `district_id` is absent (`business_modules/resilience_scorer/domain/services/signalDistrictId.js`). An explicit `district_id` on a signal always overrides this.
+Field and WhatsApp bundles default `district_id: 'north'` at extraction (`business_modules/resilience_scorer/app/extraction/closedCatalogueExtractService.js`), and the structured source types (`field`, `field_whatsapp`, `pbo`, `pbo_regional`, `naftali`, `whatsapp`) fall back to a `legacy_north_fallback` when `district_id` is absent (`business_modules/resilience_scorer/domain/services/signalDistrictId.js`). An explicit `district_id` on a signal always overrides this.
 
 ### 4.5 District picture, with national context
 

@@ -5,10 +5,10 @@ import { readFileSync } from 'node:fs';
 import { scoreComponents } from '../../../analyst/scoring/index.js';
 import { computeDataVoidIndex } from '../../../business_modules/resilience_scorer/domain/services/dataVoidIndex.js';
 import { resolveScoringPartition } from '../../../business_modules/resilience_scorer/domain/services/dataVoid/scoringPartition.js';
-import { runScoringPipeline } from '../../../business_modules/resilience_scorer/app/signals/scoringPipelinePrep.js';
+import { runScoringPipeline } from '../../../business_modules/resilience_scorer/app/assessment/scoringPipelinePrep.js';
 import { dedupeSignalsWithinBatch, verifyEvidenceAgainstArticle }
   from '../../../business_modules/resilience_scorer/infrastructure/signalVerification.js';
-import { crossSourceDedup } from '../../../business_modules/resilience_scorer/app/signals/assessSignalsHelpers.js';
+import { crossSourceDedup } from '../../../business_modules/resilience_scorer/app/assessment/assessSignalsHelpers.js';
 import { enrichProbeSignalsInList } from '../../../business_modules/resilience_scorer/domain/services/signals/probeCorroborationPolicy.js';
 
 import { ADVERSARIAL_CASES_PATH } from '../../../analyst/tuning/goldenPaths.js';

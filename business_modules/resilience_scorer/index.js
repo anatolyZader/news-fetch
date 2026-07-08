@@ -118,14 +118,14 @@ export {
   resolveReportJsonPathForDate,
   listReportJsonPathsForDate,
   parseReportRunIdFromFilename,
-} from './app/operator/reportCacheService.js';
+} from './infrastructure/reportCacheService.js';
 export {
-  updateOperatorRecommendationStatus,
   parseOperatorRecommendationRequest,
 } from './app/operator/operatorRecommendationService.js';
+export { updateOperatorRecommendationStatus } from './infrastructure/recommendationStatusWriter.js';
 export { archiveMarkdownFiles } from './app/archiveMarkdownFromMd.js';
 export { runResilienceAssessment } from './app/resilienceAnalysisService.js';
-export { contentBatchFromMdArticles } from './app/signals/contentBatchFromMdArticles.js';
+export { contentBatchFromMdArticles } from './app/extraction/contentBatchFromMdArticles.js';
 export { createAnthropicResilienceLlmAdapter } from './infrastructure/adapters/anthropicResilienceLlmAdapter.js';
 
 // --- Epistemic ingestion math (operator — not headline /10 scoring) ---
@@ -195,7 +195,7 @@ export {
   applyOperatorNarrativePipeline,
   runOperatorNarrativePipeline,
   applyOperatorNarrativeToAssessment,
-} from './app/narrative/operatorNarrativePipeline.js';
+} from './app/assessment/operatorNarrativePipeline.js';
 export { buildNarrativeScoredComponents } from './domain/services/buildNarrativeScoredComponents.js';
 export {
   finalizeOperatorNarrativeSurface,
@@ -216,7 +216,7 @@ export { SIGNAL_TO_COMPONENTS } from './domain/services/signals/signalRouter.js'
 // --- Survey CLI runner (cross-cut geo entry) ---
 export { runAnalyzeSurveyCli } from './app/analyzeSurveyCli.js';
 export {
-  runArticleDualPathExtract,
+  runExtractionStage,
   indexExtractStoryClusters,
-} from './app/signals/articleDualPathExtractService.js';
+} from './app/extraction/extractionStage.js';
 export { readResilienceHistory } from './infrastructure/reportHistoryReader.js';

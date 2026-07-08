@@ -179,13 +179,13 @@ Stable IDs (used in JSON, code, and i18n):
 
 | Channel | Typical `source_type` | Native form | Path / artifact | Extraction | Geographic default |
 |---------|----------------------|-------------|-----------------|------------|-------------------|
-| Homefront news | `news` | NewsAPI.ai article JSON | `business_modules/signals_extraction/data/signals/signals-news-YYYY-MM-DD.json` (after `extract-signals`) | LLM from `articles-homefront.md` | National; **north** only when resolved geo matches target district |
-| Radio / audio | `radio` | mp3/mp4 | `business_modules/signals_extraction/data/signals/signals-radio-*.json` | Transcribe → MD → LLM | National; regional scope requires resolved geo |
-| WhatsApp (groups) | `whatsapp` | Export | `business_modules/signals_extraction/data/signals/signals-whatsapp-*.json` | MD → LLM | **`legacy_north_fallback`** when `district_id` absent (see `signalDistrictId.js`) |
+| Homefront news | `news` | NewsAPI.ai article JSON | `business_modules/resilience_scorer/data/signals/signals-news-YYYY-MM-DD.json` (after `extract-signals`) | LLM from `articles-homefront.md` | National; **north** only when resolved geo matches target district |
+| Radio / audio | `radio` | mp3/mp4 | `business_modules/resilience_scorer/data/signals/signals-radio-*.json` | Transcribe → MD → LLM | National; regional scope requires resolved geo |
+| WhatsApp (groups) | `whatsapp` | Export | `business_modules/resilience_scorer/data/signals/signals-whatsapp-*.json` | MD → LLM | **`legacy_north_fallback`** when `district_id` absent (see `signalDistrictId.js`) |
 | Field visits | `field` | Hebrew visit notes (MD) | `business_modules/visits/data/signals/signals-field-*.json` | LLM | **`legacy_north_fallback`** when `district_id` absent |
-| PBO municipality | `pbo` | Excel | `business_modules/signals_extraction/data/signals/signals-pbo-*.json` | **Direct** signal emission (no extraction LLM) | **`legacy_north_fallback`** when `district_id` absent |
-| PBO regional | `pbo_regional` | Excel | `business_modules/signals_extraction/data/signals/signals-pbo_regional-*.json` | **Direct** | **`legacy_north_fallback`** when `district_id` absent |
-| Naftali | `naftali` | Weekly questionnaire | `business_modules/signals_extraction/data/signals/signals-naftali-*.json` | Mapper (structured → signals) | **`legacy_north_fallback`** when `district_id` absent |
+| PBO municipality | `pbo` | Excel | `business_modules/resilience_scorer/data/signals/signals-pbo-*.json` | **Direct** signal emission (no extraction LLM) | **`legacy_north_fallback`** when `district_id` absent |
+| PBO regional | `pbo_regional` | Excel | `business_modules/resilience_scorer/data/signals/signals-pbo_regional-*.json` | **Direct** | **`legacy_north_fallback`** when `district_id` absent |
+| Naftali | `naftali` | Weekly questionnaire | `business_modules/resilience_scorer/data/signals/signals-naftali-*.json` | Mapper (structured → signals) | **`legacy_north_fallback`** when `district_id` absent |
 
 **Structured sources (`LEGACY_NORTH_STRUCTURED_SOURCE_TYPES` in [`signalDistrictId.js`](../../business_modules/resilience_scorer/domain/services/signalDistrictId.js)):** `field`, `field_whatsapp`, `pbo`, `pbo_regional`, `naftali`, `whatsapp` — when `district_id` is absent, default to **`legacy_north_fallback`** (north). Explicit `district_id` on the signal overrides this.
 
@@ -400,8 +400,8 @@ Interactive / API batch assembly may call `runResilienceAssessment` (`resilience
 | Stage | Primary implementation | Artifact / outcome |
 |-------|-------------------------|-------------------|
 | Source ingest (news/audio/whatsapp) | `business_modules/news-sites/`, `business_modules/audio/`, `business_modules/whatsapp/` | Markdown corpora |
-| Structured → signals | `extract-pbo-signals.js`, Naftali mappers (`business_modules/pool/`, etc.) | `business_modules/signals_extraction/data/signals/signals-*.json` |
-| Extract (LLM) | `business_modules/resilience_scorer/infrastructure/claudeEvaluator.js`, `input/extract-signals.js` | `business_modules/signals_extraction/data/signals/signals-{type}-{date}.json` |
+| Structured → signals | `extract-pbo-signals.js`, Naftali mappers (`business_modules/pool/`, etc.) | `business_modules/resilience_scorer/data/signals/signals-*.json` |
+| Extract (LLM) | `business_modules/resilience_scorer/infrastructure/claudeEvaluator.js`, `input/extract-signals.js` | `business_modules/resilience_scorer/data/signals/signals-{type}-{date}.json` |
 | Verify | `signalVerification.js` | Validated signals only |
 | Merge / dedupe / scope | `input/assess-signals.js`, `assessSignalsHelpers.js`, `regionSignalFilter.js` | Single in-memory signal array per run |
 | Score | `domain/services/behaviorSignals.js` | `scoredComponents` map |

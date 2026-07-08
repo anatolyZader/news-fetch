@@ -24,7 +24,7 @@ Access levels: `operator` \| `analyst` \| `maintainer` — `config/userAccess.js
 | **Decision support** | Narrow attention with evidence and instruments; humans decide. |
 | **Instrument** | Operator-safe flag (sufficiency, contestation, salience) — not a hidden score. |
 | **Report scope** | Geographic scope: `national` or district id (`north`, `south`, …). |
-| **Signal bundle** | File `business_modules/signals_extraction/data/signals/signals-{sourceType}-{date}.json` (field: `business_modules/visits/data/signals/…`) — output of extraction. |
+| **Signal bundle** | File `business_modules/resilience_scorer/data/signals/signals-{sourceType}-{date}.json` (field: `business_modules/visits/data/signals/…`) — output of extraction. |
 | **Assessment** | Scored object inside `resilience-report-*.json`. |
 | **Source archive** | SQLite store of ingested originals; ephemeral types purged after retention. |
 

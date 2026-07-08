@@ -72,7 +72,7 @@ export async function runResidualCapture(articles, batchLabel, usageCallback = n
 
   try {
     const { createDefaultSignalsExtractionService } = await import(
-      '../../signals_extraction/index.js'
+      '../../open_observation_extraction/index.js'
     );
     const service = createDefaultSignalsExtractionService();
     const date = new Date().toISOString().slice(0, 10);

@@ -1,7 +1,7 @@
 /**
  * Map classified social OSINT findings to open-extract units.
  */
-import { normalizeExtractUnits } from '../../../signals_extraction/index.js';
+import { normalizeExtractUnits } from '../../../open_observation_extraction/index.js';
 
 /**
  * @param {Array<object>} findings

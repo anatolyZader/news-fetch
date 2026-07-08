@@ -18,7 +18,7 @@ export async function createSignalBundlePort(opts) {
 
   if (source === 'observations') {
     const { createObservationBundleService, ObservationFsAdapter } = await import(
-      '../../signals_extraction/index.js'
+      '../../open_observation_extraction/index.js'
     );
     const store = new ObservationFsAdapter();
     const obsService = createObservationBundleService({ store });

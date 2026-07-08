@@ -31,19 +31,19 @@ Open extraction reads source text and asks an LLM to record **behavioral observa
 
 Implementation:
 
-- Standalone CLI: `business_modules/signals_extraction/input/extract-observations.js`.
-- Pipeline (parallel) service: `business_modules/signals_extraction/app/pipelineOpenExtractService.js` -> `runPipelineOpenExtract`.
-- LLM adapter: `business_modules/signals_extraction/infrastructure/adapters/anthropicOpenExtractionAdapter.js` (`extractObservations`, batches of 8, Haiku).
-- Prompts: `business_modules/signals_extraction/domain/services/openExtractionPrompts.js` (`buildOpenExtractionPrompt`, `buildResidualExtractionPrompt`).
-- Normalize + bundle: `business_modules/signals_extraction/app/signalsExtractionService.js` (`extractAndSave`).
-- Persist: `business_modules/signals_extraction/infrastructure/adapters/observationFsAdapter.js` (`writeBundle`).
+- Standalone CLI: `business_modules/open_observation_extraction/input/extract-observations.js`.
+- Pipeline (parallel) service: `business_modules/open_observation_extraction/app/pipelineOpenExtractService.js` -> `runPipelineOpenExtract`.
+- LLM adapter: `business_modules/open_observation_extraction/infrastructure/adapters/anthropicOpenExtractionAdapter.js` (`extractObservations`, batches of 8, Haiku).
+- Prompts: `business_modules/open_observation_extraction/domain/services/openExtractionPrompts.js` (`buildOpenExtractionPrompt`, `buildResidualExtractionPrompt`).
+- Normalize + bundle: `business_modules/open_observation_extraction/app/signalsExtractionService.js` (`extractAndSave`).
+- Persist: `business_modules/open_observation_extraction/infrastructure/adapters/observationFsAdapter.js` (`writeBundle`).
 
 ### 2.2 The open artifact
 
 Canonical path (`business_modules/resilience_scorer/domain/services/pipelineArtifactPaths.js`, `pipelineOpenObservationsPath`):
 
 ```
-business_modules/signals_extraction/data/observations-pipeline-{sourceType}-{date}.json
+business_modules/open_observation_extraction/data/observations-pipeline-{sourceType}-{date}.json
 ```
 
 Source types wired in code: `news`, `radio`, `whatsapp`, `field`, `social`, `pbo`, `pbo_regional`, `naftali`.
@@ -89,7 +89,7 @@ Routing from a closed signal to components: `business_modules/resilience_scorer/
 ### 3.2 Closed extract
 
 - CLI: `business_modules/resilience_scorer/input/extract-signals.js` -> `runExtractSignalsCli`.
-- App: `business_modules/resilience_scorer/app/extractSignalsCli.js` loads markdown, archives sources, then calls `runArticleDualPathExtract`.
+- App: `business_modules/resilience_scorer/app/extractSignalsCli.js` loads markdown, archives sources, then calls `runExtractionStage`.
 - Closed leg: `business_modules/resilience_scorer/infrastructure/claudeExtraction.js` (`extractSignals`) injects the formatted catalog and **validates** that every emitted `signal_type` belongs to `SIGNAL_CATALOG` (unknown types are dropped).
 
 ### 3.3 The closed artifact
@@ -97,7 +97,7 @@ Routing from a closed signal to components: `business_modules/resilience_scorer/
 Canonical signal bundles (`pipelineArtifactPaths.js`):
 
 ```
-business_modules/signals_extraction/data/signals/signals-{source}-{date}.json
+business_modules/resilience_scorer/data/signals/signals-{source}-{date}.json
 ```
 
 with source-specific exceptions: field at `business_modules/visits/data/signals/signals-field-{date}.json`, social at `business_modules/social_media/data/signals-social-{date}.json`, regional PBO as `signals-pbo_regional-{date}.json`.
@@ -125,7 +125,7 @@ They do **not** merge at extract time - they stay in separate files. They merge 
 
 ### Layer B - Route open observations to components, then feed the agent
 
-- `routeOpenObservations` (`business_modules/signals_extraction/domain/services/openObservationRouter.js`) assigns each open observation to one of the eight components (mode `RESILIENCE_OPEN_OBS_ROUTING`, default `llm`, keyword fallback).
+- `routeOpenObservations` (`business_modules/open_observation_extraction/domain/services/openObservationRouter.js`) assigns each open observation to one of the eight components (mode `RESILIENCE_OPEN_OBS_ROUTING`, default `llm`, keyword fallback).
 - The routed open observations are passed as `scoring.openObservations` into the assessment agent (`runAssessmentAgent`), where `loadInvestigationContext` merges them with JSONL residuals and groups them `residualByComponent` (gated by `RESILIENCE_OPEN_OBS_FOR_AGENT`, default ON).
 
 So the agent's **primary inputs** are: closed `investigationSignals` **plus routed open observations** plus RAG/evidence-graph context. The open path is what lets the agent investigate beyond the catalog.

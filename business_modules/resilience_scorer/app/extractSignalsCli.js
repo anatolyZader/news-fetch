@@ -1,16 +1,16 @@
 #!/usr/bin/env node
 /**
  * Stage-1 CLI: extract behavioral signals from one source type and persist JSON artifacts
- * (signals_extraction module data for most sources; visits module for `field`).
+ * (open_observation_extraction module data for most sources; visits module for `field`).
  * Run this separately for each source type; then run assess-signals.js to combine and assess.
  *
  * Usage:
  *   node extract-signals.js --source-type news|radio|visits|field|whatsapp --files <f1.md,f2.md,...> --date YYYY-MM-DD
  *
  * Output:
- *   business_modules/signals_extraction/data/signals/signals-{source-type}-{date}.json  (news, radio, whatsapp, …)
+ *   business_modules/resilience_scorer/data/signals/signals-{source-type}-{date}.json  (news, radio, whatsapp, …)
  *   business_modules/visits/data/signals/signals-field-{date}.json  (visits / legacy field)
- *   business_modules/signals_extraction/data/observations-pipeline-{source-type}-{date}.json  (parallel open, default ON)
+ *   business_modules/open_observation_extraction/data/observations-pipeline-{source-type}-{date}.json  (parallel open, default ON)
  */
 
 import 'dotenv/config';
@@ -25,9 +25,9 @@ import { archiveMarkdownFiles } from '../app/archiveMarkdownFromMd.js';
 import { attachSourceIdsToArticles } from '../../../db/source_archive/attachSourceIds.js';
 import { createRetrievalService } from '../../../cross-cut-modules/retrieval/createRetrievalService.js';
 import {
-  runArticleDualPathExtract,
+  runExtractionStage,
   indexExtractStoryClusters,
-} from '../app/articleDualPathExtractService.js';
+} from './extraction/extractionStage.js';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 
@@ -152,7 +152,7 @@ export async function runExtractSignalsCli() {
     enabled: process.env.RESILIENCE_ITEM_TRACE !== '0',
   });
 
-  const { signals } = await runArticleDualPathExtract({
+  const { signals } = await runExtractionStage({
     repoRoot: REPO_ROOT,
     articles,
     sourceType,

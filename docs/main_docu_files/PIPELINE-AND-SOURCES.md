@@ -2,7 +2,7 @@
 
 **Purpose:** How daily **artifacts** are produced — ingest → signal extraction → **agent assess + shadow scoring** → reports on disk. Operators depend on this pipeline running; they do not run assessment math manually.
 
-**Sources:** `scripts/daily-pipeline.sh`, `pipeline-config.json`, `business_modules/resilience_scorer/input/extract-signals.js`, `input/assess-signals.js` (thin CLI wrappers → `app/extractSignalsCli.js`, `app/assessSignalsCli.js`), `app/produceAssessmentWithShadow.js`, `app/pipelineOrchestrator.js`, `app/pipelineIngestPlan.js`, `input/run-pipeline.js`, `domain/services/pipelineArtifactPaths.js`, `cross-cut-modules/llm/writeTokenReport.js`. Cross-module imports use `business_modules/<name>/index.js` facades — see [README § Module boundaries](./README.md#module-boundaries-option-b).
+**Sources:** `scripts/daily-pipeline.sh`, `pipeline-config.json`, `business_modules/resilience_scorer/input/extract-signals.js`, `input/assess-signals.js` (thin CLI wrappers → `app/extractSignalsCli.js`, `app/assessSignalsCli.js`), `app/assessment/produceAssessmentWithShadow.js`, `app/pipelineOrchestrator.js`, `app/pipelineIngestPlan.js`, `input/run-pipeline.js`, `domain/services/pipelineArtifactPaths.js`, `cross-cut-modules/llm/writeTokenReport.js`. Cross-module imports use `business_modules/<name>/index.js` facades — see [README § Module boundaries](./README.md#module-boundaries-option-b).
 
 ---
 
@@ -152,7 +152,7 @@ Status CLI: `npm run pipeline:status`.
 
 **Outputs:**
 
-- `business_modules/signals_extraction/data/signals/signals-{type}-{date}.json` (most types)
+- `business_modules/open_observation_extraction/data/signals/signals-{type}-{date}.json` (most types)
 - Field: `business_modules/visits/data/signals/signals-field-{date}.json`
 
 **Cost script id:** `extract-signals` in `cross-cut-modules/log/data/cost-log.jsonl`.
@@ -282,7 +282,7 @@ Structured situational reports use one **`report_build`** orchestrator for two s
 | `daily_reports/epistemic-profile-{scopeId}-*.json` | Epistemic profile snapshot per scope/date |
 | `daily_reports/assessment-agent-trace-*.jsonl` | Agent step replay (analyst) |
 | `cross-cut-modules/budget/resilience_analysis/token-report-{date}-{scope}.json` | Per-run LLM token/cost rollup (pipeline orchestrator) |
-| `business_modules/signals_extraction/data/signals/signals-{type}-*.json` | Extracted signals per source/day (field: `business_modules/visits/data/signals/signals-field-*.json`) |
+| `business_modules/open_observation_extraction/data/signals/signals-{type}-*.json` | Extracted signals per source/day (field: `business_modules/visits/data/signals/signals-field-*.json`) |
 | `business_modules/news-sites/articles_extracted/` | News markdown exports |
 | SQLite `source_archive` | Original source text for chat `get_source` and assess-time RAG |
 | SQLite validation queue | Analyst review of extraction quality |

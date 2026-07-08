@@ -6,7 +6,7 @@ import { join } from 'path';
 
 import { openPipelineObsNeedsExtract } from '../../../../../../business_modules/resilience_scorer/app/pipeline/pipelineOpenObsGuard.js';
 import { pipelineOpenObservationsPath } from '../../../../../../business_modules/resilience_scorer/domain/services/paths/ingestPaths.js';
-import { pipelineObservationBundleFilename } from '../../../../../../business_modules/signals_extraction/domain/services/observationSchema.js';
+import { pipelineObservationBundleFilename } from '../../../../../../business_modules/open_observation_extraction/domain/services/observationSchema.js';
 
 describe('openPipelineObsNeedsExtract', () => {
   it('returns true when file is missing', () => {
@@ -37,12 +37,12 @@ describe('openPipelineObsNeedsExtract', () => {
     }
   });
 
-  it('pipelineOpenObservationsPath resolves under signals_extraction data dir', () => {
+  it('pipelineOpenObservationsPath resolves under open_observation_extraction data dir', () => {
     const root = mkdtempSync(join(tmpdir(), 'open-obs-path-'));
     try {
       const path = pipelineOpenObservationsPath('news', '2026-06-01', root);
       assert.ok(path.endsWith('observations-pipeline-news-2026-06-01.json'));
-      assert.ok(path.includes('business_modules/signals_extraction/data'));
+      assert.ok(path.includes('business_modules/open_observation_extraction/data'));
     } finally {
       rmSync(root, { recursive: true, force: true });
     }

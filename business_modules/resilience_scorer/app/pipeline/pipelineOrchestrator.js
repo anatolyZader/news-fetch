@@ -13,8 +13,8 @@ import {
   loadAssessSignalFiles,
   loadPipelineConfig,
   mergeLoadedSignalFiles,
-} from '../signals/assessSignalsHelpers.js';
-import { defaultClosedSignalsDir } from '../../../signals_extraction/index.js';
+} from '../assessment/assessSignalsHelpers.js';
+import { closedSignalsDir } from '../../../../cross-cut-modules/resilience-contracts/index.js';
 import {
   buildPipelineIngestPlan,
   parsePipelineDateArg,
@@ -31,7 +31,7 @@ import {
   readAssessmentReportMeta,
   reportQualityRank,
   resolveReportJsonPathForDate,
-} from '../operator/reportCacheService.js';
+} from '../../infrastructure/reportCacheService.js';
 import { writeTokenReport } from '../../../../cross-cut-modules/llm/writeTokenReport.js';
 
 const DEFAULT_TZ = process.env.TZ_ARTICLES ?? 'Asia/Jerusalem';
@@ -221,7 +221,7 @@ async function executeOpenOnlyExtract(step, rootDir) {
   }
 
   const { loadMdFiles } = await import('../../infrastructure/mdReportsLoader.js');
-  const { runOpenOnlyPipelineExtract } = await import('../signals/articleDualPathExtractService.js');
+  const { runOpenVocabularyExtract } = await import('../extraction/openVocabularyExtractService.js');
   const { createCostTracker } = await import('../../../../cross-cut-modules/budget/index.js');
 
   const filePaths = step.detail.split(',').map((f) => resolve(rootDir, f.trim()));
@@ -232,7 +232,7 @@ async function executeOpenOnlyExtract(step, rootDir) {
   }
 
   const { onUsage, getTotal } = createCostTracker({ label: 'extract-open-only' });
-  await runOpenOnlyPipelineExtract({
+  await runOpenVocabularyExtract({
     articles,
     sourceType: meta.sourceType,
     contentKind: meta.contentKind,
@@ -345,9 +345,7 @@ async function executeIngestStep(step, ctx) {
 }
 
 function countLoadedBundles(targetDate, days, enabledSources, rootDir) {
-  const signalsDir = defaultClosedSignalsDir({
-    dataDir: resolve(resolveRepoRoot(rootDir), 'business_modules/signals_extraction/data'),
-  });
+  const signalsDir = closedSignalsDir();
   const fieldSignalsDir = resolve(resolveRepoRoot(rootDir), 'business_modules/visits/data/signals');
   const socialSignalsDir = resolve(resolveRepoRoot(rootDir), 'business_modules/social_media/data');
   const discovery = discoverSignalBundles({
