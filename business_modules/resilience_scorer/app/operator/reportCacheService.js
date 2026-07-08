@@ -19,7 +19,7 @@ import { readCostBreakdownForDate as readCostBreakdownForDateFromLog } from '../
 import { inferAssessmentWindowFromSourceFiles } from '../signals/assessSignalsHelpers.js';
 import { resilienceReportsDir } from '../../domain/services/paths/outputDirs.js';
 
-const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
+const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../../..');
 
 function readCostBreakdownForDate(date) {
   return readCostBreakdownForDateFromLog(date, ROOT);
