@@ -6,8 +6,10 @@ import { closedSignalsDir } from '../../../../../cross-cut-modules/resilience-co
 import { resolveRepoRoot } from './repoRoot.js';
 
 // rootDir kept for call-site compatibility; closedSignalsDir resolves via import.meta.url
-export function pipelineSignalsDir(_rootDir) {
-  return closedSignalsDir();
+export function pipelineSignalsDir(rootDir) {
+  return closedSignalsDir({
+    signalsDir: resolve(resolveRepoRoot(rootDir), 'business_modules/resilience_scorer/data/signals'),
+  });
 }
 
 export function newsArticlesPath(date, rootDir) {

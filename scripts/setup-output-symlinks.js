@@ -78,6 +78,7 @@ function main() {
   for (const { link, target } of OUTPUT_SYMLINKS) {
     const linkAbs = resolve(OUTPUT_ROOT, link);
     const targetAbs = resolve(REPO_ROOT, target);
+    mkdirSync(targetAbs, { recursive: true });
     const result = ensureSymlink(linkAbs, targetAbs);
     if (result === 'created') {
       created += 1;

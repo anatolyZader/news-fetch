@@ -7,7 +7,7 @@ import { tmpdir } from 'node:os';
 import {
   buildOmissionAuditPayload,
   buildAndWriteOmissionAudit,
-} from '../../../../business_modules/resilience_scorer/app/operator/omissionAuditService.js';
+} from '../../../../business_modules/resilience_scorer/app/assessment/omissionAuditService.js';
 import { LEARNING_CAPTURE_KINDS } from '../../../../cross-cut-modules/learningCapture/kinds.js';
 
 describe('omissionAuditService', () => {
