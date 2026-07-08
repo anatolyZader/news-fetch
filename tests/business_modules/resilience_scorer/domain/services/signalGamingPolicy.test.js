@@ -6,7 +6,7 @@ import {
   applyWhatsappSenderCaps,
   isDmPhoneAllowed,
   gamingContributionMultiplier,
-} from '../../../../../business_modules/resilience_scorer/domain/services/signalGamingPolicy.js';
+} from '../../../../../business_modules/resilience_scorer/domain/services/signals/signalGamingPolicy.js';
 
 describe('signalGamingPolicy', () => {
   it('isDmPhoneAllowed passes when env unset', () => {

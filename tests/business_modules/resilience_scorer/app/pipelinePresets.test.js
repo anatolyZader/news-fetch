@@ -1,8 +1,8 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { applyPipelinePreset, getPipelinePreset, PIPELINE_PRESETS } from '../../../../business_modules/resilience_scorer/app/pipelinePresets.js';
-import { parsePipelineCliArgs } from '../../../../business_modules/resilience_scorer/app/pipelineOrchestrator.js';
+import { applyPipelinePreset, getPipelinePreset, PIPELINE_PRESETS } from '../../../../business_modules/resilience_scorer/app/pipeline/pipelinePresets.js';
+import { parsePipelineCliArgs } from '../../../../business_modules/resilience_scorer/app/pipeline/pipelineOrchestrator.js';
 
 describe('pipelinePresets', () => {
   it('defines all 8comp slash command presets', () => {

@@ -13,7 +13,7 @@ import {
   parseSignalBundleFilename,
   discoverSignalBundles,
   loadAssessSignalFiles,
-} from '../../../../business_modules/resilience_scorer/app/assessSignalsHelpers.js';
+} from '../../../../business_modules/resilience_scorer/app/signals/assessSignalsHelpers.js';
 import { loadHistoricalScores } from '../../../../business_modules/resilience_scorer/infrastructure/reportHistoryReader.js';
 
 describe('crossSourceDedup', () => {

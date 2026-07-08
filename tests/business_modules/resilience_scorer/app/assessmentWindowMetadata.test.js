@@ -4,7 +4,7 @@ import assert from 'node:assert';
 import {
   buildAssessmentWindowMetadata,
   inferAssessmentWindowFromSourceFiles,
-} from '../../../../business_modules/resilience_scorer/app/assessSignalsHelpers.js';
+} from '../../../../business_modules/resilience_scorer/app/signals/assessSignalsHelpers.js';
 
 describe('assessment window metadata', () => {
   it('buildAssessmentWindowMetadata computes descending window dates', () => {

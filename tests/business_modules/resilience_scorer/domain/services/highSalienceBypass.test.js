@@ -6,14 +6,14 @@ import {
   evaluateHighSalienceBypass,
   findDominantContributor,
   isHighSalienceBypassEnabled,
-} from '../../../../../business_modules/resilience_scorer/domain/services/highSalienceBypass.js';
+} from '../../../../../business_modules/resilience_scorer/domain/epistemic/highSalienceBypass.js';
 import {
   deriveThinEvidencePolicy,
   THIN_EVIDENCE_INSTRUMENT,
-} from '../../../../../business_modules/resilience_scorer/domain/services/thinEvidencePolicy.js';
+} from '../../../../../business_modules/resilience_scorer/domain/services/signals/thinEvidencePolicy.js';
 import { scoreComponents } from '../../../../../analyst/scoring/index.js';
 import { contributionForSignal } from '../../../../../business_modules/resilience_scorer/domain/epistemic/massContribution.js';
-import { GROUNDING_TIER } from '../../../../../business_modules/resilience_scorer/domain/services/groundingPolicy.js';
+import { GROUNDING_TIER } from '../../../../../business_modules/resilience_scorer/domain/services/signals/groundingPolicy.js';
 
 describe('highSalienceBypass', () => {
   it('is enabled by default', () => {

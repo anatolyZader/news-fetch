@@ -4,11 +4,11 @@
  * without an LLM client.
  */
 
-import { SIGNAL_TYPES } from '../domain/services/behaviorSignals.js';
+import { SIGNAL_TYPES } from '../domain/services/signals/behaviorSignals.js';
 import {
   formatSignalCatalogSubset as formatCatalogSubset,
   getMirrorTypeForSelfCheck,
-} from '../domain/services/signalCatalogPrompt.js';
+} from '../domain/services/signals/signalCatalogPrompt.js';
 
 /**
  * Three grouped passes balance per-pass focus against API cost.

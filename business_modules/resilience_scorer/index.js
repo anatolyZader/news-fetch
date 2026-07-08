@@ -27,7 +27,7 @@ export {
   operatorAssessmentSummary,
   redactReportPayload,
   redactScoreBySource,
-} from './domain/services/assessmentDisplayTier.js';
+} from './domain/services/operator/assessmentDisplayTier.js';
 
 // --- Attention items & scope (domain) ---
 export {
@@ -37,8 +37,8 @@ export {
   sortAttentionItems,
   ATTENTION_KINDS,
   ATTENTION_LEVELS,
-} from './domain/services/attentionItems.js';
-export { buildActionCompass, actionCompassEnabled } from './domain/services/actionCompass.js';
+} from './domain/services/operator/attentionItems.js';
+export { buildActionCompass, actionCompassEnabled } from './domain/services/actionCompass/actionCompass.js';
 export {
   operatorEpistemicOverlayEnabled,
   stripOperatorGuidancePayload,
@@ -68,7 +68,7 @@ export {
   isOpenObsForAgentEnabled,
   isResidualForAgentEnabled,
 } from './domain/services/openExtractConfig.js';
-export { pipelineOpenObservationsPath } from './domain/services/pipelineArtifactPaths.js';
+export { pipelineOpenObservationsPath } from './domain/services/paths/ingestPaths.js';
 export {
   resilienceReportsDir,
   resilienceCapturesDir,
@@ -76,8 +76,8 @@ export {
   resilienceSurveyDataDir,
   surveyInputDir,
   epistemicProfilesDir,
-  resolveRepoRoot as resolveResilienceRepoRoot,
-} from './domain/services/artifactPaths.js';
+} from './domain/services/paths/outputDirs.js';
+export { resolveRepoRoot as resolveResilienceRepoRoot } from './domain/services/paths/repoRoot.js';
 export {
   buildReportBasename,
   parseReportFilename,
@@ -86,17 +86,17 @@ export {
   isNationalReportFilename,
   listReportJsonFilenamesForDate,
   reportFilenameMatchesDate,
-} from './domain/services/reportArtifactNames.js';
+} from './domain/services/paths/reportNames.js';
 export { stripTraceFields } from './infrastructure/claudeExtraction.js';
-export { buildAnomalyStrip } from './domain/services/anomalyStrip.js';
+export { buildAnomalyStrip } from './domain/services/operator/anomalyStrip.js';
 
 // --- Policies (domain) ---
-export { enrichFieldProvenance } from './domain/services/fieldSignalPolicy.js';
+export { enrichFieldProvenance } from './domain/services/signals/fieldSignalPolicy.js';
 export {
   applyFieldReportSignalHygiene,
   isTrivialFieldReportEvidence,
   resolveSignalTypeAlias,
-} from './domain/services/fieldReportSignalHygiene.js';
+} from './domain/services/signals/fieldReportSignalHygiene.js';
 export {
   applySignalTypeHygiene,
   rewriteMisclassifiedSignalType,
@@ -107,8 +107,8 @@ export {
   isExcludedNationalContextSignalType,
   isBareHazardTickerEvidence,
   NATIONAL_CONTEXT_EXCLUDED_SIGNAL_TYPES,
-} from './domain/services/signalTypeHygiene.js';
-export { topContributorsFromScored } from './domain/services/topContributors.js';
+} from './domain/services/signals/signalTypeHygiene.js';
+export { topContributorsFromScored } from './domain/services/operator/topContributors.js';
 
 // --- Application services ---
 export {
@@ -118,14 +118,14 @@ export {
   resolveReportJsonPathForDate,
   listReportJsonPathsForDate,
   parseReportRunIdFromFilename,
-} from './app/reportCacheService.js';
+} from './app/operator/reportCacheService.js';
 export {
   updateOperatorRecommendationStatus,
   parseOperatorRecommendationRequest,
-} from './app/operatorRecommendationService.js';
+} from './app/operator/operatorRecommendationService.js';
 export { archiveMarkdownFiles } from './app/archiveMarkdownFromMd.js';
 export { runResilienceAssessment } from './app/resilienceAnalysisService.js';
-export { contentBatchFromMdArticles } from './app/contentBatchFromMdArticles.js';
+export { contentBatchFromMdArticles } from './app/signals/contentBatchFromMdArticles.js';
 export { createAnthropicResilienceLlmAdapter } from './infrastructure/adapters/anthropicResilienceLlmAdapter.js';
 
 // --- Epistemic ingestion math (operator — not headline /10 scoring) ---
@@ -146,14 +146,13 @@ export {
   defaultSignalWeights,
   resolveSignalWeights,
 } from './domain/epistemic/signalWeights.js';
-export { computeMediaMentionMass } from './domain/services/mediaMentionMass.js';
-export { applyInvestigationSignalFlags } from './domain/services/investigationSignalFlags.js';
+export { computeMediaMentionMass } from './domain/services/signals/mediaMentionMass.js';
+export { applyInvestigationSignalFlags } from './domain/services/signals/investigationSignalFlags.js';
 export { buildNorthClusterNarrativesFromSignals } from './domain/services/northClusterNarrative.js';
 
 // --- Epistemic profile computation (feeds the specialist_agents assessment agent) ---
 export { computeEpistemicProfile } from './domain/epistemic/epistemicProfileBuilder.js';
 export { createEpistemicFeaturesService } from './app/epistemicFeaturesService.js';
-export { loadHistoricalEpistemicMass } from './infrastructure/adapters/historicalEpistemicMassReader.js';
 
 // --- OOV / investigation burst ---
 export { countOovCapturesForDate } from './domain/services/oovCapture.js';
@@ -196,7 +195,7 @@ export {
   applyOperatorNarrativePipeline,
   runOperatorNarrativePipeline,
   applyOperatorNarrativeToAssessment,
-} from './app/operatorNarrativePipeline.js';
+} from './app/narrative/operatorNarrativePipeline.js';
 export { buildNarrativeScoredComponents } from './domain/services/buildNarrativeScoredComponents.js';
 export {
   finalizeOperatorNarrativeSurface,
@@ -205,19 +204,19 @@ export {
   buildCuratedEvidenceBullets,
   isStubNarrative,
   INSUFFICIENT_SYNTHESIS_NARRATIVE,
-} from './domain/services/operatorNarrativeSurface.js';
+} from './domain/services/operator/operatorNarrativeSurface.js';
 export {
   attachRichOperatorSurface,
   attachRichInvestigationPool,
   buildDeterministicNarrativeFromClaims,
   assignOperatorEpistemicRole,
-} from './domain/services/operatorInvestigationSurface.js';
-export { SIGNAL_TO_COMPONENTS } from './domain/services/signalRouter.js';
+} from './domain/services/operator/operatorInvestigationSurface.js';
+export { SIGNAL_TO_COMPONENTS } from './domain/services/signals/signalRouter.js';
 
 // --- Survey CLI runner (cross-cut geo entry) ---
 export { runAnalyzeSurveyCli } from './app/analyzeSurveyCli.js';
 export {
   runArticleDualPathExtract,
   indexExtractStoryClusters,
-} from './app/articleDualPathExtractService.js';
+} from './app/signals/articleDualPathExtractService.js';
 export { readResilienceHistory } from './infrastructure/reportHistoryReader.js';

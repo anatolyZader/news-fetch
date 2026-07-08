@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, writeFileSync, mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { loadOpenObservationsForAssess } from '../../../../business_modules/resilience_scorer/app/loadOpenObservationsForAssess.js';
+import { loadOpenObservationsForAssess } from '../../../../business_modules/resilience_scorer/app/signals/loadOpenObservationsForAssess.js';
 import { pipelineObservationBundleFilename } from '../../../../business_modules/signals_extraction/domain/services/observationSchema.js';
 
 describe('loadOpenObservationsForAssess', () => {

@@ -9,7 +9,7 @@ import {
   DEFAULT_SCORING_PRIORS,
   getScoringPriors,
   assertCatalogPolarityCoherence,
-} from '../../../../../business_modules/resilience_scorer/domain/services/signalCatalog.js';
+} from '../../../../../business_modules/resilience_scorer/domain/services/signals/signalCatalog.js';
 
 const V6_NEW_TYPES = [
   'self_evacuation_unauthorized',

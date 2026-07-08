@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { attachDecisionBrief, decisionBriefEnabled } from '../../../../business_modules/resilience_scorer/app/attachDecisionBrief.js';
+import { attachDecisionBrief, decisionBriefEnabled } from '../../../../business_modules/resilience_scorer/app/operator/attachDecisionBrief.js';
 
 describe('attachDecisionBrief', () => {
   it('skips when flag disabled', async () => {

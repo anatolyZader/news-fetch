@@ -1,7 +1,7 @@
 import {
   getCachedReport,
   resolveReportJsonPathForDate,
-} from '../../app/reportCacheService.js';
+} from '../../app/operator/reportCacheService.js';
 
 /** @returns {import('../../domain/ports/IReportReadPort.js').IReportReadPort} */
 export function createReportReadPort() {

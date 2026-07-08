@@ -1,7 +1,7 @@
 /**
  * Signal-to-component weight resolution (operator — no tuning overlays).
  */
-import { SIGNAL_TO_COMPONENTS } from '../services/signalCatalog.js';
+import { SIGNAL_TO_COMPONENTS } from '../services/signals/signalCatalog.js';
 
 /**
  * @param {object} baseMapping

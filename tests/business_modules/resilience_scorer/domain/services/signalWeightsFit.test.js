@@ -5,7 +5,7 @@ import {
   CALIBRATION_TARGETS,
   fitSignalWeightsRidgeMock,
   getCalibrationSnapshot,
-} from '../../../../../business_modules/resilience_scorer/domain/services/signalWeightsFit.js';
+} from '../../../../../business_modules/resilience_scorer/domain/services/signals/signalWeightsFit.js';
 
 describe('signalWeightsFit calibration snapshot', () => {
   it('exports calibration targets and snapshot shape', () => {

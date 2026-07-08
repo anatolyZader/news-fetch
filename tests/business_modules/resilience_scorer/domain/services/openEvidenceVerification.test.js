@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { verifyOpenEvidenceClaims } from '../../../../../business_modules/resilience_scorer/domain/services/openEvidenceVerification.js';
+import { verifyOpenEvidenceClaims } from '../../../../../business_modules/resilience_scorer/domain/services/signals/openEvidenceVerification.js';
 
 describe('openEvidenceVerification', () => {
   it('verifies open claim with multi-hop specialist usage', () => {

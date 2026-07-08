@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { synthesizeOpenEvidenceScoringSignals } from '../../../../../business_modules/resilience_scorer/domain/services/openEvidenceScoringSignals.js';
+import { synthesizeOpenEvidenceScoringSignals } from '../../../../../business_modules/resilience_scorer/domain/services/signals/openEvidenceScoringSignals.js';
 
 describe('openEvidenceScoringSignals', () => {
   it('builds discounted synthetic signals from verified claims', () => {

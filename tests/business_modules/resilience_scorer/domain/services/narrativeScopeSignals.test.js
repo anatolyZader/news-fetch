@@ -10,8 +10,8 @@ import {
   mergeNationalContextSignals,
   annotateScopeDecisions,
 } from '../../../../../business_modules/resilience_scorer/domain/services/narrativeScopeSignals.js';
-import { scopeAndPartitionSignals } from '../../../../../business_modules/resilience_scorer/app/assessmentPipeline.js';
-import { SIGNAL_PROVENANCE } from '../../../../../business_modules/resilience_scorer/domain/services/evidenceEligibility.js';
+import { scopeAndPartitionSignals } from '../../../../../business_modules/resilience_scorer/app/signals/assessmentPipeline.js';
+import { SIGNAL_PROVENANCE } from '../../../../../business_modules/resilience_scorer/domain/services/signals/evidenceEligibility.js';
 
 describe('narrativeScopeSignals', () => {
   it('evidenceMatchesMacroNationalTerms matches northern israel phrasing', () => {

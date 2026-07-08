@@ -12,7 +12,7 @@ import {
   groundingMetaFromVerifyPass,
   isCriticalForGrounding,
   
-} from '../domain/services/groundingPolicy.js';
+} from '../domain/services/signals/groundingPolicy.js';
 
 /**
  * Anchor signals to immutable ingest text; assign grounding tier.
@@ -54,4 +54,4 @@ export function applySourceNativeGrounding(signals, sourceText, opts = {}) {
 
 
 
-export {groundingMetaFromEntailmentFail} from '../domain/services/groundingPolicy.js';
+export {groundingMetaFromEntailmentFail} from '../domain/services/signals/groundingPolicy.js';

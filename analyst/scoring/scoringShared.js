@@ -1,9 +1,9 @@
-import { COMPONENT_FACETS } from '../../business_modules/resilience_scorer/domain/services/componentFacets.js';
+import { COMPONENT_FACETS } from '../../business_modules/resilience_scorer/domain/services/operator/componentFacets.js';
 import {
   SIGNAL_TO_COMPONENTS,
   getSignalCatalogEntry,
-} from '../../business_modules/resilience_scorer/domain/services/signalRouter.js';
-import { evaluateHighSalienceBypass } from '../../business_modules/resilience_scorer/domain/services/highSalienceBypass.js';
+} from '../../business_modules/resilience_scorer/domain/services/signals/signalRouter.js';
+import { evaluateHighSalienceBypass } from '../../business_modules/resilience_scorer/domain/epistemic/highSalienceBypass.js';
 
 export { COMPONENT_IDS } from '../../cross-cut-modules/resilience-contracts/componentIds.js';
 export {

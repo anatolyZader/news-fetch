@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {
   buildGroundingContext,
   daysSince,
-} from '../../../../../business_modules/resilience_scorer/domain/services/actionCompassGrounding.js';
+} from '../../../../../business_modules/resilience_scorer/domain/services/actionCompass/actionCompassGrounding.js';
 
 describe('buildGroundingContext', () => {
   it('extracts named clusters and channel health from data_void', () => {

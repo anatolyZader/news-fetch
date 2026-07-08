@@ -9,7 +9,7 @@ import { createRetrievalService } from '../../../../cross-cut-modules/retrieval/
 import {
   assessRagBackfillEnabled,
   ensureArticleCorpusRagIndexed,
-} from '../../../../business_modules/resilience_scorer/app/ensureArticleCorpusRagIndexed.js';
+} from '../../../../business_modules/resilience_scorer/app/signals/ensureArticleCorpusRagIndexed.js';
 
 const envKeys = ['RAG_PIPELINE_ENABLED', 'RESILIENCE_ASSESS_RAG_BACKFILL', 'VECTOR_INDEX_EMBEDDINGS', 'COHERE_API_KEY'];
 const envBackup = {};

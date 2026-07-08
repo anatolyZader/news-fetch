@@ -4,7 +4,7 @@
 import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { COMPONENT_IDS } from '../../../../cross-cut-modules/resilience-contracts/componentIds.js';
-import { epistemicProfilesDir } from '../../domain/services/artifactPaths.js';
+import { epistemicProfilesDir } from '../../domain/services/paths/outputDirs.js';
 
 /**
  * @param {string} reportDate YYYY-MM-DD

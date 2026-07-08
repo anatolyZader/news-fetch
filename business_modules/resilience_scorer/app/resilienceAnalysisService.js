@@ -1,21 +1,21 @@
 /**
  * Application use case: ResilienceContentBatch → signals → investigation → optional shadow score.
  */
-import { assertValidResilienceContentBatch } from '../domain/services/resilienceBatchValidation.js';
+import { assertValidResilienceContentBatch } from '../domain/services/signals/resilienceBatchValidation.js';
 import { mergeDualExtractionSignals } from '../infrastructure/dualModelExtract.js';
 import {
   normalizeReportScope,
 } from '../domain/services/regionSignalFilter.js';
 import { loadConnectivityProbeSignals } from '../infrastructure/adapters/connectivityProbeFileAdapter.js';
-import { enrichProbeSignalsInList } from '../domain/services/probeCorroborationPolicy.js';
-import { resilienceReportsDir } from '../domain/services/artifactPaths.js';
+import { enrichProbeSignalsInList } from '../domain/services/signals/probeCorroborationPolicy.js';
+import { resilienceReportsDir } from '../domain/services/paths/outputDirs.js';
 import { enrichSignalsGeoIfNeeded } from '../../../cross-cut-modules/geo/enrichSignalsGeoIfNeeded.js';
-import { runPostExtractionAssessmentCore } from './postExtractionAssessmentCore.js';
-import { buildAssessmentWindowMetadata } from './assessSignalsHelpers.js';
+import { runPostExtractionAssessmentCore } from './signals/postExtractionAssessmentCore.js';
+import { buildAssessmentWindowMetadata } from './signals/assessSignalsHelpers.js';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createPipelineRunStore } from '../../../db/persistence/pipelineRunStore.js';
-import { createPipelineRunTracker } from './pipelineRunTracker.js';
+import { createPipelineRunTracker } from './pipeline/pipelineRunTracker.js';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 

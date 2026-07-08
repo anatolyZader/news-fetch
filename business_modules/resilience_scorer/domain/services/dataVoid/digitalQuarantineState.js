@@ -12,8 +12,8 @@ import { join, resolve } from 'node:path';
 import {
   normalizeReportScopeId,
 } from '../../../../../cross-cut-modules/geo/reportScopeIds.js';
-import { listReportJsonFilenamesForDate } from '../reportArtifactNames.js';
-import { resilienceReportsDir } from '../artifactPaths.js';
+import { listReportJsonFilenamesForDate } from '../paths/reportNames.js';
+import { resilienceReportsDir } from '../paths/outputDirs.js';
 
 /**
  * @param {string} dateIso YYYY-MM-DD

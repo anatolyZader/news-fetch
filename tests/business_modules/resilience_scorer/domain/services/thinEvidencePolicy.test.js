@@ -4,7 +4,7 @@ import assert from 'node:assert';
 import {
   deriveThinEvidencePolicy,
   THIN_EVIDENCE_INSTRUMENT,
-} from '../../../../../business_modules/resilience_scorer/domain/services/thinEvidencePolicy.js';
+} from '../../../../../business_modules/resilience_scorer/domain/services/signals/thinEvidencePolicy.js';
 
 describe('thinEvidencePolicy', () => {
   it('returns unverified_alert when thin and floor_clamped', () => {

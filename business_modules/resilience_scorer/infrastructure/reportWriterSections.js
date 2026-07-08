@@ -3,7 +3,7 @@
  */
 
 import { RESILIENCE_COMPONENTS } from '../domain/resilienceComponents.js';
-import { summarizeConfidence } from '../domain/services/behaviorSignals.js';
+import { summarizeConfidence } from '../domain/services/signals/behaviorSignals.js';
 import {
   COMPONENTS_TABLE_HELP_MARKDOWN,
   EVIDENCE_LEVEL_INLINE_NOTE,

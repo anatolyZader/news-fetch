@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildAnomalyStrip, isCrisisEpistemicMode } from '../../../../../business_modules/resilience_scorer/domain/services/anomalyStrip.js';
+import { buildAnomalyStrip, isCrisisEpistemicMode } from '../../../../../business_modules/resilience_scorer/domain/services/operator/anomalyStrip.js';
 
 describe('buildAnomalyStrip', () => {
   it('shows operator strip in crisis mode with single cluster', () => {

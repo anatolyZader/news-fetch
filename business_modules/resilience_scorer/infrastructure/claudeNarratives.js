@@ -1,10 +1,10 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { RESILIENCE_COMPONENTS } from '../domain/resilienceComponents.js';
-import { summarizeConfidence } from '../domain/services/behaviorSignals.js';
+import { summarizeConfidence } from '../domain/services/signals/behaviorSignals.js';
 import { overallScore, scoreComponents } from '../app/scoringFacade.js';
-import { salienceContextFromDataVoid } from '../domain/services/highSalienceBypass.js';
-import { computeNorrisCapacities } from '../domain/services/norrisCapacities.js';
-import { narrativeIncludesScores } from '../domain/services/assessmentDisplayTier.js';
+import { salienceContextFromDataVoid } from '../domain/epistemic/highSalienceBypass.js';
+import { computeNorrisCapacities } from '../domain/epistemic/norrisCapacities.js';
+import { narrativeIncludesScores } from '../domain/services/operator/assessmentDisplayTier.js';
 import {
   buildSignalRefRegistry,
   formatCoOccurrenceForPrompt,
@@ -23,7 +23,7 @@ import {
   isNarrativeGroundingBlockEnabled,
   narrativeGroundingMinScore,
 } from '../domain/services/narrativeGrounding/index.js';
-import { topContributorsFromScored } from '../domain/services/topContributors.js';
+import { topContributorsFromScored } from '../domain/services/operator/topContributors.js';
 import { extractJson } from './claudeJsonHelpers.js';
 import { streamWithProgress } from './claudeExtraction.js';
 import { extractNarrativeFacts } from './narrativeFactsExtract.js';

@@ -5,10 +5,10 @@ import { isRegionalReportScope } from '../../../../cross-cut-modules/geo/reportS
 import {
   MACRO_NATIONAL_TERMS,
   SIGNAL_PROVENANCE,
-} from './evidenceEligibility.js';
-import { SIGNAL_TO_COMPONENTS } from './behaviorSignals.js';
+} from './signals/evidenceEligibility.js';
+import { SIGNAL_TO_COMPONENTS } from './signals/behaviorSignals.js';
 import { scopeDecisionForSignal } from './regionSignalFilter.js';
-import { isExcludedNationalContextSignalType } from './signalTypeHygiene.js';
+import { isExcludedNationalContextSignalType } from './signals/signalTypeHygiene.js';
 
 const NATIONAL_PRESS_SOURCE_TYPES = new Set(['news', 'radio']);
 

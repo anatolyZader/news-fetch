@@ -2,7 +2,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { readFileSync, existsSync } from 'node:fs';
 
-import { SIGNAL_TYPES } from '../../../../../business_modules/resilience_scorer/domain/services/signalCatalog.js';
+import { SIGNAL_TYPES } from '../../../../../business_modules/resilience_scorer/domain/services/signals/signalCatalog.js';
 import {
   EXTRACTION_SNAPSHOT_PATH,
   TYPE_COVERAGE_SNAPSHOT_PATH,

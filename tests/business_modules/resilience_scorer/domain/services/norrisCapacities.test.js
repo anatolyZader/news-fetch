@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 
-import { computeNorrisCapacities } from '../../../../../business_modules/resilience_scorer/domain/services/norrisCapacities.js';
+import { computeNorrisCapacities } from '../../../../../business_modules/resilience_scorer/domain/epistemic/norrisCapacities.js';
 
 function makeComp({ score, certainty = 0.5, evidence_mass = 5, source_diversity = 1, signals = [] } = {}) {
   return { score, certainty, evidence_mass, source_diversity, signals };

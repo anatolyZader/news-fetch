@@ -8,7 +8,7 @@ import {
   buildPipelineIngestPlan,
   parsePipelineDateArg,
   planHasWork,
-} from '../../../../business_modules/resilience_scorer/app/pipelineIngestPlan.js';
+} from '../../../../business_modules/resilience_scorer/app/pipeline/pipelineIngestPlan.js';
 import {
   newsArticlesPath,
   newsSignalsPath,
@@ -16,8 +16,8 @@ import {
   pipelineOpenObservationsPath,
   socialSignalsPath,
   fieldSignalsPath,
-} from '../../../../business_modules/resilience_scorer/domain/services/pipelineArtifactPaths.js';
-import { openPipelineObsNeedsExtract } from '../../../../business_modules/resilience_scorer/app/pipelineOpenObsGuard.js';
+} from '../../../../business_modules/resilience_scorer/domain/services/paths/ingestPaths.js';
+import { openPipelineObsNeedsExtract } from '../../../../business_modules/resilience_scorer/app/pipeline/pipelineOpenObsGuard.js';
 import { pipelineObservationBundleFilename } from '../../../../business_modules/signals_extraction/domain/services/observationSchema.js';
 
 const REPLAY_REUSE_ENV_KEYS = [

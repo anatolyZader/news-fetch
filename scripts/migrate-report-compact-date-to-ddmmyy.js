@@ -13,8 +13,8 @@ import {
   COMPACT_REPORT_BASENAME_RE,
   ddMmYyFromIsoDate,
   isoDateFromYyMmDd,
-} from '../business_modules/resilience_scorer/domain/services/reportArtifactNames.js';
-import { resilienceReportsDir } from '../business_modules/resilience_scorer/domain/services/artifactPaths.js';
+} from '../business_modules/resilience_scorer/domain/services/paths/reportNames.js';
+import { resilienceReportsDir } from '../business_modules/resilience_scorer/domain/services/paths/outputDirs.js';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const APPLY = process.argv.includes('--apply');

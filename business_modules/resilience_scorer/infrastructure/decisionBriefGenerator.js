@@ -7,7 +7,7 @@ import {
   buildDecisionBriefSystemPrompt,
   buildDecisionBriefUserPrompt,
   buildDecisionBriefPayload,
-} from '../domain/services/decisionBriefPrompt.js';
+} from '../domain/services/operator/decisionBriefPrompt.js';
 
 const SCORE_IN_TEXT_RE = /\b([1-9]|10)\s*\/\s*10\b|\bscore\s*[:=]\s*[1-9]\d?\b/i;
 

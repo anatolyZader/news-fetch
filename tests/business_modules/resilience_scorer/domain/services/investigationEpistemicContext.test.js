@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { deriveInvestigationEpistemicContext } from '../../../../../business_modules/resilience_scorer/domain/services/investigationEpistemicContext.js';
+import { deriveInvestigationEpistemicContext } from '../../../../../business_modules/resilience_scorer/domain/epistemic/investigationEpistemicContext.js';
 
 describe('investigationEpistemicContext', () => {
   it('keeps assessmentMode normal under digital darkness', () => {

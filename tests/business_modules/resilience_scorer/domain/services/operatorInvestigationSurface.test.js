@@ -15,12 +15,12 @@ import {
   attachRichInvestigationPool,
   buildDeterministicNarrativeFromClaims,
   buildComponentInvestigationPool,
-} from '../../../../../business_modules/resilience_scorer/domain/services/operatorInvestigationSurface.js';
-import { SIGNAL_PROVENANCE } from '../../../../../business_modules/resilience_scorer/domain/services/evidenceEligibility.js';
+} from '../../../../../business_modules/resilience_scorer/domain/services/operator/operatorInvestigationSurface.js';
+import { SIGNAL_PROVENANCE } from '../../../../../business_modules/resilience_scorer/domain/services/signals/evidenceEligibility.js';
 import {
   finalizeOperatorNarrativeSurface,
   isStubNarrative,
-} from '../../../../../business_modules/resilience_scorer/domain/services/operatorNarrativeSurface.js';
+} from '../../../../../business_modules/resilience_scorer/domain/services/operator/operatorNarrativeSurface.js';
 
 describe('operatorSurfaceMode', () => {
   it('defaults to legacy', () => {

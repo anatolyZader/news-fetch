@@ -8,8 +8,8 @@ import {
   sortAttentionItems,
   ATTENTION_LEVELS,
   ATTENTION_KINDS,
-} from '../../../../../business_modules/resilience_scorer/domain/services/attentionItems.js';
-import { DISPLAY_VIEWS } from '../../../../../business_modules/resilience_scorer/domain/services/assessmentDisplayTier.js';
+} from '../../../../../business_modules/resilience_scorer/domain/services/operator/attentionItems.js';
+import { DISPLAY_VIEWS } from '../../../../../business_modules/resilience_scorer/domain/services/operator/assessmentDisplayTier.js';
 
 describe('attentionItems', () => {
   it('returns empty for null assessment', () => {

@@ -6,8 +6,8 @@ import {
   buildTargetDates,
   dateOffset,
   temporalWeightForOffset,
-} from '../../app/assessSignalsHelpers.js';
-import { mapObservationsToSignals } from '../../domain/services/catalogMappingService.js';
+} from '../../app/signals/assessSignalsHelpers.js';
+import { mapObservationsToSignals } from '../../domain/services/signals/catalogMappingService.js';
 
 /**
  * @param {{

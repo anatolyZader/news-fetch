@@ -7,7 +7,7 @@ import {
   partitionMacroSignals,
   SIGNAL_PROVENANCE,
   annotateSignalsEpistemics,
-} from '../../../../../business_modules/resilience_scorer/domain/services/evidenceEligibility.js';
+} from '../../../../../business_modules/resilience_scorer/domain/services/signals/evidenceEligibility.js';
 
 describe('evidenceEligibility', () => {
   it('marks metrics-unsafe resolved geo as not metricsEligible', () => {

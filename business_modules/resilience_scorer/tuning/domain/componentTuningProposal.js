@@ -9,7 +9,7 @@ import { resolveStateStore } from '../../../../cross-cut-modules/persistence/dom
 function getStore(deps = {}) {
   return resolveStateStore(deps);
 }
-import { isNationalReportFilename } from '../../domain/services/reportArtifactNames.js';
+import { isNationalReportFilename } from '../../domain/services/paths/reportNames.js';
 import { COMPONENT_TUNING } from '../../domain/epistemic/certaintyTuning.js';
 
 const TANHK_MIN = 1;

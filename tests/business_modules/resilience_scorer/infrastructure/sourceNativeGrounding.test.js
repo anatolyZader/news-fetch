@@ -2,7 +2,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
 import { applySourceNativeGrounding } from '../../../../business_modules/resilience_scorer/infrastructure/sourceNativeGrounding.js';
-import { GROUNDING_TIER } from '../../../../business_modules/resilience_scorer/domain/services/groundingPolicy.js';
+import { GROUNDING_TIER } from '../../../../business_modules/resilience_scorer/domain/services/signals/groundingPolicy.js';
 
 describe('applySourceNativeGrounding', () => {
   it('anchors evidence to raw WhatsApp message', () => {

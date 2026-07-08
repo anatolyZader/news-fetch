@@ -7,7 +7,7 @@ import {
   enrichProbeSignalsInList,
   filterValidProbeRecords,
   validateProbeRecord,
-} from '../../../../../business_modules/resilience_scorer/domain/services/probeCorroborationPolicy.js';
+} from '../../../../../business_modules/resilience_scorer/domain/services/signals/probeCorroborationPolicy.js';
 
 function probeSignal(source) {
   return {

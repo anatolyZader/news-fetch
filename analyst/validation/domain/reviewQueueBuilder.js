@@ -2,8 +2,8 @@
  * Stratified human-review queue for extraction / construct validation (Tier 2 + 4 prep).
  */
 
-import { CATALOG_VERSION } from '../../../business_modules/resilience_scorer/domain/services/signalCatalog.js';
-import { SCORING_MODEL_VERSION } from '../../../business_modules/resilience_scorer/domain/services/assessmentMethodology.js';
+import { CATALOG_VERSION } from '../../../business_modules/resilience_scorer/domain/services/signals/signalCatalog.js';
+import { SCORING_MODEL_VERSION } from '../../../business_modules/resilience_scorer/domain/epistemic/assessmentMethodology.js';
 import { SOCIAL_QUARANTINE_ARTICLE_KEY } from '../../../business_modules/resilience_scorer/domain/services/socialChannelQuarantine.js';
 
 /**

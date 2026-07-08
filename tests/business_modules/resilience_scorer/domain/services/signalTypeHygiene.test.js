@@ -6,7 +6,7 @@ import {
   rewriteMisclassifiedSignalType,
   shouldDropNonResilienceCasualtySignal,
   isBareHazardTickerEvidence,
-} from '../../../../../business_modules/resilience_scorer/domain/services/signalTypeHygiene.js';
+} from '../../../../../business_modules/resilience_scorer/domain/services/signals/signalTypeHygiene.js';
 
 describe('signalTypeHygiene', () => {
   const holySepulcherEvidence =

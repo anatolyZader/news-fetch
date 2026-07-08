@@ -10,7 +10,7 @@ import {
   isStubNarrative,
   resolveOperatorComponentNarrative,
   INSUFFICIENT_SYNTHESIS_NARRATIVE,
-} from '../../../../../business_modules/resilience_scorer/domain/services/operatorNarrativeSurface.js';
+} from '../../../../../business_modules/resilience_scorer/domain/services/operator/operatorNarrativeSurface.js';
 
 describe('operatorNarrativeSurface', () => {
   it('isStubNarrative detects insufficient synthesis stub', () => {

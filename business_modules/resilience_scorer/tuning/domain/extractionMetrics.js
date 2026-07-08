@@ -17,8 +17,8 @@ import {
   tokenize,
   shingles,
   containment,
-} from '../../domain/services/textSimilarity.js';
-import { SIGNAL_TYPES } from '../../domain/services/behaviorSignals.js';
+} from '../../domain/services/signals/textSimilarity.js';
+import { SIGNAL_TYPES } from '../../domain/services/signals/behaviorSignals.js';
 
 const DEFAULT_EVIDENCE_THRESHOLD = 0.4; // 3-gram containment threshold for evidence-overlap match
 

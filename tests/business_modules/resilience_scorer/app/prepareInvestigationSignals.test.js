@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { prepareInvestigationSignals } from '../../../../business_modules/resilience_scorer/app/prepareInvestigationSignals.js';
+import { prepareInvestigationSignals } from '../../../../business_modules/resilience_scorer/app/signals/prepareInvestigationSignals.js';
 
 describe('prepareInvestigationSignals', () => {
   it('returns investigation signals without OOV scoring synthesis', async () => {

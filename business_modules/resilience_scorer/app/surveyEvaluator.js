@@ -13,7 +13,7 @@ import { writeFileSync, readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { getDefaultLlmPort } from '../../../cross-cut-modules/llm/anthropicLlmAdapter.js';
 import { RESILIENCE_COMPONENTS } from '../domain/resilienceComponents.js';
-import { resilienceSurveyDataDir } from '../domain/services/artifactPaths.js';
+import { resilienceSurveyDataDir } from '../domain/services/paths/outputDirs.js';
 
 
 const MODEL_SURVEY_HAIKU = 'claude-haiku-4-5-20251001';

@@ -5,7 +5,7 @@ import {
   resolveQuoteText,
   shingles,
   tokenize,
-} from '../domain/services/textSimilarity.js';
+} from '../domain/services/signals/textSimilarity.js';
 
 const HEBREW_LETTER_RE = /[\u0590-\u05FF]/;
 
@@ -86,7 +86,7 @@ export {
   normalizeForMatch,
   orderedSubsequenceContainment,
   resolveQuoteText,
-} from '../domain/services/textSimilarity.js';
+} from '../domain/services/signals/textSimilarity.js';
 
 const VERIFY_THRESHOLDS = {
   direct_quote_named_person:   { containment: 0.7, windowContainment: 0.8 },

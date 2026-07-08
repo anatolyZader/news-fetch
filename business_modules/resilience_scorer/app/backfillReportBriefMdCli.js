@@ -2,8 +2,8 @@ import { readdirSync, readFileSync, writeFileSync, statSync, existsSync } from '
 import { resolve } from 'node:path';
 
 import { buildMarkdown, buildSignalAppendix } from '../infrastructure/reportWriter.js';
-import { resilienceReportsDir } from '../domain/services/artifactPaths.js';
-import { isResilienceReportFilename, isNationalReportFilename } from '../domain/services/reportArtifactNames.js';
+import { resilienceReportsDir } from '../domain/services/paths/outputDirs.js';
+import { isResilienceReportFilename, isNationalReportFilename } from '../domain/services/paths/reportNames.js';
 
 const reportsDir = resilienceReportsDir();
 

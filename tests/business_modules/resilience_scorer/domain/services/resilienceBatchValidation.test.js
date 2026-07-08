@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 
-import { assertValidResilienceContentBatch } from '../../../../../business_modules/resilience_scorer/domain/services/resilienceBatchValidation.js';
+import { assertValidResilienceContentBatch } from '../../../../../business_modules/resilience_scorer/domain/services/signals/resilienceBatchValidation.js';
 
 const validItem = {
   id: '1',

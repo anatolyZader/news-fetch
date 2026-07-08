@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseOperatorRecommendationRequest } from '../../../../business_modules/resilience_scorer/app/operatorRecommendationService.js';
+import { parseOperatorRecommendationRequest } from '../../../../business_modules/resilience_scorer/app/operator/operatorRecommendationService.js';
 
 describe('parseOperatorRecommendationRequest', () => {
   it('rejects empty id', () => {

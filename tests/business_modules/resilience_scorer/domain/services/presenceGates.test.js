@@ -5,8 +5,8 @@ import {
   evaluatePresenceGates,
   isPresenceGatesEnabled,
   PRESENCE_GATE_RULES,
-} from '../../../../../business_modules/resilience_scorer/domain/services/presenceGates.js';
-import { GROUNDING_TIER } from '../../../../../business_modules/resilience_scorer/domain/services/groundingPolicy.js';
+} from '../../../../../business_modules/resilience_scorer/domain/epistemic/presenceGates.js';
+import { GROUNDING_TIER } from '../../../../../business_modules/resilience_scorer/domain/services/signals/groundingPolicy.js';
 
 describe('presenceGates', () => {
   const prev = process.env.RESILIENCE_PRESENCE_GATES;

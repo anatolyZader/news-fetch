@@ -2,12 +2,12 @@
  * Builds immutable daily validation records for calibration / construct-validity workflows.
  */
 
-import { CATALOG_VERSION } from '../../../business_modules/resilience_scorer/domain/services/signalCatalog.js';
+import { CATALOG_VERSION } from '../../../business_modules/resilience_scorer/domain/services/signals/signalCatalog.js';
 import {
   SCORING_MODEL_VERSION,
   buildScoringModelManifest,
-} from '../../../business_modules/resilience_scorer/domain/services/assessmentMethodology.js';
-import { getCalibrationSnapshot } from '../../../business_modules/resilience_scorer/domain/services/signalWeightsFit.js';
+} from '../../../business_modules/resilience_scorer/domain/epistemic/assessmentMethodology.js';
+import { getCalibrationSnapshot } from '../../../business_modules/resilience_scorer/domain/services/signals/signalWeightsFit.js';
 import {
   computeElevationAdvisory,
   validationStatusForMethodology,

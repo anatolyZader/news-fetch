@@ -14,7 +14,7 @@ import {
   
   isCriticalForGrounding,
   isGroundingTieredVerifyEnabled,
-} from '../domain/services/groundingPolicy.js';
+} from '../domain/services/signals/groundingPolicy.js';
 import { recordOutletTelemetry } from '../domain/services/outletReputationDecay.js';
 
 const DEFAULT_SELF_CHECK_MODEL = process.env.RESILIENCE_SELF_CHECK_MODEL ?? 'claude-haiku-4-5-20251001';
@@ -405,4 +405,4 @@ export async function runEntailmentVerifier(borderlineItems, sourceLabel, usageC
 
 
 
-export {deriveTierFromVerifyFailure, isCriticalForGrounding} from '../domain/services/groundingPolicy.js';
+export {deriveTierFromVerifyFailure, isCriticalForGrounding} from '../domain/services/signals/groundingPolicy.js';

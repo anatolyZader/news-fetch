@@ -5,13 +5,13 @@ import { join, dirname } from 'node:path';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 
-import { assertAssessOnlySafe } from '../../../../business_modules/resilience_scorer/app/pipelineOrchestrator.js';
-import { PIPELINE_ACTIONS } from '../../../../business_modules/resilience_scorer/app/pipelineIngestPlan.js';
+import { assertAssessOnlySafe } from '../../../../business_modules/resilience_scorer/app/pipeline/pipelineOrchestrator.js';
+import { PIPELINE_ACTIONS } from '../../../../business_modules/resilience_scorer/app/pipeline/pipelineIngestPlan.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const orchestratorSourcePath = join(
   __dirname,
-  '../../../../business_modules/resilience_scorer/app/pipelineOrchestrator.js',
+  '../../../../business_modules/resilience_scorer/app/pipeline/pipelineOrchestrator.js',
 );
 
 /** @returns {string[]} */

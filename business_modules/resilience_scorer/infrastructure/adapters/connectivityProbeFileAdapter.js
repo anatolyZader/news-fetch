@@ -8,7 +8,7 @@ import { resolve, join } from 'node:path';
 import {
   applyProbeCorroborationPolicy,
   filterValidProbeRecords,
-} from '../../domain/services/probeCorroborationPolicy.js';
+} from '../../domain/services/signals/probeCorroborationPolicy.js';
 import { totalAnchorVolume } from '../../domain/services/dataVoid/sourceChannels.js';
 
 const DEFAULT_DIR = resolve('business_modules', 'resilience_scorer', 'data', 'connectivity-probes');

@@ -10,7 +10,7 @@ import {
   redactScoreBySource,
   redactReportPayload,
   narrativeIncludesScores,
-} from '../../../../../business_modules/resilience_scorer/domain/services/assessmentDisplayTier.js';
+} from '../../../../../business_modules/resilience_scorer/domain/services/operator/assessmentDisplayTier.js';
 import {
   canViewAnalystDisplay,
   resetUserAccessCache,

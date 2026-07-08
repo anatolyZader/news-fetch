@@ -8,7 +8,7 @@ import {
   deriveAssessmentState,
   deriveOperatorDisplayState,
   findUnknownComponentIds,
-} from '../../../../../business_modules/resilience_scorer/domain/services/componentDiagnostics.js';
+} from '../../../../../business_modules/resilience_scorer/domain/services/operator/componentDiagnostics.js';
 
 function pboSignal(i) {
   return {

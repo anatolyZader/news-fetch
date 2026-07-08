@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { randomUUID } from 'node:crypto';
 import { createStoryClusterIndex } from '../../../cross-cut-modules/retrieval/storyClusterIndex.js';
-import { crossSourceDedupClustered } from '../../../business_modules/resilience_scorer/app/assessSignalsHelpers.js';
+import { crossSourceDedupClustered } from '../../../business_modules/resilience_scorer/app/signals/assessSignalsHelpers.js';
 
 function fakeEmbedding(text) {
   const v = new Array(8).fill(0);

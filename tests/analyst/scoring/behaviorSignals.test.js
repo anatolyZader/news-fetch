@@ -6,10 +6,10 @@ import {
   SIGNAL_TO_COMPONENTS,
   SIGNAL_TYPES,
   assertCatalogPolarityCoherence,
-} from '../../../business_modules/resilience_scorer/domain/services/behaviorSignals.js';
+} from '../../../business_modules/resilience_scorer/domain/services/signals/behaviorSignals.js';
 import { scoreComponents, overallScore } from '../../../analyst/scoring/index.js';
-import { COMPONENT_FACETS } from '../../../business_modules/resilience_scorer/domain/services/componentFacets.js';
-import { summarizeSubgroupCoverage } from '../../../business_modules/resilience_scorer/domain/services/assessmentMethodology.js';
+import { COMPONENT_FACETS } from '../../../business_modules/resilience_scorer/domain/services/operator/componentFacets.js';
+import { summarizeSubgroupCoverage } from '../../../business_modules/resilience_scorer/domain/epistemic/assessmentMethodology.js';
 
 function makeSignal(overrides = {}) {
   return {
@@ -548,7 +548,7 @@ describe('scoreComponents — facets (T4)', () => {
   it('every facet signal type maps to its component (directly or via spillover)', async () => {
     // Sanity check: a facet should not reference a signal type that doesn't route to its parent.
     const { SIGNAL_TO_COMPONENTS: mapping } = await import(
-      '../../../business_modules/resilience_scorer/domain/services/behaviorSignals.js');
+      '../../../business_modules/resilience_scorer/domain/services/signals/behaviorSignals.js');
     for (const [componentId, facets] of Object.entries(COMPONENT_FACETS)) {
       for (const [facetName, signalTypes] of Object.entries(facets)) {
         for (const sigType of signalTypes) {

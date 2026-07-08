@@ -13,7 +13,7 @@ import {
   CATALOG_VERSION,
   SIGNAL_CATALOG,
   SIGNAL_TYPES,
-} from '../../business_modules/resilience/domain/services/signalCatalog.js';
+} from '../../business_modules/resilience/domain/services/signals/signalCatalog.js';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../../..');
 const SIGNALS_DIR = resolve(ROOT, 'signals');

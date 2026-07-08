@@ -8,7 +8,7 @@ import {
   resolveFailedGrounding,
   selectEntailmentPremise,
 } from '../../../../business_modules/resilience_scorer/infrastructure/claudeEvidenceVerification.js';
-import { GROUNDING_TIER } from '../../../../business_modules/resilience_scorer/domain/services/groundingPolicy.js';
+import { GROUNDING_TIER } from '../../../../business_modules/resilience_scorer/domain/services/signals/groundingPolicy.js';
 
 describe('claudeEvidenceVerification — short evidence routing', () => {
   const primaryFail = { ok: false, reason: 'low_similarity', sim: 0 };

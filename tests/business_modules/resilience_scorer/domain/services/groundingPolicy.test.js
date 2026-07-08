@@ -8,7 +8,7 @@ import {
   assignGroundingFields,
   groundingMetaFromEntailmentFail,
   UNVERIFIED_CRITICAL_GROUNDING_REASON,
-} from '../../../../../business_modules/resilience_scorer/domain/services/groundingPolicy.js';
+} from '../../../../../business_modules/resilience_scorer/domain/services/signals/groundingPolicy.js';
 
 describe('groundingPolicy', () => {
   it('Tier A has full weight', () => {

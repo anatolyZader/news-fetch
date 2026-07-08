@@ -1,8 +1,8 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildActionCompass, deriveUncertaintyBand } from '../../../../../business_modules/resilience_scorer/domain/services/actionCompass.js';
-import { ACTION_KINDS } from '../../../../../business_modules/resilience_scorer/domain/services/actionCompassKinds.js';
-import { buildAttentionItems } from '../../../../../business_modules/resilience_scorer/domain/services/attentionItems.js';
+import { buildActionCompass, deriveUncertaintyBand } from '../../../../../business_modules/resilience_scorer/domain/services/actionCompass/actionCompass.js';
+import { ACTION_KINDS } from '../../../../../business_modules/resilience_scorer/domain/services/actionCompass/actionCompassKinds.js';
+import { buildAttentionItems } from '../../../../../business_modules/resilience_scorer/domain/services/operator/attentionItems.js';
 
 describe('buildActionCompass', () => {
   it('returns a corroborate action for abstained assessment without scores', () => {

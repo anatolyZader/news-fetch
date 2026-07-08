@@ -6,7 +6,7 @@ import {
   buildDuplicateOccurrenceIndex,
   duplicateArticleFactor,
 } from '../../../../../business_modules/resilience_scorer/domain/epistemic/massContribution.js';
-import { SIGNAL_PROVENANCE } from '../../../../../business_modules/resilience_scorer/domain/services/evidenceEligibility.js';
+import { SIGNAL_PROVENANCE } from '../../../../../business_modules/resilience_scorer/domain/services/signals/evidenceEligibility.js';
 
 describe('massContribution', () => {
   it('applies partial_void_press weight discount', () => {

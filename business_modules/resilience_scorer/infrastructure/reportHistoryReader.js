@@ -4,8 +4,8 @@ import {
   normalizeReportScopeId,
   isRegionalReportScope,
 } from '../../../cross-cut-modules/geo/reportScopeIds.js';
-import { parseReportFilename, reportScopeSlug, reportFilenameMatchesDate } from '../domain/services/reportArtifactNames.js';
-import { resilienceReportsDir } from '../domain/services/artifactPaths.js';
+import { parseReportFilename, reportScopeSlug, reportFilenameMatchesDate } from '../domain/services/paths/reportNames.js';
+import { resilienceReportsDir } from '../domain/services/paths/outputDirs.js';
 
 /**
  * Walks resilience data/reports (compact `{scope}-{days}-{DDMMYY}-{HHmm}` or legacy run-scoped names).

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 
 import { buildReportContext } from '../../../../business_modules/chat/domain/reportContext.js';
 import { compareReports } from '../../../../business_modules/chat/domain/signalLookup.js';
-import { DISPLAY_VIEWS } from '../../../../business_modules/resilience_scorer/domain/services/assessmentDisplayTier.js';
+import { DISPLAY_VIEWS } from '../../../../business_modules/resilience_scorer/domain/services/operator/assessmentDisplayTier.js';
 
 const fixture = {
   assessment: {

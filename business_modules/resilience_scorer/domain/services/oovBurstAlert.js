@@ -8,7 +8,7 @@ function getStore(deps = {}) {
   return resolveStateStore(deps);
 }
 import { resolve } from 'node:path';
-import { resilienceCapturesDir } from './artifactPaths.js';
+import { resilienceCapturesDir } from './paths/outputDirs.js';
 import { evaluateDynamicOovClusters, evaluateInvestigationOovClusters } from '../../../../cross-cut-modules/learningCapture/dynamicOovCluster.js';
 import { embedText, embeddingsEnabled } from '../../../../cross-cut-modules/vector_index/index.js';
 import { isLearningCaptureEnabled, getOovRunBuffer } from './oovCapture.js';

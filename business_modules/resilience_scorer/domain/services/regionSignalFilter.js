@@ -11,7 +11,7 @@ import {
   assignedDistrictScopeMatch,
   hasExplicitSignalDistrictId,
   signalDistrictId,
-} from './signalDistrictId.js';
+} from './signals/signalDistrictId.js';
 import { recordDefaultNorthFallback } from './scopeAttributionMetrics.js';
 
 /**

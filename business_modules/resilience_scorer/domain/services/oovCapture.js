@@ -3,7 +3,7 @@
  */
 import { resolve } from 'node:path';
 import { resolveStateStore } from '../../../../cross-cut-modules/persistence/domain/resolveStateStore.js';
-import { resilienceCapturesDir } from './artifactPaths.js';
+import { resilienceCapturesDir } from './paths/outputDirs.js';
 
 function getStore(deps = {}) {
   return resolveStateStore(deps);

@@ -14,7 +14,7 @@ import {
   setUserAccessConfigForTests,
   userAccessForApi,
 } from '../../../cross-cut-modules/auth/userAccess.js';
-import { resolveDisplayView, DISPLAY_VIEWS } from '../../../business_modules/resilience_scorer/domain/services/assessmentDisplayTier.js';
+import { resolveDisplayView, DISPLAY_VIEWS } from '../../../business_modules/resilience_scorer/domain/services/operator/assessmentDisplayTier.js';
 
 describe('userAccess', () => {
   beforeEach(() => {

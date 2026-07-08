@@ -2,7 +2,7 @@
  * Optional weight/tuning overlays for scoreComponents (shadow sensitivity, offline tuning).
  */
 
-import { SIGNAL_TO_COMPONENTS } from '../../business_modules/resilience_scorer/domain/services/signalCatalog.js';
+import { SIGNAL_TO_COMPONENTS } from '../../business_modules/resilience_scorer/domain/services/signals/signalCatalog.js';
 import { COMPONENT_TUNING, createSeededRng } from './scoringShared.js';
 
 /**

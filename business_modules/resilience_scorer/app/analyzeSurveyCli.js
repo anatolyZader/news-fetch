@@ -20,7 +20,7 @@ import {
   scopeConfidence,
   usableForMetrics,
 } from '../../../cross-cut-modules/geo/geoEnvelopeAccess.js';
-import { resilienceSurveyDataDir, surveyInputDir } from '../domain/services/artifactPaths.js';
+import { resilienceSurveyDataDir, surveyInputDir } from '../domain/services/paths/outputDirs.js';
 
 const SURVEY_DATA_DIR = resilienceSurveyDataDir();
 const SURVEY_INPUT_DIR = surveyInputDir();

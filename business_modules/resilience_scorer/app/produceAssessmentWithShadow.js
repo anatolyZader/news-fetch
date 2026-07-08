@@ -7,7 +7,8 @@ import {
   isClosedCoreAssessEnabled,
 } from '../../../cross-cut-modules/agent/index.js';
 import { getDefaultLlmPort } from '../../../cross-cut-modules/llm/anthropicLlmAdapter.js';
-import { createEpistemicFeaturesService, loadHistoricalEpistemicMass } from '../index.js';
+import { createEpistemicFeaturesService } from './epistemicFeaturesService.js';
+import { loadHistoricalEpistemicMass } from '../infrastructure/adapters/historicalEpistemicMassReader.js';
 import {
   runAssessmentAgent,
   runDeterministicAssessment,
@@ -17,7 +18,7 @@ import {
   computeDivergence,
   writeShadowArtifacts,
 } from './shadowFacade.js';
-import { resilienceReportsDir } from '../domain/services/artifactPaths.js';
+import { resilienceReportsDir } from '../domain/services/paths/outputDirs.js';
 
 function resolveReportsDir(params) {
   return params.reportsDir ?? resilienceReportsDir();

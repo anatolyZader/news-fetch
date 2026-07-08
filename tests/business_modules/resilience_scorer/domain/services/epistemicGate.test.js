@@ -10,7 +10,7 @@ import {
   deriveAssessmentEpistemicPolicy,
   deriveThinEvidencePolicy,
   THIN_EVIDENCE_INSTRUMENT,
-} from '../../../../../business_modules/resilience_scorer/domain/services/thinEvidencePolicy.js';
+} from '../../../../../business_modules/resilience_scorer/domain/services/signals/thinEvidencePolicy.js';
 
 function mockScored(score = 6) {
   return {

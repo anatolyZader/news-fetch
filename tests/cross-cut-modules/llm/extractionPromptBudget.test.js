@@ -11,7 +11,7 @@ import {
 import {
   formatSignalCatalog,
   formatDisambiguationBlock,
-} from '../../../business_modules/resilience_scorer/domain/services/signalCatalogPrompt.js';
+} from '../../../business_modules/resilience_scorer/domain/services/signals/signalCatalogPrompt.js';
 
 describe('extractionPromptBudget', () => {
   it('uses extract-v3 prompt version (invalidates extraction cache)', () => {

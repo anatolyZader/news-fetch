@@ -4,7 +4,7 @@
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { computeEpistemicProfile } from '../domain/epistemic/epistemicProfileBuilder.js';
-import { epistemicProfilesDir } from '../domain/services/artifactPaths.js';
+import { epistemicProfilesDir } from '../domain/services/paths/outputDirs.js';
 
 export function createEpistemicFeaturesService(opts = {}) {
   const profilesDir = opts.profilesDir ?? opts.reportsDir ?? epistemicProfilesDir();

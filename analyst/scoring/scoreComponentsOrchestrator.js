@@ -1,4 +1,4 @@
-import { metricsEligible } from '../../business_modules/resilience_scorer/domain/services/evidenceEligibility.js';
+import { metricsEligible } from '../../business_modules/resilience_scorer/domain/services/signals/evidenceEligibility.js';
 import { applySourceCap } from '../../business_modules/resilience_scorer/domain/epistemic/evidenceCaps.js';
 import { bootstrapScoreCI } from './bootstrapScoreCI.js';
 import { computeDerivedIndicators } from './derivedIndicators.js';
@@ -26,7 +26,7 @@ import {
   resolveComponentTuning,
   resolveSignalWeights,
 } from './scoringOverrides.js';
-import { evaluatePresenceGates } from '../../business_modules/resilience_scorer/domain/services/presenceGates.js';
+import { evaluatePresenceGates } from '../../business_modules/resilience_scorer/domain/epistemic/presenceGates.js';
 
 const PRESS_SOURCE_TYPES = new Set(['news', 'radio']);
 

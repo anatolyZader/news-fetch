@@ -4,7 +4,7 @@ import {
   mapObservationToSignal,
   mapObservationsToSignals,
   resolveCatalogTypeForObservation,
-} from '../../../../../business_modules/resilience_scorer/domain/services/catalogMappingService.js';
+} from '../../../../../business_modules/resilience_scorer/domain/services/signals/catalogMappingService.js';
 
 describe('catalogMappingService', () => {
   it('resolveCatalogTypeForObservation uses suggested then nearest', () => {

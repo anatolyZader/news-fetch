@@ -2,15 +2,15 @@
  * Operator-side signal mass (contribution) — shared with diagnostics and caps.
  */
 import { getOutletReliabilityMultiplier } from '../services/outletReliabilityPriors.js';
-import { getScoringPriors, getSignalCatalogEntry } from '../services/signalRouter.js';
+import { getScoringPriors, getSignalCatalogEntry } from '../services/signals/signalRouter.js';
 import {
   INTENSITY_WEIGHT,
   POLARITY_OVERRIDE_SIGNAL_TYPES,
-} from '../services/signalInstanceSchema.js';
-import { groundingWeightMultiplier } from '../services/groundingPolicy.js';
-import { applyFieldGeoDiscount, isFieldFamilySource } from '../services/fieldSignalPolicy.js';
-import { gamingContributionMultiplier } from '../services/signalGamingPolicy.js';
-import { SIGNAL_PROVENANCE } from '../services/evidenceEligibility.js';
+} from '../services/signals/signalInstanceSchema.js';
+import { groundingWeightMultiplier } from '../services/signals/groundingPolicy.js';
+import { applyFieldGeoDiscount, isFieldFamilySource } from '../services/signals/fieldSignalPolicy.js';
+import { gamingContributionMultiplier } from '../services/signals/signalGamingPolicy.js';
+import { SIGNAL_PROVENANCE } from '../services/signals/evidenceEligibility.js';
 
 const INTENSITY_ORDER = { light: 0, moderate: 1, severe: 2 };
 

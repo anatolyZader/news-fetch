@@ -7,7 +7,7 @@ import {
   isDefaultNorthSource,
   isLegacyNorthStructuredSource,
   signalDistrictId,
-} from '../../../../../business_modules/resilience_scorer/domain/services/signalDistrictId.js';
+} from '../../../../../business_modules/resilience_scorer/domain/services/signals/signalDistrictId.js';
 
 describe('signalDistrictId', () => {
   it('returns explicit district_id when set', () => {

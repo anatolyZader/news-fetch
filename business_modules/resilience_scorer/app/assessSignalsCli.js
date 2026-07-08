@@ -30,8 +30,8 @@ import { fileURLToPath } from 'node:url';
 import { overallScore, scoreComponents } from './scoringFacade.js';
 import { buildComparisonContext } from '../domain/services/sourceMixIndex.js';
 import { isRegionalReportScope } from '../../../cross-cut-modules/geo/reportScopeIds.js';
-import { resilienceReportsDir } from '../domain/services/artifactPaths.js';
-import { buildReportBasename, listReportJsonFilenamesForDate } from '../domain/services/reportArtifactNames.js';
+import { resilienceReportsDir } from '../domain/services/paths/outputDirs.js';
+import { buildReportBasename, listReportJsonFilenamesForDate } from '../domain/services/paths/reportNames.js';
 import { ISRAEL_NATIONAL_DISTRICT_ID } from '../../../cross-cut-modules/geo/israelDistricts.js';
 import { writeReport } from '../infrastructure/reportWriter.js';
 import { createCostTracker, appendCostLog, resolveMaxCostUsd } from '../../../cross-cut-modules/budget/index.js';
@@ -47,23 +47,23 @@ import {
   mergeLoadedSignalFiles,
   dedupWithinSource,
   buildAssessmentWindowMetadata,
-} from './assessSignalsHelpers.js';
+} from './signals/assessSignalsHelpers.js';
 import { summarizeGeoCoverage, summarizeGeoQuality } from '../../../cross-cut-modules/geo/signalGeoSummary.js';
 import { enrichSignalsGeoIfNeeded } from '../../../cross-cut-modules/geo/enrichSignalsGeoIfNeeded.js';
-import { runPostExtractionAssessmentCore } from './postExtractionAssessmentCore.js';
-import { ensureArticleCorpusRagIndexed } from './ensureArticleCorpusRagIndexed.js';
+import { runPostExtractionAssessmentCore } from './signals/postExtractionAssessmentCore.js';
+import { ensureArticleCorpusRagIndexed } from './signals/ensureArticleCorpusRagIndexed.js';
 import {
   buildAssessmentMethodology,
   buildScoringModelManifest,
   formatScopeDecisionLogLine,
   formatSubgroupCoverageLogLine,
-} from '../domain/services/assessmentMethodology.js';
+} from '../domain/epistemic/assessmentMethodology.js';
 import { computeDataVoidIndex } from '../domain/services/dataVoidIndex.js';
-import { attachInvestigationDiagnostics } from '../domain/services/componentDiagnostics.js';
+import { attachInvestigationDiagnostics } from '../domain/services/operator/componentDiagnostics.js';
 import { COMPONENT_IDS } from '../../../cross-cut-modules/resilience-contracts/componentIds.js';
-import { runScoringPipeline } from '../app/scoringPipelinePrep.js';
-import { attachDecisionBrief } from '../app/attachDecisionBrief.js';
-import { salienceContextFromDataVoid } from '../domain/services/highSalienceBypass.js';
+import { runScoringPipeline } from './signals/scoringPipelinePrep.js';
+import { attachDecisionBrief } from './operator/attachDecisionBrief.js';
+import { salienceContextFromDataVoid } from '../domain/epistemic/highSalienceBypass.js';
 import { proposeComponentTuningFromReportFiles } from '../tuning/domain/componentTuningProposal.js';
 import {
   summarizeStageEvents,
@@ -71,18 +71,18 @@ import {
 } from '../domain/services/pipelineStageTelemetry.js';
 import createValidationCollectionService from '../validation/app/validationCollectionService.js';
 import { loadConnectivityProbeSignals, loadProbeRecordsForDate } from '../infrastructure/adapters/connectivityProbeFileAdapter.js';
-import { enrichProbeSignalsInList } from '../domain/services/probeCorroborationPolicy.js';
+import { enrichProbeSignalsInList } from '../domain/services/signals/probeCorroborationPolicy.js';
 import { createDefaultPboReportReviewService } from '../../pbo_report_review/index.js';
 import { createSourceArchive } from '../../../db/source_archive/createSourceArchive.js';
 import { archiveProbeRecords } from '../../../db/source_archive/archiveProbeRecords.js';
 import { createRetrievalService } from '../../../cross-cut-modules/retrieval/createRetrievalService.js';
 import { createSignalBundlePort } from './createSignalBundlePort.js';
 import { defaultClosedSignalsDir } from '../../signals_extraction/index.js';
-import { loadOpenObservationsForAssess } from './loadOpenObservationsForAssess.js';
+import { loadOpenObservationsForAssess } from './signals/loadOpenObservationsForAssess.js';
 import { isOmissionAuditEnabled } from '../domain/services/openExtractConfig.js';
-import { verifyOpenEvidenceClaims } from '../domain/services/openEvidenceVerification.js';
-import { synthesizeOpenEvidenceScoringSignals } from '../domain/services/openEvidenceScoringSignals.js';
-import { enqueueVerifiedOpenForCatalog } from './enqueueVerifiedOpenForCatalog.js';
+import { verifyOpenEvidenceClaims } from '../domain/services/signals/openEvidenceVerification.js';
+import { synthesizeOpenEvidenceScoringSignals } from '../domain/services/signals/openEvidenceScoringSignals.js';
+import { enqueueVerifiedOpenForCatalog } from './signals/enqueueVerifiedOpenForCatalog.js';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 

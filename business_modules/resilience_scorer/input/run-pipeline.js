@@ -11,8 +11,8 @@ import { bootstrapDefaultStateStore } from '../../../cross-cut-modules/persisten
 
 bootstrapDefaultStateStore();
 
-import { parsePipelineCliArgs, runPipelineOrchestrator } from '../app/pipelineOrchestrator.js';
-import { PIPELINE_PRESETS } from '../app/pipelinePresets.js';
+import { parsePipelineCliArgs, runPipelineOrchestrator } from '../app/pipeline/pipelineOrchestrator.js';
+import { PIPELINE_PRESETS } from '../app/pipeline/pipelinePresets.js';
 
 const argv = process.argv.slice(2);
 
