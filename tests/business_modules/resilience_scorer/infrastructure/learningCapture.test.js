@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { logZeroSignalArticles } from '../../../../business_modules/resilience_scorer/infrastructure/learningCapture.js';
-import { getOovRunCount, flushOovRunBuffer } from '../../../../business_modules/resilience_scorer/domain/services/oovCapture.js';
+import { getOovRunCount, flushOovRunBuffer } from '../../../../business_modules/resilience_scorer/domain/services/oov/oovCapture.js';
 import { LEARNING_CAPTURE_KINDS } from '../../../../cross-cut-modules/learningCapture/kinds.js';
 
 describe('learningCapture logZeroSignalArticles', () => {

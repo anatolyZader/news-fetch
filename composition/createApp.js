@@ -32,7 +32,7 @@ import {
   createDriftService,
   registerDriftRoutes,
   validationReviewRoutes,
-} from '../analyst/index.js';
+} from '../business_modules/resilience_scorer/analyst/index.js';
 import {
   createMonitoringService,
   registerMonitoringRoutes,

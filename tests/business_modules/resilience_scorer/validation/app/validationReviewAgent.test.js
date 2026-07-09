@@ -1,6 +1,6 @@
 import { describe, it, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { runValidationAgent } from '../../../../../business_modules/resilience_scorer/validation/app/validationReviewAgent.js';
+import { runValidationAgent } from '../../../../../business_modules/resilience_scorer/analyst/validation/app/validationReviewAgent.js';
 
 function fakeClient(script) {
   let callIndex = 0;

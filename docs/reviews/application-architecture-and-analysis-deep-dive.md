@@ -144,7 +144,7 @@ The table below lists **primary entrypoints** (npm scripts reference [`package.j
 | **WhatsApp** | `npm run whatsapp-to-md` plus server routes | Meta WhatsApp Cloud API, `ANTHROPIC_API_KEY` | Messages analyzed with [`whatsappResilienceAnalyzer.js`](../../business_modules/whatsapp/app/whatsappResilienceAnalyzer.js); **geo** attached when port is wired in composition. |
 | **Field visits** | `npm run ingest-field-reports` | Visit ingest module | Feeds evidence store / MD depending on configuration. |
 | **PBO municipal event log** | `npm run analyze-event-log` | Event log adapter | Specialized municipal reporting. |
-| **Survey (Excel)** | `npm run analyze-survey` → [`cross-cut-modules/geo/input/runAnalyzeSurvey.js`](../../cross-cut-modules/geo/input/runAnalyzeSurvey.js) | `--responses` `.xlsx`, mapping JSON, `ANTHROPIC_API_KEY` | Per-municipality MD reports under `business_modules/resilience_scorer/data/reports/`; **geo** on municipality name when `geoEnrichmentPort` is constructed in the script. |
+| **Survey (Excel)** | *(archived)* — see [`archive/survey-excel-cli/README.md`](../../archive/survey-excel-cli/README.md) | Was: Google Forms `.xlsx` → per-municipality MD under `data/survey/`; not shown in srulik.ai | Removed from active codebase 2026-07-09 |
 | **Naftali pool** | `business_modules/pool/input/extract-naftali-signals.js` (see package or module docs) | Pool-specific inputs | Signals with explicit geographic scope in prompts. |
 
 **SQLite:** Evidence and artifacts are persisted using helpers under `cross-cut-modules/`; path controlled by `SQLITE_PATH` (see [system overview](../../cross-cut-modules/docs/content/pages/architecture/system-overview.md)).
@@ -279,7 +279,7 @@ Some components expose **sub-facets** (see `computeFacets` and [`componentFacets
 
 - Weights and tuning constants are **author-set**, not learned from labeled data inside this repo. `COMPONENT_TUNING` comments note intent to revisit with **30+ days** of history for calibration-style work.  
 - LLM extraction introduces **stochastic bias** (temperature 0 still leaves model versioning and prompt sensitivity).  
-- **Survey path** uses LLM assessment per municipality in [`surveyEvaluator.js`](../../business_modules/resilience_scorer/app/surveyEvaluator.js) (checkpointed batches + regional synthesis) — a different orchestration than article signal extraction, though it shares component definitions from [`resilienceComponents.js`](../../business_modules/resilience_scorer/domain/resilienceComponents.js).
+- **Survey path (archived):** former offline Excel CLI lived under `archive/survey-excel-cli/` — not integrated with daily assess or operator UI.
 
 ---
 
@@ -291,7 +291,7 @@ Geographic capability is deliberately **non-LLM**: a deterministic resolver turn
 
 - **Domain port (consumer side):** [`IGeoEnrichmentPort`](../../business_modules/resilience_scorer/domain/ports/IGeoEnrichmentPort.js) — `resolveLocalityName(rawName)`.  
 - **Adapter:** [`geoEnrichmentAdapter.js`](../../business_modules/resilience_scorer/infrastructure/adapters/geoEnrichmentAdapter.js) delegates to `createGeoService` from [`business_modules/geo`](../../business_modules/geo/app/geoService.js).  
-- **Composition:** real adapter in [`composition/createApp.js`](../../composition/createApp.js) (server) and [`runAnalyzeSurvey.js`](../../cross-cut-modules/geo/input/runAnalyzeSurvey.js) (CLI). Tests or missing wiring use **`NoOpGeoEnrichmentPort`** (`kind: 'unknown', reason: 'GEO_DISABLED'`).
+- **Composition:** real adapter in [`composition/createApp.js`](../../composition/createApp.js) (server). Tests or missing wiring use **`NoOpGeoEnrichmentPort`** (`kind: 'unknown', reason: 'GEO_DISABLED'`).
 
 ### 6.2 Reference data and math
 
@@ -305,7 +305,7 @@ Geographic capability is deliberately **non-LLM**: a deterministic resolver turn
 | Consumer | When `geo` appears | Code |
 |----------|-------------------|------|
 | **WhatsApp** | After extraction / structured locality normalization; **same envelope** copied onto **every signal** from the message and onto `structured.observation.geo`. Optional `GEO_ASSERT_ENVELOPE=1` validates against schema. | [`whatsappResilienceAnalyzer.js`](../../business_modules/whatsapp/app/whatsappResilienceAnalyzer.js) `attachGeoToSignalsAndStructured` |
-| **Survey** | After per-municipality LLM assessment; **`m.geo`** from resolving **`m.name`**. | [`analyzeSurveyInput.js`](../../business_modules/resilience_scorer/input/analyzeSurveyInput.js); rendered in [`surveyReportWriter.js`](../../business_modules/resilience_scorer/app/surveyReportWriter.js) |
+| **Survey** | *(archived)* — was `m.geo` on municipality name in Excel CLI | [`archive/survey-excel-cli/`](../../archive/survey-excel-cli/) |
 | **News / generic MD extraction** | Signals may receive `geo` via [`enrichSignalsWithGeo.js`](../../cross-cut-modules/geo/enrichSignalsWithGeo.js) during extract/assess when locality strings are present. Without resolved geo matching the target district, news/radio/social signals are **not** regional-scope-relevant (no substring fallback). |
 
 ### 6.4 Two different “scope decisions” (do not confuse them)
@@ -392,7 +392,7 @@ Unknown or ambiguous localities can be routed to review sinks when configured (`
 - **Geo review UI:** operational queue for unknowns feeding reference JSON builders (`npm run build:north-reference` pipeline).  
 - **Multilingual normalization:** cross-lingual dedup and translation-gated extraction for Arabic and Russian sources where licenses permit.  
 - **Probabilistic geo:** when ambiguity is detected, carry a **set** of candidate envelopes with weights for sensitivity analysis (only if product accepts complexity).  
-- **Survey ↔ daily report fusion:** structured merge of municipality assessments into the same `assess-signals` batch with explicit `source_type` weighting rules.
+- **Survey ↔ daily report fusion:** *(deferred)* — archived Excel survey path was never merged into `assess-signals`; revisit only if product needs structured municipality survey inputs.
 
 ---
 
@@ -433,12 +433,11 @@ Always treat this table as **hints**; authoritative behavior is the code path th
 | LLM extract + narratives | [`business_modules/resilience_scorer/infrastructure/claudeEvaluator.js`](../../business_modules/resilience_scorer/infrastructure/claudeEvaluator.js) |
 | Server batch orchestration | [`business_modules/resilience_scorer/app/resilienceAnalysisService.js`](../../business_modules/resilience_scorer/app/resilienceAnalysisService.js) |
 | Cached report paths | [`reportCacheService.js`](../../business_modules/resilience_scorer/app/reportCacheService.js) |
-| Multi-source CLI | [`business_modules/resilience_scorer/input/assess-signals.js`](../../business_modules/resilience_scorer/input/assess-signals.js) |
+| Multi-source CLI | [`business_modules/resilience_scorer/input/assess-signals.js`](../../business_modules/resilience_scorer/input/assess-signals.js) → [`app/assessment/assessSignalsCli.js`](../../business_modules/resilience_scorer/app/assessment/assessSignalsCli.js) |
 | Report files | [`business_modules/resilience_scorer/infrastructure/reportWriter.js`](../../business_modules/resilience_scorer/infrastructure/reportWriter.js) |
 | Geo service | [`business_modules/geo/app/geoService.js`](../../business_modules/geo/app/geoService.js) |
 | WhatsApp + geo attach | [`business_modules/whatsapp/app/whatsappResilienceAnalyzer.js`](../../business_modules/whatsapp/app/whatsappResilienceAnalyzer.js) |
-| Survey CLI | [`business_modules/resilience_scorer/input/analyzeSurveyInput.js`](../../business_modules/resilience_scorer/input/analyzeSurveyInput.js) |
-| Survey Excel parse | [`business_modules/survey/infrastructure/adapters/surveyExcelLoader.js`](../../business_modules/survey/infrastructure/adapters/surveyExcelLoader.js) |
+| Survey Excel CLI (archived) | [`archive/survey-excel-cli/README.md`](../../archive/survey-excel-cli/README.md) |
 | Client report fetch | [`client/src/hooks/useAnalysis.js`](../../client/src/hooks/useAnalysis.js) |
 | App composition | [`composition/createApp.js`](../../composition/createApp.js), [`composition/wireApplication.js`](../../composition/wireApplication.js) |
 

@@ -4,8 +4,8 @@
 
 import { computeDataVoidIndex } from '../../domain/services/dataVoid/computeDataVoidIndex.js';
 import { loadActiveQuarantine } from '../../domain/services/dataVoid/digitalQuarantineState.js';
-import { evaluateOovBurst } from '../../domain/services/oovBurstAlert.js';
-import { synthesizeOovScoringSignals } from '../../domain/services/oovScoringSignals.js';
+import { evaluateOovBurst } from '../../domain/services/oov/oovBurstAlert.js';
+import { synthesizeOovScoringSignals } from '../../domain/services/oov/oovScoringSignals.js';
 import {
   applyOsintQuarantineFilter,
   evaluateOsintChannelQuarantine,

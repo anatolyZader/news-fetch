@@ -16,7 +16,7 @@ import {
   selectNarrativeNationalContext,
   selectRegionalPressContext,
   signalDedupeKey,
-} from '../../domain/services/narrativeScopeSignals.js';
+} from '../../domain/services/narrative/narrativeScopeSignals.js';
 import { shouldDropNonResilienceCasualtySignal } from '../../domain/services/signals/signalTypeHygiene.js';
 
 /**

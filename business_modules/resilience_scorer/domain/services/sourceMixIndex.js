@@ -2,15 +2,10 @@
  * Source mix normalization index (SMNI) — comparability guard for regional vs national scores.
  */
 
-const STRUCTURED_SOURCE_TYPES = new Set([
-  'pbo',
-  'pbo_regional',
-  'field',
-  'naftali',
-  'field_whatsapp',
-]);
-
-const DIGITAL_SOURCE_TYPES = new Set(['news', 'radio', 'social', 'whatsapp']);
+import {
+  FIELD_SOURCE_TYPES as STRUCTURED_SOURCE_TYPES,
+  DIGITAL_SOURCE_TYPES,
+} from './dataVoid/sourceChannels.js';
 
 /**
  * @param {Array<object>} signals

@@ -2,7 +2,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert';
 
 import { applySourceCap, sourceCapWasApplied } from '../../../business_modules/resilience_scorer/domain/epistemic/evidenceCaps.js';
-import { scoreComponents } from '../../../analyst/scoring/index.js';
+import { scoreComponents } from '../../../business_modules/resilience_scorer/analyst/scoring/index.js';
 
 function makeItems() {
   // Same source_type (source_type layer skipped), two outlets with a 0.57/0.43

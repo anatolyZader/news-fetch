@@ -17,7 +17,7 @@ import { extractTopKParagraphsForLearning } from '../../../business_modules/resi
 import {
   isLearningCaptureEnabled,
   isResidualCaptureEnabled,
-} from '../../../business_modules/resilience_scorer/domain/services/oovCapture.js';
+} from '../../../business_modules/resilience_scorer/domain/services/oov/oovCapture.js';
 
 describe('signalCatalogEvolution oovClusterer', () => {
   it('clusters unknown types by suggested_type', () => {

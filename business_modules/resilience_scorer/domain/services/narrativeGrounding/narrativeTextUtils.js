@@ -6,7 +6,7 @@ import {
   jaccard,
   orderedSubsequenceContainment,
   tokenize,
-} from '../signals/textSimilarity.js';
+} from '../textSimilarity.js';
 
 export const FORBIDDEN_CONNECTIVES = [
   'because',

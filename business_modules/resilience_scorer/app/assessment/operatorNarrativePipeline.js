@@ -8,12 +8,12 @@ import {
   formatJudgeFeedback,
 } from '../../infrastructure/narrativeRelationJudge.js';
 import { polishNarrativeFromClaims } from '../../infrastructure/narrativePolish.js';
-import { buildFullSignalDigest } from '../../domain/services/buildFullSignalDigest.js';
+import { buildFullSignalDigest } from '../../domain/services/narrative/buildFullSignalDigest.js';
 import {
   buildDigestStubClaims,
   mergeAgentClaimsWithFacts,
   supplementFactsWithDigestStubs,
-} from '../../domain/services/buildNarrativeScoredComponents.js';
+} from '../../domain/services/narrative/buildNarrativeScoredComponents.js';
 import {
   buildSignalRefRegistry,
   validateNarrativeOutput,
@@ -34,7 +34,7 @@ import {
   isTokenOverflowError,
   narrativeContextMaxTokens,
   resolveNarrativeContextPlan,
-} from '../../domain/services/narrativePromptBudget.js';
+} from '../../domain/services/narrative/narrativePromptBudget.js';
 import {
   finalizeOperatorNarrativeSurface,
   buildProseFromClaims,

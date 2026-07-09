@@ -7,7 +7,7 @@ import { tmpdir } from 'node:os';
 import {
   evaluateOovBurst,
   loadOovCaptureRecordsForDate,
-} from '../../../../../business_modules/resilience_scorer/domain/services/oovBurstAlert.js';
+} from '../../../../../business_modules/resilience_scorer/domain/services/oov/oovBurstAlert.js';
 import { LEARNING_CAPTURE_KINDS } from '../../../../../cross-cut-modules/learningCapture/kinds.js';
 
 describe('oovBurstAlert', () => {

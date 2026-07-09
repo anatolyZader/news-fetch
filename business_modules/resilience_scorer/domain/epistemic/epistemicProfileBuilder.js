@@ -11,7 +11,7 @@ import {
 import { buildDuplicateOccurrenceIndex, round3 } from './massContribution.js';
 import { certaintyTuningFor } from './certaintyTuning.js';
 import { collectComponentItems } from './componentItems.js';
-import { defaultSignalWeights, resolveSignalWeights } from './signalWeights.js';
+import { defaultSignalWeights, resolveSignalWeights } from '../services/signals/signalWeights.js';
 import { computeMediaMentionMass } from '../services/signals/mediaMentionMass.js';
 
 function sumPolarityMass(items) {

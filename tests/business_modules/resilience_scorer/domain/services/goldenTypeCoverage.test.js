@@ -6,7 +6,7 @@ import { SIGNAL_TYPES } from '../../../../../business_modules/resilience_scorer/
 import {
   EXTRACTION_SNAPSHOT_PATH,
   TYPE_COVERAGE_SNAPSHOT_PATH,
-} from '../../../../../analyst/tuning/goldenPaths.js';
+} from '../../../../../business_modules/resilience_scorer/analyst/tuning/goldenPaths.js';
 
 function loadSignalTypesFromJsonl(path) {
   if (!existsSync(path)) return new Set();

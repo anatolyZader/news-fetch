@@ -30,7 +30,7 @@ Read the routing table first. Do not open other modules until the entry file pro
 |-----------------|-------------------|
 | Report chat / tools | `business_modules/chat/AGENTS.md` → `input/chatRoutes.js`, `app/chatLlmOrchestrator.js` |
 | Assessment agent / operator scoring prep | `business_modules/resilience_scorer/AGENTS.md` + `business_modules/specialist_agents/app/assessmentOrchestrator.js` — use `app/scoringFacade.js` for headline /10 only |
-| Headline /10, validation, tuning, drift (analyst) | `analyst/README.md` — **not** operator daily work |
+| Headline /10, validation, tuning, drift (analyst) | `business_modules/resilience_scorer/analyst/README.md` — **not** operator daily work |
 | Signal extract / assess CLI | `business_modules/resilience_scorer/input/extract-signals.js`, `assess-signals.js` — parallel open bundles `observations-pipeline-{source}-{date}.json` for news/radio/field/whatsapp, social, pbo, pbo_regional, naftali (default ON via `RESILIENCE_OPEN_EXTRACT_PARALLEL`) |
 | Ingest news/audio/social | `composition/registerIngestion.js` → module `input/` (see `scripts/agent-routing.md`) |
 | UI tab / component | `client/src/` + matching `business_modules/*/input/*Routes.js` |

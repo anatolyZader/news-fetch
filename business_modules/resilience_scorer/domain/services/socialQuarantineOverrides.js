@@ -10,7 +10,7 @@ export const SOCIAL_QUARANTINE_DISMISS_ACTION = 'dismiss_social_quarantine';
 /**
  * @param {string} date
  * @param {string} scope
- * @param {import('../../validation/domain/ports/IValidationReviewStorePort.js').IValidationReviewStorePort | null} [store]
+ * @param {import('../../analyst/validation/domain/ports/IValidationReviewStorePort.js').IValidationReviewStorePort | null} [store]
  */
 export function getSocialQuarantineDecision(date, scope, store = null) {
   if (!store?.getLatestDecision) return null;
@@ -20,7 +20,7 @@ export function getSocialQuarantineDecision(date, scope, store = null) {
 /**
  * @param {string} date
  * @param {string} scope
- * @param {import('../../validation/domain/ports/IValidationReviewStorePort.js').IValidationReviewStorePort | null} [store]
+ * @param {import('../../analyst/validation/domain/ports/IValidationReviewStorePort.js').IValidationReviewStorePort | null} [store]
  */
 export function isSocialQuarantineActive(date, scope, store = null) {
   const decision = getSocialQuarantineDecision(date, scope, store);
@@ -30,7 +30,7 @@ export function isSocialQuarantineActive(date, scope, store = null) {
 /**
  * @param {string} date
  * @param {string} scope
- * @param {import('../../validation/domain/ports/IValidationReviewStorePort.js').IValidationReviewStorePort | null} [store]
+ * @param {import('../../analyst/validation/domain/ports/IValidationReviewStorePort.js').IValidationReviewStorePort | null} [store]
  */
 export function isSocialQuarantineDismissed(date, scope, store = null) {
   const decision = getSocialQuarantineDecision(date, scope, store);

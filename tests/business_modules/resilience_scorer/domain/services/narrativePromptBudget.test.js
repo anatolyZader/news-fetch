@@ -8,7 +8,7 @@ import {
   narrativeContextMaxTokens,
   resolveNarrativeContextPlan,
   settingsForDegradeLevel,
-} from '../../../../../business_modules/resilience_scorer/domain/services/narrativePromptBudget.js';
+} from '../../../../../business_modules/resilience_scorer/domain/services/narrative/narrativePromptBudget.js';
 
 const envBackup = {};
 

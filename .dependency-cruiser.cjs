@@ -30,6 +30,7 @@ module.exports = {
         pathNot: [
           '^business_modules/$1/',
           '^business_modules/[^/]+/index.js$',
+          '^business_modules/resilience_scorer/analyst/',
         ],
       },
     },
@@ -86,24 +87,27 @@ module.exports = {
       name: 'resilience-no-analyst-except-facades',
       severity: 'error',
       comment:
-        'Operator resilience code must not import analyst/ except scoringFacade, shadowFacade, validation shim',
+        'Operator resilience code must not import analyst/ except scoringFacade, shadowFacade, validation store wiring',
       from: {
         path: '^business_modules/resilience_scorer/',
         pathNot: [
           '^business_modules/resilience_scorer/app/scoringFacade\\.js$',
           '^business_modules/resilience_scorer/app/shadowFacade\\.js$',
-          '^business_modules/resilience_scorer/validation/index\\.js$',
-          '^business_modules/resilience_scorer/tuning/goldenPaths\\.js$',
+          '^business_modules/resilience_scorer/app/assessment/socialQuarantineWiring\\.js$',
+          '^business_modules/resilience_scorer/app/assessment/assessSignalsCli\\.js$',
+          '^business_modules/resilience_scorer/app/assessment/assessmentStage\\.js$',
+          '^business_modules/resilience_scorer/domain/services/socialQuarantineOverrides\\.js$',
+          '^business_modules/resilience_scorer/analyst/',
         ],
       },
-      to: { path: '^analyst/' },
+      to: { path: '^business_modules/resilience_scorer/analyst/' },
     },
     {
       name: 'client-no-analyst',
       severity: 'error',
       comment: 'Operator client must not import analyst quarantine code',
       from: { path: '^client/' },
-      to: { path: '^analyst/' },
+      to: { path: '^business_modules/resilience_scorer/analyst/' },
     },
     {
       name: 'input-no-own-domain-or-infrastructure',

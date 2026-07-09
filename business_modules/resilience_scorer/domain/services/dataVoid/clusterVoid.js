@@ -103,7 +103,3 @@ export function channelLevelVoids(channelBaselines) {
   }
   return out;
 }
-
-
-
-export {DIGITAL_SOURCE_TYPES, FIELD_SOURCE_TYPES} from './sourceChannels.js';

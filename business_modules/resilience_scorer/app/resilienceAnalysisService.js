@@ -5,7 +5,7 @@ import { assertValidResilienceContentBatch } from '../domain/services/signals/re
 import { mergeDualExtractionSignals } from '../infrastructure/dualModelExtract.js';
 import {
   normalizeReportScope,
-} from '../domain/services/regionSignalFilter.js';
+} from '../domain/services/signals/regionSignalFilter.js';
 import { loadConnectivityProbeSignals } from '../infrastructure/adapters/connectivityProbeFileAdapter.js';
 import { enrichProbeSignalsInList } from '../domain/services/signals/probeCorroborationPolicy.js';
 import { resilienceReportsDir } from '../domain/services/paths/outputDirs.js';

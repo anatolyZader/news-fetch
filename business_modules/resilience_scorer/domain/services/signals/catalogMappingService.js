@@ -1,7 +1,7 @@
 /**
  * Map open observations to closed-vocabulary signals for assess (rule-based v1).
  */
-import { SIGNAL_TYPES } from './behaviorSignals.js';
+import { SIGNAL_TYPES } from './signalCatalog.js';
 
 const VALID_TYPES = new Set(SIGNAL_TYPES);
 

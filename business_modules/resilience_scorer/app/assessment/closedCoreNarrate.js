@@ -2,7 +2,7 @@
  * Closed-core narrate: score shell + preflight budget + hybrid operator narrative pipeline.
  */
 import { legacyNarrativeOnly } from '../../domain/services/narrativeGrounding/groundingConfig.js';
-import { resolveNarrativeContextPlan } from '../../domain/services/narrativePromptBudget.js';
+import { resolveNarrativeContextPlan } from '../../domain/services/narrative/narrativePromptBudget.js';
 import { applyOperatorNarrativePipeline } from './operatorNarrativePipeline.js';
 import {
   applyNarrativeOverflowDegrade,

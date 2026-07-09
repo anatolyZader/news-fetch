@@ -7,7 +7,7 @@
  * Callers may supply closedExtractFn to override the default closed-catalogue extractor
  * (used by pbo_report_muni and pbo_report_regional which need module-specific geo stamping).
  */
-import { isOpenExtractParallelEnabled } from '../../domain/services/openExtractConfig.js';
+import { isOpenExtractParallelEnabled } from '../../domain/services/oov/openExtractConfig.js';
 import { runClosedCatalogueExtract } from './closedCatalogueExtractService.js';
 import { runOpenVocabularyExtract } from './openVocabularyExtractService.js';
 

@@ -7,7 +7,7 @@ import {
   isLearningCaptureEnabled,
   isResidualCaptureEnabled,
   LEARNING_CAPTURE_KINDS,
-} from '../domain/services/oovCapture.js';
+} from '../domain/services/oov/oovCapture.js';
 import { extractTopKParagraphsForLearning } from './learningCaptureText.js';
 
 /**

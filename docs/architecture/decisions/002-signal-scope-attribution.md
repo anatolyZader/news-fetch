@@ -11,7 +11,7 @@ Regional resilience reports (e.g. north) filter evidence via `filterSignalsForSc
 Prior to this change:
 
 - **Geo attribution** was scattered across extract writers (`enrichSignalsWithGeo` in article dual-path, PBO, Naftali, social treat) with inconsistent `district_id` stamping.
-- **Assess-time geo** duplicated between CLI (`assessSignalsCli.js`) and server (`resilienceAnalysisService.js`).
+- **Assess-time geo** duplicated between CLI (`app/assessment/assessSignalsCli.js`) and server (`resilienceAnalysisService.js`).
 - **CLI and server** shared scoring helpers but diverged on orchestration order (CLI scored before narrate; server narrated first) and I/O boundaries.
 - **`scopeDecision`** was computed only at assess time and never persisted on bundles.
 - **Default-north fallback** for north-only structured sources without `district_id` had no env gate or metrics.

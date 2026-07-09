@@ -61,8 +61,8 @@ business_modules/resilience_scorer/data/signals/**
 !business_modules/resilience_scorer/data/signals/.gitkeep
 business_modules/specialist_agents/data/**
 !business_modules/specialist_agents/data/**/.gitkeep
-analyst/data/**
-!analyst/data/**/.gitkeep
+business_modules/resilience_scorer/analyst/data/**
+!business_modules/resilience_scorer/analyst/data/**/.gitkeep
 business_modules/translation/data/**
 !business_modules/translation/data/**/.gitkeep
 business_modules/pbo_report_muni/data/**

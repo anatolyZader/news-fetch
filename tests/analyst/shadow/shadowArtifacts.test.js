@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { computeDivergence } from '../../../analyst/shadow/shadowArtifacts.js';
+import { computeDivergence } from '../../../business_modules/resilience_scorer/analyst/shadow/shadowArtifacts.js';
 
 describe('computeDivergence', () => {
   it('returns shadow_only mode when agent severity is absent', () => {

@@ -4,7 +4,7 @@ import {
   filterSignalsForScope,
   normalizeReportScope,
   scopeDecisionForSignal,
-} from '../../../../../business_modules/resilience_scorer/domain/services/regionSignalFilter.js';
+} from '../../../../../business_modules/resilience_scorer/domain/services/signals/regionSignalFilter.js';
 
 function northScopeRelevant(signal) {
   return scopeDecisionForSignal(signal, 'north').isScopeRelevant;

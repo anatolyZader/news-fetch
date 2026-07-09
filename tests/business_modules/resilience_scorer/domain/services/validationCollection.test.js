@@ -9,13 +9,13 @@ import {
   computeElevationAdvisory,
   loadValidationConfig,
   validationPaths,
-} from '../../../../../business_modules/resilience_scorer/validation/config/validationConfig.js';
+} from '../../../../../business_modules/resilience_scorer/analyst/validation/config/validationConfig.js';
 import {
   articleKeyForSignal,
   buildReviewQueue,
-} from '../../../../../business_modules/resilience_scorer/validation/domain/reviewQueueBuilder.js';
-import { buildValidationRecord } from '../../../../../business_modules/resilience_scorer/validation/domain/validationRecordBuilder.js';
-import createValidationCollectionService from '../../../../../business_modules/resilience_scorer/validation/app/validationCollectionService.js';
+} from '../../../../../business_modules/resilience_scorer/analyst/validation/domain/reviewQueueBuilder.js';
+import { buildValidationRecord } from '../../../../../business_modules/resilience_scorer/analyst/validation/domain/validationRecordBuilder.js';
+import createValidationCollectionService from '../../../../../business_modules/resilience_scorer/analyst/validation/app/validationCollectionService.js';
 
 describe('validationConfig', () => {
   it('loads defaults when file missing', () => {

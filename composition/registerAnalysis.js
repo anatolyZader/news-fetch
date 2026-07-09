@@ -2,7 +2,7 @@ import { createReportReadPort, resilienceReportsDir } from '../business_modules/
 import {
   createValidationReviewSqliteStore,
   createValidationReviewService,
-} from '../analyst/index.js';
+} from '../business_modules/resilience_scorer/analyst/index.js';
 import {
   createCatalogProposalSqliteStore,
   createCatalogProposalService,

@@ -109,7 +109,7 @@ Then look across all components for patterns:
 
 **Step 4 — Write the review file**
 
-Write to `analyst/data/reviews/review-<report-slug>.md` (same base name as the report, prefix `review-`). Use this structure:
+Write to `business_modules/resilience_scorer/analyst/data/reviews/review-<report-slug>.md` (same base name as the report, prefix `review-`). Use this structure:
 
 ```markdown
 # Signal Review: <report-slug>

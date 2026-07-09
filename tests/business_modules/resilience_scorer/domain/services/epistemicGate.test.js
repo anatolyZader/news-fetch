@@ -5,12 +5,12 @@ import {
   applyEpistemicGate,
   applyScoreAbstention,
 } from '../../../../../business_modules/resilience_scorer/domain/services/dataVoidIndex.js';
-import { scoreComponents } from '../../../../../analyst/scoring/index.js';
+import { scoreComponents } from '../../../../../business_modules/resilience_scorer/analyst/scoring/index.js';
 import {
   deriveAssessmentEpistemicPolicy,
   deriveThinEvidencePolicy,
   THIN_EVIDENCE_INSTRUMENT,
-} from '../../../../../business_modules/resilience_scorer/domain/services/signals/thinEvidencePolicy.js';
+} from '../../../../../business_modules/resilience_scorer/domain/epistemic/thinEvidencePolicy.js';
 
 function mockScored(score = 6) {
   return {

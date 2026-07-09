@@ -11,7 +11,7 @@ import {
   normalizeReportScope,
   buildAttentionItems,
 } from '../../resilience_scorer/index.js';
-import { formatSimilarArticlesForChat } from '../../../analyst/validation/app/validationToolExecutor.js';
+import { formatSimilarArticlesForChat } from '../../resilience_scorer/analyst/validation/app/validationToolExecutor.js';
 import { searchSources, getSource, listSources } from '../domain/sourceArchiveQuery.js';
 import { pboReviewRagEnabled } from '../../../cross-cut-modules/retrieval/ragConfig.js';
 import { requireAnalyst } from './createChatToolContext.js';

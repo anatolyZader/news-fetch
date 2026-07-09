@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { northRelevanceFromResolvedGeo } from '../../../../../cross-cut-modules/geo/northRelevanceFromResolvedGeo.js';
-import { scopeDecisionForSignal } from '../../../../../business_modules/resilience_scorer/domain/services/regionSignalFilter.js';
+import { scopeDecisionForSignal } from '../../../../../business_modules/resilience_scorer/domain/services/signals/regionSignalFilter.js';
 
 const METRICS_SAFE_GOLAN = {
   kind: 'resolved',

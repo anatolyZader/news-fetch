@@ -27,16 +27,16 @@ Ingest services are wired in `composition/registerIngestion.js`.
 
 | npm script | Module entry |
 |------------|--------------|
-| `extract-signals` | `business_modules/resilience_scorer/input/extract-signals.js` |
+| `extract-signals` | `business_modules/resilience_scorer/input/extract-signals.js` → `app/extraction/extractSignalsCli.js` |
 | `extract-observations` | `business_modules/open_observation_extraction/input/extract-observations.js` |
-| `assess-signals` | `business_modules/resilience_scorer/input/assess-signals.js` |
+| `assess-signals` | `business_modules/resilience_scorer/input/assess-signals.js` → `app/assessment/assessSignalsCli.js` |
 | `pipeline:run` | `business_modules/resilience_scorer/input/run-pipeline.js` |
 | `pipeline:status` | `business_modules/resilience_scorer/input/pipeline-status.js` |
 | `validation:status` | `business_modules/resilience_scorer/validation/scripts/validationStatus.js` |
 | `validation:set-phase` | `business_modules/resilience_scorer/validation/scripts/validationSetPhase.js` |
 | `signal-catalog-evolution:gap-report` | `business_modules/signal_catalog_evolution/input/generate-gap-report.js` |
 | `suggest-tuning` | `business_modules/resilience_scorer/tuning/scripts/suggestComponentTuning.js` |
-| `backfill:report-brief` | `business_modules/resilience_scorer/input/backfillReportBriefMd.js` |
+| `backfill:report-brief` | `business_modules/resilience_scorer/input/backfillReportBriefMd.js` → `app/assessment/backfillReportBriefMdCli.js` |
 | `worker:assess` | `scripts/workers/assess-signals-worker.js` |
 
 Analysis wiring: `composition/registerAnalysis.js`. Assessment agent: `business_modules/specialist_agents/`.
@@ -56,7 +56,6 @@ Analysis wiring: `composition/registerAnalysis.js`. Assessment agent: `business_
 | `rag:reindex-terms` | `cross-cut-modules/retrieval/input/reindex-terms.js` |
 | `rag:eval` | `db/input/ragEval.js` |
 | `agent:eval` | `db/input/agentEval.js` |
-| `analyze-survey` | `cross-cut-modules/geo/input/runAnalyzeSurvey.js` |
 | `build:north-reference` | `business_modules/geo/input/buildNorthReferenceFromRegions.js` |
 
 ## Client / analyst

@@ -7,7 +7,7 @@ import {
   isOpenObsForAgentEnabled,
   isResidualForAgentEnabled,
   openObsRoutingMode,
-} from '../../../../../business_modules/resilience_scorer/domain/services/openExtractConfig.js';
+} from '../../../../../business_modules/resilience_scorer/domain/services/oov/openExtractConfig.js';
 
 describe('openExtractConfig', () => {
   it('omission audit defaults on', () => {

@@ -7,7 +7,7 @@ import {
   DISPLAY_VIEWS,
   
 } from '../../../../../cross-cut-modules/resilience-contracts/displayViews.js';
-import { deriveThinEvidencePolicy, isThinEvidencePolicyEnabled, deriveAssessmentEpistemicPolicy } from '../signals/thinEvidencePolicy.js';
+import { deriveThinEvidencePolicy, isThinEvidencePolicyEnabled, deriveAssessmentEpistemicPolicy } from '../../epistemic/thinEvidencePolicy.js';
 import { narrativeGroundingMinScore } from '../narrativeGrounding/groundingConfig.js';
 import { isSoftVoidWarning } from '../../../../../cross-cut-modules/resilience-contracts/softVoidReasons.js';
 

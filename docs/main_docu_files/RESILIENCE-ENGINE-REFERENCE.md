@@ -303,7 +303,7 @@ Module facade re-exports from `business_modules/resilience_scorer/domain/service
 ### 7.6 Reports and validation
 
 - Report write from `assess-signals.js` finalize step
-- Validation queue: SQLite store (default); analyst routes under `business_modules/resilience_scorer/validation/`
+- Validation queue: SQLite store (default); analyst routes under `business_modules/resilience_scorer/analyst/validation/`
 - Display redaction at serve time: `assessmentDisplayTier.js`
 - **Config:** `business_modules/resilience_scorer/validation/validation-config.json` — operational phase (`baseline` vs elevated)
 - **Collection:** `validationCollectionService.js` — post-assess review queue upsert (max 15/day stratified sample)

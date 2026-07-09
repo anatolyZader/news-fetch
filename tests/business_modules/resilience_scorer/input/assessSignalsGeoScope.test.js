@@ -7,7 +7,7 @@ import { fileURLToPath } from 'url';
 import { createGeoWiring } from '../../../../cross-cut-modules/geo/createGeoWiring.js';
 import { attachGeoToSignals } from '../../../../cross-cut-modules/geo/attachGeoToSignals.js';
 import { buildReferenceNameIndex } from '../../../../cross-cut-modules/geo/referenceNameIndex.js';
-import { filterSignalsForScope, scopeDecisionForSignal } from '../../../../business_modules/resilience_scorer/domain/services/regionSignalFilter.js';
+import { filterSignalsForScope, scopeDecisionForSignal } from '../../../../business_modules/resilience_scorer/domain/services/signals/regionSignalFilter.js';
 import { summarizeScopeDecisionSources } from '../../../../business_modules/resilience_scorer/domain/epistemic/assessmentMethodology.js';
 import { annotateSignalsEpistemics, partitionMacroSignals } from '../../../../business_modules/resilience_scorer/domain/services/signals/evidenceEligibility.js';
 

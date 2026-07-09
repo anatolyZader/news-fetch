@@ -171,6 +171,4 @@ export function isBelowQuarterBaseline(today, baseline) {
   return today < baseline * 0.25;
 }
 
-export {   Z_DROP_THRESHOLD };
-
-export {FIELD_SOURCE_TYPES, DIGITAL_SOURCE_TYPES} from './sourceChannels.js';
+export { Z_DROP_THRESHOLD };

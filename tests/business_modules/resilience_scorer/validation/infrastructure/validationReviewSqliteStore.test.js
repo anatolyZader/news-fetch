@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { createValidationReviewSqliteStore } from '../../../../../business_modules/resilience_scorer/validation/infrastructure/adapters/validationReviewSqliteStore.js';
+import { createValidationReviewSqliteStore } from '../../../../../business_modules/resilience_scorer/analyst/validation/infrastructure/adapters/validationReviewSqliteStore.js';
 
 describe('validationReviewSqliteStore', () => {
   let dir;

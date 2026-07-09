@@ -5,7 +5,7 @@ import {
   resolveNorthClusterId,
   buildNorthClusterPartitions,
   buildNorthClusterNarrativesFromSignals,
-} from '../../../../../business_modules/resilience_scorer/domain/services/northClusterNarrative.js';
+} from '../../../../../business_modules/resilience_scorer/domain/services/narrative/northClusterNarrative.js';
 
 describe('northClusterNarrative', () => {
   it('resolveNorthClusterId reads pbo subregion from geo', () => {

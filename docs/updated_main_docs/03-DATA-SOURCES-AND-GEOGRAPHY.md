@@ -103,7 +103,7 @@ Field and WhatsApp bundles default `district_id: 'north'` at extraction (`busine
 
 ### 4.5 District picture, with national context
 
-A `north` report scores the **scope-local signals** but attaches **national context** for comparison (`scopeAndPartitionSignals` plus the national comparison built in `assessSignalsCli.js`). So a north report is the **whole-district read** with a national benchmark - not a single municipality, and not a national report relabeled.
+A `north` report scores the **scope-local signals** but attaches **national context** for comparison (`scopeAndPartitionSignals` plus the national comparison built in `app/assessment/assessSignalsCli.js`). So a north report is the **whole-district read** with a national benchmark - not a single municipality, and not a national report relabeled.
 
 ## 5. Key code locations
 

@@ -5,7 +5,7 @@ import { COMPONENT_IDS } from '../../../../../cross-cut-modules/resilience-contr
 import { applySourceCap } from '../../epistemic/evidenceCaps.js';
 import { buildDuplicateOccurrenceIndex } from '../../epistemic/massContribution.js';
 import { collectComponentItems } from '../../epistemic/componentItems.js';
-import { defaultSignalWeights, resolveSignalWeights } from '../../epistemic/signalWeights.js';
+import { defaultSignalWeights, resolveSignalWeights } from './signalWeights.js';
 import { evaluatePresenceGates } from '../../epistemic/presenceGates.js';
 import { isComponentSalienceCritical } from '../../epistemic/highSalienceBypass.js';
 

@@ -7,7 +7,7 @@ import {
   isClosedCoreAssessEnabled,
 } from '../../../../cross-cut-modules/agent/index.js';
 import { getDefaultLlmPort } from '../../../../cross-cut-modules/llm/anthropicLlmAdapter.js';
-import { createEpistemicFeaturesService } from '../epistemicFeaturesService.js';
+import { createEpistemicFeaturesService } from './epistemicFeaturesService.js';
 import { loadHistoricalEpistemicMass } from '../../infrastructure/adapters/historicalEpistemicMassReader.js';
 import {
   runAssessmentAgent,

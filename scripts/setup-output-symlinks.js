@@ -7,7 +7,6 @@
  *   npm run output:setup
  */
 import {
-  existsSync,
   lstatSync,
   mkdirSync,
   readlinkSync,
@@ -29,7 +28,6 @@ export const OUTPUT_SYMLINKS = [
   { link: 'production/oov-captures', target: 'business_modules/resilience_scorer/data/oov_captures' },
   { link: 'production/omission-audits', target: 'business_modules/resilience_scorer/data/omission_audits' },
   { link: 'production/epistemic-profiles', target: 'business_modules/resilience_scorer/data/epistemic_profiles' },
-  { link: 'production/survey-reports', target: 'business_modules/resilience_scorer/data/survey' },
   { link: 'production/agent-traces', target: 'business_modules/specialist_agents/data/traces' },
   { link: 'production/agent-eval', target: 'business_modules/specialist_agents/data/eval' },
 
@@ -42,8 +40,8 @@ export const OUTPUT_SYMLINKS = [
   { link: 'production/ingest/social-media', target: 'business_modules/social_media/data' },
 
   // Research / calibration (not operator daily path)
-  { link: 'research/analyst-shadow', target: 'analyst/data/shadow' },
-  { link: 'research/analyst-reviews', target: 'analyst/data/reviews' },
+  { link: 'research/analyst-shadow', target: 'business_modules/resilience_scorer/analyst/data/shadow' },
+  { link: 'research/analyst-reviews', target: 'business_modules/resilience_scorer/analyst/data/reviews' },
   { link: 'research/signal-catalog', target: 'business_modules/signal_catalog_evolution/data' },
   { link: 'research/translation-locale', target: 'business_modules/translation/data/locale' },
 
@@ -52,9 +50,18 @@ export const OUTPUT_SYMLINKS = [
   { link: 'operational/cost', target: 'cross-cut-modules/log/data' },
 ];
 
+function lexists(path) {
+  try {
+    lstatSync(path);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function ensureSymlink(linkAbs, targetAbs) {
   const relTarget = relative(dirname(linkAbs), targetAbs);
-  if (existsSync(linkAbs)) {
+  if (lexists(linkAbs)) {
     const stat = lstatSync(linkAbs);
     if (stat.isSymbolicLink()) {
       const resolved = resolve(dirname(linkAbs), readlinkSync(linkAbs));

@@ -203,7 +203,7 @@ export async function reportRoutes(app, opts) {
     if (!date) return reply.code(404).send({ error: 'date_required' });
     const { readFileSync, existsSync } = await import('node:fs');
     const { join } = await import('node:path');
-    const path = join(process.cwd(), 'analyst/data/shadow', `divergence-${scope}-${date}.json`);
+    const path = join(process.cwd(), 'business_modules/resilience_scorer/analyst/data/shadow', `divergence-${scope}-${date}.json`);
     if (!existsSync(path)) return reply.code(404).send({ error: 'divergence_not_found' });
     return reply.send(JSON.parse(readFileSync(path, 'utf8')));
   });

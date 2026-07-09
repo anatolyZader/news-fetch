@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import {
   precisionRecallF1,
   cohensKappa,
-} from '../../../../../analyst/tuning/domain/extractionMetrics.js';
+} from '../../../../../business_modules/resilience_scorer/analyst/tuning/domain/extractionMetrics.js';
 
 describe('precisionRecallF1', () => {
   it('returns zeros when both lists are empty across all articles', () => {

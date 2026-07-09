@@ -9,4 +9,4 @@ export {
   resolveComponentTuning,
   enrichWithCalibrationPenalty,
   enrichWithWeightSensitivity,
-} from '../../../analyst/scoring/index.js';
+} from '../analyst/scoring/index.js';

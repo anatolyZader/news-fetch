@@ -2,7 +2,7 @@
  * Finalize operator-readable narrative + curated evidence on each component.
  * Deterministic only — no LLM calls.
  */
-import { agentClaimsForComponent } from '../buildNarrativeScoredComponents.js';
+import { agentClaimsForComponent } from '../narrative/buildNarrativeScoredComponents.js';
 import { resolveNarrativePipelineMode } from '../narrativeGrounding/groundingConfig.js';
 import {
   buildRefKey,

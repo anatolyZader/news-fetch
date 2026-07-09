@@ -403,7 +403,7 @@ Interactive / API batch assembly may call `runResilienceAssessment` (`resilience
 | Structured → signals | `extract-pbo-signals.js`, Naftali mappers (`business_modules/pool/`, etc.) | `business_modules/resilience_scorer/data/signals/signals-*.json` |
 | Extract (LLM) | `business_modules/resilience_scorer/infrastructure/claudeEvaluator.js`, `input/extract-signals.js` | `business_modules/resilience_scorer/data/signals/signals-{type}-{date}.json` |
 | Verify | `signalVerification.js` | Validated signals only |
-| Merge / dedupe / scope | `input/assess-signals.js`, `assessSignalsHelpers.js`, `regionSignalFilter.js` | Single in-memory signal array per run |
+| Merge / dedupe / scope | `input/assess-signals.js` → `app/assessment/assessSignalsCli.js`, `assessSignalsHelpers.js`, `regionSignalFilter.js` | Single in-memory signal array per run |
 | Score | `domain/services/behaviorSignals.js` | `scoredComponents` map |
 | Delta history | `assessSignalsHelpers.js` (`loadHistoricalScores`, `enrichWithDeltaChannel`) | Smoothed + delta fields |
 | Narrate | `claudeEvaluator.js` | `assessment` object |

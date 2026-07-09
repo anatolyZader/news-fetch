@@ -69,7 +69,7 @@ const validationPath = join(
 );
 const validation = loadJson(validationPath);
 
-const divergencePath = join(ROOT, 'analyst/data/shadow', `divergence-${scope}-${date}.json`);
+const divergencePath = join(ROOT, 'business_modules/resilience_scorer/analyst/data/shadow', `divergence-${scope}-${date}.json`);
 const divergence = loadJson(divergencePath);
 
 console.log(`\n=== Pipeline audit: ${date} (${scope}) ===\n`);

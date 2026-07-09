@@ -9,10 +9,10 @@ Read this before any file under `business_modules/resilience_scorer/` or `specia
 - `app/scoringFacade.js` — **only** bridge into `analyst/scoring/` for headline /10
 - `app/shadowFacade.js` — **only** bridge into `analyst/shadow/`
 - `domain/epistemic/` — operator caps + mass (not headline scoring)
-- `input/extract-signals.js`, `input/assess-signals.js` — pipeline CLIs
+- `input/extract-signals.js`, `input/assess-signals.js` — pipeline CLIs (`app/extraction/extractSignalsCli.js`, `app/assessment/assessSignalsCli.js`)
 - `input/run-pipeline.js` — unified ingest+assess orchestrator CLI (`npm run pipeline:run -- --preset 8comp-3`)
-- `app/pipelineOrchestrator.js`, `app/pipelineIngestPlan.js` — ingest plan + spawn orchestration
-- `domain/services/pipelineArtifactPaths.js` — canonical artifact paths
+- `app/pipeline/pipelineOrchestrator.js`, `app/pipeline/pipelineIngestPlan.js` — ingest plan + spawn orchestration
+- `domain/services/paths/` — canonical artifact paths
 - `input/reportRoutes.js` — report HTTP API
 
 ## Assessment agent (sibling module)
@@ -21,12 +21,13 @@ Read this before any file under `business_modules/resilience_scorer/` or `specia
 
 ## Ports (`domain/ports/`)
 
-`IResilienceLlmPort`, `IReportReadPort`, `IResilienceReportWriterPort`, `IGeoEnrichmentPort`, `ISignalBundlePort`, `IConnectivityProbePort`, `IPipelineRunStore`, `IReportScopePolicy`
+`IResilienceLlmPort`, `IReportReadPort`, `IGeoEnrichmentPort`, `ISignalBundlePort`, `IConnectivityProbePort`, `IPipelineRunStore`, `IReportScopePolicy`
 
 ## Do not read
 
 - `analyst/` — headline /10, validation, tuning, drift (see `analyst/README.md`)
-- `validation/artifacts/`, `tuning/golden/` under `analyst/` unless task says validation or golden eval
+- `analyst/validation/artifacts/`, `analyst/tuning/golden/` unless task says validation or golden eval
+- `validation/artifacts/` (top-level, outside `analyst/` — preserved historical data) unless task says validation
 - Prompt files unless task explicitly says "prompt"
 
 ## Neighbors (via composition, not direct import)

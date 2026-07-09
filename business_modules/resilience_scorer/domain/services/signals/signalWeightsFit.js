@@ -54,7 +54,7 @@ export function getCalibrationSnapshot() {
  * @param {string} [rootDir]
  */
 export function loadShadowWeights(rootDir = process.cwd()) {
-  const path = resolve(rootDir, 'analyst/tuning/shadow-weights.json');
+  const path = resolve(rootDir, 'business_modules/resilience_scorer/analyst/tuning/shadow-weights.json');
   if (!getStore().existsSync(path)) return null;
   try {
     return JSON.parse(getStore().readFileSync(path, 'utf8'));

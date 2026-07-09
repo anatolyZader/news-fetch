@@ -37,7 +37,7 @@ export function writeReport(assessment, signals, sourceFiles, outputBase, { scor
 | `{base}-brief.md` | Operator | Same narrative + signal appendix, **no scores** (`includeScores: false`) |
 | `{base}.json` | Machine / API | `{ assessment, signals, source_files, generated_at, geo versions, score_by_source? }` |
 
-Output base (`business_modules/resilience_scorer/app/assessSignalsCli.js`): `business_modules/resilience_scorer/data/reports/{prefix}-{date}-{HHMM}`, where prefix is `resilience-report` (national) or `resilience-report-north`. The `HHMM` suffix is what allows multiple runs per day (the twice-daily workflow). Backfill of briefs from existing JSON: `npm run backfill:report-brief` (`business_modules/resilience_scorer/app/backfillReportBriefMdCli.js`).
+Output base (`business_modules/resilience_scorer/app/assessment/assessSignalsCli.js`): `business_modules/resilience_scorer/data/reports/{prefix}-{date}-{HHMM}`, where prefix is `resilience-report` (national) or `resilience-report-north`. The `HHMM` suffix is what allows multiple runs per day (the twice-daily workflow). Backfill of briefs from existing JSON: `npm run backfill:report-brief` (`business_modules/resilience_scorer/app/assessment/backfillReportBriefMdCli.js`).
 
 The `assessment` object inside the JSON is the `assessmentV2` structure described in file 04 (8 components, synthesis, decision brief, attention items, agent trace), mapped to the legacy API shape with `overall_resilience_score: null`.
 
@@ -94,8 +94,8 @@ A separate mailing digest (`business_modules/mailing/`, `npm run mail:digest`) c
 | Concern | Path |
 |---------|------|
 | Report writer (md / brief / json) | `business_modules/resilience_scorer/infrastructure/reportWriter.js` |
-| Output base + time suffix | `business_modules/resilience_scorer/app/assessSignalsCli.js` |
-| Brief backfill | `business_modules/resilience_scorer/app/backfillReportBriefMdCli.js` |
+| Output base + time suffix | `business_modules/resilience_scorer/app/assessment/assessSignalsCli.js` |
+| Brief backfill | `business_modules/resilience_scorer/app/assessment/backfillReportBriefMdCli.js` |
 | Report HTTP API | `business_modules/resilience_scorer/input/reportRoutes.js` |
 | Report cache / date resolution | `business_modules/resilience_scorer/app/reportCacheService.js` |
 | Scope ids / filename prefix | `cross-cut-modules/geo/reportScopeIds.js` |

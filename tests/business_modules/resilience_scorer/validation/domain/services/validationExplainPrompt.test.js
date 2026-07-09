@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {
   buildValidationExplainSystemPrompt,
   buildValidationExplainUserBlock,
-} from '../../../../../../business_modules/resilience_scorer/validation/domain/services/validationExplainPrompt.js';
+} from '../../../../../../business_modules/resilience_scorer/analyst/validation/domain/services/validationExplainPrompt.js';
 
 describe('validationExplainPrompt', () => {
   it('builds user block with reasons and signals', () => {

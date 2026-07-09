@@ -15,7 +15,7 @@ import {
   isCriticalForGrounding,
   isGroundingTieredVerifyEnabled,
 } from '../domain/services/signals/groundingPolicy.js';
-import { recordOutletTelemetry } from '../domain/services/outletReputationDecay.js';
+import { recordOutletTelemetry } from '../domain/services/outlets/outletReputationDecay.js';
 
 const DEFAULT_SELF_CHECK_MODEL = process.env.RESILIENCE_SELF_CHECK_MODEL ?? 'claude-haiku-4-5-20251001';
 

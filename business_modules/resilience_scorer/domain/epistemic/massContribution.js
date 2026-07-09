@@ -1,7 +1,7 @@
 /**
  * Operator-side signal mass (contribution) — shared with diagnostics and caps.
  */
-import { getOutletReliabilityMultiplier } from '../services/outletReliabilityPriors.js';
+import { getOutletReliabilityMultiplier } from '../services/outlets/outletReliabilityPriors.js';
 import { getScoringPriors, getSignalCatalogEntry } from '../services/signals/signalRouter.js';
 import {
   INTENSITY_WEIGHT,

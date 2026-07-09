@@ -8,7 +8,7 @@ import { COMPONENT_IDS } from '../../../cross-cut-modules/resilience-contracts/c
 import { extractJson } from './claudeJsonHelpers.js';
 import { streamWithProgress } from './claudeExtraction.js';
 import { narrativeFactsMaxTokens } from '../domain/services/narrativeGrounding/groundingConfig.js';
-import { chunkComponentIds } from '../domain/services/narrativePromptBudget.js';
+import { chunkComponentIds } from '../domain/services/narrative/narrativePromptBudget.js';
 import {
   buildSignalRefRegistry,
   formatSignalWithRef,

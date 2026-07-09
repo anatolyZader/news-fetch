@@ -16,11 +16,11 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { createHash } from 'node:crypto';
 import { getPeaceTimeAnchor, isDualBaselineEnabled } from '../../domain/epistemic/peaceTimeAnchors.js';
-import { recordOutletTelemetry } from '../../domain/services/outletReputationDecay.js';
+import { recordOutletTelemetry } from '../../domain/services/outlets/outletReputationDecay.js';
 import { enrichWithCalibrationPenalty, enrichWithWeightSensitivity } from '../scoringFacade.js';
 import { embedText, embeddingsEnabled, embeddingModelId } from '../../../../cross-cut-modules/vector_index/index.js';
 import { resilienceDedupClusterEnabled } from '../../../../cross-cut-modules/retrieval/ragConfig.js';
-import { normalizeReportScope, reportScopeMetadata } from '../../domain/services/regionSignalFilter.js';
+import { normalizeReportScope, reportScopeMetadata } from '../../domain/services/signals/regionSignalFilter.js';
 import {
   ISRAEL_REGIONAL_DISTRICT_ORDER,
   normalizeIsraelDistrictId,

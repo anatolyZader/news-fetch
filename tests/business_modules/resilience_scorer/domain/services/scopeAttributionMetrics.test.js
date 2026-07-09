@@ -5,7 +5,7 @@ import {
   evaluateDefaultNorthGate,
   defaultNorthGateThresholdPct,
   defaultNorthGateBlockEnabled,
-} from '../../../../../business_modules/resilience_scorer/domain/services/scopeAttributionMetrics.js';
+} from '../../../../../business_modules/resilience_scorer/domain/services/signals/scopeAttributionMetrics.js';
 
 describe('scopeAttributionMetrics.evaluateDefaultNorthGate', () => {
   it('blocks when default-north share exceeds threshold', () => {

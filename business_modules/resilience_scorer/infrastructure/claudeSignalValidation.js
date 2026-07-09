@@ -1,5 +1,5 @@
 import { SIGNAL_TYPES, INTENSITY_LEVELS, PHASE_LEVELS, AFFECTED_SUBGROUPS, AFFECTED_SYSTEMS, POLARITY_OVERRIDE_SIGNAL_TYPES, AFFECTED_SYSTEM_SIGNAL_TYPES } from '../domain/services/signals/behaviorSignals.js';
-import { bufferOovCapture, LEARNING_CAPTURE_KINDS } from '../domain/services/oovCapture.js';
+import { bufferOovCapture, LEARNING_CAPTURE_KINDS } from '../domain/services/oov/oovCapture.js';
 import { parseFieldReportTitleLocality } from '../../../cross-cut-modules/geo/localityCandidate.js';
 
 function normalizeEvidenceSpan(s, articles, sourceLabel) {

@@ -10,8 +10,8 @@ import {
   resetOutletReputationCacheForTests,
   DECAY_CLAMP_MIN,
   DECAY_CLAMP_MAX,
-} from '../../../../../business_modules/resilience_scorer/domain/services/outletReputationDecay.js';
-import { getOutletReliabilityMultiplier, resetOutletReliabilityPriorsCacheForTests } from '../../../../../business_modules/resilience_scorer/domain/services/outletReliabilityPriors.js';
+} from '../../../../../business_modules/resilience_scorer/domain/services/outlets/outletReputationDecay.js';
+import { getOutletReliabilityMultiplier, resetOutletReliabilityPriorsCacheForTests } from '../../../../../business_modules/resilience_scorer/domain/services/outlets/outletReliabilityPriors.js';
 
 let tmp;
 

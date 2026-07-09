@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { createDriftService } from '../../../../analyst/drift/driftService.js';
+import { createDriftService } from '../../../../business_modules/resilience_scorer/analyst/drift/driftService.js';
 import { COMPONENT_IDS } from '../../../../cross-cut-modules/resilience-contracts/componentIds.js';
 
 function buildHistory() {

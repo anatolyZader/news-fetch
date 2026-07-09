@@ -69,7 +69,7 @@ The deterministic score still exists - it is useful for analysts calibrating the
 
 ### 4.1 Where the score comes from
 
-The only sanctioned bridge from the resilience module into the scoring code is `business_modules/resilience_scorer/app/scoringFacade.js`, re-exporting `scoreComponents` / `overallScore` from `analyst/scoring/`. In the daily run it produces the **shadow** score, compared against the agent assessment for divergence - not merged into the operator's component claims.
+The only sanctioned bridge from the resilience module into the scoring code is `business_modules/resilience_scorer/app/scoringFacade.js`, re-exporting `scoreComponents` / `overallScore` from `business_modules/resilience_scorer/analyst/scoring/`. In the daily run it produces the **shadow** score, compared against the agent assessment for divergence - not merged into the operator's component claims.
 
 ### 4.2 The gates and redactions that hide it
 

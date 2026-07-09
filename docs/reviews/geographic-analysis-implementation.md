@@ -57,8 +57,7 @@ Geo is enabled when composition injects a real `geoEnrichmentPort`.
   - Passes the port into WhatsApp analyzer/ingest paths
   - Registers geo HTTP routes and decorates Fastify with `geoService`
 
-- **Survey CLI**: `cross-cut-modules/geo/input/runAnalyzeSurvey.js`
-  - Builds the same wiring so survey runs produce `mun.geo`
+- **Survey CLI (archived):** former entry was `cross-cut-modules/geo/input/runAnalyzeSurvey.js` — see [`archive/survey-excel-cli/`](../../archive/survey-excel-cli/)
 
 When geo is not wired, WhatsApp analysis defaults to a no-op port returning `kind: 'unknown', reason: 'GEO_DISABLED'`.
 
@@ -319,25 +318,15 @@ Flow:
 
 This makes geo a message-level assumption that downstream consumers can inspect explicitly.
 
-### 7.2 Survey pipeline
+### 7.2 Survey pipeline *(archived 2026-07-09)*
 
-In:
+Former offline Excel CLI — not in active codebase. See [`archive/survey-excel-cli/README.md`](../../archive/survey-excel-cli/README.md).
 
-- `business_modules/resilience_scorer/input/analyzeSurveyInput.js`
+Previously:
 
-Flow:
-
-- For each municipality assessment entry, set `m.geo = geoEnrichmentPort.resolveLocalityName(m.name)`
-
-In:
-
-- `business_modules/resilience_scorer/app/surveyReportWriter.js`
-
-The Markdown report:
-
-- For resolved geo, prints a concise audit line including versions, entity type, scope confidence, and quality fields
-- Then prints the full `geo` envelope as a JSON code block
-- For unknown geo, prints only the JSON block
+- Entry: `business_modules/resilience_scorer/input/analyzeSurveyInput.js`
+- Flow: `m.geo = geoEnrichmentPort.resolveLocalityName(m.name)` per municipality
+- Reports: `archive/survey-excel-cli/.../surveyReportWriter.js` (included geo audit lines in MD output)
 
 ### 7.3 Resilience report JSON audit fields
 
@@ -400,7 +389,7 @@ Behavior:
 
 ### 9.3 Wiring and trigger
 
-In composition (`composition/createApp.js`, `cross-cut-modules/geo/input/runAnalyzeSurvey.js`):
+In composition (`composition/createApp.js`):
 
 - If `GEO_UNKNOWN_REVIEW_JSONL=1`, create the sink and inject it into `GeoEnrichmentAdapter`
 - If `GEO_UNKNOWN_REVIEW_SQLITE=1`, also wire the SQLite-backed queue adapter (durable review backlog)

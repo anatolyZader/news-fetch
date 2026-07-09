@@ -21,15 +21,6 @@ export function resilienceAuditsDir(rootDir) {
   return resolve(resolveRepoRoot(rootDir), 'business_modules/resilience_scorer/data/omission_audits');
 }
 
-export function resilienceSurveyDataDir(rootDir) {
-  return resolve(resolveRepoRoot(rootDir), 'business_modules/resilience_scorer/data/survey');
-}
-
-/** Raw survey input data (xlsx exports + question mapping) — lives with the visits module. */
-export function surveyInputDir(rootDir) {
-  return resolve(resolveRepoRoot(rootDir), 'business_modules/visits/data/survey');
-}
-
 /** Epistemic profile JSON snapshots (computeEpistemicProfile output). */
 export function epistemicProfilesDir(rootDir) {
   return resolve(resolveRepoRoot(rootDir), 'business_modules/resilience_scorer/data/epistemic_profiles');

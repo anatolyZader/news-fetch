@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { buildReviewQueue } from '../../../../../business_modules/resilience_scorer/validation/domain/reviewQueueBuilder.js';
+import { buildReviewQueue } from '../../../../../business_modules/resilience_scorer/analyst/validation/domain/reviewQueueBuilder.js';
 import { SOCIAL_QUARANTINE_ARTICLE_KEY } from '../../../../../business_modules/resilience_scorer/domain/services/socialChannelQuarantine.js';
 
 describe('reviewQueue social quarantine', () => {

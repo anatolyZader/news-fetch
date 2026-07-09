@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildArticlesFromInput } from '../../../../business_modules/resilience_scorer/app/traceArticleCli.js';
+import { buildArticlesFromInput } from '../../../../business_modules/resilience_scorer/app/extraction/traceArticleCli.js';
 
 const MD = `# Manual articles (2026-06-15)
 

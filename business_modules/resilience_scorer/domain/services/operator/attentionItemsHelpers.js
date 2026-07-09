@@ -3,7 +3,7 @@
  */
 
 import { deriveInstrumentState } from './assessmentDisplayTier.js';
-import { THIN_EVIDENCE_INSTRUMENT } from '../signals/thinEvidencePolicy.js';
+import { THIN_EVIDENCE_INSTRUMENT } from '../../epistemic/thinEvidencePolicy.js';
 import { isSoftVoidWarning } from '../../../../../cross-cut-modules/resilience-contracts/softVoidReasons.js';
 
 /**

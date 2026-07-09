@@ -29,7 +29,7 @@ It is tempting to imagine this product as "a number from 1 to 10 for community r
 
 ### 2.2 What is hidden from the operator
 
-A headline **1-10 resilience score** (and per-component numeric scores, confidence intervals, score drift, etc.) still exists internally. It is produced by a deterministic scoring path (`business_modules/resilience_scorer/app/scoringFacade.js`, which is the *only* allowed bridge into `analyst/scoring/`). But for operators it is treated as a **shadow / analyst-only** artifact and is **redacted at the API and UI**:
+A headline **1-10 resilience score** (and per-component numeric scores, confidence intervals, score drift, etc.) still exists internally. It is produced by a deterministic scoring path (`business_modules/resilience_scorer/app/scoringFacade.js`, which is the *only* allowed bridge into `business_modules/resilience_scorer/analyst/scoring/`). But for operators it is treated as a **shadow / analyst-only** artifact and is **redacted at the API and UI**:
 
 - `cross-cut-modules/resilience-contracts/displayViews.js` resolves a `display_view` of `operator` or `analyst`. Analyst is only granted to allow-listed users.
 - `business_modules/resilience_scorer/domain/services/assessmentDisplayTier.js` (`redactReportPayload`, `redactAssessmentForView`) strips numeric scores, `overall_resilience_score`, shadow scoring, and component diagnostics for the operator view.
@@ -105,5 +105,5 @@ The operating principle: **an honest "we don't know yet" is more useful to a dis
 | Scoring bridge (analyst-only headline /10) | `business_modules/resilience_scorer/app/scoringFacade.js` |
 | Northern-district subregions | `business_modules/geo/domain/value_objects/northSubregionId.js` |
 | Daily pipeline cron / cadence | `scripts/README.md`, `scripts/daily-pipeline.sh` |
-| Report time-suffix + output | `business_modules/resilience_scorer/app/assessSignalsCli.js` |
+| Report time-suffix + output | `business_modules/resilience_scorer/app/assessment/assessSignalsCli.js` |
 | Decision-brief advisory rules | `business_modules/resilience_scorer/domain/services/decisionBriefPrompt.js` |

@@ -56,13 +56,13 @@
 | Open extract (primary) | `business_modules/open_observation_extraction/app/pipelineOpenExtractService.js` (`runPipelineOpenExtract`) | `open_observation_extraction/data/observations-pipeline-{source}-{date}.json` |
 | Canonical paths | `business_modules/resilience_scorer/domain/services/pipelineArtifactPaths.js` | path helpers |
 | Orchestrate | `business_modules/resilience_scorer/input/run-pipeline.js`, `app/pipelineOrchestrator.js`, `app/pipelineIngestPlan.js` | ingest plan + spawns |
-| Assess: load both paths | `business_modules/resilience_scorer/app/assessSignalsCli.js`, `loadOpenObservationsForAssess.js` | merged in-memory inputs |
+| Assess: load both paths | `business_modules/resilience_scorer/app/assessment/assessSignalsCli.js`, `app/assessment/loadOpenObservationsForAssess.js` | merged in-memory inputs |
 | Route open obs to components | `business_modules/open_observation_extraction/domain/services/openObservationRouter.js` (`routeOpenObservations`) | `scoring.openObservations` |
 | Epistemic profile | `business_modules/resilience_scorer/domain/epistemic/epistemicProfileBuilder.js` | mass, certainty, caps |
 | Assessment agent | `business_modules/specialist_agents/app/assessmentOrchestrator.js` (`runAssessmentAgent`) | `assessmentV2` (claims, synthesis, brief) |
 | Planner / specialist / critic / synthesizer | `plannerAgent.js` / `componentSpecialistAgent.js` / `criticAgent.js` / `synthesizerAgent.js` | plan, component assessments, repairs, synthesis |
 | Evidence graph | `cross-cut-modules/retrieval/evidenceGraph.js` (`buildEvidenceGraph`) | per-component claims graph |
-| Shadow score (de-emphasized) | `business_modules/resilience_scorer/app/scoringFacade.js` (-> `analyst/scoring/`) | numeric scores (analyst-only) |
+| Shadow score (de-emphasized) | `business_modules/resilience_scorer/app/scoringFacade.js` (-> `business_modules/resilience_scorer/analyst/scoring/`) | numeric scores (analyst-only) |
 | Score abstention gate | `business_modules/resilience_scorer/domain/services/dataVoid/epistemicGate.js` | null score + `epistemic_abstention` |
 | Operator instrument + redaction | `business_modules/resilience_scorer/domain/services/assessmentDisplayTier.js` | instrument; operator redaction |
 | Display view | `cross-cut-modules/resilience-contracts/displayViews.js` | operator vs analyst |

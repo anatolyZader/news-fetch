@@ -2,8 +2,8 @@
  * Enqueue verified open observations for catalog evolution (Phase 3).
  */
 import { resolve } from 'node:path';
-import { bufferOovCapture } from '../../domain/services/oovCapture.js';
-import { isCatalogAutoProposeVerifiedEnabled } from '../../domain/services/openExtractConfig.js';
+import { bufferOovCapture } from '../../domain/services/oov/oovCapture.js';
+import { isCatalogAutoProposeVerifiedEnabled } from '../../domain/services/oov/openExtractConfig.js';
 import { LEARNING_CAPTURE_KINDS } from '../../../../cross-cut-modules/learningCapture/kinds.js';
 
 /**

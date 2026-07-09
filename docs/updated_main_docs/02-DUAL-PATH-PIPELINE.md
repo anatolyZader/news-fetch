@@ -89,7 +89,7 @@ Routing from a closed signal to components: `business_modules/resilience_scorer/
 ### 3.2 Closed extract
 
 - CLI: `business_modules/resilience_scorer/input/extract-signals.js` -> `runExtractSignalsCli`.
-- App: `business_modules/resilience_scorer/app/extractSignalsCli.js` loads markdown, archives sources, then calls `runExtractionStage`.
+- App: `business_modules/resilience_scorer/app/extraction/extractSignalsCli.js` loads markdown, archives sources, then calls `runExtractionStage`.
 - Closed leg: `business_modules/resilience_scorer/infrastructure/claudeExtraction.js` (`extractSignals`) injects the formatted catalog and **validates** that every emitted `signal_type` belongs to `SIGNAL_CATALOG` (unknown types are dropped).
 
 ### 3.3 The closed artifact
@@ -116,7 +116,7 @@ This is how the supporting (closed) vocabulary stays aligned with what the prima
 
 ## 4. Where the two paths merge
 
-They do **not** merge at extract time - they stay in separate files. They merge at **assess** time, in three layers (entry: `business_modules/resilience_scorer/input/assess-signals.js` -> `business_modules/resilience_scorer/app/assessSignalsCli.js`).
+They do **not** merge at extract time - they stay in separate files. They merge at **assess** time, in three layers (entry: `business_modules/resilience_scorer/input/assess-signals.js` -> `business_modules/resilience_scorer/app/assessment/assessSignalsCli.js`).
 
 ### Layer A - Parallel load (still separate)
 
@@ -132,7 +132,7 @@ So the agent's **primary inputs** are: closed `investigationSignals` **plus rout
 
 ### Layer C - Optional post-agent synthetic scoring (analyst/shadow only)
 
-- `applyOpenEvidenceScoringIfVerified` (in `assessSignalsCli.js`): agent claims that reference an open observation (`open:{observation_id}`) and are corroborated can be turned into synthetic closed-shaped signals (`open_evidence_synthetic: true`) and re-scored.
+- `applyOpenEvidenceScoringIfVerified` (in `app/assessment/assessSignalsCli.js`): agent claims that reference an open observation (`open:{observation_id}`) and are corroborated can be turned into synthetic closed-shaped signals (`open_evidence_synthetic: true`) and re-scored.
 - This affects the analyst/shadow score only; the operator brief stays claim-first.
 - Verified open observations are also enqueued for catalog evolution (section 3.4).
 
@@ -243,7 +243,7 @@ flowchart TD
 
 ## 8. Degraded mode
 
-When the LLM specialist call fails or returns unusable output, `assessSignalsCli.js` degrades gracefully:
+When the LLM specialist call fails or returns unusable output, `app/assessment/assessSignalsCli.js` degrades gracefully:
 
 - **`assessment_mode: 'keyword'`** — the open path falls back to keyword-based routing. Signal counts are preserved but open-path narrative quality is reduced.
 - **`assessment_mode: 'abstained'`** — no signal-based report can be produced. The report still contains `data_void` metadata and attention items.

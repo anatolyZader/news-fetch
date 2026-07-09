@@ -4,8 +4,8 @@ import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 
-import { DEFAULT_VALIDATION_CONFIG } from '../../../../../business_modules/resilience_scorer/validation/config/validationConfig.js';
-import { summarizeValidationMaturity } from '../../../../../business_modules/resilience_scorer/validation/domain/validationStatus.js';
+import { DEFAULT_VALIDATION_CONFIG } from '../../../../../business_modules/resilience_scorer/analyst/validation/config/validationConfig.js';
+import { summarizeValidationMaturity } from '../../../../../business_modules/resilience_scorer/analyst/validation/domain/validationStatus.js';
 
 describe('validationStatus', () => {
   it('summarizeValidationMaturity reports empty collection state', () => {

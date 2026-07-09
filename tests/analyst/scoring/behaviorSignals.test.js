@@ -7,7 +7,7 @@ import {
   SIGNAL_TYPES,
   assertCatalogPolarityCoherence,
 } from '../../../business_modules/resilience_scorer/domain/services/signals/behaviorSignals.js';
-import { scoreComponents, overallScore } from '../../../analyst/scoring/index.js';
+import { scoreComponents, overallScore } from '../../../business_modules/resilience_scorer/analyst/scoring/index.js';
 import { COMPONENT_FACETS } from '../../../business_modules/resilience_scorer/domain/services/operator/componentFacets.js';
 import { summarizeSubgroupCoverage } from '../../../business_modules/resilience_scorer/domain/epistemic/assessmentMethodology.js';
 

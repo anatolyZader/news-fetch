@@ -146,19 +146,6 @@ export function evaluateOsintChannelQuarantine(signals, opts = {}) {
   };
 }
 
-/** @deprecated use evaluateOsintChannelQuarantine */
-export function evaluateSocialChannelQuarantine(signals, opts = {}) {
-  const r = evaluateOsintChannelQuarantine(signals, opts);
-  return {
-    suggested: r.suggested,
-    active: r.active,
-    reason: r.reason,
-    social_signal_count: r.osint_signal_count,
-    social_polarization: r.osint_polarization,
-    social_share: r.osint_share,
-  };
-}
-
 /**
  * Filter OSINT sources from scoring list when quarantine is active.
  * @param {Array<object>} signals

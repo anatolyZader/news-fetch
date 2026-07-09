@@ -7,7 +7,7 @@
  * value-rank -> kind-diversity select top 5 -> operator-language phrasing.
  */
 
-import { THIN_EVIDENCE_INSTRUMENT } from '../signals/thinEvidencePolicy.js';
+import { THIN_EVIDENCE_INSTRUMENT } from '../../epistemic/thinEvidencePolicy.js';
 import { isSoftVoidWarning } from '../../../../../cross-cut-modules/resilience-contracts/softVoidReasons.js';
 import { classifyKind, isInfoNoise } from './actionCompassKinds.js';
 import { scoreAction, selectWithKindDiversity } from './actionCompassRanking.js';

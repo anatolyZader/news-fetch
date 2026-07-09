@@ -4,7 +4,7 @@
 import {
   isOpenEvidenceScoringEnabled,
   openEvidenceScoreWeight,
-} from '../openExtractConfig.js';
+} from '../oov/openExtractConfig.js';
 
 /**
  * @param {object|null|undefined} observation

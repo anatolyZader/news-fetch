@@ -5,7 +5,7 @@ import {
   computeCalibrationTrust,
   shrinkScoreToNeutral,
   enrichWithCalibrationPenalty,
-} from '../../../analyst/scoring/calibrationPenalty.js';
+} from '../../../business_modules/resilience_scorer/analyst/scoring/calibrationPenalty.js';
 
 describe('calibrationPenalty', () => {
   it('trust is zero with empty maturity', () => {

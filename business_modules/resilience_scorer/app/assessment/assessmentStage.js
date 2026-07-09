@@ -15,20 +15,20 @@ import { detectSemanticPatterns } from '../../domain/services/patternDetection/s
 import { buildOperatorRecommendations } from '../../domain/services/patternDetection/operatorRecommendations.js';
 import { operatorEpistemicOverlayEnabled } from '../../../../cross-cut-modules/resilience-contracts/operatorEpistemicOverlay.js';
 import { attachInvestigationDiagnostics } from '../../domain/services/operator/componentDiagnostics.js';
-import { countAndLogDefaultNorthSignals, evaluateDefaultNorthGate } from '../../domain/services/scopeAttributionMetrics.js';
-import { buildNorthClusterNarrativesFromSignals } from '../../domain/services/northClusterNarrative.js';
+import { countAndLogDefaultNorthSignals, evaluateDefaultNorthGate } from '../../domain/services/signals/scopeAttributionMetrics.js';
+import { buildNorthClusterNarrativesFromSignals } from '../../domain/services/narrative/northClusterNarrative.js';
 import {
   mergeNationalContextSignals,
   summarizeNationalContext,
-} from '../../domain/services/narrativeScopeSignals.js';
+} from '../../domain/services/narrative/narrativeScopeSignals.js';
 import { finalizeOperatorNarrativeSurface } from '../../domain/services/operator/operatorNarrativeSurface.js';
 import { attachRichOperatorSurface } from '../../domain/services/operator/operatorInvestigationSurface.js';
 import { shouldUseRichDeterministicPath } from '../../../../cross-cut-modules/resilience-contracts/operatorSurfaceMode.js';
 import {
   getSocialQuarantineDecision,
 } from '../../domain/services/socialQuarantineOverrides.js';
-import { tryOpenValidationStore } from '../socialQuarantineWiring.js';
-import { summarizeValidationMaturity } from '../../validation/domain/validationStatus.js';
+import { tryOpenValidationStore } from './socialQuarantineWiring.js';
+import { summarizeValidationMaturity } from '../../analyst/validation/domain/validationStatus.js';
 import { ISRAEL_NATIONAL_DISTRICT_ID } from '../../../../cross-cut-modules/geo/israelDistricts.js';
 import {
   produceAssessmentWithShadow,
@@ -38,12 +38,12 @@ import { applyOperatorNarrativePipeline } from './operatorNarrativePipeline.js';
 import { attachDecisionBrief } from './attachDecisionBrief.js';
 import { loadHistoricalScores } from '../../infrastructure/reportHistoryReader.js';
 import { ensureArticleCorpusRagIndexed } from './ensureArticleCorpusRagIndexed.js';
-import { isClosedCoreAssessEnabled, isOmissionAuditEnabled } from '../../domain/services/openExtractConfig.js';
+import { isClosedCoreAssessEnabled, isOmissionAuditEnabled } from '../../domain/services/oov/openExtractConfig.js';
 import { shadowScoringEnabled } from '../../../../cross-cut-modules/agent/index.js';
 import { closedCoreNarrate } from './closedCoreNarrate.js';
 import { buildAndWriteOmissionAudit } from './omissionAuditService.js';
-import { reportScopeMetadata } from '../../domain/services/regionSignalFilter.js';
-import { countOovCapturesForDate } from '../../domain/services/oovCapture.js';
+import { reportScopeMetadata } from '../../domain/services/signals/regionSignalFilter.js';
+import { countOovCapturesForDate } from '../../domain/services/oov/oovCapture.js';
 
 /**
  * @param {object} assessment

@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import {
   synthesizeOovScoringSignals,
   isOovScoringEnabled,
-} from '../../../../../business_modules/resilience_scorer/domain/services/oovScoringSignals.js';
+} from '../../../../../business_modules/resilience_scorer/domain/services/oov/oovScoringSignals.js';
 
 describe('oovScoringSignals', () => {
   it('is enabled by default', () => {

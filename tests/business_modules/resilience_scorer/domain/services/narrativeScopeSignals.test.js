@@ -9,7 +9,7 @@ import {
   evidenceMatchesMacroNationalTerms,
   mergeNationalContextSignals,
   annotateScopeDecisions,
-} from '../../../../../business_modules/resilience_scorer/domain/services/narrativeScopeSignals.js';
+} from '../../../../../business_modules/resilience_scorer/domain/services/narrative/narrativeScopeSignals.js';
 import { scopeAndPartitionSignals } from '../../../../../business_modules/resilience_scorer/app/assessment/assessmentPipeline.js';
 import { SIGNAL_PROVENANCE } from '../../../../../business_modules/resilience_scorer/domain/services/signals/evidenceEligibility.js';
 

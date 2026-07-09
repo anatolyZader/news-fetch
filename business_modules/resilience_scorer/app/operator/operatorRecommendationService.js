@@ -1,7 +1,7 @@
 /**
  * Parse and validate operator recommendation requests; query pending recommendations.
  */
-import { normalizeReportScope } from '../../domain/services/regionSignalFilter.js';
+import { normalizeReportScope } from '../../domain/services/signals/regionSignalFilter.js';
 import { parseRecommendationAction } from '../../domain/value_objects/recommendationAction.js';
 
 /**

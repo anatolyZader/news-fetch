@@ -13,7 +13,7 @@ import {
 } from '../../../../../cross-cut-modules/resilience-contracts/operatorSurfaceMode.js';
 import { buildDuplicateOccurrenceIndex } from '../../epistemic/massContribution.js';
 import { collectComponentItems } from '../../epistemic/componentItems.js';
-import { defaultSignalWeights } from '../../epistemic/signalWeights.js';
+import { defaultSignalWeights } from '../signals/signalWeights.js';
 import { hasStrongComponentLink } from '../signals/signalRouter.js';
 import { SIGNAL_PROVENANCE } from '../signals/evidenceEligibility.js';
 import { buildRefKey } from '../narrativeGrounding/signalRefRegistry.js';

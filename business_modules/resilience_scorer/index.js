@@ -67,14 +67,12 @@ export {
   isClosedCoreAssessEnabled,
   isOpenObsForAgentEnabled,
   isResidualForAgentEnabled,
-} from './domain/services/openExtractConfig.js';
+} from './domain/services/oov/openExtractConfig.js';
 export { pipelineOpenObservationsPath } from './domain/services/paths/ingestPaths.js';
 export {
   resilienceReportsDir,
   resilienceCapturesDir,
   resilienceAuditsDir,
-  resilienceSurveyDataDir,
-  surveyInputDir,
   epistemicProfilesDir,
 } from './domain/services/paths/outputDirs.js';
 export { resolveRepoRoot as resolveResilienceRepoRoot } from './domain/services/paths/repoRoot.js';
@@ -96,8 +94,6 @@ export {
   applyFieldReportSignalHygiene,
   isTrivialFieldReportEvidence,
   resolveSignalTypeAlias,
-} from './domain/services/signals/fieldReportSignalHygiene.js';
-export {
   applySignalTypeHygiene,
   rewriteMisclassifiedSignalType,
   splitBundledHarmInfrastructure,
@@ -123,7 +119,7 @@ export {
   parseOperatorRecommendationRequest,
 } from './app/operator/operatorRecommendationService.js';
 export { updateOperatorRecommendationStatus } from './infrastructure/recommendationStatusWriter.js';
-export { archiveMarkdownFiles } from './app/archiveMarkdownFromMd.js';
+export { archiveMarkdownFiles } from './app/extraction/archiveMarkdownFromMd.js';
 export { runResilienceAssessment } from './app/resilienceAnalysisService.js';
 export { contentBatchFromMdArticles } from './app/extraction/contentBatchFromMdArticles.js';
 export { createAnthropicResilienceLlmAdapter } from './infrastructure/adapters/anthropicResilienceLlmAdapter.js';
@@ -145,18 +141,18 @@ export { collectComponentItems } from './domain/epistemic/componentItems.js';
 export {
   defaultSignalWeights,
   resolveSignalWeights,
-} from './domain/epistemic/signalWeights.js';
+} from './domain/services/signals/signalWeights.js';
 export { computeMediaMentionMass } from './domain/services/signals/mediaMentionMass.js';
 export { applyInvestigationSignalFlags } from './domain/services/signals/investigationSignalFlags.js';
-export { buildNorthClusterNarrativesFromSignals } from './domain/services/northClusterNarrative.js';
+export { buildNorthClusterNarrativesFromSignals } from './domain/services/narrative/northClusterNarrative.js';
 
 // --- Epistemic profile computation (feeds the specialist_agents assessment agent) ---
 export { computeEpistemicProfile } from './domain/epistemic/epistemicProfileBuilder.js';
-export { createEpistemicFeaturesService } from './app/epistemicFeaturesService.js';
+export { createEpistemicFeaturesService } from './app/assessment/epistemicFeaturesService.js';
 
 // --- OOV / investigation burst ---
-export { countOovCapturesForDate } from './domain/services/oovCapture.js';
-export { evaluateInvestigationBurst } from './domain/services/oovBurstAlert.js';
+export { countOovCapturesForDate } from './domain/services/oov/oovCapture.js';
+export { evaluateInvestigationBurst } from './domain/services/oov/oovBurstAlert.js';
 
 // --- Resilience LLM capability (sibling modules use this, not claudeEvaluator directly) ---
 export {
@@ -196,7 +192,7 @@ export {
   runOperatorNarrativePipeline,
   applyOperatorNarrativeToAssessment,
 } from './app/assessment/operatorNarrativePipeline.js';
-export { buildNarrativeScoredComponents } from './domain/services/buildNarrativeScoredComponents.js';
+export { buildNarrativeScoredComponents } from './domain/services/narrative/buildNarrativeScoredComponents.js';
 export {
   finalizeOperatorNarrativeSurface,
   resolveOperatorComponentNarrative,
@@ -213,8 +209,6 @@ export {
 } from './domain/services/operator/operatorInvestigationSurface.js';
 export { SIGNAL_TO_COMPONENTS } from './domain/services/signals/signalRouter.js';
 
-// --- Survey CLI runner (cross-cut geo entry) ---
-export { runAnalyzeSurveyCli } from './app/analyzeSurveyCli.js';
 export {
   runExtractionStage,
   indexExtractStoryClusters,

@@ -4,9 +4,9 @@ import Fastify from 'fastify';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { validationReviewRoutes } from '../../../../../business_modules/resilience_scorer/validation/input/validationReviewRoutes.js';
-import { createValidationReviewSqliteStore } from '../../../../../business_modules/resilience_scorer/validation/infrastructure/adapters/validationReviewSqliteStore.js';
-import { createValidationReviewService } from '../../../../../business_modules/resilience_scorer/validation/app/validationReviewService.js';
+import { validationReviewRoutes } from '../../../../../business_modules/resilience_scorer/analyst/validation/input/validationReviewRoutes.js';
+import { createValidationReviewSqliteStore } from '../../../../../business_modules/resilience_scorer/analyst/validation/infrastructure/adapters/validationReviewSqliteStore.js';
+import { createValidationReviewService } from '../../../../../business_modules/resilience_scorer/analyst/validation/app/validationReviewService.js';
 
 describe('validationReviewRoutes', () => {
   let dir;

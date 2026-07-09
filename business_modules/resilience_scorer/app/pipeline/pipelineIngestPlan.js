@@ -8,7 +8,7 @@ import { buildTargetDates, loadPipelineConfig } from '../assessment/assessSignal
 import {
   isOpenExtractParallelEnabled,
   isOpenPipelineLegacyEnabled,
-} from '../../domain/services/openExtractConfig.js';
+} from '../../domain/services/oov/openExtractConfig.js';
 import { shouldReuseInReplay } from '../../domain/services/replayReuseConfig.js';
 import {
   resolveIngestPolicy,
