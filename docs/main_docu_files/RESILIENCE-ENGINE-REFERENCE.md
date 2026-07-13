@@ -354,7 +354,7 @@ The sections below are **auto-synced** from code. Do not edit between markers; r
 
 <!-- docs-sync:BEGIN components-at-a-glance -->
 
-> **Auto-synced** from `business_modules/resilience_scorer/domain/resilienceComponents.js` on 2026-07-09. Do not edit between sync markers.
+> **Auto-synced** from `business_modules/resilience_scorer/domain/resilienceComponents.js` on 2026-07-13. Do not edit between sync markers.
 
 | # | ID | English | Hebrew | What it measures (in one line) |
 |---|---|---|---|---|
@@ -373,7 +373,7 @@ The sections below are **auto-synced** from code. Do not edit between markers; r
 
 <!-- docs-sync:BEGIN component-facets -->
 
-> **Auto-synced** from `business_modules/resilience_scorer/domain/services/operator/componentFacets.js` on 2026-07-09. Do not edit between sync markers.
+> **Auto-synced** from `business_modules/resilience_scorer/domain/services/operator/componentFacets.js` on 2026-07-13. Do not edit between sync markers.
 
 | Component | Facets |
 |---|---|
@@ -392,7 +392,7 @@ The sections below are **auto-synced** from code. Do not edit between markers; r
 
 <!-- docs-sync:BEGIN components-detail -->
 
-> **Auto-synced** from `resilienceComponents.js + componentFacets.js` on 2026-07-09. Do not edit between sync markers.
+> **Auto-synced** from `resilienceComponents.js + componentFacets.js` on 2026-07-13. Do not edit between sync markers.
 
 
 Per-component reference below is regenerated from code. Extended narrative, signal-routing notes, and boundary rules in earlier manual sections may appear in pipeline stages §3+.
@@ -556,13 +556,13 @@ Per-component reference below is regenerated from code. Extended narrative, sign
 
 | Facet | Signal types |
 |---|---|
-| `mobilization` | `resource_mobilization`, `community_volunteering`, `self_organization`, `civil_society_mobilization`, `digital_mutual_aid` |
+| `mobilization` | `resource_mobilization`, `community_volunteering`, `self_organization`, `civil_society_mobilization`, `digital_mutual_aid`, `wellbeing_support_accessed` |
 | `local_capacity` | `local_capacity_demonstrated`, `resource_shortage`, `volunteer_donor_fatigue` |
 | `external_dependency` | `dependency_on_external_aid`, `international_aid_arrival`, `international_aid_withdrawal` |
 | `collective_action` | `rapid_mobilization`, `delayed_mobilization`, `conflict_resolution`, `feedback_channel_open`, `coordination_success`, `coordination_failure` |
 | `allocation` | `resource_allocation_transparency`, `resource_allocation_opacity` |
 
-**All facet signal types for this component:** `civil_society_mobilization`, `community_volunteering`, `conflict_resolution`, `coordination_failure`, `coordination_success`, `delayed_mobilization`, `dependency_on_external_aid`, `digital_mutual_aid`, `feedback_channel_open`, `international_aid_arrival`, `international_aid_withdrawal`, `local_capacity_demonstrated`, `rapid_mobilization`, `resource_allocation_opacity`, `resource_allocation_transparency`, `resource_mobilization`, `resource_shortage`, `self_organization`, `volunteer_donor_fatigue`
+**All facet signal types for this component:** `civil_society_mobilization`, `community_volunteering`, `conflict_resolution`, `coordination_failure`, `coordination_success`, `delayed_mobilization`, `dependency_on_external_aid`, `digital_mutual_aid`, `feedback_channel_open`, `international_aid_arrival`, `international_aid_withdrawal`, `local_capacity_demonstrated`, `rapid_mobilization`, `resource_allocation_opacity`, `resource_allocation_transparency`, `resource_mobilization`, `resource_shortage`, `self_organization`, `volunteer_donor_fatigue`, `wellbeing_support_accessed`
 
 ---
 
@@ -621,11 +621,11 @@ Per-component reference below is regenerated from code. Extended narrative, sign
 |---|---|
 | `mutual_aid` | `solidarity_help_others`, `community_volunteering`, `interfaith_solidarity`, `digital_mutual_aid` |
 | `cohesion` | `social_isolation`, `conflict_or_tension`, `cultural_continuity`, `interfaith_tension`, `commemoration_event_observed`, `memorialization_conflict` |
-| `inclusion` | `self_organization`, `wellbeing_support_accessed`, `bridging_capital_demonstrated` |
+| `inclusion` | `self_organization`, `bridging_capital_demonstrated` |
 | `exclusion` | `inequitable_resource_access`, `information_inclusivity_gap`, `social_isolation`, `bridging_capital_failure`, `prosocial_norm_violation` |
 | `bridging` | `bridging_capital_demonstrated`, `bridging_capital_failure`, `help_seeking_behavior`, `inter_group_trust` |
 
-**All facet signal types for this component:** `bridging_capital_demonstrated`, `bridging_capital_failure`, `commemoration_event_observed`, `community_volunteering`, `conflict_or_tension`, `cultural_continuity`, `digital_mutual_aid`, `help_seeking_behavior`, `inequitable_resource_access`, `information_inclusivity_gap`, `inter_group_trust`, `interfaith_solidarity`, `interfaith_tension`, `memorialization_conflict`, `prosocial_norm_violation`, `self_organization`, `social_isolation`, `solidarity_help_others`, `wellbeing_support_accessed`
+**All facet signal types for this component:** `bridging_capital_demonstrated`, `bridging_capital_failure`, `commemoration_event_observed`, `community_volunteering`, `conflict_or_tension`, `cultural_continuity`, `digital_mutual_aid`, `help_seeking_behavior`, `inequitable_resource_access`, `information_inclusivity_gap`, `inter_group_trust`, `interfaith_solidarity`, `interfaith_tension`, `memorialization_conflict`, `prosocial_norm_violation`, `self_organization`, `social_isolation`, `solidarity_help_others`
 
 ---
 
@@ -653,14 +653,14 @@ Per-component reference below is regenerated from code. Extended narrative, sign
 | `physical_harm` | `harm_to_population`, `near_miss_reported` |
 | `psychological_distress` | `psychological_distress`, `fear_expression`, `child_distress` |
 | `affect_balance` | `calm_confidence`, `fear_expression`, `positive_wellbeing_marker` |
-| `care_access` | `wellbeing_support_accessed`, `information_inclusivity_present`, `information_inclusivity_gap`, `school_psychosocial_support_active`, `school_psychosocial_support_gap` |
+| `care_access` | `information_inclusivity_present`, `information_inclusivity_gap`, `school_psychosocial_support_active`, `school_psychosocial_support_gap` |
 | `equity` | `inequitable_resource_access`, `equitable_resource_distribution`, `educational_equity_gap` |
 | `household_strain` | `reservist_family_strain`, `household_strain_economic`, `parental_burden`, `sleep_disruption_population`, `substance_use_uptick` |
 | `population_evidence` | `population_survey_finding`, `sleep_disruption_population` |
 | `sensitive_harm` | `domestic_violence_indicator`, `suicide_self_harm_indicator` |
-| `hostage` | `hostage_uncertainty_distress`, `hostage_return_event`, `hostage_family_advocacy` |
+| `hostage` | `hostage_uncertainty_distress`, `hostage_return_event` |
 
-**All facet signal types for this component:** `calm_confidence`, `child_distress`, `domestic_violence_indicator`, `educational_equity_gap`, `equitable_resource_distribution`, `fear_expression`, `harm_to_population`, `hostage_family_advocacy`, `hostage_return_event`, `hostage_uncertainty_distress`, `household_strain_economic`, `inequitable_resource_access`, `information_inclusivity_gap`, `information_inclusivity_present`, `near_miss_reported`, `parental_burden`, `population_survey_finding`, `positive_wellbeing_marker`, `psychological_distress`, `reservist_family_strain`, `school_psychosocial_support_active`, `school_psychosocial_support_gap`, `sleep_disruption_population`, `substance_use_uptick`, `suicide_self_harm_indicator`, `wellbeing_support_accessed`
+**All facet signal types for this component:** `calm_confidence`, `child_distress`, `domestic_violence_indicator`, `educational_equity_gap`, `equitable_resource_distribution`, `fear_expression`, `harm_to_population`, `hostage_return_event`, `hostage_uncertainty_distress`, `household_strain_economic`, `inequitable_resource_access`, `information_inclusivity_gap`, `information_inclusivity_present`, `near_miss_reported`, `parental_burden`, `population_survey_finding`, `positive_wellbeing_marker`, `psychological_distress`, `reservist_family_strain`, `school_psychosocial_support_active`, `school_psychosocial_support_gap`, `sleep_disruption_population`, `substance_use_uptick`, `suicide_self_harm_indicator`
 
 ---
 
@@ -670,7 +670,7 @@ Per-component reference below is regenerated from code. Extended narrative, sign
 
 <!-- docs-sync:BEGIN appendix-ui-labels -->
 
-> **Auto-synced** from `client/src/i18n/translations.js (en + he)` on 2026-07-09. Do not edit between sync markers.
+> **Auto-synced** from `client/src/i18n/translations.js (en + he)` on 2026-07-13. Do not edit between sync markers.
 
 | ID | English UI label | Hebrew UI label |
 |---|---|---|
