@@ -1,5 +1,5 @@
 /**
- * Northern PBO sub-regions (same ids as REGIONAL_PBO_REGION_IDS in pbo_report_regional).
+ * Northern PBO sub-regions (same ids as REGIONAL_PBO_REGION_IDS in pbo_report).
  * Kept in geo module to avoid business-module cross-imports; parity is tested in tests/business_modules/geo.
  */
 export const NORTH_SUBREGION_IDS = ['naftali', 'golan', 'baram', 'hiram', 'galma'];

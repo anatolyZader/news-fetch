@@ -13,7 +13,7 @@ import { existsSync, mkdirSync, statSync, writeFileSync } from 'node:fs';
 import { relative } from 'node:path';
 
 import { getDefaultLlmPort } from '../../../cross-cut-modules/llm/anthropicLlmAdapter.js';
-import { preFilterByRelevance, homefrontPrefilterMode } from '../../../cross-cut-modules/homefront/homefrontRelevanceFilter.js';
+import { preFilterByRelevance, homefrontPrefilterMode } from './homefrontRelevanceFilter.js';
 import { getTodayInTimezone } from '../../../utils/dateUtils.js';
 import { createCostTracker, appendCostLog, checkDailyBudget } from '../../../cross-cut-modules/budget/index.js';
 import { createSourceArchive } from '../../../db/source_archive/createSourceArchive.js';

@@ -4,7 +4,7 @@
 import { createHash } from 'node:crypto';
 import { resolve } from 'node:path';
 import { resolveStateStore } from '../persistence/domain/resolveStateStore.js';
-import { LEARNING_CAPTURE_KINDS } from '../learningCapture/kinds.js';
+import { LEARNING_CAPTURE_KINDS } from '../../business_modules/resilience_scorer/index.js';
 import { COMPONENT_IDS } from '../../business_modules/resilience_scorer/index.js';
 
 const INVESTIGATION_KINDS = new Set([
@@ -145,4 +145,4 @@ export function loadOpenObservationsForAgent(date, opts = {}) {
 
 export { INVESTIGATION_KINDS };
 
-export { LEARNING_CAPTURE_KINDS } from '../learningCapture/kinds.js';
+export { LEARNING_CAPTURE_KINDS } from '../../business_modules/resilience_scorer/index.js';

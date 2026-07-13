@@ -35,8 +35,8 @@ export const OUTPUT_SYMLINKS = [
   { link: 'production/ingest/news-articles', target: 'business_modules/news-sites/articles_extracted' },
   { link: 'production/ingest/whatsapp-reports', target: 'business_modules/whatsapp/reports' },
   { link: 'production/ingest/field-visits', target: 'business_modules/visits/data' },
-  { link: 'production/ingest/pbo-muni', target: 'business_modules/pbo_report_muni/data' },
-  { link: 'production/ingest/pbo-regional', target: 'business_modules/pbo_report_regional/data' },
+  { link: 'production/ingest/pbo-muni', target: 'business_modules/pbo_report/data/muni' },
+  { link: 'production/ingest/pbo-regional', target: 'business_modules/pbo_report/data/regional' },
   { link: 'production/ingest/social-media', target: 'business_modules/social_media/data' },
 
   // Research / calibration (not operator daily path)

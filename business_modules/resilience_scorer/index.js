@@ -10,6 +10,14 @@
 // --- Resilience contracts (domain/contracts barrel) ---
 export * from './domain/contracts/index.js';
 
+// --- OOV learning-capture clustering (domain) ---
+export {
+  cosineSimilarity,
+  clusterByPrefix,
+  clusterByEmbedding,
+  rankClusters,
+} from './domain/services/oov/oovClusterer.js';
+
 // --- Display tier / report shaping (domain) ---
 export {
   deriveInstrumentState,

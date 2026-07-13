@@ -72,7 +72,7 @@
     "audio-to-md": "node business_modules/audio/input/audio-to-md.js",
     "video-grab-url": "node business_modules/video/input/video-grab-url.js",
     "youtube-to-md": "node business_modules/video/input/youtube-to-md.js",
-    "analyze-event-log": "node business_modules/pbo_report_muni/input/analyze-event-log.js",
+    "analyze-event-log": "node business_modules/pbo_report/input/analyze-event-log.js",
     "build:north-reference": "node business_modules/geo/input/buildNorthReferenceFromRegions.js",
     "i18n:parity": "node scripts/check-i18n-parity.mjs",
     "i18n:quality": "node scripts/check-i18n-quality.mjs",

@@ -8,7 +8,7 @@ import {
   evaluateOovBurst,
   loadOovCaptureRecordsForDate,
 } from '../../../../../business_modules/resilience_scorer/domain/services/oov/oovBurstAlert.js';
-import { LEARNING_CAPTURE_KINDS } from '../../../../../cross-cut-modules/learningCapture/kinds.js';
+import { LEARNING_CAPTURE_KINDS } from '../../../../../business_modules/resilience_scorer/domain/contracts/learningCaptureKinds.js';
 
 describe('oovBurstAlert', () => {
   it('returns no alert when file missing', async () => {

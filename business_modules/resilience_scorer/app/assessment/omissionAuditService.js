@@ -5,7 +5,7 @@ import { resolve } from 'node:path';
 import { resilienceAuditsDir } from '../../domain/services/paths/outputDirs.js';
 import { resolveStateStore } from '../../../../cross-cut-modules/persistence/domain/resolveStateStore.js';
 import { loadOovCaptureRecords } from '../../../../cross-cut-modules/retrieval/residualObservations.js';
-import { LEARNING_CAPTURE_KINDS } from '../../../../cross-cut-modules/learningCapture/kinds.js';
+import { LEARNING_CAPTURE_KINDS } from '../../domain/contracts/learningCaptureKinds.js';
 import { ISRAEL_NATIONAL_DISTRICT_ID } from '../../../../cross-cut-modules/geo/israelDistricts.js';
 
 function omissionAuditFilename(scopeId, date) {

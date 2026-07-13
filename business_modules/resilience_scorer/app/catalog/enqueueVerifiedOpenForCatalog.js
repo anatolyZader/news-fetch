@@ -4,7 +4,7 @@
 import { resolve } from 'node:path';
 import { bufferOovCapture } from '../../domain/services/oov/oovCapture.js';
 import { isCatalogAutoProposeVerifiedEnabled } from '../../domain/services/oov/openExtractConfig.js';
-import { LEARNING_CAPTURE_KINDS } from '../../../../cross-cut-modules/learningCapture/kinds.js';
+import { LEARNING_CAPTURE_KINDS } from '../../domain/contracts/learningCaptureKinds.js';
 
 /**
  * @param {Array<object>} verifiedClaims

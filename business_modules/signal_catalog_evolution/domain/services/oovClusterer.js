@@ -7,4 +7,4 @@ export {
   clusterByPrefix,
   clusterByEmbedding,
   rankClusters,
-} from '../../../../cross-cut-modules/learningCapture/oovClusterer.js';
+} from '../../../resilience_scorer/index.js';

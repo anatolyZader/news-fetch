@@ -1,8 +1,9 @@
 import { loadAppConfig } from '../cross-cut-modules/config/loadConfig.js';
-import { initTelemetry } from '../cross-cut-modules/observability/initTelemetry.js';
 import {
+  initTelemetry,
   createInProcessMetricsPort,
   createTracingMetricsPort,
+  createOtelTracePort,
 } from '../cross-cut-modules/monitoring/index.js';
 import { repoRoot } from './paths.js';
 import { registerPersistence } from './registerPersistence.js';
@@ -24,7 +25,7 @@ export function wireApplication() {
   void initTelemetry();
 
   const metricsPort = createInProcessMetricsPort();
-  const tracePort = createTracingMetricsPort({ metricsPort });
+  const tracePort = createOtelTracePort({ inner: createTracingMetricsPort({ metricsPort }) });
 
   const platform = registerPlatform();
   const persistence = registerPersistence({

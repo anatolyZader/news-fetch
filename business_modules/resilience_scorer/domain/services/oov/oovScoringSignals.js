@@ -2,7 +2,7 @@
  * Synthesize low-weight scoring signals from OOV cluster alerts.
  */
 
-import { inferDominantSourceClass } from '../../../../../cross-cut-modules/learningCapture/recordHelpers.js';
+import { inferDominantSourceClass } from '../../contracts/learningCaptureRecordHelpers.js';
 
 const DEFAULT_OOV_WEIGHT = 0.4;
 const MAX_SYNTHETIC_CLUSTERS = 5;

@@ -1,0 +1,261 @@
+/**
+ * Service to parse PBO municipality Excel reports and return structured 8-component data.
+ * Each Excel file contains one day's PBO reports for all municipalities in a district.
+ *
+ * Columns are alphabetically sorted (Hebrew) by the export tool — we map them back
+ * to the 8 resilience components using header text matching.
+ */
+
+import { resolve, basename, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import XLSX from 'xlsx';
+import {
+  normalizePboDistrictId,
+  resolveLocalExcelPaths,
+} from '../infrastructure/pboDistrictRegistry.js';
+
+const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
+
+// ─── Column → component mapping ─────────────────────────────────────────────
+// Each entry: { pattern: substring to match in Hebrew header, component, kind: 'score'|'text' }
+const COLUMN_MAP = [
+  // Score columns
+  { pattern: 'ממצה משאבי קהילה',                      component: 'community_capital',          kind: 'score' },
+  { pattern: 'תופסת את המידע בכלי התקשורת הארציים',   component: 'information_communication',  kind: 'score' },
+  { pattern: 'מעודדת את תושביה לפעול לפי הנחיות',     component: 'leadership',                 kind: 'score' },
+  { pattern: 'מקדמת נרטיב המעודד התמודדות',            component: 'narrative',                  kind: 'score' },
+  { pattern: 'נתפסת כמקור תמיכה של האוכלוסייה',       component: 'leadership',                 kind: 'score' },
+  { pattern: 'מכירים ומבינים את הנחיות פיקוד העורף',   component: 'lifesaving_behavior',        kind: 'score' },
+  { pattern: 'מצליחים לנהל חיי שגרה',                  component: 'functional_continuity',      kind: 'score' },
+  { pattern: 'מקבלים את המידע המקומי הנדרש',           component: 'information_communication',  kind: 'score' },
+  { pattern: 'שמספקים להם את השירותים הנדרשים',        component: 'functional_continuity',      kind: 'score' },
+  { pattern: 'סומכים על המידע שהם מקבלים מהרשות',     component: 'information_communication',  kind: 'score' },
+  { pattern: 'פועלים הלכה למעשה על פי ההנחיות',        component: 'lifesaving_behavior',        kind: 'score' },
+  { pattern: 'תופסים את הנרטיב המוצג על ידי הנהגת',   component: 'narrative',                  kind: 'score' },
+  { pattern: 'נרטיב של התמודדות מוצלחת בקרב',         component: 'narrative',                  kind: 'score' },
+  { pattern: 'מענים מספקים לצורכי האוכלוסיות המיוחדות', component: 'wellbeing_at_risk',           kind: 'score' },
+  { pattern: 'יוזמות של סיוע הדדי',                    component: 'belonging_solidarity',       kind: 'score' },
+  { pattern: 'קבוצות אוכלוסייה הנתפסות כמחוץ למחנה',  component: 'belonging_solidarity',       kind: 'score', invert: true },
+  { pattern: 'מנגנוני המידע והתקשורת של הרשות מותאמים', component: 'information_communication', kind: 'score' },
+  { pattern: 'פעילות לאיתור אוכלוסיות מעגל שני',       component: 'wellbeing_at_risk',           kind: 'score' },
+  { pattern: 'סיפור ההתמודדות המרכזי משקף',            component: 'narrative',                  kind: 'score' },
+  { pattern: 'מנגנונים לתכלול פעילות המתנדבים',        component: 'community_capital',          kind: 'score' },
+  { pattern: 'מענים רגשיים עבור תושבים המגלים סימני',  component: 'wellbeing_at_risk',           kind: 'score' },
+  { pattern: 'נכונות בקרב התושבים להתנדב',             component: 'community_capital',          kind: 'score' },
+  { pattern: 'תחושת סולידריות בקרב התושבים',           component: 'belonging_solidarity',       kind: 'score' },
+  { pattern: 'תפיסת האיום של התושבים מקדמת',           component: 'lifesaving_behavior',        kind: 'score' },
+
+  // Free text columns (התייחסות מילולית = verbal reference)
+  { pattern: 'התייחסות מילולית דאגה לרווחה',            component: 'wellbeing_at_risk',           kind: 'text' },
+  { pattern: 'התייחסות מילולית התנהגות אפקטיבית',       component: 'lifesaving_behavior',        kind: 'text' },
+  { pattern: 'התייחסות מילולית מידע ותקשורת',           component: 'information_communication',  kind: 'text' },
+  { pattern: 'התייחסות מילולית מיצוי משאבי קהילה',      component: 'community_capital',          kind: 'text' },
+  { pattern: 'התייחסות מילולית מנהיגות',                component: 'leadership',                 kind: 'text' },
+  { pattern: 'התייחסות מילולית נרטיב',                  component: 'narrative',                  kind: 'text' },
+  { pattern: 'התייחסות מילולית רציפות תפקודית',         component: 'functional_continuity',      kind: 'text' },
+  { pattern: 'התייחסות מילולית שייכות וסולידריות',       component: 'belonging_solidarity',       kind: 'text' },
+];
+
+export const COMPONENTS_ORDER = [
+  'narrative', 'information_communication', 'lifesaving_behavior',
+  'functional_continuity', 'community_capital', 'leadership',
+  'belonging_solidarity', 'wellbeing_at_risk',
+];
+
+export const COMPONENT_NAMES_HE = {
+  narrative:                 'נרטיב',
+  information_communication: 'מידע, תקשורת ושיתוף',
+  lifesaving_behavior:       'התנהגות אפקטיבית להצלת חיים',
+  functional_continuity:     'רציפות תפקודית',
+  community_capital:         'הון ומשאבי קהילה',
+  leadership:                'מנהיגות',
+  belonging_solidarity:      'שייכות וסולידריות',
+  wellbeing_at_risk:          'דאגה לרווחה',
+};
+
+export const COMPONENT_NAMES_EN = {
+  narrative:                 'Narrative',
+  information_communication: 'Information & Communication',
+  lifesaving_behavior:       'Lifesaving Behavior',
+  functional_continuity:     'Functional Continuity',
+  community_capital:         'Community Capital',
+  leadership:                'Leadership',
+  belonging_solidarity:      'Belonging & Solidarity',
+  wellbeing_at_risk:          'Wellbeing (At-Risk)',
+};
+
+/**
+ * Map column index to { component, kind, invert }.
+ */
+function buildColumnIndex(headers) {
+  const mapping = new Array(headers.length).fill(null);
+  for (let i = 0; i < headers.length; i++) {
+    const h = headers[i];
+    if (!h || i === 0) continue; // col 0 = municipality name
+    for (const def of COLUMN_MAP) {
+      if (h.includes(def.pattern)) {
+        mapping[i] = { component: def.component, kind: def.kind, invert: !!def.invert, pattern: def.pattern };
+        break;
+      }
+    }
+  }
+  return mapping;
+}
+
+const PBO_FILENAME_DATE_RE = /_(\d{1,2})_(\d{1,2})\.xlsx$/;
+const SLICER_YEAR_RE = /SlicerDate\s+הוא\s+\d{2}\/\d{2}\/(\d{4})/;
+const SLICER_DATE_RE = /SlicerDate\s+הוא\s+(\d{2})\/(\d{2})\/(\d{4})/;
+
+function applyScoreColumn(components, def, val) {
+  const num = Number.parseFloat(val);
+  if (Number.isNaN(num)) return;
+  components[def.component].scores.push({ label: def.pattern, value: def.invert ? 1 - num : num });
+}
+
+function applyTextColumn(components, def, val) {
+  const txt = String(val ?? '').trim();
+  if (txt) components[def.component].texts.push(txt);
+}
+
+/**
+ * Extract date from filename pattern "north_{day}_{month}.xlsx".
+ * Falls back to the SlicerDate row inside the sheet if filename doesn't match.
+ */
+function extractDate(rows, fileName) {
+  // Primary: derive from filename (e.g. "north_5_4.xlsx" → 2026-04-05)
+  const fnMatch = PBO_FILENAME_DATE_RE.exec(fileName ?? '');
+  if (fnMatch) {
+    // Need the year — grab it from the SlicerDate row
+    let year = new Date().getFullYear();
+    for (let i = rows.length - 1; i >= Math.max(0, rows.length - 5); i--) {
+      const cell = String(rows[i]?.[0] ?? '');
+      const sm = SLICER_YEAR_RE.exec(cell);
+      if (sm) { year = sm[1]; break; }
+    }
+    const day = fnMatch[1].padStart(2, '0');
+    const month = fnMatch[2].padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+  // Fallback: SlicerDate inside the sheet
+  for (let i = rows.length - 1; i >= Math.max(0, rows.length - 5); i--) {
+    const cell = String(rows[i]?.[0] ?? '');
+    const m = SLICER_DATE_RE.exec(cell);
+    if (m) return `${m[3]}-${m[2]}-${m[1]}`; // YYYY-MM-DD
+  }
+  return null;
+}
+
+function createEmptyComponents() {
+  const components = {};
+  for (const cid of COMPONENTS_ORDER) {
+    components[cid] = { scores: [], texts: [], avg: null };
+  }
+  return components;
+}
+
+function fillComponentsFromRow(row, colMap, components) {
+  for (let c = 1; c < row.length; c++) {
+    const def = colMap[c];
+    if (!def) continue;
+    if (def.kind === 'score') {
+      applyScoreColumn(components, def, row[c]);
+    } else if (def.kind === 'text') {
+      applyTextColumn(components, def, row[c]);
+    }
+  }
+}
+
+function finalizeComponentAverages(components) {
+  for (const cid of COMPONENTS_ORDER) {
+    const s = components[cid].scores;
+    components[cid].avg = s.length > 0 ? +(s.reduce((a, b) => a + b.value, 0) / s.length).toFixed(3) : null;
+  }
+}
+
+function parseMunicipalityRow(row, colMap) {
+  const name = String(row[0] ?? '').trim();
+  if (!name || name.startsWith('מסננים')) return null;
+  const components = createEmptyComponents();
+  fillComponentsFromRow(row, colMap, components);
+  finalizeComponentAverages(components);
+  return { name, components };
+}
+
+/**
+ * Parse one Excel file → { date, district, municipalities: [...] }
+ */
+function parseOneFile(filePath) {
+  const wb = XLSX.readFile(filePath);
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+
+  if (rows.length < 3) return null;
+
+  const headers = rows[0];
+  const colMap = buildColumnIndex(headers);
+  const date = extractDate(rows, basename(filePath));
+  const municipalities = [];
+
+  for (let r = 2; r < rows.length; r++) {
+    const parsed = parseMunicipalityRow(rows[r], colMap);
+    if (!parsed) {
+      const name = String(rows[r][0] ?? '').trim();
+      if (name.startsWith('מסננים')) break;
+      continue;
+    }
+    municipalities.push(parsed);
+  }
+
+  return { date, file: basename(filePath), municipalities };
+}
+
+/** Parse northern PBO Excel (municipality table or compatible regional workbook). Exported for regional PBO inboxes. */
+export function parsePboNorthExcelFile(filePath) {
+  return parseOneFile(filePath);
+}
+
+/**
+ * Scan district Excel files, parse them, return all days.
+ * @param {string} [districtId]
+ * @param {{ rootDir?: string }} [opts]
+ */
+export function getMunicipalityDashboard(districtId = 'north', opts = {}) {
+  const id = normalizePboDistrictId(districtId);
+  const rootDir = opts.rootDir ?? REPO_ROOT;
+  const filePaths = resolveLocalExcelPaths(rootDir, id);
+  const files = filePaths.map((p) => basename(p));
+
+  const days = [];
+  for (const filePath of filePaths) {
+    const parsed = parseOneFile(filePath);
+    if (parsed && parsed.municipalities.length > 0) {
+      days.push({ ...parsed, file: basename(filePath) });
+    }
+  }
+
+  // Sort by date
+  days.sort((a, b) => (a.date ?? '').localeCompare(b.date ?? ''));
+
+  // Aggregate: list of all unique municipality names
+  const allMunis = [...new Set(days.flatMap((d) => d.municipalities.map((m) => m.name)))].sort((a, b) => a.localeCompare(b));
+
+  // Compute district-wide averages per component per day
+  const districtTrend = days.map((day) => {
+    const avgByComp = {};
+    for (const cid of COMPONENTS_ORDER) {
+      const vals = day.municipalities.map((m) => m.components[cid].avg).filter((v) => v != null);
+      avgByComp[cid] = vals.length > 0 ? +(vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(3) : null;
+    }
+    return { date: day.date, file: day.file, municipalityCount: day.municipalities.length, avgByComponent: avgByComp };
+  });
+
+  return {
+    districtId: id,
+    componentsOrder: COMPONENTS_ORDER,
+    componentNames: { en: COMPONENT_NAMES_EN, he: COMPONENT_NAMES_HE },
+    municipalities: allMunis,
+    days,
+    districtTrend,
+    sourceFiles: files,
+  };
+}

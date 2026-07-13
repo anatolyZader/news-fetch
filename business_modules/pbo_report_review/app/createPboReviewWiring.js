@@ -2,7 +2,7 @@
  * Shared DI wiring for PBO report review (app, CLI, assess-signals).
  */
 import { resolve } from 'node:path';
-import { getMunicipalityDashboard } from '../../pbo_report_muni/index.js';
+import { getMunicipalityDashboard } from '../../pbo_report/index.js';
 import { EVIDENCE_REQUIREMENTS } from '../../report_build/index.js';
 import { createPboReportReviewService } from '../app/pboReportReviewService.js';
 import { createPboOfficerDirectoryJsonAdapter } from '../infrastructure/adapters/pboOfficerDirectoryJsonAdapter.js';

@@ -4,7 +4,7 @@
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { closedSignalsDir } from '../../resilience_scorer/index.js';
-import { getMunicipalityDashboard } from '../../pbo_report_muni/index.js';
+import { getMunicipalityDashboard } from '../../pbo_report/index.js';
 import {
   deriveInstrumentState,
   operatorAssessmentSummary,

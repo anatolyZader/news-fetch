@@ -311,7 +311,7 @@ async function executeIngestStep(step, ctx) {
       const args = ['--date', step.date];
       if (force) args.push('--force');
       await runNodeScript(
-        'business_modules/pbo_report_muni/input/extract-pbo-signals.js',
+        'business_modules/pbo_report/input/extract-pbo-signals.js',
         args,
         { allowFail: true, rootDir },
       );
@@ -322,7 +322,7 @@ async function executeIngestStep(step, ctx) {
       return;
     case 'extract_regional_pbo':
       await runNodeScript(
-        'business_modules/pbo_report_regional/input/extract-regional-pbo-signals.js',
+        'business_modules/pbo_report/input/extract-regional-pbo-signals.js',
         ['--files', step.detail, '--date', step.date],
         { allowFail: true, rootDir },
       );

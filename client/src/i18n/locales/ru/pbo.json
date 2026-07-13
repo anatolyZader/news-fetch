@@ -5,7 +5,7 @@
   "pbo.region.golan": "Голан",
   "pbo.region.hiram": "Хирам",
   "pbo.region.naftali": "Нафтали",
-  "pbo.regionDaily.empty": "Пока нет markdown-отчётов. Сохраняйте ежедневные .md отчёты в business_modules/pbo_report_regional/data.",
+  "pbo.regionDaily.empty": "Пока нет markdown-отчётов. Сохраняйте ежедневные .md отчёты в business_modules/pbo_report/data/regional.",
   "pbo.regionDaily.listAria": "Региональные ежедневные отчёты ПБО",
   "pbo.regionDaily.loading": "Загрузка региональных данных ПБО…",
   "pbo.regionDaily.subtitle": "Ежедневные markdown-отчёты, вручную сохранённые региональным ПБО перед анализом.",

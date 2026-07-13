@@ -70,3 +70,14 @@ export {
   parseEvidenceAnchorHref,
 } from './evidenceAnchor.js';
 export { closedSignalsDir } from './closedSignalsPaths.js';
+export {
+  LEARNING_CAPTURE_KINDS,
+  LEARNING_CAPTURE_KIND_SET,
+} from './learningCaptureKinds.js';
+export {
+  clusterKeyForRecord,
+  evidenceTextForRecord,
+  captureKindLabel,
+  inferSourceDensityClass,
+  inferDominantSourceClass,
+} from './learningCaptureRecordHelpers.js';

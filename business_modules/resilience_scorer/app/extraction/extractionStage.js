@@ -5,7 +5,7 @@
  * (fire-and-forget side artifact; only the closed result is returned).
  *
  * Callers may supply closedExtractFn to override the default closed-catalogue extractor
- * (used by pbo_report_muni and pbo_report_regional which need module-specific geo stamping).
+ * (used by pbo_report muni/regional inputs which need module-specific geo stamping).
  */
 import { isOpenExtractParallelEnabled } from '../../domain/services/oov/openExtractConfig.js';
 import { runClosedCatalogueExtract } from './closedCatalogueExtractService.js';

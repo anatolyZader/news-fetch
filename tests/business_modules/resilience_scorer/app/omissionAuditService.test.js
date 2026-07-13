@@ -8,7 +8,7 @@ import {
   buildOmissionAuditPayload,
   buildAndWriteOmissionAudit,
 } from '../../../../business_modules/resilience_scorer/app/assessment/omissionAuditService.js';
-import { LEARNING_CAPTURE_KINDS } from '../../../../cross-cut-modules/learningCapture/kinds.js';
+import { LEARNING_CAPTURE_KINDS } from '../../../../business_modules/resilience_scorer/domain/contracts/learningCaptureKinds.js';
 
 describe('omissionAuditService', () => {
   it('builds payload from OOV JSONL and closed signal diff', () => {

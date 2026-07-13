@@ -8,7 +8,7 @@ import fastifySwaggerUi from '@fastify/swagger-ui';
 import YAML from 'yaml';
 import { createReportReadPort, createReportDisplayPort } from '../business_modules/resilience_scorer/index.js';
 import { createClaudeChatAdapter } from '../business_modules/chat/infrastructure/adapters/claudeChatAdapter.js';
-import { getMunicipalityDashboard } from '../business_modules/pbo_report_muni/index.js';
+import { getMunicipalityDashboard } from '../business_modules/pbo_report/index.js';
 import { registerAppErrorHandler } from '../cross-cut-modules/errors/index.js';
 import {
   getDefaultEventBus,
@@ -53,7 +53,7 @@ import { reportBuildRoutes } from '../business_modules/report_build/input/report
 import { mailingRoutes } from '../business_modules/mailing/input/mailingRoutes.js';
 import { pboReviewRoutes } from '../business_modules/pbo_report_review/input/pboReviewRoutes.js';
 import { signalCatalogEvolutionRoutes } from '../business_modules/signal_catalog_evolution/index.js';
-import { evidenceRoutes } from '../cross-cut-modules/evidence/input/evidenceRoutes.js';
+import { evidenceRoutes } from '../business_modules/evidence_submission/input/evidenceRoutes.js';
 import { chatRoutes } from '../business_modules/chat/input/chatRoutes.js';
 import { registerCrisisBudgetRoutes } from '../cross-cut-modules/budget/index.js';
 import { reportRoutes } from '../business_modules/resilience_scorer/input/reportRoutes.js';

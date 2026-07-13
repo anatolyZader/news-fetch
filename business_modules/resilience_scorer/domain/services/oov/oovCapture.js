@@ -87,4 +87,4 @@ export function countOovCapturesForDate(date, capturesDir = resilienceCapturesDi
   }
 }
 
-export {LEARNING_CAPTURE_KINDS} from '../../../../../cross-cut-modules/learningCapture/kinds.js';
+export {LEARNING_CAPTURE_KINDS} from '../../contracts/learningCaptureKinds.js';

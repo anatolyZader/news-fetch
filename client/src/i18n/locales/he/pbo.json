@@ -5,7 +5,7 @@
   "pbo.region.golan": "גולן",
   "pbo.region.hiram": "חירם",
   "pbo.region.naftali": "נפתלי",
-  "pbo.regionDaily.empty": "אין עדיין דוחות Markdown. יש לשמור דוחות יומיים בתיקייה business_modules/pbo_report_regional/data.",
+  "pbo.regionDaily.empty": "אין עדיין דוחות Markdown. יש לשמור דוחות יומיים בתיקייה business_modules/pbo_report/data/regional.",
   "pbo.regionDaily.listAria": "דוחות קה״א יומיים לפי תאריך",
   "pbo.regionDaily.loading": "טוען נתוני אזור…",
   "pbo.regionDaily.subtitle": "דוחות Markdown יומיים שנשמרו ידנית על ידי קה״א אזורי לפני הניתוח.",

@@ -8,7 +8,7 @@ import {
   GAP_KINDS,
   reviewMunicipalityRow,
 } from '../../../../../business_modules/pbo_report_review/domain/services/municipalCompleteness.js';
-import { COMPONENTS_ORDER } from '../../../../../business_modules/pbo_report_muni/app/pboMunicipalityService.js';
+import { COMPONENTS_ORDER } from '../../../../../business_modules/pbo_report/app/pboMunicipalityService.js';
 import { EVIDENCE_REQUIREMENTS } from '../../../../../business_modules/report_build/domain/evidenceRequirements.js';
 
 function makeMuni(overrides = {}) {

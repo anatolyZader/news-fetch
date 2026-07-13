@@ -7,7 +7,7 @@ import { createEvidenceDraftStore } from '../../../db/persistence/evidenceDraftS
 import {
   canRunEvidenceLlmAnalysis,
   recordEvidenceLlmAnalysis,
-} from '../../../cross-cut-modules/evidence/input/evidenceAnalysisAccess.js';
+} from '../../../business_modules/evidence_submission/input/evidenceAnalysisAccess.js';
 
 describe('evidenceAnalysisQuota sqlite', () => {
   let dbPath;

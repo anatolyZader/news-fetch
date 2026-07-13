@@ -26,7 +26,7 @@ const RULES = [
   { test: /^review-.*\.md$/, target: 'business_modules/resilience_scorer/analyst/data/reviews' },
   { test: /^epistemic-profile-.*\.json$/, target: 'business_modules/epistemic_features/data/profiles' },
   { test: /^(translation|locale)-.*\.json$/, target: 'business_modules/translation/data/locale' },
-  { test: /^event-report-.*\.(json|md)$/, target: 'business_modules/pbo_report_muni/data/reports' },
+  { test: /^event-report-.*\.(json|md)$/, target: 'business_modules/pbo_report/data/muni/reports' },
   { test: /^catalog-gap-report\.md$/, target: 'business_modules/signal_catalog_evolution/data' },
 ];
 

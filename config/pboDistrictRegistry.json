@@ -1,35 +1,35 @@
 {
   "districts": {
     "north": {
-      "localDataDir": "business_modules/pbo_report_muni/data/north",
-      "legacyModuleRoot": "business_modules/pbo_report_muni",
+      "localDataDir": "business_modules/pbo_report/data/muni/north",
+      "legacyModuleRoot": "business_modules/pbo_report",
       "localFilenamePrefix": "north_",
       "regionalSubregions": ["naftali", "golan", "baram", "hiram", "galma"],
-      "regionalInboxDir": "business_modules/pbo_report_regional/data"
+      "regionalInboxDir": "business_modules/pbo_report/data/regional"
     },
     "south": {
-      "localDataDir": "business_modules/pbo_report_muni/data/south",
+      "localDataDir": "business_modules/pbo_report/data/muni/south",
       "localFilenamePrefix": "south_",
       "regionalSubregions": [],
-      "regionalInboxDir": "business_modules/pbo_report_regional/data/south"
+      "regionalInboxDir": "business_modules/pbo_report/data/regional/south"
     },
     "jerusalem": {
-      "localDataDir": "business_modules/pbo_report_muni/data/jerusalem",
+      "localDataDir": "business_modules/pbo_report/data/muni/jerusalem",
       "localFilenamePrefix": "jerusalem_",
       "regionalSubregions": [],
-      "regionalInboxDir": "business_modules/pbo_report_regional/data/jerusalem"
+      "regionalInboxDir": "business_modules/pbo_report/data/regional/jerusalem"
     },
     "haifa": {
-      "localDataDir": "business_modules/pbo_report_muni/data/haifa",
+      "localDataDir": "business_modules/pbo_report/data/muni/haifa",
       "localFilenamePrefix": "haifa_",
       "regionalSubregions": [],
-      "regionalInboxDir": "business_modules/pbo_report_regional/data/haifa"
+      "regionalInboxDir": "business_modules/pbo_report/data/regional/haifa"
     },
     "dan": {
-      "localDataDir": "business_modules/pbo_report_muni/data/dan",
+      "localDataDir": "business_modules/pbo_report/data/muni/dan",
       "localFilenamePrefix": "dan_",
       "regionalSubregions": [],
-      "regionalInboxDir": "business_modules/pbo_report_regional/data/dan"
+      "regionalInboxDir": "business_modules/pbo_report/data/regional/dan"
     }
   }
 }

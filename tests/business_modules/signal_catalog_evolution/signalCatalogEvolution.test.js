@@ -4,7 +4,7 @@ import {
   clusterByPrefix,
   rankClusters,
 } from '../../../business_modules/signal_catalog_evolution/domain/services/oovClusterer.js';
-import { LEARNING_CAPTURE_KINDS } from '../../../cross-cut-modules/learningCapture/kinds.js';
+import { LEARNING_CAPTURE_KINDS } from '../../../business_modules/resilience_scorer/domain/contracts/learningCaptureKinds.js';
 import { formatGapReportMarkdown } from '../../../business_modules/signal_catalog_evolution/domain/services/gapReportFormatter.js';
 import { buildResidualCapturePrompt } from '../../../business_modules/resilience_scorer/infrastructure/extractionPasses.js';
 import { buildResidualExtractionPrompt } from '../../../business_modules/open_observation_extraction/domain/services/openExtractionPrompts.js';

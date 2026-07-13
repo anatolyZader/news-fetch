@@ -3,7 +3,7 @@ import { createDefaultPoolService } from '../business_modules/pool/index.js';
 import {
   createPboRegionalDailyService,
   createPboReportRegionalFsAdapter,
-} from '../business_modules/pbo_report_regional/index.js';
+} from '../business_modules/pbo_report/index.js';
 import { createVisitsFsAdapter, createVisitsService } from '../business_modules/visits/index.js';
 import { createSocialMediaService } from '../business_modules/social_media/index.js';
 import { createNewsPipelineConfigAdapter } from '../business_modules/news-sites/infrastructure/adapters/newsPipelineConfigAdapter.js';

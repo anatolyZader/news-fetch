@@ -4,7 +4,7 @@
 export {
   LEARNING_CAPTURE_KINDS,
   LEARNING_CAPTURE_KIND_SET,
-} from '../../../../cross-cut-modules/learningCapture/kinds.js';
+} from '../../../resilience_scorer/index.js';
 
 export {
   clusterKeyForRecord,
@@ -12,4 +12,4 @@ export {
   captureKindLabel,
   inferSourceDensityClass,
   inferDominantSourceClass,
-} from '../../../../cross-cut-modules/learningCapture/recordHelpers.js';
+} from '../../../resilience_scorer/index.js';

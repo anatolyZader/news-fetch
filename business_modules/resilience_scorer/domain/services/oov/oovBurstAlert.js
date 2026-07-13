@@ -9,7 +9,7 @@ function getStore(deps = {}) {
 }
 import { resolve } from 'node:path';
 import { resilienceCapturesDir } from '../paths/outputDirs.js';
-import { evaluateDynamicOovClusters, evaluateInvestigationOovClusters } from '../../../../../cross-cut-modules/learningCapture/dynamicOovCluster.js';
+import { evaluateDynamicOovClusters, evaluateInvestigationOovClusters } from './dynamicOovCluster.js';
 import { embedText, embeddingsEnabled } from '../../../../../cross-cut-modules/vector_index/index.js';
 import { isLearningCaptureEnabled, getOovRunBuffer } from './oovCapture.js';
 
@@ -125,4 +125,4 @@ export async function evaluateInvestigationBurst(date, opts = {}) {
 
 
 
-export {LEARNING_CAPTURE_KINDS} from '../../../../../cross-cut-modules/learningCapture/kinds.js';
+export {LEARNING_CAPTURE_KINDS} from '../../contracts/learningCaptureKinds.js';

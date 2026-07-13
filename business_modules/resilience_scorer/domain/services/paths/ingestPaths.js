@@ -59,7 +59,7 @@ export function visitsReportsGlobDir(rootDir) {
 export const fieldReportsGlobDir = visitsReportsGlobDir;
 
 export function regionalPboDataDir(rootDir) {
-  return resolve(resolveRepoRoot(rootDir), 'business_modules/pbo_report_regional/data');
+  return resolve(resolveRepoRoot(rootDir), 'business_modules/pbo_report/data/regional');
 }
 
 export function pipelineOpenObservationsDataDir(rootDir) {

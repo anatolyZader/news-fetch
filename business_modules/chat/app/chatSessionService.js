@@ -2,7 +2,7 @@
  * Chat turn preparation and post-stream persistence (non-SSE).
  */
 
-import { buildChatSystemHint } from '../../../cross-cut-modules/evidence/input/submissionHelpers.js';
+import { buildChatSystemHint } from '../../evidence_submission/index.js';
 import { resolveDisplayView } from '../../resilience_scorer/index.js';
 
 /**

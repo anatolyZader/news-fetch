@@ -7,7 +7,7 @@ import { resolve, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getTodayInTimezone, validateDate } from '../../../utils/dateUtils.js';
 import { getTranslatedReport, localizeReportTodayPayload, maybeLocalize, parseLocale } from '../../translation/index.js';
-import { buildMunicipalityDashboardDto } from '../../pbo_report_muni/index.js';
+import { buildMunicipalityDashboardDto } from '../../pbo_report/index.js';
 import { requireOperatorDistrictAccess } from '../../../cross-cut-modules/auth/operatorDistrictAccess.js';
 import { canViewAnalystDisplay } from '../../../cross-cut-modules/auth/userAccess.js';
 import {

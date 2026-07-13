@@ -7,7 +7,7 @@
  */
 import Anthropic from '@anthropic-ai/sdk';
 import { runToolLoop as sharedRunToolLoop } from './runToolLoop.js';
-import { withSpan } from '../observability/withSpan.js';
+import { withSpan } from '../monitoring/index.js';
 import { createLlmGateway } from './llmGateway.js';
 import {
   prepareAnthropicRequest,
